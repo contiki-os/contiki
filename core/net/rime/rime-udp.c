@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime-udp.c,v 1.4 2009/06/24 16:31:49 nvt-se Exp $
+ * $Id: rime-udp.c,v 1.5 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 /**
@@ -103,8 +103,8 @@ PROCESS_THREAD(rime_udp_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-static int
-send_packet(void)
+static void
+send_packet(mac_callback_t sent_callback, void *ptr)
 {
   const rimeaddr_t *addr;
 
@@ -115,6 +115,7 @@ send_packet(void)
   if(rimeaddr_cmp(&rimeaddr_null, addr)) {
     uip_udp_packet_send(broadcast_conn,
                         packetbuf_hdrptr(), packetbuf_totlen());
+    mac_call_sent_callback(sent_callback, ptr, MAC_TX_OK, 1);
   } else {
     uip_ip6addr(&unicast_conn->ripaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
     uip_netif_addr_autoconf_set(&unicast_conn->ripaddr, (uip_lladdr_t *)addr);
@@ -122,11 +123,11 @@ send_packet(void)
                         packetbuf_hdrptr(), packetbuf_totlen());
     uip_create_unspecified(&unicast_conn->ripaddr);
   }
-  return 1;
+  return;
 }
 /*---------------------------------------------------------------------------*/
 static int
-read_packet(void)
+input_packet(void)
 {
   packetbuf_set_datalen(uip_datalen());
   return uip_datalen();
@@ -150,20 +151,26 @@ off(int keep_radio_on)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver rime_udp_driver = {
-  "rime-udp",
-  rime_udp_init,
-  send_packet,
-  read_packet,
-  set_receive_function,
-  on,
-  off,
-};
+static unsigned short
+check_interval(void)
+{
+  return 0;
+}
 /*---------------------------------------------------------------------------*/
-const struct mac_driver *
-rime_udp_init(const struct radio_driver *d)
+static int
+init(void)
 {
   process_start(&rime_udp_process, NULL);
-  return &rime_udp_driver;
+  return 1;
 }
+/*---------------------------------------------------------------------------*/
+const struct mac_driver rime_udp_driver = {
+  "rime-udp",
+  init,
+  send_packet,
+  input_packet,
+  on,
+  off,
+  check_interval,
+};
 /*---------------------------------------------------------------------------*/

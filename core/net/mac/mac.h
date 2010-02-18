@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.11 2010/02/03 16:45:12 adamdunkels Exp $
+ * $Id: mac.h,v 1.12 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,11 @@
 #include "contiki-conf.h"
 #include "dev/radio.h"
 
+
+typedef void (* mac_callback_t)(void *ptr, int status, int transmissions);
+
+void mac_call_sent_callback(mac_callback_t sent, void *ptr, int status, int num_tx);
+
 /**
  * The structure of a MAC protocol driver in Contiki.
  */
@@ -51,17 +56,14 @@ struct mac_driver {
   char *name;
 
   /** Initialize the MAC driver */
-  const struct mac_driver *(* init)(const struct radio_driver *r);
+  void (* init)(void);
 
   /** Send a packet from the Rime buffer  */
-  int (* send)(void);
+  void (* send)(mac_callback_t sent_callback, void *ptr);
 
-  /** Read a received packet into the Rime buffer. */
-  int (* read)(void);
-
-  /** Set a function to be called when a packet has been received. */
-  void (* set_receive_function)(void (*f)(const struct mac_driver *d));
-
+  /** Callback for getting notified of incoming packet. */
+  void (* input)(void);
+  
   /** Turn the MAC layer on. */
   int (* on)(void);
 

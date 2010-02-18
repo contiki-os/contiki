@@ -1,33 +1,42 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.71 2010/02/08 22:12:29 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.72 2010/02/18 21:48:39 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
 
 
-/* Specifies the default MAC driver */
-#define MAC_CONF_CSMA               1
-
-#define XMAC_CONF_COMPOWER          1
-#define CXMAC_CONF_COMPOWER         1
-
-
 #if WITH_UIP6
-#define MAC_CONF_DRIVER             cxmac_driver
-#define MAC_CONF_CHANNEL_CHECK_RATE 8
+
+/* Network setup for IPv6 */
+#define NETSTACK_CONF_NETWORK sicslowpan_driver
+#define NETSTACK_CONF_MAC     csma_driver
+#define NETSTACK_CONF_RDC     contikimac_driver
+#define NETSTACK_CONF_RADIO   cc2420_driver
+
+#define CC2420_CONF_AUTOACK              1
+#define MAC_CONF_CHANNEL_CHECK_RATE      8
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
-#define CXMAC_CONF_ANNOUNCEMENTS    0
-#define XMAC_CONF_ANNOUNCEMENTS     0
+#define CXMAC_CONF_ANNOUNCEMENTS         0
+#define XMAC_CONF_ANNOUNCEMENTS          0
+
 #else /* WITH_UIP6 */
-#define MAC_CONF_DRIVER             xmac_driver
-#define MAC_CONF_CHANNEL_CHECK_RATE 4
-#define TIMESYNCH_CONF_ENABLED 1
-#define CC2420_CONF_TIMESTAMPS 1
-#define CC2420_CONF_CHECKSUM   0
-#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
-#define XMAC_CONF_ANNOUNCEMENTS     1
-#define CXMAC_CONF_ANNOUNCEMENTS    1
+
+/* Network setup for non-IPv6 (rime). */
+
+#define NETSTACK_CONF_NETWORK rime_driver
+#define NETSTACK_CONF_MAC     csma_driver
+#define NETSTACK_CONF_RDC     contikimac_driver
+#define NETSTACK_CONF_RADIO   cc2420_driver
+
+#define CC2420_CONF_AUTOACK              1
+#define MAC_CONF_CHANNEL_CHECK_RATE      8
+#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
+#define CXMAC_CONF_ANNOUNCEMENTS         0
+#define XMAC_CONF_ANNOUNCEMENTS          0
+
+#define XMAC_CONF_COMPOWER               1
+#define CXMAC_CONF_COMPOWER              1
 #endif /* WITH_UIP6 */
 
 #define QUEUEBUF_CONF_NUM          16

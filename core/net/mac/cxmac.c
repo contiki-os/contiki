@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.9 2010/02/03 16:44:43 adamdunkels Exp $
+ * $Id: cxmac.c,v 1.10 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 /**
@@ -43,6 +43,7 @@
 #include "dev/leds.h"
 #include "dev/radio.h"
 #include "dev/watchdog.h"
+#include "net/netstack.h"
 #include "lib/random.h"
 #include "net/mac/framer.h"
 #include "net/mac/cxmac.h"
@@ -157,8 +158,6 @@ static volatile unsigned char someone_is_sending = 0;
 static volatile unsigned char we_are_sending = 0;
 static volatile unsigned char radio_is_on = 0;
 
-static const struct radio_driver *radio;
-
 #undef LEDS_ON
 #undef LEDS_OFF
 #undef LEDS_TOGGLE
@@ -193,8 +192,6 @@ static int announcement_radio_txpower;
    for announcements from neighbors. */
 static uint8_t is_listening;
 
-static void (* receiver_callback)(const struct mac_driver *);
-
 #if CXMAC_CONF_COMPOWER
 static struct compower_activity current_packet;
 #endif /* CXMAC_CONF_COMPOWER */
@@ -226,17 +223,11 @@ static rtimer_clock_t stream_until;
 
 /*---------------------------------------------------------------------------*/
 static void
-set_receive_function(void (* recv)(const struct mac_driver *))
-{
-  receiver_callback = recv;
-}
-/*---------------------------------------------------------------------------*/
-static void
 on(void)
 {
   if(cxmac_is_on && radio_is_on == 0) {
     radio_is_on = 1;
-    radio->on();
+    NETSTACK_RADIO.on();
     LEDS_ON(LEDS_RED);
   }
 }
@@ -247,7 +238,7 @@ off(void)
   if(cxmac_is_on && radio_is_on != 0 && is_listening == 0 &&
      is_streaming == 0) {
     radio_is_on = 0;
-    radio->off();
+    NETSTACK_RADIO.off();
     LEDS_OFF(LEDS_RED);
   }
 }
@@ -571,7 +562,7 @@ send_packet(void)
 	rtimer_clock_t now = RTIMER_NOW();
 	/* See if we got an ACK */
 	packetbuf_clear();
-	len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
+	len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
 	if(len > 0) {
 	  packetbuf_set_datalen(len);
 	  if(framer_get()->parse()) {
@@ -602,16 +593,16 @@ send_packet(void)
 
 	if(is_broadcast) {
 #if WITH_STROBE_BROADCAST
-	  radio->send(strobe, strobe_len);
+	  NETSTACK_RADIO.send(strobe, strobe_len);
 #else
 	  /* restore the packet to send */
 	  queuebuf_to_packetbuf(packet);
-	  radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+	  NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
 #endif
 	  off();
 	} else {
 	  rtimer_clock_t wt;
-	  radio->send(strobe, strobe_len);
+	  NETSTACK_RADIO.send(strobe, strobe_len);
 #if 1
 	  /* Turn off the radio for a while to let the other side
 	     respond. We don't need to keep our radio on when we know
@@ -649,7 +640,7 @@ send_packet(void)
 
   /* Send the data packet. */
   if((is_broadcast || got_strobe_ack || is_streaming) && collisions == 0) {
-    radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+    NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
   }
 
 #if WITH_ENCOUNTER_OPTIMIZATION
@@ -693,42 +684,27 @@ send_packet(void)
 
 }
 /*---------------------------------------------------------------------------*/
-static int
-qsend_packet(void)
+static void
+qsend_packet(mac_callback_t sent, void *ptr)
 {
+  int ret;
   if(someone_is_sending) {
     PRINTF("cxmac: should queue packet, now just dropping %d %d %d %d.\n",
 	   waiting_for_packet, someone_is_sending, we_are_sending, radio_is_on);
     RIMESTATS_ADD(sendingdrop);
-    return MAC_TX_COLLISION;
+    ret = MAC_TX_COLLISION;
   } else {
     PRINTF("cxmac: send immediately.\n");
-    return send_packet();
+    ret = send_packet();
   }
+
+  mac_call_sent_callback(sent, ptr, ret, 1);
 }
 /*---------------------------------------------------------------------------*/
 static void
-input_packet(const struct radio_driver *d)
-{
-  if(receiver_callback) {
-    receiver_callback(&cxmac_driver);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static int
-read_packet(void)
+input_packet(void)
 {
   struct cxmac_hdr *hdr;
-  uint8_t len;
-
-  packetbuf_clear();
-
-  len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
-  if(len == 0) {
-    return 0;
-  }
-
-  packetbuf_set_datalen(len);
 
   if(framer_get()->parse()) {
     hdr = packetbuf_dataptr();
@@ -763,7 +739,8 @@ read_packet(void)
 	waiting_for_packet = 0;
 
         PRINTDEBUG("cxmac: data(%u)\n", packetbuf_datalen());
-	return packetbuf_datalen();
+	NETSTACK_MAC.input();
+        return;
       } else {
         PRINTDEBUG("cxmac: data not for us\n");
       }
@@ -790,7 +767,7 @@ read_packet(void)
 	  someone_is_sending = 1;
 	  waiting_for_packet = 1;
 	  on();
-	  radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+	  NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
 	  PRINTDEBUG("cxmac: send strobe ack %u\n", packetbuf_totlen());
 	} else {
 	  PRINTF("cxmac: failed to send strobe ack\n");
@@ -809,7 +786,7 @@ read_packet(void)
 
       /* We are done processing the strobe and we therefore return
 	 to the caller. */
-      return RIME_OK;
+      return;
 #if CXMAC_CONF_ANNOUNCEMENTS
     } else if(hdr->type == TYPE_ANNOUNCEMENT) {
       packetbuf_hdrreduce(sizeof(struct cxmac_hdr));
@@ -824,7 +801,6 @@ read_packet(void)
   } else {
     PRINTF("cxmac: failed to parse (%u)\n", packetbuf_totlen());
   }
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 #if CXMAC_CONF_ANNOUNCEMENTS
@@ -850,7 +826,7 @@ send_announcement(void *ptr)
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
     packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER, announcement_radio_txpower);
     if(framer_get()->create()) {
-      radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+      NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
     }
   }
 }
@@ -883,8 +859,8 @@ cxmac_set_announcement_radio_txpower(int txpower)
 #endif /* CXMAC_CONF_ANNOUNCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver *
-cxmac_init(const struct radio_driver *d)
+void
+cxmac_init(void)
 {
   radio_is_on = 0;
   waiting_for_packet = 0;
@@ -893,8 +869,6 @@ cxmac_init(const struct radio_driver *d)
       (void (*)(struct rtimer *, void *))powercycle, NULL);*/
 
   cxmac_is_on = 1;
-  radio = d;
-  radio->set_receive_function(input_packet);
 
 #if WITH_ENCOUNTER_OPTIMIZATION
   list_init(encounter_list);
@@ -908,7 +882,6 @@ cxmac_init(const struct radio_driver *d)
 #endif /* CXMAC_CONF_ANNOUNCEMENTS */
 
   CSCHEDULE_POWERCYCLE(DEFAULT_OFF_TIME);
-  return &cxmac_driver;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -926,9 +899,9 @@ turn_off(int keep_radio_on)
 {
   cxmac_is_on = 0;
   if(keep_radio_on) {
-    return radio->on();
+    return NETSTACK_RADIO.on();
   } else {
-    return radio->off();
+    return NETSTACK_RADIO.off();
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -943,8 +916,7 @@ const struct mac_driver cxmac_driver =
     "CX-MAC",
     cxmac_init,
     qsend_packet,
-    read_packet,
-    set_receive_function,
+    input_packet,
     turn_on,
     turn_off,
     channel_check_interval,

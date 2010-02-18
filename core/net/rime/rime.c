@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.24 2010/02/03 20:38:33 adamdunkels Exp $
+ * $Id: rime.c,v 1.25 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 /**
@@ -43,6 +43,15 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+#include "net/netstack.h"
 #include "net/rime.h"
 #include "net/rime/chameleon.h"
 #include "net/rime/neighbor.h"
@@ -90,31 +99,27 @@ rime_sniffer_remove(struct rime_sniffer *s)
 }
 /*---------------------------------------------------------------------------*/
 static void
-input(const struct mac_driver *r)
+input(void)
 {
-  int len;
   struct rime_sniffer *s;
-  len = rime_mac->read();
-  if(len > 0) {
-    for(s = list_head(sniffers); s != NULL; s = s->next) {
-      if(s->input_callback != NULL) {
-	s->input_callback();
-      }
+
+  for(s = list_head(sniffers); s != NULL; s = s->next) {
+    if(s->input_callback != NULL) {
+      s->input_callback();
     }
-    RIMESTATS_ADD(rx);
-    chameleon_input();
   }
+  RIMESTATS_ADD(rx);
+  chameleon_input();
 }
 /*---------------------------------------------------------------------------*/
-void
-rime_init(const struct mac_driver *m)
+static void
+init(void)
 {
   queuebuf_init();
   packetbuf_clear();
   announcement_init();
-  rime_mac = m;
-  rime_mac->set_receive_function(input);
 
+  rime_mac = &NETSTACK_MAC;
   chameleon_init(&chameleon_bitopt);
 #if ! RIME_CONF_NO_POLITE_ANNOUCEMENTS
   /* XXX This is initializes the transmission of announcements but it
@@ -131,26 +136,50 @@ rime_init(const struct mac_driver *m)
 #endif /* ! RIME_CONF_NO_POLITE_ANNOUCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
-int
+static void
+packet_sent(void *ptr, int status, int num_tx)
+{
+  switch(status) {
+  case MAC_TX_COLLISION:
+    PRINTF("rime: collision after %d tx\n", num_tx);
+    break; 
+  case MAC_TX_NOACK:
+    PRINTF("rime: noack after %d tx\n", num_tx);
+    break;
+  case MAC_TX_OK:
+    PRINTF("rime: sent after %d tx\n", num_tx);
+    break;
+  default:
+    PRINTF("rime: error %d after %d tx\n", status, num_tx);
+  }
+
+  if(status == MAC_TX_OK) {
+    struct rime_sniffer *s;
+    /* Call sniffers, but only if the packet was sent. */
+    for(s = list_head(sniffers); s != NULL; s = s->next) {
+      if(s->output_callback != NULL) {
+        s->output_callback();
+      }
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
 rime_output(void)
 {
-  struct rime_sniffer *s;
-
   RIMESTATS_ADD(tx);
   packetbuf_compact();
 
-  if(rime_mac) {
-    if(rime_mac->send() == MAC_TX_OK) {
-      /* Call sniffers, but only if the packet was sent. */
-      for(s = list_head(sniffers); s != NULL; s = s->next) {
-        if(s->output_callback != NULL) {
-          s->output_callback();
-        }
-      }
-      return RIME_OK;
-    }
-  }
-  return RIME_ERR;
+  NETSTACK_MAC.send(packet_sent, NULL);
 }
 /*---------------------------------------------------------------------------*/
+const struct mac_driver rime_driver = {
+  "Rime",
+  init,
+  NULL,
+  input,
+  NULL,
+  NULL,
+  NULL,
+};
 /** @} */

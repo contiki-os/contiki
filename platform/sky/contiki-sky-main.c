@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.68 2010/02/06 10:00:49 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.69 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -48,7 +48,7 @@
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
 #include "lib/random.h"
-#include "net/mac/csma.h"
+#include "net/netstack.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
 #include "net/mac/framer-nullmac.h"
@@ -107,29 +107,6 @@ static uint8_t is_gateway;
 #ifdef EXPERIMENT_SETUP
 #include "experiment-setup.h"
 #endif
-
-#if WITH_NULLMAC
-#define MAC_DRIVER nullmac_driver
-#endif /* WITH_NULLMAC */
-
-#ifndef MAC_DRIVER
-#ifdef MAC_CONF_DRIVER
-#define MAC_DRIVER MAC_CONF_DRIVER
-#else
-#define MAC_DRIVER xmac_driver
-#endif /* MAC_CONF_DRIVER */
-#endif /* MAC_DRIVER */
-
-#ifndef MAC_CSMA
-#ifdef MAC_CONF_CSMA
-#define MAC_CSMA MAC_CONF_CSMA
-#else
-#define MAC_CSMA 1
-#endif /* MAC_CONF_CSMA */
-#endif /* MAC_CSMA */
-
-
-extern const struct mac_driver MAC_DRIVER;
 
 /*---------------------------------------------------------------------------*/
 #if 0
@@ -264,8 +241,23 @@ main(int argc, char **argv)
 
   ctimer_init();
 
+  set_rime_addr();
+  
   cc2420_init();
-  cc2420_set_pan_addr(IEEE802154_PANID, 0 /*XXX*/, ds2411_id);
+  {
+    uint8_t longaddr[8];
+    uint16_t shortaddr;
+    
+    shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
+      rimeaddr_node_addr.u8[1];
+    memset(longaddr, 0, sizeof(longaddr));
+    rimeaddr_copy((rimeaddr_t *)&longaddr, &rimeaddr_node_addr);
+    printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
+           longaddr[0], longaddr[1], longaddr[2], longaddr[3],
+           longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
+    
+    cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
+  }
   cc2420_set_channel(RF_CHANNEL);
 
   printf(CONTIKI_VERSION_STRING " started. ");
@@ -274,10 +266,10 @@ main(int argc, char **argv)
   } else {
     printf("Node id is not set.\n");
   }
-  set_rime_addr();
-  printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+
+  /*  printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
-	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
+	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);*/
 
   framer_set(&framer_802154);
   
@@ -289,11 +281,10 @@ main(int argc, char **argv)
 
   /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
-#if MAC_CSMA
-  sicslowpan_init(csma_init(MAC_DRIVER.init(&cc2420_driver)));
-#else /* MAC_CSMA */
-  sicslowpan_init(MAC_DRIVER.init(&cc2420_driver));
-#endif /* MAC_CSMA */ 
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
   printf(" %s, channel check rate %d Hz, radio channel %u\n",
          sicslowpan_mac->name,
          CLOCK_SECOND / (sicslowpan_mac->channel_check_interval() == 0? 1:
@@ -315,7 +306,7 @@ main(int argc, char **argv)
 	   uip_netif_physical_if.addresses[0].ipaddr.u8[15]);
   }
   
-  if(0) {
+  if(1) {
     uip_ipaddr_t ipaddr;
     int i;
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
@@ -335,11 +326,11 @@ main(int argc, char **argv)
   uip_router_register(&rimeroute);
 #endif /* UIP_CONF_ROUTER */
 #else /* WITH_UIP6 */
-#if MAC_CSMA
-  rime_init(csma_init(MAC_DRIVER.init(&cc2420_driver)));
-#else /* MAC_CSMA */
-  rime_init(MAC_DRIVER.init(&cc2420_driver));
-#endif /* MAC_CSMA */
+
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
   printf(" %s, channel check rate %d Hz, radio channel %u\n",
          rime_mac->name,
          CLOCK_SECOND / (rime_mac->channel_check_interval() == 0? 1:

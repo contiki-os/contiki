@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420.h,v 1.7 2008/07/02 09:05:40 adamdunkels Exp $
+ * $Id: cc2420.h,v 1.8 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 #include "contiki.h"
 #include "dev/radio.h"
 
-void cc2420_init(void);
+int cc2420_init(void);
 
 #define CC2420_MAX_PACKET_LEN      127
 

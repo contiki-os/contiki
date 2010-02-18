@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.h,v 1.1 2010/02/18 21:26:15 adamdunkels Exp $
+ * $Id: contikimac.h,v 1.2 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 /**
  * \file
- *         The Contiki power-saving MAC protocol
+ *         The Contiki power-saving MAC protocol (ContikiMAC)
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
