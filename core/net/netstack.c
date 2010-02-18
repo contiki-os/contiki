@@ -28,61 +28,24 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netstack.h,v 1.2 2010/02/18 23:15:26 adamdunkels Exp $
+ * $Id: netstack.c,v 1.1 2010/02/18 23:15:26 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Include file for the Contiki low-layer network stack (NETSTACK)
+ *         Initialiation file for the Contiki low-layer network stack (NETSTACK)
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef NETSTACK_H
-#define NETSTACK_H
-
-#include "contiki-conf.h"
-
-#ifndef NETSTACK_NETWORK
-#ifdef NETSTACK_CONF_NETWORK
-#define NETSTACK_NETWORK NETSTACK_CONF_NETWORK
-#else /* NETSTACK_CONF_NETWORK */
-#define NETSTACK_NETWORK rime_driver
-#endif /* NETSTACK_CONF_NETWORK */
-#endif /* NETSTACK_NETWORK */
-
-#ifndef NETSTACK_MAC
-#ifdef NETSTACK_CONF_MAC
-#define NETSTACK_MAC NETSTACK_CONF_MAC
-#else /* NETSTACK_CONF_MAC */
-#define NETSTACK_MAC     nullrdc_driver
-#endif /* NETSTACK_CONF_MAC */
-#endif /* NETSTACK_MAC */
-
-#ifndef NETSTACK_RDC
-#ifdef NETSTACK_CONF_RDC
-#define NETSTACK_RDC NETSTACK_CONF_RDC
-#else /* NETSTACK_CONF_RDC */
-#define NETSTACK_RDC     nullmac_driver
-#endif /* NETSTACK_CONF_RDC */
-#endif /* NETSTACK_RDC */
-
-#ifndef NETSTACK_RADIO
-#ifdef NETSTACK_CONF_RADIO
-#define NETSTACK_RADIO NETSTACK_CONF_RADIO
-#else /* NETSTACK_CONF_RADIO */
-#define NETSTACK_RADIO   cc2420_driver
-#endif /* NETSTACK_CONF_RADIO */
-#endif /* NETSTACK_RADIO */
-
-#include "net/mac/mac.h"
-#include "dev/radio.h"
-
-extern const struct mac_driver   NETSTACK_NETWORK;
-extern const struct mac_driver   NETSTACK_RDC;
-extern const struct mac_driver   NETSTACK_MAC;
-extern const struct radio_driver NETSTACK_RADIO;
-
-void netstack_init(void);
-
-#endif /* NETSTACK_H */
+#include "net/netstack.h"
+/*---------------------------------------------------------------------------*/
+void
+netstack_init(void)
+{
+  NETSTACK_RADIO.init();
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+}
+/*---------------------------------------------------------------------------*/
