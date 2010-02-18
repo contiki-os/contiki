@@ -27,7 +27,7 @@
  * SUCH DAMAGE.
  *
  *
- * $Id: rf230bb.c,v 1.3 2010/02/16 21:41:24 dak664 Exp $
+ * $Id: rf230bb.c,v 1.4 2010/02/18 17:20:50 dak664 Exp $
 */
 
 /**
@@ -122,6 +122,9 @@ struct timestamp {
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
 
+/* Terse printing for faster processing */
+#define PRINTSHORT(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+//#define PRINTSHORT(...)
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
@@ -184,7 +187,7 @@ uint8_t rx_mode;
 /* Radio stuff in network byte order. */
 //static uint16_t pan_id;
 
-//static int channel;
+static int channel;
 
 
 /*----------------------------------------------------------------------------*/
@@ -400,7 +403,20 @@ static void
 on(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-//  printf("on");
+ // PRINTSHORT("o");
+#if JACKDAW
+//blue=0  red=1 green=2 yellow=3
+#define Led0_on()                   (PORTD |=  0x80)
+#define Led1_on()                   (PORTD &= ~0x20)
+#define Led2_on()                   (PORTE &= ~0x80)
+#define Led3_on()                   (PORTE &= ~0x40)
+#define Led0_off()                  (PORTD &= ~0x80)
+#define Led1_off()                  (PORTD |=  0x20)
+#define Led2_off()                  (PORTE |=  0x80)
+#define Led3_off()                  (PORTE |=  0x40)
+  Led2_on();
+#endif
+
   PRINTF("rf230 on");
   RF230_radio_on = 1;
 
@@ -409,14 +425,23 @@ on(void)
   delay_us(TIME_SLEEP_TO_TRX_OFF);
   delay_us(TIME_SLEEP_TO_TRX_OFF);//extra delay for now
 
-    radio_set_trx_state(RX_AACK_ON);
+    
+#if RF230_CONF_NO_AUTO_ACK
+   radio_set_trx_state(RX_ON);
+#else
+   radio_set_trx_state(RX_AACK_ON);
+#endif
 // flushrx();
 }
 static void
 off(void)
 {
- // printf("of");
+//  PRINTSHORT("f");
   PRINTF("rf230 off");
+#if JACKDAW
+  Led2_off();
+#endif
+//#if !JACKDAW  && 0  //Leave stick radio on for now
   RF230_radio_on = 0;
   
   /* Wait for transmission to end before turning radio off. */
@@ -427,6 +452,7 @@ off(void)
    
   /* Sleep Radio */
   hal_set_slptr_high();
+//#endif
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 }
@@ -434,10 +460,12 @@ off(void)
 #define GET_LOCK() locked = 1
 static void RELEASE_LOCK(void) {
   if(lock_on) {
+    PRINTSHORT("Q");
     on();
     lock_on = 0;
   }
   if(lock_off) {
+    PRINTSHORT("S");
     off();
     lock_off = 0;
   }
@@ -458,12 +486,14 @@ rf230_off(void)
   PRINTF("off");	
   /* Don't do anything if we are already turned off. */
   if(RF230_radio_on == 0) {
+    PRINTSHORT("Z");
     return 1;
   }
 
   /* If we are called when the driver is locked, we indicate that the
      radio should be turned off when the lock is unlocked. */
   if(locked) {
+    PRINTSHORT("L");
     lock_off = 1;
     return 1;
   }
@@ -476,9 +506,11 @@ int
 rf230_on(void)
 {
   if(RF230_radio_on) {
+    PRINTSHORT("M");
     return 1;
   }
   if(locked) {
+    PRINTSHORT("N");
     lock_on = 1;
     return 1;
   }
@@ -490,8 +522,9 @@ rf230_on(void)
 int
 rf230_get_channel(void)
 {
-    return hal_subregister_read(SR_CHANNEL);
-//	return channel;
+//jackdaw reads zero channel, raven reads correct channel?
+//return hal_subregister_read(SR_CHANNEL);
+  return channel;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -500,7 +533,7 @@ rf230_set_channel(int c)
  /* Wait for any transmission to end. */
   rf230_waitidle();
 	
-//channel=c;
+  channel=c;
   hal_subregister_write(SR_CHANNEL, c);
 
 }
@@ -542,7 +575,7 @@ rf230_set_pan_addr(uint16_t pan,uint16_t addr,uint8_t *ieee_addr)
   }
  
 }
-//uint8_t rf230processflag;      //for debugging process call problems
+uint8_t rf230processflag;      //for debugging process call problems
 /*---------------------------------------------------------------------------*/
 /* Process to handle input packets
  * Receive interrupts cause this process to be polled
@@ -558,9 +591,9 @@ PROCESS_THREAD(rf230_process, ev, data)
 #if RF230_TIMETABLE_PROFILING
     TIMETABLE_TIMESTAMP(rf230_timetable, "poll");
 #endif /* RF230_TIMETABLE_PROFILING */
-//  rf230processflag=1;
+// rf230processflag=1;
     if(receiver_callback != NULL) {
-//    rf230processflag=2;    
+ //   rf230processflag=2;    
       receiver_callback(&rf230_driver);
 #if RF230_TIMETABLE_PROFILING
       TIMETABLE_TIMESTAMP(rf230_timetable, "end");
@@ -569,7 +602,7 @@ PROCESS_THREAD(rf230_process, ev, data)
       timetable_clear(&rf230_timetable);
 #endif /* RF230_TIMETABLE_PROFILING */
     } else {   
-//    rf230processflag=99;
+   rf230processflag=99;
       PRINTF("rf230_process not receiving function\n");
 //    flushrx();
     }
@@ -629,11 +662,11 @@ rf230_read(void *buf, unsigned short bufsize)
   for (len=0;len<rxframe.length;len++) PRINTF(" %x",rxframe.data[len]);PRINTF("\n");
 #endif
   if (rxframe.length==0) {
+ //   PRINTSHORT("Z");
     return 0;
   }
-
+ // PRINTSHORT("R%d ",rxframe.length);
 #if RF230_CONF_TIMESTAMPS
-bomb
   if(interrupt_time_set) {
     rf230_time_of_arrival = interrupt_time;
     interrupt_time_set = 0;
@@ -780,7 +813,7 @@ int
 rf230_get_txpower(void)
 {
   if (radio_is_sleeping() ==true) {
-    printf("rf230_get_txpower:Sleeping");
+    PRINTF("rf230_get_txpower:Sleeping");
     return 0;
   } else {
     return hal_subregister_read(SR_TX_PWR);
@@ -988,7 +1021,14 @@ rf230_send(const void *payload, unsigned short payload_len)
       /* We wait until transmission has ended so that we get an
 	  accurate measurement of the transmission time.*/
       rf230_waitidle();
-      radio_set_trx_state(RX_AACK_ON);//Re-enable receive mode
+      
+    /* Re-enable receive mode */
+#if RF230_CONF_NO_AUTO_ACK
+    radio_set_trx_state(RX_ON);
+#else
+    radio_set_trx_state(RX_AACK_ON);
+#endif
+
 #if RF230_CONF_TIMESTAMPS
       setup_time_for_transmission = txtime - timestamp.time;
 
@@ -1081,8 +1121,13 @@ rf230_init(void)
   /* Set up the radio for auto mode operation. */
   hal_subregister_write(SR_MAX_FRAME_RETRIES, 2 );
   hal_subregister_write(SR_TX_AUTO_CRC_ON, 1);
+#if RF230_CONF_NO_AUTO_ACK
+  hal_subregister_write(SR_TRX_CMD, CMD_RX_ON);
+#else
   hal_subregister_write(SR_TRX_CMD, CMD_RX_AACK_ON);
+#endif
   
   /* Start the packet receive process */
+//  rf230processflag=42;
   process_start(&rf230_process, NULL);
 }

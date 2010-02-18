@@ -720,7 +720,11 @@ ISR(RADIO_VECT)
          rf230_interrupt();
 //       trx_end_callback(isr_timestamp);
        /* Enable reception of next packet */
+#if RF230_CONF_NO_AUTO_ACK
+         hal_subregister_write(SR_TRX_CMD, RX_ON);
+#else
          hal_subregister_write(SR_TRX_CMD, RX_AACK_ON);
+#endif
        }
               
     } else if (interrupt_source & HAL_TRX_UR_MASK){
