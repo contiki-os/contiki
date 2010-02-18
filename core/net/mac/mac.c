@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,35 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime-udp.h,v 1.2 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: mac.c,v 1.1 2010/02/18 21:48:39 adamdunkels Exp $
  */
-
-/**
- * \file
- *         A MAC protocol using UDP over IPv6.
- * \author
- *         Nicolas Tsiftes <nvt@sics.se>
- */
-
-#ifndef __UDPMAC_H__
-#define __UDPMAC_H__
 
 #include "net/mac/mac.h"
-#include "dev/radio.h"
 
-extern const struct mac_driver rime_udp_driver;
+#include <stdio.h>
 
-#endif /* __UDPMAC_H__ */
+/*---------------------------------------------------------------------------*/
+void
+mac_call_sent_callback(mac_callback_t sent, void *ptr, int status, int num_tx)
+{
+  /*  printf("mac_callback_t %p ptr %p status %d num_tx %d\n",
+      sent, ptr, status, num_tx);*/
+  /*  switch(status) {
+  case MAC_TX_COLLISION:
+    printf("mac: collision after %d tx\n", num_tx);
+    break; 
+  case MAC_TX_NOACK:
+    printf("mac: noack after %d tx\n", num_tx);
+    break;
+  case MAC_TX_OK:
+    printf("mac: sent after %d tx\n", num_tx);
+    break;
+  default:
+    printf("mac: error %d after %d tx\n", status, num_tx);
+    }*/
+
+  if(sent) {
+    sent(ptr, status, num_tx);
+  }
+}
+/*---------------------------------------------------------------------------*/

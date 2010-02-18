@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.13 2010/01/25 11:43:32 adamdunkels Exp $
+ * $Id: nullmac.c,v 1.14 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 /**
@@ -40,57 +40,31 @@
 
 #include "net/mac/nullmac.h"
 #include "net/rime/packetbuf.h"
+#include "net/netstack.h"
 
-static const struct radio_driver *radio;
-static void (* receiver_callback)(const struct mac_driver *);
 /*---------------------------------------------------------------------------*/
-static int
-send_packet(void)
+static void
+send_packet(mac_callback_t sent, void *ptr)
 {
-  if(radio->send(packetbuf_hdrptr(), packetbuf_totlen()) == RADIO_TX_OK) {
-    return MAC_TX_OK;
-  }
-  return MAC_TX_ERR;
+  NETSTACK_RDC.send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/
 static void
-input_packet(const struct radio_driver *d)
+packet_input(void)
 {
-  if(receiver_callback) {
-    receiver_callback(&nullmac_driver);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static int
-read_packet(void)
-{
-  int len;
-  packetbuf_clear();
-  len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
-  packetbuf_set_datalen(len);
-  return len;
-}
-/*---------------------------------------------------------------------------*/
-static void
-set_receive_function(void (* recv)(const struct mac_driver *))
-{
-  receiver_callback = recv;
+  NETSTACK_NETWORK.input();
 }
 /*---------------------------------------------------------------------------*/
 static int
 on(void)
 {
-  return radio->on();
+  return NETSTACK_RDC.on();
 }
 /*---------------------------------------------------------------------------*/
 static int
 off(int keep_radio_on)
 {
-  if(keep_radio_on) {
-    return radio->on();
-  } else {
-    return radio->off();
-  }
+  return NETSTACK_RDC.off(keep_radio_on);
 }
 /*---------------------------------------------------------------------------*/
 static unsigned short
@@ -99,23 +73,18 @@ channel_check_interval(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+}
+/*---------------------------------------------------------------------------*/
 const struct mac_driver nullmac_driver = {
   "nullmac",
-  nullmac_init,
+  init,
   send_packet,
-  read_packet,
-  set_receive_function,
+  packet_input,
   on,
   off,
   channel_check_interval,
 };
-/*---------------------------------------------------------------------------*/
-const struct mac_driver *
-nullmac_init(const struct radio_driver *d)
-{
-  radio = d;
-  radio->set_receive_function(input_packet);
-  radio->on();
-  return &nullmac_driver;
-}
 /*---------------------------------------------------------------------------*/

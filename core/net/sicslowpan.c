@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.17 2010/02/08 21:59:21 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.18 2010/02/18 21:48:39 adamdunkels Exp $
  */
 /**
  * \file
@@ -54,6 +54,7 @@
 #include "net/uip-netif.h"
 #include "net/rime.h"
 #include "net/sicslowpan.h"
+#include "net/netstack.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -1110,11 +1111,9 @@ send_packet(rimeaddr_t *dest)
    */
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest);
 
-  if(sicslowpan_mac != NULL) {
-  /** \todo: Fix sending delays so they aren't blocking, or even better would
-   *         be to figure out how to get rid of delays entirely */
-    sicslowpan_mac->send();
-  }
+  /* XXX we should provide a callback function that is called when the
+     packet is sent. For now, we just supply a NULL pointer. */
+  NETSTACK_MAC.send(NULL, NULL);
 
   /* If we are sending multiple packets in a row, we need to let the
      watchdog know that we are still alive. */
@@ -1295,7 +1294,7 @@ output(uip_lladdr_t *localdest)
  * (it is a SHALL in the RFC 4944 and should never happen)
  */
 static void
-input(const struct mac_driver *r)
+input(void)
 {
   /* size of the IP packet (read from fragment) */
   u16_t frag_size = 0;
@@ -1305,12 +1304,6 @@ input(const struct mac_driver *r)
   /* tag of the fragment */
   u16_t frag_tag = 0;
 #endif /*SICSLOWPAN_CONF_FRAG*/
-
-#ifdef SICSLOWPAN_CONF_CONVENTIONAL_MAC
-  if(r->read() <= 0) {
-    return;
-  }
-#endif /* SICSLOWPAN_CONF_CONVENTIONAL_MAC */
 
   /* init */
   uncomp_hdr_len = 0;
@@ -1477,7 +1470,6 @@ input(const struct mac_driver *r)
 #if SICSLOWPAN_CONF_FRAG
   }
 #endif /* SICSLOWPAN_CONF_FRAG */
-  return;
 }
 /** @} */
 
@@ -1485,14 +1477,11 @@ input(const struct mac_driver *r)
 /* \brief 6lowpan init function (called by the MAC layer)             */
 /*--------------------------------------------------------------------*/
 void
-sicslowpan_init(const struct mac_driver *m)
+sicslowpan_init(void)
 {
   /* remember the mac driver */
-  sicslowpan_mac = m;
+  sicslowpan_mac = &NETSTACK_MAC;
  
-  /* Set our input function as the receive function of the MAC. */
-  sicslowpan_mac->set_receive_function(input);
-
   /*
    * Set out output function as the function to be called from uIP to
    * send a packet.
@@ -1528,5 +1517,15 @@ sicslowpan_init(const struct mac_driver *m)
 
 #endif /*SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC01*/
 }
+/*--------------------------------------------------------------------*/
+const struct mac_driver sicslowpan_driver = {
+  "Rime",
+  sicslowpan_init,
+  NULL,
+  input,
+  NULL,
+  NULL,
+  NULL,
+};
 /*--------------------------------------------------------------------*/
 /** @} */
