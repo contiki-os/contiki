@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-netperf.c,v 1.5 2010/02/02 15:29:24 adamdunkels Exp $
+ * $Id: shell-netperf.c,v 1.6 2010/02/18 20:56:12 adamdunkels Exp $
  */
 
 /**
@@ -287,7 +287,11 @@ construct_next_packet(void)
     msg = packetbuf_dataptr();
     msg->datapath_command = DATAPATH_COMMAND_NONE;
     msg->received = 0;
+#if TIMESYNCH_CONF_ENABLED
     msg->tx = msg->rx = timesynch_time();
+#else /* TIMESYNCH_CONF_ENABLED */
+    msg->tx = msg->rx = 0;
+#endif /* TIMESYNCH_CONF_ENABLED */
     rimeaddr_copy(&msg->receiver, &receiver);
     left_to_send--;
     return 1;
@@ -328,7 +332,12 @@ process_incoming_packet(void)
   rtimer_clock_t now;
   struct datapath_msg msg_copy;
 
+#if TIMESYNCH_CONF_ENABLED
   now = timesynch_time();
+#else /* TIMESYNCH_CONF_ENABLED */
+  now = 0;
+#endif /* TIMESYNCH_CONF_ENABLED */
+  
   memcpy_misaligned(&msg_copy, (uint8_t *)msg, sizeof(msg_copy));
   stats.received++;
   stats.total_tx_latency += msg_copy.rx - msg_copy.tx;
@@ -339,7 +348,11 @@ static int
 construct_reply(const rimeaddr_t *from)
 {
   struct datapath_msg *msg = packetbuf_dataptr();
+#if TIMESYNCH_CONF_ENABLED
   rtimer_clock_t now = timesynch_time();
+#else /* TIMESYNCH_CONF_ENABLED */
+  rtimer_clock_t now = 0;
+#endif /* TIMESYNCH_CONF_ENABLED */
 
   memcpy_misaligned(&msg->rx, &now, sizeof(rtimer_clock_t));
 
