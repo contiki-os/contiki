@@ -54,11 +54,16 @@ extern int rf230_interrupt_flag;
 #ifdef RF230BB        //radio driver using contiki core mac
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
+#include "net/mac/framer-802154.h"
+//#include "net/mac/framer-nullmac.h"
+//#include "net/mac/framer.h"
 #include "net/sicslowpan.h"
 #include "net/uip-netif.h"
 //#include "net/mac/lpp.h"
 #include "net/mac/cxmac.h"
 #include "net/mac/sicslowmac.h"
+//#include "dev/xmem.h"
+#include "net/rime.h"
 
 #if WITH_NULLMAC
 #define MAC_DRIVER nullmac_driver
@@ -132,23 +137,6 @@ extern uint8_t domain_name[30];
 uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 #endif
 
-/*-----------------------Initial contiki processes--------------------------*/
-#ifdef RAVEN_LCD_INTERFACE
-#ifdef RF230BB
-PROCINIT(&etimer_process, &tcpip_process, &raven_lcd_process);
-#else
-PROCINIT(&etimer_process, &mac_process, &tcpip_process, &raven_lcd_process);
-#endif /*RF230BB*/
-#else
-#ifdef RF230BB
-PROCINIT(&etimer_process, &tcpip_process);
-#elif WEBSERVER    //TODO:get hello-world to compile with ipv6
-PROCINIT(&etimer_process, &mac_process, &tcpip_process);
-#else
-PROCINIT(&etimer_process);
-#endif /*RF230BB*/
-#endif /*RAVEN_LCD_INTERFACE*/
-
 /*-------------------------Low level initialization------------------------*/
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
@@ -169,33 +157,19 @@ void initialize(void)
   clock_init();
   printf_P(PSTR("\n*******Booting %s*******\n"),CONTIKI_VERSION_STRING);
 
+/* rtimers not used yet */
+//  rtimer_init();
+
  /* Initialize process subsystem */
   process_init();
+ /* etimers must be started before ctimer_init */
+  process_start(&etimer_process, NULL);
 
 #ifdef RF230BB
 {
+  ctimer_init();
   /* Start radio and radio receive process */
   rf230_init();
- // sicslowpan_init(sicslowmac_init(&rf230_driver));
-  sicslowpan_init(MAC_DRIVER.init(&rf230_driver));
- // ctimer_init();
-  rtimer_init();
- // queuebuf_init();
-
- // sicslowpan_init(csma_init(MAC_DRIVER.init(&cc2420_driver)));
-
-//  sicslowpan_init(MAC_DRIVER.init(&rf230_driver));
-
- // printf(" %s, channel check rate %d Hz, radio channel %u\n",
- //        sicslowpan_mac->name,
- //        CLOCK_SECOND / (sicslowpan_mac->channel_check_interval() == 0? 1:
- //                        sicslowpan_mac->channel_check_interval()),
- //        RF_CHANNEL);
-//  sicslowpan_init(lpp_init(&rf230_driver));
- // sicslowpan_init(cxmac_init(&rf230_driver));
- //  sicslowpan_init(xmac_init(&rf230_driver));
-//  rime_init(sicslowmac_driver.init(&rf230_driver));
-//  rime_init(lpp_init(&rf230_driver));
 
   /* Set addresses BEFORE starting tcpip process */
 
@@ -209,9 +183,13 @@ void initialize(void)
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
 
   rf230_set_channel(24);
+
   rimeaddr_set_node_addr(&addr); 
+//  set_rime_addr();
   PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 
+  framer_set(&framer_802154);
+  queuebuf_init();
  // uip_ip6addr(&ipprefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
  // uip_netif_addr_add(&ipprefix, UIP_DEFAULT_PREFIX_LEN, 0, AUTOCONF);
  // uip_nd6_prefix_add(&ipprefix, UIP_DEFAULT_PREFIX_LEN, 0);
@@ -223,15 +201,27 @@ void initialize(void)
   rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
 #endif
+
+  sicslowpan_init(MAC_DRIVER.init(&rf230_driver));
+  
   PRINTF("Driver: %s, Channel: %u\n\r", MAC_DRIVER.name, rf230_get_channel()); 
  //PRINTF("Driver: %s, Channel: %u\n", sicslowmac_driver.name, rf230_get_channel()); 
 }
 #endif /*RF230BB*/
 
-  /* Register initial processes */
-  procinit_init(); 
+#if RF230BB
+  process_start(&tcpip_process, NULL);
+#else
+/* mac process must be started before tcpip process! */
+  process_start(&mac_process, NULL);
+  process_start(&tcpip_process, NULL);
 
-  /* Autostart processes */
+#endif
+#ifdef RAVEN_LCD_INTERFACE
+  process_start(&raven_lcd_process, NULL);
+#endif
+
+  /* Autostart other processes */
   autostart_start(autostart_processes);
 
   //Give ourselves a prefix
@@ -312,12 +302,15 @@ void initialize(void)
 #endif /* ANNOUNCE_BOOT */
 
 }
+#if RF230BB
+extern uint8_t rf230processflag;      //for debugging process call problems
+#endif
 /*---------------------------------------------------------------------------*/
 void log_message(char *m1, char *m2)
 {
   printf_P(PSTR("%s%s\n"), m1, m2);
 }
-
+extern uint8_t rtimerworks;
 /*-------------------------------------------------------------------------*/
 /*------------------------- Main Scheduler loop----------------------------*/
 /*-------------------------------------------------------------------------*/
@@ -327,6 +320,18 @@ main(void)
   initialize();
   while(1) {
     process_run();
+#if 0
+    if (rtimerworks>200) {
+      printf("%d",rtimerworks);
+      rtimerworks=0;
+    }
+#endif
+#if RF230BB
+    if (rf230processflag) {
+      printf("rf230p%d",rf230processflag);
+      rf230processflag=0;
+  }
+#endif
 
 #if 0
     if (rf230_interrupt_flag) {

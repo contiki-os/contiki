@@ -99,11 +99,15 @@ typedef int32_t s32_t;
 #define UIP_CONF_ROUTER 0
 #if 0
 /* Specifies the default MAC driver */
+//no auto_ack gives bad FCS for some reason?
+//#define RF230_CONF_NO_AUTO_ACK      1
 #define MAC_CONF_CSMA               1
 #define XMAC_CONF_COMPOWER          1
 #define CXMAC_CONF_COMPOWER         1
 #define MAC_CONF_DRIVER             cxmac_driver
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
+//following gives 50% duty cycle, undef for 5%
+#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 16)
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
 #define CXMAC_CONF_ANNOUNCEMENTS    0
 #define XMAC_CONF_ANNOUNCEMENTS     0
