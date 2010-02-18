@@ -1,6 +1,8 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#define NETSTACK_CONF_RADIO   ethernode_driver
+
 #define XMAC_CONF_ON_TIME RTIMER_SECOND
 #define XMAC_CONF_OFF_TIME RTIMER_SECOND * 2
 
@@ -35,7 +37,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.12 2010/02/08 21:39:15 adamdunkels Exp $
+ * $Id: contiki-conf.h,v 1.13 2010/02/18 23:10:06 adamdunkels Exp $
  *
  */
 
