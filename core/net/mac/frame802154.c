@@ -44,7 +44,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: frame802154.c,v 1.3 2009/09/09 21:08:46 adamdunkels Exp $
+ *  $Id: frame802154.c,v 1.4 2010/02/18 21:00:28 adamdunkels Exp $
 */
 /*
  *  \brief This file is where the main functions that relate to frame
@@ -217,7 +217,7 @@ frame802154_create(frame802154_t *p, uint8_t *buf, uint8_t buf_len)
 
   /* Destination address */
   for(c = flen.dest_addr_len; c > 0; c--) {
-    tx_frame_buffer[pos++] = p->dest_addr.u8[c - 1];
+    tx_frame_buffer[pos++] = p->dest_addr[c - 1];
   }
 
   /* Source PAN ID */
@@ -228,7 +228,7 @@ frame802154_create(frame802154_t *p, uint8_t *buf, uint8_t buf_len)
 
   /* Source address */
   for(c = flen.src_addr_len; c > 0; c--) {
-    tx_frame_buffer[pos++] = p->src_addr.u8[c - 1];
+    tx_frame_buffer[pos++] = p->src_addr[c - 1];
   }
 
   /* Aux header */
@@ -291,18 +291,18 @@ frame802154_parse(uint8_t *data, uint8_t len, frame802154_t *pf)
 /*     } */
 /*     p += l; */
     if(fcf.dest_addr_mode == FRAME802154_SHORTADDRMODE) {
-      rimeaddr_copy(&(pf->dest_addr), &rimeaddr_null);
-      pf->dest_addr.u8[0] = p[1];
-      pf->dest_addr.u8[1] = p[0];
+      rimeaddr_copy((rimeaddr_t *)&(pf->dest_addr), &rimeaddr_null);
+      pf->dest_addr[0] = p[1];
+      pf->dest_addr[1] = p[0];
       p += 2;
     } else if(fcf.dest_addr_mode == FRAME802154_LONGADDRMODE) {
       for(c = 0; c < 8; c++) {
-        pf->dest_addr.u8[c] = p[7 - c];
+        pf->dest_addr[c] = p[7 - c];
       }
       p += 8;
     }
   } else {
-    rimeaddr_copy(&(pf->dest_addr), &rimeaddr_null);
+    rimeaddr_copy((rimeaddr_t *)&(pf->dest_addr), &rimeaddr_null);
     pf->dest_pid = 0;
   }
 
@@ -323,18 +323,18 @@ frame802154_parse(uint8_t *data, uint8_t len, frame802154_t *pf)
 /*     } */
 /*     p += l; */
     if(fcf.src_addr_mode == FRAME802154_SHORTADDRMODE) {
-      rimeaddr_copy(&(pf->src_addr), &rimeaddr_null);
-      pf->src_addr.u8[0] = p[1];
-      pf->src_addr.u8[1] = p[0];
+      rimeaddr_copy((rimeaddr_t *)&(pf->src_addr), &rimeaddr_null);
+      pf->src_addr[0] = p[1];
+      pf->src_addr[1] = p[0];
       p += 2;
     } else if(fcf.src_addr_mode == FRAME802154_LONGADDRMODE) {
       for(c = 0; c < 8; c++) {
-        pf->src_addr.u8[c] = p[7 - c];
+        pf->src_addr[c] = p[7 - c];
       }
       p += 8;
     }
   } else {
-    rimeaddr_copy(&(pf->src_addr), &rimeaddr_null);
+    rimeaddr_copy((rimeaddr_t *)&(pf->src_addr), &rimeaddr_null);
     pf->src_pid = 0;
   }
 

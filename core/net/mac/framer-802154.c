@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer-802154.c,v 1.2 2009/10/20 07:42:03 nifi Exp $
+ * $Id: framer-802154.c,v 1.3 2010/02/18 21:00:28 adamdunkels Exp $
  */
 
 /**
@@ -54,8 +54,8 @@
 #endif
 
 static uint8_t mac_dsn;
-static uint16_t mac_dst_pan_id = IEEE802154_PANID;
-static uint16_t mac_src_pan_id = IEEE802154_PANID;
+const static uint16_t mac_dst_pan_id = IEEE802154_PANID;
+const static uint16_t mac_src_pan_id = IEEE802154_PANID;
 
 /*---------------------------------------------------------------------------*/
 static int
@@ -83,7 +83,7 @@ create(void)
   params.fcf.frame_type = FRAME802154_DATAFRAME;
   params.fcf.security_enabled = 0;
   params.fcf.frame_pending = 0;
-  params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
+  params.fcf.ack_required = 1; //packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
   params.fcf.panid_compression = 0;
 
   /* Insert IEEE 802.15.4 (2003) version bit. */
@@ -108,22 +108,23 @@ create(void)
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
     /* Broadcast requires short address mode. */
     params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
-    params.dest_addr.u8[0] = 0xFF;
-    params.dest_addr.u8[1] = 0xFF;
+    params.dest_addr[0] = 0xFF;
+    params.dest_addr[1] = 0xFF;
 
   } else {
-    rimeaddr_copy(&params.dest_addr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    rimeaddr_copy((rimeaddr_t *)&params.dest_addr,
+                  packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     params.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
   }
 
   /* Set the source PAN ID to the global variable. */
   params.src_pid = mac_src_pan_id;
-
+  
   /*
    * Set up the source address using only the long address mode for
    * phase 1.
    */
-  rimeaddr_copy(&params.src_addr, &rimeaddr_node_addr);
+  rimeaddr_copy((rimeaddr_t *)&params.src_addr, &rimeaddr_node_addr);
 
   params.payload = packetbuf_dataptr();
   params.payload_len = packetbuf_datalen();
@@ -157,11 +158,11 @@ parse(void)
         PRINTF("P6MAC: for another pan %u\n", frame.dest_pid);
         return 0;
       }
-      if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr.u8)) {
-        packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &frame.dest_addr);
+      if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
+        packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (rimeaddr_t *)&frame.dest_addr);
       }
     }
-    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &frame.src_addr);
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (rimeaddr_t *)&frame.src_addr);
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, frame.fcf.ack_required);
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
 
