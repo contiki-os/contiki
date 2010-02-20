@@ -1,6 +1,6 @@
-#include "embedded_types.h"          
+#include <mc1322x.h>
+#include <nvm.h>
 #include "maca.h"
-#include "nvm.h"
 
 #define reg(x) (*(volatile uint32_t *)(x))
 

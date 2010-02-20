@@ -40,7 +40,7 @@ include $(TOPDIR)/config.mk
 AOBJS =
 COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
 #TESTS = $(wildcard tests/*.c)
-TESTS = tests/blink-red.c
+TESTS = tests/blink-red.c #tests/nvm-read.c
 TARGETS = $(patsubst %.c,%.o,$(TESTS))
 
 # Add GCC lib
