@@ -1,0 +1,7 @@
+CFLAGS += -I obj_$(BOARD)_board
+OBJDIR = obj_$(BOARD)_board
+
+board:
+	@echo "setup object directory for dev board"
+	mkdir -p $(OBJDIR)
+	cp $(MC1322X)/board/$(BOARD).h $(OBJDIR)

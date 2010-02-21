@@ -1,33 +1,7 @@
-#
-# (C) Copyright 2000
-# Wolfgang Denk, DENX Software Engineering, wd@denx.de.
-#
-# See file CREDITS for list of people who contributed to this
-# project.
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307 USA
-#
-
-#########################################################################
-
-# clean the slate ...
 PLATFORM_LDFLAGS =
 PLATFORM_RELFLAGS = -fno-strict-aliasing  -fno-common -ffixed-r8 -ffunction-sections -msoft-float -Wcast-align -Wall
-PLATFORM_CPPFLAGS = -march=armv4t -mlong-calls -mtune=arm7tdmi-s -DCONFIG_ARM -D__ARM__ -mcallee-super-interworking -mthumb -mthumb-interwork 
-TEXT_BASE = 0x00400000
+PLATFORM_CPPFLAGS = -march=armv4t -mlong-calls -mtune=arm7tdmi-s -DCONFIG_ARM -D__ARM__ -mthumb-interwork 
+THUMB_FLAGS=-mthumb -mcallee-super-interworking
 
 #########################################################################
 
@@ -55,22 +29,15 @@ gccincdir := $(shell $(CC) -print-file-name=include)
 
 CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)		\
 	-D__KERNEL__ -DTEXT_BASE=$(TEXT_BASE)		\
-	-I$(TOPDIR)/libmc1322x/include				\
-	-I$(TOPDIR)/board				\
 	-fno-builtin -ffreestanding -nostdinc -isystem	\
 	$(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
-ifdef BUILD_TAG
-CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \
-	-DBUILD_TAG='"$(BUILD_TAG)"'
-else
-CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
-endif
+CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -Wcast-align -Wcast-align 
 
 AFLAGS_DEBUG := -Wa,-gstabs
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
 
-LDFLAGS += -Bstatic -T $(LDSCRIPT) -Ttext $(TEXT_BASE) $(PLATFORM_LDFLAGS)
+LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles -static -Wl,-Map=$@-$(BOARD).map,-export-dynamic
 
 #########################################################################
 
@@ -84,6 +51,6 @@ export	TEXT_BASE PLATFORM_CPPFLAGS PLATFORM_RELFLAGS CPPFLAGS CFLAGS AFLAGS
 %.o:	%.S
 	$(CC) $(AFLAGS) -c -o $@ $(CURDIR)/$<
 %.o:	%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c -o $@ $<
 
 #########################################################################

@@ -1,7 +1,5 @@
-LIBMC1322x = ..
+MC1322X = ..
 
-BOARD=dev
-
-include $(LIBMC1322x)/Makefile.include
+include $(MC1322X)/Makefile.include
 
 all: blink-red

@@ -1,0 +1,1 @@
+CFLAGS += -I$(LIBMC1322X)/include
