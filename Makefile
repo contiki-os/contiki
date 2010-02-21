@@ -40,7 +40,7 @@ include $(TOPDIR)/config.mk
 AOBJS =
 COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
 #TESTS = $(wildcard tests/*.c)
-TESTS = tests/blink-red.c #tests/nvm-read.c
+#TESTS = tests/blink-red.c #tests/nvm-read.c
 TARGETS = $(patsubst %.c,%.o,$(TESTS))
 
 # Add GCC lib
@@ -54,12 +54,15 @@ ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis)
 
 LIBOBJS = $(patsubst %.c,%.o,$(wildcard libmc1322x/*.c))
 
+include $(TOPDIR)/board/dev/Makefile
+all: board
+
 libmc1322x: libmc1322x.a
 
 libmc1322x.a: $(LIBOBJS) 
 	$(AR) r libmc1322x.a $(LIBOBJS)
 
-all:		src/start.o src/isr.o $(ALL)
+#all:		src/start.o src/isr.o $(ALL)
 
 #tests/flasher.obj: src/maca.o src/nvm.o
 #tests/nvm-read.obj: src/maca.o src/nvm.o

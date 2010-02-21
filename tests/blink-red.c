@@ -1,5 +1,5 @@
-#include "mc1322x.h"
-#include "boards.h"
+#include <mc1322x.h>
+#include <boards.h>
 
 #define MBAR_GPIO       0x80000000
 #define GPIO_PAD_DIR0   ((volatile uint32_t *) 0x80000000)

@@ -1,7 +1,7 @@
 #ifndef _MACA_H_
 #define _MACA_H_
 
-#include "embedded_types.h"
+#include <types.h>
 
 #define MACA_BASE       0x80004000
 #define MACA_RESET      0x80004004
