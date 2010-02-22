@@ -39,7 +39,7 @@ CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -Wcast-align -Wcast-align
 AFLAGS_DEBUG := -Wa,-gstabs
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
 
-LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles -static #-Wl,-Map=$*-$(BOARD).map,-export-dynamic
+LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles -static -Map=$*.map -export-dynamic
 
 #########################################################################
 
