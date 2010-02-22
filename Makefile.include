@@ -19,25 +19,34 @@ ARCH  = arm
 CPU   = arm7tdmi-s
 export	ARCH CPU VENDOR
 
-%.s:	%.S
-	$(CPP) $(AFLAGS) -o $@ $(CURDIR)/$<
-%.o:	%.S
-	$(CC) $(AFLAGS) -c -o $@ $(CURDIR)/$<
-%.o:	%.c
-	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c -o $@ $<
+.SECONDARY:
+
+$(START): $(START:.o=.s)
+	$(CC) $(AFLAGS) -c -o $@ $<
 
 $(ISR): $(ISR:.o=.c)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
 
-%.elf:	$(START) $(ISR) %.o $(LINKERSCRIPT) 
+%_$(BOARD).elf: %.elf
+	mv $< $@
+
+%.elf:	$(START) $(ISR) $(OBJDIR)/%.o $(LINKERSCRIPT) board
 	$(LD) $(LDFLAGS) $(AOBJS) \
 	--start-group $(PLATFORM_LIBS) --end-group \
 	$(filter %.o %.a,$+) -o $@
 
+$(OBJDIR)/%.s:	%.S
+	$(CPP) $(AFLAGS) -o $@ $<
+$(OBJDIR)/%.o:	%.S
+	$(CC) $(AFLAGS) -c -o $@ $<
+$(OBJDIR)/%.o:	%.c
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c -o $@ $<
+
+
 clean:
 	find $(MC1322X) -type f \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
-		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf' \) -print \
+		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \) -print \
 		| xargs rm -f
 	rm -fr *.*~	
 
