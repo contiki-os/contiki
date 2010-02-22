@@ -82,6 +82,14 @@ typedef int32_t s32_t;
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
 #define SICSLOWPAN_CONF_FRAG              1
 
+/* Network setup for IPv6 */
+#define NETSTACK_CONF_NETWORK sicslowpan_driver
+//#define NETSTACK_CONF_MAC     nullmac_driver
+#define NETSTACK_CONF_MAC     csma_driver
+//#define NETSTACK_CONF_RDC     contikimac_driver
+#define NETSTACK_CONF_RDC     sicslowmac_driver
+#define NETSTACK_CONF_RADIO   rf230_driver
+
 /* Below will prevent fragmentation of TCP packets, undef for faster page loads, simpler wireshark captures */
 //#define UIP_CONF_TCP_MSS 48
 
@@ -97,6 +105,7 @@ typedef int32_t s32_t;
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
 #undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
 #define UIP_CONF_ROUTER 0
+
 #if 0
 /* Specifies the default MAC driver */
 //no auto_ack gives bad FCS for some reason?

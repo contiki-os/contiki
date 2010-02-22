@@ -45,7 +45,7 @@
  *  \file
  *  \brief This file contains radio driver code.
  *
- *   $Id: rf230bb.h,v 1.1 2009/07/08 16:17:07 dak664 Exp $
+ *   $Id: rf230bb.h,v 1.2 2010/02/22 22:23:18 dak664 Exp $
  */
 
 #ifndef RADIO_H
@@ -68,6 +68,7 @@
 #define RF230_MIN_ED_THRESHOLD                  ( 0 )
 #define RF230_MAX_ED_THRESHOLD                  ( 15 )
 #define RF230_MAX_TX_FRAME_LENGTH               ( 127 ) /**< 127 Byte PSDU. */
+//#define RF230_MAX_PACKET_LEN                    127
 
 #define TX_PWR_3DBM                             ( 0 )
 #define TX_PWR_17_2DBM                          ( 15 )
@@ -170,12 +171,36 @@ typedef void (*radio_rx_callback) (uint16_t data);
 extern uint8_t rxMode;
 /*============================ PROTOTYPES ====================================*/
 const struct radio_driver rf230_driver;
-void rf230_init(void);
+int rf230_init(void);
+//int rf230_on(void);
+//int rf230_off(void);
+void rf230_set_channel(int channel);
 int rf230_get_channel(void);
-void rf230_set_channel(int c);
-void rf230_set_pan_addr(uint16_t pan,uint16_t addr,uint8_t *ieee_addr);
-void rf230_set_txpower(uint8_t power);
+void rf230_set_pan_addr(unsigned pan,unsigned addr,const uint8_t *ieee_addr);
+//void rf230_set_pan_addr(uint16_t pan,uint16_t addr,uint8_t *ieee_addr);
+//void rf230_set_txpower(uint8_t power);
 int rf230_get_txpower(void);
+
+//extern signed char rf230_last_rssi;
+//extern uint8_t rf230_last_correlation;
+
+//int rf230_rssi(void);
+
+
+
+//#define CC2420_TXPOWER_MAX  31
+//#define CC2420_TXPOWER_MIN   0
+
+/**
+ * Interrupt function, called from the simple-cc2420-arch driver.
+ *
+ */
+//int cc2420_interrupt(void);
+
+/* XXX hack: these will be made as Chameleon packet attributes */
+//extern rtimer_clock_t rf230_time_of_arrival,rf230_time_of_departure;
+//extern int rf230_authority_level_of_sender;
+
 
 //radio_status_t radio_init(bool cal_rc_osc,
 //                          hal_rx_start_isr_event_handler_t rx_event,

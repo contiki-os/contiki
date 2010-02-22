@@ -33,12 +33,14 @@
 #define DEBUG 1
 #if DEBUG
 #define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#define PRINTSHORT(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
 int pingtimer1=0,pingtimer2=0;
 #if RF230BB
 extern int rf230_interrupt_flag;
 #endif
 #else
 #define PRINTF(...)
+#define PRINTSHORT(...)
 #endif
 
 #include <avr/pgmspace.h>
@@ -58,13 +60,14 @@ extern int rf230_interrupt_flag;
 //#include "net/mac/framer-nullmac.h"
 //#include "net/mac/framer.h"
 #include "net/sicslowpan.h"
-#include "net/uip-netif.h"
+//#include "net/uip-netif.h"
 //#include "net/mac/lpp.h"
-#include "net/mac/cxmac.h"
-#include "net/mac/sicslowmac.h"
+//#include "net/mac/cxmac.h"
+//#include "net/mac/sicslowmac.h"
 //#include "dev/xmem.h"
-#include "net/rime.h"
+//#include "net/rime.h"
 
+#if 0
 #if WITH_NULLMAC
 #define MAC_DRIVER nullmac_driver
 #endif /* WITH_NULLMAC */
@@ -73,10 +76,11 @@ extern int rf230_interrupt_flag;
 #ifdef MAC_CONF_DRIVER
 #define MAC_DRIVER MAC_CONF_DRIVER
 #else
-#define MAC_DRIVER sicslowmac_driver
+#define MAC_DRIVER sicslowmac1_driver
 //#define MAC_DRIVER cxmac_driver
 #endif /* MAC_CONF_DRIVER */
 #endif /* MAC_DRIVER */
+#endif
 
 #else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
@@ -189,7 +193,19 @@ void initialize(void)
   PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 
   framer_set(&framer_802154);
+
+  /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
+  NETSTACK_RDC.init();  //prints rs2048
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+//todo: makes raven reboot
+//  printf(" %s, channel check rate %d Hz, radio channel %u\n",
+ //        sicslowpan_mac->name,
+ //        CLOCK_SECOND / (sicslowpan_mac->channel_check_interval() == 0? 1:
+ //                        sicslowpan_mac->channel_check_interval()),
+ //        RF_CHANNEL); 
+
  // uip_ip6addr(&ipprefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
  // uip_netif_addr_add(&ipprefix, UIP_DEFAULT_PREFIX_LEN, 0, AUTOCONF);
  // uip_nd6_prefix_add(&ipprefix, UIP_DEFAULT_PREFIX_LEN, 0);
@@ -202,10 +218,10 @@ void initialize(void)
   uip_router_register(&rimeroute);
 #endif
 
-  sicslowpan_init(MAC_DRIVER.init(&rf230_driver));
+//  sicslowpan_init(MAC_DRIVER.init(&rf230_driver));
   
-  PRINTF("Driver: %s, Channel: %u\n\r", MAC_DRIVER.name, rf230_get_channel()); 
- //PRINTF("Driver: %s, Channel: %u\n", sicslowmac_driver.name, rf230_get_channel()); 
+//  PRINTF("Driver: %s, Channel: %u\n\r", MAC_DRIVER.name, rf230_get_channel()); 
+ PRINTF("Driver: %s, Channel: %u\n", sicslowpan_mac->name, rf230_get_channel()); 
 }
 #endif /*RF230BB*/
 
@@ -246,6 +262,7 @@ void initialize(void)
 
 /*--------------------------Announce the configuration---------------------*/
 #define ANNOUNCE_BOOT 1    //adds about 400 bytes to program size
+
 #if ANNOUNCE_BOOT
 
 #if WEBSERVER
@@ -326,7 +343,7 @@ main(void)
       rtimerworks=0;
     }
 #endif
-#if RF230BB
+#if RF230BB && 0
     if (rf230processflag) {
       printf("rf230p%d",rf230processflag);
       rf230processflag=0;
@@ -335,10 +352,11 @@ main(void)
 
 #if 0
     if (rf230_interrupt_flag) {
-      if (rf230_interrupt_flag!=11) {
-        PRINTF("*****Radio interrupt %u\n",rf230_interrupt_flag);
-        rf230_interrupt_flag=0;
-      }
+ //     if (rf230_interrupt_flag!=11) {
+ //       PRINTF("*****Radio interrupt %u\n",rf230_interrupt_flag);
+        PRINTSHORT("**RI%u",rf230_interrupt_flag);
+       rf230_interrupt_flag=0;
+ //     }
     }
 #endif
 #if PINGS
