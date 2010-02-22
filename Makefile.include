@@ -15,7 +15,6 @@ ifndef ISR
 	ISR = $(MC1322X)/src/isr.o
 endif
 
-
 ARCH  = arm
 CPU   = arm7tdmi-s
 export	ARCH CPU VENDOR
@@ -36,20 +35,12 @@ $(ISR): $(ISR:.o=.c)
 	$(filter %.o %.a,$+) -o $@
 
 clean:
-	find . -type f \
+	find $(MC1322X) -type f \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
-		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' \) -print \
+		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf' \) -print \
 		| xargs rm -f
-	rm -f $(ALL) $(OBJS)
+	rm -fr *.*~	
 
-clobber:	clean
-	find . -type f \
-		\( -name .depend -o -name '*.srec' -o -name '*.bin' -o -name '*.dis' -o -name '*.map' -o -name '*.obj' \) \
-		-print \
-		| xargs rm -f
-	rm -f $(OBJS) *.bak tags TAGS
-	rm -fr *.*~
-	rm -f $(ALL)
-
+clobber \
 mrproper \
-distclean:	clobber
+distclean:	clean
