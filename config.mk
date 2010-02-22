@@ -27,6 +27,8 @@ OBJCFLAGS += --gap-fill=0xff
 
 gccincdir := $(shell $(CC) -print-file-name=include)
 
+PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
+
 CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)		\
 	-D__KERNEL__ -DTEXT_BASE=$(TEXT_BASE)		\
 	-fno-builtin -ffreestanding -nostdinc -isystem	\
@@ -37,7 +39,7 @@ CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -Wcast-align -Wcast-align
 AFLAGS_DEBUG := -Wa,-gstabs
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
 
-LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles -static -Wl,-Map=$@-$(BOARD).map,-export-dynamic
+LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles -static #-Wl,-Map=$*-$(BOARD).map,-export-dynamic
 
 #########################################################################
 
@@ -46,11 +48,3 @@ export	TEXT_BASE PLATFORM_CPPFLAGS PLATFORM_RELFLAGS CPPFLAGS CFLAGS AFLAGS
 
 #########################################################################
 
-%.s:	%.S
-	$(CPP) $(AFLAGS) -o $@ $(CURDIR)/$<
-%.o:	%.S
-	$(CC) $(AFLAGS) -c -o $@ $(CURDIR)/$<
-%.o:	%.c
-	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c -o $@ $<
-
-#########################################################################

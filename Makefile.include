@@ -7,18 +7,33 @@ include $(MC1322X)/board/Makefile.board
 
 include $(MC1322X)/libmc1322x/Makefile.lib
 
+# default start and isr
+ifndef START
+	START = $(MC1322X)/src/start.o	
+endif
+ifndef ISR
+	ISR = $(MC1322X)/src/isr.o
+endif
+
+
 ARCH  = arm
 CPU   = arm7tdmi-s
 export	ARCH CPU VENDOR
 
-$(OBJDIR)/isr.o: isr.c
+%.s:	%.S
+	$(CPP) $(AFLAGS) -o $@ $(CURDIR)/$<
+%.o:	%.S
+	$(CC) $(AFLAGS) -c -o $@ $(CURDIR)/$<
+%.o:	%.c
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c -o $@ $<
+
+$(ISR): $(ISR:.o=.c)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
 
-%.o: %.c
-	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c
-
-$(OBJDIR)/%.o: %.c
-	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c $< -o $@
+%.elf:	$(START) $(ISR) %.o $(LINKERSCRIPT) 
+	$(LD) $(LDFLAGS) $(AOBJS) \
+	--start-group $(PLATFORM_LIBS) --end-group \
+	$(filter %.o %.a,$+) -o $@
 
 clean:
 	find . -type f \
