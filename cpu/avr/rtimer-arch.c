@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.7 2010/02/18 17:21:44 dak664 Exp $
+ * $Id: rtimer-arch.c,v 1.8 2010/02/22 22:21:15 dak664 Exp $
  */
 
 /**
@@ -148,5 +148,5 @@ rtimerworks=250;
 
   /* Restore interrupt state */
   SREG = sreg;
-  printf("rs%d",t);
+ // printf("rs%d",t);
 }
