@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: powertrace.c,v 1.1 2010/02/20 14:15:45 adamdunkels Exp $
+ * $Id: powertrace.c,v 1.2 2010/02/23 18:22:16 adamdunkels Exp $
  */
 
 /**
@@ -41,6 +41,8 @@
 #include "contiki.h"
 #include "sys/compower.h"
 #include "node-id.h"
+#include "powertrace.h"
+#include "net/rime.h"
 
 #include <stdio.h>
 
@@ -81,11 +83,11 @@ print_power(void)
          node_id, seqno++,
          cpu, lpm, transmit, listen, idle_transmit, idle_listen,
          (int)((100L * (transmit + listen)) / time),
-         (int)((10000L * (transmit + listen) / time) - (100L * (transmit + listen)) / time),
-         (int)((100L * (transmit)) / time),
-         (int)((10000L * (transmit)) / time - (100L * (transmit)) / time),
-         (int)((100L * (listen)) / time),
-         (int)((10000L * (listen)) / time - (100L * (listen)) / time));
+         (int)((10000L * (transmit + listen) / time) - (100L * (transmit + listen) / time) * 100),
+         (int)((100L * transmit) / time),
+         (int)((10000L * transmit) / time - (100L * transmit / time) * 100),
+         (int)((100L * listen) / time),
+         (int)((10000L * listen) / time - (100L * listen / time) * 100));
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(powertrace_process, ev, data)
@@ -114,5 +116,68 @@ void
 powertrace_start(clock_time_t period)
 {
   process_start(&powertrace_process, (void *)&period);
+}
+/*---------------------------------------------------------------------------*/
+static void
+sniffprint(char *prefix, int seqno)
+{
+  const rimeaddr_t *sender, *receiver, *esender, *ereceiver;
+
+  sender = packetbuf_addr(PACKETBUF_ADDR_SENDER);
+  receiver = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+  esender = packetbuf_addr(PACKETBUF_ADDR_ESENDER);
+  ereceiver = packetbuf_addr(PACKETBUF_ADDR_ERECEIVER);
+
+
+  printf("%s %d %u %d %d %d.%d %u %u\n",
+         prefix,
+         node_id, seqno,
+         packetbuf_attr(PACKETBUF_ATTR_CHANNEL),
+         packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE),
+         esender->u8[0], esender->u8[1],
+         packetbuf_attr(PACKETBUF_ATTR_TRANSMIT_TIME),
+         packetbuf_attr(PACKETBUF_ATTR_LISTEN_TIME));
+}
+/*---------------------------------------------------------------------------*/
+static void
+input_sniffer(void)
+{
+  static int seqno = 0;
+  sniffprint("I", seqno++);
+
+  if(packetbuf_attr(PACKETBUF_ATTR_CHANNEL) == 0) {
+    int i;
+    uint8_t *dataptr;
+    
+    printf("x %d ", packetbuf_totlen());
+    dataptr = packetbuf_hdrptr();
+    printf("%02x ", dataptr[0]);
+    for(i = 1; i < packetbuf_totlen(); ++i) {
+      printf("%02x ", dataptr[i]);
+    }
+    printf("\n");
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+output_sniffer(void)
+{
+  static int seqno = 0;
+  sniffprint("O", seqno++);
+}
+/*---------------------------------------------------------------------------*/
+RIME_SNIFFER(s, input_sniffer, output_sniffer);
+/*---------------------------------------------------------------------------*/
+void
+powertrace_sniff(powertrace_onoff_t onoff)
+{
+  switch(onoff) {
+  case POWERTRACE_ON:
+    rime_sniffer_add(&s);
+    break;
+  case POWERTRACE_OFF:
+    rime_sniffer_remove(&s);
+    break;
+  }
 }
 /*---------------------------------------------------------------------------*/

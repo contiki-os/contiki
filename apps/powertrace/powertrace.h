@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: powertrace.h,v 1.1 2010/02/20 14:15:45 adamdunkels Exp $
+ * $Id: powertrace.h,v 1.2 2010/02/23 18:22:16 adamdunkels Exp $
  */
 
 /**
@@ -44,5 +44,12 @@
 #include "sys/clock.h"
 
 void powertrace_start(clock_time_t perioc);
+
+typedef enum {
+  POWERTRACE_ON,
+  POWERTRACE_OFF
+} powertrace_onoff_t;
+
+void powertrace_sniff(powertrace_onoff_t onoff);
 
 #endif /* POWERTRACE_H */
