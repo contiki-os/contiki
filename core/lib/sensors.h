@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.h,v 1.8 2010/01/14 20:13:34 adamdunkels Exp $
+ * @(#)$Id: sensors.h,v 1.9 2010/02/23 18:27:04 adamdunkels Exp $
  */
 
 #ifndef __SENSORS_H__
@@ -51,7 +51,7 @@ const struct sensors_sensor name = { type, value, configure, status }
 
 #define SENSORS(...) \
 const struct sensors_sensor *sensors[] = {__VA_ARGS__, NULL};       \
-unsigned char sensors_flags[SENSORS_NUM];
+unsigned char sensors_flags[SENSORS_NUM]
 
 struct sensors_sensor {
   char *       type;
