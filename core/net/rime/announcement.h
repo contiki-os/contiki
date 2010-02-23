@@ -54,7 +54,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announcement.h,v 1.5 2009/11/08 19:40:17 adamdunkels Exp $
+ * $Id: announcement.h,v 1.6 2010/02/23 18:32:44 adamdunkels Exp $
  */
 
 /**
@@ -240,7 +240,8 @@ void announcement_register_listen_callback(void (*callback)(int time));
  *
  */
 void announcement_register_observer_callback(void (*observer)(uint16_t id,
-							      uint16_t value));
+							      uint16_t newvalue,
+                                                              uint16_t oldvalue));
 
 /**
  * @}

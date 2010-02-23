@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announcement.c,v 1.2 2009/11/08 19:40:17 adamdunkels Exp $
+ * $Id: announcement.c,v 1.3 2010/02/23 18:32:44 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,7 @@
 LIST(announcements);
 
 static void (* listen_callback)(int time);
-static void (* observer_callback)(uint16_t id, uint16_t val);
+static void (* observer_callback)(uint16_t id, uint16_t newval, uint16_t oldval);
 
 /*---------------------------------------------------------------------------*/
 void
@@ -68,7 +68,7 @@ announcement_register(struct announcement *a, uint16_t id, uint16_t value,
   a->callback = callback;
   list_add(announcements, a);
   if(observer_callback) {
-    observer_callback(a->id, a->value);
+    observer_callback(a->id, a->value, 0);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -81,9 +81,10 @@ announcement_remove(struct announcement *a)
 void
 announcement_set_value(struct announcement *a, uint16_t value)
 {
+  uint16_t oldvalue = a->value;
   a->value = value;
   if(observer_callback) {
-    observer_callback(a->id, a->value);
+    observer_callback(a->id, value, oldvalue);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -92,7 +93,7 @@ announcement_set_id(struct announcement *a, uint16_t id)
 {
   a->id = id;
   if(observer_callback) {
-    observer_callback(a->id, a->value);
+    observer_callback(a->id, a->value, a->value);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -111,7 +112,7 @@ announcement_register_listen_callback(void (*callback)(int time))
 }
 /*---------------------------------------------------------------------------*/
 void
-announcement_register_observer_callback(void (*callback)(uint16_t id, uint16_t value))
+announcement_register_observer_callback(void (*callback)(uint16_t, uint16_t, uint16_t))
 {
   observer_callback = callback;
 }
