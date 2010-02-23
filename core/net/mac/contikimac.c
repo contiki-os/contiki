@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.3 2010/02/18 23:52:34 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.4 2010/02/23 18:49:05 adamdunkels Exp $
  */
 
 /**
@@ -92,11 +92,6 @@ struct announcement_msg {
 #define DISPATCH          0
 #define TYPE_ANNOUNCEMENT 0x12
 
-struct contikimac_hdr {
-  uint8_t dispatch;
-  uint8_t type;
-};
-
 #ifdef CONTIKIMAC_CONF_CYCLE_TIME
 #define CYCLE_TIME (CONTIKIMAC_CONF_CYCLE_TIME)
 #else
@@ -135,25 +130,12 @@ static volatile uint8_t contikimac_is_on = 0;
 static volatile unsigned char we_are_sending = 0;
 static volatile unsigned char radio_is_on = 0;
 
-#undef LEDS_ON
-#undef LEDS_OFF
-#undef LEDS_TOGGLE
-
-#define LEDS_ON(x) leds_on(x)
-#define LEDS_OFF(x) leds_off(x)
-#define LEDS_TOGGLE(x) leds_toggle(x)
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PRINTDEBUG(...) printf(__VA_ARGS__)
 #else
-#undef LEDS_ON
-#undef LEDS_OFF
-#undef LEDS_TOGGLE
-#define LEDS_ON(x)
-#define LEDS_OFF(x)
-#define LEDS_TOGGLE(x)
 #define PRINTF(...)
 #define PRINTDEBUG(...)
 #endif
@@ -193,6 +175,13 @@ static rtimer_clock_t stream_until;
 #define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
 
+static volatile uint8_t packet_indication_flag;
+static volatile uint16_t packet_indicated_but_not_received,
+  packet_indicated_but_not_received_clear_third_time;
+
+volatile uint16_t
+packet_indicated_but_not_received_clear_second_time;
+
 /*---------------------------------------------------------------------------*/
 static void
 on(void)
@@ -200,7 +189,6 @@ on(void)
   if(contikimac_is_on && radio_is_on == 0) {
     radio_is_on = 1;
     NETSTACK_RADIO.on();
-    LEDS_ON(LEDS_RED);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -210,7 +198,6 @@ off(void)
   if(contikimac_is_on && radio_is_on != 0 && is_listening == 0 && is_streaming == 0) {
     radio_is_on = 0;
     NETSTACK_RADIO.off();
-    LEDS_OFF(LEDS_RED);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -221,6 +208,12 @@ schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
   int r;
 
   if(contikimac_is_on) {
+
+    while(RTIMER_TIME(t) + time == RTIMER_NOW() ||
+          RTIMER_TIME(t) + time == RTIMER_NOW() + 1) {
+      ++time;
+    }
+    
 #if NURTIMER
     r = rtimer_reschedule(t, time, 1);
 #else
@@ -238,9 +231,6 @@ powercycle_turn_radio_off(void)
   if(we_are_sending == 0) {
     off();
   }
-#if CONTIKIMAC_CONF_COMPOWER
-  compower_accumulate(&compower_idle_activity);
-#endif /* CONTIKIMAC_CONF_COMPOWER */
 }
 static void
 powercycle_turn_radio_on(void)
@@ -274,10 +264,12 @@ powercycle(struct rtimer *t, void *ptr)
     static uint8_t packet_seen;
     static rtimer_clock_t t0, cycle_start;
     static uint8_t count;
+    static uint8_t clear_second_time, clear_third_time;
 
     cycle_start = RTIMER_NOW();
 
     packet_seen = 0;
+    clear_second_time = clear_third_time = 0;
     if(we_are_sending == 0) {
       for(count = 0; count < CCA_COUNT_MAX; ++count) {
         t0 = RTIMER_NOW();
@@ -288,6 +280,7 @@ powercycle(struct rtimer *t, void *ptr)
         while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_CHECK_TIME));
 #endif
         if(NETSTACK_RADIO.channel_clear() == 0) {
+          packet_indication_flag = 1;
           packet_seen = 1;
           break;
         }
@@ -298,9 +291,80 @@ powercycle(struct rtimer *t, void *ptr)
 
       /* If there were a packet in the air, turn radio on */
       if(packet_seen) {
-        schedule_powercycle(t, LISTEN_TIME);
-        PT_YIELD(&pt);
-        powercycle_turn_radio_off();
+        static rtimer_clock_t start;
+        static uint8_t silence_periods, periods;
+
+        start = RTIMER_NOW();
+
+        periods = silence_periods = 0;
+        while(we_are_sending == 0 && radio_is_on &&
+              RTIMER_CLOCK_LT(RTIMER_NOW(), (start + LISTEN_TIME))) {
+
+          /* Check for two consecutive periods of non-activity. If we
+             see two such periods, we turn the radio off. Also, if a
+             packet has been successfully received (as indicated by
+             the NETSTACK_RADIO.pending_packet() function), we stop
+             listening. */
+          if(NETSTACK_RADIO.channel_clear()) {
+            ++silence_periods;
+          } else {
+            silence_periods = 0;
+          }
+
+          ++periods;
+          
+          if(NETSTACK_RADIO.receiving_packet()) {
+            silence_periods = 0;
+          }
+          if(silence_periods > 2) {
+            leds_on(LEDS_RED);
+            powercycle_turn_radio_off();
+#if CONTIKIMAC_CONF_COMPOWER
+            compower_accumulate(&compower_idle_activity);
+#endif /* CONTIKIMAC_CONF_COMPOWER */
+            leds_off(LEDS_RED);
+            break;
+          }
+          if(periods > 4 && !NETSTACK_RADIO.receiving_packet()) {
+            leds_on(LEDS_GREEN);
+            powercycle_turn_radio_off();
+#if CONTIKIMAC_CONF_COMPOWER
+            compower_accumulate(&compower_idle_activity);
+#endif /* CONTIKIMAC_CONF_COMPOWER */
+
+            leds_off(LEDS_GREEN);
+            break;
+          }
+          if(NETSTACK_RADIO.pending_packet()) {
+            break;
+          }
+
+          schedule_powercycle(t, CCA_CHECK_TIME + CCA_SLEEP_TIME);
+          leds_on(LEDS_BLUE);
+          PT_YIELD(&pt);
+          leds_off(LEDS_BLUE);
+        }
+        if(radio_is_on && !NETSTACK_RADIO.pending_packet) {
+          leds_on(LEDS_RED + LEDS_GREEN);
+          powercycle_turn_radio_off();
+#if CONTIKIMAC_CONF_COMPOWER
+          compower_accumulate(&compower_idle_activity);
+#endif /* CONTIKIMAC_CONF_COMPOWER */
+          leds_off(LEDS_RED + LEDS_GREEN);
+        }
+
+      } else {
+#if CONTIKIMAC_CONF_COMPOWER
+        compower_accumulate(&compower_idle_activity);
+#endif /* CONTIKIMAC_CONF_COMPOWER */
+      }
+    break_the_loop:
+      /* If the packet indication flag is still set, it means that
+         there was never a packet received by the radio. We increase
+         the packet_indicated_but_not_received counter. */
+      if(packet_indication_flag) {
+        packet_indicated_but_not_received += packet_indication_flag;
+        packet_indication_flag = 0;
       }
     }
     if(RTIMER_NOW() - cycle_start < CYCLE_TIME) {
@@ -455,7 +519,6 @@ send_packet(void)
 #endif /* WITH_ACK_OPTIMIZATION */
 #endif /* WITH_PHASE_OPTIMIZATION */
 
-    leds_on(LEDS_GREEN);
   /* By setting we_are_sending to one, we ensure that the rtimer
      powercycle interrupt do not interfere with us sending the packet. */
   we_are_sending = 1;
@@ -466,7 +529,6 @@ send_packet(void)
      packet will be retransmitted later by the MAC protocol
      instread. */
   if(NETSTACK_RADIO.receiving_packet() || NETSTACK_RADIO.pending_packet()) {
-    leds_off(LEDS_GREEN);
     we_are_sending = 0;
     return MAC_TX_COLLISION;
   }
@@ -478,14 +540,10 @@ send_packet(void)
 
   strobes = 0;
 
-  LEDS_ON(LEDS_BLUE);
-
   /* Send a train of strobes until the receiver answers with an ACK. */
   collisions = 0;
 
   got_strobe_ack = 0;
-
-  leds_off(LEDS_GREEN);
 
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
      PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
@@ -514,6 +572,7 @@ send_packet(void)
 
   if(collisions > 0) {
     we_are_sending = 0;
+    off();
     return MAC_TX_COLLISION;
   }
 
@@ -559,10 +618,8 @@ send_packet(void)
       while(RTIMER_CLOCK_LT
             (RTIMER_NOW(), wt + WAIT_TIME_BEFORE_STROBE_ACK_CCA)) { }
 #endif
-      leds_on(LEDS_RED);
       if(!is_broadcast && !NETSTACK_RADIO.channel_clear()) {
         uint8_t ackbuf[ACK_LEN];
-        leds_on(LEDS_BLUE);
         wt = RTIMER_NOW();
 #if NURTIMER
         while(RTIMER_CLOCK_LT
@@ -571,19 +628,19 @@ send_packet(void)
         while(RTIMER_CLOCK_LT
               (RTIMER_NOW(), wt + WAIT_TIME_AFTER_STROBE_ACK_CCA)) { }
 #endif
-        leds_off(LEDS_BLUE);
         if(!is_broadcast) {
           len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
           if(len == ACK_LEN) {
             got_strobe_ack = 1;
             encounter_time = now;
-          } else {
+            packet_indication_flag = 0;
+          } else if(len > 0) {
+            packet_indication_flag = 0;
             collisions++;
           }
         } else {
         }
       }
-      leds_off(LEDS_RED);
     }
   }
 
@@ -627,17 +684,15 @@ send_packet(void)
 
   we_are_sending = 0;
 
-  LEDS_OFF(LEDS_BLUE);
-  if(collisions == 0) {
-    if(!is_broadcast && !got_strobe_ack) {
-      return MAC_TX_NOACK;
-    } else {
-      return MAC_TX_OK;
-    }
-  } else {
+  if(collisions > 0) {
     return MAC_TX_COLLISION;
   }
-
+  
+  if(!is_broadcast && !got_strobe_ack) {
+    return MAC_TX_NOACK;
+  } else {
+    return MAC_TX_OK;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -650,53 +705,43 @@ qsend_packet(mac_callback_t sent, void *ptr)
 static void
 input_packet(void)
 {
-  struct contikimac_hdr *hdr;
-
   /* We have received the packet, so we can go back to being
      asleep. */
   off();
 
-  if(framer_get()->parse()) {
-    hdr = packetbuf_dataptr();
+  packet_indication_flag = 0;
 
-    if(hdr->dispatch != DISPATCH) {
-      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                      &rimeaddr_node_addr) ||
-         rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                      &rimeaddr_null)) {
-        /* This is a regular packet that is destined to us or to the
-           broadcast address. */
-
+  if(packetbuf_totlen() > 0 && framer_get()->parse()) {
+    
+    if(packetbuf_datalen() > 0 &&
+       packetbuf_totlen() > 0 &&
+       (rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                     &rimeaddr_node_addr) ||
+        rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                     &rimeaddr_null))) {
+      /* This is a regular packet that is destined to us or to the
+         broadcast address. */
 
 #if CONTIKIMAC_CONF_COMPOWER
-        /* Accumulate the power consumption for the packet reception. */
-        compower_accumulate(&current_packet);
-        /* Convert the accumulated power consumption for the received
-           packet to packet attributes so that the higher levels can
-           keep track of the amount of energy spent on receiving the
-           packet. */
-        compower_attrconv(&current_packet);
+      /* Accumulate the power consumption for the packet reception. */
+      compower_accumulate(&current_packet);
+      /* Convert the accumulated power consumption for the received
+         packet to packet attributes so that the higher levels can
+         keep track of the amount of energy spent on receiving the
+         packet. */
+      compower_attrconv(&current_packet);
 
-        /* Clear the accumulated power consumption so that it is ready
-           for the next packet. */
-        compower_clear(&current_packet);
+      /* Clear the accumulated power consumption so that it is ready
+         for the next packet. */
+      compower_clear(&current_packet);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
 
-        PRINTDEBUG("contikimac: data(%u)\n", packetbuf_datalen());
+      PRINTDEBUG("contikimac: data(%u)\n", packetbuf_datalen());
 
-        NETSTACK_MAC.input();
-        return;
-      } else {
-        PRINTDEBUG("contikimac: data not for us\n");
-      }
-#if CONTIKIMAC_CONF_ANNOUNCEMENTS
-    } else if(hdr->type == TYPE_ANNOUNCEMENT) {
-      packetbuf_hdrreduce(sizeof(struct contikimac_hdr));
-      parse_announcements(packetbuf_addr(PACKETBUF_ADDR_SENDER));
-#endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
+      NETSTACK_MAC.input();
+      return;
     } else {
-      PRINTF("contikimac: unknown type %u (%u/%u)\n", hdr->type,
-             packetbuf_datalen(), len);
+      PRINTDEBUG("contikimac: data not for us\n");
     }
   } else {
     PRINTF("contikimac: failed to parse (%u)\n", packetbuf_totlen());
@@ -830,3 +875,41 @@ const struct mac_driver contikimac_driver = {
   turn_off,
   duty_cycle,
 };
+/*---------------------------------------------------------------------------*/
+uint16_t
+contikimac_debug_print(void)
+{
+  uint16_t c1, c2;
+  uint16_t indicated, clear_second, clear_third;
+  static uint16_t indicated_last, clear_second_last, clear_third_last;
+  
+  do {
+    c1 = packet_indicated_but_not_received;
+    c2 = packet_indicated_but_not_received;
+  } while(c1 != c2);
+
+  indicated = c1;
+  
+  do {
+    c1 = packet_indicated_but_not_received_clear_second_time;
+    c2 = packet_indicated_but_not_received_clear_second_time;
+  } while(c1 != c2);
+
+  clear_second = c1;
+
+  do {
+    c1 = packet_indicated_but_not_received_clear_third_time;
+    c2 = packet_indicated_but_not_received_clear_third_time;
+  } while(c1 != c2);
+
+  clear_third = c1;
+
+  printf("indicated %d clear second %d clear_third %d\n",
+         indicated - indicated_last,
+         clear_second - clear_second_last,
+         clear_third - clear_third_last);
+  indicated_last = indicated;
+  clear_second_last = clear_second;
+  clear_third_last = clear_third;
+}
+/*---------------------------------------------------------------------------*/
