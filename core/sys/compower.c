@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: compower.c,v 1.3 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: compower.c,v 1.4 2010/02/23 18:39:00 adamdunkels Exp $
  */
 
 /**
@@ -81,8 +81,10 @@ compower_clear(struct compower_activity *e)
 void
 compower_attrconv(struct compower_activity *e)
 {
-  packetbuf_set_attr(PACKETBUF_ATTR_LISTEN_TIME, e->listen);
-  packetbuf_set_attr(PACKETBUF_ATTR_TRANSMIT_TIME, e->transmit);
+  packetbuf_set_attr(PACKETBUF_ATTR_LISTEN_TIME,
+                     packetbuf_attr(PACKETBUF_ATTR_LISTEN_TIME) + e->listen);
+  packetbuf_set_attr(PACKETBUF_ATTR_TRANSMIT_TIME,
+                     packetbuf_attr(PACKETBUF_ATTR_TRANSMIT_TIME) + e->transmit);
 }
 /*---------------------------------------------------------------------------*/
 void
