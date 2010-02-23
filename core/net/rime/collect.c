@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.32 2010/02/08 21:59:49 adamdunkels Exp $
+ * $Id: collect.c,v 1.33 2010/02/23 18:35:23 adamdunkels Exp $
  */
 
 /**
@@ -70,10 +70,11 @@ static const struct packetbuf_attrlist attributes[] =
     PACKETBUF_ATTR_LAST
   };
 
-#define NUM_RECENT_PACKETS 2
+#define NUM_RECENT_PACKETS 8
 
 struct recent_packet {
   rimeaddr_t originator;
+  rimeaddr_t sent_to;
   uint8_t seqno;
 };
 
@@ -90,7 +91,7 @@ PACKETQUEUE(forwarding_queue, MAX_FORWARDING_QUEUE);
 #define MAX_HOPLIM 10
 
 #ifndef COLLECT_CONF_ANNOUNCEMENTS
-#define COLLECT_ANNOUNCEMENTS 1
+#define COLLECT_ANNOUNCEMENTS 0
 #else
 #define COLLECT_ANNOUNCEMENTS COLLECT_CONF_ANNOUNCEMENTS
 #endif /* COLLECT_CONF_ANNOUNCEMENTS */
@@ -184,7 +185,11 @@ update_rtmetric(struct collect_conn *tc)
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
       tc->rtmetric = RTMETRIC_MAX;
+#if COLLECT_ANNOUNCEMENTS
       announcement_set_value(&tc->announcement, tc->rtmetric);
+#else /* COLLECT_ANNOUNCEMENTS */
+      neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
+#endif /* COLLECT_ANNOUNCEMENTS */
     } else {
 
       /* We set our rtmetric to the rtmetric of our best neighbor plus
@@ -194,11 +199,21 @@ update_rtmetric(struct collect_conn *tc)
 	
 	tc->rtmetric = n->rtmetric + neighbor_etx(n);
 
-#if !COLLECT_ANNOUNCEMENTS
-	neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
-#else
+#if ! COLLECT_ANNOUNCEMENTS
+
+        /*        neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);*/
+        
+        /* If we get a significantly better rtmetric than we had
+           before, we call neighbor_discovery_start to start a new
+           period. */
+        if(old_rtmetric >= tc->rtmetric + NEIGHBOR_ETX_SCALE + NEIGHBOR_ETX_SCALE / 2) {
+          neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
+        } else {
+          neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
+        }
+#else /* ! COLLECT_ANNOUNCEMENTS */
 	announcement_set_value(&tc->announcement, tc->rtmetric);
-#endif /* !COLLECT_ANNOUNCEMENTS */
+#endif /* ! COLLECT_ANNOUNCEMENTS */
 
 	PRINTF("%d.%d: new rtmetric %d\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -233,10 +248,12 @@ node_packet_received(struct runicast_conn *c, const rimeaddr_t *from,
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
   int i;
+  struct neighbor *n;
 
   /* To protect against forwarding duplicate packets, we keep a list
      of recently forwarded packet seqnos. If the seqno of the current
-     packet exists in the list, we drop the packet. */
+     packet exists in the list, we drop the packet and increase the
+     ETX of the neighbor we sent it to in the first place. */
 
   for(i = 0; i < NUM_RECENT_PACKETS; i++) {
     if(recent_packets[i].seqno == packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID) &&
@@ -246,6 +263,10 @@ node_packet_received(struct runicast_conn *c, const rimeaddr_t *from,
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     recent_packets[i].originator.u8[0], recent_packets[i].originator.u8[1],
 	     packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID));
+      n = neighbor_find(&recent_packets[i].sent_to);
+      if(n != NULL) {
+        neighbor_update_etx(n, neighbor_etx(n) + NEIGHBOR_ETX_SCALE * 4);
+      }
       /* Drop the packet. */
       return;
     }
@@ -253,6 +274,10 @@ node_packet_received(struct runicast_conn *c, const rimeaddr_t *from,
   recent_packets[recent_packet_ptr].seqno = packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID);
   rimeaddr_copy(&recent_packets[recent_packet_ptr].originator,
 		packetbuf_addr(PACKETBUF_ADDR_ESENDER));
+  n = neighbor_best();
+  rimeaddr_copy(&recent_packets[recent_packet_ptr].sent_to,
+		&n->addr);
+
   recent_packet_ptr = (recent_packet_ptr + 1) % NUM_RECENT_PACKETS;
   
   if(tc->rtmetric == SINK) {
@@ -293,6 +318,10 @@ node_packet_received(struct runicast_conn *c, const rimeaddr_t *from,
       PRINTF("%d.%d: packet dropped: no queue buffer available\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     }
+  } else if(packetbuf_attr(PACKETBUF_ATTR_TTL) <= 1) {
+      PRINTF("%d.%d: packet dropped: ttl %d\n",
+             rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+             packetbuf_attr(PACKETBUF_ATTR_TTL));
   }
   
   return;
@@ -406,9 +435,9 @@ collect_open(struct collect_conn *tc, uint16_t channels,
 {
 #if !COLLECT_ANNOUNCEMENTS
   neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
-			  CLOCK_SECOND * 2,
-			  CLOCK_SECOND * 10,
-			  CLOCK_SECOND * 60,
+			  CLOCK_SECOND * 8,
+			  CLOCK_SECOND * 32,
+			  CLOCK_SECOND * 600,
 			  &neighbor_discovery_callbacks);
 #endif /* !COLLECT_ANNOUNCEMENTS */
   runicast_open(&tc->runicast_conn, channels + 1, &runicast_callbacks);
@@ -493,7 +522,9 @@ collect_send(struct collect_conn *tc, int rexmits)
       /*      printf("Didn't find any neighbor\n");*/
       PRINTF("%d.%d: did not find any neighbor to send to\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+#if COLLECT_ANNOUNCEMENTS
       announcement_listen(1);
+#endif /* COLLECT_ANNOUNCEMENTS */
       if(packetqueue_enqueue_packetbuf(&forwarding_queue, FORWARD_PACKET_LIFETIME,
 				       tc)) {
 	return 1;
