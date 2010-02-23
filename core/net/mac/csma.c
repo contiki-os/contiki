@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.6 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: csma.c,v 1.7 2010/02/23 18:49:45 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@ struct queued_packet {
   uint8_t transmissions;
 };
 
-#define MAX_RETRANSMITS 2
+#define MAX_RETRANSMITS 4
 
 #define MAX_QUEUED_PACKETS 8
 MEMB(packet_memb, struct queued_packet, MAX_QUEUED_PACKETS);
@@ -110,7 +110,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
       PRINTF("csma: rexmit noack %d\n", q->transmissions);
       break;
    default:
-     PRINTF("csma: rexmit err %d, %d\n", ret, q->transmissions);
+     PRINTF("csma: rexmit err %d, %d\n", status, q->transmissions);
     }
   
     time = NETSTACK_RDC.channel_check_interval();
@@ -125,12 +125,12 @@ packet_sent(void *ptr, int status, int num_transmissions)
     } else {
       PRINTF("csma: drop after %d\n", q->transmissions);
       free_packet(q);
-      mac_call_sent_callback(sent, ptr, status, num_tx);
+      mac_call_sent_callback(sent, cptr, status, num_tx);
     }
   } else {
     PRINTF("csma: rexmit ok %d\n", q->transmissions);
     free_packet(q);
-    mac_call_sent_callback(sent, ptr, status, num_tx);
+    mac_call_sent_callback(sent, cptr, status, num_tx);
   }
 }
 
@@ -165,7 +165,7 @@ sent_packet_1(void *ptr, int status, int num_transmissions)
       PRINTF("csma: noack\n");
       break;
    default:
-      PRINTF("csma: err %d\n", ret);
+      PRINTF("csma: err %d\n", status);
     }
   } else {
     PRINTF("csma: ok\n");
@@ -196,7 +196,7 @@ sent_packet_1(void *ptr, int status, int num_transmissions)
     cptr = q->cptr;
     num_tx = q->transmissions;
     free_packet(q);
-    mac_call_sent_callback(sent, ptr, status, num_tx);
+    mac_call_sent_callback(sent, cptr, status, num_tx);
   }
 }
 /*---------------------------------------------------------------------------*/
