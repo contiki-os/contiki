@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.15 2009/03/17 15:56:32 adamdunkels Exp $
+ * $Id: ether.c,v 1.16 2010/02/23 18:44:08 adamdunkels Exp $
  */
 /**
  * \file
@@ -242,7 +242,7 @@ ether_client_poll(void)
   FD_SET(sc, &fdset);
 
   tv.tv_sec = 0;
-  tv.tv_usec = 10000;
+  tv.tv_usec = 1000;
   
   ret = select(sc + 1, &fdset, NULL, NULL, &tv);
 

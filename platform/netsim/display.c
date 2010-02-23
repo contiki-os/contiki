@@ -24,7 +24,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: display.c,v 1.9 2008/05/14 19:22:57 adamdunkels Exp $
+ * $Id: display.c,v 1.10 2010/02/23 18:44:08 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
@@ -525,8 +525,9 @@ stdin_callback(gpointer data, gint source, GdkInputCondition condition)
 {
   char buf[1000];
   int len;
-  
+
   len = read(STDIN_FILENO, &buf, sizeof(buf));
+  printf("read len %d\n", len);
   buf[len] = 0;
   ether_send_serial(buf);
 }

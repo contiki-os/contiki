@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.16 2008/08/15 19:54:58 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.17 2010/02/23 18:44:08 adamdunkels Exp $
  */
 /**
  * \file
@@ -45,6 +45,8 @@
 #include "ether.h"
 
 #include "dev/radio.h"
+#include "net/netstack.h"
+#include "net/rime/packetbuf.h"
 
 #include "node.h"
 
@@ -53,6 +55,8 @@
 #include <stdio.h>
 #include <sys/select.h>
 #include <unistd.h>
+
+#include "net/ethernode.h"
 
 #define BUF ((uip_tcpip_hdr *)&uip_buf[HDR_LEN])
 
@@ -77,29 +81,42 @@ struct hdr {
 
 static int radio_is_on = 1;
 
+/*---------------------------------------------------------------------------*/
 static int
 ethernode_on(void)
 {
   radio_is_on = 1;
   ether_set_radio_status(radio_is_on);
+
+  return 1;
 }
+/*---------------------------------------------------------------------------*/
 static int
 ethernode_safe_off(void)
 {
   radio_is_on = 0;
   ether_set_radio_status(radio_is_on);
+  return 1;
 }
-
-#include "net/ethernode.h"
-
-const struct radio_driver ethernode_driver =
-  {
-    ethernode_send_buf,
-    ethernode_read,
-    ethernode_set_receiver,
-    ethernode_on,
-    ethernode_safe_off,
-  };
+/*---------------------------------------------------------------------------*/
+static int
+channel_clear(void)
+{
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+static int
+receiving(void)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+pending(void)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 
 
 #define HDR_LEN UIP_LLH_LEN
@@ -234,44 +251,73 @@ ethernode_send(void)
   return UIP_FW_OK;
 }
 /*-------------------------------------------------------------------------------*/
-int
-ethernode_send_buf(const void *buf, unsigned short len)
-{
-  char tmpbuf[2048];
-  struct hdr *hdr = (struct hdr *)tmpbuf;
-  u8_t dest;
+static char tmpbuf[2048];
+static struct hdr *hdr = (struct hdr *)tmpbuf;
+static u8_t dest;
 
+static int
+prepare(const void *buf, unsigned short len)
+{
   memcpy(&tmpbuf[HDR_LEN], buf, len);
   len = len + HDR_LEN;
 
   dest = ID_BROADCAST;
-  do_send(TYPE_DATA, dest, hdr, len);
   return len;
 }
 /*-------------------------------------------------------------------------------*/
-static void (* receiver_callback)(const struct radio_driver *);
-/*-------------------------------------------------------------------------------*/
-void
-ethernode_set_receiver(void (* recv)(const struct radio_driver *))
+static int
+transmit(unsigned short len)
 {
-  process_start(&ethernode_process, NULL);
-  receiver_callback = recv;
+  do_send(TYPE_DATA, dest, hdr, len + HDR_LEN);
+  return RADIO_TX_OK;
+}
+/*-------------------------------------------------------------------------------*/
+static int
+send(const void *payload, unsigned short payload_len)
+{
+  prepare(payload, payload_len);
+  return transmit(payload_len);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ethernode_process, ev, data)
 {
+  int len;
   PROCESS_BEGIN();
 
   while(1) {
     process_post(PROCESS_CURRENT(), PROCESS_EVENT_CONTINUE, NULL);
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
-    
-    if(ethernode_poll()) {
-      if(receiver_callback) {
-	receiver_callback(&ethernode_driver);
+
+    len = ethernode_poll();
+    if(len > 0) {
+
+      packetbuf_clear();
+      len = ethernode_read(packetbuf_dataptr(), PACKETBUF_SIZE);
+      if(len > 0) {
+        packetbuf_set_datalen(len);
+        NETSTACK_RDC.input();
       }
+
+      /*      if(receiver_callback) {
+	receiver_callback(&ethernode_driver);
+        }*/
     }
   }
   PROCESS_END();
 }
 /*-------------------------------------------------------------------------------*/
+const struct radio_driver ethernode_driver =
+  {
+    (int (*)(void))ethernode_init,
+    prepare,
+    transmit,
+    send,
+    ethernode_read,
+    channel_clear,
+    receiving,
+    pending,
+    ethernode_on,
+    ethernode_safe_off,
+  };
+
+
