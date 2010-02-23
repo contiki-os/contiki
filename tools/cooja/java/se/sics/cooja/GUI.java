@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.160 2010/02/21 21:51:24 fros4943 Exp $
+ * $Id: GUI.java,v 1.161 2010/02/23 22:53:34 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -63,6 +63,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessControlException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -2178,6 +2179,11 @@ public class GUI extends Observable {
       return;
     }
 
+    /* Warn about memory usage */
+    if (warnMemory()) {
+      return;
+    }
+
     /* Remove current simulation */
     if (!doRemoveSimulation(true)) {
       return;
@@ -2342,6 +2348,11 @@ public class GUI extends Observable {
       return;
     }
 
+    /* Warn about memory usage */
+    if (warnMemory()) {
+      return;
+    }
+    
     final JDialog progressDialog = new JDialog(frame, "Reloading", true);
     final Thread loadThread = new Thread(new Runnable() {
       public void run() {
@@ -2430,6 +2441,33 @@ public class GUI extends Observable {
 
     loadThread.start();
     progressDialog.setVisible(true);
+  }
+
+  private boolean warnMemory() {
+    long max = Runtime.getRuntime().maxMemory();
+    long used  = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    double memRatio = (double) used / (double) max;
+    if (memRatio < 0.8) {
+      return false;
+    }
+
+    DecimalFormat format = new DecimalFormat("0.000");
+    logger.warn("Reboot COOJA to avoid out of memory error! (memory usage: " + format.format(100*memRatio) + "%)");
+    if (isVisualized()) {
+      int n = JOptionPane.showOptionDialog(
+          GUI.getTopParentContainer(),
+          "Reboot COOJA to avoid out of memory error!\n" +
+          "Current memory usage: " + format.format(100*memRatio) + "%.",
+          "Out of memory warning",
+          JOptionPane.YES_NO_OPTION,
+          JOptionPane.WARNING_MESSAGE, null,
+          new String[] { "Continue", "Abort"}, "Abort");
+      if (n != JOptionPane.YES_OPTION) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
