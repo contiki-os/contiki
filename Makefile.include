@@ -44,10 +44,11 @@ $(OBJDIR)/%.o:	%.c
 
 
 clean:
-	find $(MC1322X) -type f \
+	find $(MC1322X) \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
-		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \) -print \
-		| xargs rm -f
+		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \
+                -o -name 'obj_*_board' -o -name '.depend' \) -print \
+		| xargs rm -rf
 	rm -fr *.*~	
 
 clobber \
