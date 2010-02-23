@@ -55,7 +55,12 @@
 #include "serial/uart_usb_lib.h"
 #include "rndis/rndis_protocol.h"
 #include "sicslow_ethernet.h"
+#if RF230BB
+extern void rf230_set_channel(int channel);
+extern int rf230_get_channel(void);
+#else
 #include "radio.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -222,11 +227,13 @@ void menu_process(char c)
 				
 				//If valid input, change it
 				if (tempchannel) {
-#if !RF230BB
+#if RF230BB
+					rf230_set_channel(tempchannel);
+#else
 					radio_set_operating_channel(tempchannel);
-					eeprom_write_byte((uint8_t *) 9, tempchannel);   //Write channel
-					eeprom_write_byte((uint8_t *)10, ~tempchannel); //Bit inverse as check
 #endif
+//					eeprom_write_byte((uint8_t *) 9, tempchannel);   //Write channel
+//					eeprom_write_byte((uint8_t *)10, ~tempchannel); //Bit inverse as check
 				}
 
 				menustate = normal;
@@ -298,11 +305,13 @@ void menu_process(char c)
 				break;
 
 			case 'c':
-#if !RF230BB
+#if RF230BB
+				PRINTF_P(PSTR("Select 802.15.4 Channel in range 11-26 [%d]: "), rf230_get_channel());
+#else
 				PRINTF_P(PSTR("Select 802.15.4 Channel in range 11-26 [%d]: "), radio_get_operating_channel());
+#endif
 				menustate = channel;
 				channel_string_i = 0;
-#endif
 				break;
 				
 				
@@ -317,8 +326,10 @@ void menu_process(char c)
 				PRINTF_P(PSTR("decompress 6lowpan headers\n\r  * Will "));
 				if (usbstick_mode.raw == 0) { PRINTF_P(PSTR("not "));}
 				PRINTF_P(PSTR("Output raw 802.15.4 frames\n\r "));
-#if !RF230BB
-				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), radio_get_operating_channel());
+#if RF230BB
+				PRINTF_P(PSTR("  * Operates on channel %d\n\r "), rf230_get_channel());
+#else
+				PRINTF_P(PSTR("  * Operates on channel %d\n\r "), radio_get_operating_channel());
 #endif
 				break;
 
