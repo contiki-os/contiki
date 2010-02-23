@@ -1,8 +1,6 @@
 LINKERSCRIPT := $(MC1322X)/mc1322x.lds
 LIBMC1322X := $(MC1322X)/libmc1322x
 
-.DEFAULT_GOAL := all
-
 include $(MC1322X)/config.mk
 
 include $(MC1322X)/board/Makefile.board
@@ -68,3 +66,8 @@ clean:
 clobber \
 mrproper \
 distclean:	clean
+
+.DEFAULT_GOAL := all
+
+ALL := $(OBJDIR)/board.h $(TARGETS)_$(BOARD).bin
+all: $(ALL)
