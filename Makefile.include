@@ -32,10 +32,22 @@ $(ISR): $(ISR:.o=.c)
 %_$(BOARD).elf: %.elf
 	mv $< $@
 
-%.elf:	$(START) $(ISR) $(LIBMC1322X)/libmc1322x.a $(OBJDIR)/%.o $(LINKERSCRIPT) board
+%.elf:	$(START) $(ISR) $(LIBMC1322X)/libmc1322x.a $(OBJDIR)/%.o $(LINKERSCRIPT) 
 	$(LD) $(LDFLAGS) $(AOBJS) \
 	--start-group $(PLATFORM_LIBS) --end-group \
 	$(filter %.o %.a,$+) -o $@
+
+%.srec:		%.elf
+		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@
+
+%.ihex: 	%.elf
+		$(OBJCOPY) ${OBJCFLAGS} -O ihex $< $@
+
+%.bin:		%.elf
+		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
+
+%.dis:		%.elf
+		$(OBJDUMP) -SD $< > $@
 
 $(OBJDIR)/%.s:	%.S
 	$(CPP) $(AFLAGS) -o $@ $<
@@ -49,7 +61,7 @@ clean:
 	find $(MC1322X) \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
 		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \
-                -o -name 'obj_*_board' -o -name '.depend' \) -print \
+                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' \) -print \
 		| xargs rm -rf
 	rm -fr *.*~	
 
