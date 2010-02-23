@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.21 2010/01/30 14:03:35 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.22 2010/02/23 18:41:20 adamdunkels Exp $
  */
 
 
@@ -63,7 +63,9 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
 
     /* Make sure interrupt time is future */
     do {
+      /*      TACTL &= ~MC1;*/
       TACCR1 += INTERVAL;
+      /*      TACTL |= MC1;*/
       ++count;
 
       /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
@@ -98,7 +100,12 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
 clock_time_t
 clock_time(void)
 {
-  return count;
+  clock_time_t t1, t2;
+  do {
+    t1 = count;
+    t2 = count;
+  } while(t1 != t2);
+  return t1;
 }
 /*---------------------------------------------------------------------------*/
 void
