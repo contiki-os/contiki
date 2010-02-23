@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.62 2010/02/04 15:32:41 nifi Exp $
+ * $Id: Simulation.java,v 1.63 2010/02/23 21:55:55 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -768,14 +768,31 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * Get a mote from this simulation.
+   * Returns simulation mote at given list position.
    *
-   * @param pos
-   *          Internal list position of mote
+   * @param pos Internal list position of mote
    * @return Mote
+   * @see #getMotesCount()
+   * @see #getMoteWithID(int)
    */
   public Mote getMote(int pos) {
     return motes.get(pos);
+  }
+  
+  /**
+   * Returns simulation with with given ID.
+   * 
+   * @param id ID
+   * @return Mote or null
+   * @see Mote#getID()
+   */
+  public Mote getMoteWithID(int id) {
+    for (Mote m: motes) {
+      if (m.getID() == id) {
+        return m;
+      }
+    }
+    return null;
   }
 
   /**
