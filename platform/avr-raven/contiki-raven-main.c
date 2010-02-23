@@ -53,7 +53,7 @@ extern int rf230_interrupt_flag;
 #include "loader/symbols-def.h"
 #include "loader/symtab.h"
 
-#ifdef RF230BB        //radio driver using contiki core mac
+#if RF230BB        //radio driver using contiki core mac
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
@@ -169,7 +169,7 @@ void initialize(void)
  /* etimers must be started before ctimer_init */
   process_start(&etimer_process, NULL);
 
-#ifdef RF230BB
+#if RF230BB
 {
   ctimer_init();
   /* Start radio and radio receive process */
