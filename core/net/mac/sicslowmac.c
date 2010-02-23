@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowmac.c,v 1.6 2010/02/23 20:09:11 nifi Exp $
+ * $Id: sicslowmac.c,v 1.7 2010/02/23 22:45:11 nifi Exp $
  */
 
 
@@ -238,6 +238,12 @@ init(void)
   NETSTACK_RADIO.on();
 }
 /*---------------------------------------------------------------------------*/
+static unsigned short
+channel_check_interval(void)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 const struct rdc_driver sicslowmac_driver = {
   "sicslowmac",
   init,
@@ -245,5 +251,6 @@ const struct rdc_driver sicslowmac_driver = {
   input_packet,
   on,
   off,
+  channel_check_interval
 };
 /*---------------------------------------------------------------------------*/
