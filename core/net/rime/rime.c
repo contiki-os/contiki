@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.26 2010/02/23 18:29:53 adamdunkels Exp $
+ * $Id: rime.c,v 1.27 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**
@@ -188,13 +188,9 @@ rime_output(struct channel *c)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver rime_driver = {
+const struct network_driver rime_driver = {
   "Rime",
   init,
-  NULL,
-  input,
-  NULL,
-  NULL,
-  NULL,
+  input
 };
 /** @} */

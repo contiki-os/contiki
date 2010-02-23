@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.53 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: xmac.c,v 1.54 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**
@@ -904,7 +904,7 @@ channel_check_interval(void)
   return (1ul * CLOCK_SECOND * DEFAULT_PERIOD) / RTIMER_ARCH_SECOND;
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver xmac_driver =
+const struct rdc_driver xmac_driver =
   {
     "X-MAC",
     init,

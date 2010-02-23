@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.10 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: cxmac.c,v 1.11 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**
@@ -911,7 +911,7 @@ channel_check_interval(void)
   return (1ul * CLOCK_SECOND * DEFAULT_PERIOD) / RTIMER_ARCH_SECOND;
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver cxmac_driver =
+const struct rdc_driver cxmac_driver =
   {
     "CX-MAC",
     cxmac_init,

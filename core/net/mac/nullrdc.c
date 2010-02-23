@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullrdc.c,v 1.1 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: nullrdc.c,v 1.2 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**
@@ -89,7 +89,7 @@ init(void)
   on();
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver nullrdc_driver = {
+const struct rdc_driver nullrdc_driver = {
   "nullrdc",
   init,
   send_packet,

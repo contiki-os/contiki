@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netstack.h,v 1.3 2010/02/23 18:28:04 adamdunkels Exp $
+ * $Id: netstack.h,v 1.4 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**
@@ -55,7 +55,7 @@
 #ifdef NETSTACK_CONF_MAC
 #define NETSTACK_MAC NETSTACK_CONF_MAC
 #else /* NETSTACK_CONF_MAC */
-#define NETSTACK_MAC     nullrdc_driver
+#define NETSTACK_MAC     nullmac_driver
 #endif /* NETSTACK_CONF_MAC */
 #endif /* NETSTACK_MAC */
 
@@ -63,7 +63,7 @@
 #ifdef NETSTACK_CONF_RDC
 #define NETSTACK_RDC NETSTACK_CONF_RDC
 #else /* NETSTACK_CONF_RDC */
-#define NETSTACK_RDC     nullmac_driver
+#define NETSTACK_RDC     nullrdc_driver
 #endif /* NETSTACK_CONF_RDC */
 #endif /* NETSTACK_RDC */
 
@@ -76,12 +76,26 @@
 #endif /* NETSTACK_RADIO */
 
 #include "net/mac/mac.h"
+#include "net/mac/rdc.h"
 #include "dev/radio.h"
 
-extern const struct mac_driver   NETSTACK_NETWORK;
-extern const struct mac_driver   NETSTACK_RDC;
-extern const struct mac_driver   NETSTACK_MAC;
-extern const struct radio_driver NETSTACK_RADIO;
+/**
+ * The structure of a network driver in Contiki.
+ */
+struct network_driver {
+  char *name;
+
+  /** Initialize the network driver */
+  void (* init)(void);
+
+  /** Callback for getting notified of incoming packet. */
+  void (* input)(void);
+};
+
+extern const struct network_driver NETSTACK_NETWORK;
+extern const struct rdc_driver     NETSTACK_RDC;
+extern const struct mac_driver     NETSTACK_MAC;
+extern const struct radio_driver   NETSTACK_RADIO;
 
 void netstack_init(void);
 
