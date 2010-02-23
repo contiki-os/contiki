@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.c,v 1.9 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: polite.c,v 1.10 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**
@@ -82,6 +82,12 @@ recv(struct abc_conn *abc)
 }
 /*---------------------------------------------------------------------------*/
 static void
+sent(struct abc_conn *c, int status, int num_tx)
+{
+
+}
+/*---------------------------------------------------------------------------*/
+static void
 send(void *ptr)
 {
   struct polite_conn *c = ptr;
@@ -97,7 +103,7 @@ send(void *ptr)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct abc_callbacks abc = { recv };
+static const struct abc_callbacks abc = { recv, sent };
 /*---------------------------------------------------------------------------*/
 void
 polite_open(struct polite_conn *c, uint16_t channel,

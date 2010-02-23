@@ -53,7 +53,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast.h,v 1.4 2009/11/08 19:40:17 adamdunkels Exp $
+ * $Id: broadcast.h,v 1.5 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**
@@ -81,6 +81,7 @@ struct broadcast_conn;
 struct broadcast_callbacks {
   /** Called when a packet has been received by the broadcast module. */
   void (* recv)(struct broadcast_conn *ptr, const rimeaddr_t *sender);
+  void (* sent)(struct broadcast_conn *ptr, int status, int num_tx);
 };
 
 struct broadcast_conn {
