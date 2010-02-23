@@ -117,7 +117,15 @@ typedef int32_t s32_t;
 
 #ifdef RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
-//#undef PACKETBUT_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
+//#undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
+
+/* Network setup for IPv6 */
+#define NETSTACK_CONF_NETWORK sicslowpan_driver
+//#define NETSTACK_CONF_MAC     nullmac_driver
+#define NETSTACK_CONF_MAC     csma_driver
+//#define NETSTACK_CONF_RDC     contikimac_driver
+#define NETSTACK_CONF_RDC     sicslowmac_driver
+#define NETSTACK_CONF_RADIO   rf230_driver
 #endif
 
 /* Fragmentation uses queuebuf.c to save packets */
