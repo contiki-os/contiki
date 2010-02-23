@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.11 2010/02/03 16:47:26 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.12 2010/02/23 18:43:21 adamdunkels Exp $
  *
  */
 
@@ -38,6 +38,8 @@
 #include <sys/select.h>
 
 #include "contiki.h"
+#include "net/netstack.h"
+#include "net/rime/ctimer.h"
 
 #include "dev/serial-line.h"
 
@@ -47,7 +49,7 @@
 #include "dev/pir-sensor.h"
 #include "dev/vib-sensor.h"
 
-PROCINIT(&etimer_process, &tcpip_process, &serial_line_process);
+PROCINIT(&etimer_process, &tcpip_process);
 
 SENSORS(&pir_sensor, &vib_sensor, &button_sensor);
 
@@ -58,11 +60,16 @@ main(void)
   printf("Starting Contiki\n");
   process_init();
   ctimer_init();
+
+  netstack_init();
   
   procinit_init();
+
+  serial_line_init();
   
   autostart_start(autostart_processes);
 
+  
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
   
