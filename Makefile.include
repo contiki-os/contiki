@@ -1,7 +1,7 @@
-LINKERSCRIPT = $(MC1322X)/mc1322x.lds
-LIBMC1322X = $(MC1322X)/libmc1322x
+LINKERSCRIPT := $(MC1322X)/mc1322x.lds
+LIBMC1322X := $(MC1322X)/libmc1322x
 
-.DEFAULT_GOAL = all
+.DEFAULT_GOAL := all
 
 include $(MC1322X)/config.mk
 

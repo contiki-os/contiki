@@ -1,31 +1,27 @@
-#define MBAR_GPIO       0x80000000
-#define GPIO_PAD_DIR0   0x80000000
-#define GPIO_DATA0      0x80000008
-#define UART1_DATA      0x80005008
+#include <mc1322x.h>
+#include <board.h>
+
 #define DELAY 400000
 
-#include "embedded_types.h"
-#include "isr.h"
-#include "led.h"
+#define LED_BITS LED_RED
 
-#define LED_BITS LED_WHITE
-
-__attribute__ ((section ("startup")))
-void main(void) {
-	
-	*(volatile uint32_t *)GPIO_PAD_DIR0 = LED_BITS;
-
+__attribute__ ((section ("startup"))) 
+void main(void) {	
 	volatile uint32_t i;
+	
+	*GPIO_PAD_DIR0 = LED_BITS;
 
 	while(1) {
 
-		*(volatile uint32_t *)GPIO_DATA0 = LED_BITS;
+		*GPIO_DATA0 = LED_BITS;
 		
 		for(i=0; i<DELAY; i++) { continue; }
 
-		*(volatile uint32_t *)GPIO_DATA0 = 0x00000000;
+		*GPIO_DATA0 = 0x00000000;
 
 		for(i=0; i<DELAY; i++) { continue; }
 
 	};
+
 }
+

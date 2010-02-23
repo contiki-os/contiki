@@ -1,6 +1,6 @@
-BOARDS = redbee-dev redbee-module redbee-r1 redbee-usb redbee-econotag
+BOARDS := redbee-dev redbee-module redbee-r1 redbee-usb redbee-econotag
 
-OBJDIR = ./obj_$(BOARD)_board
+OBJDIR := obj_$(BOARD)_board
 CFLAGS += -I$(OBJDIR)
 
 $(OBJDIR):
@@ -11,7 +11,8 @@ ifndef BOARD
 	${error you must define BOARD}
 endif
 	@echo "setup object directory for dev board"
-	mkdir -p $(OBJDIR)
+	mkdir $(OBJDIR)
 
 $(OBJDIR)/board.h: $(OBJDIR) 
 	ln -s ../$(MC1322X)/board/$(BOARD).h $(OBJDIR)/board.h
+	touch $(OBJDIR)/board.h
