@@ -68,7 +68,7 @@ udphandler(process_event_t ev, process_data_t data)
   if(ev == tcpip_event) {
     if(uip_newdata()) {
       ((char *)uip_appdata)[uip_datalen()] = 0;
-      printf("Sender received: '%s'\n", uip_appdata);
+      printf("Sender received: '%s'\n", (char *)uip_appdata);
     }
   }
 
