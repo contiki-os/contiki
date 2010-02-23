@@ -98,7 +98,7 @@
 #include "storage/storage_task.h"
 
 #if RF230BB
-#warning Experimental RF230BB radio selected
+//#warning Experimental RF230BB radio selected
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 extern int rf230_interrupt_flag;
 extern uint8_t rf230processflag;
@@ -161,8 +161,8 @@ main(void)
   /* Clock */
   clock_init();
 
-/* rtimers not needed yet */
-// rtimer_init();
+/* rtimer init needed for low power protocols */
+  rtimer_init();
 
   /* Process subsystem. */
   process_init();
@@ -170,28 +170,20 @@ main(void)
   /* etimer process must be started before ctimer init */
   process_start(&etimer_process, NULL);
   
-#ifdef RF230BB
+#if RF230BB
 {
   ctimer_init();
   /* Start radio and radio receive process */
   /* Note this starts RF230 process, so must be done after process_init */
   rf230_init();
-  
- // set_rime_addr();
-  framer_set(&framer_802154);
-  queuebuf_init();
-  sicslowpan_init(MAC_DRIVER.init(&rf230_driver));
-// sicslowpan_init(sicslowmac_init(&rf230_driver));
-// sicslowpan_init(lpp_init(&rf230_driver));
-// sicslowpan_init(cxmac_init(&rf230_driver));
 
   /* Set addresses BEFORE starting tcpip process */
 
   memset(&addr, 0, sizeof(rimeaddr_t));
   AVR_ENTER_CRITICAL_REGION();
   eeprom_read_block ((void *)&addr.u8,  &mac_address, 8);
-   AVR_LEAVE_CRITICAL_REGION();
- //RNDIS needs the mac address in reverse byte order
+  AVR_LEAVE_CRITICAL_REGION();
+  //RNDIS needs the mac address in reverse byte order
   macLongAddr.u8[0]=addr.u8[7];
   macLongAddr.u8[1]=addr.u8[6];
   macLongAddr.u8[2]=addr.u8[5];
@@ -202,16 +194,22 @@ main(void)
   macLongAddr.u8[7]=addr.u8[0];
  
   memcpy(&uip_lladdr.addr, &addr.u8, 8);	
-  rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);   //ABCD is default - dak
+  rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
 
   rf230_set_channel(24);
-  rimeaddr_set_node_addr(&addr); 
- // printf("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 
- // uip_ip6addr(&ipprefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
- // uip_netif_addr_add(&ipprefix, UIP_DEFAULT_PREFIX_LEN, 0, AUTOCONF);
- // uip_nd6_prefix_add(&ipprefix, UIP_DEFAULT_PREFIX_LEN, 0);
- // PRINTF("Prefix %x::/%u\n",ipprefix.u16[0],UIP_DEFAULT_PREFIX_LEN);
+  rimeaddr_set_node_addr(&addr); 
+//  set_rime_addr();
+//  PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+
+  framer_set(&framer_802154);
+
+  /* Setup X-MAC for 802.15.4 */
+  queuebuf_init();
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+ // PRINTF("Driver: %s, Channel: %u\n", sicslowpan_mac->name, rf230_get_channel()); 
 
 #if UIP_CONF_ROUTER
   rime_init(rime_udp_init(NULL));
@@ -249,18 +247,18 @@ main(void)
 }
 #endif
 
-  /* Debugging - allow USB CDC to keep up with printfs */
+  /* Allow USB CDC to keep up with printfs */
 #if ANNOUNCE
     if (firsttime++==36000){
        printf_P(PSTR("\n\n\n********BOOTING CONTIKI*********\n\r"));
 #if RF230BB
-    } else if (firsttime==40000) {
+    } else if (firsttime==44000) {
        printf("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n\r",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 
-    } else if (firsttime==44000) {
-      printf("Driver: %s, Channel: %u\n\r", MAC_DRIVER.name, rf230_get_channel()); 
+    } else if (firsttime==52000) {
+       printf("Driver: %s, Channel: %u\n\r", sicslowpan_mac->name, rf230_get_channel()); 
 #endif
-    } else if (firsttime==48000) {
+    } else if (firsttime==60000) {
       printf_P(PSTR("System online.\n\r"));
     }
     
