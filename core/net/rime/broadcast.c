@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast.c,v 1.2 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: broadcast.c,v 1.3 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**
@@ -74,7 +74,22 @@ recv_from_abc(struct abc_conn *bc)
   c->u->recv(c, &sender);
 }
 /*---------------------------------------------------------------------------*/
-static const struct abc_callbacks broadcast = {recv_from_abc};
+static void
+sent_by_abc(struct abc_conn *bc, int status, int num_tx)
+{
+  struct broadcast_conn *c = (struct broadcast_conn *)bc;
+
+  PRINTF("%d.%d: sent to %d.%d status %d num_tx %d\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
+         packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1],
+         status, num_tx);
+  if(c->u->sent) {
+    c->u->sent(c, status, num_tx);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static const struct abc_callbacks broadcast = {recv_from_abc, sent_by_abc};
 /*---------------------------------------------------------------------------*/
 void
 broadcast_open(struct broadcast_conn *c, uint16_t channel,

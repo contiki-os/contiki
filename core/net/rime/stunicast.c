@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.c,v 1.3 2009/11/08 19:40:18 adamdunkels Exp $
+ * $Id: stunicast.c,v 1.4 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**
@@ -68,7 +68,20 @@ recv_from_uc(struct unicast_conn *uc, const rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct unicast_callbacks stunicast = {recv_from_uc};
+static void
+sent_by_uc(struct unicast_conn *uc, int status, int num_tx)
+{
+  register struct stunicast_conn *c = (struct stunicast_conn *)uc;
+  PRINTF("%d.%d: stunicast: recv_from_uc from %d.%d\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	from->u8[0], from->u8[1]);
+  if(c->u->sent != NULL) {
+    c->u->sent(c, status, num_tx);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static const struct unicast_callbacks stunicast = {recv_from_uc,
+                                                   sent_by_uc};
 /*---------------------------------------------------------------------------*/
 void
 stunicast_open(struct stunicast_conn *c, uint16_t channel,
@@ -105,9 +118,9 @@ send(void *ptr)
   queuebuf_to_packetbuf(c->buf);
   unicast_send(&c->c, &c->receiver);
   stunicast_set_timer(c, CLOCK_SECOND);
-  if(c->u->sent != NULL) {
+  /*  if(c->u->sent != NULL) {
     c->u->sent(c);
-  }
+    }*/
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -134,9 +147,9 @@ stunicast_send_stubborn(struct stunicast_conn *c, const rimeaddr_t *receiver,
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->receiver.u8[0],c->receiver.u8[1]);
   unicast_send(&c->c, &c->receiver);
-  if(c->u->sent != NULL) {
+  /*  if(c->u->sent != NULL) {
     c->u->sent(c);
-  }
+    }*/
   
   return 1;
   

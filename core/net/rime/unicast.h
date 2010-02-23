@@ -50,7 +50,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: unicast.h,v 1.5 2009/11/08 19:40:18 adamdunkels Exp $
+ * $Id: unicast.h,v 1.6 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**
@@ -72,6 +72,7 @@ struct unicast_conn;
 
 struct unicast_callbacks {
   void (* recv)(struct unicast_conn *c, const rimeaddr_t *from);
+  void (* sent)(struct unicast_conn *ptr, int status, int num_tx);
 };
 
 struct unicast_conn {

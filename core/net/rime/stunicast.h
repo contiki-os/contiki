@@ -60,7 +60,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.h,v 1.4 2009/11/08 19:40:18 adamdunkels Exp $
+ * $Id: stunicast.h,v 1.5 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**
@@ -83,7 +83,7 @@ struct stunicast_conn;
 
 struct stunicast_callbacks {
   void (* recv)(struct stunicast_conn *c, const rimeaddr_t *from);
-  void (* sent)(struct stunicast_conn *c);
+  void (* sent)(struct stunicast_conn *c, int status, int num_tx);
 };
 
 struct stunicast_conn {

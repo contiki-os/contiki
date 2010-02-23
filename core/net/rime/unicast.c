@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: unicast.c,v 1.3 2009/11/08 19:40:18 adamdunkels Exp $
+ * $Id: unicast.c,v 1.4 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**
@@ -77,7 +77,23 @@ recv_from_broadcast(struct broadcast_conn *broadcast, const rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct broadcast_callbacks uc = {recv_from_broadcast};
+static void
+sent_by_broadcast(struct broadcast_conn *broadcast, int status, int num_tx)
+{
+  struct unicast_conn *c = (struct unicast_conn *)broadcast;
+
+  PRINTF("%d.%d: uc: recv_from_broadcast, receiver %d.%d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
+	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
+
+  if(c->u->sent) {
+    c->u->sent(c, status, num_tx);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static const struct broadcast_callbacks uc = {recv_from_broadcast,
+                                              sent_by_broadcast};
 /*---------------------------------------------------------------------------*/
 void
 unicast_open(struct unicast_conn *c, uint16_t channel,
