@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.h,v 1.2 2009/06/22 11:14:11 nifi Exp $
+ * $Id: lpp.h,v 1.3 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**
@@ -44,11 +44,9 @@
 #ifndef __LPP_H__
 #define __LPP_H__
 
-#include "net/mac/mac.h"
+#include "net/mac/rdc.h"
 #include "dev/radio.h"
 
-extern const struct mac_driver lpp_driver;
-
-const struct mac_driver *lpp_init(const struct radio_driver *d);
+extern const struct rdc_driver lpp_driver;
 
 #endif /* __LPP_H__ */

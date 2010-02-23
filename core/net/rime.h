@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.26 2010/02/23 18:29:53 adamdunkels Exp $
+ * $Id: rime.h,v 1.27 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**
@@ -105,7 +105,7 @@ static struct rime_sniffer name = { NULL, input_callback, output_callback }
 void rime_sniffer_add(struct rime_sniffer *s);
 void rime_sniffer_remove(struct rime_sniffer *s);
 
-extern const struct mac_driver rime_driver;
+extern const struct network_driver rime_driver;
 
 /* Generic Rime return values. */
 enum {

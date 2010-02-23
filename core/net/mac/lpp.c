@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.31 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: lpp.c,v 1.32 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**
@@ -913,7 +913,7 @@ init(void)
   list_init(pending_packets_list);
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver lpp_driver = {
+const struct rdc_driver lpp_driver = {
   "LPP",
   init,
   send_packet,

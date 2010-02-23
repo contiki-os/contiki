@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.h,v 1.2 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: contikimac.h,v 1.3 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**
@@ -42,9 +42,9 @@
 #define __CONTIKIMAC_H__
 
 #include "sys/rtimer.h"
-#include "net/mac/mac.h"
+#include "net/mac/rdc.h"
 #include "dev/radio.h"
 
-extern const struct mac_driver contikimac_driver;
+extern const struct rdc_driver contikimac_driver;
 
 #endif /* __CONTIKIMAC_H__ */

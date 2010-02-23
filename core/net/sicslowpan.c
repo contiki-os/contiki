@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.18 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.19 2010/02/23 20:09:11 nifi Exp $
  */
 /**
  * \file
@@ -1518,14 +1518,10 @@ sicslowpan_init(void)
 #endif /*SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC01*/
 }
 /*--------------------------------------------------------------------*/
-const struct mac_driver sicslowpan_driver = {
-  "Rime",
+const struct network_driver sicslowpan_driver = {
+  "sicslowpan",
   sicslowpan_init,
-  NULL,
-  input,
-  NULL,
-  NULL,
-  NULL,
+  input
 };
 /*--------------------------------------------------------------------*/
 /** @} */
