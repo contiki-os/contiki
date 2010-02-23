@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: StringUtils.java,v 1.3 2009/10/29 10:10:22 fros4943 Exp $
+ * $Id: StringUtils.java,v 1.4 2010/02/23 22:32:57 joxe Exp $
  */
 
 package se.sics.cooja.util;
@@ -52,6 +52,10 @@ public class StringUtils {
     // Prevent instances of this class
   }
 
+  public static String toHex(byte data) {
+      return "" + HEX[(data >> 4) & 0xf] + HEX[data & 0xf];
+  }
+  
   public static String toHex(byte[] data) {
     char[] buf = new char[data.length * 2];
     for (int i = 0, j = 0, n = data.length; i < n; i++, j += 2) {
