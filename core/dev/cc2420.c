@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.39 2010/02/18 23:52:34 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.40 2010/02/23 18:24:49 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -58,12 +58,6 @@
 
 #define WITH_SEND_CCA 0
 
-#if CC2420_CONF_TIMESTAMPS
-#include "net/rime/timesynch.h"
-#define TIMESTAMP_LEN 3
-#else /* CC2420_CONF_TIMESTAMPS */
-#define TIMESTAMP_LEN 0
-#endif /* CC2420_CONF_TIMESTAMPS */
 #define FOOTER_LEN 2
 
 #ifndef CC2420_CONF_CHECKSUM
@@ -81,12 +75,7 @@
 #define CHECKSUM_LEN 0
 #endif /* CC2420_CONF_CHECKSUM */
 
-#define AUX_LEN (CHECKSUM_LEN + TIMESTAMP_LEN + FOOTER_LEN)
-
-struct timestamp {
-  uint16_t time;
-  uint8_t authority_level;
-};
+#define AUX_LEN (CHECKSUM_LEN + FOOTER_LEN)
 
 
 #define FOOTER1_CRC_OK      0x80
@@ -105,12 +94,6 @@ void cc2420_arch_init(void);
 rtimer_clock_t cc2420_time_of_arrival, cc2420_time_of_departure;
 
 int cc2420_authority_level_of_sender;
-
-#if CC2420_CONF_TIMESTAMPS
-static rtimer_clock_t setup_time_for_transmission;
-static unsigned long total_time_for_transmission, total_transmission_len;
-static int num_transmissions;
-#endif /* CC2420_CONF_TIMESTAMPS */
 
 int cc2420_packets_seen, cc2420_packets_read;
 
@@ -213,15 +196,17 @@ on(void)
 static void
 off(void)
 {
+  leds_on(LEDS_GREEN);
   PRINTF("off\n");
   receive_on = 0;
 
   /* Wait for transmission to end before turning radio off. */
-  while(status() & BV(CC2420_TX_ACTIVE));
+  // while(status() & BV(CC2420_TX_ACTIVE));
 
   strobe(CC2420_SRFOFF);
   DISABLE_FIFOP_INT();
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  leds_off(LEDS_GREEN);
 }
 /*---------------------------------------------------------------------------*/
 #define GET_LOCK() locked = 1
@@ -294,6 +279,9 @@ cc2420_init(void)
 
   /* Turn on/off automatic packet acknowledgment and address decoding. */
   reg = getreg(CC2420_MDMCTRL0);
+
+  reg |= 0x40; /* XXX CCA mode 1 */
+  
 #if CC2420_CONF_AUTOACK
   reg |= AUTOACK | ADR_DECODE;
 #else
@@ -328,9 +316,6 @@ cc2420_transmit(unsigned short payload_len)
 {
   int i, txpower;
   uint8_t total_len;
-#if CC2420_CONF_TIMESTAMPS
-  struct timestamp timestamp;
-#endif /* CC2420_CONF_TIMESTAMPS */
 #if CC2420_CONF_CHECKSUM
   uint16_t checksum;
 #endif /* CC2420_CONF_CHECKSUM */
@@ -370,10 +355,12 @@ cc2420_transmit(unsigned short payload_len)
 
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(SFD_IS_1) {
-#if CC2420_CONF_TIMESTAMPS
-      rtimer_clock_t txtime = timesynch_time();
-#endif /* CC2420_CONF_TIMESTAMPS */
-
+      if(!(status() & BV(CC2420_TX_ACTIVE))) {
+        /* SFD went high but we are not transmitting. This means that
+           we just started receiving a packet, so we drop the
+           transmission. */
+        return RADIO_TX_ERR;
+      }
       if(receive_on) {
 	ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
       }
@@ -383,16 +370,6 @@ cc2420_transmit(unsigned short payload_len)
 	 accurate measurement of the transmission time.*/
       while(status() & BV(CC2420_TX_ACTIVE));
 
-#if CC2420_CONF_TIMESTAMPS
-      setup_time_for_transmission = txtime - timestamp.time;
-
-      if(num_transmissions < 10000) {
-	total_time_for_transmission += timesynch_time() - txtime;
-	total_transmission_len += total_len;
-	num_transmissions++;
-      }
-
-#endif /* CC2420_CONF_TIMESTAMPS */
 
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
       ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,cc2420_get_txpower());
@@ -412,7 +389,7 @@ cc2420_transmit(unsigned short payload_len)
       }
 
       RELEASE_LOCK();
-      return 0;
+      return RADIO_TX_OK;
     }
   }
 
@@ -427,16 +404,13 @@ cc2420_transmit(unsigned short payload_len)
   }
 
   RELEASE_LOCK();
-  return -3;			/* Transmission never started! */
+  return RADIO_TX_ERR;			/* Transmission never started! */
 }
 /*---------------------------------------------------------------------------*/
 static int
 cc2420_prepare(const void *payload, unsigned short payload_len)
 {
   uint8_t total_len;
-#if CC2420_CONF_TIMESTAMPS
-  struct timestamp timestamp;
-#endif /* CC2420_CONF_TIMESTAMPS */
 #if CC2420_CONF_CHECKSUM
   uint16_t checksum;
 #endif /* CC2420_CONF_CHECKSUM */
@@ -447,7 +421,7 @@ cc2420_prepare(const void *payload, unsigned short payload_len)
   RIMESTATS_ADD(lltx);
 
   /* Wait for any previous transmission to finish. */
-  while(status() & BV(CC2420_TX_ACTIVE));
+  /*  while(status() & BV(CC2420_TX_ACTIVE));*/
 
   /* Write packet to TX FIFO. */
   strobe(CC2420_SFLUSHTX);
@@ -461,12 +435,6 @@ cc2420_prepare(const void *payload, unsigned short payload_len)
 #if CC2420_CONF_CHECKSUM
   FASTSPI_WRITE_FIFO(&checksum, CHECKSUM_LEN);
 #endif /* CC2420_CONF_CHECKSUM */
-
-#if CC2420_CONF_TIMESTAMPS
-  timestamp.authority_level = timesynch_authority_level();
-  timestamp.time = timesynch_time();
-  FASTSPI_WRITE_FIFO(&timestamp, TIMESTAMP_LEN);
-#endif /* CC2420_CONF_TIMESTAMPS */
 
   RELEASE_LOCK();
   return 0;
@@ -498,7 +466,7 @@ cc2420_off(void)
      we don't actually switch the radio off now, but signal that the
      driver should switch off the radio once the packet has been
      received and processed, by setting the 'lock_off' variable. */
-  if(SFD_IS_1) {
+  if(status() & BV(CC2420_TX_ACTIVE)) {
     lock_off = 1;
     return 1;
   }
@@ -585,10 +553,6 @@ cc2420_set_pan_addr(unsigned pan,
 /*
  * Interrupt leaves frame intact in FIFO.
  */
-#if CC2420_CONF_TIMESTAMPS
-static volatile rtimer_clock_t interrupt_time;
-static volatile int interrupt_time_set;
-#endif /* CC2420_CONF_TIMESTAMPS */
 #if CC2420_TIMETABLE_PROFILING
 #define cc2420_timetable_size 16
 TIMETABLE(cc2420_timetable);
@@ -597,11 +561,6 @@ TIMETABLE_AGGREGATE(aggregate_time, 10);
 int
 cc2420_interrupt(void)
 {
-#if CC2420_CONF_TIMESTAMPS
-  interrupt_time = timesynch_time();
-  interrupt_time_set = 1;
-#endif /* CC2420_CONF_TIMESTAMPS */
-
   CLEAR_FIFOP_INT();
   process_poll(&cc2420_process);
 #if CC2420_TIMETABLE_PROFILING
@@ -657,24 +616,12 @@ cc2420_read(void *buf, unsigned short bufsize)
 #if CC2420_CONF_CHECKSUM
   uint16_t checksum;
 #endif /* CC2420_CONF_CHECKSUM */
-#if CC2420_CONF_TIMESTAMPS
-  struct timestamp t;
-#endif /* CC2420_CONF_TIMESTAMPS */
 
   if(!FIFOP_IS_1) {
     /* If FIFOP is 0, there is no packet in the RXFIFO. */
     return 0;
   }
 
-#if CC2420_CONF_TIMESTAMPS
-  if(interrupt_time_set) {
-    cc2420_time_of_arrival = interrupt_time;
-    interrupt_time_set = 0;
-  } else {
-    cc2420_time_of_arrival = 0;
-  }
-  cc2420_time_of_departure = 0;
-#endif /* CC2420_CONF_TIMESTAMPS */
   GET_LOCK();
 
   cc2420_packets_read++;
@@ -690,7 +637,6 @@ cc2420_read(void *buf, unsigned short bufsize)
   }
 
   if(len <= AUX_LEN) {
-    printf("len <= AUX_LEN\n");
     flushrx();
     RIMESTATS_ADD(tooshort);
     RELEASE_LOCK();
@@ -698,7 +644,6 @@ cc2420_read(void *buf, unsigned short bufsize)
   }
 
   if(len - AUX_LEN > bufsize) {
-    printf("len - AUX_LEN > bufsize\n");
     flushrx();
     RIMESTATS_ADD(toolong);
     RELEASE_LOCK();
@@ -709,9 +654,6 @@ cc2420_read(void *buf, unsigned short bufsize)
 #if CC2420_CONF_CHECKSUM
   getrxdata(&checksum, CHECKSUM_LEN);
 #endif /* CC2420_CONF_CHECKSUM */
-#if CC2420_CONF_TIMESTAMPS
-  getrxdata(&t, TIMESTAMP_LEN);
-#endif /* CC2420_CONF_TIMESTAMPS */
   getrxdata(footer, FOOTER_LEN);
 
 #if CC2420_CONF_CHECKSUM
@@ -733,17 +675,6 @@ cc2420_read(void *buf, unsigned short bufsize)
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
 
     RIMESTATS_ADD(llrx);
-
-#if CC2420_CONF_TIMESTAMPS
-    cc2420_time_of_departure =
-      t.time +
-      setup_time_for_transmission +
-      (total_time_for_transmission * (len - 2)) / total_transmission_len;
-
-    cc2420_authority_level_of_sender = t.authority_level;
-
-    packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, t.time);
-#endif /* CC2420_CONF_TIMESTAMPS */
 
   } else {
     RIMESTATS_ADD(badcrc);
@@ -807,6 +738,12 @@ cc2420_rssi(void)
   return rssi;
 }
 /*---------------------------------------------------------------------------*/
+int
+cc2420_cca_valid(void)
+{
+  return !!(status() & BV(CC2420_RSSI_VALID));
+}
+/*---------------------------------------------------------------------------*/
 static int
 cc2420_cca(void)
 {
@@ -824,7 +761,10 @@ cc2420_cca(void)
   if(!receive_on) {
     radio_was_off = 1;
     cc2420_on();
+
   }
+
+
   while(!(status() & BV(CC2420_RSSI_VALID))) {
     /*    printf("cc2420_rssi: RSSI not valid.\n"); */
   }
@@ -869,5 +809,12 @@ cc2420_ugly_hack_send_only_one_symbol(void)
   strobe(CC2420_SRFOFF);
   RELEASE_LOCK();
   return;
+}
+/*---------------------------------------------------------------------------*/
+void
+cc2420_set_cca_threshold(int value)
+{
+  uint16_t shifted = value << 8;
+  setreg(CC2420_RSSI, shifted);
 }
 /*---------------------------------------------------------------------------*/
