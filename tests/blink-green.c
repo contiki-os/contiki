@@ -3,9 +3,8 @@
 
 #define DELAY 400000
 
-#define LED_BITS LED_RED
+#define LED_BITS LED_GREEN
 
-__attribute__ ((section ("startup"))) 
 void main(void) {	
 	volatile uint32_t i;
 	

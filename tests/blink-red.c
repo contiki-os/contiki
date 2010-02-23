@@ -5,7 +5,6 @@
 
 #define LED_BITS LED_RED
 
-__attribute__ ((section ("startup"))) 
 void main(void) {	
 	volatile uint32_t i;
 	
