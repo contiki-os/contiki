@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.22 2010/02/03 20:38:33 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.23 2010/02/23 18:37:15 adamdunkels Exp $
  */
 
 /**
@@ -139,6 +139,9 @@ void
 neighbor_update(struct neighbor *n, uint8_t rtmetric)
 {
   if(n != NULL) {
+    PRINTF("%d.%d: neighbor_update %d.%d rtmetric %d\n",
+           rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+           n->addr.u8[0], n->addr.u8[1], rtmetric);
     n->rtmetric = rtmetric;
     n->time = 0;
   }
