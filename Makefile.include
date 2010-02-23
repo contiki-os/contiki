@@ -67,7 +67,19 @@ clobber \
 mrproper \
 distclean:	clean
 
-.DEFAULT_GOAL := all
+#.DEFAULT_GOAL := all
 
-ALL := $(OBJDIR)/board.h $(TARGETS)_$(BOARD).bin
-all: $(ALL)
+ifndef BOARD
+.DEFAULT_GOAL := allboards
+else	
+.DEFAULT_GOAL := all
+endif	
+
+all: $(OBJDIR)/board.h 
+	for target in $(TARGETS); do make $$target\_$(BOARD).bin; done
+
+allboards:
+	for board in $(BOARDS); do make BOARD=$$board all; done
+
+
+
