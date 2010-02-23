@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-debug-runicast.c,v 1.1 2010/01/31 19:35:12 adamdunkels Exp $
+ * $Id: shell-rime-debug-runicast.c,v 1.2 2010/02/23 18:22:44 adamdunkels Exp $
  */
 
 /**
@@ -128,7 +128,9 @@ recv_ruc(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
 {
   struct collect_msg *msg;
   rtimer_clock_t latency;
+#if TIMESYNCH_CONF_ENABLED
   rtimer_clock_t timestamp;
+#endif /* TIMESYNCH_CONF_ENABLED */
   
   msg = packetbuf_dataptr();
 
