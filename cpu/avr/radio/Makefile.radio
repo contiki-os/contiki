@@ -1,8 +1,12 @@
 ### The RF230 "bare bones" driver uses the core MAC layer.
-### It does NOT work with the Jackdaw USB stick.
+### It is required for versions after contiki 2.4 that use the new driver interfaces
+
+ifndef RF230BB
+RF230BB=1
+endif
+
 ### Define RF230BB in the base makefile, or use $make RF230BB=1 ...
 ifeq ($(RF230BB),1)
-#ifdef RF230BB
   CFLAGS                     += -DRF230BB
   #Source for AT86RF230 barebones driver using the contiki core MAC
   include $(CONTIKI)/cpu/avr/radio/rf230bb/Makefile.rf230bb
