@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.15 2009/11/08 19:40:17 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.16 2010/02/23 18:36:50 adamdunkels Exp $
  */
 
 /**
@@ -64,15 +64,6 @@
 struct adv_msg {
   uint16_t val;
 };
-
-#define SINK 0
-#define HOPCOUNT_MAX TREE_MAX_DEPTH
-
-#define MAX_HOPLIM 10
-
-/*#define MAX_INTERVAL CLOCK_SECOND * 60
-#define MIN_INTERVAL CLOCK_SECOND * 10
-#define NEW_VAL_INTERVAL CLOCK_SECOND * 2*/
 
 #define DEBUG 0
 #if DEBUG
@@ -107,37 +98,62 @@ adv_packet_received(struct broadcast_conn *ibc, const rimeaddr_t *from)
 {
   struct neighbor_discovery_conn *c = (struct neighbor_discovery_conn *)ibc;
   struct adv_msg *msg = packetbuf_dataptr();
+  uint16_t val;
 
   PRINTF("%d.%d: adv_packet_received from %d.%d with val %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], msg->val);
 
+  memcpy(&val, &msg->val, sizeof(val));
+  
   /* If we receive an announcement with a lower value than ours, we
      cancel our own announcement. */
-  if(msg->val < c->val) {
-    ctimer_stop(&c->send_timer);
+  if(val < c->val) {
+    /*    ctimer_stop(&c->send_timer);*/
   }
-  
+
   if(c->u->recv) {
-    c->u->recv(c, from, msg->val);
+    c->u->recv(c, from, val);
   }
+}
+/*---------------------------------------------------------------------------*/
+static void
+adv_packet_sent(struct broadcast_conn *bc, int status, int num_tx)
+{
+}
+/*---------------------------------------------------------------------------*/
+static void send_timer(void *ptr);
+
+static void
+set_timers(struct neighbor_discovery_conn *c)
+{
+  ctimer_set(&c->interval_timer, c->current_interval, send_timer, c);
+  ctimer_set(&c->send_timer, c->current_interval / 2 + random_rand() %
+             (c->current_interval / 2),
+	     send_adv, c);
 }
 /*---------------------------------------------------------------------------*/
 static void
 send_timer(void *ptr)
 {
-  struct neighbor_discovery_conn *tc = ptr;
+  struct neighbor_discovery_conn *c = ptr;
+  clock_time_t interval;
 
-  ctimer_set(&tc->send_timer,
-	     tc->max_interval / 2 + random_rand() % (tc->max_interval / 2),
-	     send_adv, tc);
-  ctimer_set(&tc->interval_timer,
-	     tc->max_interval,
-	     send_timer, tc);
+  interval = c->current_interval * 2;
+
+  if(interval > c->max_interval) {
+    interval = c->max_interval;
+  }
+
+
+  c->current_interval = interval;
+
+  printf("current_interval %lu\n", interval);
+  set_timers(c);
 }
 /*---------------------------------------------------------------------------*/
 static CC_CONST_FUNCTION struct broadcast_callbacks broadcast_callbacks =
-  {adv_packet_received};
+  {adv_packet_received, adv_packet_sent };
 /*---------------------------------------------------------------------------*/
 void
 neighbor_discovery_open(struct neighbor_discovery_conn *c, uint16_t channel,
@@ -170,17 +186,9 @@ neighbor_discovery_set_val(struct neighbor_discovery_conn *c, uint16_t val)
 void
 neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val)
 {
-  clock_time_t interval;
-
-  if(val < c->val) {
-    interval = c->initial_interval;
-  } else {
-    interval = c->min_interval;
-  }
+  c->current_interval = c->initial_interval;
   c->val = val;
-  ctimer_set(&c->interval_timer, interval, send_timer, c);
-  ctimer_set(&c->send_timer, interval / 2 + random_rand() % (interval / 2),
-	     send_adv, c);
+  set_timers(c);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
