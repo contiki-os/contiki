@@ -101,7 +101,7 @@ typedef int32_t s32_t;
 #define LOG_CONF_ENABLED 1
 
 /* RF230BB reduces program size by 6.5KB, RAM by 500 bytes */
-#ifdef RF230BB
+#if RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
 #undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
 #define UIP_CONF_ROUTER 0
