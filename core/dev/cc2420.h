@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420.h,v 1.8 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: cc2420.h,v 1.9 2010/02/23 18:24:49 adamdunkels Exp $
  */
 
 /**
@@ -83,5 +83,7 @@ extern int cc2420_authority_level_of_sender;
 
 int cc2420_on(void);
 int cc2420_off(void);
+
+void cc2420_set_cca_threshold(int value);
 
 #endif /* __CC2420_H__ */
