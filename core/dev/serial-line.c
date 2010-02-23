@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: serial-line.c,v 1.3 2009/11/02 12:47:06 fros4943 Exp $
+ * @(#)$Id: serial-line.c,v 1.4 2010/02/23 18:26:26 adamdunkels Exp $
  */
 #include "dev/serial-line.h"
 #include <string.h> /* for memcpy() */
@@ -61,7 +61,8 @@ int
 serial_line_input_byte(unsigned char c)
 {
   static uint8_t overflow = 0; /* Buffer overflow: ignore until END */
-  if (IGNORE_CHAR(c)) {
+  
+  if(IGNORE_CHAR(c)) {
     return 0;
   }
 
@@ -92,12 +93,12 @@ PROCESS_THREAD(serial_line_process, ev, data)
   PROCESS_BEGIN();
 
   serial_line_event_message = process_alloc_event();
-  ptr=0;
+  ptr = 0;
 
   while(1) {
-
     /* Fill application buffer until newline or empty */
     int c = ringbuf_get(&rxbuf);
+    
     if(c == -1) {
       /* Buffer empty, wait for poll */
       PROCESS_YIELD();
