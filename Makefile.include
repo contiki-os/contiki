@@ -53,7 +53,7 @@ SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c \
 THREADS = mt.c
 LIBS    = memb.c mmem.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
           print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c
-
+DEV     = nullradio.c
 NET     = netstack.c
 
 ifdef UIP_CONF_IPV6
@@ -72,9 +72,9 @@ CTK     = ctk.c
 CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c ctk-vncfont.c
 
 ifndef CONTIKI_NO_NET
-  CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(THREADS) $(DHCP)
+  CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(THREADS) $(DHCP) $(DEV)
 else
-  CONTIKIFILES = $(SYSTEM) $(LIBS) $(THREADS) sicslowpan.c fakeuip.c
+  CONTIKIFILES = $(SYSTEM) $(LIBS) $(THREADS) $(DEV) sicslowpan.c fakeuip.c
 endif
 
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
