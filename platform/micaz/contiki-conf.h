@@ -42,6 +42,13 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#define NETSTACK_CONF_NETWORK rime_driver
+#define NETSTACK_CONF_MAC     csma_driver
+#define NETSTACK_CONF_RDC     cxmac_driver
+#define NETSTACK_CONF_RADIO   cc2420_driver
+
+#define MAC_CONF_CHANNEL_CHECK_RATE 8
+
 #define HAVE_STDINT_H
 #include "avrdef.h"
 
