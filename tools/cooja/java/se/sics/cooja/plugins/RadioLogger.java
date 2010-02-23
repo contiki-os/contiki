@@ -26,12 +26,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.26 2009/12/14 13:25:04 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.27 2010/02/23 22:32:57 joxe Exp $
  */
 
 package se.sics.cooja.plugins;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -41,24 +40,26 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Properties;
-import java.util.Vector;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Icon;
+import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import org.apache.log4j.Logger;
@@ -75,6 +76,9 @@ import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.dialogs.TableColumnAdjuster;
 import se.sics.cooja.interfaces.Radio;
+import se.sics.cooja.plugins.analyzers.IEEE802154Analyzer;
+import se.sics.cooja.plugins.analyzers.IPHCPacketAnalyzer;
+import se.sics.cooja.plugins.analyzers.PacketAnalyzer;
 import se.sics.cooja.util.StringUtils;
 
 /**
@@ -94,6 +98,8 @@ public class RadioLogger extends VisPlugin {
   private final static int COLUMN_TO = 2;
   private final static int COLUMN_DATA = 3;
 
+  private JTextPane verboseBox = null;
+  
   private final static String[] COLUMN_NAMES = {
     "Time",
     "From",
@@ -108,11 +114,16 @@ public class RadioLogger extends VisPlugin {
   private Observer radioMediumObserver;
   private AbstractTableModel model;
   
+  private ArrayList<PacketAnalyzer> analyzers = null;
+  private ArrayList<PacketAnalyzer> lowpanAnalyzers = new ArrayList<PacketAnalyzer>();
+  
   public RadioLogger(final Simulation simulationToControl, final GUI gui) {
     super("Radio Logger", gui);
     simulation = simulationToControl;
     radioMedium = simulation.getRadioMedium();
 
+    lowpanAnalyzers.add(new IEEE802154Analyzer());
+    lowpanAnalyzers.add(new IPHCPacketAnalyzer());
     model = new AbstractTableModel() {
 
       private static final long serialVersionUID = 1692207305977527004L;
@@ -238,6 +249,18 @@ public class RadioLogger extends VisPlugin {
       }
     };
 
+    dataTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+        public void valueChanged(ListSelectionEvent e) {
+            int row = dataTable.getSelectedRow();
+            if (row >= 0) {
+                RadioConnectionLog conn = connections.get(row);
+                if (conn.tooltip == null) {
+                    prepareTooltipString(conn);
+                }
+                verboseBox.setText(conn.tooltip);
+            }
+        }
+    });
     // Set data column width greedy
     dataTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 
@@ -254,10 +277,29 @@ public class RadioLogger extends VisPlugin {
     popupMenu.addSeparator();
     popupMenu.add(new JMenuItem(timeLineAction));
     popupMenu.add(new JMenuItem(logListenerAction));
+    
+    //a group of radio button menu items
+    popupMenu.addSeparator();
+    ButtonGroup group = new ButtonGroup();
+    JRadioButtonMenuItem rbMenuItem = new JRadioButtonMenuItem(noAnalyzer);
+    rbMenuItem.setSelected(true);
+    group.add(rbMenuItem);
+    popupMenu.add(rbMenuItem);
+
+    rbMenuItem = new JRadioButtonMenuItem(lowpanAnalyzer);
+    group.add(rbMenuItem);
+    popupMenu.add(rbMenuItem);
+
     dataTable.setComponentPopupMenu(popupMenu);
 
-    add(new JScrollPane(dataTable));
-
+    verboseBox = new JTextPane();
+    verboseBox.setContentType("text/html"); 
+    verboseBox.setEditable(false);
+    JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+            new JScrollPane(dataTable), new JScrollPane(verboseBox));
+    split.setDividerLocation(150);
+    add(split);
+    
     TableColumnAdjuster adjuster = new TableColumnAdjuster(dataTable);
     adjuster.setDynamicAdjustment(true);
     adjuster.packColumns();
@@ -338,7 +380,43 @@ public class RadioLogger extends VisPlugin {
       conn.data = "[unknown data]";
       return;
     }
-    conn.data = data.length + ": 0x" + StringUtils.toHex(data, 4);
+
+    StringBuffer brief = new StringBuffer();
+    StringBuffer verbose = new StringBuffer();
+
+    /* default anlayzer */
+    PacketAnalyzer.Packet packet = new PacketAnalyzer.Packet(data, PacketAnalyzer.MAC_LEVEL);
+
+    if (analyzePacket(packet, brief, verbose)) {
+        conn.data = (data.length < 10 ? " " : "") + data.length + ": " + brief;
+        if (packet.hasMoreData()) {
+            conn.data += ": " + StringUtils.toHex(packet.getPayload(), 4);
+        }
+        if (verbose.length() > 0) {
+            conn.tooltip = verbose.toString();
+        }
+    } else {
+        conn.data = data.length + ": 0x" + StringUtils.toHex(data, 4);
+    }
+  }
+  
+  private boolean analyzePacket(PacketAnalyzer.Packet packet, StringBuffer brief, StringBuffer verbose) {
+      if (analyzers == null) return false;
+      boolean analyze = true;
+      while (analyze) {
+          analyze = false;
+          for (int i = 0; i < analyzers.size(); i++) {
+              PacketAnalyzer analyzer = analyzers.get(i);
+              if (analyzer.matchPacket(packet)) {
+                  analyzer.analyzePacket(packet, brief, verbose);
+                  /* continue another round if more bytes left */
+                  analyze = packet.hasMoreData();
+                  brief.append("|");
+                  break;
+              }
+          }
+      }
+      return brief.length() > 0;
   }
 
   private void prepareTooltipString(RadioConnectionLog conn) {
@@ -373,7 +451,6 @@ public class RadioLogger extends VisPlugin {
       "<pre>" + StringUtils.hexDump(data) + "</pre>" +
       "</font></html>";
     }
-
   }
 
   public void closePlugin() {
@@ -549,6 +626,19 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
+  private Action lowpanAnalyzer = new AbstractAction("6LoWPAN Analyzer") {
+    public void actionPerformed(ActionEvent arg0) {
+        analyzers = lowpanAnalyzers;
+    }
+  };
+
+  private Action noAnalyzer = new AbstractAction("No Analyzer") {
+      public void actionPerformed(ActionEvent arg0) {
+          analyzers = null;
+      }
+    };
+
+  
   private Action logListenerAction = new AbstractAction("to Log Listener") {
     public void actionPerformed(ActionEvent e) {
       LogListener plugin = (LogListener) simulation.getGUI().getStartedPlugin(LogListener.class.getName());
