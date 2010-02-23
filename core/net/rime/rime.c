@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.25 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: rime.c,v 1.26 2010/02/23 18:29:53 adamdunkels Exp $
  */
 
 /**
@@ -79,7 +79,7 @@ const struct mac_driver *rime_mac;
 #ifdef RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME
 #define POLITE_ANNOUNCEMENT_MAX_TIME RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME
 #else /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
-#define POLITE_ANNOUNCEMENT_MAX_TIME CLOCK_SECOND * 64
+#define POLITE_ANNOUNCEMENT_MAX_TIME CLOCK_SECOND * 128
 #endif /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
 
 
@@ -102,14 +102,20 @@ static void
 input(void)
 {
   struct rime_sniffer *s;
+  struct channel *c;
 
+  RIMESTATS_ADD(rx);
+  c = chameleon_parse();
+  
   for(s = list_head(sniffers); s != NULL; s = s->next) {
     if(s->input_callback != NULL) {
       s->input_callback();
     }
   }
-  RIMESTATS_ADD(rx);
-  chameleon_input();
+  
+  if(c != NULL) {
+    abc_input(c);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -139,6 +145,9 @@ init(void)
 static void
 packet_sent(void *ptr, int status, int num_tx)
 {
+  struct channel *c = ptr;
+
+  
   switch(status) {
   case MAC_TX_COLLISION:
     PRINTF("rime: collision after %d tx\n", num_tx);
@@ -152,7 +161,7 @@ packet_sent(void *ptr, int status, int num_tx)
   default:
     PRINTF("rime: error %d after %d tx\n", status, num_tx);
   }
-
+  
   if(status == MAC_TX_OK) {
     struct rime_sniffer *s;
     /* Call sniffers, but only if the packet was sent. */
@@ -162,15 +171,21 @@ packet_sent(void *ptr, int status, int num_tx)
       }
     }
   }
+  
+  abc_sent(c, status, num_tx);
 }
 /*---------------------------------------------------------------------------*/
-void
-rime_output(void)
+int
+rime_output(struct channel *c)
 {
   RIMESTATS_ADD(tx);
-  packetbuf_compact();
+  if(chameleon_create(c)) {
+    packetbuf_compact();
 
-  NETSTACK_MAC.send(packet_sent, NULL);
+    NETSTACK_MAC.send(packet_sent, c);
+    return 1;
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver rime_driver = {

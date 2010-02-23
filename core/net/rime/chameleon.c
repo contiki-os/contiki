@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon.c,v 1.8 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: chameleon.c,v 1.9 2010/02/23 18:29:53 adamdunkels Exp $
  */
 
 /**
@@ -101,10 +101,10 @@ printhdr(uint8_t *hdr, int len)
 }
 #endif /* DEBUG */
 /*---------------------------------------------------------------------------*/
-void
-chameleon_input(void)
+struct channel *
+chameleon_parse(void)
 {
-  struct channel *c;
+  struct channel *c = NULL;
   PRINTF("%d.%d: chameleon_input\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
 #if DEBUG
@@ -117,16 +117,16 @@ chameleon_input(void)
 	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	     c->channelno);
       packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, c->channelno);
-      abc_input(c);
     } else {
       PRINTF("%d.%d: chameleon_input channel not found for incoming packet\n",
 	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
     }
   }
+  return c;
 }
 /*---------------------------------------------------------------------------*/
 int
-chameleon_output(struct channel *c)
+chameleon_create(struct channel *c)
 {
   int ret;
 
@@ -141,7 +141,6 @@ chameleon_output(struct channel *c)
     printhdr(packetbuf_hdrptr(), packetbuf_hdrlen());
 #endif /* DEBUG */
     if(ret) {
-      rime_output();
       return 1;
     }
   }
