@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.5 2010/02/22 22:23:18 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.6 2010/02/23 17:37:51 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -51,12 +51,24 @@
 #include "dev/leds.h"
 #include "dev/spi.h"
 #include "rf230bb.h"
-//#include "dev/rf230.h"
-//#include "dev/rf230_const.h"
 
 #include "net/rime/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/netstack.h"
+
+#if JACKDAW
+#include "sicslow_ethernet.h"
+#include "uip.h"
+#include "uip_arp.h" //For ethernet header structure
+#define ETHBUF(x) ((struct uip_eth_hdr *)x)
+#define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+  /* 6lowpan max size + ethernet header size + 1 */
+static uint8_t raw_buf[127+ UIP_LLH_LEN +1];
+extern uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
+extern rimeaddr_t macLongAddr;
+#include "rndis/rndis_task.h"
+#endif
+
 
 #include "sys/timetable.h"
 
@@ -701,27 +713,50 @@ rf230_prepare(const void *payload, unsigned short payload_len)
   memcpy(pbuf,&timestamp,TIMESTAMP_LEN);
   pbuf+=TIMESTAMP_LEN;
 #endif /* RF230_CONF_TIMESTAMPS */
-  
+/*------------------------------------------------------------*/  
 /* If jackdaw report frame to ethernet interface */
-#if JACKDAW && 0
-  params.payload_len = total_len;
-  params.payload     = buffer;
-  mac_logTXtoEthernet(&params, &result);
-#endif /* JACKDAW */
-  
-  /* Wait for any previous transmission to finish (?) */
-//  rf230_waitidle();
-  
- // hal_subregister_write(SR_TRX_CMD, CMD_FORCE_TRX_OFF);
-  
-//  delay_us(TIME_P_ON_TO_TRX_OFF);
-  /* Enable auto retry (?) */
-//  radio_set_trx_state(TX_ARET_ON);
+#if JACKDAW
+// mac_logTXtoEthernet(&params, &result);
+  if (usbstick_mode.raw != 0) {
+    uint8_t sendlen;
 
- /* Toggle the SLP_TR pin to initiate the frame transmission. */
-//  hal_set_slptr_high();
-//  hal_set_slptr_low();
-//  hal_frame_write(buffer, total_len);
+  /* Get the raw frame */
+    memcpy(&raw_buf[UIP_LLH_LEN], buffer, total_len);
+    sendlen = total_len;
+
+  /* Setup generic ethernet stuff */
+    ETHBUF(raw_buf)->type = htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
+  
+//  uint64_t tempaddr;
+ 
+  /* Check for broadcast message */
+    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+      ETHBUF(raw_buf)->dest.addr[0] = 0x33;
+      ETHBUF(raw_buf)->dest.addr[1] = 0x33;
+      ETHBUF(raw_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
+      ETHBUF(raw_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
+      ETHBUF(raw_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
+      ETHBUF(raw_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
+    } else {
+  /* Otherwise we have a real address */  
+//    tempaddr = p->dest_addr.addr64;
+//    byte_reverse((uint8_t *)&tempaddr, 8);
+      mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->dest.addr[0]),
+          (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    }
+
+//  tempaddr = p->src_addr.addr64;
+//  memcpy(&tempaddr,packetbuf_addr(PACKETBUF_ADDR_SENDER),sizeof(tempaddr));
+//  byte_reverse((uint8_t *)&tempaddr, 8);
+    mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]),(uip_lladdr_t *)&uip_lladdr.addr);
+
+//  printf("Low2Eth: Sending 802.15.4 packet to ethernet\n\r");
+
+    sendlen += UIP_LLH_LEN;
+    usb_eth_send(raw_buf, sendlen, 0);
+//  rndis_stat.rxok++;
+  }
+#endif /* JACKDAW */
 
   RELEASE_LOCK();
   return 0;
@@ -731,6 +766,13 @@ static int
 rf230_send(const void *payload, unsigned short payload_len)
 {
   rf230_prepare(payload, payload_len);
+#if JACKDAW
+// In sniffer mode we don't ever send anything
+  if (usbstick_mode.sendToRf == 0) {
+    uip_len = 0;
+    return 0;
+  }
+#endif /* JACKDAW */
   return rf230_transmit(payload_len);
 }
 /*---------------------------------------------------------------------------*/
@@ -1042,6 +1084,49 @@ rf230_read(void *buf, unsigned short bufsize)
   if(len < AUX_LEN) {
     return 0;
   }
+#if JACKDAW
+/*------------------------------------------------------------*/  
+/* If jackdaw report frame to ethernet interface */
+// mac_logRXtoEthernet(&params, &result);
+  if (usbstick_mode.raw != 0) {
+    uint8_t sendlen;
+
+  /* Get the raw frame */
+    memcpy(&raw_buf[UIP_LLH_LEN], buf, len);
+    sendlen = len;
+
+  /* Setup generic ethernet stuff */
+    ETHBUF(raw_buf)->type = htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
+  
+//   uint64_t tempaddr;
+ 
+  /* Check for broadcast message */
+    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+      ETHBUF(raw_buf)->dest.addr[0] = 0x33;
+      ETHBUF(raw_buf)->dest.addr[1] = 0x33;
+      ETHBUF(raw_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
+      ETHBUF(raw_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
+      ETHBUF(raw_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
+      ETHBUF(raw_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
+    } else {
+  /* Otherwise we have a real address */  
+//    tempaddr = p->dest_addr.addr64;
+//    byte_reverse((uint8_t *)&tempaddr, 8);
+      mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->dest.addr[0]),
+          (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    }
+
+//  tempaddr = p->src_addr.addr64;
+//  memcpy(&tempaddr,packetbuf_addr(PACKETBUF_ADDR_SENDER),sizeof(tempaddr));
+//  byte_reverse((uint8_t *)&tempaddr, 8);
+    mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]),(uip_lladdr_t *)&uip_lladdr.addr);
+
+//  printf("Low2Eth: Sending 802.15.4 packet to ethernet\n\r");
+
+    sendlen += UIP_LLH_LEN;
+    usb_eth_send(raw_buf, sendlen, 0);
+  }
+#endif /* JACKDAW */
 
   return len - AUX_LEN;
 }
