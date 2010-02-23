@@ -3,5 +3,6 @@
 
 #include "types.h"
 #include "isr.h"
+#include "gpio.h"
 
 #endif
