@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.69 2010/02/18 21:48:39 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.70 2010/02/23 18:45:16 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -331,7 +331,7 @@ main(int argc, char **argv)
   NETSTACK_MAC.init();
   NETSTACK_NETWORK.init();
 
-  printf(" %s, channel check rate %d Hz, radio channel %u\n",
+  printf(" %s, channel check rate %lu Hz, radio channel %u\n",
          rime_mac->name,
          CLOCK_SECOND / (rime_mac->channel_check_interval() == 0? 1:
                          rime_mac->channel_check_interval()),
