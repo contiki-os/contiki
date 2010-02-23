@@ -1,6 +1,8 @@
 LINKERSCRIPT = $(MC1322X)/mc1322x.lds
 LIBMC1322X = $(MC1322X)/libmc1322x
 
+.DEFAULT_GOAL = all
+
 include $(MC1322X)/config.mk
 
 include $(MC1322X)/board/Makefile.board
@@ -30,7 +32,7 @@ $(ISR): $(ISR:.o=.c)
 %_$(BOARD).elf: %.elf
 	mv $< $@
 
-%.elf:	$(START) $(ISR) $(OBJDIR)/%.o $(LINKERSCRIPT) board
+%.elf:	$(START) $(ISR) $(LIBMC1322X)/libmc1322x.a $(OBJDIR)/%.o $(LINKERSCRIPT) board
 	$(LD) $(LDFLAGS) $(AOBJS) \
 	--start-group $(PLATFORM_LIBS) --end-group \
 	$(filter %.o %.a,$+) -o $@
