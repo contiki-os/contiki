@@ -1,6 +1,8 @@
 #include <mc1322x.h>
 #include <board.h>
 
+#include "led.h"
+
 #define DELAY 400000
 
 #define LED_BITS LED_WHITE
