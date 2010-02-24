@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.25 2010/02/03 15:55:50 fros4943 Exp $
+ * $Id: LogListener.java,v 1.26 2010/02/24 10:45:44 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -41,6 +41,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
@@ -181,6 +183,14 @@ public class LogListener extends VisPlugin {
     logTable.setFillsViewportHeight(true);
     logTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
     logTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    logTable.addKeyListener(new KeyAdapter() {
+      public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+          timeLineAction.actionPerformed(null);
+          radioLoggerAction.actionPerformed(null);
+        }
+      }
+    });
     logFilter = new TableRowSorter<TableModel>(model);
     for (int i = 0, n = model.getColumnCount(); i < n; i++) {
       logFilter.setSortable(i, false);
