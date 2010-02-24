@@ -26,17 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.22 2010/02/03 09:32:25 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.23 2010/02/24 10:38:35 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Hashtable;
-import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.Semaphore;
 
@@ -51,7 +49,8 @@ import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
-import se.sics.cooja.SimEventCentral.MoteCountListener;
+import se.sics.cooja.SimEventCentral.LogOutputEvent;
+import se.sics.cooja.SimEventCentral.LogOutputListener;
 
 /**
  * Loads and executes a Contiki test script.
@@ -67,31 +66,22 @@ public class LogScriptEngine {
 
   private ScriptEngine engine = 
     new ScriptEngineManager().getEngineByName("JavaScript");
-
-  /* Log observer: watches all log interfaces */
-  private Observer logObserver = new Observer() {
-    public void update(Observable obs, Object obj) {
-      Mote mote = (Mote) obj;
-      handleNewMoteOutput(
-          mote,
-          mote.getID(),
-          mote.getSimulation().getSimulationTime(),
-          mote.getInterfaces().getLog().getLastLogMessage()
-      );
-    }
-  };
   
-  /* Mote count observer: keeps track of newly added nodes */
-  private MoteCountListener newMotesListener = new MoteCountListener() {
+  /* Log output listener */
+  private LogOutputListener logOutputListener = new LogOutputListener() {
     public void moteWasAdded(Mote mote) {
-      if (mote.getInterfaces().getLog() != null) {
-        mote.getInterfaces().getLog().addObserver(logObserver);
-      }
     }
     public void moteWasRemoved(Mote mote) {
-      if (mote.getInterfaces().getLog() != null) {
-        mote.getInterfaces().getLog().deleteObserver(logObserver);
-      }
+    }
+    public void newLogOutput(LogOutputEvent ev) {
+      handleNewMoteOutput(
+          ev.getMote(),
+          ev.getMote().getID(),
+          ev.getTime(),
+          ev.msg
+      );
+    }
+    public void removedLogOutput(LogOutputEvent ev) {
     }
   };
 
@@ -168,9 +158,6 @@ public class LogScriptEngine {
             e.getMessage(),
             e, false);
       }
-      for (Mote m: simulation.getMotes()) {
-        newMotesListener.moteWasRemoved(m);
-      }
       simulation.stopSimulation();
     }
   }
@@ -220,10 +207,7 @@ public class LogScriptEngine {
 
     timeoutEvent.remove();
 
-    simulation.getEventCentral().removeMoteCountListener(newMotesListener);
-    for (Mote mote: simulation.getMotes()) {
-      newMotesListener.moteWasRemoved(mote);
-    }
+    simulation.getEventCentral().removeLogOutputListener(logOutputListener);
 
     engine.put("SHUTDOWN", true);
 
@@ -352,10 +336,7 @@ public class LogScriptEngine {
     }
 
     /* Setup simulation observers */
-    simulation.getEventCentral().addMoteCountListener(newMotesListener);
-    for (Mote mote: simulation.getMotes()) {
-      newMotesListener.moteWasAdded(mote);
-    }
+    simulation.getEventCentral().addLogOutputListener(logOutputListener);
 
     /* Create script output logger */
     engine.put("log", new ScriptLog() {
