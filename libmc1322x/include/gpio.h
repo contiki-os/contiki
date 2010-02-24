@@ -1,8 +1,6 @@
 #ifndef GPIO_H
 #define GPIO_H
 
-#define GPIO_PAD_DIR0   ((volatile uint32_t *) 0x80000000)
-
 #define GPIO_PAD_DIR0      ((volatile uint32_t *) 0x80000000)
 #define GPIO_PAD_DIR1      ((volatile uint32_t *) 0x80000004)
 #define GPIO_DATA0         ((volatile uint32_t *) 0x80000008)
