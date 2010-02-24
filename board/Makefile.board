@@ -15,5 +15,5 @@ endif
 	mkdir $(OBJDIR)
 
 $(OBJDIR)/board.h: $(OBJDIR) 
-	ln -s ../$(MC1322X)/board/$(BOARD).h $(OBJDIR)/board.h
+	ln -sf ../$(MC1322X)/board/$(BOARD).h $(OBJDIR)/board.h
 	touch $(OBJDIR)/board.h
