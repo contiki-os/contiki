@@ -1,24 +1,13 @@
-#define GPIO_FUNC_SEL0  0x80000018 /* GPIO 15 - 0;  2 bit blocks */
+#include <mc1322x.h>
+#include <board.h>
+#include <uart1.h>
 
-#define BASE_UART1      0x80005000
-#define UART1_CON       0x80005000
-#define UART1_STAT      0x80005004
-#define UART1_DATA      0x80005008
-#define UR1CON          0x8000500c
-#define UT1CON          0x80005010
-#define UART1_CTS       0x80005014
-#define UART1_BR        0x80005018
+/* INC = 767; MOD = 9999 works: 115200 @ 24 MHz 16 bit sample */
+#define INC 767
+#define MOD 9999
 
-#define GPIO_PAD_DIR0   0x80000000
-#define GPIO_DATA0      0x80000008
-
-#include "embedded_types.h"
-#include "nvm.h"
-#include "maca.h"
-
-#define reg(x) (*(volatile uint32_t *)(x))
-
-#define DELAY 400000
+#define READ_ADDR 0x1F000
+#define NBYTES 1024
 
 void putc(uint8_t c);
 void puts(uint8_t *s);
@@ -29,18 +18,14 @@ void put_hex32(uint32_t x);
 const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 		 '8','9','a','b','c','d','e','f'};
 
-#include "isr.h"
 
-#define NBYTES 1024
-__attribute__ ((section ("startup")))
+
 void main(void) {
 	nvmType_t type=0;
 	nvmErr_t err;
 	uint32_t buf[NBYTES/4];
 	uint32_t i;
 
-	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000100;
-	
 	/* Restore UART regs. to default */
 	/* in case there is still bootloader state leftover */
 
@@ -76,7 +61,7 @@ void main(void) {
 
 	nvm_setsvar(0);
 
-	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, 0x1F000, NBYTES);
+	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, READ_ADDR, NBYTES);
 	puts("nvm_read returned: 0x");
 	put_hex(err);
 	puts("\n\r");
