@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.27 2010/02/23 22:32:57 joxe Exp $
+ * $Id: RadioLogger.java,v 1.28 2010/02/25 23:44:16 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -43,6 +43,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Properties;
@@ -98,6 +99,7 @@ public class RadioLogger extends VisPlugin {
   private final static int COLUMN_TO = 2;
   private final static int COLUMN_DATA = 3;
 
+  private JSplitPane splitPane;
   private JTextPane verboseBox = null;
   
   private final static String[] COLUMN_NAMES = {
@@ -113,15 +115,17 @@ public class RadioLogger extends VisPlugin {
   private RadioMedium radioMedium;
   private Observer radioMediumObserver;
   private AbstractTableModel model;
-  
+
+  private HashMap<String,Action> analyzerMap = new HashMap<String,Action>();
+  private String analyzerName = null;
   private ArrayList<PacketAnalyzer> analyzers = null;
-  private ArrayList<PacketAnalyzer> lowpanAnalyzers = new ArrayList<PacketAnalyzer>();
-  
+
   public RadioLogger(final Simulation simulationToControl, final GUI gui) {
     super("Radio Logger", gui);
     simulation = simulationToControl;
     radioMedium = simulation.getRadioMedium();
 
+    ArrayList<PacketAnalyzer> lowpanAnalyzers = new ArrayList<PacketAnalyzer>();
     lowpanAnalyzers.add(new IEEE802154Analyzer());
     lowpanAnalyzers.add(new IPHCPacketAnalyzer());
     model = new AbstractTableModel() {
@@ -281,24 +285,29 @@ public class RadioLogger extends VisPlugin {
     //a group of radio button menu items
     popupMenu.addSeparator();
     ButtonGroup group = new ButtonGroup();
-    JRadioButtonMenuItem rbMenuItem = new JRadioButtonMenuItem(noAnalyzer);
-    rbMenuItem.setSelected(true);
+    JRadioButtonMenuItem rbMenuItem = new JRadioButtonMenuItem(
+            createAnalyzerAction("No Analyzer", "none", null, true));
     group.add(rbMenuItem);
     popupMenu.add(rbMenuItem);
 
-    rbMenuItem = new JRadioButtonMenuItem(lowpanAnalyzer);
+    rbMenuItem = new JRadioButtonMenuItem(createAnalyzerAction(
+        "6LoWPAN Analyzer", "6lowpan", lowpanAnalyzers, false));
     group.add(rbMenuItem);
     popupMenu.add(rbMenuItem);
 
     dataTable.setComponentPopupMenu(popupMenu);
+    dataTable.setFillsViewportHeight(true);
 
     verboseBox = new JTextPane();
     verboseBox.setContentType("text/html"); 
     verboseBox.setEditable(false);
-    JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+    verboseBox.setComponentPopupMenu(popupMenu);
+
+    splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
             new JScrollPane(dataTable), new JScrollPane(verboseBox));
-    split.setDividerLocation(150);
-    add(split);
+    splitPane.setOneTouchExpandable(true);
+    splitPane.setDividerLocation(150);
+    add(splitPane);
     
     TableColumnAdjuster adjuster = new TableColumnAdjuster(dataTable);
     adjuster.setDynamicAdjustment(true);
@@ -384,7 +393,7 @@ public class RadioLogger extends VisPlugin {
     StringBuffer brief = new StringBuffer();
     StringBuffer verbose = new StringBuffer();
 
-    /* default anlayzer */
+    /* default analyzer */
     PacketAnalyzer.Packet packet = new PacketAnalyzer.Packet(data, PacketAnalyzer.MAC_LEVEL);
 
     if (analyzePacket(packet, brief, verbose)) {
@@ -460,32 +469,53 @@ public class RadioLogger extends VisPlugin {
   }
 
   public Collection<Element> getConfigXML() {
-    if (aliases == null) {
-      return null;
+    ArrayList<Element> config = new ArrayList<Element>();
+
+    Element element = new Element("split");
+    element.addContent(Integer.toString(splitPane.getDividerLocation()));
+    config.add(element);
+
+    if (analyzerName != null && analyzers != null) {
+      element = new Element("analyzers");
+      element.setAttribute("name", analyzerName);
+      config.add(element);
     }
 
-    ArrayList<Element> config = new ArrayList<Element>();
-    Element element;
-
-    for (Object key: aliases.keySet()) {
-      element = new Element("alias");
-      element.setAttribute("payload", (String) key);
-      element.setAttribute("alias", (String) aliases.get(key));
-      config.add(element);
+    if (aliases != null) {
+      for (Object key: aliases.keySet()) {
+        element = new Element("alias");
+        element.setAttribute("payload", (String) key);
+        element.setAttribute("alias", (String) aliases.get(key));
+        config.add(element);
+      }
     }
 
     return config;
   }
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-    if (aliases == null) {
-      aliases = new Properties();
-    }
     for (Element element : configXML) {
-      if (element.getName().equals("alias")) {
+      String name = element.getName();
+      if ("alias".equals(name)) {
         String payload = element.getAttributeValue("payload");
         String alias = element.getAttributeValue("alias");
+        if (aliases == null) {
+          aliases = new Properties();
+        }
         aliases.put(payload, alias);
+      } else if ("split".equals(name)) {
+        splitPane.setDividerLocation(Integer.parseInt(element.getText()));
+      } else if ("analyzers".equals(name)) {
+        String analyzerName = element.getAttributeValue("name");
+        final Action action;
+        if (analyzerName != null && ((action = analyzerMap.get(analyzerName)) != null)) {
+          java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+              action.putValue(Action.SELECTED_KEY, Boolean.TRUE);
+              action.actionPerformed(null);
+            }
+          });
+        }
       }
     }
     return true;
@@ -517,7 +547,36 @@ public class RadioLogger extends VisPlugin {
     return sb.toString();
   }
 
+  private Action createAnalyzerAction(String name, final String actionName,
+          final ArrayList<PacketAnalyzer> analyzerList, boolean selected) {
+      Action action = new AbstractAction(name) {
+        private static final long serialVersionUID = -608913700422638454L;
+
+        public void actionPerformed(ActionEvent event) {
+            if (analyzers != analyzerList) {
+                analyzers = analyzerList;
+                analyzerName = actionName;
+                if (connections.size() > 0) {
+                    // Remove the cached values
+                    for(int i = 0; i < connections.size(); i++) {
+                        RadioConnectionLog conn = connections.get(i);
+                        conn.data = null;
+                        conn.tooltip = null;
+                    }
+                    model.fireTableRowsUpdated(0, connections.size() - 1);
+                }
+                verboseBox.setText("");
+            }
+        }
+      };
+      action.putValue(Action.SELECTED_KEY, selected ? Boolean.TRUE : Boolean.FALSE);
+      analyzerMap.put(actionName, action);
+      return action;
+  }
+
   private Action clearAction = new AbstractAction("Clear") {
+    private static final long serialVersionUID = -6135583266684643117L;
+
     public void actionPerformed(ActionEvent e) {
       int size = connections.size();
       if (size > 0) {
@@ -529,6 +588,8 @@ public class RadioLogger extends VisPlugin {
   };
   
   private Action copyAction = new AbstractAction("Copy selected") {
+    private static final long serialVersionUID = 8412062977916108054L;
+
     public void actionPerformed(ActionEvent e) {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
@@ -536,10 +597,10 @@ public class RadioLogger extends VisPlugin {
 
       StringBuilder sb = new StringBuilder();
       for (int i: selectedRows) {
-        sb.append("" + dataTable.getValueAt(i, COLUMN_TIME) + '\t');
-        sb.append("" + dataTable.getValueAt(i, COLUMN_FROM) + '\t');
-        sb.append("" + getDestString(connections.get(i)) + '\t');
-        sb.append("" + dataTable.getValueAt(i, COLUMN_DATA) + '\n');
+        sb.append(dataTable.getValueAt(i, COLUMN_TIME)).append('\t');
+        sb.append(dataTable.getValueAt(i, COLUMN_FROM)).append('\t');
+        sb.append(getDestString(connections.get(i))).append('\t');
+        sb.append(dataTable.getValueAt(i, COLUMN_DATA)).append('\n');
       }
 
       StringSelection stringSelection = new StringSelection(sb.toString());
@@ -548,6 +609,8 @@ public class RadioLogger extends VisPlugin {
   };
   
   private Action copyAllAction = new AbstractAction("Copy all") {
+    private static final long serialVersionUID = 1905586689441157304L;
+
     public void actionPerformed(ActionEvent e) {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
@@ -565,6 +628,8 @@ public class RadioLogger extends VisPlugin {
   };
   
   private Action saveAction = new AbstractAction("Save to file") {
+    private static final long serialVersionUID = -3942984643211482179L;
+
     public void actionPerformed(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
       int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
@@ -610,6 +675,8 @@ public class RadioLogger extends VisPlugin {
   };
 
   private Action timeLineAction = new AbstractAction("to Timeline") {
+    private static final long serialVersionUID = -4035633464748224192L;
+
     public void actionPerformed(ActionEvent e) {
       TimeLine plugin = (TimeLine) simulation.getGUI().getStartedPlugin(TimeLine.class.getName());
       if (plugin == null) {
@@ -626,20 +693,9 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
-  private Action lowpanAnalyzer = new AbstractAction("6LoWPAN Analyzer") {
-    public void actionPerformed(ActionEvent arg0) {
-        analyzers = lowpanAnalyzers;
-    }
-  };
-
-  private Action noAnalyzer = new AbstractAction("No Analyzer") {
-      public void actionPerformed(ActionEvent arg0) {
-          analyzers = null;
-      }
-    };
-
-  
   private Action logListenerAction = new AbstractAction("to Log Listener") {
+    private static final long serialVersionUID = 1985006491187878651L;
+
     public void actionPerformed(ActionEvent e) {
       LogListener plugin = (LogListener) simulation.getGUI().getStartedPlugin(LogListener.class.getName());
       if (plugin == null) {
@@ -658,6 +714,8 @@ public class RadioLogger extends VisPlugin {
 
   private Properties aliases = null;
   private Action aliasAction = new AbstractAction("Assign alias") {
+    private static final long serialVersionUID = -1678771087456128721L;
+
     public void actionPerformed(ActionEvent e) {
       int selectedRow = dataTable.getSelectedRow();
       if (selectedRow < 0) return;
