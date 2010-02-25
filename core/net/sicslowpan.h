@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.7 2010/02/23 20:09:11 nifi Exp $
+ * $Id: sicslowpan.h,v 1.8 2010/02/25 15:50:58 joxe Exp $
  */
 /**
  * \file
@@ -60,6 +60,14 @@
 #define SICSLOWPAN_UDP_PORT_MAX                     0xF0BF   /* F0B0 + 15 */
 /** @} */
 
+/**
+ * \name 6lowpan compressions
+ * @{
+ */
+#define SICSLOWPAN_COMPRESSION_IPV6        0
+#define SICSLOWPAN_COMPRESSION_HC1         1
+#define SICSLOWPAN_COMPRESSION_HC06        2
+/** @} */
 
 /**
  * \name 6lowpan dispatches
@@ -67,7 +75,7 @@
  */
 #define SICSLOWPAN_DISPATCH_IPV6                    0x41 /* 01000001 = 65 */
 #define SICSLOWPAN_DISPATCH_HC1                     0x42 /* 01000010 = 66 */
-#define SICSLOWPAN_DISPATCH_IPHC                    0x03 /* 00000011 = 3 */
+#define SICSLOWPAN_DISPATCH_IPHC                    0x60 /* 011xxxxx = ... */
 #define SICSLOWPAN_DISPATCH_FRAG1                   0xc0 /* 11000xxx */
 #define SICSLOWPAN_DISPATCH_FRAGN                   0xe0 /* 11100xxx */
 /** @} */
@@ -94,23 +102,30 @@
  * Values of fields within the IPHC encoding first byte
  * (C stands for compressed and I for inline)
  */
-#define SICSLOWPAN_IPHC_TC_C                        0x80
-#define SICSLOWPAN_IPHC_VF_C                        0x40
-#define SICSLOWPAN_IPHC_NH_C                        0x20
-#define SICSLOWPAN_IPHC_TTL_1                       0x08
-#define SICSLOWPAN_IPHC_TTL_64                      0x10
-#define SICSLOWPAN_IPHC_TTL_255                     0x18
+#define SICSLOWPAN_IPHC_TC_C                        0x10
+#define SICSLOWPAN_IPHC_FL_C                        0x08
+#define SICSLOWPAN_IPHC_NH_C                        0x04
+#define SICSLOWPAN_IPHC_TTL_1                       0x01
+#define SICSLOWPAN_IPHC_TTL_64                      0x02
+#define SICSLOWPAN_IPHC_TTL_255                     0x03
 #define SICSLOWPAN_IPHC_TTL_I                       0x00
 
+
 /* Values of fields within the IPHC encoding second byte */
-#define SICSLOWPAN_IPHC_SAM_I                       0x00
-#define SICSLOWPAN_IPHC_SAM_64                      0x40
-#define SICSLOWPAN_IPHC_SAM_16                      0x80
-#define SICSLOWPAN_IPHC_SAM_0                       0xC0
-#define SICSLOWPAN_IPHC_DAM_I                       0x00
-#define SICSLOWPAN_IPHC_DAM_64                      0x04
-#define SICSLOWPAN_IPHC_DAM_16                      0x08
-#define SICSLOWPAN_IPHC_DAM_0                       0x0C
+#define SICSLOWPAN_IPHC_CID                         0x80
+
+#define SICSLOWPAN_IPHC_SAC                         0x40
+#define SICSLOWPAN_IPHC_SAM_00                      0x00
+#define SICSLOWPAN_IPHC_SAM_01                      0x10
+#define SICSLOWPAN_IPHC_SAM_10                      0x20
+#define SICSLOWPAN_IPHC_SAM_11                      0x30
+
+#define SICSLOWPAN_IPHC_M                           0x08
+#define SICSLOWPAN_IPHC_DAC                         0x04
+#define SICSLOWPAN_IPHC_DAM_00                      0x00
+#define SICSLOWPAN_IPHC_DAM_01                      0x01
+#define SICSLOWPAN_IPHC_DAM_10                      0x02
+#define SICSLOWPAN_IPHC_DAM_11                      0x03
 
 /* Link local context number */
 #define SICSLOWPAN_IPHC_ADDR_CONTEXT_LL             0
@@ -180,25 +195,11 @@
 /* }; */
 
 /**
- * \brief IPHC dispatch and encoding
- * the rest (uncompressed fields) is variable
- */
-struct sicslowpan_iphc_hdr {
-  u8_t dispatch;
-  u8_t encoding[2];
-};
-
-/* struct sicslowpan_nhc_udp_comp_hdr { */
-/*   u8_t nhcid; */
-/*   u8_t ports; */
-/*   u16_t udpchksum; */
-/* }; */
-
-/**
  * \brief An address context for IPHC address compression
+ * each context can have upto 8 bytes
  */
 struct sicslowpan_addr_context {
-  u8_t used;
+  u8_t used; /* possibly use as prefix-length */
   u8_t number;
   u8_t prefix[8];
 };
@@ -246,6 +247,34 @@ struct sicslowpan_addr_context {
    (((a)->u16[6]) == 0) &&                       \
    (((a)->u8[14]) == 0) &&                       \
    ((((a)->u8[15]) == 1) || (((a)->u8[15]) == 2)))
+
+/* FFXX::00XX:XXXX:XXXX */
+#define sicslowpan_is_mcast_addr_compressable48(a) \
+  ((((a)->u16[1]) == 0) &&                       \
+   (((a)->u16[2]) == 0) &&                       \
+   (((a)->u16[3]) == 0) &&                       \
+   (((a)->u16[4]) == 0) &&                       \
+   (((a)->u8[10]) == 0))
+
+/* FFXX::00XX:XXXX */
+#define sicslowpan_is_mcast_addr_compressable32(a) \
+  ((((a)->u16[1]) == 0) &&                       \
+   (((a)->u16[2]) == 0) &&                       \
+   (((a)->u16[3]) == 0) &&                       \
+   (((a)->u16[4]) == 0) &&                       \
+   (((a)->u16[5]) == 0) &&                       \
+   (((a)->u8[12]) == 0))
+
+/* FF02::00XX */
+#define sicslowpan_is_mcast_addr_compressable8(a) \
+  ((((a)->u8[1]) == 2) &&                        \
+   (((a)->u16[1]) == 0) &&                       \
+   (((a)->u16[2]) == 0) &&                       \
+   (((a)->u16[3]) == 0) &&                       \
+   (((a)->u16[4]) == 0) &&                       \
+   (((a)->u16[5]) == 0) &&                       \
+   (((a)->u16[6]) == 0) &&                       \
+   (((a)->u8[14]) == 0))
 
 /** @} */
 
