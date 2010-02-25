@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: StringUtils.java,v 1.4 2010/02/23 22:32:57 joxe Exp $
+ * $Id: StringUtils.java,v 1.5 2010/02/25 22:36:08 joxe Exp $
  */
 
 package se.sics.cooja.util;
@@ -108,7 +108,7 @@ public class StringUtils {
       }
       sb.append("  ");
       for (int i = 0; i < n; i++) {
-        if (data[j + i] > 32) {
+        if (data[j + i] >= 32) {
           sb.append((char)(data[j + i] & 0xff));
         } else {
           sb.append('.');

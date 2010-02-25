@@ -118,6 +118,9 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
         /* update packet */
         packet.pos = pos;
         packet.level = NETWORK_LEVEL;
+        
+        packet.llsender = sourceAddress;
+        packet.llreceiver = destAddress;
     }
 
     private void printAddress(StringBuffer sb, int type, byte[] addr) {
