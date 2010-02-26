@@ -1,5 +1,6 @@
 #include <mc1322x.h>
 #include "put.h"
+#include "tests.h"
 
 void uart1_init(uint16_t inc, uint16_t mod) {
 	/* Restore UART regs. to default */
@@ -30,4 +31,20 @@ void print_welcome(char* testname) {
 	puts("redbee-dev");
 #endif
 	puts("\n\r");
+}
+
+void dump_regs(uint32_t base, uint32_t len) {
+	volatile uint32_t i;
+    
+	puts("base +0       +4       +8       +c       +10      +14      +18      +1c      \n\r");                                                     
+	for (i = 0; i < len; i ++) {                                                                                                                   
+		if ((i & 7) == 0) {                                                                                                                   
+			put_hex16(4 * i);                                                                                                             
+		}                                                                                                                                     
+		puts(" ");                                                                                                                            
+		put_hex32(*mem32(base+(4*i)));                                                                                                      
+		if ((i & 7) == 7)                                                                                                                     
+			puts(NL);                                                                                                                     
+	}                                                                                                                                             
+	puts(NL); 
 }

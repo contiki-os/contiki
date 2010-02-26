@@ -3,15 +3,15 @@
 
 #include <types.h>
 
-#define MACA_BASE       0x80004000
-#define MACA_RESET      0x80004004
-#define MACA_RANDOM     0x80004008
-#define MACA_CONTROL    0x8000400c
-#define MACA_STATUS     0x80004010
-#define MACA_DMARX      0x80004080
-#define MACA_DMATX      0x80004084
-#define MACA_GETRXLVL   0x80004098
-#define MACA_PREAMBLE   0x8000411c
+#define MACA_BASE       ((volatile uint32_t *) 0x80004000)
+#define MACA_RESET      ((volatile uint32_t *) 0x80004004)
+#define MACA_RANDOM     ((volatile uint32_t *) 0x80004008)
+#define MACA_CONTROL    ((volatile uint32_t *) 0x8000400c)
+#define MACA_STATUS     ((volatile uint32_t *) 0x80004010)
+#define MACA_DMARX      ((volatile uint32_t *) 0x80004080)
+#define MACA_DMATX      ((volatile uint32_t *) 0x80004084)
+#define MACA_GETRXLVL   ((volatile uint32_t *) 0x80004098)
+#define MACA_PREAMBLE   ((volatile uint32_t *) 0x8000411c)
 
 #define gMACA_Clock_DIV_c      95
   
@@ -409,7 +409,7 @@ typedef union maca_maskirq_reg_tag
 
 void reset_maca(void);
 void init_phy(void);
-void vreg_init(void);
+void flyback_init(void);
 void ResumeMACASync(void);
 void radio_init(void);
 void radio_off(void);
