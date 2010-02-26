@@ -1,7 +1,5 @@
-#include "types.h"
-#include "isr.h"
-
-#define reg32(x) (*(volatile uint32_t *)(x))
+#include <mc1322x.h>
+#include <types.h>
 
 __attribute__ ((section (".irq")))
 __attribute__ ((interrupt("IRQ"))) 
