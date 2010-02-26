@@ -47,7 +47,7 @@
  *  \file
  *  \brief This file contains low-level radio driver code.
  *
- *   $Id: hal.h,v 1.4 2008/11/29 15:55:02 c_oflynn Exp $
+ *   $Id: hal.h,v 1.5 2010/02/26 21:15:28 dak664 Exp $
 */
 
 #ifndef HAL_AVR_H
@@ -70,11 +70,12 @@
  * \{
  */
 /* Define all possible revisions here */
+// Don't use zero, it will match if undefined!
 // RAVEN_D : Raven kit with LCD display
 // RAVENUSB_C : used for USB key or Raven card 
 // RCB_B : RZ200 kit from Atmel based on 1281V
 // ZIGBIT : Zigbit module from Meshnetics
-#define RAVEN_D	    0
+#define RAVEN_D	    4
 #define RAVENUSB_C  1
 #define RCB_B	    	2
 #define ZIGBIT			3
