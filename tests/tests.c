@@ -1,7 +1,7 @@
 #include <mc1322x.h>
 #include "put.h"
 
-void uart_init(uint16_t inc, uint16_t mod) {
+void uart1_init(uint16_t inc, uint16_t mod) {
 	/* Restore UART regs. to default */
 	/* in case there is still bootloader state leftover */
 	
@@ -29,4 +29,5 @@ void print_welcome(char* testname) {
 #elif (BOARD == redbee-r1)
 	puts("redbee-dev");
 #endif
+	puts("\n\r");
 }
