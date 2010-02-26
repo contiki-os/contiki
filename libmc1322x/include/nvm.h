@@ -36,12 +36,12 @@ typedef enum
 
 /* ROM code seems to be THUMB */
 /* need to be in a THUMB block before calling them */
-extern volatile nvmErr_t (*nvm_detect)(nvmInterface_t nvmInterface,nvmType_t* pNvmType);
-extern volatile nvmErr_t (*nvm_read)(nvmInterface_t nvmInterface , nvmType_t nvmType , void *pDest, uint32_t address, uint32_t numBytes);
-extern volatile nvmErr_t (*nvm_write)(nvmInterface_t nvmInterface, nvmType_t nvmType ,void *pSrc, uint32_t address, uint32_t numBytes);
+extern nvmErr_t (*nvm_detect)(nvmInterface_t nvmInterface,nvmType_t* pNvmType);
+extern nvmErr_t (*nvm_read)(nvmInterface_t nvmInterface , nvmType_t nvmType , void *pDest, uint32_t address, uint32_t numBytes);
+extern nvmErr_t (*nvm_write)(nvmInterface_t nvmInterface, nvmType_t nvmType ,void *pSrc, uint32_t address, uint32_t numBytes);
 /* sector bit field selects which sector to erase */
 /* SST flash has 32 sectors 4096 bytes each */
 /* bit 0 is the first sector, bit 31 is the last */
-extern volatile nvmErr_t (*nvm_erase)(nvmInterface_t nvmInterface, nvmType_t nvmType ,uint32_t sectorBitfield);
-extern volatile void(*nvm_setsvar)(uint32_t zero_for_awesome);
+extern nvmErr_t (*nvm_erase)(nvmInterface_t nvmInterface, nvmType_t nvmType ,uint32_t sectorBitfield);
+extern void(*nvm_setsvar)(uint32_t zero_for_awesome);
 #endif //NVM_H

@@ -10,8 +10,8 @@
 #define READ_ADDR 0x1F000
 #define NBYTES 1024
 
-void putc(uint8_t c);
-void puts(uint8_t *s);
+void putc(char c);
+void puts(char *s);
 void put_hex(uint8_t x);
 void put_hex16(uint16_t x);
 void put_hex32(uint32_t x);
@@ -77,12 +77,12 @@ void main(void) {
 	while(1) {continue;};
 }
 
-void putc(uint8_t c) {
+void putc(char c) {
 	while(*UT1CON == 31); /* wait for there to be room in the buffer */
 	*UART1_DATA = c;
 }
 	
-void puts(uint8_t *s) {
+void puts(char *s) {
 	while(s && *s!=0) {
 		putc(*s++);
 	}
