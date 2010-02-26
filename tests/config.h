@@ -23,4 +23,10 @@
 #define DUMP_BASE 0x00000000
 #define DUMP_LEN  0x00014000
 
+/* flasher */
+/* if both BOOT_OK and BOOT_SECURE are 0 then flash image will not be bootable */
+/* if both are 1 then flash image will be secure */
+#define BOOT_OK 1
+#define BOOT_SECURE 0
+
 #endif

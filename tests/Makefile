@@ -6,7 +6,7 @@ MC1322X := ..
 COBJS := tests.o put.o
 
 # all of the target programs to build
-TARGETS := blink-red blink-green blink-blue blink-white blink-allio uart1-loopback nvm-read nvm-write romimg
+TARGETS := blink-red blink-green blink-blue blink-white blink-allio uart1-loopback nvm-read nvm-write romimg flasher
 
 include $(MC1322X)/Makefile.include
 
