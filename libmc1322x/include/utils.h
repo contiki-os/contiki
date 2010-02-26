@@ -1,8 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <stdint.h>
-
 #define CAT2(x, y, z)  x##y##z
 
 #define bit(bit) (1 << bit)

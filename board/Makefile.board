@@ -4,7 +4,7 @@
 BOARDS := redbee-dev redbee-r1 
 
 OBJDIR := obj_$(BOARD)_board
-CFLAGS += -I$(OBJDIR) -I$(MC1322X)/board 
+CFLAGS += -I$(OBJDIR) -I$(MC1322X)/board -DBOARD=$(BOARD)
 
 $(OBJDIR):
 ifndef BOARD

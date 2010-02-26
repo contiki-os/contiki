@@ -1,19 +1,12 @@
-#define GPIO_FUNC_SEL0  0x80000018 /* GPIO 15 - 0;  2 bit blocks */
+#include <mc1322x.h>
+#include <board.h>
 
-#define BASE_UART1      0x80005000
-#define UART1_CON       0x80005000
-#define UART1_STAT      0x80005004
-#define UART1_DATA      0x80005008
-#define UR1CON          0x8000500c
-#define UT1CON          0x80005010
-#define UART1_CTS       0x80005014
-#define UART1_BR        0x80005018
+#include "tests.h"
+#include "put.h"
 
-#include "embedded_types.h"
-
-#define reg(x) (*(volatile uint32_t *)(x))
-
-#define DELAY 400000
+/* INC = 767; MOD = 9999 works: 115200 @ 24 MHz 16 bit sample */
+#define INC 767
+#define MOD 9999
 
 void putc(uint8_t c);
 void puts(uint8_t *s);
@@ -28,30 +21,11 @@ const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 #define DUMP_LEN  0x00014000
 //#define DUMP_LEN  16
 
-#include "isr.h"
-
-__attribute__ ((section ("startup")))
 void main(void) {
 	volatile uint32_t i;
-//	volatile uint8_t *data;
 	volatile uint8_t *data;
 
-	/* Restore UART regs. to default */
-	/* in case there is still bootloader state leftover */
-
-	reg(UART1_CON) = 0x0000c800; /* mask interrupts, 16 bit sample --- helps explain the baud rate */
-
-	/* INC = 767; MOD = 9999 works: 115200 @ 24 MHz 16 bit sample */
-	#define INC 767
-	#define MOD 9999
-	reg(UART1_BR) = INC<<16 | MOD; 
-
-	/* see Section 11.5.1.2 Alternate Modes */
-	/* you must enable the peripheral first BEFORE setting the function in GPIO_FUNC_SEL */
-	/* From the datasheet: "The peripheral function will control operation of the pad IF */
-	/* THE PERIPHERAL IS ENABLED. */
-	reg(UART1_CON) = 0x00000003; /* enable receive and transmit */
-	reg(GPIO_FUNC_SEL0) = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
+	uart_init(inc, mod);
 
 	for(data=DUMP_BASE; data<(DUMP_BASE+DUMP_LEN); data++) {
 		putc(*data);

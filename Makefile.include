@@ -11,9 +11,10 @@ include $(MC1322X)/board/Makefile.board
 
 include $(MC1322X)/libmc1322x/Makefile.lib
 
-# default start and isr
-CFLAGS += -I$(MC1322X)/src
 
+CFLAGS += -I$(MC1322X)/src -I.
+
+# default start and isr
 ifndef START
 	START = $(MC1322X)/src/start.o	
 endif
@@ -21,6 +22,7 @@ ifndef ISR
 	ISR = $(MC1322X)/src/isr.o
 endif
 SRCOBJS += $(MC1322X)/src/default_lowlevel.o 
+BOARDOBJS := $(addprefix $(OBJDIR)/,$(COBJS))
 
 ARCH  = arm
 CPU   = arm7tdmi-s
@@ -28,16 +30,20 @@ export	ARCH CPU VENDOR
 
 .SECONDARY:
 
+#.depend:	Makefile $(AOBJS:.o=.S) $(COBJS:.o=.c)
+#		$(CC) -M $(CFLAGS) $(AOBJS:.o=.S) $(COBJS:.o=.c) > $@
+#sinclude .depend
+
 $(START): $(START:.o=.s)
 	$(CC) $(AFLAGS) -c -o $@ $<
 
 $(ISR): $(ISR:.o=.c)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
 
-%_$(BOARD).elf: %.elf
+%_$(BOARD).elf: %.elf $(BOARDOBJS)
 	mv $< $@
 
-%.elf:	$(START) $(ISR) $(SRCOBJS) $(OBJDIR)/%.o $(LINKERSCRIPT) $(LIBMC1322X)/libmc1322x.a
+%.elf:	$(START) $(ISR) $(SRCOBJS) $(OBJDIR)/%.o $(BOARDOBJS) $(LINKERSCRIPT) $(LIBMC1322X)/libmc1322x.a
 	$(CC) $(LDFLAGS) $(AOBJS) \
 	$(filter %.o %.a,$+) -o $@
 
