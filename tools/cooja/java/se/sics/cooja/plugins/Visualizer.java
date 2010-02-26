@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.13 2010/02/03 15:49:24 fros4943 Exp $
+ * $Id: Visualizer.java,v 1.14 2010/02/26 07:38:08 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -65,7 +65,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -168,8 +167,9 @@ public class Visualizer extends VisPlugin {
   private MoteCountListener newMotesListener;
   private Observer posObserver = null;
   private Observer moteHighligtObserver = null;
-  private Vector<Mote> highlightedMotes = new Vector<Mote>();
+  private ArrayList<Mote> highlightedMotes = new ArrayList<Mote>();
   private final static Color HIGHLIGHT_COLOR = Color.CYAN;
+  private final static Color MOVE_COLOR = Color.WHITE;
   private Observer moteRelationsObserver = null;
 
   /* Popup menu */
@@ -773,6 +773,7 @@ public class Visualizer extends VisPlugin {
       }
 
       moving = false;
+      movedMote = null;
       repaint();
     }
   }
@@ -822,52 +823,6 @@ public class Visualizer extends VisPlugin {
   public void paintMotes(Graphics g) {
     Mote[] allMotes = simulation.getMotes();
 
-    for (Mote mote: allMotes) {
-
-      /* Use the first skin's non-null mote colors */
-      Color moteColors[] = null;
-      for (VisualizerSkin skin: currentSkins) {
-        moteColors = skin.getColorOf(mote);
-        if (moteColors != null) {
-          break;
-        }
-      }
-      if (moteColors == null) {
-        moteColors = DEFAULT_MOTE_COLORS;
-      }
-
-      Position motePos = mote.getInterfaces().getPosition();
-
-      Point pixelCoord = transformPositionToPixel(motePos);
-      int x = pixelCoord.x;
-      int y = pixelCoord.y;
-
-      if (!highlightedMotes.isEmpty() && highlightedMotes.contains(mote)) {
-        g.setColor(HIGHLIGHT_COLOR);
-        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
-            2 * MOTE_RADIUS);
-      } else if (mote == movedMote) {
-        /* No fill */
-      } else if (moteColors.length >= 2) {
-        g.setColor(moteColors[0]);
-        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
-            2 * MOTE_RADIUS);
-
-        g.setColor(moteColors[1]);
-        g.fillOval(x - MOTE_RADIUS / 2, y - MOTE_RADIUS / 2, MOTE_RADIUS,
-            MOTE_RADIUS);
-
-      } else if (moteColors.length >= 1) {
-        g.setColor(moteColors[0]);
-        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
-            2 * MOTE_RADIUS);
-      }
-
-      g.setColor(Color.BLACK);
-      g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
-          2 * MOTE_RADIUS);
-    }
-
     /* Paint mote relations */
     MoteRelation[] relations = simulation.getGUI().getMoteRelations();
     for (MoteRelation r: relations) {
@@ -889,6 +844,54 @@ public class Visualizer extends VisPlugin {
       /* "Arrow head" is painted black */
       g.setColor(Color.BLACK);
       g.drawLine(middlePoint.x, middlePoint.y, destPoint.x, destPoint.y);
+    }
+
+    for (Mote mote: allMotes) {
+
+      /* Use the first skin's non-null mote colors */
+      Color moteColors[] = null;
+      for (VisualizerSkin skin: currentSkins) {
+        moteColors = skin.getColorOf(mote);
+        if (moteColors != null) {
+          break;
+        }
+      }
+      if (moteColors == null) {
+        moteColors = DEFAULT_MOTE_COLORS;
+      }
+
+      Position motePos = mote.getInterfaces().getPosition();
+
+      Point pixelCoord = transformPositionToPixel(motePos);
+      int x = pixelCoord.x;
+      int y = pixelCoord.y;
+
+      if (mote == movedMote) {
+        g.setColor(MOVE_COLOR);
+        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+            2 * MOTE_RADIUS);
+      } else if (!highlightedMotes.isEmpty() && highlightedMotes.contains(mote)) {
+        g.setColor(HIGHLIGHT_COLOR);
+        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+            2 * MOTE_RADIUS);
+      } else if (moteColors.length >= 2) {
+        g.setColor(moteColors[0]);
+        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+            2 * MOTE_RADIUS);
+
+        g.setColor(moteColors[1]);
+        g.fillOval(x - MOTE_RADIUS / 2, y - MOTE_RADIUS / 2, MOTE_RADIUS,
+            MOTE_RADIUS);
+
+      } else if (moteColors.length >= 1) {
+        g.setColor(moteColors[0]);
+        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+            2 * MOTE_RADIUS);
+      }
+
+      g.setColor(Color.BLACK);
+      g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+          2 * MOTE_RADIUS);
     }
   }
 
@@ -1057,7 +1060,7 @@ public class Visualizer extends VisPlugin {
   }
 
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
     /* Skins */
