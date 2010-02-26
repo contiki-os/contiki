@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TrafficVisualizerSkin.java,v 1.4 2009/11/25 15:44:51 fros4943 Exp $
+ * $Id: TrafficVisualizerSkin.java,v 1.5 2010/02/26 07:46:26 nifi Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -212,9 +212,6 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   }
 
   public void paintBeforeMotes(Graphics g) {
-  }
-
-  public void paintAfterMotes(Graphics g) {
     if (simulation == null) {
       /* Skin was never activated */
       return;
@@ -270,6 +267,9 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     }
   }
 
+  public void paintAfterMotes(Graphics g) {
+  }
+  
   public static class ToggleHistoryAction implements SimulationMenuAction {
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
       return true;
