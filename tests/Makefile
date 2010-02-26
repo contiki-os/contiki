@@ -11,7 +11,7 @@ TARGETS := blink-red blink-green blink-blue blink-white blink-allio \
            nvm-read nvm-write romimg flasher \
            tmr tmr-ints \
            sleep \
-           rftest-rx \
+           rftest-rx rftest-tx \
 
 
 include $(MC1322X)/Makefile.include
