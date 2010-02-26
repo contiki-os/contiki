@@ -2,10 +2,7 @@
 #include <board.h>
 
 #include "tests.h"
-
-/* INC = 767; MOD = 9999 works: 115200 @ 24 MHz 16 bit sample */
-#define INC 767
-#define MOD 9999
+#include "config.h"
 
 void main(void) {
 	
