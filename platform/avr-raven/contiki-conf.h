@@ -51,7 +51,7 @@ typedef int32_t s32_t;
  */
 #define MCU_MHZ 8
 #define PLATFORM PLATFORM_AVR
-/*TODO:Who defines RAVEN_REVISION = RAVEN_D needed by hal.h? */
+#define RAVEN_REVISION RAVEN_D
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
