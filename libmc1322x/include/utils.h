@@ -1,6 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define mem32(x) ((volatile uint32_t *)(x))
+#define mem16(x) ((volatile uint16_t *)(x))
+
 #define CAT2(x, y, z)  x##y##z
 
 #define bit(bit) (1 << bit)
