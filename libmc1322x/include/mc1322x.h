@@ -6,6 +6,7 @@
 #include "gpio.h"
 #include "crm.h"
 #include "nvm.h"
+#include "tmr.h"
 #include "uart1.h"
 #include "utils.h"
 
