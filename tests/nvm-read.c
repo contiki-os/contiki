@@ -46,10 +46,6 @@ void main(void) {
 
 	vreg_init();
 
-//	puts("CRM status: 0x");
-//	put_hex32(reg(0x80003018));
-//	puts("\n\r");
-
 	puts("Detecting internal nvm\n\r");
 
 	err = nvm_detect(gNvmInternalInterface_c, &type);
