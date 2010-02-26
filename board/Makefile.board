@@ -1,3 +1,5 @@
+# -*- makefile -*-
+
 #BOARDS := redbee-dev redbee-module redbee-r1 redbee-usb redbee-econotag
 BOARDS := redbee-dev redbee-r1 
 

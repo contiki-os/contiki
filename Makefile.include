@@ -1,3 +1,4 @@
+# -*- makefile -*-
 LINKERSCRIPT := $(MC1322X)/mc1322x.lds
 LIBMC1322X := $(MC1322X)/libmc1322x
 
