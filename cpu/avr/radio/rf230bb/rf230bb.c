@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.6 2010/02/23 17:37:51 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.7 2010/02/26 21:38:58 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -119,7 +119,14 @@ struct timestamp {
 //#define PRINTSHORT(...) printf(__VA_ARGS__)
 #endif
 
-//void rf230_arch_init(void);
+/* See clock.c and httpd-cgi.c for RADIOSTATS code */
+#if WEBSERVER
+#define RADIOSTATS 1
+#endif
+#if RADIOSTATS
+uint8_t RF230_rsigsi;
+uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
+#endif
 
 /* XXX hack: these will be made as Chameleon packet attributes */
 rtimer_clock_t rf230_time_of_arrival, rf230_time_of_departure;
@@ -185,7 +192,7 @@ const struct radio_driver rf230_driver =
     rf230_off,
   };
 
-static uint8_t receive_on;
+uint8_t RF230_receive_on;
 static int channel;
 
 /* Received frames are buffered to rxframe in the interrupt routine in hal.c */
@@ -436,7 +443,7 @@ on(void)
 //  PRINTF("on\n");
 #endif
 
-  receive_on = 1;
+  RF230_receive_on = 1;
 
   hal_set_slptr_low();
 //radio_is_waking=1;//can test this before tx instead of delaying
@@ -453,7 +460,7 @@ on(void)
 static void
 off(void)
 {
-  receive_on = 0;
+  RF230_receive_on = 0;
 
 #if JACKDAW
   Led2_off();
@@ -607,10 +614,14 @@ rf230_transmit(unsigned short payload_len)
   hal_set_slptr_low();
   hal_frame_write(buffer, total_len);
 
-  if(receive_on) {
+  if(RF230_receive_on) {
     ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   }
   ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+
+#if RADIOSTATS
+  RF230_sendpackets++;
+#endif
 
   /* We wait until transmission has ended so that we get an
      accurate measurement of the transmission time.*/
@@ -638,7 +649,7 @@ rf230_transmit(unsigned short payload_len)
   ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,rf230_get_txpower());
 #endif
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-  if(receive_on) {
+  if(RF230_receive_on) {
     ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   } else {
 /* We need to explicitly turn off the radio,
@@ -694,7 +705,7 @@ rf230_prepare(const void *payload, unsigned short payload_len)
   total_len = payload_len + AUX_LEN;
   if (total_len > RF230_MAX_TX_FRAME_LENGTH){
 #if RADIOSTATS
-    rf230_sendfail++;
+    RF230_sendfail++;
 #endif   
     return -1;
   }
@@ -780,7 +791,7 @@ int
 rf230_off(void)
 {
   /* Don't do anything if we are already turned off. */
-  if(receive_on == 0) {
+  if(RF230_receive_on == 0) {
     return 1;
   }
 
@@ -808,7 +819,7 @@ rf230_off(void)
 int
 rf230_on(void)
 {
-  if(receive_on) {
+  if(RF230_receive_on) {
     return 1;
   }
   if(locked) {
@@ -906,7 +917,10 @@ rf230_interrupt(void)
 #endif /* RF230_TIMETABLE_PROFILING */
 
   pending = 1;
-  
+
+#if RADIOSTATS
+  RF230_receivepackets++;
+#endif 
   rf230_packets_seen++;
   return 1;
 }
@@ -930,8 +944,6 @@ PROCESS_THREAD(rf230_process, ev, data)
     TIMETABLE_TIMESTAMP(rf230_timetable, "poll");
 #endif /* RF230_TIMETABLE_PROFILING */
 
-    pending = 0;
-    
  //   PRINTF("rf230_process: callback\n");
 
     packetbuf_clear();
@@ -967,6 +979,8 @@ rf230_read(void *buf, unsigned short bufsize)
   struct timestamp t;
 #endif /* RF230_CONF_TIMESTAMPS */
 
+  pending = 0;
+  
   len=rxframe.length;
   if (len==0) {
     return 0;
@@ -1157,7 +1171,7 @@ rf230_rssi(void)
   int radio_was_off = 0;
 
   /*The RSSI measurement should only be done in RX_ON or BUSY_RX.*/
-  if(!receive_on) {
+  if(!RF230_receive_on) {
     radio_was_off = 1;
     rf230_on();
   }
@@ -1184,7 +1198,7 @@ rf230_cca(void)
     return 1;
   }
   
-  if(!receive_on) {
+  if(!RF230_receive_on) {
     radio_was_off = 1;
     rf230_on();
   }

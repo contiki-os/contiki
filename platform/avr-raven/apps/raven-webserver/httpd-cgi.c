@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.6 2010/02/12 16:42:59 dak664 Exp $
+ * $Id: httpd-cgi.c,v 1.7 2010/02/26 21:38:58 dak664 Exp $
  *
  */
 
@@ -62,7 +62,9 @@ extern char TCPBUF[512];
 #endif
 
 /* RADIOSTATS must also be set in clock.c and the radio driver */
-#define RADIOSTATS 0
+#if RF230BB
+#define RADIOSTATS 1
+#endif
 
 static struct httpd_cgi_call *calls = NULL;
 
