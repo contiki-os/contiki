@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.8 2010/02/22 22:21:15 dak664 Exp $
+ * $Id: rtimer-arch.c,v 1.9 2010/02/26 20:51:48 dak664 Exp $
  */
 
 /**
@@ -57,8 +57,10 @@
 #define TICIE3 ICIE3
 
 //Has no 'C', so we just set it to B. The code doesn't really use C so this
-//is safe to do but lets it compile
-#warning No OCIE3C in architecture, hopefully it will not be needed
+//is safe to do but lets it compile. Probably should enable the warning if
+//it is ever used on other platforms.
+//#warning no OCIE3C in timer3 architecture, hopefully it won't be needed!
+
 #define OCIE3C	OCIE3B
 #define OCF3C	OCF3B
 #endif
@@ -69,7 +71,6 @@
 #define ETIFR TIFR3
 #define TICIE3 ICIE3
 #endif
-uint8_t rtimerworks;
 /*---------------------------------------------------------------------------*/
 #ifdef TCNT3
 ISR (TIMER3_COMPA_vect) {
@@ -77,7 +78,7 @@ ISR (TIMER3_COMPA_vect) {
 
   ETIMSK &= ~((1 << OCIE3A) | (1 << OCIE3B) | (1 << TOIE3) |
       (1 << TICIE3) | (1 << OCIE3C));
-rtimerworks++;
+
   /* Call rtimer callback */
   rtimer_run_next();
 
@@ -98,10 +99,10 @@ rtimer_arch_init(void)
   cli ();
 
 #ifdef TCNT3
-rtimerworks=240;
-
+  /* Disable all timer functions */
   ETIMSK &= ~((1 << OCIE3A) | (1 << OCIE3B) | (1 << TOIE3) |
       (1 << TICIE3) | (1 << OCIE3C));
+  /* Write 1s to clear existing timer function flags */
   ETIFR |= (1 << ICF3) | (1 << OCF3A) | (1 << OCF3B) | (1 << TOV3) |
   (1 << OCF3C); 
 
@@ -113,7 +114,7 @@ rtimerworks=240;
   /* Reset counter */
   TCNT3 = 0;
 
-  /* Maximum prescaler */
+  /* Start clock, maximum prescaler */
   TCCR3B |= 5;
 
 #else
@@ -134,11 +135,12 @@ rtimer_arch_schedule(rtimer_clock_t t)
   cli ();
 
 #ifdef TCNT3
-rtimerworks=250;
   /* Set compare register */
   OCR3A = t;
+  /* Write 1s to clear all timer function flags */
   ETIFR |= (1 << ICF3) | (1 << OCF3A) | (1 << OCF3B) | (1 << TOV3) |
   (1 << OCF3C);
+  /* Enable interrupt on OCR3A match */
   ETIMSK |= (1 << OCIE3A);
 
 #else
@@ -148,5 +150,4 @@ rtimerworks=250;
 
   /* Restore interrupt state */
   SREG = sreg;
- // printf("rs%d",t);
 }
