@@ -12,12 +12,15 @@ include $(MC1322X)/board/Makefile.board
 include $(MC1322X)/libmc1322x/Makefile.lib
 
 # default start and isr
+CFLAGS += -I$(MC1322X)/src
+
 ifndef START
 	START = $(MC1322X)/src/start.o	
 endif
 ifndef ISR
 	ISR = $(MC1322X)/src/isr.o
 endif
+SRCOBJS += $(MC1322X)/src/default_lowlevel.o 
 
 ARCH  = arm
 CPU   = arm7tdmi-s
@@ -34,9 +37,8 @@ $(ISR): $(ISR:.o=.c)
 %_$(BOARD).elf: %.elf
 	mv $< $@
 
-%.elf:	$(START) $(ISR) $(LIBMC1322X)/libmc1322x.a $(OBJDIR)/%.o $(LINKERSCRIPT) 
-	$(LD) $(LDFLAGS) $(AOBJS) \
-	--start-group $(PLATFORM_LIBS) --end-group \
+%.elf:	$(START) $(ISR) $(SRCOBJS) $(OBJDIR)/%.o $(LINKERSCRIPT) $(LIBMC1322X)/libmc1322x.a
+	$(CC) $(LDFLAGS) $(AOBJS) \
 	$(filter %.o %.a,$+) -o $@
 
 %.srec:		%.elf

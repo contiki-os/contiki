@@ -1,3 +1,4 @@
+#include <types.h>
 #include <crm.h>
 
 void default_vreg_init(void) {

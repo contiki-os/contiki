@@ -19,3 +19,4 @@ volatile nvmErr_t (*nvm_erase)
 volatile void(*nvm_setsvar)
 (uint32_t zero_for_awesome) 
 = (void *)0x00007085;
+
