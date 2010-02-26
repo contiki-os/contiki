@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacketConverter.java,v 1.13 2010/02/03 14:07:45 fros4943 Exp $
+ * $Id: CC2420RadioPacketConverter.java,v 1.14 2010/02/26 08:15:41 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -50,7 +50,7 @@ public class CC2420RadioPacketConverter {
   public static final boolean WITH_SYNCH = true;
   public static final boolean WITH_XMAC = false; /* XXX No longer supported. Cross-level requires NULLMAC */
   public static final boolean WITH_CHECKSUM = false; /* Contiki checksum. Not CC2420's built-in. */
-  public static final boolean WITH_TIMESTAMP = true;
+  public static final boolean WITH_TIMESTAMP = false; /* Contiki timestamp */
   public static final boolean WITH_FOOTER = true; /* CC2420's checksum */
 
   public static byte[] fromCoojaToCC2420(RadioPacket packet) {
