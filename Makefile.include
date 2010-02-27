@@ -74,6 +74,12 @@ clean:
                 -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' \) -print \
 		| xargs rm -rf
 	rm -fr *.*~	
+	find \
+		\( -name 'core' -o -name '*.bak' -o -name '*~' \
+		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \
+                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' \) -print \
+		| xargs rm -rf
+	rm -fr *.*~	
 
 clobber \
 mrproper \
