@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.2 2010/02/28 14:15:16 adamdunkels Exp $
+ * $Id: phase.c,v 1.3 2010/02/28 20:19:47 adamdunkels Exp $
  */
 
 /**
@@ -40,6 +40,24 @@
 
 #include "net/mac/phase.h"
 #include "net/rime/packetbuf.h"
+#include "sys/clock.h"
+#include "lib/memb.h"
+#include "net/rime/ctimer.h"
+#include "net/rime/queuebuf.h"
+#include "dev/watchdog.h"
+#include "dev/leds.h"
+
+struct phase_queueitem {
+  struct ctimer timer;
+  mac_callback_t mac_callback;
+  void *mac_callback_ptr;
+  struct queuebuf *q;
+};
+
+#define PHASE_DEFER_THRESHOLD 4
+#define PHASE_QUEUESIZE       2
+
+MEMB(phase_memb, struct phase_queueitem, PHASE_QUEUESIZE);
 
 /*---------------------------------------------------------------------------*/
 void
@@ -69,10 +87,25 @@ phase_register(const struct phase_list *list,
   }
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
+send_packet(void *ptr)
+{
+  struct phase_queueitem *p = ptr;
+
+  leds_on(LEDS_ALL);
+  
+  queuebuf_to_packetbuf(p->q);
+  queuebuf_free(p->q);
+  memb_free(&phase_memb, p);
+  NETSTACK_RDC.send(p->mac_callback, p->mac_callback_ptr);
+  leds_off(LEDS_ALL);
+}
+/*---------------------------------------------------------------------------*/
+phase_status_t
 phase_wait(struct phase_list *list,
            const rimeaddr_t *neighbor, rtimer_clock_t cycle_time,
-           rtimer_clock_t wait_before)
+           rtimer_clock_t wait_before,
+           mac_callback_t mac_callback, void *mac_callback_ptr)
 {
   struct phase *e;
   
@@ -85,19 +118,40 @@ phase_wait(struct phase_list *list,
 
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
       rtimer_clock_t wait, now, expected;
-
+      clock_time_t ctimewait;
+      
       /* We expect phases to happen every CYCLE_TIME time
          units. The next expected phase is at time e->time +
          CYCLE_TIME. To compute a relative offset, we subtract
          with clock_time(). Because we are only interested in turning
          on the radio within the CYCLE_TIME period, we compute the
          waiting time with modulo CYCLE_TIME. */
-
+      
       now = RTIMER_NOW();
       wait = (rtimer_clock_t)((e->time - now) & (cycle_time - 1));
       if(wait < wait_before) {
         wait += cycle_time;
       }
+      
+      ctimewait = (CLOCK_SECOND * (wait - wait_before)) / RTIMER_ARCH_SECOND;
+
+      if(ctimewait > PHASE_DEFER_THRESHOLD) {
+        struct phase_queueitem *p;
+
+        p = memb_alloc(&phase_memb);
+        if(p != NULL) {
+          p->q = queuebuf_new_from_packetbuf();
+          if(p->q != NULL) {
+            p->mac_callback = mac_callback;
+            p->mac_callback_ptr = mac_callback_ptr;
+            ctimer_set(&p->timer, ctimewait, send_packet, p); 
+            return PHASE_DEFERRED;
+          } else {
+            memb_free(&phase_memb, p);
+          }
+        }
+      }
+      
       expected = now + wait - wait_before;
       if(!RTIMER_CLOCK_LT(expected, now)) {
         /* Wait until the receiver is expected to be awake */
@@ -107,6 +161,7 @@ phase_wait(struct phase_list *list,
       }
     }
   }
+  return PHASE_SEND_NOW;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -114,5 +169,6 @@ phase_init(struct phase_list *list)
 {
   list_init(*list->list);
   memb_init(list->memb);
+  memb_init(&phase_memb);
 }
 /*---------------------------------------------------------------------------*/

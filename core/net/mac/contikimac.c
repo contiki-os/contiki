@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.6 2010/02/28 08:33:21 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.7 2010/02/28 20:19:47 adamdunkels Exp $
  */
 
 /**
@@ -439,7 +439,7 @@ format_announcement(char *hdr)
 #endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
 /*---------------------------------------------------------------------------*/
 static int
-send_packet(void)
+send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 {
   rtimer_clock_t t0;
   rtimer_clock_t t;
@@ -453,7 +453,28 @@ send_packet(void)
   int transmit_len;
   int i;
 
-  /* Create the X-MAC header for the data packet. */
+#if WITH_PHASE_OPTIMIZATION
+#if WITH_ACK_OPTIMIZATION
+  /* Wait until the receiver is expected to be awake */
+  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
+     PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
+
+    if(phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                  CYCLE_TIME, 5 * CHECK_TIME,
+                  mac_callback, mac_callback_ptr) == PHASE_DEFERRED) {
+      return MAC_TX_DEFERRED;
+    }
+  }
+#else /* WITH_ACK_OPTIMIZATION */
+  if(phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                CYCLE_TIME, 5 * CHECK_TIME) == PHASE_DEFERRED) {
+    return MAC_TX_DEFERRED;
+  }
+#endif /* WITH_ACK_OPTIMIZATION */
+#endif /* WITH_PHASE_OPTIMIZATION */
+
+
+  /* Create the MAC header for the data packet. */
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
     is_broadcast = 1;
@@ -507,21 +528,6 @@ send_packet(void)
   }
 #endif /* WITH_STREAMING */
 
-
-#if WITH_PHASE_OPTIMIZATION
-#if WITH_ACK_OPTIMIZATION
-  /* Wait until the receiver is expected to be awake */
-  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
-     PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
-
-    phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-               CYCLE_TIME, 5 * CHECK_TIME);
-  }
-#else /* WITH_ACK_OPTIMIZATION */
-  phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-             CYCLE_TIME, 5 * CHECK_TIME);
-#endif /* WITH_ACK_OPTIMIZATION */
-#endif /* WITH_PHASE_OPTIMIZATION */
 
   /* By setting we_are_sending to one, we ensure that the rtimer
      powercycle interrupt do not interfere with us sending the packet. */
@@ -704,7 +710,7 @@ send_packet(void)
 static void
 qsend_packet(mac_callback_t sent, void *ptr)
 {
-  int ret = send_packet();
+  int ret = send_packet(sent, ptr);
   mac_call_sent_callback(sent, ptr, ret, 1);
 }
 /*---------------------------------------------------------------------------*/

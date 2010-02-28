@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.h,v 1.1 2010/02/18 20:58:59 adamdunkels Exp $
+ * $Id: phase.h,v 1.2 2010/02/28 20:19:47 adamdunkels Exp $
  */
 
 /**
@@ -45,6 +45,7 @@
 #include "sys/rtimer.h"
 #include "lib/list.h"
 #include "lib/memb.h"
+#include "net/netstack.h"
 
 struct phase {
   struct phase *next;
@@ -57,13 +58,20 @@ struct phase_list {
   struct memb *memb;
 };
 
+typedef enum {
+  PHASE_SEND_NOW,
+  PHASE_DEFERRED,
+} phase_status_t;
+
+
 #define PHASE_LIST(name, num) LIST(phase_list_list);                              \
                               MEMB(phase_list_memb, struct phase, num);           \
                               struct phase_list name = { &phase_list_list, &phase_list_memb }
 
 void phase_init(struct phase_list *list);
-void phase_wait(struct phase_list *list,  const rimeaddr_t *neighbor,
-                rtimer_clock_t cycle_time, rtimer_clock_t wait_before);
+phase_status_t phase_wait(struct phase_list *list,  const rimeaddr_t *neighbor,
+                          rtimer_clock_t cycle_time, rtimer_clock_t wait_before,
+                          mac_callback_t mac_callback, void *mac_callback_ptr);
 void phase_register(const struct phase_list *list, const rimeaddr_t * neighbor,
                     rtimer_clock_t time);
 
