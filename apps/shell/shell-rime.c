@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.16 2010/02/04 16:21:15 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.17 2010/02/28 14:16:19 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,6 @@
 #include "net/rime.h"
 #include "net/rime/neighbor.h"
 #include "net/rime/route.h"
-#include "net/rime/netflood.h"
 
 #include "net/rime/timesynch.h"
 
@@ -65,17 +64,7 @@ int snprintf(char *str, size_t size, const char *format, ...);
 #include <string.h>
 
 
-#define COLLECT_REXMITS 4
-
-enum {
-  NETFLOOD_TYPE_NODES,
-};
-
-struct netflood_msg {
-  uint8_t type;
-};
-
-static uint8_t nodes_seqno;
+#define COLLECT_REXMITS 8
 
 #define COLLECT_MSG_HDRSIZE 4
 struct collect_msg {
@@ -85,23 +74,9 @@ struct collect_msg {
 };
 
 static struct collect_conn collect;
-static struct netflood_conn netflood;
-static struct ctimer ctimer;
-static int waiting_for_nodes = 0;
 static int waiting_for_collect = 0;
-static int messages_received = 0;
-
 
 static int is_sink = 0;
-
-/* XXX ideas not implemented yet:
-
- * download: download file from specific node.
-
- * traceroute
- 
-*/
-
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_mac_process, "mac");
@@ -109,11 +84,6 @@ SHELL_COMMAND(mac_command,
 	      "mac",
 	      "mac <onoroff>: turn MAC protocol on (1) or off (0)",
 	      &shell_mac_process);
-PROCESS(shell_nodes_process, "nodes");
-SHELL_COMMAND(nodes_command,
-	      "nodes",
-	      "nodes: get a list of nodes in the network",
-	      &shell_nodes_process);
 PROCESS(shell_send_process, "send");
 SHELL_COMMAND(send_command,
 	      "send",
@@ -240,47 +210,6 @@ PROCESS_THREAD(shell_routes_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_nodes_process, ev, data)
-{
-  static struct etimer etimer;
-  struct netflood_msg *msg;
-  char buf[10];
-  PROCESS_BEGIN();
-
-  if(!is_sink) {
-
-    shell_output_str(&nodes_command,
-		     "Setting up a collection network...", "");
-#if TIMESYNCH_CONF_ENABLED
-    timesynch_set_authority_level(0);
-#endif
-    collect_set_sink(&collect, 1);
-
-    etimer_set(&etimer, CLOCK_SECOND * 2);
-    PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-    is_sink = 1;
-  }
-  
-  packetbuf_clear();
-  msg = packetbuf_dataptr();
-  packetbuf_set_datalen(sizeof(struct netflood_msg));
-  msg->type = NETFLOOD_TYPE_NODES;
-  netflood_send(&netflood, nodes_seqno++);
-
-  etimer_set(&etimer, CLOCK_SECOND * 10);
-  waiting_for_nodes = 1;
-  shell_output_str(&nodes_command,
-		   "Request sent, waiting for replies...", "");
-  messages_received = 0;
-
-  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  snprintf(buf, sizeof(buf), "%d", messages_received);
-  shell_output_str(&nodes_command, buf, " nodes heard");
-  
-  waiting_for_nodes = 0;
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
 #if WITH_TREEDEPTH
 PROCESS_THREAD(shell_treedepth_process, ev, data)
 {
@@ -394,13 +323,6 @@ recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
 		     dataptr, packetbuf_datalen() - COLLECT_MSG_HDRSIZE);
       }
     }
-  } else if(waiting_for_nodes) {
-    char buf[40];
-    snprintf(buf, sizeof(buf), "%d.%d, %d hops, latency %lu ms",
-	     originator->u8[0], originator->u8[1],
-	     hops, (1000L * latency) / RTIMER_ARCH_SECOND);
-    shell_output_str(&nodes_command, "Message from node ", buf);
-    messages_received++;
   }
 
 }
@@ -419,32 +341,13 @@ send_collect(void *dummy)
   collect_send(&collect, COLLECT_REXMITS);
 }
 /*---------------------------------------------------------------------------*/
-static int
-recv_netflood(struct netflood_conn *c, const rimeaddr_t *from,
-	      const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
-{
-  struct netflood_msg *msg;
-  
-  msg = packetbuf_dataptr();
-  if(msg->type == NETFLOOD_TYPE_NODES) {
-    ctimer_set(&ctimer, random_rand() % (CLOCK_SECOND * 8),
-	       send_collect, NULL);
-  }
-  return 1;
-}
-const static struct netflood_callbacks netflood_callbacks = { recv_netflood,
-							      NULL, NULL };
-/*---------------------------------------------------------------------------*/
 void
 shell_rime_init(void)
 {
-  netflood_open(&netflood, CLOCK_SECOND * 8,
-		SHELL_RIME_CHANNEL_NODES, &netflood_callbacks);
   collect_open(&collect, SHELL_RIME_CHANNEL_COLLECT, &collect_callbacks);
   
   shell_register_command(&collect_command);
   shell_register_command(&mac_command);
-  shell_register_command(&nodes_command);
   shell_register_command(&packetize_command);
   shell_register_command(&routes_command);
   shell_register_command(&send_command);
