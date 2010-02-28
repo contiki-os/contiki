@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.34 2010/02/28 09:18:01 adamdunkels Exp $
+ * $Id: collect.c,v 1.35 2010/02/28 14:15:58 adamdunkels Exp $
  */
 
 /**
@@ -85,7 +85,8 @@ struct ack_msg {
 static struct recent_packet recent_packets[NUM_RECENT_PACKETS];
 static uint8_t recent_packet_ptr;
 
-#define FORWARD_PACKET_LIFETIME (CLOCK_SECOND * 16)
+#define REXMIT_TIME CLOCK_SECOND * 2
+#define FORWARD_PACKET_LIFETIME (6 * (REXMIT_TIME) << 3)
 #define MAX_SENDING_QUEUE 6
 PACKETQUEUE(sending_queue, MAX_SENDING_QUEUE);
 
@@ -107,10 +108,6 @@ PACKETQUEUE(sending_queue, MAX_SENDING_QUEUE);
 #else
 #define PRINTF(...)
 #endif
-
-
-#define REXMIT_TIME CLOCK_SECOND * 2
-
 
 #if CONTIKI_TARGET_NETSIM
 #include "ether.h"
