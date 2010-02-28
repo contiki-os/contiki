@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.7 2010/02/26 21:38:58 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.8 2010/02/28 21:19:33 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -75,6 +75,7 @@ extern rimeaddr_t macLongAddr;
 #define WITH_SEND_CCA 0
 
 #if RF230_CONF_TIMESTAMPS
+bomb
 #include "net/rime/timesynch.h"
 #define TIMESTAMP_LEN 3
 #else /* RF230_CONF_TIMESTAMPS */
@@ -88,7 +89,7 @@ extern rimeaddr_t macLongAddr;
 #endif /* RF230_CONF_CHECKSUM */
 
 #ifndef RF230_CONF_AUTOACK
-#define RF230_CONF_AUTOACK 0
+#define RF230_CONF_AUTOACK 1
 #endif /* RF230_CONF_AUTOACK */
 
 //Automatic and manual CRC both append 2 bytes to packets 
@@ -109,14 +110,18 @@ struct timestamp {
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
 
+/* Leave radio on for testing low power protocols */
+#if JACKDAW
+#define RADIOALWAYSON 1
+#endif
+
 #define DEBUG 0
 #if DEBUG
-#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINTF(...) //printf(__VA_ARGS__)
 #define PRINTSHORT(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #define PRINTSHORT(...)
-//#define PRINTSHORT(...) printf(__VA_ARGS__)
 #endif
 
 /* See clock.c and httpd-cgi.c for RADIOSTATS code */
@@ -127,6 +132,7 @@ struct timestamp {
 uint8_t RF230_rsigsi;
 uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
 #endif
+
 
 /* XXX hack: these will be made as Chameleon packet attributes */
 rtimer_clock_t rf230_time_of_arrival, rf230_time_of_departure;
@@ -189,10 +195,10 @@ const struct radio_driver rf230_driver =
     rf230_receiving_packet,
     pending_packet,
     rf230_on,
-    rf230_off,
+    rf230_off
   };
 
-uint8_t RF230_receive_on;
+uint8_t RF230_receive_on,RF230_sleeping;
 static int channel;
 
 /* Received frames are buffered to rxframe in the interrupt routine in hal.c */
@@ -415,10 +421,7 @@ rf230_waitidle(void)
 static void
 flushrx(void)
 {
- // rxframe.length=0;
-//  FASTSPI_READ_FIFO_BYTE(dummy);
-//  FASTSPI_STROBE(RF230_SFLUSHRX);
-//  FASTSPI_STROBE(RF230_SFLUSHRX);
+  rxframe.length=0;
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t locked, lock_on, lock_off;
@@ -437,50 +440,54 @@ on(void)
 #define Led1_off()                  (PORTD |=  0x20)
 #define Led2_off()                  (PORTE |=  0x80)
 #define Led3_off()                  (PORTE |=  0x40)
-  Led2_on();
+  Led1_on();
 #else
-  PRINTSHORT("o");
+// PRINTSHORT("o");
 //  PRINTF("on\n");
 #endif
 
-  RF230_receive_on = 1;
+  if (RF230_sleeping) {
+    hal_set_slptr_low();
+    delay_us(TIME_SLEEP_TO_TRX_OFF);
+    delay_us(TIME_SLEEP_TO_TRX_OFF);//extra delay for now, wake time depends on board capacitance
+  }
+  rf230_waitidle();
 
-  hal_set_slptr_low();
-//radio_is_waking=1;//can test this before tx instead of delaying
-  delay_us(TIME_SLEEP_TO_TRX_OFF);
-  delay_us(TIME_SLEEP_TO_TRX_OFF);//extra delay for now, wake time depends on board capacitance
-
-#if RF230_CONF_NO_AUTO_ACK
-   radio_set_trx_state(RX_ON);
+#if RF230_CONF_AUTOACK
+  radio_set_trx_state(RX_AACK_ON);
 #else
-   radio_set_trx_state(RX_AACK_ON);
+  radio_set_trx_state(RX_ON);
 #endif
-  flushrx();
+ // flushrx();
+  RF230_receive_on = 1;
 }
 static void
 off(void)
 {
+ //     rtimer_set(&rt, RTIMER_NOW()+ RTIMER_ARCH_SECOND*1UL, 1,(void *) rtimercycle, NULL);
   RF230_receive_on = 0;
 
 #if JACKDAW
-  Led2_off();
+  Led1_off();
 #else
-  PRINTF("off\n");
-  PRINTSHORT("f");
+// PRINTSHORT("f");
 #endif
 
-#if !JACKDAW  && 0  //Leave stick radio on for testing
-  rf230_radio_on = 0;
+#if !RADIOALWAYSON
   
-  /* Wait for transmission to end before turning radio off. */
+  /* Wait any transmission to end */
   rf230_waitidle(); 
 
   /* Force the device into TRX_OFF. */   
   radio_reset_state_machine();
-   
+
+#if 0            //optionally sleep
   /* Sleep Radio */
   hal_set_slptr_high();
+  RF230_sleeping = 1;
 #endif
+
+#endif /* !RADIOALWAYSON */
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 }
@@ -545,12 +552,8 @@ rf230_init(void)
   PRINTF("rf230: Version %u, ID %u\n",tvers,tmanu);
   hal_register_write(RG_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
 
-//  rf230_set_pan_addr(0xffff, 0x0000, NULL);
-//  rf230_set_channel(26);
-
-  /* Set up the radio for auto mode operation. */
-  /* May need changing for different mac protocols! */
-  hal_subregister_write(SR_MAX_FRAME_RETRIES, 2 );
+  /* Set up number of automatic retries */
+  hal_subregister_write(SR_MAX_FRAME_RETRIES, RF230_CONF_AUTO_RETRIES );
 
   /* Use automatic CRC unless manual is specified */
 #if RF230_CONF_CHECKSUM
@@ -559,14 +562,22 @@ rf230_init(void)
   hal_subregister_write(SR_TX_AUTO_CRC_ON, 1);
 #endif
 
-#if RF230_CONF_NO_AUTO_ACK
-  hal_subregister_write(SR_TRX_CMD, CMD_RX_ON);
-#else
+#if 0
+/* Set radio to receive mode (?) */
+#if RF230_CONF_AUTOACK
+//radio_set_trx_state(RX_AACK_ON);
   hal_subregister_write(SR_TRX_CMD, CMD_RX_AACK_ON);
+#else
+//radio_set_trx_state(RX_ON);
+  hal_subregister_write(SR_TRX_CMD, CMD_RX_ON);
 #endif
-  
+#endif
+
   /* Start the packet receive process */
   process_start(&rf230_process, NULL);
+  
+  /* Leave radio in on state (?)*/
+  on();
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -576,6 +587,7 @@ rf230_transmit(unsigned short payload_len)
 {
   int txpower;
   uint8_t total_len;
+  uint8_t radiowason;
 #if RF230_CONF_TIMESTAMPS
   struct timestamp timestamp;
 #endif /* RF230_CONF_TIMESTAMPS */
@@ -584,6 +596,14 @@ rf230_transmit(unsigned short payload_len)
 #endif /* RF230_CONF_CHECKSUM */
 
   GET_LOCK();
+
+  /* Save receiver state */
+  radiowason=RF230_receive_on;
+ 
+   /* If radio is sleeping we have to turn it on first */
+  if (RF230_sleeping) {
+    on();
+  }
 
   txpower = 0;
   
@@ -603,13 +623,14 @@ rf230_transmit(unsigned short payload_len)
   /* Wait for any previous transmission to finish (?) */
   rf230_waitidle();
   
-  hal_subregister_write(SR_TRX_CMD, CMD_FORCE_TRX_OFF);
-  delay_us(TIME_P_ON_TO_TRX_OFF);
+//  hal_subregister_write(SR_TRX_CMD, CMD_FORCE_TRX_OFF);
+ // delay_us(TIME_P_ON_TO_TRX_OFF);
   
   /* Enable auto retry (?) */
   radio_set_trx_state(TX_ARET_ON);
+ //           CMD_TX_START
 
- /* Toggle the SLP_TR pin to initiate the frame transmission. */
+ /* Toggle the SLP_TR pin to initiate the frame transmission */
   hal_set_slptr_high();
   hal_set_slptr_low();
   hal_frame_write(buffer, total_len);
@@ -622,17 +643,14 @@ rf230_transmit(unsigned short payload_len)
 #if RADIOSTATS
   RF230_sendpackets++;
 #endif
-
   /* We wait until transmission has ended so that we get an
      accurate measurement of the transmission time.*/
   rf230_waitidle();
-
-   /* Reenable receive mode */
-#if RF230_CONF_NO_AUTO_ACK
-   radio_set_trx_state(RX_ON);
-#else
-   radio_set_trx_state(RX_AACK_ON);
-#endif
+ 
+   /* Restore receive mode */
+  if(radiowason) {
+    on();
+  }
 
 #if RF230_CONF_TIMESTAMPS
   setup_time_for_transmission = txtime - timestamp.time;
@@ -652,9 +670,8 @@ rf230_transmit(unsigned short payload_len)
   if(RF230_receive_on) {
     ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   } else {
-/* We need to explicitly turn off the radio,
- * since STXON[CCA] -> TX_ACTIVE -> RX_ACTIVE */
-    off();
+/* This call not needed, radio will already be in TRX_OFF */
+//   off();
   }
 
   if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
@@ -692,7 +709,7 @@ rf230_prepare(const void *payload, unsigned short payload_len)
 
   GET_LOCK();
 
- // PRINTF("rf230: sending %d bytes\n", payload_len);
+//  PRINTF("rf230: sending %d bytes\n", payload_len);
 //  PRINTSHORT("s%d ",payload_len);
 
   RIMESTATS_ADD(lltx);
@@ -823,6 +840,7 @@ rf230_on(void)
     return 1;
   }
   if(locked) {
+    printf("rflock");
     lock_on = 1;
     return 1;
   }
@@ -888,6 +906,7 @@ rf230_set_pan_addr(unsigned pan,
     PRINTF("\n");
   }
 }
+uint8_t packetreceived;
 /*---------------------------------------------------------------------------*/
 /*
  * Interrupt leaves frame intact in FIFO.
@@ -904,24 +923,36 @@ TIMETABLE_AGGREGATE(aggregate_time, 10);
 int
 rf230_interrupt(void)
 {
+  /* Poll the receive process, unless the stack thinks the radio is off */
+#if RADIOALWAYSON
+if (RF230_receive_on) {
+  packetreceived=2;
+#endif
 #if RF230_CONF_TIMESTAMPS
   interrupt_time = timesynch_time();
   interrupt_time_set = 1;
 #endif /* RF230_CONF_TIMESTAMPS */
 
-//  CLEAR_FIFOP_INT();
   process_poll(&rf230_process);
+  
 #if RF230_TIMETABLE_PROFILING
   timetable_clear(&rf230_timetable);
   TIMETABLE_TIMESTAMP(rf230_timetable, "interrupt");
 #endif /* RF230_TIMETABLE_PROFILING */
 
   pending = 1;
-
+  
 #if RADIOSTATS
   RF230_receivepackets++;
-#endif 
+#endif
   rf230_packets_seen++;
+
+#if RADIOALWAYSON
+} else {
+  packetreceived=1;
+  rxframe.length=0;
+}
+#endif
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -929,13 +960,12 @@ rf230_interrupt(void)
  * Receive interrupts cause this process to be polled
  * It calls the core MAC layer which calls rf230_read to get the packet
  */
-uint8_t rf230processflag;      //for debugging process call problems
+char rf230processflag;      //for debugging process call problems
 PROCESS_THREAD(rf230_process, ev, data)
 {
   int len;
   PROCESS_BEGIN();
   rf230processflag=99;
- // PRINTF("rf230_process: started\n");
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
@@ -944,7 +974,7 @@ PROCESS_THREAD(rf230_process, ev, data)
     TIMETABLE_TIMESTAMP(rf230_timetable, "poll");
 #endif /* RF230_TIMETABLE_PROFILING */
 
- //   PRINTF("rf230_process: callback\n");
+    pending = 0;
 
     packetbuf_clear();
     len = rf230_read(packetbuf_dataptr(), PACKETBUF_SIZE);
@@ -979,13 +1009,19 @@ rf230_read(void *buf, unsigned short bufsize)
   struct timestamp t;
 #endif /* RF230_CONF_TIMESTAMPS */
 
-  pending = 0;
-  
-  len=rxframe.length;
+ len=rxframe.length;
   if (len==0) {
+#if RADIOALWAYSON
+ //   if (RF230_receive_on==0) printf("z");  cxmac calls with radio off?
+#endif
     return 0;
   }
-  
+
+#if RADIOALWAYSON
+if (RF230_receive_on) {
+#endif
+
+// PRINTSHORT("r%d",rxframe.length);  
   PRINTF("rf230_read: %u bytes lqi %u crc %u\n",rxframe.length,rxframe.lqi,rxframe.crc);
 #if DEBUG>1
     for (len=0;len<rxframe.length;len++) PRINTF(" %x",rxframe.data[len]);PRINTF("\n");
@@ -1006,6 +1042,7 @@ rf230_read(void *buf, unsigned short bufsize)
 //if(len > RF230_MAX_PACKET_LEN) {
   if(len > RF230_MAX_TX_FRAME_LENGTH) {
     /* Oops, we must be out of sync. */
+    PRINTSHORT("out of sync");
     flushrx();
     RIMESTATS_ADD(badsynch);
     RELEASE_LOCK();
@@ -1013,7 +1050,7 @@ rf230_read(void *buf, unsigned short bufsize)
   }
 
   if(len <= AUX_LEN) {
-    PRINTF("len <= AUX_LEN\n");
+    PRINTSHORT("len <= AUX_LEN\n");
     flushrx();
     RIMESTATS_ADD(tooshort);
     RELEASE_LOCK();
@@ -1021,7 +1058,7 @@ rf230_read(void *buf, unsigned short bufsize)
   }
 
   if(len - AUX_LEN > bufsize) {
-    PRINTF("len - AUX_LEN > bufsize\n");
+    PRINTSHORT("len - AUX_LEN > bufsize\n");
     flushrx();
     RIMESTATS_ADD(toolong);
     RELEASE_LOCK();
@@ -1143,6 +1180,13 @@ rf230_read(void *buf, unsigned short bufsize)
 #endif /* JACKDAW */
 
   return len - AUX_LEN;
+
+#if RADIOALWAYSON
+} else {
+   PRINTSHORT("R");  //Stack thought radio was off
+   return 0;
+}
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -1156,11 +1200,19 @@ rf230_set_txpower(uint8_t power)
 int
 rf230_get_txpower(void)
 {
+  uint8_t power;
   if (radio_is_sleeping() ==true) {
     PRINTF("rf230_get_txpower:Sleeping");
     return 0;
   } else {
-    return hal_subregister_read(SR_TX_PWR);
+//  return hal_subregister_read(SR_TX_PWR);
+    power=hal_subregister_read(SR_TX_PWR);
+    if (power==0) {
+      printf("PZ");
+      return 1;
+    } else {
+      return power;
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -1177,6 +1229,10 @@ rf230_rssi(void)
   }
 
   rssi = (int)((signed char)hal_subregister_read(SR_RSSI));
+  if (rssi==0) {
+    printf("RSZ");
+    rssi=1;
+  }
 
   if(radio_was_off) {
     rf230_off();
@@ -1204,7 +1260,8 @@ rf230_cca(void)
   }
 
  // cca = CCA_IS_1;
-  cca=0;
+ printf("CCA");
+  cca=1;
 
   if(radio_was_off) {
     rf230_off();
