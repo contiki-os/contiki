@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.5 2010/02/23 20:09:11 nifi Exp $
+ * $Id: contikimac.c,v 1.6 2010/02/28 08:33:21 adamdunkels Exp $
  */
 
 /**
@@ -106,7 +106,7 @@ struct announcement_msg {
 #define LISTEN_TIME (RTIMER_ARCH_SECOND / 150)
 
 #define WAIT_TIME_BEFORE_STROBE_ACK_CCA RTIMER_ARCH_SECOND / 3000
-#define WAIT_TIME_AFTER_STROBE_ACK_CCA  RTIMER_ARCH_SECOND / 2000
+#define WAIT_TIME_AFTER_STROBE_ACK_CCA  RTIMER_ARCH_SECOND / 1500
 
 /* The cycle time for announcements. */
 #define ANNOUNCEMENT_PERIOD 4 * CLOCK_SECOND
@@ -209,6 +209,10 @@ schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
 
   if(contikimac_is_on) {
 
+    if(RTIMER_CLOCK_LT(RTIMER_TIME(t) + time, RTIMER_NOW())) {
+      time = RTIMER_NOW() - RTIMER_TIME(t);
+    }
+    
     while(RTIMER_TIME(t) + time == RTIMER_NOW() ||
           RTIMER_TIME(t) + time == RTIMER_NOW() + 1) {
       ++time;
@@ -316,7 +320,7 @@ powercycle(struct rtimer *t, void *ptr)
           if(NETSTACK_RADIO.receiving_packet()) {
             silence_periods = 0;
           }
-          if(silence_periods > 2) {
+          if(silence_periods > 3) {
             leds_on(LEDS_RED);
             powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
@@ -358,7 +362,7 @@ powercycle(struct rtimer *t, void *ptr)
         compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
       }
-    break_the_loop:
+
       /* If the packet indication flag is still set, it means that
          there was never a packet received by the radio. We increase
          the packet_indicated_but_not_received counter. */
@@ -530,6 +534,8 @@ send_packet(void)
      instread. */
   if(NETSTACK_RADIO.receiving_packet() || NETSTACK_RADIO.pending_packet()) {
     we_are_sending = 0;
+    PRINTF("contikimac: collision receiving %d, pending %d\n",
+           NETSTACK_RADIO.receiving_packet(), NETSTACK_RADIO.pending_packet());
     return MAC_TX_COLLISION;
   }
   
@@ -618,7 +624,9 @@ send_packet(void)
       while(RTIMER_CLOCK_LT
             (RTIMER_NOW(), wt + WAIT_TIME_BEFORE_STROBE_ACK_CCA)) { }
 #endif
-      if(!is_broadcast && !NETSTACK_RADIO.channel_clear()) {
+      if(!is_broadcast && (NETSTACK_RADIO.receiving_packet() ||
+                           NETSTACK_RADIO.pending_packet() ||
+                           NETSTACK_RADIO.channel_clear() == 0)) {
         uint8_t ackbuf[ACK_LEN];
         wt = RTIMER_NOW();
 #if NURTIMER
@@ -628,18 +636,16 @@ send_packet(void)
         while(RTIMER_CLOCK_LT
               (RTIMER_NOW(), wt + WAIT_TIME_AFTER_STROBE_ACK_CCA)) { }
 #endif
-        if(!is_broadcast) {
-          len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
-          if(len == ACK_LEN) {
-            got_strobe_ack = 1;
-            encounter_time = now;
-            packet_indication_flag = 0;
-          } else if(len > 0) {
-            packet_indication_flag = 0;
-            collisions++;
-          }
+        len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
+        if(len == ACK_LEN) {
+          got_strobe_ack = 1;
+          encounter_time = now;
+          packet_indication_flag = 0;
         } else {
+          packet_indication_flag = 0;
+          collisions++;
         }
+      } else {
       }
     }
   }
@@ -911,5 +917,6 @@ contikimac_debug_print(void)
   indicated_last = indicated;
   clear_second_last = clear_second;
   clear_third_last = clear_third;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
