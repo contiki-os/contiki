@@ -24,8 +24,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>[CONTIKI_DIR]/examples/sky-shell/sky-shell.c</source>
-      <commands>make clean
-make sky-shell.sky TARGET=sky</commands>
+      <commands>make sky-shell.sky TARGET=sky</commands>
       <firmware>[CONTIKI_DIR]/examples/sky-shell/sky-shell.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -39,12 +38,11 @@ make sky-shell.sky TARGET=sky</commands>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>87.29845932913939</x>
-        <y>60.286214311723164</y>
+        <x>69.8193406818502</x>
+        <y>86.08116624448307</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -54,12 +52,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>94.30809966340686</x>
-        <y>22.50388779326399</y>
+        <x>23.73597351424919</x>
+        <y>23.64085389583863</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -69,12 +66,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>82.40423567500785</x>
-        <y>39.56979106929553</y>
+        <x>96.89503278354498</x>
+        <y>61.516110156918224</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -84,12 +80,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>26.185019854469438</x>
-        <y>4.800834369523899</y>
+        <x>7.611970631754317</x>
+        <y>50.863062569941086</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -99,12 +94,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>1.9530156130507015</x>
-        <y>78.3175061800706</y>
+        <x>97.77577457011573</x>
+        <y>36.50885983165134</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -114,12 +108,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>48.35216700543414</x>
-        <y>80.36988713780997</y>
+        <x>81.84280607291373</x>
+        <y>12.262433268451778</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -129,12 +122,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>24.825985087266833</x>
-        <y>74.27809432062487</y>
+        <x>48.76918142113213</x>
+        <y>76.28996665071358</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -144,12 +136,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>8.356165164293616</x>
-        <y>94.33967355724187</y>
+        <x>10.516199800941727</x>
+        <y>71.39959931668729</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -159,12 +150,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>45.11740613004886</x>
-        <y>31.7059041432301</y>
+        <x>69.48672858021564</x>
+        <y>2.274435761561955</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -174,12 +164,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>68.9908548386292</x>
-        <y>55.01991960639596</y>
+        <x>84.25868612469665</x>
+        <y>32.943146693468975</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -189,12 +178,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>13.181122543889046</x>
-        <y>55.9636533130127</y>
+        <x>13.670969901144792</x>
+        <y>63.99238378992226</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -204,12 +192,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>2.1749985906538427</x>
-        <y>78.39666095789707</y>
+        <x>72.51554571631638</x>
+        <y>47.00560695436694</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -219,12 +206,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>37.79795217518357</x>
-        <y>7.164284163506062</y>
+        <x>9.789480819347663</x>
+        <y>73.70566372866651</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -234,12 +220,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>64.4595177394984</x>
-        <y>72.115414337433</y>
+        <x>32.19085060633389</x>
+        <y>72.59300816076136</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -249,12 +234,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>81.85663737096085</x>
-        <y>89.31412706434035</y>
+        <x>80.2677099635723</x>
+        <y>98.0702168139253</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -264,12 +248,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>44.74952276297882</x>
-        <y>18.78566116347574</y>
+        <x>9.946705912815235</x>
+        <y>52.10151176834845</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -279,12 +262,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>96.11333426285873</x>
-        <y>90.64560410751824</y>
+        <x>2.43737538721972</x>
+        <y>56.151002617425625</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -294,12 +276,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>21.651464136783527</x>
-        <y>7.1381043251259495</y>
+        <x>27.435525284930186</x>
+        <y>61.81996286556931</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -309,12 +290,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>83.6006916200628</x>
-        <y>26.97170140682981</y>
+        <x>70.60927462351833</x>
+        <y>98.32577014155726</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -324,12 +304,11 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>1.3446070721664705</x>
-        <y>7.340373220385176</y>
+        <x>43.3203771155477</x>
+        <y>11.948622865702085</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -339,18 +318,6 @@ make sky-shell.sky TARGET=sky</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
-  <plugin>
-    se.sics.cooja.plugins.LogListener
-    <plugin_config>
-      <filter />
-    </plugin_config>
-    <width>690</width>
-    <z>2</z>
-    <height>207</height>
-    <location_x>327</location_x>
-    <location_y>24</location_y>
-    <minimized>false</minimized>
-  </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
@@ -366,43 +333,21 @@ print_stats()
 	  total_dups + " dups, " +
 	  (total_dups / nrNodes) + " dups/node, " +
 	  (total_hops / total_received) + " hops/message\n");
-  log.log("Seqnos: ");
+  log.log("Received:\n");
   for(i = 1; i &lt;= nrNodes; i++) {
-    log.log(seqnos[i] + " ");
+      log.log("Node " + i + " ");
+      if(i == sink) {
+          log.log("sink\n");
+      } else {
+          log.log("received: " + received[i] + " hops: " + hops[i] + "\n");
+      }
   }
-  log.log("\n");
-  log.log("Lost: ");
-  for(i = 1; i &lt;= nrNodes; i++) {
-    log.log(lost[i] + " ");
-  }
-  log.log("\n");
-  log.log("Dups: ");
-  for(i = 1; i &lt;= nrNodes; i++) {
-    log.log(dups[i] + " ");
-  }
-  log.log("\n");
-  log.log("Reorder: ");
-  for(i = 1; i &lt;= nrNodes; i++) {
-    log.log(reorder[i] + " ");
-  }
-  log.log("\n");
-  log.log("Hops: ");
-  for(i = 1; i &lt;= nrNodes; i++) {
-    log.log(hops[i] + " ");
-  }
-  log.log("\n");
-  log.log("Received: ");
-  for(i = 1; i &lt;= nrNodes; i++) {
-    log.log(count[i] + " ");
-  }
-  log.log("\n");
   log.log("Stats: cpu " + 100 * total_cpu / (total_cpu + total_lpm) +
 	  "% lpm " + 100 * total_lpm / (total_cpu + total_lpm) +
 	  "% rx " + 100 * total_listen / (total_cpu + total_lpm) +
 	  "% tx " + 100 * total_transmit / (total_cpu + total_lpm) +
   	  "% average latency " + total_latency / (4096 * total_received) +
 	  " ms \n");
-	  
 }
 
 TIMEOUT(500000);
@@ -410,12 +355,8 @@ TIMEOUT(500000);
 
 /* Conf. */
 booted = new Array();
-count = new Array();
+received = new Array();
 hops = new Array();
-seqnos = new Array();
-lost = new Array();
-dups = new Array();
-reorder = new Array();
 nrNodes = 20;
 total_received = 0;
 total_lost = 0;
@@ -430,17 +371,13 @@ total_latency = 0;
 nodes_starting = true;
 for(i = 1; i &lt;= nrNodes; i++) {
   booted[i] = false;
-  count[i] = 0;
-  hops[i] = 0;
-  seqnos[i] = -1;
-  lost[i] = 0;
-  dups[i] = 0;
-  reorder[i] = 0;
+  received[i] = "__________";
+  hops[i] = received[i];
 }
 
 /* Wait until all nodes have started */
 while(nodes_starting) {
-  YIELD_THEN_WAIT_UNTIL(msg.startsWith('Starting'));
+  YIELD_THEN_WAIT_UNTIL(msg.startsWith('Star'));
   
   log.log("Node " + id + " booted\n");
   booted[id] = true;
@@ -511,49 +448,46 @@ while(true) {
     total_latency += latency;
     
     source = node_id;
-    count[source]++;
-    hops[source] = hop;
-    seqno_gap = seqno - seqnos[source];
-    seqnos[source] = seqno;
+    dups = received[source].substr(seqno, 1);
+    if(dups == "_") {
+        dups = 1;
+    } else if(dups &lt; 9) {
+        dups++;
+    }
+    received[source] = received[source].substr(0, seqno) + dups +
+        received[source].substr(seqno + 1, 10 - seqno);
+
+    if(hop &gt; 9) {
+        hop = "+";
+    }
+    hops[source] = hops[source].substr(0, seqno) + hop +
+        hops[source].substr(seqno + 1, 10 - seqno);
 
     total_received++;
     total_hops += hop;
     
-    if(seqno_gap >= 2) {
-      total_lost += seqno_gap - 1;
-      lost[source] += seqno_gap - 1;
-      total_received--;
-      total_hops -= hop;
-      count[source]--;
-    } else if(seqno_gap == 0) {
-      total_dups += 1;
-      dups[source] += 1;
-      total_received--;
-      total_hops -= hop;
-      count[source]--;
-    } else if(seqno_gap == -1) {
-      total_reorder += 1;
-      reorder[source] += 1;
-    }
     print_stats();
   }
   /* Signal OK if all nodes have reported 10 messages. */
   num_reported = 0;
   for(i = 1; i &lt;= nrNodes; i++) {
-    if(i != sink &amp;&amp; count[i] == 10) {
-      num_reported++;
-    }
+      if(i != sink) {
+          if(!isNaN(received[i])) {
+              num_reported++;
+          }
+      }
   }
+
   if(num_reported == nrNodes - 1) {
-    print_stats();
-    log.testOK();
-   }
+      print_stats();
+      log.testOK();
+  }
 }</script>
       <active>true</active>
     </plugin_config>
     <width>602</width>
-    <z>3</z>
-    <height>413</height>
+    <z>0</z>
+    <height>508</height>
     <location_x>257</location_x>
     <location_y>0</location_y>
     <minimized>false</minimized>
@@ -561,7 +495,7 @@ while(true) {
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>259</width>
-    <z>1</z>
+    <z>5</z>
     <height>200</height>
     <location_x>4</location_x>
     <location_y>0</location_y>
@@ -572,13 +506,48 @@ while(true) {
     <plugin_config>
       <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>2.3981827551130066 0.0 0.0 2.3981827551130066 8.139022870763759 0.1214717784430076</viewport>
+      <viewport>2.2620479837704246 0.0 0.0 2.2620479837704246 11.65652309586307 5.218753534979797</viewport>
+    </plugin_config>
+    <width>260</width>
+    <z>3</z>
+    <height>296</height>
+    <location_x>0</location_x>
+    <location_y>197</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.SimControl
+    <width>259</width>
+    <z>6</z>
+    <height>200</height>
+    <location_x>4</location_x>
+    <location_y>0</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <viewport>3.1695371670945955 0.0 0.0 3.1695371670945955 -64.4008177427222 -14.683213177997528</viewport>
     </plugin_config>
     <width>260</width>
     <z>4</z>
     <height>296</height>
     <location_x>0</location_x>
     <location_y>197</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.LogListener
+    <plugin_config>
+      <filter />
+    </plugin_config>
+    <width>720</width>
+    <z>2</z>
+    <height>486</height>
+    <location_x>695</location_x>
+    <location_y>2</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
@@ -610,11 +579,11 @@ while(true) {
       <split>118</split>
       <zoom>9</zoom>
     </plugin_config>
-    <width>1024</width>
-    <z>0</z>
-    <height>438</height>
+    <width>1440</width>
+    <z>1</z>
+    <height>425</height>
     <location_x>0</location_x>
-    <location_y>260</location_y>
+    <location_y>405</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>
