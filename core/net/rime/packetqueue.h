@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetqueue.h,v 1.3 2009/05/26 13:58:53 nvt-se Exp $
+ * $Id: packetqueue.h,v 1.4 2010/02/28 09:20:32 adamdunkels Exp $
  */
 
 /**
@@ -176,6 +176,17 @@ struct packetqueue_item *packetqueue_first(struct packetqueue *q);
  *
  */
 void packetqueue_dequeue(struct packetqueue *q);
+
+/**
+ * \brief      Get the length of the packet queue
+ * \param q    A pointer to a struct packetqueue.
+ * \return     The number of packets queued on the packet queue
+ *
+ *             This function returns the number of packets that are
+ *             queued on the packet queue.
+ *
+ */
+int packetqueue_len(struct packetqueue *q);
 
 /**
  * @}

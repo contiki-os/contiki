@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetqueue.c,v 1.1 2009/04/29 20:47:30 adamdunkels Exp $
+ * $Id: packetqueue.c,v 1.2 2010/02/28 09:20:32 adamdunkels Exp $
  */
 
 /**
@@ -121,6 +121,12 @@ packetqueue_dequeue(struct packetqueue *q)
     ctimer_stop(&i->lifetimer);
     memb_free(q->memb, i);
   }
+}
+/*---------------------------------------------------------------------------*/
+int
+packetqueue_len(struct packetqueue *q)
+{
+  return list_length(*q->list);
 }
 /*---------------------------------------------------------------------------*/
 struct queuebuf *
