@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.8 2010/02/23 20:42:45 nifi Exp $
+ * $Id: csma.c,v 1.9 2010/02/28 08:35:16 adamdunkels Exp $
  */
 
 /**
@@ -68,10 +68,8 @@ struct queued_packet {
   struct ctimer retransmit_timer;
   mac_callback_t sent;
   void *cptr;
-  uint8_t transmissions;
+  uint8_t transmissions, max_transmissions;
 };
-
-#define MAX_RETRANSMITS 4
 
 #define MAX_QUEUED_PACKETS 8
 MEMB(packet_memb, struct queued_packet, MAX_QUEUED_PACKETS);
@@ -119,7 +117,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
     }
     time = time + (random_rand() % (q->transmissions * 3 * time));
     
-    if(q->transmissions - 1 < MAX_RETRANSMITS) {
+    if(q->transmissions < q->max_transmissions) {
       ctimer_set(&q->retransmit_timer, time,
                  retransmit_packet, q);
     } else {
@@ -141,11 +139,12 @@ retransmit_packet(void *ptr)
 
   queuebuf_to_packetbuf(q->buf);
   q->transmissions++;
+  PRINTF("csma: resending number %d\n", q->transmissions);
   NETSTACK_RDC.send(packet_sent, q);
 }
 /*---------------------------------------------------------------------------*/
 static void
-sent_packet_1(void *ptr, int status, int num_transmissions)
+sent_packet(void *ptr, int status, int num_transmissions)
 {
   struct queued_packet *q = ptr;
   clock_time_t time;
@@ -210,10 +209,11 @@ send_packet(mac_callback_t sent, void *ptr)
   if(q != NULL) {
     q->buf = queuebuf_new_from_packetbuf();
     if(q != NULL) {
+      q->max_transmissions = packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT) + 1;
       q->transmissions = 1;
       q->sent = sent;
       q->cptr = ptr;
-      NETSTACK_RDC.send(sent_packet_1, q);
+      NETSTACK_RDC.send(sent_packet, q);
       return;
     }
     memb_free(&packet_memb, q);
