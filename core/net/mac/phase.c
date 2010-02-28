@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.1 2010/02/18 20:58:59 adamdunkels Exp $
+ * $Id: phase.c,v 1.2 2010/02/28 14:15:16 adamdunkels Exp $
  */
 
 /**
@@ -101,7 +101,9 @@ phase_wait(struct phase_list *list,
       expected = now + wait - wait_before;
       if(!RTIMER_CLOCK_LT(expected, now)) {
         /* Wait until the receiver is expected to be awake */
-        while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
+        while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected)) {
+          watchdog_periodic();
+        }
       }
     }
   }
