@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.5 2010/02/12 16:46:39 dak664 Exp $
+ * $Id: raven-lcd.c,v 1.6 2010/02/28 21:29:20 dak664 Exp $
 */
 
 /**
@@ -101,7 +101,8 @@ void rs232_send(uint8_t port, unsigned char c);
 
 /*---------------------------------------------------------------------------*/
 /* Sends a ping packet out the radio */
-static void
+/* Useful for debugging so allow external calls */
+void
 raven_ping6(void)
 {
     /* ping the router */

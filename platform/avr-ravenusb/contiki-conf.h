@@ -78,11 +78,16 @@ typedef int32_t s32_t;
 
 #define RIMEADDR_CONF_SIZE       8
 
-#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
+/* 0 for IPv6, or 1 for HC1, 2 for HC01 */
+//#define SICSLOWPAN_CONF_COMPRESSION_IPV6 0 
+//#define SICSLOWPAN_CONF_COMPRESSION_HC1 1 
+#define SICSLOWPAN_CONF_COMPRESSION_HC01 2
+//#ifndef SICSLOWPAN_COMPRESSION_HC06
+//#warning hc06 not defined
+//#endif
+#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_CONF_COMPRESSION_HC01 
+//#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
-#define SICSLOWPAN_CONF_FRAG              1
-
-#define SICSLOWPAN_CONF_MAXAGE   3
 
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         14
@@ -114,54 +119,52 @@ typedef int32_t s32_t;
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
 //#undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
 
-/* Network setup for IPv6 */
-#define NETSTACK_CONF_NETWORK sicslowpan_driver
-//#define NETSTACK_CONF_MAC     nullmac_driver
-#define NETSTACK_CONF_MAC     csma_driver
-//#define NETSTACK_CONF_RDC     contikimac_driver
-#define NETSTACK_CONF_RDC     sicslowmac_driver
-#define NETSTACK_CONF_RADIO   rf230_driver
-#endif
+#if 1       /* Network setup */
+/* No radio cycling */
+#define NETSTACK_CONF_NETWORK     sicslowpan_driver
+#define NETSTACK_CONF_MAC         nullmac_driver
+#define NETSTACK_CONF_RDC         sicslowmac_driver
+#define NETSTACK_CONF_RADIO       rf230_driver
+#define RF230_CONF_AUTO_ACK       1
+#define RF230_CONF_AUTO_RETRIES   2
+#define QUEUEBUF_CONF_NUM         1
+#define QUEUEBUF_CONF_REF_NUM     1
+#define SICSLOWPAN_CONF_FRAG      1
+#define SICSLOWPAN_CONF_MAXAGE    3
 
-/* Fragmentation uses queuebuf.c to save packets */
-#define QUEUEBUF_CONF_NUM 1
-#define QUEUEBUF_CONF_REF_NUM 1
+#elif 0
+/* Contiki-mac radio cycling */
+#define NETSTACK_CONF_NETWORK     sicslowpan_driver
+#define NETSTACK_CONF_MAC         nullmac_driver
+#define NETSTACK_CONF_RDC         contikimac_driver
+#define NETSTACK_CONF_RADIO       rf230_driver
+#define RF230_CONF_AUTO_ACK       0
+#define RF230_CONF_AUTO_RETRIES   0
+
+#else
+/* cx-mac radio cycling */
+#define NETSTACK_CONF_NETWORK     sicslowpan_driver
+#define NETSTACK_CONF_MAC         nullmac_driver
+#define NETSTACK_CONF_RDC         cxmac_driver
+#define NETSTACK_CONF_RADIO       rf230_driver
+#define RF230_CONF_AUTO_ACK       0
+#define RF230_CONF_AUTO_RETRIES   0
+#define MAC_CONF_CHANNEL_CHECK_RATE 8
+#define SICSLOWPAN_CONF_FRAG      1
+#define QUEUEBUF_CONF_NUM         4
+#define QUEUEBUF_CONF_REF_NUM     2
+#define SICSLOWPAN_CONF_MAXAGE    3
+//following gives 50% duty cycle, undef for default 5%
+#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 16)
+
+#endif   /* Network setup */
+
+#endif /* RF230BB */
 
 /* Route-Under-MAC uses 16-bit short addresses */
 #if UIP_CONF_USE_RUM
 #undef  UIP_CONF_LL_802154
 #define UIP_DATA_RUM_OFFSET      5
-#endif
-
-#if RF230BB && 0     //xmac protocol
-#undef UIP_CONF_ROUTER
-#undef UIP_CONF_LLH_LEN
-#define UIP_CONF_LLH_LEN         14
-#undef XMAC_CONF_COMPOWER
-#define XMAC_CONF_COMPOWER 1
-#undef XMAC_CONF_ANNOUNCEMENTS
-#define XMAC_CONF_ANNOUNCEMENTS 0
-#undef RF_CHANNEL
-#define RF_CHANNEL              26
-//#define CC2420_CONF_AUTOACK     0
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE  256
-#endif
-
-#if RF230BB && 0
-/* Specifies the default MAC driver */
-//no autoack gives bad FCS for some reason?
-//#define RF230_CONF_NO_AUTO_ACK      1
-#define MAC_CONF_CSMA               1
-#define XMAC_CONF_COMPOWER          1
-#define CXMAC_CONF_COMPOWER         1
-//following gives 50% duty cycle, undef for 5%
-#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 16)
-#define MAC_CONF_DRIVER             cxmac_driver
-#define MAC_CONF_CHANNEL_CHECK_RATE 8
-#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
-#define CXMAC_CONF_ANNOUNCEMENTS    0
-#define XMAC_CONF_ANNOUNCEMENTS     0
 #endif
 
 typedef unsigned short clock_time_t;

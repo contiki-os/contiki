@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.9 2010/02/26 20:51:48 dak664 Exp $
+ * $Id: rtimer-arch.c,v 1.10 2010/02/28 21:29:19 dak664 Exp $
  */
 
 /**
@@ -66,7 +66,6 @@
 #endif
 
 #if defined(__AVR_AT90USB1287__)
-#warning AT90USB1287 rtimers not tested
 #define ETIMSK TIMSK3
 #define ETIFR TIFR3
 #define TICIE3 ICIE3
