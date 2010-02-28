@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.9 2010/02/28 08:35:16 adamdunkels Exp $
+ * $Id: csma.c,v 1.10 2010/02/28 10:07:17 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A MAC 
+ *         A Carrier Sense Multiple Access (CSMA) MAC layer
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -69,6 +69,7 @@ struct queued_packet {
   mac_callback_t sent;
   void *cptr;
   uint8_t transmissions, max_transmissions;
+  uint8_t collisions;
 };
 
 #define MAX_QUEUED_PACKETS 8
@@ -97,7 +98,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
   
   sent = q->sent;
   cptr = q->cptr;
-  num_tx = q->transmissions;
+  num_tx = q->transmissions - q->collisions;
   
   if(status != MAC_TX_OK) {
     switch(status) {
@@ -178,6 +179,9 @@ sent_packet(void *ptr, int status, int num_transmissions)
     /* If the packet couldn't be sent because of a collision or the
          lack of an ACK, we let the other transmissions get through
          before we try again. */
+    if(status == MAC_TX_COLLISION) {
+      q->collisions++;
+    }
     time = NETSTACK_RDC.channel_check_interval();
     if(time == 0) {
       time = CLOCK_SECOND;
@@ -193,7 +197,7 @@ sent_packet(void *ptr, int status, int num_transmissions)
     
     sent = q->sent;
     cptr = q->cptr;
-    num_tx = q->transmissions;
+    num_tx = q->transmissions - q->collisions;
     free_packet(q);
     mac_call_sent_callback(sent, cptr, status, num_tx);
   }
@@ -211,6 +215,7 @@ send_packet(mac_callback_t sent, void *ptr)
     if(q != NULL) {
       q->max_transmissions = packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT) + 1;
       q->transmissions = 1;
+      q->collisions = 0;
       q->sent = sent;
       q->cptr = ptr;
       NETSTACK_RDC.send(sent_packet, q);
