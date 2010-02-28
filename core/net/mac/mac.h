@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.12 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: mac.h,v 1.13 2010/02/28 20:18:30 adamdunkels Exp $
  */
 
 /**
@@ -85,6 +85,9 @@ enum {
 
   /**< The MAC layer did not get an acknowledgement for the packet. */
   MAC_TX_NOACK,
+
+  /**< The MAC layer deferred the transmission for a later time. */
+  MAC_TX_DEFERRED,
 
   /**< The MAC layer transmission could not be performed because of an
      error. The upper layer may try again later. */
