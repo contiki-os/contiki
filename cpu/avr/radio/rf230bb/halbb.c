@@ -643,7 +643,7 @@ extern hal_rx_frame_t rxframe;
 
 #define DEBUG 0
 #if DEBUG
-volatile int rf230_interrupt_flag=0;
+volatile char rf230_interrupt_flag=0;
 #define INTERRUPTDEBUG(arg) rf230_interrupt_flag=arg
 #else
 #define INTERRUPTDEBUG(arg)
