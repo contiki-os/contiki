@@ -248,9 +248,7 @@ uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
   memcpy(ipaddr->u8 + 13, (u8_t*)lladdr + 3, 3);
   ipaddr->u8[8] ^= 0x02;
 #else
-  UIP_LOG("CAN NOT BUILD INTERFACE IDENTIFIER");
-  UIP_LOG("THE STACK IS GOING TO SHUT DOWN");
-  UIP_LOG("THE HOST WILL BE UNREACHABLE");
+#error uip-netif.c cannot build interface address when UIP_LLADDR_LEN is not 6 or 8
 #endif
 }
 /*---------------------------------------------------------------------------*/
