@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.23 2010/02/23 18:37:15 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.24 2010/02/28 09:19:04 adamdunkels Exp $
  */
 
 /**
@@ -68,7 +68,7 @@ LIST(neighbors_list);
 
 static struct ctimer t;
 
-static int max_time = 120;
+static int max_time = 1800;
 
 #define DEBUG 0
 #if DEBUG
