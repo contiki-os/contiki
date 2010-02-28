@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netperf-shell.c,v 1.1 2009/11/03 22:56:27 adamdunkels Exp $
+ * $Id: netperf-shell.c,v 1.2 2010/02/28 20:20:43 adamdunkels Exp $
  */
 
 /**
@@ -65,7 +65,7 @@ PROCESS_THREAD(netperf_shell_process, ev, data)
   shell_rime_sniff_init();
   shell_text_init();
   shell_time_init();
-  shell_sendtest_init();
+  /*  shell_sendtest_init();*/
   shell_netperf_init();
 
   PROCESS_END();
