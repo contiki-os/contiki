@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.c,v 1.5 2010/02/06 07:48:52 adamdunkels Exp $
+ * $Id: packetbuf.c,v 1.6 2010/02/28 20:20:19 adamdunkels Exp $
  */
 
 /**
@@ -52,42 +52,6 @@
 struct packetbuf_attr packetbuf_attrs[PACKETBUF_NUM_ATTRS];
 struct packetbuf_addr packetbuf_addrs[PACKETBUF_NUM_ADDRS];
 
-#define DEBUG_STRINGS 0
-#if DEBUG_STRINGS
-const char *packetbuf_attr_strings[] =
-  {
-    "PACKETBUF_ATTR_NONE",
-    "PACKETBUF_ATTR_CHANNEL",
-    "PACKETBUF_ATTR_PACKET_ID",
-    "PACKETBUF_ATTR_PACKET_TYPE",
-    "PACKETBUF_ATTR_EPACKET_ID",
-    "PACKETBUF_ATTR_EPACKET_TYPE",
-    "PACKETBUF_ATTR_HOPS",
-    "PACKETBUF_ATTR_TTL",
-    "PACKETBUF_ATTR_REXMIT",
-    "PACKETBUF_ATTR_MAX_REXMIT",
-    "PACKETBUF_ATTR_NUM_REXMIT",
-    "PACKETBUF_ATTR_LINK_QUALITY",
-    "PACKETBUF_ATTR_RSSI",
-    "PACKETBUF_ATTR_TIMESTAMP",
-    "PACKETBUF_ATTR_RADIO_TXPOWER",
-
-    "PACKETBUF_ATTR_LISTEN_ENERGY",
-    "PACKETBUF_ATTR_TRANSMIT_ENERGY",
-    
-    "PACKETBUF_ATTR_NETWORK_ID",
-
-    "PACKETBUF_ATTR_RELIABLE",
-    "PACKETBUF_ATTR_ERELIABLE",
-
-    "PACKETBUF_ADDR_SENDER",
-    "PACKETBUF_ADDR_RECEIVER",
-    "PACKETBUF_ADDR_ESENDER",
-    "PACKETBUF_ADDR_ERECEIVER",
-
-    "PACKETBUF_ATTR_MAX",
-  };
-#endif /* DEBUG_STRINGS */
 
 static uint16_t buflen, bufptr;
 static uint8_t hdrptr;
