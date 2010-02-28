@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.12 2010/02/23 18:35:23 adamdunkels Exp $
+ * $Id: collect.h,v 1.13 2010/02/28 09:18:01 adamdunkels Exp $
  */
 
 /**
@@ -64,12 +64,16 @@
 #include "net/rime/runicast.h"
 #include "net/rime/neighbor-discovery.h"
 
-#define COLLECT_ATTRIBUTES  { PACKETBUF_ADDR_ESENDER,    PACKETBUF_ADDRSIZE }, \
-                            { PACKETBUF_ATTR_EPACKET_ID, PACKETBUF_ATTR_BIT * 4 }, \
-                            { PACKETBUF_ATTR_TTL,        PACKETBUF_ATTR_BIT * 4 }, \
-                            { PACKETBUF_ATTR_HOPS,       PACKETBUF_ATTR_BIT * 4 }, \
-                            { PACKETBUF_ATTR_MAX_REXMIT, PACKETBUF_ATTR_BIT * 3 }, \
-                            RUNICAST_ATTRIBUTES
+#define COLLECT_PACKET_ID_BITS 4
+
+#define COLLECT_ATTRIBUTES  { PACKETBUF_ADDR_ESENDER,     PACKETBUF_ADDRSIZE }, \
+                            { PACKETBUF_ATTR_EPACKET_ID,  PACKETBUF_ATTR_BIT * 4 }, \
+                            { PACKETBUF_ATTR_PACKET_ID,   PACKETBUF_ATTR_BIT * COLLECT_PACKET_ID_BITS }, \
+                            { PACKETBUF_ATTR_TTL,         PACKETBUF_ATTR_BIT * 4 }, \
+                            { PACKETBUF_ATTR_HOPS,        PACKETBUF_ATTR_BIT * 4 }, \
+                            { PACKETBUF_ATTR_MAX_REXMIT,  PACKETBUF_ATTR_BIT * 3 }, \
+                            { PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_BIT }, \
+                            UNICAST_ATTRIBUTES
 
 struct collect_callbacks {
   void (* recv)(const rimeaddr_t *originator, uint8_t seqno,
@@ -77,7 +81,7 @@ struct collect_callbacks {
 };
 
 struct collect_conn {
-  struct runicast_conn runicast_conn;
+  struct unicast_conn unicast_conn;
 #if ! COLLECT_CONF_ANNOUNCEMENTS
   struct neighbor_discovery_conn neighbor_discovery_conn;
 #else /* ! COLLECT_CONF_ANNOUNCEMENTS */
@@ -86,8 +90,12 @@ struct collect_conn {
   const struct collect_callbacks *cb;
   struct ctimer t;
   uint16_t rtmetric;
-  uint8_t forwarding;
-  uint8_t seqno;
+  uint8_t sending, transmissions, max_rexmits;
+  uint8_t seqno, last_received_seqno;
+  rimeaddr_t last_received_addr;
+  uint8_t eseqno;
+  struct ctimer retransmission_timer;
+  rimeaddr_t current_receiver;
 };
 
 void collect_open(struct collect_conn *c, uint16_t channels,
