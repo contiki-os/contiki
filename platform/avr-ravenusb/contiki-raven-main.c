@@ -60,19 +60,6 @@
 #include "net/mac/lpp.h"
 //#include "dev/xmem.h"
 
-#if WITH_NULLMAC
-#define MAC_DRIVER nullmac_driver
-#endif /* WITH_NULLMAC */
-
-#ifndef MAC_DRIVER
-#ifdef MAC_CONF_DRIVER
-#define MAC_DRIVER MAC_CONF_DRIVER
-#else
-#define MAC_DRIVER sicslowmac_driver
-//#define MAC_DRIVER cxmac_driver
-#endif /* MAC_CONF_DRIVER */
-#endif /* MAC_DRIVER */
-
 #include "net/mac/sicslowmac.h"
 #include "net/mac/cxmac.h"
 #else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
@@ -98,7 +85,6 @@
 #include "storage/storage_task.h"
 
 #if RF230BB
-//#warning Experimental RF230BB radio selected
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 extern int rf230_interrupt_flag;
 extern uint8_t rf230processflag;
@@ -118,7 +104,7 @@ tcpip_ipv6_output(void)
 }
 #endif
 
-
+/*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
 typedef struct {unsigned char B2;unsigned char B1;unsigned char B0;} __signature_t;
 #define SIGNATURE __signature_t __signature __attribute__((section (".signature")))
@@ -140,20 +126,23 @@ uint8_t mac_address[8] EEMEM = {0x02, 0x12, 0x13, 0xff, 0xfe, 0x14, 0x15, 0x16};
 rimeaddr_t macLongAddr;
 #endif
 
-//uint8_t rtimerworks;
-int
-main(void)
-{
-#if ANNOUNCE
-  uint32_t firsttime=0;
-#endif
+/* Test rtimers, also useful for pings and time stamps in simulator */
+#define TESTRTIMER 0
+#if TESTRTIMER
+#define PINGS 0
+#define STAMPS 30
+uint8_t rtimerflag=1;
+uint16_t rtime;
+struct rtimer rt;
+void rtimercycle(void) {rtimerflag=1;}
+#endif /* TESTRTIMER */
+
+/*-------------------------Low level initialization-----------------*/
 #if RF230BB
     rimeaddr_t addr;
 #endif
-  /*
-   * GCC depends on register r1 set to 0.
-   */
-  asm volatile ("clr r1");
+extern uint8_t packetreceived;
+static void initialize(void) {
 
   /* Initialize hardware */
   init_lowlevel();
@@ -175,7 +164,8 @@ main(void)
   ctimer_init();
   /* Start radio and radio receive process */
   /* Note this starts RF230 process, so must be done after process_init */
-  rf230_init();
+  NETSTACK_RADIO.init();
+//rf230_init();
 
   /* Set addresses BEFORE starting tcpip process */
 
@@ -193,23 +183,21 @@ main(void)
   macLongAddr.u8[6]=addr.u8[1];
   macLongAddr.u8[7]=addr.u8[0];
  
-  memcpy(&uip_lladdr.addr, &addr.u8, 8);	
+  memcpy(&uip_lladdr.addr, &addr.u8, 8);
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
 
   rf230_set_channel(24);
 
   rimeaddr_set_node_addr(&addr); 
 //  set_rime_addr();
-//  PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 
   framer_set(&framer_802154);
-
+//  process_start(&tcpip_process, NULL);
   /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
   NETSTACK_NETWORK.init();
- // PRINTF("Driver: %s, Channel: %u\n", sicslowpan_mac->name, rf230_get_channel()); 
 
 #if UIP_CONF_ROUTER
   rime_init(rime_udp_init(NULL));
@@ -226,7 +214,7 @@ main(void)
   process_start(&mac_process, NULL);
   process_start(&tcpip_process, NULL);
 
-#endif
+#endif /* RF230BB */
 
   /* Setup USB */
   process_start(&usb_process, NULL);
@@ -236,45 +224,96 @@ main(void)
 
   //Fix MAC address
   init_net();
+}
+
+/*-------------------------------------------------------------------------*/
+/*---------------------------------Main Routine----------------------------*/
+int
+main(void)
+{
+#if ANNOUNCE
+  uint16_t firsttime=1;
+#endif
+  /* GCC depends on register r1 set to 0 (?) */
+  asm volatile ("clr r1");
   
-   /* Main scheduler loop */
+  /* Initialize in a subroutine to maximize stack space */
+  initialize();
+
   while(1) {
     process_run();
-#if 0
- if (rtimerworks) {
-  printf("i");
-  rtimerworks=0;
-}
+
+#if TESTRTIMER
+    if (rtimerflag) {  //8 seconds is maximum interval, my jackdaw 4% slow
+      rtimer_set(&rt, RTIMER_NOW()+ RTIMER_ARCH_SECOND*1UL, 1,(void *) rtimercycle, NULL);
+      rtimerflag=0;
+#if STAMPS
+      if ((rtime%STAMPS)==0) {
+        printf("%us ",rtime);
+      }
 #endif
+      rtime+=1;
+#if PINGS
+      if ((rtime%PINGS)==0) {
+        PRINTF("**Ping\n");
+        pingsomebody();
+      }
+#endif
+    }
+#endif /* TESTRTIMER */
+
+//Use with RF230BB RADIOALWAYSON to show packets missed when radio is "off"
+//Warning, Jackdaw doesn't handle simultaneous radio and USB interrupts very well.
+#if 0
+    if (packetreceived) {
+      if (packetreceived==1) {
+        printf("-");
+      } else {
+        printf("+");
+      }
+      packetreceived=0;
+    }
+#endif
+
 
   /* Allow USB CDC to keep up with printfs */
 #if ANNOUNCE
-    if (firsttime++==36000){
+  if (firsttime) {
+    firsttime++;
+    if (firsttime==36000){
        printf_P(PSTR("\n\n\n********BOOTING CONTIKI*********\n\r"));
 #if RF230BB
     } else if (firsttime==44000) {
-       printf("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n\r",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+       printf_P(PSTR("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n\r"),addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 
     } else if (firsttime==52000) {
-       printf("Driver: %s, Channel: %u\n\r", sicslowpan_mac->name, rf230_get_channel()); 
-#endif
+       printf_P(PSTR("%s %s, channel %u"),NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
+       if (NETSTACK_RDC.channel_check_interval) {//function pointer is zero for sicslowmac
+         unsigned short tmp;
+         tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
+                                   NETSTACK_RDC.channel_check_interval());
+         printf_P(PSTR(", check rate %u Hz"),tmp);
+       }
+       printf_P(PSTR("\n\r"));
+#endif /* RF230BB */
     } else if (firsttime==60000) {
       printf_P(PSTR("System online.\n\r"));
     }
-    
-#if DEBUG && 0
-    if (rf230processflag) {
-       printf("**RF230 process flag %u\n\r",rf230processflag);
-       rf230processflag=0;
-    }
-    if (rf230_interrupt_flag) {
- //     if (rf230_interrupt_flag!=11) {
-        printf("**RF230 Interrupt %u\n\r",rf230_interrupt_flag);
- //     }
-      rf230_interrupt_flag=0;
-    }
-#endif /* DEBUG */
+  }
 #endif /* ANNOUNCE */
+
+#if DEBUG && 0
+  if (rf230processflag) {
+    printf("**RF230 process flag %u\n\r",rf230processflag);
+    rf230processflag=0;
+  }
+  if (rf230_interrupt_flag) {
+//  if (rf230_interrupt_flag!=11) {
+      printf("**RF230 Interrupt %u\n\r",rf230_interrupt_flag);
+ // }
+    rf230_interrupt_flag=0;
+  }
+#endif /* DEBUG */
   }
 
   return 0;
