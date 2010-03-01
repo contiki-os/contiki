@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer-802154.c,v 1.3 2010/02/18 21:00:28 adamdunkels Exp $
+ * $Id: framer-802154.c,v 1.4 2010/03/01 13:17:01 nifi Exp $
  */
 
 /**
@@ -40,6 +40,7 @@
 #include "net/mac/framer-802154.h"
 #include "net/mac/frame802154.h"
 #include "net/rime/packetbuf.h"
+#include "lib/random.h"
 #include <string.h>
 
 #define DEBUG 0
@@ -54,6 +55,7 @@
 #endif
 
 static uint8_t mac_dsn;
+static uint8_t initialized = 0;
 const static uint16_t mac_dst_pan_id = IEEE802154_PANID;
 const static uint16_t mac_src_pan_id = IEEE802154_PANID;
 
@@ -78,6 +80,11 @@ create(void)
 
   /* init to zeros */
   memset(&params, 0, sizeof(params));
+
+  if(!initialized) {
+    initialized = 1;
+    mac_dsn = random_rand() & 0xff;
+  }
 
   /* Build the FCF. */
   params.fcf.frame_type = FRAME802154_DATAFRAME;
@@ -132,13 +139,13 @@ create(void)
   if(packetbuf_hdralloc(len)) {
     frame802154_create(&params, packetbuf_hdrptr(), len);
 
-    PRINTF("P6MAC-UT: %2X", params.fcf.frame_type);
+    PRINTF("15.4-OUT: %2X", params.fcf.frame_type);
     PRINTADDR(params.dest_addr.u8);
     PRINTF("%u %u (%u)\n", len, packetbuf_datalen(), packetbuf_totlen());
 
     return len;
   } else {
-    PRINTF("P6MAC-UT: too large header: %u\n", len);
+    PRINTF("15.4-OUT: too large header: %u\n", len);
     return 0;
   }
 }
@@ -155,7 +162,7 @@ parse(void)
       if(frame.dest_pid != mac_src_pan_id &&
          frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
-        PRINTF("P6MAC: for another pan %u\n", frame.dest_pid);
+        PRINTF("15.4: for another pan %u\n", frame.dest_pid);
         return 0;
       }
       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
@@ -166,7 +173,7 @@ parse(void)
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, frame.fcf.ack_required);
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
 
-    PRINTF("P6MAC-IN: %2X", frame.fcf.frame_type);
+    PRINTF("15.4-IN: %2X", frame.fcf.frame_type);
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     PRINTF("%u (%u)\n", packetbuf_datalen(), len);
