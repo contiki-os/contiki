@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.11 2010/02/23 20:09:11 nifi Exp $
+ * $Id: cxmac.c,v 1.12 2010/03/01 13:30:22 nifi Exp $
  */
 
 /**
@@ -45,7 +45,6 @@
 #include "dev/watchdog.h"
 #include "net/netstack.h"
 #include "lib/random.h"
-#include "net/mac/framer.h"
 #include "net/mac/cxmac.h"
 #include "net/rime.h"
 #include "net/rime/timesynch.h"
@@ -453,7 +452,7 @@ send_packet(void)
   }
   is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
     packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
-  len = framer_get()->create();
+  len = NETSTACK_FRAMER.create();
   strobe_len = len + sizeof(struct cxmac_hdr);
   if(len == 0 || strobe_len > sizeof(strobe)) {
     /* Failed to send */
@@ -565,7 +564,7 @@ send_packet(void)
 	len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
 	if(len > 0) {
 	  packetbuf_set_datalen(len);
-	  if(framer_get()->parse()) {
+	  if(NETSTACK_FRAMER.parse()) {
 	    hdr = packetbuf_dataptr();
 	    if(hdr->dispatch == DISPATCH && hdr->type == TYPE_STROBE_ACK) {
 	      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
@@ -706,7 +705,7 @@ input_packet(void)
 {
   struct cxmac_hdr *hdr;
 
-  if(framer_get()->parse()) {
+  if(NETSTACK_FRAMER.parse()) {
     hdr = packetbuf_dataptr();
 
     if(hdr->dispatch != DISPATCH) {
@@ -761,7 +760,7 @@ input_packet(void)
 			   packetbuf_addr(PACKETBUF_ADDR_SENDER));
 	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
 	packetbuf_compact();
-	if(framer_get()->create()) {
+	if(NETSTACK_FRAMER.create()) {
 	  /* We turn on the radio in anticipation of the incoming
 	     packet. */
 	  someone_is_sending = 1;
@@ -825,7 +824,7 @@ send_announcement(void *ptr)
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
     packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER, announcement_radio_txpower);
-    if(framer_get()->create()) {
+    if(NETSTACK_FRAMER.create()) {
       NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
     }
   }

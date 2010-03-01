@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.72 2010/02/23 21:02:30 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.73 2010/03/01 13:30:21 nifi Exp $
  */
 
 #include <signal.h>
@@ -50,9 +50,6 @@
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
-#include "net/mac/framer-802154.h"
-#include "net/mac/framer-nullmac.h"
-#include "net/mac/framer.h"
 
 #if WITH_UIP6
 #include "net/sicslowpan.h"
@@ -271,8 +268,6 @@ main(int argc, char **argv)
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);*/
 
-  framer_set(&framer_802154);
-  
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */

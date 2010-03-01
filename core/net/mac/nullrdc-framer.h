@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,35 +26,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer.c,v 1.1 2009/10/19 18:30:03 adamdunkels Exp $
+ * This file is part of the Contiki operating system.
+ *
+ * $Id: nullrdc-framer.h,v 1.1 2010/03/01 13:30:23 nifi Exp $
  */
 
 /**
  * \file
- *         A MAC framer is responsible for constructing and parsing
- *         the header in MAC frames. At least the sender and receiver
- *         are required to be encoded in the MAC frame headers.
+ *         A null RDC implementation that uses framer for headers.
  * \author
+ *         Adam Dunkels <adam@sics.se>
  *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  */
 
-#include "contiki.h"
-#include "net/mac/framer.h"
-#include "net/mac/framer-nullmac.h"
+#ifndef __NULLRDC_FRAMER_H__
+#define __NULLRDC_FRAMER_H__
 
-const struct framer *framer_current;
+#include "net/mac/rdc.h"
 
-/*---------------------------------------------------------------------------*/
-const struct framer *
-framer_get(void)
-{
-  return framer_current != NULL ? framer_current : &framer_nullmac;
-}
-/*---------------------------------------------------------------------------*/
-void
-framer_set(const struct framer *f)
-{
-  framer_current = f;
-}
-/*---------------------------------------------------------------------------*/
+extern const struct rdc_driver nullrdc_framer_driver;
+
+#endif /* __NULLRDC_FRAMER_H__ */
