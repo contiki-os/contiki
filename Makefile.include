@@ -30,20 +30,28 @@ export	ARCH CPU VENDOR
 
 .SECONDARY:
 
-#.depend:	Makefile $(AOBJS:.o=.S) $(COBJS:.o=.c)
-#		$(CC) -M $(CFLAGS) $(AOBJS:.o=.S) $(COBJS:.o=.c) > $@
-#sinclude .depend
+
+### See http://make.paulandlesley.org/autodep.html#advanced
+ifdef BOARD
+-include ${addprefix $(OBJDIR)/,$(addsuffix .d,$(TARGETS))}
+endif
+
+define FINALIZE_DEPENDENCY
+cp $(@:.o=.d) $(@:.o=.$$$$); \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+    -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.$$$$) >> $(@:.o=.d); \
+rm -f $(@:.o=.$$$$)
+endef
+
 
 $(START): $(START:.o=.s)
 	$(CC) $(AFLAGS) -c -o $@ $<
 
 $(ISR): $(ISR:.o=.c)
-	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
+	$(CC) $(CFLAGS) $(ARM_FLAGS) -MMD $< -c -o $@
+	@$(FINALIZE_DEPENDENCY)
 
-%_$(BOARD).elf: %.elf $(BOARDOBJS)
-	mv $< $@
-
-%.elf:	$(START) $(ISR) $(SRCOBJS) $(OBJDIR)/%.o $(BOARDOBJS) $(LINKERSCRIPT) $(LIBMC1322X)/libmc1322x.a
+%_$(BOARD).elf:	$(START) $(ISR) $(SRCOBJS) $(OBJDIR)/%.o $(BOARDOBJS) $(LINKERSCRIPT) $(LIBMC1322X)/libmc1322x.a
 	$(CC) $(LDFLAGS) $(AOBJS) \
 	$(filter %.o %.a,$+) -o $@
 
@@ -62,22 +70,23 @@ $(ISR): $(ISR:.o=.c)
 $(OBJDIR)/%.s:	%.S
 	$(CPP) $(AFLAGS) -o $@ $<
 $(OBJDIR)/%.o:	%.S
-	$(CC) $(AFLAGS) -c -o $@ $<
+	$(CC) $(AFLAGS) -MMD -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
 $(OBJDIR)/%.o:	%.c
-	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c -o $@ $<
-
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) -MMD -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
 
 clean:
 	find $(MC1322X) \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
 		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \
-                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' \) -print \
+                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' -o -name '*.d' \) -print \
 		| xargs rm -rf
 	rm -fr *.*~	
 	find \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
 		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \
-                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' \) -print \
+                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' -o -name '*.d' \) -print \
 		| xargs rm -rf
 	rm -fr *.*~	
 
