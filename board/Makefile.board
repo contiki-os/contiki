@@ -17,5 +17,4 @@ endif
 
 $(OBJDIR)/board.h: $(OBJDIR) 
 	ln -sf ../$(MC1322X)/board/$(BOARD).h $(OBJDIR)/board.h
-# this touch is a hack --- need to sort out deps and a way to make sure the board links get made.
-	touch $(OBJDIR)/board.h
+
