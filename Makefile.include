@@ -67,6 +67,10 @@ $(ISR): $(ISR:.o=.c)
 %.dis:		%.elf
 		$(OBJDUMP) -SD $< > $@
 
+%.o:	%.c
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) -MMD -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
+
 $(OBJDIR)/%.s:	%.S
 	$(CPP) $(AFLAGS) -o $@ $<
 $(OBJDIR)/%.o:	%.S
