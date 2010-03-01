@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.74 2010/02/25 15:51:37 joxe Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.75 2010/03/01 13:30:21 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -15,6 +15,7 @@
 #define NETSTACK_CONF_MAC     csma_driver
 #define NETSTACK_CONF_RDC     contikimac_driver
 #define NETSTACK_CONF_RADIO   cc2420_driver
+#define NETSTACK_CONF_FRAMER  framer_802154
 
 #define CC2420_CONF_AUTOACK              1
 #define MAC_CONF_CHANNEL_CHECK_RATE      8
@@ -30,6 +31,7 @@
 #define NETSTACK_CONF_MAC     csma_driver
 #define NETSTACK_CONF_RDC     contikimac_driver
 #define NETSTACK_CONF_RADIO   cc2420_driver
+#define NETSTACK_CONF_FRAMER  framer_802154
 
 #define CC2420_CONF_AUTOACK              1
 #define MAC_CONF_CHANNEL_CHECK_RATE      8

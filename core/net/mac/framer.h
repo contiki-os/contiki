@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer.h,v 1.1 2009/10/19 18:30:03 adamdunkels Exp $
+ * $Id: framer.h,v 1.2 2010/03/01 13:30:23 nifi Exp $
  */
 
 /**
@@ -48,11 +48,5 @@ struct framer {
   int (* parse)(void);
 
 };
-
-extern const struct framer *framer_current;
-
-const struct framer *framer_get(void);
-
-void framer_set(const struct framer *f);
 
 #endif /* __FRAMER_H__ */

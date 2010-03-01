@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.7 2010/02/28 20:19:47 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.8 2010/03/01 13:30:22 nifi Exp $
  */
 
 /**
@@ -45,7 +45,6 @@
 #include "dev/radio.h"
 #include "dev/watchdog.h"
 #include "lib/random.h"
-#include "net/mac/framer.h"
 #include "net/mac/contikimac.h"
 #include "net/rime.h"
 #include "sys/compower.h"
@@ -498,7 +497,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   }
   is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
     packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
-  len = framer_get()->create();
+  len = NETSTACK_FRAMER.create();
   if(len == 0) {
     /* Failed to send */
     PRINTF("contikimac: send failed, too large header\n");
@@ -723,7 +722,7 @@ input_packet(void)
 
   packet_indication_flag = 0;
 
-  if(packetbuf_totlen() > 0 && framer_get()->parse()) {
+  if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse()) {
     
     if(packetbuf_datalen() > 0 &&
        packetbuf_totlen() > 0 &&
@@ -783,7 +782,7 @@ send_announcement(void *ptr)
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
     packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER,
                        announcement_radio_txpower);
-    if(framer_get()->create()) {
+    if(NETSTACK_FRAMER.create()) {
       we_are_sending = 1;
       NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
       we_are_sending = 0;
