@@ -52,6 +52,9 @@ void main(void) {
 	vreg_init();
 	init_phy();
 
+	/* trim the reference osc. to 24MHz */
+	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
+
 	set_power(0x0f); /* 0dbm */
 	set_channel(0); /* channel 11 */
 

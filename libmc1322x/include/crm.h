@@ -97,4 +97,7 @@
 #define SLEEP_RAM_64K sleep_ram_retain(2)
 #define SLEEP_RAM_96K sleep_ram_retain(3)
 
+#define pack_XTAL_CNTL(ctune4pf, ctune, ftune, ibias) \
+	(*CRM_XTAL_CNTL = ((ctune4pf << 25) | (ctune << 21) | ( ftune << 16) | (ibias << 8) | 0x52))
+
 #endif
