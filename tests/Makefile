@@ -12,6 +12,7 @@ TARGETS := blink-red blink-green blink-blue blink-white blink-allio \
            tmr tmr-ints \
            sleep \
            rftest-rx rftest-tx \
+           printf
 
 
 include $(MC1322X)/Makefile.include

@@ -29,10 +29,10 @@ gccincdir := $(shell $(CC) -print-file-name=include)
 
 CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)		\
 	-D__KERNEL__ -DTEXT_BASE=$(TEXT_BASE)		\
-	-fno-builtin -ffreestanding -nostdinc -isystem	\
+	-fno-builtin -ffreestanding -isystem	\
 	$(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
-CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -Wcast-align -Wcast-align -Wextra -Werror
+CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -Wcast-align -Wextra #-Werror
 
 AFLAGS_DEBUG := -Wa,-gstabs
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
