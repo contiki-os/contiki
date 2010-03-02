@@ -2,11 +2,6 @@
   use run_algorithm to hook ROM NVM functions
   see flash/stm32x.c
 
-- add TARGETS which doesn't set space aside space for rom variable or
-  call rom_data_init and
-  TARGETS_WITH_ROMDATA which does what is going on now.
-
-- mv libmc1322x/libmc1322x libmc1322x/lib
 
  
    
