@@ -706,7 +706,6 @@ ISR(RADIO_VECT)
     } else if (interrupt_source & HAL_TRX_END_MASK){
 	   INTERRUPTDEBUG(11);	    	    
 //	   if(trx_end_callback != NULL){
-//	     INTERRUPTDEBUG(12);
 //       trx_end_callback(isr_timestamp);
 //     }
         
@@ -715,15 +714,17 @@ ISR(RADIO_VECT)
        /* Received packet interrupt */ 
        /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
 //         if (rxframe.length) break;			//toss packet if last one not processed yet
-         INTERRUPTDEBUG(42);
+         if (rxframe.length) INTERRUPTDEBUG(42); else INTERRUPTDEBUG(12);
          hal_frame_read(&rxframe, NULL);
          rf230_interrupt();
 //       trx_end_callback(isr_timestamp);
+#if 0
        /* Enable reception of next packet */
-#if RF230_CONF_NO_AUTO_ACK
-         hal_subregister_write(SR_TRX_CMD, RX_ON);
-#else
+#if RF230_CONF_AUTOACK
          hal_subregister_write(SR_TRX_CMD, RX_AACK_ON);
+#else
+         hal_subregister_write(SR_TRX_CMD, RX_ON);
+#endif
 #endif
        }
               
