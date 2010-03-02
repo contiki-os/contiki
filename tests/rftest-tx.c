@@ -6,7 +6,8 @@
 #include "config.h"
 
 #define DELAY 100000
-#define DATA  0x00401000;
+#define DATA  0x00401000
+#define DEBUG_MACA 1
 
 uint32_t ackBox[10];
 

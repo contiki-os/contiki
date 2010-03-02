@@ -1,4 +1,14 @@
 #include <mc1322x.h>
+#include <stdio.h>
+
+#ifndef DEBUG_MACA 
+#define DEBUG_MACA 0
+#endif
+#if (DEBUG_MACA == 0)
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
@@ -235,7 +245,7 @@ void radio_init(void) {
 		*(volatile uint32_t *)(addr_reg_rep[i]) = data_reg_rep[i];
 	}
 	
-	putstr("initfromflash\n\r");
+	PRINTF("initfromflash\n\r");
 
 	*(volatile uint32_t *)(0x80003048) = 0x00000f04; /* bypass the buck */
 	for(i=0; i<0x161a8; i++) { continue; } /* wait for the bypass to take */
@@ -245,23 +255,15 @@ void radio_init(void) {
 
 	init_from_flash(0x1F000);
 
-	putstr("ram_values:\n\r");
+	PRINTF("ram_values:\n\r");
 	for(i=0; i<4; i++) {
-		putstr("  0x");
-		put_hex(ram_values[i]);
-		putstr("\n\r");
+		PRINTF("  0x%02x\n\r",ram_values[i]);
 	}
 
-        putstr("radio_init: ctov parameter 0x");
-	put_hex(ram_values[3]);
-	putstr("\n\r");
+        PRINTF("radio_init: ctov parameter 0x%02x\n\r",ram_values[3]);
         for(i=0; i<16; i++) {
                 ctov[i] = get_ctov(i,ram_values[3]);
-                putstr("radio_init: ctov[");
-		put_hex(i);
-		putstr("] = 0x");
-		put_hex(ctov[i]);
-		putstr("\n\r");
+                PRINTF("radio_init: ctov[%d] = 0x%02x\n\r",i,ctov[i]);
         }
 
 
@@ -420,49 +422,31 @@ uint32_t exec_init_entry(volatile uint32_t *entries, uint8_t *valbuf)
 	if(entries[0] <= ROM_END) {
 		if (entries[0] == 0) {
 			/* do delay command*/
-			putstr("init_entry: delay ");
-			put_hex32(entries[1]);
-			putstr("\n\r");
+			PRINTF("init_entry: delay 0x%08x\n\r", entries[1]);
 			for(i=0; i<entries[1]; i++) { continue; }
 			return 2;
 		} else if (entries[0] == 1) {
 			/* do bit set/clear command*/
-			putstr("init_entry: bit set clear ");
-			put_hex32(entries[1]);
-			putchr(' ');
-			put_hex32(entries[2]);
-			putchr(' ');
-			put_hex32(entries[3]);
-			putstr("\n\r");
+			PRINTF("init_entry: bit set clear 0x%08x 0x%08x 0x%08x\n\r", entries[1], entries[2], entries[3]);
 			reg(entries[2]) = (reg(entries[2]) & ~entries[1]) | (entries[3] & entries[1]);
 			return 4;
 		} else if ((entries[0] >= 16) &&
 			   (entries[0] < 0xfff1)) {
 			/* store bytes in valbuf */
-			putstr("init_entry: store in valbuf ");
-			put_hex(entries[1]);
-			putstr(" position ");
-			put_hex((entries[0]>>4)-1);
-			putstr("\n\r");
+			PRINTF("init_entry: store in valbuf 0x%02x position %d\n\r", entries[1],(entries[0]>>4)-1);
 			valbuf[(entries[0]>>4)-1] = entries[1];
 			return 2;
 		} else if (entries[0] == ENTRY_EOF) {
-			putstr("init_entry: eof ");
+			PRINTF("init_entry: eof ");
 			return 0;
 		} else {
 			/* invalid command code */
-			putstr("init_entry: invaild code ");
-			put_hex32(entries[0]);
-			putstr("\n\r");
+			PRINTF("init_entry: invaild code 0x%08x\n\r",entries[0]);
 			return 0;
 		}
 	} else { /* address isn't in ROM space */   
 		 /* do store value in address command  */
-		putstr("init_entry: address value pair - *0x");
-		put_hex32(entries[0]);
-		putstr(" = ");
-		put_hex32(entries[1]);
-		putstr("\n\r");
+		PRINTF("init_entry: address value pair - *0x%08x = 0x%08x\n\r",entries[0],entries[1]);
 		reg(entries[0]) = entries[1];
 		return 2;
 	}
@@ -478,22 +462,15 @@ uint32_t init_from_flash(uint32_t addr) {
 	volatile uint32_t i=0,j;
 
 	err = nvm_detect(gNvmInternalInterface_c, &type);
-	putstr("nvm_detect returned type ");
-	put_hex32(type);
-	putstr(" err ");
-	put_hex(err);
-	putstr("\n\r");
+	PRINTF("nvm_detect returned type 0x%08x err 0x%02x\n\r", type, err);
 		
 	nvm_setsvar(0);
 	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, addr, 8);
 	i+=8;
-	putstr("nvm_read returned: 0x");
-	put_hex(err);
-	putstr("\n\r");
+	PRINTF("nvm_read returned: 0x%02x\n\r",err);
 	
 	for(j=0; j<4; j++) {
-		put_hex32(buf[j]);
-		putstr("\n\r");
+		PRINTF("0x%08x\n\r",buf[j]);
 	}
 
 	if(buf[0] == FLASH_INIT_MAGIC) {
