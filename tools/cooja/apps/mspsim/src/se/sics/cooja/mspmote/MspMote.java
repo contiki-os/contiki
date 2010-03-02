@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.42 2010/02/21 21:51:50 fros4943 Exp $
+ * $Id: MspMote.java,v 1.43 2010/03/02 13:22:29 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -263,6 +263,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
     int[] memory = myCpu.getMemory();
     logger.info("Loading ELF from: " + fileELF.getAbsolutePath());
+    GUI.setProgressMessage("Loading " + fileELF.getName());
     if (GUI.isVisualizedInApplet()) {
       myELFModule = node.loadFirmware(new URL(GUI.getAppletCodeBase(), fileELF.getName()), memory);
     } else {
@@ -373,7 +374,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     }*/
   }
   
-  private String sendCLICommandAndPrint(String cmd) {
+  public String sendCLICommandAndPrint(String cmd) {
     final StringBuilder sb = new StringBuilder();
     LineListener tmp = new LineListener() {
       public void lineRead(String line) {
