@@ -83,9 +83,10 @@
 #define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         sicslowmac_driver
+#define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
-#define RF230_CONF_AUTO_ACK       1
-#define RF230_CONF_AUTO_RETRIES   2
+#define RF230_CONF_AUTOACK        1
+#define RF230_CONF_AUTORETRIES    2
 #define SICSLOWPAN_CONF_FRAG      1
 //Most browsers reissue GETs after 3 seconds which stops frag reassembly, longer MAXAGE does no good
 #define SICSLOWPAN_CONF_MAXAGE    3
@@ -97,18 +98,20 @@
 #define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
+#define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
-#define RF230_CONF_AUTO_ACK       0
-#define RF230_CONF_AUTO_RETRIES   0
+#define RF230_CONF_AUTOACK        0
+#define RF230_CONF_AUTORETRIES    0
 
-#else
+#elif 0
 /* cx-mac radio cycling */
 #define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         cxmac_driver
+#define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
-#define RF230_CONF_AUTO_ACK       0
-#define RF230_CONF_AUTO_RETRIES   0
+#define RF230_CONF_AUTOACK        0
+#define RF230_CONF_AUTORETRIES    0
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
@@ -119,9 +122,11 @@
 //Below gives 10% duty cycle, undef for default 5%
 //#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 80)
 //Below gives 50% duty cycle
-#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 16)
+//#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 16)
 
-#endif  /* Network setup */
+#else
+#error Network configuration not specified!
+#endif   /* Network setup */
 
 /* Logging adds 200 bytes to program size */
 #define LOG_CONF_ENABLED         1

@@ -32,13 +32,11 @@
  */
 #define ANNOUNCE_BOOT 1    //adds about 600 bytes to program size
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
 #define PRINTSHORT(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#if RF230BB
-extern char rf230_interrupt_flag, rf230processflag;
-#endif
+
 #else
 #define PRINTF(...)
 #define PRINTSHORT(...)
@@ -50,7 +48,6 @@ extern char rf230_interrupt_flag, rf230processflag;
 #include <stdio.h>
 #include <string.h>
 
-//#include "lib/mmem.h"
 #include "loader/symbols-def.h"
 #include "loader/symtab.h"
 
@@ -58,15 +55,7 @@ extern char rf230_interrupt_flag, rf230processflag;
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
-//#include "net/mac/framer-nullmac.h"
-//#include "net/mac/framer.h"
 #include "net/sicslowpan.h"
-//#include "net/uip-netif.h"
-//#include "net/mac/lpp.h"
-//#include "net/mac/cxmac.h"
-//#include "net/mac/sicslowmac.h"
-//#include "dev/xmem.h"
-//#include "net/rime.h"
 
 #else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
@@ -104,7 +93,6 @@ extern char rf230_interrupt_flag, rf230processflag;
 #endif
 
 #include "net/rime.h"
-//#include "node-id.h"
 
 /*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
@@ -162,7 +150,6 @@ void initialize(void)
   ctimer_init();
   /* Start radio and radio receive process */
   NETSTACK_RADIO.init();
-//rf230_init();
 
   /* Set addresses BEFORE starting tcpip process */
 
@@ -174,17 +161,13 @@ void initialize(void)
  
   memcpy(&uip_lladdr.addr, &addr.u8, 8);	
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
-
   rf230_set_channel(24);
 
   rimeaddr_set_node_addr(&addr); 
-//  set_rime_addr();
+
   PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 
-  framer_set(&framer_802154);
-//  process_start(&tcpip_process, NULL); //must be done before network inits?
-
-  /* Setup X-MAC for 802.15.4 */
+  /* Initialize stack protocols */
   queuebuf_init();
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
@@ -196,7 +179,7 @@ void initialize(void)
     unsigned short tmp;
     tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
                                    NETSTACK_RDC.channel_check_interval());
-    printf_P(PSTR(", check rate %u Hz"),tmp);
+    if (tmp<65535) printf_P(PSTR(", check rate %u Hz"),tmp);
   }
   printf_P(PSTR("\n"));
 #endif
@@ -209,16 +192,14 @@ void initialize(void)
   uip_router_register(&rimeroute);
 #endif
 
-#endif /*RF230BB*/
-
-#if RF230BB
   process_start(&tcpip_process, NULL);
-#else
+
+  #else
 /* mac process must be started before tcpip process! */
   process_start(&mac_process, NULL);
   process_start(&tcpip_process, NULL);
+#endif /*RF230BB*/
 
-#endif
 #ifdef RAVEN_LCD_INTERFACE
   process_start(&raven_lcd_process, NULL);
 #endif
@@ -320,7 +301,9 @@ struct rtimer rt;
 void rtimercycle(void) {rtimerflag=1;}
 #endif /* TESTRTIMER */
 
-extern uint8_t packetreceived;
+#if RF230BB
+extern char rf230_interrupt_flag, rf230processflag;
+#endif
 /*-------------------------------------------------------------------------*/
 /*------------------------- Main Scheduler loop----------------------------*/
 /*-------------------------------------------------------------------------*/
@@ -358,15 +341,13 @@ main(void)
     }
 #endif
 
-//Use with RF230BB RADIOALWAYSON to show packets missed when radio is "off"
+//Use with RF230BB DEBUGFLOW to show path through driver
 #if RF230BB&&1
-  if (packetreceived) {
-    if (packetreceived==1) {  //missed
-      printf("-");
-    } else {                  //passed to stack
-     printf("+");
-    }
-    packetreceived=0;
+extern uint8_t debugflowsize,debugflow[];
+  if (debugflowsize) {
+    debugflow[debugflowsize]=0;
+    printf("%s",debugflow);
+    debugflowsize=0;
    }
 #endif
 
