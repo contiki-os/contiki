@@ -57,7 +57,6 @@
 .set base, .
 .set _rom_data_init, 0x108d0
 	
-
 	.globl _start
 _start:	b       _begin
 	ldr	pc, _undefined_instruction
@@ -67,7 +66,8 @@ _start:	b       _begin
 	ldr	pc, _not_used
 	ldr	pc, _irq
 	ldr	pc, _fiq
-	
+
+#ifdef USE_ROM_VARS
 /* these vectors are used for rom patching */	
 .org 0x20
 .code 16
@@ -85,13 +85,13 @@ _RPTV_2_START:
 .org 0xe0
 _RPTV_3_START:
 	bx lr /* do nothing */
+	
 
-#ifdef USE_ROM_VARS
 .org 0x120
 ROM_var_start: .word 0
 .org 0x7ff
 ROM_var_end:   .word 0
-#endif
+#endif /*USE_ROM_VARS*/
 
 .code 32
 .align
@@ -129,6 +129,7 @@ _begin:
 // 	mov     sp,r1
 	
 	b main
+
 	
 _undefined_instruction:	.word undefined_instruction
 _software_interrupt:	.word software_interrupt
@@ -177,29 +178,6 @@ _bss_end:
 _start_armboot: .word main
 
 
-	
-/*
- *************************************************************************
- *
- * CPU_init_critical registers
- *
- *************************************************************************
- */
-
-cpu_init_crit:
-	# actually do nothing for now!
-	mov	pc, lr
-
-
-/*
- *************************************************************************
- *
- * Interrupt handling
- *
- *************************************************************************
- */
-
-
 /*
  * exception handlers
  */
@@ -233,4 +211,3 @@ fiq:
 .globl reset_cpu
 reset_cpu:
 	mov     pc, r0
-
