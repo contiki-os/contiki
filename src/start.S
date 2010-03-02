@@ -86,10 +86,13 @@ _RPTV_2_START:
 _RPTV_3_START:
 	bx lr /* do nothing */
 
+#ifdef USE_ROM_VARS
 .org 0x120
 ROM_var_start: .word 0
 .org 0x7ff
 ROM_var_end:   .word 0
+#endif
+
 .code 32
 .align
 _begin:
@@ -117,7 +120,9 @@ _begin:
 
 // 	msr     cpsr_c,#(USR_MODE | I_BIT | F_BIT)
 
+#ifdef USE_ROM_VARS	
 	bl _rom_data_init+.-base
+#endif	
 	msr     cpsr_c,#(SVC_MODE) // turn on interrupts --- for debug only
 //	msr     cpsr_c,#(USR_MODE) // turn on interrupts --- for debug only		
 // 	add     r1,r1,#usr_stack_size

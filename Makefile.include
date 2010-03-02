@@ -11,8 +11,11 @@ include $(MC1322X)/board/Makefile.board
 
 include $(LIBMC1322X)/Makefile.lib
 
-
 CFLAGS += -I$(MC1322X)/src -I.
+
+ifdef USE_ROM_VARS
+	START = $(MC1322X)/src/start-romvars.o		
+endif
 
 # default start and isr
 ifndef START
@@ -43,9 +46,10 @@ sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 rm -f $(@:.o=.$$$$)
 endef
 
-
 $(START): $(START:.o=.s)
 	$(CC) $(AFLAGS) -c -o $@ $<
+$(MC1322X)/src/start-romvars.s:	$(MC1322X)/src/start.S
+	$(CPP) $(AFLAGS) -DUSE_ROM_VARS -o $@ $<
 
 $(ISR): $(ISR:.o=.c)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) -MMD $< -c -o $@
@@ -67,6 +71,11 @@ $(ISR): $(ISR:.o=.c)
 %.dis:		%.elf
 		$(OBJDUMP) -SD $< > $@
 
+%.s: %.S
+	$(CPP) $(AFLAGS) -o $@ $<
+%.o: %.S
+	$(CC) $(AFLAGS) -MMD -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
 %.o:	%.c
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
@@ -108,6 +117,7 @@ endif
 
 all: $(OBJDIR)/board.h 
 	for target in $(TARGETS); do make $$target\_$(BOARD).bin; done
+	for target in $(TARGETS_WITH_ROM_VARS); do make USE_ROM_VARS=1 $$target\_$(BOARD).bin; done
 
 allboards:
 	for board in $(BOARDS); do make BOARD=$$board all; done
