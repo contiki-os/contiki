@@ -1,6 +1,8 @@
 #include <mc1322x.h>
 #include <board.h>
 
+#include <stdio.h>
+
 #include "tests.h"
 #include "config.h"
 
@@ -11,7 +13,7 @@ int main(void)
 	int i = 5;
 	unsigned int bs = sizeof(int)*8;
 	int mi;
-	char buf[80];
+//	char buf[80];
 
 	uart_init(INC, MOD);
 

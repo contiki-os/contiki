@@ -21,30 +21,30 @@ void uart1_init(uint16_t inc, uint16_t mod) {
 }
 
 void print_welcome(char* testname) {
-	puts("mc1322x-test: ");
-	puts(testname);
-	puts("\n\r");
-	puts("board: ");
+	putstr("mc1322x-test: ");
+	putstr(testname);
+	putstr("\n\r");
+	putstr("board: ");
 #if (BOARD == redbee-dev)
-	puts("redbee-dev");
+	putstr("redbee-dev");
 #elif (BOARD == redbee-r1)
-	puts("redbee-dev");
+	putstr("redbee-dev");
 #endif
-	puts("\n\r");
+	putstr("\n\r");
 }
 
 void dump_regs(uint32_t base, uint32_t len) {
 	volatile uint32_t i;
-    
-	puts("base +0       +4       +8       +c       +10      +14      +18      +1c      \n\r");                                                     
-	for (i = 0; i < len; i ++) {                                                                                                                   
-		if ((i & 7) == 0) {                                                                                                                   
-			put_hex16(4 * i);                                                                                                             
-		}                                                                                                                                     
-		puts(" ");                                                                                                                            
-		put_hex32(*mem32(base+(4*i)));                                                                                                      
-		if ((i & 7) == 7)                                                                                                                     
-			puts(NL);                                                                                                                     
-	}                                                                                                                                             
-	puts(NL); 
+	
+	putstr("base +0       +4       +8       +c       +10      +14      +18      +1c      \n\r");
+	for (i = 0; i < len; i ++) {
+		if ((i & 7) == 0) {
+			put_hex16(4 * i);
+		}
+		putstr(" ");
+		put_hex32(*mem32(base+(4*i)));
+		if ((i & 7) == 7)
+			putstr(NL);
+	}
+	putstr(NL); 
 }

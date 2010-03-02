@@ -4,21 +4,21 @@
 const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 		 '8','9','a','b','c','d','e','f'};
 
-void putc(char c) {
+void putchr(char c) {
 	while(*UT1CON == 31); /* wait for there to be room in the buffer */
 	*UART1_DATA = c;
 }
 	
-void puts(char *s) {
+void putstr(char *s) {
 	while(s && *s!=0) {
-		putc(*s++);
+		putchr(*s++);
 	}
 }
 
 void put_hex(uint8_t x)
 {
-        putc(hex[x >> 4]);
-        putc(hex[x & 15]);
+        putchr(hex[x >> 4]);
+        putchr(hex[x & 15]);
 }
 
 void put_hex16(uint16_t x)

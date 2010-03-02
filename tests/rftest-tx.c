@@ -100,62 +100,62 @@ void main(void) {
 			{
 			case(cc_aborted):
 			{
-				puts("aborted\n\r");
+				putstr("aborted\n\r");
 				ResumeMACASync();				
 				break;
 				
 			}
 			case(cc_not_completed):
 			{
-				puts("not completed\n\r");
+				putstr("not completed\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_timeout):
 			{
-				puts("timeout\n\r");
+				putstr("timeout\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_no_ack):
 			{
-				puts("no ack\n\r");
+				putstr("no ack\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_ext_timeout):
 			{
-				puts("ext timeout\n\r");
+				putstr("ext timeout\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_ext_pnd_timeout):
 			{
-				puts("ext pnd timeout\n\r");
+				putstr("ext pnd timeout\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_success):
 			{
-//				puts("success\n\r");
+//				putstr("success\n\r");
 				
-				puts("rftest-tx --- " );
-				puts(" payload len+crc: 0x");
+				putstr("rftest-tx --- " );
+				putstr(" payload len+crc: 0x");
 				put_hex(PAYLOAD_LEN+4);
-				puts(" timestamp: 0x");
+				putstr(" timestamp: 0x");
 				put_hex32(maca_timestamp);
-				puts("\n\r");
-				puts(" data: ");
+				putstr("\n\r");
+				putstr(" data: ");
 				for(i=0; i<PAYLOAD_LEN; i++) {
 					put_hex(data[i]);
-					putc(' ');
+					putchr(' ');
 				}
-				puts("\n\r");
+				putstr("\n\r");
 
 				toggle_led();
 
@@ -167,14 +167,14 @@ void main(void) {
 			}
 			default:
 			{
-				puts("status: ");
+				putstr("status: ");
 				put_hex16(status);
 				ResumeMACASync();
 				
 			}
 			}
 		} else if (_is_filter_failed_interrupt(maca_irq)) {
-			puts("filter failed\n\r");
+			putstr("filter failed\n\r");
 			ResumeMACASync();
 		}
 		

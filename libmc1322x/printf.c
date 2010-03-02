@@ -37,7 +37,7 @@
 #include <mc1322x.h>
 #include <types.h>
 
-#define __putc(x) putc(x)
+#define __putc(x) putchr(x)
 
 /**
  * Structure to hold data to be passed to print function with format.
@@ -358,8 +358,6 @@ int sprintf( char *out, const char *format, ... )
 	return retval;
 }
 */
-
-static uint8_t ll;
 
 int printf( const char *format, ... )
 {
