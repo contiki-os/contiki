@@ -60,12 +60,6 @@ void main(void) {
 
 	enable_tmr_irq();
 
-	/* go into user mode to handle IRQs */
-	/* disabling interrupts is now difficult */
- 	asm(".code 32;"
-	    "msr     cpsr_c,#(0x10);"
-	    ".code 16; ");
-	
 	while(1) {
 		/* sit here and let the interrupts do the work */
 	};
