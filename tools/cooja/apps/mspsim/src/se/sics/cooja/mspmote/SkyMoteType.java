@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMoteType.java,v 1.16 2010/02/18 11:13:21 joxe Exp $
+ * $Id: SkyMoteType.java,v 1.17 2010/03/02 13:24:48 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -218,7 +218,7 @@ public class SkyMoteType extends MspMoteType {
         SkyByteRadio.class,
         MspSerial.class,
         SkyLED.class,
-        /*MspDebugOutput.class*/ /* EXPERIMENTAL: Enable me for COOJA_DEBUG(..) */
+        MspDebugOutput.class /* EXPERIMENTAL: Enable me for COOJA_DEBUG(..) */
     };
   }
 
