@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.35 2010/02/28 14:15:58 adamdunkels Exp $
+ * $Id: collect.c,v 1.36 2010/03/02 15:41:23 dak664 Exp $
  */
 
 /**
@@ -619,7 +619,7 @@ collect_open(struct collect_conn *tc, uint16_t channels,
   neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
 			  CLOCK_SECOND * 8,
 			  CLOCK_SECOND * 32,
-			  CLOCK_SECOND * 600,
+			  (unsigned) (CLOCK_SECOND * 600UL),
 			  &neighbor_discovery_callbacks);
   neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 #else /* !COLLECT_ANNOUNCEMENTS */
