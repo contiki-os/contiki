@@ -1,19 +1,9 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
-#define NETSTACK_CONF_RADIO   tr1001_driver
-
 /* DCO speed resynchronization for more robust UART, etc. */
 #define DCOSYNCH_CONF_ENABLED 1
 #define DCOSYNCH_CONF_PERIOD 30
-
-/* Specifies the default MAC driver */
-#define MAC_CONF_DRIVER nullmac_driver
-
-#define PACKETBUF_CONF_ATTRS_INLINE 1
-#define QUEUEBUF_CONF_NUM 1
-#define QUEUEBUF_CONF_REF_NUM 1
-#define ROUTE_CONF_ENTRIES 4
 
 #define SERIAL_LINE_CONF_BUFSIZE 64
 
@@ -53,6 +43,36 @@ void clock_wait(int ms10);
 
 #define LOG_CONF_ENABLED 0
 
+#define PACKETBUF_CONF_ATTRS_INLINE 1
+#define NETSTACK_CONF_RADIO   tr1001_driver
+
+#if WITH_UIP
+/* Network setup for IPv4 */
+
+#define NETSTACK_CONF_NETWORK uip_driver
+#define NETSTACK_CONF_MAC     nullmac_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
+#define NETSTACK_CONF_FRAMER  framer_nullmac
+
+#define QUEUEBUF_CONF_NUM     0
+#define QUEUEBUF_CONF_REF_NUM 0
+#define ROUTE_CONF_ENTRIES    0
+
+#else /* WITH_UIP */
+
+/* Network setup for non-IPv4 (rime). */
+
+#define NETSTACK_CONF_NETWORK rime_driver
+#define NETSTACK_CONF_MAC     nullmac_driver
+#define NETSTACK_CONF_RDC     nullrdc_framer_driver
+#define NETSTACK_CONF_FRAMER  framer_nullmac
+
+#define QUEUEBUF_CONF_NUM 1
+#define QUEUEBUF_CONF_REF_NUM 1
+#define ROUTE_CONF_ENTRIES 4
+
+#endif /* WITH_UIP */
+
 /**
  * The statistics data type.
  *
@@ -69,8 +89,8 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_BUFFER_SIZE     110
 #define UIP_CONF_RECEIVE_WINDOW  (UIP_CONF_BUFFER_SIZE - 40)
 #define UIP_CONF_MAX_CONNECTIONS 4
-#define UIP_CONF_MAX_LISTENPORTS 8
-#define UIP_CONF_UDP_CONNS       6
+#define UIP_CONF_MAX_LISTENPORTS 4
+#define UIP_CONF_UDP_CONNS       3
 #define UIP_CONF_FWCACHE_SIZE    1
 #define UIP_CONF_BROADCAST       1
 #define UIP_ARCH_IPCHKSUM        1
@@ -86,6 +106,8 @@ typedef unsigned short uip_stats_t;
 #define ELFLOADER_CONF_TEXT_IN_ROM 1
 #define ELFLOADER_CONF_DATAMEMORY_SIZE 100
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x1000
+
+#define WEBSERVER_CONF_CGI_CONNS 1
 
 /* LEDs ports. */
 #define LEDS_PxDIR P2DIR

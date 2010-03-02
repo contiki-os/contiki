@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-gcr.c,v 1.14 2009/11/19 18:04:02 nifi Exp $
+ * @(#)$Id: tr1001-gcr.c,v 1.15 2010/03/02 22:40:39 nifi Exp $
  */
 /**
  * \addtogroup esb
@@ -56,6 +56,7 @@
 #include "dev/radio-sensor.h"
 #include "lib/gcr.h"
 #include "lib/crc16.h"
+#include "net/netstack.h"
 #include "net/rime/rimestats.h"
 
 #include <io.h>
@@ -87,6 +88,11 @@
 #else
 #define RXBUFSIZE PACKETBUF_SIZE
 #endif /* TR1001_CONF_BUFFER_SIZE */
+
+/*
+ * Pending data to send when using prepare/transmit functions.
+ */
+static const void *pending_data;
 
 /*
  * The buffer which holds incoming data.
@@ -140,7 +146,6 @@ static unsigned short tmp_sstrength, sstrength;
 static unsigned short tmp_count;
 
 #define DEBUG 0
-
 #if DEBUG
 #include <stdio.h>
 #define LOG(...) printf(__VA_ARGS__)
@@ -154,16 +159,23 @@ static unsigned short tmp_count;
 PROCESS(tr1001_process, "TR1001 driver");
 /*---------------------------------------------------------------------------*/
 
-static void (* receiver_callback)(const struct radio_driver *);
-
-static void tr1001_set_receiver(void (* recv)(const struct radio_driver *));
+static int prepare_packet(const void *data, unsigned short len);
+static int transmit_packet(unsigned short len);
+static int receiving_packet(void);
+static int pending_packet(void);
+static int channel_clear(void);
 static int tr1001_on(void);
 static int tr1001_off(void);
 
 const struct radio_driver tr1001_driver = {
+  tr1001_init,
+  prepare_packet,
+  transmit_packet,
   tr1001_send,
   tr1001_read,
-  tr1001_set_receiver,
+  channel_clear,
+  receiving_packet,
+  pending_packet,
   tr1001_on,
   tr1001_off
 };
@@ -312,7 +324,6 @@ sendx_crc16(unsigned char b, uint16_t crcacc)
   }
   return crcacc;
 }
-
 /*---------------------------------------------------------------------------*/
 void
 tr1001_set_txpower(unsigned char p)
@@ -344,13 +355,7 @@ tr1001_set_txpower(unsigned char p)
   P2OUT |= 0x40;                                /* P26 = 1 (chipselect off) */
 }
 /*---------------------------------------------------------------------------*/
-static void
-tr1001_set_receiver(void (* recv)(const struct radio_driver *))
-{
-  receiver_callback = recv;
-}
-/*---------------------------------------------------------------------------*/
-void
+int
 tr1001_init(void)
 {
   PT_INIT(&rxhandler_pt);
@@ -377,6 +382,8 @@ tr1001_init(void)
   rxclear();
 
   process_start(&tr1001_process, NULL);
+
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 interrupt (UART0RX_VECTOR)
@@ -552,22 +559,44 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
   PT_END(&rxhandler_pt);
 }
 /*---------------------------------------------------------------------------*/
-/*
- * Prepare a transmission.
- *
- * This function does the necessary setup before a packet can be sent
- * out.
- */
-static void
-prepare_transmission(int synchbytes)
+static int
+prepare_packet(const void *data, unsigned short len)
+{
+  pending_data = data;
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+transmit_packet(unsigned short len)
+{
+  int ret = RADIO_TX_ERR;
+  if(pending_data != NULL) {
+    ret = tr1001_send(pending_data, len);
+    pending_data = NULL;
+  }
+  return ret;
+}
+/*---------------------------------------------------------------------------*/
+int
+tr1001_send(const void *packet, unsigned short len)
 {
   int i;
+  uint16_t crc16;
+
+  LOG("tr1001_send: sending %d bytes\n", len);
+
+  if(onoroff == ON) {
+    ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  }
+  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+
+  /* Prepare the transmission. */
 
   /* Delay the transmission for a short random duration. */
   clock_delay(random_rand() & 0x3ff);
 
 
-  /* Check that we don't currently are receiveing a packet, and if so
+  /* Check that we don't currently are receiving a packet, and if so
      we wait until the reception has been completed. Reception is done
      with interrupts so it is OK for us to wait in a while() loop. */
 
@@ -588,8 +617,6 @@ prepare_transmission(int synchbytes)
 
 
   /* Transmit preamble and synch bytes. */
-
-
   for(i = 0; i < 20; ++i) {
     send(0xaa);
   }
@@ -597,28 +624,10 @@ prepare_transmission(int synchbytes)
       send(0xaa);*/
   send(0xff);
 
-  for(i = 0; i < synchbytes; ++i) {
+  for(i = 0; i < NUM_SYNCHBYTES; ++i) {
     send(SYNCH1);
   }
   send(SYNCH2);
-
-}
-/*---------------------------------------------------------------------------*/
-int
-tr1001_send(const void *packet, unsigned short len)
-{
-  int i;
-  uint16_t crc16;
-
-  LOG("tr1001_send: sending %d bytes\n", len);
-
-  if(onoroff == ON) {
-    ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-  }
-  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-
-  /* Prepare the transmission. */
-  prepare_transmission(NUM_SYNCHBYTES);
 
   crc16 = 0xffff;
 
@@ -702,8 +711,29 @@ tr1001_read(void *buf, unsigned short bufsize)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static int
+receiving_packet(void)
+{
+  return tr1001_rxstate == RXSTATE_RECEIVING &&
+    !timer_expired(&rxtimer);
+}
+/*---------------------------------------------------------------------------*/
+static int
+pending_packet(void)
+{
+  return tr1001_rxstate == RXSTATE_FULL;
+}
+/*---------------------------------------------------------------------------*/
+static int
+channel_clear(void)
+{
+  /* TODO add CCA functionality */
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(tr1001_process, ev, data)
 {
+  int len;
   PROCESS_BEGIN();
 
   /* Reset reception state now that the process is ready to receive data. */
@@ -711,13 +741,11 @@ PROCESS_THREAD(tr1001_process, ev, data)
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-    if(receiver_callback != NULL) {
-      receiver_callback(&tr1001_driver);
-    } else {
-      LOG("tr1001 has no receive function\n");
-
-      /* Perform a dummy read to drop the message. */
-      tr1001_read((uint8_t *)&data, 0);
+    packetbuf_clear();
+    len = tr1001_read(packetbuf_dataptr(), PACKETBUF_SIZE);
+    if(len > 0) {
+      packetbuf_set_datalen(len);
+      NETSTACK_RDC.input();
     }
   }
 
@@ -756,6 +784,6 @@ tr1001_sstrength(void)
 {
   return sstrength;
 }
-/*--------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 /** @} */
 /** @} */

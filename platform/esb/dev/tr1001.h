@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.h,v 1.8 2008/07/09 20:45:06 nifi Exp $
+ * @(#)$Id: tr1001.h,v 1.9 2010/03/02 22:40:39 nifi Exp $
  */
 #ifndef __TR1001_H__
 #define __TR1001_H__
@@ -49,7 +49,7 @@ extern const struct radio_driver tr1001_driver;
  * Turns on reception of bytes and installs the receive interrupt
  * handler.
  */
-void tr1001_init(void);
+int tr1001_init(void);
 
 /**
  * Set the speed of the TR1001 radio device.
