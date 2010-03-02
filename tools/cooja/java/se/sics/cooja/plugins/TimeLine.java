@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.23 2010/01/15 10:51:20 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.24 2010/03/02 13:33:10 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -114,7 +114,7 @@ public class TimeLine extends VisPlugin {
 
   private static long currentPixelDivisor = 200;
 
-  private static final long[] ZOOM_LEVELS = { 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000 }; 
+  private static final long[] ZOOM_LEVELS = { 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000 }; 
 
   private int zoomLevel = 9;
 
@@ -323,7 +323,7 @@ public class TimeLine extends VisPlugin {
     }
   };
 
-  private Action zoomInAction = new AbstractAction("Zoom in") {
+  private Action zoomInAction = new AbstractAction("Zoom in (Ctrl+)") {
     public void actionPerformed(ActionEvent e) {
       Rectangle r = timeline.getVisibleRect();
       int pixelX = r.x + r.width/2;
@@ -364,7 +364,7 @@ public class TimeLine extends VisPlugin {
     }
   };
 
-  private Action zoomOutAction = new AbstractAction("Zoom out") {
+  private Action zoomOutAction = new AbstractAction("Zoom out (Ctrl-)") {
     public void actionPerformed(ActionEvent e) {
       Rectangle r = timeline.getVisibleRect();
       int pixelX = r.x + r.width/2;
@@ -526,16 +526,29 @@ public class TimeLine extends VisPlugin {
     long onTimeRX = 0, onTimeTX = 0, onTimeInterfered = 0;
     
     public String toString() {
-      return
-      "Mote: " + (mote!=null?mote:"ALL") + "\n" +
-      "LED red ontime:\t" + onTimeRedLED + "us = " + 100.0*((double)onTimeRedLED/simulation.getSimulationTime()) + "%\n" +
-      "LED green ontime:\t" + onTimeGreenLED + "us = " + 100.0*((double)onTimeGreenLED/simulation.getSimulationTime()) + "%\n" +
-      "LED blue ontime:\t" + onTimeBlueLED + "us = " + 100.0*((double)onTimeBlueLED/simulation.getSimulationTime()) + "%\n" +
-      "Log messages: " + nrLogs + "\n" +
-      "Radio ontime:\t" + radioOn + "us = " + 100.0*((double)radioOn/simulation.getSimulationTime()) + "%\n" +
-      "Radio RX time:\t" + onTimeRX + "us = " + 100.0*((double)onTimeRX/simulation.getSimulationTime()) + "%\n" +
-      "Radio TX time:\t" + onTimeTX + "us = " + 100.0*((double)onTimeTX/simulation.getSimulationTime()) + "%\n" +
-      "Radio interfered time:\t" + onTimeInterfered + "us = " + 100.0*((double)onTimeInterfered/simulation.getSimulationTime()) + "%\n";
+      return toString(true, true, true, true);
+    }
+    public String toString(boolean logs, boolean leds, boolean radioHW, boolean radioRXTX) {
+      long duration = simulation.getSimulationTime(); /* XXX */
+      StringBuilder sb = new StringBuilder();
+      String moteDesc = (mote!=null?"" + mote.getID():"AVERAGE") + " ";
+      if (logs) {
+        sb.append(moteDesc + "nr_logs " + nrLogs + "\n");
+      }
+      if (leds) {
+        sb.append(moteDesc + "led_red " + onTimeRedLED + " us " + 100.0*((double)onTimeRedLED/duration) + " %\n");
+        sb.append(moteDesc + "led_green " + onTimeGreenLED + " us " + 100.0*((double)onTimeGreenLED/duration) + " %\n");
+        sb.append(moteDesc + "led_blue " + onTimeBlueLED + " us " + 100.0*((double)onTimeBlueLED/duration) + " %\n");
+      }
+      if (radioHW) {
+        sb.append(moteDesc + "radio_on " + radioOn + " us " + 100.0*((double)radioOn/duration) + " %\n");
+      }
+      if (radioRXTX) {
+        sb.append(moteDesc + "radio_tx " + onTimeTX + " us " + 100.0*((double)onTimeTX/duration) + " %\n");
+        sb.append(moteDesc + "radio_rx " + onTimeRX + " us " + 100.0*((double)onTimeRX/duration) + " %\n");
+        sb.append(moteDesc + "radio_int " + onTimeInterfered + " us " + 100.0*((double)onTimeInterfered/duration) + " %\n");
+      }
+      return sb.toString();
     }
   }
   private Action statisticsAction = new AbstractAction("Print statistics to console") {
@@ -546,126 +559,141 @@ public class TimeLine extends VisPlugin {
       logger.info(extractStatistics());
     }
   };
-  
-  public synchronized String extractStatistics() {
+
+  public String extractStatistics() {
+    return extractStatistics(true, true, true, true);
+  }
+  public synchronized String extractStatistics(
+      boolean logs, boolean leds, boolean radioHW, boolean radioRXTX) {
     StringBuilder output = new StringBuilder();
-    
+
     /* Process all events (per mote basis) */
     ArrayList<MoteStatistics> allStats = new ArrayList<MoteStatistics>();
     for (MoteEvents moteEvents: allMoteEvents) {
       MoteStatistics stats = new MoteStatistics();
       allStats.add(stats);
       stats.mote = moteEvents.mote;
-      
-      for (MoteEvent ev: moteEvents.ledEvents) {
-        if (!(ev instanceof LEDEvent)) continue;
-        LEDEvent ledEvent = (LEDEvent) ev;
 
-        /* Red */
-        if (ledEvent.red) {
-          /* LED is on, add time interval */
-          if (ledEvent.next == null) {
-            stats.onTimeRedLED += (simulation.getSimulationTime() - ledEvent.time);
-          } else {
-            stats.onTimeRedLED += (ledEvent.next.time - ledEvent.time);
-          }
-        }
+      if (leds) {
+        for (MoteEvent ev: moteEvents.ledEvents) {
+          if (!(ev instanceof LEDEvent)) continue;
+          LEDEvent ledEvent = (LEDEvent) ev;
 
-        /* Green */
-        if (ledEvent.green) {
-          /* LED is on, add time interval */
-          if (ledEvent.next == null) {
-            stats.onTimeGreenLED += (simulation.getSimulationTime() - ledEvent.time);
-          } else {
-            stats.onTimeGreenLED += (ledEvent.next.time - ledEvent.time);
+          /* Red */
+          if (ledEvent.red) {
+            /* LED is on, add time interval */
+            if (ledEvent.next == null) {
+              stats.onTimeRedLED += (simulation.getSimulationTime() - ledEvent.time);
+            } else {
+              stats.onTimeRedLED += (ledEvent.next.time - ledEvent.time);
+            }
           }
-        }
-        
-        /* Blue */
-        if (ledEvent.blue) {
-          /* LED is on, add time interval */
-          if (ledEvent.next == null) {
-            stats.onTimeBlueLED += (simulation.getSimulationTime() - ledEvent.time);
-          } else {
-            stats.onTimeBlueLED += (ledEvent.next.time - ledEvent.time);
+
+          /* Green */
+          if (ledEvent.green) {
+            /* LED is on, add time interval */
+            if (ledEvent.next == null) {
+              stats.onTimeGreenLED += (simulation.getSimulationTime() - ledEvent.time);
+            } else {
+              stats.onTimeGreenLED += (ledEvent.next.time - ledEvent.time);
+            }
+          }
+
+          /* Blue */
+          if (ledEvent.blue) {
+            /* LED is on, add time interval */
+            if (ledEvent.next == null) {
+              stats.onTimeBlueLED += (simulation.getSimulationTime() - ledEvent.time);
+            } else {
+              stats.onTimeBlueLED += (ledEvent.next.time - ledEvent.time);
+            }
           }
         }
       }
 
-      for (MoteEvent ev: moteEvents.logEvents) {
-        if (!(ev instanceof LogEvent)) continue;
-        stats.nrLogs++;
+      if (logs) {
+        for (MoteEvent ev: moteEvents.logEvents) {
+          if (!(ev instanceof LogEvent)) continue;
+          stats.nrLogs++;
+        }
       }
       
       /* TODO Radio channels */
 
-      for (MoteEvent ev: moteEvents.radioHWEvents) {
-        if (!(ev instanceof RadioHWEvent)) continue;
-        RadioHWEvent hwEvent = (RadioHWEvent) ev;
-        if (hwEvent.on) {
-          /* HW is on */
-          if (hwEvent.next == null) {
-            stats.radioOn += (simulation.getSimulationTime() - hwEvent.time);
-          } else {
-            stats.radioOn += (hwEvent.next.time - hwEvent.time);
+      if (radioHW) {
+        for (MoteEvent ev: moteEvents.radioHWEvents) {
+          if (!(ev instanceof RadioHWEvent)) continue;
+          RadioHWEvent hwEvent = (RadioHWEvent) ev;
+          if (hwEvent.on) {
+            /* HW is on */
+            if (hwEvent.next == null) {
+              stats.radioOn += (simulation.getSimulationTime() - hwEvent.time);
+            } else {
+              stats.radioOn += (hwEvent.next.time - hwEvent.time);
+            }
           }
         }
       }
       
-      for (MoteEvent ev: moteEvents.radioRXTXEvents) {
-        if (!(ev instanceof RadioRXTXEvent)) continue;
-        RadioRXTXEvent rxtxEvent = (RadioRXTXEvent) ev;
-        if (rxtxEvent.state == RXTXRadioEvent.IDLE) {
-          continue;
-        }
+      if (radioRXTX) {
+        for (MoteEvent ev: moteEvents.radioRXTXEvents) {
+          if (!(ev instanceof RadioRXTXEvent)) continue;
+          RadioRXTXEvent rxtxEvent = (RadioRXTXEvent) ev;
+          if (rxtxEvent.state == RXTXRadioEvent.IDLE) {
+            continue;
+          }
 
-        long diff;
-        if (rxtxEvent.next == null) {
-          diff = (simulation.getSimulationTime() - rxtxEvent.time);
-        } else {
-          diff = (rxtxEvent.next.time - rxtxEvent.time);
-        }
+          long diff;
+          if (rxtxEvent.next == null) {
+            diff = (simulation.getSimulationTime() - rxtxEvent.time);
+          } else {
+            diff = (rxtxEvent.next.time - rxtxEvent.time);
+          }
 
-        if (rxtxEvent.state == RXTXRadioEvent.TRANSMITTING) {
-          stats.onTimeTX += diff;
-          continue;
-        }
-        if (rxtxEvent.state == RXTXRadioEvent.INTERFERED) {
-          stats.onTimeInterfered += diff;
-          continue;
-        }
-        if (rxtxEvent.state == RXTXRadioEvent.RECEIVING) {
-          stats.onTimeRX += diff;
-          continue;
+          if (rxtxEvent.state == RXTXRadioEvent.TRANSMITTING) {
+            stats.onTimeTX += diff;
+            continue;
+          }
+          if (rxtxEvent.state == RXTXRadioEvent.INTERFERED) {
+            stats.onTimeInterfered += diff;
+            continue;
+          }
+          if (rxtxEvent.state == RXTXRadioEvent.RECEIVING) {
+            stats.onTimeRX += diff;
+            continue;
+          }
         }
       }
       
       /* TODO Watchpoints */
 
-      output.append(stats.toString());
+      output.append(stats.toString(logs, leds, radioHW, radioRXTX));
     }
 
-    /* Summary */
-    MoteStatistics all = new MoteStatistics();
+    if (allStats.size() == 0) {
+      return output.toString();
+    }
+    
+    /* Average */
+    MoteStatistics average = new MoteStatistics();
     for (MoteStatistics stats: allStats) {
-      all.onTimeRedLED += stats.onTimeRedLED;
-      all.onTimeGreenLED += stats.onTimeGreenLED;
-      all.onTimeBlueLED += stats.onTimeBlueLED;
-      all.radioOn += stats.radioOn;
-      all.onTimeRX += stats.onTimeRX;
-      all.onTimeTX += stats.onTimeTX;
-      all.onTimeInterfered += stats.onTimeInterfered;
+      average.onTimeRedLED += stats.onTimeRedLED;
+      average.onTimeGreenLED += stats.onTimeGreenLED;
+      average.onTimeBlueLED += stats.onTimeBlueLED;
+      average.radioOn += stats.radioOn;
+      average.onTimeRX += stats.onTimeRX;
+      average.onTimeTX += stats.onTimeTX;
+      average.onTimeInterfered += stats.onTimeInterfered;
     }
-    all.onTimeBlueLED /= allStats.size();
-    all.onTimeGreenLED /= allStats.size();
-    all.onTimeBlueLED /= allStats.size();
-    all.radioOn /= allStats.size();
-    all.onTimeRX /= allStats.size();
-    all.onTimeTX /= allStats.size();
-    all.onTimeInterfered /= allStats.size();
+    average.onTimeBlueLED /= allStats.size();
+    average.onTimeGreenLED /= allStats.size();
+    average.onTimeBlueLED /= allStats.size();
+    average.radioOn /= allStats.size();
+    average.onTimeRX /= allStats.size();
+    average.onTimeTX /= allStats.size();
+    average.onTimeInterfered /= allStats.size();
 
-    output.append("SIMULATION AVERAGE:");
-    output.append(all.toString());
+    output.append(average.toString(logs, leds, radioHW, radioRXTX));
     return output.toString();
   }
   
@@ -675,6 +703,7 @@ public class TimeLine extends VisPlugin {
         /* Visible rectangle */
         int newX = (int) (time / currentPixelDivisor);
         int w = timeline.getVisibleRect().width;
+        w = 50;
         Rectangle r = new Rectangle(
             newX - w/2, 0, 
             w, 1
