@@ -13,19 +13,19 @@ void main(void) {
 	*mem32(0x0040fffc) = 0xface00ff;
 	*mem32(0x00410000) = 0xabcd0123;
 
-	puts("sleep test\n\r");
-	puts("0x00401ffc: ");
+	putstr("sleep test\n\r");
+	putstr("0x00401ffc: ");
 	put_hex32(*mem32(0x00401ffc));
-	puts("\r\n");
-	puts("0x00407ffc: ");
+	putstr("\r\n");
+	putstr("0x00407ffc: ");
 	put_hex32(*mem32(0x00407ffc));
-	puts("\r\n");
-	puts("0x0040fffc: ");
+	putstr("\r\n");
+	putstr("0x0040fffc: ");
 	put_hex32(*mem32(0x0040fffc));
-	puts("\r\n");
-	puts("0x00410000: ");
+	putstr("\r\n");
+	putstr("0x00410000: ");
 	put_hex32(*mem32(0x00410000));
-	puts("\r\n");
+	putstr("\r\n");
 
 	/* radio must be OFF before sleeping */
 	/* otherwise MCU will not wake up properly */
@@ -34,7 +34,7 @@ void main(void) {
 
 #if USE_32KHZ
 	/* turn on the 32kHz crystal */
-	puts("enabling 32kHz crystal\n\r");
+	putstr("enabling 32kHz crystal\n\r");
 	/* you have to hold it's hand with this on */
 	/* once you start the 32xHz crystal it can only be stopped with a reset (hard or soft) */
 	/* first, disable the ring osc */
@@ -49,14 +49,14 @@ void main(void) {
 	{
 		static volatile uint32_t old;
 		old = *CRM_RTC_COUNT;
-		puts("waiting for xtal\n\r");
+		putstr("waiting for xtal\n\r");
 		while(*CRM_RTC_COUNT == old) { 
 			continue; 
 		}
 		/* RTC has started up */
 
 		set_bit(*CRM_SYS_CNTL,5);
-		puts("32kHZ xtal started\n\r");
+		putstr("32kHZ xtal started\n\r");
 
 	}
 #endif	
@@ -105,19 +105,19 @@ void main(void) {
 	/* write 1 to sleep_sync --- this clears the bit (it's a r1wc bit) and finishes wakeup */
 	*CRM_STATUS = 1; 
 
-	puts("\n\r\n\r\n\r");
-	puts("0x00401ffc: ");
+	putstr("\n\r\n\r\n\r");
+	putstr("0x00401ffc: ");
 	put_hex32(*mem32(0x00401ffc));
-	puts("\r\n");
-	puts("0x00407ffc: ");
+	putstr("\r\n");
+	putstr("0x00407ffc: ");
 	put_hex32(*mem32(0x00407ffc));
-	puts("\r\n");
-	puts("0x0040fffc: ");
+	putstr("\r\n");
+	putstr("0x0040fffc: ");
 	put_hex32(*mem32(0x0040fffc));
-	puts("\r\n");
-	puts("0x00410000: ");
+	putstr("\r\n");
+	putstr("0x00410000: ");
 	put_hex32(*mem32(0x00410000));
-	puts("\r\n");
+	putstr("\r\n");
 
 	*GPIO_PAD_DIR0 = LED_RED;
 #define DELAY 400000

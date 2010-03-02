@@ -6,14 +6,14 @@
 
 #define DEBUG 1
 #if DEBUG
-#define dbg_putc(...) putc(__VA_ARGS__)
-#define dbg_puts(...) puts(__VA_ARGS__)
+#define dbg_putchr(...) putchr(__VA_ARGS__)
+#define dbg_putstr(...) putstr(__VA_ARGS__)
 #define dbg_put_hex(...) put_hex(__VA_ARGS__)
 #define dbg_put_hex16(...) put_hex16(__VA_ARGS__)
 #define dbg_put_hex32(...) put_hex32(__VA_ARGS__)
 #else
-#define dbg_putc(...)
-#define dbg_puts(...)
+#define dbg_putchr(...)
+#define dbg_putstr(...)
 #define dbg_put_hex(...)
 #define dbg_put_hex16(...)
 #define dbg_put_hex32(...)
@@ -45,30 +45,30 @@ void main(void) {
 
 	vreg_init();
 
-	dbg_puts("Detecting internal nvm\n\r");
+	dbg_putstr("Detecting internal nvm\n\r");
 
 	err = nvm_detect(gNvmInternalInterface_c, &type);
 		
-	dbg_puts("nvm_detect returned: 0x");
+	dbg_putstr("nvm_detect returned: 0x");
 	dbg_put_hex(err);
-	dbg_puts(" type is: 0x");
+	dbg_putstr(" type is: 0x");
 	dbg_put_hex32(type);
-	dbg_puts("\n\r");
+	dbg_putstr("\n\r");
 	
 	/* erase the flash */
 	err = nvm_erase(gNvmInternalInterface_c, type, 0x4fffffff); 
 
-	dbg_puts("nvm_erase returned: 0x");
+	dbg_putstr("nvm_erase returned: 0x");
 	dbg_put_hex(err);
-	dbg_puts("\n\r");
+	dbg_putstr("\n\r");
 
-	dbg_puts(" type is: 0x");
+	dbg_putstr(" type is: 0x");
 	dbg_put_hex32(type);
-	dbg_puts("\n\r");
+	dbg_putstr("\n\r");
 
 	/* say we are ready */
 	len = 0;
-	puts("ready");
+	putstr("ready");
 	flushrx();
 
 	/* read the length */
@@ -78,9 +78,9 @@ void main(void) {
 		len += (c<<(i*8));
 	}
 
-	dbg_puts("len: ");
+	dbg_putstr("len: ");
 	dbg_put_hex32(len);
-	dbg_puts("\n\r");
+	dbg_putstr("\n\r");
 	
 	/* write the OKOK magic */
 
@@ -92,15 +92,15 @@ void main(void) {
 	((uint8_t *)buf)[0] = 'N'; ((uint8_t *)buf)[1] = 'O'; ((uint8_t *)buf)[2] = 'N'; ((uint8_t *)buf)[3] = 'O';
 #endif
 
-	dbg_puts(" type is: 0x");
+	dbg_putstr(" type is: 0x");
 	dbg_put_hex32(type);
-	dbg_puts("\n\r");
+	dbg_putstr("\n\r");
 
 	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)buf, 0, 4);
 
-	dbg_puts("nvm_write returned: 0x");
+	dbg_putstr("nvm_write returned: 0x");
 	dbg_put_hex(err);
-	dbg_puts("\n\r");
+	dbg_putstr("\n\r");
 
 	/* write the length */
 	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)&len, 4, 4);
@@ -113,7 +113,7 @@ void main(void) {
 		err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)&c, 8+i, 1); 
 	}
 
-	puts("flasher done\n\r");
+	putstr("flasher done\n\r");
 
 	state = SCAN_X; addr=0;
 	while((c=getc())) {
@@ -139,11 +139,11 @@ void main(void) {
 			} else {
 				/* string is data to write */
 				data = to_u32(buf);
-				puts("writing addr ");
+				putstr("writing addr ");
 				put_hex32(addr);
-				puts(" data ");
+				putstr(" data ");
 				put_hex32(data);
-				puts("\n\r");
+				putstr("\n\r");
 				err = nvm_write(gNvmInternalInterface_c, 1, (uint8_t *)&data, addr, 4);
 				addr += 4;
 			}

@@ -10,7 +10,7 @@ void main(void) {
 	uart_init(INC, MOD);
 
 	for(data = DUMP_BASE; data < ((uint8_t *)(DUMP_BASE+DUMP_LEN)); data++) {
-		putc(*data);
+		putchr(*data);
 	}
 
 	while(1);

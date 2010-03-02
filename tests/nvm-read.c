@@ -16,27 +16,27 @@ void main(void) {
 
 	vreg_init();
 
-	puts("Detecting internal nvm\n\r");
+	putstr("Detecting internal nvm\n\r");
 
 	err = nvm_detect(gNvmInternalInterface_c, &type);
 		
-	puts("nvm_detect returned: 0x");
+	putstr("nvm_detect returned: 0x");
 	put_hex(err);
-	puts(" type is: 0x");
+	putstr(" type is: 0x");
 	put_hex32(type);
-	puts("\n\r");
+	putstr("\n\r");
 
 	nvm_setsvar(0);
 
 	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, READ_ADDR, READ_NBYTES);
-	puts("nvm_read returned: 0x");
+	putstr("nvm_read returned: 0x");
 	put_hex(err);
-	puts("\n\r");
+	putstr("\n\r");
 
 	for(i=0; i<READ_NBYTES/4; i++) {
-		puts("0x");
+		putstr("0x");
 		put_hex32(buf[i]);
-		puts("\n\r");
+		putstr("\n\r");
 	}
 		
 
