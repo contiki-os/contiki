@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.17 2010/02/03 13:59:55 nifi Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.18 2010/03/02 22:40:39 nifi Exp $
  */
 
 #include <io.h>
@@ -37,10 +37,24 @@
 #include <string.h>
 
 #include "contiki.h"
+#include "contiki-esb.h"
 
 #include "dev/watchdog.h"
 #include "sys/autostart.h"
-#include "contiki-esb.h"
+#include "net/uip-driver.h"
+#include "net/netstack.h"
+
+#if WITH_UIP
+
+static struct uip_fw_netif tr1001if =
+  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, uip_driver_send)};
+
+#if WITH_SLIP
+static struct uip_fw_netif slipif =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,255,0, slip_send)};
+#endif /* WITH_SLIP */
+
+#endif /* WITH_UIP */
 
 #ifdef DCOSYNCH_CONF_PERIOD
 #define DCOSYNCH_PERIOD DCOSYNCH_CONF_PERIOD
@@ -62,6 +76,53 @@ SENSORS(&button_sensor, &sound_sensor, &vib_sensor,
 	&pir_sensor, &radio_sensor, &battery_sensor, &ctsrts_sensor,
 	&temperature_sensor);
 
+/*---------------------------------------------------------------------------*/
+static void
+set_rime_addr(void)
+{
+  int i;
+  rimeaddr_t rimeaddr;
+
+  rimeaddr.u8[0] = node_id & 0xff;
+  rimeaddr.u8[1] = node_id >> 8;
+  rimeaddr_set_node_addr(&rimeaddr);
+
+  printf("Rime started with address ");
+  for(i = 0; i < sizeof(rimeaddr.u8) - 1; i++) {
+    printf("%u.", rimeaddr.u8[i]);
+  }
+  printf("%u\n", rimeaddr.u8[i]);
+}
+/*---------------------------------------------------------------------------*/
+#if WITH_UIP
+static void
+init_uip_net(void)
+{
+  uip_ipaddr_t hostaddr;
+
+  uip_init();
+  uip_fw_init();
+
+  process_start(&tcpip_process, NULL);
+#if WITH_SLIP
+  process_start(&slip_process, NULL);
+  rs232_set_input(slip_input_byte);
+#endif /* WITH_SLIP */
+  process_start(&uip_fw_process, NULL);
+
+  if (node_id > 0) {
+    /* node id is set, construct an ip address based on the node id */
+    uip_ipaddr(&hostaddr, 172, 16, 1, node_id & 0xff);
+    uip_sethostaddr(&hostaddr);
+  }
+
+#if WITH_SLIP
+  uip_fw_register(&slipif);
+#endif /* WITH_SLIP */
+
+  uip_fw_default(&tr1001if);
+}
+#endif /* WITH_UIP */
 /*---------------------------------------------------------------------------*/
 static void
 print_processes(struct process * const processes[])
@@ -135,14 +196,7 @@ main(void)
 
   ctimer_init();
 
-#if PROFILE_CONF_ON
-  profile_init();
-#endif /* PROFILE_CONF_ON */
-
-#if ENERGEST_CONF_ON
-  energest_init();
-  ENERGEST_ON(ENERGEST_TYPE_CPU);
-#endif /* ENERGEST_CONF_ON */
+  set_rime_addr();
 
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
@@ -151,12 +205,35 @@ main(void)
     printf("Node id is not set.\n");
   }
 
-  init_net();
+  netstack_init();
+
+  printf("%s %s, channel check rate %u Hz\n",
+         NETSTACK_MAC.name, NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+                         NETSTACK_RDC.channel_check_interval()));
 
   beep_spinup();
   leds_on(LEDS_RED);
   clock_delay(100);
   leds_off(LEDS_RED);
+
+#if !WITH_SLIP
+  rs232_set_input(serial_line_input_byte);
+  serial_line_init();
+#endif
+
+#if WITH_UIP
+  init_uip_net();
+#endif /* WITH_UIP */
+
+#if PROFILE_CONF_ON
+  profile_init();
+#endif /* PROFILE_CONF_ON */
+
+#if ENERGEST_CONF_ON
+  energest_init();
+  ENERGEST_ON(ENERGEST_TYPE_CPU);
+#endif /* ENERGEST_CONF_ON */
 
   init_apps();
   print_processes(autostart_processes);

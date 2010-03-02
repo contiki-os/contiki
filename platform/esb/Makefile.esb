@@ -1,16 +1,17 @@
-# $Id: Makefile.esb,v 1.14 2010/02/09 07:34:37 nifi Exp $
+# $Id: Makefile.esb,v 1.15 2010/03/02 22:40:39 nifi Exp $
 
 SENSORS    = sensors.c irq.c button-sensor.c pir-sensor.c vib-sensor.c \
              sound-sensor.c radio-sensor.c ctsrts-sensor.c battery-sensor.c \
              temperature-sensor.c
-ESB        = ir.c beep.c ds1629.c tr1001-uip.c tr1001-gcr.c gcr.c \
-             esb-sensors.c node-id.c eeprom.c
+ESB        = ir.c beep.c ds1629.c tr1001-gcr.c gcr.c \
+             esb-sensors.c node-id.c eeprom.c \
+             uip-driver.c uip-ipchksum.c
 CFS_EEPROM = cfs-eeprom.c
 CFS_COFFEE = cfs-coffee.c cfs-coffee-arch.c
 
 CONTIKI_TARGET_DIRS = . dev apps net loader
 ifndef CONTIKI_TARGET_MAIN
-CONTIKI_TARGET_MAIN = contiki-esb-main.c
+  CONTIKI_TARGET_MAIN = contiki-esb-main.c
 endif
 
 CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(ESB) \
@@ -19,32 +20,25 @@ CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(ESB) \
 	rs232.c rs232-putchar.c fader.c $(CONTIKI_TARGET_MAIN)
 
 ifdef WITH_CODEPROP
-CONTIKI_TARGET_DIRS += ../../apps/codeprop
-CONTIKI_TARGET_SOURCEFILES += codeprop-tmp.c
-ifndef NETSTACK
-NETSTACK = uip
-endif
+  CONTIKI_TARGET_DIRS += ../../apps/codeprop
+  CONTIKI_TARGET_SOURCEFILES += codeprop-tmp.c
+  WITH_UIP=1
 endif
 
-ifeq ($(NETSTACK),uip)
-CONTIKI_TARGET_SOURCEFILES += contiki-esb-init-net-uip.c uip-ipchksum.c
-else
-ifeq ($(NETSTACK),uip-noslip)
-CONTIKI_TARGET_SOURCEFILES += contiki-esb-init-net-uip-noslip.c uip-ipchksum.c
-else
-CONTIKI_TARGET_SOURCEFILES += contiki-esb-default-init-net.c
-endif
+ifdef WITH_UIP
+  ifndef WITH_SLIP
+    WITH_SLIP=1
+  endif
+  CFLAGS += -DWITH_UIP=1 -DWITH_SLIP=${WITH_SLIP}
 endif
 
 ifeq ($(CFS),coffee)
-CONTIKI_TARGET_SOURCEFILES += $(CFS_COFFEE)
+  CONTIKI_TARGET_SOURCEFILES += $(CFS_COFFEE)
 else
-CONTIKI_TARGET_SOURCEFILES +=  $(CFS_EEPROM)
+  CONTIKI_TARGET_SOURCEFILES += $(CFS_EEPROM)
 endif
 
 include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
-
-#PROJECT_OBJECTFILES += $(OBJECTDIR)/contiki-esb-main.o
 
 MCU=msp430x149
 include $(CONTIKI)/cpu/msp430/Makefile.msp430

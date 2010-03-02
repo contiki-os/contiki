@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb.h,v 1.5 2009/03/17 20:19:11 adamdunkels Exp $
+ * @(#)$Id: contiki-esb.h,v 1.6 2010/03/02 22:40:39 nifi Exp $
  */
 #ifndef __CONTIKI_ESB_H__
 #define __CONTIKI_ESB_H__
@@ -46,8 +46,6 @@
 
 #include "dev/serial-line.h"
 #include "dev/slip.h"
-#include "dev/tr1001.h"
-#include "net/tr1001-uip.h"
 
 #include "node-id.h"
 
@@ -71,7 +69,5 @@
 void msp430_cpu_init(void);
 void init_lowlevel(void);
 void init_apps(void);
-void init_net(void);
-
 
 #endif /* __CONTIKI_ESB_H__ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,40 +26,62 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
- * @(#)$Id: tr1001-uip.c,v 1.2 2007/08/07 11:14:39 nifi Exp $
+ * $Id: uip-driver.c,v 1.1 2010/03/02 22:40:39 nifi Exp $
  */
 
-#include "contiki-esb.h"
-#include "net/hc.h"
+/**
+ * \file
+ *         A brief description of what this file is
+ * \author
+ *         Niclas Finne <nfi@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
+ */
 
-/*---------------------------------------------------------------------------*/
+#include "net/netstack.h"
+#include "net/uip.h"
+#include "net/tcpip.h"
+#include "net/hc.h"
+#include "net/rime/packetbuf.h"
+#include "net/uip-driver.h"
+#include <string.h>
+
+/*--------------------------------------------------------------------*/
 static void
-tr1001_uip_callback(const struct radio_driver *driver)
+init(void)
 {
-  uip_len = driver->read(&uip_buf[UIP_LLH_LEN], UIP_BUFSIZE - UIP_LLH_LEN);
-  if(uip_len > 0) {
-    uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);
+  /*
+   * Set out output function as the function to be called from uIP to
+   * send a packet.
+   */
+  tcpip_set_outputfunc(uip_driver_send);
+}
+/*--------------------------------------------------------------------*/
+static void
+input(void)
+{
+  if(packetbuf_datalen() > 0 &&
+     packetbuf_datalen() <= UIP_BUFSIZE - UIP_LLH_LEN) {
+    memcpy(&uip_buf[UIP_LLH_LEN], packetbuf_dataptr(), packetbuf_datalen());
+    uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], packetbuf_datalen());
     tcpip_input();
   }
 }
-/*---------------------------------------------------------------------------*/
-void
-tr1001_uip_init()
-{
-  tr1001_init();
-  tr1001_driver.set_receive_function(tr1001_uip_callback);
-}
-/*---------------------------------------------------------------------------*/
-u8_t
-tr1001_uip_send(void)
+/*--------------------------------------------------------------------*/
+uint8_t
+uip_driver_send(void)
 {
   uip_len = hc_compress(&uip_buf[UIP_LLH_LEN], uip_len);
-  if (tr1001_driver.send(&uip_buf[UIP_LLH_LEN], uip_len) == 0) {
-    return UIP_FW_OK;
-  } else {
-    return UIP_FW_DROPPED;
-  }
+  packetbuf_copyfrom(&uip_buf[UIP_LLH_LEN], uip_len);
+
+  /* XXX we should provide a callback function that is called when the
+     packet is sent. For now, we just supply a NULL pointer. */
+  NETSTACK_MAC.send(NULL, NULL);
+  return 1;
 }
-/*---------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
+const struct network_driver uip_driver = {
+  "uip",
+  init,
+  input
+};
+/*--------------------------------------------------------------------*/
