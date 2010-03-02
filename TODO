@@ -6,5 +6,7 @@
   call rom_data_init and
   TARGETS_WITH_ROMDATA which does what is going on now.
 
+- mv libmc1322x/libmc1322x libmc1322x/lib
+
  
    
