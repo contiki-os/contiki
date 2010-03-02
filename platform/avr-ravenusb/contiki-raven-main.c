@@ -33,10 +33,11 @@
 
 /**
  * \file
- *         Sample Contiki kernel for STK 501 development board
+ *         Contiki 2.4 kernel for Jackdaw USB stick
  *
  * \author
- *         Simon Barner <barner@in.tum.de
+ *         Simon Barner <barner@in.tum.de>
+ *         David Kopf <dak664@embarqmail.com>
  */
 
 #include <avr/pgmspace.h>
@@ -46,20 +47,12 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Set ANNOUNCE to send boot messages to USB serial port */
-#define ANNOUNCE 1
-
-#if RF230BB        //radio driver using contiki core mac
+#if RF230BB           //radio driver using contiki core mac
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
-#include "net/mac/framer-802154.h"
-//#include "net/mac/framer-nullmac.h"
-//#include "net/mac/framer.h"
 #include "net/sicslowpan.h"
 #include "net/uip-netif.h"
 #include "net/mac/lpp.h"
-//#include "dev/xmem.h"
-
 #include "net/mac/sicslowmac.h"
 #include "net/mac/cxmac.h"
 #else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
@@ -88,21 +81,22 @@
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 extern int rf230_interrupt_flag;
 extern uint8_t rf230processflag;
+rimeaddr_t addr,macLongAddr;
 #endif /* RF230BB */
 
-#if 1  //dummy tcpip process not needed?
-PROCESS(tcpip_process, "tcpip dummy");
-PROCESS_THREAD(tcpip_process, ev, data)
-{
-  PROCESS_BEGIN();
-  PROCESS_END();
-}
-void
-tcpip_ipv6_output(void)
-{
-  printf("tcpipipv6output");
-}
-#endif
+/* Set ANNOUNCE to send boot messages to USB serial port */
+#define ANNOUNCE 1
+
+/* Test rtimers, also useful for pings and time stamps in simulator */
+#define TESTRTIMER 0
+#if TESTRTIMER
+#define PINGS 0
+#define STAMPS 30
+uint8_t rtimerflag=1;
+uint16_t rtime;
+struct rtimer rt;
+void rtimercycle(void) {rtimerflag=1;}
+#endif /* TESTRTIMER */
 
 /*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
@@ -122,26 +116,8 @@ uint8_t mac_address[8] EEMEM = {0x02, 0x12, 0x13, 0xff, 0xfe, 0x14, 0x15, 0x16};
 //uint8_t EEMEM server_name[16];
 //uint8_t EEMEM domain_name[30];
 
-#if RF230BB
-rimeaddr_t macLongAddr;
-#endif
-
-/* Test rtimers, also useful for pings and time stamps in simulator */
-#define TESTRTIMER 0
-#if TESTRTIMER
-#define PINGS 0
-#define STAMPS 30
-uint8_t rtimerflag=1;
-uint16_t rtime;
-struct rtimer rt;
-void rtimercycle(void) {rtimerflag=1;}
-#endif /* TESTRTIMER */
-
-/*-------------------------Low level initialization-----------------*/
-#if RF230BB
-    rimeaddr_t addr;
-#endif
-extern uint8_t packetreceived;
+/*-------------------------------------------------------------------------*/
+/*-----------------------------Low level initialization--------------------*/
 static void initialize(void) {
 
   /* Initialize hardware */
@@ -165,7 +141,6 @@ static void initialize(void) {
   /* Start radio and radio receive process */
   /* Note this starts RF230 process, so must be done after process_init */
   NETSTACK_RADIO.init();
-//rf230_init();
 
   /* Set addresses BEFORE starting tcpip process */
 
@@ -185,15 +160,12 @@ static void initialize(void) {
  
   memcpy(&uip_lladdr.addr, &addr.u8, 8);
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
-
   rf230_set_channel(24);
 
   rimeaddr_set_node_addr(&addr); 
 //  set_rime_addr();
 
-  framer_set(&framer_802154);
-//  process_start(&tcpip_process, NULL);
-  /* Setup X-MAC for 802.15.4 */
+  /* Initialize stack protocols */
   queuebuf_init();
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
@@ -204,17 +176,13 @@ static void initialize(void) {
   uip_router_register(&rimeroute);
 #endif
 }
-#endif /*RF230BB*/
 
-
-#if RF230BB
-  process_start(&tcpip_process, NULL);
 #else
 /* The order of starting these is important! */
   process_start(&mac_process, NULL);
   process_start(&tcpip_process, NULL);
 
-#endif /* RF230BB */
+  #endif /* RF230BB */
 
   /* Setup USB */
   process_start(&usb_process, NULL);
@@ -262,19 +230,16 @@ main(void)
     }
 #endif /* TESTRTIMER */
 
-//Use with RF230BB RADIOALWAYSON to show packets missed when radio is "off"
+//Use with RF230BB DEBUGFLOW to show path through driver
 //Warning, Jackdaw doesn't handle simultaneous radio and USB interrupts very well.
-#if 0
-    if (packetreceived) {
-      if (packetreceived==1) {
-        printf("-");
-      } else {
-        printf("+");
-      }
-      packetreceived=0;
-    }
+#if RF230BB&&0
+extern uint8_t debugflowsize,debugflow[];
+  if (debugflowsize) {
+    debugflow[debugflowsize]=0;
+    printf("%s",debugflow);
+    debugflowsize=0;
+   }
 #endif
-
 
   /* Allow USB CDC to keep up with printfs */
 #if ANNOUNCE
@@ -292,7 +257,7 @@ main(void)
          unsigned short tmp;
          tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
                                    NETSTACK_RDC.channel_check_interval());
-         printf_P(PSTR(", check rate %u Hz"),tmp);
+         if (tmp<65535) printf_P(PSTR(", check rate %u Hz"),tmp);
        }
        printf_P(PSTR("\n\r"));
 #endif /* RF230BB */
@@ -302,7 +267,7 @@ main(void)
   }
 #endif /* ANNOUNCE */
 
-#if DEBUG && 0
+#if RF230BB&&0
   if (rf230processflag) {
     printf("**RF230 process flag %u\n\r",rf230processflag);
     rf230processflag=0;
@@ -313,7 +278,7 @@ main(void)
  // }
     rf230_interrupt_flag=0;
   }
-#endif /* DEBUG */
+#endif
   }
 
   return 0;
