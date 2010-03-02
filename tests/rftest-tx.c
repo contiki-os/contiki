@@ -1,5 +1,6 @@
 #include <mc1322x.h>
 #include <board.h>
+#include <stdio.h>
 
 #include "tests.h"
 #include "config.h"
@@ -100,62 +101,56 @@ void main(void) {
 			{
 			case(cc_aborted):
 			{
-				putstr("aborted\n\r");
+				printf("aborted\n\r");
 				ResumeMACASync();				
 				break;
 				
 			}
 			case(cc_not_completed):
 			{
-				putstr("not completed\n\r");
+				printf("not completed\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_timeout):
 			{
-				putstr("timeout\n\r");
+				printf("timeout\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_no_ack):
 			{
-				putstr("no ack\n\r");
+				printf("no ack\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_ext_timeout):
 			{
-				putstr("ext timeout\n\r");
+				printf("ext timeout\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_ext_pnd_timeout):
 			{
-				putstr("ext pnd timeout\n\r");
+				printf("ext pnd timeout\n\r");
 				ResumeMACASync();
 				break;
 				
 			}
 			case(cc_success):
 			{
-//				putstr("success\n\r");
+//				printf("success\n\r");
 				
-				putstr("rftest-tx --- " );
-				putstr(" payload len+crc: 0x");
-				put_hex(PAYLOAD_LEN+4);
-				putstr(" timestamp: 0x");
-				put_hex32(maca_timestamp);
-				putstr("\n\r");
-				putstr(" data: ");
+				printf("rftest-tx ---  payload len+crc: 0x%02x timestamp: 0x%08x\n\r", PAYLOAD_LEN+4, maca_timestamp);
+				printf(" data: ");
 				for(i=0; i<PAYLOAD_LEN; i++) {
-					put_hex(data[i]);
-					putchr(' ');
+					printf("%02x ",data[i]);
 				}
-				putstr("\n\r");
+				printf("\n\r");
 
 				toggle_led();
 
@@ -167,14 +162,13 @@ void main(void) {
 			}
 			default:
 			{
-				putstr("status: ");
-				put_hex16(status);
+				printf("status: 0x%02x",status);
 				ResumeMACASync();
 				
 			}
 			}
 		} else if (_is_filter_failed_interrupt(maca_irq)) {
-			putstr("filter failed\n\r");
+			printf("filter failed\n\r");
 			ResumeMACASync();
 		}
 		
