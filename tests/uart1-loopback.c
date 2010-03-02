@@ -5,6 +5,8 @@
 #include "config.h"
 
 void main(void) {
+
+	uart1_init(INC,MOD);
 	
 	uint8_t c;
 	while(1) {
