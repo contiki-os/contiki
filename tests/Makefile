@@ -6,7 +6,7 @@ MC1322X := ..
 COBJS := tests.o 
 
 # all of the target programs to build
-TARGETS := blink-green blink-blue blink-white blink-allio \
+TARGETS := blink-red blink-green blink-blue blink-white blink-allio \
            uart1-loopback \
            nvm-read nvm-write romimg flasher \
            tmr tmr-ints \
@@ -16,7 +16,7 @@ TARGETS := blink-green blink-blue blink-white blink-allio \
 
 # these targets are built with space reserved for variables needed by ROM services
 # this space is initialized with a rom call to rom_data_init
-TARGETS_WITH_ROM_VARS := blink-red
+TARGETS_WITH_ROM_VARS := 
 
 include $(MC1322X)/Makefile.include
 
