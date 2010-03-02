@@ -3,13 +3,13 @@
 CROSS_COMPILE := arm-linux-
 
 LINKERSCRIPT := $(MC1322X)/mc1322x.lds
-LIBMC1322X := $(MC1322X)/libmc1322x
+LIBMC1322X := $(MC1322X)/lib
 
 include $(MC1322X)/config.mk
 
 include $(MC1322X)/board/Makefile.board
 
-include $(MC1322X)/libmc1322x/Makefile.lib
+include $(LIBMC1322X)/Makefile.lib
 
 
 CFLAGS += -I$(MC1322X)/src -I.
