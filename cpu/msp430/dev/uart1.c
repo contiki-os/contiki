@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.16 2009/11/18 15:45:32 nifi Exp $
+ * @(#)$Id: uart1.c,v 1.17 2010/03/03 23:18:58 nvt-se Exp $
  */
 
 /*
@@ -89,6 +89,9 @@ uart1_writeb(unsigned char c)
      the first byte into the UART. */
   if(transmitting == 0) {
     transmitting = 1;
+
+    /* Loop until the transmission buffer is available. */
+    while((IFG2 & UTXIFG1) == 0);
     TXBUF1 = ringbuf_get(&txbuf);
   }
 
