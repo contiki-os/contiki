@@ -15,22 +15,22 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
     public static final int ACKFRAME = 0x02;
     public static final int CMDFRAME = 0x03;
 
-    private static final byte[] BROADCAST_ADDR = {(byte)0xff, (byte)0xff};
+//    private static final byte[] BROADCAST_ADDR = {(byte)0xff, (byte)0xff};
 
     private static final String[] typeS = {"-", "D", "A"};
-    private static final String[] typeVerbose = {"Beacon", "Data", "Ack"};
+    private static final String[] typeVerbose = {"BEACON", "DATA", "ACK"};
 
-    private int defaultAddressMode = LONG_ADDRESS;
-    private byte seqNo = 0;
+//    private int defaultAddressMode = LONG_ADDRESS;
+//    private byte seqNo = 0;
 
-    private int myPanID = 0xabcd;
+//    private int myPanID = 0xabcd;
 
 
     public boolean matchPacket(Packet packet) {
         return packet.level == MAC_LEVEL;
     }
 
-/* we need better model of this later... */
+    /* we need better model of this later... */
     public boolean matchPacket(byte[] packet, int level) {
         return false;
     }
@@ -45,14 +45,14 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
     public void analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose) {
         int pos = packet.pos;
         int type = packet.data[pos + 0] & 7;
-        int security = (packet.data[pos + 0] >> 3) & 1;
-        int pending = (packet.data[pos + 0] >> 4) & 1;
-        int ackRequired = (packet.data[pos + 0] >> 5) & 1;
+//        int security = (packet.data[pos + 0] >> 3) & 1;
+//        int pending = (packet.data[pos + 0] >> 4) & 1;
+//        int ackRequired = (packet.data[pos + 0] >> 5) & 1;
         int panCompression  = (packet.data[pos + 0]>> 6) & 1;
         int destAddrMode = (packet.data[pos + 1] >> 2) & 3;
-        int frameVersion = (packet.data[pos + 1] >> 4) & 3;
+//        int frameVersion = (packet.data[pos + 1] >> 4) & 3;
         int srcAddrMode = (packet.data[pos + 1] >> 6) & 3;
-        int seqNumber = packet.data[pos + 2];
+        int seqNumber = packet.data[pos + 2] & 0xff;
         int destPanID = 0;
         int srcPanID = 0;
         byte[] sourceAddress = null;
@@ -98,22 +98,32 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
             }
         }
 
-        int payloadLen = packet.data.length - pos;
+//        int payloadLen = packet.data.length - pos;
 
         brief.append("15.4 ");
-        brief.append(typeS[type]).append(' ');
+        brief.append(type < typeS.length ? typeS[type] : "?").append(' ');
         printAddress(brief, srcAddrMode, sourceAddress);
-        brief.append(" ");
+        brief.append(' ');
         printAddress(brief, destAddrMode, destAddress);
 
-
-        verbose.append("<html><b>IEEE 802.15.4</b><br>from ");
+        verbose.append("<html><b>IEEE 802.15.4 ")
+        .append(type < typeVerbose.length ? typeVerbose[type] : "?")
+        .append(' ').append(seqNumber)
+        .append("</b><br>From ");
+        if (srcPanID != 0) {
+            verbose.append(StringUtils.toHex((byte)(srcPanID >> 8)))
+            .append(StringUtils.toHex((byte)(srcPanID & 0xff)))
+            .append('/');
+        }
         printAddress(verbose, srcAddrMode, sourceAddress);
         verbose.append(" to ");
+        if (destPanID != 0) {
+            verbose.append(StringUtils.toHex((byte)(destPanID >> 8)))
+            .append(StringUtils.toHex((byte)(destPanID & 0xff)))
+            .append('/');
+        }
         printAddress(verbose, destAddrMode, destAddress);
-        verbose.append("<br>FrameType: : " + typeVerbose[type]);
-        verbose.append("<br>Payload len: " + payloadLen);
-        verbose.append("<br>");
+        // verbose.append("<br>Payload len: ").append(payloadLen);
 
         /* update packet */
         packet.pos = pos;
