@@ -163,7 +163,7 @@ void main(void) {
 			}
 			default:
 			{
-				printf("status: 0x%02x",status);
+				printf("status: 0x%04x",status);
 				ResumeMACASync();
 				
 			}
