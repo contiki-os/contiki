@@ -78,7 +78,7 @@ void main(void) {
 	set_power(0x0f); /* 0dbm */
 	set_channel(0); /* channel 11 */
 
-        *MACA_CONTROL = SMAC_MACA_CNTL_INIT_STATE;
+	*MACA_CONTROL = (1 << PRM) | (NO_CCA << MODE);
 	for(i=0; i<DELAY; i++) { continue; }
 
 	data = (void *)DATA;
