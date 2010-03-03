@@ -79,7 +79,7 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         int sci = 0;
         int dci = 0;
 
-        brief.append("iphc tf=" + tf + (nh == 1 ? " nh" : "") + " hl=" + hlim + (cid == 1 ? " cid " : ""));
+        brief.append("IPHC tf=" + tf + (nh == 1 ? " nh" : "") + " hl=" + hlim + (cid == 1 ? " cid " : ""));
         brief.append((sac == 1 ? " sac" : "") + " sam=" + sam + (m == 1 ? " M" : "") +
                 (dac == 1 ? " dac" : " -") + " dam=" + dam);
 
@@ -88,12 +88,13 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         }
         /* need to decompress while analyzing - add that later... */
 
-        verbose.append("<br><b>IPHC HC-06</b><br>");
-        verbose.append("tf = " + tf + " nhc = " + nh + " hlim = " + hlim + " cid = " + cid);
-        verbose.append("sac = " + sac + " sam = " + sam + " MCast = " + m + " dac = " + dac +
-                " dam = " + dam + "<br>");
+        verbose.append("<b>IPHC HC-06</b><br>");
+        verbose.append("tf = " + tf + " nhc = " + nh + " hlim = " + hlim
+                + " cid = " + cid + " sac = " + sac + " sam = " + sam
+                + " MCast = " + m + " dac = " + dac + " dam = " + dam + "<br>");
         if (cid == 1) {
-            verbose.append("Contexts: sci=" + (packet.get(2) >> 4) + " dci=" + (packet.get(2) & 0x0f));
+            verbose.append("Contexts: sci=" + (packet.get(2) >> 4) + " dci="
+                    + (packet.get(2) & 0x0f) + "<br>");
             sci = packet.get(2) >> 4;
             dci = packet.get(2) & 0x0f;
         }
@@ -403,20 +404,14 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         else if (proto == PROTO_UDP) protoStr = "UDP";
         else if (proto == PROTO_TCP) protoStr = "TCP";
         
-        verbose.append("<br><b>IPv6 Packet: ").append(protoStr).append("</b><br>");
-        verbose.append("From: ");
+        verbose.append("<br><b>IPv6 ").append(protoStr).append("</b><br>");
+        verbose.append("From ");
         printAddress(verbose, srcAddress);
         verbose.append("  to ");
         printAddress(verbose, destAddress);
-        verbose.append("<br>");
         
-        brief.append("|").append(StringUtils.toHex(packet.getPayload(), 4));
-        verbose.append("Payload:<br><pre>").append(StringUtils.hexDump(packet.getPayload())).
-        append("</pre>");
-
-        packet.pos = packet.data.length;
+//        packet.pos = packet.data.length;
         packet.level = NETWORK_LEVEL;
-
     }
 
     public static void printAddress(StringBuffer out, byte[] address) {
