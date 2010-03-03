@@ -24,7 +24,7 @@ void uart1_init(uint16_t inc, uint16_t mod) {
 
 void print_welcome(char* testname) {
 	printf("mc1322x-test: %s\n\r",testname);
-	printf("board: %s\n\r", "fix print welcom");
+	printf("board: %s\n\r", STR2(BOARD));
 }
 
 void dump_regs(uint32_t base, uint32_t len) {
