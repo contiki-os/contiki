@@ -37,7 +37,7 @@
 #include <mc1322x.h>
 #include <types.h>
 
-#define __putc(x) putchr(x)
+#define __putc(x) uart1_putc(x)
 
 /**
  * Structure to hold data to be passed to print function with format.
