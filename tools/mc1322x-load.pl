@@ -12,12 +12,14 @@ my $second = '';
 my $term = '/dev/ttyUSB0';
 my $baud = '115200';
 my $verbose;
+my $rts = 'rts';
 
 GetOptions ('file=s' => \$filename,
 	    'secondfile=s' => \$second,
 	    'terminal=s' => \$term, 
 	    'verbose' => \$verbose, 
 	    'baud=s' => \$baud,
+	    'rts=s' => \$rts,
     ) or die 'bad options';
 
 $| = 1;
@@ -44,7 +46,11 @@ $ob->baudrate($baud);
 $ob->parity('none');
 $ob->databits(8);
 $ob->stopbits(1);
-$ob->handshake("rts");
+if($rts eq 'rts') {
+    $ob->handshake('rts');
+} else {
+    $ob->handshake('none');
+}
 $ob->read_const_time(1000); # 1 second per unfulfilled "read" call
 $ob->rts_active(1);
 
