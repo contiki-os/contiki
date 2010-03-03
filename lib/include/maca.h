@@ -2,16 +2,69 @@
 #define _MACA_H_
 
 #include <types.h>
+#include <utils.h>
 
 #define MACA_BASE       ((volatile uint32_t *) 0x80004000)
 #define MACA_RESET      ((volatile uint32_t *) 0x80004004)
 #define MACA_RANDOM     ((volatile uint32_t *) 0x80004008)
-#define MACA_CONTROL    ((volatile uint32_t *) 0x8000400c)
+
+#define MACA_CONTROL    ((volatile uint32_t *) 0x8000400c) /* write only, reads as 0 */
+
+#define ISM             20
+#define PRECOUNT        16                   /* preamble reapeat counter       */
+#define PRECOUNT_MASK   bit_mask(4,PRECOUNT) 
+#define RTSO            15                   /* reset slot counter             */
+#define ROLE            13                   /* set if PAN coordinator         */
+#define NOFC            12                   /* set to disable FCS             */
+#define PRM             11                   /* set for promiscuous mode       */          
+#define REL             10                   /* 1 for relative, 0 for absolute */
+#define ASAP            9                    /* 1 start now, 0 timer start     */
+#define BCN             8                    /* 1 beacon only, 0 for a         */
+#define AUTO            7                    /* 1 continuous rx, rx only once  */
+#define LFSR            6                    /* 1 use polynomial for Turbolink */
+#define TM              5
+
+#define MODE            3
+#define MODE_MASK       bit_mask(2,MODE)
+#define NO_CCA          0
+#define NO_SLOT_CCA     1
+#define SLOT_CCA        2
+
+#define SEQUENCE        0
+#define SEQUENCE_MASK   bit_mask(3,SEQUENCE)
+
 #define MACA_STATUS     ((volatile uint32_t *) 0x80004010)
 #define MACA_DMARX      ((volatile uint32_t *) 0x80004080)
 #define MACA_DMATX      ((volatile uint32_t *) 0x80004084)
 #define MACA_GETRXLVL   ((volatile uint32_t *) 0x80004098)
 #define MACA_PREAMBLE   ((volatile uint32_t *) 0x8000411c)
+
+void reset_maca(void);
+void init_phy(void);
+void flyback_init(void);
+void ResumeMACASync(void);
+void radio_init(void);
+void radio_off(void);
+void radio_on(void);
+uint32_t init_from_flash(uint32_t addr);
+void set_power(uint8_t power);
+void set_channel(uint8_t chan);
+
+/******************************************************************************/
+/* everything under this comment is messy, needs cleaning, and will           */
+/* probably change in the future                                              */
+/******************************************************************************/
+
+#define control_pre_count (7<<16)   /* preamble reapeat counter       */
+#define control_rst_slot  (1<<15)   /* reset slot counter             */
+#define control_role      (1<<13)   /* set if PAN coordinator         */
+#define control_nofc      (1<<12)   /* set to disable FCS             */
+#define control_prm       (1<<11)   /* set for promiscuous mode       */
+#define control_relative  (1<<10)   /* 1 for relative, 0 for absolute */
+#define control_asap      (1<<9)    /* 1 start now, 0 timer start     */
+#define control_bcn       (1<<8)    /* 1 beacon only, 0 for a         */
+#define control_auto      (1<<7)    /* 1 continuous rx, rx only once  */
+#define control_lfsr      (1<<6)    /* 1 use polynomial for Turbolink */
 
 #define gMACA_Clock_DIV_c      95
   
@@ -75,16 +128,6 @@ enum {
 #define max_rx_ackwnd_normal_mode     (0xFFF)
 
 
-#define control_pre_count (7<<16)   /* preamble reapeat counter       */
-#define control_rst_slot  (1<<15)   /* reset slot counter             */
-#define control_role      (1<<13)   /* set if PAN coordinator         */
-#define control_nofc      (1<<12)   /* set to disable FCS             */
-#define control_prm       (1<<11)   /* set for promiscuous mode       */
-#define control_relative  (1<<10)   /* 1 for relative, 0 for absolute */
-#define control_asap      (1<<9)    /* 1 start now, 0 timer start     */
-#define control_bcn       (1<<8)    /* 1 beacon only, 0 for a         */
-#define control_auto      (1<<7)    /* 1 continuous rx, rx only once  */
-#define control_lfsr      (1<<6)    /* 1 use polynomial for Turbolink */
 
 #define maca_irq_strt     (1<<15)   /*
                                       STRT
@@ -290,29 +333,29 @@ typedef union maca_reset_reg_tag
 #define maca_reset_reg_st ((maca_reset_reg_t)(maca_reset))
 
 
-typedef union maca_ctrl_reg_tag
-{
-  struct
-  {
-    uint32_t  RESERVED:11;
-    uint32_t  ISM:1;
-    uint32_t  PRE_COUNT:4;
-    uint32_t  RSTO:1;
-    uint32_t  RSV:1;
-    uint32_t  ROLE:1;
-    uint32_t  NOFC:1;
-    uint32_t  PRM:1;
-    uint32_t  rel:1;
-    uint32_t  ASAP:1;
-    uint32_t  BCN:1;
-    uint32_t  AUTO:1;
-    uint32_t  LFSR:1;
-    uint32_t  TM:1;
-    uint32_t  MODE:2;
-    uint32_t  SEQUENCE:3;
-  } Bits;
-  uint32_t Reg;
-} maca_ctrl_reg_t;
+/* typedef union maca_ctrl_reg_tag */
+/* { */
+/*   struct */
+/*   { */
+/*     uint32_t  RESERVED:11; */
+/*     uint32_t  ISM:1; */
+/*     uint32_t  PRE_COUNT:4; */
+/*     uint32_t  RSTO:1; */
+/*     uint32_t  RSV:1; */
+/*     uint32_t  ROLE:1; */
+/*     uint32_t  NOFC:1; */
+/*     uint32_t  PRM:1; */
+/*     uint32_t  rel:1; */
+/*     uint32_t  ASAP:1; */
+/*     uint32_t  BCN:1; */
+/*     uint32_t  AUTO:1; */
+/*     uint32_t  LFSR:1; */
+/*     uint32_t  TM:1; */
+/*     uint32_t  MODE:2; */
+/*     uint32_t  SEQUENCE:3; */
+/*   } Bits; */
+/*   uint32_t Reg; */
+/* } maca_ctrl_reg_t; */
 
 #define maca_control_ism     (1<<20)
 #define maca_control_zigbee  (~maca_control_ism)
@@ -406,16 +449,5 @@ typedef union maca_maskirq_reg_tag
 
 #define MACA_WRITE(reg, src) (reg = src)
 #define MACA_READ(reg)  reg
-
-void reset_maca(void);
-void init_phy(void);
-void flyback_init(void);
-void ResumeMACASync(void);
-void radio_init(void);
-void radio_off(void);
-void radio_on(void);
-uint32_t init_from_flash(uint32_t addr);
-void set_power(uint8_t power);
-void set_channel(uint8_t chan);
 
 #endif // _MACA_H_
