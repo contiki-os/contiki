@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.10 2010/02/28 10:07:17 adamdunkels Exp $
+ * $Id: csma.c,v 1.11 2010/03/04 14:17:43 nvt-se Exp $
  */
 
 /**
@@ -230,7 +230,7 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 send_packet(mac_callback_t sent, void *ptr)
 {
-  NETSTACK_RDC.send(NULL, NULL);
+  NETSTACK_RDC.send(sent, ptr);
 }
 #endif /* CSMA_CONF_REXMIT */
 /*---------------------------------------------------------------------------*/
