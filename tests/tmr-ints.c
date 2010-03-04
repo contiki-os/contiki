@@ -21,7 +21,7 @@ void toggle_led(void) {
 	}
 }
 
-void tmr_isr(void) {
+void tmr0_isr(void) {
 
 	toggle_led();
 	*TMR0_SCTRL = 0;
@@ -58,9 +58,10 @@ void main(void) {
 
 	led_on();
 
-	enable_tmr_irq();
+	enable_irq(TMR);
 
-	while(1) {
+	while(1) {		
 		/* sit here and let the interrupts do the work */
+		continue;
 	};
 }
