@@ -120,13 +120,24 @@ main(void)
   }
 #endif
 
-  /* System services */
+  node_id_restore();
+
+  /* System timers */
   process_start(&etimer_process, NULL);
   ctimer_init();
 
-  node_id_restore();
-
-  init_net();
+  /* Networking stack. */
+  NETSTACK_RADIO.init();
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+  {
+    rimeaddr_t rimeaddr;
+  
+    rimeaddr.u8[0] = node_id & 0xff;
+    rimeaddr.u8[1] = node_id >> 8;
+    rimeaddr_set_node_addr(&rimeaddr);
+  }
 
   energest_init();
  
@@ -136,8 +147,11 @@ main(void)
  
   leds_off(LEDS_ALL);
 
-  printf(CONTIKI_VERSION_STRING " started. Node id %u, using %s.\n", 
-         node_id, rime_mac->name);
+  printf("%d.%d: %s %s, channel check rate %u Hz\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+         NETSTACK_MAC.name, NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ?
+		1 : (unsigned)NETSTACK_RDC.channel_check_interval()));
 
   autostart_start(autostart_processes);
 

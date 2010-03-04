@@ -94,13 +94,28 @@ static uint8_t cc1020_pa_power = PA_POWER;
 
 static volatile char dma_done;
 
-static void (*receiver_callback)(const struct radio_driver *);
+/* Radio driver AAPI functions. */
+static int cc1020_init(void);
+static int cc1020_prepare(const void *payload, unsigned short payload_len);
+static int cc1020_transmit(unsigned short transmit_len);
+static int cc1020_send(const void *payload, unsigned short payload_len);
+static int cc1020_read(void *buf, unsigned short buf_len);
+static int cc1020_channel_clear(void);
+static int cc1020_receiving_packet(void);
+static int cc1020_pending_packet(void);
+static int cc1020_on(void);
+static int cc1020_off(void);
 
 const struct radio_driver cc1020_driver =
   {
+    cc1020_init,
+    cc1020_prepare,
+    cc1020_transmit,
     cc1020_send,
     cc1020_read,
-    cc1020_set_receiver,
+    cc1020_channel_clear,
+    cc1020_receiving_packet,
+    cc1020_pending_packet,
     cc1020_on,
     cc1020_off
   };
@@ -130,12 +145,12 @@ reset_receiver(void)
   }
 }
 
-void
-cc1020_init(const uint8_t *config)
+static int
+cc1020_init(void)
 {
   cc1020_setupPD();
   cc1020_reset();
-  cc1020_load_config(config);
+  cc1020_load_config(cc1020_config_19200);
 
   /* init tx buffer with preamble + syncword */
   memset(cc1020_txbuf, PREAMBLE, PREAMBLE_SIZE);
@@ -146,12 +161,14 @@ cc1020_init(const uint8_t *config)
   cc1020_wakeupRX(RX_CURRENT);
   if(!cc1020_calibrate()) {
     PRINTF("cc1020: rx calibration failed\n");
+    return -1;
   }
 
   /* calibrate transmitter */
   cc1020_wakeupTX(TX_CURRENT);
   if(!cc1020_calibrate()) {
     PRINTF("cc1020: tx calibration failed\n");
+    return -1;
   }
 
   /* power down */
@@ -159,6 +176,8 @@ cc1020_init(const uint8_t *config)
 
   process_start(&cc1020_receiver_process, NULL);
   dma_subscribe(0, dma_callback);
+
+  return 0;
 }
 
 void
@@ -231,10 +250,21 @@ cc1020_set_power(uint8_t pa_power)
   cc1020_pa_power = pa_power;
 }
 
-int
+static int
+cc1020_prepare(const void *payload, unsigned short payload_len)
+{
+  return -1;
+}
+
+static int
+cc1020_transmit(unsigned short transmit_len)
+{
+  return 0;
+}
+
+static int
 cc1020_send(const void *buf, unsigned short len)
 {
-  int try;  
   int normal_header = HDR_SIZE + len;
   uint16_t rxcrc = 0xffff; /* For checksum purposes */
   rtimer_clock_t timeout_time;
@@ -280,23 +310,6 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txbuf[cc1020_txlen++] = TAIL;
   cc1020_txbuf[cc1020_txlen++] = TAIL; 
 
-  /* Wait for the medium to become idle. */
-  if(cc1020_carrier_sense()) {
-    for(try = 0; try < CC1020_CONF_CCA_TIMEOUT; try++) {
-      MS_DELAY(1);
-      if(!cc1020_carrier_sense()) {
-        break;
-      }
-    }
-    if(try == CC1020_CONF_CCA_TIMEOUT) {
-      PRINTF("cc1020: CCA failed (RSSI %d)\n", cc1020_get_rssi());
-      return RADIO_TX_ERR;
-    }
-
-    /* Then wait for a short pseudo-random time before sending. */
-    clock_delay(100 * ((random_rand() + 1) & 0xf));
-  }
-
   /* Switch to transceive mode. */
   cc1020_set_tx();
 
@@ -319,7 +332,7 @@ cc1020_send(const void *buf, unsigned short len)
   return RADIO_TX_OK;
 }
 
-int
+static int
 cc1020_read(void *buf, unsigned short size)
 {
   unsigned len;
@@ -336,16 +349,27 @@ cc1020_read(void *buf, unsigned short size)
 
   memcpy(buf, (char *)cc1020_rxbuf + HDR_SIZE, len);
   RIMESTATS_ADD(llrx);
-
   reset_receiver();
 
   return len;
 }
 
-void
-cc1020_set_receiver(void (*recv)(const struct radio_driver *))
+static int
+cc1020_channel_clear(void)
 {
-  receiver_callback = recv;
+  return (cc1020_read_reg(CC1020_STATUS) & CARRIER_SENSE);
+}
+
+static int
+cc1020_receiving_packet(void)
+{
+  return cc1020_state & CC1020_RX_RECEIVING;
+}
+
+static int
+cc1020_pending_packet(void)
+{
+  return cc1020_state & CC1020_RX_PROCESSING;
 }
 
 int
@@ -398,40 +422,36 @@ cc1020_get_packet_rssi(void)
   return rssi;
 }
 
-int
-cc1020_carrier_sense(void)
-{
-  return (cc1020_read_reg(CC1020_STATUS) & CARRIER_SENSE);
-}
-
 PROCESS_THREAD(cc1020_receiver_process, ev, data)
 {
+  int len;
+
   PROCESS_BEGIN();
 
   while(1) {
     ev = PROCESS_EVENT_NONE;
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);	
-	
-    if(receiver_callback != NULL) {
-      /* Verify the checksum. */
-      uint16_t expected_crc = 0xffff;
-      uint16_t actual_crc;
 
-      actual_crc = (cc1020_rxbuf[cc1020_rxlen - CRC_SIZE] << 8) |
-                   cc1020_rxbuf[cc1020_rxlen - CRC_SIZE + 1];
-      cc1020_rxlen -= CRC_SIZE;
+    /* Verify the checksum. */
+    uint16_t expected_crc = 0xffff;
+    uint16_t actual_crc;
+
+    actual_crc = (cc1020_rxbuf[cc1020_rxlen - CRC_SIZE] << 8) |
+                  cc1020_rxbuf[cc1020_rxlen - CRC_SIZE + 1];
+    cc1020_rxlen -= CRC_SIZE;
       
-      expected_crc = crc16_add(cc1020_rxlen & 0xff, expected_crc);
-      expected_crc = crc16_add((cc1020_rxlen >> 8) & 0xff, expected_crc);
-      expected_crc = crc16_data((char *)&cc1020_rxbuf[HDR_SIZE],
+    expected_crc = crc16_add(cc1020_rxlen & 0xff, expected_crc);
+    expected_crc = crc16_add((cc1020_rxlen >> 8) & 0xff, expected_crc);
+    expected_crc = crc16_data((char *)&cc1020_rxbuf[HDR_SIZE],
 			cc1020_rxlen - HDR_SIZE, expected_crc);
 
-      if(expected_crc == actual_crc) {
-        receiver_callback(&cc1020_driver);
-      } else {
-        RIMESTATS_ADD(badcrc);
-        reset_receiver();
-      }
+    if(expected_crc == actual_crc) {
+      len = cc1020_read(packetbuf_dataptr(), PACKETBUF_SIZE);
+      packetbuf_set_datalen(len);
+      NETSTACK_RDC.input();
+    } else {
+      RIMESTATS_ADD(badcrc);
+      reset_receiver();
     }
   }
 
