@@ -10,49 +10,288 @@
 #define PRINTF(...)
 #endif
 
+#ifndef NUM_PACKETS
+#define NUM_PACKETS 8
+#endif
+
+#define MACA_CLOCK_DIV 95
+
 #define reg(x) (*(volatile uint32_t *)(x))
 
+static volatile packet_t packet_pool[NUM_PACKETS];
+static volatile packet_t *free_head, *rx_head, *rx_end, *tx_head, *tx_end, *dma_tx, *dma_rx = 0;
+
+enum posts {
+	TX,
+	RX,
+	MAX_POST,
+};
+static volatile uint8_t last_post = MAX_POST;
+
+/* public packet routines */
+/* heads are to the right */
+/* ends are to the left */
+void free_packet(volatile packet_t *p) {
+	p->length = 0;
+	p->left = free_head; p->right = 0;
+	free_head = p;
+	return;
+}
+
+volatile packet_t* get_free_packet(void) {
+	volatile packet_t *p;
+	p = free_head;
+	if( p != 0 ) {
+		free_head = p->left;
+		free_head->right = 0;
+	}
+	return p;
+}
+
+volatile packet_t* rx_packet(void) {
+	volatile packet_t *p;
+	p = rx_head;
+	if( p != 0 ) {
+		rx_head = p->left;
+		rx_head->right = 0;
+	}
+	return p;
+}
+
+void tx_packet(volatile packet_t *p) {
+	tx_end->left = p;
+	p->right = tx_end;
+	tx_end = p; tx_end->left = 0;
+	if(tx_head == 0) { tx_head = tx_end; }
+	if(get_field(*MACA_STATUS,CODE) != NOT_COMPLETED) { post_tx(); }
+	return;
+}
+
+void free_all_packets(void) {
+	volatile int i;
+	free_head = 0;
+	for(i=0; i<NUM_PACKETS; i++) {
+		printf("free packet %d\n\r",i);
+		free_packet((volatile packet_t *)&(packet_pool[i]));		
+		printf("packet %d left %x right %x \n\r",i);
+	}
+	printf("free head %x\n",free_head);
+	rx_head = 0; rx_end = 0;
+	tx_head = 0; tx_end = 0;
+	return;
+}
+
+/* private routines used by driver */
+void free_tx_head(void) {
+	volatile packet_t *p;
+	p = tx_head;
+	tx_head = tx_head->left;
+	free_packet(p);
+	return;
+}
+
+void add_to_rx(packet_t *p) {
+	rx_end->left = p;
+	p->right = rx_end;
+	rx_end = p; rx_end->left = 0;
+	return;
+}
+
+void post_receive(void) {
+	/* this sets the rxlen field */
+	/* this is undocumented but very important */
+	/* you will not receive anything without setting it */
+	last_post = RX;
+	*MACA_TXLEN = (MAX_PACKET_SIZE << 16);
+	if(dma_rx == 0) {
+		dma_rx = get_free_packet();
+		if (dma_rx == 0)
+			printf("out of packet buffers\n");		
+	}
+	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
+	/* with timeout */		
+	*MACA_SFTCLK = *MACA_CLK - 1;
+	*MACA_TMREN = (1 << maca_tmren_sft);
+	/* start the receive sequence */
+	*MACA_CONTROL = ( (1 << maca_ctrl_asap) |
+				(1 << maca_ctrl_auto) |
+				(1 << maca_ctrl_prm) |
+				(maca_ctrl_seq_rx));
+}
+
+void post_tx(void) {
+	/* set dma tx pointer to the payload */
+	/* and set the tx len */
+	last_post = TX;
+	dma_tx = tx_head; 	
+	*MACA_TXLEN = (uint32_t)(dma_tx->length + 2);
+	*MACA_DMATX = (uint32_t)&(dma_tx->data[0]);
+	dma_rx = get_free_packet();
+	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
+	*MACA_TMREN = 0;
+	/* do the transmit */
+	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
+			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
+			  (1 << maca_ctrl_asap) |
+			  (maca_ctrl_seq_tx));	
+}
+
+
+static void decode_status(int status) {
+	switch(status)
+	{
+	case maca_cc_aborted:
+	{
+		PRINTF("maca: aborted\n\r");
+		ResumeMACASync();
+		break;
+		
+	}
+	case maca_cc_not_completed:
+	{
+//		PRINTF("maca: not completed\n\r");
+		ResumeMACASync();
+		break;
+		
+	}
+	case maca_cc_timeout:
+	{
+		PRINTF("maca: timeout\n\r");
+		ResumeMACASync();
+		break;
+		
+	}
+	case maca_cc_no_ack:
+	{
+		PRINTF("maca: no ack\n\r");
+		ResumeMACASync();
+		break;
+		
+	}
+	case maca_cc_ext_timeout:
+	{
+//		PRINTF("maca: ext timeout\n\r");
+		ResumeMACASync();
+		break;
+		
+	}
+	case maca_cc_ext_pnd_timeout:
+	{
+		PRINTF("maca: ext pnd timeout\n\r");
+		ResumeMACASync();
+		break;
+	}
+	case maca_cc_success:
+	{
+		//PRINTF("maca: success\n\r");
+		break;				
+	}
+	default:
+	{
+		PRINTF("status: %x", status);
+		ResumeMACASync();
+		
+	}
+	}
+}
+
+void maca_isr(void) {
+	int i, status;
+	struct packet_t *packet;
+
+	status = *MACA_STATUS;
+
+	if (data_indication_irq()) {
+		*MACA_CLRIRQ = (1 << maca_irq_di);
+		dma_rx->length = *MACA_GETRXLVL - 2;
+		PRINTF("data ind %x %d\n", dma_rx, dma_rx->length);
+		add_to_rx(dma_rx);
+		dma_rx = 0;
+	}
+	if (filter_failed_irq()) {
+		PRINTF("filter failed\n");
+		ResumeMACASync();
+		*MACA_CLRIRQ = (1 << maca_irq_flt);
+	}
+	if (checksum_failed_irq()) {
+		PRINTF("checksum failed\n");
+		ResumeMACASync();
+		*MACA_CLRIRQ = (1 << maca_irq_crc);
+	}
+	if(action_complete_irq()) {
+		PRINTF("action complete %d\n", get_field(*MACA_CONTROL,SEQUENCE));
+		if(last_post == TX) {
+			free_packet(dma_tx);
+		}
+
+		*MACA_CLRIRQ = (1 << maca_irq_acpl);
+		status &= 0x0000ffff;
+		decode_status(status);
+	}
+	if (bit_is_set(status, maca_status_ovr))
+		PRINTF("ISR overrun\n");
+	if (bit_is_set(status, maca_status_busy))
+		PRINTF("ISR busy\n");
+	if (bit_is_set(status, maca_status_crc))
+		PRINTF("ISR crc\n");
+	if (bit_is_set(status, maca_status_to))
+		PRINTF("ISR timeout\n");
+
+	i = *MACA_IRQ;
+	if (i != 0)
+		PRINTF("MACA IRQ %x\n", i);
+
+	if(tx_head != 0) {
+		post_tx();
+	} else  {
+		post_receive();
+	}
+}
+
+
 static uint8_t ram_values[4];
+
 
 void init_phy(void)
 {
   volatile uint32_t cnt;
-  
-  maca_reset = maca_reset_rst;
- 
-  for(cnt=0; cnt < 100; cnt++); 
-  
-  maca_reset = maca_reset_cln_on;              
-  maca_control = control_seq_nop;              
-#define DELAY 400000
-  for(cnt=0; cnt < DELAY; cnt++); 
 
-  maca_tmren = maca_start_clk | maca_cpl_clk;   
-  maca_divider = gMACA_Clock_DIV_c; 
-  maca_warmup = 0x00180012;    
-  maca_eofdelay = 0x00000004;  
-  maca_ccadelay = 0x001a0022;  
-  maca_txccadelay = 0x00000025;
-  maca_framesync = 0x000000A7; 
-  maca_clk = 0x00000008;       
-//  maca_maskirq = 0; //(maca_irq_cm   | maca_irq_acpl | maca_irq_rst  | maca_irq_di | maca_irq_crc | maca_irq_flt );
-  maca_maskirq = (maca_irq_rst | maca_irq_acpl | maca_irq_cm | maca_irq_flt | maca_irq_crc);
-  maca_slotoffset = 0x00350000; 
+  *MACA_RESET = (1 << maca_reset_rst);
+
+  for(cnt = 0; cnt < 100; cnt++) {};
+
+  *MACA_RESET = (1 << maca_reset_clkon);
+
+  *MACA_CONTROL = maca_ctrl_seq_nop;
+
+  for(cnt = 0; cnt < 400000; cnt++) {};
+
+  *MACA_TMREN = (1 << maca_tmren_strt) | (1 << maca_tmren_cpl);
+  *MACA_CLKDIV = MACA_CLOCK_DIV;
+  *MACA_WARMUP = 0x00180012;
+  *MACA_EOFDELAY = 0x00000004;
+  *MACA_CCADELAY = 0x001a0022;
+  *MACA_TXCCADELAY = 0x00000025;
+  *MACA_FRAMESYNC0 = 0x000000A7;
+  *MACA_CLK = 0x00000008;
+  *MACA_MASKIRQ = ((1 << maca_irq_rst) | (1 << maca_irq_acpl) | (1 << maca_irq_cm) |
+	(1 << maca_irq_flt) | (1 << maca_irq_crc) | (1 << maca_irq_di));
+  *MACA_SLOTOFFSET = 0x00350000;
+
 }
 
 void reset_maca(void)
 {
 	uint32_t tmp;
-	MACA_WRITE(maca_control, control_seq_nop);
-  do
-  {
-	  tmp = MACA_READ(maca_status);
-  }
-  while ((tmp & maca_status_cc_mask) == cc_not_completed);
-
-  /* Clear all interrupts. */
-  MACA_WRITE(maca_clrirq,   0xFFFF);
+	*MACA_CONTROL = maca_ctrl_seq_nop;
+	do {
+		tmp = *MACA_STATUS;
+	} while ((tmp & 0xf) == maca_cc_not_completed);
+	
+	/* Clear all interrupts. */
+	*MACA_CLRIRQ = 0xffff;
 }
+
 
 /*
 	004030c4 <SMAC_InitFlybackSettings>:
@@ -341,7 +580,15 @@ const uint32_t AIMVAL[19] = {
 #define ADDR_POW3 ADDR_POW1 + 64
 void set_power(uint8_t power) {
 	reg(ADDR_POW1) = PSMVAL[power];
-	reg(ADDR_POW2) = (ADDR_POW1>>18) | PAVAL[power];
+
+/* see http://devl.org/pipermail/mc1322x/2009-October/000065.html */
+/*	reg(ADDR_POW2) = (ADDR_POW1>>18) | PAVAL[power]; */
+#ifdef USE_PA
+	reg(ADDR_POW2) = 0xffffdfff & PAVAL[power]; /* single port */
+#else
+	reg(ADDR_POW2) = 0x00002000 | PAVAL[power]; /* dual port */
+#endif
+
 	reg(ADDR_POW3) = AIMVAL[power];
 }
 

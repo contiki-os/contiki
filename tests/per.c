@@ -15,27 +15,69 @@
 
 #define DEBUG_MACA 1
 
-typedef struct {
-	int type;
-} packet_t;
+/* how long to wait between session requests */
+#define SESSION_REQ_TIMEOUT 10 /* phony seconds */
 
 enum STATES {
 	SCANNING,
 	MAX_STATE
 };
 
+typedef uint32_t ptype_t;
 enum PACKET_TYPE {
-	PACKET_PERTEST,
+	PACKET_SESS_REQ,
 	MAX_PACKET_TYPE
 };
+/* get protocol level packet type   */
+/* this is not 802.15.4 packet type */
+ptype_t get_packet_type(packet_t *p) {
+	return MAX_PACKET_TYPE;
+}
 
-int get_packet(packet_t *p) { return 0; }
-void print_packet(packet_t p) { return; }
+typedef uint32_t session_id_t;
+
+/* phony get_time */
+uint32_t get_time(void) {
+	static volatile int32_t cur_time = 0;
+	cur_time++;
+	return cur_time;
+}
+
+
+#define random_short_addr() (*MACA_RANDOM & ones(sizeof(short_addr_t)*8))
+
+void build_session_req(volatile packet_t *p) {
+	p->length = 4;
+	p->data[0] = 0xff;
+	p->data[1] = 0x01;
+	p->data[2] = 0x23;
+	p->data[3] = 0x45;
+	return;
+}
+
+void session_req(short_addr_t addr) { 	
+	static volatile int time = 0;
+	volatile packet_t *p;
+
+//	if((get_time() - time) > SESSION_REQ_TIMEOUT) {
+//		time = get_time();
+		p = get_free_packet();
+		build_session_req(p);
+		tx_packet(p);
+//	}
+	return; 
+}
+
+void print_packet(packet_t *p) { return; }
+session_id_t open_session(short_addr_t addr) { return 0; }
 
 void main(void) {
 	uint32_t state;
-	packet_t p;
-
+	volatile packet_t *p;
+	session_id_t sesid;
+	ptype_t type;
+	short_addr_t addr, my_addr;
+	
 	uart_init(INC,MOD);
 	
 	print_welcome("Packet error test");
@@ -46,29 +88,47 @@ void main(void) {
 	vreg_init();
 	flyback_init();
 	init_phy();
-
+	free_all_packets();
+	
 	/* trim the reference osc. to 24MHz */
 	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
 
 	set_power(0x0f); /* 0dbm */
 	set_channel(0); /* channel 11 */
 
+	enable_irq(MACA);
+
 	/* initial radio command */
         /* nop, promiscuous, no cca */
 	*MACA_CONTROL = (1 << PRM) | (NO_CCA << MODE); 
 
+	/* generate a random short address */
+	my_addr = random_short_addr();
+
 	state = SCANNING;
 	while(1) { 
-
+		
 		switch(state) {
 		case SCANNING:
-			if(get_packet(&p)) {
-				print_packet(p);
-				/* if we have a packet */
-				/* check if it's a pertest beacon */
-				if(p.type == PACKET_PERTEST) {
-					/* try to start a session */
+			if((p = rx_packet())) {
+				/* extract what we need and free the packet */
+    				print_packet(p);
+				type = get_packet_type(p);
+				addr = p->addr;
+				free_packet(p);
+				/* pick a new address if someone else is using ours */
+				if(addr == my_addr) {
+					my_addr = random_short_addr();
+					printf("DUP addr received, changing to new addr 0x%x02\n\r",my_addr);
 				}
+				/* if we have a packet */
+				/* check if it's a session request beacon */
+				if(type == PACKET_SESS_REQ) {
+					/* try to start a session */
+					sesid = open_session(p->addr);
+				}
+			}  else {
+				session_req(my_addr);
 			}
 			break;
 		default:

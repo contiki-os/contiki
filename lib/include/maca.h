@@ -1,15 +1,16 @@
 #ifndef _MACA_H_
 #define _MACA_H_
 
+#include <packet.h>
 #include <types.h>
 #include <utils.h>
 
-#define MACA_BASE       ((volatile uint32_t *) 0x80004000)
-#define MACA_RESET      ((volatile uint32_t *) 0x80004004)
-#define MACA_RANDOM     ((volatile uint32_t *) 0x80004008)
+#define MACA_BASE       (0x80004000)
+#define MACA_RESET      ((volatile uint32_t *) (MACA_BASE+0x04))
+#define MACA_RANDOM     ((volatile uint32_t *) (MACA_BASE+0x08))
+#define MACA_CONTROL    ((volatile uint32_t *) (MACA_BASE+0x0c))
 
-#define MACA_CONTROL    ((volatile uint32_t *) 0x8000400c) /* write only, reads as 0 */
-
+/* MACA_CONTROL bits and fields */
 #define ISM             20
 #define PRECOUNT        16                   /* preamble reapeat counter       */
 #define PRECOUNT_MASK   bit_mask(4,PRECOUNT) 
@@ -32,12 +33,78 @@
 
 #define SEQUENCE        0
 #define SEQUENCE_MASK   bit_mask(3,SEQUENCE)
+/* end of MACA_CONTROL bits and fields */
 
-#define MACA_STATUS     ((volatile uint32_t *) 0x80004010)
-#define MACA_DMARX      ((volatile uint32_t *) 0x80004080)
-#define MACA_DMATX      ((volatile uint32_t *) 0x80004084)
-#define MACA_GETRXLVL   ((volatile uint32_t *) 0x80004098)
-#define MACA_PREAMBLE   ((volatile uint32_t *) 0x8000411c)
+#define MACA_STATUS     ((volatile uint32_t *) (MACA_BASE+0x10))
+/* MACA_STATUS bits and fields */
+#define STATUS_TIMEOUT   15
+#define CRC       14
+#define BUSY      13
+#define OVR       12
+#define CODE       0 
+#define CODE_MASK bit_mask(4,CODE)
+/* status codes */
+#define SUCCESS          0 
+#define CODE_TIMEOUT     1
+#define CHANNEL_BUSY     2
+#define CRC_FAILED       3
+#define ABORTED          4
+#define NO_ACK           5
+#define NO_DATA          6
+#define LATE_START       7
+#define EXT_TIMEOUT      8
+#define EXT_PND_TIMEOUT  9
+#define PLL_UNLOCK      12
+#define EXTERNAL_ABORT  13
+#define NOT_COMPLETED   14
+#define DMA_BUS_ERROR   15
+/* end of MACA_CONTROL bits and fields */
+
+#define MACA_FRMPND     ((volatile uint32_t *) (MACA_BASE+0x14))
+#define MACA_TMREN      ((volatile uint32_t *) (MACA_BASE+0x40))
+#define MACA_TMRDIS     ((volatile uint32_t *) (MACA_BASE+0x44))
+#define MACA_CLK        ((volatile uint32_t *) (MACA_BASE+0x48))
+#define MACA_STARTCLK   ((volatile uint32_t *) (MACA_BASE+0x4c))
+#define MACA_CPLCLK     ((volatile uint32_t *) (MACA_BASE+0x50))
+#define MACA_SFTCLK     ((volatile uint32_t *) (MACA_BASE+0x54))
+#define MACA_CLKOFFSET  ((volatile uint32_t *) (MACA_BASE+0x58))
+#define MACA_RELCLK     ((volatile uint32_t *) (MACA_BASE+0x5c))
+#define MACA_CPLTIM     ((volatile uint32_t *) (MACA_BASE+0x60))
+#define MACA_SLOTOFFSET ((volatile uint32_t *) (MACA_BASE+0x64))
+#define MACA_TIMESTAMP  ((volatile uint32_t *) (MACA_BASE+0x68))
+#define MACA_DMARX      ((volatile uint32_t *) (MACA_BASE+0x80))
+#define MACA_DMATX      ((volatile uint32_t *) (MACA_BASE+0x84))
+#define MACA_DMAPOLL    ((volatile uint32_t *) (MACA_BASE+0x88))
+#define MACA_TXLEN      ((volatile uint32_t *) (MACA_BASE+0x8c))
+#define MACA_TXSEQNR    ((volatile uint32_t *) (MACA_BASE+0x90))
+#define MACA_SETRXLVL   ((volatile uint32_t *) (MACA_BASE+0x94))
+#define MACA_GETRXLVL   ((volatile uint32_t *) (MACA_BASE+0x98))
+#define MACA_IRQ        ((volatile uint32_t *) (MACA_BASE+0xc0))
+#define MACA_CLRIRQ     ((volatile uint32_t *) (MACA_BASE+0xc4))
+#define MACA_SETIRQ     ((volatile uint32_t *) (MACA_BASE+0xc8))
+#define MACA_MASKIRQ    ((volatile uint32_t *) (MACA_BASE+0xcc))
+#define MACA_MACPANID   ((volatile uint32_t *) (MACA_BASE+0x100))
+#define MACA_MAC16ADDR  ((volatile uint32_t *) (MACA_BASE+0x104))
+#define MACA_MAC64HI    ((volatile uint32_t *) (MACA_BASE+0x108))
+#define MACA_MAC64LO    ((volatile uint32_t *) (MACA_BASE+0x10c))
+#define MACA_FLTREJ     ((volatile uint32_t *) (MACA_BASE+0x110))
+#define MACA_CLKDIV     ((volatile uint32_t *) (MACA_BASE+0x114))
+#define MACA_WARMUP     ((volatile uint32_t *) (MACA_BASE+0x118))
+#define MACA_PREAMBLE   ((volatile uint32_t *) (MACA_BASE+0x11c))
+#define MACA_WHITESEED  ((volatile uint32_t *) (MACA_BASE+0x120))
+#define MACA_FRAMESYNC0 ((volatile uint32_t *) (MACA_BASE+0x124))
+#define MACA_FRAMESYNC1 ((volatile uint32_t *) (MACA_BASE+0x128))
+#define MACA_TXACKDELAY ((volatile uint32_t *) (MACA_BASE+0x140))
+#define MACA_RXACKDELAY ((volatile uint32_t *) (MACA_BASE+0x144))
+#define MACA_EOFDELAY   ((volatile uint32_t *) (MACA_BASE+0x148))
+#define MACA_CCADELAY   ((volatile uint32_t *) (MACA_BASE+0x14c))
+#define MACA_RXEND      ((volatile uint32_t *) (MACA_BASE+0x150))
+#define MACA_TXCCADELAY ((volatile uint32_t *) (MACA_BASE+0x154))
+#define MACA_KEY3       ((volatile uint32_t *) (MACA_BASE+0x158))
+#define MACA_KEY2       ((volatile uint32_t *) (MACA_BASE+0x15c))
+#define MACA_KEY1       ((volatile uint32_t *) (MACA_BASE+0x160))
+#define MACA_KEY0       ((volatile uint32_t *) (MACA_BASE+0x164))
+#define MACA_OPTIONS    ((volatile uint32_t *) (MACA_BASE+0x180))
 
 void reset_maca(void);
 void init_phy(void);
@@ -49,6 +116,12 @@ void radio_on(void);
 uint32_t init_from_flash(uint32_t addr);
 void set_power(uint8_t power);
 void set_channel(uint8_t chan);
+
+void tx_packet(volatile packet_t *p);
+volatile packet_t* rx_packet(void);
+volatile packet_t* get_free_packet(void);
+void free_packet(volatile packet_t *p);
+void free_all_packets(void);
 
 /******************************************************************************/
 /* everything under this comment is messy, needs cleaning, and will           */
@@ -113,143 +186,6 @@ enum {
     control_seq_cca    = 6,
     control_seq_ed     = 7
 };  
-
-#define maca_status_cc_mask           (0x0F)
-
-#define maca_reset_rst                (1<<0)
-#define maca_reset_cln_on             (1<<1)
-
-#define maca_frmpnd_data_pending      (1<<0)
-#define maca_frmpnd_no_data_pending   (0x00)
-
-#define maca_txlen_max_rxlen          (127<<16)
-
-#define max_rx_ackwnd_slotted_mode    (0xFFF<<16)
-#define max_rx_ackwnd_normal_mode     (0xFFF)
-
-
-
-#define maca_irq_strt     (1<<15)   /*
-                                      STRT
-                                      Bit 15
-                                      Action Started Interrupt—An auto-sequence is started, either
-                                      immediately or by timer trigger.
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                    */
-#define maca_irq_sync     (1<<14)   /*
-                                      SYNC
-                                      Bit 14
-                                      Sync Detected Interrupt—The modem has detected the beginning
-                                      of a new packet
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                    */
-#define maca_irq_cm       (1<<13)   /*
-                                      CM
-                                      Bit 13
-                                      Complete Clock Interrupt—The complete clock has generated a
-                                      trigger.
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                    */
-#define maca_irq_crc      (1<<12)   /*
-                                      CRC
-                                      Bit 12
-                                      Checksum Failed Interrupt—The checksum failed for the received
-                                      packet.
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                    */
-#define maca_irq_flt      (1<<11)   /*
-                                      FLT
-                                      Bit 11
-                                      Filter Failed Interrupt—The receive header filter failed. 1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                      SFT
-                                      Bit 10
-                                      Soft Complete Clock Interrupt—The soft complete clock has
-                                      generated a trigger.
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                    */
-#define maca_irq_sftclk   (1<<10)
-
-#define maca_irq_lvl      (1<<9)    /*
-                                      LVL
-                                      Bit 9
-                                      FIFO Level interrupt—The receive FIFO level is reached or
-                                      exceeded.
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                      Bit 8-5 Reserved bits—Read as zero and written with zero for future
-                                      compatibility. N/A
-                                    */
-#define maca_irq_rst      (1<<4)    /*
-                                      RST
-                                      Bit 4
-                                      Reset Interrupt—A non maskable reset interrupt detected (TBD!!!) 1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                      WU
-                                      Bit 3
-                                      Wake-up Interrupt—Low power mode has been exited (TBD in
-                                      connection with CCM module).
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                    */
-#define maca_irq_wu       (1<<3)
-
-#define maca_irq_di       (1<<2)    /*
-                                      DI
-                                      Bit 2
-                                      Data Indication Interrupt—During receive, a packet has been
-                                      successfully received.
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                    */
-#define maca_irq_poll     (1<<1)    /*
-                                      POLL
-                                      Bit 1
-                                      Poll Indication Interrupt—Issued when data request received (and
-                                      before ACK transmitted). MCU may then set MACA_FRMPND and
-                                      prepare fast response. TBD: Shall this be skipped if
-                                      MACA_FRMPND is clear?
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                    */
-#define maca_irq_acpl     (1<<0)    /*
-                                      ACPL
-                                      Action Complete Interrupt—Marks the completion of a complete
-                                      auto-sequence.
-                                      1 = Clear interrupt source
-                                      0 = Leave source untouched
-                                    */
-
-
-#define maca_start_clk          (1<<0)/*
-                                        TMREN & TMRDIS enable/disable start clock
-                                      */
-
-#define maca_cpl_clk            (1<<1)/*
-                                        TMREN & TMRDIS enable/disable complete clock
-                                      */
-
-#define maca_soft_clk           (1<<2)/*
-                                        TMREN & TMRDIS enable/disable soft complete clock
-                                      */
-
-#define maca_abort_start_clk    (1<<3)/*
-                                        TMRDIS abort start clock
-                                      */
-
-#define maca_abort_cpl_clk      (1<<4)/*
-                                        TMRDIS abort complete clock
-                                      */
-
-#define maca_abort_soft_clk     (1<<5)/*
-                                        TMRDIS abort soft complete clock
-                                      */
-
   
 #define maca_version    (*((volatile uint32_t *)(0x80004000)))      
 #define maca_reset      (*((volatile uint32_t *)(0x80004004)))    
@@ -378,24 +314,6 @@ typedef union maca_reset_reg_tag
 #define MACA_CTRL_MODE_NON_SLOTTED     (1)
 #define MACA_CTRL_MODE_SLOTTED         (2)
 
-
-typedef union maca_status_reg_tag
-{
-  struct
-  {
-    uint32_t  RESERVED:16;
-    uint32_t  TO:1;
-    uint32_t  CRC:1;
-    uint32_t  BUSY:1;
-    uint32_t  OVR:1;
-    uint32_t  zigbee:1;
-    uint32_t  :7;
-    uint32_t  COMPLETE_CODE:4;
-  } Bits;
-  uint32_t Reg;
-} maca_status_reg_t;
-
-
 typedef enum maca_freq_chann_tag
 {
   SMAC_CHANN_11 = 0,
@@ -418,32 +336,107 @@ typedef enum maca_freq_chann_tag
 } maca_freq_chann_t;
 
 
-typedef union maca_maskirq_reg_tag
-{
-  struct
-  {
-    uint32_t  RESERVED1:16;
-    uint32_t  STRT:1;
-    uint32_t  SYNC:1;
-    uint32_t  CM:1;
-    uint32_t  CRC:1;
-    uint32_t  FLT:1;
-    uint32_t  SFT:1;
-    uint32_t  LVL:1;
-    uint32_t  RESERVED0:4;
-    uint32_t  NOT_USED1:1;
-    uint32_t  NOT_USED0:1;
-    uint32_t  DI:1;
-    uint32_t  POLL:1;
-    uint32_t  ACPL:1;
-  } Bits;
-  uint32_t Reg;
-} maca_maskirq_reg_t;
+/* Sequence complete codes */
+enum maca_complete_code {
+   maca_cc_success          = 0,
+   maca_cc_timeout          = 1,
+   maca_cc_channel_busy     = 2,
+   maca_cc_crc_fail         = 3,
+   maca_cc_aborted          = 4,
+   maca_cc_no_ack           = 5,
+   maca_cc_no_data          = 6,
+   maca_cc_late_start       = 7,
+   maca_cc_ext_timeout      = 8,
+   maca_cc_ext_pnd_timeout  = 9,
+   maca_cc_nc1              = 10,
+   maca_cc_nc2              = 11,
+   maca_cc_nc3              = 12,
+   maca_cc_cc_external_abort= 13,
+   maca_cc_not_completed    = 14,
+   maca_cc_bus_error        = 15
+};
 
+/* control sequence codes */
+enum maca_ctrl_seq {
+    maca_ctrl_seq_nop    = 0,
+    maca_ctrl_seq_abort  = 1,
+    maca_ctrl_seq_wait   = 2,
+    maca_ctrl_seq_tx     = 3,
+    maca_ctrl_seq_rx     = 4,
+    maca_ctrl_seq_txpoll = 5,
+    maca_ctrl_seq_cca    = 6,
+    maca_ctrl_seq_ed     = 7
+};  
 
-#define _is_action_complete_interrupt(x)     (0 != (maca_irq_acpl & x))
-#define _is_filter_failed_interrupt(x)       (0 != (maca_irq_flt & x))
-#define _is_checksum_failed_interrupt(x)     (0 != (maca_irq_crc & x))
+/* transmission modes */
+enum maca_ctrl_modes {
+	maca_ctrl_mode_no_cca = 0,
+	maca_ctrl_mode_non_slotted_csma_ca = 1,
+	maca_ctrl_mode_slotted_csma_ca = 2,
+};
+
+/* MACA_CONTROL bits */
+enum maca_ctrl_bits {
+        maca_ctrl_seq    = 0,  /* 3 bits */
+	maca_ctrl_mode   = 3,  /* 2 bits */
+        maca_ctrl_tm     = 5, 
+	maca_ctrl_lfsr   = 6,
+        maca_ctrl_auto   = 7,
+	maca_ctrl_bcn    = 8,
+        maca_ctrl_asap   = 9,
+        maca_ctrl_rel    = 10,
+        maca_ctrl_prm    = 11,
+        maca_ctrl_nofc   = 12,
+        maca_ctrl_role   = 13,
+        /* 14 reserved */
+        maca_ctrl_rsto   = 15,
+        maca_ctrl_pre_count = 16, /* 4 bits */
+        maca_ctrl_ism    = 20,
+};
+
+/* MACA_IRQ bits */
+enum maca_irqs {
+	maca_irq_acpl     = 0, 
+	maca_irq_poll     = 1,
+	maca_irq_di       = 2,
+	maca_irq_wu       = 3,
+	maca_irq_rst      = 4,
+	maca_irq_lvl      = 9,
+	maca_irq_sftclk   = 10,
+	maca_irq_flt      = 11,
+	maca_irq_crc      = 12, 
+	maca_irq_cm       = 13,
+	maca_irq_sync     = 14,  
+	maca_irq_strt     = 15,   
+};
+
+/* MACA_RESET bits */
+enum maca_reset_bits {
+	maca_reset_rst    = 0,
+	maca_reset_clkon  = 1,
+};
+
+/* MACA_TMREN bits */
+enum maca_tmren_bits {
+	maca_tmren_strt   = 0,
+	maca_tmren_cpl    = 1,
+	maca_tmren_sft    = 2,
+};
+
+enum maca_status_bits {
+	maca_status_ovr   = 12,
+	maca_status_busy  = 13,
+	maca_status_crc   = 14,
+	maca_status_to    = 15,
+};
+
+#define action_complete_irq()     bit_is_set(*MACA_IRQ,maca_irq_acpl)
+#define filter_failed_irq()       bit_is_set(*MACA_IRQ,maca_irq_flt)
+#define checksum_failed_irq()     bit_is_set(*MACA_IRQ,maca_irq_crc)
+#define data_indication_irq()     bit_is_set(*MACA_IRQ,maca_irq_di)
+
+#define status_is_not_completed() ((*MACA_STATUS & 0xffff) == maca_cc_not_completed)
+#define status_is_success() ((*MACA_STATUS & 0xffff) == maca_cc_success)
 
 #define SMAC_MACA_CNTL_INIT_STATE  ( control_prm | control_nofc | control_mode_non_slotted )
 
