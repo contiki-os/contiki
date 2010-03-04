@@ -7,10 +7,10 @@
 #include "crm.h"
 #include "nvm.h"
 #include "tmr.h"
+#include "kbi.h"
 #include "maca.h"
+#include "packet.h"
 #include "uart1.h"
 #include "utils.h"
-
-#include "put.h" /* this is a temp. lib */
 
 #endif

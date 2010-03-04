@@ -46,8 +46,8 @@
 #define ROSC_FTUNE 4       /* 4 bits */
 #define ROSC_EN    0
 
-#define ring_osc_on() (set_bit(reg32(CRM_RINGOSC_CNTL),ROSC_EN))
-#define ring_osc_off() (clear_bit(reg32(CRM_RINGOSC_CNTL),ROSC_EN))
+#define ring_osc_on() (set_bit(*CRM_RINGOSC_CNTL,ROSC_EN))
+#define ring_osc_off() (clear_bit(*CRM_RINGOSC_CNTL,ROSC_EN))
 
 #define REF_OSC 24000000ULL          /* reference osc. frequency */
 #define NOMINAL_RING_OSC_SEC 2000 /* nominal ring osc. frequency */
@@ -57,34 +57,34 @@
 #define XTAL32_GAIN 4      /* 2 bits */
 #define XTAL32_EN   0
 
-#define xtal32_on() (set_bit(reg32(CRM_XTAL32_CNTL),XTAL32_EN))
-#define xtal32_off() (clear_bit(reg32(CRM_XTAL32_CNTL),XTAL32_EN))
-#define xtal32_exists() (set_bit(reg32(CRM_SYS_CNTL),XTAL32_EXISTS))
+#define xtal32_on() (set_bit(*CRM_XTAL32_CNTL,XTAL32_EN))
+#define xtal32_off() (clear_bit(*CRM_XTAL32_CNTL,XTAL32_EN))
+#define xtal32_exists() (set_bit(*CRM_SYS_CNTL,XTAL32_EXISTS))
 
 /* enable external wake-ups on kbi 4-7 */ 
 /* see kbi.h for other kbi specific macros */
-#define enable_ext_wu(kbi) (set_bit(reg32(CRM_WU_CNTL),(EXT_WU_EN+kbi-4)))
-#define disable_ext_wu(kbi) (clear_bit(reg32(CRM_WU_CNTL),(EXT_WU_EN+kbi-4)))
+#define enable_ext_wu(kbi) (set_bit(*CRM_WU_CNTL,(EXT_WU_EN+kbi-4)))
+#define disable_ext_wu(kbi) (clear_bit(*CRM_WU_CNTL,(EXT_WU_EN+kbi-4)))
 
-#define is_ext_wu_evt(kbi) (bit_is_set(reg32(CRM_STATUS),(EXT_WU_EVT+kbi-4)))
-#define clear_ext_wu_evt(kbi) (set_bit(reg32(CRM_STATUS),(EXT_WU_EVT+kbi-4))) /* r1wc bit */
+#define is_ext_wu_evt(kbi) (bit_is_set(*CRM_STATUS,(EXT_WU_EVT+kbi-4)))
+#define clear_ext_wu_evt(kbi) (set_bit(*CRM_STATUS,(EXT_WU_EVT+kbi-4))) /* r1wc bit */
 
 /* enable wake-up timer */
-#define enable_timer_wu_irq() ((set_bit(reg32(CRM_WU_CNTL),(TIMER_WU_IEN))))
-#define disable_timer_wu_irq() ((clear_bit(reg32(CRM_WU_CNTL),(TIMER_WU_IEN))))
+#define enable_timer_wu_irq() ((set_bit(*CRM_WU_CNTL,(TIMER_WU_IEN))))
+#define disable_timer_wu_irq() ((clear_bit(*CRM_WU_CNTL,(TIMER_WU_IEN))))
 
-#define enable_timer_wu() ((set_bit(reg32(CRM_WU_CNTL),(TIMER_WU_EN))))
-#define disable_timer_wu() ((clear_bit(reg32(CRM_WU_CNTL),(TIMER_WU_EN))))
+#define enable_timer_wu() ((set_bit(*CRM_WU_CNTL,(TIMER_WU_EN))))
+#define disable_timer_wu() ((clear_bit(*CRM_WU_CNTL,(TIMER_WU_EN))))
 
 /* enable wake-up from RTC compare */
-#define enable_rtc_wu_irq() (set_bit(reg32(CRM_WU_CNTL),RTC_WU_IEN))
-#define disable_rtc_wu_irq() (clear_bit(reg32(CRM_WU_CNTL),RTC_WU_IEN))
+#define enable_rtc_wu_irq() (set_bit(*CRM_WU_CNTL,RTC_WU_IEN))
+#define disable_rtc_wu_irq() (clear_bit(*CRM_WU_CNTL,RTC_WU_IEN))
 
-#define enable_rtc_wu() ((set_bit(reg32(CRM_WU_CNTL),(RTC_WU_EN))))
-#define disable_rtc_wu() ((clear_bit(reg32(CRM_WU_CNTL),(RTC_WU_EN))))
+#define enable_rtc_wu() ((set_bit(*CRM_WU_CNTL,(RTC_WU_EN))))
+#define disable_rtc_wu() ((clear_bit(*CRM_WU_CNTL,(RTC_WU_EN))))
 
-#define clear_rtc_wu_evt() (set_bit(reg32(CRM_STATUS),RTC_WU_EVT))
-#define rtc_wu_evt() (bit_is_set(reg32(CRM_STATUS),RTC_WU_EVT))
+#define clear_rtc_wu_evt() (set_bit(*CRM_STATUS,RTC_WU_EVT))
+#define rtc_wu_evt() (bit_is_set(*CRM_STATUS,RTC_WU_EVT))
 
 #define SLEEP_MODE_HIBERNATE bit(0)
 #define SLEEP_MODE_DOZE      bit(1)
