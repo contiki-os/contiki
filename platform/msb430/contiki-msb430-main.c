@@ -147,7 +147,7 @@ main(void)
  
   leds_off(LEDS_ALL);
 
-  printf("%d.%d: %s %s, channel check rate %u Hz\n",
+  printf("Node %d.%d: %s %s, channel check rate %u Hz\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
          NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ?

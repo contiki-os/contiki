@@ -7,7 +7,7 @@
 #define WITH_SD				0
 
 #define NETSTACK_CONF_RADIO		cc1020_driver
-#define NETSTACK_CONF_RDC		nullrdc_driver
+#define NETSTACK_CONF_RDC		lpp_driver
 #define NETSTACK_CONF_MAC		csma_driver
 #define NETSTACK_CONF_NETWORK		rime_driver
 #define NETSTACK_CONF_FRAMER		framer_nullmac
@@ -30,8 +30,8 @@
 #define CC_CONF_INLINE			inline
 #define CC_CONF_VA_ARGS			1
 
-#define LPP_CONF_LISTEN_TIME		CLOCK_SECOND / 32
-#define LPP_CONF_OFF_TIME		CLOCK_SECOND
+#define LPP_CONF_LISTEN_TIME		2
+#define LPP_CONF_OFF_TIME		(CLOCK_SECOND - (LPP_CONF_LISTEN_TIME))
 #define QUEUEBUF_CONF_NUM		4
 
 
