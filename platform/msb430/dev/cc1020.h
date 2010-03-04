@@ -53,7 +53,9 @@ Berlin, 2006
 extern const uint8_t cc1020_config_19200[];
 extern const uint8_t cc1020_config_115200[];
 
+#if 0
 void cc1020_init(const uint8_t* config);
+#endif
 void cc1020_set_rx(void);
 void cc1020_set_tx(void);
 void cc1020_set_power(uint8_t pa_power);
@@ -61,13 +63,13 @@ int cc1020_carrier_sense(void);
 uint8_t cc1020_get_rssi(void);
 uint8_t cc1020_get_packet_rssi(void);
 int cc1020_sending(void);
-
+#if 0
 int cc1020_send(const void *buf, unsigned short size);
 int cc1020_read(void *buf, unsigned short size);
 void cc1020_set_receiver(void (*recv)(const struct radio_driver *));
 int cc1020_on(void);
 int cc1020_off(void);
-
+#endif
 extern const struct radio_driver cc1020_driver;
 
 PROCESS_NAME(cc1020_sender_process);
