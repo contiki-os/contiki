@@ -2,6 +2,14 @@
   use run_algorithm to hook ROM NVM functions
   see flash/stm32x.c
 
+- receive callback in the isr
+
+- callback for each packet the gets transmitted
+
+- beacon sync
+
+- CCA and ED.
+
 
  
    
