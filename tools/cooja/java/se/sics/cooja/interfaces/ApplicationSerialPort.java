@@ -2,6 +2,7 @@ package se.sics.cooja.interfaces;
 
 import se.sics.cooja.Mote;
 import se.sics.cooja.dialogs.SerialUI;
+import se.sics.cooja.motes.AbstractApplicationMote;
 
 public class ApplicationSerialPort extends SerialUI {
   private Mote mote;
@@ -26,12 +27,12 @@ public class ApplicationSerialPort extends SerialUI {
   }
 
   public void writeArray(byte[] s) {
-    /* Not implemented */
+    ((AbstractApplicationMote) getMote()).writeArray(s);
   }
   public void writeByte(byte b) {
-    /* Not implemented */
+    ((AbstractApplicationMote)getMote()).writeByte(b);
   }
   public void writeString(String s) {
-    /* Not implemented */
+    ((AbstractApplicationMote)getMote()).writeString(s);
   }
 }

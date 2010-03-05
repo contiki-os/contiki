@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMote.java,v 1.9 2010/02/03 15:11:48 fros4943 Exp $
+ * $Id: AbstractApplicationMote.java,v 1.10 2010/03/05 14:59:43 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -188,4 +188,11 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     return "AppMote " + getID();
   }
 
+  /* These methods should be overriden to allow application motes receiving serial data */
+  public void writeArray(byte[] s) {
+  }
+  public void writeByte(byte b) {
+  }
+  public void writeString(String s) {
+  }
 }
