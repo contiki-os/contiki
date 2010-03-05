@@ -61,9 +61,13 @@ void session_req(short_addr_t addr) {
 
 //	if((get_time() - time) > SESSION_REQ_TIMEOUT) {
 //		time = get_time();
-		p = get_free_packet();
+	if((p = get_free_packet())) {
 		build_session_req(p);
 		tx_packet(p);
+	} else {
+		printf("session_req: could not get free packet for transmit\n\r");
+	}
+			
 //	}
 	return; 
 }

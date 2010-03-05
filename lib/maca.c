@@ -14,6 +14,10 @@
 #define NUM_PACKETS 8
 #endif
 
+#ifndef RECV_SOFTIMEOUT
+#define RECV_SOFTIMEOUT 2500000 /* 10 sec */
+#endif
+
 #define MACA_CLOCK_DIV 95
 
 #define reg(x) (*(volatile uint32_t *)(x))
@@ -22,53 +26,144 @@ static volatile packet_t packet_pool[NUM_PACKETS];
 static volatile packet_t *free_head, *rx_head, *rx_end, *tx_head, *tx_end, *dma_tx, *dma_rx = 0;
 
 enum posts {
-	TX,
-	RX,
+	NO_POST = 0,
+	TX_POST,
+	RX_POST,
 	MAX_POST,
 };
-static volatile uint8_t last_post = MAX_POST;
+static volatile uint8_t last_post = NO_POST;
+
+#define safe_irq_disable(x)  volatile uint32_t saved_irq; saved_irq = *INTENABLE; disable_irq(x)
+#define irq_restore() *INTENABLE = saved_irq
+
+void print_packets(char *s) {
+	volatile packet_t *p;
+	int i = 0;
+	printf("packet pool after %s:\n\r",s);
+	p = free_head;	
+	printf("free_head: 0x%x ",free_head);
+	while(p != 0) {
+		i++;
+		p = p->left;
+		printf("->0x%x",p);
+	}
+	printf("\n\r");
+
+	p = tx_head;
+	printf("tx_head: 0x%x ",tx_head);
+	while(p != 0) {
+		i++;
+		p = p->left;
+		printf("->0x%x",p);
+	}
+	printf("\n\r");
+
+	p = rx_head;
+	printf("rx_head: 0x%x ",rx_head);
+	while(p != 0) {
+		i++;
+		p = p->left;
+		printf("->0x%x",p);
+	}
+	printf("\n\r");
+	printf("found %d packets\n\r",i);
+}
+
 
 /* public packet routines */
 /* heads are to the right */
 /* ends are to the left */
 void free_packet(volatile packet_t *p) {
+	safe_irq_disable(MACA);
+
+	if(!p) {  PRINTF("free_packet passed packet 0\n\r"); return; }
 	p->length = 0;
 	p->left = free_head; p->right = 0;
 	free_head = p;
+
+	irq_restore();
 	return;
 }
 
 volatile packet_t* get_free_packet(void) {
 	volatile packet_t *p;
+	safe_irq_disable(MACA);
+
 	p = free_head;
 	if( p != 0 ) {
 		free_head = p->left;
 		free_head->right = 0;
 	}
+
+	print_packets("get_free_packet");
+	irq_restore();
 	return p;
 }
 
 volatile packet_t* rx_packet(void) {
 	volatile packet_t *p;
+	safe_irq_disable(MACA);
+
 	p = rx_head;
 	if( p != 0 ) {
 		rx_head = p->left;
 		rx_head->right = 0;
 	}
+
+	print_packets("rx_packet");
+	irq_restore();
 	return p;
 }
 
+void post_tx(void) {
+	/* set dma tx pointer to the payload */
+	/* and set the tx len */
+	disable_irq(MACA);
+	last_post = TX_POST;
+	dma_tx = tx_head; 	
+	*MACA_TXLEN = (uint32_t)(dma_tx->length + 2);
+	*MACA_DMATX = (uint32_t)&(dma_tx->data[0]);
+	if(dma_rx == 0) {
+		dma_rx = get_free_packet();
+		if (dma_rx == 0)
+			printf("trying to fill MACA_DMARX but out of packet buffers\n");		
+	}
+	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
+	*MACA_TMREN = 0;
+	/* do the transmit */
+	enable_irq(MACA);
+	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
+			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
+			  (1 << maca_ctrl_asap) |
+			  (maca_ctrl_seq_tx));	
+}
+
 void tx_packet(volatile packet_t *p) {
-	tx_end->left = p;
-	p->right = tx_end;
-	tx_end = p; tx_end->left = 0;
-	if(tx_head == 0) { tx_head = tx_end; }
+	safe_irq_disable(MACA);
+
+	if(!p) {  PRINTF("tx_packet passed packet 0\n\r"); return; }
+	if(tx_head == 0) {
+		/* start a new queue if empty */
+		tx_end = p;
+		tx_end->left = 0; tx_end->right = 0;
+		tx_head = tx_end; 
+	} else {
+		/* add p to the end of the queue */
+		tx_end->left = p;
+		p->right = tx_end;
+		/* move the queue */
+		tx_end = p; tx_end->left = 0;
+	}
+	print_packets("tx packet");
+	irq_restore();
 	if(get_field(*MACA_STATUS,CODE) != NOT_COMPLETED) { post_tx(); }
 	return;
 }
 
 void free_all_packets(void) {
 	volatile int i;
+	safe_irq_disable(MACA);
+
 	free_head = 0;
 	for(i=0; i<NUM_PACKETS; i++) {
 		printf("free packet %d\n\r",i);
@@ -78,110 +173,127 @@ void free_all_packets(void) {
 	printf("free head %x\n",free_head);
 	rx_head = 0; rx_end = 0;
 	tx_head = 0; tx_end = 0;
+
+	irq_restore();
 	return;
 }
 
 /* private routines used by driver */
+		
 void free_tx_head(void) {
 	volatile packet_t *p;
+	safe_irq_disable(MACA);
+
 	p = tx_head;
 	tx_head = tx_head->left;
+	if(tx_head == 0) { tx_end = 0; }
 	free_packet(p);
+
+	print_packets("free tx head");
+	irq_restore();
 	return;
 }
 
-void add_to_rx(packet_t *p) {
-	rx_end->left = p;
-	p->right = rx_end;
-	rx_end = p; rx_end->left = 0;
+void add_to_rx(volatile packet_t *p) {
+	safe_irq_disable(MACA);
+
+	if(!p) {  PRINTF("add_to_rx passed packet 0\n\r"); return; }
+	if(rx_head == 0) {
+		/* start a new queue if empty */
+		rx_end = p;
+		rx_end->left = 0; rx_end->right = 0;
+		rx_head = rx_end; 
+	} else {
+		rx_end->left = p;
+		p->right = rx_end;
+		rx_end = p; rx_end->left = 0;
+	}
+	
+	print_packets("add to tx");
+	irq_restore();
 	return;
 }
 
 void post_receive(void) {
+	disable_irq(MACA);
+	last_post = RX_POST;
 	/* this sets the rxlen field */
 	/* this is undocumented but very important */
 	/* you will not receive anything without setting it */
-	last_post = RX;
 	*MACA_TXLEN = (MAX_PACKET_SIZE << 16);
 	if(dma_rx == 0) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0)
-			printf("out of packet buffers\n");		
+			printf("trying to fill MACA_DMARX but out of packet buffers\n");		
 	}
 	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
 	/* with timeout */		
-	*MACA_SFTCLK = *MACA_CLK - 1;
+	*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
 	*MACA_TMREN = (1 << maca_tmren_sft);
 	/* start the receive sequence */
-	*MACA_CONTROL = ( (1 << maca_ctrl_asap) |
+	enable_irq(MACA);
+/*	*MACA_CONTROL = ( (1 << maca_ctrl_asap) |
 				(1 << maca_ctrl_auto) |
 				(1 << maca_ctrl_prm) |
 				(maca_ctrl_seq_rx));
-}
-
-void post_tx(void) {
-	/* set dma tx pointer to the payload */
-	/* and set the tx len */
-	last_post = TX;
-	dma_tx = tx_head; 	
-	*MACA_TXLEN = (uint32_t)(dma_tx->length + 2);
-	*MACA_DMATX = (uint32_t)&(dma_tx->data[0]);
-	dma_rx = get_free_packet();
-	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
-	*MACA_TMREN = 0;
-	/* do the transmit */
-	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
-			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
-			  (1 << maca_ctrl_asap) |
-			  (maca_ctrl_seq_tx));	
+*/
+	*MACA_CONTROL = ( 
+		(1 << maca_ctrl_asap) |
+		(1 << maca_ctrl_prm) |
+		(maca_ctrl_seq_rx));
 }
 
 
-static void decode_status(int status) {
-	switch(status)
+void decode_status(volatile uint32_t status) {
+	volatile uint32_t code;
+	
+	code = get_field(status,CODE);
+	PRINTF("status code 0x%x\n\r",code);
+	
+	switch(code)
 	{
-	case maca_cc_aborted:
+	case ABORTED:
 	{
 		PRINTF("maca: aborted\n\r");
 		ResumeMACASync();
 		break;
 		
 	}
-	case maca_cc_not_completed:
+	case NOT_COMPLETED:
 	{
 //		PRINTF("maca: not completed\n\r");
 		ResumeMACASync();
 		break;
 		
 	}
-	case maca_cc_timeout:
+	case CODE_TIMEOUT:
 	{
 		PRINTF("maca: timeout\n\r");
 		ResumeMACASync();
 		break;
 		
 	}
-	case maca_cc_no_ack:
+	case NO_ACK:
 	{
 		PRINTF("maca: no ack\n\r");
 		ResumeMACASync();
 		break;
 		
 	}
-	case maca_cc_ext_timeout:
+	case EXT_TIMEOUT:
 	{
-//		PRINTF("maca: ext timeout\n\r");
+		PRINTF("maca: ext timeout\n\r");
 		ResumeMACASync();
 		break;
 		
 	}
-	case maca_cc_ext_pnd_timeout:
+	case EXT_PND_TIMEOUT:
 	{
 		PRINTF("maca: ext pnd timeout\n\r");
 		ResumeMACASync();
 		break;
 	}
-	case maca_cc_success:
+	case SUCCESS:
 	{
 		//PRINTF("maca: success\n\r");
 		break;				
@@ -196,54 +308,55 @@ static void decode_status(int status) {
 }
 
 void maca_isr(void) {
-	int i, status;
-	struct packet_t *packet;
+	volatile uint32_t i, status;
+
+	print_packets("maca_isr");
 
 	status = *MACA_STATUS;
 
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
 		dma_rx->length = *MACA_GETRXLVL - 2;
-		PRINTF("data ind %x %d\n", dma_rx, dma_rx->length);
+		PRINTF("maca data ind %x %d\n\r", dma_rx, dma_rx->length);
 		add_to_rx(dma_rx);
 		dma_rx = 0;
 	}
 	if (filter_failed_irq()) {
-		PRINTF("filter failed\n");
+		PRINTF("maca filter failed\n\r");
 		ResumeMACASync();
 		*MACA_CLRIRQ = (1 << maca_irq_flt);
 	}
 	if (checksum_failed_irq()) {
-		PRINTF("checksum failed\n");
+		PRINTF("maca checksum failed\n\r");
 		ResumeMACASync();
 		*MACA_CLRIRQ = (1 << maca_irq_crc);
 	}
 	if(action_complete_irq()) {
-		PRINTF("action complete %d\n", get_field(*MACA_CONTROL,SEQUENCE));
-		if(last_post == TX) {
-			free_packet(dma_tx);
+		PRINTF("maca action complete %d\n\r", get_field(*MACA_CONTROL,SEQUENCE));
+		if(last_post == TX_POST) {
+			free_tx_head();
+			last_post = NO_POST;
 		}
-
 		*MACA_CLRIRQ = (1 << maca_irq_acpl);
-		status &= 0x0000ffff;
-		decode_status(status);
 	}
-	if (bit_is_set(status, maca_status_ovr))
-		PRINTF("ISR overrun\n");
-	if (bit_is_set(status, maca_status_busy))
-		PRINTF("ISR busy\n");
-	if (bit_is_set(status, maca_status_crc))
-		PRINTF("ISR crc\n");
-	if (bit_is_set(status, maca_status_to))
-		PRINTF("ISR timeout\n");
-
 	i = *MACA_IRQ;
 	if (i != 0)
-		PRINTF("MACA IRQ %x\n", i);
+		PRINTF("*MACA_IRQ %x\n\r", i);
+
+
+	if (bit_is_set(status, maca_status_ovr))
+		PRINTF("maca overrun\n\r");
+	if (bit_is_set(status, maca_status_busy))
+		PRINTF("maca busy\n\r");
+	if (bit_is_set(*MACA_STATUS, maca_status_crc))
+		PRINTF("maca crc error\n\r");
+	if (bit_is_set(*MACA_STATUS, maca_status_to))
+		PRINTF("maca timeout\n\r");
+	decode_status(status);
 
 	if(tx_head != 0) {
 		post_tx();
-	} else  {
+	} else if(last_post != TX_POST) {
 		post_receive();
 	}
 }
@@ -739,10 +852,12 @@ uint32_t init_from_flash(uint32_t addr) {
  */
 void ResumeMACASync(void)
 { 
-  uint32_t clk, TsmRxSteps, LastWarmupStep, LastWarmupData, LastWarmdownStep, LastWarmdownData;
+  volatile uint32_t clk, TsmRxSteps, LastWarmupStep, LastWarmupData, LastWarmdownStep, LastWarmdownData;
 //  bool_t tmpIsrStatus;
-  volatile uint32_t i;
+  volatile uint32_t i, saved_irq;
 
+  disable_irq(MACA);
+  saved_irq = *MACA_IRQ;
 //  ITC_DisableInterrupt(gMacaInt_c);  
 //  AppInterrupts_ProtectFromMACAIrq(tmpIsrStatus); <- Original from MAC code, but not sure how is it implemented
 
@@ -790,4 +905,7 @@ void ResumeMACASync(void)
 
 //  AppInterrupts_UnprotectFromMACAIrq(tmpIsrStatus);  <- Original from MAC code, but not sure how is it implemented
 //  ITC_EnableInterrupt(gMacaInt_c);
+  *MACA_IRQ = saved_irq;
+  enable_irq(MACA);
+
 }
