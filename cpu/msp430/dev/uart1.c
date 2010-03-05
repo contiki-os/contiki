@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.17 2010/03/03 23:18:58 nvt-se Exp $
+ * @(#)$Id: uart1.c,v 1.18 2010/03/05 12:06:03 fros4943 Exp $
  */
 
 /*
@@ -91,7 +91,7 @@ uart1_writeb(unsigned char c)
     transmitting = 1;
 
     /* Loop until the transmission buffer is available. */
-    while((IFG2 & UTXIFG1) == 0);
+    /*while((IFG2 & UTXIFG1) == 0);*/
     TXBUF1 = ringbuf_get(&txbuf);
   }
 
@@ -185,7 +185,7 @@ uart1_init(unsigned long ubr)
   rx_in_progress = 0;
 
   transmitting = 0;
-  
+
   IE2 |= URXIE1;                        /* Enable USART1 RX interrupt  */
 #if TX_WITH_INTERRUPT
   ringbuf_init(&txbuf, txbuf_data, sizeof(txbuf_data));
@@ -233,7 +233,7 @@ uart1_tx_interrupt(void)
   } else {
     TXBUF1 = ringbuf_get(&txbuf);
   }
-  
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 #endif /* TX_WITH_INTERRUPT */
