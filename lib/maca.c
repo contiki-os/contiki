@@ -344,7 +344,7 @@ void maca_isr(void) {
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
 		dma_rx->length = *MACA_GETRXLVL - 2;
-		PRINTF("maca data ind %x %d\n\r", dma_rx, dma_rx->length);
+//		PRINTF("maca data ind %x %d\n\r", dma_rx, dma_rx->length);
 		add_to_rx(dma_rx);
 		dma_rx = 0;
 	}
