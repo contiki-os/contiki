@@ -15,9 +15,13 @@
 #endif
 
 #ifndef RECV_SOFTIMEOUT
-//#define RECV_SOFTIMEOUT 4096 /* about 3.5 128 byte packets */
-#define RECV_SOFTIMEOUT 10000 /* about 3.5 128 byte packets */
+#define RECV_SOFTIMEOUT 4096 /* about 3.5 128 byte packets */
 #endif
+
+/* for 250kHz clock */
+/* (32 chips/sym) * (sym/4bits) * (8bits/byte) = (64 chips/byte)  */
+/* (8 chips/clk) * (byte/64 chips) = byte/8clks */
+#define CLK_PER_BYTE 8 
 
 #define MACA_CLOCK_DIV 95
 
@@ -100,9 +104,6 @@ volatile packet_t* get_free_packet(void) {
 		free_head->right = 0;
 	}
 
-
-	for(i=0; i<9783; i++) { continue; }
-
 //	print_packets("get_free_packet");
 	irq_restore();
 	return p;
@@ -117,8 +118,10 @@ void post_receive(void) {
 	*MACA_TXLEN = (MAX_PACKET_SIZE << 16);
 	if(dma_rx == 0) {
 		dma_rx = get_free_packet();
-		if (dma_rx == 0)
+		if (dma_rx == 0) {
 			printf("trying to fill MACA_DMARX but out of packet buffers\n");		
+			return;
+		}
 	}
 	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
 	/* with timeout */		
@@ -132,7 +135,7 @@ void post_receive(void) {
 				(maca_ctrl_seq_rx));
 */
 	*MACA_CONTROL = ( 
-		(1 << maca_ctrl_asap) |
+		(1 << maca_ctrl_asap) | ( 4 << PRECOUNT) |
 		(1 << maca_ctrl_prm) |
 		(maca_ctrl_seq_rx));
 }
@@ -157,7 +160,7 @@ volatile packet_t* rx_packet(void) {
 void post_tx(void) {
 	/* set dma tx pointer to the payload */
 	/* and set the tx len */
-
+	volatile uint32_t i;
 	disable_irq(MACA);
 	last_post = TX_POST;
 	dma_tx = tx_head; 	
@@ -169,13 +172,22 @@ void post_tx(void) {
 			printf("trying to fill MACA_DMARX but out of packet buffers\n");		
 	}
 	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
-	*MACA_TMREN = 0;
+	/* disable soft timeout clock */
+	/* disable start clock */
+	*MACA_TMRDIS = (1 << maca_tmren_sft) | ( 1 << maca_tmren_strt ) ;
+	/* set complete clock to long value */
+	/* acts like a watchdog incase the MACA locks up */
+	*MACA_CPLCLK = *MACA_CLK + (CLK_PER_BYTE * dma_tx->length+6) + (CLK_PER_BYTE * 0);
+	/* enable complete clock */
+	*MACA_TMREN = (1 << maca_tmren_cpl);
 	/* do the transmit */
 	enable_irq(MACA);
-	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
+	*MACA_CONTROL = ( (1 << maca_ctrl_prm) | ( 4 << PRECOUNT) |
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	
+
+	for(i=0; i<10; i++) { continue; }
 }
 
 void tx_packet(volatile packet_t *p) {
@@ -196,7 +208,7 @@ void tx_packet(volatile packet_t *p) {
 	}
 //	print_packets("tx packet");
 	irq_restore();
-	if(get_field(*MACA_STATUS,CODE) != NOT_COMPLETED) { post_tx(); }
+	if(get_field(*MACA_STATUS,CODE) != NOT_COMPLETED) { post_tx(); } 
 	return;
 }
 
@@ -254,17 +266,17 @@ void add_to_rx(volatile packet_t *p) {
 	return;
 }
 
-void decode_status(volatile uint32_t status) {
+void decode_status(void) {
 	volatile uint32_t code;
 	
-	code = get_field(status,CODE);
+	code = get_field(*MACA_STATUS,CODE);
 	/* PRINTF("status code 0x%x\n\r",code); */
 	
 	switch(code)
 	{
 	case ABORTED:
 	{
-		PRINTF("maca: aborted\n\r");
+//		PRINTF("maca: aborted\n\r");
 		ResumeMACASync();
 		break;
 		
@@ -278,7 +290,7 @@ void decode_status(volatile uint32_t status) {
 	}
 	case CODE_TIMEOUT:
 	{
-		PRINTF("maca: timeout\n\r");
+//		PRINTF("maca: timeout\n\r");
 		ResumeMACASync();
 		break;
 		
@@ -292,7 +304,7 @@ void decode_status(volatile uint32_t status) {
 	}
 	case EXT_TIMEOUT:
 	{
-		PRINTF("maca: ext timeout\n\r");
+//		PRINTF("maca: ext timeout\n\r");
 		ResumeMACASync();
 		break;
 		
@@ -311,7 +323,7 @@ void decode_status(volatile uint32_t status) {
 	}
 	default:
 	{
-		PRINTF("status: %x", status);
+		PRINTF("status: %x", *MACA_STATUS);
 		ResumeMACASync();
 		
 	}
@@ -322,8 +334,6 @@ void maca_isr(void) {
 	volatile uint32_t i, status;
 
 //	print_packets("maca_isr");
-
-	status = *MACA_STATUS;
 
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
@@ -356,15 +366,15 @@ void maca_isr(void) {
 		PRINTF("*MACA_IRQ %x\n\r", i);
 
 
-	if (bit_is_set(status, maca_status_ovr))
+	if (bit_is_set(*MACA_STATUS, maca_status_ovr))
 		PRINTF("maca overrun\n\r");
-	if (bit_is_set(status, maca_status_busy))
+	if (bit_is_set(*MACA_STATUS, maca_status_busy))
 		PRINTF("maca busy\n\r");
 	if (bit_is_set(*MACA_STATUS, maca_status_crc))
 		PRINTF("maca crc error\n\r");
 	if (bit_is_set(*MACA_STATUS, maca_status_to))
 		PRINTF("maca timeout\n\r");
-	decode_status(status);
+	decode_status();
 
 	if(tx_head != 0) {
 		post_tx();

@@ -47,7 +47,7 @@ uint32_t get_time(void) {
 #define random_short_addr() (*MACA_RANDOM & ones(sizeof(short_addr_t)*8))
 
 void build_session_req(volatile packet_t *p) {
-	p->length = 127;
+	p->length = 4;
 	p->data[0] = 0xff;
 	p->data[1] = 0x01;
 	p->data[2] = 0x23;
@@ -59,20 +59,28 @@ void session_req(short_addr_t addr) {
 	static volatile int time = 0;
 	volatile packet_t *p;
 
-//	if((get_time() - time) > SESSION_REQ_TIMEOUT) {
-//		time = get_time();
-	if((p = get_free_packet())) {
-		build_session_req(p);
-		tx_packet(p);
-	} else {
-//		printf("session_req: could not get free packet for transmit\n\r");
+	if((get_time() - time) > SESSION_REQ_TIMEOUT) {
+		time = get_time();
+		if((p = get_free_packet())) {
+			build_session_req(p);
+			tx_packet(p);
+		}
 	}
-			
-//	}
 	return; 
 }
 
-void print_packet(packet_t *p) { return; }
+void print_packet(packet_t *p) { 
+	volatile uint8_t i,j; 
+	if(p) {
+		for(j=0; j < (p->length)%16; j++) {
+			for(i=0; i<p->length; i++) {
+				printf("%x02 ",p->data[i]);
+			}
+			printf("\n\r");
+		}
+	}
+	return; 
+}
 session_id_t open_session(short_addr_t addr) { return 0; }
 
 void main(void) {
@@ -120,7 +128,8 @@ void main(void) {
 		case SCANNING:
 			if((p = rx_packet())) {
 				/* extract what we need and free the packet */
-    				print_packet(p);
+				printf("Recv: ");
+				print_packet(p);
 				type = get_packet_type(p);
 				addr = p->addr;
 				free_packet(p);
