@@ -16,7 +16,7 @@
 #define DEBUG_MACA 1
 
 /* how long to wait between session requests */
-#define SESSION_REQ_TIMEOUT 10 /* phony seconds */
+#define SESSION_REQ_TIMEOUT 10000 /* phony seconds */
 
 enum STATES {
 	SCANNING,
@@ -47,7 +47,7 @@ uint32_t get_time(void) {
 #define random_short_addr() (*MACA_RANDOM & ones(sizeof(short_addr_t)*8))
 
 void build_session_req(volatile packet_t *p) {
-	p->length = 4;
+	p->length = 16;
 	p->data[0] = 0xff;
 	p->data[1] = 0x01;
 	p->data[2] = 0x23;
@@ -72,9 +72,10 @@ void session_req(short_addr_t addr) {
 void print_packet(packet_t *p) { 
 	volatile uint8_t i,j; 
 	if(p) {
-		for(j=0; j < (p->length)%16; j++) {
+		printf("len 0x%02x:",p->length);
+		for(j=0; j < ((p->length)%16)-1; j++) {
 			for(i=0; i<p->length; i++) {
-				printf("%x02 ",p->data[i]);
+				printf("%02x ",p->data[j*16+i]);
 			}
 			printf("\n\r");
 		}
@@ -145,7 +146,7 @@ void main(void) {
 					sesid = open_session(p->addr);
 				}
 			}  else {
-				session_req(my_addr);
+				//		session_req(my_addr);
 			}
 			break;
 		default:

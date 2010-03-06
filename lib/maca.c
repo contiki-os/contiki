@@ -110,6 +110,7 @@ volatile packet_t* get_free_packet(void) {
 }
 
 void post_receive(void) {
+	volatile uint32_t i;
 	disable_irq(MACA);
 	last_post = RX_POST;
 	/* this sets the rxlen field */
@@ -119,7 +120,7 @@ void post_receive(void) {
 	if(dma_rx == 0) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0) {
-			printf("trying to fill MACA_DMARX but out of packet buffers\n");		
+			printf("trying to fill MACA_DMARX but out of packet buffers\n\r");		
 			return;
 		}
 	}
@@ -129,15 +130,16 @@ void post_receive(void) {
 	*MACA_TMREN = (1 << maca_tmren_sft);
 	/* start the receive sequence */
 	enable_irq(MACA);
-/*	*MACA_CONTROL = ( (1 << maca_ctrl_asap) |
+	*MACA_CONTROL = ( (1 << maca_ctrl_asap) |
 				(1 << maca_ctrl_auto) |
 				(1 << maca_ctrl_prm) |
 				(maca_ctrl_seq_rx));
-*/
-	*MACA_CONTROL = ( 
+
+/*	*MACA_CONTROL = ( 
 		(1 << maca_ctrl_asap) | ( 4 << PRECOUNT) |
 		(1 << maca_ctrl_prm) |
-		(maca_ctrl_seq_rx));
+		(maca_ctrl_seq_rx));*/
+	for(i=0; i<1000; i++) { continue; }
 }
 
 
@@ -182,7 +184,11 @@ void post_tx(void) {
 	*MACA_TMREN = (1 << maca_tmren_cpl);
 	/* do the transmit */
 	enable_irq(MACA);
-	*MACA_CONTROL = ( (1 << maca_ctrl_prm) | ( 4 << PRECOUNT) |
+/*	*MACA_CONTROL = ( (1 << maca_ctrl_prm) | ( 4 << PRECOUNT) |
+			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
+			  (1 << maca_ctrl_asap) |
+			  (maca_ctrl_seq_tx));	*/
+	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	
