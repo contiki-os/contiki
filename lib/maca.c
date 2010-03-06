@@ -15,7 +15,8 @@
 #endif
 
 #ifndef RECV_SOFTIMEOUT
-#define RECV_SOFTIMEOUT 2500000 /* 10 sec */
+//#define RECV_SOFTIMEOUT 4096 /* about 3.5 128 byte packets */
+#define RECV_SOFTIMEOUT 10000 /* about 3.5 128 byte packets */
 #endif
 
 #define MACA_CLOCK_DIV 95
@@ -36,7 +37,9 @@ static volatile uint8_t last_post = NO_POST;
 #define safe_irq_disable(x)  volatile uint32_t saved_irq; saved_irq = *INTENABLE; disable_irq(x)
 #define irq_restore() *INTENABLE = saved_irq
 
-void print_packets(char *s) {
+#define print_packets(x) Print_Packets(x)
+
+void Print_Packets(char *s) {
 	volatile packet_t *p;
 	int i = 0;
 	printf("packet pool after %s:\n\r",s);
@@ -87,6 +90,8 @@ void free_packet(volatile packet_t *p) {
 
 volatile packet_t* get_free_packet(void) {
 	volatile packet_t *p;
+	volatile uint32_t i;
+
 	safe_irq_disable(MACA);
 
 	p = free_head;
@@ -95,10 +100,43 @@ volatile packet_t* get_free_packet(void) {
 		free_head->right = 0;
 	}
 
-	print_packets("get_free_packet");
+
+	for(i=0; i<9783; i++) { continue; }
+
+//	print_packets("get_free_packet");
 	irq_restore();
 	return p;
 }
+
+void post_receive(void) {
+	disable_irq(MACA);
+	last_post = RX_POST;
+	/* this sets the rxlen field */
+	/* this is undocumented but very important */
+	/* you will not receive anything without setting it */
+	*MACA_TXLEN = (MAX_PACKET_SIZE << 16);
+	if(dma_rx == 0) {
+		dma_rx = get_free_packet();
+		if (dma_rx == 0)
+			printf("trying to fill MACA_DMARX but out of packet buffers\n");		
+	}
+	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
+	/* with timeout */		
+	*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
+	*MACA_TMREN = (1 << maca_tmren_sft);
+	/* start the receive sequence */
+	enable_irq(MACA);
+/*	*MACA_CONTROL = ( (1 << maca_ctrl_asap) |
+				(1 << maca_ctrl_auto) |
+				(1 << maca_ctrl_prm) |
+				(maca_ctrl_seq_rx));
+*/
+	*MACA_CONTROL = ( 
+		(1 << maca_ctrl_asap) |
+		(1 << maca_ctrl_prm) |
+		(maca_ctrl_seq_rx));
+}
+
 
 volatile packet_t* rx_packet(void) {
 	volatile packet_t *p;
@@ -110,14 +148,16 @@ volatile packet_t* rx_packet(void) {
 		rx_head->right = 0;
 	}
 
-	print_packets("rx_packet");
+//	print_packets("rx_packet");
 	irq_restore();
+	if(get_field(*MACA_STATUS,CODE) != NOT_COMPLETED) { post_receive(); }
 	return p;
 }
 
 void post_tx(void) {
 	/* set dma tx pointer to the payload */
 	/* and set the tx len */
+
 	disable_irq(MACA);
 	last_post = TX_POST;
 	dma_tx = tx_head; 	
@@ -154,7 +194,7 @@ void tx_packet(volatile packet_t *p) {
 		/* move the queue */
 		tx_end = p; tx_end->left = 0;
 	}
-	print_packets("tx packet");
+//	print_packets("tx packet");
 	irq_restore();
 	if(get_field(*MACA_STATUS,CODE) != NOT_COMPLETED) { post_tx(); }
 	return;
@@ -189,7 +229,7 @@ void free_tx_head(void) {
 	if(tx_head == 0) { tx_end = 0; }
 	free_packet(p);
 
-	print_packets("free tx head");
+//	print_packets("free tx head");
 	irq_restore();
 	return;
 }
@@ -209,46 +249,16 @@ void add_to_rx(volatile packet_t *p) {
 		rx_end = p; rx_end->left = 0;
 	}
 	
-	print_packets("add to tx");
+//	print_packets("add to rx");
 	irq_restore();
 	return;
 }
-
-void post_receive(void) {
-	disable_irq(MACA);
-	last_post = RX_POST;
-	/* this sets the rxlen field */
-	/* this is undocumented but very important */
-	/* you will not receive anything without setting it */
-	*MACA_TXLEN = (MAX_PACKET_SIZE << 16);
-	if(dma_rx == 0) {
-		dma_rx = get_free_packet();
-		if (dma_rx == 0)
-			printf("trying to fill MACA_DMARX but out of packet buffers\n");		
-	}
-	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
-	/* with timeout */		
-	*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
-	*MACA_TMREN = (1 << maca_tmren_sft);
-	/* start the receive sequence */
-	enable_irq(MACA);
-/*	*MACA_CONTROL = ( (1 << maca_ctrl_asap) |
-				(1 << maca_ctrl_auto) |
-				(1 << maca_ctrl_prm) |
-				(maca_ctrl_seq_rx));
-*/
-	*MACA_CONTROL = ( 
-		(1 << maca_ctrl_asap) |
-		(1 << maca_ctrl_prm) |
-		(maca_ctrl_seq_rx));
-}
-
 
 void decode_status(volatile uint32_t status) {
 	volatile uint32_t code;
 	
 	code = get_field(status,CODE);
-	PRINTF("status code 0x%x\n\r",code);
+	/* PRINTF("status code 0x%x\n\r",code); */
 	
 	switch(code)
 	{
@@ -296,6 +306,7 @@ void decode_status(volatile uint32_t status) {
 	case SUCCESS:
 	{
 		//PRINTF("maca: success\n\r");
+		ResumeMACASync();
 		break;				
 	}
 	default:
@@ -310,7 +321,7 @@ void decode_status(volatile uint32_t status) {
 void maca_isr(void) {
 	volatile uint32_t i, status;
 
-	print_packets("maca_isr");
+//	print_packets("maca_isr");
 
 	status = *MACA_STATUS;
 
@@ -332,11 +343,12 @@ void maca_isr(void) {
 		*MACA_CLRIRQ = (1 << maca_irq_crc);
 	}
 	if(action_complete_irq()) {
-		PRINTF("maca action complete %d\n\r", get_field(*MACA_CONTROL,SEQUENCE));
+		/* PRINTF("maca action complete %d\n\r", get_field(*MACA_CONTROL,SEQUENCE)); */
 		if(last_post == TX_POST) {
 			free_tx_head();
 			last_post = NO_POST;
 		}
+		ResumeMACASync();
 		*MACA_CLRIRQ = (1 << maca_irq_acpl);
 	}
 	i = *MACA_IRQ;
@@ -856,8 +868,8 @@ void ResumeMACASync(void)
 //  bool_t tmpIsrStatus;
   volatile uint32_t i, saved_irq;
 
-  disable_irq(MACA);
-  saved_irq = *MACA_IRQ;
+//  disable_irq(MACA);
+//  saved_irq = *MACA_IRQ;
 //  ITC_DisableInterrupt(gMacaInt_c);  
 //  AppInterrupts_ProtectFromMACAIrq(tmpIsrStatus); <- Original from MAC code, but not sure how is it implemented
 
@@ -905,7 +917,7 @@ void ResumeMACASync(void)
 
 //  AppInterrupts_UnprotectFromMACAIrq(tmpIsrStatus);  <- Original from MAC code, but not sure how is it implemented
 //  ITC_EnableInterrupt(gMacaInt_c);
-  *MACA_IRQ = saved_irq;
-  enable_irq(MACA);
+//  *MACA_IRQ = saved_irq;
+//  enable_irq(MACA);
 
 }

@@ -47,7 +47,7 @@ uint32_t get_time(void) {
 #define random_short_addr() (*MACA_RANDOM & ones(sizeof(short_addr_t)*8))
 
 void build_session_req(volatile packet_t *p) {
-	p->length = 4;
+	p->length = 127;
 	p->data[0] = 0xff;
 	p->data[1] = 0x01;
 	p->data[2] = 0x23;
@@ -65,7 +65,7 @@ void session_req(short_addr_t addr) {
 		build_session_req(p);
 		tx_packet(p);
 	} else {
-		printf("session_req: could not get free packet for transmit\n\r");
+//		printf("session_req: could not get free packet for transmit\n\r");
 	}
 			
 //	}
@@ -108,6 +108,10 @@ void main(void) {
 
 	/* generate a random short address */
 	my_addr = random_short_addr();
+
+/* sets up tx_on, should be a board specific item */
+        *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
+        *GPIO_PAD_DIR0 = *GPIO_PAD_DIR0 | (1<<(44-32));
 
 	state = SCANNING;
 	while(1) { 
