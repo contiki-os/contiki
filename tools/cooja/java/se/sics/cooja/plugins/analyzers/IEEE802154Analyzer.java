@@ -42,7 +42,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
     /* create a 802.15.4 packet of the bytes and "dispatch" to the
      * next handler
      */
-    public void analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose) {
+    public boolean analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose) {
         int pos = packet.pos;
         int type = packet.data[pos + 0] & 7;
 //        int security = (packet.data[pos + 0] >> 3) & 1;
@@ -108,29 +108,33 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
 
         verbose.append("<html><b>IEEE 802.15.4 ")
         .append(type < typeVerbose.length ? typeVerbose[type] : "?")
-        .append(' ').append(seqNumber)
-        .append("</b><br>From ");
-        if (srcPanID != 0) {
-            verbose.append(StringUtils.toHex((byte)(srcPanID >> 8)))
-            .append(StringUtils.toHex((byte)(srcPanID & 0xff)))
-            .append('/');
+        .append(' ').append(seqNumber);
+        if (type != ACKFRAME) {
+            verbose.append("</b><br>From ");
+            if (srcPanID != 0) {
+                verbose.append(StringUtils.toHex((byte)(srcPanID >> 8)))
+                .append(StringUtils.toHex((byte)(srcPanID & 0xff)))
+                .append('/');
+            }
+            printAddress(verbose, srcAddrMode, sourceAddress);
+            verbose.append(" to ");
+            if (destPanID != 0) {
+                verbose.append(StringUtils.toHex((byte)(destPanID >> 8)))
+                .append(StringUtils.toHex((byte)(destPanID & 0xff)))
+                .append('/');
+            }
+            printAddress(verbose, destAddrMode, destAddress);
         }
-        printAddress(verbose, srcAddrMode, sourceAddress);
-        verbose.append(" to ");
-        if (destPanID != 0) {
-            verbose.append(StringUtils.toHex((byte)(destPanID >> 8)))
-            .append(StringUtils.toHex((byte)(destPanID & 0xff)))
-            .append('/');
-        }
-        printAddress(verbose, destAddrMode, destAddress);
-        // verbose.append("<br>Payload len: ").append(payloadLen);
 
         /* update packet */
         packet.pos = pos;
         packet.level = NETWORK_LEVEL;
+        /* remove CRC from the packet */
+        packet.consumeBytesEnd(2);
         
         packet.llsender = sourceAddress;
         packet.llreceiver = destAddress;
+        return true;
     }
 
     private void printAddress(StringBuffer sb, int type, byte[] addr) {
