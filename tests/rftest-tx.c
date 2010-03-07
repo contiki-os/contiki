@@ -14,6 +14,7 @@ void fill_packet(volatile packet_t *p) {
 	static volatile uint8_t count=0;
 	volatile uint8_t i;
 	p->length = PAYLOAD_LEN;
+	p->offset = 0;
 	for(i=0; i<PAYLOAD_LEN; i++) {
 		p->data[i] = count++;
 	}		

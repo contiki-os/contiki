@@ -167,7 +167,7 @@ void post_tx(void) {
 	last_post = TX_POST;
 	dma_tx = tx_head; 	
 	*MACA_TXLEN = (uint32_t)((dma_tx->length) + 2);
-	*MACA_DMATX = (uint32_t)&(dma_tx->data[0]);
+	*MACA_DMATX = (uint32_t)&(dma_tx->data[ 0 + dma_tx->offset]);
 	if(dma_rx == 0) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0)
@@ -255,8 +255,9 @@ void free_tx_head(void) {
 
 void add_to_rx(volatile packet_t *p) {
 	safe_irq_disable(MACA);
-
+	
 	if(!p) {  PRINTF("add_to_rx passed packet 0\n\r"); return; }
+	p->offset = 1; /* first byte is the length */
 	if(rx_head == 0) {
 		/* start a new queue if empty */
 		rx_end = p;

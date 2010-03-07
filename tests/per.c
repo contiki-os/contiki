@@ -47,7 +47,7 @@ uint32_t get_time(void) {
 #define random_short_addr() (*MACA_RANDOM & ones(sizeof(short_addr_t)*8))
 
 void build_session_req(volatile packet_t *p) {
-	p->length = 4;
+	p->length = 4; p->offset = 0;
 	p->data[0] = 0x01;
 	p->data[1] = 0x02;
 	p->data[2] = 0x03;
