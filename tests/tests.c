@@ -35,12 +35,14 @@ void print_packet(volatile packet_t *p) {
 		for(j=0, k=0; j <= ((p->length)%PER_ROW); j++) {
 			printf("\n\r");
 			for(i=0; i < PER_ROW; i++, k++) {
-				if(k >= (p->length + 1) ) { goto out; } /* + 1 since first byte is len+2 */
+				if(k >= (p->length + 1) ) { /* + 1 since first byte is len+2 */
+					printf("\n\r");
+					return; 
+				} 
 				printf("%02x ",p->data[j*PER_ROW + i + p->offset]);
 			}
 		}
 	}
-	out:
 	printf("\n\r");
 	return; 
 }
