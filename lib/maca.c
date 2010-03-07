@@ -177,24 +177,24 @@ void post_tx(void) {
 	/* disable soft timeout clock */
 	/* disable start clock */
 	*MACA_TMRDIS = (1 << maca_tmren_sft) | ( 1 << maca_tmren_strt ) ;
-	/* set complete clock to long value */
+	
+	/* this doesn't work right */
+	/* lock up seems to happen when switching from receive to transmitt */
+        /* set complete clock to long value */
 	/* acts like a watchdog incase the MACA locks up */
-	*MACA_CPLCLK = *MACA_CLK + (CLK_PER_BYTE * dma_tx->length+6) + (CLK_PER_BYTE * 0);
+//	*MACA_CPLCLK = *MACA_CLK + (CLK_PER_BYTE * dma_tx->length+6) + (CLK_PER_BYTE * 0);
 	/* enable complete clock */
-	*MACA_TMREN = (1 << maca_tmren_cpl);
-	/* do the transmit */
-	for(i=0; i<1000; i++) { continue; }
+//	*MACA_TMREN = (1 << maca_tmren_cpl);
+	
 	enable_irq(MACA);
 /*	*MACA_CONTROL = ( (1 << maca_ctrl_prm) | ( 4 << PRECOUNT) |
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	*/
-//	for(i=0; i<1000; i++) { continue; }
 	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	
-	for(i=0; i<1000; i++) { continue; }
 }
 
 void tx_packet(volatile packet_t *p) {
