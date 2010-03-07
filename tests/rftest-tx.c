@@ -7,15 +7,19 @@
 
 #define LED LED_RED
 
-#define PAYLOAD_LEN 120
-#define DELAY 400000
+/* 802.15.4 PSDU is 127 MAX */
+/* 2 bytes are the FCS */
+/* therefore 125 is the max payload length */
+#define PAYLOAD_LEN 16
+#define DELAY 1
 
 void fill_packet(volatile packet_t *p) {
 	static volatile uint8_t count=0;
 	volatile uint8_t i;
 	p->length = PAYLOAD_LEN;
 	p->offset = 0;
-	for(i=0; i<PAYLOAD_LEN; i++) {
+	p->data[0] = 0xff;
+	for(i=1; i<PAYLOAD_LEN; i++) {
 		p->data[i] = count++;
 	}		
 }
@@ -44,7 +48,9 @@ void main(void) {
 	/* trim the reference osc. to 24MHz */
 	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
 
-	set_power(0x0f); /* 0dbm */
+//	set_power(0x0f); /* 0xf = -1dbm, see 3-22 */
+//	set_power(0x11); /* 0x11 = 3dbm, see 3-22 */
+	set_power(0x12); /* 0x12 is the highest, not documented*/
 	set_channel(0); /* channel 11 */
 
 	/* initial radio command */
