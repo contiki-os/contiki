@@ -27,6 +27,23 @@ void print_welcome(char* testname) {
 	printf("board: %s\n\r", STR2(BOARD));
 }
 
+void print_packet(packet_t *p) { 
+	volatile uint8_t i,j,k; 
+#define PER_ROW 16
+	if(p) {
+		printf("len 0x%02x\n\r",p->length);		
+		for(j=0, k=0; j < ((p->length)%PER_ROW)-1; j++) {
+			for(i=0; i < PER_ROW; i++, k++) {
+				if(k>=p->length) { break; }
+				printf("%02x ",p->data[j*PER_ROW+i]);
+			}
+			printf("\n\r");
+		}
+		printf("\n\r");
+	}
+	return; 
+}
+
 void dump_regs(uint32_t base, uint32_t len) {
 	volatile uint32_t i;
 	
