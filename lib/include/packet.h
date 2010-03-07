@@ -12,7 +12,7 @@ struct packet {
         uint8_t length;
 	volatile struct packet * left;
 	volatile struct packet * right;
-	uint8_t data[MAX_PACKET_SIZE];
+	uint8_t data[MAX_PACKET_SIZE+1]; /* + 1 since maca returns the length as the first byte */
 };
 typedef struct packet packet_t;
 

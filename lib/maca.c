@@ -14,16 +14,16 @@
 #define NUM_PACKETS 8
 #endif
 
-#ifndef RECV_SOFTIMEOUT
-#define RECV_SOFTIMEOUT 4096 /* about 3.5 128 byte packets */
-#endif
-
 /* for 250kHz clock */
+#define MACA_CLOCK_DIV 95
 /* (32 chips/sym) * (sym/4bits) * (8bits/byte) = (64 chips/byte)  */
 /* (8 chips/clk) * (byte/64 chips) = byte/8clks */
 #define CLK_PER_BYTE 8 
 
-#define MACA_CLOCK_DIV 95
+#ifndef RECV_SOFTIMEOUT
+#define RECV_SOFTIMEOUT 4*128*CLK_PER_BYTE /* 4 128 byte packets */
+#endif
+
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
