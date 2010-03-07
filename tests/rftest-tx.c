@@ -7,7 +7,7 @@
 
 #define LED LED_RED
 
-#define PAYLOAD_LEN 16 
+#define PAYLOAD_LEN 120
 #define DELAY 400000
 
 void fill_packet(volatile packet_t *p) {
