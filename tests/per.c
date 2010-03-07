@@ -47,11 +47,11 @@ uint32_t get_time(void) {
 #define random_short_addr() (*MACA_RANDOM & ones(sizeof(short_addr_t)*8))
 
 void build_session_req(volatile packet_t *p) {
-	p->length = 16;
-	p->data[0] = 0xff;
-	p->data[1] = 0x01;
-	p->data[2] = 0x23;
-	p->data[3] = 0x45;
+	p->length = 4;
+	p->data[0] = 0x01;
+	p->data[1] = 0x02;
+	p->data[2] = 0x03;
+	p->data[3] = 0x04;
 	return;
 }
 
@@ -149,7 +149,7 @@ void main(void) {
 					sesid = open_session(p->addr);
 				}
 			}  else {
-				//		session_req(my_addr);
+				session_req(my_addr);
 			}
 			break;
 		default:

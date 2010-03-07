@@ -166,7 +166,7 @@ void post_tx(void) {
 	disable_irq(MACA);
 	last_post = TX_POST;
 	dma_tx = tx_head; 	
-	*MACA_TXLEN = (uint32_t)(dma_tx->length + 2);
+	*MACA_TXLEN = (uint32_t)((dma_tx->length) + 2);
 	*MACA_DMATX = (uint32_t)&(dma_tx->data[0]);
 	if(dma_rx == 0) {
 		dma_rx = get_free_packet();
@@ -183,17 +183,18 @@ void post_tx(void) {
 	/* enable complete clock */
 	*MACA_TMREN = (1 << maca_tmren_cpl);
 	/* do the transmit */
+	for(i=0; i<1000; i++) { continue; }
 	enable_irq(MACA);
 /*	*MACA_CONTROL = ( (1 << maca_ctrl_prm) | ( 4 << PRECOUNT) |
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	*/
+//	for(i=0; i<1000; i++) { continue; }
 	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	
-
-	for(i=0; i<10; i++) { continue; }
+	for(i=0; i<1000; i++) { continue; }
 }
 
 void tx_packet(volatile packet_t *p) {
