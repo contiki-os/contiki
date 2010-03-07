@@ -21,9 +21,10 @@
 #define CLK_PER_BYTE 8 
 
 #ifndef RECV_SOFTIMEOUT
-#define RECV_SOFTIMEOUT 4*128*CLK_PER_BYTE /* 4 128 byte packets */
+#define RECV_SOFTIMEOUT (8*128*CLK_PER_BYTE) /* 4 128 byte packets */
 #endif
 
+#define MAX_PACKET_SIZE (MAX_PAYLOAD_SIZE + 2) /* packet includes 2 bytes of checksum */
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
@@ -345,7 +346,7 @@ void maca_isr(void) {
 
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
-		dma_rx->length = *MACA_GETRXLVL - 2;
+		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
 //		PRINTF("maca data ind %x %d\n\r", dma_rx, dma_rx->length);
 		add_to_rx(dma_rx);
 		dma_rx = 0;

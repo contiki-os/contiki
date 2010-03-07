@@ -35,7 +35,7 @@ void print_packet(volatile packet_t *p) {
 		for(j=0, k=0; j <= ((p->length)%PER_ROW); j++) {
 			printf("\n\r");
 			for(i=0; i < PER_ROW; i++, k++) {
-				if(k >= (p->length + 1) ) { /* + 1 since first byte is len+2 */
+				if(k >= p->length ) { 
 					printf("\n\r");
 					return; 
 				} 
