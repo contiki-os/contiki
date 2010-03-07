@@ -5,10 +5,16 @@
 #include "tests.h"
 #include "config.h"
 
-#define DEBUG_MACA 1
+#define LED LED_GREEN
 
 void main(void) {
 	volatile packet_t *p;
+
+	*GPIO_DATA0 = 0x00000000;
+	*GPIO_PAD_DIR0 = ( 1 << LED );
+        /* read from the data register instead of the pad */
+	/* this is needed because the led clamps the voltage low */
+	*GPIO_DATA_SEL0 = ( 1 << LED ); 
 
 	uart_init(INC,MOD);
 
@@ -35,6 +41,7 @@ void main(void) {
 
 	while(1) {		
 		if((p = rx_packet())) {
+			toggle_gpio0(LED);
 			/* print and free the packet */
 			printf("rftest-rx --- ");
 			print_packet(p);

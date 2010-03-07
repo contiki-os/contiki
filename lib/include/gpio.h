@@ -16,6 +16,11 @@
 #define GPIO_PAD_PU_SEL0   ((volatile uint32_t *) 0x80000030)
 #define GPIO_PAD_PU_SEL1   ((volatile uint32_t *) 0x80000034)
 
+#define GPIO_DATA_SET0     ((volatile uint32_t *) 0x80000048)
+#define GPIO_DATA_SET1     ((volatile uint32_t *) 0x8000004c)
+#define GPIO_DATA_RESET0   ((volatile uint32_t *) 0x80000050)
+#define GPIO_DATA_RESET1   ((volatile uint32_t *) 0x80000054)
+
 
 /* select pullup or pulldown for GPIO 0-31 (b=0-31) */
 #define	gpio_sel0_pullup(b) (set_bit(reg32(GPIO_PAD_PU_SEL0),b))

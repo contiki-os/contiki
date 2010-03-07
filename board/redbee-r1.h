@@ -1,9 +1,9 @@
 #ifndef BOARD_REDBEE_R1_H
 #define BOARD_REDBEE_R1_H
 
-#define LED_RED   (1 << 8)
-#define LED_GREEN (1 << 9)
-#define LED_BLUE  (1 << 10)
+#define LED_RED   8
+#define LED_GREEN 9
+#define LED_BLUE  10
 
 /* XTAL TUNE parameters */
 /* see http://devl.org/pipermail/mc1322x/2009-December/000162.html */

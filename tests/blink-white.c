@@ -1,20 +1,18 @@
 #include <mc1322x.h>
 #include <board.h>
 
-#include "led.h"
-
 #define DELAY 400000
 
-#define LED_BITS LED_WHITE
+#define LED LED_WHITE
 
 void main(void) {	
 	volatile uint32_t i;
 	
-	*GPIO_PAD_DIR0 = LED_BITS;
+	*GPIO_PAD_DIR0 = ( 1<< LED );
 
 	while(1) {
 
-		*GPIO_DATA0 = LED_BITS;
+		*GPIO_DATA0 = (1 << LED );
 		
 		for(i=0; i<DELAY; i++) { continue; }
 

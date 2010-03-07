@@ -33,21 +33,6 @@ uint32_t ackBox[10];
 	}while(0)
 
 
-volatile uint8_t led;
-#define LED LED_RED
-#define led_on() do  { led = 1; *GPIO_DATA0 = LED; } while(0);
-#define led_off() do { led = 0; *GPIO_DATA0 = 0x00000000; } while(0);
-
-void toggle_led(void) {
-	if(0 == led) {
-		led_on();
-		led = 1;
-
-	} else {
-		led_off();
-	}
-}
-
 volatile uint8_t *data;
 uint8_t count=0;
 void fill_data(void) {
