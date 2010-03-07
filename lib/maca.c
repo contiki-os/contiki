@@ -130,7 +130,7 @@ void post_receive(void) {
 	*MACA_TMREN = (1 << maca_tmren_sft);
 	/* start the receive sequence */
 	enable_irq(MACA);
-	*MACA_CONTROL = ( (1 << maca_ctrl_asap) |
+	*MACA_CONTROL = ( (1 << maca_ctrl_asap) | ( 4 << PRECOUNT) |
 				(1 << maca_ctrl_auto) |
 				(1 << maca_ctrl_prm) |
 				(maca_ctrl_seq_rx));
@@ -187,14 +187,14 @@ void post_tx(void) {
 //	*MACA_TMREN = (1 << maca_tmren_cpl);
 	
 	enable_irq(MACA);
-/*	*MACA_CONTROL = ( (1 << maca_ctrl_prm) | ( 4 << PRECOUNT) |
-			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
-			  (1 << maca_ctrl_asap) |
-			  (maca_ctrl_seq_tx));	*/
-	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
+	*MACA_CONTROL = ( (1 << maca_ctrl_prm) | ( 4 << PRECOUNT) |
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	
+/*	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
+			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
+			  (1 << maca_ctrl_asap) |
+			  (maca_ctrl_seq_tx));	*/
 }
 
 void tx_packet(volatile packet_t *p) {
