@@ -64,9 +64,12 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         return (packet.get(0) & 0xe0) == IPHC_DISPATCH;
     }
 
-    public void analyzePacket(Packet packet, StringBuffer brief,
+    public boolean analyzePacket(Packet packet, StringBuffer brief,
             StringBuffer verbose) {
 
+        /* if packet has less than 3 bytes it is not interesting ... */
+        if (packet.size() < 3) return false;
+        
         int tf = (packet.get(0) >> 3) & 0x03;
         int nh = (packet.get(0) >> 2) & 0x01;
         int hlim = (packet.get(0) & 0x03);
@@ -372,7 +375,7 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                     break;
                 default:
 //                    PRINTF("sicslowpan uncompress_hdr: error unsupported UDP compression\n");
-                    return;
+                    return false;
                 }
             }
         }
@@ -410,8 +413,8 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         verbose.append("  to ");
         printAddress(verbose, destAddress);
         
-//        packet.pos = packet.data.length;
         packet.level = NETWORK_LEVEL;
+        return true;
     }
 
     public static void printAddress(StringBuffer out, byte[] address) {
