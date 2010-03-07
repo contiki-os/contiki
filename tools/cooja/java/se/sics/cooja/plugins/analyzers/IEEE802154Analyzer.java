@@ -42,7 +42,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
     /* create a 802.15.4 packet of the bytes and "dispatch" to the
      * next handler
      */
-    public boolean analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose) {
+    public int analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose) {
         int pos = packet.pos;
         int type = packet.data[pos + 0] & 7;
 //        int security = (packet.data[pos + 0] >> 3) & 1;
@@ -134,7 +134,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
         
         packet.llsender = sourceAddress;
         packet.llreceiver = destAddress;
-        return true;
+        return ANALYSIS_OK_CONTINUE;
     }
 
     private void printAddress(StringBuffer sb, int type, byte[] addr) {

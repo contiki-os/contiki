@@ -64,11 +64,11 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         return (packet.get(0) & 0xe0) == IPHC_DISPATCH;
     }
 
-    public boolean analyzePacket(Packet packet, StringBuffer brief,
+    public int analyzePacket(Packet packet, StringBuffer brief,
             StringBuffer verbose) {
 
         /* if packet has less than 3 bytes it is not interesting ... */
-        if (packet.size() < 3) return false;
+        if (packet.size() < 3) return ANALYSIS_FAILED;
         
         int tf = (packet.get(0) >> 3) & 0x03;
         int nh = (packet.get(0) >> 2) & 0x01;
@@ -375,7 +375,7 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                     break;
                 default:
 //                    PRINTF("sicslowpan uncompress_hdr: error unsupported UDP compression\n");
-                    return false;
+                    return ANALYSIS_FAILED;
                 }
             }
         }
@@ -400,11 +400,10 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
 
         /*--------------------------------------------- */        
 
-//        packet.pos += cid == 1 ? 3 : 2;
-
         String protoStr = "" + proto;
-        if (proto == PROTO_ICMP) protoStr = "ICMPv6";
-        else if (proto == PROTO_UDP) protoStr = "UDP";
+        if (proto == PROTO_ICMP) {
+            protoStr = "ICMPv6";
+        } else if (proto == PROTO_UDP) protoStr = "UDP";
         else if (proto == PROTO_TCP) protoStr = "TCP";
         
         verbose.append("<br><b>IPv6 ").append(protoStr).append("</b><br>");
@@ -413,8 +412,9 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         verbose.append("  to ");
         printAddress(verbose, destAddress);
         
+        packet.lastDispatch = (byte) (proto & 0xff);
         packet.level = NETWORK_LEVEL;
-        return true;
+        return ANALYSIS_OK_CONTINUE;
     }
 
     public static void printAddress(StringBuffer out, byte[] address) {

@@ -2,6 +2,10 @@ package se.sics.cooja.plugins.analyzers;
 
 public abstract class PacketAnalyzer {
 
+    public static final int ANALYSIS_FAILED = -1;
+    public static final int ANALYSIS_OK_CONTINUE = 1;
+    public static final int ANALYSIS_OK_FINAL = 2;
+    
     public static final int RADIO_LEVEL = 0;
     public static final int MAC_LEVEL = 1;
     public static final int NETWORK_LEVEL = 2;
@@ -17,6 +21,8 @@ public abstract class PacketAnalyzer {
         byte[] llsender;
         byte[] llreceiver;
 
+        byte lastDispatch = 0;
+        
         public Packet(byte[] data, int level) {
             this.level = level;
             this.data = data;
@@ -78,5 +84,5 @@ public abstract class PacketAnalyzer {
     
     public abstract boolean matchPacket(Packet packet);
     
-    public abstract boolean analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose);
+    public abstract int analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose);
 }
