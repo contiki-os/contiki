@@ -21,7 +21,7 @@
 #define CLK_PER_BYTE 8 
 
 #ifndef RECV_SOFTIMEOUT
-#define RECV_SOFTIMEOUT (8*128*CLK_PER_BYTE) /* 4 128 byte packets */
+#define RECV_SOFTIMEOUT (8*128*CLK_PER_BYTE) 
 #endif
 
 #define MAX_PACKET_SIZE (MAX_PAYLOAD_SIZE + 2) /* packet includes 2 bytes of checksum */
@@ -140,7 +140,9 @@ void post_receive(void) {
 		(1 << maca_ctrl_asap) | ( 4 << PRECOUNT) |
 		(1 << maca_ctrl_prm) |
 		(maca_ctrl_seq_rx));*/
-	for(i=0; i<1000; i++) { continue; }
+	/* status bit 10 is set immediately */
+        /* then 11, 10, and 9 get set */ 
+        /* they are cleared once we get back to maca_isr */ 
 }
 
 
@@ -156,7 +158,6 @@ volatile packet_t* rx_packet(void) {
 
 //	print_packets("rx_packet");
 	irq_restore();
-	if(get_field(*MACA_STATUS,CODE) != NOT_COMPLETED) { post_receive(); }
 	return p;
 }
 
@@ -177,15 +178,13 @@ void post_tx(void) {
 	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
 	/* disable soft timeout clock */
 	/* disable start clock */
-	*MACA_TMRDIS = (1 << maca_tmren_sft) | ( 1 << maca_tmren_strt ) ;
+	*MACA_TMRDIS = (1 << maca_tmren_sft) | ( 1<< maca_tmren_cpl) | ( 1 << maca_tmren_strt ) ;
 	
-	/* this doesn't work right */
-	/* lock up seems to happen when switching from receive to transmitt */
         /* set complete clock to long value */
-	/* acts like a watchdog incase the MACA locks up */
-//	*MACA_CPLCLK = *MACA_CLK + (CLK_PER_BYTE * dma_tx->length+6) + (CLK_PER_BYTE * 0);
+	/* acts like a watchdog in case the MACA locks up */
+	*MACA_CPLCLK = *MACA_CLK + (CLK_PER_BYTE * 256);
 	/* enable complete clock */
-//	*MACA_TMREN = (1 << maca_tmren_cpl);
+	*MACA_TMREN = (1 << maca_tmren_cpl);
 	
 	enable_irq(MACA);
 	*MACA_CONTROL = ( (1 << maca_ctrl_prm) | ( 4 << PRECOUNT) |
@@ -196,6 +195,9 @@ void post_tx(void) {
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	*/
+	/* status bit 10 is set immediately */
+        /* then 11, 10, and 9 get set */ 
+        /* they are cleared once we get back to maca_isr */ 
 }
 
 void tx_packet(volatile packet_t *p) {
@@ -216,7 +218,6 @@ void tx_packet(volatile packet_t *p) {
 	}
 //	print_packets("tx packet");
 	irq_restore();
-	if(get_field(*MACA_STATUS,CODE) != NOT_COMPLETED) { post_tx(); } 
 	return;
 }
 
@@ -344,6 +345,15 @@ void maca_isr(void) {
 
 //	print_packets("maca_isr");
 
+	if (bit_is_set(*MACA_STATUS, maca_status_ovr))
+		PRINTF("maca overrun\n\r");
+	if (bit_is_set(*MACA_STATUS, maca_status_busy))
+		PRINTF("maca busy\n\r");
+	if (bit_is_set(*MACA_STATUS, maca_status_crc))
+		PRINTF("maca crc error\n\r");
+	if (bit_is_set(*MACA_STATUS, maca_status_to))
+		PRINTF("maca timeout\n\r");
+
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
 		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
@@ -361,6 +371,12 @@ void maca_isr(void) {
 		ResumeMACASync();
 		*MACA_CLRIRQ = (1 << maca_irq_crc);
 	}
+	if (softclock_irq()) {
+		*MACA_CLRIRQ = (1 << maca_irq_sftclk);
+	}
+	if (poll_irq()) {		
+		*MACA_CLRIRQ = (1 << maca_irq_poll);
+	}
 	if(action_complete_irq()) {
 		/* PRINTF("maca action complete %d\n\r", get_field(*MACA_CONTROL,SEQUENCE)); */
 		if(last_post == TX_POST) {
@@ -370,26 +386,17 @@ void maca_isr(void) {
 		ResumeMACASync();
 		*MACA_CLRIRQ = (1 << maca_irq_acpl);
 	}
-	i = *MACA_IRQ;
-	if (i != 0)
-		PRINTF("*MACA_IRQ %x\n\r", i);
 
-
-	if (bit_is_set(*MACA_STATUS, maca_status_ovr))
-		PRINTF("maca overrun\n\r");
-	if (bit_is_set(*MACA_STATUS, maca_status_busy))
-		PRINTF("maca busy\n\r");
-	if (bit_is_set(*MACA_STATUS, maca_status_crc))
-		PRINTF("maca crc error\n\r");
-	if (bit_is_set(*MACA_STATUS, maca_status_to))
-		PRINTF("maca timeout\n\r");
 	decode_status();
+
+	if (*MACA_IRQ != 0)
+		PRINTF("*MACA_IRQ %x\n\r", *MACA_IRQ);
 
 	if(tx_head != 0) {
 		post_tx();
-	} else if(last_post != TX_POST) {
+	} else {
 		post_receive();
-	}
+	} 
 }
 
 
@@ -410,7 +417,7 @@ void init_phy(void)
 
   for(cnt = 0; cnt < 400000; cnt++) {};
 
-  *MACA_TMREN = (1 << maca_tmren_strt) | (1 << maca_tmren_cpl);
+//  *MACA_TMREN = (1 << maca_tmren_strt) | (1 << maca_tmren_cpl);
   *MACA_CLKDIV = MACA_CLOCK_DIV;
   *MACA_WARMUP = 0x00180012;
   *MACA_EOFDELAY = 0x00000004;
@@ -418,8 +425,14 @@ void init_phy(void)
   *MACA_TXCCADELAY = 0x00000025;
   *MACA_FRAMESYNC0 = 0x000000A7;
   *MACA_CLK = 0x00000008;
-  *MACA_MASKIRQ = ((1 << maca_irq_rst) | (1 << maca_irq_acpl) | (1 << maca_irq_cm) |
-	(1 << maca_irq_flt) | (1 << maca_irq_crc) | (1 << maca_irq_di));
+  *MACA_MASKIRQ = ((1 << maca_irq_rst)    | 
+		   (1 << maca_irq_acpl)   | 
+		   (1 << maca_irq_cm)     |
+		   (1 << maca_irq_flt)    | 
+		   (1 << maca_irq_crc)    | 
+		   (1 << maca_irq_di)     |
+		   (1 << maca_irq_sftclk)
+	  );
   *MACA_SLOTOFFSET = 0x00350000;
 
 }
@@ -885,10 +898,9 @@ void ResumeMACASync(void)
 { 
   volatile uint32_t clk, TsmRxSteps, LastWarmupStep, LastWarmupData, LastWarmdownStep, LastWarmdownData;
 //  bool_t tmpIsrStatus;
-  volatile uint32_t i, saved_irq;
+  volatile uint32_t i, macairq;
+  safe_irq_disable(MACA);
 
-//  disable_irq(MACA);
-//  saved_irq = *MACA_IRQ;
 //  ITC_DisableInterrupt(gMacaInt_c);  
 //  AppInterrupts_ProtectFromMACAIrq(tmpIsrStatus); <- Original from MAC code, but not sure how is it implemented
 
@@ -936,7 +948,7 @@ void ResumeMACASync(void)
 
 //  AppInterrupts_UnprotectFromMACAIrq(tmpIsrStatus);  <- Original from MAC code, but not sure how is it implemented
 //  ITC_EnableInterrupt(gMacaInt_c);
-//  *MACA_IRQ = saved_irq;
 //  enable_irq(MACA);
+  irq_restore();
 
 }

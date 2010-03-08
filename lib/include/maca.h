@@ -434,6 +434,8 @@ enum maca_status_bits {
 #define filter_failed_irq()       bit_is_set(*MACA_IRQ,maca_irq_flt)
 #define checksum_failed_irq()     bit_is_set(*MACA_IRQ,maca_irq_crc)
 #define data_indication_irq()     bit_is_set(*MACA_IRQ,maca_irq_di)
+#define softclock_irq()           bit_is_set(*MACA_IRQ,maca_irq_sftclk)
+#define poll_irq()                bit_is_set(*MACA_IRQ,maca_irq_poll)
 
 #define status_is_not_completed() ((*MACA_STATUS & 0xffff) == maca_cc_not_completed)
 #define status_is_success() ((*MACA_STATUS & 0xffff) == maca_cc_success)
