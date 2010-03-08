@@ -7,7 +7,7 @@ void irq(void)
 {
 	uint32_t pending;
 
-	while (pending = *NIPEND) {
+	while ((pending = *NIPEND)) {
 		
 	 	if(bit_is_set(pending, INT_NUM_TMR)) { 
 			/* dispatch to individual timer isrs if they exist */
