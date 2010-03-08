@@ -116,7 +116,6 @@ void free_packet(volatile packet_t *p) {
 
 volatile packet_t* get_free_packet(void) {
 	volatile packet_t *p;
-	volatile uint32_t i;
 
 	safe_irq_disable(MACA);
 
@@ -132,7 +131,6 @@ volatile packet_t* get_free_packet(void) {
 }
 
 void post_receive(void) {
-	volatile uint32_t i;
 	disable_irq(MACA);
 	last_post = RX_POST;
 	/* this sets the rxlen field */
@@ -157,15 +155,18 @@ void post_receive(void) {
 	*MACA_TMREN = (1 << maca_tmren_sft);
 	/* start the receive sequence */
 	enable_irq(MACA);
-	*MACA_CONTROL = ( (1 << maca_ctrl_asap) | ( 4 << PRECOUNT) |
-				(1 << maca_ctrl_auto) |
-				(1 << maca_ctrl_prm) |
-				(maca_ctrl_seq_rx));
+	*MACA_CONTROL = ( (1 << maca_ctrl_asap) | 
+			  ( 4 << PRECOUNT) |
+			  (1 << maca_ctrl_auto) |
+			  (1 << maca_ctrl_prm) |
+			  (maca_ctrl_seq_rx));
+
 
 /*	*MACA_CONTROL = ( 
-		(1 << maca_ctrl_asap) | ( 4 << PRECOUNT) |
+		(1 << maca_ctrl_asap) | 
+		( 4 << PRECOUNT) |
 		(1 << maca_ctrl_prm) |
-		(maca_ctrl_seq_rx));*/
+		(maca_ctrl_seq_rx)); */
 	/* status bit 10 is set immediately */
         /* then 11, 10, and 9 get set */ 
         /* they are cleared once we get back to maca_isr */ 
@@ -190,7 +191,6 @@ volatile packet_t* rx_packet(void) {
 void post_tx(void) {
 	/* set dma tx pointer to the payload */
 	/* and set the tx len */
-	volatile uint32_t i;
 	disable_irq(MACA);
 	last_post = TX_POST;
 	dma_tx = tx_head; 	
@@ -367,7 +367,6 @@ void decode_status(void) {
 }
 
 void maca_isr(void) {
-	volatile uint32_t i, status;
 
 //	print_packets("maca_isr");
 
@@ -384,6 +383,7 @@ void maca_isr(void) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
 		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
 //		PRINTF("maca data ind %x %d\n\r", dma_rx, dma_rx->length);
+		if(maca_rx_callback != 0) { maca_rx_callback(dma_rx); }
 		add_to_rx(dma_rx);
 		dma_rx = 0;
 	}
@@ -924,7 +924,7 @@ void ResumeMACASync(void)
 { 
   volatile uint32_t clk, TsmRxSteps, LastWarmupStep, LastWarmupData, LastWarmdownStep, LastWarmdownData;
 //  bool_t tmpIsrStatus;
-  volatile uint32_t i, macairq;
+  volatile uint32_t i;
   safe_irq_disable(MACA);
 
 //  ITC_DisableInterrupt(gMacaInt_c);  

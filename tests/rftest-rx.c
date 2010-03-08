@@ -7,6 +7,12 @@
 
 #define LED LED_GREEN
 
+void maca_rx_callback(volatile packet_t *p) 
+{
+	(void)p; /* surpress unused warning */
+	toggle_gpio0(LED);
+}	
+
 void main(void) {
 	volatile packet_t *p;
 
@@ -35,7 +41,6 @@ void main(void) {
 	print_welcome("rftest-rx");
 	while(1) {		
 		if((p = rx_packet())) {
-			toggle_gpio0(LED);
 			/* print and free the packet */
 			printf("rftest-rx --- ");
 			print_packet(p);
