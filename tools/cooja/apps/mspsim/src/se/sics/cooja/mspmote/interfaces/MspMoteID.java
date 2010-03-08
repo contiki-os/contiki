@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.15 2010/02/05 08:44:57 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.16 2010/03/08 14:26:12 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -198,16 +198,33 @@ public class MspMoteID extends MoteID {
       if (moteMem.variableExists("rseed")) {
         moteMem.setIntValueOf("rseed", (int) (mote.getSimulation().getRandomSeed() + newID));
       }
-      moteMem.setIntValueOf("TOS_NODE_ID", newID);
-      moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
+
+      if (moteMem.variableExists("TOS_NODE_ID")) {
+        moteMem.setIntValueOf("TOS_NODE_ID", newID);
+      }
+      if (moteMem.variableExists("ActiveMessageAddressC__addr")) {
+        moteMem.setIntValueOf("ActiveMessageAddressC__addr", newID);
+      }
+      if (moteMem.variableExists("ActiveMessageAddressC$addr")) {
+        moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
+      }
+      
       setChanged();
       notifyObservers();
       return;
     }
 
     if (location == ID_LOCATION.VARIABLE_TOS_NODE_ID) {
-      moteMem.setIntValueOf("TOS_NODE_ID", newID);
-      moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
+      if (moteMem.variableExists("TOS_NODE_ID")) {
+        moteMem.setIntValueOf("TOS_NODE_ID", newID);
+      }
+      if (moteMem.variableExists("ActiveMessageAddressC__addr")) {
+        moteMem.setIntValueOf("ActiveMessageAddressC__addr", newID);
+      }
+      if (moteMem.variableExists("ActiveMessageAddressC$addr")) {
+        moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
+      }
+      
       setChanged();
       notifyObservers();
       return;

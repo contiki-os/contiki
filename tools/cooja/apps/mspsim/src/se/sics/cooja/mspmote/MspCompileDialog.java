@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCompileDialog.java,v 1.1 2009/12/02 16:27:32 fros4943 Exp $
+ * $Id: MspCompileDialog.java,v 1.2 2010/03/08 14:26:12 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -40,6 +40,7 @@ import se.sics.cooja.Simulation;
 import se.sics.cooja.dialogs.AbstractCompileDialog;
 
 public class MspCompileDialog extends AbstractCompileDialog {
+  private static final long serialVersionUID = -7273193946433145019L;
   private String target;
 
   public static boolean showDialog(
@@ -77,6 +78,9 @@ public class MspCompileDialog extends AbstractCompileDialog {
 
   public boolean canLoadFirmware(File file) {
     if (file.getName().endsWith("." + target)) {
+      return true;
+    }
+    if (file.getName().equals("main.exe")) {
       return true;
     }
     return false;
