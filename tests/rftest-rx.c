@@ -16,30 +16,19 @@ void main(void) {
 	/* this is needed because the led clamps the voltage low */
 	*GPIO_DATA_SEL0 = ( 1 << LED ); 
 
-	uart_init(INC,MOD);
-
-	print_welcome("rftest-rx");
-
-	reset_maca();
-	radio_init();
-	flyback_init();
-	vreg_init();
-	init_phy();
-	free_all_packets();
-
 	/* trim the reference osc. to 24MHz */
 	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
+
+	uart_init(INC,MOD);
+
+	vreg_init();
+
+	maca_init();
 
 	set_power(0x0f); /* 0dbm */
 	set_channel(0); /* channel 11 */
 
-	enable_irq(MACA);
-	maca_isr(); 
-
-	/* initial radio command */
-        /* nop, promiscuous, no cca */
-	*MACA_CONTROL = (1 << PRM) | (NO_CCA << MODE); 
-
+	print_welcome("rftest-rx");
 	while(1) {		
 		if((p = rx_packet())) {
 			toggle_gpio0(LED);

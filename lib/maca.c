@@ -42,8 +42,23 @@ static volatile uint8_t last_post = NO_POST;
 #define safe_irq_disable(x)  volatile uint32_t saved_irq; saved_irq = *INTENABLE; disable_irq(x)
 #define irq_restore() *INTENABLE = saved_irq
 
-#define print_packets(x) Print_Packets(x)
+void maca_init(void) {
+	reset_maca();
+	radio_init();
+	flyback_init();
+	init_phy();
+	free_all_packets();
+	
+	/* initial radio command */
+        /* nop, promiscuous, no cca */
+	*MACA_CONTROL = (1 << PRM) | (NO_CCA << MODE); 
+	
+	enable_irq(MACA);
+	maca_isr(); 
+	
+}
 
+#define print_packets(x) Print_Packets(x)
 void Print_Packets(char *s) {
 	volatile packet_t *p;
 	int i = 0;
@@ -232,11 +247,8 @@ void free_all_packets(void) {
 
 	free_head = 0;
 	for(i=0; i<NUM_PACKETS; i++) {
-		printf("free packet %d\n\r",i);
 		free_packet((volatile packet_t *)&(packet_pool[i]));		
-		printf("packet %d left %x right %x \n\r",i);
 	}
-	printf("free head %x\n",free_head);
 	rx_head = 0; rx_end = 0;
 	tx_head = 0; tx_end = 0;
 

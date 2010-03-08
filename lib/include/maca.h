@@ -106,6 +106,7 @@
 #define MACA_KEY0       ((volatile uint32_t *) (MACA_BASE+0x164))
 #define MACA_OPTIONS    ((volatile uint32_t *) (MACA_BASE+0x180))
 
+void maca_init(void);
 void reset_maca(void);
 void init_phy(void);
 void flyback_init(void);

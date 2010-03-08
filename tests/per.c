@@ -13,8 +13,6 @@
 /* session with a node. After opening a session, the nodes begin the */
 /* test sequence  */
 
-#define DEBUG_MACA 1
-
 /* how long to wait between session requests */
 #define SESSION_REQ_TIMEOUT 10000     /* phony seconds */
 
@@ -80,40 +78,27 @@ void main(void) {
 	session_id_t sesid;
 	ptype_t type;
 	short_addr_t addr, my_addr;
-	
-	uart_init(INC,MOD);
-	
-	print_welcome("Packet error test");
 
-	/* standard radio initialization */
-	reset_maca();
-	radio_init();
-	vreg_init();
-	flyback_init();
-	init_phy();
-	free_all_packets();
-	
 	/* trim the reference osc. to 24MHz */
 	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
+	
+	uart_init(INC,MOD);
 
+	vreg_init();
+
+	maca_init();
+	
 	set_power(0x0f); /* 0dbm */
 	set_channel(0); /* channel 11 */
-
-	/* enable MACA interrupts */
-        /* call the handler once to start the maca cycle */
-	enable_irq(MACA);
-	maca_isr(); 
-
-	/* initial radio command */
-        /* nop, promiscuous, no cca */
-	*MACA_CONTROL = (1 << PRM) | (NO_CCA << MODE); 
 
 	/* generate a random short address */
 	my_addr = random_short_addr();
 
-/* sets up tx_on, should be a board specific item */
+        /* sets up tx_on, should be a board specific item */
         *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
         *GPIO_PAD_DIR0 = *GPIO_PAD_DIR0 | (1<<(44-32));
+
+	print_welcome("Packet error test");
 
 	state = SCANNING;
 	while(1) { 

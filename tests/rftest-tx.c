@@ -11,7 +11,7 @@
 /* 2 bytes are the FCS */
 /* therefore 125 is the max payload length */
 #define PAYLOAD_LEN 16
-#define DELAY 1
+#define DELAY 400000
 
 void fill_packet(volatile packet_t *p) {
 	static volatile uint8_t count=0;
@@ -28,34 +28,31 @@ void main(void) {
 	volatile uint32_t i;
 	volatile packet_t *p;
 
+	/* trim the reference osc. to 24MHz */
+	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
+
+	uart_init(INC,MOD);
+
+	vreg_init();
+
+	maca_init();
+
+	set_channel(0); /* channel 11 */
+//	set_power(0x0f); /* 0xf = -1dbm, see 3-22 */
+//	set_power(0x11); /* 0x11 = 3dbm, see 3-22 */
+	set_power(0x12); /* 0x12 is the highest, not documented */
+
 	*GPIO_DATA0 = 0x00000000;
 	*GPIO_PAD_DIR0 = ( 1 << LED );
         /* read from the data register instead of the pad */
 	/* this is needed because the led clamps the voltage low */
 	*GPIO_DATA_SEL0 = ( 1 << LED ); 
 
-	uart_init(INC,MOD);
+        /* sets up tx_on, should be a board specific item */
+        *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
+        *GPIO_PAD_DIR0 = *GPIO_PAD_DIR0 | (1<<(44-32));
 
 	print_welcome("rftest-tx");
-
-	reset_maca();
-	radio_init();
-	vreg_init();
-	flyback_init();
-	init_phy();
-	free_all_packets();
-
-	/* trim the reference osc. to 24MHz */
-	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
-
-//	set_power(0x0f); /* 0xf = -1dbm, see 3-22 */
-//	set_power(0x11); /* 0x11 = 3dbm, see 3-22 */
-	set_power(0x12); /* 0x12 is the highest, not documented*/
-	set_channel(0); /* channel 11 */
-
-	/* initial radio command */
-        /* nop, promiscuous, no cca */
-	*MACA_CONTROL = (1 << PRM) | (NO_CCA << MODE); 
 
 	while(1) {		
 	    		
