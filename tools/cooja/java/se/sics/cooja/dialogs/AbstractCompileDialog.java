@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractCompileDialog.java,v 1.8 2009/10/28 12:02:21 fros4943 Exp $
+ * $Id: AbstractCompileDialog.java,v 1.9 2010/03/08 14:26:12 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -205,7 +205,7 @@ public abstract class AbstractCompileDialog extends JDialog {
           }
 
           public String getDescription() {
-            return "Contiki process source or Contiki firmware";
+            return "Contiki process source or Precompiled firmware";
           }
         });
         fc.setDialogTitle("Select Contiki process source");
