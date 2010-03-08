@@ -160,13 +160,6 @@ void post_receive(void) {
 			  (1 << maca_ctrl_auto) |
 			  (1 << maca_ctrl_prm) |
 			  (maca_ctrl_seq_rx));
-
-
-/*	*MACA_CONTROL = ( 
-		(1 << maca_ctrl_asap) | 
-		( 4 << PRECOUNT) |
-		(1 << maca_ctrl_prm) |
-		(maca_ctrl_seq_rx)); */
 	/* status bit 10 is set immediately */
         /* then 11, 10, and 9 get set */ 
         /* they are cleared once we get back to maca_isr */ 
@@ -220,10 +213,6 @@ void post_tx(void) {
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	
-/*	*MACA_CONTROL = ( (1 << maca_ctrl_prm) |
-			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
-			  (1 << maca_ctrl_asap) |
-			  (maca_ctrl_seq_tx));	*/
 	/* status bit 10 is set immediately */
         /* then 11, 10, and 9 get set */ 
         /* they are cleared once we get back to maca_isr */ 
