@@ -25,6 +25,10 @@ void main(void) {
 
 	maca_init();
 
+        /* sets up tx_on, should be a board specific item */
+        *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
+	*GPIO_PAD_DIR_SET1 = (1 << (44-32));
+
 	set_power(0x0f); /* 0dbm */
 	set_channel(0); /* channel 11 */
 

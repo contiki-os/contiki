@@ -11,7 +11,7 @@
 /* 2 bytes are the FCS */
 /* therefore 125 is the max payload length */
 #define PAYLOAD_LEN 16
-#define DELAY 100000
+#define DELAY 1000000
 
 void fill_packet(volatile packet_t *p) {
 	static volatile uint8_t count=0;
@@ -54,7 +54,7 @@ void main(void) {
 
         /* sets up tx_on, should be a board specific item */
         *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
-        *GPIO_PAD_DIR0 = *GPIO_PAD_DIR0 | (1<<(44-32));
+	*GPIO_PAD_DIR_SET1 = (1 << (44-32));
 
 	print_welcome("rftest-tx");
 
