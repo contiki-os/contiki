@@ -31,6 +31,10 @@
 static volatile packet_t packet_pool[NUM_PACKETS];
 static volatile packet_t *free_head, *rx_head, *rx_end, *tx_head, *tx_end, *dma_tx, *dma_rx = 0;
 
+/* used for ack recpetion if the packet_pool goes empty */
+/* doesn't go back into the pool when freed */
+static volatile packet_t dummy_ack;
+
 enum posts {
 	NO_POST = 0,
 	TX_POST,
@@ -100,6 +104,8 @@ void free_packet(volatile packet_t *p) {
 	safe_irq_disable(MACA);
 
 	if(!p) {  PRINTF("free_packet passed packet 0\n\r"); return; }
+	if(p == &dummy_ack) { return; }
+
 	p->length = 0;
 	p->left = free_head; p->right = 0;
 	free_head = p;
@@ -136,7 +142,7 @@ void post_receive(void) {
 	if(dma_rx == 0) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0) {
-			printf("trying to fill MACA_DMARX but out of packet buffers\n\r");		
+			printf("trying to fill MACA_DMARX in post_receieve but out of packet buffers\n\r");		
 			/* set the sftclock so that we return to the maca_isr */
 			*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
 			*MACA_TMREN = (1 << maca_tmren_sft);
@@ -192,9 +198,12 @@ void post_tx(void) {
 	*MACA_DMATX = (uint32_t)&(dma_tx->data[ 0 + dma_tx->offset]);
 	if(dma_rx == 0) {
 		dma_rx = get_free_packet();
-		if (dma_rx == 0)
-			printf("trying to fill MACA_DMARX but out of packet buffers\n");		
-	}
+		if (dma_rx == 0) { 
+			dma_rx = &dummy_ack;
+			printf("trying to fill MACA_DMARX on post_tx but out of packet buffers\n\r");
+		}
+		
+	}		
 	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
 	/* disable soft timeout clock */
 	/* disable start clock */
