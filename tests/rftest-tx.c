@@ -11,7 +11,7 @@
 /* 2 bytes are the FCS */
 /* therefore 125 is the max payload length */
 #define PAYLOAD_LEN 16
-#define DELAY 1000000
+#define DELAY 100000
 
 void fill_packet(volatile packet_t *p) {
 	static volatile uint8_t count=0;
