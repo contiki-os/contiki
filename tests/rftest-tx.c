@@ -23,9 +23,9 @@ void fill_packet(volatile packet_t *p) {
 	}
 
 	/* acks get treated differently, even in promiscuous mode */
-	/* setting the second bit makes sure that we never send an ack */
+	/* setting the third bit makes sure that we never send an ack */
         /* or any valid 802.15.4-2006 packet */
-	p->data[0] |= (1 << 2); 
+	p->data[0] |= (1 << 3); 
 }
 
 void main(void) {
