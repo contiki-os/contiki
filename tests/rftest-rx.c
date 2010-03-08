@@ -34,6 +34,7 @@ void main(void) {
 	set_channel(0); /* channel 11 */
 
 	enable_irq(MACA);
+	maca_isr(); 
 
 	/* initial radio command */
         /* nop, promiscuous, no cca */
