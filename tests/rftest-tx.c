@@ -11,17 +11,21 @@
 /* 2 bytes are the FCS */
 /* therefore 125 is the max payload length */
 #define PAYLOAD_LEN 16
-#define DELAY 400000
+#define DELAY 100000
 
 void fill_packet(volatile packet_t *p) {
 	static volatile uint8_t count=0;
 	volatile uint8_t i;
 	p->length = PAYLOAD_LEN;
 	p->offset = 0;
-	p->data[0] = 0xff;
-	for(i=1; i<PAYLOAD_LEN; i++) {
+	for(i=0; i<PAYLOAD_LEN; i++) {
 		p->data[i] = count++;
-	}		
+	}
+
+	/* acks get treated differently, even in promiscuous mode */
+	/* setting the second bit makes sure that we never send an ack */
+        /* or any valid 802.15.4-2006 packet */
+	p->data[0] |= (1 << 2); 
 }
 
 void main(void) {
