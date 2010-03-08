@@ -122,6 +122,11 @@ void post_receive(void) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0) {
 			printf("trying to fill MACA_DMARX but out of packet buffers\n\r");		
+			/* set the sftclock so that we return to the maca_isr */
+			*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
+			*MACA_TMREN = (1 << maca_tmren_sft);
+			/* no free buffers, so don't start a reception */
+			enable_irq(MACA);
 			return;
 		}
 	}
