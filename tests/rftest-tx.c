@@ -64,10 +64,9 @@ void main(void) {
 		if(p) {
 			fill_packet(p);
 			
-			toggle_gpio0(LED);
 			printf("rftest-tx --- ");
 			print_packet(p);
-			
+
 			tx_packet(p);
 			
 			for(i=0; i<DELAY; i++) { continue; }

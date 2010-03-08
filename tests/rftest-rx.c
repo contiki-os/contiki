@@ -7,11 +7,11 @@
 
 #define LED LED_GREEN
 
-void maca_rx_callback(volatile packet_t *p) 
-{
-	(void)p; /* surpress unused warning */
+void maca_rx_callback(volatile packet_t *p) {
+	(void)p;
 	toggle_gpio0(LED);
-}	
+	toggle_gpio0(LED);
+}
 
 void main(void) {
 	volatile packet_t *p;
@@ -34,6 +34,10 @@ void main(void) {
         /* sets up tx_on, should be a board specific item */
         *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
 	*GPIO_PAD_DIR_SET1 = (1 << (44-32));
+
+        /* sets up rx_on, should be a board specific item */
+        *GPIO_FUNC_SEL2 = (0x02 << ((45-16*2)*2));
+	*GPIO_PAD_DIR_SET1 = (1 << (45-32));
 
 	set_power(0x0f); /* 0dbm */
 	set_channel(0); /* channel 11 */
