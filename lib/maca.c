@@ -21,7 +21,7 @@
 #define CLK_PER_BYTE 8 
 
 #ifndef RECV_SOFTIMEOUT
-#define RECV_SOFTIMEOUT (8*128*CLK_PER_BYTE) 
+#define RECV_SOFTIMEOUT (32*128*CLK_PER_BYTE) 
 #endif
 
 #define MAX_PACKET_SIZE (MAX_PAYLOAD_SIZE + 2) /* packet includes 2 bytes of checksum */
