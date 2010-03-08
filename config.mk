@@ -1,7 +1,7 @@
 PLATFORM_LDFLAGS =
 PLATFORM_RELFLAGS = -fno-strict-aliasing  -fno-common -ffixed-r8 -ffunction-sections -msoft-float -Wcast-align -Wall
 PLATFORM_CPPFLAGS = -march=armv4t -mlong-calls -mtune=arm7tdmi-s -DCONFIG_ARM -D__ARM__ -mthumb-interwork 
-THUMB_FLAGS= #-mthumb -mcallee-super-interworking
+THUMB_FLAGS= -mthumb -mcallee-super-interworking
 
 #########################################################################
 
