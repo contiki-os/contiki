@@ -124,6 +124,8 @@ volatile packet_t* get_free_packet(void);
 void free_packet(volatile packet_t *p);
 void free_all_packets(void);
 
+extern void maca_rx_callback(volatile packet_t *p) __attribute__((weak));
+
 /******************************************************************************/
 /* everything under this comment is messy, needs cleaning, and will           */
 /* probably change in the future                                              */
