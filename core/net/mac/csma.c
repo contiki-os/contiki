@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.13 2010/03/09 13:23:58 adamdunkels Exp $
+ * $Id: csma.c,v 1.14 2010/03/09 20:38:55 adamdunkels Exp $
  */
 
 /**
@@ -37,8 +37,6 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
-
-#define CSMA_CONF_REXMIT 1
 
 #include "net/mac/csma.h"
 #include "net/rime/packetbuf.h"
@@ -75,18 +73,27 @@ struct queued_packet {
 #define MAX_QUEUED_PACKETS 8
 MEMB(packet_memb, struct queued_packet, MAX_QUEUED_PACKETS);
 
+static void packet_sent(void *ptr, int status, int num_transmissions);
 
 /*---------------------------------------------------------------------------*/
-#if CSMA_CONF_REXMIT
+static void
+retransmit_packet(void *ptr)
+{
+  struct queued_packet *q = ptr;
+
+  queuebuf_to_packetbuf(q->buf);
+  PRINTF("csma: resending number %d\n", q->transmissions);
+  NETSTACK_RDC.send(packet_sent, q);
+}
+/*---------------------------------------------------------------------------*/
 static void
 free_packet(struct queued_packet *q)
 {
   queuebuf_free(q->buf);
   memb_free(&packet_memb, q);
+  ctimer_stop(&q->retransmit_timer);
 }
-
-static void retransmit_packet(void *ptr);
-
+/*---------------------------------------------------------------------------*/
 static void
 packet_sent(void *ptr, int status, int num_transmissions)
 {
@@ -115,6 +122,10 @@ packet_sent(void *ptr, int status, int num_transmissions)
   
   if(status == MAC_TX_COLLISION ||
      status == MAC_TX_NOACK) {
+
+    /* If the transmission was not performed because of a collision or
+       noack, we must retransmit the packet. */
+    
     switch(status) {
     case MAC_TX_COLLISION:
       PRINTF("csma: rexmit collision %d\n", q->transmissions);
@@ -122,17 +133,28 @@ packet_sent(void *ptr, int status, int num_transmissions)
     case MAC_TX_NOACK:
       PRINTF("csma: rexmit noack %d\n", q->transmissions);
       break;
-   default:
-     PRINTF("csma: rexmit err %d, %d\n", status, q->transmissions);
+    default:
+      PRINTF("csma: rexmit err %d, %d\n", status, q->transmissions);
     }
-    
+
+    /* The retransmission time must be proportional to the channel
+       check interval of the underlying radio duty cycling layer. */
     time = NETSTACK_RDC.channel_check_interval();
+
+    /* If the radio duty cycle has no channel check interval (i.e., it
+       does not turn the radio off), we make the retransmission time
+       proportional to one second. */
     if(time == 0) {
       time = CLOCK_SECOND;
     }
-    time = time + (random_rand() % (q->transmissions * 3 * time));
+
+    /* The retransmission time uses a linear backoff so that the
+       interval between the transmissions increase with each
+       retransmit. */
+    time = time + (random_rand() % ((q->collisions + q->transmissions) * 3 * time));
     
     if(q->transmissions < q->max_transmissions) {
+      PRINTF("csma: retransmitting with time %lu\n", time);
       ctimer_set(&q->retransmit_timer, time,
                  retransmit_packet, q);
     } else {
@@ -140,94 +162,8 @@ packet_sent(void *ptr, int status, int num_transmissions)
       free_packet(q);
       mac_call_sent_callback(sent, cptr, status, num_tx);
     }
-  } else {
-    if(status == MAC_TX_OK) {
-      PRINTF("csma: rexmit ok %d\n", q->transmissions);
-    } else {
-      PRINTF("csma: rexmit err %d %d\n", status, q->transmissions);
-    }
-    free_packet(q);
-    mac_call_sent_callback(sent, cptr, status, num_tx);
-  }
-}
-
-static void
-retransmit_packet(void *ptr)
-{
-  struct queued_packet *q = ptr;
-
-  queuebuf_to_packetbuf(q->buf);
-  PRINTF("csma: resending number %d\n", q->transmissions);
-  NETSTACK_RDC.send(packet_sent, q);
-}
-/*---------------------------------------------------------------------------*/
-static void
-sent_packet(void *ptr, int status, int num_transmissions)
-{
-  struct queued_packet *q = ptr;
-  clock_time_t time;
-  rimeaddr_t receiver;
-  
-  rimeaddr_copy(&receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-
-  if(rimeaddr_cmp(&receiver, &rimeaddr_null)) {
-    PRINTF("broadcast/");
-  }
-  if(status != MAC_TX_OK) {
-    switch(status) {
-    case MAC_TX_COLLISION:
-      PRINTF("csma 1: collision\n");
-      break; 
-    case MAC_TX_NOACK:
-      PRINTF("csma 1: noack\n");
-      break;
-   default:
-      PRINTF("csma 1: err %d\n", status);
-    }
-  } else {
-    PRINTF("csma 1: ok\n");
-  }
-
-  switch(status) {
-  case MAC_TX_OK:
-  case MAC_TX_NOACK:
-    q->transmissions++;
-    break;
-  case MAC_TX_COLLISION:
-    q->collisions++;
-    break;
-  case MAC_TX_DEFERRED:
-    q->deferrals++;
-    break;
-  }
-
-  /* Check if we saw a collission, and if we have a queuebuf with the
-     packet available. Only retransmit unicast packets. Retransmit
-     only once, for now. */
-  if((status == MAC_TX_COLLISION || status == MAC_TX_NOACK) &&
-     !rimeaddr_cmp(&receiver, &rimeaddr_null)) {
-    /* If the packet couldn't be sent because of a collision or the
-         lack of an ACK, we let the other transmissions get through
-         before we try again. */
-    if(status == MAC_TX_COLLISION) {
-      q->collisions++;
-    }
-    time = NETSTACK_RDC.channel_check_interval();
-    if(time == 0) {
-      time = CLOCK_SECOND;
-    }
-    time = time + (random_rand() % (3 * time));
-
-    ctimer_set(&q->retransmit_timer, time,
-	       retransmit_packet, q);
-  } else {
-    mac_callback_t sent;
-    void *cptr;
-    int num_tx;
-    
-    sent = q->sent;
-    cptr = q->cptr;
-    num_tx = q->transmissions - q->collisions;
+  } else if(status == MAC_TX_OK) {
+    PRINTF("csma: rexmit ok %d\n", q->transmissions);
     free_packet(q);
     mac_call_sent_callback(sent, cptr, status, num_tx);
   }
@@ -249,7 +185,7 @@ send_packet(mac_callback_t sent, void *ptr)
       q->deferrals = 0;
       q->sent = sent;
       q->cptr = ptr;
-      NETSTACK_RDC.send(sent_packet, q);
+      NETSTACK_RDC.send(packet_sent, q);
       return;
     }
     memb_free(&packet_memb, q);
@@ -257,13 +193,6 @@ send_packet(mac_callback_t sent, void *ptr)
   PRINTF("csma: could not allocate queuebuf, will drop if collision or noack\n");
   NETSTACK_RDC.send(sent, ptr);
 }
-#else /* CSMA_CONF_REXMIT */
-static void
-send_packet(mac_callback_t sent, void *ptr)
-{
-  NETSTACK_RDC.send(sent, ptr);
-}
-#endif /* CSMA_CONF_REXMIT */
 /*---------------------------------------------------------------------------*/
 static void
 input_packet(void)
