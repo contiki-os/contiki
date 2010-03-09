@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.36 2010/03/02 15:41:23 dak664 Exp $
+ * $Id: collect.c,v 1.37 2010/03/09 13:21:28 adamdunkels Exp $
  */
 
 /**
@@ -121,6 +121,8 @@ update_rtmetric(struct collect_conn *tc)
 {
   struct neighbor *n;
 
+  PRINTF("update_rtmetric: tc->rtmetric %d\n", tc->rtmetric);
+  
   /* We should only update the rtmetric if we are not the sink. */
   if(tc->rtmetric != SINK) {
 
@@ -258,7 +260,7 @@ send_queued_packet(void)
       rimeaddr_copy(&c->current_receiver, &n->addr);
       c->sending = 1;
       c->transmissions = 0;
-      c->max_rexmits = 8;//packetbuf_attr(PACKETBUF_ATTR_EMAX_REXMIT);
+      c->max_rexmits = packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT);
       PRINTF("max_rexmits %d\n", c->max_rexmits);
       packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
       packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT, 2);
@@ -355,7 +357,7 @@ send_ack(struct collect_conn *tc, const rimeaddr_t *to, int congestion, int drop
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 0);
     packetbuf_set_attr(PACKETBUF_ATTR_ERELIABLE, 0);
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, packet_seqno);
-    packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, 2);
+    packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT, 2);
     unicast_send(&tc->unicast_conn, to);
     
     PRINTF("%d.%d: collect: Sending ACK to %d.%d for %d\n",
@@ -615,11 +617,18 @@ void
 collect_open(struct collect_conn *tc, uint16_t channels,
 	     const struct collect_callbacks *cb)
 {
+  unicast_open(&tc->unicast_conn, channels + 1, &unicast_callbacks);
+  channel_set_attributes(channels + 1, attributes);
+  tc->rtmetric = RTMETRIC_MAX;
+  tc->cb = cb;
+  neighbor_init();
+  packetqueue_init(&sending_queue);
+
 #if !COLLECT_ANNOUNCEMENTS
   neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
 			  CLOCK_SECOND * 8,
 			  CLOCK_SECOND * 32,
-			  (unsigned) (CLOCK_SECOND * 600UL),
+			  (CLOCK_SECOND * 600UL),
 			  &neighbor_discovery_callbacks);
   neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 #else /* !COLLECT_ANNOUNCEMENTS */
@@ -627,13 +636,6 @@ collect_open(struct collect_conn *tc, uint16_t channels,
 			received_announcement);
   announcement_listen(2);
 #endif /* !COLLECT_ANNOUNCEMENTS */
-
-  unicast_open(&tc->unicast_conn, channels + 1, &unicast_callbacks);
-  channel_set_attributes(channels + 1, attributes);
-  tc->rtmetric = RTMETRIC_MAX;
-  tc->cb = cb;
-  neighbor_init();
-  packetqueue_init(&sending_queue);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -652,6 +654,7 @@ collect_set_sink(struct collect_conn *tc, int should_be_sink)
 {
   if(should_be_sink) {
     tc->rtmetric = SINK;
+    PRINTF("collect_set_sink: tc->rtmetric %d\n", tc->rtmetric);
 #if !COLLECT_ANNOUNCEMENTS
     neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 #endif /* !COLLECT_ANNOUNCEMENTS */
