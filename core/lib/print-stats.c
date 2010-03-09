@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: print-stats.c,v 1.4 2008/07/03 23:36:30 adamdunkels Exp $
+ * $Id: print-stats.c,v 1.5 2010/03/09 14:14:36 nvt-se Exp $
  */
 
 /**
@@ -61,9 +61,9 @@ print_stats(void)
 	 rimestats.contentiondrop, rimestats.sendingdrop,
 	 rimestats.lltx, rimestats.llrx);
 #if ENERGEST_CONF_ON
-  printf("E %d.%d clock %u cpu %lu lpm %lu irq %lu gled %lu yled %lu rled %lu tx %lu listen %lu sensors %lu serial %lu\n",
+  printf("E %d.%d clock %lu cpu %lu lpm %lu irq %lu gled %lu yled %lu rled %lu tx %lu listen %lu sensors %lu serial %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 clock_time() / CLOCK_SECOND,
+	 (unsigned long)(clock_time() / CLOCK_SECOND),
 	 energest_total_time[ENERGEST_TYPE_CPU].current,
 	 energest_total_time[ENERGEST_TYPE_LPM].current,
 	 energest_total_time[ENERGEST_TYPE_IRQ].current,
