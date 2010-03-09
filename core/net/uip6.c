@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.13 2010/02/15 19:23:54 adamdunkels Exp $
+ * $Id: uip6.c,v 1.14 2010/03/09 15:50:15 joxe Exp $
  *
  */
 
@@ -1099,9 +1099,16 @@ uip_process(u8_t flag)
       PRINT6ADDR(&UIP_IP_BUF->destipaddr);
       PRINTF("\n");
 
-      /* Decrement the TTL (time-to-live) value in the IP header */
-      UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
-      UIP_STAT(++uip_stat.ip.forwarded);
+      if(UIP_IP_BUF->ttl <= 1) {
+	PRINTF("Dropping packet: hop limit reached\n");
+	UIP_STAT(++uip_stat.ip.drop);
+	uip_icmp6_error_output(ICMP6_TIME_EXCEEDED,
+			       ICMP6_TIME_EXCEED_TRANSIT, 0);
+      } else {
+	/* Decrement the TTL (time-to-live) value in the IP header */
+	UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
+	UIP_STAT(++uip_stat.ip.forwarded);
+      }
       goto send;
     } else if(!uip_is_addr_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr) &&
 	      !uip_is_addr_linklocal_allrouters_mcast(&UIP_IP_BUF->destipaddr)) {
