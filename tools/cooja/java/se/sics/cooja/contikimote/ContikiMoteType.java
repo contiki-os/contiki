@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.39 2010/02/03 16:06:15 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.40 2010/03/09 08:09:57 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -141,15 +141,15 @@ public class ContikiMoteType implements MoteType {
     }
 
     public String getSourceFilenamesString() {
-      if (this == UIPV6) {
-        return " init-net-uipv6.c";
-      }
-      if (this == UIP) {
-        return " init-net-uip.c";
-      }
-      if (this == RIME) {
-        return " init-net-rime.c";
-      }
+//      if (this == UIPV6) {
+//        return " init-net-uipv6.c";
+//      }
+//      if (this == UIP) {
+//        return " init-net-uip.c";
+//      }
+//      if (this == RIME) {
+//        return " init-net-rime.c";
+//      }
       return " ";
     }
 
@@ -169,7 +169,7 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
-  private final String[] sensors = { "button_sensor", "pir_sensor", "radio_sensor", "vib_sensor" };
+  private final String[] sensors = { "button_sensor", "pir_sensor", "vib_sensor" };
 
   private String identifier = null;
   private String description = null;
