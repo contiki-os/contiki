@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.15 2009/06/09 19:38:38 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.16 2010/03/09 08:16:05 fros4943 Exp $
  */
 
 /**
@@ -71,7 +71,7 @@
 #include "dev/cooja-radio.h"
 #include "lib/simEnvChange.h"
 #include "lib/sensors.h"
-#include "net/init-net.h"
+#include "net/netstack.h"
 #include "node-id.h"
 
 PROCINIT(&etimer_process,&sensors_process);
@@ -124,6 +124,8 @@ start_process_run_loop(void *data)
     /* Initialize random generator */
     random_init(0);
 
+    ctimer_init();
+
     /* Start process handler */
     process_init();
 
@@ -138,8 +140,24 @@ start_process_run_loop(void *data)
       printf("Node id is not set.\n");
     }
 
+    /* RIME CONFIGURATION */
+    {
+      int i;
+      rimeaddr_t rimeaddr;
+
+      /* Init Rime */
+      rimeaddr.u8[0] = node_id & 0xff;
+      rimeaddr.u8[1] = node_id >> 8;
+      rimeaddr_set_node_addr(&rimeaddr);
+      printf("Rime started with address: ");
+      for(i = 0; i < sizeof(rimeaddr_node_addr.u8) - 1; i++) {
+        printf("%d.", rimeaddr_node_addr.u8[i]);
+      }
+      printf("%d\n", rimeaddr_node_addr.u8[i]);
+    }
+
     /* Initialize communication stack */
-    init_net();
+    netstack_init();
 
     /* Start serial process */
     serial_line_init();
@@ -150,27 +168,19 @@ start_process_run_loop(void *data)
 
     while(1)
 	{
-		/* Always pretend we have processes left while inside process_run() */
-		simProcessRunValue = 1;
-
-		if (simDoReceiverCallback) {
-		  simDoReceiverCallback = 0;
-		  radio_call_receiver();
-		}
-
 		simProcessRunValue = process_run();
-		while (simProcessRunValue-- > 0) {
+		while(simProcessRunValue-- > 0) {
 		  process_run();
 		}
 		simProcessRunValue = process_nevents();
 
 		// Check if we must stay awake
-		if (simDontFallAsleep) {
+		if(simDontFallAsleep) {
 			simDontFallAsleep=0;
 			simProcessRunValue = 1;
 		}
 
-		/* Yield thread when one process_run has completed */
+		/* Return to COOJA */
 		cooja_mt_yield();
 	}
 }
@@ -263,12 +273,10 @@ JNIEXPORT void JNICALL
 Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
 {
   /* Let all simulation interfaces act first */
-  simNoYield = 1;
   doActionsBeforeTick();
-  simNoYield = 0;
 
   /* Poll etimer process */
-  if (etimer_pending()) {	
+  if (etimer_pending()) {
     etimer_request_poll();
   }
 
@@ -277,9 +285,7 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
   cooja_mt_exec(&process_run_thread);
 
   /* Let all simulation interfaces act before returning to java */
-  simNoYield = 1;
   doActionsAfterTick();
-  simNoYield = 0;
 
   /* Look for new e-timers */
   simEtimerPending = etimer_pending();
