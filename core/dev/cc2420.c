@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.42 2010/03/09 13:18:16 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.43 2010/03/09 15:45:29 joxe Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -135,8 +135,6 @@ const struct radio_driver cc2420_driver =
   };
 
 static uint8_t receive_on;
-/* Radio stuff in network byte order. */
-static uint16_t pan_id;
 
 static int channel;
 
@@ -529,21 +527,26 @@ cc2420_set_pan_addr(unsigned pan,
                     const uint8_t *ieee_addr)
 {
   uint16_t f = 0;
+  uint8_t tmp[2];
   /*
    * Writing RAM requires crystal oscillator to be stable.
    */
   while(!(status() & (BV(CC2420_XOSC16M_STABLE))));
 
-  pan_id = pan;
-  FASTSPI_WRITE_RAM_LE(&pan, CC2420RAM_PANID, 2, f);
-  FASTSPI_WRITE_RAM_LE(&addr, CC2420RAM_SHORTADDR, 2, f);
+  tmp[0] = pan & 0xff;
+  tmp[1] = pan >> 8;
+  FASTSPI_WRITE_RAM_LE(&tmp, CC2420RAM_PANID, 2, f);
+
+  tmp[0] = addr & 0xff;
+  tmp[1] = addr >> 8;
+  FASTSPI_WRITE_RAM_LE(&tmp, CC2420RAM_SHORTADDR, 2, f);
   if(ieee_addr != NULL) {
-    uint8_t addr[8];
+    uint8_t tmp_addr[8];
     /* LSB first, MSB last for 802.15.4 addresses in CC2420 */
     for (f = 0; f < 8; f++) {
-      addr[7 - f] = ieee_addr[f];
+      tmp_addr[7 - f] = ieee_addr[f];
     }
-    FASTSPI_WRITE_RAM_LE(addr, CC2420RAM_IEEEADDR, 8, f);
+    FASTSPI_WRITE_RAM_LE(tmp_addr, CC2420RAM_IEEEADDR, 8, f);
   }
 }
 /*---------------------------------------------------------------------------*/
