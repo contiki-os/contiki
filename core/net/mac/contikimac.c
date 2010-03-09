@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.9 2010/03/09 13:19:05 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.10 2010/03/09 20:37:02 adamdunkels Exp $
  */
 
 /**
@@ -776,7 +776,9 @@ static void
 qsend_packet(mac_callback_t sent, void *ptr)
 {
   int ret = send_packet(sent, ptr);
-  mac_call_sent_callback(sent, ptr, ret, 1);
+  if(ret != MAC_TX_DEFERRED) {
+    mac_call_sent_callback(sent, ptr, ret, 1);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
