@@ -5,8 +5,10 @@ const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 		 '8','9','a','b','c','d','e','f'};
 
 void putchr(char c) {
-	while(*UT1CON == 31); /* wait for there to be room in the buffer */
-	*UART1_DATA = c;
+	while(*UART1_UTXCON == 31); 
+        /* wait for there to be room in the buffer */
+// 	while( *UART1_UTXCON == 0 ) { continue; }
+	*UART1_UDATA = c;
 }
 	
 void putstr(char *s) {

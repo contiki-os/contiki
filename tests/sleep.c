@@ -6,7 +6,7 @@
 
 void main(void) {
 
-	uart_init(INC,MOD);
+	uart_init(INC,MOD,SAMP);
 
 	*mem32(0x00401ffc) = 0x01234567;
 	*mem32(0x00407ffc) = 0xdeadbeef;

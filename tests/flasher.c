@@ -19,7 +19,16 @@
 #define dbg_put_hex32(...)
 #endif
 
-uint8_t getc(void);
+uint8_t getc(void) 
+{
+	volatile uint8_t c;
+	while(*UART1_URXCON == 0);
+	
+	c = *UART1_UDATA;
+	return c;
+}
+
+
 void flushrx(void);
 uint32_t to_u32(volatile uint32_t *c);
 
@@ -41,7 +50,8 @@ void main(void) {
 	volatile uint32_t addr,data;
 
 
-	uart_init(INC, MOD);
+	uart_init(INC, MOD, SAMP);
+	disable_irq(UART1);
 
 	vreg_init();
 
@@ -73,7 +83,7 @@ void main(void) {
 
 	/* read the length */
 	for(i=0; i<4; i++) {
-		c = getc();
+		c = uart1_getc();
 		/* bail if the first byte of the length is zero */
 		len += (c<<(i*8));
 	}
@@ -158,8 +168,8 @@ void main(void) {
 void flushrx(void)
 {
 	volatile uint8_t c;
-	while(*UR1CON !=0) {
-		c = *UART1_DATA;
+	while(*UART1_URXCON !=0) {
+		c = *UART1_UDATA;
 	}
 }
 
@@ -199,12 +209,5 @@ uint32_t to_u32(volatile uint32_t *c)
 	return ret;
 }
 
-uint8_t getc(void) 
-{
-	volatile uint8_t c;
-	while(*UR1CON == 0);
-	
-	c = *UART1_DATA;
-	return c;
-}
+
 

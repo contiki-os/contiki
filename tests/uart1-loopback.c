@@ -5,16 +5,15 @@
 #include "config.h"
 
 void main(void) {
+	volatile char c;
 
-	uart1_init(INC,MOD);
+	uart1_init(INC,MOD,SAMP);
 	
-	uint8_t c;
 	while(1) {
-		if(*UART1_CON > 0) {
+		if(uart1_can_get()) {
 			/* Receive buffer isn't empty */
 			/* read a byte and write it to the transmit buffer */
-			c = *UART1_DATA;
-			*UART1_DATA = c;
+			uart1_putc(uart1_getc());
 		}
 	}
 	

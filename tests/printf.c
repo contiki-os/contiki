@@ -15,7 +15,7 @@ int main(void)
 	int mi;
 //	char buf[80];
 
-	uart_init(INC, MOD);
+	uart_init(INC, MOD, SAMP);
 
 	mi = (1 << (bs-1)) + 1;
 	printf("%s\n", ptr);

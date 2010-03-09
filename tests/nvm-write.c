@@ -10,7 +10,7 @@ void main(void) {
 	uint32_t buf[WRITE_NBYTES/4];
 	uint32_t i;
 
-	uart_init(INC, MOD);
+	uart_init(INC, MOD, SAMP);
 
 	print_welcome("nvm-write");
 
