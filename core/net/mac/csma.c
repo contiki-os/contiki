@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.11 2010/03/04 14:17:43 nvt-se Exp $
+ * $Id: csma.c,v 1.12 2010/03/09 13:20:08 adamdunkels Exp $
  */
 
 /**
@@ -54,7 +54,7 @@
 
 #include <string.h>
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -69,7 +69,7 @@ struct queued_packet {
   mac_callback_t sent;
   void *cptr;
   uint8_t transmissions, max_transmissions;
-  uint8_t collisions;
+  uint8_t collisions, deferrals;
 };
 
 #define MAX_QUEUED_PACKETS 8
@@ -95,12 +95,26 @@ packet_sent(void *ptr, int status, int num_transmissions)
   mac_callback_t sent;
   void *cptr;
   int num_tx;
-  
+
+  switch(status) {
+  case MAC_TX_OK:
+  case MAC_TX_NOACK:
+    q->transmissions++;
+    break;
+  case MAC_TX_COLLISION:
+    q->collisions++;
+    break;
+  case MAC_TX_DEFERRED:
+    q->deferrals++;
+    break;
+  }
+
   sent = q->sent;
   cptr = q->cptr;
-  num_tx = q->transmissions - q->collisions;
+  num_tx = q->transmissions - q->collisions - q->deferrals;
   
-  if(status != MAC_TX_OK) {
+  if(status == MAC_TX_COLLISION ||
+     status == MAC_TX_NOACK) {
     switch(status) {
     case MAC_TX_COLLISION:
       PRINTF("csma: rexmit collision %d\n", q->transmissions);
@@ -111,7 +125,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
    default:
      PRINTF("csma: rexmit err %d, %d\n", status, q->transmissions);
     }
-  
+    
     time = NETSTACK_RDC.channel_check_interval();
     if(time == 0) {
       time = CLOCK_SECOND;
@@ -127,7 +141,11 @@ packet_sent(void *ptr, int status, int num_transmissions)
       mac_call_sent_callback(sent, cptr, status, num_tx);
     }
   } else {
-    PRINTF("csma: rexmit ok %d\n", q->transmissions);
+    if(status == MAC_TX_OK) {
+      PRINTF("csma: rexmit ok %d\n", q->transmissions);
+    } else {
+      PRINTF("csma: rexmit err %d %d\n", status, q->transmissions);
+    }
     free_packet(q);
     mac_call_sent_callback(sent, cptr, status, num_tx);
   }
@@ -139,7 +157,6 @@ retransmit_packet(void *ptr)
   struct queued_packet *q = ptr;
 
   queuebuf_to_packetbuf(q->buf);
-  q->transmissions++;
   PRINTF("csma: resending number %d\n", q->transmissions);
   NETSTACK_RDC.send(packet_sent, q);
 }
@@ -159,18 +176,31 @@ sent_packet(void *ptr, int status, int num_transmissions)
   if(status != MAC_TX_OK) {
     switch(status) {
     case MAC_TX_COLLISION:
-      PRINTF("csma: collision\n");
+      PRINTF("csma 1: collision\n");
       break; 
     case MAC_TX_NOACK:
-      PRINTF("csma: noack\n");
+      PRINTF("csma 1: noack\n");
       break;
    default:
-      PRINTF("csma: err %d\n", status);
+      PRINTF("csma 1: err %d\n", status);
     }
   } else {
-    PRINTF("csma: ok\n");
+    PRINTF("csma 1: ok\n");
   }
-  
+
+  switch(status) {
+  case MAC_TX_OK:
+  case MAC_TX_NOACK:
+    q->transmissions++;
+    break;
+  case MAC_TX_COLLISION:
+    q->collisions++;
+    break;
+  case MAC_TX_DEFERRED:
+    q->deferrals++;
+    break;
+  }
+
   /* Check if we saw a collission, and if we have a queuebuf with the
      packet available. Only retransmit unicast packets. Retransmit
      only once, for now. */
@@ -214,8 +244,9 @@ send_packet(mac_callback_t sent, void *ptr)
     q->buf = queuebuf_new_from_packetbuf();
     if(q != NULL) {
       q->max_transmissions = packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT) + 1;
-      q->transmissions = 1;
+      q->transmissions = 0;
       q->collisions = 0;
+      q->deferrals = 0;
       q->sent = sent;
       q->cptr = ptr;
       NETSTACK_RDC.send(sent_packet, q);
