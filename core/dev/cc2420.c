@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.41 2010/02/25 16:06:44 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.42 2010/03/09 13:18:16 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -280,8 +280,6 @@ cc2420_init(void)
   /* Turn on/off automatic packet acknowledgment and address decoding. */
   reg = getreg(CC2420_MDMCTRL0);
 
-  reg |= 0x40; /* XXX CCA mode 1 */
-  
 #if CC2420_CONF_AUTOACK
   reg |= AUTOACK | ADR_DECODE;
 #else
@@ -369,7 +367,6 @@ cc2420_transmit(unsigned short payload_len)
       /* We wait until transmission has ended so that we get an
 	 accurate measurement of the transmission time.*/
       while(status() & BV(CC2420_TX_ACTIVE));
-
 
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
       ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,cc2420_get_txpower());
@@ -761,9 +758,12 @@ cc2420_cca(void)
   if(!receive_on) {
     radio_was_off = 1;
     cc2420_on();
-
   }
 
+  /* Make sure that the radio really got turned on. */
+  if(!receive_on) {
+    return 1;
+  }
 
   while(!(status() & BV(CC2420_RSSI_VALID))) {
     /*    printf("cc2420_rssi: RSSI not valid.\n"); */
