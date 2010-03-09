@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer-802154.c,v 1.4 2010/03/01 13:17:01 nifi Exp $
+ * $Id: framer-802154.c,v 1.5 2010/03/09 20:40:11 adamdunkels Exp $
  */
 
 /**
@@ -90,7 +90,11 @@ create(void)
   params.fcf.frame_type = FRAME802154_DATAFRAME;
   params.fcf.security_enabled = 0;
   params.fcf.frame_pending = 0;
-  params.fcf.ack_required = 1; //packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
+  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+    params.fcf.ack_required = 0;
+  } else {
+    params.fcf.ack_required = 1; //packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
+  }
   params.fcf.panid_compression = 0;
 
   /* Insert IEEE 802.15.4 (2003) version bit. */
