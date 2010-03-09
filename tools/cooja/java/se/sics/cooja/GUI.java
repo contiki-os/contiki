@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.161 2010/02/23 22:53:34 fros4943 Exp $
+ * $Id: GUI.java,v 1.162 2010/03/09 08:27:48 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1874,8 +1874,11 @@ public class GUI extends Observable {
         logger.fatal("Could not find valid plugin type annotation in class " + newPluginClass);
         return false;
       }
+    } catch (NoClassDefFoundError e) {
+      logger.fatal("No plugin class: " + newPluginClass + ": " + e.getMessage());
+      return false;
     } catch (NoSuchMethodException e) {
-      logger.fatal("Could not find valid constructor in class " + newPluginClass + ": " + e);
+      logger.fatal("No plugin class constructor: " + newPluginClass + ": " + e.getMessage());
       return false;
     }
 
