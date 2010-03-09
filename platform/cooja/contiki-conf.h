@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.11 2009/09/08 15:08:20 zhitao Exp $
+ * $Id: contiki-conf.h,v 1.12 2010/03/09 08:14:06 fros4943 Exp $
  *
  */
 
@@ -36,21 +36,31 @@
 
 #define PROFILE_CONF_ON 0
 #define ENERGEST_CONF_ON 0
+#define LOG_CONF_ENABLED 1
 
 #define COOJA 1
 
-#define QUEUEBUF_CONF_NUM 10
+/* Fixed network setup */
+#define NETSTACK_CONF_NETWORK rime_driver
+#define NETSTACK_CONF_MAC nullmac_driver
+#define NETSTACK_CONF_RDC nullrdc_driver
+#define NETSTACK_CONF_RADIO cooja_radio_driver
+/*#define NETSTACK_CONF_FRAMER framer_nullmac*/
+
+#define PACKETBUF_CONF_ATTRS_INLINE 1
+
+#define QUEUEBUF_CONF_NUM 16
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
 #define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
+#define CC_CONF_INLINE inline
 
 #define CCIF
 #define CLIF
 
 #include <inttypes.h>
-
 typedef uint8_t u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
@@ -58,11 +68,12 @@ typedef int32_t s32_t;
 typedef unsigned short uip_stats_t;
 
 typedef unsigned long clock_time_t;
-#define CLOCK_CONF_SECOND 1000
-
-#define LOG_CONF_ENABLED 1
+#define CLOCK_CONF_SECOND 1000L
 
 #define AODV_COMPLIANCE
+#define AODV_NUM_RT_ENTRIES 32
+
+#define WITH_ASCII 1
 
 #define UIP_CONF_MAX_LISTENPORTS      40
 #define UIP_CONF_MAX_CONNECTIONS      40
@@ -77,6 +88,7 @@ typedef unsigned long clock_time_t;
 #define UIP_CONF_TCP                  1
 
 #if UIP_CONF_IPV6
+#define RIMEADDR_CONF_SIZE            8
 #define UIP_CONF_IPV6_QUEUE_PKT       1
 #define UIP_CONF_IPV6_CHECKS          1
 #define UIP_CONF_IPV6_REASSEMBLY      1
