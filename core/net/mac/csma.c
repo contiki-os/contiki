@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.12 2010/03/09 13:20:08 adamdunkels Exp $
+ * $Id: csma.c,v 1.13 2010/03/09 13:23:58 adamdunkels Exp $
  */
 
 /**
@@ -54,7 +54,7 @@
 
 #include <string.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -111,7 +111,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
 
   sent = q->sent;
   cptr = q->cptr;
-  num_tx = q->transmissions - q->collisions - q->deferrals;
+  num_tx = q->transmissions;
   
   if(status == MAC_TX_COLLISION ||
      status == MAC_TX_NOACK) {
