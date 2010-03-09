@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteCompileDialog.java,v 1.4 2009/09/07 15:05:05 nvt-se Exp $
+ * $Id: ContikiMoteCompileDialog.java,v 1.5 2010/03/09 08:11:18 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -223,7 +223,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     symbolsCheckBox.setToolTipText("Not implemented");*/
 
     /* Communication stack */
-    JLabel label = new JLabel("Communication stack");
+    /*JLabel label = new JLabel("Communication stack");
     label.setPreferredSize(LABEL_DIMENSION);
     commStackComboBox.setSelectedItem(((ContikiMoteType)moteType).getCommunicationStack());
     commStackComboBox.setEnabled(true);
@@ -240,12 +240,12 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     commStackBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     commStackBox.add(label);
     commStackBox.add(Box.createHorizontalGlue());
-    commStackBox.add(commStackComboBox);
+    commStackBox.add(commStackComboBox);*/
 
     /* Advanced tab */
     Box box = Box.createVerticalBox();
     /*box.add(symbolsCheckBox);*/
-    box.add(commStackBox);
+    /*box.add(commStackBox);*/
     box.add(Box.createVerticalGlue());
     parent.addTab("Advanced", null, new JScrollPane(box), "Advanced Contiki Mote Type settings");
   }
