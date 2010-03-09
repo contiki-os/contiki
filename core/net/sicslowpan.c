@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.22 2010/03/09 15:18:03 c_oflynn Exp $
+ * $Id: sicslowpan.c,v 1.23 2010/03/09 16:19:44 c_oflynn Exp $
  */
 /**
  * \file
@@ -51,8 +51,7 @@
  * -Add compression options to UDP, currently only supports
  *  both ports compressed or both ports elided
  *  
- * -Fix traffic class/flow/ECN/DCSP processing, doesn't work
- *  per hc-06
+ * -Verify TC/FL compression works
  *  
  * -Add stateless multicast option
  */
@@ -636,43 +635,44 @@ uncompress_hdr_hc06(u16_t ip_len) {
   }
 
   /* Traffic class and flow label */
-  if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_FL_C) == 0) {
-    /* Flow label are carried inline */
-    if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_TC_C) == 0) {
-      /* Traffic class is carried inline */
-      memcpy(&SICSLOWPAN_IP_BUF->vtc, hc06_ptr + 1, 3);
-      tmp = *hc06_ptr;
-      hc06_ptr += 4;
-      /* hc06 format of tc is ECN | DSCP , original is DSCP | ECN */
-      /* set version, pick highest DSCP bits and set in vtc */
-      UIP_IP_BUF->vtc = 0x60 | ((tmp >> 2) & 0x0f);
-      /* ECN rolled down two steps + lowest DSCP bits at top two bits */
-      UIP_IP_BUF->tcflow = ((tmp >> 2) & 0x30) | (tmp << 6) |
-	(UIP_IP_BUF->tcflow & 0x0f);
+    if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_FL_C) == 0) {
+      /* Flow label are carried inline */
+      if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_TC_C) == 0) {
+        /* Traffic class is carried inline */
+        memcpy(&SICSLOWPAN_IP_BUF->tcflow, hc06_ptr + 1, 3);
+        tmp = *hc06_ptr;
+        hc06_ptr += 4;
+        /* hc06 format of tc is ECN | DSCP , original is DSCP | ECN */
+        /* set version, pick highest DSCP bits and set in vtc */
+        SICSLOWPAN_IP_BUF->vtc = 0x60 | ((tmp >> 2) & 0x0f);
+        /* ECN rolled down two steps + lowest DSCP bits at top two bits */
+        SICSLOWPAN_IP_BUF->tcflow = ((tmp >> 2) & 0x30) | (tmp << 6) |
+  	(SICSLOWPAN_IP_BUF->tcflow & 0x0f);
+      } else {
+        /* Traffic class is compressed (set version and no TC)*/
+        SICSLOWPAN_IP_BUF->vtc = 0x60;
+        /* highest flow label bits + ECN bits */
+        SICSLOWPAN_IP_BUF->tcflow = (*hc06_ptr & 0x0F) |
+  	((*hc06_ptr >> 2) & 0x30);
+        memcpy(&SICSLOWPAN_IP_BUF->flow, hc06_ptr + 1, 2);
+        hc06_ptr += 3;
+      }
     } else {
-      /* Traffic class is compressed (set version and no TC)*/
-      SICSLOWPAN_IP_BUF->vtc = 0x60;
-      /* highest flow label bits + ECN bits */
-      SICSLOWPAN_IP_BUF->tcflow = (*hc06_ptr & 0x0F) |
-	((*hc06_ptr >> 2) & 0x30);
-      memcpy(&SICSLOWPAN_IP_BUF->flow, hc06_ptr + 1, 2);
-      hc06_ptr += 3;
+      /* Version is always 6! */
+      /* Version and flow label are compressed */
+      if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_TC_C) == 0) {
+        /* Traffic class is inline */
+          SICSLOWPAN_IP_BUF->vtc = 0x60 | ((*hc06_ptr >> 2) & 0x0f);
+          SICSLOWPAN_IP_BUF->tcflow = ((*hc06_ptr << 6) & 0xC0) | ((*hc06_ptr >> 2) & 0x30);
+          SICSLOWPAN_IP_BUF->flow = 0;
+        hc06_ptr += 3;
+      } else {
+        /* Traffic class is compressed */
+        SICSLOWPAN_IP_BUF->vtc = 0x60;
+        SICSLOWPAN_IP_BUF->tcflow = 0;
+        SICSLOWPAN_IP_BUF->flow = 0;
+      }
     }
-  } else {
-    /* Version is always 6! */
-    /* Version and flow label are compressed */
-    if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_TC_C) == 0) {
-      /* Traffic class is inline */
-      SICSLOWPAN_IP_BUF->vtc = 0x60 | ((*hc06_ptr >> 2) & 0x0f);
-      SICSLOWPAN_IP_BUF->tcflow = ((*hc06_ptr >> 2) | (*hc06_ptr << 6)) & 0xf0;
-      hc06_ptr += 1;
-    } else {
-      /* Traffic class is compressed */
-      SICSLOWPAN_IP_BUF->vtc = 0x60;
-      SICSLOWPAN_IP_BUF->tcflow = 0;
-    }
-    SICSLOWPAN_IP_BUF->flow = 0;
-  }
 
   /* Next Header */
   if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_NH_C) == 0) {
