@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.31 2010/02/05 09:07:13 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.32 2010/03/09 08:11:05 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -66,7 +66,6 @@ import se.sics.cooja.radiomediums.UDGM;
  *
  * Contiki variables:
  * <ul>
- * <li>char simTransmitting (1=mote radio is transmitting)
  * <li>char simReceiving (1=mote radio is receiving)
  * <li>char simInPolled
  * <p>
@@ -174,7 +173,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
   }
 
   public boolean isReceiving() {
-    return isLockedAtReceiving();
+    return myMoteMemory.getByteValueOf("simReceiving") == 1;
   }
 
   public boolean isInterfered() {
@@ -191,45 +190,31 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
       interfereAnyReception();
       return;
     }
-    lockInReceivingMode();
+
+    myMoteMemory.setByteValueOf("simReceiving", (byte) 1);
+    mote.requestImmediateWakeup();
 
     lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_STARTED;
+
     this.setChanged();
     this.notifyObservers();
   }
 
   public void signalReceptionEnd() {
-    if (isInterfered() || packetToMote == null) {
-      // Reset interfered flag
+    if (isInterfered || packetToMote == null) {
       isInterfered = false;
-
-      // Reset data
       packetToMote = null;
       myMoteMemory.setIntValueOf("simInSize", 0);
-
-      // Unlock (if locked)
-      myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
-
-      mote.requestImmediateWakeup();
-
-      lastEventTime = mote.getSimulation().getSimulationTime();
-      lastEvent = RadioEvent.RECEPTION_FINISHED;
-      this.setChanged();
-      this.notifyObservers();
-      return;
+    } else {
+      myMoteMemory.setIntValueOf("simInSize", packetToMote.getPacketData().length);
+      myMoteMemory.setByteArray("simInDataBuffer", packetToMote.getPacketData());
     }
 
-    // Unlock (if locked)
     myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
-
-    // Set data
-    myMoteMemory.setIntValueOf("simInSize", packetToMote.getPacketData().length);
-    myMoteMemory.setByteArray("simInDataBuffer", packetToMote.getPacketData());
-
+    mote.requestImmediateWakeup();
     lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_FINISHED;
-    mote.requestImmediateWakeup();
     this.setChanged();
     this.notifyObservers();
   }
@@ -239,18 +224,20 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
   }
 
   public void interfereAnyReception() {
-    if (!isInterfered()) {
-      isInterfered = true;
-
-      lastEvent = RadioEvent.RECEPTION_INTERFERED;
-      lastEventTime = mote.getSimulation().getSimulationTime();
-      this.setChanged();
-      this.notifyObservers();
+    if (isInterfered()) {
+      return;
     }
+ 
+    isInterfered = true;
+
+    lastEvent = RadioEvent.RECEPTION_INTERFERED;
+    lastEventTime = mote.getSimulation().getSimulationTime();
+    this.setChanged();
+    this.notifyObservers();
   }
 
   public double getCurrentOutputPower() {
-    // TODO Implement method
+    /* TODO Implement method */
     logger.warn("Not implemented, always returning 0 dBm");
     return 0;
   }
@@ -275,43 +262,16 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
     return mote.getInterfaces().getPosition();
   }
 
-  /**
-   * @return True if locked at transmitting
-   */
-  private boolean isLockedAtTransmitting() {
-    return myMoteMemory.getByteValueOf("simTransmitting") == 1;
-  }
-
-  /**
-   * @return True if locked at receiving
-   */
-  private boolean isLockedAtReceiving() {
-    return myMoteMemory.getByteValueOf("simReceiving") == 1;
-  }
-
-  /**
-   * Locks underlying Contiki system in receiving mode. This may, but does not
-   * have to, be used during a simulated data transfer that takes longer than
-   * one tick to complete. The system is unlocked by delivering the received
-   * data to the mote.
-   */
-  private void lockInReceivingMode() {
-    mote.requestImmediateWakeup();
-
-    // Lock core radio in receiving loop
-    myMoteMemory.setByteValueOf("simReceiving", (byte) 1);
-  }
-
   public void doActionsAfterTick() {
+    long now = mote.getSimulation().getSimulationTime();
+
     /* Check if radio hardware status changed */
     if (radioOn != (myMoteMemory.getByteValueOf("simRadioHWOn") == 1)) {
       radioOn = !radioOn;
 
       if (!radioOn) {
-        // Reset status
         myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
         myMoteMemory.setIntValueOf("simInSize", 0);
-        myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
         myMoteMemory.setIntValueOf("simOutSize", 0);
         isTransmitting = false;
         lastEvent = RadioEvent.HW_OFF;
@@ -319,7 +279,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
         lastEvent = RadioEvent.HW_ON;
       }
 
-      lastEventTime = mote.getSimulation().getSimulationTime();
+      lastEventTime = now;
       this.setChanged();
       this.notifyObservers();
     }
@@ -327,7 +287,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
       return;
     }
 
-    // Check if radio output power changed
+    /* Check if radio output power changed */
     if (myMoteMemory.getByteValueOf("simPower") != oldOutputPowerIndicator) {
       oldOutputPowerIndicator = myMoteMemory.getByteValueOf("simPower");
       lastEvent = RadioEvent.UNKNOWN;
@@ -335,34 +295,28 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
       this.notifyObservers();
     }
 
-    /* Are we transmitting but should stop? */
-    /* TODO Use time events */
-    if (isTransmitting
-        && mote.getSimulation().getSimulationTime() >= transmissionEndTime) {
-      myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
+    /* Ongoing transmission */
+    if (isTransmitting && now >= transmissionEndTime) {
       myMoteMemory.setIntValueOf("simOutSize", 0);
       isTransmitting = false;
+      mote.requestImmediateWakeup();
 
-      lastEventTime = mote.getSimulation().getSimulationTime();
+      lastEventTime = now;
       lastEvent = RadioEvent.TRANSMISSION_FINISHED;
-      // TODO Energy consumption of transmitted packet?
       this.setChanged();
       this.notifyObservers();
-      //logger.debug("----- CONTIKI TRANSMISSION ENDED -----");
+      /*logger.debug("----- CONTIKI TRANSMISSION ENDED -----");*/
     }
 
-    // Check if a new transmission should be started
-    if (!isTransmitting && myMoteMemory.getByteValueOf("simTransmitting") == 1) {
-      int size = myMoteMemory.getIntValueOf("simOutSize");
-      if (size <= 0) {
-        logger.warn("Skipping zero sized Contiki packet (no size)");
-        myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
-        return;
-      }
+    /* New transmission */
+    int size = myMoteMemory.getIntValueOf("simOutSize");
+    if (!isTransmitting && size > 0) {
       packetFromMote = new COOJARadioPacket(myMoteMemory.getByteArray("simOutDataBuffer", size));
+
       if (packetFromMote.getPacketData() == null || packetFromMote.getPacketData().length == 0) {
         logger.warn("Skipping zero sized Contiki packet (no buffer)");
-        myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
+        myMoteMemory.setIntValueOf("simOutSize", 0);
+        mote.requestImmediateWakeup();
         return;
       }
 
@@ -371,9 +325,9 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
       /* Calculate transmission duration (us) */
       /* XXX Currently floored due to millisecond scheduling! */
       long duration = (int) (Simulation.MILLISECOND*((8 * size /*bits*/) / RADIO_TRANSMISSION_RATE_kbps));
-      transmissionEndTime = mote.getSimulation().getSimulationTime() + Math.max(1, duration);
-      lastEventTime = mote.getSimulation().getSimulationTime();
+      transmissionEndTime = now + Math.max(1, duration);
 
+      lastEventTime = now;
       lastEvent = RadioEvent.TRANSMISSION_STARTED;
       this.setChanged();
       this.notifyObservers();
@@ -384,6 +338,10 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
       this.setChanged();
       this.notifyObservers();
       //logger.debug("----- CONTIKI PACKET DELIVERED -----");
+    }
+
+    if (isTransmitting && transmissionEndTime > now) {
+      mote.scheduleNextWakeup(transmissionEndTime);
     }
   }
 

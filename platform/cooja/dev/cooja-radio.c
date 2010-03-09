@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,247 +26,236 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.10 2009/04/16 14:38:41 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.11 2010/03/09 08:11:05 fros4943 Exp $
  */
 
+#include <stdio.h>
 #include <string.h>
+
 #include "contiki.h"
+
+#include "sys/cooja_mt.h"
+#include "lib/simEnvChange.h"
+
+#include "net/rime/packetbuf.h"
+#include "net/rime/rimestats.h"
+#include "net/netstack.h"
 
 #include "dev/radio.h"
 #include "dev/cooja-radio.h"
-#include "lib/simEnvChange.h"
-#include "sys/cooja_mt.h"
 
-#define USING_CCA 1
-#define USING_CCA_BUSYWAIT 1
-#define CCA_BUSYWAIT_MS 100
+#define COOJA_RADIO_BUFSIZE PACKETBUF_SIZE
+
 #define CCA_SS_THRESHOLD -95
-
-#define SS_NOTHING -100
 
 const struct simInterface radio_interface;
 
-// COOJA variables
-char simTransmitting = 0;
+/* COOJA */
 char simReceiving = 0;
-
 char simInDataBuffer[COOJA_RADIO_BUFSIZE];
 int simInSize = 0;
-char simInPolled = 0;
 char simOutDataBuffer[COOJA_RADIO_BUFSIZE];
 int simOutSize = 0;
-
 char simRadioHWOn = 1;
-int simSignalStrength = SS_NOTHING;
-int simLastSignalStrength = SS_NOTHING;
+int simSignalStrength = -100;
+int simLastSignalStrength = -100;
 char simPower = 100;
 int simRadioChannel = 26;
-int inSendFunction = 0;
 
-static void (* receiver_callback)(const struct radio_driver *);
+static const void *pending_data;
 
-const struct radio_driver cooja_radio =
-  {
-    radio_send,
-    radio_read,
-    radio_set_receiver,
-    radio_on,
-    radio_off,
-  };
+PROCESS(cooja_radio_process, "cooja radio process");
 
-/*-----------------------------------------------------------------------------------*/
-void
-radio_set_receiver(void (* recv)(const struct radio_driver *))
-{
-  receiver_callback = recv;
-}
-/*-----------------------------------------------------------------------------------*/
-int
-radio_on(void)
-{
-  simRadioHWOn = 1;
-  return 1;
-}
-/*-----------------------------------------------------------------------------------*/
-int
-radio_off(void)
-{
-  simRadioHWOn = 0;
-  return 1;
-}
 /*---------------------------------------------------------------------------*/
 void
 radio_set_channel(int channel)
 {
   simRadioChannel = channel;
 }
-/*-----------------------------------------------------------------------------------*/
-int
-radio_sstrength(void)
-{
-  return simLastSignalStrength;
-}
-/*-----------------------------------------------------------------------------------*/
-int
-radio_current_sstrength(void)
-{
-  return simSignalStrength;
-}
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 void
 radio_set_txpower(unsigned char power)
 {
   /* 1 - 100: Number indicating output power */
   simPower = power;
 }
-/*-----------------------------------------------------------------------------------*/
-static void
-doInterfaceActionsBeforeTick(void)
+/*---------------------------------------------------------------------------*/
+int
+radio_signal_strength_last(void)
 {
-  // If radio is turned off, do nothing
-  if (!simRadioHWOn) {
-    simInSize = 0;
-    simInPolled = 0;
-    return;
-  }
-
-  // Don't fall asleep while receiving (in main file)
-  if (simReceiving) {
-    simLastSignalStrength = simSignalStrength;
-    simDontFallAsleep = 1;
-    return;
-  }
-
-  // If no incoming radio data, do nothing
-  if (simInSize == 0) {
-    simInPolled = 0;
-    return;
-  }
-
-  // Check size of received packet
-  if (simInSize > COOJA_RADIO_BUFSIZE) {
-    // Drop packet by not delivering
-    return;
-  }
-
-  // ** Good place to add explicit manchester/gcr-encoding
-
-  if(receiver_callback != NULL && !simInPolled) {
-    simDoReceiverCallback = 1;
-    simInPolled = 1;
-  } else {
-    simInPolled = 0;
-    simDontFallAsleep = 1;
-  }
+  return simLastSignalStrength;
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_read(void *buf, unsigned short bufsize)
+radio_signal_strength_current(void)
 {
-  int tmpInSize = simInSize;
-
-  if( bufsize < simInSize ) {
-    return 0;
-  }
-
-  if(simInSize > 0) {
-    memcpy(buf, simInDataBuffer, simInSize);
-    simInSize = 0;
-    return tmpInSize;
-  }
-  return 0;
+  return simSignalStrength;
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+static int
+radio_on(void)
+{
+  simRadioHWOn = 1;
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+static int
+radio_off(void)
+{
+  simRadioHWOn = 0;
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+static void
+doInterfaceActionsBeforeTick(void)
+{
+  if (!simRadioHWOn) {
+    simInSize = 0;
+    return;
+  }
+  if (simReceiving) {
+    simLastSignalStrength = simSignalStrength;
+    return;
+  }
+
+  if (simInSize > 0) {
+    process_poll(&cooja_radio_process);
+  }
+}
+/*---------------------------------------------------------------------------*/
 static void
 doInterfaceActionsAfterTick(void)
 {
-  // Make sure we are awake during radio activity
-  if (simReceiving || simTransmitting) {
-    simDontFallAsleep = 1;
-    return;
-  }
 }
-/*-----------------------------------------------------------------------------------*/
-int
+/*---------------------------------------------------------------------------*/
+static int
+radio_read(void *buf, unsigned short bufsize)
+{
+  int tmp = simInSize;
+
+  if (simInSize == 0) {
+    return 0;
+  }
+  if(bufsize < simInSize) {
+    simInSize = 0; /* rx flush */
+    RIMESTATS_ADD(toolong);
+    return 0;
+  }
+
+  memcpy(buf, simInDataBuffer, simInSize);
+  simInSize = 0;
+  return tmp;
+}
+/*---------------------------------------------------------------------------*/
+static int
 radio_send(const void *payload, unsigned short payload_len)
 {
-  /* If radio already actively transmitting, drop packet*/
-  if(inSendFunction) {
-    return COOJA_RADIO_DROPPED;
-  }
-
-  inSendFunction = 1;
-
-  /* If radio is turned off, do nothing */
   if(!simRadioHWOn) {
-    inSendFunction = 0;
-    return COOJA_RADIO_DROPPED;
+    /* TODO Turn on radio temporarily during tx */
+    return RADIO_TX_ERR;
   }
-
-  /* Drop packet if data size too large */
   if(payload_len > COOJA_RADIO_BUFSIZE) {
-    inSendFunction = 0;
-    return COOJA_RADIO_TOOLARGE;
+    return RADIO_TX_ERR;
   }
-
-  /* Drop packet if no data length */
-  if(payload_len <= 0) {
-    inSendFunction = 0;
-    return COOJA_RADIO_ZEROLEN;
+  if(payload_len == 0) {
+    return RADIO_TX_ERR;
+  }
+  if(simOutSize > 0) {
+    return RADIO_TX_ERR;
   }
 
   /* Copy packet data to temporary storage */
   memcpy(simOutDataBuffer, payload, payload_len);
   simOutSize = payload_len;
 
-#if USING_CCA_BUSYWAIT
-  /* Busy-wait until both radio HW and ether is ready */
-  {
-    int retries = 0;
-    while(retries < CCA_BUSYWAIT_MS && !simNoYield &&
-	  (simSignalStrength > CCA_SS_THRESHOLD || simReceiving)) {
-      retries++;
-      cooja_mt_yield();
-      if(!(simSignalStrength > CCA_SS_THRESHOLD || simReceiving)) {
-        /* Wait one extra tick before transmission starts */
-        cooja_mt_yield();
-      }
-    }
-  }
-#endif /* USING_CCA_BUSYWAIT */
-
-#if USING_CCA
-  if(simSignalStrength > CCA_SS_THRESHOLD || simReceiving) {
-    inSendFunction = 0;
-    return COOJA_RADIO_DROPPED;
-  }
-#endif /* USING_CCA */
-
-  if(simOutSize <= 0) {
-    inSendFunction = 0;
-    return COOJA_RADIO_DROPPED;
-  }
-
-  // - Initiate transmission -
-  simTransmitting = 1;
-
-  // Busy-wait while transmitting
-  while(simTransmitting && !simNoYield) {
+  /* Transmit */
+  while(simOutSize > 0) {
     cooja_mt_yield();
   }
-  if (simTransmitting) {
-    simDontFallAsleep = 1;
+
+  return RADIO_TX_OK;
+}
+/*---------------------------------------------------------------------------*/
+static int
+prepare_packet(const void *data, unsigned short len)
+{
+  pending_data = data;
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+transmit_packet(unsigned short len)
+{
+  int ret = RADIO_TX_ERR;
+  if(pending_data != NULL) {
+    ret = radio_send(pending_data, len);
+    pending_data = NULL;
+  }
+  return ret;
+}
+/*---------------------------------------------------------------------------*/
+static int
+receiving_packet(void)
+{
+  return simReceiving;
+}
+/*---------------------------------------------------------------------------*/
+static int
+pending_packet(void)
+{
+  return !simReceiving && simInSize > 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+cca(void)
+{
+  if(simSignalStrength > CCA_SS_THRESHOLD) {
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(cooja_radio_process, ev, data)
+{
+  int len;
+
+  PROCESS_BEGIN();
+
+  while(1) {
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+
+    packetbuf_clear();
+    len = radio_read(packetbuf_dataptr(), PACKETBUF_SIZE);
+    if(len > 0) {
+      packetbuf_set_datalen(len);
+      NETSTACK_RDC.input();
+    }
   }
 
-  inSendFunction = 0;
-  return COOJA_RADIO_OK;
+  PROCESS_END();
 }
-/*-----------------------------------------------------------------------------------*/
-void radio_call_receiver()
+/*---------------------------------------------------------------------------*/
+static int
+init(void)
 {
-  receiver_callback(&cooja_radio);
+  process_start(&cooja_radio_process, NULL);
+  return 1;
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+const struct radio_driver cooja_radio_driver =
+{
+    init,
+    prepare_packet,
+    transmit_packet,
+    radio_send,
+    radio_read,
+    cca,
+    receiving_packet,
+    pending_packet,
+    radio_on,
+    radio_off,
+};
+/*---------------------------------------------------------------------------*/
 SIM_INTERFACE(radio_interface,
 	      doInterfaceActionsBeforeTick,
 	      doInterfaceActionsAfterTick);
