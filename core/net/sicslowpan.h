@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.8 2010/02/25 15:50:58 joxe Exp $
+ * $Id: sicslowpan.h,v 1.9 2010/03/09 15:18:03 c_oflynn Exp $
  */
 /**
  * \file
@@ -134,13 +134,15 @@
 /** @} */
 
 
+#define SICSLOWPAN_NDC_UDP_MASK                     0xF8
+
 /**
  * \name LOWPAN_UDP encoding (works together with IPHC)
  * @{
  */
-#define SICSLOWPAN_NHC_UDP_ID                       0xF8
-#define SICSLOWPAN_NHC_UDP_C                        0xFB
-#define SICSLOWPAN_NHC_UDP_I                        0xF8
+#define SICSLOWPAN_NHC_UDP_ID                       0xF0
+#define SICSLOWPAN_NHC_UDP_C                        0xF3
+#define SICSLOWPAN_NHC_UDP_I                        0xF0
 /** @} */
 
 

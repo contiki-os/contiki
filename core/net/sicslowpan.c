@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.21 2010/02/28 08:29:42 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.22 2010/03/09 15:18:03 c_oflynn Exp $
  */
 /**
  * \file
@@ -44,6 +44,17 @@
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
  * \author Joakim Eriksson <joakime@sics.se>
+ */
+
+/**
+ * FOR HC-06 COMPLIANCE TODO:
+ * -Add compression options to UDP, currently only supports
+ *  both ports compressed or both ports elided
+ *  
+ * -Fix traffic class/flow/ECN/DCSP processing, doesn't work
+ *  per hc-06
+ *  
+ * -Add stateless multicast option
  */
 
 #include <string.h>
@@ -882,9 +893,8 @@ uncompress_hdr_hc06(u16_t ip_len) {
 
   /* Next header processing - continued */
   if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_NH_C)) {
-    /* TODO: check if this is correct in hc-06 */
     /* The next header is compressed, NHC is following */
-    if((*hc06_ptr & 0xFC) == SICSLOWPAN_NHC_UDP_ID) {
+    if((*hc06_ptr & SICSLOWPAN_NDC_UDP_MASK) == SICSLOWPAN_NHC_UDP_ID) {
       SICSLOWPAN_IP_BUF->proto = UIP_PROTO_UDP;
       switch(*hc06_ptr) {
       case SICSLOWPAN_NHC_UDP_C:
