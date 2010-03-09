@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.23 2010/03/09 16:19:44 c_oflynn Exp $
+ * $Id: sicslowpan.c,v 1.24 2010/03/09 20:40:50 adamdunkels Exp $
  */
 /**
  * \file
@@ -1301,7 +1301,7 @@ output(uip_lladdr_t *localdest)
   packetbuf_clear();
   rime_ptr = packetbuf_dataptr();
 
-  packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, 2);
+  packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT, 2);
   
   if(UIP_IP_BUF->proto == UIP_PROTO_TCP) {
     /*    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
