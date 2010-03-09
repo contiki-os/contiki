@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: simEnvChange.h,v 1.8 2009/05/26 14:08:51 fros4943 Exp $
+ * $Id: simEnvChange.h,v 1.9 2010/03/09 08:14:31 fros4943 Exp $
  */
 
 #ifndef __SIMENVCHANGE_H__
@@ -34,7 +34,7 @@
 
 #include "contiki.h"
 
-// Simulation interface structure
+/* Simulation interface structure */
 struct simInterface {
   void         (* doActionsBeforeTick) (void);
   void         (* doActionsAfterTick)  (void);
@@ -48,8 +48,6 @@ extern clock_time_t simCurrentTime;
 
 // Variable that when set to != 0, stops the mote from falling asleep next tick
 extern char simDontFallAsleep;
-extern char simNoYield;
-extern char simDoReceiverCallback;
 
 // Definition for registering an interface
 #define SIM_INTERFACE(name, doActionsBeforeTick, doActionsAfterTick) \
