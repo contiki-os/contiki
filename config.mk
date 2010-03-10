@@ -33,7 +33,7 @@ CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)		\
 	-fno-builtin -ffreestanding -isystem	\
 	$(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
-CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -Wcast-align -Wextra #-Werror
+CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -Wcast-align -Wextra -Werror
 
 AFLAGS_DEBUG := -Wa,-gstabs
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
