@@ -25,7 +25,7 @@
       <description>netperf shell</description>
       <source>[CONTIKI_DIR]/examples/netperf/netperf-shell.c</source>
       <commands>make clean TARGET=sky
-make DEFINES=MAC_DRIVER=cxmac_driver netperf-shell.sky TARGET=sky</commands>
+make DEFINES=NETSTACK_RDC=cxmac_driver netperf-shell.sky TARGET=sky</commands>
       <firmware>[CONTIKI_DIR]/examples/netperf/netperf-shell.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
