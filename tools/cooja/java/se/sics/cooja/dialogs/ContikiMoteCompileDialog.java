@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteCompileDialog.java,v 1.5 2010/03/09 08:11:18 fros4943 Exp $
+ * $Id: ContikiMoteCompileDialog.java,v 1.6 2010/03/10 07:51:30 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -37,6 +37,8 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -45,7 +47,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.apache.log4j.Logger;
 
@@ -56,7 +61,7 @@ import se.sics.cooja.MoteType;
 import se.sics.cooja.ProjectConfig;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.contikimote.ContikiMoteType;
-import se.sics.cooja.contikimote.ContikiMoteType.CommunicationStack;
+import se.sics.cooja.contikimote.ContikiMoteType.NetworkStack;
 
 /**
  * Contiki Mote Type compile dialog.
@@ -64,9 +69,10 @@ import se.sics.cooja.contikimote.ContikiMoteType.CommunicationStack;
  * @author Fredrik Osterlind
  */
 public class ContikiMoteCompileDialog extends AbstractCompileDialog {
+  private static final long serialVersionUID = -2596048833554777606L;
   private static Logger logger = Logger.getLogger(ContikiMoteCompileDialog.class);
 
-  private JComboBox commStackComboBox = new JComboBox(CommunicationStack.values());
+  private JComboBox netStackComboBox = new JComboBox(NetworkStack.values());
 
   public static boolean showDialog(
       Container parent,
@@ -158,8 +164,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
           source,
           ((ContikiMoteType)moteType).mapFile,
           ((ContikiMoteType)moteType).libFile,
-          ((ContikiMoteType)moteType).archiveFile,
-          ((ContikiMoteType) moteType).getCommunicationStack()
+          ((ContikiMoteType)moteType).archiveFile
       );
       String[] envOneDimension = new String[env.length];
       for (int i=0; i < env.length; i++) {
@@ -176,12 +181,10 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     }
 
     String defines = "";
-    if (((ContikiMoteType) moteType).getCommunicationStack() == CommunicationStack.UIP) {
-      defines = " DEFINES=WITH_UIP=1";
+    if (((ContikiMoteType) moteType).getNetworkStack().getHeaderFile() != null) {
+      defines = " DEFINES=NETSTACK_CONF_H=" + ((ContikiMoteType) moteType).getNetworkStack().getHeaderFile();
     }
-    if (((ContikiMoteType) moteType).getCommunicationStack() == CommunicationStack.UIPV6) {
-      defines = " DEFINES=UIP_CONF_IPV6=1";
-    }
+
     return
     /*"make clean TARGET=cooja\n" + */
     GUI.getExternalToolsSetting("PATH_MAKE") + " " + getExpectedFirmwareFile(source).getName() + " TARGET=cooja" + defines;
@@ -223,31 +226,59 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     symbolsCheckBox.setToolTipText("Not implemented");*/
 
     /* Communication stack */
-    /*JLabel label = new JLabel("Communication stack");
+    JLabel label = new JLabel("Default network stack header");
     label.setPreferredSize(LABEL_DIMENSION);
-    commStackComboBox.setSelectedItem(((ContikiMoteType)moteType).getCommunicationStack());
-    commStackComboBox.setEnabled(true);
-    commStackComboBox.setPreferredSize(LABEL_DIMENSION);
-    commStackComboBox.setMaximumSize(LABEL_DIMENSION);
-    commStackComboBox.addActionListener(new ActionListener() {
+    final JTextField headerTextField = new JTextField();
+    headerTextField.setText(((ContikiMoteType)moteType).getNetworkStack().manualHeader);
+    headerTextField.getDocument().addDocumentListener(new DocumentListener() {
+      public void insertUpdate(DocumentEvent e) {
+        updateHeader();
+      }
+      public void removeUpdate(DocumentEvent e) {
+        updateHeader();
+      }
+      public void changedUpdate(DocumentEvent e) {
+        updateHeader();
+      }
+      private void updateHeader() {
+        ((ContikiMoteType)moteType).getNetworkStack().manualHeader = headerTextField.getText();
+      }
+    });
+    final Box netStackHeaderBox = Box.createHorizontalBox();
+    netStackHeaderBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    netStackHeaderBox.add(label);
+    netStackHeaderBox.add(Box.createHorizontalStrut(20));
+    netStackHeaderBox.add(headerTextField);
+
+    label = new JLabel("Default network stack");
+    label.setPreferredSize(LABEL_DIMENSION);
+    netStackComboBox.setSelectedItem(((ContikiMoteType)moteType).getNetworkStack());
+    netStackComboBox.setEnabled(true);
+    netStackComboBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        ((ContikiMoteType)moteType).setCommunicationStack(
-            (CommunicationStack)commStackComboBox.getSelectedItem());
+        ((ContikiMoteType)moteType).setNetworkStack((NetworkStack)netStackComboBox.getSelectedItem());
+        netStackHeaderBox.setVisible((NetworkStack)netStackComboBox.getSelectedItem() == NetworkStack.MANUAL);
         setDialogState(DialogState.SELECTED_SOURCE);
       }
     });
-    Box commStackBox = Box.createHorizontalBox();
-    commStackBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    commStackBox.add(label);
-    commStackBox.add(Box.createHorizontalGlue());
-    commStackBox.add(commStackComboBox);*/
+    Box netStackBox = Box.createHorizontalBox();
+    netStackBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    netStackBox.add(label);
+    netStackBox.add(Box.createHorizontalStrut(20));
+    netStackBox.add(netStackComboBox);
+    netStackHeaderBox.setVisible((NetworkStack)netStackComboBox.getSelectedItem() == NetworkStack.MANUAL);
 
+    
     /* Advanced tab */
     Box box = Box.createVerticalBox();
+    box.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
     /*box.add(symbolsCheckBox);*/
-    /*box.add(commStackBox);*/
+    box.add(netStackBox);
+    box.add(netStackHeaderBox);
     box.add(Box.createVerticalGlue());
-    parent.addTab("Advanced", null, new JScrollPane(box), "Advanced Contiki Mote Type settings");
+    JPanel container = new JPanel(new BorderLayout());
+    container.add(BorderLayout.NORTH, box);
+    parent.addTab("Advanced", null, new JScrollPane(container), "Advanced Contiki Mote Type settings");
   }
 
   private void createEnvironmentTab(JTabbedPane parent, Object[][] env) {
