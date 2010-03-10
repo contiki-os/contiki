@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/avrora</project>
-  <project>../apps/native_gateway</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -16,12 +16,15 @@
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
+    <events>
+      <logoutput>40000</logoutput>
+    </events>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype232</identifier>
+      <identifier>mtype783</identifier>
       <description>Receiver</description>
-      <contikiapp>../../../examples/udp-receiver-ipv6/example-udp-receiver.c</contikiapp>
-      <commands>make example-udp-receiver.cooja TARGET=cooja DEFINES=WITH_UIP6=1,UIP_CONF_IPV6=1,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x2,UDP_ADDR_F=0x2ff,UDP_ADDR_G=0xfe02,UDP_ADDR_H=0x0202</commands>
+      <contikiapp>[CONTIKI_DIR]/examples/udp-receiver-ipv6/example-udp-receiver.c</contikiapp>
+      <commands>make example-udp-receiver.cooja TARGET=cooja DEFINES=UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x2,UDP_ADDR_F=0x2ff,UDP_ADDR_G=0xfe02,UDP_ADDR_H=0x0202</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -36,15 +39,16 @@
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLED</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiCFS</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
       <symbols>false</symbols>
-      <commstack>uIPv6</commstack>
     </motetype>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype330</identifier>
+      <identifier>mtype512</identifier>
       <description>Sender</description>
-      <contikiapp>../../../examples/udp-sender-ipv6/example-udp-sender.c</contikiapp>
-      <commands>make example-udp-sender.cooja TARGET=cooja DEFINES=WITH_UIP6=1,UIP_CONF_IPV6=1,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x301,UDP_ADDR_F=0x1ff,UDP_ADDR_G=0xfe01,UDP_ADDR_H=0x101</commands>
+      <contikiapp>[CONTIKI_DIR]/examples/udp-sender-ipv6/example-udp-sender.c</contikiapp>
+      <commands>make example-udp-sender.cooja TARGET=cooja DEFINES=UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x301,UDP_ADDR_F=0x1ff,UDP_ADDR_G=0xfe01,UDP_ADDR_H=0x101</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -59,12 +63,11 @@
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLED</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiCFS</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
       <symbols>false</symbols>
-      <commstack>uIPv6</commstack>
     </motetype>
     <mote>
-      se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype232</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>98.76075470611741</x>
@@ -72,17 +75,12 @@
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.interfaces.Battery
-        <infinite>false</infinite>
-      </interface_config>
-      <interface_config>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>1</id>
       </interface_config>
+      <motetype_identifier>mtype783</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype330</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>58.59043340181549</x>
@@ -90,19 +88,16 @@
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.interfaces.Battery
-        <infinite>false</infinite>
-      </interface_config>
-      <interface_config>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>2</id>
       </interface_config>
+      <motetype_identifier>mtype512</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>248</width>
-    <z>4</z>
+    <z>2</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -113,9 +108,9 @@
     <plugin_config>
       <filter>ID:1</filter>
     </plugin_config>
-    <width>249</width>
-    <z>2</z>
-    <height>181</height>
+    <width>851</width>
+    <z>1</z>
+    <height>187</height>
     <location_x>1</location_x>
     <location_y>521</location_y>
     <minimized>false</minimized>
@@ -123,7 +118,10 @@
   <plugin>
     se.sics.cooja.plugins.Visualizer
     <plugin_config>
-      <skin>Radio environment (UDGM)</skin>
+      <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.TrafficVisualizerSkin</skin>
+      <viewport>2.565713585691764 0.0 0.0 2.565713585691764 -91.30090099174814 -28.413835696190525</viewport>
     </plugin_config>
     <width>246</width>
     <z>3</z>
@@ -134,8 +132,11 @@
   </plugin>
   <plugin>
     se.sics.cooja.plugins.RadioLogger
+    <plugin_config>
+      <split>150</split>
+    </plugin_config>
     <width>246</width>
-    <z>1</z>
+    <z>4</z>
     <height>198</height>
     <location_x>0</location_x>
     <location_y>323</location_y>
@@ -169,7 +170,7 @@ log.testOK(); /* Report test success and quit */</script>
     </plugin_config>
     <width>600</width>
     <z>0</z>
-    <height>700</height>
+    <height>520</height>
     <location_x>250</location_x>
     <location_y>-1</location_y>
     <minimized>false</minimized>
