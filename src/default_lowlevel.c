@@ -11,7 +11,6 @@ void default_vreg_init(void) {
 }
 
 void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp) {
-	uint8_t i;
 		
         /* UART must be disabled to set the baudrate */
 	*UART1_UCON = 0;
