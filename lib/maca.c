@@ -106,7 +106,7 @@ void free_packet(volatile packet_t *p) {
 	if(!p) {  PRINTF("free_packet passed packet 0\n\r"); return; }
 	if(p == &dummy_ack) { return; }
 
-	p->length = 0;
+	p->length = 0; p->offset = 0;
 	p->left = free_head; p->right = 0;
 	free_head = p;
 
