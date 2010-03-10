@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ExecuteJAR.java,v 1.4 2010/03/10 14:17:36 fros4943 Exp $
+ * $Id: ExecuteJAR.java,v 1.5 2010/03/10 14:39:47 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
@@ -76,19 +76,19 @@ public class ExecuteJAR {
 
     if (args.length > 0) {
       /* Generate executable JAR */
-      if (args.length != 1) {
+      if (args.length != 2) {
         throw new RuntimeException(
-            "Bad command line arguments: specify only one simulation config!"
+            "Usage: [input .csc] [output .jar]"
         );
       }
-      generate(new File(args[0]));
+      generate(new File(args[0]), new File(args[1]));
     } else {
       /* Run simulation */
       execute();
     }
   }
 
-  private static void generate(File config) {
+  private static void generate(File config, File jar) {
     if (!config.exists()) {
       throw new RuntimeException(
           "Simulation config not found: " + config.getAbsolutePath()
@@ -106,7 +106,7 @@ public class ExecuteJAR {
     s.stopSimulation();
 
     try {
-      buildExecutableJAR(s.getGUI(), new File(config.getName() + ".jar"));
+      buildExecutableJAR(s.getGUI(), jar);
     } catch (RuntimeException e) {
     }
     System.exit(1);
