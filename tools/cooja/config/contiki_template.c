@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.16 2010/03/09 08:16:05 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.17 2010/03/10 12:22:11 fros4943 Exp $
  */
 
 /**
@@ -73,6 +73,29 @@
 #include "lib/sensors.h"
 #include "net/netstack.h"
 #include "node-id.h"
+
+#ifndef WITH_UIP
+#define WITH_UIP 0
+#endif
+#if WITH_UIP
+#include "net/uip.h"
+#include "net/uip-fw.h"
+#include "net/uip-fw-drv.h"
+#include "net/uip-driver.h"
+#include "dev/slip.h"
+static struct uip_fw_netif wsn_if =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_driver_send)};
+static struct uip_fw_netif slip_if =
+  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, slip_send)};
+#endif /* WITH_UIP */
+
+#ifndef WITH_UIP6
+#define WITH_UIP6 0
+#endif
+#if WITH_UIP6
+#include "net/uip-netif.h"
+#define PRINT6ADDR(addr) printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#endif /* WITH_UIP6 */
 
 PROCINIT(&etimer_process,&sensors_process);
 
@@ -124,8 +147,6 @@ start_process_run_loop(void *data)
     /* Initialize random generator */
     random_init(0);
 
-    ctimer_init();
-
     /* Start process handler */
     process_init();
 
@@ -146,15 +167,54 @@ start_process_run_loop(void *data)
       rimeaddr_t rimeaddr;
 
       /* Init Rime */
+      ctimer_init();
       rimeaddr.u8[0] = node_id & 0xff;
       rimeaddr.u8[1] = node_id >> 8;
       rimeaddr_set_node_addr(&rimeaddr);
-      printf("Rime started with address: ");
+      printf("Rime address: ");
       for(i = 0; i < sizeof(rimeaddr_node_addr.u8) - 1; i++) {
         printf("%d.", rimeaddr_node_addr.u8[i]);
       }
       printf("%d\n", rimeaddr_node_addr.u8[i]);
     }
+
+    queuebuf_init();
+
+#if WITH_UIP
+    /* IPv4 CONFIGURATION */
+    {
+      uip_ipaddr_t hostaddr, netmask;
+      process_start(&tcpip_process, NULL);
+      process_start(&uip_fw_process, NULL);
+      process_start(&slip_process, NULL);
+      uip_init();
+      uip_fw_init();
+      uip_ipaddr(&hostaddr, 172, 16, rimeaddr_node_addr.u8[1], rimeaddr_node_addr.u8[0]);
+      uip_ipaddr(&netmask, 255,255,0,0);
+      uip_sethostaddr(&hostaddr);
+      uip_setnetmask(&netmask);
+      uip_fw_register(&wsn_if);
+      uip_fw_default(&slip_if);
+      rs232_set_input(slip_input_byte);
+      printf("IPv4 address: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&hostaddr));
+    }
+#endif /* WITH_UIP */
+
+#if WITH_UIP6
+    /* IPv6 CONFIGURATION */
+    {
+      int i;
+      uint8_t addr[sizeof(uip_lladdr.addr)];
+      for (i=0; i < sizeof(uip_lladdr.addr); i++) {
+        addr[i] = node_id & 0xff;
+      }
+      memcpy(&uip_lladdr.addr, addr, sizeof(uip_lladdr.addr));
+      process_start(&tcpip_process, NULL);
+      printf("IPv6 address: ");
+      PRINT6ADDR(&uip_netif_physical_if.addresses[0].ipaddr);
+      printf("\n");
+    }
+#endif /* WITH_UIP6 */
 
     /* Initialize communication stack */
     netstack_init();
