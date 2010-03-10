@@ -5,9 +5,9 @@
 #define DEBUG_MACA 0
 #endif
 #if (DEBUG_MACA == 0)
-#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINTF(...) 
 #else
-#define PRINTF(...)
+#define PRINTF(...) printf(__VA_ARGS__)
 #endif
 
 #ifndef NUM_PACKETS
@@ -140,7 +140,7 @@ void post_receive(void) {
 	if(dma_rx == 0) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0) {
-			printf("trying to fill MACA_DMARX in post_receieve but out of packet buffers\n\r");		
+			PRINTF("trying to fill MACA_DMARX in post_receieve but out of packet buffers\n\r");		
 			/* set the sftclock so that we return to the maca_isr */
 			*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
 			*MACA_TMREN = (1 << maca_tmren_sft);
@@ -193,7 +193,7 @@ void post_tx(void) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0) { 
 			dma_rx = &dummy_ack;
-			printf("trying to fill MACA_DMARX on post_tx but out of packet buffers\n\r");
+			PRINTF("trying to fill MACA_DMARX on post_tx but out of packet buffers\n\r");
 		}
 		
 	}		
@@ -360,13 +360,13 @@ void maca_isr(void) {
 //	print_packets("maca_isr");
 
 	if (bit_is_set(*MACA_STATUS, maca_status_ovr))
-		PRINTF("maca overrun\n\r");
+	{ PRINTF("maca overrun\n\r"); }
 	if (bit_is_set(*MACA_STATUS, maca_status_busy))
-		PRINTF("maca busy\n\r");
+	{ PRINTF("maca busy\n\r"); } 
 	if (bit_is_set(*MACA_STATUS, maca_status_crc))
-		PRINTF("maca crc error\n\r");
+	{ PRINTF("maca crc error\n\r"); }
 	if (bit_is_set(*MACA_STATUS, maca_status_to))
-		PRINTF("maca timeout\n\r");
+	{ PRINTF("maca timeout\n\r"); }
 
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
@@ -405,7 +405,7 @@ void maca_isr(void) {
 	decode_status();
 
 	if (*MACA_IRQ != 0)
-		PRINTF("*MACA_IRQ %x\n\r", *MACA_IRQ);
+	{ PRINTF("*MACA_IRQ %x\n\r", *MACA_IRQ); }
 
 	if(tx_head != 0) {
 		post_tx();
