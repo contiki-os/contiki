@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ExecuteJAR.java,v 1.3 2010/03/10 13:09:05 fros4943 Exp $
+ * $Id: ExecuteJAR.java,v 1.4 2010/03/10 14:17:36 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
@@ -51,6 +51,9 @@ import se.sics.cooja.MoteType;
 import se.sics.cooja.Plugin;
 import se.sics.cooja.ProjectConfig;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.dialogs.CompileContiki;
+import se.sics.cooja.dialogs.MessageList;
+import se.sics.cooja.dialogs.MessageList.MessageContainer;
 import se.sics.cooja.plugins.ScriptRunner;
 
 public class ExecuteJAR {
@@ -102,7 +105,10 @@ public class ExecuteJAR {
     }
     s.stopSimulation();
 
-    buildExecutableJAR(s.getGUI(), new File(config.getName() + ".jar"));
+    try {
+      buildExecutableJAR(s.getGUI(), new File(config.getName() + ".jar"));
+    } catch (RuntimeException e) {
+    }
     System.exit(1);
   }
 
@@ -437,18 +443,29 @@ public class ExecuteJAR {
     }
 
     logger.info("Building executable JAR: " + outputFile);
+    MessageList errors = new MessageList();
     try {
-      Process jarProcess = Runtime.getRuntime().exec(
-          new String[] { "jar", "cfm", outputFile.getAbsolutePath(), "manifest.tmp", "*"},
+      CompileContiki.compile(
+          "jar cfm " + outputFile.getAbsolutePath() + " manifest.tmp *",
           null,
-          workingDir
+          outputFile,
+          workingDir,
+          null,
+          null,
+          errors,
+          true
       );
-      jarProcess.waitFor();
-    } catch (Exception e1) {
-      throw (RuntimeException) new RuntimeException(
-          "Error when building executable JAR: " + e1.getMessage()
-      ).initCause(e1);
-    }    
+    } catch (Exception e) {
+      logger.warn("Building executable JAR error: " + e.getMessage());
+      MessageContainer[] err = errors.getMessages();
+      for (int i=0; i < err.length; i++) {
+        logger.fatal(">> " + err[i]);
+      }
+      
+      /* Forward exception */
+      throw (RuntimeException) 
+      new RuntimeException("Error when building executable JAR: " + e.getMessage()).initCause(e);
+    }
 
     /* Delete temporary working directory */
     logger.info("Deleting temporary files in: " + workingDir.getAbsolutePath());
