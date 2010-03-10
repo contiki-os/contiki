@@ -566,6 +566,7 @@ void vreg_init(void) {
 }
 
 void radio_off(void) {
+	disable_irq(MACA);
 	/* turn off the radio regulators */
 	reg(0x80003048) =  0x00000f00;
 	/* hold the maca in reset */
@@ -577,6 +578,9 @@ void radio_on(void) {
 	reg(0x80003048) =  0x00000f78; 
 	/* reinitialize the phy */
 	init_phy();
+	
+	enable_irq(MACA);
+	maca_isr(); 
 }
 
 /* initialized with 0x4c */
