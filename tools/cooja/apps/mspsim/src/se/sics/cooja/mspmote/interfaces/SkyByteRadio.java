@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.23 2010/03/08 11:29:39 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.24 2010/03/10 10:11:36 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -325,11 +325,13 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     return 31;
   }
 
+  double currentSignalStrength = 0;
   public double getCurrentSignalStrength() {
-    return cc2420.getRSSI();
+    return currentSignalStrength;
   }
 
   public void setCurrentSignalStrength(final double signalStrength) {
+    currentSignalStrength = signalStrength;
     getMote().getSimulation().scheduleEvent(new MspMoteTimeEvent(mote, 0) {
       public void execute(long t) {
         super.execute(t);
