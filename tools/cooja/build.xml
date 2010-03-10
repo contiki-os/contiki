@@ -28,11 +28,13 @@ The COOJA Simulator
   Start COOJA without GUI and run simulation in sim.csc
   > java -mx512m -jar dist/cooja.jar -nogui=sim.csc
 
-  Build executable simulation JAR from current projects and simulation in sim.csc
+  Build executable simulation JAR sim.jar from current projects and simulation in sim.csc
   > ant jar
   > cd build
-  build/> java -cp ".;../lib/jdom.jar;../lib/log4j.jar" se.sics.cooja.util.ExecuteJAR "/home/user/sim.csc"
-    
+  build/> java -cp ".:../lib/jdom.jar:../lib/log4j.jar" se.sics.cooja.util.ExecuteJAR "/home/user/sim.csc" sim.jar
+    or
+  build/> java -cp ".;../lib/jdom.jar;../lib/log4j.jar" se.sics.cooja.util.ExecuteJAR "C:/home/sim.csc" sim.jar
+    The output JAR is in build/sim.jar
     </echo>
   </target>
 
