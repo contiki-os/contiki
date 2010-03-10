@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.162 2010/03/09 08:27:48 fros4943 Exp $
+ * $Id: GUI.java,v 1.163 2010/03/10 12:48:35 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3081,6 +3081,12 @@ public class GUI extends Observable {
 
     /* Look and Feel: Nimbus */
     setLookAndFeel();
+
+    /* Warn at no JAVA_HOME */
+    String javaHome = System.getenv().get("JAVA_HOME");
+    if (javaHome == null || javaHome.equals("")) {
+      logger.warn("JAVA_HOME environment variable not set, Contiki motes (OS-level) may not compile");
+    }
 
     // Parse general command arguments
     for (String element : args) {
