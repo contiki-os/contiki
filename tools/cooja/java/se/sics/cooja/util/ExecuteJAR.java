@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ExecuteJAR.java,v 1.2 2009/10/29 17:05:14 fros4943 Exp $
+ * $Id: ExecuteJAR.java,v 1.3 2010/03/10 13:09:05 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
@@ -406,6 +406,17 @@ public class ExecuteJAR {
       throw (RuntimeException) new RuntimeException(
           "Error when writing external tools configuration: " + e2.getMessage()   
       ).initCause(e2);
+    }
+    
+    /* Delete existing META-INF dir */
+    File metaInfDir = new File(workingDir, "META-INF");
+    if (metaInfDir.exists() && metaInfDir.isDirectory()) {
+      if (!deleteDirectory(metaInfDir)) {
+        if (!deleteDirectory(metaInfDir)) {
+          deleteDirectory(metaInfDir);
+        }
+      }
+
     }
 
     /* Prepare JAR manifest */
