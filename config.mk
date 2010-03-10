@@ -24,6 +24,7 @@ DBGFLAGS= -g -DDEBUG
 OPTFLAGS= -Os #-fomit-frame-pointer
 LDSCRIPT := boot.lds
 OBJCFLAGS += --gap-fill=0xff
+ARFLAGS = cru
 
 gccincdir := $(shell $(CC) -print-file-name=include)
 

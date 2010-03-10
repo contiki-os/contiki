@@ -57,7 +57,9 @@ $(ISR): $(ISR:.o=.c)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) -MMD $< -c -o $@
 	@$(FINALIZE_DEPENDENCY)
 
-$(OBJDIR)/board.a: $(OBJDIR)/board.a($(OBJDIR)/$(COBJS))
+empty-board-a:
+	$(AR) $(ARFLAGS) $(OBJDIR)/board.a
+$(OBJDIR)/board.a: empty-board-a $(filter $(OBJDIR)/%.o, $(OBJDIR)/board.a($(OBJDIR)/$(COBJS)))
 $(MC1322X)/src/src.a: $(MC1322X)/src/src.a($(SRCOBJS))
 
 %_$(BOARD).elf:	$(OBJDIR)/%.o $(START) $(ISR) $(SRCOBJS) $(LINKERSCRIPT) $(LIBMC1322X)/libmc1322x.a $(OBJDIR)/board.a $(MC1322X)/src/src.a
