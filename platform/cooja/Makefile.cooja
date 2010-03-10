@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.37 2010/03/09 08:12:55 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.38 2010/03/10 12:15:52 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -58,9 +58,11 @@ COOJA_INTFS	= beep.c button-sensor.c ip.c leds-arch.c moteid.c \
 
 COOJA_CORE = random.c sensors.c leds.c symbols.c
 
+COOJA_NET = uip-driver.c
+
 # (COOJA_SOURCEFILES contains additional sources set from simulator)
 CONTIKI_TARGET_SOURCEFILES = \
-$(COOJA_BASE) $(COOJA_INTFS) $(COOJA_CORE) $(COOJA_SOURCEFILES)
+$(COOJA_BASE) $(COOJA_INTFS) $(COOJA_CORE) $(COOJA_NET) $(COOJA_SOURCEFILES)
   
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
@@ -73,6 +75,13 @@ CONTIKI_CPU=$(CONTIKI)/cpu/x86
 CC = gcc
 CFLAGSNO = $(EXTRA_CC_ARGS) -Wall -g -I/usr/local/include
 CFLAGS   = $(CFLAGSNO)
+
+ifdef UIP_CONF_IPV6
+  CFLAGS += -DWITH_UIP6=1
+endif
+ifdef WITH_UIP
+  CFLAGS += -DWITH_UIP=1
+endif
 
 REDEF_PRINTF=1 # Redefine functions to enable printf()s inside Cooja
 
