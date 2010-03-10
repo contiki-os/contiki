@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ExecuteJAR.java,v 1.5 2010/03/10 14:39:47 fros4943 Exp $
+ * $Id: ExecuteJAR.java,v 1.6 2010/03/10 14:47:58 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
@@ -446,7 +446,7 @@ public class ExecuteJAR {
     MessageList errors = new MessageList();
     try {
       CompileContiki.compile(
-          "jar cfm " + outputFile.getAbsolutePath() + " manifest.tmp *",
+          "jar cfm " + outputFile.getAbsolutePath() + " manifest.tmp .",
           null,
           outputFile,
           workingDir,
