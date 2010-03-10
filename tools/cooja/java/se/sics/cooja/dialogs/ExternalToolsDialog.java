@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ExternalToolsDialog.java,v 1.12 2008/11/04 15:01:08 adamdunkels Exp $
+ * $Id: ExternalToolsDialog.java,v 1.13 2010/03/10 12:48:35 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -140,10 +140,14 @@ public class ExternalToolsDialog extends JDialog {
     String javaHome = System.getenv().get("JAVA_HOME");
     if (javaHome != null) {
       javaHome = javaHome.replace(File.separatorChar, '/');
+      JLabel javaHomeLabel = new JLabel("  $(JAVA_HOME) maps to the environment Java home: " + javaHome);
+      explanations.add(javaHomeLabel);
     } else {
       javaHome = "[null]";
+      JLabel javaHomeLabel = new JLabel("  $(JAVA_HOME) maps to the environment Java home: " + javaHome);
+      javaHomeLabel.setForeground(Color.RED);
+      explanations.add(javaHomeLabel);
     }
-    explanations.add(new JLabel("  $(JAVA_HOME) maps to the environment Java home: " + javaHome));
     explanations.add(new JLabel("  $(LIBFILE) maps to the current library file being created (\"mtype1.library\")"));
     explanations.add(new JLabel("  $(MAPFILE) maps to the current map file being created (\"mtype1.map\")"));
     explanations.add(new JLabel("  $(ARFILE) maps to the current archive file being created (\"mtype1.a\")"));
