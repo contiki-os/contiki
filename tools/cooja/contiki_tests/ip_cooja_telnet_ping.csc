@@ -21,7 +21,7 @@
       <identifier>mtype511</identifier>
       <description>Contiki Mote Type #1</description>
       <contikiapp>../../../examples/telnet-server/telnet-server.c</contikiapp>
-      <commands>make telnet-server.cooja TARGET=cooja DEFINES=WITH_UIP=1</commands>
+      <commands>make telnet-server.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>

@@ -24,7 +24,7 @@
       <description>Sky Mote Type #1</description>
       <source>[CONTIKI_DIR]/examples/rime/example-abc.c</source>
       <commands>make clean TARGET=sky
-make example-abc.sky TARGET=sky DEFINES=MAC_DRIVER=nullmac_driver</commands>
+make example-abc.sky TARGET=sky DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_driver</commands>
       <firmware>[CONTIKI_DIR]/examples/rime/example-abc.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -46,7 +46,7 @@ make example-abc.sky TARGET=sky DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <description>ESB Mote Type #1</description>
       <source>[CONTIKI_DIR]/examples/rime/example-abc.c</source>
       <commands>make clean TARGET=esb
-make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
+make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_driver</commands>
       <firmware>[CONTIKI_DIR]/examples/rime/example-abc.esb</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -61,10 +61,10 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
     </motetype>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype135</identifier>
+      <identifier>mtype430</identifier>
       <description>Contiki Mote Type #1</description>
       <contikiapp>[CONTIKI_DIR]/examples/rime/example-abc.c</contikiapp>
-      <commands>make example-abc.cooja TARGET=cooja</commands>
+      <commands>make example-abc.cooja TARGET=cooja DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_driver</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -81,7 +81,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <symbols>false</symbols>
-      <commstack>Rime</commstack>
     </motetype>
     <motetype>
       se.sics.cooja.motes.ImportAppMoteType
@@ -91,7 +90,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <moteclass>RimeABC</moteclass>
     </motetype>
     <mote>
-      se.sics.cooja.contikimote.ContikiMote
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>199.49101781472754</x>
@@ -102,10 +100,9 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>6</id>
       </interface_config>
-      <motetype_identifier>mtype135</motetype_identifier>
+      <motetype_identifier>mtype430</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.contikimote.ContikiMote
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>98.81565434011203</x>
@@ -116,10 +113,9 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>12</id>
       </interface_config>
-      <motetype_identifier>mtype135</motetype_identifier>
+      <motetype_identifier>mtype430</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -134,7 +130,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -149,7 +144,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.ESBMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -164,7 +158,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>esb1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.ESBMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -179,7 +172,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>esb1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.contikimote.ContikiMote
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>-3.557828103468252</x>
@@ -190,10 +182,9 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>16</id>
       </interface_config>
-      <motetype_identifier>mtype135</motetype_identifier>
+      <motetype_identifier>mtype430</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -208,7 +199,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.ESBMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -223,7 +213,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>esb1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -238,7 +227,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.ESBMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -253,7 +241,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>esb1</motetype_identifier>
     </mote>
     <mote>
-      RimeABC
       <interface_config>
         se.sics.cooja.motes.AbstractApplicationMoteType$SimpleMoteID
         <id>14</id>
@@ -267,7 +254,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>apptype1</motetype_identifier>
     </mote>
     <mote>
-      RimeABC
       <interface_config>
         se.sics.cooja.motes.AbstractApplicationMoteType$SimpleMoteID
         <id>8</id>
@@ -281,7 +267,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>apptype1</motetype_identifier>
     </mote>
     <mote>
-      RimeABC
       <interface_config>
         se.sics.cooja.motes.AbstractApplicationMoteType$SimpleMoteID
         <id>19</id>
@@ -295,7 +280,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>apptype1</motetype_identifier>
     </mote>
     <mote>
-      RimeABC
       <interface_config>
         se.sics.cooja.motes.AbstractApplicationMoteType$SimpleMoteID
         <id>20</id>
@@ -309,7 +293,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>apptype1</motetype_identifier>
     </mote>
     <mote>
-      RimeABC
       <interface_config>
         se.sics.cooja.motes.AbstractApplicationMoteType$SimpleMoteID
         <id>18</id>
@@ -323,7 +306,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>apptype1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -338,7 +320,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.ESBMote
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -353,7 +334,6 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <motetype_identifier>esb1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.contikimote.ContikiMote
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>100.5701822839116</x>
@@ -364,10 +344,9 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>17</id>
       </interface_config>
-      <motetype_identifier>mtype135</motetype_identifier>
+      <motetype_identifier>mtype430</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.contikimote.ContikiMote
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>-5.14611380187246</x>
@@ -378,13 +357,13 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>15</id>
       </interface_config>
-      <motetype_identifier>mtype135</motetype_identifier>
+      <motetype_identifier>mtype430</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>265</width>
-    <z>3</z>
+    <z>5</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>1</location_y>
@@ -396,7 +375,7 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <filter />
     </plugin_config>
     <width>953</width>
-    <z>0</z>
+    <z>3</z>
     <height>130</height>
     <location_x>0</location_x>
     <location_y>524</location_y>
@@ -404,8 +383,11 @@ make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.RadioLogger
+    <plugin_config>
+      <split>110</split>
+    </plugin_config>
     <width>695</width>
-    <z>5</z>
+    <z>2</z>
     <height>152</height>
     <location_x>260</location_x>
     <location_y>369</location_y>
@@ -458,7 +440,7 @@ while (true) {
       <active>true</active>
     </plugin_config>
     <width>692</width>
-    <z>2</z>
+    <z>4</z>
     <height>367</height>
     <location_x>264</location_x>
     <location_y>0</location_y>
@@ -493,7 +475,7 @@ while (true) {
       <zoom>12</zoom>
     </plugin_config>
     <width>956</width>
-    <z>6</z>
+    <z>1</z>
     <height>310</height>
     <location_x>-1</location_x>
     <location_y>655</location_y>
@@ -509,7 +491,7 @@ while (true) {
       <viewport>0.5766712294536613 0.0 0.0 0.5766712294536613 36.4700887534336 117.76935499005339</viewport>
     </plugin_config>
     <width>264</width>
-    <z>1</z>
+    <z>0</z>
     <height>321</height>
     <location_x>0</location_x>
     <location_y>201</location_y>
