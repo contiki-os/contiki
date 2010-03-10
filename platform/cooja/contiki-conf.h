@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.12 2010/03/09 08:14:06 fros4943 Exp $
+ * $Id: contiki-conf.h,v 1.13 2010/03/10 07:35:49 fros4943 Exp $
  *
  */
 
@@ -40,12 +40,25 @@
 
 #define COOJA 1
 
-/* Fixed network setup */
+
+#ifdef NETSTACK_CONF_H
+
+#define NETSTACK__QUOTEME(s) NETSTACK_QUOTEME(s)
+#define NETSTACK_QUOTEME(s) #s
+#include NETSTACK__QUOTEME(NETSTACK_CONF_H)
+
+#else /* NETSTACK_CONF_H */
+
+/* Default network config: Rime */
+/* These settings may be overriden by NETSTACK_CONF_H below */
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC nullmac_driver
 #define NETSTACK_CONF_RDC nullrdc_driver
 #define NETSTACK_CONF_RADIO cooja_radio_driver
 /*#define NETSTACK_CONF_FRAMER framer_nullmac*/
+
+#endif /* NETSTACK_CONF_H */
+
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 
