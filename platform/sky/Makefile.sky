@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.36 2010/02/13 11:20:48 joxe Exp $
+# $Id: Makefile.sky,v 1.37 2010/03/10 11:46:57 fros4943 Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c spi.c ds2411.c \
@@ -90,6 +90,19 @@ else # MOTE
 	cp $< $(IHEXFILE)
 	$(MAKE) sky-reset sky-upload
 endif # MOTE
+
+upload-ihex:
+ifdef FILE
+	echo Uploading $(FILE)
+	cp $(FILE) $(IHEXFILE)
+ifdef MOTE
+	$(MAKE) sky-u.$(subst /,-,$(word $(MOTE), $(MOTES)))
+else # MOTE
+	$(MAKE) sky-reset sky-upload
+endif # MOTE
+else
+	@echo Example: $(MAKE) upload-ihex FILE=myfile.ihex
+endif
 
 sky-upload: sky-reset
 	$(MAKE) -j $(NUMPAR) sky-upload-sequence
