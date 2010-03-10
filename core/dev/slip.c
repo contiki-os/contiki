@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.8 2008/11/06 08:18:29 adamdunkels Exp $
+ * @(#)$Id: slip.c,v 1.9 2010/03/10 22:30:39 nifi Exp $
  */
 
 
@@ -263,6 +263,10 @@ PROCESS_THREAD(slip_process, ev, data)
     } else {
       uip_len = 0;
       SLIP_STATISTICS(slip_ip_drop++);
+    }
+#else /* UIP_CONF_IPV6 */
+    if(uip_len > 0) {
+      tcpip_input();
     }
 #endif /* UIP_CONF_IPV6 */
   }
