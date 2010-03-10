@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.40 2010/03/09 08:09:57 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.41 2010/03/10 07:52:05 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -124,48 +124,49 @@ public class ContikiMoteType implements MoteType {
   /**
    * Communication stacks in Contiki.
    */
-  public enum CommunicationStack {
-    RIME, UIP, UIPV6;
-
+  public enum NetworkStack {
+    DEFAULT, MANUAL;
+    public String manualHeader = "netstack-conf-example.h";
+    
     public String toString() {
-      if (this == UIPV6) {
-        return "uIPv6";
-      }
-      if (this == UIP) {
-        return "uIPv4";
-      }
-      if (this == RIME) {
-        return "Rime";
+      if (this == DEFAULT) {
+        return "Default (from contiki-conf.h)";
+      } else if (this == MANUAL) {
+        return "Manual netstack header";
       }
       return "[unknown]";
     }
 
-    public String getSourceFilenamesString() {
-//      if (this == UIPV6) {
-//        return " init-net-uipv6.c";
-//      }
-//      if (this == UIP) {
-//        return " init-net-uip.c";
-//      }
-//      if (this == RIME) {
-//        return " init-net-rime.c";
-//      }
-      return " ";
+    public String getHeaderFile() {
+      if (this == DEFAULT) {
+        return null;
+      } else if (this == MANUAL) {
+        return manualHeader;
+      }
+      return null;
     }
 
-    public static CommunicationStack parse(String name) {
-      if (name.equals("uIPv4") || name.equals("UIP")) {
-        return UIP;
+    public String getConfig() {
+      if (this == DEFAULT) {
+        return "DEFAULT";
+      } else if (this == MANUAL) {
+        return "MANUAL:" + manualHeader;
       }
-      if (name.equals("uIPv6") || name.equals("UIPV6")) {
-        return UIPV6;
-      }
-      if (name.equals("Rime") || name.equals("RIME")) {
-        return RIME;
+      return "[unknown]";
+    }
+
+    public static NetworkStack parseConfig(String config) {
+      if (config.equals("DEFAULT")) {
+        return DEFAULT;
+      } else if (config.startsWith("MANUAL")) {
+        NetworkStack st = MANUAL;
+        st.manualHeader = config.split(":")[1];
+        return st;
       }
 
-      logger.warn("Can't parse communication stack name: " + name);
-      return RIME;
+      /* TODO Backwards compatibility */
+      logger.warn("Bad network stack config: '" + config + "', using default");
+      return DEFAULT;
     }
   }
 
@@ -191,7 +192,7 @@ public class ContikiMoteType implements MoteType {
 
   private boolean hasSystemSymbols = false;
 
-  private CommunicationStack commStack = CommunicationStack.RIME;
+  private NetworkStack netStack = NetworkStack.DEFAULT;
 
   private Simulation simulation = null;
 
@@ -292,8 +293,7 @@ public class ContikiMoteType implements MoteType {
             contikiApp,
             mapFile,
             libFile,
-            archiveFile,
-            commStack);
+            archiveFile);
       } catch (Exception e) {
         throw (MoteTypeCreationException) new MoteTypeCreationException(
             "Error when creating environment: " + e.getMessage()).initCause(e);
@@ -665,17 +665,17 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * @param commStack Communication stack
+   * @param netStack Contiki network stack
    */
-  public void setCommunicationStack(CommunicationStack commStack) {
-    this.commStack = commStack;
+  public void setNetworkStack(NetworkStack netStack) {
+    this.netStack = netStack;
   }
 
   /**
-   * @return Contiki communication stack
+   * @return Contiki network stack
    */
-  public CommunicationStack getCommunicationStack() {
-    return commStack;
+  public NetworkStack getNetworkStack() {
+    return netStack;
   }
 
   /**
@@ -1257,9 +1257,11 @@ public class ContikiMoteType implements MoteType {
     element.setText(new Boolean(hasSystemSymbols()).toString());
     config.add(element);
 
-    element = new Element("commstack");
-    element.setText(getCommunicationStack().toString());
-    config.add(element);
+    if (getNetworkStack() != NetworkStack.DEFAULT) {
+      element = new Element("netstack");
+      element.setText(getNetworkStack().getConfig());
+      config.add(element);
+    }
 
     return config;
   }
@@ -1299,7 +1301,11 @@ public class ContikiMoteType implements MoteType {
       } else if (name.equals("symbols")) {
         hasSystemSymbols = Boolean.parseBoolean(element.getText());
       } else if (name.equals("commstack")) {
-        commStack = CommunicationStack.parse(element.getText());
+        logger.warn("COOJA's communication stack config was removed: " + element.getText());
+        logger.warn("Instead assuming default network stack.");
+        netStack = NetworkStack.DEFAULT;
+      } else if (name.equals("netstack")) {
+        netStack = NetworkStack.parseConfig(element.getText());
       } else if (name.equals("moteinterface")) {
         if (element.getText().trim().equals("se.sics.cooja.contikimote.interfaces.ContikiLog")) {
           /* Backwards compatibility: ContikiLog was removed */
