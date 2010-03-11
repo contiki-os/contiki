@@ -58,7 +58,7 @@ $(ISR): $(ISR:.o=.c)
 	@$(FINALIZE_DEPENDENCY)
 
 
-ifdef $(COBJS)
+ifdef COBJS
 BOARDARCS := $(OBJDIR)/board.a(${filter $(OBJDIR)/%.o,$(OBJDIR)/$(COBJS)})
 endif
 empty-board-a:
