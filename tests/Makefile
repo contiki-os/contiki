@@ -18,7 +18,11 @@ TARGETS_WITH_ROM_VARS := nvm-read nvm-write romimg flasher \
                          rftest-rx rftest-tx \
 	                 per
 
-include $(MC1322X)/Makefile.include
+submodule:
+	git submodule update --init
+	$(MAKE)
+
+-include $(MC1322X)/Makefile.include
 
 
 
