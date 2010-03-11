@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.43 2010/03/02 13:22:29 fros4943 Exp $
+ * $Id: MspMote.java,v 1.44 2010/03/11 22:15:58 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -58,6 +58,8 @@ import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.motes.AbstractEmulatedMote;
 import se.sics.cooja.mspmote.interfaces.MspSerial;
 import se.sics.cooja.mspmote.plugins.MspBreakpointContainer;
+import se.sics.cooja.mspmote.plugins.CodeVisualizerSkin;
+import se.sics.cooja.plugins.Visualizer;
 import se.sics.mspsim.cli.CommandHandler;
 import se.sics.mspsim.cli.LineListener;
 import se.sics.mspsim.cli.LineOutputStream;
@@ -79,6 +81,10 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   private static Logger logger = Logger.getLogger(MspMote.class);
 
   private final static int EXECUTE_DURATION_US = 1; /* We always execute in 1 us steps */
+
+  {
+    Visualizer.registerVisualizerSkin(CodeVisualizerSkin.class);
+  }
 
   private Simulation simulation;
   private CommandHandler commandHandler;
