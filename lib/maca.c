@@ -46,6 +46,8 @@ static volatile uint8_t last_post = NO_POST;
 #define safe_irq_disable(x)  volatile uint32_t saved_irq; saved_irq = *INTENABLE; disable_irq(x)
 #define irq_restore() *INTENABLE = saved_irq
 
+volatile uint8_t fcs_mode = USE_FCS; 
+
 void maca_init(void) {
 	reset_maca();
 	radio_init();
@@ -157,6 +159,7 @@ void post_receive(void) {
 	enable_irq(MACA);
 	*MACA_CONTROL = ( (1 << maca_ctrl_asap) | 
 			  ( 4 << PRECOUNT) |
+			  ( fcs_mode << NOFC ) |
 			  (1 << maca_ctrl_auto) |
 			  (1 << maca_ctrl_prm) |
 			  (maca_ctrl_seq_rx));

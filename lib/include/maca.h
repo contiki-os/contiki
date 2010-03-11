@@ -17,6 +17,10 @@
 #define RTSO            15                   /* reset slot counter             */
 #define ROLE            13                   /* set if PAN coordinator         */
 #define NOFC            12                   /* set to disable FCS             */
+enum {
+	USE_FCS = 0,
+	NO_FCS  = 1,
+};
 #define PRM             11                   /* set for promiscuous mode       */          
 #define REL             10                   /* 1 for relative, 0 for absolute */
 #define ASAP            9                    /* 1 start now, 0 timer start     */
@@ -123,6 +127,10 @@ volatile packet_t* rx_packet(void);
 volatile packet_t* get_free_packet(void);
 void free_packet(volatile packet_t *p);
 void free_all_packets(void);
+
+/* set_fcs_mode(NO_FCS) to disable checksum filtering */
+extern volatile uint8_t fcs_mode;
+#define set_fcs_mode(x) fcs_mode = (x)
 
 extern void maca_rx_callback(volatile packet_t *p) __attribute__((weak));
 
