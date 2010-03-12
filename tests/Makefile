@@ -18,8 +18,25 @@ TARGETS_WITH_ROM_VARS := nvm-read nvm-write romimg flasher \
                          rftest-rx rftest-tx \
 	                 per
 
-submodule:
+##################################################
+# you shouldn't need to edit anything below here #
+##################################################
+
+need := 3.81
+ok := $(filter $(need),$(firstword $(sort $(MAKE_VERSION) \
+                                   $(need))))
+
+ifdef $(need)
+$(error You need to use version 3.81 of Make or later)
+endif
+
+# this rule will become the default_goal if
+# $(MC1322X)/Makefile.include doesn't exist it will try to update the
+# submodule, check if $(MC1322X) exists, and if it does
+# try make again
+submodule: 
 	git submodule update --init
+	if [ ! -d $(MC1322X) ] ; then echo "*** cannot find MC1322X directory $(MC1322X)" ; exit 2; fi
 	$(MAKE)
 
 -include $(MC1322X)/Makefile.include
