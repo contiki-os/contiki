@@ -1,5 +1,12 @@
 # -*- makefile -*-
 
+ifndef BOARD
+default: allboards
+else
+default: all
+endif
+.PHONY: default
+
 CROSS_COMPILE := arm-linux-
 
 LINKERSCRIPT := $(MC1322X)/mc1322x.lds
@@ -33,7 +40,6 @@ export	ARCH CPU VENDOR
 
 .SECONDARY:
 
-
 ### See http://make.paulandlesley.org/autodep.html#advanced
 ifdef BOARD
 -include ${addprefix $(OBJDIR)/,$(addsuffix .d,$(TARGETS))}
@@ -63,6 +69,8 @@ BOARDARCS := $(OBJDIR)/board.a(${filter $(OBJDIR)/%.o,$(OBJDIR)/$(COBJS)})
 endif
 empty-board-a:
 	$(AR) $(ARFLAGS) $(OBJDIR)/board.a
+.PHONY: empty-board-a
+
 $(OBJDIR)/board.a: empty-board-a $(BOARDARCS)
 $(MC1322X)/src/src.a: $(MC1322X)/src/src.a($(SRCOBJS))
 
@@ -118,13 +126,7 @@ clobber \
 mrproper \
 distclean:	clean
 
-#.DEFAULT_GOAL := all
-
-ifndef BOARD
-.DEFAULT_GOAL := allboards
-else	
-.DEFAULT_GOAL := all
-endif	
+.PHONY: clean clobber mrproper distclean 
 
 all: $(OBJDIR)/board.h 
 	for target in $(TARGETS); do make $$target\_$(BOARD).bin; done
@@ -133,5 +135,6 @@ all: $(OBJDIR)/board.h
 allboards:
 	for board in $(BOARDS); do make BOARD=$$board all; done
 
+.PHONY: all allboards
 
 
