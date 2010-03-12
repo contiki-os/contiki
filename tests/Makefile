@@ -22,13 +22,9 @@ TARGETS_WITH_ROM_VARS := nvm-read nvm-write romimg flasher \
 # you shouldn't need to edit anything below here #
 ##################################################
 
-need := 3.81
-ok := $(filter $(need),$(firstword $(sort $(MAKE_VERSION) \
-                                   $(need))))
-
-ifdef $(need)
-$(error You need to use version 3.81 of Make or later)
-endif
+# This Makefile includes the default rule at the top
+# it needs to be included first
+-include $(MC1322X)/Makefile.include
 
 # this rule will become the default_goal if
 # $(MC1322X)/Makefile.include doesn't exist it will try to update the
@@ -39,7 +35,7 @@ submodule:
 	if [ ! -d $(MC1322X) ] ; then echo "*** cannot find MC1322X directory $(MC1322X)" ; exit 2; fi
 	$(MAKE)
 
--include $(MC1322X)/Makefile.include
+
 
 
 

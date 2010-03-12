@@ -1,5 +1,11 @@
 # -*- makefile -*-
 
+ifndef BOARD
+default: allboards
+else
+default: all
+endif
+
 CROSS_COMPILE := arm-linux-
 
 LINKERSCRIPT := $(MC1322X)/mc1322x.lds
@@ -117,14 +123,6 @@ clean:
 clobber \
 mrproper \
 distclean:	clean
-
-#.DEFAULT_GOAL := all
-
-ifndef BOARD
-.DEFAULT_GOAL := allboards
-else	
-.DEFAULT_GOAL := all
-endif	
 
 all: $(OBJDIR)/board.h 
 	for target in $(TARGETS); do make $$target\_$(BOARD).bin; done
