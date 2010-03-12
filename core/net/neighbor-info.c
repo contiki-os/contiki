@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.1 2010/03/12 13:19:45 nvt-se Exp $
+ * $Id: neighbor-info.c,v 1.2 2010/03/12 13:23:50 nvt-se Exp $
  */
 /**
  * \file
@@ -37,8 +37,8 @@
  * \author Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include "neighbor-info.h"
-#include "neighbor-attr.h"
+#include "net/neighbor-info.h"
+#include "net/neighbor-attr.h"
 
 #define DEBUG 0
 #if DEBUG

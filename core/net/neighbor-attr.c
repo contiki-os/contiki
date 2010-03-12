@@ -36,7 +36,7 @@
 #include "lib/memb.h"
 #include "lib/list.h"
 
-#include "neighbor-attr.h"
+#include "net/neighbor-attr.h"
 
 #define DEBUG 0
 

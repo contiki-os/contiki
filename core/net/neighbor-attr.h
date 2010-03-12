@@ -33,7 +33,7 @@
 #ifndef NEIGHBORATTR_H_
 #define NEIGHBORATTR_H_
 
-#include "rime.h"
+#include "net/rime.h"
 
 /**
  * define how many neighbors you can store
