@@ -35,6 +35,8 @@
 
 #include "lib/memb.h"
 #include "lib/list.h"
+#include <stddef.h>
+#include <string.h>
 
 #include "net/neighbor-attr.h"
 
@@ -57,7 +59,7 @@ static struct neighbor_addr *
 neighbor_addr_get(const rimeaddr_t *addr)
 {
   /* check if addr is derived from table, inside memb */
-  if(memb_inmemb(&neighbor_addr_mem, addr)) {
+  if(memb_inmemb(&neighbor_addr_mem, (struct queuebuf *)addr)) {
     return (struct neighbor_addr *)
         (((void *)addr) - offsetof(struct neighbor_addr, addr));
   }
