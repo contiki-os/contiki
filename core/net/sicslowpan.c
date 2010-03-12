@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.26 2010/03/12 13:25:14 nvt-se Exp $
+ * $Id: sicslowpan.c,v 1.27 2010/03/12 13:40:13 nvt-se Exp $
  */
 /**
  * \file
@@ -65,6 +65,7 @@
 #include "net/uip-netif.h"
 #include "net/rime.h"
 #include "net/sicslowpan.h"
+#include "net/neighbor-info.h"
 #include "net/netstack.h"
 
 #define DEBUG 0
