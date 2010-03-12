@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.h,v 1.1 2010/03/12 13:19:45 nvt-se Exp $
+ * $Id: neighbor-info.h,v 1.2 2010/03/12 13:40:13 nvt-se Exp $
  */
 /**
  * \file
@@ -44,10 +44,30 @@
 
 typedef void (*neighbor_info_subscriber_t)(const rimeaddr_t *, int known, int etx);
 
+/**
+ * Notify the neighbor information module about the status of
+ * a packet transmission.
+ *
+ * \param status The MAC status code for this packet.
+ *
+ * \param numtx The amount of transmissions made for this packet.
+ */
 void neighbor_info_packet_sent(int status, int numtx);
 
+/**
+ * Notify the neighbor information module that a packet was received.
+ *
+ * \param status The MAC status code for this packet.
+ *
+ * \param numtx The amount of transmissions made for this packet.
+ */
 void neighbor_info_packet_received(void);
 
+/**
+ * Subscribe to notifications of changed neighbor information.
+ *
+ * \return Returns 1 if the subscription was successful, and 0 if not.
+ */
 int neighbor_info_subscribe(neighbor_info_subscriber_t);
 
 #endif /* NEIGHBOR_INFO_H */
