@@ -4,14 +4,13 @@
 
 - add timestamp to received packets 
 
-- receive callback in the isr
+- transmit callback in the isr
+
+- add a way to set modes: tx_only, rx_only, txrx. (so you can be lazy
+  and have blocks of code that don't need to handle rx packets)
 
 - callback for each packet the gets transmitted
 
 - beacon sync
 
 - CCA and ED.
-
-
- 
-   
