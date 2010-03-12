@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.25 2010/03/12 13:20:13 nvt-se Exp $
+ * $Id: sicslowpan.c,v 1.26 2010/03/12 13:25:14 nvt-se Exp $
  */
 /**
  * \file
@@ -289,9 +289,9 @@ addr_context_lookup_by_number(u8_t number) {
   return NULL;
 }
 /*--------------------------------------------------------------------*/
- /**
-+ * Callback function for the MAC packet sent callback
-+ */
+/**
+ * Callback function for the MAC packet sent callback
+ */
 static void
 packet_sent(void *ptr, int status, int transmissions)
 {
