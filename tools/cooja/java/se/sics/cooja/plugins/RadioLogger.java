@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.31 2010/03/07 20:44:40 joxe Exp $
+ * $Id: RadioLogger.java,v 1.32 2010/03/12 16:02:47 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Properties;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
@@ -81,6 +82,7 @@ import se.sics.cooja.plugins.analyzers.ICMPv6Analyzer;
 import se.sics.cooja.plugins.analyzers.IEEE802154Analyzer;
 import se.sics.cooja.plugins.analyzers.IPHCPacketAnalyzer;
 import se.sics.cooja.plugins.analyzers.PacketAnalyzer;
+import se.sics.cooja.plugins.analyzers.RadioLoggerAnalyzerSuite;
 import se.sics.cooja.util.StringUtils;
 
 /**
@@ -297,6 +299,29 @@ public class RadioLogger extends VisPlugin {
     group.add(rbMenuItem);
     popupMenu.add(rbMenuItem);
 
+    /* Load additional analyzers specified by projects (cooja.config) */
+    String[] projectAnalyzerSuites =
+      gui.getProjectConfig().getStringArrayValue(RadioLogger.class, "ANALYZERS");
+    if (projectAnalyzerSuites != null) {
+      for (String suiteName: projectAnalyzerSuites) {
+        Class<? extends RadioLoggerAnalyzerSuite> suiteClass =
+          gui.tryLoadClass(RadioLogger.this, RadioLoggerAnalyzerSuite.class, suiteName);
+        try {
+          RadioLoggerAnalyzerSuite suite = suiteClass.newInstance();
+          ArrayList<PacketAnalyzer> suiteAnalyzers = suite.getAnalyzers();
+          rbMenuItem = new JRadioButtonMenuItem(createAnalyzerAction(
+              suite.getDescription(), suiteName, suiteAnalyzers, false));
+          group.add(rbMenuItem);
+          popupMenu.add(rbMenuItem);
+          logger.debug("Loaded radio logger analyzers: " + suite.getDescription());
+        } catch (InstantiationException e1) {
+          logger.warn("Failed to load analyzer suite '" + suiteName + "': " + e1.getMessage());
+        } catch (IllegalAccessException e1) {
+          logger.warn("Failed to load analyzer suite '" + suiteName + "': " + e1.getMessage());
+        }
+      }
+    }
+    
     dataTable.setComponentPopupMenu(popupMenu);
     dataTable.setFillsViewportHeight(true);
 
