@@ -57,6 +57,7 @@
 #define UIP_ND6_INFINITE_LIFETIME       0xFFFFFFFF
 /** @} */
 
+#define UIP_ND6_DEF_MAXDADNS 1
 
 /** \name Configuration options */
 /** @{ */
@@ -82,12 +83,36 @@
 #define UIP_ND6_MAX_RTR_SOLICITATIONS	   3
 /** @} */
 
+/** \name RFC 4861 Router constants */
+/** @{ */
+#define UIP_ND6_SEND_RA                     1   /* enable/disable RA sending */
+#define UIP_ND6_MAX_RA_INTERVAL             600
+#define UIP_ND6_MIN_RA_INTERVAL             (UIP_ND6_MAX_RA_INTERVAL / 3)
+#define UIP_ND6_M_FLAG                      0
+#define UIP_ND6_O_FLAG                      0
+#define UIP_ND6_ROUTER_LIFETIME             3 * UIP_ND6_MAX_RA_INTERVAL
+
+#define UIP_ND6_MAX_INITIAL_RA_INTERVAL     16  /*seconds*/
+#define UIP_ND6_MAX_INITIAL_RAS             3   /*transmissions*/
+#define UIP_ND6_MIN_DELAY_BETWEEN_RAS       3   /*seconds*/
+//#define UIP_ND6_MAX_RA_DELAY_TIME           0.5 /*seconds*/
+#define UIP_ND6_MAX_RA_DELAY_TIME_MS        500 /*milli seconds*/
+/** @} */
+
 
 /** \name RFC 4861 Node constant */
 #define UIP_ND6_MAX_MULTICAST_SOLICIT  3
 #define UIP_ND6_MAX_UNICAST_SOLICIT    3
+#ifdef UIP_CONF_ND6_REACHABLE_TIME
+#define UIP_ND6_REACHABLE_TIME         UIP_CONF_ND6_REACHABLE_TIME
+#else
 #define UIP_ND6_REACHABLE_TIME         30000
+#endif
+#ifdef UIP_CONF_ND6_RETRANS_TIMER
+#define UIP_ND6_RETRANS_TIMER	       UIP_CONF_ND6_RETRANS_TIMER
+#else
 #define UIP_ND6_RETRANS_TIMER	       1000 
+#endif
 #define UIP_ND6_DELAY_FIRST_PROBE_TIME 5
 #define UIP_ND6_MIN_RANDOM_FACTOR(x)   (x / 2)
 #define UIP_ND6_MAX_RANDOM_FACTOR(x)   ((x) + (x) / 2)
@@ -145,6 +170,8 @@
 #define UIP_ND6_NA_FLAG_ROUTER          0x80
 #define UIP_ND6_NA_FLAG_SOLICITED       0x40
 #define UIP_ND6_NA_FLAG_OVERRIDE        0x20
+#define UIP_ND6_RA_FLAG_ONLINK          0x80 
+#define UIP_ND6_RA_FLAG_AUTONOMOUS      0x40 
 /** @} */
 
 
@@ -232,54 +259,54 @@ extern struct etimer uip_nd6_timer_periodic;
  * 
  * Possible option is: SLLAO
  */
-struct uip_nd6_ns {
-  u32_t reserved;
+typedef struct uip_nd6_ns {
+  uint32_t reserved;
   uip_ipaddr_t tgtipaddr;
-};
+} uip_nd6_ns;
 
 /**
  * \brief A neighbor advertisement constant part.
  * 
  * Possible option is: TLLAO
  */ 
-struct uip_nd6_na {
-  u8_t flagsreserved;
-  u8_t reserved[3];
+typedef struct uip_nd6_na {
+  uint8_t flagsreserved;
+  uint8_t reserved[3];
   uip_ipaddr_t tgtipaddr;
-};
+} uip_nd6_na;
 
 /** 
  * \brief A router solicitation  constant part
  * 
  * Possible option is: SLLAO 
  */
-struct uip_nd6_rs {
-  u32_t reserved;
-};
+typedef struct uip_nd6_rs {
+  uint32_t reserved;
+} uip_nd6_rs;
 
 /**
  * \brief A router advertisement constant part
  * 
  * Possible options are: SLLAO, MTU, Prefix Information
  */
-struct uip_nd6_ra {
-  u8_t cur_ttl;
-  u8_t flags_reserved;
-  u16_t router_lifetime;
-  u32_t reachable_time;
-  u32_t retrans_timer;
-};
+typedef struct uip_nd6_ra {
+  uint8_t cur_ttl;
+  uint8_t flags_reserved;
+  uint16_t router_lifetime;
+  uint32_t reachable_time;
+  uint32_t retrans_timer;
+} uip_nd6_ra;
 
 /**
  * \brief A redirect message constant part
  * 
  * Possible options are: TLLAO, redirected header
  */
-struct uip_nd6_redirect {
-  u32_t reserved;
+typedef struct uip_nd6_redirect {
+  uint32_t reserved;
   uip_ipaddr_t tgtipaddress;  
   uip_ipaddr_t destipaddress;  
-};
+} uip_nd6_redirect;
 /** @} */
 
 /**
@@ -288,44 +315,44 @@ struct uip_nd6_redirect {
  */
 
 /** \brief ND option header */
-struct uip_nd6_opt_hdr {
-  u8_t type;
-  u8_t len;
-};
+typedef struct uip_nd6_opt_hdr {
+  uint8_t type;
+  uint8_t len;
+} uip_nd6_opt_hdr;
 
 /** \brief ND option prefix information */
-struct uip_nd6_opt_prefix_info {
-  u8_t type;
-  u8_t len;
-  u8_t preflen;
-  u8_t flagsreserved1;
-  u32_t validlt;
-  u32_t preferredlt;
-  u32_t reserved2;
+typedef struct uip_nd6_opt_prefix_info {
+  uint8_t type;
+  uint8_t len;
+  uint8_t preflen;
+  uint8_t flagsreserved1;
+  uint32_t validlt;
+  uint32_t preferredlt;
+  uint32_t reserved2;
   uip_ipaddr_t prefix;
-};
+} uip_nd6_opt_prefix_info ;
 
 /** \brief ND option MTU */
-struct uip_nd6_opt_mtu {
-  u8_t type;
-  u8_t len;
-  u16_t reserved;
-  u32_t mtu;
-};
+typedef struct uip_nd6_opt_mtu {
+  uint8_t type;
+  uint8_t len;
+  uint16_t reserved;
+  uint32_t mtu;
+} uip_nd6_opt_mtu;
 
 /** \brief ND option: both TLLAO and SLLAO */
-struct uip_nd6_opt_llao {
-  u8_t type;
-  u8_t len;
+typedef struct uip_nd6_opt_llao {
+  uint8_t type;
+  uint8_t len;
   uip_lladdr_t addr;
-};
+} uip_nd6_opt_llao;
 
 /** \struct Redirected header option */
-struct uip_nd6_opt_redirected_hdr {
-  u8_t type;
-  u8_t len;
-  u8_t reserved[6];
-};
+typedef struct uip_nd6_opt_redirected_hdr {
+  uint8_t type;
+  uint8_t len;
+  uint8_t reserved[6];
+} uip_nd6_opt_redirected_hdr;
 /** @} */
 
 /**
@@ -494,6 +521,23 @@ uip_nd6_io_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
  */
 void
 uip_nd6_io_na_input(void);
+
+#if UIP_CONF_ROUTER
+#if UIP_ND6_SEND_RA
+/**
+ * \brief Process a Router Solicitation
+ * 
+ */
+void uip_nd6_rs_input(void);
+
+/**
+ * \brief send a Router Advertisement
+ *
+ * Only for router, for periodic as well as sollicited RA
+ */
+void uip_nd6_ra_output(uip_ipaddr_t *dest);
+#endif /* UIP_ND6_SEND_RA */
+#endif /*UIP_CONF_ROUTER*/
 
 /**
  * \brief Send a Router Solicitation

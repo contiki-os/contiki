@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.25 2009/11/12 14:05:42 joxe Exp $
+ * $Id: uip.h,v 1.26 2010/03/12 16:19:19 joxe Exp $
  *
  */
 
@@ -1971,6 +1971,12 @@ CCIF extern uip_lladdr_t uip_lladdr;
 
 /** \brief set IP address a to the link local all-routers multicast address */
 #define uip_create_linklocal_allrouters_mcast(a) uip_ip6addr(a, 0xff02, 0, 0, 0, 0, 0, 0, 0x0002)
+#define uip_create_linklocal_prefix(addr) do { \
+    (addr)->u16[0] = HTONS(0xfe80);            \
+    (addr)->u16[1] = 0;                        \
+    (addr)->u16[2] = 0;                        \
+    (addr)->u16[3] = 0;                        \
+  } while(0)
 
 /**
  * \brief  is addr (a) a solicited node multicast address, see RFC3513
@@ -2076,6 +2082,15 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u8[14])  == 0) &&                 \
    (((a)->u8[15])  == 2))
 
+
+/**
+ * \brief are last three bytes of both addresses equal?
+ * This is used to compare solicited node multicast addresses
+ */
+#define uip_are_solicited_bytes_equal(a, b)             \
+  ((((a)->u8[13])  == ((b)->u8[13])) &&                 \
+   (((a)->u8[14])  == ((b)->u8[14])) &&                 \
+   (((a)->u8[15])  == ((b)->u8[15])))
 
 #endif /*UIP_CONF_IPV6*/
 
