@@ -35,7 +35,7 @@ submodule:
 	if [ ! -d $(MC1322X) ] ; then echo "*** cannot find MC1322X directory $(MC1322X)" ; exit 2; fi
 	$(MAKE)
 
-
+.PHONY: submodule
 
 
 

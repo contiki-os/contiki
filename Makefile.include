@@ -5,6 +5,7 @@ default: allboards
 else
 default: all
 endif
+.PHONY: default
 
 CROSS_COMPILE := arm-linux-
 
@@ -39,7 +40,6 @@ export	ARCH CPU VENDOR
 
 .SECONDARY:
 
-
 ### See http://make.paulandlesley.org/autodep.html#advanced
 ifdef BOARD
 -include ${addprefix $(OBJDIR)/,$(addsuffix .d,$(TARGETS))}
@@ -69,6 +69,8 @@ BOARDARCS := $(OBJDIR)/board.a(${filter $(OBJDIR)/%.o,$(OBJDIR)/$(COBJS)})
 endif
 empty-board-a:
 	$(AR) $(ARFLAGS) $(OBJDIR)/board.a
+.PHONY: empty-board-a
+
 $(OBJDIR)/board.a: empty-board-a $(BOARDARCS)
 $(MC1322X)/src/src.a: $(MC1322X)/src/src.a($(SRCOBJS))
 
@@ -124,6 +126,8 @@ clobber \
 mrproper \
 distclean:	clean
 
+.PHONY: clean clobber mrproper distclean 
+
 all: $(OBJDIR)/board.h 
 	for target in $(TARGETS); do make $$target\_$(BOARD).bin; done
 	for target in $(TARGETS_WITH_ROM_VARS);   do make TARGET_ROM_VARS=1 $$target\_$(BOARD).bin; done
@@ -131,5 +135,6 @@ all: $(OBJDIR)/board.h
 allboards:
 	for board in $(BOARDS); do make BOARD=$$board all; done
 
+.PHONY: all allboards
 
 
