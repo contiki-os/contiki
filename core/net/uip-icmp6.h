@@ -96,9 +96,9 @@
 #define UIP_ICMP6_ERROR_LEN               4
 
 /** \brief ICMPv6 Error message constant part */
-struct uip_icmp6_error{
+typedef struct uip_icmp6_error{
   u32_t param;
-};
+} uip_icmp6_error;
 
 /** \name ICMPv6 RFC4443 Message processing and sending */
 /** @{ */
