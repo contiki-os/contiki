@@ -28,7 +28,7 @@ enum PACKET_TYPE {
 };
 /* get protocol level packet type   */
 /* this is not 802.15.4 packet type */
-ptype_t get_packet_type(packet_t *p) {
+ptype_t get_packet_type(packet_t * p __attribute__((unused))) {
 	return MAX_PACKET_TYPE;
 }
 
@@ -56,7 +56,7 @@ void build_session_req(volatile packet_t *p) {
 	return;
 }
 
-void session_req(short_addr_t addr) { 	
+void session_req(short_addr_t addr __attribute__((unused))) { 	
 	static volatile int time = 0;
 	volatile packet_t *p;
 
@@ -70,7 +70,7 @@ void session_req(short_addr_t addr) {
 	return; 
 }
 
-session_id_t open_session(short_addr_t addr) { return 0; }
+session_id_t open_session(short_addr_t addr __attribute((unused))) { return 0; }
 
 void main(void) {
 	uint32_t state;
@@ -82,7 +82,7 @@ void main(void) {
 	/* trim the reference osc. to 24MHz */
 	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
 	
-	uart_init(INC,MOD);
+	uart_init(INC, MOD, SAMP);
 
 	vreg_init();
 
@@ -109,7 +109,7 @@ void main(void) {
 				/* extract what we need and free the packet */
 				printf("Recv: ");
 				print_packet(p);
-				type = get_packet_type(p);
+				type = get_packet_type((packet_t *) p);
 				addr = p->addr;
 				free_packet(p);
 				/* pick a new address if someone else is using ours */

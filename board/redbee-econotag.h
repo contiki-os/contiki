@@ -3,7 +3,7 @@
 
 #define LED_RED   12
 #define LED_GREEN 21
-#define LED_BLUE  35
+#define LED_BLUE  0	/* FIXME: Was 35 - in high GPIO bank so it doesn't work */
 
 /* XTAL TUNE parameters */
 /* see http://devl.org/pipermail/mc1322x/2009-December/000162.html */

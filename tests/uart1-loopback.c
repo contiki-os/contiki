@@ -5,7 +5,6 @@
 #include "config.h"
 
 void main(void) {
-	volatile char c;
 
 	uart1_init(INC,MOD,SAMP);
 	

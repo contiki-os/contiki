@@ -8,11 +8,11 @@
 void main(void) {	
 	volatile uint32_t i;
 	
-	*GPIO_PAD_DIR0 = ( 1<< LED );
+	*GPIO_PAD_DIR0 = LED;
 
 	while(1) {
 
-		*GPIO_DATA0 = (1 << LED );
+		*GPIO_DATA0 = LED;
 		
 		for(i=0; i<DELAY; i++) { continue; }
 

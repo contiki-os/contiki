@@ -27,7 +27,7 @@ int main(void)
 	printf("hex %x = ff\n", 0xff);
 	printf("hex %02x = 00\n", 0);
 	printf("signed %d = unsigned %u = hex %x\n", -3, -3, -3);
-	printf("%d %s(s)%", 0, "message");
+	printf("%d %s(s)", 0, "message");
 	printf("\n");
 	printf("%d %s(s) with %%\n", 0, "message");
 //	sprintf(buf, "justif: \"%-10s\"\n", "left"); printf("%s", buf);
