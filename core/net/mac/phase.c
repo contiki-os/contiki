@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.3 2010/02/28 20:19:47 adamdunkels Exp $
+ * $Id: phase.c,v 1.4 2010/03/14 22:59:23 adamdunkels Exp $
  */
 
 /**
@@ -54,15 +54,27 @@ struct phase_queueitem {
   struct queuebuf *q;
 };
 
-#define PHASE_DEFER_THRESHOLD 4
-#define PHASE_QUEUESIZE       2
+#define PHASE_DEFER_THRESHOLD 2
+#define PHASE_QUEUESIZE       8
+
+#define MAX_NOACKS            3
 
 MEMB(phase_memb, struct phase_queueitem, PHASE_QUEUESIZE);
 
+#define DEBUG 1
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINTDEBUG(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#define PRINTDEBUG(...)
+#endif
 /*---------------------------------------------------------------------------*/
 void
-phase_register(const struct phase_list *list,
-                   const rimeaddr_t * neighbor, rtimer_clock_t time)
+phase_update(const struct phase_list *list,
+             const rimeaddr_t * neighbor, rtimer_clock_t time,
+             int mac_status)
 {
   struct phase *e;
 
@@ -70,11 +82,31 @@ phase_register(const struct phase_list *list,
   for(e = list_head(*list->list); e != NULL; e = e->next) {
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
       e->time = time;
+
+      /* If the neighbor didn't reply to us, it may have switched
+         phase (rebooted). We try a number of transmissions to it
+         before we drop it from the phase list. */
+      if(mac_status == MAC_TX_NOACK) {
+        printf("phase noacks %d\n", e->noacks);
+        e->noacks++;
+        if(e->noacks >= MAX_NOACKS) {
+          list_remove(*list->list, e);
+          memb_free(&phase_memb, e);
+          return;
+        }
+      } else if(mac_status == MAC_TX_OK) {
+        e->noacks = 0;
+      }
+
+      /* Make sure this entry is first on the list so subsequent
+         searches are faster. */
+      list_remove(*list->list, e);
+      list_push(*list->list, e);
       break;
     }
   }
   /* No matching phase was found, so we allocate a new one. */
-  if(e == NULL) {
+  if(mac_status == MAC_TX_OK && e == NULL) {
     e = memb_alloc(list->memb);
     if(e == NULL) {
       /* We could not allocate memory for this phase, so we drop
@@ -83,6 +115,7 @@ phase_register(const struct phase_list *list,
     }
     rimeaddr_copy(&e->neighbor, neighbor);
     e->time = time;
+    e->noacks = 0;
     list_push(*list->list, e);
   }
 }
@@ -92,13 +125,10 @@ send_packet(void *ptr)
 {
   struct phase_queueitem *p = ptr;
 
-  leds_on(LEDS_ALL);
-  
   queuebuf_to_packetbuf(p->q);
   queuebuf_free(p->q);
   memb_free(&phase_memb, p);
   NETSTACK_RDC.send(p->mac_callback, p->mac_callback_ptr);
-  leds_off(LEDS_ALL);
 }
 /*---------------------------------------------------------------------------*/
 phase_status_t
@@ -159,9 +189,10 @@ phase_wait(struct phase_list *list,
           watchdog_periodic();
         }
       }
+      return PHASE_SEND_NOW;
     }
   }
-  return PHASE_SEND_NOW;
+  return PHASE_UNKNOWN;
 }
 /*---------------------------------------------------------------------------*/
 void
