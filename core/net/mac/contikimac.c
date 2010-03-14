@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.11 2010/03/14 12:13:54 oliverschmidt Exp $
+ * $Id: contikimac.c,v 1.12 2010/03/14 22:59:23 adamdunkels Exp $
  */
 
 /**
@@ -60,7 +60,7 @@
 #include <string.h>
 
 #ifndef WITH_ACK_OPTIMIZATION
-#define WITH_ACK_OPTIMIZATION        0
+#define WITH_ACK_OPTIMIZATION        1
 #endif
 #ifndef WITH_PHASE_OPTIMIZATION
 #define WITH_PHASE_OPTIMIZATION      1
@@ -97,10 +97,14 @@ struct announcement_msg {
 #define CYCLE_TIME (RTIMER_ARCH_SECOND / MAC_CHANNEL_CHECK_RATE)
 #endif
 
+#define MAX_PHASE_STROBES                  8
+
 #define CCA_COUNT_MAX 2
 #define CCA_CHECK_TIME                     RTIMER_ARCH_SECOND / 8192
 #define CCA_SLEEP_TIME                     RTIMER_ARCH_SECOND / 2000 + CCA_CHECK_TIME
-#define CHECK_TIME (CCA_COUNT_MAX * (CCA_CHECK_TIME + CCA_SLEEP_TIME))
+#define CHECK_TIME                         (CCA_COUNT_MAX * (CCA_CHECK_TIME + CCA_SLEEP_TIME))
+
+#define STREAM_CCA_COUNT                   (CYCLE_TIME / (CCA_SLEEP_TIME + CCA_CHECK_TIME) - CCA_COUNT_MAX)
 
 #define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 2500
 #define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
@@ -166,30 +170,16 @@ PHASE_LIST(phase_list, MAX_PHASE_NEIGHBORS);
 
 #endif /* WITH_PHASE_OPTIMIZATION */
 
-static uint8_t is_streaming;
+static volatile uint8_t is_streaming;
 static rimeaddr_t is_streaming_to, is_streaming_to_too;
-static rtimer_clock_t stream_until;
+static volatile rtimer_clock_t stream_until;
 
-#define DEFAULT_STREAM_TIME (RTIMER_ARCH_SECOND)
+#define DEFAULT_STREAM_TIME (2 * RTIMER_ARCH_SECOND / MAC_CHANNEL_CHECK_RATE)
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
 
-static volatile uint8_t packet_indication_flag;
-static volatile uint16_t packet_indicated_but_not_received,
-  packet_indicated_but_not_received_clear_third_time;
-
-volatile uint16_t
-packet_indicated_but_not_received_clear_second_time;
-
-struct cca_checks_stats {
-  volatile char check[CCA_COUNT_MAX];
-};
-
-#define LATEST_CCA_CHECKS_NUM 16
-static volatile struct cca_checks_stats cca_checks[LATEST_CCA_CHECKS_NUM];
-static volatile struct cca_checks_stats *latest_cca_check = &cca_checks[LATEST_CCA_CHECKS_NUM - 1];
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -204,7 +194,7 @@ on(void)
 static void
 off(void)
 {
-  if(contikimac_is_on && radio_is_on != 0 && is_listening == 0 && is_streaming == 0) {
+  if(contikimac_is_on && radio_is_on != 0 && is_listening == 0) {
     radio_is_on = 0;
     NETSTACK_RADIO.off();
   }
@@ -276,74 +266,69 @@ powercycle(struct rtimer *t, void *ptr)
   while(1) {
     static uint8_t packet_seen;
     static rtimer_clock_t t0, cycle_start;
-    static uint8_t count;
-    static uint8_t clear_second_time, clear_third_time;
+    static uint8_t count, count_max;
 
     cycle_start = RTIMER_NOW();
 
-    for(count = 1; count < LATEST_CCA_CHECKS_NUM; ++count) {
-      cca_checks[count - 1] = cca_checks[count];
-    }
-
-    latest_cca_check->check[0] =
-      latest_cca_check->check[1] = 2;
-    
     packet_seen = 0;
-    clear_second_time = clear_third_time = 0;
-    if(we_are_sending == 0) {
-      latest_cca_check->check[0] =
-        latest_cca_check->check[1] = -1;
+    count_max = CCA_COUNT_MAX;
+    if(is_streaming) {
+      count_max = STREAM_CCA_COUNT;
+    }
+    do {
       for(count = 0; count < CCA_COUNT_MAX; ++count) {
         t0 = RTIMER_NOW();
-        powercycle_turn_radio_on();
+        if(we_are_sending == 0) {
+          powercycle_turn_radio_on();
 #if NURTIMER
-        while(RTIMER_CLOCK_LT(t0, RTIMER_NOW(), t0 + CCA_CHECK_TIME));
+          while(RTIMER_CLOCK_LT(t0, RTIMER_NOW(), t0 + CCA_CHECK_TIME));
 #else
-        while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_CHECK_TIME));
+          while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_CHECK_TIME));
 #endif
-        if(NETSTACK_RADIO.channel_clear() == 0) {
-          latest_cca_check->check[count] = 0;
-          packet_indication_flag = 1;
-          packet_seen = 1;
-          break;
-        } else {
-          latest_cca_check->check[count] = 1;
+          
+          /* Check if a packet is seen in the air. If so, we keep the
+             radio on for a while (LISTEN_TIME_AFTER_PACKET_DETECTED) to
+             be able to receive the packet. We also continuously check
+             the radio medium to make sure that we wasn't woken up by a
+             false positive: a spurious radio interference that was not
+             caused by an incoming packet. */
+          if(NETSTACK_RADIO.channel_clear() == 0) {
+            packet_seen = 1;
+            break;
+          }
+          powercycle_turn_radio_off();
         }
-        powercycle_turn_radio_off();
         schedule_powercycle(t, CCA_SLEEP_TIME + CCA_CHECK_TIME);
         PT_YIELD(&pt);
       }
-
-#if 1
-      /* If there were a packet in the air, turn radio on */
+      
       if(packet_seen) {
         static rtimer_clock_t start;
         static uint8_t silence_periods, periods;
-
         start = RTIMER_NOW();
-
+        
         periods = silence_periods = 0;
         while(we_are_sending == 0 && radio_is_on &&
               RTIMER_CLOCK_LT(RTIMER_NOW(), (start + LISTEN_TIME_AFTER_PACKET_DETECTED))) {
-
-          /* Check for two consecutive periods of non-activity. If we
-             see two such periods, we turn the radio off. Also, if a
-             packet has been successfully received (as indicated by
-             the NETSTACK_RADIO.pending_packet() function), we stop
+          
+          /* Check for a number of consecutive periods of
+             non-activity. If we see two such periods, we turn the
+             radio off. Also, if a packet has been successfully
+             received (as indicated by the
+             NETSTACK_RADIO.pending_packet() function), we stop
              listening. */
           if(NETSTACK_RADIO.channel_clear()) {
             ++silence_periods;
           } else {
             silence_periods = 0;
           }
-
-          ++periods;
           
+          ++periods;
+        
           if(NETSTACK_RADIO.receiving_packet()) {
             silence_periods = 0;
           }
           if(silence_periods > 5) {
-            latest_cca_check->check[count] = -silence_periods;
             leds_on(LEDS_RED);
             powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
@@ -354,20 +339,19 @@ powercycle(struct rtimer *t, void *ptr)
           }
           if(periods > 10 && !(NETSTACK_RADIO.receiving_packet() ||
                                NETSTACK_RADIO.pending_packet())) {
-            latest_cca_check->check[count] = periods;
             leds_on(LEDS_GREEN);
             powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
             compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
-
+            
             leds_off(LEDS_GREEN);
             break;
           }
           if(NETSTACK_RADIO.pending_packet()) {
             break;
           }
-
+          
           schedule_powercycle(t, CCA_CHECK_TIME + CCA_SLEEP_TIME);
           leds_on(LEDS_BLUE);
           PT_YIELD(&pt);
@@ -375,7 +359,6 @@ powercycle(struct rtimer *t, void *ptr)
         }
         if(radio_is_on && !(NETSTACK_RADIO.receiving_packet() &&
                             NETSTACK_RADIO.pending_packet())) {
-          latest_cca_check->check[count] = -78;
           leds_on(LEDS_RED + LEDS_GREEN);
           powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
@@ -383,34 +366,14 @@ powercycle(struct rtimer *t, void *ptr)
 #endif /* CONTIKIMAC_CONF_COMPOWER */
           leds_off(LEDS_RED + LEDS_GREEN);
         }
-
       } else {
 #if CONTIKIMAC_CONF_COMPOWER
         compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
       }
-#else /* 0 */
-      if(packet_seen) {
-        schedule_powercycle(t, LISTEN_TIME);
-        PT_YIELD(&pt);
-        if(!(NETSTACK_RADIO.receiving_packet() ||
-             NETSTACK_RADIO.pending_packet())) {
-          powercycle_turn_radio_off();
-#if CONTIKIMAC_CONF_COMPOWER
-          compower_accumulate(&compower_idle_activity);
-#endif /* CONTIKIMAC_CONF_COMPOWER */
-        }
-      }
-#endif /* 0 */
-
-      /* If the packet indication flag is still set, it means that
-         there was never a packet received by the radio. We increase
-         the packet_indicated_but_not_received counter. */
-      if(packet_indication_flag) {
-        packet_indicated_but_not_received += packet_indication_flag;
-        packet_indication_flag = 0;
-      }
-    }
+    } while(is_streaming &&
+            RTIMER_NOW() - cycle_start < CYCLE_TIME - CCA_CHECK_TIME * CCA_COUNT_MAX);
+    
     if(RTIMER_NOW() - cycle_start < CYCLE_TIME) {
       schedule_powercycle(t, CYCLE_TIME - (RTIMER_NOW() - cycle_start));
       PT_YIELD(&pt);
@@ -483,53 +446,24 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 {
   rtimer_clock_t t0;
   rtimer_clock_t t;
-  rtimer_clock_t encounter_time = 0;
+  rtimer_clock_t encounter_time = 0, last_transmission_time = 0;
+  uint8_t first_transmission = 1;
   int strobes;
-  int got_strobe_ack = 0;
+  uint8_t got_strobe_ack = 0;
   int len;
-  int is_broadcast = 0;
-  int is_reliable = 0;
+  uint8_t is_broadcast = 0;
+  uint8_t is_reliable = 0;
+  uint8_t is_known_receiver = 0;
   uint8_t collisions;
   int transmit_len;
   int i;
+  int ret;
 
   if(packetbuf_totlen() == 0) {
     PRINTF("contikimac: send_packet data len 0\n");
     return MAC_TX_ERR_FATAL;
   }
      
-
-#if WITH_PHASE_OPTIMIZATION
-#if WITH_ACK_OPTIMIZATION
-  /* Wait until the receiver is expected to be awake */
-  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
-     PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
-
-    if(phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                  CYCLE_TIME, 6 * CHECK_TIME,
-                  mac_callback, mac_callback_ptr) == PHASE_DEFERRED) {
-      return MAC_TX_DEFERRED;
-    }
-  }
-#else /* WITH_ACK_OPTIMIZATION */
-  if(is_streaming == 0) {
-    if(phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                  CYCLE_TIME, 6 * CHECK_TIME,
-                  mac_callback, mac_callback_ptr) == PHASE_DEFERRED) {
-      return MAC_TX_DEFERRED;
-    }
-  }
-#endif /* WITH_ACK_OPTIMIZATION */
-#endif /* WITH_PHASE_OPTIMIZATION */
-
-  /* Make sure that the packet is longer or equal to the shorest
-     packet length. */
-  if(packetbuf_totlen() < SHORTEST_PACKET_SIZE) {
-    PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
-    packetbuf_set_datalen(SHORTEST_PACKET_SIZE);
-  }
-
-  /* Create the MAC header for the data packet. */
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
     is_broadcast = 1;
@@ -545,7 +479,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
                packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[5],
                packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[6],
                packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[7]);
-#else
+#else /* UIP_CONF_IPV6 */
     PRINTDEBUG("contikimac: send unicast to %u.%u\n",
                packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
                packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
@@ -553,6 +487,63 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   }
   is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
     packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
+
+
+  if(WITH_STREAMING) {
+    if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+       PACKETBUF_ATTR_PACKET_TYPE_STREAM) {
+      is_streaming = 1;
+      if(rimeaddr_cmp(&is_streaming_to, &rimeaddr_null)) {
+        rimeaddr_copy(&is_streaming_to,
+                      packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+      } else if(!rimeaddr_cmp
+                (&is_streaming_to, packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {
+        rimeaddr_copy(&is_streaming_to_too,
+                      packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+      }
+      stream_until = RTIMER_NOW() + DEFAULT_STREAM_TIME;
+    }
+  }
+
+  if(!is_broadcast && !is_streaming) {
+#if WITH_PHASE_OPTIMIZATION
+    if(WITH_ACK_OPTIMIZATION) {
+      /* Wait until the receiver is expected to be awake */
+      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
+         PACKETBUF_ATTR_PACKET_TYPE_ACK) {
+        
+        ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                         CYCLE_TIME, 7 * CHECK_TIME,
+                         mac_callback, mac_callback_ptr);
+        if(ret == PHASE_DEFERRED) {
+          return MAC_TX_DEFERRED;
+        }
+        if(ret != PHASE_UNKNOWN) {
+          is_known_receiver = 1;
+        }
+      }
+    } else {
+      ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                       CYCLE_TIME, 7 * CHECK_TIME,
+                       mac_callback, mac_callback_ptr);
+      if(ret == PHASE_DEFERRED) {
+        return MAC_TX_DEFERRED;
+      }
+      if(ret != PHASE_UNKNOWN) {
+        is_known_receiver = 1;
+      }
+    }
+#endif /* WITH_PHASE_OPTIMIZATION */ 
+  }
+  
+  /* Make sure that the packet is longer or equal to the shorest
+     packet length. */
+  if(packetbuf_totlen() < SHORTEST_PACKET_SIZE) {
+    PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
+    packetbuf_set_datalen(SHORTEST_PACKET_SIZE);
+  }
+
+  /* Create the MAC header for the data packet. */
   len = NETSTACK_FRAMER.create();
   if(len == 0) {
     /* Failed to send */
@@ -564,24 +555,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 
   NETSTACK_RADIO.prepare(packetbuf_hdrptr(), packetbuf_totlen());
   transmit_len = packetbuf_totlen();
-
-  
-#if WITH_STREAMING
-  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
-     PACKETBUF_ATTR_PACKET_TYPE_STREAM) {
-    is_streaming = 1;
-    if(rimeaddr_cmp(&is_streaming_to, &rimeaddr_null)) {
-      rimeaddr_copy(&is_streaming_to,
-                    packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-    } else
-      if(!rimeaddr_cmp
-         (&is_streaming_to, packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {
-      rimeaddr_copy(&is_streaming_to_too,
-                    packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-    }
-    stream_until = RTIMER_NOW() + DEFAULT_STREAM_TIME;
-  }
-#endif /* WITH_STREAMING */
 
 
   /* By setting we_are_sending to one, we ensure that the rtimer
@@ -644,6 +617,11 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     return MAC_TX_COLLISION;
   }
 
+  if(!is_broadcast) {
+    on();
+  }
+  
+  
   t0 = RTIMER_NOW();
   t = RTIMER_NOW();
 #if NURTIMER
@@ -655,7 +633,11 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
       got_strobe_ack == 0 && collisions == 0 &&
       RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + STROBE_TIME); strobes++) {
 #endif
-
+    
+    if(is_known_receiver && strobes > MAX_PHASE_STROBES) {
+      break;
+    }
+    
     /* Let the watchdog know we are still alive. */
     watchdog_periodic();
     
@@ -664,22 +646,14 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     t = RTIMER_NOW();
     
     
-    /*if(is_broadcast) {
-      NETSTACK_RADIO.transmit(transmit_len);
-      off();b
-      } else*/ {
+    {
       rtimer_clock_t wt;
       rtimer_clock_t now = RTIMER_NOW();
-
+      
       leds_on(LEDS_RED);
       NETSTACK_RADIO.transmit(transmit_len);
       leds_off(LEDS_RED);
-      if(!is_broadcast) {
-        on();
-      }
-      /* Turn off the radio for a while to let the other side
-         respond. We don't need to keep our radio on when we know
-         that the other side needs some time to produce a reply. */
+      
       wt = RTIMER_NOW();
 #if NURTIMER
       while(RTIMER_CLOCK_LT(wt, RTIMER_NOW(), wt + INTER_PACKET_INTERVAL));
@@ -699,46 +673,35 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
         len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
         if(len == ACK_LEN) {
           got_strobe_ack = 1;
-          encounter_time = now;
-          packet_indication_flag = 0;
+          encounter_time = last_transmission_time;
+          break;
         } else {
           PRINTF("contikimac: collisions while sending\n");
-          packet_indication_flag = 0;
           collisions++;
         }
-      } else {
       }
+      last_transmission_time = now;
+      first_transmission = 0;
     }
   }
 
-#if WITH_ACK_OPTIMIZATION
-  /* If we have received the strobe ACK, and we are sending a packet
-     that will need an upper layer ACK (as signified by the
-     PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
-  if(got_strobe_ack && is_reliable) {
-    on();                       /* Wait for ACK packet */
+  if(WITH_ACK_OPTIMIZATION) {
+    /* If we have received the strobe ACK, and we are sending a packet
+       that will need an upper layer ACK (as signified by the
+       PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
+    if(got_strobe_ack && is_reliable) {
+      on();                       /* Wait for ACK packet */
+    } else {
+      off();
+    }
   } else {
     off();
   }
-#else /* WITH_ACK_OPTIMIZATION */
-  off();
-#endif /* WITH_ACK_OPTIMIZATION */
 
-#if WITH_PHASE_OPTIMIZATION
-#if WITH_ACK_OPTIMIZATION
-  if(got_strobe_ack && packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
-     PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
-    phase_register(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time);
-  }
-#else /* WITH_ACK_OPTIMIZATION */
-  if(got_strobe_ack && is_streaming == 0) {
-    phase_register(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time);
-  }
-#endif /* WITH_ACK_OPTIMIZATION */
-#endif /* WITH_PHASE_OPTIMIZATION */
-
-  PRINTF("contikimac: send (strobes=%u,len=%u,%s), done\n", strobes,
-         packetbuf_totlen(), got_strobe_ack ? "ack" : "no ack");
+  PRINTF("contikimac: send (strobes=%u, len=%u, %s, %s), done\n", strobes,
+         packetbuf_totlen(),
+         got_strobe_ack ? "ack" : "no ack",
+         collisions ? "collision" : "no collision");
 
 #if CONTIKIMAC_CONF_COMPOWER
   /* Accumulate the power consumption for the packet transmission. */
@@ -757,15 +720,37 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 
   we_are_sending = 0;
 
+  /* Determine the return value that we will return from the
+     function. We must pass this value to the phase module before we
+     return from the function.  */
   if(collisions > 0) {
-    return MAC_TX_COLLISION;
+    ret = MAC_TX_COLLISION;
   }
   
   if(!is_broadcast && !got_strobe_ack) {
-    return MAC_TX_NOACK;
+    ret = MAC_TX_NOACK;
   } else {
-    return MAC_TX_OK;
+    ret = MAC_TX_OK;
   }
+
+#if WITH_PHASE_OPTIMIZATION
+  if(!first_transmission) {
+    if(WITH_ACK_OPTIMIZATION) {
+      if(collisions == 0 && packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
+         PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
+        phase_update(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time,
+                     ret);
+      }
+    } else {
+      if(collisions == 0 && is_streaming == 0) {
+        phase_update(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time,
+                     ret);
+      }
+    }
+  }
+#endif /* WITH_PHASE_OPTIMIZATION */
+
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -783,8 +768,6 @@ input_packet(void)
   /* We have received the packet, so we can go back to being
      asleep. */
   off();
-
-  packet_indication_flag = 0;
 
   if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse()) {
     
@@ -954,10 +937,6 @@ const struct rdc_driver contikimac_driver = {
 uint16_t
 contikimac_debug_print(void)
 {
-  int i;
-  for(i = 0; i < LATEST_CCA_CHECKS_NUM; ++i) {
-    printf("%d: %d, %d\n", i, cca_checks[i].check[0], cca_checks[i].check[1]);
-  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/

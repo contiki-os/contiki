@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.h,v 1.2 2010/02/28 20:19:47 adamdunkels Exp $
+ * $Id: phase.h,v 1.3 2010/03/14 22:59:23 adamdunkels Exp $
  */
 
 /**
@@ -51,6 +51,7 @@ struct phase {
   struct phase *next;
   rimeaddr_t neighbor;
   rtimer_clock_t time;
+  uint8_t noacks;
 };
 
 struct phase_list {
@@ -59,6 +60,7 @@ struct phase_list {
 };
 
 typedef enum {
+  PHASE_UNKNOWN,
   PHASE_SEND_NOW,
   PHASE_DEFERRED,
 } phase_status_t;
@@ -72,8 +74,8 @@ void phase_init(struct phase_list *list);
 phase_status_t phase_wait(struct phase_list *list,  const rimeaddr_t *neighbor,
                           rtimer_clock_t cycle_time, rtimer_clock_t wait_before,
                           mac_callback_t mac_callback, void *mac_callback_ptr);
-void phase_register(const struct phase_list *list, const rimeaddr_t * neighbor,
-                    rtimer_clock_t time);
+void phase_update(const struct phase_list *list, const rimeaddr_t * neighbor,
+                  rtimer_clock_t time, int mac_status);
 
 
 #endif /* PHASE_H */
