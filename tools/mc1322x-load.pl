@@ -31,8 +31,9 @@ if($filename eq '') {
     print "       -s optional: secondary binary file to send\n";
     print "       -t default: /dev/ttyUSB0\n";
     print "       -b default: 115200\n";
-    print "  anything on the command line is sent serial device\n";
-    print "  after all of the files have been sent\n";
+    print "       -r [none|rts] flow control default: rts\n";
+    print "  anything on the command line is sent\n";
+    print "  after all of the files.\n";
     exit;
 }
 
