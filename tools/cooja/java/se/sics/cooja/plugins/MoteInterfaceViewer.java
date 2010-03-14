@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceViewer.java,v 1.8 2010/01/15 10:54:42 fros4943 Exp $
+ * $Id: MoteInterfaceViewer.java,v 1.9 2010/03/14 19:50:34 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -115,7 +115,7 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp, Mote
         interfacePanel.removeAll();
         String interfaceDescription = (String) selectInterfaceComboBox.getSelectedItem();
         selectedMoteInterface = null;
-        Vector<MoteInterface> intfs = mote.getInterfaces().getInterfaces();
+        Collection<MoteInterface> intfs = mote.getInterfaces().getInterfaces();
         for (MoteInterface intf : intfs) {
           if (GUI.getDescriptionOf(intf).equals(interfaceDescription)) {
             selectedMoteInterface = intf;
