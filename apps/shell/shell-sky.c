@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.15 2010/02/18 20:56:12 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.16 2010/03/14 19:54:00 fros4943 Exp $
  */
 
 /**
@@ -46,10 +46,10 @@
 #include "net/rime.h"
 #include "dev/cc2420.h"
 #include "dev/leds.h"
+#include "dev/sht11.h"
 #include "dev/light-sensor.h"
 #include "dev/battery-sensor.h"
-#include "dev/sht11.h"
-
+#include "dev/sht11-sensor.h"
 #include "net/rime/timesynch.h"
 
 #include "node-id.h"
@@ -141,6 +141,10 @@ PROCESS_THREAD(shell_sense_process, ev, data)
   struct sense_msg msg;
   PROCESS_BEGIN();
 
+  SENSORS_ACTIVATE(light_sensor);
+  SENSORS_ACTIVATE(battery_sensor);
+  SENSORS_ACTIVATE(sht11_sensor);
+
   msg.len = 7;
   msg.clock = clock_time();
 #if TIMESYNCH_CONF_ENABLED
@@ -148,12 +152,18 @@ PROCESS_THREAD(shell_sense_process, ev, data)
 #else /* TIMESYNCH_CONF_ENABLED */
   msg.timesynch_time = 0;
 #endif /* TIMESYNCH_CONF_ENABLED */
-  msg.light1 = light_sensor.value(0);
-  msg.light2 = light_sensor.value(1);
-  msg.temp = sht11_temp();
-  msg.humidity = sht11_humidity();
+  msg.light1 = light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);
+  msg.light2 = light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR);
+  msg.temp = sht11_sensor.value(SHT11_SENSOR_TEMP);
+  msg.humidity = sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
   msg.rssi = do_rssi();
   msg.voltage = battery_sensor.value(0);
+
+  msg.rssi = do_rssi();
+
+  SENSORS_DEACTIVATE(light_sensor);
+  SENSORS_DEACTIVATE(battery_sensor);
+  SENSORS_DEACTIVATE(sht11_sensor);
 
   shell_output(&sense_command, &msg, sizeof(msg), "", 0);
   PROCESS_END();
