@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceHandler.java,v 1.8 2009/04/20 16:13:11 fros4943 Exp $
+ * $Id: MoteInterfaceHandler.java,v 1.9 2010/03/14 19:50:34 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -50,7 +50,7 @@ import se.sics.cooja.interfaces.*;
 public class MoteInterfaceHandler {
   private static Logger logger = Logger.getLogger(MoteInterfaceHandler.class);
 
-  private Vector<MoteInterface> allInterfaces = new Vector<MoteInterface>();
+  private ArrayList<MoteInterface> moteInterfaces = new ArrayList<MoteInterface>();
 
   /* Cached interfaces */
   private Battery myBattery;
@@ -104,12 +104,29 @@ public class MoteInterfaceHandler {
    * @return Mote interface, or null if no interface exists of given type
    */
   public <N extends MoteInterface> N getInterfaceOfType(Class<N> interfaceType) {
-    for (MoteInterface intf : allInterfaces) {
+    for (MoteInterface intf : moteInterfaces) {
       if (interfaceType.isAssignableFrom(intf.getClass())) {
         return (N) intf;
       }
     }
 
+    return null;
+  }
+
+  /**
+   * Returns the first interface with a class name that ends with the given arguments.
+   * Example: mote.getInterfaces().get("Temperature");
+   * 
+   * @param <N>
+   * @param classname
+   * @return
+   */
+  public MoteInterface get(String classname) {
+    for (MoteInterface intf : moteInterfaces) {
+      if (intf.getClass().getName().endsWith(classname)) {
+        return intf;
+      }
+    }
     return null;
   }
 
@@ -261,7 +278,7 @@ public class MoteInterfaceHandler {
   public void doActiveActionsBeforeTick() {
     if (polledBeforeActive == null) {
       ArrayList<PolledBeforeActiveTicks> intfs = new ArrayList<PolledBeforeActiveTicks>();
-      for (MoteInterface intf: allInterfaces) {
+      for (MoteInterface intf: moteInterfaces) {
         if (intf instanceof PolledBeforeActiveTicks) {
           intfs.add((PolledBeforeActiveTicks)intf);
         }
@@ -280,7 +297,7 @@ public class MoteInterfaceHandler {
   public void doActiveActionsAfterTick() {
     if (polledAfterActive == null) {
       ArrayList<PolledAfterActiveTicks> intfs = new ArrayList<PolledAfterActiveTicks>();
-      for (MoteInterface intf: allInterfaces) {
+      for (MoteInterface intf: moteInterfaces) {
         if (intf instanceof PolledAfterActiveTicks) {
           intfs.add((PolledAfterActiveTicks)intf);
         }
@@ -299,7 +316,7 @@ public class MoteInterfaceHandler {
   public void doPassiveActionsBeforeTick() {
     if (polledBeforeAll == null) {
       ArrayList<PolledBeforeAllTicks> intfs = new ArrayList<PolledBeforeAllTicks>();
-      for (MoteInterface intf: allInterfaces) {
+      for (MoteInterface intf: moteInterfaces) {
         if (intf instanceof PolledBeforeAllTicks) {
           intfs.add((PolledBeforeAllTicks)intf);
         }
@@ -318,7 +335,7 @@ public class MoteInterfaceHandler {
   public void doPassiveActionsAfterTick() {
     if (polledAfterAll == null) {
       ArrayList<PolledAfterAllTicks> intfs = new ArrayList<PolledAfterAllTicks>();
-      for (MoteInterface intf: allInterfaces) {
+      for (MoteInterface intf: moteInterfaces) {
         if (intf instanceof PolledAfterAllTicks) {
           intfs.add((PolledAfterAllTicks)intf);
         }
@@ -334,8 +351,8 @@ public class MoteInterfaceHandler {
   /**
    * @return Mote interfaces
    */
-  public Vector<MoteInterface> getInterfaces() {
-    return allInterfaces;
+  public Collection<MoteInterface> getInterfaces() {
+    return moteInterfaces;
   }
 
   /**
@@ -348,7 +365,7 @@ public class MoteInterfaceHandler {
    * @see PolledAfterAllTicks
    */
   public void addInterface(MoteInterface intf) {
-    allInterfaces.add(intf);
+    moteInterfaces.add(intf);
 
     polledBeforeActive = null;
     polledAfterActive = null;
@@ -357,6 +374,6 @@ public class MoteInterfaceHandler {
   }
 
   public String toString() {
-    return "Mote interfaces handler (" + allInterfaces.size() + " mote interfaces)";
+    return "Mote interfaces handler (" + moteInterfaces.size() + " mote interfaces)";
   }
 }
