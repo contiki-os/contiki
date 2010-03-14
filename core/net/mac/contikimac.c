@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.10 2010/03/09 20:37:02 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.11 2010/03/14 12:13:54 oliverschmidt Exp $
  */
 
 /**
@@ -682,11 +682,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
          that the other side needs some time to produce a reply. */
       wt = RTIMER_NOW();
 #if NURTIMER
-      while(RTIMER_CLOCK_LT
-            (wt, RTIMER_NOW(), wt + INTER_PACKET_INTERVAL));
+      while(RTIMER_CLOCK_LT(wt, RTIMER_NOW(), wt + INTER_PACKET_INTERVAL));
 #else
-      while(RTIMER_CLOCK_LT
-            (RTIMER_NOW(), wt + INTER_PACKET_INTERVAL)) { }
+      while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + INTER_PACKET_INTERVAL)) { }
 #endif
       if(!is_broadcast && (NETSTACK_RADIO.receiving_packet() ||
                            NETSTACK_RADIO.pending_packet() ||
@@ -694,11 +692,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
         uint8_t ackbuf[ACK_LEN];
         wt = RTIMER_NOW();
 #if NURTIMER
-        while(RTIMER_CLOCK_LT
-              (wt, RTIMER_NOW(), wt + AFTER_ACK_DETECTECT_WAIT_TIME));
+        while(RTIMER_CLOCK_LT(wt, RTIMER_NOW(), wt + AFTER_ACK_DETECTECT_WAIT_TIME));
 #else
-        while(RTIMER_CLOCK_LT
-              (RTIMER_NOW(), wt + AFTER_ACK_DETECTECT_WAIT_TIME)) { }
+        while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + AFTER_ACK_DETECTECT_WAIT_TIME)) { }
 #endif
         len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
         if(len == ACK_LEN) {
