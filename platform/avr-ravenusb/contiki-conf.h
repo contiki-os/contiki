@@ -106,6 +106,9 @@ typedef int32_t s32_t;
 #define UIP_CONF_TCP_SPLIT       1
 
 #define UIP_CONF_STATISTICS      1
+#define USB_CONF_CDC             1
+#define USB_CONF_STORAGE         1
+//#define USB_CONF_RS232           1
 
 #ifdef RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
@@ -134,7 +137,7 @@ typedef int32_t s32_t;
 #define RF230_CONF_AUTOACK        0
 #define RF230_CONF_AUTORETRIES    0
 
-#elif 0
+#elif 1
 /* cx-mac radio cycling */
 #define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define NETSTACK_CONF_MAC         nullmac_driver
@@ -145,8 +148,8 @@ typedef int32_t s32_t;
 #define RF230_CONF_AUTORETRIES    0
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
 #define SICSLOWPAN_CONF_FRAG      1
-#define QUEUEBUF_CONF_NUM         4
-#define QUEUEBUF_CONF_REF_NUM     2
+#define QUEUEBUF_CONF_NUM         3
+#define QUEUEBUF_CONF_REF_NUM     1
 #define SICSLOWPAN_CONF_MAXAGE    5
 //following gives 50% duty cycle, undef for default 5%
 #define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 16)
