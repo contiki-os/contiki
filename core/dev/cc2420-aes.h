@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420-aes.h,v 1.2 2008/07/02 09:02:39 nifi Exp $
+ * $Id: cc2420-aes.h,v 1.3 2010/03/15 23:04:54 nifi Exp $
  */
 
 /**
@@ -56,7 +56,7 @@
  *             index is given by the 'index' parameter.
  *
  */
-void cc2420_aes_set_key(uint8_t *key, int index);
+void cc2420_aes_set_key(const uint8_t *key, int index);
 
 
 /**
