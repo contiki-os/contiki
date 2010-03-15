@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.24 2010/03/10 10:11:36 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.25 2010/03/15 19:22:03 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -325,19 +325,51 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     return 31;
   }
 
+  /**
+   * Current received signal strength.
+   * May differ from CC2420's internal value which is an average of the last 8 symbols.
+   */
   double currentSignalStrength = 0;
+
+  /**
+   * Last 8 received signal strengths
+   */
+  private double[] rssiLast = new double[8];
+  private int rssiLastCounter = 0;
+
   public double getCurrentSignalStrength() {
     return currentSignalStrength;
   }
 
   public void setCurrentSignalStrength(final double signalStrength) {
+    if (signalStrength == currentSignalStrength) {
+      return; /* ignored */
+    }
     currentSignalStrength = signalStrength;
-    getMote().getSimulation().scheduleEvent(new MspMoteTimeEvent(mote, 0) {
-      public void execute(long t) {
-        super.execute(t);
-        cc2420.setRSSI((int) signalStrength);
-      }        
-    }, mote.getSimulation().getSimulationTime());
+    if (rssiLastCounter == 0) {
+      getMote().getSimulation().scheduleEvent(new MspMoteTimeEvent(mote, 0) {
+        public void execute(long t) {
+          super.execute(t);
+
+          /* Update average */
+          System.arraycopy(rssiLast, 1, rssiLast, 0, 7);
+          rssiLast[7] = currentSignalStrength;
+          double avg = 0;
+          for (double v: rssiLast) {
+            avg += v;
+          }
+          avg /= rssiLast.length;
+
+          cc2420.setRSSI((int) avg);
+          
+          rssiLastCounter--;
+          if (rssiLastCounter > 0) {
+            mote.getSimulation().scheduleEvent(this, t+DELAY_BETWEEN_BYTES/2);
+          }
+        }        
+      }, mote.getSimulation().getSimulationTime());
+    }
+    rssiLastCounter = 8;
   }
 
   public JPanel getInterfaceVisualizer() {
