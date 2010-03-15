@@ -26,7 +26,7 @@
    * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
    * SUCH DAMAGE.
    *
-   * $Id: SerialUI.java,v 1.3 2010/02/05 09:07:58 fros4943 Exp $
+   * $Id: SerialUI.java,v 1.4 2010/03/15 22:04:26 fros4943 Exp $
    */
 
 package se.sics.cooja.dialogs;
@@ -61,6 +61,8 @@ import se.sics.cooja.plugins.SLIP;
 
 public abstract class SerialUI extends Log implements SerialPort {
   private static Logger logger = Logger.getLogger(SerialUI.class);
+
+  private final static int MAX_LENGTH = 1024;
 
   private String lastLogMessage = "";
   private StringBuilder newMessage = new StringBuilder();
@@ -324,6 +326,10 @@ public abstract class SerialUI extends Log implements SerialPort {
         this.notifyObservers(getMote());
       } else {
         newMessage.append((char) data);
+        if (newMessage.length() > MAX_LENGTH) {
+          logger.warn("Dropping too large log message (>" + MAX_LENGTH + " bytes).");
+          newMessage.setLength(0);
+        }
       }
       lastSerialData = (byte) data;
       serialDataObservable.notifyNewData();
