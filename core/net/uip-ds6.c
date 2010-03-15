@@ -46,7 +46,7 @@
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
