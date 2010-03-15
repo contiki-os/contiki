@@ -70,29 +70,29 @@ void Print_Packets(char *s) {
 	int i = 0;
 	printf("packet pool after %s:\n\r",s);
 	p = free_head;	
-	printf("free_head: 0x%x ", (uint32_t) free_head);
+	printf("free_head: 0x%lx ", (uint32_t) free_head);
 	while(p != 0) {
 		i++;
 		p = p->left;
-		printf("->0x%x", (uint32_t) p);
+		printf("->0x%lx", (uint32_t) p);
 	}
 	printf("\n\r");
 
 	p = tx_head;
-	printf("tx_head: 0x%x ", (uint32_t) tx_head);
+	printf("tx_head: 0x%lx ", (uint32_t) tx_head);
 	while(p != 0) {
 		i++;
 		p = p->left;
-		printf("->0x%x", (uint32_t) p);
+		printf("->0x%lx", (uint32_t) p);
 	}
 	printf("\n\r");
 
 	p = rx_head;
-	printf("rx_head: 0x%x ", (uint32_t) rx_head);
+	printf("rx_head: 0x%lx ", (uint32_t) rx_head);
 	while(p != 0) {
 		i++;
 		p = p->left;
-		printf("->0x%x", (uint32_t) p);
+		printf("->0x%lx", (uint32_t) p);
 	}
 	printf("\n\r");
 	printf("found %d packets\n\r",i);

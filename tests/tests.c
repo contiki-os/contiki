@@ -35,9 +35,9 @@ void dump_regs(uint32_t base, uint32_t len) {
 	printf("base +0       +4       +8       +c       +10      +14      +18      +1c      \n\r");
 	for (i = 0; i < len; i ++) {
 		if ((i & 7) == 0) {
-			printf("%02x",(uint32_t)(4 * i));
+			printf("%02lx",(uint32_t)(4 * i));
 		}
-		printf(" %08x",(uint32_t)*mem32(base+(4*i)));
+		printf(" %08lx",(uint32_t)*mem32(base+(4*i)));
 		if ((i & 7) == 7)
 			printf(NL);
 	}
