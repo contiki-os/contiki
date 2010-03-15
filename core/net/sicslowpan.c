@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.27 2010/03/12 13:40:13 nvt-se Exp $
+ * $Id: sicslowpan.c,v 1.28 2010/03/15 16:41:24 joxe Exp $
  */
 /**
  * \file
@@ -62,7 +62,7 @@
 #include "dev/watchdog.h"
 #include "net/tcpip.h"
 #include "net/uip.h"
-#include "net/uip-netif.h"
+#include "net/uip-ds6.h"
 #include "net/rime.h"
 #include "net/sicslowpan.h"
 #include "net/neighbor-info.h"
@@ -753,8 +753,8 @@ uncompress_hdr_hc06(u16_t ip_len) {
       /* copy prefix from context */
       memcpy(&SICSLOWPAN_IP_BUF->srcipaddr, context->prefix, 8);
       /* infer IID from L2 address */
-      uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->srcipaddr,
-                                  (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->srcipaddr,
+			   (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
       break;
     }
     /* end context based compression */
@@ -790,8 +790,8 @@ uncompress_hdr_hc06(u16_t ip_len) {
       /* copy 12 NULL bytes then 8 last bytes from L2 */
       memset(&SICSLOWPAN_IP_BUF->srcipaddr.u8[2], 0, 6);
       /* infer IID from L2 address */
-      uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->srcipaddr,
-                                  (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->srcipaddr,
+			   (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
       break;
     }
   }
@@ -866,8 +866,8 @@ uncompress_hdr_hc06(u16_t ip_len) {
       case SICSLOWPAN_IPHC_DAM_11: /* 0 bits */
 	/* unicast address */
 	memcpy(&SICSLOWPAN_IP_BUF->destipaddr, context->prefix, 8);
-	uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->destipaddr,
-				    (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+	uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->destipaddr,
+			 (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
 	break;
       }      
     } else {
@@ -895,8 +895,8 @@ uncompress_hdr_hc06(u16_t ip_len) {
 	SICSLOWPAN_IP_BUF->destipaddr.u8[0] = 0xfe;
 	SICSLOWPAN_IP_BUF->destipaddr.u8[1] = 0x80;
 	memset(&SICSLOWPAN_IP_BUF->destipaddr.u8[2], 0, 6);
-	uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->destipaddr,
-				    (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+	uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->destipaddr,
+			     (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
 	break;
       }
     }
@@ -1145,11 +1145,11 @@ uncompress_hdr_hc1(u16_t ip_len) {
   
   /* src and dest ip addresses */
   uip_ip6addr(&SICSLOWPAN_IP_BUF->srcipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
-  uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->srcipaddr,
-                              (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+  uip_sd6_set_addr_iid(&SICSLOWPAN_IP_BUF->srcipaddr,
+		       (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
   uip_ip6addr(&SICSLOWPAN_IP_BUF->destipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
-  uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->destipaddr,
-                              (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+  uip_sd6_set_addr_iid(&SICSLOWPAN_IP_BUF->destipaddr,
+		       (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   
   uncomp_hdr_len += UIP_IPH_LEN;
   
