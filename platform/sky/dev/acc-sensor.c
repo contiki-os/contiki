@@ -26,17 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: acc-sensor.c,v 1.6 2010/01/14 20:01:18 nifi Exp $
+ * $Id: acc-sensor.c,v 1.7 2010/03/15 23:37:01 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:01:18 $
- *           $Revision: 1.6 $
+ * Updated : $Date: 2010/03/15 23:37:01 $
+ *           $Revision: 1.7 $
  */
 
 #include "dev/acc-sensor.h"
+#include "dev/sky-sensors.h"
 #include <io.h>
 
 const struct sensors_sensor acc_sensor;
@@ -46,22 +47,16 @@ static uint8_t active;
 static void
 activate(void)
 {
-  /* This assumes that some other sensor system already did setup the ADC */
-  /* (in the case of the sky platform it is sensors_light_init that does it) */
-
-  P6SEL |= 0x70;
-  P6DIR = 0x00;
-  P6OUT = 0x00;
-
   P2DIR |= 0x48;
   P2OUT |= 0x48;
-
 
   /* stop converting immediately */
   ADC12CTL0 &= ~ENC;
   ADC12CTL1 &= ~CONSEQ_3;
 
-  /* Configure ADC12_2 to sample channel 11 (voltage) and use */
+  while(ADC12CTL1 & ADC12BUSY);
+
+  /* Configure ADC12_2 to sample channel 4, 5, 6 and use */
   /* the Vref+ as reference (SREF_1) since it is a stable reference */
   ADC12MCTL2 = (INCH_4 + SREF_1);
   ADC12MCTL3 = (INCH_5 + SREF_1);
@@ -69,18 +64,14 @@ activate(void)
   /* internal temperature can be read as value(3) */
   ADC12MCTL5 = (INCH_10 + SREF_1);
 
-  ADC12CTL1 |= CONSEQ_3;
-  ADC12CTL0 |= ENC | ADC12SC;
-
-  /*  Irq_adc12_activate(&acc_sensor, 6, (INCH_11 + SREF_1)); */
   active = 1;
+  sky_sensors_activate(0x70);
 }
 /*---------------------------------------------------------------------------*/
 static void
 deactivate(void)
 {
-  /*  irq_adc12_deactivate(&acc_sensor, 6);
-      acc_value = 0;*/
+  sky_sensors_deactivate(0x70);
   active = 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -106,8 +97,10 @@ configure(int type, int c)
   switch(type) {
   case SENSORS_ACTIVE:
     if (c) {
-      activate();
-    } else {
+      if(!active) {
+        activate();
+      }
+    } else if(active) {
       deactivate();
     }
   }
