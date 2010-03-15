@@ -42,7 +42,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  *
- * $Id: stimer.c,v 1.2 2008/11/05 19:34:36 nvt-se Exp $
+ * $Id: stimer.c,v 1.3 2010/03/15 15:53:57 joxe Exp $
  */
 
 #include "contiki-conf.h"
@@ -142,6 +142,23 @@ stimer_remaining(struct stimer *t)
 {
   return t->start + t->interval - clock_seconds();
 }
+/*---------------------------------------------------------------------------*/
+/**
+ * The time elapsed since the timer started
+ *
+ * This function returns the time elapsed.
+ *
+ * \param t A pointer to the timer
+ *
+ * \return The time elapsed since the last start of the timer
+ *
+ */
+unsigned long
+stimer_elapsed(struct stimer *t)
+{
+  return clock_seconds() - t->start;
+}
+
 /*---------------------------------------------------------------------------*/
 
 /** @} */

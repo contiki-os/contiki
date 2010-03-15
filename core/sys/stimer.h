@@ -64,7 +64,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  *
- * $Id: stimer.h,v 1.3 2009/03/01 09:31:43 adamdunkels Exp $
+ * $Id: stimer.h,v 1.4 2010/03/15 15:53:57 joxe Exp $
  */
 #ifndef __STIMER_H__
 #define __STIMER_H__
@@ -89,6 +89,7 @@ void stimer_reset(struct stimer *t);
 void stimer_restart(struct stimer *t);
 int stimer_expired(struct stimer *t);
 unsigned long stimer_remaining(struct stimer *t);
+unsigned long stimer_elapsed(struct stimer *t);
 
 
 #endif /* __STIMER_H__ */
