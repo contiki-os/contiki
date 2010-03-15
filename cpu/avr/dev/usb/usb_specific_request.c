@@ -109,7 +109,7 @@ Bool usb_user_read_request(U8 type, U8 request)
 				return get_encapsulated_command();
       			break;
 
-
+#if USB_CONF_STORAGE
         case MASS_STORAGE_RESET:
          		Usb_ack_receive_setup();
          		Usb_send_control_in();
@@ -124,8 +124,9 @@ Bool usb_user_read_request(U8 type, U8 request)
          		ms_multiple_drive = 1;
          		return TRUE;
          		break;
+#endif /* USB_CONF_STORAGE */
 
-	
+#if USB_CONF_CDC	
 	/* We don't have a real serial port - so these aren't applicable. We
 	   advertise that we support nothing, so shouldn't get them anyway */
 		case GET_LINE_CODING:
@@ -142,6 +143,7 @@ Bool usb_user_read_request(U8 type, U8 request)
 				cdc_set_control_line_state();
       			return TRUE;
       			break;
+#endif /* USB_CONF_CDC */
      	default:
 				break;
 
@@ -315,7 +317,7 @@ void usb_user_endpoint_init(U8 conf_nb)
 
 }
 
-
+#if USB_CONF_CDC
 /******************** Virtual Serial Port ************************/
 
 extern S_line_coding   line_coding;
@@ -377,4 +379,4 @@ void cdc_set_control_line_state (void)
 	Usb_send_control_in();
   	while(!(Is_usb_read_control_enabled()));
 }
-
+#endif /* USB_CONF_CDC */

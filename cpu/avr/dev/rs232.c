@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.5 2009/03/17 20:32:22 adamdunkels Exp $
+ * @(#)$Id: rs232.c,v 1.6 2010/03/15 18:52:55 dak664 Exp $
  */
 
 #include <stdio.h>
@@ -80,10 +80,6 @@ static rs232_t rs232_ports[2] = {
     NULL
   }
 };
-#else
-#error Please define the UART registers for your MCU!
-#endif
-
 /*---------------------------------------------------------------------------*/
 ISR(USART0_TX_vect)
 {
@@ -101,7 +97,6 @@ ISR(USART0_RX_vect)
     rs232_ports[RS232_PORT_0].input_handler(c);
   }
 }
-
 /*---------------------------------------------------------------------------*/
 ISR(USART1_TX_vect)
 {
@@ -119,6 +114,50 @@ ISR(USART1_RX_vect)
     rs232_ports[RS232_PORT_1].input_handler(c);
   }
 }
+
+#elif defined (__AVR_AT90USB1287__)
+/* Has only UART1, map it to port 0 */
+typedef struct {
+  volatile uint8_t * UDR;
+  volatile uint8_t * UBRRH;
+  volatile uint8_t * UBRRL;
+  volatile uint8_t * UCSRB;
+  volatile uint8_t * UCSRC;
+  volatile uint8_t txwait;
+  int (* input_handler)(unsigned char);
+} rs232_t;
+
+static rs232_t rs232_ports[1] = {
+  {  // UART1
+    &UDR1,
+    &UBRR1H,
+    &UBRR1L,
+    &UCSR1B,
+    &UCSR1C,
+    0,
+    NULL
+  }
+};
+/*---------------------------------------------------------------------------*/
+ISR(USART1_TX_vect)
+{
+  rs232_ports[RS232_PORT_0].txwait = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+ISR(USART1_RX_vect)
+{
+  unsigned char c;
+
+  c = *(rs232_ports[RS232_PORT_0].UDR);
+
+  if(rs232_ports[RS232_PORT_0].input_handler != NULL) {
+    rs232_ports[RS232_PORT_0].input_handler(c);
+  }
+}
+#else
+#error Please define the UART registers for your MCU!
+#endif
 
 /*---------------------------------------------------------------------------*/
 void

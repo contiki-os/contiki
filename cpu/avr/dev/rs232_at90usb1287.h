@@ -41,20 +41,104 @@
 
 #ifndef __RS232_AT90USB1287__
 #define __RS232_AT90USB1287__
+
 /******************************************************************************/
 /***   Includes                                                               */
 /******************************************************************************/
 #include <avr/io.h>
 
 /******************************************************************************/
-/***   RS232 ports                                                            */
+/***   RS232 ports  - Has only UART1, map it into port 0                      */
 /******************************************************************************/
 #define RS232_PORT_0 0
-#define RS232_PORT_1 1
 
 /******************************************************************************/
 /***   Baud rates                                                             */
 /******************************************************************************/
+#if MCU_MHZ == 16
+/* Single speed operation (U2X = 0)*/
+#warning 16MHz
+#define USART_BAUD_2400 416
+#define USART_BAUD_4800 207
+#define USART_BAUD_9600 103
+#define USART_BAUD_14400 68
+#define USART_BAUD_19200 51
+#define USART_BAUD_28800 34
+#define USART_BAUD_38400 25
+#define USART_BAUD_57600 16
+#define USART_BAUD_76800 12
+#define USART_BAUD_115200 8
+#define USART_BAUD_230400 3
+#define USART_BAUD_250000 3
+#define USART_BAUD_500000 1
+#define USART_BAUD_1000000 0
+#elif MCU_MHZ == 8
+/* Single speed operation (U2X = 0)*/
+#define USART_BAUD_2400 207
+#define USART_BAUD_4800 103
+#define USART_BAUD_9600 51
+#define USART_BAUD_14400 34
+#define USART_BAUD_19200 25
+#define USART_BAUD_28800 16
+#define USART_BAUD_38400 12
+#define USART_BAUD_57600 8
+#define USART_BAUD_76800 6
+#define USART_BAUD_115200 3
+#define USART_BAUD_230400 1
+#define USART_BAUD_250000 1
+#define USART_BAUD_500000 0
+#else
+#error "Please define the baud rates for your CPU clock: ATmega128 handbook p. \
+195-198 or set the rate in contiki-conf.h"
+#endif
+
+
+/******************************************************************************/
+/***   Interrupt settings                                                     */
+/******************************************************************************/
+#define USART_INTERRUPT_RX_COMPLETE _BV (RXCIE1)
+#define USART_INTERRUPT_TX_COMPLETE _BV (TXCIE1)
+#define USART_INTERRUPT_DATA_REG_EMPTY _BV (UDRIE1)
+
+/******************************************************************************/
+/***   Receiver / transmitter                                                 */
+/******************************************************************************/
+#define USART_RECEIVER_ENABLE _BV (RXEN1)
+#define USART_TRANSMITTER_ENABLE _BV (TXEN1)
+
+/******************************************************************************/
+/***   Mode select                                                            */
+/******************************************************************************/
+#define USART_MODE_ASYNC 0x00
+#define USART_MODE_SYNC _BV (UMSEL00)
+
+/******************************************************************************/
+/***   Parity                                                                 */
+/******************************************************************************/
+#define USART_PARITY_NONE 0x00
+#define USART_PARITY_EVEN _BV (UPM01)
+#define USART_PARITY_ODD  _BV (UPM01) | _BV (UPM00)
+
+/******************************************************************************/
+/***   Stop bits                                                              */
+/******************************************************************************/
+#define USART_STOP_BITS_1 0x00
+#define USART_STOP_BITS_2 _BV (USBS)
+
+/******************************************************************************/
+/***   Character size                                                         */
+/******************************************************************************/
+#define USART_DATA_BITS_5 0x00
+#define USART_DATA_BITS_6 _BV (UCSZ10)
+#define USART_DATA_BITS_7 _BV (UCSZ11)
+#define USART_DATA_BITS_8 _BV (UCSZ11) | _BV (UCSZ10)
+// #define USART_DATA_BITS_9 (needs also UCSZ2 bit in UCSRnB)
+
+/******************************************************************************/
+/***   Clock polarity                                                         */
+/******************************************************************************/
+#define USART_RISING_XCKN_EDGE 0x00
+#define USART_FALLING_XCKN_EDGE _BV (UCPOL0)
 
 
 #endif /* #ifndef __RS232_AT90USB1287__ */
