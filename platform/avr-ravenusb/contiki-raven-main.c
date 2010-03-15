@@ -72,10 +72,24 @@
 #include "contiki-lib.h"
 #include "contiki-raven.h"
 
+/* Set ANNOUNCE to send boot messages to USB or serial port */
+#define ANNOUNCE 1
+#ifndef USB_CONF_CDC
+#define USB_CONF_RS232 1
+#endif
+
+#if USB_CONF_RS232
+#include "dev/rs232.h"
+#endif
+
 #include "usb_task.h"
+#if USB_CONF_CDC
 #include "serial/cdc_task.h"
+#endif
 #include "rndis/rndis_task.h"
+#if USB_CONF_STORAGE
 #include "storage/storage_task.h"
+#endif
 
 #if RF230BB
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -83,9 +97,6 @@ extern int rf230_interrupt_flag;
 extern uint8_t rf230processflag;
 rimeaddr_t addr,macLongAddr;
 #endif /* RF230BB */
-
-/* Set ANNOUNCE to send boot messages to USB serial port */
-#define ANNOUNCE 1
 
 /* Test rtimers, also useful for pings and time stamps in simulator */
 #define TESTRTIMER 0
@@ -121,12 +132,25 @@ uint8_t mac_address[8] EEMEM = {0x02, 0x12, 0x13, 0xff, 0xfe, 0x14, 0x15, 0x16};
 static void initialize(void) {
 
   /* Initialize hardware */
+// Currently only used for finger detection for mass storage mode
+#if USB_CONF_STORAGE
   init_lowlevel();
+#endif
   
   /* Clock */
   clock_init();
 
-/* rtimer init needed for low power protocols */
+  #if USB_CONF_RS232
+  /* Use rs232 port for serial out (tx, rx, gnd are the three pads behind jackdaw leds */
+  rs232_init(RS232_PORT_0, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
+  /* Redirect stdout to second port */
+  rs232_redirect_stdout(RS232_PORT_0);
+#if ANNOUNCE
+  printf_P(PSTR("\n\n\n********BOOTING CONTIKI*********\n"));
+#endif
+#endif
+
+  /* rtimer init needed for low power protocols */
   rtimer_init();
 
   /* Process subsystem. */
@@ -136,7 +160,6 @@ static void initialize(void) {
   process_start(&etimer_process, NULL);
   
 #if RF230BB
-{
   ctimer_init();
   /* Start radio and radio receive process */
   /* Note this starts RF230 process, so must be done after process_init */
@@ -175,23 +198,62 @@ static void initialize(void) {
   rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
 #endif
-}
 
-#else
+#if ANNOUNCE && USB_CONF_RS232
+  printf_P(PSTR("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n"),addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+  printf_P(PSTR("%s %s, channel %u"),NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
+  if (NETSTACK_RDC.channel_check_interval) {
+    unsigned short tmp;
+    tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
+                        NETSTACK_RDC.channel_check_interval());
+    if (tmp<65535) printf_P(PSTR(", check rate %u Hz"),tmp);
+  }
+  printf_P(PSTR("\n"));
+#endif
+
+#else  /* RF230BB */
 /* The order of starting these is important! */
   process_start(&mac_process, NULL);
   process_start(&tcpip_process, NULL);
-
-  #endif /* RF230BB */
+#endif /* RF230BB */
 
   /* Setup USB */
   process_start(&usb_process, NULL);
+#if USB_CONF_CDC
   process_start(&cdc_process, NULL);
+#endif
   process_start(&rndis_process, NULL);
+#if USB_CONF_STORAGE
   process_start(&storage_process, NULL);
+#endif
 
   //Fix MAC address
   init_net();
+  
+#if ANNOUNCE
+#if USB_CONF_CDC
+{unsigned short i;
+   printf_P(PSTR("\n\n\n********BOOTING CONTIKI*********\n\r"));
+  /* Allow USB CDC to keep up with printfs */
+  for (i=0;i<8000;i++) process_run();
+#if RF230BB
+  printf_P(PSTR("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n\r"),addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+  for (i=0;i<8000;i++) process_run();
+  printf_P(PSTR("%s %s, channel %u"),NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
+  if (NETSTACK_RDC.channel_check_interval) {
+    i=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
+                      NETSTACK_RDC.channel_check_interval());
+    if (i<65535) printf_P(PSTR(", check rate %u Hz"),i);
+   }
+   printf_P(PSTR("\n\r"));
+   for (i=0;i<8000;i++) process_run();
+#endif /* RF230BB */
+  printf_P(PSTR("System online.\n\r"));
+}
+#elif USB_CONF_RS232
+  printf_P(PSTR("System online.\n"));
+#endif /* USB_CONF_CDC */
+#endif /* ANNOUNCE */
 }
 
 /*-------------------------------------------------------------------------*/
@@ -199,9 +261,6 @@ static void initialize(void) {
 int
 main(void)
 {
-#if ANNOUNCE
-  uint16_t firsttime=1;
-#endif
   /* GCC depends on register r1 set to 0 (?) */
   asm volatile ("clr r1");
   
@@ -240,32 +299,6 @@ extern uint8_t debugflowsize,debugflow[];
     debugflowsize=0;
    }
 #endif
-
-  /* Allow USB CDC to keep up with printfs */
-#if ANNOUNCE
-  if (firsttime) {
-    firsttime++;
-    if (firsttime==36000){
-       printf_P(PSTR("\n\n\n********BOOTING CONTIKI*********\n\r"));
-#if RF230BB
-    } else if (firsttime==44000) {
-       printf_P(PSTR("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n\r"),addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
-
-    } else if (firsttime==52000) {
-       printf_P(PSTR("%s %s, channel %u"),NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
-       if (NETSTACK_RDC.channel_check_interval) {//function pointer is zero for sicslowmac
-         unsigned short tmp;
-         tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
-                                   NETSTACK_RDC.channel_check_interval());
-         if (tmp<65535) printf_P(PSTR(", check rate %u Hz"),tmp);
-       }
-       printf_P(PSTR("\n\r"));
-#endif /* RF230BB */
-    } else if (firsttime==60000) {
-      printf_P(PSTR("System online.\n\r"));
-    }
-  }
-#endif /* ANNOUNCE */
 
 #if RF230BB&&0
   if (rf230processflag) {
