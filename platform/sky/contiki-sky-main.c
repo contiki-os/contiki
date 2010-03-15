@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.74 2010/03/01 14:46:57 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.75 2010/03/15 16:43:04 joxe Exp $
  */
 
 #include <signal.h>
@@ -40,7 +40,6 @@
 #include "dev/cc2420.h"
 #include "dev/ds2411.h"
 #include "dev/leds.h"
-#include "dev/light.h"
 #include "dev/serial-line.h"
 #include "dev/sht11.h"
 #include "dev/slip.h"
@@ -53,7 +52,7 @@
 
 #if WITH_UIP6
 #include "net/sicslowpan.h"
-#include "net/uip-netif.h"
+#include "net/uip-ds6.h"
 #include "net/mac/sicslowmac.h"
 #endif /* WITH_UIP6 */
 
@@ -301,24 +300,28 @@ main(int argc, char **argv)
 
   printf("Tentative link-local IPv6 address ");
   {
-    int i;
-    for(i = 0; i < 7; ++i) {
-      printf("%02x%02x:",
-	     uip_netif_physical_if.addresses[0].ipaddr.u8[i * 2],
-	     uip_netif_physical_if.addresses[0].ipaddr.u8[i * 2 + 1]);
+    int i, a;
+    for(a = 0; a < UIP_DS6_ADDR_NB; a++) {
+      if (uip_ds6_if.addr_list[a].isused) {
+	for(i = 0; i < 7; ++i) {
+	  printf("%02x%02x:",
+		 uip_ds6_if.addr_list[a].ipaddr.u8[i * 2],
+		 uip_ds6_if.addr_list[a].ipaddr.u8[i * 2 + 1]);
+	}
+	printf("%02x%02x\n",
+	       uip_ds6_if.addr_list[a].ipaddr.u8[14],
+	       uip_ds6_if.addr_list[a].ipaddr.u8[15]);
+      }
     }
-    printf("%02x%02x\n",
-	   uip_netif_physical_if.addresses[0].ipaddr.u8[14],
-	   uip_netif_physical_if.addresses[0].ipaddr.u8[15]);
   }
   
   if(1) {
     uip_ipaddr_t ipaddr;
     int i;
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-    uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
-    uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
-    printf("Tentative IPv6 address ");
+    uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+    uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
+    printf("Tentative global IPv6 address ");
     for(i = 0; i < 7; ++i) {
       printf("%02x%02x:",
              ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
@@ -329,7 +332,8 @@ main(int argc, char **argv)
 
   
 #if UIP_CONF_ROUTER
-  uip_router_register(&UIP_ROUTER_MODULE);
+  //uip_router_register(&UIP_ROUTER_MODULE);
+  UIP_ROUTER_MODULE.activate();
 #endif /* UIP_CONF_ROUTER */
 #else /* WITH_UIP6 */
 

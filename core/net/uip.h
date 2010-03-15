@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.26 2010/03/12 16:19:19 joxe Exp $
+ * $Id: uip.h,v 1.27 2010/03/15 16:41:24 joxe Exp $
  *
  */
 
@@ -82,38 +82,39 @@ typedef uip_ip4addr_t uip_ipaddr_t;
 /*---------------------------------------------------------------------------*/
 
 /** \brief 16 bit 802.15.4 address */
-struct uip_802154_shortaddr {
+typedef struct uip_802154_shortaddr {
   u8_t addr[2];
-};
+} uip_802154_shortaddr;
 /** \brief 64 bit 802.15.4 address */
-struct uip_802154_longaddr {
+typedef struct uip_802154_longaddr {
   u8_t addr[8];
-};
+} uip_802154_longaddr;
 
 /** \brief 802.11 address */
-struct uip_80211_addr {
+typedef struct uip_80211_addr {
   u8_t addr[6];
-};
+} uip_80211_addr;
 
 /** \brief 802.3 address */
-struct uip_eth_addr {
+typedef struct uip_eth_addr {
   u8_t addr[6];
-};
+} uip_eth_addr;
+
 
 #if UIP_CONF_LL_802154
 /** \brief 802.15.4 address */
-typedef struct uip_802154_longaddr uip_lladdr_t;
+typedef uip_802154_longaddr uip_lladdr_t;
 #define UIP_802154_SHORTADDR_LEN 2
 #define UIP_802154_LONGADDR_LEN  8
 #define UIP_LLADDR_LEN UIP_802154_LONGADDR_LEN
 #else /*UIP_CONF_LL_802154*/
 #if UIP_CONF_LL_80211
 /** \brief 802.11 address */
-typedef struct uip_80211_addr uip_lladdr_t;
+typedef uip_80211_addr uip_lladdr_t;
 #define UIP_LLADDR_LEN 6
 #else /*UIP_CONF_LL_80211*/
 /** \brief Ethernet address */
-typedef struct uip_eth_addr uip_lladdr_t;
+typedef uip_eth_addr uip_lladdr_t;
 #define UIP_LLADDR_LEN 6
 #endif /*UIP_CONF_LL_80211*/
 #endif /*UIP_CONF_LL_802154*/
@@ -1716,22 +1717,22 @@ struct uip_ip_hdr {
  * used in IPSec and defined in RFC4302,4303,4305,4385
  */
 /* common header part */
-struct uip_ext_hdr {
+typedef struct uip_ext_hdr {
   u8_t next;
   u8_t len;
-};
+} uip_ext_hdr;
 
 /* Hop by Hop option header */
-struct uip_hbho_hdr {
+typedef struct uip_hbho_hdr {
   u8_t next;
   u8_t len;
-};
+} uip_hbho_hdr;
 
 /* destination option header */
-struct uip_desto_hdr {
+typedef struct uip_desto_hdr {
   u8_t next;
   u8_t len;
-};
+} uip_desto_hdr;
 
 /* We do not define structures for PAD1 and PADN options */
 
@@ -1743,35 +1744,35 @@ struct uip_desto_hdr {
  * RFC3775 (MIPv6) here we do not implement MIPv6, so we just need to
  * parse the 4 first bytes
  */
-struct uip_routing_hdr {
+typedef struct uip_routing_hdr {
   u8_t next;
   u8_t len;
   u8_t routing_type;
   u8_t seg_left;
-};
+} uip_routing_hdr;
 
 /* fragmentation header */
-struct uip_frag_hdr {
+typedef struct uip_frag_hdr {
   u8_t next;
   u8_t res;
   u16_t offsetresmore;
   u32_t id;
-};
+} uip_frag_hdr;
 
 /*
  * an option within the destination or hop by hop option headers
  * it contains type an length, which is true for all options but PAD1
  */
-struct uip_ext_hdr_opt {
+typedef struct uip_ext_hdr_opt {
   u8_t type;
   u8_t len;
-};
+} uip_ext_hdr_opt;
 
 /* PADN option */
-struct uip_ext_hdr_opt_padn {
+typedef struct uip_ext_hdr_opt_padn {
   u8_t opt_type;
   u8_t opt_len;
-};
+} uip_ext_hdr_opt_padn;
 
 /* TCP header */
 struct uip_tcp_hdr {
@@ -1923,6 +1924,22 @@ CCIF extern uip_lladdr_t uip_lladdr;
 
 
 #ifdef UIP_CONF_IPV6
+/** Length of the link local prefix */
+#define UIP_LLPREF_LEN     10
+
+/**
+ * \brief Is IPv6 address a the unspecified address
+ * a is of type uip_ipaddr_t
+ */
+#define uip_is_addr_loopback(a)                  \
+  ((((a)->u16[0]) == 0) &&                       \
+   (((a)->u16[1]) == 0) &&                       \
+   (((a)->u16[2]) == 0) &&                       \
+   (((a)->u16[3]) == 0) &&                       \
+   (((a)->u16[4]) == 0) &&                       \
+   (((a)->u16[5]) == 0) &&                       \
+   (((a)->u16[6]) == 0) &&                       \
+   (((a)->u16[7]) == 1))
 /**
  * \brief Is IPv6 address a the unspecified address
  * a is of type uip_ipaddr_t
@@ -1982,15 +1999,16 @@ CCIF extern uip_lladdr_t uip_lladdr;
  * \brief  is addr (a) a solicited node multicast address, see RFC3513
  *  a is of type uip_ipaddr_t*
  */
-#define uip_is_addr_solicited_node(a)           \
-  ((((a)->u8[0]) == 0xFF) &&                     \
-  (((a)->u8[1]) == 0x02) &&                     \
-  (((a)->u16[1]) == 0) &&                       \
-  (((a)->u16[2]) == 0) &&                       \
-  (((a)->u16[3]) == 0) &&                       \
-  (((a)->u16[4]) == 0) &&                       \
-  (((a)->u16[5]) == 1) &&                       \
-  (((a)->u8[12]) == 0xFF))
+#define uip_is_addr_solicited_node(a)          \
+  ((((a)->u8[0])  == 0xFF) &&                  \
+   (((a)->u8[1])  == 0x02) &&                  \
+   (((a)->u16[1]) == 0x00) &&                  \
+   (((a)->u16[2]) == 0x00) &&                  \
+   (((a)->u16[3]) == 0x00) &&                  \
+   (((a)->u16[4]) == 0x00) &&                  \
+   (((a)->u8[10]) == 0x00) &&                  \
+   (((a)->u8[11]) == 0x01) &&                  \
+   (((a)->u8[12]) == 0xFF))
 
 /**
  * \briefput in b the solicited node address corresponding to address a

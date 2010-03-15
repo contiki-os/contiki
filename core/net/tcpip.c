@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.24 2010/02/09 12:58:53 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.25 2010/03/15 16:41:24 joxe Exp $
  */
 /**
  * \file
@@ -47,7 +47,7 @@
 
 #if UIP_CONF_IPV6
 #include "net/uip-nd6.h"
-#include "net/uip-netif.h"
+#include "net/uip-ds6.h"
 #endif
 
 #define DEBUG 0
@@ -469,27 +469,22 @@ eventhandler(process_event_t ev, process_data_t data)
          * check the different timers for neighbor discovery and
          * stateless autoconfiguration
          */
-        if(data == &uip_nd6_timer_periodic &&
+        /*if(data == &uip_nd6_timer_periodic &&
            etimer_expired(&uip_nd6_timer_periodic)) {
           uip_nd6_periodic();
           tcpip_ipv6_output();
-        }
-	    
-        if(data == &uip_netif_timer_dad &&
-           etimer_expired(&uip_netif_timer_dad)){
-          uip_netif_dad();
+        }*/
+#if !UIP_CONF_ROUTER	    
+        if(data == &uip_ds6_timer_rs &&
+           etimer_expired(&uip_ds6_timer_rs)){
+          uip_ds6_send_rs();
           tcpip_ipv6_output();
         }
-	    
-        if(data == &uip_netif_timer_rs &&
-           etimer_expired(&uip_netif_timer_rs)){
-          uip_netif_send_rs();
+#endif /* !UIP_CONF_ROUTER */
+        if(data == &uip_ds6_timer_periodic &&
+           etimer_expired(&uip_ds6_timer_periodic)){
+          uip_ds6_periodic();
           tcpip_ipv6_output();
-        }
-
-        if(data == &uip_netif_timer_periodic &&
-           etimer_expired(&uip_netif_timer_periodic)){
-          uip_netif_periodic();
         }
 #endif /* UIP_CONF_IPV6 */
       }
@@ -547,8 +542,8 @@ tcpip_input(void)
 void
 tcpip_ipv6_output(void)
 {
-  struct uip_nd6_neighbor *nbc = NULL;
-  struct uip_nd6_defrouter *dr = NULL;
+  uip_ds6_nbr_t *nbr = NULL;
+  uip_ipaddr_t* nexthop;
   
   if(uip_len == 0)
     return;
@@ -564,55 +559,33 @@ tcpip_ipv6_output(void)
     return;
   }
   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
-    /*If destination is on link */
-    nbc = NULL;
-    if(uip_nd6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
-      nbc = uip_nd6_nbrcache_lookup(&UIP_IP_BUF->destipaddr);
+    /* Next hop determination */
+    nbr = NULL;
+    if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
+      nexthop = &UIP_IP_BUF->destipaddr;
     } else {
-#if UIP_CONF_ROUTER
-      /*destination is not on link*/
-      uip_ipaddr_t ipaddr;
-      uip_ipaddr_t *next_hop;
-
-      /* Try to find the next hop address in the local routing table. */
-      next_hop = uip_router != NULL ?
-        uip_router->lookup(&UIP_IP_BUF->destipaddr, &ipaddr) : NULL;
-      if(next_hop != NULL) {
-        /* Look for the next hop of the route in the neighbor cache.
-           Add a cache entry if we can't find it. */
-        nbc = uip_nd6_nbrcache_lookup(next_hop);
-        if(nbc == NULL) {
-          nbc = uip_nd6_nbrcache_add(next_hop, NULL, 1, NO_STATE);
-        }
-      } else {
-#endif /* UIP_CONF_ROUTER */
-        /* No route found, check if a default router exists and use it then. */
-        dr = uip_nd6_choose_defrouter();
-        if(dr != NULL){
-          nbc = dr->nb;
-        } else {
-          /* shall we send a icmp error message destination unreachable ?*/
-          UIP_LOG("tcpip_ipv6_output: Destination off-link but no router");
+      uip_ds6_route_t* locrt;
+      locrt = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
+      if(locrt == NULL) {
+        if((nexthop = uip_ds6_defrt_choose()) == NULL) {
+          PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
           uip_len = 0;
           return;
         }
-#if UIP_CONF_ROUTER
-      }
-#endif /* UIP_CONF_ROUTER */
-    }
-    /* there are two cases where the entry logically does not exist:
-     * 1 it really does not exist. 2 it is in the NO_STATE state */
-    if (nbc == NULL || nbc->state == NO_STATE) {
-      if (nbc == NULL) {
-        /* create neighbor cache entry, original packet is replaced by NS*/
-        nbc = uip_nd6_nbrcache_add(&UIP_IP_BUF->destipaddr, NULL, 0, INCOMPLETE);
       } else {
-        nbc->state = INCOMPLETE;
+	nexthop = &locrt->nexthop;
       }
+    }
+    /* end of next hop determination */
+    if((nbr = uip_ds6_nbr_lookup(nexthop)) == NULL) {
+      if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
+        uip_len = 0;
+        return;
+      } else {
 #if UIP_CONF_IPV6_QUEUE_PKT
-      /* copy outgoing pkt in the queuing buffer for later transmmit */
-      memcpy(nbc->queue_buf, UIP_IP_BUF, uip_len);
-      nbc->queue_buf_len = uip_len;
+        /* copy outgoing pkt in the queuing buffer for later transmmit */
+        memcpy(nbr->queue_buf, UIP_IP_BUF, uip_len);
+        nbr->queue_buf_len = uip_len;
 #endif
       /* RFC4861, 7.2.2:
        * "If the source address of the packet prompting the solicitation is the
@@ -620,23 +593,23 @@ tcpip_ipv6_output(void)
        * address SHOULD be placed in the IP Source Address of the outgoing
        * solicitation.  Otherwise, any one of the addresses assigned to the
        * interface should be used."*/
-      if(uip_netif_is_addr_my_unicast(&UIP_IP_BUF->srcipaddr)){
-        uip_nd6_io_ns_output(&UIP_IP_BUF->srcipaddr, NULL, &nbc->ipaddr);
-      } else {
-        uip_nd6_io_ns_output(NULL, NULL, &nbc->ipaddr);
-      }
+       if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)){
+          uip_nd6_ns_output(&UIP_IP_BUF->srcipaddr, NULL, &nbr->ipaddr);
+        } else {
+          uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
+        }
 
-      stimer_set(&(nbc->last_send),
-                uip_netif_physical_if.retrans_timer / 1000);
-      nbc->count_send = 1;
+        stimer_set(&(nbr->sendns), uip_ds6_if.retrans_timer / 1000);
+        nbr->nscount = 1;
+      }
     } else {
-      if (nbc->state == INCOMPLETE){
-        PRINTF("tcpip_ipv6_output: neighbor cache entry incomplete\n");
+      if (nbr->state == NBR_INCOMPLETE){
+        PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
 #if UIP_CONF_IPV6_QUEUE_PKT
         /* copy outgoing pkt in the queuing buffer for later transmmit and set
-           the destination neighbor to nbc */
-        memcpy(nbc->queue_buf, UIP_IP_BUF, uip_len);
-        nbc->queue_buf_len = uip_len;
+           the destination nbr to nbr */
+        memcpy(nbr->queue_buf, UIP_IP_BUF, uip_len);
+        nbr->queue_buf_len = uip_len;
         uip_len = 0;
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
         return;
@@ -644,17 +617,18 @@ tcpip_ipv6_output(void)
       /* if running NUD (nbc->state == STALE, DELAY, or PROBE ) keep
          sending in parallel see rfc 4861 Node behavior in section 7.7.3*/
 	 
-      if (nbc->state == STALE){
-        nbc->state = DELAY;
-        stimer_set(&(nbc->reachable),
+      if (nbr->state == NBR_STALE){
+        nbr->state = NBR_DELAY;
+        stimer_set(&(nbr->reachable),
                   UIP_ND6_DELAY_FIRST_PROBE_TIME);
-        PRINTF("tcpip_ipv6_output: neighbor cache entry stale moving to delay\n");
+        nbr->nscount = 0;
+        PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
       
-      stimer_set(&(nbc->last_send),
-                uip_netif_physical_if.retrans_timer / 1000);
+      stimer_set(&(nbr->sendns),
+                uip_ds6_if.retrans_timer / 1000);
       
-      tcpip_output(&(nbc->lladdr));
+      tcpip_output(&(nbr->lladdr));
 
 
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -663,11 +637,11 @@ tcpip_ipv6_output(void)
        * NA after sendiong a NS, you receive a NS with SLLAO: the entry moves
        *to STALE, and you must both send a NA and the queued packet
        */
-      if(nbc->queue_buf_len != 0) {
-        uip_len = nbc->queue_buf_len;
-        memcpy(UIP_IP_BUF, nbc->queue_buf, uip_len);
-        nbc->queue_buf_len = 0;
-        tcpip_output(&(nbc->lladdr));
+      if(nbr->queue_buf_len != 0) {
+        uip_len = nbr->queue_buf_len;
+        memcpy(UIP_IP_BUF, nbr->queue_buf, uip_len);
+        nbr->queue_buf_len = 0;
+        tcpip_output(&(nbr->lladdr));
       }
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
 

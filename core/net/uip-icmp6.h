@@ -63,6 +63,8 @@
 #define ICMP6_NS                        135  /**< Neighbor Solicitation */
 #define ICMP6_NA                        136  /**< Neighbor advertisement */
 #define ICMP6_REDIRECT                  137  /**< Redirect */
+
+#define ICMP6_RPL                       155  /**< RPL */
 /** @} */
 
 
@@ -121,6 +123,11 @@ void
 uip_icmp6_error_output(u8_t type, u8_t code, u32_t param); 
 
 /** @} */
+
+#if UIP_CONF_IPV6_RPL
+void
+uip_rpl_input(void);
+#endif /* UIP_CONF_IPV6_RPL */
 
 #endif /*__ICMP6_H__*/
 /** @} */

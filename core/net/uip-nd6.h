@@ -477,7 +477,7 @@ void
  *    
  */
 void
-uip_nd6_io_ns_input(void);
+uip_nd6_ns_input(void);
 
 /**
  * \brief Send a neighbor solicitation, send a Neighbor Advertisement 
@@ -500,7 +500,7 @@ uip_nd6_io_ns_input(void);
  *   a SLLAO option, otherwise no.
  */
 void
-uip_nd6_io_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt); 
+uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt); 
 
 /**
  * \brief Process a Neighbor Advertisement
@@ -520,7 +520,7 @@ uip_nd6_io_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
  *
  */
 void
-uip_nd6_io_na_input(void);
+uip_nd6_na_input(void);
 
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
@@ -550,7 +550,7 @@ void uip_nd6_ra_output(uip_ipaddr_t *dest);
  * possible option is SLLAO, MUST NOT be included if source = unspecified
  * SHOULD be included otherwise
  */
-void uip_nd6_io_rs_output(void);
+void uip_nd6_rs_output(void);
 
 /**
  *
@@ -563,7 +563,7 @@ void uip_nd6_io_rs_output(void);
  * - If prefix option: start autoconf, add prefix to prefix list
  */
 void
-uip_nd6_io_ra_input(void);
+uip_nd6_ra_input(void);
 /** @} */
 
 
