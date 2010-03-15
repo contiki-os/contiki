@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.41 2010/03/10 07:52:05 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.42 2010/03/15 11:04:07 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -273,7 +273,7 @@ public class ContikiMoteType implements MoteType {
       mapFile.delete();
 
       /* Generate Contiki main source */
-      try {
+      /*try {
         CompileContiki.generateSourceFile(
             libSource,
             javaClassName,
@@ -283,7 +283,7 @@ public class ContikiMoteType implements MoteType {
       } catch (Exception e) {
         throw (MoteTypeCreationException) new MoteTypeCreationException(
         "Error when generating Contiki main source").initCause(e);
-      }
+      }*/
 
       /* Prepare compiler environment */
       String[][] env;
@@ -293,7 +293,8 @@ public class ContikiMoteType implements MoteType {
             contikiApp,
             mapFile,
             libFile,
-            archiveFile);
+            archiveFile,
+            javaClassName);
       } catch (Exception e) {
         throw (MoteTypeCreationException) new MoteTypeCreationException(
             "Error when creating environment: " + e.getMessage()).initCause(e);

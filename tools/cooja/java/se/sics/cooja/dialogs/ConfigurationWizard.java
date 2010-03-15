@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ConfigurationWizard.java,v 1.8 2010/03/10 07:49:46 fros4943 Exp $
+ * $Id: ConfigurationWizard.java,v 1.9 2010/03/15 11:04:06 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -601,7 +601,8 @@ public class ConfigurationWizard extends JDialog {
           new File(cLibraryName + ".c"),
           new File(cLibraryName + ContikiMoteType.mapSuffix),
           new File(cLibraryName + ContikiMoteType.librarySuffix),
-          new File(cLibraryName + ContikiMoteType.dependSuffix)
+          new File(cLibraryName + ContikiMoteType.dependSuffix),
+          javaLibraryName
       );
     } catch (Exception e) {
       testOutput.addMessage("### Error: Compiler environment failed", MessageList.ERROR);
