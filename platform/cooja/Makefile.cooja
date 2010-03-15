@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.38 2010/03/10 12:15:52 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.39 2010/03/15 11:03:17 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -73,7 +73,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/x86
 
 ### Compiler arguments
 CC = gcc
-CFLAGSNO = $(EXTRA_CC_ARGS) -Wall -g -I/usr/local/include
+CFLAGSNO = $(EXTRA_CC_ARGS) -Wall -g -I/usr/local/include -DCLASSNAME=$(CLASSNAME)
 CFLAGS   = $(CFLAGSNO)
 
 ifdef UIP_CONF_IPV6
@@ -111,6 +111,9 @@ endif ## REDEF_PRINTF
 $(CONTIKI_APP).cooja: $(JNILIB)
 	cp $(JNILIB) $@
 	rm $(CONTIKI_APP_OBJ)
+
+mtype%.o: contiki-cooja-main.o
+	mv contiki-cooja-main.o $@
 
 symbols.c:
 	# Create initial symbol files if not existing
