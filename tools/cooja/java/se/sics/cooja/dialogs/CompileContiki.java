@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CompileContiki.java,v 1.5 2010/03/10 07:49:25 fros4943 Exp $
+ * $Id: CompileContiki.java,v 1.6 2010/03/15 11:04:07 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -42,6 +42,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.util.ArrayList;
 
 import javax.swing.Action;
 
@@ -362,13 +363,14 @@ public class CompileContiki {
   /**
    * Generate compiler environment using external tools settings.
    * Used by Contiki Mote Type.
-   *
-   * @param identifier Mote type identifier
-   * @param contikiApp Contiki application source
-   * @param mapFile Expected map file
-   * @param libFile Expected JNI Contiki library
-   * @param archiveFile Expected Contiki archive
-   * @return Environment
+   * 
+   * @param identifier Mote type identifier, "mtype123"
+   * @param contikiApp Contiki application source, "hello-world.c"
+   * @param mapFile Output map file, "mtype123.map"
+   * @param libFile Output JNI library, "mtype123.cooja"
+   * @param archiveFile Output archive, "mtype123.a"
+   * @param javaClass Java JNI library class, "Lib4"
+   * @return Compilation environment
    * @throws Exception At errors
    */
   public static String[][] createCompilationEnvironment(
@@ -376,7 +378,8 @@ public class CompileContiki {
       File contikiApp,
       File mapFile,
       File libFile,
-      File archiveFile)
+      File archiveFile,
+      String javaClass)
   throws Exception {
 
     if (identifier == null) {
@@ -393,6 +396,9 @@ public class CompileContiki {
     }
     if (archiveFile == null) {
       throw new Exception("No archive file specified");
+    }
+    if (javaClass == null) {
+      throw new Exception("No Java library class name specified");
     }
 
     boolean includeSymbols = false; /* TODO */
@@ -438,21 +444,23 @@ public class CompileContiki {
 
     /* Strip away contiki application .c extension */
     String contikiAppNoExtension = contikiApp.getName().substring(0, contikiApp.getName().length()-2);
-    String[][] env = new String[13][];
-    env[0] = new String[] { "LIBNAME", identifier };
-    env[1] = new String[] { "CONTIKI_APP", contikiAppNoExtension };
-    env[2] = new String[] { "COOJA_SOURCEFILES", "" };
-    env[3] = new String[] { "CC", GUI.getExternalToolsSetting("PATH_C_COMPILER") };
-    env[4] = new String[] { "EXTRA_CC_ARGS", ccFlags };
-    env[5] = new String[] { "LD", GUI.getExternalToolsSetting("PATH_LINKER") };
-    env[6] = new String[] { "LINK_COMMAND_1", link1 };
-    env[7] = new String[] { "LINK_COMMAND_2", link2 };
-    env[8] = new String[] { "AR", GUI.getExternalToolsSetting("PATH_AR") };
-    env[9] = new String[] { "AR_COMMAND_1", ar1 };
-    env[10] = new String[] { "AR_COMMAND_2", ar2 };
-    env[11] = new String[] { "SYMBOLS", includeSymbols?"1":"" };
-    env[12] = new String[] { "PATH", System.getenv("PATH") };
 
-    return env;
+    /* Create environment */
+    ArrayList<String[]> env = new ArrayList<String[]>();
+    env.add(new String[] { "LIBNAME", identifier });
+    env.add(new String[] { "CLASSNAME", javaClass });
+    env.add(new String[] { "CONTIKI_APP", contikiAppNoExtension });
+    env.add(new String[] { "COOJA_SOURCEFILES", "" });
+    env.add(new String[] { "CC", GUI.getExternalToolsSetting("PATH_C_COMPILER") });
+    env.add(new String[] { "EXTRA_CC_ARGS", ccFlags });
+    env.add(new String[] { "LD", GUI.getExternalToolsSetting("PATH_LINKER") });
+    env.add(new String[] { "LINK_COMMAND_1", link1 });
+    env.add(new String[] { "LINK_COMMAND_2", link2 });
+    env.add(new String[] { "AR", GUI.getExternalToolsSetting("PATH_AR") });
+    env.add(new String[] { "AR_COMMAND_1", ar1 });
+    env.add(new String[] { "AR_COMMAND_2", ar2 });
+    env.add(new String[] { "SYMBOLS", includeSymbols?"1":"" });
+    env.add(new String[] { "PATH", System.getenv("PATH") });
+    return env.toArray(new String[0][0]);
   }
 }
