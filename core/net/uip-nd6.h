@@ -85,7 +85,11 @@
 
 /** \name RFC 4861 Router constants */
 /** @{ */
+#ifndef UIP_CONF_ND6_SEND_RA
 #define UIP_ND6_SEND_RA                     1   /* enable/disable RA sending */
+#else
+#define UIP_ND6_SEND_RA UIP_CONF_ND6_SEND_RA
+#endif
 #define UIP_ND6_MAX_RA_INTERVAL             600
 #define UIP_ND6_MIN_RA_INTERVAL             (UIP_ND6_MAX_RA_INTERVAL / 3)
 #define UIP_ND6_M_FLAG                      0
