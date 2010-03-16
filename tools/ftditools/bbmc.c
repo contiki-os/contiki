@@ -39,6 +39,7 @@
 
 struct layout {
 	char *name;
+	char *desc;
 	enum ftdi_interface interface;
 	uint16_t dir;
 	uint16_t reset_release;
@@ -61,12 +62,14 @@ void usage(void);
 	.vref2_normal = vref2_normal(x),     \
 	.vref2_erase = vref2_erase(x),     
 	
-static const struct layout layouts[] =
+static struct layout layouts[] =
 {
 	{ .name = "redbee_econotag",
+	  .desc = "Redbee Econotag",
 	  std_layout(REDBEE_ECONOTAG)
 	},
 	{ .name = "redbee_usb",
+	  .desc = "Redbee USB stick",
 	  std_layout(REDBEE_USB)
 	},
 	{ .name = NULL, /* end of table */ },
@@ -74,6 +77,7 @@ static const struct layout layouts[] =
 
 struct command {
 	char *name;
+	char *desc;
 	void (*cmd)(struct ftdi_context *ftdic, const struct layout * l);
 };
 	
@@ -81,16 +85,18 @@ static const struct command commands[] =
 {
 	{
 		.name = "reset",
+		.desc = "Toggles reset pin",
 		.cmd = reset,
 	},
 	{
 		.name = "erase",
+		.desc = "Sets VREF2 erase mode; toggles reset; waits 2 sec.; sets normal; toggles reset again",
 		.cmd = erase,
 	},
 	{ .name = NULL, /* end of table */ },
 }; 
 
-const struct layout * find_layout(char * str) 
+struct layout * find_layout(char * str) 
 {
 	uint32_t i = 0;
 	
@@ -110,31 +116,77 @@ int main(int argc, char **argv)
 	struct ftdi_device_list *devlist;
 	int dev_index = -1; int num_devs;
 	char layout_str[BUF_LEN];
-	const struct layout *layout;
+	struct layout layout;
+	struct layout *l = NULL;
 	int i, ret;
+
+	/* overrides for layout parameters */
+	int interface      = -1;
+	int dir            = -1;
+	int reset_release  = -1;
+	int reset_set      = -1;
+	int vref2_normal   = -1;
+	int vref2_erase    = -1;
+
+	layout.name = NULL;
 
 	while (1) {
 		int c;
 		int option_index = 0;
 		static struct option long_options[] = {
-			{"layout", required_argument, 0, 'l'},
-			{"index",  required_argument, 0, 'i'},
-			{"help",         no_argument, 0, '?'},
+			{"layout",        required_argument, 0, 'l'},
+			{"index",         required_argument, 0, 'i'},
+			{"vendor",        required_argument, 0, 'v'},
+			{"product",       required_argument, 0, 'p'},
+			{"dir",           required_argument, 0,  0 },
+			{"reset_release", required_argument, 0,  0 },
+			{"reset_set",     required_argument, 0,  0 },
+			{"vref2_normal",  required_argument, 0,  0 },
+			{"vref2_erase",   required_argument, 0,  0 },
+			{"interface",     required_argument, 0,  0 },
+			{"help",          no_argument,       0, '?'},
 			{0, 0, 0, 0}
 		};
-		
-		c = getopt_long (argc, argv, "i:l:",
+	
+		c = getopt_long (argc, argv, "i:l:v:p:",
 				 long_options, &option_index);
 		if (c == -1)
 			break;
 		
 		switch (c) {
 			/* process long opts */
+		case 0:
+			if(strcmp(long_options[option_index].name, "interface") == 0) {
+				sscanf(optarg, "%i", &interface);
+			} 
+			if(strcmp(long_options[option_index].name, "dir") == 0) {
+				sscanf(optarg, "%i", &dir);
+			} 
+			if (strcmp(long_options[option_index].name, "reset_release") == 0) {
+				sscanf(optarg, "%i", &reset_release);
+			}
+			if (strcmp(long_options[option_index].name, "reset_set") == 0) {
+				sscanf(optarg, "%i", &reset_set);
+			}
+			if (strcmp(long_options[option_index].name, "vref2_normal") == 0) {
+				sscanf(optarg, "%i", &vref2_normal);
+			}
+			if (strcmp(long_options[option_index].name, "vref2_erase") == 0) {
+				sscanf(optarg, "%i", &vref2_erase);
+			}
+			break;
+			
 		case 'l':
 			strncpy(layout_str, optarg, BUF_LEN);
 			break;
 		case 'i':
 			dev_index = atoi(optarg);
+			break;
+		case 'v':
+			sscanf(optarg, "%i", &vendid);
+			break;
+		case 'p':
+			sscanf(optarg, "%i", &prodid);
 			break;
 		default:
 			usage();
@@ -142,12 +194,29 @@ int main(int argc, char **argv)
 		}    
 	}
 	
-	if( !(layout = find_layout(layout_str))) { 
-		usage(); 
-		printf("You must specify a layout\n");
+	if( !(l = find_layout(layout_str)) &&
+	    !((interface >= 0) &&
+	      (dir >= 0) &&
+	      (reset_release >= 0) &&
+	      (reset_set >= 0) &&
+	      (vref2_normal >= 0) &&
+	      (vref2_erase >= 0))
+		) {
+		
+		printf("*** You must specify a layout or a complete set of overrides\n");
 		return EXIT_FAILURE;
 	}
+	
+	if(l) {
+		memcpy(&layout, l, sizeof(struct layout));
+	} 
 
+#define override(x) if(x > 0) { layout.x = x; }
+	override(interface);
+	override(dir);
+	override(reset_release); override(reset_set);
+	override(vref2_normal); override(vref2_erase);
+	
 	if ((num_devs = ftdi_usb_find_all(&ftdic, &devlist, vendid, prodid)) < 0)
 	{
 		fprintf(stderr, "ftdi_usb_find_all failed: %d (%s)\n", 
@@ -162,8 +231,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (ftdi_set_interface(&ftdic, layout->interface) < 0) {
-		fprintf(stderr, "couldn't set interface %d\n", layout->interface);
+	if (ftdi_set_interface(&ftdic, layout.interface) < 0) {
+		fprintf(stderr, "couldn't set interface %d\n", layout.interface);
 		return EXIT_FAILURE;
 	}
 
@@ -177,7 +246,13 @@ int main(int argc, char **argv)
 		dev_index = print_and_prompt(devlist);
 	}
 	
-	printf("Opening device %d using layout %s\n", dev_index, layout->name);
+	if(layout.name != NULL) {
+		printf("Opening device %d interface %d using layout %s\n", 
+		       dev_index, layout.interface, layout.name);
+	} else {
+		printf("Opening device %d interface %d without a layout.\n", 
+		       dev_index, layout.interface);
+	}
 
 	if( (ret = ftdi_usb_open_desc_index(
 		     &ftdic,
@@ -190,15 +265,20 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	i = 0;
-	while(commands[i].name != NULL) {
-		if(strcmp(commands[i].name, argv[optind]) == 0) { break; }
-		i++;
+	
+	for(i = 0; commands[i].name != NULL; i++) {	       
+		if( (argv[optind] != NULL) &&
+		    (strcmp(commands[i].name, argv[optind]) == 0)) { break; }
 	}
 	if(commands[i].name != NULL) {
-		commands[i].cmd(&ftdic, layout);
+		commands[i].cmd(&ftdic, &layout);
 	} else {
 		printf("invalid command\n");
+
+		ftdi_list_free(&devlist);
+		ftdi_deinit(&ftdic);
+
+		return EXIT_FAILURE;
 	}
 
 	printf("done.\n");
@@ -211,7 +291,42 @@ int main(int argc, char **argv)
 
 void usage(void) 
 {
-	printf("Usage: don't know yet\n");	
+	int i;
+	printf(    "Usage: bbmc [options|overrides] -l|--layout layout command \n");
+	printf(    "Commands:\n");
+	for(i = 0; commands[i].name != NULL; i++) {
+		printf(    "           %s: %s\n", commands[i].name, commands[i].desc);
+	}
+	printf("\n");
+	printf(    "Required options:\n");
+	printf(    "           -l|--layout\t specifiy which board layout to use\n");
+	printf(    "                      \t layout is not necessary with a full\n");
+	printf(    "                      \t set of overrides\n");
+	printf(  "\nLayout overrides:\n");
+	printf(    "           --interface\t\t FTDI interface to use\n");
+	printf(    "           --dir\t\t direction (1 is output)\n");
+	printf(    "           --reset_release\t reset release command\n");
+	printf(    "           --reset_set\t\t reset set command\n");
+	printf(    "           --vref2_normal\t vref2 normal\n");
+	printf(    "           --vref2_erase\t vref2 erase\n");
+	printf("\n");
+	printf(    "Layouts:\n");
+	for(i = 0; layouts[i].name != NULL; i++) {
+		printf(    "\t%s: %s\n", layouts[i].name, layouts[i].desc);
+		printf("\n");
+		printf(    "\t\tinterface: \t0x%04x\n", layouts[i].interface);
+		printf(    "\t\tdir: \t\t0x%04x\n", layouts[i].dir);
+		printf(    "\t\treset release: \t0x%04x\n", layouts[i].reset_release);
+		printf(    "\t\treset hold:    \t0x%04x\n", layouts[i].reset_set);
+		printf(    "\t\tvref2 normal:  \t0x%04x\n", layouts[i].vref2_normal);
+		printf(    "\t\tvref2 erase:   \t0x%04x\n", layouts[i].vref2_erase);
+		printf("\n");
+	}
+	printf("\n");
+	printf(    "Options:\n");
+	printf(    "           -i|--index     specifiy which device to use (default 0)\n");
+	printf(    "           -v|--vendor    set vendor id (default 0x0403)\n");
+	printf(    "           -p|--prodcut   set vendor id (default 0x6010)\n");
 }
 
 int print_and_prompt( struct ftdi_device_list *devlist ) 
