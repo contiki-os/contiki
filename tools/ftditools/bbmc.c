@@ -34,6 +34,9 @@
 #define vref2_normal(x)   ( CAT(x,_VREF2H)    )
 #define vref2_erase(x)    ( CAT(x,_VREF2L)    )
 
+/* fgets input buffer length: for prompts and such */
+#define BUF_LEN 32
+
 struct layout {
 	char *name;
 	enum ftdi_interface interface;
@@ -43,6 +46,12 @@ struct layout {
 	uint16_t vref2_normal;
 	uint16_t vref2_erase;
 };
+
+int print_and_prompt( struct ftdi_device_list *devlist );
+int bb_mpsee(struct ftdi_context *ftdic, uint16_t dir, uint16_t val); 
+void reset(struct ftdi_context *ftdic, const struct layout * l);
+void erase(struct ftdi_context *ftdic, const struct layout * l);
+void usage(void);
 
 #define std_layout(x)                        \
 	.interface = interface(x),           \
@@ -62,15 +71,24 @@ static const struct layout layouts[] =
 	},
 	{ .name = NULL, /* end of table */ },
 };		
-		
 
-/* fgets input buffer length: for prompts and such */
-#define BUF_LEN 32
-
-int print_and_prompt( struct ftdi_device_list *devlist );
-int bb_mpsee(struct ftdi_context *ftdic, uint16_t dir, uint16_t val); 
-void toggle_reset(struct ftdi_context *ftdic, const struct layout * l);
-void usage(void);
+struct command {
+	char *name;
+	void (*cmd)(struct ftdi_context *ftdic, const struct layout * l);
+};
+	
+static const struct command commands[] =
+{
+	{
+		.name = "reset",
+		.cmd = reset,
+	},
+	{
+		.name = "erase",
+		.cmd = erase,
+	},
+	{ .name = NULL, /* end of table */ },
+}; 
 
 const struct layout * find_layout(char * str) 
 {
@@ -93,7 +111,7 @@ int main(int argc, char **argv)
 	int dev_index = -1; int num_devs;
 	char layout_str[BUF_LEN];
 	const struct layout *layout;
-	int ret;
+	int i, ret;
 
 	while (1) {
 		int c;
@@ -123,7 +141,7 @@ int main(int argc, char **argv)
 			break;
 		}    
 	}
-
+	
 	if( !(layout = find_layout(layout_str))) { 
 		usage(); 
 		printf("You must specify a layout\n");
@@ -171,7 +189,19 @@ int main(int argc, char **argv)
 		fprintf(stderr, "couldn't open dev_index %d\n", dev_index);
 		return EXIT_FAILURE;
 	}
-	toggle_reset(&ftdic, layout);
+
+	i = 0;
+	while(commands[i].name != NULL) {
+		if(strcmp(commands[i].name, argv[optind]) == 0) { break; }
+		i++;
+	}
+	if(commands[i].name != NULL) {
+		commands[i].cmd(&ftdic, layout);
+	} else {
+		printf("invalid command\n");
+	}
+
+	printf("done.\n");
 	
 	ftdi_list_free(&devlist);
 	ftdi_deinit(&ftdic);
@@ -227,17 +257,49 @@ int print_and_prompt( struct ftdi_device_list *devlist )
 	return sel;
 }
 
-void toggle_reset(struct ftdi_context *ftdic, const struct layout * l) 
+void reset(struct ftdi_context *ftdic, const struct layout * l) 
 {
+	
+        /* using MPSSE since it give access to high GPIO*/
+	/* set as inputs for now */
+	ftdi_set_bitmode(ftdic, 0 , BITMODE_MPSSE); 
+
 	printf("toggle reset\n");
+
+	bb_mpsee(ftdic, l->dir, (l->reset_release | l->vref2_normal));
+	bb_mpsee(ftdic, l->dir, (l->reset_set     | l->vref2_normal));
+	bb_mpsee(ftdic, l->dir, (l->reset_release | l->vref2_normal));
+
+	return;
+
+}
+
+
+void erase(struct ftdi_context *ftdic, const struct layout * l) 
+{
+	printf("setting VREF2 erase\n");
 	
         /* using MPSSE since it give access to high GPIO*/
 	/* set as inputs for now */
 	ftdi_set_bitmode(ftdic, 0 , BITMODE_MPSSE); 
 
 	bb_mpsee(ftdic, l->dir, (l->reset_release | l->vref2_normal));
-	bb_mpsee(ftdic, l->dir, (l->reset_set     | l->vref2_normal));
+	bb_mpsee(ftdic, l->dir, (l->reset_release | l->vref2_erase));
+	
+	printf("toggle reset\n");
+	
+	bb_mpsee(ftdic, l->dir, (l->reset_set     | l->vref2_erase));
+	bb_mpsee(ftdic, l->dir, (l->reset_release | l->vref2_erase));
+
+	printf("waiting for erase\n");
+
+	sleep(1);
+
+	printf("setting VREF2 normal\n");
+	
 	bb_mpsee(ftdic, l->dir, (l->reset_release | l->vref2_normal));
+
+	reset(ftdic, l);
 
 	return;
 
