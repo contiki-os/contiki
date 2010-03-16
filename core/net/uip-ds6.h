@@ -225,8 +225,11 @@ typedef struct uip_ds6_route {
   uint8_t isused;
   uip_ipaddr_t ipaddr;
   uint8_t length;
-  uip_ipaddr_t nexthop;
   uint8_t metric;
+  uip_ipaddr_t nexthop;
+#ifdef UIP_DS6_ROUTE_STATE_TYPE
+  UIP_DS6_ROUTE_STATE_TYPE state;
+#endif
 } uip_ds6_route_t;
 
 /** \brief  Interface structure (contains all the interface variables) */
