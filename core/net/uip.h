@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.27 2010/03/15 16:41:24 joxe Exp $
+ * $Id: uip.h,v 1.28 2010/03/16 15:35:03 joxe Exp $
  *
  */
 
@@ -1356,20 +1356,10 @@ struct uip_udp_conn {
 extern struct uip_udp_conn *uip_udp_conn;
 extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 
-struct uip_router {
-  int (*activate)(void);
-  int (*deactivate)(void);
-  uip_ipaddr_t *(*lookup)(uip_ipaddr_t *destipaddr, uip_ipaddr_t *nexthop);
+struct uip_fallback_interface {
+  void (*init)(void);
+  void (*output)(void);
 };
-
-#if UIP_CONF_ROUTER
-extern const struct uip_router *uip_router;
-
-/**
- * uIP routing driver registration function.
- */
-void uip_router_register(const struct uip_router *router);
-#endif /*UIP_CONF_ROUTER*/
 
 #if UIP_CONF_ICMP6
 struct uip_icmp6_conn {
