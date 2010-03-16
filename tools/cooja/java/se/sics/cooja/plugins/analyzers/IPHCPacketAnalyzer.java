@@ -83,13 +83,8 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         int sci = 0;
         int dci = 0;
 
-        brief.append("IPHC tf=" + tf + (nhc ? " nh" : "") + " hl=" + hlim + (cid == 1 ? " cid " : ""));
-        brief.append((sac == 1 ? " sac" : "") + " sam=" + sam + (m == 1 ? " M" : "") +
-                (dac == 1 ? " dac" : " -") + " dam=" + dam);
+        brief.append("IPHC");
 
-        if (cid == 1) {
-            brief.append(" sci=" + (packet.get(2) >> 4) + " dci=" + (packet.get(2) & 0x0f));
-        }
         /* need to decompress while analyzing - add that later... */
 
         verbose.append("<b>IPHC HC-06</b><br>");
