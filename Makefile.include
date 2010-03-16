@@ -129,6 +129,7 @@ distclean:	clean
 .PHONY: clean clobber mrproper distclean 
 
 all: $(OBJDIR)/board.h 
+	git submodule update
 	for target in $(TARGETS); do make $$target\_$(BOARD).bin; done
 	for target in $(TARGETS_WITH_ROM_VARS);   do make TARGET_ROM_VARS=1 $$target\_$(BOARD).bin; done
 
