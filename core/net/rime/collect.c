@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.39 2010/03/12 17:51:07 dak664 Exp $
+ * $Id: collect.c,v 1.40 2010/03/16 18:12:34 adamdunkels Exp $
  */
 
 /**
@@ -101,7 +101,7 @@ PACKETQUEUE(sending_queue, MAX_SENDING_QUEUE);
 #define COLLECT_ANNOUNCEMENTS COLLECT_CONF_ANNOUNCEMENTS
 #endif /* COLLECT_CONF_ANNOUNCEMENTS */
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -134,7 +134,7 @@ update_rtmetric(struct collect_conn *tc)
 
       /* If we have don't have any neighbors, we set our rtmetric to
 	 the maximum value to indicate that we do not have a route. */
-      
+
       if(tc->rtmetric != RTMETRIC_MAX) {
 	PRINTF("%d.%d: didn't find a best neighbor, setting rtmetric to max\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
@@ -242,7 +242,7 @@ send_queued_packet(void)
              n->addr.u8[0], n->addr.u8[1]);
       neighbor_remove(&n->addr);
       update_rtmetric(c);
-      n = neighbor_best();;
+      n = neighbor_best();
     }
     
     /* Don't send to the neighbor if it is the same neighbor that sent
@@ -276,6 +276,9 @@ send_queued_packet(void)
       ctimer_set(&c->retransmission_timer, time,
                  retransmit_callback, c);
     } else {
+#if COLLECT_ANNOUNCEMENTS
+      announcement_listen(1);
+#endif /* COLLECT_ANNOUNCEMENTS */
     }
   }
 }
@@ -388,7 +391,7 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
 
   /* To protect against sending duplicate packets, we keep a list
      of recently forwarded packet seqnos. If the seqno of the current
-     packet exists in the list, we drop the packet and increase the
+     packet exists in the list, we increase the
      ETX of the neighbor we sent it to in the first place. */
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
      PACKETBUF_ATTR_PACKET_TYPE_DATA) {
@@ -401,6 +404,12 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
     if(rimeaddr_cmp(&tc->last_received_addr, packetbuf_addr(PACKETBUF_ADDR_SENDER)) &&
        tc->last_received_seqno == packetbuf_attr(PACKETBUF_ATTR_PACKET_ID)) {
       /* This is a duplicate of the packet we last received, so we just send an ACK. */
+      PRINTF("%d.%d: received same packet again from %d.%d with seqno %d, via %d.%d, acking\n",
+             rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+             ack_to.u8[0], ack_to.u8[1],
+             packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
+             packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
+             packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1]);
       send_ack(tc, &ack_to, 0, 0, 0);
       return;
     }
@@ -469,11 +478,12 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
       packetbuf_set_attr(PACKETBUF_ATTR_TTL, packetbuf_attr(PACKETBUF_ATTR_TTL) - 1);
       
       
-      PRINTF("%d.%d: packet received from %d.%d via %d.%d, sending %d\n",
+      PRINTF("%d.%d: packet received from %d.%d via %d.%d, sending %d, max_rexmits %d\n",
              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
              packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[0],
              packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[1],
-             from->u8[0], from->u8[1], tc->sending);
+             from->u8[0], from->u8[1], tc->sending,
+             packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT));
       
       if(packetqueue_enqueue_packetbuf(&sending_queue, FORWARD_PACKET_LIFETIME,
                                        tc)) {
@@ -508,12 +518,13 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
 static void
 node_packet_sent(struct unicast_conn *c, int status, int transmissions)
 {
+  uint16_t tx;
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, unicast_conn));
 
   /* For data packets, we record the number of transmissions */
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
-     PACKETBUF_ATTR_PACKET_TYPE_DATA) {
+     PACKETBUF_ATTR_PACKET_TYPE_DATA && transmissions > 0) {
     PRINTF("%d.%d: sent to %d.%d after %d transmissions\n",
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
            tc->current_receiver.u8[0], tc->current_receiver.u8[1],
@@ -523,9 +534,24 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
           update_rtmetric(tc);*/
     tc->transmissions += transmissions;
 
+    tx = tc->transmissions;
+#if 0
+    /* Punish neighbors that don't hear us by increasing the expeted
+       transmissions by four times the actual amount of transmissions
+       that we tried. This is due to the ETX calculation is done with
+       a moving average. */
+    if(status == MAC_TX_NOACK) {
+      tx *= 8;
+    }
+    /* Punish collisions too, but not as much. */
+    if(status == MAC_TX_COLLISION) {
+      //      tx *= 2;
+    }
+#endif /* 0 */
     /* Update ETX with the number of transmissions. */
-    PRINTF("Updating ETX with %d transmissions\n", tc->transmissions);
-    neighbor_update_etx(neighbor_find(&tc->current_receiver), tc->transmissions);
+    PRINTF("Updating ETX with %d transmissions (punished %d)\n", tc->transmissions,
+           tx);
+    neighbor_update_etx(neighbor_find(&tc->current_receiver), tx);
     update_rtmetric(tc);
   }
 }
@@ -533,8 +559,9 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
 static void
 timedout(struct collect_conn *tc)
 {
-  PRINTF("%d.%d: timedout after %d retransmissions: packet dropped\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], tc->transmissions);
+  PRINTF("%d.%d: timedout after %d retransmissions (max retransmissions %d): packet dropped\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], tc->transmissions,
+         tc->max_rexmits);
   
   tc->sending = 0;
   neighbor_timedout_etx(neighbor_find(&tc->current_receiver), tc->transmissions);
@@ -628,13 +655,13 @@ collect_open(struct collect_conn *tc, uint16_t channels,
   neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
 			  CLOCK_SECOND * 8,
 			  CLOCK_SECOND * 32,
-			 (CLOCK_SECOND * 600UL),
+                          CLOCK_SECOND * 300UL,
 			  &neighbor_discovery_callbacks);
   neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 #else /* !COLLECT_ANNOUNCEMENTS */
   announcement_register(&tc->announcement, channels, tc->rtmetric,
 			received_announcement);
-  announcement_listen(2);
+  /*  announcement_listen(2);*/
 #endif /* !COLLECT_ANNOUNCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
@@ -678,9 +705,10 @@ collect_send(struct collect_conn *tc, int rexmits)
   packetbuf_set_attr(PACKETBUF_ATTR_TTL, MAX_HOPLIM);
   packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, rexmits);
   
-  PRINTF("%d.%d: originating packet %d\n",
+  PRINTF("%d.%d: originating packet %d, max_rexmits %d\n",
          rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-         packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID));
+         packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
+         packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT));
 
   
   PRINTF("rexmit %d\n", rexmits);
