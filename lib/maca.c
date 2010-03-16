@@ -423,45 +423,38 @@ static uint8_t ram_values[4];
 
 void init_phy(void)
 {
-  volatile uint32_t cnt;
-
-  *MACA_RESET = (1 << maca_reset_rst);
-
-  for(cnt = 0; cnt < 100; cnt++) {};
-
-  *MACA_RESET = (1 << maca_reset_clkon);
-
-  *MACA_CONTROL = maca_ctrl_seq_nop;
-
-  for(cnt = 0; cnt < 400000; cnt++) {};
-
 //  *MACA_TMREN = (1 << maca_tmren_strt) | (1 << maca_tmren_cpl);
-  *MACA_CLKDIV = MACA_CLOCK_DIV;
-  *MACA_WARMUP = 0x00180012;
-  *MACA_EOFDELAY = 0x00000004;
-  *MACA_CCADELAY = 0x001a0022;
-  *MACA_TXCCADELAY = 0x00000025;
-  *MACA_FRAMESYNC0 = 0x000000A7;
-  *MACA_CLK = 0x00000008;
-  *MACA_MASKIRQ = ((1 << maca_irq_rst)    | 
-		   (1 << maca_irq_acpl)   | 
-		   (1 << maca_irq_cm)     |
-		   (1 << maca_irq_flt)    | 
-		   (1 << maca_irq_crc)    | 
-		   (1 << maca_irq_di)     |
-		   (1 << maca_irq_sftclk)
-	  );
-  *MACA_SLOTOFFSET = 0x00350000;
-
+	*MACA_CLKDIV = MACA_CLOCK_DIV;
+	*MACA_WARMUP = 0x00180012;
+	*MACA_EOFDELAY = 0x00000004;
+	*MACA_CCADELAY = 0x001a0022;
+	*MACA_TXCCADELAY = 0x00000025;
+	*MACA_FRAMESYNC0 = 0x000000A7;
+	*MACA_CLK = 0x00000008;
+	*MACA_MASKIRQ = ((1 << maca_irq_rst)    | 
+			 (1 << maca_irq_acpl)   | 
+			 (1 << maca_irq_cm)     |
+			 (1 << maca_irq_flt)    | 
+			 (1 << maca_irq_crc)    | 
+			 (1 << maca_irq_di)     |
+			 (1 << maca_irq_sftclk)
+		);
+	*MACA_SLOTOFFSET = 0x00350000;	
 }
 
 void reset_maca(void)
 {
-	uint32_t tmp;
+	volatile uint32_t cnt;
+	
+	*MACA_RESET = (1 << maca_reset_rst);
+	
+	for(cnt = 0; cnt < 100; cnt++) {};
+	
+	*MACA_RESET = (1 << maca_reset_clkon);
+	
 	*MACA_CONTROL = maca_ctrl_seq_nop;
-	do {
-		tmp = *MACA_STATUS;
-	} while ((tmp & 0xf) == maca_cc_not_completed);
+	
+	for(cnt = 0; cnt < 400000; cnt++) {};
 	
 	/* Clear all interrupts. */
 	*MACA_CLRIRQ = 0xffff;
@@ -580,6 +573,7 @@ void radio_on(void) {
 	/* turn the radio regulators back on */
 	reg(0x80003048) =  0x00000f78; 
 	/* reinitialize the phy */
+	reset_maca();
 	init_phy();
 	
 	enable_irq(MACA);
