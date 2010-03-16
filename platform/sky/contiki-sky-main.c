@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.75 2010/03/15 16:43:04 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.76 2010/03/16 15:45:20 joxe Exp $
  */
 
 #include <signal.h>
@@ -331,10 +331,6 @@ main(int argc, char **argv)
   }
 
   
-#if UIP_CONF_ROUTER
-  //uip_router_register(&UIP_ROUTER_MODULE);
-  UIP_ROUTER_MODULE.activate();
-#endif /* UIP_CONF_ROUTER */
 #else /* WITH_UIP6 */
 
   NETSTACK_RDC.init();
