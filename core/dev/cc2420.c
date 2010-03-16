@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.44 2010/03/14 22:45:20 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.45 2010/03/16 18:10:09 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -608,6 +608,7 @@ PROCESS_THREAD(cc2420_process, ev, data)
     len = cc2420_read(packetbuf_dataptr(), PACKETBUF_SIZE);
     if(len > 0) {
       packetbuf_set_datalen(len);
+
       NETSTACK_RDC.input();
 #if CC2420_TIMETABLE_PROFILING
       TIMETABLE_TIMESTAMP(cc2420_timetable, "end");
@@ -631,12 +632,7 @@ cc2420_read(void *buf, unsigned short bufsize)
 #endif /* CC2420_CONF_CHECKSUM */
 
   pending = 0;
-
-  if(!FIFOP_IS_1) {
-    /* If FIFOP is 0, there is no packet in the RXFIFO. */
-    return 0;
-  }
-
+  
   GET_LOCK();
 
   cc2420_packets_read++;
