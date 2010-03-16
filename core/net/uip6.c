@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.15 2010/03/15 16:41:24 joxe Exp $
+ * $Id: uip6.c,v 1.16 2010/03/16 15:45:20 nifi Exp $
  *
  */
 
@@ -254,14 +254,6 @@ static u16_t tmp16;
 struct uip_udp_conn *uip_udp_conn;
 struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 #endif /* UIP_UDP */
-/** @} */
-
-/*---------------------------------------------------------------------------*/
-/** @{ \name Routing module                                                  */
-/*---------------------------------------------------------------------------*/
-#if UIP_CONF_ROUTER
-const struct uip_router *uip_router;
-#endif /* UIP_CONF_ROUTER */
 /** @} */
 
 /*---------------------------------------------------------------------------*/
