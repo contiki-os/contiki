@@ -63,8 +63,10 @@ struct etimer uip_ds6_timer_periodic;                           /** \brief Timer
 
 #if UIP_CONF_ROUTER
 struct stimer uip_ds6_timer_ra;                                 /** \brief RA timer, to schedule RA sending */
+#if UIP_ND6_SEND_RA
 static uint8_t racount;                                         /** \brief number of RA already sent */
 static uint16_t rand_time;                                      /** \brief random time value for timers */
+#endif
 #else /* UIP_CONF_ROUTER */
 struct etimer uip_ds6_timer_rs;                                 /** \brief RS timer, to schedule RS sending */
 static uint8_t rscount;                                         /** \brief number of rs already sent */
