@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.28 2010/03/15 16:41:24 joxe Exp $
+ * $Id: sicslowpan.c,v 1.29 2010/03/16 10:21:04 joxe Exp $
  */
 /**
  * \file
@@ -255,10 +255,10 @@ addr_contexts[SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS];
 static struct sicslowpan_addr_context *context;
 
 /** pointer to the byte where to write next inline field. */
-static u8_t *hc06_ptr;
+static uint8_t *hc06_ptr;
 
 /** Index for loops. */
-static u8_t i;
+static uint8_t i;
 /** @} */
 
 
@@ -300,6 +300,63 @@ packet_sent(void *ptr, int status, int transmissions)
   neighbor_info_packet_sent(status, transmissions);
 #endif /* SICSLOWPAN_CONF_NEIGHBOR_INFO */
 }
+
+/*--------------------------------------------------------------------*/
+static void
+compress_addr_64(uint8_t bitpos, uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr) {
+  if(uip_is_addr_mac_addr_based(ipaddr, lladdr)){
+    RIME_IPHC_BUF[1] |= 3 << bitpos; /* 0-bits */
+  } else if(sicslowpan_is_iid_16_bit_compressable(ipaddr)){
+    /* compress IID to 16 bits xxxx::XXXX */
+    RIME_IPHC_BUF[1] |= 2 << bitpos; /* 16-bits */
+    memcpy(hc06_ptr, &ipaddr->u16[7], 2);
+    hc06_ptr += 2;
+  } else {
+    /* do not compress IID => xxxx::IID */
+    RIME_IPHC_BUF[1] |= 1 << bitpos; /* 64-bits */
+    memcpy(hc06_ptr, &ipaddr->u16[4], 8);
+    hc06_ptr += 8;
+  }
+}
+
+/*--------------------------------------------------------------------*/
+static void
+uncompress_lladdr(uint8_t mode, uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr) {
+  switch(mode) {
+  case 0: /* 00 -> 128 bits */
+    /* copy whole address from packet */
+    memcpy(ipaddr, hc06_ptr, 16);
+    hc06_ptr += 16;
+    break;
+  case 1: /* 01 -> 64 bits */
+    ipaddr->u8[0] = 0xfe;
+    ipaddr->u8[1] = 0x80;
+    /* copy 6 NULL bytes then 2 last bytes of IID */
+    memset(&ipaddr->u8[2], 0, 6);
+    /* copy IID from packet */
+    memcpy(&ipaddr->u8[8], hc06_ptr, 8);
+    hc06_ptr += 8;
+    break;
+  case 2: /* 10 -> 16 bits */
+    ipaddr->u8[0] = 0xfe;
+    ipaddr->u8[1] = 0x80;
+    /* copy 12 NULL bytes then 2 last bytes of IID */
+    memset(&ipaddr->u8[2], 0, 12);
+    memcpy(&ipaddr->u8[14], hc06_ptr, 2);
+    hc06_ptr += 2;
+    break;
+  case 3: /* 11 -> 0 bits */
+    /* setup link-local address */
+    ipaddr->u8[0] = 0xfe;
+    ipaddr->u8[1] = 0x80;
+    /* copy 12 NULL bytes then 8 last bytes from L2 */
+    memset(&ipaddr->u8[2], 0, 6);
+    /* infer IID from L2 address */
+    uip_ds6_set_addr_iid(ipaddr, lladdr);
+    break;
+  }
+}
+
 /*--------------------------------------------------------------------*/
 /**
  * \brief Compress IP/UDP header
@@ -471,38 +528,13 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
     RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_CID | SICSLOWPAN_IPHC_SAC;
     RIME_IPHC_BUF[2] |= context->number << 4;
     /* compession compare with this nodes address (source) */
-    if(uip_is_addr_mac_addr_based(&UIP_IP_BUF->srcipaddr, &uip_lladdr)){
-      /* elide the IID */
-      RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_SAM_11; /* 0-bits */
-    } else {
-      if(sicslowpan_is_iid_16_bit_compressable(&UIP_IP_BUF->srcipaddr)){
-        /* compress IID to 16 bits */
-        RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_SAM_10; /* 16-bits */
-        memcpy(hc06_ptr, &UIP_IP_BUF->srcipaddr.u16[7], 2);
-        hc06_ptr += 2;
-      } else {
-        /* do not compress IID */
-        RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_SAM_01; /* 64-bits */
-        memcpy(hc06_ptr, &UIP_IP_BUF->srcipaddr.u16[4], 8);
-        hc06_ptr += 8;
-      }
-    }
+
+    compress_addr_64(SICSLOWPAN_IPHC_SAM_BIT,
+		     &UIP_IP_BUF->srcipaddr, &uip_lladdr);
     /* No context found for this address */
   } else if(uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) {
-    // TODO: make a function of this: compress_ll_hc06(&UIP_IP_BUF->srcipaddr);
-    if(uip_is_addr_mac_addr_based(&UIP_IP_BUF->srcipaddr, &uip_lladdr)){
-      RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_SAM_11; /* 0-bits */
-    } else if(sicslowpan_is_iid_16_bit_compressable(&UIP_IP_BUF->srcipaddr)){
-      /* compress IID to 16 bits fe80::XXXX */
-      RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_SAM_10; /* 16-bits */
-      memcpy(hc06_ptr, &UIP_IP_BUF->srcipaddr.u16[7], 2);
-      hc06_ptr += 2;
-    } else {
-      /* do not compress IID => fe80::IID */
-      RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_SAM_01; /* 64-bits */
-      memcpy(hc06_ptr, &UIP_IP_BUF->srcipaddr.u16[4], 8);
-      hc06_ptr += 8;
-    }
+    compress_addr_64(SICSLOWPAN_IPHC_SAM_BIT,
+		     &UIP_IP_BUF->srcipaddr, &uip_lladdr);
   } else {
     /* send the full address => SAC = 0, SAM = 00 */
     RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_SAM_00; /* 128-bits */
@@ -544,38 +576,13 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
       RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_DAC;
       RIME_IPHC_BUF[2] |= context->number;
       /* compession compare with link adress (destination) */
-      if(uip_is_addr_mac_addr_based(&UIP_IP_BUF->destipaddr, (uip_lladdr_t *)rime_destaddr)) {
-        /* elide the IID */
-        RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_DAM_11; /* 0-bits */
-      } else {
-        if(sicslowpan_is_iid_16_bit_compressable(&UIP_IP_BUF->destipaddr)) {
-          /* compress IID to 16 bits */
-          RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_DAM_10; /* 16-bits */
-          memcpy(hc06_ptr, &UIP_IP_BUF->destipaddr.u16[7], 2);
-          hc06_ptr += 2;
-        } else {
-          /* do not compress IID */
-          RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_DAM_01; /* 64-bits */
-          memcpy(hc06_ptr, &UIP_IP_BUF->destipaddr.u16[4], 8);
-          hc06_ptr += 8;
-        }
-      }
+
+      compress_addr_64(SICSLOWPAN_IPHC_DAM_BIT,
+		       &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)rime_destaddr);
       /* No context found for this address */
     } else if(uip_is_addr_link_local(&UIP_IP_BUF->destipaddr)) {
-      // TODO: make a function of this: compress_ll_hc06(&UIP_IP_BUF->destipaddr);
-      if(uip_is_addr_mac_addr_based(&UIP_IP_BUF->destipaddr, (uip_lladdr_t *)rime_destaddr)) {
-        RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_DAM_11; /* 0-bits */
-      } else if(sicslowpan_is_iid_16_bit_compressable(&UIP_IP_BUF->destipaddr)){
-        /* compress IID to 16 bits fe80::XXXX */
-        RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_DAM_10; /* 16-bits */
-        memcpy(hc06_ptr, &UIP_IP_BUF->destipaddr.u16[7], 2);
-        hc06_ptr += 2;
-      } else {
-        /* do not compress IID => fe80::IID */
-        RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_DAM_01; /* 64-bits */
-        memcpy(hc06_ptr, &UIP_IP_BUF->destipaddr.u16[4], 8);
-        hc06_ptr += 8;
-      }
+      compress_addr_64(SICSLOWPAN_IPHC_DAM_BIT,
+		       &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)rime_destaddr);
     } else {
       /* send the full address */
       RIME_IPHC_BUF[1] |= SICSLOWPAN_IPHC_DAM_00; /* 128-bits */
@@ -760,40 +767,8 @@ uncompress_hdr_hc06(u16_t ip_len) {
     /* end context based compression */
   } else {
     /* no compression and link local */
-    switch(RIME_IPHC_BUF[1] & SICSLOWPAN_IPHC_SAM_11) {
-    case SICSLOWPAN_IPHC_SAM_00: /* 128 bits */
-      /* copy whole address from packet */
-      memcpy(&SICSLOWPAN_IP_BUF->srcipaddr.u8[0], hc06_ptr, 16);
-      hc06_ptr += 16;
-      break;
-    case SICSLOWPAN_IPHC_SAM_01: /* 64 bits */
-      SICSLOWPAN_IP_BUF->srcipaddr.u8[0] = 0xfe;
-      SICSLOWPAN_IP_BUF->srcipaddr.u8[1] = 0x80;
-      /* copy 6 NULL bytes then 2 last bytes of IID */
-      memset(&SICSLOWPAN_IP_BUF->srcipaddr.u8[2], 0, 6);
-      /* copy IID from packet */
-      memcpy(&SICSLOWPAN_IP_BUF->srcipaddr.u8[8], hc06_ptr, 8);
-      hc06_ptr += 8;
-      break;
-    case SICSLOWPAN_IPHC_SAM_10: /* 16 bits */
-      SICSLOWPAN_IP_BUF->srcipaddr.u8[0] = 0xfe;
-      SICSLOWPAN_IP_BUF->srcipaddr.u8[1] = 0x80;
-      /* copy 12 NULL bytes then 2 last bytes of IID */
-      memset(&SICSLOWPAN_IP_BUF->srcipaddr.u8[2], 0, 12);
-      memcpy(&SICSLOWPAN_IP_BUF->srcipaddr.u8[14], hc06_ptr, 2);
-      hc06_ptr += 2;
-      break;
-    case SICSLOWPAN_IPHC_SAM_11: /* 0 bits */
-      /* setup link-local address */
-      SICSLOWPAN_IP_BUF->srcipaddr.u8[0] = 0xfe;
-      SICSLOWPAN_IP_BUF->srcipaddr.u8[1] = 0x80;
-      /* copy 12 NULL bytes then 8 last bytes from L2 */
-      memset(&SICSLOWPAN_IP_BUF->srcipaddr.u8[2], 0, 6);
-      /* infer IID from L2 address */
-      uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->srcipaddr,
-			   (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-      break;
-    }
+    uncompress_lladdr((RIME_IPHC_BUF[1] & SICSLOWPAN_IPHC_SAM_11) >> SICSLOWPAN_IPHC_SAM_BIT,
+		      &SICSLOWPAN_IP_BUF->srcipaddr, (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
   }
 
   /* Destination address */
@@ -872,33 +847,8 @@ uncompress_hdr_hc06(u16_t ip_len) {
       }      
     } else {
       /* not context based => link local M = 0, DAC = 0 - same as SAC */
-      switch (RIME_IPHC_BUF[1] & SICSLOWPAN_IPHC_DAM_11) {
-      case SICSLOWPAN_IPHC_DAM_00: /* 128 bits */
-	memcpy(&SICSLOWPAN_IP_BUF->destipaddr.u8[0], hc06_ptr, 16);
-	hc06_ptr += 16;
-	break;
-      case SICSLOWPAN_IPHC_DAM_01: /* 64 bits */
-	SICSLOWPAN_IP_BUF->destipaddr.u8[0] = 0xfe;
-	SICSLOWPAN_IP_BUF->destipaddr.u8[1] = 0x80;
-	memset(&SICSLOWPAN_IP_BUF->destipaddr.u8[2], 0, 6);
-	memcpy(&SICSLOWPAN_IP_BUF->destipaddr.u8[8], hc06_ptr, 8);
-	hc06_ptr += 8;
-	break;
-      case SICSLOWPAN_IPHC_DAM_10: /* 16 bits */
-	SICSLOWPAN_IP_BUF->destipaddr.u8[0] = 0xfe;
-	SICSLOWPAN_IP_BUF->destipaddr.u8[1] = 0x80;
-	memset(&SICSLOWPAN_IP_BUF->destipaddr.u8[2], 0, 12);
-	memcpy(&SICSLOWPAN_IP_BUF->destipaddr.u8[14], hc06_ptr, 2);
-	hc06_ptr += 2;
-	break;
-      case SICSLOWPAN_IPHC_DAM_11: /* 0 bits */
-	SICSLOWPAN_IP_BUF->destipaddr.u8[0] = 0xfe;
-	SICSLOWPAN_IP_BUF->destipaddr.u8[1] = 0x80;
-	memset(&SICSLOWPAN_IP_BUF->destipaddr.u8[2], 0, 6);
-	uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->destipaddr,
-			     (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-	break;
-      }
+      uncompress_lladdr((RIME_IPHC_BUF[1] & SICSLOWPAN_IPHC_DAM_11) >> SICSLOWPAN_IPHC_DAM_BIT,
+			&SICSLOWPAN_IP_BUF->destipaddr, (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     }
   }
   uncomp_hdr_len += UIP_IPH_LEN;

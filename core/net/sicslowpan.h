@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.9 2010/03/09 15:18:03 c_oflynn Exp $
+ * $Id: sicslowpan.h,v 1.10 2010/03/16 10:21:04 joxe Exp $
  */
 /**
  * \file
@@ -120,12 +120,16 @@
 #define SICSLOWPAN_IPHC_SAM_10                      0x20
 #define SICSLOWPAN_IPHC_SAM_11                      0x30
 
+#define SICSLOWPAN_IPHC_SAM_BIT                     4
+
 #define SICSLOWPAN_IPHC_M                           0x08
 #define SICSLOWPAN_IPHC_DAC                         0x04
 #define SICSLOWPAN_IPHC_DAM_00                      0x00
 #define SICSLOWPAN_IPHC_DAM_01                      0x01
 #define SICSLOWPAN_IPHC_DAM_10                      0x02
 #define SICSLOWPAN_IPHC_DAM_11                      0x03
+
+#define SICSLOWPAN_IPHC_DAM_BIT                     0
 
 /* Link local context number */
 #define SICSLOWPAN_IPHC_ADDR_CONTEXT_LL             0
