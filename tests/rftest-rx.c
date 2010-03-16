@@ -23,7 +23,7 @@ void main(void) {
 	*GPIO_DATA_SEL0 = ( 1 << LED ); 
 
 	/* trim the reference osc. to 24MHz */
-	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
+	trim_xtal();
 
 	uart_init(INC, MOD, SAMP);
 

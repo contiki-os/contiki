@@ -33,7 +33,7 @@ void main(void) {
 	volatile packet_t *p;
 
 	/* trim the reference osc. to 24MHz */
-	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
+	trim_xtal();
 
 	uart_init(INC, MOD, SAMP);
 

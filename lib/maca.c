@@ -423,45 +423,38 @@ static uint8_t ram_values[4];
 
 void init_phy(void)
 {
-  volatile uint32_t cnt;
-
-  *MACA_RESET = (1 << maca_reset_rst);
-
-  for(cnt = 0; cnt < 100; cnt++) {};
-
-  *MACA_RESET = (1 << maca_reset_clkon);
-
-  *MACA_CONTROL = maca_ctrl_seq_nop;
-
-  for(cnt = 0; cnt < 400000; cnt++) {};
-
 //  *MACA_TMREN = (1 << maca_tmren_strt) | (1 << maca_tmren_cpl);
-  *MACA_CLKDIV = MACA_CLOCK_DIV;
-  *MACA_WARMUP = 0x00180012;
-  *MACA_EOFDELAY = 0x00000004;
-  *MACA_CCADELAY = 0x001a0022;
-  *MACA_TXCCADELAY = 0x00000025;
-  *MACA_FRAMESYNC0 = 0x000000A7;
-  *MACA_CLK = 0x00000008;
-  *MACA_MASKIRQ = ((1 << maca_irq_rst)    | 
-		   (1 << maca_irq_acpl)   | 
-		   (1 << maca_irq_cm)     |
-		   (1 << maca_irq_flt)    | 
-		   (1 << maca_irq_crc)    | 
-		   (1 << maca_irq_di)     |
-		   (1 << maca_irq_sftclk)
-	  );
-  *MACA_SLOTOFFSET = 0x00350000;
-
+	*MACA_CLKDIV = MACA_CLOCK_DIV;
+	*MACA_WARMUP = 0x00180012;
+	*MACA_EOFDELAY = 0x00000004;
+	*MACA_CCADELAY = 0x001a0022;
+	*MACA_TXCCADELAY = 0x00000025;
+	*MACA_FRAMESYNC0 = 0x000000A7;
+	*MACA_CLK = 0x00000008;
+	*MACA_MASKIRQ = ((1 << maca_irq_rst)    | 
+			 (1 << maca_irq_acpl)   | 
+			 (1 << maca_irq_cm)     |
+			 (1 << maca_irq_flt)    | 
+			 (1 << maca_irq_crc)    | 
+			 (1 << maca_irq_di)     |
+			 (1 << maca_irq_sftclk)
+		);
+	*MACA_SLOTOFFSET = 0x00350000;	
 }
 
 void reset_maca(void)
 {
-	uint32_t tmp;
+	volatile uint32_t cnt;
+	
+	*MACA_RESET = (1 << maca_reset_rst);
+	
+	for(cnt = 0; cnt < 100; cnt++) {};
+	
+	*MACA_RESET = (1 << maca_reset_clkon);
+	
 	*MACA_CONTROL = maca_ctrl_seq_nop;
-	do {
-		tmp = *MACA_STATUS;
-	} while ((tmp & 0xf) == maca_cc_not_completed);
+	
+	for(cnt = 0; cnt < 400000; cnt++) {};
 	
 	/* Clear all interrupts. */
 	*MACA_CLRIRQ = 0xffff;
@@ -580,6 +573,7 @@ void radio_on(void) {
 	/* turn the radio regulators back on */
 	reg(0x80003048) =  0x00000f78; 
 	/* reinitialize the phy */
+	reset_maca();
 	init_phy();
 	
 	enable_irq(MACA);
@@ -758,6 +752,8 @@ const uint32_t AIMVAL[19] = {
 #define ADDR_POW2 ADDR_POW1 + 12
 #define ADDR_POW3 ADDR_POW1 + 64
 void set_power(uint8_t power) {
+	safe_irq_disable(MACA);
+
 	reg(ADDR_POW1) = PSMVAL[power];
 
 /* see http://devl.org/pipermail/mc1322x/2009-October/000065.html */
@@ -769,6 +765,8 @@ void set_power(uint8_t power) {
 #endif
 
 	reg(ADDR_POW3) = AIMVAL[power];
+	
+	irq_restore();
 }
 
 const uint8_t VCODivI[16] = {
@@ -816,6 +814,7 @@ const uint32_t VCODivF[16] = {
 #define ADDR_CHAN4 (ADDR_CHAN1+48)
 void set_channel(uint8_t chan) {
 	volatile uint32_t tmp;
+	safe_irq_disable(MACA);
 
 	tmp = reg(ADDR_CHAN1);
 	tmp = tmp & 0xbfffffff;
@@ -836,6 +835,7 @@ void set_channel(uint8_t chan) {
 	tmp = tmp | (((ctov[chan])<<8)&0x1F00);
 	reg(ADDR_CHAN4) = tmp;
 	/* duh! */
+	irq_restore();
 }
 
 #define ROM_END 0x0013ffff
