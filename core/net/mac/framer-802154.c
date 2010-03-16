@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer-802154.c,v 1.6 2010/03/12 14:49:21 nifi Exp $
+ * $Id: framer-802154.c,v 1.7 2010/03/16 18:11:58 adamdunkels Exp $
  */
 
 /**
@@ -184,7 +184,7 @@ parse(void)
       }
     }
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (rimeaddr_t *)&frame.src_addr);
-    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, frame.fcf.ack_required);
+    /*    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, frame.fcf.ack_required);*/
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
 
     PRINTF("15.4-IN: %2X", frame.fcf.frame_type);
