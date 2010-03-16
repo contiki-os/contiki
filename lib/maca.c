@@ -752,6 +752,8 @@ const uint32_t AIMVAL[19] = {
 #define ADDR_POW2 ADDR_POW1 + 12
 #define ADDR_POW3 ADDR_POW1 + 64
 void set_power(uint8_t power) {
+	safe_irq_disable(MACA);
+
 	reg(ADDR_POW1) = PSMVAL[power];
 
 /* see http://devl.org/pipermail/mc1322x/2009-October/000065.html */
@@ -763,6 +765,8 @@ void set_power(uint8_t power) {
 #endif
 
 	reg(ADDR_POW3) = AIMVAL[power];
+	
+	irq_restore();
 }
 
 const uint8_t VCODivI[16] = {
@@ -810,6 +814,7 @@ const uint32_t VCODivF[16] = {
 #define ADDR_CHAN4 (ADDR_CHAN1+48)
 void set_channel(uint8_t chan) {
 	volatile uint32_t tmp;
+	safe_irq_disable(MACA);
 
 	tmp = reg(ADDR_CHAN1);
 	tmp = tmp & 0xbfffffff;
@@ -830,6 +835,7 @@ void set_channel(uint8_t chan) {
 	tmp = tmp | (((ctov[chan])<<8)&0x1F00);
 	reg(ADDR_CHAN4) = tmp;
 	/* duh! */
+	irq_restore();
 }
 
 #define ROM_END 0x0013ffff
