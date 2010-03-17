@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.14 2010/03/17 16:35:52 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.15 2010/03/17 18:24:06 adamdunkels Exp $
  */
 
 /**
@@ -103,7 +103,7 @@ struct announcement_msg {
 
 #define CCA_COUNT_MAX 2
 #define CCA_CHECK_TIME                     RTIMER_ARCH_SECOND / 8192
-#define CCA_SLEEP_TIME                     RTIMER_ARCH_SECOND / 2000 + CCA_CHECK_TIME
+#define CCA_SLEEP_TIME                     RTIMER_ARCH_SECOND / 2000
 #define CHECK_TIME                         (CCA_COUNT_MAX * (CCA_CHECK_TIME + CCA_SLEEP_TIME))
 
 #define STREAM_CCA_COUNT                   (CYCLE_TIME / (CCA_SLEEP_TIME + CCA_CHECK_TIME) - CCA_COUNT_MAX)
