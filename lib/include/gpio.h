@@ -25,15 +25,15 @@
 #define GPIO_PAD_DIR_RESET0 ((volatile uint32_t *) 0x80000060)
 #define GPIO_PAD_DIR_RESET1 ((volatile uint32_t *) 0x80000064)
 
-inline void gpio_pad_dir(uint64_t data);
-inline void gpio_data(uint64_t data); 
-inline void gpio_pad_pu_en(uint64_t data); 
-inline void gpio_data_sel(uint64_t data); 
-inline void gpio_data_pu_sel(uint64_t data); 
-inline void gpio_data_set(uint64_t data); 
-inline void gpio_data_reset(uint64_t data); 
-inline void gpio_pad_dir_set(uint64_t data); 
-inline void gpio_pad_dir_reset(uint64_t data); 
+inline void gpio_pad_dir(volatile uint64_t data);
+inline void gpio_data(volatile uint64_t data); 
+inline void gpio_pad_pu_en(volatile uint64_t data); 
+inline void gpio_data_sel(volatile uint64_t data); 
+inline void gpio_data_pu_sel(volatile uint64_t data); 
+inline void gpio_data_set(volatile uint64_t data); 
+inline void gpio_data_reset(volatile uint64_t data); 
+inline void gpio_pad_dir_set(volatile uint64_t data); 
+inline void gpio_pad_dir_reset(volatile uint64_t data); 
 
 /* select pullup or pulldown for GPIO 0-31 (b=0-31) */
 #define	gpio_sel0_pullup(b) (set_bit(reg32(GPIO_PAD_PU_SEL0),b))
