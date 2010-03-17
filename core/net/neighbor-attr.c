@@ -151,6 +151,23 @@ neighbor_attr_add_neighbor(const rimeaddr_t *addr)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+int
+neighbor_attr_remove_neighbor(const rimeaddr_t *addr)
+{
+  struct neighbor_addr *item = neighbor_attr_list_neighbors();
+
+  while(item != NULL) {
+    if(rimeaddr_cmp(&item->addr, addr)) {
+      memb_free(&neighbor_addr_mem, item);
+      list_remove(neighbor_addrs, item);
+      return 0;
+    } else {
+      item = item->next;
+    }
+  }
+  return -1;
+}
+/*---------------------------------------------------------------------------*/
 void *
 neighbor_attr_get_data(struct neighbor_attr *def, const rimeaddr_t *addr)
 {
