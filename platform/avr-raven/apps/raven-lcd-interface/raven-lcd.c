@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.6 2010/02/28 21:29:20 dak664 Exp $
+ * $Id: raven-lcd.c,v 1.7 2010/03/17 20:19:33 dak664 Exp $
 */
 
 /**
@@ -71,7 +71,6 @@
 #include <stdio.h>
 
 
-static u16_t addr[8];
 static u8_t count = 0;
 static u8_t seqno;
 uip_ipaddr_t dest_addr;
@@ -106,7 +105,10 @@ void
 raven_ping6(void)
 {
     /* ping the router */
+
+#if THEOLDWAY
     // Setup destination address.
+	static u16_t addr[8];
     struct uip_nd6_defrouter *defrouter;
     uint8_t i,tmp;
 
@@ -130,6 +132,17 @@ raven_ping6(void)
     UIP_IP_BUF->ttl = uip_netif_physical_if.cur_hop_limit;
     uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &dest_addr);
     uip_netif_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+
+ #else
+    /* Get address from default router */
+    UIP_IP_BUF->vtc = 0x60;
+    UIP_IP_BUF->tcflow = 1;
+    UIP_IP_BUF->flow = 0;
+    UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+	UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
+	uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose());
+	uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+#endif  
  
     UIP_ICMP_BUF->type = ICMP6_ECHO_REQUEST;
     UIP_ICMP_BUF->icode = 0;

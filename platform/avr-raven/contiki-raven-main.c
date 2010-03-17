@@ -227,21 +227,13 @@ void initialize(void)
   }
 #endif /* COFFEE_FILES */
 
-/* Add prefixes for testing */
+/* Add addresses for testing */
 #if 0
 {  
   uip_ip6addr_t ipaddr;
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
-  uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
-}
-#endif
-#if 0
-{
-  uip_ip6addr_t ipaddr;
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_netif_addr_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, AUTOCONF);
-  uip_nd6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+//  uip_ds6_prefix_add(&ipaddr,64,0);
 }
 #endif
 
@@ -253,13 +245,12 @@ void initialize(void)
   char buf[80];
   unsigned int size;
 
-  for(i = 0; i < UIP_CONF_NETIF_MAX_ADDRESSES; i ++) {
-   if(uip_netif_physical_if.addresses[i].state != NOT_USED) {
-      httpd_cgi_sprint_ip6(*(uip_ipaddr_t*)&uip_netif_physical_if.addresses[i],buf);
-      printf_P(PSTR("IPv6 Address: %s\n"),buf);
-   }
+  for (i=0;i<UIP_DS6_ADDR_NB;i++) {
+	if (uip_ds6_if.addr_list[i].isused) {	  
+	   httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr,buf);
+       printf_P(PSTR("IPv6 Address: %s\n"),buf);
+	}
   }
-
    eeprom_read_block (buf,server_name, sizeof(server_name));
    buf[sizeof(server_name)]=0;
    printf_P(PSTR("%s"),buf);
