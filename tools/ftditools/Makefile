@@ -7,4 +7,4 @@ CFLAGS = -Wall -Wextra #-Werror
 all: $(TARGETS)
 
 clean:
-	rm $(TARGETS)
+	-rm $(TARGETS)
