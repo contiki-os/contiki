@@ -116,9 +116,9 @@ ping6handler(process_event_t ev, process_data_t data)
     UIP_IP_BUF->tcflow = 1;
     UIP_IP_BUF->flow = 0;
     UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
-    UIP_IP_BUF->ttl = uip_netif_physical_if.cur_hop_limit;
+    UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
     uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &dest_addr);
-    uip_netif_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+    uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
  
     UIP_ICMP_BUF->type = ICMP6_ECHO_REQUEST;
     UIP_ICMP_BUF->icode = 0;
