@@ -44,7 +44,7 @@ uint32_t get_time(void) {
 }
 
 
-#define random_short_addr() (*MACA_RANDOM & ones(sizeof(short_addr_t)*8))
+#define random_short_addr() (*MACA_RANDOM & ones(sizeof(uint16_t)*8))
 
 void build_session_req(volatile packet_t *p) {
 	static uint8_t count = 0;
@@ -56,7 +56,7 @@ void build_session_req(volatile packet_t *p) {
 	return;
 }
 
-void session_req(short_addr_t addr __attribute__((unused))) { 	
+void session_req(uint16_t addr __attribute__((unused))) { 	
 	static volatile int time = 0;
 	volatile packet_t *p;
 
@@ -70,14 +70,14 @@ void session_req(short_addr_t addr __attribute__((unused))) {
 	return; 
 }
 
-session_id_t open_session(short_addr_t addr __attribute((unused))) { return 0; }
+session_id_t open_session(uint16_t addr __attribute((unused))) { return 0; }
 
 void main(void) {
 	uint32_t state;
 	volatile packet_t *p;
 	session_id_t sesid;
 	ptype_t type;
-	short_addr_t addr, my_addr;
+	uint16_t addr, my_addr;
 
 	/* trim the reference osc. to 24MHz */
 	pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS);
@@ -96,7 +96,7 @@ void main(void) {
 
         /* sets up tx_on, should be a board specific item */
         *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
-        *GPIO_PAD_DIR0 = *GPIO_PAD_DIR0 | (1<<(44-32));
+	gpio_pad_dir_set( 1ULL << 44 );
 
 	print_welcome("Packet error test");
 
@@ -110,7 +110,7 @@ void main(void) {
 				printf("Recv: ");
 				print_packet(p);
 				type = get_packet_type((packet_t *) p);
-				addr = p->addr;
+				addr = 0; /* FIXME */
 				free_packet(p);
 				/* pick a new address if someone else is using ours */
 				if(addr == my_addr) {
@@ -121,7 +121,7 @@ void main(void) {
 				/* check if it's a session request beacon */
 				if(type == PACKET_SESS_REQ) {
 					/* try to start a session */
-					sesid = open_session(p->addr);
+					sesid = open_session(addr);
 				}
 			}  else {
 				session_req(my_addr);

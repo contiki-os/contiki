@@ -6,10 +6,7 @@
 #define MAX_PAYLOAD_SIZE 125
 #endif
 
-typedef uint16_t short_addr_t;
-
 struct packet {
-	short_addr_t addr;
         uint8_t length; /* does not include FCS checksum */
 	volatile struct packet * left;
 	volatile struct packet * right;
