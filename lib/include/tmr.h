@@ -22,7 +22,7 @@
 #define TMR_REGOFF_ENBL     (0x1e)
 
 /* one enable register to rule them all */
-#define TMR_ENBL     ((volatile uint16_t *) TMR0_BASE + TMR_REGOFF_ENBL)
+#define TMR_ENBL     ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_ENBL))
 
 /* Timer 0 registers */
 #define TMR0_COMP1   ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_COMP1))
