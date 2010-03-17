@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.32 2010/03/12 16:02:47 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.33 2010/03/17 14:16:13 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -450,15 +450,14 @@ public class RadioLogger extends VisPlugin {
               PacketAnalyzer analyzer = analyzers.get(i);
               if (analyzer.matchPacket(packet)) {
                   int res = analyzer.analyzePacket(packet, brief, verbose);
-                  if (res != analyzer.ANALYSIS_OK_FINAL) {
-                      /* continue another round if more bytes left */
-                      analyze = packet.hasMoreData();
-                      brief.append('|');
-                      verbose.append("<p>");
-                  } else {
-                      /* this was the final - no analyzable payload possible here... */
+                  if (res != PacketAnalyzer.ANALYSIS_OK_CONTINUE) {
+                      /* this was the final or the analysis failed - no analyzable payload possible here... */
                       return brief.length() > 0;
                   }
+                  /* continue another round if more bytes left */
+                  analyze = packet.hasMoreData();
+                  brief.append('|');
+                  verbose.append("<p>");
                   break;
               }
           }
