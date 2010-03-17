@@ -6,6 +6,12 @@
 #include "tests.h"
 #include "config.h"
 
+#define print_size(x) do { \
+	printf("sizeof(");			\
+	printf(#x);				\
+	printf("): %d\n", sizeof(x));		\
+	} while(0)
+	       
 int main(void)
 {
 	char *ptr = "Hello world!";
@@ -16,6 +22,15 @@ int main(void)
 //	char buf[80];
 
 	uart_init(INC, MOD, SAMP);
+
+	print_size(int8_t);
+	print_size(uint8_t);
+	print_size(int16_t);
+	print_size(uint16_t);
+	print_size(int32_t);
+	print_size(uint32_t);
+	print_size(int64_t);
+	print_size(uint64_t);
 
 	mi = (1 << (bs-1)) + 1;
 	printf("%s\n", ptr);
@@ -39,7 +54,7 @@ int main(void)
 //	sprintf(buf, "-3: %-4d left justif.\n", -3); printf("%s", buf);
 //	sprintf(buf, "-3: %4d right justif.\n", -3); printf("%s", buf);
 
-	return 0;
+	while(1) { continue; }
 }
 
 /*
