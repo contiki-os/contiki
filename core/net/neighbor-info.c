@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.2 2010/03/12 13:23:50 nvt-se Exp $
+ * $Id: neighbor-info.c,v 1.3 2010/03/17 15:08:46 nvt-se Exp $
  */
 /**
  * \file
@@ -48,11 +48,17 @@
 #define PRINTF(...)
 #endif /* DEBUG */
 
+#ifndef ETX_CONF_LIMIT
+#define ETX_LIMIT		10
+#else
+#define ETX_LIMIT		ETX_CONF_LIMIT
+#endif /* !ETX_CONF_LIMIT */
+
 #define ETX_SCALE		100
 #define ETX_ALPHA		60
 #define ETX_FIRST_GUESS		1
 #define ETX_COLLISION_PENALTY	5
-#define ETX_NO_ACK_PENALTY	5
+#define ETX_NO_ACK_PENALTY	(ETX_LIMIT + 1)
 /*---------------------------------------------------------------------------*/
 NEIGHBOR_ATTRIBUTE(uint8_t, etx, NULL);
 
@@ -76,10 +82,14 @@ update_etx(const rimeaddr_t *dest, int packet_etx)
   PRINTF("neighbor-info: ETX changed from %d to %d (packet ETX = %d)\n", 
 	recorded_etx, new_etx, packet_etx);
 
-  neighbor_attr_set_data(&etx, dest, &new_etx);
-
-  if(new_etx != recorded_etx && subscriber_callback != NULL) {
-    subscriber_callback(dest, 1, recorded_etx);
+  if(new_etx > ETX_LIMIT) {
+    neighbor_attr_remove_neighbor(dest);
+    subscriber_callback(dest, 0, new_etx);
+  } else {
+    neighbor_attr_set_data(&etx, dest, &new_etx);
+    if(new_etx != recorded_etx && subscriber_callback != NULL) {
+      subscriber_callback(dest, 1, new_etx);
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -112,8 +122,6 @@ neighbor_info_packet_sent(int status, int numtx)
     return;
   }
 
-  add_neighbor(dest);
-
   PRINTF("neighbor-info: packet sent to %d.%d, status=%d, numtx=%d\n", 
 	dest->u8[sizeof(*dest) - 2], dest->u8[sizeof(*dest) - 1],
 	status, numtx);
@@ -121,6 +129,7 @@ neighbor_info_packet_sent(int status, int numtx)
   packet_etx = numtx;
   switch(status) {
   case MAC_TX_OK:
+    add_neighbor(dest);
     break;
   case MAC_TX_COLLISION:
     packet_etx += ETX_COLLISION_PENALTY; 
