@@ -9,7 +9,7 @@
 void main(void) {
 
 	/* pin direction */
-	*GPIO_PAD_DIR0 = LED;
+	gpio_pad_dir_set(LED);
 
 	/* timer setup */
 	/* CTRL */
@@ -34,13 +34,13 @@ void main(void) {
 	while(1) {
 
 		/* blink on */
-		*GPIO_DATA0 = LED;
+		gpio_data_set(LED);
 		
 		while((*TMR0_SCTRL >> 15) == 0) { continue; }
 		*TMR0_SCTRL = 0; /*clear bit 15, and all the others --- should be ok, but clearly not "the right thing to do" */
 
 		/* blink off */
-		*GPIO_DATA0 = 0x00000000;
+		gpio_data_set(0);
 
 		while((*TMR0_SCTRL >> 15) == 0) { continue; }
 		*TMR0_SCTRL = 0; /*clear bit 15, and all the others --- should be ok, but clearly not "the right thing to do" */

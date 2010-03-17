@@ -9,18 +9,19 @@
 
 void maca_rx_callback(volatile packet_t *p) {
 	(void)p;
-	toggle_gpio0(LED);
-	toggle_gpio0(LED);
+	gpio_data_set(1ULL<< LED);
+	gpio_data_reset(1ULL<< LED);
 }
 
 void main(void) {
 	volatile packet_t *p;
 
-	*GPIO_DATA0 = 0x00000000;
-	*GPIO_PAD_DIR0 = ( 1 << LED );
+	gpio_data(0);
+	
+	gpio_pad_dir_set( 1ULL << LED );
         /* read from the data register instead of the pad */
 	/* this is needed because the led clamps the voltage low */
-	*GPIO_DATA_SEL0 = ( 1 << LED ); 
+	gpio_data_sel( 1ULL << LED);
 
 	/* trim the reference osc. to 24MHz */
 	trim_xtal();
@@ -32,12 +33,8 @@ void main(void) {
 	maca_init();
 
         /* sets up tx_on, should be a board specific item */
-        *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
-	*GPIO_PAD_DIR_SET1 = (1 << (44-32));
-
-        /* sets up rx_on, should be a board specific item */
-        *GPIO_FUNC_SEL2 = (0x02 << ((45-16*2)*2));
-	*GPIO_PAD_DIR_SET1 = (1 << (45-32));
+	//       *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
+	gpio_pad_dir_set( 1ULL << 44 );
 
 	set_power(0x0f); /* 0dbm */
 	set_channel(0); /* channel 11 */

@@ -3,21 +3,21 @@
 
 #define DELAY 400000
 
-#define LED LED_GREEN
+#define LED (1ULL << LED_GREEN)
 
 void main(void) {	
 	volatile uint32_t i;
 	
-	*GPIO_PAD_DIR0 = LED;
+	gpio_pad_dir(LED);
 
 	while(1) {
 
-		*GPIO_DATA0 = LED;
+		gpio_data(LED);
 		
 		for(i=0; i<DELAY; i++) { continue; }
 
-		*GPIO_DATA0 = 0x00000000;
-
+		gpio_data(0);
+		
 		for(i=0; i<DELAY; i++) { continue; }
 
 	};

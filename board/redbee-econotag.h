@@ -1,9 +1,9 @@
 #ifndef BOARD_REDBEE_DEV_H
 #define BOARD_REDBEE_DEV_H
 
-#define LED_RED   12
-#define LED_GREEN 21
-#define LED_BLUE  0	/* FIXME: Was 35 - in high GPIO bank so it doesn't work */
+#define LED_RED   44
+#define LED_GREEN 45
+#define LED_BLUE  44	/* don't have a blue LED so we reuse red */
 
 /* XTAL TUNE parameters */
 /* see http://devl.org/pipermail/mc1322x/2009-December/000162.html */

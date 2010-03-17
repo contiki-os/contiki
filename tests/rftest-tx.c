@@ -46,15 +46,9 @@ void main(void) {
 //	set_power(0x11); /* 0x11 = 3dbm, see 3-22 */
 	set_power(0x12); /* 0x12 is the highest, not documented */
 
-	*GPIO_DATA0 = 0x00000000;
-	*GPIO_PAD_DIR0 = ( 1 << LED );
-        /* read from the data register instead of the pad */
-	/* this is needed because the led clamps the voltage low */
-	*GPIO_DATA_SEL0 = ( 1 << LED ); 
-
         /* sets up tx_on, should be a board specific item */
         *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
-	*GPIO_PAD_DIR_SET1 = (1 << (44-32));
+	gpio_pad_dir_set( 1ULL << 44 );
 
 	print_welcome("rftest-tx");
 

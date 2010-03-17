@@ -6,10 +6,10 @@
 
 volatile uint8_t led;
 
-#define LED_VAL LED_PURPLE
-#define led_init() do { *GPIO_PAD_DIR0 = LED_VAL; } while(0);
-#define led_on() do  { led = 1; *GPIO_DATA0 = LED_VAL; } while(0);
-#define led_off() do { led = 0; *GPIO_DATA0 = 0x00000000; } while(0);
+#define LED LED_PURPLE
+#define led_init() do { gpio_pad_dir_set(LED); } while(0);
+#define led_on() do  { led = 1; gpio_data_set(LED); } while(0);
+#define led_off() do { led = 0; gpio_data_set(0); } while(0);
 
 void toggle_led(void) {
 	if(0 == led) {
