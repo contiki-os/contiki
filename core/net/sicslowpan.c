@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.29 2010/03/16 10:21:04 joxe Exp $
+ * $Id: sicslowpan.c,v 1.30 2010/03/17 12:08:59 joxe Exp $
  */
 /**
  * \file
@@ -167,6 +167,11 @@ void uip_log(char *msg);
  */
 /** A pointer to the mac driver */
 const struct mac_driver *sicslowpan_mac;
+
+#ifdef SICSLOWPAN_NH_COMPRESSOR
+/** A pointer to the additional compressor */
+extern struct sicslowpan_nh_compressor SICSLOWPAN_NH_COMPRESSOR;
+#endif
 
 /**
  * A pointer to the rime buffer.
@@ -467,7 +472,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
       RIME_IPHC_BUF[0] |= SICSLOWPAN_IPHC_TC_C;
       *hc06_ptr = (tmp & 0xc0) |
         (UIP_IP_BUF->tcflow & 0x0F);
-     memcpy(hc06_ptr + 1, &UIP_IP_BUF->flow, 2);
+      memcpy(hc06_ptr + 1, &UIP_IP_BUF->flow, 2);
       hc06_ptr += 3;
     } else {
       /* compress nothing */
@@ -484,13 +489,17 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
 #if UIP_CONF_UDP
   if(UIP_IP_BUF->proto == UIP_PROTO_UDP) {
     RIME_IPHC_BUF[0] |= SICSLOWPAN_IPHC_NH_C;
-  } else {
+  }
 #endif /*UIP_CONF_UDP*/
+#ifdef SICSLOWPAN_NH_COMPRESSOR 
+  if(SICSLOWPAN_NH_COMPRESSOR.is_compressable(UIP_IP_BUF->proto)) {
+    RIME_IPHC_BUF[0] |= SICSLOWPAN_IPHC_NH_C;
+  }
+#endif
+  if ((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_NH_C) == 0) {
     *hc06_ptr = UIP_IP_BUF->proto;
     hc06_ptr += 1;
-#if UIP_CONF_UDP
- }
-#endif /*UIP_CONF_UDP*/
+  }
 
   /*
    * Hop limit
@@ -620,6 +629,10 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
     uncomp_hdr_len += UIP_UDPH_LEN;
   }
 #endif /*UIP_CONF_UDP*/
+#ifdef SICSLOWPAN_NH_COMPRESSOR
+  /* if nothing to compress just return zero  */
+  hc06_ptr += SICSLOWPAN_NH_COMPRESSOR.compress(hc06_ptr, &uncomp_hdr_len);
+#endif
   rime_hdr_len = hc06_ptr - rime_ptr;
   return;
 }
@@ -856,7 +869,7 @@ uncompress_hdr_hc06(u16_t ip_len) {
   /* Next header processing - continued */
   if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_NH_C)) {
     /* The next header is compressed, NHC is following */
-    if((*hc06_ptr & SICSLOWPAN_NDC_UDP_MASK) == SICSLOWPAN_NHC_UDP_ID) {
+    if((*hc06_ptr & SICSLOWPAN_NHC_UDP_MASK) == SICSLOWPAN_NHC_UDP_ID) {
       SICSLOWPAN_IP_BUF->proto = UIP_PROTO_UDP;
       switch(*hc06_ptr) {
       case SICSLOWPAN_NHC_UDP_C:
@@ -886,6 +899,11 @@ uncompress_hdr_hc06(u16_t ip_len) {
       }
       uncomp_hdr_len += UIP_UDPH_LEN;
     }
+#ifdef SICSLOWPAN_NH_COMPRESSOR
+    else {
+      hc06_ptr += SICSLOWPAN_NH_COMPRESSOR.uncompress(hc06_ptr, sicslowpan_buf, &uncomp_hdr_len);
+    }
+#endif
   }
 
   rime_hdr_len = hc06_ptr - rime_ptr;
