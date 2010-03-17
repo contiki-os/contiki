@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.17 2010/03/02 15:41:23 dak664 Exp $
+ * $Id: neighbor-discovery.c,v 1.18 2010/03/17 14:36:46 fros4943 Exp $
  */
 
 /**
@@ -148,7 +148,7 @@ send_timer(void *ptr)
 
   c->current_interval = interval;
 
-  printf("current_interval %lu\n", (long unsigned int) interval);
+  PRINTF("current_interval %lu\n", (long unsigned int) interval);
   set_timers(c);
 }
 /*---------------------------------------------------------------------------*/
