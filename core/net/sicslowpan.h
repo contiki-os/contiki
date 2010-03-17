@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.11 2010/03/17 12:08:59 joxe Exp $
+ * $Id: sicslowpan.h,v 1.12 2010/03/17 20:57:25 joxe Exp $
  */
 /**
  * \file
@@ -102,8 +102,8 @@
  * Values of fields within the IPHC encoding first byte
  * (C stands for compressed and I for inline)
  */
-#define SICSLOWPAN_IPHC_TC_C                        0x10
-#define SICSLOWPAN_IPHC_FL_C                        0x08
+#define SICSLOWPAN_IPHC_FL_C                        0x10
+#define SICSLOWPAN_IPHC_TC_C                        0x08
 #define SICSLOWPAN_IPHC_NH_C                        0x04
 #define SICSLOWPAN_IPHC_TTL_1                       0x01
 #define SICSLOWPAN_IPHC_TTL_64                      0x02
