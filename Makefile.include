@@ -121,7 +121,7 @@ clean:
                 -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' -o -name '*.d' \) -print \
 		| xargs rm -rf
 	rm -fr *.*~	
-
+	make -C $(MC1322X)/tools/ftditools/ clean
 clobber \
 mrproper \
 distclean:	clean
