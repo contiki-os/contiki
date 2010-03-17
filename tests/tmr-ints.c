@@ -7,7 +7,7 @@
 volatile uint8_t led;
 
 #define LED LED_PURPLE
-#define led_init() do { gpio_pad_dir_set(LED); } while(0);
+#define led_init() do { gpio_pad_dir_set(LED_WHITE); gpio_data_reset(LED_WHITE); } while(0);
 #define led_on() do  { led = 1; gpio_data_set(LED); } while(0);
 #define led_off() do { led = 0; gpio_data_reset(LED); } while(0);
 

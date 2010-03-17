@@ -9,7 +9,9 @@
 void main(void) {
 
 	/* pin direction */
-	gpio_pad_dir_set(LED);
+	gpio_pad_dir_set(LED_WHITE);
+	/* all LEDs off */
+	gpio_data_reset(LED_WHITE);
 
 	/* timer setup */
 	/* CTRL */
