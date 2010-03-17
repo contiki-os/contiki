@@ -113,6 +113,12 @@ int neighbor_attr_has_neighbor(const rimeaddr_t * addr);
 int neighbor_attr_add_neighbor(const rimeaddr_t * addr);
 
 /**
+ * \brief      Remove a neighbor entry to neighbor table
+ * \retval     -1 if unsuccessful, 0 if the neighbor was removed
+ */
+int neighbor_attr_remove_neighbor(const rimeaddr_t * addr);
+
+/**
  * \brief      Get pointer to neighbor table data specified by id
  * \param      requested attribute
  * \param addr requested neighbor
