@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.33 2010/03/17 14:16:13 nifi Exp $
+ * $Id: RadioLogger.java,v 1.34 2010/03/17 22:44:20 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -456,8 +456,10 @@ public class RadioLogger extends VisPlugin {
                   }
                   /* continue another round if more bytes left */
                   analyze = packet.hasMoreData();
-                  brief.append('|');
-                  verbose.append("<p>");
+                  if (analyze) {
+                      brief.append('|');
+                      verbose.append("<p>");
+                  }
                   break;
               }
           }
