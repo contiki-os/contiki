@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.13 2010/03/16 18:11:13 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.14 2010/03/17 16:35:52 adamdunkels Exp $
  */
 
 /**
@@ -279,12 +279,13 @@ powercycle(struct rtimer *t, void *ptr)
         t0 = RTIMER_NOW();
         if(we_are_sending == 0) {
           powercycle_turn_radio_on();
+#if 0
 #if NURTIMER
           while(RTIMER_CLOCK_LT(t0, RTIMER_NOW(), t0 + CCA_CHECK_TIME));
 #else
           while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_CHECK_TIME));
 #endif
-          
+#endif /* 0 */
           /* Check if a packet is seen in the air. If so, we keep the
              radio on for a while (LISTEN_TIME_AFTER_PACKET_DETECTED) to
              be able to receive the packet. We also continuously check
@@ -336,7 +337,7 @@ powercycle(struct rtimer *t, void *ptr)
             leds_off(LEDS_RED);
             break;
           }
-          if(periods > 10 && !(NETSTACK_RADIO.receiving_packet() ||
+          if(periods > 20 && !(NETSTACK_RADIO.receiving_packet() ||
                                NETSTACK_RADIO.pending_packet())) {
             leds_on(LEDS_GREEN);
             powercycle_turn_radio_off();
@@ -636,9 +637,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
       RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + STROBE_TIME); strobes++) {
 #endif
     
-    if(is_known_receiver && strobes > MAX_PHASE_STROBES) {
+    /*    if(is_known_receiver && strobes > MAX_PHASE_STROBES) {
       break;
-    }
+      }*/
     
     len = 0;
 
