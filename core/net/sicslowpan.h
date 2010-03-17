@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.10 2010/03/16 10:21:04 joxe Exp $
+ * $Id: sicslowpan.h,v 1.11 2010/03/17 12:08:59 joxe Exp $
  */
 /**
  * \file
@@ -137,13 +137,15 @@
 #define SICSLOWPAN_IPHC_MCAST_RANGE                 0xA0
 /** @} */
 
-
-#define SICSLOWPAN_NDC_UDP_MASK                     0xF8
+/* NHC_EXT_HDR */
+#define SICSLOWPAN_NHC_MASK                         0xF0
+#define SICSLOWPAN_NHC_EXT_HDR                      0xE0
 
 /**
  * \name LOWPAN_UDP encoding (works together with IPHC)
  * @{
  */
+#define SICSLOWPAN_NHC_UDP_MASK                     0xF8
 #define SICSLOWPAN_NHC_UDP_ID                       0xF0
 #define SICSLOWPAN_NHC_UDP_C                        0xF3
 #define SICSLOWPAN_NHC_UDP_I                        0xF0
@@ -283,6 +285,25 @@ struct sicslowpan_addr_context {
    (((a)->u8[14]) == 0))
 
 /** @} */
+
+/**
+ * The structure of a next header compressor.
+ *
+ * TODO: needs more parameters when compressing extension headers, etc.
+ */
+struct sicslowpan_nh_compressor {
+  int (* is_compressable)(uint8_t next_header);
+
+  /** compress next header (TCP/UDP, etc) - ptr points to next header to
+      compress */
+  int (* compress)(uint8_t *compressed, uint8_t *uncompressed_len);
+
+  /** uncompress next header (TCP/UDP, etc) - ptr points to next header to
+      uncompress */
+  int (* uncompress)(uint8_t *compressed, uint8_t *lowpanbuf, uint8_t *uncompressed_len);
+
+};
+
 
 extern const struct network_driver sicslowpan_driver;
 
