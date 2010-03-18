@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.23 2010/02/02 17:51:55 dak664 Exp $
+ * $Id: contiki-main.c,v 1.24 2010/03/18 20:11:54 dak664 Exp $
  *
  */
 
@@ -132,12 +132,22 @@ main(void)
   printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
 
 #else /* !UIP_CONF_IPV6 */
+  uint8_t i;
   uip_ipaddr_t ipaddr;
-
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
-  uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
-  printf("IP6 Address: ");sprint_ip6(ipaddr);printf("\n");
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);   
+#if UIP_CONF_ROUTER
+  uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
+#else /* UIP_CONF_ROUTER */
+  uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0);
+#endif /* UIP_CONF_ROUTER */
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+ // printf("IP6 Address: ");sprint_ip6(ipaddr);printf("\n");
+  for (i=0;i<UIP_DS6_ADDR_NB;i++) {
+	if (uip_ds6_if.addr_list[i].isused) {	  
+	  printf("IPV6 Address: ");sprint_ip6(uip_ds6_if.addr_list[i].ipaddr);printf("\n");
+	}
+  }
 #endif /* !UIP_CONF_IPV6 */
 
   /* Make standard output unbuffered. */
