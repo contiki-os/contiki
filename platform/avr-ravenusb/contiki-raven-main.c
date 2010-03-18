@@ -50,11 +50,6 @@
 #if RF230BB           //radio driver using contiki core mac
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
-#include "net/sicslowpan.h"
-#include "net/uip-netif.h"
-#include "net/mac/lpp.h"
-#include "net/mac/sicslowmac.h"
-#include "net/mac/cxmac.h"
 #else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
 #include "mac.h"

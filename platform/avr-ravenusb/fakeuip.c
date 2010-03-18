@@ -3,7 +3,7 @@
  * compile. Allows you to save needing to compile all of uIP in just
  * to get a few things */
 
-
+ 
 #include "uip.h"
 #include <string.h>
 
@@ -32,10 +32,15 @@ void tcpip_set_outputfunc(u8_t (* f)(uip_lladdr_t *)) {
 u16_t htons(u16_t val) { return HTONS(val);}
 
 
+#if THEOLDWAY
 /********** UIP_NETIF.c **********/
-
 void
 uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
+#else
+/********** uip-ds6.c ************/
+void
+uip_ds6_set_addr_iid(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr)
+#endif /* THEOLDWAY */
 {
   /* We consider only links with IEEE EUI-64 identifier or
      IEEE 48-bit MAC addresses */
@@ -49,12 +54,13 @@ uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
   memcpy(ipaddr->u8 + 13, lladdr + 3, 3);
   ipaddr->u8[8] ^= 0x02;
 #else
+#error cannot build interface address when UIP_LLADDR_LEN is not 6 or 8
   /*
     UIP_LOG("CAN NOT BUIL INTERFACE IDENTIFIER");
     UIP_LOG("THE STACK IS GOING TO SHUT DOWN");
     UIP_LOG("THE HOST WILL BE UNREACHABLE");
+    exit(-1);
   */
-  exit(-1);
 #endif
 }
 
