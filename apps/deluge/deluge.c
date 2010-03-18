@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.c,v 1.7 2009/05/15 23:04:15 nvt-se Exp $
+ * $Id: deluge.c,v 1.8 2010/03/18 14:25:54 nvt-se Exp $
  */
 
 /**
@@ -67,15 +67,15 @@
   do {                                          \
     printf("[Node %02u] ", (unsigned) node_id); \
     printf(__VA_ARGS__);                        \
-  } while (0)
+  } while(0)
 #else
 #define PRINTF(...)
 #endif
 
 PROCESS(deluge_process, "Deluge process");
 
-static void broadcast_recv(struct broadcast_conn *, rimeaddr_t *);
-static void unicast_recv(struct unicast_conn *, rimeaddr_t *);
+static void broadcast_recv(struct broadcast_conn *, const rimeaddr_t *);
+static void unicast_recv(struct unicast_conn *, const rimeaddr_t *);
 
 /* Implementation-specific variables. */
 static struct broadcast_conn deluge_broadcast;
@@ -98,8 +98,8 @@ static struct ctimer profile_timer;
 
 static unsigned next_object_id;
 
-static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
-static const struct unicast_callbacks unicast_call = {unicast_recv};
+static const struct broadcast_callbacks broadcast_call = {broadcast_recv, NULL};
+static const struct unicast_callbacks unicast_call = {unicast_recv, NULL};
 
 #if ENERGEST_CONF_ON
 static long cpu_start_time, tx_start_time, listen_start_time;
@@ -125,7 +125,7 @@ checksum(unsigned char *buf, unsigned len)
 static void
 transition(int state)
 {
-  switch (deluge_state) {
+  switch(deluge_state) {
   case DELUGE_STATE_MAINTAIN:
     ctimer_stop(&summary_timer);
     ctimer_stop(&profile_timer);
@@ -296,7 +296,7 @@ advertise_summary(struct deluge_object *obj)
 }
 
 static void
-handle_summary(struct deluge_msg_summary *msg, rimeaddr_t *sender)
+handle_summary(struct deluge_msg_summary *msg, const rimeaddr_t *sender)
 {
   int highest_available, i;
   clock_time_t oldest_request, oldest_data, now;
@@ -505,7 +505,7 @@ handle_packet(struct deluge_msg_packet *msg)
 }
 
 static void
-unicast_recv(struct unicast_conn *c, rimeaddr_t *sender)
+unicast_recv(struct unicast_conn *c, const rimeaddr_t *sender)
 {
   char *msg;
   int len;
@@ -515,7 +515,7 @@ unicast_recv(struct unicast_conn *c, rimeaddr_t *sender)
   if(len < 5)
     return;
 
-  switch (msg[2]) {
+  switch(msg[2]) {
   case DELUGE_CMD_REQUEST:
     if(len >= sizeof (struct deluge_msg_request))
       handle_request((struct deluge_msg_request *)msg);
@@ -614,7 +614,7 @@ handle_profile(struct deluge_msg_profile *msg)
 }
 
 static void
-broadcast_recv(struct broadcast_conn *c, rimeaddr_t *sender)
+broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *sender)
 {
   char *msg;
   int len;
@@ -625,7 +625,7 @@ broadcast_recv(struct broadcast_conn *c, rimeaddr_t *sender)
   if(len < 5)
     return;
 
-  switch (msg[2]) {
+  switch(msg[2]) {
   case DELUGE_CMD_SUMMARY:
     if(len >= sizeof (struct deluge_msg_summary))
       handle_summary((struct deluge_msg_summary *)msg, sender);
