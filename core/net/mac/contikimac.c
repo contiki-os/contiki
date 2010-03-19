@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.15 2010/03/17 18:24:06 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.16 2010/03/19 13:24:58 adamdunkels Exp $
  */
 
 /**
@@ -60,7 +60,7 @@
 #include <string.h>
 
 #ifndef WITH_ACK_OPTIMIZATION
-#define WITH_ACK_OPTIMIZATION        1
+#define WITH_ACK_OPTIMIZATION        0
 #endif
 #ifndef WITH_PHASE_OPTIMIZATION
 #define WITH_PHASE_OPTIMIZATION      1
@@ -116,7 +116,7 @@ struct announcement_msg {
 #define SHORTEST_PACKET_SIZE            18
 
 /* The cycle time for announcements. */
-#define ANNOUNCEMENT_PERIOD 2 * CLOCK_SECOND
+#define ANNOUNCEMENT_PERIOD 4 * CLOCK_SECOND
 
 /* The time before sending an announcement within one announcement
    cycle. */
@@ -636,6 +636,8 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
       got_strobe_ack == 0 && collisions == 0 &&
       RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + STROBE_TIME); strobes++) {
 #endif
+
+    watchdog_periodic();
     
     /*    if(is_known_receiver && strobes > MAX_PHASE_STROBES) {
       break;
@@ -830,6 +832,9 @@ send_announcement(void *ptr)
   announcement_len = format_announcement(packetbuf_dataptr());
 
   if(announcement_len > 0) {
+    if(announcement_len < SHORTEST_PACKET_SIZE) {
+      announcement_len = SHORTEST_PACKET_SIZE;
+    }
     packetbuf_set_datalen(announcement_len);
 
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
