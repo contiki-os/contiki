@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.166 2010/03/19 12:34:03 fros4943 Exp $
+ * $Id: GUI.java,v 1.167 2010/03/19 15:04:51 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3397,6 +3397,7 @@ public class GUI extends Observable {
     for (File project: currentProjectDirs) {
       Element projectElement = new Element("project");
       projectElement.addContent(createPortablePath(project).getPath().replaceAll("\\\\", "/"));
+      projectElement.setAttribute("EXPORT", "discard");
       root.addContent(projectElement);
     }
 
@@ -4114,10 +4115,13 @@ public class GUI extends Observable {
     }
   }
   private File restoreConfigRelativePath(File portable) {
-    if (currentConfigFile == null) {
+    return restoreConfigRelativePath(currentConfigFile, portable);
+  }
+  public static File restoreConfigRelativePath(File configFile, File portable) {
+    if (configFile == null) {
       return null;
     }
-    File configPath = currentConfigFile.getParentFile();
+    File configPath = configFile.getParentFile();
     if (configPath == null) {
         /* File is in current directory */
         configPath = new File("");
