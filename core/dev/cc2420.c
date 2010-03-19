@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.45 2010/03/16 18:10:09 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.46 2010/03/19 13:18:53 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -631,6 +631,10 @@ cc2420_read(void *buf, unsigned short bufsize)
   uint16_t checksum;
 #endif /* CC2420_CONF_CHECKSUM */
 
+  if(!pending) {
+    return 0;
+  }
+  
   pending = 0;
   
   GET_LOCK();
