@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: bridge-conf.h,v 1.7 2010/02/18 23:03:36 adamdunkels Exp $
+ * $Id: bridge-conf.h,v 1.8 2010/03/19 12:58:17 nifi Exp $
  */
 
 /**
@@ -49,9 +49,6 @@
 #define XMAC_CONF_COMPOWER 1
 #undef XMAC_CONF_ANNOUNCEMENTS
 #define XMAC_CONF_ANNOUNCEMENTS 0
-
-#undef RF_CHANNEL
-#define RF_CHANNEL              26
 
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE  256
