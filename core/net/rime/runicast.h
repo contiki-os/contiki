@@ -66,7 +66,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.h,v 1.6 2009/11/08 19:40:18 adamdunkels Exp $
+ * $Id: runicast.h,v 1.7 2010/03/19 13:22:08 adamdunkels Exp $
  */
 
 /**
@@ -83,9 +83,12 @@
 
 struct runicast_conn;
 
+
+#define RUNICAST_PACKET_ID_BITS 2
+
 #define RUNICAST_ATTRIBUTES  { PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_BIT }, \
-                        { PACKETBUF_ATTR_PACKET_ID, PACKETBUF_ATTR_BIT * 2 }, \
-                        STUNICAST_ATTRIBUTES
+                             { PACKETBUF_ATTR_PACKET_ID, PACKETBUF_ATTR_BIT * RUNICAST_PACKET_ID_BITS }, \
+                             STUNICAST_ATTRIBUTES
 struct runicast_callbacks {
   void (* recv)(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno);
   void (* sent)(struct runicast_conn *c, const rimeaddr_t *to, uint8_t retransmissions);

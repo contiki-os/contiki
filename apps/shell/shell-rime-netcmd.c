@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-netcmd.c,v 1.8 2009/04/06 23:29:31 adamdunkels Exp $
+ * $Id: shell-rime-netcmd.c,v 1.9 2010/03/19 13:24:26 adamdunkels Exp $
  */
 
 /**
@@ -48,7 +48,6 @@
 #include "lib/random.h"
 
 #include "net/rime.h"
-#include "net/rime/neighbor.h"
 #include "net/rime/route.h"
 #include "net/rime/trickle.h"
 
@@ -90,7 +89,7 @@ PROCESS_THREAD(shell_netcmd_server_process, ev, data)
   PROCESS_BEGIN();
 
   /* XXX: direct output to null. */
-  /*  printf("netcmd server got command string '%s'\n", (char *)data);*/
+  printf("netcmd server got command string '%s'\n", (char *)data);
   err = shell_start_command(data, strlen((char * )data), NULL, &child_command);
   if(err == SHELL_FOREGROUND && process_is_running(child_command)) {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_EXIT ||
@@ -132,7 +131,7 @@ PROCESS_THREAD(shell_netcmd_process, ev, data)
     /* Terminate the string with a NUL character. */
     msg->netcmd[len] = 0;
     msg->crc = crc16_data(msg->netcmd, len, 0);
-    /*    printf("netcmd sending '%s'\n", msg->netcmd);*/
+    printf("netcmd sending '%s'\n", msg->netcmd);
     trickle_send(&trickle);
   }
   
