@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.40 2010/03/16 18:12:34 adamdunkels Exp $
+ * $Id: collect.c,v 1.41 2010/03/19 13:17:00 adamdunkels Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #include "contiki.h"
 
 #include "net/rime.h"
-#include "net/rime/neighbor.h"
+#include "net/rime/collect-neighbor.h"
 #include "net/rime/collect.h"
 
 #include "net/rime/packetqueue.h"
@@ -119,7 +119,7 @@ static void retransmit_callback(void *ptr);
 static void
 update_rtmetric(struct collect_conn *tc)
 {
-  struct neighbor *n;
+  struct collect_neighbor *n;
 
   PRINTF("update_rtmetric: tc->rtmetric %d\n", tc->rtmetric);
   
@@ -127,7 +127,7 @@ update_rtmetric(struct collect_conn *tc)
   if(tc->rtmetric != SINK) {
 
     /* Find the neighbor with the lowest rtmetric. */
-    n = neighbor_best();
+    n = collect_neighbor_best();
 
     /* If n is NULL, we have no best neighbor. */
     if(n == NULL) {
@@ -148,23 +148,28 @@ update_rtmetric(struct collect_conn *tc)
     } else {
       /* We set our rtmetric to the rtmetric of our best neighbor plus
          the expected transmissions to reach that neighbor. */
-      if(n->rtmetric + neighbor_etx(n) != tc->rtmetric) {
+      if(n->rtmetric + collect_neighbor_etx(n) != tc->rtmetric) {
 	uint16_t old_rtmetric = tc->rtmetric;
 	
-	tc->rtmetric = n->rtmetric + neighbor_etx(n);
+	tc->rtmetric = n->rtmetric + collect_neighbor_etx(n);
 
 #if ! COLLECT_ANNOUNCEMENTS
 
         /* If we get a significantly better rtmetric than we had
            before, we call neighbor_discovery_start to start a new
            period. */
-        if(old_rtmetric >= tc->rtmetric + NEIGHBOR_ETX_SCALE + NEIGHBOR_ETX_SCALE / 2) {
+        if(old_rtmetric >= tc->rtmetric + COLLECT_NEIGHBOR_ETX_SCALE + COLLECT_NEIGHBOR_ETX_SCALE / 2 ||
+           old_rtmetric == SINK) {
           neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
         } else {
           neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
         }
 #else /* ! COLLECT_ANNOUNCEMENTS */
 	announcement_set_value(&tc->announcement, tc->rtmetric);
+        if(old_rtmetric >= tc->rtmetric + COLLECT_NEIGHBOR_ETX_SCALE + COLLECT_NEIGHBOR_ETX_SCALE / 2 ||
+           old_rtmetric == SINK) {
+          announcement_bump(&tc->announcement);
+        }
 #endif /* ! COLLECT_ANNOUNCEMENTS */
 
 	PRINTF("%d.%d: new rtmetric %d\n",
@@ -186,7 +191,7 @@ update_rtmetric(struct collect_conn *tc)
     if(tc->rtmetric == RTMETRIC_MAX) {
       strcpy(buf, " ");
     } else {
-      sPRINTF(buf, "%.1f", (float)tc->rtmetric / NEIGHBOR_ETX_SCALE);
+      PRINTF(buf, "%.1f", (float)tc->rtmetric / COLLECT_NEIGHBOR_ETX_SCALE);
     }
     ether_set_text(buf);
   }
@@ -197,7 +202,7 @@ static void
 send_queued_packet(void)
 {
   struct queuebuf *q;
-  struct neighbor *n;
+  struct collect_neighbor *n;
   struct packetqueue_item *i;
   struct collect_conn *c;
 
@@ -234,15 +239,15 @@ send_queued_packet(void)
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     queuebuf_to_packetbuf(q);
     
-    n = neighbor_best();
+    n = collect_neighbor_best();
 
     while(n != NULL && rimeaddr_cmp(&n->addr, packetbuf_addr(PACKETBUF_ADDR_SENDER))) {
       PRINTF("%d.%d: avoiding fowarding loop to %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
              n->addr.u8[0], n->addr.u8[1]);
-      neighbor_remove(&n->addr);
+      collect_neighbor_remove(&n->addr);
       update_rtmetric(c);
-      n = neighbor_best();
+      n = collect_neighbor_best();
     }
     
     /* Don't send to the neighbor if it is the same neighbor that sent
@@ -304,7 +309,7 @@ handle_ack(struct collect_conn *tc)
 {
   struct ack_msg *msg;
   uint16_t rtmetric;
-  struct neighbor *n;
+  struct collect_neighbor *n;
 
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
                   &tc->current_receiver) &&
@@ -313,9 +318,9 @@ handle_ack(struct collect_conn *tc)
     
     msg = packetbuf_dataptr();
     memcpy(&rtmetric, &msg->rtmetric, sizeof(uint16_t));
-    n = neighbor_find(packetbuf_addr(PACKETBUF_ADDR_SENDER));
+    n = collect_neighbor_find(packetbuf_addr(PACKETBUF_ADDR_SENDER));
     if(n != NULL) {
-      neighbor_update(n, rtmetric);
+      collect_neighbor_update(n, rtmetric);
       update_rtmetric(tc);
     }
     
@@ -387,7 +392,7 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, unicast_conn));
   int i;
-  struct neighbor *n;
+  struct collect_neighbor *n;
 
   /* To protect against sending duplicate packets, we keep a list
      of recently forwarded packet seqnos. If the seqno of the current
@@ -426,9 +431,9 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
                packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
                packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
                packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1]);
-        n = neighbor_find(&recent_packets[i].sent_to);
+        n = collect_neighbor_find(&recent_packets[i].sent_to);
         if(n != NULL) {
-          neighbor_update_etx(n, neighbor_etx(n) / NEIGHBOR_ETX_SCALE + 4);
+          collect_neighbor_update_etx(n, collect_neighbor_etx(n) / COLLECT_NEIGHBOR_ETX_SCALE + 4);
           update_rtmetric(tc);
         }
         break;
@@ -437,10 +442,10 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
     recent_packets[recent_packet_ptr].seqno = packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID);
     rimeaddr_copy(&recent_packets[recent_packet_ptr].originator,
                   packetbuf_addr(PACKETBUF_ADDR_ESENDER));
-    /*    n = neighbor_best();*/
+    /*    n = collect_neighbor_best();*/
 
     if(tc->rtmetric != SINK) {
-      n = neighbor_best();
+      n = collect_neighbor_best();
       rimeaddr_copy(&recent_packets[recent_packet_ptr].sent_to,
                     &n->addr);
     } else {
@@ -551,7 +556,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
     /* Update ETX with the number of transmissions. */
     PRINTF("Updating ETX with %d transmissions (punished %d)\n", tc->transmissions,
            tx);
-    neighbor_update_etx(neighbor_find(&tc->current_receiver), tx);
+    collect_neighbor_update_etx(collect_neighbor_find(&tc->current_receiver), tx);
     update_rtmetric(tc);
   }
 }
@@ -564,7 +569,7 @@ timedout(struct collect_conn *tc)
          tc->max_rexmits);
   
   tc->sending = 0;
-  neighbor_timedout_etx(neighbor_find(&tc->current_receiver), tc->transmissions);
+  collect_neighbor_timedout_etx(collect_neighbor_find(&tc->current_receiver), tc->transmissions);
   update_rtmetric(tc);
 
   send_next_packet(tc);
@@ -591,14 +596,14 @@ adv_received(struct neighbor_discovery_conn *c, const rimeaddr_t *from,
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, neighbor_discovery_conn));
-  struct neighbor *n;
+  struct collect_neighbor *n;
   
-  n = neighbor_find(from);
+  n = collect_neighbor_find(from);
 
   if(n == NULL) {
-    neighbor_add(from, rtmetric, 1);
+    collect_neighbor_add(from, rtmetric, 1);
   } else {
-    neighbor_update(n, rtmetric);
+    collect_neighbor_update(n, rtmetric);
     PRINTF("%d.%d: updating neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   n->addr.u8[0], n->addr.u8[1], rtmetric);
@@ -613,17 +618,17 @@ received_announcement(struct announcement *a, const rimeaddr_t *from,
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)a - offsetof(struct collect_conn, announcement));
-  struct neighbor *n;
+  struct collect_neighbor *n;
   
-  n = neighbor_find(from);
+  n = collect_neighbor_find(from);
 
   if(n == NULL) {
-    neighbor_add(from, value, 1);
+    collect_neighbor_add(from, value, 1);
     PRINTF("%d.%d: new neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   from->u8[0], from->u8[1], value);
   } else {
-    neighbor_update(n, value);
+    collect_neighbor_update(n, value);
     PRINTF("%d.%d: updating neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   n->addr.u8[0], n->addr.u8[1], value);
@@ -648,7 +653,7 @@ collect_open(struct collect_conn *tc, uint16_t channels,
   channel_set_attributes(channels + 1, attributes);
   tc->rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
-  neighbor_init();
+  collect_neighbor_init();
   packetqueue_init(&sending_queue);
 
 #if !COLLECT_ANNOUNCEMENTS
@@ -661,7 +666,6 @@ collect_open(struct collect_conn *tc, uint16_t channels,
 #else /* !COLLECT_ANNOUNCEMENTS */
   announcement_register(&tc->announcement, channels, tc->rtmetric,
 			received_announcement);
-  /*  announcement_listen(2);*/
 #endif /* !COLLECT_ANNOUNCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
@@ -684,6 +688,8 @@ collect_set_sink(struct collect_conn *tc, int should_be_sink)
     PRINTF("collect_set_sink: tc->rtmetric %d\n", tc->rtmetric);
 #if !COLLECT_ANNOUNCEMENTS
     neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
+#else
+    announcement_bump(&tc->announcement);
 #endif /* !COLLECT_ANNOUNCEMENTS */
   } else {
     tc->rtmetric = RTMETRIC_MAX;
@@ -697,7 +703,7 @@ collect_set_sink(struct collect_conn *tc, int should_be_sink)
 int
 collect_send(struct collect_conn *tc, int rexmits)
 {
-  struct neighbor *n;
+  struct collect_neighbor *n;
   
   packetbuf_set_attr(PACKETBUF_ATTR_EPACKET_ID, tc->eseqno++);
   packetbuf_set_addr(PACKETBUF_ADDR_ESENDER, &rimeaddr_node_addr);
@@ -723,7 +729,7 @@ collect_send(struct collect_conn *tc, int rexmits)
     return 1;
   } else {
     update_rtmetric(tc);
-    n = neighbor_best();
+    n = collect_neighbor_best();
     if(n != NULL) {
 #if CONTIKI_TARGET_NETSIM
       ether_set_line(n->addr.u8[0], n->addr.u8[1]);
@@ -761,6 +767,13 @@ int
 collect_depth(struct collect_conn *tc)
 {
   return tc->rtmetric;
+}
+/*---------------------------------------------------------------------------*/
+void
+collect_purge(struct collect_conn *tc)
+{
+  collect_neighbor_purge();
+  update_rtmetric(tc);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
