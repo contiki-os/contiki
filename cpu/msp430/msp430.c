@@ -28,16 +28,39 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.10 2009/02/04 18:28:44 joxe Exp $
+ * @(#)$Id: msp430.c,v 1.11 2010/03/19 14:39:45 joxe Exp $
  */
 #include <io.h>
 #include <signal.h>
 #include <sys/unistd.h>
 #include "msp430.h"
+#include "msp430def.h"
 #include "dev/watchdog.h"
 #include "net/uip.h"
 
-
+/* /\*---------------------------------------------------------------------------*\/ */
+/* void * */
+/* w_memcpy(void *out, const void *in, size_t n) */
+/* { */
+/*   uint8_t *src, *dest; */
+/*   src = (uint8_t *) in; */
+/*   dest = (uint8_t *) out; */
+/*   while(n-- > 0) { */
+/*     *dest++ = *src++; */
+/*   } */
+/*   return out; */
+/* } */
+/* /\*---------------------------------------------------------------------------*\/ */
+/* void * */
+/* w_memset(void *out, int value, size_t n) */
+/* { */
+/*   uint8_t *dest; */
+/*   dest = (uint8_t *) out; */
+/*   while(n-- > 0) { */
+/*     *dest++ = value & 0xff; */
+/*   } */
+/*   return out; */
+/* } */
 /*---------------------------------------------------------------------------*/
 void
 msp430_init_dco(void)
