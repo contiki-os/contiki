@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.27 2010/02/23 20:09:11 nifi Exp $
+ * $Id: rime.h,v 1.28 2010/03/19 13:20:40 adamdunkels Exp $
  */
 
 /**
@@ -53,7 +53,6 @@
 #include "net/rime/mesh.h"
 #include "net/rime/multihop.h"
 #include "net/rime/neighbor-discovery.h"
-#include "net/rime/neighbor.h"
 #include "net/rime/netflood.h"
 #include "net/rime/polite-announcement.h"
 #include "net/rime/polite.h"

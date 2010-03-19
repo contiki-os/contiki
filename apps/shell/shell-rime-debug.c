@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-debug.c,v 1.4 2009/11/08 19:43:00 adamdunkels Exp $
+ * $Id: shell-rime-debug.c,v 1.5 2010/03/19 13:24:26 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,6 @@
 #include "lib/random.h"
 
 #include "net/rime.h"
-#include "net/rime/neighbor.h"
 #include "net/rime/route.h"
 #include "net/rime/trickle.h"
 
