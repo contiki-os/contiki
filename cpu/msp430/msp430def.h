@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: msp430def.h,v 1.4 2010/03/19 14:39:45 joxe Exp $
+ * @(#)$Id: msp430def.h,v 1.5 2010/03/19 14:50:07 joxe Exp $
  */
 
 #ifndef MSP430DEF_H
@@ -76,29 +76,29 @@ spl_t   splhigh_(void);
 #ifndef memcpy
 #include <string.h>
 
-/* void *w_memcpy(void *out, const void *in, size_t n); */
+void *w_memcpy(void *out, const void *in, size_t n);
+#define memcpy(dest, src, count) w_memcpy(dest, src, count)
 
-/* #define memcpy(dest, src, count) w_memcpy(dest, src, count) */
-#define memcpy(dest, src, count) do {                    \
-  if(count == 2) {                                       \
-    *((uint8_t *)dest) = *((uint8_t *)src);              \
-    *((uint8_t *)dest + 1) = *((uint8_t *)src + 1);      \
-  } else {                                               \
-    memcpy(dest, src, count);                            \
-  }                                                      \
-} while(0)
+/* #define memcpy(dest, src, count) do {                    \ */
+/*   if(count == 2) {                                       \ */
+/*     *((uint8_t *)dest) = *((uint8_t *)src);              \ */
+/*     *((uint8_t *)dest + 1) = *((uint8_t *)src + 1);      \ */
+/*   } else {                                               \ */
+/*     memcpy(dest, src, count);                            \ */
+/*   }                                                      \ */
+/* } while(0) */
 
-/* void *w_memset(void *out, int value, size_t n); */
+void *w_memset(void *out, int value, size_t n);
+#define memset(dest, value, count) w_memset(dest, value, count)
 
-/* #define memset(dest, value, count) w_memset(dest, value, count) */
-#define memset(dest, value, count) do {                  \
-  if(count == 2) {                                       \
-    *((uint8_t *)dest) = (uint8_t)value;                 \
-    *((uint8_t *)dest + 1) = (uint8_t)value;             \
-  } else {                                               \
-    memset(dest, value, count);                          \
-  }                                                      \
-} while(0)
+/* #define memset(dest, value, count) do {                  \ */
+/*   if(count == 2) {                                       \ */
+/*     *((uint8_t *)dest) = (uint8_t)value;                 \ */
+/*     *((uint8_t *)dest + 1) = (uint8_t)value;             \ */
+/*   } else {                                               \ */
+/*     memset(dest, value, count);                          \ */
+/*   }                                                      \ */
+/* } while(0) */
 #endif /* memcpy */
 #endif /* __GNUC__ &&  __MSP430__ && MSP430_MEMCPY_WORKAROUND */
 
