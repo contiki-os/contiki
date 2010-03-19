@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SerialSocketServer.java,v 1.1 2010/01/27 14:28:26 fros4943 Exp $
+ * $Id: SerialSocketServer.java,v 1.2 2010/03/19 15:03:14 fros4943 Exp $
  */
 
 import java.awt.BorderLayout;
@@ -150,7 +150,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       public void update(Observable obs, Object obj) {
         try {
           if (out == null) {
-            logger.debug("out is null");
+            /*logger.debug("out is null");*/
             return;
           }
           out.write(serialPort.getLastSerialData());
