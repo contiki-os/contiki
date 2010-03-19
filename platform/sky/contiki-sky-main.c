@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.76 2010/03/16 15:45:20 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.77 2010/03/19 13:28:27 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -392,6 +392,8 @@ main(int argc, char **argv)
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
+  watchdog_start();
+
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
 
@@ -401,7 +403,7 @@ main(int argc, char **argv)
 #if DCOSYNCH_CONF_ENABLED
   timer_set(&mgt_timer, DCOSYNCH_PERIOD * CLOCK_SECOND);
 #endif
-  watchdog_start();
+
   /*  watchdog_stop();*/
   while(1) {
     int r;
