@@ -112,13 +112,13 @@ clean:
 	find $(MC1322X) \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
 		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \
-                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' -o -name '*.d' \) -print \
+                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' -o -name '*.d' -o -name '*.srec' \) -print \
 		| xargs rm -rf
 	rm -fr *.*~	
 	find \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
 		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \
-                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' -o -name '*.d' \) -print \
+                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' -o -name '*.d' -o -name '*.srec' \) -print \
 		| xargs rm -rf
 	rm -fr *.*~	
 	make -C $(MC1322X)/tools/ftditools/ clean
