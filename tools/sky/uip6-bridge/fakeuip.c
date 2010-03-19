@@ -5,7 +5,7 @@
 
 
 #include "net/uip.h"
-#include "net/uip-netif.h"
+#include "net/uip-ds6.h"
 #include <string.h>
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -20,12 +20,12 @@ uip_lladdr_t uip_lladdr;
 
 u16_t htons(u16_t val) { return HTONS(val);}
 
-struct uip_netif uip_netif_physical_if;
+uip_ds6_netif_t uip_ds6_if;
 
-/********** UIP_NETIF.c **********/
+/********** UIP_DS6.c **********/
 
 void
-uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
+uip_ds6_set_addr_iid(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
 {
   /* We consider only links with IEEE EUI-64 identifier or
      IEEE 48-bit MAC addresses */
@@ -39,19 +39,14 @@ uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
   memcpy(ipaddr->u8 + 13, lladdr + 3, 3);
   ipaddr->u8[8] ^= 0x02;
 #else
-  /*
-    UIP_LOG("CAN NOT BUIL INTERFACE IDENTIFIER");
-    UIP_LOG("THE STACK IS GOING TO SHUT DOWN");
-    UIP_LOG("THE HOST WILL BE UNREACHABLE");
-  */
-  exit(-1);
+#error fakeuip.c cannot build interface address when UIP_LLADDR_LEN is not 6 or 8
 #endif
 }
 
-void
-uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length,
-		   unsigned long vlifetime, uip_netif_type type)
+uip_ds6_addr_t *
+uip_ds6_addr_add(uip_ipaddr_t *ipaddr, unsigned long vlifetime, uint8_t type)
 {
+  return NULL;
 }
 /********** UIP.c ****************/
 
