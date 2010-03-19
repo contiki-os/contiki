@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.30 2010/03/17 12:08:59 joxe Exp $
+ * $Id: sicslowpan.c,v 1.31 2010/03/19 08:15:20 joxe Exp $
  */
 /**
  * \file
@@ -252,19 +252,18 @@ static struct timer reass_timer;
 /** \name HC06 specific variables
  *  @{
  */
+
 /** Addresses contexts for IPHC. */
-static struct sicslowpan_addr_context
+#if SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0
+static struct sicslowpan_addr_context 
 addr_contexts[SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS];
+#endif
 
 /** pointer to an address context. */
 static struct sicslowpan_addr_context *context;
 
 /** pointer to the byte where to write next inline field. */
 static uint8_t *hc06_ptr;
-
-/** Index for loops. */
-static uint8_t i;
-/** @} */
 
 
 /*--------------------------------------------------------------------*/
@@ -274,24 +273,32 @@ static uint8_t i;
 /** \brief find the context corresponding to prefix ipaddr */
 static struct sicslowpan_addr_context*
 addr_context_lookup_by_prefix(uip_ipaddr_t *ipaddr) {
+/* Remove code to avoid warnings and save flash if no context is used */ 
+#if SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0
+  int i;
   for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
     if((addr_contexts[i].used == 1) &&
        uip_ipaddr_prefixcmp(&addr_contexts[i].prefix, ipaddr, 64)) {
       return &addr_contexts[i];
     }
   }
+#endif /* SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0 */
   return NULL;
 }
 /*--------------------------------------------------------------------*/
 /** \brief find the context with the given number */
 static struct sicslowpan_addr_context*
 addr_context_lookup_by_number(u8_t number) {
+/* Remove code to avoid warnings and save flash if no context is used */ 
+#if SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0
+  int i;
   for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
     if((addr_contexts[i].used == 1) &&
        addr_contexts[i].number == number) {
       return &addr_contexts[i];
     }
   }
+#endif /* SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0 */
   return NULL;
 }
 /*--------------------------------------------------------------------*/
@@ -1644,27 +1651,18 @@ sicslowpan_init(void)
   tcpip_set_outputfunc(output);
 
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
-#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS < 1
-#error sicslowpan compression HC06 requires at least one address context.
-#error Change SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS in contiki-conf.h.
-#endif
-
-  /*
-   * Initialize the address contexts
-   * Context 00 is not anymore link local context since
-   * there is built-in support for link-local compression
-   * in hc-06
-   * - should we be able to have longer contexts than 64 bits?
-   * currently 64 bits length is supported...
-   */
+#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 
   addr_contexts[0].used = 1;
   addr_contexts[0].number = 0;
   addr_contexts[0].prefix[0] = 0xaa; 
   addr_contexts[0].prefix[1] = 0xaa;
-  
+#endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 */
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 1
-  for(i = 1; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
-    addr_contexts[i].used = 0;
+  {
+    int i;
+    for(i = 1; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
+      addr_contexts[i].used = 0;
+    }
   }
 #endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 1 */
 
