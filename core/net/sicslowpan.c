@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.31 2010/03/19 08:15:20 joxe Exp $
+ * $Id: sicslowpan.c,v 1.32 2010/03/19 12:54:38 nifi Exp $
  */
 /**
  * \file
@@ -254,7 +254,7 @@ static struct timer reass_timer;
  */
 
 /** Addresses contexts for IPHC. */
-#if SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0
+#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
 static struct sicslowpan_addr_context 
 addr_contexts[SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS];
 #endif
@@ -274,7 +274,7 @@ static uint8_t *hc06_ptr;
 static struct sicslowpan_addr_context*
 addr_context_lookup_by_prefix(uip_ipaddr_t *ipaddr) {
 /* Remove code to avoid warnings and save flash if no context is used */ 
-#if SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0
+#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
   int i;
   for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
     if((addr_contexts[i].used == 1) &&
@@ -282,7 +282,7 @@ addr_context_lookup_by_prefix(uip_ipaddr_t *ipaddr) {
       return &addr_contexts[i];
     }
   }
-#endif /* SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0 */
+#endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 */
   return NULL;
 }
 /*--------------------------------------------------------------------*/
@@ -290,7 +290,7 @@ addr_context_lookup_by_prefix(uip_ipaddr_t *ipaddr) {
 static struct sicslowpan_addr_context*
 addr_context_lookup_by_number(u8_t number) {
 /* Remove code to avoid warnings and save flash if no context is used */ 
-#if SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0
+#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
   int i;
   for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
     if((addr_contexts[i].used == 1) &&
@@ -298,7 +298,7 @@ addr_context_lookup_by_number(u8_t number) {
       return &addr_contexts[i];
     }
   }
-#endif /* SICSLOWPAN_CONF_MAX_ADD_CONTEXTS > 0 */
+#endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 */
   return NULL;
 }
 /*--------------------------------------------------------------------*/
