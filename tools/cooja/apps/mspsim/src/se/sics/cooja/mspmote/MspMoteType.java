@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.33 2009/12/02 17:15:59 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.34 2010/03/19 15:04:05 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -221,9 +221,11 @@ public abstract class MspMoteType implements MoteType {
       element = new Element("source");
       File file = simulation.getGUI().createPortablePath(fileSource);
       element.setText(file.getPath().replaceAll("\\\\", "/"));
+      element.setAttribute("EXPORT", "discard");
       config.add(element);
       element = new Element("commands");
       element.setText(compileCommands);
+      element.setAttribute("EXPORT", "discard");
       config.add(element);
     }
 
@@ -231,6 +233,7 @@ public abstract class MspMoteType implements MoteType {
     element = new Element("firmware");
     File file = simulation.getGUI().createPortablePath(fileFirmware);
     element.setText(file.getPath().replaceAll("\\\\", "/"));
+    element.setAttribute("EXPORT", "copy");
     config.add(element);
 
     // Mote interfaces
