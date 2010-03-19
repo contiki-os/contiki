@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.165 2010/03/19 11:32:59 fros4943 Exp $
+ * $Id: GUI.java,v 1.166 2010/03/19 12:34:03 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1651,13 +1651,13 @@ public class GUI extends Observable {
         GUI.showErrorDialog(GUI.getTopParentContainer(), "Error when starting plugin", ex, false);
       } else {
         /* If the plugin requires visualization, inform user */
-        Throwable cause = ex.getCause();
+        Throwable cause = ex;
         do {
           if (cause instanceof PluginRequiresVisualizationException) {
             logger.info("Visualized plugin was not started: " + pluginClass);
             return null;
           }
-        } while ((cause=cause.getCause()) != null);
+        } while (cause != null && (cause=cause.getCause()) != null);
         
         logger.fatal("Error when starting plugin", ex);
       }
