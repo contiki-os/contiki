@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ExecuteJAR.java,v 1.6 2010/03/10 14:47:58 fros4943 Exp $
+ * $Id: ExecuteJAR.java,v 1.7 2010/03/19 09:08:38 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
@@ -109,7 +109,7 @@ public class ExecuteJAR {
       buildExecutableJAR(s.getGUI(), jar);
     } catch (RuntimeException e) {
     }
-    System.exit(1);
+    System.exit(0);
   }
 
   final static boolean OVERWRITE = false;
@@ -362,8 +362,8 @@ public class ExecuteJAR {
                       "Error when writing firmware file: " + firmwareFile
                   );
                 }
-                logger.info("Simconfig: Update firmware path reference: " + firmwareFile.getAbsolutePath() + " -> " + (executeDir + "/" + newName));
-                ((Element)pathElement).setText(executeDir + "/" + newName);
+                logger.info("Simconfig: Update firmware path reference: " + firmwareFile.getAbsolutePath() + " -> " + ("[CONFIG_DIR]/" + newName));
+                ((Element)pathElement).setText("[CONFIG_DIR]/" + newName);
               }
             }
           }
