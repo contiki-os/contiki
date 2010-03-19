@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.27 2010/02/23 20:09:11 nifi Exp $
+ * $Id: rime.c,v 1.28 2010/03/19 13:17:55 adamdunkels Exp $
  */
 
 /**
@@ -54,10 +54,10 @@
 #include "net/netstack.h"
 #include "net/rime.h"
 #include "net/rime/chameleon.h"
-#include "net/rime/neighbor.h"
 #include "net/rime/route.h"
 #include "net/rime/announcement.h"
 #include "net/rime/polite-announcement.h"
+#include "net/rime/broadcast-announcement.h"
 #include "net/mac/mac.h"
 
 #include "lib/list.h"
@@ -81,6 +81,32 @@ const struct mac_driver *rime_mac;
 #else /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
 #define POLITE_ANNOUNCEMENT_MAX_TIME CLOCK_SECOND * 128
 #endif /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
+
+
+
+#ifdef RIME_CONF_BROADCAST_ANNOUNCEMENT_CHANNEL
+#define BROADCAST_ANNOUNCEMENT_CHANNEL RIME_CONF_BROADCAST_ANNOUNCEMENT_CHANNEL
+#else /* RIME_CONF_BROADCAST_ANNOUNCEMENT_CHANNEL */
+#define BROADCAST_ANNOUNCEMENT_CHANNEL 2
+#endif /* RIME_CONF_BROADCAST_ANNOUNCEMENT_CHANNEL */
+
+#ifdef RIME_CONF_BROADCAST_ANNOUNCEMENT_BUMP_TIME
+#define BROADCAST_ANNOUNCEMENT_BUMP_TIME RIME_CONF_BROADCAST_ANNOUNCEMENT_BUMP_TIME
+#else /* RIME_CONF_BROADCAST_ANNOUNCEMENT_BUMP_TIME */
+#define BROADCAST_ANNOUNCEMENT_BUMP_TIME CLOCK_SECOND * 8
+#endif /* RIME_CONF_BROADCAST_ANNOUNCEMENT_BUMP_TIME */
+
+#ifdef RIME_CONF_BROADCAST_ANNOUNCEMENT_MIN_TIME
+#define BROADCAST_ANNOUNCEMENT_MIN_TIME RIME_CONF_BROADCAST_ANNOUNCEMENT_MIN_TIME
+#else /* RIME_CONF_BROADCAST_ANNOUNCEMENT_MIN_TIME */
+#define BROADCAST_ANNOUNCEMENT_MIN_TIME CLOCK_SECOND * 30
+#endif /* RIME_CONF_BROADCAST_ANNOUNCEMENT_MIN_TIME */
+
+#ifdef RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME
+#define BROADCAST_ANNOUNCEMENT_MAX_TIME RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME
+#else /* RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME */
+#define BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_SECOND * 600
+#endif /* RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME */
 
 
 LIST(sniffers);
@@ -140,6 +166,22 @@ init(void)
 			   POLITE_ANNOUNCEMENT_START_TIME,
 			   POLITE_ANNOUNCEMENT_MAX_TIME);
 #endif /* ! RIME_CONF_NO_POLITE_ANNOUCEMENTS */
+
+
+#if ! RIME_CONF_NO_BROADCAST_ANNOUCEMENTS
+  /* XXX This is initializes the transmission of announcements but it
+   * is not currently certain where this initialization is supposed to
+   * be. Also, the times are arbitrarily set for now. They should
+   * either be configurable, or derived from some MAC layer property
+   * (duty cycle, sleep time, or something similar). But this is OK
+   * for now, and should at least get us started with experimenting
+   * with announcements.
+   */
+  broadcast_announcement_init(BROADCAST_ANNOUNCEMENT_CHANNEL,
+                              BROADCAST_ANNOUNCEMENT_BUMP_TIME,
+                              BROADCAST_ANNOUNCEMENT_MIN_TIME,
+                              BROADCAST_ANNOUNCEMENT_MAX_TIME);
+#endif /* ! RIME_CONF_NO_BROADCAST_ANNOUCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
 static void
