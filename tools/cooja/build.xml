@@ -23,25 +23,37 @@ The COOJA Simulator
   Start COOJA, show error box if process terminates unexpectedly.
   > ant run_errorbox
 
-  Start COOJA and immediately loads simulation in sim.csc
+  Start COOJA and immediately load simulation in sim.csc
   > java -mx512m -jar dist/cooja.jar -quickstart=sim.csc
   Start COOJA without GUI and run simulation in sim.csc
   > java -mx512m -jar dist/cooja.jar -nogui=sim.csc
 
-  Build executable simulation JAR sim.jar from current projects and simulation in sim.csc
-  > ant jar
-  > cd build
-  build/> java -cp ".:../lib/jdom.jar:../lib/log4j.jar" se.sics.cooja.util.ExecuteJAR "/home/user/sim.csc" sim.jar
+  Build executable simulation JAR from mysim.csc
+  > ant export-jar -DCSC="c:/mysim.csc"
     or
-  build/> java -cp ".;../lib/jdom.jar;../lib/log4j.jar" se.sics.cooja.util.ExecuteJAR "C:/home/sim.csc" sim.jar
-    The output JAR is in build/sim.jar
+  > ant export-jar -DCSC="/home/user/sim.csc"
+    The output JAR is saved to exported.jar
     </echo>
   </target>
 
   <target name="init">
     <tstamp/>
   </target>
-
+  
+  <target name="export-jar" depends="init, jar">
+    <java fork="yes" dir="${build}" classname="se.sics.cooja.util.ExecuteJAR" maxmemory="512m">
+        <sysproperty key="user.language" value="en"/>
+        <arg file="${CSC}"/>
+        <arg file="exported.jar"/>
+        <env key="LD_LIBRARY_PATH" value="."/>
+        <classpath>
+          <pathelement path="${build}"/>
+          <pathelement location="lib/jdom.jar"/>
+          <pathelement location="lib/log4j.jar"/>
+        </classpath>
+    </java>
+  </target>
+  
   <target name="javadoc" depends="init">
     <delete dir="${javadoc}" quiet="true"/>
     <mkdir dir="${javadoc}/"/>
