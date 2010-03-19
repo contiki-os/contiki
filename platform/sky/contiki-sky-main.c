@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.77 2010/03/19 13:28:27 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.78 2010/03/19 14:08:15 joxe Exp $
  */
 
 #include <signal.h>
@@ -222,7 +222,7 @@ main(int argc, char **argv)
      with an Ethernet MAC address - byte 0 (byte 2 in the DS ID)
      cannot be odd. */
   ds2411_id[2] &= 0xfe;
-  
+
   leds_on(LEDS_BLUE);
   xmem_init();
 
@@ -235,6 +235,15 @@ main(int argc, char **argv)
   
   /* Restore node id if such has been stored in external mem */
   node_id_restore();
+
+  /* for setting "hardcoded" IEEE 802.15.4 MAC addresses */
+#ifdef IEEE_802154_MAC_ADDRESS
+  {
+    uint8_t ieee[] = IEEE_802154_MAC_ADDRESS;
+    memcpy(ds2411_id, ieee, sizeof(uip_lladdr.addr));
+    ds2411_id[7] = node_id & 0xff;
+  }
+#endif
 
   random_init(ds2411_id[0] + node_id);
   
