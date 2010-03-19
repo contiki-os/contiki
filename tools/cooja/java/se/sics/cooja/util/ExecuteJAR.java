@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ExecuteJAR.java,v 1.7 2010/03/19 09:08:38 fros4943 Exp $
+ * $Id: ExecuteJAR.java,v 1.8 2010/03/19 11:32:59 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
@@ -97,6 +97,9 @@ public class ExecuteJAR {
 
     /* Load simulation */
     logger.info("Loading " + config);
+    GUI.externalToolsUserSettingsFile = new File(
+        System.getProperty("user.home"), 
+        GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
     Simulation s = GUI.quickStartSimulationConfig(config, false);
     if (s == null) {
       throw new RuntimeException(
@@ -108,6 +111,8 @@ public class ExecuteJAR {
     try {
       buildExecutableJAR(s.getGUI(), jar);
     } catch (RuntimeException e) {
+      logger.fatal(e.getMessage());
+      System.exit(1);
     }
     System.exit(0);
   }
