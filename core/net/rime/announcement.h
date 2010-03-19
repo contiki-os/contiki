@@ -54,7 +54,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announcement.h,v 1.6 2010/02/23 18:32:44 adamdunkels Exp $
+ * $Id: announcement.h,v 1.7 2010/03/19 13:16:11 adamdunkels Exp $
  */
 
 /**
@@ -154,6 +154,20 @@ void announcement_set_value(struct announcement *a, uint16_t value);
 void announcement_set_id(struct announcement *a, uint16_t id);
 
 /**
+ * \brief      Bump an announcement
+ * \param a    A pointer to a struct announcement that has
+ *             previously been registered
+ *
+ *             This function is called to inform the announcement
+ *             module that a particular announcement has changed in a
+ *             way that it should be bumped. When an announcement is
+ *             bumped, the announcement back-end may send out a new
+ *             announcement to neighbors.
+ *
+ */
+void announcement_bump(struct announcement *a);
+
+/**
  * \brief      Listen for announcements for a specific amount of
  *             announcement periods
  * \param periods The number of periods to listen for announcement
@@ -225,6 +239,14 @@ void announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value);
  */
 void announcement_register_listen_callback(void (*callback)(int time));
 
+enum {
+  ANNOUNCEMENT_NOBUMP,
+  ANNOUNCEMENT_BUMP,
+};
+
+typedef void (* announcement_observer)(uint16_t id, uint16_t newvalue,
+                                       uint16_t oldvalue, uint8_t bump);
+
 /**
  * \brief      Register an observer callback with the announcement module
  * \param observer A pointer to an observer function
@@ -239,9 +261,7 @@ void announcement_register_listen_callback(void (*callback)(int time));
  *             message with the updated values.
  *
  */
-void announcement_register_observer_callback(void (*observer)(uint16_t id,
-							      uint16_t newvalue,
-                                                              uint16_t oldvalue));
+void announcement_register_observer_callback(announcement_observer observer);
 
 /**
  * @}
