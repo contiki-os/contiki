@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+
+while(<>) {
+
+    if(/([IO]) (\d+) (\d+) (\d+) (\d+) (\d+).(\d+) (\d+) (\d+)/) {
+        $type       = $1;
+        $node       = $2;
+        $seq        = $3;
+        $channel    = $4;
+        $packettype = $5;
+        $esender1   = $6;
+        $esender2   = $7;
+        $tx         = $8;
+        $rx         = $9;
+
+        if($type cmp "I") {
+            $channel .= "-tx";
+        } else {
+            $channel .= "-rx";
+        }
+
+        if($packettype == 1) {
+            $channel .= "-ack"
+        } 
+        
+        $tx_for_channel{$channel} += $tx;
+        $rx_for_channel{$channel} += $rx;
+        $total += $rx + $tx;
+
+        if($forwarding) {
+            $forward += $tx + $rx;
+        } else {
+            $final += $tx + $rx;
+        }
+           
+    }
+}
+
+foreach $c (keys %tx_for_channel) {
+    print "$c " . $tx_for_channel{$c}/$total . " " . $rx_for_channel{$c}/$total . "\n";
+}
+
+print STDERR "Final / forward = " . $final / $total . "/" . $forward / $total . "\n";
