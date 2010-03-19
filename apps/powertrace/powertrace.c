@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: powertrace.c,v 1.2 2010/02/23 18:22:16 adamdunkels Exp $
+ * $Id: powertrace.c,v 1.3 2010/03/19 13:23:31 adamdunkels Exp $
  */
 
 /**
@@ -79,8 +79,8 @@ print_power(void)
 
   time = cpu + lpm;
   
-  printf("P %d %lu %lu %lu %lu %lu %lu %lu (radio %d.%02d%% tx %d.%02d%% listen %d.%02d%%)\n",
-         node_id, seqno++,
+  printf("%lu P %d %lu %lu %lu %lu %lu %lu %lu (radio %d.%02d%% tx %d.%02d%% listen %d.%02d%%)\n",
+         clock_time(), node_id, seqno++,
          cpu, lpm, transmit, listen, idle_transmit, idle_listen,
          (int)((100L * (transmit + listen)) / time),
          (int)((10000L * (transmit + listen) / time) - (100L * (transmit + listen) / time) * 100),
@@ -118,6 +118,12 @@ powertrace_start(clock_time_t period)
   process_start(&powertrace_process, (void *)&period);
 }
 /*---------------------------------------------------------------------------*/
+void
+powertrace_stop(void)
+{
+  process_exit(&powertrace_process);
+}
+/*---------------------------------------------------------------------------*/
 static void
 sniffprint(char *prefix, int seqno)
 {
@@ -129,7 +135,8 @@ sniffprint(char *prefix, int seqno)
   ereceiver = packetbuf_addr(PACKETBUF_ADDR_ERECEIVER);
 
 
-  printf("%s %d %u %d %d %d.%d %u %u\n",
+  printf("%lu %s %d %u %d %d %d.%d %u %u\n",
+         clock_time(),
          prefix,
          node_id, seqno,
          packetbuf_attr(PACKETBUF_ATTR_CHANNEL),
