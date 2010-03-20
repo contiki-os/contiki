@@ -24,8 +24,6 @@
 #define RECV_SOFTIMEOUT (32*128*CLK_PER_BYTE) 
 #endif
 
-#define MAX_PACKET_SIZE (MAX_PAYLOAD_SIZE + 2) /* packet includes 2 bytes of checksum */
-
 #define reg(x) (*(volatile uint32_t *)(x))
 
 static volatile packet_t packet_pool[NUM_PACKETS];

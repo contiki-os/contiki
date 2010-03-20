@@ -5,6 +5,8 @@
 #include <types.h>
 #include <utils.h>
 
+#define MAX_PACKET_SIZE (MAX_PAYLOAD_SIZE + 2) /* packet includes 2 bytes of checksum */
+
 #define MACA_BASE       (0x80004000)
 #define MACA_RESET      ((volatile uint32_t *) (MACA_BASE+0x04))
 #define MACA_RANDOM     ((volatile uint32_t *) (MACA_BASE+0x08))
