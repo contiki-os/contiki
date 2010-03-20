@@ -36,19 +36,19 @@ inline void gpio_pad_dir_set(volatile uint64_t data);
 inline void gpio_pad_dir_reset(volatile uint64_t data); 
 
 /* select pullup or pulldown for GPIO 0-31 (b=0-31) */
-#define	gpio_sel0_pullup(b) (set_bit(reg32(GPIO_PAD_PU_SEL0),b))
-#define	gpio_sel0_pulldown(b) (clear_bit(reg32(GPIO_PAD_PU_SEL0),b))
+#define	gpio_sel0_pullup(b) (set_bit(*GPIO_PAD_PU_SEL0,b))
+#define	gpio_sel0_pulldown(b) (clear_bit(*GPIO_PAD_PU_SEL0,b))
 
 /* select pullup or pulldown for GPIO 32-63 (b=32-63) */
-#define	gpio_sel1_pullup(b) (set_bit(reg32(GPIO_PAD_PU_SEL1),b-32))
-#define	gpio_sel1_pulldown(b) (clear_bit(reg32(GPIO_PAD_PU_SEL1),b-32))
+#define	gpio_sel1_pullup(b) (set_bit(*GPIO_PAD_PU_SEL1,b-32))
+#define	gpio_sel1_pulldown(b) (clear_bit(*GPIO_PAD_PU_SEL1,b-32))
 
 /* enable/disable pullup for GPIO 0-31 (b=0-31) */
-#define gpio_pu0_enable(b) (set_bit(reg32(GPIO_PAD_PU_EN0),b))
-#define gpio_pu0_disable(b) (clear_bit(reg32(GPIO_PAD_PU_EN0),b))
+#define gpio_pu0_enable(b) (set_bit(*GPIO_PAD_PU_EN0,b))
+#define gpio_pu0_disable(b) (clear_bit(*GPIO_PAD_PU_EN0,b))
 
 /* enable/disable pullup for GPIO 32-63 (b=32-63) */
-#define gpio_pu1_enable(b) (set_bit(reg32(GPIO_PAD_PU_EN1),b-32))
-#define gpio_pu1_disable(b) (clear_bit(reg32(GPIO_PAD_PU_EN1),b-32))
+#define gpio_pu1_enable(b) (set_bit(*GPIO_PAD_PU_EN1,b-32))
+#define gpio_pu1_disable(b) (clear_bit(*GPIO_PAD_PU_EN1,b-32))
 
 #endif
