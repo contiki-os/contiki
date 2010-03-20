@@ -64,11 +64,11 @@ void usage(void);
 	
 static struct layout layouts[] =
 {
-	{ .name = "redbee_econotag",
+	{ .name = "redbee-econotag",
 	  .desc = "Redbee Econotag",
 	  std_layout(REDBEE_ECONOTAG)
 	},
-	{ .name = "redbee_usb",
+	{ .name = "redbee-usb",
 	  .desc = "Redbee USB stick",
 	  std_layout(REDBEE_USB)
 	},
