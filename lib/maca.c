@@ -29,7 +29,12 @@
 #define reg(x) (*(volatile uint32_t *)(x))
 
 static volatile packet_t packet_pool[NUM_PACKETS];
-static volatile packet_t *free_head, *rx_head, *rx_end, *tx_head, *tx_end, *dma_tx, *dma_rx = 0;
+static volatile packet_t *free_head, *rx_end, *tx_head, *tx_end, *dma_tx, *dma_rx = 0;
+
+/* rx_head is visible to the outside */
+/* so you can peek at it and see if there is data */
+/* waiting for you */
+volatile packet_t *rx_head;
 
 /* used for ack recpetion if the packet_pool goes empty */
 /* doesn't go back into the pool when freed */

@@ -128,6 +128,8 @@ volatile packet_t* get_free_packet(void);
 void free_packet(volatile packet_t *p);
 void free_all_packets(void);
 
+extern volatile packet_t *rx_head;
+
 /* set_fcs_mode(NO_FCS) to disable checksum filtering */
 extern volatile uint8_t fcs_mode;
 #define set_fcs_mode(x) fcs_mode = (x)
