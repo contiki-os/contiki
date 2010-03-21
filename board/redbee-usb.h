@@ -14,7 +14,7 @@
 /* Coarse tune: add 0-15 pf */
 #define CTUNE 3
 /* Fine tune: add FTUNE * 156fF (FTUNE is 4bits) */
-#define FTUNE 15
+#define FTUNE 14
 
 #include <std_conf.h>
 
