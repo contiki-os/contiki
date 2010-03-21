@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.12 2010/03/19 14:50:07 joxe Exp $
+ * @(#)$Id: msp430.c,v 1.13 2010/03/21 10:40:15 nifi Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -38,7 +38,8 @@
 #include "dev/watchdog.h"
 #include "net/uip.h"
 
-/* /\*---------------------------------------------------------------------------*\/ */
+/*---------------------------------------------------------------------------*/
+#if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
 void *
 w_memcpy(void *out, const void *in, size_t n)
 {
@@ -50,7 +51,9 @@ w_memcpy(void *out, const void *in, size_t n)
   }
   return out;
 }
+#endif /* __GNUC__ &&  __MSP430__ && MSP430_MEMCPY_WORKAROUND */
 /*---------------------------------------------------------------------------*/
+#if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
 void *
 w_memset(void *out, int value, size_t n)
 {
@@ -61,6 +64,7 @@ w_memset(void *out, int value, size_t n)
   }
   return out;
 }
+#endif /* __GNUC__ &&  __MSP430__ && MSP430_MEMCPY_WORKAROUND */
 /*---------------------------------------------------------------------------*/
 void
 msp430_init_dco(void)
