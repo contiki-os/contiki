@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast-announcement.c,v 1.1 2010/03/19 13:15:19 adamdunkels Exp $
+ * $Id: broadcast-announcement.c,v 1.2 2010/03/22 11:32:29 fros4943 Exp $
  */
 
 /**
@@ -76,7 +76,7 @@ struct announcement_msg {
 };
 
 
-struct broadcast_announcement_state {
+static struct broadcast_announcement_state {
   struct broadcast_conn c;
   struct ctimer send_timer, interval_timer;
   clock_time_t initial_interval, min_interval, max_interval;

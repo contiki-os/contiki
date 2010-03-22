@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.12 2010/03/19 13:17:31 adamdunkels Exp $
+ * $Id: polite-announcement.c,v 1.13 2010/03/22 11:32:29 fros4943 Exp $
  */
 
 /**
@@ -75,7 +75,7 @@ struct announcement_msg {
 };
 
 
-struct polite_announcement_state {
+static struct polite_announcement_state {
   struct ipolite_conn c;
   struct ctimer t;
   clock_time_t interval;
