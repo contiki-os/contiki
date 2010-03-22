@@ -43,7 +43,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: list.c,v 1.2 2008/12/16 09:59:42 joxe Exp $
+ * $Id: list.c,v 1.3 2010/03/22 11:29:58 fros4943 Exp $
  */
 #include "lib/list.h"
 
@@ -143,6 +143,9 @@ void
 list_add(list_t list, void *item)
 {
   struct list *l;
+
+  /* Make sure not to add the same element twice */
+  list_remove(list, item);
 
   ((struct list *)item)->next = NULL;
   
