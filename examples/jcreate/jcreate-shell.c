@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: jcreate-shell.c,v 1.4 2010/01/18 11:07:15 nifi Exp $
+ * $Id: jcreate-shell.c,v 1.5 2010/03/22 10:21:57 nifi Exp $
  */
 
 /**
  * \file
- *         Tmote Sky-specific Contiki shell
+ *         Jcreate-specific Contiki shell
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -42,18 +42,8 @@
 #include "shell.h"
 #include "serial-shell.h"
 
-#include "net/rime/neighbor.h"
-#include "dev/watchdog.h"
-
-#include "net/rime.h"
-#include "dev/cc2420.h"
 #include "dev/leds.h"
-#include "dev/light.h"
-#include "dev/sht11.h"
 #include "dev/acc-sensor.h"
-#include "dev/battery-sensor.h"
-
-#include "net/rime/timesynch.h"
 
 #include <stdio.h>
 #include <string.h>
