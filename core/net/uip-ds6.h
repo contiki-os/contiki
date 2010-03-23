@@ -272,26 +272,26 @@ void uip_ds6_periodic(void);
 
 /** \brief Generic loop routine on an abstract data structure, which generalizes
  * all data structures used in DS6 */
-uint8_t uip_ds6_list_loop(uip_ds6_element_t * list, uint8_t size,
-                          uint16_t elementsize, uip_ipaddr_t * ipaddr,
+uint8_t uip_ds6_list_loop(uip_ds6_element_t *list, uint8_t size,
+                          uint16_t elementsize, uip_ipaddr_t *ipaddr,
                           uint8_t ipaddrlen,
-                          uip_ds6_element_t ** out_element);
+                          uip_ds6_element_t **out_element);
 
 /** \name Neighbor Cache basic routines */
 /** @{ */
-uip_ds6_nbr_t *uip_ds6_nbr_add(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr,
+uip_ds6_nbr_t *uip_ds6_nbr_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
                                uint8_t isrouter, uint8_t state);
-void uip_ds6_nbr_rm(uip_ds6_nbr_t * nbr);
-uip_ds6_nbr_t *uip_ds6_nbr_lookup(uip_ipaddr_t * ipaddr);
+void uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
+uip_ds6_nbr_t *uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr);
 
 /** @} */
 
 /** \name Default router list basic routines */
 /** @{ */
-uip_ds6_defrt_t *uip_ds6_defrt_add(uip_ipaddr_t * ipaddr,
+uip_ds6_defrt_t *uip_ds6_defrt_add(uip_ipaddr_t *ipaddr,
                                    unsigned long interval);
-void uip_ds6_defrt_rm(uip_ds6_defrt_t * defrt);
-uip_ds6_defrt_t *uip_ds6_defrt_lookup(uip_ipaddr_t * ipaddr);
+void uip_ds6_defrt_rm(uip_ds6_defrt_t *defrt);
+uip_ds6_defrt_t *uip_ds6_defrt_lookup(uip_ipaddr_t *ipaddr);
 uip_ipaddr_t *uip_ds6_defrt_choose(void);
 
 /** @} */
@@ -299,53 +299,54 @@ uip_ipaddr_t *uip_ds6_defrt_choose(void);
 /** \name Prefix list basic routines */
 /** @{ */
 #if UIP_CONF_ROUTER
-uip_ds6_prefix_t *uip_ds6_prefix_add(uip_ipaddr_t * ipaddr, uint8_t length,
+uip_ds6_prefix_t *uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                      uint8_t advertise, uint8_t flags,
                                      unsigned long vtime,
                                      unsigned long ptime);
 #else /* UIP_CONF_ROUTER */
-uip_ds6_prefix_t *uip_ds6_prefix_add(uip_ipaddr_t * ipaddr, uint8_t length,
+uip_ds6_prefix_t *uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t length,
                                      unsigned long interval);
 #endif /* UIP_CONF_ROUTER */
-void uip_ds6_prefix_rm(uip_ds6_prefix_t * prefix);
-uip_ds6_prefix_t *uip_ds6_prefix_lookup(uip_ipaddr_t * ipaddr,
+void uip_ds6_prefix_rm(uip_ds6_prefix_t *prefix);
+uip_ds6_prefix_t *uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr,
                                         uint8_t ipaddrlen);
-uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t * ipaddr);
+uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
 
 /** @} */
 
 /** \name Unicast address list basic routines */
 /** @{ */
-uip_ds6_addr_t *uip_ds6_addr_add(uip_ipaddr_t * ipaddr,
+uip_ds6_addr_t *uip_ds6_addr_add(uip_ipaddr_t *ipaddr,
                                  unsigned long vlifetime, uint8_t type);
-void uip_ds6_addr_rm(uip_ds6_addr_t * addr);
-uip_ds6_addr_t *uip_ds6_addr_lookup(uip_ipaddr_t * ipaddr);
+void uip_ds6_addr_rm(uip_ds6_addr_t *addr);
+uip_ds6_addr_t *uip_ds6_addr_lookup(uip_ipaddr_t *ipaddr);
 
 /** @} */
 
 /** \name Multicast address list basic routines */
 /** @{ */
-uip_ds6_maddr_t *uip_ds6_maddr_add(uip_ipaddr_t * ipaddr);
-void uip_ds6_maddr_rm(uip_ds6_maddr_t * maddr);
-uip_ds6_maddr_t *uip_ds6_maddr_lookup(uip_ipaddr_t * ipaddr);
+uip_ds6_maddr_t *uip_ds6_maddr_add(uip_ipaddr_t *ipaddr);
+void uip_ds6_maddr_rm(uip_ds6_maddr_t *maddr);
+uip_ds6_maddr_t *uip_ds6_maddr_lookup(uip_ipaddr_t *ipaddr);
 
 /** @} */
 
 /** \name Anycast address list basic routines */
 /** @{ */
-uip_ds6_aaddr_t *uip_ds6_aaddr_add(uip_ipaddr_t * ipaddr);
-void uip_ds6_aaddr_rm(uip_ds6_aaddr_t * aaddr);
-uip_ds6_aaddr_t *uip_ds6_aaddr_lookup(uip_ipaddr_t * ipaddr);
+uip_ds6_aaddr_t *uip_ds6_aaddr_add(uip_ipaddr_t *ipaddr);
+void uip_ds6_aaddr_rm(uip_ds6_aaddr_t *aaddr);
+uip_ds6_aaddr_t *uip_ds6_aaddr_lookup(uip_ipaddr_t *ipaddr);
 
 /** @} */
 
 
 /** \name Routing Table basic routines */
 /** @{ */
-uip_ds6_route_t *uip_ds6_route_lookup(uip_ipaddr_t * destipaddr);
-uip_ds6_route_t *uip_ds6_route_add(uip_ipaddr_t * ipaddr, uint8_t length,
-                                   uip_ipaddr_t * next_hop, u8_t metric);
-void uip_ds6_route_rm(uip_ds6_route_t * route);
+uip_ds6_route_t *uip_ds6_route_lookup(uip_ipaddr_t *destipaddr);
+uip_ds6_route_t *uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
+                                   uip_ipaddr_t *next_hop, u8_t metric);
+void uip_ds6_route_rm(uip_ds6_route_t *route);
+void uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop);
 
 /** @} */
 
