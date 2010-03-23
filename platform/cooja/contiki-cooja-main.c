@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki-cooja-main.c,v 1.1 2010/03/15 11:02:57 fros4943 Exp $
+ * $Id: contiki-cooja-main.c,v 1.2 2010/03/23 12:08:05 adamdunkels Exp $
  */
 
 /**
@@ -223,6 +223,7 @@ start_process_run_loop(void *data)
 
     /* Initialize communication stack */
     netstack_init();
+    printf("MAC %s RDC %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name);
 
     /* Start serial process */
     serial_line_init();
