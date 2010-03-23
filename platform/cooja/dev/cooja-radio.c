@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.12 2010/03/23 12:13:43 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.13 2010/03/23 15:10:27 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -210,12 +210,12 @@ pending_packet(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-cca(void)
+channel_clear(void)
 {
   if(simSignalStrength > CCA_SS_THRESHOLD) {
-    return 1;
+    return 0;
   }
-  return 0;
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cooja_radio_process, ev, data)
@@ -252,7 +252,7 @@ const struct radio_driver cooja_radio_driver =
     transmit_packet,
     radio_send,
     radio_read,
-    cca,
+    channel_clear,
     receiving_packet,
     pending_packet,
     radio_on,
