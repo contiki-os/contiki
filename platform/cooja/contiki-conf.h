@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.14 2010/03/10 12:18:29 fros4943 Exp $
+ * $Id: contiki-conf.h,v 1.15 2010/03/23 13:34:00 fros4943 Exp $
  *
  */
 
@@ -110,8 +110,10 @@ typedef uint32_t u32_t;
 typedef int32_t s32_t;
 typedef unsigned short uip_stats_t;
 
-typedef unsigned long clock_time_t;
 #define CLOCK_CONF_SECOND 1000L
+typedef unsigned long clock_time_t;
+typedef unsigned long rtimer_clock_t;
+#define RTIMER_CLOCK_LT(a,b)     ((signed long)((a)-(b)) < 0)
 
 #define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32
