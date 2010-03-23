@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.11 2010/03/09 08:11:05 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.12 2010/03/23 12:13:43 fros4943 Exp $
  */
 
 #include <stdio.h>
@@ -150,9 +150,11 @@ radio_read(void *buf, unsigned short bufsize)
 static int
 radio_send(const void *payload, unsigned short payload_len)
 {
+  int radiostate = simRadioHWOn;
+
   if(!simRadioHWOn) {
-    /* TODO Turn on radio temporarily during tx */
-    return RADIO_TX_ERR;
+    /* Turn on radio temporarily */
+    simRadioHWOn = 1;
   }
   if(payload_len > COOJA_RADIO_BUFSIZE) {
     return RADIO_TX_ERR;
@@ -173,6 +175,7 @@ radio_send(const void *payload, unsigned short payload_len)
     cooja_mt_yield();
   }
 
+  simRadioHWOn = radiostate;
   return RADIO_TX_OK;
 }
 /*---------------------------------------------------------------------------*/
