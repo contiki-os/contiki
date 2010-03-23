@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.10 2010/01/15 10:32:36 nifi Exp $
+ * $Id: sky-collect.c,v 1.11 2010/03/23 23:04:21 nifi Exp $
  */
 
 /**
@@ -39,9 +39,10 @@
  */
 
 #include "contiki.h"
-#include "net/rime/neighbor.h"
 #include "net/rime.h"
 #include "net/rime/collect.h"
+#include "net/rime/collect-neighbor.h"
+#include "net/rime/timesynch.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
 #include "dev/light-sensor.h"
@@ -103,7 +104,7 @@ PROCESS_THREAD(depth_blink_process, ev, data)
       leds_on(LEDS_BLUE);
     } else {
       leds_off(LEDS_BLUE);
-      count /= NEIGHBOR_ETX_SCALE;
+      count /= COLLECT_NEIGHBOR_ETX_SCALE;
       while(count > 0) {
 	leds_on(LEDS_RED);
 	etimer_set(&et, CLOCK_SECOND / 32);
@@ -180,8 +181,12 @@ recv(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 	 msg->acktx, msg->noacktx, msg->ackrx, msg->timedout, msg->badackrx,
 	 msg->toolong, msg->tooshort, msg->badsynch, msg->badcrc,
 	 msg->contentiondrop, msg->sendingdrop, msg->lltx, msg->llrx);
-
-  printf("%u\n", timesynch_time() - msg->timestamp);
+#if TIMESYNCH_CONF_ENABLED
+  printf("%u", timesynch_time() - msg->timestamp);
+#else
+  printf("%u", RTIMER_NOW() - msg->timestamp);
+#endif /* TIMESYNCH_CONF_ENABLED */
+  printf("\n");
 
 }
 /*---------------------------------------------------------------------------*/
@@ -211,7 +216,7 @@ PROCESS_THREAD(test_collect_process, ev, data)
 
     if(etimer_expired(&et)) {
       struct sky_collect_msg *msg;
-      struct neighbor *n;
+      struct collect_neighbor *n;
       /*      leds_toggle(LEDS_BLUE);*/
 
       SENSORS_ACTIVATE(light_sensor);
@@ -234,10 +239,10 @@ PROCESS_THREAD(test_collect_process, ev, data)
       rimeaddr_copy(&msg->best_neighbor, &rimeaddr_null);
       msg->best_neighbor_etx =
 	msg->best_neighbor_rtmetric = 0;
-      n = neighbor_best();
+      n = collect_neighbor_best();
       if(n != NULL) {
 	rimeaddr_copy(&msg->best_neighbor, &n->addr);
-	msg->best_neighbor_etx = neighbor_etx(n);
+	msg->best_neighbor_etx = collect_neighbor_etx(n);
 	msg->best_neighbor_rtmetric = n->rtmetric;
       }
 
@@ -259,7 +264,11 @@ PROCESS_THREAD(test_collect_process, ev, data)
       msg->sendingdrop = rimestats.sendingdrop;
       msg->lltx = rimestats.lltx;
       msg->llrx = rimestats.llrx;
+#if TIMESYNCH_CONF_ENABLED
       msg->timestamp = timesynch_time();
+#else
+      msg->timestamp = RTIMER_NOW();
+#endif /* TIMESYNCH_CONF_ENABLED */
 
       SENSORS_DEACTIVATE(light_sensor);
       SENSORS_DEACTIVATE(sht11_sensor);
