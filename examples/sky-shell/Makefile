@@ -11,7 +11,7 @@ dumptest:
 	 sleep 2; \
          echo 'collect | binprint &') | make login		
 
-APPS = serial-shell
+APPS = serial-shell powertrace
 CONTIKI = ../..
 
 %.shell-upload: %.ce
