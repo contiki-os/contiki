@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.13 2010/03/23 15:10:27 adamdunkels Exp $
+ * $Id: cooja-radio.c,v 1.14 2010/03/23 15:19:55 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -192,7 +192,6 @@ transmit_packet(unsigned short len)
   int ret = RADIO_TX_ERR;
   if(pending_data != NULL) {
     ret = radio_send(pending_data, len);
-    pending_data = NULL;
   }
   return ret;
 }
