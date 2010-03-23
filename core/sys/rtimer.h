@@ -48,10 +48,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.h,v 1.10 2010/03/23 13:24:38 fros4943 Exp $
+ * @(#)$Id: rtimer.h,v 1.11 2010/03/23 13:35:00 fros4943 Exp $
  */
 #ifndef __RTIMER_H__
 #define __RTIMER_H__
+
+#include "rtimer-arch.h"
 
 #ifndef RTIMER_CLOCK_LT
 typedef unsigned short rtimer_clock_t;
@@ -146,8 +148,6 @@ void rtimer_arch_schedule(rtimer_clock_t t);
 /*rtimer_clock_t rtimer_arch_now(void);*/
 
 #define RTIMER_SECOND RTIMER_ARCH_SECOND
-
-#include "rtimer-arch.h"
 
 #endif /* __RTIMER_H__ */
 
