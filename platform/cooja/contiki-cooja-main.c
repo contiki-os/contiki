@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki-cooja-main.c,v 1.2 2010/03/23 12:08:05 adamdunkels Exp $
+ * $Id: contiki-cooja-main.c,v 1.3 2010/03/23 13:12:41 fros4943 Exp $
  */
 
 /**
@@ -124,10 +124,12 @@ SENSORS(&button_sensor, &pir_sensor, &vib_sensor);
 long referenceVar;
 
 /*
- * process_run() infinite loop.
- * Is yielded at least once per function call.
+ * Contiki and rtimer threads.
  */
+static struct cooja_mt_thread rtimer_thread;
 static struct cooja_mt_thread process_run_thread;
+
+#define MIN(a, b)   ( (a)<(b) ? (a) : (b) )
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -143,7 +145,19 @@ print_processes(struct process * const processes[])
 }
 /*---------------------------------------------------------------------------*/
 static void
-start_process_run_loop(void *data)
+rtimer_thread_loop(void *data)
+{
+  while(1)
+  {
+    rtimer_arch_check();
+
+    /* Return to COOJA */
+    cooja_mt_yield();
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+process_run_thread_loop(void *data)
 {
     /* Yield once during bootup */
     simProcessRunValue = 1;
@@ -264,8 +278,9 @@ start_process_run_loop(void *data)
 JNIEXPORT void JNICALL
 Java_se_sics_cooja_corecomm_CLASSNAME_init(JNIEnv *env, jobject obj)
 {
-  /* Prepare thread that will do the process_run()-loop */
-  cooja_mt_start(&process_run_thread, &start_process_run_loop, NULL);
+  /* Create rtimers and Contiki threads */
+  cooja_mt_start(&rtimer_thread, &rtimer_thread_loop, NULL);
+  cooja_mt_start(&process_run_thread, &process_run_thread_loop, NULL);
  }
 /*---------------------------------------------------------------------------*/
 /**
@@ -338,6 +353,8 @@ Java_se_sics_cooja_corecomm_CLASSNAME_setMemory(JNIEnv *env, jobject obj, jint r
 JNIEXPORT void JNICALL
 Java_se_sics_cooja_corecomm_CLASSNAME_tick(JNIEnv *env, jobject obj)
 {
+  simProcessRunValue = 0;
+
   /* Let all simulation interfaces act first */
   doActionsBeforeTick();
 
@@ -346,19 +363,34 @@ Java_se_sics_cooja_corecomm_CLASSNAME_tick(JNIEnv *env, jobject obj)
     etimer_request_poll();
   }
 
-  /* Let Contiki handle a few events.
-    This call stores the process_run() return value */
-  cooja_mt_exec(&process_run_thread);
+  /* Let rtimers run.
+   * Sets simProcessRunValue */
+  cooja_mt_exec(&rtimer_thread);
+
+  if(simProcessRunValue == 0) {
+    /* Rtimers done: Let Contiki handle a few events.
+     * Sets simProcessRunValue */
+    cooja_mt_exec(&process_run_thread);
+  }
 
   /* Let all simulation interfaces act before returning to java */
   doActionsAfterTick();
 
-  /* Look for new e-timers */
-  simEtimerPending = etimer_pending();
+  /* Do we have any pending timers */
+  simEtimerPending = etimer_pending() || rtimer_arch_pending();
+  if(!simEtimerPending) {
+    return;
+  }
 
   /* Save nearest event timer expiration time */
-  if (simEtimerPending) {
-    simNextExpirationTime = etimer_next_expiration_time() - simCurrentTime;
+  int nextEtimer = etimer_next_expiration_time() - simCurrentTime;
+  int nextRtimer = rtimer_arch_next() - simCurrentTime;
+  if(etimer_pending() && rtimer_arch_pending()) {
+    simNextExpirationTime = MIN(nextEtimer, nextRtimer);
+  } else if (etimer_pending()) {
+    simNextExpirationTime = nextEtimer;
+  } else if (rtimer_arch_pending()) {
+    simNextExpirationTime = nextRtimer;
   }
 }
 /*---------------------------------------------------------------------------*/
