@@ -334,7 +334,7 @@ uip_ds6_nbr_add(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr,
 
 /*---------------------------------------------------------------------------*/
 void
-uip_ds6_nbr_rm(uip_ds6_nbr_t * nbr)
+uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
   if(nbr != NULL) {
     nbr->isused = 0;
@@ -344,7 +344,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t * nbr)
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
-uip_ds6_nbr_lookup(uip_ipaddr_t * ipaddr)
+uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr)
 {
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *) uip_ds6_nbr_cache, UIP_DS6_NBR_NB,
@@ -357,7 +357,7 @@ uip_ds6_nbr_lookup(uip_ipaddr_t * ipaddr)
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_defrt_t *
-uip_ds6_defrt_add(uip_ipaddr_t * ipaddr, unsigned long interval)
+uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
 {
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *) uip_ds6_defrt_list, UIP_DS6_DEFRT_NB,
@@ -389,10 +389,9 @@ uip_ds6_defrt_rm(uip_ds6_defrt_t * defrt)
 uip_ds6_defrt_t *
 uip_ds6_defrt_lookup(uip_ipaddr_t * ipaddr)
 {
-  if(uip_ds6_list_loop
-     ((uip_ds6_element_t *) uip_ds6_defrt_list, UIP_DS6_DEFRT_NB,
-      sizeof(uip_ds6_defrt_t), ipaddr, 128,
-      (uip_ds6_element_t **) & locdefrt) == FOUND) {
+  if(uip_ds6_list_loop((uip_ds6_element_t *) uip_ds6_defrt_list,
+		       UIP_DS6_DEFRT_NB, sizeof(uip_ds6_defrt_t), ipaddr, 128,
+		       (uip_ds6_element_t **) & locdefrt) == FOUND) {
     return locdefrt;
   }
   return NULL;
@@ -500,10 +499,10 @@ uip_ds6_prefix_rm(uip_ds6_prefix_t * prefix)
 uip_ds6_prefix_t *
 uip_ds6_prefix_lookup(uip_ipaddr_t * ipaddr, uint8_t ipaddrlen)
 {
-  if(uip_ds6_list_loop
-     ((uip_ds6_element_t *) uip_ds6_prefix_list, UIP_DS6_PREFIX_NB,
-      sizeof(uip_ds6_prefix_t), ipaddr, ipaddrlen,
-      (uip_ds6_element_t **) & locprefix) == FOUND) {
+  if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_prefix_list,
+		       UIP_DS6_PREFIX_NB, sizeof(uip_ds6_prefix_t),
+		       ipaddr, ipaddrlen,
+		       (uip_ds6_element_t **)&locprefix) == FOUND) {
     return locprefix;
   }
   return NULL;
@@ -515,10 +514,8 @@ uip_ds6_is_addr_onlink(uip_ipaddr_t * ipaddr)
 {
   for(locprefix = uip_ds6_prefix_list;
       locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; locprefix++) {
-    if((locprefix->isused)
-       &&
-       (uip_ipaddr_prefixcmp(&locprefix->ipaddr, ipaddr, locprefix->length)))
-    {
+    if(locprefix->isused &&
+       uip_ipaddr_prefixcmp(&locprefix->ipaddr, ipaddr, locprefix->length)) {
       return 1;
     }
   }
@@ -649,10 +646,9 @@ uip_ds6_aaddr_rm(uip_ds6_aaddr_t * aaddr)
 uip_ds6_aaddr_t *
 uip_ds6_aaddr_lookup(uip_ipaddr_t * ipaddr)
 {
-  if(uip_ds6_list_loop
-     ((uip_ds6_element_t *) uip_ds6_if.aaddr_list, UIP_DS6_AADDR_NB,
-      sizeof(uip_ds6_aaddr_t), ipaddr, 128,
-      (uip_ds6_element_t **) & locaaddr) == FOUND) {
+  if(uip_ds6_list_loop((uip_ds6_element_t *) uip_ds6_if.aaddr_list,
+		       UIP_DS6_AADDR_NB, sizeof(uip_ds6_aaddr_t), ipaddr, 128,
+		       (uip_ds6_element_t **)&locaaddr) == FOUND) {
     return locaaddr;
   }
   return NULL;
@@ -722,15 +718,25 @@ uip_ds6_route_add(uip_ipaddr_t * ipaddr, u8_t length, uip_ipaddr_t * nexthop,
 
 /*---------------------------------------------------------------------------*/
 void
-uip_ds6_route_rm(uip_ds6_route_t * route)
+uip_ds6_route_rm(uip_ds6_route_t *route)
 {
   route->isused = 0;
-  return;
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
+{
+  for(locroute = uip_ds6_routing_table;
+      locroute < uip_ds6_routing_table + UIP_DS6_ROUTE_NB; locroute++) {
+    if((locroute->isused) && uip_ipaddr_cmp(&locroute->nexthop, nexthop)) {
+      locroute->isused = 0;
+    }
+  }
 }
 
 /*---------------------------------------------------------------------------*/
 void
-uip_ds6_select_src(uip_ipaddr_t * src, uip_ipaddr_t * dst)
+uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
 {
   uint8_t best = 0;             /* number of bit in common with best match */
   uint8_t n = 0;
