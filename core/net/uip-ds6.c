@@ -334,6 +334,7 @@ uip_ds6_nbr_add(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr,
     PRINTF("link addr");
     PRINTLLADDR((&(locnbr->lladdr)));
     PRINTF("state %u\n", state);
+    NEIGHBOR_STATE_CHANGED(locnbr);
     return locnbr;
   }
   return NULL;
