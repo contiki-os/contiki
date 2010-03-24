@@ -30,7 +30,6 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/uip-netif.h"
 
 #include <string.h>
 
@@ -92,12 +91,18 @@ udphandler(process_event_t ev, process_data_t data)
 PROCESS_THREAD(udp_process_sender, ev, data)
 {
   uip_ipaddr_t ipaddr;
+  int a;
 
   PROCESS_BEGIN();
   PRINTF("Process test UDP sender started\n");
 
-  PRINTF("Local IPv6 address: ");
-  PRINT6ADDR(&uip_netif_physical_if.addresses[0].ipaddr);
+  PRINTF("Tentative link-local IPv6 address: ");
+  for(a = 0; a < UIP_DS6_ADDR_NB; a++) {
+    if(uip_ds6_if.addr_list[a].isused) {
+      PRINT6ADDR(&uip_ds6_if.addr_list[a].ipaddr);
+      PRINTF("\n");
+    }
+  }
   PRINTF("\n");
 
 #ifdef UDP_ADDR_A
