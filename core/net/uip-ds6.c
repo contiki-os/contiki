@@ -58,6 +58,12 @@
 #define PRINTLLADDR(addr)
 #endif
 
+#ifdef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
+#define NEIGHBOR_STATE_CHANGED(n) UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED(n)
+void NEIGHBOR_STATE_CHANGED(uip_ds6_nbr_t *n);
+#else
+#define NEIGHBOR_STATE_CHANGED(n)
+#endif /* UIP_DS6_CONF_NEIGHBOR_STATE_CHANGED */
 
 struct etimer uip_ds6_timer_periodic;                           /** \brief Timer for maintenance of data structures */
 
@@ -100,8 +106,7 @@ void
 uip_ds6_init(void)
 {
   PRINTF("Init of IPv6 data structures\n");
-  PRINTF
-    ("%u neighbors\n%u default routers\n%u prefixes\n%u routes\n%u unicast addresses\n%u multicast addresses\n%u anycast addresses\n",
+  PRINTF("%u neighbors\n%u default routers\n%u prefixes\n%u routes\n%u unicast addresses\n%u multicast addresses\n%u anycast addresses\n",
      UIP_DS6_NBR_NB, UIP_DS6_DEFRT_NB, UIP_DS6_PREFIX_NB, UIP_DS6_ROUTE_NB,
      UIP_DS6_ADDR_NB, UIP_DS6_MADDR_NB, UIP_DS6_AADDR_NB);
   for(locnbr = uip_ds6_nbr_cache; locnbr < uip_ds6_nbr_cache + UIP_DS6_NBR_NB;
@@ -228,12 +233,14 @@ uip_ds6_periodic(void)
           PRINT6ADDR(&locnbr->ipaddr);
           PRINTF(")\n");
           locnbr->state = NBR_STALE;
+          NEIGHBOR_STATE_CHANGED(locnbr);
         }
         break;
       case NBR_DELAY:
         if(stimer_expired(&(locnbr->reachable))) {
           locnbr->state = NBR_PROBE;
           locnbr->nscount = 1;
+          NEIGHBOR_STATE_CHANGED(locnbr);
           PRINTF("DELAY: moving to PROBE + NS %u\n", locnbr->nscount);
           uip_nd6_ns_output(NULL, &locnbr->ipaddr, &locnbr->ipaddr);
           stimer_set(&(locnbr->sendns), uip_ds6_if.retrans_timer / 1000);
@@ -338,6 +345,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
   if(nbr != NULL) {
     nbr->isused = 0;
+    NEIGHBOR_STATE_CHANGED(nbr);
   }
   return;
 }
@@ -447,8 +455,7 @@ uip_ds6_prefix_add(uip_ipaddr_t * ipaddr, uint8_t ipaddrlen,
     locprefix->plifetime = ptime;
     PRINTF("Adding prefix ");
     PRINT6ADDR(&locprefix->ipaddr);
-    PRINTF
-      ("length %u, flags %x, Valid lifetime %lx, Preffered lifetime %lx\n",
+    PRINTF("length %u, flags %x, Valid lifetime %lx, Preffered lifetime %lx\n",
        ipaddrlen, flags, vtime, ptime);
     return locprefix;
   } else {
