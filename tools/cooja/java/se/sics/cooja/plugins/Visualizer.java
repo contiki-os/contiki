@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.14 2010/02/26 07:38:08 nifi Exp $
+ * $Id: Visualizer.java,v 1.15 2010/03/24 14:22:56 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -144,6 +144,7 @@ public class Visualizer extends VisPlugin {
   private boolean moving = false;
   private Mote movedMote = null;
   private long moveStartTime = -1;
+  private boolean moveConfirm;
   private Cursor moveCursor = new Cursor(Cursor.MOVE_CURSOR);
 
   /* Visualizer skins */
@@ -656,39 +657,41 @@ public class Visualizer extends VisPlugin {
   }
 
   private void handleMousePress(MouseEvent mouseEvent) {
-    int x = mouseEvent.getPoint().x;
-    int y = mouseEvent.getPoint().y;
-    final Mote[] motes = findMotesAtPosition(x, y);
+    int x = mouseEvent.getX();
+    int y = mouseEvent.getY();
 
-    /* No motes clicked: We should either pan or zoom.
-     * Control or Shift pressed: We should either pan or zoom */
-    if (mouseEvent.isControlDown() || mouseEvent.isShiftDown()
-        || motes == null || motes.length == 0) {
-      if (mouseEvent.isControlDown()) {
-        /* Zoom */
-        zooming = true;
-        zoomingPixel = new Point(x, y);
-        zoomingPosition = transformPixelToPosition(zoomingPixel);
-        zoomStart = viewportTransform.getScaleX();
-      } else {
-        /* Pan */
-        panning = true;
-        panningPosition = transformPixelToPosition(x, y);
-      }
+    if (mouseEvent.isControlDown()) {
+      /* Zoom */
+      zooming = true;
+      zoomingPixel = new Point(x, y);
+      zoomingPosition = transformPixelToPosition(zoomingPixel);
+      zoomStart = viewportTransform.getScaleX();
       return;
     }
 
-    /* One of the clicked motes should be moved */
-    beginMoveRequest(motes[0], true);
+    final Mote[] motes = findMotesAtPosition(x, y);
+    if (mouseEvent.isShiftDown() ||
+            (!mouseEvent.isAltDown() && (motes == null || motes.length == 0))) {
+      /* No motes clicked or shift pressed: We should pan */
+      panning = true;
+      panningPosition = transformPixelToPosition(x, y);
+      return;
+    }
+
+    if (motes != null && motes.length > 0) {
+      /* One of the clicked motes should be moved */
+      beginMoveRequest(motes[0], !mouseEvent.isAltDown(), !mouseEvent.isAltDown());
+    }
   }
 
-  private void beginMoveRequest(Mote moteToMove, boolean withTiming) {
+  private void beginMoveRequest(Mote moteToMove, boolean withTiming, boolean confirm) {
     if (withTiming) {
       moveStartTime = System.currentTimeMillis();
     } else {
       moveStartTime = -1;
     }
     moving = true;
+    moveConfirm = confirm;
     movedMote = moteToMove;
     repaint();
   }
@@ -752,29 +755,32 @@ public class Visualizer extends VisPlugin {
       canvas.setCursor(Cursor.getDefaultCursor());
 
       /* Move mote */
-      Position newPos = transformPixelToPosition(x, y);
       if (moveStartTime < 0 || System.currentTimeMillis() - moveStartTime > 300) {
-        String options[] = {"Yes", "Cancel"};
-        int returnValue = JOptionPane.showOptionDialog(Visualizer.this,
-            "Move mote to" +
-            "\nX=" + newPos.getXCoordinate() + 
-            "\nY=" + newPos.getYCoordinate() + 
-            "\nZ=" + movedMote.getInterfaces().getPosition().getZCoordinate(),
-            "Move mote?",
-            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
-            null, options, options[0]);
-        if (returnValue == JOptionPane.YES_OPTION) {
+        Position newPos = transformPixelToPosition(x, y);
+        if (moveConfirm) {
+            String options[] = {"Yes", "Cancel"};
+            int returnValue = JOptionPane.showOptionDialog(Visualizer.this,
+                    "Move mote to" +
+                    "\nX=" + newPos.getXCoordinate() + 
+                    "\nY=" + newPos.getYCoordinate() + 
+                    "\nZ=" + movedMote.getInterfaces().getPosition().getZCoordinate(),
+                    "Move mote?",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                    null, options, options[0]);
+            moving = returnValue == JOptionPane.YES_OPTION;
+        }
+        if (moving) {
           movedMote.getInterfaces().getPosition().setCoordinates(
               newPos.getXCoordinate(),
               newPos.getYCoordinate(),
               movedMote.getInterfaces().getPosition().getZCoordinate()
           );
+          repaint();
         }
       }
 
       moving = false;
       movedMote = null;
-      repaint();
     }
   }
 
@@ -1248,7 +1254,7 @@ public class Visualizer extends VisPlugin {
       return "Move " + mote;
     }
     public void doAction(Visualizer visualizer, Mote mote) {
-      visualizer.beginMoveRequest(mote, false);
+      visualizer.beginMoveRequest(mote, false, true);
     }
   };
 

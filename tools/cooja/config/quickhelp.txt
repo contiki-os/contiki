@@ -1,7 +1,7 @@
 se.sics.cooja.plugins.Visualizer = \
 <b>Visualizer</b> \
 <p>The visualizer shows the positions of simulated motes as viewed from above (XY-plane). \
-It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. \
+It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. Motes can be moved by dragging them (ALT+Mouse drag). \
 Mouse right-click a mote or unoccupied space for a popup menu with more options. \
 <p>The visualizer supports "visualizer skins". \
 Each skin provides some specific information, such as ongoing simulated radio traffic, or the IP addresses of motes. \
