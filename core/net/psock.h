@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.h,v 1.6 2009/05/06 15:07:09 adamdunkels Exp $
+ * $Id: psock.h,v 1.7 2010/03/24 21:03:32 adamdunkels Exp $
  */
 
 /**
@@ -381,6 +381,13 @@ char psock_newdata(struct psock *s);
 
 #define PSOCK_WAIT_THREAD(psock, condition)   \
   PT_WAIT_THREAD(&((psock)->pt), (condition))
+
+void psock_buffered_string_send_begin(struct psock *s);
+PT_THREAD(psock_buffered_string_send(struct psock *s, const char **string, char push));
+
+#define PSOCK_BUFFERED_STRING_SEND(psock, str, push)     \
+    PT_WAIT_THREAD(&((psock)->pt),          \
+       psock_buffered_string_send(psock, str, push))
 
 #endif /* __PSOCK_H__ */
 
