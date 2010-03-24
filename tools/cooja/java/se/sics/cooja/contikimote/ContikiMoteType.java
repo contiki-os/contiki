@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.42 2010/03/15 11:04:07 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.43 2010/03/24 12:29:33 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -472,14 +472,14 @@ public class ContikiMoteType implements MoteType {
     initialMemory.setMemorySegment(dataSectionAddr, initialDataSection);
     logger.info(getContikiFirmwareFile().getName() +
         ": data section at 0x" + Integer.toHexString(dataSectionAddr) + 
-        " (0x" + dataSectionSize + " bytes)");
+        " (" + dataSectionSize + " bytes)");
     
     byte[] initialBssSection = new byte[bssSectionSize];
     getCoreMemory(bssSectionAddr, bssSectionSize, initialBssSection);
     initialMemory.setMemorySegment(bssSectionAddr, initialBssSection);
     logger.info(getContikiFirmwareFile().getName() +
         ": BSS section at 0x" + Integer.toHexString(bssSectionAddr) + 
-        " (0x" + bssSectionSize + " bytes)");
+        " (" + bssSectionSize + " bytes)");
     
     if (commonSectionAddr > 0 && commonSectionSize > 0) {
       byte[] initialCommonSection = new byte[commonSectionSize];
@@ -487,7 +487,7 @@ public class ContikiMoteType implements MoteType {
       initialMemory.setMemorySegment(commonSectionAddr, initialCommonSection);
       logger.info(getContikiFirmwareFile().getName() +
           ": common section at 0x" + Integer.toHexString(commonSectionAddr) + 
-          " (0x" + commonSectionSize + " bytes)");
+          " (" + commonSectionSize + " bytes)");
     }
   }
 
