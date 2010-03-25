@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SerialSocketServer.java,v 1.2 2010/03/19 15:03:14 fros4943 Exp $
+ * $Id: SerialSocketServer.java,v 1.3 2010/03/25 08:00:15 fros4943 Exp $
  */
 
 import java.awt.BorderLayout;
@@ -118,7 +118,9 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
     try {
       logger.info("Listening on port: " + LISTEN_PORT);
-      statusLabel.setText("Listening on port: " + LISTEN_PORT);
+      if (GUI.isVisualized()) {
+        statusLabel.setText("Listening on port: " + LISTEN_PORT);
+      }
       server = new ServerSocket(LISTEN_PORT);
       new Thread() {
         public void run() {
@@ -130,7 +132,9 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
               out.flush();
 
               startSocketReadThread(in);
-              statusLabel.setText("Client connected: " + client.getInetAddress());
+              if (GUI.isVisualized()) {
+                statusLabel.setText("Client connected: " + client.getInetAddress());
+              }
             } catch (IOException e) {
               logger.fatal("Listening thread shut down: " + e.getMessage());
               server = null;
@@ -242,11 +246,13 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
     } catch (IOException e) {
     }
 
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        statusLabel.setText("Listening on port: " + LISTEN_PORT);
-      }
-    });
+    if (GUI.isVisualized()) {
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          statusLabel.setText("Listening on port: " + LISTEN_PORT);
+        }
+      });
+    }
   }
 
   public void closePlugin() {
