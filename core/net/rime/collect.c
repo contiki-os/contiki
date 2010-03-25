@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.41 2010/03/19 13:17:00 adamdunkels Exp $
+ * $Id: collect.c,v 1.42 2010/03/25 08:51:07 adamdunkels Exp $
  */
 
 /**
@@ -101,7 +101,9 @@ PACKETQUEUE(sending_queue, MAX_SENDING_QUEUE);
 #define COLLECT_ANNOUNCEMENTS COLLECT_CONF_ANNOUNCEMENTS
 #endif /* COLLECT_CONF_ANNOUNCEMENTS */
 
-#define DEBUG 1
+#define ANNOUNCEMENT_SCAN_TIME CLOCK_SECOND
+
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -141,7 +143,9 @@ update_rtmetric(struct collect_conn *tc)
       }
       tc->rtmetric = RTMETRIC_MAX;
 #if COLLECT_ANNOUNCEMENTS
+#if ! COLLECT_CONF_WITH_LISTEN
       announcement_set_value(&tc->announcement, tc->rtmetric);
+#endif /* COLLECT_CONF_WITH_LISTEN */
 #else /* COLLECT_ANNOUNCEMENTS */
       neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
 #endif /* COLLECT_ANNOUNCEMENTS */
@@ -159,15 +163,19 @@ update_rtmetric(struct collect_conn *tc)
            before, we call neighbor_discovery_start to start a new
            period. */
         if(old_rtmetric >= tc->rtmetric + COLLECT_NEIGHBOR_ETX_SCALE + COLLECT_NEIGHBOR_ETX_SCALE / 2 ||
-           old_rtmetric == SINK) {
+           old_rtmetric == RTMETRIC_MAX) {
           neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
         } else {
           neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
         }
 #else /* ! COLLECT_ANNOUNCEMENTS */
-	announcement_set_value(&tc->announcement, tc->rtmetric);
+        if(tc->is_router) {
+          announcement_set_value(&tc->announcement, tc->rtmetric);
+        } else {
+          announcement_remove_value(&tc->announcement);
+        }
         if(old_rtmetric >= tc->rtmetric + COLLECT_NEIGHBOR_ETX_SCALE + COLLECT_NEIGHBOR_ETX_SCALE / 2 ||
-           old_rtmetric == SINK) {
+           old_rtmetric == RTMETRIC_MAX) {
           announcement_bump(&tc->announcement);
         }
 #endif /* ! COLLECT_ANNOUNCEMENTS */
@@ -175,11 +183,12 @@ update_rtmetric(struct collect_conn *tc)
 	PRINTF("%d.%d: new rtmetric %d\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	       tc->rtmetric);
-	
+#if ! COLLECT_CONF_WITH_LISTEN
 	/* We got a new, working, route we send any queued packets we may have. */
 	if(old_rtmetric == RTMETRIC_MAX) {
 	  send_queued_packet();
 	}
+#endif /* COLLECT_CONF_WITH_LISTEN */
       }
     }
   }
@@ -282,7 +291,15 @@ send_queued_packet(void)
                  retransmit_callback, c);
     } else {
 #if COLLECT_ANNOUNCEMENTS
+#if COLLECT_CONF_WITH_LISTEN
+      printf("listen\n");
       announcement_listen(1);
+      ctimer_set(&c->transmit_after_scan_timer, ANNOUNCEMENT_SCAN_TIME,
+                 send_queued_packet, NULL);
+#else /* COLLECT_CONF_WITH_LISTEN */
+      announcement_set_value(&c->announcement, RTMETRIC_MAX);
+      announcement_bump(&c->announcement);
+#endif /* COLLECT_CONF_WITH_LISTEN */
 #endif /* COLLECT_ANNOUNCEMENTS */
     }
   }
@@ -634,7 +651,14 @@ received_announcement(struct announcement *a, const rimeaddr_t *from,
 	   n->addr.u8[0], n->addr.u8[1], value);
   }
 
-  update_rtmetric(tc);  
+  update_rtmetric(tc);
+
+#if ! COLLECT_CONF_WITH_LISTEN
+  if(value == RTMETRIC_MAX &&
+     tc->rtmetric != RTMETRIC_MAX) {
+    announcement_bump(&tc->announcement);
+  }
+#endif /* COLLECT_CONF_WITH_LISTEN */
 }
 #endif /* !COLLECT_ANNOUNCEMENTS */
 /*---------------------------------------------------------------------------*/
@@ -647,12 +671,14 @@ static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
 /*---------------------------------------------------------------------------*/
 void
 collect_open(struct collect_conn *tc, uint16_t channels,
+             uint8_t is_router,
 	     const struct collect_callbacks *cb)
 {
   unicast_open(&tc->unicast_conn, channels + 1, &unicast_callbacks);
   channel_set_attributes(channels + 1, attributes);
   tc->rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
+  tc->is_router = is_router;
   collect_neighbor_init();
   packetqueue_init(&sending_queue);
 
@@ -664,8 +690,11 @@ collect_open(struct collect_conn *tc, uint16_t channels,
 			  &neighbor_discovery_callbacks);
   neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 #else /* !COLLECT_ANNOUNCEMENTS */
-  announcement_register(&tc->announcement, channels, tc->rtmetric,
+  announcement_register(&tc->announcement, channels,
 			received_announcement);
+#if ! COLLECT_CONF_WITH_LISTEN
+  announcement_set_value(&tc->announcement, RTMETRIC_MAX);
+#endif /* COLLECT_CONF_WITH_LISTEN */
 #endif /* !COLLECT_ANNOUNCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
@@ -684,6 +713,7 @@ void
 collect_set_sink(struct collect_conn *tc, int should_be_sink)
 {
   if(should_be_sink) {
+    tc->is_router = 1;
     tc->rtmetric = SINK;
     PRINTF("collect_set_sink: tc->rtmetric %d\n", tc->rtmetric);
 #if !COLLECT_ANNOUNCEMENTS
@@ -749,8 +779,18 @@ collect_send(struct collect_conn *tc, int rexmits)
       PRINTF("%d.%d: did not find any neighbor to send to\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
 #if COLLECT_ANNOUNCEMENTS
+#if COLLECT_CONF_WITH_LISTEN
+      printf("listen\n");
       announcement_listen(1);
+      ctimer_set(&tc->transmit_after_scan_timer, ANNOUNCEMENT_SCAN_TIME,
+                 send_queued_packet, NULL);
+#else /* COLLECT_CONF_WITH_LISTEN */
+      printf("bump neighbor value\n");
+      announcement_set_value(&tc->announcement, RTMETRIC_MAX);
+      announcement_bump(&tc->announcement);
+#endif /* COLLECT_CONF_WITH_LISTEN */
 #endif /* COLLECT_ANNOUNCEMENTS */
+
       if(packetqueue_enqueue_packetbuf(&sending_queue, FORWARD_PACKET_LIFETIME,
 				       tc)) {
 	return 1;
