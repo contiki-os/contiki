@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.11 2010/03/19 13:26:27 adamdunkels Exp $
+ * $Id: example-collect.c,v 1.12 2010/03/25 08:52:23 adamdunkels Exp $
  */
 
 /**
@@ -72,7 +72,7 @@ PROCESS_THREAD(example_collect_process, ev, data)
 
   SENSORS_ACTIVATE(button_sensor);
   
-  collect_open(&tc, 130, &callbacks);
+  collect_open(&tc, 130, COLLECT_ROUTER, &callbacks);
 
   if(rimeaddr_node_addr.u8[0] == 1 &&
      rimeaddr_node_addr.u8[1] == 1) {

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.18 2010/03/19 13:24:26 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.19 2010/03/25 08:52:23 adamdunkels Exp $
  */
 
 /**
@@ -343,7 +343,8 @@ send_collect(void *dummy)
 void
 shell_rime_init(void)
 {
-  collect_open(&collect, SHELL_RIME_CHANNEL_COLLECT, &collect_callbacks);
+  collect_open(&collect, SHELL_RIME_CHANNEL_COLLECT,
+               COLLECT_ROUTER, &collect_callbacks);
   
   shell_register_command(&collect_command);
   shell_register_command(&mac_command);
