@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.4 2010/03/19 16:55:29 nvt-se Exp $
+ * $Id: neighbor-info.c,v 1.5 2010/03/25 19:30:44 nifi Exp $
  */
 /**
  * \file
@@ -85,7 +85,9 @@ update_etx(const rimeaddr_t *dest, int packet_etx)
 
   if(new_etx > ETX_LIMIT) {
     neighbor_attr_remove_neighbor(dest);
-    subscriber_callback(dest, 0, new_etx);
+    if(subscriber_callback != NULL) {
+      subscriber_callback(dest, 0, new_etx);
+    }
   } else if(neighbor_attr_has_neighbor(dest)) {
     neighbor_attr_set_data(&etx, dest, &new_etx);
     if(new_etx != recorded_etx && subscriber_callback != NULL) {
