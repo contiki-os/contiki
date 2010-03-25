@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-neighbors.c,v 1.3 2009/11/08 19:43:00 adamdunkels Exp $
+ * $Id: shell-rime-neighbors.c,v 1.4 2010/03/25 08:55:20 adamdunkels Exp $
  */
 
 /**
@@ -94,8 +94,9 @@ void
 shell_rime_neighbors_init(void)
 {
   announcement_register(&neighbor_announcement,
-			SHELL_RIME_ANNOUNCEMENT_IDENTIFIER_NEIGHBORS, 0,
+			SHELL_RIME_ANNOUNCEMENT_IDENTIFIER_NEIGHBORS,
 			received_announcement);
+  announcement_set_value(&neighbor_announcement, 0);
 
   shell_register_command(&neighbors_command);
 }
