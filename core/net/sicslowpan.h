@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.12 2010/03/17 20:57:25 joxe Exp $
+ * $Id: sicslowpan.h,v 1.13 2010/03/26 10:28:51 joxe Exp $
  */
 /**
  * \file
@@ -55,9 +55,12 @@
  * \name General sicslowpan defines
  * @{
  */
-/* Min and Max compressible UDP ports */
-#define SICSLOWPAN_UDP_PORT_MIN                     0xF0B0
-#define SICSLOWPAN_UDP_PORT_MAX                     0xF0BF   /* F0B0 + 15 */
+/* Min and Max compressible UDP ports - HC06 */
+#define SICSLOWPAN_UDP_4_BIT_PORT_MIN                     0xF0B0
+#define SICSLOWPAN_UDP_4_BIT_PORT_MAX                     0xF0BF   /* F0B0 + 15 */
+#define SICSLOWPAN_UDP_8_BIT_PORT_MIN                     0xF000
+#define SICSLOWPAN_UDP_8_BIT_PORT_MAX                     0xF0FF   /* F000 + 255 */
+
 /** @} */
 
 /**
@@ -145,10 +148,19 @@
  * \name LOWPAN_UDP encoding (works together with IPHC)
  * @{
  */
+/**
+ * \name LOWPAN_UDP encoding (works together with IPHC)
+ * @{
+ */
 #define SICSLOWPAN_NHC_UDP_MASK                     0xF8
 #define SICSLOWPAN_NHC_UDP_ID                       0xF0
-#define SICSLOWPAN_NHC_UDP_C                        0xF3
-#define SICSLOWPAN_NHC_UDP_I                        0xF0
+#define SICSLOWPAN_NHC_UDP_CHECKSUMC                0x04
+#define SICSLOWPAN_NHC_UDP_CHECKSUMI                0x00
+/* values for port compression, _with checksum_ ie bit 5 set to 0 */
+#define SICSLOWPAN_NHC_UDP_CS_P_00  0xF0 /* all inline */
+#define SICSLOWPAN_NHC_UDP_CS_P_01  0xF1 /* source 16bit inline, dest = 0xF0 + 8 bit inline */
+#define SICSLOWPAN_NHC_UDP_CS_P_10  0xF2 /* source = 0xF0 + 8bit inline, dest = 16 bit inline */
+#define SICSLOWPAN_NHC_UDP_CS_P_11  0xF3 /* source & dest = 0xF0B + 4bit inline */
 /** @} */
 
 
