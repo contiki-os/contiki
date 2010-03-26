@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.32 2010/03/19 12:54:38 nifi Exp $
+ * $Id: sicslowpan.c,v 1.33 2010/03/26 10:28:52 joxe Exp $
  */
 /**
  * \file
@@ -44,6 +44,7 @@
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
  * \author Joakim Eriksson <joakime@sics.se>
+ * \author Joel Hoglund <joel@sics.se>
  */
 
 /**
@@ -607,31 +608,54 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
     }
   }
 
-
   uncomp_hdr_len = UIP_IPH_LEN;
 
 #if UIP_CONF_UDP
   /* UDP header compression */
   if(UIP_IP_BUF->proto == UIP_PROTO_UDP) {
-    if(HTONS(UIP_UDP_BUF->srcport)  >= SICSLOWPAN_UDP_PORT_MIN &&
-       HTONS(UIP_UDP_BUF->srcport)  <  SICSLOWPAN_UDP_PORT_MAX &&
-       HTONS(UIP_UDP_BUF->destport) >= SICSLOWPAN_UDP_PORT_MIN &&
-       HTONS(UIP_UDP_BUF->destport) <  SICSLOWPAN_UDP_PORT_MAX) {
-      /* we can compress. Copy compressed ports, full chcksum */
-      *hc06_ptr = SICSLOWPAN_NHC_UDP_C;
+    PRINTF("IPHC: Uncompressed UDP ports on send side: %x, %x\n",
+	   HTONS(UIP_UDP_BUF->srcport), HTONS(UIP_UDP_BUF->destport));
+    /* Mask out the last 4 bits can be used as a mask */
+    if(((HTONS(UIP_UDP_BUF->srcport) & 0xfff0) == SICSLOWPAN_UDP_4_BIT_PORT_MIN) &&
+       ((HTONS(UIP_UDP_BUF->destport) & 0xfff0) == SICSLOWPAN_UDP_4_BIT_PORT_MIN)) {
+      /* we can compress 12 bits of both source and dest */
+      *hc06_ptr = SICSLOWPAN_NHC_UDP_CS_P_11;
+      PRINTF("IPHC: remove 12 b of both source & dest with prefix 0xFOB\n");
       *(hc06_ptr + 1) =
-        (u8_t)((HTONS(UIP_UDP_BUF->srcport) -
-                SICSLOWPAN_UDP_PORT_MIN) << 4) +
-        (u8_t)((HTONS(UIP_UDP_BUF->destport) -
-                SICSLOWPAN_UDP_PORT_MIN));
-      memcpy(hc06_ptr + 2, &UIP_UDP_BUF->udpchksum, 2);
+	(u8_t)((HTONS(UIP_UDP_BUF->srcport) -
+		SICSLOWPAN_UDP_4_BIT_PORT_MIN) << 4) +
+	(u8_t)((HTONS(UIP_UDP_BUF->destport) -
+		SICSLOWPAN_UDP_4_BIT_PORT_MIN));
+      hc06_ptr += 2;
+    } else if((HTONS(UIP_UDP_BUF->destport) & 0xff00) == SICSLOWPAN_UDP_8_BIT_PORT_MIN) {
+      /* we can compress 8 bits of dest, leave source. */
+      *hc06_ptr = SICSLOWPAN_NHC_UDP_CS_P_01;
+      PRINTF("IPHC: leave source, remove 8 bits of dest with prefix 0xF0\n");
+      memcpy(hc06_ptr + 1, &UIP_UDP_BUF->srcport, 2);
+      *(hc06_ptr + 3) =
+	(u8_t)((HTONS(UIP_UDP_BUF->destport) -
+		SICSLOWPAN_UDP_8_BIT_PORT_MIN));
+      hc06_ptr += 4;
+    } else if((HTONS(UIP_UDP_BUF->srcport) & 0xff00) == SICSLOWPAN_UDP_8_BIT_PORT_MIN) {
+      /* we can compress 8 bits of src, leave dest. Copy compressed port */
+      *hc06_ptr = SICSLOWPAN_NHC_UDP_CS_P_10;
+      PRINTF("IPHC: remove 8 bits of source with prefix 0xF0, leave dest. hch: %i\n", *hc06_ptr);
+      *(hc06_ptr + 1) =
+	(u8_t)((HTONS(UIP_UDP_BUF->srcport) -
+		SICSLOWPAN_UDP_8_BIT_PORT_MIN));
+      memcpy(hc06_ptr + 2, &UIP_UDP_BUF->destport, 2);
       hc06_ptr += 4;
     } else {
-      /* we cannot compress. Copy uncompressed ports, full chcksum */
-      *hc06_ptr = SICSLOWPAN_NHC_UDP_I;
+      /* we cannot compress. Copy uncompressed ports, full checksum  */
+      *hc06_ptr = SICSLOWPAN_NHC_UDP_CS_P_00;
+      PRINTF("IPHC: cannot compress headers\n");
       memcpy(hc06_ptr + 1, &UIP_UDP_BUF->srcport, 4);
-      memcpy(hc06_ptr + 5, &UIP_UDP_BUF->udpchksum, 2);
-      hc06_ptr += 7;
+      hc06_ptr += 5;
+    }
+    /* always inline the checksum  */
+    if(1) {
+      memcpy(hc06_ptr, &UIP_UDP_BUF->udpchksum, 2);
+      hc06_ptr += 2;
     }
     uncomp_hdr_len += UIP_UDPH_LEN;
   }
@@ -877,32 +901,62 @@ uncompress_hdr_hc06(u16_t ip_len) {
   if((RIME_IPHC_BUF[0] & SICSLOWPAN_IPHC_NH_C)) {
     /* The next header is compressed, NHC is following */
     if((*hc06_ptr & SICSLOWPAN_NHC_UDP_MASK) == SICSLOWPAN_NHC_UDP_ID) {
+      uint8_t checksum_compressed;
       SICSLOWPAN_IP_BUF->proto = UIP_PROTO_UDP;
-      switch(*hc06_ptr) {
-      case SICSLOWPAN_NHC_UDP_C:
-	/* 1 byte for NHC, 1 byte for ports, 2 bytes chksum */
-	SICSLOWPAN_UDP_BUF->srcport = HTONS(SICSLOWPAN_UDP_PORT_MIN +
-					    (*(hc06_ptr + 1) >> 4));
-	SICSLOWPAN_UDP_BUF->destport = HTONS(SICSLOWPAN_UDP_PORT_MIN +
-					     ((*(hc06_ptr + 1)) & 0x0F));
-	memcpy(&SICSLOWPAN_UDP_BUF->udpchksum, hc06_ptr + 2, 2);
-	PRINTF("IPHC: Uncompressed UDP ports (4): %x, %x\n",
-	       SICSLOWPAN_UDP_BUF->srcport, SICSLOWPAN_UDP_BUF->destport);
-	hc06_ptr += 4;
-	break;
-      case SICSLOWPAN_NHC_UDP_I:
+      checksum_compressed = *hc06_ptr & SICSLOWPAN_NHC_UDP_CHECKSUMC;
+      PRINTF("IPHC: Incoming header value: %i\n", *hc06_ptr);
+      switch(*hc06_ptr & SICSLOWPAN_NHC_UDP_CS_P_11) {
+      case SICSLOWPAN_NHC_UDP_CS_P_00:
 	/* 1 byte for NHC, 4 byte for ports, 2 bytes chksum */
 	memcpy(&SICSLOWPAN_UDP_BUF->srcport, hc06_ptr + 1, 2);
 	memcpy(&SICSLOWPAN_UDP_BUF->destport, hc06_ptr + 3, 2);
-	memcpy(&SICSLOWPAN_UDP_BUF->udpchksum, hc06_ptr + 5, 2);
-	PRINTF("IPHC: Uncompressed UDP ports (7): %x, %x\n",
-	       SICSLOWPAN_UDP_BUF->srcport, SICSLOWPAN_UDP_BUF->destport);
-
-	hc06_ptr += 7;
+	PRINTF("IPHC: Uncompressed UDP ports (ptr+5): %x, %x\n",
+	       HTONS(SICSLOWPAN_UDP_BUF->srcport), HTONS(SICSLOWPAN_UDP_BUF->destport));
+	hc06_ptr += 5;
 	break;
+
+      case SICSLOWPAN_NHC_UDP_CS_P_01:
+      //1 byte for NHC + source 16bit inline, dest = 0xF0 + 8 bit inline
+	PRINTF("IPHC: Decompressing destination\n");
+	memcpy(&SICSLOWPAN_UDP_BUF->srcport, hc06_ptr + 1, 2);
+	SICSLOWPAN_UDP_BUF->destport = HTONS(SICSLOWPAN_UDP_8_BIT_PORT_MIN + (*(hc06_ptr + 3)));
+	PRINTF("IPHC: Uncompressed UDP ports (ptr+4): %x, %x\n",
+	       HTONS(SICSLOWPAN_UDP_BUF->srcport), HTONS(SICSLOWPAN_UDP_BUF->destport));
+	hc06_ptr += 4;
+	break;
+
+      case SICSLOWPAN_NHC_UDP_CS_P_10:
+      //1 byte for NHC + source = 0xF0 + 8bit inline, dest = 16 bit inline
+	PRINTF("IPHC: Decompressing source\n");
+	SICSLOWPAN_UDP_BUF->srcport = HTONS(SICSLOWPAN_UDP_8_BIT_PORT_MIN +
+					    (*(hc06_ptr + 1)));
+	memcpy(&SICSLOWPAN_UDP_BUF->destport, hc06_ptr + 2, 2);
+	PRINTF("IPHC: Uncompressed UDP ports (ptr+4): %x, %x\n",
+	       HTONS(SICSLOWPAN_UDP_BUF->srcport), HTONS(SICSLOWPAN_UDP_BUF->destport));
+	hc06_ptr += 4;
+	break;
+
+      case SICSLOWPAN_NHC_UDP_CS_P_11:
+	/* 1 byte for NHC, 1 byte for ports */
+	SICSLOWPAN_UDP_BUF->srcport = HTONS(SICSLOWPAN_UDP_4_BIT_PORT_MIN +
+					    (*(hc06_ptr + 1) >> 4));
+	SICSLOWPAN_UDP_BUF->destport = HTONS(SICSLOWPAN_UDP_4_BIT_PORT_MIN +
+					     ((*(hc06_ptr + 1)) & 0x0F));
+	PRINTF("IPHC: Uncompressed UDP ports (ptr+2): %x, %x\n",
+	       HTONS(SICSLOWPAN_UDP_BUF->srcport), HTONS(SICSLOWPAN_UDP_BUF->destport));
+	hc06_ptr += 2;
+	break;
+
       default:
 	PRINTF("sicslowpan uncompress_hdr: error unsupported UDP compression\n");
 	return;
+      }
+      if(!checksum_compressed) { /* has_checksum, default  */
+	memcpy(&SICSLOWPAN_UDP_BUF->udpchksum, hc06_ptr, 2);
+	hc06_ptr += 2;
+	PRINTF("IPHC: sicslowpan uncompress_hdr: checksum included\n");
+      } else {
+	PRINTF("IPHC: sicslowpan uncompress_hdr: checksum *NOT* included\n");
       }
       uncomp_hdr_len += UIP_UDPH_LEN;
     }
