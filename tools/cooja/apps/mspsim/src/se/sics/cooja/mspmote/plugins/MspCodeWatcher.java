@@ -26,24 +26,20 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.22 2010/01/15 10:55:03 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.23 2010/03/26 12:29:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
@@ -52,7 +48,6 @@ import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -80,10 +75,10 @@ import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.GUI.RunnableInEDT;
 import se.sics.cooja.mspmote.MspMote;
+import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.cooja.util.StringUtils;
 import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
-import se.sics.mspsim.core.MSP430Core;
 import se.sics.mspsim.ui.DebugUI;
 import se.sics.mspsim.util.DebugInfo;
 
@@ -289,7 +284,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     currentCodeFile = null;
 
     try {
-      DebugInfo debugInfo = mspMote.getELF().getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
+      DebugInfo debugInfo = ((MspMoteType)mspMote.getType()).getELF().getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
       if (debugInfo == null) {
         return;
       }
@@ -324,7 +319,13 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   }
 
   private void tryMapDebugInfo() {
-    final String[] debugFiles = mspMote.getELF().getDebug().getSourceFiles();
+    final String[] debugFiles;
+    try {
+      debugFiles = ((MspMoteType)mspMote.getType()).getELF().getDebug().getSourceFiles();
+    } catch (IOException e1) {
+      logger.fatal("Error: " + e1.getMessage(), e1);
+      return;
+    }
     debugInfoMap = new RunnableInEDT<String[]>() {
       public String[] work() {
         /* Select which source file to use */
@@ -435,7 +436,13 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   }
   
   private static File[] getSourceFiles(MspMote mote, String[] map) {
-    final String[] sourceFiles = mote.getELF().getDebug().getSourceFiles();
+    final String[] sourceFiles;
+    try {
+      sourceFiles = ((MspMoteType)mote.getType()).getELF().getDebug().getSourceFiles();
+    } catch (IOException e1) {
+      logger.fatal("Error: " + e1.getMessage(), e1);
+      return null;
+    }
     File contikiSource = mote.getType().getContikiSourceFile();
     if (contikiSource != null) {
       try {

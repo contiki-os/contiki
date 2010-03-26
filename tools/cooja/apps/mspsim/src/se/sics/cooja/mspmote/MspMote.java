@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.44 2010/03/11 22:15:58 fros4943 Exp $
+ * $Id: MspMote.java,v 1.45 2010/03/26 12:29:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -35,10 +35,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.Observable;
 
 import org.apache.log4j.Logger;
@@ -57,8 +55,8 @@ import se.sics.cooja.WatchpointMote;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.motes.AbstractEmulatedMote;
 import se.sics.cooja.mspmote.interfaces.MspSerial;
-import se.sics.cooja.mspmote.plugins.MspBreakpointContainer;
 import se.sics.cooja.mspmote.plugins.CodeVisualizerSkin;
+import se.sics.cooja.mspmote.plugins.MspBreakpointContainer;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.mspsim.cli.CommandHandler;
 import se.sics.mspsim.cli.LineListener;
@@ -69,8 +67,6 @@ import se.sics.mspsim.platform.GenericNode;
 import se.sics.mspsim.ui.JFrameWindowManager;
 import se.sics.mspsim.util.ComponentRegistry;
 import se.sics.mspsim.util.ConfigManager;
-import se.sics.mspsim.util.DebugInfo;
-import se.sics.mspsim.util.ELF;
 import se.sics.mspsim.util.MapEntry;
 import se.sics.mspsim.util.MapTable;
 
@@ -93,7 +89,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   private MspMoteType myMoteType = null;
   private MspMoteMemory myMemory = null;
   private MoteInterfaceHandler myMoteInterfaceHandler = null;
-  private ELF myELFModule = null;
   public ComponentRegistry registry = null;
   
   /* Stack monitoring variables */
@@ -132,7 +127,11 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       registry.registerComponent("windowManager", new JFrameWindowManager());
 
       /* Create watchpoint container */
-      breakpointsContainer = new MspBreakpointContainer(this, getFirmwareDebugInfo(this));
+      try {
+        breakpointsContainer = new MspBreakpointContainer(this, ((MspMoteType)getType()).getFirmwareDebugInfo());
+      } catch (IOException e) {
+        throw (RuntimeException) new RuntimeException("Error: " + e.getMessage()).initCause(e);
+      }
     }
   }
 
@@ -183,13 +182,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
   public void setMemory(MoteMemory memory) {
     myMemory = (MspMoteMemory) memory;
-  }
-
-  /**
-   * @return ELF module
-   */
-  public ELF getELF() {
-    return myELFModule;
   }
 
   public Simulation getSimulation() {
@@ -268,19 +260,15 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     this.myCpu.setTrace(0); /* TODO Enable */
 
     int[] memory = myCpu.getMemory();
-    logger.info("Loading ELF from: " + fileELF.getAbsolutePath());
+    logger.info("Loading firmware from: " + fileELF.getAbsolutePath());
     GUI.setProgressMessage("Loading " + fileELF.getName());
-    if (GUI.isVisualizedInApplet()) {
-      myELFModule = node.loadFirmware(new URL(GUI.getAppletCodeBase(), fileELF.getName()), memory);
-    } else {
-      myELFModule = node.loadFirmware(fileELF.getPath(), memory);
-    }
+    node.loadFirmware(((MspMoteType)getType()).getELF(), memory);
 
     /* Throw exceptions at bad memory access */
     /*myCpu.setThrowIfWarning(true);*/
 
     /* Create mote address memory */
-    MapTable map = myELFModule.getMap();
+    MapTable map = ((MspMoteType)getType()).getELF().getMap();
     MapEntry[] allEntries = map.getAllEntries();
     myMemory = new MspMoteMemory(allEntries, myCpu);
 
@@ -404,7 +392,11 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     myMoteInterfaceHandler = createMoteInterfaceHandler();
 
     /* Create watchpoint container */
-    breakpointsContainer = new MspBreakpointContainer(this, getFirmwareDebugInfo(this));
+    try {
+      breakpointsContainer = new MspBreakpointContainer(this, ((MspMoteType)getType()).getFirmwareDebugInfo());
+    } catch (IOException e) {
+      throw (RuntimeException) new RuntimeException("Error: " + e.getMessage()).initCause(e);
+    }
 
     for (Element element: configXML) {
       String name = element.getName();
@@ -490,46 +482,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
   public MspBreakpointContainer getBreakpointsContainer() {
     return breakpointsContainer;
-  }
-
-  private static Hashtable<File, Hashtable<Integer, Integer>> getFirmwareDebugInfo(MspMote mote) {
-    /* Fetch all executable addresses */
-    ArrayList<Integer> addresses = mote.getELF().getDebug().getExecutableAddresses();
-
-    Hashtable<File, Hashtable<Integer, Integer>> fileToLineHash =
-      new Hashtable<File, Hashtable<Integer, Integer>>();
-
-    for (int address: addresses) {
-      DebugInfo info = mote.getELF().getDebugInfo(address);
-
-      if (info != null && info.getPath() != null && info.getFile() != null && info.getLine() >= 0) {
-
-        /* Nasty Cygwin-Windows fix */
-        String path = info.getPath();
-        if (path.contains("/cygdrive/")) {
-          int index = path.indexOf("/cygdrive/");
-          char driveCharacter = path.charAt(index+10);
-
-          path = path.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
-        }
-
-        File file = new File(path, info.getFile());
-        try {
-          file = file.getCanonicalFile();
-        } catch (IOException e) {
-        }
-
-        Hashtable<Integer, Integer> lineToAddrHash = fileToLineHash.get(file);
-        if (lineToAddrHash == null) {
-          lineToAddrHash = new Hashtable<Integer, Integer>();
-          fileToLineHash.put(file, lineToAddrHash);
-        }
-
-        lineToAddrHash.put(info.getLine(), address);
-      }
-    }
-
-    return fileToLineHash;
   }
 
 }

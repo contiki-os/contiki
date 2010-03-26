@@ -26,22 +26,44 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.34 2010/03/19 15:04:05 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.35 2010/03/26 12:29:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
 
-import java.awt.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.Vector;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-import se.sics.cooja.*;
+
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.ProjectConfig;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.mspmote.interfaces.MspSerial;
+import se.sics.cooja.util.ArrayUtils;
+import se.sics.mspsim.util.DebugInfo;
+import se.sics.mspsim.util.ELF;
 
 /**
  * MSP430-based mote types emulated in MSPSim.
@@ -335,5 +357,76 @@ public abstract class MspMoteType implements MoteType {
 
   public abstract Class<? extends MoteInterface>[] getAllMoteInterfaceClasses();
   public abstract File getExpectedFirmwareFile(File source);
+
+  private static ELF loadELF(URL url) throws Exception {
+    byte[] data = ArrayUtils.readFromStream(url.openStream());
+    ELF elf = new ELF(data);
+    elf.readAll();
+    return elf;
+  }
+
+  private static ELF loadELF(String filepath) throws IOException {
+    return ELF.readELF(filepath);
+  }
+  
+  private ELF elf; /* cached */
+  public ELF getELF() throws IOException {
+    if (elf == null) {
+      if (GUI.isVisualizedInApplet()) {
+        logger.warn("ELF loading in applet not implemented");
+      }
+      elf = loadELF(getContikiFirmwareFile().getPath());
+    }
+    return elf;
+  }
+  
+  private Hashtable<File, Hashtable<Integer, Integer>> debuggingInfo = null; /* cached */
+  public Hashtable<File, Hashtable<Integer, Integer>> getFirmwareDebugInfo() 
+  throws IOException {
+    if (debuggingInfo == null) {
+      debuggingInfo = getFirmwareDebugInfo(getELF());
+    }
+    return debuggingInfo;
+  }
+
+  public static Hashtable<File, Hashtable<Integer, Integer>> getFirmwareDebugInfo(ELF elf) {
+    /* Fetch all executable addresses */
+    ArrayList<Integer> addresses = elf.getDebug().getExecutableAddresses();
+
+    Hashtable<File, Hashtable<Integer, Integer>> fileToLineHash =
+      new Hashtable<File, Hashtable<Integer, Integer>>();
+
+    for (int address: addresses) {
+      DebugInfo info = elf.getDebugInfo(address);
+
+      if (info != null && info.getPath() != null && info.getFile() != null && info.getLine() >= 0) {
+
+        /* Nasty Cygwin-Windows fix */
+        String path = info.getPath();
+        if (path.contains("/cygdrive/")) {
+          int index = path.indexOf("/cygdrive/");
+          char driveCharacter = path.charAt(index+10);
+
+          path = path.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
+        }
+
+        File file = new File(path, info.getFile());
+        try {
+          file = file.getCanonicalFile();
+        } catch (IOException e) {
+        }
+
+        Hashtable<Integer, Integer> lineToAddrHash = fileToLineHash.get(file);
+        if (lineToAddrHash == null) {
+          lineToAddrHash = new Hashtable<Integer, Integer>();
+          fileToLineHash.put(file, lineToAddrHash);
+        }
+
+        lineToAddrHash.put(info.getLine(), address);
+      }
+    }
+
+    return fileToLineHash;
+  }
 
 }
