@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.63 2010/02/23 21:55:55 fros4943 Exp $
+ * $Id: Simulation.java,v 1.64 2010/03/26 09:26:22 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -310,14 +310,15 @@ public class Simulation extends Observable implements Runnable {
     if (!isRunning()) {
       isRunning = true;
       simulationThread = new Thread(this);
+      simulationThread.setPriority(Thread.MIN_PRIORITY);
       simulationThread.start();
     }
   }
 
   /**
-   * Stops simulation and conditionally blocks until stopped.
+   * Stop simulation
    * 
-   * @param block Blocks if true
+   * @param block Block until simulation has stopped, with timeout (100ms)
    * 
    * @see #stopSimulation()
    */
@@ -325,32 +326,32 @@ public class Simulation extends Observable implements Runnable {
     if (!isRunning()) {
       return;
     }
+    stopSimulation = true;
+
     if (block) {
-      stopSimulation();
-    } else {
-      stopSimulation = true;
+      if (Thread.currentThread() == simulationThread) {
+        return;
+      }
+
+      /* Wait until simulation stops */
+      try {
+        Thread simThread = simulationThread;
+        if (simThread != null) {
+          simThread.join(100);
+        }
+      } catch (InterruptedException e) {
+      }
     }
   }
 
   /**
-   * Stops this simulation (notifies observers).
-   * Method blocks until simulation has stopped.
+   * Stop simulation (blocks).
+   * Calls stopSimulation(true).
+   * 
+   * @see #stopSimulation(boolean)
    */
   public void stopSimulation() {
-    if (isRunning()) {
-      stopSimulation = true;
-
-      /* Wait until simulation stops */
-      if (Thread.currentThread() != simulationThread) {
-        try {
-          Thread simThread = simulationThread;
-          if (simThread != null) {
-            simThread.join();
-          }
-        } catch (InterruptedException e) {
-        }
-      }
-    }
+    stopSimulation(true);
   }
 
   /**
