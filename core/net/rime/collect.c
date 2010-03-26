@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.42 2010/03/25 08:51:07 adamdunkels Exp $
+ * $Id: collect.c,v 1.43 2010/03/26 12:29:29 nifi Exp $
  */
 
 /**
@@ -277,7 +277,7 @@ send_queued_packet(void)
       c->max_rexmits = packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT);
       PRINTF("max_rexmits %d\n", c->max_rexmits);
       packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
-      packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT, 2);
+      packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, 3);
       packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, c->seqno);
       unicast_send(&c->unicast_conn, &n->addr);
       rexmit_time_scaling = c->transmissions;
@@ -382,7 +382,7 @@ send_ack(struct collect_conn *tc, const rimeaddr_t *to, int congestion, int drop
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 0);
     packetbuf_set_attr(PACKETBUF_ATTR_ERELIABLE, 0);
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, packet_seqno);
-    packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT, 2);
+    packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, 3);
     unicast_send(&tc->unicast_conn, to);
     
     PRINTF("%d.%d: collect: Sending ACK to %d.%d for %d\n",

@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.11 2010/03/19 13:21:59 adamdunkels Exp $
+ * $Id: runicast.c,v 1.12 2010/03/26 12:29:29 nifi Exp $
  */
 
 /**
@@ -233,7 +233,7 @@ runicast_send(struct runicast_conn *c, const rimeaddr_t *receiver,
   packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
   packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_DATA);
   packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, c->sndnxt);
-  packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT, 2);
+  packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, 3);
   c->max_rxmit = max_retransmissions;
   c->rxmit = 0;
   c->is_tx = 1;

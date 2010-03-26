@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.h,v 1.6 2010/02/28 09:19:43 adamdunkels Exp $
+ * $Id: packetbuf.h,v 1.7 2010/03/26 12:29:29 nifi Exp $
  */
 
 /**
@@ -341,7 +341,7 @@ enum {
   PACKETBUF_ATTR_RADIO_TXPOWER,
   PACKETBUF_ATTR_LISTEN_TIME,
   PACKETBUF_ATTR_TRANSMIT_TIME,
-  PACKETBUF_ATTR_MAX_MAC_REXMIT,
+  PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
 
   /* Scope 1 attributes: used between two neighbors only. */
   PACKETBUF_ATTR_RELIABLE,
