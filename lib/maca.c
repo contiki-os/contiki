@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #ifndef DEBUG_MACA 
-#define DEBUG_MACA 0
+#define DEBUG_MACA 1
 #endif
 #if (DEBUG_MACA == 0)
 #define PRINTF(...) 
@@ -401,11 +401,12 @@ void maca_isr(void) {
 	if(action_complete_irq()) {
 		/* PRINTF("maca action complete %d\n\r", get_field(*MACA_CONTROL,SEQUENCE)); */
 		if(last_post == TX_POST) {
+			if(maca_tx_callback != 0) { maca_tx_callback(tx_head); }
 			free_tx_head();
 			last_post = NO_POST;
 		}
 		ResumeMACASync();
-		*MACA_CLRIRQ = (1 << maca_irq_acpl);
+		*MACA_CLRIRQ = (1 << maca_irq_acpl);		
 	}
 
 	decode_status();

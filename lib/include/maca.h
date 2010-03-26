@@ -137,6 +137,7 @@ extern volatile uint8_t fcs_mode;
 #define set_fcs_mode(x) fcs_mode = (x)
 
 extern void maca_rx_callback(volatile packet_t *p) __attribute__((weak));
+extern void maca_tx_callback(volatile packet_t *p) __attribute__((weak));
 
 /******************************************************************************/
 /* everything under this comment is messy, needs cleaning, and will           */
