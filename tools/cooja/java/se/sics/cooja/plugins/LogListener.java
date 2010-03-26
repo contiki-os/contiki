@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.26 2010/02/24 10:45:44 fros4943 Exp $
+ * $Id: LogListener.java,v 1.27 2010/03/26 09:29:04 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -47,8 +47,9 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
 
@@ -58,6 +59,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -66,6 +68,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -82,6 +85,7 @@ import se.sics.cooja.VisPlugin;
 import se.sics.cooja.SimEventCentral.LogOutputEvent;
 import se.sics.cooja.SimEventCentral.LogOutputListener;
 import se.sics.cooja.dialogs.TableColumnAdjuster;
+import se.sics.cooja.dialogs.UpdateAggregator;
 
 /**
  * A simple mote log listener.
@@ -108,7 +112,7 @@ public class LogListener extends VisPlugin {
 
   private final JTable logTable;
   private TableRowSorter<TableModel> logFilter;
-  private ArrayList<LogData> logs = new ArrayList<LogData>();
+  private LinkedList<LogData> logs = new LinkedList<LogData>();
 
   private Simulation simulation;
 
@@ -119,6 +123,44 @@ public class LogListener extends VisPlugin {
 
   private LogOutputListener logOutputListener;
 
+  private static final int UPDATE_INTERVAL = 250;
+  private UpdateAggregator<LogData> logUpdateAggregator = new UpdateAggregator<LogData>(UPDATE_INTERVAL) {
+    private Runnable scroll = new Runnable() {
+      public void run() {
+        logTable.scrollRectToVisible(
+            new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
+      }
+    };
+    protected void handle(List<LogData> ls) {
+      boolean isVisible = true;
+      if (logTable.getRowCount() > 0) {
+        Rectangle visible = logTable.getVisibleRect();
+        if (visible.y + visible.height < logTable.getHeight()) {
+          isVisible = false;
+        }
+      }
+
+      /* Add */
+      int index = logs.size();
+      logs.addAll(ls);
+      model.fireTableRowsInserted(index, logs.size()-1);
+
+      /* Remove old */
+      int removed = 0;
+      while (logs.size() > simulation.getEventCentral().getLogOutputBufferSize()) {
+        logs.removeFirst();
+        removed++;
+      }
+      if (removed > 0) {
+        model.fireTableRowsDeleted(0, removed-1);
+      }
+
+      if (isVisible) {
+        SwingUtilities.invokeLater(scroll);
+      }
+    }
+  };
+  
   /**
    * @param simulation Simulation
    * @param gui GUI
@@ -198,14 +240,16 @@ public class LogListener extends VisPlugin {
     logTable.setRowSorter(logFilter);
 
     /* Automatically update column widths */
-    TableColumnAdjuster adjuster = new TableColumnAdjuster(logTable);
-    adjuster.setDynamicAdjustment(true);
+    final TableColumnAdjuster adjuster = new TableColumnAdjuster(logTable);
     adjuster.packColumns();
 
     /* Popup menu */
     JPopupMenu popupMenu = new JPopupMenu();
-    popupMenu.add(new JMenuItem(copyAction));
-    popupMenu.add(new JMenuItem(copyAllAction));
+    JMenu copyClipboard = new JMenu("Copy to clipboard");
+    copyClipboard.add(new JMenuItem(copyAllAction));
+    copyClipboard.add(new JMenuItem(copyAllMessagesAction));
+    copyClipboard.add(new JMenuItem(copyAction));
+    popupMenu.add(copyClipboard);
     popupMenu.add(new JMenuItem(clearAction));
     popupMenu.addSeparator();
     popupMenu.add(new JMenuItem(saveAction));
@@ -222,17 +266,25 @@ public class LogListener extends VisPlugin {
         LogData data = new LogData(historyEv);
         logs.add(data);
       }
-      final int index = logs.size()-1;
       java.awt.EventQueue.invokeLater(new Runnable() {
         public void run() {
-          model.fireTableRowsInserted(0, index);
+          model.fireTableDataChanged();
           logTable.scrollRectToVisible(
               new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
         }
       });
     }
 
+    /* Column width adjustment */
+    java.awt.EventQueue.invokeLater(new Runnable() {
+      public void run() {
+        /* Make sure this happens *after* adding history */
+        adjuster.setDynamicAdjustment(true);
+      }
+    });
+
     /* Start observing motes for new log output */
+    logUpdateAggregator.start();
     simulation.getEventCentral().addLogOutputListener(logOutputListener = new LogOutputListener() {
       public void moteWasAdded(Mote mote) {
         /* Update title */
@@ -244,38 +296,9 @@ public class LogListener extends VisPlugin {
       }
       public void newLogOutput(LogOutputEvent ev) {
         /* Display new log output */
-        final LogData data = new LogData(ev);
-        java.awt.EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            /* Autoscroll */
-            boolean isVisible = false;
-            int rowCount = logTable.getRowCount();
-            if (rowCount > 0) {
-              Rectangle visible = logTable.getVisibleRect();
-              isVisible = visible.y + visible.height >= logTable.getHeight();
-            }
-            int index = logs.size();
-            logs.add(data);
-            model.fireTableRowsInserted(index, index);
-            if (isVisible) {
-              logTable.scrollRectToVisible(
-                  new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
-            }
-          }
-        });
+        logUpdateAggregator.add(new LogData(ev));
       }
-      public void removedLogOutput(final LogOutputEvent ev) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            for (int i = 0, n = logs.size(); i < n; i++) {
-              if (logs.get(i).ev == ev) {
-                logs.remove(i);
-                model.fireTableRowsDeleted(i, i);
-                break;
-              }
-            }
-          }
-        });
+      public void removedLogOutput(LogOutputEvent ev) {
       }
     });
 
@@ -313,6 +336,7 @@ public class LogListener extends VisPlugin {
 
   public void closePlugin() {
     /* Stop observing motes */
+    logUpdateAggregator.stop();
     simulation.getEventCentral().removeLogOutputListener(logOutputListener);
   }
 
@@ -497,7 +521,7 @@ public class LogListener extends VisPlugin {
     }
   };
 
-  private Action copyAction = new AbstractAction("Copy selected") {
+  private Action copyAction = new AbstractAction("Selected") {
     private static final long serialVersionUID = -8433490108577001803L;
 
     public void actionPerformed(ActionEvent e) {
@@ -520,7 +544,7 @@ public class LogListener extends VisPlugin {
     }
   };
 
-  private Action copyAllAction = new AbstractAction("Copy all") {
+  private Action copyAllAction = new AbstractAction("All") {
     private static final long serialVersionUID = -5038884975254178373L;
 
     public void actionPerformed(ActionEvent e) {
@@ -532,6 +556,23 @@ public class LogListener extends VisPlugin {
         sb.append("\t");
         sb.append(data.strID);
         sb.append("\t");
+        sb.append(data.ev.getMessage());
+        sb.append("\n");
+      }
+
+      StringSelection stringSelection = new StringSelection(sb.toString());
+      clipboard.setContents(stringSelection, null);
+    }
+  };
+
+  private Action copyAllMessagesAction = new AbstractAction("All messages") {
+    private static final long serialVersionUID = -5038884975254178373L;
+
+    public void actionPerformed(ActionEvent e) {
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+      StringBuilder sb = new StringBuilder();
+      for(LogData data : logs) {
         sb.append(data.ev.getMessage());
         sb.append("\n");
       }
