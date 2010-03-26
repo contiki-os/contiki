@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: UpdateAggregator.java,v 1.1 2010/03/26 09:27:58 fros4943 Exp $
+ * $Id: UpdateAggregator.java,v 1.2 2010/03/26 10:11:50 nifi Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -121,7 +121,7 @@ public abstract class UpdateAggregator<A> {
       while (pending.size() > maxPending) {
         /* Delay producer thread; events are coming in too fast */
         EventQueue.invokeLater(consume); /* Request immediate consume */
-        wait();
+        wait(t.getDelay());
       }
     } catch (InterruptedException e) {
     }
