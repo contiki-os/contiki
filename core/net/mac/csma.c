@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.14 2010/03/09 20:38:55 adamdunkels Exp $
+ * $Id: csma.c,v 1.15 2010/03/26 12:29:29 nifi Exp $
  */
 
 /**
@@ -59,6 +59,19 @@
 #else /* DEBUG */
 #define PRINTF(...)
 #endif /* DEBUG */
+
+#ifndef CSMA_MAX_MAC_TRANSMISSIONS
+#ifdef CSMA_CONF_MAX_MAC_TRANSMISSIONS
+#define CSMA_MAX_MAC_TRANSMISSIONS CSMA_CONF_MAX_MAC_TRANSMISSIONS
+#else
+#define CSMA_MAX_MAC_TRANSMISSIONS 1
+#endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS */
+#endif /* CSMA_MAX_MAC_TRANSMISSIONS */
+
+#if CSMA_MAX_MAC_TRANSMISSIONS < 1
+#error CSMA_CONF_MAX_MAC_TRANSMISSIONS must be at least 1.
+#error Change CSMA_CONF_MAX_MAC_TRANSMISSIONS in contiki-conf.h or in your Makefile.
+#endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS < 1 */
 
 struct queued_packet {
   struct queued_packet *next;
@@ -179,7 +192,13 @@ send_packet(mac_callback_t sent, void *ptr)
   if(q != NULL) {
     q->buf = queuebuf_new_from_packetbuf();
     if(q != NULL) {
-      q->max_transmissions = packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_REXMIT) + 1;
+      if(packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS) == 0) {
+        /* Use default configuration for max transmissions */
+        q->max_transmissions = CSMA_MAX_MAC_TRANSMISSIONS;
+      } else {
+        q->max_transmissions =
+          packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS);
+      }
       q->transmissions = 0;
       q->collisions = 0;
       q->deferrals = 0;
