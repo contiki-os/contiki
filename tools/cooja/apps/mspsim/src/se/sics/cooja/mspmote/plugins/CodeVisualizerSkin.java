@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CodeVisualizerSkin.java,v 1.1 2010/03/11 22:15:58 fros4943 Exp $
+ * $Id: CodeVisualizerSkin.java,v 1.2 2010/03/26 12:29:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -47,6 +47,7 @@ import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.mspmote.MspMote;
+import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
 import se.sics.mspsim.core.MSP430;
@@ -103,7 +104,7 @@ public class CodeVisualizerSkin implements VisualizerSkin {
     }
     try {
       DebugInfo debugInfo = 
-        ((MspMote)mote).getELF().getDebugInfo(((MspMote)mote).getCPU().reg[MSP430.PC]);
+        ((MspMoteType)mote.getType()).getELF().getDebugInfo(((MspMote)mote).getCPU().reg[MSP430.PC]);
       if (debugInfo == null) {
         return null;
       }
