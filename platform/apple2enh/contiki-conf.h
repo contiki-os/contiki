@@ -30,15 +30,13 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.20 2010/02/13 10:46:36 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.21 2010/03/27 15:16:57 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
 #include "6502def.h"
-
-#include "pfs.h"
 
 #define CTK_CONF_MENU_KEY         CH_ESC
 #define CTK_CONF_WINDOWSWITCH_KEY 0x17	/* Ctrl-W */
