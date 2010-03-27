@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.20 2010/02/04 23:52:30 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.21 2010/03/27 15:16:57 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -42,6 +42,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+
+#include "pfs.h"
 
 /* These names are deprecated, use C99 names. */
 typedef uint8_t   u8_t;
