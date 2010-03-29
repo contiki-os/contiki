@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.h,v 1.7 2010/03/26 12:29:29 nifi Exp $
+ * $Id: packetbuf.h,v 1.8 2010/03/29 21:53:04 adamdunkels Exp $
  */
 
 /**
@@ -97,6 +97,8 @@ void packetbuf_clear(void);
  *
  */
 void packetbuf_clear_hdr(void);
+
+void packetbuf_hdr_remove(int bytes);
 
 /**
  * \brief      Get a pointer to the data in the packetbuf
