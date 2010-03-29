@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki-cooja-main.c,v 1.5 2010/03/29 10:43:03 fros4943 Exp $
+ * $Id: contiki-cooja-main.c,v 1.6 2010/03/29 11:52:08 fros4943 Exp $
  */
 
 /**
@@ -94,6 +94,8 @@ static struct uip_fw_netif slip_if =
 #define WITH_UIP6 0
 #endif
 #if WITH_UIP6
+#include "net/uip.h"
+#include "net/uip-ds6.h"
 #define PRINT6ADDR(addr) printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
 #endif /* WITH_UIP6 */
 
@@ -228,9 +230,38 @@ process_run_thread_loop(void *data)
       }
       memcpy(&uip_lladdr.addr, addr, sizeof(uip_lladdr.addr));
       process_start(&tcpip_process, NULL);
-      printf("IPv6 address: ");
-      PRINT6ADDR(&uip_netif_physical_if.addresses[0].ipaddr);
-      printf("\n");
+
+      printf("Tentative link-local IPv6 address ");
+      {
+        int i, a;
+        for(a = 0; a < UIP_DS6_ADDR_NB; a++) {
+          if (uip_ds6_if.addr_list[a].isused) {
+        for(i = 0; i < 7; ++i) {
+          printf("%02x%02x:",
+             uip_ds6_if.addr_list[a].ipaddr.u8[i * 2],
+             uip_ds6_if.addr_list[a].ipaddr.u8[i * 2 + 1]);
+        }
+        printf("%02x%02x\n",
+               uip_ds6_if.addr_list[a].ipaddr.u8[14],
+               uip_ds6_if.addr_list[a].ipaddr.u8[15]);
+          }
+        }
+      }
+
+      if(1) {
+        uip_ipaddr_t ipaddr;
+        int i;
+        uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+        uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+        uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
+        printf("Tentative global IPv6 address ");
+        for(i = 0; i < 7; ++i) {
+          printf("%02x%02x:",
+                 ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
+        }
+        printf("%02x%02x\n",
+               ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
+      }
     }
 #endif /* WITH_UIP6 */
 
@@ -354,7 +385,7 @@ Java_se_sics_cooja_corecomm_CLASSNAME_tick(JNIEnv *env, jobject obj)
 {
   clock_time_t nextEtimer;
   rtimer_clock_t nextRtimer;
-  
+
   simProcessRunValue = 0;
 
   /* Let all simulation interfaces act first */
