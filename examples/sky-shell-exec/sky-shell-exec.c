@@ -28,14 +28,13 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell-exec.c,v 1.2 2010/02/04 00:10:48 fros4943 Exp $
+ * $Id: sky-shell-exec.c,v 1.3 2010/03/29 12:48:39 fros4943 Exp $
  */
 
 #include "contiki.h"
 #include "shell.h"
 #include "serial-shell.h"
 
-#include "net/rime/neighbor.h"
 #include "dev/watchdog.h"
 
 #include "net/rime.h"
