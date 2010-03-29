@@ -5,7 +5,47 @@
 #include <types.h>
 #include <utils.h>
 
+/* maca initialization and on off routines */
+void maca_init(void);
+void maca_off(void);
+void maca_on(void);
+
+/* maca configuration interface */
+void set_power(uint8_t power);
+void set_channel(uint8_t chan);
+
+#define DEMOD_DCD 1 /* -96dBm, 22.2mA */
+#define DEMOD_NCD 0 /* -100dBm, 24.2mA */
+void set_demodulator_type(uint8_t demod);
+
+/* set_fcs_mode(NO_FCS) to disable checksum filtering */
+extern volatile uint8_t fcs_mode;
+#define set_fcs_mode(x) fcs_mode = (x)
+
+/* maca packet interface */
+void tx_packet(volatile packet_t *p);
+volatile packet_t* rx_packet(void);
+volatile packet_t* get_free_packet(void);
+void free_packet(volatile packet_t *p);
+void free_all_packets(void);
+
+extern volatile packet_t *rx_head;
+
+extern void maca_rx_callback(volatile packet_t *p) __attribute__((weak));
+extern void maca_tx_callback(volatile packet_t *p) __attribute__((weak));
+
+/* maca lowlevel routines */
+/* most applications won't need to use them */
+void reset_maca(void);
+void init_phy(void);
+void flyback_init(void);
+void ResumeMACASync(void);
+void radio_init(void);
+uint32_t init_from_flash(uint32_t addr);
+
 #define MAX_PACKET_SIZE (MAX_PAYLOAD_SIZE + 2) /* packet includes 2 bytes of checksum */
+
+/* maca register and field defines */
 
 #define MACA_BASE       (0x80004000)
 #define MACA_RESET      ((volatile uint32_t *) (MACA_BASE+0x04))
@@ -111,33 +151,6 @@ enum {
 #define MACA_KEY1       ((volatile uint32_t *) (MACA_BASE+0x160))
 #define MACA_KEY0       ((volatile uint32_t *) (MACA_BASE+0x164))
 #define MACA_OPTIONS    ((volatile uint32_t *) (MACA_BASE+0x180))
-
-void maca_init(void);
-void reset_maca(void);
-void init_phy(void);
-void flyback_init(void);
-void ResumeMACASync(void);
-void radio_init(void);
-void maca_off(void);
-void maca_on(void);
-uint32_t init_from_flash(uint32_t addr);
-void set_power(uint8_t power);
-void set_channel(uint8_t chan);
-
-void tx_packet(volatile packet_t *p);
-volatile packet_t* rx_packet(void);
-volatile packet_t* get_free_packet(void);
-void free_packet(volatile packet_t *p);
-void free_all_packets(void);
-
-extern volatile packet_t *rx_head;
-
-/* set_fcs_mode(NO_FCS) to disable checksum filtering */
-extern volatile uint8_t fcs_mode;
-#define set_fcs_mode(x) fcs_mode = (x)
-
-extern void maca_rx_callback(volatile packet_t *p) __attribute__((weak));
-extern void maca_tx_callback(volatile packet_t *p) __attribute__((weak));
 
 /******************************************************************************/
 /* everything under this comment is messy, needs cleaning, and will           */

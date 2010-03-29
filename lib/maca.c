@@ -740,6 +740,17 @@ const uint32_t AIMVAL[19] = {
 	0x0004e3a0,
 };
 
+#define RF_REG 0x80009400
+void set_demodulator_type(uint8_t demod) {
+	uint32_t val = reg(RF_REG);
+	if(demod == DEMOD_NCD) {
+		val = (val & ~1);
+	} else {
+		val = (val | 1);
+	}
+	reg(RF_REG) = val;
+}
+
 /* tested and seems to be good */
 #define ADDR_POW1 0x8000a014
 #define ADDR_POW2 ADDR_POW1 + 12
