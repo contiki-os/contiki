@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.11 2010/03/23 23:04:21 nifi Exp $
+ * $Id: sky-collect.c,v 1.12 2010/03/29 09:33:20 nifi Exp $
  */
 
 /**
@@ -199,7 +199,7 @@ PROCESS_THREAD(test_collect_process, ev, data)
 
   SENSORS_ACTIVATE(button_sensor);
   
-  collect_open(&tc, 128, &callbacks);
+  collect_open(&tc, 128, COLLECT_ROUTER, &callbacks);
   
   while(1) {
     static struct etimer et;
