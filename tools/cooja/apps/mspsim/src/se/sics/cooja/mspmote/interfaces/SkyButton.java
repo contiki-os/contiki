@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyButton.java,v 1.3 2010/02/05 08:44:57 fros4943 Exp $
+ * $Id: SkyButton.java,v 1.4 2010/03/29 10:18:14 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -34,41 +34,73 @@ package se.sics.cooja.mspmote.interfaces;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
+
 import javax.swing.JButton;
 import javax.swing.JPanel;
+
+import org.apache.log4j.Logger;
 import org.jdom.Element;
+
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.Button;
+import se.sics.cooja.mspmote.MspMoteTimeEvent;
 import se.sics.cooja.mspmote.SkyMote;
 
 @ClassDescription("Button")
 public class SkyButton extends Button {
+  private static Logger logger = Logger.getLogger(SkyButton.class);
 
   private SkyMote skyMote;
-
+  private Simulation sim;
+  
+  private MspMoteTimeEvent pressButtonEvent;
+  private MspMoteTimeEvent releaseButtonEvent;
+  
   public SkyButton(Mote mote) {
     skyMote = (SkyMote) mote;
+    sim = mote.getSimulation();
+    
+    pressButtonEvent = new MspMoteTimeEvent((SkyMote)mote, 0) {
+      public void execute(long t) {
+        skyMote.skyNode.setButton(true);
+      }
+    };
+    releaseButtonEvent = new MspMoteTimeEvent((SkyMote)mote, 0) {
+      public void execute(long t) {
+        skyMote.skyNode.setButton(false);
+      }
+    };
   }
 
   public void clickButton() {
-    pressButton();
-    releaseButton();
-  }
-
-  public void releaseButton() {
-    skyMote.skyNode.setButton(false);
-    setChanged();
-    notifyObservers();
+    sim.invokeSimulationThread(new Runnable() {
+      public void run() {
+        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
+        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime() + Simulation.MILLISECOND);
+      }      
+    });
   }
 
   public void pressButton() {
-    skyMote.skyNode.setButton(true);
-    setChanged();
-    notifyObservers();
+    sim.invokeSimulationThread(new Runnable() {
+      public void run() {
+        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
+      }      
+    });
+  }
+
+  public void releaseButton() {
+    sim.invokeSimulationThread(new Runnable() {
+      public void run() {
+        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime());
+      }      
+    });
   }
 
   public boolean isPressed() {
+    logger.warn("Not implemented");
     return false;
   }
 
