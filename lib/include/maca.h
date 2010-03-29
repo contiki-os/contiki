@@ -29,7 +29,7 @@ volatile packet_t* get_free_packet(void);
 void free_packet(volatile packet_t *p);
 void free_all_packets(void);
 
-extern volatile packet_t *rx_head;
+extern volatile packet_t *rx_head, *tx_head;
 
 extern void maca_rx_callback(volatile packet_t *p) __attribute__((weak));
 extern void maca_tx_callback(volatile packet_t *p) __attribute__((weak));
@@ -151,6 +151,7 @@ enum {
 #define MACA_KEY1       ((volatile uint32_t *) (MACA_BASE+0x160))
 #define MACA_KEY0       ((volatile uint32_t *) (MACA_BASE+0x164))
 #define MACA_OPTIONS    ((volatile uint32_t *) (MACA_BASE+0x180))
+
 
 /******************************************************************************/
 /* everything under this comment is messy, needs cleaning, and will           */
