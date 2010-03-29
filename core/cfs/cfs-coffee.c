@@ -460,12 +460,15 @@ find_file(const char *name)
   }
   
   /* Scan the flash memory sequentially otherwise. */
+  COFFEE_WATCHDOG_STOP();
   for(page = 0; page < COFFEE_PAGE_COUNT; page = next_file(page, &hdr)) {
     read_header(&hdr, page);
     if(HDR_ACTIVE(hdr) && !HDR_LOG(hdr) && strcmp(name, hdr.name) == 0) {
+      COFFEE_WATCHDOG_START();
       return load_file(page, &hdr);
     }
   }
+  COFFEE_WATCHDOG_START();
 
   return NULL;
 }
