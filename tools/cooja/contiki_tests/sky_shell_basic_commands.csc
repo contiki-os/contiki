@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/avrora</project>
-  <project>../apps/native_gateway</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -16,14 +16,17 @@
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
+    <events>
+      <logoutput>40000</logoutput>
+    </events>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>../../../examples/sky-shell/sky-shell.c</source>
-      <commands>make clean TARGET=sky
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/sky-shell/sky-shell.c</source>
+      <commands EXPORT="discard">make clean TARGET=sky
 make sky-shell.sky TARGET=sky</commands>
-      <firmware>../../../examples/sky-shell/sky-shell.sky</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky-shell/sky-shell.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -32,12 +35,15 @@ make sky-shell.sky TARGET=sky</commands>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
     </motetype>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -49,6 +55,7 @@ make sky-shell.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -81,10 +88,10 @@ make sky-shell.sky TARGET=sky</commands>
 WAIT_UNTIL(msg.startsWith('Starting'));
 log.log("Shell started\n");
 
-/* Test command: ps */
-log.log("&gt; ps\n");
-write(mote, "ps");
-WAIT_UNTIL(msg.startsWith('Event timer'));
+/* Test command: echo */
+log.log("&gt; echo Hello\n");
+write(mote, "echo Hello");
+WAIT_UNTIL(msg.contains('Hello'));
 WAIT_UNTIL(msg.contains('Contiki&gt;'));
 
 /* Test command: help */
