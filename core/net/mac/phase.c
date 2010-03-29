@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.4 2010/03/14 22:59:23 adamdunkels Exp $
+ * $Id: phase.c,v 1.5 2010/03/29 21:50:01 adamdunkels Exp $
  */
 
 /**
@@ -81,7 +81,9 @@ phase_update(const struct phase_list *list,
   /* If we have an entry for this neighbor already, we renew it. */
   for(e = list_head(*list->list); e != NULL; e = e->next) {
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
-      e->time = time;
+      if(mac_status == MAC_TX_OK) {
+        e->time = time;
+      }
 
       /* If the neighbor didn't reply to us, it may have switched
          phase (rebooted). We try a number of transmissions to it
@@ -138,11 +140,11 @@ phase_wait(struct phase_list *list,
            mac_callback_t mac_callback, void *mac_callback_ptr)
 {
   struct phase *e;
-  
-  /* We go through the list of phases to find if we have recorded
-     an phase with this particular neighbor. If so, we can compute
-     the time for the next expected phase and setup a ctimer to
-     switch on the radio just before the phase. */
+
+  /* We go through the list of phases to find if we have recorded a
+     phase for this particular neighbor. If so, we can compute the
+     time for the next expected phase and setup a ctimer to switch on
+     the radio just before the phase. */
   for(e = list_head(*list->list); e != NULL; e = e->next) {
     const rimeaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
@@ -156,9 +158,11 @@ phase_wait(struct phase_list *list,
          with clock_time(). Because we are only interested in turning
          on the radio within the CYCLE_TIME period, we compute the
          waiting time with modulo CYCLE_TIME. */
-      
+
+      /*      printf("neighbor phase 0x%02x (cycle 0x%02x)\n", e->time & (cycle_time - 1),
+              cycle_time);*/
       now = RTIMER_NOW();
-      wait = (rtimer_clock_t)((e->time - now) & (cycle_time - 1));
+      wait = (rtimer_clock_t)((e->time - now - e->noacks * cycle_time) & (cycle_time - 1));
       if(wait < wait_before) {
         wait += cycle_time;
       }
@@ -186,7 +190,6 @@ phase_wait(struct phase_list *list,
       if(!RTIMER_CLOCK_LT(expected, now)) {
         /* Wait until the receiver is expected to be awake */
         while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected)) {
-          watchdog_periodic();
         }
       }
       return PHASE_SEND_NOW;
