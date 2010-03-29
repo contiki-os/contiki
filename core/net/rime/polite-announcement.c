@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.13 2010/03/22 11:32:29 fros4943 Exp $
+ * $Id: polite-announcement.c,v 1.14 2010/03/29 12:13:35 fros4943 Exp $
  */
 
 /**
@@ -158,7 +158,8 @@ send_timer(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-new_announcement(uint16_t id, uint16_t newval, uint16_t oldval, uint8_t bump)
+new_announcement(uint16_t id, uint8_t has_value, uint16_t newval,
+    uint16_t oldval, uint8_t bump)
 {
   if(newval != oldval) {
     c.interval = c.min_interval;
