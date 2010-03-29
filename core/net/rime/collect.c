@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.43 2010/03/26 12:29:29 nifi Exp $
+ * $Id: collect.c,v 1.44 2010/03/29 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -85,9 +85,10 @@ struct ack_msg {
 static struct recent_packet recent_packets[NUM_RECENT_PACKETS];
 static uint8_t recent_packet_ptr;
 
-#define REXMIT_TIME CLOCK_SECOND * 2
-#define FORWARD_PACKET_LIFETIME (6 * (REXMIT_TIME) << 3)
-#define MAX_SENDING_QUEUE 6
+#define MAX_MAC_REXMITS            3
+#define REXMIT_TIME                CLOCK_SECOND * 2
+#define FORWARD_PACKET_LIFETIME    (6 * (REXMIT_TIME) << 3)
+#define MAX_SENDING_QUEUE          6
 PACKETQUEUE(sending_queue, MAX_SENDING_QUEUE);
 
 #define SINK 0
@@ -101,7 +102,11 @@ PACKETQUEUE(sending_queue, MAX_SENDING_QUEUE);
 #define COLLECT_ANNOUNCEMENTS COLLECT_CONF_ANNOUNCEMENTS
 #endif /* COLLECT_CONF_ANNOUNCEMENTS */
 
+#ifdef ANNOUNCEMENT_CONF_PERIOD
+#define ANNOUNCEMENT_SCAN_TIME ANNOUNCEMENT_CONF_PERIOD
+#else /* ANNOUNCEMENT_CONF_PERIOD */
 #define ANNOUNCEMENT_SCAN_TIME CLOCK_SECOND
+#endif /* ANNOUNCEMENT_CONF_PERIOD */
 
 #define DEBUG 0
 #if DEBUG
@@ -277,7 +282,7 @@ send_queued_packet(void)
       c->max_rexmits = packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT);
       PRINTF("max_rexmits %d\n", c->max_rexmits);
       packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
-      packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, 3);
+      packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, MAX_MAC_REXMITS);
       packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, c->seqno);
       unicast_send(&c->unicast_conn, &n->addr);
       rexmit_time_scaling = c->transmissions;
@@ -557,6 +562,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
     tc->transmissions += transmissions;
 
     tx = tc->transmissions;
+
 #if 0
     /* Punish neighbors that don't hear us by increasing the expeted
        transmissions by four times the actual amount of transmissions
