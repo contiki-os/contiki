@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-checkpoint.c,v 1.4 2009/11/14 11:31:28 fros4943 Exp $
+ * $Id: sky-checkpoint.c,v 1.5 2010/03/29 09:50:44 fros4943 Exp $
  */
 
 /**
@@ -42,15 +42,8 @@
 #include "shell.h"
 #include "serial-shell.h"
 
-#include "net/rime/neighbor.h"
-#include "dev/watchdog.h"
-
 #include "net/rime.h"
-#include "dev/cc2420.h"
 #include "dev/leds.h"
-#include "dev/light.h"
-#include "dev/sht11.h"
-#include "dev/battery-sensor.h"
 
 #include "lib/checkpoint.h"
 
