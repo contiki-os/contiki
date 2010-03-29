@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.17 2010/03/29 21:51:36 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.18 2010/03/29 22:10:03 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,7 @@
 #include "sys/pt.h"
 #include "sys/rtimer.h"
 
-#include "cooja-debug.h"
+/*#include "cooja-debug.h"*/
 #include "contiki-conf.h"
 
 #ifdef EXPERIMENT_SETUP
