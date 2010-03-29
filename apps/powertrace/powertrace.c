@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: powertrace.c,v 1.3 2010/03/19 13:23:31 adamdunkels Exp $
+ * $Id: powertrace.c,v 1.4 2010/03/29 21:49:07 adamdunkels Exp $
  */
 
 /**
@@ -40,7 +40,6 @@
 
 #include "contiki.h"
 #include "sys/compower.h"
-#include "node-id.h"
 #include "powertrace.h"
 #include "net/rime.h"
 
@@ -48,8 +47,8 @@
 
 PROCESS(powertrace_process, "Periodic power output");
 /*---------------------------------------------------------------------------*/
-static void
-print_power(void)
+void
+powertrace_print(char *str)
 {
   static uint32_t last_cpu, last_lpm, last_transmit, last_listen;
   static uint32_t last_idle_transmit, last_idle_listen;
@@ -79,8 +78,9 @@ print_power(void)
 
   time = cpu + lpm;
   
-  printf("%lu P %d %lu %lu %lu %lu %lu %lu %lu (radio %d.%02d%% tx %d.%02d%% listen %d.%02d%%)\n",
-         clock_time(), node_id, seqno++,
+  printf("%s %lu P %d %lu %lu %lu %lu %lu %lu %lu (radio %d.%02d%% tx %d.%02d%% listen %d.%02d%%)\n",
+         str,
+         clock_time(), rimeaddr_node_addr.u8[0], seqno++,
          cpu, lpm, transmit, listen, idle_transmit, idle_listen,
          (int)((100L * (transmit + listen)) / time),
          (int)((10000L * (transmit + listen) / time) - (100L * (transmit + listen) / time) * 100),
@@ -106,7 +106,7 @@ PROCESS_THREAD(powertrace_process, ev, data)
   while(1) {
     PROCESS_WAIT_UNTIL(etimer_expired(&periodic));
     etimer_reset(&periodic);
-    print_power();
+    powertrace_print("");
   }
 
   PROCESS_END();
@@ -138,7 +138,7 @@ sniffprint(char *prefix, int seqno)
   printf("%lu %s %d %u %d %d %d.%d %u %u\n",
          clock_time(),
          prefix,
-         node_id, seqno,
+         rimeaddr_node_addr.u8[0], seqno,
          packetbuf_attr(PACKETBUF_ATTR_CHANNEL),
          packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE),
          esender->u8[0], esender->u8[1],
