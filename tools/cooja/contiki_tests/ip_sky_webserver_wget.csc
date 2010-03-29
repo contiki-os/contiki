@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/avrora</project>
-  <project>../apps/native_gateway</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -16,14 +16,17 @@
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
+    <events>
+      <logoutput>40000</logoutput>
+    </events>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>../../../examples/sky-shell-webserver/sky-shell-webserver.c</source>
-      <commands>make clean TARGET=sky
-make sky-shell-webserver.sky TARGET=sky</commands>
-      <firmware>../../../examples/sky-shell-webserver/sky-shell-webserver.sky</firmware>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/sky-shell-webserver/sky-shell-webserver.c</source>
+      <commands EXPORT="discard">make clean TARGET=sky
+make sky-shell-webserver.sky TARGET=sky DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_driver</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky-shell-webserver/sky-shell-webserver.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -32,12 +35,10 @@ make sky-shell-webserver.sky TARGET=sky</commands>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -49,10 +50,9 @@ make sky-shell-webserver.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -64,10 +64,9 @@ make sky-shell-webserver.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -79,10 +78,9 @@ make sky-shell-webserver.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>3</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -94,12 +92,13 @@ make sky-shell-webserver.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>4</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>248</width>
-    <z>3</z>
+    <z>4</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -108,12 +107,13 @@ make sky-shell-webserver.sky TARGET=sky</commands>
   <plugin>
     se.sics.cooja.plugins.Visualizer
     <plugin_config>
-      <skin>Mote IDs</skin>
-      <skin>Addresses: IP or Rime</skin>
-      <skin>Radio environment (UDGM)</skin>
+      <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.AddressVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <viewport>2.228374754476065 0.0 0.0 2.228374754476065 17.670417676175877 -52.816915265062036</viewport>
     </plugin_config>
     <width>305</width>
-    <z>2</z>
+    <z>3</z>
     <height>201</height>
     <location_x>248</location_x>
     <location_y>0</location_y>
@@ -127,7 +127,7 @@ make sky-shell-webserver.sky TARGET=sky</commands>
       <scrollpos>0,0</scrollpos>
     </plugin_config>
     <width>551</width>
-    <z>4</z>
+    <z>1</z>
     <height>258</height>
     <location_x>2</location_x>
     <location_y>471</location_y>
@@ -141,7 +141,7 @@ make sky-shell-webserver.sky TARGET=sky</commands>
       <scrollpos>0,0</scrollpos>
     </plugin_config>
     <width>553</width>
-    <z>1</z>
+    <z>2</z>
     <height>272</height>
     <location_x>1</location_x>
     <location_y>200</location_y>
