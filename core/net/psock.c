@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.c,v 1.10 2010/03/24 21:03:32 adamdunkels Exp $
+ * $Id: psock.c,v 1.11 2010/03/29 20:26:14 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -327,7 +327,7 @@ psock_init(CC_REGISTER_ARG struct psock *psock,
 }
 /*---------------------------------------------------------------------------*/
 static char
-copy_to_buf(char **buffer, uint16_t *bufsize, const char **str)
+copy_to_buf(const uint8_t **buffer, uint16_t *bufsize, const char **str)
 {
   uint16_t len = strlen(*str);
   uint16_t copysize = len;
