@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/native_gateway</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
+  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -23,9 +23,10 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>[CONTIKI_DIR]/examples/sky-shell/sky-shell.c</source>
-      <commands>make sky-shell.sky TARGET=sky</commands>
-      <firmware>[CONTIKI_DIR]/examples/sky-shell/sky-shell.sky</firmware>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/sky-shell/sky-shell.c</source>
+      <commands EXPORT="discard">make clean TARGET=sky
+make sky-shell.sky TARGET=sky</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky-shell/sky-shell.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -410,6 +411,12 @@ while(true) {
   YIELD();
 
   /* Count sensor data packets */
+
+  if (msg.contains("ÿ")) {
+    log.log("WARN: Detected bad character in: '" + msg + "'\n");
+    msg = msg.replace("ÿ", "");
+  }
+
   data = msg.split(" ");
 
   if(data[24]) {
@@ -518,7 +525,7 @@ while(true) {
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>259</width>
-    <z>6</z>
+    <z>4</z>
     <height>200</height>
     <location_x>4</location_x>
     <location_y>0</location_y>
@@ -575,7 +582,6 @@ while(true) {
       <mote>19</mote>
       <showRadioRXTX />
       <showRadioHW />
-      <showLEDs />
       <split>118</split>
       <zoom>9</zoom>
     </plugin_config>
