@@ -118,7 +118,10 @@ static uint8_t preset_cmd;
 static int preset_fd;
 
 /* bookkeeping */
-static int nr_pongs=0, nr_checkpoints=0, nr_rollbacks=0, nr_metrics=0;
+#if WITH_SERIAL_COMMANDS
+static int nr_pongs=0;
+#endif /* WITH_SERIAL_COMMANDS */
+static int nr_checkpoints=0, nr_rollbacks=0, nr_metrics=0;
 
 /*---------------------------------------------------------------------------*/
 typedef union {
@@ -283,6 +286,7 @@ thread_rollback(int fd)
   read_byte(fd); /* Coffee padding byte */
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_SERIAL_COMMANDS
 static uint32_t
 thread_metric_tx(void)
 {
@@ -296,6 +300,7 @@ thread_metric_rx(void)
   energest_flush();
   return energest_type_time(ENERGEST_TYPE_LISTEN);
 }
+#endif /* WITH_SERIAL_COMMANDS */
 /*---------------------------------------------------------------------------*/
 static void
 thread_metrics(void)
