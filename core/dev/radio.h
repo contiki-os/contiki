@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: radio.h,v 1.7 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: radio.h,v 1.8 2010/03/30 23:00:22 adamdunkels Exp $
  */
 
 /**
@@ -95,6 +95,7 @@ struct radio_driver {
 enum {
   RADIO_TX_OK,
   RADIO_TX_ERR,
+  RADIO_TX_COLLISION,
 };
 
 #endif /* __RADIO_H__ */
