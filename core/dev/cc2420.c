@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.46 2010/03/19 13:18:53 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.47 2010/03/30 23:00:05 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -56,7 +56,7 @@
 
 #include "sys/timetable.h"
 
-#define WITH_SEND_CCA 0
+#define WITH_SEND_CCA 1
 
 #define FOOTER_LEN 2
 
@@ -287,6 +287,13 @@ cc2420_init(void)
 #endif /* CC2420_CONF_AUTOACK */
   setreg(CC2420_MDMCTRL0, reg);
 
+  /* Set transmission turnaround time to the lower setting (8 symbols
+     = 0.128 ms) instead of the default (12 symbols = 0.192 ms). */
+  /*  reg = getreg(CC2420_TXCTRL);
+  reg &= ~(1 << 13);
+  setreg(CC2420_TXCTRL, reg);*/
+
+  
   /* Change default values as recomended in the data sheet, */
   /* correlation threshold = 20, RX bandpass filter = 1.3uA. */
   setreg(CC2420_MDMCTRL1, CORR_THR(20));
@@ -358,7 +365,7 @@ cc2420_transmit(unsigned short payload_len)
            we just started receiving a packet, so we drop the
            transmission. */
         RELEASE_LOCK();
-        return RADIO_TX_ERR;
+        return RADIO_TX_COLLISION;
       }
       if(receive_on) {
 	ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
@@ -402,7 +409,7 @@ cc2420_transmit(unsigned short payload_len)
   }
 
   RELEASE_LOCK();
-  return RADIO_TX_ERR;			/* Transmission never started! */
+  return RADIO_TX_COLLISION;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -583,7 +590,7 @@ cc2420_interrupt(void)
   TIMETABLE_TIMESTAMP(cc2420_timetable, "interrupt");
 #endif /* CC2420_TIMETABLE_PROFILING */
 
-  pending = 1;
+  pending++;
   
   cc2420_packets_seen++;
   return 1;
@@ -631,9 +638,12 @@ cc2420_read(void *buf, unsigned short bufsize)
   uint16_t checksum;
 #endif /* CC2420_CONF_CHECKSUM */
 
-  if(!pending) {
+  if(!FIFOP_IS_1) {
     return 0;
   }
+  /*  if(!pending) {
+    return 0;
+    }*/
   
   pending = 0;
   
