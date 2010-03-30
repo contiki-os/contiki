@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #ifndef DEBUG_MACA 
-#define DEBUG_MACA 1
+#define DEBUG_MACA 0
 #endif
 #if (DEBUG_MACA == 0)
 #define PRINTF(...) 
