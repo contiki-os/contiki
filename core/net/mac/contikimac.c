@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.18 2010/03/29 22:10:03 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.19 2010/03/30 23:01:32 adamdunkels Exp $
  */
 
 /**
@@ -110,12 +110,14 @@ struct announcement_msg {
 
 #define GUARD_TIME                         3 * CHECK_TIME
 
-#define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 2500
+#define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
 #define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
 
 #define LISTEN_TIME_AFTER_PACKET_DETECTED  RTIMER_ARCH_SECOND / 100
 
-#define SHORTEST_PACKET_SIZE            18
+#define SHORTEST_PACKET_SIZE               23
+
+#define MAX_SILENCE_PERIODS                5
 
 /* The cycle time for announcements. */
 #ifdef ANNOUNCEMENT_CONF_PERIOD
@@ -335,7 +337,7 @@ powercycle(struct rtimer *t, void *ptr)
           if(NETSTACK_RADIO.receiving_packet()) {
             silence_periods = 0;
           }
-          if(silence_periods > 5) {
+          if(silence_periods > MAX_SILENCE_PERIODS) {
             leds_on(LEDS_RED);
             powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
