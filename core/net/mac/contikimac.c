@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.20 2010/03/31 11:54:38 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.21 2010/03/31 20:27:15 adamdunkels Exp $
  */
 
 /**
@@ -99,12 +99,14 @@ struct announcement_msg {
 #define CYCLE_TIME (RTIMER_ARCH_SECOND / MAC_CHANNEL_CHECK_RATE)
 #endif
 
-#define MAX_PHASE_STROBES                  12
+#define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 20
 
 #define CCA_COUNT_MAX 2
 #define CCA_CHECK_TIME                     RTIMER_ARCH_SECOND / 8192
 #define CCA_SLEEP_TIME                     RTIMER_ARCH_SECOND / 2000 //+ CCA_CHECK_TIME
 #define CHECK_TIME                         (CCA_COUNT_MAX * (CCA_CHECK_TIME + CCA_SLEEP_TIME))
+
+#define STROBE_TIME                        (CYCLE_TIME + 2 * CHECK_TIME)
 
 #define STREAM_CCA_COUNT                   (CYCLE_TIME / (CCA_SLEEP_TIME + CCA_CHECK_TIME) - CCA_COUNT_MAX)
 
@@ -130,9 +132,6 @@ struct announcement_msg {
    cycle. */
 #define ANNOUNCEMENT_TIME (random_rand() % (ANNOUNCEMENT_PERIOD))
 
-#define STROBE_WAIT_TIME (RTIMER_ARCH_SECOND / 600)
-
-#define STROBE_TIME (CYCLE_TIME + 2 * CHECK_TIME)
 
 #define ACK_LEN 3
 
@@ -415,6 +414,12 @@ parse_announcements(void)
      }
      printf("\n"); */
 
+  if(adata.num / sizeof(struct announcement_data) > sizeof(struct announcement_msg)) {
+    /* Sanity check. The number of announcements is too large -
+       corrupt packet has been received. */
+    return 0;
+  }
+
   for(i = 0; i < adata.num; ++i) {
     /*    printf("%d.%d: announcement %d: %d\n",
        rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -657,7 +662,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 
     watchdog_periodic();
     
-    if(is_known_receiver && strobes > MAX_PHASE_STROBES) {
+    if(is_known_receiver && !RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + MAX_PHASE_STROBE_TIME)) {
       break;
     }
     
@@ -692,7 +697,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 #endif
         len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
         if(len == ACK_LEN) {
-          leds_on(LEDS_BLUE);
           got_strobe_ack = 1;
           //          encounter_time = last_transmission_time;
           encounter_time = now;
@@ -775,7 +779,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   }
 #endif /* WITH_PHASE_OPTIMIZATION */
 
-  leds_off(LEDS_BLUE);
   return ret;
 }
 /*---------------------------------------------------------------------------*/
