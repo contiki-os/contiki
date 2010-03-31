@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.19 2010/03/30 23:01:32 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.20 2010/03/31 11:54:38 adamdunkels Exp $
  */
 
 /**
@@ -99,7 +99,7 @@ struct announcement_msg {
 #define CYCLE_TIME (RTIMER_ARCH_SECOND / MAC_CHANNEL_CHECK_RATE)
 #endif
 
-#define MAX_PHASE_STROBES                  8
+#define MAX_PHASE_STROBES                  12
 
 #define CCA_COUNT_MAX 2
 #define CCA_CHECK_TIME                     RTIMER_ARCH_SECOND / 8192
@@ -108,7 +108,7 @@ struct announcement_msg {
 
 #define STREAM_CCA_COUNT                   (CYCLE_TIME / (CCA_SLEEP_TIME + CCA_CHECK_TIME) - CCA_COUNT_MAX)
 
-#define GUARD_TIME                         3 * CHECK_TIME
+#define GUARD_TIME                         7 * CHECK_TIME
 
 #define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
 #define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
@@ -694,7 +694,8 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
         if(len == ACK_LEN) {
           leds_on(LEDS_BLUE);
           got_strobe_ack = 1;
-          encounter_time = last_transmission_time;
+          //          encounter_time = last_transmission_time;
+          encounter_time = now;
           break;
         } else {
           PRINTF("contikimac: collisions while sending\n");
