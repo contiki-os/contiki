@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast-announcement.c,v 1.3 2010/03/25 08:49:56 adamdunkels Exp $
+ * $Id: broadcast-announcement.c,v 1.4 2010/03/31 12:17:24 adamdunkels Exp $
  */
 
 /**
@@ -137,6 +137,13 @@ adv_packet_received(struct broadcast_conn *ibc, const rimeaddr_t *from)
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], adata.num);
 
+  if(adata.num / sizeof(struct announcement_data) > sizeof(struct announcement_msg)) {
+    /* The number of announcements is too large - corrupt packet has
+       been received. */
+    printf("adata.num way out there: %d\n", adata.num);
+    return;
+  }
+  
   for(i = 0; i < adata.num; ++i) {
     struct announcement_data data;
 
