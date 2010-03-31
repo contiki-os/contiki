@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki-cooja-main.c,v 1.6 2010/03/29 11:52:08 fros4943 Exp $
+ * $Id: contiki-cooja-main.c,v 1.7 2010/03/31 09:39:46 fros4943 Exp $
  */
 
 /**
@@ -79,15 +79,19 @@
 #define WITH_UIP 0
 #endif
 #if WITH_UIP
+#include "dev/rs232.h"
+#include "dev/slip.h"
 #include "net/uip.h"
 #include "net/uip-fw.h"
 #include "net/uip-fw-drv.h"
-#include "net/uip-driver.h"
-#include "dev/slip.h"
-static struct uip_fw_netif wsn_if =
-  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_driver_send)};
-static struct uip_fw_netif slip_if =
-  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, slip_send)};
+#include "net/uip-over-mesh.h"
+static struct uip_fw_netif slipif =
+  {UIP_FW_NETIF(0,0,0,0, 255,255,255,255, slip_send)};
+static struct uip_fw_netif meshif =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
+
+#define UIP_OVER_MESH_CHANNEL 8
+static uint8_t is_gateway;
 #endif /* WITH_UIP */
 
 #ifndef WITH_UIP6
@@ -132,6 +136,22 @@ static struct cooja_mt_thread process_run_thread;
 
 #define MIN(a, b)   ( (a)<(b) ? (a) : (b) )
 
+/*---------------------------------------------------------------------------*/
+#if WITH_UIP
+static void
+set_gateway(void)
+{
+  if(!is_gateway) {
+    printf("%d.%d: making myself the IP network gateway.\n\n",
+       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+    printf("IPv4 address of the gateway: %d.%d.%d.%d\n\n",
+       uip_ipaddr_to_quad(&uip_hostaddr));
+    uip_over_mesh_set_gateway(&rimeaddr_node_addr);
+    uip_over_mesh_make_announced_gateway();
+    is_gateway = 1;
+  }
+}
+#endif /* WITH_UIP */
 /*---------------------------------------------------------------------------*/
 static void
 print_processes(struct process * const processes[])
@@ -200,21 +220,34 @@ process_run_thread_loop(void *data)
 
     queuebuf_init();
 
+    /* Initialize communication stack */
+    netstack_init();
+    printf("MAC %s RDC %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name);
+
 #if WITH_UIP
     /* IPv4 CONFIGURATION */
     {
       uip_ipaddr_t hostaddr, netmask;
+
       process_start(&tcpip_process, NULL);
       process_start(&uip_fw_process, NULL);
       process_start(&slip_process, NULL);
+
+      slip_set_input_callback(set_gateway);
+
       uip_init();
       uip_fw_init();
-      uip_ipaddr(&hostaddr, 172, 16, rimeaddr_node_addr.u8[1], rimeaddr_node_addr.u8[0]);
+      uip_ipaddr(&hostaddr, 172,16,rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
       uip_ipaddr(&netmask, 255,255,0,0);
+      uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
+
       uip_sethostaddr(&hostaddr);
       uip_setnetmask(&netmask);
-      uip_fw_register(&wsn_if);
-      uip_fw_default(&slip_if);
+      uip_over_mesh_set_net(&hostaddr, &netmask);
+      uip_over_mesh_set_gateway_netif(&slipif);
+      uip_fw_default(&meshif);
+      uip_over_mesh_init(UIP_OVER_MESH_CHANNEL);
+
       rs232_set_input(slip_input_byte);
       printf("IPv4 address: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&hostaddr));
     }
@@ -264,10 +297,6 @@ process_run_thread_loop(void *data)
       }
     }
 #endif /* WITH_UIP6 */
-
-    /* Initialize communication stack */
-    netstack_init();
-    printf("MAC %s RDC %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name);
 
     /* Start serial process */
     serial_line_init();

@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.15 2010/03/23 13:34:00 fros4943 Exp $
+ * $Id: contiki-conf.h,v 1.16 2010/03/31 09:39:46 fros4943 Exp $
  *
  */
 
@@ -70,7 +70,7 @@
 #if WITH_UIP
 
 /* Network setup for IPv4 */
-#define NETSTACK_CONF_NETWORK uip_driver
+#define NETSTACK_CONF_NETWORK rime_driver /* NOTE: uip_over_mesh. else: uip_driver */
 #define NETSTACK_CONF_MAC nullmac_driver
 #define NETSTACK_CONF_RDC nullrdc_driver
 #define NETSTACK_CONF_RADIO cooja_radio_driver
@@ -124,7 +124,7 @@ typedef unsigned long rtimer_clock_t;
 #define UIP_CONF_MAX_CONNECTIONS      40
 #define UIP_CONF_BYTE_ORDER           UIP_LITTLE_ENDIAN
 #define UIP_CONF_TCP_SPLIT            0
-#define UIP_CONF_IP_FORWARD           0
+#define UIP_CONF_IP_FORWARD           1
 #define UIP_CONF_LOGGING              0
 #define UIP_CONF_UDP_CHECKSUMS        0
 #define UIP_CONF_BROADCAST            1
