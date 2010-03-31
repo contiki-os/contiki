@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.47 2010/03/30 23:00:05 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.48 2010/03/31 19:08:56 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -831,7 +831,7 @@ cc2420_receiving_packet(void)
 static int
 pending_packet(void)
 {
-  return pending;
+  return FIFOP_IS_1;
 }
 /*---------------------------------------------------------------------------*/
 void
