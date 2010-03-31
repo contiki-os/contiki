@@ -105,6 +105,7 @@ PROCESS(checkpoint_button_process, "Rollback on button");
 #define RESUME_TIME() \
   TACTL |= MC1; \
   TBCTL |= MC1; \
+  TACCR1 = clock_fine_max(); \
   watchdog_start();
 #define PAUSE_TIME_INT() \
   dint(); \
