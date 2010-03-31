@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.3 2010/02/11 10:13:18 oliverschmidt Exp $
+# $Id: Makefile,v 1.4 2010/03/31 06:05:37 oliverschmidt Exp $
 #
 
 ifndef CC65_HOME
@@ -81,42 +81,42 @@ apple2enh-2-disk:
 
 c64-1-disk:
 	$(C1541) -format contiki,00 d64 contiki-1.d64
-	$(C1541) -attach contiki-1.d64 -write dummy.cfg                                         contiki.cfg
-	$(C1541) -attach contiki-1.d64 -write ../../cpu/6502/dhcp/dhcp-client.c64               dhcp
-	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/webserver-example.c64    webserver
-	$(C1541) -attach contiki-1.d64 -write ../../examples/webbrowser/webbrowser.c64          webbrowser
-	$(C1541) -attach contiki-1.d64 -write ../../examples/wget/wget.c64                      wget
-	$(C1541) -attach contiki-1.d64 -write ../../cpu/6502/dhcp/cs8900a.eth                   cs8900a.eth
-	$(C1541) -attach contiki-1.d64 -write ../../cpu/6502/dhcp/lan91c96.eth                  lan91c96.eth
-	$(C1541) -attach contiki-1.d64 -write $(CC65_HOME)/mou/c64-1351.mou                     c64-1351.mou
-	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/index.html     index.html
-	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/background.gif background.gif
-	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/contiki.gif    contiki.gif
-	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/notfound.html  notfound.html
+	$(C1541) -attach contiki-1.d64 -write dummy.cfg                                         contiki.cfg,u
+	$(C1541) -attach contiki-1.d64 -write ../../cpu/6502/dhcp/dhcp-client.c64               dhcp,p
+	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/webserver-example.c64    webserver,p
+	$(C1541) -attach contiki-1.d64 -write ../../examples/webbrowser/webbrowser.c64          webbrowser,p
+	$(C1541) -attach contiki-1.d64 -write ../../examples/wget/wget.c64                      wget,p
+	$(C1541) -attach contiki-1.d64 -write ../../cpu/6502/dhcp/cs8900a.eth                   cs8900a.eth,u
+	$(C1541) -attach contiki-1.d64 -write ../../cpu/6502/dhcp/lan91c96.eth                  lan91c96.eth,u
+	$(C1541) -attach contiki-1.d64 -write $(CC65_HOME)/mou/c64-1351.mou                     c64-1351.mou,u
+	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/index.html     index.html,u
+	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/background.gif background.gif,u
+	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/contiki.gif    contiki.gif,u
+	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/notfound.html  notfound.html,u
 
 c64-2-disk:
 	$(C1541) -format contiki,00 d64 contiki-2.d64
-	$(C1541) -attach contiki-2.d64 -write dummy.cfg                             contiki.cfg
-	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/dhcp-client.c64   dhcp
-	$(C1541) -attach contiki-2.d64 -write ../../examples/irc/irc-client.c64     irc
-	$(C1541) -attach contiki-2.d64 -write ../../examples/email/email-client.c64 email
-	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/cs8900a.eth       cs8900a.eth
-	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/lan91c96.eth      lan91c96.eth
-	$(C1541) -attach contiki-2.d64 -write $(CC65_HOME)/mou/c64-1351.mou         c64-1351.mou
+	$(C1541) -attach contiki-2.d64 -write dummy.cfg                             contiki.cfg,u
+	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/dhcp-client.c64   dhcp,p
+	$(C1541) -attach contiki-2.d64 -write ../../examples/irc/irc-client.c64     irc,p
+	$(C1541) -attach contiki-2.d64 -write ../../examples/email/email-client.c64 email,p
+	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/cs8900a.eth       cs8900a.eth,u
+	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/lan91c96.eth      lan91c96.eth,u
+	$(C1541) -attach contiki-2.d64 -write $(CC65_HOME)/mou/c64-1351.mou         c64-1351.mou,u
 
 c128-disk:
 	$(C1541) -format contiki,00 d71 contiki.d71
-	$(C1541) -attach contiki.d71 -write dummy.cfg                                         contiki.cfg
-	$(C1541) -attach contiki.d71 -write ../../cpu/6502/dhcp/dhcp-client.c128              dhcp
-	$(C1541) -attach contiki.d71 -write ../../examples/webserver/webserver-example.c128   webserver
-	$(C1541) -attach contiki.d71 -write ../../examples/webbrowser/webbrowser.c128         webbrowser
-	$(C1541) -attach contiki.d71 -write ../../examples/wget/wget.c128                     wget
-	$(C1541) -attach contiki.d71 -write ../../examples/irc/irc-client.c128                irc
-	$(C1541) -attach contiki.d71 -write ../../examples/email/email-client.c128            email
-	$(C1541) -attach contiki.d71 -write ../../cpu/6502/dhcp/cs8900a.eth                   cs8900a.eth
-	$(C1541) -attach contiki.d71 -write ../../cpu/6502/dhcp/lan91c96.eth                  lan91c96.eth
-	$(C1541) -attach contiki.d71 -write $(CC65_HOME)/mou/c128-1351.mou                    c128-1351.mou
-	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/index.html     index.html
-	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/background.gif background.gif
-	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/contiki.gif    contiki.gif
-	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/notfound.html  notfound.html
+	$(C1541) -attach contiki.d71 -write dummy.cfg                                         contiki.cfg,u
+	$(C1541) -attach contiki.d71 -write ../../cpu/6502/dhcp/dhcp-client.c128              dhcp,p
+	$(C1541) -attach contiki.d71 -write ../../examples/webserver/webserver-example.c128   webserver,p
+	$(C1541) -attach contiki.d71 -write ../../examples/webbrowser/webbrowser.c128         webbrowser,p
+	$(C1541) -attach contiki.d71 -write ../../examples/wget/wget.c128                     wget,p
+	$(C1541) -attach contiki.d71 -write ../../examples/irc/irc-client.c128                irc,p
+	$(C1541) -attach contiki.d71 -write ../../examples/email/email-client.c128            email,p
+	$(C1541) -attach contiki.d71 -write ../../cpu/6502/dhcp/cs8900a.eth                   cs8900a.eth,u
+	$(C1541) -attach contiki.d71 -write ../../cpu/6502/dhcp/lan91c96.eth                  lan91c96.eth,u
+	$(C1541) -attach contiki.d71 -write $(CC65_HOME)/mou/c128-1351.mou                    c128-1351.mou,u
+	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/index.html     index.html,u
+	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/background.gif background.gif,u
+	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/contiki.gif    contiki.gif,u
+	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/notfound.html  notfound.html,u
