@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.6 2010/03/30 23:02:23 adamdunkels Exp $
+ * @(#)$Id: watchdog.c,v 1.7 2010/03/31 11:55:04 adamdunkels Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -39,11 +39,12 @@ static int stopped = 0;
 static void
 printchar(char c)
 {
+  /* Transmit the data. */
+  TXBUF1 = c;
+
   /* Loop until the transmission buffer is available. */
   while((IFG2 & UTXIFG1) == 0);
 
-  /* Transmit the data. */
-  TXBUF1 = c;
 }
 /*---------------------------------------------------------------------------*/
 static void
