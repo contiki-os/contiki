@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.35 2010/03/29 11:48:09 fros4943 Exp $
+ * $Id: sicslowpan.c,v 1.36 2010/04/01 10:01:01 adamdunkels Exp $
  */
 /**
  * \file
@@ -157,6 +157,7 @@ void uip_log(char *msg);
 
 #define UIP_IP_BUF          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_UDP_BUF          ((struct uip_udp_hdr *)&uip_buf[UIP_LLIPH_LEN])
+#define UIP_TCP_BUF          ((struct uip_tcp_hdr *)&uip_buf[UIP_LLIPH_LEN])
 /** @} */
 
 
@@ -1342,10 +1343,12 @@ output(uip_lladdr_t *localdest)
   rime_ptr = packetbuf_dataptr();
 
   packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, 3);
-  
-  if(UIP_IP_BUF->proto == UIP_PROTO_TCP) {
-    /*    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
-          PACKETBUF_ATTR_PACKET_TYPE_STREAM);*/
+
+  /* Set stream mode for all TCP packets, except FIN packets. */
+  if(UIP_IP_BUF->proto == UIP_PROTO_TCP &&
+     (UIP_TCP_BUF->flags & TCP_FIN) == 0) {
+    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
+                       PACKETBUF_ATTR_PACKET_TYPE_STREAM);
   }
     
   /*
@@ -1533,7 +1536,7 @@ input(void)
       PRINTFI("size %d, tag %d, offset %d)\n",
              frag_size, frag_tag, frag_offset);
       rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
-	  
+      /*      printf("frag1 %d %d\n", reass_tag, frag_tag);*/
       break;
     case SICSLOWPAN_DISPATCH_FRAGN:
       /*
@@ -1557,6 +1560,7 @@ input(void)
 
   if(processed_ip_len > 0) {
     /* reassembly is ongoing */
+    /*    printf("frag %d %d\n", reass_tag, frag_tag);*/
     if((frag_size > 0 &&
         (frag_size != sicslowpan_len ||
          reass_tag  != frag_tag ||
