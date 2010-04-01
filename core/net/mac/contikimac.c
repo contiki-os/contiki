@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.21 2010/03/31 20:27:15 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.22 2010/04/01 10:02:04 adamdunkels Exp $
  */
 
 /**
@@ -161,9 +161,9 @@ static struct ctimer announcement_cycle_ctimer, announcement_ctimer;
 static int announcement_radio_txpower;
 #endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
 
-/* Flag that is used to keep track of whether or not we are listening
+/* Flag that is used to keep track of whether or not we are snooping
    for announcements from neighbors. */
-static volatile uint8_t is_listening;
+static volatile uint8_t is_snooping;
 
 #if CONTIKIMAC_CONF_COMPOWER
 static struct compower_activity current_packet;
@@ -203,7 +203,7 @@ on(void)
 static void
 off(void)
 {
-  if(contikimac_is_on && radio_is_on != 0 /*&& is_listening == 0*/) {
+  if(contikimac_is_on && radio_is_on != 0 && is_streaming == 0) {
     radio_is_on = 0;
     NETSTACK_RADIO.off();
   }
@@ -324,7 +324,7 @@ powercycle(struct rtimer *t, void *ptr)
              radio off. Also, if a packet has been successfully
              received (as indicated by the
              NETSTACK_RADIO.pending_packet() function), we stop
-             listening. */
+             snooping. */
           if(NETSTACK_RADIO.channel_clear()) {
             ++silence_periods;
           } else {
@@ -379,7 +379,7 @@ powercycle(struct rtimer *t, void *ptr)
         compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
       }
-    } while((is_streaming || is_listening) &&
+    } while((is_snooping) &&
             RTIMER_NOW() - cycle_start < CYCLE_TIME - CCA_CHECK_TIME * CCA_COUNT_MAX);
     
     if(RTIMER_NOW() - cycle_start < CYCLE_TIME) {
@@ -926,16 +926,16 @@ cycle_announcement(void *ptr)
              send_announcement, NULL);
   ctimer_set(&announcement_cycle_ctimer, ANNOUNCEMENT_PERIOD,
              cycle_announcement, NULL);
-  if(is_listening > 0) {
-    is_listening--;
-    /*    printf("is_listening %d\n", is_listening); */
+  if(is_snooping > 0) {
+    is_snooping--;
+    /*    printf("is_snooping %d\n", is_snooping); */
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
 listen_callback(int periods)
 {
-  is_listening = periods + 1;
+  is_snooping = periods + 1;
 }
 #endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
 /*---------------------------------------------------------------------------*/
