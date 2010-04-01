@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.44 2010/03/29 21:52:25 adamdunkels Exp $
+ * $Id: collect.c,v 1.45 2010/04/01 10:03:19 adamdunkels Exp $
  */
 
 /**
@@ -85,7 +85,8 @@ struct ack_msg {
 static struct recent_packet recent_packets[NUM_RECENT_PACKETS];
 static uint8_t recent_packet_ptr;
 
-#define MAX_MAC_REXMITS            3
+#define MAX_MAC_REXMITS            2
+#define MAX_ACK_MAC_REXMITS        3
 #define REXMIT_TIME                CLOCK_SECOND * 2
 #define FORWARD_PACKET_LIFETIME    (6 * (REXMIT_TIME) << 3)
 #define MAX_SENDING_QUEUE          6
@@ -132,9 +133,28 @@ update_rtmetric(struct collect_conn *tc)
   
   /* We should only update the rtmetric if we are not the sink. */
   if(tc->rtmetric != SINK) {
-
+    struct collect_neighbor *best;
+    
+    /* Pick the neighbor to use as a parent. We normally use
+       the parent in the n->parent. */
+    n = collect_neighbor_find(&tc->parent);
     /* Find the neighbor with the lowest rtmetric. */
-    n = collect_neighbor_best();
+    best = collect_neighbor_best();
+
+    /* If we do not have a parent in n->parent, we use the best
+       neighbor that we have as a new parent. Also, if the best
+       neighbor is better than our parent (which is defined as having
+       an ETX that is 1 ETX lower than the current parent), we
+       choose that neighbor as the new parent. */
+    best = collect_neighbor_best();
+
+    if(best != NULL && (n == NULL ||
+                        collect_neighbor_etx(best) <
+                        collect_neighbor_etx(n) - COLLECT_NEIGHBOR_ETX_SCALE)) {
+      rimeaddr_copy(&tc->parent, &best->addr);
+      printf("Switched parent to %d.%d\n",
+             tc->parent.u8[0], tc->parent.u8[1]);
+    }
 
     /* If n is NULL, we have no best neighbor. */
     if(n == NULL) {
@@ -249,23 +269,17 @@ send_queued_packet(void)
 
   q = packetqueue_queuebuf(i);
   if(q != NULL) {
+
     PRINTF("%d.%d: queue, q is on queue\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-    queuebuf_to_packetbuf(q);
-    
-    n = collect_neighbor_best();
 
-    while(n != NULL && rimeaddr_cmp(&n->addr, packetbuf_addr(PACKETBUF_ADDR_SENDER))) {
-      PRINTF("%d.%d: avoiding fowarding loop to %d.%d\n",
-	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-             n->addr.u8[0], n->addr.u8[1]);
-      collect_neighbor_remove(&n->addr);
-      update_rtmetric(c);
-      n = collect_neighbor_best();
-    }
-    
-    /* Don't send to the neighbor if it is the same neighbor that sent
-       us the packet. */
+    /* Place the queued packet into the packetbuf. */
+    queuebuf_to_packetbuf(q);
+
+    /* Pick the neighbor to which to send the packet. We use the
+       parent in the n->parent. */
+    n = collect_neighbor_find(&c->parent);
+
     if(n != NULL) {
       clock_time_t time;
       uint8_t rexmit_time_scaling;
@@ -276,7 +290,6 @@ send_queued_packet(void)
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     n->addr.u8[0], n->addr.u8[1]);
 
-      rimeaddr_copy(&c->current_receiver, &n->addr);
       c->sending = 1;
       c->transmissions = 0;
       c->max_rexmits = packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT);
@@ -334,7 +347,7 @@ handle_ack(struct collect_conn *tc)
   struct collect_neighbor *n;
 
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                  &tc->current_receiver) &&
+                  &tc->parent) &&
      packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == tc->seqno) {
     
     
@@ -348,7 +361,7 @@ handle_ack(struct collect_conn *tc)
     
     PRINTF("%d.%d: ACK from %d.%d after %d transmissions, flags %02x\n",
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-           tc->current_receiver.u8[0], tc->current_receiver.u8[1],
+           tc->parent.u8[0], tc->parent.u8[1],
            tc->transmissions,
            msg->flags);
 
@@ -387,7 +400,7 @@ send_ack(struct collect_conn *tc, const rimeaddr_t *to, int congestion, int drop
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 0);
     packetbuf_set_attr(PACKETBUF_ATTR_ERELIABLE, 0);
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, packet_seqno);
-    packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, 3);
+    packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, MAX_ACK_MAC_REXMITS);
     unicast_send(&tc->unicast_conn, to);
     
     PRINTF("%d.%d: collect: Sending ACK to %d.%d for %d\n",
@@ -533,8 +546,8 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
            packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE),
            packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
            packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1],
-           tc->current_receiver.u8[0],
-           tc->current_receiver.u8[1],
+           tc->parent.u8[0],
+           tc->parent.u8[1],
            packetbuf_attr(PACKETBUF_ATTR_PACKET_ID),
            tc->seqno);
     handle_ack(tc);
@@ -554,7 +567,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
      PACKETBUF_ATTR_PACKET_TYPE_DATA && transmissions > 0) {
     PRINTF("%d.%d: sent to %d.%d after %d transmissions\n",
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-           tc->current_receiver.u8[0], tc->current_receiver.u8[1],
+           tc->parent.u8[0], tc->parent.u8[1],
            transmissions);
     
     /*    neighbor_update_etx(neighbor_find(to), transmissions);
@@ -579,7 +592,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
     /* Update ETX with the number of transmissions. */
     PRINTF("Updating ETX with %d transmissions (punished %d)\n", tc->transmissions,
            tx);
-    collect_neighbor_update_etx(collect_neighbor_find(&tc->current_receiver), tx);
+    collect_neighbor_update_etx(collect_neighbor_find(&tc->parent), tx);
     update_rtmetric(tc);
   }
 }
@@ -592,7 +605,7 @@ timedout(struct collect_conn *tc)
          tc->max_rexmits);
   
   tc->sending = 0;
-  collect_neighbor_timedout_etx(collect_neighbor_find(&tc->current_receiver), tc->transmissions);
+  collect_neighbor_timedout_etx(collect_neighbor_find(&tc->parent), tc->transmissions);
   update_rtmetric(tc);
 
   send_next_packet(tc);
