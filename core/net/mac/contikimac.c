@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.22 2010/04/01 10:02:04 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.23 2010/04/01 17:17:36 joxe Exp $
  */
 
 /**
@@ -173,7 +173,9 @@ static struct compower_activity current_packet;
 
 #include "net/mac/phase.h"
 
+#ifndef MAX_PHASE_NEIGHBORS
 #define MAX_PHASE_NEIGHBORS 30
+#endif
 
 PHASE_LIST(phase_list, MAX_PHASE_NEIGHBORS);
 
