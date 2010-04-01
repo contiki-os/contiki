@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.45 2010/04/01 10:03:19 adamdunkels Exp $
+ * $Id: collect.c,v 1.46 2010/04/01 11:08:36 fros4943 Exp $
  */
 
 /**
@@ -130,11 +130,11 @@ update_rtmetric(struct collect_conn *tc)
   struct collect_neighbor *n;
 
   PRINTF("update_rtmetric: tc->rtmetric %d\n", tc->rtmetric);
-  
+
   /* We should only update the rtmetric if we are not the sink. */
   if(tc->rtmetric != SINK) {
     struct collect_neighbor *best;
-    
+
     /* Pick the neighbor to use as a parent. We normally use
        the parent in the n->parent. */
     n = collect_neighbor_find(&tc->parent);
@@ -152,7 +152,7 @@ update_rtmetric(struct collect_conn *tc)
                         collect_neighbor_etx(best) <
                         collect_neighbor_etx(n) - COLLECT_NEIGHBOR_ETX_SCALE)) {
       rimeaddr_copy(&tc->parent, &best->addr);
-      printf("Switched parent to %d.%d\n",
+      PRINTF("Switched parent to %d.%d\n",
              tc->parent.u8[0], tc->parent.u8[1]);
     }
 
@@ -179,7 +179,7 @@ update_rtmetric(struct collect_conn *tc)
          the expected transmissions to reach that neighbor. */
       if(n->rtmetric + collect_neighbor_etx(n) != tc->rtmetric) {
 	uint16_t old_rtmetric = tc->rtmetric;
-	
+
 	tc->rtmetric = n->rtmetric + collect_neighbor_etx(n);
 
 #if ! COLLECT_ANNOUNCEMENTS
@@ -243,7 +243,7 @@ send_queued_packet(void)
   PRINTF("%d.%d: send_queued_packet queue len %d\n",
          rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
          packetqueue_len(&sending_queue));
-  
+
   i = packetqueue_first(&sending_queue);
   if(i == NULL) {
       PRINTF("%d.%d: nothing on queue\n",
@@ -258,7 +258,7 @@ send_queued_packet(void)
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     return;
   }
-  
+
   if(c->sending) {
     /* If we are currently sending a packet, we wait until the
        packet is forwarded and try again then. */
@@ -310,7 +310,7 @@ send_queued_packet(void)
     } else {
 #if COLLECT_ANNOUNCEMENTS
 #if COLLECT_CONF_WITH_LISTEN
-      printf("listen\n");
+      PRINTF("listen\n");
       announcement_listen(1);
       ctimer_set(&c->transmit_after_scan_timer, ANNOUNCEMENT_SCAN_TIME,
                  send_queued_packet, NULL);
@@ -349,8 +349,8 @@ handle_ack(struct collect_conn *tc)
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
                   &tc->parent) &&
      packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == tc->seqno) {
-    
-    
+
+
     msg = packetbuf_dataptr();
     memcpy(&rtmetric, &msg->rtmetric, sizeof(uint16_t));
     n = collect_neighbor_find(packetbuf_addr(PACKETBUF_ADDR_SENDER));
@@ -358,7 +358,7 @@ handle_ack(struct collect_conn *tc)
       collect_neighbor_update(n, rtmetric);
       update_rtmetric(tc);
     }
-    
+
     PRINTF("%d.%d: ACK from %d.%d after %d transmissions, flags %02x\n",
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
            tc->parent.u8[0], tc->parent.u8[1],
@@ -380,12 +380,12 @@ send_ack(struct collect_conn *tc, const rimeaddr_t *to, int congestion, int drop
 
 
   PRINTF("send_ack\n");
-  
+
   packet_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
-  
+
   q = queuebuf_new_from_packetbuf();
   if(q != NULL) {
-    
+
     packetbuf_clear();
     packetbuf_set_datalen(sizeof(struct ack_msg));
     ack = packetbuf_dataptr();
@@ -402,15 +402,15 @@ send_ack(struct collect_conn *tc, const rimeaddr_t *to, int congestion, int drop
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, packet_seqno);
     packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, MAX_ACK_MAC_REXMITS);
     unicast_send(&tc->unicast_conn, to);
-    
+
     PRINTF("%d.%d: collect: Sending ACK to %d.%d for %d\n",
            rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
            to->u8[0],
            to->u8[1],
            packet_seqno);
-    
+
     RIMESTATS_ADD(acktx);
-    
+
     queuebuf_to_packetbuf(q);
     queuebuf_free(q);
   } else {
@@ -487,22 +487,22 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
       rimeaddr_copy(&recent_packets[recent_packet_ptr].sent_to,
                     &rimeaddr_null);
     }
-    
+
     recent_packet_ptr = (recent_packet_ptr + 1) % NUM_RECENT_PACKETS;
-    
+
     if(tc->rtmetric == SINK) {
-      
+
       /* If we are the sink, we call the receive function. */
 
       send_ack(tc, &ack_to, 0, 0, 0);
-      
+
       PRINTF("%d.%d: sink received packet %d from %d.%d via %d.%d\n",
              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
              packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
              packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[0],
              packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[1],
              from->u8[0], from->u8[1]);
-      
+
       if(tc->cb->recv != NULL) {
         tc->cb->recv(packetbuf_addr(PACKETBUF_ADDR_ESENDER),
                      packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
@@ -511,20 +511,20 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
       return;
     } else if(packetbuf_attr(PACKETBUF_ATTR_TTL) > 1 &&
               tc->rtmetric != RTMETRIC_MAX) {
-      
+
       /* If we are not the sink, we forward the packet to the best
          neighbor. */
       packetbuf_set_attr(PACKETBUF_ATTR_HOPS, packetbuf_attr(PACKETBUF_ATTR_HOPS) + 1);
       packetbuf_set_attr(PACKETBUF_ATTR_TTL, packetbuf_attr(PACKETBUF_ATTR_TTL) - 1);
-      
-      
+
+
       PRINTF("%d.%d: packet received from %d.%d via %d.%d, sending %d, max_rexmits %d\n",
              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
              packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[0],
              packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[1],
              from->u8[0], from->u8[1], tc->sending,
              packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT));
-      
+
       if(packetqueue_enqueue_packetbuf(&sending_queue, FORWARD_PACKET_LIFETIME,
                                        tc)) {
         send_ack(tc, &ack_to, 0, 0, 0);
@@ -569,7 +569,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
            tc->parent.u8[0], tc->parent.u8[1],
            transmissions);
-    
+
     /*    neighbor_update_etx(neighbor_find(to), transmissions);
           update_rtmetric(tc);*/
     tc->transmissions += transmissions;
@@ -603,7 +603,7 @@ timedout(struct collect_conn *tc)
   PRINTF("%d.%d: timedout after %d retransmissions (max retransmissions %d): packet dropped\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], tc->transmissions,
          tc->max_rexmits);
-  
+
   tc->sending = 0;
   collect_neighbor_timedout_etx(collect_neighbor_find(&tc->parent), tc->transmissions);
   update_rtmetric(tc);
@@ -633,7 +633,7 @@ adv_received(struct neighbor_discovery_conn *c, const rimeaddr_t *from,
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, neighbor_discovery_conn));
   struct collect_neighbor *n;
-  
+
   n = collect_neighbor_find(from);
 
   if(n == NULL) {
@@ -655,7 +655,7 @@ received_announcement(struct announcement *a, const rimeaddr_t *from,
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)a - offsetof(struct collect_conn, announcement));
   struct collect_neighbor *n;
-  
+
   n = collect_neighbor_find(from);
 
   if(n == NULL) {
@@ -753,19 +753,19 @@ int
 collect_send(struct collect_conn *tc, int rexmits)
 {
   struct collect_neighbor *n;
-  
+
   packetbuf_set_attr(PACKETBUF_ATTR_EPACKET_ID, tc->eseqno++);
   packetbuf_set_addr(PACKETBUF_ADDR_ESENDER, &rimeaddr_node_addr);
   packetbuf_set_attr(PACKETBUF_ATTR_HOPS, 1);
   packetbuf_set_attr(PACKETBUF_ATTR_TTL, MAX_HOPLIM);
   packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, rexmits);
-  
+
   PRINTF("%d.%d: originating packet %d, max_rexmits %d\n",
          rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
          packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
          packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT));
 
-  
+
   PRINTF("rexmit %d\n", rexmits);
 
   if(tc->rtmetric == SINK) {
@@ -799,12 +799,12 @@ collect_send(struct collect_conn *tc, int rexmits)
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
 #if COLLECT_ANNOUNCEMENTS
 #if COLLECT_CONF_WITH_LISTEN
-      printf("listen\n");
+      PRINTF("listen\n");
       announcement_listen(1);
       ctimer_set(&tc->transmit_after_scan_timer, ANNOUNCEMENT_SCAN_TIME,
                  send_queued_packet, NULL);
 #else /* COLLECT_CONF_WITH_LISTEN */
-      printf("bump neighbor value\n");
+      PRINTF("bump neighbor value\n");
       announcement_set_value(&tc->announcement, RTMETRIC_MAX);
       announcement_bump(&tc->announcement);
 #endif /* COLLECT_CONF_WITH_LISTEN */
