@@ -712,15 +712,15 @@ Disassembly of section .text:
   12:	6ac4      	ldr	r4, [r0, #44]                                // r4 gets 0x800040c0 (maca_irq)
   14:	6304      	str	r4, [r0, #48]                                // 0x800040c4 gets r4 (maca_clr)
 
-  // if((*MACA_IRQ & 0xffff) != 0) {
+
   16:	0420      	lsls	r0, r4, #16                                  // r0 = r4 << 16 ; r0 = (*MACA_IRQ) << 16
-  18:	d501      	bpl.n	1e <MACA_Interrupt+0x1e>
+  18:	d501      	bpl.n	1e <MACA_Interrupt+0x1e> //branch if !strt irq (the non transmitting section)
 
   if( *MACA_TXLEN == 0 ) {
   1a:	4871      	ldr	r0, [pc, #452]	(1e0 <MACA_Interrupt+0x1e0>) // r0 = 0x8000400c
   1c:	6d00      	ldr	r0, [r0, #80]                                // r0 = *0x8000408c *(MACA_TXLEN)
-  1e:	07e0      	lsls	r0, r4, #31                                  // r4 = *(MACA_TXLEN << 31)  
-  20:	d574      	bpl.n	10c <MACA_Interrupt+0x10c>
+  1e:	07e0      	lsls	r0, r4, #31                                  
+  20:	d574      	bpl.n	10c <MACA_Interrupt+0x10c> // branch if action complete
 
   *(0x80004010) switch (*MACA_STATUS & 0xf) {
   22:	486f      	ldr	r0, [pc, #444]	(1e0 <MACA_Interrupt+0x1e0>)
@@ -822,38 +822,72 @@ Disassembly of section .text:
   ba:	e08e      	b.n	1da <MACA_Interrupt+0x1da>
 
 //  } else {  // (from code <= 7 )
+// if code > 8, inject(22) and return;
   bc:	2016      	movs	r0, #22
   be:	e7c9      	b.n	54 <MACA_Interrupt+0x54>
+// from bcs with 8; r0 = code
   c0:	3808      	subs	r0, #8
   c2:	2807      	cmp	r0, #7
-  c4:	d820      	bhi.n	108 <MACA_Interrupt+0x108>
+  c4:	d820      	bhi.n	108 <MACA_Interrupt+0x108> // branch if ((code - 8 > 7) default:
   c6:	a101      	add	r1, pc, #4	(adr r1, cc <MACA_Interrupt+0xcc>)
   c8:	5c09      	ldrb	r1, [r1, r0]
   ca:	448f      	add	pc, r1
   cc:	1e1e0e06 	.word	0x1e1e0e06
   d0:	322a2622 	.word	0x322a2622
+
+//  0: goto 0xec  1: goto 0xec  2: goto 0xdc  3: goto 0xd4 
+//  4: goto 0x100 5: goto 0xf8  6: goto 0xf4  7: goto 0xf0 
+
+code == 11, not used
+// resumemacasync and inject 17
   d4:	f7ff fffe 	bl	0 <ResumeMACASync>
   d8:	2011      	movs	r0, #17
   da:	e7db      	b.n	94 <MACA_Interrupt+0x94>
+
+  // code == 10 not used
+  // resume maca sync
   dc:	f7ff fffe 	bl	0 <ResumeMACASync>
   e0:	20c0      	movs	r0, #192
-  e2:	0140      	lsls	r0, r0, #5
-  e4:	4204      	tst	r4, r0
-  e6:	d172      	bne.n	1ce <MACA_Interrupt+0x1ce>
+  e2:	0140      	lsls	r0, r0, #5 r0 = 0x1800
+  e4:	4204      	tst	r4, r0      
+  e6:	d172      	bne.n	1ce <MACA_Interrupt+0x1ce> // branch if not 0x1800
+// branch resumes macasync and injects 20
+
+// inject 18 and return
   e8:	2012      	movs	r0, #18
   ea:	e7b3      	b.n	54 <MACA_Interrupt+0x54>
+
+ //code == 8, exttimeout code == 9 pnd timeout
+ // inject 22, return
   ec:	2016      	movs	r0, #22
   ee:	e7e2      	b.n	b6 <MACA_Interrupt+0xb6>
+
+// code = 15, dma bus error
+// inject 25, return
+
   f0:	2019      	movs	r0, #25
   f2:	e7af      	b.n	54 <MACA_Interrupt+0x54>
+
+// code = 14, not complete
+// inject 22 and return
+
   f4:	2016      	movs	r0, #22
   f6:	e7cd      	b.n	94 <MACA_Interrupt+0x94>
+
+// code = 13, external abort
+// resume maca synce
+// inject 22 and return
   f8:	f7ff fffe 	bl	0 <ResumeMACASync>
   fc:	2016      	movs	r0, #22
   fe:	e7a9      	b.n	54 <MACA_Interrupt+0x54>
+
+// code == 12 pll unlock
+// inject 26 and return
  100:	201a      	movs	r0, #26
  102:	f7ff fffe 	bl	0 <SeqInjectEvent>
  106:	e068      	b.n	1da <MACA_Interrupt+0x1da>
+
+// default: inject(22) and return;
  108:	2016      	movs	r0, #22
  10a:	e7a3      	b.n	54 <MACA_Interrupt+0x54>
  
