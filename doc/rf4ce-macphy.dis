@@ -713,7 +713,7 @@ Disassembly of section .text:
   14:	6304      	str	r4, [r0, #48]                                // 0x800040c4 gets r4 (maca_clr)
 
   // if((*MACA_IRQ & 0xffff) != 0) {
-  16:	0420      	lsls	r0, r4, #16                                  // r0 = r4 << 16 ; ro = (*MACA_IRQ) << 16
+  16:	0420      	lsls	r0, r4, #16                                  // r0 = r4 << 16 ; r0 = (*MACA_IRQ) << 16
   18:	d501      	bpl.n	1e <MACA_Interrupt+0x1e>
 
   if( *MACA_TXLEN == 0 ) {
@@ -722,7 +722,7 @@ Disassembly of section .text:
   1e:	07e0      	lsls	r0, r4, #31                                  // r4 = *(MACA_TXLEN << 31)  
   20:	d574      	bpl.n	10c <MACA_Interrupt+0x10c>
 
-  *(0x80004010) swithc (*MACA_STATUS & 0xf) {
+  *(0x80004010) switch (*MACA_STATUS & 0xf) {
   22:	486f      	ldr	r0, [pc, #444]	(1e0 <MACA_Interrupt+0x1e0>)
   24:	6840      	ldr	r0, [r0, #4]
   26:	0700      	lsls	r0, r0, #28
@@ -859,30 +859,47 @@ Disassembly of section .text:
  
  } else {  // from *MACA_TXLEN == 0
 
- 10c:	4839      	ldr	r0, [pc, #228]	(1f4 <MACA_Interrupt+0x1f4>)
- 10e:	4020      	ands	r0, r4
- 110:	2180      	movs	r1, #128
- 112:	0149      	lsls	r1, r1, #5
- 114:	4288      	cmp	r0, r1
+ 10c:	4839      	ldr	r0, [pc, #228]	(1f4 <MACA_Interrupt+0x1f4>)  // r0 = 0x1001
+ 10e:	4020      	ands	r0, r4             // r4 is the irq state, mask action complete and timeout
+ 110:	2180      	movs	r1, #128           // r1 = 128
+ 112:	0149      	lsls	r1, r1, #5         // r1 = 0x1000
+
+ 114:	4288      	cmp	r0, r1             
  116:	d101      	bne.n	11c <MACA_Interrupt+0x11c>
+
+// if (timeout) {
+// inject(24) and return
  118:	2018      	movs	r0, #24
  11a:	e7bb      	b.n	94 <MACA_Interrupt+0x94>
- 11c:	2102      	movs	r1, #2
- 11e:	420c      	tst	r4, r1
+//}
+
+ 11c:	2102      	movs	r1, #2    // r1 = 2
+ 11e:	420c      	tst	r4, r1    
+
+// if(poll) { 
  120:	d017      	beq.n	152 <MACA_Interrupt+0x152>
+} 
+
+// do the *0x50 == 0 test
  122:	4831      	ldr	r0, [pc, #196]	(1e8 <MACA_Interrupt+0x1e8>)
  124:	7800      	ldrb	r0, [r0, #0]
  126:	2800      	cmp	r0, #0
  128:	d109      	bne.n	13e <MACA_Interrupt+0x13e>
+
  12a:	4833      	ldr	r0, [pc, #204]	(1f8 <MACA_Interrupt+0x1f8>)
  12c:	f7ff fffe 	bl	0 <__aeabi_uread4>
  130:	2800      	cmp	r0, #0
  132:	d000      	beq.n	136 <MACA_Interrupt+0x136>
- 134:	2001      	movs	r0, #1
- 136:	492a      	ldr	r1, [pc, #168]	(1e0 <MACA_Interrupt+0x1e0>)
- 138:	6088      	str	r0, [r1, #8]
+
+ 134:	2001      	movs	r0, #1    // r0 = 1
+ 136:	492a      	ldr	r1, [pc, #168]	(1e0 <MACA_Interrupt+0x1e0>)  r1 = *(0x800040b4) reserved
+ 138:	6088      	str	r0, [r1, #8]    *(0x800040b4) + 8 = 1;
+// inject(23) and return
  13a:	2017      	movs	r0, #23
  13c:	e78a      	b.n	54 <MACA_Interrupt+0x54>
+
+// rom != 0
+// inject(14)
  13e:	200e      	movs	r0, #14
  140:	f7ff fffe 	bl	0 <SeqInjectEvent>
  144:	482a      	ldr	r0, [pc, #168]	(1f0 <MACA_Interrupt+0x1f0>)
@@ -890,69 +907,92 @@ Disassembly of section .text:
  148:	f7ff fffe 	bl	0 <CommonRxSetup>
  14c:	2800      	cmp	r0, #0
  14e:	d044      	beq.n	1da <MACA_Interrupt+0x1da>
+// return
+
  150:	e789      	b.n	66 <MACA_Interrupt+0x66>
- 152:	2104      	movs	r1, #4
- 154:	420c      	tst	r4, r1
+
+// when poll == 1
+ 152:	2104      	movs	r1, #4   
+ 154:	420c      	tst	r4, r1    // if (data_indication) {
  156:	d001      	beq.n	15c <MACA_Interrupt+0x15c>
+} else {
+  // inject(14) and return
  158:	200e      	movs	r0, #14
  15a:	e77b      	b.n	54 <MACA_Interrupt+0x54>
- 15c:	0520      	lsls	r0, r4, #20
- 15e:	d436      	bmi.n	1ce <MACA_Interrupt+0x1ce>
- 160:	0460      	lsls	r0, r4, #17
- 162:	d506      	bpl.n	172 <MACA_Interrupt+0x172>
+}
+// data_indication == 1
+ 15c:	0520      	lsls	r0, r4, #20   // r0 = saved irq status << 20
+ 15e:	d436      	bmi.n	1ce <MACA_Interrupt+0x1ce>   // branch if negative (so if irq bit 11 is set, failed filter
+
+ 160:	0460      	lsls	r0, r4, #17   
+ 162:	d506      	bpl.n	172 <MACA_Interrupt+0x172>  // branch if !bit 14, sync detect
+
  164:	4820      	ldr	r0, [pc, #128]	(1e8 <MACA_Interrupt+0x1e8>)
- 166:	7800      	ldrb	r0, [r0, #0]
- 168:	2800      	cmp	r0, #0
+ 166:	7800      	ldrb	r0, [r0, #0]       // check if txlen is 0 
+ 168:	2800      	cmp	r0, #0             // if not zero, return (maybe this is an ack to transmit?)
  16a:	d136      	bne.n	1da <MACA_Interrupt+0x1da>
- 16c:	481d      	ldr	r0, [pc, #116]	(1e4 <MACA_Interrupt+0x1e4>)
- 16e:	2108      	movs	r1, #8
- 170:	e032      	b.n	1d8 <MACA_Interrupt+0x1d8>
- 172:	01c9      	lsls	r1, r1, #7
- 174:	420c      	tst	r4, r1
- 176:	d030      	beq.n	1da <MACA_Interrupt+0x1da>
- 178:	4819      	ldr	r0, [pc, #100]	(1e0 <MACA_Interrupt+0x1e0>)
- 17a:	6f40      	ldr	r0, [r0, #116]
- 17c:	4a19      	ldr	r2, [pc, #100]	(1e4 <MACA_Interrupt+0x1e4>)
- 17e:	6852      	ldr	r2, [r2, #4]
- 180:	2a08      	cmp	r2, #8
- 182:	d128      	bne.n	1d6 <MACA_Interrupt+0x1d6>
- 184:	4a18      	ldr	r2, [pc, #96]	(1e8 <MACA_Interrupt+0x1e8>)
+
+ 16c:	481d      	ldr	r0, [pc, #116]	(1e4 <MACA_Interrupt+0x1e4>) // r0 = *0x80004108
+ 16e:	2108      	movs	r1, #8                                       // r1 = 8
+ 170:	e032      	b.n	1d8 <MACA_Interrupt+0x1d8>                   // return
+
+// sync not detectd
+
+// return if bit 7
+ 172:	01c9      	lsls	r1, r1, #7  // r1 had 4, now r1 = 4 << 7
+ 174:	420c      	tst	r4, r1      
+ 176:	d030      	beq.n	1da <MACA_Interrupt+0x1da> // return if fifo level 
+
+ 178:	4819      	ldr	r0, [pc, #100]	(1e0 <MACA_Interrupt+0x1e0>)  r0 = *0x80004070, reserved 
+ 17a:	6f40      	ldr	r0, [r0, #116]                                r0 = *(*0x80004070 + 116)
+ 17c:	4a19      	ldr	r2, [pc, #100]	(1e4 <MACA_Interrupt+0x1e4>)  
+ 17e:	6852      	ldr	r2, [r2, #4]                                  r2 = *(*0x800040F8 + 4)
+ 180:	2a08      	cmp	r2, #8                                        
+ 182:	d128      	bne.n	1d6 <MACA_Interrupt+0x1d6> // branch if r2 != 8 // *0x80004094 = r1 (r1 = 0x200 here), and return
+
+// *0x50 test
+ 184:	4a18      	ldr	r2, [pc, #96]	(1e8 <MACA_Interrupt+0x1e8>) 
  186:	7812      	ldrb	r2, [r2, #0]
  188:	2a00      	cmp	r2, #0
- 18a:	d124      	bne.n	1d6 <MACA_Interrupt+0x1d6>
- 18c:	7941      	ldrb	r1, [r0, #5]
- 18e:	020a      	lsls	r2, r1, #8
- 190:	7901      	ldrb	r1, [r0, #4]
- 192:	4311      	orrs	r1, r2
- 194:	79c2      	ldrb	r2, [r0, #7]
- 196:	0213      	lsls	r3, r2, #8
- 198:	7982      	ldrb	r2, [r0, #6]
- 19a:	431a      	orrs	r2, r3
- 19c:	7883      	ldrb	r3, [r0, #2]
- 19e:	021b      	lsls	r3, r3, #8
- 1a0:	7840      	ldrb	r0, [r0, #1]
- 1a2:	4318      	orrs	r0, r3
- 1a4:	23c4      	movs	r3, #196
- 1a6:	011b      	lsls	r3, r3, #4
- 1a8:	4003      	ands	r3, r0
- 1aa:	2084      	movs	r0, #132
- 1ac:	0100      	lsls	r0, r0, #4
- 1ae:	4283      	cmp	r3, r0
- 1b0:	d113      	bne.n	1da <MACA_Interrupt+0x1da>
- 1b2:	4b0c      	ldr	r3, [pc, #48]	(1e4 <MACA_Interrupt+0x1e4>)
- 1b4:	6f1b      	ldr	r3, [r3, #112]
- 1b6:	429a      	cmp	r2, r3
- 1b8:	d002      	beq.n	1c0 <MACA_Interrupt+0x1c0>
- 1ba:	4810      	ldr	r0, [pc, #64]	(1fc <MACA_Interrupt+0x1fc>)
- 1bc:	4282      	cmp	r2, r0
- 1be:	d10c      	bne.n	1da <MACA_Interrupt+0x1da>
- 1c0:	4a08      	ldr	r2, [pc, #32]	(1e4 <MACA_Interrupt+0x1e4>)
- 1c2:	6ed2      	ldr	r2, [r2, #108]
- 1c4:	4291      	cmp	r1, r2
- 1c6:	d008      	beq.n	1da <MACA_Interrupt+0x1da>
- 1c8:	480c      	ldr	r0, [pc, #48]	(1fc <MACA_Interrupt+0x1fc>)
+ 18a:	d124      	bne.n	1d6 <MACA_Interrupt+0x1d6> //if rom == 0 return
+
+ 18c:	7941      	ldrb	r1, [r0, #5]     // r1 = *(uint8_t * )0x80004075
+ 18e:	020a      	lsls	r2, r1, #8       // r2 = r1 << 8
+ 190:	7901      	ldrb	r1, [r0, #4]     // r1 = *(uint8_t * )0x80004074
+ 192:	4311      	orrs	r1, r2           // temp = *(uint8_t *)0x80004075 | *(uint8_t *)0x80004074
+ 194:	79c2      	ldrb	r2, [r0, #7]     // *(uint8_t * )0x80004077 = temp
+ 196:	0213      	lsls	r3, r2, #8       // r3 = temp << 8
+ 198:	7982      	ldrb	r2, [r0, #6]     // temp = *(uint8_t * )0x80004076
+ 19a:	431a      	orrs	r2, r3           
+ 19c:	7883      	ldrb	r3, [r0, #2]     // *(uint8_t * )0x80004072 = r3 | temp
+ 19e:	021b      	lsls	r3, r3, #8       // r3 = r3 << 8
+ 1a0:	7840      	ldrb	r0, [r0, #1]     // r0 = *(uint8_t * )0x80004071
+ 1a2:	4318      	orrs	r0, r3           // r0 = r0 | r3
+ 1a4:	23c4      	movs	r3, #196         // r3 = 0xc4
+ 1a6:	011b      	lsls	r3, r3, #4       // r3 = 0xc40
+ 1a8:	4003      	ands	r3, r0           // r3 = 0xc40 & r0
+ 1aa:	2084      	movs	r0, #132         // r0 = 0x84
+ 1ac:	0100      	lsls	r0, r0, #4       // r0 = 0x840
+ 1ae:	4283      	cmp	r3, r0           // is r3 == 0x840?
+ 1b0:	d113      	bne.n	1da <MACA_Interrupt+0x1da> // branch if r3 != 0x840
+ 1b2:	4b0c      	ldr	r3, [pc, #48]	(1e4 <MACA_Interrupt+0x1e4>)  // r3 = *(0x80040c4) *maca_clrirq
+ 1b4:	6f1b      	ldr	r3, [r3, #112]                                // r3 = *maca_irq + 112
+ 1b6:	429a      	cmp	r2, r3                                        
+ 1b8:	d002      	beq.n	1c0 <MACA_Interrupt+0x1c0>   // branch if r2 == r3
+
+ 1ba:	4810      	ldr	r0, [pc, #64]	(1fc <MACA_Interrupt+0x1fc>)  // r0 = 0xffff + 64
+ 1bc:	4282      	cmp	r2, r0                                        
+
+ 1be:	d10c      	bne.n	1da <MACA_Interrupt+0x1da>    // return if some rom location == r0
+
+ 1c0:	4a08      	ldr	r2, [pc, #32]	(1e4 <MACA_Interrupt+0x1e4>) r2 = *(0x800040b4)
+ 1c2:	6ed2      	ldr	r2, [r2, #108]                               r2 = *(0x800040b4) + 108
+ 1c4:	4291      	cmp	r1, r2                               
+ 1c6:	d008      	beq.n	1da <MACA_Interrupt+0x1da>  // return if r1 == r2
+
+ 1c8:	480c      	ldr	r0, [pc, #48]	(1fc <MACA_Interrupt+0x1fc>)  r0 = *(0xffff + 48)
  1ca:	4281      	cmp	r1, r0
- 1cc:	d005      	beq.n	1da <MACA_Interrupt+0x1da>
+ 1cc:	d005      	beq.n	1da <MACA_Interrupt+0x1da> // return if r1 == r0 or resumemacasync, inject(20), and return.
 
 // if(code = 2, channel_busy) {
  1ce:	f7ff fffe 	bl	0 <ResumeMACASync>
@@ -960,8 +1000,10 @@ Disassembly of section .text:
  1d2:	2014      	movs	r0, #20
  1d4:	e73e      	b.n	54 <MACA_Interrupt+0x54>
 
- 1d6:	4803      	ldr	r0, [pc, #12]	(1e4 <MACA_Interrupt+0x1e4>)
+// *0x80004094 = r1, and return
+ 1d6:	4803      	ldr	r0, [pc, #12]	(1e4 <MACA_Interrupt+0x1e4>) 
  1d8:	6001      	str	r1, [r0, #0]
+
  1da:	bc1c      	pop	{r2, r3, r4}
  1dc:	bc01      	pop	{r0}
  1de:	4700      	bx	r0
