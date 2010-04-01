@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.36 2010/04/01 10:01:01 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.37 2010/04/01 10:56:00 adamdunkels Exp $
  */
 /**
  * \file
@@ -1344,6 +1344,7 @@ output(uip_lladdr_t *localdest)
 
   packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, 3);
 
+#define TCP_FIN 0x01
   /* Set stream mode for all TCP packets, except FIN packets. */
   if(UIP_IP_BUF->proto == UIP_PROTO_TCP &&
      (UIP_TCP_BUF->flags & TCP_FIN) == 0) {
