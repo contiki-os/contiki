@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.15 2010/03/25 08:51:07 adamdunkels Exp $
+ * $Id: collect.h,v 1.16 2010/04/01 10:45:21 adamdunkels Exp $
  */
 
 /**
@@ -90,13 +90,13 @@ struct collect_conn {
 #endif /* COLLECT_CONF_ANNOUNCEMENTS */
   const struct collect_callbacks *cb;
   struct ctimer t;
+  struct ctimer retransmission_timer;
+  rimeaddr_t parent;
+  rimeaddr_t last_received_addr;
   uint16_t rtmetric;
   uint8_t sending, transmissions, max_rexmits;
   uint8_t seqno, last_received_seqno;
-  rimeaddr_t last_received_addr;
   uint8_t eseqno;
-  struct ctimer retransmission_timer;
-  rimeaddr_t current_receiver;
   uint8_t is_router;
 };
 
