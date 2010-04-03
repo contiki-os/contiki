@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.48 2010/03/31 19:08:56 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.49 2010/04/03 16:01:00 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -189,7 +189,7 @@ on(void)
 
   ENABLE_FIFOP_INT();
   strobe(CC2420_SRXON);
-  flushrx();
+
 }
 static void
 off(void)
@@ -201,6 +201,7 @@ off(void)
   /* Wait for transmission to end before turning radio off. */
   while(status() & BV(CC2420_TX_ACTIVE));
 
+  flushrx();
   strobe(CC2420_SRFOFF);
   DISABLE_FIFOP_INT();
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
@@ -215,6 +216,7 @@ static void RELEASE_LOCK(void) {
       lock_on = 0;
     }
     if(lock_off) {
+      leds_off(LEDS_BLUE);
       off();
       lock_off = 0;
     }
