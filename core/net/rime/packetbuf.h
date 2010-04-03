@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.h,v 1.8 2010/03/29 21:53:04 adamdunkels Exp $
+ * $Id: packetbuf.h,v 1.9 2010/04/03 13:34:20 adamdunkels Exp $
  */
 
 /**
@@ -352,6 +352,7 @@ enum {
   PACKETBUF_ATTR_REXMIT,
   PACKETBUF_ATTR_MAX_REXMIT,
   PACKETBUF_ATTR_NUM_REXMIT,
+  PACKETBUF_ATTR_PENDING,
   
   /* Scope 2 attributes: used between end-to-end nodes. */
   PACKETBUF_ATTR_HOPS,
