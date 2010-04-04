@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.24 2010/03/29 21:53:32 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.25 2010/04/04 12:29:50 adamdunkels Exp $
  */
 
 
@@ -53,7 +53,6 @@ static volatile clock_time_t count = 0;
 static unsigned short last_tar = 0;
 /*---------------------------------------------------------------------------*/
 interrupt(TIMERA1_VECTOR) timera1 (void) {
-  ENERGEST_OFF(ENERGEST_TYPE_LPM);
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   if(TAIV == 2) {
@@ -79,6 +78,7 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
 #endif
       if(count % CLOCK_CONF_SECOND == 0) {
 	++seconds;
+        energest_flush();
       }
     } while((TACCR1 - TAR) > INTERVAL);
 
@@ -96,7 +96,6 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
     }*/
     
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-  ENERGEST_ON(ENERGEST_TYPE_LPM);
 }
 /*---------------------------------------------------------------------------*/
 clock_time_t
