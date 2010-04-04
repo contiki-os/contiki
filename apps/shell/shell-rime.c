@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.19 2010/03/25 08:52:23 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.20 2010/04/04 12:27:31 adamdunkels Exp $
  */
 
 /**
@@ -48,6 +48,7 @@
 #include "lib/random.h"
 
 #include "net/rime.h"
+#include "net/netstack.h"
 #include "net/rime/route.h"
 
 #include "net/rime/timesynch.h"
@@ -123,10 +124,10 @@ PROCESS_THREAD(shell_mac_process, ev, data)
     shell_output_str(&mac_command, "mac usage: ", mac_command.description);
   } else {
     if(onoroff) {
-      rime_mac->on();
-      shell_output_str(&mac_command, "mac: turned MAC on: ", rime_mac->name);
+      NETSTACK_RDC.on();
+      shell_output_str(&mac_command, "mac: turned MAC on: ", NETSTACK_RDC.name);
     } else {
-      rime_mac->off(1);
+      NETSTACK_RDC.off(1);
       shell_output_str(&mac_command, "mac: turned MAC off (keeping radio on): ",
 		       rime_mac->name);
     }
