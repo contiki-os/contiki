@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.27 2010/04/04 12:31:47 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.28 2010/04/04 21:01:24 adamdunkels Exp $
  */
 
 /**
@@ -110,7 +110,7 @@ struct announcement_msg {
 
 #define STREAM_CCA_COUNT                   (CYCLE_TIME / (CCA_SLEEP_TIME + CCA_CHECK_TIME) - CCA_COUNT_MAX)
 
-#define GUARD_TIME                         9 * CHECK_TIME
+#define GUARD_TIME                         7 * CHECK_TIME
 
 #define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
 #define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
@@ -221,8 +221,8 @@ schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
 
   if(contikimac_is_on) {
 
-    if(RTIMER_CLOCK_LT(RTIMER_TIME(t) + time, RTIMER_NOW() + 1)) {
-      time = RTIMER_NOW() - RTIMER_TIME(t) + 1;
+    if(RTIMER_CLOCK_LT(RTIMER_TIME(t) + time, RTIMER_NOW() + 2)) {
+      time = RTIMER_NOW() - RTIMER_TIME(t) + 2;
     }
 
 #if NURTIMER
@@ -324,7 +324,7 @@ powercycle(struct rtimer *t, void *ptr)
           powercycle_turn_radio_off();
         }
         schedule_powercycle(t, CCA_SLEEP_TIME);
-        //        COOJA_DEBUG_STR("yield\n");
+        /*        COOJA_DEBUG_STR("yield\n");*/
         PT_YIELD(&pt);
       }
       
@@ -555,7 +555,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     }
   }
 
-  if(is_streaming || !contikimac_is_on) {
+  if(is_streaming) {
     packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 1);
   }
   /* Create the MAC header for the data packet. */
@@ -701,7 +701,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     len = 0;
 
     t = RTIMER_NOW();
-    
     
     {
       rtimer_clock_t wt;
