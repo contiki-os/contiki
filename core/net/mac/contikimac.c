@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.24 2010/04/03 13:28:30 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.25 2010/04/04 07:49:31 adamdunkels Exp $
  */
 
 /**
@@ -115,12 +115,12 @@ struct announcement_msg {
 #define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
 #define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
 
-#define LISTEN_TIME_AFTER_PACKET_DETECTED  RTIMER_ARCH_SECOND / 100
+#define LISTEN_TIME_AFTER_PACKET_DETECTED  RTIMER_ARCH_SECOND / 80
 
 #define SHORTEST_PACKET_SIZE               43
 
 #define MAX_SILENCE_PERIODS                5
-#define MAX_NONACTIVITY_PERIODIC           30
+#define MAX_NONACTIVITY_PERIODIC           10
 
 /* The cycle time for announcements. */
 #ifdef ANNOUNCEMENT_CONF_PERIOD
@@ -206,7 +206,7 @@ on(void)
 static void
 off(void)
 {
-  if(contikimac_is_on && radio_is_on != 0 && is_streaming == 0 && is_snooping == 0) {
+  if(contikimac_is_on && radio_is_on != 0 && is_streaming == 0/* && is_snooping == 0*/) {
     radio_is_on = 0;
     NETSTACK_RADIO.off();
   }
@@ -293,7 +293,7 @@ powercycle(struct rtimer *t, void *ptr)
         t0 = RTIMER_NOW();
         if(we_are_sending == 0) {
           powercycle_turn_radio_on();
-#if 1
+#if 0
 #if NURTIMER
           while(RTIMER_CLOCK_LT(t0, RTIMER_NOW(), t0 + CCA_CHECK_TIME));
 #else
@@ -312,7 +312,7 @@ powercycle(struct rtimer *t, void *ptr)
           }
           powercycle_turn_radio_off();
         }
-        schedule_powercycle(t, CCA_SLEEP_TIME + CCA_CHECK_TIME);
+        schedule_powercycle(t, CCA_SLEEP_TIME);
         PT_YIELD(&pt);
       }
       
@@ -387,13 +387,13 @@ powercycle(struct rtimer *t, void *ptr)
         compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
       }
-    } while(0 && (is_snooping) &&
-            RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - 8 * CHECK_TIME * CCA_COUNT_MAX));
+    } while(is_snooping &&
+            RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME));
 
     if(is_snooping) {
       leds_on(LEDS_RED);
     }
-    if(RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - 4)) {
+    if(RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME)) {
       schedule_powercycle(t, CYCLE_TIME - (RTIMER_NOW() - cycle_start) + 1);
       /*      printf("cycle_start 0x%02x now 0x%02x wait 0x%02x\n",
               cycle_start, RTIMER_NOW(), CYCLE_TIME - (RTIMER_NOW() - cycle_start));*/
@@ -537,6 +537,8 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
       }
       stream_until = RTIMER_NOW() + DEFAULT_STREAM_TIME;
       is_streaming = 1;
+    } else {
+      is_streaming = 0;
     }
   }
 
@@ -679,9 +681,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 
     watchdog_periodic();
     
-    /*    if(is_known_receiver && !RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + MAX_PHASE_STROBE_TIME)) {
+    if(is_known_receiver && !RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + MAX_PHASE_STROBE_TIME)) {
       break;
-      }*/
+    }
     
     len = 0;
 
@@ -691,9 +693,10 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     {
       rtimer_clock_t wt;
       rtimer_clock_t now = RTIMER_NOW();
-      
-      NETSTACK_RADIO.transmit(transmit_len);
-      
+      int ret;
+
+      ret = NETSTACK_RADIO.transmit(transmit_len);
+
       wt = RTIMER_NOW();
 #if NURTIMER
       while(RTIMER_CLOCK_LT(wt, RTIMER_NOW(), wt + INTER_PACKET_INTERVAL));
@@ -775,7 +778,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   }
 
 #if WITH_PHASE_OPTIMIZATION
-  if(!first_transmission) {
+  /*  if(!first_transmission)*/ {
 
     /*    COOJA_DEBUG_PRINTF("first phase 0x%02x\n", encounter_time % CYCLE_TIME);*/
     
@@ -1002,14 +1005,15 @@ init(void)
 static int
 turn_on(void)
 {
-  contikimac_is_on = 1;
+  if(contikimac_is_on == 0) {
+    contikimac_is_on = 1;
 #if NURTIMER
-  rtimer_schedule(&rt, CYCLE_TIME, 1);
+    rtimer_schedule(&rt, CYCLE_TIME, 1);
 #else
-  rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1,
-             (void (*)(struct rtimer *, void *))powercycle, NULL);
+    rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1,
+               (void (*)(struct rtimer *, void *))powercycle, NULL);
 #endif
-
+  }
   return 1;
 }
 /*---------------------------------------------------------------------------*/

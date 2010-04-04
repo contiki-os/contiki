@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.49 2010/04/03 16:01:00 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.50 2010/04/04 07:49:30 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -183,29 +183,31 @@ static uint8_t locked, lock_on, lock_off;
 static void
 on(void)
 {
-  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   /*  PRINTF("on\n");*/
   receive_on = 1;
 
   ENABLE_FIFOP_INT();
   strobe(CC2420_SRXON);
-
+  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  leds_on(LEDS_GREEN);
 }
 static void
 off(void)
 {
-  leds_on(LEDS_GREEN);
   /*  PRINTF("off\n");*/
   receive_on = 0;
 
   /* Wait for transmission to end before turning radio off. */
   while(status() & BV(CC2420_TX_ACTIVE));
 
-  flushrx();
   strobe(CC2420_SRFOFF);
-  DISABLE_FIFOP_INT();
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  DISABLE_FIFOP_INT();
   leds_off(LEDS_GREEN);
+
+  if(!FIFOP_IS_1) {
+    flushrx();
+  }
 }
 /*---------------------------------------------------------------------------*/
 #define GET_LOCK() locked++
@@ -314,6 +316,8 @@ cc2420_init(void)
   cc2420_set_pan_addr(0xffff, 0x0000, NULL);
   cc2420_set_channel(26);
 
+  flushrx();
+  
   process_start(&cc2420_process, NULL);
   return 1;
 }
@@ -347,7 +351,7 @@ cc2420_transmit(unsigned short payload_len)
    * transmission starts.
    */
 #ifdef TMOTE_SKY
-#define LOOP_20_SYMBOLS 400	/* 326us (msp430 @ 2.4576MHz) */
+#define LOOP_20_SYMBOLS 800	/* 326us (msp430 @ 2.4576MHz) */
 #elif __AVR__
 #define LOOP_20_SYMBOLS 500	/* XXX */
 #endif
@@ -708,16 +712,16 @@ cc2420_read(void *buf, unsigned short bufsize)
     len = AUX_LEN;
   }
 
-  /* Clean up in case of FIFO overflow!  This happens for every full
-   * length frame and is signaled by FIFOP = 1 and FIFO = 0.
-   */
-  if(FIFOP_IS_1 && !FIFO_IS_1) {
-    /*    printf("cc2420_read: FIFOP_IS_1 1\n");*/
-    flushrx();
-  } else if(FIFOP_IS_1) {
-    /* Another packet has been received and needs attention. */
-    /*    printf("attention\n");*/
-    process_poll(&cc2420_process);
+  if(FIFOP_IS_1) {
+    if(!FIFO_IS_1) {
+      /* Clean up in case of FIFO overflow!  This happens for every
+       * full length frame and is signaled by FIFOP = 1 and FIFO =
+       * 0. */
+      flushrx();
+    } else {
+      /* Another packet has been received and needs attention. */
+      process_poll(&cc2420_process);
+    }
   }
 
   RELEASE_LOCK();
