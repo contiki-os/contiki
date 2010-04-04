@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.25 2010/04/04 07:49:31 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.26 2010/04/04 12:28:29 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,7 @@
 #include "sys/pt.h"
 #include "sys/rtimer.h"
 
-/*#include "cooja-debug.h"*/
+#include "cooja-debug.h"
 #include "contiki-conf.h"
 
 #ifdef EXPERIMENT_SETUP
@@ -212,7 +212,7 @@ off(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static rtimer_clock_t cycle_start;
+static volatile rtimer_clock_t cycle_start;
 static char powercycle(struct rtimer *t, void *ptr);
 static void
 schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
@@ -221,22 +221,36 @@ schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
 
   if(contikimac_is_on) {
 
-    if(RTIMER_CLOCK_LT(RTIMER_TIME(t) + time, RTIMER_NOW())) {
-      time = RTIMER_NOW() - RTIMER_TIME(t);
+    if(RTIMER_CLOCK_LT(RTIMER_TIME(t) + time, RTIMER_NOW() + 1)) {
+      time = RTIMER_NOW() - RTIMER_TIME(t) + 1;
     }
-    
-    while(RTIMER_TIME(t) + time == RTIMER_NOW() ||
-          RTIMER_TIME(t) + time == RTIMER_NOW() + 1 ||
-          RTIMER_TIME(t) + time == RTIMER_NOW() + 2 ||
-          RTIMER_TIME(t) + time == RTIMER_NOW() + 3 ||
-          RTIMER_TIME(t) + time == RTIMER_NOW() + 4) {
-      time++;
-    }
-    
+
 #if NURTIMER
     r = rtimer_reschedule(t, time, 1);
 #else
     r = rtimer_set(t, RTIMER_TIME(t) + time, 1,
+                   (void (*)(struct rtimer *, void *))powercycle, NULL);
+#endif
+    if(r != RTIMER_OK) {
+      printf("schedule_powercycle: could not set rtimer\n");
+    }
+  }
+}
+static void
+schedule_powercycle_fixed(struct rtimer *t, rtimer_clock_t fixed_time)
+{
+  int r;
+
+  if(contikimac_is_on) {
+
+    if(RTIMER_CLOCK_LT(fixed_time, RTIMER_NOW() + 1)) {
+      fixed_time = RTIMER_NOW() + 1;
+    }
+
+#if NURTIMER
+    r = rtimer_reschedule(t, RTIMER_TIME(t) - time, 1);
+#else
+    r = rtimer_set(t, fixed_time, 1,
                    (void (*)(struct rtimer *, void *))powercycle, NULL);
 #endif
     if(r != RTIMER_OK) {
@@ -261,22 +275,6 @@ powercycle_turn_radio_on(void)
 static char
 powercycle(struct rtimer *t, void *ptr)
 {
-  rtimer_clock_t start;
-
-  if(is_streaming) {
-    start = RTIMER_NOW();
-#if NURTIMER
-    if(!RTIMER_CLOCK_LT(start, RTIMER_NOW(), stream_until))
-#else
-    if(!RTIMER_CLOCK_LT(RTIMER_NOW(), stream_until))
-#endif
-    {
-      is_streaming = 0;
-      rimeaddr_copy(&is_streaming_to, &rimeaddr_null);
-      rimeaddr_copy(&is_streaming_to_too, &rimeaddr_null);
-    }
-  }
-  
   PT_BEGIN(&pt);
 
   while(1) {
@@ -285,6 +283,19 @@ powercycle(struct rtimer *t, void *ptr)
     static uint8_t count;
 
     cycle_start = RTIMER_NOW();
+
+    if(WITH_STREAMING && is_streaming) {
+#if NURTIMER
+      if(!RTIMER_CLOCK_LT(cycle_start, RTIMER_NOW(), stream_until))
+#else
+        if(!RTIMER_CLOCK_LT(RTIMER_NOW(), stream_until))
+#endif
+          {
+            is_streaming = 0;
+            rimeaddr_copy(&is_streaming_to, &rimeaddr_null);
+            rimeaddr_copy(&is_streaming_to_too, &rimeaddr_null);
+          }
+    }
 
     packet_seen = 0;
 
@@ -313,6 +324,7 @@ powercycle(struct rtimer *t, void *ptr)
           powercycle_turn_radio_off();
         }
         schedule_powercycle(t, CCA_SLEEP_TIME);
+        //        COOJA_DEBUG_STR("yield\n");
         PT_YIELD(&pt);
       }
       
@@ -394,7 +406,8 @@ powercycle(struct rtimer *t, void *ptr)
       leds_on(LEDS_RED);
     }
     if(RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME)) {
-      schedule_powercycle(t, CYCLE_TIME - (RTIMER_NOW() - cycle_start) + 1);
+      /*      schedule_powercycle(t, CYCLE_TIME - (RTIMER_NOW() - cycle_start));*/
+      schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start);
       /*      printf("cycle_start 0x%02x now 0x%02x wait 0x%02x\n",
               cycle_start, RTIMER_NOW(), CYCLE_TIME - (RTIMER_NOW() - cycle_start));*/
       PT_YIELD(&pt);
@@ -962,6 +975,7 @@ cycle_announcement(void *ptr)
 static void
 listen_callback(int periods)
 {
+  printf("Snoop\n");
   is_snooping = periods + 1;
 }
 #endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
@@ -1047,6 +1061,9 @@ const struct rdc_driver contikimac_driver = {
 uint16_t
 contikimac_debug_print(void)
 {
+  static rtimer_clock_t one_cycle_start;
+  printf("Drift %d\n", (one_cycle_start - cycle_start) % CYCLE_TIME);
+  one_cycle_start = cycle_start;
   return 0;
 }
 /*---------------------------------------------------------------------------*/
