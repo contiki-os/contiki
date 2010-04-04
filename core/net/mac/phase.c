@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.8 2010/04/03 13:28:30 adamdunkels Exp $
+ * $Id: phase.c,v 1.9 2010/04/04 21:02:09 adamdunkels Exp $
  */
 
 /**
@@ -59,9 +59,9 @@ struct phase_queueitem {
 
 #define MAX_NOACKS            2
 
-MEMB(phase_memb, struct phase_queueitem, PHASE_QUEUESIZE);
+MEMB(queued_packets_memb, struct phase_queueitem, PHASE_QUEUESIZE);
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -90,9 +90,8 @@ phase_remove(const struct phase_list *list, const rimeaddr_t *neighbor)
   e = find_neighbor(list, neighbor);
   if(e != NULL) {
     list_remove(*list->list, e);
-    memb_free(&phase_memb, e);
+    memb_free(list->memb, e);
   }
-
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -117,22 +116,18 @@ phase_update(const struct phase_list *list,
       e->noacks++;
       if(e->noacks >= MAX_NOACKS) {
         list_remove(*list->list, e);
-        memb_free(&phase_memb, e);
+        memb_free(list->memb, e);
         return;
       }
     } else if(mac_status == MAC_TX_OK) {
       e->noacks = 0;
     }
-    
-    /* Make sure this entry is first on the list so subsequent
-         searches are faster. */
-    list_remove(*list->list, e);
-    list_push(*list->list, e);
   } else {
     /* No matching phase was found, so we allocate a new one. */
     if(mac_status == MAC_TX_OK && e == NULL) {
       e = memb_alloc(list->memb);
       if(e == NULL) {
+        printf("phase alloc NULL\n");
         /* We could not allocate memory for this phase, so we drop
            the last item on the list and reuse it for our phase. */
         e = list_chop(*list->list);
@@ -152,7 +147,7 @@ send_packet(void *ptr)
 
   queuebuf_to_packetbuf(p->q);
   queuebuf_free(p->q);
-  memb_free(&phase_memb, p);
+  memb_free(&queued_packets_memb, p);
   NETSTACK_RDC.send(p->mac_callback, p->mac_callback_ptr);
 }
 /*---------------------------------------------------------------------------*/
@@ -201,7 +196,7 @@ phase_wait(struct phase_list *list,
     if(ctimewait > PHASE_DEFER_THRESHOLD) {
       struct phase_queueitem *p;
       
-      p = memb_alloc(&phase_memb);
+      p = memb_alloc(&queued_packets_memb);
       if(p != NULL) {
         p->q = queuebuf_new_from_packetbuf();
         if(p->q != NULL) {
@@ -210,7 +205,7 @@ phase_wait(struct phase_list *list,
           ctimer_set(&p->timer, ctimewait, send_packet, p); 
           return PHASE_DEFERRED;
         } else {
-          memb_free(&phase_memb, p);
+          memb_free(&queued_packets_memb, p);
         }
       }
     }
@@ -231,6 +226,6 @@ phase_init(struct phase_list *list)
 {
   list_init(*list->list);
   memb_init(list->memb);
-  memb_init(&phase_memb);
+  memb_init(&queued_packets_memb);
 }
 /*---------------------------------------------------------------------------*/
