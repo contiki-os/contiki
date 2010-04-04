@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.7 2010/03/31 11:55:04 adamdunkels Exp $
+ * @(#)$Id: watchdog.c,v 1.8 2010/04/04 12:30:10 adamdunkels Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -76,8 +76,11 @@ watchdog_interrupt(void)
   /*  printstring("Watchdog reset at PC $");
   hexprint(ptr[3]);
   hexprint(ptr[2]);*/
-  printstring("\nStack:\n");
-
+  printstring("\nStack at $");
+  hexprint(((int)ptr) >> 8);
+  hexprint(((int)ptr) & 0xff);
+  printstring(":\n");
+  
   for(i = 0; i < 64; ++i) {
     hexprint(ptr[i]);
     printchar(' ');
