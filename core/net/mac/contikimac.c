@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.28 2010/04/04 21:01:24 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.29 2010/04/05 19:28:07 adamdunkels Exp $
  */
 
 /**
@@ -192,6 +192,8 @@ static volatile rtimer_clock_t stream_until;
 #define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
 
+static int last_received_seqno;
+static rimeaddr_t last_received_sender;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -862,7 +864,21 @@ input_packet(void)
         phase_remove(&phase_list, packetbuf_addr(PACKETBUF_ADDR_SENDER));
       }
 #endif /* WITH_PHASE_OPTIMIZATION */
-      
+
+      /* Check for duplicate packet by comparing the sequence number
+         of the incoming packet with the last one we saw. */
+      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == last_received_seqno &&
+         rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                      &last_received_sender)) {
+        /* Drop the packet. */
+        /*        printf("Drop duplicate ContikiMAC layer packet\n");*/
+        return;
+      }
+
+
+      last_received_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+      rimeaddr_copy(&last_received_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER));
+
 #if CONTIKIMAC_CONF_COMPOWER
       /* Accumulate the power consumption for the packet reception. */
       compower_accumulate(&current_packet);
