@@ -29,12 +29,13 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: dhcp-client.c,v 1.2 2010/02/08 22:26:19 oliverschmidt Exp $
+ * $Id: dhcp-client.c,v 1.3 2010/04/05 13:41:29 oliverschmidt Exp $
  *
  */
 
 #include "contiki-net.h"
 #include "ctk/ctk.h"
+#include "cfs/cfs.h"
 #include "net/dhcpc.h"
 
 static struct ctk_window window;
