@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.21 2010/03/27 15:16:57 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.22 2010/04/05 15:17:22 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -67,6 +67,8 @@ typedef unsigned short uip_stats_t;
 
 #define UIP_ARCH_ADD32  1
 #define UIP_ARCH_CHKSUM 1
+
+#define MAC_CONF_CHANNEL_CHECK_RATE CLOCK_CONF_SECOND
 
 #define LOADER_CONF_ARCH "lib/unload.h"
 
