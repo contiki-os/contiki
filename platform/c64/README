@@ -13,3 +13,8 @@ The following C64 Ethernet cards are supported:
 In most cases it is desirable to use an emulator for the development and testing
 of a Contiki application. VICE is especially well suited as it emulates both the
 RR-Net and TFE Ethernet cards. It is available at http://www.viceteam.org/.
+
+
+The c64 target supports a PFS that requires less RAM than the POSIX file system
+and converts UNIX path names to CMD syntax for CMD drives and IDEDOS 0.90+. Its
+primary feature however is support for IDE64 fast read/write.
