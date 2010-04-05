@@ -279,18 +279,20 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
   }
 
   //Remove header from length before passing onward
-  uip_len -= UIP_LLH_LEN;
-
-  //Some IP packets have link layer in them, need to change them around!
-  if (usbstick_mode.translate) {
-/*     uint8_t transReturn = */
+  if(uip_len > UIP_LLH_LEN) {
+    uip_len -= UIP_LLH_LEN;
+    
+    //Some IP packets have link layer in them, need to change them around!
+    if (usbstick_mode.translate) {
+      /*     uint8_t transReturn = */
       mac_translateIPLinkLayer(ll_802154_type);
-    PRINTF("IPTranslation: returns %d\n", transReturn);
-  }
+      PRINTF("IPTranslation: returns %d\n", transReturn);
+    }
 
-  if (usbstick_mode.sendToRf){
-    tcpip_output(destAddrPtr);
-/* 	  rndis_stat.txok++; */
+    if (usbstick_mode.sendToRf){
+      tcpip_output(destAddrPtr);
+      /* 	  rndis_stat.txok++; */
+    }
   }
 
   uip_len = 0;
