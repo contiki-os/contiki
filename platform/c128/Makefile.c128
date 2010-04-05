@@ -30,8 +30,10 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.c128,v 1.9 2010/03/31 06:05:55 oliverschmidt Exp $
+# $Id: Makefile.c128,v 1.10 2010/04/05 15:25:49 oliverschmidt Exp $
 #
+
+CONTIKI_SOURCEFILES += pfs.S pfs_write.S
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
