@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.15 2010/04/06 20:16:25 oliverschmidt Exp $
+ * $Id: httpd.c,v 1.16 2010/04/06 20:35:40 oliverschmidt Exp $
  */
  
 #include <stdio.h>
@@ -267,8 +267,9 @@ PT_THREAD(handle_input(struct httpd_state *s))
     strncpy(s->filename, &s->inputbuf[0], sizeof(s->filename));
   }
 
+  petsciiconv_topetscii(s->filename, sizeof(s->filename));
   webserver_log_file(&uip_conn->ripaddr, s->filename);
-  
+  petsciiconv_toascii(s->filename, sizeof(s->filename));
   s->state = STATE_OUTPUT;
 
   while(1) {
