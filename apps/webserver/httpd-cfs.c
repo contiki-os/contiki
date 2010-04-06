@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.17 2010/04/06 12:03:18 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.18 2010/04/06 12:11:41 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -114,6 +114,8 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
     ptr = http_content_type_css;
   } else if(strcmp(http_png, ptr) == 0) {
     ptr = http_content_type_png;
+  } else if(strcmp(http_gif, ptr) == 0) {
+    ptr = http_content_type_gif;
   } else if(strcmp(http_jpg, ptr) == 0) {
     ptr = http_content_type_jpg;
   } else {
