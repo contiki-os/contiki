@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.34 2010/03/17 22:44:20 nifi Exp $
+ * $Id: RadioLogger.java,v 1.35 2010/04/06 23:38:18 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -266,6 +266,7 @@ public class RadioLogger extends VisPlugin {
                     prepareTooltipString(conn);
                 }
                 verboseBox.setText(conn.tooltip);
+                verboseBox.setCaretPosition(0);
             }
         }
     });
@@ -427,12 +428,16 @@ public class RadioLogger extends VisPlugin {
         if (packet.hasMoreData()) {
             byte[] payload = packet.getPayload();
             brief.append(StringUtils.toHex(payload, 4));
+            if (verbose.length() > 0) {
+                verbose.append("<p>");
+            }
             verbose.append("<b>Payload (")
             .append(payload.length).append(" bytes)</b><br><pre>")
             .append(StringUtils.hexDump(payload))
             .append("</pre>");
         }
-        conn.data = (data.length < 10 ? " " : "") + data.length + ": " + brief;
+        conn.data = (data.length < 100 ? (data.length < 10 ? "  " : " ") : "")
+        + data.length + ": " + brief;
         if (verbose.length() > 0) {
             conn.tooltip = verbose.toString();
         }
@@ -450,16 +455,16 @@ public class RadioLogger extends VisPlugin {
               PacketAnalyzer analyzer = analyzers.get(i);
               if (analyzer.matchPacket(packet)) {
                   int res = analyzer.analyzePacket(packet, brief, verbose);
+                  if (packet.hasMoreData() && brief.length() > 0) {
+                      brief.append('|');
+                      verbose.append("<br>");
+                  }
                   if (res != PacketAnalyzer.ANALYSIS_OK_CONTINUE) {
                       /* this was the final or the analysis failed - no analyzable payload possible here... */
                       return brief.length() > 0;
                   }
                   /* continue another round if more bytes left */
                   analyze = packet.hasMoreData();
-                  if (analyze) {
-                      brief.append('|');
-                      verbose.append("<p>");
-                  }
                   break;
               }
           }

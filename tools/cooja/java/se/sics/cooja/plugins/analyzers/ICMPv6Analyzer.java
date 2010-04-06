@@ -42,34 +42,33 @@ public class ICMPv6Analyzer extends PacketAnalyzer {
             StringBuffer verbose) {
         int type = packet.get(0) & 0xff;
         int code = packet.get(1) & 0xff;
-        int checksum = ((packet.get(2) & 0xff) << 8) | packet.get(3) & 0xff;
+//        int checksum = ((packet.get(2) & 0xff) << 8) | packet.get(3) & 0xff;
 
         brief.append("ICMPv6 ");
         if (type >= 128 && (type - 128) < TYPE_NAME.length) {
-            brief.append(TYPE_NAME[type - 128]).append(" ");
-            brief.append(" " + code);
-            verbose.append("Type: " + TYPE_NAME[type - 128]).append("<br>");
-            verbose.append("Code:" + code + "<br>");
+            brief.append(TYPE_NAME[type - 128]).append(' ').append(code);
+            verbose.append("Type: ").append(TYPE_NAME[type - 128]);
+            verbose.append(" Code:").append(code);
         } else if (type == 155) {
             /* RPL */
             brief.append("RPL ");
-            verbose.append("Type: RPL<br>");
+            verbose.append("Type: RPL Code: ");
             switch(code) {
             case RPL_CODE_DIS:
-                brief.append("DIS ");
-                verbose.append("Code: DIS<br>");
+                brief.append("DIS");
+                verbose.append("DIS");
                 break;
             case RPL_CODE_DIO:
-                brief.append("DIO ");
-                verbose.append("Code: DIO<br>");
+                brief.append("DIO");
+                verbose.append("DIO");
                 break;
             case RPL_CODE_DAO:
-                brief.append("DAO ");
-                verbose.append("Code: DAO<br>");
+                brief.append("DAO");
+                verbose.append("DAO");
                 break;
             default:
-                brief.append(" " + code);
-                verbose.append("Code: " + code);
+                brief.append(code);
+                verbose.append(code);
             }
         }
 
