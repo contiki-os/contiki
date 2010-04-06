@@ -170,7 +170,6 @@ volatile packet_t* get_free_packet(void) {
 }
 
 void post_receive(void) {
-	disable_irq(MACA);
 	last_post = RX_POST;
 	/* this sets the rxlen field */
 	/* this is undocumented but very important */
@@ -195,7 +194,6 @@ void post_receive(void) {
 	*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
 	*MACA_TMREN = (1 << maca_tmren_sft);
 	/* start the receive sequence */
-	enable_irq(MACA);
 	*MACA_CONTROL = ( (1 << maca_ctrl_asap) | 
 			  ( 4 << PRECOUNT) |
 			  ( fcs_mode << NOFC ) |
