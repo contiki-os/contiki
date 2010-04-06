@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.13 2010/04/06 11:49:47 oliverschmidt Exp $
+ * $Id: httpd.c,v 1.14 2010/04/06 20:10:45 oliverschmidt Exp $
  */
  
 #include <stdio.h>
@@ -220,7 +220,8 @@ PT_THREAD(handle_output(struct httpd_state *s))
   PT_BEGIN(&s->outputpt);
  
   if(!httpd_fs_open(s->filename, &s->file)) {
-    httpd_fs_open(http_404_html, &s->file);
+    strcpy(s->filename, http_404_html);
+    httpd_fs_open(s->filename, &s->file);
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s,
 		   http_header_404));
