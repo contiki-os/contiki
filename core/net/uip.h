@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.28 2010/03/16 15:35:03 joxe Exp $
+ * $Id: uip.h,v 1.29 2010/04/06 16:47:18 nvt-se Exp $
  *
  */
 
@@ -1969,6 +1969,14 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u16[6]) == 0) &&                          \
    (((a)->u8[14]) == 0) &&                          \
    (((a)->u8[15]) == 0x02))
+
+/**
+ * \brief Checks whether the address a is link local.
+ * a is of type uip_ipaddr_t
+ */
+#define uip_is_addr_linklocal(a)                 \
+  ((a)->u8[0] == 0xfe &&                         \
+   (a)->u8[1] == 0x80)
 
 /** \brief set IP address a to unspecified */
 #define uip_create_unspecified(a) uip_ip6addr(a, 0, 0, 0, 0, 0, 0, 0, 0)
