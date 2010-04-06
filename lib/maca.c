@@ -10,6 +10,15 @@
 #define PRINTF(...) printf(__VA_ARGS__)
 #endif
 
+#ifndef MACA_BOUND_CHECK
+#define MACA_BOUND_CHECK 0
+#endif
+#if (MACA_BOUND_CHECK == 0)
+#define BOUND_CHECK(x)
+#else
+#define BOUND_CHECK(x) bound_check(x)
+#endif
+
 #ifndef NUM_PACKETS
 #define NUM_PACKETS 8
 #endif
@@ -101,6 +110,20 @@ void Print_Packets(char *s) {
 	printf("found %d packets\n\r",i);
 }
 
+inline void bad_packet_bounds(void) {
+	while(1) { continue; }
+}
+
+void bound_check(volatile packet_t *p) {
+	volatile int i;
+	if((p == 0) ||
+	   (p == &dummy_ack)) { return; }
+	for(i=0; i < NUM_PACKETS; i++) {
+		if(p == &packet_pool[i]) { return; }
+	}
+	bad_packet_bounds();
+}
+
 
 /* public packet routines */
 /* heads are to the right */
@@ -108,12 +131,18 @@ void Print_Packets(char *s) {
 void free_packet(volatile packet_t *p) {
 	safe_irq_disable(MACA);
 
+	BOUND_CHECK(p);
+
 	if(!p) {  PRINTF("free_packet passed packet 0\n\r"); return; }
 	if(p == &dummy_ack) { return; }
+
+	BOUND_CHECK(free_head);
 
 	p->length = 0; p->offset = 0;
 	p->left = free_head; p->right = 0;
 	free_head = p;
+
+	BOUND_CHECK(free_head);
 
 	irq_restore();
 	return;
@@ -124,11 +153,15 @@ volatile packet_t* get_free_packet(void) {
 
 	safe_irq_disable(MACA);
 
+	BOUND_CHECK(free_head);
+
 	p = free_head;
-	if( p != 0 ) {
+	if( p != 0 ) {		
 		free_head = p->left;
 		free_head->right = 0;
 	}
+
+	BOUND_CHECK(free_head);
 
 //	print_packets("get_free_packet");
 	irq_restore();
@@ -154,6 +187,8 @@ void post_receive(void) {
 			return;
 		}
 	}
+	BOUND_CHECK(dma_rx);
+	BOUND_CHECK(dma_tx);
 	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
 	/* with timeout */		
 	*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
@@ -175,6 +210,8 @@ void post_receive(void) {
 volatile packet_t* rx_packet(void) {
 	volatile packet_t *p;
 	safe_irq_disable(MACA);
+
+	BOUND_CHECK(rx_head);
 
 	p = rx_head;
 	if( p != 0 ) {
@@ -202,7 +239,9 @@ void post_tx(void) {
 			PRINTF("trying to fill MACA_DMARX on post_tx but out of packet buffers\n\r");
 		}
 		
-	}		
+	}	
+	BOUND_CHECK(dma_rx);
+	BOUND_CHECK(dma_tx);
 	*MACA_DMARX = (uint32_t)&(dma_rx->data[0]);
 	/* disable soft timeout clock */
 	/* disable start clock */
@@ -226,6 +265,8 @@ void post_tx(void) {
 
 void tx_packet(volatile packet_t *p) {
 	safe_irq_disable(MACA);
+
+	BOUND_CHECK(p);
 
 	if(!p) {  PRINTF("tx_packet passed packet 0\n\r"); return; }
 	if(tx_head == 0) {
@@ -266,6 +307,8 @@ void free_tx_head(void) {
 	volatile packet_t *p;
 	safe_irq_disable(MACA);
 
+	BOUND_CHECK(tx_head);
+
 	p = tx_head;
 	tx_head = tx_head->left;
 	if(tx_head == 0) { tx_end = 0; }
@@ -278,6 +321,8 @@ void free_tx_head(void) {
 
 void add_to_rx(volatile packet_t *p) {
 	safe_irq_disable(MACA);
+
+	BOUND_CHECK(p);
 	
 	if(!p) {  PRINTF("add_to_rx passed packet 0\n\r"); return; }
 	p->offset = 1; /* first byte is the length */
