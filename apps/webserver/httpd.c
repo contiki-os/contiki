@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.14 2010/04/06 20:10:45 oliverschmidt Exp $
+ * $Id: httpd.c,v 1.15 2010/04/06 20:16:25 oliverschmidt Exp $
  */
  
 #include <stdio.h>
@@ -231,7 +231,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s,
 		   http_header_200));
-    ptr = strchr(s->filename, ISO_period);
+    ptr = strrchr(s->filename, ISO_period);
     if(ptr != NULL && strncmp(ptr, http_shtml, 6) == 0) {
       PT_INIT(&s->scriptpt);
       PT_WAIT_THREAD(&s->outputpt, handle_script(s));
