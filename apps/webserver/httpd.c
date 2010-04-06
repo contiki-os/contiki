@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.12 2009/08/12 18:23:37 dak664 Exp $
+ * $Id: httpd.c,v 1.13 2010/04/06 11:49:47 oliverschmidt Exp $
  */
  
 #include <stdio.h>
@@ -185,7 +185,7 @@ PT_THREAD(handle_script(struct httpd_state *s))
 static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
-  char *ptr;
+  const char *ptr;
 
   PSOCK_BEGIN(&s->sout);
 
@@ -193,21 +193,22 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 
   ptr = strrchr(s->filename, ISO_period);
   if(ptr == NULL) {
-    SEND_STRING(&s->sout, http_content_type_binary);
+    ptr = http_content_type_binary;
   } else if(strncmp(http_html, ptr, 5) == 0 ||
 	    strncmp(http_shtml, ptr, 6) == 0) {
-    SEND_STRING(&s->sout, http_content_type_html);
+    ptr = http_content_type_html;
   } else if(strncmp(http_css, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_css);
+    ptr = http_content_type_css;
   } else if(strncmp(http_png, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_png);
+    ptr = http_content_type_png;
   } else if(strncmp(http_gif, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_gif);
+    ptr = http_content_type_gif;
   } else if(strncmp(http_jpg, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_jpg);
+    ptr = http_content_type_jpg;
   } else {
-    SEND_STRING(&s->sout, http_content_type_plain);
+    ptr = http_content_type_plain;
   }
+  SEND_STRING(&s->sout, ptr);
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
