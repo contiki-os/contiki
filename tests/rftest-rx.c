@@ -41,6 +41,11 @@ void main(void) {
 
 	print_welcome("rftest-rx");
 	while(1) {		
+
+		/* call check_maca() periodically --- this works around */
+		/* a few lockup conditions */
+		check_maca();
+
 		if((p = rx_packet())) {
 			/* print and free the packet */
 			printf("rftest-rx --- ");

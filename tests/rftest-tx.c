@@ -54,6 +54,10 @@ void main(void) {
 
 	while(1) {		
 	    		
+		/* call check_maca() periodically --- this works around */
+		/* a few lockup conditions */
+		check_maca();
+
 		p = get_free_packet();
 		if(p) {
 			fill_packet(p);
