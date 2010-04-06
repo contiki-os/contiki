@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.16 2010/04/06 11:49:47 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.17 2010/04/06 12:03:18 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -108,13 +108,13 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
   ptr = strrchr(s->filename, ISO_period);
   if(ptr == NULL) {
     ptr = http_content_type_plain;
-  } else if(strncmp(http_html, ptr, 5) == 0) {
+  } else if(strcmp(http_html, ptr) == 0) {
     ptr = http_content_type_html;
-  } else if(strncmp(http_css, ptr, 4) == 0) {
+  } else if(strcmp(http_css, ptr) == 0) {
     ptr = http_content_type_css;
-  } else if(strncmp(http_png, ptr, 4) == 0) {
+  } else if(strcmp(http_png, ptr) == 0) {
     ptr = http_content_type_png;
-  } else if(strncmp(http_jpg, ptr, 4) == 0) {
+  } else if(strcmp(http_jpg, ptr) == 0) {
     ptr = http_content_type_jpg;
   } else {
     ptr = http_content_type_binary;
