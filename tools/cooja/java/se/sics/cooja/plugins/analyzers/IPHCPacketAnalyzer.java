@@ -90,10 +90,10 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         verbose.append("<b>IPHC HC-06</b><br>");
         verbose.append("tf = " + tf + " nhc = " + nhc + " hlim = " + hlim
                 + " cid = " + cid + " sac = " + sac + " sam = " + sam
-                + " MCast = " + m + " dac = " + dac + " dam = " + dam + "<br>");
+                + " MCast = " + m + " dac = " + dac + " dam = " + dam);
         if (cid == 1) {
-            verbose.append("Contexts: sci=" + (packet.get(2) >> 4) + " dci="
-                    + (packet.get(2) & 0x0f) + "<br>");
+            verbose.append("<br>Contexts: sci=" + (packet.get(2) >> 4) + " dci="
+                    + (packet.get(2) & 0x0f));
             sci = packet.get(2) >> 4;
             dci = packet.get(2) & 0x0f;
         }
