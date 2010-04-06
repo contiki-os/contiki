@@ -102,7 +102,8 @@ _pfs_open:
 	ldy	#255
 	sty	ptr1
 @L10:	iny
-	bmi	error3	;too long...
+	cpy	#F_MAXLEN
+	bcs	error3	;too long...
 	ldx	#4
 @L12:	cmp	illchr,x
 	beq	error3	;illegal char?
