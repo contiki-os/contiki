@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timetable.c,v 1.3 2009/09/09 21:10:35 adamdunkels Exp $
+ * $Id: timetable.c,v 1.4 2010/04/06 19:10:21 anthony-a Exp $
  */
 
 /**
@@ -71,7 +71,11 @@ rtimer_clock_t
 timetable_timediff(struct timetable *t,
 		   const char *id1, const char *id2)
 {
+#ifdef SDCC_mcs51
+  char i; /* SDCC tracker 2982753 */
+#else
   int i;
+#endif
   int t1, t2;
   
   t1 = t2 = t->size;
