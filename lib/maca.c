@@ -33,6 +33,10 @@
 #define RECV_SOFTIMEOUT (32*128*CLK_PER_BYTE) 
 #endif
 
+#ifndef CPL_TIMEOUT
+#define CPL_TIMEOUT (32*128*CLK_PER_BYTE) 
+#endif
+
 #define reg(x) (*(volatile uint32_t *)(x))
 
 static volatile packet_t packet_pool[NUM_PACKETS];
@@ -47,6 +51,10 @@ volatile packet_t *rx_head, *tx_head;
 /* doesn't go back into the pool when freed */
 static volatile packet_t dummy_ack;
 
+/* incremented on every maca entry */
+/* you can use this to detect that the receive loop is still running */
+volatile uint32_t maca_entry = 0;
+
 enum posts {
 	NO_POST = 0,
 	TX_POST,
@@ -60,12 +68,55 @@ static volatile uint8_t last_post = NO_POST;
 
 volatile uint8_t fcs_mode = USE_FCS; 
 
+/* call periodically to */
+/* check that maca_entry is changing */
+/* if it is not, it will do a manual call to maca_isr which should */
+/* get the ball rolling again */
+/* also checks that the clock is running --- if it isn't then */
+/* it calls redoes the maca intialization but _DOES NOT_ free all packets */ 
+
+void check_maca(void) {
+	static volatile uint32_t last_time;
+	static volatile uint32_t last_entry;
+	volatile uint32_t i;
+
+	/* if *MACA_CLK == last_time */
+	/* try waiting for one clock period */
+	/* since maybe check_maca is getting called quickly */	
+	for(i=0; (i < 1024) && (*MACA_CLK == last_time); i++) { continue; }
+
+	if(*MACA_CLK == last_time) {
+		/* clock isn't running */
+		/* reinit maca */
+		reset_maca();
+		radio_init();
+		flyback_init();
+		init_phy();
+		*MACA_CONTROL = (1 << PRM) | (NO_CCA << MODE); 		
+		enable_irq(MACA);
+		maca_isr(); 
+	} else {
+		if((last_time > (*MACA_SFTCLK + RECV_SOFTIMEOUT)) &&
+		   (last_time > (*MACA_CPLCLK + CPL_TIMEOUT))) {
+			/* all complete clocks have expired */
+			/* check that maca entry is changing */
+			/* if not, do call the isr to restart the cycle */
+			if(last_entry == maca_entry) {
+				maca_isr();
+			}
+		}
+	}
+		
+	last_entry = maca_entry;
+	last_time = *MACA_CLK;
+}
+
 void maca_init(void) {
 	reset_maca();
 	radio_init();
 	flyback_init();
 	init_phy();
-	free_head = 0; rx_end = 0; tx_end = 0; dma_tx = 0; dma_rx = 0;
+	free_head = 0; tx_head = 0; rx_head = 0; rx_end = 0; tx_end = 0; dma_tx = 0; dma_rx = 0;
 	free_all_packets();
 	
 	/* initial radio command */
@@ -115,13 +166,42 @@ inline void bad_packet_bounds(void) {
 	while(1) { continue; }
 }
 
+int count_packets(void) {
+	volatile packet_t *pk;
+	volatile uint8_t tx, rx, free, total;
+
+	pk = tx_head; tx = 0;
+	while( pk != 0 ) {
+		tx++;
+		pk = pk->left;
+	}
+	pk = rx_head; rx = 0;
+	while( pk != 0 ) {
+		rx++;
+		pk = pk->left;
+	}
+	pk = free_head; free = 0;
+	while( pk != 0 ) {
+		free++;
+		pk = pk->left;
+	}
+
+	total = free + rx + tx;
+	if(dma_rx) { total++; }
+	if(dma_tx) { total++; }
+
+	return total;
+}	
+
 void bound_check(volatile packet_t *p) {
 	volatile int i;
+
 	if((p == 0) ||
 	   (p == &dummy_ack)) { return; }
 	for(i=0; i < NUM_PACKETS; i++) {
 		if(p == &packet_pool[i]) { return; }
 	}
+
 	bad_packet_bounds();
 }
 
@@ -228,7 +308,7 @@ void post_tx(void) {
 	/* and set the tx len */
 	disable_irq(MACA);
 	last_post = TX_POST;
-	dma_tx = tx_head; 	
+	dma_tx = tx_head; 
 	*MACA_TXLEN = (uint32_t)((dma_tx->length) + 2);
 	*MACA_DMATX = (uint32_t)&(dma_tx->data[ 0 + dma_tx->offset]);
 	if(dma_rx == 0) {
@@ -248,7 +328,7 @@ void post_tx(void) {
 	
         /* set complete clock to long value */
 	/* acts like a watchdog in case the MACA locks up */
-	*MACA_CPLCLK = *MACA_CLK + (CLK_PER_BYTE * 256);
+	*MACA_CPLCLK = *MACA_CLK + CPL_TIMEOUT;
 	/* enable complete clock */
 	*MACA_TMREN = (1 << maca_tmren_cpl);
 	
@@ -312,7 +392,7 @@ void free_tx_head(void) {
 	tx_head = tx_head->left;
 	if(tx_head == 0) { tx_end = 0; }
 	free_packet(p);
-
+	
 //	print_packets("free tx head");
 	irq_restore();
 	return;
@@ -409,6 +489,8 @@ void maca_isr(void) {
 
 //	print_packets("maca_isr");
 
+	maca_entry++;
+
 	if (bit_is_set(*MACA_STATUS, maca_status_ovr))
 	{ PRINTF("maca overrun\n\r"); }
 	if (bit_is_set(*MACA_STATUS, maca_status_busy))
@@ -446,6 +528,7 @@ void maca_isr(void) {
 		/* PRINTF("maca action complete %d\n\r", get_field(*MACA_CONTROL,SEQUENCE)); */
 		if(last_post == TX_POST) {
 			if(maca_tx_callback != 0) { maca_tx_callback(tx_head); }
+			dma_tx = 0;
 			free_tx_head();
 			last_post = NO_POST;
 		}

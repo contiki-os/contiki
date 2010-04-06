@@ -10,6 +10,9 @@ void maca_init(void);
 void maca_off(void);
 void maca_on(void);
 
+/* run periodically to make sure the maca is still doing right */
+void check_maca(void);
+
 /* maca configuration interface */
 void set_power(uint8_t power);
 void set_channel(uint8_t chan);
@@ -30,6 +33,7 @@ void free_packet(volatile packet_t *p);
 void free_all_packets(void);
 
 extern volatile packet_t *rx_head, *tx_head;
+extern volatile uint32_t maca_entry;
 
 extern void maca_rx_callback(volatile packet_t *p) __attribute__((weak));
 extern void maca_tx_callback(volatile packet_t *p) __attribute__((weak));
