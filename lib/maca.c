@@ -36,7 +36,7 @@
 #define reg(x) (*(volatile uint32_t *)(x))
 
 static volatile packet_t packet_pool[NUM_PACKETS];
-static volatile packet_t *free_head, *rx_end, *tx_end, *dma_tx, *dma_rx = 0;
+static volatile packet_t *free_head, *rx_end, *tx_end, *dma_tx, *dma_rx;
 
 /* rx_head and tx_head are visible to the outside */
 /* so you can peek at it and see if there is data */
@@ -65,6 +65,7 @@ void maca_init(void) {
 	radio_init();
 	flyback_init();
 	init_phy();
+	free_head = 0; rx_end = 0; tx_end = 0; dma_tx = 0; dma_rx = 0;
 	free_all_packets();
 	
 	/* initial radio command */
