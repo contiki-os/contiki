@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.15 2010/02/03 23:19:40 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.16 2010/04/06 11:49:47 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -99,7 +99,7 @@ PT_THREAD(send_string(struct httpd_state *s, const char *str))
 static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
-  char *ptr;
+  const char *ptr;
 
   PSOCK_BEGIN(&s->sout);
 
@@ -107,18 +107,19 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 
   ptr = strrchr(s->filename, ISO_period);
   if(ptr == NULL) {
-    SEND_STRING(&s->sout, http_content_type_plain);
+    ptr = http_content_type_plain;
   } else if(strncmp(http_html, ptr, 5) == 0) {
-    SEND_STRING(&s->sout, http_content_type_html);
+    ptr = http_content_type_html;
   } else if(strncmp(http_css, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_css);
+    ptr = http_content_type_css;
   } else if(strncmp(http_png, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_png);
+    ptr = http_content_type_png;
   } else if(strncmp(http_jpg, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_jpg);
+    ptr = http_content_type_jpg;
   } else {
-    SEND_STRING(&s->sout, http_content_type_binary);
+    ptr = http_content_type_binary;
   }
+  SEND_STRING(&s->sout, ptr);
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
