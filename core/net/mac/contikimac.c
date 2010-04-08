@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.31 2010/04/08 09:32:56 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.32 2010/04/08 18:23:24 adamdunkels Exp $
  */
 
 /**
@@ -335,7 +335,7 @@ powercycle(struct rtimer *t, void *ptr)
           }
           powercycle_turn_radio_off();
         }
-        schedule_powercycle(t, CCA_SLEEP_TIME);
+        schedule_powercycle_fixed(t, RTIMER_NOW() + CCA_SLEEP_TIME);
         /*        COOJA_DEBUG_STR("yield\n");*/
         PT_YIELD(&pt);
       }
