@@ -76,7 +76,7 @@ $(MC1322X)/src/src.a: $(MC1322X)/src/src.a($(SRCOBJS))
 
 %_$(BOARD).elf:	$(OBJDIR)/%.o $(START) $(ISR) $(SRCOBJS) $(LINKERSCRIPT) $(LIBMC1322X)/libmc1322x.a $(OBJDIR)/board.a $(MC1322X)/src/src.a
 	$(CC) $(LDFLAGS)  \
-	-L $(LIBMC1322X) -L $(MC1322X)/src -L $(OBJDIR)  $< -o $@ $(START) $(MC1322X)/src/src.a --start-group $(OBJDIR)/board.a $(LIBMC1322X)/libmc1322x.a --end-group
+	-L $(LIBMC1322X) -L $(MC1322X)/src -L $(OBJDIR) $< -o $@ $(START) $(MC1322X)/src/src.a --start-group $(OBJDIR)/board.a $(LIBMC1322X)/libmc1322x.a -lm --end-group
 
 %.srec:		%.elf
 		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@

@@ -2,6 +2,7 @@
 #include <board.h>
 
 #include <stdio.h>
+#include <math.h>
 
 #include "tests.h"
 #include "config.h"
@@ -11,7 +12,22 @@
 	printf(#x);				\
 	printf("): %d\n", sizeof(x));		\
 	} while(0)
-	       
+
+FILE *stderr;
+
+void __assert_fail(void) {
+	return;
+}
+	
+int fputs(const char *s, FILE *stream) {
+	return 0;
+}
+
+size_t fwrite(const void *ptr, size_t size, size_t nmemb,
+	      FILE *stream) {       
+	return 0;
+}
+
 int main(void)
 {
 	char *ptr = "Hello world!";
@@ -45,6 +61,9 @@ int main(void)
 	printf("%d %s(s)", 0, "message");
 	printf("\n");
 	printf("%d %s(s) with %%\n", 0, "message");
+
+	printf("sqrt(5) * 100  = %d\n", (int) (sqrt(5)*100));
+
 //	sprintf(buf, "justif: \"%-10s\"\n", "left"); printf("%s", buf);
 //	sprintf(buf, "justif: \"%10s\"\n", "right"); printf("%s", buf);
 //	sprintf(buf, " 3: %04d zero padded\n", 3); printf("%s", buf);

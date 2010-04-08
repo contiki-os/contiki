@@ -326,7 +326,7 @@ void usage(void)
 	printf(    "Options:\n");
 	printf(    "           -i|--index     specifiy which device to use (default 0)\n");
 	printf(    "           -v|--vendor    set vendor id (default 0x0403)\n");
-	printf(    "           -p|--prodcut   set vendor id (default 0x6010)\n");
+	printf(    "           -p|--product   set vendor id (default 0x6010)\n");
 }
 
 int print_and_prompt( struct ftdi_device_list *devlist ) 
