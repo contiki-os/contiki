@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.30 2010/04/06 11:57:43 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.31 2010/04/08 09:32:56 adamdunkels Exp $
  */
 
 /**
@@ -192,8 +192,13 @@ static volatile rtimer_clock_t stream_until;
 #define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
 
-static int last_received_seqno;
-static rimeaddr_t last_received_sender;
+struct seqno {
+  rimeaddr_t sender;
+  uint8_t seqno;
+};
+
+#define MAX_SEQNOS 8
+static struct seqno received_seqnos[MAX_SEQNOS];
 
 #if CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT
 static struct timer broadcast_rate_timer;
@@ -896,18 +901,26 @@ input_packet(void)
 #endif /* WITH_PHASE_OPTIMIZATION */
 
       /* Check for duplicate packet by comparing the sequence number
-         of the incoming packet with the last one we saw. */
-      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == last_received_seqno &&
-         rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                      &last_received_sender)) {
-        /* Drop the packet. */
-        /*        printf("Drop duplicate ContikiMAC layer packet\n");*/
-        return;
+         of the incoming packet with the last few ones we saw. */
+      {
+        int i;
+        for(i = 0; i < MAX_SEQNOS; ++i) {
+          if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno &&
+             rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                          &received_seqnos[i].sender)) {
+            /* Drop the packet. */
+            /*        printf("Drop duplicate ContikiMAC layer packet\n");*/
+            return;
+          }
+        }
+        for(i = MAX_SEQNOS - 1; i > 0; --i) {
+          memcpy(&received_seqnos[i], &received_seqnos[i - 1],
+                 sizeof(struct seqno));
+        }
+        received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+        rimeaddr_copy(&received_seqnos[0].sender,
+                      packetbuf_addr(PACKETBUF_ADDR_SENDER));
       }
-
-
-      last_received_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
-      rimeaddr_copy(&last_received_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER));
 
 #if CONTIKIMAC_CONF_COMPOWER
       /* Accumulate the power consumption for the packet reception. */
