@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: powertrace.c,v 1.4 2010/03/29 21:49:07 adamdunkels Exp $
+ * $Id: powertrace.c,v 1.5 2010/04/09 15:47:45 nvt-se Exp $
  */
 
 /**
@@ -40,6 +40,7 @@
 
 #include "contiki.h"
 #include "sys/compower.h"
+#include "node-id.h"
 #include "powertrace.h"
 #include "net/rime.h"
 
@@ -80,7 +81,7 @@ powertrace_print(char *str)
   
   printf("%s %lu P %d %lu %lu %lu %lu %lu %lu %lu (radio %d.%02d%% tx %d.%02d%% listen %d.%02d%%)\n",
          str,
-         clock_time(), rimeaddr_node_addr.u8[0], seqno++,
+         clock_time(), node_id, seqno++,
          cpu, lpm, transmit, listen, idle_transmit, idle_listen,
          (int)((100L * (transmit + listen)) / time),
          (int)((10000L * (transmit + listen) / time) - (100L * (transmit + listen) / time) * 100),
