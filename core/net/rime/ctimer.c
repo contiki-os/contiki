@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.c,v 1.7 2010/02/05 19:13:05 oliverschmidt Exp $
+ * $Id: ctimer.c,v 1.8 2010/04/09 16:21:07 nvt-se Exp $
  */
 
 /**
@@ -101,7 +101,7 @@ void
 ctimer_set(struct ctimer *c, clock_time_t t,
 	   void (*f)(void *), void *ptr)
 {
-  PRINTF("ctimer_set %p %d\n", c, t);
+  PRINTF("ctimer_set %p %u\n", c, (unsigned)t);
   c->p = PROCESS_CURRENT();
   c->f = f;
   c->ptr = ptr;
