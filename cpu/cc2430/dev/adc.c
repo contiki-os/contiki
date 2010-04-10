@@ -17,9 +17,10 @@
 #include "dev/adc.h"
 #include "dev/dma.h"
 
-
+#ifdef HAVE_DMA
 xDMAHandle adc_dma=0xff;
 unsigned int *adc_dma_dest;
+#endif
 
 /*---------------------------------------------------------------------------*/
 void adc_init(void) __banked
@@ -41,12 +42,14 @@ void adc_init(void) __banked
   /* power down 15MHz RC clock */
   SLEEP |= OSC_PD; 
   /* printf("pwr down hfrc\n",SLEEP);  */
+#ifdef HAVE_DMA
   /* preconfigure adc_dma before calling adc_init if a different dma type is desired. */
   if (adc_dma==0xff) {
     dma_init();
     /*  config DMA channel to copy results to single location */
     adc_dma=dma_config2(ADC_DMA_CONFIG_CHANNEL, &ADC_SHADOW, DMA_NOINC, adc_dma_dest, DMA_NOINC, 1, 1, DMA_VLEN_LEN, DMA_RPT, DMA_T_ADC_CHALL, 0);
   }
+#endif
 }
 /* single sample trigger */
 void adc_single_shot(void) __banked
