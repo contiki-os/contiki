@@ -52,8 +52,7 @@ extern void (* receiver_callback)(const struct radio_driver *);
 #define RF_TX_LED_ON()		
 #define RF_TX_LED_OFF()		
 #endif
-#include "dev/brione_lcd.h"
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
