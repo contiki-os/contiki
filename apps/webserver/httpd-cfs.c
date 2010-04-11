@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.21 2010/04/11 19:18:47 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.22 2010/04/11 20:54:39 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -50,7 +50,7 @@ int snprintf(char *str, size_t size, const char *format, ...);
 #include "httpd-cfs.h"
 
 #ifndef WEBSERVER_CONF_CFS_CONNS
-#define CONNS 4
+#define CONNS UIP_CONNS
 #else /* WEBSERVER_CONF_CFS_CONNS */
 #define CONNS WEBSERVER_CONF_CFS_CONNS
 #endif /* WEBSERVER_CONF_CFS_CONNS */

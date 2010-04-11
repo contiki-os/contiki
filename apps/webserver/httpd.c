@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.17 2010/04/06 20:41:42 oliverschmidt Exp $
+ * $Id: httpd.c,v 1.18 2010/04/11 20:54:39 oliverschmidt Exp $
  */
  
 #include <stdio.h>
@@ -47,7 +47,7 @@
 #include "httpd.h"
 
 #ifndef WEBSERVER_CONF_CGI_CONNS
-#define CONNS 4
+#define CONNS UIP_CONNS
 #else /* WEBSERVER_CONF_CGI_CONNS */
 #define CONNS WEBSERVER_CONF_CGI_CONNS
 #endif /* WEBSERVER_CONF_CGI_CONNS */
