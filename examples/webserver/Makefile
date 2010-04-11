@@ -12,7 +12,7 @@ APPS = webserver
 
 ifeq ($(HTTPD-CFS),1)
   override webserver_src = webserver-nogui.c http-strings.c psock.c memb.c \
-                           httpd-cfs.c
+                           httpd-cfs.c urlconv.c
 endif
 
 CONTIKI = ../..

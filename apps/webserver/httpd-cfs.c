@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.20 2010/04/11 15:19:34 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.21 2010/04/11 19:18:47 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -45,6 +45,7 @@ int snprintf(char *str, size_t size, const char *format, ...);
 #include "cfs/cfs.h"
 #include "lib/petsciiconv.h"
 #include "http-strings.h"
+#include "urlconv.h"
 
 #include "httpd-cfs.h"
 
@@ -53,6 +54,12 @@ int snprintf(char *str, size_t size, const char *format, ...);
 #else /* WEBSERVER_CONF_CFS_CONNS */
 #define CONNS WEBSERVER_CONF_CFS_CONNS
 #endif /* WEBSERVER_CONF_CFS_CONNS */
+
+#ifndef WEBSERVER_CONF_CFS_URLCONV
+#define URLCONV 1
+#else /* WEBSERVER_CONF_CFS_URLCONV */
+#define URLCONV WEBSERVER_CONF_CFS_URLCONV
+#endif /* WEBSERVER_CONF_CFS_URLCONV */
 
 #define STATE_WAITING 0
 #define STATE_OUTPUT  1
@@ -174,12 +181,17 @@ PT_THREAD(handle_input(struct httpd_state *s))
     PSOCK_CLOSE_EXIT(&s->sin);
   }
 
+#if URLCONV
+  s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
+  urlconv_tofilename(s->filename, s->inputbuf, sizeof(s->filename));
+#else /* URLCONV */
   if(s->inputbuf[1] == ISO_space) {
     strncpy(s->filename, http_index_html, sizeof(s->filename));
   } else {
     s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
     strncpy(s->filename, s->inputbuf, sizeof(s->filename));
   }
+#endif /* URLCONV */
 
   petsciiconv_topetscii(s->filename, sizeof(s->filename));
   webserver_log_file(&uip_conn->ripaddr, s->filename);
