@@ -37,6 +37,10 @@ MTU_SIZE
 - Default: 1500
 - Purpose: Set the Maximum Transfer Unit size.
 
+CONNECTIONS
+- Default: 10
+- Purpose: Set the maximum number of concurrent TCP connections.
+
 WITH_LOGGING
 - Default: 0
 - Purpose: Have log_message() and UIP_LOG() write messages to the screen.
