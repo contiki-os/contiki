@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.19 2010/04/11 12:29:07 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.20 2010/04/11 15:19:34 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -131,11 +131,11 @@ PT_THREAD(handle_output(struct httpd_state *s))
   PT_BEGIN(&s->outputpt);
 
   petsciiconv_topetscii(s->filename, sizeof(s->filename));
-  s->fd = cfs_open(s->filename, CFS_READ);
+  s->fd = cfs_open(&s->filename[1], CFS_READ);
   petsciiconv_toascii(s->filename, sizeof(s->filename));
   if(s->fd < 0) {
-    strcpy(s->filename, "notfound.html");
-    s->fd = cfs_open(s->filename, CFS_READ);
+    strcpy(s->filename, "/notfound.html");
+    s->fd = cfs_open(&s->filename[1], CFS_READ);
     petsciiconv_toascii(s->filename, sizeof(s->filename));
     PT_WAIT_THREAD(&s->outputpt,
                    send_headers(s, http_header_404));
@@ -175,10 +175,10 @@ PT_THREAD(handle_input(struct httpd_state *s))
   }
 
   if(s->inputbuf[1] == ISO_space) {
-    strncpy(s->filename, &http_index_html[1], sizeof(s->filename));
+    strncpy(s->filename, http_index_html, sizeof(s->filename));
   } else {
     s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
-    strncpy(s->filename, &s->inputbuf[1], sizeof(s->filename));
+    strncpy(s->filename, s->inputbuf, sizeof(s->filename));
   }
 
   petsciiconv_topetscii(s->filename, sizeof(s->filename));
