@@ -28,8 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: urlconv.h,v 1.1 2010/04/11 19:18:47 oliverschmidt Exp $
- *
+ * $Id: urlconv.h,v 1.2 2010/04/11 20:16:56 oliverschmidt Exp $
  */
 
 #ifndef __URLCONV_H__
