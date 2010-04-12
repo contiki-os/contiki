@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.c,v 1.8 2010/03/18 14:25:54 nvt-se Exp $
+ * $Id: deluge.c,v 1.9 2010/04/12 14:39:52 nvt-se Exp $
  */
 
 /**
@@ -63,11 +63,7 @@
 #define DEBUG	0
 #if DEBUG
 #include <stdio.h>
-#define PRINTF(...)                             \
-  do {                                          \
-    printf("[Node %02u] ", (unsigned) node_id); \
-    printf(__VA_ARGS__);                        \
-  } while(0)
+#define PRINTF(...)	printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
@@ -101,10 +97,6 @@ static unsigned next_object_id;
 static const struct broadcast_callbacks broadcast_call = {broadcast_recv, NULL};
 static const struct unicast_callbacks unicast_call = {unicast_recv, NULL};
 
-#if ENERGEST_CONF_ON
-static long cpu_start_time, tx_start_time, listen_start_time;
-#endif
-
 #if NETSIM
 static char label[128];
 #endif
@@ -125,20 +117,21 @@ checksum(unsigned char *buf, unsigned len)
 static void
 transition(int state)
 {
-  switch(deluge_state) {
-  case DELUGE_STATE_MAINTAIN:
-    ctimer_stop(&summary_timer);
-    ctimer_stop(&profile_timer);
-    break;
-  case DELUGE_STATE_RX:
-    ctimer_stop(&rx_timer);
-    break;
-  case DELUGE_STATE_TX:
-    ctimer_stop(&tx_timer);
-    break;
+  if(state != deluge_state) {
+    switch(deluge_state) {
+    case DELUGE_STATE_MAINTAIN:
+      ctimer_stop(&summary_timer);
+      ctimer_stop(&profile_timer);
+      break;
+    case DELUGE_STATE_RX:
+      ctimer_stop(&rx_timer);
+      break;
+    case DELUGE_STATE_TX:
+      ctimer_stop(&tx_timer);
+      break;
+    }
+    deluge_state = state;
   }
-
-  deluge_state = state;
 }
 
 static int
@@ -318,7 +311,7 @@ handle_summary(struct deluge_msg_summary *msg, const rimeaddr_t *sender)
 
   /* Deluge M.5 */
   if(msg->version == current_object.update_version &&
-      msg->highest_available > highest_available) {
+     msg->highest_available > highest_available) {
     if(msg->highest_available > OBJECT_PAGE_COUNT(current_object)) {
       PRINTF("Error: highest available is above object page count!\n");
       return;
@@ -327,10 +320,12 @@ handle_summary(struct deluge_msg_summary *msg, const rimeaddr_t *sender)
     oldest_request = oldest_data = now = clock_time();
     for(i = 0; i < msg->highest_available; i++) {
       page = &current_object.pages[i];
-      if(page->last_request < oldest_request)
+      if(page->last_request < oldest_request) {
 	oldest_request = page->last_request;
-      if(page->last_request < oldest_data)
+      }
+      if(page->last_request < oldest_data) {
 	oldest_data = page->last_data;
+      }
     }
 
     if(((now - oldest_request) / CLOCK_SECOND) <= 2 * r_interval ||
@@ -340,9 +335,12 @@ handle_summary(struct deluge_msg_summary *msg, const rimeaddr_t *sender)
 
     rimeaddr_copy(&current_object.summary_from, sender);
     transition(DELUGE_STATE_RX);
-    ctimer_set(&rx_timer,
-	CONST_OMEGA * ESTIMATED_TX_TIME + (random_rand() % T_R),
+
+    if(ctimer_expired(&rx_timer)) {
+      ctimer_set(&rx_timer,
+	CONST_OMEGA * ESTIMATED_TX_TIME + ((unsigned)random_rand() % T_R),
 	send_request, &current_object);
+    }
   }
 }
 
@@ -431,72 +429,55 @@ handle_packet(struct deluge_msg_packet *msg)
 {
   struct deluge_page *page;
   uint16_t crc;
-#if ENERGEST_CONF_ON
-  long cpu_time, listen_time, tx_time;
-#endif
+  struct deluge_msg_packet packet;
+
+  memcpy(&packet, msg, sizeof(packet));
 
   PRINTF("Incoming packet for object id %u, version %u, page %u, packet num %u!\n",
-	(unsigned) msg->object_id, (unsigned) msg->version,
-	(unsigned) msg->pagenum, (unsigned) msg->packetnum);
+	(unsigned)packet.object_id, (unsigned)packet.version,
+	(unsigned)packet.pagenum, (unsigned)packet.packetnum);
 
-  if(msg->pagenum != current_object.current_rx_page) {
+  if(packet.pagenum != current_object.current_rx_page) {
     return;
   }
 
-  if(msg->version != current_object.version) {
+  if(packet.version != current_object.version) {
     neighbor_inconsistency = 1;
   }
 
-  page = &current_object.pages[msg->pagenum];
-  if(msg->version == page->version && !(page->flags & PAGE_COMPLETE)) {
-    memcpy(&current_object.current_page[S_PKT * msg->packetnum],
-	msg->payload, S_PKT);
+  page = &current_object.pages[packet.pagenum];
+  if(packet.version == page->version && !(page->flags & PAGE_COMPLETE)) {
+    memcpy(&current_object.current_page[S_PKT * packet.packetnum],
+	packet.payload, S_PKT);
 
-    crc = checksum(msg->payload, S_PKT);
-    if(msg->crc != crc) {
-      PRINTF("packet crc: %hu, calculated crc: %hu\n", msg->crc, crc);
+    crc = checksum(packet.payload, S_PKT);
+    if(packet.crc != crc) {
+      PRINTF("packet crc: %hu, calculated crc: %hu\n", packet.crc, crc);
       return;
     }
 
     page->last_data = clock_time();
-    page->packet_set |= (1 << msg->packetnum);
-
-#if NETSIM
-#define RX_FRACTION					\
-	(float) (current_object.current_rx_page + 1) /	\
-		OBJECT_PAGE_COUNT(current_object)
-      snprintf(label, sizeof (label), "v:%u %u%%", msg->version, 
-	(unsigned) (100 * RX_FRACTION));
-      ether_set_text(label);
-#endif
+    page->packet_set |= (1 << packet.packetnum);
 
     if(page->packet_set == ALL_PACKETS) {
-      write_page(&current_object, msg->pagenum, current_object.current_page);
-      page->version = msg->version;
+      write_page(&current_object, packet.pagenum, current_object.current_page);
+      page->version = packet.version;
       page->flags = PAGE_COMPLETE;
-      PRINTF("Page %u completed\n", msg->pagenum);
+      PRINTF("Page %u completed\n", packet.pagenum);
 
       current_object.current_rx_page++;
 
-      if(msg->pagenum == OBJECT_PAGE_COUNT(current_object) - 1) {
+      if(packet.pagenum == OBJECT_PAGE_COUNT(current_object) - 1) {
 	current_object.version = current_object.update_version;
 	leds_on(LEDS_RED);
 	PRINTF("Update completed for object %u, version %u\n", 
-		current_object.object_id, msg->version);
-#if ENERGEST_CONF_ON
-	cpu_time = energest_type_time(ENERGEST_TYPE_CPU) - cpu_start_time;
-	tx_time = energest_type_time(ENERGEST_TYPE_TRANSMIT) - tx_start_time;
-	listen_time = energest_type_time(ENERGEST_TYPE_LISTEN) - listen_start_time;
-	PRINTF("Time estimation: CPU %ld, TX %ld, Listen %ld\n", 
-		cpu_time, tx_time, listen_time);
-	PRINTF("Energy: %lumJ\n",
-		(unsigned long) ((1.8 * cpu_time + 20.0 * listen_time + 
-		17.7 * tx_time) * 3 / RTIMER_SECOND));
-#endif
+		current_object.object_id, packet.version);
       } else if(current_object.current_rx_page < OBJECT_PAGE_COUNT(current_object)) {
-	ctimer_set(&rx_timer,
+        if(ctimer_expired(&rx_timer)) {
+	  ctimer_set(&rx_timer,
 		CONST_OMEGA * ESTIMATED_TX_TIME + (random_rand() % T_R),
 		send_request, &current_object);
+	}
       }
       /* Deluge R.3 */
       transition(DELUGE_STATE_MAINTAIN);
@@ -562,12 +543,6 @@ handle_profile(struct deluge_msg_profile *msg)
     return;
   }
 
-#ifdef ENERGEST_CONF_ON
-  cpu_start_time = energest_type_time(ENERGEST_TYPE_CPU);
-  tx_start_time = energest_type_time(ENERGEST_TYPE_TRANSMIT);
-  listen_start_time = energest_type_time(ENERGEST_TYPE_LISTEN);
-#endif
-
   PRINTF("Received profile of version %u with a vector of %u pages.\n",
 	msg->version, msg->npages);
 
@@ -609,7 +584,7 @@ handle_profile(struct deluge_msg_profile *msg)
   transition(DELUGE_STATE_RX);
 
   ctimer_set(&rx_timer,
-	CONST_OMEGA * ESTIMATED_TX_TIME + (random_rand() % T_R),
+	CONST_OMEGA * ESTIMATED_TX_TIME + ((unsigned)random_rand() % T_R),
 	send_request, obj);
 }
 
@@ -664,7 +639,7 @@ PROCESS_THREAD(deluge_process, ev, data)
 {
   static struct etimer et;
   static unsigned time_counter;
-  static int r_rand;
+  static unsigned r_rand;
 
   PROCESS_EXITHANDLER(goto exit);
 
@@ -691,7 +666,7 @@ PROCESS_THREAD(deluge_process, ev, data)
       r_interval = (2 * r_interval >= T_HIGH) ? T_HIGH : 2 * r_interval;
     }
 
-    r_rand = r_interval / 2 + (random_rand() % (r_interval / 2));
+    r_rand = r_interval / 2 + ((unsigned)random_rand() % (r_interval / 2));
     recv_adv = 0;
     old_summary = 0;
 
