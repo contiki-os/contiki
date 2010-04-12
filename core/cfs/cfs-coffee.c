@@ -60,6 +60,16 @@
 #define COFFEE_WATCHDOG_STOP()
 #endif
 
+#ifndef COFFEE_CONF_APPEND_ONLY
+#define COFFEE_APPEND_ONLY	0
+#else
+#define COFFEE_APPEND_ONLY	COFFEE_CONF_APPEND_ONLY
+#if COFFEE_MICRO_LOGS
+#error "Cannot have COFFEE_APPEND_ONLY when COFFEE_MICRO_LOGS is set."
+#endif
+#define COFFEE_MICRO_LOGS	0
+#endif
+
 #if COFFEE_START & (COFFEE_SECTOR_SIZE - 1)
 #error COFFEE_START must point to the first byte in a sector.
 #endif
@@ -1177,6 +1187,11 @@ cfs_write(int fd, const void *buf, unsigned size)
     }
   } else {
 #endif /* COFFEE_MICRO_LOGS */
+#if COFFEE_APPEND_ONLY
+   if(fdp->offset < file->end) {
+     return -1;
+   }
+#endif /* COFFEE_APPEND_ONLY */
     COFFEE_WRITE(buf, size, absolute_offset(file->page, fdp->offset));
     fdp->offset += size;
 #if COFFEE_MICRO_LOGS
