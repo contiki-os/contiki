@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2001, Adam Dunkels.
- * Copyright (c) 2009, Joakim Eriksson, Niclas Finne.
+ * Copyright (c) 2009, 2010 Joakim Eriksson, Niclas Finne.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip6.c,v 1.1 2010/04/02 18:17:20 joxe Exp $
+ * $Id: tunslip6.c,v 1.2 2010/04/16 12:39:46 joxe Exp $
  *
  */
 
@@ -363,7 +363,7 @@ devopen(const char *dev, int flags)
 #include <linux/if_tun.h>
 
 int
-tun_alloc(char *dev)
+tun_alloc(char *dev, int tap)
 {
   struct ifreq ifr;
   int fd, err;
@@ -378,7 +378,7 @@ tun_alloc(char *dev)
    *
    *        IFF_NO_PI - Do not provide packet information
    */
-  ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
+  ifr.ifr_flags = (tap ? IFF_TAP : IFF_TUN) | IFF_NO_PI;
   if(*dev != 0)
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
@@ -391,7 +391,7 @@ tun_alloc(char *dev)
 }
 #else
 int
-tun_alloc(char *dev)
+tun_alloc(char *dev, int tap)
 {
   return devopen(dev, O_RDWR);
 }
@@ -406,7 +406,6 @@ cleanup(void)
   ssystem("ifconfig %s down", tundev);
 #ifndef linux
   ssystem("sysctl -w net.ipv6.conf.all.forwarding=1");
-Adam Dunkels.
 #endif
   /* ssystem("arp -d %s", ipaddr); */
   ssystem("netstat -nr"
@@ -467,10 +466,11 @@ main(int argc, char **argv)
   FILE *inslip;
   const char *siodev = NULL;
   int baudrate = -2;
+  int tap = 0;
 
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:D:hs:t:v:")) != -1) {
+  while((c = getopt(argc, argv, "B:D:hs:t:v:T")) != -1) {
     switch (c) {
     case 'B':
       baudrate = atoi(optarg);
@@ -494,10 +494,14 @@ main(int argc, char **argv)
     case 'v':
       verbose = 1;
       break;
+    case 'T':
+      printf("TAP");
+      tap = 1;
+      break;
     case '?':
     case 'h':
     default:
-      err(1, "usage: tunslip6 [-B baudrate] [-s siodev] [-t tundev] ipaddress");
+      err(1, "usage: tunslip6 [-B baudrate] [-s siodev] [-t tundev] [-T] ipaddress");
       break;
     }
   }
@@ -505,7 +509,7 @@ main(int argc, char **argv)
   argv += (optind - 1);
 
   if(argc != 2 && argc != 3) {
-    err(1, "usage: tunslip6  [-B baudrate] [-s siodev] [-t tundev] ipaddress ");
+    err(1, "usage: tunslip6  [-B baudrate] [-s siodev] [-t tundev] [-T] ipaddress ");
   }
   ipaddr = argv[1];
 
@@ -559,7 +563,7 @@ main(int argc, char **argv)
   inslip = fdopen(slipfd, "r");
   if(inslip == NULL) err(1, "main: fdopen");
 
-  tunfd = tun_alloc(tundev);
+  tunfd = tun_alloc(tundev, tap);
   if(tunfd == -1) err(1, "main: open");
   fprintf(stderr, "opened device ``/dev/%s''\n", tundev);
 
