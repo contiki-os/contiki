@@ -82,13 +82,14 @@ static void
 print_local_addresses(void)
 {
   int i;
-  uip_netif_state state;
+  uint8_t state;
 
   PRINTF("Client IPv6 addresses: ");
   for(i = 0; i < UIP_CONF_NETIF_MAX_ADDRESSES; i++) {
-    state = uip_netif_physical_if.addresses[i].state;           
-    if(state == TENTATIVE || state == PREFERRED) {
-      PRINT6ADDR(&uip_netif_physical_if.addresses[i].ipaddr);
+    state = uip_ds6_if.addr_list[i].state;
+    if(uip_ds6_if.addr_list[i].isused &&
+       (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
+      PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
       PRINTF("\n");
     }
   }
@@ -100,7 +101,8 @@ set_global_address(void)
   uip_ipaddr_t ipaddr;
 
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_netif_addr_add(&ipaddr, 64, 0, AUTOCONF);
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 }
 /*---------------------------------------------------------------------------*/
 static void
