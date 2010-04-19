@@ -22,7 +22,7 @@ endif
 APPS += webserver
 include $(CONTIKI)/apps/webserver/Makefile.webserver
 ifndef PLATFORM_BUILD
-  override webserver_src = http-strings.c psock.c memb.c httpd-cfs.c webserver-nogui.c
+  override webserver_src = http-strings.c psock.c memb.c httpd-cfs.c urlconv.c webserver-nogui.c
 endif
 
 APPS += irc
