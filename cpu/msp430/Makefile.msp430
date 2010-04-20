@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.31 2009/11/19 17:33:05 nifi Exp $
+# $Id: Makefile.msp430,v 1.32 2010/04/20 15:38:09 nifi Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -67,6 +67,9 @@ PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 
 %.mspsim:	%.${TARGET}
 	java -jar ${CONTIKI}/tools/mspsim/mspsim.jar -platform=${TARGET} $<
+
+mspsim-maptable:	contiki-${TARGET}.map
+	java -classpath ${CONTIKI}/tools/mspsim/mspsim.jar se.sics.mspsim.util.MapTable $<
 
 core-labels.o: core.${TARGET}
 	${CONTIKI}/tools/msp430-make-labels core.${TARGET} > core-labels.S
