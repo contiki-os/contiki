@@ -84,7 +84,7 @@ print_local_addresses(void)
   uint8_t state;
 
   PRINTF("Server IPv6 addresses: ");
-  for(i = 0; i < UIP_CONF_NETIF_MAX_ADDRESSES; i++) {
+  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
@@ -96,7 +96,9 @@ print_local_addresses(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(udp_server_process, ev, data)
 {
+#if UIP_CONF_ROUTER
   uip_ipaddr_t ipaddr;
+#endif /* UIP_CONF_ROUTER */
 
   PROCESS_BEGIN();
   PRINTF("UDP server started\n");
