@@ -85,7 +85,7 @@ print_local_addresses(void)
   uint8_t state;
 
   PRINTF("Client IPv6 addresses: ");
-  for(i = 0; i < UIP_CONF_NETIF_MAX_ADDRESSES; i++) {
+  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
@@ -95,6 +95,7 @@ print_local_addresses(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+#if UIP_CONF_ROUTER
 static void
 set_global_address(void)
 {
@@ -104,6 +105,7 @@ set_global_address(void)
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 }
+#endif /* UIP_CONF_ROUTER */
 /*---------------------------------------------------------------------------*/
 static void
 set_connection_address(uip_ipaddr_t *ipaddr)
