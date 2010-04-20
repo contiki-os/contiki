@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.51 2010/04/08 18:23:24 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.52 2010/04/20 11:41:16 nifi Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -86,6 +86,17 @@
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...) do {} while (0)
+#endif
+
+#define DEBUG_LEDS DEBUG
+#undef LEDS_ON
+#undef LEDS_OFF
+#if DEBUG_LEDS
+#define LEDS_ON(x) leds_on(x)
+#define LEDS_OFF(x) leds_off(x)
+#else
+#define LEDS_ON(x)
+#define LEDS_OFF(x)
 #endif
 
 void cc2420_arch_init(void);
@@ -190,7 +201,7 @@ on(void)
   strobe(CC2420_SRXON);
   while(!(status() & (BV(CC2420_XOSC16M_STABLE))));
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-  leds_on(LEDS_GREEN);
+  LEDS_ON(LEDS_GREEN);
 }
 static void
 off(void)
@@ -204,7 +215,7 @@ off(void)
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   strobe(CC2420_SRFOFF);
   DISABLE_FIFOP_INT();
-  leds_off(LEDS_GREEN);
+  LEDS_OFF(LEDS_GREEN);
 
   if(!FIFOP_IS_1) {
     flushrx();
@@ -219,7 +230,7 @@ static void RELEASE_LOCK(void) {
       lock_on = 0;
     }
     if(lock_off) {
-      leds_off(LEDS_BLUE);
+      LEDS_OFF(LEDS_BLUE);
       off();
       lock_off = 0;
     }
@@ -471,7 +482,7 @@ cc2420_off(void)
      radio should be turned off when the lock is unlocked. */
   if(locked) {
     /*    printf("Off when locked (%d)\n", locked);*/
-    leds_on(LEDS_GREEN + LEDS_BLUE);
+    LEDS_ON(LEDS_GREEN + LEDS_BLUE);
     lock_off = 1;
     return 1;
   }
@@ -497,7 +508,7 @@ cc2420_on(void)
     return 1;
   }
   if(locked) {
-    leds_on(LEDS_GREEN + LEDS_RED);
+    LEDS_ON(LEDS_GREEN + LEDS_RED);
     lock_on = 1;
     return 1;
   }
