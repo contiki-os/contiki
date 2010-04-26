@@ -90,6 +90,7 @@ The COOJA Simulator
     <ant antfile="build.xml" dir="apps/mrm" target="clean" inheritAll="false"/>
     <ant antfile="build.xml" dir="apps/mspsim" target="clean" inheritAll="false"/>
     <ant antfile="build.xml" dir="apps/avrora" target="clean" inheritAll="false"/>
+    <ant antfile="build.xml" dir="apps/serial_socket" target="clean" inheritAll="false"/>
   </target>
 
   <target name="run" depends="init, compile, jar, copy configs">
@@ -161,6 +162,7 @@ The COOJA Simulator
     <ant antfile="build.xml" dir="apps/mrm" target="jar" inheritAll="false"/>
     <ant antfile="build.xml" dir="apps/mspsim" target="jar" inheritAll="false"/>
     <ant antfile="build.xml" dir="apps/avrora" target="jar" inheritAll="false"/>
+    <ant antfile="build.xml" dir="apps/serial_socket" target="jar" inheritAll="false"/>
   </target>
 
   <target name="run_nogui" depends="init, compile, jar, copy configs">
