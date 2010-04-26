@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.167 2010/03/19 15:04:51 fros4943 Exp $
+ * $Id: GUI.java,v 1.168 2010/04/26 08:19:32 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3481,9 +3481,11 @@ public class GUI extends Observable {
         pluginSubElement.setText("" + pluginFrame.getLocation().y);
         pluginElement.addContent(pluginSubElement);
 
-        pluginSubElement = new Element("minimized");
-        pluginSubElement.setText(new Boolean(pluginFrame.isIcon()).toString());
-        pluginElement.addContent(pluginSubElement);
+        if (pluginFrame.isIcon()) {
+          pluginSubElement = new Element("minimized");
+          pluginSubElement.setText("" + true);
+          pluginElement.addContent(pluginSubElement);
+        }
       }
 
       config.add(pluginElement);
@@ -3615,9 +3617,18 @@ public class GUI extends Observable {
                 location.y = Integer.parseInt(pluginSubElement.getText());
                 startedPlugin.getGUI().setLocation(location);
               } else if (pluginSubElement.getName().equals("minimized")) {
-                try {
-                  startedPlugin.getGUI().setIcon(Boolean.parseBoolean(pluginSubElement.getText()));
-                } catch (PropertyVetoException e) { }
+                boolean minimized = Boolean.parseBoolean(pluginSubElement.getText());
+                final JInternalFrame pluginGUI = startedPlugin.getGUI();
+                if (minimized && pluginGUI != null) {
+                  SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                      try {
+                        pluginGUI.setIcon(true);
+                      } catch (PropertyVetoException e) {
+                      }
+                    };                    
+                  });
+                }
               }
             }
 
