@@ -70,7 +70,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.h,v 1.3 2008/01/24 13:09:33 adamdunkels Exp $
+ * @(#)$Id: elfloader.h,v 1.4 2010/04/26 14:02:07 fros4943 Exp $
  */
 #ifndef __ELFLOADER_H__
 #define __ELFLOADER_H__
@@ -159,17 +159,21 @@ extern struct process * const * elfloader_autostart_processes;
  */
 extern char elfloader_unknown[30];
 
+#ifndef ELFLOADER_DATAMEMORY_SIZE
 #ifdef ELFLOADER_CONF_DATAMEMORY_SIZE
 #define ELFLOADER_DATAMEMORY_SIZE ELFLOADER_CONF_DATAMEMORY_SIZE
 #else
 #define ELFLOADER_DATAMEMORY_SIZE 0x100
 #endif
+#endif /* ELFLOADER_DATAMEMORY_SIZE */
 
+#ifndef ELFLOADER_TEXTMEMORY_SIZE
 #ifdef ELFLOADER_CONF_TEXTMEMORY_SIZE
 #define ELFLOADER_TEXTMEMORY_SIZE ELFLOADER_CONF_TEXTMEMORY_SIZE
 #else
 #define ELFLOADER_TEXTMEMORY_SIZE 0x100
 #endif
+#endif /* ELFLOADER_TEXTMEMORY_SIZE */
 
 typedef unsigned long  elf32_word;
 typedef   signed long  elf32_sword;
