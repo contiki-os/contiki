@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.33 2010/04/20 11:41:16 nifi Exp $
+ * $Id: contikimac.c,v 1.34 2010/04/26 17:46:21 nifi Exp $
  */
 
 /**
@@ -69,6 +69,9 @@
 #ifndef WITH_STREAMING
 #define WITH_STREAMING               1
 #endif
+#ifndef WITH_CONTIKIMAC_HEADER
+#define WITH_CONTIKIMAC_HEADER       1
+#endif
 
 struct announcement_data {
   uint16_t id;
@@ -78,6 +81,15 @@ struct announcement_data {
 /* The maximum number of announcements in a single announcement
    message - may need to be increased in the future. */
 #define ANNOUNCEMENT_MAX 10
+
+#if WITH_CONTIKIMAC_HEADER
+#define CONTIKIMAC_ID 0x00
+
+struct hdr {
+  uint8_t id;
+  uint8_t len;
+};
+#endif /* WITH_CONTIKIMAC_HEADER */
 
 /* The structure of the announcement messages. */
 struct announcement_msg {
@@ -550,6 +562,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   int transmit_len;
   int i;
   int ret;
+#if WITH_CONTIKIMAC_HEADER
+  struct hdr *chdr;
+#endif /* WITH_CONTIKIMAC_HEADER */
 
   if(packetbuf_totlen() == 0) {
     PRINTF("contikimac: send_packet data len 0\n");
@@ -606,6 +621,28 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   if(is_streaming) {
     packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 1);
   }
+
+#if WITH_CONTIKIMAC_HEADER
+  hdrlen = packetbuf_totlen();
+  if(packetbuf_hdralloc(sizeof(struct hdr)) == 0) {
+    /* Failed to allocate space for contikimac header */
+    PRINTF("contikimac: send failed, too large header\n");
+    return MAC_TX_ERR_FATAL;
+  }
+  chdr = packetbuf_hdrptr();
+  chdr->id = CONTIKIMAC_ID;
+  chdr->len = hdrlen;
+
+  /* Create the MAC header for the data packet. */
+  hdrlen = NETSTACK_FRAMER.create();
+  if(hdrlen == 0) {
+    /* Failed to send */
+    PRINTF("contikimac: send failed, too large header\n");
+    packetbuf_hdr_remove(sizeof(struct hdr));
+    return MAC_TX_ERR_FATAL;
+  }
+  hdrlen += sizeof(struct hdr);
+#else /* WITH_CONTIKIMAC_HEADER */
   /* Create the MAC header for the data packet. */
   hdrlen = NETSTACK_FRAMER.create();
   if(hdrlen == 0) {
@@ -613,19 +650,27 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     PRINTF("contikimac: send failed, too large header\n");
     return MAC_TX_ERR_FATAL;
   }
+#endif /* WITH_CONTIKIMAC_HEADER */
 
-  /* Make sure that the packet is longer or equal to the shorest
+  /* Make sure that the packet is longer or equal to the shortest
      packet length. */
-  if(packetbuf_totlen() < SHORTEST_PACKET_SIZE) {
+  transmit_len = packetbuf_totlen();
+  if(transmit_len < SHORTEST_PACKET_SIZE) {
+#if 0
+    /* Pad with zeroes */
+    uint8_t *ptr;
+    ptr = packetbuf_dataptr();
+    memset(ptr + packetbuf_datalen(), 0, SHORTEST_PACKET_SIZE - packetbuf_totlen());
+#endif
+
     PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
-    packetbuf_set_datalen(SHORTEST_PACKET_SIZE);
+    transmit_len = SHORTEST_PACKET_SIZE;
   }
 
 
   packetbuf_compact();
 
-  NETSTACK_RADIO.prepare(packetbuf_hdrptr(), packetbuf_totlen());
-  transmit_len = packetbuf_totlen();
+  NETSTACK_RADIO.prepare(packetbuf_hdrptr(), transmit_len);
 
   /* Remove the MAC-layer header since it will be recreated next time around. */
   packetbuf_hdr_remove(hdrlen);
@@ -880,7 +925,19 @@ input_packet(void)
   
   
   if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse()) {
-    
+
+#if WITH_CONTIKIMAC_HEADER
+    struct hdr *chdr;
+    int len;
+    chdr = packetbuf_dataptr();
+    if(chdr->id != CONTIKIMAC_ID) {
+      PRINTF("contikimac: failed to parse hdr (%u)\n", packetbuf_totlen());
+      return;
+    }
+    packetbuf_hdrreduce(sizeof(struct hdr));
+    packetbuf_set_datalen(chdr->len);
+#endif /* WITH_CONTIKIMAC_HEADER */
+
     if(packetbuf_datalen() > 0 &&
        packetbuf_totlen() > 0 &&
        (rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
@@ -963,6 +1020,10 @@ static void
 send_announcement(void *ptr)
 {
   int announcement_len;
+  int transmit_len;
+#if WITH_CONTIKIMAC_HEADER
+  struct hdr *chdr
+#endif /* WITH_CONTIKIMAC_HEADER */
 
   /* Set up the probe header. */
   packetbuf_clear();
@@ -975,6 +1036,18 @@ send_announcement(void *ptr)
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
     packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER,
                        announcement_radio_txpower);
+#if WITH_CONTIKIMAC_HEADER
+    transmit_len = packetbuf_totlen();
+    if(packetbuf_hdralloc(sizeof(struct hdr)) == 0) {
+      /* Failed to allocate space for contikimac header */
+      PRINTF("contikimac: send announcement failed, too large header\n");
+      return;
+    }
+    chdr = packetbuf_hdrptr();
+    chdr->id = CONTIKIMAC_ID;
+    chdr->len = transmit_len;
+#endif /* WITH_CONTIKIMAC_HEADER */
+
     if(NETSTACK_FRAMER.create()) {
       rtimer_clock_t t;
       int i, collisions;
@@ -982,9 +1055,17 @@ send_announcement(void *ptr)
 
       /* Make sure that the packet is longer or equal to the shorest
          packet length. */
-      if(packetbuf_totlen() < SHORTEST_PACKET_SIZE) {
+      transmit_len = packetbuf_totlen();
+      if(transmit_len < SHORTEST_PACKET_SIZE) {
+#if 0
+        /* Pad with zeroes */
+        uint8_t *ptr;
+        ptr = packetbuf_dataptr();
+        memset(ptr + packetbuf_datalen(), 0, SHORTEST_PACKET_SIZE - packetbuf_totlen());
+#endif
+
         PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
-        packetbuf_set_datalen(SHORTEST_PACKET_SIZE);
+        transmit_len = packetbuf_totlen() + (SHORTEST_PACKET_SIZE - packetbuf_totlen());
       }
 
       collisions = 0;
@@ -1012,16 +1093,16 @@ send_announcement(void *ptr)
 
       if(collisions == 0) {
         
-        NETSTACK_RADIO.prepare(packetbuf_hdrptr(), packetbuf_totlen());
+        NETSTACK_RADIO.prepare(packetbuf_hdrptr(), transmit_len);
         
-        NETSTACK_RADIO.transmit(packetbuf_totlen());
+        NETSTACK_RADIO.transmit(transmit_len);
         t = RTIMER_NOW();
 #if NURTIMER
         while(RTIMER_CLOCK_LT(t, RTIMER_NOW(), t + INTER_PACKET_INTERVAL));
 #else
         while(RTIMER_CLOCK_LT(RTIMER_NOW(), t + INTER_PACKET_INTERVAL)) { }
 #endif
-        NETSTACK_RADIO.transmit(packetbuf_totlen());
+        NETSTACK_RADIO.transmit(transmit_len);
       }
       we_are_sending = 0;
     }
