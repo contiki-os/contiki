@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.35 2010/04/26 17:55:11 nifi Exp $
+ * $Id: contikimac.c,v 1.36 2010/04/26 22:41:50 nifi Exp $
  */
 
 /**
@@ -928,7 +928,6 @@ input_packet(void)
 
 #if WITH_CONTIKIMAC_HEADER
     struct hdr *chdr;
-    int len;
     chdr = packetbuf_dataptr();
     if(chdr->id != CONTIKIMAC_ID) {
       PRINTF("contikimac: failed to parse hdr (%u)\n", packetbuf_totlen());
