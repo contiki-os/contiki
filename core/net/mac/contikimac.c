@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.34 2010/04/26 17:46:21 nifi Exp $
+ * $Id: contikimac.c,v 1.35 2010/04/26 17:55:11 nifi Exp $
  */
 
 /**
@@ -1061,11 +1061,11 @@ send_announcement(void *ptr)
         /* Pad with zeroes */
         uint8_t *ptr;
         ptr = packetbuf_dataptr();
-        memset(ptr + packetbuf_datalen(), 0, SHORTEST_PACKET_SIZE - packetbuf_totlen());
+        memset(ptr + packetbuf_datalen(), 0, SHORTEST_PACKET_SIZE - transmit_len);
 #endif
 
         PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
-        transmit_len = packetbuf_totlen() + (SHORTEST_PACKET_SIZE - packetbuf_totlen());
+        transmit_len = SHORTEST_PACKET_SIZE;
       }
 
       collisions = 0;
