@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.24 2010/03/02 13:33:10 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.25 2010/04/26 08:00:19 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -35,6 +35,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -102,7 +103,7 @@ import se.sics.cooja.interfaces.Radio.RadioEvent;
 @ClassDescription("Timeline")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class TimeLine extends VisPlugin {
-
+  private static final long serialVersionUID = -883154261246961973L;
   public static final int LED_PIXEL_HEIGHT = 2;
   public static final int EVENT_PIXEL_HEIGHT = 4;
   public static final int TIME_MARKER_PIXEL_HEIGHT = 6;
@@ -112,12 +113,12 @@ public class TimeLine extends VisPlugin {
   private static final boolean PAINT_ZERO_WIDTH_EVENTS = true;
   private static final int TIMELINE_UPDATE_INTERVAL = 100;
 
-  private static long currentPixelDivisor = 200;
+  private double currentPixelDivisor = 200;
 
   private static final long[] ZOOM_LEVELS = { 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000 }; 
 
-  private int zoomLevel = 9;
-
+  private boolean needZoomOut = false;
+  
   private static Logger logger = Logger.getLogger(TimeLine.class);
 
   private int paintedMoteHeight = EVENT_PIXEL_HEIGHT;
@@ -152,7 +153,7 @@ public class TimeLine extends VisPlugin {
     super("Timeline (Add motes to observe by clicking +)", gui);
     this.simulation = simulation;
     
-    currentPixelDivisor = ZOOM_LEVELS[zoomLevel];
+    currentPixelDivisor = ZOOM_LEVELS[ZOOM_LEVELS.length/2];
     
     /* Box: events to observe */
     eventCheckboxes = Box.createVerticalBox();
@@ -283,6 +284,7 @@ public class TimeLine extends VisPlugin {
   }
 
   private Action removeMoteAction = new AbstractAction() {
+    private static final long serialVersionUID = 2924285037480429045L;
     public void actionPerformed(ActionEvent e) {
       JComponent b = (JComponent) e.getSource();
       Mote m = (Mote) b.getClientProperty("mote");
@@ -290,6 +292,7 @@ public class TimeLine extends VisPlugin {
     }
   };
   private Action addMoteAction = new AbstractAction("Add motes to timeline") {
+    private static final long serialVersionUID = 7546685285707302865L;
     public void actionPerformed(ActionEvent e) {
 
       JComboBox source = new JComboBox();
@@ -323,7 +326,40 @@ public class TimeLine extends VisPlugin {
     }
   };
 
+  private void forceRepaintAndFocus(final long focusTime, final double focusCenter) {
+    forceRepaintAndFocus(focusTime, focusCenter, true);
+  }
+
+  private void forceRepaintAndFocus(final long focusTime, final double focusCenter, final boolean mark) {
+    lastRepaintSimulationTime = -1; /* Force repaint */
+    repaintTimelineTimer.getActionListeners()[0].actionPerformed(null); /* Force size update*/
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        int w = timeline.getVisibleRect().width;
+
+        /* centerPixel-leftPixel <=> focusCenter*w; */
+        int centerPixel = (int) (focusTime/currentPixelDivisor);
+        int leftPixel = (int) (focusTime/currentPixelDivisor - focusCenter*w);
+
+        Rectangle r = new Rectangle(
+            leftPixel, 0, 
+            w, 1
+        );
+
+        timeline.scrollRectToVisible(r);
+
+        /* Time ruler */
+        if (mark) {
+          mousePixelPositionX = centerPixel;
+          mouseDownPixelPositionX = centerPixel;
+          mousePixelPositionY = timeline.getHeight();
+        }
+      }
+    });
+  }
+  
   private Action zoomInAction = new AbstractAction("Zoom in (Ctrl+)") {
+    private static final long serialVersionUID = -2592452356547803615L;
     public void actionPerformed(ActionEvent e) {
       Rectangle r = timeline.getVisibleRect();
       int pixelX = r.x + r.width/2;
@@ -334,37 +370,26 @@ public class TimeLine extends VisPlugin {
       if (mousePixelPositionX > 0) {
         pixelX = mousePixelPositionX;
       }
-      final long centerTime = pixelX*currentPixelDivisor;
+      final long centerTime = (long) (pixelX*currentPixelDivisor);
 
+      int zoomLevel = 0;
+      while (zoomLevel < ZOOM_LEVELS.length) {
+        if (currentPixelDivisor <= ZOOM_LEVELS[zoomLevel]) break;
+        zoomLevel++;
+      }
+      
       if (zoomLevel > 0) {
-        zoomLevel--;
+        zoomLevel--; /* zoom in */
       }
       currentPixelDivisor = ZOOM_LEVELS[zoomLevel];
       logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + ((zoomLevel==0)?"(MIN)":""));
       
-      lastRepaintSimulationTime = -1; /* Force repaint */
-      repaintTimelineTimer.getActionListeners()[0].actionPerformed(null); /* Force size update*/
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          int w = timeline.getVisibleRect().width;
-          
-          int centerPixel = (int)(centerTime/currentPixelDivisor);
-          Rectangle r = new Rectangle(
-              centerPixel - w/2, 0, 
-              w, 1
-          );
-          timeline.scrollRectToVisible(r);
-          
-          /* Time ruler */
-          mousePixelPositionX = centerPixel;
-          mouseDownPixelPositionX = centerPixel;
-          mousePixelPositionY = timeline.getHeight();
-        }
-      });
+      forceRepaintAndFocus(centerTime, 0.5);
     }
   };
 
   private Action zoomOutAction = new AbstractAction("Zoom out (Ctrl-)") {
+    private static final long serialVersionUID = 6837091379835151725L;
     public void actionPerformed(ActionEvent e) {
       Rectangle r = timeline.getVisibleRect();
       int pixelX = r.x + r.width/2;
@@ -372,74 +397,51 @@ public class TimeLine extends VisPlugin {
         pixelX = popupLocation.x;
         popupLocation = null;
       }
-      final long centerTime = pixelX*currentPixelDivisor;
+      final long centerTime = (long) (pixelX*currentPixelDivisor);
       if (mousePixelPositionX > 0) {
         pixelX = mousePixelPositionX;
       }
 
-      if (zoomLevel < ZOOM_LEVELS.length-1) {
+      int zoomLevel = 0;
+      while (zoomLevel < ZOOM_LEVELS.length) {
+        if (currentPixelDivisor <= ZOOM_LEVELS[zoomLevel]) break;
         zoomLevel++;
+      }
+
+      if (zoomLevel < ZOOM_LEVELS.length-1) {
+        zoomLevel++; /* zoom out */
       }
       currentPixelDivisor = ZOOM_LEVELS[zoomLevel];
       logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + ((zoomLevel==ZOOM_LEVELS.length-1)?"(MAX)":""));
 
-      lastRepaintSimulationTime = -1; /* Force repaint */
-      repaintTimelineTimer.getActionListeners()[0].actionPerformed(null); /* Force size update */
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          int w = timeline.getVisibleRect().width;
-          int centerPixel = (int)(centerTime/currentPixelDivisor);
-          Rectangle r = new Rectangle(
-              centerPixel - w/2, 0, 
-              w, 1
-          );
-
-          /* Time ruler */
-          mousePixelPositionX = centerPixel;
-          mouseDownPixelPositionX = centerPixel;
-          mousePixelPositionY = timeline.getHeight();
-          
-          timeline.scrollRectToVisible(r);
-        }
-      });
+      forceRepaintAndFocus(centerTime, 0.5);
     }
   };
   
-  private Action zoomSliderAction = new AbstractAction("Zoom slider") {
+  private Action zoomSliderAction = new AbstractAction("Zoom slider (Ctrl+Mouse)") {
+    private static final long serialVersionUID = -4288046377707363837L;
     public void actionPerformed(ActionEvent e) {
+      int zoomLevel = 0;
+      while (zoomLevel < ZOOM_LEVELS.length) {
+        if (currentPixelDivisor <= ZOOM_LEVELS[zoomLevel]) break;
+        zoomLevel++;
+      }
+
       final JSlider zoomSlider = new JSlider(JSlider.VERTICAL, 0, ZOOM_LEVELS.length-1, zoomLevel);
       zoomSlider.setInverted(true);
       zoomSlider.setPaintTicks(true);
       zoomSlider.setPaintLabels(false);
 
-      final long centerTime = popupLocation.x*currentPixelDivisor;
+      final long centerTime = (long) (popupLocation.x*currentPixelDivisor);
       
       zoomSlider.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
-          zoomLevel = zoomSlider.getValue();
+          int zoomLevel = zoomSlider.getValue();
           
           currentPixelDivisor = ZOOM_LEVELS[zoomLevel];
           logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + ((zoomLevel==ZOOM_LEVELS.length-1)?"(MAX)":""));
 
-          lastRepaintSimulationTime = -1; /* Force repaint */
-          repaintTimelineTimer.getActionListeners()[0].actionPerformed(null); /* Force size update */
-          SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-              int w = timeline.getVisibleRect().width;
-              int centerPixel = (int)(centerTime/currentPixelDivisor);
-              Rectangle r = new Rectangle(
-                  centerPixel - w/2, 0, 
-                  w, 1
-              );
-
-              /* Time ruler */
-              mousePixelPositionX = centerPixel;
-              mouseDownPixelPositionX = centerPixel;
-              mousePixelPositionY = timeline.getHeight();
-              
-              timeline.scrollRectToVisible(r);
-            }
-          });
+          forceRepaintAndFocus(centerTime, 0.5);
         }
       });
       
@@ -454,6 +456,7 @@ public class TimeLine extends VisPlugin {
    * Save logged raw data to file for post-processing. 
    */
   private Action saveDataAction = new AbstractAction("Save raw data to file") {
+    private static final long serialVersionUID = 975176793514425718L;
     public void actionPerformed(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
       int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
@@ -552,6 +555,7 @@ public class TimeLine extends VisPlugin {
     }
   }
   private Action statisticsAction = new AbstractAction("Print statistics to console") {
+    private static final long serialVersionUID = 8671605486913497397L;
     public void actionPerformed(ActionEvent e) {
       if (simulation.isRunning()) {
         simulation.stopSimulation();
@@ -697,29 +701,29 @@ public class TimeLine extends VisPlugin {
     return output.toString();
   }
   
-  public void trySelectTime(final long time) {
+  public void trySelectTime(final long toTime) {
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
-        /* Visible rectangle */
-        int newX = (int) (time / currentPixelDivisor);
-        int w = timeline.getVisibleRect().width;
-        w = 50;
-        Rectangle r = new Rectangle(
-            newX - w/2, 0, 
-            w, 1
-        );
-        timeline.scrollRectToVisible(r);
-
-        /* Time ruler */
-        mousePixelPositionX = newX;
-        mouseDownPixelPositionX = newX;
+        /* Mark selected time in time ruler */
+        final int toPixel = (int) (toTime / currentPixelDivisor);
+        mousePixelPositionX = toPixel;
+        mouseDownPixelPositionX = toPixel;
         mousePixelPositionY = timeline.getHeight();
-        repaint();
+
+        /* Check if time is already visible */
+        Rectangle vis = timeline.getVisibleRect();
+        if (toPixel >= vis.x && toPixel < vis.x + vis.width) {
+          repaint();
+          return;
+        }
+
+        forceRepaintAndFocus(toTime, 0.5, false);
       }
     });  
   }
   
   private Action radioLoggerAction = new AbstractAction("to Radio Logger") {
+    private static final long serialVersionUID = 7690116136861949864L;
     public void actionPerformed(ActionEvent e) {
       RadioLogger plugin = (RadioLogger) simulation.getGUI().getStartedPlugin(RadioLogger.class.getName());
       if (plugin == null) {
@@ -731,10 +735,11 @@ public class TimeLine extends VisPlugin {
       }
 
       /* Select simulation time */
-      plugin.trySelectTime(popupLocation.x*currentPixelDivisor);
+      plugin.trySelectTime((long) (popupLocation.x*currentPixelDivisor));
     }
   };
   private Action logListenerAction = new AbstractAction("to Log Listener") {
+    private static final long serialVersionUID = -8626118368774023257L;
     public void actionPerformed(ActionEvent e) {
       LogListener plugin = (LogListener) simulation.getGUI().getStartedPlugin(LogListener.class.getName());
       if (plugin == null) {
@@ -746,7 +751,7 @@ public class TimeLine extends VisPlugin {
       }
 
       /* Select simulation time */
-      plugin.trySelectTime(popupLocation.x*currentPixelDivisor);
+      plugin.trySelectTime((long) (popupLocation.x*currentPixelDivisor));
     }
   };
   
@@ -1049,8 +1054,8 @@ public class TimeLine extends VisPlugin {
     element.addContent("" + splitPane.getDividerLocation());
     config.add(element);
 
-    element = new Element("zoom");
-    element.addContent("" + zoomLevel);
+    element = new Element("zoomfactor");
+    element.addContent("" + currentPixelDivisor);
     config.add(element);
 
     return config;
@@ -1090,8 +1095,11 @@ public class TimeLine extends VisPlugin {
       } else if ("split".equals(name)) {
         splitPane.setDividerLocation(Integer.parseInt(element.getText()));
       } else if ("zoom".equals(name)) {
-        zoomLevel = Integer.parseInt(element.getText())-1;
-        zoomOutAction.actionPerformed(null);
+        currentPixelDivisor = ZOOM_LEVELS[Integer.parseInt(element.getText())-1];
+        forceRepaintAndFocus(0, 0);
+      } else if ("zoomfactor".equals(name)) {
+        currentPixelDivisor = Double.parseDouble(element.getText());
+        forceRepaintAndFocus(0, 0);
       }
     }
 
@@ -1120,7 +1128,7 @@ public class TimeLine extends VisPlugin {
   private int mousePixelPositionY = -1;
   private int mouseDownPixelPositionX = -1; 
   class Timeline extends JComponent {
-
+    private static final long serialVersionUID = 2206491823778169359L;
     public Timeline() {
       setLayout(null);
       setToolTipText(null);
@@ -1174,8 +1182,32 @@ public class TimeLine extends VisPlugin {
 
     private MouseAdapter mouseAdapter = new MouseAdapter() {
       private Popup popUpToolTip = null;
+      private double zoomInitialPixelDivisor;
+      private int zoomInitialMouseY;
+      private long zoomCenterTime = -1;
+      private double zoomCenter = -1;
       public void mouseDragged(MouseEvent e) {
         super.mouseDragged(e);
+        if (e.isControlDown()) {
+          /* Zoom with mouse */
+          if (zoomCenterTime < 0) {
+            return;
+          }
+
+          double factor = 0.01*(e.getY() - zoomInitialMouseY);
+          factor = Math.exp(factor);
+
+          currentPixelDivisor = zoomInitialPixelDivisor * factor;
+          if (currentPixelDivisor < ZOOM_LEVELS[0]) {
+            currentPixelDivisor = ZOOM_LEVELS[0];
+          }
+          if (currentPixelDivisor > ZOOM_LEVELS[ZOOM_LEVELS.length-1]) {
+            currentPixelDivisor = ZOOM_LEVELS[ZOOM_LEVELS.length-1];
+          }
+          forceRepaintAndFocus(zoomCenterTime, zoomCenter);
+          return;
+        }
+
         if (mousePixelPositionX >= 0) {
           mousePixelPositionX = e.getX();
           mousePixelPositionY = e.getY();
@@ -1183,6 +1215,15 @@ public class TimeLine extends VisPlugin {
         }
       }
       public void mousePressed(MouseEvent e) {
+        if (e.isControlDown()) {
+          /* Zoom with mouse */
+          zoomInitialMouseY = e.getY();
+          zoomInitialPixelDivisor = currentPixelDivisor;
+          zoomCenterTime = (long) (e.getX()*currentPixelDivisor);
+          zoomCenter = (double) (e.getX() - timeline.getVisibleRect().x) / timeline.getVisibleRect().width;
+          return;
+        }
+        
         if (popUpToolTip != null) {
           popUpToolTip.hide();
           popUpToolTip = null;
@@ -1204,6 +1245,7 @@ public class TimeLine extends VisPlugin {
         }
       }
       public void mouseReleased(MouseEvent e) {
+        zoomCenterTime = -1;
         if (popUpToolTip != null) {
           popUpToolTip.hide();
           popUpToolTip = null;
@@ -1218,8 +1260,26 @@ public class TimeLine extends VisPlugin {
     public void paintComponent(Graphics g) {
       Rectangle bounds = g.getClipBounds();
       /*logger.info("Clip bounds: " + bounds);*/
-      long intervalStart = (long)bounds.x*(long)currentPixelDivisor;
-      long intervalEnd = intervalStart + bounds.width*currentPixelDivisor;
+      
+      if (needZoomOut) {
+        /* Need zoom out */
+        g.setColor(Color.RED);
+        g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+
+        Rectangle vis = timeline.getVisibleRect();
+        g.setColor(Color.WHITE);
+        String msg = "Zoom out";
+        FontMetrics fm = g.getFontMetrics();
+        int msgWidth = fm.stringWidth(msg);
+        int msgHeight = fm.getHeight();
+        g.drawString(msg, 
+            vis.x + vis.width/2 - msgWidth/2,
+            vis.y + vis.height/2 + msgHeight/2);
+        return;
+      }
+      
+      long intervalStart = (long)(bounds.x*currentPixelDivisor);
+      long intervalEnd = (long) (intervalStart + bounds.width*currentPixelDivisor);
 
       if (intervalEnd > simulation.getSimulationTime()) {
         intervalEnd = simulation.getSimulationTime();
@@ -1453,6 +1513,8 @@ public class TimeLine extends VisPlugin {
   }
 
   class MoteRuler extends JPanel {
+    private static final long serialVersionUID = -5555627354526272220L;
+
     public MoteRuler() {
       setPreferredSize(new Dimension(35, 1));
       setToolTipText(null);
@@ -1883,17 +1945,27 @@ public class TimeLine extends VisPlugin {
   private long lastRepaintSimulationTime = -1;
   private Timer repaintTimelineTimer = new Timer(TIMELINE_UPDATE_INTERVAL, new ActionListener() {
     public void actionPerformed(ActionEvent e) {
+      /* Only set new size if simulation time has changed */
+      long now = simulation.getSimulationTime();
+      if (now == lastRepaintSimulationTime) {
+        return;
+      }
+      lastRepaintSimulationTime = now; 
+
+      /* Update timeline size */
+      int newWidth;
+      if (now/currentPixelDivisor > Integer.MAX_VALUE) {
+        /* Need zoom out */
+        newWidth = 1;
+        needZoomOut = true;
+      } else {
+        newWidth = (int) (now/currentPixelDivisor);
+        needZoomOut = false;
+      }
+
       Rectangle visibleRectangle = timeline.getVisibleRect(); 
       boolean isTracking = visibleRectangle.x + visibleRectangle.width >= timeline.getWidth();
 
-      /* Only set new size if simulation time has changed */
-      if (simulation.getSimulationTime() == lastRepaintSimulationTime) {
-        return;
-      }
-      lastRepaintSimulationTime = simulation.getSimulationTime(); 
-
-      /* Update timeline size */
-      int newWidth = (int) (simulation.getSimulationTime()/currentPixelDivisor);
       int newHeight = (int) (FIRST_MOTE_PIXEL_OFFSET + paintedMoteHeight * allMoteEvents.size()); 
       timeline.setPreferredSize(new Dimension(
           newWidth,
@@ -1909,7 +1981,7 @@ public class TimeLine extends VisPlugin {
       /* Update visible rectangle */
       if (isTracking) {
         Rectangle r = new Rectangle(
-            newWidth-1, 0, 
+            newWidth-1, visibleRectangle.y, 
             1, 1);
         timeline.scrollRectToVisible(r);
       }
