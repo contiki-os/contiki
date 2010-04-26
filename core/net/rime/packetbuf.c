@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.c,v 1.7 2010/03/29 21:53:04 adamdunkels Exp $
+ * $Id: packetbuf.c,v 1.8 2010/04/26 22:05:40 nifi Exp $
  */
 
 /**
@@ -168,11 +168,10 @@ packetbuf_copyto(void *to)
 int
 packetbuf_hdralloc(int size)
 {
-  if(hdrptr > size) {
+  if(hdrptr >= size) {
     hdrptr -= size;
     return 1;
   }
-  hdrptr = 0;
   return 0;
 }
 /*---------------------------------------------------------------------------*/
