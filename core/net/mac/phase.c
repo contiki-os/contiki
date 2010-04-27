@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.10 2010/04/06 21:37:54 nvt-se Exp $
+ * $Id: phase.c,v 1.11 2010/04/27 12:56:35 fros4943 Exp $
  */
 
 /**
@@ -127,7 +127,7 @@ phase_update(const struct phase_list *list,
     if(mac_status == MAC_TX_OK && e == NULL) {
       e = memb_alloc(list->memb);
       if(e == NULL) {
-        printf("phase alloc NULL\n");
+        PRINTF("phase alloc NULL\n");
         /* We could not allocate memory for this phase, so we drop
            the last item on the list and reuse it for our phase. */
         e = list_chop(*list->list);
@@ -202,7 +202,7 @@ phase_wait(struct phase_list *list,
         if(p->q != NULL) {
           p->mac_callback = mac_callback;
           p->mac_callback_ptr = mac_callback_ptr;
-          ctimer_set(&p->timer, ctimewait, send_packet, p); 
+          ctimer_set(&p->timer, ctimewait, send_packet, p);
           return PHASE_DEFERRED;
         } else {
           memb_free(&queued_packets_memb, p);
