@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.c,v 1.4 2010/02/23 18:38:05 adamdunkels Exp $
+ * $Id: stunicast.c,v 1.5 2010/04/27 13:08:55 fros4943 Exp $
  */
 
 /**
@@ -95,10 +95,7 @@ void
 stunicast_close(struct stunicast_conn *c)
 {
   unicast_close(&c->c);
-  ctimer_stop(&c->t);
-  if(c->buf != NULL) {
-    queuebuf_free(c->buf);
-  }
+  stunicast_cancel(c);
 }
 /*---------------------------------------------------------------------------*/
 rimeaddr_t *
@@ -168,6 +165,10 @@ void
 stunicast_cancel(struct stunicast_conn *c)
 {
   ctimer_stop(&c->t);
+  if(c->buf != NULL) {
+    queuebuf_free(c->buf);
+    c->buf = NULL;
+  }
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
