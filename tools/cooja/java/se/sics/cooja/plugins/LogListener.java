@@ -26,13 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.28 2010/04/26 08:05:31 fros4943 Exp $
+ * $Id: LogListener.java,v 1.29 2010/04/28 09:39:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Rectangle;
@@ -47,16 +48,17 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -70,6 +72,7 @@ import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -123,6 +126,9 @@ public class LogListener extends VisPlugin {
 
   private LogOutputListener logOutputListener;
 
+  private boolean backgroundColors = false;
+  private JCheckBoxMenuItem colorCheckbox;
+  
   private static final int UPDATE_INTERVAL = 250;
   private UpdateAggregator<LogData> logUpdateAggregator = new UpdateAggregator<LogData>(UPDATE_INTERVAL) {
     private Runnable scroll = new Runnable() {
@@ -221,6 +227,42 @@ public class LogListener extends VisPlugin {
         return super.getToolTipText(e);
       }
     };
+    DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
+      private static final long serialVersionUID = -340743275865216182L;
+      private final Color[] BG_COLORS = new Color[] {
+          new Color(200, 200, 200),
+          new Color(200, 200, 255),
+          new Color(200, 255, 200),
+          new Color(200, 255, 255),
+          new Color(255, 200, 200),
+          new Color(255, 255, 200),
+          new Color(255, 255, 255),
+          new Color(255, 220, 200),
+          new Color(220, 255, 220),
+          new Color(255, 200, 255),
+      };
+      public Component getTableCellRendererComponent(JTable table,
+          Object value, boolean isSelected, boolean hasFocus, int row,
+          int column) {
+        LogData d = logs.get(logTable.getRowSorter().convertRowIndexToModel(row));
+        if (backgroundColors && d != null) {
+          char last = d.strID.charAt(d.strID.length()-1);
+          if (last >= '0' && last <= '9') {
+            setBackground(BG_COLORS[last - '0']);
+          } else {
+            setBackground(null);
+          }
+        } else {
+          setBackground(null);
+        }
+
+        return super.getTableCellRendererComponent(
+            table, value, isSelected, hasFocus, row, column);
+      }
+    };
+    logTable.getColumnModel().getColumn(COLUMN_TIME).setCellRenderer(cellRenderer);
+    logTable.getColumnModel().getColumn(COLUMN_FROM).setCellRenderer(cellRenderer);
+    logTable.getColumnModel().getColumn(COLUMN_DATA).setCellRenderer(cellRenderer);
     logTable.getColumnModel().removeColumn(logTable.getColumnModel().getColumn(COLUMN_CONCAT));
     logTable.setFillsViewportHeight(true);
     logTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
@@ -258,6 +300,16 @@ public class LogListener extends VisPlugin {
     focusMenu.add(new JMenuItem(timeLineAction));
     focusMenu.add(new JMenuItem(radioLoggerAction));
     popupMenu.add(focusMenu);
+    popupMenu.addSeparator();
+    colorCheckbox = new JCheckBoxMenuItem("Mote-specific coloring");
+    popupMenu.add(colorCheckbox);
+    colorCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        backgroundColors = colorCheckbox.isSelected();
+        repaint();
+      }
+    });
+
     
     logTable.setComponentPopupMenu(popupMenu);
 
@@ -316,8 +368,24 @@ public class LogListener extends VisPlugin {
       public void actionPerformed(ActionEvent e) {
         String str = filterTextField.getText();
         setFilter(str);
+
         /* Autoscroll */
-        logTable.scrollRectToVisible(new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            int s = logTable.getSelectedRow();
+            if (s < 0) {
+              return;
+            }
+
+            s = logTable.getRowSorter().convertRowIndexToView(s);
+            if (s < 0) {
+              return;
+            }
+
+            int v = logTable.getRowHeight()*s;
+            logTable.scrollRectToVisible(new Rectangle(0, v-5, 1, v+5));
+          }
+        });
       }
     });
     filterPanel.add(Box.createHorizontalStrut(2));
@@ -343,13 +411,17 @@ public class LogListener extends VisPlugin {
   }
 
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
     element = new Element("filter");
     element.setText(filterTextField.getText());
     config.add(element);
 
+    if (backgroundColors) {
+      element = new Element("coloring");
+      config.add(element);
+    }
     return config;
   }
 
@@ -363,6 +435,9 @@ public class LogListener extends VisPlugin {
             setFilter(str);
           }
         });
+      } else if ("coloring".equals(name)) {
+        backgroundColors = true;
+        colorCheckbox.setSelected(true);
       }
     }
 
