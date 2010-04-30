@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.20 2010/04/04 12:27:31 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.21 2010/04/30 07:17:50 adamdunkels Exp $
  */
 
 /**
@@ -120,7 +120,7 @@ PROCESS_THREAD(shell_mac_process, ev, data)
   PROCESS_BEGIN();
   onoroff = shell_strtolong((char *)data, &next);
   if(next == data) {
-    shell_output_str(&mac_command, "mac: current MAC layer: ", rime_mac->name);
+    shell_output_str(&mac_command, "mac: current MAC layer: ", NETSTACK_RDC.name);
     shell_output_str(&mac_command, "mac usage: ", mac_command.description);
   } else {
     if(onoroff) {
@@ -129,7 +129,7 @@ PROCESS_THREAD(shell_mac_process, ev, data)
     } else {
       NETSTACK_RDC.off(1);
       shell_output_str(&mac_command, "mac: turned MAC off (keeping radio on): ",
-		       rime_mac->name);
+		       NETSTACK_RDC.name);
     }
   }
   PROCESS_END();
