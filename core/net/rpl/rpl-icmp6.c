@@ -33,14 +33,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.2 2010/04/30 15:04:47 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.3 2010/04/30 23:10:45 nvt-se Exp $
  */
 /**
  * \file
  *         ICMP6 I/O for RPL control messages.
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
- * Contributors: Niclas Finne <nfi@sics.se, Joel Hoglund <joel@sics.se>,
+ * Contributors: Niclas Finne <nfi@sics.se>, Joel Hoglund <joel@sics.se>,
  *               Mathieu Pouillot <m.pouillot@watteco.com>
  */
 
@@ -77,8 +77,10 @@ static int
 get_global_addr(uip_ipaddr_t *addr)
 {
   int i;
+  int state;
+
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
-    int state = uip_ds6_if.addr_list[i].state;
+    state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
       if(!uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
@@ -95,7 +97,7 @@ static uint32_t
 get32(uint8_t *buffer, int pos)
 {
   return (uint32_t)buffer[pos] << 24 | (uint32_t)buffer[pos + 1] << 16 |
-    (uint32_t)buffer[pos + 2] << 8  | buffer[pos + 3];
+         (uint32_t)buffer[pos + 2] << 8  | buffer[pos + 3];
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -376,16 +378,6 @@ dao_input(void)
   PRINTF("RPL: DAO rank: %u, lifetime: %lu, prefix length: %u\n", rank,
         (unsigned long)lifetime, prefixlen);
 
-/*   n = rpl_find_neighbor(dag, &UIP_IP_BUF->srcipaddr); */
-/*   if(n == NULL) { */
-/*     n = rpl_add_neighbor(dag, &UIP_IP_BUF->srcipaddr); */
-/*     if(n == NULL) { */
-/*       PRINTF("RPL: Failed to add a neighbor entry for a DAO\n"); */
-/*       return; */
-/*     } */
-/*   } */
-/*   n->rank = INFINITE_RANK; */
-
   memset(&prefix, 0, sizeof(prefix));
   memcpy(&prefix, buffer + pos, prefixlen / CHAR_BIT);
 
@@ -448,13 +440,6 @@ dao_output(rpl_neighbor_t *n, uint32_t lifetime)
   buffer[pos++] = sequence >> 8;
   buffer[pos++] = sequence & 0xff;
 
-  // uip_ds6_select_src(&prefix, );
-  if(get_global_addr(&prefix)) {
-    /* all ok */
-  } else {
-    /* not ok */
-  }
-
   PRINTF("RPL: Sending DAO with prefix ");
   PRINT6ADDR(&prefix);
   PRINTF(" to ");
@@ -485,6 +470,10 @@ dao_output(rpl_neighbor_t *n, uint32_t lifetime)
   pos += 4;
 
   /* pos = 12 or 14 */
+  if(get_global_addr(&prefix) == 0) {
+    PRINTF("RPL: No global address set for this node - suppressing DAO\n");
+    return 0;
+  }
   memcpy(buffer + pos, &prefix, prefixlen / CHAR_BIT);
   pos += (prefixlen / CHAR_BIT);
 
