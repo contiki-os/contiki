@@ -115,19 +115,25 @@ uip_icmp6_echo_request_input(void);
 
 /**
  * \brief Send an icmpv6 error message
- * \param type type of the Error message
+ * \param type type of the error message
  * \param code of the error message
  * \param type 32 bit parameter of the error message, semantic depends on error 
  */
 void
 uip_icmp6_error_output(u8_t type, u8_t code, u32_t param); 
 
-/** @} */
-
-#if UIP_CONF_IPV6_RPL
+/**
+ * \brief Send an icmpv6 message
+ * \param dest destination address of the message
+ * \param type type of the message
+ * \param code of the message
+ * \param payload_len length of the payload
+ */
 void
-uip_rpl_input(void);
-#endif /* UIP_CONF_IPV6_RPL */
+uip_icmp6_send(uip_ipaddr_t *dest, int type, int code, int payload_len);
+
+
+/** @} */
 
 #endif /*__ICMP6_H__*/
 /** @} */
