@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.c,v 1.5 2010/04/27 13:08:55 fros4943 Exp $
+ * $Id: stunicast.c,v 1.6 2010/04/30 07:29:31 adamdunkels Exp $
  */
 
 /**
@@ -74,7 +74,8 @@ sent_by_uc(struct unicast_conn *uc, int status, int num_tx)
   register struct stunicast_conn *c = (struct stunicast_conn *)uc;
   PRINTF("%d.%d: stunicast: recv_from_uc from %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	from->u8[0], from->u8[1]);
+         packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
+         packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1]);
   if(c->u->sent != NULL) {
     c->u->sent(c, status, num_tx);
   }
