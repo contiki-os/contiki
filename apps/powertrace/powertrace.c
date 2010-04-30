@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: powertrace.c,v 1.5 2010/04/09 15:47:45 nvt-se Exp $
+ * $Id: powertrace.c,v 1.6 2010/04/30 07:17:21 adamdunkels Exp $
  */
 
 /**
@@ -43,6 +43,7 @@
 #include "node-id.h"
 #include "powertrace.h"
 #include "net/rime.h"
+#include "node-id.h"
 
 #include <stdio.h>
 
@@ -125,6 +126,7 @@ powertrace_stop(void)
   process_exit(&powertrace_process);
 }
 /*---------------------------------------------------------------------------*/
+#if ! UIP_CONF_IPV6
 static void
 sniffprint(char *prefix, int seqno)
 {
@@ -189,3 +191,9 @@ powertrace_sniff(powertrace_onoff_t onoff)
   }
 }
 /*---------------------------------------------------------------------------*/
+#else /* ! UIP_CONF_IPV6 */
+void
+powertrace_sniff(powertrace_onoff_t onoff)
+{
+}
+#endif /* ! UIP_CONF_IPV6 */
