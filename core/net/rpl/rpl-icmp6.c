@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.1 2010/04/30 13:43:53 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.2 2010/04/30 15:04:47 nvt-se Exp $
  */
 /**
  * \file
@@ -47,6 +47,7 @@
 #include "net/tcpip.h"
 #include "net/uip.h"
 #include "net/uip-ds6.h"
+#include "net/uip-nd6.h"
 #include "net/uip-icmp6.h"
 #include "net/rpl/rpl.h"
 #include "net/rime/packetbuf.h"
@@ -151,23 +152,6 @@ dis_output(uip_ipaddr_t *addr)
 
 }
 /*---------------------------------------------------------------------------*/
-#if 0
-void
-dis_u_output(uip_ipaddr_t *addr)
-{
-  unsigned char *buffer;
-
-  /* DAG Information Solicitation */
-  PRINTF("RPL: Sending a unicast DIS\n");
-
-  /* Add a padding to be compliant ICMPv6 */
-  buffer = UIP_ICMP_PAYLOAD;
-  buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0;
-
-  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 4);
-}
-#endif
-/*----------------------------------------------------------------------------*/
 static void
 dio_input(void)
 {
@@ -197,7 +181,7 @@ dio_input(void)
                               packetbuf_addr(PACKETBUF_ADDR_SENDER),
                               0, NBR_REACHABLE)) != NULL) {
       /* set reachable timer */
-      stimer_set(&(nbr->reachable), UIP_CONF_ND6_REACHABLE_TIME);
+      stimer_set(&(nbr->reachable), UIP_ND6_REACHABLE_TIME);
       PRINTF("RPL: Neighbor added to neighbor cache ");
       PRINT6ADDR(&from);
       PRINTF(", ");
