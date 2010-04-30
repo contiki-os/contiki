@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.16 2010/03/16 15:45:20 nifi Exp $
+ * $Id: uip6.c,v 1.17 2010/04/30 07:19:33 adamdunkels Exp $
  *
  */
 
@@ -1015,7 +1015,8 @@ uip_process(u8_t flag)
     }
   }
 #endif /* UIP_UDP */
-   
+
+  
   /* This is where the input processing starts. */
   UIP_STAT(++uip_stat.ip.recv);
    
@@ -1028,7 +1029,6 @@ uip_process(u8_t flag)
     UIP_LOG("ipv6: invalid version.");
     goto drop;
   }
-   
   /*
    * Check the size of the packet. If the size reported to us in
    * uip_len is smaller the size reported in the IP header, we assume
@@ -1116,7 +1116,8 @@ uip_process(u8_t flag)
   }
 #else /* UIP_CONF_ROUTER */
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
-     !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr)) {
+     !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr) &&
+     !uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     PRINTF("Dropping packet, not for me\n");
     UIP_STAT(++uip_stat.ip.drop);
     goto drop;
@@ -1368,7 +1369,8 @@ uip_process(u8_t flag)
   if(UIP_UDP_BUF->udpchksum != 0 && uip_udpchksum() != 0xffff) {
     UIP_STAT(++uip_stat.udp.drop);
     UIP_STAT(++uip_stat.udp.chkerr);
-    UIP_LOG("udp: bad checksum.");
+    PRINTF("udp: bad checksum 0x%04x 0x%04x\n", UIP_UDP_BUF->udpchksum,
+           uip_udpchksum());
     goto drop;
   }
 #else /* UIP_UDP_CHECKSUMS */
@@ -1377,7 +1379,7 @@ uip_process(u8_t flag)
 
   /* Make sure that the UDP destination port number is not zero. */
   if(UIP_UDP_BUF->destport == 0) {
-    UIP_LOG("udp: zero port.");
+    PRINTF("udp: zero port.\n");
     goto drop;
   }
 
