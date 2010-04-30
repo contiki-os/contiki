@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.3 2010/04/30 23:10:45 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.4 2010/04/30 23:13:58 nvt-se Exp $
  */
 /**
  * \file
@@ -472,7 +472,7 @@ dao_output(rpl_neighbor_t *n, uint32_t lifetime)
   /* pos = 12 or 14 */
   if(get_global_addr(&prefix) == 0) {
     PRINTF("RPL: No global address set for this node - suppressing DAO\n");
-    return 0;
+    return;
   }
   memcpy(buffer + pos, &prefix, prefixlen / CHAR_BIT);
   pos += (prefixlen / CHAR_BIT);
