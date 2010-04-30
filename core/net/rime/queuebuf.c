@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.16 2010/02/08 21:10:32 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.17 2010/04/30 07:29:08 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 
 struct queuebuf {
   uint16_t len;
-  uint8_t data[PACKETBUF_SIZE + PACKETBUF_HDR_SIZE];
+  uint8_t data[PACKETBUF_SIZE];
   struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
   struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
 };
@@ -132,6 +132,7 @@ queuebuf_new_from_packetbuf(void)
     if(buf != NULL) {
 #if QUEUEBUF_STATS
       ++queuebuf_len;
+      PRINTF("queuebuf len %d\n", queuebuf_len);
       if(queuebuf_len == queuebuf_max_len + 1) {
 	memb_free(&bufmem, buf);
 	queuebuf_len--;
@@ -182,7 +183,7 @@ void
 queuebuf_to_packetbuf(struct queuebuf *b)
 {
   struct queuebuf_ref *r;
-  
+
   if(memb_inmemb(&bufmem, b)) {
     packetbuf_copyfrom(b->data, b->len);
     packetbuf_attr_copyfrom(b->attrs, b->addrs);
@@ -213,6 +214,12 @@ int
 queuebuf_datalen(struct queuebuf *b)
 {
   return b->len;
+}
+/*---------------------------------------------------------------------------*/
+const rimeaddr_t *
+queuebuf_addr(struct queuebuf *b, uint8_t type)
+{
+  return &b->addrs[type];
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
