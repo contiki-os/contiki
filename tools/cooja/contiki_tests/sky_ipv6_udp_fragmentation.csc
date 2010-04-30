@@ -20,10 +20,10 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>../../../examples/udp-sender-ipv6/example-udp-sender.c</source>
+      <source>../../../examples/udp-ipv6/udp-client.c</source>
       <commands>make clean TARGET=sky
-make example-udp-sender.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7402,UDP_ADDR_G=0x02,UDP_ADDR_H=0x202,SICSLOWPAN_CONF_FRAG=1,SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION=1</commands>
-      <firmware>../../../examples/udp-sender-ipv6/example-udp-sender.sky</firmware>
+make udp-client.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7402,UDP_ADDR_G=0x02,UDP_ADDR_H=0x202,SICSLOWPAN_CONF_FRAG=1,SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION=1</commands>
+      <firmware>../../../examples/udp-ipv6/udp-client.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -39,10 +39,10 @@ make example-udp-sender.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_A
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky2</identifier>
       <description>Sky Mote Type #2</description>
-      <source>../../../examples/udp-receiver-ipv6/example-udp-receiver.c</source>
+      <source>../../../examples/udp-ipv6/udp-server.c</source>
       <commands>make clean TARGET=sky
-make example-udp-receiver.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7401,UDP_ADDR_G=0x01,UDP_ADDR_H=0x101,SICSLOWPAN_CONF_FRAG=1</commands>
-      <firmware>../../../examples/udp-receiver-ipv6/example-udp-receiver.sky</firmware>
+make udp-server.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7401,UDP_ADDR_G=0x01,UDP_ADDR_H=0x101,SICSLOWPAN_CONF_FRAG=1</commands>
+      <firmware>../../../examples/udp-ipv6/udp-server.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -125,21 +125,21 @@ make example-udp-receiver.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP
     <plugin_config>
       <script>TIMEOUT(100000, log.log("last msg: " + msg + "\n")); /* print last msg at timeout */
 
-WAIT_UNTIL(msg.contains("Created connection"));
-YIELD_THEN_WAIT_UNTIL(msg.contains("Created connection"));
+WAIT_UNTIL(msg.contains("Created a server connection"));
+YIELD_THEN_WAIT_UNTIL(msg.contains("Created a connection"));
 
 log.log("Both nodes booted\n");
 
 count = 0;
 while (count++ &lt; 5) {
   /* Message from sender process to receiver process */
-  YIELD_THEN_WAIT_UNTIL(msg.contains("Sender sending"));
-  YIELD_THEN_WAIT_UNTIL(msg.contains("Receiver received"));
+  YIELD_THEN_WAIT_UNTIL(msg.contains("Client sending"));
+  YIELD_THEN_WAIT_UNTIL(msg.contains("Server received"));
   log.log(count + ": Sender -&gt; Receiver OK\n");
 
   /* Message from receiver process to sender process */
-  YIELD_THEN_WAIT_UNTIL(msg.contains("Receiver sending"));
-  YIELD_THEN_WAIT_UNTIL(msg.contains("Sender received"));
+  YIELD_THEN_WAIT_UNTIL(msg.contains("Responding with sending"));
+  YIELD_THEN_WAIT_UNTIL(msg.contains("Response from"));
   log.log(count + ": Receiver -&gt; Sender OK\n");
 }
 
