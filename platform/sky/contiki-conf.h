@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.77 2010/04/30 13:52:14 joxe Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.78 2010/04/30 15:06:00 nvt-se Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -22,6 +22,8 @@
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
+
+#define QUEUEBUF_CONF_NUM                8
 
 #else /* WITH_UIP6 */
 
@@ -49,9 +51,9 @@
 
 #define COLLECT_NEIGHBOR_CONF_MAX_NEIGHBORS      32
 
-#endif /* WITH_UIP6 */
-
 #define QUEUEBUF_CONF_NUM          16
+
+#endif /* WITH_UIP6 */
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 
@@ -119,6 +121,25 @@
 #define UIP_CONF_ROUTER                 1
 #define UIP_CONF_IPV6_RPL               1
 
+/* Handle 10 neighbors */
+#define UIP_CONF_DS6_NBR_NBU     10
+/* Handle 10 routes    */
+#define UIP_CONF_DS6_ROUTE_NBU   10
+
+#define UIP_DS6_ROUTE_STATE_TYPE rpl_route_entry_t
+/* Needed for the extended route entry state */
+typedef struct rpl_route_entry {
+  uint32_t lifetime;
+  uint32_t saved_lifetime;
+  void *dag;
+  uint8_t learned_from;
+} rpl_route_entry_t;
+
+#define UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED rpl_ds6_neighbor_callback
+
+#define UIP_CONF_ND6_SEND_RA		0
+#define UIP_CONF_ND6_REACHABLE_TIME     600000
+#define UIP_CONF_ND6_RETRANS_TIMER      10000
 
 #define UIP_CONF_IPV6                   1
 #define UIP_CONF_IPV6_QUEUE_PKT         1
