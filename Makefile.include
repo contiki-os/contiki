@@ -53,14 +53,15 @@ THREADS = mt.c
 LIBS    = memb.c mmem.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
           print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c
 DEV     = nullradio.c
-NET     = netstack.c
+NET     = netstack.c uip-debug.c
 
 ifdef UIP_CONF_IPV6
-CFLAGS += -DUIP_CONF_IPV6
+  CFLAGS += -DUIP_CONF_IPV6=1
   UIP   = uip6.c tcpip.c psock.c uip-udp-packet.c uip-split.c \
           resolv.c tcpdump.c uiplib.c
   NET   += $(UIP) uip-icmp6.c uip-nd6.c \
           sicslowpan.c neighbor-attr.c neighbor-info.c uip-ds6.c
+  include $(CONTIKI)/core/net/rpl/Makefile.rpl
 else # UIP_CONF_IPV6
   UIP   = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
           uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
@@ -80,7 +81,7 @@ endif
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 
 CONTIKIDIRS += ${addprefix $(CONTIKI)/core/,dev lib net net/mac net/rime \
-                 sys cfs ctk lib/ctk loader . }
+                 net/rpl sys cfs ctk lib/ctk loader . }
 
 oname = ${patsubst %.c,%.o,${patsubst %.S,%.o,$(1)}}
 
