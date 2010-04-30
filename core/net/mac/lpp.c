@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.33 2010/04/30 07:31:44 adamdunkels Exp $
+ * $Id: lpp.c,v 1.34 2010/04/30 22:18:12 nvt-se Exp $
  */
 
 /**
@@ -422,7 +422,7 @@ send_probe(void)
     if(hdrlen == 0) {
       /* Failed to send */
       PRINTF("contikimac: send failed, too large header\n");
-      return MAC_TX_ERR_FATAL;
+      return;
     }
   }
   
@@ -628,7 +628,8 @@ send_packet(mac_callback_t sent, void *ptr)
     if(hdrlen == 0) {
       /* Failed to send */
       PRINTF("contikimac: send failed, too large header\n");
-      return MAC_TX_ERR_FATAL;
+      mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 0);
+      return;
     }
   }
 
@@ -723,7 +724,6 @@ input_packet(void)
 
   if(hdr.type == TYPE_PROBE) {
     struct announcement_msg adata;
-    int i;
     
     /* Register the encounter with the sending node. We now know the
        neighbor's phase. */
