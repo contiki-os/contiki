@@ -75,7 +75,11 @@ timeout_handler(void)
   PRINT6ADDR(&client_conn->ripaddr);
   sprintf(buf, "Hello %d from the client", ++seq_id);
   printf(" (msg: %s)\n", buf);
+#if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
+  uip_udp_packet_send(client_conn, buf, UIP_APPDATA_SIZE);
+#else /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
   uip_udp_packet_send(client_conn, buf, strlen(buf));
+#endif /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
 }
 /*---------------------------------------------------------------------------*/
 static void
