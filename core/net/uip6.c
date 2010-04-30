@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.17 2010/04/30 07:19:33 adamdunkels Exp $
+ * $Id: uip6.c,v 1.18 2010/04/30 08:46:27 joxe Exp $
  *
  */
 
@@ -1434,8 +1434,8 @@ uip_process(u8_t flag)
   UIP_UDP_BUF->udplen = HTONS(uip_slen + UIP_UDPH_LEN);
   UIP_UDP_BUF->udpchksum = 0;
 
-  UIP_TCP_BUF->srcport  = uip_udp_conn->lport;
-  UIP_TCP_BUF->destport = uip_udp_conn->rport;
+  UIP_UDP_BUF->srcport  = uip_udp_conn->lport;
+  UIP_UDP_BUF->destport = uip_udp_conn->rport;
 
   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &uip_udp_conn->ripaddr);
   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
