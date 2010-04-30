@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.78 2010/03/19 14:08:15 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.79 2010/04/30 13:52:14 joxe Exp $
  */
 
 #include <signal.h>
@@ -51,9 +51,8 @@
 #include "net/mac/frame802154.h"
 
 #if WITH_UIP6
-#include "net/sicslowpan.h"
 #include "net/uip-ds6.h"
-#include "net/mac/sicslowmac.h"
+#include "net/rpl/rpl.h"
 #endif /* WITH_UIP6 */
 
 #include "net/rime.h"
@@ -311,7 +310,7 @@ main(int argc, char **argv)
   {
     int i, a;
     for(a = 0; a < UIP_DS6_ADDR_NB; a++) {
-      if (uip_ds6_if.addr_list[a].isused) {
+      if(uip_ds6_if.addr_list[a].isused) {
 	for(i = 0; i < 7; ++i) {
 	  printf("%02x%02x:",
 		 uip_ds6_if.addr_list[a].ipaddr.u8[i * 2],
@@ -339,7 +338,10 @@ main(int argc, char **argv)
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
 
-  
+#if UIP_CONF_IPV6_RPL
+  rpl_init();
+#endif /* UIP_CONF_IPV6_RPL */
+
 #else /* WITH_UIP6 */
 
   NETSTACK_RDC.init();
