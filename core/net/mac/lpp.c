@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.32 2010/02/23 20:09:11 nifi Exp $
+ * $Id: lpp.c,v 1.33 2010/04/30 07:31:44 adamdunkels Exp $
  */
 
 /**
@@ -74,7 +74,7 @@
 #define PRINTF(...)
 #endif
 
-#define WITH_ACK_OPTIMIZATION         1
+#define WITH_ACK_OPTIMIZATION         0
 #define WITH_PROBE_AFTER_RECEPTION    0
 #define WITH_PROBE_AFTER_TRANSMISSION 0
 #define WITH_ENCOUNTER_OPTIMIZATION   1
@@ -82,20 +82,11 @@
 #define WITH_PENDING_BROADCAST        1
 #define WITH_STREAMING                1
 
-#ifdef LPP_CONF_LISTEN_TIME
-#define LISTEN_TIME LPP_CONF_LISTEN_TIME
-#else
 #define LISTEN_TIME (CLOCK_SECOND / 128)
-#endif /** LP_CONF_LISTEN_TIME */
-
-#ifdef LPP_CONF_OFF_TIME
-#define OFF_TIME LPP_CONF_OFF_TIME
-#else
 #define OFF_TIME (CLOCK_SECOND / MAC_CHANNEL_CHECK_RATE - LISTEN_TIME)
-#endif /* LPP_CONF_OFF_TIME */
 
 #define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
-#define UNICAST_TIMEOUT	(4 * PACKET_LIFETIME)
+#define UNICAST_TIMEOUT	(1 * PACKET_LIFETIME)
 #define PROBE_AFTER_TRANSMISSION_TIME (LISTEN_TIME * 2)
 
 #define LOWEST_OFF_TIME (CLOCK_SECOND / 8)
@@ -190,6 +181,11 @@ static struct ctimer stream_probe_timer, stream_off_timer;
 #define STREAM_PROBE_TIME CLOCK_SECOND / 128
 #define STREAM_OFF_TIME CLOCK_SECOND / 2
 #endif /* WITH_STREAMING */
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b)? (a) : (b))
+#endif /* MIN */
+
 /*---------------------------------------------------------------------------*/
 static void
 turn_radio_on(void)
@@ -316,7 +312,8 @@ turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
 	 time with modulo OFF_TIME. */
 
       now = clock_time();
-      wait = ((clock_time_t)(e->time - now)) % (OFF_TIME + LISTEN_TIME) - LISTEN_TIME;
+      wait = (((clock_time_t)(e->time - now)) % (OFF_TIME + LISTEN_TIME)) -
+        2 * LISTEN_TIME;
 
       /*      printf("now %d e %d e-n %d w %d %d\n", now, e->time, e->time - now, (e->time - now) % (OFF_TIME), wait);
       
@@ -358,6 +355,8 @@ remove_queued_packet(void *item)
   PRINTF("%d.%d: removing queued packet\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
 
+
+  queuebuf_to_packetbuf(i->packet);
   
   ctimer_stop(&i->removal_timer);
   queuebuf_free(i->packet);
@@ -414,9 +413,19 @@ send_probe(void)
   hdr = packetbuf_dataptr();
   hdr->type = TYPE_PROBE;
   rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
-  rimeaddr_copy(&hdr->receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+  /*  rimeaddr_copy(&hdr->receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));*/
+  rimeaddr_copy(&hdr->receiver, &rimeaddr_null);
 
-
+  packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
+  {
+    int hdrlen = NETSTACK_FRAMER.create();
+    if(hdrlen == 0) {
+      /* Failed to send */
+      PRINTF("contikimac: send failed, too large header\n");
+      return MAC_TX_ERR_FATAL;
+    }
+  }
+  
   /* Construct the announcements */
   adata = (struct announcement_msg *)((char *)hdr + sizeof(struct lpp_hdr));
   
@@ -542,8 +551,10 @@ dutycycle(void *ptr)
       /* If we are not listening for announcements, we turn the radio
 	 off and wait until we send the next probe. */
       if(is_listening == 0) {
-	turn_radio_off();
-	compower_accumulate(&compower_idle_activity);
+        if(!NETSTACK_RADIO.receiving_packet()) {
+          turn_radio_off();
+          compower_accumulate(&compower_idle_activity);
+        }
 	ctimer_set(t, off_time + off_time_adjustment, (void (*)(void *))dutycycle, t);
 	off_time_adjustment = 0;
 	PT_YIELD(&dutycycle_pt);
@@ -610,8 +621,17 @@ send_packet(mac_callback_t sent, void *ptr)
 
   packetbuf_hdralloc(sizeof(struct lpp_hdr));
   memcpy(packetbuf_hdrptr(), &hdr, sizeof(struct lpp_hdr));
-
   packetbuf_compact();
+
+  {
+    int hdrlen = NETSTACK_FRAMER.create();
+    if(hdrlen == 0) {
+      /* Failed to send */
+      PRINTF("contikimac: send failed, too large header\n");
+      return MAC_TX_ERR_FATAL;
+    }
+  }
+
   PRINTF("%d.%d: queueing packet to %d.%d, channel %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 hdr.receiver.u8[0], hdr.receiver.u8[1],
@@ -688,38 +708,52 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 input_packet(void)
 {
-  struct lpp_hdr *hdr;
+  struct lpp_hdr hdr;
   clock_time_t reception_time;
 
   reception_time = clock_time();
 
-  hdr = packetbuf_dataptr();
+  if(!NETSTACK_FRAMER.parse()) {
+    printf("lpp input_packet framer error\n");
+  }
+
+  memcpy(&hdr, packetbuf_dataptr(), sizeof(struct lpp_hdr));;
   packetbuf_hdrreduce(sizeof(struct lpp_hdr));
   /*    PRINTF("got packet type %d\n", hdr->type);*/
 
-  if(hdr->type == TYPE_PROBE) {
-    /* Parse incoming announcements */
-    struct announcement_msg *adata = packetbuf_dataptr();
+  if(hdr.type == TYPE_PROBE) {
+    struct announcement_msg adata;
     int i;
-	
-    /*	PRINTF("%d.%d: probe from %d.%d with %d announcements\n",
-        rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-        hdr->sender.u8[0], hdr->sender.u8[1], adata->num);*/
-	
-    for(i = 0; i < adata->num; ++i) {
+    
+    /* Register the encounter with the sending node. We now know the
+       neighbor's phase. */
+    register_encounter(&hdr.sender, reception_time);
+
+    /* Parse incoming announcements */
+    memcpy(&adata, packetbuf_dataptr(),
+           MIN(packetbuf_datalen(), sizeof(adata)));
+#if 0
+    PRINTF("%d.%d: probe from %d.%d with %d announcements\n",
+           rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+           hdr.sender.u8[0], hdr.sender.u8[1], adata->num);
+    
+    if(adata.num / sizeof(struct announcement_data) > sizeof(struct announcement_msg)) {
+      /* Sanity check. The number of announcements is too large -
+         corrupt packet has been received. */
+      return 0;
+    }
+
+    for(i = 0; i < adata.num; ++i) {
       /*	  PRINTF("%d.%d: announcement %d: %d\n",
 		  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 		  adata->data[i].id,
 		  adata->data[i].value);*/
 
-      announcement_heard(&hdr->sender,
-                         adata->data[i].id,
-                         adata->data[i].value);
+      announcement_heard(&hdr.sender,
+                         adata.data[i].id,
+                         adata.data[i].value);
     }
-
-    /* Register the encounter with the sending node. We now know the
-       neighbor's phase. */
-    register_encounter(&hdr->sender, reception_time);
+#endif  /* 0 */
 
     /* Go through the list of packets to be sent to see if any of
        them match the sender of the probe, or if they are a
@@ -727,11 +761,11 @@ input_packet(void)
     if(list_length(queued_packets_list) > 0) {
       struct queue_list_item *i;
       for(i = list_head(queued_packets_list); i != NULL; i = i->next) {
-        struct lpp_hdr *qhdr;
-	  
-        qhdr = queuebuf_dataptr(i->packet);
-        if(rimeaddr_cmp(&qhdr->receiver, &hdr->sender) ||
-           rimeaddr_cmp(&qhdr->receiver, &rimeaddr_null)) {
+        const rimeaddr_t *receiver;
+ 
+        receiver = queuebuf_addr(i->packet, PACKETBUF_ADDR_RECEIVER);
+        if(rimeaddr_cmp(receiver, &hdr.sender) ||
+           rimeaddr_cmp(receiver, &rimeaddr_null)) {
           queuebuf_to_packetbuf(i->packet);
 
 #if WITH_PENDING_BROADCAST
@@ -740,15 +774,16 @@ input_packet(void)
             i->num_transmissions = 1;
             NETSTACK_RADIO.send(queuebuf_dataptr(i->packet),
                                  queuebuf_datalen(i->packet));
+            turn_radio_off();
             PRINTF("%d.%d: got a probe from %d.%d, sent packet to %d.%d\n",
 		   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-                   hdr->sender.u8[0], hdr->sender.u8[1],
-                   qhdr->receiver.u8[0], qhdr->receiver.u8[1]);
+                   hdr.sender.u8[0], hdr.sender.u8[1],
+                   receiver->u8[0], receiver->u8[1]);
 	      
           } else {
             PRINTF("%d.%d: got a probe from %d.%d, did not send packet\n",
                    rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-                   hdr->sender.u8[0], hdr->sender.u8[1]);
+                   hdr.sender.u8[0], hdr.sender.u8[1]);
           }
 #else /* WITH_PENDING_BROADCAST */
           i->num_transmissions = 1;
@@ -756,11 +791,11 @@ input_packet(void)
                                queuebuf_datalen(i->packet));
           PRINTF("%d.%d: got a probe from %d.%d, sent packet to %d.%d\n",
                  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-                 hdr->sender.u8[0], hdr->sender.u8[1],
-                 qhdr->receiver.u8[0], qhdr->receiver.u8[1]);
+                 hdr.sender.u8[0], hdr.sender.u8[1],
+                 receiver->u8[0], receiver->u8[1]);
 #endif /* WITH_PENDING_BROADCAST */
 
-
+          /*          off();*/
 
           /* Attribute the energy spent on listening for the probe
              to this packet transmission. */
@@ -770,7 +805,7 @@ input_packet(void)
              now. Broadcast packets should be transmitted to all
              neighbors, and are dequeued by the dutycycling function
              instead, after the appropriate time. */
-          if(!rimeaddr_cmp(&qhdr->receiver, &rimeaddr_null)) {
+          if(!rimeaddr_cmp(receiver, &rimeaddr_null)) {
             remove_queued_packet(i);
 
 #if WITH_PROBE_AFTER_TRANSMISSION
@@ -799,22 +834,23 @@ input_packet(void)
       }
     }
 
-  } else if(hdr->type == TYPE_DATA) {
-    if(!rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
-      if(!rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
+  } else if(hdr.type == TYPE_DATA) {
+    turn_radio_off();
+    if(!rimeaddr_cmp(&hdr.receiver, &rimeaddr_null)) {
+      if(!rimeaddr_cmp(&hdr.receiver, &rimeaddr_node_addr)) {
         /* Not broadcast or for us */
         PRINTF("%d.%d: data not for us from %d.%d\n",
                rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-               hdr->sender.u8[0], hdr->sender.u8[1]);
+               hdr.sender.u8[0], hdr.sender.u8[1]);
         return;
       }
-      packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &hdr->receiver);
+      packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &hdr.receiver);
     }
-    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &hdr->sender);
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &hdr.sender);
 
     PRINTF("%d.%d: got data from %d.%d\n",
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-           hdr->sender.u8[0], hdr->sender.u8[1]);
+           hdr.sender.u8[0], hdr.sender.u8[1]);
 
     /* Accumulate the power consumption for the packet reception. */
     compower_accumulate(&current_packet);
@@ -829,7 +865,7 @@ input_packet(void)
     compower_clear(&current_packet);
 
 #if WITH_PENDING_BROADCAST
-    if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
+    if(rimeaddr_cmp(&hdr.receiver, &rimeaddr_null)) {
       /* This is a broadcast packet. Check the list of pending
          packets to see if we are currently sending a broadcast. If
          so, we refrain from sending our broadcast until one sleep
@@ -853,7 +889,7 @@ input_packet(void)
     /* XXX send probe after receiving a packet to facilitate data
        streaming. We must first copy the contents of the packetbuf into
        a queuebuf to avoid overwriting the data with the probe packet. */
-    if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
+    if(rimeaddr_cmp(&hdr.receiver, &rimeaddr_node_addr)) {
       struct queuebuf *q;
       q = queuebuf_new_from_packetbuf();
       if(q != NULL) {
