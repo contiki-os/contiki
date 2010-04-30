@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.1 2010/04/30 13:43:53 joxe Exp $
+ * $Id: rpl.h,v 1.2 2010/04/30 15:03:55 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -92,7 +92,7 @@
 #define DEFAULT_MIN_HOPRANKINC          4
 
 /* Represents 2^n ms. */
-#define DEFAULT_DIO_INTERVAL_MIN        10
+#define DEFAULT_DIO_INTERVAL_MIN        12
 
 /* Maximum amount of timer doublings. */
 #define DEFAULT_DIO_INTERVAL_DOUBLINGS  8
