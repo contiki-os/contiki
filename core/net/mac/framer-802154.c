@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer-802154.c,v 1.10 2010/04/08 09:32:56 adamdunkels Exp $
+ * $Id: framer-802154.c,v 1.11 2010/04/30 07:25:51 adamdunkels Exp $
  */
 
 /**
@@ -93,7 +93,7 @@ create(void)
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
     params.fcf.ack_required = 0;
   } else {
-    params.fcf.ack_required = 1; //packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
+    params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
   }
   params.fcf.panid_compression = 0;
 
