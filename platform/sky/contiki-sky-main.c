@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.79 2010/04/30 13:52:14 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.80 2010/05/01 13:07:31 joxe Exp $
  */
 
 #include <signal.h>
@@ -52,7 +52,6 @@
 
 #if WITH_UIP6
 #include "net/uip-ds6.h"
-#include "net/rpl/rpl.h"
 #endif /* WITH_UIP6 */
 
 #include "net/rime.h"
@@ -337,10 +336,6 @@ main(int argc, char **argv)
     printf("%02x%02x\n",
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
-
-#if UIP_CONF_IPV6_RPL
-  rpl_init();
-#endif /* UIP_CONF_IPV6_RPL */
 
 #else /* WITH_UIP6 */
 
