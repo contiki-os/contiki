@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.27 2010/03/16 15:41:00 nifi Exp $
+ * $Id: tcpip.c,v 1.28 2010/05/01 13:04:31 joxe Exp $
  */
 /**
  * \file
@@ -76,7 +76,9 @@ void uip_log(char *msg);
 #ifdef UIP_FALLBACK_INTERFACE
 extern struct uip_fallback_interface UIP_FALLBACK_INTERFACE;
 #endif
-
+#if UIP_CONF_IPV6_RPL
+void rpl_init(void);
+#endif
 process_event_t tcpip_event;
 #if UIP_CONF_ICMP6
 process_event_t tcpip_icmp6_event;
@@ -752,6 +754,11 @@ PROCESS_THREAD(tcpip_process, ev, data)
 #ifdef UIP_FALLBACK_INTERFACE
   UIP_FALLBACK_INTERFACE.init();
 #endif
+/* initialize RPL if configured for using RPL */
+#if UIP_CONF_IPV6_RPL
+  rpl_init();
+#endif /* UIP_CONF_IPV6_RPL */
+
   while(1) {
     PROCESS_YIELD();
     eventhandler(ev, data);
