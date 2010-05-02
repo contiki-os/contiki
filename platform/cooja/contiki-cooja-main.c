@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki-cooja-main.c,v 1.7 2010/03/31 09:39:46 fros4943 Exp $
+ * $Id: contiki-cooja-main.c,v 1.8 2010/05/02 09:42:15 fros4943 Exp $
  */
 
 /**
@@ -184,8 +184,7 @@ process_run_thread_loop(void *data)
     simProcessRunValue = 1;
     cooja_mt_yield();
 
-    /* Initialize random generator */
-    random_init(0);
+    /* Initialize random generator (moved to moteid.c) */
 
     /* Start process handler */
     process_init();

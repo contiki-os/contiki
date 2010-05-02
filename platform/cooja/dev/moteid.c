@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: moteid.c,v 1.2 2008/10/28 15:37:34 fros4943 Exp $
+ * $Id: moteid.c,v 1.3 2010/05/02 09:42:15 fros4943 Exp $
  */
 
 #include "dev/moteid.h"
@@ -38,6 +38,7 @@ const struct simInterface moteid_interface;
 // COOJA variables
 int simMoteID;
 char simMoteIDChanged;
+int simRandomSeed;
 
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -45,7 +46,7 @@ doInterfaceActionsBeforeTick(void)
 {
   if (simMoteIDChanged) {
     simMoteIDChanged = 0;
-	random_init((simMoteID+1));
+	random_init(simRandomSeed);
   }
 }
 /*-----------------------------------------------------------------------------------*/
