@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteID.java,v 1.7 2010/02/05 08:49:18 fros4943 Exp $
+ * $Id: ContikiMoteID.java,v 1.8 2010/05/02 09:42:52 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -66,6 +66,8 @@ public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
 
   private int moteID = 0;
 
+  private Mote mote;
+  
   /**
    * Creates an interface to the mote ID at mote.
    *
@@ -75,6 +77,7 @@ public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiMoteID(Mote mote) {
+    this.mote = mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
   }
 
@@ -90,7 +93,7 @@ public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
     moteID = newID;
     moteMem.setIntValueOf("simMoteID", moteID);
     moteMem.setByteValueOf("simMoteIDChanged", (byte) 1);
-
+    moteMem.setIntValueOf("simRandomSeed", (int) (mote.getSimulation().getRandomSeed() + newID));
     setChanged();
     notifyObservers();
   }
