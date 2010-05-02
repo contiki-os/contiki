@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.17 2010/04/30 07:29:08 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.18 2010/05/02 12:21:34 nifi Exp $
  */
 
 /**
@@ -219,7 +219,7 @@ queuebuf_datalen(struct queuebuf *b)
 const rimeaddr_t *
 queuebuf_addr(struct queuebuf *b, uint8_t type)
 {
-  return &b->addrs[type];
+  return &b->addrs[type - PACKETBUF_ADDR_FIRST].addr;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
