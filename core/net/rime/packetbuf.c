@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.c,v 1.8 2010/04/26 22:05:40 nifi Exp $
+ * $Id: packetbuf.c,v 1.9 2010/05/02 14:59:11 nifi Exp $
  */
 
 /**
@@ -159,6 +159,10 @@ packetbuf_copyto(void *to)
     PRINTF("packetbuf_write: data: %s\n", buffer);
   }
 #endif /* DEBUG_LEVEL */
+  if(PACKETBUF_HDR_SIZE - hdrptr + buflen > PACKETBUF_SIZE) {
+    /* Too large packet */
+    return 0;
+  }
   memcpy(to, packetbuf + hdrptr, PACKETBUF_HDR_SIZE - hdrptr);
   memcpy((uint8_t *)to + PACKETBUF_HDR_SIZE - hdrptr, packetbufptr + bufptr,
 	 buflen);
@@ -168,7 +172,7 @@ packetbuf_copyto(void *to)
 int
 packetbuf_hdralloc(int size)
 {
-  if(hdrptr >= size) {
+  if(hdrptr >= size && packetbuf_totlen() + size <= PACKETBUF_SIZE) {
     hdrptr -= size;
     return 1;
   }
