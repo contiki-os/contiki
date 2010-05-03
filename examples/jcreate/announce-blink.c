@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announce-blink.c,v 1.2 2010/01/31 16:47:44 nifi Exp $
+ * $Id: announce-blink.c,v 1.3 2010/05/03 22:02:59 nifi Exp $
  */
 
 /**
@@ -42,11 +42,9 @@
 #include "contiki-net.h"
 #include "shell.h"
 
-#if CONTIKI_TARGET_SKY
 #include "dev/acc-sensor.h"
-#include "dev/cc2420.h"
 #include "net/mac/xmac.h"
-#endif /* CONTIKI_TARGET_SKY */
+#include "dev/leds.h"
 
 #include <stdio.h>
 
@@ -70,9 +68,7 @@ AUTOSTART_PROCESSES(&announce_blink_process);
 /*---------------------------------------------------------------------------*/
 /*
  * This function takes the length of the neighbor table list and
- * displays it on the on-board LEDs. There is currently no support for
- * using 8 LEDs in the standard Contiki LED library, so we directly
- * write to the LEDS_PxOUT variable.
+ * displays it on the on-board LEDs.
  */
 static void
 show_leds(void)
@@ -88,9 +84,8 @@ show_leds(void)
   }
   val >>= 1;
 
-#if CONTIKI_TARGET_SKY
-  LEDS_PxOUT = ~val;
-#endif /* CONTIKI_TARGET_SKY */
+  leds_on(val & 0xff);
+  leds_off(~(val & 0xff));
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -143,20 +138,11 @@ PROCESS_THREAD(announce_blink_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  /* XXX the Sentilla JCreate has 8 LEDs, and we need to set the ports
-     correctly. */
-#if CONTIKI_TARGET_SKY
-  LEDS_PxDIR = 0xff;
-  LEDS_PxOUT = 0xff;
-#endif /* CONTIKI_TARGET_SKY */
-
-  announcement_register(&announcement, 80, 0,
-			received_announcement);
+  announcement_register(&announcement, 80, received_announcement);
 
   list_init(neighbor_table);
   memb_init(&neighbor_mem);
 
-#if CONTIKI_TARGET_NATIVE
   {
     int i;
     for(i = 0; i < 10; ++i) {
@@ -166,16 +152,13 @@ PROCESS_THREAD(announce_blink_process, ev, data)
       received_announcement(NULL, &r, 0, 0);
     }
   }
-#endif /* CONTIKI_TARGET_NATIVE */
   
-#if CONTIKI_TARGET_SKY
   SENSORS_ACTIVATE(acc_sensor);
 
   /* Lower the transmission power for the announcements so that only
      close-range neighbors are noticed. (Makes for a nicer visual
      effect.) */
   xmac_set_announcement_radio_txpower(1);
-#endif /* CONTIKI_TARGET_SKY */
   
   while(1) {
     static struct etimer e;
@@ -183,12 +166,10 @@ PROCESS_THREAD(announce_blink_process, ev, data)
     
     etimer_set(&e, CLOCK_SECOND / 8);
     PROCESS_WAIT_EVENT();
-#if CONTIKI_TARGET_SKY
     if(acc_sensor.value(1) / 256 != last_value) {
       last_value = acc_sensor.value(1) / 256;
       announcement_listen(1);
     }
-#endif /* CONTIKI_TARGET_SKY */
   }
   
   PROCESS_END();
