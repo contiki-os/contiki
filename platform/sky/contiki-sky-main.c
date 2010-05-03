@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.81 2010/05/03 13:51:11 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.82 2010/05/03 13:55:26 nifi Exp $
  */
 
 #include <signal.h>
@@ -47,6 +47,7 @@
 #include "dev/xmem.h"
 #include "lib/random.h"
 #include "net/netstack.h"
+#include "net/mac/frame802154.h"
 
 #if WITH_UIP6
 #include "net/uip-ds6.h"
