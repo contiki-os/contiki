@@ -1,0 +1,162 @@
+# $Id: Makefile.common,v 1.1 2010/05/03 13:51:11 nifi Exp $
+
+ARCH=spi.c ds2411.c xmem.c i2c.c node-id.c sensors.c cfs-coffee.c \
+     cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c \
+     sky-sensors.c uip-ipchksum.c \
+     checkpoint-arch.c #slip.c slip_uart1.c
+
+CONTIKI_TARGET_DIRS = . dev apps net
+ifndef CONTIKI_TARGET_MAIN
+CONTIKI_TARGET_MAIN = contiki-sky-main.c
+endif
+
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(CONTIKI_TARGET_MAIN)
+
+MCU=msp430x1611
+include $(CONTIKI)/cpu/msp430/Makefile.msp430
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+#	$(AR) rcf $@ $^
+
+
+NUMPAR=20
+IHEXFILE=tmpimage.ihex
+
+# Check if we are running under Windows
+ifdef OS
+  ifneq (,$(findstring Windows,$(OS)))
+    USBDEVPREFIX=/dev/com
+    SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-windows
+    MOTELIST = $(CONTIKI)/tools/sky/motelist-windows
+    TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/tmote-bsl.exe),1,0)
+    ifeq ($(TMOTE_BSL), 1)
+      NUMPAR = 1
+      BSL =  $(CONTIKI)/tools/sky/tmote-bsl
+      MOTES = $(shell $(MOTELIST) | grep COM | \
+         cut -f 4 -d \  )
+    else
+      BSL = $(CONTIKI)/tools/sky/msp430-bsl-windows --telosb
+      BSL_FILETYPE = -I
+      MOTES = $(shell $(MOTELIST) | grep COM | \
+         cut -f 4 -d \  | \
+         perl -ne 'print $$1 - 1 . " " if(/COM(\d+)/);')
+    endif
+    CMOTES = $(shell $(MOTELIST) | grep COM | \
+       cut -f 4 -d \  | \
+       perl -ne 'print $$1 . " " if(/COM(\d+)/);')
+  endif
+endif
+
+# If we are not running under Windows, we assume Linux
+ifndef MOTELIST
+  USBDEVPREFIX=
+  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+  MOTELIST = $(CONTIKI)/tools/sky/motelist-linux
+  TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/tmote-bsl-linux),1,0)
+  ifeq ($(TMOTE_BSL), 1)
+    PATH := $(PATH):$(CONTIKI)/tools/sky
+    BSL =  $(CONTIKI)/tools/sky/tmote-bsl-linux
+    NUMPAR = 1
+  else
+    BSL = $(CONTIKI)/tools/sky/msp430-bsl-linux --telosb
+    BSL_FILETYPE = -I
+  endif
+  MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
+     cut -f 4 -d \  | \
+     perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+  CMOTES=$(MOTES)
+endif
+
+sky-motelist:
+	$(MOTELIST)
+sky-motes:
+	@echo $(MOTES)
+
+ifdef MOTE
+%.upload: %.ihex
+	cp $< $(IHEXFILE)
+	$(MAKE) sky-u.$(subst /,-,$(word $(MOTE), $(MOTES)))
+else # MOTE
+%.upload: %.ihex
+	cp $< $(IHEXFILE)
+	$(MAKE) sky-reset sky-upload
+endif # MOTE
+
+upload-ihex:
+ifdef FILE
+	@echo Uploading $(FILE)
+	cp $(FILE) $(IHEXFILE)
+ifdef MOTE
+	$(MAKE) sky-u.$(subst /,-,$(word $(MOTE), $(MOTES)))
+else # MOTE
+	$(MAKE) sky-reset sky-upload
+endif # MOTE
+else
+	@echo Example: $(MAKE) upload-ihex FILE=myfile.ihex
+endif
+
+sky-upload: sky-reset
+	$(MAKE) -j $(NUMPAR) sky-upload-sequence
+
+sky-upload-sequence:	$(foreach PORT, $(MOTES), sky-u.$(subst /,-,$(PORT)))
+	@echo Done
+
+sky-reset:
+	$(MAKE) -k -j $(NUMPAR) sky-reset-sequence
+
+sky-reset-sequence:	$(foreach PORT, $(MOTES), sky-r.$(subst /,-,$(PORT)))
+	@echo Done
+
+sky-u.%:
+	@echo +++++ Erasing $(subst -,/,$*); \
+	$(BSL) -c $(subst -,/,$*) -e && sleep 2 ; \
+	echo +++++ Programming $(subst -,/,$*) ; \
+	$(BSL) -c $(subst -,/,$*) $(BSL_FILETYPE) -p $(IHEXFILE) && sleep 2 ; \
+	echo +++++ Resetting $(subst -,/,$*) ; \
+	$(BSL) -c $(subst -,/,$*) -r
+
+sky-r.%:
+	$(BSL) -c $(subst -,/,$*) -r
+
+sizeplot:
+	msp430-size $(OBJECTDIR)/*.o | $(CONTIKI)/tools/sky/check-size > size-data
+	gnuplot $(CONTIKI)/tools/sky/plot-size
+	gv size.pdf
+
+winslip:
+ifdef INTERFACE
+	$(CONTIKI)/tools/wpcapslip/wpcapslip -s $(USBDEVPREFIX)$(firstword $(CMOTES)) $(INTERFACE) 172.16.0.0 255.255.0.0
+else
+	@echo "Usage: \"$(MAKE) $@ INTERFACE=<the IP address of a local network interface>\""
+	@echo "Use the \"ipconfig\" command to find out the IP addresses of the local interfaces"
+endif
+
+linslip: $(CONTIKI)/tools/tunslip
+	$(CONTIKI)/tools/tunslip -s $(USBDEVPREFIX)$(firstword $(CMOTES)) 172.16.0.0 255.255.0.0
+
+$(CONTIKI)/tools/tunslip:
+	(cd $(CONTIKI)/tools; $(MAKE) tunslip)
+
+ifdef MOTE
+serialdump:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) | $(CONTIKI)/tools/timestamp | tee serialdump-`date +%Y%m%d-%H%M`
+
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES))
+else
+serialdump:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(CMOTES)) | $(CONTIKI)/tools/timestamp | tee serialdump-`date +%Y%m%d-%H%M`
+
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(CMOTES)) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(CMOTES))
+endif
