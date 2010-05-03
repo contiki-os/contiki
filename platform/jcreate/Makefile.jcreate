@@ -1,0 +1,16 @@
+# $Id: Makefile.jcreate,v 1.1 2010/05/03 21:57:35 nifi Exp $
+
+# Some drivers such as ds2411.c only compile under platform sky
+CFLAGS += -DCONTIKI_TARGET_SKY
+
+CONTIKI_TARGET_SOURCEFILES += contiki-jcreate-platform.c \
+	battery-sensor.c radio-sensor.c \
+	acc-sensor.c ext-sensor.c
+
+include $(CONTIKI)/platform/sky/Makefile.common
+
+ifneq ($(TMOTE_BSL), 1)
+  ${warning No tmote-bsl command found. Please install this command in contiki-2.x/tools/sky}
+endif
+
+CONTIKI_TARGET_DIRS += ${addprefix ../sky/,. dev apps}
