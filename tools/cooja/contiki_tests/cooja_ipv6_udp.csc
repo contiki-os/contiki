@@ -23,8 +23,8 @@
       se.sics.cooja.contikimote.ContikiMoteType
       <identifier>mtype783</identifier>
       <description>Receiver</description>
-      <contikiapp>[CONTIKI_DIR]/examples/udp-receiver-ipv6/example-udp-receiver.c</contikiapp>
-      <commands>make example-udp-receiver.cooja TARGET=cooja DEFINES=UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x2,UDP_ADDR_F=0x2ff,UDP_ADDR_G=0xfe02,UDP_ADDR_H=0x0202</commands>
+      <contikiapp>[CONTIKI_DIR]/examples/udp-ipv6/udp-server.c</contikiapp>
+      <commands>make udp-server.cooja TARGET=cooja DEFINES=UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x2,UDP_ADDR_F=0x2ff,UDP_ADDR_G=0xfe02,UDP_ADDR_H=0x0202</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -47,8 +47,8 @@
       se.sics.cooja.contikimote.ContikiMoteType
       <identifier>mtype512</identifier>
       <description>Sender</description>
-      <contikiapp>[CONTIKI_DIR]/examples/udp-sender-ipv6/example-udp-sender.c</contikiapp>
-      <commands>make example-udp-sender.cooja TARGET=cooja DEFINES=UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x301,UDP_ADDR_F=0x1ff,UDP_ADDR_G=0xfe01,UDP_ADDR_H=0x101</commands>
+      <contikiapp>[CONTIKI_DIR]/examples/udp-ipv6/udp-client.c</contikiapp>
+      <commands>make udp-client.cooja TARGET=cooja DEFINES=UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x301,UDP_ADDR_F=0x1ff,UDP_ADDR_G=0xfe01,UDP_ADDR_H=0x101</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -147,21 +147,21 @@
     <plugin_config>
       <script>TIMEOUT(100000, log.log("last msg: " + msg + "\n")); /* print last msg at timeout */
 
-WAIT_UNTIL(msg.contains("Created connection"));
-YIELD_THEN_WAIT_UNTIL(msg.contains("Created connection"));
+WAIT_UNTIL(msg.contains("Created a server connection"));
+YIELD_THEN_WAIT_UNTIL(msg.contains("Created a connection"));
 
 log.log("Both nodes booted\n");
 
 count = 0;
 while (count++ &lt; 5) {
   /* Message from sender process to receiver process */
-  YIELD_THEN_WAIT_UNTIL(msg.contains("Sender sending"));
-  YIELD_THEN_WAIT_UNTIL(msg.contains("Receiver received"));
+  YIELD_THEN_WAIT_UNTIL(msg.contains("Client sending"));
+  YIELD_THEN_WAIT_UNTIL(msg.contains("Server received"));
   log.log(count + ": Sender -&gt; Receiver OK\n");
 
   /* Message from receiver process to sender process */
-  YIELD_THEN_WAIT_UNTIL(msg.contains("Receiver sending"));
-  YIELD_THEN_WAIT_UNTIL(msg.contains("Sender received"));
+  YIELD_THEN_WAIT_UNTIL(msg.contains("Responding with"));
+  YIELD_THEN_WAIT_UNTIL(msg.contains("Response from"));
   log.log(count + ": Receiver -&gt; Sender OK\n");
 }
 
