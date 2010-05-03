@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: jcreate-shell.c,v 1.5 2010/03/22 10:21:57 nifi Exp $
+ * $Id: jcreate-shell.c,v 1.6 2010/05/03 22:02:59 nifi Exp $
  */
 
 /**
@@ -186,7 +186,8 @@ PROCESS_THREAD(shell_leds_process, ev, data)
   for(i = 0; i < msg->acc[num] >> 9; ++i) {
     val = (val << 1) | 1;
   }
-  LEDS_PxOUT = ~val;
+  leds_on(val & 0xff);
+  leds_off(~(val & 0xff));
   
   PROCESS_END();
 }
@@ -198,11 +199,6 @@ PROCESS_THREAD(sky_shell_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  /* XXX the Sentilla JCreate has 8 LEDs, and we need to set the ports
-     correctly. */
-  LEDS_PxDIR = 0xff;
-  LEDS_PxOUT = 0xff;
-  
   serial_shell_init();
   shell_blink_init();
   shell_file_init();

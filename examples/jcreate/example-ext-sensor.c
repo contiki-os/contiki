@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-ext-sensor.c,v 1.1 2010/02/13 12:21:31 joxe Exp $
+ * $Id: example-ext-sensor.c,v 1.2 2010/05/03 22:02:59 nifi Exp $
  */
 
 /**
@@ -57,10 +57,6 @@ PROCESS_THREAD(ext_sensor_process, ev, data)
   static int time;
   PROCESS_BEGIN();
 
-  /* The Sentilla JCreate has 8 LEDs, and we need to set the ports
-     correctly. */
-  LEDS_PxDIR = 0xff;
-  LEDS_PxOUT = 0xff;
   SENSORS_ACTIVATE(ext_sensor);
 
   leds_invert(LEDS_ALL);
