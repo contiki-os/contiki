@@ -1,1 +1,2 @@
-Two Sky nodes: examples/udp-receiver-ipv6/example-udp-receiver.c and examples/udp-sender-ipv6/example-udp-sender.c. Test success after 5 replies
+Two Sky nodes: examples/udp-ipv6/udp-{server,client}.c.
+Test success after 5 replies 
