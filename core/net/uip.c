@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.23 2010/02/15 23:31:05 adamdunkels Exp $
+ * $Id: uip.c,v 1.24 2010/05/04 09:19:41 joxe Exp $
  *
  */
 
@@ -127,7 +127,8 @@ struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
 #endif
 
 #ifndef UIP_CONF_EXTERNAL_BUFFER
-u8_t uip_buf[UIP_BUFSIZE + 2];   /* The packet buffer that contains
+static uint32_t uip_buf32[(UIP_BUFSIZE + 3) / 4];
+uint8_t *uip_buf = (uint8_t *)uip_buf32;  /* The packet buffer that contains
 				    incoming packets. */
 #endif /* UIP_CONF_EXTERNAL_BUFFER */
 
