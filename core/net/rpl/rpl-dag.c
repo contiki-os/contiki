@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.2 2010/05/04 14:41:55 joxe Exp $
+ * $Id: rpl-dag.c,v 1.3 2010/05/04 22:55:32 nvt-se Exp $
  */
 /**
  * \file
@@ -266,8 +266,6 @@ rpl_find_neighbor(rpl_dag_t *dag, uip_ipaddr_t *addr)
 rpl_neighbor_t *
 rpl_first_parent(rpl_dag_t *dag)
 {
-  //return list_head(dag->parents);
-
   rpl_neighbor_t *n;
 
     for(n = list_head(dag->neighbors); n != NULL; n = n->next) {
@@ -392,14 +390,14 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
   PRINTF("succeeded\n");
 
-  n->local_confidence = 0; /* Extract packet LQI here. */
+  n->local_confidence = 0;	/* The lowest confidence for new parents. */
   n->rank = dio->dag_rank;
 
   /* Determine the objective function by using the
      objective code point of the DIO. */
   of = rpl_find_of(dio->ocp);
   if(of == NULL) {
-    PRINTF("RPL: DIO for DAG instance %d does not specify a supported OF\n",
+    PRINTF("RPL: DIO for DAG instance %u does not specify a supported OF\n",
         dio->instance_id);
     return;
   }
@@ -423,7 +421,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   rpl_join_dag(dag);
 
-  PRINTF("RPL: Joined DAG with instance ID %d, rank %d, DAG ID ",
+  PRINTF("RPL: Joined DAG with instance ID %u, rank %hu, DAG ID ",
          dio->instance_id, dag->rank);
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
@@ -452,7 +450,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     dag->rank = dag->of->increment_rank(dio->dag_rank, n);
     rpl_reset_dio_timer(dag, 1);
   }
-  PRINTF("RPL: Participating in a global DAG repair. New DAG sequence number: %d NewRank: %d\n",
+  PRINTF("RPL: Participating in a global DAG repair. New DAG sequence number: %u, new rank: %hu\n",
          dag->sequence_number, dag->rank);
 
 }
@@ -475,11 +473,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_neighbor_t *n;
   uint8_t new_rank;
   uint8_t new_parent;
-
-  /* if(from->u8[15] != 0xe7) { */
-  /*   printf("last byte did not match e7 %x\n", from->u8[15]); */
-  /*   return; */
-  /* } */
 
   dag = rpl_get_dag(dio->instance_id);
   if(dag == NULL) {
@@ -520,7 +513,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     } else if(n->rank < dio->dag_rank) {
       PRINTF("RPL: Existing parent ");
       PRINT6ADDR(from);
-      PRINTF(" got a higher rank (%d -> %d)\n",
+      PRINTF(" got a higher rank (%hu -> %hu)\n",
              n->rank, dio->dag_rank);
       n->rank = dio->dag_rank;
       if(RPL_PARENT_COUNT(dag) > 1) {
@@ -528,7 +521,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
         rpl_remove_neighbor(dag, n);
       } else if(dag->of->increment_rank(dio->dag_rank, n) <= dag->min_rank + dag->max_rankinc) {
         dag->rank = dag->of->increment_rank(dio->dag_rank, n);
-        PRINTF("RPL: New rank is %i, max is %i\n", dag->rank, dag->min_rank + dag->max_rankinc);
+        PRINTF("RPL: New rank is %hu, max is %hu\n",
+		dag->rank, dag->min_rank + dag->max_rankinc);
         rpl_set_default_route(dag, &n->addr);
       } else {
         PRINTF("RPL: Cannot find acceptable best neighbor\n");
@@ -559,7 +553,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       }
 
       n->rank = dio->dag_rank;
-      PRINTF("RPL: New parent with rank %d ", n->rank);
+      PRINTF("RPL: New parent with rank %hu ", n->rank);
       PRINT6ADDR(from);
       PRINTF("\n");
       new_parent = 1;
@@ -567,7 +561,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
     new_rank = dag->of->increment_rank(dio->dag_rank, n);
     if(new_rank < dag->rank) {
-      PRINTF("RPL: Moving up within the DAG from rank %d to %d\n",
+      PRINTF("RPL: Moving up within the DAG from rank %hu to %hu\n",
              dag->rank, new_rank);
       dag->rank = new_rank;
       dag->min_rank = new_rank; /* So far this is the lowest rank we know */
@@ -591,7 +585,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     if(n != NULL && n->rank < dio->dag_rank) {
       PRINTF("RPL: Parent ");
       PRINT6ADDR(&n->addr);
-      PRINTF(" has increased in rank from %d to %d. Removing it.\n",
+      PRINTF(" has increased in rank from %hu to %hu. Removing it.\n",
              n->rank, dio->dag_rank);
       rpl_remove_neighbor(dag, n);
       if(RPL_PARENT_COUNT(dag) == 0) {
@@ -632,7 +626,8 @@ rpl_ds6_neighbor_callback(uip_ds6_nbr_t *nbr)
         if(dag->rank < dag->min_rank) {
            dag->min_rank = dag->rank;
         }
-        PRINTF("New rank is %i, max is %i\n", dag->rank, dag->min_rank + dag->max_rankinc);
+        PRINTF("RPL: New rank is %hu, max is %hu\n",
+		dag->rank, dag->min_rank + dag->max_rankinc);
         rpl_set_default_route(dag, &n->addr);
       } else {
         PRINTF("RPL: Cannot find the best neighbor\n");
