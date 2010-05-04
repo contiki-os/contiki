@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-timers.c,v 1.1 2010/04/30 13:43:53 joxe Exp $
+ * $Id: rpl-timers.c,v 1.2 2010/05/04 22:55:32 nvt-se Exp $
  */
 /**
  * \file
@@ -66,10 +66,10 @@ handle_periodic_timer(void *ptr)
   /* handle DIS */
 #ifdef RPL_DIS_SEND
   next_dis++;
- if(rpl_get_dag(RPL_ANY_INSTANCE) == NULL && next_dis >= RPL_DIS_INTERVAL) {
-   next_dis = 0;
-   dis_output(NULL);
- }
+  if(rpl_get_dag(RPL_ANY_INSTANCE) == NULL && next_dis >= RPL_DIS_INTERVAL) {
+    next_dis = 0;
+    dis_output(NULL);
+  }
 #endif
   ctimer_reset(&periodic_timer);
 }
@@ -79,14 +79,17 @@ new_dio_interval(rpl_dag_t *dag)
 {
   unsigned long time;
 
-  /* TODO!!! too small timer intervals for many cases */
+  /* TODO: too small timer intervals for many cases */
   time = 1L << dag->dio_intcurrent;
+
   /* need to convert from milliseconds to CLOCK_TICKS */
   time = (time * CLOCK_SECOND) / 1000;
   dag->dio_next_delay = time;
+
   /* random number between I/2 and I */
   time = time >> 1;
   time += (time * random_rand()) / RANDOM_MAX;
+
   dag->dio_next_delay -= time;
   dag->dio_send = 1;
 

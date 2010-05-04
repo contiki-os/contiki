@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.5 2010/05/04 14:41:55 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.6 2010/05/04 22:55:32 nvt-se Exp $
  */
 /**
  * \file
@@ -245,13 +245,13 @@ dio_input(void)
       dio.dag_redund = buffer[i + 5];
       dio.dag_max_rankinc = buffer[i + 6];
       dio.dag_min_hoprankinc = buffer[i + 7];
-      PRINTF("RPL: DIO trickle timer:dbl=%d, min=%d red=%d maxinc=%d mininc=%d\n", dio.dag_intdoubl,
-             dio.dag_intmin, dio.dag_redund,
+      PRINTF("RPL: DIO trickle timer: dbl=%d, min=%d red=%d maxinc=%d mininc=%d\n",
+             dio.dag_intdoubl, dio.dag_intmin, dio.dag_redund,
              dio.dag_max_rankinc, dio.dag_min_hoprankinc);
       break;
     case RPL_DIO_SUBOPT_OCP:
       dio.ocp = buffer[i + 3] << 8 | buffer[i + 4];
-      PRINTF("RPL: DAG OCP Sub-opt received OCP = %d\n", dio.ocp);
+      PRINTF("RPL: DAG OCP Sub-opt received OCP = %u\n", dio.ocp);
       break;
     }
   }
@@ -267,7 +267,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   uip_ipaddr_t addr;
 
   /* DAG Information Solicitation */
-  PRINTF("RPL: Sending a DIO with rank: %d\n", dag->rank);
+  PRINTF("RPL: Sending a DIO with rank: %hu\n", dag->rank);
   pos = 0;
 
   buffer = UIP_ICMP_PAYLOAD;
@@ -312,11 +312,11 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
 
   /* Unicast requests get unicast replies! */
   if(uc_addr == NULL) {
-    PRINTF("RPL: Sending a multicast-DIO with rank %d\n", dag->rank);
+    PRINTF("RPL: Sending a multicast-DIO with rank %hu\n", dag->rank);
     uip_create_linklocal_allrouters_mcast(&addr);
     uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos);
   } else {
-    PRINTF("RPL: Sending unicast-DIO with rank %d to ", dag->rank);
+    PRINTF("RPL: Sending unicast-DIO with rank %hu to ", dag->rank);
     PRINT6ADDR(uc_addr);
     PRINTF("\n");
     uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos);
@@ -366,12 +366,12 @@ dao_input(void)
 
   dag = rpl_get_dag(instance_id);
   if(dag == NULL) {
-    PRINTF("RPL: Ignoring a DAO for a different DAG instance (%d)\n",
+    PRINTF("RPL: Ignoring a DAO for a different DAG instance (%u)\n",
         instance_id);
     return;
   }
 
-  PRINTF("RPL: Incoming DAO rank is %d, my rank is %d\n", rank, dag->rank);
+  PRINTF("RPL: Incoming DAO rank is %hu, my rank is %hu\n", rank, dag->rank);
   if(rank < dag->rank) {
     return;
   }
