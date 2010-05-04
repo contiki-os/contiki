@@ -1,5 +1,24 @@
-#ifndef BOARD_REDBEE_DEV_H
-#define BOARD_REDBEE_DEV_H
+#ifndef BOARD_QUAHOG10_H
+#define BOARD_QUAHOG10_H
+
+#define LED_REDBANK_0		(0x1ULL << 2)
+#define LED_REDBANK_1		(0x1ULL << 0)
+#define LED_REDBANK_2		(0x1ULL << 28)
+#define LED_REDBANK_3		(0x1ULL << 25)
+#define LED_REDBANK_4		(0x1ULL << 43)
+
+#define LED_CENTERRED		(0x1ULL << 12)
+#define LED_CENTERGREEN		(0x1ULL << 13)
+
+#define LED_SIDERED			(0x1ULL << 12)
+#define LED_SIDEGREEN		(0x1ULL << 21)
+#define LED_SIDEYELLOW		(0x1ULL << 35)
+
+// Buttons in GPIO mode
+#define BUTTON1_OUT			(0x1ULL << 23)
+#define BUTTON1_IN			(0x1ULL << 27)
+#define BUTTON2_OUT			(0x1ULL << 22)
+#define BUTTON2_IN			(0x1ULL << 26)
 
 #define LED_RED   12
 #define LED_GREEN 21
