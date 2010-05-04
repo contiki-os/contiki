@@ -32,7 +32,6 @@
 #include "contiki-net.h"
 #include "net/uip.h"
 #include "net/rpl/rpl.h"
-#include "node-id.h"
 
 #include "net/netstack.h"
 #include "dev/button-sensor.h"

@@ -1,8 +1,6 @@
 all: udp-client udp-server
 
-CONTIKI=../../../../contiki-2.x
-
-TARGET=sky
+CONTIKI=../../..
 
 WITH_UIP6=1
 UIP_CONF_IPV6=1

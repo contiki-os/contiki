@@ -33,7 +33,6 @@
 #include "net/uip.h"
 #include "net/uip-ds6.h"
 #include "net/uip-udp-packet.h"
-#include "node-id.h"
 
 #include <stdio.h>
 #include <string.h>
