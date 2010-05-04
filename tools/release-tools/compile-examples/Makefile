@@ -17,7 +17,7 @@ hello-world: example-hello-world.sky example-hello-world.native \
              example-hello-world.netsim example-hello-world.minimal-net example-hello-world.msb430
 rime-examples: example-rime.sky example-rime.netsim example-rime.esb
 ipso-ipv6-raven: example-ipso-ipv6-raven.raven
-jcreate: example-jcreate.sky
+jcreate: example-jcreate.jcreate
 multi-threading: example-multi-threading.sky \
                  example-multi-threading.native example-multi-threading.msb430
 sky: example-sky.sky
