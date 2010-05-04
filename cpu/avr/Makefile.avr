@@ -1,5 +1,5 @@
-# $Id: Makefile.avr,v 1.22 2010/03/15 18:52:55 dak664 Exp $
-
+# $Id: Makefile.avr,v 1.23 2010/05/04 14:14:49 dak664 Exp $
+	
 ### Check if we are running under Windows
 
 ifndef WINDIR
@@ -109,7 +109,7 @@ CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 \
            $(CONTIKI_PLAT_DEFS)
 CFLAGS   += $(CFLAGSNO) -O$(OPTI)
 ifndef BOOTLOADER_START
-  BOOTLOADER_START = 0x1FC00
+  BOOTLOADER_START = 0x1F800
 endif
 
 LDFLAGS  += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
@@ -133,6 +133,7 @@ $(OBJECTDIR)/%.o: %.c
 
 %.elf:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a symbols.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
+	avr-size -C --mcu=$(MCU) $@
 
 %.hex: %.out
 	$(OBJCOPY) $^ -O ihex $@
@@ -152,7 +153,7 @@ ifdef SYMBOLS
 endif
 
 #%.hex: %.elf
-#	$(OBJCOPY) -R .eeprom $^ -O ihex $@
+#	$(OBJCOPY) -R .eeprom -R .fuse -R .signature $^ -O ihex $@
 
 %.eep: %.out
 	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
