@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.1 2010/04/30 13:43:53 joxe Exp $
+ * $Id: rpl-dag.c,v 1.2 2010/05/04 14:41:55 joxe Exp $
  */
 /**
  * \file
@@ -49,7 +49,7 @@
 #include "lib/memb.h"
 
 #include <limits.h>
-/* #include <stdio.h> */
+#include <string.h>
 
 #define DEBUG DEBUG_ANNOTATE
 

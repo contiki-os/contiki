@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.4 2010/04/30 23:13:58 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.5 2010/05/04 14:41:55 joxe Exp $
  */
 /**
  * \file
@@ -53,6 +53,7 @@
 #include "net/rime/packetbuf.h"
 
 #include <limits.h>
+#include <string.h>
 
 #define DEBUG DEBUG_ANNOTATE
 
