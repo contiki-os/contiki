@@ -27,6 +27,7 @@
 
 inline void gpio_pad_dir(volatile uint64_t data);
 inline void gpio_data(volatile uint64_t data); 
+inline uint64_t gpio_data_get(volatile uint64_t bits);
 inline void gpio_pad_pu_en(volatile uint64_t data); 
 inline void gpio_data_sel(volatile uint64_t data); 
 inline void gpio_data_pu_sel(volatile uint64_t data); 

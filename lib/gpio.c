@@ -13,6 +13,15 @@ inline void gpio_data(volatile uint64_t data)
 	*GPIO_DATA1 = (data >> 32);
 }
 
+inline uint64_t gpio_data_get(volatile uint64_t bits) {
+	uint64_t rdata = 0;
+
+	rdata = *GPIO_DATA0 & (bits & 0xffffffff);
+	rdata |= (*GPIO_DATA1 & (bits >> 32)) << 32;
+
+	return rdata;
+}
+
 inline void gpio_pad_pu_en(volatile uint64_t data) 
 {
 	*GPIO_PAD_PU_EN0 = (data & 0xffffffff);
