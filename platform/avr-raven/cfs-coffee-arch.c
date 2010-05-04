@@ -54,8 +54,15 @@
 #define PRINTF(...)
 #endif
 
-#define TESTCOFFEE 0
+#define TESTCOFFEE 1
+#define DEBUG_CFS 1
 #if TESTCOFFEE
+#if DEBUG_CFS
+#include <stdio.h>
+#define PRINTF_CFS(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTF_CFS(...)
+#endif
 
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
@@ -79,6 +86,8 @@ coffee_file_test(void)
   cfs_remove("T1");
   cfs_remove("T2");
   cfs_remove("T3");
+  cfs_remove("T4");
+  cfs_remove("T5");
 
   wfd = rfd = afd = -1;
 
@@ -124,14 +133,14 @@ coffee_file_test(void)
   if(r < 0) {
     FAIL(-8);
   } else if(r < sizeof(buf)) {
-    printf("r=%d\n", r);
+    PRINTF_CFS("r=%d\n", r);
     FAIL(-9);
   }
 
   /* Test 8: Verify that the buffer is correct. */
   for(r = 0; r < sizeof(buf); r++) {
     if(buf[r] != r) {
-      printf("r=%d. buf[r]=%d\n", r, buf[r]);
+      PRINTF_CFS("r=%d. buf[r]=%d\n", r, buf[r]);
       FAIL(-10);
     }
   }
@@ -190,7 +199,7 @@ coffee_file_test(void)
   if(r < 0) {
     FAIL(-21);
   } else if(r < sizeof(buf)) {
-    printf("r = %d\n", r);
+    PRINTF_CFS("r = %d\n", r);
     FAIL(-22);
   }
 
@@ -240,31 +249,30 @@ coffee_file_test(void)
 
     for(i = 0; i < sizeof(buf); i++) {
       if(buf[i] != i) {
-        printf("buf[%d] != %d\n", i, buf[i]);
+        PRINTF_CFS("buf[%d] != %d\n", i, buf[i]);
         FAIL(-30);
       }
     }
   }
-
   /* Test 17: Append data to the same file many times. */
-#define APPEND_BYTES 1000
+#define APPEND_BYTES 3000
 #define BULK_SIZE 10
-  for(i = 0; i < APPEND_BYTES; i += BULK_SIZE) {
-    afd = cfs_open("T3", CFS_WRITE | CFS_APPEND);
-    if(afd < 0) {
-      FAIL(-31);
-    }
-    for(j = 0; j < BULK_SIZE; j++) {
-      buf[j] = 1 + ((i + j) & 0x7f);
-    }
-    if((r = cfs_write(afd, buf, BULK_SIZE)) != BULK_SIZE) {
-      printf("r=%d\n", r);
-      FAIL(-32);
-    }
-    cfs_close(afd);
-  }
+  for (i = 0; i < APPEND_BYTES; i += BULK_SIZE) {
+		afd = cfs_open("T3", CFS_WRITE | CFS_APPEND);
+		if (afd < 0) {
+			FAIL(-31);
+		}
+		for (j = 0; j < BULK_SIZE; j++) {
+			buf[j] = 1 + ((i + j) & 0x7f);
+		}
+		if ((r = cfs_write(afd, buf, BULK_SIZE)) != BULK_SIZE) {
+			PRINTF_CFS("Count:%d, r=%d\n", i, r);
+			FAIL(-32);
+		}
+		cfs_close(afd);
+	}
 
-  /* Test 18: Read back the data written in Test 17 and verify that it 
+  /* Test 18: Read back the data written in Test 17 and verify that it
      is correct. */
   afd = cfs_open("T3", CFS_READ);
   if(afd < 0) {
@@ -280,12 +288,104 @@ coffee_file_test(void)
     total_read += r;
   }
   if(r < 0) {
+	  PRINTF_CFS("FAIL:-35 r=%d\n",r);
     FAIL(-35);
   }
   if(total_read != APPEND_BYTES) {
+	  PRINTF_CFS("FAIL:-35 total_read=%d\n",total_read);
     FAIL(-35);
   }
   cfs_close(afd);
+
+/***************T4********************/
+/* file T4 and T5 writing forces to use garbage collector in greedy mode
+ * this test is designed for 10kb of file system
+ * */
+#define APPEND_BYTES_1 2000
+#define BULK_SIZE_1 10
+  for (i = 0; i < APPEND_BYTES_1; i += BULK_SIZE_1) {
+		afd = cfs_open("T4", CFS_WRITE | CFS_APPEND);
+		if (afd < 0) {
+			FAIL(-36);
+		}
+		for (j = 0; j < BULK_SIZE_1; j++) {
+			buf[j] = 1 + ((i + j) & 0x7f);
+		}
+
+
+		if ((r = cfs_write(afd, buf, BULK_SIZE_1)) != BULK_SIZE_1) {
+			PRINTF_CFS("Count:%d, r=%d\n", i, r);
+			FAIL(-37);
+		}
+		cfs_close(afd);
+	}
+
+  afd = cfs_open("T4", CFS_READ);
+  if(afd < 0) {
+    FAIL(-38);
+  }
+  total_read = 0;
+  while((r = cfs_read(afd, buf2, sizeof(buf2))) > 0) {
+    for(j = 0; j < r; j++) {
+      if(buf2[j] != 1 + ((total_read + j) & 0x7f)) {
+    	  PRINTF_CFS("FAIL:-39, total_read=%d r=%d\n",total_read,r);
+  FAIL(-39);
+      }
+    }
+    total_read += r;
+  }
+  if(r < 0) {
+	  PRINTF_CFS("FAIL:-40 r=%d\n",r);
+    FAIL(-40);
+  }
+  if(total_read != APPEND_BYTES_1) {
+	  PRINTF_CFS("FAIL:-41 total_read=%d\n",total_read);
+    FAIL(-41);
+  }
+  cfs_close(afd);
+  /***************T5********************/
+#define APPEND_BYTES_2 1000
+#define BULK_SIZE_2 10
+    for (i = 0; i < APPEND_BYTES_2; i += BULK_SIZE_2) {
+  		afd = cfs_open("T5", CFS_WRITE | CFS_APPEND);
+  		if (afd < 0) {
+  			FAIL(-42);
+  		}
+  		for (j = 0; j < BULK_SIZE_2; j++) {
+  			buf[j] = 1 + ((i + j) & 0x7f);
+  		}
+
+  		if ((r = cfs_write(afd, buf, BULK_SIZE_2)) != BULK_SIZE_2) {
+  			PRINTF_CFS("Count:%d, r=%d\n", i, r);
+  			FAIL(-43);
+  		}
+
+  		cfs_close(afd);
+  	}
+
+    afd = cfs_open("T5", CFS_READ);
+    if(afd < 0) {
+      FAIL(-44);
+    }
+    total_read = 0;
+    while((r = cfs_read(afd, buf2, sizeof(buf2))) > 0) {
+      for(j = 0; j < r; j++) {
+        if(buf2[j] != 1 + ((total_read + j) & 0x7f)) {
+      	  PRINTF_CFS("FAIL:-45, total_read=%d r=%d\n",total_read,r);
+    FAIL(-45);
+        }
+      }
+      total_read += r;
+    }
+    if(r < 0) {
+  	  PRINTF_CFS("FAIL:-46 r=%d\n",r);
+      FAIL(-46);
+    }
+    if(total_read != APPEND_BYTES_2) {
+  	  PRINTF_CFS("FAIL:-47 total_read=%d\n",total_read);
+      FAIL(-47);
+    }
+    cfs_close(afd);
 
   error = 0;
 end:
@@ -380,13 +480,38 @@ avr_flash_read(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE siz
  This is done by calling the write routine with a null buffer and any address
  within each page of the sector (we choose the first byte).
  */
-void
-avr_flash_erase(coffee_page_t sector)
-{
-  coffee_page_t i;
-  for (i=0;i<COFFEE_SECTOR_SIZE/COFFEE_PAGE_SIZE;i++) {
-    avr_flash_write((sector+i)*COFFEE_PAGE_SIZE,0,0);
-  }
+BOOTLOADER_SECTION
+void avr_flash_erase(coffee_page_t sector) {
+	coffee_page_t i;
+	uint32_t addr32;
+
+#if FLASH_COMPLEMENT_DATA
+	volatile uint8_t sreg;
+
+	// Disable interrupts.
+	sreg = SREG;
+	cli();
+
+	for (i = 0; i < COFFEE_SECTOR_SIZE / COFFEE_PAGE_SIZE; i++) {
+		for (addr32 = COFFEE_START + (((sector + i) * COFFEE_PAGE_SIZE)
+				& ~(COFFEE_PAGE_SIZE - 1)); addr32 < (COFFEE_START + (((sector
+				+ i + 1) * COFFEE_PAGE_SIZE) & ~(COFFEE_PAGE_SIZE - 1))); addr32
+				+= SPM_PAGESIZE) {
+			boot_page_erase(addr32);
+			boot_spm_busy_wait();
+
+		}
+	}
+	//RE-enable interrupts
+	boot_rww_enable();
+	SREG = sreg;
+#else
+	for (i=0;i<COFFEE_SECTOR_SIZE/COFFEE_PAGE_SIZE;i++) {
+		avr_flash_write((sector+i)*COFFEE_PAGE_SIZE,0,0);
+	}
+#endif
+
+#if 0
 #if TESTCOFFEE
 /* Defining TESTCOFFEE is a convenient way of testing a new configuration.
  * It is triggered by an erase of the last sector.
@@ -403,6 +528,7 @@ avr_flash_erase(coffee_page_t sector)
     }
   }
 #endif /* TESTCOFFEE */
+#endif
 }
 
 /*httpd-fs routines
@@ -472,11 +598,11 @@ avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE si
   uint16_t startpage=addr/COFFEE_PAGE_SIZE;
   addr32=COFFEE_START+startpage*COFFEE_PAGE_SIZE;
 #else
-  addr32=COFFEE_START+(addr&~(COFFEE_PAGE_SIZE-1));
+  addr32=(COFFEE_ADDRESS&~(SPM_PAGESIZE-1))+(addr&~(SPM_PAGESIZE-1));
 #endif
-  bb=addr&0xff;
-  ba=2*SPM_PAGESIZE-((addr+size)&0xff); 
-  
+  bb=addr & (SPM_PAGESIZE-1);
+  ba=COFFEE_PAGE_SIZE-((addr+size)&0xff);
+
 #if DEBUG
   uint16_t startpage=addr/COFFEE_PAGE_SIZE;
   w=addr32>>1;   //Show progmem word address for debug
@@ -487,7 +613,7 @@ avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE si
   }
 #endif
 
-  /* If buf not null, modfy the page(s) */
+  /* If buf not null, modify the page(s) */
   if (buf) {
     if (size==0) return;            //nothing to write
     /*Copy the first part of the existing page into the write buffer */
