@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: project-router-conf.h,v 1.1 2010/05/05 21:12:56 nifi Exp $
+ * $Id: project-router-conf.h,v 1.2 2010/05/05 21:54:41 nifi Exp $
  */
 
 #ifndef __PROJECT_ROUTER_CONF_H__
@@ -41,6 +41,9 @@
 
 /* The number of supported routes */
 #undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   20
+#define UIP_CONF_DS6_ROUTE_NBU   10
+
+#undef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM          6
 
 #endif /* __PROJECT_ROUTER_CONF_H__ */
