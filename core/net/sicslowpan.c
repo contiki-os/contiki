@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.37 2010/04/01 10:56:00 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.38 2010/05/05 13:07:45 joxe Exp $
  */
 /**
  * \file
@@ -209,9 +209,6 @@ static u8_t uncomp_hdr_len;
  *  @{
  */
 
-
-/* NOTE: lenght is before the buffer to ensure alignment of the
-   buffer */
 static u16_t sicslowpan_len;
 /**
  * The buffer used for the 6lowpan reassembly.
@@ -219,7 +216,9 @@ static u16_t sicslowpan_len;
  * It has a fix size as we do not use dynamic memory allocation.
  */
 
-static u8_t sicslowpan_buf[UIP_BUFSIZE];
+/* Allocate buffer as 32 bit to ensure that it is 32-bit aligned */
+static uint32_t uip_buf32[(UIP_BUFSIZE + 3) / 4];
+static uint8_t * const sicslowpan_buf = (uint8_t * const) uip_buf32;
 
 /** The total length of the IPv6 packet in the sicslowpan_buf. */
 
