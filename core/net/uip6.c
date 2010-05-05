@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.20 2010/05/04 09:19:41 joxe Exp $
+ * $Id: uip6.c,v 1.21 2010/05/05 13:07:45 joxe Exp $
  *
  */
 
@@ -170,8 +170,10 @@ u8_t uip_ext_opt_offset = 0;
  */
 /** Packet buffer for incoming and outgoing packets */
 #ifndef UIP_CONF_EXTERNAL_BUFFER
+
 static uint32_t uip_buf32[(UIP_BUFSIZE + 3) / 4];
-uint8_t *uip_buf = (uint8_t *) uip_buf32;
+uint8_t * const uip_buf = (uint8_t * const) uip_buf32;
+
 #endif /* UIP_CONF_EXTERNAL_BUFFER */
 
 /* The uip_appdata pointer points to application data. */
