@@ -189,10 +189,10 @@ static struct protected_mem_t {
   coffee_page_t next_free;
   char gc_wait;
 } protected_mem;
-static struct file *coffee_files = protected_mem.coffee_files;
-static struct file_desc *coffee_fd_set = protected_mem.coffee_fd_set;
-static coffee_page_t *next_free = &protected_mem.next_free;
-static char *gc_wait = &protected_mem.gc_wait;
+static struct file * const coffee_files = protected_mem.coffee_files;
+static struct file_desc * const coffee_fd_set = protected_mem.coffee_fd_set;
+static coffee_page_t * const next_free = &protected_mem.next_free;
+static char * const gc_wait = &protected_mem.gc_wait;
 
 /*---------------------------------------------------------------------------*/
 static void
