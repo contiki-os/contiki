@@ -408,7 +408,7 @@ void erase(struct ftdi_context *ftdic, const struct layout * l)
 
 	printf("waiting for erase\n");
 
-	sleep(1);
+	sleep(2);
 
 	printf("setting VREF2 normal\n");
 	
