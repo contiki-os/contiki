@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.3 2010/05/04 22:55:32 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.4 2010/05/07 13:51:34 fros4943 Exp $
  */
 /**
  * \file
@@ -618,7 +618,7 @@ rpl_ds6_neighbor_callback(uip_ds6_nbr_t *nbr)
         rpl_remove_neighbor(dag, n);
       }
     }
-    if(dag->def_route != NULL &&
+    if(dag != NULL && dag->def_route != NULL &&
        uip_ipaddr_cmp(&dag->def_route->ipaddr, &n->addr)) {
       n = rpl_find_best_parent(dag);
       if(n != NULL && dag->of->increment_rank(n->rank, n) <= dag->min_rank + dag->max_rankinc) {
