@@ -30,11 +30,11 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.apple2enh,v 1.12 2010/02/10 07:43:25 oliverschmidt Exp $
+# $Id: Makefile.apple2enh,v 1.13 2010/05/07 21:02:35 oliverschmidt Exp $
 #
 
 CONTIKI_SOURCEFILES += pfs.S
-HIGHCODE_SOURCEFILES = process.c etimer.c uip_arp.c
+HIGHCODE_SOURCEFILES = etimer.c tcpip.c uip_arp.c
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
