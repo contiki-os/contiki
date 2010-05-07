@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2001, Adam Dunkels.
- * Copyright (c) 2009, 2010 Joakim Eriksson, Niclas Finne.
+ * Copyright (c) 2009, 2010 Joakim Eriksson, Niclas Finne, Dogan Yazar.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip6.c,v 1.2 2010/04/16 12:39:46 joxe Exp $
+ * $Id: tunslip6.c,v 1.3 2010/05/07 12:22:41 nifi Exp $
  *
  */
 
@@ -50,6 +50,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 #include <err.h>
 
@@ -62,7 +63,7 @@ void write_to_serial(int outfd, void *inbuf, int len);
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while (0)
 
-char tundev[32] = { "tun0" };
+char tundev[32] = { "" };
 
 int
 ssystem(const char *fmt, ...) __attribute__((__format__ (__printf__, 1, 2)));
@@ -85,6 +86,16 @@ ssystem(const char *fmt, ...)
 #define SLIP_ESC_END 0334
 #define SLIP_ESC_ESC 0335
 
+
+/* get sockaddr, IPv4 or IPv6: */
+void *
+get_in_addr(struct sockaddr *sa)
+{
+  if(sa->sa_family == AF_INET) {
+    return &(((struct sockaddr_in*)sa)->sin_addr);
+  }
+  return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
 
 int
 is_sensible_string(const unsigned char *s, int len)
@@ -124,6 +135,7 @@ serial_to_tun(FILE *inslip, int outfd)
  read_more:
   if(inbufptr >= sizeof(uip.inbuf)) {
      inbufptr = 0;
+     fprintf(stderr, "*** dropping too large packet\n");
   }
   ret = fread(&c, 1, 1, inslip);
 #ifdef linux
@@ -135,21 +147,19 @@ serial_to_tun(FILE *inslip, int outfd)
   if(ret == 0) {
     clearerr(inslip);
     return;
-    fprintf(stderr, "serial_to_tun: EOF\n");
-    exit(1);
   }
   /*  fprintf(stderr, ".");*/
   switch(c) {
   case SLIP_END:
     if(inbufptr > 0) {
       if(uip.inbuf[0] == '!') {
-	if (uip.inbuf[1] == 'M') {
+	if(uip.inbuf[1] == 'M') {
 	  /* Read gateway MAC address and autoconfigure tap0 interface */
 	  char macs[24];
 	  int i, pos;
 	  for(i = 0, pos = 0; i < 16; i++) {
 	    macs[pos++] = uip.inbuf[2 + i];
-	    if ((i & 1) == 1 && i < 14) {
+	    if((i & 1) == 1 && i < 14) {
 	      macs[pos++] = ':';
 	    }
 	  }
@@ -166,7 +176,7 @@ serial_to_tun(FILE *inslip, int outfd)
       } else if(is_sensible_string(uip.inbuf, inbufptr)) {
 	fwrite(uip.inbuf, inbufptr, 1, stdout);
       } else {
-	if (verbose) printf("Writing to tun  len: %d\n", inbufptr);
+	if(verbose) printf("Writing to tun  len: %d\n", inbufptr);
 	if(write(outfd, uip.inbuf, inbufptr) != inbufptr) {
 	  err(1, "serial_to_tun: write");
 	}
@@ -206,8 +216,9 @@ int slip_end, slip_begin;
 void
 slip_send(int fd, unsigned char c)
 {
-  if (slip_end >= sizeof(slip_buf))
+  if(slip_end >= sizeof(slip_buf)) {
     err(1, "slip_send overflow");
+  }
   slip_buf[slip_end] = c;
   slip_end++;
 }
@@ -223,9 +234,10 @@ slip_flushbuf(int fd)
 {
   int n;
   
-  if (slip_empty())
+  if(slip_empty()) {
     return;
-  
+  }
+
   n = write(fd, slip_buf + slip_begin, (slip_end - slip_begin));
 
   if(n == -1 && errno != EAGAIN) {
@@ -244,14 +256,15 @@ void
 write_to_serial(int outfd, void *inbuf, int len)
 {
   u_int8_t *p = inbuf;
-  int i, ecode;
+  int i;
 
-  if (verbose) {
+  if(verbose) {
     printf("Got packet of length %d - write SLIP\n", len);
     for(i = 0; i < len; i++) {
       printf("%02x", p[i]);
-      if((i & 3) == 3) 
+      if((i & 3) == 3) {
 	printf(" ");
+      }
       if((i & 15) == 15)
       printf("\n");
     }
@@ -279,7 +292,6 @@ write_to_serial(int outfd, void *inbuf, int len)
       slip_send(outfd, p[i]);
       break;
     }
-    
   }
   slip_send(outfd, SLIP_END);
   PROGRESS("t");
@@ -354,7 +366,7 @@ devopen(const char *dev, int flags)
 {
   char t[32];
   strcpy(t, "/dev/");
-  strcat(t, dev);
+  strncat(t, dev, sizeof(t) - 5);
   return open(t, flags);
 }
 
@@ -368,8 +380,9 @@ tun_alloc(char *dev, int tap)
   struct ifreq ifr;
   int fd, err;
 
-  if( (fd = open("/dev/net/tun", O_RDWR)) < 0 )
+  if( (fd = open("/dev/net/tun", O_RDWR)) < 0 ) {
     return -1;
+  }
 
   memset(&ifr, 0, sizeof(ifr));
 
@@ -382,7 +395,7 @@ tun_alloc(char *dev, int tap)
   if(*dev != 0)
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
-  if((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+  if((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
     close(fd);
     return err;
   }
@@ -465,13 +478,18 @@ main(int argc, char **argv)
   fd_set rset, wset;
   FILE *inslip;
   const char *siodev = NULL;
+  const char *host = NULL;
+  const char *port = NULL;
+  const char *prog;
   int baudrate = -2;
   int tap = 0;
+  slipfd = 0;
 
+  prog = argv[0];
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:D:hs:t:v:T")) != -1) {
-    switch (c) {
+  while((c = getopt(argc, argv, "B:D:hs:t:v:a:p:T")) != -1) {
+    switch(c) {
     case 'B':
       baudrate = atoi(optarg);
       break;
@@ -486,22 +504,30 @@ main(int argc, char **argv)
 
     case 't':
       if(strncmp("/dev/", optarg, 5) == 0) {
-	strcpy(tundev, optarg + 5);
+	strncpy(tundev, optarg + 5, sizeof(tundev));
       } else {
-	strcpy(tundev, optarg);
+	strncpy(tundev, optarg, sizeof(tundev));
       }
       break;
+
+    case 'a':
+      host = optarg;
+      break;
+
+    case 'p':
+      port = optarg;
+      break;
+
     case 'v':
       verbose = 1;
       break;
     case 'T':
-      printf("TAP");
       tap = 1;
       break;
     case '?':
     case 'h':
     default:
-      err(1, "usage: tunslip6 [-B baudrate] [-s siodev] [-t tundev] [-T] ipaddress");
+      err(1, "usage: %s [-B baudrate] [-s siodev] [-t tundev] [-T] [-a serveraddress] [-p serverport] ipaddress", prog);
       break;
     }
   }
@@ -509,7 +535,7 @@ main(int argc, char **argv)
   argv += (optind - 1);
 
   if(argc != 2 && argc != 3) {
-    err(1, "usage: tunslip6  [-B baudrate] [-s siodev] [-t tundev] [-T] ipaddress ");
+    err(1, "usage: %s [-B baudrate] [-s siodev] [-t tundev] [-T] [-a serveraddress] [-p serverport] ipaddress", prog);
   }
   ipaddr = argv[1];
 
@@ -536,36 +562,93 @@ main(int argc, char **argv)
     break;
   }
 
+  if(*tundev == '\0') {
+    /* Use default. */
+    if(tap) {
+      strcpy(tundev, "tap0");
+    } else {
+      strcpy(tundev, "tun0");
+    }
+  }
+  if(host != NULL) {
+    struct addrinfo hints, *servinfo, *p;
+    int rv;
+    char s[INET6_ADDRSTRLEN];
 
-  if(siodev != NULL) {
+    if(port == NULL) {
+      port = "60001";
+    }
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    if((rv = getaddrinfo(host, port, &hints, &servinfo)) != 0) {
+      err(1, "getaddrinfo: %s", gai_strerror(rv));
+    }
+
+    /* loop through all the results and connect to the first we can */
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+      if((slipfd = socket(p->ai_family, p->ai_socktype,
+                          p->ai_protocol)) == -1) {
+        perror("client: socket");
+        continue;
+      }
+
+      if(connect(slipfd, p->ai_addr, p->ai_addrlen) == -1) {
+        close(slipfd);
+        perror("client: connect");
+        continue;
+      }
+      break;
+    }
+
+    if(p == NULL) {
+      err(1, "can't connect to ``%s:%s''", host, port);
+    }
+
+    fcntl(slipfd, F_SETFL, O_NONBLOCK);
+
+    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
+              s, sizeof(s));
+    fprintf(stderr, "slip connected to ``%s:%s''\n", s, port);
+
+    /* all done with this structure */
+    freeaddrinfo(servinfo);
+
+  } else {
+    if(siodev != NULL) {
       slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
       if(slipfd == -1) {
 	err(1, "can't open siodev ``/dev/%s''", siodev);
       }
-  } else {
-    static const char *siodevs[] = {
-      "ttyUSB0", "cuaU0", "ucom0" /* linux, fbsd6, fbsd5 */
-    };
-    int i;
-    for(i = 0; i < 3; i++) {
-      siodev = siodevs[i];
-      slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
-      if (slipfd != -1)
-	break;
+    } else {
+      static const char *siodevs[] = {
+        "ttyUSB0", "cuaU0", "ucom0" /* linux, fbsd6, fbsd5 */
+      };
+      int i;
+      for(i = 0; i < 3; i++) {
+        siodev = siodevs[i];
+        slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
+        if(slipfd != -1) {
+          break;
+        }
+      }
+      if(slipfd == -1) {
+        err(1, "can't open siodev");
+      }
     }
-    if(slipfd == -1) {
-      err(1, "can't open siodev");
-    }
+    fprintf(stderr, "slip started on ``/dev/%s''\n", siodev);
+    stty_telos(slipfd);
   }
-  fprintf(stderr, "slip started on ``/dev/%s''\n", siodev);
-  stty_telos(slipfd);
   slip_send(slipfd, SLIP_END);
   inslip = fdopen(slipfd, "r");
   if(inslip == NULL) err(1, "main: fdopen");
 
   tunfd = tun_alloc(tundev, tap);
   if(tunfd == -1) err(1, "main: open");
-  fprintf(stderr, "opened device ``/dev/%s''\n", tundev);
+  fprintf(stderr, "opened %s device ``/dev/%s''\n",
+          tap ? "tap" : "tun", tundev);
 
   atexit(cleanup);
   signal(SIGHUP, sigcleanup);
