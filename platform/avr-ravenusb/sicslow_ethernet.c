@@ -52,10 +52,11 @@
 */
 
 //TODO: Should be able to always use this SIMPLE mode, hence can remove the 'complex' mode permanently
-#if !RF230BB
+//TODO: RF230BB !SIMPLE works on XP, Ubuntu. SIMPLE works on Vista, W7. Find out why!
+#if RF230BB
 #define UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS 1
 #else
-#define UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS 0
+#define UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS 1
 #endif
 
 
@@ -380,9 +381,11 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 
 #if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
     /* Simple Address Translation */
-
-    if(memcmp_reverse((uint8_t *)&rndis_ethernet_addr, &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), 6) == 0) {
-
+#if RF230BB
+   if(memcmp((uint8_t *)&rndis_ethernet_addr, &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), 6) == 0) {
+#else
+   if(memcmp_reverse((uint8_t *)&rndis_ethernet_addr, &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), 6) == 0) {
+#endif
         //Addressed to us: make 802.15.4 address from IPv6 Address
         destAddr.addr[0] = UIP_IP_BUF->destipaddr.u8[8] ^ 0x02;
         destAddr.addr[1] = UIP_IP_BUF->destipaddr.u8[9];
@@ -905,7 +908,9 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 uint8_t mac_createDefaultEthernetAddr(uint8_t * ethernet)
 {
   memcpy(ethernet, &rndis_ethernet_addr, 6);
-  byte_reverse(ethernet, 6);
+#if !RF230BB
+    byte_reverse(ethernet, 6);
+#endif
   return 1;
 }
 #endif
