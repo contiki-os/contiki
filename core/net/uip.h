@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.31 2010/05/05 13:07:45 joxe Exp $
+ * $Id: uip.h,v 1.32 2010/05/08 07:23:55 oliverschmidt Exp $
  *
  */
 
@@ -476,7 +476,11 @@ void uip_reass_over(void);
  }
  \endcode
 */
+#ifdef UIP_CONF_PLAIN_BUFFER
+CCIF extern uint8_t uip_buf[UIP_BUFSIZE+2];
+#else /* UIP_CONF_PLAIN_BUFFER */
 CCIF extern uint8_t * const uip_buf;
+#endif /* UIP_CONF_PLAIN_BUFFER */
 
 
 /** @} */
