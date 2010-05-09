@@ -26,33 +26,48 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: project-router-conf.h,v 1.3 2010/05/09 12:52:05 nifi Exp $
+ * $Id: httpd-simple.h,v 1.1 2010/05/09 12:52:05 nifi Exp $
  */
 
-#ifndef __PROJECT_ROUTER_CONF_H__
-#define __PROJECT_ROUTER_CONF_H__
+/**
+ * \file
+ *         A simple webserver
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ *         Niclas Finne <nfi@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
+ */
 
-#undef UIP_FALLBACK_INTERFACE
-#define UIP_FALLBACK_INTERFACE rpl_interface
+#ifndef __HTTPD_SIMPLE_H__
+#define __HTTPD_SIMPLE_H__
 
-/* The number of supported neighbors */
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     10
+#include "contiki-net.h"
 
-/* The number of supported routes */
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   10
+#ifndef WEBSERVER_CONF_CFS_PATHLEN
+#define HTTPD_PATHLEN 80
+#else /* WEBSERVER_CONF_CFS_CONNS */
+#define HTTPD_PATHLEN WEBSERVER_CONF_CFS_PATHLEN
+#endif /* WEBSERVER_CONF_CFS_CONNS */
 
-#undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM          6
+struct httpd_state;
+typedef char (* httpd_simple_script_t)(struct httpd_state *s);
 
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    140
+struct httpd_state {
+  struct timer timer;
+  struct psock sin, sout;
+  struct pt outputpt;
+  char inputbuf[HTTPD_PATHLEN + 30];
+  char outputbuf[UIP_TCP_MSS];
+  char filename[HTTPD_PATHLEN];
+  httpd_simple_script_t script;
+  char state;
+};
 
-#undef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW  60
+void httpd_init(void);
+void httpd_appcall(void *state);
 
-#undef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 2
+httpd_simple_script_t httpd_simple_get_script(const char *name);
 
-#endif /* __PROJECT_ROUTER_CONF_H__ */
+#define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
+
+#endif /* __HTTPD_SIMPLE_H__ */
