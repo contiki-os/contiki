@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceViewer.java,v 1.9 2010/03/14 19:50:34 fros4943 Exp $
+ * $Id: MoteInterfaceViewer.java,v 1.10 2010/05/09 22:50:34 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -41,11 +41,11 @@ import java.util.Collection;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 
 import org.jdom.Element;
 
@@ -85,18 +85,17 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp, Mote
     mote = moteToView;
 
     JLabel label;
-    JPanel mainPane = new JPanel();
-    mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    mainPane.setLayout(new BorderLayout());
+    JPanel mainPane = new JPanel(new BorderLayout());
     JPanel smallPane;
 
     // Select interface combo box
     smallPane = new JPanel(new BorderLayout());
+    smallPane.add(new JSeparator(), BorderLayout.SOUTH);
 
     label = new JLabel("Select interface:");
 
     selectInterfaceComboBox = new JComboBox();
-    final JPanel interfacePanel = new JPanel();
+    final JPanel interfacePanel = new JPanel(new BorderLayout());
 
     Collection<MoteInterface> intfs = mote.getInterfaces().getInterfaces();
     for (MoteInterface intf : intfs) {
@@ -125,11 +124,10 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp, Mote
         }
         currentInterfaceVisualizer = selectedMoteInterface.getInterfaceVisualizer();
         if (currentInterfaceVisualizer != null) {
-          currentInterfaceVisualizer.setBorder(BorderFactory.createEtchedBorder());
           interfacePanel.add(BorderLayout.CENTER, currentInterfaceVisualizer);
           currentInterfaceVisualizer.setVisible(true);
         } else {
-          interfacePanel.add(new JLabel("No interface visualizer"));
+          interfacePanel.add(new JLabel("No interface visualizer", JLabel.CENTER));
           currentInterfaceVisualizer = null;
         }
         setSize(getSize());
@@ -140,10 +138,8 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp, Mote
     smallPane.add(BorderLayout.WEST, label);
     smallPane.add(BorderLayout.EAST, selectInterfaceComboBox);
     mainPane.add(BorderLayout.NORTH, smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,10)));
 
     // Add selected interface
-    interfacePanel.setLayout(new BorderLayout());
     if (selectInterfaceComboBox.getItemCount() > 0) {
       selectInterfaceComboBox.setSelectedIndex(0);
       selectInterfaceComboBox.dispatchEvent(new ActionEvent(selectInterfaceComboBox, ActionEvent.ACTION_PERFORMED, ""));
@@ -153,6 +149,7 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp, Mote
     mainScrollPane = new JScrollPane(mainPane,
         JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
         JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    mainScrollPane.setBorder(BorderFactory.createEmptyBorder(0,2,0,2));
     this.setContentPane(mainScrollPane);
     pack();
     setPreferredSize(new Dimension(350,300));
