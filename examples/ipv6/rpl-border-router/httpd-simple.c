@@ -26,12 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: httpd-simple.c,v 1.1 2010/05/09 12:52:05 nifi Exp $
+ * $Id: httpd-simple.c,v 1.2 2010/05/09 13:29:33 nifi Exp $
  */
 
 /**
  * \file
- *         A demo web server publishing sensor data
+ *         A simple web server forwarding page generation to a protothread
  * \author
  *         Adam Dunkels <adam@sics.se>
  *         Niclas Finne <nfi@sics.se>
