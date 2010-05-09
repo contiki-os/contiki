@@ -340,6 +340,7 @@ uip_ds6_addr_t *uip_ds6_addr_add(uip_ipaddr_t *ipaddr,
                                  unsigned long vlifetime, uint8_t type);
 void uip_ds6_addr_rm(uip_ds6_addr_t *addr);
 uip_ds6_addr_t *uip_ds6_addr_lookup(uip_ipaddr_t *ipaddr);
+uip_ds6_addr_t *uip_ds6_get_link_local(int8_t state);
 
 /** @} */
 

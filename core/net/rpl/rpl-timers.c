@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-timers.c,v 1.2 2010/05/04 22:55:32 nvt-se Exp $
+ * $Id: rpl-timers.c,v 1.3 2010/05/09 17:52:37 joxe Exp $
  */
 /**
  * \file
@@ -57,6 +57,10 @@ static void new_dio_interval(rpl_dag_t *dag);
 static void handle_dio_timer(void *ptr);
 
 static uint16_t next_dis;
+
+/* dio_send_ok is true if the node is ready to send DIOs */
+static uint8_t dio_send_ok;
+
 /************************************************************************/
 static void
 handle_periodic_timer(void *ptr)
@@ -118,6 +122,15 @@ handle_dio_timer(void *ptr)
   dag = (rpl_dag_t *)ptr;
 
   PRINTF("RPL: DIO Timer triggered\n");
+  if(!dio_send_ok) {
+    if(uip_ds6_get_link_local(ADDR_PREFERRED) != NULL) {
+      dio_send_ok = 1;
+    } else {
+      PRINTF("RPL: Postponing DIO transmission since link local addres is not ok\n");
+      ctimer_set(&dag->dio_timer, CLOCK_SECOND, &handle_dio_timer, dag);
+      return;
+    }
+  }
 
   if(dag->dio_send) {
     /* send DIO if counter is less than desired redundancy */
