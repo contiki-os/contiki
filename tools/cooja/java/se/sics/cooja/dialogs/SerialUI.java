@@ -26,7 +26,7 @@
    * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
    * SUCH DAMAGE.
    *
-   * $Id: SerialUI.java,v 1.4 2010/03/15 22:04:26 fros4943 Exp $
+   * $Id: SerialUI.java,v 1.5 2010/05/09 19:45:57 joxe Exp $
    */
 
 package se.sics.cooja.dialogs;
@@ -62,6 +62,12 @@ import se.sics.cooja.plugins.SLIP;
 public abstract class SerialUI extends Log implements SerialPort {
   private static Logger logger = Logger.getLogger(SerialUI.class);
 
+  private final static byte SLIP_END = (byte)0300;
+  private final static byte SLIP_ESC = (byte)0333;
+  private final static byte SLIP_ESC_END = (byte)0334;
+  private final static byte SLIP_ESC_ESC = (byte)0335;
+
+  
   private final static int MAX_LENGTH = 1024;
 
   private String lastLogMessage = "";
@@ -278,7 +284,13 @@ public abstract class SerialUI extends Log implements SerialPort {
   private int tosPos = 0;
   private int tosLen = 0;
 
+  private int slipCounter = 0;
+  private int totalTOSChars = 0;
+  
   public void dataReceived(int data) {
+    if (data == SLIP_END || data == SLIP_ESC) {
+        slipCounter++;
+    }
     if (tosMode) {
       /* needs to add checks to CRC */
       //    System.out.println("Received: " + Integer.toString(data, 16) + " = " + (char) data + "  tosPos: " + tosPos);
@@ -311,10 +323,15 @@ public abstract class SerialUI extends Log implements SerialPort {
     } else {
       if (data == 0x7e) {
         tosChars++;
+        totalTOSChars++;
         if (tosChars == 2) {
-          tosMode = true;
-          /* already read one char here */
-          tosPos = 1;
+          if (totalTOSChars > slipCounter) {
+              tosMode = true;
+              /* already read one char here */
+              tosPos = 1;
+          } else {
+              tosChars = 0;
+          }
         }
       } else {
         tosChars = 0;
