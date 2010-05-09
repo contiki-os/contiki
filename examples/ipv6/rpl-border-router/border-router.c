@@ -39,10 +39,13 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "net/uip.h"
+#include "net/uip-ds6.h"
 #include "net/rpl/rpl.h"
 
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
+#include "webserver-nogui.h"
+#include "httpd-simple.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,8 +56,87 @@
 
 uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
+extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
+extern uip_ds6_route_t uip_ds6_routing_table[];
+
 PROCESS(border_router_process, "Border router process");
 AUTOSTART_PROCESSES(&border_router_process);
+/*---------------------------------------------------------------------------*/
+/* Only one single web request at time */
+static const char *TOP = "<html><head><title>ContikiRPL</title></head><body>\n";
+static const char *BOTTOM = "</body></html>\n";
+static char buf[128];
+static int blen;
+#define ADD(...) do {                                                   \
+    blen += snprintf(&buf[blen], sizeof(buf) - blen, __VA_ARGS__);      \
+  } while(0)
+/*---------------------------------------------------------------------------*/
+static void
+ipaddr_add(const uip_ipaddr_t *addr)
+{
+  uint16_t a;
+  int i, f;
+  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
+    a = (addr->u8[i] << 8) + addr->u8[i + 1];
+    if(a == 0 && f >= 0) {
+      if(f++ == 0 && sizeof(buf) - blen >= 2) {
+        buf[blen++] = ':';
+        buf[blen++] = ':';
+      }
+    } else {
+      if(f > 0) {
+        f = -1;
+      } else if(i > 0 && blen < sizeof(buf)) {
+        buf[blen++] = ':';
+      }
+      ADD("%x", a);
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+static
+PT_THREAD(generate_routes(struct httpd_state *s))
+{
+  static int i;
+  PSOCK_BEGIN(&s->sout);
+
+  SEND_STRING(&s->sout, TOP);
+
+  blen = 0;
+  ADD("<h2>Neighbors</h2>");
+  for(i = 0; i < UIP_DS6_NBR_NB; i++) {
+    if(uip_ds6_nbr_cache[i].isused) {
+      ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
+      ADD("<br>\n");
+      SEND_STRING(&s->sout, buf);
+      blen = 0;
+    }
+  }
+
+  ADD("<h2>Routes</h2>");
+  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+    if(uip_ds6_routing_table[i].isused) {
+      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
+      ADD("<br>\n");
+      SEND_STRING(&s->sout, buf);
+      blen = 0;
+    }
+  }
+  if(blen > 0) {
+    SEND_STRING(&s->sout, buf);
+    blen = 0;
+  }
+
+  SEND_STRING(&s->sout, BOTTOM);
+
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/
+httpd_simple_script_t
+httpd_simple_get_script(const char *name)
+{
+  return generate_routes;
+}
 /*---------------------------------------------------------------------------*/
 static void
 print_local_addresses(void)
@@ -84,6 +166,8 @@ PROCESS_THREAD(border_router_process, ev, data)
   PROCESS_BEGIN();
 
   PROCESS_PAUSE();
+
+  process_start(&webserver_nogui_process, NULL);
 
   SENSORS_ACTIVATE(button_sensor);
 
