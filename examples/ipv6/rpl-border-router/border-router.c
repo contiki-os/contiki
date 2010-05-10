@@ -108,16 +108,26 @@ PT_THREAD(generate_routes(struct httpd_state *s))
     if(uip_ds6_nbr_cache[i].isused) {
       ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
       ADD("<br>\n");
-      SEND_STRING(&s->sout, buf);
-      blen = 0;
+      if(blen > sizeof(buf) - 45) {
+        SEND_STRING(&s->sout, buf);
+        blen = 0;
+      }
     }
   }
 
   ADD("<h2>Routes</h2>");
+  SEND_STRING(&s->sout, buf);
+  blen = 0;
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(uip_ds6_routing_table[i].isused) {
       ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      ADD("<br>\n");
+      ADD("/%u (via ", uip_ds6_routing_table[i].length);
+      ipaddr_add(&uip_ds6_routing_table[i].nexthop);
+      if(uip_ds6_routing_table[i].state.lifetime < 600) {
+        ADD(") %lus<br>\n", uip_ds6_routing_table[i].state.lifetime);
+      } else {
+        ADD(")<br>\n");
+      }
       SEND_STRING(&s->sout, buf);
       blen = 0;
     }
