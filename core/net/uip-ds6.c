@@ -196,7 +196,8 @@ uip_ds6_periodic(void)
   /* Periodic processing on default routers */
   for(locdefrt = uip_ds6_defrt_list;
       locdefrt < uip_ds6_defrt_list + UIP_DS6_DEFRT_NB; locdefrt++) {
-    if((locdefrt->isused) && (stimer_expired(&(locdefrt->lifetime)))) {
+    if((locdefrt->isused) && (!locdefrt->isinfinite) &&
+       (stimer_expired(&(locdefrt->lifetime)))) {
       uip_ds6_defrt_rm(locdefrt);
     }
   }
@@ -374,7 +375,12 @@ uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
       (uip_ds6_element_t **) & locdefrt) == FREESPACE) {
     locdefrt->isused = 1;
     uip_ipaddr_copy(&(locdefrt->ipaddr), ipaddr);
-    stimer_set(&(locdefrt->lifetime), interval);
+    if(interval != 0) {
+      stimer_set(&(locdefrt->lifetime), interval);
+      locdefrt->isinfinite = 0;
+    } else {
+      locdefrt->isinfinite = 1;
+    }
 
     PRINTF("Adding defrouter with ip addr");
     PRINT6ADDR(&locdefrt->ipaddr);

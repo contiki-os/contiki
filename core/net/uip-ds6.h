@@ -173,6 +173,7 @@ typedef struct uip_ds6_defrt {
   uint8_t isused;
   uip_ipaddr_t ipaddr;
   struct stimer lifetime;
+  uint8_t isinfinite;
 } uip_ds6_defrt_t;
 
 /** \brief A prefix list entry */
