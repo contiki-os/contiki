@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.7 2010/01/19 20:35:41 adamdunkels Exp $
+ * @(#)$Id: cc2420-arch.c,v 1.8 2010/05/10 11:32:44 nifi Exp $
  */
 
 #include <io.h>
@@ -38,7 +38,9 @@
 #include "dev/spi.h"
 #include "dev/cc2420.h"
 
+#ifndef CONF_SFD_TIMESTAMPS
 #define CONF_SFD_TIMESTAMPS 0
+#endif /* CONF_SFD_TIMESTAMPS */
 
 #ifdef CONF_SFD_TIMESTAMPS
 #include "cc2420-arch-sfd.h"
