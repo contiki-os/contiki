@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.4 2010/05/07 13:51:34 fros4943 Exp $
+ * $Id: rpl-dag.c,v 1.5 2010/05/10 11:16:35 joxe Exp $
  */
 /**
  * \file
@@ -175,7 +175,7 @@ rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from)
     PRINTF("RPL: Adding default route through ");
     PRINT6ADDR(from);
     PRINTF("\n");
-    dag->def_route = uip_ds6_defrt_add(from, 100000);
+    dag->def_route = uip_ds6_defrt_add(from, DEFAULT_ROUTE_LIFETIME);
     if(dag->def_route == NULL) {
       return 0;
     }
