@@ -766,10 +766,10 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
 {
   uint8_t best = 0;             /* number of bit in common with best match */
   uint8_t n = 0;
-  uip_ds6_addr_t *matchaddr = uip_ds6_if.addr_list;
+  uip_ds6_addr_t *matchaddr = NULL;
 
   if(!uip_is_addr_link_local(dst) && !uip_is_addr_mcast(dst)) {
-    // find longest match
+    /* find longest match */
     for(locaddr = uip_ds6_if.addr_list;
         locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
       if((locaddr->isused) && (locaddr->state == ADDR_PREFERRED)) {
@@ -784,8 +784,12 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
     matchaddr = uip_ds6_get_link_local(ADDR_PREFERRED);
   }
 
-  uip_ipaddr_copy(src, &matchaddr->ipaddr);
-  return;
+  /* use the :: (unspecified address) as source if no match found */
+  if(matchaddr == NULL) {
+    uip_create_unspecified(src);
+  } else {
+    uip_ipaddr_copy(src, &matchaddr->ipaddr);
+  }
 }
 
 /*---------------------------------------------------------------------------*/
