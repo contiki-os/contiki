@@ -154,16 +154,14 @@ print_local_addresses(void)
   int i;
   uint8_t state;
 
-  PRINTF("Server IPv6 addresses: ");
+  PRINTF("Server IPv6 addresses:\n");
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
-    if(state == ADDR_TENTATIVE || state == ADDR_PREFERRED) {
-      PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
-      PRINTF("\n");
-      /* hack to make address "final" */
-      if (state == ADDR_TENTATIVE) {
-        uip_ds6_if.addr_list[i].state = ADDR_PREFERRED;
-      }
+    if(uip_ds6_if.addr_list[i].isused &&
+       (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
+      blen = 0;
+      ipaddr_add(&uip_ds6_if.addr_list[i].ipaddr);
+      PRINTF("  %s\n", buf);
     }
   }
 }
@@ -203,7 +201,7 @@ PROCESS_THREAD(border_router_process, ev, data)
   while(1) {
     PROCESS_YIELD();
     if (ev == sensors_event && data == &button_sensor) {
-      PRINTF("Initiaing global repair\n");
+      PRINTF("Initiating global repair\n");
       rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE));
     }
   }
