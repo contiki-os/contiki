@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.38 2010/05/05 13:07:45 joxe Exp $
+ * $Id: sicslowpan.c,v 1.39 2010/05/11 10:02:29 nifi Exp $
  */
 /**
  * \file
@@ -108,6 +108,11 @@ void uip_log(char *msg);
 #define SICSLOWPAN_COMPRESSION SICSLOWPAN_COMPRESSION_IPV6
 #endif /* SICSLOWPAN_CONF_COMPRESSION */
 #endif /* SICSLOWPAN_COMPRESSION */
+
+#ifndef SICSLOWPAN_CONF_NEIGHBOR_INFO
+/* Default is to use neighbor info updates if using RPL */
+#define SICSLOWPAN_CONF_NEIGHBOR_INFO UIP_CONF_IPV6_RPL
+#endif /* SICSLOWPAN_CONF_NEIGHBOR_INFO */
 
 #define GET16(ptr,index) (((uint16_t)((ptr)[index] << 8)) | ((ptr)[(index) + 1]))
 #define SET16(ptr,index,value) do {     \
