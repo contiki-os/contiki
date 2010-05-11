@@ -122,13 +122,7 @@ void check_maca(void) {
 
 	if(*MACA_CLK == last_time) {
 		/* clock isn't running */
-		/* reinit maca */
-		reset_maca();
-		radio_init();
-		flyback_init();
-		init_phy();
-		*MACA_CONTROL = (1 << PRM) | (NO_CCA << MODE); 		
-		enable_irq(MACA);
+		ResumeMACASync();
 		maca_isr(); 
 	} else {
 		if((last_time > (*MACA_SFTCLK + RECV_SOFTIMEOUT)) &&
