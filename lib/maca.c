@@ -65,11 +65,11 @@
 #define CLK_PER_BYTE 8 
 
 #ifndef RECV_SOFTIMEOUT
-#define RECV_SOFTIMEOUT (32*128*CLK_PER_BYTE) 
+#define RECV_SOFTIMEOUT (2*128*CLK_PER_BYTE) 
 #endif
 
 #ifndef CPL_TIMEOUT
-#define CPL_TIMEOUT (32*128*CLK_PER_BYTE) 
+#define CPL_TIMEOUT (2*128*CLK_PER_BYTE) 
 #endif
 
 #define reg(x) (*(volatile uint32_t *)(x))
