@@ -59,10 +59,14 @@ void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp) {
 	if(samp == UCON_SAMP_16X) 
 		set_bit(*UART1_UCON,UCON_SAMP);
 	*GPIO_FUNC_SEL0 = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
-
-	/* interrupt when 28 bytes are free */
-	*UART1_UTXCON = 28;
+       
+	/* interrupt when there are this number or more bytes free in the TX buffer*/
+	*UART1_UTXCON = 16;
 
 	u1_head = 0; u1_tail = 0;
+
+	/* tx and rx interrupts are enabled in the UART by default */
+	/* see status register bits 13 and 14 */
+	/* enable UART1 interrupts in the interrupt controller */
 	enable_irq(UART1);
 }

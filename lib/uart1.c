@@ -36,7 +36,7 @@
 #include <mc1322x.h>
 #include <types.h>
 
-volatile char u1_tx_buf[1024];
+volatile char u1_tx_buf[64];
 volatile uint32_t u1_head, u1_tail;
 
 void uart1_isr(void) {
@@ -50,20 +50,25 @@ void uart1_isr(void) {
 		if (u1_tail >= sizeof(u1_tx_buf))
 			u1_tail = 0;
 	}
-	enable_irq(UART1);
 }
 
 void uart1_putc(char c) {
-	uint32_t h = u1_head;
-	h = u1_head + 1;
-	if (h >= sizeof(u1_tx_buf))
-		h = 0;
-	if (h == u1_tail) /* drop chars when no room */
-		return;
-	u1_tx_buf[u1_head] = c;
-	u1_head = h;
+	/* disable UART1 since */
+	/* UART1 isr modifies u1_head and u1_tail */ 
+	disable_irq(UART1);
 
-	uart1_isr();
+	if( (u1_head == u1_tail) &&
+	    (*UART1_UTXCON != 0)) {
+		*UART1_UDATA = c;
+	} else {
+		u1_tx_buf[u1_head] = c;
+		u1_head += 1;
+		if (u1_head >= sizeof(u1_tx_buf))
+			u1_head = 0;
+		if (u1_head == u1_tail) /* drop chars when no room */
+			return;
+		enable_irq(UART1);
+	}
 }
 
 uint8_t uart1_getc(void) {
