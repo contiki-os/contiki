@@ -71,6 +71,8 @@ enum interrupt_nums {
 #define enable_irq(irq)  (*INTENNUM  = INT_NUM_##irq)
 #define disable_irq(irq) (*INTDISNUM = INT_NUM_##irq)
 
+#define safe_irq_disable(x)  volatile uint32_t saved_irq; saved_irq = *INTENABLE; disable_irq(x)
+#define irq_restore() *INTENABLE = saved_irq
 
 extern void tmr0_isr(void) __attribute__((weak));
 extern void tmr1_isr(void) __attribute__((weak));

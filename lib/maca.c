@@ -98,9 +98,6 @@ enum posts {
 };
 static volatile uint8_t last_post = NO_POST;
 
-#define safe_irq_disable(x)  volatile uint32_t saved_irq; saved_irq = *INTENABLE; disable_irq(x)
-#define irq_restore() *INTENABLE = saved_irq
-
 volatile uint8_t fcs_mode = USE_FCS; 
 
 /* call periodically to */
