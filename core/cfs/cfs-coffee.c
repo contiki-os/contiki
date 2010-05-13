@@ -869,7 +869,7 @@ find_next_record(struct file *file, coffee_page_t log_page,
   preferred_batch_size = log_records > COFFEE_LOG_TABLE_LIMIT ?
 			 COFFEE_LOG_TABLE_LIMIT : log_records;
   {
-    /* The next log record is unknown. Search for it. */
+    /* The next log record is unknown at this point; search for it. */
     uint16_t indices[preferred_batch_size];
     uint16_t processed;
     uint16_t batch_size;
@@ -1027,6 +1027,7 @@ cfs_offset_t
 cfs_seek(int fd, cfs_offset_t offset, int whence)
 {
   struct file_desc *fdp;
+  cfs_offset_t new_offset;
 
   if(!FD_VALID(fd)) {
     return -1;
@@ -1034,25 +1035,24 @@ cfs_seek(int fd, cfs_offset_t offset, int whence)
   fdp = &coffee_fd_set[fd];
 
   if(whence == CFS_SEEK_SET) {
-    fdp->offset = offset;
+    new_offset = offset;
   } else if(whence == CFS_SEEK_END) {
-    fdp->offset = fdp->file->end + offset;
+    new_offset = fdp->file->end + offset;
   } else if(whence == CFS_SEEK_CUR) {
-    fdp->offset += offset;
+    new_offset = fdp->offset + offset;
   } else {
     return (cfs_offset_t)-1;
   }
 
-  if(fdp->offset < 0 || fdp->offset > fdp->file->max_pages * COFFEE_PAGE_SIZE) {
-    fdp->offset = 0;
+  if(new_offset < 0 || new_offset > fdp->file->max_pages * COFFEE_PAGE_SIZE) {
     return -1;
   }
 
-  if(fdp->file->end < fdp->offset) {
-    fdp->file->end = fdp->offset;
+  if(fdp->file->end < new_offset) {
+    fdp->file->end = new_offset;
   }
 
-  return fdp->offset;
+  return fdp->offset = new_offset;
 }
 /*---------------------------------------------------------------------------*/
 int
