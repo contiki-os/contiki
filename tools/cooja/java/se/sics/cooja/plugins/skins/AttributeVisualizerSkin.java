@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AttributeVisualizerSkin.java,v 1.1 2010/05/17 11:44:16 fros4943 Exp $
+ * $Id: AttributeVisualizerSkin.java,v 1.2 2010/05/17 14:32:30 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -100,9 +100,44 @@ public class AttributeVisualizerSkin implements VisualizerSkin {
   }
 
   public Color[] getColorOf(Mote mote) {
-    return null;
+    String[] as = getAttributesStrings(mote);
+    if (as == null) {
+      return null;
+    }
+
+    Color color = null;
+    for (String a: as) {
+      if (a.startsWith("color=")) {
+        String colorString = a.substring("color=".length());
+        color = parseAttributeColor(colorString);
+      }
+    }
+    if (color == null) {
+      return null;
+    }
+    return new Color[] { color };
   }
 
+  private Color parseAttributeColor(String colorString) {
+    if (colorString.equalsIgnoreCase("red")) {
+      return Color.RED;
+    } else if (colorString.equalsIgnoreCase("green")) {
+      return Color.GREEN;
+    } else if (colorString.equalsIgnoreCase("blue")) {
+      return Color.BLUE;
+    } else if (colorString.equalsIgnoreCase("orange")) {
+      return Color.ORANGE;
+    } else if (colorString.equalsIgnoreCase("pink")) {
+      return Color.PINK;
+    } else {
+      try {
+        return Color.decode(colorString);
+      } catch (NumberFormatException e) {
+      }
+      logger.warn("Unknown color attribute: " + colorString);
+      return null;
+    }
+  }
   public void paintBeforeMotes(Graphics g) {
   }
 
@@ -136,9 +171,28 @@ public class AttributeVisualizerSkin implements VisualizerSkin {
 
       int y = pixel.y + 2*Visualizer.MOTE_RADIUS + 3;
       for (String a: as) {
+        if (a.startsWith("color=")) {
+          /* Ignore */
+          continue;
+        }
+
+        Color color = null;
+        if (a.contains(";")) {
+          String[] args = a.split(";");
+          color = parseAttributeColor(args[1]);
+          a = args[0];
+        }
+        if (color != null) {
+          g.setColor(color);
+        }
+        
         int msgWidth = fm.stringWidth(a);
         g.drawString(a, pixel.x - msgWidth/2, y);
         y += fm.getHeight();
+
+        if (color != null) {
+          g.setColor(Color.BLACK);
+        }
       }
     }
   }
