@@ -26,18 +26,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInformation.java,v 1.8 2010/01/15 10:54:42 fros4943 Exp $
+ * $Id: MoteInformation.java,v 1.9 2010/05/17 09:30:27 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MotePlugin;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
+import se.sics.cooja.motes.AbstractEmulatedMote;
 
 /**
  * Mote information displays information about a given mote.
@@ -47,101 +62,118 @@ import se.sics.cooja.*;
 @ClassDescription("Mote Information")
 @PluginType(PluginType.MOTE_PLUGIN)
 public class MoteInformation extends VisPlugin implements MotePlugin {
+  private static final long serialVersionUID = 2359676837283723500L;
   private static Logger logger = Logger.getLogger(MoteInformation.class);
-
-  private static final long serialVersionUID = 1L;
 
   private Mote mote;
 
   private final static int LABEL_WIDTH = 170;
-  private final static int LABEL_HEIGHT = 15;
-
-  private Vector<JPanel> visibleMoteInterfaces = new Vector<JPanel>();
-
-  private Simulation mySimulation;
+  private final static int LABEL_HEIGHT = 20;
+  private final static Dimension size = new Dimension(LABEL_WIDTH,LABEL_HEIGHT);
+  
+  private Simulation simulation;
 
   /**
    * Create a new mote information window.
    *
-   * @param moteToView Mote to view
+   * @param m Mote
+   * @param s Simulation
+   * @param gui Simulator
    */
-  public MoteInformation(Mote moteToView, Simulation simulation, GUI gui) {
-    super("Mote Information (" + moteToView + ")", gui);
-
-    mote = moteToView;
-    mySimulation = simulation;
+  public MoteInformation(Mote m, Simulation s, GUI gui) {
+    super("Mote Information (" + m + ")", gui);
+    this.mote = m;
+    this.simulation = s;
 
     JLabel label;
-    JPanel mainPane = new JPanel();
-    mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
+    JButton button;
     JPanel smallPane;
 
-    /* Remove button */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Remove mote");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    smallPane.add(BorderLayout.WEST, label);
-
-    JButton button = new JButton("Remove");
-    button.setActionCommand("removeMote");
-    button.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        mySimulation.removeMote(mote);
-        dispose();
-      }
-    });
-
-    smallPane.add(BorderLayout.EAST, button);
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,25)));
-
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,25)));
+    JPanel mainPane = new JPanel();
+    mainPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
 
     /* Mote type */
     smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("-- MOTE TYPE --");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
+    label = new JLabel("Mote type");
+    label.setPreferredSize(size);
     smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(moteToView.getType().getIdentifier() + ": \"" + moteToView.getType().getDescription() + "\"");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
+    label = new JLabel(mote.getType().getDescription());
+    label.setPreferredSize(size);
     smallPane.add(BorderLayout.EAST, label);
-
     mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,25)));
+
+    smallPane = new JPanel(new BorderLayout());
+    label = new JLabel(mote.getType().getIdentifier());
+    label.setPreferredSize(size);
+    smallPane.add(BorderLayout.EAST, label);
+    mainPane.add(smallPane);
+
+    smallPane = new JPanel(new BorderLayout());
+    button = new JButton("Mote type information");
+    button.setPreferredSize(size);
+    button.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        simulation.getGUI().tryStartPlugin(MoteTypeInformation.class, simulation.getGUI(), simulation, mote);
+      }
+    });
+    smallPane.add(BorderLayout.EAST, button);
+    mainPane.add(smallPane);
 
     /* Mote interfaces */
     smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("-- MOTE INTERFACES --");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    smallPane.add(BorderLayout.NORTH, label);
-
+    label = new JLabel("Mote interfaces");
+    label.setPreferredSize(size);
+    smallPane.add(BorderLayout.WEST, label);
+    label = new JLabel(mote.getInterfaces().getInterfaces().size() + " interfaces");
+    label.setPreferredSize(size);
+    smallPane.add(BorderLayout.EAST, label);
     mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,10)));
 
-    for (MoteInterface intf : mote.getInterfaces().getInterfaces()) {
-      smallPane = new JPanel();
-      smallPane.setLayout(new BorderLayout());
-
-      String interfaceDescription = GUI.getDescriptionOf(intf);
-      JPanel interfaceVisualizer = intf.getInterfaceVisualizer();
-      label = new JLabel(interfaceDescription);
-      label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-      smallPane.add(BorderLayout.NORTH, label);
-
-      if (interfaceVisualizer != null) {
-        interfaceVisualizer.setBorder(BorderFactory.createEtchedBorder());
-        smallPane.add(BorderLayout.CENTER, interfaceVisualizer);
-
-				// Tag each visualized interface
-				interfaceVisualizer.putClientProperty("my_interface", intf);
-        visibleMoteInterfaces.add(interfaceVisualizer);
+    smallPane = new JPanel(new BorderLayout());
+    button = new JButton("Mote interface viewer");
+    button.setPreferredSize(size);
+    button.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        simulation.getGUI().tryStartPlugin(MoteInterfaceViewer.class, simulation.getGUI(), simulation, mote);
       }
-
+    });
+    smallPane.add(BorderLayout.EAST, button);
+    mainPane.add(smallPane);
+    
+    /* CPU frequency */
+    if (mote instanceof AbstractEmulatedMote) {
+      AbstractEmulatedMote emulatedMote = (AbstractEmulatedMote) mote;
+      smallPane = new JPanel(new BorderLayout());
+      label = new JLabel("CPU frequency");
+      label.setPreferredSize(size);
+      smallPane.add(BorderLayout.WEST, label);
+      if (emulatedMote.getCPUFrequency() < 0) {
+        label = new JLabel("[unknown]");
+      } else {
+        label = new JLabel(emulatedMote.getCPUFrequency() + " Hz");
+      }
+      label.setPreferredSize(size);
+      smallPane.add(BorderLayout.EAST, label);
       mainPane.add(smallPane);
-      mainPane.add(Box.createRigidArea(new Dimension(0,5)));
     }
+    
+    /* Remove button */
+    smallPane = new JPanel(new BorderLayout());
+    label = new JLabel("Remove mote");
+    label.setPreferredSize(size);
+    smallPane.add(BorderLayout.WEST, label);
+
+    button = new JButton("Remove");
+    button.setPreferredSize(size);
+    button.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        /* TODO In simulation event (if running) */
+        simulation.removeMote(MoteInformation.this.mote);
+      }
+    });
+    smallPane.add(BorderLayout.EAST, button);
+    mainPane.add(smallPane);
 
     this.getContentPane().add(BorderLayout.CENTER,
         new JScrollPane(mainPane,
@@ -149,26 +181,10 @@ public class MoteInformation extends VisPlugin implements MotePlugin {
             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
 
     pack();
-    setPreferredSize(new Dimension(getWidth()+15, 250));
-    setSize(new Dimension(getWidth()+15, 250));
-
-    try {
-      setSelected(true);
-    } catch (java.beans.PropertyVetoException e) {
-      // Could not select
-    }
+    setSize(new Dimension(getWidth()+15, getHeight()+15));
   }
 
   public void closePlugin() {
-    // Release all interface visualizations
-    for (JPanel interfaceVisualization: visibleMoteInterfaces) {
-      MoteInterface moteInterface = (MoteInterface) interfaceVisualization.getClientProperty("my_interface");
-      if (moteInterface != null) {
-        moteInterface.releaseInterfaceVisualizer(interfaceVisualization);
-      } else {
-        logger.warn("Could not release panel");
-      }
-    }
   }
 
   public Mote getMote() {
