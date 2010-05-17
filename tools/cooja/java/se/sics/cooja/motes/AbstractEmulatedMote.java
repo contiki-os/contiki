@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractEmulatedMote.java,v 1.1 2009/10/27 10:07:56 fros4943 Exp $
+ * $Id: AbstractEmulatedMote.java,v 1.2 2010/05/17 09:29:28 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -32,4 +32,11 @@ package se.sics.cooja.motes;
 import se.sics.cooja.Mote;
 
 public abstract class AbstractEmulatedMote extends AbstractWakeupMote implements Mote {
+
+  /**
+   * @return CPU frequency (Hz)
+   */
+  public int getCPUFrequency() {
+    return -1;
+  }
 }
