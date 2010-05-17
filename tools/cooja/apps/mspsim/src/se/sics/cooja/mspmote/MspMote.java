@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.45 2010/03/26 12:29:11 fros4943 Exp $
+ * $Id: MspMote.java,v 1.46 2010/05/17 09:57:31 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -383,6 +383,10 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     return sb.toString();
   }
   
+  public int getCPUFrequency() {
+    return myCpu.getDCOFrequency();
+  }
+
   public int getID() {
     return getInterfaces().getMoteID().getMoteID();
   }
