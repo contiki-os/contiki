@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteAttributes.java,v 1.1 2010/02/18 11:06:37 joxe Exp $
+ * $Id: MoteAttributes.java,v 1.2 2010/05/17 11:41:22 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -144,7 +144,7 @@ public class MoteAttributes extends MoteInterface {
       }
   }
   
-  private String getText() {
+  public String getText() {
       StringBuffer sb = new StringBuffer();
       Object[] keys = attributes.keySet().toArray();
       for (int i = 0; i < keys.length; i++) {
