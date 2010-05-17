@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.15 2010/03/24 14:22:56 nifi Exp $
+ * $Id: Visualizer.java,v 1.16 2010/05/17 11:44:17 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -94,6 +94,7 @@ import se.sics.cooja.interfaces.LED;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.SerialPort;
 import se.sics.cooja.plugins.skins.AddressVisualizerSkin;
+import se.sics.cooja.plugins.skins.AttributeVisualizerSkin;
 import se.sics.cooja.plugins.skins.GridVisualizerSkin;
 import se.sics.cooja.plugins.skins.IDVisualizerSkin;
 import se.sics.cooja.plugins.skins.LEDVisualizerSkin;
@@ -161,6 +162,7 @@ public class Visualizer extends VisPlugin {
     registerVisualizerSkin(PositionVisualizerSkin.class);
     registerVisualizerSkin(GridVisualizerSkin.class);
     registerVisualizerSkin(MoteTypeVisualizerSkin.class);
+    registerVisualizerSkin(AttributeVisualizerSkin.class);
   }
   private ArrayList<VisualizerSkin> currentSkins = new ArrayList<VisualizerSkin>();
 
@@ -195,6 +197,16 @@ public class Visualizer extends VisPlugin {
     this.gui = gui;
     this.simulation = simulation;
 
+    /* Register external skins */
+    String[] skins = gui.getProjectConfig().getStringArrayValue(Visualizer.class, "SKINS");
+    if (skins != null) {
+      for (String skinClass: skins) {
+        logger.info("Registering external visualizer skin: " + skinClass);
+        Class<? extends VisualizerSkin> skin = gui.tryLoadClass(this, VisualizerSkin.class, skinClass);
+        registerVisualizerSkin(skin);
+      }
+    }
+    
     /* Main canvas */
     canvas = new JPanel() {
       private static final long serialVersionUID = 1L;
