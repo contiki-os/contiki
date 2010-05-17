@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteAttributes.java,v 1.2 2010/05/17 11:41:22 fros4943 Exp $
+ * $Id: MoteAttributes.java,v 1.3 2010/05/17 14:21:51 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -48,6 +48,7 @@ import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.SimEventCentral.LogOutputEvent;
 import se.sics.cooja.SimEventCentral.LogOutputListener;
+import se.sics.cooja.plugins.skins.AttributeVisualizerSkin;
 
 /**
  * MoteAttributes used to store mote attributes for debugging and statistics
@@ -57,16 +58,25 @@ import se.sics.cooja.SimEventCentral.LogOutputListener;
  * A Contiki application adds/removes a relation by outputting a simple messages on its log interface,
  * typically via printf()'s of the serial port.
  *
+ * Mote attributes are visualized by {@link AttributeVisualizerSkin}.
+ * 
  * Syntax:
  * "#A <Attribute Name>=<Attribute Value>"
+ * "#A <Attribute Name>=<Attribute Value>;<Color>"
  *
- * Example, add an attribute sent and set its value to 41
+ * Example, add an attribute 'sent' with value 41:
  * "#A sent=41"
+ * 
+ * Example, add an attribute 'sent' with value 41, visualized in red:
+ * "#A sent=41;RED"
  *
- * Example, remove the attribute sent
+ * Example, remove attribute 'sent' (if any):
  * "#A sent"
  *
+ * Special attribute example, visualizes mote in red:
+ * "#A color=RED"
  *
+ * @see AttributeVisualizerSkin
  * @author Joakim Eriksson
  */
 @ClassDescription("Mote Attributes")
@@ -127,21 +137,24 @@ public class MoteAttributes extends MoteInterface {
   }
 
   private void setAttributes(String att) {
-      if (att.indexOf(",") >= 0) {
-          String[] atts = att.split(",");
-          for (int i = 0; i < atts.length; i++) {
-            setAttributes(atts[i]);
-        }
-      } else {
-          String[] args = att.split("=");
-          if (args.length == 2) {
-              attributes.put(args[0], args[1]);
-          } else if (args.length == 1) {
-              attributes.remove(args[0]);
-          } else {
-              /* ignore */
-          }
+    if (att.indexOf(",") >= 0) {
+      /* Handle each attribute separately */
+      String[] atts = att.split(",");
+      for (int i = 0; i < atts.length; i++) {
+        setAttributes(atts[i]);
       }
+      return;
+    }
+
+    String[] args = att.split("=");
+    if (args.length == 2) {
+      attributes.put(args[0], args[1]);
+    } else if (args.length == 1) {
+      attributes.remove(args[0]);
+    } else {
+      /* ignore */
+      logger.warn(mote + ": Malformed attribute was ignored: " + att);
+    }
   }
   
   public String getText() {
