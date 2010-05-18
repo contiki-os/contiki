@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.6 2010/05/04 22:55:32 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.7 2010/05/18 16:43:56 nvt-se Exp $
  */
 /**
  * \file
@@ -53,7 +53,6 @@
 #include "net/rime/packetbuf.h"
 
 #include <limits.h>
-#include <string.h>
 
 #define DEBUG DEBUG_ANNOTATE
 
@@ -245,8 +244,9 @@ dio_input(void)
       dio.dag_redund = buffer[i + 5];
       dio.dag_max_rankinc = buffer[i + 6];
       dio.dag_min_hoprankinc = buffer[i + 7];
-      PRINTF("RPL: DIO trickle timer: dbl=%d, min=%d red=%d maxinc=%d mininc=%d\n",
-             dio.dag_intdoubl, dio.dag_intmin, dio.dag_redund,
+      PRINTF("RPL: DIO trickle timer:dbl=%d, min=%d red=%d maxinc=%d mininc=%d\n",
+	     dio.dag_intdoubl,
+             dio.dag_intmin, dio.dag_redund,
              dio.dag_max_rankinc, dio.dag_min_hoprankinc);
       break;
     case RPL_DIO_SUBOPT_OCP:
@@ -267,7 +267,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   uip_ipaddr_t addr;
 
   /* DAG Information Solicitation */
-  PRINTF("RPL: Sending a DIO with rank: %hu\n", dag->rank);
+  PRINTF("RPL: Sending a DIO with rank: %u\n", (unsigned)dag->rank);
   pos = 0;
 
   buffer = UIP_ICMP_PAYLOAD;
@@ -312,11 +312,13 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
 
   /* Unicast requests get unicast replies! */
   if(uc_addr == NULL) {
-    PRINTF("RPL: Sending a multicast-DIO with rank %hu\n", dag->rank);
+    PRINTF("RPL: Sending a multicast-DIO with rank %u\n",
+	(unsigned)dag->rank);
     uip_create_linklocal_allrouters_mcast(&addr);
     uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos);
   } else {
-    PRINTF("RPL: Sending unicast-DIO with rank %hu to ", dag->rank);
+    PRINTF("RPL: Sending unicast-DIO with rank %u to ", 
+	(unsigned)dag->rank);
     PRINT6ADDR(uc_addr);
     PRINTF("\n");
     uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos);
@@ -371,27 +373,35 @@ dao_input(void)
     return;
   }
 
-  PRINTF("RPL: Incoming DAO rank is %hu, my rank is %hu\n", rank, dag->rank);
+  PRINTF("RPL: Incoming DAO rank is %u, my rank is %u\n",
+	 (unsigned)rank, (unsigned)dag->rank);
   if(rank < dag->rank) {
     return;
   }
 
-  PRINTF("RPL: DAO rank: %u, lifetime: %lu, prefix length: %u\n", rank,
-        (unsigned long)lifetime, prefixlen);
+  PRINTF("RPL: DAO rank: %u, lifetime: %lu, prefix length: %u\n",
+	(unsigned)rank, (unsigned long)lifetime, (unsigned)prefixlen);
 
   memset(&prefix, 0, sizeof(prefix));
   memcpy(&prefix, buffer + pos, prefixlen / CHAR_BIT);
+
+  if(lifetime == ZERO_LIFETIME) {
+    /* No-DAO received; invoke the route purging routine. */
+    rep = uip_ds6_route_lookup(&prefix);
+    if(rep != NULL && rep->state.saved_lifetime == 0) {
+      PRINTF("RPL: Setting expiration timer for prefix ");
+      PRINT6ADDR(&prefix);
+      PRINTF("\n");
+      rep->state.saved_lifetime = rep->state.lifetime;
+      rep->state.lifetime = DAO_EXPIRATION_TIMEOUT;
+    }
+    return;
+  }
 
   rep = rpl_add_route(dag, &prefix, prefixlen,
                       &UIP_IP_BUF->srcipaddr);
   if(rep == NULL) {
     PRINTF("RPL: Could not add a route while receiving a DAO\n");
-    return;
-  }
-
-  if(lifetime == ZERO_LIFETIME) {
-    /* No-DAO received; invoke the route purging routine. */
-    rpl_purge_routes();
     return;
   }
 
@@ -441,18 +451,6 @@ dao_output(rpl_neighbor_t *n, uint32_t lifetime)
   buffer[pos++] = sequence >> 8;
   buffer[pos++] = sequence & 0xff;
 
-  PRINTF("RPL: Sending DAO with prefix ");
-  PRINT6ADDR(&prefix);
-  PRINTF(" to ");
-  if(n != NULL) {
-    PRINT6ADDR(&n->addr);
-  } else {
-    PRINTF("multicast address");
-  }
-  PRINTF("\n");
-
-  prefixlen = sizeof(dag->dag_id) * CHAR_BIT;
-
   buffer[pos++] = dag->rank >> 8;
   buffer[pos++] = dag->rank & 0xff;
 
@@ -461,6 +459,7 @@ dao_output(rpl_neighbor_t *n, uint32_t lifetime)
   /* Route tag. Unspecified in draft-ietf-roll-rpl-06. */
   buffer[pos++] = 0;
 
+  prefixlen = sizeof(prefix) * CHAR_BIT;
   buffer[pos++] = prefixlen;
   /* Reverse route count. Not used because reverse routing is unscalable
      beyond a few hops. */
@@ -483,6 +482,17 @@ dao_output(rpl_neighbor_t *n, uint32_t lifetime)
   } else {
     uip_ipaddr_copy(&addr, &n->addr);
   }
+
+  PRINTF("RPL: Sending DAO with prefix ");
+  PRINT6ADDR(&prefix);
+  PRINTF(" to ");
+  if(n != NULL) {
+    PRINT6ADDR(&n->addr);
+  } else {
+    PRINTF("multicast address");
+  }
+  PRINTF("\n");
+
   uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DAO, pos);
 }
 /*---------------------------------------------------------------------------*/

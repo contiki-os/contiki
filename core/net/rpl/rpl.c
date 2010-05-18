@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.1 2010/04/30 13:43:53 joxe Exp $
+ * $Id: rpl.c,v 1.2 2010/05/18 16:43:56 nvt-se Exp $
  */
 /**
  * \file
@@ -87,7 +87,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
   if((rep = uip_ds6_route_lookup(prefix)) == NULL) {
 
     if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop, 0)) == NULL) {
-      PRINTF("RPL:ds6 No space for more route entries\n");
+      PRINTF("RPL: No space for more route entries\n");
       return NULL;
     }
 
@@ -137,7 +137,7 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
   } else if(!known) {
     PRINTF("RPL: Removing parent ");
     PRINT6ADDR(&parent->addr);
-    PRINTF(" because of bad connectivity (ETX %d)\n",etx);
+    PRINTF(" because of bad connectivity (ETX %d)\n", etx);
     rpl_remove_neighbor(dag, parent);
     if(RPL_PARENT_COUNT(dag) == 0) {
       rpl_free_dag(dag);
