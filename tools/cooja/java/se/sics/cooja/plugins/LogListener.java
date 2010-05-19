@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.29 2010/04/28 09:39:26 fros4943 Exp $
+ * $Id: LogListener.java,v 1.30 2010/05/19 12:58:15 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -244,8 +244,8 @@ public class LogListener extends VisPlugin {
       public Component getTableCellRendererComponent(JTable table,
           Object value, boolean isSelected, boolean hasFocus, int row,
           int column) {
-        LogData d = logs.get(logTable.getRowSorter().convertRowIndexToModel(row));
-        if (backgroundColors && d != null) {
+        if (backgroundColors) {
+          LogData d = logs.get(logTable.getRowSorter().convertRowIndexToModel(row));
           char last = d.strID.charAt(d.strID.length()-1);
           if (last >= '0' && last <= '9') {
             setBackground(BG_COLORS[last - '0']);
