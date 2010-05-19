@@ -132,6 +132,11 @@
 #define UIP_ND6_OPT_MTU                 5
 /** @} */
 
+/** \name ND6 option types */
+/** @{ */
+#define UIP_ND6_OPT_TYPE_OFFSET         0
+#define UIP_ND6_OPT_LEN_OFFSET          1
+#define UIP_ND6_OPT_DATA_OFFSET         2
 
 /** \name ND6 message length (excluding options) */
 /** @{ */
@@ -343,13 +348,6 @@ typedef struct uip_nd6_opt_mtu {
   uint16_t reserved;
   uint32_t mtu;
 } uip_nd6_opt_mtu;
-
-/** \brief ND option: both TLLAO and SLLAO */
-typedef struct uip_nd6_opt_llao {
-  uint8_t type;
-  uint8_t len;
-  uip_lladdr_t addr;
-} uip_nd6_opt_llao;
 
 /** \struct Redirected header option */
 typedef struct uip_nd6_opt_redirected_hdr {

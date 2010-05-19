@@ -119,13 +119,12 @@ void uip_log(char *msg);
 /** @} */
 /** Pointer to ND option */
 #define UIP_ND6_OPT_HDR_BUF  ((uip_nd6_opt_hdr *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
-#define UIP_ND6_OPT_LLAO  ((uip_nd6_opt_llao *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
 #define UIP_ND6_OPT_PREFIX_BUF ((uip_nd6_opt_prefix_info *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
 #define UIP_ND6_OPT_MTU_BUF ((uip_nd6_opt_mtu *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
 /** @} */
 
-static u8_t nd6_opt_offset;                     /** Offset from the end of the icmpv6 header to the option in uip_buf*/
-static uip_nd6_opt_llao *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
+static uint8_t nd6_opt_offset;                     /** Offset from the end of the icmpv6 header to the option in uip_buf*/
+static uint8_t *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
 
 #if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
@@ -135,6 +134,18 @@ static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
 static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
+
+/*------------------------------------------------------------------*/
+/* create a llao */ 
+static void
+create_llao(uint8_t *llao, uint8_t type) {
+  llao[UIP_ND6_OPT_TYPE_OFFSET] = type;
+  llao[UIP_ND6_OPT_LEN_OFFSET] = UIP_ND6_OPT_LLAO_LEN >> 3;
+  memcpy(&llao[UIP_ND6_OPT_DATA_OFFSET], &uip_lladdr, UIP_LLADDR_LEN);
+  /* padding on some */
+  memset(&llao[UIP_ND6_OPT_DATA_OFFSET + UIP_LLADDR_LEN], 0,
+         UIP_ND6_OPT_LLAO_LEN - 2 - UIP_LLADDR_LEN);
+}
 
 /*------------------------------------------------------------------*/
 
@@ -174,9 +185,7 @@ uip_nd6_ns_input(void)
 #endif /* UIP_CONF_IPV6_CHECKS */
     switch (UIP_ND6_OPT_HDR_BUF->type) {
     case UIP_ND6_OPT_SLLAO:
-      nd6_opt_llao =
-        (struct uip_nd6_opt_llao *)&uip_buf[uip_l2_l3_icmp_hdr_len +
-                                            nd6_opt_offset];
+      nd6_opt_llao = &uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset];
 #if UIP_CONF_IPV6_CHECKS
       /* There must be NO option in a DAD NS */
       if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
@@ -187,10 +196,13 @@ uip_nd6_ns_input(void)
         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
         if(nbr == NULL) {
           uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                          &nd6_opt_llao->addr, 0, NBR_STALE);
+			  (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+			  0, NBR_STALE);
         } else {
-          if(memcmp(&nd6_opt_llao->addr, &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
-            memcpy(&nbr->lladdr, &nd6_opt_llao->addr, UIP_LLADDR_LEN);
+          if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		    &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
+            memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		   UIP_LLADDR_LEN);
             nbr->state = NBR_STALE;
           } else {
             if(nbr->state == NBR_INCOMPLETE) {
@@ -284,15 +296,8 @@ create_na:
   UIP_ND6_NA_BUF->flagsreserved = flags;
   memcpy(&UIP_ND6_NA_BUF->tgtipaddr, &addr->ipaddr, sizeof(uip_ipaddr_t));
 
-  nd6_opt_llao =
-    (struct uip_nd6_opt_llao *)&uip_buf[uip_l2_l3_icmp_hdr_len +
-                                        UIP_ND6_NA_LEN];
-  nd6_opt_llao->type = UIP_ND6_OPT_TLLAO;
-  nd6_opt_llao->len = UIP_ND6_OPT_LLAO_LEN >> 3;
-  memcpy(&(nd6_opt_llao->addr), &uip_lladdr, UIP_LLADDR_LEN);
-  /* padding on some */
-  memset((void *)(&nd6_opt_llao->addr) + UIP_LLADDR_LEN, 0,
-         UIP_ND6_OPT_LLAO_LEN - 2 - UIP_LLADDR_LEN);
+  create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN],
+              UIP_ND6_OPT_TLLAO);
 
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
@@ -350,15 +355,10 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
     }
     UIP_IP_BUF->len[1] =
       UIP_ICMPH_LEN + UIP_ND6_NS_LEN + UIP_ND6_OPT_LLAO_LEN;
-    nd6_opt_llao =
-      (struct uip_nd6_opt_llao *)&uip_buf[uip_l2_l3_icmp_hdr_len +
-                                          UIP_ND6_NS_LEN];
-    nd6_opt_llao->type = UIP_ND6_OPT_SLLAO;     /* type of the option */
-    nd6_opt_llao->len = UIP_ND6_OPT_LLAO_LEN >> 3;
-    memcpy(&nd6_opt_llao->addr, &uip_lladdr, UIP_LLADDR_LEN);
-    /* padding on some */
-    memset((void *)(&nd6_opt_llao->addr) + UIP_LLADDR_LEN, 0,
-           UIP_ND6_OPT_LLAO_LEN - 2 - UIP_LLADDR_LEN);
+
+    create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NS_LEN],
+		UIP_ND6_OPT_SLLAO);
+
     uip_len =
       UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NS_LEN + UIP_ND6_OPT_LLAO_LEN;
   } else {
@@ -429,7 +429,7 @@ uip_nd6_na_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
     switch (UIP_ND6_OPT_HDR_BUF->type) {
     case UIP_ND6_OPT_TLLAO:
-      nd6_opt_llao = (struct uip_nd6_opt_llao *)UIP_ND6_OPT_HDR_BUF;
+      nd6_opt_llao = (uint8_t *)UIP_ND6_OPT_HDR_BUF;
       break;
     default:
       PRINTF("ND option not supported in NA\n");
@@ -452,14 +452,15 @@ uip_nd6_na_input(void)
     }
     if(nd6_opt_llao != 0) {
       is_llchange =
-        memcmp((void *)&nd6_opt_llao->addr, (void *)(&nbr->lladdr),
+        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)(&nbr->lladdr),
                UIP_LLADDR_LEN);
     }
     if(nbr->state == NBR_INCOMPLETE) {
       if(nd6_opt_llao == NULL) {
         goto discard;
       }
-      memcpy(&nbr->lladdr, &nd6_opt_llao->addr, UIP_LLADDR_LEN);
+      memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+	     UIP_LLADDR_LEN);
       if(is_solicited) {
         nbr->state = NBR_REACHABLE;
         nbr->nscount = 0;
@@ -481,7 +482,8 @@ uip_nd6_na_input(void)
         if(is_override || (!is_override && nd6_opt_llao != 0 && !is_llchange)
            || nd6_opt_llao == 0) {
           if(nd6_opt_llao != 0) {
-            memcpy(&nbr->lladdr, &nd6_opt_llao->addr, UIP_LLADDR_LEN);
+            memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		   UIP_LLADDR_LEN);
           }
           if(is_solicited) {
             nbr->state = NBR_REACHABLE;
@@ -560,7 +562,7 @@ uip_nd6_rs_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
     switch (UIP_ND6_OPT_HDR_BUF->type) {
     case UIP_ND6_OPT_SLLAO:
-      nd6_opt_llao = (struct uip_nd6_opt_llao *)UIP_ND6_OPT_HDR_BUF;
+      nd6_opt_llao = UIP_ND6_OPT_HDR_BUF;
       break;
     default:
       PRINTF("ND option not supported in RS\n");
@@ -579,11 +581,13 @@ uip_nd6_rs_input(void)
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
         /* we need to add the neighbor */
         uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                        &nd6_opt_llao->addr, 0, NBR_STALE);
+                        &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
       } else {
         /* If LL address changed, set neighbor state to stale */
-        if(memcmp(&nd6_opt_llao->addr, &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
-          memcpy(&nbr->lladdr, &nd6_opt_llao->addr, UIP_LLADDR_LEN);
+        if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		  &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
+          memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		 UIP_LLADDR_LEN);
           nbr->state = NBR_STALE;
         }
         nbr->isrouter = 0;
@@ -656,13 +660,7 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   }
 
   /* Source link-layer option */
-  nd6_opt_llao = (struct uip_nd6_opt_llao *)UIP_ND6_OPT_HDR_BUF;
-  nd6_opt_llao->type = UIP_ND6_OPT_SLLAO;
-  nd6_opt_llao->len = UIP_ND6_OPT_LLAO_LEN >> 3;
-  memcpy(&(nd6_opt_llao->addr), &uip_lladdr, UIP_LLADDR_LEN);
-  /* padding if needed */
-  memset((void *)(&nd6_opt_llao->addr) + UIP_LLADDR_LEN, 0,
-         UIP_ND6_OPT_LLAO_LEN - 2 - UIP_LLADDR_LEN);
+  create_llao((uint8_t *)UIP_ND6_OPT_HDR_BUF, UIP_ND6_OPT_SLLAO);
 
   uip_len += UIP_ND6_OPT_LLAO_LEN;
   nd6_opt_offset += UIP_ND6_OPT_LLAO_LEN;
@@ -717,15 +715,9 @@ uip_nd6_rs_output(void)
     uip_len = uip_l3_icmp_hdr_len + UIP_ND6_RS_LEN + UIP_ND6_OPT_LLAO_LEN;
     UIP_IP_BUF->len[1] =
       UIP_ICMPH_LEN + UIP_ND6_RS_LEN + UIP_ND6_OPT_LLAO_LEN;
-    nd6_opt_llao =
-      (struct uip_nd6_opt_llao *)&uip_buf[uip_l2_l3_icmp_hdr_len +
-                                          UIP_ND6_RS_LEN];
-    nd6_opt_llao->type = UIP_ND6_OPT_SLLAO;     /* type of the option */
-    nd6_opt_llao->len = UIP_ND6_OPT_LLAO_LEN >> 3;
-    memcpy(&nd6_opt_llao->addr, &uip_lladdr, UIP_LLADDR_LEN);
-    /* padding on some link layers */
-    memset((void *)(&nd6_opt_llao->addr) + UIP_LLADDR_LEN, 0,
-           UIP_ND6_OPT_LLAO_LEN - 2 - UIP_LLADDR_LEN);
+
+    create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_RS_LEN],
+		UIP_ND6_OPT_SLLAO);
   }
 
   UIP_ICMP_BUF->icmpchksum = 0;
@@ -787,17 +779,20 @@ uip_nd6_ra_input(void)
     switch (UIP_ND6_OPT_HDR_BUF->type) {
     case UIP_ND6_OPT_SLLAO:
       PRINTF("Processing SLLAO option in RA\n");
-      nd6_opt_llao = (uip_nd6_opt_llao *) UIP_ND6_OPT_HDR_BUF;
+      nd6_opt_llao = UIP_ND6_OPT_HDR_BUF;
       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
       if(nbr == NULL) {
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                              &nd6_opt_llao->addr, 1, NBR_STALE);
+                              &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+			      1, NBR_STALE);
       } else {
         if(nbr->state == NBR_INCOMPLETE) {
           nbr->state = NBR_STALE;
         }
-        if(memcmp(&nd6_opt_llao->addr, &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
-          memcpy(&nbr->lladdr, &nd6_opt_llao->addr, UIP_LLADDR_LEN);
+        if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		  &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
+          memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		 UIP_LLADDR_LEN);
           nbr->state = NBR_STALE;
         }
         nbr->isrouter = 1;
