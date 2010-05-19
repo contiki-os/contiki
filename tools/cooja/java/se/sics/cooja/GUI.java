@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.168 2010/04/26 08:19:32 fros4943 Exp $
+ * $Id: GUI.java,v 1.169 2010/05/19 17:32:54 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -419,7 +419,7 @@ public class GUI extends Observable {
       if (isVisualized()) {
         JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
             "Default projects could not load, reconfigure project directories:" +
-            "\n\tMenu->Settings->Manage project directories" +
+            "\n\tMenu->Settings->COOJA projects" +
             "\n\nSee console for stack trace with more information.",
             "Project loading error", JOptionPane.ERROR_MESSAGE);
       }
@@ -898,7 +898,7 @@ public class GUI extends Observable {
       menuItem.setToolTipText("Not available in applet version");
     }
 
-    menuItem = new JMenuItem("Manage project directories");
+    menuItem = new JMenuItem("COOJA projects");
     menuItem.setActionCommand("manage projects");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
@@ -906,7 +906,7 @@ public class GUI extends Observable {
       menuItem.setEnabled(false);
       menuItem.setToolTipText("Not available in applet version");
     }
-
+    
     menuItem = new JMenuItem("Compiler configuration wizard");
     menuItem.setActionCommand("configuration wizard");
     menuItem.addActionListener(guiEventHandler);
@@ -2878,7 +2878,7 @@ public class GUI extends Observable {
             if (isVisualized()) {
               JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
                   "Configured projects could not load, reconfigure project directories:" +
-                  "\n\tMenu->Settings->Manage project directories" +
+                  "\n\tMenu->Settings->COOJA projects" +
                   "\n\nSee console for stack trace with more information.",
                   "Project loading error", JOptionPane.ERROR_MESSAGE);
             }
