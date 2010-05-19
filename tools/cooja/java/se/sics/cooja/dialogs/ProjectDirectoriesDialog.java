@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.13 2010/05/19 17:32:53 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.14 2010/05/19 17:38:46 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -445,22 +445,36 @@ class DirectoryTreePanel extends JPanel {
         return this;
       }
       class CheckboxIcon implements Icon {
-        Icon icon = (Icon) UIManager.get("CheckBox.icon");
+        Icon icon;
         Color color;
         public CheckboxIcon(Color color) {
+          this.icon = (Icon) UIManager.get("CheckBox.icon");
           this.color = color;
         }
         public int getIconHeight() {
+          if (icon == null) {
+            return 18;
+          }
           return icon.getIconHeight();
         }
         public int getIconWidth() {
+          if (icon == null) {
+            return 18;
+          }
           return icon.getIconWidth();
         }
         public void paintIcon(Component c, Graphics g, int x, int y) {
-          icon.paintIcon(c, g, x, y);
+          if (icon != null) {
+            icon.paintIcon(c, g, x, y);
+          } else {
+            g.setColor(Color.WHITE);
+            g.fillRect(x, y, 18, 18);
+            g.setColor(Color.BLACK);
+            g.drawRect(x, y, 18, 18);
+          }
           if (color != null) {
             g.setColor(color);
-            g.fillRect(x, y, icon.getIconWidth(), icon.getIconHeight());
+            g.fillRect(x, y, getIconWidth(), getIconHeight());
           }
         }
       }
