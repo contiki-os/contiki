@@ -125,7 +125,7 @@ while(true) {
     log.testFailed();
   }
   if(id == 1 &amp;&amp; msg.startsWith("1.0: Contiki") &amp;&amp; started == 0) {
-    write(mote, "netperf -bups 2.0 20\n"); /* Write to mote serial port */
+    write(mote, "netperf -bps 2.0 20\n"); /* Write to mote serial port */
     started = 1;
   }
 }
