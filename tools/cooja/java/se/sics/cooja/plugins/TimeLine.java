@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.25 2010/04/26 08:00:19 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.26 2010/05/21 08:46:44 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -289,6 +289,31 @@ public class TimeLine extends VisPlugin {
       JComponent b = (JComponent) e.getSource();
       Mote m = (Mote) b.getClientProperty("mote");
       removeMote(m);
+    }
+  };
+  private Action sortMoteAction = new AbstractAction() {
+    private static final long serialVersionUID = 621116674700872058L;
+    public void actionPerformed(ActionEvent e) {
+      JComponent b = (JComponent) e.getSource();
+      Mote MOTE = (Mote) b.getClientProperty("mote");
+      
+      /* Sort by distance */
+      ArrayList<MoteEvents> sortedMoteEvents = new ArrayList<MoteEvents>();
+      for (MoteEvents me: allMoteEvents.toArray(new MoteEvents[0])) {
+        double d = me.mote.getInterfaces().getPosition().getDistanceTo(MOTE);
+        
+        int i=0;
+        for (i=0; i < sortedMoteEvents.size(); i++) {
+          double d2 = MOTE.getInterfaces().getPosition().getDistanceTo(sortedMoteEvents.get(i).mote);
+          if (d < d2) {
+            break;
+          }
+        }
+        sortedMoteEvents.add(i, me);
+        
+      }
+      allMoteEvents = sortedMoteEvents;
+      numberMotesWasUpdated();
     }
   };
   private Action addMoteAction = new AbstractAction("Add motes to timeline") {
@@ -1524,6 +1549,9 @@ public class TimeLine extends VisPlugin {
       final JMenuItem removeItem = new JMenuItem(removeMoteAction);
       removeItem.setText("Remove from timeline");
       popupMenu.add(removeItem);
+      final JMenuItem sortItem = new JMenuItem(sortMoteAction);
+      removeItem.setText("Sort by distance");
+      popupMenu.add(sortItem);
 
       addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
@@ -1533,6 +1561,8 @@ public class TimeLine extends VisPlugin {
           }
           removeItem.setText("Remove from timeline: " + m);
           removeItem.putClientProperty("mote", m);
+          sortItem.setText("Sort by distance: " + m);
+          sortItem.putClientProperty("mote", m);
           popupMenu.show(MoteRuler.this, e.getX(), e.getY());
         }
       });
