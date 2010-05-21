@@ -74,6 +74,8 @@
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
+int count_packets(void);
+
 static volatile packet_t packet_pool[NUM_PACKETS];
 static volatile packet_t *free_head, *rx_end, *tx_end, *dma_tx, *dma_rx;
 
@@ -223,8 +225,8 @@ int count_packets(void) {
 	}
 
 	total = free + rx + tx;
-	if(dma_rx) { total++; }
-	if(dma_tx) { total++; }
+	if(dma_rx && (dma_rx != rx_head)) { total++; }
+	if(dma_tx && (dma_tx != tx_head)) { total++; }
 
 	return total;
 }	
