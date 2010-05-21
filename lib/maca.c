@@ -118,12 +118,14 @@ void check_maca(void) {
 	for(i=0; (i < 1024) && (*MACA_CLK == last_time); i++) { continue; }
 
 	if(*MACA_CLK == last_time) {
+		PRINTF("check maca: maca_clk stopped, restarting\n");
 		/* clock isn't running */
 		ResumeMACASync();
 		maca_isr(); 
 	} else {
 		if((last_time > (*MACA_SFTCLK + RECV_SOFTIMEOUT)) &&
 		   (last_time > (*MACA_CPLCLK + CPL_TIMEOUT))) {
+			PRINTF("check maca: complete clocks expired --- forcing isr\n");
 			/* all complete clocks have expired */
 			/* check that maca entry is changing */
 			/* if not, do call the isr to restart the cycle */
@@ -135,6 +137,13 @@ void check_maca(void) {
 		
 	last_entry = maca_entry;
 	last_time = *MACA_CLK;
+
+#if DEBUG_MACA
+	if(count_packets() != NUM_PACKETS) {
+		PRINTF("check maca: count_packets %d\n", count_packets());
+	}
+#endif /* DEBUG_MACA */
+
 }
 
 void maca_init(void) {
@@ -189,6 +198,7 @@ void Print_Packets(char *s) {
 }
 
 inline void bad_packet_bounds(void) {
+	PRINTF("bad packet bounds! Halting.\n");
 	while(1) { continue; }
 }
 
