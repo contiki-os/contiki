@@ -66,6 +66,11 @@ tcpip_handler(void)
     PRINTF("DATA recv '%s' from ", appdata);
     PRINTF("%d", UIP_IP_BUF->srcipaddr.u8[15]);
     PRINTF("\n");
+#if SERVER_REPLY
+    uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
+    uip_udp_packet_send(server_conn, "Reply", sizeof("Reply"));
+    memset(&server_conn->ripaddr, 0, sizeof(&server_conn->ripaddr));
+#endif
   }
 }
 /*---------------------------------------------------------------------------*/
