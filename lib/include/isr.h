@@ -42,6 +42,7 @@
 #define INTDISNUM_OFF         (0xC)
 #define INTENABLE_OFF        (0x10)
 #define INTSRC_OFF           (0x30)
+#define INTFRC_OFF           (0x34)
 #define NIPEND_OFF           (0x38)
 
 #define INTCNTL      ((volatile uint32_t *) (INTBASE + INTCNTL_OFF))
@@ -49,6 +50,7 @@
 #define INTDISNUM    ((volatile uint32_t *) (INTBASE + INTDISNUM_OFF))
 #define INTENABLE    ((volatile uint32_t *) (INTBASE + INTENABLE_OFF))
 #define INTSRC       ((volatile uint32_t *) (INTBASE + INTSRC_OFF))
+#define INTFRC       ((volatile uint32_t *) (INTBASE + INTFRC_OFF))
 #define NIPEND       ((volatile uint32_t *) (INTBASE + NIPEND_OFF))
 
 enum interrupt_nums {
