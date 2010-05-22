@@ -67,5 +67,8 @@ void irq(void)
 			if(kbi_evnt(6) && (kbi6_isr != 0)) { kbi6_isr(); }
 			if(kbi_evnt(7) && (kbi7_isr != 0)) { kbi7_isr(); }
 		}
+
+		*INTFRC = 0; /* stop forcing interrupts */
+
 	}	
 }
