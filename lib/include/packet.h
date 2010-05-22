@@ -41,6 +41,8 @@
 #define MAX_PAYLOAD_SIZE 125
 #endif
 
+#define PACKET_STATS 0
+
 struct packet {
         uint8_t length; /* does not include FCS checksum */
 	volatile struct packet * left;
@@ -49,6 +51,12 @@ struct packet {
 	/* On TX this should be 0 */
 	/* On RX this should be 1 since the maca puts the length as the first byte*/
 	uint8_t offset; 	
+	#if PACKET_STATS
+	uint8_t seen; 
+	uint8_t post_tx;
+	uint8_t get_free;
+	uint8_t rxd;
+	#endif
 	uint8_t data[MAX_PAYLOAD_SIZE+2+1]; /* +2 for FCS; + 1 since maca returns the length as the first byte */
 };
 typedef struct packet packet_t;
