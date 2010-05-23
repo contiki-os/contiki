@@ -75,6 +75,7 @@
 #define reg(x) (*(volatile uint32_t *)(x))
 
 int count_packets(void);
+void Print_Packets(char *s);
 
 static volatile packet_t packet_pool[NUM_PACKETS];
 static volatile packet_t *free_head, *rx_end, *tx_end, *dma_tx, *dma_rx;
@@ -113,6 +114,10 @@ void check_maca(void) {
 	static volatile uint32_t last_time;
 	static volatile uint32_t last_entry;
 	volatile uint32_t i;
+#if DEBUG_MACA
+	volatile uint32_t count;
+#endif 
+	
 
 	/* if *MACA_CLK == last_time */
 	/* try waiting for one clock period */
@@ -141,11 +146,11 @@ void check_maca(void) {
 	last_time = *MACA_CLK;
 
 #if DEBUG_MACA
-	if(count_packets() != NUM_PACKETS) {
-		PRINTF("check maca: count_packets %d\n", count_packets());
+	if((count = count_packets()) != NUM_PACKETS) {
+		PRINTF("check maca: count_packets %d\n", count);
+		Print_Packets("check_maca");
 	}
 #endif /* DEBUG_MACA */
-
 }
 
 void maca_init(void) {
@@ -155,6 +160,10 @@ void maca_init(void) {
 	init_phy();
 	free_head = 0; tx_head = 0; rx_head = 0; rx_end = 0; tx_end = 0; dma_tx = 0; dma_rx = 0;
 	free_all_packets();
+
+	#if DEBUG_MACA
+	Print_Packets("maca_init");
+	#endif
 	
 	/* initial radio command */
         /* nop, promiscuous, no cca */
@@ -168,12 +177,11 @@ void maca_init(void) {
 #define print_packets(x) Print_Packets(x)
 void Print_Packets(char *s) {
 	volatile packet_t *p;
-	int i = 0;
+
 	printf("packet pool after %s:\n\r",s);
 	p = free_head;	
 	printf("free_head: 0x%lx ", (uint32_t) free_head);
 	while(p != 0) {
-		i++;
 		p = p->left;
 		printf("->0x%lx", (uint32_t) p);
 	}
@@ -182,7 +190,6 @@ void Print_Packets(char *s) {
 	p = tx_head;
 	printf("tx_head: 0x%lx ", (uint32_t) tx_head);
 	while(p != 0) {
-		i++;
 		p = p->left;
 		printf("->0x%lx", (uint32_t) p);
 	}
@@ -191,12 +198,14 @@ void Print_Packets(char *s) {
 	p = rx_head;
 	printf("rx_head: 0x%lx ", (uint32_t) rx_head);
 	while(p != 0) {
-		i++;
 		p = p->left;
 		printf("->0x%lx", (uint32_t) p);
 	}
 	printf("\n\r");
-	printf("found %d packets\n\r",i);
+
+	printf("dma_rx: 0x%lx\n", (uint32_t) dma_rx);
+	printf("dma_tx: 0x%lx\n", (uint32_t) dma_tx);
+
 }
 
 inline void bad_packet_bounds(void) {
