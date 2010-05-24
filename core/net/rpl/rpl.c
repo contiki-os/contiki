@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.2 2010/05/18 16:43:56 nvt-se Exp $
+ * $Id: rpl.c,v 1.3 2010/05/24 16:38:56 nvt-se Exp $
  */
 /**
  * \file
@@ -84,23 +84,30 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 {
   uip_ds6_route_t *rep;
 
-  if((rep = uip_ds6_route_lookup(prefix)) == NULL) {
-
+  rep = uip_ds6_route_lookup(prefix);
+  if(rep == NULL) {
     if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop, 0)) == NULL) {
       PRINTF("RPL: No space for more route entries\n");
       return NULL;
     }
-
-    rep->state.dag = dag;
-    rep->state.lifetime = DEFAULT_ROUTE_LIFETIME;
-    rep->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
-
-    PRINTF("RPL: Added a route to ");
+  } else {
+    PRINTF("RPL: Updated the next hop for prefix ");
     PRINT6ADDR(prefix);
-    PRINTF("/%d via ", prefix_len);
+    PRINTF(" to ");
     PRINT6ADDR(next_hop);
     PRINTF("\n");
+    uip_ipaddr_copy(&rep->nexthop, next_hop);
   }
+  rep->state.dag = dag;
+  rep->state.lifetime = DEFAULT_ROUTE_LIFETIME;
+  rep->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
+
+  PRINTF("RPL: Added a route to ");
+  PRINT6ADDR(prefix);
+  PRINTF("/%d via ", prefix_len);
+  PRINT6ADDR(next_hop);
+  PRINTF("\n");
+
   return rep;
 }
 /************************************************************************/
@@ -110,7 +117,6 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
   uip_ipaddr_t ipaddr;
   rpl_dag_t *dag;
   rpl_neighbor_t *parent;
-  uip_ds6_route_t *rep;
 
   uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr);
@@ -119,22 +125,11 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
   PRINTF(" is %sknown. ETX = %d\n", known ? "" : "no longer ", etx);
 
   dag = rpl_get_dag(RPL_DEFAULT_INSTANCE);
-  if(dag == NULL) {
+  if(dag == NULL || (parent = rpl_find_neighbor(dag, &ipaddr)) == NULL) {
     return;
   }
 
-  parent = rpl_find_neighbor(dag, &ipaddr);
-  if(parent == NULL) {
-    rep = uip_ds6_route_lookup(&ipaddr);
-    if(rep != NULL) {
-      if(!known) {
-        rep->state.lifetime = DAO_EXPIRATION_TIMEOUT;
-        rep->state.saved_lifetime = rep->state.lifetime;
-      } else {
-        rep->state.lifetime = rep->state.saved_lifetime;
-      }
-    }
-  } else if(!known) {
+  if(!known) {
     PRINTF("RPL: Removing parent ");
     PRINT6ADDR(&parent->addr);
     PRINTF(" because of bad connectivity (ETX %d)\n", etx);
