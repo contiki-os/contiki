@@ -10,7 +10,7 @@
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-u8_t uip_buf[UIP_BUFSIZE + 2];
+uip_buf_t uip_aligned_buf;
 
 u16_t uip_len;
 
@@ -41,6 +41,25 @@ uip_ds6_set_addr_iid(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
 #else
 #error fakeuip.c cannot build interface address when UIP_LLADDR_LEN is not 6 or 8
 #endif
+}
+
+/*---------------------------------------------------------------------------*/
+/*
+ * get a link local address -
+ * state = -1 => any address is ok. Otherwise state = desired state of addr.
+ * (TENTATIVE, PREFERRED, DEPRECATED)
+ */
+uip_ds6_addr_t *
+uip_ds6_get_link_local(int8_t state) {
+  uip_ds6_addr_t *locaddr;
+  for(locaddr = uip_ds6_if.addr_list;
+      locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+    if((locaddr->isused) && (state == - 1 || locaddr->state == state)
+       && (uip_is_addr_link_local(&locaddr->ipaddr))) {
+      return locaddr;
+    }
+  }
+  return NULL;
 }
 
 uip_ds6_addr_t *
