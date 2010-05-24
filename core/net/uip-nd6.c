@@ -779,11 +779,11 @@ uip_nd6_ra_input(void)
     switch (UIP_ND6_OPT_HDR_BUF->type) {
     case UIP_ND6_OPT_SLLAO:
       PRINTF("Processing SLLAO option in RA\n");
-      nd6_opt_llao = UIP_ND6_OPT_HDR_BUF;
+      nd6_opt_llao = (uint8_t *) UIP_ND6_OPT_HDR_BUF;
       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
       if(nbr == NULL) {
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                              &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+                              (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 			      1, NBR_STALE);
       } else {
         if(nbr->state == NBR_INCOMPLETE) {
