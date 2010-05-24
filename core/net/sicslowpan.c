@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.39 2010/05/11 10:02:29 nifi Exp $
+ * $Id: sicslowpan.c,v 1.40 2010/05/24 10:07:34 joxe Exp $
  */
 /**
  * \file
@@ -157,8 +157,8 @@ void uip_log(char *msg);
 /** \name Pointers in the sicslowpan and uip buffer
  *  @{
  */
-#define SICSLOWPAN_IP_BUF   ((struct uip_ip_hdr *)&sicslowpan_buf[UIP_LLH_LEN])
-#define SICSLOWPAN_UDP_BUF ((struct uip_udp_hdr *)&sicslowpan_buf[UIP_LLIPH_LEN])
+#define SICSLOWPAN_IP_BUF   ((struct uip_ip_hdr *)&sicslowpan_buf.u8[UIP_LLH_LEN])
+#define SICSLOWPAN_UDP_BUF ((struct uip_udp_hdr *)&sicslowpan_buf.u8[UIP_LLIPH_LEN])
 
 #define UIP_IP_BUF          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_UDP_BUF          ((struct uip_udp_hdr *)&uip_buf[UIP_LLIPH_LEN])
@@ -221,9 +221,7 @@ static u16_t sicslowpan_len;
  * It has a fix size as we do not use dynamic memory allocation.
  */
 
-/* Allocate buffer as 32 bit to ensure that it is 32-bit aligned */
-static uint32_t uip_buf32[(UIP_BUFSIZE + 3) / 4];
-static uint8_t * const sicslowpan_buf = (uint8_t * const) uip_buf32;
+static uip_buf_t sicslowpan_buf;
 
 /** The total length of the IPv6 packet in the sicslowpan_buf. */
 
