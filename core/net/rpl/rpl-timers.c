@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-timers.c,v 1.4 2010/05/09 19:12:47 joxe Exp $
+ * $Id: rpl-timers.c,v 1.5 2010/05/24 16:38:56 nvt-se Exp $
  */
 /**
  * \file
@@ -101,9 +101,10 @@ new_dio_interval(rpl_dag_t *dag)
   /* keep some stats */
   dag->dio_totint++;
   dag->dio_totrecv += dag->dio_counter;
-  ANNOTATE("#A rank=%d,ints=%d,snd=%d,rcv=%d,cint=%d\n", dag->rank,
+  ANNOTATE("#A rank=%d,stats=%d %d %d %d,color=%s\n", dag->rank,
            dag->dio_totint, dag->dio_totsend,
-           dag->dio_totrecv,dag->dio_intcurrent);
+           dag->dio_totrecv,dag->dio_intcurrent,
+	   dag->rank == ROOT_RANK ? "BLUE" : "ORANGE");
 #endif /* RPL_CONF_STATS */
 
   /* reset the redundancy counter */
@@ -184,7 +185,7 @@ handle_dao_timer(void *ptr)
   dag = (rpl_dag_t *)ptr;
 
   if (!dio_send_ok && uip_ds6_get_link_local(ADDR_PREFERRED) == NULL) {
-    PRINTF("RPL: postpone DAO transmission... \n");
+    PRINTF("RPL: Postpone DAO transmission... \n");
     ctimer_set(&dag->dao_timer, CLOCK_SECOND, handle_dao_timer, dag);
     return;
   }
@@ -196,7 +197,7 @@ handle_dao_timer(void *ptr)
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
     dao_output(n, DEFAULT_ROUTE_LIFETIME);
   } else {
-    PRINTF("RPL: could not find any best parent.. \n");
+    PRINTF("RPL: Could not find a parent to send a DAO to \n");
   }
   ctimer_stop(&dag->dao_timer);
 }
@@ -205,6 +206,7 @@ void
 rpl_schedule_dao(rpl_dag_t *dag)
 {
   clock_time_t expiration_time;
+
   expiration_time = etimer_expiration_time(&dag->dao_timer.etimer);
 
   if(!etimer_expired(&dag->dao_timer.etimer) &&
