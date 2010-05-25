@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.83 2010/05/09 17:53:31 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.84 2010/05/25 21:32:41 joxe Exp $
  */
 
 #include <signal.h>
@@ -310,8 +310,8 @@ main(int argc, char **argv)
     }
     printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
-  
-  if(1) {
+
+  if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
