@@ -503,7 +503,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>259</width>
-    <z>2</z>
+    <z>1</z>
     <height>184</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -517,7 +517,7 @@
       <viewport>2.349818846983307 0.0 0.0 2.349818846983307 150.19773526533348 176.95275613586946</viewport>
     </plugin_config>
     <width>520</width>
-    <z>1</z>
+    <z>3</z>
     <height>523</height>
     <location_x>269</location_x>
     <location_y>14</location_y>
@@ -527,11 +527,11 @@
     <plugin_config>
       <filter />
     </plugin_config>
-    <width>1280</width>
+    <width>937</width>
     <z>0</z>
     <height>213</height>
-    <location_x>-4</location_x>
-    <location_y>508</location_y>
+    <location_x>21</location_x>
+    <location_y>464</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
@@ -575,7 +575,7 @@ while(1) {
       <active>true</active>
     </plugin_config>
     <width>600</width>
-    <z>3</z>
+    <z>2</z>
     <height>700</height>
     <location_x>665</location_x>
     <location_y>6</location_y>
