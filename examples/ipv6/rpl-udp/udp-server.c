@@ -113,7 +113,11 @@ PROCESS_THREAD(udp_server_process, ev, data)
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
   root_if = uip_ds6_addr_lookup(&ipaddr);
   if(root_if != NULL) {
+    rpl_dag_t *dag;
     rpl_set_root((uip_ip6addr_t *)dag_id);
+    dag = rpl_get_dag(RPL_ANY_INSTANCE);
+    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    rpl_set_prefix(dag, &ipaddr, 64);
     PRINTF("created a new RPL dag\n");
   } else {
     PRINTF("failed to create a new RPL DAG\n");
