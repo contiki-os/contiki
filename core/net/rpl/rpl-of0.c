@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-of0.c,v 1.1 2010/04/30 13:43:53 joxe Exp $
+ * $Id: rpl-of0.c,v 1.2 2010/05/25 21:58:54 nvt-se Exp $
  */
 /**
  * \file
@@ -46,8 +46,8 @@
 #define DEBUG DEBUG_ANNOTATE
 #include "net/uip-debug.h"
 
-static rpl_neighbor_t *best_parent(rpl_neighbor_t *, rpl_neighbor_t *);
-static rpl_rank_t increment_rank(rpl_rank_t, rpl_neighbor_t *);
+static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
+static rpl_rank_t increment_rank(rpl_rank_t, rpl_parent_t *);
 
 rpl_of_t rpl_of0 = {
   best_parent,
@@ -61,7 +61,7 @@ rpl_of_t rpl_of0 = {
 #define MAXIMUM_RANK_STRETCH    4
 
 static rpl_rank_t
-increment_rank(rpl_rank_t rank, rpl_neighbor_t *parent)
+increment_rank(rpl_rank_t rank, rpl_parent_t *parent)
 {
   if((rpl_rank_t)(rank + DEFAULT_RANK_INCREMENT) < rank) {
     PRINTF("RPL: OF0 rank %d incremented to infinite rank due to wrapping\n",
@@ -71,8 +71,8 @@ increment_rank(rpl_rank_t rank, rpl_neighbor_t *parent)
   return rank + DEFAULT_RANK_INCREMENT;
 }
 
-static rpl_neighbor_t *
-best_parent(rpl_neighbor_t *p1, rpl_neighbor_t *p2)
+static rpl_parent_t *
+best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 {
   PRINTF("RPL: Comparing parent ");
   PRINT6ADDR(&p1->addr);

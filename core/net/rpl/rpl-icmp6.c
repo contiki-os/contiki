@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.10 2010/05/25 19:19:43 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.11 2010/05/25 21:58:54 nvt-se Exp $
  */
 /**
  * \file
@@ -388,7 +388,7 @@ dao_input(void)
   uint32_t route_tag;
   uip_ipaddr_t prefix;
   uip_ds6_route_t *rep;
-  rpl_neighbor_t *n;
+  rpl_parent_t *n;
   int pos;
 
   /* Destination Advertisement Object */
@@ -462,7 +462,7 @@ dao_input(void)
     rep->state.learned_from = RPL_ROUTE_FROM_MULTICAST_DAO;
   } else {
     rep->state.learned_from = RPL_ROUTE_FROM_UNICAST_DAO;
-    if((n = rpl_find_best_parent(dag)) != NULL) {
+    if((n = rpl_preferred_parent(dag)) != NULL) {
       PRINTF("RPL: Forwarding DAO to parent ");
       PRINT6ADDR(&n->addr);
       PRINTF("\n");
@@ -473,7 +473,7 @@ dao_input(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-dao_output(rpl_neighbor_t *n, uint32_t lifetime)
+dao_output(rpl_parent_t *n, uint32_t lifetime)
 {
   rpl_dag_t *dag;
   unsigned char *buffer;
