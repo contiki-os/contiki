@@ -44,6 +44,7 @@
 
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
+#include "dev/slip.h"
 #include "webserver-nogui.h"
 #include "httpd-simple.h"
 #include <stdio.h>
@@ -58,6 +59,9 @@ uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
+
+static uip_ipaddr_t prefix;
+static uint8_t prefix_set;
 
 PROCESS(border_router_process, "Border router process");
 AUTOSTART_PROCESSES(&border_router_process);
@@ -166,12 +170,32 @@ print_local_addresses(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+void
+request_prefix(void) {
+  /* mess up uip_buf with a dirty request... */
+  uip_buf[0] = '!';
+  uip_buf[1] = 'P';
+  uip_len = 2;
+  slip_send();
+}
+/*---------------------------------------------------------------------------*/
+void
+set_prefix_64(uip_ipaddr_t *prefix_64) {
+  uip_ipaddr_t ipaddr;
+  memcpy(&prefix, prefix_64, 16);
+  memcpy(&ipaddr, prefix_64, 16);
+  prefix_set = 1;
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(border_router_process, ev, data)
 {
-  uip_ipaddr_t ipaddr;
-  struct uip_ds6_addr *root_if;
+  static struct etimer et;
+  rpl_dag_t *dag;
 
   PROCESS_BEGIN();
+  prefix_set = 0;
 
   PROCESS_PAUSE();
 
@@ -181,16 +205,17 @@ PROCESS_THREAD(border_router_process, ev, data)
 
   PRINTF("RPL-Border router started\n");
 
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
-  root_if = uip_ds6_addr_lookup(&ipaddr);
-  if(root_if != NULL) {
-    rpl_set_root((uip_ip6addr_t *)dag_id);
-    PRINTF("created a new RPL dag\n");
-  } else {
-    PRINTF("failed to create a new RPL DAG\n");
+  /* Request prefix until it has been received */
+  while(!prefix_set) {
+    etimer_set(&et, CLOCK_SECOND);
+    request_prefix();
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
+
+  rpl_set_root((uip_ip6addr_t *)dag_id);
+  dag = rpl_get_dag(RPL_ANY_INSTANCE);
+  rpl_set_prefix(dag, &prefix, 64);
+  PRINTF("created a new RPL dag\n");
 
   print_local_addresses();
 

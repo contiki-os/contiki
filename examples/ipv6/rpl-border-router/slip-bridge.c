@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: slip-bridge.c,v 1.1 2010/05/05 19:44:30 joxe Exp $
+ * $Id: slip-bridge.c,v 1.2 2010/05/25 20:34:51 joxe Exp $
  */
 
 /**
@@ -50,13 +50,28 @@
 #define DEBUG DEBUG_PRINT
 #include "net/uip-debug.h"
 
+void set_prefix_64(uip_ipaddr_t *);
+
 static uip_ipaddr_t last_sender;
 /*---------------------------------------------------------------------------*/
 static void
 slip_input_callback(void)
 {
   PRINTF("SIN: %u\n", uip_len);
-
+  if(uip_buf[0] == '!') {
+    PRINTF("Got configuration message of type %c\n", uip_buf[1]);
+    uip_len = 0;
+    if(uip_buf[1] == 'P') {
+      uip_ipaddr_t prefix;
+      /* Here we set a prefix !!! */
+      memset(&prefix, 0, 16);
+      memcpy(&prefix, &uip_buf[2], 8);
+      PRINTF("Setting prefix ");
+      PRINT6ADDR(&prefix);
+      PRINTF("\n");
+      set_prefix_64(&prefix);
+    }
+  }
   /* Save the last sender received over SLIP to avoid bouncing the
      packet back if no route is found */
   uip_ipaddr_copy(&last_sender, &UIP_IP_BUF->srcipaddr);
@@ -82,6 +97,7 @@ output(void)
     slip_send();
   }
 }
+
 /*---------------------------------------------------------------------------*/
 int
 putchar(int c)
