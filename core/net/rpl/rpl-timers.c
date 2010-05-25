@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-timers.c,v 1.5 2010/05/24 16:38:56 nvt-se Exp $
+ * $Id: rpl-timers.c,v 1.6 2010/05/25 21:58:54 nvt-se Exp $
  */
 /**
  * \file
@@ -181,7 +181,8 @@ static void
 handle_dao_timer(void *ptr)
 {
   rpl_dag_t *dag;
-  rpl_neighbor_t *n;
+  rpl_parent_t *n;
+
   dag = (rpl_dag_t *)ptr;
 
   if (!dio_send_ok && uip_ds6_get_link_local(ADDR_PREFERRED) == NULL) {
@@ -192,7 +193,7 @@ handle_dao_timer(void *ptr)
 
   /* Send the DAO to the best parent. rpl-07 section C.2 lists the
      fan-out as being under investigation. */
-  n = rpl_find_best_parent(dag);
+  n = rpl_preferred_parent(dag);
   if(n != NULL) {
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
     dao_output(n, DEFAULT_ROUTE_LIFETIME);

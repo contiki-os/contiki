@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.3 2010/05/25 19:19:43 joxe Exp $
+ * $Id: rpl.h,v 1.4 2010/05/25 21:58:54 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -127,19 +127,19 @@
 typedef uint16_t rpl_rank_t;
 typedef uint16_t rpl_ocp_t;
 
-struct rpl_neighbor {
-  struct rpl_neighbor *next;
+struct rpl_parent {
+  struct rpl_parent *next;
   void *dag;
   uip_ipaddr_t addr;
   rpl_rank_t rank;
   uint8_t local_confidence;
 };
 
-typedef struct rpl_neighbor rpl_neighbor_t;
+typedef struct rpl_parent rpl_parent_t;
 
 struct rpl_of {
-  rpl_neighbor_t *(*best_parent)(rpl_neighbor_t *, rpl_neighbor_t *);
-  rpl_rank_t (*increment_rank)(rpl_rank_t, rpl_neighbor_t *);
+  rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
+  rpl_rank_t (*increment_rank)(rpl_rank_t, rpl_parent_t *);
   rpl_ocp_t ocp;
 };
 
@@ -186,7 +186,7 @@ struct rpl_dag {
   /* this is  the current def-router that is set - used for routing "upwards" */
   uip_ds6_defrt_t *def_route;
   rpl_rank_t rank;
-  rpl_rank_t min_rank; /* should be nullified per dodag iteration! */
+  rpl_rank_t min_rank; /* should be reset per DODAG iteration! */
   uint8_t dtsn;
   uint8_t instance_id;
   uint8_t sequence_number;
@@ -212,9 +212,9 @@ struct rpl_dag {
   uint16_t dio_next_delay; /* delay for completion of dio interval */
   struct ctimer dio_timer;
   struct ctimer dao_timer;
-  rpl_neighbor_t *best_parent;
-  void *neighbor_list;
-  list_t neighbors;
+  rpl_parent_t *best_parent;
+  void *parent_list;
+  list_t parents;
   rpl_prefix_t destination_prefix;
 };
 
@@ -222,19 +222,12 @@ typedef struct rpl_dag rpl_dag_t;
 
 /*---------------------------------------------------------------------------*/
 /* RPL macro functions. */
-#define RPL_PARENT_COUNT(dag)                           \
-                                list_length((dag)->neighbors)
-#define RPL_NEIGHBOR_IS_CHILD(dag, neighbor)            \
-                                ((neighbor)->rank > (dag)->rank)
-#define RPL_NEIGHBOR_IS_SIBLING(dag, neighbor)          \
-                                ((neighbor)->rank == (dag)->rank)
-#define RPL_NEIGHBOR_IS_PARENT(dag, neighbor)           \
-                                ((neighbor)->rank < (dag)->rank)
+#define RPL_PARENT_COUNT(dag)	list_length((dag)->parents)
 /*---------------------------------------------------------------------------*/
 /* ICMPv6 functions for RPL. */
 void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_dag_t *, uip_ipaddr_t *uc_addr);
-void dao_output(rpl_neighbor_t *, uint32_t lifetime);
+void dao_output(rpl_parent_t *, uint32_t lifetime);
 void uip_rpl_input(void);
 
 /* RPL logic functions. */
@@ -249,11 +242,10 @@ rpl_dag_t *rpl_alloc_dag(void);
 void rpl_free_dag(rpl_dag_t *);
 
 /* DAG parent management function. */
-rpl_neighbor_t *rpl_add_neighbor(rpl_dag_t *, uip_ipaddr_t *);
-rpl_neighbor_t *rpl_find_neighbor(rpl_dag_t *, uip_ipaddr_t *);
-int rpl_remove_neighbor(rpl_dag_t *, rpl_neighbor_t *);
-rpl_neighbor_t *rpl_first_parent(rpl_dag_t *dag);
-rpl_neighbor_t *rpl_find_best_parent(rpl_dag_t *dag);
+rpl_parent_t *rpl_add_parent(rpl_dag_t *, uip_ipaddr_t *);
+rpl_parent_t *rpl_find_parent(rpl_dag_t *, uip_ipaddr_t *);
+int rpl_remove_parent(rpl_dag_t *, rpl_parent_t *);
+rpl_parent_t *rpl_preferred_parent(rpl_dag_t *dag);
 
 void rpl_join_dag(rpl_dag_t *);
 rpl_dag_t *rpl_get_dag(int instance_id);
@@ -273,7 +265,7 @@ void rpl_reset_dio_timer(rpl_dag_t *, uint8_t);
 void rpl_reset_periodic_timer(void);
 
 /* Route poisoning. */
-void rpl_poison_routes(rpl_dag_t *, rpl_neighbor_t *);
+void rpl_poison_routes(rpl_dag_t *, rpl_parent_t *);
 /*---------------------------------------------------------------------------*/
 void rpl_init(void);
 

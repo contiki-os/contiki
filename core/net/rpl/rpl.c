@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.3 2010/05/24 16:38:56 nvt-se Exp $
+ * $Id: rpl.c,v 1.4 2010/05/25 21:58:54 nvt-se Exp $
  */
 /**
  * \file
@@ -116,7 +116,7 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
 {
   uip_ipaddr_t ipaddr;
   rpl_dag_t *dag;
-  rpl_neighbor_t *parent;
+  rpl_parent_t *parent;
 
   uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr);
@@ -125,7 +125,7 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
   PRINTF(" is %sknown. ETX = %d\n", known ? "" : "no longer ", etx);
 
   dag = rpl_get_dag(RPL_DEFAULT_INSTANCE);
-  if(dag == NULL || (parent = rpl_find_neighbor(dag, &ipaddr)) == NULL) {
+  if(dag == NULL || (parent = rpl_find_parent(dag, &ipaddr)) == NULL) {
     return;
   }
 
@@ -133,19 +133,19 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
     PRINTF("RPL: Removing parent ");
     PRINT6ADDR(&parent->addr);
     PRINTF(" because of bad connectivity (ETX %d)\n", etx);
-    rpl_remove_neighbor(dag, parent);
+    rpl_remove_parent(dag, parent);
     if(RPL_PARENT_COUNT(dag) == 0) {
       rpl_free_dag(dag);
     } else {
       /* Select a new default route. */
-      parent = rpl_find_best_parent(dag);
+      parent = rpl_preferred_parent(dag);
       if(parent != NULL) {
         rpl_set_default_route(dag, &parent->addr);
       }
     }
   } else {
     parent->local_confidence = ~0 - etx;
-    PRINTF("RPL: Updating the local confidence value for this neighbor to %d\n",
+    PRINTF("RPL: Updating the local confidence value for this parent to %d\n",
            parent->local_confidence);
     if(parent != dag->best_parent &&
        dag->of->best_parent(parent, dag->best_parent) == parent) {
