@@ -29,7 +29,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip6.c,v 1.3 2010/05/07 12:22:41 nifi Exp $
+ * $Id: tunslip6.c,v 1.4 2010/05/25 19:05:31 joxe Exp $
  *
  */
 
@@ -55,10 +55,15 @@
 #include <err.h>
 
 int verbose = 0;
+const char *ipaddr;
+const char *netmask;
+int slipfd = 0;
 
 int ssystem(const char *fmt, ...)
      __attribute__((__format__ (__printf__, 1, 2)));
 void write_to_serial(int outfd, void *inbuf, int len);
+
+void slip_send(int fd, unsigned char c);
 
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while (0)
@@ -169,7 +174,28 @@ serial_to_tun(FILE *inslip, int outfd)
 	  ssystem("ifconfig %s down", tundev);
 	  ssystem("ifconfig %s hw ether %s", tundev, &macs[6]);
 	  ssystem("ifconfig %s up", tundev);
-	}
+	} else if(uip.inbuf[1] == 'P') {
+          /* Prefix info requested */
+          struct in6_addr addr;
+	  int i;
+	  char *s = strchr(ipaddr, '/');
+	  if(s != NULL) {
+	    *s = '\0';
+	  }
+          inet_pton(AF_INET6, ipaddr, &addr);
+          printf("*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+		 ipaddr, 
+		 addr.s6_addr[0], addr.s6_addr[1],
+		 addr.s6_addr[2], addr.s6_addr[3],
+		 addr.s6_addr[4], addr.s6_addr[5],
+		 addr.s6_addr[6], addr.s6_addr[7]);
+	  slip_send(slipfd, '!');
+	  slip_send(slipfd, 'P');
+	  for(i = 0; i < 8; i++) {
+	    slip_send(slipfd, addr.s6_addr[i]);
+	  }
+	  slip_send(slipfd, SLIP_END);
+        }
 #define DEBUG_LINE_MARKER '\r'
       } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
 	fwrite(uip.inbuf + 1, inbufptr - 1, 1, stdout);
@@ -410,9 +436,6 @@ tun_alloc(char *dev, int tap)
 }
 #endif
 
-const char *ipaddr;
-const char *netmask;
-
 void
 cleanup(void)
 {
@@ -473,7 +496,7 @@ int
 main(int argc, char **argv)
 {
   int c;
-  int tunfd, slipfd, maxfd;
+  int tunfd, maxfd;
   int ret;
   fd_set rset, wset;
   FILE *inslip;
