@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.9 2010/05/24 16:38:56 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.10 2010/05/25 19:19:43 joxe Exp $
  */
 /**
  * \file
@@ -164,7 +164,6 @@ dio_input(void)
   uint8_t subopt_type;
   int i;
   int len;
-  rpl_prefix_t prefix;
   uip_ipaddr_t from;
   uip_ds6_nbr_t *nbr;
 
@@ -237,7 +236,37 @@ dio_input(void)
         PRINTF("RPL: Invalid destination prefix option, len = %d\n", len);
         return;
       }
-      prefix.preference = (buffer[3] >> 3) & 0x3;
+      /* prebference is both preference and flags for now */
+      dio.destination_prefix.preference = buffer[i + 3];
+      dio.destination_prefix.lifetime = get32(buffer, i + 4);
+      dio.destination_prefix.length = buffer[i + 8];
+      if(((dio.destination_prefix.length + 7)/ 8) + 9 <= len &&
+         dio.destination_prefix.length <= 128) {
+        PRINTF("RPL: Copying destination prefix\n");
+        memcpy(&dio.destination_prefix.prefix, &buffer[i + 9],
+               (dio.destination_prefix.length + 7) / 8);
+
+        /* NOTE: This is a test for adding autoconf prefix in RPL via  */
+        /* a destination prefix - this use one reserved flag bit       */
+        /* This should not be made until RPL decides to join the DAG   */
+        /* And not if there already is a global address configured for */
+        /* the specific DAG */
+        if((dio.destination_prefix.preference & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
+          uip_ipaddr_t ipaddr;
+          memcpy(&ipaddr, &dio.destination_prefix.prefix,
+                 (dio.destination_prefix.length + 7) / 8);
+          uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+          if(uip_ds6_addr_lookup(&ipaddr) == NULL) {
+            PRINTF("RPL: adding global IP address ");
+            PRINT6ADDR(&ipaddr);
+            PRINTF("\n");
+            uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+          }
+        }
+      } else {
+        PRINTF("RPL: Invalid destination prefix option, len = %d\n", len);
+      }
+
       break;
     case RPL_DIO_SUBOPT_DAG_CONF:
       dio.dag_intdoubl = buffer[i + 3];
@@ -309,6 +338,26 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   buffer[pos++] = dag->max_rankinc;
   buffer[pos++] = dag->min_hoprankinc;
 
+  /* if prefix length > 0 then we have a prefix to send! */
+  if(dag->destination_prefix.length > 0) {
+    buffer[pos++] = RPL_DIO_SUBOPT_DEST_PREFIX;
+    buffer[pos++] = 0;
+    buffer[pos++] = (dag->destination_prefix.length + 7)/ 8 + 9;
+    buffer[pos++] = dag->destination_prefix.preference;
+    set32(buffer, pos, dag->destination_prefix.lifetime);
+    pos += 4;
+    buffer[pos++] = dag->destination_prefix.length;
+    memcpy(&buffer[pos], &(dag->destination_prefix.prefix),
+           (dag->destination_prefix.length + 7)/ 8);
+    pos += (dag->destination_prefix.length + 7)/ 8;
+    PRINTF("RPL: Sending prefix info in DIO ");
+    PRINT6ADDR(&dag->destination_prefix.prefix);
+    PRINTF("\n");
+  } else {
+    PRINTF("RPL: No prefix to announce. len:%d\n",
+           dag->destination_prefix.length);
+  }
+
   /* buffer[len++] = RPL_DIO_SUBOPT_PAD1; */
 
   /* Unicast requests get unicast replies! */
@@ -318,7 +367,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
     uip_create_linklocal_allrouters_mcast(&addr);
     uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos);
   } else {
-    PRINTF("RPL: Sending unicast-DIO with rank %u to ", 
+    PRINTF("RPL: Sending unicast-DIO with rank %u to ",
 	(unsigned)dag->rank);
     PRINT6ADDR(uc_addr);
     PRINTF("\n");
