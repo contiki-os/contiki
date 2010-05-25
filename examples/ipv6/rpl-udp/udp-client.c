@@ -140,9 +140,9 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
   PRINTF("UDP client process started\n");
 
-#if UIP_CONF_ROUTER
-  set_global_address();
-#endif
+/* #if UIP_CONF_ROUTER */
+/*   set_global_address(); */
+/* #endif */
 
   print_local_addresses();
 
