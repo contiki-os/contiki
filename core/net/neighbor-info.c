@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.6 2010/05/24 16:38:17 nvt-se Exp $
+ * $Id: neighbor-info.c,v 1.7 2010/05/25 15:29:51 nvt-se Exp $
  */
 /**
  * \file
@@ -127,6 +127,7 @@ neighbor_info_packet_sent(int status, int numtx)
     packet_etx = numtx;
     add_neighbor(dest);
     break;
+  case MAC_TX_ERR:
   case MAC_TX_NOACK:
     if(neighbor_attr_has_neighbor(dest)) {
       neighbor_attr_remove_neighbor(dest);
@@ -134,7 +135,6 @@ neighbor_info_packet_sent(int status, int numtx)
         subscriber_callback(dest, 0, 0);
       }
     }
-  case MAC_TX_COLLISION:
   default:
     return;
   }
