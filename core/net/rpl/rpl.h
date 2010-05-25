@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.2 2010/04/30 15:03:55 nvt-se Exp $
+ * $Id: rpl.h,v 1.3 2010/05/25 19:19:43 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -146,6 +146,16 @@ struct rpl_of {
 
 typedef struct rpl_of rpl_of_t;
 
+/* RPL DIO prefix suboption */
+struct rpl_prefix {
+  uip_ipaddr_t prefix;
+  uint32_t lifetime;
+  uint8_t length;
+  uint8_t preference;
+};
+
+typedef struct rpl_prefix rpl_prefix_t;
+
 /* Logical representation of a DAG Information Object (DIO.) */
 struct rpl_dio {
   uip_ipaddr_t dag_id;
@@ -163,18 +173,10 @@ struct rpl_dio {
   uint8_t dag_redund;
   uint8_t dag_max_rankinc;
   uint8_t dag_min_hoprankinc;
+  rpl_prefix_t destination_prefix;
 };
 
 typedef struct rpl_dio rpl_dio_t;
-
-struct rpl_prefix {
-  uip_ipaddr_t prefix;
-  uint32_t lifetime;
-  uint8_t length;
-  uint8_t preference;
-};
-
-typedef struct rpl_prefix rpl_prefix_t;
 
 /* Directed Acyclic Graph */
 struct rpl_dag {
@@ -213,6 +215,7 @@ struct rpl_dag {
   rpl_neighbor_t *best_parent;
   void *neighbor_list;
   list_t neighbors;
+  rpl_prefix_t destination_prefix;
 };
 
 typedef struct rpl_dag rpl_dag_t;
@@ -236,6 +239,7 @@ void uip_rpl_input(void);
 
 /* RPL logic functions. */
 int rpl_set_root(uip_ipaddr_t *);
+int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len);
 int rpl_repair_dag(rpl_dag_t *dag);
 int rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from);
 void rpl_process_dio(uip_ipaddr_t *, rpl_dio_t *);

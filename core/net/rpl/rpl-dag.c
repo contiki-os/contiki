@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.7 2010/05/24 16:38:56 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.8 2010/05/25 19:19:43 joxe Exp $
  */
 /**
  * \file
@@ -44,6 +44,7 @@
 #include "net/rpl/rpl.h"
 
 #include "net/uip.h"
+#include "net/uip-nd6.h"
 #include "net/rime/ctimer.h"
 #include "lib/list.h"
 #include "lib/memb.h"
@@ -159,6 +160,22 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   rpl_reset_dio_timer(dag, 1);
 
   return 0;
+}
+/************************************************************************/
+int
+rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len) {
+  if(len <= 128) {
+    memset(&dag->destination_prefix.prefix, 0, 16);
+    memcpy(&dag->destination_prefix.prefix, prefix, (len + 7)/ 8);
+    dag->destination_prefix.length = len;
+    /* Note: this is an experiment to see if RPL can be used for
+       prefix-assignment for RPL nodes - this flag is originally
+       intended for Router Advertisements */
+    dag->destination_prefix.preference = UIP_ND6_RA_FLAG_AUTONOMOUS;
+    PRINTF("RPL: Prefix set - will announce this in DIOs\n");
+    return 0;
+  }
+  return -1;
 }
 /************************************************************************/
 int
@@ -422,6 +439,10 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag->min_hoprankinc = dio->dag_min_hoprankinc;
 
   memcpy(&dag->dag_id, &dio->dag_id, sizeof(dio->dag_id));
+
+  /* copy prefix information into the dag */
+  memcpy(&dag->destination_prefix, &dio->destination_prefix,
+         sizeof(rpl_prefix_t));
 
   rpl_join_dag(dag);
 
