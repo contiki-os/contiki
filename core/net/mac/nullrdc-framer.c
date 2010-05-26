@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullrdc-framer.c,v 1.1 2010/03/01 13:30:23 nifi Exp $
+ * $Id: nullrdc-framer.c,v 1.2 2010/05/26 14:12:33 nifi Exp $
  */
 
 /**
@@ -42,6 +42,8 @@
 #include "net/mac/nullrdc-framer.h"
 #include "net/rime/packetbuf.h"
 #include "net/netstack.h"
+#include "sys/rtimer.h"
+#include "dev/watchdog.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -51,21 +53,114 @@
 #define PRINTF(...)
 #endif
 
+#ifndef NULLRDC_FRAMER_802154_AUTOACK
+#ifdef NULLRDC_FRAMER_CONF_802154_AUTOACK
+#define NULLRDC_FRAMER_802154_AUTOACK NULLRDC_FRAMER_CONF_802154_AUTOACK
+#else
+#define NULLRDC_FRAMER_802154_AUTOACK 0
+#endif /* NULLRDC_FRAMER_CONF_802154_AUTOACK */
+#endif /* NULLRDC_FRAMER_802154_AUTOACK */
+
+#define ACK_WAIT_TIME                      RTIMER_SECOND / 2500
+#define AFTER_ACK_DETECTED_WAIT_TIME       RTIMER_SECOND / 1500
+#define ACK_LEN 3
+
 /*---------------------------------------------------------------------------*/
 static void
 send_packet(mac_callback_t sent, void *ptr)
 {
   int ret;
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+#if NULLRDC_FRAMER_802154_AUTOACK
+  packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
+#endif /* NULLRDC_FRAMER_802154_AUTOACK */
+
   if(NETSTACK_FRAMER.create() == 0) {
     /* Failed to allocate space for headers */
     PRINTF("nullrdc_framer: send failed, too large header\n");
     ret = MAC_TX_ERR_FATAL;
-  } else if(NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen())
-            == RADIO_TX_OK) {
-    ret = MAC_TX_OK;
   } else {
-    ret = MAC_TX_ERR;
+
+#if NULLRDC_FRAMER_802154_AUTOACK
+    int is_broadcast;
+    uint8_t dsn;
+    dsn = ((uint8_t *)packetbuf_hdrptr())[2] & 0xff;
+
+    NETSTACK_RADIO.prepare(packetbuf_hdrptr(), packetbuf_totlen());
+
+    is_broadcast = rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                                &rimeaddr_null);
+
+    if(NETSTACK_RADIO.receiving_packet() ||
+       (!is_broadcast && NETSTACK_RADIO.pending_packet())) {
+
+      /* Currently receiving a packet over air or the radio has
+         already received a packet that needs to be read before
+         sending with auto ack. */
+      ret = MAC_TX_COLLISION;
+
+    } else {
+      switch(NETSTACK_RADIO.transmit(packetbuf_totlen())) {
+      case RADIO_TX_OK:
+        if(is_broadcast) {
+          ret = MAC_TX_OK;
+        } else {
+          rtimer_clock_t wt;
+
+          /* Check for ack */
+          wt = RTIMER_NOW();
+          watchdog_periodic();
+          while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + ACK_WAIT_TIME));
+
+          ret = MAC_TX_NOACK;
+          if(NETSTACK_RADIO.receiving_packet() ||
+             NETSTACK_RADIO.pending_packet() ||
+             NETSTACK_RADIO.channel_clear() == 0) {
+            int len;
+            uint8_t ackbuf[ACK_LEN];
+
+            wt = RTIMER_NOW();
+            watchdog_periodic();
+            while(RTIMER_CLOCK_LT(RTIMER_NOW(),
+                                  wt + AFTER_ACK_DETECTED_WAIT_TIME));
+
+            if(NETSTACK_RADIO.pending_packet()) {
+              len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
+              if(len == ACK_LEN && ackbuf[2] == dsn) {
+                /* Ack received */
+                ret = MAC_TX_OK;
+              } else {
+                /* Not an ack or ack not for us: collision */
+                ret = MAC_TX_COLLISION;
+              }
+            }
+          }
+        }
+        break;
+      case RADIO_TX_COLLISION:
+        ret = MAC_TX_COLLISION;
+        break;
+      default:
+        ret = MAC_TX_ERR;
+        break;
+      }
+    }
+
+#else /* ! NULLRDC_FRAMER_802154_AUTOACK */
+
+    switch(NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen())) {
+    case RADIO_TX_OK:
+      ret = MAC_TX_OK;
+      break;
+    case RADIO_TX_COLLISION:
+      ret = MAC_TX_COLLISION;
+      break;
+    default:
+      ret = MAC_TX_ERR;
+      break;
+    }
+
+#endif /* ! NULLRDC_FRAMER_802154_AUTOACK */
   }
   mac_call_sent_callback(sent, ptr, ret, 1);
 }
@@ -73,6 +168,12 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 packet_input(void)
 {
+#if NULLRDC_FRAMER_802154_AUTOACK
+  if(packetbuf_datalen() == ACK_LEN) {
+    /* Ignore ack packets */
+    /* PRINTF("nullrdc_framer: ignored ack\n"); */
+  } else
+#endif /* NULLRDC_FRAMER_802154_AUTOACK */
   if(NETSTACK_FRAMER.parse() == 0) {
     PRINTF("nullrdc_framer: failed to parse %u\n", packetbuf_datalen());
   } else {
