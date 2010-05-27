@@ -1,4 +1,4 @@
-# $Id: Makefile.common,v 1.1 2010/05/03 13:51:11 nifi Exp $
+# $Id: Makefile.common,v 1.2 2010/05/27 12:42:48 nifi Exp $
 
 ARCH=spi.c ds2411.c xmem.c i2c.c node-id.c sensors.c cfs-coffee.c \
      cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c \
@@ -32,10 +32,11 @@ ifdef OS
     USBDEVPREFIX=/dev/com
     SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-windows
     MOTELIST = $(CONTIKI)/tools/sky/motelist-windows
-    TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/tmote-bsl.exe),1,0)
+    TMOTE_BSL_FILE = tmote-bsl
+    TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/$(TMOTE_BSL_FILE).exe),1,0)
     ifeq ($(TMOTE_BSL), 1)
       NUMPAR = 1
-      BSL =  $(CONTIKI)/tools/sky/tmote-bsl
+      BSL =  $(CONTIKI)/tools/sky/$(TMOTE_BSL_FILE)
       MOTES = $(shell $(MOTELIST) | grep COM | \
          cut -f 4 -d \  )
     else
@@ -56,10 +57,11 @@ ifndef MOTELIST
   USBDEVPREFIX=
   SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
   MOTELIST = $(CONTIKI)/tools/sky/motelist-linux
-  TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/tmote-bsl-linux),1,0)
+  TMOTE_BSL_FILE = tmote-bsl-linux
+  TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/$(TMOTE_BSL_FILE)),1,0)
   ifeq ($(TMOTE_BSL), 1)
     PATH := $(PATH):$(CONTIKI)/tools/sky
-    BSL =  $(CONTIKI)/tools/sky/tmote-bsl-linux
+    BSL =  $(CONTIKI)/tools/sky/$(TMOTE_BSL_FILE)
     NUMPAR = 1
   else
     BSL = $(CONTIKI)/tools/sky/msp430-bsl-linux --telosb
