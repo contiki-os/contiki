@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.h,v 1.11 2010/04/30 07:25:51 adamdunkels Exp $
+ * $Id: packetbuf.h,v 1.12 2010/05/27 20:28:29 nifi Exp $
  */
 
 /**
@@ -376,6 +376,7 @@ enum {
 #define PACKETBUF_NUM_ATTRS (PACKETBUF_ATTR_MAX - PACKETBUF_NUM_ADDRS)
 #define PACKETBUF_ADDR_FIRST PACKETBUF_ADDR_SENDER
 
+#define PACKETBUF_IS_ADDR(type) ((type) >= PACKETBUF_ADDR_FIRST)
 
 #if PACKETBUF_CONF_ATTRS_INLINE
 
