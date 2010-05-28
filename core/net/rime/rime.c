@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.28 2010/03/19 13:17:55 adamdunkels Exp $
+ * $Id: rime.c,v 1.29 2010/05/28 06:18:39 nifi Exp $
  */
 
 /**
@@ -152,7 +152,7 @@ init(void)
   announcement_init();
 
   rime_mac = &NETSTACK_MAC;
-  chameleon_init(&chameleon_bitopt);
+  chameleon_init();
 #if ! RIME_CONF_NO_POLITE_ANNOUCEMENTS
   /* XXX This is initializes the transmission of announcements but it
    * is not currently certain where this initialization is supposed to
