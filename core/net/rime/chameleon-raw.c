@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-raw.c,v 1.7 2009/09/09 21:09:42 adamdunkels Exp $
+ * $Id: chameleon-raw.c,v 1.8 2010/05/28 06:18:39 nifi Exp $
  */
 
 /**
@@ -43,6 +43,17 @@
 #include "net/rime/chameleon.h"
 #include "net/rime.h"
 
+/* This option enables an optimization where the link addresses are
+   left to the MAC RDC and not encoded in the Chameleon header.
+   Note: this requires that the underlying MAC layer to add link
+   addresses and will not work together with for example nullrdc.
+ */
+#ifdef CHAMELEON_CONF_WITH_MAC_LINK_ADDRESSES
+#define CHAMELEON_WITH_MAC_LINK_ADDRESSES CHAMELEON_CONF_WITH_MAC_LINK_ADDRESSES
+#else /* !CHAMELEON_CONF_WITH_MAC_LINK_ADDRESSES */
+#define CHAMELEON_WITH_MAC_LINK_ADDRESSES 0
+#endif /* !CHAMELEON_CONF_WITH_MAC_LINK_ADDRESSES */
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -52,7 +63,7 @@
 #endif
 
 struct raw_hdr {
-  uint16_t channel;
+  uint8_t channel[2];
 };
 
 /*---------------------------------------------------------------------------*/
@@ -68,25 +79,36 @@ input(void)
   /* The packet has a header that tells us what channel the packet is
      for. */
   hdr = (struct raw_hdr *)packetbuf_dataptr();
-  packetbuf_hdrreduce(sizeof(struct raw_hdr));
-  c = channel_lookup(hdr->channel);
+  if(packetbuf_hdrreduce(sizeof(struct raw_hdr)) == 0) {
+    PRINTF("chameleon-raw: too short packet\n");
+    return NULL;
+  }
+  c = channel_lookup((hdr->channel[1] << 8) + hdr->channel[0]);
   if(c == NULL) {
-    PRINTF("chameleon-raw: input: channel %d not found\n", hdr->channel);
+    PRINTF("chameleon-raw: input: channel %u not found\n",
+           (hdr->channel[1] << 8) + hdr->channel[0]);
     return NULL;
   }
 
   hdrptr = packetbuf_dataptr();
-  packetbuf_hdrreduce(c->hdrsize);
+  if(packetbuf_hdrreduce(c->hdrsize) == 0) {
+    PRINTF("chameleon-raw: too short packet\n");
+    return NULL;
+  }
   byteptr = bitptr = 0;
   for(a = c->attrlist; a->type != PACKETBUF_ATTR_NONE; ++a) {
+#if CHAMELEON_WITH_MAC_LINK_ADDRESSES
+    if(a->type == PACKETBUF_ADDR_SENDER ||
+       a->type == PACKETBUF_ADDR_RECEIVER) {
+      /* Let the link layer handle sender and receiver */
+      continue;
+    }
+#endif /* CHAMELEON_WITH_MAC_LINK_ADDRESSES */
     PRINTF("%d.%d: unpack_header type %s, len %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   packetbuf_attr_strings[a->type], a->len);
     len = (a->len & 0xf8) + ((a->len & 7) ? 8: 0);
-    if(a->type == PACKETBUF_ADDR_SENDER ||
-       a->type == PACKETBUF_ADDR_RECEIVER ||
-       a->type == PACKETBUF_ADDR_ESENDER ||
-       a->type == PACKETBUF_ADDR_ERECEIVER) {
+    if(PACKETBUF_IS_ADDR(a->type)) {
       const rimeaddr_t addr;
       memcpy((uint8_t *)&addr, &hdrptr[byteptr], len / 8);
       PRINTF("%d.%d: unpack_header type %s, addr %d.%d\n",
@@ -119,18 +141,30 @@ output(struct channel *c)
   
   /* Compute the total size of the final header by summing the size of
      all attributes that are used on this channel. */
-  packetbuf_hdralloc(c->hdrsize);
-  hdrptr = packetbuf_hdrptr();
+  if(packetbuf_hdralloc(c->hdrsize + sizeof(struct raw_hdr)) == 0) {
+    PRINTF("chameleon-raw: insufficient space for headers\n");
+    return 0;
+  }
+  hdr = (struct raw_hdr *)packetbuf_hdrptr();
+  hdr->channel[0] = c->channelno & 0xff;
+  hdr->channel[1] = (c->channelno >> 8) & 0xff;
+
+  hdrptr = ((uint8_t *)packetbuf_hdrptr()) + sizeof(struct raw_hdr);
   byteptr = 0;
   for(a = c->attrlist; a->type != PACKETBUF_ATTR_NONE; ++a) {
+#if CHAMELEON_WITH_MAC_LINK_ADDRESSES
+    if(a->type == PACKETBUF_ADDR_SENDER ||
+       a->type == PACKETBUF_ADDR_RECEIVER) {
+      /* Let the link layer handle sender and receiver */
+      PRINTF("%d.%d: pack_header leaving sender/receiver to link layer\n");
+      continue;
+    }
+#endif /* CHAMELEON_WITH_MAC_LINK_ADDRESSES */
     PRINTF("%d.%d: pack_header type %s, len %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   packetbuf_attr_strings[a->type], a->len);
     len = (a->len & 0xf8) + ((a->len & 7) ? 8: 0);
-    if(a->type == PACKETBUF_ADDR_SENDER ||
-       a->type == PACKETBUF_ADDR_RECEIVER ||
-       a->type == PACKETBUF_ADDR_ESENDER ||
-       a->type == PACKETBUF_ADDR_ERECEIVER) {
+    if(PACKETBUF_IS_ADDR(a->type)) {
       const rimeaddr_t *rimeaddr;
       /*      memcpy(&hdrptr[byteptr], (uint8_t *)packetbuf_attr_aget(a->type), len / 8);*/
       rimeaddr = packetbuf_addr(a->type);
@@ -152,10 +186,6 @@ output(struct channel *c)
     byteptr += len / 8;
   }
 
-  packetbuf_hdralloc(sizeof(struct raw_hdr));
-  hdr = (struct raw_hdr *)packetbuf_hdrptr();
-  hdr->channel = c->channelno;
-  
   return 1; /* Send out packet */
 }
 /*---------------------------------------------------------------------------*/
@@ -173,6 +203,13 @@ hdrsize(const struct packetbuf_attrlist *a)
 	   packetbuf_attr_strings[a->type],
 	   a->type,
 	   a->len);*/
+#if CHAMELEON_WITH_MAC_LINK_ADDRESSES
+    if(a->type == PACKETBUF_ADDR_SENDER ||
+       a->type == PACKETBUF_ADDR_RECEIVER) {
+      /* Let the mac layer handle the sender and receiver */
+      continue;
+    }
+#endif /* CHAMELEON_WITH_MAC_LINK_ADDRESSES */
     len = a->len;
     if(len < 8) {
       len = 8;
@@ -182,11 +219,5 @@ hdrsize(const struct packetbuf_attrlist *a)
   return size / 8;
 }
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-
-}
-/*---------------------------------------------------------------------------*/
 CC_CONST_FUNCTION struct chameleon_module chameleon_raw = { input, output,
-							    hdrsize, init };
+							    hdrsize };

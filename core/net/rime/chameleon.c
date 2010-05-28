@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon.c,v 1.9 2010/02/23 18:29:53 adamdunkels Exp $
+ * $Id: chameleon.c,v 1.10 2010/05/28 06:18:39 nifi Exp $
  */
 
 /**
@@ -45,7 +45,15 @@
 
 #include <stdio.h>
 
-static const struct chameleon_module *header_module;
+#ifndef CHAMELEON_MODULE
+#ifdef CHAMELEON_CONF_MODULE
+#define CHAMELEON_MODULE CHAMELEON_CONF_MODULE
+#else /* CHAMELEON_CONF_MODULE */
+#define CHAMELEON_MODULE chameleon_bitopt
+#endif /* CHAMELEON_CONF_MODULE */
+#endif /* CHAMELEON_MODULE */
+
+extern const struct chameleon_module CHAMELEON_MODULE;
 
 #define DEBUG 0
 #if DEBUG
@@ -57,9 +65,8 @@ static const struct chameleon_module *header_module;
 
 /*---------------------------------------------------------------------------*/
 void
-chameleon_init(const struct chameleon_module *m)
+chameleon_init(void)
 {
-  header_module = m;
   channel_init();
 }
 /*---------------------------------------------------------------------------*/
@@ -110,17 +117,15 @@ chameleon_parse(void)
 #if DEBUG
   printhdr(packetbuf_dataptr(), packetbuf_datalen());
 #endif /* DEBUG */
-  if(header_module) {
-    c = header_module->input();
-    if(c != NULL) {
-      PRINTF("%d.%d: chameleon_input channel %d\n",
-	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	     c->channelno);
-      packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, c->channelno);
-    } else {
-      PRINTF("%d.%d: chameleon_input channel not found for incoming packet\n",
-	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-    }
+  c = CHAMELEON_MODULE.input();
+  if(c != NULL) {
+    PRINTF("%d.%d: chameleon_input channel %d\n",
+           rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+           c->channelno);
+    packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, c->channelno);
+  } else {
+    PRINTF("%d.%d: chameleon_input channel not found for incoming packet\n",
+           rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   }
   return c;
 }
@@ -134,15 +139,13 @@ chameleon_create(struct channel *c)
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->channelno);
 
-  if(header_module) {
-    ret = header_module->output(c);
-    packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, c->channelno);
+  ret = CHAMELEON_MODULE.output(c);
+  packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, c->channelno);
 #if DEBUG
-    printhdr(packetbuf_hdrptr(), packetbuf_hdrlen());
+  printhdr(packetbuf_hdrptr(), packetbuf_hdrlen());
 #endif /* DEBUG */
-    if(ret) {
-      return 1;
-    }
+  if(ret) {
+    return 1;
   }
   return 0;
 }
@@ -150,11 +153,6 @@ chameleon_create(struct channel *c)
 int
 chameleon_hdrsize(const struct packetbuf_attrlist attrlist[])
 {
-  if(header_module != NULL &&
-     header_module->hdrsize != NULL) {
-    return header_module->hdrsize(attrlist);
-  } else {
-    return 0;
-  }
+  return CHAMELEON_MODULE.hdrsize(attrlist);
 }
 /*---------------------------------------------------------------------------*/
