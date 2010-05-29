@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.9 2010/05/25 21:58:54 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.10 2010/05/29 22:23:21 nvt-se Exp $
  */
 /**
  * \file
@@ -57,12 +57,9 @@
 #include "net/uip-debug.h"
 
 /************************************************************************/
-#ifdef RPL_CONF_OBJECTIVE_FUNCTION
-#define RPL_OF                  RPL_CONF_OBJECTIVE_FUNCTION
-#else
-extern rpl_of_t rpl_of0;
-#define RPL_OF                  rpl_of0
-#endif /* RPL_CONF_OBJECTIVE_FUNCTION */
+extern rpl_of_t rpl_of_etx;
+static rpl_of_t *objective_functions[] = {&rpl_of_etx, NULL};
+/************************************************************************/
 
 #ifndef RPL_CONF_MAX_DAG_ENTRIES
 #define RPL_MAX_DAG_ENTRIES     2
@@ -124,7 +121,7 @@ poison_routes(rpl_dag_t *dag, rpl_parent_t *exception)
  }
 }
 /************************************************************************/
-int
+rpl_dag_t *
 rpl_set_root(uip_ipaddr_t *dag_id)
 {
   rpl_dag_t *dag;
@@ -138,7 +135,7 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   dag = rpl_alloc_dag();
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG\n");
-    return -1;
+    return NULL;
   }
 
   dag->joined = 1;
@@ -159,7 +156,7 @@ rpl_set_root(uip_ipaddr_t *dag_id)
 
   rpl_reset_dio_timer(dag, 1);
 
-  return 0;
+  return dag;
 }
 /************************************************************************/
 int
@@ -359,9 +356,14 @@ rpl_find_dag(unsigned char aucIndex)
 rpl_of_t *
 rpl_find_of(rpl_ocp_t ocp)
 {
-  if(RPL_OF.ocp == ocp) {
-    return &RPL_OF;
+  rpl_of_t *of;
+
+  for(of = objective_functions[0]; of != NULL; of++) {
+    if(of->ocp == ocp) {
+      return of;
+    }
   }
+
   return NULL;
 }
 /************************************************************************/
@@ -438,7 +440,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   rpl_set_default_route(dag, from);
 
-  if(dio->dst_adv_trigger) {
+  if(dio->dst_adv_supported && dio->dst_adv_trigger) {
     rpl_schedule_dao(dag);
   } else {
     PRINTF("RPL: dst_adv_trigger not set in incoming DIO!\n");
@@ -511,7 +513,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   /* This DIO pertains to a DAG that we are already part of. */
   p = rpl_find_parent(dag, from);
   if(p != NULL) {
-    if(dio->dst_adv_trigger) {
+    if(dio->dst_adv_supported && dio->dst_adv_trigger) {
       rpl_schedule_dao(dag);
     } else {
       PRINTF("RPL: dst_adv_trigger is not set in incoming DIO\n");
@@ -598,7 +600,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
        node is in the parent list, we just remove it. */
     if(p != NULL && p->rank < dio->dag_rank) {
       PRINTF("RPL: Parent ");
-      PRINT6ADDR(&n->addr);
+      PRINT6ADDR(&p->addr);
       PRINTF(" has increased in rank from %hu to %hu. Removing it.\n",
              p->rank, dio->dag_rank);
       rpl_remove_parent(dag, p);

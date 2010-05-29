@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.11 2010/05/25 21:58:54 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.12 2010/05/29 22:23:21 nvt-se Exp $
  */
 /**
  * \file
@@ -323,8 +323,8 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   buffer[pos++] = RPL_DIO_SUBOPT_OCP;
   buffer[pos++] = 0;
   buffer[pos++] = 2;
-  buffer[pos++] = 0;
-  buffer[pos++] = 0;
+  buffer[pos++] = dag->of->ocp >> 8;
+  buffer[pos++] = dag->of->ocp & 0xff;
 
   /* alignment here ??? */
 

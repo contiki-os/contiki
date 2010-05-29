@@ -32,11 +32,11 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-of0.c,v 1.3 2010/05/29 22:23:21 nvt-se Exp $
+ * $Id: rpl-of-etx.c,v 1.1 2010/05/29 22:23:21 nvt-se Exp $
  */
 /**
  * \file
- *         An implementation of RPL's objective function 0.
+ *         An implementation of RPL's objective function 1 (ETX).
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
@@ -46,49 +46,73 @@
 #define DEBUG DEBUG_ANNOTATE
 #include "net/uip-debug.h"
 
+static void parent_state_callback(rpl_parent_t *, int, int);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_rank_t increment_rank(rpl_rank_t, rpl_parent_t *);
 
-rpl_of_t rpl_of0 = {
-  NULL,
+rpl_of_t rpl_of_etx = {
+  parent_state_callback,
   best_parent,
   increment_rank,
-  0
+  1
 };
 
-#define DEFAULT_RANK_INCREMENT  4
-#define MINIMUM_RANK_INCREMENT  1
-#define MAXIMUM_RANK_INCREMENT  16
-#define MAXIMUM_RANK_STRETCH    4
+#define LINK_ETX_MIN			1
+#define LINK_ETX_MAX			10
+#define PATH_ETX_MIN			1
+#define PATH_ETX_MAX			200
+#define PARENT_SWITCH_ETX_THRESHOLD	0.5
+#define INFINITY			255
+
+typedef unsigned char etx_t;
+
+static etx_t min_path_etx = INFINITY;
+
+static void
+parent_state_callback(rpl_parent_t *parent, int known, int etx)
+{
+  rpl_dag_t *dag;
+
+  dag = (rpl_dag_t *)parent->dag;
+
+  if(known) {
+    if(min_path_etx != INFINITY) {
+      dag->rank = min_path_etx + etx;
+      PRINTF("RPL: New path ETX: %u\n", (unsigned)(min_path_etx + etx));
+    }
+  } else {
+    if(RPL_PARENT_COUNT(dag) == 1) {
+      /* Our last parent has disappeared, set the path ETX to infinity. */
+      min_path_etx = INFINITY;
+    }
+  }
+}
 
 static rpl_rank_t
 increment_rank(rpl_rank_t rank, rpl_parent_t *parent)
 {
-  if((rpl_rank_t)(rank + DEFAULT_RANK_INCREMENT) < rank) {
-    PRINTF("RPL: OF0 rank %d incremented to infinite rank due to wrapping\n",
-        rank);
+  rpl_rank_t new_rank;
+
+  PRINTF("RPL: OF1 increment rank\n");
+
+  if(parent->rank < min_path_etx) {
+    min_path_etx = parent->rank;
+  }
+
+  new_rank = parent->rank + LINK_ETX_MAX;
+
+  if(new_rank < rank) {
     return INFINITE_RANK;
   }
-  return rank + DEFAULT_RANK_INCREMENT;
+
+  PRINTF("RPL: Path ETX %u\n", (unsigned)new_rank);
+
+  return new_rank;
 }
 
 static rpl_parent_t *
 best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 {
-  PRINTF("RPL: Comparing parent ");
-  PRINT6ADDR(&p1->addr);
-  PRINTF(" (confidence %d, rank %d) with parent ",
-        p1->local_confidence, p1->rank);
-  PRINT6ADDR(&p2->addr);
-  PRINTF(" (confidence %d, rank %d)\n",
-        p2->local_confidence, p2->rank);
-
-  if(p1->local_confidence > p2->local_confidence) {
-    return p1;
-  } else if(p2->local_confidence > p1->local_confidence) {
-    return p2;
-  }
-
   if(p1->rank < p2->rank) {
     return p1;
   }

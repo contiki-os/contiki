@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.4 2010/05/25 21:58:54 nvt-se Exp $
+ * $Id: rpl.c,v 1.5 2010/05/29 22:23:21 nvt-se Exp $
  */
 /**
  * \file
@@ -59,9 +59,8 @@
 #define RPL_MAX_ROUTE_ENTRIES   RPL_CONF_MAX_ROUTE_ENTRIES
 #endif /* !RPL_CONF_MAX_ROUTE_ENTRIES */
 
-/************************************************************************/
 extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
-
+/************************************************************************/
 void
 rpl_purge_routes(void)
 {
@@ -125,8 +124,23 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
   PRINTF(" is %sknown. ETX = %d\n", known ? "" : "no longer ", etx);
 
   dag = rpl_get_dag(RPL_DEFAULT_INSTANCE);
-  if(dag == NULL || (parent = rpl_find_parent(dag, &ipaddr)) == NULL) {
+  if(dag == NULL) {
     return;
+  }
+
+  parent = rpl_find_parent(dag, &ipaddr);
+  if(parent == NULL) {
+    if(!known) {
+      PRINTF("RPL: Deleting routes installed by DAOs received from ");
+      PRINT6ADDR(&ipaddr);
+      PRINTF("\n");
+      uip_ds6_route_rm_by_nexthop(&ipaddr);
+    }
+    return;
+  }
+
+  if(dag->of->parent_state_callback != NULL) {
+    dag->of->parent_state_callback(parent, known, etx);
   }
 
   if(!known) {
@@ -140,6 +154,9 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
       /* Select a new default route. */
       parent = rpl_preferred_parent(dag);
       if(parent != NULL) {
+	PRINTF("RPL: Switching preferred parent to ");
+        PRINT6ADDR(&parent->addr);
+        PRINTF("\n");
         rpl_set_default_route(dag, &parent->addr);
       }
     }
