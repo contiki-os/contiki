@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.4 2010/05/25 21:58:54 nvt-se Exp $
+ * $Id: rpl.h,v 1.5 2010/05/29 22:23:21 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -85,7 +85,7 @@
 #define RPL_DEFAULT_INSTANCE            0
 #define RPL_ANY_INSTANCE               -1
 
-#define RPL_DEFAULT_OCP                 0
+#define RPL_DEFAULT_OCP                 1
 
 /* TODO: pick these from OCP later? */
 #define DEFAULT_MAX_RANKINC             16
@@ -138,6 +138,7 @@ struct rpl_parent {
 typedef struct rpl_parent rpl_parent_t;
 
 struct rpl_of {
+  void (*parent_state_callback)(rpl_parent_t *, int, int);
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
   rpl_rank_t (*increment_rank)(rpl_rank_t, rpl_parent_t *);
   rpl_ocp_t ocp;
@@ -231,7 +232,7 @@ void dao_output(rpl_parent_t *, uint32_t lifetime);
 void uip_rpl_input(void);
 
 /* RPL logic functions. */
-int rpl_set_root(uip_ipaddr_t *);
+rpl_dag_t *rpl_set_root(uip_ipaddr_t *);
 int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len);
 int rpl_repair_dag(rpl_dag_t *dag);
 int rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from);
