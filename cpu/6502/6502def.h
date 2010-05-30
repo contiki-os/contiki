@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.24 2010/05/08 07:25:10 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.25 2010/05/30 09:46:12 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -71,8 +71,6 @@ typedef unsigned short uip_stats_t;
 #define MAC_CONF_CHANNEL_CHECK_RATE CLOCK_CONF_SECOND
 
 #define LOADER_CONF_ARCH "lib/unload.h"
-
-#define UIP_CONF_PLAIN_BUFFER 1
 
 #if MTU_SIZE
 #define UIP_CONF_BUFFER_SIZE (UIP_LLH_LEN + MTU_SIZE)

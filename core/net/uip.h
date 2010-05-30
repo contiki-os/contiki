@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.33 2010/05/24 10:07:34 joxe Exp $
+ * $Id: uip.h,v 1.34 2010/05/30 09:46:12 oliverschmidt Exp $
  *
  */
 
@@ -482,12 +482,8 @@ typedef union {
   uint8_t u8[UIP_BUFSIZE];
 } uip_buf_t;
 
-#ifdef UIP_CONF_PLAIN_BUFFER
-CCIF extern uint8_t uip_buf[UIP_BUFSIZE+2];
-#else /* UIP_CONF_PLAIN_BUFFER */
 CCIF extern uip_buf_t uip_aligned_buf;
 #define uip_buf (uip_aligned_buf.u8)
-#endif /* UIP_CONF_PLAIN_BUFFER */
 
 
 /** @} */
