@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arch.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * $Id: uip_arch.c,v 1.2 2010/05/30 10:12:30 oliverschmidt Exp $
  *
  */
 
@@ -221,11 +221,11 @@ transport_chksum(u8_t protocol)
   chksum_tmp = chksum();
 
   chksum_ptr = (u16_t)uip_appdata;
-  asm("lda _uip_buf+3+%b", UIP_LLH_LEN);
+  asm("lda _uip_aligned_buf+3+%b", UIP_LLH_LEN);
   asm("sec");
   asm("sbc #%b", UIP_IPTCPH_LEN);
   asm("sta _chksum_len");
-  asm("lda _uip_buf+2+%b", UIP_LLH_LEN);
+  asm("lda _uip_aligned_buf+2+%b", UIP_LLH_LEN);
   asm("sbc #0");
   asm("sta _chksum_len+1");
 
@@ -253,11 +253,11 @@ transport_chksum(u8_t protocol)
   asm("bcs tcpchksum_loop1");
 
 
-  asm("lda _uip_buf+3+%b", UIP_LLH_LEN);
+  asm("lda _uip_aligned_buf+3+%b", UIP_LLH_LEN);
   asm("sec");
   asm("sbc #%b", UIP_IPH_LEN);
   asm("sta _chksum_len");
-  asm("lda _uip_buf+2+%b", UIP_LLH_LEN);
+  asm("lda _uip_aligned_buf+2+%b", UIP_LLH_LEN);
   asm("sbc #0");
   asm("sta _chksum_len+1");
   
@@ -267,11 +267,11 @@ transport_chksum(u8_t protocol)
   asm("php");
   asm("tcpchksum_loop2:");
   asm("plp");
-  asm("lda _uip_buf+%b,y", UIP_LLH_LEN);
+  asm("lda _uip_aligned_buf+%b,y", UIP_LLH_LEN);
   asm("adc _chksum_tmp");
   asm("sta _chksum_tmp");
   asm("iny");
-  asm("lda _uip_buf+%b,y", UIP_LLH_LEN);
+  asm("lda _uip_aligned_buf+%b,y", UIP_LLH_LEN);
   asm("adc _chksum_tmp+1");
   asm("sta _chksum_tmp+1");
   asm("iny");
