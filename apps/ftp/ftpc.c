@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftpc.c,v 1.3 2008/01/04 23:30:57 oliverschmidt Exp $
+ * $Id: ftpc.c,v 1.4 2010/05/31 15:22:08 nifi Exp $
  */
 #include "contiki.h"
 #include "ftpc.h"
@@ -127,7 +127,7 @@ ftpc_init(void)
 }
 /*---------------------------------------------------------------------------*/
 void *
-ftpc_connect(u16_t *ipaddr, u16_t port)
+ftpc_connect(uip_ipaddr_t *ipaddr, u16_t port)
 {
   struct ftp_connection *c;
 
@@ -143,7 +143,7 @@ ftpc_connect(u16_t *ipaddr, u16_t port)
   c->dataconn.port = DATAPORT;
   tcp_listen(HTONS(DATAPORT));
 
-  if(tcp_connect((uip_ipaddr_t *)ipaddr, port, c) == NULL) {
+  if(tcp_connect(ipaddr, port, c) == NULL) {
     memb_free(&connections, c);
     return NULL;
   }

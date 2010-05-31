@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-tcpsend.c,v 1.4 2009/03/17 21:49:44 adamdunkels Exp $
+ * $Id: shell-tcpsend.c,v 1.5 2010/05/31 15:22:08 nifi Exp $
  */
 
 #include <string.h>
@@ -154,7 +154,7 @@ PROCESS_THREAD(shell_tcpsend_process, ev, data)
   
   running = 1;
 
-  uiplib_ipaddrconv(server, (u8_t *)&serveraddr);
+  uiplib_ipaddrconv(server, &serveraddr);
   telnet_connect(&s, &serveraddr, port);
   while(running) {
     PROCESS_WAIT_EVENT();

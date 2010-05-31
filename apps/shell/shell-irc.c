@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-irc.c,v 1.1 2008/11/28 00:16:15 adamdunkels Exp $
+ * $Id: shell-irc.c,v 1.2 2010/05/31 15:22:08 nifi Exp $
  */
 
 #include <string.h>
@@ -142,7 +142,7 @@ PROCESS_THREAD(shell_irc_process, ev, data)
   
   running = 1;
 
-  uiplib_ipaddrconv(server, (u8_t *)&serveraddr);
+  uiplib_ipaddrconv(server, &serveraddr);
   ircc_connect(&s, server, &serveraddr, nick);
   while(running) {
     PROCESS_WAIT_EVENT();

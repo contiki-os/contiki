@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-ping.c,v 1.3 2010/03/17 12:27:52 joxe Exp $
+ * $Id: shell-ping.c,v 1.4 2010/05/31 15:22:08 nifi Exp $
  */
 
 #include <string.h>
@@ -142,7 +142,7 @@ PROCESS_THREAD(shell_ping_process, ev, data)
 		     "ping <server>: server as address", "");
     PROCESS_EXIT();
   }
-  uiplib_ipaddrconv(data, (u8_t *)&remoteaddr);
+  uiplib_ipaddrconv(data, &remoteaddr);
 
   send_ping(&remoteaddr);
   

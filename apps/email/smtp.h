@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: smtp.h,v 1.2 2006/08/21 21:31:34 oliverschmidt Exp $
+ * $Id: smtp.h,v 1.3 2010/05/31 15:22:08 nifi Exp $
  *
  */
 #ifndef __SMTP_H__
@@ -41,7 +41,7 @@
 void smtp_done(unsigned char error);
 
 /* Functions. */
-void smtp_configure(char *localhostname, u16_t *smtpserver);
+void smtp_configure(char *localhostname, uip_ipaddr_t *smtpserver);
 
 unsigned char smtp_send(char *to, char *cc, char *from,
 			char *subject, char *msg,

@@ -37,11 +37,13 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: uiplib.h,v 1.2 2006/08/26 23:58:45 oliverschmidt Exp $
+ * $Id: uiplib.h,v 1.3 2010/05/31 15:22:08 nifi Exp $
  *
  */
 #ifndef __UIPLIB_H__
 #define __UIPLIB_H__
+
+#include "net/uip.h"
 
 /**
  * \addtogroup uipconvfunc
@@ -52,19 +54,20 @@
  * Convert a textual representation of an IP address to a numerical representation.
  *
  * This function takes a textual representation of an IP address in
- * the form a.b.c.d and converts it into a 4-byte array that can be
- * used by other uIP functions.
+ * the form a.b.c.d for IPv4 or a:b:c:d:e:f:g:h for IPv6 and converts
+ * it into a numeric IP address representation that can be used by
+ * other uIP functions.
  *
  * \param addrstr A pointer to a string containing the IP address in
  * textual form.
  *
- * \param addr A pointer to a 4-byte array that will be filled in with
+ * \param addr A pointer to a uip_ipaddr_t that will be filled in with
  * the numerical representation of the address.
  *
  * \retval 0 If the IP address could not be parsed.
  * \retval Non-zero If the IP address was parsed. 
  */
-CCIF unsigned char uiplib_ipaddrconv(char *addrstr, unsigned char *addr);
+CCIF int uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *addr);
 
 /** @} */
 

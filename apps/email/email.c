@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: email.c,v 1.7 2010/01/31 21:44:49 oliverschmidt Exp $
+ * $Id: email.c,v 1.8 2010/05/31 15:22:08 nifi Exp $
  *
  */
 
@@ -182,15 +182,16 @@ email_quit(void)
 static void
 applyconfig(void)
 {
-  u16_t addr[2], *addrptr;
+  uip_ipaddr_t addr;
+  uip_ipaddr_t *addrptr;
   char *cptr;
 
   for(cptr = smtpserver; *cptr != ' ' && *cptr != 0; ++cptr);
   *cptr = 0;
   
-  addrptr = &addr[0];
+  addrptr = &addr;
 #if UIP_UDP
-  if(uiplib_ipaddrconv(smtpserver, (unsigned char *)addr) == 0) {
+  if(uiplib_ipaddrconv(smtpserver, &addr) == 0) {
     addrptr = resolv_lookup(smtpserver);
     if(addrptr == NULL) {
       resolv_query(smtpserver);
@@ -199,7 +200,7 @@ applyconfig(void)
     }
   }
 #else /* UIP_UDP */
-  uiplib_ipaddrconv(smtpserver, (unsigned char *)addr);
+  uiplib_ipaddrconv(smtpserver, &addr);
 #endif /* UIP_UDP */
   smtp_configure("contiki", addrptr);
 
