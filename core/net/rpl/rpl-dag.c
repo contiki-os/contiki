@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.10 2010/05/29 22:23:21 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.11 2010/05/31 14:22:00 nvt-se Exp $
  */
 /**
  * \file
@@ -459,6 +459,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     dag->rank = INFINITE_RANK;
   } else {
     rpl_set_default_route(dag, from);
+    dag->of->reset(dag);
     dag->rank = dag->of->increment_rank(dio->dag_rank, p);
     rpl_reset_dio_timer(dag, 1);
   }
@@ -505,8 +506,20 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
+  if(memcmp(&dag->dag_id, &dio->dag_id, sizeof(dag->dag_id))) {
+    PRINTF("RPL: Ignoring DIO for another DAG within our instance\n");
+    return;
+  }
+
   if(dio->sequence_number > dag->sequence_number) {
-    global_repair(from, dag, dio);
+    if(dag->rank == ROOT_RANK) {
+      PRINTF("RPL: Root received inconsistent DIO sequence number\n");
+      dag->sequence_number = dio->sequence_number + 1;
+      rpl_reset_dio_timer(dag, 1);
+      return;
+    } else {
+      global_repair(from, dag, dio);
+    }
     return;
   }
 

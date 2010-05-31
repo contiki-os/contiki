@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.5 2010/05/29 22:23:21 nvt-se Exp $
+ * $Id: rpl.h,v 1.6 2010/05/31 14:22:00 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -138,6 +138,7 @@ struct rpl_parent {
 typedef struct rpl_parent rpl_parent_t;
 
 struct rpl_of {
+  void (*reset)(void *);
   void (*parent_state_callback)(rpl_parent_t *, int, int);
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
   rpl_rank_t (*increment_rank)(rpl_rank_t, rpl_parent_t *);

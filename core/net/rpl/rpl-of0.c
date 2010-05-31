@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-of0.c,v 1.3 2010/05/29 22:23:21 nvt-se Exp $
+ * $Id: rpl-of0.c,v 1.4 2010/05/31 14:22:00 nvt-se Exp $
  */
 /**
  * \file
@@ -46,10 +46,12 @@
 #define DEBUG DEBUG_ANNOTATE
 #include "net/uip-debug.h"
 
+static void reset(void *);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_rank_t increment_rank(rpl_rank_t, rpl_parent_t *);
 
 rpl_of_t rpl_of0 = {
+  reset,
   NULL,
   best_parent,
   increment_rank,
@@ -60,6 +62,12 @@ rpl_of_t rpl_of0 = {
 #define MINIMUM_RANK_INCREMENT  1
 #define MAXIMUM_RANK_INCREMENT  16
 #define MAXIMUM_RANK_STRETCH    4
+
+static void
+reset(void *dag)
+{
+  PRINTF("RPL: Resetting OF0\n");
+}
 
 static rpl_rank_t
 increment_rank(rpl_rank_t rank, rpl_parent_t *parent)

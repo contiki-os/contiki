@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-of-etx.c,v 1.1 2010/05/29 22:23:21 nvt-se Exp $
+ * $Id: rpl-of-etx.c,v 1.2 2010/05/31 14:22:00 nvt-se Exp $
  */
 /**
  * \file
@@ -46,11 +46,13 @@
 #define DEBUG DEBUG_ANNOTATE
 #include "net/uip-debug.h"
 
+static void reset(void *);
 static void parent_state_callback(rpl_parent_t *, int, int);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_rank_t increment_rank(rpl_rank_t, rpl_parent_t *);
 
 rpl_of_t rpl_of_etx = {
+  reset,
   parent_state_callback,
   best_parent,
   increment_rank,
@@ -67,6 +69,12 @@ rpl_of_t rpl_of_etx = {
 typedef unsigned char etx_t;
 
 static etx_t min_path_etx = INFINITY;
+
+static void
+reset(void *dag)
+{
+  min_path_etx = INFINITY;
+}
 
 static void
 parent_state_callback(rpl_parent_t *parent, int known, int etx)
