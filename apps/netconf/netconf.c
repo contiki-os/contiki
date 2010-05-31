@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: netconf.c,v 1.8 2008/02/08 22:51:01 oliverschmidt Exp $
+ * $Id: netconf.c,v 1.9 2010/05/31 15:22:08 nifi Exp $
  *
  */
 
@@ -136,23 +136,23 @@ apply_tcpipconfig(void)
   uip_ipaddr_t addr;
 
   nullterminate(ipaddr);
-  if(uiplib_ipaddrconv(ipaddr, (unsigned char *)&addr)) {
+  if(uiplib_ipaddrconv(ipaddr, &addr)) {
     uip_sethostaddr(&addr);
   }
   
   nullterminate(netmask);
-  if(uiplib_ipaddrconv(netmask, (unsigned char *)&addr)) {
+  if(uiplib_ipaddrconv(netmask, &addr)) {
     uip_setnetmask(&addr);
   }
 
   nullterminate(gateway);
-  if(uiplib_ipaddrconv(gateway, (unsigned char *)&addr)) {
+  if(uiplib_ipaddrconv(gateway, &addr)) {
     uip_setdraddr(&addr);
   }
   
 #if UIP_UDP
   nullterminate(dnsserver);
-  if(uiplib_ipaddrconv(dnsserver, (unsigned char *)&addr)) {
+  if(uiplib_ipaddrconv(dnsserver, &addr)) {
     resolv_conf(&addr);
   }
 #endif /* UIP_UDP */

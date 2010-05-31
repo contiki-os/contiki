@@ -29,19 +29,78 @@
  *
  * This file is part of the uIP TCP/IP stack and the Contiki operating system.
  *
- * $Id: uiplib.c,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uiplib.c,v 1.2 2010/05/31 15:22:08 nifi Exp $
  *
  */
 
 
 #include "net/uip.h"
 #include "net/uiplib.h"
+#include <string.h>
 
+#define DEBUG DEBUG_NONE
+#include "net/uip-debug.h"
 
 /*-----------------------------------------------------------------------------------*/
-unsigned char
-uiplib_ipaddrconv(char *addrstr, unsigned char *ipaddr)
+int
+uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
 {
+#if UIP_CONF_IPV6
+  uint16_t value;
+  int tmp, len, zero;
+  char c;
+
+  value = 0;
+  zero = -1;
+  for(len = 0; len < sizeof(uip_ipaddr_t) - 1; addrstr++) {
+    c = *addrstr;
+    if(c == ':' || c == '\0') {
+      ipaddr->u8[len] = (value >> 8) & 0xff;
+      ipaddr->u8[len + 1] = value & 0xff;
+      len += 2;
+      value = 0;
+
+      if(c == '\0') {
+        break;
+      }
+
+      if(*(addrstr + 1) == ':') {
+        /* Zero compression */
+        if(zero < 0) {
+          zero = len;
+        }
+        addrstr++;
+      }
+    } else {
+      if(c >= '0' && c <= '9') {
+        tmp = c - '0';
+      } else if(c >= 'a' && c <= 'f') {
+        tmp = c - 'a' + 10;
+      } else if(c >= 'A' && c <= 'F') {
+        tmp = c - 'A' + 10;
+      } else {
+        PRINTF("uiplib: illegal char: '%c'\n", c);
+        return 0;
+      }
+      value = (value << 4) + (tmp & 0xf);
+    }
+  }
+  if(c != '\0') {
+    PRINTF("uiplib: too large address\n");
+    return 0;
+  }
+  if(len < sizeof(uip_ipaddr_t)) {
+    if(zero < 0) {
+      PRINTF("uiplib: too short address\n");
+      return 0;
+    }
+    memmove(&ipaddr->u8[zero + sizeof(uip_ipaddr_t) - len],
+            &ipaddr->u8[zero], len - zero);
+    memset(&ipaddr->u8[zero], 0, sizeof(uip_ipaddr_t) - len);
+  }
+
+#else /* UIP_CONF_IPV6 */
+
   unsigned char tmp;
   char c;
   unsigned char i, j;
@@ -57,8 +116,7 @@ uiplib_ipaddrconv(char *addrstr, unsigned char *ipaddr)
 	return 0;
       }
       if(c == '.' || c == 0) {
-	*ipaddr = tmp;
-	++ipaddr;
+	ipaddr->u8[i] = tmp;
 	tmp = 0;
       } else if(c >= '0' && c <= '9') {
 	tmp = (tmp * 10) + (c - '0');
@@ -68,6 +126,7 @@ uiplib_ipaddrconv(char *addrstr, unsigned char *ipaddr)
       ++addrstr;
     } while(c != '.' && c != 0);
   }
+#endif /* UIP_CONF_IPV6 */
   return 1;
 }
 

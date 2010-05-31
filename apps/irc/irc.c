@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.10 2008/11/28 00:14:57 adamdunkels Exp $
+ * $Id: irc.c,v 1.11 2010/05/31 15:22:08 nifi Exp $
  */
 
 #include <string.h>
@@ -246,8 +246,8 @@ PROCESS_THREAD(irc_process, ev, data)
 	ctk_window_open(&window);
 	ipaddr = &serveraddr;
 #if UIP_UDP
-	if(uiplib_ipaddrconv(server, (u8_t *)&serveraddr) == 0) {
-	  ipaddr = (uip_ipaddr_t *)resolv_lookup(server);
+	if(uiplib_ipaddrconv(server, &serveraddr) == 0) {
+	  ipaddr = resolv_lookup(server);
 	  if(ipaddr == NULL) {
 	    resolv_query(server);
 	  } else {
@@ -255,7 +255,7 @@ PROCESS_THREAD(irc_process, ev, data)
 	  }
 	}
 #else /* UIP_UDP */
-	uiplib_ipaddrconv(server, (u8_t *)serveraddr);
+	uiplib_ipaddrconv(server, &serveraddr);
 #endif /* UIP_UDP */
 	if(ipaddr != NULL) {
 	  
@@ -265,7 +265,7 @@ PROCESS_THREAD(irc_process, ev, data)
 #if UIP_UDP
     } else if(ev == resolv_event_found) {
       
-      ipaddr = (uip_ipaddr_t *)resolv_lookup(server);
+      ipaddr = resolv_lookup(server);
       if(ipaddr == NULL) {
 	ircc_text_output(&s, server, "hostname not found");
       } else {

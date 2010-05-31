@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki VNC client
  *
- * $Id: vnc.c,v 1.1 2006/06/17 23:08:35 adamdunkels Exp $
+ * $Id: vnc.c,v 1.2 2010/05/31 15:22:08 nifi Exp $
  *
  */
 
@@ -124,7 +124,7 @@ show(char *text)
 static void
 connect(void)
 {
-  u16_t addr[2], *addrptr;
+  uip_ipaddr_t addr, *addrptr;
   u16_t port;
   char *cptr;
 
@@ -133,8 +133,8 @@ connect(void)
   for(cptr = host; *cptr != ' ' && *cptr != 0; ++cptr);
   *cptr = 0;
 
-  addrptr = &addr[0];
-  if(uiplib_ipaddrconv(host, (unsigned char *)addr) == 0) {
+  addrptr = &addr;
+  if(uiplib_ipaddrconv(host, &addr) == 0) {
     addrptr = resolv_lookup(host);
     if(addrptr == NULL) {
       resolv_query(host);

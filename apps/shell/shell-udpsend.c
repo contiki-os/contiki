@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-udpsend.c,v 1.5 2010/02/04 15:23:15 nifi Exp $
+ * $Id: shell-udpsend.c,v 1.6 2010/05/31 15:22:08 nifi Exp $
  */
 
 #include <string.h>
@@ -94,7 +94,7 @@ PROCESS_THREAD(shell_udpsend_process, ev, data)
   ++next;
   port = shell_strtolong(next, &nextptr);
 
-  uiplib_ipaddrconv(server, (uint8_t *)&serveraddr);
+  uiplib_ipaddrconv(server, &serveraddr);
   udpconn = udp_new(&serveraddr, htons(port), NULL);
   
   if(next != nextptr) {
