@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.12 2010/05/29 22:23:21 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.13 2010/06/01 22:30:02 joxe Exp $
  */
 /**
  * \file
@@ -62,7 +62,9 @@
 #define RPL_DIO_GROUNDED            0x80
 #define RPL_DIO_DEST_ADV_SUPPORTED  0x40
 #define RPL_DIO_DEST_ADV_TRIGGER    0x20
-#define RPL_DIO_DEST_ADV_STORED     0x10
+#define RPL_DIO_MOP_MASK            0x18
+#define RPL_DIO_MOP_NON_STORING     0x00
+#define RPL_DIO_MOP_STORING         0x10
 #define RPL_DIO_DAG_PREFERENCE_MASK 0x07
 
 
@@ -200,16 +202,20 @@ dio_input(void)
   /* Process the DIO base option. */
   i = 0;
   buffer = UIP_ICMP_PAYLOAD;
+
+  dio.instance_id = buffer[i++];
+  dio.version = buffer[i++];
+  dio.dag_rank = (buffer[i] << 8) + buffer[i + 1];
+  i += 2;
+
   dio.grounded = buffer[i] & RPL_DIO_GROUNDED;
   dio.dst_adv_trigger = buffer[i] & RPL_DIO_DEST_ADV_TRIGGER;
   dio.dst_adv_supported = buffer[i] & RPL_DIO_DEST_ADV_SUPPORTED;
   dio.preference = buffer[i++] & RPL_DIO_DAG_PREFERENCE_MASK;
-  dio.sequence_number = buffer[i++];
 
-  dio.dag_rank = (buffer[i] << 8) + buffer[i + 1];
-  i += 2;
-  dio.instance_id = buffer[i++];
   dio.dtsn = buffer[i++];
+  /* two reserved bytes */
+  i += 2;
 
   memcpy(&dio.dag_id, buffer + i, sizeof(dio.dag_id));
   i += sizeof(dio.dag_id);
@@ -220,8 +226,8 @@ dio_input(void)
     if(subopt_type == RPL_DIO_SUBOPT_PAD1) {
       len = 1;
     } else {
-      /* Suboption with a three-byte header. */
-      len = (buffer[i + 1] << 8) + buffer[i + 2] + 3;
+      /* Suboption with a two-byte header + payload */
+      len = 2 + buffer[i + 1];
     }
 
     switch(subopt_type) {
@@ -231,57 +237,73 @@ dio_input(void)
         return;
       }
       break;
-    case RPL_DIO_SUBOPT_DEST_PREFIX:
+    case RPL_DIO_SUBOPT_ROUTE_INFO:
       if(len < 9) {
         PRINTF("RPL: Invalid destination prefix option, len = %d\n", len);
         return;
       }
-      /* prebference is both preference and flags for now */
-      dio.destination_prefix.preference = buffer[i + 3];
+      /* flags is both preference and flags for now */
+      dio.destination_prefix.length = buffer[i + 2];
+      dio.destination_prefix.flags = buffer[i + 3];
       dio.destination_prefix.lifetime = get32(buffer, i + 4);
-      dio.destination_prefix.length = buffer[i + 8];
-      if(((dio.destination_prefix.length + 7)/ 8) + 9 <= len &&
+
+      if(((dio.destination_prefix.length + 7)/ 8) + 8 <= len &&
          dio.destination_prefix.length <= 128) {
         PRINTF("RPL: Copying destination prefix\n");
-        memcpy(&dio.destination_prefix.prefix, &buffer[i + 9],
+        memcpy(&dio.destination_prefix.prefix, &buffer[i + 8],
                (dio.destination_prefix.length + 7) / 8);
-
-        /* NOTE: This is a test for adding autoconf prefix in RPL via  */
-        /* a destination prefix - this use one reserved flag bit       */
-        /* This should not be made until RPL decides to join the DAG   */
-        /* And not if there already is a global address configured for */
-        /* the specific DAG */
-        if((dio.destination_prefix.preference & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
-          uip_ipaddr_t ipaddr;
-          memcpy(&ipaddr, &dio.destination_prefix.prefix,
-                 (dio.destination_prefix.length + 7) / 8);
-          uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-          if(uip_ds6_addr_lookup(&ipaddr) == NULL) {
-            PRINTF("RPL: adding global IP address ");
-            PRINT6ADDR(&ipaddr);
-            PRINTF("\n");
-            uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
-          }
-        }
       } else {
-        PRINTF("RPL: Invalid destination prefix option, len = %d\n", len);
+        PRINTF("RPL: Invalid route infoprefix option, len = %d\n", len);
       }
 
       break;
     case RPL_DIO_SUBOPT_DAG_CONF:
+      /* Path control field not yet implemented - at i + 2 */
       dio.dag_intdoubl = buffer[i + 3];
       dio.dag_intmin = buffer[i + 4];
       dio.dag_redund = buffer[i + 5];
-      dio.dag_max_rankinc = buffer[i + 6];
-      dio.dag_min_hoprankinc = buffer[i + 7];
+      dio.dag_max_rankinc = (buffer[i + 6] << 8) | buffer[i + 7];
+      dio.dag_min_hoprankinc = (buffer[i + 8] << 8) | buffer[i + 9];
       PRINTF("RPL: DIO trickle timer:dbl=%d, min=%d red=%d maxinc=%d mininc=%d\n",
-	     dio.dag_intdoubl,
+             dio.dag_intdoubl,
              dio.dag_intmin, dio.dag_redund,
              dio.dag_max_rankinc, dio.dag_min_hoprankinc);
       break;
     case RPL_DIO_SUBOPT_OCP:
-      dio.ocp = buffer[i + 3] << 8 | buffer[i + 4];
+      dio.ocp = buffer[i + 2] << 8 | buffer[i + 3];
       PRINTF("RPL: DAG OCP Sub-opt received OCP = %u\n", dio.ocp);
+      break;
+    case RPL_DIO_SUBOPT_PREFIX_INFO:
+      if(len != 32) {
+        PRINTF("RPL: DAG Prefix info not ok, len != 32\n");
+        return;
+      }
+      dio.prefix_info.length = buffer[i + 2];
+      dio.prefix_info.flags = buffer[i + 3];
+      /* valid lifetime is ingnored for now - at i + 4 */
+      /* preferred lifetime stored in lifetime */
+      dio.prefix_info.lifetime = get32(buffer, i + 8);
+      /* 32-bit reserved at i + 12 */
+      PRINTF("RPL: Copying prefix information\n");
+      memcpy(&dio.prefix_info.prefix, &buffer[i + 16], 16);
+
+      /* NOTE: This is a test for adding autoconf prefix in RPL via  */
+      /* a destination prefix - this use one reserved flag bit       */
+      /* This should not be made until RPL decides to join the DAG   */
+      /* And not if there already is a global address configured for */
+      /* the specific DAG */
+      if((dio.prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
+        uip_ipaddr_t ipaddr;
+        /* assume that the prefix ends with zeros! */
+        memcpy(&ipaddr, &dio.prefix_info.prefix, 16);
+        uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+        if(uip_ds6_addr_lookup(&ipaddr) == NULL) {
+          PRINTF("RPL: adding global IP address ");
+          PRINT6ADDR(&ipaddr);
+          PRINTF("\n");
+          uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+        }
+      }
       break;
     }
   }
@@ -301,27 +323,27 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   pos = 0;
 
   buffer = UIP_ICMP_PAYLOAD;
-  buffer[0] = dag->preference;
-  if(dag->grounded) {
-    buffer[0] |= RPL_DIO_GROUNDED;
-  }
-  /* Set dst_adv_trigger and dst_adv_supported. */
-  buffer[0] |= RPL_DIO_DEST_ADV_SUPPORTED | RPL_DIO_DEST_ADV_TRIGGER;
-
-  buffer[1] = dag->sequence_number;
-
-  pos = 2;
+  buffer[pos++] = dag->instance_id;
+  buffer[pos++] = 0; /* version */
   buffer[pos++] = dag->rank >> 8;
   buffer[pos++] = dag->rank & 0xff;
-  buffer[pos++] = dag->instance_id;
+
+  if(dag->grounded) {
+    buffer[pos] |= RPL_DIO_GROUNDED;
+  }
+  /* Set dst_adv_trigger and dst_adv_supported. */
+  buffer[pos] |= RPL_DIO_DEST_ADV_SUPPORTED | RPL_DIO_DEST_ADV_TRIGGER;
+  pos++;
+  /* buffer[pos++] = dag->sequence_number; */
   buffer[pos++] = dag->dtsn;
+  /* reserved 2 bytes */
+  pos += 2;
 
   memcpy(buffer + pos, &dag->dag_id, sizeof(dag->dag_id));
   pos += 16;
 
   /* The objective function object must appear first. */
   buffer[pos++] = RPL_DIO_SUBOPT_OCP;
-  buffer[pos++] = 0;
   buffer[pos++] = 2;
   buffer[pos++] = dag->of->ocp >> 8;
   buffer[pos++] = dag->of->ocp & 0xff;
@@ -330,32 +352,36 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
 
   /* always add a sub-option for DAG configuration */
   buffer[pos++] = RPL_DIO_SUBOPT_DAG_CONF;
-  buffer[pos++] = 0;
-  buffer[pos++] = 5;
+  buffer[pos++] = 8;
+  buffer[pos++] = 0; /* PCS */
   buffer[pos++] = dag->dio_intdoubl;
   buffer[pos++] = dag->dio_intmin;
   buffer[pos++] = dag->dio_redundancy;
-  buffer[pos++] = dag->max_rankinc;
-  buffer[pos++] = dag->min_hoprankinc;
+  buffer[pos++] = dag->max_rankinc >> 8;
+  buffer[pos++] = dag->max_rankinc & 0xff;
+  buffer[pos++] = dag->min_hoprankinc >> 8;
+  buffer[pos++] = dag->min_hoprankinc & 0xff;
 
-  /* if prefix length > 0 then we have a prefix to send! */
-  if(dag->destination_prefix.length > 0) {
-    buffer[pos++] = RPL_DIO_SUBOPT_DEST_PREFIX;
-    buffer[pos++] = 0;
-    buffer[pos++] = (dag->destination_prefix.length + 7)/ 8 + 9;
-    buffer[pos++] = dag->destination_prefix.preference;
-    set32(buffer, pos, dag->destination_prefix.lifetime);
+  /* if prefix info length > 0 then we have a prefix to send! */
+  if(dag->prefix_info.length > 0) {
+    buffer[pos++] = RPL_DIO_SUBOPT_PREFIX_INFO;
+    buffer[pos++] = 30; /* always 30 bytes + 2 long */
+    buffer[pos++] = dag->prefix_info.length;
+    buffer[pos++] = dag->prefix_info.flags;
+    set32(buffer, pos, dag->prefix_info.lifetime);
     pos += 4;
-    buffer[pos++] = dag->destination_prefix.length;
-    memcpy(&buffer[pos], &(dag->destination_prefix.prefix),
-           (dag->destination_prefix.length + 7)/ 8);
-    pos += (dag->destination_prefix.length + 7)/ 8;
+    set32(buffer, pos, dag->prefix_info.lifetime);
+    pos += 4;
+    memset(&buffer[pos], 0, 4);
+    pos += 4;
+    memcpy(&buffer[pos], &(dag->prefix_info.prefix), 16);
+    pos += 16;
     PRINTF("RPL: Sending prefix info in DIO ");
-    PRINT6ADDR(&dag->destination_prefix.prefix);
+    PRINT6ADDR(&dag->prefix_info.prefix);
     PRINTF("\n");
   } else {
     PRINTF("RPL: No prefix to announce. len:%d\n",
-           dag->destination_prefix.length);
+           dag->prefix_info.length);
   }
 
   /* buffer[len++] = RPL_DIO_SUBOPT_PAD1; */
@@ -363,12 +389,12 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   /* Unicast requests get unicast replies! */
   if(uc_addr == NULL) {
     PRINTF("RPL: Sending a multicast-DIO with rank %u\n",
-	(unsigned)dag->rank);
+        (unsigned)dag->rank);
     uip_create_linklocal_allrouters_mcast(&addr);
     uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos);
   } else {
     PRINTF("RPL: Sending unicast-DIO with rank %u to ",
-	(unsigned)dag->rank);
+        (unsigned)dag->rank);
     PRINT6ADDR(uc_addr);
     PRINTF("\n");
     uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos);
@@ -425,7 +451,7 @@ dao_input(void)
 
   if(rank < dag->rank) {
     PRINTF("RPL: Incoming DAO rank is %u, my rank is %u\n",
-	   (unsigned)rank, (unsigned)dag->rank);
+           (unsigned)rank, (unsigned)dag->rank);
     return;
   }
 
@@ -433,7 +459,7 @@ dao_input(void)
   memcpy(&prefix, buffer + pos, prefixlen / CHAR_BIT);
 
   PRINTF("RPL: DAO rank: %u, lifetime: %lu, prefix length: %u",
-	(unsigned)rank, (unsigned long)lifetime, (unsigned)prefixlen);
+        (unsigned)rank, (unsigned long)lifetime, (unsigned)prefixlen);
   PRINTF("\n");
 
   if(lifetime == ZERO_LIFETIME) {
