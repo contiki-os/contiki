@@ -30,11 +30,24 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.6 2010/05/31 14:22:00 nvt-se Exp $
+ * $Id: rpl.h,v 1.7 2010/06/01 22:30:02 joxe Exp $
  */
 
 #ifndef RPL_H
 #define RPL_H
+
+/*
+ * ContikiRPL - an implementation of the routing protocol for low power and
+ * lossy networks. See: draft-ietf-roll-rpl-08.
+ *
+ * Note: This version of ContikiRPL is currently moving on to RPL-08, but
+ * since the type of the OCP option for DIOs is unclear we assume that it
+ * will be of type 9.
+ * --
+ * The DIOs handle prefix information option for setting global IP addresses
+ * on the nodes, but the current handling is not awaiting the join of the DAG
+ * so it does not currently support multiple DAGs.
+ */
 
 #include "lib/list.h"
 #include "net/uip.h"
@@ -48,17 +61,28 @@
 #endif /* RPL_CONF_STATS */
 
 /* The RPL Codes for the message types */
-#define RPL_CODE_DIS                     1   /* DIS message */
-#define RPL_CODE_DIO                     2   /* DIO message */
-#define RPL_CODE_DAO                     4   /* DAO message */
+#define RPL_CODE_DIS                     0   /* DIS message */
+#define RPL_CODE_DIO                     1   /* DIO message */
+#define RPL_CODE_DAO                     2   /* DAO message */
+#define RPL_CODE_DAO_ACK                 3   /* DAO ACK message */
+
+#define RPL_CODE_SEC_DIS               0x80   /* DIS message */
+#define RPL_CODE_SEC_DIO               0x81   /* DIO message */
+#define RPL_CODE_SEC_DAO               0x82   /* DAO message */
+#define RPL_CODE_SEC_DAO_ACK           0x83   /* DAO ACK message */
 
 /* RPL DIO suboption types */
 #define RPL_DIO_SUBOPT_PAD1              0   /* Pad1 */
 #define RPL_DIO_SUBOPT_PADN              1   /* PadN */
 #define RPL_DIO_SUBOPT_DAG_MC            2   /* DAG metric container */
-#define RPL_DIO_SUBOPT_DEST_PREFIX       3   /* Destination prefix */
+#define RPL_DIO_SUBOPT_ROUTE_INFO        3   /* Route information */
 #define RPL_DIO_SUBOPT_DAG_CONF          4   /* DAG configuration */
-#define RPL_DIO_SUBOPT_OCP               5   /* OCP */
+#define RPL_DIO_SUBOPT_TARGET            5   /* Target */
+#define RPL_DIO_SUBOPT_TRANSIT           6   /* Transit information */
+#define RPL_DIO_SUBOPT_SOLICITED_INFO    7   /* Solicited information */
+#define RPL_DIO_SUBOPT_PREFIX_INFO       8   /* Prefix information option */
+
+#define RPL_DIO_SUBOPT_OCP               9   /* 5 in the MC document... */
 
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
@@ -153,7 +177,7 @@ struct rpl_prefix {
   uip_ipaddr_t prefix;
   uint32_t lifetime;
   uint8_t length;
-  uint8_t preference;
+  uint8_t flags;
 };
 
 typedef struct rpl_prefix rpl_prefix_t;
@@ -167,6 +191,7 @@ struct rpl_dio {
   uint8_t dst_adv_trigger;
   uint8_t dst_adv_supported;
   uint8_t preference;
+  uint8_t version;
   uint8_t sequence_number;
   uint8_t instance_id;
   uint8_t dtsn;
@@ -176,6 +201,7 @@ struct rpl_dio {
   uint8_t dag_max_rankinc;
   uint8_t dag_min_hoprankinc;
   rpl_prefix_t destination_prefix;
+  rpl_prefix_t prefix_info;
 };
 
 typedef struct rpl_dio rpl_dio_t;
@@ -217,7 +243,7 @@ struct rpl_dag {
   rpl_parent_t *best_parent;
   void *parent_list;
   list_t parents;
-  rpl_prefix_t destination_prefix;
+  rpl_prefix_t prefix_info;
 };
 
 typedef struct rpl_dag rpl_dag_t;
