@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.42 2010/05/31 20:42:27 joxe Exp $
+ * $Id: sicslowpan.c,v 1.43 2010/06/01 12:37:54 joxe Exp $
  */
 /**
  * \file
@@ -273,7 +273,7 @@ const uint8_t unc_mxconf[] = {0x0f, 0x25, 0x23, 0x21};
 const uint8_t llprefix[] = {0xfe, 0x80};
 
 /* TTL uncompression values */
-static const uint8_t ttl_values[] = {1, 64, 255};
+static const uint8_t ttl_values[] = {0, 1, 64, 255};
 
 /*--------------------------------------------------------------------*/
 /** \name HC06 related functions
