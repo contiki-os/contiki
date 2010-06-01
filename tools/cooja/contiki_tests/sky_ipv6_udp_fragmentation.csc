@@ -3,7 +3,6 @@
   <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
   <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
   <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mobility</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -25,7 +24,7 @@
       <description>Sky Mote Type #1</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/udp-ipv6/udp-client.c</source>
       <commands EXPORT="discard">make clean TARGET=sky
-make udp-client.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7402,UDP_ADDR_G=0x02,UDP_ADDR_H=0x202,SICSLOWPAN_CONF_FRAG=1,SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION=1</commands>
+make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,SICSLOWPAN_CONF_FRAG=1,SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION=1</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/udp-ipv6/udp-client.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -43,8 +42,7 @@ make udp-client.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,
       <identifier>sky2</identifier>
       <description>Sky Mote Type #2</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/udp-ipv6/udp-server.c</source>
-      <commands EXPORT="discard">make clean TARGET=sky
-make udp-server.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7401,UDP_ADDR_G=0x01,UDP_ADDR_H=0x101,SICSLOWPAN_CONF_FRAG=1</commands>
+      <commands EXPORT="discard">make udp-server.sky TARGET=sky DEFINES=SICSLOWPAN_CONF_FRAG=1</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/udp-ipv6/udp-server.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
