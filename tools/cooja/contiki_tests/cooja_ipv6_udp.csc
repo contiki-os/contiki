@@ -24,7 +24,8 @@
       <identifier>mtype783</identifier>
       <description>Receiver</description>
       <contikiapp>[CONTIKI_DIR]/examples/udp-ipv6/udp-server.c</contikiapp>
-      <commands>make udp-server.cooja TARGET=cooja DEFINES=UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x2,UDP_ADDR_F=0x2ff,UDP_ADDR_G=0xfe02,UDP_ADDR_H=0x0202</commands>
+      <commands>make TARGET=cooja clean
+make udp-server.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -48,7 +49,7 @@
       <identifier>mtype512</identifier>
       <description>Sender</description>
       <contikiapp>[CONTIKI_DIR]/examples/udp-ipv6/udp-client.c</contikiapp>
-      <commands>make udp-client.cooja TARGET=cooja DEFINES=UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x301,UDP_ADDR_F=0x1ff,UDP_ADDR_G=0xfe01,UDP_ADDR_H=0x101</commands>
+      <commands>make udp-client.cooja TARGET=cooja DEFINES=UDP_CONNECTION_ADDR=fe80::301:1ff:fe01:101</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -146,12 +147,6 @@
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
       <script>TIMEOUT(100000, log.log("last msg: " + msg + "\n")); /* print last msg at timeout */
-
-WAIT_UNTIL(msg.contains("Created a server connection"));
-YIELD_THEN_WAIT_UNTIL(msg.contains("Created a connection"));
-
-log.log("Both nodes booted\n");
-
 count = 0;
 while (count++ &lt; 5) {
   /* Message from sender process to receiver process */
