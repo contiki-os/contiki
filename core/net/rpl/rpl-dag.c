@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.14 2010/06/02 16:23:08 joxe Exp $
+ * $Id: rpl-dag.c,v 1.15 2010/06/02 16:54:59 joxe Exp $
  */
 /**
  * \file
@@ -243,7 +243,7 @@ rpl_free_dag(rpl_dag_t *dag)
 }
 /************************************************************************/
 rpl_parent_t *
-rpl_add_parent(rpl_dag_t *dag, uip_ipaddr_t *addr)
+rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
 {
   rpl_parent_t *p;
 
@@ -255,6 +255,7 @@ rpl_add_parent(rpl_dag_t *dag, uip_ipaddr_t *addr)
   memcpy(&p->addr, addr, sizeof(p->addr));
   p->local_confidence = 0;
   p->dag = dag;
+  p->rank = dio->dag_rank;
 
   list_add(dag->parents, p);
 
@@ -387,7 +388,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  p = rpl_add_parent(dag, from);
+  p = rpl_add_parent(dag, dio, from);
   PRINTF("RPL: Adding ");
   PRINT6ADDR(from);
   PRINTF(" as a parent: ");
@@ -398,7 +399,6 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINTF("succeeded\n");
 
   p->local_confidence = 0;	/* The lowest confidence for new parents. */
-  p->rank = dio->dag_rank;
 
   /* Determine the objective function by using the
      objective code point of the DIO. */
@@ -452,12 +452,12 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   poison_routes(dag, NULL);
   dag->version = dio->version;
-  if((p = rpl_add_parent(dag, from)) == NULL) {
+  dag->of->reset(dag);
+  if((p = rpl_add_parent(dag, dio, from)) == NULL) {
     PRINTF("RPL: Failed to add a parent during the global repair\n");
     dag->rank = INFINITE_RANK;
   } else {
     rpl_set_default_route(dag, from);
-    dag->of->reset(dag);
     dag->rank = dag->of->increment_rank(dio->dag_rank, p);
     rpl_reset_dio_timer(dag, 1);
   }
@@ -519,6 +519,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       global_repair(from, dag, dio);
     }
     return;
+  } else if(dio->version < dag->version) {
+    /* Inconsistency detected - someone is still on old version */
+    PRINTF("RPL: old version received => inconsistency detected\n");
+    rpl_reset_dio_timer(dag, 1);
+    return;
   }
 
   /* This DIO pertains to a DAG that we are already part of. */
@@ -575,13 +580,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
     new_parent = 0;
     if(p == NULL) {
-      p = rpl_add_parent(dag, from);
+      p = rpl_add_parent(dag, dio, from);
       if(p == NULL) {
         PRINTF("RPL: Could not add parent\n");
         return;
       }
 
-      p->rank = dio->dag_rank;
       PRINTF("RPL: New parent with rank %hu ", p->rank);
       PRINT6ADDR(from);
       PRINTF("\n");

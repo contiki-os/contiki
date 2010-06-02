@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.9 2010/06/02 16:23:12 joxe Exp $
+ * $Id: rpl.h,v 1.10 2010/06/02 16:55:00 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -274,7 +274,7 @@ rpl_dag_t *rpl_alloc_dag(void);
 void rpl_free_dag(rpl_dag_t *);
 
 /* DAG parent management function. */
-rpl_parent_t *rpl_add_parent(rpl_dag_t *, uip_ipaddr_t *);
+rpl_parent_t *rpl_add_parent(rpl_dag_t *, rpl_dio_t *dio, uip_ipaddr_t *);
 rpl_parent_t *rpl_find_parent(rpl_dag_t *, uip_ipaddr_t *);
 int rpl_remove_parent(rpl_dag_t *, rpl_parent_t *);
 rpl_parent_t *rpl_preferred_parent(rpl_dag_t *dag);
