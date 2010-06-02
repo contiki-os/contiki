@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.13 2010/06/01 22:30:02 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.14 2010/06/02 11:59:51 joxe Exp $
  */
 /**
  * \file
@@ -324,7 +324,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
 
   buffer = UIP_ICMP_PAYLOAD;
   buffer[pos++] = dag->instance_id;
-  buffer[pos++] = 0; /* version */
+  buffer[pos++] = dag->version;
   buffer[pos++] = dag->rank >> 8;
   buffer[pos++] = dag->rank & 0xff;
 
@@ -334,7 +334,6 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   /* Set dst_adv_trigger and dst_adv_supported. */
   buffer[pos] |= RPL_DIO_DEST_ADV_SUPPORTED | RPL_DIO_DEST_ADV_TRIGGER;
   pos++;
-  /* buffer[pos++] = dag->sequence_number; */
   buffer[pos++] = dag->dtsn;
   /* reserved 2 bytes */
   pos += 2;

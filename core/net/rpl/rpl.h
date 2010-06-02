@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.7 2010/06/01 22:30:02 joxe Exp $
+ * $Id: rpl.h,v 1.8 2010/06/02 11:59:52 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -192,7 +192,6 @@ struct rpl_dio {
   uint8_t dst_adv_supported;
   uint8_t preference;
   uint8_t version;
-  uint8_t sequence_number;
   uint8_t instance_id;
   uint8_t dtsn;
   uint8_t dag_intdoubl;
@@ -217,7 +216,7 @@ struct rpl_dag {
   rpl_rank_t min_rank; /* should be reset per DODAG iteration! */
   uint8_t dtsn;
   uint8_t instance_id;
-  uint8_t sequence_number;
+  uint8_t version;
   uint8_t preference;
   uint8_t grounded;
   uint8_t dio_intdoubl;

@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.12 2010/06/01 22:30:02 joxe Exp $
+ * $Id: rpl-dag.c,v 1.13 2010/06/02 11:59:51 joxe Exp $
  */
 /**
  * \file
@@ -416,7 +416,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag->instance_id = dio->instance_id;
   dag->rank = dag->of->increment_rank(dio->dag_rank, p);
   dag->min_rank = dag->rank; /* So far this is the lowest rank we know */
-  dag->sequence_number = dio->sequence_number;
+  dag->version = dio->version;
   dag->dio_intdoubl = dio->dag_intdoubl;
   dag->dio_intmin = dio->dag_intmin;
   dag->dio_redundancy = dio->dag_redund;
@@ -451,7 +451,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
   rpl_parent_t *p;
 
   poison_routes(dag, NULL);
-  dag->sequence_number = dio->sequence_number;
+  dag->version = dio->version;
   if((p = rpl_add_parent(dag, from)) == NULL) {
     PRINTF("RPL: Failed to add a parent during the global repair\n");
     dag->rank = INFINITE_RANK;
@@ -461,8 +461,8 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     dag->rank = dag->of->increment_rank(dio->dag_rank, p);
     rpl_reset_dio_timer(dag, 1);
   }
-  PRINTF("RPL: Participating in a global DAG repair. New DAG sequence number: %u, new rank: %hu\n",
-         dag->sequence_number, dag->rank);
+  PRINTF("RPL: Participating in a global DAG repair. New DAG version number: %u, new rank: %hu\n",
+         dag->version, dag->rank);
 
 }
 /************************************************************************/
@@ -470,7 +470,7 @@ int
 rpl_repair_dag(rpl_dag_t *dag)
 {
   if(dag->rank == ROOT_RANK) {
-    dag->sequence_number++;
+    dag->version++;
     rpl_reset_dio_timer(dag, 1);
     return 1;
   }
@@ -509,10 +509,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  if(dio->sequence_number > dag->sequence_number) {
+  if(dio->version > dag->version) {
     if(dag->rank == ROOT_RANK) {
-      PRINTF("RPL: Root received inconsistent DIO sequence number\n");
-      dag->sequence_number = dio->sequence_number + 1;
+      PRINTF("RPL: Root received inconsistent DIO version number\n");
+      dag->version = dio->version + 1;
       rpl_reset_dio_timer(dag, 1);
       return;
     } else {
