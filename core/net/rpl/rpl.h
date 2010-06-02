@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.8 2010/06/02 11:59:52 joxe Exp $
+ * $Id: rpl.h,v 1.9 2010/06/02 16:23:12 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -165,7 +165,12 @@ struct rpl_of {
   void (*reset)(void *);
   void (*parent_state_callback)(rpl_parent_t *, int, int);
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
-  rpl_rank_t (*increment_rank)(rpl_rank_t, rpl_parent_t *);
+
+  /* Increment the rank - the rank that just have been received in a DIO
+     (or if picked from a parent) is the first argument. This is considered
+     the valid rank to calculate based on. The second argument is the parent
+     that is related to this calculation - if any (can be NULL) */
+  rpl_rank_t (*increment_rank)(rpl_rank_t rank, rpl_parent_t *parent);
   rpl_ocp_t ocp;
 };
 
