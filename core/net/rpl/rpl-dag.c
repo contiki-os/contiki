@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.13 2010/06/02 11:59:51 joxe Exp $
+ * $Id: rpl-dag.c,v 1.14 2010/06/02 16:23:08 joxe Exp $
  */
 /**
  * \file
@@ -568,8 +568,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   if(dio->dag_rank < dag->rank) {
     /* Message from a node closer to the root, but we might still be out of allowed rank-range */
-    if(dag->max_rankinc > 0 &&
-       dag->min_rank + dag->max_rankinc < dag->of->increment_rank(dio->dag_rank, p)) {
+    if(dag->max_rankinc > 0 && dag->min_rank + dag->max_rankinc <
+       dag->of->increment_rank(dio->dag_rank, NULL)) {
         PRINTF("RPL: Could not add parent, resulting rank too high\n");
         return;
     }
