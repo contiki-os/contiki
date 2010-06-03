@@ -9,7 +9,7 @@
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-u8_t uip_buf[UIP_BUFSIZE + 2];
+uip_buf_t uip_aligned_buf;
 
 u16_t uip_len;
 
