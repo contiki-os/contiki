@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.16 2010/06/03 12:55:09 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.17 2010/06/03 15:20:56 nvt-se Exp $
  */
 /**
  * \file
@@ -130,10 +130,13 @@ rpl_dag_t *
 rpl_set_root(uip_ipaddr_t *dag_id)
 {
   rpl_dag_t *dag;
+  int version;
 
+  version = -1;
   dag = rpl_get_dag(RPL_DEFAULT_OCP);
   if(dag != NULL) {
     PRINTF("RPL: Dropping a joined DAG when setting this node as root");
+    version = dag->version;
     rpl_free_dag(dag);
   }
 
@@ -144,6 +147,7 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   }
 
   dag->joined = 1;
+  dag->version = version + 1;
   dag->grounded = RPL_GROUNDED;
   dag->rank = ROOT_RANK;
   dag->of = rpl_find_of(RPL_DEFAULT_OCP);
@@ -227,23 +231,20 @@ rpl_alloc_dag(void)
 void
 rpl_free_dag(rpl_dag_t *dag)
 {
-  uip_ds6_route_t *rep;
-
   PRINTF("RPL: Leaving the DAG ");
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
 
-  rep = uip_ds6_route_lookup(&dag->dag_id);
-  if(rep != NULL) {
-    uip_ds6_route_rm(rep);
-  }
+  /* Remove routes installed by DAOs. */
+  rpl_remove_routes(dag);
 
-  rpl_set_default_route(dag, NULL);
-
+  /* Remove parents and the default route. */
   remove_parents(dag, NULL, !POISON_ROUTES);
+  rpl_set_default_route(dag, NULL);
 
   ctimer_stop(&dag->dio_timer);
   ctimer_stop(&dag->dao_timer);
+
   dag->used = 0;
   dag->joined = 0;
 }
@@ -301,7 +302,10 @@ rpl_preferred_parent(rpl_dag_t *dag)
       best = dag->of->best_parent(best, p);
     }
   }
-  dag->best_parent = best; /* Cache the value. */
+  if(dag->best_parent != best) {
+    dag->best_parent = best; /* Cache the value. */
+    rpl_set_default_route(dag, &best->addr);
+  }
   return best;
 }
 /************************************************************************/
@@ -346,19 +350,6 @@ rpl_get_dag(int instance_id)
   return NULL;
 }
 /************************************************************************/
-rpl_dag_t *
-rpl_find_dag(unsigned char aucIndex)
-{
-  int i;
-
-  for(i = aucIndex; i < RPL_MAX_DAG_ENTRIES; i++) {
-    if(dag_table[i].joined ) {
-      return &dag_table[i];
-    }
-  }
-  return NULL;
-}
-/************************************************************************/
 rpl_of_t *
 rpl_find_of(rpl_ocp_t ocp)
 {
@@ -371,14 +362,6 @@ rpl_find_of(rpl_ocp_t ocp)
   }
 
   return NULL;
-}
-/************************************************************************/
-void
-rpl_join_dag(rpl_dag_t *dag)
-{
-  dag->joined = 1;
-
-  rpl_reset_dio_timer(dag, 1);
 }
 /************************************************************************/
 static void
@@ -415,6 +398,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
+  dag->joined = 1;
   dag->used = 1;
   dag->of = of;
   dag->preference = dio->preference;
@@ -435,13 +419,12 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   /* copy prefix information into the dag */
   memcpy(&dag->prefix_info, &dio->prefix_info, sizeof(rpl_prefix_t));
 
-  rpl_join_dag(dag);
-
   PRINTF("RPL: Joined DAG with instance ID %u, rank %hu, DAG ID ",
          dio->instance_id, dag->rank);
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
 
+  rpl_reset_dio_timer(dag, 1);
   rpl_set_default_route(dag, from);
 
   if(dio->dst_adv_supported && dio->dst_adv_trigger) {
@@ -562,10 +545,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
         preferred_parent = rpl_preferred_parent(dag);
         if(p == preferred_parent) {
           new_rank = dag->of->increment_rank(dio->dag_rank, p);
-	  PRINTF("RPL: New rank is %hu, max is %hu\n",
-		dag->rank, dag->min_rank + dag->max_rankinc);
           rpl_set_default_route(dag, &p->addr);
 	  dag->rank = new_rank;
+	  PRINTF("RPL: New rank is %hu, max is %hu\n",
+		dag->rank, dag->min_rank + dag->max_rankinc);
         }
       } else {
         PRINTF("RPL: Cannot find an acceptable preferred parent\n");

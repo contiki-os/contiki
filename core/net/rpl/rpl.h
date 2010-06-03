@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.11 2010/06/03 14:49:16 joxe Exp $
+ * $Id: rpl.h,v 1.12 2010/06/03 15:20:56 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -289,6 +289,7 @@ rpl_dag_t *rpl_get_dag(int instance_id);
 rpl_dag_t *rpl_find_dag(unsigned char aucIndex);
 
 /* RPL routing table functions. */
+void rpl_remove_routes(rpl_dag_t *dag);
 uip_ds6_route_t *rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix,
                                int prefix_len, uip_ipaddr_t *next_hop);
 void rpl_purge_routes(void);
