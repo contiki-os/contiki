@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-of-etx.c,v 1.3 2010/06/02 16:23:11 joxe Exp $
+ * $Id: rpl-of-etx.c,v 1.4 2010/06/03 12:12:20 nvt-se Exp $
  */
 /**
  * \file
@@ -64,16 +64,15 @@ rpl_of_t rpl_of_etx = {
 #define PATH_ETX_MIN			1
 #define PATH_ETX_MAX			200
 #define PARENT_SWITCH_ETX_THRESHOLD	0.5
-#define INFINITY			0xffff
 
-typedef unsigned int etx_t;
+typedef uint16_t etx_t;
 
-static etx_t min_path_etx = INFINITY;
+static etx_t min_path_etx = INFINITE_RANK;
 
 static void
 reset(void *dag)
 {
-  min_path_etx = INFINITY;
+  min_path_etx = INFINITE_RANK;
 }
 
 static void
@@ -84,15 +83,15 @@ parent_state_callback(rpl_parent_t *parent, int known, int etx)
   dag = (rpl_dag_t *)parent->dag;
 
   if(known) {
-    if(min_path_etx != INFINITY) {
+    if(min_path_etx != INFINITE_RANK) {
       dag->rank = min_path_etx + etx;
       PRINTF("RPL: New path ETX: %u  min_path_etx=%u etx=%u\n",
              (unsigned)(min_path_etx + etx), min_path_etx, etx);
     }
   } else {
     if(RPL_PARENT_COUNT(dag) == 1) {
-      /* Our last parent has disappeared, set the path ETX to infinity. */
-      min_path_etx = INFINITY;
+      /* Our last parent has disappeared, set the path ETX to INFINITE_RANK. */
+      min_path_etx = INFINITE_RANK;
     }
   }
 }
@@ -109,13 +108,14 @@ increment_rank(rpl_rank_t rank, rpl_parent_t *parent)
     PRINTF("RPL: min_path_etx updated to:%u\n", min_path_etx);
   }
 
-  /* calculate the rank based on the new rank information from DIO or
-     stored otherwise */
-  new_rank = rank + LINK_ETX_MAX;
-
-  /* if(new_rank < rank) { */
-  /*   return INFINITE_RANK; */
-  /* } */
+  if(INFINITE_RANK - rank < LINK_ETX_MAX) {
+    /* Reached the maximum rank. */
+    new_rank = INFINITE_RANK;
+  } else {
+   /* Calculate the rank based on the new rank information from DIO or
+      stored otherwise. */
+    new_rank = rank + LINK_ETX_MAX;
+  }
 
   PRINTF("RPL: Path ETX %u\n", (unsigned)new_rank);
 
