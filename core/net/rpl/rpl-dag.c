@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.17 2010/06/03 15:20:56 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.18 2010/06/03 18:37:47 joxe Exp $
  */
 /**
  * \file
@@ -396,6 +396,21 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
     PRINTF("RPL: DIO for DAG instance %u does not specify a supported OF\n",
         dio->instance_id);
     return;
+  }
+
+  /* Autoconfigure an address if this node does not already have an address
+     with this prefix. */
+  if((dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
+    uip_ipaddr_t ipaddr;
+    /* assume that the prefix ends with zeros! */
+    memcpy(&ipaddr, &dio->prefix_info.prefix, 16);
+    uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+    if(uip_ds6_addr_lookup(&ipaddr) == NULL) {
+      PRINTF("RPL: adding global IP address ");
+      PRINT6ADDR(&ipaddr);
+      PRINTF("\n");
+      uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+    }
   }
 
   dag->joined = 1;

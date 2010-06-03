@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.15 2010/06/03 14:49:15 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.16 2010/06/03 18:37:47 joxe Exp $
  */
 /**
  * \file
@@ -286,24 +286,6 @@ dio_input(void)
       /* 32-bit reserved at i + 12 */
       PRINTF("RPL: Copying prefix information\n");
       memcpy(&dio.prefix_info.prefix, &buffer[i + 16], 16);
-
-      /* NOTE: This is a test for adding autoconf prefix in RPL via  */
-      /* a destination prefix - this use one reserved flag bit       */
-      /* This should not be made until RPL decides to join the DAG   */
-      /* And not if there already is a global address configured for */
-      /* the specific DAG */
-      if((dio.prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
-        uip_ipaddr_t ipaddr;
-        /* assume that the prefix ends with zeros! */
-        memcpy(&ipaddr, &dio.prefix_info.prefix, 16);
-        uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-        if(uip_ds6_addr_lookup(&ipaddr) == NULL) {
-          PRINTF("RPL: adding global IP address ");
-          PRINT6ADDR(&ipaddr);
-          PRINTF("\n");
-          uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
-        }
-      }
       break;
     }
   }
