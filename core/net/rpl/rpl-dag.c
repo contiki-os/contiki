@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.15 2010/06/02 16:54:59 joxe Exp $
+ * $Id: rpl-dag.c,v 1.16 2010/06/03 12:55:09 nvt-se Exp $
  */
 /**
  * \file
@@ -97,20 +97,25 @@ static rpl_of_t *objective_functions[] = {&rpl_of_etx, NULL};
 MEMB(parent_memb, struct rpl_parent, RPL_MAX_PARENTS);
 
 static rpl_dag_t dag_table[RPL_MAX_DAG_ENTRIES];
+
+#define POISON_ROUTES 1
 /************************************************************************/
 static void
-poison_routes(rpl_dag_t *dag, rpl_parent_t *exception)
+remove_parents(rpl_dag_t *dag, rpl_parent_t *exception, int poison_routes)
 {
   rpl_parent_t *p, *p2;
 
-  PRINTF("RPL: Poisoning routes\n");
+  PRINTF("RPL: Removing parents %s poisoning routes\n",
+	 poison_routes == POISON_ROUTES ? "and" : "without");
 
   for(p = list_head(dag->parents); p != NULL;) {
    if(p != exception) {
      ANNOTATE("#L %u 0\n", p->addr.u8[sizeof(p->addr) - 1]);
 
-     /* Send no-DAOs to old parents. */
-     dao_output(p, ZERO_LIFETIME);
+     if(poison_routes == POISON_ROUTES) {
+       /* Send no-DAOs to old parents. */
+       dao_output(p, ZERO_LIFETIME);
+     }
 
      p2 = p->next;
      rpl_remove_parent(dag, p);
@@ -162,16 +167,17 @@ rpl_set_root(uip_ipaddr_t *dag_id)
 }
 /************************************************************************/
 int
-rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len) {
+rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len)
+{
   if(len <= 128) {
     memset(&dag->prefix_info.prefix, 0, 16);
-    memcpy(&dag->prefix_info.prefix, prefix, (len + 7)/ 8);
+    memcpy(&dag->prefix_info.prefix, prefix, (len + 7) / 8);
     dag->prefix_info.length = len;
     dag->prefix_info.flags = UIP_ND6_RA_FLAG_AUTONOMOUS;
     PRINTF("RPL: Prefix set - will announce this in DIOs\n");
-    return 0;
+    return 1;
   }
-  return -1;
+  return 0;
 }
 /************************************************************************/
 int
@@ -234,7 +240,7 @@ rpl_free_dag(rpl_dag_t *dag)
 
   rpl_set_default_route(dag, NULL);
 
-  poison_routes(dag, NULL);
+  remove_parents(dag, NULL, !POISON_ROUTES);
 
   ctimer_stop(&dag->dio_timer);
   ctimer_stop(&dag->dao_timer);
@@ -450,7 +456,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 {
   rpl_parent_t *p;
 
-  poison_routes(dag, NULL);
+  remove_parents(dag, NULL, !POISON_ROUTES);
   dag->version = dio->version;
   dag->of->reset(dag);
   if((p = rpl_add_parent(dag, dio, from)) == NULL) {
@@ -461,7 +467,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     dag->rank = dag->of->increment_rank(dio->dag_rank, p);
     rpl_reset_dio_timer(dag, 1);
   }
-  PRINTF("RPL: Participating in a global DAG repair. New DAG version number: %u, new rank: %hu\n",
+  PRINTF("RPL: Participating in a global repair (version=%u, rank=%hu)\n",
          dag->version, dag->rank);
 
 }
@@ -482,6 +488,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
   rpl_dag_t *dag;
   rpl_parent_t *p;
+  rpl_parent_t *preferred_parent;
   uint8_t new_rank;
   uint8_t new_parent;
 
@@ -529,10 +536,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   /* This DIO pertains to a DAG that we are already part of. */
   p = rpl_find_parent(dag, from);
   if(p != NULL) {
-    if(dio->dst_adv_supported && dio->dst_adv_trigger) {
+    if(dio->dst_adv_supported && dio->dst_adv_trigger &&
+       p == rpl_preferred_parent(dag)) {
       rpl_schedule_dao(dag);
-    } else {
-      PRINTF("RPL: dst_adv_trigger is not set in incoming DIO\n");
     }
 
     if(p->rank > dio->dag_rank) {
@@ -553,14 +559,18 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 	}
 	return;
       } else if(dag->of->increment_rank(dio->dag_rank, p) <= dag->min_rank + dag->max_rankinc) {
-        dag->rank = dag->of->increment_rank(dio->dag_rank, p);
-        PRINTF("RPL: New rank is %hu, max is %hu\n",
+        preferred_parent = rpl_preferred_parent(dag);
+        if(p == preferred_parent) {
+          new_rank = dag->of->increment_rank(dio->dag_rank, p);
+	  PRINTF("RPL: New rank is %hu, max is %hu\n",
 		dag->rank, dag->min_rank + dag->max_rankinc);
-        rpl_set_default_route(dag, &p->addr);
+          rpl_set_default_route(dag, &p->addr);
+	  dag->rank = new_rank;
+        }
       } else {
         PRINTF("RPL: Cannot find an acceptable preferred parent\n");
         /* do local repair - jump down the DAG */
-        poison_routes(dag, NULL);
+        remove_parents(dag, NULL, POISON_ROUTES);
         dag->rank = INFINITE_RANK;
       }
       rpl_reset_dio_timer(dag, 1);
@@ -605,7 +615,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       rpl_set_default_route(dag, from);
 
       if(new_parent) {
-        poison_routes(dag, p);
+        remove_parents(dag, p, POISON_ROUTES);
       }
     }
   } else if(dio->dag_rank == dag->rank) {
@@ -654,10 +664,14 @@ rpl_ds6_neighbor_callback(uip_ds6_nbr_t *nbr)
     if(dag != NULL && dag->def_route != NULL &&
        uip_ipaddr_cmp(&dag->def_route->ipaddr, &p->addr)) {
       p = rpl_preferred_parent(dag);
-      acceptable_rank_increase = !dag->max_rankinc || 
-	 dag->of->increment_rank(p->rank, p) <= dag->min_rank + dag->max_rankinc;
+      if(p == NULL) {
+	rpl_free_dag(dag);
+	return;
+      }
 
-      if(p != NULL && acceptable_rank_increase) {
+      acceptable_rank_increase = !dag->max_rankinc || 
+	dag->of->increment_rank(p->rank, p) <= dag->min_rank + dag->max_rankinc;
+      if(acceptable_rank_increase) {
         dag->rank = dag->of->increment_rank(p->rank, p);
         if(dag->rank < dag->min_rank) {
            dag->min_rank = dag->rank;
@@ -668,7 +682,7 @@ rpl_ds6_neighbor_callback(uip_ds6_nbr_t *nbr)
       } else {
         PRINTF("RPL: Cannot select the preferred parent\n");
         /* do local repair - jump down the DAG */
-        poison_routes(dag, NULL);
+        remove_parents(dag, NULL, POISON_ROUTES);
         dag->rank = INFINITE_RANK;
         rpl_reset_dio_timer(dag, 1);
       }
