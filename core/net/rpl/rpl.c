@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.5 2010/05/29 22:23:21 nvt-se Exp $
+ * $Id: rpl.c,v 1.6 2010/06/03 15:20:56 nvt-se Exp $
  */
 /**
  * \file
@@ -73,6 +73,18 @@ rpl_purge_routes(void)
       } else {
         uip_ds6_routing_table[i].state.lifetime--;
       }
+    }
+  }
+}
+/************************************************************************/
+void
+rpl_remove_routes(rpl_dag_t *dag)
+{
+  int i;
+
+  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+    if(uip_ds6_routing_table[i].state.dag == dag) {
+      uip_ds6_route_rm(&uip_ds6_routing_table[i]);
     }
   }
 }
