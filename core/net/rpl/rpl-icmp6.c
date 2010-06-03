@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.14 2010/06/02 11:59:51 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.15 2010/06/03 14:49:15 joxe Exp $
  */
 /**
  * \file
@@ -408,13 +408,20 @@ dao_input(void)
   uint16_t sequence;
   uint8_t instance_id;
   uint32_t lifetime;
-  uint8_t rank;
   uint8_t prefixlen;
-  uint32_t route_tag;
+  uint8_t flags;
+  uint8_t subopt_type;
   uip_ipaddr_t prefix;
   uip_ds6_route_t *rep;
   rpl_parent_t *n;
+  uint8_t buffer_length;
   int pos;
+  int len;
+  int i;
+
+  lifetime = 0;
+  prefixlen = 0;
+
 
   /* Destination Advertisement Object */
   PRINTF("RPL: Received a DAO from ");
@@ -422,44 +429,60 @@ dao_input(void)
   PRINTF("\n");
 
   buffer = UIP_ICMP_PAYLOAD;
+  buffer_length = uip_len - uip_l2_l3_icmp_hdr_len;
 
   pos = 0;
-  sequence = (buffer[pos] << 8) | buffer[pos + 1];
-  pos += 2;
-
-  rank = (buffer[pos] << 8) | buffer[pos + 1];
-  pos += 2;
-
-  /* pos = 4 */
   instance_id = buffer[pos++];
-
-  route_tag = buffer[pos++];
-  prefixlen = buffer[pos++];
-  /* ignore RRCount for now: rrcount = buffer[pos++]; */
+  flags = buffer[pos++];
+  /* reserved */
   pos++;
-  /* pos = 8 */
-  lifetime = get32(buffer, pos);
-  pos += 4;
+  sequence = buffer[pos++];
 
+  /* is the DAGID present ? */
+  if(flags & RPL_DAO_D_FLAG) {
+    /* currently the DAG ID is ignored since we only use global
+       RPL Instance IDs... */
+    pos += 16;
+  }
+
+  /* handle the target option */
   dag = rpl_get_dag(instance_id);
   if(dag == NULL) {
     PRINTF("RPL: Ignoring a DAO for a different DAG instance (%u)\n",
-        instance_id);
+           instance_id);
     return;
   }
 
-  if(rank < dag->rank) {
-    PRINTF("RPL: Incoming DAO rank is %u, my rank is %u\n",
-           (unsigned)rank, (unsigned)dag->rank);
-    return;
+  /* Check if there are any DIO suboptions. */
+  i = pos;
+  for(; i < buffer_length; i += len) {
+    subopt_type = buffer[i];
+    if(subopt_type == RPL_DIO_SUBOPT_PAD1) {
+      len = 1;
+    } else {
+      /* Suboption with a two-byte header + payload */
+      len = 2 + buffer[i + 1];
+    }
+
+    switch(subopt_type) {
+    case RPL_DIO_SUBOPT_TARGET:
+      prefixlen = buffer[i + 3];
+      memset(&prefix, 0, sizeof(prefix));
+      memcpy(&prefix, buffer + i + 4, prefixlen / CHAR_BIT);
+      break;
+    case RPL_DIO_SUBOPT_TRANSIT:
+      /* path sequence and control ignored */
+      lifetime = get32(buffer, i + 4);
+      /* parent address also ignored */
+      break;
+    }
   }
 
-  memset(&prefix, 0, sizeof(prefix));
-  memcpy(&prefix, buffer + pos, prefixlen / CHAR_BIT);
-
-  PRINTF("RPL: DAO rank: %u, lifetime: %lu, prefix length: %u",
-        (unsigned)rank, (unsigned long)lifetime, (unsigned)prefixlen);
+  PRINTF("RPL: DAO lifetime: %lu, prefix length: %u",
+         (unsigned long)lifetime, (unsigned)prefixlen);
   PRINTF("\n");
+
+
 
   if(lifetime == ZERO_LIFETIME) {
     /* No-DAO received; invoke the route purging routine. */
@@ -491,8 +514,7 @@ dao_input(void)
       PRINTF("RPL: Forwarding DAO to parent ");
       PRINT6ADDR(&n->addr);
       PRINTF("\n");
-      uip_icmp6_send(&n->addr, ICMP6_RPL, RPL_CODE_DAO,
-        14 + (prefixlen / CHAR_BIT));
+      uip_icmp6_send(&n->addr, ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     }
   }
 }
@@ -509,11 +531,15 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
   int pos;
 
   /* Destination Advertisement Object */
+  if(get_global_addr(&prefix) == 0) {
+    PRINTF("RPL: No global address set for this node - suppressing DAO\n");
+    return;
+  }
 
   if(n == NULL) {
     dag = rpl_get_dag(RPL_ANY_INSTANCE);
     if(dag == NULL) {
-      PRINTF("RPL: Did not join a DAG before receiving DAO\n");
+      PRINTF("RPL: Did not join a DAG before sending DAO\n");
       return;
     }
   } else {
@@ -524,34 +550,28 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
 
   ++sequence;
   pos = 0;
-  buffer[pos++] = sequence >> 8;
+
+  buffer[pos++] = dag->instance_id;
+  buffer[pos++] = 0; /* no ack request, no DODAGID */
+  buffer[pos++] = 0; /* reserved */
   buffer[pos++] = sequence & 0xff;
 
-  buffer[pos++] = dag->rank >> 8;
-  buffer[pos++] = dag->rank & 0xff;
-
-  /* pos = 4 */
-  buffer[pos++] = dag->instance_id;
-  /* Route tag. Unspecified in draft-ietf-roll-rpl-06. */
-  buffer[pos++] = 0;
-
+  /* create target subopt */
   prefixlen = sizeof(prefix) * CHAR_BIT;
+  buffer[pos++] = RPL_DIO_SUBOPT_TARGET;
+  buffer[pos++] = 2 + ((prefixlen + 7) / CHAR_BIT);
+  buffer[pos++] = 0; /* reserved */
   buffer[pos++] = prefixlen;
-  /* Reverse route count. Not used because reverse routing is unscalable
-     beyond a few hops. */
-  buffer[pos++] = 0;
-  /* pos = 8 */
-  /* DAO Lifetime. */
+  memcpy(buffer + pos, &prefix, (prefixlen + 7) / CHAR_BIT);
+  pos += ((prefixlen + 7) / CHAR_BIT);
+
+  /* create a transit information subopt */
+  buffer[pos++] = RPL_DIO_SUBOPT_TRANSIT;
+  buffer[pos++] = 6;
+  buffer[pos++] = 0; /* path seq - ignored */
+  buffer[pos++] = 0; /* path control - ignored */
   set32(buffer, pos, lifetime);
   pos += 4;
-
-  /* pos = 12 or 14 */
-  if(get_global_addr(&prefix) == 0) {
-    PRINTF("RPL: No global address set for this node - suppressing DAO\n");
-    return;
-  }
-  memcpy(buffer + pos, &prefix, prefixlen / CHAR_BIT);
-  pos += (prefixlen / CHAR_BIT);
 
   if(n == NULL) {
     uip_create_linklocal_allnodes_mcast(&addr);

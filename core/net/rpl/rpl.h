@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.10 2010/06/02 16:55:00 joxe Exp $
+ * $Id: rpl.h,v 1.11 2010/06/03 14:49:16 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -71,7 +71,7 @@
 #define RPL_CODE_SEC_DAO               0x82   /* DAO message */
 #define RPL_CODE_SEC_DAO_ACK           0x83   /* DAO ACK message */
 
-/* RPL DIO suboption types */
+/* RPL DIO/DAO suboption types */
 #define RPL_DIO_SUBOPT_PAD1              0   /* Pad1 */
 #define RPL_DIO_SUBOPT_PADN              1   /* PadN */
 #define RPL_DIO_SUBOPT_DAG_MC            2   /* DAG metric container */
@@ -83,6 +83,9 @@
 #define RPL_DIO_SUBOPT_PREFIX_INFO       8   /* Prefix information option */
 
 #define RPL_DIO_SUBOPT_OCP               9   /* 5 in the MC document... */
+
+#define RPL_DAO_K_FLAG                   0x80 /* DAO ACK requested */
+#define RPL_DAO_D_FLAG                   0x40 /* DODAG ID Present */
 
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
@@ -127,6 +130,8 @@
 /* Expire DAOs from neighbors that do not respond in this time. (seconds) */
 #define DAO_EXPIRATION_TIMEOUT          60
 /*---------------------------------------------------------------------------*/
+#define RPL_INSTANCE_LOCAL_FLAG         0x80
+#define RPL_INSTANCE_D_FLAG             0x40
 
 #define RPL_ROUTE_FROM_INTERNAL         0
 #define RPL_ROUTE_FROM_UNICAST_DAO      1
