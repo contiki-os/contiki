@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.43 2010/06/01 12:37:54 joxe Exp $
+ * $Id: sicslowpan.c,v 1.44 2010/06/06 12:44:12 joxe Exp $
  */
 /**
  * \file
@@ -259,14 +259,27 @@ static struct sicslowpan_addr_context *context;
 /** pointer to the byte where to write next inline field. */
 static uint8_t *hc06_ptr;
 
-/* Uncompression of linklocal and other */
-/*   0 -> 16 bits from packet  */
-/*   1 -> 2 bits from prefix - bunch of zeroes and 8 from packet */
-/*   2 -> 2 bits from prefix - zeroes + 2 from packet */
-/*   3 -> 2 bits from prefix - infer 8 bytes from lladdr */
+/* Uncompression of linklocal */
+/*   0 -> 16 bytes from packet  */
+/*   1 -> 2 bytes from prefix - bunch of zeroes and 8 from packet */
+/*   2 -> 2 bytes from prefix - zeroes + 2 from packet */
+/*   3 -> 2 bytes from prefix - infer 8 bytes from lladdr */
 /*   NOTE: => the uncompress function does change 0xf to 0x10 */
+/*   NOTE: 0x00 => no-autoconfig => unspecified */
 const uint8_t unc_llconf[] = {0x0f,0x28,0x22,0x20};
-const uint8_t unc_ctxconf[] = {0x0f,0x88,0x82,0x80};
+
+/* Uncompression of ctx-based */
+/*   0 -> 0 bits from packet [unspecified / reserved] */
+/*   1 -> 8 bytes from prefix - bunch of zeroes and 8 from packet */
+/*   2 -> 8 bytes from prefix - zeroes + 2 from packet */
+/*   3 -> 8 bytes from prefix - infer 8 bytes from lladdr */
+const uint8_t unc_ctxconf[] = {0x00,0x88,0x82,0x80};
+
+/* Uncompression of ctx-based */
+/*   0 -> 0 bits from packet  */
+/*   1 -> 2 bytes from prefix - bunch of zeroes 5 from packet */
+/*   2 -> 2 bytes from prefix - zeroes + 3 from packet */
+/*   3 -> 2 bytes from prefix - infer 1 bytes from lladdr */
 const uint8_t unc_mxconf[] = {0x0f, 0x25, 0x23, 0x21};
 
 /* Link local prefix */
@@ -355,7 +368,8 @@ uncompress_addr(uip_ipaddr_t *ipaddr, uint8_t const prefix[],
   if(postcount > 0) {
     memcpy(&ipaddr->u8[16 - postcount], hc06_ptr, postcount);
     hc06_ptr += postcount;
-  } else {
+  } else if (prefcount > 0){
+    /* no IID based configuration if no prefix and no data => unspec */
     uip_ds6_set_addr_iid(ipaddr, lladdr);
   }
 
@@ -1555,6 +1569,10 @@ input(void)
    * and rime_hdr_len are non 0, frag_offset is.
    * If this is a subsequent fragment, this is the contrary.
    */
+  if(packetbuf_datalen() < rime_hdr_len) {
+    PRINTF("SICSLOWPAN: packet dropped due to header > total packet\n");
+    return;
+  }
   rime_payload_len = packetbuf_datalen() - rime_hdr_len;
   memcpy((void *)SICSLOWPAN_IP_BUF + uncomp_hdr_len + (u16_t)(frag_offset << 3), rime_ptr + rime_hdr_len, rime_payload_len);
   
