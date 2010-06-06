@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.17 2010/06/06 12:45:55 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.18 2010/06/06 21:42:50 nvt-se Exp $
  */
 /**
  * \file
@@ -59,6 +59,7 @@
 
 #include "net/uip-debug.h"
 
+/*---------------------------------------------------------------------------*/
 #define RPL_DIO_GROUNDED            0x80
 #define RPL_DIO_DEST_ADV_SUPPORTED  0x40
 #define RPL_DIO_DEST_ADV_TRIGGER    0x20
@@ -71,11 +72,14 @@
 #define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF     ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_ICMP_PAYLOAD ((unsigned char *)&uip_buf[uip_l2_l3_icmp_hdr_len])
-
+/*---------------------------------------------------------------------------*/
 static void dis_input(void);
 static void dio_input(void);
 static void dao_input(void);
+static void dao_ack_input(void);
 
+static uint8_t dao_sequence;
+/*---------------------------------------------------------------------------*/
 static int
 get_global_addr(uip_ipaddr_t *addr)
 {
@@ -94,7 +98,6 @@ get_global_addr(uip_ipaddr_t *addr)
   }
   return 0;
 }
-
 /*---------------------------------------------------------------------------*/
 static uint32_t
 get32(uint8_t *buffer, int pos)
@@ -333,8 +336,6 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   buffer[pos++] = dag->of->ocp >> 8;
   buffer[pos++] = dag->of->ocp & 0xff;
 
-  /* alignment here ??? */
-
   /* always add a sub-option for DAG configuration */
   buffer[pos++] = RPL_DIO_SUBOPT_DAG_CONF;
   buffer[pos++] = 8;
@@ -389,6 +390,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
 static void
 dao_input(void)
 {
+  uip_ipaddr_t dao_sender_addr;
   rpl_dag_t *dag;
   unsigned char *buffer;
   uint16_t sequence;
@@ -404,14 +406,16 @@ dao_input(void)
   int pos;
   int len;
   int i;
+  int learned_from;
 
   lifetime = 0;
   prefixlen = 0;
 
+  uip_ipaddr_copy(&dao_sender_addr, &UIP_IP_BUF->srcipaddr);
 
   /* Destination Advertisement Object */
   PRINTF("RPL: Received a DAO from ");
-  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINT6ADDR(&dao_sender_addr);
   PRINTF("\n");
 
   buffer = UIP_ICMP_PAYLOAD;
@@ -464,7 +468,7 @@ dao_input(void)
     }
   }
 
-  PRINTF("RPL: DAO lifetime: %lu, prefix length: %u prefix:",
+  PRINTF("RPL: DAO lifetime: %lu, prefix length: %u prefix: ",
          (unsigned long)lifetime, (unsigned)prefixlen);
   PRINT6ADDR(&prefix);
   PRINTF("\n");
@@ -482,24 +486,26 @@ dao_input(void)
     return;
   }
 
-  rep = rpl_add_route(dag, &prefix, prefixlen,
-                      &UIP_IP_BUF->srcipaddr);
+  learned_from = uip_is_addr_mcast(&dao_sender_addr) ?
+                 RPL_ROUTE_FROM_MULTICAST_DAO : RPL_ROUTE_FROM_UNICAST_DAO;
+
+  rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
-    PRINTF("RPL: Could not add a route while receiving a DAO\n");
+    PRINTF("RPL: Could not add a route after receiving a DAO\n");
     return;
+  } else {
+    rep->state.lifetime = lifetime;
+    rep->state.learned_from = learned_from;
   }
 
-  rep->state.lifetime = lifetime;
-
-  if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
-    rep->state.learned_from = RPL_ROUTE_FROM_MULTICAST_DAO;
-  } else {
-    rep->state.learned_from = RPL_ROUTE_FROM_UNICAST_DAO;
+  if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
     if((n = rpl_preferred_parent(dag)) != NULL) {
       PRINTF("RPL: Forwarding DAO to parent ");
       PRINT6ADDR(&n->addr);
       PRINTF("\n");
       uip_icmp6_send(&n->addr, ICMP6_RPL, RPL_CODE_DAO, buffer_length);
+    } else if(flags & RPL_DAO_K_FLAG) {
+      dao_ack_output(dag, &dao_sender_addr, sequence);
     }
   }
 }
@@ -509,7 +515,6 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
 {
   rpl_dag_t *dag;
   unsigned char *buffer;
-  static uint16_t sequence;
   uint8_t prefixlen;
   uip_ipaddr_t addr;
   uip_ipaddr_t prefix;
@@ -533,13 +538,13 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
 
   buffer = UIP_ICMP_PAYLOAD;
 
-  ++sequence;
+  ++dao_sequence;
   pos = 0;
 
   buffer[pos++] = dag->instance_id;
-  buffer[pos++] = 0; /* no ack request, no DODAGID */
+  buffer[pos++] = RPL_DAO_K_FLAG; /* no ack request, no DODAGID */
   buffer[pos++] = 0; /* reserved */
-  buffer[pos++] = sequence & 0xff;
+  buffer[pos++] = dao_sequence & 0xff;
 
   /* create target subopt */
   prefixlen = sizeof(prefix) * CHAR_BIT;
@@ -577,6 +582,47 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
   uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DAO, pos);
 }
 /*---------------------------------------------------------------------------*/
+static void
+dao_ack_input(void)
+{
+  unsigned char *buffer;
+  uint8_t buffer_length;
+  uint8_t instance_id;
+  uint8_t sequence;
+  uint8_t status;
+
+  buffer = UIP_ICMP_PAYLOAD;
+  buffer_length = uip_len - uip_l2_l3_icmp_hdr_len;
+
+  instance_id = buffer[0];
+  sequence = buffer[2];
+  status = buffer[3];
+
+  PRINTF("RPL: Received a DAO ACK with sequence number %d and status %d from ",
+    sequence, status);
+  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINTF("\n");
+}
+/*---------------------------------------------------------------------------*/
+void
+dao_ack_output(rpl_dag_t *dag, uip_ipaddr_t *dest, uint8_t sequence)
+{
+  unsigned char *buffer;
+
+  PRINTF("RPL: Sending a DAO ACK with sequence number %d to ", sequence);
+  PRINT6ADDR(dest);
+  PRINTF("\n");
+
+  buffer = UIP_ICMP_PAYLOAD;
+
+  buffer[0] = dag->instance_id;
+  buffer[1] = 0;
+  buffer[2] = sequence;
+  buffer[3] = 0;
+
+  uip_icmp6_send(dest, ICMP6_RPL, RPL_CODE_DAO_ACK, 4);
+}
+/*---------------------------------------------------------------------------*/
 void
 uip_rpl_input(void)
 {
@@ -590,6 +636,9 @@ uip_rpl_input(void)
     break;
   case RPL_CODE_DAO:
     dao_input();
+    break;
+  case RPL_CODE_DAO_ACK:
+    dao_ack_input();
     break;
   default:
     PRINTF("RPL: received an unknown ICMP6 code (%u)\n", UIP_ICMP_BUF->icode);

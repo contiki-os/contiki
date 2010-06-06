@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.12 2010/06/03 15:20:56 nvt-se Exp $
+ * $Id: rpl.h,v 1.13 2010/06/06 21:42:50 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -90,7 +90,7 @@
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
 
-#define DEFAULT_DAO_LATENCY             (CLOCK_SECOND * 10)
+#define DEFAULT_DAO_LATENCY             (CLOCK_SECOND * (1 + (random_rand() + 0xf)))
 
 /* Special value indicating immediate removal. */
 #define ZERO_LIFETIME                   0
@@ -162,6 +162,7 @@ struct rpl_parent {
   uip_ipaddr_t addr;
   rpl_rank_t rank;
   uint8_t local_confidence;
+  uint8_t dtsn;
 };
 
 typedef struct rpl_parent rpl_parent_t;
@@ -265,6 +266,7 @@ typedef struct rpl_dag rpl_dag_t;
 void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_dag_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint32_t lifetime);
+void dao_ack_output(rpl_dag_t *, uip_ipaddr_t *, uint8_t);
 void uip_rpl_input(void);
 
 /* RPL logic functions. */

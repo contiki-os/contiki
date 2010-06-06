@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.18 2010/06/03 18:37:47 joxe Exp $
+ * $Id: rpl-dag.c,v 1.19 2010/06/06 21:42:50 nvt-se Exp $
  */
 /**
  * \file
@@ -110,8 +110,6 @@ remove_parents(rpl_dag_t *dag, rpl_parent_t *exception, int poison_routes)
 
   for(p = list_head(dag->parents); p != NULL;) {
    if(p != exception) {
-     ANNOTATE("#L %u 0\n", p->addr.u8[sizeof(p->addr) - 1]);
-
      if(poison_routes == POISON_ROUTES) {
        /* Send no-DAOs to old parents. */
        dao_output(p, ZERO_LIFETIME);
@@ -124,6 +122,13 @@ remove_parents(rpl_dag_t *dag, rpl_parent_t *exception, int poison_routes)
      p = p->next;
    }
  }
+}
+/************************************************************************/
+static int
+should_send_dao(rpl_dag_t *dag, rpl_dio_t *dio, rpl_parent_t *p)
+{
+  return dio->dst_adv_supported && dio->dst_adv_trigger &&
+         dio->dtsn > p->dtsn && p == dag->best_parent;
 }
 /************************************************************************/
 rpl_dag_t *
@@ -152,6 +157,7 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   dag->rank = ROOT_RANK;
   dag->of = rpl_find_of(RPL_DEFAULT_OCP);
   dag->best_parent = NULL;
+  dag->dtsn = 1; /* Trigger DAOs from the beginning. */
 
   memcpy(&dag->dag_id, dag_id, sizeof(dag->dag_id));
 
@@ -260,15 +266,15 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   }
 
   memcpy(&p->addr, addr, sizeof(p->addr));
-  p->local_confidence = 0;
   p->dag = dag;
   p->rank = dio->dag_rank;
+  p->local_confidence = 0;
+  p->dtsn = 0;
 
   list_add(dag->parents, p);
 
   /* Draw a line between the node and its parent in Cooja. */
-  ANNOTATE("#L %u 1\n",
-           addr->u8[sizeof(*addr) - 1]);
+  ANNOTATE("#L %u 1\n", addr->u8[sizeof(*addr) - 1]);
 
   return p;
 }
@@ -422,6 +428,8 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag->rank = dag->of->increment_rank(dio->dag_rank, p);
   dag->min_rank = dag->rank; /* So far this is the lowest rank we know */
   dag->version = dio->version;
+  dag->best_parent = p;
+
   dag->dio_intdoubl = dio->dag_intdoubl;
   dag->dio_intmin = dio->dag_intmin;
   dag->dio_redundancy = dio->dag_redund;
@@ -442,7 +450,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_reset_dio_timer(dag, 1);
   rpl_set_default_route(dag, from);
 
-  if(dio->dst_adv_supported && dio->dst_adv_trigger) {
+  if(should_send_dao(dag, dio, p)) {
     rpl_schedule_dao(dag);
   } else {
     PRINTF("RPL: dst_adv_trigger not set in incoming DIO!\n");
@@ -456,6 +464,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   remove_parents(dag, NULL, !POISON_ROUTES);
   dag->version = dio->version;
+  dag->dtsn = 0;
   dag->of->reset(dag);
   if((p = rpl_add_parent(dag, dio, from)) == NULL) {
     PRINTF("RPL: Failed to add a parent during the global repair\n");
@@ -464,6 +473,9 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     rpl_set_default_route(dag, from);
     dag->rank = dag->of->increment_rank(dio->dag_rank, p);
     rpl_reset_dio_timer(dag, 1);
+    if(should_send_dao(dag, dio, p)) {
+      rpl_schedule_dao(dag);
+    }
   }
   PRINTF("RPL: Participating in a global repair (version=%u, rank=%hu)\n",
          dag->version, dag->rank);
@@ -475,6 +487,7 @@ rpl_repair_dag(rpl_dag_t *dag)
 {
   if(dag->rank == ROOT_RANK) {
     dag->version++;
+    dag->dtsn = 1;
     rpl_reset_dio_timer(dag, 1);
     return 1;
   }
@@ -531,13 +544,15 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
+  dag->dtsn = dio->dtsn;
+
   /* This DIO pertains to a DAG that we are already part of. */
   p = rpl_find_parent(dag, from);
   if(p != NULL) {
-    if(dio->dst_adv_supported && dio->dst_adv_trigger &&
-       p == rpl_preferred_parent(dag)) {
+    if(should_send_dao(dag, dio, p)) {
       rpl_schedule_dao(dag);
     }
+    p->dtsn = dio->dtsn;
 
     if(p->rank > dio->dag_rank) {
       p->rank = dio->dag_rank;
