@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.16 2010/06/03 18:37:47 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.17 2010/06/06 12:45:55 joxe Exp $
  */
 /**
  * \file
@@ -140,11 +140,15 @@ dis_output(uip_ipaddr_t *addr)
   unsigned char *buffer;
   uip_ipaddr_t tmpaddr;
 
-  /* DAG Information Solicitation */
+  /* DAG Information Solicitation  - 2 bytes reserved */
+  /*      0                   1                   2        */
+  /*      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3  */
+  /*     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+  /*     |           Reserved            |   Option(s)...  */
+  /*     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
-  /* Add a padding to be compliant with ICMPv6 */
   buffer = UIP_ICMP_PAYLOAD;
-  buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0;
+  buffer[0] = buffer[1] = 0;
 
   if(addr == NULL) {
     PRINTF("RPL: Sending a DIS\n");
@@ -153,7 +157,7 @@ dis_output(uip_ipaddr_t *addr)
   } else {
     PRINTF("RPL: Sending a unicast DIS\n");
   }
-  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 4);
+  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2);
 
 }
 /*---------------------------------------------------------------------------*/
@@ -430,7 +434,7 @@ dao_input(void)
   /* handle the target option */
   dag = rpl_get_dag(instance_id);
   if(dag == NULL) {
-    PRINTF("RPL: Ignoring a DAO for a different DAG instance (%u)\n",
+    PRINTF("RPL: Ignoring a DAO for a different RPL instance (%u)\n",
            instance_id);
     return;
   }
@@ -450,7 +454,7 @@ dao_input(void)
     case RPL_DIO_SUBOPT_TARGET:
       prefixlen = buffer[i + 3];
       memset(&prefix, 0, sizeof(prefix));
-      memcpy(&prefix, buffer + i + 4, prefixlen / CHAR_BIT);
+      memcpy(&prefix, buffer + i + 4, (prefixlen + 7) / CHAR_BIT);
       break;
     case RPL_DIO_SUBOPT_TRANSIT:
       /* path sequence and control ignored */
@@ -460,11 +464,10 @@ dao_input(void)
     }
   }
 
-  PRINTF("RPL: DAO lifetime: %lu, prefix length: %u",
+  PRINTF("RPL: DAO lifetime: %lu, prefix length: %u prefix:",
          (unsigned long)lifetime, (unsigned)prefixlen);
+  PRINT6ADDR(&prefix);
   PRINTF("\n");
-
-
 
   if(lifetime == ZERO_LIFETIME) {
     /* No-DAO received; invoke the route purging routine. */
