@@ -121,7 +121,9 @@ _begin:
 	ldr	sp, =__sys_stack_top__	/* set the SYS stack pointer */
 
 #ifdef USE_ROM_VARS	
-	bl _rom_data_init+.-base
+	ldr r12,=_rom_data_init
+	mov lr,pc
+	bx  r12
 #endif	
 	msr	CPSR_c, #(SYS_MODE)
 
