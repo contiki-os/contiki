@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.21 2010/06/07 13:40:05 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.22 2010/06/07 14:01:22 nvt-se Exp $
  */
 /**
  * \file
@@ -68,7 +68,7 @@ static rpl_of_t *objective_functions[] = {&rpl_of_etx, NULL};
 #endif /* !RPL_CONF_MAX_DAG_ENTRIES */
 
 #ifndef RPL_CONF_MAX_PARENTS
-#define RPL_MAX_PARENTS       8
+#define RPL_MAX_PARENTS       4
 #else
 #define RPL_MAX_PARENTS       RPL_CONF_MAX_PARENTS
 #endif /* !RPL_CONF_MAX_PARENTS */
@@ -129,6 +129,13 @@ should_send_dao(rpl_dag_t *dag, rpl_dio_t *dio, rpl_parent_t *p)
 {
   return dio->dst_adv_supported && dio->dst_adv_trigger &&
          dio->dtsn > p->dtsn && p == dag->best_parent;
+}
+/************************************************************************/
+static int
+acceptable_rank_increase(rpl_dag_t *dag, rpl_parent_t *p)
+{
+  return !dag->max_rankinc || 
+    dag->of->increment_rank(p->rank, p) <= dag->min_rank + dag->max_rankinc;
 }
 /************************************************************************/
 rpl_dag_t *
@@ -501,7 +508,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_dag_t *dag;
   rpl_parent_t *p;
   rpl_parent_t *preferred_parent;
-  uint8_t new_rank;
+  rpl_rank_t new_rank;
   uint8_t new_parent;
 
   dag = rpl_get_dag(dio->instance_id);
@@ -533,7 +540,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       PRINTF("RPL: Root received inconsistent DIO version number\n");
       dag->version = dio->version + 1;
       rpl_reset_dio_timer(dag, 1);
-      return;
     } else {
       global_repair(from, dag, dio);
     }
@@ -545,7 +551,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  if(dag->rank != ROOT_RANK && dag->dtsn < dio->dtsn || dag->dtsn == ~0) {
+  if(dag->rank != ROOT_RANK && (dag->dtsn < dio->dtsn || dag->dtsn == (uint8_t)~0)) {
     dag->dtsn = dio->dtsn;
   }
 
@@ -655,29 +661,29 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 void
 rpl_ds6_neighbor_callback(uip_ds6_nbr_t *nbr)
 {
+  rpl_dag_t *dag;
+  rpl_parent_t *p;
+
   if(nbr->isused) {
     PRINTF("RPL: Neighbor state %u: ", nbr->state);
     PRINT6ADDR(&nbr->ipaddr);
     PRINTF("\n");
   } else {
-    rpl_dag_t *dag;
-    rpl_parent_t *p;
-    char acceptable_rank_increase;
-
-    p = NULL;
-
     PRINTF("RPL: Removed neighbor ");
     PRINT6ADDR(&nbr->ipaddr);
     PRINTF("\n");
 
     dag = rpl_get_dag(RPL_ANY_INSTANCE);
-    if(dag != NULL) {
-      p = rpl_find_parent(dag, &nbr->ipaddr);
-      if(p != NULL) {
-        rpl_remove_parent(dag, p);
-      }
+    if(dag == NULL) {
+      return;
     }
-    if(dag != NULL && dag->def_route != NULL &&
+
+    p = rpl_find_parent(dag, &nbr->ipaddr);
+    if(p != NULL) {
+      rpl_remove_parent(dag, p);
+    }
+
+    if(dag->def_route != NULL &&
        uip_ipaddr_cmp(&dag->def_route->ipaddr, &p->addr)) {
       p = rpl_preferred_parent(dag);
       if(p == NULL) {
@@ -685,9 +691,7 @@ rpl_ds6_neighbor_callback(uip_ds6_nbr_t *nbr)
 	return;
       }
 
-      acceptable_rank_increase = !dag->max_rankinc || 
-	dag->of->increment_rank(p->rank, p) <= dag->min_rank + dag->max_rankinc;
-      if(acceptable_rank_increase) {
+      if(acceptable_rank_increase(dag, p)) {
         dag->rank = dag->of->increment_rank(p->rank, p);
         if(dag->rank < dag->min_rank) {
            dag->min_rank = dag->rank;
