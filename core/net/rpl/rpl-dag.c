@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.19 2010/06/06 21:42:50 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.20 2010/06/07 11:36:02 nvt-se Exp $
  */
 /**
  * \file
@@ -429,6 +429,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag->min_rank = dag->rank; /* So far this is the lowest rank we know */
   dag->version = dio->version;
   dag->best_parent = p;
+  dag->dtsn = dio->dtsn;
 
   dag->dio_intdoubl = dio->dag_intdoubl;
   dag->dio_intmin = dio->dag_intmin;
