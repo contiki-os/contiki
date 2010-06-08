@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.15 2010/06/08 16:21:54 nvt-se Exp $
+ * $Id: rpl.h,v 1.16 2010/06/08 21:41:02 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -277,7 +277,7 @@ int rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from);
 void rpl_process_dio(uip_ipaddr_t *, rpl_dio_t *);
 
 /* DAG allocation and deallocation. */
-rpl_dag_t *rpl_alloc_dag(void);
+rpl_dag_t *rpl_alloc_dag(uint8_t);
 void rpl_free_dag(rpl_dag_t *);
 
 /* DAG parent management function. */
