@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.24 2010/06/08 16:21:54 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.25 2010/06/08 21:37:22 nvt-se Exp $
  */
 /**
  * \file
@@ -145,14 +145,14 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   int version;
 
   version = -1;
-  dag = rpl_get_dag(RPL_DEFAULT_OCP);
+  dag = rpl_get_dag(RPL_DEFAULT_INSTANCE);
   if(dag != NULL) {
     PRINTF("RPL: Dropping a joined DAG when setting this node as root");
     version = dag->version;
     rpl_free_dag(dag);
   }
 
-  dag = rpl_alloc_dag();
+  dag = rpl_alloc_dag(RPL_DEFAULT_INSTANCE);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG\n");
     return NULL;
@@ -225,7 +225,7 @@ rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from)
 }
 /************************************************************************/
 rpl_dag_t *
-rpl_alloc_dag(void)
+rpl_alloc_dag(uint8_t instance_id)
 {
   int i;
 
@@ -234,6 +234,7 @@ rpl_alloc_dag(void)
       memset(&dag_table[i], 0, sizeof(dag_table[0]));
       dag_table[i].parents = &dag_table[i].parent_list;
       list_init(dag_table[i].parents);
+      dag_table[i].instance_id = instance_id;
       dag_table[i].def_route = NULL;
       return &dag_table[i];
     }
@@ -386,7 +387,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_parent_t *p;
   rpl_of_t *of;
 
-  dag = rpl_alloc_dag();
+  dag = rpl_alloc_dag(dio->instance_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG object!\n");
     return;
