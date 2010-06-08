@@ -5,9 +5,10 @@ CONTIKI=../../..
 WITH_UIP6=1
 UIP_CONF_IPV6=1
 
-APPS += webserver
+APPS += webserver webbrowser
 
 CFLAGS += -DPROJECT_CONF_H=\"project-rpl-web-conf.h\"
+CONTIKI_SOURCEFILES += wget.c
 PROJECTDIRS += ../rpl-border-router
 PROJECT_SOURCEFILES += httpd-simple.c
 
