@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.22 2010/06/07 14:01:22 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.23 2010/06/08 15:40:50 nvt-se Exp $
  */
 /**
  * \file
@@ -318,6 +318,8 @@ rpl_preferred_parent(rpl_dag_t *dag)
   if(dag->best_parent != best) {
     dag->best_parent = best; /* Cache the value. */
     rpl_set_default_route(dag, &best->addr);
+    /* The DAO parent set changed - schedule a DAO transmission. */
+    rpl_schedule_dao(dag);
   }
   return best;
 }
@@ -618,7 +620,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
         return;
       }
 
-      PRINTF("RPL: New parent with rank %hu ", p->rank);
+      PRINTF("RPL: New parent with rank %hu: ", p->rank);
       PRINT6ADDR(from);
       PRINTF("\n");
       new_parent = 1;
@@ -663,49 +665,51 @@ rpl_ds6_neighbor_callback(uip_ds6_nbr_t *nbr)
 {
   rpl_dag_t *dag;
   rpl_parent_t *p;
+  rpl_parent_t *new_p;
 
   if(nbr->isused) {
     PRINTF("RPL: Neighbor state %u: ", nbr->state);
     PRINT6ADDR(&nbr->ipaddr);
     PRINTF("\n");
-  } else {
-    PRINTF("RPL: Removed neighbor ");
-    PRINT6ADDR(&nbr->ipaddr);
-    PRINTF("\n");
+    return;
+  }
 
-    dag = rpl_get_dag(RPL_ANY_INSTANCE);
-    if(dag == NULL) {
-      return;
-    }
+  PRINTF("RPL: Removing neighbor ");
+  PRINT6ADDR(&nbr->ipaddr);
+  PRINTF("\n");
 
-    p = rpl_find_parent(dag, &nbr->ipaddr);
-    if(p != NULL) {
-      rpl_remove_parent(dag, p);
-    }
+  dag = rpl_get_dag(RPL_ANY_INSTANCE);
+  if(dag == NULL) {
+    return;
+  }
 
-    if(dag->def_route != NULL &&
-       uip_ipaddr_cmp(&dag->def_route->ipaddr, &p->addr)) {
-      p = rpl_preferred_parent(dag);
-      if(p == NULL) {
-	rpl_free_dag(dag);
-	return;
+  p = rpl_find_parent(dag, &nbr->ipaddr);
+  if(p != NULL) {
+    if(p == dag->best_parent) {
+      /* Try to select a new preferred parent. */
+      new_p = rpl_preferred_parent(dag);
+      if(new_p == NULL) {
+        rpl_free_dag(dag);
+        return;
       }
 
-      if(acceptable_rank_increase(dag, p)) {
-        dag->rank = dag->of->increment_rank(p->rank, p);
+      if(acceptable_rank_increase(dag, new_p)) {
+        dag->rank = dag->of->increment_rank(new_p->rank, new_p);
         if(dag->rank < dag->min_rank) {
-           dag->min_rank = dag->rank;
+          dag->min_rank = dag->rank;
         }
         PRINTF("RPL: New rank is %hu, max is %hu\n",
 		dag->rank, dag->min_rank + dag->max_rankinc);
-        rpl_set_default_route(dag, &p->addr);
+        rpl_set_default_route(dag, &new_p->addr);
       } else {
         PRINTF("RPL: Cannot select the preferred parent\n");
         /* do local repair - jump down the DAG */
+        rpl_set_default_route(dag, NULL);
         remove_parents(dag, NULL, POISON_ROUTES);
         dag->rank = INFINITE_RANK;
         rpl_reset_dio_timer(dag, 1);
       }
     }
+    rpl_remove_parent(dag, p);
   }
 }
