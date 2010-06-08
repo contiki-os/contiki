@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: sky-websense.c,v 1.1 2010/05/09 12:56:48 nifi Exp $
+ * $Id: sky-websense.c,v 1.2 2010/06/08 12:34:43 nifi Exp $
  */
 
 /**
@@ -55,6 +55,18 @@ static int temperature[HISTORY];
 static int light1[HISTORY];
 static int sensors_pos;
 
+/*---------------------------------------------------------------------------*/
+static int
+get_light(void)
+{
+  return 10 * light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) / 7;
+}
+/*---------------------------------------------------------------------------*/
+static int
+get_temp(void)
+{
+  return ((sht11_sensor.value(SHT11_SENSOR_TEMP) / 10) - 396) / 10;
+}
 /*---------------------------------------------------------------------------*/
 static const char *TOP = "<html><head><title>Contiki Web Sense</title></head><body>\n";
 static const char *BOTTOM = "</body></html>\n";
@@ -87,13 +99,36 @@ PT_THREAD(send_values(struct httpd_state *s))
 
   SEND_STRING(&s->sout, TOP);
 
-  if(s->filename[1] == 'l' || s->filename[1] != 't') {
-    generate_chart("Light", "Light", 0, 500, light1);
+  if(strncmp(s->filename, "/index", 6) == 0 ||
+     s->filename[1] == '\0') {
+    /* Default page: show latest sensor values as text (does not
+       require Internet connection to Google for charts). */
+    blen = 0;
+    ADD("<h1>Sensors:</h1>\n"
+        "Light: %u<br>"
+        "Temperature: %u&deg; C",
+        get_light(), get_temp());
     SEND_STRING(&s->sout, buf);
-  }
-  if(s->filename[1] == 't' || s->filename[1] != 'l') {
-    generate_chart("Temperature", "Celsius", 15, 50, temperature);
-    SEND_STRING(&s->sout, buf);
+
+  } else if(s->filename[1] == '0') {
+    /* Turn off leds */
+    leds_off(LEDS_ALL);
+    SEND_STRING(&s->sout, "Turned off leds!");
+
+  } else if(s->filename[1] == '1') {
+    /* Turn on leds */
+    leds_on(LEDS_ALL);
+    SEND_STRING(&s->sout, "Turned on leds!");
+
+  } else {
+    if(s->filename[1] == 'l' || s->filename[1] != 't') {
+      generate_chart("Light", "Light", 0, 500, light1);
+      SEND_STRING(&s->sout, buf);
+    }
+    if(s->filename[1] == 't' || s->filename[1] != 'l') {
+      generate_chart("Temperature", "Celsius", 15, 50, temperature);
+      SEND_STRING(&s->sout, buf);
+    }
   }
 
   SEND_STRING(&s->sout, BOTTOM);
@@ -123,9 +158,8 @@ PROCESS_THREAD(web_sense_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
     etimer_reset(&timer);
 
-    light1[sensors_pos] = 10 * light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) / 7;
-    temperature[sensors_pos] = ((sht11_sensor.value(SHT11_SENSOR_TEMP) / 10) - 396) / 10;
-;
+    light1[sensors_pos] = get_light();;
+    temperature[sensors_pos] = get_temp();
     sensors_pos = (sensors_pos + 1) % HISTORY;
   }
 
