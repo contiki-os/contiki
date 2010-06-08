@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.23 2010/06/08 15:40:50 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.24 2010/06/08 16:21:54 nvt-se Exp $
  */
 /**
  * \file
@@ -164,7 +164,7 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   dag->rank = ROOT_RANK;
   dag->of = rpl_find_of(RPL_DEFAULT_OCP);
   dag->best_parent = NULL;
-  dag->dtsn = 1; /* Trigger DAOs from the beginning. */
+  dag->dtsn_out = 1; /* Trigger DAOs from the beginning. */
 
   memcpy(&dag->dag_id, dag_id, sizeof(dag->dag_id));
 
@@ -438,7 +438,6 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag->min_rank = dag->rank; /* So far this is the lowest rank we know */
   dag->version = dio->version;
   dag->best_parent = p;
-  dag->dtsn = dio->dtsn;
 
   dag->dio_intdoubl = dio->dag_intdoubl;
   dag->dio_intmin = dio->dag_intmin;
@@ -474,7 +473,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   remove_parents(dag, NULL, !POISON_ROUTES);
   dag->version = dio->version;
-  dag->dtsn = 0;
+  dag->dtsn_out = 1;
   dag->of->reset(dag);
   if((p = rpl_add_parent(dag, dio, from)) == NULL) {
     PRINTF("RPL: Failed to add a parent during the global repair\n");
@@ -497,7 +496,7 @@ rpl_repair_dag(rpl_dag_t *dag)
 {
   if(dag->rank == ROOT_RANK) {
     dag->version++;
-    dag->dtsn = 1;
+    dag->dtsn_out = 1;
     rpl_reset_dio_timer(dag, 1);
     return 1;
   }
@@ -551,10 +550,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     PRINTF("RPL: old version received => inconsistency detected\n");
     rpl_reset_dio_timer(dag, 1);
     return;
-  }
-
-  if(dag->rank != ROOT_RANK && (dag->dtsn < dio->dtsn || dag->dtsn == (uint8_t)~0)) {
-    dag->dtsn = dio->dtsn;
   }
 
   /* This DIO pertains to a DAG that we are already part of. */

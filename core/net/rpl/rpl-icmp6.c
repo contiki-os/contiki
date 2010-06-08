@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.18 2010/06/06 21:42:50 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.19 2010/06/08 16:21:54 nvt-se Exp $
  */
 /**
  * \file
@@ -323,7 +323,8 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   /* Set dst_adv_trigger and dst_adv_supported. */
   buffer[pos] |= RPL_DIO_DEST_ADV_SUPPORTED | RPL_DIO_DEST_ADV_TRIGGER;
   pos++;
-  buffer[pos++] = dag->dtsn;
+
+  buffer[pos++] = ++dag->dtsn_out;
   /* reserved 2 bytes */
   pos += 2;
 
