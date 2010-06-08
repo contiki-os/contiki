@@ -101,7 +101,7 @@ void main(void) {
 	dbg_putstr("\n\r");
 	
 	/* erase the flash */
-	err = nvm_erase(gNvmInternalInterface_c, type, 0x4fffffff); 
+	err = nvm_erase(gNvmInternalInterface_c, type, 0x7fffffff); 
 
 	dbg_putstr("nvm_erase returned: 0x");
 	dbg_put_hex(err);

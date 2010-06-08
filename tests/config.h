@@ -50,8 +50,8 @@
 #define uart_init uart1_init
 
 /* nvm-read */
-#define READ_ADDR 0x1E000
-#define READ_NBYTES 8
+#define READ_ADDR 0x1f000
+#define READ_NBYTES 1024
 
 /* nvm-write */
 #define WRITE_NBYTES 8
