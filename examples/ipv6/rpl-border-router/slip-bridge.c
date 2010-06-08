@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: slip-bridge.c,v 1.2 2010/05/25 20:34:51 joxe Exp $
+ * $Id: slip-bridge.c,v 1.3 2010/06/08 19:53:49 nifi Exp $
  */
 
 /**
@@ -41,9 +41,10 @@
 
 #include "net/uip.h"
 #include "net/uip-ds6.h"
-#include "rpl.h"
+#include "net/rpl/rpl.h"
 #include "dev/slip.h"
 #include "dev/uart1.h"
+#include <string.h>
 
 #define UIP_IP_BUF        ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
