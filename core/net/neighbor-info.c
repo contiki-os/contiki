@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.7 2010/05/25 15:29:51 nvt-se Exp $
+ * $Id: neighbor-info.c,v 1.8 2010/06/08 19:25:40 adamdunkels Exp $
  */
 /**
  * \file
@@ -78,7 +78,7 @@ update_etx(const rimeaddr_t *dest, int packet_etx)
   /* Update the EWMA of the ETX for the neighbor. */
   new_etx = (ETX_SCALE / 2 + ETX_ALPHA * recorded_etx +
 		 (ETX_SCALE - ETX_ALPHA) * packet_etx) / ETX_SCALE;
-  PRINTF("neighbor-info: ETX changed from %d to %d (packet ETX = %d)\n", 
+  PRINTF("neighbor-info: ETX changed from %d to %d (packet ETX = %d)\n",
 	recorded_etx, new_etx, packet_etx);
 
   if(neighbor_attr_has_neighbor(dest)) {
@@ -118,7 +118,7 @@ neighbor_info_packet_sent(int status, int numtx)
     return;
   }
 
-  PRINTF("neighbor-info: packet sent to %d.%d, status=%d, numtx=%d\n", 
+  PRINTF("neighbor-info: packet sent to %d.%d, status=%d, numtx=%d\n",
 	dest->u8[sizeof(*dest) - 2], dest->u8[sizeof(*dest) - 1],
 	status, numtx);
 
@@ -129,12 +129,12 @@ neighbor_info_packet_sent(int status, int numtx)
     break;
   case MAC_TX_ERR:
   case MAC_TX_NOACK:
-    if(neighbor_attr_has_neighbor(dest)) {
+    /*    if(neighbor_attr_has_neighbor(dest)) {
       neighbor_attr_remove_neighbor(dest);
       if(subscriber_callback != NULL) {
         subscriber_callback(dest, 0, 0);
       }
-    }
+      }*/
   default:
     return;
   }
@@ -170,3 +170,5 @@ neighbor_info_subscribe(neighbor_info_subscriber_t s)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+
+/* XXX use a list of subscribers? */
