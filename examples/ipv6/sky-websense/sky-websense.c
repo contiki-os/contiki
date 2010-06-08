@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: sky-websense.c,v 1.2 2010/06/08 12:34:43 nifi Exp $
+ * $Id: sky-websense.c,v 1.3 2010/06/08 13:27:06 nifi Exp $
  */
 
 /**
@@ -104,7 +104,7 @@ PT_THREAD(send_values(struct httpd_state *s))
     /* Default page: show latest sensor values as text (does not
        require Internet connection to Google for charts). */
     blen = 0;
-    ADD("<h1>Sensors:</h1>\n"
+    ADD("<h1>Current readings</h1>\n"
         "Light: %u<br>"
         "Temperature: %u&deg; C",
         get_light(), get_temp());
@@ -121,11 +121,11 @@ PT_THREAD(send_values(struct httpd_state *s))
     SEND_STRING(&s->sout, "Turned on leds!");
 
   } else {
-    if(s->filename[1] == 'l' || s->filename[1] != 't') {
+    if(s->filename[1] != 't') {
       generate_chart("Light", "Light", 0, 500, light1);
       SEND_STRING(&s->sout, buf);
     }
-    if(s->filename[1] == 't' || s->filename[1] != 'l') {
+    if(s->filename[1] != 'l') {
       generate_chart("Temperature", "Celsius", 15, 50, temperature);
       SEND_STRING(&s->sout, buf);
     }
