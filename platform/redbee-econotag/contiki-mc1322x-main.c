@@ -332,8 +332,6 @@ set_rimeaddr(rimeaddr_t *addr)
 	rimeaddr_set_node_addr(addr);
 }
 
-PROCINIT(&etimer_process, &ctimer_process, &contiki_maca_process);
-
 int
 main(void)
 {
@@ -349,9 +347,10 @@ main(void)
 
 	/* Process subsystem */
 	process_init();
+	process_start(&etimer_process, NULL);
+	process_start(&contiki_maca_process, NULL);
 
-	/* Register initial processes */
-	procinit_init();
+	ctimer_init();
 
 	set_rimeaddr(&addr);
 
