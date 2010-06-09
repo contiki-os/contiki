@@ -1,0 +1,9 @@
+MC13224v library code, test routines, and handy tools
+
+http://mc1322x.devl.org
+Mariano Alvira mar@devl.org
+
+Parts of the build system came from U-boot and Darrel Harmon's
+"darrell's loader" for the AT91RM9200. Other parts from the Contiki
+OS.
+
