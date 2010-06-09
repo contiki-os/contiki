@@ -1,0 +1,12 @@
+- openocd flashing
+  use run_algorithm to hook ROM NVM functions
+  see flash/stm32x.c
+
+- add timestamp to received packets 
+
+- add a way to set modes: tx_only, rx_only, txrx. (so you can be lazy
+  and have blocks of code that don't need to handle rx packets)
+
+- beacon sync
+
+- CCA and ED.
