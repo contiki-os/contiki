@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-wget.c,v 1.2 2010/05/31 15:22:08 nifi Exp $
+ * $Id: shell-wget.c,v 1.3 2010/06/09 08:36:43 nifi Exp $
  */
 
 /**
@@ -40,8 +40,6 @@
 
 #include "contiki.h"
 #include "shell.h"
-#include "dev/leds.h"
-#include "dev/watchdog.h"
 
 #include "webclient.h"
 
@@ -63,7 +61,7 @@ SHELL_COMMAND(wget_command,
 static void
 open_url(char *url)
 {
-  unsigned char i;
+  unsigned char i, c;
   static char host[32];
   char *file;
   register char *urlptr;
@@ -92,16 +90,27 @@ open_url(char *url)
 
   /* Find host part of the URL. */
   urlptr = &url[7];
+  if(*urlptr == '[') {
+    /* IPv6 address */
+    c = ']';
+    ++urlptr;
+  } else {
+    c = ':';
+  }
   for(i = 0; i < sizeof(host); ++i) {
     if(*urlptr == 0 ||
        *urlptr == '/' ||
        *urlptr == ' ' ||
-       *urlptr == ':') {
+       *urlptr == c) {
       host[i] = 0;
       break;
     }
     host[i] = *urlptr;
     ++urlptr;
+  }
+  if(*urlptr == ']') {
+    /* Move past end of IPv6 host */
+    urlptr++;
   }
 
   /* XXX: Here we should find the port part of the URL, but this isn't
