@@ -1,0 +1,21 @@
+# -*- makefile -*-
+
+CONTIKI_TARGET_DIRS = . dev apps net 
+CONTIKI_CORE=contiki-mc1322x-main
+CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
+
+CONTIKI_TARGET_SOURCEFILES += contiki-mc1322x-main.c clock.c button-sensor.c sensors.c slip.c
+
+CONTIKIMC1322X=$(CONTIKI)/cpu/mc1322x
+CONTIKIBOARD=.
+
+CONTIKI_PLAT_DEFS = 
+
+MCU=arm7tdmi-s
+
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
+endif
+
+include $(CONTIKIMC1322X)/Makefile.mc1322x
+
