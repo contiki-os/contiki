@@ -1,0 +1,20 @@
+# -*- makefile -*-
+
+BOARDS := redbee-dev redbee-r1 redbee-usb redbee-econotag quahogcon freescale-ncb
+
+OBJDIR := obj_$(BOARD)_board
+CFLAGS += -I$(OBJDIR) -I$(MC1322X)/board -DBOARD=$(BOARD)
+
+$(OBJDIR):
+ifndef BOARD
+	${warning BOARD not defined}
+	${warning echo "make BOARD=foo"}
+	${warning "boards: $(BOARDS)"}
+	${error you must define BOARD}
+endif
+	@echo "setup object directory for dev board"
+	mkdir $(OBJDIR)
+
+$(OBJDIR)/board.h: $(OBJDIR) 
+	ln -sf ../$(MC1322X)/board/$(BOARD).h $(OBJDIR)/board.h
+
