@@ -1,0 +1,8 @@
+# -*- makefile -*-
+
+CFLAGS += -I$(LIBMC1322X)/include
+
+LIBOBJS = $(patsubst %.c,%.o,$(wildcard $(LIBMC1322X)/*.c))
+
+$(LIBMC1322X)/libmc1322x.a: $(LIBOBJS) 
+	$(AR) rcs $(LIBMC1322X)/libmc1322x.a $(LIBOBJS)
