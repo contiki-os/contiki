@@ -26,7 +26,7 @@
    * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
    * SUCH DAMAGE.
    *
-   * $Id: SerialUI.java,v 1.5 2010/05/09 19:45:57 joxe Exp $
+   * $Id: SerialUI.java,v 1.6 2010/06/11 14:12:09 fros4943 Exp $
    */
 
 package se.sics.cooja.dialogs;
@@ -348,9 +348,9 @@ public abstract class SerialUI extends Log implements SerialPort {
           newMessage.setLength(0);
         }
       }
-      lastSerialData = (byte) data;
-      serialDataObservable.notifyNewData();
     }
+    lastSerialData = (byte) data;
+    serialDataObservable.notifyNewData();
   }
 
   public void close() {
