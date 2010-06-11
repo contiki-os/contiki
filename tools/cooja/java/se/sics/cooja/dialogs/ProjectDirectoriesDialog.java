@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.15 2010/05/19 17:52:23 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.16 2010/06/11 09:12:21 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -64,9 +64,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -248,7 +250,7 @@ public class ProjectDirectoriesDialog extends JDialog {
               newDefaultProjectDirs += ";";
             }
 
-            newDefaultProjectDirs += gui.createPortablePath(f).getPath();
+            newDefaultProjectDirs += gui.createPortablePath(f, false).getPath();
           }
           newDefaultProjectDirs = newDefaultProjectDirs.replace('\\', '/');
 
@@ -285,11 +287,15 @@ public class ProjectDirectoriesDialog extends JDialog {
 
     /* Center: Tree and list*/
     {
-      JPanel listPane = new JPanel(new BorderLayout());
-
-      listPane.add(BorderLayout.WEST, treePanel = new DirectoryTreePanel(this));
-      listPane.add(BorderLayout.CENTER, new JScrollPane(table));
-
+      final JSplitPane listPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+      listPane.setLeftComponent(treePanel = new DirectoryTreePanel(this));
+      listPane.setRightComponent(new JScrollPane(table));
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          listPane.setDividerLocation(0.5);
+        }
+      });
+      
       smallPane = new JPanel(new BorderLayout());
       Icon icon = UIManager.getLookAndFeelDefaults().getIcon("Table.ascendingSortIcon");
       if (icon == null) {
@@ -332,9 +338,40 @@ public class ProjectDirectoriesDialog extends JDialog {
         }
       });
       smallPane.add(BorderLayout.SOUTH, button);
-      listPane.add(BorderLayout.EAST, smallPane);
+      
+      button = new JButton("X");
+      button.setBackground(Color.RED);
+      button.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          int selectedIndex = table.getSelectedRow();
+          if (selectedIndex < 0) {
+            return;
+          }
+          if (selectedIndex >= currentProjects.size()) {
+            return;
+          }
+          File file = currentProjects.get(selectedIndex);
+          
+          String s1 = "Remove";
+          String s2 = "Cancel";
+          Object[] options = { s1, s2 };
+          int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+              "Remove COOJA project?\n" + file.getAbsolutePath(),
+              "Remove COOJA project?", JOptionPane.YES_NO_OPTION,
+              JOptionPane.WARNING_MESSAGE, null, options, s1);
+          if (n != JOptionPane.YES_OPTION) {
+            return;
+          }
+          removeProjectDir(file);
+        }
+      });
+      smallPane.add(BorderLayout.CENTER, button);
+      
       mainPane.setBackground(Color.WHITE);
-      mainPane.add(listPane);
+      JPanel listPanelWithSort = new JPanel(new BorderLayout());
+      listPanelWithSort.add(BorderLayout.CENTER, listPane);
+      listPanelWithSort.add(BorderLayout.EAST, smallPane);
+      mainPane.add(listPanelWithSort);
     }
 
     JPanel topPanel = new JPanel(new BorderLayout());
@@ -590,6 +627,15 @@ class DirectoryTreePanel extends JPanel {
       }
       ProjectDirectory td = (ProjectDirectory) userObject;
       String treeCanonical = td.dir.getCanonicalPath();
+
+      projectCanonical = projectCanonical.replace('\\', '/');
+      if (!projectCanonical.endsWith("/")) {
+        projectCanonical += "/";
+      }
+      treeCanonical = treeCanonical.replace('\\', '/');
+      if (!treeCanonical.endsWith("/")) {
+        treeCanonical += "/";
+      }
 
       if (projectCanonical.startsWith(treeCanonical)) {
         tp = tp.pathByAddingChild(child);
