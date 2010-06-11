@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.169 2010/05/19 17:32:54 fros4943 Exp $
+ * $Id: GUI.java,v 1.170 2010/06/11 09:10:52 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3978,6 +3978,10 @@ public class GUI extends Observable {
    * @return Portable file, or original file is conversion failed
    */
   public File createPortablePath(File file) {
+    return createPortablePath(file, true);
+  }
+
+  public File createPortablePath(File file, boolean allowConfigRelativePaths) {
     File portable = null;
     
     portable = createContikiRelativePath(file);
@@ -3986,10 +3990,12 @@ public class GUI extends Observable {
       return portable;
     }
 
-    portable = createConfigRelativePath(file);
-    if (portable != null) {
-      /*logger.info("Generated config relative path '" + file.getPath() + "' to '" + portable.getPath() + "'");*/
-      return portable;
+    if (allowConfigRelativePaths) {
+      portable = createConfigRelativePath(file);
+      if (portable != null) {
+        /*logger.info("Generated config relative path '" + file.getPath() + "' to '" + portable.getPath() + "'");*/
+        return portable;
+      }
     }
     
     logger.warn("Path is not portable: '" + file.getPath());
