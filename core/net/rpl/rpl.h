@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.16 2010/06/08 21:41:02 nvt-se Exp $
+ * $Id: rpl.h,v 1.17 2010/06/12 10:55:46 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -38,11 +38,8 @@
 
 /*
  * ContikiRPL - an implementation of the routing protocol for low power and
- * lossy networks. See: draft-ietf-roll-rpl-08.
+ * lossy networks. See: draft-ietf-roll-rpl-09.
  *
- * Note: This version of ContikiRPL is currently moving on to RPL-08, but
- * since the type of the OCP option for DIOs is unclear we assume that it
- * will be of type 9.
  * --
  * The DIOs handle prefix information option for setting global IP addresses
  * on the nodes, but the current handling is not awaiting the join of the DAG
@@ -81,8 +78,6 @@
 #define RPL_DIO_SUBOPT_TRANSIT           6   /* Transit information */
 #define RPL_DIO_SUBOPT_SOLICITED_INFO    7   /* Solicited information */
 #define RPL_DIO_SUBOPT_PREFIX_INFO       8   /* Prefix information option */
-
-#define RPL_DIO_SUBOPT_OCP               9   /* 5 in the MC document... */
 
 #define RPL_DAO_K_FLAG                   0x80 /* DAO ACK requested */
 #define RPL_DAO_D_FLAG                   0x40 /* DODAG ID Present */

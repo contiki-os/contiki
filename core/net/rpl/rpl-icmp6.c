@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.19 2010/06/08 16:21:54 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.20 2010/06/12 10:55:46 joxe Exp $
  */
 /**
  * \file
@@ -271,14 +271,10 @@ dio_input(void)
       dio.dag_redund = buffer[i + 5];
       dio.dag_max_rankinc = (buffer[i + 6] << 8) | buffer[i + 7];
       dio.dag_min_hoprankinc = (buffer[i + 8] << 8) | buffer[i + 9];
-      PRINTF("RPL: DIO trickle timer:dbl=%d, min=%d red=%d maxinc=%d mininc=%d\n",
-             dio.dag_intdoubl,
-             dio.dag_intmin, dio.dag_redund,
-             dio.dag_max_rankinc, dio.dag_min_hoprankinc);
-      break;
-    case RPL_DIO_SUBOPT_OCP:
-      dio.ocp = buffer[i + 2] << 8 | buffer[i + 3];
-      PRINTF("RPL: DAG OCP Sub-opt received OCP = %u\n", dio.ocp);
+      dio.ocp = (buffer[i + 10] << 8) | buffer[i + 11];
+      PRINTF("RPL: DIO Conf:dbl=%d, min=%d red=%d maxinc=%d mininc=%d ocp=%d\n",
+             dio.dag_intdoubl, dio.dag_intmin, dio.dag_redund,
+             dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp);
       break;
     case RPL_DIO_SUBOPT_PREFIX_INFO:
       if(len != 32) {
@@ -331,15 +327,9 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   memcpy(buffer + pos, &dag->dag_id, sizeof(dag->dag_id));
   pos += 16;
 
-  /* The objective function object must appear first. */
-  buffer[pos++] = RPL_DIO_SUBOPT_OCP;
-  buffer[pos++] = 2;
-  buffer[pos++] = dag->of->ocp >> 8;
-  buffer[pos++] = dag->of->ocp & 0xff;
-
   /* always add a sub-option for DAG configuration */
   buffer[pos++] = RPL_DIO_SUBOPT_DAG_CONF;
-  buffer[pos++] = 8;
+  buffer[pos++] = 10;
   buffer[pos++] = 0; /* PCS */
   buffer[pos++] = dag->dio_intdoubl;
   buffer[pos++] = dag->dio_intmin;
@@ -348,6 +338,9 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   buffer[pos++] = dag->max_rankinc & 0xff;
   buffer[pos++] = dag->min_hoprankinc >> 8;
   buffer[pos++] = dag->min_hoprankinc & 0xff;
+  /* OCP is now last in the DAG_CONF option */
+  buffer[pos++] = dag->of->ocp >> 8;
+  buffer[pos++] = dag->of->ocp & 0xff;
 
   /* if prefix info length > 0 then we have a prefix to send! */
   if(dag->prefix_info.length > 0) {
