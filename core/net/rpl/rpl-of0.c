@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-of0.c,v 1.4 2010/05/31 14:22:00 nvt-se Exp $
+ * $Id: rpl-of0.c,v 1.5 2010/06/14 12:44:37 nvt-se Exp $
  */
 /**
  * \file
@@ -48,13 +48,13 @@
 
 static void reset(void *);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
-static rpl_rank_t increment_rank(rpl_rank_t, rpl_parent_t *);
+static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
 
 rpl_of_t rpl_of0 = {
   reset,
   NULL,
   best_parent,
-  increment_rank,
+  calculate_rank,
   0
 };
 
@@ -70,14 +70,21 @@ reset(void *dag)
 }
 
 static rpl_rank_t
-increment_rank(rpl_rank_t rank, rpl_parent_t *parent)
+calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
 {
-  if((rpl_rank_t)(rank + DEFAULT_RANK_INCREMENT) < rank) {
+  if(base_rank == 0) {
+    if(p == NULL) {
+      return INFINITE_RANK;
+    }
+    base_rank = p->rank;
+  }
+
+  if((rpl_rank_t)(base_rank + DEFAULT_RANK_INCREMENT) < base_rank) {
     PRINTF("RPL: OF0 rank %d incremented to infinite rank due to wrapping\n",
-        rank);
+        base_rank);
     return INFINITE_RANK;
   }
-  return rank + DEFAULT_RANK_INCREMENT;
+  return base_rank + DEFAULT_RANK_INCREMENT;
 }
 
 static rpl_parent_t *
@@ -91,14 +98,16 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   PRINTF(" (confidence %d, rank %d)\n",
         p2->local_confidence, p2->rank);
 
+  if(p1->rank < p2->rank) {
+    return p1;
+  } else if(p2->rank < p1->rank) {
+    return p2;
+  }
+
   if(p1->local_confidence > p2->local_confidence) {
     return p1;
   } else if(p2->local_confidence > p1->local_confidence) {
     return p2;
-  }
-
-  if(p1->rank < p2->rank) {
-    return p1;
   }
 
   return p2;

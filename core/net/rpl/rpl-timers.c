@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-timers.c,v 1.9 2010/06/14 11:35:21 adamdunkels Exp $
+ * $Id: rpl-timers.c,v 1.10 2010/06/14 12:44:37 nvt-se Exp $
  */
 /**
  * \file
@@ -42,9 +42,9 @@
  */
 
 #include "contiki-conf.h"
-#include "sys/ctimer.h"
 #include "net/rpl/rpl.h"
 #include "lib/random.h"
+#include "sys/ctimer.h"
 
 #define DEBUG DEBUG_ANNOTATE
 #include "net/uip-debug.h"
@@ -66,6 +66,7 @@ static void
 handle_periodic_timer(void *ptr)
 {
   rpl_purge_routes();
+  rpl_recalculate_ranks();
 
   /* handle DIS */
 #ifdef RPL_DIS_SEND
@@ -84,7 +85,7 @@ new_dio_interval(rpl_dag_t *dag)
   unsigned long time;
 
   /* TODO: too small timer intervals for many cases */
-  time = 1L << dag->dio_intcurrent;
+  time = 1UL << dag->dio_intcurrent;
 
   /* need to convert from milliseconds to CLOCK_TICKS */
   time = (time * CLOCK_SECOND) / 1000;
@@ -128,7 +129,7 @@ handle_dio_timer(void *ptr)
     if(uip_ds6_get_link_local(ADDR_PREFERRED) != NULL) {
       dio_send_ok = 1;
     } else {
-      PRINTF("RPL: Postponing DIO transmission since link local addres is not ok\n");
+      PRINTF("RPL: Postponing DIO transmission since link local address is not ok\n");
       ctimer_set(&dag->dio_timer, CLOCK_SECOND, &handle_dio_timer, dag);
       return;
     }
@@ -166,7 +167,7 @@ rpl_reset_periodic_timer(void)
   ctimer_set(&periodic_timer, CLOCK_SECOND, handle_periodic_timer, NULL);
 }
 /************************************************************************/
-/* Resets the DIO timer in the DAG and starts-up the interval */
+/* Resets the DIO timer in the DAG to its minimal interval. */
 void
 rpl_reset_dio_timer(rpl_dag_t *dag, uint8_t force)
 {
@@ -182,7 +183,6 @@ static void
 handle_dao_timer(void *ptr)
 {
   rpl_dag_t *dag;
-  rpl_parent_t *n;
 
   dag = (rpl_dag_t *)ptr;
 
@@ -194,10 +194,9 @@ handle_dao_timer(void *ptr)
 
   /* Send the DAO to the best parent. rpl-07 section C.2 lists the
      fan-out as being under investigation. */
-  n = rpl_preferred_parent(dag);
-  if(n != NULL) {
+  if(dag->preferred_parent != NULL) {
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
-    dao_output(n, DEFAULT_ROUTE_LIFETIME);
+    dao_output(dag->preferred_parent, DEFAULT_ROUTE_LIFETIME);
   } else {
     PRINTF("RPL: Could not find a parent to send a DAO to \n");
   }
