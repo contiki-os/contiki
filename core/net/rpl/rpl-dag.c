@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.27 2010/06/14 12:44:37 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.28 2010/06/14 13:07:09 nifi Exp $
  */
 /**
  * \file
@@ -671,7 +671,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       /* The candidate parent no longer exists. */
       return;
     }
-    printf("X1.2\n");
   } else {
     PRINTF("RPL: Received consistent DIO\n");
     dag->dio_counter++;
