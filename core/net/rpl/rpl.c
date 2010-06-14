@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.7 2010/06/14 12:44:37 nvt-se Exp $
+ * $Id: rpl.c,v 1.8 2010/06/14 18:35:04 nvt-se Exp $
  */
 /**
  * \file
@@ -117,7 +117,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 }
 /************************************************************************/
 static void
-neighbor_callback(const rimeaddr_t *addr, int known, int etx)
+rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
 {
   uip_ipaddr_t ipaddr;
   rpl_dag_t *dag;
@@ -165,11 +165,31 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
 }
 /************************************************************************/
 void
+rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
+{
+  rpl_dag_t *dag;
+  rpl_parent_t *p;
+
+  dag = rpl_get_dag(RPL_ANY_INSTANCE);
+  if(!nbr->isused && dag) {
+    PRINTF("RPL: Removing neighbor ");
+    PRINT6ADDR(&nbr->ipaddr);
+    PRINTF("\n");
+    p = rpl_find_parent(dag, &nbr->ipaddr);
+    if(p != NULL) {
+      p->rank = INFINITE_RANK;
+      /* Trigger DAG rank recalculation. */
+      p->updated = 1;
+    }
+  }
+}
+/************************************************************************/
+void
 rpl_init(void)
 {
   PRINTF("RPL started\n");
 
   rpl_reset_periodic_timer();
-  neighbor_info_subscribe(neighbor_callback);
+  neighbor_info_subscribe(rpl_link_neighbor_callback);
 }
 /************************************************************************/
