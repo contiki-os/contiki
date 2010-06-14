@@ -29,7 +29,7 @@
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.h,v 1.1 2006/06/17 22:41:14 adamdunkels Exp $
+ * $Id: webclient.h,v 1.2 2010/06/14 14:08:17 nifi Exp $
  *
  */
 #ifndef __WEBCLIENT_H__
@@ -52,7 +52,7 @@ void webclient_closed(void);
 
 /* Functions. */
 void webclient_init(void);
-unsigned char webclient_get(char *host, u16_t port, char *file);
+unsigned char webclient_get(const char *host, u16_t port, const char *file);
 void webclient_close(void);
 
 void webclient_appcall(void *state);
