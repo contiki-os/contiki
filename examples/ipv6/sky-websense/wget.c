@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: wget.c,v 1.1 2010/06/08 22:39:30 nifi Exp $
+ * $Id: wget.c,v 1.2 2010/06/14 14:12:43 nifi Exp $
  */
 
 /**
@@ -65,6 +65,7 @@ static unsigned long fetch_counter;
 
 static const char *server;
 static const char *file;
+static uint16_t port;
 static const struct wget_callbacks *callbacks;
 
 PROCESS(wget_process, "wget");
@@ -88,7 +89,7 @@ PROCESS_THREAD(wget_process, ev, data)
   fetch_started = clock_time();
 #endif /* STATS */
   LEDS_ON(LEDS_YELLOW);
-  if(webclient_get((char *)server, 80, (char *)file) == 0) {
+  if(webclient_get(server, port, file) == 0) {
     PRINTF("wget: failed to connect\n");
     LEDS_OFF(LEDS_YELLOW);
     fetch_running = 0;
@@ -186,13 +187,15 @@ wget_init(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-wget(const char *s, const char *f, const struct wget_callbacks *c)
+wget_get(const char *s, uint16_t p, const char *f,
+         const struct wget_callbacks *c)
 {
   if(fetch_running) {
     return WGET_ALREADY_RUNNING;
   }
   fetch_running = 1;
   server = s;
+  port = p;
   file = f;
   callbacks = c;
   process_start(&wget_process, NULL);
