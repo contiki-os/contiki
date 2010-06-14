@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.6 2010/06/03 15:20:56 nvt-se Exp $
+ * $Id: rpl.c,v 1.7 2010/06/14 12:44:37 nvt-se Exp $
  */
 /**
  * \file
@@ -53,12 +53,6 @@
 #include <limits.h>
 
 /************************************************************************/
-#ifndef RPL_CONF_MAX_ROUTE_ENTRIES
-#define RPL_MAX_ROUTE_ENTRIES   10
-#else
-#define RPL_MAX_ROUTE_ENTRIES   RPL_CONF_MAX_ROUTE_ENTRIES
-#endif /* !RPL_CONF_MAX_ROUTE_ENTRIES */
-
 extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
 /************************************************************************/
 void
@@ -151,6 +145,12 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
     return;
   }
 
+  if(etx != parent->local_confidence) {
+    /* Trigger DAG rank recalculation. */
+    parent->updated = 1;
+  }
+  parent->local_confidence = etx;
+
   if(dag->of->parent_state_callback != NULL) {
     dag->of->parent_state_callback(parent, known, etx);
   }
@@ -159,28 +159,8 @@ neighbor_callback(const rimeaddr_t *addr, int known, int etx)
     PRINTF("RPL: Removing parent ");
     PRINT6ADDR(&parent->addr);
     PRINTF(" because of bad connectivity (ETX %d)\n", etx);
-    rpl_remove_parent(dag, parent);
-    if(RPL_PARENT_COUNT(dag) == 0) {
-      rpl_free_dag(dag);
-    } else {
-      /* Select a new default route. */
-      parent = rpl_preferred_parent(dag);
-      if(parent != NULL) {
-	PRINTF("RPL: Switching preferred parent to ");
-        PRINT6ADDR(&parent->addr);
-        PRINTF("\n");
-        rpl_set_default_route(dag, &parent->addr);
-      }
-    }
-  } else {
-    parent->local_confidence = ~0 - etx;
-    PRINTF("RPL: Updating the local confidence value for this parent to %d\n",
-           parent->local_confidence);
-    if(parent != dag->best_parent &&
-       dag->of->best_parent(parent, dag->best_parent) == parent) {
-      dag->best_parent = parent;
-      rpl_set_default_route(dag, &parent->addr);
-    }
+    parent->rank = INFINITE_RANK;
+    parent->updated = 1;
   }
 }
 /************************************************************************/

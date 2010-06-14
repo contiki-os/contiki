@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.20 2010/06/12 10:55:46 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.21 2010/06/14 12:44:37 nvt-se Exp $
  */
 /**
  * \file
@@ -203,7 +203,6 @@ dio_input(void)
     PRINTF("RPL: Neighbor already in neighbor cache\n");
   }
 
-
   buffer_length = uip_len - uip_l2_l3_icmp_hdr_len;
 
   /* Process the DIO base option. */
@@ -212,8 +211,10 @@ dio_input(void)
 
   dio.instance_id = buffer[i++];
   dio.version = buffer[i++];
-  dio.dag_rank = (buffer[i] << 8) + buffer[i + 1];
+  dio.rank = (buffer[i] << 8) + buffer[i + 1];
   i += 2;
+
+  PRINTF("RPL: Incoming DIO rank %u\n", (unsigned)dio.rank);
 
   dio.grounded = buffer[i] & RPL_DIO_GROUNDED;
   dio.dst_adv_trigger = buffer[i] & RPL_DIO_DEST_ADV_TRIGGER;
@@ -304,7 +305,6 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   uip_ipaddr_t addr;
 
   /* DAG Information Solicitation */
-  PRINTF("RPL: Sending a DIO with rank: %u\n", (unsigned)dag->rank);
   pos = 0;
 
   buffer = UIP_ICMP_PAYLOAD;
@@ -354,13 +354,13 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
     pos += 4;
     memset(&buffer[pos], 0, 4);
     pos += 4;
-    memcpy(&buffer[pos], &(dag->prefix_info.prefix), 16);
+    memcpy(&buffer[pos], &dag->prefix_info.prefix, 16);
     pos += 16;
-    PRINTF("RPL: Sending prefix info in DIO ");
+    PRINTF("RPL: Sending prefix info in DIO for ");
     PRINT6ADDR(&dag->prefix_info.prefix);
     PRINTF("\n");
   } else {
-    PRINTF("RPL: No prefix to announce. len:%d\n",
+    PRINTF("RPL: No prefix to announce (len %d)\n",
            dag->prefix_info.length);
   }
 
@@ -395,7 +395,6 @@ dao_input(void)
   uint8_t subopt_type;
   uip_ipaddr_t prefix;
   uip_ds6_route_t *rep;
-  rpl_parent_t *n;
   uint8_t buffer_length;
   int pos;
   int len;
@@ -417,6 +416,14 @@ dao_input(void)
 
   pos = 0;
   instance_id = buffer[pos++];
+
+  dag = rpl_get_dag(instance_id);
+  if(dag == NULL) {
+    PRINTF("RPL: Ignoring a DAO for a different RPL instance (%u)\n",
+           instance_id);
+    return;
+  }
+
   flags = buffer[pos++];
   /* reserved */
   pos++;
@@ -427,14 +434,6 @@ dao_input(void)
     /* currently the DAG ID is ignored since we only use global
        RPL Instance IDs... */
     pos += 16;
-  }
-
-  /* handle the target option */
-  dag = rpl_get_dag(instance_id);
-  if(dag == NULL) {
-    PRINTF("RPL: Ignoring a DAO for a different RPL instance (%u)\n",
-           instance_id);
-    return;
   }
 
   /* Check if there are any DIO suboptions. */
@@ -450,6 +449,7 @@ dao_input(void)
 
     switch(subopt_type) {
     case RPL_DIO_SUBOPT_TARGET:
+      /* handle the target option */
       prefixlen = buffer[i + 3];
       memset(&prefix, 0, sizeof(prefix));
       memcpy(&prefix, buffer + i + 4, (prefixlen + 7) / CHAR_BIT);
@@ -493,11 +493,12 @@ dao_input(void)
   }
 
   if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
-    if((n = rpl_preferred_parent(dag)) != NULL) {
+    if(dag->preferred_parent) {
       PRINTF("RPL: Forwarding DAO to parent ");
-      PRINT6ADDR(&n->addr);
+      PRINT6ADDR(&dag->preferred_parent->addr);
       PRINTF("\n");
-      uip_icmp6_send(&n->addr, ICMP6_RPL, RPL_CODE_DAO, buffer_length);
+      uip_icmp6_send(&dag->preferred_parent->addr,
+	ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     } else if(flags & RPL_DAO_K_FLAG) {
       dao_ack_output(dag, &dao_sender_addr, sequence);
     }
@@ -536,7 +537,11 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
   pos = 0;
 
   buffer[pos++] = dag->instance_id;
-  buffer[pos++] = RPL_DAO_K_FLAG; /* no ack request, no DODAGID */
+#if RPL_CONF_DAO_ACK
+  buffer[pos++] = RPL_DAO_K_FLAG; /* DAO ACK request, no DODAGID */
+#else
+  buffer[pos++] = 0; /* No DAO ACK request, no DODAGID */
+#endif
   buffer[pos++] = 0; /* reserved */
   buffer[pos++] = dao_sequence & 0xff;
 
