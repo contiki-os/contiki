@@ -26,11 +26,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testctimer.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
+ * $Id: testctimer.c,v 1.3 2010/06/14 18:58:45 adamdunkels Exp $
  */
 
 #include "contiki.h"
-#include "net/rime/ctimer.h"
+#include "sys/ctimer.h"
 
 #include <stdio.h>
 

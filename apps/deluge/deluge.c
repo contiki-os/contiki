@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.c,v 1.9 2010/04/12 14:39:52 nvt-se Exp $
+ * $Id: deluge.c,v 1.10 2010/06/14 18:58:45 adamdunkels Exp $
  */
 
 /**
@@ -43,7 +43,6 @@
 
 #include "contiki.h"
 #include "net/rime.h"
-#include "net/rime/ctimer.h"
 #include "cfs/cfs.h"
 #include "loader/elfloader.h"
 #include "lib/crc16.h"

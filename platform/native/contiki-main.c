@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.12 2010/02/23 18:43:21 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.13 2010/06/14 18:58:45 adamdunkels Exp $
  *
  */
 
@@ -39,7 +39,6 @@
 
 #include "contiki.h"
 #include "net/netstack.h"
-#include "net/rime/ctimer.h"
 
 #include "dev/serial-line.h"
 
