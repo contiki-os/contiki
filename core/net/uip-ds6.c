@@ -109,34 +109,11 @@ uip_ds6_init(void)
   PRINTF("%u neighbors\n%u default routers\n%u prefixes\n%u routes\n%u unicast addresses\n%u multicast addresses\n%u anycast addresses\n",
      UIP_DS6_NBR_NB, UIP_DS6_DEFRT_NB, UIP_DS6_PREFIX_NB, UIP_DS6_ROUTE_NB,
      UIP_DS6_ADDR_NB, UIP_DS6_MADDR_NB, UIP_DS6_AADDR_NB);
-  for(locnbr = uip_ds6_nbr_cache; locnbr < uip_ds6_nbr_cache + UIP_DS6_NBR_NB;
-      locnbr++) {
-    locnbr->isused = 0;
-  }
-  for(locdefrt = uip_ds6_defrt_list;
-      locdefrt < uip_ds6_defrt_list + UIP_DS6_DEFRT_NB; locdefrt++) {
-    locdefrt->isused = 0;
-  }
-  for(locprefix = uip_ds6_prefix_list;
-      locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; locprefix++) {
-    locprefix->isused = 0;
-  }
-  for(locaddr = uip_ds6_if.addr_list;
-      locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
-    locaddr->isused = 0;
-  }
-  for(locmaddr = uip_ds6_if.maddr_list;
-      locmaddr < uip_ds6_if.maddr_list + UIP_DS6_MADDR_NB; locmaddr++) {
-    locmaddr->isused = 0;
-  }
-  for(locaaddr = uip_ds6_if.aaddr_list;
-      locaaddr < uip_ds6_if.aaddr_list + UIP_DS6_AADDR_NB; locaaddr++) {
-    locaaddr->isused = 0;
-  }
-  for(locroute = uip_ds6_routing_table;
-      locroute < uip_ds6_routing_table + UIP_DS6_ROUTE_NB; locroute++) {
-    locroute->isused = 0;
-  }
+  memset(uip_ds6_nbr_cache, 0, sizeof(uip_ds6_nbr_cache));
+  memset(uip_ds6_defrt_list, 0, sizeof(uip_ds6_defrt_list));
+  memset(uip_ds6_prefix_list, 0, sizeof(uip_ds6_prefix_list));
+  memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
+  memset(uip_ds6_routing_table, 0, sizeof(uip_ds6_routing_table));
 
   /* Set interface parameters */
   uip_ds6_if.link_mtu = UIP_LINK_MTU;
