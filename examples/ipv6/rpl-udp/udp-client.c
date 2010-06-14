@@ -29,10 +29,10 @@
 
 #include "contiki.h"
 #include "lib/random.h"
-#include "net/rime/ctimer.h"
 #include "net/uip.h"
 #include "net/uip-ds6.h"
 #include "net/uip-udp-packet.h"
+#include "sys/ctimer.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -139,10 +139,6 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PROCESS_PAUSE();
 
   PRINTF("UDP client process started\n");
-
-/* #if UIP_CONF_ROUTER */
-/*   set_global_address(); */
-/* #endif */
 
   print_local_addresses();
 
