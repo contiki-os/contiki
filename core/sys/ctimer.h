@@ -1,5 +1,5 @@
 /**
- * \addtogroup rime
+ * \addtogroup sys
  * @{
  */
 
@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.h,v 1.1 2010/06/14 07:34:36 adamdunkels Exp $
+ * $Id: ctimer.h,v 1.2 2010/06/14 07:35:53 adamdunkels Exp $
  */
 
 /**
