@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-timers.c,v 1.8 2010/06/02 16:55:00 joxe Exp $
+ * $Id: rpl-timers.c,v 1.9 2010/06/14 11:35:21 adamdunkels Exp $
  */
 /**
  * \file
@@ -42,7 +42,7 @@
  */
 
 #include "contiki-conf.h"
-#include "net/rime/ctimer.h"
+#include "sys/ctimer.h"
 #include "net/rpl/rpl.h"
 #include "lib/random.h"
 
