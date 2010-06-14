@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.18 2010/05/02 12:21:34 nifi Exp $
+ * $Id: queuebuf.c,v 1.19 2010/06/14 06:55:26 adamdunkels Exp $
  */
 
 /**
@@ -83,6 +83,8 @@ MEMB(refbufmem, struct queuebuf_ref, QUEUEBUF_REF_NUM);
 #else
 #define PRINTF(...)
 #endif
+
+#define QUEUEBUF_CONF_STATS 0
 
 #ifdef QUEUEBUF_CONF_STATS
 #define QUEUEBUF_STATS QUEUEBUF_CONF_STATS
@@ -216,7 +218,7 @@ queuebuf_datalen(struct queuebuf *b)
   return b->len;
 }
 /*---------------------------------------------------------------------------*/
-const rimeaddr_t *
+rimeaddr_t *
 queuebuf_addr(struct queuebuf *b, uint8_t type)
 {
   return &b->addrs[type - PACKETBUF_ADDR_FIRST].addr;
