@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki.h,v 1.5 2008/07/03 23:36:30 adamdunkels Exp $
+ * $Id: contiki.h,v 1.6 2010/06/14 07:34:36 adamdunkels Exp $
  */
 #ifndef __CONTIKI_H__
 #define __CONTIKI_H__
@@ -42,6 +42,7 @@
 #include "sys/autostart.h"
 
 #include "sys/timer.h"
+#include "sys/ctimer.h"
 #include "sys/etimer.h"
 #include "sys/rtimer.h"
 

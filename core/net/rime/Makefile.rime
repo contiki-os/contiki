@@ -1,5 +1,5 @@
 RIME_CHAMELEON = chameleon.c channel.c chameleon-raw.c chameleon-bitopt.c
-RIME_BASE      = packetbuf.c queuebuf.c rimeaddr.c ctimer.c rime.c timesynch.c \
+RIME_BASE      = packetbuf.c queuebuf.c rimeaddr.c rime.c timesynch.c \
                  rimestats.c announcement.c polite-announcement.c packetqueue.c \
                  broadcast-announcement.c
 RIME_SINGLEHOP = broadcast.c stbroadcast.c unicast.c stunicast.c \

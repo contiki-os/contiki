@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetqueue.c,v 1.2 2010/02/28 09:20:32 adamdunkels Exp $
+ * $Id: packetqueue.c,v 1.3 2010/06/14 07:34:37 adamdunkels Exp $
  */
 
 /**
@@ -42,7 +42,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/ctimer.h"
+#include "sys/ctimer.h"
 #include "net/rime/packetqueue.h"
 
 /*---------------------------------------------------------------------------*/

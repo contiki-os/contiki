@@ -50,7 +50,7 @@ include $(CONTIKI)/core/net/mac/Makefile.mac
 SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c \
           timetable.c timetable-aggregate.c compower.c serial-line.c
 THREADS = mt.c
-LIBS    = memb.c mmem.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
+LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c \
           print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c
 DEV     = nullradio.c
 NET     = netstack.c uip-debug.c
@@ -93,10 +93,12 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFI
 
 ifdef APPS
   APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
-                ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)}}
+                ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
+		${addprefix , $(APPS)}}
   APPINCLUDES = ${foreach APP, $(APPS), ${wildcard \
                  $(CONTIKI)/apps/$(APP)/Makefile.$(APP) \
-                 $(CONTIKI)/platform/$(TARGET)/apps/$(APP)/Makefile.$(APP)}}
+                 $(CONTIKI)/platform/$(TARGET)/apps/$(APP)/Makefile.$(APP) \
+	         $(APP)/Makefile.$(APP)}}
   -include $(APPINCLUDES)
   APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
   DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}
