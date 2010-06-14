@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: websense-remote.c,v 1.1 2010/06/08 22:39:30 nifi Exp $
+ * $Id: websense-remote.c,v 1.2 2010/06/14 14:12:43 nifi Exp $
  */
 
 /**
@@ -122,7 +122,7 @@ send_command(const char *server, const char *command)
 {
   int ret;
   printf("Sending to [%s]: %s\n", server, command);
-  ret = wget(server, command, &callbacks);
+  ret = wget_get(server, 80, command, &callbacks);
   if(ret != WGET_OK) {
     if(ret == WGET_ALREADY_RUNNING) {
       printf("Waiting for previous command to finish.\n");

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: wget.h,v 1.1 2010/06/08 22:39:30 nifi Exp $
+ * $Id: wget.h,v 1.2 2010/06/14 14:12:43 nifi Exp $
  */
 
 /**
@@ -48,7 +48,8 @@ struct wget_callbacks {
 };
 
 void wget_init(void);
-int wget(const char *server, const char *file, const struct wget_callbacks *c);
+int wget_get(const char *server, uint16_t port, const char *file,
+             const struct wget_callbacks *c);
 
 enum {
   WGET_OK,
