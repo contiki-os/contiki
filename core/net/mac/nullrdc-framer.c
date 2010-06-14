@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullrdc-framer.c,v 1.2 2010/05/26 14:12:33 nifi Exp $
+ * $Id: nullrdc-framer.c,v 1.3 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -40,7 +40,7 @@
  */
 
 #include "net/mac/nullrdc-framer.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/netstack.h"
 #include "sys/rtimer.h"
 #include "dev/watchdog.h"

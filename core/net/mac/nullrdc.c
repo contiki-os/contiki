@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullrdc.c,v 1.2 2010/02/23 20:09:11 nifi Exp $
+ * $Id: nullrdc.c,v 1.3 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -39,7 +39,7 @@
  */
 
 #include "net/mac/nullrdc.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/netstack.h"
 
 /*---------------------------------------------------------------------------*/

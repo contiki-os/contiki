@@ -60,7 +60,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.h,v 1.6 2010/06/14 07:34:37 adamdunkels Exp $
+ * $Id: stunicast.h,v 1.7 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -75,7 +75,7 @@
 
 #include "sys/ctimer.h"
 #include "net/rime/unicast.h"
-#include "net/rime/queuebuf.h"
+#include "net/queuebuf.h"
 
 struct stunicast_conn;
 

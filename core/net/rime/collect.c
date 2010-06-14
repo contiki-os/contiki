@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.48 2010/06/14 06:54:47 adamdunkels Exp $
+ * $Id: collect.c,v 1.49 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -49,7 +49,7 @@
 #include "net/rime/collect-neighbor.h"
 #include "net/rime/collect.h"
 
-#include "net/rime/packetqueue.h"
+#include "net/packetqueue.h"
 
 #include "dev/radio-sensor.h"
 

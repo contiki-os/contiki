@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: compower.c,v 1.4 2010/02/23 18:39:00 adamdunkels Exp $
+ * $Id: compower.c,v 1.5 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #include "contiki-conf.h"
 #include "sys/energest.h"
 #include "sys/compower.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 
 struct compower_activity compower_idle_activity;
 

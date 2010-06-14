@@ -16,7 +16,7 @@
 #include "cc2430_sfr.h"
 #include "sys/clock.h"
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 
 extern void (* receiver_callback)(const struct radio_driver *);

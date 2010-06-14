@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowmac.c,v 1.7 2010/02/23 22:45:11 nifi Exp $
+ * $Id: sicslowmac.c,v 1.8 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 
@@ -47,7 +47,7 @@
 #include <string.h>
 #include "net/mac/sicslowmac.h"
 #include "net/mac/frame802154.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/netstack.h"
 #include "lib/random.h"
 

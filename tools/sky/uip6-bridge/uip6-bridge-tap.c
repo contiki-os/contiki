@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: uip6-bridge-tap.c,v 1.2 2009/11/02 11:46:49 adamdunkels Exp $
+ * $Id: uip6-bridge-tap.c,v 1.3 2010/06/14 19:19:17 adamdunkels Exp $
  *
  */
 
@@ -44,7 +44,7 @@
 #include "dev/leds.h"
 #include "sicslow_ethernet.h"
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 
 #include <stdio.h>
 #include <string.h>

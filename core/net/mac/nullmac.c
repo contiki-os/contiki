@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.14 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: nullmac.c,v 1.15 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -39,7 +39,7 @@
  */
 
 #include "net/mac/nullmac.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/netstack.h"
 
 /*---------------------------------------------------------------------------*/

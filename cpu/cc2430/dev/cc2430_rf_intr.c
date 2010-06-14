@@ -21,7 +21,7 @@
 #endif
 #include "sys/clock.h"
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #define DEBUG 0
 #if DEBUG

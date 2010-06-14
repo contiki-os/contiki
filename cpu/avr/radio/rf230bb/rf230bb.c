@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.9 2010/03/02 16:29:59 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.10 2010/06/14 19:19:17 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -52,7 +52,7 @@
 #include "dev/spi.h"
 #include "rf230bb.h"
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/netstack.h"
 

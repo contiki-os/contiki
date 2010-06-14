@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.52 2010/04/20 11:41:16 nifi Exp $
+ * @(#)$Id: cc2420.c,v 1.53 2010/06/14 19:19:16 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -50,7 +50,7 @@
 #include "dev/cc2420.h"
 #include "dev/cc2420_const.h"
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/netstack.h"
 

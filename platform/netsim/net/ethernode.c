@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.17 2010/02/23 18:44:08 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.18 2010/06/14 19:19:17 adamdunkels Exp $
  */
 /**
  * \file
@@ -46,7 +46,7 @@
 
 #include "dev/radio.h"
 #include "net/netstack.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 
 #include "node.h"
 

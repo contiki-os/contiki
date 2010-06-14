@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer-nullmac.c,v 1.1 2009/10/19 18:30:03 adamdunkels Exp $
+ * $Id: framer-nullmac.c,v 1.2 2010/06/14 19:19:16 adamdunkels Exp $
  */
 
 /**
@@ -38,7 +38,7 @@
  */
 
 #include "net/mac/framer-nullmac.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 
 #define DEBUG 0
 

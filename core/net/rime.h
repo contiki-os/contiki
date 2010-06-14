@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.29 2010/06/14 07:34:36 adamdunkels Exp $
+ * $Id: rime.h,v 1.30 2010/06/14 19:19:16 adamdunkels Exp $
  */
 
 /**
@@ -55,9 +55,9 @@
 #include "net/rime/netflood.h"
 #include "net/rime/polite-announcement.h"
 #include "net/rime/polite.h"
-#include "net/rime/queuebuf.h"
+#include "net/queuebuf.h"
 #include "net/rime/rimeaddr.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/rime/rmh.h"
 #include "net/rime/route-discovery.h"

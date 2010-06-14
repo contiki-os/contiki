@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.16 2010/02/23 18:38:05 adamdunkels Exp $
+ * $Id: abc.h,v 1.17 2010/06/14 19:19:17 adamdunkels Exp $
  */
 /**
  * \file
@@ -58,7 +58,7 @@
 #ifndef __ABC_H__
 #define __ABC_H__
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/channel.h"
 
 struct abc_conn;

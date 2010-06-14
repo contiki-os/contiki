@@ -81,7 +81,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.h,v 1.8 2010/06/14 07:34:37 adamdunkels Exp $
+ * $Id: polite.h,v 1.9 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -95,7 +95,7 @@
 #define __POLITE_H__
 
 #include "net/rime/abc.h"
-#include "net/rime/queuebuf.h"
+#include "net/queuebuf.h"
 
 struct polite_conn;
 
