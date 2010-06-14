@@ -29,6 +29,7 @@
 
 #include "contiki.h"
 #include "lib/random.h"
+#include "sys/ctimer.h"
 #include "net/uip.h"
 #include "net/uip-ds6.h"
 #include "net/uip-udp-packet.h"
