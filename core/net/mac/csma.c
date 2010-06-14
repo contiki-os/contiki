@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.16 2010/04/08 09:33:37 adamdunkels Exp $
+ * $Id: csma.c,v 1.17 2010/06/14 07:34:36 adamdunkels Exp $
  */
 
 /**
@@ -41,7 +41,8 @@
 #include "net/mac/csma.h"
 #include "net/rime/packetbuf.h"
 #include "net/rime/queuebuf.h"
-#include "net/rime/ctimer.h"
+
+#include "sys/ctimer.h"
 
 #include "lib/random.h"
 

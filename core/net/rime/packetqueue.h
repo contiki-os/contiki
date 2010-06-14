@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetqueue.h,v 1.4 2010/02/28 09:20:32 adamdunkels Exp $
+ * $Id: packetqueue.h,v 1.5 2010/06/14 07:34:37 adamdunkels Exp $
  */
 
 /**
@@ -56,6 +56,8 @@
 
 #include "lib/list.h"
 #include "lib/memb.h"
+
+#include "sys/ctimer.h"
 
 #include "net/rime/packetbuf.h"
 #include "net/rime/queuebuf.h"

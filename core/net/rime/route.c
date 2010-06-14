@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.16 2010/02/03 01:18:24 adamdunkels Exp $
+ * $Id: route.c,v 1.17 2010/06/14 07:34:37 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,7 @@
 
 #include "lib/list.h"
 #include "lib/memb.h"
-#include "net/rime/ctimer.h"
+#include "sys/ctimer.h"
 #include "net/rime/route.h"
 #include "contiki-conf.h"
 

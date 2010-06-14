@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.c,v 1.8 2010/04/09 16:21:07 nvt-se Exp $
+ * $Id: ctimer.c,v 1.1 2010/06/14 07:34:36 adamdunkels Exp $
  */
 
 /**
@@ -43,10 +43,9 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/ctimer.h"
+#include "sys/ctimer.h"
 #include "contiki.h"
 #include "lib/list.h"
-#include "net/rime.h"
 
 LIST(ctimer_list);
 

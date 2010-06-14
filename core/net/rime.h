@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.28 2010/03/19 13:20:40 adamdunkels Exp $
+ * $Id: rime.h,v 1.29 2010/06/14 07:34:36 adamdunkels Exp $
  */
 
 /**
@@ -48,7 +48,6 @@
 
 #include "net/rime/announcement.h"
 #include "net/rime/collect.h"
-#include "net/rime/ctimer.h"
 #include "net/rime/ipolite.h"
 #include "net/rime/mesh.h"
 #include "net/rime/multihop.h"

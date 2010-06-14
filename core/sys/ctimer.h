@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.h,v 1.4 2009/11/19 18:32:05 nifi Exp $
+ * $Id: ctimer.h,v 1.1 2010/06/14 07:34:36 adamdunkels Exp $
  */
 
 /**

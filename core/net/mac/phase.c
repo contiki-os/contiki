@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.11 2010/04/27 12:56:35 fros4943 Exp $
+ * $Id: phase.c,v 1.12 2010/06/14 07:34:37 adamdunkels Exp $
  */
 
 /**
@@ -42,7 +42,7 @@
 #include "net/rime/packetbuf.h"
 #include "sys/clock.h"
 #include "lib/memb.h"
-#include "net/rime/ctimer.h"
+#include "sys/ctimer.h"
 #include "net/rime/queuebuf.h"
 #include "dev/watchdog.h"
 #include "dev/leds.h"
@@ -57,7 +57,7 @@ struct phase_queueitem {
 #define PHASE_DEFER_THRESHOLD 1
 #define PHASE_QUEUESIZE       8
 
-#define MAX_NOACKS            2
+#define MAX_NOACKS            3
 
 MEMB(queued_packets_memb, struct phase_queueitem, PHASE_QUEUESIZE);
 

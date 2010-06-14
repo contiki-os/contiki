@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.c,v 1.1 2010/03/19 13:17:00 adamdunkels Exp $
+ * $Id: collect-neighbor.c,v 1.2 2010/06/14 07:34:37 adamdunkels Exp $
  */
 
 /**
@@ -49,8 +49,8 @@
 #include "contiki.h"
 #include "lib/memb.h"
 #include "lib/list.h"
+
 #include "net/rime/collect-neighbor.h"
-#include "net/rime/ctimer.h"
 #include "net/rime/collect.h"
 
 #ifdef COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS
