@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.17 2010/06/12 10:55:46 joxe Exp $
+ * $Id: rpl.h,v 1.18 2010/06/14 11:33:58 adamdunkels Exp $
  */
 
 #ifndef RPL_H
@@ -49,7 +49,7 @@
 #include "lib/list.h"
 #include "net/uip.h"
 #include "sys/clock.h"
-#include "net/rime/ctimer.h"
+#include "sys/ctimer.h"
 #include "net/uip-ds6.h"
 
 /* set to 1 for some statistics on trickle / DIO */

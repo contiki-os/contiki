@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.25 2010/06/08 21:37:22 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.26 2010/06/14 11:35:21 adamdunkels Exp $
  */
 /**
  * \file
@@ -45,7 +45,7 @@
 
 #include "net/uip.h"
 #include "net/uip-nd6.h"
-#include "net/rime/ctimer.h"
+#include "sys/ctimer.h"
 #include "lib/list.h"
 #include "lib/memb.h"
 
@@ -127,6 +127,7 @@ remove_parents(rpl_dag_t *dag, rpl_parent_t *exception, int poison_routes)
 static int
 should_send_dao(rpl_dag_t *dag, rpl_dio_t *dio, rpl_parent_t *p)
 {
+  return 1;
   return dio->dst_adv_supported && dio->dst_adv_trigger &&
          dio->dtsn > p->dtsn && p == dag->best_parent;
 }
