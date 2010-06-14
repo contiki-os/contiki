@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.56 2010/04/30 07:32:39 adamdunkels Exp $
+ * $Id: xmac.c,v 1.57 2010/06/14 06:52:41 adamdunkels Exp $
  */
 
 /**
@@ -219,6 +219,15 @@ static rtimer_clock_t stream_until;
 #ifndef MIN
 #define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
+
+struct seqno {
+  rimeaddr_t sender;
+  uint8_t seqno;
+};
+
+#define MAX_SEQNOS 8
+static struct seqno received_seqnos[MAX_SEQNOS];
+
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -716,6 +725,27 @@ input_packet(void)
 	/* We have received the final packet, so we can go back to being
 	   asleep. */
 	off();
+
+        /* Check for duplicate packet by comparing the sequence number
+           of the incoming packet with the last few ones we saw. */
+        {
+          int i;
+          for(i = 0; i < MAX_SEQNOS; ++i) {
+            if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno &&
+               rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                            &received_seqnos[i].sender)) {
+              /* Drop the packet. */
+              return;
+            }
+          }
+          for(i = MAX_SEQNOS - 1; i > 0; --i) {
+            memcpy(&received_seqnos[i], &received_seqnos[i - 1],
+                   sizeof(struct seqno));
+          }
+          received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+          rimeaddr_copy(&received_seqnos[0].sender,
+                        packetbuf_addr(PACKETBUF_ADDR_SENDER));
+        }
 
 #if XMAC_CONF_COMPOWER
 	/* Accumulate the power consumption for the packet reception. */
