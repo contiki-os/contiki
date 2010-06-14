@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.8 2010/06/08 19:25:40 adamdunkels Exp $
+ * $Id: neighbor-info.c,v 1.9 2010/06/14 06:51:58 adamdunkels Exp $
  */
 /**
  * \file
@@ -57,6 +57,7 @@
 #define ETX_SCALE		100
 #define ETX_ALPHA		80
 #define ETX_FIRST_GUESS		(ETX_LIMIT - 1)
+#define ETX_LOSS_PENALTY        1
 /*---------------------------------------------------------------------------*/
 NEIGHBOR_ATTRIBUTE(uint8_t, etx, NULL);
 
@@ -129,14 +130,9 @@ neighbor_info_packet_sent(int status, int numtx)
     break;
   case MAC_TX_ERR:
   case MAC_TX_NOACK:
-    /*    if(neighbor_attr_has_neighbor(dest)) {
-      neighbor_attr_remove_neighbor(dest);
-      if(subscriber_callback != NULL) {
-        subscriber_callback(dest, 0, 0);
-      }
-      }*/
   default:
-    return;
+    packet_etx = numtx + ETX_LOSS_PENALTY;
+    break;
   }
 
   update_etx(dest, packet_etx);
@@ -170,5 +166,3 @@ neighbor_info_subscribe(neighbor_info_subscriber_t s)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-
-/* XXX use a list of subscribers? */
