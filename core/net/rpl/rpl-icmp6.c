@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.21 2010/06/14 12:44:37 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.22 2010/06/14 19:19:17 adamdunkels Exp $
  */
 /**
  * \file
@@ -50,7 +50,7 @@
 #include "net/uip-nd6.h"
 #include "net/uip-icmp6.h"
 #include "net/rpl/rpl.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 
 #include <limits.h>
 #include <string.h>

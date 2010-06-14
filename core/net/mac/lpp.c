@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.34 2010/04/30 22:18:12 nvt-se Exp $
+ * $Id: lpp.c,v 1.35 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -58,7 +58,7 @@
 #include "net/netstack.h"
 #include "net/mac/mac.h"
 #include "net/mac/lpp.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/announcement.h"
 #include "sys/compower.h"
 

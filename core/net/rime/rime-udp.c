@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime-udp.c,v 1.5 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: rime-udp.c,v 1.6 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 #include "net/uip-udp-packet.h"
 #include "net/uip-netif.h"
 #include "net/rime/rime-udp.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 
 #define DEBUG 0
 #if DEBUG

@@ -81,7 +81,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.h,v 1.11 2010/06/14 07:34:37 adamdunkels Exp $
+ * $Id: ipolite.h,v 1.12 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -97,7 +97,7 @@
 #include "sys/ctimer.h"
 
 #include "net/rime/broadcast.h"
-#include "net/rime/queuebuf.h"
+#include "net/queuebuf.h"
 
 struct ipolite_conn;
 

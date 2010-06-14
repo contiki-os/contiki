@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stbroadcast.h,v 1.3 2010/06/14 07:34:37 adamdunkels Exp $
+ * $Id: stbroadcast.h,v 1.4 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +64,7 @@
 #include "sys/ctimer.h"
 
 #include "net/rime/broadcast.h"
-#include "net/rime/queuebuf.h"
+#include "net/queuebuf.h"
 
 struct stbroadcast_conn;
 

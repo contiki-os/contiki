@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.c,v 1.9 2010/05/02 14:59:11 nifi Exp $
+ * $Id: packetbuf.c,v 1.1 2010/06/14 19:19:16 adamdunkels Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #include <string.h>
 
 #include "contiki-net.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime.h"
 
 struct packetbuf_attr packetbuf_attrs[PACKETBUF_NUM_ATTRS];

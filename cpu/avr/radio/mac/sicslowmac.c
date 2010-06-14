@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowmac.c,v 1.8 2009/07/17 13:47:10 dak664 Exp $
+ * $Id: sicslowmac.c,v 1.9 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 
@@ -51,7 +51,7 @@
 #include <stdio.h>
 #include <avr/eeprom.h>
 #include <util/delay.h>
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "zmac.h"
 #include "mac.h"
 #include "frame.h"

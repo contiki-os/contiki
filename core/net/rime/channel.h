@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: channel.h,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: channel.h,v 1.3 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 struct channel;
 
 #include "contiki-conf.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/chameleon.h"
 
 struct channel {

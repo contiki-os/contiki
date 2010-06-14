@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.h,v 1.12 2010/05/27 20:28:29 nifi Exp $
+ * $Id: packetbuf.h,v 1.1 2010/06/14 19:19:16 adamdunkels Exp $
  */
 
 /**

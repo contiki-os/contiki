@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tdma_mac.c,v 1.7 2009/06/22 11:14:11 nifi Exp $
+ * $Id: tdma_mac.c,v 1.8 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 #include "contiki.h"
 #include "net/mac/tdma_mac.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/uip-fw.h"
 #include "sys/rtimer.h"
 #include "net/rime.h"

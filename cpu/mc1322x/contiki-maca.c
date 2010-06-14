@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-maca.c,v 1.1 2010/06/09 14:43:22 maralvira Exp $
+ * $Id: contiki-maca.c,v 1.2 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 #include <stdint.h>
@@ -40,7 +40,7 @@
 /* contiki */
 #include "radio.h"
 #include "sys/process.h"
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/netstack.h"
 
 #include "mc1322x.h"

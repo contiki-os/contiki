@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.14 2010/03/23 15:19:55 adamdunkels Exp $
+ * $Id: cooja-radio.c,v 1.15 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -37,7 +37,7 @@
 #include "sys/cooja_mt.h"
 #include "lib/simEnvChange.h"
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/netstack.h"
 
