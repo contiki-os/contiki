@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.28 2010/06/14 13:07:09 nifi Exp $
+ * $Id: rpl-dag.c,v 1.29 2010/06/14 18:35:04 nvt-se Exp $
  */
 /**
  * \file
@@ -682,22 +682,4 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   p->dtsn = dio->dtsn;
 }
 /************************************************************************/
-void
-rpl_ds6_neighbor_callback(uip_ds6_nbr_t *nbr)
-{
-  rpl_dag_t *dag;
-  rpl_parent_t *p;
 
-  dag = rpl_get_dag(RPL_ANY_INSTANCE);
-  if(!nbr->isused && dag) {
-    PRINTF("RPL: Removing neighbor ");
-    PRINT6ADDR(&nbr->ipaddr);
-    PRINTF("\n");
-    p = rpl_find_parent(dag, &nbr->ipaddr);
-    if(p != NULL) {
-      p->rank = INFINITE_RANK;
-      /* Trigger DAG rank recalculation. */
-      p->updated = 1;
-    }
-  }
-}
