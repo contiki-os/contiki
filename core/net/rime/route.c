@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.17 2010/06/14 07:34:37 adamdunkels Exp $
+ * $Id: route.c,v 1.18 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -94,7 +94,7 @@ periodic(void *ptr)
 {
   struct route_entry *e;
 
-  for(e = list_head(route_table); e != NULL; e = e->next) {
+  for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
     e->time++;
     if(e->time >= max_time) {
       PRINTF("route periodic: removing entry to %d.%d with nexthop %d.%d and cost %d\n",
@@ -170,7 +170,7 @@ route_lookup(const rimeaddr_t *dest)
   best_entry = NULL;
   
   /* Find the route with the lowest cost. */
-  for(e = list_head(route_table); e != NULL; e = e->next) {
+  for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
     /*    printf("route_lookup: comparing %d.%d.%d.%d with %d.%d.%d.%d\n",
 	   uip_ipaddr_to_quad(dest), uip_ipaddr_to_quad(&e->dest));*/
 
@@ -263,7 +263,7 @@ route_num(void)
   struct route_entry *e;
   int i = 0;
 
-  for(e = list_head(route_table); e != NULL; e = e->next) {
+  for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
     i++;
   }
   return i;
@@ -275,7 +275,7 @@ route_get(int num)
   struct route_entry *e;
   int i = 0;
 
-  for(e = list_head(route_table); e != NULL; e = e->next) {
+  for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
     if(i == num) {
       return e;
     }

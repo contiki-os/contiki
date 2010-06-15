@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.13 2010/06/14 19:19:17 adamdunkels Exp $
+ * $Id: phase.c,v 1.14 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -75,7 +75,7 @@ struct phase *
 find_neighbor(const struct phase_list *list, const rimeaddr_t *addr)
 {
   struct phase *e;
-  for(e = list_head(*list->list); e != NULL; e = e->next) {
+  for(e = list_head(*list->list); e != NULL; e = list_item_next(e)) {
     if(rimeaddr_cmp(addr, &e->neighbor)) {
       return e;
     }

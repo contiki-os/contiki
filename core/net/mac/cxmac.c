@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.12 2010/03/01 13:30:22 nifi Exp $
+ * $Id: cxmac.c,v 1.13 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -365,7 +365,7 @@ format_announcement(char *hdr)
   adata.num = 0;
   for(a = announcement_list();
       a != NULL && adata.num < ANNOUNCEMENT_MAX;
-      a = a->next) {
+      a = list_item_next(a)) {
     adata.data[adata.num].id = a->id;
     adata.data[adata.num].value = a->value;
     adata.num++;
@@ -389,7 +389,7 @@ register_encounter(const rimeaddr_t *neighbor, rtimer_clock_t time)
   struct encounter *e;
 
   /* If we have an entry for this neighbor already, we renew it. */
-  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+  for(e = list_head(encounter_list); e != NULL; e = list_item_next(e)) {
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
       e->time = time;
       break;
@@ -499,7 +499,7 @@ send_packet(void)
      an encounter with this particular neighbor. If so, we can compute
      the time for the next expected encounter and setup a ctimer to
      switch on the radio just before the encounter. */
-  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+  for(e = list_head(encounter_list); e != NULL; e = list_item_next(e)) {
     const rimeaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
@@ -559,6 +559,7 @@ send_packet(void)
       while(got_strobe_ack == 0 &&
 	    RTIMER_CLOCK_LT(RTIMER_NOW(), t + cxmac_config.strobe_wait_time)) {
 	rtimer_clock_t now = RTIMER_NOW();
+
 	/* See if we got an ACK */
 	packetbuf_clear();
 	len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
@@ -587,9 +588,8 @@ send_packet(void)
       }
 
       t = RTIMER_NOW();
-            /* Send the strobe packet. */
+      /* Send the strobe packet. */
       if(got_strobe_ack == 0 && collisions == 0) {
-
 	if(is_broadcast) {
 #if WITH_STROBE_BROADCAST
 	  NETSTACK_RADIO.send(strobe, strobe_len);
@@ -602,7 +602,7 @@ send_packet(void)
 	} else {
 	  rtimer_clock_t wt;
 	  NETSTACK_RADIO.send(strobe, strobe_len);
-#if 1
+#if 0
 	  /* Turn off the radio for a while to let the other side
 	     respond. We don't need to keep our radio on when we know
 	     that the other side needs some time to produce a reply. */
@@ -794,8 +794,8 @@ input_packet(void)
     } else if(hdr->type == TYPE_STROBE_ACK) {
       PRINTDEBUG("cxmac: stray strobe ack\n");
     } else {
-      PRINTF("cxmac: unknown type %u (%u/%u)\n", hdr->type,
-             packetbuf_datalen(), len);
+      PRINTF("cxmac: unknown type %u (%u)\n", hdr->type,
+             packetbuf_datalen());
     }
   } else {
     PRINTF("cxmac: failed to parse (%u)\n", packetbuf_totlen());

@@ -24,7 +24,7 @@ example_function(void)
 
   for(s = list_head(example_list);
       s != NULL;
-      s = s->next) {
+      s = list_item_next(s)) {
     printf("List element number %d\n", s->number);
   }
 }

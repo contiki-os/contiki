@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announcement.c,v 1.5 2010/03/25 08:49:56 adamdunkels Exp $
+ * $Id: announcement.c,v 1.6 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -93,6 +93,7 @@ void
 announcement_set_value(struct announcement *a, uint16_t value)
 {
   uint16_t oldvalue = a->value;
+
   a->has_value = 1;
   a->value = value;
   if(observer_callback) {
@@ -140,7 +141,7 @@ void
 announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value)
 {
   struct announcement *a;
-  for(a = list_head(announcements); a != NULL; a = a->next) {
+  for(a = list_head(announcements); a != NULL; a = list_item_next(a)) {
     if(a->id == id) {
       if(a->callback != NULL) {
 	a->callback(a, from, id, value);

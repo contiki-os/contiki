@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: channel.c,v 1.2 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: channel.c,v 1.3 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -80,7 +80,7 @@ struct channel *
 channel_lookup(uint16_t channelno)
 {
   struct channel *c;
-  for(c = list_head(channel_list); c != NULL; c = c->next) {
+  for(c = list_head(channel_list); c != NULL; c = list_item_next(c)) {
     if(c->channelno == channelno) {
       return c;
     }

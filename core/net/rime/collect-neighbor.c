@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.c,v 1.2 2010/06/14 07:34:37 adamdunkels Exp $
+ * $Id: collect-neighbor.c,v 1.3 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -98,13 +98,13 @@ periodic(void *ptr)
 	       rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	       n->addr.u8[0], n->addr.u8[1]);
 	rimeaddr_copy(&n->addr, &rimeaddr_null);
-	next = n->next;
+	next = list_item_next(n);
 	list_remove(collect_neighbors_list, n);
 	memb_free(&collect_neighbors_mem, n);
       }
     }
     if(next == NULL) {
-      next = n->next;
+      next = list_item_next(n);
     }
   }
   /*  PRINTF("collect_neighbor periodic\n");*/
@@ -127,7 +127,7 @@ struct collect_neighbor *
 collect_neighbor_find(const rimeaddr_t *addr)
 {
   struct collect_neighbor *n;
-  for(n = list_head(collect_neighbors_list); n != NULL; n = n->next) {
+  for(n = list_head(collect_neighbors_list); n != NULL; n = list_item_next(n)) {
     if(rimeaddr_cmp(&n->addr, addr)) {
       return n;
     }
@@ -192,7 +192,7 @@ collect_neighbor_add(const rimeaddr_t *addr, uint8_t nrtmetric, uint8_t netx)
   PRINTF("collect_neighbor_add: adding %d.%d\n", addr->u8[0], addr->u8[1]);
   
   /* Check if the collect_neighbor is already on the list. */
-  for(n = list_head(collect_neighbors_list); n != NULL; n = n->next) {
+  for(n = list_head(collect_neighbors_list); n != NULL; n = list_item_next(n)) {
     if(rimeaddr_cmp(&n->addr, &rimeaddr_null) ||
        rimeaddr_cmp(&n->addr, addr)) {
       PRINTF("collect_neighbor_add: already on list %d.%d\n", addr->u8[0], addr->u8[1]);
@@ -220,7 +220,7 @@ collect_neighbor_add(const rimeaddr_t *addr, uint8_t nrtmetric, uint8_t netx)
     etx = 0;
     max = NULL;
 
-    for(n = list_head(collect_neighbors_list); n != NULL; n = n->next) {
+    for(n = list_head(collect_neighbors_list); n != NULL; n = list_item_next(n)) {
       if(!rimeaddr_cmp(&n->addr, &rimeaddr_null)) {
 	if(n->rtmetric > rtmetric) {
 	  rtmetric = n->rtmetric;
@@ -259,7 +259,7 @@ collect_neighbor_remove(const rimeaddr_t *addr)
 {
   struct collect_neighbor *n;
 
-  for(n = list_head(collect_neighbors_list); n != NULL; n = n->next) {
+  for(n = list_head(collect_neighbors_list); n != NULL; n = list_item_next(n)) {
     if(rimeaddr_cmp(&n->addr, addr)) {
       PRINTF("%d.%d: removing %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -298,7 +298,7 @@ collect_neighbor_best(void)
   /*  PRINTF("%d: ", node_id);*/
   
   /* Find the lowest rtmetric. */
-  for(n = list_head(collect_neighbors_list); n != NULL; n = n->next) {
+  for(n = list_head(collect_neighbors_list); n != NULL; n = list_item_next(n)) {
     PRINTF("collect_neighbor_best: checking %d.%d with rtmetric %d + %d\n",
            n->addr.u8[0], n->addr.u8[1],
            n->rtmetric, collect_neighbor_etx(n));
@@ -334,7 +334,7 @@ collect_neighbor_get(int num)
   PRINTF("collect_neighbor_get %d\n", num);
   
   i = 0;
-  for(n = list_head(collect_neighbors_list); n != NULL; n = n->next) {
+  for(n = list_head(collect_neighbors_list); n != NULL; n = list_item_next(n)) {
     if(i == num) {
       PRINTF("collect_neighbor_get found %d.%d\n", n->addr.u8[0], n->addr.u8[1]);
       return n;
