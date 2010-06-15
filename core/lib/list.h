@@ -64,7 +64,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: list.h,v 1.3 2009/05/06 15:07:35 adamdunkels Exp $
+ * $Id: list.h,v 1.4 2010/06/15 18:54:27 adamdunkels Exp $
  */
 #ifndef __LIST_H__
 #define __LIST_H__
@@ -112,6 +112,8 @@ int    list_length(list_t list);
 void   list_copy(list_t dest, list_t src);
 
 void   list_insert(list_t list, void *previtem, void *newitem);
+
+void * list_item_next(void *item);
 
 #endif /* __LIST_H__ */
 
