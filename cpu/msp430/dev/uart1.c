@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.18 2010/03/05 12:06:03 fros4943 Exp $
+ * @(#)$Id: uart1.c,v 1.19 2010/06/15 13:30:42 nifi Exp $
  */
 
 /*
@@ -104,9 +104,6 @@ uart1_writeb(unsigned char c)
   TXBUF1 = c;
 #endif /* TX_WITH_INTERRUPT */
 }
-/*---------------------------------------------------------------------------*/
-#if ! WITH_UIP /* If WITH_UIP is defined, putchar() is defined by the SLIP driver */
-#endif /* ! WITH_UIP */
 /*---------------------------------------------------------------------------*/
 /**
  * Initalize the RS232 port.
