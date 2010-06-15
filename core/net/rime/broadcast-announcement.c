@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast-announcement.c,v 1.4 2010/03/31 12:17:24 adamdunkels Exp $
+ * $Id: broadcast-announcement.c,v 1.5 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -104,7 +104,7 @@ send_adv(void *ptr)
   packetbuf_clear();
   adata = packetbuf_dataptr();
   adata->num = 0;
-  for(a = announcement_list(); a != NULL && a->has_value; a = a->next) {
+  for(a = announcement_list(); a != NULL && a->has_value; a = list_item_next(a)) {
     adata->data[adata->num].id = a->id;
     adata->data[adata->num].value = a->value;
     adata->num++;
@@ -169,9 +169,8 @@ static void
 set_timers(void)
 {
   ctimer_set(&c.interval_timer, c.current_interval, send_timer, NULL);
-  ctimer_set(&c.send_timer, c.current_interval / 2 + random_rand() %
-             (c.current_interval / 2),
-	     send_adv, NULL);
+  ctimer_set(&c.send_timer, random_rand() % c.current_interval,
+             send_adv, NULL);
 }
 /*---------------------------------------------------------------------------*/
 static void

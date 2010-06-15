@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.14 2010/03/29 12:13:35 fros4943 Exp $
+ * $Id: polite-announcement.c,v 1.15 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -102,7 +102,7 @@ send_adv(clock_time_t interval)
   packetbuf_clear();
   adata = packetbuf_dataptr();
   adata->num = 0;
-  for(a = announcement_list(); a != NULL; a = a->next) {
+  for(a = announcement_list(); a != NULL; a = list_item_next(a)) {
     adata->data[adata->num].id = a->id;
     adata->data[adata->num].value = a->value;
     adata->num++;

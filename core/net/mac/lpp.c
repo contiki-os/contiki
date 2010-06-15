@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.35 2010/06/14 19:19:17 adamdunkels Exp $
+ * $Id: lpp.c,v 1.36 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -220,7 +220,7 @@ register_encounter(rimeaddr_t *neighbor, clock_time_t time)
   struct encounter *e;
 
   /* If we have an entry for this neighbor already, we renew it. */
-  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+  for(e = list_head(encounter_list); e != NULL; e = list_item_next(e)) {
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
       e->time = time;
       ctimer_set(&e->remove_timer, ENCOUNTER_LIFETIME, remove_encounter, e);
@@ -300,7 +300,7 @@ turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
      an encounter with this particular neighbor. If so, we can compute
      the time for the next expected encounter and setup a ctimer to
      switch on the radio just before the encounter. */
-  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+  for(e = list_head(encounter_list); e != NULL; e = list_item_next(e)) {
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
       clock_time_t wait, now;
 
@@ -430,7 +430,7 @@ send_probe(void)
   adata = (struct announcement_msg *)((char *)hdr + sizeof(struct lpp_hdr));
   
   adata->num = 0;
-  for(a = announcement_list(); a != NULL; a = a->next) {
+  for(a = announcement_list(); a != NULL; a = list_item_next(a)) {
     adata->data[adata->num].id = a->id;
     adata->data[adata->num].value = a->value;
     adata->num++;
@@ -472,7 +472,7 @@ num_packets_to_send(void)
   struct queue_list_item *i;
   int num = 0;
   
-  for(i = list_head(queued_packets_list); i != NULL; i = i->next) {
+  for(i = list_head(queued_packets_list); i != NULL; i = list_item_next(i)) {
     if(i->broadcast_flag == BROADCAST_FLAG_SEND ||
        i->broadcast_flag == BROADCAST_FLAG_NONE) {
       ++num;
@@ -505,7 +505,7 @@ dutycycle(void *ptr)
 	   our output queue to be pending. This means that they are
 	   ready to be sent, once we know that no neighbor is
 	   currently broadcasting. */
-	for(p = list_head(queued_packets_list); p != NULL; p = p->next) {
+      for(p = list_head(queued_packets_list); p != NULL; p = list_item_next(p)) {
 	  if(p->broadcast_flag == BROADCAST_FLAG_WAITING) {
 	    PRINTF("wait -> pending\n");
 	    set_broadcast_flag(p, BROADCAST_FLAG_PENDING);
@@ -533,7 +533,7 @@ dutycycle(void *ptr)
 	 there are pending broadcasts, and we did not receive any
 	 broadcast packets from a neighbor in response to our probe,
 	 we mark the broadcasts as being ready to send. */
-      for(p = list_head(queued_packets_list); p != NULL; p = p->next) {
+      for(p = list_head(queued_packets_list); p != NULL; p = list_item_next(p)) {
 	if(p->broadcast_flag == BROADCAST_FLAG_PENDING) {
 	  PRINTF("pending -> send\n");
 	  set_broadcast_flag(p, BROADCAST_FLAG_SEND);
@@ -760,7 +760,7 @@ input_packet(void)
        broadcast packet that should be sent. */
     if(list_length(queued_packets_list) > 0) {
       struct queue_list_item *i;
-      for(i = list_head(queued_packets_list); i != NULL; i = i->next) {
+      for(i = list_head(queued_packets_list); i != NULL; i = list_item_next(i)) {
         const rimeaddr_t *receiver;
  
         receiver = queuebuf_addr(i->packet, PACKETBUF_ADDR_RECEIVER);
@@ -873,7 +873,7 @@ input_packet(void)
          finished sending. */
 	
       struct queue_list_item *i;
-      for(i = list_head(queued_packets_list); i != NULL; i = i->next) {
+      for(i = list_head(queued_packets_list); i != NULL; i = list_item_next(i)) {
         /* If the packet is a broadcast packet that is not yet
            ready to be sent, we do not send it. */
         if(i->broadcast_flag == BROADCAST_FLAG_PENDING) {
