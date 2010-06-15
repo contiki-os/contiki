@@ -391,7 +391,7 @@ uip_ds6_defrt_lookup(uip_ipaddr_t * ipaddr)
 
 /*---------------------------------------------------------------------------*/
 uip_ipaddr_t *
-uip_ds6_defrt_choose()
+uip_ds6_defrt_choose(void)
 {
   uip_ds6_nbr_t *bestnbr;
 
@@ -476,7 +476,6 @@ uip_ds6_prefix_add(uip_ipaddr_t * ipaddr, uint8_t ipaddrlen,
 #endif /* UIP_CONF_ROUTER */
 
 /*---------------------------------------------------------------------------*/
-
 void
 uip_ds6_prefix_rm(uip_ds6_prefix_t * prefix)
 {
@@ -485,7 +484,6 @@ uip_ds6_prefix_rm(uip_ds6_prefix_t * prefix)
   }
   return;
 }
-
 /*---------------------------------------------------------------------------*/
 uip_ds6_prefix_t *
 uip_ds6_prefix_lookup(uip_ipaddr_t * ipaddr, uint8_t ipaddrlen)
@@ -576,11 +574,31 @@ uip_ds6_addr_lookup(uip_ipaddr_t * ipaddr)
  * (TENTATIVE, PREFERRED, DEPRECATED)
  */
 uip_ds6_addr_t *
-uip_ds6_get_link_local(int8_t state) {
+uip_ds6_get_link_local(int8_t state)
+{
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
-    if((locaddr->isused) && (state == - 1 || locaddr->state == state)
+    if((locaddr->isused) && (state == -1 || locaddr->state == state)
        && (uip_is_addr_link_local(&locaddr->ipaddr))) {
+      return locaddr;
+    }
+  }
+  return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+/*
+ * get a global address -
+ * state = -1 => any address is ok. Otherwise state = desired state of addr.
+ * (TENTATIVE, PREFERRED, DEPRECATED)
+ */
+uip_ds6_addr_t *
+uip_ds6_get_global(int8_t state)
+{
+  for(locaddr = uip_ds6_if.addr_list;
+      locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+    if((locaddr->isused) && (state == -1 || locaddr->state == state)
+       && !(uip_is_addr_link_local(&locaddr->ipaddr))) {
       return locaddr;
     }
   }

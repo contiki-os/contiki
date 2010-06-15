@@ -342,6 +342,7 @@ uip_ds6_addr_t *uip_ds6_addr_add(uip_ipaddr_t *ipaddr,
 void uip_ds6_addr_rm(uip_ds6_addr_t *addr);
 uip_ds6_addr_t *uip_ds6_addr_lookup(uip_ipaddr_t *ipaddr);
 uip_ds6_addr_t *uip_ds6_get_link_local(int8_t state);
+uip_ds6_addr_t *uip_ds6_get_global(int8_t state);
 
 /** @} */
 
