@@ -30,10 +30,9 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.c,v 1.11 2010/03/29 20:26:14 oliverschmidt Exp $
+ * $Id: psock.c,v 1.12 2010/06/15 14:19:22 nifi Exp $
  */
 
-#include <stdio.h>
 #include <string.h>
 
 #include "net/psock.h"
@@ -324,56 +323,5 @@ psock_init(CC_REGISTER_ARG struct psock *psock,
   buf_setup(&psock->buf, buffer, buffersize);
   PT_INIT(&psock->pt);
   PT_INIT(&psock->psockpt);
-}
-/*---------------------------------------------------------------------------*/
-static char
-copy_to_buf(const uint8_t **buffer, uint16_t *bufsize, const char **str)
-{
-  uint16_t len = strlen(*str);
-  uint16_t copysize = len;
-
-  if(len > *bufsize) {
-    copysize = *bufsize;
-  }
-
-  memcpy(*buffer, *str, copysize);
-  *bufsize -= copysize;
-  *buffer += copysize;
-  *str += copysize;
-
-  return (*bufsize != 0);
-}
-/*---------------------------------------------------------------------------*/
-void
-psock_buffered_string_send_begin(CC_REGISTER_ARG struct psock *s)
-{
-  s->state = STATE_NONE;
-  s->sendlen = uip_mss();  /* used as buf size */
-  s->sendptr = uip_appdata;
-}
-/*---------------------------------------------------------------------------*/
-PT_THREAD(psock_buffered_string_send(CC_REGISTER_ARG struct psock *s,
-                                     const char **string, char push))
-{
-  PT_BEGIN(&s->psockpt);
-
-  do {
-    static char bufnotfull;
-    
-    s->state = STATE_NONE;
-    bufnotfull = copy_to_buf(&(s->sendptr), &(s->sendlen), string);
-
-    if(!bufnotfull || push) {
-
-      s->sendptr = uip_appdata;
-      s->sendlen = uip_mss() - (s->sendlen);
-
-      PT_WAIT_UNTIL(&s->psockpt, data_is_sent_and_acked(s));
-
-      psock_buffered_string_send_begin(s);
-    }
-  } while(**string);
-
-  PT_END(&s->psockpt);
 }
 /*---------------------------------------------------------------------------*/
