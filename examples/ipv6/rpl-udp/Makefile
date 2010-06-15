@@ -1,5 +1,5 @@
 all: udp-client udp-server
-
+APPS=servreg-hack
 CONTIKI=../../..
 
 WITH_UIP6=1
