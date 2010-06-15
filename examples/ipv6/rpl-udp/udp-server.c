@@ -33,6 +33,8 @@
 #include "net/uip.h"
 #include "net/rpl/rpl.h"
 
+#include "servreg-hack.h"
+
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
 #include <stdio.h>
@@ -47,6 +49,8 @@
 
 #define UDP_CLIENT_PORT	8765
 #define UDP_SERVER_PORT	5678
+
+#define UDP_EXAMPLE_ID  190
 
 static struct uip_udp_conn *server_conn;
 
@@ -101,6 +105,10 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
   PROCESS_BEGIN();
 
+  servreg_hack_init();
+
+  servreg_hack_register(UDP_EXAMPLE_ID);
+  
   PROCESS_PAUSE();
 
   SENSORS_ACTIVATE(button_sensor);

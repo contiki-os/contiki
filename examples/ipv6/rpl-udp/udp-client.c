@@ -35,15 +35,15 @@
 #include "net/uip-udp-packet.h"
 #include "sys/ctimer.h"
 
+#include "servreg-hack.h"
+
 #include <stdio.h>
 #include <string.h>
 
-#ifndef SERVER_ID
-#define SERVER_ID 1
-#endif
-
 #define UDP_CLIENT_PORT 8765
 #define UDP_SERVER_PORT 5678
+
+#define UDP_EXAMPLE_ID  190
 
 #define DEBUG DEBUG_PRINT
 #include "net/uip-debug.h"
@@ -75,12 +75,17 @@ send_packet(void *ptr)
 {
   static int seq_id;
   char buf[MAX_PAYLOAD_LEN];
+  uip_ipaddr_t *ipaddr;
 
-  seq_id++;
-  PRINTF("DATA send to %d 'Hello %d'\n",
-	client_conn->ripaddr.u8[15], seq_id);
-  sprintf(buf, "Hello %d from the client", seq_id);
-  uip_udp_packet_send(client_conn, buf, strlen(buf));
+  ipaddr = servreg_hack_lookup(UDP_EXAMPLE_ID);
+  if(ipaddr != NULL) {
+    seq_id++;
+    PRINTF("DATA send to %d 'Hello %d'\n",
+           client_conn->ripaddr.u8[15], seq_id);
+    sprintf(buf, "Hello %d from the client", seq_id);
+    uip_udp_packet_sendto(client_conn, buf, strlen(buf),
+                          ipaddr, HTONS(UDP_SERVER_PORT));
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -114,39 +119,26 @@ set_global_address(void)
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 }
 /*---------------------------------------------------------------------------*/
-static void
-set_connection_address(uip_ipaddr_t *ipaddr)
-{
-#ifdef IEEE_802154_MAC_ADDRESS
-  /* Node 1 in the testbed scripts */
-  uint8_t ieee[] = IEEE_802154_MAC_ADDRESS;
-  ieee[7] = SERVER_ID;
-  uip_ip6addr(ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(ipaddr, (uip_lladdr_t *) ieee);
-#else
-  uip_ip6addr(ipaddr,0xaaaa,0,0,0,0x0212,0x7400 + SERVER_ID,
-	SERVER_ID,SERVER_ID << 8 | SERVER_ID);
-#endif
-}
-/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(udp_client_process, ev, data)
 {
   static struct etimer periodic;
   static struct ctimer backoff_timer;
-  uip_ipaddr_t ipaddr;
+  uip_ipaddr_t *ipaddr;
 
   PROCESS_BEGIN();
 
+  servreg_hack_init();
+  
   PROCESS_PAUSE();
 
+  set_global_address();
+  
   PRINTF("UDP client process started\n");
 
   print_local_addresses();
 
-  set_connection_address(&ipaddr);
-
   /* new connection with remote host */
-  client_conn = udp_new(&ipaddr, HTONS(UDP_SERVER_PORT), NULL); 
+  client_conn = udp_new(NULL, HTONS(UDP_SERVER_PORT), NULL); 
   udp_bind(client_conn, HTONS(UDP_CLIENT_PORT)); 
 
   PRINTF("Created a connection with the server ");
