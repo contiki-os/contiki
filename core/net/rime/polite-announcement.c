@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.15 2010/06/15 19:22:25 adamdunkels Exp $
+ * $Id: polite-announcement.c,v 1.16 2010/06/16 10:10:10 nifi Exp $
  */
 
 /**
@@ -45,6 +45,7 @@
 
 #include "contiki.h"
 
+#include "lib/list.h"
 #include "net/rime.h"
 #include "net/rime/announcement.h"
 #include "net/rime/ipolite.h"

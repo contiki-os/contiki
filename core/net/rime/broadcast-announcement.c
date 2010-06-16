@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast-announcement.c,v 1.5 2010/06/15 19:22:25 adamdunkels Exp $
+ * $Id: broadcast-announcement.c,v 1.6 2010/06/16 10:10:10 nifi Exp $
  */
 
 /**
@@ -49,6 +49,7 @@
 #include "net/rime/announcement.h"
 #include "net/rime/broadcast.h"
 #include "lib/random.h"
+#include "lib/list.h"
 
 #if NETSIM
 #include "ether.h"
