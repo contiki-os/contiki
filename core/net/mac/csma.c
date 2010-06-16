@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.18 2010/06/14 19:19:16 adamdunkels Exp $
+ * $Id: csma.c,v 1.19 2010/06/16 10:08:30 nifi Exp $
  */
 
 /**
@@ -157,9 +157,9 @@ packet_sent(void *ptr, int status, int num_transmissions)
 
     /* If the radio duty cycle has no channel check interval (i.e., it
        does not turn the radio off), we make the retransmission time
-       proportional to one second. */
+       proportional to the configured MAC channel check rate. */
     if(time == 0) {
-      time = CLOCK_SECOND;
+      time = CLOCK_SECOND / MAC_CHANNEL_CHECK_RATE;
     }
 
     /* The retransmission time uses a linear backoff so that the
