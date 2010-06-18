@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.h,v 1.4 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rudolph2.h,v 1.5 2010/06/18 08:28:56 nifi Exp $
  */
 
 /**
@@ -61,6 +61,7 @@
 #define __RUDOLPH2_H__
 
 #include "net/rime/polite.h"
+#include "sys/ctimer.h"
 
 struct rudolph2_conn;
 

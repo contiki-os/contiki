@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.h,v 1.11 2010/06/14 07:34:37 adamdunkels Exp $
+ * $Id: neighbor-discovery.h,v 1.12 2010/06/18 08:28:56 nifi Exp $
  */
 
 /**
@@ -61,6 +61,7 @@
 #define __NEIGHBOR_DISCOVERY_H__
 
 #include "net/rime/broadcast.h"
+#include "sys/ctimer.h"
 
 struct neighbor_discovery_conn;
 
