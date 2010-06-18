@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.10 2010/06/14 19:19:17 adamdunkels Exp $
+ * @(#)$Id: rf230bb.c,v 1.11 2010/06/18 15:44:53 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -139,7 +139,7 @@ uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail
 #endif
 
 /* Track flow through driver, see contiki-raven-main.c for example of use */
-#define DEBUGFLOWSIZE 64
+//#define DEBUGFLOWSIZE 64
 #if DEBUGFLOWSIZE
 uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 #define DEBUGFLOW(c) if (debugflowsize<(DEBUGFLOWSIZE-1)) debugflow[debugflowsize++]=c
@@ -1026,7 +1026,7 @@ rf230_read(void *buf, unsigned short bufsize)
 
  len=rxframe.length;
   if (len==0) {
-#if RADIOALWAYSON
+#if RADIOALWAYSON && DEBUGFLOWSIZE
    if (RF230_receive_on==0) {if (debugflow[debugflowsize-1]!='z') DEBUGFLOW('z');} //cxmac calls with radio off?
 #endif
     return 0;
