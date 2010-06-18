@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.16 2010/04/01 10:45:21 adamdunkels Exp $
+ * $Id: collect.h,v 1.17 2010/06/18 08:28:56 nifi Exp $
  */
 
 /**
@@ -63,6 +63,7 @@
 #include "net/rime/announcement.h"
 #include "net/rime/runicast.h"
 #include "net/rime/neighbor-discovery.h"
+#include "sys/ctimer.h"
 
 #define COLLECT_PACKET_ID_BITS 4
 
