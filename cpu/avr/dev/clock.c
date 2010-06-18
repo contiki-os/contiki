@@ -6,19 +6,32 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-/* RADIOSTATS should be also be defined in the radio driver and webserver */
+static volatile clock_time_t count;
+static volatile uint8_t scount;
+volatile unsigned long seconds;
+
+/* Set RADIOSTATS to monitor radio on time (must also be set in the radio driver) */
 #if RF230BB && WEBSERVER
 #define RADIOSTATS 1
 #endif
 #if RADIOSTATS
-static volatile clock_time_t count, scount, rcount;
-volatile unsigned long seconds,radioontime;
+static volatile uint8_t rcount;
+volatile unsigned long radioontime;
 extern uint8_t RF230_receive_on;
-#else
-static volatile clock_time_t count, scount;
-volatile unsigned long seconds;
 #endif
 
+/*
+  CLOCK_SECOND is the number of ticks per second.
+  It is defined through CONF_CLOCK_SECOND in the contiki-conf.h for each platform.
+  The usual AVR default is ~125 ticks per second, counting a prescaler the CPU clock
+  using the 8 bit timer0.
+  
+  As clock_time_t is an unsigned 16 bit data type, intervals up to 524 seconds
+  can be measured with 8 millisecond precision. 
+  For longer intervals a 32 bit global is incremented every second. 
+ 
+  clock-avr.h contains the specific setup code for each mcu.
+*/
 /*---------------------------------------------------------------------------*/
 //SIGNAL(SIG_OUTPUT_COMPARE0)
 ISR(AVR_OUTPUT_COMPARE_INT)
@@ -41,49 +54,13 @@ ISR(AVR_OUTPUT_COMPARE_INT)
   }
 }
 
-/* External clock source does not work ? */
-#if 0
-void
-clock_init(void)
-{
-  cli ();
-  TIMSK &= ((unsigned char)~(1 << (TOIE0)));
-  TIMSK &= ((unsigned char)~(1 << (OCIE0)));
-  /* Disable TC0 interrupt */
-
-  /** 
-   *  set Timer/Counter0 to be asynchronous 
-   *  from the CPU clock with a second external 
-   *  clock(32,768kHz)driving it
-   */
-  ASSR |= (1 << (AS0));
-  TCCR0 = _BV (CS02) | _BV (CS01) | _BV (WGM1);
-
-  TCNT0 = 0;
-  OCR0 = 128;
-  
-  TIMSK |= (1 << (OCIE0));
-  TIMSK |= (1 << (TOIE0));
-  sei ();
-}
-#endif
-
 /*---------------------------------------------------------------------------*/
 void
 clock_init(void)
 {
   cli ();
-
-
   OCRSetup();
-
-  /*
-   * Counts the number of ticks. Since clock_time_t is an unsigned
-   * 16 bit data type, time intervals of up to 524 seconds can be
-   * measured.
-   */
-  scount = count = 0;
-
+//scount = count = 0;
   sei ();
 }
 
