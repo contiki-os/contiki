@@ -333,7 +333,7 @@ main(void)
 #endif
 
 //Use with RF230BB DEBUGFLOW to show path through driver
-#if RF230BB&&1
+#if RF230BB&&0
 extern uint8_t debugflowsize,debugflow[];
   if (debugflowsize) {
     debugflow[debugflowsize]=0;
