@@ -35,15 +35,34 @@
 #include <avr/fuse.h>
 #include <avr/eeprom.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "lib/mmem.h"
 #include "loader/symbols-def.h"
 #include "loader/symtab.h"
+
+#define ANNOUNCE_BOOT 0    //adds about 600 bytes to program size
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#define PRINTSHORT(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTF(...)
+#define PRINTSHORT(...)
+#endif
+
+#if RF230BB           //radio driver using contiki core mac
+#include "radio/rf230bb/rf230bb.h"
+#include "net/mac/frame802154.h"
+#include "net/mac/framer-802154.h"
+#include "net/sicslowpan.h"
+#else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
 #include "mac.h"
 #include "sicslowmac.h"
 #include "sicslowpan.h"
 #include "ieee-15-4-manager.h"
+#endif /*RF230BB*/
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -62,8 +81,11 @@ FUSES =
 		.extended = 0xff,
 	};
 	
-
+#if RF230BB
+//PROCINIT(&etimer_process, &tcpip_process );
+#else
 PROCINIT(&etimer_process, &mac_process, &tcpip_process );
+#endif
 /* Put default MAC address in EEPROM */
 uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 
@@ -78,6 +100,70 @@ init_lowlevel(void)
 
   /* Redirect stdout to second port */
   rs232_redirect_stdout(RS232_PORT_1);
+  
+  /* rtimers needed for radio cycling */
+  rtimer_init();
+
+ /* Initialize process subsystem */
+  process_init();
+ /* etimers must be started before ctimer_init */
+  process_start(&etimer_process, NULL);
+  
+#if RF230BB
+
+  ctimer_init();
+  /* Start radio and radio receive process */
+  NETSTACK_RADIO.init();
+
+  /* Set addresses BEFORE starting tcpip process */
+
+  rimeaddr_t addr;
+  memset(&addr, 0, sizeof(rimeaddr_t));
+  AVR_ENTER_CRITICAL_REGION();
+  eeprom_read_block ((void *)&addr.u8,  &mac_address, 8);
+  AVR_LEAVE_CRITICAL_REGION();
+ 
+  memcpy(&uip_lladdr.addr, &addr.u8, 8);	
+  rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
+  rf230_set_channel(24);
+
+  rimeaddr_set_node_addr(&addr); 
+
+  PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+
+  /* Initialize stack protocols */
+  queuebuf_init();
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
+#if ANNOUNCE_BOOT
+  printf_P(PSTR("%s %s, channel %u"),NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
+  if (NETSTACK_RDC.channel_check_interval) {//function pointer is zero for sicslowmac
+    unsigned short tmp;
+    tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
+                                   NETSTACK_RDC.channel_check_interval());
+    if (tmp<65535) printf_P(PSTR(", check rate %u Hz"),tmp);
+  }
+  printf_P(PSTR("\n"));
+#endif
+
+#if UIP_CONF_ROUTER
+#if ANNOUNCE_BOOT
+  printf_P(PSTR("Routing Enabled\n"));
+#endif
+  rime_init(rime_udp_init(NULL));
+  uip_router_register(&rimeroute);
+#endif
+
+  process_start(&tcpip_process, NULL);
+
+#else
+/* mac process must be started before tcpip process! */
+  process_start(&mac_process, NULL);
+  process_start(&tcpip_process, NULL);
+#endif /*RF230BB*/
+
 }
 
 
@@ -92,12 +178,8 @@ main(void)
   /* Clock */
   clock_init();
 
-
-  /* Process subsystem */
-  process_init();
-
   /* Register initial processes */
-  procinit_init();
+//  procinit_init();
 
   /* Autostart processes */
   autostart_start(autostart_processes);

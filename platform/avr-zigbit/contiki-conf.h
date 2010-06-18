@@ -76,20 +76,47 @@ typedef int32_t s32_t;
 #define RIMEADDR_CONF_SIZE       8
 #define PACKETBUF_CONF_HDR_SIZE    0
 
+/* RF230BB must be used with low power protocols */
+#if RF230BB
+#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
+#define SICSLOWPAN_CONF_CONVENTIONAL_MAC  1     //for barebones driver, sicslowpan calls radio->read function
+#undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
+#define UIP_CONF_LLH_LEN         0
+
+/* No radio cycling */
+#define NETSTACK_CONF_NETWORK     sicslowpan_driver
+#define NETSTACK_CONF_MAC         nullmac_driver
+#define NETSTACK_CONF_RDC         sicslowmac_driver
+#define NETSTACK_CONF_FRAMER      framer_802154
+#define NETSTACK_CONF_RADIO       rf230_driver
+#define RF230_CONF_AUTOACK        1
+#define RF230_CONF_AUTORETRIES    2
+#define SICSLOWPAN_CONF_FRAG      1
+//Most browsers reissue GETs after 3 seconds which stops frag reassembly, longer MAXAGE does no good
+#define SICSLOWPAN_CONF_MAXAGE    3
+#define QUEUEBUF_CONF_NUM         1
+#define QUEUEBUF_CONF_REF_NUM     1
+/* Default uip_aligned_buf and sicslowpan_aligned_buf sizes of 1280 overflows RAM */
+#define UIP_CONF_BUFFER_SIZE	240
+
+#else
+/* Original combined RF230/mac code will not compile with current contiki stack */
+//#define PACKETBUF_CONF_HDR_SIZE    0            //RF230 handles headers internally
 /* 0 for IPv6, or 1 for HC1, 2 for HC01 */
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6 0 
 #define SICSLOWPAN_CONF_COMPRESSION_HC1  1 
-#define SICSLOWPAN_CONF_COMPRESSION_HC01 2
-
+#define SICSLOWPAN_CONF_COMPRESSION_HC01 2       //NB '2' is now HC06 in the core mac!
 //FTH081105
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_CONF_COMPRESSION_HC01 
+#define SICSLOWPAN_CONF_MAXAGE 5
+#define UIP_CONF_LLH_LEN         14
+#endif /*RF230BB */
+
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
 #define SICSLOWPAN_CONF_FRAG              1 
 
-#define SICSLOWPAN_CONF_MAXAGE 5
 
-#define UIP_CONF_LL_802154       1
-#define UIP_CONF_LLH_LEN         14 
+#define UIP_CONF_LL_802154       1 
 
 #define UIP_CONF_MAX_CONNECTIONS 2
 #define UIP_CONF_MAX_LISTENPORTS 2
