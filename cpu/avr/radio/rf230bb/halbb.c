@@ -455,7 +455,7 @@ hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback)
 
     /*Check for correct frame length.*/
     if ((frame_length >= HAL_MIN_FRAME_LENGTH) && (frame_length <= HAL_MAX_FRAME_LENGTH)){
-        uint16_t crc = 0;
+//      uint16_t crc = 0;
 //      if (rx_frame){
             rx_data = (rx_frame->data);
             rx_frame->length = frame_length;
@@ -475,8 +475,8 @@ hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback)
 //          } else {
 //              rx_callback(tempData);
 //          }
-
-            crc = _crc_ccitt_update(crc, tempData);
+/* RF230 does crc in hardware, for speed we hope the buffer is not being overwritten! */
+//         crc = _crc_ccitt_update(crc, tempData);
 
             while ((SPSR & (1 << SPIF)) == 0) {;}
 
@@ -490,10 +490,10 @@ hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback)
 //      }
         
         HAL_SS_HIGH();
-
+        rx_frame->crc = 1;
         /*Check calculated crc, and set crc field in hal_rx_frame_t accordingly.*/
 //      if (rx_frame){
-            rx_frame->crc = (crc == HAL_CALCULATED_CRC_OK);
+//          rx_frame->crc = (crc == HAL_CALCULATED_CRC_OK);
 //      } else {
 //          rx_callback(crc != HAL_CALCULATED_CRC_OK);
 //      }
