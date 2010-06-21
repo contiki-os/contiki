@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.80 2010/06/14 07:04:20 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.81 2010/06/21 19:57:18 joxe Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -56,6 +56,7 @@
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 
+#define CC2420_CONF_SYMBOL_LOOP_COUNT 800
 #ifndef RF_CHANNEL
 #define RF_CHANNEL              26
 #endif /* RF_CHANNEL */
@@ -123,9 +124,8 @@
 #define UIP_CONF_ROUTER                 1
 #define UIP_CONF_IPV6_RPL               1
 
-/* Handle 10 neighbors */
+/* configure number of neighbors and routes */
 #define UIP_CONF_DS6_NBR_NBU     30
-/* Handle 10 routes    */
 #define UIP_CONF_DS6_ROUTE_NBU   30
 
 #define UIP_CONF_ND6_SEND_RA		0
