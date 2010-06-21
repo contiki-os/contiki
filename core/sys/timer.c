@@ -42,7 +42,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: timer.c,v 1.7 2010/06/21 09:41:49 joxe Exp $
+ * $Id: timer.c,v 1.8 2010/06/21 19:07:24 joxe Exp $
  */
 
 #include "contiki-conf.h"
@@ -121,9 +121,9 @@ timer_restart(struct timer *t)
 int
 timer_expired(struct timer *t)
 {
-  clock_time_t diff = clock_time() - t->start;
-  /* Can not return diff >= t->interval so we need to return
+  /* Note: Can not return diff >= t->interval so we add 1 to diff and return
      t->interval < diff - required to avoid an internal error in mspgcc. */
+  clock_time_t diff = (clock_time() - t->start) + 1;
   return t->interval < diff;
 
 }
