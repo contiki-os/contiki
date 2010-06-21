@@ -23,7 +23,7 @@
 
 /* Our clock resolution, this is the same as Unix HZ. Must be a power
    of two (see clock.c for details). */
-#define CLOCK_CONF_SECOND 64
+#define CLOCK_CONF_SECOND 64UL
 
 #define NODE_ID_EEPROM_OFFSET     0x0010 /* - 0x0014 */
 #define CFS_EEPROM_CONF_OFFSET    0x0040
@@ -38,7 +38,7 @@
 #define CCIF
 #define CLIF
 
-typedef unsigned short clock_time_t;
+typedef unsigned long clock_time_t;
 
 void clock_wait(int ms10);
 
@@ -65,7 +65,7 @@ void clock_wait(int ms10);
 
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC     nullmac_driver
-#define NETSTACK_CONF_RDC     nullrdc_framer_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
 #define NETSTACK_CONF_FRAMER  framer_nullmac
 
 #define QUEUEBUF_CONF_NUM 1

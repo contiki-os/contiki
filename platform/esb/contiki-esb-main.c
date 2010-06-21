@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.18 2010/03/02 22:40:39 nifi Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.19 2010/06/21 15:15:12 nifi Exp $
  */
 
 #include <io.h>
@@ -207,7 +207,7 @@ main(void)
 
   netstack_init();
 
-  printf("%s %s, channel check rate %u Hz\n",
+  printf("%s %s, channel check rate %lu Hz\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
                          NETSTACK_RDC.channel_check_interval()));
