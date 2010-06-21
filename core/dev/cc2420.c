@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.53 2010/06/14 19:19:16 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.54 2010/06/21 19:09:35 joxe Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -366,6 +366,8 @@ cc2420_transmit(unsigned short payload_len)
 #define LOOP_20_SYMBOLS 800	/* 326us (msp430 @ 2.4576MHz) */
 #elif __AVR__
 #define LOOP_20_SYMBOLS 500	/* XXX */
+#elif ZOLERTIA_Z1
+#define LOOP_20_SYMBOLS 1302	/* 326us msp430X @ 8MHz */
 #endif
 
 #if WITH_SEND_CCA
