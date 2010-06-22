@@ -20,7 +20,7 @@ USB       = uart_usb_lib.c   \
 CONTIKI_TARGET_SOURCEFILES +=   cfs-eeprom.c eeprom.c random.c \
                                 mmem.c contiki-raven-default-init-lowlevel.c \
                                 contiki-raven-default-init-net.c contiki-raven-main.c \
-                                sicslow_ethernet.c \
+                                sicslow_ethernet.c queuebuf.c packetbuf.c\
                 $(USB)
 
 USB_INCLUDES = -I$(CONTIKI_CPU)/dev/usb
