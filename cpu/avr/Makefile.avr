@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.23 2010/05/04 14:14:49 dak664 Exp $
+# $Id: Makefile.avr,v 1.24 2010/06/22 17:11:38 dak664 Exp $
 	
 ### Check if we are running under Windows
 
@@ -133,7 +133,7 @@ $(OBJECTDIR)/%.o: %.c
 
 %.elf:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a symbols.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
-	avr-size -C --mcu=$(MCU) $@
+###	avr-size -C --mcu=$(MCU) $@
 
 %.hex: %.out
 	$(OBJCOPY) $^ -O ihex $@
