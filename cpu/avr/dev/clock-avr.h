@@ -43,6 +43,7 @@
   can be used to clock the 8 bit timer2.
 */
 #if AVR_CONF_USE32KCRYSTAL
+#define AVR_OUTPUT_COMPARE_INT TIMER2_COMPA_vect
 #define OCRSetup() \
   /* Clock from crystal on TOSC0-1 */ \
   ASSR = _BV(AS2);		      \
@@ -75,6 +76,7 @@
    */ \
   TIMSK2 = _BV (OCIE2A);
 #else
+#define AVR_OUTPUT_COMPARE_INT TIMER0_COMPA_vect
 #define OCRSetup() \
   /* Select internal clock */ \
   ASSR = 0x00; 				  \
@@ -107,8 +109,6 @@
    */ \
   TIMSK0 = _BV (OCIE0A);
 #endif /* AVR_CONF_USE32KCRYSTAL */
-
-#define AVR_OUTPUT_COMPARE_INT TIMER0_COMPA_vect
 
 #else
 #error "Setup CPU in clock-avr.h"
