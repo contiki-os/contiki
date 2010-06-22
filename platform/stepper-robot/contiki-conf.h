@@ -37,6 +37,9 @@ typedef unsigned int uip_stats_t;
 #define	SPI_WAITFOREORx() while ((*AT91C_SPI_SR & AT91C_SPI_RDRF) == 0)
 
 /* CC2420 control pins */
+/* LOOP count for waiting 20 symbols in the CC2420 code - same as MSP? */
+#define CC2420_CONF_SYMBOL_LOOP_COUNT 800
+
 
 #define FIFO_IS_1       (*AT91C_PIOA_PDSR & AT91C_PIO_PA2)
 #define VREG_IS_1       1 /* Hardwired */
