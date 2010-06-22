@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.4 2007/08/16 13:24:20 bg- Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.5 2010/06/22 06:39:44 joxe Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -87,6 +87,8 @@ typedef u32_t off_t;
 #define EEPROMFS_ADDR_CODEPROP  (128 * XMEM_ERASE_UNIT_SIZE)
 
 #define CC2420_RADIO
+/* LOOP count for waiting 20 symbols in the CC2420 code */
+#define CC2420_CONF_SYMBOL_LOOP_COUNT 500
 /*
  * SPI bus configuration for the CC2420DBK.
  */
