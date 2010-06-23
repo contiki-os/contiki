@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch-sfd.c,v 1.3 2010/01/26 10:20:16 adamdunkels Exp $
+ * @(#)$Id: cc2420-arch-sfd.c,v 1.4 2010/06/23 10:19:15 joxe Exp $
  */
 
 #include <io.h>
@@ -34,6 +34,7 @@
 
 #include "dev/spi.h"
 #include "dev/cc2420.h"
+#include "contiki-conf.h"
 
 volatile uint8_t cc2420_arch_sfd_counter;
 volatile uint16_t cc2420_arch_sfd_start_time;
@@ -48,7 +49,7 @@ cc24240_timerb1_interrupt(void)
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   /* always read TBIV to clear IFG */
   tbiv = TBIV;
-  if(SFD_IS_1) {
+  if(CC2420_SFD_IS_1) {
     cc2420_arch_sfd_counter++;
     cc2420_arch_sfd_start_time = TBCCR1;
   } else {
@@ -62,7 +63,7 @@ void
 cc2420_arch_sfd_init(void)
 {
   /* Need to select the special function! */
-  P4SEL = BV(SFD);
+  P4SEL = BV(CC2420_SFD_PIN);
   
   /* start timer B - 32768 ticks per second */
   TBCTL = TBSSEL_1 | TBCLR;
