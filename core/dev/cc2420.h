@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420.h,v 1.9 2010/02/23 18:24:49 adamdunkels Exp $
+ * $Id: cc2420.h,v 1.10 2010/06/23 10:15:28 joxe Exp $
  */
 
 /**
@@ -36,13 +36,16 @@
  *         CC2420 driver header file
  * \author
  *         Adam Dunkels <adam@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
  */
 
 #ifndef __CC2420_H__
 #define __CC2420_H__
 
 #include "contiki.h"
+#include "spi.h"
 #include "dev/radio.h"
+#include "cc2420_const.h"
 
 int cc2420_init(void);
 
@@ -52,8 +55,8 @@ void cc2420_set_channel(int channel);
 int cc2420_get_channel(void);
 
 void cc2420_set_pan_addr(unsigned pan,
-				unsigned addr,
-				const uint8_t *ieee_addr);
+                                unsigned addr,
+                                const uint8_t *ieee_addr);
 
 extern signed char cc2420_last_rssi;
 extern uint8_t cc2420_last_correlation;
@@ -85,5 +88,103 @@ int cc2420_on(void);
 int cc2420_off(void);
 
 void cc2420_set_cca_threshold(int value);
+
+/************************************************************************/
+/* Additional SPI Macros for the CC2420 */
+/************************************************************************/
+/* Send a strobe to the CC2420 */
+#define SPI_STROBE(s)                                   \
+  do {                                                  \
+    CC2420_SPI_ENABLE();                                \
+    SPI_WRITE(s);                                       \
+    CC2420_SPI_DISABLE();                               \
+  } while (0)
+
+/* Write to a register in the CC2420                         */
+/* Note: the SPI_WRITE(0) seems to be needed for getting the */
+/* write reg working on the Z1 / MSP430X platform            */
+#define SPI_WRITE_REG(adr,data)                              \
+  do {                                                       \
+    CC2420_SPI_ENABLE();                                     \
+    SPI_WRITE_FAST(adr);                                     \
+    SPI_WRITE_FAST((uint8_t)((data) >> 8));                  \
+    SPI_WRITE_FAST((uint8_t)(data & 0xff));                  \
+    SPI_WAITFORTx_ENDED();                                   \
+    SPI_WRITE(0);                                            \
+    CC2420_SPI_DISABLE();                                    \
+  } while(0)
+
+/* Read a register in the CC2420 */
+#define SPI_READ_REG(adr,data)                          \
+  do {                                                  \
+    CC2420_SPI_ENABLE();                                \
+    SPI_WRITE(adr | 0x40);                              \
+    data = (uint8_t)SPI_RXBUF;                          \
+    SPI_TXBUF = 0;                                      \
+    SPI_WAITFOREORx();                                  \
+    data = SPI_RXBUF << 8;                              \
+    SPI_TXBUF = 0;                                      \
+    SPI_WAITFOREORx();                                  \
+    data |= SPI_RXBUF;                                  \
+    CC2420_SPI_DISABLE();                               \
+  } while(0)
+
+#define SPI_READ_FIFO_BYTE(data)                        \
+  do {                                                  \
+    CC2420_SPI_ENABLE();                                \
+    SPI_WRITE(CC2420_RXFIFO | 0x40);                    \
+    (void)SPI_RXBUF;                                    \
+    SPI_READ(data);                                     \
+    clock_delay(1);                                     \
+    CC2420_SPI_DISABLE();                               \
+  } while(0)
+
+#define SPI_READ_FIFO_BUF(buffer,count)                                 \
+  do {                                                                  \
+    uint8_t i;                                                          \
+    CC2420_SPI_ENABLE();                                                \
+    SPI_WRITE(CC2420_RXFIFO | 0x40);                                    \
+    (void)SPI_RXBUF;                                                    \
+    for(i = 0; i < (count); i++) {                                      \
+      SPI_READ(((uint8_t *)(buffer))[i]);                               \
+    }                                                                   \
+    clock_delay(1);                                                     \
+    CC2420_SPI_DISABLE();                                               \
+  } while(0)
+
+#define SPI_WRITE_FIFO_BUF(buffer,count)                                \
+  do {                                                                  \
+    uint8_t i;                                                          \
+    CC2420_SPI_ENABLE();                                                \
+    SPI_WRITE_FAST(CC2420_TXFIFO);                                           \
+    for(i = 0; i < (count); i++) {                                      \
+      SPI_WRITE_FAST(((uint8_t *)(buffer))[i]);                              \
+    }                                                                   \
+    SPI_WAITFORTx_ENDED();                                              \
+    CC2420_SPI_DISABLE();                                               \
+  } while(0)
+
+/* Write to RAM in the CC2420 */
+#define SPI_WRITE_RAM(buffer,adr,count)                 \
+  do {                                                       \
+    uint8_t i;                                               \
+    CC2420_SPI_ENABLE();                                     \
+    SPI_WRITE_FAST(0x80 | (adr & 0x7f));                     \
+    SPI_WRITE_FAST((adr >> 1) & 0xc0);                       \
+    for(i = 0; i < (count); i++) {                           \
+      SPI_WRITE_FAST(((uint8_t*)(buffer))[i]);               \
+    }                                                        \
+    SPI_WAITFORTx_ENDED();                                   \
+    CC2420_SPI_DISABLE();                                    \
+  } while(0)
+
+/* Read status of the CC2420 */
+#define SPI_GET_STATUS(s)                       \
+  do {                                          \
+    CC2420_SPI_ENABLE();                        \
+    SPI_WRITE(CC2420_SNOP);                     \
+    s = SPI_RXBUF;                              \
+    CC2420_SPI_DISABLE();                       \
+  } while (0)
 
 #endif /* __CC2420_H__ */
