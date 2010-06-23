@@ -48,10 +48,6 @@
 #include "net/rime.h"
 #include "net/netstack.h"
 
-#ifndef RF_CHANNEL
-#define RF_CHANNEL              26
-#endif
-
 void
 init_net(void)
 {

@@ -45,37 +45,15 @@
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC     csma_driver
 #define NETSTACK_CONF_RDC     cxmac_driver
-#define NETSTACK_CONF_RADIO   cc2420_driver
 
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
+
+#define RF_CHANNEL 26
 
 #define HAVE_STDINT_H
 #include "avrdef.h"
 
-
-/*
- * MCU and clock rate.
- * MICAZ runs on 7.3728 MHz clock.
- */
-#define MCU_MHZ 7
-
-#define PLATFORM PLATFORM_AVR
-
-/* Clock ticks per second */
-#define CLOCK_CONF_SECOND 128
-
-/* COM port to be used for SLIP connection */
-#define SLIP_PORT RS232_PORT_0
-
-/* Pre-allocated memory for loadable modules heap space (in bytes)*/
-#define MMEM_CONF_SIZE 256
-
-/* Use the following address for code received via the codeprop
- * facility
- */
-#define EEPROMFS_ADDR_CODEPROP 0x8000
-
-#define EEPROM_NODE_ID_START 0x00
+#include "platform-conf.h"
 
 #define TIMESYNCH_CONF_ENABLED 1
 #define CC2420_CONF_TIMESTAMPS 1
@@ -132,90 +110,6 @@
 
 #define UIP_CONF_TCP_SPLIT       0
 
-
-
-
-
-/* LEDs ports. */
-#define LEDS_PxDIR DDRA // port direction register
-#define LEDS_PxOUT PORTA // port register
-#define LEDS_CONF_RED    0x04 //red led
-#define LEDS_CONF_GREEN  0x02 // green led
-#define LEDS_CONF_YELLOW 0x01 // yellow led
-
-
-/*
- * SPI bus configuration for the MicaZ.
- */
-
-/* SPI input/output registers. */
-#define SPI_TXBUF SPDR
-#define SPI_RXBUF SPDR
-
-#define BV(bitno) _BV(bitno)
-
-#define	SPI_WAITFOREOTx() do { while (!(SPSR & BV(SPIF))); } while (0)
-#define	SPI_WAITFOREORx() do { while (!(SPSR & BV(SPIF))); } while (0)
-
-#define SCK            1  /* - Output: SPI Serial Clock (SCLK) - ATMEGA128 PORTB, PIN1 */
-#define MOSI           2  /* - Output: SPI Master out - slave in (MOSI) - ATMEGA128 PORTB, PIN2 */
-#define MISO           3  /* - Input:  SPI Master in - slave out (MISO) - ATMEGA128 PORTB, PIN3 */
-
-/*
- * SPI bus - CC2420 pin configuration.
- */
-
-#define FIFO_P         6  /* - Input: FIFOP from CC2420 - ATMEGA128 PORTE, PIN6 */
-#define FIFO           7  /* - Input: FIFO from CC2420 - ATMEGA128 PORTB, PIN7 */
-#define CCA            6  /* - Input: CCA from CC2420 - ATMEGA128 PORTD, PIN6 */
-
-#define SFD            4  /* - Input:  SFD from CC2420 - ATMEGA128 PORTD, PIN4 */
-#define CSN            0  /* - Output: SPI Chip Select (CS_N) - ATMEGA128 PORTB, PIN0 */
-#define VREG_EN        5  /* - Output: VREG_EN to CC2420 - ATMEGA128 PORTA, PIN5 */
-#define RESET_N        6  /* - Output: RESET_N to CC2420 - ATMEGA128 PORTA, PIN6 */
-
-/* Pin status. */
-
-#define FIFO_IS_1       (!!(PINB & BV(FIFO)))
-#define CCA_IS_1        (!!(PIND & BV(CCA) ))
-#define RESET_IS_1      (!!(PINA & BV(RESET_N)))
-#define VREG_IS_1       (!!(PINA & BV(VREG_EN)))
-#define FIFOP_IS_1      (!!(PINE & BV(FIFO_P)))
-#define SFD_IS_1        (!!(PIND & BV(SFD)))
-
-/* The CC2420 reset pin. */
-#define SET_RESET_INACTIVE()    ( PORTA |= BV(RESET_N) )
-#define SET_RESET_ACTIVE()      ( PORTA &= ~BV(RESET_N) )
-
-/* CC2420 voltage regulator enable pin. */
-#define SET_VREG_ACTIVE()       ( PORTA |= BV(VREG_EN) )
-#define SET_VREG_INACTIVE()     ( PORTA &= ~BV(VREG_EN) )
-
-/* CC2420 rising edge trigger for external interrupt 6 (FIFOP).
- * Enable the external interrupt request for INT6.
- * See Atmega128 datasheet about EICRB Register
- */
-#define FIFOP_INT_INIT() do {\
-  EICRB |= 0x30; \
-  CLEAR_FIFOP_INT(); \
-} while (0)
-
-/* FIFOP on external interrupt 6. */
-#define ENABLE_FIFOP_INT()          do { EIMSK |= 0x40; } while (0)
-#define DISABLE_FIFOP_INT()         do { EIMSK &= ~0x40; } while (0)
-#define CLEAR_FIFOP_INT()           do { EIFR = 0x40; } while (0)
-
-/* Enables/disables CC2420 access to the SPI bus (not the bus).
- *
- * These guys should really be renamed but are compatible with the
- * original Chipcon naming.
- *
- * SPI_CC2420_ENABLE/SPI_CC2420_DISABLE???
- * CC2420_ENABLE_SPI/CC2420_DISABLE_SPI???
- */
-
-#define SPI_ENABLE()    ( PORTB &= ~BV(CSN) ) /* ENABLE CSn (active low) */
-#define SPI_DISABLE()   ( PORTB |=  BV(CSN) ) /* DISABLE CSn (active low) */
 
 typedef unsigned short clock_time_t;
 typedef unsigned short uip_stats_t;
