@@ -44,24 +44,24 @@
 void
 cc2420_arch_init(void)
 {
-  SFIOR |= BV(PUD);		/* Beware, disable all pull-ups. */
+  SFIOR |= BV(PUD);             /* Beware, disable all pull-ups. */
 
   spi_init();
 
-  DDRA |= BV(RESET_N);
-  DDRA |= BV(VREG_EN);
-  DDRB &= ~BV(FIFO);
-  DDRD &= ~BV(CCA);
-  DDRD &= ~BV(SFD); 
-  DDRE &= ~BV(FIFO_P);
+  DDRA |= BV(CC2420_RESET_PIN);
+  DDRA |= BV(CC2420_VREG_PIN);
+  DDRB &= ~BV(CC2420_FIFO_PIN);
+  DDRD &= ~BV(CC2420_CCA_PIN);
+  DDRD &= ~BV(CC2420_SFD_PIN);
+  DDRE &= ~BV(CC2420_FIFOP_PIN);
 
-  PORTA |= BV(RESET_N);
-  PORTB |= BV(CSN);
-  
-  SPI_DISABLE();                /* Unselect radio. */
+  PORTA |= BV(CC2420_RESET_PIN);
+  PORTB |= BV(CC2420_CSN_PIN);
+
+  CC2420_SPI_DISABLE();                /* Unselect radio. */
 }
 
-ISR(INT6_vect)
+ISR(CC2420_IRQ_VECTOR)
 {
   /* TODO : wakeup from sleep mode */
   cc2420_interrupt();
