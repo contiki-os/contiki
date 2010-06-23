@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cc2420_spi.c,v 1.1 2007/02/01 14:46:07 bg- Exp $
+ * @(#)$Id: cc2420_spi.c,v 1.2 2010/06/23 10:44:41 joxe Exp $
  */
 
 #include <avr/io.h>
@@ -44,8 +44,8 @@ __cc2420_arch_init(void)
 
   spi_init();
 
-  DDRB  |= BV(RESET_N) | BV(VREG_EN) | BV(CSN);
-  PORTB |= BV(RESET_N) | BV(CSN);
+  DDRB  |= BV(CC2420_RESET_PIN) | BV(CC2420_VREG_PIN) | BV(CC2420_CSN_PIN);
+  PORTB |= BV(CC2420_RESET_PIN) | BV(CC2420_CSN_PIN);
 
   SPI_DISABLE();                /* Unselect radio. */
 }
