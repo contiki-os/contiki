@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.1 2010/06/14 19:19:16 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.2 2010/06/24 09:48:21 nifi Exp $
  */
 
 /**
@@ -84,10 +84,10 @@ MEMB(refbufmem, struct queuebuf_ref, QUEUEBUF_REF_NUM);
 #define PRINTF(...)
 #endif
 
-#define QUEUEBUF_CONF_STATS 0
-
 #ifdef QUEUEBUF_CONF_STATS
 #define QUEUEBUF_STATS QUEUEBUF_CONF_STATS
+#else
+#define QUEUEBUF_STATS 0
 #endif /* QUEUEBUF_CONF_STATS */
 
 #if QUEUEBUF_STATS
