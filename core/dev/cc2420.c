@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.56 2010/06/23 10:15:28 joxe Exp $
+ * @(#)$Id: cc2420.c,v 1.57 2010/06/24 09:28:38 nifi Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -154,34 +154,34 @@ static int channel;
 static void
 getrxdata(void *buf, int len)
 {
-  SPI_READ_FIFO_BUF(buf, len);
+  CC2420_READ_FIFO_BUF(buf, len);
 }
 static void
 getrxbyte(uint8_t *byte)
 {
-  SPI_READ_FIFO_BYTE(*byte);
+  CC2420_READ_FIFO_BYTE(*byte);
 }
 static void
 flushrx(void)
 {
   uint8_t dummy;
 
-  SPI_READ_FIFO_BYTE(dummy);
-  SPI_STROBE(CC2420_SFLUSHRX);
-  SPI_STROBE(CC2420_SFLUSHRX);
+  CC2420_READ_FIFO_BYTE(dummy);
+  CC2420_STROBE(CC2420_SFLUSHRX);
+  CC2420_STROBE(CC2420_SFLUSHRX);
 }
 /*---------------------------------------------------------------------------*/
 static void
 strobe(enum cc2420_register regname)
 {
-  SPI_STROBE(regname);
+  CC2420_STROBE(regname);
 }
 /*---------------------------------------------------------------------------*/
 static unsigned int
 status(void)
 {
   uint8_t status;
-  SPI_GET_STATUS(status);
+  CC2420_GET_STATUS(status);
   return status;
 }
 /*---------------------------------------------------------------------------*/
@@ -238,14 +238,14 @@ static unsigned
 getreg(enum cc2420_register regname)
 {
   unsigned reg;
-  SPI_READ_REG(regname, reg);
+  CC2420_READ_REG(regname, reg);
   return reg;
 }
 /*---------------------------------------------------------------------------*/
 static void
 setreg(enum cc2420_register regname, unsigned value)
 {
-  SPI_WRITE_REG(regname, value);
+  CC2420_WRITE_REG(regname, value);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -450,10 +450,10 @@ cc2420_prepare(const void *payload, unsigned short payload_len)
   checksum = crc16_data(payload, payload_len, 0);
 #endif /* CC2420_CONF_CHECKSUM */
   total_len = payload_len + AUX_LEN;
-  SPI_WRITE_FIFO_BUF(&total_len, 1);
-  SPI_WRITE_FIFO_BUF(payload, payload_len);
+  CC2420_WRITE_FIFO_BUF(&total_len, 1);
+  CC2420_WRITE_FIFO_BUF(payload, payload_len);
 #if CC2420_CONF_CHECKSUM
-  SPI_WRITE_FIFO_BUF(&checksum, CHECKSUM_LEN);
+  CC2420_WRITE_FIFO_BUF(&checksum, CHECKSUM_LEN);
 #endif /* CC2420_CONF_CHECKSUM */
 
   RELEASE_LOCK();
@@ -571,18 +571,18 @@ cc2420_set_pan_addr(unsigned pan,
 
   tmp[0] = pan & 0xff;
   tmp[1] = pan >> 8;
-  SPI_WRITE_RAM(&tmp, CC2420RAM_PANID, 2);
+  CC2420_WRITE_RAM(&tmp, CC2420RAM_PANID, 2);
 
   tmp[0] = addr & 0xff;
   tmp[1] = addr >> 8;
-  SPI_WRITE_RAM(&tmp, CC2420RAM_SHORTADDR, 2);
+  CC2420_WRITE_RAM(&tmp, CC2420RAM_SHORTADDR, 2);
   if(ieee_addr != NULL) {
     uint8_t tmp_addr[8];
     /* LSB first, MSB last for 802.15.4 addresses in CC2420 */
     for (f = 0; f < 8; f++) {
       tmp_addr[7 - f] = ieee_addr[f];
     }
-    SPI_WRITE_RAM(tmp_addr, CC2420RAM_IEEEADDR, 8);
+    CC2420_WRITE_RAM(tmp_addr, CC2420RAM_IEEEADDR, 8);
   }
   RELEASE_LOCK();
 }
