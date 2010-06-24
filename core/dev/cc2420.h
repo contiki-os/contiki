@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420.h,v 1.10 2010/06/23 10:15:28 joxe Exp $
+ * $Id: cc2420.h,v 1.11 2010/06/24 09:28:39 nifi Exp $
  */
 
 /**
@@ -43,9 +43,9 @@
 #define __CC2420_H__
 
 #include "contiki.h"
-#include "spi.h"
+#include "dev/spi.h"
 #include "dev/radio.h"
-#include "cc2420_const.h"
+#include "dev/cc2420_const.h"
 
 int cc2420_init(void);
 
@@ -93,7 +93,7 @@ void cc2420_set_cca_threshold(int value);
 /* Additional SPI Macros for the CC2420 */
 /************************************************************************/
 /* Send a strobe to the CC2420 */
-#define SPI_STROBE(s)                                   \
+#define CC2420_STROBE(s)                                   \
   do {                                                  \
     CC2420_SPI_ENABLE();                                \
     SPI_WRITE(s);                                       \
@@ -103,7 +103,7 @@ void cc2420_set_cca_threshold(int value);
 /* Write to a register in the CC2420                         */
 /* Note: the SPI_WRITE(0) seems to be needed for getting the */
 /* write reg working on the Z1 / MSP430X platform            */
-#define SPI_WRITE_REG(adr,data)                              \
+#define CC2420_WRITE_REG(adr,data)                              \
   do {                                                       \
     CC2420_SPI_ENABLE();                                     \
     SPI_WRITE_FAST(adr);                                     \
@@ -115,7 +115,7 @@ void cc2420_set_cca_threshold(int value);
   } while(0)
 
 /* Read a register in the CC2420 */
-#define SPI_READ_REG(adr,data)                          \
+#define CC2420_READ_REG(adr,data)                          \
   do {                                                  \
     CC2420_SPI_ENABLE();                                \
     SPI_WRITE(adr | 0x40);                              \
@@ -129,7 +129,7 @@ void cc2420_set_cca_threshold(int value);
     CC2420_SPI_DISABLE();                               \
   } while(0)
 
-#define SPI_READ_FIFO_BYTE(data)                        \
+#define CC2420_READ_FIFO_BYTE(data)                        \
   do {                                                  \
     CC2420_SPI_ENABLE();                                \
     SPI_WRITE(CC2420_RXFIFO | 0x40);                    \
@@ -139,7 +139,7 @@ void cc2420_set_cca_threshold(int value);
     CC2420_SPI_DISABLE();                               \
   } while(0)
 
-#define SPI_READ_FIFO_BUF(buffer,count)                                 \
+#define CC2420_READ_FIFO_BUF(buffer,count)                                 \
   do {                                                                  \
     uint8_t i;                                                          \
     CC2420_SPI_ENABLE();                                                \
@@ -152,7 +152,7 @@ void cc2420_set_cca_threshold(int value);
     CC2420_SPI_DISABLE();                                               \
   } while(0)
 
-#define SPI_WRITE_FIFO_BUF(buffer,count)                                \
+#define CC2420_WRITE_FIFO_BUF(buffer,count)                                \
   do {                                                                  \
     uint8_t i;                                                          \
     CC2420_SPI_ENABLE();                                                \
@@ -165,7 +165,7 @@ void cc2420_set_cca_threshold(int value);
   } while(0)
 
 /* Write to RAM in the CC2420 */
-#define SPI_WRITE_RAM(buffer,adr,count)                 \
+#define CC2420_WRITE_RAM(buffer,adr,count)                 \
   do {                                                       \
     uint8_t i;                                               \
     CC2420_SPI_ENABLE();                                     \
@@ -179,7 +179,7 @@ void cc2420_set_cca_threshold(int value);
   } while(0)
 
 /* Read status of the CC2420 */
-#define SPI_GET_STATUS(s)                       \
+#define CC2420_GET_STATUS(s)                       \
   do {                                          \
     CC2420_SPI_ENABLE();                        \
     SPI_WRITE(CC2420_SNOP);                     \
