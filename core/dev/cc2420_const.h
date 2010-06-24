@@ -28,7 +28,7 @@
  *
  */
 
-/* @(#)$Id: cc2420_const.h,v 1.3 2008/07/02 09:03:49 adamdunkels Exp $ */
+/* @(#)$Id: cc2420_const.h,v 1.4 2010/06/24 09:28:12 nifi Exp $ */
 
 #ifndef CC2420_CONST_H
 #define CC2420_CONST_H
@@ -149,21 +149,5 @@ enum cc2420_secctrl0 {
   CC2420_SECCTRL0_SEC_CBC_HEAD		= 0x0100,
   CC2420_SECCTRL0_RXFIFO_PROTECTION	= 0x0200,
 };
-
-/* CC2420 register access functions. */
-unsigned cc2420_status(void);
-unsigned cc2420_getreg(enum cc2420_register regname);
-void     cc2420_setreg(enum cc2420_register regname, unsigned value);
-void     cc2420_strobe(enum cc2420_register regname);
-
-/* Page 47. [-38, 26] --> [0, 255]:6 valid bits */
-#define RSSI_OFFSET -38
-#define RSSI_2_ED(rssi)	((rssi) < RSSI_OFFSET ? 0 : ((rssi) - RSSI_OFFSET))
-#define ED_2_LQI(ed)	(((ed) > 63 ? 255 : ((ed) << 2)))
-
-/* Page 48. [48, 112] --> [0, 255]:6 valid bits */
-#define CORR_OFFSET 48
-#define CORR_2_X(corr)	((corr) < CORR_OFFSET ? 0 : ((corr) - CORR_OFFSET))
-#define X_2_LQI(x)	(((x) > 63) ? 255 : ((x) << 2))
 
 #endif /* CC2420_CONST_H */
