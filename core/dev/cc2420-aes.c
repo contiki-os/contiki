@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420-aes.c,v 1.4 2010/03/15 23:04:54 nifi Exp $
+ * $Id: cc2420-aes.c,v 1.5 2010/06/24 11:25:55 nifi Exp $
  */
 
 /**
@@ -39,18 +39,25 @@
  */
 
 #include "contiki.h"
+#include "dev/cc2420.h"
 #include "dev/cc2420-aes.h"
-#include "dev/cc2420_const.h"
 #include "dev/spi.h"
-
-#if defined(__AVR__)
-#include <avr/io.h>
-#elif defined(__MSP430__)
-#include <io.h>
-#endif
 
 #define KEYLEN 16
 #define MAX_DATALEN 16
+
+#define CC2420_WRITE_RAM_REV(buffer,adr,count)               \
+  do {                                                       \
+    uint8_t i;                                               \
+    CC2420_SPI_ENABLE();                                     \
+    SPI_WRITE_FAST(0x80 | (adr & 0x7f));                     \
+    SPI_WRITE_FAST((adr >> 1) & 0xc0);                       \
+    for(i = (count); i > 0; i--) {                           \
+      SPI_WRITE_FAST(((uint8_t*)(buffer))[i - 1]);           \
+    }                                                        \
+    SPI_WAITFORTx_ENDED();                                   \
+    CC2420_SPI_DISABLE();                                    \
+  } while(0)
 
 #define MIN(a,b) ((a) < (b)? (a): (b))
 
@@ -58,14 +65,12 @@
 void
 cc2420_aes_set_key(const uint8_t *key, int index)
 {
-  uint16_t f;
-  
   switch(index) {
   case 0:
-    FASTSPI_WRITE_RAM_BE(key, CC2420RAM_KEY0, KEYLEN, f);
+    CC2420_WRITE_RAM_REV(key, CC2420RAM_KEY0, KEYLEN);
     break;
   case 1:
-    FASTSPI_WRITE_RAM_BE(key, CC2420RAM_KEY1, KEYLEN, f);
+    CC2420_WRITE_RAM_REV(key, CC2420RAM_KEY1, KEYLEN);
     break;
   }
 }
@@ -74,18 +79,17 @@ cc2420_aes_set_key(const uint8_t *key, int index)
 static void
 cipher16(uint8_t *data, int len)
 {
-  uint16_t f;
   uint8_t status;
 
   len = MIN(len, MAX_DATALEN);
-  
-  FASTSPI_WRITE_RAM_LE(data, CC2420RAM_SABUF, len, f);
-  FASTSPI_STROBE(CC2420_SAES);
+
+  CC2420_WRITE_RAM(data, CC2420RAM_SABUF, len);
+  CC2420_STROBE(CC2420_SAES);
   /* Wait for the encryption to finish */
   do {
-    FASTSPI_UPD_STATUS(status);
+    CC2420_GET_STATUS(status);
   } while(status & BV(CC2420_ENC_BUSY));
-  FASTSPI_READ_RAM_LE(data, CC2420RAM_SABUF, len, f);
+  CC2420_READ_RAM(data, CC2420RAM_SABUF, len);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -94,7 +98,7 @@ cc2420_aes_cipher(uint8_t *data, int len, int key_index)
   int i;
   uint16_t secctrl0;
 
-  FASTSPI_GETREG(CC2420_SECCTRL0, secctrl0);
+  CC2420_READ_REG(CC2420_SECCTRL0, secctrl0);
 
   secctrl0 &= ~(CC2420_SECCTRL0_SAKEYSEL0 | CC2420_SECCTRL0_SAKEYSEL1);
 
@@ -106,7 +110,7 @@ cc2420_aes_cipher(uint8_t *data, int len, int key_index)
     secctrl0 |= CC2420_SECCTRL0_SAKEYSEL1;
     break;
   }
-  FASTSPI_SETREG(CC2420_SECCTRL0, secctrl0);
+  CC2420_WRITE_REG(CC2420_SECCTRL0, secctrl0);
 
   for(i = 0; i < len; i = i + MAX_DATALEN) {
     cipher16(data + i, MIN(len - i, MAX_DATALEN));
