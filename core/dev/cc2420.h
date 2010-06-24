@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420.h,v 1.11 2010/06/24 09:28:39 nifi Exp $
+ * $Id: cc2420.h,v 1.12 2010/06/24 11:25:07 nifi Exp $
  */
 
 /**
@@ -175,6 +175,20 @@ void cc2420_set_cca_threshold(int value);
       SPI_WRITE_FAST(((uint8_t*)(buffer))[i]);               \
     }                                                        \
     SPI_WAITFORTx_ENDED();                                   \
+    CC2420_SPI_DISABLE();                                    \
+  } while(0)
+
+/* Read from RAM in the CC2420 */
+#define CC2420_READ_RAM(buffer,adr,count)                    \
+  do {                                                       \
+    uint8_t i;                                               \
+    CC2420_SPI_ENABLE();                                     \
+    SPI_WRITE(0x80 | (adr & 0x7f));                          \
+    SPI_WRITE(((adr >> 1) & 0xc0) | 0x20);                   \
+    SPI_RXBUF;                                               \
+    for(i = 0; i < (count); i++) {                           \
+      SPI_READ(((uint8_t*)(buffer))[i]);                     \
+    }                                                        \
     CC2420_SPI_DISABLE();                                    \
   } while(0)
 
