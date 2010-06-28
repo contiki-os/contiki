@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.29 2010/06/14 18:35:04 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.30 2010/06/28 14:51:23 nvt-se Exp $
  */
 /**
  * \file
@@ -97,14 +97,9 @@ MEMB(parent_memb, struct rpl_parent, RPL_MAX_PARENTS);
 
 static rpl_dag_t dag_table[RPL_MAX_DAG_ENTRIES];
 /************************************************************************/
-/* Remove DAG parents with a rank that is at least the same as minimum_rank.
- * If the argument poison_routes is non-null, the function also sends
- * no-DAOs to these parents.
- */
-#define POISON_ROUTES 1
-
+/* Remove DAG parents with a rank that is at least the same as minimum_rank. */
 static void
-remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank, int poison_routes)
+remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 {
   rpl_parent_t *p, *p2;
 
@@ -114,11 +109,6 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank, int poison_routes)
   for(p = list_head(dag->parents); p != NULL; p = p2) {
     p2 = p->next;
     if(p->rank >= minimum_rank) {
-      if(poison_routes == POISON_ROUTES) {
-	/* Send no-DAOs to old parents. */
-	dao_output(p, ZERO_LIFETIME);
-      }
-
       rpl_remove_parent(dag, p);
     }
   }
@@ -256,7 +246,7 @@ rpl_free_dag(rpl_dag_t *dag)
   rpl_remove_routes(dag);
 
   /* Remove parents and the default route. */
-  remove_parents(dag, 0, !POISON_ROUTES);
+  remove_parents(dag, 0);
   rpl_set_default_route(dag, NULL);
 
   ctimer_stop(&dag->dio_timer);
@@ -318,7 +308,6 @@ rpl_select_parent(rpl_dag_t *dag)
   }
 
   if(dag->preferred_parent != best) {
-
     /* Visualize the change of the preferred parent in Cooja. */
     ANNOTATE("#L %u 0\n",
 	     dag->preferred_parent->addr.u8[sizeof(best->addr) - 1]);
@@ -328,6 +317,7 @@ rpl_select_parent(rpl_dag_t *dag)
     rpl_set_default_route(dag, &best->addr);
     /* The DAO parent set changed - schedule a DAO transmission. */
     rpl_schedule_dao(dag);
+    rpl_reset_dio_timer(dag, 1);
     PRINTF("RPL: New preferred parent, rank changed from %u to %u\n",
 	   (unsigned)dag->rank, dag->of->calculate_rank(best, 0));
   }
@@ -335,10 +325,13 @@ rpl_select_parent(rpl_dag_t *dag)
   /* Update the DAG rank, since link-layer information may have changed
      the local confidence. */
   dag->rank = dag->of->calculate_rank(best, 0);
-  if(best->rank < dag->min_rank) {
-    dag->min_rank = best->rank;
+  if(dag->rank < dag->min_rank) {
+    dag->min_rank = dag->rank;
   } else if(!acceptable_rank(dag, best->rank)) {
-    remove_parents(dag, 0, POISON_ROUTES);
+    /* Send a No-Path DAO to the soon-to-be-removed preferred parent. */
+    dao_output(p, ZERO_LIFETIME);
+
+    remove_parents(dag, 0);
     return NULL;
   }
 
@@ -490,7 +483,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 {
   rpl_parent_t *p;
 
-  remove_parents(dag, 0, !POISON_ROUTES);
+  remove_parents(dag, 0);
   dag->version = dio->version;
   dag->dtsn_out = 1;
   dag->of->reset(dag);
@@ -630,23 +623,29 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  if(dag->rank == ROOT_RANK) {
-    return;
-  }
-
   if(dio->rank == INFINITE_RANK) {
     rpl_reset_dio_timer(dag, 1);
+  }
+
+  if(dag->rank == ROOT_RANK) {
+    if(dio->rank != INFINITE_RANK) {
+      dag->dio_counter++;
+    }
     return;
   }
 
-  /* At this point, we know that this DIO pertains to a DAG that
-     we are already part of. */
+  /*
+   * At this point, we know that this DIO pertains to a DAG that
+   * we are already part of. We consider the sender of the DIO to be
+   * a candidate parent, and let rpl_process_parent_event decide
+   * whether to keep it in the set.
+   */
 
   p = rpl_find_parent(dag, from);
   if(p == NULL) {
     if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS && dio->rank >= dag->rank) {
       /* Try to make room for a new parent. */
-      remove_parents(dag, dio->rank, !POISON_ROUTES);
+      remove_parents(dag, dio->rank);
     }
 
     /* Add the DIO sender as a candidate parent. */
@@ -661,19 +660,17 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     PRINTF("RPL: New candidate parent with rank %u: ", (unsigned)p->rank);
     PRINT6ADDR(from);
     PRINTF("\n");
+  } else if(p->rank == dio->rank) {
+    PRINTF("RPL: Received consistent DIO\n");
+    dag->dio_counter++;
   }
 
   /* We have an allocated candidate parent, process the DIO further. */
 
-  if(p->rank != dio->rank) {
-    p->rank = dio->rank;
-    if(rpl_process_parent_event(dag, p) == 0) {
-      /* The candidate parent no longer exists. */
-      return;
-    }
-  } else {
-    PRINTF("RPL: Received consistent DIO\n");
-    dag->dio_counter++;
+  p->rank = dio->rank;
+  if(rpl_process_parent_event(dag, p) == 0) {
+    /* The candidate parent no longer exists. */
+    return;
   }
 
   if(should_send_dao(dag, dio, p)) {
