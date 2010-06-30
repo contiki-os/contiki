@@ -28,13 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.57 2010/06/24 09:28:38 nifi Exp $
+ * @(#)$Id: cc2420.c,v 1.58 2010/06/30 09:03:20 nifi Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
  */
 
-#include <stdio.h>
 #include <string.h>
 
 #include "contiki.h"
@@ -83,6 +82,7 @@
 
 #define DEBUG 0
 #if DEBUG
+#include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...) do {} while (0)
@@ -379,7 +379,6 @@ cc2420_transmit(unsigned short payload_len)
            we just started receiving a packet, so we drop the
            transmission. */
         RELEASE_LOCK();
-        printf("CC2420 Collission\n");
         return RADIO_TX_COLLISION;
       }
       if(receive_on) {
