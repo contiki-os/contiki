@@ -167,7 +167,7 @@ The COOJA Simulator
 
   <target name="run_nogui" depends="init, compile, jar, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
-      <arg line="-nogui ${args}"/>
+      <arg line="-nogui=${args}"/>
       <env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
         <pathelement path="${build}"/>
