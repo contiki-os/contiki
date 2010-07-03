@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.30 2010/06/28 14:51:23 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.31 2010/07/03 23:52:02 nvt-se Exp $
  */
 /**
  * \file
@@ -643,7 +643,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   p = rpl_find_parent(dag, from);
   if(p == NULL) {
-    if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS && dio->rank >= dag->rank) {
+    if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS) {
       /* Try to make room for a new parent. */
       remove_parents(dag, dio->rank);
     }
