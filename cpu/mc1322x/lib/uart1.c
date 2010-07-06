@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: uart1.c,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: uart1.c,v 1.2 2010/07/06 13:39:34 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -65,8 +65,9 @@ void uart1_putc(char c) {
 		u1_head += 1;
 		if (u1_head >= sizeof(u1_tx_buf))
 			u1_head = 0;
-		if (u1_head == u1_tail) /* drop chars when no room */
-			return;
+		if (u1_head == u1_tail) { /* drop chars when no room */
+			if (u1_head) { u1_head -=1; } else { u1_head = sizeof(u1_tx_buf); }
+		}
 		enable_irq(UART1);
 	}
 }
