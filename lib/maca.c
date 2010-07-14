@@ -55,7 +55,7 @@
 #endif
 
 #ifndef NUM_PACKETS
-#define NUM_PACKETS 8
+#define NUM_PACKETS 32
 #endif
 
 /* for 250kHz clock */
