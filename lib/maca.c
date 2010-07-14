@@ -459,7 +459,9 @@ void tx_packet(volatile packet_t *p) {
 //	print_packets("tx packet");
 	irq_restore();
 	if(bit_is_set(*NIPEND, INT_NUM_MACA)) { *INTFRC = (1 << INT_NUM_MACA); } 
-
+	if(last_post == NO_POST) { *INTFRC = (1<<INT_NUM_MACA); }
+	/* if we are in a reception cycle, advance the softclock timeout to now */
+	if(last_post == RX_POST) { *MACA_SFTCLK = *MACA_CLK; }
 	return;
 }
 
