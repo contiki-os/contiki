@@ -133,11 +133,12 @@ void check_maca(void) {
 	} else {
 		if((last_time > (*MACA_SFTCLK + RECV_SOFTIMEOUT)) &&
 		   (last_time > (*MACA_CPLCLK + CPL_TIMEOUT))) {
-			PRINTF("check maca: complete clocks expired --- forcing isr\n");
+			PRINTF("check maca: complete clocks expired\n");
 			/* all complete clocks have expired */
 			/* check that maca entry is changing */
 			/* if not, do call the isr to restart the cycle */
 			if(last_entry == maca_entry) {
+				PRINTF("check maca: forcing isr\n");
 				*INTFRC = (1<<INT_NUM_MACA);
 			}
 		}
