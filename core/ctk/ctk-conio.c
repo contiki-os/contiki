@@ -29,7 +29,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.13 2010/02/07 21:43:03 oliverschmidt Exp $
+ * $Id: ctk-conio.c,v 1.14 2010/07/20 22:19:23 oliverschmidt Exp $
  *
  */
 
@@ -53,20 +53,22 @@ unsigned char ctk_draw_windowtitle_height = 1;
 
 
 /*-----------------------------------------------------------------------------------*/
-static void
+static unsigned char
 cputsn(char *str, unsigned char len)
 {
+  unsigned char cnt = 0;
   char c;
 
-  while(len > 0) {
-    --len;
+  while(cnt < len) {
     c = *str;
     if(c == 0) {
       break;
     }
     cputc(c);
     ++str;
+    ++cnt;
   }
+  return cnt;
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -125,12 +127,12 @@ draw_widget(struct ctk_widget *w,
     break;
   case CTK_WIDGET_LABEL:
     text = w->widget.label.text;
-    for(i = 0; i < w->h; ++i) {
+    for(j = 0; j < w->h; ++j) {
       if(ypos >= clipy1 && ypos < clipy2) {
 	gotoxy(xpos, ypos);
-	cputsn(text, w->w);
-	if(w->w - (wherex() - xpos) > 0) {
-	  cclear(w->w - (wherex() - xpos));
+	i = cputsn(text, w->w);
+	if(w->w - i > 0) {
+	  cclear(w->w - i);
 	}
       }
       ++ypos;
@@ -185,10 +187,9 @@ draw_widget(struct ctk_widget *w,
 	  revers(wfocus != 0 && j == w->widget.textentry.ypos);
 	  cvlinexy(xpos, ypos, 1);
 	  gotoxy(xpos + 1, ypos);          
-	  cputsn(text, w->w);
-	  i = wherex();
-	  if(i - xpos - 1 < w->w) {
-	    cclear(w->w - (i - xpos) + 1);
+	  i = cputsn(text, w->w);
+	  if(w->w - i > 0) {
+	    cclear(w->w - i);
 	  }
 	  cvline(1);
 	}
