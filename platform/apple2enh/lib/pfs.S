@@ -30,13 +30,13 @@
 ; 
 ; Author: Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: pfs.S,v 1.1 2008/01/01 18:49:51 oliverschmidt Exp $
+; $Id: pfs.S,v 1.2 2010/07/20 20:42:25 oliverschmidt Exp $
 ;
 ;---------------------------------------------------------------------
 	.constructor init_pfs
         .destructor  done_pfs
 	.importzp    ptr1
-	.import	     popax, _uip_buf
+	.import	     popax, _uip_aligned_buf
 	.export	     _pfs_open, _pfs_read, _pfs_close
 ;---------------------------------------------------------------------
 pathname	:= $0280
@@ -52,20 +52,20 @@ prefix:	.res	1
 ;---------------------------------------------------------------------
 	.data
 
-open_param:	.byte	$03	    ;PARAM_COUNT
-		.addr	pathname    ;PATHNAME
-		.byte	$00	    ;IO_BUFFER (Lo)
-		.byte	>_uip_buf+1 ;IO_BUFFER (Hi)
-open_fd:	.byte	$00	    ;REF_NUM
+open_param:	.byte	$03		    ;PARAM_COUNT
+		.addr	pathname	    ;PATHNAME
+		.byte	$00		    ;IO_BUFFER (Lo)
+		.byte	>_uip_aligned_buf+1 ;IO_BUFFER (Hi)
+open_fd:	.byte	$00		    ;REF_NUM
 
-read_param:	.byte	$04	    ;PARAM_COUNT
-read_fd:	.byte	$00	    ;REF_NUM
-read_buffer:	.addr	$0000	    ;DATA_BUFFER
-read_count_in:	.word	$0000	    ;REQUEST_COUNT
-read_count_out:	.word	$0000	    ;TRANS_COUNT
+read_param:	.byte	$04		    ;PARAM_COUNT
+read_fd:	.byte	$00		    ;REF_NUM
+read_buffer:	.addr	$0000		    ;DATA_BUFFER
+read_count_in:	.word	$0000		    ;REQUEST_COUNT
+read_count_out:	.word	$0000		    ;TRANS_COUNT
 
-close_param:	.byte	$01	    ;PARAM_COUNT
-close_fd:	.byte	$00	    ;REF_NUM
+close_param:	.byte	$01		    ;PARAM_COUNT
+close_fd:	.byte	$00		    ;REF_NUM
 ;---------------------------------------------------------------------
 	.segment	"INIT"
 
