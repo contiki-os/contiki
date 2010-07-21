@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www.c,v 1.13 2010/05/31 15:22:08 nifi Exp $
+ * $Id: www.c,v 1.14 2010/07/21 21:03:06 oliverschmidt Exp $
  *
  */
 
@@ -598,19 +598,18 @@ webclient_timedout(void)
  *
  * Callback function. Called from the webclient when the HTTP
  * connection was closed after a request from the "webclient_close()"
- * function. .
+ * function.
  */
 void
 webclient_closed(void)
 {
   show_statustext("Stopped.");
-  petsciiconv_topetscii(&webpage[(WWW_CONF_WEBPAGE_HEIGHT - 1) *
-				 WWW_CONF_WEBPAGE_WIDTH], WWW_CONF_WEBPAGE_WIDTH);
+  petsciiconv_topetscii(webpageptr - x, x);
   CTK_WIDGET_FOCUS(&mainwindow, &downbutton);
   redraw_window();
 }
 /*-----------------------------------------------------------------------------------*/
-/* webclient_closed():
+/* webclient_connected():
  *
  * Callback function. Called from the webclient when the HTTP
  * connection is connected.
@@ -659,8 +658,7 @@ webclient_datahandler(char *data, u16_t len)
   if(data == NULL) {
     loading = 0;
     show_statustext("Done.");
-    petsciiconv_topetscii(&webpage[(WWW_CONF_WEBPAGE_HEIGHT - 1) *
-				   WWW_CONF_WEBPAGE_WIDTH], WWW_CONF_WEBPAGE_WIDTH);
+    petsciiconv_topetscii(webpageptr - x, x);
     CTK_WIDGET_FOCUS(&mainwindow, &urlentry);
     redraw_window();
   }
