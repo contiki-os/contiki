@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: dhcp-client.c,v 1.3 2010/04/05 13:41:29 oliverschmidt Exp $
+ * $Id: dhcp-client.c,v 1.4 2010/07/21 22:35:59 oliverschmidt Exp $
  *
  */
 
@@ -142,17 +142,17 @@ apply_tcpipconfig(void)
   cfs_close(file);
 
   nullterminate(ipaddr);
-  uiplib_ipaddrconv(ipaddr, &uip_buf[0]);
+  uiplib_ipaddrconv(ipaddr, (uip_ipaddr_t *)&uip_buf[0]);
 
   nullterminate(netmask);
-  uiplib_ipaddrconv(netmask, &uip_buf[4]);
+  uiplib_ipaddrconv(netmask, (uip_ipaddr_t *)&uip_buf[4]);
 
   nullterminate(gateway);
-  uiplib_ipaddrconv(gateway, &uip_buf[8]);
+  uiplib_ipaddrconv(gateway, (uip_ipaddr_t *)&uip_buf[8]);
   
 #if WITH_DNS
   nullterminate(dnsserver);
-  uiplib_ipaddrconv(dnsserver, &uip_buf[12]);
+  uiplib_ipaddrconv(dnsserver, (uip_ipaddr_t *)&uip_buf[12]);
 #endif /* WITH_DNS */
 
   file = cfs_open("contiki.cfg", CFS_WRITE);
