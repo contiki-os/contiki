@@ -36,7 +36,7 @@
 	.constructor init_pfs
         .destructor  done_pfs
 	.importzp    ptr1, ptr2, ptr3, sp
-	.import	     __curunit, popax, addysp, subysp
+	.import	     __curunit, __filetype, popax, addysp, subysp
 	.export	     pfs_rwcommon, pfs_rwsetflags, pfs_rwcommonend
 	.if	F_IDE64
 	.export      ide64_rwprepare, ide64_rwfinish
@@ -73,7 +73,8 @@ flags:	.res	10
 	.data
 
 illchr:	.byte	$3A, $2A, $3F, $3D	;illegal chars
-pw:	.byte	$2C, $50, $2C, $57	;,p,w
+pw:	.byte	$2C
+filet:	.byte	$50, $2C, $57	;,p,w
 ;---------------------------------------------------------------------
 	.segment	"INIT"
 
@@ -100,11 +101,12 @@ _pfs_open:
 	ldy	#F_MAXLEN+8
 	jsr	subysp	;allocate name
 	ldy	#255
+	sty	ptr3
 	sty	ptr1
 @L10:	iny
 	cpy	#F_MAXLEN
 	bcs	error3	;too long...
-	ldx	#4
+	ldx	#4	;4+1 (comma)
 @L12:	cmp	illchr,x
 	beq	error3	;illegal char?
 	dex
@@ -146,6 +148,8 @@ nopath: lda	#$3A
 	bne	@L16
 	lsr	ptr2
 	bcs	ro	;read only
+	lda	__filetype
+	sta	filet	;set filetype
 	ldx	#252
 @L20:	lda	pw-252,x
 	sta	(sp),y	;write
@@ -173,7 +177,7 @@ next:	inc	ptr2	;next file number
 	inx
 	stx	ptr2+1
 nextsa:	inc	ptr2+1	;next channel
-	lda	ptr2	;file number
+retr:	lda	ptr2	;file number
 	ldx	__curunit
 	ldy	ptr2+1	;secondary address
 	jsr	SETLFS
@@ -201,10 +205,10 @@ nextsa:	inc	ptr2+1	;next channel
 	lda	ptr2
 	jsr	CLOSE	;close
 	pla
+	ldx	ptr1
 	cmp	#$37	;no channel?
-	bne	error
-	lda	ptr1
-	cmp	#$30
+	bne	nnoc
+	cpx	#$30
 	bne	error	;not no channel
 	lda	ptr2+1
 	cmp	#14
@@ -226,6 +230,37 @@ oerr:	dec	ptr2+1
 error:	lda	#$FF
 	tax		;failed
 	bne	ret
+
+nnoc:	inc	ptr3
+	bne	error	;no retry
+	cmp	#$36
+	bne	error	;no exists
+	cpx	#$33
+	bne	error
+	ldx	cmdc
+	jsr	CHKOUT
+	bcs	error
+	lda	FNL
+	sec
+	sbc	#5
+	tax
+	lda	#$53	;scratch
+	jsr	CHROUT
+	ldy	#1
+@L4:	lda	(FN),y
+	iny
+	jsr	CHROUT
+	dex
+	bne	@L4
+	lda	#$3D
+	jsr	CHROUT
+	iny
+	lda	(FN),y
+	jsr	CHROUT
+	lda	#$0d
+	jsr	CHROUT
+	jsr	CLRCHN
+	jmp	retr
 
 .proc   _pfs_read
         jsr     pfs_rwcommon    ; pop params, check handle
