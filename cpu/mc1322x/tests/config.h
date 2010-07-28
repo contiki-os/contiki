@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: config.h,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: config.h,v 1.2 2010/07/28 18:43:04 maralvira Exp $
  */
 
 #ifndef CONFIG_H
@@ -50,8 +50,8 @@
 #define uart_init uart1_init
 
 /* nvm-read */
-#define READ_ADDR 0x1E000
-#define READ_NBYTES 8
+#define READ_ADDR 0x1f000
+#define READ_NBYTES 1024
 
 /* nvm-write */
 #define WRITE_NBYTES 8

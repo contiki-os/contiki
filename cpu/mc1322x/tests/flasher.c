@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: flasher.c,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: flasher.c,v 1.2 2010/07/28 18:43:04 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -101,7 +101,7 @@ void main(void) {
 	dbg_putstr("\n\r");
 	
 	/* erase the flash */
-	err = nvm_erase(gNvmInternalInterface_c, type, 0x4fffffff); 
+	err = nvm_erase(gNvmInternalInterface_c, type, 0x7fffffff); 
 
 	dbg_putstr("nvm_erase returned: 0x");
 	dbg_put_hex(err);
