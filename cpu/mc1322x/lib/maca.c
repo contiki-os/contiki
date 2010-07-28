@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: maca.c,v 1.4 2010/07/28 18:48:03 maralvira Exp $
+ * $Id: maca.c,v 1.5 2010/07/28 18:49:34 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -65,7 +65,7 @@
 #define CLK_PER_BYTE 8 
 
 #ifndef RECV_SOFTIMEOUT
-#define RECV_SOFTIMEOUT (32*128*CLK_PER_BYTE) 
+#define RECV_SOFTIMEOUT (1024*128*CLK_PER_BYTE) 
 #endif
 
 #ifndef CPL_TIMEOUT
