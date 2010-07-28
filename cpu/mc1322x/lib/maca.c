@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: maca.c,v 1.2 2010/07/28 18:47:05 maralvira Exp $
+ * $Id: maca.c,v 1.3 2010/07/28 18:47:35 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -133,11 +133,12 @@ void check_maca(void) {
 	} else {
 		if((last_time > (*MACA_SFTCLK + RECV_SOFTIMEOUT)) &&
 		   (last_time > (*MACA_CPLCLK + CPL_TIMEOUT))) {
-			PRINTF("check maca: complete clocks expired --- forcing isr\n");
+			PRINTF("check maca: complete clocks expired\n");
 			/* all complete clocks have expired */
 			/* check that maca entry is changing */
 			/* if not, do call the isr to restart the cycle */
 			if(last_entry == maca_entry) {
+				PRINTF("check maca: forcing isr\n");
 				*INTFRC = (1<<INT_NUM_MACA);
 			}
 		}
