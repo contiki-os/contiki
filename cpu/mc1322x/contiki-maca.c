@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-maca.c,v 1.2 2010/06/14 19:19:17 adamdunkels Exp $
+ * $Id: contiki-maca.c,v 1.3 2010/07/28 18:48:51 maralvira Exp $
  */
 
 #include <stdint.h>
@@ -176,7 +176,6 @@ int contiki_maca_prepare(const void *payload, unsigned short payload_len) {
 	if ((prepped_p == 0) 
 	    && (p = get_free_packet())) {
 		PRINTF("contiki maca prepare");
-		maca_on();
 #if CONTIKI_MACA_RAW_MODE
 		p->offset = 1;
 		p->length = payload_len + 1;
