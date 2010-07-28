@@ -84,7 +84,7 @@
 #define MACA_RAW_MODE       0
 #define USE_32KHZ_XTAL      0
 
-#define BLOCKING_TX 1
+#define BLOCKING_TX 0
 
 /* end of mc1322x specific config. */
 
