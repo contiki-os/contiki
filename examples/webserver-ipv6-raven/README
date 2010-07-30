@@ -1,26 +1,17 @@
 This example features a simple webserver running on top of the IPv6
-contiki stack.
+contiki stack. It differs from the generic webserver6 example in order
+to store the web pages in avr flash memory.
 
-For this example to run properly the UIP_CONF_TCP compilation flag
-must be set to 1 in the contiki-conf.h file of the platform.
-
-If you are using the minimal-net platform on linux you can test the
-code as follows:
-- First do 'ifconfig tap0 inet6 3ffe:0501:ffff:0100:0206:98ff:fe00:0231'
-  or 'ip -6 address add 3ffe:0501:ffff:0100:0206:98ff:fe00:0231' dev tap0.
-- You might need to add a route 'ip -6 route add 
-  aaaa:0000:0000:0000:0206:98ff:fe00:0232/64 dev tap0' 
-- Then configure a global address by sending a router advertisement (RA)
-  with a prefix option. You can use radvd for example to generate such a
-  packet. 
-  Assume the prefix in the RA is:
-  3ffe:0501:ffff:0100:0000:0000:0000:0000/64.
-  and that the resulting address created by the contiki stack is: 
-  3ffe:0501:ffff:0100:0206:98ff:fe00:0232
-- Finally you can use 'wget http://[3ffe:0501:ffff:0100:0206:98ff:fe00:0232]' 
-  to get the web page (index.html file)
+The perl script /tools/makefsdata converts the default web content from
+/platform/avr-raven/apps/raven-webserver/httpd-fs/*.* into the c source file
+/platform/avr-raven/apps/raven-webserver/httpd-fsdata.c.
+This file is not deleted in a $make clean so that a rebuild can be done without
+perl in the toolchain (e.g. from a Windows cmd window). If any web file is
+changed the dependencies will attempt to update httpd-fsdata.c. If perl
+is not present, touching httpd-fsdata.c will give it a newer modification date
+and allow the build to continue.
   
-Two alternate servers Huginn and Muninn are included in this directory.
+Two alternate web contents Huginn and Muninn are included in this directory.
 Use e.g. $make WEBDIR=Huginn to generate a webserver6-huginn.elf file.
 The ipv6 address suffix and server names are specified in the makefsdata.h file.
 
