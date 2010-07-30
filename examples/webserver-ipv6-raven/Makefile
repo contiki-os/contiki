@@ -13,6 +13,7 @@ all:
 
 clean:
 	make -f Makefile.webserver TARGET=avr-raven clean
-	rm ../../platform/avr-raven/apps/raven-webserver/httpd-fsdata.c
+# Delete httpd-fsdata.c only if your toolchain includes perl
+#	rm ../../platform/avr-raven/apps/raven-webserver/httpd-fsdata.c
 	rm symbols.c symbols.h webserver6.elf webserver6.hex
 	rm -rf obj_avr-raven
