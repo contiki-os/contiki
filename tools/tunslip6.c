@@ -29,7 +29,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip6.c,v 1.4 2010/05/25 19:05:31 joxe Exp $
+ * $Id: tunslip6.c,v 1.5 2010/07/30 20:44:24 dak664 Exp $
  *
  */
 
@@ -54,10 +54,13 @@
 
 #include <err.h>
 
-int verbose = 0;
+int verbose = 1;
 const char *ipaddr;
 const char *netmask;
 int slipfd = 0;
+uint16_t basedelay=0,delaymsec=0;
+uint32_t startsec,startmsec,delaystartsec,delaystartmsec;
+int timestamp = 0;
 
 int ssystem(const char *fmt, ...)
      __attribute__((__format__ (__printf__, 1, 2)));
@@ -101,6 +104,34 @@ get_in_addr(struct sockaddr *sa)
   }
   return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
+void
+stamptime(void)
+{
+  static long startsecs=0,startmsecs=0;
+  long secs,msecs;
+  struct timeval tv;
+  time_t t;
+  struct tm *tmp;
+  char timec[20];
+ 
+  gettimeofday(&tv, NULL) ;
+  msecs=tv.tv_usec/1000;
+  secs=tv.tv_sec;
+  if (startsecs) {
+    secs -=startsecs;
+    msecs-=startmsecs;
+    if (msecs<0) {secs--;msecs+=1000;}
+    fprintf(stderr,"%04lu.%03lu ", secs, msecs);
+  } else {
+    startsecs=secs;
+    startmsecs=msecs;
+    t=time(NULL);
+    tmp=localtime(&t);
+    strftime(timec,sizeof(timec),"%T",tmp);
+//    fprintf(stderr,"\n%s.%03lu ",timec,msecs);
+    fprintf(stderr,"\n%s ",timec);
+  }
+}
 
 int
 is_sensible_string(const unsigned char *s, int len)
@@ -127,8 +158,7 @@ serial_to_tun(FILE *inslip, int outfd)
     unsigned char inbuf[2000];
   } uip;
   static int inbufptr = 0;
-
-  int ret;
+  int ret,i;
   unsigned char c;
 
 #ifdef linux
@@ -140,6 +170,7 @@ serial_to_tun(FILE *inslip, int outfd)
  read_more:
   if(inbufptr >= sizeof(uip.inbuf)) {
      inbufptr = 0;
+     if(timestamp) stamptime();
      fprintf(stderr, "*** dropping too large packet\n");
   }
   ret = fread(&c, 1, 1, inslip);
@@ -168,11 +199,15 @@ serial_to_tun(FILE *inslip, int outfd)
 	      macs[pos++] = ':';
 	    }
 	  }
+          if(timestamp) stamptime();
 	  macs[pos] = '\0';
-	  printf("*** Gateway's MAC address: %s\n", macs);
-
+//	  printf("*** Gateway's MAC address: %s\n", macs);
+	  fprintf(stderr,"*** Gateway's MAC address: %s\n", macs);
+          if (timestamp) stamptime();
 	  ssystem("ifconfig %s down", tundev);
+          if (timestamp) stamptime();
 	  ssystem("ifconfig %s hw ether %s", tundev, &macs[6]);
+          if (timestamp) stamptime();
 	  ssystem("ifconfig %s up", tundev);
 	} else if(uip.inbuf[1] == 'P') {
           /* Prefix info requested */
@@ -183,7 +218,9 @@ serial_to_tun(FILE *inslip, int outfd)
 	    *s = '\0';
 	  }
           inet_pton(AF_INET6, ipaddr, &addr);
-          printf("*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+          if(timestamp) stamptime();
+          fprintf(stderr,"*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+ //         printf("*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
 		 ipaddr, 
 		 addr.s6_addr[0], addr.s6_addr[1],
 		 addr.s6_addr[2], addr.s6_addr[3],
@@ -197,12 +234,30 @@ serial_to_tun(FILE *inslip, int outfd)
 	  slip_send(slipfd, SLIP_END);
         }
 #define DEBUG_LINE_MARKER '\r'
-      } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
+      } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {    
 	fwrite(uip.inbuf + 1, inbufptr - 1, 1, stdout);
       } else if(is_sensible_string(uip.inbuf, inbufptr)) {
-	fwrite(uip.inbuf, inbufptr, 1, stdout);
+        if(verbose==1) {   /* strings already echoed below for verbose>1 */
+          if (timestamp) stamptime();
+          fwrite(uip.inbuf, inbufptr, 1, stdout);
+        }
       } else {
-	if(verbose) printf("Writing to tun  len: %d\n", inbufptr);
+        if(verbose>2) {
+          if (timestamp) stamptime();
+          printf("Packet from SLIP of length %d - write TUN\n", inbufptr);
+          if (verbose>4) {
+            printf("         ");
+            for(i = 0; i < inbufptr; i++) {
+              printf("%02x", uip.inbuf[i]);
+              if((i & 3) == 3) {
+	        printf(" ");
+              }
+              if((i & 15) == 15)
+              printf("\n         ");
+            }
+            printf("\n");
+          }
+        }
 	if(write(outfd, uip.inbuf, inbufptr) != inbufptr) {
 	  err(1, "serial_to_tun: write");
 	}
@@ -230,6 +285,24 @@ serial_to_tun(FILE *inslip, int outfd)
     /* FALLTHROUGH */
   default:
     uip.inbuf[inbufptr++] = c;
+
+    /* Echo lines as they are received for verbose=2,3,5+ */
+    /* Echo all printable characters for verbose==4 */
+    if((verbose==2) || (verbose==3) || (verbose>4)) {
+      if(c=='\n') {
+        if(is_sensible_string(uip.inbuf, inbufptr)) {
+          if (timestamp) stamptime();
+          fwrite(uip.inbuf, inbufptr, 1, stdout);
+          inbufptr=0;
+        }
+      }
+    } else if(verbose==4) {
+      if(c == 0 || c == '\r' || c == '\n' || c == '\t' || (c >= ' ' && c <= '~')) {
+	fwrite(&c, 1, 1, stdout);
+        if(c=='\n') if(timestamp) stamptime();
+      }
+    }
+    
     break;
   }
 
@@ -284,26 +357,28 @@ write_to_serial(int outfd, void *inbuf, int len)
   u_int8_t *p = inbuf;
   int i;
 
-  if(verbose) {
-    printf("Got packet of length %d - write SLIP\n", len);
-    for(i = 0; i < len; i++) {
-      printf("%02x", p[i]);
-      if((i & 3) == 3) {
-	printf(" ");
+  if(verbose>2) {
+    if (timestamp) stamptime();
+    printf("Packet from TUN of length %d - write SLIP\n", len);
+    if (verbose>4) {
+      printf("         ");
+      for(i = 0; i < len; i++) {
+        printf("%02x", p[i]);
+        if((i & 3) == 3) {
+	  printf(" ");
+        }
+        if((i & 15) == 15)
+        printf("\n         ");
       }
-      if((i & 15) == 15)
       printf("\n");
     }
-    printf("\n");
   }
 
   /* It would be ``nice'' to send a SLIP_END here but it's not
    * really necessary.
    */
   /* slip_send(outfd, SLIP_END); */
-  if(verbose) {
-    printf("writing packet to serial!!! %d\n", len);
-  }
+
   for(i = 0; i < len; i++) {
     switch(p[i]) {
     case SLIP_END:
@@ -327,7 +402,7 @@ write_to_serial(int outfd, void *inbuf, int len)
 /*
  * Read from tun, write to slip.
  */
-void
+int
 tun_to_serial(int infd, int outfd)
 {
   struct {
@@ -338,6 +413,7 @@ tun_to_serial(int infd, int outfd)
   if((size = read(infd, uip.inbuf, 2000)) == -1) err(1, "tun_to_serial: read");
 
   write_to_serial(outfd, uip.inbuf, size);
+  return size;
 }
 
 #ifndef BAUDRATE
@@ -439,11 +515,13 @@ tun_alloc(char *dev, int tap)
 void
 cleanup(void)
 {
+  if (timestamp) stamptime();
   ssystem("ifconfig %s down", tundev);
 #ifndef linux
   ssystem("sysctl -w net.ipv6.conf.all.forwarding=1");
 #endif
   /* ssystem("arp -d %s", ipaddr); */
+  if (timestamp) stamptime();
   ssystem("netstat -nr"
 	  " | awk '{ if ($2 == \"%s\") print \"route delete -net \"$1; }'"
 	  " | sh",
@@ -482,13 +560,18 @@ void
 ifconf(const char *tundev, const char *ipaddr)
 {
 #ifdef linux
+  if (timestamp) stamptime();
   ssystem("ifconfig %s inet `hostname` up", tundev);
+  if (timestamp) stamptime();
   ssystem("ifconfig %s add %s", tundev, ipaddr);
 #else
+  if (timestamp) stamptime();
   ssystem("ifconfig %s inet `hostname` %s up", tundev, ipaddr);
+  if (timestamp) stamptime();
   ssystem("sysctl -w net.inet.ip.forwarding=1");
 #endif /* !linux */
 
+  if (timestamp) stamptime();
   ssystem("ifconfig %s\n", tundev);
 }
 
@@ -511,10 +594,14 @@ main(int argc, char **argv)
   prog = argv[0];
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:D:hs:t:v:a:p:T")) != -1) {
+  while((c = getopt(argc, argv, "B:D:Lhs:t:v::d::a:p:T")) != -1) {
     switch(c) {
     case 'B':
       baudrate = atoi(optarg);
+      break;
+
+    case 'L':
+      timestamp=1;
       break;
 
     case 's':
@@ -541,16 +628,45 @@ main(int argc, char **argv)
       port = optarg;
       break;
 
-    case 'v':
-      verbose = 1;
+    case 'd':
+      basedelay = 10;
+      if (optarg) basedelay = atoi(optarg);
       break;
+
+    case 'v':
+      verbose = 2;
+      if (optarg) verbose = atoi(optarg);
+      break;
+
     case 'T':
       tap = 1;
       break;
+ 
     case '?':
     case 'h':
     default:
-      err(1, "usage: %s [-B baudrate] [-s siodev] [-t tundev] [-T] [-a serveraddress] [-p serverport] ipaddress", prog);
+fprintf(stderr,"usage:  %s [options] ipaddress\n", prog);
+fprintf(stderr,"example: tunslip6 -L -v2 -s ttyUSB1 aaaa::1/64\n");
+fprintf(stderr,"Options are:\n");
+fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default)\n");
+fprintf(stderr," -L             Log output format (adds time stamps)\n");
+fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
+fprintf(stderr," -T             Make tap interface (default is tun interface)\n");
+fprintf(stderr," -t tundev      Name of interface (default tap0 or tun0)\n");
+fprintf(stderr," -v[level]      Verbosity level\n");
+fprintf(stderr,"    -v0         No messages\n");
+fprintf(stderr,"    -v1         Encapsulated SLIP debug messages (default)\n");
+fprintf(stderr,"    -v2         Printable strings after they are received\n");
+fprintf(stderr,"    -v3         Printable strings and SLIP packet notifications\n");
+fprintf(stderr,"    -v4         All printable characters as they are received\n");
+fprintf(stderr,"    -v5         All SLIP packets in hex\n");
+fprintf(stderr,"    -v          Equivalent to -v3\n");
+fprintf(stderr," -d[basedelay]  Minimum delay between outgoing SLIP packets.\n");
+fprintf(stderr,"                Actual delay is basedelay*(#6LowPAN fragments) milliseconds.\n");
+fprintf(stderr,"                -d is equivalent to -d10.\n");
+fprintf(stderr," -a serveraddr  \n");
+fprintf(stderr," -p serverport  \n");
+exit(1);
       break;
     }
   }
@@ -558,7 +674,7 @@ main(int argc, char **argv)
   argv += (optind - 1);
 
   if(argc != 2 && argc != 3) {
-    err(1, "usage: %s [-B baudrate] [-s siodev] [-t tundev] [-T] [-a serveraddress] [-p serverport] ipaddress", prog);
+    err(1, "usage: %s [-B baudrate] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] ipaddress", prog);
   }
   ipaddr = argv[1];
 
@@ -661,7 +777,8 @@ main(int argc, char **argv)
         err(1, "can't open siodev");
       }
     }
-    fprintf(stderr, "slip started on ``/dev/%s''\n", siodev);
+    if (timestamp) stamptime();
+    fprintf(stderr, "********SLIP started on ``/dev/%s''\n", siodev);
     stty_telos(slipfd);
   }
   slip_send(slipfd, SLIP_END);
@@ -670,6 +787,7 @@ main(int argc, char **argv)
 
   tunfd = tun_alloc(tundev, tap);
   if(tunfd == -1) err(1, "main: open");
+  if (timestamp) stamptime();
   fprintf(stderr, "opened %s device ``/dev/%s''\n",
           tap ? "tap" : "tun", tundev);
 
@@ -721,11 +839,32 @@ main(int argc, char **argv)
 	slip_flushbuf(slipfd);
 	sigalarm_reset();
       }
-
-      if(slip_empty() && FD_ISSET(tunfd, &rset)) {
-        tun_to_serial(tunfd, slipfd);
-	slip_flushbuf(slipfd);
-	sigalarm_reset();
+ 
+      /* Optional delay between outgoing packets */
+      /* Base delay times number of 6lowpan fragments to be sent */
+      if(delaymsec) {
+       struct timeval tv;
+       int dmsec;
+       gettimeofday(&tv, NULL) ;
+       dmsec=(tv.tv_sec-delaystartsec)*1000+tv.tv_usec/1000-delaystartmsec;
+       if(dmsec<0) delaymsec=0;
+       if(dmsec>delaymsec) delaymsec=0;
+      }
+      if(delaymsec==0) {
+        int size;
+        if(slip_empty() && FD_ISSET(tunfd, &rset)) {
+          size=tun_to_serial(tunfd, slipfd);
+          slip_flushbuf(slipfd);
+          sigalarm_reset();
+          if(basedelay) {
+            struct timeval tv;
+            gettimeofday(&tv, NULL) ;
+ //         delaymsec=basedelay*(1+(size/120));//multiply by # of 6lowpan packets?
+            delaymsec=basedelay;
+            delaystartsec =tv.tv_sec;
+            delaystartmsec=tv.tv_usec/1000;
+          }
+        }
       }
     }
   }
