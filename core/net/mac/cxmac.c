@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.13 2010/06/15 19:22:25 adamdunkels Exp $
+ * $Id: cxmac.c,v 1.14 2010/08/01 21:18:07 dak664 Exp $
  */
 
 /**
@@ -600,14 +600,13 @@ send_packet(void)
 #endif
 	  off();
 	} else {
-	  rtimer_clock_t wt;
 	  NETSTACK_RADIO.send(strobe, strobe_len);
 #if 0
 	  /* Turn off the radio for a while to let the other side
 	     respond. We don't need to keep our radio on when we know
 	     that the other side needs some time to produce a reply. */
 	  off();
-	  wt = RTIMER_NOW();
+	  rtimer_clock_t wt = RTIMER_NOW();
 	  while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + WAIT_TIME_BEFORE_STROBE_ACK));
 #endif /* 0 */
 	  on();
