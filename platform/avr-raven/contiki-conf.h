@@ -43,11 +43,19 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
-/* MCU, Clock rate, ticks per second */
+/* MCU and clock rate */
+#define MCU_MHZ 8
 #define PLATFORM PLATFORM_AVR
 #define RAVEN_REVISION RAVEN_D
-#define MCU_MHZ 8
+
+/* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
+
+/* Since clock_time_t is 16 bits, maximum interval is 524 seconds */
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /*Default uses 600*/
+
+/* Maximum time interval (used for timers) */
+#define INFINITE_TIME 0xffff
 
 /* COM port to be used for SLIP connection */
 #define SLIP_PORT RS232_PORT_0
