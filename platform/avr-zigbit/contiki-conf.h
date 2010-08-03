@@ -45,7 +45,7 @@
 /* MCU and clock rate */
 #define MCU_MHZ 8
 #define PLATFORM PLATFORM_AVR
-#define RAVEN_REVISION	 RAVENUSB_C
+#define RAVEN_REVISION ZIGBIT
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
