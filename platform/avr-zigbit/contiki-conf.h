@@ -33,28 +33,25 @@
 
 /**
  * \file
- *         Configuration for sample STK 501 Contiki kernel
+ *         Configuration for AVR Zigbit Contiki kernel
  *
  * \author
- *         Simon Barner <barner@in.tum.de
+ *         Simon Barner <barner@in.tum.de>
  */
 
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
-#include <stdint.h>
-
-typedef int32_t s32_t;
-
-/*
- * MCU and clock rate
- */
+/* MCU and clock rate */
 #define MCU_MHZ 8
 #define PLATFORM PLATFORM_AVR
-#define HARWARE_REVISION	 ZIGBIT
+#define RAVEN_REVISION	 RAVENUSB_C
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
+
+/* Since clock_time_t is 16 bits, maximum interval is 524 seconds */
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /*Default uses 600*/
 
 /* Maximum time interval (used for timers) */
 #define INFINITE_TIME 0xffff
@@ -146,6 +143,9 @@ typedef int32_t s32_t;
 #define UIP_CONF_TCP_SPLIT       1
 
 
+#include <stdint.h>
+
+typedef int32_t s32_t;
 typedef unsigned short clock_time_t;
 typedef unsigned char u8_t;
 typedef unsigned short u16_t;
