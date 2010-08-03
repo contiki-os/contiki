@@ -33,28 +33,26 @@
 
 /**
  * \file
- *         Configuration for sample STK 501 Contiki kernel
+ *         Configuration for RZRAVEN USB stick "jackdaw"
  *
  * \author
- *         Simon Barner <barner@in.tum.de
+ *         Simon Barner <barner@in.tum.de>
+ *         David Kopf <dak664@embarqmail.com>
  */
 
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
-#include <stdint.h>
-
-typedef int32_t s32_t;
-
-/*
- * MCU and clock rate
- */
+/* MCU and clock rate */
 #define MCU_MHZ 8
 #define PLATFORM PLATFORM_AVR
 #define RAVEN_REVISION	 RAVENUSB_C
 
-/* Cock ticks per second */
+/* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
+
+/* Since clock_time_t is 16 bits, maximum interval is 524 seconds */
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /*Default uses 600*/
 
 /* Maximum time interval (used for timers) */
 #define INFINITE_TIME 0xffff
@@ -106,8 +104,10 @@ typedef int32_t s32_t;
 #define UIP_CONF_TCP_SPLIT       1
 
 #define UIP_CONF_STATISTICS      1
-#define USB_CONF_CDC             1
+/* Disable mass storage enumeration for more debug string space */
 #define USB_CONF_STORAGE         1
+/* Use either USB CDC or RS232 for stdout (or neither) */
+#define USB_CONF_CDC             1
 //#define USB_CONF_RS232           1
 
 #ifdef RF230BB
@@ -158,6 +158,54 @@ typedef int32_t s32_t;
 #error Network configuration not specified!
 #endif   /* Network setup */
 
+#if 0   /* RPL */
+/* Not completely working yet. Link local pings work but address prefixes do not get assigned */
+/* Since the jackdaw has no uip stack additional modules must be included, uncomment the line in /plaftorm/avr-ravenusb/Makefile.avr-ravenusb */
+
+//#define UIP_CONF_ROUTER                 1
+#define UIP_CONF_IPV6_RPL               1
+#undef UIP_CONF_TCP
+#define UIP_CONF_TCP             0
+//#undef UIP_FALLBACK_INTERFACE
+//#define UIP_FALLBACK_INTERFACE rpl_interface
+
+#if 0  //too much RAM!
+/* Handle 10 neighbors */
+#define UIP_CONF_DS6_NBR_NBU     10
+/* Handle 10 routes    */
+#define UIP_CONF_DS6_ROUTE_NBU   10
+
+#define UIP_CONF_ND6_SEND_RA		0
+#define UIP_CONF_ND6_REACHABLE_TIME     600000
+#define UIP_CONF_ND6_RETRANS_TIMER      10000
+#undef UIP_CONF_IPV6_QUEUE_PKT
+#define UIP_CONF_IPV6_QUEUE_PKT         1
+//#define UIP_CONF_IPV6_CHECKS            1
+#define UIP_CONF_NETIF_MAX_ADDRESSES    3
+#define UIP_CONF_ND6_MAX_PREFIXES       3
+#define UIP_CONF_ND6_MAX_NEIGHBORS      4
+#define UIP_CONF_ND6_MAX_DEFROUTERS     2
+#define UIP_CONF_IP_FORWARD             0
+#define UIP_CONF_BUFFER_SIZE		240
+#define UIP_CONF_ICMP_DEST_UNREACH 1
+#define UIP_CONF_DHCP_LIGHT
+
+#undef UIP_CONF_LLH_LEN
+#define UIP_CONF_LLH_LEN         0
+//#define UIP_CONF_RECEIVE_WINDOW  48
+//#define UIP_CONF_TCP_MSS         48
+#undef UIP_CONF_UDP_CONNS
+#define UIP_CONF_UDP_CONNS       12
+#undef UIP_CONF_FWCACHE_SIZE
+#define UIP_CONF_FWCACHE_SIZE    30
+#define UIP_CONF_BROADCAST       1
+#define UIP_ARCH_IPCHKSUM        1
+#define UIP_CONF_PINGADDRCONF    0
+#define UIP_CONF_LOGGING         0
+#endif
+#endif /* RPL */
+
+
 #endif /* RF230BB */
 
 /* Route-Under-MAC uses 16-bit short addresses */
@@ -166,6 +214,9 @@ typedef int32_t s32_t;
 #define UIP_DATA_RUM_OFFSET      5
 #endif
 
+#include <stdint.h>
+
+typedef int32_t s32_t;
 typedef unsigned short clock_time_t;
 typedef unsigned char u8_t;
 typedef unsigned short u16_t;

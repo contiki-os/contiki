@@ -178,7 +178,7 @@ static void initialize(void) {
  
   memcpy(&uip_lladdr.addr, &addr.u8, 8);
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
-  rf230_set_channel(24);
+  rf230_set_channel(26);
 
   rimeaddr_set_node_addr(&addr); 
 //  set_rime_addr();
@@ -188,11 +188,6 @@ static void initialize(void) {
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
   NETSTACK_NETWORK.init();
-
-#if UIP_CONF_ROUTER
-  rime_init(rime_udp_init(NULL));
-  uip_router_register(&rimeroute);
-#endif
 
 #if ANNOUNCE && USB_CONF_RS232
   printf_P(PSTR("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n"),addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
@@ -204,6 +199,14 @@ static void initialize(void) {
     if (tmp<65535) printf_P(PSTR(", check rate %u Hz"),tmp);
   }
   printf_P(PSTR("\n"));
+#endif
+
+#if UIP_CONF_IPV6_RPL
+/* Normally tcpip process does this, but we don't have one.
+ * A Compiler warning will occur since no rpl.h header include
+ * Still experimental, pings work to link local address only
+ */
+  rpl_init();
 #endif
 
 #else  /* RF230BB */
