@@ -294,6 +294,12 @@ uint8_t prefixBuffer[PREFIX_BUFFER_SIZE][3];
 /* 6lowpan max size + ethernet header size + 1 */
 uint8_t raw_buf[127+ UIP_LLH_LEN +1];
 
+/* RPL uses some core tcpip routines which includes another tcpip_input */
+#if UIP_CONF_IPV6_RPL
+#warning ---------------------------------------------------------------
+#warning For RPL comment out the tcpip_input routine in core/net/tcpip.c
+#warning ---------------------------------------------------------------
+#endif
 void tcpip_input( void )
 {
 //  printf("tcpip_input");
