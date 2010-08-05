@@ -8,6 +8,16 @@
    tr.pb { padding-bottom: 15px }
    tr.bg { background-color: black; height: 1px }
   </style>
+  <script type="text/javascript">
+   function disks(disks) {
+    for (var i = 3; i; i--) {
+     document.forms[0].disk[i].disabled = i > disks;
+     if (document.forms[0].disk[i].checked &&
+         document.forms[0].disk[i].disabled)
+      document.forms[0].disk[i-1].checked = true;
+    }
+   }
+  </script>
  </head>
  <body>
   <form action="download.php">
@@ -15,7 +25,7 @@
    <table align="center" cellpadding="0" cellspacing="0">
     <tr class="p">
      <td>
-      <input type="radio" name="machine" id="apple2" value="apple2" checked="checked" />
+      <input type="radio" name="machine" id="apple2" value="apple2" onclick="disks(3)" checked="checked" />
       <label for="apple2">Apple //e</label>
      </td><td>
       <label for="apple2-drv">Ethernet Card:</label>
@@ -39,7 +49,7 @@
      <td colspan="3" />
     </tr><tr class="p">
      <td>
-      <input type="radio" name="machine" id="c64" value="c64" />
+      <input type="radio" name="machine" id="c64" value="c64" onclick="disks(2)" />
       <label for="c64">C64</label>
      </td><td>
       <label for="c64-drv">Ethernet Card:</label>
@@ -53,7 +63,7 @@
      <td colspan="3" />
     </tr><tr class="p">
      <td>
-      <input type="radio" name="machine" id="c128" value="c128" />
+      <input type="radio" name="machine" id="c128" value="c128" onclick="disks(1)" />
       <label for="c128">C128</label>
      </td><td>
       <label for="c128-drv">Ethernet Card:</label>
@@ -110,7 +120,9 @@
       <input type="radio" name="disk" id="disk-1" value="1" checked="checked" />
       <label for="disk-1">Complete Image Of Disk 1</label><br />
       <input type="radio" name="disk" id="disk-2" value="2" />
-      <label for="disk-2">Complete Image Of Disk 2</label>
+      <label for="disk-2">Complete Image Of Disk 2</label><br />
+      <input type="radio" name="disk" id="disk-3" value="3" />
+      <label for="disk-3">Complete Image Of Disk 3</label>
      </td>
     </tr><tr class="bg">
      <td colspan="3" />
