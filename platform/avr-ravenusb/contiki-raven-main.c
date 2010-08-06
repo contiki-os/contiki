@@ -104,6 +104,58 @@ struct rtimer rt;
 void rtimercycle(void) {rtimerflag=1;}
 #endif /* TESTRTIMER */
 
+/*---------------------------------------------------------------------------*/
+/*---------------------------------  RPL   ----------------------------------*/
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_IPV6_RPL
+
+#define RPL_BORDER_ROUTER 1     //Set to 1 for border router
+
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+//#define PRINTF(...)
+#include "net/rpl/rpl.h"
+
+#if RPL_BORDER_ROUTER
+
+uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
+
+PROCESS(border_router_process, "Border router process");
+PROCESS_THREAD(border_router_process, ev, data)
+{
+  rpl_dag_t *dag;
+
+  PROCESS_BEGIN();
+
+  PROCESS_PAUSE();
+
+  PRINTF("RPL-Border router started\n");
+
+  dag = rpl_set_root((uip_ip6addr_t *)dag_id);
+  if(dag != NULL) {
+    uip_ip6addr_t ipaddr;
+    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+    rpl_set_prefix(dag, &ipaddr, 64);
+    PRINTF("created a new RPL dag\n");
+  }
+
+  /* The border router runs with a 100% duty cycle in order to ensure high
+     packet reception rates. */
+ // NETSTACK_MAC.off(1);
+
+  while(1) {
+    PROCESS_YIELD();
+ //   if (ev == sensors_event && data == &button_sensor) {
+ //     PRINTF("Initiating global repair\n");
+ //     rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE));
+//    }
+  }
+
+  PROCESS_END();
+}
+#endif /* RPL_BORDER_ROUTER */
+#endif /* UIP_CONF_IPV6_RPL */
+
 /*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
 typedef struct {unsigned char B2;unsigned char B1;unsigned char B0;} __signature_t;
@@ -206,8 +258,15 @@ static void initialize(void) {
  * A Compiler warning will occur since no rpl.h header include
  * Still experimental, pings work to link local address only
  */
-  rpl_init();
+//  rpl_init();
+#if RPL_BORDER_ROUTER
+  process_start(&tcpip_process, NULL);
+  process_start(&border_router_process, NULL);
+#else
+  PRINTF ("RPL Started\n");
+  process_start(&tcpip_process, NULL);
 #endif
+#endif /* UIP_CONF_IPV6_RPL */
 
 #else  /* RF230BB */
 /* The order of starting these is important! */
