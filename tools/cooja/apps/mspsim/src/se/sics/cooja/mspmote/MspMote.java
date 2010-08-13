@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.46 2010/05/17 09:57:31 fros4943 Exp $
+ * $Id: MspMote.java,v 1.47 2010/08/13 10:18:54 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -369,10 +369,15 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   }
   
   public String sendCLICommandAndPrint(String cmd) {
+  	String response = executeCLICommand(cmd); 
+  	logger.fatal(response);
+    return response;
+  }
+  
+  public String executeCLICommand(String cmd) {
     final StringBuilder sb = new StringBuilder();
     LineListener tmp = new LineListener() {
       public void lineRead(String line) {
-        logger.fatal(line);
         sb.append(line + "\n");
       }
     };
@@ -486,6 +491,10 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
   public MspBreakpointContainer getBreakpointsContainer() {
     return breakpointsContainer;
+  }
+
+  public String getExecutionDetails() {
+  	return executeCLICommand("stacktrace");
   }
 
 }
