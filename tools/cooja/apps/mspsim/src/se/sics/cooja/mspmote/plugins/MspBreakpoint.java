@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspBreakpoint.java,v 1.3 2009/06/17 13:06:55 fros4943 Exp $
+ * $Id: MspBreakpoint.java,v 1.4 2010/08/13 10:19:20 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -238,7 +238,7 @@ public class MspBreakpoint implements Watchpoint {
     String desc = "";
     if (codeFile != null) {
       desc += codeFile.getPath() + ":" + lineNr + " (0x" + Integer.toHexString(address.intValue()) + ")";
-    } else {
+    } else if (address != null) {
       desc += "0x" + Integer.toHexString(address.intValue());
     }
     if (msg != null) {
