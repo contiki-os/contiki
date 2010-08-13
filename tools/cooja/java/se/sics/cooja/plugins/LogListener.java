@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.30 2010/05/19 12:58:15 nifi Exp $
+ * $Id: LogListener.java,v 1.31 2010/08/13 10:03:12 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -82,6 +82,7 @@ import org.jdom.Element;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
+import se.sics.cooja.Plugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
@@ -244,7 +245,12 @@ public class LogListener extends VisPlugin {
       public Component getTableCellRendererComponent(JTable table,
           Object value, boolean isSelected, boolean hasFocus, int row,
           int column) {
-        if (backgroundColors) {
+      	if (row >= logTable.getRowCount()) {
+          return super.getTableCellRendererComponent(
+              table, value, isSelected, hasFocus, row, column);
+      	}
+
+      	if (backgroundColors) {
           LogData d = logs.get(logTable.getRowSorter().convertRowIndexToModel(row));
           char last = d.strID.charAt(d.strID.length()-1);
           if (last >= '0' && last <= '9') {
@@ -545,43 +551,47 @@ public class LogListener extends VisPlugin {
 
   private Action timeLineAction = new AbstractAction("in Timeline ") {
     private static final long serialVersionUID = -6358463434933029699L;
-
     public void actionPerformed(ActionEvent e) {
-      TimeLine plugin = (TimeLine) simulation.getGUI().getStartedPlugin(TimeLine.class.getName());
-      if (plugin == null) {
-        /*logger.fatal("No Timeline plugin");*/
-        return;
-      }
-
       int view = logTable.getSelectedRow();
       if (view < 0) {
         return;
       }
       int model = logTable.convertRowIndexToModel(view);
-      
-      /* Select simulation time */
-      plugin.trySelectTime(logs.get(model).ev.getTime());
+      long time = logs.get(model).ev.getTime();
+
+      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      for (Plugin p: plugins) {
+      	if (!(p instanceof TimeLine)) {
+      		continue;
+      	}
+      	
+        /* Select simulation time */
+      	TimeLine plugin = (TimeLine) p;
+        plugin.trySelectTime(time);
+      }
     }
   };
 
   private Action radioLoggerAction = new AbstractAction("in Radio Logger") {
     private static final long serialVersionUID = -3041714249257346688L;
-
     public void actionPerformed(ActionEvent e) {
-      RadioLogger plugin = (RadioLogger) simulation.getGUI().getStartedPlugin(RadioLogger.class.getName());
-      if (plugin == null) {
-        /*logger.fatal("No Radio Logger plugin");*/
-        return;
-      }
-
       int view = logTable.getSelectedRow();
       if (view < 0) {
         return;
       }
       int model = logTable.convertRowIndexToModel(view);
-      
-      /* Select simulation time */
-      plugin.trySelectTime(logs.get(model).ev.getTime());
+      long time = logs.get(model).ev.getTime();
+
+      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      for (Plugin p: plugins) {
+      	if (!(p instanceof RadioLogger)) {
+      		continue;
+      	}
+      	
+        /* Select simulation time */
+      	RadioLogger plugin = (RadioLogger) p;
+        plugin.trySelectTime(time);
+      }
     }
   };
 
