@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.25 2010/03/15 19:22:03 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.26 2010/08/13 10:20:07 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -177,6 +177,16 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
         notifyObservers();
       }
     });
+
+    cc2420.setChannelListener(new CC2420.ChannelListener() {
+			public void changedChannel(int channel) {
+				/* XXX Currently assumes zero channel switch time */
+        lastEvent = RadioEvent.UNKNOWN;
+				lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
+        setChanged();
+        notifyObservers();
+			}
+		});
   }
 
   /* Packet radio support */
