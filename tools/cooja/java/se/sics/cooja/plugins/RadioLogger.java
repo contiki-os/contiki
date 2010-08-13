@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.35 2010/04/06 23:38:18 nifi Exp $
+ * $Id: RadioLogger.java,v 1.36 2010/08/13 10:03:58 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -37,6 +37,8 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
@@ -52,6 +54,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -70,6 +73,7 @@ import org.jdom.Element;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.ConvertedRadioPacket;
 import se.sics.cooja.GUI;
+import se.sics.cooja.Plugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.RadioConnection;
 import se.sics.cooja.RadioMedium;
@@ -257,6 +261,15 @@ public class RadioLogger extends VisPlugin {
       }
     };
 
+    dataTable.addKeyListener(new KeyAdapter() {
+      public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+          timeLineAction.actionPerformed(null);
+          logListenerAction.actionPerformed(null);
+        }
+      }
+    });
+
     dataTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
         public void valueChanged(ListSelectionEvent e) {
             int row = dataTable.getSelectedRow();
@@ -284,9 +297,12 @@ public class RadioLogger extends VisPlugin {
     popupMenu.addSeparator();
     popupMenu.add(new JMenuItem(saveAction));
     popupMenu.addSeparator();
-    popupMenu.add(new JMenuItem(timeLineAction));
-    popupMenu.add(new JMenuItem(logListenerAction));
-    
+
+    JMenu focusMenu = new JMenu("Focus (Space)");
+    focusMenu.add(new JMenuItem(timeLineAction));
+    focusMenu.add(new JMenuItem(logListenerAction));
+    popupMenu.add(focusMenu);
+
     //a group of radio button menu items
     popupMenu.addSeparator();
     ButtonGroup group = new ButtonGroup();
@@ -718,41 +734,43 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
-  private Action timeLineAction = new AbstractAction("to Timeline") {
+  private Action timeLineAction = new AbstractAction("in Timeline") {
     private static final long serialVersionUID = -4035633464748224192L;
-
     public void actionPerformed(ActionEvent e) {
-      TimeLine plugin = (TimeLine) simulation.getGUI().getStartedPlugin(TimeLine.class.getName());
-      if (plugin == null) {
-        logger.fatal("No Timeline plugin");
-        return;
-      }
-
       int selectedRow = dataTable.getSelectedRow();
       if (selectedRow < 0) return;
       long time = connections.get(selectedRow).startTime;
-      
-      /* Select simulation time */
-      plugin.trySelectTime(time);
+
+      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      for (Plugin p: plugins) {
+      	if (!(p instanceof TimeLine)) {
+      		continue;
+      	}
+      	
+        /* Select simulation time */
+      	TimeLine plugin = (TimeLine) p;
+        plugin.trySelectTime(time);
+      }
     }
   };
 
-  private Action logListenerAction = new AbstractAction("to Log Listener") {
+  private Action logListenerAction = new AbstractAction("in Log Listener") {
     private static final long serialVersionUID = 1985006491187878651L;
-
     public void actionPerformed(ActionEvent e) {
-      LogListener plugin = (LogListener) simulation.getGUI().getStartedPlugin(LogListener.class.getName());
-      if (plugin == null) {
-        logger.fatal("No Log Listener plugin");
-        return;
-      }
-
       int selectedRow = dataTable.getSelectedRow();
       if (selectedRow < 0) return;
       long time = connections.get(selectedRow).startTime;
-      
-      /* Select simulation time */
-      plugin.trySelectTime(time);
+
+      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      for (Plugin p: plugins) {
+      	if (!(p instanceof LogListener)) {
+      		continue;
+      	}
+      	
+        /* Select simulation time */
+      	LogListener plugin = (LogListener) p;
+        plugin.trySelectTime(time);
+      }
     }
   };
 
