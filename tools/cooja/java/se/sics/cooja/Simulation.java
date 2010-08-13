@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.64 2010/03/26 09:26:22 fros4943 Exp $
+ * $Id: Simulation.java,v 1.65 2010/08/13 09:53:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -277,14 +277,19 @@ public class Simulation extends Observable implements Runnable {
         }
       }
     } catch (RuntimeException e) {
-      logger.fatal("Simulation stopped due to error: " + e.getMessage(), e);
+    	if ("MSPSim requested simulation stop".equals(e.getMessage())) {
+    		/* XXX Should be*/
+    		logger.info("Simulation stopped due to MSPSim breakpoint");
+    	} else {
 
-      if (!GUI.isVisualized()) {
-	/* Quit simulator if in test mode */
-	System.exit(1);
-      } else {
-        GUI.showErrorDialog(GUI.getTopParentContainer(), "Simulation error", e, false);
-      }
+    		logger.fatal("Simulation stopped due to error: " + e.getMessage(), e);
+    		if (!GUI.isVisualized()) {
+    			/* Quit simulator if in test mode */
+    			System.exit(1);
+    		} else {
+    			GUI.showErrorDialog(GUI.getTopParentContainer(), "Simulation error", e, false);
+    		}
+    	}
     }
     isRunning = false;
     simulationThread = null;
