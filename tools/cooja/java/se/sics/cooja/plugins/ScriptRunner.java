@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.27 2010/02/12 09:28:28 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.28 2010/08/17 15:03:52 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -327,7 +327,8 @@ public class ScriptRunner extends VisPlugin {
         examplesButton.setEnabled(false);
         logTextArea.setText("");
         scriptTextArea.setEnabled(false);
-        setTitle("Contiki Test Editor (ACTIVE)");
+        setTitle("Contiki Test Editor (ACTIVE) "
+            + (scriptFile==null?"":" (" + scriptFile.getName() + ")"));
 
         logger.info("Test script activated");
 
@@ -367,9 +368,10 @@ public class ScriptRunner extends VisPlugin {
 
       toggleButton.setText("Activate");
       examplesButton.setEnabled(true);
-      scriptTextArea.setEnabled(true);
+      scriptTextArea.setEnabled(scriptFile==null?true:false);
       logger.info("Test script deactivated");
-      setTitle("Contiki Test Editor");
+      setTitle("Contiki Test Editor"
+          + (scriptFile==null?"":" (" + scriptFile.getName() + ")"));
     }
   }
 
@@ -558,7 +560,7 @@ public class ScriptRunner extends VisPlugin {
       element = new Element("scriptfile");
       element.setText(simulation.getGUI().createPortablePath(scriptFile).getPath().replace('\\', '/'));
       config.add(element);
-      StringUtils.saveToFile(scriptFile, scriptTextArea.getText());
+      /*StringUtils.saveToFile(scriptFile, scriptTextArea.getText());*/
     } else {
       element = new Element("script");
       element.setText(scriptTextArea.getText());
@@ -593,6 +595,7 @@ public class ScriptRunner extends VisPlugin {
           updateScript(script);
         }
         scriptFile = file;
+        scriptTextArea.setEnabled(false);
       } else if ("active".equals(name)) {
         boolean active = Boolean.parseBoolean(element.getText());
         if (GUI.isVisualized()) {
