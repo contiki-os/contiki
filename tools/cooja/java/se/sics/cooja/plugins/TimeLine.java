@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.27 2010/08/13 10:23:20 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.28 2010/08/17 15:04:56 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -549,6 +549,27 @@ public class TimeLine extends VisPlugin {
     }
   };
 
+  private Action clearAction = new AbstractAction("Clear logs") {
+		private static final long serialVersionUID = -4592530582786872403L;
+		private void clearLogs() {
+  		for (MoteEvents me : allMoteEvents) {
+  			me.clear();
+  		}
+  		repaint();
+  	}
+    public void actionPerformed(ActionEvent e) {
+      if (simulation.isRunning()) {
+      	simulation.invokeSimulationThread(new Runnable() {
+					public void run() {
+		      	clearLogs();
+					}
+				});
+      } else {
+      	clearLogs();
+      }
+    }
+  };
+
   private class MoteStatistics {
     Mote mote;
     long onTimeRedLED = 0, onTimeGreenLED = 0, onTimeBlueLED = 0;
@@ -591,7 +612,7 @@ public class TimeLine extends VisPlugin {
       logger.info(extractStatistics());
     }
   };
-
+  
   public String extractStatistics() {
     return extractStatistics(true, true, true, true);
   }
@@ -1269,7 +1290,8 @@ public class TimeLine extends VisPlugin {
 
       popupMenu.add(new JMenuItem(saveDataAction));
       popupMenu.add(new JMenuItem(statisticsAction));
-
+      popupMenu.add(new JMenuItem(clearAction));
+      
       popupMenu.addSeparator();
 
       JMenu focusMenu = new JMenu("Focus");
@@ -1293,11 +1315,35 @@ public class TimeLine extends VisPlugin {
       popupMenu.add(advancedMenu);
 
       addMouseListener(new MouseAdapter() {
+      	long lastClick = -1;
         public void mouseClicked(MouseEvent e) {
           if (e.isPopupTrigger()) {
             popupLocation = new Point(e.getX(), e.getY());
             popupMenu.show(Timeline.this, e.getX(), e.getY());
           }
+
+          /* Focus on double-click */
+          if (System.currentTimeMillis() - lastClick < 250) {
+            popupLocation = e.getPoint();
+            logListenerAction.actionPerformed(null);
+            radioLoggerAction.actionPerformed(null);
+
+            long time = (long) ((double)popupLocation.x*currentPixelDivisor);
+            Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+            for (Plugin p: plugins) {
+            	if (!(p instanceof TimeLine)) {
+            		continue;
+            	}
+            	if (p == TimeLine.this) {
+            		continue;
+            	}
+              /* Select simulation time */
+            	TimeLine plugin = (TimeLine) p;
+              plugin.trySelectTime(time);
+            }
+
+          }
+          lastClick = System.currentTimeMillis();
         }
         public void mousePressed(MouseEvent e) {
           if (e.isPopupTrigger()) {
@@ -2083,6 +2129,31 @@ public class TimeLine extends VisPlugin {
       }
     }
 
+    protected void clear() {
+      this.radioRXTXEvents.clear();
+      this.radioChannelEvents.clear();
+      this.radioHWEvents.clear();
+      this.ledEvents.clear();
+      this.logEvents.clear();
+      this.watchpointEvents.clear();
+
+      if (mote.getSimulation().getSimulationTime() > 0) {
+        /* Create no history events */
+        lastRadioRXTXEvent = new NoHistoryEvent(0);
+        lastRadioChannelEvent = new NoHistoryEvent(0);
+        lastRadioHWEvent = new NoHistoryEvent(0);
+        lastLEDEvent = new NoHistoryEvent(0);
+        lastLogEvent = new NoHistoryEvent(0);
+        lastWatchpointEvent = new NoHistoryEvent(0);
+        radioRXTXEvents.add(lastRadioRXTXEvent);
+        radioChannelEvents.add(lastRadioChannelEvent);
+        radioHWEvents.add(lastRadioHWEvent);
+        ledEvents.add(lastLEDEvent);
+        logEvents.add(lastLogEvent);
+        watchpointEvents.add(lastWatchpointEvent);
+      }
+    }
+    
     public void addRadioRXTX(RadioRXTXEvent ev) {
       /* Link with previous events */
       if (lastRadioRXTXEvent != null) {
