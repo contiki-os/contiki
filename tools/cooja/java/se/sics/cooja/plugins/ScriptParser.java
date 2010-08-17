@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptParser.java,v 1.7 2009/06/15 16:53:32 fros4943 Exp $
+ * $Id: ScriptParser.java,v 1.8 2010/08/17 15:04:15 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -223,6 +223,7 @@ public class ScriptParser {
     
   public static String getJSCode(String code, String timeoutCode) {
     return
+    "timeout_function = null; " +
     "function run() { " +
     "SEMAPHORE_SIM.acquire(); " +
     "SEMAPHORE_SCRIPT.acquire(); " + /* STARTUP BLOCKS HERE! */
@@ -247,6 +248,7 @@ public class ScriptParser {
     "\n" +
     "function SCRIPT_TIMEOUT() { " +
     timeoutCode + "; " +
+    " if (timeout_function != null) { timeout_function(); } " +
     " log.log('TEST TIMEOUT\\n'); " +
     " log.testFailed(); " +
     " while (!SHUTDOWN) { " +
