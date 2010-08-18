@@ -52,6 +52,8 @@ void check_maca(void);
 void set_power(uint8_t power);
 void set_channel(uint8_t chan);
 
+extern uint8_t (*get_lqi)(void);
+
 #define DEMOD_DCD 1 /* -96dBm, 22.2mA */
 #define DEMOD_NCD 0 /* -100dBm, 24.2mA */
 void set_demodulator_type(uint8_t demod);

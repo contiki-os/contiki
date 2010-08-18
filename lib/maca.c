@@ -609,6 +609,7 @@ void maca_isr(void) {
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
 		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
+		dma_rx->lqi = get_lqi();
 //		PRINTF("maca data ind %x %d\n\r", dma_rx, dma_rx->length);
 		if(maca_rx_callback != 0) { maca_rx_callback(dma_rx); }
 		add_to_rx(dma_rx);
@@ -1077,6 +1078,8 @@ void set_channel(uint8_t chan) {
 	irq_restore();
 	if(bit_is_set(*NIPEND, INT_NUM_MACA)) { *INTFRC = (1 << INT_NUM_MACA); }
 }
+
+uint8_t (*get_lqi)(void) = (void *) 0x0000e04d;
 
 #define ROM_END 0x0013ffff
 #define ENTRY_EOF 0x00000e0f
