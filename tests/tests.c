@@ -49,7 +49,7 @@ void print_packet(volatile packet_t *p) {
 #define PER_ROW 16
 	if(p) {
 		printf("len 0x%02x lqi 0x%02x", p->length, p->lqi);		
-		for(j=0, k=0; j <= ((p->length)%PER_ROW); j++) {
+		for(j=0, k=0; j <= ( (p->length) / PER_ROW ); j++) {
 			printf("\n\r");
 			for(i=0; i < PER_ROW; i++, k++) {
 				if(k >= p->length ) { 
