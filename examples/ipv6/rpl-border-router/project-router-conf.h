@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: project-router-conf.h,v 1.4 2010/06/14 07:03:53 adamdunkels Exp $
+ * $Id: project-router-conf.h,v 1.5 2010/08/24 17:54:56 joxe Exp $
  */
 
 #ifndef __PROJECT_ROUTER_CONF_H__
@@ -34,14 +34,6 @@
 
 #undef UIP_FALLBACK_INTERFACE
 #define UIP_FALLBACK_INTERFACE rpl_interface
-
-/* The number of supported neighbors */
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     30
-
-/* The number of supported routes */
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   30
 
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          6
