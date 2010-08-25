@@ -1,0 +1,15 @@
+# $Id: Makefile.sentilla-usb,v 1.1 2010/08/25 19:57:33 nifi Exp $
+
+# Some drivers such as ds2411.c only compile under platform sky
+CFLAGS += -DCONTIKI_TARGET_SKY
+
+CONTIKI_TARGET_SOURCEFILES += contiki-sentilla-usb-platform.c \
+	battery-sensor.c radio-sensor.c temperature-sensor.c
+
+include $(CONTIKI)/platform/sky/Makefile.common
+
+ifneq ($(TMOTE_BSL), 1)
+  ${warning No $(TMOTE_BSL_FILE) command for jcreate/sentilla-usb found. Please install this command in $(CONTIKI)/tools/sky}
+endif
+
+CONTIKI_TARGET_DIRS += ${addprefix ../sky/,. dev apps}
