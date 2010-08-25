@@ -32,9 +32,10 @@
 
 /**
  * \file
- *	Coffee architecture-dependent header for the Tmote Sky platform.
+ *	Coffee architecture-dependent header for the Zolertia Z1 platform.
  * \author
  * 	Nicolas Tsiftes <nvt@sics.se>
+ *      Enric M. Calvo <ecalvo@zolertia.com>
  */
 
 #ifndef CFS_COFFEE_ARCH_H
@@ -44,11 +45,21 @@
 #include "dev/xmem.h"
 #include "dev/watchdog.h"
 
+/*** M25P16 Memory Organization
+The memory is organized as: 
+16Mbit = 2 097 152 bytes (8 bits each) 
+32 sectors (512 Kbits, 65536 bytes each) 
+8192 pages (256 bytes each). 
+Each page can be individually programmed (bits are programmed from 1 to 0). The device is 
+sector or bulk erasable (bits are erased from 0 to 1) but not page erasable
+*/
+#define COFFEE_XMEM_TOTAL_SIZE_KB       2048UL  //Total size of the External Flash Memory in the Z1
+
 /* Coffee configuration parameters. */
-#define COFFEE_SECTOR_SIZE		65536UL
+#define COFFEE_SECTOR_SIZE		65536UL  
 #define COFFEE_PAGE_SIZE		256UL
 #define COFFEE_START			COFFEE_SECTOR_SIZE
-#define COFFEE_SIZE			(1024UL * 1024UL - COFFEE_START)
+#define COFFEE_SIZE			(COFFEE_XMEM_TOTAL_SIZE_KB * 1024UL - COFFEE_START)
 #define COFFEE_NAME_LENGTH		16
 #define COFFEE_MAX_OPEN_FILES		6
 #define COFFEE_FD_SET_SIZE		8
