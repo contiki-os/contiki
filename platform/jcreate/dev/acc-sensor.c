@@ -26,67 +26,41 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: acc-sensor.c,v 1.1 2010/05/03 21:57:35 nifi Exp $
+ * $Id: acc-sensor.c,v 1.2 2010/08/25 19:34:42 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/05/03 21:57:35 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/08/25 19:34:42 $
+ *           $Revision: 1.2 $
  */
 
 #include "dev/acc-sensor.h"
 #include "dev/sky-sensors.h"
 #include <io.h>
 
+/* Configure ADC12_2 to sample channel 4, 5, 6 and use */
+/* the Vref+ as reference (SREF_1) since it is a stable reference */
+#define INPUT_CHANNEL      ((1 << INCH_4) | (1 << INCH_5) | (1 << INCH_6))
+#define INPUT_REFERENCE     SREF_1
+#define ACC_MEM_X            ADC12MEM4  /* Xout */
+#define ACC_MEM_Y            ADC12MEM5  /* Yout */
+#define ACC_MEM_Z            ADC12MEM6  /* Zout */
+
 const struct sensors_sensor acc_sensor;
-static uint8_t active;
 
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  P2DIR |= 0x48;
-  P2OUT |= 0x48;
-
-  /* stop converting immediately */
-  ADC12CTL0 &= ~ENC;
-  ADC12CTL1 &= ~CONSEQ_3;
-
-  while(ADC12CTL1 & ADC12BUSY);
-
-  /* Configure ADC12_2 to sample channel 4, 5, 6 and use */
-  /* the Vref+ as reference (SREF_1) since it is a stable reference */
-  ADC12MCTL2 = (INCH_4 + SREF_1);
-  ADC12MCTL3 = (INCH_5 + SREF_1);
-  ADC12MCTL4 = (INCH_6 + SREF_1);
-  /* internal temperature can be read as value(3) */
-  ADC12MCTL5 = (INCH_10 + SREF_1);
-
-  active = 1;
-  sky_sensors_activate(0x70);
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  sky_sensors_deactivate(0x70);
-  active = 0;
-}
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
   switch(type) {
-  case 0:
-    return ADC12MEM2;
-  case 1:
-    return ADC12MEM3;
-  case 2:
-    return ADC12MEM4;
-  case 3:
-    return ADC12MEM5;
+  case ACC_SENSOR_X:
+    return ACC_MEM_X;
+  case ACC_SENSOR_Y:
+    return ACC_MEM_Y;
+  case ACC_SENSOR_Z:
+    return ACC_MEM_Z;
   }
   return 0;
 }
@@ -94,28 +68,31 @@ value(int type)
 static int
 configure(int type, int c)
 {
-  switch(type) {
-  case SENSORS_ACTIVE:
-    if (c) {
-      if(!active) {
-        activate();
-      }
-    } else if(active) {
-      deactivate();
+  if(type == SENSORS_ACTIVE) {
+    /* Sleep Mode P2.3 */
+    if(c) {
+      P2OUT |= 0x08;
+      P2DIR |= 0x08;
+    } else {
+      /* Sensor deactivated. Changed to sleep mode. */
+      P2OUT &= ~0x08;
     }
+  } else if(type == ACC_SENSOR_SENSITIVITY) {
+    /* g-Select1 P2.0, g-Select2 P2.1 */
+    P2DIR |= 0x03;
+    P2OUT &= ~0x03;
+    P2OUT |= c & 0x03;
   }
-  return 0;
+  return sky_sensors_configure(INPUT_CHANNEL, INPUT_REFERENCE, type, c);
 }
 /*---------------------------------------------------------------------------*/
 static int
 status(int type)
 {
-  switch (type) {
-  case SENSORS_ACTIVE:
-  case SENSORS_READY:
-    return active;
+  if(type == ACC_SENSOR_SENSITIVITY) {
+    return (P2OUT & P2DIR) & 0x03;
   }
-  return 0;
+  return sky_sensors_status(INPUT_CHANNEL, type);
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(acc_sensor, ACC_SENSOR, value, configure, status);

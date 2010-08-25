@@ -28,68 +28,127 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-sensors.c,v 1.2 2010/02/06 18:28:26 joxe Exp $
+ * $Id: sky-sensors.c,v 1.3 2010/08/25 19:30:53 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Joakim Eriksson
  * Created : 2010-02-02
- * Updated : $Date: 2010/02/06 18:28:26 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/08/25 19:30:53 $
+ *           $Revision: 1.3 $
  */
-#include <stdlib.h>
-
-#include <io.h>
 #include "contiki.h"
+#include "lib/sensors.h"
+#include <io.h>
 
-static uint8_t adc_on;
+#define ADC12MCTL_NO(adcno) ((unsigned char *) ADC12MCTL0_)[adcno]
+
+static uint16_t adc_on;
+static uint16_t ready;
 /*---------------------------------------------------------------------------*/
-void
-sky_sensors_activate(uint8_t type)
+static CC_INLINE void
+start(void)
 {
-  uint8_t pre = adc_on;
+  uint16_t c, last;
 
-  adc_on |= type;
-  P6SEL |= type;
+  /* Set up the ADC. */
+  P6DIR = 0xff;
+  P6OUT = 0x00;
 
-  if(pre == 0 && adc_on > 0) {
-    P6DIR = 0xff;
-    P6OUT = 0x00;
+  /* Setup ADC12, ref., sampling time */
+  /* XXX Note according to the specification a minimum of 17 ms should
+     be allowed after turn on of the internal reference generator. */
+  ADC12CTL0 = REF2_5V + SHT0_6 + SHT1_6 + MSC + REFON;
+  /* Use sampling timer, repeat-sequence-of-channels */
+  ADC12CTL1 = SHP + CONSEQ_3;
 
-    /* if nothing was started before, start up the ADC system */
-    /* Set up the ADC. */
-    ADC12CTL0 = REF2_5V + SHT0_6 + SHT1_6 + MSC; /* Setup ADC12, ref., sampling time */
-    ADC12CTL1 = SHP + CONSEQ_3 + CSTARTADD_0;	/* Use sampling timer, repeat-sequenc-of-channels */
-    /* convert up to MEM4 */
-    ADC12MCTL9 |= EOS;
-
-    ADC12CTL0 |= ADC12ON + REFON;
-    ADC12CTL0 |= ENC;		/* enable conversion */
-    ADC12CTL0 |= ADC12SC;		/* sample & convert */
+  last = 15;
+  for(c = 0; c < 16; c++) {
+    /* Clear all end-of-sequences */
+    ADC12MCTL_NO(c) &= ~EOS;
+    if(adc_on & (1 << c)) {
+      if(last == 15) {
+        /* Set new start of sequence to lowest active memory holder */
+        ADC12CTL1 |= (c * CSTARTADD_1);
+      }
+      last = c;
+    }
   }
+
+  /* Set highest end-of-sequence. */
+  ADC12MCTL_NO(last) |= EOS;
+
+  ADC12CTL0 |= ADC12ON;
+  ADC12CTL0 |= ENC;                   /* enable conversion */
+  ADC12CTL0 |= ADC12SC;               /* sample & convert */
 }
 /*---------------------------------------------------------------------------*/
-void
-sky_sensors_deactivate(uint8_t type)
+static CC_INLINE void
+stop(void)
 {
-  adc_on &= ~type;
+  /* stop converting immediately, turn off reference voltage, etc. */
 
-  if(adc_on == 0) {
-    /* stop converting immediately, turn off reference voltage, etc. */
-    /* wait for conversion to stop */
+  ADC12CTL0 &= ~ENC;
+  /* need to remove CONSEQ_3 if not EOS is configured */
+  ADC12CTL1 &= ~CONSEQ_3;
 
-    ADC12CTL0 &= ~ENC;
-    /* need to remove CONSEQ_3 if not EOS is configured */
-    ADC12CTL1 &= ~CONSEQ_3;
+  /* wait for conversion to stop */
+  while(ADC12CTL1 & ADC12BUSY);
 
-    while(ADC12CTL1 & ADC12BUSY);
-
-    ADC12CTL0 = 0;
-    ADC12CTL1 = 0;
-
-    P6DIR = 0x00;
-    P6OUT = 0x00;
-    P6SEL = 0x00;
+  /* clear any pending interrupts */
+  ADC12IFG = 0;
+}
+/*---------------------------------------------------------------------------*/
+int
+sky_sensors_status(uint16_t input, int type)
+{
+  if(type == SENSORS_ACTIVE) {
+    return (adc_on & input) == input;
   }
+  if(type == SENSORS_READY) {
+    ready |= ADC12IFG & adc_on & input;
+    return (ready & adc_on & input) == input;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+int
+sky_sensors_configure(uint16_t input, uint8_t ref, int type, int value)
+{
+  uint16_t c;
+
+  if(type == SENSORS_ACTIVE) {
+    stop();
+
+    if(value) {
+      adc_on |= input;
+      P6SEL |= input & 0xff;
+
+      /* Set ADC config */
+      for(c = 0; c < 16; c++) {
+        if(input & (1 << c)) {
+          ADC12MCTL_NO(c) = (c * INCH_1) | ref;
+        }
+      }
+
+    } else {
+      adc_on &= ~input;
+      ready &= ~input;
+      P6SEL &= ~(input & 0xff);
+    }
+
+    if(adc_on == 0) {
+      P6DIR = 0x00;
+      P6SEL = 0x00;
+
+      /* Turn off ADC and internal reference generator */
+      ADC12CTL0 = 0;
+      ADC12CTL1 = 0;
+    } else {
+      start();
+    }
+    return 1;
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/

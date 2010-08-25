@@ -26,15 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ext-sensor.c,v 1.1 2010/05/03 21:57:35 nifi Exp $
+ * $Id: ext-sensor.c,v 1.2 2010/08/25 19:34:42 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Marcus Lundén,
  *           Jesper Karlsson
  * Created : 2005-11-01
- * Updated : $Date: 2010/05/03 21:57:35 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/08/25 19:34:42 $
+ *           $Revision: 1.2 $
  */
 
 #include <io.h>
@@ -42,23 +42,38 @@
 #include "dev/ext-sensor.h"
 #include "dev/sky-sensors.h"
 
+/* SREF_0 is AVCC */
+/* SREF_1 is Vref+ */
+/* ADC0 == P6.0/A0 == port "under" logo */
+/* ADC1 == P6.1/A1 == port "over" logo */
+/* ADC2 == P6.2/A2, bottom expansion port */
+/* ADC3 == P6.1/A3, bottom expansion port, End Of (ADC-)Sequence */
+
+#define INPUT_CHANNEL      ((1 << INCH_0) | (1 << INCH_1) | \
+                            (1 << INCH_2) | (1 << INCH_3))
+#define INPUT_REFERENCE     SREF_0
+#define EXT_MEM0            ADC12MEM0
+#define EXT_MEM1            ADC12MEM1
+#define EXT_MEM2            ADC12MEM2
+#define EXT_MEM3            ADC12MEM3
+
 const struct sensors_sensor ext_sensor;
-static uint8_t active;
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-  /* ADC0 corresponds to the port under the logo, ADC1 to the port over the logo,
-     ADC2 and ADC3 corresponds to port on the JCreate bottom expansion port) */
+  /* ADC0 corresponds to the port under the logo, ADC1 to the port
+     over the logo, ADC2 and ADC3 corresponds to port on the JCreate
+     bottom expansion port) */
   switch(type) {
-    case ADC0:
-      return ADC12MEM6;
-    case ADC1:
-      return ADC12MEM7;
-    case ADC2:
-      return ADC12MEM8;
-    case ADC3:
-      return ADC12MEM9;
+  case ADC0:
+    return EXT_MEM0;
+  case ADC1:
+    return EXT_MEM1;
+  case ADC2:
+    return EXT_MEM2;
+  case ADC3:
+    return EXT_MEM3;
   }
   return 0;
 }
@@ -66,40 +81,13 @@ value(int type)
 static int
 status(int type)
 {
-  switch(type) {
-    case SENSORS_ACTIVE:
-    case SENSORS_READY:
-      return active;
-  }
-  return 0;
+  return sky_sensors_status(INPUT_CHANNEL, type);
 }
 /*---------------------------------------------------------------------------*/
 static int
 configure(int type, int c)
 {
-  switch(type) {
-    case SENSORS_ACTIVE:
-      if(c) {
-        if(!status(SENSORS_ACTIVE)) {
-          /* SREF_1 is Vref+ */
-          /* MemReg6 == P6.0/A0 == port "under" logo */
-          ADC12MCTL6 = (INCH_0 + SREF_0);
-          /* MemReg7 == P6.1/A1 == port "over" logo */
-          ADC12MCTL7 = (INCH_1 + SREF_0);
-          /* MemReg8 == P6.2/A2, bottom expansion port */
-          ADC12MCTL8 = (INCH_2 + SREF_0);
-          /* MemReg9 == P6.1/A3, bottom expansion port, End Of (ADC-)Sequence */
-          ADC12MCTL9 = (INCH_3 + SREF_0);
-
-          sky_sensors_activate(0x0F);
-          active = 1;
-        }
-      } else {
-        sky_sensors_deactivate(0x0F);
-        active = 0;
-      }
-  }
-  return 0;
+  return sky_sensors_configure(INPUT_CHANNEL, INPUT_REFERENCE, type, c);
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(ext_sensor, "Ext", value, configure, status);

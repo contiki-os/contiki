@@ -28,15 +28,22 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: light-sensor.c,v 1.6 2010/02/08 00:02:39 nifi Exp $
+ * @(#)$Id: light-sensor.c,v 1.7 2010/08/25 19:30:53 nifi Exp $
  */
-
-#include <io.h>
 
 #include "contiki.h"
 #include "lib/sensors.h"
 #include "dev/sky-sensors.h"
 #include "dev/light-sensor.h"
+
+#include <io.h>
+
+/* Photodiode 1 (P64) on INCH_4 */
+/* Photodiode 2 (P65) on INCH_5 */
+#define INPUT_CHANNEL      ((1 << INCH_4) | (1 << INCH_5))
+#define INPUT_REFERENCE     SREF_0
+#define PHOTOSYNTHETIC_MEM  ADC12MEM4
+#define TOTAL_SOLAR_MEM     ADC12MEM5
 
 const struct sensors_sensor light_sensor;
 
@@ -47,11 +54,11 @@ value(int type)
   switch(type) {
     /* Photosynthetically Active Radiation. */
   case LIGHT_SENSOR_PHOTOSYNTHETIC:
-    return ADC12MEM0;
+    return PHOTOSYNTHETIC_MEM;
 
     /* Total Solar Radiation. */
   case LIGHT_SENSOR_TOTAL_SOLAR:
-    return ADC12MEM1;
+    return TOTAL_SOLAR_MEM;
   }
   return 0;
 }
@@ -59,34 +66,13 @@ value(int type)
 static int
 status(int type)
 {
-  switch(type) {
-  case SENSORS_ACTIVE:
-  case SENSORS_READY:
-    return (ADC12CTL0 & (ADC12ON + REFON)) == (ADC12ON + REFON);
-  }
-  return 0;
+  return sky_sensors_status(INPUT_CHANNEL, type);
 }
-
 /*---------------------------------------------------------------------------*/
 static int
 configure(int type, int c)
 {
-  switch(type) {
-  case SENSORS_ACTIVE:
-    if(c) {
-      if(!status(SENSORS_ACTIVE)) {
-
-	ADC12MCTL0 = (INCH_4 + SREF_0); // photodiode 1 (P64)
-	ADC12MCTL1 = (INCH_5 + SREF_0); // photodiode 2 (P65)
-
-	sky_sensors_activate(0x30);
-      }
-    } else {
-      sky_sensors_deactivate(0x30);
-    }
-  }
-  return 0;
+  return sky_sensors_configure(INPUT_CHANNEL, INPUT_REFERENCE, type, c);
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(light_sensor, "Light",
-	       value, configure, status);
+SENSORS_SENSOR(light_sensor, "Light", value, configure, status);

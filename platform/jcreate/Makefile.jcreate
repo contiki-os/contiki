@@ -1,11 +1,11 @@
-# $Id: Makefile.jcreate,v 1.2 2010/05/27 12:42:49 nifi Exp $
+# $Id: Makefile.jcreate,v 1.3 2010/08/25 19:34:42 nifi Exp $
 
 # Some drivers such as ds2411.c only compile under platform sky
 CFLAGS += -DCONTIKI_TARGET_SKY
 
 CONTIKI_TARGET_SOURCEFILES += contiki-jcreate-platform.c \
 	battery-sensor.c radio-sensor.c \
-	acc-sensor.c ext-sensor.c
+	temperature-sensor.c acc-sensor.c ext-sensor.c
 
 include $(CONTIKI)/platform/sky/Makefile.common
 
