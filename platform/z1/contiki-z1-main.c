@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-z1-main.c,v 1.3 2010/08/26 16:01:20 joxe Exp $
+ * @(#)$Id: contiki-z1-main.c,v 1.4 2010/08/26 22:08:11 nifi Exp $
  */
 
 #include <signal.h>
@@ -231,7 +231,7 @@ main(int argc, char **argv)
 
   
   /* Restore node id if such has been stored in external mem */
-  //Enric node_id_restore();
+  node_id_restore();
 
 
   /* for setting "hardcoded" IEEE 802.15.4 MAC addresses */

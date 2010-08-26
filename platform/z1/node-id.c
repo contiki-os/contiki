@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: node-id.c,v 1.1 2010/08/24 16:26:38 joxe Exp $
+ * $Id: node-id.c,v 1.2 2010/08/26 22:08:11 nifi Exp $
  */
 
 /**
@@ -40,6 +40,8 @@
 
 #include "node-id.h"
 #include "contiki-conf.h"
+#include "dev/xmem.h"
+#include <string.h>
 
 
 unsigned short node_id = 0;
@@ -49,12 +51,27 @@ unsigned char node_mac[8];
 void
 node_id_restore(void)
 {
-//TODO
+  unsigned char buf[12];
+  xmem_pread(buf, 12, NODE_ID_XMEM_OFFSET);
+  if(buf[0] == 0xad &&
+     buf[1] == 0xde) {
+    node_id = (buf[2] << 8) | buf[3];
+    memcpy(node_mac, &buf[4], 8);
+  } else {
+    node_id = 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
 node_id_burn(unsigned short id)
 {
-//TODO
+  unsigned char buf[12];
+  buf[0] = 0xad;
+  buf[1] = 0xde;
+  buf[2] = id >> 8;
+  buf[3] = id & 0xff;
+  memcpy(&buf[4], node_mac, 8);
+  xmem_erase(XMEM_ERASE_UNIT_SIZE, NODE_ID_XMEM_OFFSET);
+  xmem_pwrite(buf, 12, NODE_ID_XMEM_OFFSET);
 }
 /*---------------------------------------------------------------------------*/
