@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: button-sensor.c,v 1.1 2010/08/24 16:26:38 joxe Exp $
+ * @(#)$Id: button-sensor.c,v 1.2 2010/08/26 16:01:20 joxe Exp $
  */
 #include "lib/sensors.h"
 #include "dev/hwconf.h"
@@ -40,8 +40,8 @@ const struct sensors_sensor button_sensor;
 static struct timer debouncetimer;
 static int status(int type);
 
-HWCONF_PIN(BUTTON, 2, 7);
-HWCONF_IRQ(BUTTON, 2, 7);
+HWCONF_PIN(BUTTON, 2, 5);
+HWCONF_IRQ(BUTTON, 2, 5);
 
 /*---------------------------------------------------------------------------*/
 interrupt(PORT2_VECTOR)

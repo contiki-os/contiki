@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-z1-main.c,v 1.2 2010/08/26 09:16:39 joxe Exp $
+ * @(#)$Id: contiki-z1-main.c,v 1.3 2010/08/26 16:01:20 joxe Exp $
  */
 
 #include <signal.h>
@@ -48,6 +48,7 @@
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
+#include "dev/button-sensor.h"
 
 #if WITH_UIP6
 #include "net/uip-ds6.h"
@@ -250,8 +251,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
 
-  //process_start(&sensors_process, NULL);
-  PRINTF("process_sensors() skipped \n");
+  process_start(&sensors_process, NULL);
 
   ctimer_init();
 
