@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-z1-main.c,v 1.1 2010/08/24 16:26:38 joxe Exp $
+ * @(#)$Id: contiki-z1-main.c,v 1.2 2010/08/26 09:16:39 joxe Exp $
  */
 
 #include <signal.h>
@@ -44,10 +44,7 @@
 #include "dev/slip.h"
 #include "dev/uart0.h"
 #include "dev/watchdog.h"
-#if 0
-//todo
-	#include "dev/xmem.h"
-#endif
+#include "dev/xmem.h"
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
@@ -224,7 +221,7 @@ main(int argc, char **argv)
   node_mac[7] = 0x05;
 
   
-  //xmem_init(); TODO
+  xmem_init();
 
   rtimer_init();
   /*
