@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.23 2010/03/26 12:29:11 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.24 2010/08/26 14:10:43 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -80,6 +80,7 @@ import se.sics.cooja.util.StringUtils;
 import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.ui.DebugUI;
+import se.sics.mspsim.util.ELFDebug;
 import se.sics.mspsim.util.DebugInfo;
 
 @ClassDescription("Msp Code Watcher")
@@ -284,7 +285,11 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     currentCodeFile = null;
 
     try {
-      DebugInfo debugInfo = ((MspMoteType)mspMote.getType()).getELF().getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
+      ELFDebug debug = ((MspMoteType)mspMote.getType()).getELF().getDebug();
+      if (debug == null) {
+        return;
+      }
+      DebugInfo debugInfo = debug.getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
       if (debugInfo == null) {
         return;
       }
@@ -321,7 +326,12 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   private void tryMapDebugInfo() {
     final String[] debugFiles;
     try {
-      debugFiles = ((MspMoteType)mspMote.getType()).getELF().getDebug().getSourceFiles();
+      ELFDebug debug = ((MspMoteType)mspMote.getType()).getELF().getDebug();
+      if (debug == null) {
+        logger.fatal("Error: No debug information is available");
+        return;
+      }
+      debugFiles = debug.getSourceFiles();
     } catch (IOException e1) {
       logger.fatal("Error: " + e1.getMessage(), e1);
       return;
@@ -438,7 +448,12 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   private static File[] getSourceFiles(MspMote mote, String[] map) {
     final String[] sourceFiles;
     try {
-      sourceFiles = ((MspMoteType)mote.getType()).getELF().getDebug().getSourceFiles();
+      ELFDebug debug = ((MspMoteType)mote.getType()).getELF().getDebug();
+      if (debug == null) {
+        logger.fatal("Error: No debug information is available");
+        return new File[0];
+      }
+      sourceFiles = debug.getSourceFiles();
     } catch (IOException e1) {
       logger.fatal("Error: " + e1.getMessage(), e1);
       return null;
