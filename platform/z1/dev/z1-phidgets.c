@@ -28,23 +28,22 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: z1-phidgets.c,v 1.1 2010/08/27 12:17:40 joxe Exp $
+ * $Id: z1-phidgets.c,v 1.2 2010/08/27 12:58:57 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Joakim Eriksson
  * Created : 2010-02-02
- * Updated : $Date: 2010/08/27 12:17:40 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/08/27 12:58:57 $
+ *           $Revision: 1.2 $
  */
-#include <stdlib.h>
-
 #include <io.h>
-#include "lib/sensors.h"
 #include "contiki.h"
+#include "lib/sensors.h"
 #include "dev/z1-phidgets.h"
 
 static uint8_t adc_on;
+static uint8_t active;
 /*---------------------------------------------------------------------------*/
 static void
 sensors_activate(uint8_t type)
@@ -94,10 +93,6 @@ sensors_deactivate(uint8_t type)
     P6SEL = 0x00;
   }
 }
-/*---------------------------------------------------------------------------*/
-
-const struct sensors_sensor ext_sensor;
-static uint8_t active;
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
