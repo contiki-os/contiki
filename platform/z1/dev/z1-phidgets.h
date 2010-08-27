@@ -28,16 +28,17 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: z1-phidgets.h,v 1.1 2010/08/27 12:17:40 joxe Exp $
+ * $Id: z1-phidgets.h,v 1.2 2010/08/27 12:58:57 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Joakim Eriksson
  * Created : 2010-08-26
- * Updated : $Date: 2010/08/27 12:17:40 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/08/27 12:58:57 $
+ *           $Revision: 1.2 $
  */
-
+#ifndef __Z1_PHIDGETS_H__
+#define __Z1_PHIDGETS_H__
 
 #define PHIDGET5V_1 0
 #define PHIDGET5V_2 1
@@ -45,3 +46,5 @@
 #define PHIDGET3V_2 3
 
 extern const struct sensors_sensor phidgets;
+
+#endif /* __Z1_PHIDGETS_H__ */
