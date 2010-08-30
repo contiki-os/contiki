@@ -30,11 +30,12 @@
  *
  * Author: Kajtar Zsolt <soci@c64.rulez.org>
  *
- * $Id: urlconv.c,v 1.1 2010/04/11 19:18:47 oliverschmidt Exp $
+ * $Id: urlconv.c,v 1.2 2010/08/30 19:44:38 oliverschmidt Exp $
  */
 
 #include <string.h>
 
+#include "cfs/cfs.h"
 #include "http-strings.h"
 
 #define ISO_number   0x23
@@ -43,9 +44,22 @@
 #define ISO_slash    0x2f
 #define ISO_question 0x3f
 
+static char wwwroot[40];
+static unsigned char wwwrootlen;
+
+void
+urlconv_init(void)
+{
+  int fd = cfs_open("wwwroot.cfg", CFS_READ);
+  int rd = cfs_read(fd, wwwroot, sizeof(wwwroot));
+  cfs_close(fd);
+  if(rd != -1) wwwrootlen = rd;
+}
+
 /*---------------------------------------------------------------------------*/
 /* URL to filename conversion
  *
+ * prepends wwwroot prefix
  * normalizes path by removing "/./"
  * interprets "/../" and calculates path accordingly
  * resulting path is always absolute
@@ -64,10 +78,11 @@ urlconv_tofilename(char *dest, char *source, unsigned char maxlen)
   static unsigned char c, hex1;
   static unsigned char *from, *to;
 
+  *dest = ISO_slash;
+  strncpy(dest + 1, wwwroot, wwwrootlen);
   len = 0;
-  from = source; to = dest;
-  *to = ISO_slash;
-  maxlen -= 2;
+  from = source; to = dest + wwwrootlen;
+  maxlen -= 2 + wwwrootlen;
   do {
     c = *(from++);
     switch(c) {
