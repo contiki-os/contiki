@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: httpd-simple.c,v 1.2 2010/05/09 13:29:33 nifi Exp $
+ * $Id: httpd-simple.c,v 1.3 2010/08/30 19:44:38 oliverschmidt Exp $
  */
 
 /**
@@ -251,5 +251,8 @@ httpd_init(void)
 {
   tcp_listen(HTONS(80));
   memb_init(&conns);
+#if URLCONV
+  urlconv_init();
+#else /* URLCONV */
 }
 /*---------------------------------------------------------------------------*/
