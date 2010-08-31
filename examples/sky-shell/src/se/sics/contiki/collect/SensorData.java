@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.7 2010/02/04 16:21:47 adamdunkels Exp $
+ * $Id: SensorData.java,v 1.8 2010/08/31 13:05:40 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/02/04 16:21:47 $
- *           $Revision: 1.7 $
+ * Updated : $Date: 2010/08/31 13:05:40 $
+ *           $Revision: 1.8 $
  */
 
 package se.sics.contiki.collect;
@@ -50,12 +50,14 @@ public class SensorData implements SensorInfo {
   private final int[] values;
   private final long nodeTime;
   private final long systemTime;
+  private int seqno;
 
   public SensorData(Node node, int[] values, long systemTime) {
     this.node = node;
     this.values = values;
     this.nodeTime = ((values[TIMESTAMP1] << 16) + values[TIMESTAMP2]) * 1000L;
     this.systemTime = systemTime;
+    this.seqno = values[SEQNO];
   }
 
   public Node getNode() {
@@ -64,6 +66,14 @@ public class SensorData implements SensorInfo {
 
   public String getNodeID() {
     return node.getID();
+  }
+
+  public int getSeqno() {
+    return seqno;
+  }
+
+  public void setSeqno(int seqno) {
+    this.seqno = seqno;
   }
 
   public int getValue(int index) {
@@ -189,9 +199,8 @@ public class SensorData implements SensorInfo {
     double v = -4.0 + 405.0 * values[HUMIDITY] / 10000.0;
     if(v > 100) {
       return 100;
-    } else {
-      return v;
     }
+    return v;
   }
 
   public double getLight1() {

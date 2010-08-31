@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.9 2008/11/10 21:14:20 adamdunkels Exp $
+ * $Id: CollectServer.java,v 1.10 2010/08/31 13:05:40 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/11/10 21:14:20 $
- *           $Revision: 1.9 $
+ * Updated : $Date: 2010/08/31 13:05:40 $
+ *           $Revision: 1.10 $
  */
 
 package se.sics.contiki.collect;
@@ -82,6 +82,7 @@ import se.sics.contiki.collect.gui.BarChartPanel;
 import se.sics.contiki.collect.gui.MapPanel;
 import se.sics.contiki.collect.gui.SerialConsole;
 import se.sics.contiki.collect.gui.TimeChartPanel;
+import se.sics.contiki.collect.gui.SeqnoChartPanel;
 
 /**
  *
@@ -350,6 +351,7 @@ public class CollectServer {
             return data.getLatency();
           }
         },
+        new SeqnoChartPanel(this, "Received Packets", "Received Packets", "Seqno", "Received Packets"),
         serialConsole
     };
     for (int i = 0, n = visualizers.length; i < n; i++) {
@@ -457,6 +459,24 @@ public class CollectServer {
     runInitScriptItem.setEnabled(false);
     toolsMenu.add(runInitScriptItem);
     toolsMenu.addSeparator();
+
+    final JCheckBoxMenuItem baseShapeItem = new JCheckBoxMenuItem("Base Shape Visible");
+    baseShapeItem.setSelected(true);
+    baseShapeItem.addActionListener(new ActionListener() {
+
+      public void actionPerformed(ActionEvent e) {
+        boolean visible = baseShapeItem.getState();
+        if (visualizers != null) {
+          for(Visualizer v : visualizers) {
+            if (v instanceof TimeChartPanel) {
+              ((TimeChartPanel)v).setBaseShapeVisible(visible);
+            }
+          }
+        }
+      }
+
+    });
+    toolsMenu.add(baseShapeItem);
 
     final JCheckBoxMenuItem scrollItem = new JCheckBoxMenuItem("Scroll Layout");
     scrollItem.addActionListener(new ActionListener() {
