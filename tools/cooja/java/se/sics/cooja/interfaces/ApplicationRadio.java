@@ -26,11 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.13 2010/02/08 16:00:46 fros4943 Exp $
+ * $Id: ApplicationRadio.java,v 1.14 2010/08/31 07:35:22 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
@@ -38,8 +39,8 @@ import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -271,12 +272,15 @@ public class ApplicationRadio extends Radio {
    */
   public void setChannel(int channel) {
     radioChannel = channel;
+    lastEvent = RadioEvent.UNKNOWN;
+    lastEventTime = simulation.getSimulationTime();
+    setChanged();
+    notifyObservers();
   }
 
   public JPanel getInterfaceVisualizer() {
-    // Location
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    JPanel panel = new JPanel(new BorderLayout());
+    Box box = Box.createVerticalBox();
 
     final JLabel statusLabel = new JLabel("");
     final JLabel lastEventLabel = new JLabel("");
@@ -284,13 +288,35 @@ public class ApplicationRadio extends Radio {
     final JLabel ssLabel = new JLabel("");
     final JButton updateButton = new JButton("Update SS");
 
-    panel.add(statusLabel);
-    panel.add(lastEventLabel);
-    panel.add(ssLabel);
-    panel.add(updateButton);
-    panel.add(Box.createVerticalStrut(3));
-    panel.add(channelLabel);
-    panel.add(Box.createVerticalGlue());
+    JComboBox channelMenu = new JComboBox(new String[] {
+    		"ALL",
+    		"1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+    		"11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+    		"21", "22", "23", "24", "25", "26", "27", "28", "29", "30"
+    });
+    channelMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JComboBox m = (JComboBox) e.getSource();
+				String s = (String) m.getSelectedItem();
+				if (s == null || s.equals("ALL")) {
+					setChannel(-1);
+				} else {
+					setChannel(Integer.parseInt(s));
+				}
+			}
+		});
+    if (getChannel() == -1) {
+      channelMenu.setSelectedIndex(0);
+    } else {
+      channelMenu.setSelectedIndex(getChannel());
+    }
+
+    box.add(statusLabel);
+    box.add(lastEventLabel);
+    box.add(ssLabel);
+    box.add(updateButton);
+    box.add(channelLabel);
+    box.add(channelMenu);
 
     updateButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -303,8 +329,7 @@ public class ApplicationRadio extends Radio {
       public void update(Observable obs, Object obj) {
         if (isTransmitting()) {
           statusLabel.setText("Transmitting");
-        }
-        if (isReceiving()) {
+        } else if (isReceiving()) {
           statusLabel.setText("Receiving");
         } else {
           statusLabel.setText("Listening");
@@ -313,15 +338,19 @@ public class ApplicationRadio extends Radio {
         lastEventLabel.setText("Last event (time=" + lastEventTime + "): " + lastEvent);
         ssLabel.setText("Signal strength (not auto-updated): "
             + getCurrentSignalStrength() + " dBm");
+        if (getChannel() == -1) {
+          channelLabel.setText("Current channel: ALL");
+        } else {
+          channelLabel.setText("Current channel: " + getChannel());
+        }
       }
     };
     this.addObserver(observer);
 
     observer.update(null, null);
 
-    // Saving observer reference for releaseInterfaceVisualizer
+    panel.add(BorderLayout.NORTH, box);
     panel.putClientProperty("intf_obs", observer);
-
     return panel;
   }
 
