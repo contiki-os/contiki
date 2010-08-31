@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.2 2008/11/26 14:22:54 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.3 2010/08/31 13:05:40 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2008/11/26 14:22:54 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/08/31 13:05:40 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect;
@@ -47,6 +47,9 @@ public class SensorDataAggregator implements SensorInfo {
 
   private final Node node;
   private long[] values;
+  private int minSeqno = Integer.MAX_VALUE;
+  private int maxSeqno = Integer.MIN_VALUE;
+  private int seqnoDelta = 0;
   private int dataCount;
 
   public SensorDataAggregator(Node node) {
@@ -79,9 +82,19 @@ public class SensorDataAggregator implements SensorInfo {
   }
 
   public void addSensorData(SensorData data) {
+    int s = data.getValue(SEQNO) + seqnoDelta;
     for (int i = 0, n = Math.min(VALUES_COUNT, data.getValueCount()); i < n; i++) {
       values[i] += data.getValue(i);
     }
+
+    // Handle wrapping sequence numbers
+    if (dataCount > 0 && maxSeqno - s > 2) {
+      s += maxSeqno - seqnoDelta;
+      seqnoDelta = maxSeqno;
+    }
+    data.setSeqno(s);
+    if (s < minSeqno) minSeqno = s;
+    if (s > maxSeqno) maxSeqno = s;
     dataCount++;
   }
 
@@ -157,6 +170,14 @@ public class SensorDataAggregator implements SensorInfo {
 
   public double getAverageBestNeighborETX() {
     return getAverageValue(BEST_NEIGHBOR_ETX) / 16.0;
+  }
+
+  public int getMinSeqno() {
+      return minSeqno;
+  }
+
+  public int getMaxSeqno() {
+      return maxSeqno;
   }
 
 }
