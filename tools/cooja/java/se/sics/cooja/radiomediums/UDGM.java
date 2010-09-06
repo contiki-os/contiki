@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.30 2010/02/03 15:49:25 fros4943 Exp $
+ * $Id: UDGM.java,v 1.31 2010/09/06 12:00:46 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -80,7 +80,7 @@ import se.sics.cooja.radiomediums.DirectedGraphMedium.DestinationRadio;
  * @see UDGMVisualizerSkin
  * @author Fredrik Osterlind
  */
-@ClassDescription("Unit Disk Graph Medium (UDGM)")
+@ClassDescription("Unit Disk Graph Medium (UDGM): Distance Loss")
 public class UDGM extends AbstractRadioMedium {
   private static Logger logger = Logger.getLogger(UDGM.class);
 
@@ -89,14 +89,12 @@ public class UDGM extends AbstractRadioMedium {
   public double TRANSMITTING_RANGE = 50; /* Transmission range. */
   public double INTERFERENCE_RANGE = 100; /* Interference range. Ignored if below transmission range. */
 
-  private Simulation simulation;
   private DirectedGraphMedium dgrm; /* Used only for efficient destination lookup */
 
   private Random random = null;
 
   public UDGM(Simulation simulation) {
     super(simulation);
-    this.simulation = simulation;
     random = simulation.getRandomGenerator();
     dgrm = new DirectedGraphMedium() {
       protected void analyzeEdges() {
@@ -166,7 +164,7 @@ public class UDGM extends AbstractRadioMedium {
     RadioConnection newConnection = new RadioConnection(sender);
 
     /* Fail radio transmission randomly - no radios will hear this transmission */
-    if (SUCCESS_RATIO_TX < 1.0 && random.nextDouble() > SUCCESS_RATIO_TX) {
+    if (getTxSuccessProbability(sender) < 1.0 && random.nextDouble() > getTxSuccessProbability(sender)) {
       return newConnection;
     }
 
@@ -222,7 +220,7 @@ public class UDGM extends AbstractRadioMedium {
         } else if (recv.isTransmitting()) {
           newConnection.addInterfered(recv);
         } else if (recv.isReceiving() ||
-            (SUCCESS_RATIO_RX < 1.0 && random.nextDouble() > SUCCESS_RATIO_RX)) {
+            (random.nextDouble() > getRxSuccessProbability(sender, recv))) {
           /* Was receiving, or reception failed: start interfering */
           newConnection.addInterfered(recv);
           recv.interfereAnyReception();
@@ -246,6 +244,28 @@ public class UDGM extends AbstractRadioMedium {
     }
 
     return newConnection;
+  }
+  
+  public double getSuccessProbability(Radio source, Radio dest) {
+  	return getTxSuccessProbability(source) * getRxSuccessProbability(source, dest);
+  }
+  public double getTxSuccessProbability(Radio source) {
+    return SUCCESS_RATIO_TX;
+  }
+  public double getRxSuccessProbability(Radio source, Radio dest) {
+  	double distance = source.getPosition().getDistanceTo(dest.getPosition());
+    double distanceSquared = Math.pow(distance,2.0);
+    double distanceMax = TRANSMITTING_RANGE * 
+    ((double) source.getCurrentOutputPowerIndicator() / (double) source.getOutputPowerIndicatorMax());
+    if (distanceMax == 0.0) {
+      return 0.0;
+    }
+    double distanceMaxSquared = Math.pow(distanceMax,2.0);
+    double ratio = distanceSquared / distanceMaxSquared;
+    if (ratio > 1.0) {
+    	return 0.0;
+    }
+    return 1.0 - ratio*(1.0-SUCCESS_RATIO_RX);
   }
 
   public void updateSignalStrengths() {
