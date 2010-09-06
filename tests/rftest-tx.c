@@ -93,6 +93,10 @@ void main(void) {
 		/* a few lockup conditions */
 		check_maca();
 
+		while((p = rx_packet())) {
+			if(p) free_packet(p);
+		}
+
 		p = get_free_packet();
 		if(p) {
 			fill_packet(p);
