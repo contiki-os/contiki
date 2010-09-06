@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MapPanel.java,v 1.1 2008/07/09 23:18:07 nifi Exp $
+ * $Id: MapPanel.java,v 1.2 2010/09/06 22:32:56 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,14 +34,15 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/07/09 23:18:07 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/09/06 22:32:56 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -52,6 +53,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -76,7 +78,7 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
   private static final Logger log =
     Logger.getLogger(MapPanel.class.getName());
 
-  private static final boolean VISUAL_DRAG = true;
+  private static final boolean VISUAL_DRAG = false;
 
   private static final int FADE_COUNT = 20;
   private static final int AGE_COUNT = 200;
@@ -100,7 +102,7 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
   public static final int SHOW_BLINK = 40;
   public static final int TOTAL_SHOW = 600;
 
-  private Timer timer = new Timer(200, this);
+  private Timer timer = new Timer(400, this);
   private boolean hasPendingEvents = false;
   private int ticker = 0;
 
@@ -113,7 +115,7 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
   private MapNode[] nodeList;
 
   private MapNode selectedNode;
-  private MapNode[] selectedMapNodes;
+  private ArrayList<MapNode> selectedMapNodes = new ArrayList<MapNode>();
   private Node[] selectedNodes;
   private MapNode draggedNode;
   private long draggedTime;
@@ -137,9 +139,7 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
     resetNetworkItem = createMenuItem(popupMenu, "Reset Network");
 
     addMouseListener(this);
-    if (VISUAL_DRAG) {
-      addMouseMotionListener(this);
-    }
+    addMouseMotionListener(this);
     setBackground(Color.white);
   }
 
@@ -184,8 +184,10 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
   }
 
   public void clear() {
+    setCursor(Cursor.getDefaultCursor());
     draggedNode = null;
     hasPendingEvents = false;
+    updateSelected();
   }
 
 
@@ -232,36 +234,48 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
   @Override
   public void nodesSelected(Node[] nodes) {
     if (selectedNodes != nodes) {
-      if (selectedMapNodes != null) {
-        for(MapNode node : selectedMapNodes) {
-          node.isSelected = false;
-        }
-      }
       selectedNodes = nodes;
-      if (nodes == null || nodes.length == 0) {
-        selectedNode = null;
-        selectedMapNodes = null;
-      } else {
-        selectedMapNodes = new MapNode[nodes.length];
-        for (int i = 0, n = nodes.length; i < n; i++) {
-          selectedMapNodes[i] = addMapNode(nodes[i]);
-          selectedMapNodes[i].isSelected = true;
-        }
-        selectedNode = selectedMapNodes[0];
+      if (isVisible()) {
+        updateSelected();
       }
-      repaint();
     }
+  }
+
+  private void updateSelected() {
+    if (selectedMapNodes.size() > 0) {
+      for(MapNode node : selectedMapNodes) {
+        node.isSelected = false;
+      }
+      selectedMapNodes.clear();
+    }
+
+    if (selectedNodes == null || selectedNodes.length == 0) {
+      selectedNode = null;
+    } else {
+      for (Node node : selectedNodes) {
+        MapNode mapNode = addMapNode(node);
+        selectedMapNodes.add(mapNode);
+        mapNode.isSelected = true;
+      }
+      selectedNode = selectedMapNodes.get(0);
+    }
+
+    repaint();
   }
 
   @Override
   public void nodeAdded(Node nd) {
     addMapNode(nd);
-    repaint();
+    if (isVisible()) {
+      repaint();
+    }
   }
 
   @Override
   public void nodeDataReceived(SensorData sensorData) {
-    repaint();
+    if (isVisible()) {
+      repaint();
+    }
   }
 
   @Override
@@ -274,11 +288,13 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
   // Graphics
   // -------------------------------------------------------------------
 
-  public void paint(Graphics g) {
+  @Override
+  protected void paintComponent(Graphics g) {
     Graphics2D g2d = (Graphics2D) g;
     int lx = 10;
-    super.paint(g);
     long time = System.currentTimeMillis();
+    g.setColor(getBackground());
+    g.fillRect(0, 0, getWidth(), getHeight());
     if (mapImage != null) {
       mapImage.paintIcon(this, g, 0, 0);
     }
@@ -452,6 +468,10 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
       draggedTime = System.currentTimeMillis();
 
     } else if (selectedNode != null) {
+      if (draggedTime < 0) {
+        setCursor(Cursor.getDefaultCursor());
+        draggedTime = 0;
+      }
       selectedNode = draggedNode = null;
       server.selectNodes(null);
     }
@@ -460,13 +480,15 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
 
   public void mouseReleased(MouseEvent e) {
     if (draggedNode != null && e.getButton() == MouseEvent.BUTTON1) {
-      if ((!VISUAL_DRAG || (draggedTime > 0)) &&
+      if ((draggedTime > 0) &&
           (System.currentTimeMillis() - draggedTime) < 300) {
         // Do not drag if mouse is only moved during click
 
       } else {
         draggedNode.node.setLocation(e.getX(), e.getY());
         server.updateNodeLocation(draggedNode.node);
+        setCursor(Cursor.getDefaultCursor());
+        draggedTime = 0;
         draggedNode = null;
         repaint();
       }
@@ -496,16 +518,17 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
   // -------------------------------------------------------------------
 
   public void mouseDragged(MouseEvent e) {
-    if (!VISUAL_DRAG || draggedNode == null) {
+    if (draggedNode == null) {
       // Do nothing
 
     } else if (draggedTime > 0) {
       if ((System.currentTimeMillis() - draggedTime) > 300) {
         // No mouse click, time to drag the node
         draggedTime = -1;
+        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
       }
 
-    } else {
+    } else if (VISUAL_DRAG) {
       draggedNode.node.setLocation(e.getX(), e.getY());
       repaint();
     }
