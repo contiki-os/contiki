@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.8 2010/08/31 13:05:40 nifi Exp $
+ * $Id: SensorData.java,v 1.9 2010/09/06 22:19:09 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/08/31 13:05:40 $
- *           $Revision: 1.8 $
+ * Updated : $Date: 2010/09/06 22:19:09 $
+ *           $Revision: 1.9 $
  */
 
 package se.sics.contiki.collect;
@@ -51,6 +51,7 @@ public class SensorData implements SensorInfo {
   private final long nodeTime;
   private final long systemTime;
   private int seqno;
+  private boolean isDuplicate;
 
   public SensorData(Node node, int[] values, long systemTime) {
     this.node = node;
@@ -66,6 +67,14 @@ public class SensorData implements SensorInfo {
 
   public String getNodeID() {
     return node.getID();
+  }
+
+  public boolean isDuplicate() {
+    return isDuplicate;
+  }
+
+  public void setDuplicate(boolean isDuplicate) {
+    this.isDuplicate = isDuplicate;
   }
 
   public int getSeqno() {
