@@ -26,12 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGMVisualizerSkin.java,v 1.10 2010/02/03 15:49:25 fros4943 Exp $
+ * $Id: UDGMVisualizerSkin.java,v 1.11 2010/09/06 12:00:46 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
@@ -336,6 +337,28 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
         y - translatedTransmissionMax.y,
         2 * translatedTransmissionMax.x,
         2 * translatedTransmissionMax.y);
+
+    
+    FontMetrics fm = g.getFontMetrics();
+    g.setColor(Color.BLACK);
+
+    /* Print transmission success probabilities */
+    for (Mote m: simulation.getMotes()) {
+    	if (m == selectedMote) {
+    		continue;
+    	}
+    	double prob = 
+    		((UDGM) simulation.getRadioMedium()).getSuccessProbability(selectedRadio, m.getInterfaces().getRadio());
+    	if (prob == 0.0d) {
+    		continue;
+    	}
+    	String msg = (double)(((int)(1000*prob))/10.0) + "%";
+    	Position pos = m.getInterfaces().getPosition();
+    	Point pixel = visualizer.transformPositionToPixel(pos);
+    	int msgWidth = fm.stringWidth(msg);
+    	g.drawString(msg, pixel.x - msgWidth/2, pixel.y + 2*Visualizer.MOTE_RADIUS + 3);
+    }
+    
   }
 
   public void paintAfterMotes(Graphics g) {
