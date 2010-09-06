@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.3 2010/08/31 13:05:40 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.4 2010/09/06 22:19:09 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2010/08/31 13:05:40 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2010/09/06 22:19:09 $
+ *           $Revision: 1.4 $
  */
 
 package se.sics.contiki.collect;
@@ -51,6 +51,7 @@ public class SensorDataAggregator implements SensorInfo {
   private int maxSeqno = Integer.MIN_VALUE;
   private int seqnoDelta = 0;
   private int dataCount;
+  private int duplicates = 0;
 
   public SensorDataAggregator(Node node) {
     this.node = node;
@@ -82,20 +83,63 @@ public class SensorDataAggregator implements SensorInfo {
   }
 
   public void addSensorData(SensorData data) {
-    int s = data.getValue(SEQNO) + seqnoDelta;
-    for (int i = 0, n = Math.min(VALUES_COUNT, data.getValueCount()); i < n; i++) {
-      values[i] += data.getValue(i);
+    int seqn = data.getValue(SEQNO);
+    int s = seqn + seqnoDelta;
+
+    if (s <= maxSeqno) {
+      // Check for duplicates among the last 5 packets
+      for(int n = node.getSensorDataCount(), i = n > 5 ? n - 5 : 0; i < n; i++) {
+        SensorData sd = node.getSensorData(i);
+        if (sd.getValue(SEQNO) != seqn || sd == data || sd.getValueCount() != data.getValueCount()) {
+          // Not a duplicate
+        } else if (Math.abs(data.getNodeTime() - sd.getNodeTime()) > 180000) {
+          // Too long time between packets. Not a duplicate.
+//          System.err.println("Too long time between packets with same seqno from "
+//                  + data.getNode() + ": "
+//                  + (Math.abs(data.getNodeTime() - sd.getNodeTime()) / 1000)
+//                  + " sec, " + (n - i) + " packets ago");
+        } else {
+          data.setDuplicate(true);
+
+          // Verify that the packet is a duplicate
+          for(int j = DATA_LEN2, m = data.getValueCount(); j < m; j++) {
+            if (sd.getValue(j) != data.getValue(j)) {
+              data.setDuplicate(false);
+//              System.out.println("NOT Duplicate: " + data.getNode() + " ("
+//                  + (n - i) + ": "
+//                  + ((data.getNodeTime() - sd.getNodeTime()) / 1000) + "sek): "
+//                  + seqn + " value[" + j + "]: " + sd.getValue(j) + " != "
+//                  + data.getValue(j));
+              break;
+            }
+          }
+          if (data.isDuplicate()) {
+//            System.out.println("Duplicate: " + data.getNode() + ": " + seqn
+//                + ": "
+//                + (Math.abs(data.getNodeTime() - sd.getNodeTime()) / 1000)
+//                + " sec, " + (n - i) + " packets ago");
+            duplicates++;
+            break;
+          }
+        }
+      }
     }
 
-    // Handle wrapping sequence numbers
-    if (dataCount > 0 && maxSeqno - s > 2) {
-      s += maxSeqno - seqnoDelta;
-      seqnoDelta = maxSeqno;
+    if (!data.isDuplicate()) {
+      for (int i = 0, n = Math.min(VALUES_COUNT, data.getValueCount()); i < n; i++) {
+        values[i] += data.getValue(i);
+      }
+
+      // Handle wrapping sequence numbers
+      if (dataCount > 0 && maxSeqno - s > 2) {
+        s += maxSeqno - seqnoDelta;
+        seqnoDelta = maxSeqno;
+      }
+      if (s < minSeqno) minSeqno = s;
+      if (s > maxSeqno) maxSeqno = s;
+      dataCount++;
     }
     data.setSeqno(s);
-    if (s < minSeqno) minSeqno = s;
-    if (s > maxSeqno) maxSeqno = s;
-    dataCount++;
   }
 
   public void clear() {
@@ -103,6 +147,10 @@ public class SensorDataAggregator implements SensorInfo {
       values[i] = 0L;
     }
     dataCount = 0;
+    duplicates = 0;
+    minSeqno = Integer.MAX_VALUE;
+    maxSeqno = Integer.MIN_VALUE;
+    seqnoDelta = 0;
   }
 
   public String toString() {
@@ -170,6 +218,14 @@ public class SensorDataAggregator implements SensorInfo {
 
   public double getAverageBestNeighborETX() {
     return getAverageValue(BEST_NEIGHBOR_ETX) / 16.0;
+  }
+
+  public int getPacketCount() {
+    return node.getSensorDataCount();
+  }
+
+  public int getDuplicateCount() {
+    return duplicates;
   }
 
   public int getMinSeqno() {
