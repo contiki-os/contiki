@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.10 2010/08/31 13:05:40 nifi Exp $
+ * $Id: CollectServer.java,v 1.11 2010/09/06 22:42:29 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/08/31 13:05:40 $
- *           $Revision: 1.10 $
+ * Updated : $Date: 2010/09/06 22:42:29 $
+ *           $Revision: 1.11 $
  */
 
 package se.sics.contiki.collect;
@@ -80,9 +80,10 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import se.sics.contiki.collect.gui.BarChartPanel;
 import se.sics.contiki.collect.gui.MapPanel;
+import se.sics.contiki.collect.gui.NodeInfoPanel;
+import se.sics.contiki.collect.gui.PacketChartPanel;
 import se.sics.contiki.collect.gui.SerialConsole;
 import se.sics.contiki.collect.gui.TimeChartPanel;
-import se.sics.contiki.collect.gui.SeqnoChartPanel;
 
 /**
  *
@@ -351,7 +352,9 @@ public class CollectServer {
             return data.getLatency();
           }
         },
-        new SeqnoChartPanel(this, "Received Packets", "Received Packets", "Seqno", "Received Packets"),
+        new PacketChartPanel(this, "Received Packets", "Time", "Received Packets"),
+//        new SeqnoChartPanel(this, "Received Packets", "Received Packets", "Seqno", "Received Packets"),
+        new NodeInfoPanel(),
         serialConsole
     };
     for (int i = 0, n = visualizers.length; i < n; i++) {
