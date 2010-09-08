@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.19 2010/03/19 13:26:54 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.20 2010/09/08 19:32:42 adamdunkels Exp $
  */
 
 /**
@@ -191,7 +191,6 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
   msg.light2 = light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR);
   msg.temp = sht11_sensor.value(SHT11_SENSOR_TEMP);
   msg.humidity = sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
-  //  msg.rssi = do_rssi();
   
   energest_flush();
   
@@ -225,7 +224,7 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
   n = collect_neighbor_best();
   if(n != NULL) {
     rimeaddr_copy(&msg.best_neighbor, &n->addr);
-    msg.best_neighbor_etx = collect_neighbor_etx(n);
+    msg.best_neighbor_etx = collect_neighbor_rtmetric(n) - n->rtmetric;
     msg.best_neighbor_rtmetric = n->rtmetric;
   }
   msg.battery_voltage = battery_sensor.value(0);
@@ -244,8 +243,6 @@ static void
 periodic_debug(void *ptr)
 {
   ctimer_set(ptr, 2 * CLOCK_SECOND, periodic_debug, ptr);
-
-  contikimac_debug_print();
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(sky_shell_process, ev, data)
@@ -253,13 +250,8 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   static struct ctimer c;
   PROCESS_BEGIN();
 
-  //  ctimer_set(&c, 2 * CLOCK_SECOND, periodic_debug, &c);
-  
   /*  powertrace_start(10 * CLOCK_SECOND);
       powertrace_sniff(POWERTRACE_ON);*/
-
-  cc2420_set_channel(26);
-  //  cc2420_set_cca_threshold(-10);
   
   serial_shell_init();
   shell_blink_init();
@@ -271,8 +263,9 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_reboot_init();
   shell_rime_init();
   shell_rime_netcmd_init();
-  /*  shell_rime_ping_init();*/
+  /*  shell_rime_ping_init();
   shell_rime_debug_init();
+  shell_rime_debug_runicast_init();*/
   /*  shell_rime_sniff_init();*/
   shell_sky_init();
   shell_power_init();
