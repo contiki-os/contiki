@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.4 2010/09/06 22:19:09 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.5 2010/09/08 12:40:18 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2010/09/06 22:19:09 $
- *           $Revision: 1.4 $
+ * Updated : $Date: 2010/09/08 12:40:18 $
+ *           $Revision: 1.5 $
  */
 
 package se.sics.contiki.collect;
@@ -52,6 +52,8 @@ public class SensorDataAggregator implements SensorInfo {
   private int seqnoDelta = 0;
   private int dataCount;
   private int duplicates = 0;
+  private long shortestPeriod = Long.MAX_VALUE;
+  private long longestPeriod = 0;
 
   public SensorDataAggregator(Node node) {
     this.node = node;
@@ -88,7 +90,7 @@ public class SensorDataAggregator implements SensorInfo {
 
     if (s <= maxSeqno) {
       // Check for duplicates among the last 5 packets
-      for(int n = node.getSensorDataCount(), i = n > 5 ? n - 5 : 0; i < n; i++) {
+      for(int n = node.getSensorDataCount() - 1, i = n > 5 ? n - 5 : 0; i < n; i++) {
         SensorData sd = node.getSensorData(i);
         if (sd.getValue(SEQNO) != seqn || sd == data || sd.getValueCount() != data.getValueCount()) {
           // Not a duplicate
@@ -130,6 +132,15 @@ public class SensorDataAggregator implements SensorInfo {
         values[i] += data.getValue(i);
       }
 
+      if (node.getSensorDataCount() > 1) {
+        long timeDiff = data.getNodeTime() - node.getSensorData(node.getSensorDataCount() - 2).getNodeTime();
+        if (timeDiff > longestPeriod) {
+          longestPeriod = timeDiff;
+        }
+        if (timeDiff < shortestPeriod) {
+          shortestPeriod = timeDiff;
+        }
+      }
       // Handle wrapping sequence numbers
       if (dataCount > 0 && maxSeqno - s > 2) {
         s += maxSeqno - seqnoDelta;
@@ -151,6 +162,8 @@ public class SensorDataAggregator implements SensorInfo {
     minSeqno = Integer.MAX_VALUE;
     maxSeqno = Integer.MIN_VALUE;
     seqnoDelta = 0;
+    shortestPeriod = Long.MAX_VALUE;
+    longestPeriod = 0;
   }
 
   public String toString() {
@@ -234,6 +247,23 @@ public class SensorDataAggregator implements SensorInfo {
 
   public int getMaxSeqno() {
       return maxSeqno;
+  }
+
+  public long getAveragePeriod() {
+    if (dataCount > 1) {
+      long first = node.getSensorData(0).getNodeTime();
+      long last = node.getSensorData(node.getSensorDataCount() - 1).getNodeTime();
+      return (last - first) / dataCount;
+    }
+    return 0;
+  }
+
+  public long getShortestPeriod() {
+    return shortestPeriod;
+  }
+
+  public long getLongestPeriod() {
+    return longestPeriod;
   }
 
 }
