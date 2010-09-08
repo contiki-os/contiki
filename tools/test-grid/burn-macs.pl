@@ -25,8 +25,21 @@ for (my $t=0; $t<$terms; $t++) {
 	} else {
 	    $mac = ($company_id << 40) | $dev_num;
 	}
+	my @words;
+	for(my $i=0; $i<8; $i++) {
+	    push @words, ($mac >> ($i * 8)) & 0xff;
+	}
+	reverse @words;
+	foreach my $byte (@words) {
+	    printf("%02X",$byte);
+	}
+	print "\n";
+
+	my $word1 = sprintf("%02X%02X%02X%02X",$words[4],$words[5],$words[6],$words[7]);
+	my $word2 = sprintf("%02X%02X%02X%02X",$words[0],$words[1],$words[2],$words[3]);
+
 	my $ftdi_num = $terms - $t - 1;
-	my $cmd = "mc1322x-load.pl -e -f $bin -z -t /dev/ttyUSB$dev_num  -c 'bbmc -l redbee-econotag -i $ftdi_num reset' $addr," . sprintf("0x%08X,0x%08X\n", ($mac >> 32), ($mac & 0xffffffff));
+	my $cmd = "mc1322x-load.pl -e -f $bin -z -t /dev/ttyUSB$dev_num  -c 'bbmc -l redbee-econotag -i $ftdi_num reset' $addr,0x$word1,0x$word2 &";
 	print "$cmd\n";
 	system($cmd);
 }
