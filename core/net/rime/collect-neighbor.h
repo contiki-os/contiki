@@ -3,10 +3,11 @@
  * @{
  */
 /**
- * \defgroup rimeneighbor Rime neighbor management
+ * \defgroup rimeneighbor Collect neighbor management
  * @{
  *
- * The neighbor module manages the neighbor table.
+ * The neighbor module manages the neighbor table that is used by the
+ * Collect module.
  */
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
@@ -38,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.h,v 1.1 2010/03/19 13:17:00 adamdunkels Exp $
+ * $Id: collect-neighbor.h,v 1.2 2010/09/08 19:21:45 adamdunkels Exp $
  */
 
 /**
@@ -52,32 +53,33 @@
 #define __COLLECT_NEIGHBOR_H__
 
 #include "net/rime/rimeaddr.h"
-
-#define COLLECT_NEIGHBOR_ETX_SCALE 16
-#define COLLECT_NEIGHBOR_NUM_ETXS 4
+#include "net/rime/collect-link-estimate.h"
 
 struct collect_neighbor {
   struct collect_neighbor *next;
   uint16_t time;
   rimeaddr_t addr;
   uint16_t rtmetric;
-  uint8_t etxptr;
-  uint8_t etxs[COLLECT_NEIGHBOR_NUM_ETXS];
+  struct collect_link_estimate le;
 };
 
 void collect_neighbor_init(void);
 /*void collect_neighbor_periodic(int max_time);*/
 
-void collect_neighbor_add(const rimeaddr_t *addr, uint8_t rtmetric, uint8_t etx);
-void collect_neighbor_update(struct collect_neighbor *n, uint8_t rtmetric);
-void collect_neighbor_update_etx(struct collect_neighbor *n, uint8_t etx);
-void collect_neighbor_timedout_etx(struct collect_neighbor *n, uint8_t etx);
+void collect_neighbor_add(const rimeaddr_t *addr, uint8_t rtmetric);
 void collect_neighbor_remove(const rimeaddr_t *addr);
+
+void collect_neighbor_update_rtmetric(struct collect_neighbor *n, uint8_t rtmetric);
+
 struct collect_neighbor *collect_neighbor_find(const rimeaddr_t *addr);
 struct collect_neighbor *collect_neighbor_best(void);
 void collect_neighbor_set_lifetime(int seconds);
 
-uint8_t collect_neighbor_etx(struct collect_neighbor *n);
+void collect_neighbor_tx(struct collect_neighbor *n, uint8_t num_tx);
+void collect_neighbor_rx(struct collect_neighbor *n);
+void collect_neighbor_timedout(struct collect_neighbor *n, uint8_t num_tx);
+int collect_neighbor_link_estimate(struct collect_neighbor *n);
+int collect_neighbor_rtmetric(struct collect_neighbor *n);
 
 int collect_neighbor_num(void);
 struct collect_neighbor *collect_neighbor_get(int num);

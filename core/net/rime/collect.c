@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.49 2010/06/14 19:19:17 adamdunkels Exp $
+ * $Id: collect.c,v 1.50 2010/09/08 19:21:45 adamdunkels Exp $
  */
 
 /**
@@ -46,8 +46,9 @@
 #include "contiki.h"
 
 #include "net/rime.h"
-#include "net/rime/collect-neighbor.h"
 #include "net/rime/collect.h"
+#include "net/rime/collect-neighbor.h"
+#include "net/rime/collect-link-estimate.h"
 
 #include "net/packetqueue.h"
 
@@ -65,14 +66,40 @@ static const struct packetbuf_attrlist attributes[] =
     PACKETBUF_ATTR_LAST
   };
 
+
+/* The recent_packets list holds the sequence number, the originator,
+   and the connection for packets that have been recently
+   forwarded. This list is maintained to avoid forwarding duplicate
+   packets. */
 #define NUM_RECENT_PACKETS 8
 
 struct recent_packet {
+  struct collect_conn *conn;
   rimeaddr_t originator;
-  rimeaddr_t sent_to;
   uint8_t seqno;
 };
 
+static struct recent_packet recent_packets[NUM_RECENT_PACKETS];
+static uint8_t recent_packet_ptr;
+
+
+/* This is the header of data packets. The header comtains the routing
+   metric of the last hop sender. This is used to avoid routing loops:
+   if a node receives a packet with a lower routing metric than its
+   own, it drops the packet. */
+struct data_msg_hdr {
+  uint8_t flags, dummy;
+  uint16_t rtmetric;
+};
+
+
+/* This is the header of ACK packets. It contains a flags field that
+   indicates if the node is congested (ACK_FLAGS_CONGESTED), if the
+   packet was dropped (ACK_FLAGS_DROPPED), and if a packet was dropped
+   due to its lifetime was exceeded (ACK_FLAGS_LIFETIME_EXCEEDED). The
+   flags can contain any combination of the flags. The ACK header also
+   contains the routing metric of the node that sends tha ACK. This is
+   used to keep an up-to-date routing state in the network. */
 struct ack_msg {
   uint8_t flags, dummy;
   uint16_t rtmetric;
@@ -82,9 +109,18 @@ struct ack_msg {
 #define ACK_FLAGS_DROPPED           0x40
 #define ACK_FLAGS_LIFETIME_EXCEEDED 0x20
 
-static struct recent_packet recent_packets[NUM_RECENT_PACKETS];
-static uint8_t recent_packet_ptr;
 
+/* These are configuration knobs that normally should not be
+   tweaked. MAX_MAC_REXMITS defines how many times the underlying CSMA
+   MAC layer should attempt to resend a data packet before giving
+   up. The MAX_ACK_MAC_REXMITS defines how many times the MAC layer
+   should resend ACK packets. The REXMIT_TIME is the lowest
+   retransmission timeout at the network layer. It is exponentially
+   increased for every new network layer retransmission. The
+   FORWARD_PACKET_LIFETIME is the maximum time a packet is held in the
+   forwarding queue before it is removed. The MAX_SENDING_QUEUE
+   specifies the maximum length of the output queue. If the queue is
+   full, incoming packets are dropped instead of being forwarded. */
 #define MAX_MAC_REXMITS            3
 #define MAX_ACK_MAC_REXMITS        3
 #define REXMIT_TIME                CLOCK_SECOND * 2
@@ -92,17 +128,38 @@ static uint8_t recent_packet_ptr;
 #define MAX_SENDING_QUEUE          6
 PACKETQUEUE(sending_queue, MAX_SENDING_QUEUE);
 
-#define SINK 0
-#define RTMETRIC_MAX COLLECT_MAX_DEPTH
 
-#define MAX_HOPLIM 15
+/* These specifiy the sink's routing metric (0) and the maximum
+   routing metric. If a node has routing metric zero, it is the
+   sink. If a node has the maximum routing metric, it has no route to
+   a sink. */
+#define RTMETRIC_SINK              0
+#define RTMETRIC_MAX               COLLECT_MAX_DEPTH
 
+/* Here we define what we mean with a significantly improved
+   rtmetric. This is used to determine when a new parent should be
+   chosen over an old parent and when to begin more rapidly advertise
+   a new rtmetric. */
+#define SIGNIFICANT_RTMETRIC_IMPROVEMENT (COLLECT_LINK_ESTIMATE_UNIT +  \
+                                          COLLECT_LINK_ESTIMATE_UNIT / 1)
+
+/* This defines the maximum hops that a packet can take before it is
+   dropped. */
+#define MAX_HOPLIM                 15
+
+
+/* COLLECT_CONF_ANNOUNCEMENTS defines if the Collect implementation
+   should use Contiki's announcement primitive to announce its routes
+   or if it should use periodic broadcasts. */
 #ifndef COLLECT_CONF_ANNOUNCEMENTS
 #define COLLECT_ANNOUNCEMENTS 0
 #else
 #define COLLECT_ANNOUNCEMENTS COLLECT_CONF_ANNOUNCEMENTS
 #endif /* COLLECT_CONF_ANNOUNCEMENTS */
 
+/* The ANNOUNCEMENT_SCAN_TIME defines for how long the Collect
+   implementation should listen for announcements from other nodes
+   when it requires a route. */
 #ifdef ANNOUNCEMENT_CONF_PERIOD
 #define ANNOUNCEMENT_SCAN_TIME ANNOUNCEMENT_CONF_PERIOD
 #else /* ANNOUNCEMENT_CONF_PERIOD */
@@ -117,133 +174,185 @@ PACKETQUEUE(sending_queue, MAX_SENDING_QUEUE);
 #define PRINTF(...)
 #endif
 
-#if CONTIKI_TARGET_NETSIM
-#include "ether.h"
-#endif /* CONTIKI_TARGET_NETSIM */
-
 static void send_queued_packet(void);
 static void retransmit_callback(void *ptr);
 /*---------------------------------------------------------------------------*/
+/**
+ * This function computes the current rtmetric by adding the last
+ * known rtmetric from our parent with the link estimate to the
+ * parent.
+ *
+ */
+static uint8_t
+rtmetric_compute(struct collect_conn *tc)
+{
+  struct collect_neighbor *n;
+  uint8_t rtmetric = RTMETRIC_MAX;
+
+  /* This function computes the current rtmetric for this node. It
+     uses the rtmetric of the parent node in the tree and adds the
+     current link estimate from us to the parent node. */
+
+  /* The collect connection structure stores the address of its
+     current parent. We look up the neighbor identification struct in
+     the collect-neighbor list. */
+  n = collect_neighbor_find(&tc->parent);
+
+  /* If n is NULL, we have no best neighbor. Thus our rtmetric is
+     then COLLECT_RTMETRIC_MAX. */
+  if(n == NULL) {
+    rtmetric = RTMETRIC_MAX;
+  } else {
+    /* Our rtmetric is the rtmetric of our parent neighbor plus
+       the expected transmissions to reach that neighbor. */
+    rtmetric = collect_neighbor_rtmetric(n);
+  }
+
+  return rtmetric;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * This function is called to update the current parent node. The
+ * parent may change if new routing information has been found, for
+ * example if a new node with a lower rtmetric and link estimate has
+ * appeared.
+ *
+ */
+static void
+update_parent(struct collect_conn *tc)
+{
+  struct collect_neighbor *current;
+  struct collect_neighbor *best;
+
+  /* We grab the collect_neighbor struct of our current parent. */
+  current = collect_neighbor_find(&tc->parent);
+
+  /* We call the collect_neighbor module to find the current best
+     parent. */
+  best = collect_neighbor_best();
+
+  /* We check if we need to switch parent. Switching parent is done in
+     the following situations:
+
+     * We do not have a current parent.
+     * The best parent is significantly better than the current parent.
+
+     If we do not have a current parent, and have found a best parent,
+     we simply use the new best parent.
+
+     If we already have a current parent, but have found a new parent
+     that is better, we employ a heuristic to avoid switching parents
+     too often. The new parent must be significantly better than the
+     current parent. Being "significantly better" is defined as having
+     an rtmetric that is has a difference of at least 1.5 times the
+     COLLECT_LINK_ESTIMATE_UNIT. This is derived from the experience
+     by Gnawali et al (SenSys 2009). */
+
+  if(best != NULL) {
+    if(current == NULL) {
+      /* New parent. */
+      PRINTF("update_parent: new parent %d.%d\n", best->addr.u8[0], best->addr.u8[1]);
+      rimeaddr_copy(&tc->parent, &best->addr);
+    } else {
+      PRINTF("#L %d 0\n", tc->parent.u8[0]);
+      if(collect_neighbor_rtmetric(best) + SIGNIFICANT_RTMETRIC_IMPROVEMENT <
+         collect_neighbor_rtmetric(current)) {
+        /* We switch parent. */
+        PRINTF("update_parent: new parent %d.%d old parent %d.%d\n",
+               best->addr.u8[0], best->addr.u8[1],
+               tc->parent.u8[0], tc->parent.u8[1]);
+        rimeaddr_copy(&tc->parent, &best->addr);
+      }
+    }
+    PRINTF("#L %d 1\n", tc->parent.u8[0]);
+  } else {
+    /* No parent. */
+    PRINTF("#L %d 0\n", tc->parent.u8[0]);
+    rimeaddr_copy(&tc->parent, &rimeaddr_null);
+  }
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * This function is called whenever there is a chance that the routing
+ * metric has changed. The function goes through the list of neighbors
+ * to compute the new routing metric. If the metric has changed, it
+ * notifies neighbors.
+ *
+ *
+ */
 static void
 update_rtmetric(struct collect_conn *tc)
 {
-  struct collect_neighbor *n;
-
   PRINTF("update_rtmetric: tc->rtmetric %d\n", tc->rtmetric);
 
   /* We should only update the rtmetric if we are not the sink. */
-  if(tc->rtmetric != SINK) {
-    struct collect_neighbor *best;
+  if(tc->rtmetric != RTMETRIC_SINK) {
+    uint8_t old_rtmetric, new_rtmetric;
 
-    /* Pick the neighbor to use as a parent. We normally use
-       the parent in the n->parent. */
-    n = collect_neighbor_find(&tc->parent);
+    /* We remember the current (old) rtmetric for later. */
+    old_rtmetric = tc->rtmetric;
 
-    /* If we do not have a parent in n->parent, we use the best
-       neighbor that we have as a new parent. Also, if the best
-       neighbor is better than our parent (which is defined as having
-       an ETX that is 1 ETX lower than the current parent), we
-       choose that neighbor as the new parent. */
-    best = collect_neighbor_best();
+    /* We may need to update our parent node so we do that now. */
+    update_parent(tc);
 
-    if(best != NULL && (n == NULL ||
-                        collect_neighbor_etx(best) <
-                        collect_neighbor_etx(n) - COLLECT_NEIGHBOR_ETX_SCALE)) {
-      PRINTF("Switched parent from %d.%d to %d.%d\n",
-             tc->parent.u8[0], tc->parent.u8[1],
-             best->addr.u8[0], best->addr.u8[1]);
-      PRINTF("#L %d 0\n", tc->parent.u8[0]);
-      PRINTF("#L %d 1\n", best->addr.u8[0]);
-      rimeaddr_copy(&tc->parent, &best->addr);
+    /* We compute the new rtmetric. */
+    new_rtmetric = rtmetric_compute(tc);
 
-      n = best;
+    /* We sanity check our new rtmetric. */
+    if(new_rtmetric == RTMETRIC_SINK) {
+      /* Defensive programming: if the new rtmetric somehow got to be
+         the rtmetric of the sink, there is a bug somewhere. To avoid
+         destroying the network, we simply will not assume this new
+         rtmetric. Instead, we set our rtmetric to maximum, to
+         indicate that we have no sane route. */
+      new_rtmetric = RTMETRIC_MAX;
     }
 
-    /* If n is NULL, we have no best neighbor. */
-    if(n == NULL) {
+    /* We set our new rtmetric in the collect conn structure. Then we
+       decide how we should announce this new rtmetric. */
+    tc->rtmetric = new_rtmetric;
 
-      /* If we have don't have any neighbors, we set our rtmetric to
-	 the maximum value to indicate that we do not have a route. */
-
-      if(tc->rtmetric != RTMETRIC_MAX) {
-        PRINTF("%d.%d: didn't find a best neighbor, setting rtmetric to max\n",
-               rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-      }
-      tc->rtmetric = RTMETRIC_MAX;
+    if(tc->is_router) {
+      /* If we are a router, we update our advertised rtmetric. */
+      
 #if COLLECT_ANNOUNCEMENTS
-#if ! COLLECT_CONF_WITH_LISTEN
       announcement_set_value(&tc->announcement, tc->rtmetric);
-#endif /* COLLECT_CONF_WITH_LISTEN */
 #else /* COLLECT_ANNOUNCEMENTS */
       neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
 #endif /* COLLECT_ANNOUNCEMENTS */
-    } else {
-      /* We set our rtmetric to the rtmetric of our best neighbor plus
-         the expected transmissions to reach that neighbor. */
-      if(n->rtmetric + collect_neighbor_etx(n) != tc->rtmetric) {
-	uint16_t old_rtmetric = tc->rtmetric;
 
-	tc->rtmetric = n->rtmetric + collect_neighbor_etx(n);
-        if(tc->rtmetric == SINK) {
-          /* Something strange happened - ETX to this neighbors is zero! */
-          printf("Error: n->rtmetric %d, collect_neighbor_etx(n) %d\n",
-                 n->rtmetric, collect_neighbor_etx(n));
-
-          /* Fix the problem by setting ETX to one. */
-          tc->rtmetric = COLLECT_NEIGHBOR_ETX_SCALE;
-        }
-
+      /* If we now have a significantly better rtmetric than we had
+         before, what we need to make sure that our neighbors find out
+         about this quickly. */
+      if(new_rtmetric + SIGNIFICANT_RTMETRIC_IMPROVEMENT < old_rtmetric) {
 #if ! COLLECT_ANNOUNCEMENTS
-
-        /* If we get a significantly better rtmetric than we had
-           before, we call neighbor_discovery_start to start a new
-           period. */
-        if(old_rtmetric >= tc->rtmetric + COLLECT_NEIGHBOR_ETX_SCALE + COLLECT_NEIGHBOR_ETX_SCALE / 2 ||
-           old_rtmetric == RTMETRIC_MAX) {
-          neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
-        } else {
-          neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
-        }
+        neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 #else /* ! COLLECT_ANNOUNCEMENTS */
-        if(tc->is_router) {
-          announcement_set_value(&tc->announcement, tc->rtmetric);
-        } else {
-          announcement_remove_value(&tc->announcement);
-        }
-        if(old_rtmetric >= tc->rtmetric + COLLECT_NEIGHBOR_ETX_SCALE + COLLECT_NEIGHBOR_ETX_SCALE / 2 ||
-           old_rtmetric == RTMETRIC_MAX) {
-          announcement_bump(&tc->announcement);
-        }
+        announcement_bump(&tc->announcement);
 #endif /* ! COLLECT_ANNOUNCEMENTS */
-
-        PRINTF("%d.%d: new rtmetric %d\n",
-               rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-               tc->rtmetric);
-#if ! COLLECT_CONF_WITH_LISTEN
-	/* We got a new, working, route we send any queued packets we may have. */
-	if(old_rtmetric == RTMETRIC_MAX) {
-          PRINTF("Sending queued packet because rtmetric was max\n");
-	  send_queued_packet();
-	}
-#endif /* COLLECT_CONF_WITH_LISTEN */
       }
     }
+    
+    PRINTF("%d.%d: new rtmetric %d\n",
+           rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+           tc->rtmetric);
+
+    /* We got a new, working, route we send any queued packets we may have. */
+    if(old_rtmetric == RTMETRIC_MAX && new_rtmetric != RTMETRIC_MAX) {
+      PRINTF("Sending queued packet because rtmetric was max\n");
+      send_queued_packet();
+    }
   }
 
-  /*  DEBUG_PRINTF("%d: new rtmetric %d\n", node_id, rtmetric);*/
-#if CONTIKI_TARGET_NETSIM
-  {
-    char buf[8];
-    if(tc->rtmetric == RTMETRIC_MAX) {
-      strcpy(buf, " ");
-    } else {
-      PRINTF(buf, "%.1f", (float)tc->rtmetric / COLLECT_NEIGHBOR_ETX_SCALE);
-    }
-    ether_set_text(buf);
-  }
-#endif
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * This function is called when a queued packet should be sent
+ * out. The function takes the first packet on the output queue, adds
+ * the necessary packet attributes, and sends the packet to the
+ * next-hop neighbor.
+ *
+ */
 static void
 send_queued_packet(void)
 {
@@ -252,10 +361,7 @@ send_queued_packet(void)
   struct packetqueue_item *i;
   struct collect_conn *c;
 
-  //  PRINTF("%d.%d: send_queued_packet queue len %d\n",
-  //         rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-  //         packetqueue_len(&sending_queue));
-
+  /* Grab the first packet on the send queue. */
   i = packetqueue_first(&sending_queue);
   if(i == NULL) {
       PRINTF("%d.%d: nothing on queue\n",
@@ -263,6 +369,9 @@ send_queued_packet(void)
     /* No packet on the queue, so there is nothing for us to send. */
     return;
   }
+
+  /* Obtain the Collect connection on which this packet should be
+     sent. */
   c = packetqueue_ptr(i);
   if(c == NULL) {
     /* c should not be NULL, but we check it just to be sure. */
@@ -282,9 +391,6 @@ send_queued_packet(void)
   /* We should send the first packet from the queue. */
   q = packetqueue_queuebuf(i);
   if(q != NULL) {
-    //    PRINTF("%d.%d: queue, q is on queue\n",
-    //	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-
     /* Place the queued packet into the packetbuf. */
     queuebuf_to_packetbuf(q);
 
@@ -295,28 +401,48 @@ send_queued_packet(void)
     if(n != NULL) {
       clock_time_t time;
       uint8_t rexmit_time_scaling;
-#if CONTIKI_TARGET_NETSIM
-      ether_set_line(n->addr.u8[0], n->addr.u8[1]);
-#endif /* CONTIKI_TARGET_NETSIM */
+
+      /* If the connection had a neighbor, we construct the packet
+         buffer attributes and set the appropriate flags in the
+         Collect connection structure and send the packet. */
+      
       PRINTF("%d.%d: sending packet to %d.%d with eseqno %d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     n->addr.u8[0], n->addr.u8[1],
              packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID));
 
+      /* Mark that we are currently sending a packet. */
       c->sending = 1;
+
+      /* This is the first time we transmit this packet, so set
+         transmissions to zero. */
       c->transmissions = 0;
+
+      /* Remember that maximum amount of retransmissions we should
+         make. This is stored inside a packet attribute in the packet
+         on the send queue. */
       c->max_rexmits = packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT);
+
+      /* Set the packet attributes: this packet wants an ACK, so we
+         sent the PACKETBUF_ATTR_RELIABLE flag; the MAC should retry
+         MAX_MAC_REXMITS times; and the PACKETBUF_ATTR_PACKET_ID is
+         set to the current sequence number on the connection. */
       packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
       packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, MAX_MAC_REXMITS);
       packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, c->seqno);
+
+      /* Send the packet. */
       unicast_send(&c->unicast_conn, &n->addr);
+
+      /* Compute the retransmission timeout and set up the
+         retransmission timer. */
       rexmit_time_scaling = c->transmissions;
       if(rexmit_time_scaling > 3) {
         rexmit_time_scaling = 3;
       }
       time = REXMIT_TIME << rexmit_time_scaling;
       time = time / 2 + random_rand() % (time / 2);
-      //      PRINTF("retransmission time %lu\n", time);
+      PRINTF("retransmission time %lu scaling %d\n", time, rexmit_time_scaling);
       ctimer_set(&c->retransmission_timer, time,
                  retransmit_callback, c);
     } else {
@@ -335,6 +461,10 @@ send_queued_packet(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * This function is called 
+ *
+ */
 static void
 send_next_packet(struct collect_conn *tc)
 {
@@ -349,7 +479,7 @@ send_next_packet(struct collect_conn *tc)
 
   PRINTF("sending next packet, seqno %d, queue len %d\n",
          tc->seqno, packetqueue_len(&sending_queue));
-  
+
   /* Send the next packet in the queue, if any. */
   send_queued_packet();
 }
@@ -374,7 +504,7 @@ handle_ack(struct collect_conn *tc)
     memcpy(&rtmetric, &msg->rtmetric, sizeof(uint16_t));
     n = collect_neighbor_find(packetbuf_addr(PACKETBUF_ADDR_SENDER));
     if(n != NULL) {
-      collect_neighbor_update(n, rtmetric);
+      collect_neighbor_update_rtmetric(n, rtmetric);
       update_rtmetric(tc);
     }
 
@@ -387,18 +517,14 @@ handle_ack(struct collect_conn *tc)
     if(!(msg->flags & ACK_FLAGS_DROPPED)) {
       send_next_packet(tc);
     }
-  }
+  } 
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_ack(struct collect_conn *tc, const rimeaddr_t *to, int congestion, int dropped, int ttl)
-{
-  struct ack_msg *ack;
+send_ack(struct collect_conn *tc, const rimeaddr_t *to, int flags)
+{ struct ack_msg *ack;
   struct queuebuf *q;
   uint16_t packet_seqno, packet_eseqno;
-
-
-  //  PRINTF("send_ack\n");
 
   packet_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
   packet_eseqno = packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID);
@@ -411,10 +537,8 @@ send_ack(struct collect_conn *tc, const rimeaddr_t *to, int congestion, int drop
     ack = packetbuf_dataptr();
     memset(ack, 0, sizeof(struct ack_msg));
     ack->rtmetric = tc->rtmetric;
-    ack->flags = (congestion? ACK_FLAGS_CONGESTED: 0) |
-      (dropped? ACK_FLAGS_DROPPED: 0) |
-      (ttl? ACK_FLAGS_LIFETIME_EXCEEDED: 0);
-    /* XXX: send explicit congestion notification in ACK queue full; add rtmetric to ACK. */
+    ack->flags = flags;
+
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, to);
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_ACK);
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 0);
@@ -447,74 +571,53 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, unicast_conn));
   int i;
-  struct collect_neighbor *n;
 
-  /* To protect against sending duplicate packets, we keep a list
-     of recently forwarded packet seqnos. If the seqno of the current
-     packet exists in the list, we increase the
-     ETX of the neighbor we sent it to in the first place. */
+  /* To protect against sending duplicate packets, we keep a list of
+     recently forwarded packet seqnos. If the seqno of the current
+     packet exists in the list, we immediately send an ACK and drop
+     the packet. */
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
      PACKETBUF_ATTR_PACKET_TYPE_DATA) {
     rimeaddr_t ack_to;
     uint8_t packet_seqno;
 
+    /* Remember to whom we should send the ACK, since we reuse the
+       packet buffer and its attributes when sending the ACK. */
     rimeaddr_copy(&ack_to, packetbuf_addr(PACKETBUF_ADDR_SENDER));
     packet_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
 
-    if(rimeaddr_cmp(&tc->last_received_addr, packetbuf_addr(PACKETBUF_ADDR_SENDER)) &&
-       tc->last_received_seqno == packetbuf_attr(PACKETBUF_ATTR_PACKET_ID)) {
-      /* This is a duplicate of the packet we last received, so we just send an ACK. */
-      PRINTF("%d.%d: received same packet again from %d.%d with seqno %d, via %d.%d, acking\n",
-             rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-             ack_to.u8[0], ack_to.u8[1],
-             packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
-             packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
-             packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1]);
-      send_ack(tc, &ack_to, 0, 0, 0);
-      return;
-    }
-    rimeaddr_copy(&tc->last_received_addr, packetbuf_addr(PACKETBUF_ADDR_SENDER));
-    tc->last_received_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
-
     for(i = 0; i < NUM_RECENT_PACKETS; i++) {
-      if(recent_packets[i].seqno == packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID) &&
+      if(recent_packets[i].conn == tc &&
+         recent_packets[i].seqno == packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID) &&
          rimeaddr_cmp(&recent_packets[i].originator,
                       packetbuf_addr(PACKETBUF_ADDR_ESENDER))) {
+        /* This is a duplicate of a packet we recently received, so we
+           just send an ACK. */
         PRINTF("%d.%d: found duplicate packet from %d.%d with seqno %d, via %d.%d\n",
                rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
                recent_packets[i].originator.u8[0], recent_packets[i].originator.u8[1],
                packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
                packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
                packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1]);
-        n = collect_neighbor_find(&recent_packets[i].sent_to);
-        if(n != NULL) {
-          collect_neighbor_update_etx(n, collect_neighbor_etx(n) / COLLECT_NEIGHBOR_ETX_SCALE + 4);
-          update_rtmetric(tc);
-        }
-        break;
+        send_ack(tc, &ack_to, 0);
+        return;
       }
     }
+
+    /* Remember that we have seen this packet for later. */
     recent_packets[recent_packet_ptr].seqno = packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID);
     rimeaddr_copy(&recent_packets[recent_packet_ptr].originator,
                   packetbuf_addr(PACKETBUF_ADDR_ESENDER));
-    /*    n = collect_neighbor_best();*/
-
-    if(tc->rtmetric != SINK) {
-      n = collect_neighbor_best();
-      rimeaddr_copy(&recent_packets[recent_packet_ptr].sent_to,
-                    &n->addr);
-    } else {
-      rimeaddr_copy(&recent_packets[recent_packet_ptr].sent_to,
-                    &rimeaddr_null);
-    }
+    recent_packets[recent_packet_ptr].conn = tc;
 
     recent_packet_ptr = (recent_packet_ptr + 1) % NUM_RECENT_PACKETS;
 
-    if(tc->rtmetric == SINK) {
+    /* If we are the sink, the packet has reached its final
+       destination and we call the receive function. */
+    if(tc->rtmetric == RTMETRIC_SINK) {
 
-      /* If we are the sink, we call the receive function. */
-
-      send_ack(tc, &ack_to, 0, 0, 0);
+      /* We first send the ACK. */
+      send_ack(tc, &ack_to, 0);
 
       PRINTF("%d.%d: sink received packet %d from %d.%d via %d.%d\n",
              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -523,6 +626,7 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
              packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[1],
              from->u8[0], from->u8[1]);
 
+      /* Call receive function. */
       if(tc->cb->recv != NULL) {
         tc->cb->recv(packetbuf_addr(PACKETBUF_ADDR_ESENDER),
                      packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
@@ -532,11 +636,12 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
     } else if(packetbuf_attr(PACKETBUF_ATTR_TTL) > 1 &&
               tc->rtmetric != RTMETRIC_MAX) {
 
-      /* If we are not the sink, we forward the packet to the best
-         neighbor. */
-      packetbuf_set_attr(PACKETBUF_ATTR_HOPS, packetbuf_attr(PACKETBUF_ATTR_HOPS) + 1);
-      packetbuf_set_attr(PACKETBUF_ATTR_TTL, packetbuf_attr(PACKETBUF_ATTR_TTL) - 1);
-
+      /* If we are not the sink, we forward the packet to our best
+         neighbor. First, we update the hop count and ttl. */
+      packetbuf_set_attr(PACKETBUF_ATTR_HOPS,
+                         packetbuf_attr(PACKETBUF_ATTR_HOPS) + 1);
+      packetbuf_set_attr(PACKETBUF_ATTR_TTL,
+                         packetbuf_attr(PACKETBUF_ATTR_TTL) - 1);
 
       PRINTF("%d.%d: packet received from %d.%d via %d.%d, sending %d, max_rexmits %d\n",
              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -545,12 +650,17 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
              from->u8[0], from->u8[1], tc->sending,
              packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT));
 
-      if(packetqueue_enqueue_packetbuf(&sending_queue, FORWARD_PACKET_LIFETIME,
-                                       tc)) {
-        send_ack(tc, &ack_to, 0, 0, 0);
+      /* We try to enqueue the packet on the outgoing packet queue. If
+         we are able to enqueue the packet, we send a positive ACK. If
+         we are unable to enqueue the packet, we send a negative ACK
+         to inform the sender that the packet was dropped due to
+         memory problems. */
+      if(packetqueue_enqueue_packetbuf(&sending_queue,
+                                       FORWARD_PACKET_LIFETIME, tc)) {
+        send_ack(tc, &ack_to, 0);
         send_queued_packet();
       } else {
-        send_ack(tc, &ack_to, 0, 1, 0);
+        send_ack(tc, &ack_to, ACK_FLAGS_DROPPED | ACK_FLAGS_CONGESTED);
         PRINTF("%d.%d: packet dropped: no queue buffer available\n",
                rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
@@ -558,7 +668,7 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
       PRINTF("%d.%d: packet dropped: ttl %d\n",
              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
              packetbuf_attr(PACKETBUF_ATTR_TTL));
-      send_ack(tc, &ack_to, 0, 1, 1);
+      send_ack(tc, &ack_to, ACK_FLAGS_DROPPED | ACK_FLAGS_LIFETIME_EXCEEDED);
     }
   } else if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
             PACKETBUF_ATTR_PACKET_TYPE_ACK) {
@@ -590,29 +700,14 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
            tc->parent.u8[0], tc->parent.u8[1],
            transmissions);
 
-    /*    neighbor_update_etx(neighbor_find(to), transmissions);
-          update_rtmetric(tc);*/
     tc->transmissions += transmissions;
 
     tx = tc->transmissions;
 
-#if 0
-    /* Punish neighbors that don't hear us by increasing the expeted
-       transmissions by four times the actual amount of transmissions
-       that we tried. This is due to the ETX calculation is done with
-       a moving average. */
-    if(status == MAC_TX_NOACK) {
-      tx *= 8;
-    }
-    /* Punish collisions too, but not as much. */
-    if(status == MAC_TX_COLLISION) {
-      //      tx *= 2;
-    }
-#endif /* 0 */
-    /* Update ETX with the number of transmissions. */
-    //    PRINTF("Updating ETX with %d transmissions (punished %d)\n", tc->transmissions,
-    //           tx);
-    collect_neighbor_update_etx(collect_neighbor_find(&tc->parent), tx);
+    /* Update neighgor with the number of transmissions. */
+    PRINTF("Updating link estimate with %d (%d) transmissions\n",
+           tc->transmissions, tx);
+    collect_neighbor_tx(collect_neighbor_find(&tc->parent), tx);
 
     update_rtmetric(tc);
   }
@@ -626,7 +721,7 @@ timedout(struct collect_conn *tc)
          tc->max_rexmits);
 
   tc->sending = 0;
-  collect_neighbor_timedout_etx(collect_neighbor_find(&tc->parent), tc->transmissions);
+  collect_neighbor_timedout(collect_neighbor_find(&tc->parent), tc->transmissions);
   update_rtmetric(tc);
 
   send_next_packet(tc);
@@ -658,9 +753,9 @@ adv_received(struct neighbor_discovery_conn *c, const rimeaddr_t *from,
   n = collect_neighbor_find(from);
 
   if(n == NULL) {
-    collect_neighbor_add(from, rtmetric, 1);
+    collect_neighbor_add(from, rtmetric);
   } else {
-    collect_neighbor_update(n, rtmetric);
+    collect_neighbor_update_rtmetric(n, rtmetric);
     PRINTF("%d.%d: updating neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   n->addr.u8[0], n->addr.u8[1], rtmetric);
@@ -680,12 +775,12 @@ received_announcement(struct announcement *a, const rimeaddr_t *from,
   n = collect_neighbor_find(from);
 
   if(n == NULL) {
-    collect_neighbor_add(from, value, 1);
+    collect_neighbor_add(from, value);
     PRINTF("%d.%d: new neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   from->u8[0], from->u8[1], value);
   } else {
-    collect_neighbor_update(n, value);
+    collect_neighbor_update_rtmetric(n, value);
     PRINTF("%d.%d: updating neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   n->addr.u8[0], n->addr.u8[1], value);
@@ -725,9 +820,9 @@ collect_open(struct collect_conn *tc, uint16_t channels,
 
 #if !COLLECT_ANNOUNCEMENTS
   neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
-			  CLOCK_SECOND * 8,
-			  CLOCK_SECOND * 32,
-                          CLOCK_SECOND * 300UL,
+			  CLOCK_SECOND * 4,
+			  CLOCK_SECOND * 60,
+                          CLOCK_SECOND * 600UL,
 			  &neighbor_discovery_callbacks);
   neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 #else /* !COLLECT_ANNOUNCEMENTS */
@@ -755,7 +850,7 @@ collect_set_sink(struct collect_conn *tc, int should_be_sink)
 {
   if(should_be_sink) {
     tc->is_router = 1;
-    tc->rtmetric = SINK;
+    tc->rtmetric = RTMETRIC_SINK;
     PRINTF("collect_set_sink: tc->rtmetric %d\n", tc->rtmetric);
 #if !COLLECT_ANNOUNCEMENTS
     neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
@@ -789,7 +884,7 @@ collect_send(struct collect_conn *tc, int rexmits)
 
   //  PRINTF("rexmit %d\n", rexmits);
 
-  if(tc->rtmetric == SINK) {
+  if(tc->rtmetric == RTMETRIC_SINK) {
     packetbuf_set_attr(PACKETBUF_ATTR_HOPS, 0);
     if(tc->cb->recv != NULL) {
       tc->cb->recv(packetbuf_addr(PACKETBUF_ADDR_ESENDER),
@@ -801,9 +896,6 @@ collect_send(struct collect_conn *tc, int rexmits)
     //    update_rtmetric(tc);
     n = collect_neighbor_best();
     if(n != NULL) {
-#if CONTIKI_TARGET_NETSIM
-      ether_set_line(n->addr.u8[0], n->addr.u8[1]);
-#endif /* CONTIKI_TARGET_NETSIM */
       PRINTF("%d.%d: sending to %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     n->addr.u8[0], n->addr.u8[1]);
