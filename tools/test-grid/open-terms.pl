@@ -39,8 +39,8 @@ end
   my ($offx, $offy);
   $offx = $col * 300;
   $offy = $row * 300;
-  #my $cmd = "xterm -geometry 40x20+$offx+$offy -e 'kermit /tmp/USB$n.ini'&";
-  my $cmd = "xterm -geometry 40x20+$offx+$offy -e 'stty -F /dev/ttyUSB$n 115200 && cat /dev/ttyUSB$n'&";
+  my $cmd = "xterm -e 'kermit /tmp/USB$n.ini'&";
+  #my $cmd = "xterm -geometry 40x20+$offx+$offy -e 'stty -F /dev/ttyUSB$n 115200 && cat /dev/ttyUSB$n'&";
 #  my $cmd = "xterm -e 'stty -F /dev/ttyUSB$n 115200 && cat /dev/ttyUSB$n'&";
   print "$cmd\n";
   system($cmd);
