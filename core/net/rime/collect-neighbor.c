@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.c,v 1.3 2010/06/15 19:22:25 adamdunkels Exp $
+ * $Id: collect-neighbor.c,v 1.4 2010/09/08 19:21:45 adamdunkels Exp $
  */
 
 /**
@@ -136,7 +136,7 @@ collect_neighbor_find(const rimeaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_update(struct collect_neighbor *n, uint8_t rtmetric)
+collect_neighbor_update_rtmetric(struct collect_neighbor *n, uint8_t rtmetric)
 {
   if(n != NULL) {
     PRINTF("%d.%d: collect_neighbor_update %d.%d rtmetric %d\n",
@@ -148,46 +148,37 @@ collect_neighbor_update(struct collect_neighbor *n, uint8_t rtmetric)
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_timedout_etx(struct collect_neighbor *n, uint8_t etx)
+collect_neighbor_timedout(struct collect_neighbor *n, uint8_t num_tx)
 {
-  if(n != NULL) {
-    n->etxs[n->etxptr] += etx;
-    if(n->etxs[n->etxptr] > RTMETRIC_MAX / COLLECT_NEIGHBOR_ETX_SCALE) {
-      n->etxs[n->etxptr] = RTMETRIC_MAX / COLLECT_NEIGHBOR_ETX_SCALE;
-    }
-    n->etxptr = (n->etxptr + 1) % COLLECT_NEIGHBOR_NUM_ETXS;
-  }
+  collect_link_estimate_update_tx_fail(&n->le, num_tx);
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_update_etx(struct collect_neighbor *n, uint8_t etx)
+collect_neighbor_tx(struct collect_neighbor *n, uint8_t num_tx)
 {
-  if(n != NULL) {
-    n->etxs[n->etxptr] = etx;
-    n->etxptr = (n->etxptr + 1) % COLLECT_NEIGHBOR_NUM_ETXS;
-    n->time = 0;
-  }
-}
-/*---------------------------------------------------------------------------*/
-uint8_t
-collect_neighbor_etx(struct collect_neighbor *n)
-{
-  int i, etx;
-
-  etx = 0;
-  for(i = 0; i < COLLECT_NEIGHBOR_NUM_ETXS; ++i) {
-    etx += n->etxs[i];
-  }
-  return COLLECT_NEIGHBOR_ETX_SCALE * etx / COLLECT_NEIGHBOR_NUM_ETXS;
+  collect_link_estimate_update_tx(&n->le, num_tx);
+  n->time = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_neighbor_add(const rimeaddr_t *addr, uint8_t nrtmetric, uint8_t netx)
+collect_neighbor_rx(struct collect_neighbor *n)
+{
+  collect_link_estimate_update_rx(&n->le);
+  n->time = 0;
+}
+/*---------------------------------------------------------------------------*/
+int
+collect_neighbor_link_estimate(struct collect_neighbor *n)
+{
+  return collect_link_estimate(&n->le);
+}
+/*---------------------------------------------------------------------------*/
+void
+collect_neighbor_add(const rimeaddr_t *addr, uint8_t nrtmetric)
 {
   uint16_t rtmetric;
-  uint16_t etx;
+  uint16_t le;
   struct collect_neighbor *n, *max;
-  int i;
 
   PRINTF("collect_neighbor_add: adding %d.%d\n", addr->u8[0], addr->u8[1]);
   
@@ -215,21 +206,21 @@ collect_neighbor_add(const rimeaddr_t *addr, uint8_t nrtmetric, uint8_t netx)
   if(n == NULL) {
     PRINTF("collect_neighbor_add: not on list, not allocated, recycling %d.%d\n", addr->u8[0], addr->u8[1]);
    /* Find the first unused entry or the used entry with the highest
-     rtmetric and highest etx. */
+     rtmetric and highest link estimate. */
     rtmetric = 0;
-    etx = 0;
+    le = 0;
     max = NULL;
 
     for(n = list_head(collect_neighbors_list); n != NULL; n = list_item_next(n)) {
       if(!rimeaddr_cmp(&n->addr, &rimeaddr_null)) {
 	if(n->rtmetric > rtmetric) {
 	  rtmetric = n->rtmetric;
-	  etx = collect_neighbor_etx(n);
+	  le = collect_neighbor_link_estimate(n);
 	  max = n;
 	} else if(n->rtmetric == rtmetric) {
-	  if(collect_neighbor_etx(n) > etx) {
+	  if(collect_neighbor_link_estimate(n) > le) {
 	    rtmetric = n->rtmetric;
-	    etx = collect_neighbor_etx(n);
+	    le = collect_neighbor_link_estimate(n);
 	    max = n;
 	    /*	PRINTF("%d: found worst collect_neighbor %d with rtmetric %d, signal %d\n",
 		node_id, collect_neighbors[n].nodeid, rtmetric, signal);*/
@@ -247,10 +238,7 @@ collect_neighbor_add(const rimeaddr_t *addr, uint8_t nrtmetric, uint8_t netx)
     n->time = 0;
     rimeaddr_copy(&n->addr, addr);
     n->rtmetric = nrtmetric;
-    for(i = 0; i < COLLECT_NEIGHBOR_NUM_ETXS; ++i) {
-      n->etxs[i] = netx;
-    }
-    n->etxptr = 0;
+    collect_link_estimate_new(&n->le);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -299,17 +287,24 @@ collect_neighbor_best(void)
   
   /* Find the lowest rtmetric. */
   for(n = list_head(collect_neighbors_list); n != NULL; n = list_item_next(n)) {
-    PRINTF("collect_neighbor_best: checking %d.%d with rtmetric %d + %d\n",
+    PRINTF("collect_neighbor_best: checking %d.%d with rtmetric %d + %d (%d)\n",
            n->addr.u8[0], n->addr.u8[1],
-           n->rtmetric, collect_neighbor_etx(n));
+           n->rtmetric, collect_neighbor_link_estimate(n),
+           collect_neighbor_rtmetric(n));
     if(!rimeaddr_cmp(&n->addr, &rimeaddr_null) &&
-       rtmetric > n->rtmetric + collect_neighbor_etx(n)) {
-      rtmetric = n->rtmetric + collect_neighbor_etx(n);
+       rtmetric > collect_neighbor_rtmetric(n)) {
+      rtmetric = collect_neighbor_rtmetric(n);
       best = n;
     }
   }
 
   return best;
+}
+/*---------------------------------------------------------------------------*/
+int
+collect_neighbor_rtmetric(struct collect_neighbor *n)
+{
+  return n->rtmetric + collect_link_estimate(&n->le);
 }
 /*---------------------------------------------------------------------------*/
 void

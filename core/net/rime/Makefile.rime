@@ -7,7 +7,8 @@ RIME_SINGLEHOP = broadcast.c stbroadcast.c unicast.c stunicast.c \
                  rucb.c polite.c ipolite.c
 RIME_MULTIHOP  = netflood.c multihop.c rmh.c trickle.c
 RIME_MESH      = mesh.c route.c route-discovery.c
-RIME_COLLECT   = collect.c collect-neighbor.c neighbor-discovery.c
+RIME_COLLECT   = collect.c collect-neighbor.c neighbor-discovery.c \
+		 collect-link-estimate.c
 RIME_RUDOLPH   = rudolph0.c rudolph1.c rudolph2.c
 ifdef UIP_CONF_IPV6
 #RIME_UIP6      = rime-udp.c
