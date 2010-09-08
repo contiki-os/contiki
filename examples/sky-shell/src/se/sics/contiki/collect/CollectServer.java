@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.11 2010/09/06 22:42:29 nifi Exp $
+ * $Id: CollectServer.java,v 1.12 2010/09/08 12:39:40 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/06 22:42:29 $
- *           $Revision: 1.11 $
+ * Updated : $Date: 2010/09/08 12:39:40 $
+ *           $Revision: 1.12 $
  */
 
 package se.sics.contiki.collect;
@@ -731,11 +731,18 @@ public class CollectServer {
         final Node newNode = node;
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-              // Insert the node sorted by name
-              String nodeName = newNode.getName();
+              // Insert the node sorted by id
+              String nodeID = newNode.getID();
               boolean added = false;
               for (int i = 0, n = nodeModel.size(); i < n; i++) {
-                int cmp = nodeName.compareTo(((Node) nodeModel.get(i)).getName());
+                String id = ((Node) nodeModel.get(i)).getID();
+                int cmp;
+                // Shorter id first (4.0 before 10.0)
+                if (nodeID.length() == id.length()) {
+                  cmp = nodeID.compareTo(id);
+                } else {
+                  cmp = nodeID.length() - id.length();
+                }
                 if (cmp < 0) {
                   nodeModel.insertElementAt(newNode, i);
                   added = true;
