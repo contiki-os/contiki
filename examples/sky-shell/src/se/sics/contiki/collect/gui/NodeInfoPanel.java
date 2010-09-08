@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.1 2010/09/06 22:42:29 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.2 2010/09/08 12:40:18 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/09/06 22:42:29 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/09/08 12:40:18 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -101,16 +101,40 @@ public class NodeInfoPanel extends JPanel implements Visualizer {
     }
   }
 
+  private StringBuilder addTime(StringBuilder sb, long time) {
+    time /= 1000;
+    if (time > 24 * 60 * 60) {
+      long days = time / (24 * 60 * 60);
+      sb.append(days).append(" days, ");
+      time -= days * 24 * 60 * 60;
+    }
+    if (time > 60 * 60) {
+      long hours = time / (60 * 60);
+      sb.append(hours).append(" hours, ");
+      time -= hours * 60 * 60;
+    }
+    sb.append(time / 60).append(" min, ").append(time % 60).append(" sec");
+    return sb;
+  }
+
   private void updateInfoArea() {
     StringBuilder sb = new StringBuilder();
     if (selectedNodes != null) {
       for(Node node : selectedNodes) {
         SensorDataAggregator sda = node.getSensorDataAggregator();
-        sb.append(node.getName()).append('\n');
-        sb.append("  Packets Received: \t" + sda.getPacketCount() + '\n'
-                + "  Duplicates:       \t" + sda.getDuplicateCount() + '\n'
-                + "  Unique Sensor Values:\t" + sda.getDataCount()
-            + "\n--------------------------------------------------------\n");
+        long longest = sda.getLongestPeriod();
+        sb.append(node.getName() + '\n'
+            + "  Packets Received: \t" + sda.getPacketCount() + '\n'
+            + "  Duplicates:       \t" + sda.getDuplicateCount() + '\n');
+        if (longest > 0) {
+          sb.append("  Average period:\t");
+          addTime(sb, sda.getAveragePeriod()).append('\n');
+          sb.append("  Shortest period:\t");
+          addTime(sb, sda.getShortestPeriod()).append('\n');
+          sb.append("  Longest period:\t");
+          addTime(sb, longest).append('\n');
+        }
+        sb.append("--------------------------------------------------------\n");
       }
     }
     infoArea.setText(sb.toString());

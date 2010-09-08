@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PacketChartPanel.java,v 1.1 2010/09/06 22:42:29 nifi Exp $
+ * $Id: PacketChartPanel.java,v 1.2 2010/09/08 12:40:18 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/09/06 22:42:29 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/09/08 12:40:18 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -155,8 +155,11 @@ public class PacketChartPanel extends JPanel implements Visualizer {
           } else {
             long min = sd.getSystemTime() / 60000;
             if (min != minute) {
-              for(; lastMinute < minute - 1; lastMinute++) {
+              if (lastMinute < minute) {
                 series.add(new Minute(new Date(lastMinute * 60000L)), 0);
+                if (lastMinute < minute - 1) {
+                  series.add(new Minute(new Date((minute - 1) * 60000L)), 0);
+                }
               }
               series.add(new Minute(new Date(minute * 60000L)), count);
               count = 0;
