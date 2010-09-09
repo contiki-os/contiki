@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.25 2010/01/31 12:48:46 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.26 2010/09/09 20:21:26 oliverschmidt Exp $
  *
  */
 
@@ -1717,6 +1717,14 @@ PROCESS_THREAD(ctk_process, ev, data)
 	    continue;
 	  }
 #endif /* CTK_CONF_WINDOWS */
+
+          /* Allow to exit the process owning the foreground window by
+             pressing ctrl-c. This is especially useful if there's no
+             closebutton on the window frames (or no windows at all).
+          */
+          if(c == 3) {
+            process_post(window->owner, PROCESS_EVENT_EXIT, NULL);
+          }
 
 	  widget = window->focused;
 	  
