@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.26 2010/08/13 10:20:07 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.27 2010/09/09 19:52:26 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -53,8 +53,8 @@ import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.CustomDataRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
+import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteTimeEvent;
-import se.sics.cooja.mspmote.SkyMote;
 import se.sics.mspsim.chip.CC2420;
 import se.sics.mspsim.chip.RFListener;
 import se.sics.mspsim.core.Chip;
@@ -79,8 +79,8 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   private long lastEventTime = 0;
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
 
-  private SkyMote mote;
-  private CC2420 cc2420;
+  private final MspMote mote;
+  private final CC2420 cc2420;
 
   private boolean isInterfered = false;
   private boolean isTransmitting = false;
@@ -93,8 +93,11 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   private RadioPacket lastIncomingPacket = null;
 
   public SkyByteRadio(Mote mote) {
-    this.mote = (SkyMote) mote;
-    this.cc2420 = this.mote.skyNode.radio;
+    this.mote = (MspMote)mote;
+    this.cc2420 = (CC2420) this.mote.getCPU().getChip(CC2420.class);
+    if (cc2420 == null) {
+      throw new IllegalStateException("Mote is not equipped with a CC2420");
+    }
 
     cc2420.setRFListener(new RFListener() {
       int len = 0;
@@ -476,10 +479,10 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   }
 
   public boolean isReceiverOn() {
-    if (mote.skyNode.radio.getMode() == CC2420.MODE_POWER_OFF) {
+    if (cc2420.getMode() == CC2420.MODE_POWER_OFF) {
       return false;
     }
-    if (mote.skyNode.radio.getMode() == CC2420.MODE_TXRX_OFF) {
+    if (cc2420.getMode() == CC2420.MODE_TXRX_OFF) {
       return false;
     }
     return true;
