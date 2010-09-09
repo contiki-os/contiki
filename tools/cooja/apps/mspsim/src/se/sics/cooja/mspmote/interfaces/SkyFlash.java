@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyFlash.java,v 1.7 2010/02/05 08:44:57 fros4943 Exp $
+ * $Id: SkyFlash.java,v 1.8 2010/09/09 19:56:59 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -41,7 +41,7 @@ import javax.swing.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 import se.sics.cooja.*;
-import se.sics.cooja.mspmote.SkyMote;
+import se.sics.cooja.mspmote.MspMote;
 
 /**
  * @author Fredrik Osterlind
@@ -50,15 +50,14 @@ import se.sics.cooja.mspmote.SkyMote;
 public class SkyFlash extends MoteInterface {
   private static Logger logger = Logger.getLogger(SkyFlash.class);
 
-  public int SIZE = 1024*1024;
-
-  private SkyMote mote = null;
-  protected CoojaM25P80 m24p80 = null;
+  protected final CoojaM25P80 m24p80;
 
   public SkyFlash(Mote mote) {
-    this.mote = (SkyMote) mote;
-    this.m24p80 = new CoojaM25P80(this.mote.getCPU());
-    this.mote.skyNode.setFlash(this.m24p80);
+    MspMote mspMote = (MspMote) mote;
+    m24p80 = (CoojaM25P80) mspMote.getCPU().getChip(CoojaM25P80.class);
+    if (m24p80 == null) {
+      throw new IllegalStateException("Mote is not equipped with an M25P80");
+    }
   }
 
   /**
