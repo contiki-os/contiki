@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.18 2009/10/27 10:02:48 fros4943 Exp $
+ * $Id: SkyMote.java,v 1.19 2010/09/09 19:56:59 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -36,6 +36,7 @@ import java.io.File;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.Simulation;
+import se.sics.cooja.mspmote.interfaces.CoojaM25P80;
 import se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem;
 import se.sics.mspsim.platform.sky.SkyNode;
 
@@ -59,6 +60,7 @@ public class SkyMote extends MspMote {
     try {
       skyNode = new SkyNode();
       registry = skyNode.getRegistry();
+      skyNode.setFlash(new CoojaM25P80(skyNode.getCPU()));
       prepareMote(fileELF, skyNode);
     } catch (Exception e) {
       logger.fatal("Error when creating Sky mote: ", e);
