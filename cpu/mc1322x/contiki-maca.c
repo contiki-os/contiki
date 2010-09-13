@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-maca.c,v 1.3 2010/07/28 18:48:51 maralvira Exp $
+ * $Id: contiki-maca.c,v 1.4 2010/09/13 14:15:58 maralvira Exp $
  */
 
 #include <stdint.h>
@@ -237,8 +237,7 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
  	PROCESS_BEGIN();
 
 	while (1) {
-		PROCESS_WAIT_EVENT_UNTIL(ev == event_data_ready);
-//		PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+		PROCESS_PAUSE();
 
 		/* check if there is a request to turn the radio on or off */
 		if(contiki_maca_request_on == 1) {
@@ -263,10 +262,6 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
  	};
 	
  	PROCESS_END();
-}
-
-void maca_rx_callback(volatile packet_t *p __attribute((unused))) {
-	process_post(&contiki_maca_process, event_data_ready, NULL);
 }
 
 #if BLOCKING_TX
