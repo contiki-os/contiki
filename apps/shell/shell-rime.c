@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.22 2010/09/13 13:29:29 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.23 2010/09/13 19:15:21 adamdunkels Exp $
  */
 
 /**
@@ -63,6 +63,8 @@ int snprintf(char *str, size_t size, const char *format, ...);
 #endif /* HAVE_SNPRINTF */
 #include <string.h>
 
+
+#define DEFAULT_COLLECT_REXMITS 4
 
 
 #define COLLECT_MSG_HDRSIZE 4
@@ -250,11 +252,18 @@ PROCESS_THREAD(shell_send_process, ev, data)
   int len;
   struct collect_msg *msg;
   static int num_rexmits;
+  char *next;
   
   PROCESS_BEGIN();
 
-  num_rexmits = shell_strtolong((char *)data, NULL);
-  
+  num_rexmits = shell_strtolong((char *)data, &next);
+
+  if(next == data) {
+    /* If no argument was given, we send packets with a default number
+       of retransmissions. */
+    num_rexmits = DEFAULT_COLLECT_REXMITS;
+  }
+
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     input = data;
