@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.14 2010/02/18 22:15:54 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.15 2010/09/13 20:51:09 nifi Exp $
  */
 
 /**
@@ -75,6 +75,17 @@ rtimer_arch_init(void)
 
   /* Enable interrupts. */
   eint();
+}
+/*---------------------------------------------------------------------------*/
+rtimer_clock_t
+rtimer_arch_now(void)
+{
+  rtimer_clock_t t1, t2;
+  do {
+    t1 = TAR;
+    t2 = TAR;
+  } while(t1 != t2);
+  return t1;
 }
 /*---------------------------------------------------------------------------*/
 void
