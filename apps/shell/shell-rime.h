@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.h,v 1.6 2010/01/31 23:57:22 adamdunkels Exp $
+ * $Id: shell-rime.h,v 1.7 2010/09/13 13:29:30 adamdunkels Exp $
  */
 
 /**
@@ -85,5 +85,6 @@ void shell_rime_init(void);
 /* Announcement idenfied used by the 'neighbors' command, uses one idenfier */
 #define SHELL_RIME_ANNOUNCEMENT_IDENTIFIER_NEIGHBORS SHELL_RIME_CHANNEL_DOWNLOAD + 2
 
+extern struct collect_conn shell_collect_conn;
 
 #endif /* __SHELL_RIME_H__ */

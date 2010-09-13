@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.21 2010/04/30 07:17:50 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.22 2010/09/13 13:29:29 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +64,6 @@ int snprintf(char *str, size_t size, const char *format, ...);
 #include <string.h>
 
 
-#define COLLECT_REXMITS 4
 
 #define COLLECT_MSG_HDRSIZE 4
 struct collect_msg {
@@ -73,7 +72,7 @@ struct collect_msg {
   uint8_t data[1];
 };
 
-static struct collect_conn collect;
+struct collect_conn shell_collect_conn;
 static int waiting_for_collect = 0;
 
 static int is_sink = 0;
@@ -87,7 +86,7 @@ SHELL_COMMAND(mac_command,
 PROCESS(shell_send_process, "send");
 SHELL_COMMAND(send_command,
 	      "send",
-	      "send: send data to the collector node",
+	      "send <rexmits>: send data to the collector node, with rexmits hop-by-hop retransmissions",
 	      &shell_send_process);
 PROCESS(shell_collect_process, "collect");
 SHELL_COMMAND(collect_command,
@@ -233,7 +232,7 @@ PROCESS_THREAD(shell_collect_process, ev, data)
 #if TIMESYNCH_CONF_ENABLED
   timesynch_set_authority_level(0);
 #endif
-  collect_set_sink(&collect, 1);
+  collect_set_sink(&shell_collect_conn, 1);
   
   is_sink = 1;
   waiting_for_collect = 1;
@@ -250,8 +249,11 @@ PROCESS_THREAD(shell_send_process, ev, data)
   struct shell_input *input;
   int len;
   struct collect_msg *msg;
+  static int num_rexmits;
   
   PROCESS_BEGIN();
+
+  num_rexmits = shell_strtolong((char *)data, NULL);
   
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
@@ -275,7 +277,7 @@ PROCESS_THREAD(shell_send_process, ev, data)
       msg->timestamp = 0;
 #endif
       msg->crc = crc16_data(msg->data, len, 0);
-      collect_send(&collect, COLLECT_REXMITS);
+      collect_send(&shell_collect_conn, num_rexmits);
     }
   }
   PROCESS_END();
@@ -328,7 +330,7 @@ recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
 }
 static const struct collect_callbacks collect_callbacks = { recv_collect };
 /*---------------------------------------------------------------------------*/
-static void
+/*static void
 send_collect(void *dummy)
 {
   struct collect_msg msg;
@@ -339,12 +341,12 @@ send_collect(void *dummy)
 #endif
   packetbuf_copyfrom(&msg, COLLECT_MSG_HDRSIZE);
   collect_send(&collect, COLLECT_REXMITS);
-}
+  }*/
 /*---------------------------------------------------------------------------*/
 void
 shell_rime_init(void)
 {
-  collect_open(&collect, SHELL_RIME_CHANNEL_COLLECT,
+  collect_open(&shell_collect_conn, SHELL_RIME_CHANNEL_COLLECT,
                COLLECT_ROUTER, &collect_callbacks);
   
   shell_register_command(&collect_command);
