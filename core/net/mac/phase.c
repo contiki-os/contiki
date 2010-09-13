@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.14 2010/06/15 19:22:25 adamdunkels Exp $
+ * $Id: phase.c,v 1.15 2010/09/13 13:39:05 adamdunkels Exp $
  */
 
 /**
@@ -57,7 +57,9 @@ struct phase_queueitem {
 #define PHASE_DEFER_THRESHOLD 1
 #define PHASE_QUEUESIZE       8
 
-#define MAX_NOACKS            3
+#define MAX_NOACKS            16
+
+#define MAX_NOACKS_TIME       CLOCK_SECOND * 16
 
 MEMB(queued_packets_memb, struct phase_queueitem, PHASE_QUEUESIZE);
 
@@ -114,7 +116,10 @@ phase_update(const struct phase_list *list,
     if(mac_status == MAC_TX_NOACK) {
       PRINTF("phase noacks %d to %d.%d\n", e->noacks, neighbor->u8[0], neighbor->u8[1]);
       e->noacks++;
-      if(e->noacks >= MAX_NOACKS) {
+      if(e->noacks == 1) {
+        timer_set(&e->noacks_timer, MAX_NOACKS_TIME);
+      }
+      if(e->noacks >= MAX_NOACKS || timer_expired(&e->noacks_timer)) {
         list_remove(*list->list, e);
         memb_free(list->memb, e);
         return;

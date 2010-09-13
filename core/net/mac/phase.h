@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.h,v 1.4 2010/04/03 13:28:30 adamdunkels Exp $
+ * $Id: phase.h,v 1.5 2010/09/13 13:39:05 adamdunkels Exp $
  */
 
 /**
@@ -42,6 +42,7 @@
 #define PHASE_H
 
 #include "net/rime/rimeaddr.h"
+#include "sys/timer.h"
 #include "sys/rtimer.h"
 #include "lib/list.h"
 #include "lib/memb.h"
@@ -52,6 +53,7 @@ struct phase {
   rimeaddr_t neighbor;
   rtimer_clock_t time;
   uint8_t noacks;
+  struct timer noacks_timer;
 };
 
 struct phase_list {
