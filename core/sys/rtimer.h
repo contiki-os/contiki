@@ -48,17 +48,19 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.h,v 1.11 2010/03/23 13:35:00 fros4943 Exp $
+ * @(#)$Id: rtimer.h,v 1.12 2010/09/13 20:46:02 nifi Exp $
  */
 #ifndef __RTIMER_H__
 #define __RTIMER_H__
 
-#include "rtimer-arch.h"
+#include "contiki-conf.h"
 
 #ifndef RTIMER_CLOCK_LT
 typedef unsigned short rtimer_clock_t;
 #define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
 #endif /* RTIMER_CLOCK_LT */
+
+#include "rtimer-arch.h"
 
 /**
  * \brief      Initialize the real-time scheduler.
