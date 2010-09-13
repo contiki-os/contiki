@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.19 2010/09/08 19:21:45 adamdunkels Exp $
+ * $Id: collect.h,v 1.20 2010/09/13 13:28:14 adamdunkels Exp $
  */
 
 /**
@@ -63,7 +63,10 @@
 #include "net/rime/announcement.h"
 #include "net/rime/runicast.h"
 #include "net/rime/neighbor-discovery.h"
+#include "net/rime/collect-neighbor.h"
+#include "net/packetqueue.h"
 #include "sys/ctimer.h"
+#include "lib/list.h"
 
 #define COLLECT_PACKET_ID_BITS 8
 
@@ -92,10 +95,12 @@ struct collect_conn {
   const struct collect_callbacks *cb;
   struct ctimer t;
   struct ctimer retransmission_timer;
-  rimeaddr_t parent;
-  /*  rimeaddr_t last_received_addr;*/
+  LIST_STRUCT(send_queue_list);
+  struct packetqueue send_queue;
+  struct collect_neighbor_list neighbor_list;
+  rimeaddr_t parent, current_parent;
   uint16_t rtmetric;
-  uint8_t seqno; /*, last_received_seqno;*/
+  uint8_t seqno;
   uint8_t sending, transmissions, max_rexmits;
   uint8_t eseqno;
   uint8_t is_router;
@@ -116,6 +121,8 @@ int collect_send(struct collect_conn *c, int rexmits);
 void collect_set_sink(struct collect_conn *c, int should_be_sink);
 
 int collect_depth(struct collect_conn *c);
+
+void collect_print_stats(void);
 
 #define COLLECT_MAX_DEPTH 255
 
