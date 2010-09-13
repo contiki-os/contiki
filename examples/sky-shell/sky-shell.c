@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.20 2010/09/08 19:32:42 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.21 2010/09/13 14:33:20 adamdunkels Exp $
  */
 
 /**
@@ -221,7 +221,7 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
   rimeaddr_copy(&msg.best_neighbor, &rimeaddr_null);
   msg.best_neighbor_etx =
     msg.best_neighbor_rtmetric = 0;
-  n = collect_neighbor_best();
+  n = collect_neighbor_list_best(shell_collect_conn.neighbor_list);
   if(n != NULL) {
     rimeaddr_copy(&msg.best_neighbor, &n->addr);
     msg.best_neighbor_etx = collect_neighbor_rtmetric(n) - n->rtmetric;
@@ -242,7 +242,8 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
 static void
 periodic_debug(void *ptr)
 {
-  ctimer_set(ptr, 2 * CLOCK_SECOND, periodic_debug, ptr);
+  ctimer_set(ptr, 20 * CLOCK_SECOND, periodic_debug, ptr);
+  collect_print_stats();
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(sky_shell_process, ev, data)
@@ -250,6 +251,8 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   static struct ctimer c;
   PROCESS_BEGIN();
 
+  /*  ctimer_set(&c, 20 * CLOCK_SECOND, periodic_debug, &c);*/
+  
   /*  powertrace_start(10 * CLOCK_SECOND);
       powertrace_sniff(POWERTRACE_ON);*/
   
