@@ -32,12 +32,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-link-estimate.c,v 1.1 2010/09/08 19:21:45 adamdunkels Exp $
+ * $Id: collect-link-estimate.c,v 1.2 2010/09/13 13:28:14 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Implementation of Contiki link estimate based on ETX
+ *         Implementation of Collect link estimate based on ETX
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -56,8 +56,11 @@ void
 collect_link_estimate_new(struct collect_link_estimate *le)
 {
   int i;
+
+  /* Start with a conservative / pessimistic estimate of link quality
+     for new links. */
   for(i = 0; i < ETX_HISTORY_WINDOW; i++) {
-    le->history[i] = 1;
+    le->history[i] = 4;
   }
   le->historyptr = 0;
 }
@@ -66,7 +69,7 @@ void
 collect_link_estimate_update_tx_fail(struct collect_link_estimate *le, int tx)
 {
   if(le != NULL) {
-    le->history[le->historyptr] += tx * 2;
+    le->history[le->historyptr] = tx * 2;
     le->historyptr = (le->historyptr + 1) % ETX_HISTORY_WINDOW;
   }
 }
@@ -91,10 +94,13 @@ collect_link_estimate(struct collect_link_estimate *le)
 {
   int i, etx;
 
+  /*  printf("collect_link_estimate: ");*/
   etx = 0;
   for(i = 0; i < ETX_HISTORY_WINDOW; ++i) {
+    /*    printf("%d ", le->history[i]);*/
     etx += le->history[i];
   }
+  /*  printf(", %d\n", (COLLECT_LINK_ESTIMATE_UNIT * etx) / ETX_HISTORY_WINDOW);*/
   return (COLLECT_LINK_ESTIMATE_UNIT * etx) / ETX_HISTORY_WINDOW;
 }
 /*---------------------------------------------------------------------------*/
