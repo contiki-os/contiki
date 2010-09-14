@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.14 2010/09/14 11:27:23 nifi Exp $
+ * $Id: CollectServer.java,v 1.15 2010/09/14 14:23:58 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/14 11:27:23 $
- *           $Revision: 1.14 $
+ * Updated : $Date: 2010/09/14 14:23:58 $
+ *           $Revision: 1.15 $
  */
 
 package se.sics.contiki.collect;
@@ -236,8 +236,7 @@ public class CollectServer {
             new String[] { "LPM", "CPU", "Radio listen", "Radio transmit" }) {
           {
             ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
-            axis.setLowerBound(0.0);
-            axis.setUpperBound(75.0);
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
           }
           protected void addSensorData(SensorData data) {
             Node node = data.getNode();
@@ -249,13 +248,29 @@ public class CollectServer {
             dataset.addValue(aggregator.getTransmitPower(), categories[3], nodeName);
           }
         },
+        new BarChartPanel(this, "Radio Duty Cycle", "Average Radio Duty Cycle",
+            "Nodes", "Duty Cycle (%)",
+            new String[] { "Radio listen", "Radio transmit" }) {
+          {
+            ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
+          }
+          protected void addSensorData(SensorData data) {
+            Node node = data.getNode();
+            String nodeName = node.getName();
+            SensorDataAggregator aggregator = node.getSensorDataAggregator();
+            dataset.addValue(100 * aggregator.getAverageDutyCycle(SensorInfo.TIME_LISTEN),
+                             categories[0], nodeName);
+            dataset.addValue(100 * aggregator.getAverageDutyCycle(SensorInfo.TIME_TRANSMIT),
+                             categories[1], nodeName);
+          }
+        },
         new BarChartPanel(this, "Instantaneous Power",
             "Instantaneous Power Consumption", "Nodes", "Power (mW)",
             new String[] { "LPM", "CPU", "Radio listen", "Radio transmit" }) {
           {
             ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
-            axis.setLowerBound(0.0);
-            axis.setUpperBound(75.0);
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
           }
           protected void addSensorData(SensorData data) {
             Node node = data.getNode();
@@ -268,7 +283,9 @@ public class CollectServer {
         },
         new TimeChartPanel(this, "Power History", "Historical Power Consumption", "Time", "mW") {
           {
+              /*              ValueAxis axis = chart.getCategoryPlot().getRangeAxis();*/
             setMaxItemCount(defaultMaxItemCount);
+            /*            ((NumberAxis)axis).setAutoRangeIncludesZero(true);*/
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getAveragePower();
@@ -351,8 +368,7 @@ public class CollectServer {
         new TimeChartPanel(this, "Network Hops (Over Time)", "Network Hops", "Time", "Hops") {
           {
             ValueAxis axis = chart.getXYPlot().getRangeAxis();
-            axis.setLowerBound(0.0);
-	    axis.setUpperBound(4.0);
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
             setMaxItemCount(defaultMaxItemCount);
           }

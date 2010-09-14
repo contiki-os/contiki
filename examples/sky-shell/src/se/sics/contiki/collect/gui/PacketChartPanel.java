@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PacketChartPanel.java,v 1.5 2010/09/14 11:27:24 nifi Exp $
+ * $Id: PacketChartPanel.java,v 1.6 2010/09/14 14:23:58 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/09/14 11:27:24 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2010/09/14 14:23:58 $
+ *           $Revision: 1.6 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -90,6 +90,7 @@ public class PacketChartPanel extends JPanel implements Visualizer {
         false, true, false
     );
     ((NumberAxis)chart.getXYPlot().getRangeAxis()).setAutoRangeIncludesZero(true);
+    ((NumberAxis)chart.getXYPlot().getRangeAxis()).setStandardTickUnits(NumberAxis.createIntegerTickUnits());
     this.chartPanel = new ChartPanel(chart);
     this.chartPanel.setPreferredSize(new Dimension(500, 270));
     setBaseShapeVisible(false);
