@@ -40,23 +40,19 @@
  *         David Kopf <dak664@embarqmail.com>
  */
 
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTF(...)
+#endif
+
 #include <avr/pgmspace.h>
 #include <avr/fuse.h>
 #include <avr/eeprom.h>
 #include <util/delay.h>
 #include <stdio.h>
 #include <string.h>
-
-#if RF230BB           //radio driver using contiki core mac
-#include "radio/rf230bb/rf230bb.h"
-#include "net/mac/frame802154.h"
-#else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
-#include <stdbool.h>
-#include "mac.h"
-#include "sicslowmac.h"
-#include "sicslowpan.h"
-#include "ieee-15-4-manager.h"
-#endif /*RF230BB*/
 
 #include "lib/mmem.h"
 #include "loader/symbols-def.h"
@@ -69,28 +65,32 @@
 
 /* Set ANNOUNCE to send boot messages to USB or serial port */
 #define ANNOUNCE 1
-#ifndef USB_CONF_CDC
-#define USB_CONF_RS232 1
-#endif
-
-#if USB_CONF_RS232
-#include "dev/rs232.h"
-#endif
 
 #include "usb_task.h"
 #if USB_CONF_CDC
 #include "serial/cdc_task.h"
+#elif USB_CONF_RS232
+#include "dev/rs232.h"
 #endif
+
 #include "rndis/rndis_task.h"
 #if USB_CONF_STORAGE
 #include "storage/storage_task.h"
 #endif
 
-#if RF230BB
+#if RF230BB           //radio driver using contiki core mac
+#include "radio/rf230bb/rf230bb.h"
+#include "net/mac/frame802154.h"
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 extern int rf230_interrupt_flag;
 extern uint8_t rf230processflag;
 rimeaddr_t addr,macLongAddr;
+#else                 //legacy radio driver using Atmel/Cisco 802.15.4'ish MAC
+#include <stdbool.h>
+#include "mac.h"
+#include "sicslowmac.h"
+#include "sicslowpan.h"
+#include "ieee-15-4-manager.h"
 #endif /* RF230BB */
 
 /* Test rtimers, also useful for pings and time stamps in simulator */
@@ -104,22 +104,42 @@ struct rtimer rt;
 void rtimercycle(void) {rtimerflag=1;}
 #endif /* TESTRTIMER */
 
+#if UIP_CONF_IPV6_RPL
 /*---------------------------------------------------------------------------*/
 /*---------------------------------  RPL   ----------------------------------*/
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_IPV6_RPL
+/* Set up fallback interface links to direct stack tcpip output to ethernet  */
+static void
+init(void)
+{
+}
+void mac_LowpanToEthernet(void);
+static void
+output(void)
+{
+//  if(uip_ipaddr_cmp(&last_sender, &UIP_IP_BUF->srcipaddr)) {
+    /* Do not bounce packets back over SLIP if the packet was received
+       over SLIP */
+//    PRINTF("slip-bridge: Destination off-link but no route\n");
+ // } else {
+    PRINTF("SUT: %u\n", uip_len);
+    mac_LowpanToEthernet();
+//  }
+}
+const struct uip_fallback_interface rpl_interface = {
+  init, output
+};
 
 #define RPL_BORDER_ROUTER 1     //Set to 1 for border router
+#define RPL_HTTPD_SERVER  0     //Set to 1 for border router web page
 
-#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-//#define PRINTF(...)
 #include "net/rpl/rpl.h"
 
 #if RPL_BORDER_ROUTER
+// avr-objdump --section .bss -x ravenusbstick.elf
+uint16_t dag_id[] PROGMEM = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
-uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
-
-PROCESS(border_router_process, "Border router process");
+PROCESS(border_router_process, "RPL Border Router");
 PROCESS_THREAD(border_router_process, ev, data)
 {
   rpl_dag_t *dag;
@@ -128,16 +148,22 @@ PROCESS_THREAD(border_router_process, ev, data)
 
   PROCESS_PAUSE();
 
-  PRINTF("RPL-Border router started\n");
-
-  dag = rpl_set_root((uip_ip6addr_t *)dag_id);
+//  printf_P(PSTR("%d neighbors"),  UIP_DS6_ADDR_NB);
+{ char buf[sizeof(dag_id)];
+  memcpy_P(buf,dag_id,sizeof(dag_id));
+  dag = rpl_set_root((uip_ip6addr_t *)buf);
+}
+#if 0  //horrible cludge to direct aaaa::11 to internal webserver
   if(dag != NULL) {
     uip_ip6addr_t ipaddr;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-    uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x11);
+//	    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x1);
+ // uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+    uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);
     rpl_set_prefix(dag, &ipaddr, 64);
     PRINTF("created a new RPL dag\n");
   }
+#endif
 
   /* The border router runs with a 100% duty cycle in order to ensure high
      packet reception rates. */
@@ -145,15 +171,14 @@ PROCESS_THREAD(border_router_process, ev, data)
 
   while(1) {
     PROCESS_YIELD();
- //   if (ev == sensors_event && data == &button_sensor) {
- //     PRINTF("Initiating global repair\n");
- //     rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE));
-//    }
+ // rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE));
+
   }
 
   PROCESS_END();
 }
 #endif /* RPL_BORDER_ROUTER */
+
 #endif /* UIP_CONF_IPV6_RPL */
 
 /*-------------------------------------------------------------------------*/
@@ -254,17 +279,18 @@ static void initialize(void) {
 #endif
 
 #if UIP_CONF_IPV6_RPL
-/* Normally tcpip process does this, but we don't have one.
- * A Compiler warning will occur since no rpl.h header include
- * Still experimental, pings work to link local address only
- */
-//  rpl_init();
 #if RPL_BORDER_ROUTER
   process_start(&tcpip_process, NULL);
   process_start(&border_router_process, NULL);
+  PRINTF ("RPL Border Router Started\n");
 #else
-  PRINTF ("RPL Started\n");
   process_start(&tcpip_process, NULL);
+  PRINTF ("RPL Started\n");
+#endif
+#if RPL_HTTPD_SERVER
+  extern struct process httpd_process;
+  process_start(&httpd_process, NULL);
+  PRINTF ("Webserver Started\n");
 #endif
 #endif /* UIP_CONF_IPV6_RPL */
 
@@ -323,7 +349,13 @@ main(void)
   
   /* Initialize in a subroutine to maximize stack space */
   initialize();
-
+#if DEBUG
+{struct process *p;
+ for(p = PROCESS_LIST();p != NULL; p = ((struct process *)p->next)) {
+  printf_P(PSTR("Process=%p Thread=%p  Name=\"%s\" \n"),p,p->thread,p->name);
+ }
+}
+#endif
   while(1) {
     process_run();
 
