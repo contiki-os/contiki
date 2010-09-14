@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.12 2010/09/08 12:39:40 nifi Exp $
+ * $Id: CollectServer.java,v 1.13 2010/09/14 10:38:12 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/08 12:39:40 $
- *           $Revision: 1.12 $
+ * Updated : $Date: 2010/09/14 10:38:12 $
+ *           $Revision: 1.13 $
  */
 
 package se.sics.contiki.collect;
@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Properties;
 import javax.swing.BorderFactory;
@@ -66,6 +67,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -73,6 +75,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -97,6 +100,20 @@ public class CollectServer {
   public static final String CONFIG_DATA_FILE = "collect-data.conf";
   public static final String INIT_SCRIPT = "collect-init.script";
   public static final String FIRMWARE_FILE = "sky-shell.ihex";
+
+  private static final Comparator<Node> NODE_COMPARATOR = new Comparator<Node>() {
+
+    public int compare(Node o1, Node o2) {
+      String i1 = o1.getID();
+      String i2 = o2.getID();
+      // Shorter id first (4.0 before 10.0)
+      if (i1.length() == i2.length()) {
+        return i1.compareTo(i2);
+      }
+      return i1.length() - i2.length();
+    }
+    
+  };
 
   private Properties config = new Properties();
 
@@ -162,7 +179,7 @@ public class CollectServer {
 
     nodeModel = new DefaultListModel();
     nodeList = new JList(nodeModel);
-    nodeList.setPrototypeCellValue("Node 88888");
+    nodeList.setPrototypeCellValue("888.888");
     nodeList.addListSelectionListener(new ListSelectionListener() {
 
       @Override
@@ -193,6 +210,10 @@ public class CollectServer {
 
       }});
     nodeList.setBorder(BorderFactory.createTitledBorder("Nodes"));
+    ListCellRenderer renderer = nodeList.getCellRenderer();
+    if (renderer instanceof JLabel) {
+      ((JLabel)renderer).setHorizontalAlignment(JLabel.RIGHT);
+    }
     window.getContentPane().add(new JScrollPane(nodeList), BorderLayout.WEST);
 
     mainPanel = new JTabbedPane();
@@ -208,7 +229,8 @@ public class CollectServer {
     final int defaultMaxItemCount = 250;
     visualizers = new Visualizer[] {
         mapPanel,
-        new BarChartPanel(this, "Average Power", "Average Power Consumption", null, "Power (mW)",
+        new BarChartPanel(this, "Average Power", "Average Power Consumption",
+            "Nodes", "Power (mW)",
             new String[] { "LPM", "CPU", "Radio listen", "Radio transmit" }) {
           {
             ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
@@ -225,7 +247,8 @@ public class CollectServer {
             dataset.addValue(aggregator.getTransmitPower(), categories[3], nodeName);
           }
         },
-        new BarChartPanel(this, "Instantaneous Power", "Instantaneous Power Consumption", null, "Power (mW)",
+        new BarChartPanel(this, "Instantaneous Power",
+            "Instantaneous Power Consumption", "Nodes", "Power (mW)",
             new String[] { "LPM", "CPU", "Radio listen", "Radio transmit" }) {
           {
             ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
@@ -249,7 +272,7 @@ public class CollectServer {
             return data.getAveragePower();
           }
         },
-        new BarChartPanel(this, "Average Temperature", "Temperature", null, "Celsius",
+        new BarChartPanel(this, "Average Temperature", "Temperature", "Nodes", "Celsius",
             new String[] { "Celsius" }) {
           {
             chart.getCategoryPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
@@ -323,7 +346,7 @@ public class CollectServer {
             return data.getLight2();
           }
         },
-        new TimeChartPanel(this, "Network Hops", "Network Hops", "Time", "Hops") {
+        new TimeChartPanel(this, "Network Hops (Over Time)", "Network Hops", "Time", "Hops") {
           {
             ValueAxis axis = chart.getXYPlot().getRangeAxis();
             axis.setLowerBound(0.0);
@@ -335,13 +358,14 @@ public class CollectServer {
             return data.getValue(SensorData.HOPS);
           }
         },
-        new BarChartPanel(this, "Network Hops", "Network Hops", null, "Hops",
-            new String[] { "Hops" }) {
+        new BarChartPanel(this, "Network Hops (Per Node)", "Network Hops", "Nodes", "Hops",
+            new String[] { "Last Hop", "Average Hops" }, false) {
           {
             chart.getCategoryPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
           }
           protected void addSensorData(SensorData data) {
             dataset.addValue(data.getValue(SensorData.HOPS), categories[0], data.getNode().getName());
+            dataset.addValue(data.getNode().getSensorDataAggregator().getAverageValue(SensorData.HOPS), categories[1], data.getNode().getName());
           }
         },
         new TimeChartPanel(this, "Latency", "Latency", "Time", "Seconds") {
@@ -352,7 +376,45 @@ public class CollectServer {
             return data.getLatency();
           }
         },
-        new PacketChartPanel(this, "Received Packets", "Time", "Received Packets"),
+        new PacketChartPanel(this, "Received (Over Time)", "Time", "Received Packets"),
+        new BarChartPanel(this, "Received (Per Node)", "Received Packets Per Node", "Nodes", "Packets",
+            new String[] { "Packets", "Duplicates" }) {
+          {
+            chart.getCategoryPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+          }
+          protected void addSensorData(SensorData data) {
+            Node node = data.getNode();
+            SensorDataAggregator sda = node.getSensorDataAggregator();
+            dataset.addValue(sda.getDataCount(), categories[0], node.getName());
+            dataset.addValue(sda.getDuplicateCount(), categories[1], node.getName());
+          }
+        },
+        new BarChartPanel(this, "Received (5 min)", "Received Packets (last 5 min)", "Nodes", "Packets",
+            new String[] { "Packets", "Duplicates" }) {
+          {
+            chart.getCategoryPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+          }
+          protected void addSensorData(SensorData data) {
+            Node node = data.getNode();
+            int dataCount = node.getSensorDataCount();
+            int packetCount = 0;
+            int duplicateCount = 0;
+            long earliestData = System.currentTimeMillis() - (5 * 60 * 60 * 1000);
+            for(int index = dataCount - 1; index >= 0; index--) {
+              SensorData sd = node.getSensorData(index);
+              if (sd.getSystemTime() < earliestData) {
+                break;
+              }
+              if (sd.isDuplicate()) {
+                duplicateCount++;
+              } else {
+                packetCount++;
+              }
+            }
+            dataset.addValue(packetCount, categories[0], node.getName());
+            dataset.addValue(duplicateCount, categories[1], node.getName());
+          }
+        },
 //        new SeqnoChartPanel(this, "Received Packets", "Received Packets", "Seqno", "Received Packets"),
         new NodeInfoPanel(),
         serialConsole
@@ -706,7 +768,7 @@ public class CollectServer {
   public synchronized Node[] getNodes() {
     if (nodeCache == null) {
       Node[] tmp = nodeTable.values().toArray(new Node[nodeTable.size()]);
-      Arrays.sort(tmp);
+      Arrays.sort(tmp, NODE_COMPARATOR);
       nodeCache = tmp;
     }
     return nodeCache;
@@ -731,18 +793,9 @@ public class CollectServer {
         final Node newNode = node;
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-              // Insert the node sorted by id
-              String nodeID = newNode.getID();
               boolean added = false;
               for (int i = 0, n = nodeModel.size(); i < n; i++) {
-                String id = ((Node) nodeModel.get(i)).getID();
-                int cmp;
-                // Shorter id first (4.0 before 10.0)
-                if (nodeID.length() == id.length()) {
-                  cmp = nodeID.compareTo(id);
-                } else {
-                  cmp = nodeID.length() - id.length();
-                }
+                int cmp = NODE_COMPARATOR.compare(newNode, ((Node) nodeModel.get(i)));
                 if (cmp < 0) {
                   nodeModel.insertElementAt(newNode, i);
                   added = true;
