@@ -7,6 +7,8 @@
 #include "uip.h"
 #include <string.h>
 
+#if CONTIKI_NO_NET
+
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 uip_buf_t uip_aligned_buf;
@@ -124,3 +126,4 @@ uip_icmp6chksum(void)
 {
   return upper_layer_chksum(UIP_PROTO_ICMP6); 
 }
+#endif /* CONTIKI_NO_NET */
