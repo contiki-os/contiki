@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.16 2010/09/14 22:54:58 nifi Exp $
+ * $Id: CollectServer.java,v 1.17 2010/09/14 23:04:50 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/14 22:54:58 $
- *           $Revision: 1.16 $
+ * Updated : $Date: 2010/09/14 23:04:50 $
+ *           $Revision: 1.17 $
  */
 
 package se.sics.contiki.collect;
@@ -419,7 +419,7 @@ public class CollectServer {
           }
         },
 //        new SeqnoChartPanel(this, "Received Packets", "Received Packets", "Seqno", "Received Packets"),
-        new NodeInfoPanel(),
+        new NodeInfoPanel(this),
         serialConsole
     };
     for (int i = 0, n = visualizers.length; i < n; i++) {
