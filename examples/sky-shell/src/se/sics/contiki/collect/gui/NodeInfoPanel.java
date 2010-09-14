@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.3 2010/09/14 10:38:12 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.4 2010/09/14 23:04:51 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,21 +34,24 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/09/14 10:38:12 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2010/09/14 23:04:51 $
+ *           $Revision: 1.4 $
  */
 
 package se.sics.contiki.collect.gui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 
+import se.sics.contiki.collect.CollectServer;
 import se.sics.contiki.collect.Node;
 import se.sics.contiki.collect.SensorData;
-import se.sics.contiki.collect.SensorDataAggregator;
 import se.sics.contiki.collect.Visualizer;
 
 /**
@@ -58,14 +61,98 @@ public class NodeInfoPanel extends JPanel implements Visualizer {
 
   private static final long serialVersionUID = -1060893468047793431L;
 
-  private JTextArea infoArea;
-  private Node[] selectedNodes;
+  private final CollectServer server;
+  private final JTable nodeTable;
+  private final AbstractTableModel nodeModel;
+  private Node[] nodes;
 
-  public NodeInfoPanel() {
+  public NodeInfoPanel(CollectServer server) {
     super(new BorderLayout());
-    infoArea = new JTextArea(4, 30);
-    infoArea.setEditable(false);
-    add(new JScrollPane(infoArea), BorderLayout.CENTER);
+    this.server = server;
+    
+    nodeModel = new AbstractTableModel() {
+
+      private static final long serialVersionUID = 1692207305977527004L;
+
+      private final String[] COLUMN_NAMES = {
+        "Node",
+        "Packets Received",
+        "Duplicates Received",
+        "Average Inter-packet time",
+        "Shortest Inter-packet time",
+        "Longest Inter-packet time",
+      };
+
+      public Object getValueAt(int row, int col) {
+        Node node = nodes[row];
+        switch (col) {
+        case 0:
+          return node;
+        case 1:
+          return node.getSensorDataAggregator().getPacketCount();
+        case 2:
+          return node.getSensorDataAggregator().getDuplicateCount();
+        case 3:
+          return node.getSensorDataAggregator().getAveragePeriod();
+        case 4: {
+          long time = node.getSensorDataAggregator().getShortestPeriod();
+          return time < Long.MAX_VALUE ? time : 0;
+        }
+        case 5:
+          return node.getSensorDataAggregator().getLongestPeriod();
+        default:
+          return null;
+        }
+      }
+
+      public Class<?> getColumnClass(int c) {
+        if (c == 0) {
+          return Node.class;
+        }
+        if (c < 3) {
+          return Integer.class;
+        }
+        if (c < 6) {
+          return Long.class;
+        }
+        return super.getColumnClass(c);
+      }
+
+      public String getColumnName(int col) {
+        return COLUMN_NAMES[col];
+      }
+
+      public int getColumnCount() {
+        return COLUMN_NAMES.length;
+      }
+
+      public int getRowCount() {
+        return nodes == null ? 0 : nodes.length;
+      }
+
+    };
+
+    nodeTable = new JTable(nodeModel);
+    nodeTable.setFillsViewportHeight(true);
+    nodeTable.setAutoCreateRowSorter(true);
+
+    // Add right aligned renderer for node name
+    DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+    renderer.setHorizontalAlignment(JLabel.RIGHT);
+    nodeTable.setDefaultRenderer(Node.class, renderer);
+
+    // Add time renderer
+    renderer = new DefaultTableCellRenderer() {
+      private static final long serialVersionUID = 1L;
+
+      public void setValue(Object value) {
+        long time = (Long) value;
+        setText(time > 0 ? getTimeAsString(time) : null);
+      }
+    };
+    nodeTable.setDefaultRenderer(Long.class, renderer);
+
+    add(new JScrollPane(nodeTable), BorderLayout.CENTER);
   }
 
   @Override
@@ -80,28 +167,62 @@ public class NodeInfoPanel extends JPanel implements Visualizer {
 
   @Override
   public void nodeAdded(Node node) {
-    // Ignore
+    updateNodes();
   }
 
   @Override
   public void nodeDataReceived(SensorData sensorData) {
-    // Ignore
+    updateNode(sensorData.getNode());
   }
 
   @Override
   public void clearNodeData() {
-    // Ignore
+    updateNodes();
   }
 
   @Override
   public void nodesSelected(Node[] nodes) {
-    this.selectedNodes = nodes;
-    if (isVisible()) {
-      updateInfoArea();
+    // Ignore
+  }
+
+  @Override
+  public void setVisible(boolean visible) {
+    if (visible) {
+      updateNodes();
+    } else {
+      clearNodes();
+    }
+    super.setVisible(visible);
+  }
+
+  private void clearNodes() {
+    if (this.nodes != null && this.nodes.length > 0) {
+      nodeModel.fireTableRowsDeleted(0, this.nodes.length - 1);
+    }
+    this.nodes = null;
+  }
+
+  private void updateNodes() {
+    clearNodes();
+    this.nodes = server.getNodes();
+    if (this.nodes != null && this.nodes.length > 0) {
+      nodeModel.fireTableRowsInserted(0, this.nodes.length - 1);
     }
   }
 
-  private StringBuilder addTime(StringBuilder sb, long time) {
+  private void updateNode(Node node) {
+    if (this.nodes != null) {
+      for(int row = 0; row < this.nodes.length; row++) {
+        if (this.nodes[row] == node) {
+          nodeModel.fireTableRowsUpdated(row, row);
+          break;
+        }
+      }
+    }
+  }
+
+  private String getTimeAsString(long time) {
+    StringBuilder sb = new StringBuilder();
     time /= 1000;
     if (time > 24 * 60 * 60) {
       long days = time / (24 * 60 * 60);
@@ -114,39 +235,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer {
       time -= hours * 60 * 60;
     }
     sb.append(time / 60).append(" min, ").append(time % 60).append(" sec");
-    return sb;
-  }
-
-  private void updateInfoArea() {
-    StringBuilder sb = new StringBuilder();
-    if (selectedNodes != null) {
-      for(Node node : selectedNodes) {
-        SensorDataAggregator sda = node.getSensorDataAggregator();
-        long longest = sda.getLongestPeriod();
-        sb.append("Node " + node.getName() + '\n'
-            + "  Packets Received: \t" + sda.getPacketCount() + '\n'
-            + "  Duplicates:       \t" + sda.getDuplicateCount() + '\n');
-        if (longest > 0) {
-          sb.append("  Average period:\t");
-          addTime(sb, sda.getAveragePeriod()).append('\n');
-          sb.append("  Shortest period:\t");
-          addTime(sb, sda.getShortestPeriod()).append('\n');
-          sb.append("  Longest period:\t");
-          addTime(sb, longest).append('\n');
-        }
-        sb.append("--------------------------------------------------------\n");
-      }
-    }
-    infoArea.setText(sb.toString());
-  }
-
-  public void setVisible(boolean visible) {
-    if (visible) {
-      updateInfoArea();
-    } else {
-      infoArea.setText("");
-    }
-    super.setVisible(visible);
+    return sb.toString();
   }
 
 }
