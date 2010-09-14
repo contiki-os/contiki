@@ -105,10 +105,10 @@
 
 #define UIP_CONF_STATISTICS      1
 /* Disable mass storage enumeration for more debug string space */
-#define USB_CONF_STORAGE         1
+//#define USB_CONF_STORAGE         1
 /* Use either USB CDC or RS232 for stdout (or neither) */
-#define USB_CONF_CDC             1
-//#define USB_CONF_RS232           1
+//#define USB_CONF_CDC             1
+#define USB_CONF_RS232           1
 
 #ifdef RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
@@ -160,14 +160,23 @@
 
 #if 0   /* RPL */
 /* Not completely working yet. Link local pings work but address prefixes do not get assigned */
-/* Since the jackdaw has no uip stack additional modules must be included, uncomment the line in /plaftorm/avr-ravenusb/Makefile.avr-ravenusb */
+/* RPL requires the uip stack. Change #CONTIKI_NO_NET=1 to UIP_CONF_IPV6=1 in the examples makefile,
+or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenusb */
 
-//#define UIP_CONF_ROUTER                 1
 #define UIP_CONF_IPV6_RPL               1
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP             0
+#define UIP_CONF_ROUTER  1
+#define RPL_CONF_STATS    0
+#define PROCESS_CONF_NO_PROCESS_NAMES  0
+#undef UIP_CONF_TCP            //TCP needed to serve RPL neighbor web page
+#define UIP_CONF_TCP             1
 //#undef UIP_FALLBACK_INTERFACE
-//#define UIP_FALLBACK_INTERFACE rpl_interface
+#define UIP_FALLBACK_INTERFACE rpl_interface
+#undef UIP_CONF_MAX_CONNECTIONS
+#define UIP_CONF_MAX_CONNECTIONS 1
+//#undef UIP_CONF_MAX_LISTENPORTS
+//#define UIP_CONF_MAX_LISTENPORTS 10
+//#define UIP_CONF_BUFFER_SIZE 256
+#define UIP_CONF_TCP_MSS         512
 
 #if 0  //too much RAM!
 /* Handle 10 neighbors */
