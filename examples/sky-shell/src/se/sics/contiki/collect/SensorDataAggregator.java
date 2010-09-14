@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.5 2010/09/08 12:40:18 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.6 2010/09/14 14:23:58 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2010/09/08 12:40:18 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2010/09/14 14:23:58 $
+ *           $Revision: 1.6 $
  */
 
 package se.sics.contiki.collect;
@@ -72,8 +72,8 @@ public class SensorDataAggregator implements SensorInfo {
     return values[index];
   }
 
-  public long getAverageValue(int index) {
-    return dataCount > 0 ? values[index] / dataCount : 0;
+  public double getAverageValue(int index) {
+      return dataCount > 0 ? (double)values[index] / (double)dataCount : 0;
   }
 
   public int getValueCount() {
@@ -195,6 +195,10 @@ public class SensorDataAggregator implements SensorInfo {
     return (values[TIME_CPU] * POWER_CPU + values[TIME_LPM] * POWER_LPM
     + values[TIME_LISTEN] * POWER_LISTEN + values[TIME_TRANSMIT] * POWER_TRANSMIT)
     / (values[TIME_CPU] + values[TIME_LPM]);
+  }
+
+  public double getAverageDutyCycle(int index) {
+      return (double)(values[index]) / (double)(values[TIME_CPU] + values[TIME_LPM]);
   }
 
   public long getPowerMeasureTime() {
