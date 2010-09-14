@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeChartPanel.java,v 1.4 2010/08/31 13:05:40 nifi Exp $
+ * $Id: TimeChartPanel.java,v 1.5 2010/09/14 10:38:12 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/08/31 13:05:40 $
- *           $Revision: 1.4 $
+ * Updated : $Date: 2010/09/14 10:38:12 $
+ *           $Revision: 1.5 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -169,7 +169,7 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
     timeSeries.removeAllSeries();
     if (this.selectedNodes != null) {
       for(Node node: this.selectedNodes) {
-        TimeSeries series = new TimeSeries(node.getName(), Second.class);
+        TimeSeries series = new TimeSeries("Node " + node.getName(), Second.class);
         // Reduce the number of items by grouping them and use the average for each group
         int groupSize = getGroupSize(node);
         if (groupSize > 1) {

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.2 2010/09/08 12:40:18 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.3 2010/09/14 10:38:12 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/09/08 12:40:18 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/09/14 10:38:12 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -123,7 +123,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer {
       for(Node node : selectedNodes) {
         SensorDataAggregator sda = node.getSensorDataAggregator();
         long longest = sda.getLongestPeriod();
-        sb.append(node.getName() + '\n'
+        sb.append("Node " + node.getName() + '\n'
             + "  Packets Received: \t" + sda.getPacketCount() + '\n'
             + "  Duplicates:       \t" + sda.getDuplicateCount() + '\n');
         if (longest > 0) {
