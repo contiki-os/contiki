@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.12 2010/03/29 09:33:20 nifi Exp $
+ * $Id: sky-collect.c,v 1.13 2010/09/14 06:47:08 adamdunkels Exp $
  */
 
 /**
@@ -104,7 +104,7 @@ PROCESS_THREAD(depth_blink_process, ev, data)
       leds_on(LEDS_BLUE);
     } else {
       leds_off(LEDS_BLUE);
-      count /= COLLECT_NEIGHBOR_ETX_SCALE;
+      count /= COLLECT_LINK_ESTIMATE_UNIT;
       while(count > 0) {
 	leds_on(LEDS_RED);
 	etimer_set(&et, CLOCK_SECOND / 32);
@@ -239,10 +239,10 @@ PROCESS_THREAD(test_collect_process, ev, data)
       rimeaddr_copy(&msg->best_neighbor, &rimeaddr_null);
       msg->best_neighbor_etx =
 	msg->best_neighbor_rtmetric = 0;
-      n = collect_neighbor_best();
+      n = collect_neighbor_list_best(&tc.neighbor_list);
       if(n != NULL) {
 	rimeaddr_copy(&msg->best_neighbor, &n->addr);
-	msg->best_neighbor_etx = collect_neighbor_etx(n);
+	msg->best_neighbor_etx = collect_neighbor_link_estimate(n);
 	msg->best_neighbor_rtmetric = n->rtmetric;
       }
 
