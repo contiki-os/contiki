@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.51 2010/09/13 13:28:14 adamdunkels Exp $
+ * $Id: collect.c,v 1.52 2010/09/14 06:48:36 adamdunkels Exp $
  */
 
 /**
@@ -124,8 +124,8 @@ struct ack_msg {
    forwarding queue before it is removed. The MAX_SENDING_QUEUE
    specifies the maximum length of the output queue. If the queue is
    full, incoming packets are dropped instead of being forwarded. */
-#define MAX_MAC_REXMITS            4
-#define MAX_ACK_MAC_REXMITS        5
+#define MAX_MAC_REXMITS            2
+#define MAX_ACK_MAC_REXMITS        3
 #define REXMIT_TIME                CLOCK_SECOND * 1
 #define FORWARD_PACKET_LIFETIME    (6 * (REXMIT_TIME) << 3)
 #define MAX_SENDING_QUEUE          16
@@ -191,7 +191,7 @@ struct {
 } stats;
 
 /* Debug definition: draw routing tree in Cooja. */
-#define DRAW_TREE 1
+#define DRAW_TREE 0
 
 #define DEBUG 0
 #if DEBUG
@@ -304,10 +304,12 @@ update_parent(struct collect_conn *tc)
 #endif /* DRAW_TREE */
   } else {
     /* No parent. */
+    if(!rimeaddr_cmp(&tc->parent, &rimeaddr_null)) {
 #if DRAW_TREE
-    printf("#L %d 0\n", tc->parent.u8[0]);
+      printf("#L %d 0\n", tc->parent.u8[0]);
 #endif /* DRAW_TREE */
-    stats.routelost++;
+      stats.routelost++;
+    }
     rimeaddr_copy(&tc->parent, &rimeaddr_null);
   }
 }
@@ -880,7 +882,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
 
     /* Compute the retransmission timeout and set up the
        retransmission timer. */
-    rexmit_time_scaling = tc->transmissions / MAX_MAC_REXMITS;
+    rexmit_time_scaling = tc->transmissions / (MAX_MAC_REXMITS + 1);
     if(rexmit_time_scaling > 3) {
       rexmit_time_scaling = 3;
     }
@@ -895,7 +897,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
 static void
 timedout(struct collect_conn *tc)
 {
-  printf("%d.%d: timedout after %d retransmissions (max retransmissions %d): packet dropped\n",
+  PRINTF("%d.%d: timedout after %d retransmissions (max retransmissions %d): packet dropped\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], tc->transmissions,
          tc->max_rexmits);
 
@@ -1143,7 +1145,7 @@ collect_purge(struct collect_conn *tc)
 void
 collect_print_stats(void)
 {
-  printf("collect stats foundroute %lu newparent %lu routelost %lu acksent %lu datasent %lu datarecv %lu ackrecv %lu badack %lu duprecv %lu qdrop %lu rtdrop %lu ttldrop %lu ackdrop %lu timedout %lu\n",
+  PRINTF("collect stats foundroute %lu newparent %lu routelost %lu acksent %lu datasent %lu datarecv %lu ackrecv %lu badack %lu duprecv %lu qdrop %lu rtdrop %lu ttldrop %lu ackdrop %lu timedout %lu\n",
          stats.foundroute, stats.newparent, stats.routelost,
          stats.acksent, stats.datasent, stats.datarecv,
          stats.ackrecv, stats.badack, stats.duprecv,
