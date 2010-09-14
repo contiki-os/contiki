@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.15 2010/09/14 14:23:58 adamdunkels Exp $
+ * $Id: CollectServer.java,v 1.16 2010/09/14 22:54:58 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/14 14:23:58 $
- *           $Revision: 1.15 $
+ * Updated : $Date: 2010/09/14 22:54:58 $
+ *           $Revision: 1.16 $
  */
 
 package se.sics.contiki.collect;
@@ -59,7 +59,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Properties;
 import javax.swing.BorderFactory;
@@ -100,20 +99,6 @@ public class CollectServer {
   public static final String CONFIG_DATA_FILE = "collect-data.conf";
   public static final String INIT_SCRIPT = "collect-init.script";
   public static final String FIRMWARE_FILE = "sky-shell.ihex";
-
-  private static final Comparator<Node> NODE_COMPARATOR = new Comparator<Node>() {
-
-    public int compare(Node o1, Node o2) {
-      String i1 = o1.getID();
-      String i2 = o2.getID();
-      // Shorter id first (4.0 before 10.0)
-      if (i1.length() == i2.length()) {
-        return i1.compareTo(i2);
-      }
-      return i1.length() - i2.length();
-    }
-    
-  };
 
   private Properties config = new Properties();
 
@@ -786,7 +771,7 @@ public class CollectServer {
   public synchronized Node[] getNodes() {
     if (nodeCache == null) {
       Node[] tmp = nodeTable.values().toArray(new Node[nodeTable.size()]);
-      Arrays.sort(tmp, NODE_COMPARATOR);
+      Arrays.sort(tmp);
       nodeCache = tmp;
     }
     return nodeCache;
@@ -813,7 +798,7 @@ public class CollectServer {
             public void run() {
               boolean added = false;
               for (int i = 0, n = nodeModel.size(); i < n; i++) {
-                int cmp = NODE_COMPARATOR.compare(newNode, ((Node) nodeModel.get(i)));
+                int cmp = newNode.compareTo((Node) nodeModel.get(i));
                 if (cmp < 0) {
                   nodeModel.insertElementAt(newNode, i);
                   added = true;
@@ -1075,6 +1060,13 @@ public class CollectServer {
   private void clearSensorData() {
     sensorDataList.clear();
     Node[] nodes = getNodes();
+    this.selectedNodes = null;
+    nodeList.clearSelection();
+    nodeModel.removeAllElements();
+    this.nodeTable.clear();
+    synchronized (this) {
+      this.nodeCache = null;
+    }
     if (nodes != null) {
       for(Node node : nodes) {
         node.removeAllSensorData();
@@ -1082,6 +1074,7 @@ public class CollectServer {
     }
     if (visualizers != null) {
       for(Visualizer v : visualizers) {
+        v.nodesSelected(null);
         v.clearNodeData();
       }
     }
