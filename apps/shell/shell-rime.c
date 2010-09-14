@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.23 2010/09/13 19:15:21 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.24 2010/09/14 06:40:17 adamdunkels Exp $
  */
 
 /**
@@ -256,7 +256,7 @@ PROCESS_THREAD(shell_send_process, ev, data)
   
   PROCESS_BEGIN();
 
-  num_rexmits = shell_strtolong((char *)data, &next);
+  num_rexmits = (int)shell_strtolong((char *)data, &next);
 
   if(next == data) {
     /* If no argument was given, we send packets with a default number
