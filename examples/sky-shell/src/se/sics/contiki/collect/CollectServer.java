@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.13 2010/09/14 10:38:12 nifi Exp $
+ * $Id: CollectServer.java,v 1.14 2010/09/14 11:27:23 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/14 10:38:12 $
- *           $Revision: 1.13 $
+ * Updated : $Date: 2010/09/14 11:27:23 $
+ *           $Revision: 1.14 $
  */
 
 package se.sics.contiki.collect;
@@ -142,6 +142,8 @@ public class CollectServer {
 
   private SerialConnection serialConnection;
   private String initScript;
+
+  private long nodeTimeDelta;
 
   @SuppressWarnings("serial")
   public CollectServer(String comPort) {
@@ -399,10 +401,10 @@ public class CollectServer {
             int dataCount = node.getSensorDataCount();
             int packetCount = 0;
             int duplicateCount = 0;
-            long earliestData = System.currentTimeMillis() - (5 * 60 * 60 * 1000);
+            long earliestData = getNodeTime() - (5 * 60 * 1000);
             for(int index = dataCount - 1; index >= 0; index--) {
               SensorData sd = node.getSensorData(index);
-              if (sd.getSystemTime() < earliestData) {
+              if (sd.getNodeTime() < earliestData) {
                 break;
               }
               if (sd.isDuplicate()) {
@@ -943,6 +945,18 @@ public class CollectServer {
     serialConsole.addSerialData(line);
   }
 
+  // -------------------------------------------------------------------
+  // Node time estimation
+  // -------------------------------------------------------------------
+
+  public long getNodeTime() {
+    return System.currentTimeMillis() + nodeTimeDelta;
+  }
+
+  private void updateNodeTime(SensorData sensorData) {
+    this.nodeTimeDelta = sensorData.getNodeTime() - System.currentTimeMillis();
+  }
+
 
   // -------------------------------------------------------------------
   // SensorData handling
@@ -959,6 +973,7 @@ public class CollectServer {
   private void handleSensorData(final SensorData sensorData) {
     System.out.println("SENSOR DATA: " + sensorData);
     if (sensorData.getNode().addSensorData(sensorData)) {
+      updateNodeTime(sensorData);
       sensorDataList.add(sensorData);
       saveSensorData(sensorData);
       handleLinks(sensorData);
@@ -1005,6 +1020,7 @@ public class CollectServer {
             SensorData data = SensorData.parseSensorData(this, line);
             if (data != null) {
               if (data.getNode().addSensorData(data)) {
+                updateNodeTime(data);
                 sensorDataList.add(data);
                 handleLinks(data);
               }
