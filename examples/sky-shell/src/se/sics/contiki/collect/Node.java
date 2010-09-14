@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Node.java,v 1.4 2010/09/14 10:38:12 nifi Exp $
+ * $Id: Node.java,v 1.5 2010/09/14 22:40:59 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/14 10:38:12 $
- *           $Revision: 1.4 $
+ * Updated : $Date: 2010/09/14 22:40:59 $
+ *           $Revision: 1.5 $
  */
 
 package se.sics.contiki.collect;
@@ -46,6 +46,8 @@ import java.util.Hashtable;
  *
  */
 public class Node implements Comparable<Node> {
+
+  private static final boolean SINGLE_LINK = true;
 
   private SensorDataAggregator sensorDataAggregator;
   private ArrayList<SensorData> sensorDataList = new ArrayList<SensorData>();
@@ -101,7 +103,13 @@ public class Node implements Comparable<Node> {
 
   @Override
   public int compareTo(Node o) {
-    return name.compareTo(o.name);
+    String i1 = id;
+    String i2 = o.getID();
+    // Shorter id first (4.0 before 10.0)
+    if (i1.length() == i2.length()) {
+      return i1.compareTo(i2);
+    }
+    return i1.length() - i2.length();
   }
 
   public String toString() {
@@ -194,6 +202,9 @@ public class Node implements Comparable<Node> {
 
     // Add new link
     Link l = new Link(node);
+    if (SINGLE_LINK) {
+      links.clear();
+    }
     links.add(l);
     return l;
   }
