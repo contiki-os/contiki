@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: BarChartPanel.java,v 1.2 2008/08/28 07:32:24 nifi Exp $
+ * $Id: BarChartPanel.java,v 1.3 2010/09/14 10:35:00 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 5 jul 2008
- * Updated : $Date: 2008/08/28 07:32:24 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/09/14 10:35:00 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -48,7 +48,9 @@ import javax.swing.JPanel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import se.sics.contiki.collect.CollectServer;
 import se.sics.contiki.collect.Node;
@@ -72,8 +74,15 @@ public abstract class BarChartPanel extends JPanel implements Visualizer {
   private boolean isShowingAllNodes = false;
   private int categoryOrder = 0;
 
-  protected BarChartPanel(CollectServer server, String title, String chartTitle, String domainAxisLabel, String valueAxisLabel,
+  protected BarChartPanel(CollectServer server, String title,
+      String chartTitle, String domainAxisLabel, String valueAxisLabel,
       String[] categories) {
+    this(server, title, chartTitle, domainAxisLabel, valueAxisLabel, categories, true);
+  }
+
+  protected BarChartPanel(CollectServer server, String title,
+      String chartTitle, String domainAxisLabel, String valueAxisLabel,
+      String[] categories, boolean stackedChart) {
     super(new BorderLayout());
     this.server = server;
     this.title = title;
@@ -81,8 +90,21 @@ public abstract class BarChartPanel extends JPanel implements Visualizer {
 
     /* Create chart with power of all nodes */
     dataset = new DefaultCategoryDataset();
-    this.chart = ChartFactory.createStackedBarChart(chartTitle, domainAxisLabel, valueAxisLabel, dataset, PlotOrientation.VERTICAL, true, true, false);
-    this.chartPanel = new ChartPanel(chart);
+    if (stackedChart) {
+      this.chart = ChartFactory.createStackedBarChart(chartTitle,
+          domainAxisLabel, valueAxisLabel, dataset, PlotOrientation.VERTICAL,
+          categories.length > 1, true, false);
+    } else {
+      this.chart = ChartFactory.createBarChart(chartTitle,
+          domainAxisLabel, valueAxisLabel, dataset, PlotOrientation.VERTICAL,
+          categories.length > 1, true, false);
+      if (categories.length > 1) {
+        CategoryPlot plot = chart.getCategoryPlot();
+        BarRenderer renderer = (BarRenderer) plot.getRenderer();
+        renderer.setItemMargin(0);
+      }
+    }
+    this.chartPanel = new ChartPanel(chart, false);
     this.chartPanel.setPreferredSize(new Dimension(500, 270));
     if (categories.length > 1) {
       this.chartPanel.addMouseListener(new MouseAdapter() {
@@ -92,6 +114,7 @@ public abstract class BarChartPanel extends JPanel implements Visualizer {
         }
       });
     }
+
     add(chartPanel, BorderLayout.CENTER);
   }
 
