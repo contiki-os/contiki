@@ -123,7 +123,6 @@ PROCESS_THREAD(udp_client_process, ev, data)
 {
   static struct etimer periodic;
   static struct ctimer backoff_timer;
-  uip_ipaddr_t *ipaddr;
 
   PROCESS_BEGIN();
 
