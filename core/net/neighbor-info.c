@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.9 2010/06/14 06:51:58 adamdunkels Exp $
+ * $Id: neighbor-info.c,v 1.10 2010/09/15 15:10:25 nvt-se Exp $
  */
 /**
  * \file
@@ -56,8 +56,11 @@
 
 #define ETX_SCALE		100
 #define ETX_ALPHA		80
-#define ETX_FIRST_GUESS		(ETX_LIMIT - 1)
+#define ETX_FIRST_GUESS		3
 #define ETX_LOSS_PENALTY        1
+
+#define ETX2FIX(etx)    ((etx) << 4)
+#define FIX2ETX(fix)    ((fix) >> 4)
 /*---------------------------------------------------------------------------*/
 NEIGHBOR_ATTRIBUTE(uint8_t, etx, NULL);
 
@@ -71,21 +74,22 @@ update_etx(const rimeaddr_t *dest, int packet_etx)
 
   etxp = (uint8_t *)neighbor_attr_get_data(&etx, dest);
   if(etxp == NULL || *etxp == 0) {
-    recorded_etx = ETX_FIRST_GUESS;
+    recorded_etx = ETX2FIX(ETX_FIRST_GUESS);
   } else {
     recorded_etx = *etxp;
   }
 
   /* Update the EWMA of the ETX for the neighbor. */
-  new_etx = (ETX_SCALE / 2 + ETX_ALPHA * recorded_etx +
-		 (ETX_SCALE - ETX_ALPHA) * packet_etx) / ETX_SCALE;
+  packet_etx = ETX2FIX(packet_etx);
+  new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
+             (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
   PRINTF("neighbor-info: ETX changed from %d to %d (packet ETX = %d)\n",
-	recorded_etx, new_etx, packet_etx);
+	FIX2ETX(recorded_etx), FIX2ETX(new_etx), FIX2ETX(packet_etx));
 
   if(neighbor_attr_has_neighbor(dest)) {
     neighbor_attr_set_data(&etx, dest, &new_etx);
     if(new_etx != recorded_etx && subscriber_callback != NULL) {
-      subscriber_callback(dest, 1, new_etx);
+      subscriber_callback(dest, 1, FIX2ETX(new_etx));
     }
   }
 }
