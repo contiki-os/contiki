@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-timers.c,v 1.10 2010/06/14 12:44:37 nvt-se Exp $
+ * $Id: rpl-timers.c,v 1.11 2010/09/15 13:22:23 nvt-se Exp $
  */
 /**
  * \file
@@ -102,7 +102,8 @@ new_dio_interval(rpl_dag_t *dag)
   /* keep some stats */
   dag->dio_totint++;
   dag->dio_totrecv += dag->dio_counter;
-  ANNOTATE("#A rank=%d(%d),stats=%d %d %d %d,color=%s\n", dag->rank,
+  ANNOTATE("#A rank=%u(%u),stats=%d %d %d %d,color=%s\n",
+	   DAG_RANK(dag->rank, dag),
            dag->version,
            dag->dio_totint, dag->dio_totsend,
            dag->dio_totrecv,dag->dio_intcurrent,

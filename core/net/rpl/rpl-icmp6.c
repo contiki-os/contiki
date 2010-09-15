@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.22 2010/06/14 19:19:17 adamdunkels Exp $
+ * $Id: rpl-icmp6.c,v 1.23 2010/09/15 13:22:23 nvt-se Exp $
  */
 /**
  * \file
@@ -211,7 +211,7 @@ dio_input(void)
 
   dio.instance_id = buffer[i++];
   dio.version = buffer[i++];
-  dio.rank = (buffer[i] << 8) + buffer[i + 1];
+  dio.rank = (buffer[i] << 8) | buffer[i + 1];
   i += 2;
 
   PRINTF("RPL: Incoming DIO rank %u\n", (unsigned)dio.rank);
