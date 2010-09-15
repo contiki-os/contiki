@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeChartPanel.java,v 1.6 2010/09/15 15:16:49 nifi Exp $
+ * $Id: TimeChartPanel.java,v 1.7 2010/09/15 16:15:10 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/15 15:16:49 $
- *           $Revision: 1.6 $
+ * Updated : $Date: 2010/09/15 16:15:10 $
+ *           $Revision: 1.7 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -64,6 +64,7 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
   private static final long serialVersionUID = -607864439709540641L;
 
   protected final CollectServer server;
+  protected final String category;
   protected final String title;
   protected final TimeSeriesCollection timeSeries;
   protected final JFreeChart chart;
@@ -76,11 +77,12 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
   private int rangeTick = 0;
   private boolean hasGlobalRange;
   private int maxItemCount;
-
-  public TimeChartPanel(CollectServer server, String title,
+  
+  public TimeChartPanel(CollectServer server, String category, String title,
       String chartTitle, String timeAxisLabel, String valueAxisLabel) {
     super(new BorderLayout());
     this.server = server;
+    this.category = category;
     this.title = title;
     this.timeSeries = new TimeSeriesCollection();
     this.chart = ChartFactory.createTimeSeriesChart(
@@ -93,6 +95,11 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
     add(chartPanel, BorderLayout.CENTER);
   }
 
+  @Override
+  public String getCategory() {
+    return category;
+  }
+  
   @Override
   public String getTitle() {
     return title;

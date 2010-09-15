@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PacketChartPanel.java,v 1.7 2010/09/15 15:20:47 nifi Exp $
+ * $Id: PacketChartPanel.java,v 1.8 2010/09/15 16:15:10 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/09/15 15:20:47 $
- *           $Revision: 1.7 $
+ * Updated : $Date: 2010/09/15 16:15:10 $
+ *           $Revision: 1.8 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -69,6 +69,7 @@ public class PacketChartPanel extends JPanel implements Visualizer {
   private static final long serialVersionUID = -607864439709540641L;
 
   protected final CollectServer server;
+  protected final String category;
   protected final String title;
   protected final TimeSeries series;
 
@@ -78,10 +79,11 @@ public class PacketChartPanel extends JPanel implements Visualizer {
   private Node[] selectedNodes;
   private HashMap<Node,Node> selectedMap = new HashMap<Node,Node>();
 
-  public PacketChartPanel(CollectServer server, String title,
+  public PacketChartPanel(CollectServer server, String category, String title,
       String timeAxisLabel, String valueAxisLabel) {
     super(new BorderLayout());
     this.server = server;
+    this.category = category;
     this.title = title;
     this.series = new TimeSeries("Received Packets", Minute.class);
     TimeSeriesCollection timeSeries = new TimeSeriesCollection(series);
@@ -95,6 +97,11 @@ public class PacketChartPanel extends JPanel implements Visualizer {
     this.chartPanel.setPreferredSize(new Dimension(500, 270));
     setBaseShapeVisible(false);
     add(chartPanel, BorderLayout.CENTER);
+  }
+
+  @Override
+  public String getCategory() {
+    return category;
   }
 
   @Override

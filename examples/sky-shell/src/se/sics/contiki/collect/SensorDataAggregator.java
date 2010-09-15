@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.6 2010/09/14 14:23:58 adamdunkels Exp $
+ * $Id: SensorDataAggregator.java,v 1.7 2010/09/15 16:15:10 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2010/09/14 14:23:58 $
- *           $Revision: 1.6 $
+ * Updated : $Date: 2010/09/15 16:15:10 $
+ *           $Revision: 1.7 $
  */
 
 package se.sics.contiki.collect;
@@ -52,6 +52,9 @@ public class SensorDataAggregator implements SensorInfo {
   private int seqnoDelta = 0;
   private int dataCount;
   private int duplicates = 0;
+  private int lost = 0;
+  private int nextHopChangeCount = 0;
+  private String lastNextHop = null;
   private long shortestPeriod = Long.MAX_VALUE;
   private long longestPeriod = 0;
 
@@ -87,6 +90,12 @@ public class SensorDataAggregator implements SensorInfo {
   public void addSensorData(SensorData data) {
     int seqn = data.getValue(SEQNO);
     int s = seqn + seqnoDelta;
+
+    String bestNeighbor = data.getBestNeighborID();
+    if (lastNextHop != null && !lastNextHop.equals(bestNeighbor)) {
+      nextHopChangeCount++;
+    }
+    lastNextHop = bestNeighbor;
 
     if (s <= maxSeqno) {
       // Check for duplicates among the last 5 packets
@@ -142,9 +151,16 @@ public class SensorDataAggregator implements SensorInfo {
         }
       }
       // Handle wrapping sequence numbers
-      if (dataCount > 0 && maxSeqno - s > 2) {
+      if (dataCount == 0) {
+        // First packet from node.
+      } else if (maxSeqno - s > 2) {
         s += maxSeqno - seqnoDelta;
         seqnoDelta = maxSeqno;
+        if (seqn > 0) {
+          lost += seqn - 1;
+        }
+      } else if (s > maxSeqno + 1){
+        lost += s - (maxSeqno + 1);
       }
       if (s < minSeqno) minSeqno = s;
       if (s > maxSeqno) maxSeqno = s;
@@ -159,6 +175,9 @@ public class SensorDataAggregator implements SensorInfo {
     }
     dataCount = 0;
     duplicates = 0;
+    lost = 0;
+    nextHopChangeCount = 0;
+    lastNextHop = null;
     minSeqno = Integer.MAX_VALUE;
     maxSeqno = Integer.MIN_VALUE;
     seqnoDelta = 0;
@@ -239,6 +258,14 @@ public class SensorDataAggregator implements SensorInfo {
 
   public int getPacketCount() {
     return node.getSensorDataCount();
+  }
+
+  public int getNextHopChangeCount() {
+    return nextHopChangeCount;
+  }
+
+  public int getEstimatedLostCount() {
+    return lost;
   }
 
   public int getDuplicateCount() {
