@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MapPanel.java,v 1.2 2010/09/06 22:32:56 nifi Exp $
+ * $Id: MapPanel.java,v 1.3 2010/09/15 16:15:10 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/06 22:32:56 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/09/15 16:15:10 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -124,13 +124,14 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
   private String mapName;
 
   private final CollectServer server;
+  private final String category;
 
   private boolean hideNetwork = false;
 
-
-  public MapPanel(CollectServer server) {
+  public MapPanel(CollectServer server, String category) {
     super(new BorderLayout());
     this.server = server;
+    this.category = category;
     setPreferredSize(new Dimension(300, 200));
 
     popupMenu = new JPopupMenu(getTitle());
@@ -220,6 +221,11 @@ public class MapPanel extends JPanel implements Visualizer, ActionListener, Mous
   // -------------------------------------------------------------------
   // Visualizer
   // -------------------------------------------------------------------
+
+  @Override
+  public String getCategory() {
+    return category;
+  }
 
   @Override
   public String getTitle() {

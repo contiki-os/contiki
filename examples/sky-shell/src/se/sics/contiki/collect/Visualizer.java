@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.1 2008/07/09 23:18:06 nifi Exp $
+ * $Id: Visualizer.java,v 1.2 2010/09/15 16:15:10 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/07/09 23:18:06 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/09/15 16:15:10 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect;
@@ -47,6 +47,7 @@ import java.awt.Component;
  */
 public interface Visualizer {
 
+  public String getCategory();
   public String getTitle();
   public Component getPanel();
   public void nodesSelected(Node[] node);

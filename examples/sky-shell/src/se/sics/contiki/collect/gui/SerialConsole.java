@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SerialConsole.java,v 1.1 2008/07/09 23:18:07 nifi Exp $
+ * $Id: SerialConsole.java,v 1.2 2010/09/15 16:15:10 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 4 jul 2008
- * Updated : $Date: 2008/07/09 23:18:07 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/09/15 16:15:10 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -64,6 +64,7 @@ import se.sics.contiki.collect.Visualizer;
 public class SerialConsole implements Visualizer {
 
   private final CollectServer server;
+  private final String category;
   private JPanel panel;
   private JTextArea logArea;
   private JTextField commandField;
@@ -71,8 +72,9 @@ public class SerialConsole implements Visualizer {
   private int historyPos = 0;
   private int historyCount = 0;
 
-  public SerialConsole(CollectServer server) {
+  public SerialConsole(CollectServer server, String category) {
     this.server = server;
+    this.category = category;
     panel = new JPanel(new BorderLayout());
     logArea = new JTextArea(4, 30);
     logArea.setEditable(false);
@@ -166,6 +168,11 @@ public class SerialConsole implements Visualizer {
   @Override
   public Component getPanel() {
     return panel;
+  }
+
+  @Override
+  public String getCategory() {
+    return category;
   }
 
   @Override
