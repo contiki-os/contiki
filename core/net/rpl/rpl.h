@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.19 2010/06/14 12:44:37 nvt-se Exp $
+ * $Id: rpl.h,v 1.20 2010/09/15 13:22:23 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -96,11 +96,16 @@
 /* Default route lifetime in seconds. */
 #define DEFAULT_ROUTE_LIFETIME          INFINITE_LIFETIME
 
+#define DEFAULT_MIN_HOPRANKINC          256
+#define DEFAULT_MAX_RANKINC             3*DEFAULT_MIN_HOPRANKINC
+
+#define DAG_RANK(fixpt_rank, dag)	((fixpt_rank) / dag->min_hoprankinc)
+
 /* Rank of a node outside the LLN. */
 #define BASE_RANK                       0
 
 /* Rank of a root node. */
-#define ROOT_RANK                       1
+#define ROOT_RANK                       DEFAULT_MIN_HOPRANKINC
 
 #define INFINITE_RANK                   0xffff
 
@@ -109,10 +114,6 @@
 
 #define RPL_DEFAULT_OCP                 1
 
-/* TODO: pick these from OCP later? */
-#define DEFAULT_MAX_RANKINC             10
-#define DEFAULT_MIN_HOPRANKINC          4
-
 /* Represents 2^n ms. */
 #define DEFAULT_DIO_INTERVAL_MIN        12
 
@@ -120,7 +121,7 @@
 #define DEFAULT_DIO_INTERVAL_DOUBLINGS  8
 
 /* Desired DIO redundancy. */
-#define DEFAULT_DIO_REDUNDANCY          5
+#define DEFAULT_DIO_REDUNDANCY          10
 
 /* Expire DAOs from neighbors that do not respond in this time. (seconds) */
 #define DAO_EXPIRATION_TIMEOUT          60
@@ -225,8 +226,8 @@ struct rpl_dio {
   uint8_t dag_intdoubl;
   uint8_t dag_intmin;
   uint8_t dag_redund;
-  uint8_t dag_max_rankinc;
-  uint8_t dag_min_hoprankinc;
+  rpl_rank_t dag_max_rankinc;
+  rpl_rank_t dag_min_hoprankinc;
   rpl_prefix_t destination_prefix;
   rpl_prefix_t prefix_info;
 };
@@ -250,10 +251,9 @@ struct rpl_dag {
   uint8_t dio_intdoubl;
   uint8_t dio_intmin;
   uint8_t dio_redundancy;
-  uint8_t max_rankinc;
-  uint8_t min_hoprankinc;
+  rpl_rank_t max_rankinc;
+  rpl_rank_t min_hoprankinc;
   uint8_t used;
-
   /* live data for the DAG */
   uint8_t joined;
   uint8_t dio_intcurrent;

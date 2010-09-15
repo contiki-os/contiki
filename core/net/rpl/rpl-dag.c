@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.31 2010/07/03 23:52:02 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.32 2010/09/15 13:22:22 nvt-se Exp $
  */
 /**
  * \file
@@ -103,12 +103,12 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 {
   rpl_parent_t *p, *p2;
 
-  PRINTF("RPL: Removing parents (minimum rank %u, poisoning routes %d\n",
-	minimum_rank, poison_routes);
+  PRINTF("RPL: Removing parents (minimum rank %u)\n",
+	minimum_rank);
 
   for(p = list_head(dag->parents); p != NULL; p = p2) {
     p2 = p->next;
-    if(p->rank >= minimum_rank) {
+    if(DAG_RANK(p->rank, dag) >= minimum_rank) {
       rpl_remove_parent(dag, p);
     }
   }
@@ -125,7 +125,8 @@ should_send_dao(rpl_dag_t *dag, rpl_dio_t *dio, rpl_parent_t *p)
 static int
 acceptable_rank(rpl_dag_t *dag, rpl_rank_t rank)
 {
-  return rank != INFINITE_RANK && rank <= dag->min_rank + dag->max_rankinc;
+  return rank != INFINITE_RANK &&
+    DAG_RANK(rank, dag) <= DAG_RANK(dag->min_rank + dag->max_rankinc, dag);
 }
 /************************************************************************/
 rpl_dag_t *
@@ -445,8 +446,10 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag->preference = dio->preference;
   dag->grounded = dio->grounded;
   dag->instance_id = dio->instance_id;
-  dag->rank = dag->of->calculate_rank(NULL, dio->rank);
-  dag->min_rank = dag->rank; /* So far this is the lowest rank we know */
+
+  dag->max_rankinc = dio->dag_max_rankinc;
+  dag->min_hoprankinc = dio->dag_min_hoprankinc;
+
   dag->version = dio->version;
   dag->preferred_parent = p;
   ANNOTATE("#L %u 1\n", p->addr.u8[sizeof(p->addr) - 1]);
@@ -454,9 +457,6 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag->dio_intdoubl = dio->dag_intdoubl;
   dag->dio_intmin = dio->dag_intmin;
   dag->dio_redundancy = dio->dag_redund;
-
-  dag->max_rankinc = dio->dag_max_rankinc;
-  dag->min_hoprankinc = dio->dag_min_hoprankinc;
 
   memcpy(&dag->dag_id, &dio->dag_id, sizeof(dio->dag_id));
 
@@ -467,6 +467,9 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
          dio->instance_id, dag->rank);
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
+
+  dag->rank = dag->of->calculate_rank(NULL, dio->rank);
+  dag->min_rank = dag->rank; /* So far this is the lowest rank we know */
 
   rpl_reset_dio_timer(dag, 1);
   rpl_set_default_route(dag, from);
@@ -562,7 +565,7 @@ rpl_process_parent_event(rpl_dag_t *dag, rpl_parent_t *p)
     return 1;
   }
 
-  if(old_rank != dag->rank) {
+  if(DAG_RANK(old_rank, dag) != DAG_RANK(dag->rank, dag)) {
     if(dag->rank < dag->min_rank) {
       dag->min_rank = dag->rank;
     }
@@ -645,7 +648,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(p == NULL) {
     if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS) {
       /* Try to make room for a new parent. */
-      remove_parents(dag, dio->rank);
+      remove_parents(dag, DAG_RANK(dio->rank, dag));
     }
 
     /* Add the DIO sender as a candidate parent. */
@@ -660,12 +663,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     PRINTF("RPL: New candidate parent with rank %u: ", (unsigned)p->rank);
     PRINT6ADDR(from);
     PRINTF("\n");
-  } else if(p->rank == dio->rank) {
+  } else if(DAG_RANK(p->rank, dag) == DAG_RANK(dio->rank, dag)) {
     PRINTF("RPL: Received consistent DIO\n");
     dag->dio_counter++;
   }
 
-  /* We have an allocated candidate parent, process the DIO further. */
+  /* We have allocated a candidate parent; process the DIO further. */
 
   p->rank = dio->rank;
   if(rpl_process_parent_event(dag, p) == 0) {
@@ -676,6 +679,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(should_send_dao(dag, dio, p)) {
     rpl_schedule_dao(dag);
   }
+
   p->dtsn = dio->dtsn;
 }
 /************************************************************************/
