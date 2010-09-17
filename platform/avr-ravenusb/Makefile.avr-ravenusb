@@ -7,15 +7,16 @@ USB       = uart_usb_lib.c   \
             cdc_task.c       \
             rndis_task.c      \
             rndis.c           \
+			cdc_eem.c           \
+            cdc_ecm.c           \
             usb_descriptors.c       \
             usb_drv.c               \
             usb_specific_request.c  \
             usb_standard_request.c  \
-            usb_task.c         \
-            scsi_decoder.c     \
-            ctrl_access.c      \
-            storage_task.c     \
-            avr_flash.c
+            usb_task.c
+
+#Files needed for USB Mass storage device enumeration
+USB +=       scsi_decoder.c ctrl_access.c storage_task.c avr_flash.c
 
 #As of September 2010 the following are needed for rpl. They need explicit inclusion if CONTIKI_NO_NET=1
 #If CONTIKI_NO_NET=1 the tcpip_input routine in tcpip.c must be commented out; it expects a tcpip process and conflicts with the one in fakeuip.c
@@ -24,7 +25,7 @@ USB       = uart_usb_lib.c   \
 CONTIKI_TARGET_SOURCEFILES +=   cfs-eeprom.c eeprom.c random.c \
                                 mmem.c contiki-raven-default-init-lowlevel.c \
                                 contiki-raven-default-init-net.c contiki-raven-main.c httpd-simple-avr.c \
-                                sicslow_ethernet.c queuebuf.c packetbuf.c \
+                                sicslow_ethernet.c queuebuf.c packetbuf.c rng.c \
                 $(RPL) \
                 $(USB)
 

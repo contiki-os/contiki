@@ -59,6 +59,9 @@
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 
+#include "rndis/cdc_ecm.h"
+#include "rndis/cdc_eem.h"
+
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 #define PRINTF printf
 #define PRINTF_P printf_P
@@ -66,12 +69,6 @@
 //_____ M A C R O S ________________________________________________________
 
 
-#define EEMCMD_ECHO                    0x00 ///bmEEMCmd Echo
-#define EEMCMD_ECHO_RESPONSE           0x01 ///bmEEMCmd Echo Response
-#define EEMCMD_SUSPEND_HINT            0x02 ///bmEEMCmd Suspend Hint
-#define EEMCMD_RESPONSE_HINT           0x03 ///bmEEMCmd Response Hint
-#define EEMCMD_RESPONSE_COMPLETE_HINT  0x04 ///bmEEMCmd Response Complete Hint
-#define EEMCMD_TICKLE                  0x05 ///bmEEMCmd Tickle
 
 
 
@@ -84,436 +81,210 @@
 #define RNDIS_TIMEOUT_DETACH 900
 #define RNDIS_TIMEOUT_ATTACH 1000
 
-#define PBUF ((rndis_data_packet_t *) data_buffer)
+#define PBUF ((rndis_data_packet_t *) usb_eth_data_buffer)
+
+//! Temp data buffer when adding RNDIS headers
+uint8_t usb_eth_data_buffer[64];
+
+uint64_t usb_ethernet_addr = 0x010000000002ULL;
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
-uint8_t eem_send(uint8_t * senddata, uint16_t sendlen, uint8_t led);
-uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen, uint8_t led);
 
 //! Timers for LEDs
 uint8_t led1_timer, led2_timer;
 
-//! Temp data buffer when adding RNDIS headers
-uint8_t data_buffer[64];
-
-//! Usb is busy with RNDIS
-char usb_busy = 0;
+uint8_t usb_eth_is_active = 1;
 
 
-static struct etimer et;
-static struct timer flood_timer;
+uint8_t usb_eth_packet_is_available() {
+	Usb_select_endpoint(RX_EP);
+	return Is_usb_read_enabled();
+}
 
-static uint8_t doInit = 1;
 
-extern uint8_t fingerPresent;
+uint8_t usb_eth_ready_for_next_packet() {
+#ifdef USB_ETH_HOOK_IS_READY_FOR_INBOUND_PACKET
+	return USB_ETH_HOOK_IS_READY_FOR_INBOUND_PACKET();
+#else
+	return 1;
+#endif
 
-PROCESS(rndis_process, "RNDIS process");
+	return 1;
+}
+
+void rxtx_led_update(void)
+{
+	// turn off LED's if necessary
+	if (led1_timer) {
+		led1_timer--;
+		if(led1_timer&(1<<2))
+			Led1_on();
+		else
+			Led1_off();
+	}
+	else
+		Led1_off();
+
+	if (led2_timer) {
+		led2_timer--;
+		if(led2_timer&(1<<2))
+			Led2_on();
+		else
+			Led2_off();
+	}
+	else
+		Led2_off();
+}
+
+/**
+    @brief This will enable the RX_START LED for a period
+*/
+void rx_start_led(void)
+{
+	led1_timer|=(1<<3);
+	if(((led1_timer-1)&(1<<2)))
+		Led1_on();
+}
+
+/**
+    @brief This will enable the TRX_END LED for a period
+*/
+void tx_end_led(void)
+{
+	led2_timer|=(1<<3);
+	if(((led2_timer-1)&(1<<2)))
+		Led1_on();
+}
+
+#if USB_ETH_CONF_MASS_STORAGE_FALLBACK
+static void
+usb_eth_setup_timeout_fallback_check() {
+	extern uint8_t fingerPresent;
+		/* Device is Enumerated but RNDIS not loading. We might
+		   have a system that does not support IAD (winXP). If so
+		   count the timeout then switch to just network interface. */
+	static uint16_t iad_fail_timeout, rndis_fail_timeout;	
+	if (usb_mode == rndis_debug) {
+		//If we have timed out, detach
+		if (iad_fail_timeout == IAD_TIMEOUT_DETACH) {
+		
+			//Failed - BUT we are using "reverse logic", hence we force device
+			//into this mode. This is used to allow Windows Vista have time to
+			//install the drivers
+			if (fingerPresent && (rndis_state != rndis_data_initialized) && Is_device_enumerated() ) {
+				iad_fail_timeout = 0;
+			} else {
+					stdout = NULL;
+					Usb_detach();
+					doInit = 1; //Also mark system as needing intilizing
+			}
+			
+		//Then wait a few before re-attaching
+		} else if (iad_fail_timeout == IAD_TIMEOUT_ATTACH) {
+		
+			if (fingerPresent) {
+				usb_mode = mass_storage;
+			} else {
+				usb_mode = rndis_only;
+			}
+			Usb_attach();
+		}
+
+		//Increment timeout when device is not initializing, OR we have already detached,
+		//OR the user had their finger on the device, indicating a reverse of logic
+		if ( ( (rndis_state != rndis_data_initialized) && Is_device_enumerated() ) ||
+		  (iad_fail_timeout > IAD_TIMEOUT_DETACH) || 
+		   (fingerPresent) ) {
+			iad_fail_timeout++;
+		} else {	
+		iad_fail_timeout = 0;
+		}
+	} //usb_mode == rndis_debug
+
+
+	 /* Device is Enumerated but RNDIS STIL not loading. We just
+		have RNDIS interface, so obviously no drivers on target.
+		Just go ahead and mount ourselves as mass storage... */
+	if (usb_mode == rndis_only) {
+		//If we have timed out, detach
+		if (rndis_fail_timeout == RNDIS_TIMEOUT_DETACH) {
+			Usb_detach();
+		//Then wait a few before re-attaching
+		} else if (rndis_fail_timeout == RNDIS_TIMEOUT_ATTACH) {
+			usb_mode = mass_storage;
+			Usb_attach();
+		}
+
+		//Increment timeout when device is not initializing, OR we are already
+		//counting to detach
+		if ( ( (rndis_state != rndis_data_initialized)) ||
+		  (rndis_fail_timeout > RNDIS_TIMEOUT_DETACH) ) {
+			rndis_fail_timeout++;
+		} else {	
+		rndis_fail_timeout = 0;
+		}
+	}//usb_mode == rnids_only
+}
+#endif
+
+PROCESS(usb_eth_process, "USB Ethernet process");
 
 /**
  * \brief RNDIS Process
  *
  *   This is the link between USB and the "good stuff". In this routine data
- *   is received and processed by RNDIS
+ *   is received and processed by RNDIS, CDC-ECM, or CDC-EEM
  */
-PROCESS_THREAD(rndis_process, ev, data_proc)
+PROCESS_THREAD(usb_eth_process, ev, data_proc)
 {
+	static struct etimer et;
 
 	PROCESS_BEGIN();
-	uint8_t bytecounter, headercounter;
-	uint16_t i, dataoffset;
-	clock_time_t timediff;
-	clock_time_t thetime;
 
 	while(1) {
+		rxtx_led_update();
 
-		// turn off LED's if necessary
-	    if (led1_timer) led1_timer--;
-	    else            Led1_off();
-	    if (led2_timer) led2_timer--;
-	    else            Led2_off();
-		
-		/* Device is Enumerated but RNDIS not loading. We might
-		   have a system that does not support IAD (winXP). If so
-		   count the timeout then switch to just network interface. */
-#if 0
-static uint16_t iad_fail_timeout, rndis_fail_timeout;	
-		if (usb_mode == rndis_debug) {
-			//If we have timed out, detach
-			if (iad_fail_timeout == IAD_TIMEOUT_DETACH) {
-			
-				//Failed - BUT we are using "reverse logic", hence we force device
-				//into this mode. This is used to allow Windows Vista have time to
-				//install the drivers
-				if (fingerPresent && (rndis_state != rndis_data_initialized) && Is_device_enumerated() ) {
-					iad_fail_timeout = 0;
-				} else {
-						stdout = NULL;
-						Usb_detach();
-						doInit = 1; //Also mark system as needing intilizing
-				}
-				
-			//Then wait a few before re-attaching
-			} else if (iad_fail_timeout == IAD_TIMEOUT_ATTACH) {
-			
-			    if (fingerPresent) {
-					usb_mode = mass_storage;
-				} else {
-					usb_mode = rndis_only;
-				}
-				Usb_attach();
-			}
-	
-			//Increment timeout when device is not initializing, OR we have already detached,
-			//OR the user had their finger on the device, indicating a reverse of logic
-			if ( ( (rndis_state != rndis_data_initialized) && Is_device_enumerated() ) ||
-			  (iad_fail_timeout > IAD_TIMEOUT_DETACH) || 
-			   (fingerPresent) ) {
-				iad_fail_timeout++;
-			} else {	
-			iad_fail_timeout = 0;
-			}
-		} //usb_mode == rndis_debug
-
-
-	     /* Device is Enumerated but RNDIS STIL not loading. We just
-		    have RNDIS interface, so obviously no drivers on target.
-			Just go ahead and mount ourselves as mass storage... */
-		if (usb_mode == rndis_only) {
-			//If we have timed out, detach
-			if (rndis_fail_timeout == RNDIS_TIMEOUT_DETACH) {
-				Usb_detach();
-			//Then wait a few before re-attaching
-			} else if (rndis_fail_timeout == RNDIS_TIMEOUT_ATTACH) {
-				usb_mode = mass_storage;
-				Usb_attach();
-			}
-	
-			//Increment timeout when device is not initializing, OR we are already
-			//counting to detach
-			if ( ( (rndis_state != rndis_data_initialized)) ||
-			  (rndis_fail_timeout > RNDIS_TIMEOUT_DETACH) ) {
-				rndis_fail_timeout++;
-			} else {	
-			rndis_fail_timeout = 0;
-			}
-		}//usb_mode == rnids_only
+#if USB_ETH_CONF_MASS_STORAGE_FALLBACK
+		usb_eth_setup_timeout_fallback_check();
 #endif
-
-
-	    if(rndis_state == rndis_data_initialized) //Enumeration processs OK ?
-	    {
-			if (doInit) {
-				//start flood timer
-				timer_set(&flood_timer, CLOCK_SECOND / 5);
-				
-				mac_ethernetSetup();
-				doInit = 0;
-			}
-
-			//Connected!
-			Led0_on();
-
-			Usb_select_endpoint(RX_EP);
-
-			//If we have data and a free buffer
-			if(Is_usb_receive_out() && (uip_len == 0)) {
-			
-			    //TODO: Fix this some better way
-				//If you need a delay in RNDIS to slow down super-fast sending, insert it here
-				//Also mark the USB as "in use"
-								
-				//This is done as "flood control" by only allowing one IP packet per time limit
-				thetime = clock_time();
-				
-				timediff = thetime - flood_timer.start;
-				
-				//Oops, timer wrapped! Just ignore it for now
-				if (thetime < flood_timer.start) {
-					timediff = flood_timer.interval;
-				}
-				
-								
-				//If timer not yet expired
-				//if (timediff < flood_timer.interval) {
-				if (!timer_expired(&flood_timer)) {
-					//Wait until timer expiers
-					usb_busy = 1;
-					etimer_set(&et, flood_timer.interval - timediff);
-//Try commenting out the next line if Jackdaw stops RF transmission in Windows after a 5 minute idle period - dak
-					PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));     
-
-					//Reselect endpoint in case we lost it
-					Usb_select_endpoint(RX_EP);          
-					usb_busy = 0;
-				}				
-				
-
-				//Restart flood timer
-				timer_restart(&flood_timer);
-
-				//Read how much (endpoint only stores up to 64 bytes anyway)
-				bytecounter = Usb_byte_counter_8();
- 
-				//Try and read the header in
-				headercounter = sizeof(rndis_data_packet_t);
-
-				uint8_t fail = 0;
-
-				//Hmm.. what's going on here
-				if (bytecounter < headercounter) {
-					Usb_ack_receive_out();
-					fail = 1;
-				}
-
-				i = 0;
-				while (headercounter) {
-					data_buffer[i] = Usb_read_byte();
-					bytecounter--;
-					headercounter--;
-					i++;
-				}
-
-				//This is no good. Probably lost syncronization... just drop it for now
-				if(PBUF->MessageType != REMOTE_NDIS_PACKET_MSG) {
-					Usb_ack_receive_out();
-					fail = 1;
-				}
-
-				//802.3 does not have OOB data, and we don't care about per-packet data
-				//so that just leave regular packet data...
-				if (PBUF->DataLength && (fail == 0)) {			
-				
-					//Looks like we've got a live one
-					rx_start_led();			
-
-
-					//Get offset
-					dataoffset = PBUF->DataOffset;
-
-					//Make it offset from start of message, not DataOffset field
-					dataoffset += (sizeof(rndis_MessageType_t) + sizeof(rndis_MessageLength_t));
-
-					//Subtract what we already took
-					dataoffset -= sizeof(rndis_data_packet_t);
-
-					//Clear this flag
-					Usb_ack_nak_out();
-
-					//Read to the start of data
-					while(dataoffset) {
-						Usb_read_byte();
-						dataoffset--;
-						bytecounter--;
-
-						//If endpoint is done
-						if (bytecounter == 0) {	
-				
-							Usb_ack_receive_out();		
-					
-
-							//Wait for new data
-							while (!Is_usb_receive_out() && (!Is_usb_receive_nak_out()));
-
-							//Check for NAK
-							if (Is_usb_receive_nak_out()) {
-								Usb_ack_nak_out();
-								break;
-							}
-
-							bytecounter = Usb_byte_counter_8();
-
-							//ZLP?
-							if (bytecounter == 0)
-								break;
-						}
-
-					}
-			
-					//Read the data itself in
-					uint8_t * uipdata = uip_buf;
-					uint16_t datalen = PBUF->DataLength;
-			
-					while(datalen) {
-						*uipdata++ = Usb_read_byte();
-						datalen--;
-						bytecounter--;
-
-						//If endpoint is done
-						if (bytecounter == 0) {
-							//Might be everything we need!
-							if (datalen) {
-								Usb_ack_receive_out();
-								//Wait for new data
-								while (!Is_usb_receive_out());
-								bytecounter = Usb_byte_counter_8();
-							}
-						}
-
-					}
-
-					//Ack final data packet
-					Usb_ack_receive_out();					
-
-					//Send data over RF or to local stack
-					uip_len = PBUF->DataLength; //uip_len includes LLH_LEN
-					mac_ethernetToLowpan(uip_buf);
-					
-
-
-				} //if (PBUF->DataLength)
-
-
-		}  //if(Is_usb_receive_out() && (uip_len == 0))
-        
-	    } // if (rndis_data_intialized)
-	    else if(Is_device_enumerated() &&  //Enumeration processs OK &&
-	           (usb_mode == eem) )         //USB Stick is using EEM
-	   {
-			uint16_t datalength;
-
-	        if (doInit) {
-				mac_ethernetSetup();
-				doInit = 0;
-	        }
-
-	        //Connected!
-	        Led0_on();
-
-	        Usb_select_endpoint(RX_EP);
-
-	        //If we have data and a free buffer
-	        if(Is_usb_receive_out() && (uip_len == 0)) {
-
-	        //Read how much (endpoint only stores up to 64 bytes anyway)
-	        bytecounter = Usb_byte_counter_8();
-
-	        //EEM uses 2 bytes as a header
-	        headercounter = 2;
-
-	        uint8_t fail = 0;
-
-	        //Hmm.. what's going on here?
-	         if (bytecounter < headercounter) {
-	             Usb_ack_receive_out();
-	                    //TODO CO done = 1;
-	         }
-
-	         //Read EEM Header
-	         i = 0;
-	         while (headercounter) {
-	        	data_buffer[i] = Usb_read_byte();
-	            bytecounter--;
-	            headercounter--;
-	            i++;
-	         }
-
-			//Order is LSB/MSB, so MSN is in data_buffer[1]
-			//Bit 15 indicates command packet when set
-			if (data_buffer[1] & 0x80) {
-				//not a data payload
-				datalength = 0;
-			} else {
-	            //'0' indicates data packet
-               	//Length is lower 14 bits
-	            datalength = data_buffer[0] | ((data_buffer[1] & 0x3F) << 8);
-	        }
-
-			/* EEM Command Packet */
-			if ((datalength == 0) && (fail == 0))
-			{
-				uint8_t command;
-				uint16_t echoLength;
-
-				//Strip command off
-				command = data_buffer[1] & 0x38;
-				command = command >> 3;
-
-				//Decode command type
-				switch (command)
-				{
-					/* Echo Request */
-					case EEMCMD_ECHO:
-
-						//Get echo length
-						echoLength  = (data_buffer[1] & 0x07) << 8; //MSB
-						echoLength |= data_buffer[0];               //LSB
-
-						//TODO: everything. oops.
-
-						break;
-
-					/* Everything else: Whatever. */
-					case EEMCMD_ECHO_RESPONSE:
-					case EEMCMD_SUSPEND_HINT:
-					case EEMCMD_RESPONSE_HINT:
-					case EEMCMD_RESPONSE_COMPLETE_HINT:
-					case EEMCMD_TICKLE:
-						break;
-
-					default: break;
-				}
-			}
-			/* EEM Data Packet */
-			else if (datalength && (fail == 0))
-			{
-				//Looks like we've got a live one
-				rx_start_led();
-
-				uint16_t bytes_received = 0;
-				uint16_t dataleft = datalength;
-				U8 * buffer = uip_buf;
-
-				while(dataleft)
-				{
-					*buffer++ = Usb_read_byte();
-
-					dataleft--;
-					bytecounter--;
-					bytes_received++;
-
-					//Check if endpoint is done but we are expecting more data
-					if ((bytecounter == 0) && (dataleft))
-					{
-						//ACK previous data
-						Usb_ack_receive_out();
-
-						//Wait for new data
-						while (!Is_usb_receive_out());
-
-						//Get new data
-						bytecounter = Usb_byte_counter_8();
-
-						//ZLP?
-						if (bytecounter == 0)
-						{
-							//Incomplete!!
-							break;
-						}
+		
+		switch(usb_configuration_nb) {
+			case USB_CONFIG_RNDIS_DEBUG:
+			case USB_CONFIG_RNDIS:
+				if(Is_device_enumerated()) {
+					if(rndis_process()) {
+						etimer_set(&et, CLOCK_SECOND/80);
+					} else {
+						Led0_toggle();
+						etimer_set(&et, CLOCK_SECOND/8);
 					}
 				}
-
-				//Ack final data packet
-				Usb_ack_receive_out();
-
-				//Packet has CRC, nobody wants that garbage
-				datalength -= 4;
-
-				//Send data over RF or to local stack
-				uip_len = datalength; //uip_len includes LLH_LEN
-				mac_ethernetToLowpan(uip_buf);
-
-			} //if (datalength)
-		}  //if(Is_usb_receive_out() && (uip_len == 0))
-		} // if (Is_device_enumerated())
-
-		if ((usb_mode == rndis_only) || (usb_mode == rndis_debug) || (usb_mode == eem)) {
-			etimer_set(&et, CLOCK_SECOND/80);
-		} else {
-			etimer_set(&et, CLOCK_SECOND);
+				break;
+			case USB_CONFIG_EEM:
+				if(Is_device_enumerated())
+					cdc_eem_process();
+				etimer_set(&et, CLOCK_SECOND/80);
+				break;
+			case USB_CONFIG_ECM:
+			case USB_CONFIG_ECM_DEBUG:
+				if(Is_device_enumerated()) {
+					if(cdc_ecm_process()) {
+						etimer_set(&et, CLOCK_SECOND/80);
+					} else {
+						Led0_toggle();
+						etimer_set(&et, CLOCK_SECOND/8);
+					}
+				}
+				break;
+			default:
+				Led0_toggle();
+				etimer_set(&et, CLOCK_SECOND/4);
+				break;
 		}
 
-		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et)||(usb_eth_packet_is_available()&&usb_eth_ready_for_next_packet()));
 	} // while(1)
 
 	PROCESS_END();
@@ -527,172 +298,70 @@ static uint16_t iad_fail_timeout, rndis_fail_timeout;
  */
 uint8_t usb_eth_send(uint8_t * senddata, uint16_t sendlen, uint8_t led)
 {
-	if (usb_mode == eem)
-		return eem_send(senddata, sendlen, led);
+	uint8_t ret = 0;
+	
+	if(!usb_eth_is_active) {
+		USB_ETH_HOOK_TX_ERROR("Inactive");
+		goto bail;
+	}
 
-	if ((usb_mode == rndis_only) || (usb_mode == rndis_debug))
-		return rndis_send(senddata, sendlen, led);
+	//Check device is set up
+	if (Is_device_enumerated() == 0) {
+		USB_ETH_HOOK_TX_ERROR("Device not enumerated");
+		goto bail;
+	}
 
+	switch(usb_configuration_nb) {
+		case USB_CONFIG_RNDIS_DEBUG:
+		case USB_CONFIG_RNDIS:
+			ret = rndis_send(senddata, sendlen, led);
+			break;
+		case USB_CONFIG_EEM:
+			ret = eem_send(senddata, sendlen, led);
+			break;
+		case USB_CONFIG_ECM:
+		case USB_CONFIG_ECM_DEBUG:
+			ret = ecm_send(senddata, sendlen, led);
+			break;
+	}
+
+bail:
+
+	if(!ret) // Hit the watchdog if we have a successful send.
+		watchdog_periodic();
+
+	return ret;
+}
+
+uint8_t
+usb_eth_set_active(uint8_t active) {
+	if(usb_eth_is_active!=active) {	
+		switch(usb_configuration_nb) {
+			case USB_CONFIG_RNDIS_DEBUG:
+			case USB_CONFIG_RNDIS:
+				usb_eth_is_active = active;
+				rndis_send_interrupt();
+				break;
+			case USB_CONFIG_EEM:
+				break;
+			case USB_CONFIG_ECM:
+			case USB_CONFIG_ECM_DEBUG:
+				cdc_ecm_set_active(active);
+				usb_eth_is_active = active;
+				break;
+		}
+	}
 	return 0;
 }
 
-/**
- \brief Send a single ethernet frame using EEM
- */
-uint8_t eem_send(uint8_t * senddata, uint16_t sendlen, uint8_t led)
-{
-	//Check device is set up
-	if (Is_device_enumerated() == 0)
-		return 0;
-
-	//Make a header
-	uint8_t header[2];
-
-	//Fake CRC! Add 4 to length for CRC
-	sendlen += 4;
-	header[0] = (sendlen >> 8) & 0x3f;
-	header[1] = sendlen & 0xff;
-
-	//We send CRC seperatly..
-	sendlen -= 4;
-
-	//Send Data
-	Usb_select_endpoint(TX_EP);
-	//Usb_send_in();
-
-	//Wait for ready
-	while(!Is_usb_write_enabled());
-
-	//Send header (LSB then MSB)
-	Usb_write_byte(header[1]);
-	Usb_write_byte(header[0]);
-
-	//Send packet
-	while(sendlen) {
-		Usb_write_byte(*senddata);
-		senddata++;
-		sendlen--;
-
-		//If endpoint is full, send data in
-		//And then wait for data to transfer
-		if (!Is_usb_write_enabled()) {
-			Usb_send_in();
-
-			while(!Is_usb_write_enabled());
-		}
-
-	}
-
-	//CRC = 0xdeadbeef
-	//Linux kernel 2.6.31 needs 0xdeadbeef in wrong order,
-	//like this: uint8_t crc[4] = {0xef, 0xbe, 0xad, 0xde};
-	//This is fixed in 2.6.32 to the correct order (0xde, 0xad, 0xbe, 0xef)
-	uint8_t crc[4] = {0xde, 0xad, 0xbe, 0xef};
-
-	sendlen = 4;
-	uint8_t i = 0;
-
-	//Send fake CRC
-	while(sendlen) {
-		Usb_write_byte(crc[i]);
-		i++;
-		sendlen--;
-
-		//If endpoint is full, send data in
-		//And then wait for data to transfer
-		if (!Is_usb_write_enabled()) {
-			Usb_send_in();
-
-			while(!Is_usb_write_enabled());
-		}
-
-		if (led) {
-			tx_end_led();
-		}
-	}
-
-	//Send last data in - also handles sending a ZLP if needed
-	Usb_send_in();
-
-    //Wait for ready
-    while(!Is_usb_write_enabled());
-
-	return 1;
+void
+usb_eth_get_mac_address(uint8_t dest[6]) {
+	memcpy(dest,&usb_ethernet_addr,6);
 }
 
-/**
- \brief Send data over RNDIS interface, data is in uipbuf and length is uiplen
- */
-uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen, uint8_t led)
-{
-
-
-	uint16_t i;
-
-	//Setup Header
-	PBUF->MessageType = REMOTE_NDIS_PACKET_MSG;
-	PBUF->DataOffset = sizeof(rndis_data_packet_t) - sizeof(rndis_MessageType_t) - sizeof(rndis_MessageLength_t);
-	PBUF->DataLength = sendlen;
-	PBUF->OOBDataLength = 0;
-	PBUF->OOBDataOffset = 0;
-	PBUF->NumOOBDataElements = 0;
-	PBUF->PerPacketInfoOffset = 0;
-	PBUF->PerPacketInfoLength = 0;
-	PBUF->DeviceVcHandle = 0;
-	PBUF->Reserved = 0;
-	PBUF->MessageLength = sizeof(rndis_data_packet_t) + PBUF->DataLength;
-
-	//Send Data
-	Usb_select_endpoint(TX_EP);
-	Usb_send_in();
-
-	//Wait for ready
-	while(!Is_usb_write_enabled());
-
-	//Setup first part of transfer...
-	for(i = 0; i < sizeof(rndis_data_packet_t); i++) {
-		Usb_write_byte(data_buffer[i]);
-	}
-	
-	//Send packet
-	while(sendlen) {
-		Usb_write_byte(*senddata);
-		senddata++;
-		sendlen--;
-
-		//If endpoint is full, send data in
-		//And then wait for data to transfer
-		if (!Is_usb_write_enabled()) {
-			Usb_send_in();
-
-			while(!Is_usb_write_enabled());
-		}
-
-		if (led) {
-			tx_end_led();
-		}
-	}
-
-	Usb_send_in();
-
-	return 1;
+void
+usb_eth_set_mac_address(const uint8_t src[6]) {
+	memcpy(&usb_ethernet_addr,src,6);
 }
 
-/**
-    @brief This will enable the RX_START LED for a period
-*/
-void rx_start_led(void)
-{
-    Led1_on();
-    led1_timer = 10;
-}
-
-/**
-    @brief This will enable the TRX_END LED for a period
-*/
-void tx_end_led(void)
-{
-    Led2_on();
-    led2_timer = 10;
-}
 /** @}  */

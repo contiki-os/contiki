@@ -94,6 +94,14 @@
 
 /** USB RNDIS / Virtual com port setup **/
 
+#ifndef CDC_ECM_USES_INTERRUPT_ENDPOINT
+#define CDC_ECM_USES_INTERRUPT_ENDPOINT	0
+#endif
+
+#ifndef USB_ETH_EMULATE_WIFI
+#define USB_ETH_EMULATE_WIFI	0
+#endif
+
 #define NB_ENDPOINTS        7  //!  number of endpoints in the application including control endpoint
 #define VCP_RX_EP			0x06
 #define VCP_TX_EP			0x05

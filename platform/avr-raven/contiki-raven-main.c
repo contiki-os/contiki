@@ -115,12 +115,43 @@ extern uint8_t domain_name[30];
 uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 #endif
 
+
+static uint8_t get_channel_from_eeprom() {
+	uint8_t eeprom_channel;
+	uint8_t eeprom_check;
+
+	eeprom_channel = eeprom_read_byte((uint8_t *)9);
+	eeprom_check = eeprom_read_byte((uint8_t *)10);
+
+	if(eeprom_channel==~eeprom_check)
+		return eeprom_channel;
+	return 26;
+}
+
+static bool get_mac_from_eeprom(uint8_t* macptr) {
+	eeprom_read_block ((void *)macptr,  &mac_address, 8);
+	return true;
+}
+
+static uint16_t get_panid_from_eeprom(void) {
+	// TODO: Writeme!
+	return IEEE802154_PANID;
+}
+
+static uint16_t get_panaddr_from_eeprom(void) {
+	// TODO: Writeme!
+	return 0;
+}
+
+
 /*-------------------------Low level initialization------------------------*/
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
   //calibrate_rc_osc_32k(); //CO: Had to comment this out
-
+  watchdog_init();
+  watchdog_start();
+  
 #ifdef RAVEN_LCD_INTERFACE
   /* First rs232 port for Raven 3290 port */
   rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
@@ -155,13 +186,15 @@ void initialize(void)
 
   rimeaddr_t addr;
   memset(&addr, 0, sizeof(rimeaddr_t));
-  AVR_ENTER_CRITICAL_REGION();
-  eeprom_read_block ((void *)&addr.u8,  &mac_address, 8);
-  AVR_LEAVE_CRITICAL_REGION();
+  get_mac_from_eeprom(addr.u8);
  
   memcpy(&uip_lladdr.addr, &addr.u8, 8);	
-  rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
-  rf230_set_channel(26);
+  rf230_set_pan_addr(
+	get_panid_from_eeprom(),
+	get_panaddr_from_eeprom(),
+	(uint8_t *)&addr.u8
+  );
+  rf230_set_channel(get_channel_from_eeprom());
 
   rimeaddr_set_node_addr(&addr); 
 
@@ -312,7 +345,7 @@ main(void)
 //    len = rf230_read(packetbuf_dataptr(), PACKETBUF_SIZE);
 //    packetbuf_set_datalen(42);
 //    NETSTACK_RDC.input();
-
+    watchdog_periodic();
 #if TESTRTIMER
     if (rtimerflag) {  //8 seconds is maximum interval, my raven 6% slow
       rtimer_set(&rt, RTIMER_NOW()+ RTIMER_ARCH_SECOND*1UL, 1,(void *) rtimercycle, NULL);

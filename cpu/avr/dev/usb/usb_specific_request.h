@@ -65,9 +65,6 @@ extern  FLASH S_usb_device_descriptor usb_dev_desc_network;
 extern  FLASH S_usb_user_configuration_descriptor_composite usb_conf_desc_composite;
 extern  FLASH S_usb_user_configuration_descriptor_network usb_conf_desc_network;
 extern  FLASH S_usb_device_qualifier_descriptor usb_qual_desc;
-extern  FLASH S_usb_manufacturer_string_descriptor usb_user_manufacturer_string_descriptor;
-extern  FLASH S_usb_product_string_descriptor usb_user_product_string_descriptor;
-extern  FLASH S_usb_serial_number usb_user_serial_number;
 extern  FLASH S_usb_language_id usb_user_language_id;
 
 
@@ -76,6 +73,10 @@ extern  FLASH S_usb_language_id usb_user_language_id;
 Bool  usb_user_read_request(U8, U8);
 Bool  usb_user_get_descriptor(U8 , U8);
 void  usb_user_endpoint_init(U8);
+Bool  usb_user_set_alt_interface(U8 interface, U8 alt_setting);
+
+PGM_P usb_user_get_string(U8 string_type);
+const char* usb_user_get_string_sram(U8 string_type);
 
 void  cdc_get_line_coding();
 void  cdc_set_line_coding();

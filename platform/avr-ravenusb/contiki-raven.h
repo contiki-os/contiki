@@ -45,8 +45,6 @@
 
 // LED's for Raven USB
 #define Leds_init()                 (DDRD  |=  0xA0, DDRE  |=  0xC0)
-#define Leds_on()                   (PORTD |=  0x80, PORTD &= ~0x40, PORTE &=  ~0xC0)
-#define Leds_off()                  (PORTD &= ~0x80, PORTD |=  0x20, PORTE |=   0xC0)
 #define Led0_on()                   (PORTD |=  0x80)
 #define Led1_on()                   (PORTD &= ~0x20)
 #define Led2_on()                   (PORTE &= ~0x80)
@@ -59,6 +57,8 @@
 #define Led1_toggle()               (PIND |= 0x20)
 #define Led2_toggle()               (PINE |= 0x80)
 #define Led3_toggle()               (PINE |= 0x40)
+#define Leds_on()                   (Led0_on(),Led1_on(),Led2_on(),Led3_on())
+#define Leds_off()                  (Led0_off(),Led1_off(),Led2_off(),Led3_off())
 
 
 void init_lowlevel(void);

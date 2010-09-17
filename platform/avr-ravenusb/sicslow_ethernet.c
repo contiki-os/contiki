@@ -53,12 +53,14 @@
 
 //TODO: Should be able to always use this SIMPLE mode, hence can remove the 'complex' mode permanently
 //TODO: RF230BB !SIMPLE works on XP, Ubuntu. SIMPLE works on Vista, W7. Find out why!
-#if RF230BB
-#define UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS 1
-#else
-#define UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS 1
-#endif
 
+#ifndef UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
+#define UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS 0
+#endif // ifndef UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
+
+#ifndef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
+#define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	1
+#endif // ifndef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
 
 #if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
 /**
@@ -255,12 +257,10 @@
 #define MSB(u16)     (((uint8_t  *)&(u16))[1])  //!< Most significant byte of \a u16.
 #endif
 
-#if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
-#define rndis_ethernet_addr local_ethernet_addr
-static uint64_t local_ethernet_addr = 0x3A3B3C3D3E3FULL;
-#else
-extern uint64_t rndis_ethernet_addr;
-#endif
+static const uint64_t simple_trans_ethernet_addr = 0x3E3D3C3B3AF2ULL;
+extern uint64_t usb_ethernet_addr;
+
+extern uint64_t macLongAddr;
 
 #if !RF230BB
 extern void (*pinput)(const struct mac_driver *r);
@@ -272,7 +272,6 @@ usbstick_mode_t usbstick_mode;
 uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
 uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
 uint8_t mac_createDefaultEthernetAddr(uint8_t * ethernet);
-uint8_t memcmp_reverse(uint8_t * a, uint8_t * b, uint8_t num);
 void mac_ethhijack_nondata(const struct mac_driver *r);
 void mac_ethhijack(const struct mac_driver *r);
 
@@ -293,18 +292,6 @@ uint8_t prefixBuffer[PREFIX_BUFFER_SIZE][3];
 
 /* 6lowpan max size + ethernet header size + 1 */
 uint8_t raw_buf[127+ UIP_LLH_LEN +1];
-
-/* RPL uses some core tcpip routines which includes another tcpip_input */
-#if UIP_CONF_IPV6_RPL
-#warning ---------------------------------------------------------------
-#warning For RPL comment out the tcpip_input routine in core/net/tcpip.c
-#warning ---------------------------------------------------------------
-#endif
-void tcpip_input( void )
-{
-//  printf("tcpip_input");
-  mac_LowpanToEthernet();
-}
 
 /**
  * \brief   Perform any setup needed
@@ -340,26 +327,27 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
   uip_lladdr_t destAddr;
   uip_lladdr_t *destAddrPtr = NULL;
 
-  PRINTF("Packet type: %x\n\r", ((struct uip_eth_hdr *) ethHeader)->type);
+  PRINTF("Packet type: 0x%04x\n\r", ntohs(((struct uip_eth_hdr *) ethHeader)->type));
 
    //RUM doesn't support sending data
    #if UIP_CONF_USE_RUM
    return;
    #endif
 
-  //If not IPv6 we don't do anything
-  if (((struct uip_eth_hdr *) ethHeader)->type != HTONS(UIP_ETHTYPE_IPV6)) {
-    PRINTF("eth2low: Packet is not IPv6, dropping\n\r");
-  //      printf("!ipv6");
-#if !RF230BB
-    rndis_stat.txbad++;
-#endif
+  // In sniffer mode we don't ever send anything
+  if (usbstick_mode.sendToRf == 0) {
     uip_len = 0;
     return;
   }
 
-  // In sniffer mode we don't ever send anything
-  if (usbstick_mode.sendToRf == 0) {
+
+  //If not IPv6 we don't do anything
+  if (((struct uip_eth_hdr *) ethHeader)->type != HTONS(UIP_ETHTYPE_IPV6)) {
+    PRINTF("eth2low: Dropping packet w/type=0x%04x\n",ntohs(((struct uip_eth_hdr *) ethHeader)->type));
+  //      printf("!ipv6");
+#if !RF230BB
+    usb_eth_stat.txbad++;
+#endif
     uip_len = 0;
     return;
   }
@@ -377,21 +365,16 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
             (((struct uip_eth_hdr *) ethHeader)->dest.addr[4] == 0xFF) &&
             (((struct uip_eth_hdr *) ethHeader)->dest.addr[5] == 0xFF) ) {
     /* IPv6 does not use broadcast addresses, hence this should not happen */
-    PRINTF("eth2low: Ethernet broadcast address received, should not happen?\n\r");
+    PRINTF("eth2low: Dropping broadcast packet\n\r");
 #if !RF230BB
-    rndis_stat.txbad++;
+    usb_eth_stat.txbad++;
 #endif
     uip_len = 0;
     return;
   } else {
 
-#if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
-    /* Simple Address Translation */
-#if RF230BB
-   if(memcmp((uint8_t *)&rndis_ethernet_addr, &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), 6) == 0) {
-#else
-   if(memcmp_reverse((uint8_t *)&rndis_ethernet_addr, &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), 6) == 0) {
-#endif
+  /* Simple Address Translation */
+  if(memcmp((uint8_t *)&simple_trans_ethernet_addr, &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), 6) == 0) {
         //Addressed to us: make 802.15.4 address from IPv6 Address
         destAddr.addr[0] = UIP_IP_BUF->destipaddr.u8[8] ^ 0x02;
         destAddr.addr[1] = UIP_IP_BUF->destipaddr.u8[9];
@@ -403,20 +386,22 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
         destAddr.addr[7] = UIP_IP_BUF->destipaddr.u8[15];
 
         destAddrPtr = &destAddr;
-    } else {
+  }
+#if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
+  else {
         //Not addressed to us
         uip_len = 0;
         return;
-    }
+  }
+#else
 
     /* Complex Address Translation */
-#else
     PRINTF("eth2low: Addressed packet received... ");
     //Check this returns OK
     if (mac_createSicslowpanLongAddr( &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), &destAddr) == 0) {
       PRINTF(" translation failed\n\r");
 #if !RF230BB
-      rndis_stat.txbad++;
+      usb_eth_stat.txbad++;
 #endif
       uip_len = 0;
       return;
@@ -441,13 +426,11 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 #endif
   }
 	
-  if (usbstick_mode.sendToRf){
-	  tcpip_output(destAddrPtr);
+  tcpip_output(destAddrPtr);
 #if !RF230BB
-	  rndis_stat.txok++;
+  usb_eth_stat.txok++;
 #endif
-  }
-  
+
   uip_len = 0;
 
 }
@@ -488,13 +471,16 @@ void mac_LowpanToEthernet(void)
                         (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   }
 
-#if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
-  mac_createDefaultEthernetAddr((uint8_t *) &(ETHBUF(uip_buf)->src.addr[0]));
-#else
+#if !UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
   //Source ethernet depends on node
-  mac_createEthernetAddr((uint8_t *) &(ETHBUF(uip_buf)->src.addr[0]),
-                         (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+  if(!mac_createEthernetAddr(
+    (uint8_t *) &(ETHBUF(uip_buf)->src.addr[0]),
+    (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER)
+  ))
 #endif
+  {
+    mac_createDefaultEthernetAddr((uint8_t *) &(ETHBUF(uip_buf)->src.addr[0]));
+  }
 
   //We only do address translation in network mode!
   if (usbstick_mode.translate) {
@@ -508,7 +494,7 @@ void mac_LowpanToEthernet(void)
 
   usb_eth_send(uip_buf, uip_len, 1);
 #if !RF230BB
-  rndis_stat.rxok++;
+  usb_eth_stat.rxok++;
 #endif
   uip_len = 0;
 }
@@ -653,13 +639,10 @@ int8_t mac_translateIcmpLinkLayer(lltype_t target)
 //       printf("createsicslowpanlongaddr");
         mac_createSicslowpanLongAddr(llbuf, (uip_lladdr_t *)UIP_ICMP_OPTS(icmp_opt_offset)->data);
       } else {
-        if (UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS) {
-            //Simple address translation always sets this as default
+#if !UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
+        if(!mac_createEthernetAddr(UIP_ICMP_OPTS(icmp_opt_offset)->data, (uip_lladdr_t *)llbuf))
+#endif
             mac_createDefaultEthernetAddr(UIP_ICMP_OPTS(icmp_opt_offset)->data);
-        } else {
-            //Complex address translation sets this as something special
-            mac_createEthernetAddr(UIP_ICMP_OPTS(icmp_opt_offset)->data, (uip_lladdr_t *)llbuf);
-        }
       }
       
       //Adjust the length
@@ -715,6 +698,15 @@ int8_t mac_translateIcmpLinkLayer(lltype_t target)
  */
 uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 {
+#if UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
+  //Special case - if the address is our address, we just copy over what we know to be
+  //our 802.15.4 address
+  if (memcmp((uint8_t *)&usb_ethernet_addr, ethernet, 6) == 0)
+  {
+    memcpy((uint8_t *)lowpan, &macLongAddr, UIP_LLADDR_LEN);
+    return 1;
+  }
+#endif
 
 #if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
 
@@ -733,56 +725,36 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   uint8_t index;
 
 #if UIP_LLADDR_LEN == 8
-  //Special case - if the address is our address, we just copy over what we know to be
-  //our 802.15.4 address
-#if RF230BB
- if (memcmp((uint8_t *)&uip_lladdr.addr[2], ethernet, 6) == 0) {
-//   printf("here1");
-		memcpy((uint8_t *)lowpan, uip_lladdr.addr, 8);
-#else
-  if (memcmp_reverse((uint8_t *)&rndis_ethernet_addr, ethernet, 6) == 0) {
-		memcpy((uint8_t *)lowpan, &macLongAddr, 8);
-		byte_reverse((uint8_t *)lowpan, 8);
-#endif
-
-		return 1;
-	}
-	
   //Check if translate bit is set, hence we have to look up the prefix
-  if (ethernet[0] & TRANSLATE_BIT_MASK) {
-
+  if((ethernet[0]&(TRANSLATE_BIT_MASK|MULTICAST_BIT_MASK|LOCAL_BIT_MASK)) == (TRANSLATE_BIT_MASK|LOCAL_BIT_MASK)) {
     //Get top bits
     index = ethernet[0] >> 3;
 
-    //Check this is plausible...
-    if (index >= prefixCounter) {
-      return 0;
-    }
-
     //Copy over prefix
     lowpan->addr[0] = prefixBuffer[index][0];
-	lowpan->addr[3] = prefixBuffer[index][1];
-	lowpan->addr[4] = prefixBuffer[index][2];
-   
-    //Bit is clear
-    //so we copy all six
+    lowpan->addr[1] = prefixBuffer[index][1];
+    lowpan->addr[2] = prefixBuffer[index][2];
+    lowpan->addr[3] = ethernet[1];
+    lowpan->addr[4] = ethernet[2];
+
+    //Check this is plausible...
+    if (index >= prefixCounter)
+        return 0;
   } else {
- //   printf("here3");
     lowpan->addr[0] = ethernet[0];
+    lowpan->addr[1] = ethernet[1];
+    lowpan->addr[2] = ethernet[2];
     lowpan->addr[3] = 0xff;
     lowpan->addr[4] = 0xfe;
   }
 
-  //Copy over reamining five bytes
-    lowpan->addr[1] = ethernet[1];
-    lowpan->addr[2] = ethernet[2];
-    lowpan->addr[5] = ethernet[3];
-    lowpan->addr[6] = ethernet[4];
-    lowpan->addr[7] = ethernet[5];
+  lowpan->addr[5] = ethernet[3];
+  lowpan->addr[6] = ethernet[4];
+  lowpan->addr[7] = ethernet[5];
 
 #else //UIP_LLADDR != 8
+    // Not sure when we would ever hit this case...
 	uint8_t i;
-//	   printf("here4");
 	for(i = 0; i < UIP_LLADDR_LEN; i++) {
 		lowpan->addr[i] = ethernet[i];
 	}
@@ -801,6 +773,14 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
  */
 uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 {
+#if UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
+	//Special case - if the address is our address, we just copy over what we know to be
+	//our 802.3 address
+	if (memcmp((uint8_t *)&macLongAddr, (uint8_t *)lowpan, UIP_LLADDR_LEN) == 0) {
+		usb_eth_get_mac_address(ethernet);
+		return 1;
+	} 
+#endif  
 
 #if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
 
@@ -819,26 +799,11 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 
 #if UIP_LLADDR_LEN == 8
 
-   //Special case - if the address is our address, we just copy over what we know to be
-  //our 802.3 address
-#if RF230BB
- if (memcmp(uip_lladdr.addr, (uint8_t *)lowpan, 8) == 0) {
-		memcpy(ethernet, &uip_lladdr.addr[2], 6);
-#else
-  if (memcmp_reverse((uint8_t *)&macLongAddr, (uint8_t *)lowpan, 8) == 0) {
-		memcpy(ethernet, &rndis_ethernet_addr, 6);
-		byte_reverse(ethernet, 6);
-#endif
-
-		return 1;
-	} 
-  
-
-  //Check if we need to do anything:
-  if ((lowpan->addr[3] == 0xff) && (lowpan->addr[4] == 0xfe) &&
-      ((lowpan->addr[0] & TRANSLATE_BIT_MASK) == 0) &&
-      ((lowpan->addr[0] & MULTICAST_BIT_MASK) == 0) &&
-      (lowpan->addr[0] & LOCAL_BIT_MASK)) {
+	//Check if we need to do anything:
+	if ((lowpan->addr[3] == 0xff) && (lowpan->addr[4] == 0xfe) &&
+	  ((lowpan->addr[0] & TRANSLATE_BIT_MASK) == 0) &&
+	  ((lowpan->addr[0] & MULTICAST_BIT_MASK) == 0) &&
+	  (lowpan->addr[0] & LOCAL_BIT_MASK)) {
 		
     /** Nope: just copy over 6 bytes **/
       ethernet[0] = lowpan->addr[0];
@@ -854,48 +819,45 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
     /** Yes: need to store prefix **/
     for (i = 0; i < prefixCounter; i++)	{	
       //Check the current prefix - if it fails, check next one
-    
-
-
-       if ((lowpan->addr[0] == prefixBuffer[i][0]) &&
-           (lowpan->addr[3] == prefixBuffer[i][1]) &&
-           (lowpan->addr[4] == prefixBuffer[i][2])) {
-			break;
-	   }
-	
-    }
-    
+      if ((lowpan->addr[0] == prefixBuffer[i][0]) &&
+         (lowpan->addr[1] == prefixBuffer[i][1]) &&
+         (lowpan->addr[2] == prefixBuffer[i][2])) {
+        break;
+      }
+  }
     index = i;
 
-    //Deal with overflow, iron-fist style
-    if (index >= PREFIX_BUFFER_SIZE) {
-      index = 0;
-      prefixCounter = PREFIX_BUFFER_SIZE;
-    } else {	
-      //Are we making a new one?
-      if (index == prefixCounter) {
-        prefixCounter++;
-      }
-    }
+		if (index >= PREFIX_BUFFER_SIZE) {
+			// Overflow. Fall back to simple translation.
+			// TODO: Implement me!
+			ethernet[0] = lowpan->addr[0];
+			ethernet[1] = lowpan->addr[1];
+			ethernet[2] = lowpan->addr[2];
+			ethernet[3] = lowpan->addr[5];
+			ethernet[4] = lowpan->addr[6];
+			ethernet[5] = lowpan->addr[7];
+			return 0;
+		} else {	
+			//Are we making a new one?
+			if (index == prefixCounter) {
+				prefixCounter++;
+				prefixBuffer[index][0] = lowpan->addr[0];
+				prefixBuffer[index][1] = lowpan->addr[1];
+				prefixBuffer[index][2] = lowpan->addr[2];
+			}
 
-    //Copy the prefix over, no matter if we have a new or old one
-    prefixBuffer[index][0] = lowpan->addr[0];
-	prefixBuffer[index][1] = lowpan->addr[3];
-	prefixBuffer[index][2] = lowpan->addr[4];
-  
-    //Create ethernet MAC address now
-    ethernet[1] = lowpan->addr[1];
-	ethernet[2] = lowpan->addr[2];
-	ethernet[3] = lowpan->addr[5];
-	ethernet[4] = lowpan->addr[6];
-    ethernet[5] = lowpan->addr[7];
-	
-	
-    ethernet[0] = TRANSLATE_BIT_MASK | LOCAL_BIT_MASK | (index << 3);
-  }
+			//Create ethernet MAC address now
+			ethernet[0] = TRANSLATE_BIT_MASK | LOCAL_BIT_MASK | (index << 3);
+			ethernet[1] = lowpan->addr[3];
+			ethernet[2] = lowpan->addr[4];
+			ethernet[3] = lowpan->addr[5];
+			ethernet[4] = lowpan->addr[6];
+			ethernet[5] = lowpan->addr[7];
+		}
+	}
 
 #else //UIP_LLADDR_LEN != 8
-
+	// Not sure when we would ever hit this case...
     //Create ethernet MAC address now
 	for(i = 0; i < UIP_LLADDR_LEN; i++) {
 		ethernet[i] = lowpan->addr[i];
@@ -906,20 +868,15 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 
   return 1;
 }
-#if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
 /**
  * \brief Create a 802.3 address (default)
  * \param ethernet   Pointer to ethernet address
  */
 uint8_t mac_createDefaultEthernetAddr(uint8_t * ethernet)
 {
-  memcpy(ethernet, &rndis_ethernet_addr, 6);
-#if !RF230BB
-    byte_reverse(ethernet, 6);
-#endif
+  memcpy(ethernet, &simple_trans_ethernet_addr, 6);
   return 1;
 }
-#endif
 /**
  * \brief        Slide the pointed to memory up a certain amount,
  *               growing/shrinking a buffer
@@ -951,6 +908,104 @@ void slide(uint8_t * data, uint8_t length, int16_t slide)
     i++;
   }
 }
+
+//#define ETHBUF(x) ((struct uip_eth_hdr *)x)
+//#define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+
+void
+mac_log_802_15_4_tx(const uint8_t* buffer, size_t total_len) {
+  if (usbstick_mode.raw != 0) {
+    uint8_t sendlen;
+
+	static uint8_t raw_buf[127+ UIP_LLH_LEN +1];
+
+  /* Get the raw frame */
+    memcpy(&raw_buf[UIP_LLH_LEN], buffer, total_len);
+    sendlen = total_len;
+
+  /* Setup generic ethernet stuff */
+    ETHBUF(raw_buf)->type = htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
+ 
+  /* Check for broadcast message */
+    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+      ETHBUF(raw_buf)->dest.addr[0] = 0x33;
+      ETHBUF(raw_buf)->dest.addr[1] = 0x33;
+      ETHBUF(raw_buf)->dest.addr[2] = 0x00;
+      ETHBUF(raw_buf)->dest.addr[3] = 0x00;
+      ETHBUF(raw_buf)->dest.addr[4] = 0x80;
+      ETHBUF(raw_buf)->dest.addr[5] = 0x9A;
+
+/*
+      ETHBUF(raw_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
+      ETHBUF(raw_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
+      ETHBUF(raw_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
+      ETHBUF(raw_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
+*/
+    } else {
+  /* Otherwise we have a real address */  
+      mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->dest.addr[0]),
+          (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    }
+
+//    mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]),(uip_lladdr_t *)&uip_lladdr.addr);
+	mac_createDefaultEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]));
+
+    sendlen += UIP_LLH_LEN;
+    usb_eth_send(raw_buf, sendlen, 0);
+  }
+}
+
+void
+mac_log_802_15_4_rx(const uint8_t* buf, size_t len) {
+  if (usbstick_mode.raw != 0) {
+    uint8_t sendlen;
+
+  /* Get the raw frame */
+    memcpy(&raw_buf[UIP_LLH_LEN], buf, len);
+    sendlen = len;
+
+  /* Setup generic ethernet stuff */
+    ETHBUF(raw_buf)->type = htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
+  
+  /* Check for broadcast message */
+    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+      ETHBUF(raw_buf)->dest.addr[0] = 0x33;
+      ETHBUF(raw_buf)->dest.addr[1] = 0x33;
+      ETHBUF(raw_buf)->dest.addr[2] = 0x00;
+      ETHBUF(raw_buf)->dest.addr[3] = 0x00;
+      ETHBUF(raw_buf)->dest.addr[4] = 0x80;
+      ETHBUF(raw_buf)->dest.addr[5] = 0x9A;
+/*
+      ETHBUF(raw_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
+      ETHBUF(raw_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
+      ETHBUF(raw_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
+      ETHBUF(raw_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
+*/
+    } else {
+  /* Otherwise we have a real address */  
+      mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->dest.addr[0]),
+          (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    }
+
+//    mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]),(uip_lladdr_t *)&uip_lladdr.addr);
+	mac_createDefaultEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]));
+
+    sendlen += UIP_LLH_LEN;
+    usb_eth_send(raw_buf, sendlen, 0);
+  }
+}
+
+bool
+mac_is_send_enabled(void) {
+	return usbstick_mode.sendToRf;
+}
+
+/** @} */
+
+
+
+/** @} */
+
 
 #if !RF230BB
 /*--------------------------------------------------------------------*/
@@ -997,58 +1052,7 @@ void mac_ethhijack_nondata(const struct mac_driver *r)
  */
 void mac_logTXtoEthernet(frame_create_params_t *p,frame_result_t *frame_result)
 {
-  uint8_t sendlen;
-
-  /* Make sure we are supposed to do this */
-  if (usbstick_mode.raw == 0) return;
-
-/* Get the raw frame */
-  memcpy(&raw_buf[UIP_LLH_LEN], frame_result->frame, frame_result->length);
-  sendlen = frame_result->length;
-
- //Setup generic ethernet stuff
-  ETHBUF(raw_buf)->type = htons(UIP_ETHTYPE_802154);
-  
-  uint64_t tempaddr;
-	
- 
-  //Check for broadcast message
-  //if(rimeaddr_cmp((const rimeaddr_t *)destAddr, &rimeaddr_null)) {
-  if(  ( p->fcf.destAddrMode == SHORTADDRMODE) &&
-       ( p->dest_addr.addr16 == 0xffff) ) {
-    ETHBUF(raw_buf)->dest.addr[0] = 0x33;
-    ETHBUF(raw_buf)->dest.addr[1] = 0x33;
-    ETHBUF(raw_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
-    ETHBUF(raw_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
-    ETHBUF(raw_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
-    ETHBUF(raw_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
-  } else {    
-
-	tempaddr = p->dest_addr.addr64;
-	
-	byte_reverse((uint8_t *)&tempaddr, 8);
-	
-	//Otherwise we have a real address
-	mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->dest.addr[0]),
-            (uip_lladdr_t *)&tempaddr);
-
-  }
-
-	tempaddr = p->src_addr.addr64;
-	
-	byte_reverse((uint8_t *)&tempaddr, 8);
-
-  mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]),
-                         (uip_lladdr_t *)&tempaddr);
-
-   PRINTF("Low2Eth: Sending 802.15.4 packet to ethernet\n\r");
-
-  sendlen += UIP_LLH_LEN;
-
-  usb_eth_send(raw_buf, sendlen, 0);
-  rndis_stat.rxok++;
- 
-  return;
+	mac_log_802_15_4_tx(frame_result->frame, frame_result->length);
 }
 
 
@@ -1059,67 +1063,11 @@ void mac_logTXtoEthernet(frame_create_params_t *p,frame_result_t *frame_result)
  *  The 6lowpan packet is put in packetbuf by the MAC. This routine passes
  *  it directly to the ethernet layer without decompressing.
  */
-void mac_802154raw(const struct mac_driver *r)
-{ 
-  uint8_t sendlen;
-
-	parsed_frame = sicslowmac_get_frame();
-
-  /* Get the raw frame */
-  memcpy(&raw_buf[UIP_LLH_LEN], radio_frame_data(), radio_frame_length());
-  sendlen = radio_frame_length();
-
- //Setup generic ethernet stuff
-  ETHBUF(raw_buf)->type = htons(UIP_ETHTYPE_802154);
-  
- 
-  //Check for broadcast message
-  //if(rimeaddr_cmp((const rimeaddr_t *)destAddr, &rimeaddr_null)) {
-  if(  ( parsed_frame->fcf->destAddrMode == SHORTADDRMODE) &&
-       ( parsed_frame->dest_addr->addr16 == 0xffff) ) {
-    ETHBUF(raw_buf)->dest.addr[0] = 0x33;
-    ETHBUF(raw_buf)->dest.addr[1] = 0x33;
-    ETHBUF(raw_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
-    ETHBUF(raw_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
-    ETHBUF(raw_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
-    ETHBUF(raw_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
-  } else {
-    
-	//Otherwise we have a real address
-	mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->dest.addr[0]),
-            (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-
-  }
-
-  mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]),
-                         (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-
-   PRINTF("Low2Eth: Sending 802.15.4 packet to ethernet\n\r");
-
-  sendlen += UIP_LLH_LEN;
-
-  usb_eth_send(raw_buf, sendlen, 1);
-  rndis_stat.rxok++;
- 
-  return;
+void mac_802154raw(const struct mac_driver *r) { 
+	mac_log_802_15_4_tx(radio_frame_data(), radio_frame_length());
 }
 
-
-uint8_t memcmp_reverse(uint8_t * a, uint8_t * b, uint8_t num)
-{
-	uint8_t i = 0;
-
-	while(num) {
-		num--;
-		if (a[i] != b[num]) return 1;
-		i++;
-	}
-	
-	return 0;
-}
 #endif /* !RF230BB */
-/** @} */
 
 
 
-/** @} */

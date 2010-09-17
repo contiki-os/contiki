@@ -43,6 +43,14 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+
+/* ************************************************************************** */
+//#pragma mark Basic Configuration
+/* ************************************************************************** */
+
 /* MCU and clock rate */
 #define MCU_MHZ 8
 #define PLATFORM PLATFORM_AVR
@@ -50,6 +58,14 @@
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
+
+/* Mac address, RF channel, PANID from EEPROM settings manager */
+/* Generate random MAC address on first startup */
+/* Random number from radio clock skew or ADC noise */
+#define JACKDAW_CONF_USE_SETTINGS		1
+#define JACKDAW_CONF_RANDOM_MAC         0
+#define RNG_CONF_USE_RADIO_CLOCK	1
+//#define RNG_CONF_USE_ADC	1
 
 /* Since clock_time_t is 16 bits, maximum interval is 524 seconds */
 #define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /*Default uses 600*/
@@ -74,13 +90,71 @@
 #define CCIF
 #define CLIF
 
-#define RIMEADDR_CONF_SIZE       8
+/* ************************************************************************** */
+//#pragma mark USB Ethernet Hooks
+/* ************************************************************************** */
 
-#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
-#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
+#ifndef USB_ETH_HOOK_IS_READY_FOR_INBOUND_PACKET
+#if RF230BB
+#define	USB_ETH_HOOK_IS_READY_FOR_INBOUND_PACKET()		rf230_is_ready_to_send()
+#else
+static inline uint8_t radio_is_ready_to_send_() {
+	switch(radio_get_trx_state()) {
+		case BUSY_TX:
+		case BUSY_TX_ARET:
+			return 0;
+	}
+	return 1;
+}
+#define	USB_ETH_HOOK_IS_READY_FOR_INBOUND_PACKET()		radio_is_ready_to_send_()
+#endif
+#endif
+
+#ifndef USB_ETH_HOOK_HANDLE_INBOUND_PACKET
+#define USB_ETH_HOOK_HANDLE_INBOUND_PACKET(buffer,len)	do { uip_len = len ; mac_ethernetToLowpan(buffer); } while(0)
+#endif
+
+#ifndef USB_ETH_HOOK_SET_PROMISCIOUS_MODE
+#if RF230BB
+#define USB_ETH_HOOK_SET_PROMISCIOUS_MODE(value)	rf230_set_promiscuous_mode(value)
+#else		
+#define USB_ETH_HOOK_SET_PROMISCIOUS_MODE(value)	radio_set_trx_state(value?RX_ON:RX_AACK_ON)
+#endif
+#endif
+
+#ifndef USB_ETH_HOOK_INIT
+#define USB_ETH_HOOK_INIT()		mac_ethernetSetup()
+#endif
+
+/* ************************************************************************** */
+//#pragma mark RF230BB Hooks
+/* ************************************************************************** */
+
+//#define RF230BB_HOOK_RADIO_OFF()	Led1_off()
+//#define RF230BB_HOOK_RADIO_ON()		Led1_on()
+#define RF230BB_HOOK_TX_PACKET(buffer,total_len) mac_log_802_15_4_tx(buffer,total_len)
+#define RF230BB_HOOK_RX_PACKET(buffer,total_len) mac_log_802_15_4_rx(buffer,total_len)
+#define	RF230BB_HOOK_IS_SEND_ENABLED()	mac_is_send_enabled()
+extern bool mac_is_send_enabled(void);
+extern void mac_log_802_15_4_tx(const uint8_t* buffer, size_t total_len);
+extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
+
+
+/* ************************************************************************** */
+//#pragma mark USB CDC-ACM (UART) Hooks
+/* ************************************************************************** */
+
+#define USB_CDC_ACM_HOOK_TX_END(char)			vcptx_end_led()
+#define USB_CDC_ACM_HOOK_CLS_CHANGED(state)		vcptx_end_led()
+#define USB_CDC_ACM_HOOK_CONFIGURED()			vcptx_end_led()
+
+/* ************************************************************************** */
+//#pragma mark UIP Settings
+/* ************************************************************************** */
 
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         14
+#define UIP_CONF_BUFSIZE		UIP_LINK_MTU + UIP_LLH_LEN + 4   // +4 for vlan on macosx
 
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 4
@@ -104,14 +178,37 @@
 #define UIP_CONF_TCP_SPLIT       1
 
 #define UIP_CONF_STATISTICS      1
-/* Disable mass storage enumeration for more debug string space */
-//#define USB_CONF_STORAGE         1
-/* Use either USB CDC or RS232 for stdout (or neither) */
-//#define USB_CONF_CDC             1
-#define USB_CONF_RS232           1
 
+/* ************************************************************************** */
+//#pragma mark Serial Port Settings
+/* ************************************************************************** */
+
+/* Disable mass storage enumeration for more program space */
+/* TODO: Mass storage is currently broken */
+#define USB_CONF_STORAGE         0
+/* Use either USB CDC or RS232 for stdout (or neither) */
+/* TODO:CDC is currently broken on windows/linux, use RS232 */
+#define USB_CONF_CDC             1
+//#define USB_CONF_RS232           1
+ 
+/* ************************************************************************** */
+//#pragma mark RIME Settings
+/* ************************************************************************** */
+
+#define RIMEADDR_CONF_SIZE       8
+
+/* ************************************************************************** */
+//#pragma mark SICSLOWPAN Settings
+/* ************************************************************************** */
+
+#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
 #ifdef RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
+
+/* ************************************************************************** */
+//#pragma mark NETSTACK Settings
+/* ************************************************************************** */
 
 #if 1       /* Network setup */
 /* No radio cycling */
@@ -158,12 +255,19 @@
 #error Network configuration not specified!
 #endif   /* Network setup */
 
-#if 0   /* RPL */
+
+/* ************************************************************************** */
+//#pragma mark RPL Settings
+/* ************************************************************************** */
+
+#define UIP_CONF_IPV6_RPL               0
+
+#if UIP_CONF_IPV6_RPL
+
 /* Not completely working yet. Link local pings work but address prefixes do not get assigned */
 /* RPL requires the uip stack. Change #CONTIKI_NO_NET=1 to UIP_CONF_IPV6=1 in the examples makefile,
 or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenusb */
 
-#define UIP_CONF_IPV6_RPL               1
 #define UIP_CONF_ROUTER  1
 #define RPL_CONF_STATS    0
 #define PROCESS_CONF_NO_PROCESS_NAMES  0
@@ -212,10 +316,12 @@ or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenu
 #define UIP_CONF_PINGADDRCONF    0
 #define UIP_CONF_LOGGING         0
 #endif
-#endif /* RPL */
-
-
+#endif /* UIP_CONF_IPV6_RPL */
 #endif /* RF230BB */
+
+/* ************************************************************************** */
+//#pragma mark Other Settings
+/* ************************************************************************** */
 
 /* Route-Under-MAC uses 16-bit short addresses */
 #if UIP_CONF_USE_RUM

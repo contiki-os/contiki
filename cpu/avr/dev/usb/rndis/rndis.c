@@ -58,6 +58,7 @@ RNDIS Status Information:
 
 //_____ I N C L U D E S ____________________________________________________
 
+#include <stdbool.h>
 #include "radio.h"
 #include "contiki.h"
 #include "config.h"
@@ -65,11 +66,17 @@ RNDIS Status Information:
 #include "usb_descriptors.h"
 #include "usb_specific_request.h"
 #include "rndis/rndis_protocol.h"
+#include "rndis/rndis_task.h"
 #include "uip.h"
 #include "serial/uart_usb_lib.h"
 #include "sicslow_ethernet.h"
 #include <avr/pgmspace.h>
 #include <string.h>
+
+#include <stdio.h>
+#include <avr/pgmspace.h>
+#include <util/delay.h>
+
 
 //_____ M A C R O S ________________________________________________________
 
@@ -80,14 +87,10 @@ RNDIS Status Information:
 extern PGM_VOID_P pbuffer;
 extern U8   data_to_transfer;
 
-//NB: If you change the OID list be sure to update this!!!
-//#define OID_LIST_LENGTH 50
-#define OID_LIST_LENGTH 35
-
 /**
  * \brief List of supported RNDIS OID's
  */
-prog_uint32_t OIDSupportedList[OID_LIST_LENGTH] = {
+prog_uint32_t OIDSupportedList[] = {
 		/* Required General */
         OID_GEN_SUPPORTED_LIST            ,
         OID_GEN_HARDWARE_STATUS           ,
@@ -128,7 +131,7 @@ prog_uint32_t OIDSupportedList[OID_LIST_LENGTH] = {
 
 /*802.11 OID's not fully implemented yet. Hence do not say we
   support them */
-#ifdef DONOTEVERDEFINETHISORBADSTUFFHAPPENS
+#if USB_ETH_EMULATE_WIFI
 		/* 802.11 OIDs */
         OID_802_11_BSSID                  ,
         OID_802_11_SSID                   ,
@@ -156,17 +159,16 @@ prog_uint32_t OIDSupportedList[OID_LIST_LENGTH] = {
 		OID_PNP_ENABLE_WAKE_UP            ,
 		OID_PNP_ADD_WAKE_UP_PATTERN       ,
 		OID_PNP_REMOVE_WAKE_UP_PATTERN
+};
 
-	};
+#define OID_LIST_LENGTH sizeof(OIDSupportedList)/sizeof(*OIDSupportedList)
 
 
 rndis_state_t rndis_state;
 
-rndis_stat_t rndis_stat;
+usb_eth_stat_t usb_eth_stat;
 
 uint8_t schedule_interrupt = 0;
-
-uint64_t rndis_ethernet_addr = 0x203478928323ULL;
 
 //_____ D E C L A R A T I O N ______________________________________________
 
@@ -188,7 +190,7 @@ U8 data_to_send = 0x00;
  *
  * \return True on success, false on failure.
  */
-uint8_t send_encapsulated_command(uint16_t wLength)
+uint8_t rndis_send_encapsulated_command(uint16_t wLength)
 {
 	U8 i = 0;
 
@@ -199,12 +201,6 @@ uint8_t send_encapsulated_command(uint16_t wLength)
 	//Crude bounds check
 	if (wLength > ENC_BUF_SIZE)
 		wLength = ENC_BUF_SIZE;
-
-	//For debugging: this shouldn't happen, just checked it didn't
-	//if (data_to_send) {
-	//	while(1);
-	//}
-
 
 	//Read in all the bytes...
 
@@ -256,9 +252,13 @@ uint8_t send_encapsulated_command(uint16_t wLength)
 				m->MinorVersion = RNDIS_MAJOR_VERSION;
 				m->Status = RNDIS_STATUS_SUCCESS;
 				m->DeviceFlags = RNDIS_DF_CONNECTIONLESS;
+#if USB_ETH_EMULATE_WIFI
+				m->Medium = NDIS_MEDIUM_WIRELESS_LAN;
+#else
 				m->Medium = RNDIS_MEDIUM_802_3;
+#endif // USB_ETH_EMULATE_WIFI
 				m->MaxPacketsPerTransfer = 1;
-				m->MaxTransferSize = 1338; /* Space for 1280 IP buffer, Ethernet Header, 
+				m->MaxTransferSize = USB_ETH_MTU + 58; /* Space for 1280 IP buffer, Ethernet Header, 
 				                              RNDIS messages */
 				m->PacketAlignmentFactor = 3;
 				m->AfListOffset = 0;
@@ -353,7 +353,9 @@ void rndis_send_interrupt(void)
 
 uint32_t oid_packet_filter = 0x0000000;
 
+#if USB_ETH_EMULATE_WIFI
 uint16_t panid = 0xbaad;
+#endif
 
 /**
  * \brief Function to handle a RNDIS "QUERY" command in the encapsulated_buffer
@@ -392,15 +394,20 @@ void rndis_query_process(void)
 
         case OID_GEN_MEDIA_SUPPORTED:           
         case OID_GEN_MEDIA_IN_USE: 
-			*INFBUF = NDIS_MEDIUM_802_3; /* NDIS_MEDIUM_WIRELESS_LAN instead? */  
+        case OID_GEN_PHYSICAL_MEDIUM:			
+#if USB_ETH_EMULATE_WIFI
+			*INFBUF = NDIS_MEDIUM_WIRELESS_LAN;
+#else
+			*INFBUF = NDIS_MEDIUM_802_3;
+#endif
 			break;	
 		
         case OID_GEN_MAXIMUM_FRAME_SIZE:
-			*INFBUF = (uint32_t) 1280; //1280 //102; /* Assume 25 octet header on 15.4 */
+			*INFBUF = (uint32_t) USB_ETH_MTU-14; //1280 //102; /* Assume 25 octet header on 15.4 */
 			break;
 
         case OID_GEN_LINK_SPEED:            
-			*INFBUF = (uint32_t) 100; /* in 100 bytes/sec units.. this is kinda a lie */
+			*INFBUF = (uint32_t) 250000/100; /* in 100 bytes/sec units.. this is kinda a lie */
 			break; 
 
         case OID_GEN_TRANSMIT_BLOCK_SIZE:       
@@ -422,57 +429,35 @@ void rndis_query_process(void)
 			break;
 
         case OID_GEN_MAXIMUM_TOTAL_SIZE:        
-			*INFBUF = (uint32_t) 1300; //127; 
+			*INFBUF = (uint32_t) USB_ETH_MTU; //127; 
 			break;
 
         case OID_GEN_MEDIA_CONNECT_STATUS: 
-			*INFBUF = NDIS_MEDIA_STATE_CONNECTED;
+			*INFBUF = usb_eth_is_active?NDIS_MEDIA_STATE_CONNECTED:NDIS_MEDIA_STATE_DISCONNECTED;
 			break;
 			     
         case OID_GEN_VENDOR_DRIVER_VERSION:     
 			*INFBUF = 0x00001000;
 			break;
 
-        case OID_GEN_PHYSICAL_MEDIUM:			
-			*INFBUF = NDIS_MEDIUM_802_3; /*NDIS_MEDIUM_WIRELESS_LAN;*/
-			break;
 
 		case OID_GEN_CURRENT_LOOKAHEAD:
-			*INFBUF = (uint32_t) 1280; //102;
+			*INFBUF = (uint32_t) USB_ETH_MTU-14; //102;
+
+//		case OID_GEN_RNDIS_CONFIG_PARAMETER:
+//			break;
 
 		/******* 802.3 (Ethernet) *******/
 
 		/*The address of the NIC encoded in the hardware.*/
        	case OID_802_3_PERMANENT_ADDRESS:
-
-			//Clear unused bytes
-            *(INFBUF + 1) = 0;
-
-			//Set address
-			*((uint8_t *)INFBUF + 0) =  *(((uint8_t * ) &rndis_ethernet_addr) + 5);
-			*((uint8_t *)INFBUF + 1) =  *(((uint8_t * ) &rndis_ethernet_addr) + 4);
-			*((uint8_t *)INFBUF + 2) =  *(((uint8_t * ) &rndis_ethernet_addr) + 3);
-			*((uint8_t *)INFBUF + 3) =  *(((uint8_t * ) &rndis_ethernet_addr) + 2);
-			*((uint8_t *)INFBUF + 4) =  *(((uint8_t * ) &rndis_ethernet_addr) + 1);
-			*((uint8_t *)INFBUF + 5) =  *(((uint8_t * ) &rndis_ethernet_addr) + 0);
-
-			
-			/*4+2 = 6 Bytes of eth address */
-			c->InformationBufferLength += 2;
-			break;
-
-		/*The address the NIC is currently using.*/
         case OID_802_3_CURRENT_ADDRESS: 		
+
 			//Clear unused bytes
             *(INFBUF + 1) = 0;
 
-			//Set address
-			*((uint8_t *)INFBUF + 0) =  *(((uint8_t * ) &rndis_ethernet_addr) + 5);
-			*((uint8_t *)INFBUF + 1) =  *(((uint8_t * ) &rndis_ethernet_addr) + 4);
-			*((uint8_t *)INFBUF + 2) =  *(((uint8_t * ) &rndis_ethernet_addr) + 3);
-			*((uint8_t *)INFBUF + 3) =  *(((uint8_t * ) &rndis_ethernet_addr) + 2);
-			*((uint8_t *)INFBUF + 4) =  *(((uint8_t * ) &rndis_ethernet_addr) + 1);
-			*((uint8_t *)INFBUF + 5) =  *(((uint8_t * ) &rndis_ethernet_addr) + 0);
+			//get address
+			usb_eth_get_mac_address((uint8_t*)INFBUF);
 			
 			/*4+2 = 6 Bytes of eth address */
 			c->InformationBufferLength += 2;
@@ -495,20 +480,14 @@ void rndis_query_process(void)
 
 		/* Frames received with alignment error */
         case OID_802_3_RCV_ERROR_ALIGNMENT:
-			*INFBUF = 0;
-			break;
-
 		/* Frames transmitted with one collision */
         case OID_802_3_XMIT_ONE_COLLISION:    
-			*INFBUF = 0;
-			break;
-
 		/* Frames transmitted with more than one collision */
         case OID_802_3_XMIT_MORE_COLLISIONS:
 			*INFBUF = 0;
 			break;
 
-
+#if USB_ETH_EMULATE_WIFI
 		/*** 802.11 OIDs ***/
         case OID_802_11_BSSID:   
 			*INFBUF = (uint32_t)panid;
@@ -543,27 +522,28 @@ void rndis_query_process(void)
         case OID_802_11_WEP_STATUS:   
         case OID_802_11_AUTHENTICATION_MODE:
 			break;
+#endif //USB_ETH_EMULATE_WIFI
   
 		/*** Statistical ***/
 
 		/* Frames transmitted without errors */
 		case OID_GEN_XMIT_OK:    
-			*INFBUF = rndis_stat.txok;
+			*INFBUF = usb_eth_stat.txok;
 			break;
 		
 		/* Frames received without errors */              
 		case OID_GEN_RCV_OK:               
-			*INFBUF = rndis_stat.rxok;
+			*INFBUF = usb_eth_stat.rxok;
 			break;
 		
 		/* Frames received with errors */             
 		case OID_GEN_RCV_ERROR:            
-			*INFBUF = rndis_stat.rxbad;
+			*INFBUF = usb_eth_stat.rxbad;
 			break;
 
 		/* Frames transmitted with errors */
 		case OID_GEN_XMIT_ERROR: 
-		    *INFBUF = rndis_stat.txbad;  
+		    *INFBUF = usb_eth_stat.txbad;  
 			break;
 
 		/* Frames dropped due to lack of buffer space */
@@ -617,8 +597,20 @@ void rndis_query_process(void)
 #define CFGBUF ((rndis_config_parameter_t *) INFBUF)
 #define PARMNAME  ((uint8_t *)CFGBUF + CFGBUF->ParameterNameOffset)
 #define PARMVALUE ((uint8_t *)CFGBUF + CFGBUF->ParameterValueOffset)
-
+#define PARMVALUELENGTH	CFGBUF->ParameterValueLength
 #define PARM_NAME_LENGTH 25 /* Maximum parameter name length */
+
+bool
+rndis_handle_config_parm(const char* parmname,const uint8_t* parmvalue,size_t parmlength) {
+	if (strncmp_P(parmname, PSTR("rawmode"), 7) == 0) {
+		if (parmvalue[0] == '0') {
+			usbstick_mode.raw = 0;
+		} else {
+			usbstick_mode.raw = 1;
+		}
+	}
+
+}
 
 /**
  * \brief Function to deal with a RNDIS "SET" command present in the
@@ -664,13 +656,7 @@ void rndis_set_process(void)
 			   Parameter type: single octet
 			   Parameter values: '0' = disabled, '1' = enabled
 			*/
-			if (strncmp_P(parmname, PSTR("rawmode"), 7) == 0) {
-				if (*PARMVALUE == '0') {
-					usbstick_mode.raw = 0;
-				} else {
-				    usbstick_mode.raw = 1;
-				}
-			}
+			rndis_handle_config_parm(parmname,PARMVALUE,PARMVALUELENGTH);
 
 
 			break;
@@ -700,6 +686,7 @@ void rndis_set_process(void)
 		case OID_802_3_MULTICAST_LIST:
 			break;
 
+#if USB_ETH_EMULATE_WIFI
 		/* Mandatory 802.11 OIDs */
 		case OID_802_11_BSSID: 
 			panid = *INFBUF;
@@ -708,6 +695,7 @@ void rndis_set_process(void)
 		case OID_802_11_SSID:
 			break;
 			//TODO: rest of 802.11
+#endif // USB_ETH_EMULATE_WIFI
 
 		/* Power Managment: fails for now */
 		case OID_PNP_ADD_WAKE_UP_PATTERN:
@@ -743,7 +731,7 @@ void rndis_set_process(void)
  * the "SEND ENCAPSULATED COMMAND" message, which will trigger
  * and interrupt on the host so it knows data is ready.
  */
-uint8_t get_encapsulated_command(void)
+uint8_t rndis_get_encapsulated_command(void)
 	{
 	U8 nb_byte, zlp, i;
 
@@ -828,6 +816,261 @@ uint8_t rndis_send_status(rndis_Status_t stat)
 	return 0;
 	}
 
+void rndis_configure_endpoints() {
+	usb_configure_endpoint(INT_EP,      \
+						 TYPE_INTERRUPT,     \
+						 DIRECTION_IN,  \
+						 SIZE_8,       \
+						 ONE_BANK,     \
+						 NYET_ENABLED);
+	usb_configure_endpoint(TX_EP,      \
+						 TYPE_BULK,  \
+						 DIRECTION_IN,  \
+						 SIZE_64,     \
+						 TWO_BANKS,     \
+						 NYET_ENABLED);
+
+	usb_configure_endpoint(RX_EP,      \
+						 TYPE_BULK,     \
+						 DIRECTION_OUT,  \
+						 SIZE_64,       \
+						 TWO_BANKS,     \
+						 NYET_ENABLED);
+	Usb_reset_endpoint(INT_EP);
+	Usb_reset_endpoint(TX_EP);
+	Usb_reset_endpoint(RX_EP);
+}
+
+
+extern char usb_busy;
+extern uint8_t usb_eth_data_buffer[64];
+#define PBUF ((rndis_data_packet_t *) usb_eth_data_buffer)
+
+
+uint8_t rndis_process(void)
+{
+	uint8_t bytecounter, headercounter;
+	uint16_t i, dataoffset;
+	
+	if(rndis_state != rndis_data_initialized) { //Enumeration processs OK ?
+		return 0;
+	}
+	
+#ifdef USB_ETH_HOOK_INIT
+	static uint8_t doInit = 1;
+	if (doInit) {
+		USB_ETH_HOOK_INIT();
+		doInit = 0;
+	}
+#endif
+
+	//Connected!
+	Led0_on();
+
+	Usb_select_endpoint(RX_EP);
+
+	//If we have data and a free buffer
+	if(Is_usb_receive_out() && (uip_len == 0)) {
+	
+		//Read how much (endpoint only stores up to 64 bytes anyway)
+		bytecounter = Usb_byte_counter_8();
+
+		//Try and read the header in
+		headercounter = sizeof(rndis_data_packet_t);
+
+		uint8_t fail = 0;
+
+		//Hmm.. what's going on here
+		if (bytecounter < headercounter) {
+			Usb_ack_receive_out();
+			fail = 1;
+		}
+
+		i = 0;
+		while (headercounter) {
+			usb_eth_data_buffer[i] = Usb_read_byte();
+			bytecounter--;
+			headercounter--;
+			i++;
+		}
+
+		//This is no good. Probably lost syncronization... just drop it for now
+		if(PBUF->MessageType != REMOTE_NDIS_PACKET_MSG) {
+			Usb_ack_receive_out();
+			fail = 1;
+		}
+
+		//802.3 does not have OOB data, and we don't care about per-packet data
+		//so that just leave regular packet data...
+		if (PBUF->DataLength && (fail == 0)) {			
+		
+			//Looks like we've got a live one
+#ifdef USB_ETH_HOOK_RX_START
+			USB_ETH_HOOK_RX_START();
+#endif
+
+			//Get offset
+			dataoffset = PBUF->DataOffset;
+
+			//Make it offset from start of message, not DataOffset field
+			dataoffset += (sizeof(rndis_MessageType_t) + sizeof(rndis_MessageLength_t));
+
+			//Subtract what we already took
+			dataoffset -= sizeof(rndis_data_packet_t);
+
+			//Clear this flag
+			Usb_ack_nak_out();
+
+			//Read to the start of data
+			while(dataoffset) {
+				Usb_read_byte();
+				dataoffset--;
+				bytecounter--;
+
+				//If endpoint is done
+				if (bytecounter == 0) {	
+		
+					Usb_ack_receive_out();		
+			
+
+					//Wait for new data
+					while (!Is_usb_receive_out() && (!Is_usb_receive_nak_out()));
+
+					//Check for NAK
+					// TODO: darco: What in the world is this for?
+					if (Is_usb_receive_nak_out()) {
+						Usb_ack_nak_out();
+						break;
+					}
+
+					bytecounter = Usb_byte_counter_8();
+
+					//ZLP?
+					if (bytecounter == 0)
+						break;
+				}
+
+			}
+	
+			//Read the data itself in
+			uint8_t * uipdata = uip_buf;
+			uint16_t datalen = PBUF->DataLength;
+	
+			while(datalen) {
+				*uipdata++ = Usb_read_byte();
+				datalen--;
+				bytecounter--;
+
+				//If endpoint is done
+				if (bytecounter == 0) {
+					//Might be everything we need!
+					if (datalen) {
+						Usb_ack_receive_out();
+						//Wait for new data
+						if(usb_endpoint_wait_for_receive_out()!=0) {
+							USB_ETH_HOOK_RX_ERROR("Timeout: receive out");
+							goto bail;
+						}
+						bytecounter = Usb_byte_counter_8();
+					}
+				}
+
+			}
+
+			//Ack final data packet
+			Usb_ack_receive_out();					
+
+#ifdef USB_ETH_HOOK_RX_END
+			USB_ETH_HOOK_RX_END();
+#endif
+
+			//Send data over RF or to local stack
+			if(PBUF->DataLength <= USB_ETH_MTU) {
+				USB_ETH_HOOK_HANDLE_INBOUND_PACKET(uip_buf,PBUF->DataLength);
+			} else {
+				USB_ETH_HOOK_RX_ERROR("Oversized packet");
+			}
+		} //if (PBUF->DataLength)
+	}
+bail:	
+	return 1;
+}
+
+/**
+ \brief Send data over RNDIS interface, data is in uipbuf and length is uiplen
+ */
+uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen, uint8_t led)
+{
+
+
+	uint16_t i;
+
+	//Setup Header
+	PBUF->MessageType = REMOTE_NDIS_PACKET_MSG;
+	PBUF->DataOffset = sizeof(rndis_data_packet_t) - sizeof(rndis_MessageType_t) - sizeof(rndis_MessageLength_t);
+	PBUF->DataLength = sendlen;
+	PBUF->OOBDataLength = 0;
+	PBUF->OOBDataOffset = 0;
+	PBUF->NumOOBDataElements = 0;
+	PBUF->PerPacketInfoOffset = 0;
+	PBUF->PerPacketInfoLength = 0;
+	PBUF->DeviceVcHandle = 0;
+	PBUF->Reserved = 0;
+	PBUF->MessageLength = sizeof(rndis_data_packet_t) + PBUF->DataLength;
+
+	//Send Data
+	Usb_select_endpoint(TX_EP);
+	Usb_send_in();
+
+	//Wait for ready
+	if(usb_endpoint_wait_for_write_enabled()!=0) {
+		USB_ETH_HOOK_TX_ERROR("Timeout: write enabled");
+		return 0;
+	}
+
+#ifdef USB_ETH_HOOK_TX_START
+	USB_ETH_HOOK_TX_START();
+#endif
+
+	//Setup first part of transfer...
+	for(i = 0; i < sizeof(rndis_data_packet_t); i++) {
+		Usb_write_byte(usb_eth_data_buffer[i]);
+	}
+	
+	//Send packet
+	while(sendlen) {
+		Usb_write_byte(*senddata);
+		senddata++;
+		sendlen--;
+
+		//If endpoint is full, send data in
+		//And then wait for data to transfer
+		if (!Is_usb_write_enabled()) {
+			Usb_send_in();
+
+			if(usb_endpoint_wait_for_write_enabled()!=0) {
+				USB_ETH_HOOK_TX_ERROR("Timeout: write enabled");
+				return 0;
+			}
+		}
+
+	}
+
+	Usb_send_in();
+
+#ifdef USB_ETH_HOOK_TX_END
+	USB_ETH_HOOK_TX_END();
+#endif
+
+    //Wait for ready
+	if(usb_endpoint_wait_for_IN_ready()!=0) {
+		USB_ETH_HOOK_TX_ERROR("Timeout: IN ready");
+		return 0;
+	}
+
+	return 1;
+}
+
 
 /****************** Radio Interface ****************/
 
@@ -837,15 +1080,11 @@ uint8_t rndis_send_status(rndis_Status_t stat)
  */
 void rndis_packetFilter(uint32_t newfilter)
 {
-#if !RF230BB
 	if (newfilter & NDIS_PACKET_TYPE_PROMISCUOUS) {
-		rxMode = RX_ON; 
-		radio_set_trx_state(RX_ON);
+		USB_ETH_HOOK_SET_PROMISCIOUS_MODE(true);
 	} else {
-		rxMode = RX_AACK_ON;
-		radio_set_trx_state(RX_AACK_ON);
+		USB_ETH_HOOK_SET_PROMISCIOUS_MODE(false);
 	}
-#endif
 }
 
 /** @} */

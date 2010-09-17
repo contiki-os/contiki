@@ -1,17 +1,17 @@
 /* This file has been prepared for Doxygen automatic documentation generation.*/
-/*! \file uart_usb_lib.c *******************************************************
+/*! \file cdc_task.h ************************************************************
  *
  * \brief
- *      This file controls the UART USB functions.
+ *      This file manages the CDC task for the virtual COM port.
  *
  * \addtogroup usbstick
  *
  * \author
- *      Atmel Corporation: http://www.atmel.com \n
- *      Support email: avr@atmel.com
+ *      Colin O'Flynn <coflynn@newae.com>
  *
  ******************************************************************************/
 /* Copyright (c) 2008  ATMEL Corporation
+   Copyright (c) 2008 Colin O'Flynn
    All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
@@ -40,51 +40,35 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _UART_USB_LIB_H_
-#define _UART_USB_LIB_H_
+#ifndef _CDC_TASK_H_
+#define _CDC_TASK_H_
 
-/** 
-  \addtogroup cdctask
-  @{
-  */
+/**
+ \addtogroup cdctask
+ @{
+ */
 
-/*_____ I N C L U D E S ____________________________________________________*/
-
-
-/*_____ M A C R O S ________________________________________________________*/
+//_____ I N C L U D E S ____________________________________________________
 
 
-#ifdef UART_USB_DEFAULT_OUTPUT
-#define uart_usb_putchar            putchar
-#endif
+#include "config.h"
 
-/*_____ D E F I N I T I O N ________________________________________________*/
-
-typedef struct
-{
-	U32 dwDTERate;
-	U8 bCharFormat;
-	U8 bParityType;
-	U8 bDataBits;
-}S_line_coding;
+//_____ M A C R O S ________________________________________________________
 
 
-/*_____ D E C L A R A T I O N ______________________________________________*/
 
-void  uart_usb_init(void);
-bit   uart_usb_tx_ready(void);
-int  uart_usb_putchar(int);
-void  uart_usb_flush(void);
-bit   uart_usb_test_hit(void);
-char uart_usb_getchar(void);
-void uart_usb_set_stdout(void);
-uint8_t uart_usb_get_control_line_state(void);
-void uart_usb_set_control_line_state(uint8_t control_line_state);
+//_____ D E C L A R A T I O N S ____________________________________________
 
-extern void uart_usb_configure_endpoints();
 
-/** @} **/
+void sof_action(void);
+void vcptx_end_led(void);
 
-#endif /* _UART_USB_LIB_H_ */
+void rawmode_enable(void);
+void rawmode_disable(void);
 
+PROCESS_NAME(cdc_process);
+
+/** @} */
+
+#endif /* _CDC_TASK_H_ */
 
