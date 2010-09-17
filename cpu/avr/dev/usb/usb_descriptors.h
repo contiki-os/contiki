@@ -66,9 +66,9 @@
                   // USB Device descriptor
 #define USB_SPECIFICATION     0x0200
 
-#define COMPOSITE_DEVICE_CLASS       0xEF      // Misc
-#define COMPOSITE_DEVICE_SUB_CLASS   0x02      // Common
-#define COMPOSITE_DEVICE_PROTOCOL    0x01      // IAD
+#define COMPOSITE_DEVICE_CLASS       0x02      // Misc
+#define COMPOSITE_DEVICE_SUB_CLASS   0x00      // Common
+#define COMPOSITE_DEVICE_PROTOCOL    0x00      // IAD
 
 #define NETWORK_DEVICE_CLASS          0x02      // CDC ACM
 #define NETWORK_DEVICE_SUB_CLASS      0x02      //
@@ -88,10 +88,49 @@
 #define NETWORK_PRODUCT_ID    0x2019 //Product ID for just RNDIS device
 #define MASS_PRODUCT_ID       0x202F //Product ID for mass storage
 #define RELEASE_NUMBER        0x1000
-#define MAN_INDEX             0x01
-#define PROD_INDEX            0x02
-#define SN_INDEX              0x03
-#define NB_CONFIGURATION      1
+
+enum {
+	USB_STRING_NONE = 0,
+	USB_STRING_MAN = 1,
+	USB_STRING_PRODUCT,
+	USB_STRING_SERIAL,
+	USB_STRING_MAC_ADDRESS,
+	USB_STRING_CONFIG_COMPOSITE,
+	USB_STRING_CONFIG_RNDIS,
+	USB_STRING_CONFIG_EEM,
+	USB_STRING_CONFIG_ECM,
+	USB_STRING_CONFIG_ECM_DEBUG,
+	USB_STRING_CONFIG_MS,
+	USB_STRING_INTERFACE_RNDIS,
+	USB_STRING_INTERFACE_EEM,
+	USB_STRING_INTERFACE_ECM,
+	USB_STRING_INTERFACE_ECM_ATTACHED,
+	USB_STRING_INTERFACE_ECM_DETACHED,
+	USB_STRING_INTERFACE_SERIAL,
+	USB_STRING_INTERFACE_MS,
+
+};
+
+enum {
+	USB_CONFIG_UNCONFIGURED = 0,
+
+	USB_CONFIG_RNDIS		= 1,
+	USB_CONFIG_RNDIS_DEBUG	= 1+(1<<7),
+
+	USB_CONFIG_ECM			= 2,
+	USB_CONFIG_ECM_DEBUG	= 2+(1<<7),
+	
+	USB_CONFIG_EEM			= 3,
+
+#if USB_CONF_STORAGE
+	USB_CONFIG_MS			= 4,
+#endif
+};
+
+#define USB_CONFIG_HAS_DEBUG_PORT(x)	((x==USB_CONFIG_ECM_DEBUG)||(x==USB_CONFIG_RNDIS_DEBUG))
+
+//#define USB_CONFIG_COUNT (USB_CONFIG_COUNT_PLUS_ONE-1)
+//#define NB_CONFIGURATION      USB_CONFIG_COUNT
 
 #define NETWORK_NB_INTERFACE         2
 #define COMPOSITE_NB_INTERFACE       4
@@ -134,14 +173,14 @@
 #define ENDPOINT_NB_2       0x80 | TX_EP
 #define EP_ATTRIBUTES_2     0x02          // BULK = 0x02, INTERUPT = 0x03
 #define EP_SIZE_2           0x40  //64 byte max size
-#define EP_INTERVAL_2       0x00
+#define EP_INTERVAL_2       0x01
 
              // USB Endpoint 2 descriptor
 				 //Bulk OUT  RX endpoint
 #define ENDPOINT_NB_3       RX_EP
 #define EP_ATTRIBUTES_3     0x02          // BULK = 0x02, INTERUPT = 0x03
 #define EP_SIZE_3           0x40  //64 byte max size
-#define EP_INTERVAL_3       0x00
+#define EP_INTERVAL_3       0x01
 
 /*** CDC Virtual Serial Port ***/
 
@@ -176,14 +215,14 @@
 #define ENDPOINT_NB_5       0x80 | VCP_TX_EP
 #define EP_ATTRIBUTES_5     0x02          // BULK = 0x02, INTERUPT = 0x03
 #define EP_SIZE_5           0x20
-#define EP_INTERVAL_5       0x00
+#define EP_INTERVAL_5       0x01
 
              // USB Endpoint 6 descriptor
 				 // Bulk OUT
 #define ENDPOINT_NB_6       VCP_RX_EP
 #define EP_ATTRIBUTES_6     0x02          // BULK = 0x02, INTERUPT = 0x03
 #define EP_SIZE_6           0x20
-#define EP_INTERVAL_6       0x00
+#define EP_INTERVAL_6       0x01
 
 
 /*** Mass Storage ***/
@@ -227,60 +266,33 @@
 #define EEM_ENDPOINT_NB_1       0x80 | TX_EP
 #define EEM_EP_ATTRIBUTES_1     0x02          // BULK = 0x02, INTERUPT = 0x03
 #define EEM_EP_SIZE_1           0x40 //64 byte max size
-#define EEM_EP_INTERVAL_1       0x00
+#define EEM_EP_INTERVAL_1       0x01
 
              // USB Endpoint 2 descriptor
              // Bulk OUT
 #define EEM_ENDPOINT_NB_2       RX_EP
 #define EEM_EP_ATTRIBUTES_2     0x02          // BULK = 0x02, INTERUPT = 0x03
 #define EEM_EP_SIZE_2           0x40  //64 byte max size
-#define EEM_EP_INTERVAL_2       0x00
+#define EEM_EP_INTERVAL_2       0x01
+
+
+/******* ECM Configuration *******/
+
+// Interface 0 descriptor
+#define ECM_INTERFACE0_NB        0
+#define ECM_ALTERNATE0           0
+#define ECM_NB_ENDPOINT0         2
+#define ECM_INTERFACE0_CLASS     0x02    // CDC ACM Com
+#define ECM_INTERFACE0_SUB_CLASS 0x06    // ECM
+#define ECM_INTERFACE0_PROTOCOL  0x00    // Empty
+#define ECM_INTERFACE0_INDEX     0
+
+
 
 #define DEVICE_STATUS         0x00 // TBD
 #define INTERFACE_STATUS      0x00 // TBD
 
 #define LANG_ID               0x00
-
-
-
-
-#define USB_MN_LENGTH         5
-#define USB_MANUFACTURER_NAME \
-{ Usb_unicode('A') \
-, Usb_unicode('t') \
-, Usb_unicode('m') \
-, Usb_unicode('e') \
-, Usb_unicode('l') \
-}
-
-#define USB_PN_LENGTH         16
-#define USB_PRODUCT_NAME \
-{ Usb_unicode('R') \
- ,Usb_unicode('Z') \
- ,Usb_unicode('R') \
- ,Usb_unicode('A') \
- ,Usb_unicode('V') \
- ,Usb_unicode('E') \
- ,Usb_unicode('N') \
- ,Usb_unicode(' ') \
- ,Usb_unicode('U') \
- ,Usb_unicode('S') \
- ,Usb_unicode('B') \
- ,Usb_unicode(' ') \
- ,Usb_unicode('D') \
- ,Usb_unicode('E') \
- ,Usb_unicode('M') \
- ,Usb_unicode('O') \
-}
-
-#define USB_SN_LENGTH         0x05
-#define USB_SERIAL_NUMBER \
-{Usb_unicode('1') \
- ,Usb_unicode('.') \
- ,Usb_unicode('0') \
- ,Usb_unicode('.') \
- ,Usb_unicode('0') \
-}
 
 #define LANGUAGE_ID           0x0409
 
@@ -373,39 +385,6 @@ typedef struct {
 } S_usb_language_id;
 
 
-//_____ U S B   M A N U F A C T U R E R   D E S C R I P T O R _______________
-
-
-//struct usb_st_manufacturer
-typedef struct {
-   U8  bLength;               // size of this descriptor in bytes
-   U8  bDescriptorType;       // STRING descriptor type
-   U16 wstring[USB_MN_LENGTH];// unicode characters
-} S_usb_manufacturer_string_descriptor;
-
-
-//_____ U S B   P R O D U C T   D E S C R I P T O R _________________________
-
-
-//struct usb_st_product
-typedef struct {
-   U8  bLength;               // size of this descriptor in bytes
-   U8  bDescriptorType;       // STRING descriptor type
-   U16 wstring[USB_PN_LENGTH];// unicode characters
-} S_usb_product_string_descriptor;
-
-
-//_____ U S B   S E R I A L   N U M B E R   D E S C R I P T O R _____________
-
-
-//struct usb_st_serial_number
-typedef struct {
-   U8  bLength;               // size of this descriptor in bytes
-   U8  bDescriptorType;       // STRING descriptor type
-   U16 wstring[USB_SN_LENGTH];// unicode characters
-} S_usb_serial_number;
-
-
 /*_____ U S B   I A D _______________________________________________________*/
 
 #define DSC_TYPE_IAD  11
@@ -460,6 +439,79 @@ typedef struct
 
 } S_usb_user_configuration_descriptor_network;
 
+/* EEM */
+typedef struct
+{
+   S_usb_configuration_descriptor cfg;
+   S_usb_interface_descriptor     ifc0;
+   S_usb_endpoint_descriptor      ep1;
+   S_usb_endpoint_descriptor      ep2;
+} S_usb_user_configuration_descriptor_eem;
+
+
+
+
+typedef struct
+{
+	U8 bLength;
+	U8 bDescriptorType;
+	U8 bDescriptorSubtype;
+	U8 iMACAddress;
+	U32 bmEthernetStatistics;
+	U16 wMaxSegmentSize;
+	U16 wNumberMCFilters;
+	U8 bNumberPowerFilters;
+} S_usb_ethernet_networking_functional_descriptor;
+
+
+/* ECM */
+typedef struct
+{
+   S_usb_configuration_descriptor cfg;
+   S_usb_interface_descriptor     ifc0;
+   U8 CS1_INTERFACE[5+5];
+   S_usb_ethernet_networking_functional_descriptor fd0;
+#if CDC_ECM_USES_INTERRUPT_ENDPOINT
+   S_usb_endpoint_descriptor      ep1;
+#endif
+#if 0
+   S_usb_interface_descriptor     ifc1_0;
+#endif
+   S_usb_interface_descriptor     ifc1_1;
+   S_usb_endpoint_descriptor      ep2;
+   S_usb_endpoint_descriptor      ep3;
+} S_usb_user_configuration_descriptor_ecm;
+
+
+/* ECM + Serial Port */
+typedef struct
+{
+   S_usb_configuration_descriptor cfg;
+  S_usb_interface_association_descriptor   iad0;
+   S_usb_interface_descriptor     ifc0;
+   U8 CS1_INTERFACE[5+5];
+   S_usb_ethernet_networking_functional_descriptor fd0;
+#if CDC_ECM_USES_INTERRUPT_ENDPOINT
+   S_usb_endpoint_descriptor      ep1;
+#endif
+#if 0
+   S_usb_interface_descriptor     ifc1_0;
+#endif
+   S_usb_interface_descriptor     ifc1_1;
+   S_usb_endpoint_descriptor      ep2;
+   S_usb_endpoint_descriptor      ep3;
+
+  S_usb_interface_association_descriptor   iad1;
+   S_usb_interface_descriptor     ifc2;
+	U8 CS2_INTERFACE[19];
+   S_usb_endpoint_descriptor      ep4;
+   S_usb_interface_descriptor     ifc3;
+   S_usb_endpoint_descriptor      ep5;
+   S_usb_endpoint_descriptor      ep6;
+
+} S_usb_user_configuration_descriptor_ecm_debug;
+
+
 /* Mass Storage */
 
 typedef struct
@@ -471,20 +523,12 @@ typedef struct
 
 } S_usb_user_configuration_descriptor_mass;
 
-/* EEM */
-typedef struct
-{
-   S_usb_configuration_descriptor cfg;
-   S_usb_interface_descriptor     ifc0;
-   S_usb_endpoint_descriptor      ep1;
-   S_usb_endpoint_descriptor      ep2;
-} S_usb_user_configuration_descriptor_eem;
 
 
 PGM_VOID_P Usb_get_dev_desc_pointer(void);
 U8 Usb_get_dev_desc_length(void);
-PGM_VOID_P  Usb_get_conf_desc_pointer(void) ;
-U8  Usb_get_conf_desc_length(void);
+PGM_VOID_P  Usb_get_conf_desc_pointer(U8 index) ;
+U8  Usb_get_conf_desc_length(U8 index);
 
 #endif // _USB_USERCONFIG_H_
 

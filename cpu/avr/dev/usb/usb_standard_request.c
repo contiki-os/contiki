@@ -52,11 +52,14 @@
 #include "usb_drv.h"
 #include "usb_descriptors.h"
 #include "usb_specific_request.h"
+#include <string.h>
 
 //_____ M A C R O S ________________________________________________________
 
 
 //_____ D E F I N I T I O N ________________________________________________
+#define PRINTF printf
+#define PRINTF_P printf_P
 
 //_____ P R I V A T E   D E C L A R A T I O N ______________________________
 
@@ -123,43 +126,43 @@ void usb_process_request(void)
    {
     case GET_DESCRIPTOR:
          if (0x80 == bmRequestType) { usb_get_descriptor(); }
-         else                       { usb_user_read_request(bmRequestType, bmRequest); }
+         else goto user_read;
          break;
 
     case GET_CONFIGURATION:
          if (0x80 == bmRequestType) { usb_get_configuration(); }
-         else                       { usb_user_read_request(bmRequestType, bmRequest); }
+         else goto user_read;
          break;
 
     case SET_ADDRESS:
          if (0x00 == bmRequestType) { usb_set_address(); }
-         else                       { usb_user_read_request(bmRequestType, bmRequest); }
+         else goto user_read;
          break;
 
     case SET_CONFIGURATION:
          if (0x00 == bmRequestType) { usb_set_configuration(); }
-         else                       { usb_user_read_request(bmRequestType, bmRequest); }
+         else goto user_read;
          break;
 
     case CLEAR_FEATURE:
          if (0x02 >= bmRequestType) { usb_clear_feature(); }
-         else                       { usb_user_read_request(bmRequestType, bmRequest); }
+         else goto user_read;
          break;
 
     case SET_FEATURE:
          if (0x02 >= bmRequestType) { usb_set_feature(); }
-         else                       { usb_user_read_request(bmRequestType, bmRequest); }
+         else goto user_read;
          break;
 
     case GET_STATUS:
          if ((0x7F < bmRequestType) & (0x82 >= bmRequestType))
                                     { usb_get_status(); }
-         else                       { usb_user_read_request(bmRequestType, bmRequest); }
+         else goto user_read;
          break;
 
     case GET_INTERFACE:
           if (bmRequestType == 0x81) { usb_get_interface(); }
-          else { usb_user_read_request(bmRequestType, bmRequest); }
+		  else goto user_read;
           break;
 
 
@@ -170,14 +173,23 @@ void usb_process_request(void)
     case SET_DESCRIPTOR:
     case SYNCH_FRAME:
     default: //!< un-supported request => call to user read request
-         if(usb_user_read_request(bmRequestType, bmRequest) == FALSE)
-         {
-            Usb_enable_stall_handshake();
-            Usb_ack_receive_setup();
-            return;
-         }
+	user_read:
+         usb_user_read_request(bmRequestType, bmRequest);
          break;
   }
+	
+	Usb_select_endpoint(EP_CONTROL);
+
+	// If the receive setup flag hasn't been cleared
+	// by this point then we can assume that we didn't
+	// support this request and should stall.
+	if(Is_usb_receive_setup())
+		Usb_enable_stall_handshake();
+	
+	// Clear some flags.
+	Usb_ack_receive_setup();
+	Usb_ack_receive_out();
+	Usb_ack_in_ready();
 }
 
 //! usb_set_address.
@@ -214,25 +226,204 @@ U8 configuration_number;
 
    configuration_number = Usb_read_byte();
 
-   if (configuration_number <= NB_CONFIGURATION)
-   {
-      Usb_ack_receive_setup();
-      usb_configuration_nb = configuration_number;
-   }
-   else
-   {
-      //!< keep that order (set StallRq/clear RxSetup) or a
-      //!< OUT request following the SETUP may be acknowledged
-      Usb_enable_stall_handshake();
-      Usb_ack_receive_setup();
-      return;
-   }
+   // TODO: Verify configuration_number!
+   Usb_ack_receive_setup();
+   usb_configuration_nb = configuration_number;
 
    Usb_send_control_in();                    //!< send a ZLP for STATUS phase
+   while(!Is_usb_in_ready());
 
    usb_user_endpoint_init(usb_configuration_nb);  //!< endpoint configuration
    Usb_set_configuration_action();
 }
+
+
+
+
+
+void usb_get_string_descriptor_sram(U8  string_type) {
+	U16 requested_length;
+	U8  dummy;
+	const char* user_str;
+
+	user_str = usb_user_get_string_sram(string_type);
+	
+	dummy = Usb_read_byte();                     //!< don't care of wIndex field
+	dummy = Usb_read_byte();
+	requested_length = Usb_read_byte();              //!< read wLength
+	requested_length |= Usb_read_byte()<<8;
+	
+	if(!user_str)
+		return;
+	
+	const U8 actual_descriptor_size = 2+strlen(user_str)*2;
+
+	if (requested_length > actual_descriptor_size) {
+		zlp = ((actual_descriptor_size % EP_CONTROL_LENGTH) == 0);
+		requested_length = actual_descriptor_size;
+	}
+	
+	Usb_ack_receive_setup() ;                  //!< clear the receive setup flag
+
+	if(usb_endpoint_wait_for_read_control_enabled()!=0) {
+		Usb_enable_stall_handshake();
+		return;
+	}
+
+	// Output the length
+	Usb_write_byte(actual_descriptor_size);
+	
+	// Output the type
+	Usb_write_byte(STRING_DESCRIPTOR);
+
+	requested_length -= 2;
+	U8  nb_byte = 2;
+
+	if(!requested_length) {
+		Usb_send_control_in();
+	}
+		
+   while((requested_length != 0) && (!Is_usb_receive_out()))
+   {
+		if(usb_endpoint_wait_for_read_control_enabled()!=0) {
+			Usb_enable_stall_handshake();
+			break;
+		}
+
+      while(requested_length != 0)        //!< Send data until necessary
+      {
+         if(nb_byte==EP_CONTROL_LENGTH) //!< Check endpoint 0 size
+         {
+            nb_byte=0;
+            break;
+         }
+
+         Usb_write_byte(*user_str);
+         Usb_write_byte(0);
+		 user_str++;
+         requested_length -=2;
+		 nb_byte+=2;
+      }
+      Usb_send_control_in();
+   }
+
+bail:
+	if(Is_usb_receive_out()) {
+		//! abort from Host
+		Usb_ack_receive_out();
+		return;
+	} 
+
+	if(zlp == TRUE) {
+		if(usb_endpoint_wait_for_read_control_enabled()!=0) {
+			Usb_enable_stall_handshake();
+			return;
+		}
+		Usb_send_control_in();
+	}
+
+	usb_endpoint_wait_for_receive_out();
+	Usb_ack_receive_out();
+}
+
+
+void usb_get_string_descriptor(U8  string_type) {
+	U16 requested_length;
+	U8  dummy;
+	PGM_P user_str;
+
+	user_str = usb_user_get_string(string_type);
+
+	if(!user_str) {
+		usb_get_string_descriptor_sram(string_type);
+		return;
+	}
+	
+	dummy = Usb_read_byte();                     //!< don't care of wIndex field
+	dummy = Usb_read_byte();
+	requested_length = Usb_read_byte();              //!< read wLength
+	requested_length |= Usb_read_byte()<<8;
+	
+	
+	const U8 actual_descriptor_size = 2+strlen_P(user_str)*2;
+
+	if (requested_length > actual_descriptor_size) {
+		zlp = ((actual_descriptor_size % EP_CONTROL_LENGTH) == 0);
+		requested_length = actual_descriptor_size;
+	}
+	
+	Usb_ack_receive_setup() ;                  //!< clear the receive setup flag
+
+	if(usb_endpoint_wait_for_read_control_enabled()!=0) {
+		Usb_enable_stall_handshake();
+		return;
+	}
+	U8  nb_byte = 0;
+
+	// Output the length
+	if(requested_length) {
+		Usb_write_byte(actual_descriptor_size);
+		requested_length--;
+		nb_byte++;
+	}
+	
+	// Output the type
+	if(requested_length) {
+		Usb_write_byte(STRING_DESCRIPTOR);
+		requested_length--;
+		nb_byte++;
+	}
+	
+	if(!requested_length) {
+		Usb_send_control_in();
+	}
+		
+	while((requested_length != 0) && (!Is_usb_receive_out()))
+	{
+		if(usb_endpoint_wait_for_read_control_enabled()!=0) {
+			Usb_enable_stall_handshake();
+			break;
+		}
+
+		while(requested_length != 0)        //!< Send data until necessary
+		{
+			if(nb_byte==EP_CONTROL_LENGTH) { //!< Check endpoint 0 size
+				nb_byte=0;
+				break;
+			}
+
+			Usb_write_byte(pgm_read_byte_near((unsigned int)user_str++));
+			requested_length--;
+			nb_byte++;
+			if(requested_length) {
+				Usb_write_byte(0);
+				requested_length--;
+				nb_byte++;
+			}
+		}
+		Usb_send_control_in();
+	}
+
+bail:
+
+	if(Is_usb_receive_out()) {
+		//! abort from Host
+		Usb_ack_receive_out();
+		return;
+	} 
+
+	if(zlp == TRUE) {
+		if(usb_endpoint_wait_for_read_control_enabled()!=0) {
+			Usb_enable_stall_handshake();
+			return;
+		}
+		Usb_send_control_in();
+	}
+
+	usb_endpoint_wait_for_receive_out();
+	Usb_ack_receive_out();
+}
+
 
 //! usb_get_descriptor.
 //!
@@ -246,91 +437,93 @@ U8 configuration_number;
 //!
 void usb_get_descriptor(void)
 {
-U8  LSBwLength, MSBwLength;
-U8  descriptor_type ;
-U8  string_type     ;
-U8  dummy;
-U8  nb_byte;
+	U8  LSBwLength, MSBwLength;
+	U8  descriptor_type ;
+	U8  string_type     ;
+	U8  dummy;
 
-   zlp             = FALSE;                  /* no zero length packet */
-   string_type     = Usb_read_byte();        /* read LSB of wValue    */
-   descriptor_type = Usb_read_byte();        /* read MSB of wValue    */
+	zlp             = FALSE;                  /* no zero length packet */
+	string_type     = Usb_read_byte();        /* read LSB of wValue    */
+	descriptor_type = Usb_read_byte();        /* read MSB of wValue    */
 
-   dummy = Usb_read_byte();                     //!< don't care of wIndex field
-   dummy = Usb_read_byte();
-   LSBwLength = Usb_read_byte();              //!< read wLength
-   MSBwLength = Usb_read_byte();
+	switch (descriptor_type)
+	{
+	case DEVICE_DESCRIPTOR:
+	  data_to_transfer = Usb_get_dev_desc_length(); //!< sizeof (usb_user_device_descriptor);
+	  pbuffer          = Usb_get_dev_desc_pointer();
+	  break;
+	case CONFIGURATION_DESCRIPTOR:
+		data_to_transfer = Usb_get_conf_desc_length(string_type); //!< sizeof (usb_user_configuration_descriptor);
+		pbuffer          = Usb_get_conf_desc_pointer(string_type);
+	  break;
+	case STRING_DESCRIPTOR:
+	  if(string_type!=LANG_ID) {
+		usb_get_string_descriptor(string_type);
+		return;
+	  }
+	default:
+		dummy = Usb_read_byte();
+		dummy = Usb_read_byte();
+		dummy = Usb_read_byte();
+		dummy = Usb_read_byte();
+		if( usb_user_get_descriptor(descriptor_type, string_type)==FALSE )
+			return;
+	  break;
+	}
 
-   switch (descriptor_type)
-   {
-    case DEVICE_DESCRIPTOR:
-      data_to_transfer = Usb_get_dev_desc_length(); //!< sizeof (usb_user_device_descriptor);
-      pbuffer          = Usb_get_dev_desc_pointer();
-      break;
-    case CONFIGURATION_DESCRIPTOR:
-      	data_to_transfer = Usb_get_conf_desc_length(); //!< sizeof (usb_user_configuration_descriptor);
-      	pbuffer          = Usb_get_conf_desc_pointer();
-      break;
-    default:
-      if( usb_user_get_descriptor(descriptor_type, string_type)==FALSE )
-      {
-         Usb_enable_stall_handshake();
-         Usb_ack_receive_setup();
-         return;
-      }
-      break;
-   }
+	dummy = Usb_read_byte();                     //!< don't care of wIndex field
+	dummy = Usb_read_byte();
+	LSBwLength = Usb_read_byte();              //!< read wLength
+	MSBwLength = Usb_read_byte();
 
+	Usb_ack_receive_setup() ;                  //!< clear the receive setup flag
 
-   Usb_ack_receive_setup() ;                  //!< clear the receive setup flag
+	if ((LSBwLength > data_to_transfer) || (MSBwLength)) {
+		if ((data_to_transfer % EP_CONTROL_LENGTH) == 0) { zlp = TRUE; }
+		else { zlp = FALSE; }                   //!< no need of zero length packet
 
-   if ((LSBwLength > data_to_transfer) || (MSBwLength))
-   {
-      if ((data_to_transfer % EP_CONTROL_LENGTH) == 0) { zlp = TRUE; }
-      else { zlp = FALSE; }                   //!< no need of zero length packet
+		LSBwLength = data_to_transfer;
+		MSBwLength = 0x00;
+	} else {
+		data_to_transfer = LSBwLength;         //!< send only requested number of data
+	}
+	
+	while((data_to_transfer != 0) && (!Is_usb_receive_out())) {
+		U8  nb_byte = 0;
+		if(usb_endpoint_wait_for_read_control_enabled()!=0) {
+			Usb_enable_stall_handshake();
+			break;
+		}
 
-	  LSBwLength = data_to_transfer;
-	  MSBwLength = 0x00;
-   }
-   else
-   {
-      data_to_transfer = LSBwLength;         //!< send only requested number of data
-   }
+        //! Send data until necessary
+		while(data_to_transfer != 0) {
+//			if(Is_usb_write_enabled()) //!< Check endpoint 0 size
+			if(nb_byte++==EP_CONTROL_LENGTH) //!< Check endpoint 0 size
+				break;
 
+			Usb_write_byte(pgm_read_byte_near((unsigned int)pbuffer++));
+			data_to_transfer --;
 
-   while((data_to_transfer != 0) && (!Is_usb_receive_out()))
-   {
-      while(!Is_usb_read_control_enabled());
+		}
+		Usb_send_control_in();
+	}
 
-      nb_byte=0;
-      while(data_to_transfer != 0)        //!< Send data until necessary
-      {
-         if(nb_byte++==EP_CONTROL_LENGTH) //!< Check endpoint 0 size
-         {
-            break;
-         }
+	if(Is_usb_receive_out()) {
+		//! abort from Host
+		Usb_ack_receive_out();
+		return;
+	}
+	
+	if(zlp == TRUE) {
+		if(usb_endpoint_wait_for_read_control_enabled()!=0) {
+			Usb_enable_stall_handshake();
+			return;
+		}
+		Usb_send_control_in();
+	}
 
-//#ifndef AVRGCC
-//         Usb_write_byte(*pbuffer++);
-//#else    // AVRGCC does not support point to PGM space
-         //#warning AVRGCC assumes devices descriptors are stored in the lower 64Kbytes of on-chip flash memory
-         Usb_write_byte(pgm_read_byte_near((unsigned int)pbuffer++));
-//#endif
-         data_to_transfer --;
-
-      }
-      Usb_send_control_in();
-   }
-
-   if(Is_usb_receive_out()) { Usb_ack_receive_out(); return; } //!< abort from Host
-   if(zlp == TRUE)
-   {
-     while(!Is_usb_read_control_enabled());
-     Usb_send_control_in();
-   }
-
-   while(!Is_usb_receive_out());
-   Usb_ack_receive_out();
+	usb_endpoint_wait_for_receive_out();
+	Usb_ack_receive_out();
 }
 
 //! usb_get_configuration.
@@ -345,9 +538,9 @@ void usb_get_configuration(void)
    Usb_ack_receive_setup();
 
    Usb_write_byte(usb_configuration_nb);
-   Usb_ack_in_ready();
+   Usb_send_control_in();
 
-   while( !Is_usb_receive_out() );
+   usb_endpoint_wait_for_receive_out();
    Usb_ack_receive_out();
 }
 
@@ -390,7 +583,7 @@ U8 dummy;
    Usb_write_byte(0x00);
    Usb_send_control_in();
 
-   while( !Is_usb_receive_out() );
+   usb_endpoint_wait_for_receive_out();
    Usb_ack_receive_out();
 }
 
@@ -409,10 +602,6 @@ U8 dummy;
 
    if (bmRequestType == INTERFACE_TYPE)
    {
-      //!< keep that order (set StallRq/clear RxSetup) or a
-      //!< OUT request following the SETUP may be acknowledged
-      Usb_enable_stall_handshake();
-      Usb_ack_receive_setup();
       return;
    }
    else if (bmRequestType == ENDPOINT_TYPE)
@@ -426,8 +615,6 @@ U8 dummy;
 
          if (wIndex == EP_CONTROL)
          {
-            Usb_enable_stall_handshake();
-            Usb_ack_receive_setup();
             return;
          }
 
@@ -443,15 +630,11 @@ U8 dummy;
          else
          {
             Usb_select_endpoint(EP_CONTROL);
-            Usb_enable_stall_handshake();
-            Usb_ack_receive_setup();
             return;
          }
       }
       else
       {
-         Usb_enable_stall_handshake();
-         Usb_ack_receive_setup();
          return;
       }
    }
@@ -471,18 +654,10 @@ U8 dummy;
 
    if (bmRequestType == ZERO_TYPE)
    {
-      //!< keep that order (set StallRq/clear RxSetup) or a
-      //!< OUT request following the SETUP may be acknowledged
-      Usb_enable_stall_handshake();
-      Usb_ack_receive_setup();
       return;
    }
    else if (bmRequestType == INTERFACE_TYPE)
    {
-      //!< keep that order (set StallRq/clear RxSetup) or a
-      //!< OUT request following the SETUP may be acknowledged
-      Usb_enable_stall_handshake();
-      Usb_ack_receive_setup();
       return;
    }
    else if (bmRequestType == ENDPOINT_TYPE)
@@ -507,19 +682,15 @@ U8 dummy;
             endpoint_status[wIndex] = 0x00;
             Usb_ack_receive_setup();
             Usb_send_control_in();
+
          }
          else
          {
-            Usb_select_endpoint(EP_CONTROL);
-            Usb_enable_stall_handshake();
-            Usb_ack_receive_setup();
             return;
          }
       }
       else
       {
-         Usb_enable_stall_handshake();
-         Usb_ack_receive_setup();
          return;
       }
    }
@@ -533,8 +704,7 @@ U8 dummy;
 //!
 void usb_get_interface (void)
 {
-  Usb_enable_stall_handshake();
-  Usb_ack_receive_setup();
+	// Not yet implemented.
 }
 
 //! usb_set_interface.
@@ -545,7 +715,21 @@ void usb_get_interface (void)
 //!
 void usb_set_interface (void)
 {
-  Usb_ack_receive_setup();
-  Usb_send_control_in();                    //!< send a ZLP for STATUS phase
-  while(!Is_usb_in_ready());
+	U8 alt_setting;
+	U8 dummy;
+	U8 interface;
+	
+	alt_setting = Usb_read_byte();
+	dummy    = Usb_read_byte();
+	interface = Usb_read_byte();
+	
+	if(usb_user_set_alt_interface(interface, alt_setting)) {
+		Usb_ack_receive_setup();
+		Usb_send_control_in();                    //!< send a ZLP for STATUS phase
+		while(!Is_usb_in_ready());
+
+		usb_endpoint_wait_for_receive_out();
+		Usb_ack_receive_out();
+	}
+
 }

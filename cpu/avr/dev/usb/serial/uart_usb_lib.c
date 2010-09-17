@@ -45,7 +45,6 @@
 #include "config.h"
 #include "usb_drv.h"
 #include "usb_descriptors.h"
-#include "serial/cdc_task.h"
 #include "serial/uart_usb_lib.h"
 #include <stdio.h>
 
@@ -56,6 +55,26 @@
 
 /*_____ M A C R O S ________________________________________________________*/
 
+#ifndef USB_CDC_ACM_HOOK_TX_START
+#define USB_CDC_ACM_HOOK_TX_START(char)
+#endif
+
+#ifndef USB_CDC_ACM_HOOK_TX_END
+#define USB_CDC_ACM_HOOK_TX_END(char)
+#endif
+
+#ifndef USB_CDC_ACM_HOOK_CLS_CHANGED
+#define USB_CDC_ACM_HOOK_CLS_CHANGED(state)
+#endif
+
+#ifndef USB_CDC_ACM_HOOK_CONFIGURED
+#define USB_CDC_ACM_HOOK_CONFIGURED()
+#endif
+
+#ifndef USB_CDC_ACM_CONF_LOCAL_ECHO
+#define USB_CDC_ACM_CONF_LOCAL_ECHO 0
+#endif
+
 /*_____ D E F I N I T I O N ________________________________________________*/
 
 Uchar tx_counter;
@@ -64,22 +83,65 @@ S_line_coding   line_coding;
 
 /*_____ D E C L A R A T I O N ______________________________________________*/
 
+void uart_usb_configure_endpoints() {
+	usb_configure_endpoint(
+		VCP_INT_EP,     
+		TYPE_INTERRUPT,   
+		DIRECTION_IN,  
+		SIZE_32,       
+		ONE_BANK,     
+		NYET_ENABLED
+	);
+
+	usb_configure_endpoint(
+		VCP_TX_EP,      
+		TYPE_BULK,     
+		DIRECTION_IN,  
+		SIZE_32,       
+		TWO_BANKS,     
+		NYET_ENABLED
+	);
+
+	usb_configure_endpoint(
+		VCP_RX_EP,      
+		TYPE_BULK,     
+		DIRECTION_OUT,  
+		SIZE_32,       
+		TWO_BANKS,     
+		NYET_ENABLED
+	);
+
+	Usb_reset_endpoint(VCP_INT_EP);
+	Usb_reset_endpoint(VCP_TX_EP);
+	Usb_reset_endpoint(VCP_RX_EP);
+	
+	USB_CDC_ACM_HOOK_CONFIGURED();
+}
+
 
 int usb_stdout_putchar(char c, FILE *stream)
-	{
-    // send to USB port
-    // don't send anything if USB can't accept chars
-     Usb_select_endpoint(TX_EP);
-     if (!uart_usb_tx_ready())
-			return 0;
-	        
-	 // turn on LED
-	 vcptx_end_led();
+{
+	// Preserve the currently selected endpoint
+	uint8_t uenum = UENUM;
+	
+	// send to USB port
+	// don't send anything if USB can't accept chars
+	Usb_select_endpoint(VCP_TX_EP);
 
-	uart_usb_putchar(c);
-	 
+	if(usb_endpoint_wait_for_write_enabled()!=0)
+		return 0;
+
+	if(c=='\n')
+		uart_usb_putchar('\r');
+
+	if(c!='\r')
+		uart_usb_putchar(c);
+
+	// Restore previously selected endpoint
+	UENUM = uenum;
+
 	return 0;
-	}
+}
 
 static FILE usb_stdout = FDEV_SETUP_STREAM(usb_stdout_putchar,
 					     NULL,
@@ -100,6 +162,20 @@ void uart_usb_set_stdout(void)
 }
 
 
+static uint8_t uart_usb_control_line_state = 0;
+
+uint8_t uart_usb_get_control_line_state(void) {
+	return uart_usb_control_line_state;
+}
+
+
+void uart_usb_set_control_line_state(uint8_t control_line_state)
+{
+	uart_usb_control_line_state = control_line_state;
+	USB_CDC_ACM_HOOK_CLS_CHANGED(control_line_state);
+}
+
+
 /**
   * @brief This function checks if the USB emission buffer is ready to accept at
   * at least 1 byte
@@ -109,6 +185,7 @@ void uart_usb_set_stdout(void)
   */
 bit uart_usb_tx_ready(void)
 {
+  Usb_select_endpoint(VCP_TX_EP);
   if (!Is_usb_write_enabled())
   {
     return FALSE;
@@ -127,16 +204,31 @@ bit uart_usb_tx_ready(void)
   */
 int uart_usb_putchar(int data_to_send)
 {
-  	Usb_select_endpoint(VCP_TX_EP);
-    
-	if(!uart_usb_tx_ready()) return -1;
-	
+	// Preserve the currently selected endpoint
+	uint8_t uenum = UENUM;
+
+	USB_CDC_ACM_HOOK_TX_START(data_to_send);
+
+	Usb_select_endpoint(VCP_TX_EP);
+
+	if(!uart_usb_tx_ready()) {
+		data_to_send=-1;
+		goto bail;
+	}
+
 	Usb_write_byte(data_to_send);
 	tx_counter++;
-  	if(!Is_usb_write_enabled()) //If Endpoint full -> flush
-  	{
-   	uart_usb_flush();
-  	}
+
+	//If Endpoint full -> flush
+	if(!Is_usb_write_enabled())
+		uart_usb_flush();
+
+	USB_CDC_ACM_HOOK_TX_END(data_to_send);
+
+bail:
+	// Restore previously selected endpoint
+	UENUM = uenum;
+
 	return data_to_send;
 }
 
@@ -149,6 +241,8 @@ bit uart_usb_test_hit(void)
 {
   if (!rx_counter)
   {
+	// Preserve the currently selected endpoint
+	uint8_t uenum = UENUM;
     Usb_select_endpoint(VCP_RX_EP);
     if (Is_usb_receive_out())
     {
@@ -158,6 +252,8 @@ bit uart_usb_test_hit(void)
         Usb_ack_receive_out();
 		}
     }
+	// Restore previously selected endpoint
+	UENUM = uenum;
   }
   return (rx_counter!=0);
 }
@@ -174,15 +270,23 @@ char uart_usb_getchar(void)
 {
   register Uchar data_rx;
 
+  // Preserve the currently selected endpoint
+  uint8_t uenum = UENUM;
+  
   Usb_select_endpoint(VCP_RX_EP);
   if (!rx_counter) while (!uart_usb_test_hit());
   data_rx=Usb_read_byte();
   rx_counter--;
   if (!rx_counter) Usb_ack_receive_out();
   
+#if USB_CDC_ACM_CONF_LOCAL_ECHO
   //Local echo
   uart_usb_putchar(data_rx);
+#endif
   
+  // Restore previously selected endpoint
+  UENUM = uenum;
+
   return data_rx;
 }
 
@@ -193,9 +297,16 @@ char uart_usb_getchar(void)
   */
 void uart_usb_flush (void)
 {
-   Usb_select_endpoint(VCP_TX_EP);
-   Usb_send_in();
+	// Preserve the currently selected endpoint
+	uint8_t uenum = UENUM;
+	
+	Usb_select_endpoint(VCP_TX_EP);
+	Usb_send_in();
 	tx_counter = 0;
+	usb_endpoint_wait_for_write_enabled();
+
+	// Restore previously selected endpoint
+	UENUM = uenum;
 }
 
 /** @} */

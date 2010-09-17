@@ -303,22 +303,23 @@ typedef struct{
 	uint32_t		rxok;
 	uint32_t		txbad;
 	uint32_t		rxbad;
-    } rndis_stat_t;
+    } usb_eth_stat_t;
 
-extern rndis_stat_t rndis_stat;
+extern usb_eth_stat_t usb_eth_stat;
 
 extern rndis_state_t rndis_state;
 
 extern uint8_t schedule_interrupt;
 
-extern uint64_t rndis_ethernet_addr;
-
-uint8_t send_encapsulated_command(uint16_t wLength);
-uint8_t get_encapsulated_command(void);
+uint8_t rndis_send_encapsulated_command(uint16_t wLength);
+uint8_t rndis_get_encapsulated_command(void);
 void rndis_send_interrupt(void);
 void rndis_query_process(void);
 void rndis_set_process(void);
 uint8_t rndis_send_status(rndis_Status_t stat);
+uint8_t rndis_process(void);
+uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen, uint8_t led);
+extern void rndis_configure_endpoints();
 
 #endif //_RNDIS_H
 

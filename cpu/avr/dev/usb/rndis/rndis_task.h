@@ -52,22 +52,72 @@
 
 
 #include "config.h"
+#include "../conf_usb.h"
 
 //_____ M A C R O S ________________________________________________________
 
+#define USB_ETH_MTU	UIP_BUFSIZE+4
 
+
+/*! Hook Documentation
+**	USB_ETH_HOOK_RX_START()
+**	USB_ETH_HOOK_RX_END()
+**	USB_ETH_HOOK_RX_ERROR(string_reason)
+**
+**	USB_ETH_HOOK_TX_START()
+**	USB_ETH_HOOK_TX_END()
+**	USB_ETH_HOOK_TX_ERROR(string_reason)
+**
+**	USB_ETH_HOOK_INITIALIZED()
+**	USB_ETH_HOOK_UNINITIALIZED()
+**
+**	USB_ETH_HOOK_INIT()
+**
+**	USB_ETH_HOOK_SET_PROMISCIOUS_MODE(bool)
+**
+**	USB_ETH_HOOK_HANDLE_INBOUND_PACKET(buffer,len)
+**	USB_ETH_HOOK_IS_READY_FOR_INBOUND_PACKET()
+*/
+
+
+
+#ifndef USB_ETH_HOOK_RX_START
+void rx_start_led(void);
+#define USB_ETH_HOOK_RX_START()	rx_start_led()
+#endif
+
+#ifndef USB_ETH_HOOK_TX_END
+void tx_end_led(void);
+#define USB_ETH_HOOK_TX_END()	tx_end_led()
+#endif
+
+
+
+#ifndef USB_ETH_HOOK_TX_ERROR
+#define USB_ETH_HOOK_TX_ERROR(string)	do { } while(0)
+#endif
+
+#ifndef USB_ETH_HOOK_RX_ERROR
+#define USB_ETH_HOOK_RX_ERROR(string)	do { } while(0)
+#endif
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
+
 uint8_t usb_eth_send(uint8_t * senddata, uint16_t sendlen, uint8_t led);
+uint8_t usb_eth_set_active(uint8_t active);
+uint8_t usb_eth_ready_for_next_packet();
 
 void sof_action(void);
-void rx_start_led(void);
-void tx_end_led(void);
 
-extern char usb_busy;
+extern uint8_t usb_eth_is_active;
 
-PROCESS_NAME(rndis_process);
+// TIP: Avoid using usb_ethernet_addr directly and use the get/set mac_address functions below.
+extern uint64_t usb_ethernet_addr;
+void usb_eth_get_mac_address(uint8_t dest[6]);
+void usb_eth_set_mac_address(const uint8_t src[6]);
+
+PROCESS_NAME(usb_eth_process);
 
 /** @} */
 

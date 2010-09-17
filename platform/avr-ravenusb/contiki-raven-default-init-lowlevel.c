@@ -39,6 +39,7 @@
 #include "usb_descriptors.h"
 #include "usb_specific_request.h"
 #include <util/delay.h>
+#include "bootloader.h"
 
 uint8_t checkForFinger(void);
 
@@ -54,6 +55,8 @@ init_lowlevel(void)
     Leds_off();
 
         if (checkForFinger()) {
+			if(bootloader_is_present())
+				Jump_To_Bootloader();
 #ifdef WINXPSP2
 				usb_mode = mass_storage;
 #else

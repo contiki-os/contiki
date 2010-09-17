@@ -28,35 +28,52 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.1 2010/02/07 07:43:35 adamdunkels Exp $
+ * @(#)$Id: watchdog.c,v 1.2 2010/09/17 21:59:09 dak664 Exp $
  */
 
  /* Dummy watchdog routines for the Raven 1284p */
 #include "dev/watchdog.h"
+#include <avr/wdt.h>
+#include <avr/interrupt.h>
+
+static int stopped = 0;
 
 /*---------------------------------------------------------------------------*/
 void
 watchdog_init(void)
 {
+	MCUSR&=~(1<<WDRF);
+	stopped = 0;
+	watchdog_stop();
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_start(void)
 {
+	stopped--;
+	if(!stopped)
+		wdt_enable(WDTO_2S);
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_periodic(void)
 {
+	if(!stopped)
+		wdt_reset();
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_stop(void)
 {
+	stopped++;
+	wdt_disable();
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_reboot(void)
 {
+	cli();
+	wdt_enable(WDTO_15MS); //wd on,250ms 
+	while(1); //loop
 }
 /*---------------------------------------------------------------------------*/

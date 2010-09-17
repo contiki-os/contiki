@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.24 2010/06/22 17:11:38 dak664 Exp $
+# $Id: Makefile.avr,v 1.25 2010/09/17 21:59:09 dak664 Exp $
 	
 ### Check if we are running under Windows
 
@@ -23,7 +23,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/avr
 ### These directories will be searched for the specified source files
 ### TARGETLIBS are platform-specific routines in the contiki library path
 CONTIKI_CPU_DIRS            = . dev
-AVR        = clock.c mtarch.c eeprom.c flash.c rs232.c leds-arch.c watchdog.c rtimer-arch.c
+AVR        = clock.c mtarch.c eeprom.c flash.c rs232.c leds-arch.c watchdog.c rtimer-arch.c bootloader.c settings.c
 ELFLOADER  = elfloader.c elfloader-avr.c symtab-avr.c
 TARGETLIBS = random.c leds.c
 

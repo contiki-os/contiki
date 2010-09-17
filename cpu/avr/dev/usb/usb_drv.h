@@ -160,7 +160,7 @@ typedef enum endpoint_parameter{ep_num, ep_type, ep_direction, ep_size, ep_bank,
 //! @defgroup Endpoints_configuration Configuration macros for endpoints
 //! List of the standard macro used to configure pipes and endpoints
 //! @{
-#define Usb_build_ep_config0(type, dir, nyet)     ((type<<6) | (nyet<<1) | (dir))
+#define Usb_build_ep_config0(type, dir, nyet)     ((type<<6) /*| (nyet<<1)*/ | (dir))
 #define Usb_build_ep_config1(size, bank     )     ((size<<4) | (bank<<2)        )
 #define usb_configure_endpoint(num, type, dir, size, bank, nyet)             \
                                     ( Usb_select_endpoint(num),              \
@@ -928,6 +928,13 @@ U8      host_config_pipe             (U8, U8);
 U8      host_determine_pipe_size     (U16);
 void    host_disable_all_pipe        (void);
 U8      usb_get_nb_pipe_interrupt    (void);
+
+U8 usb_endpoint_wait_for_read_control_enabled();
+U8 usb_endpoint_wait_for_write_enabled();
+U8 usb_endpoint_wait_for_receive_out();
+U8 usb_endpoint_wait_for_IN_ready();
+
+#define usb_endpoint_wait_for_read_enabled usb_endpoint_wait_for_write_enabled
 
 #endif  // _USB_DRV_H_
 

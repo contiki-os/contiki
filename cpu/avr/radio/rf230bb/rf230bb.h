@@ -45,7 +45,7 @@
  *  \file
  *  \brief This file contains radio driver code.
  *
- *   $Id: rf230bb.h,v 1.2 2010/02/22 22:23:18 dak664 Exp $
+ *   $Id: rf230bb.h,v 1.3 2010/09/17 21:59:09 dak664 Exp $
  */
 
 #ifndef RADIO_H
@@ -72,6 +72,11 @@
 
 #define TX_PWR_3DBM                             ( 0 )
 #define TX_PWR_17_2DBM                          ( 15 )
+
+#define TX_PWR_MAX                             TX_PWR_3DBM
+#define TX_PWR_MIN                             TX_PWR_17_2DBM
+#define TX_PWR_UNDEFINED                       (TX_PWR_MIN+1)
+
 
 #define BATTERY_MONITOR_HIGHEST_VOLTAGE         ( 15 )
 #define BATTERY_MONITOR_VOLTAGE_UNDER_THRESHOLD ( 0 )
@@ -168,89 +173,44 @@ typedef enum{
 }radio_clkm_speed_t;
 
 typedef void (*radio_rx_callback) (uint16_t data);
-extern uint8_t rxMode;
+
+
+/*	Hook Documentation 
+**	
+**	Sniffing Hooks:
+**		RF230BB_HOOK_TX_PACKET(buffer,total_len)
+**		RF230BB_HOOK_RX_PACKET(buf,len)
+**
+**	RF230BB_HOOK_IS_SEND_ENABLED()
+**	RF230BB_HOOK_RADIO_ON()
+**	RF230BB_HOOK_RADIO_OFF()
+**	
+*/
+
+
 /*============================ PROTOTYPES ====================================*/
+
 const struct radio_driver rf230_driver;
+
 int rf230_init(void);
 //int rf230_on(void);
 //int rf230_off(void);
-void rf230_set_channel(int channel);
-int rf230_get_channel(void);
-void rf230_set_pan_addr(unsigned pan,unsigned addr,const uint8_t *ieee_addr);
-//void rf230_set_pan_addr(uint16_t pan,uint16_t addr,uint8_t *ieee_addr);
-//void rf230_set_txpower(uint8_t power);
-int rf230_get_txpower(void);
+void rf230_set_channel(uint8_t channel);
+uint8_t rf230_get_channel(void);
+void rf230_set_pan_addr(unsigned pan,unsigned addr,const uint8_t ieee_addr[8]);
+void rf230_set_txpower(uint8_t power);
+uint8_t rf230_get_txpower(void);
 
-//extern signed char rf230_last_rssi;
-//extern uint8_t rf230_last_correlation;
+void rf230_set_promiscuous_mode(bool isPromiscuous);
+bool rf230_is_ready_to_send();
 
-//int rf230_rssi(void);
+extern signed char rf230_last_rssi;
+extern uint8_t rf230_last_correlation;
 
+uint8_t rf230_get_raw_rssi(void);
 
+#define rf230_rssi	rf230_get_raw_rssi
 
-//#define CC2420_TXPOWER_MAX  31
-//#define CC2420_TXPOWER_MIN   0
-
-/**
- * Interrupt function, called from the simple-cc2420-arch driver.
- *
- */
-//int cc2420_interrupt(void);
-
-/* XXX hack: these will be made as Chameleon packet attributes */
-//extern rtimer_clock_t rf230_time_of_arrival,rf230_time_of_departure;
-//extern int rf230_authority_level_of_sender;
-
-
-//radio_status_t radio_init(bool cal_rc_osc,
-//                          hal_rx_start_isr_event_handler_t rx_event,
-//                          hal_trx_end_isr_event_handler_t trx_end_event,
-//                          radio_rx_callback rx_callback);
-//uint8_t             radio_get_saved_rssi_value(void);
-//uint8_t             radio_get_operating_channel( void );
-//radio_status_t radio_set_operating_channel( uint8_t channel );
-//uint8_t             radio_get_tx_power_level( void );
-//radio_status_t radio_set_tx_power_level( uint8_t power_level );
-
-//uint8_t             radio_get_cca_mode( void );
-//uint8_t             radio_get_ed_threshold( void );
-//radio_status_t radio_set_cca_mode( uint8_t mode, uint8_t ed_threshold );
-//radio_status_t radio_do_cca( void );
-//radio_status_t radio_get_rssi_value( uint8_t *rssi );
-
-//uint8_t             radio_batmon_get_voltage_threshold( void );
-//uint8_t             radio_batmon_get_voltage_range( void );
-//radio_status_t radio_batmon_configure( bool range, uint8_t voltage_threshold );
-//radio_status_t radio_batmon_get_status( void );
-
-//uint8_t             radio_get_clock_speed( void );
-//radio_status_t radio_set_clock_speed( bool direct, uint8_t clock_speed );
-//radio_status_t radio_calibrate_filter( void );
-//radio_status_t radio_calibrate_pll( void );
-
-//uint8_t             radio_get_trx_state( void );
-//radio_status_t radio_set_trx_state( uint8_t new_state );
-//radio_status_t radio_enter_sleep_mode( void );
-//radio_status_t radio_leave_sleep_mode( void );
-//void           radio_reset_state_machine( void );
-//void           radio_reset_trx( void );
-
-//void           radio_use_auto_tx_crc( bool auto_crc_on );
-//radio_status_t radio_send_data( uint8_t data_length, uint8_t *data );
-
-//uint8_t             radio_get_device_role( void );
-//void           radio_set_device_role( bool i_am_coordinator );
-//uint16_t            radio_get_pan_id( void );
-//void           radio_set_pan_id( uint16_t new_pan_id );
-//uint16_t            radio_get_short_address( void );
-//void           radio_set_short_address( uint16_t new_short_address );
-//void           radio_get_extended_address( uint8_t *extended_address );
-//void           radio_set_extended_address( uint8_t *extended_address );
-//radio_status_t radio_configure_csma( uint8_t seed0, uint8_t be_csma_seed1 );
-//bool           calibrate_rc_osc_clkm(void);
-//void           calibrate_rc_osc_32k(void);
-//uint8_t * radio_frame_data(void);
-//uint8_t radio_frame_length(void);
 #define delay_us( us )   ( _delay_loop_2( ( F_CPU / 4000000UL ) * ( us ) ) )
 
 #endif

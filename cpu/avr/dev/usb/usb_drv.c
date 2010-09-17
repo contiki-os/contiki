@@ -50,6 +50,7 @@
 #include "config.h"
 #include "conf_usb.h"
 #include "usb_drv.h"
+#include <util/delay.h>
 
 //_____ M A C R O S ________________________________________________________
 
@@ -60,6 +61,102 @@
 #endif
 
 #if (USB_DEVICE_FEATURE == ENABLED)
+
+#define USB_ENDPOINT_WAIT_TIMEOUT	250
+
+U8 usb_endpoint_wait_for_write_enabled() {
+#if USB_ENDPOINT_WAIT_TIMEOUT
+	U16 timeout=USB_ENDPOINT_WAIT_TIMEOUT;	
+	while(timeout) {
+		if(Is_usb_sof()) {
+			Usb_ack_sof();
+			timeout--;
+		}
+#else
+	while(1) {
+#endif
+		if(Is_usb_write_enabled())
+			return 0;
+		if((!Is_usb_enabled()) || Is_usb_detached())
+			return 1;
+		if(!Is_usb_endpoint_enabled())
+			return 2;
+		if(Is_usb_endpoint_stall_requested())
+			return 3;
+	}
+	return 10;
+}
+
+U8 usb_endpoint_wait_for_read_control_enabled() {
+#if USB_ENDPOINT_WAIT_TIMEOUT
+	U16 timeout=USB_ENDPOINT_WAIT_TIMEOUT;	
+	while(timeout) {
+		if(Is_usb_sof()) {
+			Usb_ack_sof();
+			timeout--;
+		}
+#else
+	while(1) {
+#endif
+		if(Is_usb_read_control_enabled())
+			return 0;
+		if((!Is_usb_enabled()) || Is_usb_detached())
+			return 1;
+		if(!Is_usb_endpoint_enabled())
+			return 2;
+		if(Is_usb_endpoint_stall_requested())
+			return 3;
+	}
+	return 10;
+}
+
+
+U8 usb_endpoint_wait_for_IN_ready() {
+#if USB_ENDPOINT_WAIT_TIMEOUT
+	U16 timeout=USB_ENDPOINT_WAIT_TIMEOUT;	
+	while(timeout) {
+		if(Is_usb_sof()) {
+			Usb_ack_sof();
+			timeout--;
+		}
+#else
+	while(1) {
+#endif
+		if(Is_usb_in_ready())
+			return 0;
+		if((!Is_usb_enabled()) || Is_usb_detached())
+			return 1;
+		if(!Is_usb_endpoint_enabled())
+			return 2;
+		if(Is_usb_endpoint_stall_requested())
+			return 3;
+	}
+	return 10;
+}
+
+
+U8 usb_endpoint_wait_for_receive_out() {
+#if USB_ENDPOINT_WAIT_TIMEOUT
+	U16 timeout=USB_ENDPOINT_WAIT_TIMEOUT;	
+	while(timeout) {
+		if(Is_usb_sof()) {
+			Usb_ack_sof();
+			timeout--;
+		}
+#else
+	while(1) {
+#endif
+		if(Is_usb_receive_out())
+			return 0;
+		if((!Is_usb_enabled()) || Is_usb_detached())
+			return 1;
+		if(!Is_usb_endpoint_enabled())
+			return 2;
+		if(Is_usb_endpoint_stall_requested())
+			return 3;
+	}
+	return 10;
+}
 
 //! usb_configure_endpoint.
 //!

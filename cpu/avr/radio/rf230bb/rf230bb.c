@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.11 2010/06/18 15:44:53 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.12 2010/09/17 21:59:09 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -56,20 +56,6 @@
 #include "net/rime/rimestats.h"
 #include "net/netstack.h"
 
-#if JACKDAW
-#include "sicslow_ethernet.h"
-#include "uip.h"
-#include "uip_arp.h" //For ethernet header structure
-#define ETHBUF(x) ((struct uip_eth_hdr *)x)
-#define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-  /* 6lowpan max size + ethernet header size + 1 */
-static uint8_t raw_buf[127+ UIP_LLH_LEN +1];
-extern uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
-extern rimeaddr_t macLongAddr;
-#include "rndis/rndis_task.h"
-#endif
-
-
 #include "sys/timetable.h"
 
 #define WITH_SEND_CCA 0
@@ -91,17 +77,19 @@ extern rimeaddr_t macLongAddr;
 #define RF230_CONF_AUTOACK 1
 #endif /* RF230_CONF_AUTOACK */
 
+#if RF230_CONF_AUTOACK
+static bool is_promiscuous;
+#endif
+
 #ifndef RF230_CONF_AUTORETRIES
 #define RF230_CONF_AUTORETRIES 2
 #endif /* RF230_CONF_AUTOACK */
 
 //Automatic and manual CRC both append 2 bytes to packets 
-#if RF230_CONF_CHECKSUM
+#if RF230_CONF_CHECKSUM || defined(RF230BB_HOOK_TX_PACKET)
 #include "lib/crc16.h"
-#define CHECKSUM_LEN 2
-#else
-#define CHECKSUM_LEN 2
 #endif /* RF230_CONF_CHECKSUM */
+#define CHECKSUM_LEN 2
 
 #define AUX_LEN (CHECKSUM_LEN + TIMESTAMP_LEN + FOOTER_LEN)
 
@@ -212,7 +200,7 @@ const struct radio_driver rf230_driver =
   };
 
 uint8_t RF230_receive_on,RF230_sleeping;
-static int channel;
+static uint8_t channel;
 
 /* Received frames are buffered to rxframe in the interrupt routine in hal.c */
 hal_rx_frame_t rxframe;
@@ -424,6 +412,33 @@ radio_set_trx_state(uint8_t new_state)
     return set_state_status;
 }
 
+void
+rf230_set_promiscuous_mode(bool isPromiscuous) {
+	if(isPromiscuous) {
+		is_promiscuous = true;
+#if RF230_CONF_AUTOACK
+		radio_set_trx_state(RX_ON);
+#endif
+	} else {
+		is_promiscuous = false;
+#if RF230_CONF_AUTOACK
+		radio_set_trx_state(RX_AACK_ON);
+#endif
+	}
+}
+
+bool
+rf230_is_ready_to_send() {
+	switch(radio_get_trx_state()) {
+		case BUSY_TX:
+		case BUSY_TX_ARET:
+			return false;
+	}
+	
+	return true;
+}
+
+
 static void
 flushrx(void)
 {
@@ -436,20 +451,9 @@ static void
 on(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-#if JACKDAW
-//blue=0  red=1 green=2 yellow=3
-#define Led0_on()                   (PORTD |=  0x80)
-#define Led1_on()                   (PORTD &= ~0x20)
-#define Led2_on()                   (PORTE &= ~0x80)
-#define Led3_on()                   (PORTE &= ~0x40)
-#define Led0_off()                  (PORTD &= ~0x80)
-#define Led1_off()                  (PORTD |=  0x20)
-#define Led2_off()                  (PORTE |=  0x80)
-#define Led3_off()                  (PORTE |=  0x40)
-  Led1_on();
-#else
-// PRINTSHORT("o");
-//  PRINTF("on\n");
+  
+#ifdef RF230BB_HOOK_RADIO_ON
+  RF230BB_HOOK_RADIO_ON();
 #endif
 
   if (RF230_sleeping) {
@@ -461,7 +465,7 @@ on(void)
   rf230_waitidle();
 
 #if RF230_CONF_AUTOACK
-  radio_set_trx_state(RX_AACK_ON);
+  radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
 #else
   radio_set_trx_state(RX_ON);
 #endif
@@ -475,10 +479,8 @@ off(void)
  //     rtimer_set(&rt, RTIMER_NOW()+ RTIMER_ARCH_SECOND*1UL, 1,(void *) rtimercycle, NULL);
   RF230_receive_on = 0;
 
-#if JACKDAW
-  Led1_off();
-#else
-// PRINTSHORT("f");
+#ifdef RF230BB_HOOK_RADIO_OFF
+  RF230BB_HOOK_RADIO_OFF();
 #endif
 
 //   DEBUGFLOW('F');
@@ -581,7 +583,7 @@ rf230_init(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t buffer[RF230_MAX_TX_FRAME_LENGTH];
+static uint8_t buffer[RF230_MAX_TX_FRAME_LENGTH+AUX_LEN];
 static int
 rf230_transmit(unsigned short payload_len)
 {
@@ -711,6 +713,7 @@ rf230_transmit(unsigned short payload_len)
 static int
 rf230_prepare(const void *payload, unsigned short payload_len)
 {
+  int ret = 0;
   uint8_t total_len,*pbuf;
 #if RF230_CONF_TIMESTAMPS
   struct timestamp timestamp;
@@ -736,8 +739,12 @@ rf230_prepare(const void *payload, unsigned short payload_len)
   if (total_len > RF230_MAX_TX_FRAME_LENGTH){
 #if RADIOSTATS
     RF230_sendfail++;
-#endif   
-    return -1;
+#endif
+#if DEBUG
+    printf_P(PSTR("rf230_prepare: packet too large (%d, max: %d)\n"),total_len,RF230_MAX_TX_FRAME_LENGTH);
+#endif
+    ret = -1;
+	goto bail;
   }
   pbuf=&buffer[0];
   memcpy(pbuf,payload,payload_len);
@@ -755,66 +762,46 @@ rf230_prepare(const void *payload, unsigned short payload_len)
   pbuf+=TIMESTAMP_LEN;
 #endif /* RF230_CONF_TIMESTAMPS */
 /*------------------------------------------------------------*/  
-/* If jackdaw report frame to ethernet interface */
-#if JACKDAW
-// mac_logTXtoEthernet(&params, &result);
-  if (usbstick_mode.raw != 0) {
-    uint8_t sendlen;
 
-  /* Get the raw frame */
-    memcpy(&raw_buf[UIP_LLH_LEN], buffer, total_len);
-    sendlen = total_len;
-
-  /* Setup generic ethernet stuff */
-    ETHBUF(raw_buf)->type = htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
-  
-//  uint64_t tempaddr;
- 
-  /* Check for broadcast message */
-    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
-      ETHBUF(raw_buf)->dest.addr[0] = 0x33;
-      ETHBUF(raw_buf)->dest.addr[1] = 0x33;
-      ETHBUF(raw_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
-      ETHBUF(raw_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
-      ETHBUF(raw_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
-      ETHBUF(raw_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
-    } else {
-  /* Otherwise we have a real address */  
-//    tempaddr = p->dest_addr.addr64;
-//    byte_reverse((uint8_t *)&tempaddr, 8);
-      mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->dest.addr[0]),
-          (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-    }
-
-//  tempaddr = p->src_addr.addr64;
-//  memcpy(&tempaddr,packetbuf_addr(PACKETBUF_ADDR_SENDER),sizeof(tempaddr));
-//  byte_reverse((uint8_t *)&tempaddr, 8);
-    mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]),(uip_lladdr_t *)&uip_lladdr.addr);
-
-//  printf("Low2Eth: Sending 802.15.4 packet to ethernet\n\r");
-
-    sendlen += UIP_LLH_LEN;
-    usb_eth_send(raw_buf, sendlen, 0);
-//  rndis_stat.rxok++;
+#ifdef RF230BB_HOOK_TX_PACKET
+#if !RF230_CONF_CHECKSUM
+  { // Add a checksum before we log the packet out
+    uint16_t checksum;
+    checksum = crc16_data(payload, payload_len, 0);
+    memcpy(buffer+total_len-CHECKSUM_LEN,&checksum,CHECKSUM_LEN);
   }
-#endif /* JACKDAW */
+#endif /* RF230_CONF_CHECKSUM */
+  RF230BB_HOOK_TX_PACKET(buffer,total_len);
+#endif
+  
 
+bail:
   RELEASE_LOCK();
-  return 0;
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 static int
 rf230_send(const void *payload, unsigned short payload_len)
 {
-  rf230_prepare(payload, payload_len);
-#if JACKDAW
-// In sniffer mode we don't ever send anything
-  if (usbstick_mode.sendToRf == 0) {
-    uip_len = 0;
-    return 0;
-  }
-#endif /* JACKDAW */
-  return rf230_transmit(payload_len);
+	int ret = 0;
+
+#ifdef RF230BB_HOOK_IS_SEND_ENABLED
+	if(!RF230BB_HOOK_IS_SEND_ENABLED()) {
+		goto bail;
+	}
+#endif
+	
+	if((ret=rf230_prepare(payload, payload_len))) {
+#if DEBUG
+		printf_P(PSTR("rf230_send: Unable to send, prep failed (%d)\n"),ret);
+#endif
+		goto bail;
+	}
+
+	ret = rf230_transmit(payload_len);
+	
+bail:
+	return ret;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -862,7 +849,7 @@ rf230_on(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-int
+uint8_t
 rf230_get_channel(void)
 {
 //jackdaw reads zero channel, raven reads correct channel?
@@ -871,7 +858,7 @@ rf230_get_channel(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-rf230_set_channel(int c)
+rf230_set_channel(uint8_t c)
 {
  /* Wait for any transmission to end. */
 //  PRINTF("rf230: Set Channel %u\n",c);
@@ -883,7 +870,7 @@ rf230_set_channel(int c)
 void
 rf230_set_pan_addr(unsigned pan,
                     unsigned addr,
-                    const uint8_t *ieee_addr)
+                    const uint8_t ieee_addr[8])
 //rf230_set_pan_addr(uint16_t pan,uint16_t addr,uint8_t *ieee_addr)
 {
   PRINTF("rf230: PAN=%x Short Addr=%x\n",pan,addr);
@@ -1083,19 +1070,19 @@ if (RF230_receive_on) {
   }
  /* Transfer the frame, stripping the footer */
   framep=&(rxframe.data[0]);
-  memcpy(buf,framep,len-AUX_LEN);
+  memcpy(buf,framep,len-AUX_LEN+CHECKSUM_LEN);
   framep+=len-AUX_LEN;
   /* Clear the length field to allow buffering of the next packet */
   rxframe.length=0;
   
 #if RF230_CONF_CHECKSUM
   memcpy(&checksum,framep,CHECKSUM_LEN);
-  framep+=CHECKSUM_LEN;
 #endif /* RF230_CONF_CHECKSUM */
+  framep+=CHECKSUM_LEN;
 #if RF230_CONF_TIMESTAMPS
   memcpy(&t,framep,TIMESTAMP_LEN);
-  framep+=TIMESTAMP_LEN;
 #endif /* RF230_CONF_TIMESTAMPS */
+  framep+=TIMESTAMP_LEN;
 #if FOOTER_LEN
   memcpy(footer,framep,FOOTER_LEN);
 #endif
@@ -1152,52 +1139,11 @@ if (RF230_receive_on) {
 //  }
 
  // RELEASE_LOCK();
-  if(len < AUX_LEN) {
-    return 0;
-  }
-#if JACKDAW
-/*------------------------------------------------------------*/  
-/* If jackdaw report frame to ethernet interface */
-// mac_logRXtoEthernet(&params, &result);
-  if (usbstick_mode.raw != 0) {
-    uint8_t sendlen;
 
-  /* Get the raw frame */
-    memcpy(&raw_buf[UIP_LLH_LEN], buf, len);
-    sendlen = len;
+#ifdef RF230BB_HOOK_RX_PACKET
+  RF230BB_HOOK_RX_PACKET(buf,len);
+#endif
 
-  /* Setup generic ethernet stuff */
-    ETHBUF(raw_buf)->type = htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
-  
-//   uint64_t tempaddr;
- 
-  /* Check for broadcast message */
-    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
-      ETHBUF(raw_buf)->dest.addr[0] = 0x33;
-      ETHBUF(raw_buf)->dest.addr[1] = 0x33;
-      ETHBUF(raw_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
-      ETHBUF(raw_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
-      ETHBUF(raw_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
-      ETHBUF(raw_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
-    } else {
-  /* Otherwise we have a real address */  
-//    tempaddr = p->dest_addr.addr64;
-//    byte_reverse((uint8_t *)&tempaddr, 8);
-      mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->dest.addr[0]),
-          (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-    }
-
-//  tempaddr = p->src_addr.addr64;
-//  memcpy(&tempaddr,packetbuf_addr(PACKETBUF_ADDR_SENDER),sizeof(tempaddr));
-//  byte_reverse((uint8_t *)&tempaddr, 8);
-    mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]),(uip_lladdr_t *)&uip_lladdr.addr);
-
-//  printf("Low2Eth: Sending 802.15.4 packet to ethernet\n\r");
-
-    sendlen += UIP_LLH_LEN;
-    usb_eth_send(raw_buf, sendlen, 0);
-  }
-#endif /* JACKDAW */
 
   return len - AUX_LEN;
 
@@ -1217,30 +1163,23 @@ rf230_set_txpower(uint8_t power)
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
-int
+uint8_t
 rf230_get_txpower(void)
 {
-  uint8_t power;
-  if (radio_is_sleeping() ==true) {
-    PRINTF("rf230_get_txpower:Sleeping");
-    return 0;
-  } else {
-//  return hal_subregister_read(SR_TX_PWR);
-    power=hal_subregister_read(SR_TX_PWR);
-    if (power==0) {
-      PRINTSHORT("PZ");
-      return 1;
-    } else {
-      return power;
-    }
-  }
+	uint8_t power = TX_PWR_UNDEFINED;
+	if (radio_is_sleeping()) {
+		PRINTF("rf230_get_txpower:Sleeping");
+	} else {
+		power = hal_subregister_read(SR_TX_PWR);
+	}
+	return power;
 }
 /*---------------------------------------------------------------------------*/
-int
-rf230_rssi(void)
+uint8_t
+rf230_get_raw_rssi(void)
 {
-  int rssi;
-  int radio_was_off = 0;
+  uint8_t rssi;
+  bool radio_was_off = 0;
 
   /*The RSSI measurement should only be done in RX_ON or BUSY_RX.*/
   if(!RF230_receive_on) {
@@ -1249,11 +1188,6 @@ rf230_rssi(void)
   }
 
   rssi = (int)((signed char)hal_subregister_read(SR_RSSI));
-  if (rssi==0) {
-    DEBUGFLOW('r');
-    PRINTF("RSZ");
-    rssi=1;
-  }
 
   if(radio_was_off) {
     rf230_off();

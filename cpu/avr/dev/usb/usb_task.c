@@ -166,53 +166,44 @@ void usb_start_device (void)
   */
 static void pollhandler(void) 
 {
+	/* Check for setup packets */	
+	Usb_select_endpoint(EP_CONTROL);
+	if (Is_usb_receive_setup()) {
+	  usb_process_request();
+	}
 
+	/* The previous call might have requested we send
+		out something to the RNDIS interrupt endpoint */
+	if (schedule_interrupt) {
+		Usb_select_endpoint(INT_EP);
 
-    //RNDIS needs a delay where this isn't called, as it will switch endpoints
-	//and screw up the data transfers
-    if (!usb_busy) {
+		//Linux is a bunch of lies, and won't read
+		//the interrupt endpoint. Hence if this isn't ready just exit
+		//while(!Is_usb_write_enabled());
 
-		/* Check for setup packets */	
-		Usb_select_endpoint(EP_CONTROL);
-		if (Is_usb_receive_setup()) {
-		  usb_process_request();
+		 if (Is_usb_write_enabled()) {
+
+			// Only valid interrupt is:
+			//   0x00000001 0x00000000
+			//
+			Usb_write_byte(0x01);
+			Usb_write_byte(0x00);
+			Usb_write_byte(0x00);
+			Usb_write_byte(0x00);
+			Usb_write_byte(0x00);
+			Usb_write_byte(0x00);
+			Usb_write_byte(0x00);
+			Usb_write_byte(0x00);
+
+			//Send back
+			Usb_send_in();
+			
+			schedule_interrupt = 0;
 		}
+	}	 
 
-		/* The previous call might have requested we send
-			out something to the RNDIS interrupt endpoint */
-		if (schedule_interrupt) {
-			Usb_select_endpoint(INT_EP);
-
-			//Linux is a bunch of lies, and won't read
-			//the interrupt endpoint. Hence if this isn't ready just exit
-			//while(!Is_usb_write_enabled());
-
-			 if (Is_usb_write_enabled()) {
-
-				// Only valid interrupt is:
-				//   0x00000001 0x00000000
-				//
-				Usb_write_byte(0x01);
-				Usb_write_byte(0x00);
-				Usb_write_byte(0x00);
-				Usb_write_byte(0x00);
-				Usb_write_byte(0x00);
-				Usb_write_byte(0x00);
-				Usb_write_byte(0x00);
-				Usb_write_byte(0x00);
-
-				//Send back
-				Usb_send_in();
-				
-				schedule_interrupt = 0;
-			}
-		}	 
-
-  }
-
-
- /* Continue polling */
- process_poll(&usb_process);
+	/* Continue polling */
+	process_poll(&usb_process);
 
 }
 /**
