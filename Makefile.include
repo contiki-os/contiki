@@ -7,10 +7,10 @@ default: all
 endif
 .PHONY: default
 
-CROSS_COMPILE := arm-linux-
+CROSS_COMPILE ?= arm-linux-
 
-LINKERSCRIPT := $(MC1322X)/mc1322x.lds
-LIBMC1322X := $(MC1322X)/lib
+LINKERSCRIPT ?= $(MC1322X)/mc1322x.lds
+LIBMC1322X ?= $(MC1322X)/lib
 
 include $(MC1322X)/config.mk
 
