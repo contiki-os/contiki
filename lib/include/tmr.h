@@ -62,7 +62,7 @@
 /* Timer 0 registers */
 #define TMR0_COMP1   ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_COMP1))
 #define TMR0_COMP_UP TMR0_COMP1
-#define TMR0_COMP2   (TMR0_BASE + TMR_REGOFF_COMP2)
+#define TMR0_COMP2   ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_COMP2))
 #define TMR0_COMP_DOWN TMR0_COMP2
 #define TMR0_CAPT    ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_CAPT))
 #define TMR0_LOAD    ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_LOAD))
