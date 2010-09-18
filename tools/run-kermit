@@ -1,0 +1,13 @@
+#!/usr/bin/kermit +
+
+echo "Opening \%1 at \%2 baud..."
+
+set line \%1
+if failure { echo "Couldn't open \%1" , exit }
+set carrier-watch off
+set flow-control none
+set speed \%2
+set serial 8n1
+set key \127 \8
+connect
+quit
