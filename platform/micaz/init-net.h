@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, University of Colombo School of Computing
+ * Copyright (c) 2010, University of Colombo School of Computing
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,30 +33,14 @@
 
 /**
  * \file
- *         Rime initialization for the MICAz port.
+ *         Network initialization for the MICAz port.
  * \author
  *         Kasun Hewage <kasun.ch@gmail.com>
  */
 
-#include "contiki.h"
-#include "node-id.h"
-#include "dev/cc2420.h"
-#include "net/mac/nullmac.h"
-#include "net/mac/lpp.h"
-#include "net/mac/cxmac.h"
-#include "net/mac/csma.h"
-#include "net/rime.h"
-#include "net/netstack.h"
+#ifndef __INIT_NET_H__
+#define __INIT_NET_H__
 
-void
-init_net(void)
-{
-  rimeaddr_t rimeaddr;
+void init_net(void);
 
-  netstack_init();
-  cc2420_set_channel(RF_CHANNEL);
-
-  rimeaddr.u8[0] = node_id & 0xff;
-  rimeaddr.u8[1] = node_id >> 8;
-  rimeaddr_set_node_addr(&rimeaddr);
-}
+#endif /* __INIT_NET_H__ */
