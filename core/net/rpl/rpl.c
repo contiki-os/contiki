@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.8 2010/06/14 18:35:04 nvt-se Exp $
+ * $Id: rpl.c,v 1.9 2010/09/20 15:30:12 joxe Exp $
  */
 /**
  * \file
@@ -170,8 +170,19 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
   rpl_dag_t *dag;
   rpl_parent_t *p;
 
+  /* This only handles one DODAG - if multiple we need to check all */
   dag = rpl_get_dag(RPL_ANY_INSTANCE);
-  if(!nbr->isused && dag) {
+  if(dag == NULL) {
+    return;
+  }
+
+  /* if this is our default route then clean the dag->def_route state */
+  if(dag->def_route != NULL &&
+     uip_ipaddr_cmp(&dag->def_route->ipaddr, &nbr->ipaddr)) {
+    dag->def_route = NULL;
+  }
+
+  if(!nbr->isused) {
     PRINTF("RPL: Removing neighbor ");
     PRINT6ADDR(&nbr->ipaddr);
     PRINTF("\n");
