@@ -41,21 +41,21 @@
  */
 
 #include <stdio.h>
+#include <avr/pgmspace.h>
 
 #include "contiki.h"
 #include "contiki-lib.h"
-
+#include "net/rime.h"
 #include "dev/leds.h"
 #include "dev/rs232.h"
 #include "dev/watchdog.h"
+#include "dev/slip.h"
+
+#include "init-net.h"
 #include "dev/ds2401.h"
-
-#include "net/rime.h"
-#include "net/mac/nullmac.h"
-#include "net/mac/lpp.h"
-
 #include "node-id.h"
 
+/*---------------------------------------------------------------------------*/
 void
 init_usart(void)
 {
@@ -63,11 +63,14 @@ init_usart(void)
   rs232_init(RS232_PORT_0, USART_BAUD_115200,
              USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 
-  /* Redirect stdout to first port */
+#if WITH_UIP || WITH_UIP6
+  slip_arch_init(USART_BAUD_115200);
+#else
   rs232_redirect_stdout(RS232_PORT_0);
+#endif /* WITH_UIP */
 
 }
-
+/*---------------------------------------------------------------------------*/
 int
 main(void)
 {
@@ -85,8 +88,10 @@ main(void)
   leds_on(LEDS_GREEN);
 
   ds2401_init();
+  
+  node_id_restore();
 
-  random_init(0);
+  random_init(ds2401_id[0] + node_id);
 
   rtimer_init();
 
@@ -98,16 +103,10 @@ main(void)
   ctimer_init();
 
   leds_on(LEDS_YELLOW);
-
-  init_net();
-
-  node_id_restore();
   
-  printf_P(PSTR(CONTIKI_VERSION_STRING " started. Node id %u, using %s.\n"),
-                                                       node_id, rime_mac->name);
-  printf_P(PSTR("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"),
-	 ds2401_id[0], ds2401_id[1], ds2401_id[2], ds2401_id[3],
-	 ds2401_id[4], ds2401_id[5], ds2401_id[6], ds2401_id[7]);
+  init_net();
+  
+  printf_P(PSTR(CONTIKI_VERSION_STRING " started. Node id %u\n"), node_id);
 
   leds_off(LEDS_ALL);
 
