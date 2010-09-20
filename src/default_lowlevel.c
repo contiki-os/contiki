@@ -34,7 +34,6 @@
  */
 
 #include <mc1322x.h>
-#include <types.h>
 
 void default_vreg_init(void) {
 	volatile uint32_t i;

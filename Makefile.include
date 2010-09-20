@@ -1,141 +1,123 @@
-# -*- makefile -*-
+# Hey Emacs, this is a -*- makefile -*-
 
-ifndef BOARD
-default: allboards
-else
-default: all
-endif
-.PHONY: default
+# Set up a default target in case the user didn't already have one.
+# "all" means to build .bin for all defined targets for the currently-defined board
+all: $(addsuffix _$(BOARD).bin, $(TARGETS) $(TARGETS_ROMVARS))
+.PHONY: all
 
-CROSS_COMPILE ?= arm-linux-
-
-LINKERSCRIPT ?= $(MC1322X)/mc1322x.lds
-LIBMC1322X ?= $(MC1322X)/lib
-
-include $(MC1322X)/config.mk
-
-include $(MC1322X)/board/Makefile.board
-
-include $(LIBMC1322X)/Makefile.lib
-
-CFLAGS += -I$(MC1322X)/src -I.
-
-ifdef TARGET_ROM_VARS
-	START = $(MC1322X)/src/start-romvars.o		
-endif
-
-# default start and isr
-ifndef START
-	START = $(MC1322X)/src/start.o	
-endif
-ifndef ISR
-	ISR = $(MC1322X)/src/isr.o
-endif
-SRCOBJS += $(MC1322X)/src/default_lowlevel.o $(ISR) $(START)
-BOARDOBJS := $(addprefix $(OBJDIR)/,$(COBJS))
-
-ARCH  = arm
-CPU   = arm7tdmi-s
-export	ARCH CPU VENDOR
-
+# Don't delete intermediate targets
 .SECONDARY:
 
-### See http://make.paulandlesley.org/autodep.html#advanced
-ifdef BOARD
--include ${addprefix $(OBJDIR)/,$(addsuffix .d,$(TARGETS))}
-endif
+#####
+# Tools and flags
 
-define FINALIZE_DEPENDENCY
-cp $(@:.o=.d) $(@:.o=.$$$$); \
-sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-    -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.$$$$) >> $(@:.o=.d); \
-rm -f $(@:.o=.$$$$)
+# Set up cross compiler and toolchain definitions.
+CROSS_COMPILE ?= arm-linux-
+AS	= $(CROSS_COMPILE)as
+LD	= $(CROSS_COMPILE)ld
+CC	= $(CROSS_COMPILE)gcc
+CPP	= $(CC) -E
+AR	= $(CROSS_COMPILE)ar
+NM	= $(CROSS_COMPILE)nm
+STRIP	= $(CROSS_COMPILE)strip
+OBJCOPY = $(CROSS_COMPILE)objcopy
+OBJDUMP = $(CROSS_COMPILE)objdump
+RANLIB	= $(CROSS_COMPILE)ranlib
+
+# Build CFLAGS and prepend it to user-supplied CFLAGS
+CFLAGS_PLAT  ?= -march=armv4t -mtune=arm7tdmi-s -mlong-calls -msoft-float \
+		-mthumb-interwork -fno-strict-aliasing -fno-common -ffixed-r8 \
+		-ffunction-sections -ffreestanding -fno-builtin
+CFLAGS_WARN  ?= -Wcast-align -Wall -Wstrict-prototypes -Wextra 
+CFLAGS_OPT   ?= -Os
+CFLAGS_DEBUG ?= -g -DDEBUG -Werror
+CFLAGS_MISC  ?= -pipe
+CFLAGS := $(CFLAGS_PLAT) $(CFLAGS_WARN) $(CFLAGS_OPT) $(CFLAGS_DEBUG) $(CFLAGS_MISC) $(CFLAGS)
+
+# Thumb flags, used for building most objects
+CFLAGS_THUMB ?= -mthumb -mcallee-super-interworking
+
+# Linker flags
+LINKERSCRIPT ?= $(MC1322X)/mc1322x.lds
+LDFLAGS      ?= -T $(LINKERSCRIPT) -nostartfiles -static -export-dynamic -Wl,-Map=$(@:.elf=.map)
+
+# Assembler flags
+AFLAGS       ?= -Wa,-gstabs $(CFLAGS)
+
+# Misc tool options
+OBJCOPYFLAGS ?= --gap-fill=0xff
+
+#####
+
+include $(MC1322X)/board/Makefile.board
+include $(MC1322X)/lib/Makefile.lib
+include $(MC1322X)/src/Makefile.src
+
+#####
+# Rule for building ELF files.  We generate both a wildcard rule
+# that links $(SRCLIB) as well as target-specific rules that link $(SRCLIB_ROMVARS)
+define build_elf_rule
+$(1)_$$(BOARD).elf: $$(OBJDIR)/$(1).o $$(OBJDIR)/board.a $$(MC1322X)/lib/libmc1322x.a $(2)
+	$$(CC) $$(LDFLAGS) -o $$@ -Wl,--start-group $$^ -lm -Wl,--end-group
 endef
+# Targets that need space for rom variables:
+$(foreach t, $(TARGETS_ROMVARS), $(eval $(call build_elf_rule,$(t),$(SRCLIB_ROMVARS))))
+# All other targets (wildcard rule):
+$(eval $(call build_elf_rule,%,$(SRCLIB_ROMVARS)))
 
-$(START): $(START:.o=.s)
-	$(CC) $(AFLAGS) -c -o $@ $<
-$(MC1322X)/src/start-romvars.s:	$(MC1322X)/src/start.S
-	$(CPP) $(AFLAGS) -DUSE_INTS -DUSE_ROM_VECTS -DUSE_ROM_VARS -o $@ $<
-$(MC1322X)/src/start-romvects.s: $(MC1322X)/src/start.S
-	$(CPP) $(AFLAGS) -DUSE_INTS -DUSE_ROM_VECTS -o $@ $<
+# Generic rules
+%.srec: %.elf
+	$(OBJCOPY) $(OBJCOPYFLAGS) -O srec $< $@
 
-$(ISR): $(ISR:.o=.c)
-	$(CC) $(CFLAGS) $(ARM_FLAGS) -MMD $< -c -o $@
+%.ihex: %.elf
+	$(OBJCOPY) $(OBJCOPYFLAGS) -O ihex $< $@
+
+%.bin: %.elf
+	$(OBJCOPY) $(OBJCOPYFLAGS) -O binary $< $@
+
+%.dis: %.elf
+	$(OBJDUMP) -Sd $< > $@ || rm -f $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
-
-ifdef COBJS
-BOARDARCS := $(OBJDIR)/board.a(${filter $(OBJDIR)/%.o,$(BOARDOBJS)})
-endif
-empty-board-a:
-	$(AR) $(ARFLAGS) $(OBJDIR)/board.a
-.PHONY: empty-board-a
-
-$(OBJDIR)/board.a: empty-board-a $(BOARDARCS) $(BOARDOBJS)
-$(MC1322X)/src/src.a: $(MC1322X)/src/src.a($(SRCOBJS))
-
-%_$(BOARD).elf:	$(OBJDIR)/%.o $(START) $(ISR) $(SRCOBJS) $(LINKERSCRIPT) $(LIBMC1322X)/libmc1322x.a $(OBJDIR)/board.a $(MC1322X)/src/src.a
-	$(CC) $(LDFLAGS)  \
-	-L $(LIBMC1322X) -L $(MC1322X)/src -L $(OBJDIR) $< -o $@ $(START) $(MC1322X)/src/src.a --start-group $(OBJDIR)/board.a $(LIBMC1322X)/libmc1322x.a -lm --end-group
-
-%.srec:		%.elf
-		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@
-
-%.ihex: 	%.elf
-		$(OBJCOPY) ${OBJCFLAGS} -O ihex $< $@
-
-%.bin:		%.elf
-		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
-
-%.dis:		%.elf
-		$(OBJDUMP) -SD $< > $@
-
-%.s: %.S
-	$(CPP) $(AFLAGS) -o $@ $<
 %.o: %.S
 	$(CC) $(AFLAGS) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
-%.o:	%.c
-	$(CC) $(CFLAGS) $(THUMB_FLAGS) -MMD -c -o $@ $<
-	@$(FINALIZE_DEPENDENCY)
 
-$(OBJDIR)/%.s:	%.S
-	$(CPP) $(AFLAGS) -o $@ $<
-$(OBJDIR)/%.o:	%.S
-	$(CC) $(AFLAGS) -MMD -c -o $@ $<
-	@$(FINALIZE_DEPENDENCY)
-$(OBJDIR)/%.o:	%.c
-	$(CC) $(CFLAGS) $(THUMB_FLAGS) -MMD -c -o $@ $<
-	@$(FINALIZE_DEPENDENCY)
+# Fix the dependencies generated for a particular target .o
+# See http://make.paulandlesley.org/autodep.html#advanced
+define FINALIZE_DEPENDENCY
+  cp $(@:.o=.d) $(@:.o=.$$$$); \
+  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+      -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.$$$$) >> $(@:.o=.d); \
+  rm -f $(@:.o=.$$$$)
+endef
 
-clean:
-	find $(MC1322X) \
-		\( -name 'core' -o -name '*.bak' -o -name '*~' \
-		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \
-                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' -o -name '*.d' -o -name '*.srec' \) -print \
-		| xargs rm -rf
-	rm -fr *.*~	
-	find \
-		\( -name 'core' -o -name '*.bak' -o -name '*~' \
-		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' -o -name '*.elf'  -o -name '*.s' -o -name '*.map' \
-                -o -name 'obj_*_board' -o -name '.depend' -o -name '*.bin' -o -name '*.dis' -o -name '*.d' -o -name '*.srec' \) -print \
-		| xargs rm -rf
-	rm -fr *.*~	
-	make -C $(MC1322X)/tools/ftditools/ clean
-clobber \
-mrproper \
-distclean:	clean
+clean::
+	rm -f *.{o,d,a,bin,elf,ihex,srec,dis,map,bak} *~
+	rm -rf obj_*
 
-.PHONY: clean clobber mrproper distclean 
+.PHONY: clean
 
-all: $(OBJDIR)/board.h 
-	-git submodule update
-	for target in $(TARGETS); do make $$target\_$(BOARD).bin; done
-	for target in $(TARGETS_WITH_ROM_VARS);   do make TARGET_ROM_VARS=1 $$target\_$(BOARD).bin; done
+##############################
 
-allboards:
-	for board in $(BOARDS); do make BOARD=$$board all; done
+# If no single board was specified, invoke make recursively for each
+# board in $(BOARDS), or $(ALL_BOARDS) if that wasn't specified either.
+# This is at the end so that it can override all other targets.
+ifndef BOARD
+ifneq ($(MAKECMDGOALS),clean)
+.DEFAULT_GOAL=mc1322x-default
+BOARDS ?= $(ALL_BOARDS)
+define build_board
+	@echo "Building for board: $(1)"
+	@$(MAKE) --no-print-directory BOARD=$(1) $(2)
 
-.PHONY: all allboards
-
-
+endef
+$(MAKECMDGOALS):
+	$(foreach b, $(BOARDS), $(call build_board,$(b),$@))
+mc1322x-default:
+	$(foreach b, $(BOARDS), $(call build_board,$(b),))
+endif
+endif

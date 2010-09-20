@@ -1,20 +1,31 @@
 # -*- makefile -*-
 
-BOARDS := redbee-dev redbee-r1 redbee-usb redbee-econotag quahogcon freescale-ncb
+ALL_BOARDS = redbee-dev redbee-r1 redbee-usb redbee-econotag quahogcon freescale-ncb
 
-OBJDIR := obj_$(BOARD)_board
+OBJDIR = obj_$(BOARD)
 CFLAGS += -I$(OBJDIR) -I$(MC1322X)/board -DBOARD=$(BOARD)
 
-$(OBJDIR):
-ifndef BOARD
-	${warning BOARD not defined}
-	${warning echo "make BOARD=foo"}
-	${warning "boards: $(BOARDS)"}
-	${error you must define BOARD}
+# Create directory and board.h include
+$(OBJDIR)/board.h:
+	mkdir -p $(OBJDIR)
+	echo '/* This file was automatically generated */' > $(OBJDIR)/board.h
+	echo '#include "$(BOARD).h"' >> $(OBJDIR)/board.h
+
+# $(OBJDIR)/board.a contains all the objects defined in COBJS
+$(OBJDIR)/board.a: $(OBJDIR)/board.h $(OBJDIR)/board.a($(addprefix $(OBJDIR)/, $(COBJS)))
+
+# And is built from files in the parent directory
+$(OBJDIR)/%.o: %.c $(OBJDIR)/board.h
+	$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
+
+$(OBJDIR)/%.o: %.S $(OBJDIR)/board.h
+	$(CC) $(AFLAGS) -MMD -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
+
+ifneq ($(MAKECMDGOALS),clean)
+-include $(wildcard $(OBJDIR)/*.d)
 endif
-	@echo "setup object directory for dev board"
-	mkdir $(OBJDIR)
 
-$(OBJDIR)/board.h: $(OBJDIR) 
-	ln -sf ../$(MC1322X)/board/$(BOARD).h $(OBJDIR)/board.h
-
+clean::
+	rm -rf obj_*

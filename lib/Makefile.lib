@@ -1,8 +1,15 @@
-# -*- makefile -*-
+# Hey Emacs, this is a -*- makefile -*-
 
-CFLAGS += -I$(LIBMC1322X)/include
+CFLAGS += -I$(MC1322X)/lib/include
 
-LIBOBJS = $(patsubst %.c,%.o,$(wildcard $(LIBMC1322X)/*.c))
+# By default, link all objects
+LIBOBJS ?= $(patsubst %.c,%.o,$(wildcard $(MC1322X)/lib/*.c))
 
-$(LIBMC1322X)/libmc1322x.a: $(LIBOBJS) 
-	$(AR) rcs $(LIBMC1322X)/libmc1322x.a $(LIBOBJS)
+$(MC1322X)/lib/libmc1322x.a: $(MC1322X)/lib/libmc1322x.a($(LIBOBJS))
+
+ifneq ($(MAKECMDGOALS),clean)
+-include $(wildcard $(MC1322X)/lib/*.d)
+endif
+
+clean::
+	rm -f $(MC1322X)/lib/*.{o,d,a}
