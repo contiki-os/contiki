@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.18 2010/09/15 16:15:10 nifi Exp $
+ * $Id: CollectServer.java,v 1.19 2010/09/21 20:24:18 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/15 16:15:10 $
- *           $Revision: 1.18 $
+ * Updated : $Date: 2010/09/21 20:24:18 $
+ *           $Revision: 1.19 $
  */
 
 package se.sics.contiki.collect;
@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Properties;
@@ -81,10 +82,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import se.sics.contiki.collect.gui.AggregatedTimeChartPanel;
 import se.sics.contiki.collect.gui.BarChartPanel;
 import se.sics.contiki.collect.gui.MapPanel;
 import se.sics.contiki.collect.gui.NodeInfoPanel;
-import se.sics.contiki.collect.gui.PacketChartPanel;
 import se.sics.contiki.collect.gui.SerialConsole;
 import se.sics.contiki.collect.gui.TimeChartPanel;
 
@@ -329,6 +330,34 @@ public class CollectServer {
             dataset.addValue(data.getNode().getSensorDataAggregator().getAverageValue(SensorData.HOPS), categories[1], data.getNode().getName());
           }
         },
+        new AggregatedTimeChartPanel<int[]>(this, NETWORK,
+            "Next Hop (Over Time)", "Time", "Next Hop Changes") {
+          {
+            ValueAxis axis = chart.getXYPlot().getRangeAxis();
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
+            axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+          }
+          @Override
+          protected int[] createState(Node node) {
+            return new int[1];
+          }
+          @Override
+          protected void clearState(Map<Node,int[]> map) {
+            for(int[] value : map.values()) {
+              value[0] = 0;
+            }
+          }
+          @Override
+          protected int getSensorDataValue(SensorData sd, int[] nodeState) {
+            boolean hasBest = nodeState[0] != 0;
+            int bestNeighbor = sd.getValue(SensorData.BEST_NEIGHBOR);
+            if (bestNeighbor != 0 && bestNeighbor != nodeState[0]) {
+              nodeState[0] = bestNeighbor;
+              return hasBest ? 1 : 0;
+            }
+            return 0;
+          }
+        },
         new TimeChartPanel(this, NETWORK, "Latency", "Latency", "Time", "Seconds") {
           {
             setMaxItemCount(defaultMaxItemCount);
@@ -337,7 +366,67 @@ public class CollectServer {
             return data.getLatency();
           }
         },
-        new PacketChartPanel(this, NETWORK, "Received (Over Time)", "Time", "Received Packets"),
+        new AggregatedTimeChartPanel<Node>(this, NETWORK,
+            "Received (Over Time)", "Time", "Received Packets") {
+          {
+            ValueAxis axis = chart.getXYPlot().getRangeAxis();
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
+            axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+          }
+          @Override
+          protected String getTitle(int nodeCount, int dataCount, int duplicateCount) {
+            return "Received " + dataCount + " packets from " + nodeCount + " node"
+                + (nodeCount > 1 ? "s" : "")
+                + (duplicateCount > 0 ? (" (" + duplicateCount + " duplicates)") : "");
+          }
+          @Override
+          protected Node createState(Node node) {
+            return node;
+          }
+          @Override
+          protected int getSensorDataValue(SensorData sd, Node node) {
+            return 1;
+          }
+        },
+        new AggregatedTimeChartPanel<int[]>(this, NETWORK,
+            "Lost (Over Time)", "Time", "Estimated Lost Packets") {
+          private int totalLost;
+          {
+            ValueAxis axis = chart.getXYPlot().getRangeAxis();
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
+            axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+          }
+          @Override
+          protected String getTitle(int nodeCount, int dataCount, int duplicateCount) {
+            return "Received " + dataCount + " packets from " + nodeCount
+                + " node" + (nodeCount > 1 ? "s" : "") + ". Estimated "
+                + totalLost + " lost packet" + (totalLost == 1 ? "" : "s")
+                + '.';
+          }
+          @Override
+          protected int[] createState(Node node) {
+            return new int[1];
+          }
+          @Override
+          protected void clearState(Map<Node,int[]> map) {
+            totalLost = 0;
+            for(int[] v : map.values()) {
+              v[0] = 0;
+            }
+          }
+          @Override
+          protected int getSensorDataValue(SensorData sd, int[] nodeState) {
+            int lastSeqno = nodeState[0];
+            int seqno = sd.getSeqno();
+            nodeState[0] = seqno;
+            if (seqno > lastSeqno + 1 && lastSeqno != 0) {
+              int estimatedLost = seqno - lastSeqno - 1;
+              totalLost += estimatedLost;
+              return estimatedLost;
+            }
+            return 0;
+          }
+        },
         new BarChartPanel(this, NETWORK, "Received (Per Node)", "Received Packets Per Node", "Nodes", "Packets",
             new String[] { "Packets", "Duplicates" }) {
           {
@@ -860,6 +949,10 @@ public class CollectServer {
       }
     }
   }
+
+   public Node[] getSelectedNodes() {
+     return selectedNodes;
+   }
 
 
   // -------------------------------------------------------------------
