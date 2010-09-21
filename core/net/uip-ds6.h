@@ -223,7 +223,6 @@ typedef struct uip_ds6_maddr {
 
 /** \brief define some additional RPL related route state and
  *  neighbor callback for RPL - if not a DS6_ROUTE_STATE is already set */
-/* #if UIP_CONF_IPV6_RPL */
 #ifndef UIP_DS6_ROUTE_STATE_TYPE
 #define UIP_DS6_ROUTE_STATE_TYPE rpl_route_entry_t
 /* Needed for the extended route entry state when using ContikiRPL */
@@ -234,10 +233,13 @@ typedef struct rpl_route_entry {
   uint8_t learned_from;
 } rpl_route_entry_t;
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
+
+/* only define the callback if RPL is active */
+#if UIP_CONF_IPV6_RPL
 #ifndef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
 #define UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED rpl_ipv6_neighbor_callback
 #endif /* UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED */
-/* #endif /\* UIP_CONF_IPV6_RPL *\/ */
+#endif \* UIP_CONF_IPV6_RPL *\
 
 
 
