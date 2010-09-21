@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.7 2010/09/15 16:15:10 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.8 2010/09/21 20:24:18 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2010/09/15 16:15:10 $
- *           $Revision: 1.7 $
+ * Updated : $Date: 2010/09/21 20:24:18 $
+ *           $Revision: 1.8 $
  */
 
 package se.sics.contiki.collect;
@@ -53,8 +53,9 @@ public class SensorDataAggregator implements SensorInfo {
   private int dataCount;
   private int duplicates = 0;
   private int lost = 0;
+  private int nodeRestartCount = 0;
   private int nextHopChangeCount = 0;
-  private String lastNextHop = null;
+  private int lastNextHop = 0;
   private long shortestPeriod = Long.MAX_VALUE;
   private long longestPeriod = 0;
 
@@ -91,8 +92,8 @@ public class SensorDataAggregator implements SensorInfo {
     int seqn = data.getValue(SEQNO);
     int s = seqn + seqnoDelta;
 
-    String bestNeighbor = data.getBestNeighborID();
-    if (lastNextHop != null && !lastNextHop.equals(bestNeighbor)) {
+    int bestNeighbor = data.getValue(BEST_NEIGHBOR);
+    if (lastNextHop != bestNeighbor && lastNextHop != 0) {
       nextHopChangeCount++;
     }
     lastNextHop = bestNeighbor;
@@ -150,14 +151,25 @@ public class SensorDataAggregator implements SensorInfo {
           shortestPeriod = timeDiff;
         }
       }
-      // Handle wrapping sequence numbers
       if (dataCount == 0) {
         // First packet from node.
       } else if (maxSeqno - s > 2) {
-        s += maxSeqno - seqnoDelta;
-        seqnoDelta = maxSeqno;
+        // Handle sequence number overflow.
+        seqnoDelta = maxSeqno + 1;
+        s = seqnoDelta + seqn;
+        if (seqn > 127) {
+          // Sequence number restarted at 128 (to separate node restarts
+          // from sequence number overflow).
+          seqn -= 128;
+          seqnoDelta -= 128;
+          s -= 128;
+        } else {
+          // Sequence number restarted at 0. This is usually an indication that
+          // the node restarted.
+          nodeRestartCount++;
+        }
         if (seqn > 0) {
-          lost += seqn - 1;
+          lost += seqn;
         }
       } else if (s > maxSeqno + 1){
         lost += s - (maxSeqno + 1);
@@ -176,8 +188,9 @@ public class SensorDataAggregator implements SensorInfo {
     dataCount = 0;
     duplicates = 0;
     lost = 0;
+    nodeRestartCount = 0;
     nextHopChangeCount = 0;
-    lastNextHop = null;
+    lastNextHop = 0;
     minSeqno = Integer.MAX_VALUE;
     maxSeqno = Integer.MIN_VALUE;
     seqnoDelta = 0;
@@ -262,6 +275,10 @@ public class SensorDataAggregator implements SensorInfo {
 
   public int getNextHopChangeCount() {
     return nextHopChangeCount;
+  }
+
+  public int getEstimatedRestarts() {
+    return nodeRestartCount;
   }
 
   public int getEstimatedLostCount() {
