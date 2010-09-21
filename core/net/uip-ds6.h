@@ -239,7 +239,7 @@ typedef struct rpl_route_entry {
 #ifndef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
 #define UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED rpl_ipv6_neighbor_callback
 #endif /* UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED */
-#endif \* UIP_CONF_IPV6_RPL *\
+#endif /* UIP_CONF_IPV6_RPL */
 
 
 
