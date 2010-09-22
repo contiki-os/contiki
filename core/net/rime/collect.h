@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.20 2010/09/13 13:28:14 adamdunkels Exp $
+ * $Id: collect.h,v 1.21 2010/09/22 22:08:08 adamdunkels Exp $
  */
 
 /**
@@ -93,11 +93,14 @@ struct collect_conn {
   struct ctimer transmit_after_scan_timer;
 #endif /* COLLECT_CONF_ANNOUNCEMENTS */
   const struct collect_callbacks *cb;
-  struct ctimer t;
   struct ctimer retransmission_timer;
   LIST_STRUCT(send_queue_list);
   struct packetqueue send_queue;
   struct collect_neighbor_list neighbor_list;
+
+  struct ctimer keepalive_timer;
+  clock_time_t keepalive_period;
+
   rimeaddr_t parent, current_parent;
   uint16_t rtmetric;
   uint8_t seqno;
@@ -121,6 +124,8 @@ int collect_send(struct collect_conn *c, int rexmits);
 void collect_set_sink(struct collect_conn *c, int should_be_sink);
 
 int collect_depth(struct collect_conn *c);
+
+void collect_set_keepalive(struct collect_conn *c, clock_time_t period);
 
 void collect_print_stats(void);
 
