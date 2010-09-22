@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.58 2010/06/30 09:03:20 nifi Exp $
+ * @(#)$Id: cc2420.c,v 1.59 2010/09/22 22:01:53 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -110,6 +110,13 @@ int cc2420_packets_seen, cc2420_packets_read;
 
 static uint8_t volatile pending;
 
+#define BUSYWAIT_UNTIL(cond, max_time)                                  \
+  do {                                                                  \
+    rtimer_clock_t t0;                                                  \
+    t0 = RTIMER_NOW();                                                  \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time)));   \
+  } while(0)
+
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2420_process, "CC2420 driver");
 /*---------------------------------------------------------------------------*/
@@ -127,6 +134,7 @@ static int cc2420_send(const void *data, unsigned short len);
 static int cc2420_receiving_packet(void);
 static int pending_packet(void);
 static int cc2420_cca(void);
+static int detected_energy(void);
 
 signed char cc2420_last_rssi;
 uint8_t cc2420_last_correlation;
@@ -138,6 +146,8 @@ const struct radio_driver cc2420_driver =
     cc2420_transmit,
     cc2420_send,
     cc2420_read,
+    cc2420_set_channel,
+    detected_energy,
     cc2420_cca,
     cc2420_receiving_packet,
     pending_packet,
@@ -190,14 +200,14 @@ static uint8_t locked, lock_on, lock_off;
 static void
 on(void)
 {
-  /*  PRINTF("on\n");*/
-  receive_on = 1;
-
   CC2420_ENABLE_FIFOP_INT();
   strobe(CC2420_SRXON);
-  while(!(status() & (BV(CC2420_XOSC16M_STABLE))));
+
+  BUSYWAIT_UNTIL(status() & (BV(CC2420_XOSC16M_STABLE)), RTIMER_SECOND / 100);
+
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   LEDS_ON(LEDS_GREEN);
+  receive_on = 1;
 }
 static void
 off(void)
@@ -206,7 +216,7 @@ off(void)
   receive_on = 0;
 
   /* Wait for transmission to end before turning radio off. */
-  while(status() & BV(CC2420_TX_ACTIVE));
+  BUSYWAIT_UNTIL(!(status() & BV(CC2420_TX_ACTIVE)), RTIMER_SECOND / 10);
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   strobe(CC2420_SRFOFF);
@@ -366,7 +376,7 @@ cc2420_transmit(unsigned short payload_len)
 
 #if WITH_SEND_CCA
   strobe(CC2420_SRXON);
-  while(!(status() & BV(CC2420_RSSI_VALID)));
+  BUSYWAIT_UNTIL(status() & BV(CC2420_RSSI_VALID), RTIMER_SECOND / 10);
   strobe(CC2420_STXONCCA);
 #else /* WITH_SEND_CCA */
   strobe(CC2420_STXON);
@@ -388,7 +398,7 @@ cc2420_transmit(unsigned short payload_len)
 
       /* We wait until transmission has ended so that we get an
 	 accurate measurement of the transmission time.*/
-      while(status() & BV(CC2420_TX_ACTIVE));
+      BUSYWAIT_UNTIL(!(status() & BV(CC2420_TX_ACTIVE)), RTIMER_SECOND / 10);
 
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
       ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,cc2420_get_txpower());
@@ -521,7 +531,7 @@ cc2420_get_channel(void)
   return channel;
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 cc2420_set_channel(int c)
 {
   uint16_t f;
@@ -537,10 +547,10 @@ cc2420_set_channel(int c)
   /*
    * Writing RAM requires crystal oscillator to be stable.
    */
-  while(!(status() & (BV(CC2420_XOSC16M_STABLE))));
+  BUSYWAIT_UNTIL((status() & (BV(CC2420_XOSC16M_STABLE))), RTIMER_SECOND / 10);
 
   /* Wait for any transmission to end. */
-  while(status() & BV(CC2420_TX_ACTIVE));
+  BUSYWAIT_UNTIL(!(status() & BV(CC2420_TX_ACTIVE)), RTIMER_SECOND / 10);
 
   setreg(CC2420_FSCTRL, f);
 
@@ -551,6 +561,7 @@ cc2420_set_channel(int c)
   }
 
   RELEASE_LOCK();
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -566,7 +577,7 @@ cc2420_set_pan_addr(unsigned pan,
   /*
    * Writing RAM requires crystal oscillator to be stable.
    */
-  while(!(status() & (BV(CC2420_XOSC16M_STABLE))));
+  BUSYWAIT_UNTIL(status() & (BV(CC2420_XOSC16M_STABLE)), RTIMER_SECOND / 10);
 
   tmp[0] = pan & 0xff;
   tmp[1] = pan >> 8;
@@ -764,15 +775,17 @@ cc2420_rssi(void)
   int rssi;
   int radio_was_off = 0;
 
+  if(locked) {
+    return 0;
+  }
+  
   GET_LOCK();
 
   if(!receive_on) {
     radio_was_off = 1;
     cc2420_on();
   }
-  while(!(status() & BV(CC2420_RSSI_VALID))) {
-    /*    printf("cc2420_rssi: RSSI not valid.\n");*/
-  }
+  BUSYWAIT_UNTIL(status() & BV(CC2420_RSSI_VALID), RTIMER_SECOND / 100);
 
   rssi = (int)((signed char)getreg(CC2420_RSSI));
 
@@ -781,6 +794,12 @@ cc2420_rssi(void)
   }
   RELEASE_LOCK();
   return rssi;
+}
+/*---------------------------------------------------------------------------*/
+static int
+detected_energy(void)
+{
+  return cc2420_rssi();
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -822,9 +841,7 @@ cc2420_cca(void)
     return 1;
   }
 
-  while(!(status() & BV(CC2420_RSSI_VALID))) {
-    /*    printf("cc2420_rssi: RSSI not valid.\n"); */
-  }
+  BUSYWAIT_UNTIL(status() & BV(CC2420_RSSI_VALID), RTIMER_SECOND / 100);
 
   cca = CC2420_CCA_IS_1;
 
