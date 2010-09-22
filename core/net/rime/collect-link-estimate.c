@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-link-estimate.c,v 1.2 2010/09/13 13:28:14 adamdunkels Exp $
+ * $Id: collect-link-estimate.c,v 1.3 2010/09/22 22:03:21 adamdunkels Exp $
  */
 
 /**
@@ -51,6 +51,16 @@
    collect-link-estimate.h. */
 #define ETX_HISTORY_WINDOW 16
 
+#define INITIAL_LINK_ESTIMATE 4
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 void
 collect_link_estimate_new(struct collect_link_estimate *le)
@@ -60,7 +70,7 @@ collect_link_estimate_new(struct collect_link_estimate *le)
   /* Start with a conservative / pessimistic estimate of link quality
      for new links. */
   for(i = 0; i < ETX_HISTORY_WINDOW; i++) {
-    le->history[i] = 4;
+    le->history[i] = INITIAL_LINK_ESTIMATE;
   }
   le->historyptr = 0;
 }
@@ -94,13 +104,13 @@ collect_link_estimate(struct collect_link_estimate *le)
 {
   int i, etx;
 
-  /*  printf("collect_link_estimate: ");*/
+  PRINTF("collect_link_estimate: ");
   etx = 0;
   for(i = 0; i < ETX_HISTORY_WINDOW; ++i) {
-    /*    printf("%d ", le->history[i]);*/
+    PRINTF("%d ", le->history[i]);
     etx += le->history[i];
   }
-  /*  printf(", %d\n", (COLLECT_LINK_ESTIMATE_UNIT * etx) / ETX_HISTORY_WINDOW);*/
+  PRINTF(", %d\n", (COLLECT_LINK_ESTIMATE_UNIT * etx) / ETX_HISTORY_WINDOW);
   return (COLLECT_LINK_ESTIMATE_UNIT * etx) / ETX_HISTORY_WINDOW;
 }
 /*---------------------------------------------------------------------------*/
