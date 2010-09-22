@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.25 2010/09/14 07:18:14 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.26 2010/09/22 22:11:20 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Shell commands for Rime communication primitives
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -339,25 +339,13 @@ recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
 }
 static const struct collect_callbacks collect_callbacks = { recv_collect };
 /*---------------------------------------------------------------------------*/
-/*static void
-send_collect(void *dummy)
-{
-  struct collect_msg msg;
-#if TIMESYNCH_CONF_ENABLED
-  msg.timestamp = timesynch_time();
-#else
-  msg.timestamp = 0;
-#endif
-  packetbuf_copyfrom(&msg, COLLECT_MSG_HDRSIZE);
-  collect_send(&collect, COLLECT_REXMITS);
-  }*/
-/*---------------------------------------------------------------------------*/
 void
 shell_rime_init(void)
 {
   collect_open(&shell_collect_conn, SHELL_RIME_CHANNEL_COLLECT,
                COLLECT_ROUTER, &collect_callbacks);
-  
+  collect_set_keepalive(&shell_collect_conn, 10 * 60 * CLOCK_SECOND);
+
   shell_register_command(&collect_command);
   shell_register_command(&mac_command);
   shell_register_command(&packetize_command);
