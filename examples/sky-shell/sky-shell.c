@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.22 2010/09/13 14:34:51 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.23 2010/09/22 22:14:03 adamdunkels Exp $
  */
 
 /**
@@ -224,7 +224,7 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
   n = collect_neighbor_list_best(&shell_collect_conn.neighbor_list);
   if(n != NULL) {
     rimeaddr_copy(&msg.best_neighbor, &n->addr);
-    msg.best_neighbor_etx = collect_neighbor_rtmetric(n) - n->rtmetric;
+    msg.best_neighbor_etx = collect_neighbor_rtmetric_link_estimate(n) - n->rtmetric;
     msg.best_neighbor_rtmetric = n->rtmetric;
   }
   msg.battery_voltage = battery_sensor.value(0);
@@ -253,8 +253,8 @@ PROCESS_THREAD(sky_shell_process, ev, data)
 
   /*  ctimer_set(&c, 20 * CLOCK_SECOND, periodic_debug, &c);*/
   
-  /*  powertrace_start(10 * CLOCK_SECOND);
-      powertrace_sniff(POWERTRACE_ON);*/
+  /*  powertrace_start(10 * CLOCK_SECOND);*/
+  /*  powertrace_sniff(POWERTRACE_ON);*/
   
   serial_shell_init();
   shell_blink_init();
