@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.h,v 1.3 2010/09/13 13:28:14 adamdunkels Exp $
+ * $Id: collect-neighbor.h,v 1.4 2010/09/22 22:04:55 adamdunkels Exp $
  */
 
 /**
@@ -91,6 +91,7 @@ void collect_neighbor_tx(struct collect_neighbor *n, uint8_t num_tx);
 void collect_neighbor_rx(struct collect_neighbor *n);
 void collect_neighbor_tx_fail(struct collect_neighbor *n, uint8_t num_tx);
 int collect_neighbor_link_estimate(struct collect_neighbor *n);
+int collect_neighbor_rtmetric_link_estimate(struct collect_neighbor *n);
 int collect_neighbor_rtmetric(struct collect_neighbor *n);
 
 
