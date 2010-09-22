@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.c,v 1.5 2010/09/13 13:28:14 adamdunkels Exp $
+ * $Id: collect-neighbor.c,v 1.6 2010/09/22 22:04:55 adamdunkels Exp $
  */
 
 /**
@@ -251,8 +251,8 @@ collect_neighbor_list_best(struct collect_neighbor_list *neighbors_list)
            n->rtmetric, collect_neighbor_link_estimate(n),
            collect_neighbor_rtmetric(n));
     if(!rimeaddr_cmp(&n->addr, &rimeaddr_null) &&
-       rtmetric > collect_neighbor_rtmetric(n)) {
-      rtmetric = collect_neighbor_rtmetric(n);
+       rtmetric > collect_neighbor_rtmetric_link_estimate(n)) {
+      rtmetric = collect_neighbor_rtmetric_link_estimate(n);
       best = n;
     }
   }
@@ -335,9 +335,15 @@ collect_neighbor_link_estimate(struct collect_neighbor *n)
 }
 /*---------------------------------------------------------------------------*/
 int
-collect_neighbor_rtmetric(struct collect_neighbor *n)
+collect_neighbor_rtmetric_link_estimate(struct collect_neighbor *n)
 {
   return n->rtmetric + collect_link_estimate(&n->le);
+}
+/*---------------------------------------------------------------------------*/
+int
+collect_neighbor_rtmetric(struct collect_neighbor *n)
+{
+  return n->rtmetric;
 }
 /*---------------------------------------------------------------------------*/
 void
