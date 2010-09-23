@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420.h,v 1.12 2010/06/24 11:25:07 nifi Exp $
+ * $Id: cc2420.h,v 1.13 2010/09/23 08:26:06 nifi Exp $
  */
 
 /**
@@ -51,7 +51,7 @@ int cc2420_init(void);
 
 #define CC2420_MAX_PACKET_LEN      127
 
-void cc2420_set_channel(int channel);
+int cc2420_set_channel(int channel);
 int cc2420_get_channel(void);
 
 void cc2420_set_pan_addr(unsigned pan,
