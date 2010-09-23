@@ -773,7 +773,9 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
     /* find longest match */
     for(locaddr = uip_ds6_if.addr_list;
         locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
-      if((locaddr->isused) && (locaddr->state == ADDR_PREFERRED)) {
+      /* Only preferred global (not link-local) addresses */
+      if((locaddr->isused) && (locaddr->state == ADDR_PREFERRED) &&
+         (!uip_is_addr_link_local(&locaddr->ipaddr))) {
         n = get_match_length(dst, &(locaddr->ipaddr));
         if(n >= best) {
           best = n;
