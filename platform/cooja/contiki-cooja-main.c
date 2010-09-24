@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki-cooja-main.c,v 1.8 2010/05/02 09:42:15 fros4943 Exp $
+ * $Id: contiki-cooja-main.c,v 1.9 2010/09/24 12:59:06 fros4943 Exp $
  */
 
 /**
@@ -177,6 +177,130 @@ rtimer_thread_loop(void *data)
   }
 }
 /*---------------------------------------------------------------------------*/
+void
+contiki_init()
+{
+  /* Initialize random generator (moved to moteid.c) */
+
+  /* Start process handler */
+  process_init();
+
+  /* Start Contiki processes */
+  procinit_init();
+
+  /* Print startup information */
+  printf(CONTIKI_VERSION_STRING " started. ");
+  if(node_id > 0) {
+    printf("Node id is set to %u.\n", node_id);
+  } else {
+    printf("Node id is not set.\n");
+  }
+
+  /* RIME CONFIGURATION */
+  {
+    int i;
+    rimeaddr_t rimeaddr;
+
+    /* Init Rime */
+    ctimer_init();
+    rimeaddr.u8[0] = node_id & 0xff;
+    rimeaddr.u8[1] = node_id >> 8;
+    rimeaddr_set_node_addr(&rimeaddr);
+    printf("Rime address: ");
+    for(i = 0; i < sizeof(rimeaddr_node_addr.u8) - 1; i++) {
+      printf("%d.", rimeaddr_node_addr.u8[i]);
+    }
+    printf("%d\n", rimeaddr_node_addr.u8[i]);
+  }
+
+  queuebuf_init();
+
+  /* Initialize communication stack */
+  netstack_init();
+  printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
+
+#if WITH_UIP
+  /* IPv4 CONFIGURATION */
+  {
+    uip_ipaddr_t hostaddr, netmask;
+
+    process_start(&tcpip_process, NULL);
+    process_start(&uip_fw_process, NULL);
+    process_start(&slip_process, NULL);
+
+    slip_set_input_callback(set_gateway);
+
+    uip_init();
+    uip_fw_init();
+    uip_ipaddr(&hostaddr, 172,16,rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+    uip_ipaddr(&netmask, 255,255,0,0);
+    uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
+
+    uip_sethostaddr(&hostaddr);
+    uip_setnetmask(&netmask);
+    uip_over_mesh_set_net(&hostaddr, &netmask);
+    uip_over_mesh_set_gateway_netif(&slipif);
+    uip_fw_default(&meshif);
+    uip_over_mesh_init(UIP_OVER_MESH_CHANNEL);
+
+    rs232_set_input(slip_input_byte);
+    printf("IPv4 address: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&hostaddr));
+  }
+#endif /* WITH_UIP */
+
+#if WITH_UIP6
+  /* IPv6 CONFIGURATION */
+  {
+    int i;
+    uint8_t addr[sizeof(uip_lladdr.addr)];
+    for (i=0; i < sizeof(uip_lladdr.addr); i++) {
+      addr[i] = node_id & 0xff;
+    }
+    memcpy(&uip_lladdr.addr, addr, sizeof(uip_lladdr.addr));
+    process_start(&tcpip_process, NULL);
+
+    printf("Tentative link-local IPv6 address ");
+    {
+      int i, a;
+      for(a = 0; a < UIP_DS6_ADDR_NB; a++) {
+        if (uip_ds6_if.addr_list[a].isused) {
+      for(i = 0; i < 7; ++i) {
+        printf("%02x%02x:",
+           uip_ds6_if.addr_list[a].ipaddr.u8[i * 2],
+           uip_ds6_if.addr_list[a].ipaddr.u8[i * 2 + 1]);
+      }
+      printf("%02x%02x\n",
+             uip_ds6_if.addr_list[a].ipaddr.u8[14],
+             uip_ds6_if.addr_list[a].ipaddr.u8[15]);
+        }
+      }
+    }
+
+    if(1) {
+      uip_ipaddr_t ipaddr;
+      int i;
+      uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+      uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+      uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
+      printf("Tentative global IPv6 address ");
+      for(i = 0; i < 7; ++i) {
+        printf("%02x%02x:",
+               ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
+      }
+      printf("%02x%02x\n",
+             ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
+    }
+  }
+#endif /* WITH_UIP6 */
+
+  /* Start serial process */
+  serial_line_init();
+
+  /* Start autostart processes (defined in Contiki application) */
+  print_processes(autostart_processes);
+  autostart_start(autostart_processes);
+}
+/*---------------------------------------------------------------------------*/
 static void
 process_run_thread_loop(void *data)
 {
@@ -184,125 +308,7 @@ process_run_thread_loop(void *data)
     simProcessRunValue = 1;
     cooja_mt_yield();
 
-    /* Initialize random generator (moved to moteid.c) */
-
-    /* Start process handler */
-    process_init();
-
-    /* Start Contiki processes */
-    procinit_init();
-
-    /* Print startup information */
-    printf(CONTIKI_VERSION_STRING " started. ");
-    if(node_id > 0) {
-      printf("Node id is set to %u.\n", node_id);
-    } else {
-      printf("Node id is not set.\n");
-    }
-
-    /* RIME CONFIGURATION */
-    {
-      int i;
-      rimeaddr_t rimeaddr;
-
-      /* Init Rime */
-      ctimer_init();
-      rimeaddr.u8[0] = node_id & 0xff;
-      rimeaddr.u8[1] = node_id >> 8;
-      rimeaddr_set_node_addr(&rimeaddr);
-      printf("Rime address: ");
-      for(i = 0; i < sizeof(rimeaddr_node_addr.u8) - 1; i++) {
-        printf("%d.", rimeaddr_node_addr.u8[i]);
-      }
-      printf("%d\n", rimeaddr_node_addr.u8[i]);
-    }
-
-    queuebuf_init();
-
-    /* Initialize communication stack */
-    netstack_init();
-    printf("MAC %s RDC %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name);
-
-#if WITH_UIP
-    /* IPv4 CONFIGURATION */
-    {
-      uip_ipaddr_t hostaddr, netmask;
-
-      process_start(&tcpip_process, NULL);
-      process_start(&uip_fw_process, NULL);
-      process_start(&slip_process, NULL);
-
-      slip_set_input_callback(set_gateway);
-
-      uip_init();
-      uip_fw_init();
-      uip_ipaddr(&hostaddr, 172,16,rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-      uip_ipaddr(&netmask, 255,255,0,0);
-      uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
-
-      uip_sethostaddr(&hostaddr);
-      uip_setnetmask(&netmask);
-      uip_over_mesh_set_net(&hostaddr, &netmask);
-      uip_over_mesh_set_gateway_netif(&slipif);
-      uip_fw_default(&meshif);
-      uip_over_mesh_init(UIP_OVER_MESH_CHANNEL);
-
-      rs232_set_input(slip_input_byte);
-      printf("IPv4 address: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&hostaddr));
-    }
-#endif /* WITH_UIP */
-
-#if WITH_UIP6
-    /* IPv6 CONFIGURATION */
-    {
-      int i;
-      uint8_t addr[sizeof(uip_lladdr.addr)];
-      for (i=0; i < sizeof(uip_lladdr.addr); i++) {
-        addr[i] = node_id & 0xff;
-      }
-      memcpy(&uip_lladdr.addr, addr, sizeof(uip_lladdr.addr));
-      process_start(&tcpip_process, NULL);
-
-      printf("Tentative link-local IPv6 address ");
-      {
-        int i, a;
-        for(a = 0; a < UIP_DS6_ADDR_NB; a++) {
-          if (uip_ds6_if.addr_list[a].isused) {
-        for(i = 0; i < 7; ++i) {
-          printf("%02x%02x:",
-             uip_ds6_if.addr_list[a].ipaddr.u8[i * 2],
-             uip_ds6_if.addr_list[a].ipaddr.u8[i * 2 + 1]);
-        }
-        printf("%02x%02x\n",
-               uip_ds6_if.addr_list[a].ipaddr.u8[14],
-               uip_ds6_if.addr_list[a].ipaddr.u8[15]);
-          }
-        }
-      }
-
-      if(1) {
-        uip_ipaddr_t ipaddr;
-        int i;
-        uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-        uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-        uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
-        printf("Tentative global IPv6 address ");
-        for(i = 0; i < 7; ++i) {
-          printf("%02x%02x:",
-                 ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
-        }
-        printf("%02x%02x\n",
-               ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
-      }
-    }
-#endif /* WITH_UIP6 */
-
-    /* Start serial process */
-    serial_line_init();
-
-    /* Start autostart processes (defined in Contiki application) */
-    print_processes(autostart_processes);
-    autostart_start(autostart_processes);
+    contiki_init();
 
     while(1)
     {
@@ -322,7 +328,6 @@ process_run_thread_loop(void *data)
         cooja_mt_yield();
     }
 }
-
 /*---------------------------------------------------------------------------*/
 /**
  * \brief      Initialize a mote by starting processes etc.
