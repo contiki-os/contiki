@@ -5,6 +5,12 @@
 all: $(addsuffix _$(BOARD).bin, $(TARGETS) $(TARGETS_ROMVARS))
 .PHONY: all
 
+# Pretty print output.  Use "make Q=" to see full commands
+Q ?= @
+define pretty
+  @printf "%8s %s\n" "$1" "$2"
+endef
+
 # Don't delete intermediate targets
 .SECONDARY:
 
@@ -46,6 +52,7 @@ AFLAGS       ?= -Wa,-gstabs $(CFLAGS)
 
 # Misc tool options
 OBJCOPYFLAGS ?= --gap-fill=0xff
+ARFLAGS      = cr
 
 #####
 
@@ -58,7 +65,8 @@ include $(MC1322X)/src/Makefile.src
 # that links $(SRCLIB) as well as target-specific rules that link $(SRCLIB_ROMVARS)
 define build_elf_rule
 $(1)_$$(BOARD).elf: $$(OBJDIR)/$(1).o $$(OBJDIR)/board.a $$(MC1322X)/lib/libmc1322x.a $(2)
-	$$(CC) $$(LDFLAGS) -o $$@ -Wl,--start-group $$^ -lm -Wl,--end-group
+	$$(call pretty,LINK,$$@)
+	$$Q$$(CC) $$(LDFLAGS) -o $$@ -Wl,--start-group $$^ -lm -Wl,--end-group
 endef
 # Targets that need space for rom variables:
 $(foreach t, $(TARGETS_ROMVARS), $(eval $(call build_elf_rule,$(t),$(SRCLIB_ROMVARS))))
@@ -67,24 +75,34 @@ $(eval $(call build_elf_rule,%,$(SRCLIB)))
 
 # Generic rules
 %.srec: %.elf
-	$(OBJCOPY) $(OBJCOPYFLAGS) -O srec $< $@
+	$(call pretty,OBJCOPY,$@)
+	$Q$(OBJCOPY) $(OBJCOPYFLAGS) -O srec $< $@
 
 %.ihex: %.elf
-	$(OBJCOPY) $(OBJCOPYFLAGS) -O ihex $< $@
+	$(call pretty,OBJCOPY,$@)
+	$Q$(OBJCOPY) $(OBJCOPYFLAGS) -O ihex $< $@
 
 %.bin: %.elf
-	$(OBJCOPY) $(OBJCOPYFLAGS) -O binary $< $@
+	$(call pretty,OBJCOPY,$@)
+	$Q$(OBJCOPY) $(OBJCOPYFLAGS) -O binary $< $@
 
 %.dis: %.elf
-	$(OBJDUMP) -Sd $< > $@ || rm -f $@
+	$(call pretty,OBJDUMP,$@)
+	$Q$(OBJDUMP) -Sd $< > $@ || rm -f $@
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
+	$(call pretty,CC,$@)
+	$Q$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
 %.o: %.S
-	$(CC) $(AFLAGS) -MMD -c -o $@ $<
+	$(call pretty,AS,$@)
+	$Q$(CC) $(AFLAGS) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
+
+(%): %
+	$(call pretty,AR,$@($<))
+	@$(AR) $(ARFLAGS) $@ $<
 
 # Fix the dependencies generated for a particular target .o
 # See http://make.paulandlesley.org/autodep.html#advanced

@@ -16,12 +16,14 @@ $(SRCLIB): $(SRCLIB)($(SRC_OBJS) $(START))
 
 # ISR is built without thumb
 $(ISR): $(ISR:.o=.c)
-	$(CC) $(CFLAGS) -MMD -c -o $@ $<
+	$(call pretty,CC (isr),$@)
+	$Q$(CC) $(CFLAGS) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
 # start-romvars.o is built from start.S with the right flags
 $(MC1322X)/src/start-romvars.o: $(MC1322X)/src/start.S
-	$(CC) $(AFLAGS) -MMD -DUSE_ROM_VARS -c -o $@ $<
+	$(call pretty,CC (romvars),$@)
+	$Q$(CC) $(AFLAGS) -MMD -DUSE_ROM_VARS -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
 ifneq ($(MAKECMDGOALS),clean)

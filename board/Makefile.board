@@ -7,19 +7,22 @@ CFLAGS += -I$(OBJDIR) -I$(MC1322X)/board -DBOARD=$(BOARD)
 
 # Create directory and board.h include
 $(OBJDIR)/board.h:
-	mkdir -p $(OBJDIR)
-	echo '/* This file was automatically generated */' > $(OBJDIR)/board.h
-	echo '#include "$(BOARD).h"' >> $(OBJDIR)/board.h
+	$(call pretty,GEN,$@)
+	$(Q)mkdir -p $(OBJDIR)
+	$(Q)echo '/* This file was automatically generated */' > $(OBJDIR)/board.h
+	$(Q)echo '#include "$(BOARD).h"' >> $(OBJDIR)/board.h
 
 # $(OBJDIR)/board.a contains all the objects defined in COBJS
 $(OBJDIR)/board.a: $(OBJDIR)/board.h $(OBJDIR)/board.a($(addprefix $(OBJDIR)/, $(COBJS)))
 
 # And is built from files in the parent directory
 $(OBJDIR)/%.o: %.c $(OBJDIR)/board.h
-	$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
+	$(call pretty,CC,$@)
+	$Q$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
 $(OBJDIR)/%.o: %.S $(OBJDIR)/board.h
+	$(call pretty,AS,$@)
 	$(CC) $(AFLAGS) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
