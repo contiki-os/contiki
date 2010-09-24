@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.170 2010/06/11 09:10:52 fros4943 Exp $
+ * $Id: GUI.java,v 1.171 2010/09/24 12:48:04 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3608,7 +3608,6 @@ public class GUI extends Observable {
                 startedPlugin.getGUI().setSize(size);
               } else if (pluginSubElement.getName().equals("z")) {
                 int zOrder = Integer.parseInt(pluginSubElement.getText());
-                // Save z order as temporary client property
                 startedPlugin.getGUI().putClientProperty("zorder", zOrder);
               } else if (pluginSubElement.getName().equals("location_x")) {
                 location.x = Integer.parseInt(pluginSubElement.getText());
@@ -3632,17 +3631,6 @@ public class GUI extends Observable {
               }
             }
 
-            // For all visualized plugins, check if they have a zorder property
-            try {
-              for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
-                if (plugin.getClientProperty("zorder") != null) {
-                  getDesktopPane().setComponentZOrder(plugin,
-                      ((Integer) plugin.getClientProperty("zorder")).intValue());
-                  plugin.putClientProperty("zorder", null);
-                }
-              }
-            } catch (Exception e) { }
-
             showPlugin(startedPlugin);
             return true;
           }
@@ -3650,6 +3638,28 @@ public class GUI extends Observable {
 
       }
     }
+
+    /* Z order visualized plugins */
+    try {
+    	for (int z=0; z < getDesktopPane().getAllFrames().length; z++) {
+        for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
+          if (plugin.getClientProperty("zorder") == null) {
+          	continue;
+          }
+          int zOrder = ((Integer) plugin.getClientProperty("zorder")).intValue();
+          if (zOrder != z) {
+          	continue;
+          }
+          getDesktopPane().setComponentZOrder(plugin, zOrder);
+          if (z == 0) {
+            plugin.setSelected(true);
+          }
+          plugin.putClientProperty("zorder", null);
+          break;
+        }
+        getDesktopPane().repaint();
+    	}
+    } catch (Exception e) { }
 
     return true;
   }
