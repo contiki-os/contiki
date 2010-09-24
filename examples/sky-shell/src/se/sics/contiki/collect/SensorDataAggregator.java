@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.8 2010/09/21 20:24:18 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.9 2010/09/24 05:54:04 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2010/09/21 20:24:18 $
- *           $Revision: 1.8 $
+ * Updated : $Date: 2010/09/24 05:54:04 $
+ *           $Revision: 1.9 $
  */
 
 package se.sics.contiki.collect;
@@ -307,7 +307,7 @@ public class SensorDataAggregator implements SensorInfo {
   }
 
   public long getShortestPeriod() {
-    return shortestPeriod;
+    return shortestPeriod < Long.MAX_VALUE ? shortestPeriod : 0;
   }
 
   public long getLongestPeriod() {
