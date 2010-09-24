@@ -63,7 +63,7 @@ endef
 # Targets that need space for rom variables:
 $(foreach t, $(TARGETS_ROMVARS), $(eval $(call build_elf_rule,$(t),$(SRCLIB_ROMVARS))))
 # All other targets (wildcard rule):
-$(eval $(call build_elf_rule,%,$(SRCLIB_ROMVARS)))
+$(eval $(call build_elf_rule,%,$(SRCLIB)))
 
 # Generic rules
 %.srec: %.elf
