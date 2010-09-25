@@ -143,6 +143,10 @@ static volatile struct TMR_struct * const _TMR3 = (void *) (TMR3_BASE);
 #define TMR2 (*_TMR2)
 #define TMR3 (*_TMR3)
 
+#define TMR0_PIN GPIO_08
+#define TMR1_PIN GPIO_09
+#define TMR2_PIN GPIO_10
+#define TMR3_PIN GPIO_11
 
 /* Old timer definitions, for compatibility */
 #ifndef REG_NO_COMPAT
