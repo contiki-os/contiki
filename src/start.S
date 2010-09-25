@@ -170,26 +170,6 @@ _fiq:			.word fiq
 
 
 /*
- *************************************************************************
- *
- * Startup Code (reset vector)
- *
- * do important init only if we don't start from memory!
- * relocate armboot to ram
- * setup stack
- * jump to second stage
- *
- *************************************************************************
- */
-
-_TEXT_BASE:
-	.word	TEXT_BASE
-
-.globl _armboot_start
-_armboot_start:
-	.word _start
-
-/*
  * These are defined in the board-specific linker script.
  */
 .globl _bss_start
@@ -200,25 +180,10 @@ _bss_start:
 _bss_end:
 	.word _end
 
-_start_armboot: .word main
-
 _system_stack:
 	. = . + usr_stack_size + irq_stack_size + fiq_stack_size + und_stack_size + abt_stack_size + sup_stack_size
 
 	
-/*
- *************************************************************************
- *
- * CPU_init_critical registers
- *
- *************************************************************************
- */
-
-cpu_init_crit:
-	# actually do nothing for now!
-	mov	pc, lr
-
-
 /*
  * exception handlers
  */
@@ -245,7 +210,3 @@ not_used:
 fiq:
 
 	.align	5
-
-.globl reset_cpu
-reset_cpu:
-	mov     pc, r0
