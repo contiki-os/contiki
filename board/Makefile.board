@@ -13,7 +13,13 @@ $(OBJDIR)/board.h:
 	$(Q)echo '#include "$(BOARD).h"' >> $(OBJDIR)/board.h
 
 # $(OBJDIR)/board.a contains all the objects defined in COBJS
+ifdef COBJS
 $(OBJDIR)/board.a: $(OBJDIR)/board.h $(OBJDIR)/board.a($(addprefix $(OBJDIR)/, $(COBJS)))
+else
+$(OBJDIR)/board.a: $(OBJDIR)/board.h
+	$(call pretty,AR (empty),$@)
+	$Q$(AR) $(ARFLAGS) $@
+endif
 
 # And is built from files in the parent directory
 $(OBJDIR)/%.o: %.c $(OBJDIR)/board.h
