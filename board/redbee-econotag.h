@@ -33,8 +33,8 @@
  * $Id$
  */
 
-#ifndef BOARD_REDBEE_DEV_H
-#define BOARD_REDBEE_DEV_H
+#ifndef BOARD_REDBEE_ECONOTAG_H
+#define BOARD_REDBEE_ECONOTAG_H
 
 #define LED_RED   44
 #define LED_GREEN 45
