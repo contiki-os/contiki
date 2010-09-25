@@ -45,7 +45,7 @@ CFLAGS_THUMB ?= -mthumb -mcallee-super-interworking
 
 # Linker flags
 LINKERSCRIPT ?= $(MC1322X)/mc1322x.lds
-LDFLAGS      ?= -T $(LINKERSCRIPT) -nostartfiles -static -export-dynamic -Wl,-Map=$(@:.elf=.map)
+LDFLAGS      ?= -T $(LINKERSCRIPT) -nostartfiles -static -export-dynamic -u_start -Wl,-Map=$(@:.elf=.map)
 
 # Assembler flags
 AFLAGS       ?= -Wa,-gstabs $(CFLAGS)
