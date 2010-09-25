@@ -3,7 +3,7 @@
 ALL_BOARDS = redbee-dev redbee-r1 redbee-usb redbee-econotag quahogcon freescale-ncb
 
 OBJDIR = obj_$(BOARD)
-CFLAGS += -I$(OBJDIR) -I$(MC1322X)/board -DBOARD=$(BOARD)
+CFLAGS += -I. -I$(OBJDIR) -I$(MC1322X)/board -DBOARD=$(BOARD)
 
 # Create directory and board.h include
 $(OBJDIR)/board.h:
