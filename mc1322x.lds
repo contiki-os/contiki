@@ -2,7 +2,7 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm",
 	      "elf32-littlearm")
 OUTPUT_ARCH(arm)
-SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");
+ENTRY(_start)
 SECTIONS
 {
 
@@ -18,7 +18,7 @@ HEAP_SIZE = 1024;
   PROVIDE (__executable_start = 0x00400000); . = 0x00400000;
   .text           :
   {
-    *start*.o	(.text)
+    *(.start)
     *(.irq)		
     *(.text .stub .text.* .gnu.linkonce.t.*)
     /* .gnu.warning sections are handled specially by elf32.em.  */
