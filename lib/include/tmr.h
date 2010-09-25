@@ -143,6 +143,12 @@ static volatile struct TMR_struct * const _TMR3 = (void *) (TMR3_BASE);
 #define TMR2 (*_TMR2)
 #define TMR3 (*_TMR3)
 
+/* Used to compute which enable bit to set for a particular timer, e.g.
+     TMR0.ENBL |= TMR_ENABLE_BIT(TMR2);
+   Helpful when you're using macros to define timers
+*/
+#define TMR_ENABLE_BIT(x) ((&(x) == &(TMR0)) ? 1 : (&(x) == &(TMR1)) ? 2 : (&(x) == &(TMR2)) ? 4 : (&(x) == &(TMR3)) ? 8 : 0)
+
 #define TMR0_PIN GPIO_08
 #define TMR1_PIN GPIO_09
 #define TMR2_PIN GPIO_10
