@@ -37,6 +37,59 @@
 #define ISR_H
 
 #define INTBASE        (0x80020000)
+
+/* Structure-based ITC access */
+#define __INTERRUPT_union(x)		  \
+		union {			  \
+			uint32_t x;	  \
+			struct ITC_##x {  \
+			uint32_t ASM:1;	  \
+			uint32_t UART1:1; \
+			uint32_t UART2:1; \
+			uint32_t CRM:1;	  \
+			uint32_t I2C:1;	  \
+			uint32_t TMR:1;	  \
+			uint32_t SPIF:1;  \
+			uint32_t MACA:1;  \
+			uint32_t SSI:1;	  \
+			uint32_t ADC:1;	  \
+			uint32_t SPI:1;	  \
+			uint32_t :21;	  \
+			} x##bits; \
+		};
+
+struct ITC_struct {
+	union {
+		uint32_t INTCNTL;
+		struct ITC_INTCNTL {
+			uint32_t :19;
+			uint32_t FIAD:1;
+			uint32_t NIAD:1;
+			uint32_t :11;
+		} INTCNTLbits;
+	};
+	uint32_t NIMASK;
+	uint32_t INTENNUM;
+	uint32_t INTDISNUM;
+	__INTERRUPT_union(INTENABLE);
+	__INTERRUPT_union(INTTYPE);
+	uint32_t reserved[4];
+	uint32_t NIVECTOR;
+	uint32_t FIVECTOR;
+	__INTERRUPT_union(INTSRC);
+	__INTERRUPT_union(INTFRC);
+	__INTERRUPT_union(NIPEND);
+	__INTERRUPT_union(FIPEND);
+};
+#undef __INTERRUPT_union
+
+static volatile struct ITC_struct * const _ITC = (void *) (INTBASE);
+#define ITC (*_ITC)
+
+
+/* Old register definitions, for compatibility */
+#ifndef REG_NO_COMPAT
+
 #define INTCNTL_OFF           (0x0)
 #define INTENNUM_OFF          (0x8)
 #define INTDISNUM_OFF         (0xC)
@@ -45,13 +98,13 @@
 #define INTFRC_OFF           (0x34)
 #define NIPEND_OFF           (0x38)
 
-#define INTCNTL      ((volatile uint32_t *) (INTBASE + INTCNTL_OFF))
-#define INTENNUM     ((volatile uint32_t *) (INTBASE + INTENNUM_OFF))
-#define INTDISNUM    ((volatile uint32_t *) (INTBASE + INTDISNUM_OFF))
-#define INTENABLE    ((volatile uint32_t *) (INTBASE + INTENABLE_OFF))
-#define INTSRC       ((volatile uint32_t *) (INTBASE + INTSRC_OFF))
-#define INTFRC       ((volatile uint32_t *) (INTBASE + INTFRC_OFF))
-#define NIPEND       ((volatile uint32_t *) (INTBASE + NIPEND_OFF))
+static volatile uint32_t * const INTCNTL   =   ((volatile uint32_t *) (INTBASE + INTCNTL_OFF));
+static volatile uint32_t * const INTENNUM  =   ((volatile uint32_t *) (INTBASE + INTENNUM_OFF));
+static volatile uint32_t * const INTDISNUM =   ((volatile uint32_t *) (INTBASE + INTDISNUM_OFF));
+static volatile uint32_t * const INTENABLE =   ((volatile uint32_t *) (INTBASE + INTENABLE_OFF));
+static volatile uint32_t * const INTSRC    =   ((volatile uint32_t *) (INTBASE + INTSRC_OFF));
+static volatile uint32_t * const INTFRC    =   ((volatile uint32_t *) (INTBASE + INTFRC_OFF));
+static volatile uint32_t * const NIPEND    =   ((volatile uint32_t *) (INTBASE + NIPEND_OFF));
 
 enum interrupt_nums {
 	INT_NUM_ASM = 0,
@@ -76,6 +129,8 @@ enum interrupt_nums {
 #define safe_irq_disable(x)  volatile uint32_t saved_irq; saved_irq = *INTENABLE; disable_irq(x)
 #define irq_restore() *INTENABLE = saved_irq
 
+#endif /* REG_NO_COMPAT */
+
 extern void tmr0_isr(void) __attribute__((weak));
 extern void tmr1_isr(void) __attribute__((weak));
 extern void tmr2_isr(void) __attribute__((weak));
@@ -95,4 +150,3 @@ extern void maca_isr(void) __attribute__((weak));
 
 
 #endif
-
