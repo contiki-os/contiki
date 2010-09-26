@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.6 2010/09/24 06:00:16 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.7 2010/09/26 21:48:21 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/09/24 06:00:16 $
- *           $Revision: 1.6 $
+ * Updated : $Date: 2010/09/26 21:48:21 $
+ *           $Revision: 1.7 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -45,6 +45,7 @@ import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Properties;
 
 import javax.swing.AbstractAction;
 import javax.swing.JCheckBoxMenuItem;
@@ -62,6 +63,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 
 import se.sics.contiki.collect.CollectServer;
+import se.sics.contiki.collect.Configurable;
 import se.sics.contiki.collect.Node;
 import se.sics.contiki.collect.SensorData;
 import se.sics.contiki.collect.SensorInfo;
@@ -70,7 +72,7 @@ import se.sics.contiki.collect.Visualizer;
 /**
  *
  */
-public class NodeInfoPanel extends JPanel implements Visualizer {
+public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
 
   private static final long serialVersionUID = -1060893468047793431L;
 
@@ -259,6 +261,21 @@ public class NodeInfoPanel extends JPanel implements Visualizer {
       packColumn(table, i);
     }
 
+    String savedColumnData = server.getConfig("collect.nodeinfo.table");
+    if (savedColumnData != null) {
+      String[] columnList = savedColumnData.split("[ ,]");
+      for(int i = 1; i < columns.length; i++) {
+        columns[i].setVisible(false);
+      }
+      for(int i = 0; i < columnList.length; i++) {
+        int c = Integer.parseInt(columnList[i]);
+        int index = table.convertColumnIndexToView(c);
+        if (index >= 0) {
+          table.getColumnModel().moveColumn(index, i);
+        }
+        columns[c].setVisible(true);
+      }
+    }
     JPopupMenu popupMenu = new JPopupMenu();
     // The first column (the node name) should always be visible.
     for(int i = 1; i < columns.length; i++) {
@@ -266,6 +283,20 @@ public class NodeInfoPanel extends JPanel implements Visualizer {
     }
     table.setComponentPopupMenu(popupMenu);
     add(new JScrollPane(table), BorderLayout.CENTER);
+  }
+
+  public void updateConfig(Properties config) {
+    StringBuilder sb = new StringBuilder();
+    for(int i = 0, n = table.getColumnCount(); i < n; i++) {
+      int index = table.convertColumnIndexToModel(i);
+      if (index >= 0) {
+        if (sb.length() > 0) {
+          sb.append(',');
+        }
+        sb.append(index);
+      }
+    }
+    config.setProperty("collect.nodeinfo.table", sb.toString());
   }
 
   @Override
