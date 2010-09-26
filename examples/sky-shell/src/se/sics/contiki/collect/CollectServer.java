@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.19 2010/09/21 20:24:18 nifi Exp $
+ * $Id: CollectServer.java,v 1.20 2010/09/26 21:48:21 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/21 20:24:18 $
- *           $Revision: 1.19 $
+ * Updated : $Date: 2010/09/26 21:48:21 $
+ *           $Revision: 1.20 $
  */
 
 package se.sics.contiki.collect;
@@ -777,6 +777,13 @@ public class CollectServer {
     /* TODO Clean up resources */
     if (configFile != null) {
       configTable.setProperty("collect.bounds", "" + window.getX() + ',' + window.getY() + ',' + window.getWidth() + ',' + window.getHeight());
+      if (visualizers != null) {
+        for(Visualizer v : visualizers) {
+          if (v instanceof Configurable) {
+            ((Configurable)v).updateConfig(configTable);
+          }
+        }
+      }
       saveConfig(configTable, configFile);
     }
     if (serialConnection != null) {
