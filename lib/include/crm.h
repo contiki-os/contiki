@@ -218,8 +218,7 @@ struct CRM_struct {
 	uint32_t reserved6;
 };
 
-static volatile struct CRM_struct * const _CRM = (void *) (CRM_BASE);
-#define CRM (*_CRM)
+static volatile struct CRM_struct * const CRM = (void *) (CRM_BASE);
 
 
 /* Old register definitions, for compatibility */

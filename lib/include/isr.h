@@ -83,8 +83,7 @@ struct ITC_struct {
 };
 #undef __INTERRUPT_union
 
-static volatile struct ITC_struct * const _ITC = (void *) (INTBASE);
-#define ITC (*_ITC)
+static volatile struct ITC_struct * const ITC = (void *) (INTBASE);
 
 
 /* Old register definitions, for compatibility */
