@@ -270,7 +270,7 @@ static const int ROSC_EN =    0;
 #define ring_osc_on() (set_bit(*CRM_RINGOSC_CNTL,ROSC_EN))
 #define ring_osc_off() (clear_bit(*CRM_RINGOSC_CNTL,ROSC_EN))
 
-#define REF_OSC 24000000ULL          /* reference osc. frequency */
+#define REF_OSC 24000000UL          /* reference osc. frequency */
 #define NOMINAL_RING_OSC_SEC 2000 /* nominal ring osc. frequency */
 //extern uint32_t cal_rtc_secs;      /* calibrated 2khz rtc seconds */
 
