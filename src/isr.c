@@ -65,6 +65,12 @@ void irq(void)
 			if(kbi_evnt(5) && (kbi5_isr != 0)) { kbi5_isr(); }
 			if(kbi_evnt(6) && (kbi6_isr != 0)) { kbi6_isr(); }
 			if(kbi_evnt(7) && (kbi7_isr != 0)) { kbi7_isr(); }
+
+			if (CRM.STATUSbits.CAL_DONE && CRM.CAL_CNTLbits.CAL_IEN && cal_isr)
+			{
+				CRM.STATUSbits.CAL_DONE = 0;
+				cal_isr();
+			}
 		}
 
 		*INTFRC = 0; /* stop forcing interrupts */
