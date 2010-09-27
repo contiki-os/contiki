@@ -139,6 +139,9 @@ static volatile struct TMR_struct * const TMR1 = (void *) (TMR1_BASE);
 static volatile struct TMR_struct * const TMR2 = (void *) (TMR2_BASE);
 static volatile struct TMR_struct * const TMR3 = (void *) (TMR3_BASE);
 
+/* Get timer pointer from timer number */
+#define TMR_ADDR(x) ((volatile struct TMR_struct *)(((uint32_t)(x) * TMR_OFFSET) + TMR_BASE))
+
 /* Get timer number from the timer pointer. */
 #define TMR_NUM(x) (((uint32_t)(x) - TMR_BASE) / TMR_OFFSET)
 
