@@ -95,6 +95,10 @@ $(foreach t, $(TARGETS_WITH_ROM_VARS), $(eval $(call build_elf_rule,$(t))))
 	$(call pretty,OBJDUMP,$@)
 	$Q$(OBJDUMP) -Sd $< > $@ || rm -f $@
 
+%.dis: %.o
+	$(call pretty,OBJDUMP,$@)
+	$Q$(OBJDUMP) -d $< > $@ || rm -f $@
+
 %.o: %.c
 	$(call pretty,CC,$@)
 	$Q$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
