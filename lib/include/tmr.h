@@ -139,11 +139,15 @@ static volatile struct TMR_struct * const TMR1 = (void *) (TMR1_BASE);
 static volatile struct TMR_struct * const TMR2 = (void *) (TMR2_BASE);
 static volatile struct TMR_struct * const TMR3 = (void *) (TMR3_BASE);
 
+/* Get timer number from the timer pointer. */
+#define TMR_NUM(x) (((uint32_t)(x) - TMR_BASE) / TMR_OFFSET)
+
 /* Used to compute which enable bit to set for a particular timer, e.g.
      TMR0.ENBL |= TMR_ENABLE_BIT(TMR2);
    Helpful when you're using macros to define timers
 */
-#define TMR_ENABLE_BIT(x) (((x) == TMR0) ? 1 : ((x) == TMR1) ? 2 : ((x) == TMR2) ? 4 : ((x) == TMR3) ? 8 : 0)
+#define TMR_ENABLE_BIT(x) (1 << TMR_NUM(x))
+
 #define TMR0_PIN GPIO_08
 #define TMR1_PIN GPIO_09
 #define TMR2_PIN GPIO_10
