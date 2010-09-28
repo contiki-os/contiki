@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.53 2010/09/22 22:08:08 adamdunkels Exp $
+ * $Id: collect.c,v 1.54 2010/09/28 06:53:02 adamdunkels Exp $
  */
 
 /**
@@ -901,14 +901,17 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
 static void
 timedout(struct collect_conn *tc)
 {
+  struct collect_neighbor *n;
   PRINTF("%d.%d: timedout after %d retransmissions (max retransmissions %d): packet dropped\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], tc->transmissions,
          tc->max_rexmits);
 
   tc->sending = 0;
-  collect_neighbor_tx_fail(collect_neighbor_list_find(&tc->neighbor_list,
-                                                      &tc->current_parent),
-                           tc->max_rexmits);
+  n = collect_neighbor_list_find(&tc->neighbor_list,
+                                 &tc->current_parent);
+  if(n != NULL) {
+    collect_neighbor_tx_fail(n, tc->max_rexmits);
+  }
   update_rtmetric(tc);
   send_next_packet(tc);
   set_keepalive_timer(tc);
