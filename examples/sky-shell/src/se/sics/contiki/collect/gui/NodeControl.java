@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeControl.java,v 1.1 2010/09/28 23:12:18 nifi Exp $
+ * $Id: NodeControl.java,v 1.2 2010/09/28 23:32:51 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Niclas Finne
  * Created : 27 sep 2010
- * Updated : $Date: 2010/09/28 23:12:18 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/09/28 23:32:51 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -63,18 +63,30 @@ import se.sics.contiki.collect.Visualizer;
  */
 public class NodeControl implements Visualizer {
 
+  private final CollectServer server;
   private final String category;
   private final JPanel panel;
+  private final JLabel statusLabel;
 
-  public NodeControl(final CollectServer server, String category) {
+  public NodeControl(CollectServer server, String category) {
+    this.server = server;
     this.category = category;
     this.panel = new JPanel(new BorderLayout());
 
     final JFormattedTextField intervalField = new JFormattedTextField(new Integer(60));
     final JFormattedTextField randomField = new JFormattedTextField(new Integer(2));
     final JFormattedTextField reportsField = new JFormattedTextField(new Integer(0));
-    final JLabel statusLabel = new JLabel("", JLabel.CENTER);
+    statusLabel = new JLabel("", JLabel.CENTER);
     statusLabel.setOpaque(true);
+
+    JButton stopButton = new JButton("Send stop to nodes");
+    stopButton.addActionListener(new ActionListener() {
+
+      public void actionPerformed(ActionEvent e) {
+        sendCommand("netcmd killall");
+      }
+
+    });
 
     JButton sendButton = new JButton("Send command to nodes");
     sendButton.addActionListener(new ActionListener() {
@@ -84,18 +96,8 @@ public class NodeControl implements Visualizer {
         int random = (Integer)randomField.getValue();
         int reports = (Integer)reportsField.getValue();
 
-        String cmd = "netcmd { repeat " + reports
-        + " " + interval + " { randwait " + random
-        + " sky-alldata | blink | send } }";
-        statusLabel.setBackground(Color.white);
-        statusLabel.setBorder(LineBorder.createBlackLineBorder());
-        if (server.sendToNode(cmd)) {
-          statusLabel.setForeground(Color.black);
-          statusLabel.setText("Sent command '" + cmd + "'");
-        } else {
-          statusLabel.setForeground(Color.red);
-          statusLabel.setText("Failed to send command. No serial connection.");
-        }
+        sendCommand("netcmd { repeat " + reports + " " + interval
+            + " { randwait " + random + " sky-alldata | blink | send } }");
       }
 
     });
@@ -147,6 +149,22 @@ public class NodeControl implements Visualizer {
     controlPanel.add(statusLabel, c);
 
     panel.add(controlPanel, BorderLayout.NORTH);
+
+    controlPanel = new JPanel();
+    controlPanel.add(stopButton);
+    panel.add(controlPanel, BorderLayout.SOUTH);
+  }
+
+  protected void sendCommand(String command) {
+    statusLabel.setBackground(Color.white);
+    statusLabel.setBorder(LineBorder.createBlackLineBorder());
+    if (server.sendToNode(command)) {
+      statusLabel.setForeground(Color.black);
+      statusLabel.setText("Sent command '" + command + "'");
+    } else {
+      statusLabel.setForeground(Color.red);
+      statusLabel.setText("Failed to send command. No serial connection.");
+    }
   }
 
   public String getCategory() {
