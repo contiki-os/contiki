@@ -5,6 +5,8 @@ ALL_BOARDS = redbee-dev redbee-r1 redbee-usb redbee-econotag quahogcon freescale
 OBJDIR = obj_$(BOARD)
 CFLAGS += -I. -I$(OBJDIR) -I$(MC1322X)/board -DBOARD=$(BOARD)
 
+OBJDIR_COBJS = $(addprefix $(OBJDIR)/, $(COBJS))
+
 # Create directory and board.h include
 $(OBJDIR)/board.h:
 	$(call pretty,GEN,$@)
@@ -14,10 +16,14 @@ $(OBJDIR)/board.h:
 
 # $(OBJDIR)/board.a contains all the objects defined in COBJS
 ifdef COBJS
-$(OBJDIR)/board.a: $(OBJDIR)/board.h $(OBJDIR)/board.a($(addprefix $(OBJDIR)/, $(COBJS)))
+$(OBJDIR)/board.a: $(OBJDIR)/board.h $(OBJDIR_COBJS)
+	$(call pretty,AR,$@)
+	@rm -f $@
+	$Q$(AR) $(ARFLAGS) $@ $(OBJDIR_COBJS)
 else
 $(OBJDIR)/board.a: $(OBJDIR)/board.h
 	$(call pretty,AR (empty),$@)
+	@rm -f $@
 	$Q$(AR) $(ARFLAGS) $@
 endif
 

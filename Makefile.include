@@ -109,10 +109,6 @@ $(foreach t, $(TARGETS_WITH_ROM_VARS), $(eval $(call build_elf_rule,$(t))))
 	$Q$(CC) $(AFLAGS) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
-(%): %
-	$(call pretty,AR,$@($<))
-	@$(AR) $(ARFLAGS) $@ $<
-
 # Fix the dependencies generated for a particular target .o
 # See http://make.paulandlesley.org/autodep.html#advanced
 define FINALIZE_DEPENDENCY
