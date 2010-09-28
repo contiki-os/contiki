@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.apple2enh,v 1.15 2010/09/08 22:50:57 oliverschmidt Exp $
+# $Id: Makefile.apple2enh,v 1.16 2010/09/28 19:23:30 oliverschmidt Exp $
 #
 
 CONTIKI_SOURCEFILES += pfs.S
@@ -55,21 +55,19 @@ ifeq ($(MAKECMDGOALS),disk)
   endif
 endif
 
-TRIM_PROJECT := ${shell echo $(CONTIKI_PROJECT) | sed 's!\([^-]\{1,8\}\).*!\1!'}
-
 disk: all
 	cp $(CONTIKI)/tools/$(TARGET)/prodos.dsk contiki.dsk
-	java -jar $(AC) -p    contiki.dsk $(TRIM_PROJECT).system sys 0 < $(CONTIKI)/tools/$(TARGET)/loader.system
-	java -jar $(AC) -cc65 contiki.dsk $(TRIM_PROJECT)        bin   < $(CONTIKI_PROJECT).$(TARGET)
-	java -jar $(AC) -p    contiki.dsk contiki.cfg     bin 0 < $(CONTIKI)/tools/$(TARGET)/sample.cfg
-	java -jar $(AC) -p    contiki.dsk cs8900a.eth     rel 0 < cs8900a.eth
-	java -jar $(AC) -p    contiki.dsk lan91c96.eth    rel 0 < lan91c96.eth
+	java -jar $(AC) -p    contiki.dsk contiki.system sys 0 < $(CONTIKI)/tools/$(TARGET)/loader.system
+	java -jar $(AC) -cc65 contiki.dsk contiki        bin   < $(CONTIKI_PROJECT).$(TARGET)
+	java -jar $(AC) -p    contiki.dsk contiki.cfg    bin 0 < $(CONTIKI)/tools/$(TARGET)/sample.cfg
+	java -jar $(AC) -p    contiki.dsk cs8900a.eth    rel 0 < cs8900a.eth
+	java -jar $(AC) -p    contiki.dsk lan91c96.eth   rel 0 < lan91c96.eth
 ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
-	java -jar $(AC) -p    contiki.dsk a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+	java -jar $(AC) -p    contiki.dsk a2e.stdmou.mou rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 endif
 ifeq ($(HTTPD-CFS),1)
-	java -jar $(AC) -p    contiki.dsk index.html      bin 0 < httpd-cfs/index.html
-	java -jar $(AC) -p    contiki.dsk background.gif  bin 0 < httpd-cfs/background.gif
-	java -jar $(AC) -p    contiki.dsk contiki.gif     bin 0 < httpd-cfs/contiki.gif
-	java -jar $(AC) -p    contiki.dsk notfound.html   bin 0 < httpd-cfs/notfound.html
+	java -jar $(AC) -p    contiki.dsk index.html     bin 0 < httpd-cfs/index.html
+	java -jar $(AC) -p    contiki.dsk background.gif bin 0 < httpd-cfs/background.gif
+	java -jar $(AC) -p    contiki.dsk contiki.gif    bin 0 < httpd-cfs/contiki.gif
+	java -jar $(AC) -p    contiki.dsk notfound.html  bin 0 < httpd-cfs/notfound.html
 endif
