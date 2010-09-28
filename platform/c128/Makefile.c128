@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.c128,v 1.12 2010/09/28 19:36:16 oliverschmidt Exp $
+# $Id: Makefile.c128,v 1.13 2010/09/28 20:40:53 oliverschmidt Exp $
 #
 
 CONTIKI_SOURCEFILES += pfs.S pfs_write.S
@@ -57,8 +57,8 @@ ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
 	$(C1541) -attach contiki.d71 -write $(CC65_HOME)/mou/c128-1351.mou        c128-1351.mou,u
 endif
 ifeq ($(HTTPD-CFS),1)
-	$(C1541) -attach contiki.d71 -write httpd-cfs/index.html                  index.html,u
+	$(C1541) -attach contiki.d71 -write httpd-cfs/index.htm                   index.htm,u
 	$(C1541) -attach contiki.d71 -write httpd-cfs/backgrnd.gif                backgrnd.gif,u
 	$(C1541) -attach contiki.d71 -write httpd-cfs/contiki.gif                 contiki.gif,u
-	$(C1541) -attach contiki.d71 -write httpd-cfs/notfound.html               notfound.html,u
+	$(C1541) -attach contiki.d71 -write httpd-cfs/notfound.htm                notfound.htm,u
 endif

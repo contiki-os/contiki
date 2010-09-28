@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.apple2enh,v 1.17 2010/09/28 19:36:16 oliverschmidt Exp $
+# $Id: Makefile.apple2enh,v 1.18 2010/09/28 20:40:52 oliverschmidt Exp $
 #
 
 CONTIKI_SOURCEFILES += pfs.S
@@ -66,8 +66,8 @@ ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
 	java -jar $(AC) -p    contiki.dsk a2e.stdmou.mou rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 endif
 ifeq ($(HTTPD-CFS),1)
-	java -jar $(AC) -p    contiki.dsk index.html     bin 0 < httpd-cfs/index.html
+	java -jar $(AC) -p    contiki.dsk index.htm      bin 0 < httpd-cfs/index.htm
 	java -jar $(AC) -p    contiki.dsk backgrnd.gif   bin 0 < httpd-cfs/backgrnd.gif
 	java -jar $(AC) -p    contiki.dsk contiki.gif    bin 0 < httpd-cfs/contiki.gif
-	java -jar $(AC) -p    contiki.dsk notfound.html  bin 0 < httpd-cfs/notfound.html
+	java -jar $(AC) -p    contiki.dsk notfound.htm   bin 0 < httpd-cfs/notfound.htm
 endif
