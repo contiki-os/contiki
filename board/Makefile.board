@@ -32,6 +32,10 @@ $(OBJDIR)/%.o: %.S $(OBJDIR)/board.h
 	$(CC) $(AFLAGS) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
+$(OBJDIR)/%.dis: $(OBJDIR)/%.o
+	$(call pretty,OBJDUMP,$@)
+	$Q$(OBJDUMP) -d $< > $@ || rm -f $@
+
 ifneq ($(MAKECMDGOALS),clean)
 -include $(wildcard $(OBJDIR)/*.d)
 endif
