@@ -7,6 +7,8 @@ LIBOBJS ?= $(patsubst %.c,%.o,$(wildcard $(MC1322X)/lib/*.c))
 
 $(MC1322X)/lib/libmc1322x.a: $(MC1322X)/lib/libmc1322x.a($(LIBOBJS))
 
+TARGET_OBJ += $(MC1322X)/lib/libmc1322x.a
+
 ifneq ($(MAKECMDGOALS),clean)
 -include $(wildcard $(MC1322X)/lib/*.d)
 endif

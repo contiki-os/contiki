@@ -65,13 +65,13 @@ include $(MC1322X)/src/Makefile.src
 # $(SRCLIB) as well as target-specific rules that link $(SRCLIB_ROMVARS)
 
 # Normal targets (wildcard rule):
-%_$(BOARD).elf: $(OBJDIR)/%.o $(OBJDIR)/board.a $(MC1322X)/lib/libmc1322x.a $(SRCLIB)
+%_$(BOARD).elf: $(OBJDIR)/%.o $(TARGET_OBJ) $(SRCLIB)
 	$(call pretty,LINK,$@)
 	$Q$(CC) $(LDFLAGS) -o $@ -Wl,--start-group $^ -lm -Wl,--end-group
 
 # Targets that need space for rom variables:
 define build_elf_rule
-$(1)_$$(BOARD).elf: $$(OBJDIR)/$(1).o $$(OBJDIR)/board.a $$(MC1322X)/lib/libmc1322x.a $$(SRCLIB_ROMVARS)
+$(1)_$$(BOARD).elf: $$(OBJDIR)/$(1).o $$(TARGET_OBJ) $$(SRCLIB_ROMVARS)
 	$$(call pretty,LINK (romvars),$$@)
 	$$Q$$(CC) $$(LDFLAGS) -o $$@ -Wl,--start-group $$^ -lm -Wl,--end-group
 endef

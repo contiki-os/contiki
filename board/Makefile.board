@@ -21,6 +21,8 @@ $(OBJDIR)/board.a: $(OBJDIR)/board.h
 	$Q$(AR) $(ARFLAGS) $@
 endif
 
+TARGET_OBJ += $(OBJDIR)/board.a
+
 # And is built from files in the parent directory
 $(OBJDIR)/%.o: %.c $(OBJDIR)/board.h $(FORCE_C_DEPENDS)
 	$(call pretty,CC,$@)
