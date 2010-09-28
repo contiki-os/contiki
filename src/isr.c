@@ -35,6 +35,19 @@
 
 #include <mc1322x.h>
 
+static void (*tmr_isr_funcs[4])(void) = {
+	tmr0_isr,
+	tmr1_isr,
+	tmr2_isr,
+	tmr3_isr
+};
+
+void irq_register_timer_handler(int timer, void (*isr)(void))
+{
+	tmr_isr_funcs[timer] = isr;
+}
+
+
 __attribute__ ((section (".irq")))
 __attribute__ ((interrupt("IRQ"))) 
 void irq(void)
@@ -43,16 +56,17 @@ void irq(void)
 
 	while ((pending = *NIPEND)) {
 		
-	 	if(bit_is_set(pending, INT_NUM_TMR)) { 
+		if(bit_is_set(pending, INT_NUM_TMR)) { 
 			/* dispatch to individual timer isrs if they exist */
 			/* timer isrs are responsible for determining if they
 			 * caused an interrupt */
 			/* and clearing their own interrupt flags */
-	 		if(tmr0_isr != 0) { tmr0_isr(); } 
-	 		if(tmr1_isr != 0) { tmr1_isr(); } 
-	 		if(tmr2_isr != 0) { tmr2_isr(); } 
-	 		if(tmr3_isr != 0) { tmr3_isr(); } 
-	 	}
+			if (tmr_isr_funcs[0] != 0) { (tmr_isr_funcs[0])(); }
+			if (tmr_isr_funcs[1] != 0) { (tmr_isr_funcs[1])(); }
+			if (tmr_isr_funcs[2] != 0) { (tmr_isr_funcs[2])(); }
+			if (tmr_isr_funcs[3] != 0) { (tmr_isr_funcs[3])(); }
+		}
+
 		if(bit_is_set(pending, INT_NUM_MACA)) {
 	 		if(maca_isr != 0) { maca_isr(); } 
 		}
