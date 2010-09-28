@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.31 2010/02/04 23:52:30 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.32 2010/09/28 23:02:16 oliverschmidt Exp $
 #
 
 ifndef CC65_HOME
@@ -51,6 +51,11 @@ CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c petsciiconv.c cfs-posix-dir.c \
                        $(CONTIKI_TARGET_SOURCEFILES) $(CONTIKI_CPU_SOURCEFILES)
                        
 TARGET_LIBFILES = $(TARGET).lib
+
+ifdef ETHERNET
+  CONTIKI_SOURCEFILES += $(ETHERNET)-eth.S
+  CFLAGS += -DETHERNET=$(ETHERNET)
+endif
 
 ### Compiler definitions
 
@@ -87,3 +92,8 @@ CUSTOM_RULE_C_TO_CO = 1
 
 %.eth: $(OBJECTDIR)/%.o
 	$(LD) -t module -m $@.map $< -o $@
+
+ifdef ETHERNET
+$(ETHERNET)-eth.S: $(ETHERNET).eth
+	co65 --code-label _$(ETHERNET) -o $@ $<
+endif
