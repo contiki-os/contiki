@@ -99,7 +99,7 @@ $(foreach t, $(TARGETS_WITH_ROM_VARS), $(eval $(call build_elf_rule,$(t))))
 	$(call pretty,OBJDUMP,$@)
 	$Q$(OBJDUMP) -d $< > $@ || rm -f $@
 
-%.o: %.c
+%.o: %.c $(FORCE_C_DEPENDS)
 	$(call pretty,CC,$@)
 	$Q$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)

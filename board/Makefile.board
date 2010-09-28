@@ -22,7 +22,7 @@ $(OBJDIR)/board.a: $(OBJDIR)/board.h
 endif
 
 # And is built from files in the parent directory
-$(OBJDIR)/%.o: %.c $(OBJDIR)/board.h
+$(OBJDIR)/%.o: %.c $(OBJDIR)/board.h $(FORCE_C_DEPENDS)
 	$(call pretty,CC,$@)
 	$Q$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
