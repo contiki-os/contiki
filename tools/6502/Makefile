@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.7 2010/09/28 20:40:52 oliverschmidt Exp $
+# $Id: Makefile,v 1.8 2010/09/29 22:41:37 oliverschmidt Exp $
 #
 
 ifndef CC65_HOME
@@ -45,7 +45,11 @@ ifndef C1541
   ${error C1541 not defined! You must specify where VICE c1541 resides}
 endif
 
-disks: apple2enh-1-disk apple2enh-2-disk apple2enh-3-disk c64-1-disk c64-2-disk c128-1-disk
+ifndef DIR2ATR
+  ${error DIR2ATR not defined! You must specify where dir2atr resides}
+endif
+
+disks: apple2enh-1-disk apple2enh-2-disk apple2enh-3-disk c64-1-disk c64-2-disk c128-1-disk atari-1-disk atari-2-disk
 
 apple2enh-1-disk:
 	cp ../apple2enh/prodos.dsk contiki-1.dsk
@@ -136,3 +140,31 @@ c128-1-disk:
 	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/backgrnd.gif                                    backgrnd.gif,u
 	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/contiki.gif                                     contiki.gif,u
 	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/notfound.htm                                    notfound.htm,u
+
+atari-1-disk:
+	mkdir -p atr
+	cp ../atari/dos.sys                                 atr/dos.sys
+	cp ../atari/dup.sys                                 atr/dup.sys
+	cp dummy.cfg                                        atr/contiki.cfg
+	cp ../../cpu/6502/dhcp/dhcp-client.atari            atr/dhcp.com
+	cp ../../examples/webserver/webserver-example.atari atr/webserve.com
+	cp ../../examples/webbrowser/webbrowser.atari       atr/webbrows.com
+	cp ../../examples/wget/wget.atari                   atr/wget.com
+	cp ../../examples/webserver/httpd-cfs/index.htm     atr/index.htm
+	cp ../../examples/webserver/httpd-cfs/backgrnd.gif  atr/backgrnd.gif
+	cp ../../examples/webserver/httpd-cfs/contiki.gif   atr/contiki.gif
+	cp ../../examples/webserver/httpd-cfs/notfound.htm  atr/notfound.htm
+	$(DIR2ATR) -b Dos25 1040 contiki-1.atr atr
+	rm -r atr
+
+atari-2-disk:
+	mkdir -p atr
+	cp ../atari/dos.sys                                                                     atr/dos.sys
+	cp ../atari/dup.sys                                                                     atr/dup.sys
+	cp dummy.cfg                                                                            atr/contiki.cfg
+	cp ../../cpu/6502/dhcp/dhcp-client.atari                                                atr/dhcp.com
+	cp ../../examples/irc/irc-client.atari                                                  atr/irc.com
+	cp ../../examples/email/email-client.atari                                              atr/email.com
+#	cp ../../../../contikiprojects/vandenbrande.com/twitter/platform/atari/breadbox64.atari atr/breadbox.com
+	$(DIR2ATR) -b Dos25 1040 contiki-2.atr atr
+	rm -r atr
