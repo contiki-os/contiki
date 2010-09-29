@@ -5,8 +5,8 @@ so please consult cpu/6502/README for further details.
 
 The following Apple II Ethernet cards are supported:
 
-- Uther:   Use driver cs8900a.eth  with the address $C0x0 (x = 8 + slot number).
-- LANceGS: Use driver lan91c96.eth with the address $C0x0 (x = 8 + slot number).
+- Uther:   Use driver cs8900a.eth  with address $C0x0 (x = 8 + slot number).
+- LANceGS: Use driver lan91c96.eth with address $C0x0 (x = 8 + slot number).
 
 
 In most cases it is desirable to use an emulator for the development and testing
