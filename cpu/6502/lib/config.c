@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: config.c,v 1.6 2007/12/23 12:33:57 oliverschmidt Exp $
+ * $Id: config.c,v 1.7 2010/09/29 21:48:54 oliverschmidt Exp $
  */
 
 #include <stdlib.h>
@@ -91,7 +91,15 @@ config_read(char *filename)
   log_message("Def. Router: ",  ipaddrtoa(&config.draddr, uip_buf));
   log_message("DNS Server:  ",  ipaddrtoa(&config.resolvaddr, uip_buf));
 
+#ifndef ETHERNET
   log_message("Eth. Driver: ",  config.ethernetcfg.name);
+#else /* !ETHERNET */
+  #define _stringize(arg) #arg
+  #define  stringize(arg) _stringize(arg)
+  log_message("Eth. Driver: ",  stringize(ETHERNET));
+  #undef  _stringize
+  #undef   stringize
+#endif /* !ETHERNET */
   log_message("Driver Port: $", utoa(config.ethernetcfg.addr, uip_buf, 16));
 
   uip_sethostaddr(&config.hostaddr);
