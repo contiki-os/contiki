@@ -13,16 +13,16 @@ shell_src = shell.c shell-reboot.c \
             shell-netperf.c shell-memdebug.c
 shell_dsc = shell-dsc.c
 
-APPS += webbrowser
-include $(CONTIKI)/apps/webbrowser/Makefile.webbrowser
-ifndef PLATFORM_BUILD
-  override webbrowser_src = webclient.c http-strings.c http-user-agent-string.c
-endif
-
 APPS += webserver
 include $(CONTIKI)/apps/webserver/Makefile.webserver
 ifndef PLATFORM_BUILD
   override webserver_src = http-strings.c psock.c memb.c httpd-cfs.c urlconv.c webserver-nogui.c
+endif
+
+APPS += webbrowser
+include $(CONTIKI)/apps/webbrowser/Makefile.webbrowser
+ifndef PLATFORM_BUILD
+  override webbrowser_src = webclient.c http-strings.c http-user-agent-string.c
 endif
 
 APPS += irc
