@@ -5,9 +5,9 @@ cpu/6502/README for further details.
 
 The following C64 Ethernet cards are supported:
 
-- RR+RR-Net: Use driver cs8900a.eth  with the address $DE08.
-- TFE:       Use driver cs8900a.eth  with the address $DE00.
-- ETH64:     Use driver lan91c96.eth with the address $DE00.
+- RR+RR-Net: Use driver cs8900a.eth  with address $DE08.
+- TFE:       Use driver cs8900a.eth  with address $DE00.
+- ETH64:     Use driver lan91c96.eth with address $DE00.
 
 
 In most cases it is desirable to use an emulator for the development and testing
