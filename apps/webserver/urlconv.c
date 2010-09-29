@@ -30,7 +30,7 @@
  *
  * Author: Kajtar Zsolt <soci@c64.rulez.org>
  *
- * $Id: urlconv.c,v 1.3 2010/09/28 20:40:52 oliverschmidt Exp $
+ * $Id: urlconv.c,v 1.4 2010/09/29 09:35:56 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -139,7 +139,7 @@ urlconv_tofilename(char *dest, char *source, unsigned char maxlen)
       *to = c;
     }
   } while(c);
-  if(*to == ISO_slash && (len + sizeof(http_index_html) - 3) < maxlen) {
+  if(*to == ISO_slash && (len + sizeof(http_index_htm) - 3) < maxlen) {
     strcpy(to, http_index_htm);  // add index.htm
   } else {
     ++to;
