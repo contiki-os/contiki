@@ -28,6 +28,13 @@ case 'c128':
     $ext = '-' . $dsk . '.d71';
     $ofs = 0x15002;
     break;
+case 'atari':
+    $hex = strtok($_GET['atari-addr-drv'], '-');
+    $drv = strtok('-');
+    $ext = '-' . $dsk . '.atr';
+    $blk = array(0, 5, 4, 0);
+    $ofs = 0x00010 + ($blk[$dsk] - 1) * 0x80;
+    break;
 }
 
 $addr = hexdec($hex);
