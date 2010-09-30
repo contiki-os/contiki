@@ -30,8 +30,8 @@
      </td><td>
       <label for="apple2-drv">Ethernet Card:</label>
       <select name="apple2-drv" id="apple2-drv" size="1">
-       <option value="cs8900a.eth" >Uther  </option>
-       <option value="lan91c96.eth">LANceGS</option>
+       <option value="cs8900a.eth" >Uthernet</option>
+       <option value="lan91c96.eth">LANceGS </option>
       </select>
      </td><td>
       <label for="apple2-addr">Slot:</label>
@@ -51,7 +51,7 @@
      <td>
       <input type="radio" name="machine" id="c64" value="c64" onclick="disks(2)" />
       <label for="c64">C64</label>
-     </td><td>
+     </td><td colspan="2">
       <label for="c64-drv">Ethernet Card:</label>
       <select name="c64-addr-drv" id="c64-drv" size="1">
        <option value="DE08-CS8900A.ETH" >RR+RR-Net</option>
@@ -65,12 +65,24 @@
      <td>
       <input type="radio" name="machine" id="c128" value="c128" onclick="disks(1)" />
       <label for="c128">C128</label>
-     </td><td>
+     </td><td colspan="2">
       <label for="c128-drv">Ethernet Card:</label>
       <select name="c128-addr-drv" id="c128-drv" size="1">
        <option value="DE08-CS8900A.ETH" >RR+RR-Net</option>
        <option value="DE00-CS8900A.ETH" >TFE      </option>
        <option value="DE00-LAN91C96.ETH">ETH64    </option>
+      </select>
+     </td>
+    </tr><tr class="bg">
+     <td colspan="3" />
+    </tr><tr class="p">
+     <td>
+      <input type="radio" name="machine" id="atari" value="atari" onclick="disks(2)" />
+      <label for="atari">Atari 8-bit</label>
+     </td><td colspan="2">
+      <label for="atari-drv">Ethernet Card:</label>
+      <select name="atari-addr-drv" id="atari-drv" size="1">
+       <option value="D500-CS8900A.ETH" >Atari 8-bit Ethernet</option>
       </select>
      </td>
     </tr><tr class="bg">
@@ -95,7 +107,7 @@
      </td>
     </tr><tr>
      <td>
-      <label for="dgw-a">Default Gateway:</label>
+      <label for="dgw-a">Default Gateway:&nbsp;</label>
      </td><td>
       <input type="text" name="dgw-a" id="dgw-a" size="3" maxlength="3" value="192" />.
       <input type="text" name="dgw-b" id="dgw-b" size="3" maxlength="3" value="168" />.
