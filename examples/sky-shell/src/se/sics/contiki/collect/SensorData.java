@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.9 2010/09/06 22:19:09 nifi Exp $
+ * $Id: SensorData.java,v 1.10 2010/09/30 23:09:25 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/06 22:19:09 $
- *           $Revision: 1.9 $
+ * Updated : $Date: 2010/09/30 23:09:25 $
+ *           $Revision: 1.10 $
  */
 
 package se.sics.contiki.collect;
@@ -225,7 +225,7 @@ public class SensorData implements SensorInfo {
   }
 
   public double getBestNeighborETX() {
-    return values[BEST_NEIGHBOR_ETX] / 16.0;
+    return values[BEST_NEIGHBOR_ETX] / 8.0;
   }
 
 }
