@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.9 2010/09/24 05:54:04 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.10 2010/09/30 22:24:45 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2010/09/24 05:54:04 $
- *           $Revision: 1.9 $
+ * Updated : $Date: 2010/09/30 22:24:45 $
+ *           $Revision: 1.10 $
  */
 
 package se.sics.contiki.collect;
@@ -239,6 +239,10 @@ public class SensorDataAggregator implements SensorInfo {
 
   public double getAverageTemperature() {
     return dataCount > 0 ? (-39.6 + 0.01 * (values[TEMPERATURE] / dataCount)) : 0.0;
+  }
+
+  public double getAverageRtmetric() {
+    return dataCount > 0 ? ((values[BEST_NEIGHBOR_RTMETRIC] + values[BEST_NEIGHBOR_ETX]) / dataCount) : 0.0;
   }
 
   public double getAverageRadioIntensity() {

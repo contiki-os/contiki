@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Node.java,v 1.5 2010/09/14 22:40:59 nifi Exp $
+ * $Id: Node.java,v 1.6 2010/09/30 22:24:45 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/14 22:40:59 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2010/09/30 22:24:45 $
+ *           $Revision: 1.6 $
  */
 
 package se.sics.contiki.collect;
@@ -56,7 +56,8 @@ public class Node implements Comparable<Node> {
   private final String id;
   private final String name;
 
-  private int x = -1, y = -1;
+  public int x = -1;
+  public int y = -1;
 
   private Hashtable<String,Object> objectTable;
 

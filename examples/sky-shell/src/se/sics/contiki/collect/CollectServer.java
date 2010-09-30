@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.21 2010/09/28 23:12:16 nifi Exp $
+ * $Id: CollectServer.java,v 1.22 2010/09/30 22:24:45 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/28 23:12:16 $
- *           $Revision: 1.21 $
+ * Updated : $Date: 2010/09/30 22:24:45 $
+ *           $Revision: 1.22 $
  */
 
 package se.sics.contiki.collect;
@@ -329,6 +329,28 @@ public class CollectServer {
           protected void addSensorData(SensorData data) {
             dataset.addValue(data.getValue(SensorData.HOPS), categories[0], data.getNode().getName());
             dataset.addValue(data.getNode().getSensorDataAggregator().getAverageValue(SensorData.HOPS), categories[1], data.getNode().getName());
+          }
+        },
+        new TimeChartPanel(this, NETWORK, "Routing Metric (Over Time)", "Routing Metric", "Time", "Routing Metric") {
+          {
+            ValueAxis axis = chart.getXYPlot().getRangeAxis();
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
+            axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+            setMaxItemCount(defaultMaxItemCount);
+          }
+          protected double getSensorDataValue(SensorData data) {
+            return data.getValue(SensorData.BEST_NEIGHBOR_RTMETRIC) + data.getValue(SensorData.BEST_NEIGHBOR_ETX);
+          }
+        },
+        new TimeChartPanel(this, NETWORK, "ETX (Over Time)", "ETX to Next Hop", "Time", "ETX") {
+          {
+            ValueAxis axis = chart.getXYPlot().getRangeAxis();
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
+            axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+            setMaxItemCount(defaultMaxItemCount);
+          }
+          protected double getSensorDataValue(SensorData data) {
+            return data.getValue(SensorData.BEST_NEIGHBOR_ETX);
           }
         },
         new AggregatedTimeChartPanel<int[]>(this, NETWORK,
