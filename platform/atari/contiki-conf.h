@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.1 2010/09/29 19:44:01 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.2 2010/10/01 20:27:06 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -43,15 +43,10 @@
 #define CTK_CONF_WIDGETUP_KEY     0x01	/* Ctrl-A */
 #define CTK_CONF_WIDGETDOWN_KEY   '\t'	/* Tab or Ctrl-I */
 
-#define BORDERCOLOR       COLOR_LIGHTBLUE
-#define SCREENCOLOR       COLOR_BLUE
-#define BACKGROUNDCOLOR   COLOR_BLUE
-#define WINDOWCOLOR       COLOR_GRAY1
-#define WINDOWCOLOR_FOCUS COLOR_LIGHTBLUE
-#define WIDGETCOLOR       COLOR_GRAY1
-#define WIDGETCOLOR_FOCUS COLOR_YELLOW
-#define WIDGETCOLOR_FWIN  COLOR_LIGHTBLUE
-#define WIDGETCOLOR_HLINK COLOR_CYAN
+#define textcolor(color) COLOR_WHITE
+
+#define BORDERCOLOR COLOR_BLACK
+#define SCREENCOLOR COLOR_BLACK
 
 #define EMAIL_CONF_WIDTH  39
 #define EMAIL_CONF_HEIGHT 19
