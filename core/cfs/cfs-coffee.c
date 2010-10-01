@@ -645,7 +645,9 @@ reserve(const char *name, coffee_page_t pages,
       pages, page, name);
 
   file = load_file(page, &hdr);
-  file->end = 0;
+  if(file != NULL) {
+    file->end = 0;
+  }
   COFFEE_WATCHDOG_START();
 
   return file;
