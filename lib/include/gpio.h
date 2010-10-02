@@ -63,11 +63,11 @@ struct GPIO_struct {
 #define _IO(x) \
 	union { struct { uint32_t x##0; uint32_t x##1; }; \
 		struct { _REP(x, 1) };  \
-		struct { _REP(GPIO, 1) } x; };
+		struct GPIO_##x { _REP(GPIO, 1) } x; };
 #define _IO_2bit(x)	\
 	union { struct { uint32_t x##0; uint32_t x##1; uint32_t x##2; uint32_t x##3; }; \
 		struct { _REP(x, 2) };  \
-		struct { _REP(GPIO, 2) } x; };
+		struct GPIO_##x { _REP(GPIO, 2) } x; };
 
 	_IO(PAD_DIR);
 	_IO(DATA);
