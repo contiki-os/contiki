@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.1 2010/09/29 19:44:01 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.2 2010/10/02 22:07:24 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -61,6 +61,10 @@ void
 main(void)
 {
   struct ethernet_config *ethernet_config;
+
+  clrscr();
+  bordercolor(BORDERCOLOR);
+  bgcolor(SCREENCOLOR);
 
   process_init();
 
