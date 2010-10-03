@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.30 2010/08/01 21:18:07 dak664 Exp $
+ * $Id: rime.c,v 1.31 2010/10/03 20:10:22 adamdunkels Exp $
  */
 
 /**
@@ -56,33 +56,12 @@
 #include "net/rime/chameleon.h"
 #include "net/rime/route.h"
 #include "net/rime/announcement.h"
-#include "net/rime/polite-announcement.h"
 #include "net/rime/broadcast-announcement.h"
 #include "net/mac/mac.h"
 
 #include "lib/list.h"
 
 const struct mac_driver *rime_mac;
-
-#ifdef RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL
-#define POLITE_ANNOUNCEMENT_CHANNEL RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL
-#else /* RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL */
-#define POLITE_ANNOUNCEMENT_CHANNEL 1
-#endif /* RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL */
-
-#ifdef RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME
-#define POLITE_ANNOUNCEMENT_START_TIME RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME
-#else /* RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME */
-#define POLITE_ANNOUNCEMENT_START_TIME CLOCK_SECOND * 8
-#endif /* RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME */
-
-#ifdef RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME
-#define POLITE_ANNOUNCEMENT_MAX_TIME RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME
-#else /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
-#define POLITE_ANNOUNCEMENT_MAX_TIME CLOCK_SECOND * 128
-#endif /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
-
-
 
 #ifdef RIME_CONF_BROADCAST_ANNOUNCEMENT_CHANNEL
 #define BROADCAST_ANNOUNCEMENT_CHANNEL RIME_CONF_BROADCAST_ANNOUNCEMENT_CHANNEL
@@ -99,13 +78,13 @@ const struct mac_driver *rime_mac;
 #ifdef RIME_CONF_BROADCAST_ANNOUNCEMENT_MIN_TIME
 #define BROADCAST_ANNOUNCEMENT_MIN_TIME RIME_CONF_BROADCAST_ANNOUNCEMENT_MIN_TIME
 #else /* RIME_CONF_BROADCAST_ANNOUNCEMENT_MIN_TIME */
-#define BROADCAST_ANNOUNCEMENT_MIN_TIME CLOCK_SECOND * 30
+#define BROADCAST_ANNOUNCEMENT_MIN_TIME CLOCK_SECOND * 60
 #endif /* RIME_CONF_BROADCAST_ANNOUNCEMENT_MIN_TIME */
 
 #ifdef RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME
 #define BROADCAST_ANNOUNCEMENT_MAX_TIME RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME
 #else /* RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME */
-#define BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_SECOND * 600UL
+#define BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_SECOND * 3600UL
 #endif /* RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME */
 
 
@@ -133,7 +112,7 @@ input(void)
   RIMESTATS_ADD(rx);
   c = chameleon_parse();
   
-  for(s = list_head(sniffers); s != NULL; s = s->next) {
+  for(s = list_head(sniffers); s != NULL; s = list_item_next(s)) {
     if(s->input_callback != NULL) {
       s->input_callback();
     }
@@ -153,22 +132,7 @@ init(void)
 
   rime_mac = &NETSTACK_MAC;
   chameleon_init();
-#if ! RIME_CONF_NO_POLITE_ANNOUCEMENTS
-  /* XXX This is initializes the transmission of announcements but it
-   * is not currently certain where this initialization is supposed to
-   * be. Also, the times are arbitrarily set for now. They should
-   * either be configurable, or derived from some MAC layer property
-   * (duty cycle, sleep time, or something similar). But this is OK
-   * for now, and should at least get us started with experimenting
-   * with announcements.
-   */
-  polite_announcement_init(POLITE_ANNOUNCEMENT_CHANNEL,
-			   POLITE_ANNOUNCEMENT_START_TIME,
-			   POLITE_ANNOUNCEMENT_MAX_TIME);
-#endif /* ! RIME_CONF_NO_POLITE_ANNOUCEMENTS */
-
-
-#if ! RIME_CONF_NO_BROADCAST_ANNOUCEMENTS
+  
   /* XXX This is initializes the transmission of announcements but it
    * is not currently certain where this initialization is supposed to
    * be. Also, the times are arbitrarily set for now. They should
@@ -181,7 +145,6 @@ init(void)
                               BROADCAST_ANNOUNCEMENT_BUMP_TIME,
                               BROADCAST_ANNOUNCEMENT_MIN_TIME,
                               BROADCAST_ANNOUNCEMENT_MAX_TIME);
-#endif /* ! RIME_CONF_NO_BROADCAST_ANNOUCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -207,7 +170,7 @@ packet_sent(void *ptr, int status, int num_tx)
   if(status == MAC_TX_OK) {
     struct rime_sniffer *s;
     /* Call sniffers, but only if the packet was sent. */
-    for(s = list_head(sniffers); s != NULL; s = s->next) {
+    for(s = list_head(sniffers); s != NULL; s = list_item_next(s)) {
       if(s->output_callback != NULL) {
         s->output_callback();
       }
