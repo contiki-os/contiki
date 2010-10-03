@@ -1,24 +1,27 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.82 2010/06/23 10:18:05 joxe Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.83 2010/10/03 20:40:42 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
 #include "platform-conf.h"
 
-#if WITH_UIP6
+#ifdef PROJECT_CONF_H
+#include PROJECT_CONF_H
+#endif /* PROJECT_CONF_H */
 
+#if WITH_UIP6
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
-/* #define NETSTACK_CONF_MAC nullmac_driver */
-/* #define NETSTACK_CONF_RDC sicslowmac_driver */
+#define NETSTACK_CONF_RADIO   cc2420_driver
+
 #define NETSTACK_CONF_MAC     csma_driver
 #define NETSTACK_CONF_RDC     contikimac_driver
+
 #define NETSTACK_CONF_FRAMER  framer_802154
 
 #define CC2420_CONF_AUTOACK              1
-#define MAC_CONF_CHANNEL_CHECK_RATE      8
-#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
+#define NETSTACK_CONF_CHANNEL_CHECK_RATE 8
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
 
@@ -29,15 +32,24 @@
 /* Network setup for non-IPv6 (rime). */
 
 #define NETSTACK_CONF_NETWORK rime_driver
+
+#ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
+#endif /* NETSTACK_CONF_MAC */
+
+#ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     contikimac_driver
+#endif /* NETSTACK_CONF_RDC */
+
+#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
+#endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
+
 #define NETSTACK_CONF_FRAMER  framer_802154
 
 #define CC2420_CONF_AUTOACK              1
-#define MAC_CONF_CHANNEL_CHECK_RATE      8
 
 #define COLLECT_CONF_ANNOUNCEMENTS       1
-#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
 #define CONTIKIMAC_CONF_ANNOUNCEMENTS    0
@@ -46,9 +58,10 @@
 #define XMAC_CONF_COMPOWER               1
 #define CXMAC_CONF_COMPOWER              1
 
-#define COLLECT_NEIGHBOR_CONF_MAX_NEIGHBORS      32
+#define COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS     32
 
-#define QUEUEBUF_CONF_NUM          16
+#define QUEUEBUF_CONF_NUM                18
+#define QUEUEBUF_CONF_STATS              0
 
 #endif /* WITH_UIP6 */
 
@@ -144,10 +157,6 @@
 
 #define UIP_CONF_TCP_SPLIT       0
 
-
-#ifdef PROJECT_CONF_H
-#include PROJECT_CONF_H
-#endif /* PROJECT_CONF_H */
 
 
 
