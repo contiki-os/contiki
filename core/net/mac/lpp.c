@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.36 2010/06/15 19:22:25 adamdunkels Exp $
+ * $Id: lpp.c,v 1.37 2010/10/03 20:37:32 adamdunkels Exp $
  */
 
 /**
@@ -83,7 +83,7 @@
 #define WITH_STREAMING                1
 
 #define LISTEN_TIME (CLOCK_SECOND / 128)
-#define OFF_TIME (CLOCK_SECOND / MAC_CHANNEL_CHECK_RATE - LISTEN_TIME)
+#define OFF_TIME (CLOCK_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE - LISTEN_TIME)
 
 #define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
 #define UNICAST_TIMEOUT	(1 * PACKET_LIFETIME)

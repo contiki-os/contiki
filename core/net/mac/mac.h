@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.13 2010/02/28 20:18:30 adamdunkels Exp $
+ * $Id: mac.h,v 1.14 2010/10/03 20:37:32 adamdunkels Exp $
  */
 
 /**
@@ -98,17 +98,5 @@ enum {
      error will be fatal then as well. */
   MAC_TX_ERR_FATAL,
 };
-#ifndef MAC_CHANNEL_CHECK_RATE
-#ifdef MAC_CONF_CHANNEL_CHECK_RATE
-#define MAC_CHANNEL_CHECK_RATE MAC_CONF_CHANNEL_CHECK_RATE
-#else /* MAC_CONF_CHANNEL_CHECK_RATE */
-#define MAC_CHANNEL_CHECK_RATE 4
-#endif /* MAC_CONF_CHANNEL_CHECK_RATE */
-#endif /* MAC_CHANNEL_CHECK_RATE */
-
-#if (MAC_CHANNEL_CHECK_RATE & (MAC_CHANNEL_CHECK_RATE - 1)) != 0
-#error MAC_CONF_CHANNEL_CHECK_RATE must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
-#error Change MAC_CONF_CHANNEL_CHECK_RATE in contiki-conf.h or in your Makefile.
-#endif
 
 #endif /* __MAC_H__ */
