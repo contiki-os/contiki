@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.21 2010/09/22 22:08:08 adamdunkels Exp $
+ * $Id: collect.h,v 1.22 2010/10/03 20:08:44 adamdunkels Exp $
  */
 
 /**
@@ -75,7 +75,7 @@
                             { PACKETBUF_ATTR_PACKET_ID,   PACKETBUF_ATTR_BIT * COLLECT_PACKET_ID_BITS }, \
                             { PACKETBUF_ATTR_TTL,         PACKETBUF_ATTR_BIT * 4 }, \
                             { PACKETBUF_ATTR_HOPS,        PACKETBUF_ATTR_BIT * 4 }, \
-                            { PACKETBUF_ATTR_MAX_REXMIT,  PACKETBUF_ATTR_BIT * 4 }, \
+                            { PACKETBUF_ATTR_MAX_REXMIT,  PACKETBUF_ATTR_BIT * 5 }, \
                             { PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_BIT }, \
                             UNICAST_ATTRIBUTES
 
@@ -100,6 +100,8 @@ struct collect_conn {
 
   struct ctimer keepalive_timer;
   clock_time_t keepalive_period;
+
+  struct timer proactive_maintenence_timer;
 
   rimeaddr_t parent, current_parent;
   uint16_t rtmetric;
@@ -129,7 +131,7 @@ void collect_set_keepalive(struct collect_conn *c, clock_time_t period);
 
 void collect_print_stats(void);
 
-#define COLLECT_MAX_DEPTH 255
+#define COLLECT_MAX_DEPTH ((1 << 12) - 1)
 
 #endif /* __COLLECT_H__ */
 /** @} */
