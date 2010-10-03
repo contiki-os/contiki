@@ -10,7 +10,7 @@ OBJDIR_COBJS = $(addprefix $(OBJDIR)/, $(COBJS))
 # Create directory and board.h include
 $(OBJDIR)/board.h:
 	$(call pretty,GEN,$@)
-	$(Q)mkdir -p $(OBJDIR)
+	@mkdir -p $(dir $@)
 	$(Q)echo '/* This file was automatically generated */' > $(OBJDIR)/board.h
 	$(Q)echo '#include "$(BOARD).h"' >> $(OBJDIR)/board.h
 
@@ -32,11 +32,13 @@ TARGET_OBJ += $(OBJDIR)/board.a
 # And is built from files in the parent directory
 $(OBJDIR)/%.o: %.c $(OBJDIR)/board.h $(FORCE_C_DEPENDS)
 	$(call pretty,CC,$@)
+	@mkdir -p $(dir $@)
 	$Q$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
 $(OBJDIR)/%.o: %.S $(OBJDIR)/board.h
 	$(call pretty,AS,$@)
+	@mkdir -p $(dir $@)
 	$(CC) $(AFLAGS) -MMD -c -o $@ $<
 	@$(FINALIZE_DEPENDENCY)
 
