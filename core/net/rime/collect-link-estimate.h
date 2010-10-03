@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-link-estimate.h,v 1.2 2010/09/13 13:28:14 adamdunkels Exp $
+ * $Id: collect-link-estimate.h,v 1.3 2010/10/03 20:06:25 adamdunkels Exp $
  */
 
 /**
@@ -63,8 +63,9 @@
 #define COLLECT_LINK_ESTIMATE_HISTORY_SIZE   16
 
 struct collect_link_estimate {
-  int history[COLLECT_LINK_ESTIMATE_HISTORY_SIZE];
+  uint8_t history[COLLECT_LINK_ESTIMATE_HISTORY_SIZE];
   uint8_t historyptr;
+  uint8_t num_estimates;
 };
 
 /**
@@ -86,7 +87,7 @@ void collect_link_estimate_new(struct collect_link_estimate *le);
  *             buffer attributes when computing the link estimate.
  */
 void collect_link_estimate_update_tx(struct collect_link_estimate *le,
-                                     int num_tx);
+                                     uint8_t num_tx);
 
 /**
  * \brief      Update a link estimate when a packet has failed to be sent.
@@ -99,7 +100,7 @@ void collect_link_estimate_update_tx(struct collect_link_estimate *le,
  *             buffer attributes when computing the link estimate.
  */
 void collect_link_estimate_update_tx_fail(struct collect_link_estimate *le,
-                                          int num_tx);
+                                          uint8_t num_tx);
 
 /**
  * \brief      Update a link estimate when a packet has been received.
@@ -116,9 +117,12 @@ void collect_link_estimate_update_rx(struct collect_link_estimate *le);
 /**
  * \brief      Compute the link estimate metric for a link estimate
  * \param le   A pointer to a link estimate structure
+ * \return     The current link estimate metric
  *
  */
-int collect_link_estimate(struct collect_link_estimate *le);
+uint16_t collect_link_estimate(struct collect_link_estimate *le);
+
+int collect_link_estimate_num_estimates(struct collect_link_estimate *le);
 
 #endif /* COLLECT_LINK_ESTIMATE_H */
 

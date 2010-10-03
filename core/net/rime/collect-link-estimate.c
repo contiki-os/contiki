@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-link-estimate.c,v 1.3 2010/09/22 22:03:21 adamdunkels Exp $
+ * $Id: collect-link-estimate.c,v 1.4 2010/10/03 20:06:25 adamdunkels Exp $
  */
 
 /**
@@ -49,7 +49,7 @@
    the ETX. It cannot be larger than
    COLLECT_LINK_ESTIMATE_HISTORY_SIZE, which is defined in
    collect-link-estimate.h. */
-#define ETX_HISTORY_WINDOW 16
+#define ETX_HISTORY_WINDOW 8
 
 #define INITIAL_LINK_ESTIMATE 4
 
@@ -62,35 +62,51 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
-void
-collect_link_estimate_new(struct collect_link_estimate *le)
+static void
+set_all_estimates(struct collect_link_estimate *le, uint16_t value)
 {
   int i;
 
+  for(i = 0; i < ETX_HISTORY_WINDOW; i++) {
+    le->history[i] = value;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+collect_link_estimate_new(struct collect_link_estimate *le)
+{
   /* Start with a conservative / pessimistic estimate of link quality
      for new links. */
-  for(i = 0; i < ETX_HISTORY_WINDOW; i++) {
-    le->history[i] = INITIAL_LINK_ESTIMATE;
-  }
+  set_all_estimates(le, INITIAL_LINK_ESTIMATE);
   le->historyptr = 0;
+  le->num_estimates = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_link_estimate_update_tx_fail(struct collect_link_estimate *le, int tx)
+collect_link_estimate_update_tx(struct collect_link_estimate *le, uint8_t tx)
 {
+  if(tx == 0) {
+    printf("ERROR tx == 0\n");
+    return;
+  }
   if(le != NULL) {
-    le->history[le->historyptr] = tx * 2;
-    le->historyptr = (le->historyptr + 1) % ETX_HISTORY_WINDOW;
+    if(le->num_estimates == 0) {
+      set_all_estimates(le, tx * 2);
+    } else {
+      le->history[le->historyptr] = tx;
+      le->historyptr = (le->historyptr + 1) % ETX_HISTORY_WINDOW;
+    }
+    if(le->num_estimates < ETX_HISTORY_WINDOW) {
+      le->num_estimates++;
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_link_estimate_update_tx(struct collect_link_estimate *le, int tx)
+collect_link_estimate_update_tx_fail(struct collect_link_estimate *le,
+                                     uint8_t tx)
 {
-  if(le != NULL) {
-    le->history[le->historyptr] = tx;
-    le->historyptr = (le->historyptr + 1) % ETX_HISTORY_WINDOW;
-  }
+  collect_link_estimate_update_tx(le, tx * 2);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -99,10 +115,11 @@ collect_link_estimate_update_rx(struct collect_link_estimate *n)
 
 }
 /*---------------------------------------------------------------------------*/
-int
+uint16_t
 collect_link_estimate(struct collect_link_estimate *le)
 {
-  int i, etx;
+  int i;
+  uint16_t etx;
 
   PRINTF("collect_link_estimate: ");
   etx = 0;
@@ -114,5 +131,13 @@ collect_link_estimate(struct collect_link_estimate *le)
   return (COLLECT_LINK_ESTIMATE_UNIT * etx) / ETX_HISTORY_WINDOW;
 }
 /*---------------------------------------------------------------------------*/
-
+int
+collect_link_estimate_num_estimates(struct collect_link_estimate *le)
+{
+  if(le != NULL) {
+    return le->num_estimates;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 /** @} */
