@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.37 2010/04/30 07:25:51 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.38 2010/10/03 20:39:24 adamdunkels Exp $
  */
 
 /**
@@ -108,7 +108,7 @@ struct announcement_msg {
 #ifdef CONTIKIMAC_CONF_CYCLE_TIME
 #define CYCLE_TIME (CONTIKIMAC_CONF_CYCLE_TIME)
 #else
-#define CYCLE_TIME (RTIMER_ARCH_SECOND / MAC_CHANNEL_CHECK_RATE)
+#define CYCLE_TIME (RTIMER_ARCH_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE)
 #endif
 
 #define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 20
@@ -773,7 +773,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     on();
   }
   
-  
+  watchdog_periodic();
   t0 = RTIMER_NOW();
   t = RTIMER_NOW();
 #if NURTIMER
@@ -875,9 +875,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
      return from the function.  */
   if(collisions > 0) {
     ret = MAC_TX_COLLISION;
-  }
-  
-  if(!is_broadcast && !got_strobe_ack) {
+  } else if(!is_broadcast && !got_strobe_ack) {
     ret = MAC_TX_NOACK;
   } else {
     ret = MAC_TX_OK;
@@ -1022,9 +1020,9 @@ send_announcement(void *ptr)
   int announcement_len;
   int transmit_len;
 #if WITH_CONTIKIMAC_HEADER
-  struct hdr *chdr
+  struct hdr *chdr;
 #endif /* WITH_CONTIKIMAC_HEADER */
-
+  
   /* Set up the probe header. */
   packetbuf_clear();
   announcement_len = format_announcement(packetbuf_dataptr());
