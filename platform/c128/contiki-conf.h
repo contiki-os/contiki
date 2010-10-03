@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.13 2010/08/14 08:32:00 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.14 2010/10/03 10:30:53 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -49,12 +49,12 @@
 #define BORDERCOLOR       COLOR_BLACK
 #define SCREENCOLOR       COLOR_BLACK
 #define BACKGROUNDCOLOR   COLOR_BLACK
-#define WINDOWCOLOR       COLOR_CYAN
-#define WINDOWCOLOR_FOCUS COLOR_CYAN
-#define WIDGETCOLOR       COLOR_CYAN
-#define WIDGETCOLOR_FOCUS COLOR_WHITE
-#define WIDGETCOLOR_FWIN  COLOR_CYAN
-#define WIDGETCOLOR_HLINK COLOR_YELLOW
+#define WINDOWCOLOR       COLOR_WHITE
+#define WINDOWCOLOR_FOCUS COLOR_WHITE
+#define WIDGETCOLOR       COLOR_WHITE
+#define WIDGETCOLOR_FOCUS COLOR_YELLOW
+#define WIDGETCOLOR_FWIN  COLOR_WHITE
+#define WIDGETCOLOR_HLINK COLOR_CYAN
 
 #define EMAIL_CONF_WIDTH  79
 #define EMAIL_CONF_HEIGHT 20

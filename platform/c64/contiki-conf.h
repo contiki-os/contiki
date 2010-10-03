@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.23 2010/07/20 22:47:42 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.24 2010/10/03 10:30:54 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -46,14 +46,14 @@
 #define MOUSE_CONF_XTOC(x) ((x) / 8)
 #define MOUSE_CONF_YTOC(y) ((y) / 8)
 
-#define BORDERCOLOR       COLOR_LIGHTBLUE
-#define SCREENCOLOR       COLOR_BLUE
-#define BACKGROUNDCOLOR   COLOR_BLUE
-#define WINDOWCOLOR       COLOR_GRAY1
-#define WINDOWCOLOR_FOCUS COLOR_LIGHTBLUE
-#define WIDGETCOLOR       COLOR_GRAY1
+#define BORDERCOLOR       COLOR_BLACK
+#define SCREENCOLOR       COLOR_BLACK
+#define BACKGROUNDCOLOR   COLOR_BLACK
+#define WINDOWCOLOR       COLOR_GRAY3
+#define WINDOWCOLOR_FOCUS COLOR_GRAY3
+#define WIDGETCOLOR       COLOR_GRAY3
 #define WIDGETCOLOR_FOCUS COLOR_YELLOW
-#define WIDGETCOLOR_FWIN  COLOR_LIGHTBLUE
+#define WIDGETCOLOR_FWIN  COLOR_GRAY3
 #define WIDGETCOLOR_HLINK COLOR_CYAN
 
 #define EMAIL_CONF_WIDTH  39
