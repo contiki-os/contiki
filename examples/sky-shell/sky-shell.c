@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.23 2010/09/22 22:14:03 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.24 2010/10/03 20:16:57 adamdunkels Exp $
  */
 
 /**
@@ -160,11 +160,12 @@ struct sky_alldata_msg {
   uint16_t lpm;
   uint16_t transmit;
   uint16_t listen;
-  rimeaddr_t best_neighbor;
-  uint16_t best_neighbor_etx;
-  uint16_t best_neighbor_rtmetric;
+  rimeaddr_t parent;
+  uint16_t parent_etx;
+  uint16_t parent_rtmetric;
   uint16_t battery_voltage;
   uint16_t battery_indicator;
+  uint16_t num_neighbors;
 };
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_sky_alldata_process, ev, data)
@@ -218,20 +219,21 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
   last_transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
   last_listen = energest_type_time(ENERGEST_TYPE_LISTEN);
 
-  rimeaddr_copy(&msg.best_neighbor, &rimeaddr_null);
-  msg.best_neighbor_etx =
-    msg.best_neighbor_rtmetric = 0;
-  n = collect_neighbor_list_best(&shell_collect_conn.neighbor_list);
+  rimeaddr_copy(&msg.parent, &shell_collect_conn.parent);
+  n = collect_neighbor_list_find(&shell_collect_conn.neighbor_list,
+                                 &shell_collect_conn.parent);
   if(n != NULL) {
-    rimeaddr_copy(&msg.best_neighbor, &n->addr);
-    msg.best_neighbor_etx = collect_neighbor_rtmetric_link_estimate(n) - n->rtmetric;
-    msg.best_neighbor_rtmetric = n->rtmetric;
+    msg.parent_etx = collect_neighbor_link_estimate(n);
+    msg.parent_rtmetric = n->rtmetric;
+  } else {
+    msg.parent_etx = 0;
+    msg.parent_rtmetric = 0;
   }
   msg.battery_voltage = battery_sensor.value(0);
   msg.battery_indicator = sht11_sensor.value(SHT11_SENSOR_BATTERY_INDICATOR);
+  msg.num_neighbors = collect_neighbor_list_num(&shell_collect_conn.neighbor_list);
   shell_output(&sky_alldata_command, &msg, sizeof(msg), "", 0);
-
-
+  
   SENSORS_DEACTIVATE(light_sensor);
   SENSORS_DEACTIVATE(battery_sensor);
   SENSORS_DEACTIVATE(sht11_sensor);
@@ -253,8 +255,8 @@ PROCESS_THREAD(sky_shell_process, ev, data)
 
   /*  ctimer_set(&c, 20 * CLOCK_SECOND, periodic_debug, &c);*/
   
-  /*  powertrace_start(10 * CLOCK_SECOND);*/
-  /*  powertrace_sniff(POWERTRACE_ON);*/
+  /*  powertrace_start(30 * CLOCK_SECOND);
+      powertrace_sniff(POWERTRACE_ON);*/
   
   serial_shell_init();
   shell_blink_init();
