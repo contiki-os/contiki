@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeControl.java,v 1.2 2010/09/28 23:32:51 nifi Exp $
+ * $Id: NodeControl.java,v 1.3 2010/10/03 20:19:37 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Niclas Finne
  * Created : 27 sep 2010
- * Updated : $Date: 2010/09/28 23:32:51 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/10/03 20:19:37 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -76,6 +76,7 @@ public class NodeControl implements Visualizer {
     final JFormattedTextField intervalField = new JFormattedTextField(new Integer(60));
     final JFormattedTextField randomField = new JFormattedTextField(new Integer(2));
     final JFormattedTextField reportsField = new JFormattedTextField(new Integer(0));
+    final JFormattedTextField rexmitsField = new JFormattedTextField(new Integer(15));
     statusLabel = new JLabel("", JLabel.CENTER);
     statusLabel.setOpaque(true);
 
@@ -95,9 +96,10 @@ public class NodeControl implements Visualizer {
         int interval = (Integer)intervalField.getValue();
         int random = (Integer)randomField.getValue();
         int reports = (Integer)reportsField.getValue();
+        int rexmits = (Integer)rexmitsField.getValue();
 
         sendCommand("netcmd { repeat " + reports + " " + interval
-            + " { randwait " + random + " sky-alldata | blink | send } }");
+            + " { randwait " + random + " sky-alldata | blink | send " + rexmits + " } }");
       }
 
     });
@@ -128,6 +130,12 @@ public class NodeControl implements Visualizer {
     label.setLabelFor(randomField);
     controlPanel.add(randomField, c);
     controlPanel.add(new JLabel("seconds"), c);
+
+    c.gridy++;
+    controlPanel.add(label = new JLabel("Hop-by-hop retransmissions", JLabel.RIGHT), c);
+    label.setLabelFor(rexmitsField);
+    controlPanel.add(rexmitsField, c);
+    controlPanel.add(new JLabel("retransmissions (0 - 31)"), c);
 
     c.gridy++;
     controlPanel.add(new JLabel("Number of reports", JLabel.RIGHT), c);
