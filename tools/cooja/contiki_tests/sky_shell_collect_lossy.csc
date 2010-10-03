@@ -444,7 +444,7 @@ GENERATE_MSG(20000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 node = sink_node;
 log.log("Writing netcmd\n");
-node.write("netcmd { repeat 10 60 { randwait 8 sky-alldata | blink | send 15 } }");
+node.write("netcmd { repeat 10 60 { randwait 8 sky-alldata | blink | send 31 } }");
 
 while(true) {
   YIELD();
