@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.19 2010/06/16 10:08:30 nifi Exp $
+ * $Id: csma.c,v 1.20 2010/10/03 20:37:32 adamdunkels Exp $
  */
 
 /**
@@ -96,7 +96,7 @@ retransmit_packet(void *ptr)
   struct queued_packet *q = ptr;
 
   queuebuf_to_packetbuf(q->buf);
-  PRINTF("csma: resending number %d\n", q->transmissions);
+  PRINTF("csma: resending number %d %p\n", q->transmissions, q);
   NETSTACK_RDC.send(packet_sent, q);
 }
 /*---------------------------------------------------------------------------*/
@@ -159,16 +159,16 @@ packet_sent(void *ptr, int status, int num_transmissions)
        does not turn the radio off), we make the retransmission time
        proportional to the configured MAC channel check rate. */
     if(time == 0) {
-      time = CLOCK_SECOND / MAC_CHANNEL_CHECK_RATE;
+      time = CLOCK_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE;
     }
 
     /* The retransmission time uses a linear backoff so that the
        interval between the transmissions increase with each
        retransmit. */
     time = time + (random_rand() % ((q->transmissions + 1) * 3 * time));
-    
-    if(q->transmissions < q->max_transmissions) {
-      PRINTF("csma: retransmitting with time %lu\n", time);
+
+    if(q->transmissions + q->collisions < q->max_transmissions) {
+      PRINTF("csma: retransmitting with time %lu %p\n", time, q);
       ctimer_set(&q->retransmit_timer, time,
                  retransmit_packet, q);
     } else {

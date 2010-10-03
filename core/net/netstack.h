@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netstack.h,v 1.5 2010/03/01 13:30:21 nifi Exp $
+ * $Id: netstack.h,v 1.6 2010/10/03 20:37:32 adamdunkels Exp $
  */
 
 /**
@@ -66,6 +66,20 @@
 #define NETSTACK_RDC     nullrdc_driver
 #endif /* NETSTACK_CONF_RDC */
 #endif /* NETSTACK_RDC */
+
+#ifndef NETSTACK_RDC_CHANNEL_CHECK_RATE
+#ifdef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+#define NETSTACK_RDC_CHANNEL_CHECK_RATE NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+#else /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
+#define NETSTACK_RDC_CHANNEL_CHECK_RATE 4
+#endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
+#endif /* NETSTACK_RDC_CHANNEL_CHECK_RATE */
+
+#if (NETSTACK_RDC_CHANNEL_CHECK_RATE & (NETSTACK_RDC_CHANNEL_CHECK_RATE - 1)) != 0
+#error NETSTACK_RDC_CONF_CHANNEL_CHECK_RATE must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
+#error Change NETSTACK_RDC_CONF_CHANNEL_CHECK_RATE in contiki-conf.h, project-conf.h or in your Makefile.
+#endif
+
 
 #ifndef NETSTACK_RADIO
 #ifdef NETSTACK_CONF_RADIO
