@@ -46,6 +46,9 @@
    #define MY_PIN GPIO_08
    GPIO->FUNC_SEL.MY_PIN = 2;	 // same, to allow #define for pin names
    GPIO->DATA.MY_PIN = 1;
+
+   gpio_set(GPIO_08);		 // efficiently set or clear a single output bit
+   gpio_reset(GPIO_08);
 */
 
 #define _V(x,n,i) uint32_t x##_##i : n;
@@ -84,6 +87,24 @@ struct GPIO_struct {
 };
 #undef _IO
 #undef _IO_2bit
+
+/* Build an enum lookup to map GPIO_08 -> 8 */
+#undef _V
+#define _V(x,n,i) __NUM_GPIO_GPIO_##i,
+enum { _REP(0,0) };
+
+/* Macros to set or reset a data pin in the fastest possible way */
+#define gpio_set(gpio_xx) __gpio_set(gpio_xx)
+#define __gpio_set(gpio_xx)						\
+	((__NUM_GPIO_##gpio_xx < 32)					\
+	 ? (GPIO->DATA_SET0 = (1 << (__NUM_GPIO_##gpio_xx - 0)))	\
+	 : (GPIO->DATA_SET1 = (1 << (__NUM_GPIO_##gpio_xx - 32))))
+#define gpio_reset(gpio_xx) __gpio_reset(gpio_xx)
+#define __gpio_reset(gpio_xx)						\
+	((__NUM_GPIO_##gpio_xx < 32)					\
+	 ? (GPIO->DATA_RESET0 = (1 << (__NUM_GPIO_##gpio_xx - 0)))	\
+	 : (GPIO->DATA_RESET1 = (1 << (__NUM_GPIO_##gpio_xx - 32))))
+
 #undef _REP
 #undef _V
 
