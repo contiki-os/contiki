@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorInfo.java,v 1.2 2008/11/10 21:14:20 adamdunkels Exp $
+ * $Id: SensorInfo.java,v 1.3 2010/10/03 20:19:12 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2008/11/10 21:14:20 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/10/03 20:19:12 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect;
@@ -78,7 +78,8 @@ public interface SensorInfo {
   public static final int BEST_NEIGHBOR_RTMETRIC = 22;
   public static final int BATTERY_VOLTAGE = 23;
   public static final int BATTERY_INDICATOR = 24;
+  public static final int NUM_NEIGHBORS = 25;
 
-  public static final int VALUES_COUNT = 25;
+  public static final int VALUES_COUNT = 26;
 
 }

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.22 2010/09/30 22:24:45 nifi Exp $
+ * $Id: CollectServer.java,v 1.23 2010/10/03 20:19:12 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/30 22:24:45 $
- *           $Revision: 1.22 $
+ * Updated : $Date: 2010/10/03 20:19:12 $
+ *           $Revision: 1.23 $
  */
 
 package se.sics.contiki.collect;
@@ -308,6 +308,17 @@ public class CollectServer {
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getLight2();
+          }
+        },
+        new TimeChartPanel(this, NETWORK, "Neighbors (Over Time)", "Neighbor Count", "Time", "Neighbors") {
+          {
+            ValueAxis axis = chart.getXYPlot().getRangeAxis();
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
+            axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+            setMaxItemCount(defaultMaxItemCount);
+          }
+          protected double getSensorDataValue(SensorData data) {
+            return data.getValue(SensorData.NUM_NEIGHBORS);
           }
         },
         new TimeChartPanel(this, NETWORK, "Network Hops (Over Time)", "Network Hops", "Time", "Hops") {
