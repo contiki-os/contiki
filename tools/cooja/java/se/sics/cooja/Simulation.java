@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.65 2010/08/13 09:53:33 fros4943 Exp $
+ * $Id: Simulation.java,v 1.66 2010/10/04 10:11:56 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -180,12 +180,9 @@ public class Simulation extends Observable implements Runnable {
    * @param time Execution time
    */
   public void scheduleEvent(final TimeEvent e, final long time) {
-    /* TODO Strict scheduling from simulation thread */
-    if (e.isScheduled()) {
-      throw new IllegalStateException("Event already scheduled: " + e);
-    }
-    if (isRunning && !isSimulationThread()) {
-      throw new IllegalStateException("Scheduling event from non-simulation thread: " + e);
+    if (isRunning) {
+      /* TODO Strict scheduling from simulation thread */
+      assert isSimulationThread() : "Scheduling event from non-simulation thread: " + e;
     }
     eventQueue.addEvent(e, time);
   }
