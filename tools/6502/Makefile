@@ -30,8 +30,12 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.9 2010/10/01 22:38:39 oliverschmidt Exp $
+# $Id: Makefile,v 1.10 2010/10/04 22:13:45 oliverschmidt Exp $
 #
+
+ifndef CONTIKI
+  ${error CONTIKI not defined! You must specify where CONTIKI resides}
+endif
 
 ifndef CC65_HOME
   ${error CC65_HOME not defined! You must specify where cc65 resides}
@@ -54,7 +58,20 @@ disks: apple2enh-1-disk apple2enh-2-disk apple2enh-3-disk \
        c128-1-disk \
        atari-1-disk atari-2-disk atari-3-disk
 
-apple2enh-1-disk:
+define makes
+$1-makes:
+	$(MAKE) -C ../../cpu/6502/dhcp       TARGET=$1
+	$(MAKE) -C ../../examples/webserver  TARGET=$1 HTTPD-CFS=1
+	$(MAKE) -C ../../examples/webbrowser TARGET=$1
+	$(MAKE) -C ../../examples/wget       TARGET=$1
+	$(MAKE) -C ../../examples/irc        TARGET=$1
+	$(MAKE) -C ../../examples/email      TARGET=$1
+	$(MAKE) -C ../../../../contikiprojects/vandenbrande.com/twitter/platform/$1
+endef
+
+$(eval $(call makes,apple2enh))
+
+apple2enh-1-disk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk contiki-1.dsk
 	java -jar $(AC) -p    contiki-1.dsk contiki.cfg     bin 0 < dummy.cfg
 	java -jar $(AC) -p    contiki-1.dsk menu.system     sys 0 < ../apple2enh/menu.system
@@ -72,7 +89,7 @@ apple2enh-1-disk:
 	java -jar $(AC) -p    contiki-1.dsk contiki.gif     bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
 	java -jar $(AC) -p    contiki-1.dsk notfound.htm    bin 0 < ../../examples/webserver/httpd-cfs/notfound.htm
 
-apple2enh-2-disk:
+apple2enh-2-disk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk contiki-2.dsk
 	java -jar $(AC) -p    contiki-2.dsk contiki.cfg     bin 0 < dummy.cfg
 	java -jar $(AC) -p    contiki-2.dsk menu.system     sys 0 < ../apple2enh/menu.system
@@ -86,7 +103,7 @@ apple2enh-2-disk:
 	java -jar $(AC) -p    contiki-2.dsk lan91c96.eth    rel 0 < ../../cpu/6502/dhcp/lan91c96.eth
 	java -jar $(AC) -p    contiki-2.dsk a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 
-apple2enh-3-disk:
+apple2enh-3-disk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk contiki-3.dsk
 	java -jar $(AC) -p    contiki-3.dsk contiki.cfg     bin 0 < dummy.cfg
 	java -jar $(AC) -p    contiki-3.dsk menu.system     sys 0 < ../apple2enh/menu.system
@@ -100,7 +117,9 @@ apple2enh-3-disk:
 	java -jar $(AC) -p    contiki-3.dsk lan91c96.eth    rel 0 < ../../cpu/6502/dhcp/lan91c96.eth
 	java -jar $(AC) -p    contiki-3.dsk a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 
-c64-1-disk:
+$(eval $(call makes,c64))
+
+c64-1-disk: c64-makes
 	$(C1541) -format contiki,00 d64 contiki-1.d64
 	$(C1541) -attach contiki-1.d64 -write dummy.cfg                                       contiki.cfg,u
 	$(C1541) -attach contiki-1.d64 -write ../../cpu/6502/dhcp/dhcp-client.c64             dhcp,p
@@ -115,7 +134,7 @@ c64-1-disk:
 	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/contiki.gif  contiki.gif,u
 	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/httpd-cfs/notfound.htm notfound.htm,u
 
-c64-2-disk:
+c64-2-disk: c64-makes
 	$(C1541) -format contiki,00 d64 contiki-2.d64
 	$(C1541) -attach contiki-2.d64 -write dummy.cfg                                                                        contiki.cfg,u
 	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/dhcp-client.c64                                              dhcp,p
@@ -126,7 +145,9 @@ c64-2-disk:
 	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/lan91c96.eth                                                 lan91c96.eth,u
 	$(C1541) -attach contiki-2.d64 -write $(CC65_HOME)/mou/c64-1351.mou                                                    c64-1351.mou,u
 
-c128-1-disk:
+$(eval $(call makes,c128))
+
+c128-1-disk: c128-makes
 	$(C1541) -format contiki,00 d71 contiki-1.d71
 	$(C1541) -attach contiki-1.d71 -write dummy.cfg                                                                          contiki.cfg,u
 	$(C1541) -attach contiki-1.d71 -write ../../cpu/6502/dhcp/dhcp-client.c128                                               dhcp,p
@@ -144,7 +165,9 @@ c128-1-disk:
 	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/contiki.gif                                     contiki.gif,u
 	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/notfound.htm                                    notfound.htm,u
 
-atari-1-disk:
+$(eval $(call makes,atari))
+
+atari-1-disk: atari-makes
 	mkdir -p atr
 	cp ../atari/dos.sys                                 atr/dos.sys
 	cp ../atari/dup.sys                                 atr/dup.sys
@@ -159,7 +182,7 @@ atari-1-disk:
 	$(DIR2ATR) -b Dos25 1040 contiki-1.atr atr
 	rm -r atr
 
-atari-2-disk:
+atari-2-disk: atari-makes
 	mkdir -p atr
 	cp ../atari/dos.sys                      atr/dos.sys
 	cp ../atari/dup.sys                      atr/dup.sys
@@ -170,7 +193,7 @@ atari-2-disk:
 	$(DIR2ATR) -b Dos25 1040 contiki-2.atr atr
 	rm -r atr
 
-atari-3-disk:
+atari-3-disk: atari-makes
 	mkdir -p atr
 	cp ../atari/dos.sys                                                                     atr/dos.sys
 	cp ../atari/dup.sys                                                                     atr/dup.sys
