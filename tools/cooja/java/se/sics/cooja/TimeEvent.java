@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeEvent.java,v 1.4 2009/03/03 13:42:45 fros4943 Exp $
+ * $Id: TimeEvent.java,v 1.5 2010/10/04 10:11:55 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -43,7 +43,7 @@ public abstract class TimeEvent {
 
   protected long time;
 
-  boolean removed = false;
+  boolean isScheduled = false;
 
   public TimeEvent(long time) {
     this(time, null);
@@ -59,11 +59,11 @@ public abstract class TimeEvent {
   }
 
   public boolean isScheduled() {
-    return queue != null && !removed;
+    return isScheduled;
   }
 
   public boolean remove() {
-    removed = true;
+    isScheduled = false;
     return false;
   }
 
