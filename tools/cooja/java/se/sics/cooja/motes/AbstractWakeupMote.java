@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractWakeupMote.java,v 1.1 2009/10/27 10:07:56 fros4943 Exp $
+ * $Id: AbstractWakeupMote.java,v 1.2 2010/10/04 12:54:01 joxe Exp $
  */
 
 package se.sics.cooja.motes;
@@ -38,7 +38,8 @@ import se.sics.cooja.TimeEvent;
 
 public abstract class AbstractWakeupMote implements Mote {
   private static Logger logger = Logger.getLogger(AbstractWakeupMote.class);
-  private Simulation simulation = null;
+  
+  protected Simulation simulation = null;
 
   private TimeEvent executeMoteEvent = new MoteTimeEvent(this, 0) {
     public void execute(long t) {
@@ -49,6 +50,15 @@ public abstract class AbstractWakeupMote implements Mote {
     }
   };
 
+  
+  public Simulation getSimulation() {
+      return simulation;
+  }
+
+  public void setSimulation(Simulation simulation) {
+      this.simulation = simulation;
+  }
+  
   /**
    * Execute mote software.
    * This method is only called from the simulation thread.
@@ -67,9 +77,9 @@ public abstract class AbstractWakeupMote implements Mote {
    * the mote software will execute as soon as possible.
    */
   public void requestImmediateWakeup() {
-    if (simulation == null) {
-      simulation = getSimulation();
-    }
+//    if (simulation == null) {
+//      simulation = getSimulation();
+//    }
     
     if (simulation.isSimulationThread()) {
       /* Schedule wakeup immediately */
@@ -97,14 +107,12 @@ public abstract class AbstractWakeupMote implements Mote {
    * @return True iff wakeup request rescheduled the wakeup time.
    */
   public boolean scheduleNextWakeup(long time) {
-    if (simulation == null) {
-      simulation = getSimulation();
-    }
+//    if (simulation == null) {
+//      simulation = getSimulation();
+//    }
 
-    if (!simulation.isSimulationThread()) {
-      throw new IllegalStateException("Scheduling wakeup from non-simulation thread");
-    }
-
+      assert simulation.isSimulationThread() : "Scheduling event from non-simulation thread";
+      
     if (executeMoteEvent.isScheduled() &&
         executeMoteEvent.getTime() <= time) {
       /* Already scheduled wakeup event precedes given time - ignore wakeup request */
