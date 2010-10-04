@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.36 2010/08/13 10:03:58 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.37 2010/10/04 08:14:55 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -581,7 +581,7 @@ public class RadioLogger extends VisPlugin {
     return true;
   }
   
-  private static class RadioConnectionLog {
+  private class RadioConnectionLog {
     long startTime;
     long endTime;
     RadioConnection connection;
@@ -589,9 +589,20 @@ public class RadioLogger extends VisPlugin {
 
     String data = null;
     String tooltip = null;
+    
+    public String toString() {
+    	if (data == null) {
+    		RadioLogger.this.prepareDataString(this);
+    	}
+    	return
+    	Long.toString(startTime / Simulation.MILLISECOND) + "\t" +
+    	connection.getSource().getMote().getID() + "\t" +
+    	getDestString(this) + "\t" +
+    	data;
+    }
   }
 
-  private String getDestString(RadioConnectionLog c) {
+  private static String getDestString(RadioConnectionLog c) {
     Radio[] dests = c.connection.getDestinations();
     if (dests.length == 0) {
       return "-";
@@ -824,4 +835,18 @@ public class RadioLogger extends VisPlugin {
       repaint();
     }
   };
+  
+  public String getConnectionsString() {
+  	StringBuilder sb = new StringBuilder();
+  	RadioConnectionLog[] cs = connections.toArray(new RadioConnectionLog[0]);
+  	for(RadioConnectionLog c: cs) {
+      sb.append(c.toString() + "\n");
+    }
+    return sb.toString();
+  };
+  
+  public void saveConnectionsToFile(String fileName) {
+    StringUtils.saveToFile(new File(fileName), getConnectionsString());
+  };
+
 }
