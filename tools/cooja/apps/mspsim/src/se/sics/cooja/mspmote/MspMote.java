@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.47 2010/08/13 10:18:54 fros4943 Exp $
+ * $Id: MspMote.java,v 1.48 2010/10/04 12:54:01 joxe Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -82,7 +82,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     Visualizer.registerVisualizerSkin(CodeVisualizerSkin.class);
   }
 
-  private Simulation simulation;
   private CommandHandler commandHandler;
   private ArrayList<LineListener> commandListeners = new ArrayList<LineListener>();
   private MSP430 myCpu = null;
@@ -101,7 +100,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   private MspBreakpointContainer breakpointsContainer;
 
   public MspMote() {
-    simulation = null;
     myMoteType = null;
     myCpu = null;
     myMemory = null;
@@ -182,14 +180,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
   public void setMemory(MoteMemory memory) {
     myMemory = (MspMoteMemory) memory;
-  }
-
-  public Simulation getSimulation() {
-    return simulation;
-  }
-
-  public void setSimulation(Simulation simulation) {
-    this.simulation = simulation;
   }
 
   /* Stack monitoring variables */
