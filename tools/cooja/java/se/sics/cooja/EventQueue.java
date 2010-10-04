@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: EventQueue.java,v 1.10 2010/10/04 10:11:55 nifi Exp $
+ * $Id: EventQueue.java,v 1.11 2010/10/04 10:52:26 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -52,10 +52,10 @@ public class EventQueue {
 
   private void addEvent(TimeEvent event) {
     if (event.queue != null) {
-      if (!event.isScheduled) {
-        removeFromQueue(event);
+      if (event.isScheduled) {
+        throw new IllegalStateException("Event is already scheduled: " + event);
       }
-      throw new IllegalStateException("Event is already scheduled: " + event);
+      removeFromQueue(event);
     }
 
     if (first == null) {
