@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.36 2010/08/26 14:10:42 nifi Exp $
+ * $Id: MspMoteType.java,v 1.37 2010/10/04 22:33:58 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -419,6 +419,7 @@ public abstract class MspMoteType implements MoteType {
         try {
           file = file.getCanonicalFile();
         } catch (IOException e) {
+        } catch (java.security.AccessControlException e) {
         }
 
         Hashtable<Integer, Integer> lineToAddrHash = fileToLineHash.get(file);
