@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.56 2010/10/04 20:27:50 adamdunkels Exp $
+ * $Id: collect.c,v 1.57 2010/10/04 22:36:47 adamdunkels Exp $
  */
 
 /**
@@ -200,7 +200,7 @@ struct {
 } stats;
 
 /* Debug definition: draw routing tree in Cooja. */
-#define DRAW_TREE 1
+#define DRAW_TREE 0
 
 #define DEBUG 0
 #if DEBUG
