@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.2 2010/06/24 09:48:21 nifi Exp $
+ * $Id: queuebuf.c,v 1.3 2010/10/04 20:26:01 adamdunkels Exp $
  */
 
 /**
@@ -116,11 +116,6 @@ queuebuf_new_from_packetbuf(void)
     if(rbuf != NULL) {
 #if QUEUEBUF_STATS
       ++queuebuf_ref_len;
-#if CONTIKI_TARGET_NETSIM
-      /*      node_log("%d %d\n",
-	       queuebuf_len,
-	       queuebuf_ref_len);*/
-#endif /* CONTIKI_TARGET_NETSIM */
 #endif /* QUEUEBUF_STATS */
       rbuf->len = packetbuf_datalen();
       rbuf->ref = packetbuf_reference_ptr();
@@ -135,16 +130,12 @@ queuebuf_new_from_packetbuf(void)
 #if QUEUEBUF_STATS
       ++queuebuf_len;
       PRINTF("queuebuf len %d\n", queuebuf_len);
+      printf("#A q=%d\n", queuebuf_len);
       if(queuebuf_len == queuebuf_max_len + 1) {
 	memb_free(&bufmem, buf);
 	queuebuf_len--;
 	return NULL;
       }
-#if CONTIKI_TARGET_NETSIM
-      /*      node_log("%d %d\n",
-	       queuebuf_len,
-	       queuebuf_ref_len);*/
-#endif /* CONTIKI_TARGET_NETSIM */
 #endif /* QUEUEBUF_STATS */
       buf->len = packetbuf_copyto(buf->data);
       packetbuf_attr_copyto(buf->attrs, buf->addrs);
@@ -162,21 +153,12 @@ queuebuf_free(struct queuebuf *buf)
     memb_free(&bufmem, buf);
 #if QUEUEBUF_STATS
     --queuebuf_len;
-#if CONTIKI_TARGET_NETSIM
-    /*    node_log("%d %d\n",
-	     queuebuf_len,
-	     queuebuf_ref_len);*/
-#endif /* CONTIKI_TARGET_NETSIM */
+    printf("#A q=%d\n", queuebuf_len);
 #endif /* QUEUEBUF_STATS */
   } else if(memb_inmemb(&refbufmem, buf)) {
     memb_free(&refbufmem, buf);
 #if QUEUEBUF_STATS
     --queuebuf_ref_len;
-#if CONTIKI_TARGET_NETSIM
-    /*    node_log("%d %d\n",
-	     queuebuf_len,
-	     queuebuf_ref_len);*/
-#endif /* CONTIKI_TARGET_NETSIM */
 #endif /* QUEUEBUF_STATS */
   }
 }
@@ -222,6 +204,12 @@ rimeaddr_t *
 queuebuf_addr(struct queuebuf *b, uint8_t type)
 {
   return &b->addrs[type - PACKETBUF_ADDR_FIRST].addr;
+}
+/*---------------------------------------------------------------------------*/
+packetbuf_attr_t
+queuebuf_attr(struct queuebuf *b, uint8_t type)
+{
+  return b->attrs[type].val;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

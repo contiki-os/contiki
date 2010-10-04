@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.h,v 1.1 2010/06/14 19:19:16 adamdunkels Exp $
+ * $Id: queuebuf.h,v 1.2 2010/10/04 20:26:01 adamdunkels Exp $
  */
 
 /**
@@ -68,6 +68,7 @@ void *queuebuf_dataptr(struct queuebuf *b);
 int queuebuf_datalen(struct queuebuf *b);
 
 rimeaddr_t *queuebuf_addr(struct queuebuf *b, uint8_t type);
+packetbuf_attr_t queuebuf_attr(struct queuebuf *b, uint8_t type);
 
 #endif /* __QUEUEBUF_H__ */
 
