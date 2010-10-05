@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.57 2010/10/04 22:36:47 adamdunkels Exp $
+ * $Id: collect.c,v 1.58 2010/10/05 20:06:47 adamdunkels Exp $
  */
 
 /**
@@ -401,8 +401,10 @@ update_rtmetric(struct collect_conn *tc)
       /* If we now have a significantly better or worse rtmetric than
          we had before, what we need to make sure that our neighbors
          find out about this quickly. */
-      if(new_rtmetric < old_rtmetric - SIGNIFICANT_RTMETRIC_PARENT_CHANGE ||
-         new_rtmetric > old_rtmetric + SIGNIFICANT_RTMETRIC_PARENT_CHANGE) {
+      if((new_rtmetric < old_rtmetric - SIGNIFICANT_RTMETRIC_PARENT_CHANGE ||
+          new_rtmetric > old_rtmetric + SIGNIFICANT_RTMETRIC_PARENT_CHANGE) &&
+         (new_rtmetric > SIGNIFICANT_RTMETRIC_PARENT_CHANGE ||
+          old_rtmetric > SIGNIFICANT_RTMETRIC_PARENT_CHANGE)) {
         PRINTF("update_rtmetric: new_rtmetric %d + %d < old_rtmetric %d\n",
                new_rtmetric, SIGNIFICANT_RTMETRIC_PARENT_CHANGE, old_rtmetric);
         bump_advertisement(tc);
