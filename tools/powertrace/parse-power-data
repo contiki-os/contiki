@@ -9,14 +9,18 @@ for($i = 0; $i < 1000; $i++) {
 
 while(<>) {
 
-    if(/P (\d+) (\d+) (\d+) (\d+) (\d+) (\d+)/) {
+    if(/P ([\d\.]+) (\d+) (\d+) (\d+) (\d+) (\d+) \d+ \d+ (\d+) (\d+) (\d+) (\d+)/) {
         $node = $1;
         $seq = $2;
-        $cpu = $3;
-        $lpm = $4;
-        $tx = $5;
-        $rx = $6;
-        
+        $all_cpu = $3;
+        $all_lpm = $4;
+        $all_tx = $5;
+        $all_rx = $6;
+        $cpu = $7;
+        $lpm = $8;
+        $tx = $9;
+        $rx = $10;
+
         $nodes{$node} = 1;
         
         $radio_now = $tx + $rx;
