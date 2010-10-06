@@ -9,15 +9,21 @@ for($i = 0; $i < 1000; $i++) {
 
 while(<>) {
 
-    if(/P (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+)/) {
+    if(/P (\d+)\.\d+ (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+)/) {
         $node    = $1;
         $seq     = $2;
-        $cpu     = $3;
-        $lpm     = $4;
-        $tx      = $5;
-        $rx      = $6;
-        $idle_tx = $7;
-        $idle_rx = $8;
+        $all_cpu     = $3;
+        $all_lpm     = $4;
+        $all_tx      = $5;
+        $all_rx      = $6;
+        $all_idle_tx = $7;
+        $all_idle_rx = $8;
+        $cpu     = $9;
+        $lpm     = $10;
+        $tx      = $11;
+        $rx      = $12;
+        $idle_tx = $13;
+        $idle_rx = $14;
         
         $nodes{$node} = 1;
         
