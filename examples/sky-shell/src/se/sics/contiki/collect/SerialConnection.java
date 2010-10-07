@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SerialConnection.java,v 1.3 2008/09/03 13:35:21 nifi Exp $
+ * $Id: SerialConnection.java,v 1.4 2010/10/07 21:13:00 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,15 +34,11 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 5 jul 2008
- * Updated : $Date: 2008/09/03 13:35:21 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2010/10/07 21:13:00 $
+ *           $Revision: 1.4 $
  */
 
 package se.sics.contiki.collect;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
 /**
@@ -50,19 +46,42 @@ import java.io.PrintWriter;
  */
 public abstract class SerialConnection {
 
-  public static final String SERIALDUMP_WINDOWS = "./tools/serialdump-windows.exe";
-  public static final String SERIALDUMP_LINUX = "./tools/serialdump-linux";
+  protected final SerialConnectionListener listener;
 
-  private String comPort;
-  private Process serialDumpProcess;
-  private PrintWriter serialOutput;
+  protected boolean isSerialOutputSupported = true;
+
+  protected String comPort;
   protected boolean isOpen;
   protected boolean isClosed = true;
   protected String lastError;
 
+  protected PrintWriter serialOutput;
+
+  protected SerialConnection(SerialConnectionListener listener) {
+    this.listener = listener;
+  }
+
+  public boolean isMultiplePortsSupported() {
+    return false;
+  }
+
+  public void setSerialOutputSupported(boolean isSerialOutputSupported) {
+    this.isSerialOutputSupported = isSerialOutputSupported;
+  }
+
+  public boolean isSerialOutputSupported() {
+    return isSerialOutputSupported;
+  }
+
   public boolean isOpen() {
     return isOpen;
   }
+
+  public boolean isClosed() {
+    return isClosed;
+  }
+
+  public abstract String getConnectionName();
 
   public String getComPort() {
     return comPort;
@@ -76,91 +95,12 @@ public abstract class SerialConnection {
     return lastError;
   }
 
-  public void open(String comPort) {
-    if (comPort == null) {
-      throw new IllegalStateException("no com port");
-    }
-    close();
-    this.comPort = comPort;
-
-    /* Connect to COM using external serialdump application */
-    String osName = System.getProperty("os.name").toLowerCase();
-    String fullCommand;
-    if (osName.startsWith("win")) {
-      fullCommand = SERIALDUMP_WINDOWS + " " + "-b115200" + " " + getMappedComPortForWindows(comPort);
-    } else {
-      fullCommand = SERIALDUMP_LINUX + " " + "-b115200" + " " + comPort;
-    }
-
-    isClosed = false;
-    try {
-      String[] cmd = fullCommand.split(" ");
-
-      serialDumpProcess = Runtime.getRuntime().exec(cmd);
-      final BufferedReader input = new BufferedReader(new InputStreamReader(serialDumpProcess.getInputStream()));
-      final BufferedReader err = new BufferedReader(new InputStreamReader(serialDumpProcess.getErrorStream()));
-      serialOutput = new PrintWriter(new OutputStreamWriter(serialDumpProcess.getOutputStream()));
-
-      /* Start thread listening on stdout */
-      Thread readInput = new Thread(new Runnable() {
-        public void run() {
-          String line;
-          try {
-            while ((line = input.readLine()) != null) {
-              serialData(line);
-            }
-            input.close();
-            System.out.println("Serialdump process terminated.");
-            closeConnection();
-          } catch (IOException e) {
-            lastError = "Error when reading from serialdump process: " + e;
-            System.err.println(lastError);
-            if (!isClosed) {
-              e.printStackTrace();
-              closeConnection();
-            }
-          }
-        }
-      }, "read input stream thread");
-
-      /* Start thread listening on stderr */
-      Thread readError = new Thread(new Runnable() {
-        public void run() {
-          String line;
-          try {
-            while ((line = err.readLine()) != null) {
-              if (!isOpen && line.startsWith("connecting") && line.endsWith("[OK]")) {
-                isOpen = true;
-                serialOpened();
-              } else {
-                System.err.println("Serialdump error stream> " + line);
-              }
-            }
-            err.close();
-          } catch (IOException e) {
-            if (!isClosed) {
-              System.err.println("Error when reading from serialdump process: " + e);
-              e.printStackTrace();
-            }
-          }
-        }
-      }, "read error stream thread");
-
-      readInput.start();
-      readError.start();
-    } catch (Exception e) {
-      lastError = "Failed to execute '" + fullCommand + "': " + e;
-      System.err.println(lastError);
-      e.printStackTrace();
-      closeConnection();
-    }
+  protected PrintWriter getSerialOutput() {
+    return serialOutput;
   }
 
-  private String getMappedComPortForWindows(String comPort) {
-    if (comPort.startsWith("COM")) {
-      comPort = "/dev/com" + comPort.substring(3);
-    }
-    return comPort;
+  protected void setSerialOutput(PrintWriter serialOutput) {
+    this.serialOutput = serialOutput;
   }
 
   public void writeSerialData(String data) {
@@ -171,29 +111,36 @@ public abstract class SerialConnection {
     }
   }
 
-  public void close() {
+  public abstract void open(String comPort);
+
+  public final void close() {
     isClosed = true;
     lastError = null;
     closeConnection();
   }
 
-  protected void closeConnection() {
+  protected final void closeConnection() {
     isOpen = false;
     if (serialOutput != null) {
       serialOutput.close();
       serialOutput = null;
     }
-    if (serialDumpProcess != null) {
-      serialDumpProcess.destroy();
-      serialDumpProcess = null;
-    }
+    doClose();
     serialClosed();
   }
 
-  protected abstract void serialData(String line);
+  protected abstract void doClose();
 
-  protected abstract void serialOpened();
+  protected final void serialData(String line) {
+    listener.serialData(this, line);
+  }
 
-  protected abstract void serialClosed();
+  protected final void serialOpened() {
+    listener.serialOpened(this);
+  }
+
+  protected final void serialClosed() {
+    listener.serialClosed(this);
+  }
 
 }

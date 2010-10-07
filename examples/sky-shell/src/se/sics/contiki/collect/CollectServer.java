@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.23 2010/10/03 20:19:12 adamdunkels Exp $
+ * $Id: CollectServer.java,v 1.24 2010/10/07 21:13:00 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/03 20:19:12 $
- *           $Revision: 1.23 $
+ * Updated : $Date: 2010/10/07 21:13:00 $
+ *           $Revision: 1.24 $
  */
 
 package se.sics.contiki.collect;
@@ -93,9 +93,10 @@ import se.sics.contiki.collect.gui.TimeChartPanel;
 /**
  *
  */
-public class CollectServer {
+public class CollectServer implements SerialConnectionListener {
 
   public static final String WINDOW_TITLE = "Sensor Data Collect with Contiki";
+  public static final String STDIN_COMMAND = "<STDIN>";
 
   public static final String CONFIG_FILE = "collect.conf";
   public static final String SENSORDATA_FILE = "sensordata.log";
@@ -116,6 +117,7 @@ public class CollectServer {
 
   private ArrayList<SensorData> sensorDataList = new ArrayList<SensorData>();
   private PrintWriter sensorDataOutput;
+  private boolean isSensorLogUsed;
 
   private Hashtable<String,Node> nodeTable = new Hashtable<String,Node>();
   private Node[] nodeCache;
@@ -136,20 +138,19 @@ public class CollectServer {
   private Node[] selectedNodes;
 
   private SerialConnection serialConnection;
+  private boolean hasSerialOpened;
+  private boolean hasSentInit;
   private String initScript;
 
   private long nodeTimeDelta;
 
   @SuppressWarnings("serial")
-  public CollectServer(String comPort) {
+  public CollectServer() {
     loadConfig(config, CONFIG_FILE);
 
     this.configFile = config.getProperty("config.datafile", CONFIG_DATA_FILE);
     if (this.configFile != null) {
       loadConfig(configTable, this.configFile);
-    }
-    if (comPort == null) {
-      comPort = configTable.getProperty("collect.serialport");
     }
     this.initScript = config.getProperty("init.script", INIT_SCRIPT);
 
@@ -631,7 +632,9 @@ public class CollectServer {
     item.addActionListener(new ActionListener() {
 
       public void actionPerformed(ActionEvent e) {
-        int reply = JOptionPane.showConfirmDialog(window, "Also clear the sensor data log file?");
+        int reply = isSensorLogUsed
+          ? JOptionPane.showConfirmDialog(window, "Also clear the sensor data log file?")
+          : JOptionPane.NO_OPTION;
         if (reply == JOptionPane.YES_OPTION) {
           // Clear data from both memory and sensor log file
           clearSensorDataLog();
@@ -713,96 +716,31 @@ public class CollectServer {
         getNode(property, true);
       }
     }
-    initSensorData();
+  }
 
+  void start(SerialConnection connection) {
+    if (this.serialConnection != null) {
+      throw new IllegalStateException("already started");
+    }
+    this.serialConnection = connection;
+    if (isSensorLogUsed) {
+      initSensorData();
+    }
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         window.setVisible(true);
       }
     });
-
-    serialConnection = new SerialConnection() {
-
-      private boolean hasOpened;
-      private boolean hasSentInit;
-
-      @Override
-      protected void serialOpened() {
-        serialConsole.addSerialData("*** Serial console listening on port: " + getComPort() + " ***");
-        hasOpened = true;
-        // Remember the last selected serial port
-        configTable.put("collect.serialport", getComPort());
-        setSystemMessage("connected to " + getComPort());
-
-        // Send any initial commands
-        if (!hasSentInit) {
-          hasSentInit = true;
-
-          if (hasInitScript()) {
-            // Wait a short time before running the init script
-            sleep(3000);
-
-            runInitScript();
-          }
-        }
-      }
-
-      @Override
-      protected void serialClosed() {
-        String comPort = getComPort();
-        String prefix;
-        if (hasOpened) {
-          serialConsole.addSerialData("*** Serial connection terminated ***");
-          prefix = "Serial connection terminated.\n";
-          hasOpened = false;
-          setSystemMessage("not connected");
-        } else {
-          prefix = "Failed to connect to " + getComPort() + '\n';
-        }
-        if (!isClosed) {
-          String options[] = {"Retry", "Search for connected nodes", "Cancel"};
-          int value = JOptionPane.showOptionDialog(window,
-              prefix + "Do you want to retry or search for connected nodes?",
-              "Reconnect to serial port?",
-              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-              null, options, options[0]);
-          if (value == JOptionPane.CLOSED_OPTION || value == 2) {
-//          exit();
-          } else {
-            if (value == 1) {
-              // Select new serial port
-              comPort = MoteFinder.selectComPort(window);
-              if (comPort == null) {
-//              exit();
-              }
-            }
-            // Try to open com port again
-            if (comPort != null) {
-              open(comPort);
-            }
-          }
-        }
-      }
-
-      @Override
-      protected void serialData(String line) {
-        parseIncomingLine(System.currentTimeMillis(), line);
-      }
-
-    };
-    if (comPort != null) {
-      serialConnection.setComPort(comPort);
-    }
     connectToSerial();
   }
-
+  
   protected void connectToSerial() {
     if (!serialConnection.isOpen()) {
       String comPort = serialConnection.getComPort();
-      if (comPort == null) {
+      if (comPort == null && serialConnection.isMultiplePortsSupported()) {
         comPort = MoteFinder.selectComPort(window);
       }
-      if (comPort != null) {
+      if (comPort != null || !serialConnection.isMultiplePortsSupported()) {
         serialConnection.open(comPort);
       }
     }
@@ -893,14 +831,15 @@ public class CollectServer {
     SwingUtilities.invokeLater(new Runnable() {
 
       public void run() {
-        boolean isOpen = serialConnection.isOpen();
+        boolean isOpen = serialConnection != null && serialConnection.isOpen();
         if (message == null) {
           window.setTitle(WINDOW_TITLE);
         } else {
           window.setTitle(WINDOW_TITLE + " (" + message + ')');
         }
         serialItem.setText(isOpen ? "Disconnect from serial" : "Connect to serial");
-        runInitScriptItem.setEnabled(isOpen && hasInitScript());
+        runInitScriptItem.setEnabled(isOpen
+            && serialConnection.isSerialOutputSupported() && hasInitScript());
       }
 
     });
@@ -1073,7 +1012,7 @@ public class CollectServer {
   // -------------------------------------------------------------------
 
   public boolean sendToNode(String data) {
-    if (serialConnection != null && serialConnection.isOpen()) {
+    if (serialConnection != null && serialConnection.isOpen() && serialConnection.isSerialOutputSupported()) {
       serialConsole.addSerialData("SEND: " + data);
       serialConnection.writeSerialData(data);
       return true;
@@ -1148,10 +1087,10 @@ public class CollectServer {
   }
 
   private void initSensorData() {
-    loadSensorData(SENSORDATA_FILE);
+    loadSensorData(SENSORDATA_FILE, true);
   }
 
-  private boolean loadSensorData(String filename) {
+  private boolean loadSensorData(String filename, boolean isStrict) {
     File fp = new File(filename);
     if (fp.exists() && fp.canRead()) {
       BufferedReader in = null;
@@ -1171,7 +1110,7 @@ public class CollectServer {
                 sensorDataList.add(data);
                 handleLinks(data);
               }
-            } else {
+            } else if (isStrict) {
               // TODO exit here?
               System.err.println("Failed to parse sensor data from log line " + no + ": " + line);
             }
@@ -1189,7 +1128,7 @@ public class CollectServer {
 
   private void saveSensorData(SensorData data) {
     PrintWriter output = this.sensorDataOutput;
-    if (output == null) {
+    if (output == null && isSensorLogUsed) {
       try {
         output = sensorDataOutput = new PrintWriter(new FileWriter(SENSORDATA_FILE, true));
       } catch (IOException e) {
@@ -1288,8 +1227,10 @@ public class CollectServer {
         int reply = JOptionPane.showConfirmDialog(window, "Found " + motes.length + " connected Sky nodes.\n"
             + "Do you want to upload the firmware " + FIRMWARE_FILE + '?');
         if (reply == JFileChooser.APPROVE_OPTION) {
-          boolean wasOpen = serialConnection.isOpen();
-          serialConnection.close();
+          boolean wasOpen = serialConnection != null && serialConnection.isOpen();
+          if (serialConnection != null) {
+            serialConnection.close();
+          }
           if (wasOpen) {
             Thread.sleep(1000);
           }
@@ -1309,20 +1250,177 @@ public class CollectServer {
 
   }
 
+
+  // -------------------------------------------------------------------
+  // SerialConnection Listener
+  // -------------------------------------------------------------------
+
+  @Override
+  public void serialData(SerialConnection connection, String line) {
+    parseIncomingLine(System.currentTimeMillis(), line);
+  }
+
+  @Override
+  public void serialOpened(SerialConnection connection) {
+    String connectionName = connection.getConnectionName();
+    serialConsole.addSerialData("*** Serial console listening on " + connectionName + " ***");
+    hasSerialOpened = true;
+    if (connection.isMultiplePortsSupported()) {
+      String comPort = connection.getComPort();
+      // Remember the last selected serial port
+      configTable.put("collect.serialport", comPort);
+    }
+    setSystemMessage("connected to " + connectionName);
+
+    if (!connection.isSerialOutputSupported()) {
+      serialConsole.addSerialData("*** Serial output not supported ***");
+    } else if (!hasSentInit) {
+      // Send any initial commands
+      hasSentInit = true;
+
+      if (hasInitScript()) {
+        // Wait a short time before running the init script
+        sleep(3000);
+
+        runInitScript();
+      }
+    }
+  }
+
+  @Override
+  public void serialClosed(SerialConnection connection) {
+    String prefix;
+    if (hasSerialOpened) {
+      serialConsole.addSerialData("*** Serial connection terminated ***");
+      prefix = "Serial connection terminated.\n";
+      hasSerialOpened = false;
+      setSystemMessage("not connected");
+    } else {
+      prefix = "Failed to connect to " + connection.getConnectionName() + '\n';
+    }
+    if (!connection.isClosed()) {
+      if (connection.isMultiplePortsSupported()) {
+        String options[] = {"Retry", "Search for connected nodes", "Cancel"};
+        int value = JOptionPane.showOptionDialog(window,
+            prefix + "Do you want to retry or search for connected nodes?",
+            "Reconnect to serial port?",
+            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+            null, options, options[0]);
+        if (value == JOptionPane.CLOSED_OPTION || value == 2) {
+//          exit();
+        } else {
+          String comPort = connection.getComPort();
+          if (value == 1) {
+            // Select new serial port
+            comPort = MoteFinder.selectComPort(window);
+            if (comPort == null) {
+//              exit();
+            }
+          }
+          // Try to open com port again
+          if (comPort != null) {
+            connection.open(comPort);
+          }
+        }
+      } else {
+//        JOptionPane.showMessageDialog(window,
+//            prefix, "Serial Connection Closed", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+  }
+
+
   // -------------------------------------------------------------------
   // Main
   // -------------------------------------------------------------------
 
   public static void main(String[] args) {
+    boolean resetSensorLog = false;
+    boolean useSensorLog = true;
+    boolean useSerialOutput = true;
+    String command = null;
+    String logFileToLoad = null;
     String comPort = null;
-    if (args.length > 0) {
-      if (args.length > 1 || args[0].startsWith("-h")) {
-        System.err.println("Usage: java CollectServer COMPORT");
-        System.exit(1);
+    for(int i = 0, n = args.length; i < n; i++) {
+      String arg = args[i];
+      if (arg.length() == 2 && arg.charAt(0) == '-') {
+        switch (arg.charAt(1)) {
+        case 'c':
+          if (i + 1 < n) {
+            command = args[++i];
+          } else {
+            usage(arg);
+          }
+          break;
+        case 'r':
+          resetSensorLog = true;
+          break;
+        case 'n':
+          useSensorLog = false;
+          break;
+        case 'i':
+          useSerialOutput = false;
+          break;
+        case 'f':
+          command = STDIN_COMMAND;
+          if (i + 1 < n && !args[i + 1].startsWith("-")) {
+            logFileToLoad = args[++i];
+          }
+          break;
+        case 'h':
+          usage(null);
+          break;
+        default:
+          usage(arg);
+          break;
+        }
+      } else if (comPort == null) {
+        comPort = arg;
+      } else {
+        usage(arg);
       }
-      comPort = args[0];
     }
-    new CollectServer(comPort);
+
+    CollectServer server = new CollectServer();
+    SerialConnection serialConnection;
+    if (command == null) {
+      serialConnection = new SerialDumpConnection(server);
+    } else if (command == STDIN_COMMAND) {
+      serialConnection = new StdinConnection(server);
+    } else {
+      serialConnection = new CommandConnection(server, command);
+    }
+    if (comPort == null) {
+      comPort = server.getConfig("collect.serialport");
+    }
+    if (comPort != null) {
+      serialConnection.setComPort(comPort);
+    }
+    if (!useSerialOutput) {
+      serialConnection.setSerialOutputSupported(false);
+    }
+
+    server.isSensorLogUsed = useSensorLog;
+    if (useSensorLog && resetSensorLog) {
+      server.clearSensorDataLog();
+    }
+    if (logFileToLoad != null) {
+      server.loadSensorData(logFileToLoad, false);
+    }
+    server.start(serialConnection);
   }
 
+  private static void usage(String arg) {
+    if (arg != null) {
+      System.err.println("Unknown argument '" + arg + '\'');
+    }
+    System.err.println("Usage: java CollectServer [-n] [-i] [-r] [-f [file]] [-c command] [COMPORT]");
+    System.err.println("       -n : Do not read or save sensor data log");
+    System.err.println("       -r : Clear any existing sensor data log at startup");
+    System.err.println("       -i : Do not allow serial output");
+    System.err.println("       -f : Read serial data from standard in");
+    System.err.println("       -c : Use specified command for serial data input/output");
+    System.err.println("   COMPORT: The serial port to connect to");
+    System.exit(arg != null ? 1 : 0);
+  }
 }
