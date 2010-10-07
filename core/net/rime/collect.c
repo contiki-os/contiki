@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.58 2010/10/05 20:06:47 adamdunkels Exp $
+ * $Id: collect.c,v 1.59 2010/10/07 15:52:28 adamdunkels Exp $
  */
 
 /**
@@ -919,7 +919,7 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
 
       packetbuf_hdrreduce(sizeof(struct data_msg_hdr));
       /* Call receive function. */
-      if(tc->cb->recv != NULL) {
+      if(packetbuf_datalen() > 0 && tc->cb->recv != NULL) {
         tc->cb->recv(packetbuf_addr(PACKETBUF_ADDR_ESENDER),
                      packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
                      packetbuf_attr(PACKETBUF_ATTR_HOPS));
@@ -1177,6 +1177,7 @@ collect_open(struct collect_conn *tc, uint16_t channels,
   tc->cb = cb;
   tc->is_router = is_router;
   tc->seqno = 10;
+  tc->eseqno = 0;
   LIST_STRUCT_INIT(tc, send_queue_list);
   collect_neighbor_list_new(&tc->neighbor_list);
   tc->send_queue.list = &(tc->send_queue_list);
