@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeControl.java,v 1.3 2010/10/03 20:19:37 adamdunkels Exp $
+ * $Id: NodeControl.java,v 1.4 2010/10/07 21:13:00 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,14 +34,15 @@
  *
  * Authors : Niclas Finne
  * Created : 27 sep 2010
- * Updated : $Date: 2010/10/03 20:19:37 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2010/10/07 21:13:00 $
+ *           $Revision: 1.4 $
  */
 
 package se.sics.contiki.collect.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -63,6 +64,8 @@ import se.sics.contiki.collect.Visualizer;
  */
 public class NodeControl implements Visualizer {
 
+  private final static String SET_TIME_COMMAND = "time %TIME% | null";
+
   private final CollectServer server;
   private final String category;
   private final JPanel panel;
@@ -79,15 +82,11 @@ public class NodeControl implements Visualizer {
     final JFormattedTextField rexmitsField = new JFormattedTextField(new Integer(15));
     statusLabel = new JLabel("", JLabel.CENTER);
     statusLabel.setOpaque(true);
+    statusLabel.setBackground(Color.white);
+    statusLabel.setBorder(LineBorder.createBlackLineBorder());
+    statusLabel.setVisible(false);
 
-    JButton stopButton = new JButton("Send stop to nodes");
-    stopButton.addActionListener(new ActionListener() {
-
-      public void actionPerformed(ActionEvent e) {
-        sendCommand("netcmd killall");
-      }
-
-    });
+    JButton stopButton = createCommandButton("Send stop to nodes", "netcmd killall");
 
     JButton sendButton = new JButton("Send command to nodes");
     sendButton.addActionListener(new ActionListener() {
@@ -103,6 +102,10 @@ public class NodeControl implements Visualizer {
       }
 
     });
+
+    JButton collectButton = createCommandButton("Start Collect",
+        "mac 0", SET_TIME_COMMAND, "collect | timestamp | blink | binprint &");
+    JButton stopCollectButton = createCommandButton("Stop Collect", "~K", "killall");
 
     JPanel controlPanel = new JPanel(new GridBagLayout());
 
@@ -144,35 +147,76 @@ public class NodeControl implements Visualizer {
     controlPanel.add(new JLabel("(0 = report forever)"), c);
 
     c.gridy++;
-    c.gridx = 1;
+    c.gridwidth = 3;
     c.weightx = 0;
     c.fill = GridBagConstraints.NONE;
-    c.insets.bottom = 50;
-    controlPanel.add(sendButton, c);
+    c.insets.bottom = 20;
+    JPanel p = new JPanel();
+    p.add(sendButton);
+    p.add(stopButton);
+    controlPanel.add(p, c);
 
-    c.gridx = 0;
     c.gridy++;
-    c.gridwidth = 3;
-    c.ipadx = c.ipady = 6;
-    controlPanel.add(statusLabel, c);
+    c.insets.bottom = 3;
+    controlPanel.add(new JLabel("Base Station Control", JLabel.CENTER), c);
+
+    c.gridy++;
+    c.insets.bottom = 20;
+    p = new JPanel();
+    p.add(collectButton);
+    p.add(stopCollectButton);
+    controlPanel.add(p, c);
 
     panel.add(controlPanel, BorderLayout.NORTH);
-
-    controlPanel = new JPanel();
-    controlPanel.add(stopButton);
-    panel.add(controlPanel, BorderLayout.SOUTH);
+    panel.add(statusLabel, BorderLayout.SOUTH);
   }
 
-  protected void sendCommand(String command) {
-    statusLabel.setBackground(Color.white);
-    statusLabel.setBorder(LineBorder.createBlackLineBorder());
+  private JButton createCommandButton(String name, final String... command) {
+    JButton button = new JButton(name);
+    button.addActionListener(new ActionListener() {
+
+      public void actionPerformed(ActionEvent e) {
+        try {
+          // TODO Should use separate thread to send commands
+          panel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+          for(int i = 0, n = command.length; i < n; i++) {
+            if (i > 0) {
+              try {
+                // Do not send multiple commands too fast
+                Thread.sleep(1000);
+              } catch (InterruptedException e1) {
+              }
+            }
+            String cmd = command[i];
+            if (cmd == SET_TIME_COMMAND) {
+              cmd = "time " + (System.currentTimeMillis() / 1000) + " | null";
+            }
+            if (!sendCommand(cmd)) {
+              break;
+            }
+          }
+        } finally {
+          panel.setCursor(Cursor.getDefaultCursor());
+        }
+      }
+
+    });
+    return button;
+  }
+
+  protected boolean sendCommand(String command) {
     if (server.sendToNode(command)) {
-      statusLabel.setForeground(Color.black);
-      statusLabel.setText("Sent command '" + command + "'");
-    } else {
-      statusLabel.setForeground(Color.red);
-      statusLabel.setText("Failed to send command. No serial connection.");
+      setStatus("Sent command '" + command + "'", false);
+      return true;
     }
+    setStatus("Failed to send command. No serial connection.", true);
+    return false;
+  }
+
+  private void setStatus(String text, boolean isWarning) {
+    statusLabel.setForeground(isWarning ? Color.red : Color.black);
+    statusLabel.setText(text);
+    statusLabel.setVisible(true);
   }
 
   public String getCategory() {

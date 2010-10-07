@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SerialConsole.java,v 1.2 2010/09/15 16:15:10 nifi Exp $
+ * $Id: SerialConsole.java,v 1.3 2010/10/07 21:13:00 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 4 jul 2008
- * Updated : $Date: 2010/09/15 16:15:10 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/10/07 21:13:00 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -106,8 +106,11 @@ public class SerialConsole implements Visualizer {
               historyCount = (historyCount + 1) % history.length;
             }
             historyPos = historyCount;
-            SerialConsole.this.server.sendToNode(command);
-            commandField.setText("");
+            if (SerialConsole.this.server.sendToNode(command)) {
+              commandField.setText("");
+            } else {
+              addSerialData("*** failed to send command ***");
+            }
           } catch (Exception ex) {
             System.err.println("could not send '" + command + "':");
             ex.printStackTrace();
