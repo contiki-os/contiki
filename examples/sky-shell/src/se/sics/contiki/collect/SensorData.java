@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.10 2010/09/30 23:09:25 adamdunkels Exp $
+ * $Id: SensorData.java,v 1.11 2010/10/07 21:01:46 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/30 23:09:25 $
- *           $Revision: 1.10 $
+ * Updated : $Date: 2010/10/07 21:01:46 $
+ *           $Revision: 1.11 $
  */
 
 package se.sics.contiki.collect;
@@ -118,9 +118,22 @@ public class SensorData implements SensorInfo {
   }
 
   public static SensorData parseSensorData(CollectServer server, String line, long systemTime) {
-    String[] components = line.trim().split(" ");
-    if (components.length == SensorData.VALUES_COUNT + 1) {
-      // Sensor data with system time
+    String[] components = line.trim().split("[ \t]+");
+    // Check if COOJA log
+    if (components.length == VALUES_COUNT + 2 && components[1].startsWith("ID:")) {
+      if (!components[2].equals("" + VALUES_COUNT)) {
+        // Ignore non sensor data
+        return null;
+      }
+      try {
+        systemTime = Long.parseLong(components[0]);
+        components = Arrays.copyOfRange(components, 2, components.length);
+      } catch (NumberFormatException e) {
+        // First column does not seem to be system time
+      }
+
+    } else if (components[0].length() > 8) {
+      // Sensor data prefixed with system time
       try {
         systemTime = Long.parseLong(components[0]);
         components = Arrays.copyOfRange(components, 1, components.length);
