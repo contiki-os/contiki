@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Node.java,v 1.7 2010/10/07 21:13:00 nifi Exp $
+ * $Id: Node.java,v 1.8 2010/10/10 22:39:09 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/07 21:13:00 $
- *           $Revision: 1.7 $
+ * Updated : $Date: 2010/10/10 22:39:09 $
+ *           $Revision: 1.8 $
  */
 
 package se.sics.contiki.collect;
@@ -56,9 +56,6 @@ public class Node implements Comparable<Node> {
   private final String id;
   private final String name;
 
-  public int x = -1;
-  public int y = -1;
-
   private Hashtable<String,Object> objectTable;
 
   private long lastActive;
@@ -75,23 +72,6 @@ public class Node implements Comparable<Node> {
 
   public final String getName() {
     return name;
-  }
-
-  public int getX() {
-    return x;
-  }
-
-  public int getY() {
-    return y;
-  }
-
-  public void setLocation(int x, int y) {
-    this.x = x;
-    this.y = y;
-  }
-
-  public boolean hasLocation() {
-    return x >= 0 && y >= 0;
   }
 
   public long getLastActive() {
