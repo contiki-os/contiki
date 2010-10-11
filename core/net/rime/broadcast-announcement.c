@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast-announcement.c,v 1.6 2010/06/16 10:10:10 nifi Exp $
+ * $Id: broadcast-announcement.c,v 1.7 2010/10/11 23:43:01 adamdunkels Exp $
  */
 
 /**
@@ -84,6 +84,7 @@ static struct broadcast_announcement_state {
   clock_time_t current_interval;
   uint16_t val;
 } c;
+
 
 #define DEBUG 0
 #if DEBUG
@@ -199,9 +200,9 @@ new_announcement(uint16_t id, uint8_t has_value,
   if(bump == ANNOUNCEMENT_BUMP) {
     c.current_interval = c.initial_interval;
     set_timers();
-  } else if(newval != oldval) {
+    /*  } else if(newval != oldval) {
     c.current_interval = c.min_interval;
-    set_timers();
+    set_timers();*/
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -228,6 +229,12 @@ broadcast_announcement_stop(void)
   ctimer_stop(&c.interval_timer);
   ctimer_stop(&c.send_timer);
   broadcast_close(&c.c);
+}
+/*---------------------------------------------------------------------------*/
+clock_time_t
+broadcast_announcement_beacon_interval(void)
+{
+  return c.current_interval;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
