@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.c,v 1.7 2010/10/03 20:07:10 adamdunkels Exp $
+ * $Id: collect-neighbor.c,v 1.8 2010/10/11 23:38:46 adamdunkels Exp $
  */
 
 /**
@@ -63,8 +63,12 @@
 
 MEMB(collect_neighbors_mem, struct collect_neighbor, MAX_COLLECT_NEIGHBORS);
 
-#define MAX_AGE 60
-#define PERIODIC_INTERVAL CLOCK_SECOND * 60
+#define MAX_AGE                      60
+#define MAX_LE_AGE                   10
+#define PERIODIC_INTERVAL            CLOCK_SECOND * 60
+
+#define EXPECTED_CONGESTION_DURATION CLOCK_SECOND * 240
+#define CONGESTION_PENALTY           8 * COLLECT_LINK_ESTIMATE_UNIT
 
 #define DEBUG 0
 #if DEBUG
@@ -86,8 +90,13 @@ periodic(void *ptr)
   /* Go through all collect_neighbors and increase their age. */
   for(n = list_head(neighbor_list->list); n != NULL; n = list_item_next(n)) {
     n->age++;
+    n->le_age++;
   }
   for(n = list_head(neighbor_list->list); n != NULL; n = list_item_next(n)) {
+    if(n->le_age == MAX_LE_AGE) {
+      collect_link_estimate_new(&n->le);
+      n->le_age = 0;
+    }
     if(n->age == MAX_AGE) {
       list_remove(neighbor_list->list, n);
       n = list_head(neighbor_list->list);
@@ -194,6 +203,7 @@ collect_neighbor_list_add(struct collect_neighbor_list *neighbors_list,
     rimeaddr_copy(&n->addr, addr);
     n->rtmetric = nrtmetric;
     collect_link_estimate_new(&n->le);
+    n->le_age = 0;
     return 1;
   }
   return 0;
@@ -298,6 +308,7 @@ void
 collect_neighbor_tx_fail(struct collect_neighbor *n, uint16_t num_tx)
 {
   collect_link_estimate_update_tx_fail(&n->le, num_tx);
+  n->le_age = 0;
   n->age = 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -305,6 +316,7 @@ void
 collect_neighbor_tx(struct collect_neighbor *n, uint16_t num_tx)
 {
   collect_link_estimate_update_tx(&n->le, num_tx);
+  n->le_age = 0;
   n->age = 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -318,22 +330,43 @@ collect_neighbor_rx(struct collect_neighbor *n)
 uint16_t
 collect_neighbor_link_estimate(struct collect_neighbor *n)
 {
-  n->age = 0;
-  return collect_link_estimate(&n->le);
+  if(collect_neighbor_is_congested(n)) {
+    /*    printf("Congested %d.%d, sould return %d, returning %d\n",
+           n->addr.u8[0], n->addr.u8[1],
+           collect_link_estimate(&n->le),
+           collect_link_estimate(&n->le) + CONGESTION_PENALTY);*/
+    return collect_link_estimate(&n->le) + CONGESTION_PENALTY;
+  } else {
+    return collect_link_estimate(&n->le);
+  }
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
 collect_neighbor_rtmetric_link_estimate(struct collect_neighbor *n)
 {
-  n->age = 0;
   return n->rtmetric + collect_link_estimate(&n->le);
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
 collect_neighbor_rtmetric(struct collect_neighbor *n)
 {
-  n->age = 0;
   return n->rtmetric;
+}
+/*---------------------------------------------------------------------------*/
+void
+collect_neighbor_set_congested(struct collect_neighbor *n)
+{
+  timer_set(&n->congested_timer, EXPECTED_CONGESTION_DURATION);
+}
+/*---------------------------------------------------------------------------*/
+int
+collect_neighbor_is_congested(struct collect_neighbor *n)
+{
+  if(timer_expired(&n->congested_timer)) {
+    return 0;
+  } else {
+    return 1;
+  }
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
