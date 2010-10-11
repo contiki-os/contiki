@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<project name="COOJA: CollectView" default="jar" basedir=".">
+  <property name="cooja" value="../../dist/cooja.jar"/>
+
+  <target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="compile" depends="init">
+    <mkdir dir="build"/>
+    <javac srcdir="java" destdir="build" debug="true" includeantruntime="false">
+      <classpath>
+        <fileset file="${cooja}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="clean" depends="init">
+    <delete dir="build" file="collect-view.jar"/>
+  </target>
+
+  <target name="jar" depends="clean, init, compile">
+    <jar destfile="collect-view.jar" basedir="build" />
+    <ant antfile="build.xml" dir="../../../../examples/sky-shell" target="dist" inheritAll="false"/>
+  </target>
+
+</project>
