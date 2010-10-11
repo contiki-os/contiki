@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.h,v 1.5 2010/10/03 20:07:10 adamdunkels Exp $
+ * $Id: collect-neighbor.h,v 1.6 2010/10/11 23:38:46 adamdunkels Exp $
  */
 
 /**
@@ -66,7 +66,9 @@ struct collect_neighbor {
   rimeaddr_t addr;
   uint16_t rtmetric;
   uint16_t age;
+  uint16_t le_age;
   struct collect_link_estimate le;
+  struct timer congested_timer;
 };
 
 void collect_neighbor_init(void);
@@ -91,6 +93,9 @@ void collect_neighbor_update_rtmetric(struct collect_neighbor *n,
 void collect_neighbor_tx(struct collect_neighbor *n, uint16_t num_tx);
 void collect_neighbor_rx(struct collect_neighbor *n);
 void collect_neighbor_tx_fail(struct collect_neighbor *n, uint16_t num_tx);
+void collect_neighbor_set_congested(struct collect_neighbor *n);
+int collect_neighbor_is_congested(struct collect_neighbor *n);
+
 uint16_t collect_neighbor_link_estimate(struct collect_neighbor *n);
 uint16_t collect_neighbor_rtmetric_link_estimate(struct collect_neighbor *n);
 uint16_t collect_neighbor_rtmetric(struct collect_neighbor *n);
