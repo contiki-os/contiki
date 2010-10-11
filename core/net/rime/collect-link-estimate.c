@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-link-estimate.c,v 1.4 2010/10/03 20:06:25 adamdunkels Exp $
+ * $Id: collect-link-estimate.c,v 1.5 2010/10/11 23:34:02 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,7 @@
    collect-link-estimate.h. */
 #define ETX_HISTORY_WINDOW 8
 
-#define INITIAL_LINK_ESTIMATE 4
+#define INITIAL_LINK_ESTIMATE 16
 
 #define DEBUG 0
 #if DEBUG
@@ -77,7 +77,7 @@ collect_link_estimate_new(struct collect_link_estimate *le)
 {
   /* Start with a conservative / pessimistic estimate of link quality
      for new links. */
-  set_all_estimates(le, INITIAL_LINK_ESTIMATE);
+  set_all_estimates(le, 0/*INITIAL_LINK_ESTIMATE*/);
   le->historyptr = 0;
   le->num_estimates = 0;
 }
@@ -86,13 +86,13 @@ void
 collect_link_estimate_update_tx(struct collect_link_estimate *le, uint8_t tx)
 {
   if(tx == 0) {
-    printf("ERROR tx == 0\n");
+    /*    printf("ERROR tx == 0\n");*/
     return;
   }
   if(le != NULL) {
-    if(le->num_estimates == 0) {
-      set_all_estimates(le, tx * 2);
-    } else {
+    /*    if(le->num_estimates == 0) {
+      set_all_estimates(le, tx);
+      } else*/ {
       le->history[le->historyptr] = tx;
       le->historyptr = (le->historyptr + 1) % ETX_HISTORY_WINDOW;
     }
@@ -121,14 +121,19 @@ collect_link_estimate(struct collect_link_estimate *le)
   int i;
   uint16_t etx;
 
+  if(le->num_estimates == 0) {
+    return INITIAL_LINK_ESTIMATE * COLLECT_LINK_ESTIMATE_UNIT;
+  }
+
   PRINTF("collect_link_estimate: ");
   etx = 0;
-  for(i = 0; i < ETX_HISTORY_WINDOW; ++i) {
-    PRINTF("%d ", le->history[i]);
-    etx += le->history[i];
+  for(i = 0; i < le->num_estimates; ++i) {
+    PRINTF("%d+", le->history[i]);
+    etx += le->history[(le->historyptr - i - 1) & (ETX_HISTORY_WINDOW - 1)];
   }
-  PRINTF(", %d\n", (COLLECT_LINK_ESTIMATE_UNIT * etx) / ETX_HISTORY_WINDOW);
-  return (COLLECT_LINK_ESTIMATE_UNIT * etx) / ETX_HISTORY_WINDOW;
+  PRINTF("/%d = %d\n", i,
+         (COLLECT_LINK_ESTIMATE_UNIT * etx) / i);
+  return (COLLECT_LINK_ESTIMATE_UNIT * etx) / i;
 }
 /*---------------------------------------------------------------------------*/
 int
