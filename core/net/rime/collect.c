@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.60 2010/10/11 23:42:01 adamdunkels Exp $
+ * $Id: collect.c,v 1.61 2010/10/12 19:51:28 oliverschmidt Exp $
  */
 
 /**
@@ -129,7 +129,7 @@ struct ack_msg {
 #define REXMIT_TIME                CLOCK_SECOND * 1
 #define MAX_REXMIT_TIME_SCALING    2
 #define FORWARD_PACKET_LIFETIME    (120 * (REXMIT_TIME))
-#define MAX_SENDING_QUEUE          QUEUEBUF_CONF_NUM / 2
+#define MAX_SENDING_QUEUE          QUEUEBUF_NUM / 2
 #define KEEPALIVE_REXMITS          8
 
 MEMB(send_queue_memb, struct packetqueue_item, MAX_SENDING_QUEUE);
