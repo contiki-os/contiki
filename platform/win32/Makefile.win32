@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.19 2010/01/30 11:52:01 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.20 2010/10/12 11:03:53 oliverschmidt Exp $
 #
 
 TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
@@ -53,6 +53,8 @@ ifdef PLATFORM_BUILD
   CFLAGS += -DPLATFORM_BUILD -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
   LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
              -u _cfs_open -u _cfs_opendir -u _uiplib_ipaddrconv
+else
+  CONTIKI_TARGET_SOURCEFILES += unload.c
 endif
 
 ### Set a target-specific variable value
