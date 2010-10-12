@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.28 2010/08/17 15:04:56 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.29 2010/10/12 10:27:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -118,7 +118,10 @@ public class TimeLine extends VisPlugin {
 
   private double currentPixelDivisor = 200;
 
-  private static final long[] ZOOM_LEVELS = { 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000 }; 
+  private static final long[] ZOOM_LEVELS = { 
+  	1, 2, 5, 10, 
+  	20, 50, 100, 200, 500, 1000, 
+  	2000, 5000, 10000, 20000, 50000, 100000 }; 
 
   private boolean needZoomOut = false;
   
@@ -135,6 +138,10 @@ public class TimeLine extends VisPlugin {
   private Box eventCheckboxes;
   private JSplitPane splitPane;
   
+  private Observer moteHighlightObserver = null;
+  private ArrayList<Mote> highlightedMotes = new ArrayList<Mote>();
+  private final static Color HIGHLIGHT_COLOR = Color.CYAN;
+
   private ArrayList<MoteObservation> activeMoteObservers = new ArrayList<MoteObservation>();
 
   private ArrayList<MoteEvents> allMoteEvents = new ArrayList<MoteEvents>();
@@ -277,7 +284,37 @@ public class TimeLine extends VisPlugin {
     /* Update timeline for the duration of the plugin */
     repaintTimelineTimer.start();
 
-    /* TODO Register Integer overflow time event */
+    gui.addMoteHighlightObserver(moteHighlightObserver = new Observer() {
+      public void update(Observable obs, Object obj) {
+        if (!(obj instanceof Mote)) {
+          return;
+        }
+
+        final Timer timer = new Timer(100, null);
+        final Mote mote = (Mote) obj;
+        timer.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            /* Count down */
+            if (timer.getDelay() < 90) {
+              timer.stop();
+              highlightedMotes.remove(mote);
+              repaint();
+              return;
+            }
+
+            /* Toggle highlight state */
+            if (highlightedMotes.contains(mote)) {
+              highlightedMotes.remove(mote);
+            } else {
+              highlightedMotes.add(mote);
+            }
+            timer.setDelay(timer.getDelay()-1);
+            repaint();
+          }
+        });
+        timer.start();
+      }
+    });
   }
 
   private JCheckBox createEventCheckbox(String text, String tooltip) {
@@ -298,16 +335,16 @@ public class TimeLine extends VisPlugin {
     private static final long serialVersionUID = 621116674700872058L;
     public void actionPerformed(ActionEvent e) {
       JComponent b = (JComponent) e.getSource();
-      Mote MOTE = (Mote) b.getClientProperty("mote");
+      Mote m = (Mote) b.getClientProperty("mote");
       
       /* Sort by distance */
       ArrayList<MoteEvents> sortedMoteEvents = new ArrayList<MoteEvents>();
       for (MoteEvents me: allMoteEvents.toArray(new MoteEvents[0])) {
-        double d = me.mote.getInterfaces().getPosition().getDistanceTo(MOTE);
+        double d = me.mote.getInterfaces().getPosition().getDistanceTo(m);
         
         int i=0;
         for (i=0; i < sortedMoteEvents.size(); i++) {
-          double d2 = MOTE.getInterfaces().getPosition().getDistanceTo(sortedMoteEvents.get(i).mote);
+          double d2 = m.getInterfaces().getPosition().getDistanceTo(sortedMoteEvents.get(i).mote);
           if (d < d2) {
             break;
           }
@@ -318,6 +355,25 @@ public class TimeLine extends VisPlugin {
       allMoteEvents = sortedMoteEvents;
       numberMotesWasUpdated();
     }
+  };
+  private Action topMoteAction = new AbstractAction() {
+		private static final long serialVersionUID = 4683178751482241843L;
+		public void actionPerformed(ActionEvent e) {
+  		JComponent b = (JComponent) e.getSource();
+  		Mote m = (Mote) b.getClientProperty("mote");
+  		
+  		/* Sort by distance */
+  		MoteEvents mEvent = null;
+  		for (MoteEvents me: allMoteEvents.toArray(new MoteEvents[0])) {
+  			if (me.mote == m) {
+  				mEvent = me;
+  				break;
+  			}
+  		}
+  		allMoteEvents.remove(mEvent);
+  		allMoteEvents.add(0, mEvent);
+  		numberMotesWasUpdated();
+  	}
   };
   private Action addMoteAction = new AbstractAction("Add motes to timeline") {
     private static final long serialVersionUID = 7546685285707302865L;
@@ -1121,6 +1177,10 @@ public class TimeLine extends VisPlugin {
     /* Remove repaint timer */
     repaintTimelineTimer.stop();
 
+    if (moteHighlightObserver != null) {
+      simulation.getGUI().deleteMoteHighlightObserver(moteHighlightObserver);
+    }
+
     simulation.getEventCentral().removeMoteCountListener(newMotesListener);
     
     /* Remove active mote interface observers */
@@ -1721,12 +1781,15 @@ public class TimeLine extends VisPlugin {
       setBackground(COLOR_BACKGROUND);
 
       final JPopupMenu popupMenu = new JPopupMenu();
+      final JMenuItem topItem = new JMenuItem(topMoteAction);
+      topItem.setText("Move to top");
+      popupMenu.add(topItem);
+      final JMenuItem sortItem = new JMenuItem(sortMoteAction);
+      sortItem.setText("Sort by distance");
+      popupMenu.add(sortItem);
       final JMenuItem removeItem = new JMenuItem(removeMoteAction);
       removeItem.setText("Remove from timeline");
       popupMenu.add(removeItem);
-      final JMenuItem sortItem = new JMenuItem(sortMoteAction);
-      removeItem.setText("Sort by distance");
-      popupMenu.add(sortItem);
 
       addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
@@ -1734,10 +1797,14 @@ public class TimeLine extends VisPlugin {
           if (m == null) {
             return;
           }
-          removeItem.setText("Remove from timeline: " + m);
-          removeItem.putClientProperty("mote", m);
+          simulation.getGUI().signalMoteHighlight(m);
+
           sortItem.setText("Sort by distance: " + m);
           sortItem.putClientProperty("mote", m);
+          topItem.setText("Move to top: " + m);
+          topItem.putClientProperty("mote", m);
+          removeItem.setText("Remove from timeline: " + m);
+          removeItem.putClientProperty("mote", m);
           popupMenu.show(MoteRuler.this, e.getX(), e.getY());
         }
       });
@@ -1765,7 +1832,11 @@ public class TimeLine extends VisPlugin {
         String str = "" + moteLog.mote.getID();
         int w = g.getFontMetrics().stringWidth(str) + 1;
 
-        /*g.drawRect(0, y, getWidth()-1, paintedMoteHeight);*/
+        if (highlightedMotes.contains(moteLog.mote)) {
+        	g.setColor(HIGHLIGHT_COLOR);
+          g.fillRect(0, y-paintedMoteHeight, getWidth()-1, paintedMoteHeight);
+          g.setColor(Color.BLACK);
+        }
         g.drawString(str, getWidth() - w, y);
         y += paintedMoteHeight;
       }
@@ -1900,37 +1971,20 @@ public class TimeLine extends VisPlugin {
       return Color.GRAY; /* TODO Implement me */
     }
   }
-  private final Color[] CHANNEL_COLORS = new Color[] {
-      new Color(200, 200, 200),
-      new Color(200, 200, 255),
-      new Color(200, 255, 200),
-      new Color(200, 255, 255),
-      new Color(255, 200, 200),
-      new Color(255, 255, 200),
-      new Color(255, 255, 255),
-      new Color(255, 220, 200),
-      new Color(220, 255, 220),
-      new Color(255, 200, 255),
-      new Color(200, 200, 200),
-      new Color(200, 200, 255),
-      new Color(200, 255, 200),
-      new Color(200, 255, 255),
-      new Color(255, 200, 200),
-      new Color(255, 255, 200),
-      new Color(255, 255, 255),
-      new Color(255, 220, 200),
-      new Color(220, 255, 220),
-      new Color(255, 200, 255),
-      new Color(200, 200, 200),
-      new Color(200, 200, 255),
-      new Color(200, 255, 200),
-      new Color(200, 255, 255),
-      new Color(255, 200, 200),
-      new Color(255, 255, 200),
-      new Color(255, 255, 255),
-      new Color(255, 220, 200),
-      new Color(220, 255, 220),
-      new Color(255, 200, 255),
+
+  /* TODO Which colors? */
+  private final static Color[] CHANNEL_COLORS = new Color[] { 
+    Color.decode("0x008080"), Color.decode("0x808080"), Color.decode("0xC00000"), 
+    Color.decode("0x000020"), Color.decode("0x202000"), Color.decode("0x200020"), 
+    Color.decode("0x002020"), Color.decode("0x202020"), Color.decode("0x006060"),
+    Color.decode("0x606060"), Color.decode("0xA00000"), Color.decode("0x00A000"), 
+    Color.decode("0x0000A0"), Color.decode("0x400040"), Color.decode("0x004040"),
+    Color.decode("0x404040"), Color.decode("0x200000"), Color.decode("0x002000"),
+    Color.decode("0xA0A000"), Color.decode("0xA000A0"), Color.decode("0x00A0A0"), 
+    Color.decode("0xA0A0A0"), Color.decode("0xE00000"), Color.decode("0x600000"),
+    Color.decode("0x000040"), Color.decode("0x404000"), Color.decode("0xFF0000"), 
+    Color.decode("0x00FF00"), Color.decode("0x0000FF"), Color.decode("0xFFFF00"), 
+    Color.decode("0xFF00FF"), Color.decode("0x808000"), Color.decode("0x800080"), 
   };
   class RadioHWEvent extends MoteEvent {
     boolean on;
@@ -1950,7 +2004,11 @@ public class TimeLine extends VisPlugin {
       return on?Color.GRAY:null;
     }
     public String toString() {
-      return "Radio HW was turned " + (on?"on":"off") + " at time " + time + "<br>";
+      String str = "Radio HW was turned " + (on?"on":"off") + " at time " + time + "<br>";
+      if (channel > 0) {
+      	str += "Radio channel: " + channel;
+      }
+      return str;
     }
   }
   class LEDEvent extends MoteEvent {
