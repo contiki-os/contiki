@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.26 2010/10/12 11:38:34 adamdunkels Exp $
+ * $Id: CollectServer.java,v 1.27 2010/10/12 16:28:19 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/12 11:38:34 $
- *           $Revision: 1.26 $
+ * Updated : $Date: 2010/10/12 16:28:19 $
+ *           $Revision: 1.27 $
  */
 
 package se.sics.contiki.collect;
@@ -63,6 +63,9 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JCheckBoxMenuItem;
@@ -128,9 +131,10 @@ public class CollectServer implements SerialConnectionListener {
   private JMenuItem serialItem;
   private JMenuItem runInitScriptItem;
 
-  private Visualizer[] visualizers;
-  private MapPanel mapPanel;
-  private SerialConsole serialConsole;
+  private final Visualizer[] visualizers;
+  private final MapPanel mapPanel;
+  private final SerialConsole serialConsole;
+  private final MoteProgramAction moteProgramAction;
   private JFileChooser fileChooser;
 
   private JList nodeList;
@@ -139,7 +143,8 @@ public class CollectServer implements SerialConnectionListener {
 
   private SerialConnection serialConnection;
   private boolean hasSerialOpened;
-  private boolean hasSentInit;
+  /* Do not auto send init script at startup */
+  private boolean doSendInitAtStartup = false;
   private String initScript;
 
   private long nodeTimeDelta;
@@ -174,6 +179,8 @@ public class CollectServer implements SerialConnectionListener {
         exit();
       }
     });
+
+    moteProgramAction = new MoteProgramAction("Program Nodes...");
 
     nodeModel = new DefaultListModel();
     nodeModel.addElement("<All>");
@@ -235,6 +242,8 @@ public class CollectServer implements SerialConnectionListener {
       mapPanel.setMapBackground(image);
     }
     final int defaultMaxItemCount = 250;
+    NodeControl nodeControl = new NodeControl(this, MAIN);
+
     visualizers = new Visualizer[] {
         mapPanel,
         new MapPanel(this, "Network Graph", MAIN, false),
@@ -572,7 +581,7 @@ public class CollectServer implements SerialConnectionListener {
           }
         },
         new NodeInfoPanel(this, MAIN),
-        new NodeControl(this, MAIN),
+        nodeControl,
         serialConsole
     };
     for (int i = 0, n = visualizers.length; i < n; i++) {
@@ -587,6 +596,10 @@ public class CollectServer implements SerialConnectionListener {
       }
       pane.add(visualizers[i].getTitle(), visualizers[i].getPanel());
     }
+    JTabbedPane pane = categoryTable.get(nodeControl.getCategory());
+    if (pane != null) {
+      pane.setSelectedComponent(nodeControl.getPanel());
+    }
     window.getContentPane().add(mainPanel, BorderLayout.CENTER);
 
     // Setup menu
@@ -598,9 +611,7 @@ public class CollectServer implements SerialConnectionListener {
     serialItem = new JMenuItem("Connect to serial");
     serialItem.addActionListener(new SerialItemHandler());
     fileMenu.add(serialItem);
-    JMenuItem item = new JMenuItem("Program Sky nodes...");
-    item.addActionListener(new ProgramItemHandler());
-    fileMenu.add(item);
+    fileMenu.add(new JMenuItem(moteProgramAction));
 
     fileMenu.addSeparator();
     final JMenuItem clearMapItem = new JMenuItem("Remove Map Background");
@@ -615,29 +626,41 @@ public class CollectServer implements SerialConnectionListener {
     });
     clearMapItem.setEnabled(mapPanel.getMapBackground() != null);
 
-    item = new JMenuItem("Select Map Background...");
+    JMenuItem item = new JMenuItem("Select Map Background...");
     item.addActionListener(new ActionListener() {
 
       public void actionPerformed(ActionEvent e) {
         if (fileChooser == null) {
           fileChooser = new JFileChooser();
-          int reply = fileChooser.showOpenDialog(window);
-          if (reply == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            String name = file.getAbsolutePath();
+        }
+        int reply = fileChooser.showOpenDialog(window);
+        if (reply == JFileChooser.APPROVE_OPTION) {
+          File file = fileChooser.getSelectedFile();
+          String name = file.getAbsolutePath();
+          if (!mapPanel.setMapBackground(file.getAbsolutePath())) {
+            JOptionPane.showMessageDialog(window, "Failed to set background image", "Error", JOptionPane.ERROR_MESSAGE);
+          } else {
             configTable.put("collect.mapimage", name);
-            if (!mapPanel.setMapBackground(file.getAbsolutePath())) {
-              JOptionPane.showMessageDialog(window, "Failed to set background image", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-            clearMapItem.setEnabled(mapPanel.getMapBackground() != null);
-            saveConfig(configTable, configFile);
+            save();
           }
+          clearMapItem.setEnabled(mapPanel.getMapBackground() != null);
         }
       }
 
     });
     fileMenu.add(item);
     fileMenu.add(clearMapItem);
+
+    item = new JMenuItem("Save Settings");
+    item.addActionListener(new ActionListener() {
+
+      public void actionPerformed(ActionEvent e) {
+        save();
+        JOptionPane.showMessageDialog(window, "Settings have been saved.");
+      }
+
+    });
+    fileMenu.add(item);
 
     fileMenu.addSeparator();
     item = new JMenuItem("Clear Sensor Data...");
@@ -745,7 +768,7 @@ public class CollectServer implements SerialConnectionListener {
     });
     connectToSerial();
   }
-  
+
   protected void connectToSerial() {
     if (!serialConnection.isOpen()) {
       String comPort = serialConnection.getComPort();
@@ -759,18 +782,7 @@ public class CollectServer implements SerialConnectionListener {
   }
 
   private void exit() {
-    /* TODO Clean up resources */
-    if (configFile != null) {
-      configTable.setProperty("collect.bounds", "" + window.getX() + ',' + window.getY() + ',' + window.getWidth() + ',' + window.getHeight());
-      if (visualizers != null) {
-        for(Visualizer v : visualizers) {
-          if (v instanceof Configurable) {
-            ((Configurable)v).updateConfig(configTable);
-          }
-        }
-      }
-      saveConfig(configTable, configFile);
-    }
+    save();
     if (serialConnection != null) {
       serialConnection.close();
     }
@@ -837,6 +849,10 @@ public class CollectServer implements SerialConnectionListener {
 
   public String getConfig(String property, String defaultValue) {
     return configTable.getProperty(property, config.getProperty(property, defaultValue));
+  }
+
+  public Action getMoteProgramAction() {
+    return moteProgramAction;
   }
 
   protected void setSystemMessage(final String message) {
@@ -968,6 +984,20 @@ public class CollectServer implements SerialConnectionListener {
       e.printStackTrace();
     }
     return false;
+  }
+
+  private void save() {
+    if (configFile != null) {
+      configTable.setProperty("collect.bounds", "" + window.getX() + ',' + window.getY() + ',' + window.getWidth() + ',' + window.getHeight());
+      if (visualizers != null) {
+        for(Visualizer v : visualizers) {
+          if (v instanceof Configurable) {
+            ((Configurable)v).updateConfig(configTable);
+          }
+        }
+      }
+      saveConfig(configTable, configFile);
+    }
   }
 
   private void saveConfig(Properties properties, String configFile) {
@@ -1188,9 +1218,16 @@ public class CollectServer implements SerialConnectionListener {
 
   }
 
-  protected class ProgramItemHandler implements ActionListener, Runnable {
+  protected class MoteProgramAction extends AbstractAction implements Runnable {
+
+    private static final long serialVersionUID = 1L;
 
     private boolean isRunning = false;
+
+    public MoteProgramAction(String name) {
+      super(name);
+    }
+
     public void actionPerformed(ActionEvent e) {
       if (!isRunning) {
         isRunning = true;
@@ -1207,10 +1244,10 @@ public class CollectServer implements SerialConnectionListener {
         mp.searchForMotes();
         String[] motes = mp.getMotes();
         if (motes == null || motes.length == 0) {
-          JOptionPane.showMessageDialog(window, "Could not find any connected Sky nodes", "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(window, "Could not find any connected nodes", "Error", JOptionPane.ERROR_MESSAGE);
           return;
         }
-        int reply = JOptionPane.showConfirmDialog(window, "Found " + motes.length + " connected Sky nodes.\n"
+        int reply = JOptionPane.showConfirmDialog(window, "Found " + motes.length + " connected nodes.\n"
             + "Do you want to upload the firmware " + FIRMWARE_FILE + '?');
         if (reply == JFileChooser.APPROVE_OPTION) {
           boolean wasOpen = serialConnection != null && serialConnection.isOpen();
@@ -1260,9 +1297,9 @@ public class CollectServer implements SerialConnectionListener {
 
     if (!connection.isSerialOutputSupported()) {
       serialConsole.addSerialData("*** Serial output not supported ***");
-    } else if (!hasSentInit) {
+    } else if (doSendInitAtStartup) {
       // Send any initial commands
-      hasSentInit = true;
+      doSendInitAtStartup = false;
 
       if (hasInitScript()) {
         // Wait a short time before running the init script
