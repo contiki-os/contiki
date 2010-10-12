@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.11 2010/06/23 10:18:05 joxe Exp $
+ * @(#)$Id: xmem.c,v 1.12 2010/10/12 22:55:11 nifi Exp $
  */
 
 /**
@@ -147,12 +147,20 @@ erase_sector(unsigned long offset)
 void
 xmem_init(void)
 {
+  int s;
   spi_init();
 
   P4DIR |= BV(FLASH_CS) | BV(FLASH_HOLD) | BV(FLASH_PWR);
   P4OUT |= BV(FLASH_PWR);       /* P4.3 Output, turn on power! */
 
+  /* Release from Deep Power-down */
+  s = splhigh();
+  SPI_FLASH_ENABLE();
+  SPI_WRITE_FAST(SPI_FLASH_INS_RES);
+  SPI_WAITFORTx_ENDED();
   SPI_FLASH_DISABLE();		/* Unselect flash. */
+  splx(s);
+
   SPI_FLASH_UNHOLD();
 }
 /*---------------------------------------------------------------------------*/
