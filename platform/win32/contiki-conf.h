@@ -127,6 +127,8 @@ typedef unsigned short uip_stats_t;
 
 #ifdef PLATFORM_BUILD
 #define LOADER_CONF_ARCH "loader/dll-loader.h"
+#else /* PLATFORM_BUILD */
+#define LOADER_CONF_ARCH "loader/unload.h"
 #endif /* PLATFORM_BUILD */
 
 #define PROGRAM_HANDLER_CONF_MAX_NUMDSCS 10
