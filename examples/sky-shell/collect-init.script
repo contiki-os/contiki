@@ -4,7 +4,3 @@ sleep 2
 echo mac 0
 sleep 2
 echo time %TIME% | null
-sleep 2
-echo collect | timestamp | blink | binprint &
-sleep 2
-echo netcmd { repeat 0 60 { randwait 2 sky-alldata | blink | send 15 } }
