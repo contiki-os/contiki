@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DirectedGraphMedium.java,v 1.5 2010/09/24 12:49:37 fros4943 Exp $
+ * $Id: DirectedGraphMedium.java,v 1.6 2010/10/12 10:29:43 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -170,6 +170,41 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     requestEdgeAnalysis();
   }
 
+  public void updateSignalStrengths() {
+
+    /* Reset signal strengths */
+    for (Radio radio : getRegisteredRadios()) {
+      radio.setCurrentSignalStrength(SS_NOTHING);
+    }
+
+    /* Set signal strengths */
+    RadioConnection[] conns = getActiveConnections();
+    for (RadioConnection conn : conns) {
+      if (conn.getSource().getCurrentSignalStrength() < SS_STRONG) {
+        conn.getSource().setCurrentSignalStrength(SS_STRONG);
+      }
+      for (Radio dstRadio : conn.getDestinations()) {
+        if (dstRadio.getCurrentSignalStrength() < SS_STRONG) {
+          dstRadio.setCurrentSignalStrength(SS_STRONG);
+        }
+      }
+    }
+
+    /* Set signal strength to weak on interfered */
+    for (RadioConnection conn : conns) {
+      for (Radio intfRadio : conn.getInterfered()) {
+        if (intfRadio.getCurrentSignalStrength() < SS_STRONG) {
+          intfRadio.setCurrentSignalStrength(SS_STRONG);
+        }
+        
+        if (!intfRadio.isInterfered()) {
+          /*logger.warn("Radio was not interfered");*/
+          intfRadio.interfereAnyReception();
+        }
+      }
+    }
+  }
+  
   public static class DestinationRadio {
     public Radio radio; /* destination radio */
     public boolean toAll; /* to all destinations */
@@ -299,12 +334,27 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
         /*logger.info(source + ": Fail, receiver is sender");*/
         continue;
       }
-
-      if (dest.ratio < 1.0 && random.nextDouble() > dest.ratio) {
-        /*logger.info(source + ": Fail, randomly");*/
+      
+      /* Fail if radios are on different (but configured) channels */ 
+      if (source.getChannel() >= 0 &&
+          dest.radio.getChannel() >= 0 &&
+          source.getChannel() != dest.radio.getChannel()) {
         continue;
       }
-
+      
+      if (!dest.radio.isReceiverOn()) {
+      	/* Fail: radio is off */
+      	/*logger.info(source + ": Fail, off");*/
+      	newConn.addInterfered(dest.radio);
+      	continue;
+      }
+      
+      if (dest.ratio < 1.0 && random.nextDouble() > dest.ratio) {
+        /*logger.info(source + ": Fail, randomly");*/
+      	/* TODO Interfere now? */
+        continue;
+      }
+      
       if (dest.radio.isReceiving()) {
         /* Fail: radio is already actively receiving */
         /*logger.info(source + ": Fail, receiving");*/
@@ -326,14 +376,14 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
         }
         continue;
       }
-
+      
       if (dest.radio.isInterfered()) {
         /* Fail: radio is interfered in another connection */
         /*logger.info(source + ": Fail, interfered");*/
         newConn.addInterfered(dest.radio);
         continue;
       }
-
+      
       /* Success: radio starts receiving */
       /*logger.info(source + ": OK: " + dest.radio);*/
       newConn.addDestination(dest.radio, dest.delay);

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.14 2009/11/25 18:13:05 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.15 2010/10/12 10:29:43 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -147,7 +147,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
         conn.getSource().setCurrentSignalStrength(SS_STRONG);
       }
       for (Radio dstRadio : conn.getDestinations()) {
-        if (conn.getSource().getCurrentSignalStrength() < SS_STRONG) {
+        if (dstRadio.getCurrentSignalStrength() < SS_STRONG) {
           dstRadio.setCurrentSignalStrength(SS_STRONG);
         }
       }
@@ -156,8 +156,8 @@ public abstract class AbstractRadioMedium extends RadioMedium {
     /* Set signal strength to weak on interfered */
     for (RadioConnection conn : conns) {
       for (Radio intfRadio : conn.getInterfered()) {
-        if (intfRadio.getCurrentSignalStrength() < SS_WEAK) {
-          intfRadio.setCurrentSignalStrength(SS_WEAK);
+        if (intfRadio.getCurrentSignalStrength() < SS_STRONG) {
+          intfRadio.setCurrentSignalStrength(SS_STRONG);
         }
         
         if (!intfRadio.isInterfered()) {
