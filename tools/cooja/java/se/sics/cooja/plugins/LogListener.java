@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.32 2010/09/09 19:52:08 nifi Exp $
+ * $Id: LogListener.java,v 1.33 2010/10/12 10:04:35 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -44,6 +44,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
@@ -108,12 +109,19 @@ public class LogListener extends VisPlugin {
   private final static int COLUMN_DATA = 2;
   private final static int COLUMN_CONCAT = 3;
   private final static String[] COLUMN_NAMES = {
-    "Time",
+    "Time ms",
     "Mote",
     "Message",
     "#"
   };
 
+  private static final long TIME_SECOND = 1000*Simulation.MILLISECOND;
+  private static final long TIME_MINUTE = 60*TIME_SECOND;
+  private static final long TIME_HOUR = 60*TIME_MINUTE;
+
+  private boolean formatTimeString = false;
+  private boolean hasHours = false;
+  
   private final JTable logTable;
   private TableRowSorter<TableModel> logFilter;
   private ArrayQueue<LogData> logs = new ArrayQueue<LogData>();
@@ -179,6 +187,12 @@ public class LogListener extends VisPlugin {
     model = new AbstractTableModel() {
       private static final long serialVersionUID = 3065150390849332924L;
       public String getColumnName(int col) {
+      	if (col == COLUMN_TIME && formatTimeString) {
+      		if (hasHours) {
+      			return "Time hh:mm:ss";
+      		}
+    			return "Time mm:ss";
+      	}
         return COLUMN_NAMES[col];
       }
       public int getRowCount() {
@@ -287,6 +301,19 @@ public class LogListener extends VisPlugin {
     }
     logTable.setRowSorter(logFilter);
 
+    /* Toggle time format */
+    logTable.getTableHeader().addMouseListener(new MouseAdapter() {
+    	public void mouseClicked(MouseEvent e) {
+        int colIndex = logTable.columnAtPoint(e.getPoint());
+        int columnIndex = logTable.convertColumnIndexToModel(colIndex);
+        if (columnIndex != COLUMN_TIME) {
+        	return;
+        }
+    		formatTimeString = !formatTimeString;
+    		recacheAllTimeStrings();
+    	}
+		});
+
     /* Automatically update column widths */
     final TableColumnAdjuster adjuster = new TableColumnAdjuster(logTable);
     adjuster.packColumns();
@@ -323,6 +350,10 @@ public class LogListener extends VisPlugin {
     LogOutputEvent[] history = simulation.getEventCentral().getLogOutputHistory();
     if (history.length > 0) {
       for (LogOutputEvent historyEv: history) {
+      	if (!hasHours && historyEv.getTime() > TIME_HOUR) {
+      		hasHours = true;
+      		recacheAllTimeStrings();
+      	}
         LogData data = new LogData(historyEv);
         logs.add(data);
       }
@@ -356,6 +387,10 @@ public class LogListener extends VisPlugin {
       }
       public void newLogOutput(LogOutputEvent ev) {
         /* Display new log output */
+      	if (!hasHours && ev.getTime() > TIME_HOUR) {
+      		hasHours = true;
+      		recacheAllTimeStrings();
+      	}
         logUpdateAggregator.add(new LogData(ev));
       }
       public void removedLogOutput(LogOutputEvent ev) {
@@ -405,7 +440,16 @@ public class LogListener extends VisPlugin {
     setLocation(0, gui.getDesktopPane().getHeight() - 300);
   }
 
-  private void updateTitle() {
+  private void recacheAllTimeStrings() {
+  	for (LogData ld: logs) {
+  		ld.recacheTimeString();
+  	}
+  	logTable.getColumnModel().getColumn(COLUMN_TIME).setHeaderValue(
+  			logTable.getModel().getColumnName(COLUMN_TIME));
+  	repaint();
+	}
+
+	private void updateTitle() {
     setTitle("Log Listener (listening on " 
         + simulation.getEventCentral().getLogOutputObservationsCount() + " log interfaces)");
   }
@@ -491,15 +535,35 @@ public class LogListener extends VisPlugin {
     });  
   }
 
-  private static class LogData {
+  private class LogData {
     public final LogOutputEvent ev;
     public final String strID; /* cached value */
-    public final String strTime; /* cached value */
+    public String strTime; /* cached value */
 
     public LogData(LogOutputEvent ev) {
       this.ev = ev;
       this.strID = "ID:" + ev.getMote().getID();
-      this.strTime = "" + ev.getTime()/Simulation.MILLISECOND;
+      recacheTimeString();
+    }
+    
+    public void recacheTimeString() {
+    	if (formatTimeString) {
+    		long t = ev.getTime();
+    		long h = (t / TIME_HOUR);
+    		t -= (t / TIME_HOUR)*TIME_HOUR;
+    		long m = (t / TIME_MINUTE);
+    		t -= (t / TIME_MINUTE)*TIME_MINUTE;
+    		long s = (t / TIME_SECOND);
+    		t -= (t / TIME_SECOND)*TIME_SECOND;
+    		long ms = t / Simulation.MILLISECOND;
+    		if (hasHours) {
+    			this.strTime = String.format("%d:%02d:%02d.%03d", h,m,s,ms);
+    		} else {
+    			this.strTime = String.format("%02d:%02d.%03d", m,s,ms);
+    		}
+    	} else {
+    		this.strTime = "" + ev.getTime() / Simulation.MILLISECOND;
+    	}
     }
   }
 
