@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeControl.java,v 1.5 2010/10/12 11:39:59 adamdunkels Exp $
+ * $Id: NodeControl.java,v 1.6 2010/10/12 16:28:19 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Niclas Finne
  * Created : 27 sep 2010
- * Updated : $Date: 2010/10/12 11:39:59 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2010/10/12 16:28:19 $
+ *           $Revision: 1.6 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -43,15 +43,20 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTextPane;
 import javax.swing.border.LineBorder;
 
 import se.sics.contiki.collect.CollectServer;
@@ -70,6 +75,7 @@ public class NodeControl implements Visualizer {
   private final String category;
   private final JPanel panel;
   private final JLabel statusLabel;
+  private final JSeparator statusSeparator;
 
   public NodeControl(CollectServer server, String category) {
     this.server = server;
@@ -85,6 +91,8 @@ public class NodeControl implements Visualizer {
     statusLabel.setBackground(Color.white);
     statusLabel.setBorder(LineBorder.createBlackLineBorder());
     statusLabel.setVisible(false);
+    statusSeparator = new JSeparator();
+    statusSeparator.setVisible(false);
 
     JButton stopButton = createCommandButton("Send stop to nodes", "netcmd killall");
 
@@ -115,10 +123,43 @@ public class NodeControl implements Visualizer {
     c.fill = GridBagConstraints.HORIZONTAL;
     c.weightx = 0.5;
     c.insets.left = c.insets.right = c.insets.bottom = 3;
-    c.insets.top = 10;
+    c.anchor = GridBagConstraints.WEST;
     c.gridy = 0;
 
     c.gridwidth = 3;
+    controlPanel.add(statusLabel, c);
+    c.gridy++;
+    controlPanel.add(statusSeparator, c);
+    c.insets.top = 10;
+
+    c.gridy++;
+    c.gridwidth = 1;
+    controlPanel.add(new JLabel("Program Connected Nodes", JLabel.RIGHT), c);
+    c.gridwidth = 2;
+    c.fill = GridBagConstraints.NONE;
+    controlPanel.add(new JButton(server.getMoteProgramAction()), c);
+
+    c.gridy++;
+    c.gridwidth = 3;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    controlPanel.add(new JSeparator(), c);
+
+    c.gridy++;
+    c.gridwidth = 1;
+    controlPanel.add(new JLabel("Base Station Control", JLabel.RIGHT), c);
+    c.gridwidth = 2;
+    JPanel basePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+    basePanel.add(collectButton);
+    basePanel.add(stopCollectButton);
+    c.insets.left -= 5;
+    controlPanel.add(basePanel, c);
+    c.insets.left += 5;
+
+    c.gridy++;
+    c.gridwidth = 3;
+    controlPanel.add(new JSeparator(), c);
+
+    c.gridy++;
     JLabel label = new JLabel("Collect Settings", JLabel.CENTER);
     controlPanel.add(label, c);
     c.gridwidth = 1;
@@ -150,27 +191,34 @@ public class NodeControl implements Visualizer {
 
     c.gridy++;
     c.gridwidth = 3;
-    c.weightx = 0;
-    c.fill = GridBagConstraints.NONE;
-    c.insets.bottom = 20;
-    JPanel p = new JPanel();
-    p.add(sendButton);
-    p.add(stopButton);
-    controlPanel.add(p, c);
+    c.insets.bottom = 10;
+    JPanel nodePanel = new JPanel();
+    nodePanel.add(sendButton);
+    nodePanel.add(stopButton);
+    controlPanel.add(nodePanel, c);
 
     c.gridy++;
-    c.insets.bottom = 3;
-    controlPanel.add(new JLabel("Base Station Control", JLabel.CENTER), c);
-
-    c.gridy++;
-    c.insets.bottom = 20;
-    p = new JPanel();
-    p.add(collectButton);
-    p.add(stopCollectButton);
-    controlPanel.add(p, c);
-
+    controlPanel.add(new JSeparator(), c);
     panel.add(controlPanel, BorderLayout.NORTH);
-    panel.add(statusLabel, BorderLayout.SOUTH);
+
+    JTextPane helpPane = new JTextPane();
+    helpPane.setContentType("text/html");
+    helpPane.setEditable(false);
+    helpPane.setText("<html>" +
+ "<h3>Quick Startup Instructions</h3>" +
+ "<lu>" +
+ "<li> Connect nodes to USB. Press the <strong>Program Nodes...</strong> button." +
+ "<li> Disconnect all except one node. " +
+ "Press the <strong>Start Collect</strong> button." +
+ "<li> Press the <strong>Send command to nodes</strong> button." +
+ "</lu>" + 
+ "</html>");
+    helpPane.setBackground(panel.getBackground());
+    JScrollPane helpScroll = new JScrollPane(helpPane,
+        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    helpScroll.setBorder(BorderFactory.createEmptyBorder(3, 10, 10, 10));
+    panel.add(helpScroll, BorderLayout.CENTER);
   }
 
   private JButton createCommandButton(String name, final String... command) {
@@ -219,6 +267,7 @@ public class NodeControl implements Visualizer {
     statusLabel.setForeground(isWarning ? Color.red : Color.black);
     statusLabel.setText(text);
     statusLabel.setVisible(true);
+    statusSeparator.setVisible(true);
   }
 
   public String getCategory() {
