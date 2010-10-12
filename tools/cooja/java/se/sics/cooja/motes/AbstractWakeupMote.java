@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractWakeupMote.java,v 1.2 2010/10/04 12:54:01 joxe Exp $
+ * $Id: AbstractWakeupMote.java,v 1.3 2010/10/12 10:58:31 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -128,4 +128,6 @@ public abstract class AbstractWakeupMote implements Mote {
     return true;
   }
 
+  public void removed() {
+  }
 }

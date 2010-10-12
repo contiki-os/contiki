@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Mote.java,v 1.8 2010/02/03 16:05:49 fros4943 Exp $
+ * $Id: Mote.java,v 1.9 2010/10/12 10:58:31 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -144,4 +144,8 @@ public interface Mote {
   public abstract boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable);
 
+  /**
+   * Called when mote is removed from simulation 
+   */
+  public void removed();
 }

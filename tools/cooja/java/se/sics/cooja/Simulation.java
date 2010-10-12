@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.66 2010/10/04 10:11:56 nifi Exp $
+ * $Id: Simulation.java,v 1.67 2010/10/12 10:58:31 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -662,7 +662,11 @@ public class Simulation extends Observable implements Runnable {
         /* Create mote using mote type */
         Mote mote = moteType.generateMote(this);
         if (mote.setConfigXML(this, element.getChildren(), visAvailable)) {
-          addMote(mote);
+        	if (getMoteWithID(mote.getID()) != null) {
+        		logger.warn("Ignoring duplicate mote ID: " + mote.getID());
+        	} else {
+        		addMote(mote);
+        	}
         } else {
           logger.fatal("Mote was not created: " + element.getText().trim());
           throw new Exception("All motes were not recreated");
@@ -690,6 +694,7 @@ public class Simulation extends Observable implements Runnable {
         currentRadioMedium.unregisterMote(mote, Simulation.this);
         
         /* Dispose mote interface resources */
+        mote.removed();
         for (MoteInterface i: mote.getInterfaces().getInterfaces()) {
           i.removed();
         }
