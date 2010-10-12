@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.16 2010/03/14 19:54:00 fros4943 Exp $
+ * $Id: shell-sky.c,v 1.17 2010/10/12 11:34:08 adamdunkels Exp $
  */
 
 /**
@@ -257,7 +257,7 @@ PROCESS_THREAD(shell_rfchannel_process, ev, data)
 
   msg.len = 1;
 
-  shell_output(&txpower_command, &msg, sizeof(msg), "", 0);
+  shell_output(&rfchannel_command, &msg, sizeof(msg), "", 0);
 
   PROCESS_END();
 }
