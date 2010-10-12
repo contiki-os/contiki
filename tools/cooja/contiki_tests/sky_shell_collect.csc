@@ -24,8 +24,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/sky-shell/sky-shell.c</source>
-      <commands EXPORT="discard">make clean TARGET=sky
-make sky-shell.sky TARGET=sky</commands>
+      <commands EXPORT="discard">make sky-shell.sky TARGET=sky</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky-shell/sky-shell.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -405,7 +404,7 @@ GENERATE_MSG(20000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 node = sink_node;
 log.log("Writing netcmd\n");
-node.write("netcmd { repeat 10 30 { randwait 30 sky-alldata | blink | send } }");
+node.write("netcmd { repeat 10 30 { randwait 30 collect-view-data | blink | send } }");
 
 while(true) {
   YIELD();
@@ -432,20 +431,13 @@ while(true) {
     data_len2 = parseInt(data[8]);
     clock = parseInt(data[9]);
     timesyncedtime = parseInt(data[10]);
-    light1 = parseInt(data[11]);
-    light2 = parseInt(data[12]);
-    temperature = parseInt(data[13]);
-    humidity = parseInt(data[14]);
-    rssi = parseInt(data[15]);
-    time_cpu = parseInt(data[16]);
-    time_lpm = parseInt(data[17]);
-    time_transmit = parseInt(data[18]);
-    time_listen = parseInt(data[19]);
-    best_neighbor = parseInt(data[20]);
-    best_neighbor_etx = parseInt(data[21]);
-    best_neighbor_rtmetrix = parseInt(data[22]);
-    battery_voltage = parseInt(data[23]);
-    battery_indicator = parseInt(data[24]);
+    time_cpu = parseInt(data[11]);
+    time_lpm = parseInt(data[12]);
+    time_transmit = parseInt(data[13]);
+    time_listen = parseInt(data[14]);
+    best_neighbor = parseInt(data[15]);
+    best_neighbor_etx = parseInt(data[16]);
+    best_neighbor_rtmetrix = parseInt(data[17]);
 
     total_cpu += time_cpu;
     total_lpm += time_lpm;
