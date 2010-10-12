@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectView.java,v 1.1 2010/10/11 09:29:05 nifi Exp $
+ * $Id: CollectView.java,v 1.2 2010/10/12 16:48:43 nifi Exp $
  */
 package se.sics.cooja.plugins.collectview;
 import java.awt.BorderLayout;
@@ -35,6 +35,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
@@ -42,6 +43,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
@@ -49,6 +51,7 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
+import se.sics.cooja.GUI.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
@@ -63,7 +66,7 @@ import se.sics.cooja.interfaces.SerialPort;
  */
 @ClassDescription("Collect View")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class CollectView extends VisPlugin implements MotePlugin {
+public class CollectView extends VisPlugin implements MotePlugin, HasQuickHelp {
   private static final long serialVersionUID = 1L;
 
   private static Logger logger = Logger.getLogger(CollectView.class);
@@ -91,8 +94,8 @@ public class CollectView extends VisPlugin implements MotePlugin {
 
     /* GUI components */
     if (GUI.isVisualized()) {
-      inLabel = new JLabel("0 bytes", JLabel.RIGHT);
-      outLabel = new JLabel("0 bytes", JLabel.RIGHT);
+      inLabel =  new JLabel("      0 bytes", JLabel.RIGHT);
+      outLabel = new JLabel("      0 bytes", JLabel.RIGHT);
 
       JPanel panel = new JPanel(new GridBagLayout());
       GridBagConstraints c = new GridBagConstraints();
@@ -112,13 +115,28 @@ public class CollectView extends VisPlugin implements MotePlugin {
       pack();
     }
 
+    String contikiPath = GUI.getExternalToolsSetting("PATH_CONTIKI", "../../..");
+    String jarFile = contikiPath + "/examples/sky-shell/dist/collect-demo.jar";
+    if (!new File(jarFile).canRead()) {
+      logger.fatal("Could not find the CollectView application:" + jarFile);
+      if (GUI.isVisualized()) {
+        JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+            "Could not find the CollectView application:\n" +
+            jarFile + "\n\nPlease try to recompile it!",
+            "CollectView application not found", JOptionPane.ERROR_MESSAGE);
+      }
+      // Could not find the CollectView application
+      cleanup();
+      return;
+    }
+
     try {
-      String contikiPath = GUI.getExternalToolsSetting("PATH_CONTIKI", "../../..");
       String[] cmd = new String[] {
-          "java", "-jar", contikiPath + "/examples/sky-shell/dist/collect-demo.jar",
+          "java", "-jar", jarFile,
           "-n", "-f"
       };
 
+      isRunning = true;
       commandProcess = Runtime.getRuntime().exec(cmd);
       final BufferedReader input = new BufferedReader(new InputStreamReader(commandProcess.getInputStream()));
       final BufferedReader err = new BufferedReader(new InputStreamReader(commandProcess.getErrorStream()));
@@ -145,8 +163,7 @@ public class CollectView extends VisPlugin implements MotePlugin {
             input.close();
           } catch (IOException e) {
             if (isRunning) {
-              isRunning = false;
-              logger.error("CollectView died", e);
+              logger.error("The CollectView application died!", e);
             }
           } finally {
             cleanup();
@@ -165,8 +182,7 @@ public class CollectView extends VisPlugin implements MotePlugin {
             err.close();
           } catch (IOException e) {
             if (isRunning) {
-              isRunning = false;
-              logger.error("CollectView died", e);
+              logger.error("The CollectView application died!", e);
             }
           }
         }
@@ -213,8 +229,18 @@ public class CollectView extends VisPlugin implements MotePlugin {
   }
 
   private void cleanup() {
-    serialPort.deleteSerialDataObserver(serialDataObserver);
+    if (serialDataObserver != null) {
+      serialPort.deleteSerialDataObserver(serialDataObserver);
+      serialDataObserver = null;
+    }
 
+    if (isRunning) {
+      logger.fatal("The CollectView application died!");
+      if (GUI.isVisualized()) {
+        JOptionPane.showMessageDialog(this, "The CollectView application died!",
+            "CollectView died!", JOptionPane.ERROR_MESSAGE);
+      }
+    }
     isRunning = false;
     if (commandProcess != null) {
       commandProcess.destroy();
@@ -228,19 +254,32 @@ public class CollectView extends VisPlugin implements MotePlugin {
       }
     }
 
-    EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        setTitle(getTitle() + " *DISCONNECTED*");
-      }
-    });
+    if (GUI.isVisualized()) {
+      EventQueue.invokeLater(new Runnable() {
+        public void run() {
+          setTitle(getTitle() + " *DISCONNECTED*");
+          inLabel.setEnabled(false);
+          outLabel.setEnabled(false);
+        }
+      });
+    }
   }
 
   public void closePlugin() {
+    isRunning = false;
     cleanup();
   }
 
   public Mote getMote() {
     return mote;
+  }
+
+  public String getQuickHelp() {
+    return "<b>CollectView</b><p>" +
+    "The CollectView plugin starts an instance of the CollectView application and " +
+    "connects it to the serial port of a specific mote. " +
+    "The CollectView application can then interact with the simulated network in " +
+    "exactly the same way as it would interact with a network of real motes.";
   }
 
 }
