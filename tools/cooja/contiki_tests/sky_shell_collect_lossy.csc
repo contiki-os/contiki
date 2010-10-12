@@ -440,11 +440,11 @@ sink_node = node;
 YIELD_THEN_WAIT_UNTIL(id == sink);
 log.log("Writing collect command\n");
 node.write("collect | timestamp | blink | binprint &amp;");
-GENERATE_MSG(20000, "continue");
+GENERATE_MSG(40000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 node = sink_node;
 log.log("Writing netcmd\n");
-node.write("netcmd { repeat 10 60 { randwait 8 sky-alldata | blink | send 31 } }");
+node.write("netcmd { repeat 10 60 { randwait 8 collect-view-data | blink | send 31 } }");
 
 while(true) {
   YIELD();
@@ -458,7 +458,7 @@ while(true) {
 
   data = msg.split(" ");
 
-  if(data[24] &amp;&amp; !msg.contains("stats")) {
+  if(data[24] &amp;&amp; !msg.contains("P")) {
 
     len = parseInt(data[0]);
     timestamp1 = parseInt(data[1]);
@@ -471,20 +471,13 @@ while(true) {
     data_len2 = parseInt(data[8]);
     clock = parseInt(data[9]);
     timesyncedtime = parseInt(data[10]);
-    light1 = parseInt(data[11]);
-    light2 = parseInt(data[12]);
-    temperature = parseInt(data[13]);
-    humidity = parseInt(data[14]);
-    rssi = parseInt(data[15]);
-    time_cpu = parseInt(data[16]);
-    time_lpm = parseInt(data[17]);
-    time_transmit = parseInt(data[18]);
-    time_listen = parseInt(data[19]);
-    best_neighbor = parseInt(data[20]);
-    best_neighbor_etx = parseInt(data[21]);
-    best_neighbor_rtmetrix = parseInt(data[22]);
-    battery_voltage = parseInt(data[23]);
-    battery_indicator = parseInt(data[24]);
+    time_cpu = parseInt(data[11]);
+    time_lpm = parseInt(data[12]);
+    time_transmit = parseInt(data[13]);
+    time_listen = parseInt(data[14]);
+    best_neighbor = parseInt(data[15]);
+    best_neighbor_etx = parseInt(data[16]);
+    best_neighbor_rtmetrix = parseInt(data[17]);
 
     total_cpu += time_cpu;
     total_lpm += time_lpm;
