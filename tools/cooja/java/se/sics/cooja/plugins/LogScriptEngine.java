@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.23 2010/02/24 10:38:35 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.24 2010/10/12 10:57:22 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -206,7 +206,8 @@ public class LogScriptEngine {
     }
 
     timeoutEvent.remove();
-
+    timeoutProgressEvent.remove();
+    
     simulation.getEventCentral().removeLogOutputListener(logOutputListener);
 
     engine.put("SHUTDOWN", true);
@@ -262,10 +263,22 @@ public class LogScriptEngine {
       logger.info("No timeout defined, using default (us): " + DEFAULT_TIMEOUT);
       timeoutTime = DEFAULT_TIMEOUT;
     }
-    final long absoluteTimeout = simulation.getSimulationTime() + timeoutTime;
+
+    final long duration = timeoutTime;
     simulation.invokeSimulationThread(new Runnable() {
       public void run() {
-        simulation.scheduleEvent(timeoutEvent, absoluteTimeout);
+      	final long startTime = simulation.getSimulationTime();
+      	final long interval = (long) (0.01*5*duration);
+      	
+      	simulation.scheduleEvent(timeoutProgressEvent = new TimeEvent(0) {
+      		public void execute(long t) {
+      			int percent = (int) (5*(t-startTime)/interval);
+      			logger.info("Test script at " + percent + "%");
+      			simulation.scheduleEvent(this, t+interval);
+      		}
+      	}, startTime+interval);
+        
+        simulation.scheduleEvent(timeoutEvent, startTime + duration);
       }
     });
 
@@ -368,6 +381,7 @@ public class LogScriptEngine {
         }
 
         timeoutEvent.remove();
+        timeoutProgressEvent.remove();
 
         semaphoreSim.release(100);
         throw new RuntimeException("test script killed");
@@ -432,10 +446,15 @@ public class LogScriptEngine {
       stepScript();
     }
   };
+  private TimeEvent timeoutProgressEvent = new TimeEvent(0) {
+		public void execute(long t) { }
+	};
+  
   private Runnable stopSimulationRunnable = new Runnable() {
     public void run() {
       simulation.stopSimulation();
       timeoutEvent.remove();
+      timeoutProgressEvent.remove();
     }
   };
   private Runnable quitRunnable = new Runnable() {
