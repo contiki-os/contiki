@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.h,v 1.2 2010/10/04 20:26:01 adamdunkels Exp $
+ * $Id: queuebuf.h,v 1.3 2010/10/12 19:51:28 oliverschmidt Exp $
  */
 
 /**
@@ -55,6 +55,12 @@
 #define __QUEUEBUF_H__
 
 #include "net/packetbuf.h"
+
+#ifdef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_NUM QUEUEBUF_CONF_NUM
+#else
+#define QUEUEBUF_NUM 8
+#endif
 
 struct queuebuf;
 

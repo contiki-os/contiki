@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.3 2010/10/04 20:26:01 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.4 2010/10/12 19:51:28 oliverschmidt Exp $
  */
 
 /**
@@ -46,12 +46,6 @@
 #include "contiki-net.h"
 
 #include <string.h> /* for memcpy() */
-
-#ifdef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_NUM QUEUEBUF_CONF_NUM
-#else
-#define QUEUEBUF_NUM 8
-#endif
 
 #ifdef QUEUEBUF_CONF_REF_NUM
 #define QUEUEBUF_REF_NUM QUEUEBUF_CONF_REF_NUM
