@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.26 2010/09/22 22:11:20 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.27 2010/10/12 11:36:42 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +64,7 @@ int snprintf(char *str, size_t size, const char *format, ...);
 #include <string.h>
 
 
-#define DEFAULT_COLLECT_REXMITS 4
+#define DEFAULT_COLLECT_REXMITS 15
 
 
 #define COLLECT_MSG_HDRSIZE 4
