@@ -26,11 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.37 2010/10/04 08:14:55 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.38 2010/10/12 10:31:22 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -62,6 +64,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -127,8 +130,12 @@ public class RadioLogger extends VisPlugin {
   private String analyzerName = null;
   private ArrayList<PacketAnalyzer> analyzers = null;
 
+  private JTextField searchField = new JTextField(30);
+
   public RadioLogger(final Simulation simulationToControl, final GUI gui) {
     super("Radio Logger", gui);
+    setLayout(new BorderLayout());
+    
     simulation = simulationToControl;
     radioMedium = simulation.getRadioMedium();
 
@@ -266,6 +273,16 @@ public class RadioLogger extends VisPlugin {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
           timeLineAction.actionPerformed(null);
           logListenerAction.actionPerformed(null);
+        } else if (e.getKeyCode() == KeyEvent.VK_F && 
+        		(e.getModifiers() & MouseEvent.CTRL_MASK) != 0) {
+        	searchField.setVisible(true);
+        	searchField.requestFocus();
+        	searchField.selectAll();
+        	revalidate();
+        } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+        	searchField.setVisible(false);
+        	dataTable.requestFocus();
+        	revalidate();
         }
       }
     });
@@ -347,11 +364,28 @@ public class RadioLogger extends VisPlugin {
     verboseBox.setEditable(false);
     verboseBox.setComponentPopupMenu(popupMenu);
 
+    /* Search text field */
+    searchField.setVisible(false); 	
+    searchField.addKeyListener(new KeyAdapter() {
+      public void keyPressed(KeyEvent e) {
+      	if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+      		searchSelectNext(
+      				searchField.getText(),
+      				(e.getModifiers() & MouseEvent.SHIFT_DOWN_MASK) != 0);
+      	} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+        	searchField.setVisible(false);
+        	dataTable.requestFocus();
+        	revalidate();
+        }
+      }
+    });
+    
     splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
             new JScrollPane(dataTable), new JScrollPane(verboseBox));
     splitPane.setOneTouchExpandable(true);
     splitPane.setDividerLocation(150);
-    add(splitPane);
+    add(BorderLayout.NORTH, searchField);
+    add(BorderLayout.CENTER, splitPane);
     
     TableColumnAdjuster adjuster = new TableColumnAdjuster(dataTable);
     adjuster.setDynamicAdjustment(true);
@@ -400,6 +434,41 @@ public class RadioLogger extends VisPlugin {
     }
   }
 
+	private void searchSelectNext(String text, boolean reverse) {
+		if (text.isEmpty()) {
+			return;
+		}
+		int row = dataTable.getSelectedRow();
+    if (row < 0) {
+    	row = 0;
+    }
+    
+    if (!reverse) {
+    	row++;
+    } else {
+    	row--;
+    }
+
+    int rows = dataTable.getModel().getRowCount();
+    for (int i=0; i < rows; i++) {
+    	int r;
+    	if (!reverse) {
+    		r = (row + i + rows)%rows;
+    	} else {
+    		r = (row - i + rows)%rows;
+    	}
+    	String val = (String) dataTable.getModel().getValueAt(r, COLUMN_DATA);
+    	if (!val.contains(text)) {
+    		continue;
+    	}
+    	dataTable.setRowSelectionInterval(r,r);
+    	dataTable.scrollRectToVisible(dataTable.getCellRect(r, COLUMN_DATA, true));
+    	searchField.setBackground(Color.WHITE);
+    	return;
+    }
+  	searchField.setBackground(Color.RED);
+	}
+	
   /**
    * Selects a logged radio packet close to the given time.
    * 
