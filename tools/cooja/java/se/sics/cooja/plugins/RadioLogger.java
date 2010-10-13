@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.38 2010/10/12 10:31:22 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.39 2010/10/13 11:31:10 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -274,7 +274,7 @@ public class RadioLogger extends VisPlugin {
           timeLineAction.actionPerformed(null);
           logListenerAction.actionPerformed(null);
         } else if (e.getKeyCode() == KeyEvent.VK_F && 
-        		(e.getModifiers() & MouseEvent.CTRL_MASK) != 0) {
+        		(e.getModifiers() & KeyEvent.CTRL_MASK) != 0) {
         	searchField.setVisible(true);
         	searchField.requestFocus();
         	searchField.selectAll();
@@ -371,7 +371,7 @@ public class RadioLogger extends VisPlugin {
       	if (e.getKeyCode() == KeyEvent.VK_ENTER) {
       		searchSelectNext(
       				searchField.getText(),
-      				(e.getModifiers() & MouseEvent.SHIFT_DOWN_MASK) != 0);
+      				(e.getModifiers() & KeyEvent.SHIFT_MASK) != 0);
       	} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
         	searchField.setVisible(false);
         	dataTable.requestFocus();
