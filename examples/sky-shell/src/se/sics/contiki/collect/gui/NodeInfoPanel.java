@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.8 2010/09/30 22:24:45 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.9 2010/10/13 22:55:14 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/09/30 22:24:45 $
- *           $Revision: 1.8 $
+ * Updated : $Date: 2010/10/13 22:55:14 $
+ *           $Revision: 1.9 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -257,7 +257,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
         if (value == null) {
           setText(null);
         }
-        double v = (Double) value + 0.0005;
+        double v = ((Number) value).doubleValue() + 0.0005;
         int dec = ((int)(v * 1000)) % 1000;
         setText((long)v + "." + (dec > 99 ? "" : "0") + (dec > 9 ? "" : "0") + dec);
       }
@@ -402,7 +402,19 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
       this.columns = columns;
     }
 
+    public void recalculateAverage() {
+      for(TableData td : columns) {
+        td.clearAverageCache();
+      }
+      int row = getRowCount() - 1;
+      fireTableRowsUpdated(row, row);
+    }
+
     public Object getValueAt(int row, int col) {
+      int count = nodes == null ? 0 : nodes.length;
+      if (row == count) {
+        return columns[col].getAverageValue(nodes);
+      }
       return columns[col].getValue(nodes[row]);
     }
 
@@ -424,7 +436,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
     }
 
     public int getRowCount() {
-      return nodes == null ? 0 : nodes.length;
+      return (nodes == null ? 0 : nodes.length) + 1;
     }
 
     public void setNodes(Node[] nodes) {
@@ -435,6 +447,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
       if (this.nodes != null && this.nodes.length > 0) {
         fireTableRowsInserted(0, this.nodes.length - 1);
       }
+      recalculateAverage();
     }
 
     public void updateNode(Node node) {
@@ -442,6 +455,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
         for(int row = 0; row < this.nodes.length; row++) {
           if (this.nodes[row] == node) {
             fireTableRowsUpdated(row, row);
+            recalculateAverage();
             break;
           }
         }
@@ -453,12 +467,16 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
   public static abstract class TableData extends AbstractAction {
     private static final long serialVersionUID = -3045755073722516926L;
 
+    private final static Node AVERAGE_NODE = new Node("Average");
+
     public final String name;
     public final Class<?> dataClass;
 
     private JTable table;
     private TableColumn tableColumn;
     private int modelIndex = -1;
+
+    private Object averageCache;
 
     protected TableData(String name, Class<?> dataClass) {
       this(name, name, dataClass);
@@ -525,7 +543,46 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
       }
     }
 
+    public final Object getAverageValue(Node[] nodes) {
+      Object tmp = averageCache;
+      if (tmp != null) {
+        return tmp;
+      }
+
+      if (dataClass == Integer.class || dataClass == Long.class || dataClass == Double.class) {
+        double average = 0.0;
+        if (nodes != null && nodes.length > 0) {
+          int count = 0;
+          for(Node node : nodes) {
+            if (node.getSensorDataAggregator().getDataCount() > 0) {
+              average += ((Number) getValue(node)).doubleValue();
+              count++;
+            }
+          }
+          if (count > 0) {
+            average = average / count;
+          }
+        }
+        if (dataClass == Integer.class) {
+          tmp = (int) (average + 0.5);
+        } else if (dataClass == Long.class) {
+          tmp = (long) (average + 0.5);
+        } else {
+          tmp = average;
+        }
+      } else if (dataClass == Node.class) {
+        tmp = AVERAGE_NODE;
+      }
+      averageCache = tmp;
+      return tmp;
+    }
+
+    public final void clearAverageCache() {
+      averageCache = null;
+    }
+
     public abstract Object getValue(Node node);
 
   }
+
 }
