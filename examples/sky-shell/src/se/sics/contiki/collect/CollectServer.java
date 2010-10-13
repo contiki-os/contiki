@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.27 2010/10/12 16:28:19 nifi Exp $
+ * $Id: CollectServer.java,v 1.28 2010/10/13 22:55:47 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/12 16:28:19 $
- *           $Revision: 1.27 $
+ * Updated : $Date: 2010/10/13 22:55:47 $
+ *           $Revision: 1.28 $
  */
 
 package se.sics.contiki.collect;
@@ -147,6 +147,7 @@ public class CollectServer implements SerialConnectionListener {
   private boolean doSendInitAtStartup = false;
   private String initScript;
 
+  private int defaultMaxItemCount = 250;
   private long nodeTimeDelta;
 
   @SuppressWarnings("serial")
@@ -241,7 +242,6 @@ public class CollectServer implements SerialConnectionListener {
     if (image != null) {
       mapPanel.setMapBackground(image);
     }
-    final int defaultMaxItemCount = 250;
     NodeControl nodeControl = new NodeControl(this, MAIN);
 
     visualizers = new Visualizer[] {
@@ -265,7 +265,6 @@ public class CollectServer implements SerialConnectionListener {
             setRangeTick(5);
             setRangeMinimumSize(10.0);
             setGlobalRange(true);
-            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getTemperature();
@@ -277,7 +276,6 @@ public class CollectServer implements SerialConnectionListener {
             setRangeTick(1);
 	    setRangeMinimumSize(4.0);
 	    setGlobalRange(true);
-            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getBatteryVoltage();
@@ -290,7 +288,6 @@ public class CollectServer implements SerialConnectionListener {
             setRangeTick(5);
             setRangeMinimumSize(10.0);
             setGlobalRange(true);
-            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getBatteryIndicator();
@@ -298,7 +295,6 @@ public class CollectServer implements SerialConnectionListener {
         },
         new TimeChartPanel(this, SENSORS, "Relative Humidity", "Humidity", "Time", "%") {
           {
-            setMaxItemCount(defaultMaxItemCount);
             chart.getXYPlot().getRangeAxis().setRange(0.0, 100.0);
           }
           protected double getSensorDataValue(SensorData data) {
@@ -306,17 +302,11 @@ public class CollectServer implements SerialConnectionListener {
           }
         },
         new TimeChartPanel(this, SENSORS, "Light 1", "Light 1", "Time", "-") {
-          {
-            setMaxItemCount(defaultMaxItemCount);
-          }
           protected double getSensorDataValue(SensorData data) {
             return data.getLight1();
           }
         },
         new TimeChartPanel(this, SENSORS, "Light 2", "Light 2", "Time", "-") {
-          {
-            setMaxItemCount(defaultMaxItemCount);
-          }
           protected double getSensorDataValue(SensorData data) {
             return data.getLight2();
           }
@@ -326,7 +316,6 @@ public class CollectServer implements SerialConnectionListener {
             ValueAxis axis = chart.getXYPlot().getRangeAxis();
             ((NumberAxis)axis).setAutoRangeIncludesZero(true);
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getValue(SensorData.NUM_NEIGHBORS);
@@ -337,7 +326,6 @@ public class CollectServer implements SerialConnectionListener {
             ValueAxis axis = chart.getXYPlot().getRangeAxis();
             ((NumberAxis)axis).setAutoRangeIncludesZero(true);
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getValue(SensorData.BEACON_INTERVAL);
@@ -348,7 +336,6 @@ public class CollectServer implements SerialConnectionListener {
             ValueAxis axis = chart.getXYPlot().getRangeAxis();
             ((NumberAxis)axis).setAutoRangeIncludesZero(true);
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getValue(SensorData.HOPS);
@@ -369,7 +356,6 @@ public class CollectServer implements SerialConnectionListener {
             ValueAxis axis = chart.getXYPlot().getRangeAxis();
             ((NumberAxis)axis).setAutoRangeIncludesZero(true);
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getValue(SensorData.BEST_NEIGHBOR_RTMETRIC) + data.getValue(SensorData.BEST_NEIGHBOR_ETX);
@@ -380,7 +366,6 @@ public class CollectServer implements SerialConnectionListener {
             ValueAxis axis = chart.getXYPlot().getRangeAxis();
             ((NumberAxis)axis).setAutoRangeIncludesZero(true);
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getValue(SensorData.BEST_NEIGHBOR_ETX);
@@ -415,9 +400,6 @@ public class CollectServer implements SerialConnectionListener {
           }
         },
         new TimeChartPanel(this, NETWORK, "Latency", "Latency", "Time", "Seconds") {
-          {
-            setMaxItemCount(defaultMaxItemCount);
-          }
           protected double getSensorDataValue(SensorData data) {
             return data.getLatency();
           }
@@ -571,11 +553,6 @@ public class CollectServer implements SerialConnectionListener {
           }
         },
         new TimeChartPanel(this, POWER, "Power History", "Historical Power Consumption", "Time", "mW") {
-          {
-//            ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
-//            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
-            setMaxItemCount(defaultMaxItemCount);
-          }
           protected double getSensorDataValue(SensorData data) {
             return data.getAveragePower();
           }
@@ -715,6 +692,29 @@ public class CollectServer implements SerialConnectionListener {
     toolsMenu.add(runInitScriptItem);
     toolsMenu.addSeparator();
 
+    item = new JMenuItem("Set Max Item Count...");
+    item.addActionListener(new ActionListener() {
+
+      public void actionPerformed(ActionEvent e) {
+        int value = getUserInputAsInteger("Specify Max Item Count",
+            "Please specify max item count for the time charts.\n" +
+            "Charts with more values will aggregate the values into fewer items.",
+            defaultMaxItemCount);
+        if (value > 0) {
+          defaultMaxItemCount = value;
+          if (visualizers != null) {
+            for(Visualizer v : visualizers) {
+              if (v instanceof TimeChartPanel) {
+                ((TimeChartPanel)v).setMaxItemCount(defaultMaxItemCount);
+              }
+            }
+          }
+        }
+      }
+
+    });
+    toolsMenu.add(item);
+
     final JCheckBoxMenuItem baseShapeItem = new JCheckBoxMenuItem("Base Shape Visible");
     baseShapeItem.setSelected(true);
     baseShapeItem.addActionListener(new ActionListener() {
@@ -751,6 +751,19 @@ public class CollectServer implements SerialConnectionListener {
         getNode(property, true);
       }
     }
+  }
+
+  private int getUserInputAsInteger(String title, String message, int defaultValue) {
+    String s = (String)JOptionPane.showInputDialog(
+      window, message, title, JOptionPane.PLAIN_MESSAGE, null, null, Integer.toString(defaultValue));
+    if (s != null) {
+      try {
+        return Integer.parseInt(s);
+      } catch (Exception e) {
+        JOptionPane.showMessageDialog(window, "Illegal value", "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+    return -1;
   }
 
   void start(SerialConnection connection) {
@@ -849,6 +862,10 @@ public class CollectServer implements SerialConnectionListener {
 
   public String getConfig(String property, String defaultValue) {
     return configTable.getProperty(property, config.getProperty(property, defaultValue));
+  }
+
+  public int getDefaultMaxItemCount() {
+    return defaultMaxItemCount;
   }
 
   public Action getMoteProgramAction() {

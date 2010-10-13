@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeChartPanel.java,v 1.7 2010/09/15 16:15:10 nifi Exp $
+ * $Id: TimeChartPanel.java,v 1.8 2010/10/13 22:55:47 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/15 16:15:10 $
- *           $Revision: 1.7 $
+ * Updated : $Date: 2010/10/13 22:55:47 $
+ *           $Revision: 1.8 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -92,6 +92,7 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
     this.chartPanel = new ChartPanel(chart);
     this.chartPanel.setPreferredSize(new Dimension(500, 270));
     setBaseShapeVisible(true);
+    setMaxItemCount(server.getDefaultMaxItemCount());
     add(chartPanel, BorderLayout.CENTER);
   }
 
@@ -197,7 +198,7 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
       int sensorDataCount = node.getSensorDataCount();
       if (sensorDataCount > maxItemCount) {
         int groupSize = sensorDataCount / maxItemCount;
-        if (sensorDataCount / groupSize > maxItemCount) {
+        if (sensorDataCount / groupSize >= maxItemCount) {
           groupSize++;
         }
         return groupSize;
