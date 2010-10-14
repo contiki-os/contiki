@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.13 2010/10/14 17:00:56 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.14 2010/10/14 18:53:08 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/10/14 17:00:56 $
- *           $Revision: 1.13 $
+ * Updated : $Date: 2010/10/14 18:53:08 $
+ *           $Revision: 1.14 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -46,6 +46,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Comparator;
 import java.util.Properties;
 
 import javax.swing.AbstractAction;
@@ -76,6 +77,16 @@ import se.sics.contiki.collect.Visualizer;
 public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
 
   private static final long serialVersionUID = -1060893468047793431L;
+
+  private static Comparator<Number> NUMBER_COMPARATOR = new Comparator<Number>() {
+
+    public int compare(Number o1, Number o2) {
+      double v1 = o1.doubleValue();
+      double v2 = o2.doubleValue();
+      return (v1 < v2 ? -1 : (v1 == v2 ? 0 : 1));
+    }
+
+  };
 
   private final CollectServer server;
   private final String category;
@@ -234,13 +245,19 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
     };
 
     // Do not sort column when clicking between the columns (resizing)
-    table.setRowSorter(new TableRowSorter<NodeModel>(nodeModel) {
+    TableRowSorter<NodeModel> sorter = new TableRowSorter<NodeModel>(nodeModel) {
       public void toggleSortOrder(int column) {
         if(table.getTableHeader().getCursor().getType() != Cursor.E_RESIZE_CURSOR) {
           super.toggleSortOrder(column);
         }
       }
-    });
+    };
+    for(int c = 0; c < columns.length; c++) {
+      if (columns[c].dataClass == Number.class) {
+        sorter.setComparator(c, NUMBER_COMPARATOR);
+      }
+    }
+    table.setRowSorter(sorter);
     // Pack the column when double clicking between columns (resizing)
     table.getTableHeader().addMouseListener(new MouseAdapter() {
       public void mouseClicked(MouseEvent e) {
@@ -514,7 +531,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
   public static abstract class TableData extends AbstractAction {
     private static final long serialVersionUID = -3045755073722516926L;
 
-    private final static Node AVERAGE_NODE = new Node("Avg");
+    private final static Node AVERAGE_NODE = new Node("99999999.9", "Avg");
 
     public final String name;
     public final Class<?> dataClass;

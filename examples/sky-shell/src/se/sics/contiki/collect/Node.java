@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Node.java,v 1.8 2010/10/10 22:39:09 nifi Exp $
+ * $Id: Node.java,v 1.9 2010/10/14 18:53:08 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/10 22:39:09 $
- *           $Revision: 1.8 $
+ * Updated : $Date: 2010/10/14 18:53:08 $
+ *           $Revision: 1.9 $
  */
 
 package se.sics.contiki.collect;
@@ -61,8 +61,12 @@ public class Node implements Comparable<Node> {
   private long lastActive;
 
   public Node(String nodeID) {
+    this(nodeID, nodeID);
+  }
+
+  public Node(String nodeID, String nodeName) {
     this.id = nodeID;
-    this.name = nodeID;
+    this.name = nodeName;
     sensorDataAggregator = new SensorDataAggregator(this);
   }
 
