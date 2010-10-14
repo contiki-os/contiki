@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.9 2010/10/13 22:55:14 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.10 2010/10/14 06:31:38 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/10/13 22:55:14 $
- *           $Revision: 1.9 $
+ * Updated : $Date: 2010/10/14 06:31:38 $
+ *           $Revision: 1.10 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -93,17 +93,17 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
             return node;
           }
         },
-        new TableData("Packets", "Packets Received", Integer.class) {
+        new TableData("Packets", "Packets Received", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getPacketCount();
           }
         },
-        new TableData("Duplicates", "Duplicate Packets Received", Integer.class) {
+        new TableData("Duplicates", "Duplicate Packets Received", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getDuplicateCount();
           }
         },
-        new TableData("Estimated Lost", "Estimated Lost Packets", Integer.class) {
+        new TableData("Estimated Lost", "Estimated Lost Packets", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getEstimatedLostCount();
           }
@@ -123,13 +123,13 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
             return node.getSensorDataAggregator().getAverageValue(SensorData.BEST_NEIGHBOR_ETX);
           }
         },
-        new TableData("Next Hop Changes", "Next Hop Change Count", Integer.class) {
+        new TableData("Next Hop Changes", "Next Hop Change Count", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getNextHopChangeCount();
           }
         },
 
-        new TableData("Restarts", "Estimated Node Restart Count", Integer.class) {
+        new TableData("Restarts", "Estimated Node Restart Count", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getEstimatedRestarts();
           }
@@ -256,14 +256,34 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
       public void setValue(Object value) {
         if (value == null) {
           setText(null);
+        } else {
+          double v = ((Number) value).doubleValue() + 0.0005;
+          int dec = ((int)(v * 1000)) % 1000;
+          setText((long)v + "." + (dec > 99 ? "" : "0") + (dec > 9 ? "" : "0") + dec);
         }
-        double v = ((Number) value).doubleValue() + 0.0005;
-        int dec = ((int)(v * 1000)) % 1000;
-        setText((long)v + "." + (dec > 99 ? "" : "0") + (dec > 9 ? "" : "0") + dec);
       }
     };
     renderer.setHorizontalAlignment(JLabel.RIGHT);
     table.setDefaultRenderer(Double.class, renderer);
+
+    // Add renderer for mixed integers and doubles
+    renderer = new DefaultTableCellRenderer() {
+      private static final long serialVersionUID = 1L;
+
+      public void setValue(Object value) {
+        if (value == null) {
+          setText(null);
+        } else if (value instanceof Integer) {
+          setText(value.toString());
+        } else {
+          double v = ((Number) value).doubleValue() + 0.0005;
+          int dec = ((int)(v * 1000)) % 1000;
+          setText((long)v + "." + (dec > 99 ? "" : "0") + (dec > 9 ? "" : "0") + dec);
+        }
+      }
+    };
+    renderer.setHorizontalAlignment(JLabel.RIGHT);
+    table.setDefaultRenderer(Number.class, renderer);
 
     table.setFillsViewportHeight(true);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -549,7 +569,8 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
         return tmp;
       }
 
-      if (dataClass == Integer.class || dataClass == Long.class || dataClass == Double.class) {
+      if (dataClass == Long.class || dataClass == Double.class
+          || dataClass == Number.class) {
         double average = 0.0;
         if (nodes != null && nodes.length > 0) {
           int count = 0;
@@ -563,9 +584,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
             average = average / count;
           }
         }
-        if (dataClass == Integer.class) {
-          tmp = (int) (average + 0.5);
-        } else if (dataClass == Long.class) {
+        if (dataClass == Long.class) {
           tmp = (long) (average + 0.5);
         } else {
           tmp = average;
