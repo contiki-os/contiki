@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.28 2010/10/13 22:55:47 nifi Exp $
+ * $Id: CollectServer.java,v 1.29 2010/10/14 18:13:09 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/13 22:55:47 $
- *           $Revision: 1.28 $
+ * Updated : $Date: 2010/10/14 18:13:09 $
+ *           $Revision: 1.29 $
  */
 
 package se.sics.contiki.collect;
@@ -128,12 +128,12 @@ public class CollectServer implements SerialConnectionListener {
   private JFrame window;
   private JTabbedPane mainPanel;
   private HashMap<String,JTabbedPane> categoryTable = new HashMap<String,JTabbedPane>();
-  private JMenuItem serialItem;
   private JMenuItem runInitScriptItem;
 
   private final Visualizer[] visualizers;
   private final MapPanel mapPanel;
   private final SerialConsole serialConsole;
+  private final ConnectSerialAction connectSerialAction;
   private final MoteProgramAction moteProgramAction;
   private JFileChooser fileChooser;
 
@@ -182,6 +182,7 @@ public class CollectServer implements SerialConnectionListener {
     });
 
     moteProgramAction = new MoteProgramAction("Program Nodes...");
+    connectSerialAction = new ConnectSerialAction("Connect to serial");
 
     nodeModel = new DefaultListModel();
     nodeModel.addElement("<All>");
@@ -585,9 +586,7 @@ public class CollectServer implements SerialConnectionListener {
     JMenu fileMenu = new JMenu("File");
     fileMenu.setMnemonic(KeyEvent.VK_F);
     menuBar.add(fileMenu);
-    serialItem = new JMenuItem("Connect to serial");
-    serialItem.addActionListener(new SerialItemHandler());
-    fileMenu.add(serialItem);
+    fileMenu.add(new JMenuItem(connectSerialAction));
     fileMenu.add(new JMenuItem(moteProgramAction));
 
     fileMenu.addSeparator();
@@ -872,6 +871,10 @@ public class CollectServer implements SerialConnectionListener {
     return moteProgramAction;
   }
 
+  public Action getConnectSerialAction() {
+    return connectSerialAction;
+  }
+
   protected void setSystemMessage(final String message) {
     SwingUtilities.invokeLater(new Runnable() {
 
@@ -882,7 +885,8 @@ public class CollectServer implements SerialConnectionListener {
         } else {
           window.setTitle(WINDOW_TITLE + " (" + message + ')');
         }
-        serialItem.setText(isOpen ? "Disconnect from serial" : "Connect to serial");
+        connectSerialAction.putValue(ConnectSerialAction.NAME,
+            isOpen ? "Disconnect from serial" : "Connect to serial");
         runInitScriptItem.setEnabled(isOpen
             && serialConnection.isSerialOutputSupported() && hasInitScript());
       }
@@ -1210,9 +1214,15 @@ public class CollectServer implements SerialConnectionListener {
     this.sensorDataOutput = null;
   }
 
-  protected class SerialItemHandler implements ActionListener, Runnable {
+  protected class ConnectSerialAction extends AbstractAction implements Runnable {
+
+    private static final long serialVersionUID = 1L;
 
     private boolean isRunning;
+
+    public ConnectSerialAction(String name) {
+      super(name);
+    }
 
     public void actionPerformed(ActionEvent e) {
       if (!isRunning) {
