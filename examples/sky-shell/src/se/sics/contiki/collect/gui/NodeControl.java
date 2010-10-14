@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeControl.java,v 1.6 2010/10/12 16:28:19 nifi Exp $
+ * $Id: NodeControl.java,v 1.7 2010/10/14 18:13:10 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Niclas Finne
  * Created : 27 sep 2010
- * Updated : $Date: 2010/10/12 16:28:19 $
- *           $Revision: 1.6 $
+ * Updated : $Date: 2010/10/14 18:13:10 $
+ *           $Revision: 1.7 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -135,13 +135,20 @@ public class NodeControl implements Visualizer {
     c.gridy++;
     c.gridwidth = 1;
     controlPanel.add(new JLabel("Program Connected Nodes", JLabel.RIGHT), c);
-    c.gridwidth = 2;
+    c.gridwidth = 3;
     c.fill = GridBagConstraints.NONE;
     controlPanel.add(new JButton(server.getMoteProgramAction()), c);
+    c.fill = GridBagConstraints.HORIZONTAL;
 
     c.gridy++;
+    c.gridwidth = 1;
+    controlPanel.add(new JLabel("Serial Connection", JLabel.RIGHT), c);
     c.gridwidth = 3;
+    c.fill = GridBagConstraints.NONE;
+    controlPanel.add(new JButton(server.getConnectSerialAction()), c);
     c.fill = GridBagConstraints.HORIZONTAL;
+
+    c.gridy++;
     controlPanel.add(new JSeparator(), c);
 
     c.gridy++;
@@ -209,7 +216,8 @@ public class NodeControl implements Visualizer {
  "<lu>" +
  "<li> Connect nodes to USB. Press the <strong>Program Nodes...</strong> button." +
  "<li> Disconnect all except one node. " +
- "Press the <strong>Start Collect</strong> button." +
+ "Press the <strong>Connect to Serial</strong> button." +
+ "<li> Press the <strong>Start Collect</strong> button." +
  "<li> Press the <strong>Send command to nodes</strong> button." +
  "</lu>" + 
  "</html>");
