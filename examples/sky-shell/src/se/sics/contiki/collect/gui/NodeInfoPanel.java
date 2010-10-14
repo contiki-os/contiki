@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.11 2010/10/14 06:45:45 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.12 2010/10/14 16:49:34 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/10/14 06:45:45 $
- *           $Revision: 1.11 $
+ * Updated : $Date: 2010/10/14 16:49:34 $
+ *           $Revision: 1.12 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -109,17 +109,17 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
             return node.getSensorDataAggregator().getEstimatedLostCount();
           }
         },
-        new TableData("Average Hops", "Average Hops to Sink", Double.class) {
+        new TableData("Avg Hops", "Average Hops to Sink", Double.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getAverageValue(SensorData.HOPS);
           }
         },
-        new TableData("Average Rtmetric", "Average Routing Metric", Double.class) {
+        new TableData("Avg Rtmetric", "Average Routing Metric", Double.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getAverageRtmetric();
           }
         },
-        new TableData("Average ETX", "Average ETX to Next Hop", Double.class) {
+        new TableData("Avg ETX", "Average ETX to Next Hop", Double.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getAverageValue(SensorData.BEST_NEIGHBOR_ETX);
           }
@@ -127,6 +127,11 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
         new TableData("Next Hop Changes", "Next Hop Change Count", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getNextHopChangeCount();
+          }
+        },
+        new TableData("Beacon Interval", "Average Beacon Interval", Long.class) {
+          public Object getValue(Node node) {
+            return (long)(node.getSensorDataAggregator().getAverageValue(SensorData.BEACON_INTERVAL) * 1000);
           }
         },
 
@@ -180,17 +185,17 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
         },
 
         // Inter-packet times
-        new TableData("Average Inter-packet Time", Long.class) {
+        new TableData("Avg Inter-packet Time", Long.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getAveragePeriod();
           }
         },
-        new TableData("Shortest Inter-packet Time", Long.class) {
+        new TableData("Min Inter-packet Time", Long.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getShortestPeriod();
           }
         },
-        new TableData("Longest Inter-packet Time", Long.class) {
+        new TableData("Max Inter-packet Time", Long.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getLongestPeriod();
           }
@@ -263,6 +268,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
         setText(time > 0 ? getTimeAsString(time) : null);
       }
     };
+    renderer.setHorizontalAlignment(JLabel.RIGHT);
     table.setDefaultRenderer(Long.class, renderer);
 
     // Add renderer for double
@@ -399,7 +405,12 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
       sb.append(hours).append(hours > 1 ? " hours, " : " hour, ");
       time -= hours * 60 * 60;
     }
-    sb.append(time / 60).append(" min, ").append(time % 60).append(" sec");
+    long sec = time % 60;
+    sb.append(time / 60).append(" min, ");
+    if (sec < 9) {
+      sb.append('0');
+    }
+    sb.append(sec).append(" sec");
     return sb.toString();
   }
 
@@ -412,12 +423,12 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
     }
     Component c = columnRenderer.getTableCellRendererComponent(table, value, false, false, -1, columnIndex);
     int width = c.getPreferredSize().width + 6;
-
+    int intercellSpacing = table.getIntercellSpacing().width;
     for(int i = 0, n = table.getRowCount(); i < n; i++) {
       TableCellRenderer cellRenderer = table.getCellRenderer(i, columnIndex);
       value = table.getValueAt(i, columnIndex);
       c = cellRenderer.getTableCellRendererComponent(table, value, false, false, i, columnIndex);
-      int w = c.getPreferredSize().width + table.getIntercellSpacing().width;
+      int w = c.getPreferredSize().width + intercellSpacing + 2;
       if (w > width) {
         width = w;
       }
