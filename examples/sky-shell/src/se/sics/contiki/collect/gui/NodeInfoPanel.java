@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.12 2010/10/14 16:49:34 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.13 2010/10/14 17:00:56 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/10/14 16:49:34 $
- *           $Revision: 1.12 $
+ * Updated : $Date: 2010/10/14 17:00:56 $
+ *           $Revision: 1.13 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -407,7 +407,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
     }
     long sec = time % 60;
     sb.append(time / 60).append(" min, ");
-    if (sec < 9) {
+    if (sec < 10) {
       sb.append('0');
     }
     sb.append(sec).append(" sec");
