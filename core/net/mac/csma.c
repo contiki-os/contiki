@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.20 2010/10/03 20:37:32 adamdunkels Exp $
+ * $Id: csma.c,v 1.21 2010/10/14 19:08:39 nifi Exp $
  */
 
 /**
@@ -176,8 +176,12 @@ packet_sent(void *ptr, int status, int num_transmissions)
       free_packet(q);
       mac_call_sent_callback(sent, cptr, status, num_tx);
     }
-  } else if(status == MAC_TX_OK) {
-    PRINTF("csma: rexmit ok %d\n", q->transmissions);
+  } else  {
+    if(status == MAC_TX_OK) {
+      PRINTF("csma: rexmit ok %d\n", q->transmissions);
+    } else {
+      PRINTF("csma: rexmit failed %d: %d\n", q->transmissions, status);
+    }
     free_packet(q);
     mac_call_sent_callback(sent, cptr, status, num_tx);
   }
