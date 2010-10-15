@@ -30,12 +30,17 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.17 2008/02/10 22:48:17 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.18 2010/10/15 21:14:18 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <winsock2.h>
 #include <stdio.h>
+
+/* Avoid 'conflicting types' errors. */
+#define htonl
+#define htons
 
 #include "contiki-net.h"
 
@@ -102,17 +107,21 @@ main(void)
 #if 1
   {
     uip_ipaddr_t addr;
-    uip_ipaddr(&addr, 192,168,0,222);
+    uip_ipaddr(&addr, 10,1,1,1);
     uip_sethostaddr(&addr);
+    log_message("IP Address:  ", inet_ntoa(*(struct in_addr*)&addr));
 
-    uip_ipaddr(&addr, 255,255,255,0);
+    uip_ipaddr(&addr, 255,0,0,0);
     uip_setnetmask(&addr);
+    log_message("Subnet Mask: ", inet_ntoa(*(struct in_addr*)&addr));
 
-    uip_ipaddr(&addr, 192,168,0,1);
+    uip_ipaddr(&addr, 10,1,1,100);
     uip_setdraddr(&addr);
+    log_message("Def. Router: ", inet_ntoa(*(struct in_addr*)&addr));
 
-    uip_ipaddr(&addr, 192,168,0,1);
+    uip_ipaddr(&addr, 10,1,1,100);
     resolv_conf(&addr);
+    log_message("DNS Server:  ", inet_ntoa(*(struct in_addr*)&addr));
   }
 #endif
 
