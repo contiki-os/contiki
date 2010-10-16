@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftp.c,v 1.7 2010/05/31 15:22:08 nifi Exp $
+ * $Id: ftp.c,v 1.8 2010/10/16 08:15:40 oliverschmidt Exp $
  */
 /* Note to self: It would be nice to have a "View" option in the download dialog. */
 
@@ -89,8 +89,10 @@ static struct ctk_label remotefileslabel =
 static struct ctk_button reloadbutton =
   {CTK_BUTTON(0, 1 + FILES_HEIGHT, 6, "Reload")};
 
+#if CTK_CONF_WINDOWS
 static struct ctk_button connectionbutton =
   {CTK_BUTTON(8, 1 + FILES_HEIGHT, 13, "Connection...")};
+#endif /* CTK_CONF_WINDOWS */
 static struct ctk_button quitbutton =
   {CTK_BUTTON(1 + FILES_WIDTH + 1 + FILES_WIDTH - 5,
 	      1 + FILES_HEIGHT, 4, "Quit")};
@@ -124,8 +126,8 @@ static struct ctk_textentry remotefilenameentry =
   {CTK_TEXTENTRY(2, 9, 16, 1, remotefilename, sizeof(remotefilename) - 1)};
 static struct ctk_button downloadbutton =
   {CTK_BUTTON(0, 11, 13, "Download file")};
-static struct ctk_button uploadbutton =
-  {CTK_BUTTON(0, 11, 11, "Upload file")};
+/* static struct ctk_button uploadbutton =
+  {CTK_BUTTON(0, 11, 11, "Upload file")}; */
 static struct ctk_button cancelbutton =
   {CTK_BUTTON(16, 11, 6, "Cancel")};
   
@@ -153,18 +155,20 @@ static struct ctk_textentry passwordentry =
 
 static struct ctk_button connectbutton =
   {CTK_BUTTON(0, 10, 7, "Connect")};
+#if CTK_CONF_WINDOWS
 static struct ctk_button closeconnectionbutton =
   {CTK_BUTTON(0, 10, 16, "Close connection")};
 
 static struct ctk_button closebutton =
   {CTK_BUTTON(18, 10, 5, "Close")};
+#endif /* CTK_CONF_WINDOWS */
 
 static struct cfs_dir dir;
 static struct cfs_dirent dirent;
+
 static unsigned char localfileptr = 0;
-
 static unsigned char remotefileptr = 0;
-
+static unsigned char ptractive;
 static unsigned char ptrstate;
 #define PTRSTATE_LOCALFILES 0
 #define PTRSTATE_REMOTEFILES 1
@@ -176,23 +180,32 @@ static int fd = -1;
 static void
 make_uploaddialog(void)
 {
+#if CTK_CONF_WINDOWS
   ctk_dialog_new(&dialog, 24, 13);
+#else /* CTK_CONF_WINDOWS */
+  ctk_window_new(&dialog, 24, 13, "");
+#endif /* CTK_CONF_WINDOWS */
 
   CTK_WIDGET_ADD(&dialog, &uploadlabel);
   CTK_WIDGET_ADD(&dialog, &localfilenametextlabel);
   CTK_WIDGET_ADD(&dialog, &localfilenamelabel);
   CTK_WIDGET_ADD(&dialog, &remotefilenametextlabel);
   CTK_WIDGET_ADD(&dialog, &remotefilenameentry);
-  CTK_WIDGET_ADD(&dialog, &uploadbutton);
+/*  CTK_WIDGET_ADD(&dialog, &uploadbutton); */
   CTK_WIDGET_ADD(&dialog, &cancelbutton);  
 
-  CTK_WIDGET_FOCUS(&dialog, &uploadbutton);
+/*  CTK_WIDGET_FOCUS(&dialog, &uploadbutton); */
+  CTK_WIDGET_FOCUS(&dialog, &cancelbutton);
 }
 /*---------------------------------------------------------------------------*/
 static void
 make_downloaddialog(void)
 {
+#if CTK_CONF_WINDOWS
   ctk_dialog_new(&dialog, 24, 13);
+#else /* CTK_CONF_WINDOWS */
+  ctk_window_new(&dialog, 24, 13, "");
+#endif /* CTK_CONF_WINDOWS */
 
   CTK_WIDGET_ADD(&dialog, &downloadlabel);
   CTK_WIDGET_ADD(&dialog, &localfilenametextlabel);
@@ -289,7 +302,11 @@ start_loadremote(void)
 static void
 make_connectionwindow(void)
 {
+#if CTK_CONF_WINDOWS
   ctk_dialog_new(&connectionwindow, 25, 11);
+#else /* CTK_CONF_WINDOWS */
+  ctk_window_new(&connectionwindow, 25, 11, "");
+#endif /* CTK_CONF_WINDOWS */
   
   CTK_WIDGET_ADD(&connectionwindow, &serverlabel);
   CTK_WIDGET_ADD(&connectionwindow, &serverentry);
@@ -300,12 +317,16 @@ make_connectionwindow(void)
   CTK_WIDGET_ADD(&connectionwindow, &passwordlabel);
   CTK_WIDGET_ADD(&connectionwindow, &passwordentry);
   
+#if CTK_CONF_WINDOWS
   if(connection == NULL) {
+#endif /* CTK_CONF_WINDOWS */
     CTK_WIDGET_ADD(&connectionwindow, &connectbutton);
+#if CTK_CONF_WINDOWS
   } else {
     CTK_WIDGET_ADD(&connectionwindow, &closeconnectionbutton);
   }
   CTK_WIDGET_ADD(&connectionwindow, &closebutton);
+#endif /* CTK_CONF_WINDOWS */
 
   CTK_WIDGET_FOCUS(&connectionwindow, &serverentry);
 }
@@ -345,22 +366,33 @@ PROCESS_THREAD(ftp_process, ev, data)
   CTK_WIDGET_ADD(&window, &rightptrlabel);
   
   CTK_WIDGET_ADD(&window, &reloadbutton);
+#if CTK_CONF_WINDOWS
   CTK_WIDGET_ADD(&window, &connectionbutton);
+#endif /* CTK_CONF_WINDOWS */
   CTK_WIDGET_ADD(&window, &quitbutton);
   
   CTK_WIDGET_ADD(&window, &statuslabel);
   
+#if CTK_CONF_WINDOWS
   CTK_WIDGET_FOCUS(&window, &connectionbutton);
+#else /* CTK_CONF_WINDOWS */
+  CTK_WIDGET_FOCUS(&window, &reloadbutton);
+#endif /* CTK_CONF_WINDOWS */
+
+#if CTK_CONF_WINDOWS
   ctk_window_open(&window);
-  
   showptr();
-  
   start_loaddir();
+  ptractive = 1;
+#else /* CTK_CONF_WINDOWS */
+  make_connectionwindow();
+  ctk_window_open(&connectionwindow);
+#endif /* CTK_CONF_WINDOWS */
 
   while(1) {
 
     PROCESS_WAIT_EVENT();
-    
+
     if(ev == PROCESS_EVENT_CONTINUE) {
       if(cfs_readdir(&dir, &dirent) == 0 &&
 	 localfileptr < FILES_HEIGHT) {
@@ -397,9 +429,21 @@ PROCESS_THREAD(ftp_process, ev, data)
       if((struct ctk_button *)data == &quitbutton) {
 	quit();
       } else if((struct ctk_button *)data == &cancelbutton) {
+#if CTK_CONF_WINDOWS
 	ctk_dialog_close();
+#else /* CTK_CONF_WINDOWS */
+	ctk_window_close(&dialog);
+	ctk_window_open(&window);
+#endif /* CTK_CONF_WINDOWS */
+	ptractive = 1;
       } else if((struct ctk_button *)data == &downloadbutton) {
+#if CTK_CONF_WINDOWS
 	ctk_dialog_close();
+#else /* CTK_CONF_WINDOWS */
+	ctk_window_close(&dialog);
+	ctk_window_open(&window);
+#endif /* CTK_CONF_WINDOWS */
+	ptractive = 1;
 	close_file();
 	fd = cfs_open(localfilename, CFS_WRITE);
 	if(fd != -1) {
@@ -410,21 +454,36 @@ PROCESS_THREAD(ftp_process, ev, data)
 	}
       } else if((struct ctk_button *)data == &reloadbutton) {	
 	start_loaddir();
-      } else if((struct ctk_button *)data == &connectionbutton) {	
+#if CTK_CONF_WINDOWS
+      } else if((struct ctk_button *)data == &connectionbutton) {
+	ptractive = 0;
 	make_connectionwindow();
 	ctk_dialog_open(&connectionwindow);
       } else if((struct ctk_button *)data == &closebutton) {
 	ctk_dialog_close();
+	ptractive = 1;
+#endif /* CTK_CONF_WINDOWS */
       } else if((struct ctk_button *)data == &anonymousbutton) {
-	strcpy(username, "ftp");
+	strcpy(username, "anonymous");
 	strcpy(password, "contiki@ftp");
 	CTK_WIDGET_REDRAW(&userentry);
 	CTK_WIDGET_REDRAW(&passwordentry);
+#if CTK_CONF_WINDOWS
       } else if((struct ctk_button *)data == &closeconnectionbutton) {
 	ctk_dialog_close();
+	ptractive = 1;
 	ftpc_close(connection);
+#endif /* CTK_CONF_WINDOWS */
       } else if((struct ctk_button *)data == &connectbutton) {
+#if CTK_CONF_WINDOWS
 	ctk_dialog_close();
+#else /* CTK_CONF_WINDOWS */
+	ctk_window_close(&connectionwindow);
+	ctk_window_open(&window);
+	showptr();
+	start_loaddir();
+#endif /* CTK_CONF_WINDOWS */
+	ptractive = 1;
 #if UIP_UDP
 	if(uiplib_ipaddrconv(hostname, &ipaddr) == 0) {
 	  ipaddrptr = resolv_lookup(hostname);
@@ -448,14 +507,14 @@ PROCESS_THREAD(ftp_process, ev, data)
       /*      if((struct ctk_button *)data == &closebutton) {
 	ftpc_close(connection);
 	}*/
-    } else if(ev == ctk_signal_keypress) {
-      /* if((ctk_arch_key_t)data == ' ') {
+    } else if(ptractive && ev == ctk_signal_keypress) {
+      if((ctk_arch_key_t)(size_t)data == ' ') {
 	if(ptrstate == PTRSTATE_LOCALFILES) {
 	  ptrstate = PTRSTATE_REMOTEFILES;
 	} else {
 	  ptrstate = PTRSTATE_LOCALFILES;
 	}
-      } else */ if((ctk_arch_key_t)(size_t)data == CH_CURS_UP) {
+      } else if((ctk_arch_key_t)(size_t)data == CH_CURS_UP) {
 	clearptr();
 	if(ptrstate == PTRSTATE_LOCALFILES) {
 	  if(localptr > 0) {
@@ -483,8 +542,14 @@ PROCESS_THREAD(ftp_process, ev, data)
 		  &localfiles[localptr * FILES_WIDTH], FILES_WIDTH);
 	  strncpy(remotefilename,
 		  &localfiles[localptr * FILES_WIDTH], FILES_WIDTH);
+	  ptractive = 0;
 	  make_uploaddialog();
+#if CTK_CONF_WINDOWS
 	  ctk_dialog_open(&dialog);
+#else /* CTK_CONF_WINDOWS */
+	  ctk_window_close(&window);
+	  ctk_window_open(&dialog);
+#endif /* CTK_CONF_WINDOWS */
 	} else {
 	  strncpy(localfilename,
 		  &remotefiles[remoteptr * FILES_WIDTH], FILES_WIDTH);
@@ -498,7 +563,9 @@ PROCESS_THREAD(ftp_process, ev, data)
 	ftpc_cdup(connection);
       }
       
-      showptr();
+      if(ptractive) {
+        showptr();
+      }
     }
   }
 
@@ -563,8 +630,14 @@ ftpc_cwd_done(unsigned short status)
      status == FTPC_OK) {
     start_loadremote();
   } else {
+    ptractive = 0;
     make_downloaddialog();
+#if CTK_CONF_WINDOWS
     ctk_dialog_open(&dialog);
+#else /* CTK_CONF_WINDOWS */
+    ctk_window_close(&window);
+    ctk_window_open(&dialog);
+#endif /* CTK_CONF_WINDOWS */
   }
 }
 /*---------------------------------------------------------------------------*/
