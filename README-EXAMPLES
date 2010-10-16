@@ -32,6 +32,20 @@ esb/
 
   A set of demo applications for the ESB board.
 
+ftp/
+
+  An FTP client supporting download. It can be compiled and run in the
+  'win32' target by typing the following commands:
+
+    cd examples/ftp
+    make
+    ./ftp-client.win32
+
+  Most likely you'll have to adjust the TCP/IP values set in main() in
+  platform/win32/contiki-main.c to match your needs.
+
+  Please consult cpu/native/net/README-WPCAP as well.
+
 hello-world/
 
   A really simple Contiki program that shows how to write Contiki
