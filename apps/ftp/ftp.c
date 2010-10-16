@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftp.c,v 1.8 2010/10/16 08:15:40 oliverschmidt Exp $
+ * $Id: ftp.c,v 1.9 2010/10/16 09:55:06 oliverschmidt Exp $
  */
 /* Note to self: It would be nice to have a "View" option in the download dialog. */
 
@@ -46,9 +46,20 @@
 #define MAX_USERNAMELEN 16
 #define MAX_PASSWORDLEN 16
 #define MAX_HOSTNAMELEN 32
+
+#ifdef FTP_CONF_WIDTH
+#define FILES_WIDTH     FTP_CONF_WIDTH
+#define MAX_FILENAMELEN FTP_CONF_WIDTH
+#else
+#define FILES_WIDTH     16
 #define MAX_FILENAMELEN 16
-#define FILES_WIDTH 17
+#endif
+
+#ifdef FTP_CONF_HEIGHT
+#define FILES_HEIGHT FTP_CONF_HEIGHT
+#else
 #define FILES_HEIGHT 18
+#endif
 
 PROCESS(ftp_process, "FTP client");
 
@@ -92,10 +103,22 @@ static struct ctk_button reloadbutton =
 #if CTK_CONF_WINDOWS
 static struct ctk_button connectionbutton =
   {CTK_BUTTON(8, 1 + FILES_HEIGHT, 13, "Connection...")};
-#endif /* CTK_CONF_WINDOWS */
 static struct ctk_button quitbutton =
   {CTK_BUTTON(1 + FILES_WIDTH + 1 + FILES_WIDTH - 5,
 	      1 + FILES_HEIGHT, 4, "Quit")};
+#else /* CTK_CONF_WINDOWS */
+#if FILES_WIDTH < 35
+static struct ctk_label usagetextlabel =
+  {CTK_LABEL(9, 1 + FILES_HEIGHT, 24, 1, "<up><down><space><enter>")};
+#else
+static struct ctk_label usagetextlabel =
+  {CTK_LABEL(10, 1 + FILES_HEIGHT,
+             39, 1, "Keys: <up> <down> <space> <enter> <'u'>")};
+#endif
+static struct ctk_button quitbutton =
+  {CTK_BUTTON(1 + FILES_WIDTH + 1 + FILES_WIDTH - 4,
+	      1 + FILES_HEIGHT, 4, "Quit")};
+#endif /* CTK_CONF_WINDOWS */
 
 static char statustext[3 + FILES_WIDTH * 2 + 1];
 static struct ctk_label statuslabel =
@@ -368,6 +391,8 @@ PROCESS_THREAD(ftp_process, ev, data)
   CTK_WIDGET_ADD(&window, &reloadbutton);
 #if CTK_CONF_WINDOWS
   CTK_WIDGET_ADD(&window, &connectionbutton);
+#else /* CTK_CONF_WINDOWS */
+  CTK_WIDGET_ADD(&window, &usagetextlabel);
 #endif /* CTK_CONF_WINDOWS */
   CTK_WIDGET_ADD(&window, &quitbutton);
   
@@ -375,8 +400,6 @@ PROCESS_THREAD(ftp_process, ev, data)
   
 #if CTK_CONF_WINDOWS
   CTK_WIDGET_FOCUS(&window, &connectionbutton);
-#else /* CTK_CONF_WINDOWS */
-  CTK_WIDGET_FOCUS(&window, &reloadbutton);
 #endif /* CTK_CONF_WINDOWS */
 
 #if CTK_CONF_WINDOWS
