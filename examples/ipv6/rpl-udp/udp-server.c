@@ -33,8 +33,6 @@
 #include "net/uip.h"
 #include "net/rpl/rpl.h"
 
-#include "servreg-hack.h"
-
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
 #include <stdio.h>
@@ -53,8 +51,6 @@
 #define UDP_EXAMPLE_ID  190
 
 static struct uip_udp_conn *server_conn;
-
-uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
 PROCESS(udp_server_process, "UDP server process");
 AUTOSTART_PROCESSES(&udp_server_process);
@@ -105,10 +101,6 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
   PROCESS_BEGIN();
 
-  servreg_hack_init();
-
-  servreg_hack_register(UDP_EXAMPLE_ID);
-  
   PROCESS_PAUSE();
 
   SENSORS_ACTIVATE(button_sensor);
@@ -116,13 +108,13 @@ PROCESS_THREAD(udp_server_process, ev, data)
   PRINTF("UDP server started\n");
 
 #if UIP_CONF_ROUTER
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 1);
+  /* uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr); */
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);
   root_if = uip_ds6_addr_lookup(&ipaddr);
   if(root_if != NULL) {
     rpl_dag_t *dag;
-    rpl_set_root((uip_ip6addr_t *)dag_id);
+    rpl_set_root((uip_ip6addr_t *)&ipaddr);
     dag = rpl_get_dag(RPL_ANY_INSTANCE);
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
     rpl_set_prefix(dag, &ipaddr, 64);

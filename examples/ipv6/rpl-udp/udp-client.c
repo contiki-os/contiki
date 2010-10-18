@@ -35,8 +35,6 @@
 #include "net/uip-udp-packet.h"
 #include "sys/ctimer.h"
 
-#include "servreg-hack.h"
-
 #include <stdio.h>
 #include <string.h>
 
@@ -54,6 +52,8 @@
 #define MAX_PAYLOAD_LEN		30
 
 static struct uip_udp_conn *client_conn;
+static uip_ipaddr_t server_ipaddr;
+
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client process");
 AUTOSTART_PROCESSES(&udp_client_process);
@@ -75,17 +75,13 @@ send_packet(void *ptr)
 {
   static int seq_id;
   char buf[MAX_PAYLOAD_LEN];
-  uip_ipaddr_t *ipaddr;
 
-  ipaddr = servreg_hack_lookup(UDP_EXAMPLE_ID);
-  if(ipaddr != NULL) {
-    seq_id++;
-    PRINTF("DATA send to %d 'Hello %d'\n",
-           client_conn->ripaddr.u8[15], seq_id);
-    sprintf(buf, "Hello %d from the client", seq_id);
-    uip_udp_packet_sendto(client_conn, buf, strlen(buf),
-                          ipaddr, HTONS(UDP_SERVER_PORT));
-  }
+  seq_id++;
+  PRINTF("DATA send to %d 'Hello %d'\n",
+         client_conn->ripaddr.u8[15], seq_id);
+  sprintf(buf, "Hello %d from the client", seq_id);
+  uip_udp_packet_sendto(client_conn, buf, strlen(buf),
+                        &server_ipaddr, HTONS(UDP_SERVER_PORT));
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -117,6 +113,10 @@ set_global_address(void)
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+
+  /* set server address */
+  uip_ip6addr(&server_ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 1);
+
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(udp_client_process, ev, data)
@@ -126,8 +126,6 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
   PROCESS_BEGIN();
 
-  servreg_hack_init();
-  
   PROCESS_PAUSE();
 
   set_global_address();
