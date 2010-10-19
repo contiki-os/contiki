@@ -30,17 +30,13 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.19 2010/10/19 18:29:05 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.20 2010/10/19 20:30:47 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>
 #include <stdio.h>
-
-/* Avoid 'conflicting types' errors. */
-#define uip_htonl
-#define uip_htons
 
 #include "contiki-net.h"
 
