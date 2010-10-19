@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: gateway.c,v 1.1 2008/05/27 13:16:34 adamdunkels Exp $
+ * @(#)$Id: gateway.c,v 1.2 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /*
@@ -107,7 +107,7 @@ static struct uip_fw_netif slipif =
 {UIP_FW_NETIF(0,0,0,0, 255,255,255,255, slip_send)};
 
 /* Radio stuff in network byte order. */
-static u16_t panId = HTONS(0x2024);
+static u16_t panId = UIP_HTONS(0x2024);
 
 #ifndef RF_CHANNEL
 #define RF_CHANNEL              15
@@ -125,7 +125,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: gateway.c,v 1.1 2008/05/27 13:16:34 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: gateway.c,v 1.2 2010/10/19 18:29:04 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();

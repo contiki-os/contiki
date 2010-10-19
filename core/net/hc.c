@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: hc.c,v 1.4 2007/08/30 14:39:17 matsutsuka Exp $
+ * @(#)$Id: hc.c,v 1.5 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /**
@@ -127,14 +127,14 @@ hc_compress(u8_t *buf, int len)
 						  the same destination
 						  and source port
 						  number. */
-     (uhdr->destport & HTONS(0xc000)) == 0) {  /* Only packets with the two
+     (uhdr->destport & UIP_HTONS(0xc000)) == 0) {  /* Only packets with the two
 						  highest bits in the port
 						  number equal to zero. */
 
-    hdr->flagsport = htons(
+    hdr->flagsport = uip_htons(
 			   FLAGS_COMPRESSED    | /* Compressed header. */
 			   FLAGS_BROADCASTDATA | /* Broadcast data. */
-			   (htons(uhdr->destport) & 0x3fff));
+			   (uip_htons(uhdr->destport) & 0x3fff));
     uip_ipaddr_copy(&hdr->srcipaddr, &uhdr->srcipaddr);
 
     /* Move the packet data to the end of the compressed header. */
@@ -170,8 +170,8 @@ hc_inflate(u8_t *buf, int len)
   hdr = (struct hc_hdr *)buf;
   
   /* First, check if the header in buf is compressed or not. */
-  if((hdr->flagsport & HTONS(FLAGS_COMPRESSED)) != 0 &&
-     (hdr->flagsport & HTONS(FLAGS_BROADCASTDATA)) != 0) {
+  if((hdr->flagsport & UIP_HTONS(FLAGS_COMPRESSED)) != 0 &&
+     (hdr->flagsport & UIP_HTONS(FLAGS_BROADCASTDATA)) != 0) {
     
     /* Move packet data in memory to make room for the uncompressed header. */
     memmove(&buf[UIP_IPUDPH_LEN - HC_HLEN],
@@ -180,8 +180,8 @@ hc_inflate(u8_t *buf, int len)
     hdr = (struct hc_hdr *)&buf[UIP_IPUDPH_LEN - HC_HLEN];
     
     uip_ipaddr_copy(&uhdr->srcipaddr, &hdr->srcipaddr);
-    uhdr->srcport = hdr->flagsport & HTONS(0x3fff);
-    uhdr->destport = hdr->flagsport & HTONS(0x3fff);
+    uhdr->srcport = hdr->flagsport & UIP_HTONS(0x3fff);
+    uhdr->destport = hdr->flagsport & UIP_HTONS(0x3fff);
     
     uhdr->udplen = len;
     

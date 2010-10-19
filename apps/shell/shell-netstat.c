@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-netstat.c,v 1.1 2009/05/10 21:02:24 adamdunkels Exp $
+ * $Id: shell-netstat.c,v 1.2 2010/10/19 18:29:03 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -119,12 +119,12 @@ PROCESS_THREAD(shell_netstat_process, ev, data)
     conn = &uip_conns[i];
     snprintf(buf, BUFLEN,
 	     "%d, %u.%u.%u.%u:%u, %s, %u, %u, %c %c",
-	     htons(conn->lport),
+	     uip_htons(conn->lport),
 	     conn->ripaddr.u8[0],
 	     conn->ripaddr.u8[1],
 	     conn->ripaddr.u8[2],
 	     conn->ripaddr.u8[3],
-	     htons(conn->rport),
+	     uip_htons(conn->rport),
 	     states[conn->tcpstateflags & UIP_TS_MASK],
 	     conn->nrtx,
 	     conn->timer,

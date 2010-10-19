@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: test-receiver.c,v 1.1 2006/06/18 07:48:48 adamdunkels Exp $
+ * $Id: test-receiver.c,v 1.2 2010/10/19 18:29:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-03-07
- * Updated : $Date: 2006/06/18 07:48:48 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/10/19 18:29:05 $
+ *           $Revision: 1.2 $
  */
 
 #include "contiki-esb.h"
@@ -50,7 +50,7 @@ PROCESS_THREAD(test_receiver_process, ev, data)
 
   PROCESS_BEGIN();
 
-  conn = udp_broadcast_new(HTONS(PORT), NULL);
+  conn = udp_broadcast_new(UIP_HTONS(PORT), NULL);
 
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event && uip_newdata());

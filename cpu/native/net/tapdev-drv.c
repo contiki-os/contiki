@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tapdev-drv.c,v 1.5 2008/10/14 14:38:10 julienabeille Exp $
+ * @(#)$Id: tapdev-drv.c,v 1.6 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 #include "contiki-net.h"
@@ -65,14 +65,14 @@ pollhandler(void)
 
   if(uip_len > 0) {
 #if UIP_CONF_IPV6
-    if(BUF->type == htons(UIP_ETHTYPE_IPV6)) {
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
       tcpip_input();
     } else
 #endif /* UIP_CONF_IPV6 */
-    if(BUF->type == htons(UIP_ETHTYPE_IP)) {
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
       uip_len -= sizeof(struct uip_eth_hdr);
       tcpip_input();
-    } else if(BUF->type == htons(UIP_ETHTYPE_ARP)) {
+    } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
 #if !UIP_CONF_IPV6 //math
        uip_arp_arpin();
        /* If the above function invocation resulted in data that

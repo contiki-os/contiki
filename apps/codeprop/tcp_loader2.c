@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcp_loader2.c,v 1.2 2007/01/12 18:16:56 bg- Exp $
+ * @(#)$Id: tcp_loader2.c,v 1.3 2010/10/19 18:29:03 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -77,7 +77,7 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
     goto thread_done;
   }
 
-  s.len = htons(((struct codeprop_tcphdr *)uip_appdata)->len);
+  s.len = uip_htons(((struct codeprop_tcphdr *)uip_appdata)->len);
   s.addr = 0;
   uip_appdata += sizeof(struct codeprop_tcphdr);
   uip_len -= sizeof(struct codeprop_tcphdr);
@@ -128,11 +128,11 @@ PROCESS_THREAD(tcp_loader_process, ev, data)
 {
   PROCESS_BEGIN();
   
-  tcp_listen(HTONS(CODEPROP_DATA_PORT));
+  tcp_listen(UIP_HTONS(CODEPROP_DATA_PORT));
   
   while(1) {
     PROCESS_YIELD();
-    if(ev == tcpip_event && uip_conn->lport == HTONS(CODEPROP_DATA_PORT)) {
+    if(ev == tcpip_event && uip_conn->lport == UIP_HTONS(CODEPROP_DATA_PORT)) {
       if(uip_connected()) {	/* Really uip_connecting()!!! */
 	if(data == NULL) {
 	  PT_INIT(&s.tcpthread_pt);

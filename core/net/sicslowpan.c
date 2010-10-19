@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.45 2010/09/23 19:57:50 joxe Exp $
+ * $Id: sicslowpan.c,v 1.46 2010/10/19 18:29:04 adamdunkels Exp $
  */
 /**
  * \file
@@ -621,34 +621,34 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
   /* UDP header compression */
   if(UIP_IP_BUF->proto == UIP_PROTO_UDP) {
     PRINTF("IPHC: Uncompressed UDP ports on send side: %x, %x\n",
-	   HTONS(UIP_UDP_BUF->srcport), HTONS(UIP_UDP_BUF->destport));
+	   UIP_HTONS(UIP_UDP_BUF->srcport), UIP_HTONS(UIP_UDP_BUF->destport));
     /* Mask out the last 4 bits can be used as a mask */
-    if(((HTONS(UIP_UDP_BUF->srcport) & 0xfff0) == SICSLOWPAN_UDP_4_BIT_PORT_MIN) &&
-       ((HTONS(UIP_UDP_BUF->destport) & 0xfff0) == SICSLOWPAN_UDP_4_BIT_PORT_MIN)) {
+    if(((UIP_HTONS(UIP_UDP_BUF->srcport) & 0xfff0) == SICSLOWPAN_UDP_4_BIT_PORT_MIN) &&
+       ((UIP_HTONS(UIP_UDP_BUF->destport) & 0xfff0) == SICSLOWPAN_UDP_4_BIT_PORT_MIN)) {
       /* we can compress 12 bits of both source and dest */
       *hc06_ptr = SICSLOWPAN_NHC_UDP_CS_P_11;
       PRINTF("IPHC: remove 12 b of both source & dest with prefix 0xFOB\n");
       *(hc06_ptr + 1) =
-	(u8_t)((HTONS(UIP_UDP_BUF->srcport) -
+	(u8_t)((UIP_HTONS(UIP_UDP_BUF->srcport) -
 		SICSLOWPAN_UDP_4_BIT_PORT_MIN) << 4) +
-	(u8_t)((HTONS(UIP_UDP_BUF->destport) -
+	(u8_t)((UIP_HTONS(UIP_UDP_BUF->destport) -
 		SICSLOWPAN_UDP_4_BIT_PORT_MIN));
       hc06_ptr += 2;
-    } else if((HTONS(UIP_UDP_BUF->destport) & 0xff00) == SICSLOWPAN_UDP_8_BIT_PORT_MIN) {
+    } else if((UIP_HTONS(UIP_UDP_BUF->destport) & 0xff00) == SICSLOWPAN_UDP_8_BIT_PORT_MIN) {
       /* we can compress 8 bits of dest, leave source. */
       *hc06_ptr = SICSLOWPAN_NHC_UDP_CS_P_01;
       PRINTF("IPHC: leave source, remove 8 bits of dest with prefix 0xF0\n");
       memcpy(hc06_ptr + 1, &UIP_UDP_BUF->srcport, 2);
       *(hc06_ptr + 3) =
-	(u8_t)((HTONS(UIP_UDP_BUF->destport) -
+	(u8_t)((UIP_HTONS(UIP_UDP_BUF->destport) -
 		SICSLOWPAN_UDP_8_BIT_PORT_MIN));
       hc06_ptr += 4;
-    } else if((HTONS(UIP_UDP_BUF->srcport) & 0xff00) == SICSLOWPAN_UDP_8_BIT_PORT_MIN) {
+    } else if((UIP_HTONS(UIP_UDP_BUF->srcport) & 0xff00) == SICSLOWPAN_UDP_8_BIT_PORT_MIN) {
       /* we can compress 8 bits of src, leave dest. Copy compressed port */
       *hc06_ptr = SICSLOWPAN_NHC_UDP_CS_P_10;
       PRINTF("IPHC: remove 8 bits of source with prefix 0xF0, leave dest. hch: %i\n", *hc06_ptr);
       *(hc06_ptr + 1) =
-	(u8_t)((HTONS(UIP_UDP_BUF->srcport) -
+	(u8_t)((UIP_HTONS(UIP_UDP_BUF->srcport) -
 		SICSLOWPAN_UDP_8_BIT_PORT_MIN));
       memcpy(hc06_ptr + 2, &UIP_UDP_BUF->destport, 2);
       hc06_ptr += 4;
@@ -858,7 +858,7 @@ uncompress_hdr_hc06(u16_t ip_len) {
 	memcpy(&SICSLOWPAN_UDP_BUF->srcport, hc06_ptr + 1, 2);
 	memcpy(&SICSLOWPAN_UDP_BUF->destport, hc06_ptr + 3, 2);
 	PRINTF("IPHC: Uncompressed UDP ports (ptr+5): %x, %x\n",
-	       HTONS(SICSLOWPAN_UDP_BUF->srcport), HTONS(SICSLOWPAN_UDP_BUF->destport));
+	       UIP_HTONS(SICSLOWPAN_UDP_BUF->srcport), UIP_HTONS(SICSLOWPAN_UDP_BUF->destport));
 	hc06_ptr += 5;
 	break;
 
@@ -866,31 +866,31 @@ uncompress_hdr_hc06(u16_t ip_len) {
         /* 1 byte for NHC + source 16bit inline, dest = 0xF0 + 8 bit inline */
 	PRINTF("IPHC: Decompressing destination\n");
 	memcpy(&SICSLOWPAN_UDP_BUF->srcport, hc06_ptr + 1, 2);
-	SICSLOWPAN_UDP_BUF->destport = HTONS(SICSLOWPAN_UDP_8_BIT_PORT_MIN + (*(hc06_ptr + 3)));
+	SICSLOWPAN_UDP_BUF->destport = UIP_HTONS(SICSLOWPAN_UDP_8_BIT_PORT_MIN + (*(hc06_ptr + 3)));
 	PRINTF("IPHC: Uncompressed UDP ports (ptr+4): %x, %x\n",
-	       HTONS(SICSLOWPAN_UDP_BUF->srcport), HTONS(SICSLOWPAN_UDP_BUF->destport));
+	       UIP_HTONS(SICSLOWPAN_UDP_BUF->srcport), UIP_HTONS(SICSLOWPAN_UDP_BUF->destport));
 	hc06_ptr += 4;
 	break;
 
       case SICSLOWPAN_NHC_UDP_CS_P_10:
         /* 1 byte for NHC + source = 0xF0 + 8bit inline, dest = 16 bit inline*/
 	PRINTF("IPHC: Decompressing source\n");
-	SICSLOWPAN_UDP_BUF->srcport = HTONS(SICSLOWPAN_UDP_8_BIT_PORT_MIN +
+	SICSLOWPAN_UDP_BUF->srcport = UIP_HTONS(SICSLOWPAN_UDP_8_BIT_PORT_MIN +
 					    (*(hc06_ptr + 1)));
 	memcpy(&SICSLOWPAN_UDP_BUF->destport, hc06_ptr + 2, 2);
 	PRINTF("IPHC: Uncompressed UDP ports (ptr+4): %x, %x\n",
-	       HTONS(SICSLOWPAN_UDP_BUF->srcport), HTONS(SICSLOWPAN_UDP_BUF->destport));
+	       UIP_HTONS(SICSLOWPAN_UDP_BUF->srcport), UIP_HTONS(SICSLOWPAN_UDP_BUF->destport));
 	hc06_ptr += 4;
 	break;
 
       case SICSLOWPAN_NHC_UDP_CS_P_11:
 	/* 1 byte for NHC, 1 byte for ports */
-	SICSLOWPAN_UDP_BUF->srcport = HTONS(SICSLOWPAN_UDP_4_BIT_PORT_MIN +
+	SICSLOWPAN_UDP_BUF->srcport = UIP_HTONS(SICSLOWPAN_UDP_4_BIT_PORT_MIN +
 					    (*(hc06_ptr + 1) >> 4));
-	SICSLOWPAN_UDP_BUF->destport = HTONS(SICSLOWPAN_UDP_4_BIT_PORT_MIN +
+	SICSLOWPAN_UDP_BUF->destport = UIP_HTONS(SICSLOWPAN_UDP_4_BIT_PORT_MIN +
 					     ((*(hc06_ptr + 1)) & 0x0F));
 	PRINTF("IPHC: Uncompressed UDP ports (ptr+2): %x, %x\n",
-	       HTONS(SICSLOWPAN_UDP_BUF->srcport), HTONS(SICSLOWPAN_UDP_BUF->destport));
+	       UIP_HTONS(SICSLOWPAN_UDP_BUF->srcport), UIP_HTONS(SICSLOWPAN_UDP_BUF->destport));
 	hc06_ptr += 2;
 	break;
 
@@ -1052,10 +1052,10 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
          * SICSLOWPAN_UDP_PORT_MIN and SICSLOWPAN_UDP_PORT_MIN + 15
          */
         PRINTF("local/remote port %u/%u\n",UIP_UDP_BUF->srcport,UIP_UDP_BUF->destport);
-        if(HTONS(UIP_UDP_BUF->srcport)  >= SICSLOWPAN_UDP_PORT_MIN &&
-           HTONS(UIP_UDP_BUF->srcport)  <  SICSLOWPAN_UDP_PORT_MAX &&
-           HTONS(UIP_UDP_BUF->destport) >= SICSLOWPAN_UDP_PORT_MIN &&
-           HTONS(UIP_UDP_BUF->destport) <  SICSLOWPAN_UDP_PORT_MAX) {
+        if(UIP_HTONS(UIP_UDP_BUF->srcport)  >= SICSLOWPAN_UDP_PORT_MIN &&
+           UIP_HTONS(UIP_UDP_BUF->srcport)  <  SICSLOWPAN_UDP_PORT_MAX &&
+           UIP_HTONS(UIP_UDP_BUF->destport) >= SICSLOWPAN_UDP_PORT_MIN &&
+           UIP_HTONS(UIP_UDP_BUF->destport) <  SICSLOWPAN_UDP_PORT_MAX) {
           /* HC1 encoding */
           RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_HC1_ENCODING] = 0xFB;
         
@@ -1064,9 +1064,9 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
           RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_TTL] = UIP_IP_BUF->ttl;
 
           RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_PORTS] =
-               (u8_t)((HTONS(UIP_UDP_BUF->srcport) -
+               (u8_t)((UIP_HTONS(UIP_UDP_BUF->srcport) -
                        SICSLOWPAN_UDP_PORT_MIN) << 4) +
-               (u8_t)((HTONS(UIP_UDP_BUF->destport) - SICSLOWPAN_UDP_PORT_MIN));
+               (u8_t)((UIP_HTONS(UIP_UDP_BUF->destport) - SICSLOWPAN_UDP_PORT_MIN));
           memcpy(&RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_CHKSUM], &UIP_UDP_BUF->udpchksum, 2);
           rime_hdr_len += SICSLOWPAN_HC1_HC_UDP_HDR_LEN;
           uncomp_hdr_len += UIP_UDPH_LEN;
@@ -1144,10 +1144,10 @@ uncompress_hdr_hc1(u16_t ip_len) {
         SICSLOWPAN_IP_BUF->ttl = RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_TTL];
         /* UDP ports, len, checksum */
         SICSLOWPAN_UDP_BUF->srcport =
-          HTONS(SICSLOWPAN_UDP_PORT_MIN +
+          UIP_HTONS(SICSLOWPAN_UDP_PORT_MIN +
                 (RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_PORTS] >> 4));
         SICSLOWPAN_UDP_BUF->destport =
-          HTONS(SICSLOWPAN_UDP_PORT_MIN +
+          UIP_HTONS(SICSLOWPAN_UDP_PORT_MIN +
                 (RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_PORTS] & 0x0F));
         memcpy(&SICSLOWPAN_UDP_BUF->udpchksum, &RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_CHKSUM], 2);
         uncomp_hdr_len += UIP_UDPH_LEN;
@@ -1333,10 +1333,10 @@ output(uip_lladdr_t *localdest)
      * Note that the length is in units of 8 bytes
      */
 /*     RIME_FRAG_BUF->dispatch_size = */
-/*       htons((SICSLOWPAN_DISPATCH_FRAG1 << 8) | uip_len); */
+/*       uip_htons((SICSLOWPAN_DISPATCH_FRAG1 << 8) | uip_len); */
     SET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAG1 << 8) | uip_len));
-/*     RIME_FRAG_BUF->tag = htons(my_tag); */
+/*     RIME_FRAG_BUF->tag = uip_htons(my_tag); */
     SET16(RIME_FRAG_PTR, RIME_FRAG_TAG, my_tag);
 
     /* Copy payload and send */
@@ -1366,7 +1366,7 @@ output(uip_lladdr_t *localdest)
      */
     rime_hdr_len = SICSLOWPAN_FRAGN_HDR_LEN;
 /*     RIME_FRAG_BUF->dispatch_size = */
-/*       htons((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len); */
+/*       uip_htons((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len); */
     SET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len));
     rime_payload_len = (MAC_MAX_PAYLOAD - rime_hdr_len) & 0xf8;
@@ -1462,9 +1462,9 @@ input(void)
     case SICSLOWPAN_DISPATCH_FRAG1:
       PRINTFI("sicslowpan input: FRAG1 ");
       frag_offset = 0;
-/*       frag_size = (ntohs(RIME_FRAG_BUF->dispatch_size) & 0x07ff); */
+/*       frag_size = (uip_ntohs(RIME_FRAG_BUF->dispatch_size) & 0x07ff); */
       frag_size = GET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE) & 0x07ff;
-/*       frag_tag = ntohs(RIME_FRAG_BUF->tag); */
+/*       frag_tag = uip_ntohs(RIME_FRAG_BUF->tag); */
       frag_tag = GET16(RIME_FRAG_PTR, RIME_FRAG_TAG);
       PRINTFI("size %d, tag %d, offset %d)\n",
              frag_size, frag_tag, frag_offset);

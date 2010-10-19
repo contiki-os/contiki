@@ -130,13 +130,13 @@ PROCESS_THREAD(udp_server_process, ev, data)
      packet reception rates. */
   NETSTACK_MAC.off(1);
 
-  server_conn = udp_new(NULL, HTONS(UDP_CLIENT_PORT), NULL);
-  udp_bind(server_conn, HTONS(UDP_SERVER_PORT));
+  server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);
+  udp_bind(server_conn, UIP_HTONS(UDP_SERVER_PORT));
 
   PRINTF("Created a server connection with remote address ");
   PRINT6ADDR(&server_conn->ripaddr);
-  PRINTF(" local/remote port %u/%u\n", HTONS(server_conn->lport),
-         HTONS(server_conn->rport));
+  PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
+         UIP_HTONS(server_conn->rport));
 
   while(1) {
     PROCESS_YIELD();

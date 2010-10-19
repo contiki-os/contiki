@@ -44,7 +44,7 @@
  *
  * This file is part of the Mycal Modified uIP TCP/IP stack.
  *
- * $Id: lcp.c,v 1.1 2007/05/26 07:14:39 oliverschmidt Exp $
+ * $Id: lcp.c,v 1.2 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -438,7 +438,7 @@ lcp_task(u8_t *buffer)
 #endif
       /* Write length */
       t = bptr - buffer;
-      pkt->len = htons(t);			/* length here -  code and ID + */
+      pkt->len = uip_htons(t);			/* length here -  code and ID + */
       
       DEBUG1((" len %d\n",t));
       

@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: simpletelnet.c,v 1.6 2010/05/31 15:22:08 nifi Exp $
+ * $Id: simpletelnet.c,v 1.7 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -185,7 +185,7 @@ connect(void)
   }
 
 
-  conn = tcp_connect(addrptr, htons(port), &ts_appstate);
+  conn = tcp_connect(addrptr, uip_htons(port), &ts_appstate);
   if(conn == NULL) {
     show("Out of memory error");
     return;

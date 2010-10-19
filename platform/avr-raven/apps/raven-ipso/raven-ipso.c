@@ -254,9 +254,9 @@ PROCESS_THREAD(raven_lcd_process, ev, data)
   uip_ip6addr(&udp_addr,0x2001,0x420,0x5FFF,0x7D,0x2D0,0xB7FF,0xFE23,0xE6DB);
   
   /* set destination parameters*/
-  udp_conn = udp_new(&udp_addr, HTONS(0xF0B0), NULL);
+  udp_conn = udp_new(&udp_addr, UIP_HTONS(0xF0B0), NULL);
   /*set local port */
-  udp_bind(udp_conn, HTONS(0xF0B0+1));
+  udp_bind(udp_conn, UIP_HTONS(0xF0B0+1));
   
   if((error = icmp6_new(NULL)) == 0) {
     while(1) {

@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.1 2009/05/08 12:49:36 joxe Exp $
+ * @(#)$Id: slip.c,v 1.2 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 
@@ -282,7 +282,7 @@ PROCESS_THREAD(slip_process, ev, data)
 	uint16_t nid = ip_id++;
 	BUF->ipid[0] = nid >> 8;
 	BUF->ipid[1] = nid;
-	nid = htons(nid);
+	nid = uip_htons(nid);
 	nid = ~nid;		/* negate */
 	BUF->ipchksum += nid;	/* add */
 	if(BUF->ipchksum < nid) { /* 1-complement overflow? */

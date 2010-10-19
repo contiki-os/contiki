@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftpc.c,v 1.4 2010/05/31 15:22:08 nifi Exp $
+ * $Id: ftpc.c,v 1.5 2010/10/19 18:29:03 adamdunkels Exp $
  */
 #include "contiki.h"
 #include "ftpc.h"
@@ -123,7 +123,7 @@ void
 ftpc_init(void)
 {
   memb_init(&connections);
-  /*  tcp_listen(HTONS(DATAPORT));*/
+  /*  tcp_listen(UIP_HTONS(DATAPORT));*/
 }
 /*---------------------------------------------------------------------------*/
 void *
@@ -141,7 +141,7 @@ ftpc_connect(uip_ipaddr_t *ipaddr, u16_t port)
   c->codeptr = 0;
   c->dataconn.type = TYPE_DATA;
   c->dataconn.port = DATAPORT;
-  tcp_listen(HTONS(DATAPORT));
+  tcp_listen(UIP_HTONS(DATAPORT));
 
   if(tcp_connect(ipaddr, port, c) == NULL) {
     memb_free(&connections, c);
@@ -190,9 +190,9 @@ handle_input(struct ftp_connection *c)
 	     c->state == STATE_RETR_SENT ||
 	     c->state == STATE_CONNECTED)) {
     if(code == 226 || code == 550) {
-      tcp_unlisten(htons(c->dataconn.port));
+      tcp_unlisten(uip_htons(c->dataconn.port));
       ++c->dataconn.port;
-      tcp_listen(htons(c->dataconn.port));
+      tcp_listen(uip_htons(c->dataconn.port));
       c->state = STATE_SEND_PORT;
     }
 

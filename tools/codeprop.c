@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop.c,v 1.4 2007/04/26 12:56:28 bg- Exp $
+ * @(#)$Id: codeprop.c,v 1.5 2010/10/19 18:29:05 adamdunkels Exp $
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -76,7 +76,7 @@ main(int argc, char **argv) {
   bzero((char *) &sa, sizeof(sa));
   sa.sin_family = AF_INET;
   sa.sin_addr.s_addr = inet_addr(ip_addr);
-  sa.sin_port = htons(port);
+  sa.sin_port = uip_htons(port);
 
   /* Connect the socket to the remote host. */
   if(connect(s, (struct sockaddr *)&sa, sizeof(sa)) < 0) {

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.24 2010/09/28 20:40:52 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.25 2010/10/19 18:29:03 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -271,7 +271,7 @@ httpd_appcall(void *state)
 void
 httpd_init(void)
 {
-  tcp_listen(HTONS(80));
+  tcp_listen(UIP_HTONS(80));
   memb_init(&conns);
 #if URLCONV
   urlconv_init();

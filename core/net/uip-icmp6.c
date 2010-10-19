@@ -179,7 +179,7 @@ uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
   
   UIP_ICMP_BUF->type = type;
   UIP_ICMP_BUF->icode = code;
-  UIP_ICMP6_ERROR_BUF->param = htonl(param);
+  UIP_ICMP6_ERROR_BUF->param = uip_htonl(param);
   UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
   UIP_ICMP_BUF->icmpchksum = 0;

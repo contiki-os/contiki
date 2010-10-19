@@ -33,7 +33,7 @@ PROCESS_THREAD(example_psock_client_process, ev, data)
   PROCESS_BEGIN();
 
   uip_ipaddr(addr, 192,168,2,1);
-  tcp_connect(addr, HTONS(80), NULL);
+  tcp_connect(addr, UIP_HTONS(80), NULL);
 
   printf("Connecting...\n");
   PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);

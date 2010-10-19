@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcpc.c,v 1.8 2007/08/30 14:39:17 matsutsuka Exp $
+ * @(#)$Id: dhcpc.c,v 1.9 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -147,7 +147,7 @@ create_msg(CC_REGISTER_ARG struct dhcp_msg *m)
   m->hops = 0;
   memcpy(m->xid, &xid, sizeof(m->xid));
   m->secs = 0;
-  m->flags = HTONS(BOOTP_BROADCAST); /*  Broadcast bit. */
+  m->flags = UIP_HTONS(BOOTP_BROADCAST); /*  Broadcast bit. */
   /*  uip_ipaddr_copy(m->ciaddr, uip_hostaddr);*/
   memcpy(m->ciaddr, uip_hostaddr.u16, sizeof(m->ciaddr));
   memset(m->yiaddr, 0, sizeof(m->yiaddr));
@@ -332,7 +332,7 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
   printf("Got default router %d.%d.%d.%d\n",
 	 uip_ipaddr_to_quad(&s.default_router));
   printf("Lease expires in %ld seconds\n",
-	 ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1]));
+	 uip_ntohs(s.lease_time[0])*65536ul + uip_ntohs(s.lease_time[1]));
 #endif
 
   dhcpc_configured(&s);
@@ -341,9 +341,9 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
 #define MAX_TICKS32 (~((u32_t)0))
 #define IMIN(a, b) ((a) < (b) ? (a) : (b))
 
-  if((ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1]))*CLOCK_SECOND/2
+  if((uip_ntohs(s.lease_time[0])*65536ul + uip_ntohs(s.lease_time[1]))*CLOCK_SECOND/2
      <= MAX_TICKS32) {
-    s.ticks = (ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1])
+    s.ticks = (uip_ntohs(s.lease_time[0])*65536ul + uip_ntohs(s.lease_time[1])
 	       )*CLOCK_SECOND/2;
   } else {
     s.ticks = MAX_TICKS32;
@@ -357,9 +357,9 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
     PT_YIELD_UNTIL(&s.pt, etimer_expired(&s.etimer));
   }
 
-  if((ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1]))*CLOCK_SECOND/2
+  if((uip_ntohs(s.lease_time[0])*65536ul + uip_ntohs(s.lease_time[1]))*CLOCK_SECOND/2
      <= MAX_TICKS32) {
-    s.ticks = (ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1])
+    s.ticks = (uip_ntohs(s.lease_time[0])*65536ul + uip_ntohs(s.lease_time[1])
 	       )*CLOCK_SECOND/2;
   } else {
     s.ticks = MAX_TICKS32;
@@ -405,9 +405,9 @@ dhcpc_init(const void *mac_addr, int mac_len)
 
   s.state = STATE_INITIAL;
   uip_ipaddr(&addr, 255,255,255,255);
-  s.conn = udp_new(&addr, HTONS(DHCPC_SERVER_PORT), NULL);
+  s.conn = udp_new(&addr, UIP_HTONS(DHCPC_SERVER_PORT), NULL);
   if(s.conn != NULL) {
-    udp_bind(s.conn, HTONS(DHCPC_CLIENT_PORT));
+    udp_bind(s.conn, UIP_HTONS(DHCPC_CLIENT_PORT));
   }
   PT_INIT(&s.pt);
 }

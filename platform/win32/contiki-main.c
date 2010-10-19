@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.18 2010/10/15 21:14:18 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.19 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -39,8 +39,8 @@
 #include <stdio.h>
 
 /* Avoid 'conflicting types' errors. */
-#define htonl
-#define htons
+#define uip_htonl
+#define uip_htons
 
 #include "contiki-net.h"
 

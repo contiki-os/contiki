@@ -37,7 +37,7 @@ void tcpip_set_outputfunc(u8_t (* f)(uip_lladdr_t *)) {
   output = f;
 }
 
-u16_t htons(u16_t val) { return HTONS(val);}
+u16_t uip_htons(u16_t val) { return UIP_HTONS(val);}
 
 
 #if THEOLDWAY
@@ -123,7 +123,7 @@ upper_layer_chksum(u8_t proto)
   sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN],
                upper_layer_len);
     
-  return (sum == 0) ? 0xffff : htons(sum);
+  return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 
 /*---------------------------------------------------------------------------*/

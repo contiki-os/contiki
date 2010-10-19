@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.13 2008/10/31 18:07:13 adamdunkels Exp $
+ * $Id: telnetd.c,v 1.14 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -179,7 +179,7 @@ PROCESS_THREAD(telnetd_process, ev, data)
 {
   PROCESS_BEGIN();
   
-  tcp_listen(HTONS(23));
+  tcp_listen(UIP_HTONS(23));
   buf_init(&buf);
 
   shell_init();

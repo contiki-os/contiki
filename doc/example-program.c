@@ -46,7 +46,7 @@ PROCESS_THREAD(example_program_process, ev, data)
    * attach any special data to the connection, so we pass it a NULL
    * parameter.
    */
-  c = udp_broadcast_new(HTONS(4321), NULL);
+  c = udp_broadcast_new(UIP_HTONS(4321), NULL);
   
   /*
    * Loop for ever.

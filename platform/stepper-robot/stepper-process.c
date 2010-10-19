@@ -389,9 +389,9 @@ PROCESS_THREAD(udp_stepper_process, ev, data)
   printf("udp_stepper_process starting\n");
 
   uip_ipaddr(&any, 0,0,0,0);
-  conn = udp_new(&any, HTONS(0), NULL);
+  conn = udp_new(&any, UIP_HTONS(0), NULL);
   if (!conn) goto exit;
-  uip_udp_bind(conn, HTONS(1010));
+  uip_udp_bind(conn, UIP_HTONS(1010));
   etimer_set(&timer, CLOCK_SECOND*2);
   while(1) {
     PROCESS_YIELD();
@@ -417,7 +417,7 @@ PROCESS_THREAD(udp_stepper_process, ev, data)
 	  uip_udp_remove(conn);
 	  conn = udp_new(&header->srcipaddr, header->srcport, &conn);
 	  if (!conn) goto exit;
-	  uip_udp_bind(conn, HTONS(1010));
+	  uip_udp_bind(conn, UIP_HTONS(1010));
 	  listening = 0;
 	}
 	etimer_reset(&timer);
@@ -430,9 +430,9 @@ PROCESS_THREAD(udp_stepper_process, ev, data)
       }
     } else if (ev == PROCESS_EVENT_TIMER) {
       uip_udp_remove(conn);
-      conn = udp_new(&any, HTONS(0), NULL);
+      conn = udp_new(&any, UIP_HTONS(0), NULL);
       if (!conn) goto exit;
-      uip_udp_bind(conn, HTONS(1010));
+      uip_udp_bind(conn, UIP_HTONS(1010));
       listening = 1;
     }
   }
@@ -490,7 +490,7 @@ PROCESS_THREAD(stepper_process, ev, data)
   PROCESS_EXITHANDLER(goto exit);
   PROCESS_BEGIN();
   robot_stepper_init();
-  tcp_listen(HTONS(1010));
+  tcp_listen(UIP_HTONS(1010));
   
   process_start(&udp_stepper_process, NULL);
   printf("Stepper starting\n");

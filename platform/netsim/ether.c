@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.16 2010/02/23 18:44:08 adamdunkels Exp $
+ * $Id: ether.c,v 1.17 2010/10/19 18:29:05 adamdunkels Exp $
  */
 /**
  * \file
@@ -191,9 +191,9 @@ ether_server_init(void)
   memset((char *)&sa, 0, sizeof(sa));
   
   sa.sin_family = AF_INET;
-  sa.sin_addr.s_addr = inet_addr("127.0.0.1");/*htonl(INADDR_ANY);*/
+  sa.sin_addr.s_addr = inet_addr("127.0.0.1");/*uip_htonl(INADDR_ANY);*/
 
-  sa.sin_port = htons(ETHER_PORT);
+  sa.sin_port = uip_htons(ETHER_PORT);
 
   /*  printf("Binding to port %d\n", ETHER_PORT);*/
   
@@ -219,9 +219,9 @@ ether_client_init(int port)
   memset((char *)&sa, 0, sizeof(sa));
   
   sa.sin_family = AF_INET;
-  sa.sin_addr.s_addr = inet_addr("127.0.0.1");/*htonl(INADDR_ANY);*/
+  sa.sin_addr.s_addr = inet_addr("127.0.0.1");/*uip_htonl(INADDR_ANY);*/
 
-  sa.sin_port = htons(port);
+  sa.sin_port = uip_htons(port);
 
   /*  printf("ether_client_init: binding to port %d\n", port);*/
   if(bind(sc, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
@@ -403,7 +403,7 @@ send_packet(char *data, int len, int port)
   memset((char *)&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
   sa.sin_addr.s_addr = inet_addr("127.0.0.1");
-  sa.sin_port = htons(port);
+  sa.sin_port = uip_htons(port);
   
   if(sendto(s, data, len, 0, (struct sockaddr *)&sa, sizeof(sa)) == -1) {
     perror("ether: send_packet: sendto");
@@ -526,7 +526,7 @@ node_send_packet(char *data, int len)
   memset((char *)&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
   sa.sin_addr.s_addr = inet_addr("127.0.0.1");
-  sa.sin_port = htons(ETHER_PORT);
+  sa.sin_port = uip_htons(ETHER_PORT);
         
   if(sendto(sc, data, len, 0,
 	    (struct sockaddr *)&sa, sizeof(sa)) == -1) {

@@ -31,7 +31,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tapdev6.c,v 1.3 2008/10/14 16:50:11 julienabeille Exp $
+ * $Id: tapdev6.c,v 1.4 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 
@@ -211,7 +211,7 @@ u8_t tapdev_send(uip_lladdr_t *lladdr)
     memcpy(&BUF->dest, lladdr, UIP_LLADDR_LEN);
   }
   memcpy(&BUF->src, &uip_lladdr, UIP_LLADDR_LEN);
-  BUF->type = HTONS(UIP_ETHTYPE_IPV6); //math tmp
+  BUF->type = UIP_HTONS(UIP_ETHTYPE_IPV6); //math tmp
    
   uip_len += sizeof(struct uip_eth_hdr);
   do_send();

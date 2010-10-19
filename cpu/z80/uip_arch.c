@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: uip_arch.c,v 1.2 2007/09/29 03:57:39 matsutsuka Exp $
+ * $Id: uip_arch.c,v 1.3 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
  /*
@@ -130,10 +130,10 @@ _upper_layer_chksum_call:
 
 	ld	a, h
 	or	a, l
-	jr	nz, _upper_layer_htons
+	jr	nz, _upper_layer_uip_htons
 	ld	hl, #0xffff
 	jr	_upper_layer_ret
-_upper_layer_htons:
+_upper_layer_uip_htons:
 	ld	a, l
 	ld	l, h
 	ld	h, a

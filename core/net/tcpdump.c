@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcpdump.c,v 1.2 2006/10/09 11:53:56 adamdunkels Exp $
+ * @(#)$Id: tcpdump.c,v 1.3 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 #include "contiki-net.h"
@@ -238,13 +238,13 @@ tcpdump_format(u8_t *packet, u16_t packetlen,
     }
   } else if(IPBUF->proto == UIP_PROTO_UDP) {
       return s(" UDP",
-	     n(htons(UDPBUF->destport), d(
+	     n(uip_htons(UDPBUF->destport), d(
 	     n(IPBUF->destipaddr[3], d(
 	     n(IPBUF->destipaddr[2], d(
 	     n(IPBUF->destipaddr[1], d(
 	     n(IPBUF->destipaddr[0],
              s(" ",
-	     n(htons(UDPBUF->srcport), d(
+	     n(uip_htons(UDPBUF->srcport), d(
 	     n(IPBUF->srcipaddr[3], d(
 	     n(IPBUF->srcipaddr[2], d(
 	     n(IPBUF->srcipaddr[1], d(
@@ -253,21 +253,21 @@ tcpdump_format(u8_t *packet, u16_t packetlen,
       /*    return sprintf(buf, "%d.%d.%d.%d.%d %d.%d.%d.%d.%d UDP",
 		   IPBUF->srcipaddr[0], IPBUF->srcipaddr[1],
 		   IPBUF->srcipaddr[2], IPBUF->srcipaddr[3],
-		   htons(UDPBUF->srcport),
+		   uip_htons(UDPBUF->srcport),
 		   IPBUF->destipaddr[0], IPBUF->destipaddr[1],
 		   IPBUF->destipaddr[2], IPBUF->destipaddr[3],
-		   htons(UDPBUF->destport));*/
+		   uip_htons(UDPBUF->destport));*/
   } else if(IPBUF->proto == UIP_PROTO_TCP) {
     tcpflags(TCPBUF->flags, flags);
       return s(flags,
              s(" ",
-	     n(htons(TCPBUF->destport), d(
+	     n(uip_htons(TCPBUF->destport), d(
 	     n(IPBUF->destipaddr[3], d(
 	     n(IPBUF->destipaddr[2], d(
 	     n(IPBUF->destipaddr[1], d(
 	     n(IPBUF->destipaddr[0],
              s(" ",
-	     n(htons(TCPBUF->srcport), d(
+	     n(uip_htons(TCPBUF->srcport), d(
 	     n(IPBUF->srcipaddr[3], d(
 	     n(IPBUF->srcipaddr[2], d(
 	     n(IPBUF->srcipaddr[1], d(
@@ -276,10 +276,10 @@ tcpdump_format(u8_t *packet, u16_t packetlen,
     /*    return sprintf(buf, "%d.%d.%d.%d.%d %d.%d.%d.%d.%d %s",
 		   IPBUF->srcipaddr[0], IPBUF->srcipaddr[1],
 		   IPBUF->srcipaddr[2], IPBUF->srcipaddr[3],
-		   htons(TCPBUF->srcport),
+		   uip_htons(TCPBUF->srcport),
 		   IPBUF->destipaddr[0], IPBUF->destipaddr[1],
 		   IPBUF->destipaddr[2], IPBUF->destipaddr[3],
-		   htons(TCPBUF->destport),
+		   uip_htons(TCPBUF->destport),
 		   flags);  */
   } else {
     strcpy(buf, "Unrecognized protocol");

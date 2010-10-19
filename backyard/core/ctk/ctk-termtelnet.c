@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ctk-termtelnet.c,v 1.1 2007/05/26 21:46:28 oliverschmidt Exp $
+ * @(#)$Id: ctk-termtelnet.c,v 1.2 2010/10/19 18:29:03 adamdunkels Exp $
  */
 #include "contiki.h"
 #include "loader.h"
@@ -648,7 +648,7 @@ LOADER_INIT_FUNC(ctk_termtelnet_init, arg)
 EK_EVENTHANDLER(eventhandler, ev, data)
 {
   if(ev == EK_EVENT_INIT) {
-    tcp_listen(HTONS(PORT));
+    tcp_listen(UIP_HTONS(PORT));
   } else if(ev == tcpip_event) {
     ctk_termtelnet_appcall(data);
   }

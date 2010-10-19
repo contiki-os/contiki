@@ -106,10 +106,10 @@ PROCESS_THREAD(example_psock_server_process, ev, data)
 
   /*
    * We start with setting up a listening TCP port. Note how we're
-   * using the HTONS() macro to convert the port number (1010) to
+   * using the UIP_HTONS() macro to convert the port number (1010) to
    * network byte order as required by the tcp_listen() function.
    */
-  tcp_listen(HTONS(1010));
+  tcp_listen(UIP_HTONS(1010));
 
   /*
    * We loop for ever, accepting new connections.

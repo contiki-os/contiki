@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcps.c,v 1.1 2009/07/11 14:37:11 ksb Exp $
+ * @(#)$Id: dhcps.c,v 1.2 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -256,7 +256,7 @@ add_lease_time(uint8_t *optptr)
   uint32_t lt;
   *optptr++ = DHCP_OPTION_LEASE_TIME;
   *optptr++ = 4;
-  lt = HTONL(config->default_lease_time);
+  lt = UIP_HTONL(config->default_lease_time);
   memcpy(optptr, &lt, 4);
   return optptr + 4;
 }
@@ -381,13 +381,13 @@ PROCESS_THREAD(dhcp_server_process, ev , data)
   printf("DHCP server starting\n");
   uip_ipaddr(&any_addr, 0,0,0,0);
   uip_ipaddr(&bcast_addr, 255,255,255,255);
-  conn = udp_new(&any_addr, HTONS(DHCPS_CLIENT_PORT), NULL);
+  conn = udp_new(&any_addr, UIP_HTONS(DHCPS_CLIENT_PORT), NULL);
   if (!conn) goto exit;
-  send_conn = udp_new(&bcast_addr, HTONS(DHCPS_CLIENT_PORT), NULL);
+  send_conn = udp_new(&bcast_addr, UIP_HTONS(DHCPS_CLIENT_PORT), NULL);
   if (!send_conn) goto exit;
   
-  uip_udp_bind(conn, HTONS(DHCPS_SERVER_PORT));
-  uip_udp_bind(send_conn, HTONS(DHCPS_SERVER_PORT));
+  uip_udp_bind(conn, UIP_HTONS(DHCPS_SERVER_PORT));
+  uip_udp_bind(send_conn, UIP_HTONS(DHCPS_SERVER_PORT));
   while(1) {
     PROCESS_WAIT_EVENT();
     if(ev == tcpip_event) {

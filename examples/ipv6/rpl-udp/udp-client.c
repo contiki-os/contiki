@@ -81,7 +81,7 @@ send_packet(void *ptr)
          client_conn->ripaddr.u8[15], seq_id);
   sprintf(buf, "Hello %d from the client", seq_id);
   uip_udp_packet_sendto(client_conn, buf, strlen(buf),
-                        &server_ipaddr, HTONS(UDP_SERVER_PORT));
+                        &server_ipaddr, UIP_HTONS(UDP_SERVER_PORT));
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -135,13 +135,13 @@ PROCESS_THREAD(udp_client_process, ev, data)
   print_local_addresses();
 
   /* new connection with remote host */
-  client_conn = udp_new(NULL, HTONS(UDP_SERVER_PORT), NULL); 
-  udp_bind(client_conn, HTONS(UDP_CLIENT_PORT)); 
+  client_conn = udp_new(NULL, UIP_HTONS(UDP_SERVER_PORT), NULL); 
+  udp_bind(client_conn, UIP_HTONS(UDP_CLIENT_PORT)); 
 
   PRINTF("Created a connection with the server ");
   PRINT6ADDR(&client_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
-	HTONS(client_conn->lport), HTONS(client_conn->rport));
+	UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
 
   etimer_set(&periodic, SEND_INTERVAL);
   while(1) {

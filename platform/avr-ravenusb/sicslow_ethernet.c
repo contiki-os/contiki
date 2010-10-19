@@ -327,7 +327,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
   uip_lladdr_t destAddr;
   uip_lladdr_t *destAddrPtr = NULL;
 
-  PRINTF("Packet type: 0x%04x\n\r", ntohs(((struct uip_eth_hdr *) ethHeader)->type));
+  PRINTF("Packet type: 0x%04x\n\r", uip_ntohs(((struct uip_eth_hdr *) ethHeader)->type));
 
    //RUM doesn't support sending data
    #if UIP_CONF_USE_RUM
@@ -342,8 +342,8 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 
 
   //If not IPv6 we don't do anything
-  if (((struct uip_eth_hdr *) ethHeader)->type != HTONS(UIP_ETHTYPE_IPV6)) {
-    PRINTF("eth2low: Dropping packet w/type=0x%04x\n",ntohs(((struct uip_eth_hdr *) ethHeader)->type));
+  if (((struct uip_eth_hdr *) ethHeader)->type != UIP_HTONS(UIP_ETHTYPE_IPV6)) {
+    PRINTF("eth2low: Dropping packet w/type=0x%04x\n",uip_ntohs(((struct uip_eth_hdr *) ethHeader)->type));
   //      printf("!ipv6");
 #if !RF230BB
     usb_eth_stat.txbad++;
@@ -448,7 +448,7 @@ void mac_LowpanToEthernet(void)
 
 //printf("in lowpantoethernet\n\r");
   //Setup generic ethernet stuff
-  ETHBUF(uip_buf)->type = htons(UIP_ETHTYPE_IPV6);
+  ETHBUF(uip_buf)->type = uip_htons(UIP_ETHTYPE_IPV6);
 
   //Check for broadcast message
   
@@ -924,7 +924,7 @@ mac_log_802_15_4_tx(const uint8_t* buffer, size_t total_len) {
     sendlen = total_len;
 
   /* Setup generic ethernet stuff */
-    ETHBUF(raw_buf)->type = htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
+    ETHBUF(raw_buf)->type = uip_htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
  
   /* Check for broadcast message */
     if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
@@ -965,7 +965,7 @@ mac_log_802_15_4_rx(const uint8_t* buf, size_t len) {
     sendlen = len;
 
   /* Setup generic ethernet stuff */
-    ETHBUF(raw_buf)->type = htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
+    ETHBUF(raw_buf)->type = uip_htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
   
   /* Check for broadcast message */
     if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {

@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: vnc-out.c,v 1.2 2007/08/30 14:39:18 matsutsuka Exp $
+ * $Id: vnc-out.c,v 1.3 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
 
@@ -555,14 +555,14 @@ vnc_out_send_blank(CC_REGISTER_ARG struct vnc_server_state *vs)
   umsg = (struct rfb_fb_update *)uip_appdata;
   
   umsg->type = RFB_FB_UPDATE;
-  umsg->rects = HTONS(2);
+  umsg->rects = UIP_HTONS(2);
 
   ptr = (u8_t *)umsg + sizeof(struct rfb_fb_update);
   len = sizeof(struct rfb_fb_update);
   
   msglen = vnc_server_draw_rect(ptr, 0, 0,
-				HTONS(SCREEN_WIDTH),
-				HTONS(SCREEN_HEIGHT),
+				UIP_HTONS(SCREEN_WIDTH),
+				UIP_HTONS(SCREEN_HEIGHT),
 				BORDER_COLOR);
 
   
@@ -570,9 +570,9 @@ vnc_out_send_blank(CC_REGISTER_ARG struct vnc_server_state *vs)
   len += msglen;
 
   msglen = vnc_server_draw_rect(ptr,
-				HTONS(SCREEN_X), HTONS(SCREEN_Y),
-				HTONS(SCREEN_WIDTH - SCREEN_X * 2),
-				HTONS(SCREEN_HEIGHT - SCREEN_Y * 2),
+				UIP_HTONS(SCREEN_X), UIP_HTONS(SCREEN_Y),
+				UIP_HTONS(SCREEN_WIDTH - SCREEN_X * 2),
+				UIP_HTONS(SCREEN_HEIGHT - SCREEN_Y * 2),
 				SCREEN_COLOR);
 
   uip_send(uip_appdata, len + msglen);
@@ -690,11 +690,11 @@ vnc_out_send_update(CC_REGISTER_ARG struct vnc_server_state *vs)
 	       y * CTK_VNCFONT_HEIGHT,
 	       CTK_VNCFONT_WIDTH * numblanks,
 	       CTK_VNCFONT_HEIGHT));*/
-	recthdr->rect.x = htons(SCREEN_X + (x - numblanks) *
+	recthdr->rect.x = uip_htons(SCREEN_X + (x - numblanks) *
 				CTK_VNCFONT_WIDTH);
-	recthdr->rect.y = htons(SCREEN_Y + y * CTK_VNCFONT_HEIGHT);
-	recthdr->rect.w = htons(CTK_VNCFONT_WIDTH * numblanks);
-	recthdr->rect.h = HTONS(CTK_VNCFONT_HEIGHT);
+	recthdr->rect.y = uip_htons(SCREEN_Y + y * CTK_VNCFONT_HEIGHT);
+	recthdr->rect.w = uip_htons(CTK_VNCFONT_WIDTH * numblanks);
+	recthdr->rect.h = UIP_HTONS(CTK_VNCFONT_HEIGHT);
 	recthdr->encoding[0] =
 	  recthdr->encoding[1] =
 	  recthdr->encoding[2] = 0;
@@ -732,10 +732,10 @@ vnc_out_send_update(CC_REGISTER_ARG struct vnc_server_state *vs)
 	/*	recthdr = (struct rfb_fb_update_rect_hdr *)ptr;*/
 	recthdr = (struct rfb_fb_update_rect_hdr *)tmpbuf;
 
-	recthdr->rect.x = htons(SCREEN_X + x * CTK_VNCFONT_WIDTH);
-	recthdr->rect.y = htons(SCREEN_Y + y * CTK_VNCFONT_HEIGHT);
-	recthdr->rect.w = HTONS(CTK_VNCFONT_WIDTH);
-	recthdr->rect.h = HTONS(CTK_VNCFONT_HEIGHT);
+	recthdr->rect.x = uip_htons(SCREEN_X + x * CTK_VNCFONT_WIDTH);
+	recthdr->rect.y = uip_htons(SCREEN_Y + y * CTK_VNCFONT_HEIGHT);
+	recthdr->rect.w = UIP_HTONS(CTK_VNCFONT_WIDTH);
+	recthdr->rect.h = UIP_HTONS(CTK_VNCFONT_HEIGHT);
 	recthdr->encoding[0] =
 	  recthdr->encoding[1] =
 	  recthdr->encoding[2] = 0;
@@ -756,7 +756,7 @@ vnc_out_send_update(CC_REGISTER_ARG struct vnc_server_state *vs)
   
  loopend:
 
-  umsg->rects = htons(n);
+  umsg->rects = uip_htons(n);
 	
   if(y == vs->y + vs->h && x == vs->x + vs->w) {
     vs->x2 = vs->y2 = 0;
@@ -841,8 +841,8 @@ vnc_out_pointer_event(struct vnc_server_state *vs)
   
   ev = (struct rfb_pointer_event *)uip_appdata;
 
-  evx = htons(ev->x);
-  evy = htons(ev->y);
+  evx = uip_htons(ev->x);
+  evy = uip_htons(ev->y);
   
   if(evx > SCREEN_X && evx < SCREEN_WIDTH - 2 * SCREEN_X &&
      evy > SCREEN_Y && evy < SCREEN_HEIGHT - 2 * SCREEN_Y) {

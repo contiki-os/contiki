@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcprudolph0.c,v 1.12 2009/02/27 14:28:02 nvt-se Exp $
+ * @(#)$Id: tcprudolph0.c,v 1.13 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -118,7 +118,7 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
   rudolph0_stop(&rudolph0);
   /*  elfloader_unload();*/
   
-  s.len = htons(((struct codeprop_tcphdr *)uip_appdata)->len);
+  s.len = uip_htons(((struct codeprop_tcphdr *)uip_appdata)->len);
   s.addr = 0;
   uip_appdata += sizeof(struct codeprop_tcphdr);
   uip_len -= sizeof(struct codeprop_tcphdr);
@@ -261,11 +261,11 @@ PROCESS_THREAD(tcp_loader_process, ev, data)
 
   rudolph0_open(&rudolph0, 20, &rudolph0_call);
   
-  tcp_listen(HTONS(CODEPROP_DATA_PORT));
+  tcp_listen(UIP_HTONS(CODEPROP_DATA_PORT));
   
   while(1) {
     PROCESS_YIELD();
-    if(ev == tcpip_event && uip_conn->lport == HTONS(CODEPROP_DATA_PORT)) {
+    if(ev == tcpip_event && uip_conn->lport == UIP_HTONS(CODEPROP_DATA_PORT)) {
       if(uip_connected()) {	/* Really uip_connecting()!!! */
 	if(data == NULL) {
 	  PT_INIT(&s.tcpthread_pt);

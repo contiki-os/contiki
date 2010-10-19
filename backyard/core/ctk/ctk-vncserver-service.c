@@ -41,7 +41,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-vncserver-service.c,v 1.1 2007/05/23 23:19:13 oliverschmidt Exp $
+ * $Id: ctk-vncserver-service.c,v 1.2 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -1123,7 +1123,7 @@ EK_EVENTHANDLER(eventhandler, ev, data)
   switch(ev) {
   case EK_EVENT_INIT:
   case EK_EVENT_REPLACE:
-    tcp_listen(HTONS(5900));
+    tcp_listen(UIP_HTONS(5900));
     
     for(i = 0; i < CTK_VNCSERVER_CONF_NUMCONNS; ++i) {
       conns[i].state = VNC_DEALLOCATED;

@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.15 2009/08/12 18:23:37 dak664 Exp $
+ * $Id: httpd-cgi.c,v 1.16 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -163,9 +163,9 @@ make_tcp_stats(void *arg)
   httpd_sprint_ip6(conn->ripaddr, buf);
   return snprintf((char *)uip_appdata, uip_mss(),
          "<tr align=\"center\"><td>%d</td><td>%s:%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
-         htons(conn->lport),
+         uip_htons(conn->lport),
          buf,
-         htons(conn->rport),
+         uip_htons(conn->rport),
          states[conn->tcpstateflags & UIP_TS_MASK],
          conn->nrtx,
          conn->timer,
@@ -174,12 +174,12 @@ make_tcp_stats(void *arg)
 #else
   return snprintf((char *)uip_appdata, uip_mss(),
          "<tr align=\"center\"><td>%d</td><td>%u.%u.%u.%u:%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
-         htons(conn->lport),
+         uip_htons(conn->lport),
          conn->ripaddr.u8[0],
          conn->ripaddr.u8[1],
          conn->ripaddr.u8[2],
          conn->ripaddr.u8[3],
-         htons(conn->rport),
+         uip_htons(conn->rport),
          states[conn->tcpstateflags & UIP_TS_MASK],
          conn->nrtx,
          conn->timer,

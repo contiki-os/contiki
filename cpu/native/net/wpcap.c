@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.18 2009/08/13 18:41:00 dak664 Exp $
+ * $Id: wpcap.c,v 1.19 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -55,8 +55,8 @@
 #endif
 
 /* Avoid 'conflicting types' errors. */
-#define htonl
-#define htons
+#define uip_htonl
+#define uip_htons
 
 #include "contiki-net.h"
 #include "sys/log.h"
@@ -317,7 +317,7 @@ wpcap_send(uip_lladdr_t *lladdr)
   PRINTF("Src= %02x %02x %02x %02x %02x %02x",(&BUF->src)->addr[0],(&BUF->src)->addr[1],(&BUF->src)->addr[2],(&BUF->src)->addr[3],(&BUF->src)->addr[4],(&BUF->src)->addr[5]);
   PRINTF("  Dst= %02x %02x %02x %02x %02x %02x",(&BUF->dest)->addr[0],(&BUF->dest)->addr[1],(&BUF->dest)->addr[2],(&BUF->dest)->addr[3],(&BUF->dest)->addr[4],(&BUF->dest)->addr[5]);
   PRINTF("  Type=%04x\n",BUF->type);
-  BUF->type = HTONS(UIP_ETHTYPE_IPV6);
+  BUF->type = UIP_HTONS(UIP_ETHTYPE_IPV6);
   uip_len += sizeof(struct uip_eth_hdr);
   if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
     error_exit("error on send\n");

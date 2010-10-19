@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: smtp-socket.c,v 1.4 2010/05/31 15:22:08 nifi Exp $
+ * $Id: smtp-socket.c,v 1.5 2010/10/19 18:29:03 adamdunkels Exp $
  */
 #include "smtp.h"
 
@@ -213,7 +213,7 @@ smtp_send(char *to, char *cc, char *from, char *subject,
 {
   struct uip_conn *conn;
 
-  conn = tcp_connect(&smtpserver, HTONS(25), NULL);
+  conn = tcp_connect(&smtpserver, UIP_HTONS(25), NULL);
   if(conn == NULL) {
     return 0;
   }

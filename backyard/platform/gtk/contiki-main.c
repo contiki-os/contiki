@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: contiki-main.c,v 1.1 2008/01/05 21:08:26 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.2 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
 
@@ -167,7 +167,7 @@ main(int argc, char **argv)
 #undef LITTLE_ENDIAN
 #undef BIG_ENDIAN
 #undef BYTE_ORDER
-#undef HTONS
+#undef UIP_HTONS
 
 /*-----------------------------------------------------------------------------------*/
 

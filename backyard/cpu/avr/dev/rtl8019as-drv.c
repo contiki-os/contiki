@@ -31,7 +31,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: rtl8019as-drv.c,v 1.1 2007/05/26 21:29:12 oliverschmidt Exp $
+ * $Id: rtl8019as-drv.c,v 1.2 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -98,7 +98,7 @@ rtl8019_drv_idle(void)
   if(uip_len > 0) {
     /* A frame was avaliable (and is now read into the uip_buf), so
        we process it. */ 
-    if(BUF->type == htons(UIP_ETHTYPE_IP)) {
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
       /*      debug_print16(uip_len);*/
       uip_arp_ipin();
       uip_len -= sizeof(struct uip_eth_hdr);
@@ -111,7 +111,7 @@ rtl8019_drv_idle(void)
 	uip_arp_out();
 	rtl8019as_send();
       }
-    } else if(BUF->type == htons(UIP_ETHTYPE_ARP)) {
+    } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
       uip_arp_arpin();
       /* If the above function invocation resulted in data that
 	 should be sent out on the network, the global variable

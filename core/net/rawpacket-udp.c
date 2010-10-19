@@ -28,7 +28,7 @@ c/*
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rawpacket-udp.c,v 1.3 2007/11/17 18:05:21 adamdunkels Exp $
+ * $Id: rawpacket-udp.c,v 1.4 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /**
@@ -55,7 +55,7 @@ rawpacket_udp_init(void)
 struct rawpacket_conn *
 rawpacket_setup(int id)
 {
-  return (struct rawpacket_conn *)udp_broadcast_new(HTONS(PORT + id), NULL);
+  return (struct rawpacket_conn *)udp_broadcast_new(UIP_HTONS(PORT + id), NULL);
 }
 /*---------------------------------------------------------------------------*/
 void

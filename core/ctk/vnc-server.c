@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: vnc-server.c,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: vnc-server.c,v 1.3 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
 
@@ -164,16 +164,16 @@ vnc_server_send_data(struct vnc_server_state *vs)
     break;
   case VNC_INIT:
     initmsg = (struct rfb_server_init *)uip_appdata;
-    initmsg->width = htons(vs->width);
-    initmsg->height = htons(vs->height);
+    initmsg->width = uip_htons(vs->width);
+    initmsg->height = uip_htons(vs->height);
     /* BGR233 pixel format. */
     initmsg->format.bps = 8;
     initmsg->format.depth = 8;
     initmsg->format.endian = 1;
     initmsg->format.truecolor = 1;
-    initmsg->format.red_max = htons(7);
-    initmsg->format.green_max = htons(7);
-    initmsg->format.blue_max = htons(3);
+    initmsg->format.red_max = uip_htons(7);
+    initmsg->format.green_max = uip_htons(7);
+    initmsg->format.blue_max = uip_htons(3);
     initmsg->format.red_shift = 0;
     initmsg->format.green_shift = 3;
     initmsg->format.blue_shift = 6;
@@ -315,7 +315,7 @@ vnc_read_data(CC_REGISTER_ARG struct vnc_server_state *vs)
       case RFB_SET_ENCODINGS:
 	PRINTF(("Set encodings\n"));
 	vs->readlen = sizeof(struct rfb_set_encoding);
-	vs->readlen += htons(((struct rfb_set_encoding *)appdata)->encodings) * 4;
+	vs->readlen += uip_htons(((struct rfb_set_encoding *)appdata)->encodings) * 4;
 	/* Make sure that client supports the encodings we use. */
 	/* XXX: not implemented yet. */
 	break;
@@ -441,7 +441,7 @@ void
 vnc_server_appcall(struct vnc_server_state *vs)
 {
   
-  vs->type = htons(uip_conn->lport) - 5900;
+  vs->type = uip_htons(uip_conn->lport) - 5900;
   
   if(uip_connected()) {      
     vnc_new(vs);

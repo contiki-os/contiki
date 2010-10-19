@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: twitter.c,v 1.2 2009/05/11 17:31:13 adamdunkels Exp $
+ * $Id: twitter.c,v 1.3 2010/10/19 18:29:03 adamdunkels Exp $
  */
 
 /**
@@ -233,7 +233,7 @@ PROCESS_THREAD(twitter_process, ev, data)
 
   
   /* Open a TCP connection to port 80 on twitter.com */
-  conn = tcp_connect(&s->addr, htons(80), s);
+  conn = tcp_connect(&s->addr, uip_htons(80), s);
   if(conn == NULL) {
     PRINTF("Could not open TCP connection\n");
     /*    memb_free(&conns, s);*/

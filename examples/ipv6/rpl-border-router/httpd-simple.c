@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: httpd-simple.c,v 1.4 2010/08/31 20:05:44 joxe Exp $
+ * $Id: httpd-simple.c,v 1.5 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /**
@@ -249,7 +249,7 @@ httpd_appcall(void *state)
 void
 httpd_init(void)
 {
-  tcp_listen(HTONS(80));
+  tcp_listen(UIP_HTONS(80));
   memb_init(&conns);
 #if URLCONV
   urlconv_init();

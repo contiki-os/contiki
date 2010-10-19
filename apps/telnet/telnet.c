@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: telnet.c,v 1.2 2009/03/05 23:56:56 adamdunkels Exp $
+ * $Id: telnet.c,v 1.3 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -108,7 +108,7 @@ telnet_connect(struct telnet_state *s, uip_ipaddr_t *addr, u16_t port)
 {
   struct uip_conn *conn;
   
-  conn = tcp_connect(addr, htons(port), s);
+  conn = tcp_connect(addr, uip_htons(port), s);
   if(conn == NULL) {
     return NULL;
   }
