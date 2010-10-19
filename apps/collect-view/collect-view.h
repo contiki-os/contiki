@@ -22,6 +22,7 @@ struct collect_view_data_msg {
 };
 
 void collect_view_init(void);
+void collect_view_construct_message(struct collect_view_data_msg *msg);
 
 void collect_view_arch_read_sensors(struct collect_view_data_msg *msg);
 
