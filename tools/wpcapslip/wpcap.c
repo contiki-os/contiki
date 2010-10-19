@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.5 2010/10/19 18:29:05 adamdunkels Exp $
+ * $Id: wpcap.c,v 1.6 2010/10/19 20:30:47 oliverschmidt Exp $
  */
 
 
@@ -65,10 +65,6 @@
 #include <sys/ioctl.h>
 
 #include <err.h>
-
-/* Avoid 'conflicting types' errors. */
-#define uip_htonl
-#define uip_htons
 
 
 #define PROGRESS(x)

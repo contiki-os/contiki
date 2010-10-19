@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.19 2010/10/19 18:29:04 adamdunkels Exp $
+ * $Id: wpcap.c,v 1.20 2010/10/19 20:30:47 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -53,10 +53,6 @@
 #else
 #define PRINTF(...)
 #endif
-
-/* Avoid 'conflicting types' errors. */
-#define uip_htonl
-#define uip_htons
 
 #include "contiki-net.h"
 #include "sys/log.h"
