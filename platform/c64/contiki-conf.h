@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.24 2010/10/03 10:30:54 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.25 2010/10/19 22:31:59 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -59,6 +59,9 @@
 #define EMAIL_CONF_WIDTH  39
 #define EMAIL_CONF_HEIGHT 20
 #define EMAIL_CONF_ERASE   0
+
+#define FTP_CONF_WIDTH  18
+#define FTP_CONF_HEIGHT 22
 
 #define IRC_CONF_WIDTH  40
 #define IRC_CONF_HEIGHT 24
