@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.61 2010/10/12 19:51:28 oliverschmidt Exp $
+ * $Id: collect.c,v 1.62 2010/10/19 07:34:29 adamdunkels Exp $
  */
 
 /**
@@ -128,9 +128,10 @@ struct ack_msg {
 #define MAX_ACK_MAC_REXMITS        3
 #define REXMIT_TIME                CLOCK_SECOND * 1
 #define MAX_REXMIT_TIME_SCALING    2
-#define FORWARD_PACKET_LIFETIME    (120 * (REXMIT_TIME))
+#define FORWARD_PACKET_LIFETIME_BASE    (4 * (REXMIT_TIME))
 #define MAX_SENDING_QUEUE          QUEUEBUF_NUM / 2
 #define KEEPALIVE_REXMITS          8
+#define MAX_REXMITS                31
 
 MEMB(send_queue_memb, struct packetqueue_item, MAX_SENDING_QUEUE);
 
@@ -252,6 +253,21 @@ rtmetric_compute(struct collect_conn *tc)
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * This function is called when the route advertisements need to be
+ * transmitted more rapidly.
+ *
+ */
+static void
+bump_advertisement(struct collect_conn *c)
+{
+#if !COLLECT_ANNOUNCEMENTS
+  neighbor_discovery_start(&c->neighbor_discovery_conn, c->rtmetric);
+#else
+  announcement_bump(&c->announcement);
+#endif /* !COLLECT_ANNOUNCEMENTS */
+}
+/*---------------------------------------------------------------------------*/
+/**
  * This function is called to update the current parent node. The
  * parent may change if new routing information has been found, for
  * example if a new node with a lower rtmetric and link estimate has
@@ -301,6 +317,7 @@ update_parent(struct collect_conn *tc)
              best->addr.u8[0], best->addr.u8[1]);
       rimeaddr_copy(&tc->parent, &best->addr);
       stats.foundroute++;
+      bump_advertisement(tc);
     } else {
       if(collect_neighbor_rtmetric_link_estimate(best) +
          SIGNIFICANT_RTMETRIC_PARENT_CHANGE <
@@ -313,6 +330,12 @@ update_parent(struct collect_conn *tc)
                collect_neighbor_rtmetric(current));
         rimeaddr_copy(&tc->parent, &best->addr);
         stats.newparent++;
+        /* Since we now have a significantly better or worse rtmetric than
+           we had before, we let our neighbors know this quickly. */
+        PRINTF("update_rtmetric: new_rtmetric %d + %d < old_rtmetric %d\n",
+               new_rtmetric, SIGNIFICANT_RTMETRIC_PARENT_CHANGE, old_rtmetric);
+        bump_advertisement(tc);
+
         if(DRAW_TREE) {
           printf("#A e=%d\n", collect_neighbor_link_estimate(best));
           {
@@ -360,21 +383,6 @@ update_parent(struct collect_conn *tc)
     }
     rimeaddr_copy(&tc->parent, &rimeaddr_null);
   }
-}
-/*---------------------------------------------------------------------------*/
-/**
- * This function is called when the route advertisements need to be
- * transmitted more rapidly.
- *
- */
-static void
-bump_advertisement(struct collect_conn *c)
-{
-#if !COLLECT_ANNOUNCEMENTS
-  neighbor_discovery_start(&c->neighbor_discovery_conn, c->rtmetric);
-#else
-  announcement_bump(&c->announcement);
-#endif /* !COLLECT_ANNOUNCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -426,21 +434,11 @@ update_rtmetric(struct collect_conn *tc)
       neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
 #endif /* COLLECT_ANNOUNCEMENTS */
 
-      /* If we now have a significantly better or worse rtmetric than
-         we had before, what we need to make sure that our neighbors
-         find out about this quickly. */
-      if((new_rtmetric < old_rtmetric - SIGNIFICANT_RTMETRIC_PARENT_CHANGE) &&
-         (old_rtmetric > SIGNIFICANT_RTMETRIC_PARENT_CHANGE)) {
-        PRINTF("update_rtmetric: new_rtmetric %d + %d < old_rtmetric %d\n",
-               new_rtmetric, SIGNIFICANT_RTMETRIC_PARENT_CHANGE, old_rtmetric);
-        bump_advertisement(tc);
-      }
     }
-
     PRINTF("%d.%d: new rtmetric %d\n",
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
            tc->rtmetric);
-
+    
     /* We got a new, working, route we send any queued packets we may have. */
     if(old_rtmetric == RTMETRIC_MAX && new_rtmetric != RTMETRIC_MAX) {
       PRINTF("Sending queued packet because rtmetric was max\n");
@@ -452,7 +450,6 @@ update_rtmetric(struct collect_conn *tc)
       }
     }
   }
-
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -478,7 +475,7 @@ enqueue_dummy_packet(struct collect_conn *c, int rexmits)
   n = collect_neighbor_list_find(&c->neighbor_list, &c->parent);
   if(n != NULL) {
     return packetqueue_enqueue_packetbuf(&c->send_queue,
-                                         FORWARD_PACKET_LIFETIME,
+                                         FORWARD_PACKET_LIFETIME_BASE * rexmits,
                                          c);
   }
   return 0;
@@ -998,7 +995,9 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
          queue. */
      
       if(packetqueue_enqueue_packetbuf(&tc->send_queue,
-                                       FORWARD_PACKET_LIFETIME, tc)) {
+                                       FORWARD_PACKET_LIFETIME_BASE *
+                                       packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT),
+                                       tc)) {
         send_ack(tc, &ack_to, ackflags);
         send_queued_packet(tc);
       } else {
@@ -1165,7 +1164,7 @@ received_announcement(struct announcement *a, const rimeaddr_t *from,
              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
              from->u8[0], from->u8[1], value);
     }
-    if(value == RTMETRIC_MAX) {
+    if(value == RTMETRIC_MAX && tc->rtmetric != RTMETRIC_MAX) {
       bump_advertisement(tc);
     }
   } else {
@@ -1335,7 +1334,11 @@ collect_send(struct collect_conn *tc, int rexmits)
   packetbuf_set_addr(PACKETBUF_ADDR_ESENDER, &rimeaddr_node_addr);
   packetbuf_set_attr(PACKETBUF_ATTR_HOPS, 1);
   packetbuf_set_attr(PACKETBUF_ATTR_TTL, MAX_HOPLIM);
-  packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, rexmits);
+  if(rexmits > MAX_REXMITS) {
+    packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, MAX_REXMITS);
+  } else {
+    packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, rexmits);
+  }
 
   PRINTF("%d.%d: originating packet %d, max_rexmits %d\n",
          rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -1362,7 +1365,8 @@ collect_send(struct collect_conn *tc, int rexmits)
 	     n->addr.u8[0], n->addr.u8[1]);
  
       if(packetqueue_enqueue_packetbuf(&tc->send_queue,
-                                       FORWARD_PACKET_LIFETIME,
+                                       FORWARD_PACKET_LIFETIME_BASE *
+                                       packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT),
                                        tc)) {
         send_queued_packet(tc);
         return 1;
@@ -1387,7 +1391,8 @@ collect_send(struct collect_conn *tc, int rexmits)
 #endif /* COLLECT_ANNOUNCEMENTS */
 
       if(packetqueue_enqueue_packetbuf(&tc->send_queue,
-                                       FORWARD_PACKET_LIFETIME,
+                                       FORWARD_PACKET_LIFETIME_BASE *
+                                       packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT),
                                        tc)) {
 	return 1;
       } else {
