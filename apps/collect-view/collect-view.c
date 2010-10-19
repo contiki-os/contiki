@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-view.c,v 1.1 2010/10/12 11:37:41 adamdunkels Exp $
+ * $Id: collect-view.c,v 1.2 2010/10/19 07:33:47 adamdunkels Exp $
  */
 
 /**
@@ -57,25 +57,23 @@ SHELL_COMMAND(collect_view_data_command,
 	      "collect-view-data: sensor data, power consumption, network stats",
 	      &collect_view_data_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(collect_view_data_process, ev, data)
+void
+collect_view_construct_message(struct collect_view_data_msg *msg)
 {
   static unsigned long last_cpu, last_lpm, last_transmit, last_listen;
   unsigned long cpu, lpm, transmit, listen;
-  struct collect_view_data_msg msg;
   struct collect_neighbor *n;
-  PROCESS_BEGIN();
 
-
-  msg.len = sizeof(struct collect_view_data_msg) / sizeof(uint16_t);
-  msg.clock = clock_time();
+  msg->len = sizeof(struct collect_view_data_msg) / sizeof(uint16_t);
+  msg->clock = clock_time();
 #if TIMESYNCH_CONF_ENABLED
-  msg.timesynch_time = timesynch_time();
+  msg->timesynch_time = timesynch_time();
 #else /* TIMESYNCH_CONF_ENABLED */
-  msg.timesynch_time = 0;
+  msg->timesynch_time = 0;
 #endif /* TIMESYNCH_CONF_ENABLED */
-  
+
   energest_flush();
-  
+
   cpu = energest_type_time(ENERGEST_TYPE_CPU) - last_cpu;
   lpm = energest_type_time(ENERGEST_TYPE_LPM) - last_lpm;
   transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT) - last_transmit;
@@ -90,33 +88,40 @@ PROCESS_THREAD(collect_view_data_process, ev, data)
     transmit /= 2;
     listen /= 2;
   }
-  
-  msg.cpu = cpu;
-  msg.lpm = lpm;
-  msg.transmit = transmit;
-  msg.listen = listen;
+
+  msg->cpu = cpu;
+  msg->lpm = lpm;
+  msg->transmit = transmit;
+  msg->listen = listen;
 
   last_cpu = energest_type_time(ENERGEST_TYPE_CPU);
   last_lpm = energest_type_time(ENERGEST_TYPE_LPM);
   last_transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
   last_listen = energest_type_time(ENERGEST_TYPE_LISTEN);
 
-  rimeaddr_copy(&msg.parent, &shell_collect_conn.parent);
+  rimeaddr_copy(&msg->parent, &shell_collect_conn.parent);
   n = collect_neighbor_list_find(&shell_collect_conn.neighbor_list,
                                  &shell_collect_conn.parent);
   if(n != NULL) {
-    msg.parent_etx = collect_neighbor_link_estimate(n);
-    msg.parent_rtmetric = n->rtmetric;
+    msg->parent_etx = collect_neighbor_link_estimate(n);
+    msg->parent_rtmetric = n->rtmetric;
   } else {
-    msg.parent_etx = 0;
-    msg.parent_rtmetric = 0;
+    msg->parent_etx = 0;
+    msg->parent_rtmetric = 0;
   }
-  msg.num_neighbors = collect_neighbor_list_num(&shell_collect_conn.neighbor_list);
-  msg.beacon_interval = broadcast_announcement_beacon_interval() / CLOCK_SECOND;
+  msg->num_neighbors = collect_neighbor_list_num(&shell_collect_conn.neighbor_list);
+  msg->beacon_interval = broadcast_announcement_beacon_interval() / CLOCK_SECOND;
 
-  memset(msg.sensors, 0, sizeof(msg.sensors));
-  collect_view_arch_read_sensors(&msg);
+  memset(msg->sensors, 0, sizeof(msg->sensors));
+  collect_view_arch_read_sensors(msg);
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(collect_view_data_process, ev, data)
+{
+  struct collect_view_data_msg msg;
+  PROCESS_BEGIN();
 
+  collect_view_construct_message(&msg);
   shell_output(&collect_view_data_command, &msg, sizeof(msg), "", 0);
 
   PROCESS_END();
