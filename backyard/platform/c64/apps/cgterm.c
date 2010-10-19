@@ -99,7 +99,7 @@ connect(u16_t *host, u16_t port)
   PSOCK_INIT(&s.sout, s.inputbuf, sizeof(s.inputbuf));
   PT_INIT(&s.inpt);
   PT_INIT(&s.outpt);
-  return tcp_connect(host, htons(port), NULL);
+  return tcp_connect(host, uip_htons(port), NULL);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS(cgterm_process, "C/G terminal");

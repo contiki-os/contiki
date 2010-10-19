@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.7 2010/02/26 21:38:58 dak664 Exp $
+ * $Id: httpd-cgi.c,v 1.8 2010/10/19 18:29:05 adamdunkels Exp $
  *
  */
 
@@ -227,12 +227,12 @@ make_tcp_stats(void *arg)
 
   conn = &uip_conns[s->u.count];
 
-  numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_tcpstat1, htons(conn->lport));
+  numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_tcpstat1, uip_htons(conn->lport));
   numprinted += httpd_cgi_sprint_ip6(conn->ripaddr, uip_appdata + numprinted);
   httpd_strcpy(tstate,states[conn->tcpstateflags & UIP_TS_MASK]);
   numprinted +=  httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted,
                  httpd_cgi_tcpstat2,
-                 htons(conn->rport),
+                 uip_htons(conn->rport),
                  tstate,
                  conn->nrtx,
                  conn->timer,
@@ -431,7 +431,7 @@ uint8_t httpd_cgi_sprint_ip6(uip_ip6addr_t addr, char * result)
                 //Normal address, just print it
                 else
                         {
-                        result += sprintf(result, "%x", (unsigned int)(ntohs(addr.u16[i])));
+                        result += sprintf(result, "%x", (unsigned int)(uip_ntohs(addr.u16[i])));
                         i++;
                         numprinted++;
                         }

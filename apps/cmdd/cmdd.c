@@ -149,10 +149,10 @@ PROCESS_THREAD(cmdd_process, ev, data)
   
   PROCESS_BEGIN();
   
-  tcp_listen(HTONS(6581));
+  tcp_listen(UIP_HTONS(6581));
   memb_init(&conns);
   uip_ipaddr(&ipaddr, 255,255,255,255);
-  udpconn = udp_new(&ipaddr, HTONS(6712), NULL);
+  udpconn = udp_new(&ipaddr, UIP_HTONS(6712), NULL);
 
   while(1) {
     PROCESS_WAIT_EVENT();

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: udpsend.c,v 1.1 2008/05/27 13:16:34 adamdunkels Exp $
+ * @(#)$Id: udpsend.c,v 1.2 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /* Set the IP destination address to something different from the
@@ -60,7 +60,7 @@ PROCESS_THREAD(udpsend_process, ev, data)
   {
     uip_ipaddr_t addr;
     uip_ipaddr(&addr, 255,255,255,255); /* Change address here! */
-    c = udp_new(&addr, HTONS(4321), NULL);
+    c = udp_new(&addr, UIP_HTONS(4321), NULL);
     c->ttl = 1;			/* One hop only. */
   }
 

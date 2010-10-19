@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: wpcap-drv.c,v 1.6 2009/08/11 16:06:17 dak664 Exp $
+ * @(#)$Id: wpcap-drv.c,v 1.7 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 #include "contiki-net.h"
@@ -62,15 +62,15 @@ pollhandler(void)
 
   if(uip_len > 0) {
 #if UIP_CONF_IPV6
-    if(BUF->type == htons(UIP_ETHTYPE_IPV6)) {
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
       tcpip_input();
     } else
 #endif /* UIP_CONF_IPV6 */
-    if(BUF->type == htons(UIP_ETHTYPE_IP)) {
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
       uip_len -= sizeof(struct uip_eth_hdr);
       tcpip_input();
 #if !UIP_CONF_IPV6
-    } else if(BUF->type == htons(UIP_ETHTYPE_ARP)) {
+    } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
        uip_arp_arpin();      //math
       /* If the above function invocation resulted in data that
          should be sent out on the network, the global variable

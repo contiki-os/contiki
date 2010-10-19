@@ -29,7 +29,7 @@
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.c,v 1.10 2010/06/14 14:08:17 nifi Exp $
+ * $Id: webclient.c,v 1.11 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -151,7 +151,7 @@ webclient_get(const char *host, u16_t port, const char *file)
 #endif /* UIP_UDP */
   }
   
-  conn = tcp_connect(ipaddr, htons(port), NULL);
+  conn = tcp_connect(ipaddr, uip_htons(port), NULL);
   
   if(conn == NULL) {
     return 0;

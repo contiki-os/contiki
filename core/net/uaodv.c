@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.37 2010/01/20 09:58:16 fros4943 Exp $
+ * $Id: uaodv.c,v 1.38 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /**
@@ -70,7 +70,7 @@ last_known_seqno(uip_ipaddr_t *host)
   struct uaodv_rt_entry *route = uaodv_rt_lookup_any(host);
 
   if(route != NULL)
-    return htonl(route->hseqno);
+    return uip_htonl(route->hseqno);
 
   return 0;
 }
@@ -193,11 +193,11 @@ send_rreq(uip_ipaddr_t *addr)
     rm->flags = 0;
   rm->reserved = 0;
   rm->hop_count = 0;
-  rm->rreq_id = htonl(rreq_id++);
+  rm->rreq_id = uip_htonl(rreq_id++);
   uip_ipaddr_copy(&rm->dest_addr, addr);
   uip_gethostaddr(&rm->orig_addr);
   my_hseqno++;			/* Always */
-  rm->orig_seqno = htonl(my_hseqno);
+  rm->orig_seqno = uip_htonl(my_hseqno);
   bcastconn->ttl = MY_NET_DIAMETER;
   len = sizeof(struct uaodv_msg_rreq);
   len += add_rreq_extensions(rm + 1);
@@ -220,7 +220,7 @@ send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig,
   uip_ipaddr_copy(&rm->orig_addr, orig);
   rm->dest_seqno = *seqno;
   uip_ipaddr_copy(&rm->dest_addr, dest);
-  rm->lifetime = HTONL(MY_ROUTE_TIMEOUT);
+  rm->lifetime = UIP_HTONL(MY_ROUTE_TIMEOUT);
   sendto(nexthop, rm, sizeof(struct uaodv_msg_rrep));
 }
 /*---------------------------------------------------------------------------*/
@@ -256,9 +256,9 @@ handle_incoming_rreq(void)
 	      uip_ipaddr_to_quad(&BUF->srcipaddr),
 	      uip_ipaddr_to_quad(&BUF->destipaddr),
 	      BUF->ttl,
-	      uip_ipaddr_to_quad(&rm->orig_addr), ntohl(rm->orig_seqno),
+	      uip_ipaddr_to_quad(&rm->orig_addr), uip_ntohl(rm->orig_seqno),
 	      rm->hop_count,
-	      uip_ipaddr_to_quad(&rm->dest_addr), ntohl(rm->dest_seqno));
+	      uip_ipaddr_to_quad(&rm->dest_addr), uip_ntohl(rm->dest_seqno));
 
   if(uip_ipaddr_cmp(&rm->orig_addr, &uip_hostaddr)) {
     return;			/* RREQ looped back! */
@@ -308,8 +308,8 @@ handle_incoming_rreq(void)
   /* New reverse route? */
   rt = uaodv_rt_lookup(&rm->orig_addr);
   if(rt == NULL
-     || (SCMP32(ntohl(rm->orig_seqno), rt->hseqno) > 0) /* New route. */
-     || (SCMP32(ntohl(rm->orig_seqno), rt->hseqno) == 0
+     || (SCMP32(uip_ntohl(rm->orig_seqno), rt->hseqno) > 0) /* New route. */
+     || (SCMP32(uip_ntohl(rm->orig_seqno), rt->hseqno) == 0
 	 && rm->hop_count < rt->hop_count)) { /* Better route. */
     print_debug("Inserting1\n");
     rt = uaodv_rt_add(&rm->orig_addr, uip_udp_sender(),
@@ -324,7 +324,7 @@ handle_incoming_rreq(void)
     fw = uaodv_rt_lookup(&rm->dest_addr);
     if(!(rm->flags & UAODV_RREQ_UNKSEQNO)
        && fw != NULL
-       && SCMP32(fw->hseqno, ntohl(rm->dest_seqno)) <= 0) {
+       && SCMP32(fw->hseqno, uip_ntohl(rm->dest_seqno)) <= 0) {
       fw = NULL;
     }
   }
@@ -335,7 +335,7 @@ handle_incoming_rreq(void)
     print_debug("RREQ for known route\n");
     uip_ipaddr_copy(&dest_addr, &rm->dest_addr);
     uip_ipaddr_copy(&orig_addr, &rm->orig_addr);
-    net_seqno = htonl(fw->hseqno);
+    net_seqno = uip_htonl(fw->hseqno);
     send_rrep(&dest_addr, &rt->nexthop, &orig_addr, &net_seqno,
 	      fw->hop_count + 1);
   } else if(uip_ipaddr_cmp(&rm->dest_addr, &uip_hostaddr)) {
@@ -347,11 +347,11 @@ handle_incoming_rreq(void)
 
     my_hseqno++;
     if(!(rm->flags & UAODV_RREQ_UNKSEQNO)
-       && SCMP32(my_hseqno, ntohl(rm->dest_seqno)) < 0) {
+       && SCMP32(my_hseqno, uip_ntohl(rm->dest_seqno)) < 0) {
       print_debug("New my_hseqno %lu\n", my_hseqno); /* We have rebooted. */
-      my_hseqno = ntohl(rm->dest_seqno) + 1;
+      my_hseqno = uip_ntohl(rm->dest_seqno) + 1;
     }
-    net_seqno = htonl(my_hseqno);
+    net_seqno = uip_htonl(my_hseqno);
     send_rrep(&dest_addr, &rt->nexthop, &orig_addr, &net_seqno, 0);
   } else if(BUF->ttl > 1) {
     int len;
@@ -396,7 +396,7 @@ handle_incoming_rrep(void)
     }
 #endif
     /* Sometimes it helps to send a non-requested RREP in response! */
-    net_seqno = htonl(my_hseqno);
+    net_seqno = uip_htonl(my_hseqno);
     send_rrep(&uip_hostaddr, &BUF->srcipaddr, &BUF->srcipaddr, &net_seqno, 0);
 #endif
     return;
@@ -406,14 +406,14 @@ handle_incoming_rrep(void)
 	      " dest=%d.%d.%d.%d seq=%lu hops=%u orig=%d.%d.%d.%d\n",
 	      uip_ipaddr_to_quad(&BUF->srcipaddr),
 	      uip_ipaddr_to_quad(&BUF->destipaddr),
-	      uip_ipaddr_to_quad(&rm->dest_addr), ntohl(rm->dest_seqno),
+	      uip_ipaddr_to_quad(&rm->dest_addr), uip_ntohl(rm->dest_seqno),
 	      rm->hop_count,
 	      uip_ipaddr_to_quad(&rm->orig_addr));
 
   rt = uaodv_rt_lookup(&rm->dest_addr);
 
   /* New forward route? */
-  if(rt == NULL || (SCMP32(ntohl(rm->dest_seqno), rt->hseqno) > 0)) {
+  if(rt == NULL || (SCMP32(uip_ntohl(rm->dest_seqno), rt->hseqno) > 0)) {
     print_debug("Inserting3\n");
     rt = uaodv_rt_add(&rm->dest_addr, uip_udp_sender(),
 		      rm->hop_count, &rm->dest_seqno);
@@ -469,7 +469,7 @@ handle_incoming_rerr(void)
 	      uip_ipaddr_to_quad(&BUF->srcipaddr),
 	      uip_ipaddr_to_quad(&BUF->destipaddr),
 	      uip_ipaddr_to_quad((uip_ipaddr_t *)&rm->unreach[0]),
-	      ntohl(rm->unreach[0].seqno));
+	      uip_ntohl(rm->unreach[0].seqno));
 
   if(uip_ipaddr_cmp(&rm->unreach[0].addr, &uip_hostaddr))
     return;
@@ -477,11 +477,11 @@ handle_incoming_rerr(void)
   rt = uaodv_rt_lookup_any(&rm->unreach[0].addr);
   if(rt != NULL && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())) {
     if((rm->flags & UAODV_RERR_UNKNOWN) || rm->unreach[0].seqno == 0
-       || SCMP32(rt->hseqno, ntohl(rm->unreach[0].seqno)) <= 0) {
+       || SCMP32(rt->hseqno, uip_ntohl(rm->unreach[0].seqno)) <= 0) {
       rt->is_bad = 1;
       if(rm->flags & UAODV_RERR_UNKNOWN) {
 	rm->flags &= ~UAODV_RERR_UNKNOWN;
-	rm->unreach[0].seqno = htonl(rt->hseqno);
+	rm->unreach[0].seqno = uip_htonl(rt->hseqno);
       }
       print_debug("RERR rebroadcast\n");
       uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rerr));
@@ -529,7 +529,7 @@ uaodv_bad_dest(uip_ipaddr_t *dest)
     bad_seqno = 0;		/* Or flag this in RERR? */
   else {
     rt->is_bad = 1;
-    bad_seqno = htonl(rt->hseqno);
+    bad_seqno = uip_htonl(rt->hseqno);
   }
 
   uip_ipaddr_copy(&bad_dest, dest);
@@ -576,8 +576,8 @@ PROCESS_THREAD(uaodv_process, ev, data)
 
   printf("uaodv_process starting %lu\n", (unsigned long) my_hseqno);
 
-  bcastconn = udp_broadcast_new(HTONS(UAODV_UDPPORT), NULL);
-  unicastconn = udp_broadcast_new(HTONS(UAODV_UDPPORT), NULL);
+  bcastconn = udp_broadcast_new(UIP_HTONS(UAODV_UDPPORT), NULL);
+  unicastconn = udp_broadcast_new(UIP_HTONS(UAODV_UDPPORT), NULL);
   
   while(1) {
     PROCESS_WAIT_EVENT();

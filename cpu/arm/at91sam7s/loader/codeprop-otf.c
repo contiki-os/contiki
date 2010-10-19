@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop-otf.c,v 1.1 2009/07/11 14:18:50 ksb Exp $
+ * @(#)$Id: codeprop-otf.c,v 1.2 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /** \addtogroup esb
@@ -175,9 +175,9 @@ PROCESS_THREAD(codeprop_process, ev, data)
   PT_INIT(&s.udpthread_pt);
   PT_INIT(&s.recv_udpthread_pt);
 
-  tcp_listen(HTONS(CODEPROP_DATA_PORT));
+  tcp_listen(UIP_HTONS(CODEPROP_DATA_PORT));
 
-  udp_conn = udp_broadcast_new(HTONS(CODEPROP_DATA_PORT), NULL);
+  udp_conn = udp_broadcast_new(UIP_HTONS(CODEPROP_DATA_PORT), NULL);
 
   s.state = STATE_NONE;
   s.received = 0;
@@ -205,9 +205,9 @@ send_udpdata(struct codeprop_udphdr *uh)
 {
   u16_t len;
 
-  uh->type = HTONS(TYPE_DATA);
-  uh->addr = htons(s.addr);
-  uh->id = htons(s.id);
+  uh->type = UIP_HTONS(TYPE_DATA);
+  uh->addr = uip_htons(s.addr);
+  uh->id = uip_htons(s.id);
 
   if(s.len - s.addr > UDPDATASIZE) {
     len = UDPDATASIZE;
@@ -220,7 +220,7 @@ send_udpdata(struct codeprop_udphdr *uh)
   /*  eeprom_read(EEPROMFS_ADDR_CODEPROP + s.addr,
       &uh->data[0], len);*/
 
-  uh->len = htons(s.len);
+  uh->len = uip_htons(s.len);
 
   PRINTF(("codeprop: sending packet from address 0x%04x\n", s.addr));
   uip_udp_send(len + UDPHEADERSIZE);
@@ -249,13 +249,13 @@ PT_THREAD(send_udpthread(struct pt *pt))
 	PT_WAIT_UNTIL(pt, uip_newdata() || etimer_expired(&s.sendtimer));
 
 	if(uip_newdata()) {
-	  if(uh->type == HTONS(TYPE_NACK)) {
+	  if(uh->type == UIP_HTONS(TYPE_NACK)) {
 	    PRINTF(("send_udpthread: got NACK for address 0x%x (now 0x%x)\n",
-		    htons(uh->addr), s.addr));
+		    uip_htons(uh->addr), s.addr));
 	    /* Only accept a NACK if it points to a lower byte. */
-	    if(htons(uh->addr) <= s.addr) {
+	    if(uip_htons(uh->addr) <= s.addr) {
 	      /*	      beep();*/
-	      s.addr = htons(uh->addr);
+	      s.addr = uip_htons(uh->addr);
 	    }
 	  }
 	  PT_YIELD(pt);
@@ -273,8 +273,8 @@ PT_THREAD(send_udpthread(struct pt *pt))
 static void
 send_nack(struct codeprop_udphdr *uh, unsigned short addr)
 {
-  uh->type = HTONS(TYPE_NACK);
-  uh->addr = htons(addr);
+  uh->type = UIP_HTONS(TYPE_NACK);
+  uh->addr = uip_htons(addr);
   uip_udp_send(UDPHEADERSIZE);
 }
 /*---------------------------------------------------------------------*/
@@ -285,7 +285,7 @@ PT_THREAD(recv_udpthread(struct pt *pt))
   struct codeprop_udphdr *uh = (struct codeprop_udphdr *)uip_appdata;
 
   /*  if(uip_newdata()) {
-    PRINTF(("recv_udpthread: id %d uh->id %d\n", s.id, htons(uh->id)));
+    PRINTF(("recv_udpthread: id %d uh->id %d\n", s.id, uip_htons(uh->id)));
     }*/
 
   PT_BEGIN(pt);
@@ -294,29 +294,29 @@ PT_THREAD(recv_udpthread(struct pt *pt))
 
     do {
       PT_WAIT_UNTIL(pt, uip_newdata() &&
-		    uh->type == HTONS(TYPE_DATA) &&
-		    htons(uh->id) > s.id);
+		    uh->type == UIP_HTONS(TYPE_DATA) &&
+		    uip_htons(uh->id) > s.id);
 
-      if(htons(uh->addr) != 0) {
+      if(uip_htons(uh->addr) != 0) {
 	s.addr = 0;
 	send_nack(uh, 0);
       }
 
-    } while(htons(uh->addr) != 0);
+    } while(uip_htons(uh->addr) != 0);
 
     /*    leds_on(LEDS_YELLOW);
 	  beep_down(10000);*/
 
     s.addr = 0;
-    s.id = htons(uh->id);
-    s.len = htons(uh->len);
+    s.id = uip_htons(uh->id);
+    s.len = uip_htons(uh->len);
 
     timer_set(&s.timer, CONNECTION_TIMEOUT);
 /*     process_post(PROCESS_BROADCAST, codeprop_event_quit, (process_data_t)NULL); */
 
     while(s.addr < s.len) {
 
-      if(htons(uh->addr) == s.addr) {
+      if(uip_htons(uh->addr) == s.addr) {
 	/*	leds_blink();*/
 	len = uip_datalen() - UDPHEADERSIZE;
 	if(len > 0) {
@@ -333,8 +333,8 @@ PT_THREAD(recv_udpthread(struct pt *pt))
 	  s.addr += len;
 	}
 
-      } else if(htons(uh->addr) > s.addr) {
-	PRINTF(("sending nack since 0x%x != 0x%x\n", htons(uh->addr), s.addr));
+      } else if(uip_htons(uh->addr) > s.addr) {
+	PRINTF(("sending nack since 0x%x != 0x%x\n", uip_htons(uh->addr), s.addr));
 	send_nack(uh, s.addr);
       }
 
@@ -346,8 +346,8 @@ PT_THREAD(recv_udpthread(struct pt *pt))
 	  timer_set(&s.nacktimer, HIT_NACK_TIMEOUT);
 	  PT_YIELD_UNTIL(pt, timer_expired(&s.nacktimer) ||
 			 (uip_newdata() &&
-			  uh->type == HTONS(TYPE_DATA) &&
-			  htons(uh->id) == s.id));
+			  uh->type == UIP_HTONS(TYPE_DATA) &&
+			  uip_htons(uh->id) == s.id));
 	  if(timer_expired(&s.nacktimer)) {
 	    send_nack(uh, s.addr);
 	  }
@@ -395,7 +395,7 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
       uip_abort();
     }
     th = (struct codeprop_tcphdr *)uip_appdata;
-    s.len = htons(th->len);
+    s.len = uip_htons(th->len);
     s.addr = 0;
     uip_appdata += CODEPROP_TCPHDR_SIZE;
     datalen -= CODEPROP_TCPHDR_SIZE;
@@ -493,7 +493,7 @@ uipcall(void *state)
     recv_udpthread(&s.recv_udpthread_pt);
     send_udpthread(&s.udpthread_pt);
   } else {
-    if(uip_conn->lport == HTONS(CODEPROP_DATA_PORT)) {
+    if(uip_conn->lport == UIP_HTONS(CODEPROP_DATA_PORT)) {
       if(uip_connected()) {
 
 	if(state == NULL) {

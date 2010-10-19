@@ -41,7 +41,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-vncserver.c,v 1.2 2006/08/30 22:24:12 oliverschmidt Exp $
+ * $Id: ctk-vncserver.c,v 1.3 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
 
@@ -1082,7 +1082,7 @@ PROCESS_THREAD(ctk_vncserver_process, ev, data)
   
   PROCESS_BEGIN();
 
-  tcp_listen(HTONS(5900));
+  tcp_listen(UIP_HTONS(5900));
   
   for(i = 0; i < CTK_VNCSERVER_CONF_NUMCONNS; ++i) {
     conns[i].state = VNC_DEALLOCATED;

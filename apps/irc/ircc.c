@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ircc.c,v 1.4 2008/11/28 00:15:43 adamdunkels Exp $
+ * $Id: ircc.c,v 1.5 2010/10/19 18:29:03 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -472,7 +472,7 @@ struct ircc_state *
 ircc_connect(struct ircc_state *s, char *servername, uip_ipaddr_t *ipaddr,
 	     char *nick)
 {
-  s->conn = tcp_connect((uip_ipaddr_t *)ipaddr, HTONS(PORT), s);
+  s->conn = tcp_connect((uip_ipaddr_t *)ipaddr, UIP_HTONS(PORT), s);
   if(s->conn == NULL) {
     return NULL;
   }

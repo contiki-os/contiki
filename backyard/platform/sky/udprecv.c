@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: udprecv.c,v 1.1 2008/05/27 13:16:34 adamdunkels Exp $
+ * @(#)$Id: udprecv.c,v 1.2 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -51,8 +51,8 @@ PROCESS_THREAD(udprecv_process, ev, data)
   {
     uip_ipaddr_t any;
     uip_ipaddr(&any, 0,0,0,0);
-    c = udp_new(&any, HTONS(0), NULL);
-    uip_udp_bind(c, HTONS(4321));
+    c = udp_new(&any, UIP_HTONS(0), NULL);
+    uip_udp_bind(c, UIP_HTONS(4321));
   }
   
   while(1) {

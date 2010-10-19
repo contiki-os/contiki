@@ -135,13 +135,13 @@ PROCESS_THREAD(udp_client_process, ev, data)
   set_connection_address(&ipaddr);
 
   /* new connection with remote host */
-  client_conn = udp_new(&ipaddr, HTONS(3000), NULL);
-  udp_bind(client_conn, HTONS(3001));
+  client_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);
+  udp_bind(client_conn, UIP_HTONS(3001));
 
   PRINTF("Created a connection with the server ");
   PRINT6ADDR(&client_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
-	HTONS(client_conn->lport), HTONS(client_conn->rport));
+	UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
 
   etimer_set(&et, SEND_INTERVAL);
   while(1) {

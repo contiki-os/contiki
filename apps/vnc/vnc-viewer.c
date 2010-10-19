@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: vnc-viewer.c,v 1.3 2007/09/01 00:56:03 matsutsuka Exp $
+ * $Id: vnc-viewer.c,v 1.4 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -84,7 +84,7 @@ vnc_viewer_connect(u16_t *server, u8_t display)
   vnc_draw_init();
 
   memset(vs, 0, sizeof(struct vnc_viewer_state));
-  conn = uip_connect((uip_ipaddr_t *)server, htons(5900 + display));
+  conn = uip_connect((uip_ipaddr_t *)server, uip_htons(5900 + display));
   if(conn == NULL) {
     return;
   }
@@ -127,9 +127,9 @@ senddata(void)
     ((struct rfb_set_pixel_format *)dataptr)->format.depth = 8;
     ((struct rfb_set_pixel_format *)dataptr)->format.endian = 1;
     ((struct rfb_set_pixel_format *)dataptr)->format.truecolor = 1;
-    ((struct rfb_set_pixel_format *)dataptr)->format.red_max = htons(7);
-    ((struct rfb_set_pixel_format *)dataptr)->format.green_max = htons(7);
-    ((struct rfb_set_pixel_format *)dataptr)->format.blue_max = htons(3);
+    ((struct rfb_set_pixel_format *)dataptr)->format.red_max = uip_htons(7);
+    ((struct rfb_set_pixel_format *)dataptr)->format.green_max = uip_htons(7);
+    ((struct rfb_set_pixel_format *)dataptr)->format.blue_max = uip_htons(3);
     ((struct rfb_set_pixel_format *)dataptr)->format.red_shift = 0;
     ((struct rfb_set_pixel_format *)dataptr)->format.green_shift = 3;
     ((struct rfb_set_pixel_format *)dataptr)->format.blue_shift = 6;
@@ -140,7 +140,7 @@ senddata(void)
   case VNC_SEND_ENCODINGS:
     PRINTF(("Sending ENCODINGS\n"));
     ((struct rfb_set_encodings *)dataptr)->type = RFB_SET_ENCODINGS;
-    ((struct rfb_set_encodings *)dataptr)->encodings = htons(1);
+    ((struct rfb_set_encodings *)dataptr)->encodings = uip_htons(1);
     dataptr += sizeof(struct rfb_set_encodings);
     dataptr[0] = dataptr[1] = dataptr[2] = 0;
     dataptr[3] = RFB_ENC_RAW;
@@ -153,19 +153,19 @@ senddata(void)
   case VNC_SEND_UPDATERQ:
     ((struct rfb_fb_update_request *)dataptr)->type = RFB_FB_UPDATE_REQ;
     ((struct rfb_fb_update_request *)dataptr)->incremental = 0;
-    ((struct rfb_fb_update_request *)dataptr)->x = htons(vnc_draw_viewport_x());
-    ((struct rfb_fb_update_request *)dataptr)->y = htons(vnc_draw_viewport_y());
-    ((struct rfb_fb_update_request *)dataptr)->w = htons(vnc_draw_viewport_w());
-    ((struct rfb_fb_update_request *)dataptr)->h = htons(vnc_draw_viewport_h());
+    ((struct rfb_fb_update_request *)dataptr)->x = uip_htons(vnc_draw_viewport_x());
+    ((struct rfb_fb_update_request *)dataptr)->y = uip_htons(vnc_draw_viewport_y());
+    ((struct rfb_fb_update_request *)dataptr)->w = uip_htons(vnc_draw_viewport_w());
+    ((struct rfb_fb_update_request *)dataptr)->h = uip_htons(vnc_draw_viewport_h());
     uip_send(uip_appdata, sizeof(struct rfb_fb_update_request));
     break;
   case VNC_SEND_UPDATERQ_INC:
     ((struct rfb_fb_update_request *)dataptr)->type = RFB_FB_UPDATE_REQ;
     ((struct rfb_fb_update_request *)dataptr)->incremental = 1;
-    ((struct rfb_fb_update_request *)dataptr)->x = htons(vnc_draw_viewport_x());
-    ((struct rfb_fb_update_request *)dataptr)->y = htons(vnc_draw_viewport_y());
-    ((struct rfb_fb_update_request *)dataptr)->w = htons(vnc_draw_viewport_w());
-    ((struct rfb_fb_update_request *)dataptr)->h = htons(vnc_draw_viewport_h());
+    ((struct rfb_fb_update_request *)dataptr)->x = uip_htons(vnc_draw_viewport_x());
+    ((struct rfb_fb_update_request *)dataptr)->y = uip_htons(vnc_draw_viewport_y());
+    ((struct rfb_fb_update_request *)dataptr)->w = uip_htons(vnc_draw_viewport_w());
+    ((struct rfb_fb_update_request *)dataptr)->h = uip_htons(vnc_draw_viewport_h());
     uip_send(uip_appdata, sizeof(struct rfb_fb_update_request));
     break;
 
@@ -182,9 +182,9 @@ senddata(void)
 	((struct rfb_pointer_event *)dataptr)->buttonmask =
 	  vs->event_queue[vs->eventptr_unacked].ev.ptr.buttonmask;
 	((struct rfb_pointer_event *)dataptr)->x =
-	  htons(vs->event_queue[vs->eventptr_unacked].ev.ptr.x);
+	  uip_htons(vs->event_queue[vs->eventptr_unacked].ev.ptr.x);
 	((struct rfb_pointer_event *)dataptr)->y =
-	  htons(vs->event_queue[vs->eventptr_unacked].ev.ptr.y);
+	  uip_htons(vs->event_queue[vs->eventptr_unacked].ev.ptr.y);
 	/*	uip_send(uip_appdata, sizeof(struct rfb_pointer_event));*/
 	dataptr += sizeof(struct rfb_pointer_event);
 	dataleft -= sizeof(struct rfb_pointer_event);
@@ -209,13 +209,13 @@ senddata(void)
 	((struct rfb_fb_update_request *)dataptr)->type = RFB_FB_UPDATE_REQ;
 	((struct rfb_fb_update_request *)dataptr)->incremental = 0;
 	((struct rfb_fb_update_request *)dataptr)->x =
-	  htons(vs->event_queue[vs->eventptr_unacked].ev.urq.x);
+	  uip_htons(vs->event_queue[vs->eventptr_unacked].ev.urq.x);
 	((struct rfb_fb_update_request *)dataptr)->y =
-	  htons(vs->event_queue[vs->eventptr_unacked].ev.urq.y);
+	  uip_htons(vs->event_queue[vs->eventptr_unacked].ev.urq.y);
 	((struct rfb_fb_update_request *)dataptr)->w =
-	  htons(vs->event_queue[vs->eventptr_unacked].ev.urq.w);
+	  uip_htons(vs->event_queue[vs->eventptr_unacked].ev.urq.w);
 	((struct rfb_fb_update_request *)dataptr)->h =
-	  htons(vs->event_queue[vs->eventptr_unacked].ev.urq.h);
+	  uip_htons(vs->event_queue[vs->eventptr_unacked].ev.urq.h);
 	/*	uip_send(uip_appdata, sizeof(struct rfb_fb_update_request));    */
 	dataptr += sizeof(struct rfb_fb_update_request);
 	dataleft -= sizeof(struct rfb_fb_update_request);
@@ -319,12 +319,12 @@ recv_update_rect(CC_REGISTER_ARG struct rfb_fb_update_rect_hdr *rhdr,
       rhdr->encoding[2]) == 0) {
     switch(rhdr->encoding[3]) {
     case RFB_ENC_RAW:
-      vs->rectstateleft = (u32_t)htons(rhdr->rect.w) * (u32_t)htons(rhdr->rect.h);
+      vs->rectstateleft = (u32_t)uip_htons(rhdr->rect.w) * (u32_t)uip_htons(rhdr->rect.h);
       vs->rectstate = VNC_RECTSTATE_RAW;
-      vs->rectstatex0 = vs->rectstatex = htons(rhdr->rect.x);
-      vs->rectstatey0 = vs->rectstatey = htons(rhdr->rect.y);
-      vs->rectstatew = htons(rhdr->rect.w);
-      vs->rectstateh = htons(rhdr->rect.h);
+      vs->rectstatex0 = vs->rectstatex = uip_htons(rhdr->rect.x);
+      vs->rectstatey0 = vs->rectstatey = uip_htons(rhdr->rect.y);
+      vs->rectstatew = uip_htons(rhdr->rect.w);
+      vs->rectstateh = uip_htons(rhdr->rect.h);
       vs->rectstatex2 = vs->rectstatex0 + vs->rectstatew;
       vs->rectstatey2 = vs->rectstatey0 + vs->rectstateh;
       break;
@@ -333,11 +333,11 @@ recv_update_rect(CC_REGISTER_ARG struct rfb_fb_update_rect_hdr *rhdr,
       rrehdr = (struct rfb_rre_hdr *)((u8_t *)rhdr +
 				      sizeof(struct rfb_fb_update_rect_hdr));
       PRINTF(("Received RRE subrects %d (%d)\n",
-	     (htons(rrehdr->subrects[1]) << 16) +
-	     htons(rrehdr->subrects[0]),
+	     (uip_htons(rrehdr->subrects[1]) << 16) +
+	     uip_htons(rrehdr->subrects[0]),
 	     rrehdr->bgpixel));
-      vs->rectstateleft = ((u32_t)(htons(rrehdr->subrects[1]) << 16) +
-			(u32_t)htons(rrehdr->subrects[0]));
+      vs->rectstateleft = ((u32_t)(uip_htons(rrehdr->subrects[1]) << 16) +
+			(u32_t)uip_htons(rrehdr->subrects[0]));
       vs->rectstate = VNC_RECTSTATE_RRE;
 
       break;
@@ -457,13 +457,13 @@ handle_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
     break;
   case VNC_WAIT_SINIT:
     /*    PRINTF(("Server init: w %d h %d, bps %d, d %d, name '%s'\n",
-	   htons(((struct rfb_server_init *)data)->width),
-	   htons(((struct rfb_server_init *)data)->height),
+	   uip_htons(((struct rfb_server_init *)data)->width),
+	   uip_htons(((struct rfb_server_init *)data)->height),
 	   ((struct rfb_server_init *)data)->format.bps,
 	   ((struct rfb_server_init *)data)->format.depth,
 	   ((u8_t *)data + sizeof(struct rfb_server_init))));*/
-    vs->w = htons(((struct rfb_server_init *)data)->width);
-    vs->h = htons(((struct rfb_server_init *)data)->height);
+    vs->w = uip_htons(((struct rfb_server_init *)data)->width);
+    vs->h = uip_htons(((struct rfb_server_init *)data)->height);
     vs->sendmsg = VNC_SEND_PFMT;
     vs->waitmsg = VNC_WAIT_NONE;
     break;
@@ -473,7 +473,7 @@ handle_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
     switch(*data) {
     case RFB_FB_UPDATE:
       vs->waitmsg = VNC_WAIT_UPDATE_RECT;
-      vs->rectsleft = htons(((struct rfb_fb_update *)data)->rects);
+      vs->rectsleft = uip_htons(((struct rfb_fb_update *)data)->rects);
       PRINTF(("Handling RFB FB UPDATE for %d rects\n", vs->rectsleft));
       break;
       

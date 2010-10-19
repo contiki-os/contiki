@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.24 2010/03/18 20:11:54 dak664 Exp $
+ * $Id: contiki-main.c,v 1.25 2010/10/19 18:29:05 adamdunkels Exp $
  *
  */
 
@@ -80,7 +80,7 @@ sprint_ip6(uip_ip6addr_t addr)
       i += zerocnt;
       numprinted += zerocnt;
     } else {
-      result += sprintf(result, "%x", (unsigned int)(ntohs(addr.u16[i])));
+      result += sprintf(result, "%x", (unsigned int)(uip_ntohs(addr.u16[i])));
       i++;
       numprinted++;
     }

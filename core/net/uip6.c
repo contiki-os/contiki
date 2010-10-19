@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.23 2010/05/24 10:07:34 joxe Exp $
+ * $Id: uip6.c,v 1.24 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
 
@@ -337,7 +337,7 @@ chksum(u16_t sum, const u8_t *data, u16_t len)
 u16_t
 uip_chksum(u16_t *data, u16_t len)
 {
-  return htons(chksum(0, (u8_t *)data, len));
+  return uip_htons(chksum(0, (u8_t *)data, len));
 }
 /*---------------------------------------------------------------------------*/
 #ifndef UIP_ARCH_IPCHKSUM
@@ -348,7 +348,7 @@ uip_ipchksum(void)
 
   sum = chksum(0, &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN);
   PRINTF("uip_ipchksum: sum 0x%04x\n", sum);
-  return (sum == 0) ? 0xffff : htons(sum);
+  return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 #endif
 /*---------------------------------------------------------------------------*/
@@ -370,7 +370,7 @@ upper_layer_chksum(u8_t proto)
   sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN + uip_ext_len],
                upper_layer_len);
     
-  return (sum == 0) ? 0xffff : htons(sum);
+  return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 /*---------------------------------------------------------------------------*/
 u16_t
@@ -443,7 +443,7 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
   for(c = 0; c < UIP_CONNS; ++c) {
     conn = &uip_conns[c];
     if(conn->tcpstateflags != UIP_CLOSED &&
-       conn->lport == htons(lastport)) {
+       conn->lport == uip_htons(lastport)) {
       goto again;
     }
   }
@@ -482,7 +482,7 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
   conn->rto = UIP_RTO;
   conn->sa = 0;
   conn->sv = 16;   /* Initial value of the RTT variance. */
-  conn->lport = htons(lastport);
+  conn->lport = uip_htons(lastport);
   conn->rport = rport;
   uip_ipaddr_copy(&conn->ripaddr, ripaddr);
   
@@ -507,7 +507,7 @@ uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport)
   }
   
   for(c = 0; c < UIP_UDP_CONNS; ++c) {
-    if(uip_udp_conns[c].lport == htons(lastport)) {
+    if(uip_udp_conns[c].lport == uip_htons(lastport)) {
       goto again;
     }
   }
@@ -525,7 +525,7 @@ uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport)
     return 0;
   }
   
-  conn->lport = HTONS(lastport);
+  conn->lport = UIP_HTONS(lastport);
   conn->rport = rport;
   if(ripaddr == NULL) {
     memset(&conn->ripaddr, 0, sizeof(uip_ipaddr_t));
@@ -634,7 +634,7 @@ uip_reass(void)
      uip_ipaddr_cmp(&FBUF->destipaddr, &UIP_IP_BUF->destipaddr) &&
      UIP_FRAG_BUF->id == uip_id) {
     len = uip_len - uip_ext_len - UIP_IPH_LEN - UIP_FRAGH_LEN;
-    offset = (ntohs(UIP_FRAG_BUF->offsetresmore) & 0xfff8);
+    offset = (uip_ntohs(UIP_FRAG_BUF->offsetresmore) & 0xfff8);
     /* in byte, originaly in multiple of 8 bytes*/
     PRINTF("len %d\n", len);
     PRINTF("offset %d\n", offset);
@@ -666,7 +666,7 @@ uip_reass(void)
 
     /* If this fragment has the More Fragments flag set to zero, it is the
        last fragment*/
-    if((ntohs(UIP_FRAG_BUF->offsetresmore) & IP_MF) == 0) {
+    if((uip_ntohs(UIP_FRAG_BUF->offsetresmore) & IP_MF) == 0) {
       uip_reassflags |= UIP_REASS_FLAG_LASTFRAG;
       /*calculate the size of the entire packet*/
       uip_reasslen = offset + len;
@@ -1442,7 +1442,7 @@ uip_process(u8_t flag)
   UIP_IP_BUF->ttl = uip_udp_conn->ttl;
   UIP_IP_BUF->proto = UIP_PROTO_UDP;
 
-  UIP_UDP_BUF->udplen = HTONS(uip_slen + UIP_UDPH_LEN);
+  UIP_UDP_BUF->udplen = UIP_HTONS(uip_slen + UIP_UDPH_LEN);
   UIP_UDP_BUF->udpchksum = 0;
 
   UIP_UDP_BUF->srcport  = uip_udp_conn->lport;
@@ -2189,15 +2189,15 @@ uip_process(u8_t flag)
 }
 /*---------------------------------------------------------------------------*/
 u16_t
-htons(u16_t val)
+uip_htons(u16_t val)
 {
-  return HTONS(val);
+  return UIP_HTONS(val);
 }
 
 u32_t
-htonl(u32_t val)
+uip_htonl(u32_t val)
 {
-  return HTONL(val);
+  return UIP_HTONL(val);
 }
 /*---------------------------------------------------------------------------*/
 void

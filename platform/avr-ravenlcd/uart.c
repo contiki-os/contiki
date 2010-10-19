@@ -156,7 +156,7 @@ uart_circ_buf_has_char(tcirc_buf *cbuf)
  *   \return val Converted hex value
 */
 uint8_t
-ntohex(uint8_t val)
+uip_ntohex(uint8_t val)
 {
     /* Convert nibble to hex */
     if (val > 9){
@@ -178,8 +178,8 @@ ntohex(uint8_t val)
 void
 itohex(uint8_t val,char *str)
 {
-    *str++ = ntohex(val >> 8);
-    *str = ntohex(val & 0x0f);
+    *str++ = uip_ntohex(val >> 8);
+    *str = uip_ntohex(val & 0x0f);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcapslip.c,v 1.3 2008/06/19 07:52:28 adamdunkels Exp $
+ * $Id: wpcapslip.c,v 1.4 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 
@@ -182,7 +182,7 @@ static uint16_t
 chksum(const void *p, uint16_t len)
 {
   uint16_t sum = ip4sum(0, p, len);
-  return (sum == 0) ? 0xffff : htons(sum);
+  return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 
 int
@@ -195,11 +195,11 @@ check_ip(const struct ip *ip, unsigned ip_len)
     return -1;
   }
 
-  if(ntohs(ip->ip_len) > ip_len) {
+  if(uip_ntohs(ip->ip_len) > ip_len) {
     return -2;
   }
 
-  if(ntohs(ip->ip_len) < ip_len) {
+  if(uip_ntohs(ip->ip_len) < ip_len) {
     return -3;
   }
 
@@ -348,7 +348,7 @@ serial_to_wpcap(FILE *inslip)
       if(dhsock != -1) {
 	struct ip *ip = (void *)uip.inbuf;
 	if(ip->ip_p == 17 && ip->ip_dst == 0xffffffff /* UDP and broadcast */
-	    && ip->uh_sport == ntohs(BOOTPC) && ip->uh_dport == ntohs(BOOTPS)) {
+	    && ip->uh_sport == uip_ntohs(BOOTPC) && ip->uh_dport == uip_ntohs(BOOTPS)) {
 	  relay_dhcp_to_server(ip, inbufptr);
 	  inbufptr = 0;
 	}
@@ -448,7 +448,7 @@ write_to_serial(int outfd, void *inbuf, int len)
   }
 
   if(iphdr->ip_id == 0 && iphdr->ip_off & IP_DF) {
-    uint16_t nid = htons(ip_id++);
+    uint16_t nid = uip_htons(ip_id++);
     iphdr->ip_id = nid;
     nid = ~nid;			/* negate */
     iphdr->ip_sum += nid;	/* add */
@@ -463,7 +463,7 @@ write_to_serial(int outfd, void *inbuf, int len)
   }
 
 
-  iphdr->ip_ttl = htons(htons(iphdr->ip_ttl) + 1);
+  iphdr->ip_ttl = uip_htons(uip_htons(iphdr->ip_ttl) + 1);
   if(iphdr->ip_ttl == 0) {
     fprintf(stderr, "Packet with ttl %d dropped\n", iphdr->ip_ttl);
     return;
@@ -772,7 +772,7 @@ main(int argc, char **argv)
     dhaddr.sin_len = sizeof(dhaddr);
 #endif
     dhaddr.sin_family = AF_INET;
-    dhaddr.sin_port = htons(dhport);
+    dhaddr.sin_port = uip_htons(dhport);
     dhaddr.sin_addr.s_addr = a;
 
     dhsock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -785,7 +785,7 @@ main(int argc, char **argv)
 #endif
     myaddr.sin_family = AF_INET;
     myaddr.sin_addr.s_addr = INADDR_ANY;
-    myaddr.sin_port = htons(myport);
+    myaddr.sin_port = uip_htons(myport);
     if(bind(dhsock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) {
       err(1, "bind dhcp-relay");
     }
@@ -811,7 +811,7 @@ main(int argc, char **argv)
     }
     myaddr.sin_family = AF_INET;
     myaddr.sin_addr.s_addr = INADDR_ANY;
-    myaddr.sin_port = htons(myport);
+    myaddr.sin_port = uip_htons(myport);
     if(bind(dhsock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) {
       err(1, "bind dhcp-relay");
     }

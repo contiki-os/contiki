@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-socket.c,v 1.1 2007/05/26 22:18:48 oliverschmidt Exp $
+ * $Id: httpd-socket.c,v 1.2 2010/10/19 18:29:03 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -187,7 +187,7 @@ httpd_appcall(void *state)
 void
 httpd_init(void)
 {
-  tcp_listen(HTONS(80));
+  tcp_listen(UIP_HTONS(80));
   memb_init(&conns);
 }
 /*---------------------------------------------------------------------------*/

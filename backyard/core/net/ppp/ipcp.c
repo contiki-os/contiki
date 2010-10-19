@@ -47,7 +47,7 @@
  *
  * This file is part of the Mycal Modified uIP TCP/IP stack.
  *
- * $Id: ipcp.c,v 1.1 2007/05/26 07:14:39 oliverschmidt Exp $
+ * $Id: ipcp.c,v 1.2 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -438,7 +438,7 @@ ipcp_task(u8_t *buffer)
       /* Write length */
       t = bptr - buffer;
       /* length here -  code and ID + */
-      pkt->len = htons(t);	
+      pkt->len = uip_htons(t);	
       
       DEBUG1(("\n**Sending IPCP Request packet\n"));
       

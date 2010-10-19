@@ -18,7 +18,7 @@ struct uip_stats uip_stat;
 
 uip_lladdr_t uip_lladdr;
 
-u16_t htons(u16_t val) { return HTONS(val);}
+u16_t uip_htons(u16_t val) { return UIP_HTONS(val);}
 
 uip_ds6_netif_t uip_ds6_if;
 
@@ -118,7 +118,7 @@ upper_layer_chksum(u8_t proto)
   sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN],
                upper_layer_len);
 
-  return (sum == 0) ? 0xffff : htons(sum);
+  return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 
 /*---------------------------------------------------------------------------*/

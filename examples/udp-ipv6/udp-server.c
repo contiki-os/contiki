@@ -102,8 +102,8 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
   print_local_addresses();
 
-  server_conn = udp_new(NULL, HTONS(3001), NULL);
-  udp_bind(server_conn, HTONS(3000));
+  server_conn = udp_new(NULL, UIP_HTONS(3001), NULL);
+  udp_bind(server_conn, UIP_HTONS(3000));
 
   while(1) {
     PROCESS_YIELD();

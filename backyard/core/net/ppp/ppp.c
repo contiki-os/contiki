@@ -43,7 +43,7 @@
  *
  * This file is part of the Mycal Modified uIP TCP/IP stack.
  *
- * $Id: ppp.c,v 1.1 2007/05/26 07:14:40 oliverschmidt Exp $
+ * $Id: ppp.c,v 1.2 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -166,8 +166,8 @@ ppp_reject_protocol(u16_t protocol, u8_t *buffer, u16_t count)
   pkt = (LCPPKT *)buffer;
   pkt->code = PROT_REJ;		/* Write Conf_rej */
   /*pkt->id = tid++;*/			/* write tid */
-  pkt->len = htons(count + 6);
-  *((u16_t *)(&pkt->data[0])) = htons(protocol);
+  pkt->len = uip_htons(count + 6);
+  *((u16_t *)(&pkt->data[0])) = uip_htons(protocol);
 
   ahdlc_tx(LCP, buffer, 0, (u16_t)(count + 6), 0);
 }

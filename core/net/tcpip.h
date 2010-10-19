@@ -62,7 +62,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.16 2010/02/05 12:43:37 nifi Exp $
+ * $Id: tcpip.h,v 1.17 2010/10/19 18:29:04 adamdunkels Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -120,7 +120,7 @@ CCIF void tcp_attach(struct uip_conn *conn,
  * with the new connection request.
  *
  * \note Port numbers must always be given in network byte order. The
- * functions HTONS() and htons() can be used to convert port numbers
+ * functions UIP_HTONS() and uip_htons() can be used to convert port numbers
  * from host byte order to network byte order.
  *
  * \param port The port number in network byte order.
@@ -134,7 +134,7 @@ CCIF void tcp_listen(u16_t port);
  * This function closes a listening TCP port.
  *
  * \note Port numbers must always be given in network byte order. The
- * functions HTONS() and htons() can be used to convert port numbers
+ * functions UIP_HTONS() and uip_htons() can be used to convert port numbers
  * from host byte order to network byte order.
  *
  * \param port The port number in network byte order.
@@ -151,7 +151,7 @@ CCIF void tcp_unlisten(u16_t port);
  * together with uIP events to the process.
  *
  * \note The port number must be provided in network byte order so a
- * conversion with HTONS() usually is necessary.
+ * conversion with UIP_HTONS() usually is necessary.
  *
  * \note This function will only create the connection. The connection
  * is not opened directly. uIP will try to open the connection the
@@ -215,7 +215,7 @@ void udp_attach(struct uip_udp_conn *conn,
  * remote endpoint.
  *
  * \note The port number must be provided in network byte order so a
- * conversion with HTONS() usually is necessary.
+ * conversion with UIP_HTONS() usually is necessary.
  *
  * \sa udp_bind()
  *
@@ -253,7 +253,7 @@ struct uip_udp_conn *udp_broadcast_new(u16_t port, void *appstate);
  * connection to a specified local port, this function should be used.
  *
  * \note The port number must be provided in network byte order so a
- * conversion with HTONS() usually is necessary.
+ * conversion with UIP_HTONS() usually is necessary.
  *
  * \param conn A pointer to the UDP connection that is to be bound.
  * \param port The port number in network byte order to which to bind

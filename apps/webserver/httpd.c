@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.18 2010/04/11 20:54:39 oliverschmidt Exp $
+ * $Id: httpd.c,v 1.19 2010/10/19 18:29:03 adamdunkels Exp $
  */
  
 #include <stdio.h>
@@ -336,7 +336,7 @@ httpd_appcall(void *state)
 void
 httpd_init(void)
 {
-  tcp_listen(HTONS(80));
+  tcp_listen(UIP_HTONS(80));
   memb_init(&conns);
   httpd_cgi_init();
 }
@@ -362,7 +362,7 @@ httpd_sprint_ip6(uip_ip6addr_t addr, char * result)
       i += zerocnt;
       numprinted += zerocnt;
     } else {
-      result += sprintf(result, "%x", (unsigned int)(ntohs(addr.u16[i])));
+      result += sprintf(result, "%x", (unsigned int)(uip_ntohs(addr.u16[i])));
       i++;
       numprinted++;
     }

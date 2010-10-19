@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: httpd-simple-avr.c,v 1.1 2010/08/26 18:55:43 dak664 Exp $
+ * $Id: httpd-simple-avr.c,v 1.2 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 /**
@@ -202,7 +202,7 @@ bomb
 void
 httpd_init(void)
 {
-  tcp_listen(HTONS(80));
+  tcp_listen(UIP_HTONS(80));
   memb_init(&conns);
 }
 

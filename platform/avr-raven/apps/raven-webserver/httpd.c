@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.4 2009/07/24 15:41:52 dak664 Exp $
+ * $Id: httpd.c,v 1.5 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -484,7 +484,7 @@ httpd_appcall(void *state)
 void
 httpd_init(void)
 {
-  tcp_listen(HTONS(80));
+  tcp_listen(UIP_HTONS(80));
   memb_init(&conns);
   httpd_cgi_init();
 }

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: pinger.c,v 1.2 2010/01/15 10:37:04 nifi Exp $
+ * @(#)$Id: pinger.c,v 1.3 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 #include "contiki-esb.h"
@@ -77,11 +77,11 @@ udp_appcall(void *arg)
     leds_toggle(LEDS_YELLOW);
     /*    beep();*/
 
-    /*    if(htons(d->seqno) != last_seqno + 1) {
+    /*    if(uip_htons(d->seqno) != last_seqno + 1) {
       leds_toggle(LEDS_RED);
       beep_quick(2);
       }*/    
-    /*    last_seqno = htons(d->seqno);*/
+    /*    last_seqno = uip_htons(d->seqno);*/
     /*    uip_udp_send(sizeof(struct data));*/
     /*    snprintf(buf, sizeof(buf), "Packet received id %d signal %u\n",
 	     d->id, tr1001_sstrength());
@@ -91,7 +91,7 @@ udp_appcall(void *arg)
       d->pingpong = PONG;
     } else {
       d->pingpong = PING;
-      d->seqno = htons(htons(d->seqno) + 1);
+      d->seqno = uip_htons(uip_htons(d->seqno) + 1);
       }*/
     /*    uip_udp_send(sizeof(struct data));
 	  timer_restart(&timer);*/
@@ -100,7 +100,7 @@ udp_appcall(void *arg)
       --packet_count;
       d->id = place_id;
       d->pingpong = PING;
-      d->seqno = htons(sent_seqno);
+      d->seqno = uip_htons(sent_seqno);
       ++sent_seqno;
       uip_udp_send(sizeof(struct data));
       etimer_reset(&etimer);
@@ -167,7 +167,7 @@ PROCESS_THREAD(pinger, ev, data)
 
   pingeron = 0;
   
-  conn = udp_broadcast_new(HTONS(PORT), NULL);
+  conn = udp_broadcast_new(UIP_HTONS(PORT), NULL);
   
   PT_INIT(&config_pt);
 

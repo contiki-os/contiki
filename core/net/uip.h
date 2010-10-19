@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.34 2010/05/30 09:46:12 oliverschmidt Exp $
+ * $Id: uip.h,v 1.35 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
 
@@ -290,14 +290,14 @@ void uip_setipid(u16_t id);
  #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
  uip_len = ethernet_devicedrver_poll();
  if(uip_len > 0) {
- if(BUF->type == HTONS(UIP_ETHTYPE_IP)) {
+ if(BUF->type == UIP_HTONS(UIP_ETHTYPE_IP)) {
  uip_arp_ipin();
  uip_input();
  if(uip_len > 0) {
  uip_arp_out();
  ethernet_devicedriver_send();
  }
- } else if(BUF->type == HTONS(UIP_ETHTYPE_ARP)) {
+ } else if(BUF->type == UIP_HTONS(UIP_ETHTYPE_ARP)) {
  uip_arp_arpin();
  if(uip_len > 0) {
  ethernet_devicedriver_send();
@@ -504,10 +504,10 @@ CCIF extern uip_buf_t uip_aligned_buf;
  * Start listening to the specified port.
  *
  * \note Since this function expects the port number in network byte
- * order, a conversion using HTONS() or htons() is necessary.
+ * order, a conversion using UIP_HTONS() or uip_htons() is necessary.
  *
  \code
- uip_listen(HTONS(80));
+ uip_listen(UIP_HTONS(80));
  \endcode
  *
  * \param port A 16-bit port number in network byte order.
@@ -518,10 +518,10 @@ void uip_listen(u16_t port);
  * Stop listening to the specified port.
  *
  * \note Since this function expects the port number in network byte
- * order, a conversion using HTONS() or htons() is necessary.
+ * order, a conversion using UIP_HTONS() or uip_htons() is necessary.
  *
  \code
- uip_unlisten(HTONS(80));
+ uip_unlisten(UIP_HTONS(80));
  \endcode
  *
  * \param port A 16-bit port number in network byte order.
@@ -543,13 +543,13 @@ void uip_unlisten(u16_t port);
  * has been configured by defining UIP_ACTIVE_OPEN to 1 in uipopt.h.
  *
  * \note Since this function requires the port number to be in network
- * byte order, a conversion using HTONS() or htons() is necessary.
+ * byte order, a conversion using UIP_HTONS() or uip_htons() is necessary.
  *
  \code
  uip_ipaddr_t ipaddr;
 
  uip_ipaddr(&ipaddr, 192,168,1,2);
- uip_connect(&ipaddr, HTONS(80));
+ uip_connect(&ipaddr, UIP_HTONS(80));
  \endcode
  *
  * \param ripaddr The IP address of the remote host.
@@ -816,9 +816,9 @@ CCIF void uip_send(const void *data, int len);
  struct uip_udp_conn *c;
  
  uip_ipaddr(&addr, 192,168,2,1);
- c = uip_udp_new(&addr, HTONS(12345));
+ c = uip_udp_new(&addr, UIP_HTONS(12345));
  if(c != NULL) {
- uip_udp_bind(c, HTONS(12344));
+ uip_udp_bind(c, UIP_HTONS(12344));
  }
  \endcode
  * \param ripaddr The IP address of the remote host.
@@ -903,7 +903,7 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport);
  struct uip_conn *c;
  
  uip_ipaddr(&ipaddr, 192,168,1,2);
- c = uip_connect(&ipaddr, HTONS(80));
+ c = uip_connect(&ipaddr, UIP_HTONS(80));
  \endcode
  *
  * \param addr A pointer to a uip_ipaddr_t variable that will be
@@ -931,14 +931,14 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport);
  * \hideinitializer
  */
 #define uip_ip6addr(addr, addr0,addr1,addr2,addr3,addr4,addr5,addr6,addr7) do { \
-    (addr)->u16[0] = HTONS(addr0);                                      \
-    (addr)->u16[1] = HTONS(addr1);                                      \
-    (addr)->u16[2] = HTONS(addr2);                                      \
-    (addr)->u16[3] = HTONS(addr3);                                      \
-    (addr)->u16[4] = HTONS(addr4);                                      \
-    (addr)->u16[5] = HTONS(addr5);                                      \
-    (addr)->u16[6] = HTONS(addr6);                                      \
-    (addr)->u16[7] = HTONS(addr7);                                      \
+    (addr)->u16[0] = UIP_HTONS(addr0);                                      \
+    (addr)->u16[1] = UIP_HTONS(addr1);                                      \
+    (addr)->u16[2] = UIP_HTONS(addr2);                                      \
+    (addr)->u16[3] = UIP_HTONS(addr3);                                      \
+    (addr)->u16[4] = UIP_HTONS(addr4);                                      \
+    (addr)->u16[5] = UIP_HTONS(addr5);                                      \
+    (addr)->u16[6] = UIP_HTONS(addr6);                                      \
+    (addr)->u16[7] = UIP_HTONS(addr7);                                      \
   } while(0)
 
 /**
@@ -1184,41 +1184,41 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport);
  *
  * This macro is primarily used for converting constants from host
  * byte order to network byte order. For converting variables to
- * network byte order, use the htons() function instead.
+ * network byte order, use the uip_htons() function instead.
  *
  * \hideinitializer
  */
-#ifndef HTONS
+#ifndef UIP_HTONS
 #   if UIP_BYTE_ORDER == UIP_BIG_ENDIAN
-#      define HTONS(n) (n)
-#      define HTONL(n) (n)
+#      define UIP_HTONS(n) (n)
+#      define UIP_HTONL(n) (n)
 #   else /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
-#      define HTONS(n) (u16_t)((((u16_t) (n)) << 8) | (((u16_t) (n)) >> 8))
-#      define HTONL(n) (((u32_t)HTONS(n) << 16) | HTONS((u32_t)(n) >> 16))
+#      define UIP_HTONS(n) (u16_t)((((u16_t) (n)) << 8) | (((u16_t) (n)) >> 8))
+#      define UIP_HTONL(n) (((u32_t)UIP_HTONS(n) << 16) | UIP_HTONS((u32_t)(n) >> 16))
 #   endif /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
 #else
-#error "HTONS already defined!"
-#endif /* HTONS */
+#error "UIP_HTONS already defined!"
+#endif /* UIP_HTONS */
 
 /**
  * Convert 16-bit quantity from host byte order to network byte order.
  *
  * This function is primarily used for converting variables from host
  * byte order to network byte order. For converting constants to
- * network byte order, use the HTONS() macro instead.
+ * network byte order, use the UIP_HTONS() macro instead.
  */
-#ifndef htons
-CCIF u16_t htons(u16_t val);
-#endif /* htons */
-#ifndef ntohs
-#define ntohs htons
+#ifndef uip_htons
+CCIF u16_t uip_htons(u16_t val);
+#endif /* uip_htons */
+#ifndef uip_ntohs
+#define uip_ntohs uip_htons
 #endif
 
-#ifndef htonl
-CCIF u32_t htonl(u32_t val);
-#endif /* htonl */
-#ifndef ntohl
-#define ntohl htonl
+#ifndef uip_htonl
+CCIF u32_t uip_htonl(u32_t val);
+#endif /* uip_htonl */
+#ifndef uip_ntohl
+#define uip_ntohl uip_htonl
 #endif
 
 /** @} */
@@ -1993,7 +1993,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
 /** \brief set IP address a to the link local all-routers multicast address */
 #define uip_create_linklocal_allrouters_mcast(a) uip_ip6addr(a, 0xff02, 0, 0, 0, 0, 0, 0, 0x0002)
 #define uip_create_linklocal_prefix(addr) do { \
-    (addr)->u16[0] = HTONS(0xfe80);            \
+    (addr)->u16[0] = UIP_HTONS(0xfe80);            \
     (addr)->u16[1] = 0;                        \
     (addr)->u16[2] = 0;                        \
     (addr)->u16[3] = 0;                        \

@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-test.c,v 1.2 2006/10/09 11:55:30 adamdunkels Exp $
+ * $Id: radio-test.c,v 1.3 2010/10/19 18:29:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-03-07
- * Updated : $Date: 2006/10/09 11:55:30 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/10/19 18:29:05 $
+ *           $Revision: 1.3 $
  *
  * Simple application to indicate connectivity between two nodes:
  *
@@ -96,7 +96,7 @@ PROCESS_THREAD(radio_test_process, ev, data)
   other.led = LEDS_GREEN;
   flash.led = LEDS_RED;
 
-  conn = udp_broadcast_new(HTONS(PORT), NULL);
+  conn = udp_broadcast_new(UIP_HTONS(PORT), NULL);
   etimer_set(&send_timer, CLOCK_SECOND);
 
   while(1) {
