@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.25 2010/10/12 11:42:37 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.26 2010/10/20 15:22:11 adamdunkels Exp $
  */
 
 /**
@@ -103,7 +103,7 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   /*  shell_checkpoint_init();*/
   /*  shell_sendtest_init();*/
 
-  collect_view_init();
+  shell_collect_view_init();
 
 #if DEBUG_SNIFFERS
   rime_sniffer_add(&s);
