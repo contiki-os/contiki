@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.83 2010/10/03 20:40:42 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.84 2010/10/20 22:21:16 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -7,31 +7,8 @@
 #include "platform-conf.h"
 
 #ifdef PROJECT_CONF_H
-#include PROJECT_CONF_H
+#include "project-conf.h"
 #endif /* PROJECT_CONF_H */
-
-#if WITH_UIP6
-/* Network setup for IPv6 */
-#define NETSTACK_CONF_NETWORK sicslowpan_driver
-#define NETSTACK_CONF_RADIO   cc2420_driver
-
-#define NETSTACK_CONF_MAC     csma_driver
-#define NETSTACK_CONF_RDC     contikimac_driver
-
-#define NETSTACK_CONF_FRAMER  framer_802154
-
-#define CC2420_CONF_AUTOACK              1
-#define NETSTACK_CONF_CHANNEL_CHECK_RATE 8
-#define CXMAC_CONF_ANNOUNCEMENTS         0
-#define XMAC_CONF_ANNOUNCEMENTS          0
-
-#define QUEUEBUF_CONF_NUM                8
-
-#else /* WITH_UIP6 */
-
-/* Network setup for non-IPv6 (rime). */
-
-#define NETSTACK_CONF_NETWORK rime_driver
 
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
@@ -45,9 +22,31 @@
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
 
-#define NETSTACK_CONF_FRAMER  framer_802154
+#ifndef NETSTACK_CONF_RADIO
+#define NETSTACK_CONF_RADIO   cc2420_driver
+#endif /* NETSTACK_CONF_RADIO */
 
+#ifndef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER  framer_802154
+#endif /* NETSTACK_CONF_FRAMER */
+
+#ifndef CC2420_CONF_AUTOACK
 #define CC2420_CONF_AUTOACK              1
+#endif /* CC2420_CONF_AUTOACK */
+
+#if WITH_UIP6
+/* Network setup for IPv6 */
+#define NETSTACK_CONF_NETWORK sicslowpan_driver
+#define CXMAC_CONF_ANNOUNCEMENTS         0
+#define XMAC_CONF_ANNOUNCEMENTS          0
+
+#define QUEUEBUF_CONF_NUM                8
+
+#else /* WITH_UIP6 */
+
+/* Network setup for non-IPv6 (rime). */
+
+#define NETSTACK_CONF_NETWORK rime_driver
 
 #define COLLECT_CONF_ANNOUNCEMENTS       1
 #define CXMAC_CONF_ANNOUNCEMENTS         0
@@ -60,8 +59,7 @@
 
 #define COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS     32
 
-#define QUEUEBUF_CONF_NUM                18
-#define QUEUEBUF_CONF_STATS              0
+#define QUEUEBUF_CONF_NUM                16
 
 #endif /* WITH_UIP6 */
 
@@ -102,7 +100,9 @@
 #define UIP_CONF_LLH_LEN                0
 
 #define UIP_CONF_ROUTER                 1
+#ifndef UIP_CONF_IPV6_RPL
 #define UIP_CONF_IPV6_RPL               1
+#endif /* UIP_CONF_IPV6_RPL */
 
 /* configure number of neighbors and routes */
 #define UIP_CONF_DS6_NBR_NBU     30
