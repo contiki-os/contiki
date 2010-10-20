@@ -7,14 +7,14 @@
 
 typedef uint16_t settings_key_t;
 
-#define SETTINGS_KEY_EUI64			'E8'	//!< Value always 8 bytes long
-#define SETTINGS_KEY_EUI48			'E6'	//!< Value always 6 bytes long
-#define SETTINGS_KEY_CHANNEL		'CH'	//!< Value always 1 byte long
-#define SETTINGS_KEY_TXPOWER		'TP'	//!< Value always 1 byte long
-#define SETTINGS_KEY_PAN_ID			'PN'	//!< Value always 2 bytes long
-#define SETTINGS_KEY_PAN_ADDR		'PA'	//!< Value always 2 bytes long
-#define SETTINGS_KEY_AES128KEY		'SK'	//!< Value always 16 bytes long
-#define SETTINGS_KEY_AES128ENABLED	'SE'	//!< Value always 16 bytes long
+#define SETTINGS_KEY_EUI64			'E'*256+'8'	//!< Value always 8 bytes long
+#define SETTINGS_KEY_EUI48			'E'*256+'6'	//!< Value always 8 bytes long
+#define SETTINGS_KEY_CHANNEL		'C'*256+'H'	//!< Value always 1 byte long
+#define SETTINGS_KEY_TXPOWER		'T'*256+'P'	//!< Value always 1 byte long
+#define SETTINGS_KEY_PAN_ID			'P'*256+'N'	//!< Value always 2 bytes long
+#define SETTINGS_KEY_PAN_ADDR		'P'*256+'A'	//!< Value always 2 bytes long
+#define SETTINGS_KEY_AES128KEY		'S'*256+'K'	//!< Value always 16 bytes long
+#define SETTINGS_KEY_AES128ENABLED	'S'*256+'E'	//!< Value always 16 bytes long
 
 typedef enum {
 	SETTINGS_STATUS_OK=0,
