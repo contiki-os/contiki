@@ -3,6 +3,7 @@
 
 #include "contiki-conf.h"
 #include "net/rime/rimeaddr.h"
+#include "net/rime/collect.h"
 
 struct collect_view_data_msg {
   uint16_t len;
@@ -21,8 +22,12 @@ struct collect_view_data_msg {
   uint16_t sensors[10];
 };
 
-void collect_view_init(void);
-void collect_view_construct_message(struct collect_view_data_msg *msg);
+void collect_view_construct_message(struct collect_view_data_msg *msg,
+                                    rimeaddr_t *parent,
+                                    uint16_t etx_to_parent,
+                                    uint16_t rtmetric_rtmetric,
+                                    uint16_t num_neighbors,
+                                    uint16_t beacon_interval);
 
 void collect_view_arch_read_sensors(struct collect_view_data_msg *msg);
 
