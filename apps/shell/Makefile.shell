@@ -11,7 +11,7 @@ shell_src = shell.c shell-reboot.c \
             shell-rime-unicast.c \
             shell-tweet.c shell-base64.c \
             shell-netperf.c shell-memdebug.c \
-	    shell-powertrace.c
+	    shell-powertrace.c shell-collect-view.c
 shell_dsc = shell-dsc.c
 
 APPS += webserver
@@ -43,6 +43,10 @@ include $(CONTIKI)/apps/twitter/Makefile.twitter
 
 APPS += powertrace
 include $(CONTIKI)/apps/powertrace/Makefile.powertrace
+
+
+APPS += collect-view
+include $(CONTIKI)/apps/collect-view/Makefile.collect-view
 
 ifeq ($(TARGET),sky)
   shell_src += shell-sky.c shell-exec.c shell-sensortweet.c
