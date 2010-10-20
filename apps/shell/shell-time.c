@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-time.c,v 1.8 2009/12/09 18:12:23 adamdunkels Exp $
+ * $Id: shell-time.c,v 1.9 2010/10/20 15:18:49 adamdunkels Exp $
  */
 
 /**
@@ -199,12 +199,19 @@ PROCESS_THREAD(shell_repeat_server_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+static void
+repeat_print_usage(void)
+{
+  shell_output_str(&repeat_command, "usage: ", repeat_command.description);
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_repeat_process, ev, data)
 {
   static int reps, period, period_left;
   static char command[MAX_COMMANDLENGTH];
   static struct etimer etimer;
   static int i;
+  static clock_time_t start_time;
   const char *args, *next;
 
   if(ev == shell_event_input) {
@@ -224,20 +231,20 @@ PROCESS_THREAD(shell_repeat_process, ev, data)
   args = data;
 
   if(args == NULL) {
-    shell_output_str(&repeat_command, "usage 0", "");
+    repeat_print_usage();
     PROCESS_EXIT();
   }
-  
+
   reps = shell_strtolong(args, &next);
   if(next == args) {
-    shell_output_str(&repeat_command, "usage 1", "");
+    repeat_print_usage();
     PROCESS_EXIT();
   }
 
   args = next;
   period = shell_strtolong(args, &next);
   if(next == args) {
-    shell_output_str(&repeat_command, "usage 2", "");
+    repeat_print_usage();
     PROCESS_EXIT();
   }
 
@@ -246,16 +253,18 @@ PROCESS_THREAD(shell_repeat_process, ev, data)
   while(*args == ' ') {
     args++;
   }
-  
+
   strncpy(command, args, MAX_COMMANDLENGTH);
   if(strlen(command) == 0) {
-    shell_output_str(&repeat_command, "usage 3", "");
+    repeat_print_usage();
     PROCESS_EXIT();
   }
 
   /*  printf("repeats %d period %d command '%s'\n",
       reps, period, command);*/
 
+  start_time = clock_time();
+  etimer_set(&etimer, CLOCK_SECOND * period);
   for(i = 0; reps == 0 || i < reps; ++i) {
 
     process_start(&shell_repeat_server_process, command);
@@ -264,15 +273,16 @@ PROCESS_THREAD(shell_repeat_process, ev, data)
 		 &shell_repeat_process);
     PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXITED &&
 		       data == &shell_repeat_server_process);
-    
-    PROCESS_PAUSE();
-    
+    PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
+    etimer_reset(&etimer);
+    /*    PROCESS_PAUSE();
+
     for(period_left = period;
 	period_left > 0;
 	period_left -= MIN(PERIOD_INTERVAL, period_left)) {
       etimer_set(&etimer, CLOCK_SECOND * MIN(PERIOD_INTERVAL, period_left));
       PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-    }
+      }*/
   }
   
 
