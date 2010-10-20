@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.38 2010/10/03 20:39:24 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.39 2010/10/20 22:25:24 adamdunkels Exp $
  */
 
 /**
@@ -754,10 +754,11 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
         break;
       }
       off();
+      t0 = RTIMER_NOW();
 #if NURTIMER
-      while(RTIMER_CLOCK_LT(t0, RTIMER_NOW(), t0 + CCA_SLEEP_TIME + CCA_CHECK_TIME));
+      while(RTIMER_CLOCK_LT(t0, RTIMER_NOW(), t0 + CCA_SLEEP_TIME));
 #else
-      while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_SLEEP_TIME + CCA_CHECK_TIME)) { }
+      while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_SLEEP_TIME)) { }
 #endif
     }
   }
