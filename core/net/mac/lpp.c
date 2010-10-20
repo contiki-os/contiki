@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.37 2010/10/03 20:37:32 adamdunkels Exp $
+ * $Id: lpp.c,v 1.38 2010/10/20 15:23:43 adamdunkels Exp $
  */
 
 /**
@@ -77,16 +77,16 @@
 #define WITH_ACK_OPTIMIZATION         0
 #define WITH_PROBE_AFTER_RECEPTION    0
 #define WITH_PROBE_AFTER_TRANSMISSION 0
-#define WITH_ENCOUNTER_OPTIMIZATION   1
+#define WITH_ENCOUNTER_OPTIMIZATION   0
 #define WITH_ADAPTIVE_OFF_TIME        0
-#define WITH_PENDING_BROADCAST        1
+#define WITH_PENDING_BROADCAST        0
 #define WITH_STREAMING                1
 
 #define LISTEN_TIME (CLOCK_SECOND / 128)
 #define OFF_TIME (CLOCK_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE - LISTEN_TIME)
 
 #define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
-#define UNICAST_TIMEOUT	(1 * PACKET_LIFETIME)
+#define UNICAST_TIMEOUT	(1 * PACKET_LIFETIME + PACKET_LIFETIME / 2)
 #define PROBE_AFTER_TRANSMISSION_TIME (LISTEN_TIME * 2)
 
 #define LOWEST_OFF_TIME (CLOCK_SECOND / 8)
@@ -175,8 +175,8 @@ struct encounter {
 LIST(encounter_list);
 MEMB(encounter_memb, struct encounter, MAX_ENCOUNTERS);
 
+static uint8_t is_streaming = 0;
 #if WITH_STREAMING
-static uint8_t is_streaming;
 static struct ctimer stream_probe_timer, stream_off_timer;
 #define STREAM_PROBE_TIME CLOCK_SECOND / 128
 #define STREAM_OFF_TIME CLOCK_SECOND / 2
@@ -344,9 +344,8 @@ turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
 }
 /*---------------------------------------------------------------------------*/
 static void
-remove_queued_packet(void *item)
+remove_queued_packet(struct queue_list_item *i, uint8_t tx_ok)
 {
-  struct queue_list_item *i = item;
   mac_callback_t sent;
   void *ptr;
   int num_transmissions = 0;
@@ -373,12 +372,24 @@ remove_queued_packet(void *item)
   ptr = i->sent_callback_ptr;
   num_transmissions = i->num_transmissions;
   memb_free(&queued_packets_memb, i);
-  if(num_transmissions == 0) {
-    status = MAC_TX_ERR;
+  if(num_transmissions == 0 || tx_ok == 0) {
+    status = MAC_TX_NOACK;
   } else {
     status = MAC_TX_OK;
   }
   mac_call_sent_callback(sent, ptr, status, num_transmissions);
+}
+/*---------------------------------------------------------------------------*/
+static void
+remove_queued_broadcast_packet_callback(void *item)
+{
+  remove_queued_packet(item, 1);
+}
+/*---------------------------------------------------------------------------*/
+static void
+remove_queued_old_packet_callback(void *item)
+{
+  remove_queued_packet(item, 0);
 }
 /*---------------------------------------------------------------------------*/
 #if WITH_PENDING_BROADCAST
@@ -386,7 +397,8 @@ static void
 set_broadcast_flag(struct queue_list_item *i, uint8_t flag)
 {
   i->broadcast_flag = flag;
-  ctimer_set(&i->removal_timer, PACKET_LIFETIME, remove_queued_packet, i);
+  ctimer_set(&i->removal_timer, PACKET_LIFETIME,
+             remove_queued_broadcast_packet_callback, i);
 }
 #endif /* WITH_PENDING_BROADCAST */
 /*---------------------------------------------------------------------------*/
@@ -421,7 +433,6 @@ send_probe(void)
     int hdrlen = NETSTACK_FRAMER.create();
     if(hdrlen == 0) {
       /* Failed to send */
-      PRINTF("contikimac: send failed, too large header\n");
       return;
     }
   }
@@ -443,11 +454,12 @@ send_probe(void)
   /*  PRINTF("Sending probe\n");*/
 
   /*  printf("probe\n");*/
-  
-  /* XXX should first check access to the medium (CCA - Clear Channel
-     Assessment) and add LISTEN_TIME to off_time_adjustment if there
-     is a packet in the air. */
-  NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
+
+  if(NETSTACK_RADIO.channel_clear()) {
+    NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
+  } else {
+    off_time_adjustment = random_rand() % (OFF_TIME / 2);
+  }
 
   compower_accumulate(&compower_idle_activity);
 }
@@ -462,7 +474,9 @@ send_stream_probe(void *dummy)
   /* Send a probe packet. */
   send_probe();
 
+#if WITH_STREAMING
   is_streaming = 1;
+#endif /* WITH_STREAMING */
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -551,12 +565,17 @@ dutycycle(void *ptr)
       /* If we are not listening for announcements, we turn the radio
 	 off and wait until we send the next probe. */
       if(is_listening == 0) {
+        int current_off_time;
         if(!NETSTACK_RADIO.receiving_packet()) {
           turn_radio_off();
           compower_accumulate(&compower_idle_activity);
         }
-	ctimer_set(t, off_time + off_time_adjustment, (void (*)(void *))dutycycle, t);
-	off_time_adjustment = 0;
+        current_off_time = off_time - off_time_adjustment;
+        if(current_off_time < LISTEN_TIME * 2) {
+          current_off_time = LISTEN_TIME * 2;
+        }
+        off_time_adjustment = 0;
+	ctimer_set(t, current_off_time, (void (*)(void *))dutycycle, t);
 	PT_YIELD(&dutycycle_pt);
 
 #if WITH_ADAPTIVE_OFF_TIME
@@ -623,11 +642,12 @@ send_packet(mac_callback_t sent, void *ptr)
   memcpy(packetbuf_hdrptr(), &hdr, sizeof(struct lpp_hdr));
   packetbuf_compact();
 
+  packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
+  
   {
     int hdrlen = NETSTACK_FRAMER.create();
     if(hdrlen == 0) {
       /* Failed to send */
-      PRINTF("contikimac: send failed, too large header\n");
       mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 0);
       return;
     }
@@ -685,7 +705,8 @@ send_packet(mac_callback_t sent, void *ptr)
 	  i->broadcast_flag = BROADCAST_FLAG_NONE;
 #endif /* WITH_PENDING_BROADCAST */
 	}
-	ctimer_set(&i->removal_timer, timeout, remove_queued_packet, i);
+	ctimer_set(&i->removal_timer, timeout,
+                   remove_queued_old_packet_callback, i);
 
 	/* Wait for a probe packet from a neighbor. The actual packet
 	   transmission is handled by the read_packet() function,
@@ -762,6 +783,9 @@ input_packet(void)
       struct queue_list_item *i;
       for(i = list_head(queued_packets_list); i != NULL; i = list_item_next(i)) {
         const rimeaddr_t *receiver;
+        uint8_t sent;
+
+        sent = 0;
  
         receiver = queuebuf_addr(i->packet, PACKETBUF_ADDR_RECEIVER);
         if(rimeaddr_cmp(receiver, &hdr.sender) ||
@@ -773,8 +797,8 @@ input_packet(void)
              i->broadcast_flag == BROADCAST_FLAG_SEND) {
             i->num_transmissions = 1;
             NETSTACK_RADIO.send(queuebuf_dataptr(i->packet),
-                                 queuebuf_datalen(i->packet));
-            turn_radio_off();
+                                queuebuf_datalen(i->packet));
+            sent = 1;
             PRINTF("%d.%d: got a probe from %d.%d, sent packet to %d.%d\n",
 		   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
                    hdr.sender.u8[0], hdr.sender.u8[1],
@@ -806,7 +830,32 @@ input_packet(void)
              neighbors, and are dequeued by the dutycycling function
              instead, after the appropriate time. */
           if(!rimeaddr_cmp(receiver, &rimeaddr_null)) {
-            remove_queued_packet(i);
+#define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
+#define ACK_LEN 3
+#define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1000
+            rtimer_clock_t wt;
+            uint8_t ack_received = 0;
+            
+            wt = RTIMER_NOW();
+            while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + INTER_PACKET_INTERVAL)) { }
+            /* Check for incoming ACK. */
+            if((NETSTACK_RADIO.receiving_packet() ||
+                NETSTACK_RADIO.pending_packet() ||
+                NETSTACK_RADIO.channel_clear() == 0)) {
+              int len;
+              uint8_t ackbuf[ACK_LEN];
+
+              wt = RTIMER_NOW();
+              while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + AFTER_ACK_DETECTECT_WAIT_TIME)) { }
+
+              len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
+
+            }
+            if(ack_received) {
+              remove_queued_packet(i, 1);
+            } else {
+              remove_queued_packet(i, 0);
+            }
 
 #if WITH_PROBE_AFTER_TRANSMISSION
             /* Send a probe packet to catch any reply from the other node. */
@@ -819,6 +868,10 @@ input_packet(void)
                          send_stream_probe, NULL);
             }
 #endif /* WITH_STREAMING */
+          }
+
+          if(sent) {
+            turn_radio_off();
           }
 
 #if WITH_ACK_OPTIMIZATION
