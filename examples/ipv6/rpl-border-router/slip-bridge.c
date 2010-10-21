@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: slip-bridge.c,v 1.3 2010/06/08 19:53:49 nifi Exp $
+ * $Id: slip-bridge.c,v 1.4 2010/10/21 18:23:44 joxe Exp $
  */
 
 /**
@@ -41,7 +41,6 @@
 
 #include "net/uip.h"
 #include "net/uip-ds6.h"
-#include "net/rpl/rpl.h"
 #include "dev/slip.h"
 #include "dev/uart1.h"
 #include <string.h>

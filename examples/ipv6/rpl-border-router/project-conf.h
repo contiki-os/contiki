@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: project-router-conf.h,v 1.5 2010/08/24 17:54:56 joxe Exp $
+ * $Id: project-conf.h,v 1.1 2010/10/21 18:23:44 joxe Exp $
  */
 
 #ifndef __PROJECT_ROUTER_CONF_H__
@@ -36,7 +36,7 @@
 #define UIP_FALLBACK_INTERFACE rpl_interface
 
 #undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM          6
+#define QUEUEBUF_CONF_NUM          4
 
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE    140
