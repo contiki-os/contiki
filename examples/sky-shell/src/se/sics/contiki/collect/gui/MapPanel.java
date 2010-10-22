@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MapPanel.java,v 1.6 2010/10/22 11:04:04 nifi Exp $
+ * $Id: MapPanel.java,v 1.7 2010/10/22 13:39:52 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/22 11:04:04 $
- *           $Revision: 1.6 $
+ * Updated : $Date: 2010/10/22 13:39:52 $
+ *           $Revision: 1.7 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -470,9 +470,10 @@ public class MapPanel extends JPanel implements Configurable, Visualizer, Action
           width - legendWidth - 15, 10 + fnHeight / 2);
     }
 
-    for (MapNode n : getNodeList()) {
-      if (!isMap || !hideNetwork) {
-        g.setColor(LINK_COLOR);
+    MapNode[] nodes = getNodeList();
+    if (!isMap || !hideNetwork) {
+      g.setColor(LINK_COLOR);
+      for (MapNode n : nodes) {
         for (int j = 0, mu = n.node.getLinkCount(); j < mu; j++) {
           Link link = n.node.getLink(j);
           MapNode linkNode = addMapNode(link.node);
@@ -499,7 +500,9 @@ public class MapPanel extends JPanel implements Configurable, Visualizer, Action
           }
         }
       }
+    }
 
+    for (MapNode n : nodes) {
       n.paint(g, n.x, n.y);
 
       g.setColor(Color.black);
