@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.13 2010/10/22 11:34:24 joxe Exp $
+ * $Id: neighbor-info.c,v 1.14 2010/10/22 13:50:13 nvt-se Exp $
  */
 /**
  * \file
@@ -52,9 +52,6 @@
 #define ETX_SCALE		100
 #define ETX_ALPHA		70
 #define ETX_FIRST_GUESS		3
-
-#define ETX2FIX(etx)    ((etx) << 4)
-#define FIX2ETX(fix)    ((fix) >> 4)
 /*---------------------------------------------------------------------------*/
 NEIGHBOR_ATTRIBUTE(uint8_t, etx, NULL);
 
@@ -83,7 +80,7 @@ update_etx(const rimeaddr_t *dest, int packet_etx)
   if(neighbor_attr_has_neighbor(dest)) {
     neighbor_attr_set_data(&etx, dest, &new_etx);
     if(new_etx != recorded_etx && subscriber_callback != NULL) {
-      subscriber_callback(dest, 1, FIX2ETX(new_etx));
+      subscriber_callback(dest, 1, new_etx);
     }
   }
 }
@@ -168,7 +165,8 @@ uint8_t
 neighbor_info_get_etx(const rimeaddr_t *addr)
 {
   uint8_t *etxp;
+
   etxp = (uint8_t *)neighbor_attr_get_data(&etx, addr);
-  return etxp == NULL ? 0 : etxp;
+  return etxp == NULL ? 0 : *etxp;
 }
 /*---------------------------------------------------------------------------*/
