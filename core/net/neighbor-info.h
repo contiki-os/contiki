@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.h,v 1.2 2010/03/12 13:40:13 nvt-se Exp $
+ * $Id: neighbor-info.h,v 1.3 2010/10/22 11:34:24 joxe Exp $
  */
 /**
  * \file
@@ -69,5 +69,13 @@ void neighbor_info_packet_received(void);
  * \return Returns 1 if the subscription was successful, and 0 if not.
  */
 int neighbor_info_subscribe(neighbor_info_subscriber_t);
+
+
+/**
+ * Get link ETX value for a specific neighbor.
+ *
+ * \return Returns ETX if the neighbor exists, and 0 if not.
+ */
+uint8_t neighbor_info_get_etx(const rimeaddr_t *addr);
 
 #endif /* NEIGHBOR_INFO_H */
