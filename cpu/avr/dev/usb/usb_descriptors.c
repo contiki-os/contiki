@@ -288,18 +288,35 @@ USB_INTERFACEDESC(	\
 //_____ D E F I N I T I O N ________________________________________________
 
 /************* COMPOSITE DEVICE DESCRIPTORS (using IAD) **********/
-
+//TODO:Serial port enumeration will prevent falling through to the
+//supported network on Mac or Windows. Linux will take either.
+//Once Windows loads the RNDIS driver it will use it on a subsequent
+//Mac enumeration, and the device will fail to start.
+//This doesn't seem to hurt anything but beware, system corruption is
+//a possibility.
+#if USB_CONF_MACINTOSH
 FLASH uint8_t usb_dev_config_order[] = {
-//	USB_CONFIG_RNDIS_DEBUG,  //Enable here for Windows COM port debugging? (USB_CONF_CDC=1)
+	USB_CONFIG_ECM_DEBUG,    //Prefer CDC-ECM network enumeration
+	USB_CONFIG_ECM,
+	USB_CONFIG_RNDIS_DEBUG,
+	USB_CONFIG_RNDIS,
+	USB_CONFIG_EEM,
+#if USB_CONF_STORAGE
+	USB_CONFIG_MS,
+#endif
+};
+#else
+FLASH uint8_t usb_dev_config_order[] = {
+	USB_CONFIG_RNDIS_DEBUG,  //Prefer RNDIS network enumeration
 	USB_CONFIG_RNDIS,
 	USB_CONFIG_ECM_DEBUG,
-	USB_CONFIG_RNDIS_DEBUG,  //Enable here for macintosh CDC-ECM enumeration
 	USB_CONFIG_ECM,
 	USB_CONFIG_EEM,
 #if USB_CONF_STORAGE
 	USB_CONFIG_MS,
 #endif
 };
+#endif /* USB_CONF_MACINTOSH */
 
 // usb_user_device_descriptor
 FLASH S_usb_device_descriptor usb_dev_desc_composite =
