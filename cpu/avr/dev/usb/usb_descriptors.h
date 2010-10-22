@@ -65,10 +65,15 @@
 
                   // USB Device descriptor
 #define USB_SPECIFICATION     0x0200
-
+#if 1
 #define COMPOSITE_DEVICE_CLASS       0x02      // Misc
 #define COMPOSITE_DEVICE_SUB_CLASS   0x00      // Common
 #define COMPOSITE_DEVICE_PROTOCOL    0x00      // IAD
+#else //Windows wants these for composite device, but above seems to work anyway
+#define COMPOSITE_DEVICE_CLASS       0xEF      // Misc
+#define COMPOSITE_DEVICE_SUB_CLASS   0x02      // Common
+#define COMPOSITE_DEVICE_PROTOCOL    0x01      // IAD
+#endif
 
 #define NETWORK_DEVICE_CLASS          0x02      // CDC ACM
 #define NETWORK_DEVICE_SUB_CLASS      0x02      //

@@ -307,7 +307,7 @@ void usb_get_string_descriptor_sram(U8  string_type) {
       Usb_send_control_in();
    }
 
-bail:
+//bail:
 	if(Is_usb_receive_out()) {
 		//! abort from Host
 		Usb_ack_receive_out();
@@ -404,7 +404,7 @@ void usb_get_string_descriptor(U8  string_type) {
 		Usb_send_control_in();
 	}
 
-bail:
+//bail:
 
 	if(Is_usb_receive_out()) {
 		//! abort from Host
@@ -441,10 +441,12 @@ void usb_get_descriptor(void)
 	U8  descriptor_type ;
 	U8  string_type     ;
 	U8  dummy;
+	U8  byteswereread;
 
 	zlp             = FALSE;                  /* no zero length packet */
 	string_type     = Usb_read_byte();        /* read LSB of wValue    */
 	descriptor_type = Usb_read_byte();        /* read MSB of wValue    */
+	byteswereread   = 0;
 
 	switch (descriptor_type)
 	{
@@ -464,17 +466,22 @@ void usb_get_descriptor(void)
 	default:
 		dummy = Usb_read_byte();
 		dummy = Usb_read_byte();
-		dummy = Usb_read_byte();
-		dummy = Usb_read_byte();
-		if( usb_user_get_descriptor(descriptor_type, string_type)==FALSE )
+		LSBwLength = Usb_read_byte();
+		MSBwLength = Usb_read_byte();
+		byteswereread=1;
+		if( usb_user_get_descriptor(descriptor_type, string_type)==FALSE ) {
+		    Usb_enable_stall_handshake(); //TODO:is this necessary?
+			Usb_ack_receive_setup();  //TODO:is this necessary?
 			return;
+		}
 	  break;
 	}
-
-	dummy = Usb_read_byte();                     //!< don't care of wIndex field
-	dummy = Usb_read_byte();
-	LSBwLength = Usb_read_byte();              //!< read wLength
-	MSBwLength = Usb_read_byte();
+	if (byteswereread==0) {
+		dummy = Usb_read_byte();                     //!< don't care of wIndex field
+		dummy = Usb_read_byte();
+		LSBwLength = Usb_read_byte();              //!< read wLength
+		MSBwLength = Usb_read_byte();
+	}
 
 	Usb_ack_receive_setup() ;                  //!< clear the receive setup flag
 
