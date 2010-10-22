@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.29 2010/10/14 18:13:09 nifi Exp $
+ * $Id: CollectServer.java,v 1.30 2010/10/22 20:39:13 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/14 18:13:09 $
- *           $Revision: 1.29 $
+ * Updated : $Date: 2010/10/22 20:39:13 $
+ *           $Revision: 1.30 $
  */
 
 package se.sics.contiki.collect;
@@ -359,7 +359,7 @@ public class CollectServer implements SerialConnectionListener {
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
           }
           protected double getSensorDataValue(SensorData data) {
-            return data.getValue(SensorData.BEST_NEIGHBOR_RTMETRIC) + data.getValue(SensorData.BEST_NEIGHBOR_ETX);
+            return data.getValue(SensorData.BEST_NEIGHBOR_RTMETRIC) + data.getBestNeighborETX();
           }
         },
         new TimeChartPanel(this, NETWORK, "ETX (Over Time)", "ETX to Next Hop", "Time", "ETX") {
@@ -369,7 +369,7 @@ public class CollectServer implements SerialConnectionListener {
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
           }
           protected double getSensorDataValue(SensorData data) {
-            return data.getValue(SensorData.BEST_NEIGHBOR_ETX);
+            return data.getBestNeighborETX();
           }
         },
         new AggregatedTimeChartPanel<int[]>(this, NETWORK,
@@ -1058,6 +1058,10 @@ public class CollectServer implements SerialConnectionListener {
   }
 
   protected void parseIncomingLine(long systemTime, String line) {
+    if (line.length() == 0 || line.charAt(0) == '#') {
+      // Ignore empty lines, comments, and annotations.
+      return;
+    }
     SensorData sensorData = SensorData.parseSensorData(this, line, systemTime);
     if (sensorData != null) {
       // Sensor data received
