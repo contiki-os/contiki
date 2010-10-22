@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.20 2010/09/15 13:22:23 nvt-se Exp $
+ * $Id: rpl.h,v 1.21 2010/10/22 13:13:40 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -115,12 +115,15 @@
 #define RPL_DEFAULT_OCP                 1
 
 /* Represents 2^n ms. */
+/* Default alue according to the specification is 3 which
+   means 8 milliseconds - this is not a reasonable value if
+   using power-saving / duty-cycling    */
 #define DEFAULT_DIO_INTERVAL_MIN        12
 
 /* Maximum amount of timer doublings. */
 #define DEFAULT_DIO_INTERVAL_DOUBLINGS  8
 
-/* Desired DIO redundancy. */
+/* Default DIO redundancy. */
 #define DEFAULT_DIO_REDUNDANCY          10
 
 /* Expire DAOs from neighbors that do not respond in this time. (seconds) */
@@ -146,7 +149,11 @@
 
 /* DIS related */
 #define RPL_DIS_SEND                    1
+#ifdef  RPL_DIS_INTERVAL_CONF
+#define RPL_DIS_INTERVAL                RPL_DIS_INTERVAL_CONF
+#else
 #define RPL_DIS_INTERVAL                60
+#endif
 #define RPL_DIS_START_DELAY             5
 
 typedef uint16_t rpl_rank_t;
