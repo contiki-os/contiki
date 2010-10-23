@@ -10,7 +10,7 @@
   </style>
   <script type="text/javascript">
    function disks(disks) {
-    for (var i = 3; i; i--) {
+    for (var i = 4; i; i--) {
      document.forms[0].disk[i].disabled = i > disks;
      if (document.forms[0].disk[i].checked &&
          document.forms[0].disk[i].disabled)
@@ -25,7 +25,7 @@
    <table align="center" cellpadding="0" cellspacing="0">
     <tr class="p">
      <td>
-      <input type="radio" name="machine" id="apple2" value="apple2" onclick="disks(3)" checked="checked" />
+      <input type="radio" name="machine" id="apple2" value="apple2" onclick="disks(4)" checked="checked" />
       <label for="apple2">Apple //e</label>
      </td><td>
       <label for="apple2-drv">Ethernet Card:</label>
@@ -77,7 +77,7 @@
      <td colspan="3" />
     </tr><tr class="p">
      <td>
-      <input type="radio" name="machine" id="atari" value="atari" onclick="disks(3)" />
+      <input type="radio" name="machine" id="atari" value="atari" onclick="disks(4)" />
       <label for="atari">Atari 8-bit</label>
      </td><td colspan="2">
       <label for="atari-drv">Ethernet Card:</label>
@@ -135,6 +135,8 @@
       <label for="disk-2">Complete Image Of Disk 2</label><br />
       <input type="radio" name="disk" id="disk-3" value="3" />
       <label for="disk-3">Complete Image Of Disk 3</label>
+      <input type="radio" name="disk" id="disk-4" value="4" />
+      <label for="disk-4">Complete Image Of Disk 4</label>
      </td>
     </tr><tr class="bg">
      <td colspan="3" />
