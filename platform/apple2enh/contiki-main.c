@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.21 2010/09/08 22:50:56 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.22 2010/10/23 08:17:45 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -58,12 +58,6 @@ PROCINIT(&etimer_process,
 
 void clock_update(void);
 
-/*-----------------------------------------------------------------------------------*/
-off_t __fastcall__
-lseek(int, off_t, int)
-{
-  return -1;
-}
 /*-----------------------------------------------------------------------------------*/
 void
 main(void)

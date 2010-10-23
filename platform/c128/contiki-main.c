@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.8 2010/02/10 07:43:25 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.9 2010/10/23 08:17:45 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -58,29 +58,6 @@ PROCINIT(&etimer_process,
 	 RESOLV_PROCESS
 	 &tcpip_process);
 
-/*-----------------------------------------------------------------------------------*/
-off_t __fastcall__
-lseek(int, off_t, int)
-{
-  return -1;
-}
-/*-----------------------------------------------------------------------------------*/
-void * __fastcall__
-opendir(void *)
-{
-  return NULL;
-}
-/*-----------------------------------------------------------------------------------*/
-void * __fastcall__
-readdir(void *)
-{
-  return NULL;
-}
-/*-----------------------------------------------------------------------------------*/
-void __fastcall__
-closedir(void *)
-{
-}
 /*-----------------------------------------------------------------------------------*/
 void
 main(void)

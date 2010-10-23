@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.3 2010/10/16 11:42:40 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.4 2010/10/23 08:17:45 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -42,6 +42,10 @@
 #define CTK_CONF_WINDOWSWITCH_KEY 0x17	/* Ctrl-W */
 #define CTK_CONF_WIDGETUP_KEY     0x01	/* Ctrl-A */
 #define CTK_CONF_WIDGETDOWN_KEY   '\t'	/* Tab or Ctrl-I */
+
+#define cfs_opendir(dir, name)  0
+#define cfs_readdir(dir, entry) -1
+#define cfs_closedir(dir)
 
 #define textcolor(color) COLOR_WHITE
 

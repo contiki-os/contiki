@@ -30,10 +30,11 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.apple2enh,v 1.18 2010/09/28 20:40:52 oliverschmidt Exp $
+# $Id: Makefile.apple2enh,v 1.19 2010/10/23 08:17:45 oliverschmidt Exp $
 #
 
-CONTIKI_SOURCEFILES += pfs.S
+CONTIKI_SOURCEFILES        += cfs-posix-dir.c
+CONTIKI_TARGET_SOURCEFILES += pfs.S
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502

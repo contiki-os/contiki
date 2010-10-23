@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.3 2010/10/16 11:42:40 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.4 2010/10/23 08:17:45 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -56,23 +56,6 @@ PROCINIT(&etimer_process,
 	 RESOLV_PROCESS
 	 &tcpip_process);
 
-/*-----------------------------------------------------------------------------------*/
-void * __fastcall__
-opendir(void *)
-{
-  return NULL;
-}
-/*-----------------------------------------------------------------------------------*/
-void * __fastcall__
-readdir(void *)
-{
-  return NULL;
-}
-/*-----------------------------------------------------------------------------------*/
-void __fastcall__
-closedir(void *)
-{
-}
 /*-----------------------------------------------------------------------------------*/
 void
 main(void)
