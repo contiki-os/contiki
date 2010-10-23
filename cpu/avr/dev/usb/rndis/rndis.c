@@ -72,6 +72,9 @@ RNDIS Status Information:
 #include "sicslow_ethernet.h"
 #include <avr/pgmspace.h>
 #include <string.h>
+#if RF230BB
+#include "rf230bb.h"
+#endif
 
 #include <stdio.h>
 #include <avr/pgmspace.h>
@@ -600,7 +603,7 @@ void rndis_query_process(void)
 #define PARMVALUELENGTH	CFGBUF->ParameterValueLength
 #define PARM_NAME_LENGTH 25 /* Maximum parameter name length */
 
-bool
+void
 rndis_handle_config_parm(const char* parmname,const uint8_t* parmvalue,size_t parmlength) {
 	if (strncmp_P(parmname, PSTR("rawmode"), 7) == 0) {
 		if (parmvalue[0] == '0') {

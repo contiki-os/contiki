@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: httpd-simple-avr.c,v 1.2 2010/10/19 18:29:05 adamdunkels Exp $
+ * $Id: httpd-simple-avr.c,v 1.3 2010/10/23 15:26:46 dak664 Exp $
  */
 
 /**
@@ -133,6 +133,10 @@ generate_string_P(void *sstr)
 #endif
 }
 /*---------------------------------------------------------------------------*/
+#if FIND_THE_SCRIPT
+/* Needed if more than one script is implemented.
+ * The generate_routes RPL page is hard coded at present
+ */
 static
 PT_THREAD(send_string_P(struct httpd_state *s, char *str))
 {
@@ -140,6 +144,7 @@ PT_THREAD(send_string_P(struct httpd_state *s, char *str))
   PSOCK_GENERATOR_SEND(&s->sout, generate_string_P, str);
   PSOCK_END(&s->sout);
 }
+#endif
 /*---------------------------------------------------------------------------*/
 char http_content_type_html[] PROGMEM = "Content-type: text/html\r\n\r\n";
 static

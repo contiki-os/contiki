@@ -70,7 +70,8 @@
 #include "usb_task.h"
 #if USB_CONF_CDC
 #include "cdc_task.h"
-#elif USB_CONF_RS232
+#endif
+#if USB_CONF_RS232
 #include "dev/rs232.h"
 #endif
 
@@ -243,6 +244,7 @@ get_eui64_from_eeprom(uint8_t macptr[8]) {
 	return macptr[0]!=0xFF;
 }
 
+#if JACKDAW_CONF_RANDOM_MAC
 static bool
 set_eui64_to_eeprom(const uint8_t macptr[8]) {
 #if JACKDAW_CONF_USE_SETTINGS
@@ -264,6 +266,7 @@ generate_new_eui64(uint8_t eui64[8]) {
 	eui64[6] = rng_get_uint8();
 	eui64[7] = rng_get_uint8();
 }
+#endif /* JACKDAW_CONF_RANDOM_MAC */
 
 static uint16_t
 get_panid_from_eeprom(void) {
@@ -302,7 +305,7 @@ static void initialize(void) {
   /* Clock */
   clock_init();
 
-  #if USB_CONF_RS232
+ #if USB_CONF_RS232
   /* Use rs232 port for serial out (tx, rx, gnd are the three pads behind jackdaw leds */
   rs232_init(RS232_PORT_0, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
   /* Redirect stdout to second port */
@@ -450,9 +453,10 @@ static void initialize(void) {
 #endif /* RF230BB */
   printf_P(PSTR("System online.\n\r"));
 }
-#elif USB_CONF_RS232
-  printf_P(PSTR("System online.\n"));
 #endif /* USB_CONF_CDC */
+#if USB_CONF_RS232
+  printf_P(PSTR("System online.\n"));
+#endif /* USB_CONF_RS232 */
 #endif /* ANNOUNCE */
 }
 

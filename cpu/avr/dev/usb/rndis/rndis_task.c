@@ -52,12 +52,16 @@
 #include "usb_specific_request.h"
 #include "rndis/rndis_task.h"
 #include "rndis/rndis_protocol.h"
+#if RF230BB
+#include "rf230bb.h"
+#endif
 #include "uip.h"
 #include "sicslow_ethernet.h"
 #include <stdio.h>
 
 #include <avr/pgmspace.h>
 #include <util/delay.h>
+#include "watchdog.h"
 
 #include "rndis/cdc_ecm.h"
 #include "rndis/cdc_eem.h"

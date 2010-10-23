@@ -51,6 +51,7 @@
 #include "usb_specific_request.h"
 #include "rndis/rndis_protocol.h"
 #include "rndis/cdc_ecm.h"
+#include "rndis/rndis_task.h"
 #include "serial/uart_usb_lib.h"
 #include "storage/ctrl_access.h"
 #include "uip.h"
@@ -416,7 +417,8 @@ void cdc_set_line_coding (void)
 void cdc_set_control_line_state (void)
 {
 	U8 controlLineState = Usb_read_byte();
-	U8 dummy = Usb_read_byte();
+//	U8 dummy = Usb_read_byte();  //Compiler warning
+    if (Usb_read_byte()) {};
 	U8 interface = Usb_read_byte();
 
   	Usb_ack_receive_setup();

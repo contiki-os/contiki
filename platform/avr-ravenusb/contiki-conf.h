@@ -182,12 +182,19 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* ************************************************************************** */
 //#pragma mark Serial Port Settings
 /* ************************************************************************** */
-
+/* Set USB_CONF_MACINTOSH to prefer CDC-ECM+DEBUG enumeration for Mac/Linux 
+ * Leave undefined to prefer RNDIS+DEBUG enumeration for Windows/Linux
+ * TODO:Serial port will enumerate in all cases and prevent falling through to
+ * the supported network interface if USB_CONF_MACINTOSH is used with Windows
+ * or vice versa. If Windows has previously cached the RNDIS driver for the stick
+ * it will attempt to use it and give "device can not start" error.
+ * This doesn't seem to hurt anything but can potentially damage the OS!
+ */ 
+//#define USB_CONF_MACINTOSH 1
 /* Disable mass storage enumeration for more program space */
 /* TODO: Mass storage is currently broken */
-#define USB_CONF_STORAGE         0
+//#define USB_CONF_STORAGE         1
 /* Use either USB CDC or RS232 for stdout (or neither) */
-/* TODO:CDC is currently broken on windows/linux, use RS232 */
 #define USB_CONF_CDC             1
 //#define USB_CONF_RS232           1
  

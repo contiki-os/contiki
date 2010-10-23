@@ -46,6 +46,7 @@
 #include "usb_drv.h"
 #include "usb_descriptors.h"
 #include "serial/uart_usb_lib.h"
+#include "cdc_task.h"
 #include <stdio.h>
 
 /**
