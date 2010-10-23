@@ -9,6 +9,9 @@
 #include "uip.h"
 #include "sicslow_ethernet.h"
 #include <stdio.h>
+#if RF230BB
+#include "rf230bb.h"
+#endif
 
 #include <avr/pgmspace.h>
 #include <util/delay.h>

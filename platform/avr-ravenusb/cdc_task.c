@@ -61,6 +61,9 @@
 #else
 #include "radio.h"
 #endif
+#if USB_CONF_RS232
+#include "dev/rs232.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include "dev/watchdog.h"
