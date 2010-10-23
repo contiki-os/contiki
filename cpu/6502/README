@@ -1,7 +1,5 @@
 The cpu/6502/ directory is used for targeting 6502-based machines using the cc65
-compiler (http://www.cc65.org/). In almost all cases it is preferable to go for
-a recent snapshot instead of the latest official version. The most recent cc65
-snapshot is available at ftp://ftp.musoftware.de/pub/uz/cc65/snapshot/.
+compiler (http://www.cc65.org/).
 
 
 The Contiki network configuration for 6502-based targets is loaded from a binary
