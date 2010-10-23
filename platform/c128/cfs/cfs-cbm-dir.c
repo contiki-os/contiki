@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -30,52 +30,39 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.27 2010/10/23 13:48:06 oliverschmidt Exp $
+ * $Id: cfs-cbm-dir.c,v 1.1 2010/10/23 13:48:06 oliverschmidt Exp $
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#include <string.h>
+#include <cbm.h>
 
-#include "6502def.h"
+#include "contiki.h"
 
-#define CTK_CONF_MENU_KEY         CH_F1
-#define CTK_CONF_WINDOWSWITCH_KEY CH_F3
-#define CTK_CONF_WIDGETUP_KEY     CH_F5
-#define CTK_CONF_WIDGETDOWN_KEY   CH_F7
+#include "cfs/cfs.h"
 
-#define MOUSE_CONF_XTOC(x) ((x) / 8)
-#define MOUSE_CONF_YTOC(y) ((y) / 8)
+/*---------------------------------------------------------------------------*/
+int
+cfs_opendir(struct cfs_dir *p, const char *n)
+{
+  return cbm_opendir(12, _curunit);
+}
+/*---------------------------------------------------------------------------*/
+int
+cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
+{
+  struct cbm_dirent dirent;
 
-#define BORDERCOLOR       COLOR_BLACK
-#define SCREENCOLOR       COLOR_BLACK
-#define BACKGROUNDCOLOR   COLOR_BLACK
-#define WINDOWCOLOR       COLOR_GRAY3
-#define WINDOWCOLOR_FOCUS COLOR_GRAY3
-#define WIDGETCOLOR       COLOR_GRAY3
-#define WIDGETCOLOR_FOCUS COLOR_YELLOW
-#define WIDGETCOLOR_FWIN  COLOR_GRAY3
-#define WIDGETCOLOR_HLINK COLOR_CYAN
-
-#define EMAIL_CONF_WIDTH  39
-#define EMAIL_CONF_HEIGHT 20
-#define EMAIL_CONF_ERASE   0
-
-#define FTP_CONF_WIDTH  18
-#define FTP_CONF_HEIGHT 22
-
-#define IRC_CONF_WIDTH  40
-#define IRC_CONF_HEIGHT 24
-
-#define WWW_CONF_WEBPAGE_WIDTH      40
-#define WWW_CONF_WEBPAGE_HEIGHT     20
-#define WWW_CONF_HISTORY_SIZE        4
-#define WWW_CONF_MAX_URLLEN         80
-#define WWW_CONF_MAX_NUMPAGEWIDGETS 20
-#define WWW_CONF_RENDERSTATE         1
-#define WWW_CONF_FORMS               1
-#define WWW_CONF_MAX_FORMACTIONLEN  20
-#define WWW_CONF_MAX_FORMNAMELEN    20
-#define WWW_CONF_MAX_INPUTNAMELEN   20
-#define WWW_CONF_MAX_INPUTVALUELEN  20
-
-#endif /* __CONTIKI_CONF_H__ */
+  if(cbm_readdir(12, &dirent)) {
+    return -1;
+  }
+  strcpy(e->name, dirent.name);
+  e->size = dirent.size;
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+void
+cfs_closedir(struct cfs_dir *p)
+{
+  cbm_closedir(12);
+}
+/*---------------------------------------------------------------------------*/

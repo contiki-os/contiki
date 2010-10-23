@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.33 2010/10/23 08:17:45 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.34 2010/10/23 13:48:06 oliverschmidt Exp $
 #
 
 ifndef CC65_HOME
@@ -39,7 +39,7 @@ endif
 
 all: cs8900a.eth lan91c96.eth
 
-CONTIKI_TARGET_DIRS = . lib sys
+CONTIKI_TARGET_DIRS = . lib sys cfs
 CONTIKI_CPU_DIRS    = . lib sys ctk net
 
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
