@@ -54,7 +54,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arp.c,v 1.6 2010/10/19 18:29:04 adamdunkels Exp $
+ * $Id: uip_arp.c,v 1.7 2010/10/24 22:29:39 adamdunkels Exp $
  *
  */
 
@@ -374,6 +374,14 @@ uip_arp_out(void)
   /* First check if destination is a local broadcast. */
   if(uip_ipaddr_cmp(&IPBUF->destipaddr, &uip_broadcast_addr)) {
     memcpy(IPBUF->ethhdr.dest.addr, broadcast_ethaddr.addr, 6);
+  } else if(IPBUF->destipaddr.u8[0] == 224) {
+    /* Multicast. */
+    IPBUF->ethhdr.dest.addr[0] = 0x01;
+    IPBUF->ethhdr.dest.addr[1] = 0x00;
+    IPBUF->ethhdr.dest.addr[2] = 0x5e;
+    IPBUF->ethhdr.dest.addr[3] = IPBUF->destipaddr.u8[1];
+    IPBUF->ethhdr.dest.addr[4] = IPBUF->destipaddr.u8[2];
+    IPBUF->ethhdr.dest.addr[5] = IPBUF->destipaddr.u8[3];
   } else {
     /* Check if the destination address is on the local network. */
     if(!uip_ipaddr_maskcmp(&IPBUF->destipaddr, &uip_hostaddr, &uip_netmask)) {
@@ -430,3 +438,4 @@ uip_arp_out(void)
 
 /** @} */
 /** @} */
+
