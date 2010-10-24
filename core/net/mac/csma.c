@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.21 2010/10/14 19:08:39 nifi Exp $
+ * $Id: csma.c,v 1.22 2010/10/24 21:07:00 adamdunkels Exp $
  */
 
 /**
@@ -103,9 +103,10 @@ retransmit_packet(void *ptr)
 static void
 free_packet(struct queued_packet *q)
 {
+  //  printf("free_packet %p\n", q);
+  ctimer_stop(&q->retransmit_timer);
   queuebuf_free(q->buf);
   memb_free(&packet_memb, q);
-  ctimer_stop(&q->retransmit_timer);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -117,6 +118,8 @@ packet_sent(void *ptr, int status, int num_transmissions)
   void *cptr;
   int num_tx;
 
+  //  printf("packet_sent %p\n", q);
+  
   switch(status) {
   case MAC_TX_OK:
   case MAC_TX_NOACK:
@@ -143,7 +146,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
     switch(status) {
     case MAC_TX_COLLISION:
       PRINTF("csma: rexmit collision %d\n", q->transmissions);
-      break; 
+      break;
     case MAC_TX_NOACK:
       PRINTF("csma: rexmit noack %d\n", q->transmissions);
       break;
@@ -165,7 +168,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
     /* The retransmission time uses a linear backoff so that the
        interval between the transmissions increase with each
        retransmit. */
-    time = time + (random_rand() % ((q->transmissions + 1) * 3 * time));
+    time = time + (random_rand() % ((q->transmissions + 1) * 2 * time));
 
     if(q->transmissions + q->collisions < q->max_transmissions) {
       PRINTF("csma: retransmitting with time %lu %p\n", time, q);
@@ -173,16 +176,20 @@ packet_sent(void *ptr, int status, int num_transmissions)
                  retransmit_packet, q);
     } else {
       PRINTF("csma: drop after %d\n", q->transmissions);
+      queuebuf_to_packetbuf(q->buf);
       free_packet(q);
+      //      printf("call 1 %p\n", cptr);
       mac_call_sent_callback(sent, cptr, status, num_tx);
     }
-  } else  {
+  } else {
     if(status == MAC_TX_OK) {
       PRINTF("csma: rexmit ok %d\n", q->transmissions);
     } else {
       PRINTF("csma: rexmit failed %d: %d\n", q->transmissions, status);
     }
+    queuebuf_to_packetbuf(q->buf);
     free_packet(q);
+    //    printf("call 2 %p\n", cptr);
     mac_call_sent_callback(sent, cptr, status, num_tx);
   }
 }
@@ -198,6 +205,7 @@ send_packet(mac_callback_t sent, void *ptr)
   /* Remember packet for later. */
   q = memb_alloc(&packet_memb);
   if(q != NULL) {
+    //    printf("send_packet %p\n", q);
     q->buf = queuebuf_new_from_packetbuf();
     if(q != NULL) {
       if(packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS) == 0) {
