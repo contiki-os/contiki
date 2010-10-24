@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.30 2010/10/22 20:39:13 nifi Exp $
+ * $Id: CollectServer.java,v 1.31 2010/10/24 21:40:54 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/22 20:39:13 $
- *           $Revision: 1.30 $
+ * Updated : $Date: 2010/10/24 21:40:54 $
+ *           $Revision: 1.31 $
  */
 
 package se.sics.contiki.collect;
@@ -359,7 +359,7 @@ public class CollectServer implements SerialConnectionListener {
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
           }
           protected double getSensorDataValue(SensorData data) {
-            return data.getValue(SensorData.BEST_NEIGHBOR_RTMETRIC) + data.getBestNeighborETX();
+            return data.getValue(SensorData.RTMETRIC);
           }
         },
         new TimeChartPanel(this, NETWORK, "ETX (Over Time)", "ETX to Next Hop", "Time", "ETX") {
