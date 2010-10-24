@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.28 2010/05/01 13:04:31 joxe Exp $
+ * $Id: tcpip.c,v 1.29 2010/10/24 21:05:42 adamdunkels Exp $
  */
 /**
  * \file
@@ -551,10 +551,11 @@ tcpip_ipv6_output(void)
   uip_ds6_nbr_t *nbr = NULL;
   uip_ipaddr_t* nexthop;
   
-  if(uip_len == 0)
+  if(uip_len == 0) {
     return;
-
-  if(uip_len > UIP_LINK_MTU){
+  }
+  
+  if(uip_len > UIP_LINK_MTU) {
     UIP_LOG("tcpip_ipv6_output: Packet to big");
     uip_len = 0;
     return;
@@ -613,7 +614,7 @@ tcpip_ipv6_output(void)
         nbr->nscount = 1;
       }
     } else {
-      if (nbr->state == NBR_INCOMPLETE){
+      if(nbr->state == NBR_INCOMPLETE) {
         PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
 #if UIP_CONF_IPV6_QUEUE_PKT
         /* copy outgoing pkt in the queuing buffer for later transmmit and set
@@ -627,7 +628,7 @@ tcpip_ipv6_output(void)
       /* if running NUD (nbc->state == STALE, DELAY, or PROBE ) keep
          sending in parallel see rfc 4861 Node behavior in section 7.7.3*/
 	 
-      if (nbr->state == NBR_STALE){
+      if(nbr->state == NBR_STALE) {
         nbr->state = NBR_DELAY;
         stimer_set(&(nbr->reachable),
                   UIP_ND6_DELAY_FIRST_PROBE_TIME);
@@ -637,7 +638,7 @@ tcpip_ipv6_output(void)
       
       stimer_set(&(nbr->sendns),
                 uip_ds6_if.retrans_timer / 1000);
-      
+
       tcpip_output(&(nbr->lladdr));
 
 
