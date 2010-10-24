@@ -43,7 +43,7 @@ endif
 LOWERCASE = -abcdefghijklmnopqrstuvwxyz
 UPPERCASE = _ABCDEFGHIJKLMNOPQRSTUVWXYZ
 TARGET_UPPERCASE := ${shell echo $(TARGET) | sed 'y!$(LOWERCASE)!$(UPPERCASE)!'}
-CFLAGS += -DCONTIKI_TARGET_$(TARGET_UPPERCASE)
+CFLAGS += -DCONTIKI=1 -DCONTIKI_TARGET_$(TARGET_UPPERCASE)=1
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac
