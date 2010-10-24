@@ -1,3 +1,5 @@
+ifndef MAKEFILE_POWERTRACE
+MAKEFILE_POWERTRACE = 1
 ifdef LOG
 powertrace-parse:
 	cat $(LOG) | grep -a "P " | $(CONTIKI)/tools/powertrace/parse-power-data > powertrace-data
@@ -52,3 +54,4 @@ powertrace-help:
 	@echo 
 	@echo   make powertrace-all LOG=logfile
 	@echo 
+endif # MAKEFILE_POWERTRACE
