@@ -28,13 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: random.c,v 1.3 2009/02/11 11:09:59 adamdunkels Exp $
+ * @(#)$Id: random.c,v 1.4 2010/10/24 21:02:23 adamdunkels Exp $
  */
 
 
 #include "lib/random.h"
-#include "lib/rand.h"
 #include "sys/clock.h"
+
+#include <stdlib.h>
 
 /*---------------------------------------------------------------------------*/
 void
