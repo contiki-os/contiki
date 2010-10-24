@@ -58,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.11 2009/04/10 00:37:48 adamdunkels Exp $
+ * $Id: uipopt.h,v 1.12 2010/10/24 22:28:43 adamdunkels Exp $
  *
  */
 
@@ -258,7 +258,7 @@
 #ifdef UIP_CONF_UDP_CHECKSUMS
 #define UIP_UDP_CHECKSUMS UIP_CONF_UDP_CHECKSUMS
 #else
-#define UIP_UDP_CHECKSUMS 0
+#define UIP_UDP_CHECKSUMS UIP_CONF_IPV6
 #endif
 
 /**
