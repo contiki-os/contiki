@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.11 2010/10/07 20:59:48 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.12 2010/10/24 21:40:54 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2010/10/07 20:59:48 $
- *           $Revision: 1.11 $
+ * Updated : $Date: 2010/10/24 21:40:54 $
+ *           $Revision: 1.12 $
  */
 
 package se.sics.contiki.collect;
@@ -55,7 +55,7 @@ public class SensorDataAggregator implements SensorInfo {
   private int lost = 0;
   private int nodeRestartCount = 0;
   private int nextHopChangeCount = 0;
-  private int lastNextHop = 0;
+  private int lastNextHop = -1;
   private long shortestPeriod = Long.MAX_VALUE;
   private long longestPeriod = 0;
 
@@ -93,7 +93,7 @@ public class SensorDataAggregator implements SensorInfo {
     int s = seqn + seqnoDelta;
 
     int bestNeighbor = data.getValue(BEST_NEIGHBOR);
-    if (lastNextHop != bestNeighbor && lastNextHop != 0) {
+    if (lastNextHop != bestNeighbor && lastNextHop >= 0) {
       nextHopChangeCount++;
     }
     lastNextHop = bestNeighbor;
@@ -242,7 +242,7 @@ public class SensorDataAggregator implements SensorInfo {
   }
 
   public double getAverageRtmetric() {
-    return dataCount > 0 ? ((values[BEST_NEIGHBOR_RTMETRIC] + (values[BEST_NEIGHBOR_ETX] / 8.0)) / dataCount) : 0.0;
+    return getAverageValue(RTMETRIC);
   }
 
   public double getAverageRadioIntensity() {
