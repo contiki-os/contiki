@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.14 2010/10/14 18:53:08 nifi Exp $
+ * $Id: NodeInfoPanel.java,v 1.15 2010/10/24 21:11:32 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/10/14 18:53:08 $
- *           $Revision: 1.14 $
+ * Updated : $Date: 2010/10/24 21:11:32 $
+ *           $Revision: 1.15 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -105,37 +105,37 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
             return node;
           }
         },
-        new TableData("Packets", "Packets Received", Number.class) {
+        new TableData("Received", "Packets Received", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getPacketCount();
           }
         },
-        new TableData("Duplicates", "Duplicate Packets Received", Number.class) {
+        new TableData("Dups", "Duplicate Packets Received", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getDuplicateCount();
           }
         },
-        new TableData("Estimated Lost", "Estimated Lost Packets", Number.class) {
+        new TableData("Lost", "Estimated Lost Packets", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getEstimatedLostCount();
           }
         },
-        new TableData("Avg Hops", "Average Hops to Sink", Double.class) {
+        new TableData("Hops", "Average Hops to Sink", Double.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getAverageValue(SensorData.HOPS);
           }
         },
-        new TableData("Avg Rtmetric", "Average Routing Metric", Double.class) {
+        new TableData("Rtmetric", "Average Routing Metric", Double.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getAverageRtmetric();
           }
         },
-        new TableData("Avg ETX", "Average ETX to Next Hop", Double.class) {
+        new TableData("ETX", "Average ETX to Next Hop", Double.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getAverageValue(SensorData.BEST_NEIGHBOR_ETX);
           }
         },
-        new TableData("Next Hop Changes", "Next Hop Change Count", Number.class) {
+        new TableData("Churn", "Next Hop Change Count", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getNextHopChangeCount();
           }
@@ -146,7 +146,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
           }
         },
 
-        new TableData("Restarts", "Estimated Node Restart Count", Number.class) {
+        new TableData("Reboots", "Estimated Node Restart Count", Number.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getEstimatedRestarts();
           }
@@ -178,7 +178,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
             return node.getSensorDataAggregator().getAveragePower();
           }
         },
-        new TableData("Power Time", "Power Measure Time", Long.class) {
+        new TableData("On-time", "Power Measure Time", Long.class) {
           public Object getValue(Node node) {
             return node.getSensorDataAggregator().getPowerMeasureTime();
           }
