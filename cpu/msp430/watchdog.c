@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.10 2010/09/22 22:12:37 adamdunkels Exp $
+ * @(#)$Id: watchdog.c,v 1.11 2010/10/24 21:10:25 adamdunkels Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -36,7 +36,7 @@
 
 static int counter = 0;
 
-#define PRINT_STACK_ON_REBOOT 1
+#define PRINT_STACK_ON_REBOOT 0
 
 /*---------------------------------------------------------------------------*/
 #ifdef CONTIKI_TARGET_SKY
