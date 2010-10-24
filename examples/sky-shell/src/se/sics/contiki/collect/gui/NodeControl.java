@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeControl.java,v 1.7 2010/10/14 18:13:10 nifi Exp $
+ * $Id: NodeControl.java,v 1.8 2010/10/24 21:11:13 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Niclas Finne
  * Created : 27 sep 2010
- * Updated : $Date: 2010/10/14 18:13:10 $
- *           $Revision: 1.7 $
+ * Updated : $Date: 2010/10/24 21:11:13 $
+ *           $Revision: 1.8 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -83,9 +83,9 @@ public class NodeControl implements Visualizer {
     this.panel = new JPanel(new BorderLayout());
 
     final JFormattedTextField intervalField = new JFormattedTextField(new Integer(60));
-    final JFormattedTextField randomField = new JFormattedTextField(new Integer(2));
+    final JFormattedTextField randomField = new JFormattedTextField(new Integer(60));
     final JFormattedTextField reportsField = new JFormattedTextField(new Integer(0));
-    final JFormattedTextField rexmitsField = new JFormattedTextField(new Integer(15));
+    final JFormattedTextField rexmitsField = new JFormattedTextField(new Integer(31));
     statusLabel = new JLabel("", JLabel.CENTER);
     statusLabel.setOpaque(true);
     statusLabel.setBackground(Color.white);
@@ -106,7 +106,7 @@ public class NodeControl implements Visualizer {
         int rexmits = (Integer)rexmitsField.getValue();
 
         sendCommand("netcmd { repeat " + reports + " " + interval
-            + " { randwait " + random + " collect-view-data | blink | send " + rexmits + " } }");
+            + " { randwait " + random + " collect-view-data | send " + rexmits + " } }");
       }
 
     });
@@ -114,7 +114,7 @@ public class NodeControl implements Visualizer {
     JButton collectButton = createCommandButton("Start Collect",
                                                 "~K", "killall",
                                                 "mac 0", SET_TIME_COMMAND,
-                                                "collect | timestamp | blink | binprint &");
+                                                "collect | timestamp | binprint &");
     JButton stopCollectButton = createCommandButton("Stop Collect", "~K", "killall");
 
     JPanel controlPanel = new JPanel(new GridBagLayout());
