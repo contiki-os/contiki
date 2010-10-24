@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.39 2010/10/20 22:25:24 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.40 2010/10/24 21:06:17 adamdunkels Exp $
  */
 
 /**
@@ -122,7 +122,7 @@ struct announcement_msg {
 
 #define STREAM_CCA_COUNT                   (CYCLE_TIME / (CCA_SLEEP_TIME + CCA_CHECK_TIME) - CCA_COUNT_MAX)
 
-#define GUARD_TIME                         7 * CHECK_TIME
+#define GUARD_TIME                         8 * CHECK_TIME
 
 #define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
 #define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
@@ -910,6 +910,7 @@ qsend_packet(mac_callback_t sent, void *ptr)
 {
   int ret = send_packet(sent, ptr);
   if(ret != MAC_TX_DEFERRED) {
+    //    printf("contikimac qsend_packet %p\n", ptr);
     mac_call_sent_callback(sent, ptr, ret, 1);
   }
 }
