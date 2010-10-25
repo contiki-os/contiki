@@ -1,0 +1,51 @@
+1000 packet bursts
+64 byte payload
+==================
+
+count 995 avg lqi 19
+count 1000 avg lqi 46
+count 1000 avg lqi 54
+count 162 avg lqi 6
+count 994 avg lqi 15
+count 999 avg lqi 38
+count 45 avg lqi 3
+count 951 avg lqi 9
+count 992 avg lqi 12
+count 991 avg lqi 17
+count 1000 avg lqi 47
+count 1000 avg lqi 40
+count 995 avg lqi 19
+count 1000 avg lqi 34
+count 674 avg lqi 9
+count 976 avg lqi 12
+count 981 avg lqi 13
+count 859 avg lqi 9
+lqi_total = 0
+lqi_total = 0
+count 5 avg lqi 6
+lqi_total = 0
+count 788 avg lqi 8
+lqi_total = 0
+count 743 avg lqi 8
+count 308 avg lqi 6
+count 317 avg lqi 6
+count 30 avg lqi 5
+count 1 avg lqi 6
+count 842 avg lqi 9
+count 898 avg lqi 10
+lqi_total = 0
+count 6 avg lqi 3
+count 5 avg lqi 6
+count 596 avg lqi 7
+count 511 avg lqi 7
+count 602 avg lqi 7
+count 988 avg lqi 30
+count 998 avg lqi 30
+count 978 avg lqi 19
+lqi_total = 0
+count 170 avg lqi 7
+count 5 avg lqi 4
+count 506 avg lqi 8
+count 993 avg lqi 16
+count 993 avg lqi 19
+count 51 avg lqi 9
