@@ -1,0 +1,49 @@
+%!: /header.html
+<script type="text/javascript">
+function load() {
+	a=document.anchors;
+	for(i=0; i<a.length;i++){
+		if(a[i].id=='node')
+			a[i].href="http://"+addrgen(a[i].name)+"/"
+	}
+}
+function addrgen(iid)
+{
+	haddr=document.location.host;
+	addr=haddr;
+	ie7ll=0;sep=':';esc='%25';
+	if(addr.search(/ipv6-literal.net/)!=-1){
+		ie7ll=1;sep='-';esc='s';iid=iid.replace(/:/g,'-');
+	}
+	ncol=addr.replace(/ipv6-literal.net/,'').match(/[:-]/g).length;
+	n=0;indtot=0;
+	addr=haddr;
+	while(n<4 && (ind=addr.indexOf(sep))!=-1){
+		n++;
+		if(addr.charAt(ind+1)==sep)
+			n+=7-ncol;		
+		addr=addr.slice(ind+1);
+		indtot+=ind+1;
+	}
+	if(ind==-1) return;
+	newaddr = haddr.slice(0,indtot)+iid;
+	oldiid = haddr.slice(indtot);
+	end=oldiid.search(/[^0-9a-f:-]/i);
+	if(end!=-1)
+		newaddr = newaddr+oldiid.slice(end);
+	if(!ie7ll&&newaddr.charAt(0)!='[')
+		newaddr='['+newaddr+']';
+	if(navigator.userAgent.search(/Firefox/i)==-1)
+		newaddr=newaddr.replace('%',esc);
+	return newaddr;
+}
+</script>
+<h1>Node
+%! nodeid
+</h1>
+<h2>Neighbors</h2>
+<ul>
+%! neighbors
+</ul>
+%!: /footer.html
+

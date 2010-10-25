@@ -1,0 +1,121 @@
+%!: /header.html
+<script type="text/javascript">
+var start;
+
+i = new Image(50,60)
+i.src = "spin.gif"
+
+function load() {
+  var img = document.getElementById("spin");
+  img.innerHTML = '&nbsp;';
+  loadSensordata();
+}
+
+function loadSensordata() {
+  var r;
+  try { r = new XMLHttpRequest(); }
+  catch(e) {
+    try { r = new ActiveXObject("Msxml2.XMLHTTP"); }
+    catch(e) {
+      try { r = new ActiveXObject("Microsoft.XMLHTTP"); }
+      catch(e) {
+        alert("Your browser does not support AJAX!");
+        return false;
+      }
+    }
+  }
+  start = new Date();
+  r.open("GET", "/sensordata.shtml", true);
+  r.setRequestHeader("If-Modified-Since","Sat, 1 Jan 2000 00:00:00 GMT");
+  r.onreadystatechange = function() {
+    if(r.readyState==1) {
+      var img = document.getElementById("spin");
+      img.innerHTML = '<img src="spin.gif">';
+    }
+    if(r.readyState==4) {
+      var img = document.getElementById("spin");
+      img.innerHTML = 'took '  +
+                      ((new Date()).getTime()-start.getTime())/1000+
+                      ' seconds';
+      eval(r.responseText);
+    }
+  }
+  r.send(null);
+}
+
+function e(el) {
+  d = document;
+  if(d.getElementById) {
+    return d.getElementById(el);
+  } else if (d.all) {
+    return d.all[el];
+  }
+}
+function s(el,n,max,text) {
+  e(el).innerHTML = '<table width=504 border=0 cellpadding=1 cellspacing=0>'+
+                    '<tr><td width=200>' +
+                    text + '</td>' +
+		    '<td width=' + (300*n/max) + ' bgcolor="gray">&nbsp;</td>' +
+		    '<td width=' + (300-300*n/max) + ' bgcolor="lightgray">&nbsp;</td>' +
+		    '</table>';
+}
+function dc(n,d) {
+  return n.toFixed(d);
+}
+function t(m) {
+  n = dc(m/10, 1);
+  s('temp',n,40,'Temperature '+n+' &deg;C');
+}
+function ax(m) {
+  n = m;
+  s('accx',n+2000,4000,'Acceleration (X-axis) '+n+'mg');
+}
+function ay(m) {
+  n = m;
+  s('accy',n+2000,4000,'Acceleration (Y-axis) '+n+'mg');
+}
+function az(m) {
+  n = m;
+  s('accz',n+2000,4000,'Acceleration (Z-axis) '+n+'mg');
+}
+function rs(m) {
+  n = m + 45;
+  s('rs',n,100,'RSSI '+n);
+}
+function p(c,l,t,r) {
+  tm=c+l;
+  cp=c*18/tm;
+  lp=l*7.2/tm;
+  lt=t*50.4/tm;
+  lr=r*45.6/tm;
+  n=cp+lp+lt+lr;
+  s('p',n,100,'Power consumption '+dc(n,2)+' mW');
+  s('pc',cp,100,'CPU power '+dc(cp,2)+' mW');
+  s('pl',lp,100,'LPM power '+dc(lp,2)+' mW');
+  s('pr',lr,100,'Radio RX power '+dc(lr,2)+' mW');
+  s('pt',lt,100,'Radio TX power '+dc(lt,2)+' mW');
+}
+function v(n) {
+  e('v').innerHTML = n;
+}
+</script>
+<h1>Node
+%! nodeid
+</h1>
+<a href="javascript:loadSensordata();">Reload</a>
+
+<span id="spin"> </span>
+<h2>Environment</h2>
+<div id="temp"></div>
+<div id="accx"></div>
+<div id="accy"></div>
+<div id="accz"></div>
+<h2>Power</h2>
+<div id="p"></div>
+<div id="pc"></div>
+<div id="pl"></div>
+<div id="pr"></div>
+<div id="pt"></div>
+<br></br>
+<div id="v"></div>
+%!: /footer.html
