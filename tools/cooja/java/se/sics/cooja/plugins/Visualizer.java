@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.16 2010/05/17 11:44:17 fros4943 Exp $
+ * $Id: Visualizer.java,v 1.17 2010/10/25 13:53:02 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -39,6 +39,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -842,6 +843,7 @@ public class Visualizer extends VisPlugin {
     Mote[] allMotes = simulation.getMotes();
 
     /* Paint mote relations */
+    g.setColor(Color.BLACK);
     MoteRelation[] relations = simulation.getGUI().getMoteRelations();
     for (MoteRelation r: relations) {
       Position sourcePos = r.source.getInterfaces().getPosition();
@@ -850,18 +852,7 @@ public class Visualizer extends VisPlugin {
       Point sourcePoint = transformPositionToPixel(sourcePos);
       Point destPoint = transformPositionToPixel(destPos);
 
-      Point middlePoint = new Point(
-          (destPoint.x*9 + sourcePoint.x*1)/10,
-          (destPoint.y*9 + sourcePoint.y*1)/10
-      );
-
-      /* "Arrow body" is painted gray */
-      g.setColor(Color.LIGHT_GRAY);
-      g.drawLine(sourcePoint.x, sourcePoint.y, middlePoint.x, middlePoint.y);
-
-      /* "Arrow head" is painted black */
-      g.setColor(Color.BLACK);
-      g.drawLine(middlePoint.x, middlePoint.y, destPoint.x, destPoint.y);
+      drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, MOTE_RADIUS + 1);
     }
 
     for (Mote mote: allMotes) {
@@ -911,6 +902,36 @@ public class Visualizer extends VisPlugin {
       g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
           2 * MOTE_RADIUS);
     }
+  }
+
+  private Polygon arrowPoly = new Polygon();
+  private void drawArrow(Graphics g, int xSource, int ySource, int xDest, int yDest, int delta) {
+    double dx = xSource - xDest;
+    double dy = ySource - yDest;
+    double dir = Math.atan2(dx, dy);
+    double len = Math.sqrt(dx * dx + dy * dy);
+    dx /= len;
+    dy /= len;
+    len -= delta;
+    xDest = xSource - (int) (dx * len);
+    yDest = ySource - (int) (dy * len);
+    g.drawLine(xDest, yDest, xSource, ySource);
+
+    final int size = 8;
+    arrowPoly.reset();
+    arrowPoly.addPoint(xDest, yDest);
+    arrowPoly.addPoint(xDest + xCor(size, dir + 0.5), yDest + yCor(size, dir + 0.5));
+    arrowPoly.addPoint(xDest + xCor(size, dir - 0.5), yDest + yCor(size, dir - 0.5));
+    arrowPoly.addPoint(xDest, yDest);
+    g.fillPolygon(arrowPoly);
+  }
+
+  private int yCor(int len, double dir) {
+    return (int)(0.5 + len * Math.cos(dir));
+  }
+
+  private int xCor(int len, double dir) {
+    return (int)(0.5 + len * Math.sin(dir));
   }
 
   /**
