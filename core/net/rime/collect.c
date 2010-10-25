@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.63 2010/10/24 21:08:19 adamdunkels Exp $
+ * $Id: collect.c,v 1.64 2010/10/25 12:25:39 adamdunkels Exp $
  */
 
 /**
@@ -995,7 +995,6 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
         ackflags |= ACK_FLAGS_RTMETRIC_NEEDS_UPDATE;
       }
 
-      printf("potential loop detected\n");
       packetbuf_set_attr(PACKETBUF_ATTR_HOPS,
                          packetbuf_attr(PACKETBUF_ATTR_HOPS) + 1);
       packetbuf_set_attr(PACKETBUF_ATTR_TTL,
