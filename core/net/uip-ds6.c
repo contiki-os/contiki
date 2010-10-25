@@ -325,7 +325,6 @@ uip_ds6_nbr_add(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr,
 
       oldest = NULL;
       oldest_time = 0 - 1UL;
-      least_number = 0 - 1UL;
 
       for(n = uip_ds6_nbr_cache;
           n < &uip_ds6_nbr_cache[UIP_DS6_NBR_NB];
