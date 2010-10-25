@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.23 2010/09/15 13:22:23 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.24 2010/10/25 19:49:12 nvt-se Exp $
  */
 /**
  * \file
@@ -400,6 +400,7 @@ dao_input(void)
   int len;
   int i;
   int learned_from;
+  rpl_parent_t *p;
 
   lifetime = 0;
   prefixlen = 0;
@@ -483,6 +484,17 @@ dao_input(void)
   learned_from = uip_is_addr_mcast(&dao_sender_addr) ?
                  RPL_ROUTE_FROM_MULTICAST_DAO : RPL_ROUTE_FROM_UNICAST_DAO;
 
+  if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
+    /* Check if this is a DAO forwarding loop. */
+    p = rpl_find_parent(dag, &dao_sender_addr);
+    if(p != NULL && p->rank < dag->rank) {
+      printf("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank!\n");
+      dag->rank = INFINITE_RANK;
+      rpl_reset_dio_timer(dag, 1);
+      return;
+    }
+  }
+
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
     PRINTF("RPL: Could not add a route after receiving a DAO\n");
@@ -498,7 +510,7 @@ dao_input(void)
       PRINT6ADDR(&dag->preferred_parent->addr);
       PRINTF("\n");
       uip_icmp6_send(&dag->preferred_parent->addr,
-	ICMP6_RPL, RPL_CODE_DAO, buffer_length);
+                     ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     } else if(flags & RPL_DAO_K_FLAG) {
       dao_ack_output(dag, &dao_sender_addr, sequence);
     }
