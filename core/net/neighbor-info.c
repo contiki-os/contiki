@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.14 2010/10/22 13:50:13 nvt-se Exp $
+ * $Id: neighbor-info.c,v 1.15 2010/10/25 20:06:17 nvt-se Exp $
  */
 /**
  * \file
@@ -51,7 +51,7 @@
 #define ETX_LIMIT		15
 #define ETX_SCALE		100
 #define ETX_ALPHA		70
-#define ETX_FIRST_GUESS		3
+#define ETX_FIRST_GUESS		2
 /*---------------------------------------------------------------------------*/
 NEIGHBOR_ATTRIBUTE(uint8_t, etx, NULL);
 
