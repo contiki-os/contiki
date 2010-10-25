@@ -162,6 +162,7 @@ typedef struct uip_ds6_nbr {
   struct stimer reachable;
   struct stimer sendns;
   uint8_t nscount;
+  clock_time_t last_lookup;
 #if UIP_CONF_IPV6_QUEUE_PKT
   uint8_t queue_buf[UIP_BUFSIZE - UIP_LLH_LEN];
   uint8_t queue_buf_len;

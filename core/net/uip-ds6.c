@@ -313,8 +313,37 @@ uip_ds6_nbr_add(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr,
     PRINTLLADDR((&(locnbr->lladdr)));
     PRINTF("state %u\n", state);
     NEIGHBOR_STATE_CHANGED(locnbr);
+
+    locnbr->last_lookup = clock_time();
     return locnbr;
+  } else {
+    /* We did not find any empty slot on the neighbor list, so we need
+       to remove one old entry to make room. */
+    {
+      uip_ds6_nbr_t *n, *oldest;
+      clock_time_t oldest_time;
+
+      oldest = NULL;
+      oldest_time = 0 - 1UL;
+      least_number = 0 - 1UL;
+
+      for(n = uip_ds6_nbr_cache;
+          n < &uip_ds6_nbr_cache[UIP_DS6_NBR_NB];
+          n++) {
+        if(n->isused) {
+          if(n->last_lookup < oldest_time) {
+            oldest = n;
+            oldest_time = n->last_lookup;
+          }
+        }
+      }
+      if(oldest != NULL) {
+        uip_ds6_nbr_rm(oldest);
+        return uip_ds6_nbr_add(ipaddr, lladdr, isrouter, state);
+      }
+    }
   }
+  PRINTF("uip_ds6_nbr_add drop\n");
   return NULL;
 }
 
