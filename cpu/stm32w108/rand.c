@@ -29,27 +29,29 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: rand.c,v 1.1 2010/10/25 09:03:38 salvopitru Exp $
+ * $Id: rand.c,v 1.2 2010/10/26 10:47:23 salvopitru Exp $
  */
 /*---------------------------------------------------------------------------*/
 /**
 * \file
-*			Clock.
+*			Random number functions for STM32W.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
 /*---------------------------------------------------------------------------*/
 
-#include "lib/rand.h"
 #include "dev/stm32w-radio.h"
+#include "lib/random.h"
+
+#if (RANDOM_MAX != 0xffff)
+#warning "RANDOM_MAX is not defined as 65535."
+#endif
 
 int rand(void)
 {
 	u16_t rand_num;
 
 	ST_RadioGetRandomNumbers(&rand_num, 1);
-
-	rand_num &= RAND_MAX;
 
 	return (int)rand_num;
 }
