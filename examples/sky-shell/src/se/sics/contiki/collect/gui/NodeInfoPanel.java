@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeInfoPanel.java,v 1.15 2010/10/24 21:11:32 adamdunkels Exp $
+ * $Id: NodeInfoPanel.java,v 1.16 2010/10/26 13:05:08 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/10/24 21:11:32 $
- *           $Revision: 1.15 $
+ * Updated : $Date: 2010/10/26 13:05:08 $
+ *           $Revision: 1.16 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -132,7 +132,7 @@ public class NodeInfoPanel extends JPanel implements Visualizer, Configurable {
         },
         new TableData("ETX", "Average ETX to Next Hop", Double.class) {
           public Object getValue(Node node) {
-            return node.getSensorDataAggregator().getAverageValue(SensorData.BEST_NEIGHBOR_ETX);
+            return node.getSensorDataAggregator().getAverageBestNeighborETX();
           }
         },
         new TableData("Churn", "Next Hop Change Count", Number.class) {
