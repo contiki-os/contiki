@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: cfs-cbm-dir.c,v 1.1 2010/10/23 13:48:06 oliverschmidt Exp $
+ * $Id: cfs-cbm-dir.c,v 1.2 2010/10/26 18:56:39 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -52,9 +52,11 @@ cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
 {
   struct cbm_dirent dirent;
 
-  if(cbm_readdir(12, &dirent)) {
-    return -1;
-  }
+  do {
+    if(cbm_readdir(12, &dirent)) {
+      return -1;
+    }
+  } while(dirent.type == CBM_T_HEADER);
   strcpy(e->name, dirent.name);
   e->size = dirent.size;
   return 0;
