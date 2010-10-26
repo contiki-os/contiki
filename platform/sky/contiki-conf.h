@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.86 2010/10/24 21:12:31 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.87 2010/10/26 13:26:16 joxe Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -146,6 +146,7 @@
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
+#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
 #else /* WITH_UIP6 */
 #define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_BUFFER_SIZE     108
