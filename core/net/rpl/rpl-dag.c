@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.35 2010/10/27 00:46:40 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.36 2010/10/27 12:20:35 nifi Exp $
  */
 /**
  * \file
@@ -360,6 +360,10 @@ rpl_remove_parent(rpl_dag_t *dag, rpl_parent_t *parent)
   PRINTF("RPL: Removing parent ");
   PRINT6ADDR(&parent->addr);
   PRINTF("\n");
+
+  if(parent == dag->preferred_parent) {
+    dag->preferred_parent = NULL;
+  }
 
   list_remove(dag->parents, parent);
   memb_free(&parent_memb, parent);
