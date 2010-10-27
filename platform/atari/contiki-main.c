@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.4 2010/10/23 08:17:45 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.5 2010/10/27 22:17:39 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -101,10 +101,9 @@ main(void)
   
   while(1) {
 
-    if(process_run() < 2) {
+    process_run();
 
-      etimer_request_poll();
-    }
+    etimer_request_poll();
   }
 }
 /*-----------------------------------------------------------------------------------*/

@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.20 2010/10/19 20:30:47 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.21 2010/10/27 22:17:39 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -123,16 +123,15 @@ main(void)
 
   while(1) {
 
-    if(process_run() < 2) {
+    process_run();
 
-      if(console_resize()) {
+    etimer_request_poll();
+
+    /* Allow user-mode APC to execute. */
+    SleepEx(10, TRUE);
+
+    if(console_resize()) {
 	ctk_restore();
-      }
-
-      /* Allow user-mode APC to execute. */
-      SleepEx(10, TRUE);
-
-      etimer_request_poll();
     }
   }
 }
