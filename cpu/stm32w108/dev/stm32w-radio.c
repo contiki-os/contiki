@@ -29,6 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
+ * $Id: stm32w-radio.c,v 1.2 2010/10/27 14:05:23 salvopitru Exp $
  */
 /*---------------------------------------------------------------------------*/
 /**
@@ -217,9 +218,6 @@ static int stm32w_radio_init(void)
   onoroff = OFF;
   ST_RadioSetNodeId(STM32W_NODE_ID);   // To be deleted.
   ST_RadioSetPanId(IEEE802154_PANID);
-  
-  ST_RadioEnableAutoAck(TRUE);   	
-  
   
   CLEAN_RXBUFS();
   CLEAN_TXBUF();

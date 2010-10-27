@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-conf.h,v 1.1 2010/10/25 09:03:39 salvopitru Exp $
+ * $Id: contiki-conf.h,v 1.2 2010/10/27 14:05:24 salvopitru Exp $
  */
 /*---------------------------------------------------------------------------*/
 /**
@@ -79,6 +79,8 @@ typedef unsigned short uip_stats_t;
 #define QUEUEBUF_CONF_NUM			2       
 
 
+#define NETSTACK_CONF_RADIO		stm32w_radio_driver
+
 #if WITH_UIP6
 
 /* No radio cycling */
@@ -86,8 +88,9 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_MAC		nullmac_driver
 #define NETSTACK_CONF_RDC		sicslowmac_driver
 #define NETSTACK_CONF_FRAMER		framer_802154
-#define NETSTACK_CONF_RADIO		stm32w_radio_driver
 
+#define RIMEADDR_CONF_SIZE              8
+#define UIP_CONF_LL_802154              1
 
 #define UIP_CONF_ROUTER				1
 #define UIP_CONF_IPV6_RPL			1
@@ -103,7 +106,6 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_IPV6_QUEUE_PKT			0   // This is a very costly feature as it increases the RAM usage by approximately UIP_ND6_MAX_NEIGHBORS * UIP_LINK_MTU bytes.
 #define UIP_CONF_IPV6_CHECKS			1
 #define UIP_CONF_IPV6_REASSEMBLY		0
-#define UIP_CONF_NETIF_MAX_ADDRESSES		3
 #define UIP_CONF_ND6_MAX_PREFIXES		2
 #define UIP_CONF_ND6_MAX_NEIGHBORS		2
 #define UIP_CONF_ND6_MAX_DEFROUTERS		1
@@ -131,8 +133,6 @@ typedef unsigned short uip_stats_t;
 #define STM32W_NODE_ID			0x5678   // to be deleted
 #define RF_CHANNEL			16
 #define RADIO_RXBUFS                    2   // Set to a number greater than 1 to decrease packet loss probability at high rates (e.g, with fragmented packets)
-#define RIMEADDR_CONF_SIZE              8
-#define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
 
 typedef unsigned long clock_time_t;
