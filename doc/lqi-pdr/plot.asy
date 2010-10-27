@@ -9,11 +9,11 @@ int[] lqi = sequence(100);
 
 int f (int lqi)
 {
-	if(lqi < 6) {
-		return 0;
-	} else if(lqi < 11) {
+	if(lqi <= 6) {
+		return (int)((real)lqi*.8);
+	} else if(lqi <= 11) {
 		return (lqi-6)*18;
-	} else if (lqi < 30) {
+	} else if (lqi <= 30) {
 		return (int)((real)(lqi-11) * 0.5 + 90);
 	} else {
 		return 100;
@@ -27,5 +27,5 @@ draw(graph(lqi,f_lqi), red);
 
 ylimits(0,100);
 xlimits(0,100);
-xaxis("\rm Output Current (A)",BottomTop,LeftTicks("$%.1f$",10,begin=false,end=false,extend=true,pTick=dotted));
-yaxis("\rm Output Power (W)",LeftRight,RightTicks("$%#.1f$",8,begin=false,end=false,extend=true,pTick=dotted, ptick=dotted));
+xaxis("\rm LQI",BottomTop,LeftTicks("$%.1f$",10,begin=false,end=false,extend=true,pTick=dotted));
+yaxis("\rm Packet Deliver Ratio (\%)",LeftRight,RightTicks("$%#.1f$",8,begin=false,end=false,extend=true,pTick=dotted, ptick=dotted));
