@@ -190,13 +190,22 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
  * it will attempt to use it and give "device can not start" error.
  * This doesn't seem to hurt anything but can potentially damage the OS!
  */ 
-//#define USB_CONF_MACINTOSH 1
+#define USB_CONF_MACINTOSH 0
+
+/* Set USB_CONF_SERIAL to enable the USB serial port that allows control of the
+ * run-time configuration (COMx on Windows, ttyACMx on Linux, tty.usbx on Mac)
+ * Debug printfs will go to this port unless USB_CONF_RS232 is set.
+ */
+#define USB_CONF_SERIAL          1
+ 
+/* RS232 debugs have less effect on network timing and are less likely
+ * to be dropped due to buffer overflow. Only tx is implemented at present.
+ * The tx pad is the middle one behind the jackdaw leds.
+ */
+#define USB_CONF_RS232           1
+
 /* Disable mass storage enumeration for more program space */
-/* TODO: Mass storage is currently broken */
-//#define USB_CONF_STORAGE         1
-/* Use either USB CDC or RS232 for stdout (or neither) */
-#define USB_CONF_CDC             1
-//#define USB_CONF_RS232           1
+//#define USB_CONF_STORAGE         1   /* TODO: Mass storage is currently broken */
  
 /* ************************************************************************** */
 //#pragma mark RIME Settings

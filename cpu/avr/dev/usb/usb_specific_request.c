@@ -143,7 +143,7 @@ Bool usb_user_read_request(U8 type, U8 request)
          		break;
 #endif /* USB_CONF_STORAGE */
 
-#if USB_CONF_CDC	
+#if USB_CONF_SERIAL	
 	/* We don't have a real serial port - so these aren't applicable. We
 	   advertise that we support nothing, so shouldn't get them anyway */
 		case GET_LINE_CODING:
@@ -176,7 +176,7 @@ Bool usb_user_read_request(U8 type, U8 request)
 					return FALSE;
 				}
       			break;
-#endif /* USB_CONF_CDC */
+#endif /* USB_CONF_SERIAL */
      	default:
 				break;
 
@@ -362,7 +362,7 @@ void usb_user_endpoint_init(U8 conf_nb)
 	Led0_on();
 }
 
-#if USB_CONF_CDC
+#if USB_CONF_SERIAL
 /******************** Virtual Serial Port ************************/
 
 extern S_line_coding   line_coding;
@@ -429,7 +429,7 @@ void cdc_set_control_line_state (void)
 		uart_usb_set_control_line_state(controlLineState);		
 	}
 }
-#endif /* USB_CONF_CDC */
+#endif /* USB_CONF_SERIAL */
 
 Bool  usb_user_set_alt_interface(U8 interface, U8 alt_setting) {
 	return FALSE;

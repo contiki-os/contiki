@@ -64,11 +64,11 @@
 #include "contiki-lib.h"
 #include "contiki-raven.h"
 
-/* Set ANNOUNCE to send boot messages to USB or serial port */
+/* Set ANNOUNCE to send boot messages to USB or RS232 serial port */
 #define ANNOUNCE 1
 
 #include "usb_task.h"
-#if USB_CONF_CDC
+#if USB_CONF_SERIAL
 #include "cdc_task.h"
 #endif
 #if USB_CONF_RS232
@@ -305,7 +305,7 @@ static void initialize(void) {
   /* Clock */
   clock_init();
 
- #if USB_CONF_RS232
+#if USB_CONF_RS232
   /* Use rs232 port for serial out (tx, rx, gnd are the three pads behind jackdaw leds */
   rs232_init(RS232_PORT_0, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
   /* Redirect stdout to second port */
@@ -425,7 +425,7 @@ static void initialize(void) {
 
   /* Setup USB */
   process_start(&usb_process, NULL);
-#if USB_CONF_CDC
+#if USB_CONF_SERIAL
   process_start(&cdc_process, NULL);
 #endif
   process_start(&usb_eth_process, NULL);
@@ -434,7 +434,7 @@ static void initialize(void) {
 #endif
   
 #if ANNOUNCE
-#if USB_CONF_CDC
+#if USB_CONF_SERIAL&&!USB_CONF_RS232
 {unsigned short i;
    printf_P(PSTR("\n\n\n********BOOTING CONTIKI*********\n\r"));
   /* Allow USB CDC to keep up with printfs */
@@ -453,10 +453,9 @@ static void initialize(void) {
 #endif /* RF230BB */
   printf_P(PSTR("System online.\n\r"));
 }
-#endif /* USB_CONF_CDC */
-#if USB_CONF_RS232
+#elif USB_CONF_RS232
   printf_P(PSTR("System online.\n"));
-#endif /* USB_CONF_RS232 */
+#endif
 #endif /* ANNOUNCE */
 }
 
