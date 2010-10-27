@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.1 2010/10/25 09:03:39 salvopitru Exp $
+ * $Id: contiki-main.c,v 1.2 2010/10/27 14:05:24 salvopitru Exp $
  */
 /*---------------------------------------------------------------------------*/
 /**
@@ -81,7 +81,7 @@
 #endif
 
 
-#ifdef WITH_UIP6
+#if UIP_CONF_IPV6
 PROCINIT(&etimer_process, &tcpip_process, &sensors_process);
 #else
 PROCINIT(&etimer_process, &sensors_process);
@@ -91,7 +91,45 @@ PROCINIT(&etimer_process, &sensors_process);
 SENSORS(&button_sensor,&temperature_sensor,&acc_sensor);
 
 /*---------------------------------------------------------------------------*/
+static void
+set_rime_addr(void)
+{
+  int i;
+  union {
+    u8_t u8[8];
+  }eui64;
+  
+  //rimeaddr_t lladdr;
+  
+  int8u *stm32w_eui64 = ST_RadioGetEui64();
+  {
+          int8u c;
+          for(c = 0; c < 8; c++) {      // Copy the EUI-64 to lladdr converting from Little-Endian to Big-Endian.
+                  eui64.u8[c] = stm32w_eui64[7 - c];
+          }
+  }
+  PRINTF("\n\rRadio EUI-64:");
+  PRINTLLADDR(eui64);
+  PRINTF("\n\r");
+  
+#if UIP_CONF_IPV6
+  memcpy(&uip_lladdr.addr, &eui64, sizeof(uip_lladdr.addr));
+#endif
 
+#if UIP_CONF_IPV6
+  rimeaddr_set_node_addr((rimeaddr_t *)&eui64);
+#else  
+  rimeaddr_set_node_addr((rimeaddr_t *)&eui64.u8[8-RIMEADDR_SIZE]);
+#endif
+
+  printf("Rime started with address ");
+  for(i = 0; i < sizeof(rimeaddr_t) - 1; i++) {
+    printf("%d.", rimeaddr_node_addr.u8[i]);
+  }
+  printf("%d\n", rimeaddr_node_addr.u8[i]);
+  
+}
+/*---------------------------------------------------------------------------*/
 int
 main(void)
 {
@@ -119,35 +157,18 @@ main(void)
   
   process_init();
   
-  #if WITH_SERIAL_LINE_INPUT
+#if WITH_SERIAL_LINE_INPUT
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
-  #endif
-  
-#ifdef WITH_UIP6
+#endif
   
   netstack_init();
-
-  {
-    rimeaddr_t lladdr;
-    
-    int8u *stm32w_eui64 = ST_RadioGetEui64();
-    {
-            int8u c;
-            for(c = 0; c < 8; c++) {      // Copy the EUI-64 to lladdr converting from Little-Endian to Big-Endian.
-                    lladdr.u8[c] = stm32w_eui64[7 - c];
-            }
-    }
-    PRINTF("\n\rRadio EUI-64:");
-    PRINTLLADDR(lladdr);
-    PRINTF("\n\r");  
-    
-    rimeaddr_set_node_addr(&lladdr);
-   
-    memcpy(&uip_lladdr.addr, &lladdr, sizeof(uip_lladdr.addr));
-  }
-  
+#if !UIP_CONF_IPV6
+  ST_RadioEnableAutoAck(FALSE); // Because frames are not 802.15.4 compatible. 
+  ST_RadioEnableAddressFiltering(FALSE);
 #endif
+
+  set_rime_addr();
   
   ctimer_init();
   rtimer_init();
