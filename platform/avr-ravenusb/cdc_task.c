@@ -61,9 +61,7 @@
 #else
 #include "radio.h"
 #endif
-#if USB_CONF_RS232
-#include "dev/rs232.h"
-#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "dev/watchdog.h"
@@ -130,12 +128,16 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
 {
 	PROCESS_BEGIN();
 
+#if USB_CONF_RS232
+	static FILE *rs232_stdout,*usb_stdout;
+	rs232_stdout=stdout;
+#endif
+
 	while(1) {
 	    // turn off LED's if necessary
 		if (led3_timer) led3_timer--;
 		else			Led3_off();
 		
-
  		if(Is_device_enumerated()) {
 			// If the configuration is different than the last time we checked...
 			if((uart_usb_get_control_line_state()&1)!=previous_uart_usb_control_line_state) {
@@ -150,6 +152,7 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
 				} else {
 					stdout = previous_stdout;
 				}
+				usb_stdout=stdout;
 			}
 
 			//Flush buffer if timeout
@@ -160,12 +163,17 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
 				timer++;
 			}
 
+#if USB_CONF_RS232
+			stdout=usb_stdout;
+#endif
 			while (uart_usb_test_hit()){
   		  	   menu_process(uart_usb_getchar());   // See what they want
             }
-
-
+#if USB_CONF_RS232	
+			stdout=rs232_stdout;
+#endif
 		}//if (Is_device_enumerated())
+
 
 
 		if (USB_CONFIG_HAS_DEBUG_PORT(usb_configuration_nb)) {
