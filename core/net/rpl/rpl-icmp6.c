@@ -1,4 +1,3 @@
-
 /**
  * \addtogroup uip6
  * @{
@@ -33,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.24 2010/10/25 19:49:12 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.25 2010/10/27 00:46:40 nvt-se Exp $
  */
 /**
  * \file
@@ -238,16 +237,24 @@ dio_input(void)
       len = 2 + buffer[i + 1];
     }
 
+    if(len + i > buffer_length) {
+      PRINTF("RPL: Invalid DIO packet\n");
+      RPL_STAT(rpl_stats.malformed_msgs++);
+      return;
+    }
+
     switch(subopt_type) {
     case RPL_DIO_SUBOPT_DAG_MC:
       if(len < 7) {
         PRINTF("RPL: Invalid DAG MC, len = %d\n", len);
+	RPL_STAT(rpl_stats.malformed_msgs++);
         return;
       }
       break;
     case RPL_DIO_SUBOPT_ROUTE_INFO:
       if(len < 9) {
         PRINTF("RPL: Invalid destination prefix option, len = %d\n", len);
+	RPL_STAT(rpl_stats.malformed_msgs++);
         return;
       }
       /* flags is both preference and flags for now */
@@ -262,6 +269,8 @@ dio_input(void)
                (dio.destination_prefix.length + 7) / 8);
       } else {
         PRINTF("RPL: Invalid route infoprefix option, len = %d\n", len);
+	RPL_STAT(rpl_stats.malformed_msgs++);
+	return;
       }
 
       break;
@@ -280,6 +289,7 @@ dio_input(void)
     case RPL_DIO_SUBOPT_PREFIX_INFO:
       if(len != 32) {
         PRINTF("RPL: DAG Prefix info not ok, len != 32\n");
+	RPL_STAT(rpl_stats.malformed_msgs++);
         return;
       }
       dio.prefix_info.length = buffer[i + 2];
@@ -488,9 +498,9 @@ dao_input(void)
     /* Check if this is a DAO forwarding loop. */
     p = rpl_find_parent(dag, &dao_sender_addr);
     if(p != NULL && p->rank < dag->rank) {
-      printf("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank!\n");
-      dag->rank = INFINITE_RANK;
-      rpl_reset_dio_timer(dag, 1);
+      printf("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
+	DAG_RANK(p->rank, dag), DAG_RANK(dag->rank, dag));
+      rpl_local_repair(dag);
       return;
     }
   }

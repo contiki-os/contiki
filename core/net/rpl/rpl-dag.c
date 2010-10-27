@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.34 2010/10/25 20:03:37 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.35 2010/10/27 00:46:40 nvt-se Exp $
  */
 /**
  * \file
@@ -108,7 +108,7 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 
   for(p = list_head(dag->parents); p != NULL; p = p2) {
     p2 = p->next;
-    if(DAG_RANK(p->rank, dag) >= minimum_rank) {
+    if(p->rank >= minimum_rank) {
       rpl_remove_parent(dag, p);
     }
   }
@@ -265,6 +265,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
 
   p = memb_alloc(&parent_memb);
   if(p == NULL) {
+    RPL_STAT(rpl_stats.mem_overflows++);
     return NULL;
   }
 
@@ -506,6 +507,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
   PRINTF("RPL: Participating in a global repair (version=%u, rank=%hu)\n",
          dag->version, dag->rank);
 
+  RPL_STAT(rpl_stats.global_repairs++);
 }
 /************************************************************************/
 int
@@ -518,6 +520,18 @@ rpl_repair_dag(rpl_dag_t *dag)
     return 1;
   }
   return 0;
+}
+/************************************************************************/
+void
+rpl_local_repair(rpl_dag_t *dag)
+{
+  PRINTF("RPL: Starting a local DAG repair\n");
+
+  dag->rank = INFINITE_RANK;
+  remove_parents(dag, 0);
+  rpl_reset_dio_timer(dag, 1);
+
+  RPL_STAT(rpl_stats.local_repairs++);
 }
 /************************************************************************/
 void
@@ -560,9 +574,8 @@ rpl_process_parent_event(rpl_dag_t *dag, rpl_parent_t *p)
 
   if(rpl_select_parent(dag) == NULL) {
     /* No suitable parent; trigger a local repair. */
-    PRINTF("RPL: No more parents, triggering a local repair\n");
-    dag->rank = INFINITE_RANK;
-    rpl_reset_dio_timer(dag, 1);
+    PRINTF("RPL: No parents found in a DAG\n");
+    rpl_local_repair(dag);
     return 1;
   }
 
@@ -650,7 +663,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(p == NULL) {
     if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS) {
       /* Try to make room for a new parent. */
-      remove_parents(dag, DAG_RANK(dio->rank, dag));
+      remove_parents(dag, dio->rank);
     }
 
     /* Add the DIO sender as a candidate parent. */

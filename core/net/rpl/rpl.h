@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.21 2010/10/22 13:13:40 joxe Exp $
+ * $Id: rpl.h,v 1.22 2010/10/27 00:46:40 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -241,6 +241,23 @@ struct rpl_dio {
 
 typedef struct rpl_dio rpl_dio_t;
 
+#if RPL_CONF_STATS
+/* Statistics for fault management. */
+struct rpl_stats {
+  uint16_t mem_overflows;
+  uint16_t local_repairs;
+  uint16_t global_repairs;
+  uint16_t malformed_msgs;
+};
+typedef struct rpl_stats rpl_stats_t;
+
+extern rpl_stats_t rpl_stats;
+
+#define RPL_STAT(code)	(code) 
+#else
+#define RPL_STAT(code)
+#endif /* RPL_CONF_STATS */
+
 /* Directed Acyclic Graph */
 struct rpl_dag {
   /* DAG configuration */
@@ -297,6 +314,7 @@ void uip_rpl_input(void);
 rpl_dag_t *rpl_set_root(uip_ipaddr_t *);
 int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len);
 int rpl_repair_dag(rpl_dag_t *dag);
+void rpl_local_repair(rpl_dag_t *dag);
 int rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from);
 void rpl_process_dio(uip_ipaddr_t *, rpl_dio_t *);
 int rpl_process_parent_event(rpl_dag_t *, rpl_parent_t *);
