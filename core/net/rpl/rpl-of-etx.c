@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-of-etx.c,v 1.6 2010/09/15 13:22:23 nvt-se Exp $
+ * $Id: rpl-of-etx.c,v 1.7 2010/10/28 20:39:06 joxe Exp $
  */
 /**
  * \file
@@ -42,6 +42,7 @@
  */
 
 #include "net/rpl/rpl.h"
+#include "net/neighbor-info.h"
 
 #define DEBUG DEBUG_ANNOTATE
 #include "net/uip-debug.h"
@@ -106,9 +107,9 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
   } else {
     dag = (rpl_dag_t *)p->dag;
     if(p->local_confidence == 0) {
-      p->local_confidence = LINK_ETX_GUESS;
+      p->local_confidence = LINK_ETX_GUESS * ETX_DIVISOR;
     }
-    rank_increase = p->local_confidence * dag->min_hoprankinc;
+    rank_increase = (p->local_confidence * dag->min_hoprankinc) / ETX_DIVISOR;
     if(base_rank == 0) {
       base_rank = p->rank;
     }
