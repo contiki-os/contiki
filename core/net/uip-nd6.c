@@ -135,6 +135,7 @@ static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
 static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
 
+
 /*------------------------------------------------------------------*/
 /* create a llao */ 
 static void
@@ -507,12 +508,19 @@ uip_nd6_na_input(void)
   }
 #if UIP_CONF_IPV6_QUEUE_PKT
   /* The nbr is now reachable, check if we had buffered a pkt for it */
-  if(nbr->queue_buf_len != 0) {
+  /*if(nbr->queue_buf_len != 0) {
     uip_len = nbr->queue_buf_len;
     memcpy(UIP_IP_BUF, nbr->queue_buf, uip_len);
     nbr->queue_buf_len = 0;
     return;
+    }*/
+  if(uip_packetqueue_buflen(&nbr->packethandle) != 0) {
+    uip_len = uip_packetqueue_buflen(&nbr->packethandle);
+    memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
+    uip_packetqueue_free(&nbr->packethandle);
+    return;
   }
+  
 #endif /*UIP_CONF_IPV6_QUEUE_PKT */
 
 discard:
@@ -918,12 +926,19 @@ uip_nd6_ra_input(void)
 #if UIP_CONF_IPV6_QUEUE_PKT
   /* If the nbr just became reachable (e.g. it was in NBR_INCOMPLETE state
    * and we got a SLLAO), check if we had buffered a pkt for it */
-  if((nbr != NULL) && (nbr->queue_buf_len != 0)) {
+  /*  if((nbr != NULL) && (nbr->queue_buf_len != 0)) {
     uip_len = nbr->queue_buf_len;
     memcpy(UIP_IP_BUF, nbr->queue_buf, uip_len);
     nbr->queue_buf_len = 0;
     return;
+    }*/
+  if(nbr != NULL && uip_packetqueue_buflen(&nbr->packethandle) != 0) {
+    uip_len = uip_packetqueue_buflen(&nbr->packethandle);
+    memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
+    uip_packetqueue_free(&nbr->packethandle);
+    return;
   }
+
 #endif /*UIP_CONF_IPV6_QUEUE_PKT */
 
 discard:
