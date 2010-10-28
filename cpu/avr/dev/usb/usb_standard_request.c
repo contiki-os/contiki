@@ -458,11 +458,13 @@ void usb_get_descriptor(void)
 		data_to_transfer = Usb_get_conf_desc_length(string_type); //!< sizeof (usb_user_configuration_descriptor);
 		pbuffer          = Usb_get_conf_desc_pointer(string_type);
 	  break;
+#if 1 
 	case STRING_DESCRIPTOR:
 	  if(string_type!=LANG_ID) {
 		usb_get_string_descriptor(string_type);
 		return;
 	  }
+#endif
 	default:
 		dummy = Usb_read_byte();
 		dummy = Usb_read_byte();
@@ -470,8 +472,8 @@ void usb_get_descriptor(void)
 		MSBwLength = Usb_read_byte();
 		byteswereread=1;
 		if( usb_user_get_descriptor(descriptor_type, string_type)==FALSE ) {
-		    Usb_enable_stall_handshake(); //TODO:is this necessary?
-			Usb_ack_receive_setup();  //TODO:is this necessary?
+		    Usb_enable_stall_handshake(); //TODO:is this necessary, Win7 flaky without?
+			Usb_ack_receive_setup();
 			return;
 		}
 	  break;
