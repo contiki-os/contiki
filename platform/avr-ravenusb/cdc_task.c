@@ -152,7 +152,9 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
 				} else {
 					stdout = previous_stdout;
 				}
+#if USB_CONF_RS232
 				usb_stdout=stdout;
+#endif
 			}
 
 			//Flush buffer if timeout
