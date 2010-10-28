@@ -1,0 +1,1 @@
+rest-common_src = rest.c rest-util.c buffer.c static-routing.c

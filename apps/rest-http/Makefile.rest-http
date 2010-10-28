@@ -1,0 +1,4 @@
+rest-http_src = http-common.c http-server.c
+
+APPS += rest-common
+include $(CONTIKI)/apps/rest-common/Makefile.rest-common
