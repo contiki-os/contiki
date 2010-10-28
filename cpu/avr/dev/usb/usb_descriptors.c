@@ -146,7 +146,6 @@ caps /* bmCapabilities */
 masterInterface, /* bMasterInterface, The controlling interface for the union (bInterfaceNumber of a Communication or Data Class interface in this configuration) */ \
 slaveInterface /* bSlaveInterface0, The controlled interace in the union (bInterfaceNumber of an interface in this configuration) */ \
 
-
 #define RNDIS_INTERFACES	\
 USB_INTERFACEDESC(	\
 	INTERFACE0_NB,	\
@@ -177,8 +176,6 @@ USB_INTERFACEDESC(	\
 	USB_ENDPOINT(ENDPOINT_NB_2,EP_ATTRIBUTES_2,EP_SIZE_2,EP_INTERVAL_2), \
 	USB_ENDPOINT(ENDPOINT_NB_3,EP_ATTRIBUTES_3,EP_SIZE_3,EP_INTERVAL_3)
 
-
-
 #define CDC_SERIAL_INTERFACES \
 USB_INTERFACEDESC(	\
 	INTERFACE2_NB,	\
@@ -207,10 +204,6 @@ USB_INTERFACEDESC(	\
 ),	\
 USB_ENDPOINT(ENDPOINT_NB_5,EP_ATTRIBUTES_5,EP_SIZE_5,EP_INTERVAL_5),	\
 USB_ENDPOINT(ENDPOINT_NB_6,EP_ATTRIBUTES_6,EP_SIZE_6,EP_INTERVAL_6)
-
-
-
-
 
 #define CDC_EEM_INTERFACES	\
 USB_INTERFACEDESC(	\
@@ -295,25 +288,42 @@ USB_INTERFACEDESC(	\
 //This doesn't seem to hurt anything but beware, system corruption is
 //a possibility.
 #if USB_CONF_MACINTOSH
+/* Prefer CDC-ECM network enumeration (Macintosh, linux) */
 FLASH uint8_t usb_dev_config_order[] = {
-	USB_CONFIG_ECM_DEBUG,    //Prefer CDC-ECM network enumeration
+	USB_CONFIG_RNDIS, //windows gets networking only (if not here gets serial only)
+#if USB_CONF_SERIAL
+	USB_CONFIG_ECM_DEBUG, //mac, linux get networking and serial port
+#endif
 	USB_CONFIG_ECM,
+#if USB_CONF_SERIAL
 	USB_CONFIG_RNDIS_DEBUG,
-	USB_CONFIG_RNDIS,
+#endif
+//	USB_CONFIG_RNDIS,
 	USB_CONFIG_EEM,
 #if USB_CONF_STORAGE
 	USB_CONFIG_MS,
 #endif
 };
 #else
+/* Prefer RNDIS network enumeration (Windows, linux) */
 FLASH uint8_t usb_dev_config_order[] = {
-	USB_CONFIG_RNDIS_DEBUG,  //Prefer RNDIS network enumeration
+
+//	USB_CONFIG_ECM, //windows doesnt like this here, will not go on to RNDIS
+#if USB_CONF_SERIAL
+	USB_CONFIG_RNDIS_DEBUG,
+#else
 	USB_CONFIG_RNDIS,
+#endif
+#if 0 //XP may have a problem with these extra configurations
+	USB_CONFIG_RNDIS,
+#if USB_CONF_SERIAL
 	USB_CONFIG_ECM_DEBUG,
+#endif
 	USB_CONFIG_ECM,
 	USB_CONFIG_EEM,
 #if USB_CONF_STORAGE
 	USB_CONFIG_MS,
+#endif
 #endif
 };
 #endif /* USB_CONF_MACINTOSH */
@@ -334,7 +344,8 @@ FLASH S_usb_device_descriptor usb_dev_desc_composite =
 , USB_STRING_MAN
 , USB_STRING_PRODUCT
 , USB_STRING_SERIAL
-, (sizeof(usb_dev_config_order)/sizeof(*usb_dev_config_order))
+, sizeof(usb_dev_config_order)
+//, (sizeof(usb_dev_config_order)/sizeof(*usb_dev_config_order)) //TODO:was this right?
 };
 
 
@@ -573,8 +584,9 @@ FLASH S_usb_language_id usb_user_language_id = {
 
 PGM_VOID_P Usb_get_dev_desc_pointer(void)
 {
+#if 1
 	return &(usb_dev_desc_composite.bLength);
-/*
+#else  //these are all the same length
 	if (usb_mode == rndis_only)
 		return &(usb_dev_desc_network.bLength);
 
@@ -585,15 +597,15 @@ PGM_VOID_P Usb_get_dev_desc_pointer(void)
 		return &(usb_dev_desc_eem.bLength);
 
 	return &(usb_dev_desc_mass.bLength);
-*/
+#endif
 }
 
 
 U8 Usb_get_dev_desc_length(void)
 {
+#if 1 
 	return sizeof(usb_dev_desc_composite);
-/*
-
+#else  //these are all the same size
 	if (usb_mode == rndis_only)
 		return sizeof(usb_dev_desc_network);
 
@@ -604,7 +616,7 @@ U8 Usb_get_dev_desc_length(void)
 		return sizeof(usb_dev_desc_eem);
 
 	return sizeof(usb_dev_desc_mass);
-*/
+#endif
 }
 
 

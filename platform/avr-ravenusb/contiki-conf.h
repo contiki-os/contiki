@@ -184,16 +184,17 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* ************************************************************************** */
 /* Set USB_CONF_MACINTOSH to prefer CDC-ECM+DEBUG enumeration for Mac/Linux 
  * Leave undefined to prefer RNDIS+DEBUG enumeration for Windows/Linux
- * TODO:Serial port will enumerate in all cases and prevent falling through to
+ * TODO:Serial port would enumerate in all cases and prevent falling through to
  * the supported network interface if USB_CONF_MACINTOSH is used with Windows
- * or vice versa. If Windows has previously cached the RNDIS driver for the stick
- * it will attempt to use it and give "device can not start" error.
- * This doesn't seem to hurt anything but can potentially damage the OS!
+ * or vice versa. The Mac configuration is set up to still enumerate as RNDIS-ONLY
+ * on Windows (without the serial port). 
+ * At present the Windows configuration will not enumerate on the Mac at all,
+ * since it wants a custom descriptor for USB composite devices.
  */ 
 #define USB_CONF_MACINTOSH 0
 
 /* Set USB_CONF_SERIAL to enable the USB serial port that allows control of the
- * run-time configuration (COMx on Windows, ttyACMx on Linux, tty.usbx on Mac)
+ * run-time configuration (COMx on Windows, ttyACMx on Linux, tty.usbmodemx on Mac)
  * Debug printfs will go to this port unless USB_CONF_RS232 is set.
  */
 #define USB_CONF_SERIAL          1
@@ -201,8 +202,9 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* RS232 debugs have less effect on network timing and are less likely
  * to be dropped due to buffer overflow. Only tx is implemented at present.
  * The tx pad is the middle one behind the jackdaw leds.
+ * RS232 output will work with or without enabling the USB serial port
  */
-#define USB_CONF_RS232           1
+#define USB_CONF_RS232           0
 
 /* Disable mass storage enumeration for more program space */
 //#define USB_CONF_STORAGE         1   /* TODO: Mass storage is currently broken */
