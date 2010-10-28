@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MapPanel.java,v 1.7 2010/10/22 13:39:52 nifi Exp $
+ * $Id: MapPanel.java,v 1.8 2010/10/28 21:50:22 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/22 13:39:52 $
- *           $Revision: 1.7 $
+ * Updated : $Date: 2010/10/28 21:50:22 $
+ *           $Revision: 1.8 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -47,6 +47,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -480,6 +481,7 @@ public class MapPanel extends JPanel implements Configurable, Visualizer, Action
           int x2 = linkNode.x;
           int y2 = linkNode.y;
           g2d.drawLine(n.x, n.y, x2, y2);
+          drawArrow(g, n.x, n.y, x2, y2, 3);
           if (!hideNetwork) {
             int xn1, xn2, yn1, yn2;
             if (n.x <= x2) {
@@ -516,6 +518,36 @@ public class MapPanel extends JPanel implements Configurable, Visualizer, Action
     }
   }
 
+  private Polygon arrowPoly = new Polygon();
+  private void drawArrow(Graphics g, int xSource, int ySource, int xDest, int yDest, int delta) {
+    double dx = xSource - xDest;
+    double dy = ySource - yDest;
+    double dir = Math.atan2(dx, dy);
+    double len = Math.sqrt(dx * dx + dy * dy);
+    dx /= len;
+    dy /= len;
+    len -= delta;
+    xDest = xSource - (int) (dx * len);
+    yDest = ySource - (int) (dy * len);
+    g.drawLine(xDest, yDest, xSource, ySource);
+
+    final int size = 8;
+    arrowPoly.reset();
+    arrowPoly.addPoint(xDest, yDest);
+    arrowPoly.addPoint(xDest + xCor(size, dir + 0.5), yDest + yCor(size, dir + 0.5));
+    arrowPoly.addPoint(xDest + xCor(size, dir - 0.5), yDest + yCor(size, dir - 0.5));
+    arrowPoly.addPoint(xDest, yDest);
+    g.fillPolygon(arrowPoly);
+  }
+
+  private int yCor(int len, double dir) {
+    return (int)(0.5 + len * Math.cos(dir));
+  }
+
+  private int xCor(int len, double dir) {
+    return (int)(0.5 + len * Math.sin(dir));
+  }
+
 
   // -------------------------------------------------------------------
   // ActionListener
@@ -532,6 +564,7 @@ public class MapPanel extends JPanel implements Configurable, Visualizer, Action
     } else if (!isMap && source == lockedItem) {
       if (popupNode != null) {
         popupNode.hasFixedLocation = lockedItem.isSelected();
+        repaint();
       }
 
     } else if (!isMap && source == layoutItem) {
