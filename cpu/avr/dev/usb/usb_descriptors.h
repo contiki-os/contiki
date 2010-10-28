@@ -65,11 +65,12 @@
 
                   // USB Device descriptor
 #define USB_SPECIFICATION     0x0200
-#if 1
+#if USB_CONF_MACINTOSH
 #define COMPOSITE_DEVICE_CLASS       0x02      // Misc
 #define COMPOSITE_DEVICE_SUB_CLASS   0x00      // Common
 #define COMPOSITE_DEVICE_PROTOCOL    0x00      // IAD
-#else //Windows wants these for composite device, but above seems to work anyway
+#else //Windows wants these for composite device
+//Above seems to work for Vista and Win7 but XP and Ubuntu 904 might need the old values
 #define COMPOSITE_DEVICE_CLASS       0xEF      // Misc
 #define COMPOSITE_DEVICE_SUB_CLASS   0x02      // Common
 #define COMPOSITE_DEVICE_PROTOCOL    0x01      // IAD
@@ -89,8 +90,17 @@
 
 #define EP_CONTROL_LENGTH     64
 #define VENDOR_ID             0x03EB // Atmel vendor ID = 03EBh
+
+#if USB_CONF_MACINTOSH
+//A different product ID avoids instant windows corruption when it tries to use the cached drivers
+//TODO:Get some valid ID's from Atmel
+#define COMPOSITE_PRODUCT_ID  0x9921 //Product ID for composite device
+#define NETWORK_PRODUCT_ID    0x9919 //Product ID for just CDC-ECM device
+#else
 #define COMPOSITE_PRODUCT_ID  0x2021 //Product ID for composite device
 #define NETWORK_PRODUCT_ID    0x2019 //Product ID for just RNDIS device
+#endif
+
 #define MASS_PRODUCT_ID       0x202F //Product ID for mass storage
 #define RELEASE_NUMBER        0x1000
 
@@ -229,7 +239,6 @@ enum {
 #define EP_SIZE_6           0x20
 #define EP_INTERVAL_6       0x01
 
-
 /*** Mass Storage ***/
 
 #define MS_INTERFACE_NB        0
@@ -279,7 +288,6 @@ enum {
 #define EEM_EP_ATTRIBUTES_2     0x02          // BULK = 0x02, INTERUPT = 0x03
 #define EEM_EP_SIZE_2           0x40  //64 byte max size
 #define EEM_EP_INTERVAL_2       0x01
-
 
 /******* ECM Configuration *******/
 
