@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.31 2010/10/24 21:40:54 nifi Exp $
+ * $Id: CollectServer.java,v 1.32 2010/10/28 14:17:10 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/24 21:40:54 $
- *           $Revision: 1.31 $
+ * Updated : $Date: 2010/10/28 14:17:10 $
+ *           $Revision: 1.32 $
  */
 
 package se.sics.contiki.collect;
@@ -782,7 +782,7 @@ public class CollectServer implements SerialConnectionListener {
   }
 
   protected void connectToSerial() {
-    if (!serialConnection.isOpen()) {
+    if (serialConnection != null && !serialConnection.isOpen()) {
       String comPort = serialConnection.getComPort();
       if (comPort == null && serialConnection.isMultiplePortsSupported()) {
         comPort = MoteFinder.selectComPort(window);
@@ -1057,7 +1057,7 @@ public class CollectServer implements SerialConnectionListener {
     return false;
   }
 
-  protected void parseIncomingLine(long systemTime, String line) {
+  public void handleIncomingData(long systemTime, String line) {
     if (line.length() == 0 || line.charAt(0) == '#') {
       // Ignore empty lines, comments, and annotations.
       return;
@@ -1237,10 +1237,14 @@ public class CollectServer implements SerialConnectionListener {
 
     public void run() {
       try {
-        if (serialConnection != null && serialConnection.isOpen()) {
-          serialConnection.close();
+        if (serialConnection != null) {
+          if (serialConnection.isOpen()) {
+            serialConnection.close();
+          } else {
+            connectToSerial();
+          }
         } else {
-          connectToSerial();
+          JOptionPane.showMessageDialog(window, "No serial connection configured", "Error", JOptionPane.ERROR_MESSAGE);
         }
       } finally {
         isRunning = false;
@@ -1311,7 +1315,7 @@ public class CollectServer implements SerialConnectionListener {
 
   @Override
   public void serialData(SerialConnection connection, String line) {
-    parseIncomingLine(System.currentTimeMillis(), line);
+    handleIncomingData(System.currentTimeMillis(), line);
   }
 
   @Override
