@@ -595,7 +595,7 @@ PROCESS_THREAD(http_server, ev, data)
     PRINTF("##RF CHANNEL : %d##\n",RF_CHANNEL);
   #endif //CONTIKI_TARGET_SKY
 
-  tcp_listen(HTONS(HTTP_PORT));
+  tcp_listen(uip_htons(HTTP_PORT));
 
   /*
    * We loop for ever, accepting new connections.
