@@ -1,0 +1,31 @@
+COOJA RUN:
+
+Open a terminal and go to "rest" directory.
+In rest/Makefile, define WITH_COAP = 1 if you want to use COAP, rather than HTTP.
+Issue following command to load and compile Rest api with COOJA.
+>make rest-example-no-rpl.csc TARGET=cooja
+
+In another terminal, issue the following command
+>make connect-router-cooja
+
+There are 2 nodes running the Rest code in COOJA (node 2 and 6). Their IP addresses are aaaa::0212:7402:0002:0202 and aaaa::0212:7406:0006:0606 respectively.
+
+TEST:
+Please check the rest/rest-example.c source code to see which resources are available. (check the RESOURCE macros in the code).
+
+COAP Examples:
+You can use COAPTester client to interact with the COOJA motes running REST code.
+
+java COAPTester GET .well-known/core
+java COAPTester POST led?color=blue mode=on #turn on the blue led
+java COAPTester GET toggle
+java COAPTester GET helloworld #get helloworld plain text
+
+
+HTTP Examples
+You can use curl as an http client to interact with the COOJA motes running REST code.
+curl -H "User-Agent: curl" aaaa::0212:7402:0002:0202:8080/helloworld #get helloworld plain text
+curl -H "User-Agent: curl" aaaa::0212:7402:0002:0202:8080/led?color=green -d mode=off -i #turn off the green led
+curl -H "User-Agent: curl" aaaa::0212:7402:0002:0202:8080/.well-known/core -i
+curl -X POST -H "User-Agent: curl" aaaa::0212:7402:0002:0202:8080/helloworld #method not allowed
+
