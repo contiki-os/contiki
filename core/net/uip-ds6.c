@@ -45,6 +45,7 @@
 #include "lib/random.h"
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
+#include "net/uip-packetqueue.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -268,6 +269,7 @@ uip_ds6_list_loop(uip_ds6_element_t * list, uint8_t size,
       element <
       (uip_ds6_element_t *) ((uint8_t *) list + (size * elementsize));
       element = (uip_ds6_element_t *) ((uint8_t *) element + elementsize)) {
+    //    printf("+ %p %d\n", &element->isused, element->isused);
     if(element->isused) {
       if(uip_ipaddr_prefixcmp(&(element->ipaddr), ipaddr, ipaddrlen)) {
         *out_element = element;
@@ -278,7 +280,7 @@ uip_ds6_list_loop(uip_ds6_element_t * list, uint8_t size,
     }
   }
 
-  if(*out_element) {
+  if(*out_element != NULL) {
     return FREESPACE;
   } else {
     return NOSPACE;
@@ -290,10 +292,15 @@ uip_ds6_nbr_t *
 uip_ds6_nbr_add(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr,
                 uint8_t isrouter, uint8_t state)
 {
-  if(uip_ds6_list_loop
+  int r;
+
+  r = uip_ds6_list_loop
      ((uip_ds6_element_t *) uip_ds6_nbr_cache, UIP_DS6_NBR_NB,
       sizeof(uip_ds6_nbr_t), ipaddr, 128,
-      (uip_ds6_element_t **) & locnbr) == FREESPACE) {
+      (uip_ds6_element_t **) &locnbr);
+  //  printf("r %d\n", r);
+
+  if(r == FREESPACE) {
     locnbr->isused = 1;
     uip_ipaddr_copy(&(locnbr->ipaddr), ipaddr);
     if(lladdr != NULL) {
@@ -303,6 +310,9 @@ uip_ds6_nbr_add(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr,
     }
     locnbr->isrouter = isrouter;
     locnbr->state = state;
+#if UIP_CONF_IPV6_QUEUE_PKT
+    uip_packetqueue_new(&locnbr->packethandle);
+#endif /* UIP_CONF_IPV6_QUEUE_PKT */
     /* timers are set separately, for now we put them in expired state */
     stimer_set(&(locnbr->reachable), 0);
     stimer_set(&(locnbr->sendns), 0);
@@ -315,31 +325,31 @@ uip_ds6_nbr_add(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr,
     NEIGHBOR_STATE_CHANGED(locnbr);
 
     locnbr->last_lookup = clock_time();
+    //    printf("add %p\n", locnbr);
     return locnbr;
-  } else {
+  } else if(r == NOSPACE) {
     /* We did not find any empty slot on the neighbor list, so we need
        to remove one old entry to make room. */
-    {
-      uip_ds6_nbr_t *n, *oldest;
-      clock_time_t oldest_time;
+    uip_ds6_nbr_t *n, *oldest;
+    clock_time_t oldest_time;
 
-      oldest = NULL;
-      oldest_time = 0 - 1UL;
+    oldest = NULL;
+    oldest_time = clock_time();
 
-      for(n = uip_ds6_nbr_cache;
-          n < &uip_ds6_nbr_cache[UIP_DS6_NBR_NB];
-          n++) {
-        if(n->isused) {
-          if(n->last_lookup < oldest_time) {
-            oldest = n;
-            oldest_time = n->last_lookup;
-          }
+    for(n = uip_ds6_nbr_cache;
+        n < &uip_ds6_nbr_cache[UIP_DS6_NBR_NB];
+        n++) {
+      if(n->isused) {
+        if(n->last_lookup < oldest_time) {
+          oldest = n;
+          oldest_time = n->last_lookup;
         }
       }
-      if(oldest != NULL) {
-        uip_ds6_nbr_rm(oldest);
-        return uip_ds6_nbr_add(ipaddr, lladdr, isrouter, state);
-      }
+    }
+    if(oldest != NULL) {
+      //      printf("rm3\n");
+      uip_ds6_nbr_rm(oldest);
+      return uip_ds6_nbr_add(ipaddr, lladdr, isrouter, state);
     }
   }
   PRINTF("uip_ds6_nbr_add drop\n");
@@ -352,7 +362,11 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
   if(nbr != NULL) {
     nbr->isused = 0;
-    NEIGHBOR_STATE_CHANGED(nbr);
+#if UIP_CONF_IPV6_QUEUE_PKT
+    //    printf("rm %p\n", &nbr->isused);
+    uip_packetqueue_free(&nbr->packethandle);
+#endif /* UIP_CONF_IPV6_QUEUE_PKT */
+    //    NEIGHBOR_STATE_CHANGED(nbr);
   }
   return;
 }

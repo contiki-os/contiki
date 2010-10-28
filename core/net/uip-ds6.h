@@ -152,20 +152,23 @@
 
 
 /*--------------------------------------------------*/
+#if UIP_CONF_IPV6_QUEUE_PKT
+#include "net/uip-packetqueue.h"
+#endif                          /*UIP_CONF_QUEUE_PKT */
 /** \brief An entry in the nbr cache */
 typedef struct uip_ds6_nbr {
   uint8_t isused;
   uip_ipaddr_t ipaddr;
   uip_lladdr_t lladdr;
-  uint8_t isrouter;
-  uint8_t state;
   struct stimer reachable;
   struct stimer sendns;
-  uint8_t nscount;
   clock_time_t last_lookup;
+  uint8_t nscount;
+  uint8_t isrouter;
+  uint8_t state;
 #if UIP_CONF_IPV6_QUEUE_PKT
-  uint8_t queue_buf[UIP_BUFSIZE - UIP_LLH_LEN];
-  uint8_t queue_buf_len;
+  struct uip_packetqueue_handle packethandle;
+#define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
 #endif                          /*UIP_CONF_QUEUE_PKT */
 } uip_ds6_nbr_t;
 
