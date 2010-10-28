@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.22 2010/10/27 00:46:40 nvt-se Exp $
+ * $Id: rpl.h,v 1.23 2010/10/28 20:39:06 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -248,6 +248,7 @@ struct rpl_stats {
   uint16_t local_repairs;
   uint16_t global_repairs;
   uint16_t malformed_msgs;
+  uint16_t resets;
 };
 typedef struct rpl_stats rpl_stats_t;
 
