@@ -322,7 +322,7 @@ handle_data(void)
 
   if(uip_newdata()) {
     ((char *)data)[datalen] = 0;
-    PRINTF("Server received: '%s' (port:%u) from ", (char *)data, HTONS(UIP_UDP_BUF->srcport));
+    PRINTF("Server received: '%s' (port:%u) from ", (char *)data, uip_htons(UIP_UDP_BUF->srcport));
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
     PRINTF("\n");
 
@@ -379,10 +379,10 @@ PROCESS_THREAD(coap_server, ev, data)
 #endif /*!UIP_CONF_IPV6_RPL*/
 
   /* new connection with remote host */
-  server_conn = udp_new(NULL, HTONS(0), NULL);
-  udp_bind(server_conn, HTONS(MOTE_PORT));
+  server_conn = udp_new(NULL, uip_htons(0), NULL);
+  udp_bind(server_conn, uip_htons(MOTE_PORT));
   PRINTF("Local/remote port %u/%u\n",
-  HTONS(server_conn->lport), HTONS(server_conn->rport));
+  uip_htons(server_conn->lport), uip_htons(server_conn->rport));
 
   while(1) {
     PROCESS_YIELD();
