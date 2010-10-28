@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.22 2010/10/03 20:08:44 adamdunkels Exp $
+ * $Id: collect.h,v 1.23 2010/10/28 15:36:02 adamdunkels Exp $
  */
 
 /**
@@ -101,7 +101,7 @@ struct collect_conn {
   struct ctimer keepalive_timer;
   clock_time_t keepalive_period;
 
-  struct timer proactive_maintenence_timer;
+  struct ctimer proactive_probing_timer;
 
   rimeaddr_t parent, current_parent;
   uint16_t rtmetric;
