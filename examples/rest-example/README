@@ -13,14 +13,6 @@ There are 2 nodes running the Rest code in COOJA (node 2 and 6). Their IP addres
 TEST:
 Please check the rest/rest-example.c source code to see which resources are available. (check the RESOURCE macros in the code).
 
-COAP Examples:
-You can use COAPTester client to interact with the COOJA motes running REST code.
-
-java COAPTester GET .well-known/core
-java COAPTester POST led?color=blue mode=on #turn on the blue led
-java COAPTester GET toggle
-java COAPTester GET helloworld #get helloworld plain text
-
 
 HTTP Examples
 You can use curl as an http client to interact with the COOJA motes running REST code.
@@ -29,3 +21,5 @@ curl -H "User-Agent: curl" aaaa::0212:7402:0002:0202:8080/led?color=green -d mod
 curl -H "User-Agent: curl" aaaa::0212:7402:0002:0202:8080/.well-known/core -i
 curl -X POST -H "User-Agent: curl" aaaa::0212:7402:0002:0202:8080/helloworld #method not allowed
 
+COAP Examples:
+You need a COAP client to be able to to interact with the COOJA motes running REST code. URIs are same with the HTTP examples.
