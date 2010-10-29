@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.29 2010/10/24 21:05:42 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.30 2010/10/29 05:36:07 adamdunkels Exp $
  */
 /**
  * \file
@@ -42,6 +42,8 @@
 #include "contiki-net.h"
 
 #include "net/uip-split.h"
+
+#include "net/uip-packetqueue.h"
 
 #include <string.h>
 
@@ -589,14 +591,18 @@ tcpip_ipv6_output(void)
     }
     /* end of next hop determination */
     if((nbr = uip_ds6_nbr_lookup(nexthop)) == NULL) {
+      //      printf("add1 %d\n", nexthop->u8[15]);
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
+        //        printf("add n\n");
         uip_len = 0;
         return;
       } else {
 #if UIP_CONF_IPV6_QUEUE_PKT
         /* copy outgoing pkt in the queuing buffer for later transmmit */
-        memcpy(nbr->queue_buf, UIP_IP_BUF, uip_len);
-        nbr->queue_buf_len = uip_len;
+        if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
+          memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
+          uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
+        }
 #endif
       /* RFC4861, 7.2.2:
        * "If the source address of the packet prompting the solicitation is the
@@ -619,8 +625,12 @@ tcpip_ipv6_output(void)
 #if UIP_CONF_IPV6_QUEUE_PKT
         /* copy outgoing pkt in the queuing buffer for later transmmit and set
            the destination nbr to nbr */
-        memcpy(nbr->queue_buf, UIP_IP_BUF, uip_len);
-        nbr->queue_buf_len = uip_len;
+        if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
+          memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
+          uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
+        }
+        /*        memcpy(nbr->queue_buf, UIP_IP_BUF, uip_len);
+                  nbr->queue_buf_len = uip_len;*/
         uip_len = 0;
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
         return;
@@ -648,10 +658,16 @@ tcpip_ipv6_output(void)
        * NA after sendiong a NS, you receive a NS with SLLAO: the entry moves
        *to STALE, and you must both send a NA and the queued packet
        */
-      if(nbr->queue_buf_len != 0) {
+      /*      if(nbr->queue_buf_len != 0) {
         uip_len = nbr->queue_buf_len;
         memcpy(UIP_IP_BUF, nbr->queue_buf, uip_len);
         nbr->queue_buf_len = 0;
+        tcpip_output(&(nbr->lladdr));
+        }*/
+      if(uip_packetqueue_buflen(&nbr->packethandle) != 0) {
+        uip_len = uip_packetqueue_buflen(&nbr->packethandle);
+        memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
+        uip_packetqueue_free(&nbr->packethandle);
         tcpip_output(&(nbr->lladdr));
       }
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
