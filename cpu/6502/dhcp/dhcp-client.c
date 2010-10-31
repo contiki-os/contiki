@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: dhcp-client.c,v 1.4 2010/07/21 22:35:59 oliverschmidt Exp $
+ * $Id: dhcp-client.c,v 1.5 2010/10/31 22:51:17 oliverschmidt Exp $
  *
  */
 
@@ -201,14 +201,14 @@ PROCESS_THREAD(dhcp_process, ev, data)
   ctk_window_open(&window);
 
   /* Allow resolver to set DNS server address. */
-  process_post(PROCESS_CURRENT(), 0, NULL);
+  process_post(PROCESS_CURRENT(), PROCESS_EVENT_MSG, NULL);
 
   dhcpc_init(uip_ethaddr.addr, sizeof(uip_ethaddr.addr));
 
   while(1) {
     PROCESS_WAIT_EVENT();
     
-    if(ev == 0) {
+    if(ev == PROCESS_EVENT_MSG) {
       makestrings();
       ctk_window_redraw(&window);
     } else if(ev == tcpip_event) {
@@ -248,7 +248,7 @@ dhcpc_configured(const struct dhcpc_state *s)
 #endif /* WITH_DNS */
 
   set_statustext("Configured.");
-  process_post(PROCESS_CURRENT(), 0, NULL);
+  process_post(PROCESS_CURRENT(), PROCESS_EVENT_MSG, NULL);
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -264,6 +264,6 @@ dhcpc_unconfigured(const struct dhcpc_state *s)
 #endif /* WITH_DNS */
 
   set_statustext("Unconfigured.");
-  process_post(PROCESS_CURRENT(), 0, NULL);
+  process_post(PROCESS_CURRENT(), PROCESS_EVENT_MSG, NULL);
 }
 /*-----------------------------------------------------------------------------------*/
