@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: wget.c,v 1.3 2010/05/31 15:22:08 nifi Exp $
+ * $Id: wget.c,v 1.4 2010/10/31 22:43:06 oliverschmidt Exp $
  *
  */
 
@@ -153,27 +153,27 @@ PROCESS_THREAD(wget_process, ev, data)
 
   PROCESS_BEGIN();
 
-  process_post(PROCESS_CURRENT(), 0, NULL);
+  PROCESS_PAUSE();
+
+  fputs("\nGet url:", stdout);
+  gets(url);
+  fputs("\nSave as:", stdout);
+  gets(name);
+  puts("");
+  file = cfs_open(name, CFS_WRITE);
+  if(file == -1) {
+    printf("Open error with '%s'\n", name);
+    app_quit();
+  } else {
+    petsciiconv_toascii(url, sizeof(url));
+    start_get();
+  }
 
   while(1) {
 
     PROCESS_WAIT_EVENT();
   
-    if(ev == 0) {
-      fputs("\nGet url:", stdout);
-      gets(url);
-      fputs("\nSave as:", stdout);
-      gets(name);
-      puts("");
-      file = cfs_open(name, CFS_WRITE);
-      if(file == -1) {
-        printf("Open error with '%s'\n", name);
-        app_quit();
-      } else {
-        petsciiconv_toascii(url, sizeof(url));
-        start_get();
-      }
-    } else if(ev == tcpip_event) {
+    if(ev == tcpip_event) {
       webclient_appcall(data);
 #if UIP_UDP
     } else if(ev == resolv_event_found) {
