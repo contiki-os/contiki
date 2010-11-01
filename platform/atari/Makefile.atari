@@ -30,10 +30,13 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.atari,v 1.1 2010/09/29 19:44:01 oliverschmidt Exp $
+# $Id: Makefile.atari,v 1.2 2010/11/01 19:44:34 oliverschmidt Exp $
 #
 
 ETHERNET = cs8900a
+
+CONTIKI_SOURCEFILES        += cfs-posix-dir.c
+CONTIKI_TARGET_SOURCEFILES += posixdirent.S
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
