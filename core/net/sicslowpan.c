@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.47 2010/10/26 13:25:32 joxe Exp $
+ * $Id: sicslowpan.c,v 1.48 2010/11/02 10:56:57 adamdunkels Exp $
  */
 /**
  * \file
@@ -300,7 +300,8 @@ static const uint8_t ttl_values[] = {0, 1, 64, 255};
 /*--------------------------------------------------------------------*/
 /** \brief find the context corresponding to prefix ipaddr */
 static struct sicslowpan_addr_context*
-addr_context_lookup_by_prefix(uip_ipaddr_t *ipaddr) {
+addr_context_lookup_by_prefix(uip_ipaddr_t *ipaddr)
+{
 /* Remove code to avoid warnings and save flash if no context is used */
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
   int i;
@@ -316,7 +317,8 @@ addr_context_lookup_by_prefix(uip_ipaddr_t *ipaddr) {
 /*--------------------------------------------------------------------*/
 /** \brief find the context with the given number */
 static struct sicslowpan_addr_context*
-addr_context_lookup_by_number(u8_t number) {
+addr_context_lookup_by_number(u8_t number)
+{
 /* Remove code to avoid warnings and save flash if no context is used */ 
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
   int i;
@@ -331,10 +333,11 @@ addr_context_lookup_by_number(u8_t number) {
 }
 /*--------------------------------------------------------------------*/
 static uint8_t
-compress_addr_64(uint8_t bitpos, uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr) {
-  if(uip_is_addr_mac_addr_based(ipaddr, lladdr)){
+compress_addr_64(uint8_t bitpos, uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
+{
+  if(uip_is_addr_mac_addr_based(ipaddr, lladdr)) {
     return 3 << bitpos; /* 0-bits */
-  } else if(sicslowpan_is_iid_16_bit_compressable(ipaddr)){
+  } else if(sicslowpan_is_iid_16_bit_compressable(ipaddr)) {
     /* compress IID to 16 bits xxxx::XXXX */
     memcpy(hc06_ptr, &ipaddr->u16[7], 2);
     hc06_ptr += 2;
@@ -356,7 +359,8 @@ compress_addr_64(uint8_t bitpos, uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr) {
  */
 static void
 uncompress_addr(uip_ipaddr_t *ipaddr, uint8_t const prefix[],
-                uint8_t pref_post_count, uip_lladdr_t *lladdr) {
+                uint8_t pref_post_count, uip_lladdr_t *lladdr)
+{
   uint8_t prefcount = pref_post_count >> 4;
   uint8_t postcount = pref_post_count & 0x0f;
   /* full nibble 15 => 16 */
@@ -374,7 +378,7 @@ uncompress_addr(uip_ipaddr_t *ipaddr, uint8_t const prefix[],
   if(postcount > 0) {
     memcpy(&ipaddr->u8[16 - postcount], hc06_ptr, postcount);
     hc06_ptr += postcount;
-  } else if (prefcount > 0){
+  } else if (prefcount > 0) {
     /* no IID based configuration if no prefix and no data => unspec */
     uip_ds6_set_addr_iid(ipaddr, lladdr);
   }
@@ -581,13 +585,13 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
       /* use last byte */
       *hc06_ptr = UIP_IP_BUF->destipaddr.u8[15];
       hc06_ptr += 1;
-    } else if(sicslowpan_is_mcast_addr_compressable32(&UIP_IP_BUF->destipaddr)){
+    } else if(sicslowpan_is_mcast_addr_compressable32(&UIP_IP_BUF->destipaddr)) {
       iphc1 |= SICSLOWPAN_IPHC_DAM_10;
       /* second byte + the last three */
       *hc06_ptr = UIP_IP_BUF->destipaddr.u8[1];
       memcpy(hc06_ptr + 1, &UIP_IP_BUF->destipaddr.u8[13], 3);
       hc06_ptr += 4;
-    } else if(sicslowpan_is_mcast_addr_compressable48(&UIP_IP_BUF->destipaddr)){
+    } else if(sicslowpan_is_mcast_addr_compressable48(&UIP_IP_BUF->destipaddr)) {
       iphc1 |= SICSLOWPAN_IPHC_DAM_01;
       /* second byte + the last five */
       *hc06_ptr = UIP_IP_BUF->destipaddr.u8[1];
@@ -703,9 +707,9 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
  * is then inferred from the L2 length), non 0 if the packet is a 1st
  * fragment.
  */
-
 static void
-uncompress_hdr_hc06(u16_t ip_len) {
+uncompress_hdr_hc06(u16_t ip_len)
+{
   uint8_t tmp, iphc0, iphc1;
   /* at least two byte will be used for the encoding */
   hc06_ptr = rime_ptr + rime_hdr_len + 2;
@@ -1106,7 +1110,8 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
  * fragment.
  */
 static void
-uncompress_hdr_hc1(u16_t ip_len) {
+uncompress_hdr_hc1(u16_t ip_len)
+{
   /* version, traffic class, flow label */
   SICSLOWPAN_IP_BUF->vtc = 0x60;
   SICSLOWPAN_IP_BUF->tcflow = 0;
@@ -1206,7 +1211,8 @@ uncompress_hdr_hc1(u16_t ip_len) {
  * \endverbatim
  */
 static void
-compress_hdr_ipv6(rimeaddr_t *rime_destaddr) {
+compress_hdr_ipv6(rimeaddr_t *rime_destaddr)
+{
   *rime_ptr = SICSLOWPAN_DISPATCH_IPV6;
   rime_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
   memcpy(rime_ptr + rime_hdr_len, UIP_IP_BUF, UIP_IPH_LEN);
@@ -1329,6 +1335,9 @@ output(uip_lladdr_t *localdest)
      * The following fragments contain only the fragn dispatch.
      */
 
+
+    printf("Fragmentation sending packet len %d\n", uip_len);
+    
     /* Create 1st Fragment */
     PRINTFO("sicslowpan output: 1rst fragment ");
 
@@ -1377,12 +1386,12 @@ output(uip_lladdr_t *localdest)
     SET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len));
     rime_payload_len = (MAC_MAX_PAYLOAD - rime_hdr_len) & 0xf8;
-    while(processed_ip_len < uip_len){
+    while(processed_ip_len < uip_len) {
       PRINTFO("sicslowpan output: fragment ");
       RIME_FRAG_PTR[RIME_FRAG_OFFSET] = processed_ip_len >> 3;
       
       /* Copy payload and send */
-      if(uip_len - processed_ip_len < rime_payload_len){
+      if(uip_len - processed_ip_len < rime_payload_len) {
         /* last fragment */
         rime_payload_len = uip_len - processed_ip_len;
       }
@@ -1446,6 +1455,7 @@ input(void)
 #if SICSLOWPAN_CONF_FRAG
   /* tag of the fragment */
   u16_t frag_tag = 0;
+  uint8_t first_fragment = 0;
 #endif /*SICSLOWPAN_CONF_FRAG*/
 
   /* init */
@@ -1457,7 +1467,7 @@ input(void)
 
 #if SICSLOWPAN_CONF_FRAG
   /* if reassembly timed out, cancel it */
-  if(timer_expired(&reass_timer)){
+  if(timer_expired(&reass_timer)) {
     sicslowpan_len = 0;
     processed_ip_len = 0;
   }
@@ -1477,6 +1487,7 @@ input(void)
              frag_size, frag_tag, frag_offset);
       rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
       /*      printf("frag1 %d %d\n", reass_tag, frag_tag);*/
+      first_fragment = 1;
       break;
     case SICSLOWPAN_DISPATCH_FRAGN:
       /*
@@ -1515,7 +1526,7 @@ input(void)
      * reassembly is off
      * start it if we received a fragment
      */
-    if(frag_size > 0){
+    if(frag_size > 0) {
       sicslowpan_len = frag_size;
       reass_tag = frag_tag;
       timer_set(&reass_timer, SICSLOWPAN_REASS_MAXAGE*CLOCK_SECOND);
@@ -1584,8 +1595,9 @@ input(void)
   /* update processed_ip_len if fragment, sicslowpan_len otherwise */
 
 #if SICSLOWPAN_CONF_FRAG
-  if(frag_size > 0){
-    if(processed_ip_len == 0) {
+  if(frag_size > 0) {
+    /* Add the size of the header only for the first fragment. */
+    if(first_fragment != 0) {
       processed_ip_len += uncomp_hdr_len;
     }
     processed_ip_len += rime_payload_len;
@@ -1599,7 +1611,7 @@ input(void)
    * If we have a full IP packet in sicslowpan_buf, deliver it to
    * the IP stack
    */
-  if(processed_ip_len == 0 || (processed_ip_len == sicslowpan_len)){
+  if(processed_ip_len == 0 || (processed_ip_len == sicslowpan_len)) {
     PRINTFI("sicslowpan input: IP packet ready (length %d)\n",
            sicslowpan_len);
     memcpy((void *)UIP_IP_BUF, (void *)SICSLOWPAN_IP_BUF, sicslowpan_len);
