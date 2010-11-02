@@ -105,7 +105,7 @@ make hello-world.elf TARGET=micaz</commands>
     <plugin_config>
       <script>TIMEOUT(2000, log.log("last message: " + msg + "\n"));
 
-WAIT_UNTIL(msg.equals('Hello, world'));
+WAIT_UNTIL(msg.startsWith('Hello, world'));
 log.testOK();</script>
       <active>true</active>
     </plugin_config>
