@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = "Contiki 2.4"
+PROJECT_NAME           = "Contiki 2.5"
 PROJECT_NUMBER         = 
 OUTPUT_DIRECTORY       = .
 CREATE_SUBDIRS         = NO
@@ -198,7 +198,7 @@ PERL_PATH              = /usr/bin/perl
 #---------------------------------------------------------------------------
 CLASS_DIAGRAMS         = NO
 HIDE_UNDOC_RELATIONS   = YES
-HAVE_DOT               = NO 
+HAVE_DOT               = NO
 CLASS_GRAPH            = NO
 COLLABORATION_GRAPH    = NO
 GROUP_GRAPHS           = NO
