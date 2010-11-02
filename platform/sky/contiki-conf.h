@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.87 2010/10/26 13:26:16 joxe Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.88 2010/11/02 11:06:01 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -124,7 +124,9 @@
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
 #define UIP_CONF_IPV6                   1
+#ifndef UIP_CONF_IPV6_QUEUE_PKT
 #define UIP_CONF_IPV6_QUEUE_PKT         0
+#endif /* UIP_CONF_IPV6_QUEUE_PKT */
 #define UIP_CONF_IPV6_CHECKS            1
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
