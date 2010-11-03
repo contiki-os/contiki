@@ -205,8 +205,8 @@ uip_icmp6_send(uip_ipaddr_t *dest, int type, int code, int payload_len)
   UIP_IP_BUF->flow = 0;
   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
   UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
-  UIP_IP_BUF->len[0] = 0;
-  UIP_IP_BUF->len[1] = UIP_ICMPH_LEN + payload_len;
+  UIP_IP_BUF->len[0] = (UIP_ICMPH_LEN + payload_len) >> 8;
+  UIP_IP_BUF->len[1] = (UIP_ICMPH_LEN + payload_len) & 0xff;
 
   memcpy(&UIP_IP_BUF->destipaddr, dest, sizeof(*dest));
   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
