@@ -2,6 +2,8 @@
 #include "dev/watchdog.h"
 #include <util/delay.h>
 #include <avr/wdt.h>
+#include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 #include "dev/usb/usb_drv.h"
 
 volatile uint32_t Boot_Key ATTR_NO_INIT;
