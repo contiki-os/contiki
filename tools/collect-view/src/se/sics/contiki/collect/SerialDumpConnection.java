@@ -26,25 +26,80 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SerialConnectionListener.java,v 1.1 2010/10/07 21:13:00 nifi Exp $
+ * $Id: SerialDumpConnection.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
- * SerialConnectionListener
+ * SerialDumpConnection
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 5 oct 2010
- * Updated : $Date: 2010/10/07 21:13:00 $
+ * Updated : $Date: 2010/11/03 14:53:05 $
  *           $Revision: 1.1 $
  */
+
 package se.sics.contiki.collect;
 
-public interface SerialConnectionListener {
+/**
+ *
+ */
+public class SerialDumpConnection extends CommandConnection {
 
-  public void serialData(SerialConnection connection, String line);
+  public static final String SERIALDUMP_WINDOWS = "./tools/serialdump-windows.exe";
+  public static final String SERIALDUMP_LINUX = "./tools/serialdump-linux";
 
-  public void serialOpened(SerialConnection connection);
+  public SerialDumpConnection(SerialConnectionListener listener) {
+    super(listener);
+  }
 
-  public void serialClosed(SerialConnection connection);
+  @Override
+  public boolean isMultiplePortsSupported() {
+    return true;
+  }
+
+  @Override
+  public String getConnectionName() {
+    return comPort;
+  }
+
+  @Override
+  public void open(String comPort) {
+    if (comPort == null) {
+      throw new IllegalStateException("no com port");
+    }
+
+    /* Connect to COM using external serialdump application */
+    String osName = System.getProperty("os.name").toLowerCase();
+    String fullCommand;
+    if (osName.startsWith("win")) {
+      fullCommand = SERIALDUMP_WINDOWS + " " + "-b115200" + " " + getMappedComPortForWindows(comPort);
+    } else {
+      fullCommand = SERIALDUMP_LINUX + " " + "-b115200" + " " + comPort;
+    }
+    setCommand(fullCommand);
+    super.open(comPort);
+  }
+
+  @Override
+  protected void standardData(String line) {
+    serialData(line);
+  }
+
+  @Override
+  protected void errorData(String line) {
+    if (!isOpen && line.startsWith("connecting") && line.endsWith("[OK]")) {
+      isOpen = true;
+      serialOpened();
+    } else {
+      super.errorData(line);
+    }
+  }
+
+  private String getMappedComPortForWindows(String comPort) {
+    if (comPort.startsWith("COM")) {
+      comPort = "/dev/com" + comPort.substring(3);
+    }
+    return comPort;
+  }
 
 }

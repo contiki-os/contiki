@@ -26,26 +26,25 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Configurable.java,v 1.1 2010/09/26 21:48:21 nifi Exp $
+ * $Id: SerialConnectionListener.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
- * Configurable
+ * SerialConnectionListener
  *
  * Authors : Joakim Eriksson, Niclas Finne
- * Created : 24 sep 2010
- * Updated : $Date: 2010/09/26 21:48:21 $
+ * Created : 5 oct 2010
+ * Updated : $Date: 2010/11/03 14:53:05 $
  *           $Revision: 1.1 $
  */
-
 package se.sics.contiki.collect;
-import java.util.Properties;
 
-/**
- *
- */
-public interface Configurable {
+public interface SerialConnectionListener {
 
-  public void updateConfig(Properties config);
+  public void serialData(SerialConnection connection, String line);
+
+  public void serialOpened(SerialConnection connection);
+
+  public void serialClosed(SerialConnection connection);
 
 }
