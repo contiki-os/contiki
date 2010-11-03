@@ -171,16 +171,19 @@ print_local_addresses(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-request_prefix(void) {
+request_prefix(void)
+{
   /* mess up uip_buf with a dirty request... */
   uip_buf[0] = '!';
   uip_buf[1] = 'P';
   uip_len = 2;
   slip_send();
+  uip_len = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
-set_prefix_64(uip_ipaddr_t *prefix_64) {
+set_prefix_64(uip_ipaddr_t *prefix_64)
+{
   uip_ipaddr_t ipaddr;
   memcpy(&prefix, prefix_64, 16);
   memcpy(&ipaddr, prefix_64, 16);
@@ -200,7 +203,6 @@ PROCESS_THREAD(border_router_process, ev, data)
   PROCESS_PAUSE();
 
   process_start(&webserver_nogui_process, NULL);
-
   SENSORS_ACTIVATE(button_sensor);
 
   PRINTF("RPL-Border router started\n");
