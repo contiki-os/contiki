@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.26 2010/10/28 20:39:06 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.27 2010/11/03 15:41:23 adamdunkels Exp $
  */
 /**
  * \file
@@ -54,7 +54,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG DEBUG_ANNOTATE
+#define DEBUG DEBUG_NONE
 
 #include "net/uip-debug.h"
 

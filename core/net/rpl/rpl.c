@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.12 2010/10/28 20:39:06 joxe Exp $
+ * $Id: rpl.c,v 1.13 2010/11/03 15:41:23 adamdunkels Exp $
  */
 /**
  * \file
@@ -47,7 +47,7 @@
 #include "net/rpl/rpl.h"
 #include "net/neighbor-info.h"
 
-#define DEBUG DEBUG_ANNOTATE
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 #include <limits.h>

@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.37 2010/10/27 12:27:57 nifi Exp $
+ * $Id: rpl-dag.c,v 1.38 2010/11/03 15:41:23 adamdunkels Exp $
  */
 /**
  * \file
@@ -52,7 +52,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG DEBUG_ANNOTATE
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 /************************************************************************/
