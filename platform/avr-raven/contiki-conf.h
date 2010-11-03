@@ -165,6 +165,45 @@
 #define UIP_CONF_TCP             1
 #define UIP_CONF_TCP_SPLIT       1
 
+#if 0    /* RPL */
+
+#define UIP_CONF_ROUTER                 1
+#define UIP_CONF_IPV6_RPL               1
+
+/* Handle 10 neighbors */
+#define UIP_CONF_DS6_NBR_NBU     4
+/* Handle 10 routes    */
+#define UIP_CONF_DS6_ROUTE_NBU   4
+
+#define UIP_CONF_ND6_SEND_RA		0
+#define UIP_CONF_ND6_REACHABLE_TIME     600000
+#define UIP_CONF_ND6_RETRANS_TIMER      10000
+#undef UIP_CONF_IPV6_QUEUE_PKT
+#define UIP_CONF_IPV6_QUEUE_PKT         1
+//#define UIP_CONF_IPV6_CHECKS            1
+#define UIP_CONF_NETIF_MAX_ADDRESSES    3
+#define UIP_CONF_ND6_MAX_PREFIXES       3
+#define UIP_CONF_ND6_MAX_NEIGHBORS      4
+#define UIP_CONF_ND6_MAX_DEFROUTERS     2
+#define UIP_CONF_IP_FORWARD             0
+//#define UIP_CONF_BUFFER_SIZE		240
+//#define UIP_CONF_ICMP_DEST_UNREACH 1
+//#define UIP_CONF_DHCP_LIGHT
+
+#undef UIP_CONF_LLH_LEN
+#define UIP_CONF_LLH_LEN         0
+//#define UIP_CONF_RECEIVE_WINDOW  48
+//#define UIP_CONF_TCP_MSS         48
+#undef UIP_CONF_UDP_CONNS
+#define UIP_CONF_UDP_CONNS       12
+#undef UIP_CONF_FWCACHE_SIZE
+#define UIP_CONF_FWCACHE_SIZE    30
+#define UIP_CONF_BROADCAST       1
+#define UIP_ARCH_IPCHKSUM        1
+#define UIP_CONF_PINGADDRCONF    0
+#define UIP_CONF_LOGGING         0
+
+#endif /* RPL */
 
 #include <stdint.h>
 
