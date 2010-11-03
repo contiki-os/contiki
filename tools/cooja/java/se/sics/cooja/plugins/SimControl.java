@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.17 2009/11/02 10:02:58 fros4943 Exp $
+ * $Id: SimControl.java,v 1.18 2010/11/03 12:29:47 adamdunkels Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -65,10 +65,13 @@ public class SimControl extends VisPlugin {
 
   private JButton startButton, stopButton;
   private JSlider sliderDelay;
-  private JLabel simulationTime, delayLabel;
+  private JLabel simulationTime, simulationSpeedup, delayLabel;
   private JFormattedTextField stopTimeTextField;
 
   private Observer simObserver;
+
+  private long lastSimulationTimeTimestamp;
+  private long lastSystemTimeTimestamp;
 
   /**
    * Create a new simulation control panel.
@@ -108,7 +111,7 @@ public class SimControl extends VisPlugin {
     smallPanel.setLayout(new BoxLayout(smallPanel, BoxLayout.X_AXIS));
     smallPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
 
-    JLabel label = new JLabel("Run until:");
+    JLabel label = new JLabel("Stop at:");
     smallPanel.add(label);
 
     smallPanel.add(Box.createHorizontalStrut(10));
@@ -163,6 +166,18 @@ public class SimControl extends VisPlugin {
     smallPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     controlPanel.add(smallPanel);
 
+    /* Simulation speed label */
+    smallPanel = new JPanel();
+    smallPanel.setLayout(new BoxLayout(smallPanel, BoxLayout.X_AXIS));
+    smallPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+
+    label = new JLabel("?");
+    smallPanel.add(label);
+    simulationSpeedup = label;
+
+    smallPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    controlPanel.add(smallPanel);
+
     /* Delay label */
     smallPanel = new JPanel();
     smallPanel.setLayout(new BoxLayout(smallPanel, BoxLayout.X_AXIS));
@@ -212,6 +227,9 @@ public class SimControl extends VisPlugin {
     updateValues();
 
     pack();
+
+    this.lastSystemTimeTimestamp = System.currentTimeMillis();
+    this.lastSimulationTimeTimestamp = 0;
   }
 
   private void updateValues() {
@@ -228,9 +246,10 @@ public class SimControl extends VisPlugin {
     }
 
     /* Update current time */
-    simulationTime.setText("Current simulation time: "
+    simulationTime.setText("Simulation time: "
         + simulation.getSimulationTimeMillis()
         + " ms");
+    simulationSpeedup.setText("Relative speed: ---");
     if (simulation.isRunning() && !updateLabelTimer.isRunning()) {
       updateLabelTimer.start();
     }
@@ -316,9 +335,22 @@ public class SimControl extends VisPlugin {
 
   private Timer updateLabelTimer = new Timer(LABEL_UPDATE_INTERVAL, new ActionListener() {
     public void actionPerformed(ActionEvent e) {
-      simulationTime.setText("Current simulation time: "
+      simulationTime.setText("Simulation time: "
           + simulation.getSimulationTimeMillis()
           + " ms");
+
+      long systemTimeDiff = System.currentTimeMillis() - lastSystemTimeTimestamp;
+      
+      if(systemTimeDiff > 1000) {
+
+        long simulationTimeDiff = simulation.getSimulationTimeMillis() - lastSimulationTimeTimestamp;
+        lastSimulationTimeTimestamp = simulation.getSimulationTimeMillis();
+        lastSystemTimeTimestamp = System.currentTimeMillis();
+
+        //        long String.format("%2.2f"
+        double speedup = (double)simulationTimeDiff / (double)systemTimeDiff;
+        simulationSpeedup.setText(String.format("Relative speed: %2.2f%%", 100 * speedup));
+      }
 
       /* Automatically stop if simulation is no longer running */
       if (!simulation.isRunning()) {
