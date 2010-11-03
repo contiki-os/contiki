@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: project-rpl-web-conf.h,v 1.1 2010/05/09 12:56:48 nifi Exp $
+ * $Id: project-conf.h,v 1.1 2010/11/03 15:46:41 adamdunkels Exp $
  */
 
 #ifndef __PROJECT_RPL_WEB_CONF_H__
