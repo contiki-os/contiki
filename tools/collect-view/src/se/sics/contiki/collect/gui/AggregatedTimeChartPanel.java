@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AggregatedTimeChartPanel.java,v 1.1 2010/09/21 20:24:19 nifi Exp $
+ * $Id: AggregatedTimeChartPanel.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,7 +34,7 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/09/21 20:24:19 $
+ * Updated : $Date: 2010/11/03 14:53:05 $
  *           $Revision: 1.1 $
  */
 

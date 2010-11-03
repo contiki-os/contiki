@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CommandConnection.java,v 1.1 2010/10/07 21:13:00 nifi Exp $
+ * $Id: CommandConnection.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,7 +34,7 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 5 oct 2010
- * Updated : $Date: 2010/10/07 21:13:00 $
+ * Updated : $Date: 2010/11/03 14:53:05 $
  *           $Revision: 1.1 $
  */
 

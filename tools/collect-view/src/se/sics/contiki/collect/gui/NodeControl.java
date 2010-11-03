@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NodeControl.java,v 1.8 2010/10/24 21:11:13 adamdunkels Exp $
+ * $Id: NodeControl.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Niclas Finne
  * Created : 27 sep 2010
- * Updated : $Date: 2010/10/24 21:11:13 $
- *           $Revision: 1.8 $
+ * Updated : $Date: 2010/11/03 14:53:05 $
+ *           $Revision: 1.1 $
  */
 
 package se.sics.contiki.collect.gui;

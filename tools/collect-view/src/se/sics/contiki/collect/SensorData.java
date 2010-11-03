@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.11 2010/10/07 21:01:46 nifi Exp $
+ * $Id: SensorData.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/10/07 21:01:46 $
- *           $Revision: 1.11 $
+ * Updated : $Date: 2010/11/03 14:53:05 $
+ *           $Revision: 1.1 $
  */
 
 package se.sics.contiki.collect;

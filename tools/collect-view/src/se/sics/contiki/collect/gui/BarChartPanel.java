@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: BarChartPanel.java,v 1.5 2010/09/15 16:15:10 nifi Exp $
+ * $Id: BarChartPanel.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 5 jul 2008
- * Updated : $Date: 2010/09/15 16:15:10 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2010/11/03 14:53:05 $
+ *           $Revision: 1.1 $
  */
 
 package se.sics.contiki.collect.gui;

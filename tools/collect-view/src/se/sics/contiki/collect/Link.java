@@ -26,33 +26,62 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.2 2010/09/15 16:15:10 nifi Exp $
+ * $Id: Link.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
- * Visualizer
+ * Link
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/09/15 16:15:10 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/11/03 14:53:05 $
+ *           $Revision: 1.1 $
  */
 
 package se.sics.contiki.collect;
 
-import java.awt.Component;
-
 /**
  *
  */
-public interface Visualizer {
+public class Link {
 
-  public String getCategory();
-  public String getTitle();
-  public Component getPanel();
-  public void nodesSelected(Node[] node);
-  public void nodeAdded(Node node);
-  public void nodeDataReceived(SensorData sensorData);
-  public void clearNodeData();
+  public final Node node;
+
+  private double etx;
+  private int quality = 100;
+  private long lastActive = 0L;
+
+  public Link(Node node) {
+    this.node = node;
+    this.lastActive = System.currentTimeMillis();
+  }
+
+  public Node getNode() {
+    return node;
+  }
+
+  public int getQuality() {
+    return quality;
+  }
+
+  public void setQuality(int quality) {
+    this.quality = quality;
+  }
+
+  public double getETX() {
+    return etx;
+  }
+
+  public void setETX(double etx) {
+    this.etx = etx;
+  }
+
+  public long getLastActive() {
+    return lastActive;
+  }
+
+  public void setLastActive(long time) {
+    this.lastActive = time;
+  }
 
 }
