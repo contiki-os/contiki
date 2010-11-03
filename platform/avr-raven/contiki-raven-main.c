@@ -47,6 +47,7 @@
 #include <avr/eeprom.h>
 #include <stdio.h>
 #include <string.h>
+#include <dev/watchdog.h>
 
 #include "loader/symbols-def.h"
 #include "loader/symtab.h"
@@ -87,7 +88,7 @@
 #include "cfs/cfs-coffee.h"
 #endif
 
-#if UIP_CONF_ROUTER
+#if UIP_CONF_ROUTER&&0
 #include "net/routing/rimeroute.h"
 #include "net/rime/rime-udp.h"
 #endif
