@@ -28,14 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: z1-phidgets.c,v 1.2 2010/08/27 12:58:57 joxe Exp $
+ * $Id: z1-phidgets.c,v 1.3 2010/11/05 10:31:57 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Joakim Eriksson
  * Created : 2010-02-02
- * Updated : $Date: 2010/08/27 12:58:57 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/11/05 10:31:57 $
+ *           $Revision: 1.3 $
  */
 #include <io.h>
 #include "contiki.h"
@@ -51,11 +51,11 @@ sensors_activate(uint8_t type)
   uint8_t pre = adc_on;
 
   adc_on |= type;
-  P6SEL |= type;
 
   if(pre == 0 && adc_on > 0) {
     P6DIR = 0xff;
     P6OUT = 0x00;
+    P6SEL |= 0x8b; /* bit 7 + 3 + 1 + 0 */
 
     /* if nothing was started before, start up the ADC system */
     /* Set up the ADC. */
