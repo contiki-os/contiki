@@ -206,6 +206,9 @@ void menu_print(void)
 		PRINTF_P(PSTR("*  c               Set RF channel        *\n\r"));
 		PRINTF_P(PSTR("*  6               Toggle 6lowpan        *\n\r"));
 		PRINTF_P(PSTR("*  r               Toggle raw mode       *\n\r"));
+#if UIP_CONF_IPV6_RPL
+		PRINTF_P(PSTR("*  N               RPL Neighbors         *\n\r"));
+#endif
 		PRINTF_P(PSTR("*  e               Energy Scan           *\n\r"));
 #if USB_CONF_STORAGE
 		PRINTF_P(PSTR("*  u               Switch to mass-storage*\n\r"));
@@ -220,6 +223,27 @@ void menu_print(void)
 		PRINTF_P(PSTR("[Built "__DATE__"]\n\r"));
 }
 
+#if UIP_CONF_IPV6_RPL
+static void
+ipaddr_add(const uip_ipaddr_t *addr)
+{
+  uint16_t a;
+  int8_t i, f;
+  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
+    a = (addr->u8[i] << 8) + addr->u8[i + 1];
+    if(a == 0 && f >= 0) {
+      if(f++ == 0) PRINTF_P(PSTR("::"));
+    } else {
+      if(f > 0) {
+        f = -1;
+      } else if(i > 0) {
+	    PRINTF_P(PSTR(":"));
+      }
+	  PRINTF_P(PSTR("%x"),a);
+    }
+  }
+}
+#endif
 
 /**
  \brief Process incomming char on debug port
@@ -337,7 +361,7 @@ void menu_process(char c)
 				break;
 
 			case 't':
-				// I added this to test my "strong" random number generator.
+				// Test "strong" random number generator of R Quattlebaum
 				PRINTF_P(PSTR("RNG Output: "));
 				{
 					uint8_t value = rng_get_uint8();
@@ -393,8 +417,40 @@ void menu_process(char c)
 				menustate = channel;
 				channel_string_i = 0;
 				break;
-				
-				
+
+#if UIP_CONF_IPV6_RPL
+extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
+extern uip_ds6_route_t uip_ds6_routing_table[];
+			case 'N':
+			{	uint8_t i,j;
+				PRINTF_P(PSTR("\n\rNeighbors\n\r"));
+				for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
+					if(uip_ds6_nbr_cache[i].isused) {
+						ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
+						PRINTF_P(PSTR("\n\r"));
+						j=0;
+					}
+				}
+				if (j) PRINTF_P(PSTR("  <none>"));
+				PRINTF_P(PSTR("\n\rRoutes\n\r"));
+				for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
+					if(uip_ds6_routing_table[i].isused) {
+						ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
+						PRINTF_P(PSTR("/%u (via "), uip_ds6_routing_table[i].length);
+						ipaddr_add(&uip_ds6_routing_table[i].nexthop);
+						if(uip_ds6_routing_table[i].state.lifetime < 600) {
+							PRINTF_P(PSTR(") %lus\n\r"), uip_ds6_routing_table[i].state.lifetime);
+						} else {
+							PRINTF_P(")\n\r");
+						}
+						j=0;
+					}
+				}
+				if (j) PRINTF_P(PSTR("  <none>"));
+				PRINTF_P(PSTR("\n\r"));
+				break;
+			}
+#endif				
 			
 			case 'm':
 				PRINTF_P(PSTR("Currently Jackdaw:\n\r  * Will "));
