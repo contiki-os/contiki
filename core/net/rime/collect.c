@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.65 2010/10/28 15:36:02 adamdunkels Exp $
+ * $Id: collect.c,v 1.66 2010/11/06 14:32:10 adamdunkels Exp $
  */
 
 /**
@@ -1470,6 +1470,12 @@ int
 collect_depth(struct collect_conn *tc)
 {
   return tc->rtmetric;
+}
+/*---------------------------------------------------------------------------*/
+const rimeaddr_t *
+collect_parent(struct collect_conn *tc)
+{
+  return &tc->current_parent;
 }
 /*---------------------------------------------------------------------------*/
 void
