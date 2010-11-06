@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.23 2010/10/28 15:36:02 adamdunkels Exp $
+ * $Id: collect.h,v 1.24 2010/11/06 14:32:10 adamdunkels Exp $
  */
 
 /**
@@ -126,6 +126,7 @@ int collect_send(struct collect_conn *c, int rexmits);
 void collect_set_sink(struct collect_conn *c, int should_be_sink);
 
 int collect_depth(struct collect_conn *c);
+const rimeaddr_t *collect_parent(struct collect_conn *c);
 
 void collect_set_keepalive(struct collect_conn *c, clock_time_t period);
 
