@@ -1,0 +1,1 @@
+Sky IPv6 RPL test: 24 nodes sending data over UDP to one sink. 10 packets per node should be received.
