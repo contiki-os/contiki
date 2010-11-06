@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.12 2010/03/25 08:52:23 adamdunkels Exp $
+ * $Id: example-collect.c,v 1.13 2010/11/06 10:44:06 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,9 @@
 #include "net/rime/collect.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
+#include "powertrace.h"
+
+#include "net/netstack.h"
 
 #include <stdio.h>
 
@@ -61,7 +64,6 @@ recv(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 	 seqno, hops,
 	 packetbuf_datalen(),
 	 (char *)packetbuf_dataptr());
-
 }
 /*---------------------------------------------------------------------------*/
 static const struct collect_callbacks callbacks = { recv };
@@ -70,17 +72,16 @@ PROCESS_THREAD(example_collect_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  SENSORS_ACTIVATE(button_sensor);
-  
+
   collect_open(&tc, 130, COLLECT_ROUTER, &callbacks);
 
   if(rimeaddr_node_addr.u8[0] == 1 &&
-     rimeaddr_node_addr.u8[1] == 1) {
+     rimeaddr_node_addr.u8[1] == 0) {
 	printf("I am sink\n");
 	collect_set_sink(&tc, 1);
 
   }
-  
+
   while(1) {
     static struct etimer et;
 
@@ -91,20 +92,19 @@ PROCESS_THREAD(example_collect_process, ev, data)
     PROCESS_WAIT_EVENT();
 
     if(etimer_expired(&et)) {
-      while(tc.sending) {
-	PROCESS_PAUSE();
-      }
+      static rimeaddr_t oldparent;
+      const rimeaddr_t *parent;
       printf("Sending\n");
       packetbuf_clear();
       packetbuf_set_datalen(sprintf(packetbuf_dataptr(),
 				  "%s", "Hello") + 1);
-      collect_send(&tc, 4);
-    }
+      collect_send(&tc, 10);
 
-    if(ev == sensors_event) {
-      if(data == &button_sensor) {
-	printf("I am sink\n");
-	collect_set_sink(&tc, 1);
+      parent = collect_parent(&tc);
+      if(!rimeaddr_cmp(parent, &oldparent)) {
+        printf("#L %d 0\n", oldparent.u8[0]);
+        printf("#L %d 1\n", parent->u8[0]);
+        rimeaddr_copy(&oldparent, parent);
       }
     }
 
