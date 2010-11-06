@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: collect-common.c,v 1.1 2010/11/03 15:36:38 adamdunkels Exp $
+ * $Id: collect-common.c,v 1.2 2010/11/06 11:55:15 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,7 @@ static unsigned long time_offset;
 static int send_active = 1;
 
 #define PERIOD 60
-#define RANDWAIT 2
+#define RANDWAIT 60
 
 /*---------------------------------------------------------------------------*/
 PROCESS(collect_common_process, "collect common process");
