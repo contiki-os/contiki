@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: crm.h,v 1.4 2010/11/07 14:24:11 maralvira Exp $
+ * $Id: crm.h,v 1.5 2010/11/07 14:42:31 maralvira Exp $
  */
 
 #ifndef CRM_H
@@ -266,8 +266,8 @@ static const int ROSC_CTUNE = 9;       /* 4 bits */
 static const int ROSC_FTUNE = 4;       /* 4 bits */
 static const int ROSC_EN =    0;
 
-#define ring_osc_on() (set_bit(*CRM_RINGOSC_CNTL,ROSC_EN))
-#define ring_osc_off() (clear_bit(*CRM_RINGOSC_CNTL,ROSC_EN))
+#define ring_osc_on() (CRM->RINGOSC_CNTLbits.ROSC_EN = 1)
+#define ring_osc_off() (CRM->RINGOSC_CNTLbits.ROSC_EN = 0)
 
 #define REF_OSC 24000000UL          /* reference osc. frequency */
 #define NOMINAL_RING_OSC_SEC 2000 /* nominal ring osc. frequency */
