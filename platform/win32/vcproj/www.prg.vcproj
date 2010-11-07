@@ -187,6 +187,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="webserver"
+			>
+			<File
+				RelativePath="..\..\..\apps\webserver\http-strings.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\webserver\http-strings.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\..\..\apps\webbrowser\html-strings.c"
 			>
@@ -201,14 +213,6 @@
 		</File>
 		<File
 			RelativePath="..\..\..\apps\webbrowser\htmlparser.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\apps\webbrowser\http-strings.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\apps\webbrowser\http-strings.h"
 			>
 		</File>
 		<File
