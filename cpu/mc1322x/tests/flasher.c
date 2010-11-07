@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: flasher.c,v 1.2 2010/07/28 18:43:04 maralvira Exp $
+ * $Id: flasher.c,v 1.3 2010/11/07 14:11:50 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -141,6 +141,14 @@ void main(void) {
 	dbg_put_hex32(type);
 	dbg_putstr("\n\r");
 
+	/* don't make a valid boot image if the received length is zero */
+	if(len == 0) {
+		((uint8_t *)buf)[0] = 'N'; 
+		((uint8_t *)buf)[1] = 'O'; 
+		((uint8_t *)buf)[2] = 'N'; 
+		((uint8_t *)buf)[3] = 'O';
+	}
+	
 	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)buf, 0, 4);
 
 	dbg_putstr("nvm_write returned: 0x");
@@ -151,8 +159,6 @@ void main(void) {
 	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)&len, 4, 4);
 
 	/* read a byte, write a byte */
-	/* byte at a time will make this work as a contiki process better */
-	/* for OTAP */
 	for(i=0; i<len; i++) {
 		c = getc();	       
 		err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)&c, 8+i, 1); 
