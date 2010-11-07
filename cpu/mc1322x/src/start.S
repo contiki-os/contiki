@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: start.S,v 1.2 2010/11/07 14:49:42 maralvira Exp $
+ * $Id: start.S,v 1.3 2010/11/07 14:57:53 maralvira Exp $
  */
 
 	
@@ -91,10 +91,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        .code 32
        .align 2
 
-	.set _rom_data_init, 0x108d0
-        .global _start
+       .set _rom_data_init, 0x108d0
+       .global _start
        .func   _start
-
+       .section .start
+	
 _start:
         b     _begin                    // reset - _start
         ldr   pc,_undf                  // undefined 
