@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: tests.c,v 1.2 2010/11/07 14:06:58 maralvira Exp $
+ * $Id: tests.c,v 1.3 2010/11/07 14:07:33 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -49,7 +49,7 @@ void print_packet(volatile packet_t *p) {
 #define PER_ROW 16
 	if(p) {
 		printf("len 0x%02x lqi 0x%02x", p->length, p->lqi);		
-		for(j=0, k=0; j <= ((p->length)%PER_ROW); j++) {
+		for(j=0, k=0; j <= ( (p->length) / PER_ROW ); j++) {
 			printf("\n\r");
 			for(i=0; i < PER_ROW; i++, k++) {
 				if(k >= p->length ) { 
