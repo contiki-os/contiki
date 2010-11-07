@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: rftest-tx.c,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: rftest-tx.c,v 1.2 2010/11/07 14:10:16 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -92,6 +92,10 @@ void main(void) {
 		/* call check_maca() periodically --- this works around */
 		/* a few lockup conditions */
 		check_maca();
+
+		while((p = rx_packet())) {
+			if(p) free_packet(p);
+		}
 
 		p = get_free_packet();
 		if(p) {
