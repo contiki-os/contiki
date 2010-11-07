@@ -15,9 +15,11 @@ my $verbose;
 my $rts = 'rts';
 my $command = '';
 my $do_exit;
+my $zerolen;
 
 GetOptions ('file=s' => \$filename,
 	    'secondfile=s' => \$second,
+	    'zerolen' => \$zerolen,
 	    'terminal=s' => \$term, 
 	    'verbose' => \$verbose, 
 	    'baud=s' => \$baud,
@@ -31,8 +33,10 @@ $| = 1;
 if($filename eq '') {
     print "Example usage: mc1322x-load.pl -f foo.bin -t /dev/ttyS0 -b 9600\n";
     print "          or : mc1322x-load.pl -f flasher.bin -s flashme.bin  0x1e000,0x11223344,0x55667788\n";
+    print "          or : mc1322x-load.pl -f flasher.bin -z  0x1e000,0x11223344,0x55667788\n";
     print "       -f required: binary file to load\n";
     print "       -s optional: secondary binary file to send\n";
+    print "       -z optional: send a zero length file as secondary\n";
     print "       -t terminal default: /dev/ttyUSB0\n";
     print "       -b baud rate default: 115200\n";
     print "       -r [none|rts] flow control default: rts\n";
@@ -65,6 +69,7 @@ $ob->rts_active(1);
 
 my $s = 0;
 my $reset = 0;
+my $size = 0;
 
 while(1) { 
     
@@ -97,27 +102,34 @@ while(1) {
     }
     print $ret . "\n";
     
-    if (-e $filename) {
+    if (-e $filename || (defined($zerolen) && ($s == 1))) {
 	
-	my $size = -s $filename;
+	if(defined($zerolen) && ($s == 1)) {
+	    $size = 0;
+	} else {
+	    $size = -s $filename;
+	}
 
 	print ("Size: $size bytes\n");
 	$ob->write(pack('V',$size));
 
-	open(FILE, $filename) or die($!);
-	print "Sending $filename\n";
-	
-	my $i = 1;
-	while(read(FILE, $c, 1)) {
-	    $i++;
-	    usleep(50); # this is as fast is it can go... 
-	    usleep(50) if ($s==1);
-	    $ob->write($c);
+	if(($s == 0) ||
+	   ((!defined($zerolen)) && ($s == 1))) {
+	    open(FILE, $filename) or die($!);
+	    print "Sending $filename\n";
+	    
+	    my $i = 1;
+	    while(read(FILE, $c, 1)) {
+		$i++;
+		usleep(50); # this is as fast is it can go... 
+		usleep(50) if ($s==1);
+		$ob->write($c);
+	    }
 	}
     }
     
     last if ($s==1);
-    if((-e $second)) {
+    if((-e $second) || defined($zerolen)) {
 	$s=1; $filename = $second;
     } else {
 	last;
