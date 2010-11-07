@@ -30,8 +30,11 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: tmr.h,v 1.3 2010/11/07 14:16:28 maralvira Exp $
+ * $Id: tmr.h,v 1.4 2010/11/07 14:17:20 maralvira Exp $
  */
+
+#ifndef TMR_H
+#define TMR_H
 
 #include "utils.h"
 
@@ -42,6 +45,107 @@
 #define TMR1_BASE       (TMR_BASE + TMR_OFFSET*1)
 #define TMR2_BASE       (TMR_BASE + TMR_OFFSET*2)
 #define TMR3_BASE       (TMR_BASE + TMR_OFFSET*3)
+
+/* Structure-based register definitions */
+/* Example use:
+	TMR2.CTRL = 0x1234;
+	TMR2.CTRLbits = (struct TMR_CTRL) {
+		.DIR = 1,
+		.OUTPUT_MODE = 2,
+	};
+	TMR2.CTRLbits.PRIMARY_CNT_SOURCE = 3;
+*/
+
+struct TMR_struct {
+	uint16_t COMP1;
+	uint16_t COMP2;
+	uint16_t CAPT;
+	uint16_t LOAD;
+	uint16_t HOLD;
+	uint16_t CNTR;
+	union {
+		uint16_t CTRL;
+		struct TMR_CTRL {
+			uint16_t OUTPUT_MODE:3;
+			uint16_t CO_INIT:1;
+			uint16_t DIR:1;
+			uint16_t LENGTH:1;
+			uint16_t ONCE:1;
+			uint16_t SECONDARY_CNT_SOURCE:2;
+			uint16_t PRIMARY_CNT_SOURCE:4;
+			uint16_t COUNT_MODE:3;
+		} CTRLbits;
+	};
+	union {
+		uint16_t SCTRL;
+		struct TMR_SCTRL {
+			uint16_t OEN:1;
+			uint16_t OPS:1;
+			uint16_t FORCE:1;
+			uint16_t VAL:1;
+			uint16_t EEOF:1;
+			uint16_t MSTR:1;
+			uint16_t CAPTURE_MODE:2;
+			uint16_t INPUT:1;
+			uint16_t IPS:1;
+			uint16_t IEFIE:1;
+			uint16_t IEF:1;
+			uint16_t TOFIE:1;
+			uint16_t TOF:1;
+			uint16_t TCFIE:1;
+			uint16_t TCF:1;
+		} SCTRLbits;
+	};
+	uint16_t CMPLD1;
+	uint16_t CMPLD2;
+	union {
+		uint16_t CSCTRL;
+		struct TMR_CSCTRL {
+			uint16_t CL1:2;
+			uint16_t CL2:2;
+			uint16_t TCF1:1;
+			uint16_t TCF2:1;
+			uint16_t TCF1EN:1;
+			uint16_t TCF2EN:1;
+			uint16_t :5;
+			uint16_t FILT_EN:1;
+			uint16_t DBG_EN:2;
+		} CSCTRLbits;
+	};
+
+	uint16_t reserved[4];
+
+	union {
+		uint16_t ENBL;
+		struct TMR_ENBL {
+			union {
+				struct {
+					uint16_t ENBL:4;
+				};
+				struct {
+					uint16_t ENBL3:1;
+					uint16_t ENBL2:1;
+					uint16_t ENBL1:1;
+					uint16_t ENBL0:1;
+				};
+			};
+			uint16_t :12;
+		} ENBLbits;
+	};
+};
+
+static volatile struct TMR_struct * const _TMR0 = (void *) (TMR0_BASE);
+static volatile struct TMR_struct * const _TMR1 = (void *) (TMR1_BASE);
+static volatile struct TMR_struct * const _TMR2 = (void *) (TMR2_BASE);
+static volatile struct TMR_struct * const _TMR3 = (void *) (TMR3_BASE);
+#define TMR0 (*_TMR0)
+#define TMR1 (*_TMR1)
+#define TMR2 (*_TMR2)
+#define TMR3 (*_TMR3)
+
+
+/* Old timer definitions, for compatibility */
+#ifndef REG_NO_COMPAT
 
 #define TMR_REGOFF_COMP1    (0x0)
 #define TMR_REGOFF_COMP2    (0x2)
@@ -119,9 +223,8 @@
 #define TMR3_CMPLD2  ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_CMPLD2))
 #define TMR3_CSCTRL  ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_CSCTRL))
 
-#define TCF  15
-#define TCF1 4
-#define TCF2 5
-
 #define TMR(num, reg)  CAT2(TMR,num,_##reg)
 
+#endif /* REG_NO_COMPAT */
+
+#endif
