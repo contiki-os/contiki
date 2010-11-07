@@ -7,7 +7,7 @@ UIP_CONF_IPV6=1
 
 APPS += webserver
 
-CFLAGS += -DPROJECT_CONF_H=\"project-router-conf.h\"
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 PROJECT_SOURCEFILES += slip-bridge.c httpd-simple.c
 
 include $(CONTIKI)/Makefile.include
