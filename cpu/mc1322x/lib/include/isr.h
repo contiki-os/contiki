@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: isr.h,v 1.4 2010/11/07 14:24:11 maralvira Exp $
+ * $Id: isr.h,v 1.5 2010/11/07 14:26:24 maralvira Exp $
  */
 
 #ifndef ISR_H
@@ -129,6 +129,23 @@ enum interrupt_nums {
 #define irq_restore() *INTENABLE = saved_irq
 
 #endif /* REG_NO_COMPAT */
+
+/* Macro to safely disable all interrupts for a block of code.
+   Use it like this:
+   disable_int({
+       asdf = 1234;
+       printf("hi\r\n");
+   });
+*/
+#define __int_top() volatile uint32_t saved_intenable
+#define __int_disable() saved_intenable = ITC->INTENABLE; ITC->INTENABLE = 0
+#define __int_enable() ITC->INTENABLE = saved_intenable
+#define disable_int(x) do { \
+        __int_top(); \
+        __int_disable(); \
+        x; \
+        __int_enable(); } while(0)
+
 
 extern void tmr0_isr(void) __attribute__((weak));
 extern void tmr1_isr(void) __attribute__((weak));
