@@ -30,13 +30,22 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-misc.c,v 1.1 2010/06/09 14:43:22 maralvira Exp $
+ * $Id: contiki-misc.c,v 1.2 2010/11/07 13:52:12 maralvira Exp $
  */
 
 #include <stdio.h>
 #include "contiki.h"
+#include "mc1322x.h"
 
 int raise(void)
 {
 	return 0;
+}
+
+void srand(unsigned int seed) {
+	*MACA_RANDOM = seed;
+}
+
+int rand(void) {
+	return (int)*MACA_RANDOM;
 }
