@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: gpio.h,v 1.3 2010/11/07 14:24:11 maralvira Exp $
+ * $Id: gpio.h,v 1.4 2010/11/07 14:28:30 maralvira Exp $
  */
 
 #ifndef GPIO_H
@@ -63,11 +63,11 @@ struct GPIO_struct {
 #define _IO(x) \
 	union { struct { uint32_t x##0; uint32_t x##1; }; \
 		struct { _REP(x, 1) };  \
-		struct { _REP(GPIO, 1) } x; };
+		struct GPIO_##x { _REP(GPIO, 1) } x; };
 #define _IO_2bit(x)	\
 	union { struct { uint32_t x##0; uint32_t x##1; uint32_t x##2; uint32_t x##3; }; \
 		struct { _REP(x, 2) };  \
-		struct { _REP(GPIO, 2) } x; };
+		struct GPIO_##x { _REP(GPIO, 2) } x; };
 
 	_IO(PAD_DIR);
 	_IO(DATA);
