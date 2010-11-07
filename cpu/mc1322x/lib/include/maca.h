@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: maca.h,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: maca.h,v 1.2 2010/11/07 14:06:57 maralvira Exp $
  */
 
 #ifndef _MACA_H_
@@ -51,6 +51,8 @@ void check_maca(void);
 /* maca configuration interface */
 void set_power(uint8_t power);
 void set_channel(uint8_t chan);
+
+extern uint8_t (*get_lqi)(void);
 
 #define DEMOD_DCD 1 /* -96dBm, 22.2mA */
 #define DEMOD_NCD 0 /* -100dBm, 24.2mA */
