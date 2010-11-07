@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: crm.h,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: crm.h,v 1.2 2010/11/07 14:21:33 maralvira Exp $
  */
 
 #ifndef CRM_H
@@ -39,47 +39,233 @@
 #include <types.h>
 
 #define CRM_BASE         (0x80003000)
-#define CRM_SYS_CNTL     ((volatile uint32_t *) (CRM_BASE+0x00))
-#define CRM_WU_CNTL      ((volatile uint32_t *) (CRM_BASE+0x04))
-#define CRM_SLEEP_CNTL   ((volatile uint32_t *) (CRM_BASE+0x08))
-#define CRM_BS_CNTL      ((volatile uint32_t *) (CRM_BASE+0x0c))
-#define CRM_COP_CNTL     ((volatile uint32_t *) (CRM_BASE+0x10))
-#define CRM_COP_SERVICE  ((volatile uint32_t *) (CRM_BASE+0x14))
-#define CRM_STATUS       ((volatile uint32_t *) (CRM_BASE+0x18))
-#define CRM_MOD_STATUS   ((volatile uint32_t *) (CRM_BASE+0x1c))
-#define CRM_WU_COUNT     ((volatile uint32_t *) (CRM_BASE+0x20))
-#define CRM_WU_TIMEOUT   ((volatile uint32_t *) (CRM_BASE+0x24))
-#define CRM_RTC_COUNT    ((volatile uint32_t *) (CRM_BASE+0x28))
-#define CRM_RTC_TIMEOUT  ((volatile uint32_t *) (CRM_BASE+0x2c))
-#define CRM_CAL_CNTL     ((volatile uint32_t *) (CRM_BASE+0x34))
-#define CRM_CAL_COUNT    ((volatile uint32_t *) (CRM_BASE+0x38))
-#define CRM_RINGOSC_CNTL ((volatile uint32_t *) (CRM_BASE+0x3c))
-#define CRM_XTAL_CNTL    ((volatile uint32_t *) (CRM_BASE+0x40))
-#define CRM_XTAL32_CNTL  ((volatile uint32_t *) (CRM_BASE+0x44))
-#define CRM_VREG_CNTL    ((volatile uint32_t *) (CRM_BASE+0x48))
-#define CRM_SW_RST       ((volatile uint32_t *) (CRM_BASE+0x50))
+
+/* Structure-based CRM access */
+struct CRM_struct {
+	union {
+		uint32_t SYS_CNTL;
+		struct CRM_SYS_CNTL {
+			uint32_t PWR_SOURCE:2;
+			uint32_t PADS_1P8V_SEL:1;
+			uint32_t :1;
+			uint32_t JTAG_SECU_OFF:1;
+			uint32_t XTAL32_EXISTS:1;
+			uint32_t :2;
+			uint32_t XTAL_CLKDIV:6;
+			uint32_t :18;
+		} SYS_CNTLbits;
+	};
+	union {
+		uint32_t WU_CNTL;
+		struct CRM_WU_CNTL {
+			uint32_t TIMER_WU_EN:1;
+			uint32_t RTC_WU_EN:1;
+			uint32_t HOST_WAKE:1;
+			uint32_t AUTO_ADC:1;
+			uint32_t EXT_WU_EN:4;
+			uint32_t EXT_WU_EDGE:4;
+			uint32_t EXT_WU_POL:4;
+			uint32_t TIMER_WU_IEN:1;
+			uint32_t RTC_WU_IEN:1;
+			uint32_t :2;
+			uint32_t EXT_WU_IEN:4;
+			uint32_t :4;
+			uint32_t EXT_OUT_POL:4;
+		} WU_CNTLbits;
+	};
+	union {
+		uint32_t SLEEP_CNTL;
+		struct CRM_SLEEP_CNTL {
+			uint32_t HIB:1;
+			uint32_t DOZE:1;
+			uint32_t :2;
+			uint32_t RAM_RET:2;
+			uint32_t MCU_RET:1;
+			uint32_t DIG_PAD_EN:1;
+			uint32_t :24;
+		} SLEEP_CNTLbits;
+	};
+	union {
+		uint32_t BS_CNTL;
+		struct CRM_BS_CNTL {
+			uint32_t BS_EN:1;
+			uint32_t WAIT4IRQ:1;
+			uint32_t BS_MAN_EN:1;
+			uint32_t :2;
+			uint32_t ARM_OFF_TIME:6;
+			uint32_t :18;
+		} BS_CNTLbits;
+	};
+	union {
+		uint32_t COP_CNTL;
+		struct CRM_COP_CNTL {
+			uint32_t COP_EN:1;
+			uint32_t COP_OUT:1;
+			uint32_t COP_WP:1;
+			uint32_t :5;
+			uint32_t COP_TIMEOUT:7;
+			uint32_t :1;
+			uint32_t COP_COUNT:7;
+			uint32_t :9;
+		} COP_CNTLbits;
+	};
+	uint32_t COP_SERVICE;
+	union {
+		uint32_t STATUS;
+		struct CRM_STATUS {
+			uint32_t SLEEP_SYNC:1;
+			uint32_t HIB_WU_EVT:1;
+			uint32_t DOZE_WU_EVT:1;
+			uint32_t RTC_WU_EVT:1;
+			uint32_t EXT_WU_EVT:4;
+			uint32_t :1;
+			uint32_t CAL_DONE:1;
+			uint32_t COP_EVT:1;
+			uint32_t :6;
+			uint32_t VREG_BUCK_RDY:1;
+			uint32_t VREG_1P8V_RDY:1;
+			uint32_t VREG_1P5V_RDY:1;
+			uint32_t :12;
+		} STATUSbits;
+	};
+	union {
+		uint32_t MOD_STATUS;
+		struct CRM_MOD_STATUS {
+			uint32_t ARM_EN:1;
+			uint32_t MACA_EN:1;
+			uint32_t ASM_EN:1;
+			uint32_t SPI_EN:1;
+			uint32_t GPIO_EN:1;
+			uint32_t UART1_EN:1;
+			uint32_t UART2_EN:1;
+			uint32_t TMR_EN:1;
+			uint32_t RIF_EN:1;
+			uint32_t I2C_EN:1;
+			uint32_t SSI_EN:1;
+			uint32_t SPIF_EN:1;
+			uint32_t ADC_EN:1;
+			uint32_t :1;
+			uint32_t JTA_EN:1;
+			uint32_t NEX_EN:1;
+			uint32_t :1;
+			uint32_t AIM_EN:1;
+			uint32_t :14;
+		} MOD_STATUSbits;
+	};
+	uint32_t WU_COUNT;
+	uint32_t WU_TIMEOUT;
+	uint32_t RTC_COUNT;
+	uint32_t RTC_TIMEOUT;
+	uint32_t reserved1;
+	union {
+		uint32_t CAL_CNTL;
+		struct CRM_CAL_CNTL {
+			uint32_t CAL_TIMEOUT:16;
+			uint32_t CAL_EN:1;
+			uint32_t CAL_IEN:1;
+			uint32_t :14;
+		} CAL_CNTLbits;
+	};
+	uint32_t CAL_COUNT;
+	union {
+		uint32_t RINGOSC_CNTL;
+		struct CRM_RINGOSC_CNTL {
+			uint32_t ROSC_EN:1;
+			uint32_t :3;
+			uint32_t ROSC_FTUNE:5;
+			uint32_t ROSC_CTUNE:4;
+			uint32_t :19;
+		} RINGOSC_CNTLbits;
+	};
+	union {
+		uint32_t XTAL_CNTL;
+		struct CRM_XTAL_CNTL {
+			uint32_t :8;
+			uint32_t XTAL_IBIAS_SEL:4;
+			uint32_t :4;
+			uint32_t XTAL_FTUNE:5;
+			uint32_t XTAL_CTUNE:5;
+			uint32_t :6;
+		} XTAL_CNTLbits;
+	};
+	union {
+		uint32_t XTAL32_CNTL;
+		struct CRM_XTAL32_CNTL {
+			uint32_t XTAL32_EN:1;
+			uint32_t :3;
+			uint32_t XTAL32_GAIN:2;
+			uint32_t :26;
+		} XTAL32_CNTLbits;
+	};
+	union {
+		uint32_t VREG_CNTL;
+		struct CRM_VREG_CNTL {
+			uint32_t BUCK_EN:1;
+			uint32_t BUCK_SYNC_REC_EN:1;
+			uint32_t BUCK_BYPASS_EN:1;
+			uint32_t VREG_1P5V_EN:2;
+			uint32_t VREG_1P5V_SEL:2;
+			uint32_t VREG_1P8V_EN:1;
+			uint32_t BUCK_CLKDIV:4;
+			uint32_t :20;
+		} VREG_CNTLbits;
+	};
+	uint32_t reserved2;
+	uint32_t SW_RST;
+	uint32_t reserved3;
+	uint32_t reserved4;
+	uint32_t reserved5;
+	uint32_t reserved6;
+};
+
+static volatile struct CRM_struct * const _CRM = (void *) (CRM_BASE);
+#define CRM (*_CRM)
+
+
+/* Old register definitions, for compatibility */
+#ifndef REG_NO_COMPAT
+
+static volatile uint32_t * const CRM_SYS_CNTL   = ((volatile uint32_t *) (CRM_BASE+0x00));
+static volatile uint32_t * const CRM_WU_CNTL    = ((volatile uint32_t *) (CRM_BASE+0x04));
+static volatile uint32_t * const CRM_SLEEP_CNTL = ((volatile uint32_t *) (CRM_BASE+0x08));
+static volatile uint32_t * const CRM_BS_CNTL    = ((volatile uint32_t *) (CRM_BASE+0x0c));
+static volatile uint32_t * const CRM_COP_CNTL   = ((volatile uint32_t *) (CRM_BASE+0x10));
+static volatile uint32_t * const CRM_COP_SERVICE= ((volatile uint32_t *) (CRM_BASE+0x14));
+static volatile uint32_t * const CRM_STATUS     = ((volatile uint32_t *) (CRM_BASE+0x18));
+static volatile uint32_t * const CRM_MOD_STATUS = ((volatile uint32_t *) (CRM_BASE+0x1c));
+static volatile uint32_t * const CRM_WU_COUNT   = ((volatile uint32_t *) (CRM_BASE+0x20));
+static volatile uint32_t * const CRM_WU_TIMEOUT = ((volatile uint32_t *) (CRM_BASE+0x24));
+static volatile uint32_t * const CRM_RTC_COUNT  = ((volatile uint32_t *) (CRM_BASE+0x28));
+static volatile uint32_t * const CRM_RTC_TIMEOUT= ((volatile uint32_t *) (CRM_BASE+0x2c));
+static volatile uint32_t * const CRM_CAL_CNTL   = ((volatile uint32_t *) (CRM_BASE+0x34));
+static volatile uint32_t * const CRM_CAL_COUNT  = ((volatile uint32_t *) (CRM_BASE+0x38));
+static volatile uint32_t * const CRM_RINGOSC_CNT= ((volatile uint32_t *) (CRM_BASE+0x3c));
+static volatile uint32_t * const CRM_XTAL_CNTL  = ((volatile uint32_t *) (CRM_BASE+0x40));
+static volatile uint32_t * const CRM_XTAL32_CNTL= ((volatile uint32_t *) (CRM_BASE+0x44));
+static volatile uint32_t * const CRM_VREG_CNTL  = ((volatile uint32_t *) (CRM_BASE+0x48));
+static volatile uint32_t * const CRM_SW_RST     = ((volatile uint32_t *) (CRM_BASE+0x50));
 
 /* CRM_SYS_CNTL bit locations */
-#define XTAL32_EXISTS 5 
+static const int XTAL32_EXISTS = 5;
 
 /* CRM_WU_CNTL bit locations */
-#define EXT_WU_IEN   20      /* 4 bits */ 
-#define EXT_WU_EN    4       /* 4 bits */ 
-#define EXT_WU_EDGE  8       /* 4 bits */ 
-#define EXT_WU_POL   12      /* 4 bits */ 
-#define TIMER_WU_EN  0 
-#define RTC_WU_EN    1 
-#define TIMER_WU_IEN  16 
-#define RTC_WU_IEN    17
+static const int EXT_WU_IEN =   20;      /* 4 bits */
+static const int EXT_WU_EN =    4;       /* 4 bits */
+static const int EXT_WU_EDGE =  8;       /* 4 bits */
+static const int EXT_WU_POL =   12;      /* 4 bits */
+static const int TIMER_WU_EN =  0;
+static const int RTC_WU_EN =    1;
+static const int TIMER_WU_IEN =  16;
+static const int RTC_WU_IEN =    17;
 
 /* CRM_STATUS bit locations */
-#define EXT_WU_EVT 4       /* 4 bits, rw1c */
-#define RTC_WU_EVT 3       /* rw1c */
+static const int EXT_WU_EVT = 4;       /* 4 bits, rw1c */
+static const int RTC_WU_EVT = 3;      /* rw1c */
 
 /* RINGOSC_CNTL bit locations */
-#define ROSC_CTUNE 9       /* 4 bits */
-#define ROSC_FTUNE 4       /* 4 bits */
-#define ROSC_EN    0
+static const int ROSC_CTUNE = 9;       /* 4 bits */
+static const int ROSC_FTUNE = 4;       /* 4 bits */
+static const int ROSC_EN =    0;
 
 #define ring_osc_on() (set_bit(*CRM_RINGOSC_CNTL,ROSC_EN))
 #define ring_osc_off() (clear_bit(*CRM_RINGOSC_CNTL,ROSC_EN))
@@ -89,8 +275,8 @@
 extern uint32_t cal_rtc_secs;      /* calibrated 2khz rtc seconds */
 
 /* XTAL32_CNTL bit locations */
-#define XTAL32_GAIN 4      /* 2 bits */
-#define XTAL32_EN   0
+static const int XTAL32_GAIN = 4;      /* 2 bits */
+static const int XTAL32_EN =   0;
 
 #define xtal32_on() (set_bit(*CRM_XTAL32_CNTL,XTAL32_EN))
 #define xtal32_off() (clear_bit(*CRM_XTAL32_CNTL,XTAL32_EN))
@@ -134,5 +320,7 @@ extern uint32_t cal_rtc_secs;      /* calibrated 2khz rtc seconds */
 
 #define pack_XTAL_CNTL(ctune4pf, ctune, ftune, ibias) \
 	(*CRM_XTAL_CNTL = ((ctune4pf << 25) | (ctune << 21) | ( ftune << 16) | (ibias << 8) | 0x52))
+
+#endif /* REG_NO_COMPAT */
 
 #endif
