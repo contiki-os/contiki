@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-maca.c,v 1.5 2010/11/07 18:34:52 maralvira Exp $
+ * $Id: contiki-maca.c,v 1.6 2010/11/07 20:07:42 maralvira Exp $
  */
 
 #include <stdint.h>
@@ -95,10 +95,9 @@ static volatile uint8_t contiki_maca_request_off = 0;
 
 static process_event_t event_data_ready;
 
-volatile packet_t *prepped_p;
+static volatile packet_t prepped_p;
 
 int contiki_maca_init(void) {
-	prepped_p = 0;
 	trim_xtal();
 	vreg_init();
 	contiki_maca_init();
@@ -169,51 +168,62 @@ int contiki_maca_read(void *buf, unsigned short bufsize) {
 	}
 }
 
+/* copies a payload into the prepped packet */
+/* transmit sends the prepped packet everytime it is called */
+/* Contiki may call prepare once and then transmit several times to send */
+/* the same packet repeatedly */
 int contiki_maca_prepare(const void *payload, unsigned short payload_len) {
 	volatile int i;
-	volatile packet_t *p;
-
-	if ((prepped_p == 0) 
-	    && (p = get_free_packet())) {
-		PRINTF("contiki maca prepare");
+		
+	PRINTF("contiki maca prepare");
 #if CONTIKI_MACA_RAW_MODE
-		p->offset = 1;
-		p->length = payload_len + 1;
+	prepped_p.offset = 1;
+	prepped_p.length = payload_len + 1;
 #else 
-		p->offset = 0;
-		p->length = payload_len;
+	prepped_p.offset = 0;
+	prepped_p.length = payload_len;
 #endif
-		if(payload_len > MAX_PACKET_SIZE)  return RADIO_TX_ERR;
-		memcpy((uint8_t *)(p->data + p->offset), payload, payload_len);
+	if(payload_len > MAX_PACKET_SIZE)  return RADIO_TX_ERR;
+	memcpy((uint8_t *)(prepped_p.data + prepped_p.offset), payload, payload_len);
 #if CONTIKI_MACA_RAW_MODE
-		p->offset = 0;
-		p->data[0] = CONTIKI_MACA_PREPEND_BYTE;
-		PRINTF(" raw mode");
+	prepped_p.offset = 0;
+	prepped_p.data[0] = CONTIKI_MACA_PREPEND_BYTE;
+	PRINTF(" raw mode");
 #endif
 #if CONTIKI_MACA_DEBUG
-		PRINTF(": sending %d bytes\n\r", payload_len);
-		for(i = p->offset ; i < (p->length + p->offset); i++) {
-			PRINTF(" %02x",p->data[i]);
-		}
-		PRINTF("\n\r");
-#endif
-
-		prepped_p = p;
-
-		return RADIO_TX_OK;
-	} else {
-		PRINTF("couldn't get free packet for contiki_maca_send\n\r");
-		return RADIO_TX_ERR;
+	PRINTF(": sending %d bytes\n\r", payload_len);
+	for(i = prepped_p.offset ; i < (prepped_p.length + prepped_p.offset); i++) {
+		PRINTF(" %02x",prepped_p.data[i]);
 	}
+	PRINTF("\n\r");
+#endif
+	
+	return RADIO_TX_OK;
+
 }
 
+/* gets a packet from the radio (if available), */
+/* copies the prepared packet prepped_p */
+/* and transmits it */
 int contiki_maca_transmit(unsigned short transmit_len) {
+	volatile packet_t *p;
+
 	PRINTF("contiki maca transmit\n\r");
 #if BLOCKING_TX
 	tx_complete = 0;
 #endif
-	tx_packet(prepped_p);
-	prepped_p = 0;
+	if(p = get_free_packet()) {
+		p->offset = prepped_p.offset; 
+		p->length = prepped_p.length; 
+		memcpy((uint8_t *)(p->data + p->offset), 
+		       (const uint8_t *)(prepped_p.data + prepped_p.offset), 
+		       prepped_p.length);
+		tx_packet(p);
+	} else {
+		PRINTF("couldn't get free packet for transmit\n\r");
+		return RADIO_TX_ERR;
+	}
+
 #if BLOCKING_TX
 	/* block until tx_complete, set by contiki_maca_tx_callback */
 	/* there are many places in contiki that rely on the */
