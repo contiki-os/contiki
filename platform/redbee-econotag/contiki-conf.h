@@ -79,10 +79,10 @@
 #define uart_init uart1_init
 #define dbg_putchar(x) uart1_putc(x)
 
-#define USE_FORMATTED_STDIO 1
-#define MACA_DEBUG          0
-#define MACA_RAW_MODE       0
-#define USE_32KHZ_XTAL      0
+#define USE_FORMATTED_STDIO         1
+#define MACA_DEBUG                  0
+#define CONTIKI_MACA_RAW_MODE       0
+#define USE_32KHZ_XTAL              0
 
 #define BLOCKING_TX 0
 
