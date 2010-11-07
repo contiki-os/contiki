@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: start.S,v 1.1 2010/06/10 14:49:31 maralvira Exp $
+ * $Id: start.S,v 1.2 2010/11/07 14:49:42 maralvira Exp $
  */
 
 	
@@ -164,6 +164,17 @@ _begin:
 
  	msr	CPSR_c, #(MODE_SYS)
 
+       /* Clear BSS */
+clear_bss:
+       ldr     r0, _bss_start          /* find start o
+       ldr     r1, _bss_end            /* stop here   
+       mov     r2, #0x00000000         /* clear       
+clbss_l:
+       str     r2, [r0]                /* clear loop..
+       add     r0, r0, #4
+       cmp     r0, r1
+       blt     clbss_l
+	
  	b main
 
 _undf:  .word __undf                    // undefined
