@@ -1,3 +1,7 @@
+INSTALL= /usr/local/bin
+
+################
+
 LDFLAGS = -lftdi
 
 TARGETS = bbmc
@@ -8,3 +12,6 @@ all: $(TARGETS)
 
 clean:
 	-rm $(TARGETS)
+
+install: all
+	cp bbmc $(INSTALL)
