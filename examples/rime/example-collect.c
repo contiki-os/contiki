@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.14 2010/11/06 14:43:45 adamdunkels Exp $
+ * $Id: example-collect.c,v 1.15 2010/11/07 10:32:13 adamdunkels Exp $
  */
 
 /**
@@ -99,8 +99,12 @@ PROCESS_THREAD(example_collect_process, ev, data)
 
       parent = collect_parent(&tc);
       if(!rimeaddr_cmp(parent, &oldparent)) {
-        printf("#L %d 0\n", oldparent.u8[0]);
-        printf("#L %d 1\n", parent->u8[0]);
+        if(!rimeaddr_cmp(&oldparent, &rimeaddr_null)) {
+          printf("#L %d 0\n", oldparent.u8[0]);
+        }
+        if(!rimeaddr_cmp(parent, &rimeaddr_null)) {
+          printf("#L %d 1\n", parent->u8[0]);
+        }
         rimeaddr_copy(&oldparent, parent);
       }
     }
