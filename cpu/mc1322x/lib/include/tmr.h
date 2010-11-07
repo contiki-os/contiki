@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: tmr.h,v 1.5 2010/11/07 14:19:17 maralvira Exp $
+ * $Id: tmr.h,v 1.6 2010/11/07 14:21:06 maralvira Exp $
  */
 
 #ifndef TMR_H
@@ -142,6 +142,12 @@ static volatile struct TMR_struct * const _TMR3 = (void *) (TMR3_BASE);
 #define TMR1 (*_TMR1)
 #define TMR2 (*_TMR2)
 #define TMR3 (*_TMR3)
+
+/* Used to compute which enable bit to set for a particular timer, e.g.
+     TMR0.ENBL |= TMR_ENABLE_BIT(TMR2);
+   Helpful when you're using macros to define timers
+*/
+#define TMR_ENABLE_BIT(x) ((&(x) == &(TMR0)) ? 1 : (&(x) == &(TMR1)) ? 2 : (&(x) == &(TMR2)) ? 4 : (&(x) == &(TMR3)) ? 8 : 0)
 
 #define TMR0_PIN GPIO_08
 #define TMR1_PIN GPIO_09
