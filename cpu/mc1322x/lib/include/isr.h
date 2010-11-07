@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: isr.h,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: isr.h,v 1.2 2010/11/07 14:21:59 maralvira Exp $
  */
 
 #ifndef ISR_H
@@ -86,6 +86,8 @@ extern void kbi4_isr(void) __attribute__((weak));
 extern void kbi5_isr(void) __attribute__((weak));
 extern void kbi6_isr(void) __attribute__((weak));
 extern void kbi7_isr(void) __attribute__((weak));
+
+extern void cal_isr(void) __attribute__((weak));
 
 extern void uart1_isr(void) __attribute__((weak));
 
