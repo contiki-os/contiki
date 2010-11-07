@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: tmr.h,v 1.8 2010/11/07 14:24:36 maralvira Exp $
+ * $Id: tmr.h,v 1.9 2010/11/07 14:25:07 maralvira Exp $
  */
 
 #ifndef TMR_H
@@ -138,6 +138,9 @@ static volatile struct TMR_struct * const TMR0 = (void *) (TMR0_BASE);
 static volatile struct TMR_struct * const TMR1 = (void *) (TMR1_BASE);
 static volatile struct TMR_struct * const TMR2 = (void *) (TMR2_BASE);
 static volatile struct TMR_struct * const TMR3 = (void *) (TMR3_BASE);
+
+/* Get timer pointer from timer number */
+#define TMR_ADDR(x) ((volatile struct TMR_struct *)(((uint32_t)(x) * TMR_OFFSET) + TMR_BASE))
 
 /* Get timer number from the timer pointer. */
 #define TMR_NUM(x) (((uint32_t)(x) - TMR_BASE) / TMR_OFFSET)
