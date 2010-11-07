@@ -26,36 +26,6 @@ HEAP_SIZE = 1024;
     *(.glue_7t) *(.glue_7) *(.vfp11_veneer) *(.v4_bx)
   } =0
 
-	.stack : {
-		__stack_start__ = . ;
-
-		. += IRQ_STACK_SIZE;
-		. = ALIGN (4);
-		__irq_stack_top__ = . ;
-
-		. += FIQ_STACK_SIZE;
-		. = ALIGN (4);
-		__fiq_stack_top__ = . ;
-
-		. += SVC_STACK_SIZE;
-		. = ALIGN (4);
-		__svc_stack_top__ = . ;
-
-		. += ABT_STACK_SIZE;
-		. = ALIGN (4);
-		__abt_stack_top__ = . ;
-
-		. += UND_STACK_SIZE;
-		. = ALIGN (4);
-		__und_stack_top__ = . ;
-
-		. += SYS_STACK_SIZE;
-		. = ALIGN (4);
-		__sys_stack_top__ = . ;
-
-		__stack_end__ = .;
-	}	
-
   .interp         : { *(.interp) }
   .note.gnu.build-id : { *(.note.gnu.build-id) }
   .hash           : { *(.hash) }
@@ -189,6 +159,38 @@ HEAP_SIZE = 1024;
   }
   .data1          : { *(.data1) }
   _edata = .; PROVIDE (edata = .);
+
+	.stack : {
+		__stack_start__ = . ;
+
+		. += IRQ_STACK_SIZE;
+		. = ALIGN (4);
+		__irq_stack_top__ = . ;
+
+		. += FIQ_STACK_SIZE;
+		. = ALIGN (4);
+		__fiq_stack_top__ = . ;
+
+		. += SVC_STACK_SIZE;
+		. = ALIGN (4);
+		__svc_stack_top__ = . ;
+
+		. += ABT_STACK_SIZE;
+		. = ALIGN (4);
+		__abt_stack_top__ = . ;
+
+		. += UND_STACK_SIZE;
+		. = ALIGN (4);
+		__und_stack_top__ = . ;
+
+		. += SYS_STACK_SIZE;
+		. = ALIGN (4);
+		__sys_stack_top__ = . ;
+
+		__stack_end__ = .;
+	}
+
+
   __bss_start = .;
   __bss_start__ = .;
   .bss            :
