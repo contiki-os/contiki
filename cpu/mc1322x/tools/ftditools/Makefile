@@ -11,7 +11,7 @@ CFLAGS = -Wall -Wextra #-Werror
 all: $(TARGETS)
 
 clean:
-	-rm $(TARGETS)
+	-rm -f $(TARGETS)
 
 install: all
 	cp bbmc $(INSTALL)
