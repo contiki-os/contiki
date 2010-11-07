@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: isr.h,v 1.3 2010/11/07 14:23:15 maralvira Exp $
+ * $Id: isr.h,v 1.4 2010/11/07 14:24:11 maralvira Exp $
  */
 
 #ifndef ISR_H
@@ -83,8 +83,7 @@ struct ITC_struct {
 };
 #undef __INTERRUPT_union
 
-static volatile struct ITC_struct * const _ITC = (void *) (INTBASE);
-#define ITC (*_ITC)
+static volatile struct ITC_struct * const ITC = (void *) (INTBASE);
 
 
 /* Old register definitions, for compatibility */
