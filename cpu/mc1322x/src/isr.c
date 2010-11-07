@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: isr.c,v 1.2 2010/11/07 14:21:59 maralvira Exp $
+ * $Id: isr.c,v 1.3 2010/11/07 14:24:11 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -67,9 +67,9 @@ void irq(void)
 			if(kbi_evnt(6) && (kbi6_isr != 0)) { kbi6_isr(); }
 			if(kbi_evnt(7) && (kbi7_isr != 0)) { kbi7_isr(); }
 
-			if (CRM.STATUSbits.CAL_DONE && CRM.CAL_CNTLbits.CAL_IEN && cal_isr)
+			if (CRM->STATUSbits.CAL_DONE && CRM->CAL_CNTLbits.CAL_IEN && cal_isr)
 			{
-				CRM.STATUSbits.CAL_DONE = 0;
+				CRM->STATUSbits.CAL_DONE = 0;
 				cal_isr();
 			}
 		}

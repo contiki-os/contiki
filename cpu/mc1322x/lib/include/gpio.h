@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: gpio.h,v 1.2 2010/11/07 14:17:45 maralvira Exp $
+ * $Id: gpio.h,v 1.3 2010/11/07 14:24:11 maralvira Exp $
  */
 
 #ifndef GPIO_H
@@ -39,13 +39,13 @@
 /* Structure-based GPIO access
    Example usage:
 
-   GPIO.FUNC_SEL0 |= 0x00008000; // set a whole register
+   GPIO->FUNC_SEL0 |= 0x00008000; // set a whole register
 
-   GPIO.FUNC_SEL_08 = 2;	 // set just one pin
+   GPIO->FUNC_SEL_08 = 2;	 // set just one pin
 
    #define MY_PIN GPIO_08
-   GPIO.FUNC_SEL.MY_PIN = 2;	 // same, to allow #define for pin names
-   GPIO.DATA.MY_PIN = 1;
+   GPIO->FUNC_SEL.MY_PIN = 2;	 // same, to allow #define for pin names
+   GPIO->DATA.MY_PIN = 1;
 */
 
 #define _V(x,n,i) uint32_t x##_##i : n;
@@ -87,8 +87,7 @@ struct GPIO_struct {
 #undef _REP
 #undef _V
 
-static volatile struct GPIO_struct * const _GPIO = (void *) (0x80000000);
-#define GPIO (*_GPIO)
+static volatile struct GPIO_struct * const GPIO = (void *) (0x80000000);
 
 
 /* Old register definitions, for compatibility */

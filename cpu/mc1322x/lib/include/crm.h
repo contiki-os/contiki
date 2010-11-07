@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: crm.h,v 1.3 2010/11/07 14:22:51 maralvira Exp $
+ * $Id: crm.h,v 1.4 2010/11/07 14:24:11 maralvira Exp $
  */
 
 #ifndef CRM_H
@@ -218,8 +218,7 @@ struct CRM_struct {
 	uint32_t reserved6;
 };
 
-static volatile struct CRM_struct * const _CRM = (void *) (CRM_BASE);
-#define CRM (*_CRM)
+static volatile struct CRM_struct * const CRM = (void *) (CRM_BASE);
 
 
 /* Old register definitions, for compatibility */
