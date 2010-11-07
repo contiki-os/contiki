@@ -13,6 +13,8 @@ my $term = '/dev/ttyUSB0';
 my $baud = '115200';
 my $verbose;
 my $rts = 'rts';
+my $command = '';
+my $do_exit;
 
 GetOptions ('file=s' => \$filename,
 	    'secondfile=s' => \$second,
@@ -20,6 +22,8 @@ GetOptions ('file=s' => \$filename,
 	    'verbose' => \$verbose, 
 	    'baud=s' => \$baud,
 	    'rts=s' => \$rts,
+	    'command=s' => \$command,
+	    'exit' => \$do_exit,
     ) or die 'bad options';
 
 $| = 1;
@@ -29,11 +33,15 @@ if($filename eq '') {
     print "          or : mc1322x-load.pl -f flasher.bin -s flashme.bin  0x1e000,0x11223344,0x55667788\n";
     print "       -f required: binary file to load\n";
     print "       -s optional: secondary binary file to send\n";
-    print "       -t default: /dev/ttyUSB0\n";
-    print "       -b default: 115200\n";
+    print "       -t terminal default: /dev/ttyUSB0\n";
+    print "       -b baud rate default: 115200\n";
     print "       -r [none|rts] flow control default: rts\n";
-    print "  anything on the command line is sent\n";
-    print "  after all of the files.\n";
+    print "       -c command to run for autoreset: \n";
+    print "              e.g. -c 'bbmc -l redbee-econotag -i 0 reset'\n";
+    print "       -e exit instead of dropping to terminal display\n";
+    print "\n";
+    print "anything on the command line is sent\n";
+    print "after all of the files.\n\n";
     exit;
 }
 
@@ -56,6 +64,7 @@ $ob->read_const_time(1000); # 1 second per unfulfilled "read" call
 $ob->rts_active(1);
 
 my $s = 0;
+my $reset = 0;
 
 while(1) { 
     
@@ -64,7 +73,13 @@ while(1) {
     if($s == 1) { print "secondary send...\n"; }
     
     $ob->write(pack('C','0'));
-    
+
+    if(($command ne '') &&
+       ($reset eq 0)) {
+	$reset++;
+	system($command);
+    }
+
     if($s == 1) { 
 	$test = 'ready'; 
     } else {
@@ -119,6 +134,10 @@ if(scalar(@ARGV)!=0) {
 
     $ob->write(@ARGV);
     $ob->write(',');
+}
+
+if(defined($do_exit)) {
+    exit;
 }
 
 my $c; my $count;
