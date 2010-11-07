@@ -2,7 +2,13 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm",
 	      "elf32-littlearm")
 OUTPUT_ARCH(arm)
-SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");
+ENTRY(_start)
+
+MEMORY
+  {
+    ram (rwx) : org = 0x00400000, l = 96K
+  }
+
 SECTIONS
 {
 
