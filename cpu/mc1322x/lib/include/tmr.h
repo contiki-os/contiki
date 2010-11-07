@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: tmr.h,v 1.4 2010/11/07 14:17:20 maralvira Exp $
+ * $Id: tmr.h,v 1.5 2010/11/07 14:19:17 maralvira Exp $
  */
 
 #ifndef TMR_H
@@ -143,6 +143,10 @@ static volatile struct TMR_struct * const _TMR3 = (void *) (TMR3_BASE);
 #define TMR2 (*_TMR2)
 #define TMR3 (*_TMR3)
 
+#define TMR0_PIN GPIO_08
+#define TMR1_PIN GPIO_09
+#define TMR2_PIN GPIO_10
+#define TMR3_PIN GPIO_11
 
 /* Old timer definitions, for compatibility */
 #ifndef REG_NO_COMPAT
