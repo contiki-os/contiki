@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-maca.c,v 1.4 2010/09/13 14:15:58 maralvira Exp $
+ * $Id: contiki-maca.c,v 1.5 2010/11/07 18:34:52 maralvira Exp $
  */
 
 #include <stdint.h>
@@ -53,8 +53,8 @@
 #define PRINTF(...)
 #endif
 
-#ifndef MACA_RAW_PREPEND
-#define MACA_RAW_PREPEND 0xff
+#ifndef CONTIKI_MACA_PREPEND_BYTE
+#define CONTIKI_MACA_PREPEND_BYTE 0xff
 #endif
 
 #ifndef BLOCKING_TX
