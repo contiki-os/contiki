@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: start.S,v 1.3 2010/11/07 14:57:53 maralvira Exp $
+ * $Id: start.S,v 1.4 2010/11/07 15:19:45 maralvira Exp $
  */
 
 	
@@ -58,15 +58,6 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 	
-       .global main                    // int main(void)
-
-       .global _etext                  // -> .data initial values in ROM
-       .global _data                   // -> .data area in RAM
-       .global _edata                  // end of .data area
-       .global __bss_start             // -> .bss area in RAM
-       .global __bss_end__             // end of .bss area
-       .global _stack                  // top of stack
-
 // Stack Sizes
         .set  UND_STACK_SIZE, 0x00000004
         .set  ABT_STACK_SIZE, 0x00000004
@@ -86,16 +77,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         .equ  I_BIT, 0x80               // when I bit is set, IRQ is disabled
         .equ  F_BIT, 0x40               // when F bit is set, FIQ is disabled
 
-       .text
-
-       .code 32
-       .align 2
-
-       .set _rom_data_init, 0x108d0
-       .global _start
-       .func   _start
        .section .start
 	
+       .set _rom_data_init, 0x108d0
+       .global _start
 _start:
         b     _begin                    // reset - _start
         ldr   pc,_undf                  // undefined 
@@ -165,18 +150,18 @@ _begin:
 
  	msr	CPSR_c, #(MODE_SYS)
 
-       /* Clear BSS */
+        /* Clear BSS */
 clear_bss:
-       ldr     r0, _bss_start          /* find start o
-       ldr     r1, _bss_end            /* stop here   
-       mov     r2, #0x00000000         /* clear       
+        ldr     r0, _bss_start          /* find start of bss segment        */
+        ldr     r1, _bss_end            /* stop here                        */
+        mov     r2, #0x00000000         /* clear                            */
 clbss_l:
-       str     r2, [r0]                /* clear loop..
-       add     r0, r0, #4
-       cmp     r0, r1
-       blt     clbss_l
-	
- 	b main
+        str     r2, [r0]                /* clear loop...                    */
+        add     r0, r0, #4
+        cmp     r0, r1
+        blt     clbss_l
+
+        b main
 
 _undf:  .word __undf                    // undefined
 _swi:   .word __swi                     // SWI
@@ -192,3 +177,14 @@ __dabt: b     .                         // data abort
 /* IRQ handler set in isr.c */
 //__irq:  b     .                         // IRQ
 __fiq:  b     .                         // FIQ
+
+/*
+ * These are defined in the board-specific linker script.
+ */
+.globl _bss_start
+_bss_start:
+        .word __bss_start
+
+	.globl _bss_end
+_bss_end:
+        .word _end
