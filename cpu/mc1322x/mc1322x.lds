@@ -18,7 +18,7 @@ HEAP_SIZE = 1024;
   PROVIDE (__executable_start = 0x00400000); . = 0x00400000;
   .text           :
   {
-    *start*.o	(.text)
+    *(.start)
     *(.irq)		
     *(.text .stub .text.* .gnu.linkonce.t.*)
     /* .gnu.warning sections are handled specially by elf32.em.  */
