@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: packet.h,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: packet.h,v 1.2 2010/11/07 14:06:57 maralvira Exp $
  */
 
 #ifndef PACKET_H
@@ -51,6 +51,7 @@ struct packet {
 	/* On TX this should be 0 */
 	/* On RX this should be 1 since the maca puts the length as the first byte*/
 	uint8_t offset; 	
+	uint8_t lqi;
 	#if PACKET_STATS
 	uint8_t seen; 
 	uint8_t post_tx;
