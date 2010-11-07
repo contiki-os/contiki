@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: tmr.h,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: tmr.h,v 1.2 2010/11/07 14:04:59 maralvira Exp $
  */
 
 #include "utils.h"
@@ -67,7 +67,7 @@
 #define TMR0_CAPT    ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_CAPT))
 #define TMR0_LOAD    ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_LOAD))
 #define TMR0_HOLD    ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_HOLD))
-#define TMR0_CNTR    ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_CTRL))
+#define TMR0_CNTR    ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_CNTR))
 #define TMR0_CTRL    ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_CTRL))
 #define TMR0_SCTRL   ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_SCTRL))
 #define TMR0_CMPLD1  ((volatile uint16_t *) (TMR0_BASE + TMR_REGOFF_CMPLD1))
@@ -82,7 +82,7 @@
 #define TMR1_CAPT    ((volatile uint16_t *) (TMR1_BASE + TMR_REGOFF_CAPT))
 #define TMR1_LOAD    ((volatile uint16_t *) (TMR1_BASE + TMR_REGOFF_LOAD))
 #define TMR1_HOLD    ((volatile uint16_t *) (TMR1_BASE + TMR_REGOFF_HOLD))
-#define TMR1_CNTR    ((volatile uint16_t *) (TMR1_BASE + TMR_REGOFF_CTRL))
+#define TMR1_CNTR    ((volatile uint16_t *) (TMR1_BASE + TMR_REGOFF_CNTR))
 #define TMR1_CTRL    ((volatile uint16_t *) (TMR1_BASE + TMR_REGOFF_CTRL))
 #define TMR1_SCTRL   ((volatile uint16_t *) (TMR1_BASE + TMR_REGOFF_SCTRL))
 #define TMR1_CMPLD1  ((volatile uint16_t *) (TMR1_BASE + TMR_REGOFF_CMPLD1))
@@ -97,7 +97,7 @@
 #define TMR2_CAPT    ((volatile uint16_t *) (TMR2_BASE + TMR_REGOFF_CAPT))
 #define TMR2_LOAD    ((volatile uint16_t *) (TMR2_BASE + TMR_REGOFF_LOAD))
 #define TMR2_HOLD    ((volatile uint16_t *) (TMR2_BASE + TMR_REGOFF_HOLD))
-#define TMR2_CNTR    ((volatile uint16_t *) (TMR2_BASE + TMR_REGOFF_CTRL))
+#define TMR2_CNTR    ((volatile uint16_t *) (TMR2_BASE + TMR_REGOFF_CNTR))
 #define TMR2_CTRL    ((volatile uint16_t *) (TMR2_BASE + TMR_REGOFF_CTRL))
 #define TMR2_SCTRL   ((volatile uint16_t *) (TMR2_BASE + TMR_REGOFF_SCTRL))
 #define TMR2_CMPLD1  ((volatile uint16_t *) (TMR2_BASE + TMR_REGOFF_CMPLD1))
@@ -112,7 +112,7 @@
 #define TMR3_CAPT    ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_CAPT))
 #define TMR3_LOAD    ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_LOAD))
 #define TMR3_HOLD    ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_HOLD))
-#define TMR3_CNTR    ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_CTRL))
+#define TMR3_CNTR    ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_CNTR))
 #define TMR3_CTRL    ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_CTRL))
 #define TMR3_SCTRL   ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_SCTRL))
 #define TMR3_CMPLD1  ((volatile uint16_t *) (TMR3_BASE + TMR_REGOFF_CMPLD1))
