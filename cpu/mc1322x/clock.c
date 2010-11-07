@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: clock.c,v 1.1 2010/06/09 14:43:22 maralvira Exp $
+ * $Id: clock.c,v 1.2 2010/11/07 14:42:02 maralvira Exp $
  */
 
 #include <sys/clock.h>
@@ -48,6 +48,10 @@
 static volatile clock_time_t current_clock = 0;
 
 volatile unsigned long seconds = 0;
+
+#define TCF  15
+#define TCF1 4
+#define TCF2 5
 
 void
 clock_init()
