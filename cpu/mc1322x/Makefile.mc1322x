@@ -24,7 +24,8 @@ CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
 THREADS =
 
-CROSS=arm-linux-
+CROSS_COMPILE ?= arm-linux-
+CROSS ?= $(CROSS_COMPILE)
 
 ### Compiler definitions
 CC       = $(CROSS)gcc
