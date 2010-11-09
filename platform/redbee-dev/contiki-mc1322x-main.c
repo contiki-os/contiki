@@ -301,20 +301,20 @@ set_rimeaddr(rimeaddr_t *addr)
 		//set addr to EUI64
 #ifdef IAB		
    #ifdef EXT_ID
-		PRINTF("address in flash blank, setting to defined IAB and extention.\n\r");
+		PRINTF("address in flash blank, setting to defined IAB and extension.\n\r");
 	  	iab_to_eui64(&eui64, OUI, IAB, EXT_ID);
    #else  /* ifdef EXT_ID */
-		PRINTF("address in flash blank, setting to defined IAB with a random extention.\n\r");
+		PRINTF("address in flash blank, setting to defined IAB with a random extension.\n\r");
 		iab_to_eui64(&eui64, OUI, IAB, *MACA_RANDOM & 0xfff);
    #endif /* ifdef EXT_ID */
 
 #else  /* ifdef IAB */
 
    #ifdef EXT_ID
-		PRINTF("address in flash blank, setting to defined OUI and extention.\n\r");
+		PRINTF("address in flash blank, setting to defined OUI and extension.\n\r");
 		oui_to_eui64(&eui64, OUI, EXT_ID);
    #else  /*ifdef EXT_ID */
-		PRINTF("address in flash blank, setting to defined OUI with a random extention.\n\r");
+		PRINTF("address in flash blank, setting to defined OUI with a random extension.\n\r");
 		oui_to_eui64(&eui64, OUI, *MACA_RANDOM & 0xffffff);
    #endif /*endif EXTID */
 
