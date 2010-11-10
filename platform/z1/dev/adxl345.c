@@ -56,7 +56,8 @@ static uint16_t int1_mask = 0, int2_mask = 0;
 /* Keep track of when the interrupt was last seen in order to reduce the amount
   of interrupts. Kind of like button debouncing. This can't be per int-pin, as
   there can be several very different int per pin (eg tap && freefall). */
-static volatile clock_time_t ints_lasttime[] = {0, 0, 0, 0, 0, 0, 0, 0};
+// XXX Not used now, only one global timer.
+//static volatile clock_time_t ints_lasttime[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 /* Bitmasks and bit flag variable for keeping track of adxl345 status. */
 enum ADXL345_STATUSTYPES {
@@ -129,7 +130,7 @@ accm_write_reg(u8_t reg, u8_t val) {
   PRINTFDEBUG("WRITE_REG 0x%02X @ reg 0x%02X\n", val, reg);
 }
 /*---------------------------------------------------------------------------*/
-/* Read several registers in a stream.
+/* Write several registers from a stream.
     args:
       len       number of bytes to read
       data      pointer to where the data is read from
@@ -375,7 +376,7 @@ static struct timer suppressTimer1, suppressTimer2;
 interrupt(PORT1_VECTOR) port1_isr (void) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   /* ADXL345_IFG.x goes high when interrupt occurs, use to check what interrupted */
-  if (ADXL345_IFG & ADXL345_INT1_PIN){
+  if ((ADXL345_IFG & ADXL345_INT1_PIN) && !!(ADXL345_IFG & CC2420_FIFOP_PIN)){
     /* Check if this should be suppressed or not */
     if(timer_expired(&suppressTimer1)) {
       timer_set(&suppressTimer1, SUPPRESS_TIME_INT1);
@@ -383,7 +384,7 @@ interrupt(PORT1_VECTOR) port1_isr (void) {
       process_poll(&accmeter_process);
       LPM4_EXIT;
     }
-  } else if (ADXL345_IFG & ADXL345_INT2_PIN){
+  } else if ((ADXL345_IFG & ADXL345_INT2_PIN) && !!(ADXL345_IFG & CC2420_FIFOP_PIN)){
     /* Check if this should be suppressed or not */
     if(timer_expired(&suppressTimer2)) {
       timer_set(&suppressTimer2, SUPPRESS_TIME_INT2);
