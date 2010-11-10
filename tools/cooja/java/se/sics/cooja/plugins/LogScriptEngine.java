@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.24 2010/10/12 10:57:22 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.25 2010/11/10 13:05:18 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -441,6 +441,9 @@ public class LogScriptEngine {
 
   private TimeEvent timeoutEvent = new TimeEvent(0) {
     public void execute(long t) {
+    	if (!scriptActive) {
+    		return;
+    	}
       logger.info("Timeout event @ " + t);
       engine.put("TIMEOUT", true);
       stepScript();
