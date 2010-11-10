@@ -28,42 +28,38 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mb851-shell.c,v 1.2 2010/11/10 11:20:44 salvopitru Exp $
+ * $Id: coffee-test.c,v 1.1 2010/11/10 11:20:44 salvopitru Exp $
  */
 
 /**
  * \file
- *         MB851-specific Contiki shell
+ *         An application for coffee testing.
  * \author
  *         Salvatore Pitrulli <salvopitru@users.sourceforge.net>
- *
  */
 
 #include "contiki.h"
-#include "serial-shell.h"
+#include "cfs-coffee-arch.h"
+#include "cfs-coffee.h"
 
-#include "shell-sensors.h"
+#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
-PROCESS(mb851_shell_process, "MB851 Contiki shell");
-AUTOSTART_PROCESSES(&mb851_shell_process);
+PROCESS(coffee_test_process, "Coffee test process");
+AUTOSTART_PROCESSES(&coffee_test_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(mb851_shell_process, ev, data)
+PROCESS_THREAD(coffee_test_process, ev, data)
 {
   PROCESS_BEGIN();
-
-  serial_shell_init();
-  shell_blink_init();
-  shell_ps_init();
-  shell_reboot_init();
-  shell_text_init();
-  shell_time_init();
-  shell_sensors_init();
   
-#if COFFEE_FILES
-  shell_coffee_init();
-  shell_file_init();
-#endif
+  printf("Testing coffee...\n");
+  
+  cfs_coffee_format();  
+  
+  int ret = coffee_file_test();
+  
+  printf("Test returned %d.\n",ret);
+
   
   PROCESS_END();
 }

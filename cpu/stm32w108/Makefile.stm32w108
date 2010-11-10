@@ -65,11 +65,14 @@ CFLAGSNO = --endian=little --cpu=Cortex-M3 -e --diag_suppress Pa050 -D BOARD_HEA
 CFLAGS  += $(CFLAGSNO) $(OPTI)
 AROPTS  = --create
 ASFLAGS = -s+ -w+ --cpu Cortex-M3 -L$(OBJECTDIR)
-LDFLAGS += --redirect _Printf=_PrintfSmall --redirect _Scanf=_ScanfSmall --map=contiki-$(TARGET).map \
-			--config $(CONTIKI_CPU)/hal/micro/cortexm3/stm32w108/iar-cfg.icf
+LDFLAGS += --redirect _Printf=_PrintfSmall --redirect _Scanf=_ScanfSmall --map=contiki-$(TARGET).map
+ ifndef COFFEE_FILES
+  LDFLAGS+= --config $(CONTIKI_CPU)/hal/micro/cortexm3/stm32w108/iar-cfg.icf
+ endif
 OBJOPTS = --bin
 
 else
+# GCC
 CC	  = arm-none-eabi-gcc
 LD       = arm-none-eabi-gcc
 AS	  = arm-none-eabi-gcc
@@ -95,6 +98,37 @@ LDFLAGS += -mcpu=cortex-m3 \
 			-Wl,--gc-sections
 SIZEFLAGS = -A
 OBJOPTS = -O binary
+
+endif
+
+ifdef COFFEE_FILES                #if files are defined force definition of COFFEE_ADDRESS
+
+ ifndef COFFEE_ADDRESS
+   COFFEE_ADDRESS=0x8010000
+ endif
+ COFFEE_ADDRESS1 = $(shell echo $$(( $(COFFEE_ADDRESS) + 1 )))
+ CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c 
+ CFLAGS += -DCOFFEE_FILES=$(COFFEE_FILES) -DCOFFEE_ADDRESS=$(COFFEE_ADDRESS)
+ ifdef IAR
+  LDFLAGS+= --config $(CONTIKI_CPU)/hal/micro/cortexm3/stm32w108/iar-cfg-coffee.icf
+ else
+  LDFLAGS+= -Wl,--section-start=.coffeefiles=$(COFFEE_ADDRESS)
+ endif
+
+ #If $make invokation passed starting address use phony target to force synchronization of source to .coffeefiles section
+ #Warning: recompilation will not be forced if the starting address is then dropped, with dire consequences:
+ # -->Source that uses COFFEE_FILES and read macros for conditional compilation will be left hanging!
+ # -->Object modules that used .coffeefiles will overlap the .data section.
+ # -->$make clean is safest.
+#ifeq ($(origin COFFEE_ADDRESS), command line)
+# ifeq ($(COFFEE_FILES), 2)      #safest to force recompilation even if eeprom address is changed, might have been switched from flash
+   .PHONY : coffee
+   coffee:
+   $(OBJECTDIR)/cfs-coffee-arch.o    : coffee      #cfs-coffee-arch uses COFFEE_FILES, COFFEE_ADDRESS
+   $(OBJECTDIR)/cfs-coffee.o         : coffee      #core routine requires recompilation
+
+#endif
+#endif
 
 endif
 
