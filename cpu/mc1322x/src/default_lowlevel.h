@@ -30,13 +30,13 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: default_lowlevel.h,v 1.2 2010/11/07 14:27:01 maralvira Exp $
+ * $Id: default_lowlevel.h,v 1.3 2010/11/10 21:58:12 maralvira Exp $
  */
 
 #ifndef LOWLEVEL_H
 #define LOWLEVEL_H
 
-#include "types.h"
+#include "crm.h"
 
 #define trim_xtal() pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS)
 void default_vreg_init(void);
