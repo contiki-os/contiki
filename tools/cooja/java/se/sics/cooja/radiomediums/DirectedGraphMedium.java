@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DirectedGraphMedium.java,v 1.6 2010/10/12 10:29:43 fros4943 Exp $
+ * $Id: DirectedGraphMedium.java,v 1.7 2010/11/10 13:09:01 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -352,6 +352,21 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
       if (dest.ratio < 1.0 && random.nextDouble() > dest.ratio) {
         /*logger.info(source + ": Fail, randomly");*/
       	/* TODO Interfere now? */
+        newConn.addInterfered(dest.radio);
+
+        dest.radio.interfereAnyReception();
+        RadioConnection otherConnection = null;
+        for (RadioConnection conn : getActiveConnections()) {
+          for (Radio dstRadio : conn.getDestinations()) {
+            if (dstRadio == dest.radio) {
+              otherConnection = conn;
+              break;
+            }
+          }
+        }
+        if (otherConnection != null) {
+          otherConnection.addInterfered(dest.radio);
+        }
         continue;
       }
       
