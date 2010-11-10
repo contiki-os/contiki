@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.43 2010/03/24 12:29:33 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.44 2010/11/10 13:11:43 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -295,6 +295,10 @@ public class ContikiMoteType implements MoteType {
             libFile,
             archiveFile,
             javaClassName);
+        CompileContiki.redefineCOOJASources(
+        		this,
+        		env
+        );
       } catch (Exception e) {
         throw (MoteTypeCreationException) new MoteTypeCreationException(
             "Error when creating environment: " + e.getMessage()).initCause(e);
