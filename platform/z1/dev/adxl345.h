@@ -43,12 +43,6 @@
 #include <stdio.h>
 #include "i2cmaster.h"
 
-//XXX Temporary place for defines that are lacking in mspgcc4's gpio.h
-#ifndef P1SEL2_
-  #define P1SEL2_             0x0041  /* Port 1 Selection 2 */
-  sfrb(P1SEL2, P1SEL2_);
-#endif
-
 #define DEBUGLEDS 0
 #if DEBUGLEDS
   #undef LEDS_ON(x)
@@ -75,18 +69,69 @@ enum ADXL345_AXIS {
   Z_AXIS = 4,
 };
 
+/* -------------------------------------------------------------------------- */
+/* Init the accelerometer: ports, pins, registers, interrupts (none enabled), I2C,
+    default threshold values etc. */
 void    accm_init(void);
 
+/* Write to a register.
+    args:
+      reg       register to write to
+      val       value to write
+*/
 void    accm_write_reg(u8_t reg, u8_t val);
+
+/* Write several registers from a stream.
+    args:
+      len       number of bytes to read
+      data      pointer to where the data is read from
+  First byte in stream must be the register address to begin writing to.
+  The data is then written from the second byte and increasing. The address byte
+  is not included in length len. */
 void    accm_write_stream(u8_t len, u8_t *data);
 
+/* Read one register.
+    args:
+      reg       what register to read
+    returns the value of the read register
+*/
 u8_t    accm_read_reg(u8_t reg);
+
+/* Read several registers in a stream.
+    args:
+      reg       what register to start reading from
+      len       number of bytes to read
+      whereto   pointer to where the data is saved
+*/
 void    accm_read_stream(u8_t reg, u8_t len, u8_t *whereto);
+
+/* Read an axis of the accelerometer (x, y or z). Return value is a signed 10 bit int.
+  The resolution of the acceleration measurement can be increased up to 13 bit, but
+  will change the data format of this read out. Refer to the data sheet if so is
+  wanted/needed. */
 int16_t accm_read_axis(enum ADXL345_AXIS axis);
 
+/* Sets the g-range, ie the range the accelerometer measures (ie 2g means -2 to +2 g
+    on every axis). Possible values:
+        ADXL345_RANGE_2G
+        ADXL345_RANGE_4G
+        ADXL345_RANGE_8G
+        ADXL345_RANGE_16G
+    Example:
+        accm_set_grange(ADXL345_RANGE_4G);
+    */
 void    accm_set_grange(u8_t grange);
+
+/* Map interrupt (FF, tap, dbltap etc) to interrupt pin (IRQ_INT1, IRQ_INT2).
+    This must come after accm_init() as the registers will otherwise be overwritten. */
 void    accm_set_irq(uint8_t int1, uint8_t int2);
 
+/* Macros for setting the pointers to callback functions from the interrupts.
+  The function will be called with an u8_t as parameter, containing the interrupt
+  flag register from the ADXL345. That way, several interrupts can be mapped to
+  the same pin and be read from the  */
+#define ACCM_REGISTER_INT1_CB(ptr)   accm_int1_cb = ptr;
+#define ACCM_REGISTER_INT2_CB(ptr)   accm_int2_cb = ptr;
 /* -------------------------------------------------------------------------- */
 /* Application definitions, change if required by application. */
 
@@ -104,27 +149,27 @@ void    accm_set_irq(uint8_t int1, uint8_t int2);
 */
 /* Time after an interrupt that subsequent interrupts are suppressed. Should later
   be turned into one specific time per type of interrupt (tap, freefall etc) */
-#define SUPPRESS_TIME_INT1    CLOCK_SECOND
-#define SUPPRESS_TIME_INT2    CLOCK_SECOND
+#define SUPPRESS_TIME_INT1    CLOCK_SECOND/4
+#define SUPPRESS_TIME_INT2    CLOCK_SECOND/4
 
 /* Suggested defaults according to the data sheet etc */
 #define ADXL345_THRESH_TAP_DEFAULT      0x48    // 4.5g (0x30 == 3.0g) (datasheet: 3g++)
-#define ADXL345_OFSX_DEFAULT            0x00    // for calibration, set 0 for long...
+#define ADXL345_OFSX_DEFAULT            0x00    // for individual units calibration purposes
 #define ADXL345_OFSY_DEFAULT            0x00
 #define ADXL345_OFSZ_DEFAULT            0x00
 #define ADXL345_DUR_DEFAULT             0x20    // 20 ms (datasheet: 10ms++)
 #define ADXL345_LATENT_DEFAULT          0x50    // 100 ms (datasheet: 20ms++)
 #define ADXL345_WINDOW_DEFAULT          0xFF    // 320 ms (datasheet: 80ms++)
-#define ADXL345_THRESH_ACT_DEFAULT      0x20    // 2g
-#define ADXL345_THRESH_INACT_DEFAULT    0x13    // 1.2g
-#define ADXL345_TIME_INACT_DEFAULT      0x02    // 2 s
+#define ADXL345_THRESH_ACT_DEFAULT      0x15    // 1.3g (62.5 mg/LSB)
+#define ADXL345_THRESH_INACT_DEFAULT    0x08    // 0.5g (62.5 mg/LSB)
+#define ADXL345_TIME_INACT_DEFAULT      0x02    // 2 s (1 s/LSB)
 #define ADXL345_ACT_INACT_CTL_DEFAULT   0xFF    // all axis involved, ac-coupled
 #define ADXL345_THRESH_FF_DEFAULT       0x09    // 563 mg
 #define ADXL345_TIME_FF_DEFAULT         0x20    // 160 ms
 #define ADXL345_TAP_AXES_DEFAULT        0x07    // all axis, no suppression
 
 #define ADXL345_BW_RATE_DEFAULT         (0x00|ADXL345_SRATE_100)   // 100 Hz, normal operation
-#define ADXL345_POWER_CTL_DEFAULT       0x08	  // no link, no autosleep, start normal measuring
+#define ADXL345_POWER_CTL_DEFAULT       0x28	  // link bit set, no autosleep, start normal measuring
 #define ADXL345_INT_ENABLE_DEFAULT      0x00    // no interrupts enabled
 #define ADXL345_INT_MAP_DEFAULT         0x00    // all mapped to int_1
 
@@ -134,7 +179,7 @@ void    accm_set_irq(uint8_t int1, uint8_t int2);
   reflected in the _read_axis() function. Also, the resolution can be increased
   from 10 bit to at most 13 bit, but this also changes position of MSB etc on data
   format so check this in read_axis() too. */
-#define ADXL345_DATA_FORMAT_DEFAULT     (0x00|ADXL345_RANGE_2G)    // right-justify, 4g, 10-bit mode, int is active high
+#define ADXL345_DATA_FORMAT_DEFAULT     (0x00|ADXL345_RANGE_2G)    // right-justify, 2g, 10-bit mode, int is active high
 #define ADXL345_FIFO_CTL_DEFAULT        0x00    // FIFO bypass mode
 
 /* -------------------------------------------------------------------------- */
@@ -207,7 +252,11 @@ void    accm_set_irq(uint8_t int1, uint8_t int2);
 
 
 /* The adxl345 has programmable sample rates, but unexpected results may occur if the wrong 
-  rate and I2C bus speed is used (see datasheet p 17). Sample rates in Hz.
+  rate and I2C bus speed is used (see datasheet p 17). Sample rates in Hz. This
+  setting does not change the internal sampling rate, just how often it is piped
+  to the output registers (ie the interrupt features use the full sample rate
+  internally).
+
   Example use:
     adxl345_set_reg(ADXL345_BW_RATE, ((_ADXL345_STATUS & LOW_POWER) | ADXL345_SRATE_50));
   */
@@ -231,10 +280,6 @@ void    accm_set_irq(uint8_t int1, uint8_t int2);
 /* Callback pointers for the interrupts */
 void (*accm_int1_cb)(u8_t reg);
 void (*accm_int2_cb)(u8_t reg);
-
-/* Macros for setting the callback pointers */
-#define ACCM_REGISTER_INT1_CB(ptr)   accm_int1_cb = ptr;
-#define ACCM_REGISTER_INT2_CB(ptr)   accm_int2_cb = ptr;
 
 /* Interrupt 1 and 2 events; ADXL345 signals interrupt on INT1 or INT2 pins,
   ISR is invoked and polls the accelerometer process which invokes the callbacks. */
