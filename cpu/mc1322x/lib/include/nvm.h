@@ -30,13 +30,13 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: nvm.h,v 1.2 2010/11/10 22:06:28 maralvira Exp $
+ * $Id: nvm.h,v 1.3 2010/11/10 22:12:29 maralvira Exp $
  */
 
 #ifndef NVM_H
 #define NVM_H
 
-#include "stdint.h"
+#include <stdint.h>
 
 typedef enum
 {
