@@ -36,7 +36,7 @@
 #ifndef CRM_H
 #define CRM_H
 
-#include <types.h>
+#include <stdint.h>
 
 #define CRM_BASE         (0x80003000)
 

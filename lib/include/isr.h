@@ -36,6 +36,8 @@
 #ifndef ISR_H
 #define ISR_H
 
+#include <stdint.h>
+
 #define INTBASE        (0x80020000)
 
 /* Structure-based ITC access */

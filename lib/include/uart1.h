@@ -36,7 +36,7 @@
 #ifndef UART1_H
 #define UART1_H
 
-#include <types.h>
+#include <stdint.h>
 
 #define UCON      (0)
 /* UCON bits */

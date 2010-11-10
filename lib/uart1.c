@@ -34,7 +34,7 @@
  */
 
 #include <mc1322x.h>
-#include <types.h>
+#include <stdint.h>
 
 volatile char u1_tx_buf[64];
 volatile uint32_t u1_head, u1_tail;

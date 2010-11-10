@@ -70,7 +70,7 @@
 #include <string.h>
 
 #include <mc1322x.h>
-#include <types.h>
+#include <stdint.h>
 
 #define __putc(x) uart1_putc(x)
 

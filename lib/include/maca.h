@@ -37,7 +37,7 @@
 #define _MACA_H_
 
 #include <packet.h>
-#include <types.h>
+#include <stdint.h>
 #include <utils.h>
 
 /* maca initialization and on off routines */

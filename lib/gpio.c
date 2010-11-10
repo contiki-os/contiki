@@ -34,7 +34,7 @@
  */
 
 #include <mc1322x.h>
-#include <types.h>
+#include <stdint.h>
 
 inline void gpio_pad_dir(volatile uint64_t data) 
 {
