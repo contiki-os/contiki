@@ -30,11 +30,11 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: default_lowlevel.c,v 1.1 2010/06/10 14:49:31 maralvira Exp $
+ * $Id: default_lowlevel.c,v 1.2 2010/11/10 22:09:23 maralvira Exp $
  */
 
 #include <mc1322x.h>
-#include <types.h>
+#include <stdint.h>
 
 void default_vreg_init(void) {
 	volatile uint32_t i;

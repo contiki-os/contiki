@@ -30,13 +30,13 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: crm.h,v 1.5 2010/11/07 14:42:31 maralvira Exp $
+ * $Id: crm.h,v 1.6 2010/11/10 22:06:28 maralvira Exp $
  */
 
 #ifndef CRM_H
 #define CRM_H
 
-#include <types.h>
+#include <stdint.h>
 
 #define CRM_BASE         (0x80003000)
 

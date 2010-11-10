@@ -30,13 +30,12 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: mc1322x.h,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: mc1322x.h,v 1.2 2010/11/10 22:06:28 maralvira Exp $
  */
 
 #ifndef MC1322X_H
 #define MC1322X_H
 
-#include "types.h"
 #include "isr.h"
 #include "gpio.h"
 #include "crm.h"

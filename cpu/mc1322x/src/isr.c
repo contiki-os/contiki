@@ -30,11 +30,11 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: isr.c,v 1.4 2010/11/07 14:27:01 maralvira Exp $
+ * $Id: isr.c,v 1.5 2010/11/10 22:09:23 maralvira Exp $
  */
 
 #include <mc1322x.h>
-#include <types.h>
+#include <stdint.h>
 
 static void (*tmr_isr_funcs[4])(void) = {
 	tmr0_isr,
