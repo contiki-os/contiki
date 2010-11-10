@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.35 2010/10/13 08:33:22 fros4943 Exp $
+ * $Id: LogListener.java,v 1.36 2010/11/10 13:03:49 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -129,6 +129,7 @@ public class LogListener extends VisPlugin {
   private Simulation simulation;
 
   private JTextField filterTextField = null;
+  private JLabel filterLabel = new JLabel("Filter: ");
   private Color filterTextFieldBackground;
 
   private AbstractTableModel model;
@@ -137,6 +138,12 @@ public class LogListener extends VisPlugin {
 
   private boolean backgroundColors = false;
   private JCheckBoxMenuItem colorCheckbox;
+
+  private boolean inverseFilter = false;
+  private JCheckBoxMenuItem inverseFilterCheckbox;
+
+  private boolean hideDebug = false;
+  private JCheckBoxMenuItem hideDebugCheckbox;
   
   private static final int UPDATE_INTERVAL = 250;
   private UpdateAggregator<LogData> logUpdateAggregator = new UpdateAggregator<LogData>(UPDATE_INTERVAL) {
@@ -188,10 +195,7 @@ public class LogListener extends VisPlugin {
       private static final long serialVersionUID = 3065150390849332924L;
       public String getColumnName(int col) {
       	if (col == COLUMN_TIME && formatTimeString) {
-      		if (hasHours) {
-      			return "Time hh:mm:ss";
-      		}
-    			return "Time mm:ss";
+    			return "Time";
       	}
         return COLUMN_NAMES[col];
       }
@@ -358,6 +362,29 @@ public class LogListener extends VisPlugin {
         repaint();
       }
     });
+    hideDebugCheckbox = new JCheckBoxMenuItem("Hide \"DEBUG: \" messages");
+    popupMenu.add(hideDebugCheckbox);
+    hideDebugCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        hideDebug = hideDebugCheckbox.isSelected();
+        setFilter(getFilter());
+        repaint();
+      }
+    });
+    inverseFilterCheckbox = new JCheckBoxMenuItem("Inverse filter");
+    popupMenu.add(inverseFilterCheckbox);
+    inverseFilterCheckbox.addActionListener(new ActionListener() {
+    	public void actionPerformed(ActionEvent e) {
+    		inverseFilter = inverseFilterCheckbox.isSelected();
+    		if (inverseFilter) {
+    			filterLabel.setText("Exclude:");
+    		} else {
+    			filterLabel.setText("Filter:");
+    		}
+        setFilter(getFilter());
+    		repaint();
+    	}
+    });
 
     
     logTable.setComponentPopupMenu(popupMenu);
@@ -419,7 +446,7 @@ public class LogListener extends VisPlugin {
     filterTextField = new JTextField("");
     filterTextFieldBackground = filterTextField.getBackground();
     filterPanel.add(Box.createHorizontalStrut(2));
-    filterPanel.add(new JLabel("Filter: "));
+    filterPanel.add(filterLabel);
     filterPanel.add(filterTextField);
     filterTextField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -489,6 +516,14 @@ public class LogListener extends VisPlugin {
       element = new Element("coloring");
       config.add(element);
     }
+    if (hideDebug) {
+      element = new Element("hidedebug");
+      config.add(element);
+    }
+    if (inverseFilter) {
+    	element = new Element("inversefilter");
+    	config.add(element);
+    }
     return config;
   }
 
@@ -505,6 +540,12 @@ public class LogListener extends VisPlugin {
       } else if ("coloring".equals(name)) {
         backgroundColors = true;
         colorCheckbox.setSelected(true);
+      } else if ("hidedebug".equals(name)) {
+        hideDebug = true;
+        hideDebugCheckbox.setSelected(true);
+      } else if ("inversefilter".equals(name)) {
+      	inverseFilter = true;
+      	inverseFilterCheckbox.setSelected(true);
       } else if ("formatted_time".equals(name)) {
       	formatTimeString = true;
       	repaintTimeColumn();
@@ -522,14 +563,35 @@ public class LogListener extends VisPlugin {
     filterTextField.setText(str);
 
     try {
+    	final RowFilter<Object,Object> regexp;
       if (str != null && str.length() > 0) {
-        logFilter.setRowFilter(RowFilter.regexFilter(str, COLUMN_FROM, COLUMN_DATA, COLUMN_CONCAT));
+      	regexp = RowFilter.regexFilter(str, COLUMN_FROM, COLUMN_DATA, COLUMN_CONCAT);
       } else {
-        logFilter.setRowFilter(null);
+      	regexp = null;
       }
+    	RowFilter<Object, Object> wrapped = new RowFilter<Object, Object>() {
+    		public boolean include(RowFilter.Entry<? extends Object, ? extends Object> entry) {
+    			if (regexp != null) {
+    				boolean pass = regexp.include(entry);
+    				if (inverseFilter && pass) {
+    					return false;
+    				} else if (!inverseFilter && !pass) {
+    					return false;
+    				}
+    			}
+    			if (hideDebug) {
+    				if (entry.getStringValue(COLUMN_DATA).startsWith("DEBUG: ")) {
+    					return false;
+    				}
+    			}
+    			return true;
+    		}
+    	};
+      logFilter.setRowFilter(wrapped);
       filterTextField.setBackground(filterTextFieldBackground);
       filterTextField.setToolTipText(null);
     } catch (PatternSyntaxException e) {
+      logFilter.setRowFilter(null);
       filterTextField.setBackground(Color.red);
       filterTextField.setToolTipText("Syntax error in regular expression: " + e.getMessage());
     }
@@ -591,6 +653,8 @@ public class LogListener extends VisPlugin {
 
     public void actionPerformed(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
+      File suggest = new File(GUI.getExternalToolsSetting("LOG_LISTENER_SAVEFILE", "loglistener.txt"));
+      fc.setSelectedFile(suggest);
       int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
       if (returnVal != JFileChooser.APPROVE_OPTION) {
         return;
@@ -611,6 +675,7 @@ public class LogListener extends VisPlugin {
         }
       }
 
+      GUI.setExternalToolsSetting("LOG_LISTENER_SAVEFILE", saveFile.getPath());
       if (saveFile.exists() && !saveFile.canWrite()) {
         logger.fatal("No write access to file: " + saveFile);
         return;
