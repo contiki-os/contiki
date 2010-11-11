@@ -8,7 +8,7 @@ enables you to set up a route-over 6LowPAN network.
 This tutorial will show you how to run Contiki's RPL demos on Redwire
 Econotags. 
 
-1). Obtain Redwire Econotags, or other mc1322x hardware.
+1) Obtain Redwire Econotags, or other mc1322x hardware.
 ---------------------------------------------------------------
 
 See [the mc1322x hardware](http://mc1322x.devl.org/hardware.html) for
@@ -21,7 +21,7 @@ all the necessary pins to load, erase, and reset the mc13224v. The
 other port is connected to the JTAG pins for run-time debugging. **No
 other programming hardware is necessary. Just your computer!**
 
-2). Get a toolchain, and Contiki source.
+2) Get a toolchain, and Contiki source.
 ----------------------------------------
 
 Everything you need is in [Instant Contiki
@@ -38,10 +38,10 @@ Development of the mc1322x port occurs in a different branch from the
 main Contiki CVS repository. The most current mc1322x contiki port can be found here:
 [contik-mc1322x.git](http://git.devl.org/?p=malvira/contiki-mc1322x.git)
 
-3). Build the border-router and rpl-udp
+3) Build the border-router and rpl-udp
 ---------------------------------------
 
-The RPL demo consists of a "Border router" and at least on other RPL
+The RPL demo consists of a "Border router" and at least one other RPL
 enabled node. For this tutorial, the border router creates a RPL DAG
 and is the ROOT. The other node will be a RPL udp-client. It joins the
 RPL network, acts as an RPL router, and sends a UDP datagram to a
@@ -68,7 +68,7 @@ To build the udp-client, do:
 
 which will build 'udp-client_redbee-econotag.bin'.
 
-4). Load the binaries on the the Econotags:
+4) Load the binaries on the Econotags:
 -------------------------------------------
 
 ### a) Run the econotags with randomized MAC addresses (random, but persistent)
@@ -89,7 +89,7 @@ you haven't programmed one in:
     fe80:0000:0000:0000:0250:c2ff:fea8:c266
     Tentative global IPv6 address aaaa:0000:0000:0000:0250:c2ff:fea8:c266
 
-This mac address is used to derive it's IPv6 address. In this example,
+This mac address is used to derive its IPv6 address. In this example,
 it's aaaa::0250:c2ff:fea8:c266.
 
 The border router connects to your computer over a SLIP tunnel formed
@@ -126,8 +126,7 @@ libmc1322x. See:
 
 Then to flash the MAC address you can do:
 
-    mc1322x-load.pl -e -f flasher_redbee-econotag.bin -z -t /dev/ttyUSB1  
-    -c 'bbmc -l redbee-econotag reset' 0x1e000,0xABC25000,0x010000C0 
+    mc1322x-load.pl -e -f flasher_redbee-econotag.bin -z -t /dev/ttyUSB1 -c 'bbmc -l redbee-econotag reset' 0x1e000,0xABC25000,0x010000C0
 
 + -z to indicate you are sending a zero length binary to flasher. 
 + -e causes mc1322x-load.pl to exit when it's done, instead of 
@@ -166,7 +165,7 @@ The RPL border-router serves a webpage that displays the known
 neighbors and the known routes to all the node on the DAG. In firefox,
 you can type in the following to go to a IPv6 address:
 
-    http://[address aaaa:0000:0000:0000:0250:c2ff:fea8:c266]
+    http://[aaaa:0000:0000:0000:0250:c2ff:fea8:c266]
 
 #### Neighbors
 fe80::250:c2ff:fea8:cbf4
