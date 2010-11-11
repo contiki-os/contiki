@@ -59,6 +59,13 @@ If the slider value is non-zero, sleep events are scheduled in the simulation lo
 The <i>Real time</i> slider value is to the right of <i>No simulation delay</i>: select the slider button and use to keyboard to navigate here. \
 <p><i>Run until</i> can be used to configure a time (in milliseconds) where the simulation will automatically pause.
 
+se.sics.cooja.mspmote.plugins.MspCLI = \
+<b>MSPSim's Command Line Interface</b>\
+<br><br>help<br><i>lists available commands</i>\
+<br><br>info CC2420<br><i>shows radio chip details</i>\
+<br><br>log CC2420 > mylog.txt<br><i>logs radio chip details to file</i>\
+<br><br>stacktrace<br><i>shows current stacktrace</i>
+
 KEYBOARD_SHORTCUTS = \
 <b>Keyboard shortcuts</b><br>\
 <br><i>Ctrl+N:</i> New simulation\
