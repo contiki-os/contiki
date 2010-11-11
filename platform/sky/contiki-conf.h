@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.88 2010/11/02 11:06:01 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.89 2010/11/11 13:56:02 fros4943 Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -87,8 +87,13 @@
 #define ENERGEST_CONF_ON 1
 
 #define ELFLOADER_CONF_TEXT_IN_ROM 0
+#ifndef ELFLOADER_CONF_DATAMEMORY_SIZE
 #define ELFLOADER_CONF_DATAMEMORY_SIZE 0x400
+#endif /* ELFLOADER_CONF_DATAMEMORY_SIZE */
+#ifndef ELFLOADER_CONF_TEXTMEMORY_SIZE
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x800
+#endif /* ELFLOADER_CONF_TEXTMEMORY_SIZE */
+
 
 #define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32
