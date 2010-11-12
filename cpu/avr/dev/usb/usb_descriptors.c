@@ -344,8 +344,7 @@ FLASH S_usb_device_descriptor usb_dev_desc_composite =
 , USB_STRING_MAN
 , USB_STRING_PRODUCT
 , USB_STRING_SERIAL
-, sizeof(usb_dev_config_order)
-//, (sizeof(usb_dev_config_order)/sizeof(*usb_dev_config_order)) //TODO:was this right?
+, (sizeof(usb_dev_config_order)/sizeof(*usb_dev_config_order)) //sizeof(*) is sizeof first element
 };
 
 
