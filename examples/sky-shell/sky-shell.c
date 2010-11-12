@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.26 2010/10/20 15:22:11 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.27 2010/11/12 13:17:45 nifi Exp $
  */
 
 /**
@@ -43,43 +43,30 @@
 #include "serial-shell.h"
 #include "collect-view.h"
 
-#include "net/rime/collect-neighbor.h"
-#include "dev/watchdog.h"
-
 #include "net/rime.h"
-#include "net/rime/broadcast-announcement.h"
-#include "dev/cc2420.h"
-#include "dev/leds.h"
-#include "dev/light-sensor.h"
-#include "dev/battery-sensor.h"
-#include "dev/sht11-sensor.h"
-
-#include "net/rime/timesynch.h"
-
-
-#include <stdio.h>
-#include <string.h>
-
-#include <io.h>
-#include <signal.h>
 
 /*---------------------------------------------------------------------------*/
 PROCESS(sky_shell_process, "Sky Contiki shell");
 AUTOSTART_PROCESSES(&sky_shell_process);
 /*---------------------------------------------------------------------------*/
+#define WITH_PERIODIC_DEBUG 0
+#if WITH_PERIODIC_DEBUG
+static struct ctimer debug_timer;
 static void
 periodic_debug(void *ptr)
 {
-  ctimer_set(ptr, 20 * CLOCK_SECOND, periodic_debug, ptr);
+  ctimer_set(&debug_timer, 20 * CLOCK_SECOND, periodic_debug, NULL);
   collect_print_stats();
 }
+#endif /* WITH_PERIODIC_DEBUG */
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(sky_shell_process, ev, data)
 {
-  static struct ctimer c;
   PROCESS_BEGIN();
 
-  /*  ctimer_set(&c, 20 * CLOCK_SECOND, periodic_debug, &c);*/
+#if WITH_PERIODIC_DEBUG
+  ctimer_set(&debug_timer, 20 * CLOCK_SECOND, periodic_debug, NULL);
+#endif /* WITH_PERIODIC_DEBUG */
 
   serial_shell_init();
   shell_blink_init();
