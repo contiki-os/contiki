@@ -123,7 +123,9 @@ init_lowlevel(void)
   eeprom_read_block ((void *)&addr.u8,  &mac_address, 8);
   AVR_LEAVE_CRITICAL_REGION();
  
-  memcpy(&uip_lladdr.addr, &addr.u8, 8);	
+#if UIP_CONF_IPV6
+  memcpy(&uip_lladdr.addr, &addr.u8, 8);
+#endif  
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
   rf230_set_channel(24);
 

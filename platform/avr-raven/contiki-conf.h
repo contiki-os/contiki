@@ -73,9 +73,18 @@
 
 #define RIMEADDR_CONF_SIZE       8
 
+//define UIP_CONF_IPV6            1 //Let the makefile do this, allows hello-world to compile
+#if UIP_CONF_IPV6
+#define UIP_CONF_ICMP6           1
+#define UIP_CONF_UDP             1
+#define UIP_CONF_TCP             1
+#define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
+#else
+#define NETSTACK_CONF_NETWORK     rime_driver
+#endif
 
-/* RF230BB must be used with low power protocols */
+/* The new NETSTACK interface requires RF230BB */
 #if RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC  1     //for barebones driver, sicslowpan calls radio->read function
 #undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
@@ -88,7 +97,7 @@
 #if 1  /* Network setup */
 
 /* No radio cycling */
-#define NETSTACK_CONF_NETWORK     sicslowpan_driver
+
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         sicslowmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -103,7 +112,6 @@
 
 #elif 0
 /* Contiki-mac radio cycling */
-#define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -113,7 +121,6 @@
 
 #elif 0
 /* cx-mac radio cycling */
-#define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         cxmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -149,7 +156,6 @@
 #define UIP_CONF_IP_FORWARD      0
 #define UIP_CONF_FWCACHE_SIZE    0
 
-#define UIP_CONF_IPV6            1
 #define UIP_CONF_IPV6_CHECKS     1
 #define UIP_CONF_IPV6_QUEUE_PKT  1
 #define UIP_CONF_IPV6_REASSEMBLY 0
@@ -157,12 +163,8 @@
 #define UIP_CONF_ND6_MAX_PREFIXES     3
 #define UIP_CONF_ND6_MAX_NEIGHBORS    4  
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
-#define UIP_CONF_ICMP6           1
 
-#define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
-
-#define UIP_CONF_TCP             1
 #define UIP_CONF_TCP_SPLIT       1
 
 #if 0    /* RPL */
