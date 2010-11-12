@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.2 2010/11/12 00:12:55 nifi Exp $
+ * $Id: CollectServer.java,v 1.3 2010/11/12 17:03:43 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/11/12 00:12:55 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/11/12 17:03:43 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect;
@@ -250,6 +250,7 @@ public class CollectServer implements SerialConnectionListener {
     NodeControl nodeControl = new NodeControl(this, MAIN);
 
     visualizers = new Visualizer[] {
+        nodeControl,
         mapPanel,
         new MapPanel(this, "Network Graph", MAIN, false),
         new BarChartPanel(this, SENSORS, "Average Temperature", "Temperature", "Nodes", "Celsius",
@@ -563,7 +564,6 @@ public class CollectServer implements SerialConnectionListener {
           }
         },
         new NodeInfoPanel(this, MAIN),
-        nodeControl,
         serialConsole
     };
     for (int i = 0, n = visualizers.length; i < n; i++) {
