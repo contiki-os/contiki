@@ -15,7 +15,8 @@
   </target>
 
   <target name="compile" depends="init">
-    <javac srcdir="${java}" destdir="${build}" debug="true">
+    <javac srcdir="${java}" destdir="${build}" debug="true"
+           includeantruntime="false">
       <classpath>
         <fileset dir="${lib}">
           <include name="**/*.jar"/>
@@ -24,7 +25,20 @@
     </javac>
   </target>
 
-  <target name="dist" depends="compile">
+  <condition property="sky-shell.exists">
+    <available file="${dist}/sky-shell.ihex"/>
+  </condition>
+
+  <target name="sky-shell.ihex" unless="sky-shell.exists">
+    <mkdir dir="${dist}"/>
+    <exec dir="${contiki}/examples/sky-shell" executable="make">
+      <arg value="TARGET=sky"/>
+      <arg value="sky-shell.ihex"/>
+    </exec>
+    <copy todir="${dist}" file="${contiki}/examples/sky-shell/sky-shell.ihex"/>
+  </target>
+
+  <target name="dist" depends="compile,sky-shell.ihex">
     <mkdir dir="${dist}"/>
     <jar destfile="${dist}/${archive}" basedir="${build}">
       <manifest>
@@ -33,7 +47,6 @@
       </manifest>
     </jar>
     <copy todir="${dist}" file="collect-init.script"/>
-    <copy todir="${dist}" file="sky-shell.ihex"/>
     <mkdir dir="${dist}/lib"/>
     <copy todir="${dist}/lib">
       <fileset dir="${lib}">
