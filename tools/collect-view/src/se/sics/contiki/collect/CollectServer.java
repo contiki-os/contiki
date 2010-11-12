@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.3 2010/11/12 17:03:43 nifi Exp $
+ * $Id: CollectServer.java,v 1.4 2010/11/12 17:52:02 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/11/12 17:03:43 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2010/11/12 17:52:02 $
+ *           $Revision: 1.4 $
  */
 
 package se.sics.contiki.collect;
@@ -890,6 +890,10 @@ public class CollectServer implements SerialConnectionListener {
 
   public String getConfig(String property, String defaultValue) {
     return configTable.getProperty(property, config.getProperty(property, defaultValue));
+  }
+
+  public void setConfig(String property, String value) {
+    configTable.setProperty(property, value);
   }
 
   public void removeConfig(String property) {
