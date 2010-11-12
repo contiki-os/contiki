@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
+ * $Id: CollectServer.java,v 1.2 2010/11/12 00:12:55 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/11/03 14:53:05 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/11/12 00:12:55 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect;
@@ -810,6 +810,10 @@ public class CollectServer implements SerialConnectionListener {
     window.setVisible(false);
   }
 
+  public void setUseSensorDataLog(boolean useSensorLog) {
+    this.isSensorLogUsed = useSensorLog;
+  }
+
   public void setExitOnRequest(boolean doExit) {
     this.doExitOnRequest = doExit;
     if (exitItem != null) {
@@ -886,6 +890,10 @@ public class CollectServer implements SerialConnectionListener {
 
   public String getConfig(String property, String defaultValue) {
     return configTable.getProperty(property, config.getProperty(property, defaultValue));
+  }
+
+  public void removeConfig(String property) {
+    configTable.remove(property);
   }
 
   public int getDefaultMaxItemCount() {
@@ -1229,6 +1237,13 @@ public class CollectServer implements SerialConnectionListener {
       for(Visualizer v : visualizers) {
         v.nodesSelected(null);
         v.clearNodeData();
+      }
+    }
+    // Remove any saved node positions
+    for(String key: configTable.keySet().toArray(new String[0])) {
+      String property = key.toString();
+      if (!property.startsWith("collect")) {
+        configTable.remove(property);
       }
     }
   }
