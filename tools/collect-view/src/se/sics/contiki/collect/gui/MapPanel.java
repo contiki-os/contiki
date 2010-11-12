@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MapPanel.java,v 1.2 2010/11/12 00:12:56 nifi Exp $
+ * $Id: MapPanel.java,v 1.3 2010/11/12 17:52:02 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/11/12 00:12:56 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/11/12 17:52:02 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -567,6 +567,9 @@ public class MapPanel extends JPanel implements Configurable, Visualizer, Action
         popupNode.hasFixedLocation = lockedItem.isSelected();
         if (wasFixed && !popupNode.hasFixedLocation) {
           server.removeConfig("collect.map." + popupNode.node.getID());
+        } else if (!wasFixed && popupNode.hasFixedLocation) {
+          server.setConfig("collect.map." + popupNode.node.getID(),
+                           "" + popupNode.x + ',' + popupNode.y);
         }
         repaint();
       }
@@ -837,12 +840,6 @@ public class MapPanel extends JPanel implements Configurable, Visualizer, Action
     if (isMap) {
       for (MapNode n : getNodeList()) {
         config.put(n.node.getID(), "" + n.x + ',' + n.y);
-      }
-    } else {
-      for (MapNode n : getNodeList()) {
-        if (n.hasFixedLocation) {
-          config.put("collect.map." + n.node.getID(), "" + n.x + ',' + n.y);
-        }
       }
     }
   }
