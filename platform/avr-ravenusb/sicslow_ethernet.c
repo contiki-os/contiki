@@ -425,8 +425,11 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
     mac_translateIPLinkLayer(ll_802154_type);
 #endif
   }
-	
+#if UIP_CONF_IPV6	//allow non-ipv6 builds (Hello World)
   tcpip_output(destAddrPtr);
+#else
+  tcpip_output();
+#endif
 #if !RF230BB
   usb_eth_stat.txok++;
 #endif
@@ -664,7 +667,9 @@ int8_t mac_translateIcmpLinkLayer(lltype_t target)
 
       //We broke ICMP checksum, be sure to fix that
       UIP_ICMP_BUF->icmpchksum = 0;
-      UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum(); 
+#if UIP_CONF_IPV6   //allow non ipv6 builds
+      UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+#endif
 
       //Finally set up next run in while loop
       len -= 8 * UIP_ICMP_OPTS(icmp_opt_offset)->length;

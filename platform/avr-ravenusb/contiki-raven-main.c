@@ -368,7 +368,10 @@ static void initialize(void) {
   //Fix MAC address
   init_net();
 
+#if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &tmp_addr.u8, 8);
+#endif
+
   rf230_set_pan_addr(
 	get_panid_from_eeprom(),
 	get_panaddr_from_eeprom(),

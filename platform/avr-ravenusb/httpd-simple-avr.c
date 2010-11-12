@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: httpd-simple-avr.c,v 1.3 2010/10/23 15:26:46 dak664 Exp $
+ * $Id: httpd-simple-avr.c,v 1.4 2010/11/12 20:49:03 dak664 Exp $
  */
 
 /**
@@ -244,8 +244,11 @@ ipaddr_add(const uip_ipaddr_t *addr)
 /*---------------------------------------------------------------------------*/
 char TOP[] PROGMEM = "<html><head><title>ContikiRPL(Jackdaw)</title></head><body>\n";
 char BOTTOM[] PROGMEM = "</body></html>\n";
+#if UIP_CONF_IPV6
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
+#endif
+
 static
 PT_THREAD(generate_routes(struct httpd_state *s))
 {
@@ -256,6 +259,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 
   blen = 0;
   ADD("<h2>Neighbors</h2>");
+#if UIP_CONF_IPV6
   for(i = 0; i < UIP_DS6_NBR_NB; i++) {
     if(uip_ds6_nbr_cache[i].isused) {
       ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
@@ -266,10 +270,12 @@ PT_THREAD(generate_routes(struct httpd_state *s))
       }
     }
   }
+#endif
 
   ADD("<h2>Routes</h2>");
   PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
   blen = 0;
+#if UIP_CONF_IPV6 
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(uip_ds6_routing_table[i].isused) {
       ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
@@ -284,6 +290,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
       blen = 0;
     }
   }
+#endif
   if(blen > 0) {
 	PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
     blen = 0;
@@ -293,6 +300,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 
   PSOCK_END(&s->sout);
 }
+
 /*---------------------------------------------------------------------------*/
 httpd_simple_script_t
 httpd_simple_get_script(const char *name)

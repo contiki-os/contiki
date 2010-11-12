@@ -152,6 +152,17 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 //#pragma mark UIP Settings
 /* ************************************************************************** */
 
+//define UIP_CONF_IPV6            1 //Let the makefile do this, allows hello-world to compile
+#if UIP_CONF_IPV6
+#define UIP_CONF_ICMP6           1
+#define UIP_CONF_UDP             1
+#define UIP_CONF_TCP             1
+#define NETSTACK_CONF_NETWORK     sicslowpan_driver
+#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
+#else
+#define NETSTACK_CONF_NETWORK     rime_driver
+#endif
+
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         14
 #define UIP_CONF_BUFSIZE		UIP_LINK_MTU + UIP_LLH_LEN + 4   // +4 for vlan on macosx
@@ -162,7 +173,6 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_IP_FORWARD      0
 #define UIP_CONF_FWCACHE_SIZE    0
 
-#define UIP_CONF_IPV6            1
 #define UIP_CONF_IPV6_CHECKS     1
 #define UIP_CONF_IPV6_QUEUE_PKT  0
 #define UIP_CONF_IPV6_REASSEMBLY 0
@@ -171,10 +181,8 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_ND6_MAX_NEIGHBORS    4
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
 
-#define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 
-#define UIP_CONF_TCP             1
 #define UIP_CONF_TCP_SPLIT       1
 
 #define UIP_CONF_STATISTICS      1
@@ -230,7 +238,6 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 
 #if 1       /* Network setup */
 /* No radio cycling */
-#define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         sicslowmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -244,7 +251,6 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 
 #elif 0
 /* Contiki-mac radio cycling */
-#define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -254,7 +260,6 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 
 #elif 1
 /* cx-mac radio cycling */
-#define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         cxmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -289,51 +294,42 @@ or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenu
 #define UIP_CONF_ROUTER  1
 #define RPL_CONF_STATS    0
 #define PROCESS_CONF_NO_PROCESS_NAMES  0
-#undef UIP_CONF_TCP            //TCP needed to serve RPL neighbor web page
-#define UIP_CONF_TCP             1
+//#undef UIP_CONF_TCP            //TCP needed to serve RPL neighbor web page
+//#define UIP_CONF_TCP             1
 //#undef UIP_FALLBACK_INTERFACE
-#define UIP_FALLBACK_INTERFACE rpl_interface
-#undef UIP_CONF_MAX_CONNECTIONS
-#define UIP_CONF_MAX_CONNECTIONS 1
+//#define UIP_FALLBACK_INTERFACE rpl_interface
+//#undef UIP_CONF_MAX_CONNECTIONS
+//#define UIP_CONF_MAX_CONNECTIONS 1
 //#undef UIP_CONF_MAX_LISTENPORTS
 //#define UIP_CONF_MAX_LISTENPORTS 10
 //#define UIP_CONF_BUFFER_SIZE 256
-#define UIP_CONF_TCP_MSS         512
+//#define UIP_CONF_TCP_MSS         512
+//#define UIP_CONF_ND6_SEND_RA		0 error in uip-nd6.c
 
-#if 0  //too much RAM!
-/* Handle 10 neighbors */
+
 #define UIP_CONF_DS6_NBR_NBU     10
-/* Handle 10 routes    */
 #define UIP_CONF_DS6_ROUTE_NBU   10
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
-#undef UIP_CONF_IPV6_QUEUE_PKT
-#define UIP_CONF_IPV6_QUEUE_PKT         1
-//#define UIP_CONF_IPV6_CHECKS            1
-#define UIP_CONF_NETIF_MAX_ADDRESSES    3
-#define UIP_CONF_ND6_MAX_PREFIXES       3
-#define UIP_CONF_ND6_MAX_NEIGHBORS      4
-#define UIP_CONF_ND6_MAX_DEFROUTERS     2
-#define UIP_CONF_IP_FORWARD             0
-#define UIP_CONF_BUFFER_SIZE		240
-#define UIP_CONF_ICMP_DEST_UNREACH 1
-#define UIP_CONF_DHCP_LIGHT
 
-#undef UIP_CONF_LLH_LEN
-#define UIP_CONF_LLH_LEN         0
+//#define UIP_CONF_BUFFER_SIZE		1300
+
+#define UIP_CONF_ICMP_DEST_UNREACH 1
+
+#define UIP_CONF_DHCP_LIGHT
+//#define UIP_CONF_LLH_LEN         0
 //#define UIP_CONF_RECEIVE_WINDOW  48
 //#define UIP_CONF_TCP_MSS         48
-#undef UIP_CONF_UDP_CONNS
 #define UIP_CONF_UDP_CONNS       12
 #undef UIP_CONF_FWCACHE_SIZE
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
-#define UIP_ARCH_IPCHKSUM        1
+//#define UIP_ARCH_IPCHKSUM        1
 #define UIP_CONF_PINGADDRCONF    0
 #define UIP_CONF_LOGGING         0
-#endif
+
 #endif /* UIP_CONF_IPV6_RPL */
 #endif /* RF230BB */
 
