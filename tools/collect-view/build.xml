@@ -6,31 +6,47 @@
   <property name="lib" location="lib"/>
   <property name="dist" location="dist"/>
   <property name="contiki" location="../.."/>
-  <property name="archive" value="collect-demo.jar"/>
+  <property name="archive" value="collect-view.jar"/>
   <property name="main" value="se.sics.contiki.collect.CollectServer"/>
+  <property name="args" value="" />
+
+  <path id="classpath">
+    <fileset dir="${lib}" includes="**/*.jar"/>
+  </path>
+
+  <manifestclasspath property="jar.classpath" jarfile="${archive}">
+    <classpath refid="classpath" />
+  </manifestclasspath>
 
   <target name="init">
     <tstamp/>
     <mkdir dir="${build}"/>
+    <mkdir dir="${dist}"/>
   </target>
 
   <target name="compile" depends="init">
-    <javac srcdir="${java}" destdir="${build}" debug="true"
-           includeantruntime="false">
-      <classpath>
-        <fileset dir="${lib}">
-          <include name="**/*.jar"/>
-        </fileset>
-      </classpath>
-    </javac>
+    <javac srcdir="${java}" destdir="${build}" classpathref="classpath"
+           debug="true" includeantruntime="false" />
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar destfile="${dist}/${archive}" basedir="${build}">
+      <manifest>
+        <attribute name="Main-Class" value="${main}"/>
+        <attribute name="Class-Path" value="${jar.classpath}" />
+      </manifest>
+    </jar>
+    <mkdir dir="${dist}/lib"/>
+    <copy todir="${dist}/lib">
+      <fileset dir="${lib}"/>
+    </copy>
   </target>
 
   <condition property="sky-shell.exists">
     <available file="${dist}/sky-shell.ihex"/>
   </condition>
 
-  <target name="sky-shell.ihex" unless="sky-shell.exists">
-    <mkdir dir="${dist}"/>
+  <target name="sky-shell.ihex" unless="sky-shell.exists" depends="init">
     <exec dir="${contiki}/examples/sky-shell" executable="make">
       <arg value="TARGET=sky"/>
       <arg value="sky-shell.ihex"/>
@@ -38,21 +54,8 @@
     <copy todir="${dist}" file="${contiki}/examples/sky-shell/sky-shell.ihex"/>
   </target>
 
-  <target name="dist" depends="compile,sky-shell.ihex">
-    <mkdir dir="${dist}"/>
-    <jar destfile="${dist}/${archive}" basedir="${build}">
-      <manifest>
-        <attribute name="Main-Class" value="${main}"/>
-        <attribute name="Class-Path" value="lib/jcommon-1.0.13.jar lib/jfreechart-1.0.10.jar"/>
-      </manifest>
-    </jar>
+  <target name="dist" depends="jar,sky-shell.ihex">
     <copy todir="${dist}" file="collect-init.script"/>
-    <mkdir dir="${dist}/lib"/>
-    <copy todir="${dist}/lib">
-      <fileset dir="${lib}">
-        <include name="**/*.jar"/>
-      </fileset>
-    </copy>
     <mkdir dir="${dist}/tools"/>
     <copy todir="${dist}/tools">
       <fileset dir="${contiki}/tools/sky"/>
@@ -62,7 +65,9 @@
   </target>
 
   <target name="run" depends="dist">
-    <java fork="yes" dir="${dist}" jar="${dist}/${archive}"/>
+    <java fork="yes" dir="${dist}" jar="${dist}/${archive}">
+      <arg line="${args}"/>
+    </java>
   </target>
 
   <target name="clean">
