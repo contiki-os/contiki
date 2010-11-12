@@ -2,6 +2,7 @@
 
 <project name="COOJA: CollectView" default="jar" basedir=".">
   <property name="cooja" value="../../dist/cooja.jar"/>
+  <property name="archive" value="cooja-collect-view.jar"/>
 
   <target name="init">
     <tstamp/>
@@ -17,12 +18,13 @@
   </target>
 
   <target name="clean" depends="init">
-    <delete dir="build" file="collect-view.jar"/>
+    <delete dir="build" file="${archive}"/>
   </target>
 
-  <target name="jar" depends="clean, init, compile">
-    <jar destfile="collect-view.jar" basedir="build" />
-    <ant antfile="build.xml" dir="../../../../tools/collect-view" target="dist" inheritAll="false"/>
+  <target name="jar" depends="compile">
+    <jar destfile="${archive}" basedir="build" />
+    <ant antfile="build.xml" dir="../../../../tools/collect-view" target="jar"
+         inheritAll="false"/>
   </target>
 
 </project>
