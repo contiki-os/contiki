@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectView.java,v 1.3 2010/11/10 20:46:57 adamdunkels Exp $
+ * $Id: CollectView.java,v 1.4 2010/11/12 16:50:38 nifi Exp $
  */
 package se.sics.cooja.plugins.collectview;
 import java.awt.BorderLayout;
@@ -116,7 +116,7 @@ public class CollectView extends VisPlugin implements MotePlugin, HasQuickHelp {
     }
 
     String contikiPath = GUI.getExternalToolsSetting("PATH_CONTIKI", "../../..");
-    String jarFile = contikiPath + "/tools/collect-view/dist/collect-demo.jar";
+    String jarFile = contikiPath + "/tools/collect-view/dist/collect-view.jar";
     if (!new File(jarFile).canRead()) {
       logger.fatal("Could not find the CollectView application:" + jarFile);
       if (GUI.isVisualized()) {
