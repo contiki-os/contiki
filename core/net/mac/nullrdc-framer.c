@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullrdc-framer.c,v 1.3 2010/06/14 19:19:17 adamdunkels Exp $
+ * $Id: nullrdc-framer.c,v 1.4 2010/11/12 12:53:16 nifi Exp $
  */
 
 /**
@@ -64,6 +64,16 @@
 #define ACK_WAIT_TIME                      RTIMER_SECOND / 2500
 #define AFTER_ACK_DETECTED_WAIT_TIME       RTIMER_SECOND / 1500
 #define ACK_LEN 3
+
+#if NULLRDC_FRAMER_802154_AUTOACK
+struct seqno {
+  rimeaddr_t sender;
+  uint8_t seqno;
+};
+
+#define MAX_SEQNOS 8
+static struct seqno received_seqnos[MAX_SEQNOS];
+#endif /* NULLRDC_FRAMER_802154_AUTOACK */
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -177,6 +187,28 @@ packet_input(void)
   if(NETSTACK_FRAMER.parse() == 0) {
     PRINTF("nullrdc_framer: failed to parse %u\n", packetbuf_datalen());
   } else {
+#if NULLRDC_FRAMER_802154_AUTOACK
+    /* Check for duplicate packet by comparing the sequence number
+       of the incoming packet with the last few ones we saw. */
+    int i;
+    for(i = 0; i < MAX_SEQNOS; ++i) {
+      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno &&
+         rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                      &received_seqnos[i].sender)) {
+        /* Drop the packet. */
+        PRINTF("nullrdc_framer: drop duplicate link layer packet %u\n",
+               packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
+        return;
+      }
+    }
+    for(i = MAX_SEQNOS - 1; i > 0; --i) {
+      memcpy(&received_seqnos[i], &received_seqnos[i - 1],
+             sizeof(struct seqno));
+    }
+    received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+    rimeaddr_copy(&received_seqnos[0].sender,
+                  packetbuf_addr(PACKETBUF_ADDR_SENDER));
+#endif /* NULLRDC_FRAMER_802154_AUTOACK */
     NETSTACK_MAC.input();
   }
 }
