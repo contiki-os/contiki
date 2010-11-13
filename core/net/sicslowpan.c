@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.48 2010/11/02 10:56:57 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.49 2010/11/13 16:37:42 dak664 Exp $
  */
 /**
  * \file
@@ -1336,7 +1336,7 @@ output(uip_lladdr_t *localdest)
      */
 
 
-    printf("Fragmentation sending packet len %d\n", uip_len);
+    PRINTFO("Fragmentation sending packet len %d\n", uip_len);
     
     /* Create 1st Fragment */
     PRINTFO("sicslowpan output: 1rst fragment ");
