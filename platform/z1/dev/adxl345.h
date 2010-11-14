@@ -62,6 +62,12 @@
 #define L_ON(x)    (LEDS_PxOUT &= ~x)
 #define L_OFF(x)   (LEDS_PxOUT |= x)
 
+//XXX Temporary place for defines that are lacking in mspgcc4's gpio.h
+#ifndef P1SEL2_
+  #define P1SEL2_             0x0041  /* Port 1 Selection 2 */
+  sfrb(P1SEL2, P1SEL2_);
+#endif
+
 /* Used in accm_read_axis(), eg accm_read_axis(X_AXIS);*/
 enum ADXL345_AXIS {
   X_AXIS = 0,
