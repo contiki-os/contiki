@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.11 2010/02/05 09:01:06 fros4943 Exp $
+ * $Id: ContikiCFS.java,v 1.12 2010/11/15 21:44:38 adamdunkels Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -70,7 +70,7 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
 public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, PolledAfterActiveTicks {
   private static Logger logger = Logger.getLogger(ContikiCFS.class);
 
-  public int FILESYSTEM_SIZE = 1000; /* Configure CFS size here and in cfs-cooja.c */
+  public int FILESYSTEM_SIZE = 4000; /* Configure CFS size here and in cfs-cooja.c */
   private Mote mote = null;
   private SectionMoteMemory moteMem = null;
 
