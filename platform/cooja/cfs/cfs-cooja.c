@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cfs-cooja.c,v 1.11 2010/02/05 08:59:51 fros4943 Exp $
+ * $Id: cfs-cooja.c,v 1.12 2010/11/15 21:44:37 adamdunkels Exp $
  */
 #include <string.h>
 #include "lib/simEnvChange.h"
@@ -49,7 +49,7 @@ static struct filestate file;
 const struct simInterface cfs_interface;
 
 // COOJA variables
-#define CFS_BUF_SIZE 1000 /* Configure CFS size here and in ContikiCFS.java */
+#define CFS_BUF_SIZE 4000 /* Configure CFS size here and in ContikiCFS.java */
 char simCFSData[CFS_BUF_SIZE] = { 0 };
 char simCFSChanged = 0;
 int simCFSRead = 0;
@@ -102,6 +102,7 @@ cfs_write(int f, const void *buf, unsigned int len)
 	if(file.flag == FLAG_FILE_OPEN && file.access & CFS_WRITE) {
 		if(file.fileptr + len > CFS_BUF_SIZE) {
 			len = CFS_BUF_SIZE - file.fileptr;
+                        printf("cfs-cooja.c: warning: write truncated\n");
 		}
 		memcpy(&simCFSData[file.fileptr], buf, len);
   	file.fileptr += len;
