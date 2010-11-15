@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rudolph2.c,v 1.7 2010/11/15 21:49:05 adamdunkels Exp $
+ * $Id: example-rudolph2.c,v 1.8 2010/11/15 21:50:02 adamdunkels Exp $
  */
 
 /**
@@ -157,7 +157,7 @@ PROCESS_THREAD(example_rudolph2_process, ev, data)
 
   PROCESS_PAUSE();
   
-  if(rimeaddr_node_addr.u8[0] == 7 &&
+  if(rimeaddr_node_addr.u8[0] == 1 &&
      rimeaddr_node_addr.u8[1] == 0) {
     {
       int i;
