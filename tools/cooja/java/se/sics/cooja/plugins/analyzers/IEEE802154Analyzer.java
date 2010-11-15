@@ -1,5 +1,7 @@
 package se.sics.cooja.plugins.analyzers;
 
+import java.io.IOException;
+
 import se.sics.cooja.util.StringUtils;
 
 public class IEEE802154Analyzer extends PacketAnalyzer {
@@ -19,22 +21,25 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
 
     private static final String[] typeS = {"-", "D", "A"};
     private static final String[] typeVerbose = {"BEACON", "DATA", "ACK"};
+    private PcapExporter pcapExporter;
 
 //    private int defaultAddressMode = LONG_ADDRESS;
 //    private byte seqNo = 0;
 
 //    private int myPanID = 0xabcd;
 
+    public IEEE802154Analyzer(boolean pcap) {
+        if (pcap) try {
+            pcapExporter = new PcapExporter();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public boolean matchPacket(Packet packet) {
         return packet.level == MAC_LEVEL;
     }
 
-    /* we need better model of this later... */
-    public boolean matchPacket(byte[] packet, int level) {
-        return false;
-    }
-    
     /* this protocol always have network level packets as payload */
     public int nextLevel(byte[] packet, int level) {
         return NETWORK_LEVEL;
@@ -43,6 +48,11 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
      * next handler
      */
     public int analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose) {
+        
+        if (pcapExporter != null) {
+            pcapExporter.exportPacketData(packet.getPayload());
+        }
+
         int pos = packet.pos;
         int type = packet.data[pos + 0] & 7;
 //        int security = (packet.data[pos + 0] >> 3) & 1;
@@ -102,14 +112,15 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
 
         brief.append("15.4 ");
         brief.append(type < typeS.length ? typeS[type] : "?").append(' ');
-        printAddress(brief, srcAddrMode, sourceAddress);
-        brief.append(' ');
-        printAddress(brief, destAddrMode, destAddress);
 
         verbose.append("<html><b>IEEE 802.15.4 ")
         .append(type < typeVerbose.length ? typeVerbose[type] : "?")
         .append(' ').append(seqNumber);
         if (type != ACKFRAME) {
+            printAddress(brief, srcAddrMode, sourceAddress);
+            brief.append(' ');
+            printAddress(brief, destAddrMode, destAddress);
+
             verbose.append("</b><br>From ");
             if (srcPanID != 0) {
                 verbose.append(StringUtils.toHex((byte)(srcPanID >> 8)))
@@ -124,6 +135,9 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
                 .append('/');
             }
             printAddress(verbose, destAddrMode, destAddress);
+        } else {
+            /* got ack - no more to do ... */
+            return ANALYSIS_OK_FINAL;
         }
 
         /* update packet */
