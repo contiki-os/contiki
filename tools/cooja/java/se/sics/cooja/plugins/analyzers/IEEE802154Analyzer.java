@@ -50,7 +50,12 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
     public int analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose) {
         
         if (pcapExporter != null) {
-            pcapExporter.exportPacketData(packet.getPayload());
+            try {
+                pcapExporter.exportPacketData(packet.getPayload());
+            } catch (IOException e) {
+                System.err.println("Could not export PCap data");
+                e.printStackTrace();
+            }
         }
 
         int pos = packet.pos;
