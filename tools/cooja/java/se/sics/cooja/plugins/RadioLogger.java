@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.39 2010/10/13 11:31:10 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.40 2010/11/15 12:00:54 joxe Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -140,9 +140,14 @@ public class RadioLogger extends VisPlugin {
     radioMedium = simulation.getRadioMedium();
 
     ArrayList<PacketAnalyzer> lowpanAnalyzers = new ArrayList<PacketAnalyzer>();
-    lowpanAnalyzers.add(new IEEE802154Analyzer());
+    lowpanAnalyzers.add(new IEEE802154Analyzer(false));
     lowpanAnalyzers.add(new IPHCPacketAnalyzer());
     lowpanAnalyzers.add(new ICMPv6Analyzer());
+
+    ArrayList<PacketAnalyzer> lowpanAnalyzersPcap = new ArrayList<PacketAnalyzer>();
+    lowpanAnalyzersPcap.add(new IEEE802154Analyzer(true));
+    lowpanAnalyzersPcap.add(new IPHCPacketAnalyzer());
+    lowpanAnalyzersPcap.add(new ICMPv6Analyzer());
     model = new AbstractTableModel() {
 
       private static final long serialVersionUID = 1692207305977527004L;
@@ -333,6 +338,12 @@ public class RadioLogger extends VisPlugin {
     group.add(rbMenuItem);
     popupMenu.add(rbMenuItem);
 
+    rbMenuItem = new JRadioButtonMenuItem(createAnalyzerAction(
+            "6LoWPAN Analyzer with PCAP", "6lowpan-pcap", lowpanAnalyzersPcap, false));
+    group.add(rbMenuItem);
+    popupMenu.add(rbMenuItem);
+
+    
     /* Load additional analyzers specified by projects (cooja.config) */
     String[] projectAnalyzerSuites =
       gui.getProjectConfig().getStringArrayValue(RadioLogger.class, "ANALYZERS");
