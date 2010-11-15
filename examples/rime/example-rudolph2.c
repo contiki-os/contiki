@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rudolph2.c,v 1.6 2010/01/15 10:24:37 nifi Exp $
+ * $Id: example-rudolph2.c,v 1.7 2010/11/15 21:49:05 adamdunkels Exp $
  */
 
 /**
@@ -75,7 +75,7 @@ write_chunk(struct rudolph2_conn *c, int offset, int flag,
 #endif /* CONTIKI_TARGET_NETSIM */
 
   if(flag == RUDOLPH2_FLAG_NEWFILE) {
-    /*printf("+++ rudolph2 new file incoming at %lu\n", clock_time());*/
+    printf("+++ rudolph2 new file incoming at %lu\n", clock_time());
     leds_on(LEDS_RED);
     fd = cfs_open("codeprop.out", CFS_WRITE);
   } else {
@@ -86,6 +86,7 @@ write_chunk(struct rudolph2_conn *c, int offset, int flag,
     int ret;
     cfs_seek(fd, offset, CFS_SEEK_SET);
     ret = cfs_write(fd, data, datalen);
+    printf("+++ rudolph2 offset %d, length %d\n", offset, datalen);
   }
 
   cfs_close(fd);
@@ -100,11 +101,17 @@ write_chunk(struct rudolph2_conn *c, int offset, int flag,
     fd = cfs_open("hej", CFS_READ);
     for(i = 0; i < FILESIZE; ++i) {
       unsigned char buf;
-      cfs_read(fd, &buf, 1);
-      if(buf != (unsigned char)i) {
+      int r = cfs_read(fd, &buf, 1);
+      if (r != 1) {
+	printf("%d.%d: error: read failed at %d\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	       i);
+	break;
+      }       
+      else if(buf != (unsigned char)i) {
 	printf("%d.%d: error: diff at %d, %d != %d\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	       i, i, buf);
+	       i, (unsigned char)i, buf);
 	break;
       }
     }
@@ -150,15 +157,24 @@ PROCESS_THREAD(example_rudolph2_process, ev, data)
 
   PROCESS_PAUSE();
   
-  if(rimeaddr_node_addr.u8[0] == 1 &&
-     rimeaddr_node_addr.u8[1] == 1) {
+  if(rimeaddr_node_addr.u8[0] == 7 &&
+     rimeaddr_node_addr.u8[1] == 0) {
     {
       int i;
- 
+      
+      printf("%d.%d: selected data source\n",
+	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+      
       fd = cfs_open("hej", CFS_WRITE);
       for(i = 0; i < FILESIZE; i++) {
 	unsigned char buf = i;
-	cfs_write(fd, &buf, 1);
+	int w = cfs_write(fd, &buf, 1);
+	if (w != 1) {
+	  printf("%d.%d: error: write failed at %d\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	       i);
+	  break;
+	}       
       }
       cfs_close(fd);
     }
