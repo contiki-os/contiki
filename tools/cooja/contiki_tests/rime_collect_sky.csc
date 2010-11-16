@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/avrora</project>
-  <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -16,14 +12,17 @@
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
+    <events>
+      <logoutput>400000</logoutput>
+    </events>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>../../../examples/rime/example-collect.c</source>
-      <commands>make clean TARGET=sky
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/rime/example-collect.c</source>
+      <commands EXPORT="discard">make clean TARGET=sky
 make example-collect.sky TARGET=sky</commands>
-      <firmware>../../../examples/rime/example-collect.sky</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rime/example-collect.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -32,12 +31,15 @@ make example-collect.sky TARGET=sky</commands>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
     </motetype>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -49,10 +51,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -64,10 +65,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -79,10 +79,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>3</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -94,10 +93,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>4</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -109,10 +107,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>5</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -124,10 +121,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>6</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -139,10 +135,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>7</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -154,10 +149,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>8</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -169,10 +163,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>9</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -184,10 +177,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>10</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -199,10 +191,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>11</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -214,10 +205,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>12</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -229,10 +219,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>13</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -244,10 +233,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>14</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -259,10 +247,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>15</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -274,10 +261,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>16</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -289,10 +275,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>17</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -304,10 +289,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>18</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -319,10 +303,9 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>19</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -334,6 +317,7 @@ make example-collect.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>20</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -343,32 +327,31 @@ make example-collect.sky TARGET=sky</commands>
     <height>227</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.Visualizer
     <plugin_config>
-      <skin>Mote IDs</skin>
-      <skin>Radio environment (UDGM)</skin>
+      <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <viewport>1.685403700540615 0.0 0.0 1.685403700540615 23.872012513439184 -0.545889466623605</viewport>
     </plugin_config>
     <width>224</width>
-    <z>1</z>
+    <z>2</z>
     <height>225</height>
     <location_x>247</location_x>
     <location_y>1</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
+      <formatted_time />
     </plugin_config>
     <width>469</width>
-    <z>2</z>
+    <z>0</z>
     <height>473</height>
     <location_x>0</location_x>
     <location_y>226</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
@@ -450,13 +433,7 @@ while(nodes_starting) {
     }
   }
 }
-
-/* Create sink */
-sink = id;
-GENERATE_MSG(1000, "continue");
-YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
-log.log("All nodes booted, creating sink at node " + sink + "\n");
-mote.getInterfaces().getButton().clickButton()
+log.log("All nodes booted\n");
 
 while(true) {
   YIELD();
@@ -510,11 +487,10 @@ while(true) {
       <active>true</active>
     </plugin_config>
     <width>600</width>
-    <z>0</z>
+    <z>1</z>
     <height>700</height>
     <location_x>469</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
 </simconf>
 
