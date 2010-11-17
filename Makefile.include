@@ -18,7 +18,7 @@ endef
 # Tools and flags
 
 # Set up cross compiler and toolchain definitions.
-CROSS_COMPILE ?= arm-linux-
+CROSS_COMPILE ?= arm-none-eabi-
 AS	= $(CROSS_COMPILE)as
 LD	= $(CROSS_COMPILE)ld
 CC	= $(CROSS_COMPILE)gcc
