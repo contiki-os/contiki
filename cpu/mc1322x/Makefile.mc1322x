@@ -24,7 +24,7 @@ CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
 THREADS =
 
-CROSS_COMPILE ?= arm-linux-
+CROSS_COMPILE ?= arm-none-eabi-
 CROSS ?= $(CROSS_COMPILE)
 
 ### Compiler definitions
