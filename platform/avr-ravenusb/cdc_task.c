@@ -423,7 +423,7 @@ extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
 			case 'N':
 			{	uint8_t i,j;
-				PRINTF_P(PSTR("\n\rNeighbors\n\r"));
+				PRINTF_P(PSTR("\n\rNeighbors [%u max]\n\r"),UIP_DS6_NBR_NB);
 				for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
 					if(uip_ds6_nbr_cache[i].isused) {
 						ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
@@ -432,7 +432,7 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 					}
 				}
 				if (j) PRINTF_P(PSTR("  <none>"));
-				PRINTF_P(PSTR("\n\rRoutes\n\r"));
+				PRINTF_P(PSTR("\n\rRoutes [%u max]\n\r"),UIP_DS6_ROUTE_NB);
 				for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
 					if(uip_ds6_routing_table[i].isused) {
 						ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
@@ -441,13 +441,13 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 						if(uip_ds6_routing_table[i].state.lifetime < 600) {
 							PRINTF_P(PSTR(") %lus\n\r"), uip_ds6_routing_table[i].state.lifetime);
 						} else {
-							PRINTF_P(")\n\r");
+							PRINTF_P(PSTR(")\n\r"));
 						}
 						j=0;
 					}
 				}
 				if (j) PRINTF_P(PSTR("  <none>"));
-				PRINTF_P(PSTR("\n\r"));
+				PRINTF_P(PSTR("\n\r---------\n\r"));
 				break;
 			}
 #endif				
