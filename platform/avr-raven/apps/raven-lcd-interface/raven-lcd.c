@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.7 2010/03/17 20:19:33 dak664 Exp $
+ * $Id: raven-lcd.c,v 1.8 2010/11/19 19:44:10 dak664 Exp $
 */
 
 /**
@@ -104,46 +104,29 @@ void rs232_send(uint8_t port, unsigned char c);
 void
 raven_ping6(void)
 {
-    /* ping the router */
+#define PING_GOOGLE 0
 
-#if THEOLDWAY
-    // Setup destination address.
-	static u16_t addr[8];
-    struct uip_nd6_defrouter *defrouter;
-    uint8_t i,tmp;
-
-    defrouter = uip_nd6_choose_defrouter();
-    /* Get address from defrouter struct */
-    memcpy(addr, defrouter->nb->ipaddr.u8, 16);
-    /* Swap the bytes in the address array */
-    for (i=0;i<8;i++)
-    {
-        tmp = addr[i] & 0xff;
-        addr[i] >>= 8;
-        addr[i] |= tmp << 8;
-    }
-    uip_ip6addr(&dest_addr, addr[0], addr[1],addr[2],
-                addr[3],addr[4],addr[5],addr[6],addr[7]);
-  
-    UIP_IP_BUF->vtc = 0x60;
-    UIP_IP_BUF->tcflow = 1;
-    UIP_IP_BUF->flow = 0;
-    UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
-    UIP_IP_BUF->ttl = uip_netif_physical_if.cur_hop_limit;
-    uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &dest_addr);
-    uip_netif_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
-
- #else
-    /* Get address from default router */
     UIP_IP_BUF->vtc = 0x60;
     UIP_IP_BUF->tcflow = 1;
     UIP_IP_BUF->flow = 0;
     UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
 	UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
-	uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose());
+#if PING_GOOGLE
+    if (seqno==1) {
+	   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose());   //the default router
+	} else if (seqno==2) {
+	   uip_ip6addr(&UIP_IP_BUF->destipaddr,0x2001,0x4860,0x800f,0x0000,0x0000,0x0000,0x0000,0x0093);  //ipv6.google.com
+	} else if (seqno==3) {
+	   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose());   //the default router
+	} else {
+//	   uip_ip6addr(&UIP_IP_BUF->destipaddr,0x2001,0x0420,0x5FFF,0x007D,0x02D0,0xB7FF,0xFE23,0xE6DB);  //?.cisco.com
+	   uip_ip6addr(&UIP_IP_BUF->destipaddr,0x2001,0x0420,0x0000,0x0010,0x0250,0x8bff,0xfee8,0xf800);  //six.cisco.com
+	}	
+#else
+	  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose());    //the default router
+#endif
+
 	uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
-#endif  
- 
     UIP_ICMP_BUF->type = ICMP6_ECHO_REQUEST;
     UIP_ICMP_BUF->icode = 0;
     /* set identifier and sequence number to 0 */
