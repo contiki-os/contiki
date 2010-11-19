@@ -304,6 +304,7 @@ void mac_ethernetSetup(void)
   usbstick_mode.sicslowpan = 1;
   usbstick_mode.sendToRf = 1;
   usbstick_mode.translate = 1;
+  usbstick_mode.debugOn= 1;
 //usbstick_mode.raw = 1;
   usbstick_mode.raw = 0; //default: don't report raw frames until they are entirely correct
 
@@ -425,15 +426,21 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
     mac_translateIPLinkLayer(ll_802154_type);
 #endif
   }
-#if UIP_CONF_IPV6	//allow non-ipv6 builds (Hello World)
-  tcpip_output(destAddrPtr);
+
+#if UIP_CONF_IPV6
+/* Send the packet to the uip6 stack if it exists, else send to 6lowpan */
+#if UIP_CONF_IPV6_RPL
+  tcpip_input();
 #else
-  tcpip_output();
+  tcpip_output(destAddrPtr);
 #endif
+#else  /* UIP_CONF_IPV6 */
+  tcpip_output();    //Allow non-ipv6 builds (Hello World) 
+#endif /* UIP_CONF_IPV6 */
+
 #if !RF230BB
   usb_eth_stat.txok++;
 #endif
-
   uip_len = 0;
 
 }
@@ -449,7 +456,6 @@ void mac_LowpanToEthernet(void)
   parsed_frame = sicslowmac_get_frame();
 #endif
 
-//printf("in lowpantoethernet\n\r");
   //Setup generic ethernet stuff
   ETHBUF(uip_buf)->type = uip_htons(UIP_ETHTYPE_IPV6);
 
@@ -567,7 +573,6 @@ int8_t mac_translateIcmpLinkLayer(lltype_t target)
   uint8_t llbuf[16];
 
   //Figure out offset to start of options
-//  printf("mac_translateicmplinklayer...");
   switch(UIP_ICMP_BUF->type) {
     case ICMP6_NS:
     case ICMP6_NA:
@@ -639,7 +644,6 @@ int8_t mac_translateIcmpLinkLayer(lltype_t target)
       
       //Translate addresses
       if (target == ll_802154_type) {
-//       printf("createsicslowpanlongaddr");
         mac_createSicslowpanLongAddr(llbuf, (uip_lladdr_t *)UIP_ICMP_OPTS(icmp_opt_offset)->data);
       } else {
 #if !UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS

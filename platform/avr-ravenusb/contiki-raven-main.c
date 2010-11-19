@@ -163,11 +163,12 @@ PROCESS_THREAD(border_router_process, ev, data)
   memcpy_P(buf,dag_id,sizeof(dag_id));
   dag = rpl_set_root((uip_ip6addr_t *)buf);
 }
-#if 0  //horrible cludge to direct aaaa::11 to internal webserver
+#if UIP_CONF_IPV6_RPL
+/* Assign bbbb::11 to the uip stack, and bbbb::1 to the host network interface, e.g. $ip -6 address add bbbb::1/64 dev usb0 */
+/* $ifconfig usb0 -arp on Ubuntu to skip the neighbor solicitations. Don't know how to skip NS on Windows yet. */
   if(dag != NULL) {
     uip_ip6addr_t ipaddr;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x11);
-//	    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x1);
+    uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x11);
  // uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);
     rpl_set_prefix(dag, &ipaddr, 64);
