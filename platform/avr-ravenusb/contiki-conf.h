@@ -287,28 +287,36 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 
 #if UIP_CONF_IPV6_RPL
 
-/* Not completely working yet. Link local pings work but address prefixes do not get assigned */
+/* Not completely working yet. Works on Ubuntu after $ifconfig usb0 -arp to drop the neighbor solitications */
+/* Haven't figured out how to drop the NS on Windows */
 /* RPL requires the uip stack. Change #CONTIKI_NO_NET=1 to UIP_CONF_IPV6=1 in the examples makefile,
 or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenusb */
+/* For the present the buffer_length calcs in rpl-icmp6.c will need adjustment by the length difference
+   between 6lowpan (0) and ethernet (14) link-layer headers:
+ // buffer_length = uip_len - uip_l2_l3_icmp_hdr_len;
+    buffer_length = uip_len - uip_l2_l3_icmp_hdr_len + UIP_LLH_LEN; //Add jackdaw ethernet header
+ */
+
 
 #define UIP_CONF_ROUTER  1
 #define RPL_CONF_STATS    0
 #define PROCESS_CONF_NO_PROCESS_NAMES  0
-//#undef UIP_CONF_TCP            //TCP needed to serve RPL neighbor web page
-//#define UIP_CONF_TCP             1
-//#undef UIP_FALLBACK_INTERFACE
-//#define UIP_FALLBACK_INTERFACE rpl_interface
+#undef UIP_CONF_TCP            //TCP needed to serve RPL neighbor web page
+#define UIP_CONF_TCP             0
+#undef UIP_FALLBACK_INTERFACE
+#define UIP_FALLBACK_INTERFACE rpl_interface
 //#undef UIP_CONF_MAX_CONNECTIONS
 //#define UIP_CONF_MAX_CONNECTIONS 1
 //#undef UIP_CONF_MAX_LISTENPORTS
 //#define UIP_CONF_MAX_LISTENPORTS 10
-//#define UIP_CONF_BUFFER_SIZE 256
 //#define UIP_CONF_TCP_MSS         512
-//#define UIP_CONF_ND6_SEND_RA		0 error in uip-nd6.c
+#undef UIP_CONF_TCP_SPLIT   //daktest
+#define UIP_CONF_TCP_SPLIT       0
+#undef UIP_CONF_STATISTICS
+#define UIP_CONF_STATISTICS      0
 
-
-#define UIP_CONF_DS6_NBR_NBU     10
-#define UIP_CONF_DS6_ROUTE_NBU   10
+#define UIP_CONF_DS6_NBR_NBU     2
+#define UIP_CONF_DS6_ROUTE_NBU   2
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000

@@ -171,8 +171,12 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
 			while (uart_usb_test_hit()){
   		  	   menu_process(uart_usb_getchar());   // See what they want
             }
-#if USB_CONF_RS232	
-			stdout=rs232_stdout;
+#if USB_CONF_RS232
+            if (usbstick_mode.debugOn) {
+			  stdout=rs232_stdout;
+			} else {
+			  stdout=NULL;
+			}
 #endif
 		}//if (Is_device_enumerated())
 
@@ -196,30 +200,33 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
  */
 void menu_print(void)
 {
-		PRINTF_P(PSTR("\n\r********** Jackdaw Menu ******************\n\r"));
-		PRINTF_P(PSTR("*                                        *\n\r"));
-		PRINTF_P(PSTR("* Main Menu:                             *\n\r"));
-		PRINTF_P(PSTR("*  h,?             Print this menu       *\n\r"));
-		PRINTF_P(PSTR("*  m               Print current mode    *\n\r"));
-		PRINTF_P(PSTR("*  s               Set to sniffer mode   *\n\r"));
-		PRINTF_P(PSTR("*  n               Set to network mode   *\n\r"));
-		PRINTF_P(PSTR("*  c               Set RF channel        *\n\r"));
-		PRINTF_P(PSTR("*  6               Toggle 6lowpan        *\n\r"));
-		PRINTF_P(PSTR("*  r               Toggle raw mode       *\n\r"));
-#if UIP_CONF_IPV6_RPL
-		PRINTF_P(PSTR("*  N               RPL Neighbors         *\n\r"));
+		PRINTF_P(PSTR("\n\r********** Jackdaw Menu *********\n\r"));
+		PRINTF_P(PSTR("*                                 *\n\r"));
+		PRINTF_P(PSTR("* Main Menu:                      *\n\r"));
+		PRINTF_P(PSTR("*  h,?      Print this menu       *\n\r"));
+		PRINTF_P(PSTR("*  m        Print current mode    *\n\r"));
+		PRINTF_P(PSTR("*  s        Set to sniffer mode   *\n\r"));
+		PRINTF_P(PSTR("*  n        Set to network mode   *\n\r"));
+		PRINTF_P(PSTR("*  c        Set RF channel        *\n\r"));
+		PRINTF_P(PSTR("*  6        Toggle 6lowpan        *\n\r"));
+		PRINTF_P(PSTR("*  r        Toggle raw mode       *\n\r"));
+#if USB_CONF_RS232
+		PRINTF_P(PSTR("*  d        Toggle RS232 output   *\n\r"));
 #endif
-		PRINTF_P(PSTR("*  e               Energy Scan           *\n\r"));
+#if UIP_CONF_IPV6_RPL
+		PRINTF_P(PSTR("*  N        RPL Neighbors         *\n\r"));
+#endif
+		PRINTF_P(PSTR("*  e        Energy Scan           *\n\r"));
 #if USB_CONF_STORAGE
-		PRINTF_P(PSTR("*  u               Switch to mass-storage*\n\r"));
+		PRINTF_P(PSTR("*  u        Switch to mass-storage*\n\r"));
 #endif
 		if(bootloader_is_present())
-			PRINTF_P(PSTR("*  D               Switch to DFU mode    *\n\r"));
-		PRINTF_P(PSTR("*  R               Reset (via WDT)       *\n\r"));
-		PRINTF_P(PSTR("*                                        *\n\r"));
-		PRINTF_P(PSTR("* Make selection at any time by pressing *\n\r"));
-		PRINTF_P(PSTR("* your choice on keyboard.               *\n\r"));
-		PRINTF_P(PSTR("******************************************\n\r"));
+		PRINTF_P(PSTR("*  D        Switch to DFU mode    *\n\r"));
+		PRINTF_P(PSTR("*  R        Reset (via WDT)       *\n\r"));
+		PRINTF_P(PSTR("*                                 *\n\r"));
+		PRINTF_P(PSTR("* Make selection at any time by   *\n\r"));
+		PRINTF_P(PSTR("* pressing your choice on keyboard*\n\r"));
+		PRINTF_P(PSTR("***********************************\n\r"));
 		PRINTF_P(PSTR("[Built "__DATE__"]\n\r"));
 }
 
@@ -407,6 +414,18 @@ void menu_process(char c)
 					usbstick_mode.raw = 1;
 				}	
 				break;
+#if USB_CONF_RS232
+			case 'd':
+				if (usbstick_mode.debugOn) {
+					PRINTF_P(PSTR("Jackdaw does not output debug strings\n\r"));
+					usbstick_mode.debugOn = 0;
+				} else {
+					PRINTF_P(PSTR("Jackdaw now outputs debug strings\n\r"));
+					usbstick_mode.debugOn = 1;
+				}	
+				break;
+#endif
+
 
 			case 'c':
 #if RF230BB
@@ -461,7 +480,15 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 				if (usbstick_mode.sicslowpan == 0) { PRINTF_P(PSTR("not "));}
 				PRINTF_P(PSTR("decompress 6lowpan headers\n\r  * Will "));
 				if (usbstick_mode.raw == 0) { PRINTF_P(PSTR("not "));}
+
+#if USB_CONF_RS232
+				PRINTF_P(PSTR("Output raw 802.15.4 frames\n\r  * Will "));
+				if (usbstick_mode.debugOn == 0) { PRINTF_P(PSTR("not "));}
+				PRINTF_P(PSTR("Output RS232 debug strings\n\r"));
+#else
 				PRINTF_P(PSTR("Output raw 802.15.4 frames\n\r"));
+#endif
+
 				PRINTF_P(PSTR("  * USB Ethernet MAC: %02x:%02x:%02x:%02x:%02x:%02x\n"),
 					((uint8_t *)&usb_ethernet_addr)[0],
 					((uint8_t *)&usb_ethernet_addr)[1],
@@ -603,6 +630,9 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 
 				//No more serial port
 				stdout = NULL;
+#if USB_CONF_RS232
+				usb_stdout = NULL;
+#endif
 
 				//RNDIS is over
 				rndis_state = 	rndis_uninitialized;
