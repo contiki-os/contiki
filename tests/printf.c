@@ -48,20 +48,22 @@
 	printf("): %d\n", sizeof(x));		\
 	} while(0)
 
-/* FILE *stderr; */
+#if (__linux__)
+FILE *stderr;
 
-/* void __assert_fail(void) { */
-/* 	return; */
-/* } */
+void __assert_fail(void) {
+	return;
+}
 	
-/* int fputs(const char *s, FILE *stream) { */
-/* 	return 0; */
-/* } */
+int fputs(const char *s, FILE *stream) {
+	return 0;
+}
 
-/* size_t fwrite(const void *ptr, size_t size, size_t nmemb, */
-/* 	      FILE *stream) {        */
-/* 	return 0; */
-/* } */
+size_t fwrite(const void *ptr, size_t size, size_t nmemb,
+	      FILE *stream) {
+	return 0;
+}
+#endif
 
 int main(void)
 {
