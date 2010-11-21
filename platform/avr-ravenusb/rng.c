@@ -15,8 +15,10 @@
 #define RNG_CONF_USE_RADIO_CLOCK	((!RNG_CONF_USE_ADC) && RF230BB)
 #endif
 
-
-#define TEMPORAL_AGITATION()		do { static uint8_t agitator; agitator*=97; agitator+=101; _delay_us(agitator>>1); } while (0);
+/* delay_us uses floating point which includes (in some avr-gcc's) a 256 byte __clz_tab in the RAM through the .data section. */
+/* _delay_loop_1 avoids this, it is 3 CPU cycles per loop, 375ns @ 8MHz */
+//#define TEMPORAL_AGITATION()		do { static uint8_t agitator; agitator*=97; agitator+=101; _delay_us(agitator>>1); } while (0);
+#define TEMPORAL_AGITATION()		do { static uint8_t agitator; agitator*=97; agitator+=101; _delay_loop_1(agitator>>1); } while (0);
 
 
 // -------------------------------------------------------------------------
