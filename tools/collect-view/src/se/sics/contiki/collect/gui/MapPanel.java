@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MapPanel.java,v 1.3 2010/11/12 17:52:02 nifi Exp $
+ * $Id: MapPanel.java,v 1.4 2010/11/23 16:21:48 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/11/12 17:52:02 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2010/11/23 16:21:48 $
+ *           $Revision: 1.4 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -749,6 +749,11 @@ public class MapPanel extends JPanel implements Configurable, Visualizer, Action
         draggedNode.x = e.getX();
         draggedNode.y = e.getY();
         setCursor(Cursor.getDefaultCursor());
+        if (!isMap && draggedNode.hasFixedLocation) {
+          /* Update fixed location */
+          server.setConfig("collect.map." + draggedNode.node.getID(),
+                           "" + draggedNode.x + ',' + draggedNode.y);
+        }
         draggedTime = 0;
         draggedNode = null;
         repaint();
