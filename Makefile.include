@@ -33,7 +33,7 @@ RANLIB	= $(CROSS_COMPILE)ranlib
 # Build CFLAGS and prepend it to user-supplied CFLAGS
 CFLAGS_PLAT  ?= -march=armv4t -mtune=arm7tdmi-s -mlong-calls -msoft-float \
 		-mthumb-interwork -fno-strict-aliasing -fno-common -ffixed-r8 \
-		-ffunction-sections -ffreestanding -fno-builtin
+		-ffunction-sections -ffreestanding -fno-builtin -nodefaultlibs
 CFLAGS_WARN  ?= -Wcast-align -Wall -Wstrict-prototypes -Wextra 
 CFLAGS_OPT   ?= -Os
 CFLAGS_DEBUG ?= -g -DDEBUG -Werror
