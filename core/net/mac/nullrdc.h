@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,21 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullrdc.h,v 1.2 2010/02/23 20:09:11 nifi Exp $
+ * $Id: nullrdc.h,v 1.3 2010/11/23 18:11:00 nifi Exp $
  */
 
 /**
  * \file
- *         A MAC protocol implementation that does not do anything.
+ *         A null RDC implementation that uses framer for headers.
  * \author
  *         Adam Dunkels <adam@sics.se>
+ *         Niclas Finne <nfi@sics.se>
  */
 
 #ifndef __NULLRDC_H__
 #define __NULLRDC_H__
 
 #include "net/mac/rdc.h"
-#include "dev/radio.h"
 
 extern const struct rdc_driver nullrdc_driver;
 

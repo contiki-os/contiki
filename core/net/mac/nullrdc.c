@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,29 +28,150 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullrdc.c,v 1.3 2010/06/14 19:19:17 adamdunkels Exp $
+ * $Id: nullrdc.c,v 1.4 2010/11/23 18:11:00 nifi Exp $
  */
 
 /**
  * \file
- *         A MAC protocol that does not do anything.
+ *         A null RDC implementation that uses framer for headers.
  * \author
  *         Adam Dunkels <adam@sics.se>
+ *         Niclas Finne <nfi@sics.se>
  */
 
 #include "net/mac/nullrdc.h"
 #include "net/packetbuf.h"
 #include "net/netstack.h"
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+#ifndef NULLRDC_802154_AUTOACK
+#ifdef NULLRDC_CONF_802154_AUTOACK
+#define NULLRDC_802154_AUTOACK NULLRDC_CONF_802154_AUTOACK
+#else
+#define NULLRDC_802154_AUTOACK 0
+#endif /* NULLRDC_CONF_802154_AUTOACK */
+#endif /* NULLRDC_802154_AUTOACK */
+
+#if NULLRDC_802154_AUTOACK
+#include "sys/rtimer.h"
+#include "dev/watchdog.h"
+
+#define ACK_WAIT_TIME                      RTIMER_SECOND / 2500
+#define AFTER_ACK_DETECTED_WAIT_TIME       RTIMER_SECOND / 1500
+#define ACK_LEN 3
+
+struct seqno {
+  rimeaddr_t sender;
+  uint8_t seqno;
+};
+
+#define MAX_SEQNOS 8
+static struct seqno received_seqnos[MAX_SEQNOS];
+#endif /* NULLRDC_802154_AUTOACK */
+
 /*---------------------------------------------------------------------------*/
 static void
 send_packet(mac_callback_t sent, void *ptr)
 {
   int ret;
-  if(NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen()) == RADIO_TX_OK) {
-    ret = MAC_TX_OK;
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+#if NULLRDC_802154_AUTOACK
+  packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
+#endif /* NULLRDC_802154_AUTOACK */
+
+  if(NETSTACK_FRAMER.create() == 0) {
+    /* Failed to allocate space for headers */
+    PRINTF("nullrdc: send failed, too large header\n");
+    ret = MAC_TX_ERR_FATAL;
   } else {
-    ret =  MAC_TX_ERR;
+
+#if NULLRDC_802154_AUTOACK
+    int is_broadcast;
+    uint8_t dsn;
+    dsn = ((uint8_t *)packetbuf_hdrptr())[2] & 0xff;
+
+    NETSTACK_RADIO.prepare(packetbuf_hdrptr(), packetbuf_totlen());
+
+    is_broadcast = rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                                &rimeaddr_null);
+
+    if(NETSTACK_RADIO.receiving_packet() ||
+       (!is_broadcast && NETSTACK_RADIO.pending_packet())) {
+
+      /* Currently receiving a packet over air or the radio has
+         already received a packet that needs to be read before
+         sending with auto ack. */
+      ret = MAC_TX_COLLISION;
+
+    } else {
+      switch(NETSTACK_RADIO.transmit(packetbuf_totlen())) {
+      case RADIO_TX_OK:
+        if(is_broadcast) {
+          ret = MAC_TX_OK;
+        } else {
+          rtimer_clock_t wt;
+
+          /* Check for ack */
+          wt = RTIMER_NOW();
+          watchdog_periodic();
+          while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + ACK_WAIT_TIME));
+
+          ret = MAC_TX_NOACK;
+          if(NETSTACK_RADIO.receiving_packet() ||
+             NETSTACK_RADIO.pending_packet() ||
+             NETSTACK_RADIO.channel_clear() == 0) {
+            int len;
+            uint8_t ackbuf[ACK_LEN];
+
+            wt = RTIMER_NOW();
+            watchdog_periodic();
+            while(RTIMER_CLOCK_LT(RTIMER_NOW(),
+                                  wt + AFTER_ACK_DETECTED_WAIT_TIME));
+
+            if(NETSTACK_RADIO.pending_packet()) {
+              len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
+              if(len == ACK_LEN && ackbuf[2] == dsn) {
+                /* Ack received */
+                ret = MAC_TX_OK;
+              } else {
+                /* Not an ack or ack not for us: collision */
+                ret = MAC_TX_COLLISION;
+              }
+            }
+          }
+        }
+        break;
+      case RADIO_TX_COLLISION:
+        ret = MAC_TX_COLLISION;
+        break;
+      default:
+        ret = MAC_TX_ERR;
+        break;
+      }
+    }
+
+#else /* ! NULLRDC_802154_AUTOACK */
+
+    switch(NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen())) {
+    case RADIO_TX_OK:
+      ret = MAC_TX_OK;
+      break;
+    case RADIO_TX_COLLISION:
+      ret = MAC_TX_COLLISION;
+      break;
+    default:
+      ret = MAC_TX_ERR;
+      break;
+    }
+
+#endif /* ! NULLRDC_802154_AUTOACK */
   }
   mac_call_sent_callback(sent, ptr, ret, 1);
 }
@@ -58,7 +179,39 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 packet_input(void)
 {
-  NETSTACK_MAC.input();
+#if NULLRDC_802154_AUTOACK
+  if(packetbuf_datalen() == ACK_LEN) {
+    /* Ignore ack packets */
+    /* PRINTF("nullrdc: ignored ack\n"); */
+  } else
+#endif /* NULLRDC_802154_AUTOACK */
+  if(NETSTACK_FRAMER.parse() == 0) {
+    PRINTF("nullrdc: failed to parse %u\n", packetbuf_datalen());
+  } else {
+#if NULLRDC_802154_AUTOACK
+    /* Check for duplicate packet by comparing the sequence number
+       of the incoming packet with the last few ones we saw. */
+    int i;
+    for(i = 0; i < MAX_SEQNOS; ++i) {
+      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno &&
+         rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                      &received_seqnos[i].sender)) {
+        /* Drop the packet. */
+        PRINTF("nullrdc: drop duplicate link layer packet %u\n",
+               packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
+        return;
+      }
+    }
+    for(i = MAX_SEQNOS - 1; i > 0; --i) {
+      memcpy(&received_seqnos[i], &received_seqnos[i - 1],
+             sizeof(struct seqno));
+    }
+    received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+    rimeaddr_copy(&received_seqnos[0].sender,
+                  packetbuf_addr(PACKETBUF_ADDR_SENDER));
+#endif /* NULLRDC_802154_AUTOACK */
+    NETSTACK_MAC.input();
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
