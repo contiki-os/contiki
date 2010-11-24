@@ -8,7 +8,7 @@
 #ifndef COAP_COMMON_H_
 #define COAP_COMMON_H_
 
-#define PORT 61616
+#include "contiki-net.h"
 
 /*COAP method types*/
 typedef enum {
@@ -44,7 +44,11 @@ typedef enum {
   Option_Type_Etag = 4,
   Option_Type_Uri_Authority = 5,
   Option_Type_Location = 6,
-  Option_Type_Uri_Path = 9
+  Option_Type_Uri_Path = 9,
+  Option_Type_Subscription_Lifetime = 10,
+  Option_Type_Token = 11,
+  Option_Type_Block = 13,
+  Option_Type_Uri_Query = 15
 } option_type;
 
 typedef enum {
@@ -100,6 +104,13 @@ struct header_option_t
 };
 typedef struct header_option_t header_option_t;
 
+struct block_option_t {
+  uint32_t number;
+  uint8_t more;
+  uint8_t size;
+};
+typedef struct block_option_t block_option_t;
+
 typedef struct
 {
   uint8_t ver; //2-bits currently set to 1.
@@ -114,6 +125,7 @@ typedef struct
   uint16_t query_len;
   uint16_t payload_len;
   uint8_t* payload;
+  uip_ipaddr_t addr;
 } coap_packet_t;
 
 /*error definitions*/
@@ -127,6 +139,6 @@ typedef enum
 } error_t;
 
 int serialize_packet(coap_packet_t* request, uint8_t* buffer);
-void initialize_packet(coap_packet_t* packet);
+void init_packet(coap_packet_t* packet);
 
 #endif /* COAP_COMMON_H_ */

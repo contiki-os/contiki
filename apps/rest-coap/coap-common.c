@@ -25,7 +25,7 @@
 
 #include "coap-common.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -37,7 +37,7 @@
 #define PRINTLLADDR(addr)
 #endif
 
-void initialize_packet(coap_packet_t* packet)
+void init_packet(coap_packet_t* packet)
 {
   packet->ver = 1;
   packet->type = 0;
@@ -50,6 +50,7 @@ void initialize_packet(coap_packet_t* packet)
   packet->query = NULL;
   packet->query_len = 0;
   packet->payload = NULL;
+  packet->payload_len = 0;
 }
 
 int serialize_packet(coap_packet_t* packet, uint8_t* buffer)
