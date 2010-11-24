@@ -11,7 +11,7 @@
 #include "static-routing.h"
 #endif
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -346,7 +346,7 @@ parse_header(connection_state_t* conn_state, char* inputbuf)
 }
 
 int
-http_set_payload(http_response_t* response, uint8_t* payload, uint16_t size)
+http_set_res_payload(http_response_t* response, uint8_t* payload, uint16_t size)
 {
   response->payload = copy_to_buffer(payload, size);
   if (response->payload) {
