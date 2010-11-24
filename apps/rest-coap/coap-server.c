@@ -4,9 +4,10 @@
 #include "contiki.h"
 #include "contiki-net.h"
 
-#include "rest.h"
 #include "buffer.h"
+#include "coap-server.h"
 #include "rest-util.h"
+#include "rest.h" /*added for periodic_resource*/
 
 #include "dev/leds.h"
 
@@ -14,7 +15,7 @@
 #include "static-routing.h"
 #endif
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -31,6 +32,8 @@
 #define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 static struct uip_udp_conn *server_conn;
 
+static uint16_t current_tid;
+
 static service_callback service_cbk = NULL;
 
 void
@@ -39,18 +42,18 @@ coap_set_service_callback(service_callback callback)
   service_cbk = callback;
 }
 
-static void
+void
 parse_message(coap_packet_t* packet, uint8_t* buf, uint16_t size)
 {
-  int processed=0;
-  int i=0;
+  int processed = 0;
+  int i = 0;
   PRINTF("parse_message size %d-->\n",size);
 
-  initialize_packet(packet);
+  init_packet(packet);
 
-  packet->ver = (buf[0]&COAP_HEADER_VERSION_MASK)>>COAP_HEADER_VERSION_POSITION;
-  packet->type = (buf[0]&COAP_HEADER_TYPE_MASK)>>COAP_HEADER_TYPE_POSITION;
-  packet->option_count = buf[0]&COAP_HEADER_OPTION_COUNT_MASK;
+  packet->ver = (buf[0] & COAP_HEADER_VERSION_MASK) >> COAP_HEADER_VERSION_POSITION;
+  packet->type = (buf[0] & COAP_HEADER_TYPE_MASK) >> COAP_HEADER_TYPE_POSITION;
+  packet->option_count = buf[0] & COAP_HEADER_OPTION_COUNT_MASK;
   packet->code = buf[1];
   packet->tid = (buf[2] << 8) + buf[3];
 
@@ -66,12 +69,12 @@ parse_message(coap_packet_t* packet, uint8_t* buf, uint16_t size)
     if (packet->options) {
       header_option_t* current_option = packet->options;
       header_option_t* prev_option = NULL;
-      while(option_index < packet->option_count){
+      while(option_index < packet->option_count) {
         /*FIXME : put boundary controls*/
         option_delta = (option_buf[i] & COAP_HEADER_OPTION_DELTA_MASK) >> COAP_HEADER_OPTION_DELTA_POSITION;
         option_len = (option_buf[i] & COAP_HEADER_OPTION_SHORT_LENGTH_MASK);
         i++;
-        if(option_len == 0xf){
+        if (option_len == 0xf) {
           option_len += option_buf[i];
           i++;
         }
@@ -79,14 +82,14 @@ parse_message(coap_packet_t* packet, uint8_t* buf, uint16_t size)
         current_option->option = option_delta;
         current_option->len = option_len;
         current_option->value = option_buf + i;
-        if (option_index){
+        if (option_index) {
           prev_option->next = current_option;
           /*This field defines the difference between the option Type of
            * this option and the previous option (or zero for the first option)*/
           current_option->option += prev_option->option;
         }
 
-        if (current_option->option == Option_Type_Uri_Path){
+        if (current_option->option == Option_Type_Uri_Path) {
           packet->url = (char*)current_option->value;
           packet->url_len = current_option->len;
         }
@@ -164,10 +167,10 @@ allocate_header_option(uint16_t variable_len)
 }
 
 /*FIXME : does not overwrite the same option yet.*/
-static int
-set_option(coap_packet_t* packet, option_type option_type, uint16_t len, uint8_t* value)
+int
+coap_set_option(coap_packet_t* packet, option_type option_type, uint16_t len, uint8_t* value)
 {
-  PRINTF("set_option len %u\n", len);
+  PRINTF("coap_set_option len %u\n", len);
   header_option_t* option = allocate_header_option(len);
   if (option){
     option->next = NULL;
@@ -209,23 +212,21 @@ set_option(coap_packet_t* packet, option_type option_type, uint16_t len, uint8_t
   return 0;
 }
 
-static uint8_t*
-get_option(coap_packet_t* packet, option_type option_type)
+header_option_t*
+coap_get_option(coap_packet_t* packet, option_type option_type)
 {
-  uint8_t* value = NULL;
-  int i=0;
+  PRINTF("coap_get_option count: %u--> \n", packet->option_count);
+  int i = 0;
 
   header_option_t* current_option = packet->options;
-  for (; packet->option_count; i++){
-    if (current_option->option >= option_type){
-      if (current_option->option == option_type){
-        value = current_option->value;
-      }
-      break;
+  for (; i < packet->option_count; current_option = current_option->next, i++) {
+    PRINTF("Current option: %u\n", current_option->option);
+    if (current_option->option == option_type){
+      return current_option;
     }
   }
 
-  return value;
+  return NULL;
 }
 
 static void
@@ -249,12 +250,23 @@ fill_error_packet(coap_packet_t* packet, int error, uint16_t tid)
 static void
 init_response(coap_packet_t* request, coap_packet_t* response)
 {
-  initialize_packet(response);
-  if(request->type == MESSAGE_TYPE_CON)
-  {
+  init_packet(response);
+  if(request->type == MESSAGE_TYPE_CON) {
     response->code = OK_200;
     response->tid = request->tid;
     response->type = MESSAGE_TYPE_ACK;
+  }
+}
+
+uint16_t
+coap_get_payload(coap_packet_t* packet, uint8_t** payload)
+{
+  if (packet->payload) {
+    *payload = packet->payload;
+    return packet->payload_len;
+  } else {
+    *payload = NULL;
+    return 0;
   }
 }
 
@@ -275,63 +287,152 @@ coap_set_header_content_type(coap_packet_t* packet, content_type_t content_type)
 {
   uint16_t len = 1;
 
-  return set_option(packet, Option_Type_Content_Type, len, (uint8_t*) &content_type);
+  return coap_set_option(packet, Option_Type_Content_Type, len, (uint8_t*) &content_type);
 }
 
 content_type_t
 coap_get_header_content_type(coap_packet_t* packet)
 {
-  uint8_t* value = get_option(packet, Option_Type_Content_Type);
-  if(value){
-    return (uint8_t)*value;
+  header_option_t* option = coap_get_option(packet, Option_Type_Content_Type);
+  if (option){
+    return (uint8_t)(*(option->value));
   }
 
   return DEFAULT_CONTENT_TYPE;
 }
 
 int
+coap_get_header_subscription_lifetime(coap_packet_t* packet, uint32_t* lifetime)
+{
+  PRINTF("coap_get_header_subscription_lifetime --> \n");
+  header_option_t* option = coap_get_option(packet, Option_Type_Subscription_Lifetime);
+  if (option){
+    PRINTF("Subs Found len %u (first byte %u)\n", option->len, (uint16_t)option->value[0]);
+
+    *lifetime = read_int(option->value, option->len);
+    return 1;
+  }
+
+  return 0;
+}
+
+int
+coap_set_header_subscription_lifetime(coap_packet_t* packet, uint32_t lifetime)
+{
+  uint8_t temp[4];
+  uint16_t len = write_variable_int(temp, lifetime);
+
+  return coap_set_option(packet, Option_Type_Subscription_Lifetime, len, temp);
+}
+
+int
+coap_get_header_block(coap_packet_t* packet, block_option_t* block)
+{
+  uint32_t all_block;
+  PRINTF("coap_get_header_block --> \n");
+  header_option_t* option = coap_get_option(packet, Option_Type_Block);
+  if (option){
+    PRINTF("Block Found len %u (first byte %u)\n", option->len, (uint16_t)option->value[0]);
+
+    all_block = read_int(option->value, option->len);
+    block->number = all_block >> 4;
+    block->more = (all_block & 0x8) >> 3;
+    block->size = (all_block & 0x7);
+    return 1;
+  }
+
+  return 0;
+}
+
+int
+coap_set_header_block(coap_packet_t* packet, uint32_t number, uint8_t more, uint8_t size)
+{
+  uint8_t temp[4];
+  size = log_2(size/16);
+  number = number << 4;
+  number |= (more << 3) & 0x8;
+  number |= size & 0x7;
+
+  uint16_t len = write_variable_int(temp, number);
+  PRINTF("number %lu, more %u, size %u block[0] %u block[1] %u block[2] %u block[3] %u\n",
+      number, (uint16_t)more, (uint16_t)size, (uint16_t)temp[0], (uint16_t)temp[1], (uint16_t)temp[2], (uint16_t)temp[3]);
+  return coap_set_option(packet, Option_Type_Block, len, temp);
+}
+
+
+int
 coap_set_header_uri(coap_packet_t* packet, char* uri)
 {
-  return set_option(packet, Option_Type_Uri_Path, strlen(uri), (uint8_t*) uri);
+  return coap_set_option(packet, Option_Type_Uri_Path, strlen(uri), (uint8_t*) uri);
 }
 
 int
 coap_set_header_etag(coap_packet_t* packet, uint8_t* etag, uint8_t size)
 {
-  return set_option(packet, Option_Type_Etag, size, etag);
+  return coap_set_option(packet, Option_Type_Etag, size, etag);
 }
 
 void
-coap_set_code(coap_packet_t* packet, uint8_t code)
+coap_set_code(coap_packet_t* packet, status_code_t code)
 {
-  packet->code = code;
+  packet->code = (uint8_t)code;
+}
+
+coap_method_t
+coap_get_method(coap_packet_t* packet)
+{
+  return (coap_method_t)packet->code;
+}
+
+void
+coap_set_method(coap_packet_t* packet, coap_method_t method)
+{
+  packet->code = (uint8_t)method;
+}
+
+static void send_request(coap_packet_t* request, struct uip_udp_conn *client_conn)
+{
+  char buf[MAX_PAYLOAD_LEN];
+  int data_size = 0;
+
+  data_size = serialize_packet(request, buf);
+
+  PRINTF("Created a connection with the server ");
+  PRINT6ADDR(&client_conn->ripaddr);
+  PRINTF(" local/remote port %u/%u\n",
+      uip_htons(client_conn->lport), uip_htons(client_conn->rport));
+
+  PRINTF("Sending to: ");
+  PRINT6ADDR(&client_conn->ripaddr);
+  uip_udp_packet_send(client_conn, buf, data_size);
 }
 
 static int
-handle_data(void)
+handle_incoming_data(void)
 {
   int error=NO_ERROR;
   char buf[MAX_PAYLOAD_LEN];
 
-  printf("uip_datalen received %u \n",(u16_t)uip_datalen());
+  PRINTF("uip_datalen received %u \n",(u16_t)uip_datalen());
 
   char* data = uip_appdata + uip_ext_len;
   u16_t datalen = uip_datalen() - uip_ext_len;
 
   int data_size = 0;
 
-  if(uip_newdata()) {
+  if (uip_newdata()) {
     ((char *)data)[datalen] = 0;
     PRINTF("Server received: '%s' (port:%u) from ", (char *)data, uip_htons(UIP_UDP_BUF->srcport));
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
     PRINTF("\n");
 
-    if(init_buffer(COAP_DATA_BUFF_SIZE)) {
-      /*FIXME need to get rid of Request here since now COAP depends on REST layer.*/
+    if (init_buffer(COAP_DATA_BUFF_SIZE)) {
       coap_packet_t* request = (coap_packet_t*)allocate_buffer(sizeof(coap_packet_t));
       parse_message(request, (uint8_t*)data, datalen);
 
-      if(request->type != MESSAGE_TYPE_ACK) {
+      uip_ipaddr_copy(&request->addr, &UIP_IP_BUF->srcipaddr);
+
+      if (request->type != MESSAGE_TYPE_ACK) {
         coap_packet_t* response = (coap_packet_t*)allocate_buffer(sizeof(coap_packet_t));
         init_response(request, response);
 
@@ -340,6 +441,7 @@ handle_data(void)
         }
 
         data_size = serialize_packet(response, buf);
+
       }
       delete_buffer();
     } else {
@@ -354,7 +456,7 @@ handle_data(void)
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
     server_conn->rport = UIP_UDP_BUF->srcport;
 
-    PRINTF("Responding with message size: %d",data_size);
+    PRINTF("Responding with message size: %d\n",data_size);
     uip_udp_packet_send(server_conn, buf, data_size);
     /* Restore server connection to allow data from any node */
     memset(&server_conn->ripaddr, 0, sizeof(server_conn->ripaddr));
@@ -363,6 +465,15 @@ handle_data(void)
 
   return error;
 }
+
+process_event_t resource_changed_event;
+
+void
+resource_changed(struct periodic_resource_t* resource)
+{
+  process_post(&coap_server, resource_changed_event, (process_data_t)resource);
+}
+
 
 /*---------------------------------------------------------------------------*/
 
@@ -378,17 +489,47 @@ PROCESS_THREAD(coap_server, ev, data)
   configure_routing();
 #endif /*!UIP_CONF_IPV6_RPL*/
 
+  current_tid = random_rand();
+
+  resource_changed_event = process_alloc_event();
+
   /* new connection with remote host */
   server_conn = udp_new(NULL, uip_htons(0), NULL);
-  udp_bind(server_conn, uip_htons(MOTE_PORT));
-  PRINTF("Local/remote port %u/%u\n",
-  uip_htons(server_conn->lport), uip_htons(server_conn->rport));
+  udp_bind(server_conn, uip_htons(MOTE_SERVER_LISTEN_PORT));
+  PRINTF("Local/remote port %u/%u\n", uip_htons(server_conn->lport), uip_htons(server_conn->rport));
 
   while(1) {
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      handle_data();
+      handle_incoming_data();
+    } else if (ev == resource_changed_event) {
+      periodic_resource_t* resource = (periodic_resource_t*)data;
+      PRINTF("resource_changed_event \n");
+
+      if (init_buffer(COAP_DATA_BUFF_SIZE)) {
+        coap_packet_t* request = (coap_packet_t*)allocate_buffer(sizeof(coap_packet_t));
+        init_packet(request);
+        coap_set_code(request, COAP_GET);
+        request->tid = current_tid++;
+        coap_set_header_subscription_lifetime(request, resource->lifetime);
+        coap_set_header_uri(request, (char *)resource->resource->url);
+        if (resource->periodic_request_generator) {
+          resource->periodic_request_generator(request);
+        }
+
+        if (!resource->client_conn) {
+          /*FIXME send port is fixed for now to 61616*/
+          resource->client_conn = udp_new(&resource->addr, uip_htons(61616), NULL);
+          udp_bind(resource->client_conn, uip_htons(MOTE_CLIENT_LISTEN_PORT));
+        }
+
+        if (resource->client_conn) {
+          send_request(request, resource->client_conn);
+        }
+
+        delete_buffer();
+      }
     }
   }
 
