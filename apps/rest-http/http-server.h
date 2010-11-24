@@ -34,7 +34,7 @@ int http_set_res_header(http_response_t* response, const char* name, const char*
  */
 const char* http_get_req_header(http_request_t* request, const char* name);
 
-int http_set_payload(http_response_t* response, uint8_t* payload, uint16_t size);
+int http_set_res_payload(http_response_t* response, uint8_t* payload, uint16_t size);
 
 /*
  * Returns query variable in the URL.
