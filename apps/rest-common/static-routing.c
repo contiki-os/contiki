@@ -37,33 +37,28 @@ void configure_routing(void)
 {
   PRINTF("configure_routing\n");
 
-  if(node_id < 10) //COOJA
-  {
-    //Go to desktop machine over border router
-    ADD_ROUTE(DESKTOP_MACHINE_ID,COOJA_BORDER_ROUTER_ID);
-  }
-  else //SKY
-  {
-    if(node_id < 20) //First hops (ids between 10-20)
-    {
-      //Go to desktop machine over border router
+  if (node_id < 10) { /*COOJA*/
+    /*Go to desktop machine over border router*/
+    ADD_ROUTE(DESKTOP_MACHINE_ID, COOJA_BORDER_ROUTER_ID);
+  } else { /*SKY*/
+    if (node_id < 20) { /*First hops (ids between 10-20)*/
+      /*Go to desktop machine over border router*/
       ADD_ROUTE(DESKTOP_MACHINE_ID, BORDER_ROUTER_ID);
     }
 
-    switch(node_id)
-    {
+    switch(node_id) {
       case 12:
-        ADD_ROUTE(22, 22); //Go to next hop over the local address of next hop
+        ADD_ROUTE(22, 22); /*Go to next hop over the local address of next hop*/
         break;
       case 13:
-        ADD_ROUTE(23, 23); //Go to next hop over the local address of next hop
+        ADD_ROUTE(23, 23); /*Go to next hop over the local address of next hop*/
         break;
 
       case 22:
-        ADD_ROUTE(0, 12);  //Go to desktop machine over the corresponding first hop
+        ADD_ROUTE(0, 12);  /*Go to desktop machine over the corresponding first hop*/
         break;
       case 23:
-        ADD_ROUTE(0, 13);  //Go to desktop machine over the corresponding first hop
+        ADD_ROUTE(0, 13);  /*Go to desktop machine over the corresponding first hop*/
         break;
       default:
         break;
