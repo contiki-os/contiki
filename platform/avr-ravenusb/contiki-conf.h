@@ -62,9 +62,9 @@
 /* Mac address, RF channel, PANID from EEPROM settings manager */
 /* Generate random MAC address on first startup */
 /* Random number from radio clock skew or ADC noise */
-#define JACKDAW_CONF_USE_SETTINGS		1
+#define JACKDAW_CONF_USE_SETTINGS		0
 #define JACKDAW_CONF_RANDOM_MAC         0
-#define RNG_CONF_USE_RADIO_CLOCK	1
+#define RNG_CONF_USE_RADIO_CLOCK	    1
 //#define RNG_CONF_USE_ADC	1
 
 /* Since clock_time_t is 16 bits, maximum interval is 524 seconds */
@@ -73,15 +73,13 @@
 /* Maximum time interval (used for timers) */
 #define INFINITE_TIME 0xffff
 
-/* COM port to be used for SLIP connection */
+/* COM port to be used for SLIP connection (not implemented on jackdaw) */
 #define SLIP_PORT RS232_PORT_0
 
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
 #define MMEM_CONF_SIZE 256
 
-/* Use the following address for code received via the codeprop
- * facility
- */
+/* Use the following address for code received via the codeprop facility */
 #define EEPROMFS_ADDR_CODEPROP 0x8000
 
 /* Use Atmel 'Route Under MAC', currently just in sniffer mode! */
@@ -212,7 +210,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
  * The tx pad is the middle one behind the jackdaw leds.
  * RS232 output will work with or without enabling the USB serial port
  */
-#define USB_CONF_RS232           0
+#define USB_CONF_RS232           1
 
 /* Disable mass storage enumeration for more program space */
 //#define USB_CONF_STORAGE         1   /* TODO: Mass storage is currently broken */
@@ -232,6 +230,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #ifdef RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
 
+/* Nothing after this will work with the original RF230 combined radio/mac driver! */
 /* ************************************************************************** */
 //#pragma mark NETSTACK Settings
 /* ************************************************************************** */
@@ -296,7 +295,17 @@ or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenu
  // buffer_length = uip_len - uip_l2_l3_icmp_hdr_len;
     buffer_length = uip_len - uip_l2_l3_icmp_hdr_len + UIP_LLH_LEN; //Add jackdaw ethernet header
  */
-
+ 
+/* Define these to reduce tx power and ignore weak rx packets for testing a miniature multihop network.
+ * Leave undefined for full power and sensitivity.
+ * tx=0 (3dbm, default) to 15 (-17.2dbm)
+ * RF230_CONF_AUTOACK sets the extended mode using the energy-detect register with rx=0 (-91dBm) to 84 (-7dBm)
+ *   else the rssi register is used having range 0 (91dBm) to 28 (-10dBm)
+ *   For simplicity RF230_MIN_RX_POWER is based on the rssi value and multiplied by 3 when autoack is set.
+ * On the RF230 a reduced rx power threshold will not prevent autoack if enabled and requested.
+ */
+#define RF230_MAX_TX_POWER 15
+#define RF230_MIN_RX_POWER 30
 
 #define UIP_CONF_ROUTER  1
 #define RPL_CONF_STATS    0
@@ -315,8 +324,8 @@ or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenu
 #undef UIP_CONF_STATISTICS
 #define UIP_CONF_STATISTICS      0
 
-#define UIP_CONF_DS6_NBR_NBU     2
-#define UIP_CONF_DS6_ROUTE_NBU   2
+#define UIP_CONF_DS6_NBR_NBU     5
+#define UIP_CONF_DS6_ROUTE_NBU   5
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000

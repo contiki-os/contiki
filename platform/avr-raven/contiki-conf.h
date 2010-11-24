@@ -168,6 +168,16 @@
 #define UIP_CONF_TCP_SPLIT       1
 
 #if 0    /* RPL */
+/* Define these to reduce tx power and ignore weak rx packets for testing a miniature multihop network.
+ * Leave undefined for full power and sensitivity.
+ * tx=0 (3dbm, default) to 15 (-17.2dbm)
+ * RF230_CONF_AUTOACK sets the extended mode using the energy-detect register with rx=0 (-91dBm) to 84 (-7dBm)
+ *   else the rssi register is used having range 0 (91dBm) to 28 (-10dBm)
+ *   For simplicity RF230_MIN_RX_POWER is based on the rssi value and multiplied by 3 when autoack is set.
+ * On the RF230 a reduced rx power threshold will not prevent autoack if enabled and requested.
+ */
+#define RF230_MAX_TX_POWER 15
+#define RF230_MIN_RX_POWER 30
 
 #define UIP_CONF_ROUTER                 1
 #define UIP_CONF_IPV6_RPL               1

@@ -380,7 +380,10 @@ static void initialize(void) {
   );
   
 #if JACKDAW_CONF_USE_SETTINGS
-  rf230_set_txpower(settings_get_uint8(SETTINGS_KEY_TXPOWER,0));
+/* Allow radio code to overrite power for testing miniature Raven mesh */
+#ifndef RF230_MAX_TX_POWER
+   rf230_set_txpower(settings_get_uint8(SETTINGS_KEY_TXPOWER,0));
+#endif
 #endif
 
   rimeaddr_set_node_addr(&tmp_addr); 

@@ -215,6 +215,7 @@ void menu_print(void)
 #endif
 #if UIP_CONF_IPV6_RPL
 		PRINTF_P(PSTR("*  N        RPL Neighbors         *\n\r"));
+		PRINTF_P(PSTR("*  G        RPL Global Repair     *\n\r"));
 #endif
 		PRINTF_P(PSTR("*  e        Energy Scan           *\n\r"));
 #if USB_CONF_STORAGE
@@ -438,6 +439,7 @@ void menu_process(char c)
 				break;
 
 #if UIP_CONF_IPV6_RPL
+#include "rpl.h"
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
 			case 'N':
@@ -469,6 +471,10 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 				PRINTF_P(PSTR("\n\r---------\n\r"));
 				break;
 			}
+			
+			case 'G':
+				PRINTF_P(PSTR("Global repair returns %d\n\r"),rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE)));				
+				break;
 #endif				
 			
 			case 'm':
@@ -510,9 +516,9 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 				);
 #if RF230BB
 				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), rf230_get_channel());
-				PRINTF_P(PSTR("  * TX Power Level: 0x%02X\n\r"), rf230_get_txpower());
-				PRINTF_P(PSTR("  * Current RSSI: %ddB\n\r"), -91+3*(rf230_rssi()-1));
-				PRINTF_P(PSTR("  * Last RSSI: %ddB\n\r"), -91+3*(rf230_last_rssi-1));
+				PRINTF_P(PSTR("  * TX Power(0=3dBm, 15=-17.2dBm): %d\n\r"), rf230_get_txpower());
+				PRINTF_P(PSTR("  * Current RSSI: %ddB\n\r"), -91+(rf230_rssi()-1));
+				PRINTF_P(PSTR("  * Last RSSI: %ddB\n\r"), -91+(rf230_last_rssi-1));
 #else // RF230BB
 				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), radio_get_operating_channel());
 				PRINTF_P(PSTR("  * TX Power Level: 0x%02X\n\r"), radio_get_tx_power_level());
@@ -631,7 +637,7 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 				//No more serial port
 				stdout = NULL;
 #if USB_CONF_RS232
-				usb_stdout = NULL;
+//				usb_stdout = NULL;
 #endif
 
 				//RNDIS is over
@@ -643,6 +649,7 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 
 				//Wait a few seconds
 				for(i = 0; i < 50; i++)
+                    watchdog_periodic();
 					_delay_ms(100);
 
 				//Attach USB
