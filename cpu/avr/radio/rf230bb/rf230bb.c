@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.12 2010/09/17 21:59:09 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.13 2010/11/24 18:46:59 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -43,7 +43,7 @@
 #if defined(__AVR__)
 #include <avr/io.h>
 #include <util/delay.h>
-//#include <avr/pgmspace.h>
+#include <avr/pgmspace.h>
 #elif defined(__MSP430__)
 #include <io.h>
 #endif
@@ -577,9 +577,16 @@ rf230_init(void)
 
   /* Start the packet receive process */
   process_start(&rf230_process, NULL);
-  
+
+/* Limit tx power for testing miniature Raven mesh */
+#ifdef RF230_MAX_TX_POWER
+  set_txpower(RF230_MAX_TX_POWER);  //0=3dbm 15=-17.2dbm
+#endif
+
   /* Leave radio in on state (?)*/
   on();
+
+  
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -977,6 +984,8 @@ PROCESS_THREAD(rf230_process, ev, data)
 
     packetbuf_clear();
     len = rf230_read(packetbuf_dataptr(), PACKETBUF_SIZE);
+//             printf_P(PSTR("RSSI reads %x "),hal_subregister_read(SR_RSSI));
+//             printf_P(PSTR("ED reads %d "),hal_subregister_read(SR_ED_LEVEL));
     rf230processflag=1;
     if(len > 0) {
       packetbuf_set_datalen(len);
@@ -1092,16 +1101,15 @@ if (RF230_receive_on) {
     PRINTF("checksum failed 0x%04x != 0x%04x\n",
       checksum, crc16_data(buf, len - AUX_LEN, 0));
   }
-
   if(footer[1] & FOOTER1_CRC_OK &&
      checksum == crc16_data(buf, len - AUX_LEN, 0)) {
-#else
-  if (1) {
- // if(footer[1] & FOOTER1_CRC_OK) {
 #endif /* RF230_CONF_CHECKSUM */
-//  rf230_last_rssi = footer[0];
-    rf230_last_rssi = hal_subregister_read(SR_RSSI);
-//  rf230_last_correlation = footer[1] & FOOTER1_CORRELATION;
+
+#if RF230_CONF_AUTOACK
+    rf230_last_rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84 resolution 1 dB
+#else
+    rf230_last_rssi = 3*hal_subregister_read(SR_RSSI);    //0-28 resolution 3 dB
+#endif
     rf230_last_correlation = rxframe.lqi;
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rf230_last_rssi);
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, rf230_last_correlation);
@@ -1119,12 +1127,14 @@ if (RF230_receive_on) {
     packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, t.time);
 #endif /* RF230_CONF_TIMESTAMPS */
 
+#if RF230_CONF_CHECKSUM
   } else {
     DEBUGFLOW('X');
     PRINTF("bad crc");
     RIMESTATS_ADD(badcrc);
     len = AUX_LEN;
   }
+#endif
 
   /* Clean up in case of FIFO overflow!  This happens for every full
    * length frame and is signaled by FIFOP = 1 and FIFO = 0.
@@ -1186,8 +1196,12 @@ rf230_get_raw_rssi(void)
     radio_was_off = 1;
     rf230_on();
   }
-
-  rssi = (int)((signed char)hal_subregister_read(SR_RSSI));
+/* The energy detect register is used in extended mode (since RSSI will read 0) */
+ #if RF230_CONF_AUTOACK
+    rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84, resolution 1 dB
+#else
+    rssi = 3*hal_subregister_read(SR_RSSI);    //0-28, resolution 3 dB
+#endif
 
   if(radio_was_off) {
     rf230_off();

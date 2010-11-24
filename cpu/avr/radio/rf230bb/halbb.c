@@ -715,9 +715,22 @@ ISR(RADIO_VECT)
        /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
 //         if (rxframe.length) break;			//toss packet if last one not processed yet
          if (rxframe.length) INTERRUPTDEBUG(42); else INTERRUPTDEBUG(12);
+
+#ifdef RF230_MIN_RX_POWER		 
+       /* Discard packets weaker than the minimum if defined */
+#if RF230_CONF_AUTOACK
+        if (hal_subregister_read(SR_ED_LEVEL) >= RF230_MIN_RX_POWER) {
+#else
+        if (hal_subregister_read(SR_RSSI) >= RF230_MIN_RX_POWER) {
+#endif
+#endif
          hal_frame_read(&rxframe, NULL);
          rf230_interrupt();
 //       trx_end_callback(isr_timestamp);
+#ifdef RF230_MIN_RX_POWER
+        }
+#endif
+
 #if 0
        /* Enable reception of next packet */
 #if RF230_CONF_AUTOACK
