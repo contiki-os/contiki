@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.16 2010/10/19 18:29:05 adamdunkels Exp $
+ * $Id: tunslip.c,v 1.17 2010/11/25 09:17:39 adamdunkels Exp $
  *
  */
 
@@ -172,7 +172,7 @@ relay_dhcp_to_server(struct ip *ip, int len)
     return;
   }
 
-  inm->flags = uip_ntohs(BOOTP_BROADCAST);
+  inm->flags = ntohs(BOOTP_BROADCAST);
 
   memcpy(&m, inm, DHCP_BASE_LEN);
   memset(&m.sname, 0x0, DHCP_HOLE_LEN);
@@ -301,29 +301,29 @@ relay_dhcp_to_client(int slipfd)
 
   pkt.ip.ip_vhl = 0x45;		/* IPv4 and hdrlen=5*4 */
   pkt.ip.ip_tos = 0;
-  pkt.ip.ip_len = uip_htons(ip_len);
-  pkt.ip.ip_id = uip_htons(ip_id++);
+  pkt.ip.ip_len = htons(ip_len);
+  pkt.ip.ip_id = htons(ip_id++);
   pkt.ip.ip_off = 0;
   pkt.ip.ip_ttl = 64;
   pkt.ip.ip_p = 17;		/* proto UDP */
   pkt.ip.ip_sum = 0;
   pkt.ip.ip_src = giaddr;
-  if (inm.flags & uip_htons(BOOTP_BROADCAST)) /* check bcast bit */
+  if (inm.flags & htons(BOOTP_BROADCAST)) /* check bcast bit */
     pkt.ip.ip_dst = 0xffffffff;	/* 255.255.255.255 */
   else
     pkt.ip.ip_dst = yiaddr.s_addr;
 
-  pkt.ip.uh_sport = uip_htons(BOOTPS);
-  pkt.ip.uh_dport = uip_htons(BOOTPC);
-  pkt.ip.uh_ulen = uip_htons(udp_len);
+  pkt.ip.uh_sport = htons(BOOTPS);
+  pkt.ip.uh_dport = htons(BOOTPC);
+  pkt.ip.uh_ulen = htons(udp_len);
   pkt.ip.uh_sum = 0;
 
-  pkt.ip.ip_sum = ~uip_htons(ip4sum(0, &pkt.ip, 20));
+  pkt.ip.ip_sum = ~htons(ip4sum(0, &pkt.ip, 20));
   sum = 17 + udp_len;
   sum = ip4sum(sum, &pkt.ip.ip_src, 8);
   sum = ip4sum(sum, &pkt.ip.uh_sport, udp_len);
   if (sum != 0xffff)
-    pkt.ip.uh_sum = ~uip_htons(sum);
+    pkt.ip.uh_sum = ~htons(sum);
   else
     pkt.ip.uh_sum = 0xffff;
 
@@ -370,10 +370,10 @@ check_ip(const struct ip *ip, unsigned ip_len)
   if((ip->ip_vhl & IP_V) != IP_V4)
     return -1;
 
-  if(uip_ntohs(ip->ip_len) > ip_len)
+  if(ntohs(ip->ip_len) > ip_len)
     return -2;
 
-  if(uip_ntohs(ip->ip_len) < ip_len)
+  if(ntohs(ip->ip_len) < ip_len)
     return -3;
 
   /* Check IP header. */
@@ -547,7 +547,7 @@ serial_to_tun(FILE *inslip, int outfd)
       if(dhsock != -1) {
 	struct ip *ip = (void *)uip.inbuf;
 	if(ip->ip_p == 17 && ip->ip_dst == 0xffffffff /* UDP and broadcast */
-	    && ip->uh_sport == uip_ntohs(BOOTPC) && ip->uh_dport == uip_ntohs(BOOTPS)) {
+	    && ip->uh_sport == ntohs(BOOTPC) && ip->uh_dport == ntohs(BOOTPS)) {
 	  relay_dhcp_to_server(ip, inbufptr);
 	  inbufptr = 0;
 	}
@@ -641,7 +641,7 @@ write_to_serial(int outfd, void *inbuf, int len)
   }
 
   if(iphdr->ip_id == 0 && iphdr->ip_off & IP_DF) {
-    uint16_t nid = uip_htons(ip_id++);
+    uint16_t nid = htons(ip_id++);
     iphdr->ip_id = nid;
     nid = ~nid;			/* negate */
     iphdr->ip_sum += nid;	/* add */
@@ -971,7 +971,7 @@ main(int argc, char **argv)
     dhaddr.sin_len = sizeof(dhaddr);
 #endif
     dhaddr.sin_family = AF_INET;
-    dhaddr.sin_port = uip_htons(dhport);
+    dhaddr.sin_port = htons(dhport);
     dhaddr.sin_addr.s_addr = a;
 
     dhsock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -984,7 +984,7 @@ main(int argc, char **argv)
 #endif
     myaddr.sin_family = AF_INET;
     myaddr.sin_addr.s_addr = INADDR_ANY;
-    myaddr.sin_port = uip_htons(myport);
+    myaddr.sin_port = htons(myport);
     if(bind(dhsock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) {
       err(1, "bind dhcp-relay");
     }
@@ -1010,7 +1010,7 @@ main(int argc, char **argv)
     }
     myaddr.sin_family = AF_INET;
     myaddr.sin_addr.s_addr = INADDR_ANY;
-    myaddr.sin_port = uip_htons(myport);
+    myaddr.sin_port = htons(myport);
     if(bind(dhsock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) {
       err(1, "bind dhcp-relay");
     }
