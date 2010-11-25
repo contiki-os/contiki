@@ -123,7 +123,7 @@ static int (* pcap_sendpacket)(struct pcap *, unsigned char *, int);
 #include "net/uip_arp.h"
 
 
-static struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
+struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
 
 static char interface_name[256] = "";
 
