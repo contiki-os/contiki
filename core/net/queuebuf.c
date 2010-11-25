@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.4 2010/10/12 19:51:28 oliverschmidt Exp $
+ * $Id: queuebuf.c,v 1.5 2010/11/25 08:43:59 adamdunkels Exp $
  */
 
 /**
@@ -54,6 +54,12 @@
 #endif
 
 struct queuebuf {
+#if QUEUEBUF_DEBUG
+  struct queuebuf *next;
+  const char *file;
+  int line;
+  clock_time_t time;
+#endif /* QUEUEBUF_DEBUG */
   uint16_t len;
   uint8_t data[PACKETBUF_SIZE];
   struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
@@ -69,6 +75,11 @@ struct queuebuf_ref {
 
 MEMB(bufmem, struct queuebuf, QUEUEBUF_NUM);
 MEMB(refbufmem, struct queuebuf_ref, QUEUEBUF_REF_NUM);
+
+#if QUEUEBUF_DEBUG
+#include "lib/list.h"
+LIST(queuebuf_list);
+#endif /* QUEUEBUF_DEBUG */
 
 #define DEBUG 0
 #if DEBUG
@@ -99,8 +110,13 @@ queuebuf_init(void)
 #endif /* QUEUEBUF_STATS */
 }
 /*---------------------------------------------------------------------------*/
+#if QUEUEBUF_DEBUG
+struct queuebuf *
+queuebuf_new_from_packetbuf_debug(const char *file, int line)
+#else /* QUEUEBUF_DEBUG */
 struct queuebuf *
 queuebuf_new_from_packetbuf(void)
+#endif /* QUEUEBUF_DEBUG */
 {
   struct queuebuf *buf;
   struct queuebuf_ref *rbuf;
@@ -121,6 +137,12 @@ queuebuf_new_from_packetbuf(void)
   } else {
     buf = memb_alloc(&bufmem);
     if(buf != NULL) {
+#if QUEUEBUF_DEBUG
+      list_add(queuebuf_list, buf);
+      buf->file = file;
+      buf->line = line;
+      buf->time = clock_time();
+#endif /* QUEUEBUF_DEBUG */
 #if QUEUEBUF_STATS
       ++queuebuf_len;
       PRINTF("queuebuf len %d\n", queuebuf_len);
@@ -149,6 +171,9 @@ queuebuf_free(struct queuebuf *buf)
     --queuebuf_len;
     printf("#A q=%d\n", queuebuf_len);
 #endif /* QUEUEBUF_STATS */
+#if QUEUEBUF_DEBUG
+    list_remove(queuebuf_list, buf);
+#endif /* QUEUEBUF_DEBUG */
   } else if(memb_inmemb(&refbufmem, buf)) {
     memb_free(&refbufmem, buf);
 #if QUEUEBUF_STATS
@@ -204,6 +229,20 @@ packetbuf_attr_t
 queuebuf_attr(struct queuebuf *b, uint8_t type)
 {
   return b->attrs[type].val;
+}
+/*---------------------------------------------------------------------------*/
+void
+queuebuf_debug_print(void)
+{
+#if QUEUEBUF_DEBUG
+  struct queuebuf *q;
+  printf("queuebuf_list: ");
+  for(q = list_head(queuebuf_list); q != NULL;
+      q = list_item_next(q)) {
+    printf("%s,%d,%lu ", q->file, q->line, q->time);
+  }
+  printf("\n");
+#endif /* QUEUEBUF_DEBUG */
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
