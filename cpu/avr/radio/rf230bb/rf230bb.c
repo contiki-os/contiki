@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.13 2010/11/24 18:46:59 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.14 2010/11/26 20:39:15 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -965,17 +965,24 @@ if (RF230_receive_on) {
 /* Process to handle input packets
  * Receive interrupts cause this process to be polled
  * It calls the core MAC layer which calls rf230_read to get the packet
+ * rf230processflag can be printed in the main idle loop for debugging
  */
-char rf230processflag;      //for debugging process call problems
+#if 1
+uint8_t rf230processflag;
+#define RF230PROCESSFLAG(arg) rf230processflag=arg
+#else
+#define RF230PROCESSFLAG(arg)
+#endif
+
 PROCESS_THREAD(rf230_process, ev, data)
 {
   int len;
   PROCESS_BEGIN();
-  rf230processflag=99;
+  RF230PROCESSFLAG(99);
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-    rf230processflag=42;
+    RF230PROCESSFLAG(42);
 #if RF230_TIMETABLE_PROFILING
     TIMETABLE_TIMESTAMP(rf230_timetable, "poll");
 #endif /* RF230_TIMETABLE_PROFILING */
@@ -983,13 +990,11 @@ PROCESS_THREAD(rf230_process, ev, data)
     pending = 0;
 
     packetbuf_clear();
-    len = rf230_read(packetbuf_dataptr(), PACKETBUF_SIZE);
-//             printf_P(PSTR("RSSI reads %x "),hal_subregister_read(SR_RSSI));
-//             printf_P(PSTR("ED reads %d "),hal_subregister_read(SR_ED_LEVEL));
-    rf230processflag=1;
+    len = rf230_read(packetbuf_dataptr(), PACKETBUF_SIZE);        
+    RF230PROCESSFLAG(1);
     if(len > 0) {
       packetbuf_set_datalen(len);
-      rf230processflag=2;
+      RF230PROCESSFLAG(2);
       NETSTACK_RDC.input();
 #if RF230_TIMETABLE_PROFILING
       TIMETABLE_TIMESTAMP(rf230_timetable, "end");
@@ -1105,11 +1110,17 @@ if (RF230_receive_on) {
      checksum == crc16_data(buf, len - AUX_LEN, 0)) {
 #endif /* RF230_CONF_CHECKSUM */
 
+/* Get the received signal strength for the packet, 0-84 dB above rx threshold */
+#if 0   //more general
+    rf230_last_rssi = rf230_get_raw_rssi();
+#else   //faster
 #if RF230_CONF_AUTOACK
     rf230_last_rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84 resolution 1 dB
 #else
     rf230_last_rssi = 3*hal_subregister_read(SR_RSSI);    //0-28 resolution 3 dB
 #endif
+#endif /* speed vs. generality */
+
     rf230_last_correlation = rxframe.lqi;
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rf230_last_rssi);
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, rf230_last_correlation);
@@ -1188,7 +1199,7 @@ rf230_get_txpower(void)
 uint8_t
 rf230_get_raw_rssi(void)
 {
-  uint8_t rssi;
+  uint8_t rssi,state;
   bool radio_was_off = 0;
 
   /*The RSSI measurement should only be done in RX_ON or BUSY_RX.*/
@@ -1196,12 +1207,15 @@ rf230_get_raw_rssi(void)
     radio_was_off = 1;
     rf230_on();
   }
+
 /* The energy detect register is used in extended mode (since RSSI will read 0) */
- #if RF230_CONF_AUTOACK
-    rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84, resolution 1 dB
-#else
-    rssi = 3*hal_subregister_read(SR_RSSI);    //0-28, resolution 3 dB
-#endif
+/* The rssi register is multiplied by 3 to a consistent value from either register */
+  state=radio_get_trx_state();
+  if ((state==RX_AACK_ON) || (state==BUSY_RX_AACK)) {
+     rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84, resolution 1 dB
+  } else {
+     rssi = 3*hal_subregister_read(SR_RSSI);    //0-28, resolution 3 dB
+  }
 
   if(radio_was_off) {
     rf230_off();
