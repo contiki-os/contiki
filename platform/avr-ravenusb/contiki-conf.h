@@ -301,8 +301,10 @@ or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenu
  * tx=0 (3dbm, default) to 15 (-17.2dbm)
  * RF230_CONF_AUTOACK sets the extended mode using the energy-detect register with rx=0 (-91dBm) to 84 (-7dBm)
  *   else the rssi register is used having range 0 (91dBm) to 28 (-10dBm)
- *   For simplicity RF230_MIN_RX_POWER is based on the rssi value and multiplied by 3 when autoack is set.
+ *   For simplicity RF230_MIN_RX_POWER is based on the energy-detect value and divided by 3 when autoack is not set.
  * On the RF230 a reduced rx power threshold will not prevent autoack if enabled and requested.
+ * These numbers applied to both Raven and Jackdaw give a maximum communication distance of about 15 cm
+ * and a 10 meter range to a full-sensitivity RF230 sniffer.
  */
 #define RF230_MAX_TX_POWER 15
 #define RF230_MIN_RX_POWER 30

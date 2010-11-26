@@ -640,11 +640,11 @@ void RADIO_VECT(void);
 /* These link to the RF230BB driver in rf230.c */
 void rf230_interrupt(void);
 extern hal_rx_frame_t rxframe;
-
+/* rf230interruptflag can be printed in the main idle loop for debugging */
 #define DEBUG 0
 #if DEBUG
-volatile char rf230_interrupt_flag=0;
-#define INTERRUPTDEBUG(arg) rf230_interrupt_flag=arg
+volatile char rf230interruptflag;
+#define INTERRUPTDEBUG(arg) rf230interruptflag=arg
 #else
 #define INTERRUPTDEBUG(arg)
 #endif
@@ -717,12 +717,18 @@ ISR(RADIO_VECT)
          if (rxframe.length) INTERRUPTDEBUG(42); else INTERRUPTDEBUG(12);
 
 #ifdef RF230_MIN_RX_POWER		 
-       /* Discard packets weaker than the minimum if defined */
+       /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes.*/
+       /* Save the rssi for printing in the main loop */
+        volatile extern signed char rf230_last_rssi;
 #if RF230_CONF_AUTOACK
-        if (hal_subregister_read(SR_ED_LEVEL) >= RF230_MIN_RX_POWER) {
+        rf230_last_rssi=hal_subregister_read(SR_ED_LEVEL);
+        if (rf230_last_rssi >= RF230_MIN_RX_POWER) {       
+//        if (hal_subregister_read(SR_ED_LEVEL) >= RF230_MIN_RX_POWER) {
 #else
-        if (hal_subregister_read(SR_RSSI) >= RF230_MIN_RX_POWER) {
-#endif
+        rf230_last_rssi=hal_subregister_read(SR_RSSI);
+ //       if (hal_subregister_read(SR_RSSI) >= RF230_MIN_RX_POWER/3) {
+        if (rf230_last_rssi >= RF230_MIN_RX_POWER/3) {
+#endif  
 #endif
          hal_frame_read(&rxframe, NULL);
          rf230_interrupt();

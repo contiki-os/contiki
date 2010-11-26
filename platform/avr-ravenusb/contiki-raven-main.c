@@ -91,8 +91,6 @@
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-extern int rf230_interrupt_flag;
-extern uint8_t rf230processflag;
 rimeaddr_t macLongAddr;
 #define	tmp_addr	macLongAddr
 #else                 //legacy radio driver using Atmel/Cisco 802.15.4'ish MAC
@@ -488,6 +486,15 @@ main(void)
 
     watchdog_periodic();
 
+/* Print rssi of all received packets, useful for range testing */
+#ifdef RF230_MIN_RX_POWER
+    uint8_t lastprint;
+    if (rf230_last_rssi != lastprint) {        //can be set in halbb.c interrupt routine
+        printf_P(PSTR("%u "),rf230_last_rssi);
+        lastprint=rf230_last_rssi;
+    }
+#endif
+
 #if TESTRTIMER
     if (rtimerflag) {  //8 seconds is maximum interval, my jackdaw 4% slow
       rtimer_set(&rt, RTIMER_NOW()+ RTIMER_ARCH_SECOND*1UL, 1,(void *) rtimercycle, NULL);
@@ -507,8 +514,7 @@ main(void)
     }
 #endif /* TESTRTIMER */
 
-//Use with RF230BB DEBUGFLOW to show path through driver
-//Warning, Jackdaw doesn't handle simultaneous radio and USB interrupts very well.
+/* Use with rf230bb.c DEBUGFLOW to show the sequence of driver calls from the uip stack */
 #if RF230BB&&0
 extern uint8_t debugflowsize,debugflow[];
   if (debugflowsize) {
@@ -518,16 +524,19 @@ extern uint8_t debugflowsize,debugflow[];
    }
 #endif
 
+/* Use for low level interrupt debugging */
 #if RF230BB&&0
+extern uint8_t rf230interruptflag;   //in halbb.c
+extern uint8_t rf230processflag;     //in rf230bb.c
   if (rf230processflag) {
     printf("**RF230 process flag %u\n\r",rf230processflag);
     rf230processflag=0;
   }
-  if (rf230_interrupt_flag) {
-//  if (rf230_interrupt_flag!=11) {
-      printf("**RF230 Interrupt %u\n\r",rf230_interrupt_flag);
+  if (rf230interruptflag) {
+//  if (rf230interruptflag!=11) {
+      printf("**RF230 Interrupt %u\n\r",rf230interruptflag);
  // }
-    rf230_interrupt_flag=0;
+    rf230interruptflag=0;
   }
 #endif
   }

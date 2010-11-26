@@ -115,6 +115,11 @@ static uint8_t previous_uart_usb_control_line_state = 0;
 static uint8_t timer = 0;
 static struct etimer et;
 
+#define CONVERTTXPOWER 1
+#if CONVERTTXPOWER  //adds 92 bytes to program flash size
+const char txonesdigit[16]   PROGMEM = {'3','2','2','1','1','0','0','1','2','3','4','5','7','9','2','7'};
+const char txtenthsdigit[16] PROGMEM = {'0','6','1','6','1','5','2','2','2','2','2','2','2','2','2','2'};
+#endif
 
 PROCESS(cdc_process, "CDC serial process");
 
@@ -200,10 +205,8 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
  */
 void menu_print(void)
 {
-		PRINTF_P(PSTR("\n\r********** Jackdaw Menu *********\n\r"));
+		PRINTF_P(PSTR("\n\r*********** Jackdaw Menu **********\n\r"));
 		PRINTF_P(PSTR("*                                 *\n\r"));
-		PRINTF_P(PSTR("* Main Menu:                      *\n\r"));
-		PRINTF_P(PSTR("*  h,?      Print this menu       *\n\r"));
 		PRINTF_P(PSTR("*  m        Print current mode    *\n\r"));
 		PRINTF_P(PSTR("*  s        Set to sniffer mode   *\n\r"));
 		PRINTF_P(PSTR("*  n        Set to network mode   *\n\r"));
@@ -224,6 +227,7 @@ void menu_print(void)
 		if(bootloader_is_present())
 		PRINTF_P(PSTR("*  D        Switch to DFU mode    *\n\r"));
 		PRINTF_P(PSTR("*  R        Reset (via WDT)       *\n\r"));
+        PRINTF_P(PSTR("*  h,?      Print this menu       *\n\r"));
 		PRINTF_P(PSTR("*                                 *\n\r"));
 		PRINTF_P(PSTR("* Make selection at any time by   *\n\r"));
 		PRINTF_P(PSTR("* pressing your choice on keyboard*\n\r"));
@@ -473,8 +477,22 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 			}
 			
 			case 'G':
-				PRINTF_P(PSTR("Global repair returns %d\n\r"),rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE)));				
+				PRINTF_P(PSTR("Global repair returns %d\n\r"),rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE))); 
 				break;
+            
+            case 'L':
+                rpl_local_repair(rpl_get_dag(RPL_ANY_INSTANCE));
+                 PRINTF_P(PSTR("Local repair initiated\n\r")); 
+                 break;
+ 
+            case 'Z':     //zap the routing table           
+            {   uint8_t i; 
+				for (i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+					uip_ds6_routing_table[i].isused=0;
+                }
+                PRINTF_P(PSTR("Routing table cleared!\n\r")); 
+                break;
+            }
 #endif				
 			
 			case 'm':
@@ -515,11 +533,22 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 					((uint8_t *)&macLongAddr)[7]
 				);
 #if RF230BB
+#if CONVERTTXPOWER
+                {
+                uint8_t power=rf230_get_txpower()&0xf;
+                char sign=(power<6?'+':'-');
+                char tens=(power>14?'1':'0');
+                char ones=pgm_read_byte(&txonesdigit[power]);
+                char tenths=pgm_read_byte(&txtenthsdigit[power]);
+                PRINTF_P(PSTR("  * Operates on channel %d with TX power %c%c%c.%cdBm\n\r"), rf230_get_channel(),sign,tens,ones,tenths);
+                }
+#else  //just show the raw value          
 				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), rf230_get_channel());
 				PRINTF_P(PSTR("  * TX Power(0=3dBm, 15=-17.2dBm): %d\n\r"), rf230_get_txpower());
-				PRINTF_P(PSTR("  * Current RSSI: %ddB\n\r"), -91+(rf230_rssi()-1));
-				PRINTF_P(PSTR("  * Last RSSI: %ddB\n\r"), -91+(rf230_last_rssi-1));
-#else // RF230BB
+#endif
+				PRINTF_P(PSTR("  * Current/Last RSSI: %d/%ddBm\n\r"), -91+(rf230_rssi()-1), -91+(rf230_last_rssi-1));
+
+#else /* RF230BB */
 				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), radio_get_operating_channel());
 				PRINTF_P(PSTR("  * TX Power Level: 0x%02X\n\r"), radio_get_tx_power_level());
 				{
@@ -531,9 +560,12 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 						PRINTF_P(PSTR("Unknown\n\r"));
 				}
 				
-#endif // !RF230BB
-				PRINTF_P(PSTR("  * Configuration: %d\n\r"), usb_configuration_nb);
-				PRINTF_P(PSTR("  * usb_eth_is_active: %d\n\r"), usb_eth_is_active);
+#endif /* RF230BB */
+
+				PRINTF_P(PSTR("  * Configuration: %d, USB<->ETH is "), usb_configuration_nb);
+                if (usb_eth_is_active == 0) PRINTF_P(PSTR("not "));
+                PRINTF_P(PSTR("active\n\r"));
+                
 				break;
 
 			case 'e':
@@ -562,9 +594,10 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 #endif
 							_delay_us(3*10);
 #if RF230BB
-							RSSI = rf230_rssi();
+							RSSI = rf230_rssi();  //multiplies rssi register by 3 for consistency with energy-detect register
 #else // RF230BB
 							radio_get_rssi_value(&RSSI);
+                            RSSI*=3;
 #endif
 							maxRSSI[i-11]=Max(maxRSSI[i-11],RSSI);
 							accRSSI[i-11]+=RSSI;
@@ -588,7 +621,7 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 					PRINTF_P(PSTR("\n"));
 					for(i=11;i<=26;i++) {
 						uint8_t activity=Min(maxRSSI[i-11],accRSSI[i-11]/(1<<7));
-						PRINTF_P(PSTR(" %d: %02ddB "),i, -91+3*(maxRSSI[i-11]-1));
+						PRINTF_P(PSTR(" %d: %02ddB "),i, -91+(maxRSSI[i-11]-1));
 						for(;activity--;maxRSSI[i-11]--) {
 							PRINTF_P(PSTR("#"));
 						}
