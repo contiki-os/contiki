@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.16 2010/11/25 09:22:56 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
  */
 
 /**
@@ -44,6 +44,7 @@
 #include "sys/energest.h"
 #include "sys/rtimer.h"
 #include "sys/process.h"
+#include "dev/watchdog.h"
 
 #define DEBUG 0
 #if DEBUG
