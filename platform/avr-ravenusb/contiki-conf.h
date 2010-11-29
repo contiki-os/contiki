@@ -287,9 +287,10 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #if UIP_CONF_IPV6_RPL
 
 /* Not completely working yet. Works on Ubuntu after $ifconfig usb0 -arp to drop the neighbor solitications */
-/* Haven't figured out how to drop the NS on Windows */
+/* Dropping the NS on other OSs is more complicated, see http://www.sics.se/~adam/wiki/index.php/Jackdaw_RNDIS_RPL_border_router */
+
 /* RPL requires the uip stack. Change #CONTIKI_NO_NET=1 to UIP_CONF_IPV6=1 in the examples makefile,
-or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenusb */
+   or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenusb */
 /* For the present the buffer_length calcs in rpl-icmp6.c will need adjustment by the length difference
    between 6lowpan (0) and ethernet (14) link-layer headers:
  // buffer_length = uip_len - uip_l2_l3_icmp_hdr_len;
@@ -306,48 +307,58 @@ or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenu
  * These numbers applied to both Raven and Jackdaw give a maximum communication distance of about 15 cm
  * and a 10 meter range to a full-sensitivity RF230 sniffer.
  */
-#define RF230_MAX_TX_POWER 15
-#define RF230_MIN_RX_POWER 30
+//#define RF230_MAX_TX_POWER 15
+//#define RF230_MIN_RX_POWER 30
 
-#define UIP_CONF_ROUTER  1
-#define RPL_CONF_STATS    0
-#define PROCESS_CONF_NO_PROCESS_NAMES  0
-#undef UIP_CONF_TCP            //TCP needed to serve RPL neighbor web page
-#define UIP_CONF_TCP             0
+#define UIP_CONF_ROUTER             1
+#define RPL_BORDER_ROUTER           1
+#define RPL_CONF_STATS              0
+#define UIP_CONF_BUFFER_SIZE	 1300
+#define UIP_CONF_DS6_NBR_NBU       12
+#define UIP_CONF_DS6_ROUTE_NBU     12
 #undef UIP_FALLBACK_INTERFACE
 #define UIP_FALLBACK_INTERFACE rpl_interface
-//#undef UIP_CONF_MAX_CONNECTIONS
-//#define UIP_CONF_MAX_CONNECTIONS 1
-//#undef UIP_CONF_MAX_LISTENPORTS
-//#define UIP_CONF_MAX_LISTENPORTS 10
-//#define UIP_CONF_TCP_MSS         512
-#undef UIP_CONF_TCP_SPLIT   //daktest
-#define UIP_CONF_TCP_SPLIT       0
-#undef UIP_CONF_STATISTICS
-#define UIP_CONF_STATISTICS      0
-
-#define UIP_CONF_DS6_NBR_NBU     5
-#define UIP_CONF_DS6_ROUTE_NBU   5
-
 #define UIP_CONF_ND6_SEND_RA		0
-#define UIP_CONF_ND6_REACHABLE_TIME     600000
-#define UIP_CONF_ND6_RETRANS_TIMER      10000
+#define UIP_CONF_ND6_REACHABLE_TIME 600000
+#define UIP_CONF_ND6_RETRANS_TIMER  10000
 
-//#define UIP_CONF_BUFFER_SIZE		1300
+/* Save all the RAM we can */
+#define PROCESS_CONF_NO_PROCESS_NAMES 0
+#undef UIP_CONF_TCP_SPLIT
+#define UIP_CONF_TCP_SPLIT          0
+#undef UIP_CONF_STATISTICS
+#define UIP_CONF_STATISTICS         0
+#define UIP_CONF_PINGADDRCONF       0
+#define UIP_CONF_LOGGING            0
+#undef UIP_CONF_MAX_CONNECTIONS
+#define UIP_CONF_MAX_CONNECTIONS    1
+#undef UIP_CONF_MAX_LISTENPORTS
+#define UIP_CONF_MAX_LISTENPORTS    3
+
+/* Optional, TCP needed to serve the RPL neighbor web page currently hard coded at bbbb::11 */
+/* The RPL neighbors can also be viewed using the jack menu */
+/* A small MSS is adequate for the internal jackdaw webserver and RAM is very limited*/
+#define RPL_HTTPD_SERVER            1
+#if RPL_HTTPD_SERVER
+#undef UIP_CONF_TCP            
+#define UIP_CONF_TCP                1
+#define UIP_CONF_TCP_MSS           48
+#define UIP_CONF_RECEIVE_WINDOW    48
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU        5
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU      5
+#endif
+
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 
 #define UIP_CONF_DHCP_LIGHT
-//#define UIP_CONF_LLH_LEN         0
-//#define UIP_CONF_RECEIVE_WINDOW  48
-//#define UIP_CONF_TCP_MSS         48
 #define UIP_CONF_UDP_CONNS       12
 #undef UIP_CONF_FWCACHE_SIZE
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
 //#define UIP_ARCH_IPCHKSUM        1
-#define UIP_CONF_PINGADDRCONF    0
-#define UIP_CONF_LOGGING         0
 
 #endif /* UIP_CONF_IPV6_RPL */
 #endif /* RF230BB */
