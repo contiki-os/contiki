@@ -7,11 +7,11 @@ CONTIKI=../..
 WITH_UIP6=1
 UIP_CONF_IPV6=1
 
-WITH_COAP = 1
+WITH_COAP = 0
 
 CFLAGS += -DPROJECT_CONF_H=1
 
-ifdef WITH_COAP 
+ifeq ($(WITH_COAP), 1)
 CFLAGS += -DWITH_COAP
 APPS = rest-coap
 else
