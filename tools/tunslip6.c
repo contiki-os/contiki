@@ -29,7 +29,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip6.c,v 1.5 2010/07/30 20:44:24 dak664 Exp $
+ * $Id: tunslip6.c,v 1.6 2010/11/29 18:14:54 joxe Exp $
  *
  */
 
@@ -67,6 +67,7 @@ int ssystem(const char *fmt, ...)
 void write_to_serial(int outfd, void *inbuf, int len);
 
 void slip_send(int fd, unsigned char c);
+void slip_send_char(int fd, unsigned char c);
 
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while (0)
@@ -229,7 +230,8 @@ serial_to_tun(FILE *inslip, int outfd)
 	  slip_send(slipfd, '!');
 	  slip_send(slipfd, 'P');
 	  for(i = 0; i < 8; i++) {
-	    slip_send(slipfd, addr.s6_addr[i]);
+	    /* need to call the slip_send_char for stuffing */
+	    slip_send_char(slipfd, addr.s6_addr[i]);
 	  }
 	  slip_send(slipfd, SLIP_END);
         }
@@ -311,6 +313,24 @@ serial_to_tun(FILE *inslip, int outfd)
 
 unsigned char slip_buf[2000];
 int slip_end, slip_begin;
+
+void
+slip_send_char(int fd, unsigned char c)
+{
+  switch(c) {
+  case SLIP_END:
+    slip_send(fd, SLIP_ESC);
+    slip_send(fd, SLIP_ESC_END);
+    break;
+  case SLIP_ESC:
+    slip_send(fd, SLIP_ESC);
+    slip_send(fd, SLIP_ESC_ESC);
+    break;
+  default:
+    slip_send(fd, c);
+    break;
+  }
+}
 
 void
 slip_send(int fd, unsigned char c)
