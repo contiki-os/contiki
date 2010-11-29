@@ -138,12 +138,9 @@ const struct uip_fallback_interface rpl_interface = {
   init, output
 };
 
-#define RPL_BORDER_ROUTER 1     //Set to 1 for border router
-#define RPL_HTTPD_SERVER  0     //Set to 1 for border router web page
-
+#if RPL_BORDER_ROUTER
 #include "net/rpl/rpl.h"
 
-#if RPL_BORDER_ROUTER
 // avr-objdump --section .bss -x ravenusbstick.elf
 uint16_t dag_id[] PROGMEM = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
