@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -22,10 +19,10 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>[CONTIKI_DIR]/examples/rime/example-abc.c</source>
-      <commands>make clean TARGET=sky
-make example-abc.sky TARGET=sky DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_driver</commands>
-      <firmware>[CONTIKI_DIR]/examples/rime/example-abc.sky</firmware>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/rime/example-abc.c</source>
+      <commands EXPORT="discard">make clean TARGET=sky
+make example-abc.sky TARGET=sky DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_noframer_driver,CC2420_CONF_AUTOACK=0</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rime/example-abc.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -44,10 +41,10 @@ make example-abc.sky TARGET=sky DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC
       se.sics.cooja.mspmote.ESBMoteType
       <identifier>esb1</identifier>
       <description>ESB Mote Type #1</description>
-      <source>[CONTIKI_DIR]/examples/rime/example-abc.c</source>
-      <commands>make clean TARGET=esb
-make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_driver</commands>
-      <firmware>[CONTIKI_DIR]/examples/rime/example-abc.esb</firmware>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/rime/example-abc.c</source>
+      <commands EXPORT="discard">make clean TARGET=esb
+make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_noframer_driver</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rime/example-abc.esb</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
@@ -61,10 +58,11 @@ make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC
     </motetype>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype430</identifier>
+      <identifier>mtype343</identifier>
       <description>Contiki Mote Type #1</description>
       <contikiapp>[CONTIKI_DIR]/examples/rime/example-abc.c</contikiapp>
-      <commands>make example-abc.cooja TARGET=cooja DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_driver</commands>
+      <commands>make clean TARGET=cooja
+make example-abc.cooja TARGET=cooja DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_noframer_driver</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -100,7 +98,7 @@ make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>6</id>
       </interface_config>
-      <motetype_identifier>mtype430</motetype_identifier>
+      <motetype_identifier>mtype343</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -113,7 +111,7 @@ make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>12</id>
       </interface_config>
-      <motetype_identifier>mtype430</motetype_identifier>
+      <motetype_identifier>mtype343</motetype_identifier>
     </mote>
     <mote>
       <breakpoints />
@@ -182,7 +180,7 @@ make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>16</id>
       </interface_config>
-      <motetype_identifier>mtype430</motetype_identifier>
+      <motetype_identifier>mtype343</motetype_identifier>
     </mote>
     <mote>
       <breakpoints />
@@ -344,7 +342,7 @@ make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>17</id>
       </interface_config>
-      <motetype_identifier>mtype430</motetype_identifier>
+      <motetype_identifier>mtype343</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -357,7 +355,7 @@ make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>15</id>
       </interface_config>
-      <motetype_identifier>mtype430</motetype_identifier>
+      <motetype_identifier>mtype343</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -367,19 +365,17 @@ make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC
     <height>200</height>
     <location_x>0</location_x>
     <location_y>1</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
-      <filter />
+      <filter>ID:[12]</filter>
     </plugin_config>
     <width>953</width>
-    <z>3</z>
-    <height>130</height>
+    <z>0</z>
+    <height>184</height>
     <location_x>0</location_x>
     <location_y>524</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.RadioLogger
@@ -391,7 +387,6 @@ make example-abc.esb TARGET=esb DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC
     <height>152</height>
     <location_x>260</location_x>
     <location_y>369</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
@@ -444,7 +439,6 @@ while (true) {
     <height>367</height>
     <location_x>264</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.TimeLine
@@ -470,16 +464,14 @@ while (true) {
       <mote>18</mote>
       <mote>19</mote>
       <showRadioRXTX />
-      <showRadioHW />
-      <split>109</split>
-      <zoom>12</zoom>
+      <split>26</split>
+      <zoomfactor>4.84134798580701</zoomfactor>
     </plugin_config>
     <width>956</width>
     <z>1</z>
-    <height>310</height>
+    <height>276</height>
     <location_x>-1</location_x>
     <location_y>655</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.Visualizer
@@ -491,11 +483,10 @@ while (true) {
       <viewport>0.5766712294536613 0.0 0.0 0.5766712294536613 36.4700887534336 117.76935499005339</viewport>
     </plugin_config>
     <width>264</width>
-    <z>0</z>
+    <z>3</z>
     <height>321</height>
     <location_x>0</location_x>
     <location_y>201</location_y>
-    <minimized>false</minimized>
   </plugin>
 </simconf>
 
