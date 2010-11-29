@@ -258,6 +258,11 @@
 #endif
 
 static const uint64_t simple_trans_ethernet_addr = 0x3E3D3C3B3AF2ULL;
+
+#if UIP_CONF_IPV6_RPL
+static uip_ipaddr_t last_sender;
+#endif
+
 extern uint64_t usb_ethernet_addr;
 
 extern uint64_t macLongAddr;
@@ -430,6 +435,8 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 #if UIP_CONF_IPV6
 /* Send the packet to the uip6 stack if it exists, else send to 6lowpan */
 #if UIP_CONF_IPV6_RPL
+/* Save the destination address, to trap ponging it back to the interface */
+  uip_ipaddr_copy(&last_sender, &UIP_IP_BUF->srcipaddr);
   tcpip_input();
 #else
   tcpip_output(destAddrPtr);
@@ -487,6 +494,7 @@ void mac_LowpanToEthernet(void)
     (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER)
   ))
 #endif
+
   {
     mac_createDefaultEthernetAddr((uint8_t *) &(ETHBUF(uip_buf)->src.addr[0]));
   }
@@ -496,6 +504,15 @@ void mac_LowpanToEthernet(void)
     //Some IP packets have link layer in them, need to change them around!
     mac_translateIPLinkLayer(ll_8023_type);
   }
+ 
+#if UIP_CONF_IPV6_RPL
+/* We won't play ping-pong with the host! */
+    if(uip_ipaddr_cmp(&last_sender, &UIP_IP_BUF->srcipaddr)) {
+        PRINTF("siclow_ethernet: Destination off-link but no route\n");
+        uip_len=0;
+        return;
+    }
+#endif
 
   PRINTF("Low2Eth: Sending packet to ethernet\n\r");
 
