@@ -22,6 +22,9 @@
 #define NODE_2_GLOBAL(ipaddr)   uip_ip6addr(ipaddr, 0xaaaa, 0, 0, 0, 0x0212, 0x7402, 0x0002, 0x0202)
 #define NODE_2_LOCAL(ipaddr)    uip_ip6addr(ipaddr, 0xfe80, 0, 0, 0, 0x0212, 0x7402, 0x0002, 0x0202)
 
+#define NODE_3_GLOBAL(ipaddr)   uip_ip6addr(ipaddr, 0xaaaa, 0, 0, 0, 0x0212, 0x7403, 0x0003, 0x0303)
+#define NODE_3_LOCAL(ipaddr)    uip_ip6addr(ipaddr, 0xfe80, 0, 0, 0, 0x0212, 0x7403, 0x0003, 0x0303)
+
 #define NODE_6_GLOBAL(ipaddr)   uip_ip6addr(ipaddr, 0xaaaa, 0, 0, 0, 0x0212, 0x7406, 0x0006, 0x0606)
 #define NODE_6_LOCAL(ipaddr)    uip_ip6addr(ipaddr, 0xfe80, 0, 0, 0, 0x0212, 0x7406, 0x0006, 0x0606)
 
