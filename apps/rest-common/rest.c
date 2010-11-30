@@ -234,7 +234,7 @@ rest_invoke_restful_service(REQUEST* request, RESPONSE* response)
 
       if (resource->methods_to_handle & method) {
 
-        /*FIXME Move somewhere else*/
+        /*FIXME Need to move somewhere else*/
         #ifdef WITH_COAP
         uint32_t lifetime = 0;
         if (coap_get_header_subscription_lifetime(request, &lifetime)) {
@@ -248,6 +248,7 @@ rest_invoke_restful_service(REQUEST* request, RESPONSE* response)
               PRINTF("Periodic Resource Found\n");
               PRINT6ADDR(&request->addr);
               periodic_resource->lifetime = lifetime;
+              stimer_set(periodic_resource->lifetime_timer, lifetime);
               uip_ipaddr_copy(&periodic_resource->addr, &request->addr);
             }
           }
@@ -294,31 +295,33 @@ PROCESS_THREAD(rest_manager_process, ev, data)
   periodic_resource_t* periodic_resource = NULL;
   for (periodic_resource = (periodic_resource_t*)list_head(restful_periodic_services); periodic_resource; periodic_resource = periodic_resource->next) {
     if (periodic_resource->period) {
-      PRINTF("Set timer for Res: %s to %u\n", periodic_resource->resource->url, periodic_resource->period);
-      etimer_set(periodic_resource->timer, CLOCK_SECOND * periodic_resource->period);
+      PRINTF("Set timer for Res: %s to %lu\n", periodic_resource->resource->url, periodic_resource->period);
+      etimer_set(periodic_resource->handler_cb_timer, periodic_resource->period);
     }
   }
 
   while(1) {
     PROCESS_WAIT_EVENT();
     if (ev == PROCESS_EVENT_TIMER) {
-      for (periodic_resource=(periodic_resource_t*)list_head(restful_periodic_services);periodic_resource;periodic_resource = periodic_resource->next) {
-        if (periodic_resource->period && etimer_expired(periodic_resource->timer)) {
-          PRINTF("Etimer expired for %s (period:%u life:%lu)\n", periodic_resource->resource->url, periodic_resource->period, periodic_resource->lifetime);
+      for (periodic_resource = (periodic_resource_t*)list_head(restful_periodic_services);periodic_resource;periodic_resource = periodic_resource->next) {
+        if (periodic_resource->period && etimer_expired(periodic_resource->handler_cb_timer)) {
+          PRINTF("Etimer expired for %s (period:%lu life:%lu)\n", periodic_resource->resource->url, periodic_resource->period, periodic_resource->lifetime);
           /*call the periodic handler function if exists*/
           if (periodic_resource->periodic_handler) {
-            if ((periodic_resource->periodic_handler)(periodic_resource->resource) && periodic_resource->lifetime) {
-              resource_changed(periodic_resource);
+            if ((periodic_resource->periodic_handler)(periodic_resource->resource)) {
+              PRINTF("RES CHANGE\n");
+              if (!stimer_expired(periodic_resource->lifetime_timer)) {
+                PRINTF("TIMER NOT EXPIRED\n");
+                resource_changed(periodic_resource);
+                periodic_resource->lifetime = stimer_remaining(periodic_resource->lifetime_timer);
+              } else {
+                periodic_resource->lifetime = 0;
+              }
             }
-            /*Update lifetime*/
-            if (periodic_resource->lifetime > periodic_resource->period) {
-              periodic_resource->lifetime -= periodic_resource->period;
-            } else {
-              periodic_resource->lifetime = 0;
-            }
-            PRINTF("%s life upd:%lu\n", periodic_resource->resource->url, periodic_resource->lifetime);
+
+            PRINTF("%s lifetime %lu (%lu) expired %d\n", periodic_resource->resource->url, stimer_remaining(periodic_resource->lifetime_timer), periodic_resource->lifetime, stimer_expired(periodic_resource->lifetime_timer));
           }
-          etimer_reset(periodic_resource->timer);
+          etimer_reset(periodic_resource->handler_cb_timer);
         }
       }
     }
