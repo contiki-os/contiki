@@ -47,7 +47,7 @@
  *  \file
  *  \brief This file contains low-level radio driver code.
  *
- *   $Id: hal.h,v 1.3 2010/02/26 21:15:29 dak664 Exp $
+ *   $Id: hal.h,v 1.4 2010/11/30 19:47:40 dak664 Exp $
 */
 
 #ifndef HAL_AVR_H
@@ -366,7 +366,9 @@ void hal_register_write( uint8_t address, uint8_t value );
 uint8_t hal_subregister_read( uint8_t address, uint8_t mask, uint8_t position );
 void hal_subregister_write( uint8_t address, uint8_t mask, uint8_t position,
                             uint8_t value );
-void hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback);
+//void hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback);
+/* For speed RF230BB does not use a callback */
+void hal_frame_read(hal_rx_frame_t *rx_frame);
 void hal_frame_write( uint8_t *write_buffer, uint8_t length );
 void hal_sram_read( uint8_t address, uint8_t length, uint8_t *data );
 void hal_sram_write( uint8_t address, uint8_t length, uint8_t *data );
