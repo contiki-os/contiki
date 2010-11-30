@@ -55,8 +55,9 @@ typedef struct resource_t resource_t;
 struct periodic_resource_t {
   struct periodic_resource_t *next;
   resource_t *resource;
-  uint16_t period;
-  struct etimer* timer;
+  uint32_t period;
+  struct etimer* handler_cb_timer;
+  struct stimer* lifetime_timer;
   restful_periodic_handler periodic_handler;
   restful_periodic_request_generator periodic_request_generator;
   uint32_t lifetime;
@@ -80,8 +81,9 @@ resource_t resource_##name = {NULL, methods_to_handle, url, name##_handler, NULL
 RESOURCE(name, methods_to_handle, url); \
 int name##_periodic_handler(resource_t*); \
 void name##_periodic_request_generator(REQUEST*); \
-struct etimer timer_##name; \
-periodic_resource_t periodic_resource_##name = {NULL, &resource_##name, period, &timer_##name, name##_periodic_handler, name##_periodic_request_generator, 0}
+struct etimer handler_cb_timer_##name; \
+struct stimer lifetime_timer_##name; \
+periodic_resource_t periodic_resource_##name = {NULL, &resource_##name, period, &handler_cb_timer_##name, &lifetime_timer_##name, name##_periodic_handler, name##_periodic_request_generator, 0}
 
 
 /*
