@@ -56,6 +56,7 @@
  *  This file contains low-level radio driver code.
  *  This version is optimized for use with the "barebones" RF230bb driver,
  *  which communicates directly with the contiki core MAC layer.
+ *  It is optimized for speed at the expense of generality.
  */
 
 
@@ -131,6 +132,42 @@ static uint16_t hal_system_time = 0;
 /*============================ PROTOTYPES ====================================*/
 /*============================ IMPLEMENTATION ================================*/
 
+#ifndef RF230BB_HARDWARE_SPI
+#define RF230BB_HARDWARE_SPI 1
+#endif
+
+#if RF230BB_HARDWARE_SPI
+// AVR with hardware spi tranfers
+#define HAL_SPI_TRANSFER_OPEN() { \
+  AVR_ENTER_CRITICAL_REGION();	  \
+  HAL_SS_LOW(); /* Start the SPI transaction by pulling the Slave Select low. */
+#define HAL_SPI_TRANSFER_WRITE(to_write) SPDR = to_write
+#define HAL_SPI_TRANSFER_WAIT() ({while ((SPSR & (1 << SPIF)) == 0) {;}}) /* gcc extension, alternative inline function */
+#define HAL_SPI_TRANSFER_READ() (SPDR)
+#define HAL_SPI_TRANSFER_CLOSE() \
+    HAL_SS_HIGH(); /* End the transaction by pulling the Slave Select High. */ \
+    AVR_LEAVE_CRITICAL_REGION(); \
+    }
+#define HAL_SPI_TRANSFER(to_write) (	  \
+				    HAL_SPI_TRANSFER_WRITE(to_write),	\
+				    HAL_SPI_TRANSFER_WAIT(),		\
+				    HAL_SPI_TRANSFER_READ() )
+
+#else /* RF230BB_HARDWARE_SPI */
+// Software SPI transfers (Mulle, for reference)
+#define HAL_SPI_TRANSFER_OPEN() { uint8_t spiTemp; \
+  AVR_ENTER_CRITICAL_REGION();	  \
+  HAL_SS_LOW(); /* Start the SPI transaction by pulling the Slave Select low. */
+#define HAL_SPI_TRANSFER_WRITE(to_write) (spiTemp = spiWrite(to_write))
+#define HAL_SPI_TRANSFER_WAIT() (0)
+#define HAL_SPI_TRANSFER_READ() (spiTemp)
+#define HAL_SPI_TRANSFER_CLOSE() \
+    HAL_SS_HIGH(); /* End the transaction by pulling the Slave Select High. */ \
+    AVR_LEAVE_CRITICAL_REGION(); \
+    }
+#define HAL_SPI_TRANSFER(to_write) (spiTemp = spiWrite(to_write))
+#endif  /* RF230BB_HARDWARE_SPI */
+ 
 /** \brief  This function initializes the Hardware Abstraction Layer.
  */
 void
@@ -313,22 +350,14 @@ hal_register_read(uint8_t address)
 
     uint8_t register_value = 0;
 
-    AVR_ENTER_CRITICAL_REGION();
-
-    HAL_SS_LOW(); /* Start the SPI transaction by pulling the Slave Select low. */
+    HAL_SPI_TRANSFER_OPEN();
 
     /*Send Register address and read register content.*/
-    SPDR = address;
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    register_value = SPDR;
+    register_value = HAL_SPI_TRANSFER(address);        // dummy read
 
-    SPDR = register_value;
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    register_value = SPDR;
+    register_value = HAL_SPI_TRANSFER(register_value); // dummy write
 
-    HAL_SS_HIGH(); /* End the transaction by pulling the Slave Select High. */
-
-    AVR_LEAVE_CRITICAL_REGION();
+    HAL_SPI_TRANSFER_CLOSE();
 
     return register_value;
 }
@@ -348,22 +377,14 @@ hal_register_write(uint8_t address, uint8_t value)
     /* Add the Register Write command to the address. */
     address = HAL_TRX_CMD_RW | (HAL_TRX_CMD_RADDRM & address);
 
-    AVR_ENTER_CRITICAL_REGION();
-
-    HAL_SS_LOW(); /* Start the SPI transaction by pulling the Slave Select low. */
+    HAL_SPI_TRANSFER_OPEN();
 
     /*Send Register address and write register content.*/
-    SPDR = address;
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    uint8_t dummy_read = SPDR;
+    uint8_t dummy_read = HAL_SPI_TRANSFER(address);
 
-    SPDR = value;
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    dummy_read = SPDR;
+    dummy_read = HAL_SPI_TRANSFER(value);
 
-    HAL_SS_HIGH(); /* End the transaction by pulling the Slave Slect High. */
-
-    AVR_LEAVE_CRITICAL_REGION();
+    HAL_SPI_TRANSFER_CLOSE();
 }
 
 /*----------------------------------------------------------------------------*/
@@ -425,33 +446,30 @@ hal_subregister_write(uint8_t address, uint8_t mask, uint8_t position,
  *          If the frame currently available in the radio transceiver's frame buffer
  *          is out of the defined bounds. Then the frame length, lqi value and crc
  *          be set to zero. This is done to indicate an error.
- *          This version is optimized for use with contiki RF230BB driver
+ *          This version is optimized for use with contiki RF230BB driver.
+ *          The callback routine and CRC are left out for speed in reading the rx buffrer .
  *
  *  \param  rx_frame    Pointer to the data structure where the frame is stored.
  *  \param  rx_callback Pointer to callback function for receiving one byte at a time.
  */
 void
-hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback)
+//hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback)
+hal_frame_read(hal_rx_frame_t *rx_frame)
 {
-    uint8_t *rx_data=0;
+ // uint8_t *rx_data=0;
+    uint8_t *rx_data;
 
     /*  check that we have either valid frame pointer or callback pointer */
 //  if (!rx_frame && !rx_callback)
 //      return;
 
-    AVR_ENTER_CRITICAL_REGION();
-
-    HAL_SS_LOW();
+    HAL_SPI_TRANSFER_OPEN();
 
     /*Send frame read command.*/
-    SPDR = HAL_TRX_CMD_FR;
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    uint8_t frame_length = SPDR;
+    (void)HAL_SPI_TRANSFER(HAL_TRX_CMD_FR);
 
     /*Read frame length.*/
-    SPDR = frame_length;
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    frame_length = SPDR;
+    uint8_t frame_length = HAL_SPI_TRANSFER(0);
 
     /*Check for correct frame length.*/
     if ((frame_length >= HAL_MIN_FRAME_LENGTH) && (frame_length <= HAL_MAX_FRAME_LENGTH)){
@@ -462,44 +480,43 @@ hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback)
 //      } else {
 //          rx_callback(frame_length);
 //      }
-        /*Upload frame buffer to data pointer. Calculate CRC.*/
-        SPDR = frame_length;
-        while ((SPSR & (1 << SPIF)) == 0) {;}
+        /*Upload frame buffer to data pointer */
+
+	    HAL_SPI_TRANSFER_WRITE(0);
+	    HAL_SPI_TRANSFER_WAIT();
 
         do{
-            uint8_t tempData = SPDR;
-            SPDR = 0;       /*  dummy write */
+            *rx_data++ = HAL_SPI_TRANSFER_READ();
+            HAL_SPI_TRANSFER_WRITE(0);
+            HAL_SPI_TRANSFER_WAIT();
 
 //           if (rx_frame){
-                *rx_data++ = tempData;
+//             *rx_data++ = tempData;
 //          } else {
 //              rx_callback(tempData);
 //          }
-/* RF230 does crc in hardware, for speed we hope the buffer is not being overwritten! */
+/* RF230 does crc in hardware, doing the checksum here ensures the rx buffer has not been overwritten by the next packet */
+/* Since doing the checksum makes such overwrites more probable, we skip it and hope for the best. */
+/* A full buffer should be read in 320us at 2x spi clocking, so with a low interrupt latency overwrites should not occur */
 //         crc = _crc_ccitt_update(crc, tempData);
-
-            while ((SPSR & (1 << SPIF)) == 0) {;}
 
         } while (--frame_length > 0);
 
         /*Read LQI value for this frame.*/
 //      if (rx_frame){
-            rx_frame->lqi = SPDR;
+	    rx_frame->lqi = HAL_SPI_TRANSFER_READ();
 //      } else {
 //          rx_callback(SPDR);
 //      }
         
-        HAL_SS_HIGH();
-        rx_frame->crc = 1;
+
         /*Check calculated crc, and set crc field in hal_rx_frame_t accordingly.*/
 //      if (rx_frame){
-//          rx_frame->crc = (crc == HAL_CALCULATED_CRC_OK);
+            rx_frame->crc = 1;
 //      } else {
 //          rx_callback(crc != HAL_CALCULATED_CRC_OK);
 //      }
     } else {
-        HAL_SS_HIGH();
-
 //      if (rx_frame){
             rx_frame->length = 0;
             rx_frame->lqi    = 0;
@@ -507,7 +524,7 @@ hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback)
 //      }
     }
 
-    AVR_LEAVE_CRITICAL_REGION();
+    HAL_SPI_TRANSFER_CLOSE();
 }
 
 /*----------------------------------------------------------------------------*/
@@ -522,32 +539,20 @@ hal_frame_write(uint8_t *write_buffer, uint8_t length)
 {
     length &= HAL_TRX_CMD_RADDRM; /* Truncate length to maximum frame length. */
 
-    AVR_ENTER_CRITICAL_REGION();
-
-    HAL_SS_LOW(); /* Initiate the SPI transaction. */
+    HAL_SPI_TRANSFER_OPEN();
 
     /*SEND FRAME WRITE COMMAND AND FRAME LENGTH.*/
-    SPDR = HAL_TRX_CMD_FW;
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    uint8_t dummy_read = SPDR;
+    
+    uint8_t dummy_read = HAL_SPI_TRANSFER(HAL_TRX_CMD_FW);
 
-    SPDR = length;
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    dummy_read = SPDR;
+    dummy_read = HAL_SPI_TRANSFER(length);
 
     /* Download to the Frame Buffer. */
     do{
-        SPDR = *write_buffer++;
-        --length;
+        dummy_read = HAL_SPI_TRANSFER(*write_buffer++);
+    } while (--length > 0);
 
-        while ((SPSR & (1 << SPIF)) == 0) {;}
-
-        dummy_read = SPDR;
-    } while (length > 0);
-
-    HAL_SS_HIGH(); /* Terminate SPI transaction. */
-
-    AVR_LEAVE_CRITICAL_REGION();
+    HAL_SPI_TRANSFER_CLOSE();
 }
 
 /*----------------------------------------------------------------------------*/
@@ -653,11 +658,11 @@ ISR(RADIO_VECT)
 {
     /*The following code reads the current system time. This is done by first
       reading the hal_system_time and then adding the 16 LSB directly from the
-      TCNT1 register.
+      TCNT1 register. Not implented in RF230BB for speed
      */
-    uint32_t isr_timestamp = hal_system_time;
-    isr_timestamp <<= 16;
-    isr_timestamp |= TCNT1;
+//    uint32_t isr_timestamp = hal_system_time;
+//    isr_timestamp <<= 16;
+//   isr_timestamp |= TCNT1;
     volatile uint8_t state;
     
     INTERRUPTDEBUG(1);
@@ -672,8 +677,8 @@ ISR(RADIO_VECT)
        base. The division is moved here so we can spend less time waiting for SPI
        data.
      */
-    isr_timestamp /= HAL_US_PER_SYMBOL; /* Divide so that we get time in 16us resolution. */
-    isr_timestamp &= HAL_SYMBOL_MASK;
+//   isr_timestamp /= HAL_US_PER_SYMBOL; /* Divide so that we get time in 16us resolution. */
+//   isr_timestamp &= HAL_SYMBOL_MASK;
 
     while ((SPSR & (1 << SPIF)) == 0) {;}
     uint8_t interrupt_source = SPDR; /* The interrupt variable is used as a dummy read. */
@@ -723,14 +728,15 @@ ISR(RADIO_VECT)
 #if RF230_CONF_AUTOACK
         rf230_last_rssi=hal_subregister_read(SR_ED_LEVEL);
         if (rf230_last_rssi >= RF230_MIN_RX_POWER) {       
-//        if (hal_subregister_read(SR_ED_LEVEL) >= RF230_MIN_RX_POWER) {
+//      if (hal_subregister_read(SR_ED_LEVEL) >= RF230_MIN_RX_POWER) {
 #else
         rf230_last_rssi=hal_subregister_read(SR_RSSI);
- //       if (hal_subregister_read(SR_RSSI) >= RF230_MIN_RX_POWER/3) {
+ //     if (hal_subregister_read(SR_RSSI) >= RF230_MIN_RX_POWER/3) {
         if (rf230_last_rssi >= RF230_MIN_RX_POWER/3) {
 #endif  
 #endif
-         hal_frame_read(&rxframe, NULL);
+//       hal_frame_read(&rxframe, NULL);
+         hal_frame_read(&rxframe);
          rf230_interrupt();
 //       trx_end_callback(isr_timestamp);
 #ifdef RF230_MIN_RX_POWER
