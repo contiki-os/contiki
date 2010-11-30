@@ -80,8 +80,8 @@ handle_incoming_data()
   if (init_buffer(COAP_DATA_BUFF_SIZE)) {
     if (uip_newdata()) {
       coap_packet_t* response = (coap_packet_t*)allocate_buffer(sizeof(coap_packet_t));
-      parse_message(response, uip_appdata, uip_datalen());
       if (response) {
+        parse_message(response, uip_appdata, uip_datalen());
         response_handler(response);
       }
     }
