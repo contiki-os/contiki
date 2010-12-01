@@ -101,7 +101,10 @@ init_lowlevel(void)
   /* Redirect stdout to second port */
   rs232_redirect_stdout(RS232_PORT_1);
   
-  /* rtimers needed for radio cycling */
+  /* Clock */
+  clock_init();
+ 
+ /* rtimers needed for radio cycling */
   rtimer_init();
 
  /* Initialize process subsystem */
@@ -176,9 +179,6 @@ main(void)
 
   /* Initialize hardware */
   init_lowlevel();
-
-  /* Clock */
-  clock_init();
 
   /* Register initial processes */
 //  procinit_init();
