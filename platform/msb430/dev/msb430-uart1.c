@@ -62,8 +62,8 @@ Berlin, 2007
 #define U1ME	ME2
 #endif
 
-static volatile unsigned char uart_mode = UART_MODE_RESET;
-static volatile unsigned char uart_lockcnt = 0;
+volatile unsigned char uart_mode = UART_MODE_RESET;
+volatile unsigned char uart_lockcnt = 0;
 volatile uint8_t uart_edge = 0;
 
 static unsigned char uart_speed_br0[UART_NUM_MODES];
