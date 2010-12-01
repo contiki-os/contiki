@@ -39,11 +39,19 @@
 #include "lib/mmem.h"
 #include "loader/symbols-def.h"
 #include "loader/symtab.h"
+
+#if RF230BB           //radio driver using contiki core mac
+#include "radio/rf230bb/rf230bb.h"
+#include "net/mac/frame802154.h"
+#include "net/mac/framer-802154.h"
+#include "net/sicslowpan.h"
+#else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
 #include "mac.h"
 #include "sicslowmac.h"
 #include "sicslowpan.h"
 #include "ieee-15-4-manager.h"
+#endif /*RF230BB*/
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -65,7 +73,11 @@ FUSES =
 	
 PROCESS(rcb_leds, "RCB leds process");
 
+#if RF230BB
+PROCINIT(&etimer_process, &tcpip_process, &rcb_leds);
+#else
 PROCINIT(&etimer_process, &mac_process, &tcpip_process, &rcb_leds);
+#endif
 
 /* Put default MAC address in EEPROM */
 uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
@@ -103,8 +115,11 @@ PROCESS_THREAD(rcb_leds, ev, data)
     while(1) {
       PROCESS_YIELD();
       
-	  
+#if UIP_CONF_IPV6	  
 	  if (ev == ICMP6_ECHO_REQUEST) {
+#else
+ 		if (1) {
+#endif        
 		LEDOn(LED2);
 		etimer_set(&et, CLOCK_SECOND/10);
 	  } else {

@@ -210,7 +210,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
  * The tx pad is the middle one behind the jackdaw leds.
  * RS232 output will work with or without enabling the USB serial port
  */
-#define USB_CONF_RS232           1
+#define USB_CONF_RS232           0
 
 /* Disable mass storage enumeration for more program space */
 //#define USB_CONF_STORAGE         1   /* TODO: Mass storage is currently broken */
@@ -281,8 +281,9 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* ************************************************************************** */
 //#pragma mark RPL Settings
 /* ************************************************************************** */
-
+#if UIP_CONF_IPV6  //Allows hello-world ip4 to compile
 #define UIP_CONF_IPV6_RPL               0
+#endif
 
 #if UIP_CONF_IPV6_RPL
 
@@ -297,7 +298,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
     buffer_length = uip_len - uip_l2_l3_icmp_hdr_len + UIP_LLH_LEN; //Add jackdaw ethernet header
  */
  
-/* Define these to reduce tx power and ignore weak rx packets for testing a miniature multihop network.
+/* Define MAX_*X_POWER to reduce tx power and ignore weak rx packets for testing a miniature multihop network.
  * Leave undefined for full power and sensitivity.
  * tx=0 (3dbm, default) to 15 (-17.2dbm)
  * RF230_CONF_AUTOACK sets the extended mode using the energy-detect register with rx=0 (-91dBm) to 84 (-7dBm)
@@ -311,6 +312,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 //#define RF230_MIN_RX_POWER 30
 
 #define UIP_CONF_ROUTER             1
+#define UIP_CONF_ROUTER_RECEIVE_RA          1
 #define RPL_BORDER_ROUTER           1
 #define RPL_CONF_STATS              0
 #define UIP_CONF_BUFFER_SIZE	 1300
@@ -331,9 +333,10 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_PINGADDRCONF       0
 #define UIP_CONF_LOGGING            0
 #undef UIP_CONF_MAX_CONNECTIONS
-#define UIP_CONF_MAX_CONNECTIONS    1
+#define UIP_CONF_MAX_CONNECTIONS    2
 #undef UIP_CONF_MAX_LISTENPORTS
-#define UIP_CONF_MAX_LISTENPORTS    3
+#define UIP_CONF_MAX_LISTENPORTS    2
+#define UIP_CONF_UDP_CONNS          6
 
 /* Optional, TCP needed to serve the RPL neighbor web page currently hard coded at bbbb::11 */
 /* The RPL neighbors can also be viewed using the jack menu */
@@ -348,13 +351,14 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_DS6_NBR_NBU        5
 #undef UIP_CONF_DS6_ROUTE_NBU
 #define UIP_CONF_DS6_ROUTE_NBU      5
+#undef UIP_CONF_MAX_CONNECTIONS
+#define UIP_CONF_MAX_CONNECTIONS    2
 #endif
 
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 
 #define UIP_CONF_DHCP_LIGHT
-#define UIP_CONF_UDP_CONNS       12
 #undef UIP_CONF_FWCACHE_SIZE
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1

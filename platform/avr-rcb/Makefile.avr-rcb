@@ -1,4 +1,4 @@
-CONTIKI_TARGET_DIRS = . rf230 apps net loader
+CONTIKI_TARGET_DIRS = . apps net loader
 CONTIKI_CORE=contiki-rcb-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
@@ -27,12 +27,4 @@ AVRDUDE_OPTIONS=-V
 
 
 include $(CONTIKIAVR)/Makefile.avr
-
-# Source for AT86RF230
-include $(CONTIKI)/cpu/avr/radio/rf230/Makefile.rf230
-
-# Source for Atmel/Cisco 802.15.4'ish MAC
-include $(CONTIKI)/cpu/avr/radio/mac/Makefile.mac
-
-# Source for IEEE 802.15.4 manager interface
-include $(CONTIKI)/cpu/avr/radio/ieee-manager/Makefile.ieee-manager
+include $(CONTIKIAVR)/radio/Makefile.radio

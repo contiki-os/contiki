@@ -70,6 +70,8 @@ typedef int32_t s32_t;
 #define CCIF
 #define CLIF
 
+//#define UIP_CONF_IPV6            1  //Let makefile determine this so ipv4 hello-world will compile
+
 #define RIMEADDR_CONF_SIZE       8
 #define PACKETBUF_CONF_HDR_SIZE    0
 
@@ -94,7 +96,6 @@ typedef int32_t s32_t;
 #define UIP_CONF_IP_FORWARD      0
 #define UIP_CONF_FWCACHE_SIZE    0
 
-#define UIP_CONF_IPV6            1
 #define UIP_CONF_IPV6_CHECKS     1
 #define UIP_CONF_IPV6_QUEUE_PKT  0
 #define UIP_CONF_IPV6_REASSEMBLY 0
@@ -102,7 +103,9 @@ typedef int32_t s32_t;
 #define UIP_CONF_ND6_MAX_PREFIXES     3
 #define UIP_CONF_ND6_MAX_NEIGHBORS    4  
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
+#if UIP_CONF_IPV6                       //tcpip.c error on ipv4 build if UIP_CONF_ICMP6 defined
 #define UIP_CONF_ICMP6           1
+#endif
 
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
