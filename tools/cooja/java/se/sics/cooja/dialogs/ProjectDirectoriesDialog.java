@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.16 2010/06/11 09:12:21 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.17 2010/12/02 15:28:06 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -40,7 +40,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
-import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -49,9 +48,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 
 import javax.swing.BorderFactory;
@@ -66,6 +65,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -84,6 +84,7 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import se.sics.cooja.COOJAProject;
 import se.sics.cooja.GUI;
 import se.sics.cooja.ProjectConfig;
 
@@ -94,326 +95,409 @@ import se.sics.cooja.ProjectConfig;
  * @author Fredrik Osterlind
  */
 public class ProjectDirectoriesDialog extends JDialog {
-  private static final long serialVersionUID = 1896348946753376556L;
-  private static Logger logger = Logger.getLogger(ProjectDirectoriesDialog.class);
+	private static final long serialVersionUID = 1896348946753376556L;
+	private static Logger logger = Logger.getLogger(ProjectDirectoriesDialog.class);
 
-  private GUI gui;
+	private GUI gui;
 
-  private JTable table = null;
-  private DirectoryTreePanel treePanel = null;
+	private JTable table = null;
+	private JTextArea projectInfo = new JTextArea("Project information:");
+	private DirectoryTreePanel treePanel = null;
 
-  private ArrayList<File> currentProjects = new ArrayList<File>();
-  private File[] finalProjects = null;
+	private ArrayList<COOJAProject> currentProjects = new ArrayList<COOJAProject>();
+	private COOJAProject[] returnedProjects = null;
 
-  /**
-   * Shows a blocking configuration dialog.
-   * Returns a list of new COOJA project directories, or null if canceled by the user. 
-   *  
-   * @param parent Parent container
-   * @param gui COOJA
-   * @param currentProjects Current project configuration
-   * @return New COOJA projects, or null
-   */
-  public static File[] showDialog(Container parent, GUI gui, File[] currentProjects) {
-    if (GUI.isVisualizedInApplet()) {
-      return null;
-    }
+	/**
+	 * Shows a blocking configuration dialog.
+	 * Returns a list of new COOJA project directories, or null if canceled by the user. 
+	 *  
+	 * @param parent Parent container
+	 * @param gui COOJA
+	 * @param currentProjects Current projects
+	 * @return New COOJA projects, or null
+	 */
+	public static COOJAProject[] showDialog(Container parent, GUI gui, COOJAProject[] currentProjects) {
+		if (GUI.isVisualizedInApplet()) {
+			return null;
+		}
 
-    ProjectDirectoriesDialog dialog = new ProjectDirectoriesDialog((Window) parent, currentProjects);
-    dialog.gui = gui;
-    dialog.setLocationRelativeTo(parent);
-    dialog.setVisible(true);
-    return dialog.finalProjects;
-  }
+		ProjectDirectoriesDialog dialog = new ProjectDirectoriesDialog((Window) parent, currentProjects);
+		dialog.gui = gui;
+		dialog.setLocationRelativeTo(parent);
+		dialog.setVisible(true);
+		return dialog.returnedProjects;
+	}
 
-  private ProjectDirectoriesDialog(Container parent, File[] projects) {
-    super(
-        parent instanceof Dialog?(Dialog)parent:
-          parent instanceof Window?(Window)parent:
-            (Frame)parent, "COOJA projects", ModalityType.APPLICATION_MODAL);
+	private ProjectDirectoriesDialog(Container parent, COOJAProject[] projects) {
+		super(
+				parent instanceof Dialog?(Dialog)parent:
+					parent instanceof Window?(Window)parent:
+						(Frame)parent, "COOJA projects", ModalityType.APPLICATION_MODAL);
 
-    table = new JTable(new AbstractTableModel() {
-      private static final long serialVersionUID = 591599455927509191L;
-      public int getColumnCount() {
-        return 2;
-      }
-      public int getRowCount() {
-        return currentProjects.size();
-      }
-      public Object getValueAt(int rowIndex, int columnIndex) {
-        if (columnIndex == 0) {
-          return rowIndex+1;
-        }
+		table = new JTable(new AbstractTableModel() {
+			private static final long serialVersionUID = 591599455927509191L;
+			public int getColumnCount() {
+				return 2;
+			}
+			public int getRowCount() {
+				return currentProjects.size();
+			}
+			public Object getValueAt(int rowIndex, int columnIndex) {
+				if (columnIndex == 0) {
+					return rowIndex+1;
+				}
 
-        if (!currentProjects.get(rowIndex).exists()) {
-          return currentProjects.get(rowIndex) + "  (directory not found)";
-        }
-        if (!new File(currentProjects.get(rowIndex), GUI.PROJECT_CONFIG_FILENAME).exists()) {
-          return currentProjects.get(rowIndex) + "  (no " + GUI.PROJECT_CONFIG_FILENAME + " found)";
-        }
+				COOJAProject p = currentProjects.get(rowIndex);
+				if (!p.directoryExists()) {
+					return p + "  (not found)";
+				}
+				if (!p.configExists()) {
+					return p + "  (no config)";
+				}
+				if (!p.configRead()) {
+					return p + "  (config error)";
+				}
+				return p;
+			}
+		});
+    table.setFillsViewportHeight(true);
+		table.setTableHeader(null);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				if (table.getSelectedRow() < 0) {
+					return;
+				}
+				selectTreeProject(currentProjects.get(table.getSelectedRow()));
+				showProjectInfo(currentProjects.get(table.getSelectedRow()));
+			}
+		});
+		table.getColumnModel().getColumn(0).setPreferredWidth(30);
+		table.getColumnModel().getColumn(0).setMaxWidth(30);
+		table.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
+			private static final long serialVersionUID = 7224219223448831880L;
+			public Component getTableCellRendererComponent(JTable table,
+					Object value, boolean isSelected, boolean hasFocus, int row,
+					int column) {
+				if (currentProjects.get(row).hasError()) {
+					setBackground(Color.RED);
+				} else {
+					setBackground(table.getBackground());
+				}
+				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
+						row, column);
+			}
+		});
 
-        return currentProjects.get(rowIndex);
-      }
-    });
-    table.setTableHeader(null);
-    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-      public void valueChanged(ListSelectionEvent e) {
-        if (table.getSelectedRow() < 0) {
-          return;
-        }
-        selectTreeProject(currentProjects.get(table.getSelectedRow()));
-      }
-    });
-    table.getColumnModel().getColumn(0).setPreferredWidth(30);
-    table.getColumnModel().getColumn(0).setMaxWidth(30);
-    table.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
-      private static final long serialVersionUID = 7224219223448831880L;
-      public Component getTableCellRendererComponent(JTable table,
-          Object value, boolean isSelected, boolean hasFocus, int row,
-          int column) {
-        if (!new File(currentProjects.get(row), GUI.PROJECT_CONFIG_FILENAME).exists()) {
-          setBackground(Color.RED);
-        } else {
-          setBackground(Color.WHITE);
-        }
+		/* Add current projects */
+		for (COOJAProject project : projects) {
+			addProjectDir(project);
+		}
 
-        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
-            row, column);
-      }
-    });
+		Box mainPane = Box.createVerticalBox();
+		Box buttonPane = Box.createHorizontalBox();
+		JPanel sortPane;
+		JButton button;
 
-    /* Add current projects */
-    for (File projectDir : projects) {
-      addProjectDir(projectDir);
-    }
+		/* Lower buttons */
+		{
+			buttonPane.setBorder(BorderFactory.createEmptyBorder(0,3,3,3));
+			buttonPane.add(Box.createHorizontalGlue());
 
-    Box mainPane = Box.createVerticalBox();
-    Box buttonPane = Box.createHorizontalBox();
-    JPanel smallPane;
-    JButton button;
+			button = new JButton("View merged config");
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					try {
+						/* Default config */
+						ProjectConfig config = new ProjectConfig(true);
 
-    /* Lower buttons */
-    {
-      buttonPane.setBorder(BorderFactory.createEmptyBorder(0,3,3,3));
-      buttonPane.add(Box.createHorizontalGlue());
+						/* Merge configs */
+						for (COOJAProject project : getProjects()) {
+							config.appendConfig(project.config);
+						}
 
-      button = new JButton("View merged config");
-      button.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          ProjectConfig config;
-          try {
-            config = new ProjectConfig(true);
-          } catch (FileNotFoundException ex) {
-            logger.fatal("Could not find default project config file: " + GUI.PROJECT_DEFAULT_CONFIG_FILENAME);
-            return;
-          } catch (IOException ex) {
-            logger.fatal("Error when reading default project config file: " + GUI.PROJECT_DEFAULT_CONFIG_FILENAME);
-            return;
-          }
+						ConfigViewer.showDialog(ProjectDirectoriesDialog.this, config);
+					} catch (Exception ex) {
+						logger.fatal("Error when merging config: " + ex.getMessage(), ex);
+						return;
+					}
+				}
+			});
+			buttonPane.add(button);
+			buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 
-          /* Merge configs */
-          for (File project : getProjects()) {
-            try {
-              config.appendProjectDir(project);
-            } catch (Exception ex) {
-              logger.fatal("Error when merging configurations: " + ex);
-              return;
-            }
-          }
+			button = new JButton("Cancel");
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					ProjectDirectoriesDialog.this.returnedProjects = null;
+					dispose();
+				}
+			});
+			buttonPane.add(button);
 
-          ConfigViewer.showDialog(ProjectDirectoriesDialog.this, config);
-        }
-      });
-      buttonPane.add(button);
-      buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+			buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 
-      button = new JButton("Cancel");
-      button.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          ProjectDirectoriesDialog.this.finalProjects = null;
-          dispose();
-        }
-      });
-      buttonPane.add(button);
+			button = new JButton("Save as default");
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					Object[] options = { "Ok", "Cancel" };
 
-      buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+					String newDefaultProjectDirs = "";
+					for (COOJAProject p: currentProjects) {
+						if (newDefaultProjectDirs != "") {
+							newDefaultProjectDirs += ";";
+						}
 
-      button = new JButton("Save as default");
-      button.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          Object[] options = { "Ok", "Cancel" };
+						newDefaultProjectDirs += gui.createPortablePath(p.dir, false).getPath();
+					}
+					newDefaultProjectDirs = newDefaultProjectDirs.replace('\\', '/');
 
-          String newDefaultProjectDirs = "";
-          for (File f: currentProjects) {
-            if (newDefaultProjectDirs != "") {
-              newDefaultProjectDirs += ";";
-            }
+					String question = "External tools setting DEFAULT_PROJECTDIRS will change from:\n"
+						+ GUI.getExternalToolsSetting("DEFAULT_PROJECTDIRS", "").replace(';', '\n')
+						+ "\n\n to:\n\n"
+						+ newDefaultProjectDirs.replace(';', '\n');
+					String title = "Change external tools settings?";
+					int answer = JOptionPane.showOptionDialog(ProjectDirectoriesDialog.this, question, title,
+							JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+							options, options[0]);
 
-            newDefaultProjectDirs += gui.createPortablePath(f, false).getPath();
-          }
-          newDefaultProjectDirs = newDefaultProjectDirs.replace('\\', '/');
+					if (answer != JOptionPane.YES_OPTION) {
+						return;
+					}
 
-          String question = "External tools setting DEFAULT_PROJECTDIRS will change from:\n"
-            + GUI.getExternalToolsSetting("DEFAULT_PROJECTDIRS", "").replace(';', '\n')
-            + "\n\n to:\n\n"
-            + newDefaultProjectDirs.replace(';', '\n');
-          String title = "Change external tools settings?";
-          int answer = JOptionPane.showOptionDialog(ProjectDirectoriesDialog.this, question, title,
-              JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
-              options, options[0]);
+					GUI.setExternalToolsSetting("DEFAULT_PROJECTDIRS", newDefaultProjectDirs);
+				}
+			});
+			buttonPane.add(button);
 
-          if (answer != JOptionPane.YES_OPTION) {
-            return;
-          }
+			buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 
-          GUI.setExternalToolsSetting("DEFAULT_PROJECTDIRS", newDefaultProjectDirs);
-        }
-      });
-      buttonPane.add(button);
+			button = new JButton("OK");
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					ProjectDirectoriesDialog.this.returnedProjects = currentProjects.toArray(new COOJAProject[0]);
+					dispose();
+				}
+			});
+			buttonPane.add(button);
+			this.getRootPane().setDefaultButton(button);
+		}
 
-      buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+		/* Center: Tree and list*/
+		{
+			treePanel = new DirectoryTreePanel(this);
 
-      button = new JButton("OK");
-      button.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          ProjectDirectoriesDialog.this.finalProjects = currentProjects.toArray(new File[0]);
-          dispose();
-        }
-      });
-      buttonPane.add(button);
-      this.getRootPane().setDefaultButton(button);
-    }
+			sortPane = new JPanel(new BorderLayout());
+			Icon icon = UIManager.getLookAndFeelDefaults().getIcon("Table.ascendingSortIcon");
+			if (icon == null) {
+				button = new JButton("Up");
+			} else {
+				button = new JButton(icon);
+			}
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					int selectedIndex = table.getSelectedRow();
+					if (selectedIndex <= 0) {
+						return;
+					}
+					COOJAProject project = currentProjects.get(selectedIndex);
+					removeProjectDir(project);
+					addProjectDir(project, selectedIndex - 1);
+					table.getSelectionModel().setSelectionInterval(selectedIndex - 1, selectedIndex - 1);
+				}
+			});
+			sortPane.add(BorderLayout.NORTH, button);
+			icon = UIManager.getLookAndFeelDefaults().getIcon("Table.descendingSortIcon");
+			if (icon == null) {
+				button = new JButton("Down");
+			} else {
+				button = new JButton(icon);
+			}
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					int selectedIndex = table.getSelectedRow();
+					if (selectedIndex < 0) {
+						return;
+					}
+					if (selectedIndex >= currentProjects.size() - 1) {
+						return;
+					}
+					COOJAProject project = currentProjects.get(selectedIndex);
+					removeProjectDir(project);
+					addProjectDir(project, selectedIndex + 1);
+					table.getSelectionModel().setSelectionInterval(selectedIndex + 1, selectedIndex + 1);
+				}
+			});
+			sortPane.add(BorderLayout.SOUTH, button);
 
-    /* Center: Tree and list*/
-    {
-      final JSplitPane listPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-      listPane.setLeftComponent(treePanel = new DirectoryTreePanel(this));
-      listPane.setRightComponent(new JScrollPane(table));
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          listPane.setDividerLocation(0.5);
-        }
-      });
-      
-      smallPane = new JPanel(new BorderLayout());
-      Icon icon = UIManager.getLookAndFeelDefaults().getIcon("Table.ascendingSortIcon");
-      if (icon == null) {
-        button = new JButton("Up");
-      } else {
-        button = new JButton(icon);
-      }
-      button.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          int selectedIndex = table.getSelectedRow();
-          if (selectedIndex <= 0) {
-            return;
-          }
-          File file = currentProjects.get(selectedIndex);
-          removeProjectDir(file);
-          addProjectDir(file, selectedIndex - 1);
-          table.getSelectionModel().setSelectionInterval(selectedIndex - 1, selectedIndex - 1);
-        }
-      });
-      smallPane.add(BorderLayout.NORTH, button);
-      icon = UIManager.getLookAndFeelDefaults().getIcon("Table.descendingSortIcon");
-      if (icon == null) {
-        button = new JButton("Down");
-      } else {
-        button = new JButton(icon);
-      }
-      button.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          int selectedIndex = table.getSelectedRow();
-          if (selectedIndex < 0) {
-            return;
-          }
-          if (selectedIndex >= currentProjects.size() - 1) {
-            return;
-          }
-          File file = currentProjects.get(selectedIndex);
-          removeProjectDir(file);
-          addProjectDir(file, selectedIndex + 1);
-          table.getSelectionModel().setSelectionInterval(selectedIndex + 1, selectedIndex + 1);
-        }
-      });
-      smallPane.add(BorderLayout.SOUTH, button);
-      
-      button = new JButton("X");
-      button.setBackground(Color.RED);
-      button.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          int selectedIndex = table.getSelectedRow();
-          if (selectedIndex < 0) {
-            return;
-          }
-          if (selectedIndex >= currentProjects.size()) {
-            return;
-          }
-          File file = currentProjects.get(selectedIndex);
-          
-          String s1 = "Remove";
-          String s2 = "Cancel";
-          Object[] options = { s1, s2 };
-          int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-              "Remove COOJA project?\n" + file.getAbsolutePath(),
-              "Remove COOJA project?", JOptionPane.YES_NO_OPTION,
-              JOptionPane.WARNING_MESSAGE, null, options, s1);
-          if (n != JOptionPane.YES_OPTION) {
-            return;
-          }
-          removeProjectDir(file);
-        }
-      });
-      smallPane.add(BorderLayout.CENTER, button);
-      
-      mainPane.setBackground(Color.WHITE);
-      JPanel listPanelWithSort = new JPanel(new BorderLayout());
-      listPanelWithSort.add(BorderLayout.CENTER, listPane);
-      listPanelWithSort.add(BorderLayout.EAST, smallPane);
-      mainPane.add(listPanelWithSort);
-    }
+			{
+				button = new JButton("X");
+				button.setBackground(Color.RED);
+				button.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						int selectedIndex = table.getSelectedRow();
+						if (selectedIndex < 0) {
+							return;
+						}
+						if (selectedIndex >= currentProjects.size()) {
+							return;
+						}
+						COOJAProject project = currentProjects.get(selectedIndex);
 
-    JPanel topPanel = new JPanel(new BorderLayout());
-    topPanel.add(BorderLayout.CENTER, new JLabel(" A COOJA project depends on a cooja.config file, and extends COOJA with radio mediums, mote types, plugins etc."));
-    topPanel.setBackground(Color.WHITE);
-    getContentPane().add(BorderLayout.NORTH, topPanel);
-    getContentPane().add(BorderLayout.CENTER, mainPane);
-    getContentPane().add(BorderLayout.SOUTH, buttonPane);
-    setSize(700, 500);
-  }
+						String s1 = "Remove";
+						String s2 = "Cancel";
+						Object[] options = { s1, s2 };
+						int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+								"Remove COOJA project?\n" + project,
+								"Remove COOJA project?", JOptionPane.YES_NO_OPTION,
+								JOptionPane.WARNING_MESSAGE, null, options, s1);
+						if (n != JOptionPane.YES_OPTION) {
+							return;
+						}
+						removeProjectDir(project);
+					}
+				});
+				JPanel p = new JPanel(new BorderLayout());
+				p.add(BorderLayout.SOUTH, button);
+				sortPane.add(BorderLayout.CENTER, p);
+			}
 
-  public File[] getProjects() {
-    return currentProjects.toArray(new File[0]);
-  }
-  protected void addProjectDir(File projectDir) {
-    currentProjects.add(projectDir);
-    ((AbstractTableModel)table.getModel()).fireTableDataChanged();
-  }
-  protected void addProjectDir(File projectDir, int index) {
-    currentProjects.add(index, projectDir);
-    ((AbstractTableModel)table.getModel()).fireTableDataChanged();
-  }
-  protected void removeProjectDir(int index) {
-    currentProjects.remove(index);
-    ((AbstractTableModel)table.getModel()).fireTableDataChanged();
-  }
-  protected void removeProjectDir(File dir) {
-    currentProjects.remove(dir);
-    ((AbstractTableModel)table.getModel()).fireTableDataChanged();
-  }
-  private int getProjectListIndex(File dir) {
-    return currentProjects.indexOf(dir);
-  }
-  public void selectListProject(File dir) {
-    int i = getProjectListIndex(dir);
-    if (i >= 0) {
-      table.getSelectionModel().setSelectionInterval(i, i);
-    }
-  }
-  public void selectTreeProject(File dir) {
-    treePanel.selectProject(dir);
-  }
+			JPanel tableAndSort = new JPanel(new BorderLayout());
+			JScrollPane scroll = new JScrollPane(table);
+			tableAndSort.add(BorderLayout.CENTER, scroll);
+			tableAndSort.add(BorderLayout.EAST, sortPane);
+
+			final JSplitPane projectPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+			projectPane.setTopComponent(tableAndSort);
+			projectInfo.setEditable(false);
+			projectPane.setBottomComponent(new JScrollPane(projectInfo));
+
+			final JSplitPane listPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+			listPane.setLeftComponent(treePanel);
+			listPane.setRightComponent(projectPane);
+
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					projectPane.setDividerLocation(0.6);
+					listPane.setDividerLocation(0.5);
+				}
+			});
+			mainPane.add(listPane);
+		}
+
+		JPanel topPanel = new JPanel(new BorderLayout());
+		topPanel.add(BorderLayout.CENTER, new JLabel(" A COOJA project depends on a cooja.config file, and extends COOJA with radio mediums, mote types, plugins etc."));
+		topPanel.setBackground(Color.WHITE);
+		getContentPane().add(BorderLayout.NORTH, topPanel);
+		getContentPane().add(BorderLayout.CENTER, mainPane);
+		getContentPane().add(BorderLayout.SOUTH, buttonPane);
+		setSize(700, 500);
+	}
+
+	protected void showProjectInfo(COOJAProject project) {
+		projectInfo.setText("");
+		if (project.getDescription() != null) {
+			projectInfo.append("-- " + project.getDescription() + " --\n\n");
+		}
+		
+		projectInfo.append("Directory: " + project.dir.getAbsolutePath() + 
+				(project.directoryExists()?"":": NOT FOUND") + "\n");
+		if (!project.directoryExists()) {
+			return;
+		}
+		projectInfo.append("Configuration: " + project.configFile.getAbsolutePath() + 
+				(project.configExists()?"":": NOT FOUND") + "\n");
+		if (!project.configExists()) {
+			return;
+		}
+		projectInfo.append("Parsing: " +
+				(project.configRead()?"OK":"FAILED") + "\n\n");
+		if (!project.configRead()) {
+			return;
+		}
+		
+		if (project.getConfigPlugins() != null) {
+			projectInfo.append("Plugins: " + Arrays.toString(project.getConfigPlugins()) + "\n");
+		}
+		if (project.getConfigJARs() != null) {
+			String[] jars = project.getConfigJARs();
+			projectInfo.append("JARs: " + Arrays.toString(jars) + "\n");
+			for (String jar: jars) {
+				File jarFile = GUI.findJarFile(project.dir, jar);
+				if (jarFile == null) {
+					projectInfo.append("\tERROR: " + jar + " could not be found!\n");
+				} else if (!jarFile.exists()) {
+					projectInfo.append("\tERROR: " + jarFile.getAbsolutePath() + " could not be found!\n");
+				} else {
+					projectInfo.append("\t" + jarFile.getAbsolutePath() + " found\n");
+				}
+			}
+		}
+		if (project.getConfigMoteTypes() != null) {
+			projectInfo.append("Mote types: " + Arrays.toString(project.getConfigMoteTypes()) + "\n");
+		}
+		if (project.getConfigRadioMediums() != null) {
+			projectInfo.append("Radio mediums: " + Arrays.toString(project.getConfigRadioMediums()) + "\n");
+		}
+		if (project.getConfigMoteInterfaces() != null) {
+			projectInfo.append("Contiki mote interfaces: " + Arrays.toString(project.getConfigMoteInterfaces()) + "\n");
+		}
+		if (project.getConfigCSources() != null) {
+			projectInfo.append("Contiki mote C sources: " + Arrays.toString(project.getConfigCSources()) + "\n");
+		}
+	}
+
+	public COOJAProject[] getProjects() {
+		return currentProjects.toArray(new COOJAProject[0]);
+	}
+	protected void addProjectDir(COOJAProject project) {
+		currentProjects.add(project);
+		((AbstractTableModel)table.getModel()).fireTableDataChanged();
+	}
+	protected void addProjectDir(File dir) {
+		currentProjects.add(new COOJAProject(dir));
+		((AbstractTableModel)table.getModel()).fireTableDataChanged();
+	}
+	protected void addProjectDir(COOJAProject project, int index) {
+		currentProjects.add(index, project);
+		((AbstractTableModel)table.getModel()).fireTableDataChanged();
+	}
+	protected void removeProjectDir(int index) {
+		currentProjects.remove(index);
+		((AbstractTableModel)table.getModel()).fireTableDataChanged();
+	}
+	protected void removeProjectDir(File dir) {
+		COOJAProject ps[] = getProjects();
+		for (COOJAProject p: ps) {
+			if (p.dir.equals(dir)) {
+				removeProjectDir(p);
+			}
+		}
+	}
+	protected void removeProjectDir(COOJAProject project) {
+		currentProjects.remove(project);
+		((AbstractTableModel)table.getModel()).fireTableDataChanged();
+		repaint();
+	}
+	private int getProjectListIndex(COOJAProject project) {
+		return currentProjects.indexOf(project);
+	}
+	public void selectListProject(File dir) {
+		/* Check if project exists */
+		for (COOJAProject p: currentProjects) {
+			if (dir.equals(p.dir)) {
+				int i = getProjectListIndex(p);
+				if (i >= 0) {
+					table.getSelectionModel().setSelectionInterval(i, i);
+				}
+				return;
+			}
+		}
+
+	}
+	public void selectTreeProject(COOJAProject project) {
+		treePanel.selectProject(project.dir);
+	}
 }
 
 /**
@@ -422,403 +506,403 @@ public class ProjectDirectoriesDialog extends JDialog {
  * @author Fredrik Osterlind
  */
 class DirectoryTreePanel extends JPanel {
-  private static final long serialVersionUID = -6852893350326771136L;
-  private static Logger logger = Logger.getLogger(DirectoryTreePanel.class);
+	private static final long serialVersionUID = -6852893350326771136L;
+	private static Logger logger = Logger.getLogger(DirectoryTreePanel.class);
 
-  private ProjectDirectoriesDialog parent;
-  private JTree tree;
-  private DefaultMutableTreeNode treeRoot;
-  public DirectoryTreePanel(ProjectDirectoriesDialog parent) {
-    super(new BorderLayout());
-    this.parent = parent;
+	private ProjectDirectoriesDialog parent;
+	private JTree tree;
+	private DefaultMutableTreeNode treeRoot;
+	public DirectoryTreePanel(ProjectDirectoriesDialog parent) {
+		super(new BorderLayout());
+		this.parent = parent;
 
-    /* Build directory tree */
-    treeRoot = new DefaultMutableTreeNode("My Computer");
-    tree = new JTree(treeRoot);
-    tree.setRootVisible(false);
-    tree.setShowsRootHandles(true);
-    tree.expandRow(0);
-    tree.setCellRenderer(new DefaultTreeCellRenderer() {
-      private static final long serialVersionUID = 280434957859560569L;
-      private Icon unselectedIcon = new CheckboxIcon(null);
-      private Icon selectedIcon = new CheckboxIcon(new Color(0, 255, 0, 128));
-      private Icon errorIcon = new CheckboxIcon(new Color(255, 0, 0, 128));
-      private Font boldFont = null;
-      private Font normalFont = null;
-      public Component getTreeCellRendererComponent(JTree tree,
-          Object value, boolean sel, boolean expanded, boolean leaf,
-          int row, boolean hasFocus) {
-        super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf,
-            row, hasFocus);
-        if (value instanceof DefaultMutableTreeNode) {
-          value = ((DefaultMutableTreeNode) value).getUserObject();
-        }
-        if (!(value instanceof ProjectDirectory)) {
-          return this;
-        }
-        ProjectDirectory td = (ProjectDirectory) value;
+		/* Build directory tree */
+		treeRoot = new DefaultMutableTreeNode("My Computer");
+		tree = new JTree(treeRoot);
+		tree.setRootVisible(false);
+		tree.setShowsRootHandles(true);
+		tree.expandRow(0);
+		tree.setCellRenderer(new DefaultTreeCellRenderer() {
+			private static final long serialVersionUID = 280434957859560569L;
+			private Icon unselectedIcon = new CheckboxIcon(null);
+			private Icon selectedIcon = new CheckboxIcon(new Color(0, 255, 0, 128));
+			private Icon errorIcon = new CheckboxIcon(new Color(255, 0, 0, 128));
+			private Font boldFont = null;
+			private Font normalFont = null;
+			public Component getTreeCellRendererComponent(JTree tree,
+					Object value, boolean sel, boolean expanded, boolean leaf,
+					int row, boolean hasFocus) {
+				super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf,
+						row, hasFocus);
+				if (value instanceof DefaultMutableTreeNode) {
+					value = ((DefaultMutableTreeNode) value).getUserObject();
+				}
+				if (!(value instanceof TreeDirectory)) {
+					return this;
+				}
+				TreeDirectory td = (TreeDirectory) value;
 
-        if (boldFont == null) {
-          normalFont = getFont();
-          boldFont = getFont().deriveFont( Font.BOLD );
-        }
+				if (boldFont == null) {
+					normalFont = getFont();
+					boldFont = getFont().deriveFont( Font.BOLD );
+				}
 
-        /* Style */
-        setFont(normalFont);
-        if (td.isProject()) {
-          if (td.containsConfig()) {
-            setIcon(selectedIcon);
-          } else {
-            /* Error: no cooja.config */
-            setIcon(errorIcon);
-            setFont(boldFont);
-          }
-        } else if (td.containsConfig()) {
-          setIcon(unselectedIcon);
-        } else if (td.subtreeContainsProject()) {
-          setFont(boldFont);
-        }
+				/* Style */
+				setFont(normalFont);
+				if (td.isProject()) {
+					if (td.containsConfig()) {
+						setIcon(selectedIcon);
+					} else {
+						/* Error: no cooja.config */
+						setIcon(errorIcon);
+						setFont(boldFont);
+					}
+				} else if (td.containsConfig()) {
+					setIcon(unselectedIcon);
+				} else if (td.subtreeContainsProject()) {
+					setFont(boldFont);
+				}
 
-        return this;
-      }
-      class CheckboxIcon implements Icon {
-        Icon icon;
-        Color color;
-        public CheckboxIcon(Color color) {
-          this.icon = (Icon) UIManager.get("CheckBox.icon");
-          this.color = color;
-        }
-        public int getIconHeight() {
-          if (icon == null) {
-            return 18;
-          }
-          return icon.getIconHeight();
-        }
-        public int getIconWidth() {
-          if (icon == null) {
-            return 18;
-          }
-          return icon.getIconWidth();
-        }
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-          if (icon != null) {
-            try {
-              icon.paintIcon(c, g, x, y);
-            } catch (Exception e) {
-              icon = null;
-            }
-          }
-          if (icon == null) {
-            g.setColor(Color.WHITE);
-            g.fillRect(x+1, y+1, 16, 16);
-            g.setColor(Color.BLACK);
-            g.drawRect(x+1, y+1, 16, 16);
-          }
-          if (color != null) {
-            g.setColor(color);
-            g.fillRect(x, y, getIconWidth(), getIconHeight());
-          }
-        }
-      }
-    });
-    tree.setModel(new COOJAProjectTreeModel(treeRoot));
-    tree.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
-        TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
-        if (selPath == null) {
-          return;
-        }
-        if (e.getClickCount() != 1) {
-          return;
-        }
-        Object o = selPath.getLastPathComponent();
-        if (!(o instanceof DefaultMutableTreeNode)) {
-          return;
-        }
-        if (!(((DefaultMutableTreeNode) o).getUserObject() instanceof ProjectDirectory)) {
-          return;
-        }
-        ProjectDirectory pd = (ProjectDirectory) ((DefaultMutableTreeNode) o).getUserObject();
-        Rectangle r = tree.getPathBounds(selPath);
-        int delta = e.getX() - r.x;
-        if (delta > 18 /* XXX Icon width */) {
-          return;
-        }
+				return this;
+			}
+			class CheckboxIcon implements Icon {
+				Icon icon;
+				Color color;
+				public CheckboxIcon(Color color) {
+					this.icon = (Icon) UIManager.get("CheckBox.icon");
+					this.color = color;
+				}
+				public int getIconHeight() {
+					if (icon == null) {
+						return 18;
+					}
+					return icon.getIconHeight();
+				}
+				public int getIconWidth() {
+					if (icon == null) {
+						return 18;
+					}
+					return icon.getIconWidth();
+				}
+				public void paintIcon(Component c, Graphics g, int x, int y) {
+					if (icon != null) {
+						try {
+							icon.paintIcon(c, g, x, y);
+						} catch (Exception e) {
+							icon = null;
+						}
+					}
+					if (icon == null) {
+						g.setColor(Color.WHITE);
+						g.fillRect(x+1, y+1, 16, 16);
+						g.setColor(Color.BLACK);
+						g.drawRect(x+1, y+1, 16, 16);
+					}
+					if (color != null) {
+						g.setColor(color);
+						g.fillRect(x, y, getIconWidth(), getIconHeight());
+					}
+				}
+			}
+		});
+		tree.setModel(new COOJAProjectTreeModel(treeRoot));
+		tree.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
+				if (selPath == null) {
+					return;
+				}
+				if (e.getClickCount() != 1) {
+					return;
+				}
+				Object o = selPath.getLastPathComponent();
+				if (!(o instanceof DefaultMutableTreeNode)) {
+					return;
+				}
+				if (!(((DefaultMutableTreeNode) o).getUserObject() instanceof TreeDirectory)) {
+					return;
+				}
+				TreeDirectory pd = (TreeDirectory) ((DefaultMutableTreeNode) o).getUserObject();
+				Rectangle r = tree.getPathBounds(selPath);
+				int delta = e.getX() - r.x;
+				if (delta > 18 /* XXX Icon width */) {
+					return;
+				}
 
-        if (pd.isProject()) {
-          /* Remove project */
-          DirectoryTreePanel.this.parent.removeProjectDir(pd.dir);
-          DirectoryTreePanel.this.parent.repaint();
-        } else if (pd.containsConfig()) {
-          /* Add project */
-          DirectoryTreePanel.this.parent.addProjectDir(pd.dir);
-          DirectoryTreePanel.this.parent.repaint();
-        }
-      }
-    });
-    tree.addTreeSelectionListener(new TreeSelectionListener() {
-      public void valueChanged(TreeSelectionEvent e) {
-        TreePath selPath = e.getPath();
-        if (selPath == null) {
-          return;
-        }
-        Object o = selPath.getLastPathComponent();
-        if (!(o instanceof DefaultMutableTreeNode)) {
-          return;
-        }
-        if (!(((DefaultMutableTreeNode) o).getUserObject() instanceof ProjectDirectory)) {
-          return;
-        }
-        ProjectDirectory pd = (ProjectDirectory) ((DefaultMutableTreeNode) o).getUserObject();
-        if (pd.isProject()) {
-          DirectoryTreePanel.this.parent.selectListProject(pd.dir);
-        }
-      }
-    });
+				if (pd.isProject()) {
+					/* Remove project */
+					DirectoryTreePanel.this.parent.removeProjectDir(pd.dir);
+					DirectoryTreePanel.this.parent.repaint();
+				} else if (pd.containsConfig()) {
+					/* Add project */
+					DirectoryTreePanel.this.parent.addProjectDir(pd.dir);
+					DirectoryTreePanel.this.parent.repaint();
+				}
+			}
+		});
+		tree.addTreeSelectionListener(new TreeSelectionListener() {
+			public void valueChanged(TreeSelectionEvent e) {
+				TreePath selPath = e.getPath();
+				if (selPath == null) {
+					return;
+				}
+				Object o = selPath.getLastPathComponent();
+				if (!(o instanceof DefaultMutableTreeNode)) {
+					return;
+				}
+				if (!(((DefaultMutableTreeNode) o).getUserObject() instanceof TreeDirectory)) {
+					return;
+				}
+				TreeDirectory pd = (TreeDirectory) ((DefaultMutableTreeNode) o).getUserObject();
+				if (pd.isProject()) {
+					DirectoryTreePanel.this.parent.selectListProject(pd.dir);
+				}
+			}
+		});
 
-    /* Try expand current COOJA projects */
-    for (File projectDir: parent.getProjects()) {
-      if (!projectDir.exists()) {
-        logger.fatal("Project directory not found: " + projectDir);
-        continue;
-      }
-      try {
-        String projectCanonical = projectDir.getCanonicalPath();
-        TreePath tp = new TreePath(tree.getModel().getRoot());
-        tp = buildTreePath(projectCanonical, treeRoot, tp, tree);
-        /*logger.info("Expanding: " + tp);*/
-        if (tp != null) {
-          tree.expandPath(tp.getParentPath());
-        }
-      } catch (IOException ex) {
-        logger.warn("Error when expanding projects: " + ex.getMessage());
-      }
-    }
-    add(BorderLayout.CENTER, new JScrollPane(tree));
-  }
+		/* Try expand current COOJA projects */
+		for (COOJAProject project: parent.getProjects()) {
+			if (!project.dir.exists()) {
+				logger.fatal("Project directory not found: " + project.dir);
+				continue;
+			}
+			try {
+				String projectCanonical = project.dir.getCanonicalPath();
+				TreePath tp = new TreePath(tree.getModel().getRoot());
+				tp = buildTreePath(projectCanonical, treeRoot, tp, tree);
+				/*logger.info("Expanding: " + tp);*/
+				if (tp != null) {
+					tree.expandPath(tp.getParentPath());
+				}
+			} catch (IOException ex) {
+				logger.warn("Error when expanding projects: " + ex.getMessage());
+			}
+		}
+		add(BorderLayout.CENTER, new JScrollPane(tree));
+	}
 
-  public void selectProject(File dir) {
-    /* Expand view */
-    try {
-      String projectCanonical = dir.getCanonicalPath();
-      TreePath tp = new TreePath(tree.getModel().getRoot());
-      tp = buildTreePath(projectCanonical, treeRoot, tp, tree);
-      /*logger.info("Expanding: " + tp);*/
-      if (tp != null) {
-        tree.setSelectionPath(tp);
-        tree.scrollPathToVisible(tp);
-      }
-    } catch (IOException ex) {
-      logger.warn("Error when expanding projects: " + ex.getMessage());
-    }
-  }
+	public void selectProject(File dir) {
+		/* Expand view */
+		try {
+			String projectCanonical = dir.getCanonicalPath();
+			TreePath tp = new TreePath(tree.getModel().getRoot());
+			tp = buildTreePath(projectCanonical, treeRoot, tp, tree);
+			/*logger.info("Expanding: " + tp);*/
+			if (tp != null) {
+				tree.setSelectionPath(tp);
+				tree.scrollPathToVisible(tp);
+			}
+		} catch (IOException ex) {
+			logger.warn("Error when expanding projects: " + ex.getMessage());
+		}
+	}
 
-  private static TreePath buildTreePath(String projectCanonical, DefaultMutableTreeNode parent, TreePath tp, JTree tree)
-  throws IOException {
-    /* Force filesystem listing */
-    tree.getModel().getChildCount(parent);
+	private static TreePath buildTreePath(String projectCanonical, DefaultMutableTreeNode parent, TreePath tp, JTree tree)
+	throws IOException {
+		/* Force filesystem listing */
+		tree.getModel().getChildCount(parent);
 
-    for (int i=0; i < tree.getModel().getChildCount(parent); i++) {
-      DefaultMutableTreeNode child = (DefaultMutableTreeNode) tree.getModel().getChild(parent, i);
-      Object userObject = child.getUserObject();
-      if (!(userObject instanceof ProjectDirectory)) {
-        logger.fatal("Bad tree element: " + userObject.getClass());
-        continue;
-      }
-      ProjectDirectory td = (ProjectDirectory) userObject;
-      String treeCanonical = td.dir.getCanonicalPath();
+		for (int i=0; i < tree.getModel().getChildCount(parent); i++) {
+			DefaultMutableTreeNode child = (DefaultMutableTreeNode) tree.getModel().getChild(parent, i);
+			Object userObject = child.getUserObject();
+			if (!(userObject instanceof TreeDirectory)) {
+				logger.fatal("Bad tree element: " + userObject.getClass());
+				continue;
+			}
+			TreeDirectory td = (TreeDirectory) userObject;
+			String treeCanonical = td.dir.getCanonicalPath();
 
-      projectCanonical = projectCanonical.replace('\\', '/');
-      if (!projectCanonical.endsWith("/")) {
-        projectCanonical += "/";
-      }
-      treeCanonical = treeCanonical.replace('\\', '/');
-      if (!treeCanonical.endsWith("/")) {
-        treeCanonical += "/";
-      }
+			projectCanonical = projectCanonical.replace('\\', '/');
+			if (!projectCanonical.endsWith("/")) {
+				projectCanonical += "/";
+			}
+			treeCanonical = treeCanonical.replace('\\', '/');
+			if (!treeCanonical.endsWith("/")) {
+				treeCanonical += "/";
+			}
 
-      if (projectCanonical.startsWith(treeCanonical)) {
-        tp = tp.pathByAddingChild(child);
-        if (projectCanonical.equals(treeCanonical)) {
-          return tp;
-        }
+			if (projectCanonical.startsWith(treeCanonical)) {
+				tp = tp.pathByAddingChild(child);
+				if (projectCanonical.equals(treeCanonical)) {
+					return tp;
+				}
 
-        return buildTreePath(projectCanonical, child, tp, tree);
-      }
-    }
-    return null;
-  }
+				return buildTreePath(projectCanonical, child, tp, tree);
+			}
+		}
+		return null;
+	}
 
-  private class ProjectDirectory {
-    File dir = null;
-    File[] subdirs = null;
+	private class TreeDirectory {
+		File dir = null;
+		File[] subdirs = null;
 
-    public ProjectDirectory(File file) {
-      this.dir = file;
-    }
+		public TreeDirectory(File file) {
+			this.dir = file;
+		}
 
-    boolean isProject() {
-      for (File project: parent.getProjects()) {
-        if (project.equals(dir)) {
-          return true;
-        }
-      }
-      return false;
-    }
-    boolean containsConfig() {
-      return new File(dir, GUI.PROJECT_CONFIG_FILENAME).exists();
-    }
-    boolean subtreeContainsProject() {
-      try {
-        String dirCanonical = dir.getCanonicalPath();
-        for (File project: parent.getProjects()) {
-          if (!project.exists()) {
-            continue;
-          }
-          String projectCanonical = project.getCanonicalPath();
-          if (projectCanonical.startsWith(dirCanonical)) {
-            return true;
-          }
-        }
-      } catch (IOException ex) {
-      }
-      return false;
-    }
-    public String toString() {
-      if (dir.getName() == null || dir.getName().equals("")) {
-        return dir.getAbsolutePath();
-      }
-      return dir.getName();
-    }
-  }
-  private class COOJAProjectTreeModel extends DefaultTreeModel {
-    private static final long serialVersionUID = -4673855124090194313L;
+		boolean isProject() {
+			for (COOJAProject project: parent.getProjects()) {
+				if (project.dir.equals(dir)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		boolean containsConfig() {
+			return new File(dir, GUI.PROJECT_CONFIG_FILENAME).exists();
+		}
+		boolean subtreeContainsProject() {
+			try {
+				String dirCanonical = dir.getCanonicalPath();
+				for (COOJAProject project: parent.getProjects()) {
+					if (!project.dir.exists()) {
+						continue;
+					}
+					String projectCanonical = project.dir.getCanonicalPath();
+					if (projectCanonical.startsWith(dirCanonical)) {
+						return true;
+					}
+				}
+			} catch (IOException ex) {
+			}
+			return false;
+		}
+		public String toString() {
+			if (dir.getName() == null || dir.getName().equals("")) {
+				return dir.getAbsolutePath();
+			}
+			return dir.getName();
+		}
+	}
+	private class COOJAProjectTreeModel extends DefaultTreeModel {
+		private static final long serialVersionUID = -4673855124090194313L;
 
-    private DefaultMutableTreeNode computerNode;
+		private DefaultMutableTreeNode computerNode;
 
-    public COOJAProjectTreeModel(DefaultMutableTreeNode computerNode) {
-      super(computerNode);
-      this.computerNode = computerNode;
+		public COOJAProjectTreeModel(DefaultMutableTreeNode computerNode) {
+			super(computerNode);
+			this.computerNode = computerNode;
 
-      /* List roots */
-      File[] devices = File.listRoots();
-      if (devices == null) {
-        logger.fatal("Could not list filesystem");
-        return;
-      }
-      for (File device: devices) {
-        DefaultMutableTreeNode deviceNode = new DefaultMutableTreeNode(new ProjectDirectory(device));
-        computerNode.add(deviceNode);
-      }
-    }
-    public Object getRoot() {
-      return computerNode.getUserObject();
-    }
-    public boolean isLeaf(Object node) {  
-      if ((node instanceof DefaultMutableTreeNode)) {
-        node = ((DefaultMutableTreeNode)node).getUserObject();
-      }
-      if (!(node instanceof ProjectDirectory)) {
-        /* Computer node */
-        return false;
-      }
-      ProjectDirectory td = ((ProjectDirectory)node);
+			/* List roots */
+			File[] devices = File.listRoots();
+			if (devices == null) {
+				logger.fatal("Could not list filesystem");
+				return;
+			}
+			for (File device: devices) {
+				DefaultMutableTreeNode deviceNode = new DefaultMutableTreeNode(new TreeDirectory(device));
+				computerNode.add(deviceNode);
+			}
+		}
+		public Object getRoot() {
+			return computerNode.getUserObject();
+		}
+		public boolean isLeaf(Object node) {  
+			if ((node instanceof DefaultMutableTreeNode)) {
+				node = ((DefaultMutableTreeNode)node).getUserObject();
+			}
+			if (!(node instanceof TreeDirectory)) {
+				/* Computer node */
+				return false;
+			}
+			TreeDirectory td = ((TreeDirectory)node);
 
-      return td.dir.isFile();
-    }
-    public int getChildCount(Object parent) {
-      if ((parent instanceof DefaultMutableTreeNode)) {
-        parent = ((DefaultMutableTreeNode)parent).getUserObject();
-      }
-      if (!(parent instanceof ProjectDirectory)) {
-        /* Computer node */
-        return computerNode.getChildCount();
-      }
-      ProjectDirectory td = ((ProjectDirectory)parent);
+			return td.dir.isFile();
+		}
+		public int getChildCount(Object parent) {
+			if ((parent instanceof DefaultMutableTreeNode)) {
+				parent = ((DefaultMutableTreeNode)parent).getUserObject();
+			}
+			if (!(parent instanceof TreeDirectory)) {
+				/* Computer node */
+				return computerNode.getChildCount();
+			}
+			TreeDirectory td = ((TreeDirectory)parent);
 
-      File[] children;
-      if (td.subdirs != null) {
-        children = td.subdirs;
-      } else {
-        children = td.dir.listFiles(DIRECTORIES);
-        td.subdirs = children;
-      }
-      if (children == null) {
-        return 0;
-      }
-      return children.length;
-    }
-    public Object getChild(Object parent, int index) {
-      if ((parent instanceof DefaultMutableTreeNode)) {
-        parent = ((DefaultMutableTreeNode)parent).getUserObject();
-      }
-      if (!(parent instanceof ProjectDirectory)) {
-        /* Computer node */
-        return computerNode.getChildAt(index);
-      }
-      ProjectDirectory td = ((ProjectDirectory)parent);
+			File[] children;
+			if (td.subdirs != null) {
+				children = td.subdirs;
+			} else {
+				children = td.dir.listFiles(DIRECTORIES);
+				td.subdirs = children;
+			}
+			if (children == null) {
+				return 0;
+			}
+			return children.length;
+		}
+		public Object getChild(Object parent, int index) {
+			if ((parent instanceof DefaultMutableTreeNode)) {
+				parent = ((DefaultMutableTreeNode)parent).getUserObject();
+			}
+			if (!(parent instanceof TreeDirectory)) {
+				/* Computer node */
+				return computerNode.getChildAt(index);
+			}
+			TreeDirectory td = ((TreeDirectory)parent);
 
-      File[] children;
-      if (td.subdirs != null) {
-        children = td.subdirs;
-      } else {
-        children = td.dir.listFiles(DIRECTORIES);
-        td.subdirs = children;
-      }
-      if ((children == null) || (index >= children.length)) {
-        return null;
-      }
-      return new DefaultMutableTreeNode(new ProjectDirectory(children[index]));
-    }
-    public int getIndexOfChild(Object parent, Object child) {
-      if ((parent instanceof DefaultMutableTreeNode)) {
-        parent = ((DefaultMutableTreeNode)parent).getUserObject();
-      }
-      if (!(parent instanceof ProjectDirectory)) {
-        /* Computer node */
-        for(int i=0; i < computerNode.getChildCount(); i++) {
-          if (computerNode.getChildAt(i).equals(child)) {
-            return i;
-          }
-        }
-      }
-      ProjectDirectory td = ((ProjectDirectory)parent);
+			File[] children;
+			if (td.subdirs != null) {
+				children = td.subdirs;
+			} else {
+				children = td.dir.listFiles(DIRECTORIES);
+				td.subdirs = children;
+			}
+			if ((children == null) || (index >= children.length)) {
+				return null;
+			}
+			return new DefaultMutableTreeNode(new TreeDirectory(children[index]));
+		}
+		public int getIndexOfChild(Object parent, Object child) {
+			if ((parent instanceof DefaultMutableTreeNode)) {
+				parent = ((DefaultMutableTreeNode)parent).getUserObject();
+			}
+			if (!(parent instanceof TreeDirectory)) {
+				/* Computer node */
+				for(int i=0; i < computerNode.getChildCount(); i++) {
+					if (computerNode.getChildAt(i).equals(child)) {
+						return i;
+					}
+				}
+			}
+			TreeDirectory td = ((TreeDirectory)parent);
 
-      File[] children;
-      if (td.subdirs != null) {
-        children = td.subdirs;
-      } else {
-        children = td.dir.listFiles(DIRECTORIES);
-        td.subdirs = children;
-      }
-      if (children == null) {
-        return -1;
-      }
-      if (child instanceof DefaultMutableTreeNode) {
-        child = ((DefaultMutableTreeNode)child).getUserObject();
-      }
-      File subDir = ((ProjectDirectory)child).dir;
-      for(int i = 0; i < children.length; i++) {
-        if (subDir.equals(children[i])) {
-          return i;
-        }
-      }
-      return -1;
-    }
+			File[] children;
+			if (td.subdirs != null) {
+				children = td.subdirs;
+			} else {
+				children = td.dir.listFiles(DIRECTORIES);
+				td.subdirs = children;
+			}
+			if (children == null) {
+				return -1;
+			}
+			if (child instanceof DefaultMutableTreeNode) {
+				child = ((DefaultMutableTreeNode)child).getUserObject();
+			}
+			File subDir = ((TreeDirectory)child).dir;
+			for(int i = 0; i < children.length; i++) {
+				if (subDir.equals(children[i])) {
+					return i;
+				}
+			}
+			return -1;
+		}
 
-    public void valueForPathChanged(TreePath path, Object newvalue) {}
-    public void addTreeModelListener(TreeModelListener l) {}
-    public void removeTreeModelListener(TreeModelListener l) {}
+		public void valueForPathChanged(TreePath path, Object newvalue) {}
+		public void addTreeModelListener(TreeModelListener l) {}
+		public void removeTreeModelListener(TreeModelListener l) {}
 
-    private final FileFilter DIRECTORIES = new FileFilter() {
-      public boolean accept(File file) {
-        if (file.isDirectory()) {
-          return true;
-        }
-        return false;
-      }
-    };
-  }
+		private final FileFilter DIRECTORIES = new FileFilter() {
+			public boolean accept(File file) {
+				if (file.isDirectory()) {
+					return true;
+				}
+				return false;
+			}
+		};
+	}
 }
 
 /**
@@ -828,111 +912,87 @@ class DirectoryTreePanel extends JPanel {
  * @author Fredrik Osterlind
  */
 class ConfigViewer extends JDialog {
-  private static final long serialVersionUID = 1L;
-  private static Logger logger = Logger.getLogger(ConfigViewer.class);
+	private static final long serialVersionUID = 6900340477602324582L;
+	public static void showDialog(Frame parentFrame, ProjectConfig config) {
+		ConfigViewer myDialog = new ConfigViewer(parentFrame, config);
+		myDialog.setAlwaysOnTop(true);
+		myDialog.setSize(700, 300);
+		myDialog.setLocationRelativeTo(parentFrame);
+		myDialog.setVisible(true);
+	}
 
-  public static void showDialog(Frame parentFrame, ProjectConfig config) {
-    ConfigViewer myDialog = new ConfigViewer(parentFrame, config);
-    myDialog.setLocationRelativeTo(parentFrame);
-    myDialog.setAlwaysOnTop(true);
+	public static void showDialog(Dialog parentDialog, ProjectConfig config) {
+		ConfigViewer myDialog = new ConfigViewer(parentDialog, config);
+		myDialog.setAlwaysOnTop(true);
+		myDialog.setSize(700, 300);
+		myDialog.setLocationRelativeTo(parentDialog);
+		myDialog.setVisible(true);
+	}
 
-    Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-    if (maxSize != null &&
-        (myDialog.getSize().getWidth() > maxSize.getWidth()
-            || myDialog.getSize().getHeight() > maxSize.getHeight())) {
-      Dimension newSize = new Dimension();
-      newSize.height = Math.min((int) maxSize.getHeight(), (int) myDialog.getSize().getHeight());
-      newSize.width = Math.min((int) maxSize.getWidth(), (int) myDialog.getSize().getWidth());
-      myDialog.setSize(newSize);
-    }
+	private ConfigViewer(Dialog dialog, ProjectConfig config) {
+		super(dialog, "Merged project configuration", true);
+		init(config);
+	}
 
-    if (myDialog != null) {
-      myDialog.setVisible(true);
-    }
-  }
+	private ConfigViewer(Frame frame, ProjectConfig config) {
+		super(frame, "Merged project configuration", true);
+		init(config);
+	}
 
-  public static void showDialog(Dialog parentDialog, ProjectConfig config) {
-    ConfigViewer myDialog = new ConfigViewer(parentDialog, config);
-    myDialog.setLocationRelativeTo(parentDialog);
-    myDialog.setAlwaysOnTop(true);
+	private void init(ProjectConfig config) {
+		JPanel configPane = new JPanel(new BorderLayout());
+		JLabel label;
+		JButton button;
 
-    if (myDialog != null) {
-      myDialog.setVisible(true);
-    }
-  }
+		/* Control */
+		JPanel buttonPane = new JPanel();
+		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
+		buttonPane.add(Box.createHorizontalGlue());
 
-  private ConfigViewer(Dialog dialog, ProjectConfig config) {
-    super(dialog, "Current class configuration", true);
-    init(config);
-  }
+		button = new JButton("Close");
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		buttonPane.add(button);
 
-  private ConfigViewer(Frame frame, ProjectConfig config) {
-    super(frame, "Current class configuration", true);
-    init(config);
-  }
+		/* Config */
+		JPanel keyPane = new JPanel();
+		keyPane.setBackground(Color.WHITE);
+		keyPane.setLayout(new BoxLayout(keyPane, BoxLayout.Y_AXIS));
+		keyPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+		configPane.add(keyPane, BorderLayout.WEST);
 
-  private void init(ProjectConfig config) {
-    JPanel mainPane = new JPanel(new BorderLayout());
-    JLabel label;
-    JButton button;
+		JPanel valuePane = new JPanel();
+		valuePane.setBackground(Color.WHITE);
+		valuePane.setLayout(new BoxLayout(valuePane, BoxLayout.Y_AXIS));
+		configPane.add(valuePane, BorderLayout.EAST);
 
-    // BOTTOM BUTTON PART
-    JPanel buttonPane = new JPanel();
-    buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
-    buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		label = new JLabel("KEY");
+		label.setForeground(Color.RED);
+		keyPane.add(label);
+		label = new JLabel("VALUE");
+		label.setForeground(Color.RED);
+		valuePane.add(label);
 
-    buttonPane.add(Box.createHorizontalGlue());
+		Enumeration<String> allPropertyNames = config.getPropertyNames();
+		while (allPropertyNames.hasMoreElements()) {
+			String propertyName = allPropertyNames.nextElement();
 
-    button = new JButton("Close");
-    button.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        dispose();
-      }
-    });
-    buttonPane.add(button);
+			keyPane.add(new JLabel(propertyName));
+			if (config.getStringValue(propertyName).equals("")) {
+				valuePane.add(new JLabel(" "));
+			} else {
+				valuePane.add(new JLabel(config.getStringValue(propertyName)));
+			}
+		}
 
-    // LIST PART
-    JPanel keyPane = new JPanel();
-    keyPane.setLayout(new BoxLayout(keyPane, BoxLayout.Y_AXIS));
-    mainPane.add(keyPane, BorderLayout.WEST);
-
-    JPanel valuePane = new JPanel();
-    valuePane.setLayout(new BoxLayout(valuePane, BoxLayout.Y_AXIS));
-    mainPane.add(valuePane, BorderLayout.CENTER);
-
-    label = new JLabel("KEY");
-    label.setForeground(Color.RED);
-    keyPane.add(label);
-    label = new JLabel("VALUE");
-    label.setForeground(Color.RED);
-    valuePane.add(label);
-
-    Enumeration<String> allPropertyNames = config.getPropertyNames();
-    while (allPropertyNames.hasMoreElements()) {
-      String propertyName = allPropertyNames.nextElement();
-
-      keyPane.add(new JLabel(propertyName));
-      if (config.getStringValue(propertyName).equals("")) {
-        valuePane.add(new JLabel(" "));
-      } else {
-        valuePane.add(new JLabel(config.getStringValue(propertyName)));
-      }
-    }
-
-    // Add components
-    Container contentPane = getContentPane();
-    contentPane.add(new JScrollPane(mainPane), BorderLayout.CENTER);
-    contentPane.add(buttonPane, BorderLayout.SOUTH);
-
-    pack();
-
-    /* Respect screen size */
-    Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-    if (maxSize != null && (getSize().width > maxSize.width)) {
-      setSize(maxSize.width, getSize().height);
-    }
-    if (maxSize != null && (getSize().height > maxSize.height)) {
-      setSize(getSize().width, maxSize.height);
-    }
-  }
+		Container contentPane = getContentPane();
+		configPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		configPane.setBackground(Color.WHITE);
+		contentPane.add(new JScrollPane(configPane), BorderLayout.CENTER);
+		contentPane.add(buttonPane, BorderLayout.SOUTH);
+		pack();
+	}
 }
