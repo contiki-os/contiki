@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioMedium.java,v 1.9 2010/02/03 15:49:25 fros4943 Exp $
+ * $Id: RadioMedium.java,v 1.10 2010/12/02 15:25:50 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -164,5 +164,11 @@ public abstract class RadioMedium {
     Constructor constr = radioMediumClass
         .getConstructor(new Class[] { Simulation.class });
     return (RadioMedium) constr.newInstance(new Object[] { simulation });
+  }
+  
+  /**
+   * Called when radio medium is removed. 
+   */
+  public void removed() {
   }
 }
