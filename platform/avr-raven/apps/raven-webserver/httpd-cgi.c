@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.8 2010/10/19 18:29:05 adamdunkels Exp $
+ * $Id: httpd-cgi.c,v 1.9 2010/12/02 15:37:13 dak664 Exp $
  *
  */
 
@@ -75,6 +75,9 @@ static const char   file_name[] HTTPD_STRING_ATTR = "file-stats";
 static const char    tcp_name[] HTTPD_STRING_ATTR = "tcp-connections";
 static const char   proc_name[] HTTPD_STRING_ATTR = "processes";
 static const char sensor_name[] HTTPD_STRING_ATTR = "sensors";
+static const char   adrs_name[] HTTPD_STRING_ATTR = "addresses";
+static const char   nbrs_name[] HTTPD_STRING_ATTR = "neighbors";
+static const char   rtes_name[] HTTPD_STRING_ATTR = "routes";
 
 /*Process states for processes cgi*/
 static const char      closed[] HTTPD_STRING_ATTR = "CLOSED";
@@ -267,7 +270,6 @@ make_processes(void *p)
   petsciiconv_toascii(name, 40);
   httpd_strcpy(tstate,states[9 + ((struct process *)p)->state]);
   return httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_proc, p, name,
-//  *((char **)&(((struct process *)p)->thread)),
     *(char *)(&(((struct process *)p)->thread)),
 
     tstate);
@@ -280,6 +282,108 @@ PT_THREAD(processes(struct httpd_state *s, char *ptr))
   for(s->u.ptr = PROCESS_LIST(); s->u.ptr != NULL; s->u.ptr = ((struct process *)s->u.ptr)->next) {
     PSOCK_GENERATOR_SEND(&s->sout, make_processes, s->u.ptr);
   }
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/
+static const char httpd_cgi_addrh[] HTTPD_STRING_ATTR = "<code>";
+static const char httpd_cgi_addrf[] HTTPD_STRING_ATTR = "</code>[Room for %u more]";
+static const char httpd_cgi_addrb[] HTTPD_STRING_ATTR = "<br>";
+static const char httpd_cgi_addrn[] HTTPD_STRING_ATTR = "(none)<br>";
+extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
+extern uip_ds6_route_t uip_ds6_routing_table[];
+extern uip_ds6_netif_t uip_ds6_if;
+#include "rpl.h"
+
+static unsigned short
+make_addresses(void *p)
+{
+uint8_t i,j=0;
+uint16_t numprinted;
+  numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
+  for (i=0; i<UIP_DS6_ADDR_NB;i++) {
+    if (uip_ds6_if.addr_list[i].isused) {
+      j++;
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb); 
+    }
+  }
+//if (j==0) numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrn);
+  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf, UIP_DS6_ADDR_NB-j); 
+  return numprinted;
+}
+/*---------------------------------------------------------------------------*/
+static
+PT_THREAD(addresses(struct httpd_state *s, char *ptr))
+{
+  PSOCK_BEGIN(&s->sout);
+
+  PSOCK_GENERATOR_SEND(&s->sout, make_addresses, s->u.ptr);
+
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/	
+static unsigned short
+make_neighbors(void *p)
+{
+uint8_t i,j=0;
+uint16_t numprinted;
+  numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
+  for (i=0; i<UIP_DS6_NBR_NB;i++) {
+    if (uip_ds6_nbr_cache[i].isused) {
+      j++;
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_nbr_cache[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb); 
+    }
+  }
+//if (j==0) numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrn);
+  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,UIP_DS6_NBR_NB-j);
+  return numprinted;
+}
+/*---------------------------------------------------------------------------*/
+static
+PT_THREAD(neighbors(struct httpd_state *s, char *ptr))
+{
+  PSOCK_BEGIN(&s->sout);
+
+  PSOCK_GENERATOR_SEND(&s->sout, make_neighbors, s->u.ptr);  
+  
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/			
+static unsigned short
+make_routes(void *p)
+{
+static const char httpd_cgi_rtes1[] HTTPD_STRING_ATTR = "(%u (via ";
+static const char httpd_cgi_rtes2[] HTTPD_STRING_ATTR = ") %lus<br>";
+static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")<br>";
+uint8_t i,j=0;
+uint16_t numprinted;
+  numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
+  for (i=0; i<UIP_DS6_ROUTE_NB;i++) {
+    if (uip_ds6_routing_table[i].isused) {
+      j++;
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, uip_ds6_routing_table[i].length);
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].nexthop, uip_appdata + numprinted);
+      if(uip_ds6_routing_table[i].state.lifetime < 3600) {
+         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, uip_ds6_routing_table[i].state.lifetime);
+      } else {
+         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
+      }
+    }
+  }
+  if (j==0) numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrn);
+  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,UIP_DS6_ROUTE_NB-j);
+  return numprinted;
+}
+/*---------------------------------------------------------------------------*/
+static
+PT_THREAD(routes(struct httpd_state *s, char *ptr))
+{
+  PSOCK_BEGIN(&s->sout);
+ 
+  PSOCK_GENERATOR_SEND(&s->sout, make_routes, s->u.ptr); 
+ 
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
@@ -383,6 +487,9 @@ HTTPD_CGI_CALL(   file,   file_name,      file_stats);
 #endif
 HTTPD_CGI_CALL(    tcp,    tcp_name, tcp_stats      );
 HTTPD_CGI_CALL(   proc,   proc_name, processes      );
+HTTPD_CGI_CALL(   adrs,   adrs_name, addresses      );
+HTTPD_CGI_CALL(   nbrs,   nbrs_name, neighbors      );
+HTTPD_CGI_CALL(   rtes,   rtes_name, routes         );
 HTTPD_CGI_CALL(sensors, sensor_name, sensor_readings);
 
 void
@@ -393,6 +500,9 @@ httpd_cgi_init(void)
 #endif
   httpd_cgi_add(    &tcp);
   httpd_cgi_add(   &proc);
+  httpd_cgi_add(   &adrs);
+  httpd_cgi_add(   &nbrs);
+  httpd_cgi_add(   &rtes);
   httpd_cgi_add(&sensors);
 }
 /*---------------------------------------------------------------------------*/
