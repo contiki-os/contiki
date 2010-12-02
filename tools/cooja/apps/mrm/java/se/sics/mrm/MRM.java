@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MRM.java,v 1.11 2009/11/25 15:43:03 fros4943 Exp $
+ * $Id: MRM.java,v 1.12 2010/12/02 15:25:50 fros4943 Exp $
  */
 
 package se.sics.mrm;
@@ -72,6 +72,7 @@ public class MRM extends AbstractRadioMedium {
 
   private Random random = null;
 
+  private Simulation sim;
   /**
    * Notifies observers when this radio medium has changed settings.
    */
@@ -82,16 +83,26 @@ public class MRM extends AbstractRadioMedium {
    */
   public MRM(Simulation simulation) {
     super(simulation);
+    sim = simulation;
+    
     random = simulation.getRandomGenerator();
 
     // Create the channel model
     currentChannelModel = new ChannelModel();
 
-    // Register temporary plugins
-    simulation.getGUI().registerTemporaryPlugin(AreaViewer.class);
-    simulation.getGUI().registerTemporaryPlugin(FormulaViewer.class);
+  	/* Register plugins */
+    sim.getGUI().registerPlugin(AreaViewer.class);
+    sim.getGUI().registerPlugin(FormulaViewer.class);
   }
 
+  public void removed() {
+  	super.removed();
+
+  	/* Unregister plugins */
+    sim.getGUI().unregisterPlugin(AreaViewer.class);
+    sim.getGUI().unregisterPlugin(FormulaViewer.class);
+  }
+  
   public MRMRadioConnection createConnections(Radio sendingRadio) {
     Position sendingPosition = sendingRadio.getPosition();
     MRMRadioConnection newConnection = new MRMRadioConnection(sendingRadio);

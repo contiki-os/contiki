@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DirectedGraphMedium.java,v 1.7 2010/11/10 13:09:01 fros4943 Exp $
+ * $Id: DirectedGraphMedium.java,v 1.8 2010/12/02 15:25:50 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -88,12 +88,19 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
 
     requestEdgeAnalysis();
 
-    /* Register plugin.
-     * TODO Should be unregistered when radio medium is removed */
-    simulation.getGUI().registerTemporaryPlugin(DGRMConfigurator.class);
+  	/* Register plugin and visualizer skin */
+    simulation.getGUI().registerPlugin(DGRMConfigurator.class);
     Visualizer.registerVisualizerSkin(DGRMVisualizerSkin.class);
-}
+  }
 
+  public void removed() {
+  	super.removed();
+
+  	/* Unregister plugin and visualizer skin */
+    simulation.getGUI().unregisterPlugin(DGRMConfigurator.class);
+    Visualizer.unregisterVisualizerSkin(DGRMVisualizerSkin.class);
+  }
+  
   public void addEdge(Edge e) {
     edges.add(e);
     requestEdgeAnalysis();
