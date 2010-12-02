@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyInterface.java,v 1.4 2010/02/05 08:44:34 fros4943 Exp $
+ * $Id: DummyInterface.java,v 1.5 2010/12/02 15:27:27 fros4943 Exp $
  */
 
 import java.util.*;
@@ -56,7 +56,7 @@ import se.sics.cooja.interfaces.PolledBeforeAllTicks;
  *
  * This observable never changes.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("Dummy Interface")
 public class DummyInterface extends MoteInterface implements ContikiMoteInterface, PolledBeforeAllTicks, PolledAfterAllTicks {
