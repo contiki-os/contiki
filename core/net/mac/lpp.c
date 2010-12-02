@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.39 2010/11/25 08:44:34 adamdunkels Exp $
+ * $Id: lpp.c,v 1.40 2010/12/02 15:55:17 dak664 Exp $
  */
 
 /**
@@ -240,6 +240,8 @@ register_encounter(rimeaddr_t *neighbor, clock_time_t time)
     list_add(encounter_list, e);
   }
 }
+
+#if WITH_ENCOUNTER_OPTIMIZATION
 /*---------------------------------------------------------------------------*/
 static void
 turn_radio_on_callback(void *packet)
@@ -252,6 +254,8 @@ turn_radio_on_callback(void *packet)
 
   /*  printf("enc\n");*/
 }
+#endif /* WITH_ENCOUNTER_OPTIMIZATION */
+
 /*---------------------------------------------------------------------------*/
 static void
 stream_off(void *dummy)
@@ -271,7 +275,6 @@ stream_off(void *dummy)
 static void
 turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
 {
-  struct encounter *e;
 
 #if WITH_STREAMING
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
@@ -296,6 +299,8 @@ turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
   }
 
 #if WITH_ENCOUNTER_OPTIMIZATION
+  struct encounter *e;
+  
   /* We go through the list of encounters to find if we have recorded
      an encounter with this particular neighbor. If so, we can compute
      the time for the next expected encounter and setup a ctimer to
@@ -381,18 +386,19 @@ remove_queued_packet(struct queue_list_item *i, uint8_t tx_ok)
 }
 /*---------------------------------------------------------------------------*/
 static void
+remove_queued_old_packet_callback(void *item)
+{
+  remove_queued_packet(item, 0);
+}
+
+#if WITH_PENDING_BROADCAST
+/*---------------------------------------------------------------------------*/
+static void
 remove_queued_broadcast_packet_callback(void *item)
 {
   remove_queued_packet(item, 1);
 }
 /*---------------------------------------------------------------------------*/
-static void
-remove_queued_old_packet_callback(void *item)
-{
-  remove_queued_packet(item, 0);
-}
-/*---------------------------------------------------------------------------*/
-#if WITH_PENDING_BROADCAST
 static void
 set_broadcast_flag(struct queue_list_item *i, uint8_t flag)
 {
@@ -507,7 +513,6 @@ static int
 dutycycle(void *ptr)
 {
   struct ctimer *t = ptr;
-  struct queue_list_item *p;
 	
   PT_BEGIN(&dutycycle_pt);
 
