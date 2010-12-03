@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CompileContiki.java,v 1.7 2010/11/10 13:11:43 fros4943 Exp $
+ * $Id: CompileContiki.java,v 1.8 2010/12/03 15:25:17 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -43,6 +43,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.Action;
 
@@ -86,14 +87,47 @@ public class CompileContiki {
       final MessageList compilationOutput,
       boolean synchronous)
   throws Exception {
+    /* TODO Split into correct arguments: parse " and ' */
+  	return compile(command.split(" "), env, outputFile, directory, onSuccess, onFailure, compilationOutput, synchronous);
+  }
 
-    compilationOutput.addMessage("", MessageList.NORMAL);
-    compilationOutput.addMessage("> " + command, MessageList.NORMAL);
-    logger.info("> " + command);
+  /**
+   * Executes a Contiki compilation command.
+   *
+   * @param command Command
+   * @param env (Optional) Environment. May be null.
+   * @param outputFile Expected output. May be null.
+   * @param directory Directory in which to execute command
+   * @param onSuccess Action called if compilation succeeds
+   * @param onFailure Action called if compilation fails
+   * @param compilationOutput Is written both std and err process output
+   * @param synchronous If true, method blocks until process completes
+   * @return Sub-process if called asynchronously
+   * @throws Exception If process returns error, or outputFile does not exist
+   */
+  public static Process compile(
+      final String command[],
+      final String[] env,
+      final File outputFile,
+      final File directory,
+      final Action onSuccess,
+      final Action onFailure,
+      final MessageList compilationOutput,
+      boolean synchronous)
+  throws Exception {
+
+    {
+      String cmd = "";
+      for (String c: command) {
+      	cmd += c + " ";
+      }
+      logger.info("> " + cmd);
+      compilationOutput.addMessage("", MessageList.NORMAL);
+      compilationOutput.addMessage("> " + cmd, MessageList.NORMAL);
+    }
 
     final Process compileProcess;
     try {
-      /* TODO Split into correct arguments: parse " and ' */
       compileProcess = Runtime.getRuntime().exec(command, env, directory);
 
       final BufferedReader processNormal = new BufferedReader(
