@@ -33,7 +33,7 @@
 
 /**
  * \file
- *         AVR specific definitions for the rs232 port.   
+ *         AVR specific definitions for the rs232 port.
  *
  * \author
  *         Simon Barner <barner@in.tum.de
@@ -55,7 +55,7 @@
 /******************************************************************************/
 /***   Baud rates                                                             */
 /******************************************************************************/
-#if MCU_MHZ == 16
+#if (F_CPU == 16000000UL)
 /* Single speed operation (U2X = 0)*/
 #define USART_BAUD_2400 416
 #define USART_BAUD_4800 207
@@ -71,7 +71,7 @@
 #define USART_BAUD_250000 3
 #define USART_BAUD_500000 1
 #define USART_BAUD_1000000 0
-#elif MCU_MHZ == 8
+#elif (F_CPU == 8000000UL)
 /* Single speed operation (U2X = 0)*/
 #define USART_BAUD_2400 207
 #define USART_BAUD_4800 103
