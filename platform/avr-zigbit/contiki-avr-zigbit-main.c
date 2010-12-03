@@ -122,15 +122,17 @@ init_lowlevel(void)
 
   rimeaddr_t addr;
   memset(&addr, 0, sizeof(rimeaddr_t));
-  AVR_ENTER_CRITICAL_REGION();
   eeprom_read_block ((void *)&addr.u8,  &mac_address, 8);
-  AVR_LEAVE_CRITICAL_REGION();
  
 #if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &addr.u8, 8);
 #endif  
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
-  rf230_set_channel(24);
+#ifdef CHANNEL_802_15_4
+  rf230_set_channel(CHANNEL_802_15_4);
+#else
+  rf230_set_channel(26);
+#endif
 
   rimeaddr_set_node_addr(&addr); 
 

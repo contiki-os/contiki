@@ -45,7 +45,7 @@
  *  \file
  *  \brief This file contains radio driver code.
  *
- *   $Id: rf230bb.h,v 1.3 2010/09/17 21:59:09 dak664 Exp $
+ *   $Id: rf230bb.h,v 1.4 2010/12/03 20:42:01 dak664 Exp $
  */
 
 #ifndef RADIO_H
@@ -210,8 +210,6 @@ extern uint8_t rf230_last_correlation;
 uint8_t rf230_get_raw_rssi(void);
 
 #define rf230_rssi	rf230_get_raw_rssi
-
-#define delay_us( us )   ( _delay_loop_2( ( F_CPU / 4000000UL ) * ( us ) ) )
 
 #endif
 /** @} */

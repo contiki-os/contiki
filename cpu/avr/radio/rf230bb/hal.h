@@ -47,7 +47,7 @@
  *  \file
  *  \brief This file contains low-level radio driver code.
  *
- *   $Id: hal.h,v 1.4 2010/11/30 19:47:40 dak664 Exp $
+ *   $Id: hal.h,v 1.5 2010/12/03 20:42:01 dak664 Exp $
 */
 
 #ifndef HAL_AVR_H
@@ -55,9 +55,7 @@
 /*============================ INCLUDE =======================================*/
 #include <stdint.h>
 #include <stdbool.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <util/crc16.h>
+//#include <util/crc16.h>
 #include "contiki-conf.h"
 /*============================ MACROS ========================================*/
 
@@ -82,7 +80,7 @@
 
 
 
-
+/* TODO: Move to platform (or CPU specific) */
 #if RCB_REVISION == RCB_B
 /* 1281 rcb */
 #   define SSPORT     B
@@ -168,10 +166,47 @@
 #   define HAS_CW_MODE
 #   define HAS_SPARE_TIMER
 
+#elif CONTIKI_TARGET_MULLE
+/* mulle 5.2 (TODO: move to platform specific) */
+
+#   define SSPORT     3
+#   define SSPIN      5
+#   define MOSIPORT   1
+#   define MOSIPIN    1
+#   define MISOPORT   1
+#   define MISOPIN    0
+#   define SCKPORT    3
+#   define SCKPIN     3
+#   define RSTPORT    4
+#   define RSTPIN     3
+#   define IRQPORT    8
+#   define IRQPIN     3
+#   define SLPTRPORT  0
+#   define SLPTRPIN   7
+#   define HAS_SPARE_TIMER
+
+
 #else
 
 #error "Platform undefined in hal.h"
 
+#endif
+
+/* For architectures that have all SPI signals on the same port */
+#ifndef SSPORT
+#define SSPORT SPIPORT
+#endif
+
+#ifndef SCKPORT
+#define SCKPORT SPIPORT
+#endif
+
+#ifndef MOSIPORT
+#define MOSIPORT SPIPORT
+#endif
+
+#ifndef MISOPORT
+#define MISOPORT SPIPORT
 #endif
 
 /** \} */
@@ -185,6 +220,7 @@
  * if TICKTIMER is defined as 0.
  * \{
  */
+#if defined(__AVR__)
 #define CAT(x, y)      x##y
 #define CAT2(x, y, z)  x##y##z
 #define DDR(x)         CAT(DDR,  x)
@@ -212,6 +248,39 @@
 #define COMPVECT(x)    CAT2(TIMER,x,_COMPA_vect)
 #define UDREVECT(x)    CAT2(USART,x,_UDRE_vect)
 #define RXVECT(x)      CAT2(USART,x,_RX_vect)
+#endif
+
+/* TODO: Move to CPU specific */
+#if defined(CONTIKI_TARGET_MULLE)
+#define CAT(x, y)      x##y.BYTE
+#define CAT2(x, y, z)  x##y##z.BYTE
+#define DDR(x)         CAT(PD,  x)
+#define PORT(x)        CAT(P, x)
+#define PIN(x)         CAT(P, x)
+#define UCSR(num, let) CAT2(UCSR,num,let)
+#define RXEN(x)        CAT(RXEN,x)
+#define TXEN(x)        CAT(TXEN,x)
+#define TXC(x)         CAT(TXC,x)
+#define RXC(x)         CAT(RXC,x)
+#define RXCIE(x)       CAT(RXCIE,x)
+#define UCSZ(x,y)      CAT2(UCSZ,x,y)
+#define UBRR(x,y)      CAT2(UBRR,x,y)
+#define UDRE(x)        CAT(UDRE,x)
+#define UDRIE(x)       CAT(UDRIE,x)
+#define UDR(x)         CAT(UDR,x)
+#define TCNT(x)        CAT(TCNT,x)
+#define TIMSK(x)       CAT(TIMSK,x)
+#define TCCR(x,y)      CAT2(TCCR,x,y)
+#define COM(x,y)       CAT2(COM,x,y)
+#define OCR(x,y)       CAT2(OCR,x,y)
+#define CS(x,y)        CAT2(CS,x,y)
+#define WGM(x,y)       CAT2(WGM,x,y)
+#define OCIE(x,y)      CAT2(OCIE,x,y)
+#define COMPVECT(x)    CAT2(TIMER,x,_COMPA_vect)
+#define UDREVECT(x)    CAT2(USART,x,_UDRE_vect)
+#define RXVECT(x)      CAT2(USART,x,_RX_vect)
+#endif
+
 /** \} */
 
 /**
@@ -230,13 +299,24 @@
 #define RST                   RSTPIN              /**< Pin number that corresponds to the RST pin. */
 #define DDR_RST               DDR( RSTPORT )      /**< Data Direction Register that corresponds to the port where RST is */
 #define PORT_RST              PORT( RSTPORT )     /**< Port (Write Access) where RST is connected. */
-#define PIN_RST               PIN( RSTPORT )      /**< Pin (Read Access) where RST is connected. */
+#define PIN_RST               PIN( RSTPORT /* BUG? */)      /**< Pin (Read Access) where RST is connected. */
 #define hal_set_rst_high( )   ( PORT_RST |= ( 1 << RST ) )  /**< This macro pulls the RST pin high. */
 #define hal_set_rst_low( )    ( PORT_RST &= ~( 1 << RST ) ) /**< This macro pulls the RST pin low. */
 #define hal_get_rst( )        ( ( PIN_RST & ( 1 << RST )  ) >> RST )  /**< Read current state of the RST pin (High/Low). */
 #define HAL_SS_PIN            SSPIN               /**< The slave select pin. */
+#define HAL_SCK_PIN           SCKPIN              /**< Data bit for SCK. */
+#define HAL_MOSI_PIN          MOSIPIN
+#define HAL_MISO_PIN          MISOPIN
 #define HAL_PORT_SPI          PORT( SPIPORT )     /**< The SPI module is located on PORTB. */
+#define HAL_PORT_SS            PORT( SSPORT )
+#define HAL_PORT_SCK           PORT( SCKPORT )
+#define HAL_PORT_MOSI          PORT( MOSIPORT )     /**< The SPI module uses GPIO might be split on different ports. */
+#define HAL_PORT_MISO          PORT( MISOPORT )     /**< The SPI module uses GPIO might be split on different ports. */
 #define HAL_DDR_SPI           DDR( SPIPORT )      /**< Data Direction Register for PORTB. */
+#define HAL_DDR_SS             DDR( SSPORT )      /**< Data Direction Register for MISO GPIO pin. */
+#define HAL_DDR_SCK            DDR( SCKPORT )      /**< Data Direction Register for MISO GPIO pin. */
+#define HAL_DDR_MOSI           DDR( MOSIPORT )      /**< Data Direction Register for MISO GPIO pin. */
+#define HAL_DDR_MISO           DDR( MISOPORT )      /**< Data Direction Register for MOSI GPIO pin. */
 #define HAL_DD_SS             SSPIN               /**< Data Direction bit for SS. */
 #define HAL_DD_SCK            SCKPIN              /**< Data Direction bit for SCK. */
 #define HAL_DD_MOSI           MOSIPIN             /**< Data Direction bit for MOSI. */
@@ -244,8 +324,8 @@
 /** \} */
 
 
-#define HAL_SS_HIGH( ) (HAL_PORT_SPI |= ( 1 << HAL_SS_PIN )) /**< MACRO for pulling SS high. */
-#define HAL_SS_LOW( )  (HAL_PORT_SPI &= ~( 1 << HAL_SS_PIN )) /**< MACRO for pulling SS low. */
+#define HAL_SS_HIGH( ) (HAL_PORT_SS |= ( 1 << HAL_SS_PIN )) /**< MACRO for pulling SS high. */
+#define HAL_SS_LOW( )  (HAL_PORT_SS &= ~( 1 << HAL_SS_PIN )) /**< MACRO for pulling SS low. */
 
 /** \brief Macros defined for HAL_TIMER1.
  *
@@ -254,6 +334,7 @@
  *  symbols (16 us ticks).
  */
 
+#if defined(__AVR__)
 #if ( F_CPU == 16000000UL )
     #define HAL_TCCR1B_CONFIG ( ( 1 << ICES1 ) | ( 1 << CS12 ) )
     #define HAL_US_PER_SYMBOL ( 1 )
@@ -290,11 +371,28 @@
 #define HAL_DISABLE_OVERFLOW_INTERRUPT( ) ( TIMSK1 &= ~( 1 << TOIE1 ) )
 
 /** This macro will protect the following code from interrupts.*/
-#define AVR_ENTER_CRITICAL_REGION( ) {uint8_t volatile saved_sreg = SREG; cli( )
+#define HAL_ENTER_CRITICAL_REGION( ) {uint8_t volatile saved_sreg = SREG; cli( )
 
-/** This macro must always be used in conjunction with AVR_ENTER_CRITICAL_REGION
+/** This macro must always be used in conjunction with HAL_ENTER_CRITICAL_REGION
     so that interrupts are enabled again.*/
-#define AVR_LEAVE_CRITICAL_REGION( ) SREG = saved_sreg;}
+#define HAL_LEAVE_CRITICAL_REGION( ) SREG = saved_sreg;}
+
+#else /* MULLE */
+
+#define HAL_ENABLE_RADIO_INTERRUPT( ) ( INT1IC.BYTE |= 1 )
+#define HAL_DISABLE_RADIO_INTERRUPT( ) ( INT1IC.BYTE &= ~(1) )
+
+#define HAL_ENABLE_OVERFLOW_INTERRUPT( ) ( TB4IC.BYTE = 1 )
+#define HAL_DISABLE_OVERFLOW_INTERRUPT( ) ( TB4IC.BYTE = 0 )
+
+/** This macro will protect the following code from interrupts.*/
+#define HAL_ENTER_CRITICAL_REGION( ) MULLE_ENTER_CRITICAL_REGION( )
+
+/** This macro must always be used in conjunction with HAL_ENTER_CRITICAL_REGION
+    so that interrupts are enabled again.*/
+#define HAL_LEAVE_CRITICAL_REGION( ) MULLE_LEAVE_CRITICAL_REGION( )
+
+#endif /* !__AVR__ */
 
 
 /** \brief  Enable the interrupt from the radio transceiver.

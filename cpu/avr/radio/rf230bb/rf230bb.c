@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.14 2010/11/26 20:39:15 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.15 2010/12/03 20:42:01 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -43,6 +43,7 @@
 #if defined(__AVR__)
 #include <avr/io.h>
 #include <util/delay.h>
+#define delay_us( us )   ( _delay_us( ( us ) ) )
 #include <avr/pgmspace.h>
 #elif defined(__MSP430__)
 #include <io.h>

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: httpd-simple-avr.c,v 1.6 2010/12/01 16:23:55 dak664 Exp $
+ * $Id: httpd-simple-avr.c,v 1.7 2010/12/03 20:42:02 dak664 Exp $
  */
 
 /**
@@ -253,7 +253,7 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 static
 PT_THREAD(generate_routes(struct httpd_state *s))
 {
-  int i;
+  uint8_t i=0;
   PSOCK_BEGIN(&s->sout);
 
   PSOCK_GENERATOR_SEND(&s->sout, generate_string_P, TOP1);
@@ -262,6 +262,8 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 #if UIP_CONF_IPV6     //allow ip4 builds
   blen = 0;
   ADD("<h2>Neighbors [%u max]</h2>",UIP_DS6_NBR_NB);
+  PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
+  blen = 0;
   for(i = 0; i < UIP_DS6_NBR_NB; i++) {
     if(uip_ds6_nbr_cache[i].isused) {
       ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
@@ -284,6 +286,8 @@ PT_THREAD(generate_routes(struct httpd_state *s))
       blen=0;
       ipaddr_add(&uip_ds6_routing_table[i].nexthop);
       if(uip_ds6_routing_table[i].state.lifetime < 600) {
+        PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);
+        blen=0;
         ADD(") %lus<br>", uip_ds6_routing_table[i].state.lifetime);
       } else {
         ADD(")<br>");

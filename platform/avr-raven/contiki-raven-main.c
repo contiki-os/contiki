@@ -126,7 +126,12 @@ static uint8_t get_channel_from_eeprom() {
 
 	if(eeprom_channel==~eeprom_check)
 		return eeprom_channel;
+
+#ifdef CHANNEL_802_15_4
+	return(CHANNEL_802_15_4);
+#else
 	return 26;
+#endif
 }
 
 static bool get_mac_from_eeprom(uint8_t* macptr) {

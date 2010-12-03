@@ -102,6 +102,7 @@
 #define NETSTACK_CONF_RDC         sicslowmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
+#define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        1
 #define RF230_CONF_AUTORETRIES    2
 #define SICSLOWPAN_CONF_FRAG      1
@@ -116,6 +117,7 @@
 #define NETSTACK_CONF_RDC         contikimac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
+#define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        0
 #define RF230_CONF_AUTORETRIES    0
 
@@ -125,6 +127,7 @@
 #define NETSTACK_CONF_RDC         cxmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
+#define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        0
 #define RF230_CONF_AUTORETRIES    0
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
@@ -189,7 +192,6 @@
 //#define RF230_MIN_RX_POWER 30
 
 #define UIP_CONF_ROUTER                 1
-#define UIP_CONF_IPV6_RPL               1
 
 /* Handle 10 neighbors */
 #define UIP_CONF_DS6_NBR_NBU     10
