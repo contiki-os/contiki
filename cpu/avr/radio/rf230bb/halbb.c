@@ -132,44 +132,74 @@ static uint16_t hal_system_time = 0;
 /*============================ PROTOTYPES ====================================*/
 /*============================ IMPLEMENTATION ================================*/
 
-#ifndef RF230BB_HARDWARE_SPI
-#define RF230BB_HARDWARE_SPI 1
-#endif
+#if defined(__AVR__)
+/*
+ * AVR with hardware SPI tranfers (TODO: move to hw spi hal for avr cpu)
+ */
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
-#if RF230BB_HARDWARE_SPI
-// AVR with hardware spi tranfers
 #define HAL_SPI_TRANSFER_OPEN() { \
-  AVR_ENTER_CRITICAL_REGION();	  \
+  HAL_ENTER_CRITICAL_REGION();	  \
   HAL_SS_LOW(); /* Start the SPI transaction by pulling the Slave Select low. */
-#define HAL_SPI_TRANSFER_WRITE(to_write) SPDR = to_write
+#define HAL_SPI_TRANSFER_WRITE(to_write) (SPDR = (to_write))
 #define HAL_SPI_TRANSFER_WAIT() ({while ((SPSR & (1 << SPIF)) == 0) {;}}) /* gcc extension, alternative inline function */
 #define HAL_SPI_TRANSFER_READ() (SPDR)
 #define HAL_SPI_TRANSFER_CLOSE() \
     HAL_SS_HIGH(); /* End the transaction by pulling the Slave Select High. */ \
-    AVR_LEAVE_CRITICAL_REGION(); \
+    HAL_LEAVE_CRITICAL_REGION(); \
     }
 #define HAL_SPI_TRANSFER(to_write) (	  \
 				    HAL_SPI_TRANSFER_WRITE(to_write),	\
 				    HAL_SPI_TRANSFER_WAIT(),		\
 				    HAL_SPI_TRANSFER_READ() )
 
-#else /* RF230BB_HARDWARE_SPI */
-// Software SPI transfers (Mulle, for reference)
+#else /* __AVR__ */
+/*
+ * Other SPI architecture (parts to core, parts to m16c6Xp 
+ */
+#include "contiki-mulle.h" // MULLE_ENTER_CRITICAL_REGION
+
+// Software SPI transfers
 #define HAL_SPI_TRANSFER_OPEN() { uint8_t spiTemp; \
-  AVR_ENTER_CRITICAL_REGION();	  \
+  HAL_ENTER_CRITICAL_REGION();	  \
   HAL_SS_LOW(); /* Start the SPI transaction by pulling the Slave Select low. */
 #define HAL_SPI_TRANSFER_WRITE(to_write) (spiTemp = spiWrite(to_write))
-#define HAL_SPI_TRANSFER_WAIT() (0)
+#define HAL_SPI_TRANSFER_WAIT()  ({0;})
 #define HAL_SPI_TRANSFER_READ() (spiTemp)
 #define HAL_SPI_TRANSFER_CLOSE() \
     HAL_SS_HIGH(); /* End the transaction by pulling the Slave Select High. */ \
-    AVR_LEAVE_CRITICAL_REGION(); \
+    HAL_LEAVE_CRITICAL_REGION(); \
     }
 #define HAL_SPI_TRANSFER(to_write) (spiTemp = spiWrite(to_write))
-#endif  /* RF230BB_HARDWARE_SPI */
+
+inline uint8_t spiWrite(uint8_t byte)
+{
+    uint8_t data = 0;
+    uint8_t mask = 0x80;
+    do
+    {
+        if( (byte & mask) != 0 )
+            HAL_PORT_MOSI |= (1 << HAL_MOSI_PIN); //call MOSI.set();
+        else
+            HAL_PORT_MOSI &= ~(1 << HAL_MOSI_PIN); //call MOSI.clr();
+
+        HAL_PORT_SCK &= ~(1 << HAL_SCK_PIN); //call SCLK.clr();
+        if( (HAL_PORT_MISO & (1 << HAL_MISO_PIN)) > 0) //call MISO.get() )
+            data |= mask;
+        HAL_PORT_SCK |= (1 << HAL_SCK_PIN); //call SCLK.set();
+    } while( (mask >>= 1) != 0 );
+    return data;
+}
+
+#endif  /* !__AVR__ */
  
 /** \brief  This function initializes the Hardware Abstraction Layer.
  */
+#if defined(__AVR__)
+#define HAL_RF230_ISR() ISR(RADIO_VECT)
+#define HAL_TIME_ISR()  ISR(TIMER1_OVF_vect)
+#define HAL_TICK_UPCNT() (TCNT1)
 void
 hal_init(void)
 {
@@ -177,7 +207,7 @@ hal_init(void)
     hal_system_time = 0;
 //  hal_reset_flags();
 
-    /*IO Specific Initialization.*/
+    /*IO Specific Initialization - sleep and reset pins. */
     DDR_SLP_TR |= (1 << SLP_TR); /* Enable SLP_TR as output. */
     DDR_RST    |= (1 << RST);    /* Enable RST as output. */
 
@@ -196,6 +226,49 @@ hal_init(void)
     hal_enable_trx_interrupt();    /* Enable interrupts from the radio transceiver. */
 }
 
+#else /* __AVR__ */
+
+#define HAL_RF230_ISR() M16C_INTERRUPT(M16C_INT1)
+#define HAL_TIME_ISR()  M16C_INTERRUPT(M16C_TMRB4)
+#define HAL_TICK_UPCNT() (0xFFFF-TB4) // TB4 counts down so we need to convert it to upcounting
+
+void
+hal_init(void)
+{
+    /*Reset variables used in file.*/
+    hal_system_time = 0;
+//  hal_reset_flags();
+
+    /*IO Specific Initialization - sleep and reset pins. */
+    DDR_SLP_TR |= (1 << SLP_TR); /* Enable SLP_TR as output. */
+    DDR_RST    |= (1 << RST);    /* Enable RST as output. */
+
+    /*SPI Specific Initialization.*/
+    /* Set SS, CLK and MOSI as output. */
+    HAL_DDR_SS  |= (1 << HAL_SS_PIN);
+    HAL_DDR_SCK  |= (1 << HAL_SCK_PIN);
+    HAL_DDR_MOSI  |= (1 << HAL_MOSI_PIN);
+    HAL_DDR_MISO  &= ~(1 << HAL_MISO_PIN);
+
+    /* Set SS */
+    HAL_PORT_SS |= (1 << HAL_SS_PIN); // HAL_SS_HIGH()
+    HAL_PORT_SCK |= (1 << HAL_SCK_PIN);
+
+    /*TIMER Specific Initialization.*/
+    // Init count source (Timer B3)
+    TB3 = ((16*10) - 1); // 16 us ticks
+    TB3MR.BYTE = 0b00000000; // Timer mode, F1
+    TBSR.BIT.TB3S = 1; // Start Timer B3
+
+    TB4 = 0xFFFF; //
+    TB4MR.BYTE = 0b10000001; // Counter mode, count TB3
+    TBSR.BIT.TB4S = 1; // Start Timer B4
+    INT1IC.BIT.POL = 1; // Select rising edge
+    HAL_ENABLE_OVERFLOW_INTERRUPT(); /* Enable Timer overflow interrupt. */
+    hal_enable_trx_interrupt();    /* Enable interrupts from the radio transceiver. */
+}
+#endif  /* !__AVR__ */
+
 /*----------------------------------------------------------------------------*/
 /** \brief  This function reset the interrupt flags and interrupt event handlers
  *          (Callbacks) to their default value.
@@ -203,7 +276,7 @@ hal_init(void)
 //void
 //hal_reset_flags(void)
 //{
-//    AVR_ENTER_CRITICAL_REGION();
+//    HAL_ENTER_CRITICAL_REGION();
 
     /* Reset Flags. */
 //    hal_bat_low_flag     = 0;
@@ -213,7 +286,7 @@ hal_init(void)
 //    rx_start_callback = NULL;
 //    trx_end_callback  = NULL;
 
-//    AVR_LEAVE_CRITICAL_REGION();
+//    HAL_LEAVE_CRITICAL_REGION();
 //}
 
 /*----------------------------------------------------------------------------*/
@@ -235,9 +308,9 @@ hal_init(void)
 //void
 //hal_clear_bat_low_flag(void)
 //{
-//    AVR_ENTER_CRITICAL_REGION();
+//    HAL_ENTER_CRITICAL_REGION();
 //    hal_bat_low_flag = 0;
-//    AVR_LEAVE_CRITICAL_REGION();
+//    HAL_LEAVE_CRITICAL_REGION();
 //}
 
 /*----------------------------------------------------------------------------*/
@@ -257,9 +330,9 @@ hal_init(void)
 //void
 //hal_set_trx_end_event_handler(hal_trx_end_isr_event_handler_t trx_end_callback_handle)
 //{
-//    AVR_ENTER_CRITICAL_REGION();
+//    HAL_ENTER_CRITICAL_REGION();
 //    trx_end_callback = trx_end_callback_handle;
-//    AVR_LEAVE_CRITICAL_REGION();
+//    HAL_LEAVE_CRITICAL_REGION();
 //}
 
 /*----------------------------------------------------------------------------*/
@@ -268,9 +341,9 @@ hal_init(void)
 //void
 //hal_clear_trx_end_event_handler(void)
 //{
-//    AVR_ENTER_CRITICAL_REGION();
+//    HAL_ENTER_CRITICAL_REGION();
 //    trx_end_callback = NULL;
-//    AVR_LEAVE_CRITICAL_REGION();
+//    HAL_LEAVE_CRITICAL_REGION();
 //}
 
 /*----------------------------------------------------------------------------*/
@@ -291,9 +364,9 @@ hal_init(void)
 //void
 //hal_set_rx_start_event_handler(hal_rx_start_isr_event_handler_t rx_start_callback_handle)
 //{
-//    AVR_ENTER_CRITICAL_REGION();
+//    HAL_ENTER_CRITICAL_REGION();
 //    rx_start_callback = rx_start_callback_handle;
-//    AVR_LEAVE_CRITICAL_REGION();
+//    HAL_LEAVE_CRITICAL_REGION();
 //}
 
 /*----------------------------------------------------------------------------*/
@@ -302,9 +375,9 @@ hal_init(void)
 //void
 //hal_clear_rx_start_event_handler(void)
 //{
-//    AVR_ENTER_CRITICAL_REGION();
+//    HAL_ENTER_CRITICAL_REGION();
 //    rx_start_callback = NULL;
-//    AVR_LEAVE_CRITICAL_REGION();
+//    HAL_LEAVE_CRITICAL_REGION();
 //}
 
 /*----------------------------------------------------------------------------*/
@@ -326,9 +399,9 @@ hal_init(void)
 //void
 //hal_clear_pll_lock_flag(void)
 //{
-//    AVR_ENTER_CRITICAL_REGION();
+//    HAL_ENTER_CRITICAL_REGION();
 //    hal_pll_lock_flag = 0;
-//    AVR_LEAVE_CRITICAL_REGION();
+//    HAL_LEAVE_CRITICAL_REGION();
 //}
 
 /*----------------------------------------------------------------------------*/
@@ -488,7 +561,6 @@ hal_frame_read(hal_rx_frame_t *rx_frame)
         do{
             *rx_data++ = HAL_SPI_TRANSFER_READ();
             HAL_SPI_TRANSFER_WRITE(0);
-            HAL_SPI_TRANSFER_WAIT();
 
 //           if (rx_frame){
 //             *rx_data++ = tempData;
@@ -500,13 +572,15 @@ hal_frame_read(hal_rx_frame_t *rx_frame)
 /* A full buffer should be read in 320us at 2x spi clocking, so with a low interrupt latency overwrites should not occur */
 //         crc = _crc_ccitt_update(crc, tempData);
 
+	    HAL_SPI_TRANSFER_WAIT();
+
         } while (--frame_length > 0);
 
         /*Read LQI value for this frame.*/
 //      if (rx_frame){
 	    rx_frame->lqi = HAL_SPI_TRANSFER_READ();
 //      } else {
-//          rx_callback(SPDR);
+//          rx_callback(HAL_SPI_TRANSFER_READ());
 //      }
         
 
@@ -567,31 +641,21 @@ hal_frame_write(uint8_t *write_buffer, uint8_t length)
 //void
 //hal_sram_read(uint8_t address, uint8_t length, uint8_t *data)
 //{
-//    AVR_ENTER_CRITICAL_REGION();
-
-//    HAL_SS_LOW(); /* Initiate the SPI transaction. */
+//    HAL_SPI_TRANSFER_OPEN();
 
     /*Send SRAM read command.*/
-//    SPDR = HAL_TRX_CMD_SR;
-//    while ((SPSR & (1 << SPIF)) == 0) {;}
-//    uint8_t dummy_read = SPDR;
+//    uint8_t dummy_read = HAL_SPI_TRANSFER(HAL_TRX_CMD_SR);
 
     /*Send address where to start reading.*/
-//    SPDR = address;
-//    while ((SPSR & (1 << SPIF)) == 0) {;}
-
-//    dummy_read = SPDR;
+//    dummy_read = HAL_SPI_TRANSFER(address);
 
     /*Upload the chosen memory area.*/
 //    do{
-//        SPDR = HAL_DUMMY_READ;
-//        while ((SPSR & (1 << SPIF)) == 0) {;}
-//        *data++ = SPDR;
+//        *data++ = HAL_SPI_TRANSFER(HAL_DUMMY_READ);
 //    } while (--length > 0);
 
-//    HAL_SS_HIGH();
+//    HAL_SPI_TRANSFER_CLOSE();
 
-//    AVR_LEAVE_CRITICAL_REGION();
 //}
 
 /*----------------------------------------------------------------------------*/
@@ -606,30 +670,21 @@ hal_frame_write(uint8_t *write_buffer, uint8_t length)
 //void
 //hal_sram_write(uint8_t address, uint8_t length, uint8_t *data)
 //{
-//    AVR_ENTER_CRITICAL_REGION();
-
-//    HAL_SS_LOW();
+//    HAL_SPI_TRANSFER_OPEN();
 
     /*Send SRAM write command.*/
-//    SPDR = HAL_TRX_CMD_SW;
-//    while ((SPSR & (1 << SPIF)) == 0) {;}
-//    uint8_t dummy_read = SPDR;
+//    uint8_t dummy_read = HAL_SPI_TRANSFER(HAL_TRX_CMD_SW);
 
     /*Send address where to start writing to.*/
-//    SPDR = address;
-//    while ((SPSR & (1 << SPIF)) == 0) {;}
-//    dummy_read = SPDR;
+//    dummy_read = HAL_SPI_TRANSFER(address);
 
     /*Upload the chosen memory area.*/
 //    do{
-//        SPDR = *data++;
-//        while ((SPSR & (1 << SPIF)) == 0) {;}
-//        dummy_read = SPDR;
+//        dummy_read = HAL_SPI_TRANSFER(*data++);
 //    } while (--length > 0);
 
-//    HAL_SS_HIGH();
+//    HAL_SPI_TRANSFER_CLOSE();
 
-//    AVR_LEAVE_CRITICAL_REGION();
 //}
 
 /*----------------------------------------------------------------------------*/
@@ -654,24 +709,29 @@ volatile char rf230interruptflag;
 #define INTERRUPTDEBUG(arg)
 #endif
 
-ISR(RADIO_VECT)
+HAL_RF230_ISR()
 {
     /*The following code reads the current system time. This is done by first
       reading the hal_system_time and then adding the 16 LSB directly from the
-      TCNT1 register. Not implented in RF230BB for speed
+      hardware counter.
      */
 //    uint32_t isr_timestamp = hal_system_time;
 //    isr_timestamp <<= 16;
-//   isr_timestamp |= TCNT1;
+//    isr_timestamp |= HAL_TICK_UPCNT(); // TODO: what if this wraps after reading hal_system_time?
+
     volatile uint8_t state;
-    
+    uint8_t interrupt_source; /* used after HAL_SPI_TRANSFER_OPEN/CLOSE block */
+
     INTERRUPTDEBUG(1);
 
+    /* Using SPI bus from ISR is generally a bad idea... */
+    /* Note: all IRQ are not always automatically disabled when running in ISR */
+    HAL_SPI_TRANSFER_OPEN();
+
     /*Read Interrupt source.*/
-    HAL_SS_LOW();
 
     /*Send Register address and read register content.*/
-    SPDR = RG_IRQ_STATUS | HAL_TRX_CMD_RR;
+    HAL_SPI_TRANSFER_WRITE(RG_IRQ_STATUS | HAL_TRX_CMD_RR);
 
     /* This is the second part of the convertion of system time to a 16 us time
        base. The division is moved here so we can spend less time waiting for SPI
@@ -680,31 +740,26 @@ ISR(RADIO_VECT)
 //   isr_timestamp /= HAL_US_PER_SYMBOL; /* Divide so that we get time in 16us resolution. */
 //   isr_timestamp &= HAL_SYMBOL_MASK;
 
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    uint8_t interrupt_source = SPDR; /* The interrupt variable is used as a dummy read. */
+    HAL_SPI_TRANSFER_WAIT(); /* AFTER possible interleaved processing */
 
-    SPDR = interrupt_source;
-    while ((SPSR & (1 << SPIF)) == 0) {;}
-    interrupt_source = SPDR; /* The interrupt source is read. */
+    interrupt_source = HAL_SPI_TRANSFER_READ(); /* The interrupt variable is used as a dummy read. */
 
-    HAL_SS_HIGH();
-    
+    interrupt_source = HAL_SPI_TRANSFER(interrupt_source);
+
+    HAL_SPI_TRANSFER_CLOSE();
+
     /*Handle the incomming interrupt. Prioritized.*/
     if ((interrupt_source & HAL_RX_START_MASK)){
 	   INTERRUPTDEBUG(10);
 //       if(rx_start_callback != NULL){
 //            /* Read Frame length and call rx_start callback. */
-//            HAL_SS_LOW();
+//            HAL_SPI_TRANSFER_OPEN();
 
-//            SPDR = HAL_TRX_CMD_FR;
-//            while ((SPSR & (1 << SPIF)) == 0) {;}
-//            uint8_t frame_length = SPDR;
+//            uint8_t frame_length = HAL_SPI_TRANSFER(HAL_TRX_CMD_FR);
 
-//            SPDR = frame_length; /*  frame_length used for dummy data */
-//            while ((SPSR & (1 << SPIF)) == 0) {;}
-//            frame_length = SPDR;
+//            frame_length = HAL_SPI_TRANSFER(frame_length);
 
-//            HAL_SS_HIGH();
+//            HAL_SPI_TRANSFER_CLOSE();
 
 //            rx_start_callback(isr_timestamp, frame_length);
 //       }
@@ -728,10 +783,8 @@ ISR(RADIO_VECT)
 #if RF230_CONF_AUTOACK
         rf230_last_rssi=hal_subregister_read(SR_ED_LEVEL);
         if (rf230_last_rssi >= RF230_MIN_RX_POWER) {       
-//      if (hal_subregister_read(SR_ED_LEVEL) >= RF230_MIN_RX_POWER) {
 #else
         rf230_last_rssi=hal_subregister_read(SR_RSSI);
- //     if (hal_subregister_read(SR_RSSI) >= RF230_MIN_RX_POWER/3) {
         if (rf230_last_rssi >= RF230_MIN_RX_POWER/3) {
 #endif  
 #endif
@@ -789,7 +842,7 @@ ISR(RADIO_VECT)
  */
 void TIMER1_OVF_vect(void);
 #else  /* !DOXYGEN */
-ISR(TIMER1_OVF_vect)
+HAL_TIME_ISR()
 {
     hal_system_time++;
 }

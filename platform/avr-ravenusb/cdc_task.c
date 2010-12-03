@@ -298,11 +298,9 @@ void menu_process(char c)
 						if(settings_set_uint8(SETTINGS_KEY_CHANNEL, tempchannel)!=SETTINGS_STATUS_OK) {
 							PRINTF_P(PSTR("\n\rChannel changed to %d, but unable to store in EEPROM!\n\r"),tempchannel);
 						} else
-#else						
-						AVR_ENTER_CRITICAL_REGION();
+#else
 						eeprom_write_byte((uint8_t *) 9, tempchannel);   //Write channel
 						eeprom_write_byte((uint8_t *)10, ~tempchannel); //Bit inverse as check
-						AVR_LEAVE_CRITICAL_REGION();
 #endif
 						PRINTF_P(PSTR("\n\rChannel changed to %d and stored in EEPROM.\n\r"),tempchannel);
 					}
@@ -446,8 +444,16 @@ void menu_process(char c)
 #include "rpl.h"
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
+extern uip_ds6_netif_t uip_ds6_if;
 			case 'N':
 			{	uint8_t i,j;
+                PRINTF_P(PSTR("\n\rAddresses [%u max]\n\r"),UIP_DS6_ADDR_NB);
+                for (i=0;i<UIP_DS6_ADDR_NB;i++) {
+                    if (uip_ds6_if.addr_list[i].isused) {	  
+                        ipaddr_add(&uip_ds6_if.addr_list[i].ipaddr);
+                        PRINTF_P(PSTR("\n\r"));
+                    }
+                }
 				PRINTF_P(PSTR("\n\rNeighbors [%u max]\n\r"),UIP_DS6_NBR_NB);
 				for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
 					if(uip_ds6_nbr_cache[i].isused) {

@@ -241,6 +241,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define NETSTACK_CONF_RDC         sicslowmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
+#define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        1
 #define RF230_CONF_AUTORETRIES    2
 #define QUEUEBUF_CONF_NUM         1
@@ -254,6 +255,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define NETSTACK_CONF_RDC         contikimac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
+#define 802_15_4_CHANNEL          26
 #define RF230_CONF_AUTOACK        0
 #define RF230_CONF_AUTORETRIES    0
 
@@ -263,6 +265,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define NETSTACK_CONF_RDC         cxmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
+#define 802_15_4_CHANNEL          26
 #define RF230_CONF_AUTOACK        0
 #define RF230_CONF_AUTORETRIES    0
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
@@ -282,7 +285,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 //#pragma mark RPL Settings
 /* ************************************************************************** */
 #if UIP_CONF_IPV6  //Allows hello-world ip4 to compile
-#define UIP_CONF_IPV6_RPL               0
+#define UIP_CONF_IPV6_RPL          0
 #endif
 
 #if UIP_CONF_IPV6_RPL
@@ -312,7 +315,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 //#define RF230_MIN_RX_POWER 30
 
 #define UIP_CONF_ROUTER             1
-#define UIP_CONF_ROUTER_RECEIVE_RA          1
+#define UIP_CONF_ROUTER_RECEIVE_RA  0
 #define RPL_BORDER_ROUTER           1
 #define RPL_CONF_STATS              0
 #define UIP_CONF_BUFFER_SIZE	 1300

@@ -147,37 +147,41 @@ uint16_t dag_id[] PROGMEM = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 PROCESS(border_router_process, "RPL Border Router");
 PROCESS_THREAD(border_router_process, ev, data)
 {
-  rpl_dag_t *dag;
 
   PROCESS_BEGIN();
 
   PROCESS_PAUSE();
 
-//  printf_P(PSTR("%d neighbors"),  UIP_DS6_ADDR_NB);
-{ char buf[sizeof(dag_id)];
+{ rpl_dag_t *dag;
+  char buf[sizeof(dag_id)];
   memcpy_P(buf,dag_id,sizeof(dag_id));
   dag = rpl_set_root((uip_ip6addr_t *)buf);
-}
-#if UIP_CONF_IPV6_RPL
+
 /* Assign bbbb::11 to the uip stack, and bbbb::1 to the host network interface, e.g. $ip -6 address add bbbb::1/64 dev usb0 */
-/* $ifconfig usb0 -arp on Ubuntu to skip the neighbor solicitations. Don't know how to skip NS on Windows yet. */
+/* $ifconfig usb0 -arp on Ubuntu to skip the neighbor solicitations. Add explicit neighbors on other OSs */
   if(dag != NULL) {
+    PRINTF("created a new RPL dag\n");
+
+#if UIP_CONF_ROUTER_RECEIVE_RA
+//Contiki stack will shut down until assigned an address from the interface RA
+//Currently this requires changes in the core rpl-icmp6.c to pass the link-local RA broadcast
+
+#else
     uip_ip6addr_t ipaddr;
     uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x11);
- // uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);
     rpl_set_prefix(dag, &ipaddr, 64);
-    PRINTF("created a new RPL dag\n");
-  }
 #endif
-
+  }
+}
   /* The border router runs with a 100% duty cycle in order to ensure high
      packet reception rates. */
  // NETSTACK_MAC.off(1);
 
   while(1) {
     PROCESS_YIELD();
- // rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE));
+ //   rpl_set_prefix(rpl_get_dag(RPL_ANY_INSTANCE), &ipaddr, 64);
+ //   rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE));
 
   }
 
@@ -219,7 +223,13 @@ static uint8_t get_channel_from_eeprom() {
 
 	if(eeprom_channel==~eeprom_check)
 		return eeprom_channel;
+
+#ifdef CHANNEL_802_15_4
+	return(CHANNEL_802_15_4);
+#else
 	return 26;
+#endif		
+
 #endif
 	
 }
