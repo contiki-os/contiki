@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: ethernut-main.c,v 1.4 2008/02/10 22:41:05 oliverschmidt Exp $
+ * $Id: ethernut-main.c,v 1.5 2010/12/03 21:39:33 dak664 Exp $
  *
  */
 
@@ -51,41 +51,42 @@ int
 main(void)
 {
   uip_ipaddr_t addr;
-  
+
   /*
    * GCC depends on register r1 set to 0.
    */
   asm volatile ("clr r1");
-  
+
   /*
    * No interrupts used.
    */
   cli();
-  
+
   /*
    * Enable external data and address
    * bus.
    */
   MCUCR = _BV(SRE) | _BV(SRW);
-  
+
   clock_init();
-  rs232_init();
+  rs232_init(RS232_PORT_0, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
+
   sei();
 
 
   process_init();
 
-  uip_ipaddr(addr, 193,10,67,152);
-  uip_sethostaddr(addr);
+  uip_ipaddr(&addr, 193,10,67,152);
+  uip_sethostaddr(&addr);
 
   uip_setethaddr(ethaddr);
-  
+
   procinit_init();
-  
+
   autostart_start(autostart_processes);
 
-  rs232_print("Initialized\n");
-  
+  rs232_print(RS232_PORT_0, "Initialized\n");
+
   while(1) {
     process_run();
   }
@@ -96,6 +97,6 @@ main(void)
 int
 putchar(int c)
 {
-  rs232_send(c);
+  rs232_send(RS232_PORT_0, c);
   return c;
 }

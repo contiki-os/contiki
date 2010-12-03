@@ -111,6 +111,9 @@ architecture specific files to work). */
 
 #define PROGRAM_HANDLER_CONF_MAX_NUMDSCS 10
 
+/* COM port to be used for SLIP connection */
+#define SLIP_PORT RS232_PORT_0
+
 #define TELNETD_CONF_LINELEN 32
 #define TELNETD_CONF_NUMLINES 16
 
@@ -156,9 +159,9 @@ architecture specific files to work). */
 
 #define WWW_CONF_PAGEVIEW 1
 
-typedef unsigned char u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long u32_t;
+#define HAVE_STDINT_H
+#include "avrdef.h"
+
 typedef unsigned short uip_stats_t;
 
 

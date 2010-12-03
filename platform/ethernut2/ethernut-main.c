@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: ethernut-main.c,v 1.3 2009/03/17 20:32:22 adamdunkels Exp $
+ * $Id: ethernut-main.c,v 1.4 2010/12/03 21:39:33 dak664 Exp $
  *
  */
 
@@ -60,7 +60,7 @@ PROCESS_THREAD(serial_test, ev, data)
 
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
-    rs232_print(data);
+    rs232_print(RS232_PORT_0, data);
   }
   PROCESS_END();
 }
@@ -74,23 +74,23 @@ main(void)
   uip_ipaddr_t addr;
 
   clock_init();
-  rs232_init();
-  rs232_set_input(slip_input_byte);
-  
+  rs232_init(RS232_PORT_0, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
+  rs232_set_input(RS232_PORT_0, slip_input_byte);
+
   sei();
 
   /* Initialize drivers and event kernal */
   process_init();
 
-  uip_ipaddr(addr, 172,16,0,2);
-  uip_sethostaddr(addr);
+  uip_ipaddr(&addr, 172,16,0,2);
+  uip_sethostaddr(&addr);
 
   procinit_init();
   autostart_start(autostart_processes);
   uip_fw_default(&slipif);
 
-  rs232_print_p(PSTR("Initialized\n"));
-  
+  rs232_print_p(RS232_PORT_0, PSTR("Initialized\n"));
+
   while(1) {
     process_run();
   }
