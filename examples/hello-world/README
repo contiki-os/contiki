@@ -1,14 +1,20 @@
 This adds the hello-world process in hello-world.c to the platform build,
-printing "Hello-world" to stdout on startup.
+which prints "Hello-world" to stdout on startup.
+
 The entire platform is built, with uip stack, radio drivers, routing, etc.
-So it is not usually a simple build!
+So it is not usually a simple build! The native platform is the default:
+ $make
+ $./hello-world.native
+Starting Contiki
+Hello, world
 
 When switching between ipv4 and ipv6 builds on a platform,
  $make TARGET=<platform> clean
-else the library will contain duplicate or unresolved modules.
+else the library for that platform will contain duplicate or unresolved modules.
 
 For example, using a loopback interface with the minimal-net platform:
-[see http://www.sourceforge.net/apps/mediawiki/contiki/index.php?title=Capturing_loopback_traffic_with_Wireshark]
+[To install a loopback see http://www.sourceforge.net/apps/mediawiki/contiki/index.php?title=Capturing_loopback_traffic_with_Wireshark]
+ $cd /examples/hello-world
  $make TARGET=minimal-net
  $./hello-world.minimal-net
 Hello, world
