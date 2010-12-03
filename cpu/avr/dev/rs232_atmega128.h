@@ -33,7 +33,7 @@
 
 /**
  * \file
- *         AVR specific definitions for the rs232 port.   
+ *         AVR specific definitions for the rs232 port.
  *
  * \author
  *         Simon Barner <barner@in.tum.de
@@ -55,7 +55,7 @@
 /******************************************************************************/
 /***   Baud rates                                                             */
 /******************************************************************************/
-#if MCU_MHZ == 16
+#if (F_CPU == 16000000UL)
 /* Single speed operation (U2X = 0)*/
 #define USART_BAUD_2400 416
 #define USART_BAUD_4800 207
@@ -71,7 +71,23 @@
 #define USART_BAUD_250000 3
 #define USART_BAUD_500000 1
 #define USART_BAUD_1000000 0
-#elif MCU_MHZ == 8
+#elif (F_CPU == 14745600UL)
+/* Single speed operation (U2X = 0)*/
+#define USART_BAUD_2400 383
+#define USART_BAUD_4800 191
+#define USART_BAUD_9600 95
+#define USART_BAUD_14400 63
+#define USART_BAUD_19200 47
+#define USART_BAUD_28800 31
+#define USART_BAUD_38400 23
+#define USART_BAUD_57600 15
+#define USART_BAUD_76800 11
+#define USART_BAUD_115200 7
+#define USART_BAUD_230400 3
+#define USART_BAUD_250000 3
+#define USART_BAUD_500000 1
+#define USART_BAUD_1000000 0
+#elif (F_CPU == 8000000UL)
 /* Single speed operation (U2X = 0)*/
 #define USART_BAUD_2400 207
 #define USART_BAUD_4800 103
@@ -87,7 +103,7 @@
 #define USART_BAUD_250000 1
 #define USART_BAUD_500000 0
 /* For Micaz the MCU clock rate is 7.3728 MHz*/
-#elif MCU_MHZ == 7
+#elif (F_CPU == 7372800UL)
 /* Single speed operation (U2X = 0)*/
 #define USART_BAUD_2400 191
 #define USART_BAUD_4800 95
