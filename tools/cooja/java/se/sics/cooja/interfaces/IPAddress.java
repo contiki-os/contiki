@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IPAddress.java,v 1.8 2010/02/03 10:14:46 fros4943 Exp $
+ * $Id: IPAddress.java,v 1.9 2010/12/03 13:40:42 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -71,6 +71,7 @@ public class IPAddress extends MoteInterface {
 
         String ipString = getIPString();
         ipString = ipString.replace(".", "");
+        ipString = ipString.replace(":", "");
         ipString = ipString.replace("0", "");
         if (!ipString.isEmpty()) {
           setChanged();
@@ -104,29 +105,50 @@ public class IPAddress extends MoteInterface {
       ipString += (0xFF & ip[3]);
       return ipString;
     } else if (isVersion6()) {
-      String ipString = "";
-
-      /* XXX Assuming fixed offset in struct uip_netif (uip-netif.h) */
-      int offset =
-        4*4 /* 4 uint32_t */ + 2*moteMem.getIntegerLength() /* 2 uint8_t */;
-      byte[] tmp = moteMem.getByteArray(
-          "uip_netif_physical_if",
-          offset + 16);
-      byte[] ip = new byte[16];
-      System.arraycopy(tmp, offset, ip, 0, 16);
-
-      int i=0;
-      while (i < 14) {
-        int val = (0xFF&ip[i+1]) + ((0xFF&ip[i])<<8);
-        ipString += hex16ToString(val) + ".";
-        i+=2;
-      }
-      int val = (0xFF&ip[15]) + ((0xFF&ip[14])<<8);
-      ipString += hex16ToString(val);
-
+    	String ipString = getUncompressedIPv6Address();
+    	if (ipString != null) {
+      	ipString = compressIPv6Address(ipString);
+    	}
       return ipString;
     }
     return null;
+  }
+
+  public String compressIPv6Address(String ipString) {
+    while (ipString.contains(":0000:")) {
+    	ipString = ipString.replaceAll(":0000:", "::");
+    }
+    while (ipString.contains("0000")) {
+    	ipString = ipString.replaceAll("0000", "0");
+    }
+    while (ipString.contains(":::")) {
+      ipString = ipString.replaceAll(":::", "::");
+    }
+    while (ipString.contains(":0")) {
+      ipString = ipString.replaceAll(":0", ":");
+    }
+    if (ipString.endsWith(":")) {
+    	ipString = ipString + "0";
+    }
+    return ipString;
+  }
+  public String getUncompressedIPv6Address() {
+  	/* TODO cpu independent */
+  	String ipString = "";
+    int offset = 102;
+    byte[] tmp = moteMem.getByteArray("uip_ds6_if", offset + 16);
+    byte[] ip = new byte[16];
+    System.arraycopy(tmp, offset, ip, 0, 16);
+
+    int i=0;
+    while (i < 14) {
+      int val = (0xFF&ip[i+1]) + ((0xFF&ip[i])<<8);
+      ipString += hex16ToString(val) + ":";
+      i+=2;
+    }
+    int val = (0xFF&ip[15]) + ((0xFF&ip[14])<<8);
+    ipString += hex16ToString(val);
+    return ipString;
   }
 
   /**
@@ -140,7 +162,7 @@ public class IPAddress extends MoteInterface {
    * @return True if mote has an IPv6 address
    */
   public boolean isVersion6() {
-    return moteMem.variableExists("uip_netif_physical_if");
+    return moteMem.variableExists("uip_ds6_if");
   }
 
   public JPanel getInterfaceVisualizer() {
