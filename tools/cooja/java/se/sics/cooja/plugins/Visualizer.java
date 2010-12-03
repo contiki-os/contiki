@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.17 2010/10/25 13:53:02 nifi Exp $
+ * $Id: Visualizer.java,v 1.18 2010/12/03 13:54:25 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -145,6 +145,7 @@ public class Visualizer extends VisPlugin {
   private Point zoomingPixel = null; /* Zooming center pixel */
   private boolean moving = false;
   private Mote movedMote = null;
+  public Mote clickedMote = null;
   private long moveStartTime = -1;
   private boolean moveConfirm;
   private Cursor moveCursor = new Cursor(Cursor.MOVE_CURSOR);
@@ -672,6 +673,7 @@ public class Visualizer extends VisPlugin {
   private void handleMousePress(MouseEvent mouseEvent) {
     int x = mouseEvent.getX();
     int y = mouseEvent.getY();
+  	clickedMote = null;
 
     if (mouseEvent.isControlDown()) {
       /* Zoom */
@@ -693,6 +695,7 @@ public class Visualizer extends VisPlugin {
 
     if (motes != null && motes.length > 0) {
       /* One of the clicked motes should be moved */
+    	clickedMote = motes[0];
       beginMoveRequest(motes[0], !mouseEvent.isAltDown(), !mouseEvent.isAltDown());
     }
   }
@@ -794,6 +797,7 @@ public class Visualizer extends VisPlugin {
 
       moving = false;
       movedMote = null;
+      repaint();
     }
   }
 
