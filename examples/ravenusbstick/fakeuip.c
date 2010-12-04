@@ -3,8 +3,6 @@
  * compile. Allows you to save needing to compile all of uIP in just
  * to get a few things.  This file is included in the build by the contiki
  * Makefile.include only when CONTIKI_NO_NET is defined */
-
-//#if CONTIKI_NO_NET
  
 #include "uip.h"
 #include <string.h>
@@ -132,4 +130,3 @@ uip_icmp6chksum(void)
 {
   return upper_layer_chksum(UIP_PROTO_ICMP6); 
 }
-//#endif /* CONTIKI_NO_NET */

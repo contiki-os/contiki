@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: httpd-simple-avr.c,v 1.7 2010/12/03 20:42:02 dak664 Exp $
+ * $Id: httpd-simple-avr.c,v 1.8 2010/12/04 21:32:35 dak664 Exp $
  */
 
 /**
@@ -176,7 +176,6 @@ PT_THREAD(handle_input(struct httpd_state *s))
   }
 
 #if URLCONV
-bomb
   s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
   urlconv_tofilename(s->filename, s->inputbuf, sizeof(s->filename));
 #else /* URLCONV */
@@ -300,6 +299,10 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 	PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
     blen = 0;
   }
+#else /* UIP_CONF_IPV6 */
+  blen = 0;i++;
+  ADD("<h2>Hey, you got ip4 working!</h2>");
+  PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
 #endif /* UIP_CONF_IPV6 */
 
   PSOCK_GENERATOR_SEND(&s->sout, generate_string_P, BOTTOM);  

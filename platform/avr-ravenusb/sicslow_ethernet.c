@@ -381,6 +381,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 
   /* Simple Address Translation */
   if(memcmp((uint8_t *)&simple_trans_ethernet_addr, &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), 6) == 0) {
+#if UIP_CONF_IPV6
         //Addressed to us: make 802.15.4 address from IPv6 Address
         destAddr.addr[0] = UIP_IP_BUF->destipaddr.u8[8] ^ 0x02;
         destAddr.addr[1] = UIP_IP_BUF->destipaddr.u8[9];
@@ -390,6 +391,18 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
         destAddr.addr[5] = UIP_IP_BUF->destipaddr.u8[13];
         destAddr.addr[6] = UIP_IP_BUF->destipaddr.u8[14];
         destAddr.addr[7] = UIP_IP_BUF->destipaddr.u8[15];
+#else
+		//Not intended to be functional, but allows ip4 build without errors.
+        destAddr.addr[0] = UIP_IP_BUF->destipaddr.u8[0] ^ 0x02;
+        destAddr.addr[1] = UIP_IP_BUF->destipaddr.u8[1];
+        destAddr.addr[2] = UIP_IP_BUF->destipaddr.u8[2];
+        destAddr.addr[3] = UIP_IP_BUF->destipaddr.u8[3];
+        destAddr.addr[4] = UIP_IP_BUF->destipaddr.u8[0];
+        destAddr.addr[5] = UIP_IP_BUF->destipaddr.u8[1];
+        destAddr.addr[6] = UIP_IP_BUF->destipaddr.u8[2];
+        destAddr.addr[7] = UIP_IP_BUF->destipaddr.u8[3];
+
+#endif
 
         destAddrPtr = &destAddr;
   }
@@ -414,7 +427,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
     }
     PRINTF(" translated OK\n\r");
     destAddrPtr = &destAddr;
-#endif
+#endif /* UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS */
 
 
   }
@@ -439,6 +452,8 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
   uip_ipaddr_copy(&last_sender, &UIP_IP_BUF->srcipaddr);
   tcpip_input();
 #else
+//  PRINTF("Input from %x %x %x %x %x %x %x %x\n",UIP_IP_BUF->srcipaddr.u8[0],UIP_IP_BUF->srcipaddr.u8[1],UIP_IP_BUF->srcipaddr.u8[2],UIP_IP_BUF->srcipaddr.u8[3],UIP_IP_BUF->srcipaddr.u8[4],UIP_IP_BUF->srcipaddr.u8[5],UIP_IP_BUF->srcipaddr.u8[6],UIP_IP_BUF->srcipaddr.u8[7]);
+//  PRINTF("Output to %x %x %x %x %x %x %x %x\n",destAddr.addr[0],destAddr.addr[1],destAddr.addr[2],destAddr.addr[3],destAddr.addr[4],destAddr.addr[5],destAddr.addr[6],destAddr.addr[7]);
   tcpip_output(destAddrPtr);
 #endif
 #else  /* UIP_CONF_IPV6 */
@@ -477,10 +492,19 @@ void mac_LowpanToEthernet(void)
 #endif
     ETHBUF(uip_buf)->dest.addr[0] = 0x33;
     ETHBUF(uip_buf)->dest.addr[1] = 0x33;
+
+#if UIP_CONF_IPV6
     ETHBUF(uip_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
     ETHBUF(uip_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
     ETHBUF(uip_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
     ETHBUF(uip_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
+#else
+	//Not intended to be functional, but allows ip4 build without errors.
+    ETHBUF(uip_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[0];
+    ETHBUF(uip_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[1];
+    ETHBUF(uip_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[2];
+    ETHBUF(uip_buf)->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[3];
+#endif
   } else {
 	//Otherwise we have a real address
 	mac_createEthernetAddr((uint8_t *) &(ETHBUF(uip_buf)->dest.addr[0]),

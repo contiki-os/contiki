@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.9 2010/12/02 15:37:13 dak664 Exp $
+ * $Id: httpd-cgi.c,v 1.10 2010/12/04 21:32:35 dak664 Exp $
  *
  */
 
@@ -112,7 +112,7 @@ static const char *states[] = {
   extern unsigned long seconds;
 #if RADIOSTATS
   extern unsigned long radioontime;
-  extern uint8_t RF230_radio_on, RF230_rsigsi;
+  extern uint8_t RF230_radio_on, rf230_last_rssi;
   extern uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
 #endif
   
@@ -434,7 +434,7 @@ generate_radio_stats(void *arg)
   uint16_t h,m,s;
   uint8_t p1,p2;
   static const char httpd_cgi_sensor4[] HTTPD_STRING_ATTR = "<em>Radio on:</em> %02d:%02d:%02d (%d.%02d%%)<br>";
-  static const char httpd_cgi_sensor5[] HTTPD_STRING_ATTR = "<em>Packets:</em> Tx=%5d Rx=%5d TxL=%5d RxL=%5d RSSI=%2d\n";
+  static const char httpd_cgi_sensor5[] HTTPD_STRING_ATTR = "<em>Packets:</em> Tx=%5d Rx=%5d TxL=%5d RxL=%5d RSSI=%2ddBm\n";
 
   s=(10000UL*radioontime)/seconds;
   p1=s/100;
@@ -445,9 +445,18 @@ generate_radio_stats(void *arg)
   s=s-m*60;
 
   numprinted =httpd_snprintf((char *)uip_appdata             , uip_mss()             , httpd_cgi_sensor4,\
-    h,m,s,p1,p2);  
+    h,m,s,p1,p2);
+
+	#if RF230BB
   numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor5,\
-    RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail,RF230_rsigsi);  
+    RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail,-92+rf230_last_rssi);
+#else
+  p1=0;
+  radio_get_rssi_value(&p1);
+  p1 = -91*3(p1-1);
+  numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor5,\
+    RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail,p1);
+#endif
  
   return numprinted;
 }
