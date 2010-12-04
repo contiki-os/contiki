@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.27 2010/11/03 15:41:23 adamdunkels Exp $
+ * $Id: rpl-icmp6.c,v 1.28 2010/12/04 21:06:04 dak664 Exp $
  */
 /**
  * \file
@@ -498,7 +498,7 @@ dao_input(void)
     /* Check if this is a DAO forwarding loop. */
     p = rpl_find_parent(dag, &dao_sender_addr);
     if(p != NULL && DAG_RANK(p->rank, dag) < DAG_RANK(dag->rank, dag)) {
-      printf("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
+      PRINTF("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
           DAG_RANK(p->rank, dag), DAG_RANK(dag->rank, dag));
       rpl_local_repair(dag);
       return;
