@@ -1,0 +1,11 @@
+%!: /header.html
+<h4>My Addresses</h4>
+%! addresses
+<h4>My close friends</h4>
+%! neighbors
+<h4>My other friends</h4>
+%! routes
+<h4>My Sensors</h4>
+%! sensors
+</table>
+%! file-stats .
