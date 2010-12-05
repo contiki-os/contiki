@@ -19,13 +19,17 @@ CFLAGS             += -DWEBSERVER
 #For COFFEE_FILES=4 Initial webcontent in program flash memory in a fully writeable coffee file system.
 
 #The default web content is in the /httpd-fs directory. Override with $make WEBDIR=another_directory
-#If WEBDIR is then dropped from the command line the web content will NOT revert to the default unless
+#If WEBDIR is then dropped from the command line the web content will NOT revert to the default
 #unless one of the files in the default directory is changed. This means a .coffeesection may still
 #be defined when COFFEE_FILES is dropped from the make, and a section overlap will occur during the link.
+#You can always safely restore the default content with $make WEBDIR=default.
 
 .PHONY : force
 ifdef WEBDIR
 FORCE=force
+ifeq ($(WEBDIR),default)
+override WEBDIR=$(CONTIKI)/platform/avr-raven/apps/raven-webserver/httpd-fs
+endif
 else
 WEBDIR=$(CONTIKI)/platform/avr-raven/apps/raven-webserver/httpd-fs
 endif
