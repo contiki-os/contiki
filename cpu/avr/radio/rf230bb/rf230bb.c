@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.16 2010/12/04 21:32:35 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.17 2010/12/05 17:28:29 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -145,8 +145,6 @@ static rtimer_clock_t setup_time_for_transmission;
 static unsigned long total_time_for_transmission, total_transmission_len;
 static int num_transmissions;
 #endif /* RF230_CONF_TIMESTAMPS */
-
-int rf230_packets_seen, rf230_packets_read;
 
 static uint8_t volatile pending;
 
@@ -597,6 +595,7 @@ rf230_transmit(unsigned short payload_len)
   int txpower;
   uint8_t total_len;
   uint8_t radiowason;
+  uint8_t tx_result;
 #if RF230_CONF_TIMESTAMPS
   struct timestamp timestamp;
 #endif /* RF230_CONF_TIMESTAMPS */
@@ -660,6 +659,12 @@ rf230_transmit(unsigned short payload_len)
      accurate measurement of the transmission time.*/
   rf230_waitidle();
 
+ /* Get the transmission result */  
+#if RF230_CONF_AUTORETRIES
+  tx_result = hal_subregister_read(SR_TRAC_STATUS);
+#else
+  tx_result=0;
+#endif
 
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
   ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,rf230_get_txpower());
@@ -701,20 +706,17 @@ rf230_transmit(unsigned short payload_len)
   }
 
   RELEASE_LOCK();
-  return 0;
 
-  /* If we are using WITH_SEND_CCA, we get here if the packet wasn't
-     transmitted because of other channel activity. */
- // RIMESTATS_ADD(contentiondrop);
- // PRINTF("rf230: do_send() transmission never started\n");
+  if (tx_result==1) {               //success, data pending from adressee
+    tx_result=0;                    //Just show success?
+  } else if (tx_result==3) {        //CSMA channel access failure
+    RIMESTATS_ADD(contentiondrop);
+    PRINTF("rf230_transmit: Transmission never started\n");
+//} else if (tx_result==5) {        //Expected ACK, none received
+//} else if (tx_result==7) {        //Invalid (Can't happen since waited for idle above?)
+  }
 
-  //if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
-    /* Restore the transmission power */
-  //  set_txpower(txpower & 0xff);
- // }
-
- // RELEASE_LOCK();
- // return -3;			/* Transmission never started! */
+  return tx_result;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -954,7 +956,6 @@ if (RF230_receive_on) {
 #if RADIOSTATS
   RF230_receivepackets++;
 #endif
-  rf230_packets_seen++;
 
 #if RADIOALWAYSON
 } else {
@@ -1060,7 +1061,6 @@ if (RF230_receive_on) {
   rf230_time_of_departure = 0;
 #endif /* RF230_CONF_TIMESTAMPS */
 // GET_LOCK();
-  rf230_packets_read++;
 
 //if(len > RF230_MAX_PACKET_LEN) {
   if(len > RF230_MAX_TX_FRAME_LENGTH) {
