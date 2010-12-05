@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.60 2010/09/23 08:26:06 nifi Exp $
+ * @(#)$Id: cc2420.c,v 1.61 2010/12/05 00:14:24 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -840,6 +840,9 @@ cc2420_cca(void)
   /* Make sure that the radio really got turned on. */
   if(!receive_on) {
     RELEASE_LOCK();
+    if(radio_was_off) {
+      cc2420_off();
+    }
     return 1;
   }
 
