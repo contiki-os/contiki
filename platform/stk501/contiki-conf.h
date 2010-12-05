@@ -43,13 +43,19 @@
 #define __CONTIKI_CONF_H__
 
 /*
- * MCU and clock rate
+ * MCU and clock rate. Various MCUs can be inserted in the ZIF socket.
  */
-#define MCU_MHZ 16
+#ifndef MCU
+#define MCU      atmega128
+#endif
+#ifndef F_CPU
+#define F_CPU    16000000UL
+#endif
 #define PLATFORM PLATFORM_AVR
 
 /* Cock ticks per second */
 #define CLOCK_CONF_SECOND 125
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /*Default uses 600*/
 
 /* COM port to be used for SLIP connection */
 #define SLIP_PORT RS232_PORT_0
@@ -74,10 +80,10 @@
 #define UIP_CONF_BROADCAST       1
 #define UIP_UDP			 1
 
+#define HAVE_STDINT_H
+#include "avrdef.h"
+
 typedef unsigned short clock_time_t;
-typedef unsigned char u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long u32_t;
 typedef unsigned short uip_stats_t;
 typedef unsigned long off_t;
 

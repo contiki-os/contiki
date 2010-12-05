@@ -1,13 +1,18 @@
-CONTIKI_TARGET_DIRS = . dev apps net loader
+CONTIKI_TARGET_DIRS = . dev apps net loader ../../apps/codeprop
 CONTIKI_CORE=contiki-stk501-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
 CONTIKI_TARGET_SOURCEFILES +=	rs232.c slip.c cfs-eeprom.c eeprom.c random.c \
 				mmem.c contiki-stk501-default-init-lowlevel.c \
-				contiki-stk501-default-init-net.c 
+				contiki-stk501-default-init-net.c  contiki-stk501-main.c
+
+#elfloader-avr.c has 16/32 bit pointer problems and won't compile properly for this platform
+#CONTIKI_TARGET_SOURCEFILES += codeprop.c elfloader-avr.c				
 
 CONTIKIAVR=$(CONTIKI)/cpu/avr
 CONTIKIBOARD=.
+
+CONTIKI_PLAT_DEFS = -DF_CPU=16000000UL -DAUTO_CRC_PADDING=2
 
 MCU=atmega128
 AVRDUDE_PROGRAMMER=jtag2

@@ -35,12 +35,18 @@
 
 #include "contiki-stk501.h"
 
+#if UIP_CONF_IPV6
+#warning ********Explcit IPV4 code bypassed***********
+#else
+
 static struct uip_fw_netif slipif =
   {UIP_FW_NETIF(10,100,0,0, 255,255,0,0, slip_send)};
+#endif
 
 void
 init_net(void)
 {
+#if !UIP_CONF_IPV6
   uip_ipaddr_t hostaddr;
 
   rs232_set_input (SLIP_PORT, slip_input_byte); 
@@ -51,4 +57,5 @@ init_net(void)
 
   uip_fw_register(&slipif);
   // uip_fw_default(&slipif);
+#endif /* UIP_CONF_IPV6 */
 }
