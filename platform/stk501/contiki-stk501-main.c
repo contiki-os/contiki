@@ -39,21 +39,32 @@
  *         Simon Barner <barner@in.tum.de
  */
 
+ /* Patched to allow hello-world ipv4 and ipv6 build */
+
 #include <avr/pgmspace.h>
 #include <stdio.h>
+#include "net/uip_arp.h"
 
 #include "contiki-stk501.h"
-#include "cfs/cfs-eeprom.h"
+//#include "../core/cfs/cfs-eeprom.h"
+#include "cfs/cfs.h"
+#include "dev/eeprom.h"
 #include "lib/mmem.h"
 #include "loader/symbols-def.h"
 #include "loader/symtab.h"
-#include "codeprop.h"
+#include "../apps/codeprop/codeprop.h"
 #include "sys/mt.h"
 
 /* Uncomment to enable demonstration of multi-threading libary */
 /* #define MT_DEMO */
 
-PROCINIT(&etimer_process, &tcpip_process, &uip_fw_process, &cfs_eeprom_process);
+//TODO: What happened to cfs_eeprom_process?
+//PROCINIT(&etimer_process, &tcpip_process, &uip_fw_process, &cfs_eeprom_process);
+#if UIP_CONF_IPV6
+PROCINIT(&etimer_process, &tcpip_process);
+#else
+PROCINIT(&etimer_process, &tcpip_process, &uip_fw_process);
+#endif
 
 #ifdef MT_DEMO
 static struct mt_thread threads[3];
@@ -89,7 +100,8 @@ PROCESS_THREAD(contiki_stk501_main_init_process, ev, data)
   mmem_init ();
 
   /* Code propagator */
-  process_start(&codeprop_process, NULL);
+  /* TODO: The core elfloader-avr.c has 16/32 bit pointer problems so this won't build */
+//process_start(&codeprop_process, NULL);
 
   /* Multi-threading support */
 #ifdef MT_DEMO
