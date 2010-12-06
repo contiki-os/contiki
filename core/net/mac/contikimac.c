@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.41 2010/11/02 11:00:08 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.42 2010/12/06 09:08:22 adamdunkels Exp $
  */
 
 /**
@@ -153,6 +153,7 @@ static struct rtimer rt;
 static struct pt pt;
 
 static volatile uint8_t contikimac_is_on = 0;
+static volatile uint8_t contikimac_keep_radio_on = 0;
 
 static volatile unsigned char we_are_sending = 0;
 static volatile unsigned char radio_is_on = 0;
@@ -241,7 +242,9 @@ on(void)
 static void
 off(void)
 {
-  if(contikimac_is_on && radio_is_on != 0 && is_streaming == 0/* && is_snooping == 0*/) {
+  if(contikimac_is_on && radio_is_on != 0 && is_streaming == 0 &&
+     contikimac_keep_radio_on == 0
+     /* && is_snooping == 0*/) {
     radio_is_on = 0;
     NETSTACK_RADIO.off();
   }
@@ -370,7 +373,8 @@ powercycle(struct rtimer *t, void *ptr)
         
         periods = silence_periods = 0;
         while(we_are_sending == 0 && radio_is_on &&
-              RTIMER_CLOCK_LT(RTIMER_NOW(), (start + LISTEN_TIME_AFTER_PACKET_DETECTED))) {
+              RTIMER_CLOCK_LT(RTIMER_NOW(),
+                              (start + LISTEN_TIME_AFTER_PACKET_DETECTED))) {
           
           /* Check for a number of consecutive periods of
              non-activity. If we see two such periods, we turn the
@@ -562,6 +566,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   int transmit_len;
   int i;
   int ret;
+  uint8_t contikimac_was_on;
 #if WITH_CONTIKIMAC_HEADER
   struct hdr *chdr;
 #endif /* WITH_CONTIKIMAC_HEADER */
@@ -737,6 +742,12 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 
   got_strobe_ack = 0;
 
+  /* Set contikimac_is_on to one to allow the on() and off() functions
+     to control the radio. We restore the old value of
+     contikimac_is_on when we are done. */
+  contikimac_was_on = contikimac_is_on;
+  contikimac_is_on = 1;
+  
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
      PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
     /* Check if there are any transmissions by others. */
@@ -767,6 +778,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     we_are_sending = 0;
     off();
     PRINTF("contikimac: collisions before sending\n");
+    contikimac_is_on = contikimac_was_on;
     return MAC_TX_COLLISION;
   }
 
@@ -869,6 +881,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   compower_clear(&current_packet);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
 
+  contikimac_is_on = contikimac_was_on;
   we_are_sending = 0;
 
   /* Determine the return value that we will return from the
@@ -1185,9 +1198,12 @@ static int
 turn_off(int keep_radio_on)
 {
   contikimac_is_on = 0;
+  contikimac_keep_radio_on = keep_radio_on;
   if(keep_radio_on) {
+    radio_is_on = 1;
     return NETSTACK_RADIO.on();
   } else {
+    radio_is_on = 0;
     return NETSTACK_RADIO.off();
   }
 }
