@@ -42,19 +42,19 @@
     </copy>
   </target>
 
-  <condition property="sky-shell.exists">
-    <available file="${dist}/sky-shell.ihex"/>
+  <condition property="collect-view-shell.exists">
+    <available file="${dist}/collect-view-shell.ihex"/>
   </condition>
 
-  <target name="sky-shell.ihex" unless="sky-shell.exists" depends="init">
-    <exec dir="${contiki}/examples/sky-shell" executable="make">
+  <target name="collect-view-shell.ihex" unless="collect-view-shell.exists" depends="init">
+    <exec dir="${contiki}/examples/collect" executable="make">
       <arg value="TARGET=sky"/>
-      <arg value="sky-shell.ihex"/>
+      <arg value="collect-view-shell.ihex"/>
     </exec>
-    <copy todir="${dist}" file="${contiki}/examples/sky-shell/sky-shell.ihex"/>
+    <copy todir="${dist}" file="${contiki}/examples/collect/collect-view-shell.ihex"/>
   </target>
 
-  <target name="dist" depends="jar,sky-shell.ihex">
+  <target name="dist" depends="jar,collect-view-shell.ihex">
     <copy todir="${dist}" file="collect-init.script"/>
     <mkdir dir="${dist}/tools"/>
     <copy todir="${dist}/tools">
