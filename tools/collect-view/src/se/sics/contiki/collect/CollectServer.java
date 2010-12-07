@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.4 2010/11/12 17:52:02 nifi Exp $
+ * $Id: CollectServer.java,v 1.5 2010/12/07 22:46:13 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/11/12 17:52:02 $
- *           $Revision: 1.4 $
+ * Updated : $Date: 2010/12/07 22:46:13 $
+ *           $Revision: 1.5 $
  */
 
 package se.sics.contiki.collect;
@@ -105,7 +105,7 @@ public class CollectServer implements SerialConnectionListener {
   public static final String SENSORDATA_FILE = "sensordata.log";
   public static final String CONFIG_DATA_FILE = "collect-data.conf";
   public static final String INIT_SCRIPT = "collect-init.script";
-  public static final String FIRMWARE_FILE = "sky-shell.ihex";
+  public static final String FIRMWARE_FILE = "collect-view-shell.ihex";
 
   /* Categories for the tab pane */
   private static final String MAIN = "main";
