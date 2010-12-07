@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IPAddress.java,v 1.10 2010/12/07 10:27:11 fros4943 Exp $
+ * $Id: IPAddress.java,v 1.11 2010/12/07 10:40:08 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -231,7 +231,7 @@ public class IPAddress extends MoteInterface {
           ipLabel.setText("IPv4 address: " + getIPString());
         } else if (isVersion6()) {
           ipLabel.setText((ipv6IsGlobal?"Global":"Local") + 
-          		" IPv6 address(§" + ipv6AddressIndex + "): " + getIPString());
+          		" IPv6 address(#" + ipv6AddressIndex + "): " + getIPString());
         } else {
           ipLabel.setText("Unknown IP");
         }
