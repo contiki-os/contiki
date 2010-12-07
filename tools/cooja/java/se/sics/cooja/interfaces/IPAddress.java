@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IPAddress.java,v 1.9 2010/12/03 13:40:42 fros4943 Exp $
+ * $Id: IPAddress.java,v 1.10 2010/12/07 10:27:11 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -59,8 +59,33 @@ public class IPAddress extends MoteInterface {
   private static Logger logger = Logger.getLogger(IPAddress.class);
   private AddressMemory moteMem;
 
+	private static final int IPv6_MAX_ADDRESSES = 4;
+  private int ipv6NetworkInterfaceAddressOffset;
+  private int ipv6AddressStructSize;
+	private boolean ipv6IsGlobal = false;
+	private int ipv6AddressIndex = -1;
+
   public IPAddress(final Mote mote) {
     moteMem = (AddressMemory) mote.getMemory();
+
+    /* ipV6: Struct sizes and offsets */
+  	int intLength = moteMem.getIntegerLength();
+  	int longLength = 4;
+  	ipv6NetworkInterfaceAddressOffset /* net/uip-ds6.h:uip_ds6_netif_t */ =
+  		4 /* link_mtu */ + 
+  		align(1, intLength) /* cur_hop_limit */ + 
+  		4 /* base_reachable_time */ +
+  		4 /* reachable_time */ +
+  		4 /* retrans_timer */ +
+  		align(1, intLength) /* maxdadns */;
+  	ipv6AddressStructSize /* net/uip-ds6.h:uip_ds6_addr_t */ =
+  		align(1, 2) /* isused */ + 
+  		16 /* ipaddr, aligned on 16 bits */ + 
+  		align(3, intLength) /* state + type + isinfinite */ + 
+  		2*longLength /* vlifetime */ + 
+  		2*longLength /* dadtimer */ +
+  		align(1, intLength) /* dadnscount */;
+  	ipv6AddressStructSize = align(ipv6AddressStructSize, intLength);
 
     /* Detect startup IP (only zeroes) */
     TimeEvent updateWhenAddressReady = new MoteTimeEvent(mote, 0) {
@@ -132,14 +157,44 @@ public class IPAddress extends MoteInterface {
     }
     return ipString;
   }
-  public String getUncompressedIPv6Address() {
-  	/* TODO cpu independent */
-  	String ipString = "";
-    int offset = 102;
-    byte[] tmp = moteMem.getByteArray("uip_ds6_if", offset + 16);
-    byte[] ip = new byte[16];
-    System.arraycopy(tmp, offset, ip, 0, 16);
 
+  public String getUncompressedIPv6Address() {
+  	byte[] ip = null;
+
+  	/* TODO No need to copy the entire array! */
+  	byte[] structData = moteMem.getByteArray("uip_ds6_if",
+  			ipv6NetworkInterfaceAddressOffset+IPv6_MAX_ADDRESSES*ipv6AddressStructSize);
+
+  	ipv6AddressIndex = -1;
+  	for (int addressIndex=0; addressIndex < IPv6_MAX_ADDRESSES; addressIndex++) {
+  		int offset = ipv6NetworkInterfaceAddressOffset+addressIndex*ipv6AddressStructSize;
+    	byte isUsed = structData[offset];
+    	if (isUsed == 0) {
+    		continue;
+    	}
+      byte[] addressData = new byte[16];
+      System.arraycopy(
+      		structData, offset+2/* ipaddr offset */,
+      		addressData, 0, 16);
+      
+      if (addressData[0] == (byte)0xFE && addressData[1] == (byte)0x80) {
+      	ipv6IsGlobal = false;
+      } else {
+      	ipv6IsGlobal = true;
+      }
+      
+    	ip = addressData;
+  		ipv6AddressIndex = addressIndex;
+    	if (ipv6IsGlobal) {
+    		break;
+    	}
+  	}
+  	if (ip == null) {
+  		ip = new byte[16];
+  		ipv6AddressIndex = -1;
+  	}
+
+    String ipString = "";
     int i=0;
     while (i < 14) {
       int val = (0xFF&ip[i+1]) + ((0xFF&ip[i])<<8);
@@ -169,29 +224,22 @@ public class IPAddress extends MoteInterface {
     JPanel panel = new JPanel();
     final JLabel ipLabel = new JLabel();
 
-    if (isVersion4()) {
-      ipLabel.setText("IPv4 address: " + getIPString());
-    } else if (isVersion6()) {
-      ipLabel.setText("IPv6 address: " + getIPString());
-    } else {
-      ipLabel.setText("Unknown IP");
-    }
-
-    panel.add(ipLabel);
-
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
         if (isVersion4()) {
           ipLabel.setText("IPv4 address: " + getIPString());
         } else if (isVersion6()) {
-          ipLabel.setText("IPv6 address: " + getIPString());
+          ipLabel.setText((ipv6IsGlobal?"Global":"Local") + 
+          		" IPv6 address(§" + ipv6AddressIndex + "): " + getIPString());
         } else {
           ipLabel.setText("Unknown IP");
         }
       }
     });
+    observer.update(null, null);
 
+    panel.add(ipLabel);
     panel.putClientProperty("intf_obs", observer);
 
     return panel;
@@ -203,10 +251,8 @@ public class IPAddress extends MoteInterface {
       logger.fatal("Error when releasing panel, observer is null");
       return;
     }
-
     this.deleteObserver(observer);
   }
-
 
   public Collection<Element> getConfigXML() {
     return null;
@@ -216,11 +262,19 @@ public class IPAddress extends MoteInterface {
   }
 
   private static String hex16ToString(int data) {
-    String str16 = "0000000000000000";
     String s = Integer.toString(data & 0xffff, 16);
     if (s.length() < 4) {
-      s = str16.substring(0, 4 - s.length()) + s;
+      s = "0000".substring(0, 4 - s.length()) + s;
     }
     return s;
   }
+  
+  private static int align(int bytes, int alignment) {
+  	int size = (bytes/alignment)*alignment;
+  	while (size < bytes) {
+  		size += alignment;
+  	}
+  	return size;
+  }
+
 }
