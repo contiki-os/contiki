@@ -212,14 +212,14 @@ uip_ds6_periodic(void)
           PRINT6ADDR(&locnbr->ipaddr);
           PRINTF(")\n");
           locnbr->state = NBR_STALE;
-          NEIGHBOR_STATE_CHANGED(locnbr);
+          /* NEIGHBOR_STATE_CHANGED(locnbr); */
         }
         break;
       case NBR_DELAY:
         if(stimer_expired(&(locnbr->reachable))) {
           locnbr->state = NBR_PROBE;
           locnbr->nscount = 1;
-          NEIGHBOR_STATE_CHANGED(locnbr);
+          /* NEIGHBOR_STATE_CHANGED(locnbr); */
           PRINTF("DELAY: moving to PROBE + NS %u\n", locnbr->nscount);
           uip_nd6_ns_output(NULL, &locnbr->ipaddr, &locnbr->ipaddr);
           stimer_set(&(locnbr->sendns), uip_ds6_if.retrans_timer / 1000);
@@ -366,7 +366,7 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     //    printf("rm %p\n", &nbr->isused);
     uip_packetqueue_free(&nbr->packethandle);
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
-    //    NEIGHBOR_STATE_CHANGED(nbr);
+    NEIGHBOR_STATE_CHANGED(nbr);
   }
   return;
 }
