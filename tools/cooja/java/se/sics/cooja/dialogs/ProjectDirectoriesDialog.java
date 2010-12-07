@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.17 2010/12/02 15:28:06 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.18 2010/12/07 11:59:55 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -824,7 +824,7 @@ class DirectoryTreePanel extends JPanel {
 			if (td.subdirs != null) {
 				children = td.subdirs;
 			} else {
-				children = td.dir.listFiles(DIRECTORIES);
+				children = getDirectoryList(td.dir);
 				td.subdirs = children;
 			}
 			if (children == null) {
@@ -846,7 +846,7 @@ class DirectoryTreePanel extends JPanel {
 			if (td.subdirs != null) {
 				children = td.subdirs;
 			} else {
-				children = td.dir.listFiles(DIRECTORIES);
+				children = getDirectoryList(td.dir);
 				td.subdirs = children;
 			}
 			if ((children == null) || (index >= children.length)) {
@@ -872,7 +872,7 @@ class DirectoryTreePanel extends JPanel {
 			if (td.subdirs != null) {
 				children = td.subdirs;
 			} else {
-				children = td.dir.listFiles(DIRECTORIES);
+				children = getDirectoryList(td.dir);
 				td.subdirs = children;
 			}
 			if (children == null) {
@@ -896,12 +896,20 @@ class DirectoryTreePanel extends JPanel {
 
 		private final FileFilter DIRECTORIES = new FileFilter() {
 			public boolean accept(File file) {
-				if (file.isDirectory()) {
-					return true;
+				if (!file.isDirectory()) {
+					return false;
 				}
-				return false;
+				if (file.getName().startsWith(".")) {
+					return false;
+				}
+				return true;
 			}
 		};
+		private File[] getDirectoryList(File parent) {
+			File[] dirs = parent.listFiles(DIRECTORIES);
+			Arrays.sort(dirs);
+			return dirs;
+		}
 	}
 }
 
