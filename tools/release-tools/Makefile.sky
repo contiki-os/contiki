@@ -1,6 +1,4 @@
 contiki-collect-sky:
-	(cd contiki-2.x/examples/sky-shell; make sky-shell.ihex)
-	cp contiki-2.x/examples/sky-shell/sky-shell.ihex contiki-2.x/tools/collect-view
 	(cd contiki-2.x/tools/collect-view/; ant dist && chmod 755 dist/tools/*-linux)
 	cp -r contiki-2.x/tools/collect-view/dist contiki-collect-sky-$(RELEASE)
 
