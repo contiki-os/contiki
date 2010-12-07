@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.42 2010/12/06 09:08:22 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.43 2010/12/07 23:12:54 adamdunkels Exp $
  */
 
 /**
@@ -1184,6 +1184,7 @@ turn_on(void)
 {
   if(contikimac_is_on == 0) {
     contikimac_is_on = 1;
+    contikimac_keep_radio_on = 0;
 #if NURTIMER
     rtimer_schedule(&rt, CYCLE_TIME, 1);
 #else
