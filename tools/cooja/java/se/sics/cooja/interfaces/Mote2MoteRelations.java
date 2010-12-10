@@ -26,11 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Mote2MoteRelations.java,v 1.6 2010/02/10 13:29:27 fros4943 Exp $
+ * $Id: Mote2MoteRelations.java,v 1.7 2010/12/10 17:50:49 nifi Exp $
  */
 
 package se.sics.cooja.interfaces;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Observable;
@@ -142,26 +143,31 @@ public class Mote2MoteRelations extends MoteInterface {
       return;
     }
 
+    String colorName = null;
+    int colorIndex = msg.indexOf(';');
+    if (colorIndex > 0) {
+       colorName = msg.substring(colorIndex + 1).trim();
+       msg = msg.substring(0, colorIndex).trim();
+    }
     String[] args = msg.split(" ");
     if (args.length != 3) {
       return;
     }
 
-    String id = args[1];
+    int destID;
+    try {
+      destID = Integer.parseInt(args[1]);
+    } catch (Exception e) {
+      // Not a mote id
+      return;
+    }
     String state = args[2];
 
     /* Locate destination mote */
     /* TODO Use Rime address interface instead of mote ID? */
-    Mote destinationMote = null;
-    Mote[] allMotes = Mote2MoteRelations.this.mote.getSimulation().getMotes();
-    for (Mote m: allMotes) {
-      if (id.equals("" + m.getID())) {
-        destinationMote = m;
-        break;
-      }
-    }
+    Mote destinationMote = mote.getSimulation().getMoteWithID(destID);
     if (destinationMote == null) {
-      logger.warn("No destination mote with ID: " + id);
+      logger.warn("No destination mote with ID: " + destID);
       return;
     }
     if (destinationMote == mote) {
@@ -175,7 +181,7 @@ public class Mote2MoteRelations extends MoteInterface {
         return;
       }
       relations.add(destinationMote);
-      gui.addMoteRelation(mote, destinationMote);
+      gui.addMoteRelation(mote, destinationMote, decodeColor(colorName));
     } else {
       relations.remove(destinationMote);
       gui.removeMoteRelation(mote, destinationMote);
@@ -183,6 +189,36 @@ public class Mote2MoteRelations extends MoteInterface {
 
     setChanged();
     notifyObservers();
+  }
+
+  private Color decodeColor(String colorString) {
+    if (colorString == null) {
+      return null;
+    } else if (colorString.equalsIgnoreCase("red")) {
+      return Color.RED;
+    } else if (colorString.equalsIgnoreCase("green")) {
+      return Color.GREEN;
+    } else if (colorString.equalsIgnoreCase("blue")) {
+      return Color.BLUE;
+    } else if (colorString.equalsIgnoreCase("orange")) {
+      return Color.ORANGE;
+    } else if (colorString.equalsIgnoreCase("pink")) {
+      return Color.PINK;
+    } else if (colorString.equalsIgnoreCase("yellow")) {
+      return Color.YELLOW;
+    } else if (colorString.equalsIgnoreCase("gray")) {
+      return Color.GRAY;
+    } else if (colorString.equalsIgnoreCase("magenta")) {
+      return Color.MAGENTA;
+    } else if (colorString.equalsIgnoreCase("black")) {
+      return Color.BLACK;
+    } else {
+      try {
+        return Color.decode(colorString);
+      } catch (NumberFormatException e) {
+      }
+      return null;
+    }
   }
 
   public JPanel getInterfaceVisualizer() {

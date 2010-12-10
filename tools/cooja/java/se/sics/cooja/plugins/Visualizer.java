@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.18 2010/12/03 13:54:25 fros4943 Exp $
+ * $Id: Visualizer.java,v 1.19 2010/12/10 17:50:49 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -847,7 +847,6 @@ public class Visualizer extends VisPlugin {
     Mote[] allMotes = simulation.getMotes();
 
     /* Paint mote relations */
-    g.setColor(Color.BLACK);
     MoteRelation[] relations = simulation.getGUI().getMoteRelations();
     for (MoteRelation r: relations) {
       Position sourcePos = r.source.getInterfaces().getPosition();
@@ -856,6 +855,7 @@ public class Visualizer extends VisPlugin {
       Point sourcePoint = transformPositionToPixel(sourcePos);
       Point destPoint = transformPositionToPixel(destPos);
 
+      g.setColor(r.color == null ? Color.black : r.color);
       drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, MOTE_RADIUS + 1);
     }
 
