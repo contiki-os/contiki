@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.38 2010/11/03 15:41:23 adamdunkels Exp $
+ * $Id: rpl-dag.c,v 1.39 2010/12/10 22:48:31 joxe Exp $
  */
 /**
  * \file
@@ -311,13 +311,6 @@ rpl_select_parent(rpl_dag_t *dag)
   }
 
   if(dag->preferred_parent != best) {
-    /* Visualize the change of the preferred parent in Cooja. */
-    if(dag->preferred_parent != NULL) {
-      ANNOTATE("#L %u 0\n",
-               dag->preferred_parent->addr.u8[sizeof(best->addr) - 1]);
-    }
-    ANNOTATE("#L %u 1\n", best->addr.u8[sizeof(best->addr) - 1]);
-
     dag->preferred_parent = best; /* Cache the value. */
     rpl_set_default_route(dag, &best->addr);
     /* The DAO parent set changed - schedule a DAO transmission. */
@@ -364,7 +357,6 @@ rpl_remove_parent(rpl_dag_t *dag, rpl_parent_t *parent)
   PRINTF("\n");
 
   if(parent == dag->preferred_parent) {
-    ANNOTATE("#L %u 0\n", parent->addr.u8[sizeof(parent->addr) - 1]);
     dag->preferred_parent = NULL;
   }
 
@@ -461,7 +453,6 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   dag->version = dio->version;
   dag->preferred_parent = p;
-  ANNOTATE("#L %u 1\n", p->addr.u8[sizeof(p->addr) - 1]);
 
   dag->dio_intdoubl = dio->dag_intdoubl;
   dag->dio_intmin = dio->dag_intmin;
