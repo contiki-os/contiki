@@ -47,17 +47,8 @@
 #include "net/uip-ds6.h"
 #include "net/uip-packetqueue.h"
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(addr)
-#endif
+#define DEBUG DEBUG_NONE
+#include "net/uip-debug.h"
 
 #ifdef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
 #define NEIGHBOR_STATE_CHANGED(n) UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED(n)
@@ -404,6 +395,9 @@ uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
     PRINTF("Adding defrouter with ip addr");
     PRINT6ADDR(&locdefrt->ipaddr);
     PRINTF("\n");
+
+    ANNOTATE("#L %u 1\n", ipaddr->u8[sizeof(uip_ipaddr_t) - 1]);
+
     return locdefrt;
   }
   return NULL;
@@ -415,6 +409,7 @@ uip_ds6_defrt_rm(uip_ds6_defrt_t * defrt)
 {
   if(defrt != NULL) {
     defrt->isused = 0;
+    ANNOTATE("#L %u 0\n", defrt->ipaddr.u8[sizeof(uip_ipaddr_t) - 1]);
   }
   return;
 }
@@ -779,6 +774,7 @@ uip_ds6_route_add(uip_ipaddr_t * ipaddr, u8_t length, uip_ipaddr_t * nexthop,
     PRINTF(" via ");
     PRINT6ADDR(nexthop);
     PRINTF("\n");
+    ANNOTATE("#L %u 1;blue\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
 
   }
 
@@ -790,6 +786,18 @@ void
 uip_ds6_route_rm(uip_ds6_route_t *route)
 {
   route->isused = 0;
+#if (DEBUG & DEBUG_ANNOTATE) == DEBUG_ANNOTATE
+  /* we need to check if this was the last route towards "nexthop" */
+  /* if so - remove that link (annotation) */
+  for(locroute = uip_ds6_routing_table;
+      locroute < uip_ds6_routing_table + UIP_DS6_ROUTE_NB; locroute++) {
+    if((locroute->isused) && uip_ipaddr_cmp(&locroute->nexthop, &route->nexthop))      {
+      /* we did find another link using the specific nexthop, so keep the #L */
+      return;
+    }
+  }
+  ANNOTATE("#L %u 0\n",route->nexthop.u8[sizeof(uip_ipaddr_t) - 1]);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -801,6 +809,7 @@ uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
       locroute->isused = 0;
     }
   }
+  ANNOTATE("#L %u 0\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
 }
 
 /*---------------------------------------------------------------------------*/
