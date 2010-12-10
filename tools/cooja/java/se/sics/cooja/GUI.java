@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.172 2010/12/02 15:29:07 fros4943 Exp $
+ * $Id: GUI.java,v 1.173 2010/12/10 15:54:52 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -57,6 +57,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
@@ -74,6 +75,8 @@ import java.util.Properties;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -215,14 +218,15 @@ public class GUI extends Observable {
       if (file.getName().endsWith(".csc")) {
         return true;
       }
+      if (file.getName().endsWith(".csc.gz")) {
+        return true;
+      }
 
       return false;
     }
-
     public String getDescription() {
-      return "COOJA Configuration files";
+      return "COOJA Configuration files (.csc or .csc.gz)";
     }
-
     public String toString() {
       return ".csc";
     }
@@ -284,7 +288,7 @@ public class GUI extends Observable {
 
   private JMenu menuPlugins, menuMoteTypeClasses, menuMoteTypes;
 
-  private JMenu menuOpenSimulation, menuConfOpenSimulation;
+  private JMenu menuOpenSimulation;
   private boolean hasFileHistoryChanged;
 
   private Vector<Class<? extends Plugin>> menuMotePluginClasses;
@@ -560,27 +564,17 @@ public class GUI extends Observable {
       return;
     }
     if (!hasFileHistoryChanged) {
-      // No need to update menu because file history has not changed
       return;
     }
     hasFileHistoryChanged = false;
 
     File[] openFilesHistory = getFileHistory();
-    updateOpenHistoryMenuItems("confopen", menuConfOpenSimulation, openFilesHistory);
-    updateOpenHistoryMenuItems("open", menuOpenSimulation, openFilesHistory);
+    updateOpenHistoryMenuItems(openFilesHistory);
   }
 
-  private void updateOpenHistoryMenuItems(String type, JMenu menu, File[] openFilesHistory) {
-    menu.removeAll();
-    JMenuItem browseItem = new JMenuItem("Browse...");
-    browseItem.setActionCommand(type + " sim");
-    browseItem.addActionListener(guiEventHandler);
-    menu.add(browseItem);
-    menu.add(new JSeparator());
-
-    String command = type + " last sim";
-    int index = 0;
+  private void populateMenuWithHistory(JMenu menu, final boolean quick, File[] openFilesHistory) {
     JMenuItem lastItem;
+    int index = 0;
     for (File file: openFilesHistory) {
       if (index < 10) {
         char mnemonic = (char) ('0' + (++index % 10));
@@ -589,12 +583,52 @@ public class GUI extends Observable {
       } else {
         lastItem = new JMenuItem(file.getName());
       }
-      lastItem.setActionCommand(command);
+      final File f = file;
+      lastItem.addActionListener(new ActionListener() {
+  			public void actionPerformed(ActionEvent e) {
+  				doLoadConfigAsync(true, quick, f);
+  			}
+      });
       lastItem.putClientProperty("file", file);
       lastItem.setToolTipText(file.getAbsolutePath());
-      lastItem.addActionListener(guiEventHandler);
       menu.add(lastItem);
     }
+  }
+  
+  private void doLoadConfigAsync(final boolean ask, final boolean quick, final File file) {
+    new Thread(new Runnable() {
+      public void run() {
+        myGUI.doLoadConfig(ask, quick, file);
+      }
+    }).start();
+  }
+  private void updateOpenHistoryMenuItems(File[] openFilesHistory) {
+  	menuOpenSimulation.removeAll();
+
+    /* Reconfigure submenu */
+    JMenu reconfigureMenu = new JMenu("Open and Reconfigure");
+    JMenuItem browseItem2 = new JMenuItem("Browse...");
+    browseItem2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				doLoadConfigAsync(true, false, null);
+			}
+    });
+    reconfigureMenu.add(browseItem2);
+    reconfigureMenu.add(new JSeparator());
+    populateMenuWithHistory(reconfigureMenu, false, openFilesHistory);
+
+    /* Open menu */
+    JMenuItem browseItem = new JMenuItem("Browse...");
+    browseItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				doLoadConfigAsync(true, true, null);
+			}
+    });
+    menuOpenSimulation.add(browseItem);
+    menuOpenSimulation.add(new JSeparator());
+    menuOpenSimulation.add(reconfigureMenu);
+    menuOpenSimulation.add(new JSeparator());
+    populateMenuWithHistory(menuOpenSimulation, true, openFilesHistory);
   }
 
   /**
@@ -670,13 +704,6 @@ public class GUI extends Observable {
       menuOpenSimulation.setToolTipText("Not available in applet version");
     }
 
-    menuConfOpenSimulation = new JMenu("Open & Reconfigure simulation");
-    menuConfOpenSimulation.setMnemonic(KeyEvent.VK_R);
-    menu.add(menuConfOpenSimulation);
-    if (isVisualizedInApplet()) {
-      menuConfOpenSimulation.setEnabled(false);
-      menuConfOpenSimulation.setToolTipText("Not available in applet version");
-    }
     hasFileHistoryChanged = true;
 
     menu.add(new JMenuItem(saveSimulationAction));
@@ -2375,7 +2402,6 @@ public class GUI extends Observable {
     mySimulation.stopSimulation();
 
     JFileChooser fc = new JFileChooser();
-
     fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
 
     // Suggest file using history
@@ -2388,10 +2414,8 @@ public class GUI extends Observable {
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File saveFile = fc.getSelectedFile();
       if (!fc.accept(saveFile)) {
-        saveFile = new File(saveFile.getParent(), saveFile.getName()
-            + SAVED_SIMULATIONS_FILES);
+        saveFile = new File(saveFile.getParent(), saveFile.getName() + SAVED_SIMULATIONS_FILES);
       }
-
       if (saveFile.exists()) {
         if (askForConfirmation) {
           String s1 = "Overwrite";
@@ -2407,13 +2431,15 @@ public class GUI extends Observable {
           }
         }
       }
-
       if (!saveFile.exists() || saveFile.canWrite()) {
         saveSimulationConfig(saveFile);
         addToFileHistory(saveFile);
         return saveFile;
       } else {
-        logger.fatal("No write access to file");
+      	JOptionPane.showMessageDialog(
+      			getTopParentContainer(), "No write access to " + saveFile, "Save failed", 
+      			JOptionPane.ERROR_MESSAGE);
+        logger.fatal("No write access to file: " + saveFile.getAbsolutePath());
       }
     } else {
       logger.info("Save command cancelled by user...");
@@ -2699,33 +2725,7 @@ public class GUI extends Observable {
 
   private class GUIEventHandler implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      if (e.getActionCommand().equals("confopen sim")) {
-        new Thread(new Runnable() {
-          public void run() {
-            myGUI.doLoadConfig(true, false, null);
-          }
-        }).start();
-      } else if (e.getActionCommand().equals("confopen last sim")) {
-        final File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
-        new Thread(new Runnable() {
-          public void run() {
-            myGUI.doLoadConfig(true, false, file);
-          }
-        }).start();
-      } else if (e.getActionCommand().equals("open sim")) {
-        new Thread(new Runnable() {
-          public void run() {
-            myGUI.doLoadConfig(true, true, null);
-          }
-        }).start();
-      } else if (e.getActionCommand().equals("open last sim")) {
-        final File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
-        new Thread(new Runnable() {
-          public void run() {
-            myGUI.doLoadConfig(true, true, file);
-          }
-        }).start();
-      } else if (e.getActionCommand().equals("create mote type")) {
+      if (e.getActionCommand().equals("create mote type")) {
         myGUI.doCreateMoteType((Class<? extends MoteType>) ((JMenuItem) e
             .getSource()).getClientProperty("class"));
       } else if (e.getActionCommand().equals("add motes")) {
@@ -3107,31 +3107,19 @@ public class GUI extends Observable {
 
     try {
       SAXBuilder builder = new SAXBuilder();
-      Document doc = builder.build(file);
+    	InputStream in = new FileInputStream(file);
+      if (file.getName().endsWith(".gz")) {
+      	in = new GZIPInputStream(in);
+      }
+      Document doc = builder.build(in);
       Element root = doc.getRootElement();
+      in.close();
 
       return loadSimulationConfig(root, quick, null);
     } catch (JDOMException e) {
       throw (SimulationCreationException) new SimulationCreationException("Config not wellformed").initCause(e);
     } catch (IOException e) {
       throw (SimulationCreationException) new SimulationCreationException("Load simulation error").initCause(e);
-    }
-  }
-
-  public Simulation loadSimulationConfig(StringReader stringReader, boolean quick)
-  throws SimulationCreationException {
-    try {
-      SAXBuilder builder = new SAXBuilder();
-      Document doc = builder.build(stringReader);
-      Element root = doc.getRootElement();
-
-      return loadSimulationConfig(root, quick, null);
-    } catch (JDOMException e) {
-      throw (SimulationCreationException) new SimulationCreationException(
-          "Configuration file not wellformed: " + e.getMessage()).initCause(e);
-    } catch (IOException e) {
-      throw (SimulationCreationException) new SimulationCreationException(
-          "IO Exception: " + e.getMessage()).initCause(e);
     }
   }
 
@@ -3239,7 +3227,12 @@ public class GUI extends Observable {
     try {
       // Create and write to document
       Document doc = new Document(extractSimulationConfig());
-      FileOutputStream out = new FileOutputStream(file);
+      OutputStream out = new FileOutputStream(file);
+      
+      if (file.getName().endsWith(".gz")) {
+      	out = new GZIPOutputStream(out);
+      }
+      
       XMLOutputter outputter = new XMLOutputter();
       outputter.setFormat(Format.getPrettyFormat());
       outputter.output(doc, out);
@@ -4277,7 +4270,7 @@ public class GUI extends Observable {
       return getSimulation() != null;
     }
   };
-  GUIAction exitCoojaAction = new GUIAction("Exit", KeyEvent.VK_X, KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK)) {
+  GUIAction exitCoojaAction = new GUIAction("Exit") {
 		private static final long serialVersionUID = 7523822251658687665L;
 		public void actionPerformed(ActionEvent e) {
       myGUI.doQuit(true);
