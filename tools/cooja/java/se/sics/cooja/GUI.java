@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.173 2010/12/10 15:54:52 fros4943 Exp $
+ * $Id: GUI.java,v 1.174 2010/12/10 17:50:48 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -341,9 +341,11 @@ public class GUI extends Observable {
   public static class MoteRelation {
     public Mote source;
     public Mote dest;
-    public MoteRelation(Mote source, Mote dest) {
+    public Color color;
+    public MoteRelation(Mote source, Mote dest, Color color) {
       this.source = source;
       this.dest = dest;
+      this.color = color;
     }
   }
   private ArrayList<MoteRelation> moteRelations = new ArrayList<MoteRelation>();
@@ -3783,11 +3785,22 @@ public class GUI extends Observable {
    * @param dest Destination mote
    */
   public void addMoteRelation(Mote source, Mote dest) {
+    addMoteRelation(source, dest, null);
+  }
+
+  /**
+   * Adds directed relation between given motes.
+   *
+   * @param source Source mote
+   * @param dest Destination mote
+   * @param color The color to use when visualizing the mote relation
+   */
+  public void addMoteRelation(Mote source, Mote dest, Color color) {
     if (source == null || dest == null) {
       return;
     }
     removeMoteRelation(source, dest); /* Unique relations */
-    moteRelations.add(new MoteRelation(source, dest));
+    moteRelations.add(new MoteRelation(source, dest, color));
     moteRelationObservable.setChangedAndNotify();
   }
 
@@ -3805,9 +3818,11 @@ public class GUI extends Observable {
     for (MoteRelation r: arr) {
       if (r.source == source && r.dest == dest) {
         moteRelations.remove(r);
+        /* Relations are unique */
+        moteRelationObservable.setChangedAndNotify();
+        break;
       }
     }
-    moteRelationObservable.setChangedAndNotify();
   }
 
   /**
@@ -3816,9 +3831,7 @@ public class GUI extends Observable {
    * @see #addMoteRelationsObserver(Observer)
    */
   public MoteRelation[] getMoteRelations() {
-    MoteRelation[] arr = new MoteRelation[moteRelations.size()];
-    moteRelations.toArray(arr);
-    return arr;
+    return moteRelations.toArray(new MoteRelation[moteRelations.size()]);
   }
 
   /**
