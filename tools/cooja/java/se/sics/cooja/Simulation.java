@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.68 2010/12/02 15:25:49 fros4943 Exp $
+ * $Id: Simulation.java,v 1.69 2010/12/10 15:55:47 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -672,6 +672,10 @@ public class Simulation extends Observable implements Runnable {
           throw new Exception("All motes were not recreated");
         }
       }
+    }
+
+    if (currentRadioMedium != null) {
+      currentRadioMedium.simulationFinishedLoading();
     }
 
     setChanged();
