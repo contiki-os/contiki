@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: random.c,v 1.4 2010/10/24 21:02:23 adamdunkels Exp $
+ * @(#)$Id: random.c,v 1.5 2010/12/13 16:52:02 dak664 Exp $
  */
 
 
@@ -47,6 +47,9 @@ random_init(unsigned short seed)
 unsigned short
 random_rand(void)
 {
+/* In gcc int rand() uses RAND_MAX and long random() uses RANDOM_MAX=0x7FFFFFFF */
+/* RAND_MAX varies depending on the architecture */
+
   return (unsigned short)rand();
 }
 /*---------------------------------------------------------------------------*/
