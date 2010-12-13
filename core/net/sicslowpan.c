@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.49 2010/11/13 16:37:42 dak664 Exp $
+ * $Id: sicslowpan.c,v 1.50 2010/12/13 23:27:40 dak664 Exp $
  */
 /**
  * \file
@@ -1659,17 +1659,44 @@ sicslowpan_init(void)
   tcpip_set_outputfunc(output);
 
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
+/* Preinitialize any address contexts for better header compression
+ * (Saves up to 13 bytes per 6lowpan packet)
+ * The platform contiki-conf.h file can override this using e.g.
+ * #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xbb;addr_contexts[0].prefix[1]=0xbb;}
+ */
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 
-  addr_contexts[0].used = 1;
+  addr_contexts[0].used   = 1;
   addr_contexts[0].number = 0;
+#ifdef SICSLOWPAN_CONF_ADDR_CONTEXT_0
+	SICSLOWPAN_CONF_ADDR_CONTEXT_0;
+#else
   addr_contexts[0].prefix[0] = 0xaa; 
   addr_contexts[0].prefix[1] = 0xaa;
+#endif
 #endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 */
+
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 1
   {
     int i;
     for(i = 1; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
+#ifdef SICSLOWPAN_CONF_ADDR_CONTEXT_1
+	  if (i==1) {
+	    addr_contexts[1].used   = 1;
+		addr_contexts[1].number = 1;
+		SICSLOWPAN_CONF_ADDR_CONTEXT_1;
+#ifdef SICSLOWPAN_CONF_ADDR_CONTEXT_2
+      } else if (i==2) {
+	  	addr_contexts[2].used   = 1;
+		addr_contexts[2].number = 2;
+		SICSLOWPAN_CONF_ADDR_CONTEXT_2;
+#endif
+      } else {
+        addr_contexts[i].used = 0;
+      }	  
+#else
       addr_contexts[i].used = 0;
+#endif /* SICSLOWPAN_CONF_ADDR_CONTEXT_1 */
+
     }
   }
 #endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 1 */
