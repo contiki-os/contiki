@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.39 2010/12/10 22:48:31 joxe Exp $
+ * $Id: rpl-dag.c,v 1.40 2010/12/13 10:54:25 nvt-se Exp $
  */
 /**
  * \file
@@ -117,9 +117,8 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 static int
 should_send_dao(rpl_dag_t *dag, rpl_dio_t *dio, rpl_parent_t *p)
 {
-  return dio->dst_adv_supported;
-/*  return dio->dst_adv_supported && dio->dst_adv_trigger &&
-         dio->dtsn > p->dtsn && p == dag->preferred_parent;*/
+  return 1;
+/*  return dio->dtsn > p->dtsn && p == dag->preferred_parent;*/
 }
 /************************************************************************/
 static int
@@ -153,6 +152,7 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   dag->joined = 1;
   dag->version = version + 1;
   dag->grounded = RPL_GROUNDED;
+  dag->mop = RPL_MOP_DEFAULT;
   dag->rank = ROOT_RANK;
   dag->of = rpl_find_of(RPL_DEFAULT_OCP);
   dag->preferred_parent = NULL;
@@ -444,8 +444,9 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag->joined = 1;
   dag->used = 1;
   dag->of = of;
-  dag->preference = dio->preference;
   dag->grounded = dio->grounded;
+  dag->mop = dio->mop;
+  dag->preference = dio->preference;
   dag->instance_id = dio->instance_id;
 
   dag->max_rankinc = dio->dag_max_rankinc;
@@ -477,7 +478,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(should_send_dao(dag, dio, p)) {
     rpl_schedule_dao(dag);
   } else {
-    PRINTF("RPL: dst_adv_trigger not set in incoming DIO!\n");
+    PRINTF("RPL: The DIO does not meet the prerequisites for sending a DAO\n");
   }
 }
 /************************************************************************/
@@ -604,6 +605,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
   rpl_dag_t *dag;
   rpl_parent_t *p;
+
+  if(dio->mop != RPL_MOP_DEFAULT) {
+    PRINTF("RPL: Ignoring a DIO with an unsupported MOP: %d\n", dio->mop);
+    return;
+  }
 
   dag = rpl_get_dag(dio->instance_id);
   if(dag == NULL) {

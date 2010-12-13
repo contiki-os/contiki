@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.23 2010/10/28 20:39:06 joxe Exp $
+ * $Id: rpl.h,v 1.24 2010/12/13 10:54:25 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -137,6 +137,13 @@
 #define RPL_ROUTE_FROM_MULTICAST_DAO    2
 #define RPL_ROUTE_FROM_DIO              3
 
+/* DAG Mode of Operation */
+#define RPL_MOP_NO_DOWNWARD_ROUTES      0
+#define RPL_MOP_NON_STORING             1
+#define RPL_MOP_STORING_NO_MULTICAST    2
+#define RPL_MOP_STORING_MULTICAST       3
+#define RPL_MOP_DEFAULT                 RPL_MOP_STORING_NO_MULTICAST
+
 /* DAG Metric Container Object Types, to be confirmed by IANA. */
 #define RPL_DAG_MC_NSA                  1
 #define RPL_DAG_MC_NE                   2
@@ -224,8 +231,7 @@ struct rpl_dio {
   rpl_ocp_t ocp;
   rpl_rank_t rank;
   uint8_t grounded;
-  uint8_t dst_adv_trigger;
-  uint8_t dst_adv_supported;
+  uint8_t mop;
   uint8_t preference;
   uint8_t version;
   uint8_t instance_id;
@@ -271,8 +277,9 @@ struct rpl_dag {
   uint8_t dtsn_out;
   uint8_t instance_id;
   uint8_t version;
-  uint8_t preference;
   uint8_t grounded;
+  uint8_t mop;
+  uint8_t preference;
   uint8_t dio_intdoubl;
   uint8_t dio_intmin;
   uint8_t dio_redundancy;
