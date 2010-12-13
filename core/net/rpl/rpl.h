@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.24 2010/12/13 10:54:25 nvt-se Exp $
+ * $Id: rpl.h,v 1.25 2010/12/13 10:59:37 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -95,6 +95,9 @@
 
 /* Default route lifetime in seconds. */
 #define DEFAULT_ROUTE_LIFETIME          INFINITE_LIFETIME
+
+#define DEFAULT_RPL_LIFETIME_UNIT       0xffff
+#define DEFAULT_RPL_DEF_LIFETIME        0xff
 
 #define DEFAULT_MIN_HOPRANKINC          256
 #define DEFAULT_MAX_RANKINC             3*DEFAULT_MIN_HOPRANKINC
@@ -239,6 +242,8 @@ struct rpl_dio {
   uint8_t dag_intdoubl;
   uint8_t dag_intmin;
   uint8_t dag_redund;
+  uint8_t default_lifetime;
+  uint16_t lifetime_unit;
   rpl_rank_t dag_max_rankinc;
   rpl_rank_t dag_min_hoprankinc;
   rpl_prefix_t destination_prefix;
@@ -286,6 +291,8 @@ struct rpl_dag {
   rpl_rank_t max_rankinc;
   rpl_rank_t min_hoprankinc;
   uint8_t used;
+  uint8_t default_lifetime;
+  uint16_t lifetime_unit; /* lifetime in seconds = l_u * d_l */
   /* live data for the DAG */
   uint8_t joined;
   uint8_t dio_intcurrent;
