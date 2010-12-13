@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.30 2010/12/13 09:59:46 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.31 2010/12/13 10:54:25 nvt-se Exp $
  */
 /**
  * \file
@@ -59,14 +59,10 @@
 #include "net/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
-#define RPL_DIO_GROUNDED            0x80
-#define RPL_DIO_DEST_ADV_SUPPORTED  0x40
-#define RPL_DIO_DEST_ADV_TRIGGER    0x20
-#define RPL_DIO_MOP_MASK            0x18
-#define RPL_DIO_MOP_NON_STORING     0x00
-#define RPL_DIO_MOP_STORING         0x10
-#define RPL_DIO_DAG_PREFERENCE_MASK 0x07
-
+#define RPL_DIO_GROUNDED                 0x80
+#define RPL_DIO_MOP_SHIFT                3
+#define RPL_DIO_MOP_MASK                 0x3c
+#define RPL_DIO_PREFERENCE_MASK          0x07
 
 #define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF     ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
@@ -142,11 +138,11 @@ dis_output(uip_ipaddr_t *addr)
   unsigned char *buffer;
   uip_ipaddr_t tmpaddr;
 
-  /* DAG Information Solicitation  - 2 bytes flags and reserved */
+  /* DAG Information Solicitation  - 2 bytes reserved */
   /*      0                   1                   2        */
   /*      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3  */
   /*     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
-  /*     |    flags      | reserved      |   Option(s)...  */
+  /*     |     Flags     |   Reserved    |   Option(s)...  */
   /*     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
   buffer = UIP_ICMP_PAYLOAD;
@@ -160,7 +156,6 @@ dis_output(uip_ipaddr_t *addr)
     PRINTF("RPL: Sending a unicast DIS\n");
   }
   uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2);
-
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -216,9 +211,8 @@ dio_input(void)
   PRINTF("RPL: Incoming DIO rank %u\n", (unsigned)dio.rank);
 
   dio.grounded = buffer[i] & RPL_DIO_GROUNDED;
-  dio.dst_adv_trigger = buffer[i] & RPL_DIO_DEST_ADV_TRIGGER;
-  dio.dst_adv_supported = buffer[i] & RPL_DIO_DEST_ADV_SUPPORTED;
-  dio.preference = buffer[i++] & RPL_DIO_DAG_PREFERENCE_MASK;
+  dio.mop = (buffer[i]& RPL_DIO_MOP_MASK) >> RPL_DIO_MOP_SHIFT;
+  dio.preference = buffer[i++] & RPL_DIO_PREFERENCE_MASK;
 
   dio.dtsn = buffer[i++];
   /* two reserved bytes */
@@ -314,7 +308,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   int pos;
   uip_ipaddr_t addr;
 
-  /* DIO - DODAG Information Object */
+  /* DAG Information Solicitation */
   pos = 0;
 
   buffer = UIP_ICMP_PAYLOAD;
@@ -327,8 +321,8 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   if(dag->grounded) {
     buffer[pos] |= RPL_DIO_GROUNDED;
   }
-  /* Set dst_adv_trigger and dst_adv_supported. */
-  buffer[pos] |= RPL_DIO_DEST_ADV_SUPPORTED | RPL_DIO_DEST_ADV_TRIGGER;
+
+  buffer[pos] = dag->mop << RPL_DIO_MOP_SHIFT;
   pos++;
 
   buffer[pos++] = ++dag->dtsn_out;
@@ -441,7 +435,7 @@ dao_input(void)
   pos++;
   sequence = buffer[pos++];
 
-  /* is the DAGID present ? */
+  /* Is the DAGID present? */
   if(flags & RPL_DAO_D_FLAG) {
     /* currently the DAG ID is ignored since we only use global
        RPL Instance IDs... */
@@ -500,10 +494,10 @@ dao_input(void)
     p = rpl_find_parent(dag, &dao_sender_addr);
     /* check if this is a new DAO registration with an "illegal" rank */
     /* if we already route to this node it is likely */
-    if(p != NULL && DAG_RANK(p->rank, dag) < DAG_RANK(dag->rank, dag)) {// &&
-      //       uip_ds6_route_lookup(&prefix) == NULL) {
+    if(p != NULL && DAG_RANK(p->rank, dag) < DAG_RANK(dag->rank, dag) 
+      /* && uip_ds6_route_lookup(&prefix) == NULL*/) {
       PRINTF("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
-             DAG_RANK(p->rank, dag), DAG_RANK(dag->rank, dag));
+          DAG_RANK(p->rank, dag), DAG_RANK(dag->rank, dag));
       rpl_local_repair(dag);
       return;
     }
