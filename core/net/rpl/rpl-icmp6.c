@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.31 2010/12/13 10:54:25 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.32 2010/12/13 10:59:37 joxe Exp $
  */
 /**
  * \file
@@ -276,9 +276,13 @@ dio_input(void)
       dio.dag_max_rankinc = (buffer[i + 6] << 8) | buffer[i + 7];
       dio.dag_min_hoprankinc = (buffer[i + 8] << 8) | buffer[i + 9];
       dio.ocp = (buffer[i + 10] << 8) | buffer[i + 11];
-      PRINTF("RPL: DIO Conf:dbl=%d, min=%d red=%d maxinc=%d mininc=%d ocp=%d\n",
+      /* buffer + 12 is reserved */
+      dio.default_lifetime = buffer[i + 13];
+      dio.lifetime_unit = (buffer[i + 14] << 8) | buffer[i + 15];
+      PRINTF("RPL: DIO Conf:dbl=%d, min=%d red=%d maxinc=%d mininc=%d ocp=%d d_l=%u l_u=%u\n",
              dio.dag_intdoubl, dio.dag_intmin, dio.dag_redund,
-             dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp);
+             dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp,
+             dio.default_lifetime, dio.lifetime_unit);
       break;
     case RPL_DIO_SUBOPT_PREFIX_INFO:
       if(len != 32) {
@@ -326,16 +330,18 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   pos++;
 
   buffer[pos++] = ++dag->dtsn_out;
+
   /* reserved 2 bytes */
-  pos += 2;
+  buffer[pos++] = 0; /* flags */
+  buffer[pos++] = 0; /* reserved */
 
   memcpy(buffer + pos, &dag->dag_id, sizeof(dag->dag_id));
   pos += 16;
 
   /* always add a sub-option for DAG configuration */
   buffer[pos++] = RPL_DIO_SUBOPT_DAG_CONF;
-  buffer[pos++] = 10;
-  buffer[pos++] = 0; /* PCS */
+  buffer[pos++] = 14;
+  buffer[pos++] = 0; /* No Auth, PCS = 0 */
   buffer[pos++] = dag->dio_intdoubl;
   buffer[pos++] = dag->dio_intmin;
   buffer[pos++] = dag->dio_redundancy;
@@ -343,9 +349,13 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   buffer[pos++] = dag->max_rankinc & 0xff;
   buffer[pos++] = dag->min_hoprankinc >> 8;
   buffer[pos++] = dag->min_hoprankinc & 0xff;
-  /* OCP is now last in the DAG_CONF option */
+  /* OCP is in the DAG_CONF option */
   buffer[pos++] = dag->of->ocp >> 8;
   buffer[pos++] = dag->of->ocp & 0xff;
+  buffer[pos++] = 0; /* reserved */
+  buffer[pos++] = dag->default_lifetime;
+  buffer[pos++] = dag->lifetime_unit >> 8;
+  buffer[pos++] = dag->lifetime_unit & 0xff;
 
   /* if prefix info length > 0 then we have a prefix to send! */
   if(dag->prefix_info.length > 0) {
