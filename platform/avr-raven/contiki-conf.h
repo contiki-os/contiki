@@ -44,9 +44,11 @@
 #define __CONTIKI_CONF_H__
 
 /* MCU and clock rate */
-#define MCU_MHZ 8
-#define PLATFORM PLATFORM_AVR
+#define PLATFORM       PLATFORM_AVR
 #define RAVEN_REVISION RAVEN_D
+#ifndef F_CPU
+#define F_CPU          8000000UL
+#endif
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
@@ -57,46 +59,82 @@
 /* Maximum time interval (used for timers) */
 #define INFINITE_TIME 0xffff
 
-/* COM port to be used for SLIP connection */
+/* COM port to be used for SLIP connection. Not tested on Raven */
 #define SLIP_PORT RS232_PORT_0
 
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
-#define MMEM_CONF_SIZE 256
-
-/* Use the following address for code received via the codeprop
- * facility
- */
-#define EEPROMFS_ADDR_CODEPROP 0x8000
+/* Default is 4096. Currently used only when elfloader is present. Not tested on Raven */
+//#define MMEM_CONF_SIZE 256
+/* Starting address for code received via the codeprop facility. Not tested on Raven */
+//#define EEPROMFS_ADDR_CODEPROP 0x8000
 
 #define CCIF
 #define CLIF
 
-#define RIMEADDR_CONF_SIZE       8
-
-//define UIP_CONF_IPV6            1 //Let the makefile do this, allows hello-world to compile
-#if UIP_CONF_IPV6
-#define UIP_CONF_ICMP6           1
-#define UIP_CONF_UDP             1
-#define UIP_CONF_TCP             1
-#define NETSTACK_CONF_NETWORK     sicslowpan_driver
-#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
-#else
-#define NETSTACK_CONF_NETWORK     rime_driver
-#endif
-
-/* The new NETSTACK interface requires RF230BB */
+/* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
-#define SICSLOWPAN_CONF_CONVENTIONAL_MAC  1     //for barebones driver, sicslowpan calls radio->read function
-#undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
+//#define SICSLOWPAN_CONF_CONVENTIONAL_MAC  1     //sicslowpan calls radio->read function
+#undef PACKETBUF_CONF_HDR_SIZE                  //using the packetbuf default for header size
 #else
-#define PACKETBUF_CONF_HDR_SIZE    0            //RF230 handles headers internally
+#define PACKETBUF_CONF_HDR_SIZE    0            //RF230 combined driver/mac handles headers internally
 #endif /*RF230BB */
 
-#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
+#if UIP_CONF_IPV6
+#define RIMEADDR_CONF_SIZE        8
+#define UIP_CONF_ICMP6            1
+#define UIP_CONF_UDP              1
+#define UIP_CONF_TCP              1
+#define UIP_CONF_IPV6_RPL         0
+#define NETSTACK_CONF_NETWORK       sicslowpan_driver
+#define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
+#else
+/* ip4 should build but is largely untested */
+#define RIMEADDR_CONF_SIZE        2
+#define NETSTACK_CONF_NETWORK     rime_driver
+#endif /* UIP_CONF_IPV6 */
 
-#if 1  /* Network setup */
+/* See uip-ds6.h */
+#define UIP_CONF_DS6_NBR_NBU      20
+#define UIP_CONF_DS6_DEFRT_NBU    2
+#define UIP_CONF_DS6_PREFIX_NBU   3
+#define UIP_CONF_DS6_ROUTE_NBU    20
+#define UIP_CONF_DS6_ADDR_NBU     3
+#define UIP_CONF_DS6_MADDR_NBU    0
+#define UIP_CONF_DS6_AADDR_NBU    0
 
-/* No radio cycling */
+#define UIP_CONF_LL_802154       1
+#define UIP_CONF_LLH_LEN         0
+
+/* 10 bytes per stateful address context - see sicslowpan.c */
+/* These must agree with all the other nodes or there will be a failure to communicate! */
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 3
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
+
+/* 211 bytes per queue buffer */
+#define QUEUEBUF_CONF_NUM         8
+
+/* 54 bytes per queue ref buffer */
+#define QUEUEBUF_CONF_REF_NUM     8
+
+#define UIP_CONF_MAX_CONNECTIONS 8
+#define UIP_CONF_MAX_LISTENPORTS 8
+#define UIP_CONF_UDP_CONNS       4
+
+#define UIP_CONF_IP_FORWARD      0
+#define UIP_CONF_FWCACHE_SIZE    0
+
+#define UIP_CONF_IPV6_CHECKS     1
+#define UIP_CONF_IPV6_QUEUE_PKT  1
+#define UIP_CONF_IPV6_REASSEMBLY 0
+
+#define UIP_CONF_UDP_CHECKSUMS   1
+#define UIP_CONF_TCP_SPLIT       1
+#define UIP_CONF_DHCP_LIGHT      1
+
+
+#if 1 /* No radio cycling */
 
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         sicslowmac_driver
@@ -108,11 +146,8 @@
 #define SICSLOWPAN_CONF_FRAG      1
 //Most browsers reissue GETs after 3 seconds which stops frag reassembly, longer MAXAGE does no good
 #define SICSLOWPAN_CONF_MAXAGE    3
-#define QUEUEBUF_CONF_NUM         1
-#define QUEUEBUF_CONF_REF_NUM     1
 
-#elif 0
-/* Contiki-mac radio cycling */
+#elif 0  /* Contiki-mac radio cycling */
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -120,9 +155,10 @@
 #define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        0
 #define RF230_CONF_AUTORETRIES    0
+#define SICSLOWPAN_CONF_FRAG      1
+#define SICSLOWPAN_CONF_MAXAGE    3
 
-#elif 0
-/* cx-mac radio cycling */
+#elif 0  /* cx-mac radio cycling */
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         cxmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -133,8 +169,7 @@
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
-#define QUEUEBUF_CONF_NUM         4
-#define QUEUEBUF_CONF_REF_NUM     2
+
 //Below will prevent fragmentation of TCP packets, undef for faster page loads, simpler wireshark captures
 //#define UIP_CONF_TCP_MSS          48
 //Below gives 10% duty cycle, undef for default 5%
@@ -149,33 +184,9 @@
 /* Logging adds 200 bytes to program size */
 #define LOG_CONF_ENABLED         1
 
-#define UIP_CONF_LL_802154       1
-#define UIP_CONF_LLH_LEN         0
-
-#define UIP_CONF_MAX_CONNECTIONS 2
-#define UIP_CONF_MAX_LISTENPORTS 2
-#define UIP_CONF_UDP_CONNS       2
-
-#define UIP_CONF_IP_FORWARD      0
-#define UIP_CONF_FWCACHE_SIZE    0
-
-#define UIP_CONF_IPV6_CHECKS     1
-#define UIP_CONF_IPV6_QUEUE_PKT  1
-#define UIP_CONF_IPV6_REASSEMBLY 0
-#define UIP_CONF_NETIF_MAX_ADDRESSES  3
-#define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_NEIGHBORS    4  
-#define UIP_CONF_ND6_MAX_DEFROUTERS   2
-
-#define UIP_CONF_UDP_CHECKSUMS   1
-#define UIP_CONF_TCP_SPLIT       1
-
 /* ************************************************************************** */
 //#pragma mark RPL Settings
 /* ************************************************************************** */
-#if UIP_CONF_IPV6  //Allows hello-world ip4 to compile
-#define UIP_CONF_IPV6_RPL               0
-#endif
 #if UIP_CONF_IPV6_RPL
 
 /* Define MAX_*X_POWER to reduce tx power and ignore weak rx packets for testing a miniature multihop network.
@@ -187,36 +198,15 @@
  * On the RF230 a reduced rx power threshold will not prevent autoack if enabled and requested.
  * These numbers applied to both Raven and Jackdaw give a maximum communication distance of about 15 cm
  * and a 10 meter range to a full-sensitivity RF230 sniffer.
+#define RF230_MAX_TX_POWER 15
+#define RF230_MIN_RX_POWER 30
  */
-//#define RF230_MAX_TX_POWER 15
-//#define RF230_MIN_RX_POWER 30
 
 #define UIP_CONF_ROUTER                 1
-
-/* Handle 10 neighbors */
-#define UIP_CONF_DS6_NBR_NBU     10
-/* Handle 10 routes    */
-#define UIP_CONF_DS6_ROUTE_NBU   10
-
-#define UIP_CONF_ND6_SEND_RA		0
+#define UIP_CONF_ND6_SEND_RA		    0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
-#undef UIP_CONF_IPV6_QUEUE_PKT
-#define UIP_CONF_IPV6_QUEUE_PKT         1
-//#define UIP_CONF_IPV6_CHECKS            1
-#define UIP_CONF_NETIF_MAX_ADDRESSES    3
-#define UIP_CONF_ND6_MAX_PREFIXES       3
-#define UIP_CONF_ND6_MAX_NEIGHBORS      4
-#define UIP_CONF_ND6_MAX_DEFROUTERS     2
-#define UIP_CONF_IP_FORWARD             0
-//#define UIP_CONF_BUFFER_SIZE		240
-//#define UIP_CONF_ICMP_DEST_UNREACH 1
-//#define UIP_CONF_DHCP_LIGHT
 
-#undef UIP_CONF_LLH_LEN
-#define UIP_CONF_LLH_LEN         0
-//#define UIP_CONF_RECEIVE_WINDOW  48
-//#define UIP_CONF_TCP_MSS         48
 #undef UIP_CONF_UDP_CONNS
 #define UIP_CONF_UDP_CONNS       12
 #undef UIP_CONF_FWCACHE_SIZE

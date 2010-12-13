@@ -52,9 +52,11 @@
 /* ************************************************************************** */
 
 /* MCU and clock rate */
-#define MCU_MHZ 8
-#define PLATFORM PLATFORM_AVR
+#define PLATFORM         PLATFORM_AVR
 #define RAVEN_REVISION	 RAVENUSB_C
+#ifndef F_CPU
+#define F_CPU            8000000UL
+#endif
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
@@ -73,20 +75,15 @@
 /* Maximum time interval (used for timers) */
 #define INFINITE_TIME 0xffff
 
-/* COM port to be used for SLIP connection (not implemented on jackdaw) */
+/* COM port to be used for SLIP connection. Nnot tested on jackdaw. */
 #define SLIP_PORT RS232_PORT_0
 
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
-#define MMEM_CONF_SIZE 256
+/* Default is 4096. Currently used only when elfloader is present. Not tested on Jackdaw */
+//#define MMEM_CONF_SIZE 256
 
-/* Use the following address for code received via the codeprop facility */
-#define EEPROMFS_ADDR_CODEPROP 0x8000
-
-/* Use Atmel 'Route Under MAC', currently just in sniffer mode! */
-//#define UIP_CONF_USE_RUM  1
-
-#define CCIF
-#define CLIF
+/* Starting address for code received via the codeprop facility. Not tested on Jackdaw */
+//#define EEPROMFS_ADDR_CODEPROP 0x8000
 
 /* ************************************************************************** */
 //#pragma mark USB Ethernet Hooks
@@ -147,45 +144,6 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define USB_CDC_ACM_HOOK_CONFIGURED()			vcptx_end_led()
 
 /* ************************************************************************** */
-//#pragma mark UIP Settings
-/* ************************************************************************** */
-
-//define UIP_CONF_IPV6            1 //Let the makefile do this, allows hello-world to compile
-#if UIP_CONF_IPV6
-#define UIP_CONF_ICMP6           1
-#define UIP_CONF_UDP             1
-#define UIP_CONF_TCP             1
-#define NETSTACK_CONF_NETWORK     sicslowpan_driver
-#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
-#else
-#define NETSTACK_CONF_NETWORK     rime_driver
-#endif
-
-#define UIP_CONF_LL_802154       1
-#define UIP_CONF_LLH_LEN         14
-#define UIP_CONF_BUFSIZE		UIP_LINK_MTU + UIP_LLH_LEN + 4   // +4 for vlan on macosx
-
-#define UIP_CONF_MAX_CONNECTIONS 4
-#define UIP_CONF_MAX_LISTENPORTS 4
-
-#define UIP_CONF_IP_FORWARD      0
-#define UIP_CONF_FWCACHE_SIZE    0
-
-#define UIP_CONF_IPV6_CHECKS     1
-#define UIP_CONF_IPV6_QUEUE_PKT  0
-#define UIP_CONF_IPV6_REASSEMBLY 0
-#define UIP_CONF_NETIF_MAX_ADDRESSES  3
-#define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_NEIGHBORS    4
-#define UIP_CONF_ND6_MAX_DEFROUTERS   2
-
-#define UIP_CONF_UDP_CHECKSUMS   1
-
-#define UIP_CONF_TCP_SPLIT       1
-
-#define UIP_CONF_STATISTICS      1
-
-/* ************************************************************************** */
 //#pragma mark Serial Port Settings
 /* ************************************************************************** */
 /* Set USB_CONF_MACINTOSH to prefer CDC-ECM+DEBUG enumeration for Mac/Linux 
@@ -214,26 +172,72 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 
 /* Disable mass storage enumeration for more program space */
 //#define USB_CONF_STORAGE         1   /* TODO: Mass storage is currently broken */
- 
-/* ************************************************************************** */
-//#pragma mark RIME Settings
-/* ************************************************************************** */
 
+#define CCIF
+#define CLIF
+
+/* ************************************************************************** */
+//#pragma mark UIP Settings
+/* ************************************************************************** */
+/* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
+#if RF230BB
+#else
+#define PACKETBUF_CONF_HDR_SIZE    0         //RF230 combined driver/mac handles headers internally
+#endif /*RF230BB */
+
+#if UIP_CONF_IPV6
 #define RIMEADDR_CONF_SIZE       8
-
-/* ************************************************************************** */
-//#pragma mark SICSLOWPAN Settings
-/* ************************************************************************** */
-
+#define UIP_CONF_ICMP6           1
+#define UIP_CONF_UDP             1
+#define UIP_CONF_TCP             1
+#define UIP_CONF_IPV6_RPL        0
+#define NETSTACK_CONF_NETWORK    sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
-#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
-#ifdef RF230BB
-#define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
+#else
+/* ip4 should build but is thoroughly untested */
+#define RIMEADDR_CONF_SIZE       2
+#define NETSTACK_CONF_NETWORK    rime_driver
+#endif /* UIP_CONF_IPV6 */
 
-/* Nothing after this will work with the original RF230 combined radio/mac driver! */
-/* ************************************************************************** */
-//#pragma mark NETSTACK Settings
-/* ************************************************************************** */
+/* See uip-ds6.h */
+#define UIP_CONF_DS6_NBR_NBU      20
+#define UIP_CONF_DS6_DEFRT_NBU    2
+#define UIP_CONF_DS6_PREFIX_NBU   3
+#define UIP_CONF_DS6_ROUTE_NBU    20
+#define UIP_CONF_DS6_ADDR_NBU     3
+#define UIP_CONF_DS6_MADDR_NBU    0
+#define UIP_CONF_DS6_AADDR_NBU    0
+
+#define UIP_CONF_LL_802154       1
+#define UIP_CONF_LLH_LEN         14
+#define UIP_CONF_BUFSIZE		UIP_LINK_MTU + UIP_LLH_LEN + 4   // +4 for vlan on macosx
+
+/* 10 bytes per stateful address context - see sicslowpan.c */
+/* These must agree with all the other nodes or there will be a failure to communicate! */
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 3
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
+
+/* 211 bytes per queue buffer */
+#define QUEUEBUF_CONF_NUM         6
+
+/* 54 bytes per queue ref buffer */
+#define QUEUEBUF_CONF_REF_NUM     1
+
+#define UIP_CONF_MAX_CONNECTIONS 2
+#define UIP_CONF_MAX_LISTENPORTS 2
+
+#define UIP_CONF_IP_FORWARD      0
+#define UIP_CONF_FWCACHE_SIZE    0
+
+#define UIP_CONF_IPV6_CHECKS     1
+#define UIP_CONF_IPV6_QUEUE_PKT  1
+#define UIP_CONF_IPV6_REASSEMBLY 0
+
+#define UIP_CONF_UDP_CHECKSUMS   1
+#define UIP_CONF_TCP_SPLIT       1
+#define UIP_CONF_STATISTICS      1
 
 #if 1       /* Network setup */
 /* No radio cycling */
@@ -244,10 +248,8 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        1
 #define RF230_CONF_AUTORETRIES    2
-#define QUEUEBUF_CONF_NUM         1
-#define QUEUEBUF_CONF_REF_NUM     1
 #define SICSLOWPAN_CONF_FRAG      1
-#define SICSLOWPAN_CONF_MAXAGE    5
+#define SICSLOWPAN_CONF_MAXAGE    3
 
 #elif 0
 /* Contiki-mac radio cycling */
@@ -284,9 +286,6 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* ************************************************************************** */
 //#pragma mark RPL Settings
 /* ************************************************************************** */
-#if UIP_CONF_IPV6  //Allows hello-world ip4 to compile
-#define UIP_CONF_IPV6_RPL          0
-#endif
 
 #if UIP_CONF_IPV6_RPL
 
@@ -310,12 +309,11 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
  * On the RF230 a reduced rx power threshold will not prevent autoack if enabled and requested.
  * These numbers applied to both Raven and Jackdaw give a maximum communication distance of about 15 cm
  * and a 10 meter range to a full-sensitivity RF230 sniffer.
+#define RF230_MAX_TX_POWER 15
+#define RF230_MIN_RX_POWER 30
  */
-//#define RF230_MAX_TX_POWER 15
-//#define RF230_MIN_RX_POWER 30
 
 #define UIP_CONF_ROUTER             1
-#define UIP_CONF_ROUTER_RECEIVE_RA  0
 #define RPL_BORDER_ROUTER           1
 #define RPL_CONF_STATS              0
 #define UIP_CONF_BUFFER_SIZE	 1300
@@ -329,6 +327,10 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 
 /* Save all the RAM we can */
 #define PROCESS_CONF_NO_PROCESS_NAMES 0
+#undef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM           2
+#undef QUEUEBUF_CONF_REF_NUM
+#define QUEUEBUF_CONF_REF_NUM       1
 #undef UIP_CONF_TCP_SPLIT
 #define UIP_CONF_TCP_SPLIT          0
 #undef UIP_CONF_STATISTICS
@@ -358,27 +360,31 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_MAX_CONNECTIONS    2
 #endif
 
-
 #define UIP_CONF_ICMP_DEST_UNREACH 1
-
 #define UIP_CONF_DHCP_LIGHT
 #undef UIP_CONF_FWCACHE_SIZE
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
 //#define UIP_ARCH_IPCHKSUM        1
 
+/* Experimental option to pick up a prefix from host interface router advertisements */
+/* Requires changes in uip6 and uip-nd6.c to pass link-local RA broadcasts */
+/* If this is zero the prefix will be manually set in contiki-raven-main.c */
+#define UIP_CONF_ROUTER_RECEIVE_RA  0
+
 #endif /* UIP_CONF_IPV6_RPL */
-#endif /* RF230BB */
 
 /* ************************************************************************** */
 //#pragma mark Other Settings
 /* ************************************************************************** */
 
 /* Route-Under-MAC uses 16-bit short addresses */
+/* Use Atmel 'Route Under MAC', currently just in sniffer mode! */
+//#define UIP_CONF_USE_RUM  1
 #if UIP_CONF_USE_RUM
 #undef  UIP_CONF_LL_802154
 #define UIP_DATA_RUM_OFFSET      5
-#endif
+#endif /* UIP_CONF_USE_RUM */
 
 #include <stdint.h>
 
