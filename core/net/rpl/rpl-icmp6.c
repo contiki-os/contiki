@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.29 2010/12/06 09:48:48 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.30 2010/12/13 09:59:46 joxe Exp $
  */
 /**
  * \file
@@ -142,11 +142,11 @@ dis_output(uip_ipaddr_t *addr)
   unsigned char *buffer;
   uip_ipaddr_t tmpaddr;
 
-  /* DAG Information Solicitation  - 2 bytes reserved */
+  /* DAG Information Solicitation  - 2 bytes flags and reserved */
   /*      0                   1                   2        */
   /*      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3  */
   /*     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
-  /*     |           Reserved            |   Option(s)...  */
+  /*     |    flags      | reserved      |   Option(s)...  */
   /*     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
 
   buffer = UIP_ICMP_PAYLOAD;
@@ -314,7 +314,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   int pos;
   uip_ipaddr_t addr;
 
-  /* DAG Information Solicitation */
+  /* DIO - DODAG Information Object */
   pos = 0;
 
   buffer = UIP_ICMP_PAYLOAD;
@@ -323,6 +323,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   buffer[pos++] = dag->rank >> 8;
   buffer[pos++] = dag->rank & 0xff;
 
+  buffer[pos] = 0;
   if(dag->grounded) {
     buffer[pos] |= RPL_DIO_GROUNDED;
   }
@@ -497,9 +498,12 @@ dao_input(void)
   if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
     /* Check if this is a DAO forwarding loop. */
     p = rpl_find_parent(dag, &dao_sender_addr);
-    if(p != NULL && DAG_RANK(p->rank, dag) < DAG_RANK(dag->rank, dag)) {
+    /* check if this is a new DAO registration with an "illegal" rank */
+    /* if we already route to this node it is likely */
+    if(p != NULL && DAG_RANK(p->rank, dag) < DAG_RANK(dag->rank, dag)) {// &&
+      //       uip_ds6_route_lookup(&prefix) == NULL) {
       PRINTF("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
-          DAG_RANK(p->rank, dag), DAG_RANK(dag->rank, dag));
+             DAG_RANK(p->rank, dag), DAG_RANK(dag->rank, dag));
       rpl_local_repair(dag);
       return;
     }
