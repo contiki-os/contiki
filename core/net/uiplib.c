@@ -29,7 +29,7 @@
  *
  * This file is part of the uIP TCP/IP stack and the Contiki operating system.
  *
- * $Id: uiplib.c,v 1.2 2010/05/31 15:22:08 nifi Exp $
+ * $Id: uiplib.c,v 1.3 2010/12/14 22:45:22 dak664 Exp $
  *
  */
 
@@ -48,7 +48,7 @@ uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
 #if UIP_CONF_IPV6
   uint16_t value;
   int tmp, len, zero;
-  char c;
+  char c = 0;  //gcc warning if not initialized
 
   value = 0;
   zero = -1;
