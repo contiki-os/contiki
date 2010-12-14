@@ -310,8 +310,7 @@ void mac_ethernetSetup(void)
   usbstick_mode.sendToRf = 1;
   usbstick_mode.translate = 1;
   usbstick_mode.debugOn= 1;
-//usbstick_mode.raw = 1;
-  usbstick_mode.raw = 0; //default: don't report raw frames until they are entirely correct
+  usbstick_mode.raw = 0;
 
 #if !RF230BB
   sicslowinput = pinput;
