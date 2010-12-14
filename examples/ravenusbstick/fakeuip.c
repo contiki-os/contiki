@@ -31,6 +31,7 @@ u8_t tcpip_output(uip_lladdr_t * lladdr){
   }
  return 0;
 }
+//Called from  sicslowpan.c
 void tcpip_set_outputfunc(u8_t (* f)(uip_lladdr_t *)) {
   output = f;
 }

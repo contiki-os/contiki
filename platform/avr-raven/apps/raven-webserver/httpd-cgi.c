@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.10 2010/12/04 21:32:35 dak664 Exp $
+ * $Id: httpd-cgi.c,v 1.11 2010/12/14 22:51:04 dak664 Exp $
  *
  */
 
@@ -292,7 +292,6 @@ static const char httpd_cgi_addrn[] HTTPD_STRING_ATTR = "(none)<br>";
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
-#include "rpl.h"
 
 static unsigned short
 make_addresses(void *p)
