@@ -54,7 +54,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arp.c,v 1.7 2010/10/24 22:29:39 adamdunkels Exp $
+ * $Id: uip_arp.c,v 1.8 2010/12/14 22:45:22 dak664 Exp $
  *
  */
 
@@ -161,17 +161,19 @@ uip_arp_timer(void)
   }
 
 }
+
 /*-----------------------------------------------------------------------------------*/
 static void
 uip_arp_update(uip_ipaddr_t *ipaddr, struct uip_eth_addr *ethaddr)
 {
-  register struct arp_entry *tabptr;
+  register struct arp_entry *tabptr = arp_table;
+
   /* Walk through the ARP mapping table and try to find an entry to
      update. If none is found, the IP -> MAC address mapping is
      inserted in the ARP table. */
   for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
-
     tabptr = &arp_table[i];
+
     /* Only check those entries that are actually in use. */
     if(!uip_ipaddr_cmp(&tabptr->ipaddr, &uip_all_zeroes_addr)) {
 
@@ -186,6 +188,7 @@ uip_arp_update(uip_ipaddr_t *ipaddr, struct uip_eth_addr *ethaddr)
 	return;
       }
     }
+	tabptr++;
   }
 
   /* If we get here, no existing ARP table entry was found, so we
@@ -362,7 +365,7 @@ uip_arp_arpin(void)
 void
 uip_arp_out(void)
 {
-  struct arp_entry *tabptr;
+  struct arp_entry *tabptr = arp_table;
   
   /* Find the destination IP address in the ARP table and construct
      the Ethernet header. If the destination IP addres isn't on the
@@ -393,12 +396,11 @@ uip_arp_out(void)
       /* Else, we use the destination IP address. */
       uip_ipaddr_copy(&ipaddr, &IPBUF->destipaddr);
     }
-      
     for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
-      tabptr = &arp_table[i];
       if(uip_ipaddr_cmp(&ipaddr, &tabptr->ipaddr)) {
 	break;
       }
+	  tabptr++;
     }
 
     if(i == UIP_ARPTAB_SIZE) {
