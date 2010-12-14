@@ -43,10 +43,6 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-
 /* ************************************************************************** */
 //#pragma mark Basic Configuration
 /* ************************************************************************** */
@@ -58,24 +54,42 @@
 #define F_CPU            8000000UL
 #endif
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+
+typedef int32_t  s32_t;
+typedef unsigned char u8_t;
+typedef unsigned short u16_t;
+typedef unsigned long u32_t;
+typedef unsigned short clock_time_t;
+typedef unsigned short uip_stats_t;
+typedef unsigned long off_t;
+
+void clock_delay(unsigned int us2);
+void clock_wait(int ms10);
+void clock_set_seconds(unsigned long s);
+unsigned long clock_seconds(void);
+
+/* Maximum timer interval for 16 bit clock_time_t */
+#define INFINITE_TIME 0xffff
+
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
 
-/* Mac address, RF channel, PANID from EEPROM settings manager */
-/* Generate random MAC address on first startup */
-/* Random number from radio clock skew or ADC noise */
+/* Maximum tick interval is 0xffff/125 = 524 seconds */
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
+#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
+
+/* Get Mac address, RF channel, PANID from EEPROM settings manager, or use hard-coded values? */
+/* Generate random MAC address on first startup? */
+/* Random number from radio clock skew or ADC noise? */
 #define JACKDAW_CONF_USE_SETTINGS		0
 #define JACKDAW_CONF_RANDOM_MAC         0
 #define RNG_CONF_USE_RADIO_CLOCK	    1
 //#define RNG_CONF_USE_ADC	1
 
-/* Since clock_time_t is 16 bits, maximum interval is 524 seconds */
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /*Default uses 600*/
-
-/* Maximum time interval (used for timers) */
-#define INFINITE_TIME 0xffff
-
-/* COM port to be used for SLIP connection. Nnot tested on jackdaw. */
+/* COM port to be used for SLIP connection. Not tested on Jackdaw. */
 #define SLIP_PORT RS232_PORT_0
 
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
@@ -173,13 +187,12 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* Disable mass storage enumeration for more program space */
 //#define USB_CONF_STORAGE         1   /* TODO: Mass storage is currently broken */
 
-#define CCIF
-#define CLIF
-
 /* ************************************************************************** */
 //#pragma mark UIP Settings
 /* ************************************************************************** */
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
+/* These mostly have no effect when the Jackdaw is a repeater (CONTIKI_NO_NET=1 using fakeuip.c) */
+
 #if RF230BB
 #else
 #define PACKETBUF_CONF_HDR_SIZE    0         //RF230 combined driver/mac handles headers internally
@@ -191,8 +204,8 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_UDP             1
 #define UIP_CONF_TCP             1
 #define UIP_CONF_IPV6_RPL        0
-#define NETSTACK_CONF_NETWORK    sicslowpan_driver
-#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
+#define NETSTACK_CONF_NETWORK       sicslowpan_driver
+#define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
 /* ip4 should build but is thoroughly untested */
 #define RIMEADDR_CONF_SIZE       2
@@ -200,59 +213,64 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #endif /* UIP_CONF_IPV6 */
 
 /* See uip-ds6.h */
-#define UIP_CONF_DS6_NBR_NBU      20
-#define UIP_CONF_DS6_DEFRT_NBU    2
-#define UIP_CONF_DS6_PREFIX_NBU   3
-#define UIP_CONF_DS6_ROUTE_NBU    20
-#define UIP_CONF_DS6_ADDR_NBU     3
-#define UIP_CONF_DS6_MADDR_NBU    0
-#define UIP_CONF_DS6_AADDR_NBU    0
+#define UIP_CONF_DS6_NBR_NBU     20
+#define UIP_CONF_DS6_DEFRT_NBU   2
+#define UIP_CONF_DS6_PREFIX_NBU  3
+#define UIP_CONF_DS6_ROUTE_NBU   20
+#define UIP_CONF_DS6_ADDR_NBU    3
+#define UIP_CONF_DS6_MADDR_NBU   0
+#define UIP_CONF_DS6_AADDR_NBU   0
 
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         14
-#define UIP_CONF_BUFSIZE		UIP_LINK_MTU + UIP_LLH_LEN + 4   // +4 for vlan on macosx
+#define UIP_CONF_BUFSIZE		 UIP_LINK_MTU + UIP_LLH_LEN + 4   /* +4 for vlan on macosx */
 
 /* 10 bytes per stateful address context - see sicslowpan.c */
+/* Default is 1 context with prefix aaaa::/64 */
 /* These must agree with all the other nodes or there will be a failure to communicate! */
-#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 3
+#//define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 
 /* 211 bytes per queue buffer */
-#define QUEUEBUF_CONF_NUM         6
+#define QUEUEBUF_CONF_NUM        6
 
 /* 54 bytes per queue ref buffer */
-#define QUEUEBUF_CONF_REF_NUM     1
+#define QUEUEBUF_CONF_REF_NUM    1
 
-#define UIP_CONF_MAX_CONNECTIONS 2
-#define UIP_CONF_MAX_LISTENPORTS 2
+#define UIP_CONF_MAX_CONNECTIONS 1
+#define UIP_CONF_MAX_LISTENPORTS 1
 
 #define UIP_CONF_IP_FORWARD      0
 #define UIP_CONF_FWCACHE_SIZE    0
 
 #define UIP_CONF_IPV6_CHECKS     1
-#define UIP_CONF_IPV6_QUEUE_PKT  1
+#define UIP_CONF_IPV6_QUEUE_PKT  0
 #define UIP_CONF_IPV6_REASSEMBLY 0
 
 #define UIP_CONF_UDP_CHECKSUMS   1
-#define UIP_CONF_TCP_SPLIT       1
+#define UIP_CONF_TCP_SPLIT       0
 #define UIP_CONF_STATISTICS      1
 
-#if 1       /* Network setup */
-/* No radio cycling */
+  /* Network setup */
+#if 1              /* No radio cycling */
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         sicslowmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
+/* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-#define RF230_CONF_AUTORETRIES    2
+/* Request 802.15.4 ACK on all packets sent (else autoretry) */
+/* Broadcasts will be duplicated by the retry count! */
+#define SICSLOWPAN_CONF_ACK_ALL   0
+/* Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
+#define RF230_CONF_AUTORETRIES    1
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
 
-#elif 0
-/* Contiki-mac radio cycling */
+#elif 0             /* Contiki-mac radio cycling */
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -261,8 +279,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define RF230_CONF_AUTOACK        0
 #define RF230_CONF_AUTORETRIES    0
 
-#elif 1
-/* cx-mac radio cycling */
+#elif 1             /* cx-mac radio cycling */
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         cxmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
@@ -317,8 +334,8 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define RPL_BORDER_ROUTER           1
 #define RPL_CONF_STATS              0
 #define UIP_CONF_BUFFER_SIZE	 1300
-#define UIP_CONF_DS6_NBR_NBU       12
-#define UIP_CONF_DS6_ROUTE_NBU     12
+//#define UIP_CONF_DS6_NBR_NBU       12
+//#define UIP_CONF_DS6_ROUTE_NBU     12
 #undef UIP_FALLBACK_INTERFACE
 #define UIP_FALLBACK_INTERFACE rpl_interface
 #define UIP_CONF_ND6_SEND_RA		0
@@ -378,27 +395,15 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 //#pragma mark Other Settings
 /* ************************************************************************** */
 
+/* Use Atmel 'Route Under MAC', currently just in RF230 sniffer mode! */
 /* Route-Under-MAC uses 16-bit short addresses */
-/* Use Atmel 'Route Under MAC', currently just in sniffer mode! */
 //#define UIP_CONF_USE_RUM  1
 #if UIP_CONF_USE_RUM
 #undef  UIP_CONF_LL_802154
 #define UIP_DATA_RUM_OFFSET      5
 #endif /* UIP_CONF_USE_RUM */
 
-#include <stdint.h>
-
-typedef int32_t s32_t;
-typedef unsigned short clock_time_t;
-typedef unsigned char u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long u32_t;
-typedef unsigned short uip_stats_t;
-typedef unsigned long off_t;
-
-void clock_delay(unsigned int us2);
-void clock_wait(int ms10);
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
+#define CCIF
+#define CLIF
 
 #endif /* __CONTIKI_CONF_H__ */

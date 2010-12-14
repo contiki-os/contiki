@@ -49,15 +49,30 @@
 #ifndef F_CPU
 #define F_CPU          8000000UL
 #endif
+#include <stdint.h>
+
+typedef int32_t s32_t;
+typedef unsigned char u8_t;
+typedef unsigned short u16_t;
+typedef unsigned long u32_t;
+typedef unsigned short clock_time_t;
+typedef unsigned short uip_stats_t;
+typedef unsigned long off_t;
+
+void clock_delay(unsigned int us2);
+void clock_wait(int ms10);
+void clock_set_seconds(unsigned long s);
+unsigned long clock_seconds(void);
+
+/* Maximum timer interval for 16 bit clock_time_t */
+#define INFINITE_TIME 0xffff
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
 
-/* Since clock_time_t is 16 bits, maximum interval is 524 seconds */
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /*Default uses 600*/
-
-/* Maximum time interval (used for timers) */
-#define INFINITE_TIME 0xffff
+/* Maximum tick interval is 0xffff/125 = 524 seconds */
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
+#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
 
 /* COM port to be used for SLIP connection. Not tested on Raven */
 #define SLIP_PORT RS232_PORT_0
@@ -65,16 +80,13 @@
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
 /* Default is 4096. Currently used only when elfloader is present. Not tested on Raven */
 //#define MMEM_CONF_SIZE 256
+
 /* Starting address for code received via the codeprop facility. Not tested on Raven */
 //#define EEPROMFS_ADDR_CODEPROP 0x8000
 
-#define CCIF
-#define CLIF
-
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
-//#define SICSLOWPAN_CONF_CONVENTIONAL_MAC  1     //sicslowpan calls radio->read function
-#undef PACKETBUF_CONF_HDR_SIZE                  //using the packetbuf default for header size
+#undef PACKETBUF_CONF_HDR_SIZE                  //Use the packetbuf default for header size
 #else
 #define PACKETBUF_CONF_HDR_SIZE    0            //RF230 combined driver/mac handles headers internally
 #endif /*RF230BB */
@@ -106,21 +118,33 @@
 #define UIP_CONF_LLH_LEN         0
 
 /* 10 bytes per stateful address context - see sicslowpan.c */
+/* Default is 1 context with prefix aaaa::/64 */
 /* These must agree with all the other nodes or there will be a failure to communicate! */
-#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 3
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 
 /* 211 bytes per queue buffer */
-#define QUEUEBUF_CONF_NUM         8
+#define QUEUEBUF_CONF_NUM         4
 
 /* 54 bytes per queue ref buffer */
-#define QUEUEBUF_CONF_REF_NUM     8
+#define QUEUEBUF_CONF_REF_NUM     2
 
-#define UIP_CONF_MAX_CONNECTIONS 8
-#define UIP_CONF_MAX_LISTENPORTS 8
-#define UIP_CONF_UDP_CONNS       4
+/* Take the default TCP maximum segment size for efficiency and simpler wireshark captures */
+/* Use this to prevent 6LowPAN fragmentation (whether or not fragmentation is enabled) */
+//#define UIP_CONF_TCP_MSS      48
+
+/* 30 bytes per TCP connection */
+/* 6LoWPAN does not do well with concurrent TCP streams, as new browser GETs collide with packets coming */
+/* from previous GETs, causing decreased throughput, retransmissions, and timeouts. Increase to study this. */
+#define UIP_CONF_MAX_CONNECTIONS 1
+
+/* 2 bytes per TCP listening port */
+#define UIP_CONF_MAX_LISTENPORTS 1
+
+/* 25 bytes per UDP connection */
+#define UIP_CONF_UDP_CONNS      10
 
 #define UIP_CONF_IP_FORWARD      0
 #define UIP_CONF_FWCACHE_SIZE    0
@@ -141,8 +165,12 @@
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
+/* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-#define RF230_CONF_AUTORETRIES    2
+/* Request 802.15.4 ACK on all packets sent (else autoretry) */
+//#define SICSLOWPAN_CONF_ACK_ALL   1
+/* Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
+#define RF230_CONF_AUTORETRIES    3
 #define SICSLOWPAN_CONF_FRAG      1
 //Most browsers reissue GETs after 3 seconds which stops frag reassembly, longer MAXAGE does no good
 #define SICSLOWPAN_CONF_MAXAGE    3
@@ -170,8 +198,6 @@
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
 
-//Below will prevent fragmentation of TCP packets, undef for faster page loads, simpler wireshark captures
-//#define UIP_CONF_TCP_MSS          48
 //Below gives 10% duty cycle, undef for default 5%
 //#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 80)
 //Below gives 50% duty cycle
@@ -218,19 +244,7 @@
 
 #endif /* RPL */
 
-#include <stdint.h>
-
-typedef int32_t s32_t;
-typedef unsigned short clock_time_t;
-typedef unsigned char u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long u32_t;
-typedef unsigned short uip_stats_t;
-typedef unsigned long off_t;
-
-void clock_delay(unsigned int us2);
-void clock_wait(int ms10);
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
+#define CCIF
+#define CLIF
 
 #endif /* __CONTIKI_CONF_H__ */
