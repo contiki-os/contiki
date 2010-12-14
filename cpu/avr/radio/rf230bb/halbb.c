@@ -98,6 +98,7 @@
  *  \see hal_get_system_time
  */
 static uint16_t hal_system_time = 0;
+volatile extern signed char rf230_last_rssi;
 
 /*Flag section.*/
 //static uint8_t volatile hal_bat_low_flag; /**<  BAT_LOW flag. */
@@ -751,6 +752,11 @@ HAL_RF230_ISR()
     /*Handle the incomming interrupt. Prioritized.*/
     if ((interrupt_source & HAL_RX_START_MASK)){
 	   INTERRUPTDEBUG(10);
+    /* Save RSSI for this packet if not in extended mode, scaling to 1dB resolution (avoiding multiply) */
+#if !RF230_CONF_AUTOACK
+        rf230_last_rssi = hal_subregister_read(SR_RSSI);
+        rf230_last_rssi = (rf230_last_rssi <<1)  + rf230_last_rssi;
+#endif
 //       if(rx_start_callback != NULL){
 //            /* Read Frame length and call rx_start callback. */
 //            HAL_SPI_TRANSFER_OPEN();
@@ -775,18 +781,14 @@ HAL_RF230_ISR()
        /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
 //         if (rxframe.length) break;			//toss packet if last one not processed yet
          if (rxframe.length) INTERRUPTDEBUG(42); else INTERRUPTDEBUG(12);
-
+ 
 #ifdef RF230_MIN_RX_POWER		 
        /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes.*/
        /* Save the rssi for printing in the main loop */
-        volatile extern signed char rf230_last_rssi;
 #if RF230_CONF_AUTOACK
         rf230_last_rssi=hal_subregister_read(SR_ED_LEVEL);
+#endif
         if (rf230_last_rssi >= RF230_MIN_RX_POWER) {       
-#else
-        rf230_last_rssi=hal_subregister_read(SR_RSSI);
-        if (rf230_last_rssi >= RF230_MIN_RX_POWER/3) {
-#endif  
 #endif
 //       hal_frame_read(&rxframe, NULL);
          hal_frame_read(&rxframe);

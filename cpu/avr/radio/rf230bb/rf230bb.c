@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.17 2010/12/05 17:28:29 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.18 2010/12/14 22:34:18 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -106,7 +106,7 @@ struct timestamp {
 #if JACKDAW
 #define RADIOALWAYSON 1
 #else
-#define RADIOALWAYSON 1
+//#define RADIOALWAYSON 1
 #endif
 
 #define DEBUG 0
@@ -415,7 +415,10 @@ rf230_set_promiscuous_mode(bool isPromiscuous) {
 	if(isPromiscuous) {
 		is_promiscuous = true;
 #if RF230_CONF_AUTOACK
+/* For now only do promiscuous in Macintosh build */
+#if USB_CONF_MACINTOSH
 		radio_set_trx_state(RX_ON);
+#endif
 #endif
 	} else {
 		is_promiscuous = false;
@@ -463,7 +466,12 @@ on(void)
   rf230_waitidle();
 
 #if RF230_CONF_AUTOACK
+/* For now only do promiscuous on Mac build */
+#if USB_CONF_MACINTOSH
   radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
+#else
+  radio_set_trx_state(RX_AACK_ON);
+#endif
 #else
   radio_set_trx_state(RX_ON);
 #endif
@@ -563,7 +571,7 @@ rf230_init(void)
   PRINTF("rf230: Version %u, ID %u\n",tvers,tmanu);
   hal_register_write(RG_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
 
-  /* Set up number of automatic retries */
+  /* Set up number of automatic retries 0-15 (0 implies PLL_ON sends instead of the extended TX_ARET mode */
   hal_subregister_write(SR_MAX_FRAME_RETRIES, RF230_CONF_AUTORETRIES );
 
   /* Use automatic CRC unless manual is specified */
@@ -1124,7 +1132,8 @@ if (RF230_receive_on) {
 #if RF230_CONF_AUTOACK
     rf230_last_rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84 resolution 1 dB
 #else
-    rf230_last_rssi = 3*hal_subregister_read(SR_RSSI);    //0-28 resolution 3 dB
+/* last_rssi will have been set at RX_START interrupt */
+//  rf230_last_rssi = 3*hal_subregister_read(SR_RSSI);    //0-28 resolution 3 dB
 #endif
 #endif /* speed vs. generality */
 
@@ -1202,6 +1211,7 @@ rf230_get_txpower(void)
 	}
 	return power;
 }
+
 /*---------------------------------------------------------------------------*/
 uint8_t
 rf230_get_raw_rssi(void)
@@ -1221,7 +1231,8 @@ rf230_get_raw_rssi(void)
   if ((state==RX_AACK_ON) || (state==BUSY_RX_AACK)) {
      rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84, resolution 1 dB
   } else {
-     rssi = 3*hal_subregister_read(SR_RSSI);    //0-28, resolution 3 dB
+     rssi = hal_subregister_read(SR_RSSI);      //0-28, resolution 3 dB
+     rssi = (rssi << 1) + rssi;                 //fast multiply by 3
   }
 
   if(radio_was_off) {
@@ -1229,6 +1240,7 @@ rf230_get_raw_rssi(void)
   }
   return rssi;
 }
+
 /*---------------------------------------------------------------------------*/
 static int
 rf230_cca(void)
