@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.20 2010/12/15 16:50:44 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.21 2010/12/15 19:32:49 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -412,8 +412,8 @@ radio_set_trx_state(uint8_t new_state)
 
 void
 rf230_set_promiscuous_mode(bool isPromiscuous) {
-    is_promiscuous = isPromiscuous;
 #if RF230_CONF_AUTOACK
+    is_promiscuous = isPromiscuous;
 /* TODO: Figure out when to pass promisc state to 802.15.4 */
 //    radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
 #endif
