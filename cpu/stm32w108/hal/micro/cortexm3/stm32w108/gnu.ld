@@ -13,7 +13,7 @@ GROUP(
 These are used by the startup in order to allocate stacks for the different modes.
 */
 
-__Stack_Size = 0x400 ;
+__Stack_Size = 0x500 ;
 
 PROVIDE ( _Stack_Size = __Stack_Size ) ;
 
@@ -26,7 +26,6 @@ PROVIDE ( _Stack_Init = __Stack_Init ) ;
 There will be a link error if there is not this amount of RAM free at the end.
 */
 _Minimum_Stack_Size = 0x500 ;
-
 
 
 /*
@@ -114,12 +113,23 @@ SECTIONS
         *(.rodata*)
         *(.glue_7)
         *(.glue_7t)
-
-	    . = ALIGN(4);
+        . = ALIGN(1024);
+    	*(.elf_text)
+    	. = ALIGN(1024);
+	/*. = ALIGN(4);*/
    	 _etext = .;
-	    /* This is used by the startup in order to initialize the .data secion */
+	    /* This is used by the startup in order to initialize the .data section */
    	 _sidata = _etext;
     } >ROM_region
+    
+    .coffee 0x08010000 :
+    {
+    	_coffee_start = ABSOLUTE(.);
+    	. = ALIGN(1024);
+    	*(.coffeefiles)
+    	. = ORIGIN(NVM_region) - _coffee_start;
+    } > ROM_region = 0x00
+
     
     NVM (NOLOAD):
     {
@@ -136,12 +146,6 @@ SECTIONS
       . = ALIGN(4);
     } > FIB_region
 
-/*
-    .FAT (NOLOAD):
-    {
-      KEEP(*(.FAT))
-    } > FIB_region
-*/
     /* after that it's only debugging information. */
     
 
@@ -152,7 +156,7 @@ SECTIONS
     .data  : AT ( _sidata )
     {
 	    . = ALIGN(4);
-        /* This is used by the startup in order to initialize the .data secion */
+        /* This is used by the startup in order to initialize the .data section */
         _sdata = . ;
         
         *(.data)
@@ -161,8 +165,8 @@ SECTIONS
 	    . = ALIGN(4);
 	    /* This is used by the startup in order to initialize the .data secion */
    	 _edata = . ;
+   	 ASSERT(_sidata + SIZEOF(.data) < LOADADDR(.coffee), ".data section overflow in ROM");
     } >RAM_region
-    
     
 
     /* This is the uninitialized data section */

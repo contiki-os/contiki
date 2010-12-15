@@ -16,7 +16,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/stm32w108
 
 CONTIKI_CPU_DIRS = . dev hal simplemac hal/micro/cortexm3 hal/micro/cortexm3/stm32w108
 
-STM32W_C = leds-arch.c leds.c clock.c watchdog.c uart1.c uart1-putchar.c slip_uart1.c \
+STM32W_C = leds-arch.c leds.c clock.c watchdog.c uart1.c uart1-putchar.c slip_uart1.c slip.c\
 		stm32w-radio.c stm32w_systick.c uip_arch.c rtimer-arch.c adc.c micro.c sleep.c \
 		micro-common.c micro-common-internal.c clocks.c mfg-token.c nvm.c flash.c rand.c
 
@@ -28,6 +28,11 @@ STM32W_S += cstartup_M.s
 else
 STM32W_C += crt_stm32w108.c
 endif
+
+ifdef ELF_LOADER
+ELFLOADER  = elfloader-arch.c symtab.c
+endif
+
 
 # .s and .s79 not specified here because in Makefile.include only .c and .S suffixes are replaced with .o.
 CONTIKI_TARGET_SOURCEFILES += $(STM32W_C) \
@@ -55,7 +60,9 @@ AS       = iasmarm
 AR       = iarchive
 OBJCOPY  = ielftool
 STRIP    = strip
+ifndef DEBUG
 OPTI = -Ohz --no_unroll
+endif
 CFLAGSNO = --endian=little --cpu=Cortex-M3 -e --diag_suppress Pa050 -D BOARD_HEADER=\"board.h\" \
 			-D BOARD_MB851 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/iar.h\""  -D CORTEXM3 \
 			-D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
@@ -73,14 +80,18 @@ OBJOPTS = --bin
 
 else
 # GCC
-CC	  = arm-none-eabi-gcc
+CC	 = arm-none-eabi-gcc
 LD       = arm-none-eabi-gcc
-AS	  = arm-none-eabi-gcc
+AS	 = arm-none-eabi-gcc
+NM	 = arm-none-eabi-nm
 AR       = arm-none-eabi-ar
 OBJCOPY  = arm-none-eabi-objcopy
 STRIP    = arm-none-eabi-strip
-SIZE		 = arm-none-eabi-size
-OPTI = -Os -ffunction-sections -fshort-enums
+SIZE     = arm-none-eabi-size
+ifndef DEBUG
+OPTI = -Os -ffunction-sections 
+endif
+
 CFLAGSNO = -mthumb -mcpu=cortex-m3 -fsigned-char -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/gnu.h\"" \
 			-D BOARD_HEADER=\"board.h\" -g -Wall -Wno-strict-aliasing -mlittle-endian \
 			-D BOARD_MB851   -D CORTEXM3 -D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
@@ -94,27 +105,34 @@ LDFLAGS += -mcpu=cortex-m3 \
 	    -Wl,-static \
 			-u Default_Handler \
 	    -nostartfiles \
-	    -Wl,-Map -Xlinker contiki-$(TARGET).map \
-			-Wl,--gc-sections
+	    -Wl,-Map -Xlinker contiki-$(TARGET).map
+	    
+ifndef ELF_LOADER
+ # Do not use garbage collection when the elfloader is used.
+ LDFLAGS += -Wl,--gc-sections
+endif 
+ 
 SIZEFLAGS = -A
 OBJOPTS = -O binary
 
 endif
 
-ifdef COFFEE_FILES                #if files are defined force definition of COFFEE_ADDRESS
 
- ifndef COFFEE_ADDRESS
-   COFFEE_ADDRESS=0x8010000
- endif
- COFFEE_ADDRESS1 = $(shell echo $$(( $(COFFEE_ADDRESS) + 1 )))
- CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c 
- CFLAGS += -DCOFFEE_FILES=$(COFFEE_FILES) -DCOFFEE_ADDRESS=$(COFFEE_ADDRESS)
- ifdef IAR
-  LDFLAGS+= --config $(CONTIKI_CPU)/hal/micro/cortexm3/stm32w108/iar-cfg-coffee.icf
- else
-  LDFLAGS+= -Wl,--section-start=.coffeefiles=$(COFFEE_ADDRESS)
- endif
+ifndef IAR
 
+ifdef COFFEE_ADDRESS
+ COFFEE = 1
+endif
+
+# Default values for coffee section start.
+ifndef COFFEE_ADDRESS
+ COFFEE_ADDRESS = 0x8010c00
+endif
+
+ifeq ($(COFFEE),1)
+ CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c
+ CFLAGS += -DCOFFEE_ADDRESS=$(COFFEE_ADDRESS)
+ 
  #If $make invokation passed starting address use phony target to force synchronization of source to .coffeefiles section
  #Warning: recompilation will not be forced if the starting address is then dropped, with dire consequences:
  # -->Source that uses COFFEE_FILES and read macros for conditional compilation will be left hanging!
@@ -127,10 +145,23 @@ ifdef COFFEE_FILES                #if files are defined force definition of COFF
    $(OBJECTDIR)/cfs-coffee-arch.o    : coffee      #cfs-coffee-arch uses COFFEE_FILES, COFFEE_ADDRESS
    $(OBJECTDIR)/cfs-coffee.o         : coffee      #core routine requires recompilation
 
-#endif
-#endif
-
+else
+ # Coffee starts at the end of the flash, before NVM section.
+ COFFEE_ADDRESS = 0x801F400
 endif
+
+LDFLAGS+= -Wl,--section-start=.coffee=$(COFFEE_ADDRESS)
+
+else #IAR
+
+ ifeq ($(COFFEE),1)
+  LDFLAGS+= --config $(CONTIKI_CPU)/hal/micro/cortexm3/stm32w108/iar-cfg-coffee.icf
+ endif
+ 
+endif
+
+
+
 
 FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/linux/stm32w_flasher
 
@@ -172,6 +203,7 @@ else
  SEDCOMMAND = sed -e '1s,\($(OBJECTDIR)\\$*\)\.o:,\1.o : ,g' -e '1!s,\($(OBJECTDIR)\\$*\)\.o:, ,g' -e 's,\\\([^ ]\),/\1,g' -e 's,$$, \\,' -e '$$s, \\$$,,' < $(@:.o=.P) > $(@:.o=.d)
 endif
 
+
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
@@ -183,9 +215,26 @@ CUSTOM_RULE_C_TO_CO = 1
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
 else #IAR
 
+CUSTOM_RULE_C_TO_CE = 1
+%.ce: %.c
+	$(CC) $(CFLAGS) -fno-merge-constants -fno-function-sections -DAUTOSTART_ENABLE -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
 CUSTOM_RULE_LINK = 1
 
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+.PHONY: symbols.c symbols.h
+ifdef CORE
+ifeq ($(wildcard $(CORE)),)
+ ${error $(CORE) doesn't exist}
+endif
+symbols.c:
+	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c	
+else
+symbols.c symbols.h:
+	@$(CONTIKI)/tools/make-empty-symbols
+endif
+
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(OBJECTDIR)/symbols.o
 	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} -Wl,-\( ${filter %.a,$^} $(TARGET_LIBFILES) -Wl,-\) -o $@
 	@echo >> contiki-$(TARGET).map
 	@$(SIZE) $(SIZEFLAGS) $@ >> contiki-$(TARGET).map
