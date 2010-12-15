@@ -389,12 +389,22 @@ void menu_process(char c)
 				PRINTF_P(PSTR("Jackdaw now in sniffer mode\n\r"));
 				usbstick_mode.sendToRf = 0;
 				usbstick_mode.translate = 0;
+#if RF230BB
+                rf230_listen_channel(rf230_get_channel());
+#else		
+			    radio_set_trx_state(RX_ON);
+#endif
 				break;
 
 			case 'n':
 				PRINTF_P(PSTR("Jackdaw now in network mode\n\r"));
 				usbstick_mode.sendToRf = 1;
 				usbstick_mode.translate = 1;
+#if RF230BB
+                rf230_set_channel(rf230_get_channel());
+#else		
+			    radio_set_trx_state(RX_AACK_ON);  //TODO: Use startup state which may be RX_ON
+#endif
 				break;
 
 			case '6':
@@ -594,7 +604,7 @@ extern uip_ds6_netif_t uip_ds6_if;
 					for(j=0;j<(1<<12);j++) {
 						for(i=11;i<=26;i++) {
 #if RF230BB
-							rf230_set_channel(i);
+                            rf230_listen_channel(i);
 #else // RF230BB
 							radio_set_operating_channel(i);
 #endif
