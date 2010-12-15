@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mb851-shell.c,v 1.2 2010/11/10 11:20:44 salvopitru Exp $
+ * $Id: mb851-shell.c,v 1.3 2010/12/15 14:50:29 salvopitru Exp $
  */
 
 /**
@@ -60,7 +60,7 @@ PROCESS_THREAD(mb851_shell_process, ev, data)
   shell_time_init();
   shell_sensors_init();
   
-#if COFFEE_FILES
+#if COFFEE
   shell_coffee_init();
   shell_file_init();
 #endif
