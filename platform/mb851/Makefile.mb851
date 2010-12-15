@@ -1,4 +1,4 @@
-# $Id: Makefile.mb851,v 1.1 2010/10/25 09:03:39 salvopitru Exp $
+# $Id: Makefile.mb851,v 1.2 2010/12/15 11:18:09 salvopitru Exp $
 
 
 ARCH= irq.c sensors.c acc-sensor.c button-sensor.c temperature-sensor.c mems.c
@@ -16,3 +16,16 @@ CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(CONTIKI_TARGET_MAIN)
 
 MCU=STM32W108
 include $(CONTIKI)/cpu/stm32w108/Makefile.stm32w108
+
+SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-linux
+
+ifdef OS
+  ifneq (,$(findstring Windows,$(OS)))
+    SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-windows
+  endif
+endif
+
+
+
+login:
+	$(SERIALDUMP) -b115200 -d10000 $(DEV)
