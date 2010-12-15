@@ -70,6 +70,10 @@
 
 #define COFFEE_ERASE(sector) cfs_coffee_arch_erase(sector)
 
+#define COFFEE_WATCHDOG_START()         watchdog_start()
+#define COFFEE_WATCHDOG_STOP()          watchdog_stop()
+#define COFFEE_WATCHDOG_PERIODIC()      watchdog_periodic()
+
 void cfs_coffee_arch_erase(uint16_t sector);
 
 typedef int16_t coffee_page_t;
