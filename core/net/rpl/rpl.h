@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.26 2010/12/15 12:24:00 nvt-se Exp $
+ * $Id: rpl.h,v 1.27 2010/12/15 13:37:34 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -54,7 +54,7 @@
 
 /* set to 1 for some statistics on trickle / DIO */
 #ifndef RPL_CONF_STATS
-#define RPL_CONF_STATS 1
+#define RPL_CONF_STATS 0
 #endif /* RPL_CONF_STATS */
 
 /* The RPL Codes for the message types */
@@ -100,9 +100,9 @@
 #define DEFAULT_RPL_DEF_LIFETIME        0xff
 
 #define DEFAULT_MIN_HOPRANKINC          256
-#define DEFAULT_MAX_RANKINC             3*DEFAULT_MIN_HOPRANKINC
+#define DEFAULT_MAX_RANKINC             (3 * DEFAULT_MIN_HOPRANKINC)
 
-#define DAG_RANK(fixpt_rank, dag)	((fixpt_rank) / dag->min_hoprankinc)
+#define DAG_RANK(fixpt_rank, dag)	((fixpt_rank) / (dag)->min_hoprankinc)
 
 /* Rank of a node outside the LLN. */
 #define BASE_RANK                       0
@@ -135,6 +135,7 @@
 #define RPL_INSTANCE_LOCAL_FLAG         0x80
 #define RPL_INSTANCE_D_FLAG             0x40
 
+/* Values that tell where a route came from. */
 #define RPL_ROUTE_FROM_INTERNAL         0
 #define RPL_ROUTE_FROM_UNICAST_DAO      1
 #define RPL_ROUTE_FROM_MULTICAST_DAO    2
@@ -148,14 +149,14 @@
 #define RPL_MOP_DEFAULT                 RPL_MOP_STORING_NO_MULTICAST
 
 /* DAG Metric Container Object Types, to be confirmed by IANA. */
-#define RPL_DAG_MC_NSA                  1
-#define RPL_DAG_MC_NE                   2
-#define RPL_DAG_MC_HC                   3
-#define RPL_DAG_MC_THROUGHPUT           4
-#define RPL_DAG_MC_LATENCY              5
-#define RPL_DAG_MC_LQL                  6
-#define RPL_DAG_MC_ETX                  7
-#define RPL_DAG_MC_LC                   8
+#define RPL_DAG_MC_NSA                  1 /* Node State and Attributes */
+#define RPL_DAG_MC_NE                   2 /* Node Energy */
+#define RPL_DAG_MC_HC                   3 /* Hop Count */
+#define RPL_DAG_MC_THROUGHPUT           4 /* Throughput */
+#define RPL_DAG_MC_LATENCY              5 /* Latency */
+#define RPL_DAG_MC_LQL                  6 /* Link Quality Level */
+#define RPL_DAG_MC_ETX                  7 /* Expected Transmission Count */
+#define RPL_DAG_MC_LC                   8 /* Link Color */
 
 /* DIS related */
 #define RPL_DIS_SEND                    1
@@ -327,6 +328,7 @@ void uip_rpl_input(void);
 
 /* RPL logic functions. */
 rpl_dag_t *rpl_set_root(uip_ipaddr_t *);
+void rpl_join_dag(rpl_dag_t *);
 int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len);
 int rpl_repair_dag(rpl_dag_t *dag);
 void rpl_local_repair(rpl_dag_t *dag);
@@ -334,9 +336,10 @@ int rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from);
 void rpl_process_dio(uip_ipaddr_t *, rpl_dio_t *);
 int rpl_process_parent_event(rpl_dag_t *, rpl_parent_t *);
 
-/* DAG allocation and deallocation. */
+/* DAG object management. */
 rpl_dag_t *rpl_alloc_dag(uint8_t);
 void rpl_free_dag(rpl_dag_t *);
+rpl_dag_t *rpl_get_dag(int instance_id);
 
 /* DAG parent management function. */
 rpl_parent_t *rpl_add_parent(rpl_dag_t *, rpl_dio_t *dio, uip_ipaddr_t *);
@@ -344,10 +347,6 @@ rpl_parent_t *rpl_find_parent(rpl_dag_t *, uip_ipaddr_t *);
 int rpl_remove_parent(rpl_dag_t *, rpl_parent_t *);
 rpl_parent_t *rpl_select_parent(rpl_dag_t *dag);
 void rpl_recalculate_ranks(void);
-
-void rpl_join_dag(rpl_dag_t *);
-rpl_dag_t *rpl_get_dag(int instance_id);
-rpl_dag_t *rpl_find_dag(unsigned char aucIndex);
 
 /* RPL routing table functions. */
 void rpl_remove_routes(rpl_dag_t *dag);
