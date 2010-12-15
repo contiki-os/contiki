@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.c,v 1.17 2010/10/28 08:54:54 joxe Exp $
+ * $Id: neighbor-info.c,v 1.18 2010/12/15 14:35:07 nvt-se Exp $
  */
 /**
  * \file
@@ -40,13 +40,8 @@
 #include "net/neighbor-info.h"
 #include "net/neighbor-attr.h"
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif /* DEBUG */
+#define DEBUG DEBUG_NONE
+#include "net/uip-debug.h"
 
 #define ETX_LIMIT		15
 #define ETX_SCALE		100
@@ -100,7 +95,7 @@ add_neighbor(const rimeaddr_t *addr)
     break;
   default:
     if(subscriber_callback != NULL) {
-      subscriber_callback(addr, 1, ETX_FIRST_GUESS);
+      subscriber_callback(addr, 1, ETX2FIX(ETX_FIRST_GUESS));
     }
     break;
   }
@@ -139,7 +134,9 @@ neighbor_info_packet_sent(int status, int numtx)
     break;
   }
 
-  if (packet_etx > 0) update_etx(dest, packet_etx);
+  if(packet_etx > 0) {
+    update_etx(dest, packet_etx);
+  }
 }
 /*---------------------------------------------------------------------------*/
 void

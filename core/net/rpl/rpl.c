@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.13 2010/11/03 15:41:23 adamdunkels Exp $
+ * $Id: rpl.c,v 1.14 2010/12/15 14:35:07 nvt-se Exp $
  */
 /**
  * \file
@@ -128,13 +128,11 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
   rpl_dag_t *dag;
   rpl_parent_t *parent;
 
-  /*  etx = FIX2ETX(etx); */
-
   uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr);
   PRINTF("RPL: Neighbor ");
   PRINT6ADDR(&ipaddr);
-  PRINTF(" is %sknown. ETX = %d\n", known ? "" : "no longer ", etx);
+  PRINTF(" is %sknown. ETX = %u\n", known ? "" : "no longer ", FIX2ETX(etx));
 
   dag = rpl_get_dag(RPL_DEFAULT_INSTANCE);
   if(dag == NULL) {
