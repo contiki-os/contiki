@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.32 2010/12/13 10:59:37 joxe Exp $
+ * $Id: rpl-icmp6.c,v 1.33 2010/12/15 19:57:40 nvt-se Exp $
  */
 /**
  * \file
@@ -312,7 +312,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   int pos;
   uip_ipaddr_t addr;
 
-  /* DAG Information Solicitation */
+  /* DAG Information Object */
   pos = 0;
 
   buffer = UIP_ICMP_PAYLOAD;
