@@ -60,6 +60,7 @@
 
 #define COFFEE_WATCHDOG_START()		watchdog_start()
 #define COFFEE_WATCHDOG_STOP()		watchdog_stop()
+#define COFFEE_WATCHDOG_PERIODIC()	watchdog_periodic()
 
 /* Flash operations. */
 #define COFFEE_WRITE(buf, size, offset)				\

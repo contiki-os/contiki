@@ -53,11 +53,16 @@
 #include "cfs-coffee-arch.h"
 #include "cfs/cfs-coffee.h"
 
+/* Platforms that have watchdog timers enable should
+   define these macros in cfs-coffee-arch.h. */
 #ifndef COFFEE_WATCHDOG_START
 #define COFFEE_WATCHDOG_START()
 #endif
 #ifndef COFFEE_WATCHDOG_STOP
 #define COFFEE_WATCHDOG_STOP()
+#endif
+#ifndef COFFEE_WATCHDOG_PERIODIC
+#define COFFEE_WATCHDOG_PERIODIC()
 #endif
 
 #ifndef COFFEE_CONF_APPEND_ONLY
@@ -502,7 +507,7 @@ file_end(coffee_page_t start)
    */
 
   for(page = hdr.max_pages - 1; page >= 0; page--) {
-    watchdog_periodic();
+    COFFEE_WATCHDOG_PERIODIC();
     COFFEE_READ(buf, sizeof(buf), (start + page) * COFFEE_PAGE_SIZE);
     for(i = COFFEE_PAGE_SIZE - 1; i >= 0; i--) {
       if(buf[i] != 0) {
@@ -1083,13 +1088,13 @@ cfs_remove(const char *name)
 int
 cfs_read(int fd, void *buf, unsigned size)
 {
-  struct file_header hdr;
   struct file_desc *fdp;
   struct file *file;
+#if COFFEE_MICRO_LOGS
+  struct file_header hdr;
+  struct log_param lp;
   unsigned bytes_left;
   int r;
-#if COFFEE_MICRO_LOGS
-  struct log_param lp;
 #endif
 
   if(!(FD_VALID(fd) && FD_READABLE(fd))) {
@@ -1117,7 +1122,7 @@ cfs_read(int fd, void *buf, unsigned size)
    * ordinary file if the page has no log record.
    */
   for(bytes_left = size; bytes_left > 0; bytes_left -= r) {
-    watchdog_periodic();
+    COFFEE_WATCHDOG_PERIODIC();
     r = -1;
 
     lp.offset = fdp->offset;
@@ -1241,7 +1246,7 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *record)
   memcpy(&page, dir->dummy_space, sizeof(coffee_page_t));
 
   while(page < COFFEE_PAGE_COUNT) {
-    watchdog_periodic();
+    COFFEE_WATCHDOG_PERIODIC();
     read_header(&hdr, page);
     if(HDR_ACTIVE(hdr) && !HDR_LOG(hdr)) {
       coffee_page_t next_page;
