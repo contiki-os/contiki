@@ -69,6 +69,9 @@
 #ifdef __ICCARM__
 #define COFFEE_ADDRESS            0x8010000
 #endif
+#if (COFFEE_ADDRESS & 0x3FF) !=0
+ #error "COFFEE_ADDRESS not aligned to a 1024-bytes page boundary."
+#endif
 #define COFFEE_PAGES              ((FLASH_PAGES*FLASH_PAGE_SIZE-(COFFEE_ADDRESS-FLASH_START))/COFFEE_PAGE_SIZE)
 #define COFFEE_START              (COFFEE_ADDRESS & ~(COFFEE_PAGE_SIZE-1))
 #define COFFEE_SIZE               (COFFEE_PAGES*COFFEE_PAGE_SIZE)
