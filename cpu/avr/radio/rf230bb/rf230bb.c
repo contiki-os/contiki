@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.19 2010/12/15 14:11:06 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.20 2010/12/15 16:50:44 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -412,20 +412,11 @@ radio_set_trx_state(uint8_t new_state)
 
 void
 rf230_set_promiscuous_mode(bool isPromiscuous) {
-	if(isPromiscuous) {
-		is_promiscuous = true;
+    is_promiscuous = isPromiscuous;
 #if RF230_CONF_AUTOACK
-/* For now only do promiscuous in Macintosh build */
-#if USB_CONF_MACINTOSH
-		radio_set_trx_state(RX_ON);
+/* TODO: Figure out when to pass promisc state to 802.15.4 */
+//    radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
 #endif
-#endif
-	} else {
-		is_promiscuous = false;
-#if RF230_CONF_AUTOACK
-		radio_set_trx_state(RX_AACK_ON);
-#endif
-	}
 }
 
 bool
@@ -466,12 +457,8 @@ on(void)
   rf230_waitidle();
 
 #if RF230_CONF_AUTOACK
-/* For now only do promiscuous on Mac build */
-#if USB_CONF_MACINTOSH
-  radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
-#else
+ // radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
   radio_set_trx_state(RX_AACK_ON);
-#endif
 #else
   radio_set_trx_state(RX_ON);
 #endif
@@ -885,6 +872,15 @@ rf230_set_channel(uint8_t c)
   rf230_waitidle();
   channel=c;
   hal_subregister_write(SR_CHANNEL, c);
+}
+/*---------------------------------------------------------------------------*/
+void
+rf230_listen_channel(uint8_t c)
+{
+ /* Same as set channel but forces RX_ON state for sniffer or energy scan */
+//  PRINTF("rf230: Listen Channel %u\n",c);
+  rf230_set_channel(c);
+  radio_set_trx_state(RX_ON);
 }
 /*---------------------------------------------------------------------------*/
 void

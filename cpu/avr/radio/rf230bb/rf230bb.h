@@ -45,7 +45,7 @@
  *  \file
  *  \brief This file contains radio driver code.
  *
- *   $Id: rf230bb.h,v 1.5 2010/12/14 22:34:18 dak664 Exp $
+ *   $Id: rf230bb.h,v 1.6 2010/12/15 16:50:44 dak664 Exp $
  */
 
 #ifndef RADIO_H
@@ -199,6 +199,7 @@ int rf230_init(void);
 //int rf230_on(void);
 //int rf230_off(void);
 void rf230_set_channel(uint8_t channel);
+void rf230_listen_channel(uint8_t channel);
 uint8_t rf230_get_channel(void);
 void rf230_set_pan_addr(unsigned pan,unsigned addr,const uint8_t ieee_addr[8]);
 void rf230_set_txpower(uint8_t power);
