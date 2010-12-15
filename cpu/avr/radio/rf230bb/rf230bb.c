@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.18 2010/12/14 22:34:18 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.19 2010/12/15 14:11:06 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -1231,8 +1231,13 @@ rf230_get_raw_rssi(void)
   if ((state==RX_AACK_ON) || (state==BUSY_RX_AACK)) {
      rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84, resolution 1 dB
   } else {
+#if 0   // 3-clock shift and add is faster on machines with no hardware multiply
      rssi = hal_subregister_read(SR_RSSI);      //0-28, resolution 3 dB
-     rssi = (rssi << 1) + rssi;                 //fast multiply by 3
+     rssi = (rssi << 1)  + rssi;                //*3
+#else  // Faster with 1-clock multiply. Raven and Jackdaw have 2-clock multiply so same speed while saving 2 bytes of program memory
+     rssi = 3 * hal_subregister_read(SR_RSSI);
+#endif
+
   }
 
   if(radio_was_off) {
