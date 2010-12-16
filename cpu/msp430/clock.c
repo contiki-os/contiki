@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.25 2010/04/04 12:29:50 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.26 2010/12/16 22:50:21 adamdunkels Exp $
  */
 
 
@@ -49,11 +49,13 @@
 static volatile unsigned long seconds;
 
 static volatile clock_time_t count = 0;
-/* last_tar is used for calculating clock_fine, last_ccr might be better? */
-static unsigned short last_tar = 0;
+/* last_tar is used for calculating clock_fine */
+static volatile uint16_t last_tar = 0;
 /*---------------------------------------------------------------------------*/
 interrupt(TIMERA1_VECTOR) timera1 (void) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  watchdog_start();
 
   if(TAIV == 2) {
 
@@ -63,9 +65,7 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
 
     /* Make sure interrupt time is future */
     do {
-      /*      TACTL &= ~MC1;*/
       TACCR1 += INTERVAL;
-      /*      TACTL |= MC1;*/
       ++count;
 
       /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
@@ -94,7 +94,9 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
   /*  if(process_nevents() >= 0) {
     LPM4_EXIT;
     }*/
-    
+
+  watchdog_stop();
+  
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
@@ -142,7 +144,10 @@ clock_init(void)
   /* TACTL = TASSEL1 | TACLR | ID_3; */
   
   /* Select ACLK 32768Hz clock, divide by 2 */
-  TACTL = TASSEL0 | TACLR | ID_1;
+  /*  TACTL = TASSEL0 | TACLR | ID_1;*/
+
+  /* Select ACLK 32768Hz clock */
+  TACTL = TASSEL0 | TACLR;
 
   /* Initialize ccr1 to create the X ms interval. */
   /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */
