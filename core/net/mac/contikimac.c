@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.44 2010/12/10 13:36:06 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.45 2010/12/16 22:43:07 adamdunkels Exp $
  */
 
 /**
@@ -60,9 +60,6 @@
 
 #include <string.h>
 
-#ifndef WITH_ACK_OPTIMIZATION
-#define WITH_ACK_OPTIMIZATION        0
-#endif
 #ifndef WITH_PHASE_OPTIMIZATION
 #define WITH_PHASE_OPTIMIZATION      1
 #endif
@@ -71,6 +68,9 @@
 #endif
 #ifndef WITH_CONTIKIMAC_HEADER
 #define WITH_CONTIKIMAC_HEADER       1
+#endif
+#ifndef WITH_FAST_SLEEP
+#define WITH_FAST_SLEEP              1
 #endif
 
 struct announcement_data {
@@ -111,7 +111,7 @@ struct announcement_msg {
 #define CYCLE_TIME (RTIMER_ARCH_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE)
 #endif
 
-#define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 20
+#define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 60
 
 #define CCA_COUNT_MAX                      2
 #define CCA_CHECK_TIME                     RTIMER_ARCH_SECOND / 8192
@@ -166,17 +166,6 @@ static volatile unsigned char radio_is_on = 0;
 #else
 #define PRINTF(...)
 #define PRINTDEBUG(...)
-#endif
-
-#define DEBUG_LEDS DEBUG
-#undef LEDS_ON
-#undef LEDS_OFF
-#if DEBUG_LEDS
-#define LEDS_ON(x) leds_on(x)
-#define LEDS_OFF(x) leds_off(x)
-#else
-#define LEDS_ON(x)
-#define LEDS_OFF(x)
 #endif
 
 #if CONTIKIMAC_CONF_ANNOUNCEMENTS
@@ -316,7 +305,7 @@ powercycle(struct rtimer *t, void *ptr)
   PT_BEGIN(&pt);
 
   cycle_start = RTIMER_NOW();
-
+  
   while(1) {
     static uint8_t packet_seen;
     static rtimer_clock_t t0;
@@ -396,44 +385,36 @@ powercycle(struct rtimer *t, void *ptr)
             silence_periods = 0;
           }
           if(silence_periods > MAX_SILENCE_PERIODS) {
-            LEDS_ON(LEDS_RED);
             powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
             compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
-            LEDS_OFF(LEDS_RED);
             break;
           }
-#if 1
-          if(periods > MAX_NONACTIVITY_PERIODIC && !(NETSTACK_RADIO.receiving_packet() ||
-                                                     NETSTACK_RADIO.pending_packet())) {
-            LEDS_ON(LEDS_GREEN);
+#if WITH_FAST_SLEEP
+          if(periods > MAX_NONACTIVITY_PERIODIC &&
+             !NETSTACK_RADIO.receiving_packet() &&
+             !NETSTACK_RADIO.pending_packet()) {
             powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
             compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
-            
-            LEDS_OFF(LEDS_GREEN);
             break;
           }
-#endif /* 0 */
+#endif /* WITH_FAST_SLEEP */
           if(NETSTACK_RADIO.pending_packet()) {
             break;
           }
           
           schedule_powercycle(t, CCA_CHECK_TIME + CCA_SLEEP_TIME);
-          LEDS_ON(LEDS_BLUE);
           PT_YIELD(&pt);
-          LEDS_OFF(LEDS_BLUE);
         }
         if(radio_is_on && !(NETSTACK_RADIO.receiving_packet() ||
                             NETSTACK_RADIO.pending_packet())) {
-          LEDS_ON(LEDS_RED + LEDS_GREEN);
           powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
           compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
-          LEDS_OFF(LEDS_RED + LEDS_GREEN);
         }
       } else {
 #if CONTIKIMAC_CONF_COMPOWER
@@ -443,9 +424,6 @@ powercycle(struct rtimer *t, void *ptr)
     } while(is_snooping &&
             RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME));
 
-    if(is_snooping) {
-      LEDS_ON(LEDS_RED);
-    }
     if(RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME)) {
       /*      schedule_powercycle(t, CYCLE_TIME - (RTIMER_NOW() - cycle_start));*/
       schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start);
@@ -453,7 +431,6 @@ powercycle(struct rtimer *t, void *ptr)
               cycle_start, RTIMER_NOW(), CYCLE_TIME - (RTIMER_NOW() - cycle_start));*/
       PT_YIELD(&pt);
     }
-    LEDS_OFF(LEDS_RED);
   }
 
   PT_END(&pt);
@@ -555,9 +532,7 @@ static int
 send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 {
   rtimer_clock_t t0;
-  rtimer_clock_t t;
-  rtimer_clock_t encounter_time = 0, last_transmission_time = 0;
-  uint8_t first_transmission = 1;
+  rtimer_clock_t encounter_time = 0, previous_txtime = 0;
   int strobes;
   uint8_t got_strobe_ack = 0;
   int hdrlen, len;
@@ -685,31 +660,14 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 
   if(!is_broadcast && !is_streaming) {
 #if WITH_PHASE_OPTIMIZATION
-    if(WITH_ACK_OPTIMIZATION) {
-      /* Wait until the receiver is expected to be awake */
-      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
-         PACKETBUF_ATTR_PACKET_TYPE_ACK) {
-        
-        ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                         CYCLE_TIME, GUARD_TIME,
-                         mac_callback, mac_callback_ptr);
-        if(ret == PHASE_DEFERRED) {
-          return MAC_TX_DEFERRED;
-        }
-        if(ret != PHASE_UNKNOWN) {
-          is_known_receiver = 1;
-        }
-      }
-    } else {
-      ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                       CYCLE_TIME, GUARD_TIME,
-                       mac_callback, mac_callback_ptr);
-      if(ret == PHASE_DEFERRED) {
-        return MAC_TX_DEFERRED;
-      }
-      if(ret != PHASE_UNKNOWN) {
-        is_known_receiver = 1;
-      }
+    ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                     CYCLE_TIME, GUARD_TIME,
+                     mac_callback, mac_callback_ptr);
+    if(ret == PHASE_DEFERRED) {
+      return MAC_TX_DEFERRED;
+    }
+    if(ret != PHASE_UNKNOWN) {
+      is_known_receiver = 1;
     }
 #endif /* WITH_PHASE_OPTIMIZATION */ 
   }
@@ -750,8 +708,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   contikimac_was_on = contikimac_is_on;
   contikimac_is_on = 1;
   
-  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
-     PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
+  if(is_streaming == 0) {
     /* Check if there are any transmissions by others. */
     for(i = 0; i < CCA_COUNT_MAX; ++i) {
       t0 = RTIMER_NOW();
@@ -790,7 +747,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   
   watchdog_periodic();
   t0 = RTIMER_NOW();
-  t = RTIMER_NOW();
+
 #if NURTIMER
   for(strobes = 0, collisions = 0;
       got_strobe_ack == 0 && collisions == 0 &&
@@ -804,18 +761,19 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     watchdog_periodic();
     
     if(is_known_receiver && !RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + MAX_PHASE_STROBE_TIME)) {
+      PRINTF("miss to %d\n", packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0]);
       break;
     }
     
     len = 0;
 
-    t = RTIMER_NOW();
-    
+    previous_txtime = RTIMER_NOW();
     {
       rtimer_clock_t wt;
-      rtimer_clock_t now = RTIMER_NOW();
+      rtimer_clock_t txtime;
       int ret;
 
+      txtime = RTIMER_NOW();
       ret = NETSTACK_RADIO.transmit(transmit_len);
 
       wt = RTIMER_NOW();
@@ -837,31 +795,18 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
         len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
         if(len == ACK_LEN) {
           got_strobe_ack = 1;
-          //          encounter_time = last_transmission_time;
-          encounter_time = now;
+          encounter_time = previous_txtime;
           break;
         } else {
           PRINTF("contikimac: collisions while sending\n");
           collisions++;
         }
       }
-      last_transmission_time = now;
-      first_transmission = 0;
+      previous_txtime = txtime;
     }
   }
 
-  if(WITH_ACK_OPTIMIZATION) {
-    /* If we have received the strobe ACK, and we are sending a packet
-       that will need an upper layer ACK (as signified by the
-       PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
-    if(got_strobe_ack && is_reliable) {
-      on();                       /* Wait for ACK packet */
-    } else {
-      off();
-    }
-  } else {
-    off();
-  }
+  off();
 
   PRINTF("contikimac: send (strobes=%u, len=%u, %s, %s), done\n", strobes,
          packetbuf_totlen(),
@@ -898,21 +843,16 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   }
 
 #if WITH_PHASE_OPTIMIZATION
-  /*  if(!first_transmission)*/ {
 
-    /*    COOJA_DEBUG_PRINTF("first phase 0x%02x\n", encounter_time % CYCLE_TIME);*/
-    
-    if(WITH_ACK_OPTIMIZATION) {
-      if(collisions == 0 && packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
-         PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
-        phase_update(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time,
-                     ret);
-      }
-    } else {
-      if(collisions == 0 && is_streaming == 0) {
-        phase_update(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time,
-                     ret);
-      }
+  if(is_known_receiver && got_strobe_ack) {
+    PRINTF("no miss %d wake-ups %d\n", packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
+           strobes);
+  }
+  
+  if(!is_broadcast) {
+    if(collisions == 0 && is_streaming == 0) {
+      phase_update(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time,
+                   ret);
     }
   }
 #endif /* WITH_PHASE_OPTIMIZATION */
