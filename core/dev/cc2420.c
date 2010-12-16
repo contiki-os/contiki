@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.61 2010/12/05 00:14:24 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.62 2010/12/16 22:40:52 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -117,6 +117,11 @@ static uint8_t volatile pending;
     while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time)));   \
   } while(0)
 
+volatile uint8_t cc2420_sfd_counter;
+volatile uint16_t cc2420_sfd_start_time;
+volatile uint16_t cc2420_sfd_end_time;
+
+static volatile uint16_t last_packet_timestamp;
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2420_process, "CC2420 driver");
 /*---------------------------------------------------------------------------*/
@@ -206,7 +211,6 @@ on(void)
   BUSYWAIT_UNTIL(status() & (BV(CC2420_XOSC16M_STABLE)), RTIMER_SECOND / 100);
 
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-  LEDS_ON(LEDS_GREEN);
   receive_on = 1;
 }
 static void
@@ -221,7 +225,6 @@ off(void)
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   strobe(CC2420_SRFOFF);
   CC2420_DISABLE_FIFOP_INT();
-  LEDS_OFF(LEDS_GREEN);
 
   if(!CC2420_FIFOP_IS_1) {
     flushrx();
@@ -236,7 +239,6 @@ static void RELEASE_LOCK(void) {
       lock_on = 0;
     }
     if(lock_off) {
-      LEDS_OFF(LEDS_BLUE);
       off();
       lock_off = 0;
     }
@@ -381,9 +383,18 @@ cc2420_transmit(unsigned short payload_len)
 #else /* WITH_SEND_CCA */
   strobe(CC2420_STXON);
 #endif /* WITH_SEND_CCA */
-
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(CC2420_SFD_IS_1) {
+      {
+        rtimer_clock_t sfd_timestamp;
+        sfd_timestamp = cc2420_sfd_start_time;
+        if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+           PACKETBUF_ATTR_PACKET_TYPE_TIMESTAMP) {
+          /* Write timestamp to last two bytes of packet in TXFIFO. */
+          CC2420_WRITE_RAM(&sfd_timestamp, CC2420RAM_TXFIFO + payload_len - 1, 2);
+        }
+      }
+
       if(!(status() & BV(CC2420_TX_ACTIVE))) {
         /* SFD went high but we are not transmitting. This means that
            we just started receiving a packet, so we drop the
@@ -395,7 +406,6 @@ cc2420_transmit(unsigned short payload_len)
 	ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
       }
       ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-
       /* We wait until transmission has ended so that we get an
 	 accurate measurement of the transmission time.*/
       BUSYWAIT_UNTIL(!(status() & BV(CC2420_TX_ACTIVE)), RTIMER_SECOND / 10);
@@ -488,7 +498,6 @@ cc2420_off(void)
      radio should be turned off when the lock is unlocked. */
   if(locked) {
     /*    printf("Off when locked (%d)\n", locked);*/
-    LEDS_ON(LEDS_GREEN + LEDS_BLUE);
     lock_off = 1;
     return 1;
   }
@@ -514,7 +523,6 @@ cc2420_on(void)
     return 1;
   }
   if(locked) {
-    LEDS_ON(LEDS_GREEN + LEDS_RED);
     lock_on = 1;
     return 1;
   }
@@ -615,6 +623,7 @@ cc2420_interrupt(void)
   TIMETABLE_TIMESTAMP(cc2420_timetable, "interrupt");
 #endif /* CC2420_TIMETABLE_PROFILING */
 
+  last_packet_timestamp = cc2420_sfd_start_time;
   pending++;
   cc2420_packets_seen++;
   return 1;
@@ -636,6 +645,7 @@ PROCESS_THREAD(cc2420_process, ev, data)
     PRINTF("cc2420_process: calling receiver callback\n");
 
     packetbuf_clear();
+    packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, last_packet_timestamp);
     len = cc2420_read(packetbuf_dataptr(), PACKETBUF_SIZE);
     if(len > 0) {
       packetbuf_set_datalen(len);
