@@ -1,14 +1,15 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.89 2010/11/11 13:56:02 fros4943 Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.90 2010/12/16 22:51:22 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-#include "platform-conf.h"
 
 #ifdef PROJECT_CONF_H
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
+
+#include "platform-conf.h"
 
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
@@ -48,6 +49,11 @@
 #else /* WITH_UIP6 */
 
 /* Network setup for non-IPv6 (rime). */
+
+#define TIMESYNCH_CONF_ENABLED           1
+#if TIMESYNCH_CONF_ENABLED
+#define CC2420_CONF_SFD_TIMESTAMPS       1
+#endif /* TIMESYNCH_CONF_ENABLED */
 
 #define NETSTACK_CONF_NETWORK rime_driver
 
@@ -153,7 +159,9 @@
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
+#ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
 #define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
+#endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 #else /* WITH_UIP6 */
 #define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_BUFFER_SIZE     108
