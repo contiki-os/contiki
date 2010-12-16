@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.15 2010/09/13 13:39:05 adamdunkels Exp $
+ * $Id: phase.c,v 1.16 2010/12/16 22:43:07 adamdunkels Exp $
  */
 
 /**
@@ -59,7 +59,7 @@ struct phase_queueitem {
 
 #define MAX_NOACKS            16
 
-#define MAX_NOACKS_TIME       CLOCK_SECOND * 16
+#define MAX_NOACKS_TIME       CLOCK_SECOND * 30
 
 MEMB(queued_packets_memb, struct phase_queueitem, PHASE_QUEUESIZE);
 
@@ -109,7 +109,6 @@ phase_update(const struct phase_list *list,
     if(mac_status == MAC_TX_OK) {
       e->time = time;
     }
-    
     /* If the neighbor didn't reply to us, it may have switched
        phase (rebooted). We try a number of transmissions to it
        before we drop it from the phase list. */
@@ -120,6 +119,7 @@ phase_update(const struct phase_list *list,
         timer_set(&e->noacks_timer, MAX_NOACKS_TIME);
       }
       if(e->noacks >= MAX_NOACKS || timer_expired(&e->noacks_timer)) {
+        printf("drop %d\n", neighbor->u8[0]);
         list_remove(*list->list, e);
         memb_free(list->memb, e);
         return;
@@ -159,7 +159,7 @@ send_packet(void *ptr)
 phase_status_t
 phase_wait(struct phase_list *list,
            const rimeaddr_t *neighbor, rtimer_clock_t cycle_time,
-           rtimer_clock_t wait_before,
+           rtimer_clock_t guard_time,
            mac_callback_t mac_callback, void *mac_callback_ptr)
 {
   struct phase *e;
@@ -170,7 +170,7 @@ phase_wait(struct phase_list *list,
      the radio just before the phase. */
   e = find_neighbor(list, neighbor);
   if(e != NULL) {
-    rtimer_clock_t wait, now, expected, additional_wait;
+    rtimer_clock_t wait, now, expected;
     clock_time_t ctimewait;
     
     /* We expect phases to happen every CYCLE_TIME time
@@ -182,9 +182,7 @@ phase_wait(struct phase_list *list,
     
     /*      printf("neighbor phase 0x%02x (cycle 0x%02x)\n", e->time & (cycle_time - 1),
             cycle_time);*/
-    
-    additional_wait = 2 * e->noacks * wait_before;
-    
+
     /*      if(e->noacks > 0) {
             printf("additional wait %d\n", additional_wait);
             }*/
@@ -192,11 +190,11 @@ phase_wait(struct phase_list *list,
     now = RTIMER_NOW();
     wait = (rtimer_clock_t)((e->time - now) &
                             (cycle_time - 1));
-    if(wait < wait_before + additional_wait) {
+    if(wait < guard_time) {
       wait += cycle_time;
     }
     
-    ctimewait = (CLOCK_SECOND * (wait - wait_before - additional_wait)) / RTIMER_ARCH_SECOND;
+    ctimewait = (CLOCK_SECOND * (wait - guard_time)) / RTIMER_ARCH_SECOND;
     
     if(ctimewait > PHASE_DEFER_THRESHOLD) {
       struct phase_queueitem *p;
@@ -215,11 +213,10 @@ phase_wait(struct phase_list *list,
       }
     }
     
-    expected = now + wait - wait_before - additional_wait;
+    expected = now + wait - guard_time;
     if(!RTIMER_CLOCK_LT(expected, now)) {
       /* Wait until the receiver is expected to be awake */
-      while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected)) {
-      }
+      while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
     }
     return PHASE_SEND_NOW;
   }
