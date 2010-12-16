@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.h,v 1.1 2010/06/14 19:19:16 adamdunkels Exp $
+ * $Id: packetbuf.h,v 1.2 2010/12/16 22:41:43 adamdunkels Exp $
  */
 
 /**
@@ -327,9 +327,10 @@ struct packetbuf_addr {
   rimeaddr_t addr;
 };
 
-#define PACKETBUF_ATTR_PACKET_TYPE_DATA 0
-#define PACKETBUF_ATTR_PACKET_TYPE_ACK 1
-#define PACKETBUF_ATTR_PACKET_TYPE_STREAM 2
+#define PACKETBUF_ATTR_PACKET_TYPE_DATA      0
+#define PACKETBUF_ATTR_PACKET_TYPE_ACK       1
+#define PACKETBUF_ATTR_PACKET_TYPE_STREAM    2
+#define PACKETBUF_ATTR_PACKET_TYPE_TIMESTAMP 3
 
 enum {
   PACKETBUF_ATTR_NONE,
