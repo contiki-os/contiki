@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.9 2010/06/23 10:19:15 joxe Exp $
+ * @(#)$Id: cc2420-arch.c,v 1.10 2010/12/16 22:49:33 adamdunkels Exp $
  */
 
 #include <io.h>
@@ -37,6 +37,10 @@
 
 #include "dev/spi.h"
 #include "dev/cc2420.h"
+
+#ifdef CC2420_CONF_SFD_TIMESTAMPS
+#define CONF_SFD_TIMESTAMPS CC2420_CONF_SFD_TIMESTAMPS
+#endif /* CC2420_CONF_SFD_TIMESTAMPS */
 
 #ifndef CONF_SFD_TIMESTAMPS
 #define CONF_SFD_TIMESTAMPS 0
@@ -51,9 +55,11 @@ interrupt(CC2420_IRQ_VECTOR)
 cc24240_port1_interrupt(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
   if(cc2420_interrupt()) {
     LPM4_EXIT;
   }
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
