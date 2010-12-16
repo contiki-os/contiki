@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.84 2010/05/25 21:32:41 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.85 2010/12/16 22:52:12 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -201,6 +201,7 @@ main(int argc, char **argv)
   leds_init();
   leds_on(LEDS_RED);
 
+
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 #if WITH_UIP
   slip_arch_init(BAUD2UBR(115200));
@@ -352,7 +353,7 @@ main(int argc, char **argv)
 
 #if TIMESYNCH_CONF_ENABLED
   timesynch_init();
-  timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
+  timesynch_set_authority_level((rimeaddr_node_addr.u8[0] << 4) + 16);
 #endif /* TIMESYNCH_CONF_ENABLED */
 
 #if WITH_UIP
@@ -426,12 +427,14 @@ main(int argc, char **argv)
 
 #if DCOSYNCH_CONF_ENABLED
       /* before going down to sleep possibly do some management */
-      if (timer_expired(&mgt_timer)) {
+      if(timer_expired(&mgt_timer)) {
+        watchdog_periodic();
 	timer_reset(&mgt_timer);
 	msp430_sync_dco();
+        cc2420_arch_sfd_init();
       }
 #endif
-
+      
       /* Re-enable interrupts and go to sleep atomically. */
       ENERGEST_OFF(ENERGEST_TYPE_CPU);
       ENERGEST_ON(ENERGEST_TYPE_LPM);
