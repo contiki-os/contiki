@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch-sfd.c,v 1.4 2010/06/23 10:19:15 joxe Exp $
+ * @(#)$Id: cc2420-arch-sfd.c,v 1.5 2010/12/16 22:49:12 adamdunkels Exp $
  */
 
 #include <io.h>
@@ -36,9 +36,9 @@
 #include "dev/cc2420.h"
 #include "contiki-conf.h"
 
-volatile uint8_t cc2420_arch_sfd_counter;
-volatile uint16_t cc2420_arch_sfd_start_time;
-volatile uint16_t cc2420_arch_sfd_end_time;
+extern volatile uint8_t cc2420_sfd_counter;
+extern volatile uint16_t cc2420_sfd_start_time;
+extern volatile uint16_t cc2420_sfd_end_time;
 
 /*---------------------------------------------------------------------------*/
 /* SFD interrupt for timestamping radio packets */
@@ -50,11 +50,11 @@ cc24240_timerb1_interrupt(void)
   /* always read TBIV to clear IFG */
   tbiv = TBIV;
   if(CC2420_SFD_IS_1) {
-    cc2420_arch_sfd_counter++;
-    cc2420_arch_sfd_start_time = TBCCR1;
+    cc2420_sfd_counter++;
+    cc2420_sfd_start_time = TBCCR1;
   } else {
-    cc2420_arch_sfd_counter = 0;
-    cc2420_arch_sfd_end_time = TBCCR1;
+    cc2420_sfd_counter = 0;
+    cc2420_sfd_end_time = TBCCR1;
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
@@ -74,5 +74,7 @@ cc2420_arch_sfd_init(void)
   
   /* Start Timer_B in continuous mode. */
   TBCTL |= MC1;
+
+  TBR = RTIMER_NOW();
 }
 /*---------------------------------------------------------------------------*/
