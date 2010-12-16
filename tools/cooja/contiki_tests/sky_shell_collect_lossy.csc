@@ -25,9 +25,9 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>shell</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/sky-shell/sky-shell.c</source>
-      <commands EXPORT="discard">make sky-shell.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky-shell/sky-shell.sky</firmware>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/collect/collect-view-shell.c</source>
+      <commands EXPORT="discard">make collect-view-shell.sky TARGET=sky</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/collect/collect-view-shell.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -444,7 +444,7 @@ GENERATE_MSG(40000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 node = sink_node;
 log.log("Writing netcmd\n");
-node.write("netcmd { repeat 10 60 { randwait 8 collect-view-data | blink | send 31 } }");
+node.write("netcmd { repeat 10 60 { randwait 60 collect-view-data | blink | send 31 } }");
 
 while(true) {
   YIELD();
@@ -452,10 +452,11 @@ while(true) {
   /* Count sensor data packets */
 
   if (msg.contains("ÿ")) {
-//    log.log("WARN: Detected bad character in: '" + msg + "'\n");
+
     msg = msg.replace("ÿ", "");
   }
 
+  log.log(time + " " + id + " " + msg + "\n");
   data = msg.split(" ");
 
   if(data[24] &amp;&amp; !msg.contains("P")) {
