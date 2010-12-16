@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.67 2010/12/14 22:14:33 dak664 Exp $
+ * $Id: collect.c,v 1.68 2010/12/16 22:45:15 adamdunkels Exp $
  */
 
 /**
@@ -125,8 +125,8 @@ struct ack_msg {
    specifies the maximum length of the output queue. If the queue is
    full, incoming packets are dropped instead of being forwarded. */
 #define MAX_MAC_REXMITS            2
-#define MAX_ACK_MAC_REXMITS        7
-#define REXMIT_TIME                CLOCK_SECOND * 6
+#define MAX_ACK_MAC_REXMITS        5
+#define REXMIT_TIME                CLOCK_SECOND * 4
 #define MAX_REXMIT_TIME_SCALING    0
 #define FORWARD_PACKET_LIFETIME_BASE    REXMIT_TIME
 #define MAX_SENDING_QUEUE          3 * QUEUEBUF_NUM / 4
@@ -498,8 +498,9 @@ send_packet(struct collect_conn *c, struct collect_neighbor *n)
   time = 3 * time / 2 + (random_rand() % (time / 4));*/
   time = 3 * REXMIT_TIME / 4 + (random_rand() % (REXMIT_TIME / 4));
   //  printf("retransmission time %lu scaling %d\n", time, rexmit_time_scaling);
-  ctimer_set(&c->retransmission_timer, time,
-             retransmit_not_sent_callback, c);
+  /*  ctimer_set(&c->retransmission_timer, time,
+      retransmit_not_sent_callback, c);*/
+  c->send_time = clock_time();
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -781,6 +782,12 @@ handle_ack(struct collect_conn *tc)
                   &tc->current_parent) &&
      packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == tc->seqno) {
 
+    /*    printf("rtt %d / %d = %d.%02d\n",
+           (int)(clock_time() - tc->send_time),
+           (int)CLOCK_SECOND,
+           (int)((clock_time() - tc->send_time) / CLOCK_SECOND),
+           (int)(((100 * (clock_time() - tc->send_time)) / CLOCK_SECOND) % 100));*/
+    
     stats.ackrecv++;
     msg = packetbuf_dataptr();
     memcpy(&rtmetric, &msg->rtmetric, sizeof(uint16_t));
@@ -1041,8 +1048,8 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
       } else {
         send_ack(tc, &ack_to,
                  ackflags | ACK_FLAGS_DROPPED | ACK_FLAGS_CONGESTED);
-        /*        printf("%d.%d: packet dropped: no queue buffer available\n",
-                  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);*/
+        PRINTF("%d.%d: packet dropped: no queue buffer available\n",
+                  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
         stats.qdrop++;
       }
     } else if(packetbuf_attr(PACKETBUF_ATTR_TTL) <= 1) {
@@ -1073,10 +1080,10 @@ static void
 timedout(struct collect_conn *tc)
 {
   struct collect_neighbor *n;
-  /*  printf("%d.%d: timedout after %d retransmissions to %d.%d (max retransmissions %d): packet dropped\n",
+  PRINTF("%d.%d: timedout after %d retransmissions to %d.%d (max retransmissions %d): packet dropped\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], tc->transmissions,
          tc->current_parent.u8[0], tc->current_parent.u8[1],
-         tc->max_rexmits);*/
+         tc->max_rexmits);
 
   tc->sending = 0;
   n = collect_neighbor_list_find(&tc->neighbor_list,
@@ -1110,7 +1117,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
       timedout(tc);
       stats.timedout++;
     } else {
-      clock_time_t time = (random_rand() % (REXMIT_TIME / 4));
+      clock_time_t time = REXMIT_TIME / 2 + (random_rand() % (REXMIT_TIME / 2));
         //  printf("retransmission time %lu scaling %d\n", time, rexmit_time_scaling);
       ctimer_set(&tc->retransmission_timer, time,
                  retransmit_callback, tc);
@@ -1437,8 +1444,8 @@ collect_send(struct collect_conn *tc, int rexmits)
         send_queued_packet(tc);
         return 1;
       } else {
-        /*        printf("%d.%d: drop originated packet: no queuebuf\n",
-                  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);*/
+        PRINTF("%d.%d: drop originated packet: no queuebuf\n",
+               rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
 
     } else {
@@ -1462,8 +1469,8 @@ collect_send(struct collect_conn *tc, int rexmits)
                                        tc)) {
 	return 1;
       } else {
-        /*        printf("%d.%d: drop originated packet: no queuebuf\n",
-                  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);*/
+        PRINTF("%d.%d: drop originated packet: no queuebuf\n",
+               rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
     }
   }
