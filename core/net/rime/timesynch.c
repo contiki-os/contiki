@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.10 2010/06/14 19:19:17 adamdunkels Exp $
+ * $Id: timesynch.c,v 1.11 2010/12/16 22:47:38 adamdunkels Exp $
  */
 
 /**
@@ -44,15 +44,37 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/timesynch.h"
-#include "net/packetbuf.h"
+#include "contiki.h"
+#include "lib/random.h"
 #include "net/rime.h"
-#include "dev/cc2420.h"
+#include "net/rime/timesynch.h"
 
 #if TIMESYNCH_CONF_ENABLED
 static int authority_level;
 static rtimer_clock_t offset;
 
+#define TIMESYNCH_CHANNEL  7
+
+struct timesynch_msg {
+  uint8_t authority_level;
+  uint8_t dummy;
+  uint16_t authority_offset;
+  uint16_t clock_fine;
+  clock_time_t clock_time;
+  uint32_t seconds;
+  /* We need some padding so that the radio has time to update the
+     timestamp at the end of the packet, after the transmission has
+     started. */
+  uint8_t padding[16];
+
+  /* The timestamp must be the last two bytes. */
+  uint16_t timestamp;
+};
+
+PROCESS(timesynch_process, "Timesynch process");
+
+#define MIN_INTERVAL CLOCK_SECOND * 8
+#define MAX_INTERVAL CLOCK_SECOND * 60 * 5
 /*---------------------------------------------------------------------------*/
 int
 timesynch_authority_level(void)
@@ -63,7 +85,16 @@ timesynch_authority_level(void)
 void
 timesynch_set_authority_level(int level)
 {
+  int old_level = authority_level;
+
   authority_level = level;
+
+  if(old_level != authority_level) {
+    /* Restart the timesynch process to restart with a low
+       transmission interval. */
+    process_exit(&timesynch_process);
+    process_start(&timesynch_process, NULL);
+  }
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
@@ -93,42 +124,75 @@ timesynch_offset(void)
 static void
 adjust_offset(rtimer_clock_t authoritative_time, rtimer_clock_t local_time)
 {
-  offset = offset + authoritative_time - local_time;
+  offset = authoritative_time - local_time;
 }
 /*---------------------------------------------------------------------------*/
 static void
-incoming_packet(void)
+broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
 {
-  if(packetbuf_totlen() != 0) {
-    /* We check the authority level of the sender of the incoming
+  struct timesynch_msg msg;
+
+  memcpy(&msg, packetbuf_dataptr(), sizeof(msg));
+
+  /* We check the authority level of the sender of the incoming
        packet. If the sending node has a lower authority level than we
        have, we synchronize to the time of the sending node and set our
        own authority level to be one more than the sending node. */
-    if(cc2420_authority_level_of_sender < authority_level) {
-      adjust_offset(cc2420_time_of_departure,
-		    cc2420_time_of_arrival);
-      if(cc2420_authority_level_of_sender + 1 != authority_level) {
-	authority_level = cc2420_authority_level_of_sender + 1;
-      }
-    }
+  if(msg.authority_level < authority_level) {
+    adjust_offset(msg.timestamp + msg.authority_offset,
+                  packetbuf_attr(PACKETBUF_ATTR_TIMESTAMP));
+    timesynch_set_authority_level(msg.authority_level + 1);
   }
 }
+static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
+static struct broadcast_conn broadcast;
 /*---------------------------------------------------------------------------*/
-#if 0
-static void
-periodic_authority_increase(void *ptr)
+PROCESS_THREAD(timesynch_process, ev, data)
 {
-  /* XXX the authority level should be increased over time except
-     for the sink node (which has authority 0). */
+  static struct etimer sendtimer, intervaltimer;
+  static clock_time_t interval;
+  struct timesynch_msg msg;
+
+  PROCESS_EXITHANDLER(broadcast_close(&broadcast);)
+
+  PROCESS_BEGIN();
+
+  broadcast_open(&broadcast, TIMESYNCH_CHANNEL, &broadcast_call);
+
+  interval = MIN_INTERVAL;
+
+  while(1) {
+    etimer_set(&intervaltimer, interval);
+    etimer_set(&sendtimer, random_rand() % interval);
+
+    PROCESS_WAIT_UNTIL(etimer_expired(&sendtimer));
+
+    msg.authority_level = authority_level;
+    msg.dummy = 0;
+    msg.authority_offset = offset;
+    msg.clock_fine = clock_fine();
+    msg.clock_time = clock_time();
+    msg.seconds = clock_seconds();
+    msg.timestamp = 0;
+    packetbuf_copyfrom(&msg, sizeof(msg));
+    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
+                       PACKETBUF_ATTR_PACKET_TYPE_TIMESTAMP);
+    broadcast_send(&broadcast);
+
+    PROCESS_WAIT_UNTIL(etimer_expired(&intervaltimer));
+    interval *= 2;
+    if(interval >= MAX_INTERVAL) {
+      interval = MAX_INTERVAL;
+    }
+  }
+
+  PROCESS_END();
 }
-#endif
-/*---------------------------------------------------------------------------*/
-RIME_SNIFFER(sniffer, incoming_packet, NULL);
 /*---------------------------------------------------------------------------*/
 void
 timesynch_init(void)
 {
-  rime_sniffer_add(&sniffer);
+  process_start(&timesynch_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
 #endif /* TIMESYNCH_CONF_ENABLED */
