@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.41 2010/12/13 10:59:37 joxe Exp $
+ * $Id: rpl-dag.c,v 1.42 2010/12/17 15:24:25 nvt-se Exp $
  */
 /**
  * \file
@@ -117,8 +117,7 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 static int
 should_send_dao(rpl_dag_t *dag, rpl_dio_t *dio, rpl_parent_t *p)
 {
-  return 1;
-/*  return dio->dtsn > p->dtsn && p == dag->preferred_parent;*/
+  return dio->dtsn > p->dtsn && p == dag->preferred_parent;
 }
 /************************************************************************/
 static int
@@ -237,6 +236,8 @@ rpl_alloc_dag(uint8_t instance_id)
       return dag;
     }
   }
+
+  RPL_STAT(rpl_stats.mem_overflows++);
   return NULL;
 }
 /************************************************************************/
@@ -372,6 +373,7 @@ rpl_dag_t *
 rpl_get_dag(int instance_id)
 {
   int i;
+
   for(i = 0; i < RPL_MAX_DAG_ENTRIES; i++) {
     if(dag_table[i].joined && (instance_id == RPL_ANY_INSTANCE ||
                                dag_table[i].instance_id == instance_id)) {
