@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.27 2010/12/15 13:37:34 nvt-se Exp $
+ * $Id: rpl.h,v 1.28 2010/12/17 15:24:25 nvt-se Exp $
  */
 
 #ifndef RPL_H
@@ -85,7 +85,8 @@
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
 
-#define DEFAULT_DAO_LATENCY             (CLOCK_SECOND * (1 + (random_rand() & 0xf)))
+/* The default value for the DAO timer. */
+#define DEFAULT_DAO_LATENCY             (CLOCK_SECOND * 8)
 
 /* Special value indicating immediate removal. */
 #define ZERO_LIFETIME                   0
