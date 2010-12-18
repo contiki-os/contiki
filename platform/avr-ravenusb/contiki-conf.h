@@ -202,7 +202,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define RIMEADDR_CONF_SIZE       8
 #define UIP_CONF_ICMP6           1
 #define UIP_CONF_UDP             1
-#define UIP_CONF_TCP             1
+#define UIP_CONF_TCP             0
 #define UIP_CONF_IPV6_RPL        0
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
@@ -262,7 +262,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define CHANNEL_802_15_4          26
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-/* Request 802.15.4 ACK on all packets sent (else autoretry) */
+/* Request 802.15.4 ACK on all packets sent by sicslowpan.c (else autoretry) */
 /* Broadcasts will be duplicated by the retry count! */
 #define SICSLOWPAN_CONF_ACK_ALL   0
 /* Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
@@ -358,6 +358,8 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_TCP_SPLIT          0
 #undef UIP_CONF_STATISTICS
 #define UIP_CONF_STATISTICS         0
+#undef UIP_CONF_IPV6_QUEUE_PKT
+#define UIP_CONF_IPV6_QUEUE_PKT     0
 #define UIP_CONF_PINGADDRCONF       0
 #define UIP_CONF_LOGGING            0
 #undef UIP_CONF_MAX_CONNECTIONS
@@ -369,7 +371,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* Optional, TCP needed to serve the RPL neighbor web page currently hard coded at bbbb::11 */
 /* The RPL neighbors can also be viewed using the jack menu */
 /* A small MSS is adequate for the internal jackdaw webserver and RAM is very limited*/
-#define RPL_HTTPD_SERVER            1
+#define RPL_HTTPD_SERVER            0
 #if RPL_HTTPD_SERVER
 #undef UIP_CONF_TCP            
 #define UIP_CONF_TCP                1
