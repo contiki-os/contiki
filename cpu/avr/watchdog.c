@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.2 2010/09/17 21:59:09 dak664 Exp $
+ * @(#)$Id: watchdog.c,v 1.3 2010/12/18 20:51:11 dak664 Exp $
  */
 
  /* Dummy watchdog routines for the Raven 1284p */
@@ -51,21 +51,21 @@ void
 watchdog_start(void)
 {
 	stopped--;
-	if(!stopped)
+//	if(!stopped)
 		wdt_enable(WDTO_2S);
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_periodic(void)
 {
-	if(!stopped)
+//	if(!stopped)
 		wdt_reset();
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_stop(void)
 {
-	stopped++;
+//	stopped++;
 	wdt_disable();
 }
 /*---------------------------------------------------------------------------*/
