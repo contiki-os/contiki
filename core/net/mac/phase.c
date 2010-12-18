@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.16 2010/12/16 22:43:07 adamdunkels Exp $
+ * $Id: phase.c,v 1.17 2010/12/18 22:12:53 dak664 Exp $
  */
 
 /**
@@ -119,7 +119,7 @@ phase_update(const struct phase_list *list,
         timer_set(&e->noacks_timer, MAX_NOACKS_TIME);
       }
       if(e->noacks >= MAX_NOACKS || timer_expired(&e->noacks_timer)) {
-        printf("drop %d\n", neighbor->u8[0]);
+        PRINTF("drop %d\n", neighbor->u8[0]);
         list_remove(*list->list, e);
         memb_free(list->memb, e);
         return;
