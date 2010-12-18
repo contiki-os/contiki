@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.11 2010/12/14 22:51:04 dak664 Exp $
+ * $Id: httpd-cgi.c,v 1.12 2010/12/18 20:44:02 dak664 Exp $
  *
  */
 
@@ -112,6 +112,7 @@ static const char *states[] = {
   extern unsigned long seconds;
 #if RADIOSTATS
   extern unsigned long radioontime;
+  static unsigned long savedradioontime;
   extern uint8_t RF230_radio_on, rf230_last_rssi;
   extern uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
 #endif
@@ -416,7 +417,10 @@ generate_sensor_readings(void *arg)
 #endif
 
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
-
+#if RADIOSTATS
+  /* Remember radioontime for display below - slow connection might make it report longer than cpu ontime! */
+  savedradioontime = radioontime;
+#endif
   h=seconds/3600;
   s=seconds-h*3600;
   m=s/60;
@@ -435,11 +439,11 @@ generate_radio_stats(void *arg)
   static const char httpd_cgi_sensor4[] HTTPD_STRING_ATTR = "<em>Radio on:</em> %02d:%02d:%02d (%d.%02d%%)<br>";
   static const char httpd_cgi_sensor5[] HTTPD_STRING_ATTR = "<em>Packets:</em> Tx=%5d Rx=%5d TxL=%5d RxL=%5d RSSI=%2ddBm\n";
 
-  s=(10000UL*radioontime)/seconds;
+  s=(10000UL*savedradioontime)/seconds;
   p1=s/100;
   p2=s-p1*100;
-  h=radioontime/3600;
-  s=radioontime-h*3600;
+  h=savedradioontime/3600;
+  s=savedradioontime-h*3600;
   m=s/60;
   s=s-m*60;
 
