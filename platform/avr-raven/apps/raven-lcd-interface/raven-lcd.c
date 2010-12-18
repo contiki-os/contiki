@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.8 2010/11/19 19:44:10 dak664 Exp $
+ * $Id: raven-lcd.c,v 1.9 2010/12/18 20:40:46 dak664 Exp $
 */
 
 /**
@@ -54,30 +54,35 @@
  *
  */
 
-
+#define DEBUG 0        //Making this 1 will slightly alter command timings
+#if DEBUG
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTF(...)
+#endif
+#define DEBUGSERIAL 0  //Making this 1 will significantly alter command timings
 
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "webserver-nogui.h"
 #include "httpd-cgi.h"
-
-//#include "frame.h"
-#include "mac.h"
-
 #include "raven-lcd.h"
 
 #include <string.h>
 #include <stdio.h>
-
+#include <avr/pgmspace.h>
+#include <avr/eeprom.h>
+#include <avr/sleep.h>
+#include <dev/watchdog.h>
 
 static u8_t count = 0;
 static u8_t seqno;
 uip_ipaddr_t dest_addr;
 
-#define cmd_len 8
+#define MAX_CMD_LEN 20
 static struct{
-    u8_t frame[cmd_len];
+    u8_t frame[MAX_CMD_LEN];
     u8_t ndx;
     u8_t len;
     u8_t cmd;
@@ -88,15 +93,7 @@ static struct{
 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define PING6_DATALEN 16
 
-#define CMD_TEMP 0x80
-#define CMD_PING 0x81
-#define CMD_ADC2 0x82
-
-#define SOF_CHAR 1
-#define EOF_CHAR 4
-
 void rs232_send(uint8_t port, unsigned char c);
-
 
 /*---------------------------------------------------------------------------*/
 /* Sends a ping packet out the radio */
@@ -126,7 +123,7 @@ raven_ping6(void)
 	  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose());    //the default router
 #endif
 
-	uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+    uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
     UIP_ICMP_BUF->type = ICMP6_ECHO_REQUEST;
     UIP_ICMP_BUF->icode = 0;
     /* set identifier and sequence number to 0 */
@@ -161,41 +158,155 @@ send_frame(uint8_t cmd, uint8_t len, uint8_t *payload)
         rs232_send(0,*payload++);
     rs232_send(0, EOF_CHAR);
 }
+char serial_char_received;
+
+/*---------------------------------------------------------------------------*/
+/* Sleep for howlong seconds using TIMER2, or forever if howlong==0*/
+
+void micro_sleep(uint8_t howlong)
+{
+    uint8_t saved_sreg = SREG;
+
+//    if (howlong==0) {
+//        set_sleep_mode(SLEEP_MODE_PWR_DOWN);    //Sleep until UART interrupt
+//     } else {
+        set_sleep_mode(SLEEP_MODE_PWR_SAVE);    //Sleep for howlong seconds
+        cli();                                  //Disable interrupts for the present
+        ASSR |= (1 << AS2);                     //Set TIMER2 asyncronous
+        TCCR2B|=((1<<CS22)|(1<<CS21)|(1<<CS20));//Prescale by 1024.
+        while(ASSR & (1 << TCR2BUB));           // Wait for TCNT2 write to finish.
+        OCR2A = howlong*25;                     // Set TIMER2 output compare register
+        if (howlong==0) OCR2A=100;              // About 3 seconds
+        while(ASSR & (1 << OCR2AUB));           // Wait for OCR2 write to finish.
+        SREG = saved_sreg;                      // Restore interrupt state.
+//      UCSR(USART,B)&= ~(1<<RXCIE(USART))      // Disable the RX Complete interrupt;
+//      UCSR0B|=(1<<RXCIE0);                    // Enable UART0 RX complete interrupt
+//      UCSR1B|=(1<<RXCIE1);                    // Enable UART1 RX complete interrupt 
+//      TCNT2 = 0;                              // Reset TIMER2 timer counter value.
+//      while(ASSR & (1 << TCN2UB));            // Wait for TCNT2 write to finish before entering sleep.
+//      TIMSK2 |= (1 << OCIE2A);                // Enable TIMER2 output compare interrupt.
+//    }
+    watchdog_stop();                            // Silence annoying distractions
+    SMCR |= (1 <<  SE);                         // Enable sleep mode.
+    while (1) {
+       TCNT2 = 0;                               // Reset TIMER2 timer counter value.
+       while(ASSR & (1 << TCN2UB));             // Wait for TCNT2 write to finish before entering sleep.
+       TIMSK2 |= (1 << OCIE2A);                 // Enable TIMER2 output compare interrupt.
+       serial_char_received=0;                  // Set when chars received by UART
+       sleep_mode();                            //Sleep
+//     if (TIMSK2&(1<<OCIE2A)) break;           //Exit sleep if not awakened by TIMER2
+       PRINTF(".");
+       if (howlong) break;                      //Exit sleep if nonzero time specified
+//     PRINTF("%d",serial_char_received);
+       if (serial_char_received) break;
+   }
+
+    SMCR  &= ~(1 << SE);              //Disable sleep mode after wakeup
+    TIMSK2 &= ~(1 << OCIE2A);         //and TIMER2 interrupt
+    watchdog_start();
+}
+
+/*---------------------------------------------------------------------------*/
+/* TIMER2 Interrupt service */
+
+ISR(TIMER2_COMPA_vect)
+{
+//    TIMSK2 &= ~(1 << OCIE2A);       //Just one interrupt needed for waking
+
+}
+#if DEBUGSERIAL
+u8_t serialcount;
+char dbuf[30];
+#endif 
 
 /*---------------------------------------------------------------------------*/
 static u8_t
 raven_gui_loop(process_event_t ev, process_data_t data)
 {
-  if(ev == tcpip_icmp6_event) {
-    switch(*((uint8_t *)data)) {
+    uint8_t i,activeconnections,radio_state;
+    
+// PRINTF("\nevent %d ",ev);
+#if DEBUGSERIAL
+    printf_P(PSTR("Buffer [%d]="),serialcount);
+    serialcount=0;
+    for (i=0;i<30;i++) {
+       printf_P(PSTR(" %d"),dbuf[i]);
+       dbuf[i]=0;
+    }
+#endif
+    if(ev == tcpip_icmp6_event) switch(*((uint8_t *)data)) {
+
+//   case ICMP6_NS:
+        /*Tell the 3290 we are being solicited. */
+//       send_frame(REPORT_NS,...);
+//       break;  //fall through for beep
+//   case ICMP6_RA:
+        /*Tell the 3290 we have a router. */
+//       send_frame(REPORT_NA,...);
+//       break;  //fall through for beep
     case ICMP6_ECHO_REQUEST:
-        /* We have received a ping request over the air. Send frame back to 3290 */
-        send_frame(PING_REQUEST, 0, 0);
+        /* We have received a ping request over the air. Tell the 3290 */
+        send_frame(REPORT_PING_BEEP, 0, 0);
         break;
     case ICMP6_ECHO_REPLY:
         /* We have received a ping reply over the air.  Send frame back to 3290 */
-        send_frame(PING_REPLY, 1, &seqno);
+        send_frame(REPORT_PING, 1, &seqno);
         break;
-    }
-  } else {
-    switch(ev){
-    case SERIAL_CMD:        
+
+    } else switch (ev) {
+     case SERIAL_CMD:        
         /* Check for command from serial port, execute it. */
+        PRINTF("\nCommand %d length %d done %d",cmd.cmd,cmd.len,cmd.done);
         if (cmd.done){
             /* Execute the waiting command */
             switch (cmd.cmd){
-            case CMD_PING:
+            case SEND_PING:
                 /* Send ping request over the air */
                 seqno = cmd.frame[0];
                 raven_ping6();
                 break;
-            case CMD_TEMP:
+            case SEND_TEMP:
                 /* Set temperature string in web server */
                 web_set_temp((char *)cmd.frame);
                 break;
-            case CMD_ADC2:
+            case SEND_ADC2:
                 /* Set ext voltage string in web server */
                 web_set_voltage((char *)cmd.frame);
+                break;
+            case SEND_SLEEP:
+                /* Sleep radio and 1284p. */
+                if (cmd.frame[0]==0) {  //Time to sleep in seconds
+                /* Unconditional sleep. Don't wake until a serial interrupt. */
+                } else {
+                /* Sleep specified number of seconds (3290p "DOZE" mode) */
+                /* It sleeps a bit longer so we will be always be awake for the next sleep command. */
+                /* Only sleep this cycle if no active TCP/IP connections */
+                   activeconnections=0;
+                   for(i = 0; i < UIP_CONNS; ++i) {
+                      if((uip_conns[i].tcpstateflags & UIP_TS_MASK) != UIP_CLOSED) activeconnections++;
+                   }
+                   if (activeconnections) {
+                     PRINTF("\nWaiting for %d connections",activeconnections);
+                     break;
+                   }
+                }
+                radio_state = NETSTACK_RADIO.off();
+                PRINTF ("\nsleep %d radio state %d...",cmd.frame[0],radio_state);
+
+                /*Sleep for specified time*/
+                PRINTF("\nSleeping...");
+                micro_sleep(cmd.frame[0]);
+
+                radio_state = NETSTACK_RADIO.on();
+                if (radio_state > 0) {
+                   PRINTF("Awake!");
+                } else {
+                    PRINTF("Radio wake error %d\n",radio_state);
+                }
+                break;
+            case SEND_WAKE:
+               /* 3290p requests return message showing awake status */
+                send_frame(REPORT_WAKE, 0, 0);
                 break;
             default:
                 break;
@@ -207,22 +318,36 @@ raven_gui_loop(process_event_t ev, process_data_t data)
     default:
         break;
     }
-  }
-  return 0;
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/
 /* Process an input character from serial port.  
  *  ** This is called from an ISR!!
 */
+
 int raven_lcd_serial_input(unsigned char ch)
 {
+    /* Tell sleep routine if a  reception occurred */
+    /* Random nulls occur for some reason, so ignore those */
+    if (ch) serial_char_received++;
+#if DEBUGSERIAL
+    if (serialcount<25) dbuf[serialcount]=ch;
+    serialcount++;
+#endif
+    /* Don't overwrite an unprocessed command */
+//    if (cmd.done) return 0;
+    
     /* Parse frame,  */
     switch (cmd.ndx){
     case 0:
         /* first byte, must be 0x01 */
-        cmd.done = 0;
-        if (ch != 0x01){
+        if (ch == 0x01){
+//            cmd.done = false;
+        } else {
+#if DEBUGSERIAL
+            dbuf[25]++;
+#endif
             return 0;
         }
         break;
@@ -236,42 +361,82 @@ int raven_lcd_serial_input(unsigned char ch)
         break;
     default:
         /* Payload and ETX */
+        if (cmd.ndx >= (MAX_CMD_LEN+3)) {  //buffer overflow!
+            cmd.ndx=0;
+#if DEBUGSERIAL
+            dbuf[26]++;
+#endif
+            return 0;
+        }
         if (cmd.ndx >= cmd.len+3){
             /* all done, check ETX */
             if (ch == 0x04){
                 cmd.done = 1;
+#if DEBUGSERIAL
+                dbuf[27]++;
+#endif
                 process_post(&raven_lcd_process, SERIAL_CMD, 0);
             } else {
                 /* Failed ETX */
-                cmd.ndx = 0;
+#if DEBUGSERIAL
+                dbuf[28]++;
+#endif
             }
+            cmd.ndx=0;             //set up for next command
+            return 0;
         } else {
             /* Just grab and store payload */
             cmd.frame[cmd.ndx - 3] = ch;
         }
         break;
     }
-
+    
     cmd.ndx++;
-
     return 0;
 }
 
 /*---------------------------------------------------------------------------*/
+void
+raven_lcd_show_text(char *text) {
+    uint8_t textlen=strlen(text)+1;
+    if (textlen > MAX_CMD_LEN) textlen=MAX_CMD_LEN;
+    send_frame(REPORT_TEXT_MSG, textlen, (uint8_t *) text);
+}
+
+#if WEBSERVER
+static void
+lcd_show_servername(void) {
+
+//extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h 
+extern uint8_t server_name[16];
+//extern uint8_t domain_name[30];
+char buf[sizeof(server_name)+1];
+    eeprom_read_block (buf,server_name, sizeof(server_name));
+    buf[sizeof(server_name)]=0;
+    raven_lcd_show_text(buf);  //must fit in all the buffers or it will be truncated!
+}
+#endif
+/*---------------------------------------------------------------------------*/
 PROCESS(raven_lcd_process, "Raven LCD interface process");
 PROCESS_THREAD(raven_lcd_process, ev, data)
 {
-  u8_t error;
 
   PROCESS_BEGIN();
+
+#if WEBSERVER
+  lcd_show_servername();
+#endif
+
+  /* Get ICMP6 callbacks from uip6 stack, perform 3290p action on pings, responses, etc. */
+  if(icmp6_new(NULL) == 0) {
   
-  if((error = icmp6_new(NULL)) == 0) {
     while(1) {
       PROCESS_YIELD();
-      raven_gui_loop(ev, data);
+//      if (ev != ?)      //trap frequent strobes?
+        raven_gui_loop(ev, data);
     } 
   }
   PROCESS_END();
 }
-/** @} */
+
 /** @} */
