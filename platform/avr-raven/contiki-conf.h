@@ -126,7 +126,7 @@ unsigned long clock_seconds(void);
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 
 /* 211 bytes per queue buffer */
-#define QUEUEBUF_CONF_NUM         4
+#define QUEUEBUF_CONF_NUM         8
 
 /* 54 bytes per queue ref buffer */
 #define QUEUEBUF_CONF_REF_NUM     2
@@ -168,15 +168,16 @@ unsigned long clock_seconds(void);
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
 /* Request 802.15.4 ACK on all packets sent (else autoretry) */
-//#define SICSLOWPAN_CONF_ACK_ALL   1
+#define SICSLOWPAN_CONF_ACK_ALL   0
 /* Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
-#define RF230_CONF_AUTORETRIES    3
+#define RF230_CONF_AUTORETRIES    2
 #define SICSLOWPAN_CONF_FRAG      1
 //Most browsers reissue GETs after 3 seconds which stops frag reassembly, longer MAXAGE does no good
 #define SICSLOWPAN_CONF_MAXAGE    3
 
 #elif 0  /* Contiki-mac radio cycling */
-#define NETSTACK_CONF_MAC         nullmac_driver
+//#define NETSTACK_CONF_MAC         nullmac_driver
+#define NETSTACK_CONF_MAC         csma_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
@@ -185,18 +186,21 @@ unsigned long clock_seconds(void);
 #define RF230_CONF_AUTORETRIES    0
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 
-#elif 0  /* cx-mac radio cycling */
+#elif 1  /* cx-mac radio cycling */
 #define NETSTACK_CONF_MAC         nullmac_driver
+//#define NETSTACK_CONF_MAC         csma_driver
 #define NETSTACK_CONF_RDC         cxmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
-#define RF230_CONF_AUTOACK        0
-#define RF230_CONF_AUTORETRIES    0
-#define MAC_CONF_CHANNEL_CHECK_RATE 8
+#define RF230_CONF_AUTOACK        1
+#define RF230_CONF_AUTORETRIES    1
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
+#define CXMAC_CONF_ANNOUNCEMENTS    0
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 
 //Below gives 10% duty cycle, undef for default 5%
 //#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 80)
