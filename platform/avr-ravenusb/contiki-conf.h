@@ -213,10 +213,10 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #endif /* UIP_CONF_IPV6 */
 
 /* See uip-ds6.h */
-#define UIP_CONF_DS6_NBR_NBU     20
+#define UIP_CONF_DS6_NBR_NBU     2
 #define UIP_CONF_DS6_DEFRT_NBU   2
 #define UIP_CONF_DS6_PREFIX_NBU  3
-#define UIP_CONF_DS6_ROUTE_NBU   20
+#define UIP_CONF_DS6_ROUTE_NBU   2
 #define UIP_CONF_DS6_ADDR_NBU    3
 #define UIP_CONF_DS6_MADDR_NBU   0
 #define UIP_CONF_DS6_AADDR_NBU   0
@@ -234,10 +234,10 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 
 /* 211 bytes per queue buffer */
-#define QUEUEBUF_CONF_NUM        6
+#define QUEUEBUF_CONF_NUM        8
 
 /* 54 bytes per queue ref buffer */
-#define QUEUEBUF_CONF_REF_NUM    1
+#define QUEUEBUF_CONF_REF_NUM    2
 
 #define UIP_CONF_MAX_CONNECTIONS 1
 #define UIP_CONF_MAX_LISTENPORTS 1
@@ -246,7 +246,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_FWCACHE_SIZE    0
 
 #define UIP_CONF_IPV6_CHECKS     1
-#define UIP_CONF_IPV6_QUEUE_PKT  0
+#define UIP_CONF_IPV6_QUEUE_PKT  1
 #define UIP_CONF_IPV6_REASSEMBLY 0
 
 #define UIP_CONF_UDP_CHECKSUMS   1
@@ -270,30 +270,36 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
 
-#elif 0             /* Contiki-mac radio cycling */
+#elif 0  /* Contiki-mac radio cycling */
 #define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
-#define 802_15_4_CHANNEL          26
+#define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        0
 #define RF230_CONF_AUTORETRIES    0
+#define SICSLOWPAN_CONF_FRAG      1
+#define SICSLOWPAN_CONF_MAXAGE    3
 
 #elif 1             /* cx-mac radio cycling */
 #define NETSTACK_CONF_MAC         nullmac_driver
+//#define NETSTACK_CONF_MAC         csma_driver
 #define NETSTACK_CONF_RDC         cxmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
-#define 802_15_4_CHANNEL          26
-#define RF230_CONF_AUTOACK        0
-#define RF230_CONF_AUTORETRIES    0
-#define MAC_CONF_CHANNEL_CHECK_RATE 8
+#define CHANNEL_802_15_4          26
+#define RF230_CONF_AUTOACK        1
+#define RF230_CONF_AUTORETRIES    1
 #define SICSLOWPAN_CONF_FRAG      1
-#define QUEUEBUF_CONF_NUM         3
-#define QUEUEBUF_CONF_REF_NUM     1
-#define SICSLOWPAN_CONF_MAXAGE    5
-//following gives 50% duty cycle, undef for default 5%
-#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 16)
+#define SICSLOWPAN_CONF_MAXAGE    3
+#define CXMAC_CONF_ANNOUNCEMENTS    0
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
+#undef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM        8
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU       5
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU     5
 
 #else
 #error Network configuration not specified!
