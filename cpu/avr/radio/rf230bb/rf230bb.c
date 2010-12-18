@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.21 2010/12/15 19:32:49 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.22 2010/12/18 20:49:00 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -106,7 +106,8 @@ struct timestamp {
 #if JACKDAW
 #define RADIOALWAYSON 1
 #else
-//#define RADIOALWAYSON 1
+#define RADIOALWAYSON 0
+#define RADIOSLEEPSWHENOFF 1
 #endif
 
 #define DEBUG 0
@@ -462,6 +463,7 @@ on(void)
 #else
   radio_set_trx_state(RX_ON);
 #endif
+
  // flushrx();
  //  DEBUGFLOW('O');
   RF230_receive_on = 1;
@@ -485,7 +487,7 @@ off(void)
   /* Force the device into TRX_OFF. */   
   radio_reset_state_machine();
 
-#if 0            //optionally sleep
+#if RADIOSLEEPSWHENOFF
   /* Sleep Radio */
   hal_set_slptr_high();
   RF230_sleeping = 1;
