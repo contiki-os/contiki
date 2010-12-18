@@ -261,6 +261,9 @@ uart_send_byte(uint8_t byte)
     while(!(UCSR0A & (1 << UDRE0)))
         ;
     UDR0 = byte;
+
+    /* Clear the TXC bit to allow transmit complete test before sleep*/
+    UCSR0A |=(1 << TXC0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -341,7 +344,7 @@ uart_serial_rcv_frame(uint8_t wait_for_ack)
     volatile uint8_t ch;
     volatile uint8_t length;
     volatile uint8_t cmd;
-    volatile uint8_t payload[10];
+    volatile uint8_t payload[20];
     uint16_t i;
 
     if (!wait_for_ack && !rx_char_ready()){
@@ -374,7 +377,7 @@ uart_serial_rcv_frame(uint8_t wait_for_ack)
     }
 
     length = ch;
-    if (length > 10){
+    if (length > sizeof(payload)){
         /* invalid length */
         return;
     }
@@ -402,7 +405,7 @@ uart_serial_rcv_frame(uint8_t wait_for_ack)
         return uart_timeout_msg(7);
     }
 
-    /* Now print something based on rx'd frame */
+    /* Process the received command */
     switch (cmd){
         case REPORT_PING:
             /*
@@ -431,15 +434,18 @@ uart_serial_rcv_frame(uint8_t wait_for_ack)
             beep();
             lcd_symbol_clr(LCD_SYMBOL_BELL);
             break;
+        case REPORT_TEXT_MSG:
+            /* Copy text message to menu buffer and fall through to beep */
+            /* Prezero in case no string terminator in command */
+            for (i=0;i<sizeof(top_menu_text);i++) top_menu_text[i]=0;
+            memcpy(&top_menu_text,(char *)payload,sizeof(top_menu_text)-1);  //leave zero byte at end        
         case REPORT_PING_BEEP:
             lcd_symbol_set(LCD_SYMBOL_BELL);
             beep();
             lcd_symbol_clr(LCD_SYMBOL_BELL);
             break;
-        case REPORT_TEXT_MSG:
-            /* Get text message, print to lcd. */
-            lcd_puts((char *)payload);
-            beep();
+        case REPORT_WAKE:
+            /* Indicates 1284 is awake*/
             break;
         default:
             break;

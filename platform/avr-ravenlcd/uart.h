@@ -48,29 +48,12 @@
 /** \{ */
 #define SOF_CHAR            (0x01)  /**< Start-of-frame character. */
 #define EOF_CHAR            (0x04)  /**< End-of-frame character. */
-#define TERM_CHAR           (0x14)  /**< Control-T ASCII value for entering terminal mode. */
 /** \} */
-
-
-/** \name Define Lengths. */
-/** \{ */
-#define MAX_CMD_LENGTH      (0x0A)
-#define ACK_LENGTH          (0x02)
-/** \} */
-
-/** \name Define IO result values. */
-/** \{ */
-#define IO_SUCCESS          (0)
-#define IO_FAIL             (1)
-/** \} */
-
-#define LEN_BYTE            (0)
-#define CMD_BYTE            (1)
-#define BAUD_RATE_38400     (12)
 
 /* Macros & Defines */
 
 #define BUFSIZE 80
+#define BAUD_RATE_38400     (12)
 
 /** \brief Circular buffer structure */
 typedef struct {

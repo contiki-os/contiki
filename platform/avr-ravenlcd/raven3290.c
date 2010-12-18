@@ -84,11 +84,14 @@
  *  The following commands are used to control the 1284p.
  *   -# <b>SEND_TEMP - (0x80)</b>
  *   -# <b>SEND_PING - (0x81)</b>
+ *...-# <b>SEND_SLEEP- (0x82)</b>
+ *...-# <b>SEND_WAKE - (0x83)</b>
  *
  *  The following commands are used to update the 3290p.
- *   -# <b>REPORT_PING - (0xC0)</b>
+ *   -# <b>REPORT_PING      - (0xC0)</b>
  *   -# <b>REPORT_PING_BEEP - (0xC1)</b>
- *   -# <b>REPORT_TEXT_MSG - (0xC2)</b>
+ *   -# <b>REPORT_TEXT_MSG  - (0xC2)</b>
+ *   -# <b>REPORT_WAKE      - (0xC3)</b>
 */
 /*
  *  Copyright (c) 2008  Swedish Institute of Computer Science
@@ -170,7 +173,9 @@ const char menu_text12[];
 const char menu_text13[];
 const char menu_text14[];
 const char menu_text15[];
-const tmenu_item menu_items[16];
+const char menu_text16[];
+const char menu_text17[];
+const tmenu_item menu_items[18];
 #else  /* !DOXYGEN */
 /** \brief This is the menu text in Flash. See menu_items[] for menu operation. */
 const char menu_text0[] PROGMEM =  "CONTIKI";
@@ -189,6 +194,8 @@ const char menu_text12[] PROGMEM = "DBG ON";
 const char menu_text13[] PROGMEM = "DBG OFF";
 const char menu_text14[] PROGMEM = "SENT";
 const char menu_text15[] PROGMEM = "SENDING";
+const char menu_text16[] PROGMEM = "SLEEP";
+const char menu_text17[] PROGMEM = "DOZE";
 
 /*---------------------------------------------------------------------------*/
 
@@ -200,10 +207,10 @@ const char menu_text15[] PROGMEM = "SENDING";
  *
  *   { text, left, right, up, down, *state, tmenufunc enter_func}
 */
-const PROGMEM tmenu_item menu_items[16]  = {
+const PROGMEM tmenu_item menu_items[18]  = {
     {menu_text0,   0,  2,  0,  0, 0,                       0                  },
     {menu_text1,   0,  2,  0,  0, 0,                       0                  },
-    {menu_text2,   0,  3, 11,  4, 0,                       menu_ping_request  },
+    {menu_text2,   0,  3, 17,  4, 0,                       menu_ping_request  },
     {menu_text3,   2,  2,  2,  2, 0,                       0                  },
     {menu_text4,   0,  5,  2, 11, 0,                       0                  },
     {menu_text5,   4,  6,  8,  8, 0,                       0                  },
@@ -212,11 +219,15 @@ const PROGMEM tmenu_item menu_items[16]  = {
     {menu_text8,   4,  9,  5,  5, 0,                       0                  },
     {menu_text9,   8, 14, 10, 10, (uint8_t*)0,             menu_prepare_temp  },
     {menu_text10,  8, 15,  9,  9, (uint8_t*)1,             menu_prepare_temp  },
-    {menu_text11,  0, 12,  4,  2, 0,                       0                  },
+    {menu_text11,  0, 12,  4, 16, 0,                       0                  },
     {menu_text12, 11, 11, 13, 13, (uint8_t*)1,             menu_debug_mode    },
     {menu_text13, 11, 11, 12, 12, (uint8_t*)0,             menu_debug_mode    },
     {menu_text14, 9,  14, 14, 14, 0,                       0                  },
     {menu_text15, 10, 15, 15, 15, 0,                       0                  },
+ //   {menu_text16,  0, 16, 11, 17, (uint8_t*)&menu_text16,  menu_run_sleep     },
+ //   {menu_text17,  0, 17, 16,  2, (uint8_t*)&menu_text17,  menu_run_doze      },
+    {menu_text16,  0, 16, 11, 17, (uint8_t*)1,  menu_run_sleep     },//display "sleep" on wake
+    {menu_text17,  0, 17, 16,  2, (uint8_t*)1,  menu_run_doze      },//display "doze" on wake
 };
 #endif /* !DOXYGEN */
 
@@ -248,20 +259,31 @@ read_menu(uint8_t ndx)
 /*---------------------------------------------------------------------------*/
 
 /**
- *   \brief This will toggle the CONTIKI and 6LOWPAN LCD menus only in the main
- *   menu position.
+ *   \brief This will toggle the CONTIKI and 6LOWPAN LCD menus in the main
+ *   menu position, unless alternate text has been sent from the 1284p.
+ *   The other menus will display normally.
 */
+char top_menu_text[20];
 void
 check_main_menu(void)
 {
+uint8_t showtop=0;
+
     if(menu.text == menu_text0){
         read_menu(1);
-        lcd_puts_P(menu.text);
+        showtop=1;
     }
     else if(menu.text == menu_text1){
         read_menu(0);
-        lcd_puts_P(menu.text);
+        showtop=1;
     }
+    if (showtop) {
+        if (top_menu_text[0]) {
+            lcd_puts(top_menu_text);
+            return;
+        }
+    }
+    lcd_puts_P(menu.text);
 }
 
 /*---------------------------------------------------------------------------*/
