@@ -40,6 +40,7 @@
  */
 
 #include <avr/eeprom.h>
+#include <util/delay.h>
 #include "menu.h"
 #include "main.h"
 #include "lcd.h"
@@ -47,7 +48,9 @@
 #include "uart.h"
 #include "sleep.h"
 #include "temp.h"
+#include "beep.h"
 
+uint8_t sleep_count;
 uint8_t ping_count;
 uint8_t ping_response;
 bool ping_mode;
@@ -156,40 +159,43 @@ eeprom_init(void)
 /**
  *   \brief This will start a sleep operation.
  *
- *   \param val Used for rembering the new menu to display after a wakeup.
+ *   \param val Used for remembering the new menu to display after a wakeup.
 */
 void
 menu_run_sleep(uint8_t *val)
 {
-    /* Turn off LED */
+    /* Turn off LED, LCD, ADC, Timer 1, SPI */
     led_off();
-
-    /* Turn off Timer 1, SPI, uart */
+    lcd_deinit();
+ 	key_deinit();
     PRR |= (1 << PRTIM1) | (1 << PRSPI);
 
-    /* Turn off the LCD display for sleeping */
-    lcd_deinit();
+    /* Tell the 1284P to turn off the radio and sleep */
+	sleep_count=0;
+    uart_serial_send_frame(SEND_SLEEP, 1, (uint8_t *)&sleep_count);
 
-    /* Turn off A/D converter */
-    key_deinit();
+    /* Turn off UART when transmission is complete */
+	while(!(UCSR0A & (1 << TXC0)));
+    _delay_us(10000); //deinit trash clears done flag on 1284p
+	uart_deinit();
 
-    /* Go to sleep now */
-    sleep_now();
+    /* Go to sleep until button is pushed */
+    sleep_now(0);
 
-    /* Wake up LCD Display */
+    /* Yawn, waking up, turn on LCD with Raven Logo */
     lcd_init();
-
-    /* Tell user we're waking up */
-    lcd_puts_P(PSTR("WAKE---"));
-
-    /* Turn on Raven logo */
     lcd_symbol_set(LCD_SYMBOL_RAVEN);
 
-    /* Wake up ADC */
+	/* Disable interrupts before powering everything up */
+    cli();
     key_init();
+    PRR &= ~((1 << PRTIM1) | (1 << PRSPI));
+ 	uart_init();
 
-    /* Wake up radio */
+    /* Enable interrupts, Wake up 1284p and radio */
+	sei();
     sleep_wakeup();
+//	uart_init();//flush receive buffer
 
     /* Wait for buttons up */
     while (key_state_get() != KEY_NO_KEY)
@@ -197,9 +203,53 @@ menu_run_sleep(uint8_t *val)
     if (is_button()){
         get_button();
     }
+}
+/*---------------------------------------------------------------------------*/
 
-    /* Print last menu tex */
-    lcd_puts_P((char *)&val);
+/**
+ *   \brief This will start a sleep with wakes for temperature measurement and web requests.
+ *
+ *   \param val Used for remembering the new menu to display after a wakeup.
+*/
+void
+menu_run_doze(uint8_t *val)
+{
+    /* Turn off LED, LCD */
+    led_off();
+    lcd_deinit();
+
+    /* Debounce */
+    while (key_state_get() != KEY_NO_KEY) ;
+     
+    /* Stay in doze loop until button is pressed*/
+    while (ENTER_PORT & (1<<ENTER_PIN)) {
+ 
+     /* Tell 1284p to sleep for 4 seconds */
+	 /* It will ignore the request if TCP/IP sessions are active */
+		sleep_count=4;
+        uart_serial_send_frame(SEND_SLEEP, 1, (uint8_t *)&sleep_count);
+
+     /* Wait for transmission complete, then sleep 3290p for 5 seconds */
+ 		while(!(UCSR0A & (1 << TXC0)));
+//		uart_deinit();
+        sleep_now(sleep_count+1);
+//		uart_init();
+
+    /* 1284p should be awake by now, update temperature and give it time to process */
+		menu_send_temp();
+	    _delay_us(20000);
+ 	}
+
+    /* Wake LCD, turn on Raven logo */
+    lcd_init();
+    lcd_symbol_set(LCD_SYMBOL_RAVEN);
+    sleep_wakeup();
+    /* Wait for buttons up */
+    while (key_state_get() != KEY_NO_KEY)
+        ;
+    if (is_button()){
+        get_button();
+    }
 }
 
 /*---------------------------------------------------------------------------*/

@@ -41,9 +41,14 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <avr/wdt.h>
+#include <util/delay.h>
 #include <stdbool.h>
+#include "main.h"
 #include "sleep.h"
 #include "uart.h"
+#include "key.h"
+#include "timer.h"
+#include "lcd.h" //temp
 
 /**
  * \addtogroup lcd
@@ -55,53 +60,79 @@
 /**
  *   \brief Prepares for and executes sleep. This function sets up the
  *   processor to enter sleep mode, and to wake up when the joystick
- *   button (PE2/PCINT2) is pressed.
+ *   button (PE2/PCINT2) is pressed or after the specified interval.
+ *
+ *   \param howlong Seconds to sleep, 0=until button pushed
 */
 void
-sleep_now(void)
+sleep_now(int howlong)
 {
-    /* Disable watchdog */
+    /* Disable watchdog (not currently used elsewhere) */
     wdt_disable();
 
     /* Setup sleep mode */
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    if (howlong==0) {
+        set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+        MCUCR |= (1<<JTD);                      //Disable JTAG so clock can stop
+    } else {
+        set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+        /* Using 8 bit TIMER2 */
+        TCNT2  = 0;
+        TCCR2A = (1<<CS22)|(1<<CS21)|(1<<CS20); //Prescale by 1024
+        TIMSK2 = (1<<TOIE2);                    //Enable overflow interrupt
+        howlong*=30;                            //which is approximately 30 Hz
 
-    /* Enable wakeup interrupt */
+        /* Using 16 bit TIMER1, which takes a bit more power
+        timer_stop;                             //Disable interrupt
+        timer_init;                             //make sure initialized for 1 second
+        timer_start;                            //Start timer, enable interrupt
+        */
+    }
+
+    /* Enable pin change 0 wakeup interrupt */
     EIMSK |= (1 << PCIE0);
-    /* Enable PCINT2 as interrupt */
+    /* Select joystick button input pin */
     PCMSK0 |= (1 << PCINT2);
 
-    /* Go to sleep now */
-    sleep_mode();
+    /* Sleep until timeout or button pushed */
+    while (ENTER_PORT & (1<<ENTER_PIN)) {
+        sleep_mode();
+        if (!howlong--) break;
+    }
 
-    /* Disable the interrupt for the enter button */
+    /* Disable the interrupts for the enter button and TIMER2 */
     EIMSK &= ~(1 << PCIE0);
+    PCMSK0&= ~(1 <<PCINT2);
+    TIMSK2&= ~(1 << TOIE2);
 }
 
 /*---------------------------------------------------------------------------*/
 
 /**
- *   \brief This will send a single character forever to the ATmega1284p to cause a wakeup.
+
+ *   \brief This will send a wakeup command to ATmega1284p
+ *   It may already be awake, if not it will respond during the next wake cycle
+ *   Upon receiving the command it will return an acknowledgement frame
  *
+ *   \brief This will send a single character forever to the ATmega1284p to cause a wakeup.
  *   The 1284p polls the USART for new data during each sleep cycle.  Upon receiving a
  *   character from the user LCD, it will wake up and send an acknowledgement frame.
 */
 void
 sleep_wakeup(void)
 {
-    /* First, clear the input buffer and get any chars waiting */
-    while(rx_char_ready()){
-        uart_get_char_rx();
+    lcd_puts_P(PSTR("WAKE 1284p"));
+
+	/* Flood 1284p with wake commands until it responds*/
+    for(;;){
+        uart_serial_send_frame(SEND_WAKE,0,0);
+	    _delay_us(1000);
+        if (rx_char_ready())
+           break;
     }
 
-    /* Flood 1284p with serial chars until it responds. */
-    for(;;){
-        uart_send_byte('x');
-        if (rx_char_ready())
-            break;
-    }
     /* Get a frame back */
-    uart_serial_rcv_frame(true);
+	uart_serial_rcv_frame(true);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -113,6 +144,17 @@ sleep_wakeup(void)
 */
 ISR
 (PCINT0_vect)
+{
+
+}
+/*---------------------------------------------------------------------------*/
+
+/**
+ *   \brief This is the timer2 overflow interrupt. When this interrupt fires,
+ *   the CPU will wake.
+*/
+ISR
+(TIMER2_OVF_vect)
 {
 
 }

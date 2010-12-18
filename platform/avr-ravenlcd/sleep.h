@@ -42,7 +42,7 @@
 #define __SLEEP_H__
 
 /* Prototypes */
-void sleep_now(void);
+void sleep_now(int howlong);
 void sleep_wakeup(void);
 
 #endif /* __SLEEP_H__ */

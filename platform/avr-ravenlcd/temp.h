@@ -72,7 +72,7 @@ typedef enum {
  *
  * \return                              EOF on error
  */
-//#define MEASURE_ADC2 1    //adds 250 bytes to program size
+#define MEASURE_ADC2 1    //adds 250 bytes to program size
 int temp_init(void);
 
 

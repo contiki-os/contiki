@@ -65,10 +65,12 @@ extern bool timeout_flag;
 extern bool temp_flag;
 extern bool auto_temp;
 extern const PROGMEM tmenu_item menu_items[];
+char top_menu_text[20];
 
 #define EEPROM_DEBUG_ADDR   0
 
 void menu_run_sleep(uint8_t *val);
+void menu_run_doze(uint8_t *val);
 void dectoascii(uint8_t val, char *str);
 uint8_t *signed_dectoascii(int16_t n, uint8_t *str);
 void eeprom_init(void);
