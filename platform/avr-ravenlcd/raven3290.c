@@ -1,8 +1,8 @@
 /*
- *     \mainpage ATmega3290p LCD Driver Software for Raven
+ *     \mainpage ATmega3290p LCD Driver Software for Contiki Raven
 */
 /**
- *     \image html raven.png
+ *     \image html raven3290p.jpg
  *     \ingroup platform
  *     \defgroup lcdraven RZRAVEN LCD 3290p
  *
@@ -15,22 +15,17 @@
  *
  *     \section compile_lcd Compiling Raven LCD Driver
  *
- *  Raven LCD Driver can be compiled on the following platforms:
+ *  The Raven LCD Driver is located in /platforms/avr-ravenlcd but it is not a contiki platform.
+ *  $make TARGET=avr-ravenlcd will not work! Build it using the AVR Studio project and WinAVR or
+ *  in Linux/Windows cmd/Cygwin $make in that directory. The AVR Studio dependency folder will confuse
+ *  additional makes, use $make CYG=1 to bypass /dep creation or do $rm -R dep as needed.
+ *   The .h file dependencies will be lost, so also $make CYG=1 clean after modifying any of those.
  *
- *   -# <b>WinAvr + AVR Studio (AVR-GCC).</b>  The @b ravenlcd_3290.aps file is used by AVR
- *      Studio.  If you have WinAVR and AVR Studio installed, ravenlcd can be
- *      compiled and developed using free tools.  The Makefile.avr-ravenlcd is not
- *      used with AVR Studio.
- *   -# <b>AVR-GCC on Linux.</b>  The <b>Makefile.avr-ravenlcd</b> file is to be used for Linux.
- *      Be sure you have a recent toolchain installed, including patches
- *      required for GCC/avr-libc to recognize new devices.  The avr-libc
- *      webpage includes a concise guide on how to patch and build the AVR
- *      toolchain.
  *
  *     \section fuses_lcd Board fuse settings
  *
- *  The Raven LCD (3290p device) requires the proper fuse settings to function
- *  properly. These settings have been summarized below:
+ *  The Raven LCD (3290p device) requires the proper fuse settings to function properly.
+ *  They are automatically set when flashing the .elf file. When using a .hex file set them manually:
  *   -# Raven LCD (3290p device)
  *      -# Extended: <b>0xFF</b> (No Brown Out)
  *      -# High: <b>0x99</b> (JTAG and ISP enabled, No OCDEN or EEPROM saving required)
@@ -45,7 +40,7 @@
  *
  *  Operating the menu requires that the matching command set has been programmed into
  *  the ATmega1284 application. This will allow the menu to communicate properly and control the
- *  Contiki 6LoWPAN applcation.
+ *  Contiki 6LoWPAN applcation on the 1284p.
  *
  *  During normal operation, you will need to make note of these <b>IMPORTANT</b> operating instructions:
  *   -# <b>Temp Sensor</b> - The temperature sensor shares the same GPIO as the JTAG interface for the 3290p.
@@ -57,18 +52,17 @@
  *     \image html caution.gif
  *      -# The JTAG header may also need to be physically disconnected from any external
  *      programming/debugging device in order to obtain correct temperature readings.
+ *      -# The software will disable JTAG in sleep/doze modes. If the JTAG connection fails during
+ *       reprogramming with AVR Studio, "try again with external reset" to recover.
  *   -# <b>Temp Data</b> - Once the temperature reading is proper, the user can send this reading
  *   to the webserver for Sensor Reading Data (<b>Once</b> or <b>Auto</b>). The webserver will
  *   only update the html data when <b>refreshed</b>.
  *   -# <b>EXT_SUPL_SIG</b> - This signal connects the external supply voltage to ADC2 through a divider.
- *   Enabling MEASURE_ADC2 in temp.h causes it to be sampled and sent to the webserver along
+ *   Enabling MEASURE_ADC2 in temp.h causes it to be sampled and sent to the 1284p along
  *   with the temperature.
  *
- *   More information about the operation of the Contiki 6LoWPAN system can be found
- *   at the \ref tutorialraven.
- *
- *   More information about the 802.15.4 MAC designed for the Contiki 6LoWPAN system
- *   can be found at the \ref macdoc.
+ *   More information about the operation of the Raven with Contiki can be found in the contikiwiki at http://www.sics.se/~adam/wiki/index.php/Avr_Raven.
+ *   \sa http://www.sics.se/contiki/tutorials/tutorial-running-contiki-with-uipv6-and-sicslowpan-support-on-the-atmel-raven.html
  *
  *     \section binary_lcd Binary Command Description
  *
@@ -81,17 +75,34 @@
  *       -# <b>0x01</b> - Payload value (eg. ping Request number 1)
  *       -# <b>0x04</b> - End of binary command frame
  *
- *  The following commands are used to control the 1284p.
+ *  The following commands are sent to the 1284p.
  *   -# <b>SEND_TEMP - (0x80)</b>
  *   -# <b>SEND_PING - (0x81)</b>
- *...-# <b>SEND_SLEEP- (0x82)</b>
- *...-# <b>SEND_WAKE - (0x83)</b>
+ *   -# <b>SEND_ADC2 - (0x82)</b>
+ *   -# <b>SEND_SLEEP- (0x83)</b>
+ *   -# <b>SEND_WAKE - (0x84)</b>
  *
- *  The following commands are used to update the 3290p.
+ *  The following commands are received from the 1284p.
  *   -# <b>REPORT_PING      - (0xC0)</b>
  *   -# <b>REPORT_PING_BEEP - (0xC1)</b>
  *   -# <b>REPORT_TEXT_MSG  - (0xC2)</b>
  *   -# <b>REPORT_WAKE      - (0xC3)</b>
+ *
+ *     \section sleep_lcd Sleep and Doze
+ *   -# The Raven draws 27 milliamps when the 3290p and 1284p are both running and the RF230 in receive mode.
+ *   -# Sleeping the 3290p and LCD display drops this to 21 ma with no loss in contiki functionality.
+ *   -# The RF230 radio draws 15.5/16.5/7.8/1.5/0.02 ma in Rx/Tx/PLL_ON/TRX_OFF/SLEEP states.
+ *    It is controlled by contiki on the 1284p according to the selected MAC power protocols to obtain the
+ *    bulk of power savings; however the 3290p menu can tell it to sleep unconditionally or in a doze cycle.
+ *   -# Unconditional SLEEP requires pushing the joystick button for wakeup. Once awake the 3290p sends
+ *    SEND_WAKE commands to the 1284p until it responds with a REPORT_WAKE. "WAIT 1284p" is displayed during this time.
+ *    Current draw is 40 microamps.
+ *   -# As configured, doze sleeps the 3290p for 5 seconds after telling 1284p to sleep for 4 seconds. The 3290p
+ *    wakes briefly to send temperature and voltage to the 1284p (which should be awake at this time), then tells it to
+ *    sleep again. Thus the 1284p will be active 20% of the time, although it may ignore the command to sleep
+ *    if there are active TCP connections.  The 3290p energy usage is essentially zero in this mode; total savings will
+ *    depend on actual 1284p wake time and radio usage. Alter the timings as desired, or comment out the 1284p sleep
+ *    command to shut down only the 3290p in doze mode.
 */
 /*
  *  Copyright (c) 2008  Swedish Institute of Computer Science

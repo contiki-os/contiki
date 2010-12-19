@@ -226,6 +226,7 @@ menu_run_doze(uint8_t *val)
  
      /* Tell 1284p to sleep for 4 seconds */
 	 /* It will ignore the request if TCP/IP sessions are active */
+     /* Alter these timings as desired, or comment out to sleep only the 3290p */
 		sleep_count=4;
         uart_serial_send_frame(SEND_SLEEP, 1, (uint8_t *)&sleep_count);
 
