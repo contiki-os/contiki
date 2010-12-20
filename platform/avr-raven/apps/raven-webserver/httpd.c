@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.5 2010/10/19 18:29:05 adamdunkels Exp $
+ * $Id: httpd.c,v 1.6 2010/12/20 20:06:06 dak664 Exp $
  */
 
 #include <string.h>
@@ -41,6 +41,7 @@
 #include "httpd-fs.h"
 #include "httpd-cgi.h"
 #include "httpd.h"
+#include "raven-lcd.h"
 
 //#include "http-strings.h"
 #if COFFEE_FILES
@@ -406,6 +407,18 @@ PT_THREAD(handle_input(struct httpd_state *s))
   } else {
     s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
     strncpy(s->filename, &s->inputbuf[0], sizeof(s->filename));
+{
+    /* Look for ?, if found strip file name and send any following text to the LCD */
+    uint8_t i;
+    for (i=0;i<sizeof(s->inputbuf);i++) {
+      if (s->inputbuf[i]=='?') {
+        raven_lcd_show_text(&s->inputbuf[i]);
+        if (i<sizeof(s->filename)) s->filename[i]=0;
+ //     s->inputbuf[i]=0; //allow multiple beeps with multiple ?'s
+      }
+      if (s->inputbuf[i]==0) break;
+    }
+}
   }
 
   webserver_log_file(&uip_conn->ripaddr, s->filename);
