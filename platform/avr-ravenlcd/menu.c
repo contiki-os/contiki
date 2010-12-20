@@ -57,7 +57,7 @@ bool ping_mode;
 bool timeout_flag;
 bool temp_flag;
 bool temp_mode;
-bool auto_temp;
+bool auto_temp=true;
 
 /**
  *  \addtogroup lcd
