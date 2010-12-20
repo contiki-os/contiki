@@ -435,10 +435,12 @@ uart_serial_rcv_frame(uint8_t wait_for_ack)
             lcd_symbol_clr(LCD_SYMBOL_BELL);
             break;
         case REPORT_TEXT_MSG:
-            /* Copy text message to menu buffer and fall through to beep */
+            /* Copy text message to menu buffer and play ringtone */
             /* Prezero in case no string terminator in command */
             for (i=0;i<sizeof(top_menu_text);i++) top_menu_text[i]=0;
-            memcpy(&top_menu_text,(char *)payload,sizeof(top_menu_text)-1);  //leave zero byte at end        
+            memcpy(&top_menu_text,(char *)payload,sizeof(top_menu_text)-1);  //leave zero byte at end
+            play_ringtone();
+            break;
         case REPORT_PING_BEEP:
             lcd_symbol_set(LCD_SYMBOL_BELL);
             beep();

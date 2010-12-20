@@ -268,13 +268,12 @@ read_menu(uint8_t ndx)
 }
 
 /*---------------------------------------------------------------------------*/
-
+char top_menu_text[20];
 /**
  *   \brief This will toggle the CONTIKI and 6LOWPAN LCD menus in the main
  *   menu position, unless alternate text has been sent from the 1284p.
  *   The other menus will display normally.
 */
-char top_menu_text[20];
 void
 check_main_menu(void)
 {
@@ -307,8 +306,8 @@ uint8_t showtop=0;
 void
 check_menu(void)
 {
-    if(menu.text == menu_text4){
-        menu_clear_temp();
+    if(menu.text == menu_text12){
+       menu_clear_temp();
     }
 
     if(menu.text == menu_text10){

@@ -53,5 +53,6 @@
 /** \} */
 
 void beep(void);
+void play_ringtone(void);
 
 #endif /* BEEP_H */
