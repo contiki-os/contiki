@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.22 2010/12/18 20:49:00 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.23 2010/12/21 04:25:15 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -61,13 +61,14 @@
 
 #define WITH_SEND_CCA 0
 
+/* Timestamps have not been tested */
 #if RF230_CONF_TIMESTAMPS
 #include "net/rime/timesynch.h"
 #define TIMESTAMP_LEN 3
 #else /* RF230_CONF_TIMESTAMPS */
 #define TIMESTAMP_LEN 0
 #endif /* RF230_CONF_TIMESTAMPS */
-//#define FOOTER_LEN 2
+/* Nonzero FOOTER_LEN has not been tested */
 #define FOOTER_LEN 0
 
 #ifndef RF230_CONF_CHECKSUM
@@ -92,7 +93,11 @@ static bool is_promiscuous;
 #endif /* RF230_CONF_CHECKSUM */
 #define CHECKSUM_LEN 2
 
+/* Note the AUC_LEN is equal to the CHECKSUM_LEN in any tested configurations to date! */
 #define AUX_LEN (CHECKSUM_LEN + TIMESTAMP_LEN + FOOTER_LEN)
+#if AUX_LEN != CHECKSUM_LEN
+#warning RF230 Untested Configuration!
+#endif
 
 struct timestamp {
   uint16_t time;
@@ -112,11 +117,20 @@ struct timestamp {
 
 #define DEBUG 0
 #if DEBUG
-#define PRINTF(...) //printf(__VA_ARGS__)
-#define PRINTSHORT(...) printf(__VA_ARGS__)
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#define PRINTSHORT(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
 #else
 #define PRINTF(...)
-#define PRINTSHORT(...) //printf(__VA_ARGS__)
+#define PRINTSHORT(...)
+#endif
+#if DEBUG>1
+/* Output format is suitable for text2pcap to convert to wireshark pcap file.
+ * Use $text2pcap -e 0x809a (these_outputs) capture.pcap
+ * Since the hardware calculates and appends the two byte checksum to Tx packets,
+ * we just add two zero bytes to the packet dump. Don't forget to enable wireshark
+ * 802.15.4 dissection even when the checksum is wrong!
+ */
+//int wireshark_offset;
 #endif
 
 /* See clock.c and httpd-cgi.c for RADIOSTATS code */
@@ -643,6 +657,19 @@ rf230_transmit(unsigned short payload_len)
   hal_set_slptr_low();
   hal_frame_write(buffer, total_len);
 
+  PRINTF("rf230_transmit:\n");
+#if DEBUG>1
+/* Note the dumped packet will have a zero checksum since we don't know what it should be */
+  {
+    uint8_t i;
+    PRINTF("0000");       //Start a new wireshark packet
+//    PRINTF("%02x%02x ", wireshark_offset>>8, wireshark_offset & 0xff);
+    for (i=0;i<total_len-CHECKSUM_LEN;i++) PRINTF(" %02x",buffer[i]);
+    PRINTF(" 00 00\n");  //Checksum
+//    wireshark_offset += total_len;
+  }
+#endif
+
   if(RF230_receive_on) {
     ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   }
@@ -870,7 +897,7 @@ void
 rf230_set_channel(uint8_t c)
 {
  /* Wait for any transmission to end. */
-//  PRINTF("rf230: Set Channel %u\n",c);
+  PRINTF("rf230: Set Channel %u\n",c);
   rf230_waitidle();
   channel=c;
   hal_subregister_write(SR_CHANNEL, c);
@@ -1021,9 +1048,11 @@ PROCESS_THREAD(rf230_process, ev, data)
 
   PROCESS_END();
 }
-// Get packet from Radio if any, else return zero.
-// At present the last frame is buffered in the interrupt routine so it does
-// not access the hardware or change its status
+/* Get packet from Radio if any, else return zero.
+ * The two-byte checksum is appended but the returned length does not include it.
+ * At present the last frame is buffered in the interrupt routine so this routine
+ * does not access the hardware or change its status
+ */
 /*---------------------------------------------------------------------------*/
 static int
 rf230_read(void *buf, unsigned short bufsize)
@@ -1038,8 +1067,8 @@ rf230_read(void *buf, unsigned short bufsize)
 #if RF230_CONF_TIMESTAMPS
   struct timestamp t;
 #endif /* RF230_CONF_TIMESTAMPS */
-
- len=rxframe.length;
+  /* The length includes the twp-byte checksum but not the LQI byte */
+  len=rxframe.length;
   if (len==0) {
 #if RADIOALWAYSON && DEBUGFLOWSIZE
    if (RF230_receive_on==0) {if (debugflow[debugflowsize-1]!='z') DEBUGFLOW('z');} //cxmac calls with radio off?
@@ -1051,12 +1080,6 @@ rf230_read(void *buf, unsigned short bufsize)
 if (RF230_receive_on) {
 #endif
 
-// PRINTSHORT("r%d",rxframe.length);  
-  PRINTF("rf230_read: %u bytes lqi %u crc %u\n",rxframe.length,rxframe.lqi,rxframe.crc);
-#if DEBUG>1
-    for (len=0;len<rxframe.length;len++) PRINTF(" %x",rxframe.data[len]);PRINTF("\n");
-#endif
-
 #if RF230_CONF_TIMESTAMPS
   if(interrupt_time_set) {
     rf230_time_of_arrival = interrupt_time;
@@ -1066,6 +1089,20 @@ if (RF230_receive_on) {
   }
   rf230_time_of_departure = 0;
 #endif /* RF230_CONF_TIMESTAMPS */
+
+// PRINTSHORT("r%d",rxframe.length);  
+  PRINTF("rf230_read: %u bytes lqi %u crc %u\n",rxframe.length,rxframe.lqi,rxframe.crc);
+#if DEBUG>1
+ {
+    uint8_t i;
+    PRINTF("0000");
+ //   PRINTF("%02x%02x ", wireshark_offset>>8, wireshark_offset & 0xff);
+    for (i=0;i<rxframe.length;i++) PRINTF(" %02x",rxframe.data[i]);    
+ //   wireshark_offset += rxframe.length;
+    PRINTF("\n");
+  }
+#endif
+
 // GET_LOCK();
 
 //if(len > RF230_MAX_PACKET_LEN) {
@@ -1095,13 +1132,14 @@ if (RF230_receive_on) {
 //    RELEASE_LOCK();
     return 0;
   }
- /* Transfer the frame, stripping the footer */
+ /* Transfer the frame, stripping the footer, but copying the checksum */
   framep=&(rxframe.data[0]);
   memcpy(buf,framep,len-AUX_LEN+CHECKSUM_LEN);
-  framep+=len-AUX_LEN;
+
   /* Clear the length field to allow buffering of the next packet */
   rxframe.length=0;
-  
+ /* Point to the checksum */
+  framep+=len-AUX_LEN; 
 #if RF230_CONF_CHECKSUM
   memcpy(&checksum,framep,CHECKSUM_LEN);
 #endif /* RF230_CONF_CHECKSUM */
@@ -1161,25 +1199,11 @@ if (RF230_receive_on) {
   }
 #endif
 
-  /* Clean up in case of FIFO overflow!  This happens for every full
-   * length frame and is signaled by FIFOP = 1 and FIFO = 0.
-   */
- // if(FIFOP_IS_1 && !FIFO_IS_1) {
-    /*    printf("rf230_read: FIFOP_IS_1 1\n");*/
- //   flushrx();
- // } else if(FIFOP_IS_1) {
-    /* Another packet has been received and needs attention. */
-    /*    printf("attention\n");*/
- //   process_poll(&rf230_process);
-//  }
-
- // RELEASE_LOCK();
-
 #ifdef RF230BB_HOOK_RX_PACKET
   RF230BB_HOOK_RX_PACKET(buf,len);
 #endif
 
-
+  /* Here return just the data length. The checksum is however still in the buffer for packet sniffing */
   return len - AUX_LEN;
 
 #if RADIOALWAYSON
