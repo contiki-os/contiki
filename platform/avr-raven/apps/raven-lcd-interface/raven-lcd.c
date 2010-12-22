@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.9 2010/12/18 20:40:46 dak664 Exp $
+ * $Id: raven-lcd.c,v 1.10 2010/12/22 16:50:31 dak664 Exp $
 */
 
 /**
@@ -159,25 +159,36 @@ send_frame(uint8_t cmd, uint8_t len, uint8_t *payload)
     rs232_send(0, EOF_CHAR);
 }
 char serial_char_received;
-
 /*---------------------------------------------------------------------------*/
-/* Sleep for howlong seconds using TIMER2, or forever if howlong==0*/
+/* Sleep for howlong seconds, or until UART interrupt if howlong==0.
+ * Uses TIMER2 with external 32768 Hz crystal to sleep in 1 second multiples.
+ * TIMER2 may have already been set up for 125 ticks/second in clock.c
+ * If so the clock is adjusted to reflect the sleep time
+ *
+ * Until someone figures out how to get UART to wake from powerdown,
+ * a three second powersave cycle is used with exit based on any character received.
+ */
 
 void micro_sleep(uint8_t howlong)
 {
-    uint8_t saved_sreg = SREG;
+    uint8_t saved_sreg = SREG, saved_howlong = howlong;
+#if AVR_CONF_USE32KCRYSTAL
+/* Save TIMER2 configuration if clock.c is using it */
+    uint8_t savedTCNT2=TCNT2, savedTCCR2A=TCCR2A, savedTCCR2B = TCCR2B, savedOCR2A = OCR2A;
+#endif
 
 //    if (howlong==0) {
-//        set_sleep_mode(SLEEP_MODE_PWR_DOWN);    //Sleep until UART interrupt
+//        set_sleep_mode(SLEEP_MODE_PWR_DOWN);  // UART can't wake from powerdown
 //     } else {
-        set_sleep_mode(SLEEP_MODE_PWR_SAVE);    //Sleep for howlong seconds
-        cli();                                  //Disable interrupts for the present
-        ASSR |= (1 << AS2);                     //Set TIMER2 asyncronous
-        TCCR2B|=((1<<CS22)|(1<<CS21)|(1<<CS20));//Prescale by 1024.
-        while(ASSR & (1 << TCR2BUB));           // Wait for TCNT2 write to finish.
-        OCR2A = howlong*25;                     // Set TIMER2 output compare register
-        if (howlong==0) OCR2A=100;              // About 3 seconds
-        while(ASSR & (1 << OCR2AUB));           // Wait for OCR2 write to finish.
+        set_sleep_mode(SLEEP_MODE_PWR_SAVE);    // Sleep for howlong seconds
+        if (howlong==0) howlong=3;              // 3*32/(32768/1024) = 3 second sleep cycle if not specified
+        cli();                                  // Disable interrupts for the present
+        ASSR |= (1 << AS2);                     // Set TIMER2 asyncronous from external crystal
+        TCCR2A =(1<<WGM21);                     // CTC mode
+        TCCR2B =((1<<CS22)|(1<<CS21)|(1<<CS20));// Prescale by 1024 = 32 ticks/sec
+//      while(ASSR & (1 << TCR2BUB));           // Wait for TCNT2 write to finish.
+        OCR2A = howlong*32;                     // Set TIMER2 output compare register
+//      while(ASSR & (1 << OCR2AUB));           // Wait for OCR2 write to finish.
         SREG = saved_sreg;                      // Restore interrupt state.
 //      UCSR(USART,B)&= ~(1<<RXCIE(USART))      // Disable the RX Complete interrupt;
 //      UCSR0B|=(1<<RXCIE0);                    // Enable UART0 RX complete interrupt
@@ -186,34 +197,57 @@ void micro_sleep(uint8_t howlong)
 //      while(ASSR & (1 << TCN2UB));            // Wait for TCNT2 write to finish before entering sleep.
 //      TIMSK2 |= (1 << OCIE2A);                // Enable TIMER2 output compare interrupt.
 //    }
+
+    TCNT2 = 0;                                  // Reset timer
     watchdog_stop();                            // Silence annoying distractions
+    while(ASSR & (1 << TCN2UB));                // Wait for TCNT2 write to (which assures TCCR2x and OCR2A are finished!)
+    TIMSK2 |= (1 << OCIE2A);                    // Enable TIMER2 output compare interrupt
     SMCR |= (1 <<  SE);                         // Enable sleep mode.
     while (1) {
-       TCNT2 = 0;                               // Reset TIMER2 timer counter value.
-       while(ASSR & (1 << TCN2UB));             // Wait for TCNT2 write to finish before entering sleep.
-       TIMSK2 |= (1 << OCIE2A);                 // Enable TIMER2 output compare interrupt.
+//    TCNT2 = 0;                                // Cleared automatically in CTC mode
+//     while(ASSR & (1 << TCN2UB));             // Wait for TCNT2 write to finish before entering sleep.
        serial_char_received=0;                  // Set when chars received by UART
-       sleep_mode();                            //Sleep
-//     if (TIMSK2&(1<<OCIE2A)) break;           //Exit sleep if not awakened by TIMER2
+       sleep_mode();                            // Sleep
+
+/* Adjust clock.c for the time sleeping */
+/* TODO:keep track of realtime, ontime, and radioontime */
+       extern void clock_adjust_seconds(uint8_t howmany);
+       clock_adjust_seconds(howlong);
+
+//     if (TIMSK2&(1<<OCIE2A)) break;           // Exit sleep if not awakened by TIMER2
        PRINTF(".");
-       if (howlong) break;                      //Exit sleep if nonzero time specified
+       if (saved_howlong) break;                // Exit sleep if nonzero time specified
 //     PRINTF("%d",serial_char_received);
        if (serial_char_received) break;
    }
 
-    SMCR  &= ~(1 << SE);              //Disable sleep mode after wakeup
-    TIMSK2 &= ~(1 << OCIE2A);         //and TIMER2 interrupt
+    SMCR  &= ~(1 << SE);                        //Disable sleep mode after wakeup
+
+#if AVR_CONF_USE32KCRYSTAL
+/* Restore clock.c configuration */
+//  OCRSetup();
+    cli();
+    TCCR2A = savedTCCR2A;
+    TCCR2B = savedTCCR2B;
+    OCR2A  = savedOCR2A;
+    TCNT2  = savedTCNT2;
+    sei();
+#else
+    TIMSK2 &= ~(1 << OCIE2A);                   //Disable TIMER2 interrupt
+#endif
+
     watchdog_start();
 }
-
+#if !AVR_CONF_USE32KCRYSTAL
 /*---------------------------------------------------------------------------*/
 /* TIMER2 Interrupt service */
 
 ISR(TIMER2_COMPA_vect)
 {
 //    TIMSK2 &= ~(1 << OCIE2A);       //Just one interrupt needed for waking
-
 }
+#endif /* !AVR_CONF_USE32KCRYSTAL */
+
 #if DEBUGSERIAL
 u8_t serialcount;
 char dbuf[30];
