@@ -31,19 +31,19 @@ extern uint8_t RF230_receive_on;
   For longer intervals a 32 bit global is incremented every second. 
  
   clock-avr.h contains the specific setup code for each mcu.
-  
-  The 1284p can use TIMER2 with external 32768 Hz clock at 125 ticks/sec.
-  The 1284p routine also uses TIMER2 to sleep a variable number of seconds.
-  It calls this routine to adjust the clock after a sleep.
+
 */
-#if AVR_CONF_USE32KCRYSTAL
+/*---------------------------------------------------------------------------*/
+/* This routine can be called to add seconds to the clock after a sleep
+ * of an integral number of seconds.
+ * TODO:keep separate track of elapsed time, cpu ontime, and radioontime
+ */
 void clock_adjust_seconds(uint8_t howmany) {
    seconds += howmany;
 #if RADIOSTATS
   if (RF230_receive_on) radioontime += howmany;
 #endif
 }
-#endif
 /*---------------------------------------------------------------------------*/
 //SIGNAL(SIG_OUTPUT_COMPARE0)
 ISR(AVR_OUTPUT_COMPARE_INT)
