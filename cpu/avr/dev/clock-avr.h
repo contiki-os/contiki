@@ -41,6 +41,8 @@
   The Raven has a 32768Hz watch crystal that can be used to clock the timer
   while the 1284p is sleeping. The Jackdaw has pads for a crystal. The crystal
   can be used to clock the 8 bit timer2.
+  The 1284p routine also uses TIMER2 to sleep a variable number of seconds.
+  It restores the values here after a wake.
 */
 #if AVR_CONF_USE32KCRYSTAL
 #define AVR_OUTPUT_COMPARE_INT TIMER2_COMPA_vect
