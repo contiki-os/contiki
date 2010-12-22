@@ -5,7 +5,7 @@ else
 endif
 
 all:
-	${MAKE} -f Makefile.webserver TARGET=avr-raven webserver6.elf
+	${MAKE} -f Makefile.webserver TARGET=avr-raven NOAVRSIZE=1 webserver6.elf
 #can't just rename, webserver6 may be open in debugger
 	@if [ $(OUTFILE) != "webserver6" ]; then cp webserver6.elf $(OUTFILE).elf;fi
 	avr-objcopy -O ihex -R .eeprom -R .fuse -R .signature $(OUTFILE).elf $(OUTFILE).hex
