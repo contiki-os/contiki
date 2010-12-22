@@ -81,7 +81,7 @@
 #define HAL_TRX_CMD_FR         (0x20) /**<  Frame Receive Mode (long mode). */
 #define HAL_TRX_CMD_SW         (0x40) /**<  SRAM Write. */
 #define HAL_TRX_CMD_SR         (0x00) /**<  SRAM Read. */
-#define HAL_TRX_CMD_RADDRM     (0x3F) /**<  Register Address Mask. */
+#define HAL_TRX_CMD_RADDRM     (0x7F) /**<  Register Address Mask. */
 
 #define HAL_CALCULATED_CRC_OK   (0) /**<  CRC calculated over the frame including the CRC field should be 0. */
 /*============================ TYPDEFS =======================================*/
