@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.23 2010/12/21 04:25:15 dak664 Exp $
+ * @(#)$Id: rf230bb.c,v 1.24 2010/12/22 20:10:00 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -71,6 +71,7 @@
 /* Nonzero FOOTER_LEN has not been tested */
 #define FOOTER_LEN 0
 
+/* RF230_CONF_CHECKSUM=0 for automatic hardware checksum */
 #ifndef RF230_CONF_CHECKSUM
 #define RF230_CONF_CHECKSUM 0
 #endif /* RF230_CONF_CHECKSUM */
@@ -610,9 +611,6 @@ rf230_transmit(unsigned short payload_len)
 #if RF230_CONF_TIMESTAMPS
   struct timestamp timestamp;
 #endif /* RF230_CONF_TIMESTAMPS */
-#if RF230_CONF_CHECKSUM
-  uint16_t checksum;
-#endif /* RF230_CONF_CHECKSUM */
 
   GET_LOCK();
 //  DEBUGFLOW('T');
@@ -659,14 +657,14 @@ rf230_transmit(unsigned short payload_len)
 
   PRINTF("rf230_transmit:\n");
 #if DEBUG>1
-/* Note the dumped packet will have a zero checksum since we don't know what it should be */
+/* Note the dumped packet will have a zero checksum unless compiled with RF230_CONF_CHECKSUM
+ * since we don't know what it will be if calculated by the hardware.
+ */
   {
     uint8_t i;
     PRINTF("0000");       //Start a new wireshark packet
-//    PRINTF("%02x%02x ", wireshark_offset>>8, wireshark_offset & 0xff);
-    for (i=0;i<total_len-CHECKSUM_LEN;i++) PRINTF(" %02x",buffer[i]);
-    PRINTF(" 00 00\n");  //Checksum
-//    wireshark_offset += total_len;
+    for (i=0;i<total_len;i++) PRINTF(" %02x",buffer[i]);
+    PRINTF("\n");
   }
 #endif
 
@@ -1096,9 +1094,7 @@ if (RF230_receive_on) {
  {
     uint8_t i;
     PRINTF("0000");
- //   PRINTF("%02x%02x ", wireshark_offset>>8, wireshark_offset & 0xff);
     for (i=0;i<rxframe.length;i++) PRINTF(" %02x",rxframe.data[i]);    
- //   wireshark_offset += rxframe.length;
     PRINTF("\n");
   }
 #endif
@@ -1157,8 +1153,10 @@ if (RF230_receive_on) {
     PRINTF("checksum failed 0x%04x != 0x%04x\n",
       checksum, crc16_data(buf, len - AUX_LEN, 0));
   }
+#if FOOTER_LEN
   if(footer[1] & FOOTER1_CRC_OK &&
      checksum == crc16_data(buf, len - AUX_LEN, 0)) {
+#endif
 #endif /* RF230_CONF_CHECKSUM */
 
 /* Get the received signal strength for the packet, 0-84 dB above rx threshold */
@@ -1191,12 +1189,14 @@ if (RF230_receive_on) {
 #endif /* RF230_CONF_TIMESTAMPS */
 
 #if RF230_CONF_CHECKSUM
+#if FOOTER_LEN
   } else {
     DEBUGFLOW('X');
     PRINTF("bad crc");
     RIMESTATS_ADD(badcrc);
     len = AUX_LEN;
   }
+#endif
 #endif
 
 #ifdef RF230BB_HOOK_RX_PACKET
@@ -1254,9 +1254,10 @@ rf230_get_raw_rssi(void)
      rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84, resolution 1 dB
   } else {
 #if 0   // 3-clock shift and add is faster on machines with no hardware multiply
+/* avr-gcc may have an -Os bug that uses the general subroutine for multiplying by 3 */
      rssi = hal_subregister_read(SR_RSSI);      //0-28, resolution 3 dB
      rssi = (rssi << 1)  + rssi;                //*3
-#else  // Faster with 1-clock multiply. Raven and Jackdaw have 2-clock multiply so same speed while saving 2 bytes of program memory
+#else  // 1 or 2 clock multiply, or compiler with correct optimization
      rssi = 3 * hal_subregister_read(SR_RSSI);
 #endif
 

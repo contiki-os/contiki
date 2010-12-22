@@ -81,7 +81,7 @@
 #define HAL_TRX_CMD_FR         (0x20) /**<  Frame Receive Mode (long mode). */
 #define HAL_TRX_CMD_SW         (0x40) /**<  SRAM Write. */
 #define HAL_TRX_CMD_SR         (0x00) /**<  SRAM Read. */
-#define HAL_TRX_CMD_RADDRM     (0x7F) /**<  Register Address Mask. */
+#define HAL_TRX_CMD_RADDRM     (0x3F) /**<  Register Address Mask. */
 
 #define HAL_CALCULATED_CRC_OK   (0) /**<  CRC calculated over the frame including the CRC field should be 0. */
 /*============================ TYPDEFS =======================================*/
@@ -185,9 +185,10 @@ inline uint8_t spiWrite(uint8_t byte)
         else
             HAL_PORT_MOSI &= ~(1 << HAL_MOSI_PIN); //call MOSI.clr();
 
-        HAL_PORT_SCK &= ~(1 << HAL_SCK_PIN); //call SCLK.clr();
         if( (HAL_PORT_MISO & (1 << HAL_MISO_PIN)) > 0) //call MISO.get() )
             data |= mask;
+
+        HAL_PORT_SCK &= ~(1 << HAL_SCK_PIN); //call SCLK.clr();
         HAL_PORT_SCK |= (1 << HAL_SCK_PIN); //call SCLK.set();
     } while( (mask >>= 1) != 0 );
     return data;
@@ -253,7 +254,7 @@ hal_init(void)
 
     /* Set SS */
     HAL_PORT_SS |= (1 << HAL_SS_PIN); // HAL_SS_HIGH()
-    HAL_PORT_SCK |= (1 << HAL_SCK_PIN);
+    HAL_PORT_SCK &= ~(1 << HAL_SCK_PIN); // SCLK.clr()
 
     /*TIMER Specific Initialization.*/
     // Init count source (Timer B3)
