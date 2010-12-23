@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.12 2010/12/18 20:44:02 dak664 Exp $
+ * $Id: httpd-cgi.c,v 1.13 2010/12/23 19:41:07 dak664 Exp $
  *
  */
 
@@ -109,7 +109,7 @@ static const char *states[] = {
   static char sensor_temperature[12]="Not Enabled";
   static char sensor_extvoltage[12]="Not Enabled";
   static unsigned long last_tempupdate,last_extvoltageupdate;
-  extern unsigned long seconds;
+  extern unsigned long seconds, sleepseconds;
 #if RADIOSTATS
   extern unsigned long radioontime;
   static unsigned long savedradioontime;
@@ -392,17 +392,21 @@ generate_sensor_readings(void *arg)
 {
   uint16_t numprinted;
   uint16_t h,m,s;
+  uint8_t p1;
   static const char httpd_cgi_sensor0[] HTTPD_STRING_ATTR = "[Updated %d seconds ago]<br><br>";
-  static const char httpd_cgi_sensor1[] HTTPD_STRING_ATTR = "<em>Temperature:</em> %s<br>";
-  static const char httpd_cgi_sensor2[] HTTPD_STRING_ATTR = "<em>Voltage:</em> %s<br>";
-  static const char httpd_cgi_sensor3[] HTTPD_STRING_ATTR = "<em>Up time:</em> %02d:%02d:%02d<br>";
+//  static const char httpd_cgi_sensor1[] HTTPD_STRING_ATTR = "<em>Temperature:</em> %s<br>";
+//  static const char httpd_cgi_sensor2[] HTTPD_STRING_ATTR = "<em>Battery:</em> %s<br>";
+  static const char httpd_cgi_sensr12[] HTTPD_STRING_ATTR = "<em>Temperature:</em> %s    <em>Battery:<em> %s<br>";
+  static const char httpd_cgi_sensor3[] HTTPD_STRING_ATTR = "<em>Elapsed timer :</em> %02d:%02d:%02d<br>";
+  static const char httpd_cgi_sensor4[] HTTPD_STRING_ATTR = "<em>Sleeping time :</em> %02d:%02d:%02d (%d%%)<br>";
 
   numprinted=0;
   if (last_tempupdate) {
     numprinted =httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_sensor0,seconds-last_tempupdate);
   }
 
-  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor1, sensor_temperature);
+//  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor1, sensor_temperature);
+  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensr12, sensor_temperature,sensor_extvoltage);
 
 #if 0
 //Measuring AVcc might be useful to check on battery condition but on ext power it's always 3v3
@@ -416,7 +420,7 @@ generate_sensor_readings(void *arg)
   h=1131632UL/ADC;          //Get supply voltage
 #endif
 
-  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
+ // numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
 #if RADIOSTATS
   /* Remember radioontime for display below - slow connection might make it report longer than cpu ontime! */
   savedradioontime = radioontime;
@@ -426,6 +430,14 @@ generate_sensor_readings(void *arg)
   m=s/60;
   s=s-m*60;
   numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor3, h,m,s);
+  if (sleepseconds) {
+    p1=100UL*sleepseconds/seconds;
+    h=sleepseconds/3600;
+    s=sleepseconds-h*3600;
+    m=s/60;
+    s=s-m*60;
+    numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor4, h,m,s,p1);
+  }
   return numprinted;
 }
 #if RADIOSTATS
@@ -436,8 +448,8 @@ generate_radio_stats(void *arg)
   uint16_t numprinted;
   uint16_t h,m,s;
   uint8_t p1,p2;
-  static const char httpd_cgi_sensor4[] HTTPD_STRING_ATTR = "<em>Radio on:</em> %02d:%02d:%02d (%d.%02d%%)<br>";
-  static const char httpd_cgi_sensor5[] HTTPD_STRING_ATTR = "<em>Packets:</em> Tx=%5d Rx=%5d TxL=%5d RxL=%5d RSSI=%2ddBm\n";
+  static const char httpd_cgi_sensor10[] HTTPD_STRING_ATTR = "<em>Radio on time  :</em> %02d:%02d:%02d (%d.%02d%%)<br>";
+  static const char httpd_cgi_sensor11[] HTTPD_STRING_ATTR = "<em>Packets:</em> Tx=%5d Rx=%5d TxL=%5d RxL=%5d RSSI=%2ddBm\n";
 
   s=(10000UL*savedradioontime)/seconds;
   p1=s/100;
@@ -447,17 +459,17 @@ generate_radio_stats(void *arg)
   m=s/60;
   s=s-m*60;
 
-  numprinted =httpd_snprintf((char *)uip_appdata             , uip_mss()             , httpd_cgi_sensor4,\
+  numprinted =httpd_snprintf((char *)uip_appdata             , uip_mss()             , httpd_cgi_sensor10,\
     h,m,s,p1,p2);
 
-	#if RF230BB
-  numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor5,\
+#if RF230BB
+  numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor11,\
     RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail,-92+rf230_last_rssi);
 #else
   p1=0;
   radio_get_rssi_value(&p1);
   p1 = -91*3(p1-1);
-  numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor5,\
+  numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor11,\
     RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail,p1);
 #endif
  
