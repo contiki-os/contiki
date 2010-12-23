@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.11 2010/10/19 18:29:04 adamdunkels Exp $
+ * @(#)$Id: slip.c,v 1.12 2010/12/23 22:38:47 dak664 Exp $
  */
 
 
@@ -94,6 +94,10 @@ slip_set_input_callback(void (*c)(void))
   input_callback = c;
 }
 /*---------------------------------------------------------------------------*/
+/* slip_send: forward (IPv4) packets with {UIP_FW_NETIF(..., slip_send)}
+ * was used in slip-bridge.c
+ */
+//#if WITH_UIP
 u8_t
 slip_send(void)
 {
@@ -122,6 +126,7 @@ slip_send(void)
 
   return UIP_FW_OK;
 }
+//#endif /* WITH_UIP */
 /*---------------------------------------------------------------------------*/
 u8_t
 slip_write(const void *_ptr, int len)
@@ -175,6 +180,32 @@ slip_poll_handler(u8_t *outbuf, u16_t blen)
       return 0;
     }
   }
+#ifdef SLIP_CONF_ANSWER_MAC_REQUEST
+  else if(rxbuf[begin] == '?') { 
+    /* Used by tapslip6 to request mac for auto configure */
+    int i, j;
+    char* hexchar = "0123456789abcdef";
+    if(begin < end && (end - begin) >= 2
+       && rxbuf[begin + 1] == 'M') {
+      state = STATE_TWOPACKETS; /* Interrupts do nothing. */
+      rxbuf[begin] = 0;
+      rxbuf[begin + 1] = 0;
+      
+      rxbuf_init();
+      
+      rimeaddr_t addr = get_mac_addr();
+      /* this is just a test so far... just to see if it works */
+      slip_arch_writeb('!');
+      slip_arch_writeb('M');
+      for(j = 0; j < 8; j++) {
+        slip_arch_writeb(hexchar[addr.u8[j] >> 4]);
+        slip_arch_writeb(hexchar[addr.u8[j] & 15]);
+      }
+      slip_arch_writeb(SLIP_END);
+      return 0;
+    }
+  }
+#endif /* SLIP_CONF_ANSWER_MAC_REQUEST */
 
   /*
    * Interrupt can not change begin but may change pkt_end.
@@ -259,7 +290,11 @@ PROCESS_THREAD(slip_process, ev, data)
 	  BUF->ipchksum++;
 	}
       }
+#ifdef SLIP_CONF_TCPIP_INPUT
+      SLIP_CONF_TCPIP_INPUT();
+#else
       tcpip_input();
+#endif
     } else {
       uip_len = 0;
       SLIP_STATISTICS(slip_ip_drop++);
@@ -269,7 +304,11 @@ PROCESS_THREAD(slip_process, ev, data)
       if(input_callback) {
         input_callback();
       }
+#ifdef SLIP_CONF_TCPIP_INPUT
+      SLIP_CONF_TCPIP_INPUT();
+#else
       tcpip_input();
+#endif
     }
 #endif /* UIP_CONF_IPV6 */
   }
