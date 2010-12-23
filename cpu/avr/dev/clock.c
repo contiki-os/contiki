@@ -9,6 +9,7 @@
 static volatile clock_time_t count;
 static volatile uint8_t scount;
 volatile unsigned long seconds;
+long sleepseconds;
 
 /* Set RADIOSTATS to monitor radio on time (must also be set in the radio driver) */
 #if RF230BB && WEBSERVER
@@ -36,10 +37,10 @@ extern uint8_t RF230_receive_on;
 /*---------------------------------------------------------------------------*/
 /* This routine can be called to add seconds to the clock after a sleep
  * of an integral number of seconds.
- * TODO:keep separate track of elapsed time, cpu ontime, and radioontime
  */
 void clock_adjust_seconds(uint8_t howmany) {
    seconds += howmany;
+   sleepseconds +=howmany;
 #if RADIOSTATS
   if (RF230_receive_on) radioontime += howmany;
 #endif
