@@ -58,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.13 2010/12/07 23:33:17 adamdunkels Exp $
+ * $Id: uipopt.h,v 1.14 2010/12/24 00:39:04 dak664 Exp $
  *
  */
 
@@ -407,11 +407,13 @@
 /**
  * How long a connection should stay in the TIME_WAIT state.
  *
- * This configuration option has no real implication, and it should be
- * left untouched.
+ * This can be reduced for faster entry into power saving modes.
  */
+#ifndef UIP_CONF_WAIT_TIMEOUT
 #define UIP_TIME_WAIT_TIMEOUT 120
-
+#else
+#define UIP_TIME_WAIT_TIMEOUT UIP_CONF_WAIT_TIMEOUT
+#endif
 
 /** @} */
 /*------------------------------------------------------------------------------*/
