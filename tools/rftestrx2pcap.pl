@@ -59,13 +59,13 @@ while(1) {
 		#new packet
 		($sec, $usec) = gettimeofday;
 		print STDERR "rftestline: $sec $usec $str";		
-	    } elsif($str =~ /^\s*data/) {
+	    } elsif($str =~ /^\w+/) {		
 		#packet payload
 		print STDERR "dataline: ";		
 		print STDERR $str;
-		$str =~ /data: 0x\d+ (.+)/;
+		chomp $str;
+		$str =~ /(.+)/;
 		my @data = split(' ',$1);
-		($len, @data) = @data;
 		#write out pcap entry
 		print pack('LLLL',($sec,$usec,scalar(@data),scalar(@data)+2));
 		print STDERR "new packet: $sec $usec " . scalar(@data) . " " . (scalar(@data)+2) . "\n\r";
