@@ -36,6 +36,7 @@ You can use curl as an http client to interact with the COOJA motes running REST
 
 COAP Examples
 You should run a COAP client on your computer. You can use the URLs and methods provided above in HTTP examples to test the COAP Server.
+For example, Matthias Kovatsch has developed a CoAP Firefox plug-in which is accessible via http://people.inf.ethz.ch/mkovatsc/#pro
 
 Accessing the server inside the sensor network:
 (Note: Provided only for COAP implementation)
