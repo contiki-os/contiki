@@ -92,6 +92,9 @@ parse_message(coap_packet_t* packet, uint8_t* buf, uint16_t size)
         if (current_option->option == Option_Type_Uri_Path) {
           packet->url = (char*)current_option->value;
           packet->url_len = current_option->len;
+        } else if (current_option->option == Option_Type_Uri_Query){
+          packet->query = (char*)current_option->value;
+          packet->query_len = current_option->len;
         }
 
         PRINTF("OPTION %d %u %s \n", current_option->option, current_option->len, current_option->value);
@@ -115,7 +118,9 @@ parse_message(coap_packet_t* packet, uint8_t* buf, uint16_t size)
   }
 
   /*FIXME url is not decoded - is necessary?*/
-  if (packet->url) {
+
+  /*If query is not already provided via Uri_Query option then check URL*/
+  if (packet->url && !packet->query) {
     if ((packet->query = strchr(packet->url, '?'))) {
       uint16_t total_url_len = packet->url_len;
       /*set query len and update url len so that it does not include query part now*/
