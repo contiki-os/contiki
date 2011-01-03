@@ -63,12 +63,14 @@ To run REST server on real nodes under Linux
 3. Connect to the border router using tunslip6:
   make connect-router
 
-4. Reconnect the motes, reboot them and note their IP addresses.
-
+4. Reconnect the motes, open new terminal for each mote and run the following command to note their IP addresses (after running the command reset the corresponding mote to get IP address printed)
+  make login TARGET=sky MOTE=2   #Shows the prints for first mote
+  make login TARGET=sky MOTE=3   #For second mote and so on.
+  
 5. Test the connectivity by pinging them.
   ping6 <IPv6 Address of the MOTE>
 
-5. Remaining parts are the same with the COOJA example. (i.e. if it is a COAP Server, it is available at <NODE_IP_ADDR>:61616)
+6. Remaining parts are the same with the COOJA example. (i.e. if it is a COAP Server, it is available at <NODE_IP_ADDR>:61616)
 
 
 To Do
