@@ -1,1 +1,2 @@
-CONTIKI_SOURCEFILES += rpl.c rpl-dag.c rpl-icmp6.c rpl-timers.c rpl-of-etx.c
+CONTIKI_SOURCEFILES += rpl.c rpl-dag.c rpl-icmp6.c rpl-timers.c \
+	rpl-of-etx.c
