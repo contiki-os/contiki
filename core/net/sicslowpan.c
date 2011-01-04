@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.51 2010/12/14 22:18:20 dak664 Exp $
+ * $Id: sicslowpan.c,v 1.52 2011/01/04 20:22:21 joxe Exp $
  */
 /**
  * \file
@@ -210,7 +210,7 @@ static u8_t uncomp_hdr_len;
  *  @{
  */
 
-static u16_t sicslowpan_len;
+static uint16_t sicslowpan_len;
 
 /**
  * The buffer used for the 6lowpan reassembly.
@@ -226,13 +226,13 @@ static uip_buf_t sicslowpan_aligned_buf;
  * length of the ip packet already sent / received.
  * It includes IP and transport headers.
  */
-static u16_t processed_ip_len;
+static uint16_t processed_ip_len;
 
 /** Datagram tag to be put in the fragments I send. */
-static u16_t my_tag;
+static uint16_t my_tag;
 
 /** When reassembling, the tag in the fragments being merged. */
-static u16_t reass_tag;
+static uint16_t reass_tag;
 
 /** When reassembling, the source address of the fragments being merged */
 rimeaddr_t frag_sender;
@@ -708,7 +708,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
  * fragment.
  */
 static void
-uncompress_hdr_hc06(u16_t ip_len)
+uncompress_hdr_hc06(uint16_t ip_len)
 {
   uint8_t tmp, iphc0, iphc1;
   /* at least two byte will be used for the encoding */
@@ -1110,7 +1110,7 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
  * fragment.
  */
 static void
-uncompress_hdr_hc1(u16_t ip_len)
+uncompress_hdr_hc1(uint16_t ip_len)
 {
   /* version, traffic class, flow label */
   SICSLOWPAN_IP_BUF->vtc = 0x60;
@@ -1278,7 +1278,7 @@ send_packet(rimeaddr_t *dest)
  *  packet/fragments are put in packetbuf and delivered to the 802.15.4
  *  MAC.
  */
-static u8_t
+static uint8_t
 output(uip_lladdr_t *localdest)
 {
   /* The MAC address of the destination of the packet */
@@ -1365,7 +1365,7 @@ output(uip_lladdr_t *localdest)
     rime_payload_len = (MAC_MAX_PAYLOAD - rime_hdr_len) & 0xf8;
     PRINTFO("(len %d, tag %d)\n", rime_payload_len, my_tag);
     memcpy(rime_ptr + rime_hdr_len,
-           (void *)UIP_IP_BUF + uncomp_hdr_len, rime_payload_len);
+           (uint8_t *)UIP_IP_BUF + uncomp_hdr_len, rime_payload_len);
     packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
     q = queuebuf_new_from_packetbuf();
     if(q == NULL) {
@@ -1403,7 +1403,7 @@ output(uip_lladdr_t *localdest)
       PRINTFO("(offset %d, len %d, tag %d)\n",
              processed_ip_len >> 3, rime_payload_len, my_tag);
       memcpy(rime_ptr + rime_hdr_len,
-             (void *)UIP_IP_BUF + processed_ip_len, rime_payload_len);
+             (uint8_t *)UIP_IP_BUF + processed_ip_len, rime_payload_len);
       packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
       q = queuebuf_new_from_packetbuf();
       if(q == NULL) {
@@ -1429,7 +1429,7 @@ output(uip_lladdr_t *localdest)
      * The packet does not need to be fragmented
      * copy "payload" and send
      */
-    memcpy(rime_ptr + rime_hdr_len, (void *)UIP_IP_BUF + uncomp_hdr_len,
+    memcpy(rime_ptr + rime_hdr_len, (uint8_t *)UIP_IP_BUF + uncomp_hdr_len,
            uip_len - uncomp_hdr_len);
     packetbuf_set_datalen(uip_len - uncomp_hdr_len + rime_hdr_len);
     send_packet(&dest);
@@ -1454,12 +1454,12 @@ static void
 input(void)
 {
   /* size of the IP packet (read from fragment) */
-  u16_t frag_size = 0;
+  uint16_t frag_size = 0;
   /* offset of the fragment in the IP packet */
-  u8_t frag_offset = 0;
+  uint8_t frag_offset = 0;
 #if SICSLOWPAN_CONF_FRAG
   /* tag of the fragment */
-  u16_t frag_tag = 0;
+  uint16_t frag_tag = 0;
   uint8_t first_fragment = 0;
 #endif /*SICSLOWPAN_CONF_FRAG*/
 
@@ -1595,7 +1595,7 @@ input(void)
     return;
   }
   rime_payload_len = packetbuf_datalen() - rime_hdr_len;
-  memcpy((void *)SICSLOWPAN_IP_BUF + uncomp_hdr_len + (u16_t)(frag_offset << 3), rime_ptr + rime_hdr_len, rime_payload_len);
+  memcpy((uint8_t *)SICSLOWPAN_IP_BUF + uncomp_hdr_len + (uint16_t)(frag_offset << 3), rime_ptr + rime_hdr_len, rime_payload_len);
   
   /* update processed_ip_len if fragment, sicslowpan_len otherwise */
 
@@ -1619,7 +1619,7 @@ input(void)
   if(processed_ip_len == 0 || (processed_ip_len == sicslowpan_len)) {
     PRINTFI("sicslowpan input: IP packet ready (length %d)\n",
            sicslowpan_len);
-    memcpy((void *)UIP_IP_BUF, (void *)SICSLOWPAN_IP_BUF, sicslowpan_len);
+    memcpy((uint8_t *)UIP_IP_BUF, (uint8_t *)SICSLOWPAN_IP_BUF, sicslowpan_len);
     uip_len = sicslowpan_len;
     sicslowpan_len = 0;
     processed_ip_len = 0;
