@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.24 2010/10/19 18:29:04 adamdunkels Exp $
+ * $Id: uip6.c,v 1.25 2011/01/04 22:11:37 joxe Exp $
  *
  */
 
@@ -689,8 +689,8 @@ uip_reass(void)
     
     /* Copy the fragment into the reassembly buffer, at the right
        offset. */
-    memcpy((void *)FBUF + UIP_IPH_LEN + uip_ext_len + offset,
-           (void *)UIP_FRAG_BUF + UIP_FRAGH_LEN, len);
+    memcpy((uint8_t *)FBUF + UIP_IPH_LEN + uip_ext_len + offset,
+           (uint8_t *)UIP_FRAG_BUF + UIP_FRAGH_LEN, len);
     
     /* Update the bitmap. */
     if(offset >> 6 == (offset + len) >> 6) {
@@ -1268,7 +1268,7 @@ uip_process(u8_t flag)
    * RFC 2460 send error message parameterr problem, code unrecognized
    * next header, pointing to the next header field
    */
-  uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_NEXTHEADER, (u32_t)((void *)uip_next_hdr - (void *)UIP_IP_BUF));
+  uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_NEXTHEADER, (u32_t)(uip_next_hdr - (uint8_t *)UIP_IP_BUF));
   UIP_STAT(++uip_stat.ip.drop);
   UIP_STAT(++uip_stat.ip.protoerr);
   UIP_LOG("ip6: unrecognized header");

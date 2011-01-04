@@ -102,8 +102,8 @@ uip_icmp6_echo_request_input(void)
      * The shift is equal to the length of the extension headers present
      * Note: UIP_ICMP_BUF still points to the echo request at this stage
      */
-    memmove((void *)UIP_ICMP_BUF + UIP_ICMPH_LEN - uip_ext_len,
-            (void *)UIP_ICMP_BUF + UIP_ICMPH_LEN, 
+    memmove((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN - uip_ext_len,
+            (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN, 
             (uip_len - UIP_IPH_LEN - UIP_ICMPH_LEN));
   }
   /* Below is important for the correctness of UIP_ICMP_BUF and the
@@ -143,7 +143,7 @@ uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
   if(uip_len > UIP_LINK_MTU)
     uip_len = UIP_LINK_MTU; 
 
-  memmove((void *)UIP_ICMP6_ERROR_BUF + UIP_ICMP6_ERROR_LEN,
+  memmove((uint8_t *)UIP_ICMP6_ERROR_BUF + UIP_ICMP6_ERROR_LEN,
           (void *)UIP_IP_BUF, uip_len - UIP_IPICMPH_LEN - UIP_ICMP6_ERROR_LEN);
 
   UIP_IP_BUF->vtc = 0x60;
