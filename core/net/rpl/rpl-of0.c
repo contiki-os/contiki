@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-of0.c,v 1.5 2010/06/14 12:44:37 nvt-se Exp $
+ * $Id: rpl-of0.c,v 1.6 2011/01/04 20:43:28 nvt-se Exp $
  */
 /**
  * \file
@@ -58,10 +58,7 @@ rpl_of_t rpl_of0 = {
   0
 };
 
-#define DEFAULT_RANK_INCREMENT  4
-#define MINIMUM_RANK_INCREMENT  1
-#define MAXIMUM_RANK_INCREMENT  16
-#define MAXIMUM_RANK_STRETCH    4
+#define DEFAULT_RANK_INCREMENT  DEFAULT_MIN_HOPRANKINC
 
 static void
 reset(void *dag)

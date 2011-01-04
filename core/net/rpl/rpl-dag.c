@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.42 2010/12/17 15:24:25 nvt-se Exp $
+ * $Id: rpl-dag.c,v 1.43 2011/01/04 20:43:28 nvt-se Exp $
  */
 /**
  * \file
@@ -43,6 +43,7 @@
 
 #include "net/rpl/rpl.h"
 
+#include "contiki.h"
 #include "net/uip.h"
 #include "net/uip-nd6.h"
 #include "lib/list.h"
@@ -56,8 +57,8 @@
 #include "net/uip-debug.h"
 
 /************************************************************************/
-extern rpl_of_t rpl_of_etx;
-static rpl_of_t *objective_functions[] = {&rpl_of_etx, NULL};
+extern rpl_of_t RPL_OF;
+static rpl_of_t * const objective_functions[] = {&RPL_OF};
 /************************************************************************/
 
 #ifndef RPL_CONF_MAX_DAG_ENTRIES
@@ -153,7 +154,7 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   dag->grounded = RPL_GROUNDED;
   dag->mop = RPL_MOP_DEFAULT;
   dag->rank = ROOT_RANK;
-  dag->of = rpl_find_of(RPL_DEFAULT_OCP);
+  dag->of = &RPL_OF;
   dag->preferred_parent = NULL;
   dag->dtsn_out = 1; /* Trigger DAOs from the beginning. */
 
@@ -376,7 +377,7 @@ rpl_get_dag(int instance_id)
 
   for(i = 0; i < RPL_MAX_DAG_ENTRIES; i++) {
     if(dag_table[i].joined && (instance_id == RPL_ANY_INSTANCE ||
-                               dag_table[i].instance_id == instance_id)) {
+			       dag_table[i].instance_id == instance_id)) {
       return &dag_table[i];
     }
   }
@@ -386,11 +387,13 @@ rpl_get_dag(int instance_id)
 rpl_of_t *
 rpl_find_of(rpl_ocp_t ocp)
 {
-  rpl_of_t *of;
+  int i;
 
-  for(of = objective_functions[0]; of != NULL; of++) {
-    if(of->ocp == ocp) {
-      return of;
+  for(i = 0;
+      i < sizeof(objective_functions) / sizeof(objective_functions[0]); 
+      i++) {
+    if(objective_functions[i]->ocp == ocp) {
+      return objective_functions[i];
     }
   }
 
@@ -475,7 +478,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINTF("\n");
 
   dag->rank = dag->of->calculate_rank(NULL, dio->rank);
-  dag->min_rank = dag->rank; /* So far this is the lowest rank we know */
+  dag->min_rank = dag->rank; /* So far this is the lowest rank we know of. */
 
   dag->default_lifetime = dio->default_lifetime;
   dag->lifetime_unit = dio->lifetime_unit;
