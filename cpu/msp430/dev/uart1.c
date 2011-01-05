@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.20 2011/01/05 12:02:02 joxe Exp $
+ * @(#)$Id: uart1.c,v 1.21 2011/01/05 13:36:38 joxe Exp $
  */
 
 /*
@@ -58,7 +58,7 @@ static volatile uint8_t transmitting;
 #endif /* UART1_CONF_TX_WITH_INTERRUPT */
 
 #ifdef UART1_CONF_RX_WITH_DMA
-#define TX_WITH_INTERRUPT UART1_CONF_RX_WITH_DMA
+#define RX_WITH_DMA UART1_CONF_RX_WITH_DMA
 #else /* UART1_CONF_RX_WITH_DMA */
 #define RX_WITH_DMA 0
 #endif /* UART1_CONF_RX_WITH_DMA */
@@ -82,7 +82,7 @@ handle_rxdma_timer(void *ptr)
 {
   uint8_t size;
   size = DMA0SZ; /* Note: loop requires that size is less or eq to RXBUFSIZE */
-  for (;last_size != size; last_size--) {
+  for(;last_size != size; last_size--) {
     if(last_size == 0) last_size = RXBUFSIZE;
 /*     printf("read: %c\n", (unsigned char)rxbuf[RXBUFSIZE - last_size]); */
     uart1_input_handler((unsigned char)rxbuf[RXBUFSIZE - last_size]);

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.14 2011/01/05 12:02:01 joxe Exp $
+ * @(#)$Id: msp430.c,v 1.15 2011/01/05 13:36:38 joxe Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -195,7 +195,7 @@ static char *cur_break = (char *)&_end;
 void
 msp430_add_lpm_req(int req)
 {
-  if (req <= MSP430_REQUIRE_LPM1) {
+  if(req <= MSP430_REQUIRE_LPM1) {
     msp430_dco_required++;
   }
 }
@@ -203,7 +203,7 @@ msp430_add_lpm_req(int req)
 void
 msp430_remove_lpm_req(int req)
 {
-  if (req <= MSP430_REQUIRE_LPM1) {
+  if(req <= MSP430_REQUIRE_LPM1) {
     msp430_dco_required--;
   }
 }
