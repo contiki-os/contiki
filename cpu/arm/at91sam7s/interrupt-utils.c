@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * $RCSfile: interrupt-utils.c,v $
- * $Revision: 1.1 $
+ * $Revision: 1.2 $
  *
  * This module provides the interface routines for setting up and
  * controlling the various interrupt modes present on the ARM processor.
