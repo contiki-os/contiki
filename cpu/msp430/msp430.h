@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: msp430.h,v 1.2 2008/02/03 20:58:11 adamdunkels Exp $
+ * $Id: msp430.h,v 1.3 2011/01/05 12:02:01 joxe Exp $
  */
 
 /**
@@ -48,5 +48,13 @@
 #else
 #define MSP430_CPU_SPEED 2457600UL
 #endif
+
+#define MSP430_REQUIRE_CPUON 0
+#define MSP430_REQUIRE_LPM1 1
+#define MSP430_REQUIRE_LPM2 2
+#define MSP430_REQUIRE_LPM3 3
+
+void msp430_add_lpm_req();
+void msp430_remove_lpm_req();
 
 #endif /* __MSP430_H__ */
