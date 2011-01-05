@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.19 2010/06/15 13:30:42 nifi Exp $
+ * @(#)$Id: uart1.c,v 1.20 2011/01/05 12:02:02 joxe Exp $
  */
 
 /*
@@ -37,13 +37,16 @@
 #include <io.h>
 #include <signal.h>
 
+#include <stdio.h>
+
 #include "sys/energest.h"
 #include "dev/uart1.h"
 #include "dev/watchdog.h"
-
+#include "sys/ctimer.h"
 #include "lib/ringbuf.h"
 
-static int (*uart1_input_handler)(unsigned char c);
+/* should be static */
+int (*uart1_input_handler)(unsigned char c);
 static uint8_t rx_in_progress;
 
 static volatile uint8_t transmitting;
@@ -54,12 +57,41 @@ static volatile uint8_t transmitting;
 #define TX_WITH_INTERRUPT 1
 #endif /* UART1_CONF_TX_WITH_INTERRUPT */
 
+#ifdef UART1_CONF_RX_WITH_DMA
+#define TX_WITH_INTERRUPT UART1_CONF_RX_WITH_DMA
+#else /* UART1_CONF_RX_WITH_DMA */
+#define RX_WITH_DMA 0
+#endif /* UART1_CONF_RX_WITH_DMA */
+
 #if TX_WITH_INTERRUPT
 #define TXBUFSIZE 64
 
 static struct ringbuf txbuf;
 static uint8_t txbuf_data[TXBUFSIZE];
 #endif /* TX_WITH_INTERRUPT */
+
+#if RX_WITH_DMA
+#define RXBUFSIZE 64
+
+static uint8_t rxbuf[RXBUFSIZE];
+static uint8_t last_size;
+static struct ctimer rxdma_timer;
+
+static void
+handle_rxdma_timer(void *ptr)
+{
+  uint8_t size;
+  size = DMA0SZ; /* Note: loop requires that size is less or eq to RXBUFSIZE */
+  for (;last_size != size; last_size--) {
+    if(last_size == 0) last_size = RXBUFSIZE;
+/*     printf("read: %c\n", (unsigned char)rxbuf[RXBUFSIZE - last_size]); */
+    uart1_input_handler((unsigned char)rxbuf[RXBUFSIZE - last_size]);
+  }
+
+  ctimer_reset(&rxdma_timer);
+}
+
+#endif /* RX_WITH_DMA */
 
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -71,6 +103,9 @@ uart1_active(void)
 void
 uart1_set_input(int (*input)(unsigned char c))
 {
+#if RX_WITH_DMA /* This needs to be called after ctimer process is started */
+  ctimer_set(&rxdma_timer, CLOCK_SECOND/32, handle_rxdma_timer, NULL);
+#endif
   uart1_input_handler = input;
 }
 /*---------------------------------------------------------------------------*/
@@ -188,7 +223,25 @@ uart1_init(unsigned long ubr)
   ringbuf_init(&txbuf, txbuf_data, sizeof(txbuf_data));
   IE2 |= UTXIE1;                        /* Enable USART1 TX interrupt  */
 #endif /* TX_WITH_INTERRUPT */
+
+#if RX_WITH_DMA
+  IE2 &= ~URXIE1; /* disable USART1 RX interrupt  */
+  /* UART1_RX trigger */
+  DMACTL0 = DMA0TSEL_9;
+
+  /* source address = RXBUF1 */
+  DMA0SA = (unsigned int) &RXBUF1;
+  DMA0DA = (unsigned int) &rxbuf;
+  DMA0SZ = RXBUFSIZE;
+  last_size = RXBUFSIZE;
+  DMA0CTL = DMADT_4 + DMASBDB + DMADSTINCR_3 + DMAEN + DMAREQ;// DMAIE;
+
+  msp430_add_lpm_req(MSP430_REQUIRE_LPM1);
+#endif /* RX_WITH_DMA */
+
 }
+
+
 /*---------------------------------------------------------------------------*/
 interrupt(UART1RX_VECTOR)
 uart1_rx_interrupt(void)
