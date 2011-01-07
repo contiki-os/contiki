@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-announcement.c,v 1.2 2009/12/28 18:18:23 nvt-se Exp $
+ * $Id: example-announcement.c,v 1.3 2011/01/07 23:23:31 nvt-se Exp $
  */
 
 /**
@@ -80,15 +80,16 @@ PROCESS_THREAD(example_announcement_process, ev, data)
     
   PROCESS_BEGIN();
 
-  /* Register an announcement with ID 128 and the lowest eight bytes
-     of the Rime address as the value. We provide the
+  /* Register an announcement with ID 128. We provide the
      'received_announcement' function pointer so that this function
      will be called when a announcements from neighbors are heard. */
-  
+
   announcement_register(&example_announcement,
 			128,
-			rimeaddr_node_addr.u8[0],
 			received_announcement);
+
+  /* Set the lowest eight bytes of the Rime address as the value. */
+  announcement_set_value(&example_announcement, rimeaddr_node_addr.u8[0]);
 
   while(1) {
     static struct etimer et;
