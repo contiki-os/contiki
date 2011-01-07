@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: gcr.c,v 1.1 2006/10/05 09:23:41 adamdunkels Exp $
+ * @(#)$Id: gcr.c,v 1.2 2011/01/07 11:55:36 nifi Exp $
  */
 
 /**

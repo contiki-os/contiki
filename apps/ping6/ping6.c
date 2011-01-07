@@ -36,7 +36,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define MACDEBUG 0 
+#define MACDEBUG 0
 
 #define DEBUG 0
 #if DEBUG
@@ -82,7 +82,7 @@ ping6handler(process_event_t ev, process_data_t data)
 
     // Set the command to fool the 'if' below.
     memcpy(command, (void *)"ping6", 5);
-    
+
 #else
 /* prompt */
     printf("> ");
@@ -90,7 +90,7 @@ ping6handler(process_event_t ev, process_data_t data)
      *  for user input). This is far from ideal and could be improved
      */
     scanf("%s", command);
-    
+
     if(strcmp(command,"ping6") != 0){
       PRINTF("> invalid command\n");
       return 0;
@@ -108,10 +108,10 @@ ping6handler(process_event_t ev, process_data_t data)
     }
 #endif
 
-  } 
-  
+  }
+
   if((strcmp(command,"ping6") == 0) && (count < PING6_NB)){
-   
+
     UIP_IP_BUF->vtc = 0x60;
     UIP_IP_BUF->tcflow = 1;
     UIP_IP_BUF->flow = 0;
@@ -119,7 +119,7 @@ ping6handler(process_event_t ev, process_data_t data)
     UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
     uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &dest_addr);
     uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
- 
+
     UIP_ICMP_BUF->type = ICMP6_ECHO_REQUEST;
     UIP_ICMP_BUF->icode = 0;
     /* set identifier and sequence number to 0 */
@@ -127,16 +127,16 @@ ping6handler(process_event_t ev, process_data_t data)
     /* put one byte of data */
     memset((void *)UIP_ICMP_BUF + UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN,
            count, PING6_DATALEN);
-     
-    
+
+
     uip_len = UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN + UIP_IPH_LEN + PING6_DATALEN;
     UIP_IP_BUF->len[0] = (u8_t)((uip_len - 40) >> 8);
     UIP_IP_BUF->len[1] = (u8_t)((uip_len - 40) & 0x00FF);
-    
+
     UIP_ICMP_BUF->icmpchksum = 0;
     UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
-   
-    
+
+
     PRINTF("Sending Echo Request to");
     PRINT6ADDR(&UIP_IP_BUF->destipaddr);
     PRINTF("from");
@@ -156,20 +156,20 @@ ping6handler(process_event_t ev, process_data_t data)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ping6_process, ev, data)
 {
-  
+
   u8_t cont = 1;
-  
+
   PROCESS_BEGIN();
   PRINTF("In Process PING6\n");
   PRINTF("Wait for DAD\n");
 
   etimer_set(&ping6_periodic_timer, 15*CLOCK_SECOND);
- 
+
   while(cont) {
     PROCESS_YIELD();
     cont = ping6handler(ev, data);
   }
-  
+
   PRINTF("END PING6\n");
   PROCESS_END();
 }
