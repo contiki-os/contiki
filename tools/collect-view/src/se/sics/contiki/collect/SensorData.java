@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
+ * $Id: SensorData.java,v 1.2 2011/01/09 21:06:10 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/11/03 14:53:05 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2011/01/09 21:06:10 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect;
@@ -214,7 +214,7 @@ public class SensorData implements SensorInfo {
   }
 
   public double getLatency() {
-    return values[LATENCY] / 8192.0;
+    return values[LATENCY] / 32678.0;
   }
 
   public double getHumidity() {
