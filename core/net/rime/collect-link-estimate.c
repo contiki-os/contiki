@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-link-estimate.c,v 1.5 2010/10/11 23:34:02 adamdunkels Exp $
+ * $Id: collect-link-estimate.c,v 1.6 2011/01/09 21:14:22 adamdunkels Exp $
  */
 
 /**
@@ -45,13 +45,11 @@
 #include "net/rime/collect.h"
 #include "net/rime/collect-link-estimate.h"
 
-/* This defines the window used by the ETX computation when computing
-   the ETX. It cannot be larger than
-   COLLECT_LINK_ESTIMATE_HISTORY_SIZE, which is defined in
-   collect-link-estimate.h. */
-#define ETX_HISTORY_WINDOW 8
-
 #define INITIAL_LINK_ESTIMATE 16
+
+#define COLLECT_LINK_ESTIMATE_ALPHA ((3 * (COLLECT_LINK_ESTIMATE_UNIT)) / 8)
+
+#define MAX_ESTIMATES 255
 
 #define DEBUG 0
 #if DEBUG
@@ -62,24 +60,11 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
-static void
-set_all_estimates(struct collect_link_estimate *le, uint16_t value)
-{
-  int i;
-
-  for(i = 0; i < ETX_HISTORY_WINDOW; i++) {
-    le->history[i] = value;
-  }
-}
-/*---------------------------------------------------------------------------*/
 void
 collect_link_estimate_new(struct collect_link_estimate *le)
 {
-  /* Start with a conservative / pessimistic estimate of link quality
-     for new links. */
-  set_all_estimates(le, 0/*INITIAL_LINK_ESTIMATE*/);
-  le->historyptr = 0;
   le->num_estimates = 0;
+  le->etx_accumulator = COLLECT_LINK_ESTIMATE_UNIT;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -90,15 +75,20 @@ collect_link_estimate_update_tx(struct collect_link_estimate *le, uint8_t tx)
     return;
   }
   if(le != NULL) {
-    /*    if(le->num_estimates == 0) {
-      set_all_estimates(le, tx);
-      } else*/ {
-      le->history[le->historyptr] = tx;
-      le->historyptr = (le->historyptr + 1) % ETX_HISTORY_WINDOW;
+    if(le->num_estimates == 0) {
+      le->etx_accumulator = tx * COLLECT_LINK_ESTIMATE_UNIT;
     }
-    if(le->num_estimates < ETX_HISTORY_WINDOW) {
+
+    if(le->num_estimates < MAX_ESTIMATES) {
       le->num_estimates++;
     }
+
+    le->etx_accumulator = (((uint32_t)tx * COLLECT_LINK_ESTIMATE_UNIT) *
+                           COLLECT_LINK_ESTIMATE_ALPHA +
+                           le->etx_accumulator * (COLLECT_LINK_ESTIMATE_UNIT -
+                                                  COLLECT_LINK_ESTIMATE_ALPHA)) /
+      COLLECT_LINK_ESTIMATE_UNIT;
+
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -125,15 +115,7 @@ collect_link_estimate(struct collect_link_estimate *le)
     return INITIAL_LINK_ESTIMATE * COLLECT_LINK_ESTIMATE_UNIT;
   }
 
-  PRINTF("collect_link_estimate: ");
-  etx = 0;
-  for(i = 0; i < le->num_estimates; ++i) {
-    PRINTF("%d+", le->history[i]);
-    etx += le->history[(le->historyptr - i - 1) & (ETX_HISTORY_WINDOW - 1)];
-  }
-  PRINTF("/%d = %d\n", i,
-         (COLLECT_LINK_ESTIMATE_UNIT * etx) / i);
-  return (COLLECT_LINK_ESTIMATE_UNIT * etx) / i;
+  return le->etx_accumulator;
 }
 /*---------------------------------------------------------------------------*/
 int
