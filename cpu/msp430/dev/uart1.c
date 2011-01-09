@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.21 2011/01/05 13:36:38 joxe Exp $
+ * @(#)$Id: uart1.c,v 1.22 2011/01/09 20:44:14 adamdunkels Exp $
  */
 
 /*
@@ -45,16 +45,15 @@
 #include "sys/ctimer.h"
 #include "lib/ringbuf.h"
 
-/* should be static */
-int (*uart1_input_handler)(unsigned char c);
-static uint8_t rx_in_progress;
+static int (*uart1_input_handler)(unsigned char c);
+static volatile uint8_t rx_in_progress;
 
 static volatile uint8_t transmitting;
 
 #ifdef UART1_CONF_TX_WITH_INTERRUPT
 #define TX_WITH_INTERRUPT UART1_CONF_TX_WITH_INTERRUPT
 #else /* UART1_CONF_TX_WITH_INTERRUPT */
-#define TX_WITH_INTERRUPT 1
+#define TX_WITH_INTERRUPT 0
 #endif /* UART1_CONF_TX_WITH_INTERRUPT */
 
 #ifdef UART1_CONF_RX_WITH_DMA
@@ -64,7 +63,7 @@ static volatile uint8_t transmitting;
 #endif /* UART1_CONF_RX_WITH_DMA */
 
 #if TX_WITH_INTERRUPT
-#define TXBUFSIZE 64
+#define TXBUFSIZE 128
 
 static struct ringbuf txbuf;
 static uint8_t txbuf_data[TXBUFSIZE];
@@ -269,6 +268,7 @@ uart1_rx_interrupt(void)
       }
     }
   }
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
