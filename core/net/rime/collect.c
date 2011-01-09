@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.70 2011/01/09 21:13:20 adamdunkels Exp $
+ * $Id: collect.c,v 1.71 2011/01/09 23:49:27 adamdunkels Exp $
  */
 
 /**
@@ -127,7 +127,6 @@ struct ack_msg {
 #define MAX_MAC_REXMITS            2
 #define MAX_ACK_MAC_REXMITS        5
 #define REXMIT_TIME                CLOCK_SECOND * 4
-#define MAX_REXMIT_TIME_SCALING    0
 #define FORWARD_PACKET_LIFETIME_BASE    REXMIT_TIME
 #define MAX_SENDING_QUEUE          3 * QUEUEBUF_NUM / 4
 #define KEEPALIVE_REXMITS          8
@@ -160,15 +159,6 @@ MEMB(send_queue_memb, struct packetqueue_item, MAX_SENDING_QUEUE);
    which we do not yet have a link quality estimate. */
 #define PROACTIVE_PROBING_INTERVAL (random_rand() % CLOCK_SECOND * 60)
 #define PROACTIVE_PROBING_REXMITS  15
-
-/* COLLECT_CONF_ANNOUNCEMENTS defines if the Collect implementation
-   should use Contiki's announcement primitive to announce its routes
-   or if it should use periodic broadcasts. */
-#ifndef COLLECT_CONF_ANNOUNCEMENTS
-#define COLLECT_ANNOUNCEMENTS 0
-#else
-#define COLLECT_ANNOUNCEMENTS COLLECT_CONF_ANNOUNCEMENTS
-#endif /* COLLECT_CONF_ANNOUNCEMENTS */
 
 /* The ANNOUNCEMENT_SCAN_TIME defines for how long the Collect
    implementation should listen for announcements from other nodes
@@ -319,7 +309,9 @@ update_parent(struct collect_conn *tc)
       stats.foundroute++;
       bump_advertisement(tc);
     } else {
-      //      printf("#A e=%d\n", collect_neighbor_link_estimate(best));
+      if(DRAW_TREE) {
+        printf("#A e=%d\n", collect_neighbor_link_estimate(best));
+      }
       if(collect_neighbor_rtmetric_link_estimate(best) +
          SIGNIFICANT_RTMETRIC_PARENT_CHANGE <
          collect_neighbor_rtmetric_link_estimate(current)) {
@@ -427,7 +419,6 @@ update_rtmetric(struct collect_conn *tc)
 
     if(tc->is_router) {
       /* If we are a router, we update our advertised rtmetric. */
-
 #if COLLECT_ANNOUNCEMENTS
       announcement_set_value(&tc->announcement, tc->rtmetric);
 #else /* COLLECT_ANNOUNCEMENTS */
@@ -485,19 +476,20 @@ static void
 send_packet(struct collect_conn *c, struct collect_neighbor *n)
 {
   clock_time_t time;
-  uint8_t rexmit_time_scaling;
 
   PRINTF("Sending packet to %d.%d, %d transmissions\n",
          n->addr.u8[0], n->addr.u8[1],
          c->transmissions);
-  unicast_send(&c->unicast_conn, &n->addr);
-  /* If the MAC layer won't call us back, we'll set up the
-     retransmission timer with a high timeout, so that we can cancel
-     the transmission and send a new one. */
+  /* Defensive programming: if a bug in the MAC/RDC layers will cause
+     it to not call us back, we'll set up the retransmission timer
+     with a high timeout, so that we can cancel the transmission and
+     send a new one. */
   time = 16 * REXMIT_TIME;
   ctimer_set(&c->retransmission_timer, time,
              retransmit_not_sent_callback, c);
   c->send_time = clock_time();
+
+  unicast_send(&c->unicast_conn, &n->addr);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -1104,7 +1096,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
      PACKETBUF_ATTR_PACKET_TYPE_DATA) {
 
     tc->transmissions += transmissions;
-    //    printf("tx %d\n", tc->transmissions);    
+    PRINTF("tx %d\n", tc->transmissions);    
     PRINTF("%d.%d: MAC sent %d transmissions to %d.%d, status %d, total transmissions %d\n",
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
            transmissions,
@@ -1115,7 +1107,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
       stats.timedout++;
     } else {
       clock_time_t time = REXMIT_TIME / 2 + (random_rand() % (REXMIT_TIME / 2));
-        //  printf("retransmission time %lu scaling %d\n", time, rexmit_time_scaling);
+      PRINTF("retransmission time %lu\n", time);
       ctimer_set(&tc->retransmission_timer, time,
                  retransmit_callback, tc);
     }
