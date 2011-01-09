@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.62 2010/12/16 22:40:52 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.63 2011/01/09 21:09:28 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -647,17 +647,16 @@ PROCESS_THREAD(cc2420_process, ev, data)
     packetbuf_clear();
     packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, last_packet_timestamp);
     len = cc2420_read(packetbuf_dataptr(), PACKETBUF_SIZE);
-    if(len > 0) {
-      packetbuf_set_datalen(len);
-
-      NETSTACK_RDC.input();
+    
+    packetbuf_set_datalen(len);
+    
+    NETSTACK_RDC.input();
 #if CC2420_TIMETABLE_PROFILING
-      TIMETABLE_TIMESTAMP(cc2420_timetable, "end");
-      timetable_aggregate_compute_detailed(&aggregate_time,
-                                           &cc2420_timetable);
+    TIMETABLE_TIMESTAMP(cc2420_timetable, "end");
+    timetable_aggregate_compute_detailed(&aggregate_time,
+                                         &cc2420_timetable);
       timetable_clear(&cc2420_timetable);
 #endif /* CC2420_TIMETABLE_PROFILING */
-    }
   }
 
   PROCESS_END();
