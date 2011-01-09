@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.25 2010/12/16 22:46:34 adamdunkels Exp $
+ * $Id: collect.h,v 1.26 2011/01/09 23:48:33 adamdunkels Exp $
  */
 
 /**
@@ -84,14 +84,23 @@ struct collect_callbacks {
 		uint8_t hops);
 };
 
+/* COLLECT_CONF_ANNOUNCEMENTS defines if the Collect implementation
+   should use Contiki's announcement primitive to announce its routes
+   or if it should use periodic broadcasts. */
+#ifndef COLLECT_CONF_ANNOUNCEMENTS
+#define COLLECT_ANNOUNCEMENTS 1
+#else
+#define COLLECT_ANNOUNCEMENTS COLLECT_CONF_ANNOUNCEMENTS
+#endif /* COLLECT_CONF_ANNOUNCEMENTS */
+
 struct collect_conn {
   struct unicast_conn unicast_conn;
-#if ! COLLECT_CONF_ANNOUNCEMENTS
+#if ! COLLECT_ANNOUNCEMENTS
   struct neighbor_discovery_conn neighbor_discovery_conn;
-#else /* ! COLLECT_CONF_ANNOUNCEMENTS */
+#else /* ! COLLECT_ANNOUNCEMENTS */
   struct announcement announcement;
   struct ctimer transmit_after_scan_timer;
-#endif /* COLLECT_CONF_ANNOUNCEMENTS */
+#endif /* COLLECT_ANNOUNCEMENTS */
   const struct collect_callbacks *cb;
   struct ctimer retransmission_timer;
   LIST_STRUCT(send_queue_list);
@@ -134,7 +143,7 @@ void collect_set_keepalive(struct collect_conn *c, clock_time_t period);
 
 void collect_print_stats(void);
 
-#define COLLECT_MAX_DEPTH (COLLECT_LINK_ESTIMATE_UNIT * 32 - 1)
+#define COLLECT_MAX_DEPTH (COLLECT_LINK_ESTIMATE_UNIT * 64 - 1)
 
 #endif /* __COLLECT_H__ */
 /** @} */
