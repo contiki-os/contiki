@@ -5,19 +5,7 @@
 #include "dev/battery-sensor.h"
 #include "dev/sht11-sensor.h"
 
-enum {
-  BATTERY_VOLTAGE_SENSOR,
-  BATTERY_INDICATOR,
-  LIGHT1_SENSOR,
-  LIGHT2_SENSOR,
-  TEMP_SENSOR,
-  HUMIDITY_SENSOR,
-  RSSI_SENSOR,
-  ETX1_SENSOR,
-  ETX2_SENSOR,
-  ETX3_SENSOR,
-  ETX4_SENSOR,
-};
+#include "collect-view-sky.h"
 
 /*---------------------------------------------------------------------------*/
 void
