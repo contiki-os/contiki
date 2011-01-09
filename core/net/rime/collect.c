@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.69 2010/12/18 22:12:53 dak664 Exp $
+ * $Id: collect.c,v 1.70 2011/01/09 21:13:20 adamdunkels Exp $
  */
 
 /**
@@ -214,7 +214,7 @@ struct {
 /* Forward declarations. */
 static void send_queued_packet(struct collect_conn *c);
 static void retransmit_callback(void *ptr);
-//static void retransmit_not_sent_callback(void *ptr); //Currently not used, avoid any compiler warning
+static void retransmit_not_sent_callback(void *ptr);
 static void set_keepalive_timer(struct collect_conn *c);
 
 /*---------------------------------------------------------------------------*/
@@ -338,7 +338,7 @@ update_parent(struct collect_conn *tc)
 
         if(DRAW_TREE) {
           printf("#A e=%d\n", collect_neighbor_link_estimate(best));
-          {
+          /*          {
             int i;
             int etx = 0;
             printf("#A l=");
@@ -347,12 +347,12 @@ update_parent(struct collect_conn *tc)
               etx += current->le.history[i];
             }
             printf("\n");
-          }
+            }*/
         }
       } else {
         if(DRAW_TREE) {
           printf("#A e=%d\n", collect_neighbor_link_estimate(current));
-          {
+          /*          {
             int i;
             int etx = 0;
             printf("#A l=");
@@ -361,7 +361,7 @@ update_parent(struct collect_conn *tc)
               etx += current->le.history[i];
             }
             printf("\n");
-          }
+            }*/
         }
       }
     }
@@ -487,19 +487,16 @@ send_packet(struct collect_conn *c, struct collect_neighbor *n)
   clock_time_t time;
   uint8_t rexmit_time_scaling;
 
+  PRINTF("Sending packet to %d.%d, %d transmissions\n",
+         n->addr.u8[0], n->addr.u8[1],
+         c->transmissions);
   unicast_send(&c->unicast_conn, &n->addr);
-  /* Compute the retransmission timeout and set up the
-     retransmission timer. */
-  rexmit_time_scaling = c->transmissions / (MAX_MAC_REXMITS + 1);
-  /*  if(rexmit_time_scaling > MAX_REXMIT_TIME_SCALING) {
-    rexmit_time_scaling = MAX_REXMIT_TIME_SCALING;
-  }
-  time = REXMIT_TIME << rexmit_time_scaling;
-  time = 3 * time / 2 + (random_rand() % (time / 4));*/
-  time = 3 * REXMIT_TIME / 4 + (random_rand() % (REXMIT_TIME / 4));
-  //  printf("retransmission time %lu scaling %d\n", time, rexmit_time_scaling);
-  /*  ctimer_set(&c->retransmission_timer, time,
-      retransmit_not_sent_callback, c);*/
+  /* If the MAC layer won't call us back, we'll set up the
+     retransmission timer with a high timeout, so that we can cancel
+     the transmission and send a new one. */
+  time = 16 * REXMIT_TIME;
+  ctimer_set(&c->retransmission_timer, time,
+             retransmit_not_sent_callback, c);
   c->send_time = clock_time();
 }
 /*---------------------------------------------------------------------------*/
@@ -1133,7 +1130,6 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
  * MAC layer transmissions to the transmission count, and call the
  * retransmit function.
  */
-#if 0 //not currently used, avoid any compiler warning
 static void
 retransmit_not_sent_callback(void *ptr)
 {
@@ -1143,7 +1139,6 @@ retransmit_not_sent_callback(void *ptr)
   c->transmissions += MAX_MAC_REXMITS + 1;
   retransmit_callback(c);
 }
-#endif
 /*---------------------------------------------------------------------------*/
 /**
  * This function is called from a ctimer that is setup when a packet
