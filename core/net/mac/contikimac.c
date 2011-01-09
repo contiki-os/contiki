@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.45 2010/12/16 22:43:07 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.46 2011/01/09 21:07:01 adamdunkels Exp $
  */
 
 /**
@@ -111,28 +111,68 @@ struct announcement_msg {
 #define CYCLE_TIME (RTIMER_ARCH_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE)
 #endif
 
-#define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 60
 
+/* ContikiMAC performs periodic channel checks. Each channel check
+   consists of two or more CCA checks. CCA_COUNT_MAX is the number of
+   CCAs to be done for each periodic channel check. The default is
+   two.*/
 #define CCA_COUNT_MAX                      2
+
+/* CCA_CHECK_TIME is the time it takes to perform a CCA check. */
 #define CCA_CHECK_TIME                     RTIMER_ARCH_SECOND / 8192
+
+/* CCA_SLEEP_TIME is the time between two successive CCA checks. */
 #define CCA_SLEEP_TIME                     RTIMER_ARCH_SECOND / 2000
+
+/* CHECK_TIME is the total time it takes to perform CCA_COUNT_MAX
+   CCAs. */
 #define CHECK_TIME                         (CCA_COUNT_MAX * (CCA_CHECK_TIME + CCA_SLEEP_TIME))
 
-#define STROBE_TIME                        (CYCLE_TIME + 2 * CHECK_TIME)
-
-#define STREAM_CCA_COUNT                   (CYCLE_TIME / (CCA_SLEEP_TIME + CCA_CHECK_TIME) - CCA_COUNT_MAX)
-
-#define GUARD_TIME                         9 * CHECK_TIME
-
-#define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
-#define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
-
+/* LISTEN_TIME_AFTER_PACKET_DETECTED is the time that we keep checking
+   for activity after a potential packet has been detected by a CCA
+   check. */
 #define LISTEN_TIME_AFTER_PACKET_DETECTED  RTIMER_ARCH_SECOND / 80
 
+/* MAX_SILENCE_PERIODS is the maximum amount of periods (a period is
+   CCA_CHECK_TIME + CCA_SLEEP_TIME) that we allow to be silent before
+   we turn of the radio. */
+#define MAX_SILENCE_PERIODS                5
+
+/* MAX_NONACTIVITY_PERIODS is the maximum number of periods we allow
+   the radio to be turned on without any packet being received, when
+   WITH_FAST_SLEEP is enabled. */
+#define MAX_NONACTIVITY_PERIODS            10
+
+
+
+/* STROBE_TIME is the maximum amount of time a transmitted packet
+   should be repeatedly transmitted as part of a transmission. */
+#define STROBE_TIME                        (CYCLE_TIME + 2 * CHECK_TIME)
+
+/* GUARD_TIME is the time before the expected phase of a neighbor that
+   a transmitted should begin transmitting packets. */
+#define GUARD_TIME                         9 * CHECK_TIME
+
+/* INTER_PACKET_INTERVAL is the interval between two successive packet transmissions */
+#define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
+
+/* AFTER_ACK_DETECTECT_WAIT_TIME is the time to wait after a potential
+   ACK packet has been detected until we can read it out from the
+   radio. */
+#define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
+
+/* MAX_PHASE_STROBE_TIME is the time that we transmit repeated packets
+   to a neighbor for which we have a phase lock. */
+#define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 60
+
+
+/* SHORTEST_PACKET_SIZE is the shortest packet that ContikiMAC
+   allows. Packets have to be a certain size to be able to be detected
+   by two consecutive CCA checks, and here is where we define this
+   shortest size. */
 #define SHORTEST_PACKET_SIZE               43
 
-#define MAX_SILENCE_PERIODS                5
-#define MAX_NONACTIVITY_PERIODIC           10
+
 
 /* The cycle time for announcements. */
 #ifdef ANNOUNCEMENT_CONF_PERIOD
@@ -333,6 +373,7 @@ powercycle(struct rtimer *t, void *ptr)
         t0 = RTIMER_NOW();
         if(we_are_sending == 0) {
           powercycle_turn_radio_on();
+          //          schedule_powercycle_fixed(t, t0 + CCA_CHECK_TIME);
 #if 0
 #if NURTIMER
           while(RTIMER_CLOCK_LT(t0, RTIMER_NOW(), t0 + CCA_CHECK_TIME));
@@ -352,6 +393,7 @@ powercycle(struct rtimer *t, void *ptr)
           }
           powercycle_turn_radio_off();
         }
+        //        schedule_powercycle_fixed(t, t0 + CCA_CHECK_TIME + CCA_SLEEP_TIME);
         schedule_powercycle_fixed(t, RTIMER_NOW() + CCA_SLEEP_TIME);
         /*        COOJA_DEBUG_STR("yield\n");*/
         PT_YIELD(&pt);
@@ -391,17 +433,16 @@ powercycle(struct rtimer *t, void *ptr)
 #endif /* CONTIKIMAC_CONF_COMPOWER */
             break;
           }
-#if WITH_FAST_SLEEP
-          if(periods > MAX_NONACTIVITY_PERIODIC &&
-             !NETSTACK_RADIO.receiving_packet() &&
-             !NETSTACK_RADIO.pending_packet()) {
+          if(WITH_FAST_SLEEP &&
+             periods > MAX_NONACTIVITY_PERIODS &&
+             !(NETSTACK_RADIO.receiving_packet() ||
+               NETSTACK_RADIO.pending_packet())) {
             powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
             compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
             break;
           }
-#endif /* WITH_FAST_SLEEP */
           if(NETSTACK_RADIO.pending_packet()) {
             break;
           }
@@ -409,12 +450,16 @@ powercycle(struct rtimer *t, void *ptr)
           schedule_powercycle(t, CCA_CHECK_TIME + CCA_SLEEP_TIME);
           PT_YIELD(&pt);
         }
-        if(radio_is_on && !(NETSTACK_RADIO.receiving_packet() ||
-                            NETSTACK_RADIO.pending_packet())) {
-          powercycle_turn_radio_off();
+        if(radio_is_on) {
+          if(!(NETSTACK_RADIO.receiving_packet() ||
+               NETSTACK_RADIO.pending_packet()) ||
+             !RTIMER_CLOCK_LT(RTIMER_NOW(),
+                              (start + LISTEN_TIME_AFTER_PACKET_DETECTED))) {
+            powercycle_turn_radio_off();
 #if CONTIKIMAC_CONF_COMPOWER
-          compower_accumulate(&compower_idle_activity);
+            compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
+          }
         }
       } else {
 #if CONTIKIMAC_CONF_COMPOWER
@@ -605,35 +650,36 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   }
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 
-#if WITH_CONTIKIMAC_HEADER
-  hdrlen = packetbuf_totlen();
-  if(packetbuf_hdralloc(sizeof(struct hdr)) == 0) {
-    /* Failed to allocate space for contikimac header */
-    PRINTF("contikimac: send failed, too large header\n");
-    return MAC_TX_ERR_FATAL;
+  if(WITH_CONTIKIMAC_HEADER) {
+    hdrlen = packetbuf_totlen();
+    if(packetbuf_hdralloc(sizeof(struct hdr)) == 0) {
+      /* Failed to allocate space for contikimac header */
+      PRINTF("contikimac: send failed, too large header\n");
+      return MAC_TX_ERR_FATAL;
+    }
+    chdr = packetbuf_hdrptr();
+    chdr->id = CONTIKIMAC_ID;
+    chdr->len = hdrlen;
+    
+    /* Create the MAC header for the data packet. */
+    hdrlen = NETSTACK_FRAMER.create();
+    if(hdrlen == 0) {
+      /* Failed to send */
+      PRINTF("contikimac: send failed, too large header\n");
+      packetbuf_hdr_remove(sizeof(struct hdr));
+      return MAC_TX_ERR_FATAL;
+    }
+    hdrlen += sizeof(struct hdr);
+  } else {
+    /* Create the MAC header for the data packet. */
+    hdrlen = NETSTACK_FRAMER.create();
+    if(hdrlen == 0) {
+      /* Failed to send */
+      PRINTF("contikimac: send failed, too large header\n");
+      return MAC_TX_ERR_FATAL;
+    }
   }
-  chdr = packetbuf_hdrptr();
-  chdr->id = CONTIKIMAC_ID;
-  chdr->len = hdrlen;
 
-  /* Create the MAC header for the data packet. */
-  hdrlen = NETSTACK_FRAMER.create();
-  if(hdrlen == 0) {
-    /* Failed to send */
-    PRINTF("contikimac: send failed, too large header\n");
-    packetbuf_hdr_remove(sizeof(struct hdr));
-    return MAC_TX_ERR_FATAL;
-  }
-  hdrlen += sizeof(struct hdr);
-#else /* WITH_CONTIKIMAC_HEADER */
-  /* Create the MAC header for the data packet. */
-  hdrlen = NETSTACK_FRAMER.create();
-  if(hdrlen == 0) {
-    /* Failed to send */
-    PRINTF("contikimac: send failed, too large header\n");
-    return MAC_TX_ERR_FATAL;
-  }
-#endif /* WITH_CONTIKIMAC_HEADER */
 
   /* Make sure that the packet is longer or equal to the shortest
      packet length. */
