@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.86 2011/01/05 12:04:23 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.87 2011/01/09 21:03:42 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -431,7 +431,9 @@ main(int argc, char **argv)
         watchdog_periodic();
 	timer_reset(&mgt_timer);
 	msp430_sync_dco();
+#if CC2420_CONF_SFD_TIMESTAMPS
         cc2420_arch_sfd_init();
+#endif /* CC2420_CONF_SFD_TIMESTAMPS */
       }
 #endif
       
