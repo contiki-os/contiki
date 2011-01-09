@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-link-estimate.h,v 1.3 2010/10/03 20:06:25 adamdunkels Exp $
+ * $Id: collect-link-estimate.h,v 1.4 2011/01/09 21:14:22 adamdunkels Exp $
  */
 
 /**
@@ -59,12 +59,8 @@
 
 
 
-
-#define COLLECT_LINK_ESTIMATE_HISTORY_SIZE   16
-
 struct collect_link_estimate {
-  uint8_t history[COLLECT_LINK_ESTIMATE_HISTORY_SIZE];
-  uint8_t historyptr;
+  uint32_t etx_accumulator;
   uint8_t num_estimates;
 };
 
