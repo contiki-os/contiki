@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.15 2010/11/07 10:32:13 adamdunkels Exp $
+ * $Id: example-collect.c,v 1.16 2011/01/10 15:11:44 adamdunkels Exp $
  */
 
 /**
@@ -69,6 +69,9 @@ static const struct collect_callbacks callbacks = { recv };
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(example_collect_process, ev, data)
 {
+  static struct etimer periodic;
+  static struct etimer et;
+  
   PROCESS_BEGIN();
 
   collect_open(&tc, 130, COLLECT_ROUTER, &callbacks);
@@ -79,23 +82,30 @@ PROCESS_THREAD(example_collect_process, ev, data)
 	collect_set_sink(&tc, 1);
   }
 
+  /* Allow some time for the network to settle. */
+  etimer_set(&et, 120 * CLOCK_SECOND);
+  PROCESS_WAIT_UNTIL(etimer_expired(&et));
+
   while(1) {
-    static struct etimer et;
 
-    /* Send a packet every 16 seconds; first wait 8 seconds, than a
-       random time between 0 and 8 seconds. */
+    /* Send a packet every 30 seconds. */
+    if(etimer_expired(&periodic)) {
+      etimer_set(&periodic, CLOCK_SECOND * 30);
+      etimer_set(&et, random_rand() % (CLOCK_SECOND * 30));
+    }
 
-    etimer_set(&et, CLOCK_SECOND * 16 + random_rand() % (CLOCK_SECOND * 16));
     PROCESS_WAIT_EVENT();
+
 
     if(etimer_expired(&et)) {
       static rimeaddr_t oldparent;
       const rimeaddr_t *parent;
+
       printf("Sending\n");
       packetbuf_clear();
       packetbuf_set_datalen(sprintf(packetbuf_dataptr(),
 				  "%s", "Hello") + 1);
-      collect_send(&tc, 10);
+      collect_send(&tc, 15);
 
       parent = collect_parent(&tc);
       if(!rimeaddr_cmp(parent, &oldparent)) {
