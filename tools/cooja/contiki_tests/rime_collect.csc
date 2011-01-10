@@ -16,7 +16,7 @@
     <motedelay_us>10000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
-      <transmitting_range>67.0</transmitting_range>
+      <transmitting_range>80.0</transmitting_range>
       <interference_range>0.0</interference_range>
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
@@ -26,7 +26,7 @@
     </events>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype374</identifier>
+      <identifier>mtype949</identifier>
       <description>Contiki Mote Type #1</description>
       <contikiapp>[CONTIKI_DIR]/examples/rime/example-collect.c</contikiapp>
       <commands>make example-collect.cooja TARGET=cooja</commands>
@@ -59,7 +59,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>1</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -72,7 +72,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>2</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -85,7 +85,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>3</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -98,7 +98,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>4</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -111,7 +111,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>5</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -124,7 +124,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>6</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -137,7 +137,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>7</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -150,7 +150,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>8</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -163,7 +163,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>9</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -176,7 +176,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>10</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -189,7 +189,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>11</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -202,7 +202,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>12</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -215,7 +215,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>13</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -228,7 +228,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>14</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -241,7 +241,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>15</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -254,7 +254,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>16</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -267,7 +267,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>17</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -280,7 +280,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>18</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -293,7 +293,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>19</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -306,7 +306,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>20</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -319,7 +319,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>21</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -332,7 +332,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>22</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -345,7 +345,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>23</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -358,7 +358,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>24</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -371,7 +371,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>25</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -384,7 +384,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>26</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -397,7 +397,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>27</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -410,7 +410,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>28</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -423,7 +423,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>29</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -436,7 +436,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>30</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -449,7 +449,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>31</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -462,7 +462,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>32</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -475,7 +475,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>33</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -488,7 +488,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>34</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -501,7 +501,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>35</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -514,7 +514,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>36</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -527,7 +527,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>37</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -540,7 +540,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>38</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -553,7 +553,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>39</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -566,7 +566,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>40</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -579,7 +579,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>41</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -592,7 +592,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>42</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -605,7 +605,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>43</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -618,7 +618,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>44</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -631,7 +631,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>45</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -644,7 +644,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>46</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -657,7 +657,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>47</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -670,7 +670,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>48</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -683,7 +683,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>49</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -696,13 +696,13 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>50</id>
       </interface_config>
-      <motetype_identifier>mtype374</motetype_identifier>
+      <motetype_identifier>mtype949</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>262</width>
-    <z>3</z>
+    <z>1</z>
     <height>185</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -715,7 +715,7 @@
       <viewport>1.283542488892569 0.0 0.0 1.283542488892569 56.0530822138472 6.888296017222324</viewport>
     </plugin_config>
     <width>496</width>
-    <z>0</z>
+    <z>3</z>
     <height>198</height>
     <location_x>1</location_x>
     <location_y>184</location_y>
@@ -723,10 +723,10 @@
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
-      <filter />
+      <filter>ID:1</filter>
     </plugin_config>
-    <width>497</width>
-    <z>1</z>
+    <width>933</width>
+    <z>2</z>
     <height>333</height>
     <location_x>0</location_x>
     <location_y>381</location_y>
@@ -752,7 +752,6 @@ function print_stats() {
 
 /* Init */
 sink = 0;
-booted = new Array();
 hops = new Array();
 dups = new Array();
 received = new Array();
@@ -760,31 +759,22 @@ received = new Array();
 doubleFormat = new java.text.DecimalFormat("0.00");
 integerFormat = new java.text.DecimalFormat("00");
 for(i = 1; i &lt;= num_nodes; i++) {
-    booted[i] = false;
     received[i] = "__________";
     hops[i] = received[i];
 }
 
-/* Wait until all nodes have started */
 log.log("Simulation has " + num_nodes + " nodes\n");
-for(i = 1; i &lt;= num_nodes; i++) {
-  YIELD_THEN_WAIT_UNTIL(msg.startsWith('Starting'));
-  /*  log.log("Node " + id + " booted\n");*/
-}
-
-/* Create sink */
-log.log("All nodes booted, sink is node 1\n\n");
-sink = 1;
-mote.getInterfaces().getButton().clickButton();
 
 while(true) {
     YIELD();
-
+    log.log(time + " " + id + " " + msg + "\n");
     /* Count sensor data packets */
     if(msg.startsWith("Sink got message")) {
+
         node_text = msg.split(" ")[4];
         seqno_text = msg.split(" ")[6];
         hops_text = msg.split(" ")[8];
+
         if(node_text) {
             source = parseInt(node_text);
             seqno = parseInt(seqno_text);
@@ -809,14 +799,12 @@ while(true) {
     /* Signal OK if all nodes have reported 10 messages. */
     num_reported = 0;
     for(i = 1; i &lt;= num_nodes; i++) {
-        if(i != sink) {
-            if(!isNaN(received[i])) {
-                num_reported++;
-            }
+        if(!isNaN(received[i])) {
+            num_reported++;
         }
     }
 
-    if(num_reported == num_nodes - 1) {
+    if(num_reported == num_nodes) {
         print_stats();
         log.testOK();
     }
@@ -824,7 +812,7 @@ while(true) {
       <active>true</active>
     </plugin_config>
     <width>676</width>
-    <z>2</z>
+    <z>0</z>
     <height>714</height>
     <location_x>497</location_x>
     <location_y>0</location_y>
