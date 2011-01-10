@@ -734,7 +734,7 @@
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(600000, log.log(last_stats));
+      <script>TIMEOUT(600000);
 
 num_nodes = mote.getSimulation().getMotesCount();
 
