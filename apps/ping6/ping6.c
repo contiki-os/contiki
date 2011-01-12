@@ -123,9 +123,9 @@ ping6handler(process_event_t ev, process_data_t data)
     UIP_ICMP_BUF->type = ICMP6_ECHO_REQUEST;
     UIP_ICMP_BUF->icode = 0;
     /* set identifier and sequence number to 0 */
-    memset((void *)UIP_ICMP_BUF + UIP_ICMPH_LEN, 0, 4);
+    memset((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN, 0, 4);
     /* put one byte of data */
-    memset((void *)UIP_ICMP_BUF + UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN,
+    memset((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN,
            count, PING6_DATALEN);
 
 
