@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "buffer.h"
 
 uint8_t* data_buffer;
