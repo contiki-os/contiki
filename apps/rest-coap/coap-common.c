@@ -5,10 +5,7 @@
  *      Author: dogan
  */
 
-#ifdef CONTIKI_TARGET_SKY
-  #include "contiki.h"
-  #include "contiki-net.h"
-#else
+#ifdef CONTIKI_TARGET_NETSIM
   #include <stdio.h>
   #include <iostream>
   #include <cstring>
@@ -21,6 +18,10 @@
   #include <netinet/in.h>
   #include <arpa/inet.h>
   #include <netdb.h>
+#else
+  #include "contiki.h"
+  #include "contiki-net.h"
+  #include <string.h>
 #endif
 
 #include "coap-common.h"
@@ -81,7 +82,8 @@ int serialize_packet(coap_packet_t* packet, uint8_t* buffer)
     }
     buffer[index] = (delta) << COAP_HEADER_OPTION_DELTA_POSITION;
 
-    PRINTF("option %u len %u option diff %u option_value addr %x option addr %x next option addr %x", option->option, option->len, option->option - option_delta, (uint16_t) option->value, (uint16_t)option, (uint16_t)option->next);
+    PRINTF("option %u len %u option diff %u option_value addr %x option addr %x next option addr %x", option->option, option->len, option->option - option_delta, (unsigned int) option->value, (unsigned int)option, (unsigned int)option->next);
+
     int i = 0;
     for ( ; i < option->len ; i++ ){
       PRINTF(" (%u)", option->value[i]);

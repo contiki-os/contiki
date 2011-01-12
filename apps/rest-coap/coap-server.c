@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h> /*for isxdigit*/
 #include "contiki.h"
 #include "contiki-net.h"
@@ -204,7 +205,8 @@ coap_set_option(coap_packet_t* packet, option_type option_type, uint16_t len, ui
 
     packet->option_count++;
 
-    PRINTF("option->len %u option->option %u option->value %x next %x\n", option->len, option->option, (uint16_t) option->value, (uint16_t)option->next);
+    PRINTF("option->len %u option->option %u option->value %x next %x\n", option->len, option->option, (unsigned int) option->value, (unsigned int)option->next);
+
     int i = 0;
     for ( ; i < option->len ; i++ ){
       PRINTF(" (%u)", option->value[i]);
