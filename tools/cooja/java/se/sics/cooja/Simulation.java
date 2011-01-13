@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.69 2010/12/10 15:55:47 fros4943 Exp $
+ * $Id: Simulation.java,v 1.70 2011/01/13 19:05:09 adamdunkels Exp $
  */
 
 package se.sics.cooja;
@@ -295,7 +295,12 @@ public class Simulation extends Observable implements Runnable {
     this.setChanged();
     this.notifyObservers(this);
     logger.info("Simulation main loop stopped, system time: " + System.currentTimeMillis() + 
-        "\tDuration: " + (System.currentTimeMillis() - lastStartTime) + " ms");
+        "\tDuration: " + (System.currentTimeMillis() - lastStartTime) +
+                " ms" +
+                "\tSimulated time " + getSimulationTimeMillis() +
+                " ms\tRatio " +
+                ((double)getSimulationTimeMillis() /
+                 (double)(System.currentTimeMillis() - lastStartTime)));
   }
 
   /**
