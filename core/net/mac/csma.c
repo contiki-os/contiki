@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.24 2010/12/16 22:44:02 adamdunkels Exp $
+ * $Id: csma.c,v 1.25 2011/01/13 19:06:22 adamdunkels Exp $
  */
 
 /**
@@ -92,6 +92,8 @@ LIST(queued_packet_list);
 
 static struct ctimer transmit_timer;
 
+static uint8_t rdc_is_transmitting;
+
 static void packet_sent(void *ptr, int status, int num_transmissions);
 
 /*---------------------------------------------------------------------------*/
@@ -118,6 +120,12 @@ transmit_queued_packet(void *ptr)
   /*  struct queued_packet *q = ptr;*/
   struct queued_packet *q;
 
+  /* Don't transmit a packet if the RDC is still transmitting the
+     previous one. */
+  if(rdc_is_transmitting) {
+    return;
+  }
+  
   //  printf("q %d\n", list_length(queued_packet_list));
 
   q = list_head(queued_packet_list);
@@ -127,6 +135,7 @@ transmit_queued_packet(void *ptr)
     PRINTF("csma: sending number %d %p, queue len %d\n", q->transmissions, q,
            list_length(queued_packet_list));
     //    printf("s %d\n", packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0]);
+    rdc_is_transmitting = 1;
     NETSTACK_RDC.send(packet_sent, q);
   }
 }
@@ -150,7 +159,7 @@ free_queued_packet(void)
   struct queued_packet *q;
 
   //  printf("q %d\n", list_length(queued_packet_list));
-  
+
   q = list_head(queued_packet_list);
 
   if(q != NULL) {
@@ -175,6 +184,8 @@ packet_sent(void *ptr, int status, int num_transmissions)
   int num_tx;
   int backoff_transmissions;
 
+  rdc_is_transmitting = 0;
+  
   switch(status) {
   case MAC_TX_OK:
   case MAC_TX_NOACK:
@@ -333,6 +344,7 @@ static void
 init(void)
 {
   memb_init(&packet_memb);
+  rdc_is_transmitting = 0;
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver csma_driver = {
