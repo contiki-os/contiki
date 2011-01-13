@@ -46,7 +46,7 @@ STARTUP=$(OBJECTDIR)/start.o
 
 ARCH_FLAGS= -mcpu=arm7tdmi-s -mthumb-interwork -march=armv4t -mtune=arm7tdmi-s -DCONFIG_ARM -D__ARM__ #-Wcast-align
 THUMB_FLAGS= -mthumb -mcallee-super-interworking
-ARM_FLAGS=
+ARM_FLAGS= -marm
 
 CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
 	   -I$(CONTIKI_CPU)/dbg-io \
