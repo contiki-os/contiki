@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: slip-bridge.c,v 1.4 2010/10/21 18:23:44 joxe Exp $
+ * $Id: slip-bridge.c,v 1.5 2011/01/14 17:57:48 joxe Exp $
  */
 
 /**
@@ -99,6 +99,7 @@ output(void)
 }
 
 /*---------------------------------------------------------------------------*/
+#undef putchar
 int
 putchar(int c)
 {
