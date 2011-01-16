@@ -1,4 +1,4 @@
-all: rest-example
+all: rest-server-example
 
 ifndef TARGET
 TARGET=sky
