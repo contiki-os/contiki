@@ -28,3 +28,6 @@
   not much point to implement it here unless you also plan to use in
    in contiki (pretty substantial change to core Contiki).
 
+ also you ack the data after checking it's for you. so autoack relies
+ on setting up the hardware addressing.
+
