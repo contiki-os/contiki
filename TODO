@@ -14,3 +14,11 @@
 - beacon sync
 
 - CCA and ED.
+
+- auto-acking and ack managment
+  keep a set of bit fields, one bit per sequence number (DSN), so 32 bytes
+   total.
+  Set them all to 1 initially. When a DSN is sent, clear the bit. Set
+   the bit when the ack is received.
+  Do anything special with sent but unacked packets? Maybe, so you can
+   retransmit them.
