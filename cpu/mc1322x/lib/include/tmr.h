@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: tmr.h,v 1.9 2010/11/07 14:25:07 maralvira Exp $
+ * $Id: tmr.h,v 1.10 2011/01/17 15:51:02 maralvira Exp $
  */
 
 #ifndef TMR_H
@@ -238,5 +238,19 @@ static volatile struct TMR_struct * const TMR3 = (void *) (TMR3_BASE);
 #define TMR(num, reg)  CAT2(TMR,num,_##reg)
 
 #endif /* REG_NO_COMPAT */
+
+/* Initialize timer.  This just counts and interrupts, doesn't drive an output.
+   timer_num = 0, 1, 2, 3
+   rate = desired rate in Hz,
+   enable_int = whether to enable an interrupt on every cycle
+   Returns actual timer rate. */
+uint32_t timer_setup_ex(int timer_num, uint32_t rate, int enable_int);
+
+/* Initialize timer.  This just counts and interrupts, doesn't drive an output.
+   timer = TMR0, TMR1, TMR2, TMR3
+   rate = desired rate in Hz,
+   enable_int = whether to enable an interrupt on every cycle
+   Returns actual timer rate. */
+#define timer_setup(timer,rate,enable_int) timer_setup_ex(TMR_NUM(timer), rate, enable_int)
 
 #endif
