@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uart1.h,v 1.1 2010/10/25 09:03:39 salvopitru Exp $
+ * $Id: uart1.h,v 1.2 2011/01/17 09:22:24 salvopitru Exp $
  */
 
 /**
@@ -41,9 +41,7 @@
 #ifndef __UART1_H__
 #define __UART1_H__
 
-//#include "msp430.h"
-//
-//#define UART1_BAUD2UBR(baud) ((MSP430_CPU_SPEED)/(baud))
+#define BAUD2UBR(baud) baud
 
 void uart1_set_input(int (*input)(unsigned char c));
 void uart1_writeb(unsigned char c);
