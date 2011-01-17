@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: maca.c,v 1.6 2010/11/07 14:06:58 maralvira Exp $
+ * $Id: maca.c,v 1.7 2011/01/17 15:49:17 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -461,7 +461,7 @@ void tx_packet(volatile packet_t *p) {
 	if(bit_is_set(*NIPEND, INT_NUM_MACA)) { *INTFRC = (1 << INT_NUM_MACA); } 
 	if(last_post == NO_POST) { *INTFRC = (1<<INT_NUM_MACA); }
 	/* if we are in a reception cycle, advance the softclock timeout to now */
-	if(last_post == RX_POST) { *MACA_SFTCLK = *MACA_CLK; }
+	if(last_post == RX_POST) { *MACA_SFTCLK = *MACA_CLK + CLK_PER_BYTE; }
 	return;
 }
 
