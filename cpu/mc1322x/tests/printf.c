@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: printf.c,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: printf.c,v 1.2 2011/01/17 15:42:24 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -48,6 +48,7 @@
 	printf("): %d\n", sizeof(x));		\
 	} while(0)
 
+#if (__linux__)
 FILE *stderr;
 
 void __assert_fail(void) {
@@ -59,9 +60,10 @@ int fputs(const char *s, FILE *stream) {
 }
 
 size_t fwrite(const void *ptr, size_t size, size_t nmemb,
-	      FILE *stream) {       
+	      FILE *stream) {
 	return 0;
 }
+#endif
 
 int main(void)
 {
