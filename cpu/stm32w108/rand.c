@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: rand.c,v 1.2 2010/10/26 10:47:23 salvopitru Exp $
+ * $Id: rand.c,v 1.3 2011/01/17 10:08:14 salvopitru Exp $
  */
 /*---------------------------------------------------------------------------*/
 /**
@@ -43,8 +43,8 @@
 #include "dev/stm32w-radio.h"
 #include "lib/random.h"
 
-#if (RANDOM_MAX != 0xffff)
-#warning "RANDOM_MAX is not defined as 65535."
+#if (RANDOM_RAND_MAX != 0xffff)
+#warning "RANDOM_RAND_MAX is not defined as 65535."
 #endif
 
 int rand(void)
