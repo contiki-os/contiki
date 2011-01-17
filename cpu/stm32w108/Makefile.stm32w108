@@ -73,7 +73,7 @@ CFLAGS  += $(CFLAGSNO) $(OPTI)
 AROPTS  = --create
 ASFLAGS = -s+ -w+ --cpu Cortex-M3 -L$(OBJECTDIR)
 LDFLAGS += --redirect _Printf=_PrintfSmall --redirect _Scanf=_ScanfSmall --map=contiki-$(TARGET).map
- ifndef COFFEE_FILES
+ ifndef COFFEE
   LDFLAGS+= --config $(CONTIKI_CPU)/hal/micro/cortexm3/stm32w108/iar-cfg.icf
  endif
 OBJOPTS = --bin
@@ -179,6 +179,10 @@ FLASHEROPTS = -f -r
 else
 # Flash on serial port with on-board bootloader
 FLASHEROPTS = -f -i rs232 -p $(PORT) -r
+ ifdef BTM
+#if already in bootloader mode
+  FLASHEROPTS += -b
+ endif 
 endif
 			
 
