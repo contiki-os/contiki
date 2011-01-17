@@ -1,6 +1,7 @@
 /*
 * Copyright (c) 2001, Adam Dunkels.
 * Copyright (c) 2009, Joakim Eriksson, Niclas Finne.
+* Copyright (c) 2011, STMicroelectronics.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -29,7 +30,7 @@
 *
 * This file is part of the uIP TCP/IP stack.
 *
-* $Id: wpcapslip6.c,v 1.1 2010/10/25 10:42:41 salvopitru Exp $
+* $Id: wpcapslip6.c,v 1.2 2011/01/17 09:16:55 salvopitru Exp $
 */
 
  /**
@@ -93,21 +94,6 @@ void write_to_serial(void *inbuf, int len);
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while (0)
 
-#define USAGE_STRING "usage: wcapslip6 -s siodev [-B baudrate] [-a ipaddress[/prefixlen]|-p 64bit-prefix] [-c channel] [-r] [-v] <local interface mac address>"
-#define HELP_STRING "usage: wcapslip6 -s siodev [-B baudrate] [-a ipaddress[/prefixlen]|-p 64bit-prefix] [-c channel] [-r] [-v] <local interface mac address>\r\n\n\
-Options:\r\n\
--s siodev\tDevice that identifies the bridge.\r\n\
--B baudrate\tBaudrate of the serial port (default:115200).\r\n\
--a ipaddress/[prefixlen]  The address to be assigned to the network\r\n\
-\t\tadapter.\r\n\
--p 64bit-prefix\tAutomatic assignment of the IPv6 address from the specified\r\n\
-\t\tsubnet prefix. It may be followed by the prefix length\r\n\
--c channel\t 802.15.4 radio channel.\r\n\
--r\t\t Set sniffer mode. \r\n\
--v\t\tVerbose. Print more infos.\r\n\
-<local interface mac address>\tMAC address of the local interface that will\r\n\
-\t\tbe used by wcapslip6.\r\n"
-
 #define REQUEST_MAC_TIMEOUT 3
 
 typedef enum {
@@ -115,21 +101,35 @@ typedef enum {
 	true = 1,
 } bool;
 
-//char tundev[32] = { "tap0" };
-static const char *ipaddr = NULL;
+const char *prog;
+/* Local adapter IP address. */
+static const char *local_ipaddr = NULL;
+/* Attached device's IP address. */
+static char rem_ipaddr[INET6_ADDRSTRLEN];
 static char *ipprefix = NULL;
-static char autoconf_addr[40] = {0};
+static char autoconf_addr[INET6_ADDRSTRLEN] = {0};
 static bool autoconf = false;
 static bool verbose = false;
-static bool tobecleaned = false;
-static struct uip_eth_addr eth_addr;
+static bool tun = false;
+static bool clean_addr = false;
+static bool clean_route = false;
+static bool clean_neighb = false;
+static struct uip_eth_addr adapter_eth_addr;
 static char * if_name;
 OSVERSIONINFO osVersionInfo;
 
-static int request_mac = 1;
-static int send_mac = 1;
-static int set_sniffer_mode = 1;
-static int set_channel = 1;
+/* Fictitious Ethernet address of the attached device (used in tun mode). */
+#define DEV_MAC_ADDR "02-00-00-00-00-02"
+static const struct uip_eth_addr dev_eth_addr = {{0x02,0x00,0x00,0x00,0x00,0x02}};
+
+
+static bool request_mac = true;
+static bool send_mac = true;
+static bool set_sniffer_mode = true;
+static bool set_channel = true;
+static bool send_prefix = false;
+/* Network prefix for border router. */
+const char * br_prefix = NULL;
 
 static int sniffer_mode = 0;
 static int channel = 0;
@@ -141,6 +141,37 @@ ssystem(const char *fmt, ...) __attribute__((__format__ (__printf__, 1, 2)));
 
 void addAddress(const char * ifname, const char * ipaddr);
 void delAddress(const char * ifname, const char * ipaddr);
+void addLoWPANRoute(const char * ifname, const char * net, const char * gw);
+void delLoWPANRoute(const char * ifname, const char * net);
+void addNeighbor(const char * ifname, const char * neighb, const char * neighb_mac);
+void delNeighbor(const char * ifname, const char * neighb);
+int IPAddrFromPrefix(char * ipaddr, const char * ipprefix, const char * mac);
+
+void print_help()
+{
+    fprintf(stderr, "usage: %s -s siodev [options] <local interface mac address>\r\n\n", prog);
+    fprintf(stderr, "Options:\r\n");
+    fprintf(stderr, "-s siodev\tDevice that identifies the bridge or the boder router.\r\n");
+    fprintf(stderr, "-B baudrate\tBaudrate of the serial port (default:115200).\r\n");
+    fprintf(stderr, " One between:\n");
+    fprintf(stderr, "  -a ipaddress/[prefixlen]  The address to be assigned to the local interface.\r\n");
+    fprintf(stderr, "\t\tadapter.\r\n");
+    fprintf(stderr, "  -p 64bit-prefix   Automatic assignment of the IPv6 address from the specified\r\n");
+    fprintf(stderr, "\t\tsubnet prefix, based on bridge's MAC address. It may be\r\n");
+    fprintf(stderr, "\t\tfollowed by the prefix length.\r\n");
+    fprintf(stderr, "\t\tNot allowed in Border Router mode.\r\n");
+    fprintf(stderr, "-c channel\t802.15.4 radio channel.\r\n");
+    //fprintf(stderr, "-r\t\tSet sniffer mode. \r\n");
+    fprintf(stderr, "-t\t\tUse tun interface, i.e., send bare IP packets to device.\r\n");
+    fprintf(stderr, "-b 64bit-prefix\tAttached device is an RPL Border Router (-t option forced).\r\n");
+    fprintf(stderr, "\t\t64bit-prefix is the prefix the border router has to announce.\r\n");
+    fprintf(stderr, "-v\t\tVerbose. Print more info.\r\n");
+    fprintf(stderr, "-h\t\tShow this help.\r\n");
+    fprintf(stderr, "\r\n<local interface mac address>\tMAC address of the local interface that will\r\n");
+    fprintf(stderr, "\t\tbe used by wcapslip6.\r\n");
+
+    exit(0);
+}
 
 int
 ssystem(const char *fmt, ...)
@@ -218,15 +249,16 @@ execProcess(LPDWORD exitCode,const char *fmt, ...)
 
 /*static void
 print_packet(u_int8_t *p, int len) {
-int i;
-for(i = 0; i < len; i++) {
-printf("%02x", p[i]);
-if ((i & 3) == 3)
-printf(" ");
-if ((i & 15) == 15)
-printf("\n");
-}
-printf("\n");
+    int i;
+    printf("\n");
+    for(i = 0; i < len; i++) {
+        printf("%02x", p[i]);
+        if ((i & 3) == 3)
+            printf(" ");
+        if ((i & 15) == 15)
+            printf("\n");
+    }
+    printf("\n");
 }*/
 
 int
@@ -248,31 +280,35 @@ is_sensible_string(const unsigned char *s, int len)
 * Read from serial, when we have a packet write it to tun. No output
 * buffering, input buffered by stdio.
 */
+
+#define BUF_SIZE 2000
+
 void
 serial_to_wpcap(FILE *inslip)
 {
-	static union {
-		unsigned char inbuf[2000];
-	} uip;
-	static int inbufptr = 0;
+	unsigned char buf[BUF_SIZE];
 
-	int ret;
+    static int inbufptr = 0;
+    int ret;
 	unsigned char c;
 
-#ifdef linux
-	ret = fread(&c, 1, 1, inslip);
-	if(ret == -1 || ret == 0) err(1, "serial_to_tun: read");
-	goto after_fread;
-#endif
+    unsigned char * inpktbuf;
+
+    if(tun){
+        inpktbuf = buf + sizeof(struct uip_eth_hdr);
+    }
+    else {
+        inpktbuf = buf;
+    }
+
+
 
 read_more:
-	if(inbufptr >= sizeof(uip.inbuf)) {
+	if(inbufptr >= BUF_SIZE) {
 		inbufptr = 0;
 	}
 	ret = fread(&c, 1, 1, inslip);
-#ifdef linux
-after_fread:
-#endif
+
 	if(ret == -1) {
 		err(1, "serial_to_tun: read");
 	}
@@ -286,13 +322,13 @@ after_fread:
 	switch(c) {
   case SLIP_END:
 	  if(inbufptr > 0) {
-		  if(uip.inbuf[0] == '!') {
-			  if (uip.inbuf[1] == 'M' && inbufptr == 18) {
+		  if(inpktbuf[0] == '!') {
+			  if (inpktbuf[1] == 'M' && inbufptr == 18) {
 				  /* Read gateway MAC address and autoconfigure tap0 interface */
 				  char macs[24];
 				  int i, pos;
 				  for(i = 0, pos = 0; i < 16; i++) {
-					  macs[pos++] = uip.inbuf[2 + i];
+					  macs[pos++] = inpktbuf[2 + i];
 					  if ((i & 1) == 1 && i < 14) {
 						  macs[pos++] = ':';
 					  }
@@ -304,89 +340,66 @@ after_fread:
 
 				  if(autoconf){
 
-					  struct in6_addr ipv6addr;
-					  struct uip_802154_longaddr dev_addr;
-					  //DWORD exitCode = -1;
-					  
-					  {
-		    	  
-		              			int addr_bytes[8]; // sscanf requires int instead of 8-bit for hexadecimal variables.
-		              
-		              			sscanf(macs, "%2X:%2X:%2X:%2X:%2X:%2X:%2X:%2X",
-							 &addr_bytes[0],
-							 &addr_bytes[1],
-							 &addr_bytes[2],
-							 &addr_bytes[3],
-							 &addr_bytes[4],
-							 &addr_bytes[5],
-							 &addr_bytes[6],
-							 &addr_bytes[7]);
-				     
-				     		for(i=0;i<8;i++){
-				     			dev_addr.addr[i] = addr_bytes[i];
-				     		}      
-		      			   }					  
-
-					  /*int i;
-					  PRINTF("MAC:\n");
-					  for(i=0; i< 8; i++)
-						  PRINTF("%02X ",dev_addr.addr[i]);
-					  PRINTF("\n");*/
-
-					  dev_addr.addr[0] |= 0x02;				  
-
-					  strtok(ipprefix,"/");
-
-					  if(inet_pton(AF_INET6, ipprefix, &ipv6addr)!=1){
-						  printf("Invalid IPv6 address.\n");
+                      if(IPAddrFromPrefix(autoconf_addr, ipprefix, macs)!=0){
+                          fprintf(stderr, "Invalid IPv6 address.\n");
 						  exit(1);
-					  }
-
-					  // Copy modified EUI-64 to the last 64 bits of IPv6 address.
-					  memcpy(&ipv6addr.s6_addr[8],&dev_addr,8);
-
-					  inet_ntop(AF_INET6,&ipv6addr,autoconf_addr,INET6_ADDRSTRLEN); // To string format.
-
-					  char * substr = strtok(NULL,"/");
-					  if(substr!=NULL){   // Add the prefix length.
-						  strcat(autoconf_addr,"/");
-						  strcat(autoconf_addr,substr);
-					  }
-					  ipaddr = autoconf_addr;
-
-					  addAddress(if_name,ipaddr);
+                      }
+					  local_ipaddr = autoconf_addr;
+					  addAddress(if_name,local_ipaddr);
 					  
-					  
-				  }				  
+				  }
+                  if(br_prefix != NULL){
+                      /* RPL Border Router mode. Add route towards LoWPAN. */
+
+                      if(IPAddrFromPrefix(rem_ipaddr, br_prefix, macs)!=0){
+                          fprintf(stderr, "Invalid IPv6 address.\n");
+						  exit(1);
+                      }
+
+                      addLoWPANRoute(if_name, br_prefix, rem_ipaddr);
+                      addNeighbor(if_name, rem_ipaddr, DEV_MAC_ADDR);
+                  }
 
 			  }
 #define DEBUG_LINE_MARKER '\r'
 		  }
-		  else if(uip.inbuf[0] == '?') {
-			   if (uip.inbuf[1] == 'M') {
+		  else if(inpktbuf[0] == '?') {
+			   if (inpktbuf[1] == 'M') {
 				   /* Send our MAC address. */
 
-				   send_mac = 1;
-				   set_sniffer_mode = 1;
-				   set_channel = 1;
+				   send_mac = true;
+				   set_sniffer_mode = true;
+				   set_channel = true;
+			   }
+               else if (inpktbuf[1] == 'P') {
+				   /* Send LoWPAN network prefix to the border router. */
+				   send_prefix = true;
 			   }
 		  }
-		  else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
-			  fwrite(uip.inbuf + 1, inbufptr - 1, 1, stderr);
+		  else if(inpktbuf[0] == DEBUG_LINE_MARKER) {
+			  fwrite(inpktbuf + 1, inbufptr - 1, 1, stderr);
 		  }
-		  else if(is_sensible_string(uip.inbuf, inbufptr)) {
-			  fwrite(uip.inbuf, inbufptr, 1, stderr);
+		  else if(is_sensible_string(inpktbuf, inbufptr)) {
+			  fwrite(inpktbuf, inbufptr, 1, stderr);
 		  }
 		  else {
-			  //PRINTF("Writing to tun  len: %d\n", inbufptr);
-			  /*	print_packet(uip.inbuf, inbufptr);*/
-			  /*if(write(outfd, uip.inbuf, inbufptr) != inbufptr) {
-			  err(1, "serial_to_tun: write");
-			  }*/
 
-			  PRINTF("Sending to wpcap\n");
-			  /*print_packet(uip.inbuf, inbufptr);*/
-			  wpcap_send(uip.inbuf, inbufptr);
+              PRINTF("Sending to wpcap\n");
+
+              if(tun){
+                  
+                  //Ethernet header to be inserted before IP packet
+                  struct uip_eth_hdr * eth_hdr = (struct uip_eth_hdr *)buf;
+
+                  memcpy(&eth_hdr->dest, &adapter_eth_addr, sizeof(struct uip_eth_addr));
+                  memcpy(&eth_hdr->src, &dev_eth_addr, sizeof(struct uip_eth_addr));
+
+                  eth_hdr->type = htons(UIP_ETHTYPE_IPV6);
+                  inbufptr += sizeof(struct uip_eth_hdr);
+              }
+              //print_packet(inpktbuf, inbufptr);
+
+			  wpcap_send(buf, inbufptr);
 			  /*      printf("After sending to wpcap\n");*/
 		  }
 		  inbufptr = 0;
@@ -411,7 +424,7 @@ after_fread:
 	  }
 	  /* FALLTHROUGH */
   default:
-	  uip.inbuf[inbufptr++] = c;
+	  inpktbuf[inbufptr++] = c;
 	  break;
 	}
 
@@ -430,6 +443,24 @@ slip_send(unsigned char c)
 	}
 	slip_buf[slip_end] = c;
 	slip_end++;
+}
+/*---------------------------------------------------------------------------*/
+void
+slip_send_char(unsigned char c)
+{
+  switch(c) {
+  case SLIP_END:
+    slip_send(SLIP_ESC);
+    slip_send(SLIP_ESC_END);
+    break;
+  case SLIP_ESC:
+    slip_send(SLIP_ESC);
+    slip_send(SLIP_ESC_ESC);
+    break;
+  default:
+    slip_send(c);
+    break;
+  }
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -493,27 +524,6 @@ write_to_serial(void *inbuf, int len)
 	slip_send(SLIP_END);
 	PROGRESS("t");
 }
-/*---------------------------------------------------------------------------*/
-
-/*
-* Read from tun, write to slip.
-*/
-#if 0
-void
-tun_to_serial(int infd, int outfd)
-{
-	struct {
-		unsigned char inbuf[2000];
-	} uip;
-	int size;
-
-	if((size = read(infd, uip.inbuf, 2000)) == -1) {
-		err(1, "tun_to_serial: read");
-	}
-
-	write_to_serial(uip.inbuf, size);
-}
-#endif /* 0 */
 /*---------------------------------------------------------------------------*/
 #ifndef BAUDRATE
 #define BAUDRATE B115200
@@ -616,9 +626,15 @@ void
 cleanup(void)
 {
 	wpcap_exit();
-	if(tobecleaned){
-		delAddress(if_name,ipaddr);
+	if(clean_addr){
+		delAddress(if_name,local_ipaddr);
 	}
+    if(clean_route){
+        delLoWPANRoute(if_name,br_prefix);        
+    }
+    if(clean_neighb){
+        delNeighbor(if_name, rem_ipaddr);
+    }
 }
 
 void
@@ -632,7 +648,7 @@ void
 sigalarm(int signo)
 {
 	if(!mac_received){
-		fprintf(stderr, "Bridge not found!\n");
+		fprintf(stderr, "Bridge/Router not found!\n");
 		exit(2);
 	}
 }
@@ -662,13 +678,13 @@ void send_commands(void)
 		slip_send('M');
 
 		for(i=0; i < 6; i++){
-			sprintf(buf,"%02X",eth_addr.addr[i]);
+			sprintf(buf,"%02X",adapter_eth_addr.addr[i]);
 			slip_send(buf[0]);
 			slip_send(buf[1]);
 		}
 		slip_send(SLIP_END);
 
-		send_mac = 0;
+		send_mac = false;
 	}
 	else if(set_sniffer_mode && slip_empty()){
 
@@ -708,6 +724,30 @@ void send_commands(void)
 		set_channel = 0;
 
 	}
+    else if(send_prefix && br_prefix != NULL  && slip_empty()){
+
+        struct in6_addr addr;
+        int i;
+
+        inet_pton(AF_INET6, br_prefix, &addr);
+
+        fprintf(stderr,"*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+            br_prefix, 
+            addr.s6_addr[0], addr.s6_addr[1],
+            addr.s6_addr[2], addr.s6_addr[3],
+            addr.s6_addr[4], addr.s6_addr[5],
+            addr.s6_addr[6], addr.s6_addr[7]);
+        slip_send('!');
+        slip_send('P');
+        for(i = 0; i < 8; i++) {
+            /* need to call the slip_send_char for stuffing */
+            slip_send_char(addr.s6_addr[i]);
+        }
+        slip_send(SLIP_END);
+
+        send_prefix = false;
+
+    }
 }
 
 void addAddress(const char * ifname, const char * ipaddr)
@@ -737,7 +777,7 @@ void addAddress(const char * ifname, const char * ipaddr)
 		execProcess(&exitCode,"netsh interface ipv6 add address \"%s\" %s",if_name,ipaddr);
 	}
 	if(exitCode==0)
-		tobecleaned = true;	
+		clean_addr = true;	
 }
 
 void delAddress(const char * ifname, const char * ipaddr)
@@ -769,6 +809,101 @@ void delAddress(const char * ifname, const char * ipaddr)
 	
 }
 
+void addLoWPANRoute(const char * ifname, const char * net, const char * gw)
+{
+	DWORD exitCode = -1;
+
+	execProcess(&exitCode,"netsh interface ipv6 add route %s/64 \"%s\" %s", net, if_name, gw);
+    if(exitCode==0)
+        clean_route = true;
+}
+
+void delLoWPANRoute(const char * ifname, const char * net)
+{
+    execProcess(NULL,"netsh interface ipv6 delete route %s/64 \"%s\"", net, if_name);
+}
+
+void addNeighbor(const char * ifname, const char * neighb, const char * neighb_mac)
+{
+	DWORD exitCode = -1;
+
+	if(osVersionInfo.dwMajorVersion < 6){ // < Windows Vista (i.e., Windows XP; check if this command is ok for Windows Server 2003 too).
+        
+        fprintf(stderr,"Bridge mode only supported on Windows Vista and later OSs.\r\n");
+        exit(-1);
+		
+	}
+	else{
+        execProcess(&exitCode,"netsh interface ipv6 add neighbor \"%s\" %s \"%s\"", if_name, neighb, neighb_mac);
+        if(exitCode==0)
+            clean_neighb = true;
+	}
+}
+
+void delNeighbor(const char * ifname, const char * neighb)
+{
+    execProcess(NULL,"netsh interface ipv6 delete neighbor \"%s\" %s", if_name, neighb);
+}
+
+int IPAddrFromPrefix(char * ipaddr, const char * ipprefix, const char * mac)
+{
+    struct in6_addr ipv6addr;
+    struct uip_802154_longaddr dev_addr;
+    char tmp_ipprefix[INET6_ADDRSTRLEN];
+    char str_addr[INET6_ADDRSTRLEN] = {0};
+    int addr_bytes[8];
+    int i;
+
+    strncpy(tmp_ipprefix, ipprefix, INET6_ADDRSTRLEN);
+
+    // sscanf requires int instead of 8-bit for hexadecimal variables.
+
+    sscanf(mac, "%2X:%2X:%2X:%2X:%2X:%2X:%2X:%2X",
+        &addr_bytes[0],
+        &addr_bytes[1],
+        &addr_bytes[2],
+        &addr_bytes[3],
+        &addr_bytes[4],
+        &addr_bytes[5],
+        &addr_bytes[6],
+        &addr_bytes[7]);
+
+    for(i=0;i<8;i++){
+        dev_addr.addr[i] = addr_bytes[i];
+    }      				  
+
+    /*int i;
+    PRINTF("MAC:\n");
+    for(i=0; i< 8; i++)
+    PRINTF("%02X ",dev_addr.addr[i]);
+    PRINTF("\n");*/
+
+    dev_addr.addr[0] |= 0x02;				  
+
+    strtok(tmp_ipprefix,"/");
+
+    if(inet_pton(AF_INET6, tmp_ipprefix, &ipv6addr)!=1){
+        return 1;
+    }
+
+    // Copy modified EUI-64 to the last 64 bits of IPv6 address.
+    memcpy(&ipv6addr.s6_addr[8],&dev_addr,8);
+
+    inet_ntop(AF_INET6,&ipv6addr,str_addr,INET6_ADDRSTRLEN); // To string format.
+
+    char * substr = strtok(NULL,"/");
+    if(substr!=NULL){   // Add the prefix length.
+        strcat(str_addr,"/");
+        strcat(str_addr,substr);
+    }
+    strcpy(ipaddr, str_addr);
+
+    return 0;
+			
+}
+
+
+
 int
 main(int argc, char **argv)
 {
@@ -781,6 +916,8 @@ main(int argc, char **argv)
 	int baudrate = -2;
 
 	char buf[4000];
+    
+    prog = argv[0];
 
 	setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
@@ -788,7 +925,7 @@ main(int argc, char **argv)
 	osVersionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 	GetVersionEx(&osVersionInfo);
 
-	while((c = getopt(argc, argv, "B:D:hs:c:ra:p:v")) != -1) {
+    while((c = getopt(argc, argv, "B:D:hs:c:ra:p:v:tb:")) != -1) {
 		switch (c) {
 	case 'B':
 		baudrate = atoi(optarg);
@@ -808,14 +945,6 @@ main(int argc, char **argv)
 				err(1,"port number is invalid");
 			}
 			sprintf(siodev,"ttyS%d",portnum-1);
-
-			/*int i = 0;
-			
-			while(optarg[i] && i < sizeof(siodev) - 1){
-				siodev[i] = tolower((int)optarg[i]);
-				i++;
-			}
-			siodev[i] = '\0';*/
 		}
 		else {
 			strncpy(siodev,optarg,sizeof(siodev)-1);
@@ -832,14 +961,14 @@ main(int argc, char **argv)
 
 	case 'a':
 		if(autoconf == true){
-			errx(1, USAGE_STRING);
+			print_help();
 		}
-		ipaddr = optarg;
+		local_ipaddr = optarg;
 		break;
 
 	case 'p':
-		if(ipaddr !=NULL){
-			errx(1, USAGE_STRING);
+		if(local_ipaddr !=NULL){
+			print_help();
 		}
 		autoconf = true;
 		ipprefix = optarg;
@@ -849,10 +978,21 @@ main(int argc, char **argv)
 		verbose = true;
 		break;
 
+    case 't':
+		tun = true;
+		break;
+
+    case 'b':
+		br_prefix = optarg;
+        send_prefix = true;
+        send_mac = false;
+        tun = true;
+		break;
+
 	case '?':
 	case 'h':
 	default:
-		errx(1,HELP_STRING);
+		print_help();
 		break;
 		}
 	}
@@ -860,16 +1000,23 @@ main(int argc, char **argv)
 	argv += (optind - 1);
 
 	if(argc != 2 || *siodev == '\0') {
-		errx(1, USAGE_STRING);
+		print_help();
 	}
 
+    if(autoconf == true && br_prefix != NULL){
+        fprintf(stderr, "-p and -b options cannot be used together.\r\n");
+        print_help();
+    }
+
 	sscanf(argv[1],"%2X-%2X-%2X-%2X-%2X-%2X",
-		(int *)&eth_addr.addr[0],(int *)&eth_addr.addr[1],(int *)&eth_addr.addr[2],(int *)&eth_addr.addr[3],(int *)&eth_addr.addr[4],(int *)&eth_addr.addr[5]);
-	if_name = wpcap_start(&eth_addr, verbose);
+		(int *)&adapter_eth_addr.addr[0],(int *)&adapter_eth_addr.addr[1],
+        (int *)&adapter_eth_addr.addr[2],(int *)&adapter_eth_addr.addr[3],
+        (int *)&adapter_eth_addr.addr[4],(int *)&adapter_eth_addr.addr[5]);
+	if_name = wpcap_start(&adapter_eth_addr, verbose);
 
 
-	if(ipaddr!=NULL){
-		addAddress(if_name, ipaddr);
+	if(local_ipaddr!=NULL){
+		addAddress(if_name, local_ipaddr);
 	}
 
 
@@ -897,15 +1044,12 @@ main(int argc, char **argv)
 	}
 
 
-	//if(siodev != NULL) {
-		slipfd = devopen(siodev, O_RDWR | O_NONBLOCK | O_NOCTTY | O_NDELAY | O_DIRECT | O_SYNC );
-		if(slipfd == -1) {
-			err(1, "can't open siodev ``/dev/%s''", siodev);
-		}
-	/*} else {
-		
-		err(1, "can't open siodev");
-	}*/
+
+	slipfd = devopen(siodev, O_RDWR | O_NONBLOCK | O_NOCTTY | O_NDELAY | O_DIRECT | O_SYNC );
+	if(slipfd == -1) {
+		err(1, "can't open siodev ``/dev/%s''", siodev);
+	}
+
 	fprintf(stderr, "slip started on ``/dev/%s''\n", siodev);
 	stty_telos(slipfd);
 	slip_send(SLIP_END);
@@ -950,6 +1094,13 @@ main(int argc, char **argv)
 
 				if(eth_hdr->type == htons(UIP_ETHTYPE_IPV6)){
 					// We forward only IPv6 packet.
+                    
+                    if(tun){
+                        // Cut away ethernet header.
+                        pbuf += sizeof(struct uip_eth_hdr);
+                        ret -= sizeof(struct uip_eth_hdr);
+                    }
+
 					write_to_serial(pbuf, ret);
 					/*print_packet(pbuf, ret);*/
 					slip_flushbuf(slipfd);
@@ -968,7 +1119,6 @@ main(int argc, char **argv)
 		else if(ret > 0) {
 			if(FD_ISSET(slipfd, &rset)) {
 				/* printf("serial_to_wpcap\n"); */
-				/*serial_to_tun(inslip, tunfd);*/
 				serial_to_wpcap(inslip);
 				/*	printf("End of serial_to_wpcap\n");*/
 			}  
