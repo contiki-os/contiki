@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: slip-bridge.c,v 1.5 2011/01/14 17:57:48 joxe Exp $
+ * $Id: slip-bridge.c,v 1.6 2011/01/17 20:05:51 joxe Exp $
  */
 
 /**
@@ -71,6 +71,22 @@ slip_input_callback(void)
       PRINTF("\n");
       set_prefix_64(&prefix);
     }
+  } else if (uip_buf[0] == '?') {
+    PRINTF("Got request message of type %c\n", uip_buf[1]);
+    if(uip_buf[1] == 'M') {
+      char* hexchar = "0123456789abcdef";
+      int j;
+      /* this is just a test so far... just to see if it works */
+      uip_buf[0] = '!';
+      for(j = 0; j < 8; j++) {
+        uip_buf[2 + j * 2] = hexchar[uip_lladdr.addr[j] >> 4];
+        uip_buf[3 + j * 2] = hexchar[uip_lladdr.addr[j] & 15];
+      }
+      uip_len = 18;
+      slip_send();
+      
+    }
+    uip_len = 0;
   }
   /* Save the last sender received over SLIP to avoid bouncing the
      packet back if no route is found */
@@ -91,7 +107,11 @@ output(void)
   if(uip_ipaddr_cmp(&last_sender, &UIP_IP_BUF->srcipaddr)) {
     /* Do not bounce packets back over SLIP if the packet was received
        over SLIP */
-    PRINTF("slip-bridge: Destination off-link but no route\n");
+    PRINTF("slip-bridge: Destination off-link but no route src=");
+    PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+    PRINTF(" dst=");
+    PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+    PRINTF("\n");
   } else {
     PRINTF("SUT: %u\n", uip_len);
     slip_send();
