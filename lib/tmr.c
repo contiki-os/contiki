@@ -35,7 +35,7 @@
 
 #include <mc1322x.h>
 #include <stdlib.h>
-#include "timer.h"
+#include "tmr.h"
 
 /* Initialize timer.  This just counts and interrupts, doesn't drive an output.
    timer_num = 0, 1, 2, 3
