@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: rftest-rx.c,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ * $Id: rftest-rx.c,v 1.2 2011/01/17 15:46:27 maralvira Exp $
  */
 
 #include <mc1322x.h>
@@ -50,6 +50,7 @@ void maca_rx_callback(volatile packet_t *p) {
 
 void main(void) {
 	volatile packet_t *p;
+	volatile uint8_t chan;
 
 	gpio_data(0);
 	
@@ -72,7 +73,8 @@ void main(void) {
 	gpio_pad_dir_set( 1ULL << 44 );
 
 	set_power(0x0f); /* 0dbm */
-	set_channel(0); /* channel 11 */
+	chan = 0;
+	set_channel(chan); /* channel 11 */
 
 	print_welcome("rftest-rx");
 	while(1) {		
@@ -87,5 +89,14 @@ void main(void) {
 			print_packet(p);
 			free_packet(p);
 		}
+
+		if(uart1_can_get()) {
+			uart1_getc();
+			chan++;
+			if(chan >= 16) { chan = 0; }
+			set_channel(chan);
+			printf("channel: %d\n\r", chan);
+		}
+
 	}
 }
