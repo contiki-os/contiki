@@ -53,18 +53,6 @@
 #include "cfs-coffee-arch.h"
 #include "cfs/cfs-coffee.h"
 
-/* Platforms that have watchdog timers enable should
-   define these macros in cfs-coffee-arch.h. */
-#ifndef COFFEE_WATCHDOG_START
-#define COFFEE_WATCHDOG_START()
-#endif
-#ifndef COFFEE_WATCHDOG_STOP
-#define COFFEE_WATCHDOG_STOP()
-#endif
-#ifndef COFFEE_WATCHDOG_PERIODIC
-#define COFFEE_WATCHDOG_PERIODIC()
-#endif
-
 #ifndef COFFEE_CONF_APPEND_ONLY
 #define COFFEE_APPEND_ONLY	0
 #else
@@ -351,8 +339,6 @@ collect_garbage(int mode)
   struct sector_status stats;
   coffee_page_t first_page, isolation_count;
 
-  COFFEE_WATCHDOG_STOP();
-
   PRINTF("Coffee: Running the file system garbage collector in %s mode\n",
 	 mode == GC_RELUCTANT ? "reluctant" : "greedy");
   /*
@@ -388,8 +374,6 @@ collect_garbage(int mode)
       }
     }
   }
-
-  COFFEE_WATCHDOG_START();
 }
 /*---------------------------------------------------------------------------*/
 static coffee_page_t
@@ -475,15 +459,12 @@ find_file(const char *name)
   }
   
   /* Scan the flash memory sequentially otherwise. */
-  COFFEE_WATCHDOG_STOP();
   for(page = 0; page < COFFEE_PAGE_COUNT; page = next_file(page, &hdr)) {
     read_header(&hdr, page);
     if(HDR_ACTIVE(hdr) && !HDR_LOG(hdr) && strcmp(name, hdr.name) == 0) {
-      COFFEE_WATCHDOG_START();
       return load_file(page, &hdr);
     }
   }
-  COFFEE_WATCHDOG_START();
 
   return NULL;
 }
@@ -507,7 +488,6 @@ file_end(coffee_page_t start)
    */
 
   for(page = hdr.max_pages - 1; page >= 0; page--) {
-    COFFEE_WATCHDOG_PERIODIC();
     COFFEE_READ(buf, sizeof(buf), (start + page) * COFFEE_PAGE_SIZE);
     for(i = COFFEE_PAGE_SIZE - 1; i >= 0; i--) {
       if(buf[i] != 0) {
@@ -619,10 +599,7 @@ reserve(const char *name, coffee_page_t pages,
   coffee_page_t page;
   struct file *file;
 
-  COFFEE_WATCHDOG_STOP();
-
   if(!allow_duplicates && find_file(name) != NULL) {
-    COFFEE_WATCHDOG_START();
     return NULL;
   }
 
@@ -634,7 +611,6 @@ reserve(const char *name, coffee_page_t pages,
     collect_garbage(GC_GREEDY);
     page = find_contiguous_pages(pages);
     if(page == INVALID_PAGE) {
-      COFFEE_WATCHDOG_START();
       *gc_wait = 1;
       return NULL;
     }
@@ -653,7 +629,6 @@ reserve(const char *name, coffee_page_t pages,
   if(file != NULL) {
     file->end = 0;
   }
-  COFFEE_WATCHDOG_START();
 
   return file;
 }
@@ -818,21 +793,18 @@ merge_log(coffee_page_t file_page, int extend)
   }
 
   offset = 0;
-  COFFEE_WATCHDOG_STOP();
   do {
     char buf[hdr.log_record_size == 0 ? COFFEE_PAGE_SIZE : hdr.log_record_size];
     n = cfs_read(fd, buf, sizeof(buf));
     if(n < 0) {
       remove_by_page(new_file->page, !REMOVE_LOG, !CLOSE_FDS, ALLOW_GC);
       cfs_close(fd);
-      COFFEE_WATCHDOG_START();
       return -1;
     } else if(n > 0) {
       COFFEE_WRITE(buf, n, absolute_offset(new_file->page, offset));
       offset += n;
     }
   } while(n != 0);
-  COFFEE_WATCHDOG_START();
 
   for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
     if(coffee_fd_set[i].flags != COFFEE_FD_FREE && 
@@ -1122,7 +1094,6 @@ cfs_read(int fd, void *buf, unsigned size)
    * ordinary file if the page has no log record.
    */
   for(bytes_left = size; bytes_left > 0; bytes_left -= r) {
-    COFFEE_WATCHDOG_PERIODIC();
     r = -1;
 
     lp.offset = fdp->offset;
@@ -1246,7 +1217,6 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *record)
   memcpy(&page, dir->dummy_space, sizeof(coffee_page_t));
 
   while(page < COFFEE_PAGE_COUNT) {
-    COFFEE_WATCHDOG_PERIODIC();
     read_header(&hdr, page);
     if(HDR_ACTIVE(hdr) && !HDR_LOG(hdr)) {
       coffee_page_t next_page;
@@ -1315,12 +1285,10 @@ cfs_coffee_format(void)
 
   *next_free = 0;
 
-  COFFEE_WATCHDOG_STOP();
   for(i = 0; i < COFFEE_SECTOR_COUNT; i++) {
     COFFEE_ERASE(i);
     PRINTF(".");
   }
-  COFFEE_WATCHDOG_START();
 
   /* Formatting invalidates the file information. */
   memset(&protected_mem, 0, sizeof(protected_mem));
