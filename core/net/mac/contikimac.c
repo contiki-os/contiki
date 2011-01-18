@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.46 2011/01/09 21:07:01 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.47 2011/01/18 16:03:19 adamdunkels Exp $
  */
 
 /**
@@ -71,6 +71,11 @@
 #endif
 #ifndef WITH_FAST_SLEEP
 #define WITH_FAST_SLEEP              1
+#endif
+
+#if NETSTACK_RDC_CHANNEL_CHECK_RATE >= 64
+#undef WITH_PHASE_OPTIMIZATION
+#define WITH_PHASE_OPTIMIZATION 0
 #endif
 
 struct announcement_data {
