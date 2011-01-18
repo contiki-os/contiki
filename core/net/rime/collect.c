@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.72 2011/01/10 15:10:43 adamdunkels Exp $
+ * $Id: collect.c,v 1.73 2011/01/18 16:05:53 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@ static const struct packetbuf_attrlist attributes[] =
    and the connection for packets that have been recently
    forwarded. This list is maintained to avoid forwarding duplicate
    packets. */
-#define NUM_RECENT_PACKETS 8
+#define NUM_RECENT_PACKETS 16
 
 struct recent_packet {
   struct collect_conn *conn;
@@ -129,7 +129,7 @@ struct ack_msg {
 #define REXMIT_TIME                CLOCK_SECOND * 4
 #define FORWARD_PACKET_LIFETIME_BASE    REXMIT_TIME * 2
 #define MAX_SENDING_QUEUE          3 * QUEUEBUF_NUM / 4
-#define MIN_AVAILABLE_QUEUE_ENTRIES 3
+#define MIN_AVAILABLE_QUEUE_ENTRIES 4
 #define KEEPALIVE_REXMITS          8
 #define MAX_REXMITS                31
 
