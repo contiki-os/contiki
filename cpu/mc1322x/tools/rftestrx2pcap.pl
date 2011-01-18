@@ -43,7 +43,7 @@ my $minor = 4;
 my $zone = 0;
 my $sig = 0;
 my $snaplen = 0xffff;
-my $network = 195; # 802.15.4
+my $network = 230; # 802.15.4 no FCS
 
 my $newpacket = 0;
 my $len = 0;
