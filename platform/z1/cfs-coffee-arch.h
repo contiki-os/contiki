@@ -43,7 +43,6 @@
 
 #include "contiki-conf.h"
 #include "dev/xmem.h"
-#include "dev/watchdog.h"
 
 /*** M25P16 Memory Organization
 The memory is organized as: 
@@ -68,9 +67,6 @@ sector or bulk erasable (bits are erased from 0 to 1) but not page erasable
 #define COFFEE_LOG_SIZE			1024
 
 #define COFFEE_MICRO_LOGS		1
-
-#define COFFEE_WATCHDOG_START()		watchdog_start()
-#define COFFEE_WATCHDOG_STOP()		watchdog_stop()
 
 /* Flash operations. */
 #define COFFEE_WRITE(buf, size, offset)				\
