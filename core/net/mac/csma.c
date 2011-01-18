@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.25 2011/01/13 19:06:22 adamdunkels Exp $
+ * $Id: csma.c,v 1.26 2011/01/18 16:03:57 adamdunkels Exp $
  */
 
 /**
@@ -67,7 +67,7 @@
 #ifdef CSMA_CONF_MAX_MAC_TRANSMISSIONS
 #define CSMA_MAX_MAC_TRANSMISSIONS CSMA_CONF_MAX_MAC_TRANSMISSIONS
 #else
-#define CSMA_MAX_MAC_TRANSMISSIONS 1
+#define CSMA_MAX_MAC_TRANSMISSIONS 3
 #endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS */
 #endif /* CSMA_MAX_MAC_TRANSMISSIONS */
 
@@ -271,8 +271,7 @@ send_packet(mac_callback_t sent, void *ptr)
   /* If the packet is a broadcast, do not allocate a queue
      entry. Instead, just send it out.  */
   if(!rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                   &rimeaddr_null) &&
-     packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS) > 0) {
+                   &rimeaddr_null)) {
 
     /* Remember packet for later. */
     q = memb_alloc(&packet_memb);
