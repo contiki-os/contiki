@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.1 2010/08/25 17:28:16 joxe Exp $
+ * @(#)$Id: xmem.c,v 1.2 2011/01/18 15:48:38 nifi Exp $
  */
 
 /**
@@ -115,6 +115,7 @@ wait_ready(void)
   unsigned u;
   do {
     u = read_status_register();
+    watchdog_periodic();
   } while(u & 0x01);		/* WIP=1, write in progress */
   return u;
 }
@@ -259,13 +260,9 @@ xmem_erase(long size, unsigned long addr)
     return -1;
   }
 
-  watchdog_stop();
-
   for (; addr < end; addr += XMEM_ERASE_UNIT_SIZE) {
     erase_sector(addr);
   }
-
-  watchdog_start();
 
   return size;
 }
