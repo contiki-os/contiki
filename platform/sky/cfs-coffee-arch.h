@@ -42,7 +42,6 @@
 
 #include "contiki-conf.h"
 #include "dev/xmem.h"
-#include "dev/watchdog.h"
 
 /* Coffee configuration parameters. */
 #define COFFEE_SECTOR_SIZE		65536UL
