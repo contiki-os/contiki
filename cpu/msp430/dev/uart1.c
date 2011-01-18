@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.22 2011/01/09 20:44:14 adamdunkels Exp $
+ * @(#)$Id: uart1.c,v 1.23 2011/01/18 16:07:16 adamdunkels Exp $
  */
 
 /*
@@ -62,6 +62,10 @@ static volatile uint8_t transmitting;
 #define RX_WITH_DMA 0
 #endif /* UART1_CONF_RX_WITH_DMA */
 
+#if RX_WITH_DMA
+#warning RX_WITH_DMA ENABLED - WILL NOT WORK WITH MSPSIM / COOJA!
+#endif /* RX_WITH_DMA */
+
 #if TX_WITH_INTERRUPT
 #define TXBUFSIZE 128
 
@@ -70,7 +74,7 @@ static uint8_t txbuf_data[TXBUFSIZE];
 #endif /* TX_WITH_INTERRUPT */
 
 #if RX_WITH_DMA
-#define RXBUFSIZE 64
+#define RXBUFSIZE 128
 
 static uint8_t rxbuf[RXBUFSIZE];
 static uint8_t last_size;
