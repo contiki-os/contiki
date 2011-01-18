@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.12 2010/10/12 22:55:11 nifi Exp $
+ * @(#)$Id: xmem.c,v 1.13 2011/01/18 14:03:55 nvt-se Exp $
  */
 
 /**
@@ -113,6 +113,7 @@ wait_ready(void)
   unsigned u;
   do {
     u = read_status_register();
+    watchdog_periodic();
   } while(u & 0x01);		/* WIP=1, write in progress */
   return u;
 }
@@ -124,8 +125,8 @@ static void
 erase_sector(unsigned long offset)
 {
   int s;
-  wait_ready();
 
+  wait_ready();
   write_enable();
 
   s = splhigh();
@@ -170,6 +171,7 @@ xmem_pread(void *_p, int size, unsigned long offset)
   unsigned char *p = _p;
   const unsigned char *end = p + size;
   int s;
+
   wait_ready();
 
   ENERGEST_ON(ENERGEST_TYPE_FLASH_READ);
@@ -205,7 +207,6 @@ program_page(unsigned long offset, const unsigned char *p, int nbytes)
   int s;
 
   wait_ready();
-
   write_enable();
 
   s = splhigh();
@@ -235,7 +236,7 @@ xmem_pwrite(const void *_buf, int size, unsigned long addr)
   unsigned long i, next_page;
 
   ENERGEST_ON(ENERGEST_TYPE_FLASH_WRITE);
-  
+
   for(i = addr; i < end;) {
     next_page = (i | 0xff) + 1;
     if(next_page > end) {
@@ -265,13 +266,9 @@ xmem_erase(long size, unsigned long addr)
     return -1;
   }
 
-  watchdog_stop();
-
   for (; addr < end; addr += XMEM_ERASE_UNIT_SIZE) {
     erase_sector(addr);
   }
-
-  watchdog_start();
 
   return size;
 }
