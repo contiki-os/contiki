@@ -30,7 +30,7 @@
 *
 * This file is part of the uIP TCP/IP stack.
 *
-* $Id: wpcapslip6.c,v 1.2 2011/01/17 09:16:55 salvopitru Exp $
+* $Id: wpcapslip6.c,v 1.3 2011/01/19 09:22:23 salvopitru Exp $
 */
 
  /**
@@ -129,7 +129,7 @@ static bool set_sniffer_mode = true;
 static bool set_channel = true;
 static bool send_prefix = false;
 /* Network prefix for border router. */
-const char * br_prefix = NULL;
+char * br_prefix = NULL;
 
 static int sniffer_mode = 0;
 static int channel = 0;
@@ -902,6 +902,37 @@ int IPAddrFromPrefix(char * ipaddr, const char * ipprefix, const char * mac)
 			
 }
 
+/* Check if an IP address is correct and supplied prefix length is as espected. */
+bool validIPAddr(const char * ip_addr, int prefix_len)
+{
+    /* Check for a 64 bit prefix. */
+    char tmp_addr[INET6_ADDRSTRLEN], tmp2_addr[INET6_ADDRSTRLEN];
+    char * substr;
+
+    strncpy(tmp_addr, br_prefix, INET6_ADDRSTRLEN);
+
+    strtok(tmp_addr,"/");
+
+    if(inet_pton(AF_INET6, tmp_addr, &tmp2_addr)!=1){
+        return false;
+    }
+
+    if(prefix_len != 0){
+
+        substr = strtok(NULL,"/");
+        if(substr!=NULL){
+            int i;
+            i = atoi(substr);
+            if(i != prefix_len){
+                return false;
+            }
+        }
+    }
+
+    return true;
+
+}
+
 
 
 int
@@ -964,6 +995,10 @@ main(int argc, char **argv)
 			print_help();
 		}
 		local_ipaddr = optarg;
+        if (!validIPAddr(local_ipaddr, 0)){
+            fprintf(stderr, "Invalid IPv6 address: %s", local_ipaddr);
+            exit(1);
+        }
 		break;
 
 	case 'p':
@@ -972,6 +1007,10 @@ main(int argc, char **argv)
 		}
 		autoconf = true;
 		ipprefix = optarg;
+        if (!validIPAddr(ipprefix, 0)){
+            fprintf(stderr, "Invalid IPv6 prefix: %s", ipprefix);
+            exit(1);
+        }
 		break;
 
 	case 'v':
@@ -987,6 +1026,12 @@ main(int argc, char **argv)
         send_prefix = true;
         send_mac = false;
         tun = true;
+
+        if (!validIPAddr(br_prefix, 64)){
+            fprintf(stderr, "Invalid IPv6 64-bit prefix: %s", br_prefix);
+            exit(1);
+        }
+        strtok(br_prefix,"/"); // Remove prefix length if it is present.
 		break;
 
 	case '?':
