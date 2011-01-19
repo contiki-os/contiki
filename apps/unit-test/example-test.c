@@ -37,9 +37,13 @@
 #include "contiki.h"
 #include "unit-test.h"
 
+/* Register two unit tests that will be executed by using 
+   the UNIT_TEST_RUN macro. */
 UNIT_TEST_REGISTER(arithmetic, "Arith ops");
 UNIT_TEST_REGISTER(string, "String ops");
 
+/* arithmetic: Demonstrates a test that succeeds. The exit point will be 
+   the line where UNIT_TEST_END is called. */
 UNIT_TEST(arithmetic)
 {
   int a, b;
@@ -54,6 +58,8 @@ UNIT_TEST(arithmetic)
   UNIT_TEST_END();
 }
 
+/* string: Demonstrates a test that fails. The exit point will be 
+   the line where the call to UNIT_TEST_ASSERT fails. */
 UNIT_TEST(string)
 {
   char str1[] = "A";
