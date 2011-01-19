@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.34 2011/01/19 07:24:37 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.35 2011/01/19 07:30:31 adamdunkels Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -42,7 +42,7 @@ LDFLAGS += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
 
 
 ### These flags can reduce the code size and RAM usage with up to 10%
-if SMALL
+ifdef SMALL
 CFLAGS += -ffunction-sections
 LDFLAGS += -Wl,--gc-sections,--undefined=_reset_vector__,--undefined=InterruptVectors,--undefined=_copy_data_init__,--undefined=_clear_bss_init__,--undefined=_end_of_init__
 endif # SMALL
