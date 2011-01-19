@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.23 2011/01/18 16:07:16 adamdunkels Exp $
+ * @(#)$Id: uart1.c,v 1.24 2011/01/19 20:44:20 joxe Exp $
  */
 
 /*
@@ -77,23 +77,24 @@ static uint8_t txbuf_data[TXBUFSIZE];
 #define RXBUFSIZE 128
 
 static uint8_t rxbuf[RXBUFSIZE];
-static uint8_t last_size;
+static uint16_t last_size;
 static struct ctimer rxdma_timer;
 
 static void
 handle_rxdma_timer(void *ptr)
 {
-  uint8_t size;
+  uint16_t size;
   size = DMA0SZ; /* Note: loop requires that size is less or eq to RXBUFSIZE */
-  for(;last_size != size; last_size--) {
-    if(last_size == 0) last_size = RXBUFSIZE;
-/*     printf("read: %c\n", (unsigned char)rxbuf[RXBUFSIZE - last_size]); */
+  while(last_size != size) {
+/*     printf("read: %c [%d,%d]\n", (unsigned char)rxbuf[RXBUFSIZE - last_size], */
+/* 	   last_size, size); */
     uart1_input_handler((unsigned char)rxbuf[RXBUFSIZE - last_size]);
+    last_size--;
+    if(last_size == 0) last_size = RXBUFSIZE;
   }
 
   ctimer_reset(&rxdma_timer);
 }
-
 #endif /* RX_WITH_DMA */
 
 /*---------------------------------------------------------------------------*/
@@ -107,7 +108,7 @@ void
 uart1_set_input(int (*input)(unsigned char c))
 {
 #if RX_WITH_DMA /* This needs to be called after ctimer process is started */
-  ctimer_set(&rxdma_timer, CLOCK_SECOND/32, handle_rxdma_timer, NULL);
+  ctimer_set(&rxdma_timer, CLOCK_SECOND/64, handle_rxdma_timer, NULL);
 #endif
   uart1_input_handler = input;
 }
@@ -246,6 +247,7 @@ uart1_init(unsigned long ubr)
 
 
 /*---------------------------------------------------------------------------*/
+#if !RX_WITH_DMA
 interrupt(UART1RX_VECTOR)
 uart1_rx_interrupt(void)
 {
@@ -275,6 +277,7 @@ uart1_rx_interrupt(void)
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+#endif /* !RX_WITH_DMA */
 /*---------------------------------------------------------------------------*/
 #if TX_WITH_INTERRUPT
 interrupt(UART1TX_VECTOR)
