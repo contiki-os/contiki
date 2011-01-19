@@ -44,10 +44,14 @@ typedef enum unit_test_result {
   unit_test_success = 1
 } unit_test_result_t;
 
+/**
+ * The unit_test structure describes the results of a unit test. Each 
+ * registered unit test statically allocates an object of this type.
+ */
 typedef struct unit_test {
   const char * const descr;
+  const char * const test_file;
   unit_test_result_t result;
-  const char *test_file;
   unsigned exit_line;
   rtimer_clock_t start;
   rtimer_clock_t end;
@@ -63,7 +67,7 @@ typedef struct unit_test {
  * \param name The name of the unit test.
  * \param descr A string that briefly describes the unit test.
  */
-#define UNIT_TEST_REGISTER(name, descr) static unit_test_t unit_test_##name = {descr, unit_test_success, __FILE__, 0, 0, 0}
+#define UNIT_TEST_REGISTER(name, descr) static unit_test_t unit_test_##name = {descr, __FILE__, unit_test_success, 0, 0, 0}
 
 /**
  * Define a unit test.
@@ -117,14 +121,17 @@ typedef struct unit_test {
  *
  * \param name The name of the unit test.
  */
-#define UNIT_TEST_PRINT_REPORT(name) UNIT_TEST_PRINT_FUNCTION(&unit_test_##name);
+#define UNIT_TEST_PRINT_REPORT(name) UNIT_TEST_PRINT_FUNCTION(&unit_test_##name)
 
 /**
- * Execute a unit test.
+ * Execute a unit test and print a report on the results.
  *
  * \param name The name of the unit test.
  */
-#define UNIT_TEST_RUN(name)  unit_test_function_##name(&unit_test_##name); UNIT_TEST_PRINT_REPORT(name);
+#define UNIT_TEST_RUN(name)  do {                                             \
+                               unit_test_function_##name(&unit_test_##name);  \
+                               UNIT_TEST_PRINT_REPORT(name);                  \
+                             } while(0)
 
 /**
  * Report that a unit test succeeded.
@@ -167,6 +174,7 @@ typedef struct unit_test {
                                  }                                            \
                                } while(0)
 
+/* The default print function. */
 void unit_test_print_report(const unit_test_t *utp);
 
 #endif /* !UNIT_TEST_H */
