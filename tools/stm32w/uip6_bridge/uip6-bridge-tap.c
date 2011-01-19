@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: uip6-bridge-tap.c,v 1.1 2010/10/25 10:42:41 salvopitru Exp $
+ * $Id: uip6-bridge-tap.c,v 1.2 2011/01/19 09:13:06 salvopitru Exp $
  *
  */
 
@@ -140,11 +140,9 @@ PROCESS_THREAD(uip6_bridge, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 
-#ifdef __ICCARM__
+
+#undef putchar
 int putchar(int c)
-#else
-void __io_putchar(char c)
-#endif
 {
 #define SLIP_END     0300
   static char debug_frame = 0;
@@ -166,8 +164,6 @@ void __io_putchar(char c)
     debug_frame = 0;
   }
   
-#ifdef __ICCARM__
-  return c;
-#endif
+  return c; 
 }
 /*---------------------------------------------------------------------------*/

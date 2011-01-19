@@ -18,17 +18,17 @@
 # endif
 #endif
 
-void __io_putchar(char c)
-{
-  uart1_writeb(c);
-}
-
 #undef putchar
 
-int putchar(int c)
+int __attribute__(( weak )) putchar(int c)
 {
-  __io_putchar((char) c);
+  uart1_writeb(c);
   return c;
+}
+
+void __io_putchar(char c)
+{
+  putchar(c);
 }
 
 size_t _write(int handle, const unsigned char * buffer, size_t size)
