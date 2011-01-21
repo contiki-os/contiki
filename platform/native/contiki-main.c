@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.13 2010/06/14 18:58:45 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.14 2011/01/21 14:19:57 nvt-se Exp $
  *
  */
 
@@ -79,15 +79,14 @@ main(void)
     
     n = process_run();
 
-    
     tv.tv_sec = 0;
     tv.tv_usec = 1;
 
     FD_ZERO(&fds);
     FD_SET(STDIN_FILENO, &fds);
-    select(1, &fds, NULL, NULL, &tv);
-
-    if(FD_ISSET(STDIN_FILENO, &fds)) {
+    if(select(1, &fds, NULL, NULL, &tv) < 0) {
+      perror("select");
+    } else if(FD_ISSET(STDIN_FILENO, &fds)) {
       char c;
       if(read(STDIN_FILENO, &c, 1) > 0) {
 	serial_line_input_byte(c);
