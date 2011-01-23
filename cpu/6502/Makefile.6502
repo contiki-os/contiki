@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.34 2010/10/23 13:48:06 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.35 2011/01/23 16:30:30 oliverschmidt Exp $
 #
 
 ifndef CC65_HOME
@@ -76,13 +76,17 @@ AROPTS  = a
 
 .SUFFIXES:
 
+CMD.EXE := $(shell echo)
+
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) --create-dep $< -o $(@:.o=.s)
 	@$(AS) $(ASFLAGS) $(@:.o=.s) -o $@
-	@sed -e 's!.s:!.o:!' -e 's!\t! !' < $(@:.o=.u) > $(@:.o=.d)
+	@sed -e "s!.s:!.o:!" -e "s!\t! !" < $(@:.o=.u) > $(@:.o=.d)
 	@rm -f $(@:.o=.s) $(@:.o=.u)
+ifndef CMD.EXE
 	@$(FINALIZE_DEPENDENCY)
+endif
 
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
