@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.atari,v 1.2 2010/11/01 19:44:34 oliverschmidt Exp $
+# $Id: Makefile.atari,v 1.3 2011/01/23 16:25:45 oliverschmidt Exp $
 #
 
 ETHERNET = cs8900a
@@ -50,7 +50,7 @@ ifeq ($(MAKECMDGOALS),disk)
 endif
 
 disk: all
-	mkdir -p atr
+	mkdir atr
 	cp $(CONTIKI)/tools/$(TARGET)/dos.sys    atr/dos.sys
 	cp $(CONTIKI)/tools/$(TARGET)/dup.sys    atr/dup.sys
 	cp $(CONTIKI_PROJECT).$(TARGET)          atr/autorun.sys
