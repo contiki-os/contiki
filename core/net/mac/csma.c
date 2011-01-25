@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.26 2011/01/18 16:03:57 adamdunkels Exp $
+ * $Id: csma.c,v 1.27 2011/01/25 14:24:38 adamdunkels Exp $
  */
 
 /**
@@ -277,7 +277,7 @@ send_packet(mac_callback_t sent, void *ptr)
     q = memb_alloc(&packet_memb);
     if(q != NULL) {
       q->buf = queuebuf_new_from_packetbuf();
-      if(q != NULL) {
+      if(q->buf != NULL) {
         if(packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS) == 0) {
           /* Use default configuration for max transmissions */
           q->max_transmissions = CSMA_MAX_MAC_TRANSMISSIONS;
