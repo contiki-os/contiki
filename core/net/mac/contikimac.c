@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.47 2011/01/18 16:03:19 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.48 2011/01/25 14:29:46 adamdunkels Exp $
  */
 
 /**
@@ -156,7 +156,7 @@ struct announcement_msg {
 
 /* GUARD_TIME is the time before the expected phase of a neighbor that
    a transmitted should begin transmitting packets. */
-#define GUARD_TIME                         9 * CHECK_TIME
+#define GUARD_TIME                         11 * CHECK_TIME
 
 /* INTER_PACKET_INTERVAL is the interval between two successive packet transmissions */
 #define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
@@ -276,7 +276,7 @@ on(void)
 static void
 off(void)
 {
-  if(contikimac_is_on && radio_is_on != 0 && is_streaming == 0 &&
+  if(contikimac_is_on && radio_is_on != 0 && /*is_streaming == 0 &&*/
      contikimac_keep_radio_on == 0
      /* && is_snooping == 0*/) {
     radio_is_on = 0;
@@ -471,7 +471,7 @@ powercycle(struct rtimer *t, void *ptr)
         compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
       }
-    } while(is_snooping &&
+    } while((is_snooping || is_streaming) &&
             RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME));
 
     if(RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME)) {
