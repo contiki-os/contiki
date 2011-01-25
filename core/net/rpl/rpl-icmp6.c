@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-icmp6.c,v 1.34 2010/12/17 15:24:25 nvt-se Exp $
+ * $Id: rpl-icmp6.c,v 1.35 2011/01/25 09:55:12 joxe Exp $
  */
 /**
  * \file
@@ -150,7 +150,7 @@ dis_output(uip_ipaddr_t *addr)
 
   if(addr == NULL) {
     PRINTF("RPL: Sending a DIS\n");
-    uip_create_linklocal_allrouters_mcast(&tmpaddr);
+    uip_create_linklocal_rplnodes_mcast(&tmpaddr);
     addr = &tmpaddr;
   } else {
     PRINTF("RPL: Sending a unicast DIS\n");
@@ -385,7 +385,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   if(uc_addr == NULL) {
     PRINTF("RPL: Sending a multicast-DIO with rank %u\n",
         (unsigned)dag->rank);
-    uip_create_linklocal_allrouters_mcast(&addr);
+    uip_create_linklocal_rplnodes_mcast(&addr);
     uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos);
   } else {
     PRINTF("RPL: Sending unicast-DIO with rank %u to ",
@@ -594,7 +594,7 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
   pos += 4;
 
   if(n == NULL) {
-    uip_create_linklocal_allnodes_mcast(&addr);
+    uip_create_linklocal_rplnodes_mcast(&addr);
   } else {
     uip_ipaddr_copy(&addr, &n->addr);
   }
