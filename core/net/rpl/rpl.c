@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl.c,v 1.14 2010/12/15 14:35:07 nvt-se Exp $
+ * $Id: rpl.c,v 1.15 2011/01/25 22:41:30 joxe Exp $
  */
 /**
  * \file
@@ -203,10 +203,16 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
 void
 rpl_init(void)
 {
+  uip_ipaddr_t rplmaddr;
   PRINTF("RPL started\n");
 
   rpl_reset_periodic_timer();
   neighbor_info_subscribe(rpl_link_neighbor_callback);
+
+  /* add rpl multicast address */
+  uip_create_linklocal_rplnodes_mcast(&rplmaddr);
+  uip_ds6_maddr_add(&rplmaddr);
+
 #if RPL_CONF_STATS
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
