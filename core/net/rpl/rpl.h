@@ -30,7 +30,7 @@
  *
  * Author: Joakim Eriksson, Nicolas Tsiftes
  *
- * $Id: rpl.h,v 1.29 2011/01/04 20:43:28 nvt-se Exp $
+ * $Id: rpl.h,v 1.30 2011/01/25 09:54:03 joxe Exp $
  */
 
 #ifndef RPL_H
@@ -51,6 +51,23 @@
 #include "sys/clock.h"
 #include "sys/ctimer.h"
 #include "net/uip-ds6.h"
+
+/** \brief Is IPv6 address a the link local all rpl nodes multicast address */
+#define uip_is_addr_linklocal_rplnodes_mcast(a)     \
+  ((((a)->u8[0]) == 0xff) &&                        \
+   (((a)->u8[1]) == 0x02) &&                        \
+   (((a)->u16[1]) == 0) &&                          \
+   (((a)->u16[2]) == 0) &&                          \
+   (((a)->u16[3]) == 0) &&                          \
+   (((a)->u16[4]) == 0) &&                          \
+   (((a)->u16[5]) == 0) &&                          \
+   (((a)->u16[6]) == 0) &&                          \
+   (((a)->u8[14]) == 0) &&                          \
+   (((a)->u8[15]) == 0x1a))
+
+/** \brief set IP address a to the link local all-rpl nodes multicast address */
+#define uip_create_linklocal_rplnodes_mcast(a) uip_ip6addr(a, 0xff02, 0, 0, 0, 0, 0, 0, 0x001a)
+
 
 /* set to 1 for some statistics on trickle / DIO */
 #ifndef RPL_CONF_STATS
