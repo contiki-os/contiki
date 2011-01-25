@@ -515,6 +515,10 @@ find_contiguous_pages(coffee_page_t amount)
     if(HDR_FREE(hdr)) {
       if(start == INVALID_PAGE) {
 	start = page;
+        if(start + amount >= COFFEE_PAGE_COUNT) {
+          /* We can stop immediately if the remaining pages are not enough. */
+          break;
+        }
       }
 
       /* All remaining pages in this sector are free --
