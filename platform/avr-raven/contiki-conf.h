@@ -39,7 +39,7 @@
  *         Simon Barner <barner@in.tum.de>
  *         David Kopf <dak664@embarqmail.com>
  */
-
+/* Test git commit */
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
