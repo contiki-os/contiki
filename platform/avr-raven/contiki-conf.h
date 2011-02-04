@@ -30,7 +30,7 @@
  *
  * @(#)$$
  */
-
+/* Test github commit from windows 7 TortoiseGit */
 /**
  * \file
  *         Configuration for Atmel Raven
