@@ -36,9 +36,15 @@
 #ifndef BOARD_REDBEE_ECONOTAG_H
 #define BOARD_REDBEE_ECONOTAG_H
 
+#define GPIO_LED_RED   GPIO_44
+#define GPIO_LED_GREEN GPIO_45
+#define GPIO_LED_BLUE  GPIO_43	/* don't have a blue LED so we use IO43 */
+
+/* old defs. don't use these */
+/* remove these someday */
 #define LED_RED   44
 #define LED_GREEN 45
-#define LED_BLUE  44	/* don't have a blue LED so we reuse red */
+#define LED_BLUE  43	/* don't have a blue LED so we use IO43 */
 
 /* XTAL TUNE parameters */
 /* see http://devl.org/pipermail/mc1322x/2009-December/000162.html */
