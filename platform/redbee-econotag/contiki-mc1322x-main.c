@@ -145,7 +145,7 @@ static void
 set_gateway(void)
 {
   if(!is_gateway) {
-//    leds_on(LEDS_RED);
+    leds_on(LEDS_RED);
     printf("%d.%d: making myself the IP network gateway.\n\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     printf("IPv4 address of the gateway: %d.%d.%d.%d\n\n",
@@ -175,14 +175,6 @@ SENSORS(&button_sensor);
 void
 init_lowlevel(void)
 {
-	/* led direction init */
-	set_bit(*GPIO_PAD_DIR0,8);
-	set_bit(*GPIO_PAD_DIR0,9);
-	set_bit(*GPIO_PAD_DIR0,10);
-	set_bit(*GPIO_PAD_DIR0,23);
-	set_bit(*GPIO_PAD_DIR0,24);
-	set_bit(*GPIO_PAD_DIR0,25);
-
 	/* button init */
 	/* set up kbi */
 	enable_irq_kbi(4);
@@ -204,10 +196,6 @@ init_lowlevel(void)
 
 	set_channel(RF_CHANNEL - 11); /* channel 11 */
 	set_power(0x12); /* 0x12 is the highest, not documented */
-
-	/* control TX_ON with the radio */
-        *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
-	gpio_pad_dir_set( 1ULL << 44 );
 
 	enable_irq(CRM);
 
@@ -344,6 +332,13 @@ main(void)
 
 	/* Clock */
 	clock_init();	
+
+	/* LED driver */
+	leds_init();
+
+	/* control TX_ON with the radio */
+	GPIO->FUNC_SEL.GPIO_44 = 2;
+	GPIO->PAD_DIR.GPIO_44 = 1;
 
 	/* Process subsystem */
 	process_init();
