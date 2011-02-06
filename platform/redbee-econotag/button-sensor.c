@@ -56,7 +56,7 @@ void kbi4_isr(void) {
 static int
 value(int type)
 {
-	return bit_is_set(gpio_data_get((0x1ULL << 26)), 26) || !timer_expired(&debouncetimer);
+	return GPIO->DATA.GPIO_26 || !timer_expired(&debouncetimer);
 }
 
 static int
