@@ -215,11 +215,11 @@ HEAP_SIZE = 1024;
   . = ALIGN(32 / 8);
 
    .heap : {
-                __heap_start__ = . ;
+                __heap_start__ = . ; PROVIDE(__HEAP_START = .);
                 *(.heap);
                 . += HEAP_SIZE;
                 . = ALIGN (4);
-                __heap_end__ = . ;
+                __heap_end__ = . ;  PROVIDE(__HEAP_END = .);
    }
 
 
