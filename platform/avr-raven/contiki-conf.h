@@ -30,8 +30,7 @@
  *
  * @(#)$$
  */
-/* Test github commit from windows 7 TortoiseGit */
-/* Test github commit from Vista TortoiseGit */
+
 /**
  * \file
  *         Configuration for Atmel Raven
@@ -40,7 +39,7 @@
  *         Simon Barner <barner@in.tum.de>
  *         David Kopf <dak664@embarqmail.com>
  */
-/* Test git commit */
+
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
@@ -74,6 +73,10 @@ unsigned long clock_seconds(void);
 /* Maximum tick interval is 0xffff/125 = 524 seconds */
 #define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
 #define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
+
+/* The 1284p can use TIMER2 with the external 32768Hz crystal to keep time. Else TIMER0 is used. */
+/* The sleep timer in raven-lcd.c also uses the crystal and adds a TIMER2 interrupt routine if not already define by clock.c */
+#define AVR_CONF_USE32KCRYSTAL 0
 
 /* COM port to be used for SLIP connection. Not tested on Raven */
 #define SLIP_PORT RS232_PORT_0
@@ -168,15 +171,17 @@ unsigned long clock_seconds(void);
 #define CHANNEL_802_15_4          26
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-/* Request 802.15.4 ACK on all packets sent (else autoretry) */
+/* Request 802.15.4 ACK on all packets sent (else autoretry). This is primarily for testing. */
 #define SICSLOWPAN_CONF_ACK_ALL   0
 /* Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
 #define RF230_CONF_AUTORETRIES    2
 #define SICSLOWPAN_CONF_FRAG      1
-//Most browsers reissue GETs after 3 seconds which stops frag reassembly, longer MAXAGE does no good
+/* Most browsers reissue GETs after 3 seconds which stops fragment reassembly so a longer MAXAGE does no good */
 #define SICSLOWPAN_CONF_MAXAGE    3
+/* How long to wait before terminating an idle TCP connection. Smaller to allow faster sleep. Default is 120 seconds */
+#define UIP_CONF_WAIT_TIMEOUT     5
 
-#elif 0  /* Contiki-mac radio cycling */
+#elif 1  /* Contiki-mac radio cycling */
 //#define NETSTACK_CONF_MAC         nullmac_driver
 #define NETSTACK_CONF_MAC         csma_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
@@ -190,17 +195,21 @@ unsigned long clock_seconds(void);
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 
 #elif 1  /* cx-mac radio cycling */
+/* RF230 does clear-channel assessment in extended mode (autoretries>0) */
+#define RF230_CONF_AUTORETRIES    1
+#if RF230_CONF_AUTORETRIES
 #define NETSTACK_CONF_MAC         nullmac_driver
-//#define NETSTACK_CONF_MAC         csma_driver
+#else
+#define NETSTACK_CONF_MAC         csma_driver
+#endif
 #define NETSTACK_CONF_RDC         cxmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        1
-#define RF230_CONF_AUTORETRIES    1
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
-#define CXMAC_CONF_ANNOUNCEMENTS    0
+#define CXMAC_CONF_ANNOUNCEMENTS  0
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 
 //Below gives 10% duty cycle, undef for default 5%
