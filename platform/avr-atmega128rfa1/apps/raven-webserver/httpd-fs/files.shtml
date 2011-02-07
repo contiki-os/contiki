@@ -1,0 +1,5 @@
+%!: /header.html
+<h1>File statistics</h1><br><table width="100%"><tr align="left"><th>Name</th><th>Accesses</th></tr>
+%! file-stats *
+</table>
+%!: /footer.html
