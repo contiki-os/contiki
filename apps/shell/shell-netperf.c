@@ -52,7 +52,7 @@ int snprintf(char *str, size_t size, const char *format, ...);
 
 /*---------------------------------------------------------------------------*/
 #define DATALEN 90
-#define MAX_RETRIES 4
+#define MAX_RETRIES 8
 
 #define CONTINUE_EVENT 128
 
@@ -658,6 +658,7 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
     
     for(i = 0; i < num_packets; ++i) {
       if(construct_next_echo()) {
+        
 	unicast_send(&unicast, &receiver);
 	stats.sent++;
       }
