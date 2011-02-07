@@ -1,0 +1,59 @@
+
+raven-webserver_src = webserver-nogui.c httpd.c http-strings.c psock.c memb.c \
+                      httpd-fs.c httpd-cgi.c
+raven-webserver_dsc = webserver-dsc.c
+
+#Tell platform main routine webserver is present, for parameter display at startup
+CFLAGS             += -DWEBSERVER
+
+#$(CONTIKI)/apps/webserver/http-strings.c: $(CONTIKI)/apps/webserver/http-strings
+#	cd $(CONTIKI)/apps/webserver/; $(CONTIKI)/tools/makestrings $<
+#
+
+#The default is fixed web content packed in program flash memory. Note the existing httpd-fs read
+#code will only work for content in the first 64KB of program flash as the linked list addresses are
+#only 16 bit and reads use pgm_read_byte_near.
+#For COFFEE_FILES=1 Fixed web content in eeprom memory. Existing files can be rewritten but not extended
+#For COFFEE_FILES=2 Initial web content in eeprom memory in a fully writeable coffee file system.
+#For COFFEE_FILES=3 Fixed web content in program flash memory. Existing files can be rewritten but not extended
+#For COFFEE_FILES=4 Initial webcontent in program flash memory in a fully writeable coffee file system.
+
+#The default web content is in the /httpd-fs directory. Override with $make WEBDIR=another_directory
+#If WEBDIR is then dropped from the command line the web content will NOT revert to the default
+#unless one of the files in the default directory is changed. This means a .coffeesection may still
+#be defined when COFFEE_FILES is dropped from the make, and a section overlap will occur during the link.
+#You can always safely restore the default content with $make WEBDIR=default.
+
+.PHONY : force
+ifdef WEBDIR
+FORCE=force
+ifeq ($(WEBDIR),default)
+override WEBDIR=$(CONTIKI)/platform/avr-atmega128rfa1/apps/raven-webserver/httpd-fs
+endif
+else
+WEBDIR=$(CONTIKI)/platform/avr-atmega128rfa1/apps/raven-webserver/httpd-fs
+endif
+WEBCSOURCE=$(CONTIKI)/platform/avr-atmega128rfa1/apps/raven-webserver/
+
+ifdef COFFEE_ADDRESS   #for now force whenever present, could test for arg passed in make
+FORCE=force
+endif
+
+$(WEBCSOURCE)httpd-fs.c: $(WEBCSOURCE)httpd-fsdata.c
+$(WEBCSOURCE)httpd-fsdata.c : $(FORCE) $(WEBDIR)/*.*
+ifeq     ($(COFFEE_FILES), 1)       #1=eeprom static
+	@echo Generating web content for static eeprom coffee file system
+	$(CONTIKI)/tools/makefsdata -C -A EEPROM -l -f 16 -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+else ifeq ($(COFFEE_FILES), 2)       #2=eeprom dynamic
+	@echo Generating web content for full eeprom coffee file system
+	$(CONTIKI)/tools/makefsdata -C -A EEPROM -f 20 -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+else ifeq ($(COFFEE_FILES), 3)       #3=program flash static
+	@echo Generating web content for static flash coffee file system
+	$(CONTIKI)/tools/makefsdata -C -A PROGMEM -l -f 16 -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+else ifeq ($(COFFEE_FILES), 4)       #4=program flash dynamic
+	@echo Generating initial web content for full flash coffee file system
+	$(CONTIKI)/tools/makefsdata -C -A PROGMEM -c -f 20 -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+else
+	@echo Generating static web content
+	$(CONTIKI)/tools/makefsdata -A PROGMEM -l -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+endif
