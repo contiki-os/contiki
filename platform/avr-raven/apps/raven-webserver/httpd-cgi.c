@@ -31,7 +31,7 @@
  * $Id: httpd-cgi.c,v 1.13 2010/12/23 19:41:07 dak664 Exp $
  *
  */
-
+/* Line endings in git repository are LF instead of CR-LF ? */
 /*
  * This file includes functions that are called by the web server
  * scripts. The functions takes no argument, and the return value is
