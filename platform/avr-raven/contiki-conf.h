@@ -31,6 +31,7 @@
  * @(#)$$
  */
 /* Test github commit from windows 7 TortoiseGit */
+/* Test github commit from Vista TortoiseGit */
 /**
  * \file
  *         Configuration for Atmel Raven
@@ -39,7 +40,7 @@
  *         Simon Barner <barner@in.tum.de>
  *         David Kopf <dak664@embarqmail.com>
  */
-
+/* Test git commit */
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
