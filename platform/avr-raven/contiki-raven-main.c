@@ -107,22 +107,30 @@ SIGNATURE = {
 };
 FUSES ={.low = 0xe2, .high = 0x99, .extended = 0xff,};
 
+/*----------------------Configuration of EEPROM---------------------------*/
+/* Use existing EEPROM if it passes the integrity test, else reinitialize with build values */
+
 /* Put default MAC address in EEPROM */
 #if WEBSERVER
-extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h 
+extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h
 extern uint8_t server_name[16];
 extern uint8_t domain_name[30];
 #else
-uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
+uint8_t mac_address[8] PROGMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 #endif
 
 
+#ifdef CHANNEL_802_15_4
+uint8_t rf_channel[2] EEMEM = {CHANNEL_802_15_4, ~CHANNEL_802_15_4};
+#else
+uint8_t rf_channel[2] EEMEM = {22, ~22};
+#endif
+	volatile uint8_t eeprom_channel;
 static uint8_t get_channel_from_eeprom() {
-	uint8_t eeprom_channel;
+//	volatile uint8_t eeprom_channel;
 	uint8_t eeprom_check;
-
-	eeprom_channel = eeprom_read_byte((uint8_t *)9);
-	eeprom_check = eeprom_read_byte((uint8_t *)10);
+	eeprom_channel = eeprom_read_byte(&rf_channel[0]);
+	eeprom_check = eeprom_read_byte(&rf_channel[1]);
 
 	if(eeprom_channel==~eeprom_check)
 		return eeprom_channel;
@@ -149,15 +157,22 @@ static uint16_t get_panaddr_from_eeprom(void) {
 	return 0;
 }
 
+void calibrate_rc_osc_32k();
 
 /*-------------------------Low level initialization------------------------*/
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
-  //calibrate_rc_osc_32k(); //CO: Had to comment this out
   watchdog_init();
   watchdog_start();
-  
+
+#define CONFIG_STACK_MONITOR 1
+#if CONFIG_STACK_MONITOR
+extern uint16_t __bss_end;
+ __bss_end = 0x4242;
+ *(uint16_t *)(&__bss_end+100) = 0x4242;
+#endif
+
 #ifdef RAVEN_LCD_INTERFACE
   /* First rs232 port for Raven 3290 port */
   rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
@@ -170,6 +185,24 @@ void initialize(void)
   /* Redirect stdout to second port */
   rs232_redirect_stdout(RS232_PORT_1);
   clock_init();
+  
+#define CONF_CALIBRATE_OSCCAL 0
+#if CONF_CALIBRATE_OSCCAL
+{
+extern uint8_t osccal_calibrated;
+uint8_t i;
+  printf_P(PSTR("\nBefore calibration OSCCAL=%x\n"),OSCCAL);
+  for (i=0;i<10;i++) { 
+    calibrate_rc_osc_32k();  
+    printf_P(PSTR("Calibrated=%x\n"),osccal_calibrated);
+//#include <util/delay_basic.h>
+//#define delay_us( us )   ( _delay_loop_2(1+(us*F_CPU)/4000000UL) ) 
+//   delay_us(50000);
+ }
+   clock_init();
+}
+#endif 
+
 #if ANNOUNCE_BOOT
   printf_P(PSTR("\n*******Booting %s*******\n"),CONTIKI_VERSION_STRING);
 #endif
@@ -346,6 +379,28 @@ main(void)
 
   while(1) {
     process_run();
+       
+#if CONFIG_STACK_MONITOR
+    extern uint16_t __bss_end;
+    if (*(uint16_t *)(&__bss_end+100) != 0x4242) {
+      printf_P(PSTR("\nStack Warning, overflow within 100 bytes!\n"));
+      if (__bss_end != 0x4242) {
+       __bss_end = 0x4242;
+        printf_P(PSTR("\n!!!!!!!Stack Overflow!!!!!!!!\n"));
+      }
+      *(uint16_t *)(&__bss_end+100) = 0x4242;
+    }
+#endif
+
+#if 0
+/* Clock.c can trigger a periodic RF PLL calibration */
+extern uint8_t rf230_calibrated;
+    if (rf230_calibrated) {
+      printf_P(PSTR("\nRF230 calibrated!"));
+      rf230_calibrated=0;
+    }
+#endif
+
 //Various entry points for debugging in AVR simulator
 //    NETSTACK_RADIO.send(packetbuf_hdrptr(), 42);
 //    process_poll(&rf230_process);

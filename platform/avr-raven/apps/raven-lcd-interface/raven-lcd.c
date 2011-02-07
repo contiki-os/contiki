@@ -291,6 +291,7 @@ raven_gui_loop(process_event_t ev, process_data_t data)
     } else switch (ev) {
      case SERIAL_CMD:        
         /* Check for command from serial port, execute it. */
+        /* Note cmd frame is written in an interrupt - delays here can cause overwriting by next command */
         PRINTF("\nCommand %d length %d done %d",cmd.cmd,cmd.len,cmd.done);
         if (cmd.done){
             /* Execute the waiting command */
