@@ -508,7 +508,8 @@ dao_input(void)
       /* && uip_ds6_route_lookup(&prefix) == NULL*/) {
       PRINTF("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
           DAG_RANK(p->rank, dag), DAG_RANK(dag->rank, dag));
-      rpl_local_repair(dag);
+      p->rank = INFINITE_RANK;
+      p->updated = 1;
       return;
     }
   }
