@@ -23,3 +23,22 @@ should be done to ensure all c source is on the same page (ahem).
 
 Future plans are for $make COFFEE_FILES=2 or 4 for a full coffee file system.
 
+A bare $make will use the avr-raven platform. Alternate compatible platforms can
+be specified, e.g. $make TARGET=avr-atmega128rfa1. In that case the webserver
+source and content located in that platform directory will be used.
+
+webserver6.elf is always generated. It is copied to e.g. webserver6-avr-raven.elf
+or webserver6-avr-atmega128rfa1.elf depending on the platform. If alternate
+web content is specified the output file will be named accordingly, e.g.
+$make WEBDIR=huginn
+ (builds webserver6.elf and webserver6-huginn-avr-raven.elf)
+$make WEBDIR=muninn TARGET=avr-atmega128rfa1
+ (builds webserver6.elf and webserver6-muninn-avr-atmega128rfa1.elf)
+ 
+$make clean affects only the specified target and webdir:
+
+$make clean WEBDIR=huginn TARGET=avr-atmega128rfa1
+ deletes the avr-atmega128rfa1 objects and webserver6-huginn-avr-atmega128rfa1.elf
+ 
+$make clean
+ deletes the avr-raven objects and webserver6-avr-raven.elf
