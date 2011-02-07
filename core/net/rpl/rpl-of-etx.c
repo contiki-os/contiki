@@ -36,7 +36,10 @@
  */
 /**
  * \file
- *         An implementation of RPL's objective function 1 (ETX).
+ *         The minrank-hysteresis objective function (OCP 1).
+ *
+ *         This implementation uses the estimated number of 
+ *         transmissions (ETX) as the additive routing metric.
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
@@ -60,21 +63,30 @@ rpl_of_t rpl_of_etx = {
   1
 };
 
-#define LINK_ETX_MIN			1
-#define LINK_ETX_MAX			10
-#define LINK_ETX_GUESS			3
-#define PATH_ETX_MIN			1
-#define PATH_ETX_MAX			200
-#define PARENT_SWITCH_ETX_THRESHOLD	0.5
+/* Reject parents that have a higher link metric than the following. */
+#define MAX_LINK_METRIC			10
 
-typedef uint16_t etx_t;
+/* Reject parents that have a higher path cost than the following. */
+#define MAX_PATH_COST			100
 
-static etx_t min_path_etx = INFINITE_RANK;
+/* An initial guess of the link metric. */
+#define INITIAL_LINK_METRIC		3
+
+/*
+ * The rank must differ more than 1/PARENT_SWITCH_THRESHOLD_DIV in order
+ * to switch preferred parent.
+ */
+#define PARENT_SWITCH_THRESHOLD_DIV	2
+
+#define MAX_DIFFERENCE(dag)				\
+	((dag)->min_hoprankinc / PARENT_SWITCH_THRESHOLD_DIV)
+
+static rpl_rank_t min_path_cost = INFINITE_RANK;
 
 static void
 reset(void *dag)
 {
-  min_path_etx = INFINITE_RANK;
+  min_path_cost = INFINITE_RANK;
 }
 
 static void
@@ -87,7 +99,7 @@ parent_state_callback(rpl_parent_t *parent, int known, int etx)
   if(!known) {
     if(RPL_PARENT_COUNT(dag) == 1) {
       /* Our last parent has disappeared, set the path ETX to INFINITE_RANK. */
-      min_path_etx = INFINITE_RANK;
+      min_path_cost = INFINITE_RANK;
     }
   }
 }
@@ -103,11 +115,11 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     if(base_rank == 0) {
       return INFINITE_RANK;
     }
-    rank_increase = LINK_ETX_GUESS * DEFAULT_MIN_HOPRANKINC;
+    rank_increase = INITIAL_LINK_METRIC * DEFAULT_MIN_HOPRANKINC;
   } else {
     dag = (rpl_dag_t *)p->dag;
     if(p->local_confidence == 0) {
-      p->local_confidence = LINK_ETX_GUESS * ETX_DIVISOR;
+      p->local_confidence = INITIAL_LINK_METRIC * ETX_DIVISOR;
     }
     rank_increase = (p->local_confidence * dag->min_hoprankinc) / ETX_DIVISOR;
     if(base_rank == 0) {
@@ -115,12 +127,12 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     }
   }
 
-  PRINTF("RPL: OF1 calculate rank, base rank = %u, rank_increase = %u\n",
+  PRINTF("RPL: MRHOF calculate rank, base rank = %u, rank_increase = %u\n",
 	 (unsigned)base_rank, rank_increase);
 
-  if(base_rank < min_path_etx) {
-    min_path_etx = base_rank;
-    PRINTF("RPL: min_path_etx updated to %u\n", min_path_etx);
+  if(base_rank < min_path_cost) {
+    min_path_cost = base_rank;
+    PRINTF("RPL: min_path_cost updated to %u\n", min_path_cost);
   }
 
   if(INFINITE_RANK - base_rank < rank_increase) {
@@ -132,7 +144,7 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     new_rank = base_rank + rank_increase;
   }
 
-  PRINTF("RPL: Path ETX %u\n", (unsigned)new_rank);
+  PRINTF("RPL: Path cost %u\n", (unsigned)new_rank);
 
   return new_rank;
 }
@@ -146,11 +158,16 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 
   dag = (rpl_dag_t *)p1->dag; /* Both parents must be in the same DAG. */
 
-  p1_rank = DAG_RANK(calculate_rank(p1, 0), dag);
-  p2_rank = DAG_RANK(calculate_rank(p2, 0), dag);
+  p1_rank = calculate_rank(p1, 0);
+  p2_rank = calculate_rank(p2, 0);
 
   /* Maintain stability of the preferred parent in case of similar ranks. */
-  if(p1_rank == p2_rank) {
+  if(p1_rank < p2_rank + MAX_DIFFERENCE(dag) &&
+     p1_rank > p2_rank - MAX_DIFFERENCE(dag)) {
+    PRINTF("RPL: MRHOF hysteresis: %u <= %u <= %u\n",
+           p2_rank - MAX_DIFFERENCE(dag),
+           p1_rank,
+           p2_rank + MAX_DIFFERENCE(dag));
     if(p1 == dag->preferred_parent) {
       return p1;
     } else if(p2 == dag->preferred_parent) {

@@ -247,7 +247,7 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
  	PROCESS_BEGIN();
 
 	while (1) {
-		PROCESS_PAUSE();
+		PROCESS_YIELD();
 
 		/* check if there is a request to turn the radio on or off */
 		if(contiki_maca_request_on == 1) {
@@ -273,6 +273,11 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
 	
  	PROCESS_END();
 }
+
+void maca_rx_callback(volatile packet_t *p __attribute((unused))) {
+	process_poll(&contiki_maca_process);
+}
+
 
 #if BLOCKING_TX
 void maca_tx_callback(volatile packet_t *p __attribute((unused))) {
