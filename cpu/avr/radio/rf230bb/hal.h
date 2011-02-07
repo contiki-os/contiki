@@ -73,10 +73,12 @@
 // RAVENUSB_C : used for USB key or Raven card 
 // RCB_B : RZ200 kit from Atmel based on 1281V
 // ZIGBIT : Zigbit module from Meshnetics
+// ATMEGA128RFA1 : Bare chip with internal radio
 #define RAVEN_D	    4
 #define RAVENUSB_C  1
 #define RCB_B	    	2
 #define ZIGBIT			3
+#define ATMEGA128RFA1   4
 
 
 
@@ -160,6 +162,32 @@
 #   define SLPTRPIN   (0x04)
 #   define TXCWPORT   B
 #   define TXCWPIN    (0x07)
+#   define USART      1
+#   define USARTVECT  USART1_RX_vect
+#   define TICKTIMER  3
+#   define HAS_CW_MODE
+#   define HAS_SPARE_TIMER
+
+#elif HARWARE_REVISION == ATMEGA128RFA1
+/* ATmega1281 with internal AT86RF231 radio */
+#if 0
+#   define SSPORT     B
+#   define SSPIN      (0x04)
+#   define SPIPORT    B
+#   define MOSIPIN    (0x05)
+#   define MISOPIN    (0x06)
+#   define SCKPIN     (0x07)
+#   define RSTPORT    B
+#   define RSTPIN     (0x01)
+#   define IRQPORT    D
+#   define IRQPIN     (0x06)
+#   define SLPTRPORT  B
+#   define SLPTRPIN   (0x03)
+#   define TXCWPORT   B
+#   define TXCWPIN    (0x00)
+#endif
+#   define SLPTRPORT  TRXPR
+#   define SLPTRPIN   1
 #   define USART      1
 #   define USARTVECT  USART1_RX_vect
 #   define TICKTIMER  3
@@ -289,6 +317,15 @@
  *       that the source code can directly use.
  * \{
  */
+#if defined(__AVR_ATmega128RFA1__)
+
+#define hal_set_rst_low( )    ( TRXPR &= ~( 1 << TRXRST ) ) /**< This macro pulls the RST pin low. */
+#define hal_set_rst_high( )   ( TRXPR |= ( 1 << TRXRST ) ) /**< This macro pulls the RST pin high. */
+#define hal_set_slptr_high( ) ( TRXPR |= ( 1 << SLPTR ) )      /**< This macro pulls the SLP_TR pin high. */
+#define hal_set_slptr_low( )  ( TRXPR &= ~( 1 << SLPTR ) )     /**< This macro pulls the SLP_TR pin low. */
+#define hal_get_slptr( ) (    ( TRXPR & ( 1 << SLPTR ) ) >> SLPTR )  /**< Read current state of the SLP_TR pin (High/Low). */
+
+#else
 #define SLP_TR                SLPTRPIN            /**< Pin number that corresponds to the SLP_TR pin. */
 #define DDR_SLP_TR            DDR( SLPTRPORT )    /**< Data Direction Register that corresponds to the port where SLP_TR is connected. */
 #define PORT_SLP_TR           PORT( SLPTRPORT )   /**< Port (Write Access) where SLP_TR is connected. */
@@ -321,6 +358,8 @@
 #define HAL_DD_SCK            SCKPIN              /**< Data Direction bit for SCK. */
 #define HAL_DD_MOSI           MOSIPIN             /**< Data Direction bit for MOSI. */
 #define HAL_DD_MISO           MISOPIN             /**< Data Direction bit for MISO. */
+#endif /* defined(__AVR_ATmega128RFA1__) */
+
 /** \} */
 
 
@@ -459,17 +498,39 @@ void hal_clear_rx_start_event_handler( void );
 uint8_t hal_get_pll_lock_flag( void );
 void hal_clear_pll_lock_flag( void );
 
+/* Hack for atmega128rfa1 with integrated radio. Access registers directly, not through SPI */
+#if defined(__AVR_ATmega128RFA1__)
+//#define hal_register_read(address) _SFR_MEM8((uint16_t)address)
+#define hal_register_read(address) address
+uint8_t hal_subregister_read( uint16_t address, uint8_t mask, uint8_t position );
+void hal_subregister_write( uint16_t address, uint8_t mask, uint8_t position,
+                            uint8_t value );
+
+//#define hal_register_write(address, value) _SFR_MEM8((uint16_t)address)=value
+#define hal_register_write(address, value) address=value
+//#define hal_subregister_read( address, mask, position ) (_SFR_MEM8((uint16_t)address)&mask)>>position
+//#define hal_subregister_read1( address, mask, position ) (address&mask)>>position
+//#define hal_subregister_write( address, mask, position, value ) address=(address<<position)&mask
+#else
 uint8_t hal_register_read( uint8_t address );
 void hal_register_write( uint8_t address, uint8_t value );
 uint8_t hal_subregister_read( uint8_t address, uint8_t mask, uint8_t position );
 void hal_subregister_write( uint8_t address, uint8_t mask, uint8_t position,
                             uint8_t value );
+#endif
+
+
+
 //void hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback);
 /* For speed RF230BB does not use a callback */
 void hal_frame_read(hal_rx_frame_t *rx_frame);
 void hal_frame_write( uint8_t *write_buffer, uint8_t length );
 void hal_sram_read( uint8_t address, uint8_t length, uint8_t *data );
 void hal_sram_write( uint8_t address, uint8_t length, uint8_t *data );
+/* Number of receive buffers in RAM. */
+#ifndef RF230_CONF_RX_BUFFERS
+#define RF230_CONF_RX_BUFFERS 1
+#endif
 
 #endif
 /** @} */

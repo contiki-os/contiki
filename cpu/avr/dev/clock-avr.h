@@ -36,7 +36,43 @@
    */ \
   TIMSK = _BV (OCIE0);
 
-#elif defined (__AVR_ATmega1284P__) || (__AVR_AT90USB1287__) || (__AVR_ATmega1281__)
+#elif defined (__AVR_ATmega128RFA1__) && 0
+
+#define AVR_OUTPUT_COMPARE_INT TIMER0_COMPA_vect
+#define OCRSetup() \
+  /* Select internal clock */ \
+  ASSR = 0x00; 				  \
+\
+  /* Set counter to zero */   \
+  TCNT0 = 0;				  \
+\
+  /*						  \
+   * Set comparison register: \
+   * Crystal freq. is 8000000,\
+   * pre-scale factor is 1024, we want 125 ticks / sec: \
+   * 8000000 = 1024 * 126.01 * 62, less 1 for CTC mode \
+   */ \
+  OCR0A = 61; \
+\
+  /* 								\
+   * Set timer control register: 	\
+   *  - prescale: 1024 (CS00 - CS02) \
+   *  - counter reset via comparison register (WGM01) \
+   */ 								\
+  TCCR0A = _BV(WGM01); \
+  TCCR0B =  _BV(CS00) | _BV(CS02); \
+\
+  /* Clear interrupt flag register */ \
+  TIFR0 = TIFR0; \
+\
+  /* \
+   * Raise interrupt when value in OCR0 is reached. Note that the \
+   * counter value in TCNT0 is cleared automatically. \
+   */ \
+  TIMSK0 = _BV (OCIE0A);
+
+  
+#elif defined (__AVR_ATmega1284P__) || (__AVR_AT90USB1287__) || (__AVR_ATmega1281__) || defined (__AVR_ATmega128RFA1__)
 /*
   The Raven has a 32768Hz watch crystal that can be used to clock the timer
   while the 1284p is sleeping. The Jackdaw has pads for a crystal. The crystal

@@ -42,8 +42,14 @@
 
 #if defined(__AVR__)
 #include <avr/io.h>
-#include <util/delay.h>
-#define delay_us( us )   ( _delay_us( ( us ) ) )
+
+//_delay_us has the potential to use floating point which brings the 256 byte clz table into RAM
+//#include <util/delay.h>
+//#define delay_us( us )   ( _delay_us( ( us ) ) )
+//_delay_loop_2(uint16_t count) is 4 CPU cycles per iteration, up to 32 milliseconds at 8MHz
+#include <util/delay_basic.h>
+#define delay_us( us )   ( _delay_loop_2(1+(us*F_CPU)/4000000UL) ) 
+
 #include <avr/pgmspace.h>
 #elif defined(__MSP430__)
 #include <io.h>
@@ -116,6 +122,7 @@ struct timestamp {
 #define RADIOSLEEPSWHENOFF 1
 #endif
 
+//RS232 delays will cause 6lowpan fragment overruns!
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
@@ -141,6 +148,9 @@ struct timestamp {
 #if RADIOSTATS
 uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
 #endif
+/* Set in clock.c every 256 seconds */
+uint8_t rf230_calibrate;
+uint8_t rf230_calibrated; //debugging
 
 /* Track flow through driver, see contiki-raven-main.c for example of use */
 //#define DEBUGFLOWSIZE 64
@@ -217,7 +227,8 @@ uint8_t RF230_receive_on,RF230_sleeping;
 static uint8_t channel;
 
 /* Received frames are buffered to rxframe in the interrupt routine in hal.c */
-hal_rx_frame_t rxframe;
+uint8_t rxframe_head,rxframe_tail;
+hal_rx_frame_t rxframe[RF230_CONF_RX_BUFFERS];
 
 /*----------------------------------------------------------------------------*/
 /** \brief  This function return the Radio Transceivers current state.
@@ -450,7 +461,7 @@ rf230_is_ready_to_send() {
 static void
 flushrx(void)
 {
-  rxframe.length=0;
+  rxframe[rxframe_head].length=0;
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t locked, lock_on, lock_off;
@@ -538,20 +549,134 @@ set_txpower(uint8_t power)
     hal_subregister_write(SR_TX_PWR, power);
   }
 }
+/*----------------------------------------------------------------------------*/
+/**
+    \brief Calibrate the internal RC oscillator
+
+    This function calibrates the internal RC oscillator, based
+    on an external 32KHz crystal connected to TIMER2. In order to
+    verify the calibration result you can program the CKOUT fuse
+    and monitor the CPU clock on an I/O pin.
+*/
+#define AVR_ENTER_CRITICAL_REGION( ) {uint8_t volatile saved_sreg = SREG; cli( )
+#define AVR_LEAVE_CRITICAL_REGION( ) SREG = saved_sreg;}
+    uint8_t osccal_original,osccal_calibrated;
+void
+calibrate_rc_osc_32k(void)
+{
+#if 1
+
+    /* Calibrate RC Oscillator: The calibration routine is done by clocking TIMER2
+     * from the external 32kHz crystal while running an internal timer simultaneously.
+     * The internal timer will be clocked at the same speed as the internal RC
+     * oscillator, while TIMER2 is running at 32768 Hz. This way it is not necessary
+     * to use a timed loop, and keep track cycles in timed loop vs. optimization
+     * and compiler.
+     */
+    uint8_t osccal_original = OSCCAL;
+    volatile uint16_t temp;
+     
+    /* Start with current value, which for some MCUs could be in upper or lower range */
+
+//  PRR0 &= ~((1 << PRTIM2)|(1 << PRTIM1)); /*  Enable Timer 1 and 2 */
+
+    TIMSK2 = 0x00; /*  Disable Timer/Counter 2 interrupts. */
+    TIMSK1 = 0x00; /*  Disable Timer/Counter 1 interrupts. */
+
+    /* Enable TIMER/COUNTER 2 to be clocked from the external 32kHz clock crystal.
+     * Then wait for the timer to become stable before doing any calibration.
+     */
+    ASSR |= (1 << AS2);
+ // while (ASSR & ((1 << TCN2UB)|(1 << OCR2AUB)|(1 << TCR2AUB)|(1 << TCR2BUB))) { ; }
+    TCCR2B = 1 << CS20;   /* run timer 2 at divide by 1 (32KHz) */
+
+    delay_us(50000UL);  //crystal takes significant time to stabilize
+    AVR_ENTER_CRITICAL_REGION();
+
+    uint8_t counter = 128;
+    bool cal_ok = false;
+    do{
+        /* wait for timer to be ready for updated config */
+        TCCR1B = 1 << CS10;
+
+        while (ASSR & ((1 << TCN2UB)|(1 << OCR2AUB)|(1 << TCR2AUB)|(1 << TCR2BUB))) { ; }
+
+        TCNT2 = 0x80;
+        TCNT1 = 0;
+
+        TIFR2 = 0xFF; /* Clear TIFR2 flags (Yes, really) */
+
+        /* Wait for TIMER/COUNTER 2 to overflow. Stop TIMER/COUNTER 1 and 2, and
+         * read the counter value of TIMER/COUNTER 1. It will now contain the
+         * number of cpu cycles elapsed within the 3906.25 microsecond period.
+         */
+        while (!(TIFR2 & (1 << TOV2))){
+            ;
+            }
+        temp = TCNT1;
+
+        TCCR1B = 0;
+/* Defining these as floating point introduces a lot of code and the 256 byte .clz table to RAM */
+/* At 8 MHz we would expect 8*3906.25 = 31250 CPU clocks */
+#define cal_upper 32812 //(31250*1.05) // 32812 = 0x802c
+#define cal_lower 29687 //(31250*0.95) // 29687 = 0x73f7
+        /* Iteratively reduce the error to be within limits */
+        if (temp < cal_lower) {
+            /* Too slow. Put the hammer down. */
+            if (OSCCAL==0x7e) break; //stay in lowest range
+            if (OSCCAL==0xff) break;
+            OSCCAL++;
+        } else if (temp > cal_upper) {
+            /* Too fast, retard. */
+            if (OSCCAL==0x81) break; //stay in highest range
+            if (OSCCAL==0x00) break;
+            OSCCAL--;
+        } else {
+            /* The CPU clock frequency is now within +/- 0.5% of the target value. */
+            cal_ok = true;
+        }
+
+        counter--;
+    } while ((counter != 0) && (false == cal_ok));
+
+     osccal_calibrated=OSCCAL;   
+    if (true != cal_ok) {
+        /* We failed, therefore restore previous OSCCAL value. */
+        OSCCAL = osccal_original;
+    }
+
+    OSCCAL = osccal_original;
+    TCCR2B = 0;
+
+    ASSR &= ~(1 << AS2);
+
+    /* Disable both timers again to save power. */
+    //    PRR0 |= (1 << PRTIM2);/* |(1 << PRTIM1); */
+
+    AVR_LEAVE_CRITICAL_REGION();
+#endif
+}
 /*---------------------------------------------------------------------------*/
 int
 rf230_init(void)
 {
+  uint8_t i;
   DEBUGFLOW('I');
 
-    /* Wait in case VCC just applied */
+  /* Wait in case VCC just applied */
   delay_us(TIME_TO_ENTER_P_ON);
-
+ 
   /* Calibrate oscillator */
-// calibrate_rc_osc_32k();
+ // printf_P(PSTR("\nBefore calibration OSCCAL=%x\n"),OSCCAL);
+ // calibrate_rc_osc_32k();
+ // printf_P(PSTR("After calibration OSCCAL=%x\n"),OSCCAL); 
 
-  /* Initialize Hardware Abstraction Layer. */
+  /* Initialize Hardware Abstraction Layer */
   hal_init();
+  
+  /* Set receive buffers empty and point to the first */
+  for (i=0;i<RF230_CONF_RX_BUFFERS;i++) rxframe[i].length=0;
+  rxframe_head=0;rxframe_tail=0;
   
   /* Do full rf230 Reset */
   hal_set_rst_low();
@@ -559,11 +684,13 @@ rf230_init(void)
   delay_us(TIME_RESET);
   hal_set_rst_high();
 
-  /* Force transition to TRX_OFF. */
+  /* Force transition to TRX_OFF */
   hal_subregister_write(SR_TRX_CMD, CMD_FORCE_TRX_OFF);
   delay_us(TIME_P_ON_TO_TRX_OFF);
   
   /* Verify that it is a supported version */
+  /* Note gcc optimizes this away if DEBUG is not set! */
+  //ATMEGA128RFA1 - version 4, ID 31
   uint8_t tvers = hal_register_read(RG_VERSION_NUM);
   uint8_t tmanu = hal_register_read(RG_MAN_ID_0);
 
@@ -577,6 +704,12 @@ rf230_init(void)
 
   /* Set up number of automatic retries 0-15 (0 implies PLL_ON sends instead of the extended TX_ARET mode */
   hal_subregister_write(SR_MAX_FRAME_RETRIES, RF230_CONF_AUTORETRIES );
+ 
+ /* Set up carrier sense/clear channel assesment parameters for extended operating mode */
+  hal_subregister_write(SR_MAX_CSMA_RETRIES, 5 );//highest allowed retries
+  hal_register_write(RG_CSMA_BE, 0x80);       //min backoff exponent 0, max 8 (highest allowed)
+  hal_register_write(RG_CSMA_SEED_0,hal_register_read(RG_PHY_RSSI) );//upper two RSSI reg bits RND_VALUE are random in rf231
+ // hal_register_write(CSMA_SEED_1,42 );
 
   /* Use automatic CRC unless manual is specified */
 #if RF230_CONF_CHECKSUM
@@ -619,10 +752,20 @@ rf230_transmit(unsigned short payload_len)
   radiowason=RF230_receive_on;
 
   /* If radio is sleeping we have to turn it on first */
+  /* This automatically does the PLL calibrations */
   if (RF230_sleeping) {
     hal_set_slptr_low();
  //   delay_us(TIME_SLEEP_TO_TRX_OFF);
     RF230_sleeping=0;
+  } else {
+  /* If on, do periodic calibration. See clock.c */
+    if (rf230_calibrate) {
+      hal_subregister_write(SR_PLL_CF_START,1);   //takes 80us max
+      hal_subregister_write(SR_PLL_DCU_START,1); //takes 6us, concurrently
+      rf230_calibrate=0;
+      rf230_calibrated=1;
+      delay_us(80); //?
+    }
   }
  
   /* Wait for any previous operation or state transition to finish */
@@ -649,12 +792,19 @@ rf230_transmit(unsigned short payload_len)
 #if RF230_CONF_TIMESTAMPS
   rtimer_clock_t txtime = timesynch_time();
 #endif /* RF230_CONF_TIMESTAMPS */
-
+#if defined(__AVR_ATmega128RFA1__)
+/* No interrupts across frame download! */
+  cli();
+/* slow down the transmit? */
+ //   delay_us(500);
+#endif
  /* Toggle the SLP_TR pin to initiate the frame transmission */
   hal_set_slptr_high();
   hal_set_slptr_low();
   hal_frame_write(buffer, total_len);
-
+#if defined(__AVR_ATmega128RFA1__)
+ sei();
+#endif
   PRINTF("rf230_transmit:\n");
 #if DEBUG>1
 /* Note the dumped packet will have a zero checksum unless compiled with RF230_CONF_CHECKSUM
@@ -984,14 +1134,14 @@ if (RF230_receive_on) {
 
   pending = 1;
   
-#if RADIOSTATS
+#if RADIOSTATS //TODO:This will double count buffered packets
   RF230_receivepackets++;
 #endif
 
 #if RADIOALWAYSON
 } else {
   DEBUGFLOW('-');
-  rxframe.length=0;
+  rxframe[rxframe_head].length=0;
 }
 #endif
   return 1;
@@ -1048,7 +1198,7 @@ PROCESS_THREAD(rf230_process, ev, data)
 }
 /* Get packet from Radio if any, else return zero.
  * The two-byte checksum is appended but the returned length does not include it.
- * At present the last frame is buffered in the interrupt routine so this routine
+ * Frames are buffered in the interrupt routine so this routine
  * does not access the hardware or change its status
  */
 /*---------------------------------------------------------------------------*/
@@ -1066,7 +1216,7 @@ rf230_read(void *buf, unsigned short bufsize)
   struct timestamp t;
 #endif /* RF230_CONF_TIMESTAMPS */
   /* The length includes the twp-byte checksum but not the LQI byte */
-  len=rxframe.length;
+  len=rxframe[rxframe_head].length;
   if (len==0) {
 #if RADIOALWAYSON && DEBUGFLOWSIZE
    if (RF230_receive_on==0) {if (debugflow[debugflowsize-1]!='z') DEBUGFLOW('z');} //cxmac calls with radio off?
@@ -1088,13 +1238,13 @@ if (RF230_receive_on) {
   rf230_time_of_departure = 0;
 #endif /* RF230_CONF_TIMESTAMPS */
 
-// PRINTSHORT("r%d",rxframe.length);  
-  PRINTF("rf230_read: %u bytes lqi %u crc %u\n",rxframe.length,rxframe.lqi,rxframe.crc);
+// PRINTSHORT("r%d",rxframe[rxframe_head].length);  
+  PRINTF("rf230_read: %u bytes lqi %u crc %u\n",rxframe[rxframe_head].length,rxframe[rxframe_head].lqi,rxframe[rxframe_head].crc);
 #if DEBUG>1
  {
     uint8_t i;
     PRINTF("0000");
-    for (i=0;i<rxframe.length;i++) PRINTF(" %02x",rxframe.data[i]);    
+    for (i=0;i<rxframe[rxframe_head].length;i++) PRINTF(" %02x",rxframe[rxframe_head].data[i]);    
     PRINTF("\n");
   }
 #endif
@@ -1129,11 +1279,16 @@ if (RF230_receive_on) {
     return 0;
   }
  /* Transfer the frame, stripping the footer, but copying the checksum */
-  framep=&(rxframe.data[0]);
+  framep=&(rxframe[rxframe_head].data[0]);
   memcpy(buf,framep,len-AUX_LEN+CHECKSUM_LEN);
+  rf230_last_correlation = rxframe[rxframe_head].lqi;
 
   /* Clear the length field to allow buffering of the next packet */
-  rxframe.length=0;
+  rxframe[rxframe_head].length=0;
+  rxframe_head++;if (rxframe_head >= RF230_CONF_RX_BUFFERS) rxframe_head=0;
+  /* If another packet has been buffered, schedule another receive poll */
+  if (rxframe[rxframe_head].length) rf230_interrupt();
+  
  /* Point to the checksum */
   framep+=len-AUX_LEN; 
 #if RF230_CONF_CHECKSUM
@@ -1164,14 +1319,15 @@ if (RF230_receive_on) {
     rf230_last_rssi = rf230_get_raw_rssi();
 #else   //faster
 #if RF230_CONF_AUTOACK
-    rf230_last_rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84 resolution 1 dB
+ //   rf230_last_rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84 resolution 1 dB
+    rf230_last_rssi = hal_register_read(RG_PHY_ED_LEVEL);  //0-84, resolution 1 dB
 #else
 /* last_rssi will have been set at RX_START interrupt */
 //  rf230_last_rssi = 3*hal_subregister_read(SR_RSSI);    //0-28 resolution 3 dB
 #endif
 #endif /* speed vs. generality */
 
-    rf230_last_correlation = rxframe.lqi;
+ //   rf230_last_correlation = rxframe[rxframe_head].lqi;
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rf230_last_rssi);
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, rf230_last_correlation);
 
@@ -1251,7 +1407,8 @@ rf230_get_raw_rssi(void)
 /* The rssi register is multiplied by 3 to a consistent value from either register */
   state=radio_get_trx_state();
   if ((state==RX_AACK_ON) || (state==BUSY_RX_AACK)) {
-     rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84, resolution 1 dB
+ //  rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84, resolution 1 dB
+     rssi = hal_register_read(RG_PHY_ED_LEVEL);  //0-84, resolution 1 dB
   } else {
 #if 0   // 3-clock shift and add is faster on machines with no hardware multiply
 /* avr-gcc may have an -Os bug that uses the general subroutine for multiplying by 3 */

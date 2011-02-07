@@ -52,7 +52,7 @@
 #define ADD_CARRAGE_RETURNS_TO_SERIAL_OUTPUT 1
 #endif
 
-#if defined (__AVR_ATmega128__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1281__)
+#if defined (__AVR_ATmega128__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1281__) || defined(__AVR_ATmega128RFA1__)
 typedef struct {
   volatile uint8_t * UDR;
   volatile uint8_t * UBRRH;
