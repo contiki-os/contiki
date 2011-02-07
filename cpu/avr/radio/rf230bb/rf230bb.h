@@ -53,8 +53,13 @@
 /*============================ INCLUDE =======================================*/
 #include <stdint.h>
 #include <stdbool.h>
-#include "at86rf230_registermap.h"
 #include "hal.h"
+#if defined(__AVR_ATmega128RFA1__)
+#include "atmega128rfa1_registermap.h"
+#else
+#include "at86rf230_registermap.h"
+#endif
+
 
 /*============================ MACROS ========================================*/
 #define SUPPORTED_PART_NUMBER                   ( 2 )
@@ -155,7 +160,8 @@ typedef enum{
  *
  */
 typedef enum{
-    CCA_ED                    = 0,    /**< Use energy detection above threshold mode. */
+//    CCA_ED                   = 0,    /**< Use energy detection above threshold mode. */ conflicts with atmega128rfa1 mcu definition
+    CCA_ENERGY_DETECT         = 0,    /**< Use energy detection above threshold mode. */
     CCA_CARRIER_SENSE         = 1,    /**< Use carrier sense mode. */
     CCA_CARRIER_SENSE_WITH_ED = 2     /**< Use a combination of both energy detection and carrier sense. */
 }radio_cca_mode_t;

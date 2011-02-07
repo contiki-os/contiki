@@ -46,19 +46,42 @@ void clock_adjust_seconds(uint8_t howmany) {
 #endif
 }
 /*---------------------------------------------------------------------------*/
+/* These routines increment the second counters.
+ * Calling these avoids the interrupt overhead of pushing many registers on the stack.
+ */
+static void increment_seconds(void) __attribute__ ((noinline));
+static void increment_seconds(void)
+{
+  seconds++;
+}
+#if RADIOSTATS
+extern volatile uint8_t rf230_calibrate;
+static void increment_radioontime(void)  __attribute__ ((noinline));
+static void increment_radioontime(void)
+{
+static uint8_t calibrate_interval;
+  radioontime++;
+  if (++calibrate_interval==0) {
+    rf230_calibrate=1;
+  }
+}
+#endif
+/*---------------------------------------------------------------------------*/
 //SIGNAL(SIG_OUTPUT_COMPARE0)
 ISR(AVR_OUTPUT_COMPARE_INT)
 {
   count++;
   if(++scount == CLOCK_SECOND) {
     scount = 0;
-    seconds++;
+    increment_seconds();
+//  seconds++;
   }
 #if RADIOSTATS
   if (RF230_receive_on) {
     if (++rcount == CLOCK_SECOND) {
       rcount=0;
-      radioontime++;
+      increment_radioontime();
+ //   radioontime++;
     }
   }
 #endif
