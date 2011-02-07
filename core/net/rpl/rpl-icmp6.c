@@ -61,7 +61,7 @@
 /*---------------------------------------------------------------------------*/
 #define RPL_DIO_GROUNDED                 0x80
 #define RPL_DIO_MOP_SHIFT                3
-#define RPL_DIO_MOP_MASK                 0x3c
+#define RPL_DIO_MOP_MASK                 0x07
 #define RPL_DIO_PREFERENCE_MASK          0x07
 
 #define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -211,7 +211,7 @@ dio_input(void)
   PRINTF("RPL: Incoming DIO rank %u\n", (unsigned)dio.rank);
 
   dio.grounded = buffer[i] & RPL_DIO_GROUNDED;
-  dio.mop = (buffer[i]& RPL_DIO_MOP_MASK) >> RPL_DIO_MOP_SHIFT;
+  dio.mop = (buffer[i] >> RPL_DIO_MOP_SHIFT) & RPL_DIO_MOP_MASK;
   dio.preference = buffer[i++] & RPL_DIO_PREFERENCE_MASK;
 
   dio.dtsn = buffer[i++];
@@ -232,7 +232,8 @@ dio_input(void)
     }
 
     if(len + i > buffer_length) {
-      PRINTF("RPL: Invalid DIO packet\n");
+      PRINTF("RPL: Invalid DIO packet - packet too long: %d vs %d (%d,%d)\n",
+	     len + i, buffer_length, subopt_type, len);
       RPL_STAT(rpl_stats.malformed_msgs++);
       return;
     }
@@ -516,7 +517,7 @@ dao_input(void)
 
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
-    RPL_STAT(rpl_stats.memory_overflows++);
+    RPL_STAT(rpl_stats.mem_overflows++);
     PRINTF("RPL: Could not add a route after receiving a DAO\n");
     return;
   } else {
