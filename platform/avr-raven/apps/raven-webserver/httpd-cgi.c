@@ -122,12 +122,14 @@ void
 web_set_temp(char *s)
 {
   strcpy(sensor_temperature, s);
+//  printf_P(PSTR("got temp"));
   last_tempupdate=seconds;
 }
 void
 web_set_voltage(char *s)
 {
   strcpy(sensor_extvoltage, s);
+//    printf_P(PSTR("got volts"));
   last_extvoltageupdate=seconds;
 }
 
