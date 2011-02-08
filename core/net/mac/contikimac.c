@@ -244,7 +244,7 @@ static volatile uint8_t is_streaming;
 static rimeaddr_t is_streaming_to, is_streaming_to_too;
 static volatile rtimer_clock_t stream_until;
 
-#define DEFAULT_STREAM_TIME (1 * CYCLE_TIME)
+#define DEFAULT_STREAM_TIME (4 * CYCLE_TIME)
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b)? (a) : (b))
@@ -472,9 +472,9 @@ powercycle(struct rtimer *t, void *ptr)
 #endif /* CONTIKIMAC_CONF_COMPOWER */
       }
     } while((is_snooping || is_streaming) &&
-            RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME));
+            RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME * 8));
 
-    if(RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME)) {
+    if(RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME * 4)) {
       /*      schedule_powercycle(t, CYCLE_TIME - (RTIMER_NOW() - cycle_start));*/
       schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start);
       /*      printf("cycle_start 0x%02x now 0x%02x wait 0x%02x\n",
@@ -631,7 +631,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   }
   is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
     packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
-  
+
   if(WITH_STREAMING) {
     if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
        PACKETBUF_ATTR_PACKET_TYPE_STREAM) {
@@ -645,8 +645,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
       }
       stream_until = RTIMER_NOW() + DEFAULT_STREAM_TIME;
       is_streaming = 1;
-    } else {
-      is_streaming = 0;
     }
   }
 
@@ -899,7 +897,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     PRINTF("no miss %d wake-ups %d\n", packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
            strobes);
   }
-  
+
   if(!is_broadcast) {
     if(collisions == 0 && is_streaming == 0) {
       phase_update(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time,
@@ -907,6 +905,13 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     }
   }
 #endif /* WITH_PHASE_OPTIMIZATION */
+
+  if(WITH_STREAMING) {
+    if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+       PACKETBUF_ATTR_PACKET_TYPE_STREAM_END) {
+      is_streaming = 0;
+    }
+  }
 
   return ret;
 }
@@ -1221,9 +1226,6 @@ const struct rdc_driver contikimac_driver = {
 uint16_t
 contikimac_debug_print(void)
 {
-  static rtimer_clock_t one_cycle_start;
-  printf("Drift %d\n", (one_cycle_start - cycle_start) % CYCLE_TIME);
-  one_cycle_start = cycle_start;
   return 0;
 }
 /*---------------------------------------------------------------------------*/
