@@ -1,10 +1,15 @@
 This example features a simple webserver running on top of the IPv6
-contiki stack. It differs from the generic webserver6 example in order
-to store the web pages in avr flash memory.
+contiki stack. It differs from the generic webserver6 example in that
+wherever possible data is stored in avr flash memory instead of RAM.
+In addition are cgi scripts for displaying temperature and voltage sensors,
+and sleep and radio statistics, on web pages.
 
-The perl script /tools/makefsdata converts the default web content from
-/platform/avr-raven/apps/raven-webserver/httpd-fs/*.* into the c source file
-/platform/avr-raven/apps/raven-webserver/httpd-fsdata.c.
+A bare $make will use the avr-raven platform. Alternate compatible platforms can
+be specified, e.g. $make TARGET=avr-atmega128rfa1. In that case the webserver
+process and web content located in that platform directory will be used.
+
+The perl script /tools/makefsdata converts web content from (by default)
+all the files in the /httpd-fs subdirectory into the c source file /httpd-fsdata.c.
 This file is not deleted in a $make clean so that a rebuild can be done without
 perl in the toolchain (e.g. from a Windows cmd window). If any web file is
 changed the dependencies will attempt to update httpd-fsdata.c. If perl
@@ -13,32 +18,25 @@ and allow the build to continue.
   
 Two alternate web contents Huginn and Muninn are included in this directory.
 Use e.g. $make WEBDIR=Huginn to generate a webserver6-huginn.elf file.
-The ipv6 address suffix and server names are specified in the makefsdata.h file.
+Different ipv6 address suffix and server names can be specified in the makefsdata.h
+file of each directory so that mote addresses will not conflict.
 
-$make COFFEE_FILES=1 or 3 uses a static coffee file system in eeprom or program
-flash memory.  Files can not be created, but existing files can be rewritten
-using http POST via upload.html. When switching coffee types a $make clean
-should be done to ensure all c source is on the same page (ahem).
--->This is under development and rewrites are not working yet.
+webserver6.elf is always generated. It is also copied to another file whose name
+indicates the platform and web directory. $make clean operates only the specified
+target and webdir.  For example:
 
-Future plans are for $make COFFEE_FILES=2 or 4 for a full coffee file system.
-
-A bare $make will use the avr-raven platform. Alternate compatible platforms can
-be specified, e.g. $make TARGET=avr-atmega128rfa1. In that case the webserver
-source and content located in that platform directory will be used.
-
-webserver6.elf is always generated. It is copied to e.g. webserver6-avr-raven.elf
-or webserver6-avr-atmega128rfa1.elf depending on the platform. If alternate
-web content is specified the output file will be named accordingly, e.g.
+$make
+ (builds webserver6.elf and webserver6-avr-raven.elf)
 $make WEBDIR=huginn
  (builds webserver6.elf and webserver6-huginn-avr-raven.elf)
 $make WEBDIR=muninn TARGET=avr-atmega128rfa1
  (builds webserver6.elf and webserver6-muninn-avr-atmega128rfa1.elf)
- 
-$make clean affects only the specified target and webdir:
-
 $make clean WEBDIR=huginn TARGET=avr-atmega128rfa1
  deletes the avr-atmega128rfa1 objects and webserver6-huginn-avr-atmega128rfa1.elf
- 
 $make clean
  deletes the avr-raven objects and webserver6-avr-raven.elf
+ 
+$make WEBDIR=xxx always forces regeneration of web content into httpd-fsdata.c and
+so requires PERL. A bare $make after that will not regenerate httpd-fsdata.c.
+Use $make WEBDIR=default to switch back to the default /http-fs/ content.
+
