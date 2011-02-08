@@ -477,7 +477,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
 
-  dag->rank = dag->of->calculate_rank(NULL, dio->rank);
+  dag->rank = dag->of->calculate_rank(p, dio->rank);
   dag->min_rank = dag->rank; /* So far this is the lowest rank we know of. */
 
   dag->default_lifetime = dio->default_lifetime;
