@@ -17,8 +17,8 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
      * Values of fields within the IPHC encoding first byte
      * (C stands for compressed and I for inline)
      */
-    public final static int SICSLOWPAN_IPHC_TC_C                        = 0x10;
-    public final static int SICSLOWPAN_IPHC_FL_C                        = 0x08;
+    public final static int SICSLOWPAN_IPHC_FL_C                        = 0x10;
+    public final static int SICSLOWPAN_IPHC_TC_C                        = 0x08;
     public final static int SICSLOWPAN_IPHC_NH_C                        = 0x04;
     public final static int SICSLOWPAN_IPHC_TTL_1                       = 0x01;
     public final static int SICSLOWPAN_IPHC_TTL_64                      = 0x02;
@@ -126,7 +126,7 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
             } else {
                 /* highest flow label bits + ECN bits */
                 int tmp = packet.get(hc06_ptr);
-                trafficClass = (tmp >> 6) & 0x0f; 
+                trafficClass = (tmp >> 6) & 0x0f;
                 flowLabel = packet.getInt(hc06_ptr + 1, 2);
                 hc06_ptr += 3;
             }
@@ -136,7 +136,7 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
             if((packet.get(0) & SICSLOWPAN_IPHC_TC_C) == 0) {
                 /* Traffic class is inline */
                 trafficClass =((packet.get(hc06_ptr) >> 6) & 0x03);
-                trafficClass = (packet.get(hc06_ptr) << 2);
+                trafficClass |= (packet.get(hc06_ptr) << 2);
                 hc06_ptr += 1;
             }
         }
@@ -402,7 +402,8 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         } else if (proto == PROTO_UDP) protoStr = "UDP";
         else if (proto == PROTO_TCP) protoStr = "TCP";
         
-        verbose.append("<br><b>IPv6 ").append(protoStr).append("</b><br>");
+        verbose.append("<br><b>IPv6 ").append(protoStr).append("</b> TC = " + trafficClass +
+                " FL: " + flowLabel + "<br>");
         verbose.append("From ");
         printAddress(verbose, srcAddress);
         verbose.append("  to ");
