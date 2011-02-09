@@ -61,7 +61,11 @@ void leds_blink(void);
 #define LEDS_BLUE   LEDS_YELLOW	/* Tmote Sky is colorblind? */
 #define leds_blue   leds_yellow
 
+#ifdef LEDS_CONF_ALL
+#define LEDS_ALL    LEDS_CONF_ALL
+#else /* LEDS_CONF_ALL */
 #define LEDS_ALL    7
+#endif /* LEDS_CONF_ALL */
 
 /**
  * Returns the current status of all leds (respects invert)
