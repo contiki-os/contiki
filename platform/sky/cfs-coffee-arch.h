@@ -55,6 +55,8 @@
 #define COFFEE_DYN_SIZE			4*1024
 #define COFFEE_LOG_SIZE			1024
 
+#define COFFEE_IO_SEMANTICS		1
+#define COFFEE_APPEND_ONLY		0
 #define COFFEE_MICRO_LOGS		1
 
 /* Flash operations. */

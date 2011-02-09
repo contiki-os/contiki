@@ -41,6 +41,29 @@
 #include "cfs.h"
 
 /**
+ * Instruct Coffee that the access pattern to this file is adapted to 
+ * flash I/O semantics by design, and Coffee should therefore not 
+ * invoke its own micro logs when file modifications occur.
+ *
+ * This semantical I/O setting is useful when implementing flash storage
+ * algorithms on top of Coffee.
+ *
+ * \sa cfs_coffee_set_io_semantics()
+ */
+#define CFS_COFFEE_IO_TOGGLE_ONLY 0x1
+
+/**
+ * Instruct Coffee not to attempt to extend the file when there is
+ * an attempt to write past the reserved file size.
+ *
+ * A case when this is necessary is when the file has a firm size limit,
+ * and a safeguard is needed to protect against writes beyond this limit.
+ *
+ * \sa cfs_coffee_set_io_semantics()
+ */
+#define CFS_COFFEE_IO_FIRM_SIZE   0x2
+
+/**
  * \file
  *	Header for the Coffee file system.
  * \author
@@ -65,9 +88,9 @@ int cfs_coffee_reserve(const char *name, cfs_offset_t size);
 
 /**
  * \brief Configure the on-demand log file.
- * \param file
- * \param log_size
- * \param log_entry_size
+ * \param file The filename.
+ * \param log_size The total log size.
+ * \param log_entry_size The log entry size.
  * \return 0 on success, -1 on failure.
  *
  * When file data is first modified, Coffee creates a micro log for the
@@ -77,6 +100,21 @@ int cfs_coffee_reserve(const char *name, cfs_offset_t size);
  */
 int cfs_coffee_configure_log(const char *file, unsigned log_size,
                              unsigned log_entry_size);
+
+/**
+ * \brief Set the I/O semantics for accessing a file.
+ *
+ * \param fd The file descriptor through which the file is accessed.
+ * \param flags A bit vector of flags.
+ *
+ * Coffee is used on a wide range of storage types, and the default 
+ * I/O file semantics may not be optimal for the access pattern 
+ * of a certain file. Hence, this functions allows programmers to 
+ * switch the /O semantics on a file that is accessed through a 
+ * particular file descriptor.
+ *
+ */
+int cfs_coffee_set_io_semantics(int fd, unsigned flags);
 
 /**
  * \brief Format the storage area assigned to Coffee.
