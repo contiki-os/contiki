@@ -176,7 +176,7 @@ struct file_desc {
   cfs_offset_t offset;
   struct file *file;
   uint8_t flags;
-#ifdef COFFEE_IO_SEMANTICS
+#if COFFEE_IO_SEMANTICS
   uint8_t io_flags;
 #endif
 };
@@ -1321,7 +1321,7 @@ cfs_coffee_configure_log(const char *filename, unsigned log_size,
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-#ifdef COFFEE_IO_SEMANTICS
+#if COFFEE_IO_SEMANTICS
 int
 cfs_coffee_set_io_semantics(int fd, unsigned flags)
 {
