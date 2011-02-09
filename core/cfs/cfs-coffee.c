@@ -1184,7 +1184,7 @@ cfs_write(int fd, const void *buf, unsigned size)
 
 #if COFFEE_MICRO_LOGS
 #if COFFEE_IO_SEMANTICS
-  if(!(fdp->io_flags & CFS_COFFEE_IO_TOGGLE_ONLY) &&
+  if(!(fdp->io_flags & CFS_COFFEE_IO_FLASH_AWARE) &&
      (FILE_MODIFIED(file) || fdp->offset < file->end)) {
 #else
   if(FILE_MODIFIED(file) || fdp->offset < file->end) {
