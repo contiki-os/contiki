@@ -50,7 +50,7 @@
  *
  * \sa cfs_coffee_set_io_semantics()
  */
-#define CFS_COFFEE_IO_TOGGLE_ONLY 0x1
+#define CFS_COFFEE_IO_FLASH_AWARE	0x1
 
 /**
  * Instruct Coffee not to attempt to extend the file when there is
@@ -61,7 +61,7 @@
  *
  * \sa cfs_coffee_set_io_semantics()
  */
-#define CFS_COFFEE_IO_FIRM_SIZE   0x2
+#define CFS_COFFEE_IO_FIRM_SIZE		0x2
 
 /**
  * \file
