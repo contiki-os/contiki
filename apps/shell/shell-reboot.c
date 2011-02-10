@@ -56,6 +56,9 @@ SHELL_COMMAND(reboot_command,
 PROCESS_THREAD(shell_reboot_process, ev, data)
 {
   static struct etimer etimer;
+
+  PROCESS_EXITHANDLER(leds_off(LEDS_ALL);)
+  
   PROCESS_BEGIN();
 
   shell_output_str(&reboot_command,
