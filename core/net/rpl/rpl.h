@@ -129,7 +129,11 @@
 #define DEFAULT_RPL_LIFETIME_UNIT       0xffff
 #define DEFAULT_RPL_DEF_LIFETIME        0xff
 
+#ifndef RPL_CONF_MIN_HOPRANKINC
 #define DEFAULT_MIN_HOPRANKINC          256
+#else
+#define DEFAULT_MIN_HOPRANKINC RPL_CONF_MIN_HOPRANKINC
+#endif
 #define DEFAULT_MAX_RANKINC             (3 * DEFAULT_MIN_HOPRANKINC)
 
 #define DAG_RANK(fixpt_rank, dag)	((fixpt_rank) / (dag)->min_hoprankinc)
