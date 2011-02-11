@@ -32,7 +32,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-of-etx.c,v 1.8 2010/11/03 15:41:23 adamdunkels Exp $
  */
 /**
  * \file
@@ -44,13 +43,13 @@
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include "net/rpl/rpl.h"
+#include "net/rpl/rpl-private.h"
 #include "net/neighbor-info.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
-static void reset(void *);
+static void reset(rpl_dag_t *);
 static void parent_state_callback(rpl_parent_t *, int, int);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
@@ -84,7 +83,7 @@ rpl_of_t rpl_of_etx = {
 static rpl_rank_t min_path_cost = INFINITE_RANK;
 
 static void
-reset(void *dag)
+reset(rpl_dag_t *dag)
 {
   min_path_cost = INFINITE_RANK;
 }
@@ -92,12 +91,8 @@ reset(void *dag)
 static void
 parent_state_callback(rpl_parent_t *parent, int known, int etx)
 {
-  rpl_dag_t *dag;
-
-  dag = (rpl_dag_t *)parent->dag;
-
   if(!known) {
-    if(RPL_PARENT_COUNT(dag) == 1) {
+    if(RPL_PARENT_COUNT(parent->dag) == 1) {
       /* Our last parent has disappeared, set the path ETX to INFINITE_RANK. */
       min_path_cost = INFINITE_RANK;
     }
@@ -107,7 +102,6 @@ parent_state_callback(rpl_parent_t *parent, int known, int etx)
 static rpl_rank_t
 calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
 {
-  rpl_dag_t *dag;
   rpl_rank_t new_rank;
   rpl_rank_t rank_increase;
 
@@ -117,11 +111,10 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     }
     rank_increase = INITIAL_LINK_METRIC * DEFAULT_MIN_HOPRANKINC;
   } else {
-    dag = (rpl_dag_t *)p->dag;
     if(p->etx == 0) {
       p->etx = INITIAL_LINK_METRIC * ETX_DIVISOR;
     }
-    rank_increase = (p->etx * dag->min_hoprankinc) / ETX_DIVISOR;
+    rank_increase = (p->etx * p->dag->min_hoprankinc) / ETX_DIVISOR;
     if(base_rank == 0) {
       base_rank = p->rank;
     }

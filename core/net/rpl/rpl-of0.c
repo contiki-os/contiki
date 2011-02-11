@@ -31,8 +31,6 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * $Id: rpl-of0.c,v 1.6 2011/01/04 20:43:28 nvt-se Exp $
  */
 /**
  * \file
@@ -41,14 +39,14 @@
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include "net/rpl/rpl.h"
+#include "net/rpl/rpl-private.h"
 
 #define DEBUG DEBUG_ANNOTATE
 #include "net/uip-debug.h"
 
 #include "net/neighbor-info.h"
 
-static void reset(void *);
+static void reset(rpl_dag_t *);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
 
@@ -63,7 +61,7 @@ rpl_of_t rpl_of0 = {
 #define DEFAULT_RANK_INCREMENT  DEFAULT_MIN_HOPRANKINC
 
 static void
-reset(void *dag)
+reset(rpl_dag_t *dag)
 {
   PRINTF("RPL: Resetting OF0\n");
 }
@@ -104,26 +102,6 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
      favourable combination. */
   if(DAG_RANK(p1->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p1->etx <
      DAG_RANK(p2->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p2->etx) {
-    return p1;
-  } else {
-    return p2;
-  }
-
-  /* This is the old code, which isn't used now, but left here in case
-     we would like to use it later (if the above code turns out to not
-     work as well as we expect it to. The old code first favoured the
-     parent with a lower rank, then used the ETX to compare two
-     parents with the same rank. This is not ideal since you may have
-     a parent with a low rank on the edge of your range that will have
-     a very bad ETX. But the code below would nevertheless pick that
-     one. */
-  if(p1->rank < p2->rank) {
-    return p1;
-  } else if(p2->rank < p1->rank) {
-    return p2;
-  }
-
-  if(p1->etx < p2->etx) {
     return p1;
   } else {
     return p2;

@@ -31,8 +31,6 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * $Id: rpl.c,v 1.15 2011/01/25 22:41:30 joxe Exp $
  */
 /**
  * \file
@@ -44,7 +42,7 @@
 #include "net/uip.h"
 #include "net/tcpip.h"
 #include "net/uip-ds6.h"
-#include "net/rpl/rpl.h"
+#include "net/rpl/rpl-private.h"
 #include "net/neighbor-info.h"
 
 #define DEBUG DEBUG_NONE

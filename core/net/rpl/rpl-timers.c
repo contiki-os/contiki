@@ -31,8 +31,6 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * $Id: rpl-timers.c,v 1.16 2010/12/17 15:24:25 nvt-se Exp $
  */
 /**
  * \file
@@ -42,7 +40,7 @@
  */
 
 #include "contiki-conf.h"
-#include "net/rpl/rpl.h"
+#include "net/rpl/rpl-private.h"
 #include "lib/random.h"
 #include "sys/ctimer.h"
 
