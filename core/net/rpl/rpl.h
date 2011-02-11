@@ -207,7 +207,7 @@ struct rpl_parent {
   void *dag;
   uip_ipaddr_t addr;
   rpl_rank_t rank;
-  uint8_t local_confidence;
+  uint8_t etx;
   uint8_t dtsn;
   uint8_t updated;
 };
