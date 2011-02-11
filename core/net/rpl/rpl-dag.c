@@ -56,6 +56,8 @@
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
+#include "net/neighbor-info.h"
+
 /************************************************************************/
 extern rpl_of_t RPL_OF;
 static rpl_of_t * const objective_functions[] = {&RPL_OF};
@@ -92,6 +94,9 @@ static rpl_of_t * const objective_functions[] = {&RPL_OF};
 #else
 #define RPL_DIO_INTERVAL_DOUBLINGS      RPL_CONF_DIO_INTERVAL_DOUBLINGS
 #endif /* !RPL_CONF_DIO_INTERVAL_DOUBLINGS */
+
+#define INITIAL_ETX  ETX_DIVISOR * 5
+
 /************************************************************************/
 /* Allocate parents from the same static MEMB chunk to reduce memory waste. */
 MEMB(parent_memb, struct rpl_parent, RPL_MAX_PARENTS);
@@ -277,7 +282,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   memcpy(&p->addr, addr, sizeof(p->addr));
   p->dag = dag;
   p->rank = dio->rank;
-  p->local_confidence = 0;
+  p->etx = INITIAL_ETX;
   p->dtsn = 0;
 
   list_add(dag->parents, p);
@@ -423,7 +428,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
   PRINTF("succeeded\n");
 
-  p->local_confidence = 0;	/* The lowest confidence for new parents. */
+  p->etx = INITIAL_ETX; /* The lowest confidence for new parents. */
 
   /* Determine the objective function by using the
      objective code point of the DIO. */

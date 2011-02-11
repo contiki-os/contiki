@@ -118,10 +118,10 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     rank_increase = INITIAL_LINK_METRIC * DEFAULT_MIN_HOPRANKINC;
   } else {
     dag = (rpl_dag_t *)p->dag;
-    if(p->local_confidence == 0) {
-      p->local_confidence = INITIAL_LINK_METRIC * ETX_DIVISOR;
+    if(p->etx == 0) {
+      p->etx = INITIAL_LINK_METRIC * ETX_DIVISOR;
     }
-    rank_increase = (p->local_confidence * dag->min_hoprankinc) / ETX_DIVISOR;
+    rank_increase = (p->etx * dag->min_hoprankinc) / ETX_DIVISOR;
     if(base_rank == 0) {
       base_rank = p->rank;
     }

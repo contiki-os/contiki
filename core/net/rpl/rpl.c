@@ -150,11 +150,11 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
     return;
   }
 
-  if(etx != parent->local_confidence) {
+  if(etx != parent->etx) {
     /* Trigger DAG rank recalculation. */
     parent->updated = 1;
   }
-  parent->local_confidence = etx;
+  parent->etx = etx;
 
   if(dag->of->parent_state_callback != NULL) {
     dag->of->parent_state_callback(parent, known, etx);
