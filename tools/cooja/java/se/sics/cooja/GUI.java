@@ -420,8 +420,8 @@ public class GUI extends Observable {
       			"To manage COOJA projects:\n" +
       			"Menu->Settings->COOJA projects",
       			"Reconfigure COOJA projects", JOptionPane.INFORMATION_MESSAGE);
+      	showErrorDialog(getTopParentContainer(), "COOJA projects load error", e, false);
       }
-      showErrorDialog(getTopParentContainer(), "COOJA projects load error", e, false);
     }
 
     // Start all standard GUI plugins
