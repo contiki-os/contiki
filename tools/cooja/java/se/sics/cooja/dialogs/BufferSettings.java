@@ -134,7 +134,6 @@ public class BufferSettings extends JDialog {
 
   private Action setDefaultAction = new AbstractAction("Set default") {
     public void actionPerformed(ActionEvent e) {
-      logger.debug("DEFAULT");
       Object[] options = { "Ok", "Cancel" };
 
       String question = "Use current settings as default for future simulations?";
