@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+
+
+$csc = $ARGV[0];
+$range = $ARGV[1];
+$success = $ARGV[2];
+
+if(!$success) {
+    print "takes a .csc file as input, creates a .csc file with a given tx range and reliability\n";
+    exit 0;
+}
+
+open(F, $csc);
+
+$csc =~ s/\.csc/-$range-$success.csc/g;
+
+open(O, "> $csc");
+
+while(<F>) {
+    if(m-\<transmitting_range\>[\d.]+\</transmitting_range\>-) {
+        print O "<transmitting_range>$range</transmitting_range>\n";
+    } elsif(m-\<interference_range\>[\d.]+\</interference_range\>-) {
+        print O "<interference_range>" . ($range * 2) . "</transmitting_range>\n";
+    } elsif(m-\<success_ratio_rx\>[\d.]+\</success_ratio_rx\>-) {
+        print O "<success_ratio_rx>$success</success_ratio_rx>\n";
+    } else {
+        print O;
+    }
+}
