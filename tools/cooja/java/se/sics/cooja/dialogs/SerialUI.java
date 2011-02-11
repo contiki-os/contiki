@@ -322,10 +322,12 @@ public abstract class SerialUI extends Log implements SerialPort {
     } else {
       if (data == 0x7e) {
         tosChars++;
+        totalTOSChars = 0; /* XXX Disabled TOS mode due to error */
         totalTOSChars++;
         if (tosChars == 2) {
           if (totalTOSChars > slipCounter) {
               tosMode = true;
+              tosMode = false; /* XXX Disabled TOS mode due to error */
               /* already read one char here */
               tosPos = 1;
           } else {
@@ -337,6 +339,7 @@ public abstract class SerialUI extends Log implements SerialPort {
       }
       if (data == '\n') {
         lastLogMessage = newMessage.toString();
+        lastLogMessage = lastLogMessage.replaceAll("[^\\p{Print}]", ""); 
         newMessage.setLength(0);
         this.setChanged();
         this.notifyObservers(getMote());
