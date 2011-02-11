@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+
+$num = 0;
+$override_range = $ARGV[0];
+
+# Go through the .csc file; find the transmission range and all the
+# nodes' x and y coordinates.
+while(<STDIN>) {
+    if(/\<transmitting_range\>([\d.]+)\<\//) {
+        $range = $1;
+    }
+
+    if(/\<x\>([\d.]+)\</) {
+        $x[$num] = $1;
+    }
+    if(/\<y\>([\d.]+)\</) {
+        $y[$num] = $1;
+        $num++;
+    }
+}
+print "Range $range num $num override range $override_range\n";
+
+if($override_range) {
+    $range = $override_range;
+}
+
+$no_neighbors = 0;
+$all_neighbors = 0;
+$total_neighbors = 0;
+# Go through all nodes, find how many are in their range.
+for($i = 0; $i < $num; $i++) {
+    $neighbors = 0;
+    for($j = 0; $j < $num; $j++) {
+        if($i != $j) {
+            if(($x[$i] - $x[$j]) * ($x[$i] - $x[$j]) +
+               ($y[$i] - $y[$j]) * ($y[$i] - $y[$j]) <=
+               $range * $range) {
+                $neighbors++;
+            }
+        }
+    }
+    if($neighbors == 0) {
+        $no_neighbors++;
+    }
+    if($neighbors == $num - 1) {
+        $all_neighbors++;
+    }
+    $total_neighbors += $neighbors;
+}
+print "Num nodes $num, average neighbors " . ($total_neighbors / $num) .
+    ", $no_neighbors nodes (" . (100 * $no_neighbors / $num) .
+    "%) have no neighbors, $all_neighbors (" . (100 * $all_neighbors / $num) .
+    "%) have all nodes as neighbors\n";
+

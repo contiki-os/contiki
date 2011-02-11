@@ -104,7 +104,7 @@ void uip_log(char *msg);
 #ifdef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
 #define SICSLOWPAN_MAX_MAC_TRANSMISSIONS SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
 #else
-#define SICSLOWPAN_MAX_MAC_TRANSMISSIONS 3
+#define SICSLOWPAN_MAX_MAC_TRANSMISSIONS 4
 #endif
 
 #ifndef SICSLOWPAN_COMPRESSION
@@ -1297,13 +1297,20 @@ output(uip_lladdr_t *localdest)
                      SICSLOWPAN_MAX_MAC_TRANSMISSIONS);
 
 #define TCP_FIN 0x01
+#define TCP_ACK 0x10
+#define TCP_CTL 0x3f
   /* Set stream mode for all TCP packets, except FIN packets. */
   if(UIP_IP_BUF->proto == UIP_PROTO_TCP &&
-     (UIP_TCP_BUF->flags & TCP_FIN) == 0) {
+     (UIP_TCP_BUF->flags & TCP_FIN) == 0 &&
+     (UIP_TCP_BUF->flags & TCP_CTL) != TCP_ACK) {
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
                        PACKETBUF_ATTR_PACKET_TYPE_STREAM);
+  } else if(UIP_IP_BUF->proto == UIP_PROTO_TCP &&
+            (UIP_TCP_BUF->flags & TCP_FIN) == TCP_FIN) {
+    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
+                       PACKETBUF_ATTR_PACKET_TYPE_STREAM_END);
   }
-    
+
   /*
    * The destination address will be tagged to each outbound
    * packet. If the argument localdest is NULL, we are sending a
