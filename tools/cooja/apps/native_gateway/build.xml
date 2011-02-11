@@ -6,6 +6,17 @@
   <property name="lib" location="lib"/>
   <property name="cooja_jar" value="../../dist/cooja.jar"/>
 
+  <target name="help">
+    <echo>
+The Native IP Gateway COOJA project provides access from natively running
+applications like ping and telnet, to simulated nodes.
+
+Requires pre-installation of Jpcap and (Windows-only) WinPcap.
+ http://netresearch.ics.uci.edu/kfujii/Jpcap/doc/download.html
+ http://www.winpcap.org/install/default.htm
+    </echo>
+  </target>
+
   <target name="init">
     <tstamp/>
   </target>
