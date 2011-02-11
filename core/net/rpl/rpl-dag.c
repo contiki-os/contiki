@@ -32,7 +32,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rpl-dag.c,v 1.43 2011/01/04 20:43:28 nvt-se Exp $
  */
 /**
  * \file
@@ -41,9 +40,9 @@
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include "net/rpl/rpl.h"
 
 #include "contiki.h"
+#include "net/rpl/rpl-private.h"
 #include "net/uip.h"
 #include "net/uip-nd6.h"
 #include "lib/list.h"
