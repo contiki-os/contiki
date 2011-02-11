@@ -190,6 +190,10 @@ set_gateway(void)
 }
 #endif /* WITH_UIP */
 /*---------------------------------------------------------------------------*/
+#if WITH_TINYOS_AUTO_IDS
+uint16_t TOS_NODE_ID = 0x1234; /* non-zero */
+uint16_t TOS_LOCAL_ADDRESS = 0x1234; /* non-zero */
+#endif /* WITH_TINYOS_AUTO_IDS */
 int
 main(int argc, char **argv)
 {
@@ -225,8 +229,12 @@ main(int argc, char **argv)
    */
 
   
+#if WITH_TINYOS_AUTO_IDS
+  node_id = TOS_NODE_ID;
+#else /* WITH_TINYOS_AUTO_IDS */
   /* Restore node id if such has been stored in external mem */
   node_id_restore();
+#endif /* WITH_TINYOS_AUTO_IDS */
 
   /* for setting "hardcoded" IEEE 802.15.4 MAC addresses */
 #ifdef IEEE_802154_MAC_ADDRESS
