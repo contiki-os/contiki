@@ -46,6 +46,8 @@
 #define DEBUG DEBUG_ANNOTATE
 #include "net/uip-debug.h"
 
+#include "net/neighbor-info.h"
+
 static void reset(void *);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
@@ -82,6 +84,7 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     return INFINITE_RANK;
   }
   return base_rank + DEFAULT_RANK_INCREMENT;
+
 }
 
 static rpl_parent_t *
@@ -90,22 +93,39 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   PRINTF("RPL: Comparing parent ");
   PRINT6ADDR(&p1->addr);
   PRINTF(" (confidence %d, rank %d) with parent ",
-        p1->local_confidence, p1->rank);
+        p1->etx, p1->rank);
   PRINT6ADDR(&p2->addr);
   PRINTF(" (confidence %d, rank %d)\n",
-        p2->local_confidence, p2->rank);
+        p2->etx, p2->rank);
 
+
+  /* Compare two parents by looking both and their rank and at the ETX
+     for that parent. We choose the parent that has the most
+     favourable combination. */
+  if(DAG_RANK(p1->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p1->etx <
+     DAG_RANK(p2->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p2->etx) {
+    return p1;
+  } else {
+    return p2;
+  }
+
+  /* This is the old code, which isn't used now, but left here in case
+     we would like to use it later (if the above code turns out to not
+     work as well as we expect it to. The old code first favoured the
+     parent with a lower rank, then used the ETX to compare two
+     parents with the same rank. This is not ideal since you may have
+     a parent with a low rank on the edge of your range that will have
+     a very bad ETX. But the code below would nevertheless pick that
+     one. */
   if(p1->rank < p2->rank) {
     return p1;
   } else if(p2->rank < p1->rank) {
     return p2;
   }
 
-  if(p1->local_confidence > p2->local_confidence) {
+  if(p1->etx < p2->etx) {
     return p1;
-  } else if(p2->local_confidence > p1->local_confidence) {
+  } else {
     return p2;
   }
-
-  return p2;
 }
