@@ -542,21 +542,21 @@ void decode_status(void) {
 	{
 	case ABORTED:
 	{
-//		PRINTF("maca: aborted\n\r");
+		PRINTF("maca: aborted\n\r");
 		ResumeMACASync();
 		break;
 		
 	}
 	case NOT_COMPLETED:
 	{
-//		PRINTF("maca: not completed\n\r");
+		PRINTF("maca: not completed\n\r");
 		ResumeMACASync();
 		break;
 		
 	}
 	case CODE_TIMEOUT:
 	{
-//		PRINTF("maca: timeout\n\r");
+		PRINTF("maca: timeout\n\r");
 		ResumeMACASync();
 		break;
 		
@@ -570,7 +570,7 @@ void decode_status(void) {
 	}
 	case EXT_TIMEOUT:
 	{
-//		PRINTF("maca: ext timeout\n\r");
+		PRINTF("maca: ext timeout\n\r");
 		ResumeMACASync();
 		break;
 		
