@@ -589,7 +589,7 @@ void decode_status(void) {
 	}
 	default:
 	{
-		PRINTF("status: %x", *MACA_STATUS);
+		PRINTF("status: %x", (unsigned int)*MACA_STATUS);
 		ResumeMACASync();
 		
 	}
@@ -661,7 +661,7 @@ void maca_isr(void) {
 	decode_status();
 
 	if (*MACA_IRQ != 0)
-	{ PRINTF("*MACA_IRQ %x\n\r", *MACA_IRQ); }
+	{ PRINTF("*MACA_IRQ %x\n\r", (unsigned int)*MACA_IRQ); }
 
 	if(tx_head != 0) {
 		post_tx();
@@ -920,7 +920,7 @@ void radio_init(void) {
         PRINTF("radio_init: ctov parameter 0x%02x\n\r",ram_values[3]);
         for(i=0; i<16; i++) {
                 ctov[i] = get_ctov(i,ram_values[3]);
-                PRINTF("radio_init: ctov[%d] = 0x%02x\n\r",i,ctov[i]);
+                PRINTF("radio_init: ctov[%d] = 0x%02x\n\r",(int)i,ctov[i]);
         }
 
 
@@ -1109,18 +1109,20 @@ uint32_t exec_init_entry(volatile uint32_t *entries, uint8_t *valbuf)
 	if(entries[0] <= ROM_END) {
 		if (entries[0] == 0) {
 			/* do delay command*/
-			PRINTF("init_entry: delay 0x%08x\n\r", entries[1]);
+			PRINTF("init_entry: delay 0x%08x\n\r", (unsigned int)entries[1]);
 			for(i=0; i<entries[1]; i++) { continue; }
 			return 2;
 		} else if (entries[0] == 1) {
 			/* do bit set/clear command*/
-			PRINTF("init_entry: bit set clear 0x%08x 0x%08x 0x%08x\n\r", entries[1], entries[2], entries[3]);
+			PRINTF("init_entry: bit set clear 0x%08x 0x%08x 0x%08x\n\r", (unsigned int)entries[1], (unsigned int)entries[2], (unsigned int)entries[3]);
 			reg(entries[2]) = (reg(entries[2]) & ~entries[1]) | (entries[3] & entries[1]);
 			return 4;
 		} else if ((entries[0] >= 16) &&
 			   (entries[0] < 0xfff1)) {
 			/* store bytes in valbuf */
-			PRINTF("init_entry: store in valbuf 0x%02x position %d\n\r", entries[1],(entries[0]>>4)-1);
+			PRINTF("init_entry: store in valbuf 0x%02x position %d\n\r", 
+			       (unsigned int)entries[1],
+			       (unsigned int)(entries[0]>>4)-1);
 			valbuf[(entries[0]>>4)-1] = entries[1];
 			return 2;
 		} else if (entries[0] == ENTRY_EOF) {
@@ -1128,12 +1130,14 @@ uint32_t exec_init_entry(volatile uint32_t *entries, uint8_t *valbuf)
 			return 0;
 		} else {
 			/* invalid command code */
-			PRINTF("init_entry: invaild code 0x%08x\n\r",entries[0]);
+			PRINTF("init_entry: invaild code 0x%08x\n\r",(unsigned int)entries[0]);
 			return 0;
 		}
 	} else { /* address isn't in ROM space */   
 		 /* do store value in address command  */
-		PRINTF("init_entry: address value pair - *0x%08x = 0x%08x\n\r",entries[0],entries[1]);
+		PRINTF("init_entry: address value pair - *0x%08x = 0x%08x\n\r",
+		       (unsigned int)entries[0],
+		       (unsigned int)entries[1]);
 		reg(entries[0]) = entries[1];
 		return 2;
 	}
@@ -1157,7 +1161,7 @@ uint32_t init_from_flash(uint32_t addr) {
 	PRINTF("nvm_read returned: 0x%02x\n\r",err);
 	
 	for(j=0; j<4; j++) {
-		PRINTF("0x%08x\n\r",buf[j]);
+		PRINTF("0x%08x\n\r",(unsigned int)buf[j]);
 	}
 
 	if(buf[0] == FLASH_INIT_MAGIC) {
