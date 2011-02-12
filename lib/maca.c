@@ -102,6 +102,7 @@ enum posts {
 static volatile uint8_t last_post = NO_POST;
 
 volatile uint8_t fcs_mode = USE_FCS; 
+volatile uint8_t prm_mode = PROMISC;
 
 /* call periodically to */
 /* check that maca_entry is changing */
@@ -181,7 +182,9 @@ void maca_init(void) {
 	
 	/* initial radio command */
         /* nop, promiscuous, no cca */
-	*MACA_CONTROL = (1 << PRM) | (NO_CCA << MODE); 
+	*MACA_CONTROL =
+		(prm_mode << PRM) |
+		(NO_CCA << MODE); 
 	
 	enable_irq(MACA);
 	*INTFRC = (1 << INT_NUM_MACA);
@@ -364,8 +367,8 @@ void post_receive(void) {
 	*MACA_CONTROL = ( (1 << maca_ctrl_asap) | 
 			  ( 4 << PRECOUNT) |
 			  ( fcs_mode << NOFC ) |
+			  ( prm_mode << PRM) |
 			  (1 << maca_ctrl_auto) |
-			  (1 << maca_ctrl_prm) |
 			  (maca_ctrl_seq_rx));
 	/* status bit 10 is set immediately */
         /* then 11, 10, and 9 get set */ 
@@ -405,7 +408,8 @@ void post_tx(void) {
 #if PACKET_STATS
 	dma_tx->post_tx++;
 #endif
-	*MACA_TXLEN = (uint32_t)((dma_tx->length) + 2);
+	*MACA_TXSEQNR = dma_tx->data[2];
+	*MACA_TXLEN = (uint32_t)((dma_tx->length) + 2) | (3 << 16); /* set rx len to ACK length */
 	*MACA_DMATX = (uint32_t)&(dma_tx->data[ 0 + dma_tx->offset]);
 	if(dma_rx == 0) {
 		dma_rx = get_free_packet();
@@ -429,7 +433,8 @@ void post_tx(void) {
 	*MACA_TMREN = (1 << maca_tmren_cpl);
 	
 	enable_irq(MACA);
-	*MACA_CONTROL = ( (1 << maca_ctrl_prm) | ( 4 << PRECOUNT) |
+	*MACA_CONTROL = ( ( 4 << PRECOUNT) |
+			  ( prm_mode << PRM) |
 			  (maca_ctrl_mode_no_cca << maca_ctrl_mode) |
 			  (1 << maca_ctrl_asap) |
 			  (maca_ctrl_seq_tx));	
@@ -610,8 +615,17 @@ void maca_isr(void) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
 		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
 		dma_rx->lqi = get_lqi();
-//		PRINTF("maca data ind %x %d\n\r", dma_rx, dma_rx->length);
+
+		/* check if received packet needs an ack */
+		if(dma_rx->data[1] & 0x20) {
+			/* this wait is necessary to auto-ack */
+			volatile uint32_t wait_clk;
+			wait_clk = *MACA_CLK + 200;
+			while(*MACA_CLK < wait_clk) { continue; }
+		}
+
 		if(maca_rx_callback != 0) { maca_rx_callback(dma_rx); }
+
 		add_to_rx(dma_rx);
 		dma_rx = 0;
 	}
@@ -634,6 +648,7 @@ void maca_isr(void) {
 	if(action_complete_irq()) {
 		/* PRINTF("maca action complete %d\n\r", get_field(*MACA_CONTROL,SEQUENCE)); */
 		if(last_post == TX_POST) {
+			tx_head->status = get_field(*MACA_STATUS,CODE);
 			if(maca_tx_callback != 0) { maca_tx_callback(tx_head); }
 			dma_tx = 0;
 			free_tx_head();
@@ -669,6 +684,9 @@ void init_phy(void)
 	*MACA_TXCCADELAY = 0x00000025;
 	*MACA_FRAMESYNC0 = 0x000000A7;
 	*MACA_CLK = 0x00000008;
+	*MACA_RXACKDELAY = 30;
+	*MACA_RXEND = 180;
+	*MACA_TXACKDELAY = 68; 
 	*MACA_MASKIRQ = ((1 << maca_irq_rst)    | 
 			 (1 << maca_irq_acpl)   | 
 			 (1 << maca_irq_cm)     |
