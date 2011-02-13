@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: start.S,v 1.4 2010/11/07 15:19:45 maralvira Exp $
+ *
  */
 
 	

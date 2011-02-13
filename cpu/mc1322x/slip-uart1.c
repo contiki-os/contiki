@@ -31,7 +31,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: slip-uart1.c,v 1.1 2010/06/09 14:43:22 maralvira Exp $
+ *
  */
 
 /*

@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: nvm-write.c,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ *
  */
 
 #include <mc1322x.h>

@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: tmr.c,v 1.1 2011/01/17 15:51:19 maralvira Exp $
+ *
  */
 
 #include <mc1322x.h>

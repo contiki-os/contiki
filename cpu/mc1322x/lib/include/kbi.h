@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: kbi.h,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ *
  */
 
 #ifndef KBI_H

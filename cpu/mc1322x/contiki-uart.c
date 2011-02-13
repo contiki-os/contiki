@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-uart.c,v 1.1 2010/06/09 14:43:22 maralvira Exp $
+ *
  */
 
 int (*uart1_input_handler)(unsigned char c) = 0;

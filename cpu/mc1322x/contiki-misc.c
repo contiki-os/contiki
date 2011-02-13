@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-misc.c,v 1.2 2010/11/07 13:52:12 maralvira Exp $
+ *
  */
 
 #include <stdio.h>

@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: default_lowlevel.h,v 1.4 2011/01/17 15:48:39 maralvira Exp $
+ *
  */
 
 #ifndef LOWLEVEL_H

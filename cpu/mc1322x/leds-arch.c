@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: leds-arch.c,v 1.1 2010/06/09 14:43:22 maralvira Exp $
+ *
  */
 
 #include "contiki-conf.h"

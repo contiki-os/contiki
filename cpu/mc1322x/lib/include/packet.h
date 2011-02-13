@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: packet.h,v 1.2 2010/11/07 14:06:57 maralvira Exp $
+ *
  */
 
 #ifndef PACKET_H
