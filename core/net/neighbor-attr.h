@@ -39,9 +39,9 @@
  * define how many neighbors you can store
  */
 #ifdef NEIGHBOR_CONF_MAX_NEIGHBORS
-#define MAX_NEIGHBORS NEIGHBOR_CONF_MAX_NEIGHBORS
+#define NEIGHBOR_ATTR_MAX_NEIGHBORS NEIGHBOR_CONF_MAX_NEIGHBORS
 #else                           /* NEIGHBOR_CONF_MAX_NEIGHBORS */
-#define MAX_NEIGHBORS 12
+#define NEIGHBOR_ATTR_MAX_NEIGHBORS 12
 #endif                          /* NEIGHBOR_CONF_MAX_NEIGHBORS */
 
 /**
@@ -75,7 +75,7 @@ struct neighbor_attr {
  *             during initialization.
  */
 #define NEIGHBOR_ATTRIBUTE(type, name, default_value_ptr) \
-  static type _##name##_mem[MAX_NEIGHBORS]; \
+  static type _##name##_mem[NEIGHBOR_ATTR_MAX_NEIGHBORS]; \
   static struct neighbor_attr name = \
     {NULL, sizeof(type), default_value_ptr, (void*)_##name##_mem} ; \
 

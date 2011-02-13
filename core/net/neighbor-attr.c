@@ -50,7 +50,7 @@
 
 static uint16_t timeout = 0;
 
-MEMB(neighbor_addr_mem, struct neighbor_addr, MAX_NEIGHBORS);
+MEMB(neighbor_addr_mem, struct neighbor_addr, NEIGHBOR_ATTR_MAX_NEIGHBORS);
 
 LIST(neighbor_addrs);
 LIST(neighbor_attrs);
