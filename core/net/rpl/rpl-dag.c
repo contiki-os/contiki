@@ -679,12 +679,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
    */
 
   p = rpl_find_parent(dag, from);
-  if(p == NULL) {
+  if(p == NULL && (dio->rank <= dag->preferred_parent->rank)) {
     if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS) {
       /* Try to make room for a new parent. */
       remove_parents(dag, dag->preferred_parent->rank + dag->min_hoprankinc);
     }
-
+    
     /* Add the DIO sender as a candidate parent. */
     p = rpl_add_parent(dag, dio, from);
     if(p == NULL) {
@@ -693,7 +693,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       PRINTF(")\n");
       return;
     }
-
+    
     PRINTF("RPL: New candidate parent with rank %u: ", (unsigned)p->rank);
     PRINT6ADDR(from);
     PRINTF("\n");
@@ -701,19 +701,19 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     PRINTF("RPL: Received consistent DIO\n");
     dag->dio_counter++;
   }
-
+  
   /* We have allocated a candidate parent; process the DIO further. */
-
+  
   p->rank = dio->rank;
   if(rpl_process_parent_event(dag, p) == 0) {
     /* The candidate parent no longer exists. */
     return;
   }
-
+  
   if(should_send_dao(dag, dio, p)) {
     rpl_schedule_dao(dag);
   }
-
+  
   p->dtsn = dio->dtsn;
 }
 /************************************************************************/
