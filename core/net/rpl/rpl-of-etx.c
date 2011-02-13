@@ -161,11 +161,7 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
            p2_rank - MAX_DIFFERENCE(dag),
            p1_rank,
            p2_rank + MAX_DIFFERENCE(dag));
-    if(p1 == dag->preferred_parent) {
-      return p1;
-    } else if(p2 == dag->preferred_parent) {
-      return p2;
-    }
+    return dag->preferred_parent;
   }
 
   if(p1_rank < p2_rank) {
