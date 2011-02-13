@@ -60,6 +60,8 @@ rpl_of_t rpl_of0 = {
 
 #define DEFAULT_RANK_INCREMENT  DEFAULT_MIN_HOPRANKINC
 
+#define MIN_DIFFERENCE (ETX_DIVISOR + ETX_DIVISOR / 2)
+
 static void
 reset(rpl_dag_t *dag)
 {
@@ -91,6 +93,9 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
 static rpl_parent_t *
 best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 {
+  rpl_rank_t r1, r2;
+  rpl_dag_t *dag;
+  
   PRINTF("RPL: Comparing parent ");
   PRINT6ADDR(&p1->addr);
   PRINTF(" (confidence %d, rank %d) with parent ",
@@ -100,11 +105,17 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
         p2->etx, p2->rank);
 
 
+  r1 = DAG_RANK(p1->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p1->etx;
+  r2 = DAG_RANK(p2->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p2->etx;
   /* Compare two parents by looking both and their rank and at the ETX
      for that parent. We choose the parent that has the most
      favourable combination. */
-  if(DAG_RANK(p1->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p1->etx <
-     DAG_RANK(p2->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p2->etx) {
+
+  dag = (rpl_dag_t *)p1->dag; /* Both parents must be in the same DAG. */
+  if(r1 < r2 + MIN_DIFFERENCE &&
+     r1 > r2 - MIN_DIFFERENCE) {
+    return dag->preferred_parent;
+  } else if(r1 < r2) {
     return p1;
   } else {
     return p2;
