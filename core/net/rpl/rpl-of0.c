@@ -69,6 +69,7 @@ reset(rpl_dag_t *dag)
 static rpl_rank_t
 calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
 {
+  rpl_rank_t increment;
   if(base_rank == 0) {
     if(p == NULL) {
       return INFINITE_RANK;
@@ -76,12 +77,14 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     base_rank = p->rank;
   }
 
-  if((rpl_rank_t)(base_rank + DEFAULT_RANK_INCREMENT) < base_rank) {
+  increment = p != NULL ? p->dag->min_hoprankinc : DEFAULT_RANK_INCREMENT;
+
+  if((rpl_rank_t)(base_rank + increment) < base_rank) {
     PRINTF("RPL: OF0 rank %d incremented to infinite rank due to wrapping\n",
         base_rank);
     return INFINITE_RANK;
   }
-  return base_rank + DEFAULT_RANK_INCREMENT;
+  return base_rank + increment;
 
 }
 
