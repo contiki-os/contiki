@@ -60,7 +60,7 @@ rpl_of_t rpl_of0 = {
 
 #define DEFAULT_RANK_INCREMENT  DEFAULT_MIN_HOPRANKINC
 
-#define MIN_DIFFERENCE (ETX_DIVISOR + ETX_DIVISOR / 2)
+#define MIN_DIFFERENCE (NEIGHBOR_INFO_ETX_DIVISOR + NEIGHBOR_INFO_ETX_DIVISOR / 2)
 
 static void
 reset(rpl_dag_t *dag)
@@ -105,8 +105,10 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
         p2->etx, p2->rank);
 
 
-  r1 = DAG_RANK(p1->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p1->etx;
-  r2 = DAG_RANK(p2->rank, (rpl_dag_t *)p1->dag) * ETX_DIVISOR + p2->etx;
+  r1 = DAG_RANK(p1->rank, (rpl_dag_t *)p1->dag) * NEIGHBOR_INFO_ETX_DIVISOR +
+    p1->etx;
+  r2 = DAG_RANK(p2->rank, (rpl_dag_t *)p1->dag) * NEIGHBOR_INFO_ETX_DIVISOR +
+    p2->etx;
   /* Compare two parents by looking both and their rank and at the ETX
      for that parent. We choose the parent that has the most
      favourable combination. */
