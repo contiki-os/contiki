@@ -52,7 +52,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 #include "net/neighbor-info.h"
