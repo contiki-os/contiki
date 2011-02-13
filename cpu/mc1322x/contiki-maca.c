@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-maca.c,v 1.6 2010/11/07 20:07:42 maralvira Exp $
+ *
  */
 
 #include <stdint.h>

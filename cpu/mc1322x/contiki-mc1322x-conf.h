@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: contiki-mc1322x-conf.h,v 1.1 2010/06/09 14:43:22 maralvira Exp $
+ *
  */
 
 #ifndef __CONTIKI_MC1322X_CONF_H__

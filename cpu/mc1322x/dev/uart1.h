@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: uart1.h,v 1.1 2010/06/10 14:55:39 maralvira Exp $
+ *
  */
 
 /*

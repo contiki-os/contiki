@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: maca.c,v 1.7 2011/01/17 15:49:17 maralvira Exp $
+ *
  */
 
 #include <mc1322x.h>

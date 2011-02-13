@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: rftest-rx.c,v 1.2 2011/01/17 15:46:27 maralvira Exp $
+ *
  */
 
 #include <mc1322x.h>
