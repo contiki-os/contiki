@@ -62,13 +62,13 @@ update_etx(const rimeaddr_t *dest, int packet_etx)
 
   etxp = (uint8_t *)neighbor_attr_get_data(&etx, dest);
   if(etxp == NULL || *etxp == 0) {
-    recorded_etx = ETX2FIX(ETX_FIRST_GUESS);
+    recorded_etx = NEIGHBOR_INFO_ETX2FIX(ETX_FIRST_GUESS);
   } else {
     recorded_etx = *etxp;
   }
 
   /* Update the EWMA of the ETX for the neighbor. */
-  packet_etx = ETX2FIX(packet_etx);
+  packet_etx = NEIGHBOR_INFO_ETX2FIX(packet_etx);
   new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
              (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
   PRINTF("neighbor-info: ETX changed from %d to %d (packet ETX = %d) %d\n",
@@ -95,7 +95,7 @@ add_neighbor(const rimeaddr_t *addr)
     break;
   default:
     if(subscriber_callback != NULL) {
-      subscriber_callback(addr, 1, ETX2FIX(ETX_FIRST_GUESS));
+      subscriber_callback(addr, 1, NEIGHBOR_INFO_ETX2FIX(ETX_FIRST_GUESS));
     }
     break;
   }
