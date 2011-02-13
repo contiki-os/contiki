@@ -52,6 +52,7 @@
 #include "sys/ctimer.h"
 #include "net/uip-ds6.h"
 
+/*---------------------------------------------------------------------------*/
 /** \brief Is IPv6 address a the link local all rpl nodes multicast address */
 #define uip_is_addr_linklocal_rplnodes_mcast(a)     \
   ((((a)->u8[0]) == 0xff) &&                        \
@@ -67,32 +68,30 @@
 
 /** \brief set IP address a to the link local all-rpl nodes multicast address */
 #define uip_create_linklocal_rplnodes_mcast(a) uip_ip6addr(a, 0xff02, 0, 0, 0, 0, 0, 0, 0x001a)
-
-/* The RPL Codes for the message types */
-#define RPL_CODE_DIS                     0   /* DIS message */
-#define RPL_CODE_DIO                     1   /* DIO message */
-#define RPL_CODE_DAO                     2   /* DAO message */
-#define RPL_CODE_DAO_ACK                 3   /* DAO ACK message */
-
-#define RPL_CODE_SEC_DIS               0x80   /* DIS message */
-#define RPL_CODE_SEC_DIO               0x81   /* DIO message */
-#define RPL_CODE_SEC_DAO               0x82   /* DAO message */
-#define RPL_CODE_SEC_DAO_ACK           0x83   /* DAO ACK message */
+/*---------------------------------------------------------------------------*/
+/* RPL message types */
+#define RPL_CODE_DIS                   0x00   /* DAG Information Solicitation */
+#define RPL_CODE_DIO                   0x01   /* DAG Information Option */
+#define RPL_CODE_DAO                   0x02   /* Destination Advertisement Option */
+#define RPL_CODE_DAO_ACK               0x03   /* DAO acknowledgment */
+#define RPL_CODE_SEC_DIS               0x80   /* Secure DIS */
+#define RPL_CODE_SEC_DIO               0x81   /* Secure DIO */
+#define RPL_CODE_SEC_DAO               0x82   /* Secure DAO */
+#define RPL_CODE_SEC_DAO_ACK           0x83   /* Secure DAO ACK */
 
 /* RPL DIO/DAO suboption types */
-#define RPL_DIO_SUBOPT_PAD1              0   /* Pad1 */
-#define RPL_DIO_SUBOPT_PADN              1   /* PadN */
-#define RPL_DIO_SUBOPT_DAG_MC            2   /* DAG metric container */
-#define RPL_DIO_SUBOPT_ROUTE_INFO        3   /* Route information */
-#define RPL_DIO_SUBOPT_DAG_CONF          4   /* DAG configuration */
-#define RPL_DIO_SUBOPT_TARGET            5   /* Target */
-#define RPL_DIO_SUBOPT_TRANSIT           6   /* Transit information */
-#define RPL_DIO_SUBOPT_SOLICITED_INFO    7   /* Solicited information */
-#define RPL_DIO_SUBOPT_PREFIX_INFO       8   /* Prefix information option */
+#define RPL_DIO_SUBOPT_PAD1              	0
+#define RPL_DIO_SUBOPT_PADN              	1
+#define RPL_DIO_SUBOPT_DAG_METRIC_CONTAINER	2
+#define RPL_DIO_SUBOPT_ROUTE_INFO        	3
+#define RPL_DIO_SUBOPT_DAG_CONF          	4
+#define RPL_DIO_SUBOPT_TARGET            	5
+#define RPL_DIO_SUBOPT_TRANSIT           	6
+#define RPL_DIO_SUBOPT_SOLICITED_INFO    	7
+#define RPL_DIO_SUBOPT_PREFIX_INFO       	8
 
 #define RPL_DAO_K_FLAG                   0x80 /* DAO ACK requested */
 #define RPL_DAO_D_FLAG                   0x40 /* DODAG ID Present */
-
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
 
@@ -169,6 +168,25 @@
 #define RPL_DAG_MC_ETX                  7 /* Expected Transmission Count */
 #define RPL_DAG_MC_LC                   8 /* Link Color */
 
+/* DAG Metric Container flags. */
+#define RPL_DAG_MC_FLAG_P		0x8
+#define RPL_DAG_MC_FLAG_C		0x4
+#define RPL_DAG_MC_FLAG_O		0x2
+#define RPL_DAG_MC_FLAG_R		0x1
+
+/* DAG Metric Container aggregation mode. */
+#define RPL_DAG_MC_AGGR_ADDITIVE	0
+#define RPL_DAG_MC_AGGR_MAXIMUM		1
+#define RPL_DAG_MC_AGGR_MINIMUM		2
+#define RPL_DAG_MC_AGGR_MULTIPLICATIVE	3
+
+/*
+ * The ETX in the metric container is expressed as a fixed-point value 
+ * whose integer part can be obtained by dividing the value by 
+ * RPL_DAG_MC_ETX_DIVISOR.
+ */
+#define RPL_DAG_MC_ETX_DIVISOR		128
+
 /* DIS related */
 #define RPL_DIS_SEND                    1
 #ifdef  RPL_DIS_INTERVAL_CONF
@@ -178,6 +196,23 @@
 #endif
 #define RPL_DIS_START_DELAY             5
 /*---------------------------------------------------------------------------*/
+/* Logical representation of an ETX object in a DAG Metric Container. */
+struct rpl_metric_object_etx {
+  uint16_t etx;
+};
+
+/* Logical representation of a DAG Metric Container. */
+struct rpl_metric_container {
+  uint8_t type;
+  uint8_t flags;
+  uint8_t aggr;
+  uint8_t prec;
+  uint8_t length;
+  /* Once we support more objects, the etx field will be replaced by a 
+     union of those. */
+  struct rpl_metric_object_etx etx;
+};
+
 /* Logical representation of a DAG Information Object (DIO.) */
 struct rpl_dio {
   uip_ipaddr_t dag_id;
@@ -198,8 +233,8 @@ struct rpl_dio {
   rpl_rank_t dag_min_hoprankinc;
   rpl_prefix_t destination_prefix;
   rpl_prefix_t prefix_info;
+  struct rpl_metric_container metric_container;
 };
-
 typedef struct rpl_dio rpl_dio_t;
 
 #if RPL_CONF_STATS
