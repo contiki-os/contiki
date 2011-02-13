@@ -237,11 +237,19 @@ dio_input(void)
     }
 
     switch(subopt_type) {
-    case RPL_DIO_SUBOPT_DAG_MC:
-      if(len < 7) {
+    case RPL_DIO_SUBOPT_DAG_METRIC_CONTAINER:
+      if(len < 6) {
         PRINTF("RPL: Invalid DAG MC, len = %d\n", len);
 	RPL_STAT(rpl_stats.malformed_msgs++);
         return;
+      }
+      dio.metric_container.type = buffer[i + 2];
+      dio.metric_container.flags = buffer[i + 3];
+      dio.metric_container.aggr = buffer[i + 4] >> 4;
+      dio.metric_container.prec = buffer[i + 4] & 0xf;
+      dio.metric_container.length = buffer[i + 5];
+      if(dio.metric_container.type == RPL_DAG_MC_ETX) {
+        dio.metric_container.etx.etx = buffer[i + 6];
       }
       break;
     case RPL_DIO_SUBOPT_ROUTE_INFO:
@@ -250,6 +258,7 @@ dio_input(void)
 	RPL_STAT(rpl_stats.malformed_msgs++);
         return;
       }
+
       /* flags is both preference and flags for now */
       dio.destination_prefix.length = buffer[i + 2];
       dio.destination_prefix.flags = buffer[i + 3];
@@ -268,6 +277,12 @@ dio_input(void)
 
       break;
     case RPL_DIO_SUBOPT_DAG_CONF:
+      if(len != 16) {
+        PRINTF("RPL: Invalid DAG configuration option, len = %d\n", len);
+	RPL_STAT(rpl_stats.malformed_msgs++);
+        return;
+      }
+
       /* Path control field not yet implemented - at i + 2 */
       dio.dag_intdoubl = buffer[i + 3];
       dio.dag_intmin = buffer[i + 4];
