@@ -52,7 +52,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/uip-debug.h"
 
 #include "net/neighbor-info.h"
@@ -117,6 +117,22 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
       rpl_remove_parent(dag, p);
     }
   }
+}
+/************************************************************************/
+static void
+remove_worst_parent(rpl_dag_t *dag)
+{
+  rpl_parent_t *p, *worst;
+
+  PRINTF("RPL: Removing the worst parent\n");
+
+  worst = NULL;
+  for(p = list_head(dag->parents); p != NULL; p = p->next) {
+    if(worst == NULL || p->rank > worst->rank) {
+      worst = p;
+    }
+  }
+  rpl_remove_parent(dag, worst);
 }
 /************************************************************************/
 static int
@@ -679,11 +695,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
    */
 
   p = rpl_find_parent(dag, from);
-  if(p == NULL &&
-     DAG_RANK(dio->rank, dag) <= DAG_RANK(dag->preferred_parent->rank, dag)) {
+  if(p == NULL) {
     if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS) {
-      /* Try to make room for a new parent. */
-      remove_parents(dag, dag->preferred_parent->rank + dag->min_hoprankinc);
+      /* Make room for a new parent. */
+      remove_worst_parent(dag);
     }
     
     /* Add the DIO sender as a candidate parent. */
