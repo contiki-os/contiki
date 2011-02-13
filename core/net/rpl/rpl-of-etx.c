@@ -112,9 +112,9 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     rank_increase = INITIAL_LINK_METRIC * DEFAULT_MIN_HOPRANKINC;
   } else {
     if(p->etx == 0) {
-      p->etx = INITIAL_LINK_METRIC * ETX_DIVISOR;
+      p->etx = INITIAL_LINK_METRIC * NEIGHBOR_INFO_ETX_DIVISOR;
     }
-    rank_increase = (p->etx * p->dag->min_hoprankinc) / ETX_DIVISOR;
+    rank_increase = (p->etx * p->dag->min_hoprankinc) / NEIGHBOR_INFO_ETX_DIVISOR;
     if(base_rank == 0) {
       base_rank = p->rank;
     }

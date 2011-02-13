@@ -94,7 +94,7 @@ static rpl_of_t * const objective_functions[] = {&RPL_OF};
 #define RPL_DIO_INTERVAL_DOUBLINGS      RPL_CONF_DIO_INTERVAL_DOUBLINGS
 #endif /* !RPL_CONF_DIO_INTERVAL_DOUBLINGS */
 
-#define INITIAL_ETX  ETX_DIVISOR * 5
+#define INITIAL_ETX  NEIGHBOR_INFO_ETX_DIVISOR * 5
 
 /************************************************************************/
 /* Allocate parents from the same static MEMB chunk to reduce memory waste. */
