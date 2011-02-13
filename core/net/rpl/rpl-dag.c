@@ -682,7 +682,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(p == NULL) {
     if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS) {
       /* Try to make room for a new parent. */
-      remove_parents(dag, dio->rank);
+      remove_parents(dag, dag->preferred_parent->rank + dag->min_hoprankinc);
     }
 
     /* Add the DIO sender as a candidate parent. */
