@@ -120,19 +120,25 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 }
 /************************************************************************/
 static void
-remove_worst_parent(rpl_dag_t *dag)
+remove_worst_parent(rpl_dag_t *dag, rpl_rank_t min_worst_rank)
 {
   rpl_parent_t *p, *worst;
 
   PRINTF("RPL: Removing the worst parent\n");
 
+  /* Find the parent with the highest rank. */
   worst = NULL;
-  for(p = list_head(dag->parents); p != NULL; p = p->next) {
-    if(worst == NULL || p->rank > worst->rank) {
+  for(p = list_head(dag->parents); p != NULL; p = list_item_next(p)) {
+    if(p != dag->preferred_parent &&
+       (worst == NULL || p->rank > worst->rank)) {
       worst = p;
     }
   }
-  rpl_remove_parent(dag, worst);
+  /* Remove the neighbor if its rank is worse than the minimum worst
+     rank. */
+  if(worst != NULL && worst->rank > min_worst_rank) {
+    rpl_remove_parent(dag, worst);
+  }
 }
 /************************************************************************/
 static int
@@ -698,7 +704,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(p == NULL) {
     if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS) {
       /* Make room for a new parent. */
-      remove_worst_parent(dag);
+      remove_worst_parent(dag, dio->rank);
     }
     
     /* Add the DIO sender as a candidate parent. */
