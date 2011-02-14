@@ -1168,7 +1168,7 @@ cfs_write(int fd, const void *buf, unsigned size)
   file = fdp->file;
 
   /* Attempt to extend the file if we try to write past the end. */
-#ifdef COFFEE_IO_SEMANTICS
+#if COFFEE_IO_SEMANTICS
   if(!(fdp->io_flags & CFS_COFFEE_IO_FIRM_SIZE)) {
 #endif
   while(size + fdp->offset + sizeof(struct file_header) >
@@ -1179,7 +1179,7 @@ cfs_write(int fd, const void *buf, unsigned size)
     file = fdp->file;
     PRINTF("Extended the file at page %u\n", (unsigned)file->page);
   }
-#ifdef COFFEE_IO_SEMANTICS
+#if COFFEE_IO_SEMANTICS
   }
 #endif
 
