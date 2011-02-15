@@ -236,6 +236,8 @@ dio_input(void)
       return;
     }
 
+    PRINTF("RPL: DIO suboption %u, length: %u\n", subopt_type, len - 2);
+
     switch(subopt_type) {
     case RPL_DIO_SUBOPT_DAG_METRIC_CONTAINER:
       if(len < 6) {
@@ -243,13 +245,25 @@ dio_input(void)
 	RPL_STAT(rpl_stats.malformed_msgs++);
         return;
       }
-      dio.metric_container.type = buffer[i + 2];
-      dio.metric_container.flags = buffer[i + 3];
-      dio.metric_container.aggr = buffer[i + 4] >> 4;
-      dio.metric_container.prec = buffer[i + 4] & 0xf;
-      dio.metric_container.length = buffer[i + 5];
-      if(dio.metric_container.type == RPL_DAG_MC_ETX) {
-        dio.metric_container.etx.etx = buffer[i + 6];
+      dio.mc.type = buffer[i + 2];
+      dio.mc.flags = buffer[i + 3];
+      dio.mc.aggr = buffer[i + 4] >> 4;
+      dio.mc.prec = buffer[i + 4] & 0xf;
+      dio.mc.length = buffer[i + 5];
+      if(dio.mc.type == RPL_DAG_MC_ETX) {
+        dio.mc.etx.etx = buffer[i + 6] << 8;
+        dio.mc.etx.etx |= buffer[i + 7];
+
+        PRINTF("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, ETX %u\n",
+	       (unsigned)dio.mc.type,  
+	       (unsigned)dio.mc.flags, 
+	       (unsigned)dio.mc.aggr, 
+	       (unsigned)dio.mc.prec, 
+	       (unsigned)dio.mc.length, 
+	       (unsigned)dio.mc.etx.etx);
+      } else {
+       PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
+       return;
       }
       break;
     case RPL_DIO_SUBOPT_ROUTE_INFO:
@@ -313,6 +327,9 @@ dio_input(void)
       PRINTF("RPL: Copying prefix information\n");
       memcpy(&dio.prefix_info.prefix, &buffer[i + 16], 16);
       break;
+    default:
+      PRINTF("RPL: Unsupported suboption type in DIO: %u\n",
+	(unsigned)subopt_type);
     }
   }
 
@@ -351,6 +368,26 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
 
   memcpy(buffer + pos, &dag->dag_id, sizeof(dag->dag_id));
   pos += 16;
+
+  if(dag->mc.type != RPL_DAG_MC_NONE) {
+    dag->of->update_metric_container(dag);
+
+    buffer[pos++] = RPL_DIO_SUBOPT_DAG_METRIC_CONTAINER;
+    buffer[pos++] = 6;
+    buffer[pos++] = dag->mc.type;
+    buffer[pos++] = dag->mc.flags;
+    buffer[pos] = dag->mc.aggr << 4;
+    buffer[pos++] |= dag->mc.prec;
+    if(dag->mc.type == RPL_DAG_MC_ETX) {
+      buffer[pos++] = 2;
+      buffer[pos++] = dag->mc.etx.etx >> 8;
+      buffer[pos++] = dag->mc.etx.etx & 0xff;
+    } else {
+      PRINTF("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",
+	(unsigned)dag->mc.type);
+      return;
+    }
+  }
 
   /* always add a sub-option for DAG configuration */
   buffer[pos++] = RPL_DIO_SUBOPT_DAG_CONF;

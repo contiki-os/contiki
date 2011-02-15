@@ -41,7 +41,7 @@
 
 #include "net/rpl/rpl-private.h"
 
-#define DEBUG DEBUG_ANNOTATE
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 #include "net/neighbor-info.h"
@@ -49,12 +49,14 @@
 static void reset(rpl_dag_t *);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
+static void update_metric_container(rpl_dag_t *);
 
 rpl_of_t rpl_of0 = {
   reset,
   NULL,
   best_parent,
   calculate_rank,
+  update_metric_container,
   0
 };
 
@@ -122,4 +124,10 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   } else {
     return p2;
   }
+}
+
+static void
+update_metric_container(rpl_dag_t *dag)
+{
+  dag->mc.type = RPL_DAG_MC_NONE;
 }

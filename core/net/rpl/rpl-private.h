@@ -158,28 +158,6 @@
 #define RPL_MOP_STORING_MULTICAST       3
 #define RPL_MOP_DEFAULT                 RPL_MOP_STORING_NO_MULTICAST
 
-/* DAG Metric Container Object Types, to be confirmed by IANA. */
-#define RPL_DAG_MC_NSA                  1 /* Node State and Attributes */
-#define RPL_DAG_MC_NE                   2 /* Node Energy */
-#define RPL_DAG_MC_HC                   3 /* Hop Count */
-#define RPL_DAG_MC_THROUGHPUT           4 /* Throughput */
-#define RPL_DAG_MC_LATENCY              5 /* Latency */
-#define RPL_DAG_MC_LQL                  6 /* Link Quality Level */
-#define RPL_DAG_MC_ETX                  7 /* Expected Transmission Count */
-#define RPL_DAG_MC_LC                   8 /* Link Color */
-
-/* DAG Metric Container flags. */
-#define RPL_DAG_MC_FLAG_P		0x8
-#define RPL_DAG_MC_FLAG_C		0x4
-#define RPL_DAG_MC_FLAG_O		0x2
-#define RPL_DAG_MC_FLAG_R		0x1
-
-/* DAG Metric Container aggregation mode. */
-#define RPL_DAG_MC_AGGR_ADDITIVE	0
-#define RPL_DAG_MC_AGGR_MAXIMUM		1
-#define RPL_DAG_MC_AGGR_MINIMUM		2
-#define RPL_DAG_MC_AGGR_MULTIPLICATIVE	3
-
 /*
  * The ETX in the metric container is expressed as a fixed-point value 
  * whose integer part can be obtained by dividing the value by 
@@ -196,23 +174,6 @@
 #endif
 #define RPL_DIS_START_DELAY             5
 /*---------------------------------------------------------------------------*/
-/* Logical representation of an ETX object in a DAG Metric Container. */
-struct rpl_metric_object_etx {
-  uint16_t etx;
-};
-
-/* Logical representation of a DAG Metric Container. */
-struct rpl_metric_container {
-  uint8_t type;
-  uint8_t flags;
-  uint8_t aggr;
-  uint8_t prec;
-  uint8_t length;
-  /* Once we support more objects, the etx field will be replaced by a 
-     union of those. */
-  struct rpl_metric_object_etx etx;
-};
-
 /* Logical representation of a DAG Information Object (DIO.) */
 struct rpl_dio {
   uip_ipaddr_t dag_id;
@@ -233,7 +194,7 @@ struct rpl_dio {
   rpl_rank_t dag_min_hoprankinc;
   rpl_prefix_t destination_prefix;
   rpl_prefix_t prefix_info;
-  struct rpl_metric_container metric_container;
+  struct rpl_metric_container mc;
 };
 typedef struct rpl_dio rpl_dio_t;
 
