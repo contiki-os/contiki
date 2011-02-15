@@ -74,11 +74,55 @@
 typedef uint16_t rpl_rank_t;
 typedef uint16_t rpl_ocp_t;
 
+/*---------------------------------------------------------------------------*/
+/* DAG Metric Container Object Types, to be confirmed by IANA. */
+#define RPL_DAG_MC_NONE			0 /* Local identifier for empty MC */
+#define RPL_DAG_MC_NSA                  1 /* Node State and Attributes */
+#define RPL_DAG_MC_NE                   2 /* Node Energy */
+#define RPL_DAG_MC_HC                   3 /* Hop Count */
+#define RPL_DAG_MC_THROUGHPUT           4 /* Throughput */
+#define RPL_DAG_MC_LATENCY              5 /* Latency */
+#define RPL_DAG_MC_LQL                  6 /* Link Quality Level */
+#define RPL_DAG_MC_ETX                  7 /* Expected Transmission Count 
+*/
+#define RPL_DAG_MC_LC                   8 /* Link Color */
+
+/* DAG Metric Container flags. */
+#define RPL_DAG_MC_FLAG_P               0x8
+#define RPL_DAG_MC_FLAG_C               0x4
+#define RPL_DAG_MC_FLAG_O               0x2
+#define RPL_DAG_MC_FLAG_R               0x1
+
+/* DAG Metric Container aggregation mode. */
+#define RPL_DAG_MC_AGGR_ADDITIVE        0
+#define RPL_DAG_MC_AGGR_MAXIMUM         1
+#define RPL_DAG_MC_AGGR_MINIMUM         2
+#define RPL_DAG_MC_AGGR_MULTIPLICATIVE  3
+
+/* Logical representation of an ETX object in a DAG Metric Container. */
+struct rpl_metric_object_etx {
+  uint16_t etx;
+};
+
+/* Logical representation of a DAG Metric Container. */
+struct rpl_metric_container {
+  uint8_t type;
+  uint8_t flags;
+  uint8_t aggr;
+  uint8_t prec;
+  uint8_t length;
+  /* Once we support more objects, the etx field will be replaced by a
+     union of those. */
+  struct rpl_metric_object_etx etx;
+};
+typedef struct rpl_metric_container rpl_metric_container_t;
+/*---------------------------------------------------------------------------*/
 struct rpl_dag;
 /*---------------------------------------------------------------------------*/
 struct rpl_parent {
   struct rpl_parent *next;
   struct rpl_dag *dag;
+  rpl_metric_container_t mc;
   uip_ipaddr_t addr;
   rpl_rank_t rank;
   uint8_t etx;
@@ -111,12 +155,20 @@ typedef struct rpl_parent rpl_parent_t;
  *  If "parent" is NULL, the objective function selects a default increment
  *  that is adds to the "base_rank". Otherwise, the OF uses information known
  *  about "parent" to select an increment to the "base_rank".
+ *
+ * update_metric_container(dag)
+ *
+ *  Updates the metric container for outgoing DIOs in a certain DAG.
+ *  If the objective function of the DAG does not use metric containers, 
+ *  the function returns 0. If the metric container has been filled, the 
+ *  function returns 1.
  */
 struct rpl_of {
   void (*reset)(struct rpl_dag *);
   void (*parent_state_callback)(rpl_parent_t *, int, int);
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
   rpl_rank_t (*calculate_rank)(rpl_parent_t *, rpl_rank_t);
+  void (*update_metric_container)(struct rpl_dag *);
   rpl_ocp_t ocp;
 };
 typedef struct rpl_of rpl_of_t;
@@ -133,6 +185,7 @@ typedef struct rpl_prefix rpl_prefix_t;
 /* Directed Acyclic Graph */
 struct rpl_dag {
   /* DAG configuration */
+  rpl_metric_container_t mc;
   rpl_of_t *of;
   uip_ipaddr_t dag_id;
   /* The current default router - used for routing "upwards" */

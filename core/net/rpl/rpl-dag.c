@@ -189,6 +189,8 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   dag->default_lifetime = DEFAULT_RPL_DEF_LIFETIME;
   dag->lifetime_unit = DEFAULT_RPL_LIFETIME_UNIT;
 
+  dag->of->update_metric_container(dag);
+
   PRINTF("RPL: Node set to be a DAG root with DAG ID ");
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
@@ -300,6 +302,8 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   p->etx = INITIAL_ETX;
   p->dtsn = 0;
 
+  memcpy(&p->mc, &dio->mc, sizeof(p->mc));
+
   list_add(dag->parents, p);
 
   return p;
@@ -337,6 +341,7 @@ rpl_select_parent(rpl_dag_t *dag)
 
   if(dag->preferred_parent != best) {
     dag->preferred_parent = best; /* Cache the value. */
+    dag->of->update_metric_container(dag);
     rpl_set_default_route(dag, &best->addr);
     /* The DAO parent set changed - schedule a DAO transmission. */
     rpl_schedule_dao(dag);
@@ -482,6 +487,7 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   dag->version = dio->version;
   dag->preferred_parent = p;
+  dag->of->update_metric_container(dag);
 
   dag->dio_intdoubl = dio->dag_intdoubl;
   dag->dio_intmin = dio->dag_intmin;
