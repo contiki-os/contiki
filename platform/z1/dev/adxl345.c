@@ -376,7 +376,7 @@ static struct timer suppressTimer1, suppressTimer2;
 interrupt(PORT1_VECTOR) port1_isr (void) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   /* ADXL345_IFG.x goes high when interrupt occurs, use to check what interrupted */
-  if ((ADXL345_IFG & ADXL345_INT1_PIN) && !!(ADXL345_IFG & CC2420_FIFOP_PIN)){
+  if ((ADXL345_IFG & ADXL345_INT1_PIN) && !(ADXL345_IFG & BV(CC2420_FIFOP_PIN))){
     /* Check if this should be suppressed or not */
     if(timer_expired(&suppressTimer1)) {
       timer_set(&suppressTimer1, SUPPRESS_TIME_INT1);
@@ -384,7 +384,7 @@ interrupt(PORT1_VECTOR) port1_isr (void) {
       process_poll(&accmeter_process);
       LPM4_EXIT;
     }
-  } else if ((ADXL345_IFG & ADXL345_INT2_PIN) && !!(ADXL345_IFG & CC2420_FIFOP_PIN)){
+  } else if ((ADXL345_IFG & ADXL345_INT2_PIN) && !(ADXL345_IFG & BV(CC2420_FIFOP_PIN))){
     /* Check if this should be suppressed or not */
     if(timer_expired(&suppressTimer2)) {
       timer_set(&suppressTimer2, SUPPRESS_TIME_INT2);
