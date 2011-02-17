@@ -1,0 +1,284 @@
+Entries in ram are processed by SMACinitfrommemory and executeentry
+(which does the work). I suspect that these entries are loaded in from
+the rom from the rom_data_init call in the beginning stub. For now
+we'll do the simple thing of performing the actions they do, but for
+real it would be better to load out from ROM and execute the entries
+in a similar way. That way, if the cal data changes in the ROM, our
+code should still work.
+
+When radioinit first starts it seems to do checks for a 24MHZ clock
+and if the buck should be enabled. Assuming 24MHZ and no buck the next
+things it does is 5 entries in cal1 (40 bytes, 4 bytes per word, = 10
+words, 2 words per entry = 5 entrys)
+
+0x80003048      
+0x00000f78      
+
+0x8000304c      
+0x00607707
+
+the next entry is zero addr with val 0x000161a8... this is a delay
+entry. Loop here 0x000161a8 times. then return.
+
+0x00000000      
+0x000161a8
+
+Then two more memory stuffs:
+
+0x8000a050      
+0x0000047b
+
+0x8000a054      
+0x0000007b 
+
+then it seems like the emulator dies on the stack munging they do at
+the end of InitFromMemory... but I think I've decoded the entry
+enough to figure out the rest.
+
+then they do one entry of r4 base + 48 (gRadioTOCCal2_24MHz_c[0])
+
+0x80009000      
+0x80050100
+
+then they do 11 entries in cal3  and reg replacment  (first two have delays)
+
+0x402b8c <gRadioTOCCal3_c>:     0x80009400      0x00020017      0x80009a04      0x8185a0a4
+0x402b9c <gRadioTOCCal3_c+16>:  0x80009a00      0x8c900025      0x00000000      0x00011194
+0x402bac <gRadioTOCCal3_c+32>:  0x80009a00      0x8c900021      0x80009a00      0x8c900027
+0x402bbc <gRadioTOCCal3_c+48>:  0x00000000      0x00011194      0x80009a00      0x8c90002b
+0x402bcc <gRadioTOCCal3_c+64>:  0x80009a00      0x8c90002f      0x00000000      0x00011194
+0x402bdc <gRadioTOCCal3_c+80>:  0x80009a00      0x8c900000      
+
+then 4 entries from r5+24 (buffer_radio_init and cal5)
+
+0x80009400      0x00000017
+0x405230 <gRadioTOCCal5+8>:     0x8000a050      0x00000000      0x8000a054      0x00000000
+0x405240 <gRadioTOCCal5+24>:    0x80003048      0x00000f00
+
+then 43 entries from r4+152 (reg replacement)
+
+0x402bec <gRadioInit_RegReplacement_c>:         0x80004118      0x00180012      0x80009204      0x00000605
+0x402bfc <gRadioInit_RegReplacement_c+16>:      0x80009208      0x00000504      0x8000920c      0x00001111
+0x402c0c <gRadioInit_RegReplacement_c+32>:      0x80009210      0x0fc40000      0x80009300      0x20046000
+0x402c1c <gRadioInit_RegReplacement_c+48>:      0x80009304      0x4005580c      0x80009308      0x40075801
+0x402c2c <gRadioInit_RegReplacement_c+64>:      0x8000930c      0x4005d801      0x80009310      0x5a45d800
+0x402c3c <gRadioInit_RegReplacement_c+80>:      0x80009314      0x4a45d800      0x80009318      0x40044000
+0x402c4c <gRadioInit_RegReplacement_c+96>:      0x80009380      0x00106000      0x80009384      0x00083806
+0x402c5c <gRadioInit_RegReplacement_c+112>:     0x80009388      0x00093807      0x8000938c      0x0009b804
+0x402c6c <gRadioInit_RegReplacement_c+128>:     0x80009390      0x000db800      0x80009394      0x00093802
+0x402c7c <gRadioInit_RegReplacement_c+144>:     0x8000a008      0x00000015      0x8000a018      0x00000002
+0x402c8c <gRadioInit_RegReplacement_c+160>:     0x8000a01c      0x0000000f      0x80009424      0x0000aaa0
+0x402c9c <gRadioInit_RegReplacement_c+176>:     0x80009434      0x01002020      0x80009438      0x016800fe
+0x402cac <gRadioInit_RegReplacement_c+192>:     0x8000943c      0x8e578248      0x80009440      0x000000dd
+0x402cbc <gRadioInit_RegReplacement_c+208>:     0x80009444      0x00000946      0x80009448      0x0000035a
+0x402ccc <gRadioInit_RegReplacement_c+224>:     0x8000944c      0x00100010      0x80009450      0x00000515
+0x402cdc <gRadioInit_RegReplacement_c+240>:     0x80009460      0x00397feb      0x80009464      0x00180358
+0x402cec <gRadioInit_RegReplacement_c+256>:     0x8000947c      0x00000455      0x800094e0      0x00000001
+0x402cfc <gRadioInit_RegReplacement_c+272>:     0x800094e4      0x00020003      0x800094e8      0x00040014
+0x402d0c <gRadioInit_RegReplacement_c+288>:     0x800094ec      0x00240034      0x800094f0      0x00440144
+0x402d1c <gRadioInit_RegReplacement_c+304>:     0x800094f4      0x02440344      0x800094f8      0x04440544
+0x402d2c <gRadioInit_RegReplacement_c+320>:     0x80009470      0x0ee7fc00      0x8000981c      0x00000082
+0x402d3c <gRadioInit_RegReplacement_c+336>:     0x80009828      0x0000002a
+
+then flash init. (hrmm.. this might be important)
+
+then flyback init.
+
+then maybe buckbypass sequence... 4 entries from r4+16
+
+0x402b64 <gBuckByPass_c>:       0x80003000      0x00000018      0x80003048      0x00000f04
+0x402b74 <gBuckByPass_c+16>:    0x00000000      0x000161a8      0x80003048      0x00000ffc
+
+RadioInit is (roughly):
+
+    SMAC_InitFromMemory(gRadioTOCCal1,40);
+    SMAC_InitFromMemory(gRadioTOCCal2_24MHz_c,8);
+    SMAC_InitFromMemory(gRadioTOCCal3_c,88);
+    SMAC_InitFromMemory(gRadioTOCCal5,32);
+    SMAC_InitFromMemory(gRadioInit_RegReplacement_c,344);
+    SMAC_InitFromFlash(0x1F000);
+    SMAC_InitFlybackSettings();
+    SMAC_InitFromMemory(gBuckByPass_c,16);
+
+    fill_ram_struct(&u8RamValues);
+
+    uint8_t i;
+    uint8_t buffer_radio_init[16];
+    for(i=0; i<16; i++) {
+    	     buffer_radio_init[i] = get_ctov(i,u8RamValues[3]);
+    }
+
+
+Some kind of success!
+
+This replacment works:
+
+
+ //   RadioInit(PLATFORM_CLOCK, gDigitalClock_PN_c, u32LoopDiv);   // need this to work
+ 
+    /* my replacment for RadioInit, flyback and vreg have been separated out */
+      radio_init();  
+      //    SMAC_InitFromMemory(gRadioTOCCal1,40);
+      //     *(volatile uint32_t *)0x80009000 = 0x80050100;
+      //    SMAC_InitFromMemory(gRadioTOCCal2_24MHz_c,8);
+      //    SMAC_InitFromMemory(gRadioTOCCal3_c,88);
+      //    SMAC_InitFromMemory(gRadioTOCCal5,32);
+      //    SMAC_InitFromMemory(gRadioInit_RegReplacement_c,344);
+//      SMAC_InitFromFlash(0x1F000);
+      // SMAC_InitFlybackSettings();
+      flyback_init();
+      //  SMAC_InitFromMemory(gBuckByPass_c,16);
+      vreg_init();
+      
+      *((uint32_t *)&u8RamValues) = 0x4c20030a;   
+      fill_ram_struct(&u8RamValues);
+    
+      for(j=0; j<16; j++) {
+         //        buffer_radio_init[j] = get_ctov(j,u8RamValues[3]);
+                   buffer_radio_init[j] = get_ctov(j,0x4c); //0x4c loads the right values into buffer_radio_init... but why isn't RamValues correct?
+      }
+
+
+Which means my radio_init, and vreg_init are good. It also means that
+my intreprtation of buffer_radio_init is correct. It may also mean
+that u8RamValues isn't important since I just set it's value.
+
+That means I only have InitFromFlash to replace now!
+
+Actually, I should test if that is necessary --- I still find it a
+little hard to believe that they put essential data on NVM --- except
+they could set codeprotect so that clods won't erase it on accident.
+
+See PLM/LibInterface/NVM.h for some docs. Looks like they put a
+standard SST, ST, or Atmel spi flash in there (note the comment about
+continuous read mode).
+
+MACPHY.a might use a ROM service for the flash init:
+
+0000f97c g     F *ABS*  00000000 InitFromFlash
+
+  ac:   4668            mov     r0, sp
+  ae:   f7ff fffe       bl      0 <GetInitTranslationTablePtr>
+  b2:   4669            mov     r1, sp
+  b4:   780a            ldrb    r2, [r1, #0]
+  b6:   0001            lsls    r1, r0, #0
+  b8:   20f8            movs    r0, #248
+  ba:   0240            lsls    r0, r0, #9
+  bc:   f7ff fffe       bl      0 <InitFromFlash>
+
+uint32_t InitFromFlash(uint32_t nvmAddress, uint32_t nLength);
+
+Which looks like InitFromFlash(0x1F00,?);
+
+Good news! It doesn't look like InitFromFlash is necessary. It might
+just be a hook for them to patch the init that is grabbed from rom or
+something.
+
+Checking if buffer_radio_init is important. If so, then I need to
+figure out how it's used and, preferably, what it means.
+
+So buffer_radio_init is necessary for their code to work. I'm not sure
+if it is necessary for the radio of if it's necessary for there app. 
+
+Now I need to figure these out:
+
+ (void)MLMEPAOutputAdjust(gu8CurrentPowerLevel);
+  MLMESetChannelRequest((channel_num_t)gu8CurrentChannel);
+
+
+#define gPowerLevel_m30dBm_c 0x00
+#define gPowerLevel_m28dBm_c 0x01
+#define gPowerLevel_m26dBm_c 0x02
+#define gPowerLevel_m24dBm_c 0x03
+#define gPowerLevel_m22dBm_c 0x04
+#define gPowerLevel_m20dBm_c 0x05
+#define gPowerLevel_m18dBm_c 0x06
+#define gPowerLevel_m16dBm_c 0x07 
+#define gPowerLevel_m14dBm_c 0x08
+#define gPowerLevel_m12dBm_c 0x09 
+#define gPowerLevel_m10dBm_c 0x0a
+#define gPowerLevel_m8dBm_c  0x0b
+#define gPowerLevel_m6dBm_c  0x0c
+#define gPowerLevel_m4dBm_c  0x0d
+#define gPowerLevel_m2dBm_c  0x0e
+#define gPowerLevel_0dBm_c   0x0f
+#define gPowerLevel_2dBm_c   0x10
+#define gPowerLevel_4dBm_c   0x11
+#define gPowerLevel_6dBm_c   0x12
+
+gu8CurrentPowerLevel is set to gPowerLevel_0dBm_c = 0x0f
+
+some kind of look-up table for setpower
+
+004037e4 <gPSMVAL_c>:
+  4037e4:       0000080f        .word   0x0000080f
+  4037e8:       0000080f        .word   0x0000080f
+  4037ec:       0000080f        .word   0x0000080f
+  4037f0:       0000080f        .word   0x0000080f
+  4037f4:       0000081f        .word   0x0000081f
+  4037f8:       0000081f        .word   0x0000081f
+  4037fc:       0000081f        .word   0x0000081f
+  403800:       0000080f        .word   0x0000080f
+  403804:       0000080f        .word   0x0000080f
+  403808:       0000080f        .word   0x0000080f
+  40380c:       0000001f        .word   0x0000001f
+  403810:       0000000f        .word   0x0000000f
+  403814:       0000000f        .word   0x0000000f
+  403818:       00000816        .word   0x00000816
+  40381c:       0000001b        .word   0x0000001b
+  403820:       0000000b        .word   0x0000000b
+  403824:       00000802        .word   0x00000802
+  403828:       00000817        .word   0x00000817
+  40382c:       00000003        .word   0x00000003
+
+00403830 <gPAVAL_c>:
+  403830:       000022c0        .word   0x000022c0
+  403834:       000022c0        .word   0x000022c0
+  403838:       000022c0        .word   0x000022c0
+  40383c:       00002280        .word   0x00002280
+  403840:       00002303        .word   0x00002303
+  403844:       000023c0        .word   0x000023c0
+  403848:       00002880        .word   0x00002880
+  40384c:       000029f0        .word   0x000029f0
+  403850:       000029f0        .word   0x000029f0
+  403854:       000029f0        .word   0x000029f0
+  403858:       000029c0        .word   0x000029c0
+  40385c:       00002bf0        .word   0x00002bf0
+  403860:       000029f0        .word   0x000029f0
+  403864:       000028a0        .word   0x000028a0
+  403868:       00002800        .word   0x00002800
+  40386c:       00002ac0        .word   0x00002ac0
+  403870:       00002880        .word   0x00002880
+  403874:       00002a00        .word   0x00002a00
+  403878:       00002b00        .word   0x00002b00
+
+0040387c <gAIMVAL_c>:
+  40387c:       000123a0        .word   0x000123a0
+  403880:       000163a0        .word   0x000163a0
+  403884:       0001a3a0        .word   0x0001a3a0
+  403888:       0001e3a0        .word   0x0001e3a0
+  40388c:       000223a0        .word   0x000223a0
+  403890:       000263a0        .word   0x000263a0
+  403894:       0002a3a0        .word   0x0002a3a0
+  403898:       0002e3a0        .word   0x0002e3a0
+  40389c:       000323a0        .word   0x000323a0
+  4038a0:       000363a0        .word   0x000363a0
+  4038a4:       0003a3a0        .word   0x0003a3a0
+  4038a8:       0003a3a0        .word   0x0003a3a0
+  4038ac:       0003e3a0        .word   0x0003e3a0
+  4038b0:       000423a0        .word   0x000423a0
+  4038b4:       000523a0        .word   0x000523a0
+  4038b8:       000423a0        .word   0x000423a0
+  4038bc:       0004e3a0        .word   0x0004e3a0
+  4038c0:       0004e3a0        .word   0x0004e3a0
+  4038c4:       0004e3a0        .word   0x0004e3a0
+
+
+Ok, rftest-rx and tx are working but the range isn't very good. I
+suspect that InitFromFlash is a factory trim for each part. Since I'm
+not doing that then the range and reliability are suffering. Getting
+the NVM to work should probably be my next step.
+
+Debugging with JLink has shown there absolutely is init entries in the
+flash set in the factory that are important. e.g. this is where the
+0x00607707 number get turned into something more like 0x00685...

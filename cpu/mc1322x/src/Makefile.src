@@ -1,0 +1,41 @@
+# Hey Emacs, this is a -*- makefile -*-
+
+CFLAGS += -I$(MC1322X)/src
+
+ISR ?= $(MC1322X)/src/isr.o
+SRC_OBJS += $(MC1322X)/src/default_lowlevel.o $(ISR)
+
+# Two libraries, one with ROM variable space reserved, one without
+START_ROMVARS ?= $(MC1322X)/src/start-romvars.o
+SRCLIB_ROMVARS = $(MC1322X)/src/src-romvars.a
+$(SRCLIB_ROMVARS): $(SRC_OBJS) $(START_ROMVARS)
+	$(call pretty,AR,$@)
+	@rm -f $@
+	$Q$(AR) $(ARFLAGS) $@ $^
+
+START ?= $(MC1322X)/src/start.o
+SRCLIB = $(MC1322X)/src/src.a
+$(SRCLIB): $(SRC_OBJS) $(START)
+	$(call pretty,AR,$@)
+	@rm -f $@
+	$Q$(AR) $(ARFLAGS) $@ $^
+
+# ISR is built without thumb
+$(ISR): $(ISR:.o=.c)
+	$(call pretty,CC (isr),$@)
+	$Q$(CC) $(CFLAGS) -MMD -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
+
+# start-romvars.o is built from start.S with the right flags
+$(MC1322X)/src/start-romvars.o: $(MC1322X)/src/start.S
+	$(call pretty,CC (romvars),$@)
+	$Q$(CC) $(AFLAGS) -MMD -DUSE_ROM_VARS -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
+
+ifneq ($(MAKECMDGOALS),clean)
+-include $(wildcard $(MC1322X)/src/*.d)
+endif
+
+clean::
+	rm -f $(MC1322X)/src/*.{o,d,a}
+
