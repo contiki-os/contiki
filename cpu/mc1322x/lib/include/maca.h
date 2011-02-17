@@ -62,6 +62,11 @@ void set_demodulator_type(uint8_t demod);
 extern volatile uint8_t fcs_mode;
 #define set_fcs_mode(x) fcs_mode = (x)
 
+/* set_prm_mode(PROMISC) to disable address filtering */
+/* set_prm_mode(AUTOACK) to enable address filtering AND autoack */
+extern volatile uint8_t prm_mode;
+#define set_prm_mode(x) prm_mode = (x)
+
 /* maca packet interface */
 void tx_packet(volatile packet_t *p);
 volatile packet_t* rx_packet(void);
@@ -105,6 +110,10 @@ enum {
 	NO_FCS  = 1,
 };
 #define PRM             11                   /* set for promiscuous mode       */          
+enum {
+	AUTOACK  = 0,
+	PROMISC = 1,
+};
 #define REL             10                   /* 1 for relative, 0 for absolute */
 #define ASAP            9                    /* 1 start now, 0 timer start     */
 #define BCN             8                    /* 1 beacon only, 0 for a         */
