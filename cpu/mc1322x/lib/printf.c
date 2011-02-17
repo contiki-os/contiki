@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id$
+ *
  */
 
 /**
@@ -42,7 +42,7 @@
  *
  * Created on : 17-mar-2009
  *
- * $Id$
+ *
  */
 
 /*

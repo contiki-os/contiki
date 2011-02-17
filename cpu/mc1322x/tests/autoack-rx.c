@@ -33,34 +33,77 @@
  *
  */
 
-#ifndef PACKET_H
-#define PACKET_H
+#include <mc1322x.h>
+#include <board.h>
+#include <stdio.h>
 
-/* does not include 2 byte FCS checksum */
-#ifndef MAX_PAYLOAD_SIZE
-#define MAX_PAYLOAD_SIZE 125
-#endif
+#include "tests.h"
+#include "config.h"
 
-#define PACKET_STATS 0
+#define LED LED_GREEN
 
-struct packet {
-        uint8_t length; /* does not include FCS checksum */
-	volatile struct packet * left;
-	volatile struct packet * right;
-        /* offset into data for first byte of the packet payload */
-	/* On TX this should be 0 */
-	/* On RX this should be 1 since the maca puts the length as the first byte*/
-	uint8_t offset; 	
-	uint8_t lqi;
-	uint8_t status;
-	#if PACKET_STATS
-	uint8_t seen; 
-	uint8_t post_tx;
-	uint8_t get_free;
-	uint8_t rxd;
-	#endif
-	uint8_t data[MAX_PAYLOAD_SIZE+2+1]; /* +2 for FCS; + 1 since maca returns the length as the first byte */
-};
-typedef struct packet packet_t;
+void maca_rx_callback(volatile packet_t *p) {
+	(void)p;
+	gpio_data_set(1ULL<< LED);
+	gpio_data_reset(1ULL<< LED);
+}
 
-#endif
+void main(void) {
+	volatile packet_t *p;
+	volatile uint8_t t=20;
+	uint8_t chan;
+	char c;
+
+	gpio_data(0);
+	
+	gpio_pad_dir_set( 1ULL << LED );
+        /* read from the data register instead of the pad */
+	/* this is needed because the led clamps the voltage low */
+	gpio_data_sel( 1ULL << LED);
+
+	/* trim the reference osc. to 24MHz */
+	trim_xtal();
+
+	uart_init(INC, MOD, SAMP);
+
+	vreg_init();
+
+	maca_init();
+
+        /* sets up tx_on, should be a board specific item */
+        *GPIO_FUNC_SEL2 = (0x01 << ((44-16*2)*2));
+	gpio_pad_dir_set( 1ULL << 44 );
+
+	set_power(0x0f); /* 0dbm */
+	chan = 0;
+	set_channel(chan); /* channel 11 */
+
+	*MACA_MACPANID = 0xaaaa;
+	*MACA_MAC16ADDR = 0x1111;
+	*MACA_TXACKDELAY = 68; /* 68 puts the tx ack at about the correct spot */
+	set_prm_mode(AUTOACK);
+
+	print_welcome("rftest-rx");
+	while(1) {		
+
+		/* call check_maca() periodically --- this works around */
+		/* a few lockup conditions */
+		check_maca();
+
+		if((p = rx_packet())) {
+			/* print and free the packet */
+			printf("autoack-rx --- ");
+			print_packet(p);
+			free_packet(p);
+		}
+
+		if(uart1_can_get()) {
+			c = uart1_getc();
+			if(c == 'z') t++;
+			if(c == 'x') t--;
+			*MACA_TXACKDELAY = t;
+			printf("tx ack delay: %d\n\r", t);
+		}
+
+	}
+}
