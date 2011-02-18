@@ -615,6 +615,7 @@ void maca_isr(void) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
 		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
 		dma_rx->lqi = get_lqi();
+		dma_rx->rx_time = *MACA_TIMESTAMP;
 
 		/* check if received packet needs an ack */
 		if(dma_rx->data[1] & 0x20) {
