@@ -155,6 +155,7 @@ int contiki_maca_read(void *buf, unsigned short bufsize) {
 		PRINTF(": p->length 0x%0x bufsize 0x%0x \n\r", p->length, bufsize);
 		if((p->length) < bufsize) bufsize = (p->length);
 		memcpy(buf, (uint8_t *)(p->data + p->offset), bufsize);
+		packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY,p->lqi);
 #if CONTIKI_MACA_DEBUG
 		for( i = p->offset ; i < (bufsize + p->offset) ; i++) {
 			PRINTF(" %02x",p->data[i]);
