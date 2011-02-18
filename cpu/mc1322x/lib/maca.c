@@ -150,7 +150,7 @@ void check_maca(void) {
 
 #if DEBUG_MACA
 	if((count = count_packets()) != NUM_PACKETS) {
-		PRINTF("check maca: count_packets %d\n", count);
+		PRINTF("check maca: count_packets %d\n", (int)count);
 		Print_Packets("check_maca");
 #if PACKET_STATS
 		for(i=0; i<NUM_PACKETS; i++) {
@@ -615,6 +615,7 @@ void maca_isr(void) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
 		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
 		dma_rx->lqi = get_lqi();
+		dma_rx->rx_time = *MACA_TIMESTAMP;
 
 		/* check if received packet needs an ack */
 		if(dma_rx->data[1] & 0x20) {
