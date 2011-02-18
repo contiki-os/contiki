@@ -130,7 +130,7 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
   uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr);
   PRINTF("RPL: Neighbor ");
   PRINT6ADDR(&ipaddr);
-  PRINTF(" is %sknown. ETX = %u\n", known ? "" : "no longer ", FIX2ETX(etx));
+  PRINTF(" is %sknown. ETX = %u\n", known ? "" : "no longer ", NEIGHBOR_INFO_FIX2ETX(etx));
 
   dag = rpl_get_dag(RPL_DEFAULT_INSTANCE);
   if(dag == NULL) {
