@@ -150,7 +150,7 @@ void check_maca(void) {
 
 #if DEBUG_MACA
 	if((count = count_packets()) != NUM_PACKETS) {
-		PRINTF("check maca: count_packets %d\n", count);
+		PRINTF("check maca: count_packets %d\n", (int)count);
 		Print_Packets("check_maca");
 #if PACKET_STATS
 		for(i=0; i<NUM_PACKETS; i++) {
