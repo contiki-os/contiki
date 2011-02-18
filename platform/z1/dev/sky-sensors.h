@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,44 +26,22 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.11 2010/08/25 19:30:52 nifi Exp $
+ * This file is part of the Contiki operating system.
+ * $Id: sky-sensors.h,v 1.2 2010/08/25 19:30:53 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/08/25 19:30:52 $
- *           $Revision: 1.11 $
+ * Author  : Joakim Eriksson
+ * Created : 2010-02-02
+ * Updated : $Date: 2010/08/25 19:30:53 $
+ *           $Revision: 1.2 $
  */
 
-#include "dev/battery-sensor.h"
-#include "dev/sky-sensors.h"
-#include <io.h>
+#ifndef __SKY_SENSORS_H__
+#define __SKY_SENSORS_H__
 
-/* Configure ADC12_2 to sample channel 11 (voltage) and use */
-/* the Vref+ as reference (SREF_1) since it is a stable reference */
-#define INPUT_CHANNEL   (1 << INCH_11)
-#define INPUT_REFERENCE SREF_1
-#define BATTERY_MEM     ADC12MEM11
+int  sky_sensors_status(uint16_t input, int type);
+int  sky_sensors_configure(uint16_t input, uint8_t reference,
+                           int type, int value);
 
-const struct sensors_sensor battery_sensor;
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  return BATTERY_MEM;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
-{
-  return sky_sensors_configure(INPUT_CHANNEL, INPUT_REFERENCE, type, c);
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  return sky_sensors_status(INPUT_CHANNEL, type);
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(battery_sensor, BATTERY_SENSOR, value, configure, status);
+#endif /* __SKY_SENSORS_H__ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,57 +26,46 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
- * $Id: test-phidgets.c,v 1.1 2010/08/27 12:51:41 joxe Exp $
+ * @(#)$Id: temperature-sensor.c,v 1.1 2010/08/25 19:34:06 nifi Exp $
  */
 
 /**
  * \file
- *         An example of how to use the button and light sensor on
- *         the Z1 platform.
+ *         Sensor driver for reading the built-in temperature sensor in the CPU.
  * \author
+ *         Adam Dunkels <adam@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         Niclas Finne <nfi@sics.se>
  */
 
-#include <stdio.h>
-#include "contiki.h"
-#include "dev/button-sensor.h"
-#include "dev/leds.h"
-#include "dev/z1-phidgets.h"
+#include "dev/temperature-sensor.h"
+#include "dev/sky-sensors.h"
+#include <io.h>
+
+#define INPUT_CHANNEL      (1 << INCH_10)
+#define INPUT_REFERENCE    SREF_1
+#define TEMPERATURE_MEM    ADC12MEM10
+
+const struct sensors_sensor temperature_sensor;
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_button_process, "Test Button & Phidgets");
-AUTOSTART_PROCESSES(&test_button_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_button_process, ev, data)
+static int
+value(int type)
 {
-  //static struct etimer et;
-  PROCESS_BEGIN();
-  SENSORS_ACTIVATE(phidgets);
-  SENSORS_ACTIVATE(button_sensor);
-
-  while(1) {
-    //etimer_set(&et, CLOCK_SECOND/2);
-    printf("Please press the User Button\n");
-    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
-                             data == &button_sensor);
-
-    //PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    leds_toggle(LEDS_GREEN);
-    //printf("Button clicked\n");
-    printf("Phidget 5V 1:%d\n", phidgets.value(PHIDGET5V_1));
-    printf("Phidget 5V 2:%d\n", phidgets.value(PHIDGET5V_2));
-    printf("Phidget 3V 1:%d\n", phidgets.value(PHIDGET3V_1));
-    printf("Phidget 3V 2:%d\n", phidgets.value(PHIDGET3V_2));
-
-    if (phidgets.value(PHIDGET3V_1) < 100) {
-      leds_on(LEDS_RED);
-    } else {
-      leds_off(LEDS_RED);
-    }
-
-  }
-  PROCESS_END();
+  return TEMPERATURE_MEM;
 }
 /*---------------------------------------------------------------------------*/
+static int
+configure(int type, int c)
+{
+  return sky_sensors_configure(INPUT_CHANNEL, INPUT_REFERENCE, type, c);
+}
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  return sky_sensors_status(INPUT_CHANNEL, type);
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
+               value, configure, status);
