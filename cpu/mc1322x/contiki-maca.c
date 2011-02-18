@@ -98,11 +98,11 @@ static process_event_t event_data_ready;
 static volatile packet_t prepped_p;
 
 int contiki_maca_init(void) {
-	trim_xtal();
-	vreg_init();
-	contiki_maca_init();
-	set_channel(0); /* channel 11 */
-	set_power(0x12); /* 0x12 is the highest, not documented */
+//	trim_xtal();
+//	vreg_init();
+//	contiki_maca_init();
+//	set_channel(0); /* channel 11 */
+//	set_power(0x12); /* 0x12 is the highest, not documented */
 	return 1;
 }
 
@@ -254,12 +254,12 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
 		/* check if there is a request to turn the radio on or off */
 		if(contiki_maca_request_on == 1) {
 			contiki_maca_request_on = 0;
-			maca_on();
+//			maca_on();
  		}
 
 		if(contiki_maca_request_off == 1) {
 			contiki_maca_request_off = 0;
-			maca_off();
+//			maca_off();
  		}
 
 		if (rx_head != NULL) {
