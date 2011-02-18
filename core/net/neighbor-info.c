@@ -72,7 +72,9 @@ update_etx(const rimeaddr_t *dest, int packet_etx)
   new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
              (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
   PRINTF("neighbor-info: ETX changed from %d to %d (packet ETX = %d) %d\n",
-         FIX2ETX(recorded_etx), FIX2ETX(new_etx), FIX2ETX(packet_etx),
+	 NEIGHBOR_INFO_FIX2ETX(recorded_etx),
+	 NEIGHBOR_INFO_FIX2ETX(new_etx),
+	 NEIGHBOR_INFO_FIX2ETX(packet_etx),
          dest->u8[7]);
 
   if(neighbor_attr_has_neighbor(dest)) {
