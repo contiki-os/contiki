@@ -62,6 +62,7 @@
 #endif
 
 static volatile uint8_t tx_complete;
+static volatile uint8_t tx_status;
 
 /* contiki mac driver */
 
@@ -228,8 +229,6 @@ int contiki_maca_transmit(unsigned short transmit_len) {
 
 #if BLOCKING_TX
 	/* block until tx_complete, set by contiki_maca_tx_callback */
-	/* there are many places in contiki that rely on the */
-	/* transmit call to block */
  	while(!tx_complete && (tx_head != 0));
 #endif	
 }
@@ -237,7 +236,18 @@ int contiki_maca_transmit(unsigned short transmit_len) {
 int contiki_maca_send(const void *payload, unsigned short payload_len) {
 	contiki_maca_prepare(payload, payload_len);
 	contiki_maca_transmit(payload_len);
-	return RADIO_TX_OK;
+	switch(tx_status) {
+	case SUCCESS:
+	case CRC_FAILED: /* CRC_FAILED is usually an ack */
+		PRINTF("TXOK\n\r");
+		return RADIO_TX_OK;
+	case NO_ACK:
+		PRINTF("NOACK\n\r");
+		return RADIO_TX_NOACK;
+	default:
+		PRINTF("TXERR\n\r");
+		return RADIO_TX_ERR;
+	}
 }
 
 PROCESS(contiki_maca_process, "maca process");
@@ -284,5 +294,6 @@ void maca_rx_callback(volatile packet_t *p __attribute((unused))) {
 #if BLOCKING_TX
 void maca_tx_callback(volatile packet_t *p __attribute((unused))) {
 	tx_complete = 1;
+	tx_status = p->status;
 }
 #endif
