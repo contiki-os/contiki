@@ -66,7 +66,7 @@
 #include "contiki-maca.h"
 #include "contiki-uart.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -85,14 +85,6 @@
 #ifndef RIMEADDR_NBYTES
 #define RIMEADDR_NBYTES 8
 #endif
-
-#define PLATFORM_DEBUG 1
-#if PLATFORM_DEBUG
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
-
 
 #if UIP_CONF_ROUTER
 
