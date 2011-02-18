@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.1 2010/08/24 16:26:38 joxe Exp $
+ * @(#)$Id: radio-sensor.c,v 1.7 2010/08/25 19:30:53 nifi Exp $
  */
 
 #include "lib/sensors.h"
@@ -36,6 +36,7 @@
 #include "dev/radio-sensor.h"
 
 const struct sensors_sensor radio_sensor;
+static int active;
 
 /*---------------------------------------------------------------------------*/
 static int
@@ -53,12 +54,21 @@ value(int type)
 static int
 configure(int type, int c)
 {
+  if(type == SENSORS_ACTIVE) {
+    active = c;
+    return 1;
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
 status(int type)
 {
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return active;
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
