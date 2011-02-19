@@ -454,7 +454,7 @@ send_packet(void)
     packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
   len = NETSTACK_FRAMER.create();
   strobe_len = len + sizeof(struct cxmac_hdr);
-  if(len == 0 || strobe_len > sizeof(strobe)) {
+  if(len == 0 || strobe_len > (int)sizeof(strobe)) {
     /* Failed to send */
    PRINTF("cxmac: send failed, too large header\n");
     return MAC_TX_ERR_FATAL;
