@@ -118,7 +118,7 @@ timetable_init(void)
 void
 timetable_print(struct timetable *t)
 {
-  int i;
+  unsigned int i;
   int time;
   
   time = t->timestamps[0].time;

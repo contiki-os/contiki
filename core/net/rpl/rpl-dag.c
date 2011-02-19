@@ -419,7 +419,7 @@ rpl_get_dag(int instance_id)
 rpl_of_t *
 rpl_find_of(rpl_ocp_t ocp)
 {
-  int i;
+  unsigned int i;
 
   for(i = 0;
       i < sizeof(objective_functions) / sizeof(objective_functions[0]); 

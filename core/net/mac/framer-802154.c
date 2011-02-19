@@ -56,8 +56,8 @@
 
 static uint8_t mac_dsn;
 static uint8_t initialized = 0;
-const static uint16_t mac_dst_pan_id = IEEE802154_PANID;
-const static uint16_t mac_src_pan_id = IEEE802154_PANID;
+static const uint16_t mac_dst_pan_id = IEEE802154_PANID;
+static const uint16_t mac_src_pan_id = IEEE802154_PANID;
 
 /*---------------------------------------------------------------------------*/
 static int
