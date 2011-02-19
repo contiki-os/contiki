@@ -185,7 +185,10 @@ PT_THREAD(handle_script(struct httpd_state *s))
 static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
-  const char *ptr = NULL;     //gcc warning if not initialized
+/* gcc warning if not initialized. 
+ * If initialized, minimal-net platform segmentation fault if not static...
+ */
+  static const char *ptr = NULL;
 
   PSOCK_BEGIN(&s->sout);
 
