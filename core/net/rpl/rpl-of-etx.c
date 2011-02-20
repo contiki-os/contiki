@@ -87,8 +87,6 @@ rpl_of_t rpl_of_etx = {
 typedef uint16_t rpl_etx_t;
 #define MAX_ETX 65535
 
-static rpl_etx_t min_path_cost = MAX_ETX;
-
 static uint16_t
 calculate_etx(rpl_parent_t *p)
 {
@@ -98,18 +96,11 @@ calculate_etx(rpl_parent_t *p)
 static void
 reset(rpl_dag_t *dag)
 {
-  min_path_cost = MAX_ETX;
 }
 
 static void
 parent_state_callback(rpl_parent_t *parent, int known, int etx)
 {
-  if(!known) {
-    if(RPL_PARENT_COUNT(parent->dag) == 1) {
-      /* Our last parent has disappeared, set the path ETX to INFINITE_RANK. */
-      min_path_cost = INFINITE_RANK;
-    }
-  }
 }
 
 static rpl_rank_t
@@ -156,7 +147,7 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   dag = p1->dag; /* Both parents must be in the same DAG. */
 
   min_diff = RPL_DAG_MC_ETX_DIVISOR / 
-                           PARENT_SWITCH_THRESHOLD_DIV;
+             PARENT_SWITCH_THRESHOLD_DIV;
 
   p1_etx = calculate_etx(p1);
   p2_etx = calculate_etx(p2);
@@ -171,11 +162,7 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
     return dag->preferred_parent;
   }
 
-  if(p1_etx < p2_etx) {
-    return p1;
-  }
-
-  return p2;
+  return p1_etx < p2_etx ? p1 : p2;
 }
 
 static void
@@ -186,7 +173,7 @@ update_metric_container(rpl_dag_t *dag)
   dag->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
   dag->mc.prec = 0;
   dag->mc.length = sizeof(dag->mc.etx.etx);
-  if(dag->rank == ROOT_RANK) {
+  if(dag->rank == ROOT_RANK(dag)) {
     dag->mc.etx.etx = 0;
   } else {
     dag->mc.etx.etx = calculate_etx(dag->preferred_parent);
