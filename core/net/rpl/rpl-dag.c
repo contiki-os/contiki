@@ -179,7 +179,6 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   dag->version = version + 1;
   dag->grounded = RPL_GROUNDED;
   dag->mop = RPL_MOP_DEFAULT;
-  dag->rank = ROOT_RANK;
   dag->of = &RPL_OF;
   dag->preferred_parent = NULL;
   dag->dtsn_out = 1; /* Trigger DAOs from the beginning. */
@@ -194,6 +193,8 @@ rpl_set_root(uip_ipaddr_t *dag_id)
 
   dag->default_lifetime = DEFAULT_RPL_DEF_LIFETIME;
   dag->lifetime_unit = DEFAULT_RPL_LIFETIME_UNIT;
+
+  dag->rank = ROOT_RANK(dag);
 
   dag->of->update_metric_container(dag);
 
@@ -555,7 +556,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 int
 rpl_repair_dag(rpl_dag_t *dag)
 {
-  if(dag->rank == ROOT_RANK) {
+  if(dag->rank == ROOT_RANK(dag)) {
     dag->version++;
     dag->dtsn_out = 1;
     rpl_reset_dio_timer(dag, 1);
@@ -673,7 +674,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   if(dio->version > dag->version) {
-    if(dag->rank == ROOT_RANK) {
+    if(dag->rank == ROOT_RANK(dag)) {
       PRINTF("RPL: Root received inconsistent DIO version number\n");
       dag->version = dio->version + 1;
       rpl_reset_dio_timer(dag, 1);
@@ -690,9 +691,13 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   if(dio->rank == INFINITE_RANK) {
     rpl_reset_dio_timer(dag, 1);
+  } else if(dio->rank < ROOT_RANK(dag)) {
+    PRINTF("RPL: Ignoring DIO with too low rank: %u\n",
+           (unsigned)dio->rank);
+    return;
   }
 
-  if(dag->rank == ROOT_RANK) {
+  if(dag->rank == ROOT_RANK(dag)) {
     if(dio->rank != INFINITE_RANK) {
       dag->dio_counter++;
     }

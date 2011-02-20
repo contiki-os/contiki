@@ -119,17 +119,17 @@
 
 #define DAG_RANK(fixpt_rank, dag)	((fixpt_rank) / (dag)->min_hoprankinc)
 
-/* Rank of a node outside the LLN. */
+/* Rank of a virtual root node that coordinates DAG root nodes. */
 #define BASE_RANK                       0
 
 /* Rank of a root node. */
-#define ROOT_RANK                       DEFAULT_MIN_HOPRANKINC
+#define ROOT_RANK(dag)                  (dag)->min_hoprankinc
 
 #define INFINITE_RANK                   0xffff
 
 /* Represents 2^n ms. */
-/* Default alue according to the specification is 3 which
-   means 8 milliseconds - this is not a reasonable value if
+/* Default value according to the specification is 3 which
+   means 8 milliseconds, but that is an unreasonable value if
    using power-saving / duty-cycling    */
 #define DEFAULT_DIO_INTERVAL_MIN        12
 
