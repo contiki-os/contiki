@@ -255,7 +255,11 @@ struct seqno {
   uint8_t seqno;
 };
 
-#define MAX_SEQNOS 8
+#ifdef NETSTACK_CONF_MAC_SEQNO_HISTORY
+#define MAX_SEQNOS NETSTACK_CONF_MAC_SEQNO_HISTORY
+#else /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
+#define MAX_SEQNOS 16
+#endif /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
 static struct seqno received_seqnos[MAX_SEQNOS];
 
 #if CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT
@@ -397,6 +401,10 @@ powercycle(struct rtimer *t, void *ptr)
             break;
           }
           powercycle_turn_radio_off();
+#if CONTIKIMAC_CONF_COMPOWER
+          compower_accumulate(&compower_idle_activity);
+#endif /* CONTIKIMAC_CONF_COMPOWER */
+
         }
         //        schedule_powercycle_fixed(t, t0 + CCA_CHECK_TIME + CCA_SLEEP_TIME);
         schedule_powercycle_fixed(t, RTIMER_NOW() + CCA_SLEEP_TIME);
@@ -466,10 +474,6 @@ powercycle(struct rtimer *t, void *ptr)
 #endif /* CONTIKIMAC_CONF_COMPOWER */
           }
         }
-      } else {
-#if CONTIKIMAC_CONF_COMPOWER
-        compower_accumulate(&compower_idle_activity);
-#endif /* CONTIKIMAC_CONF_COMPOWER */
       }
     } while((is_snooping || is_streaming) &&
             RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME * 8));
