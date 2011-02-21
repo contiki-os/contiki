@@ -33,6 +33,7 @@ package se.sics.mrm;
 
 import java.awt.geom.*;
 import java.util.*;
+
 import javax.swing.tree.DefaultMutableTreeNode;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -65,9 +66,13 @@ public class ChannelModel {
 
   private ObstacleWorld myObstacleWorld = new ObstacleWorld();
 
+  /* Log mode: visualize signal components */
+  private boolean logMode = false;
+  private StringBuilder logInfo = null;
+  private ArrayList<Line2D> loggedRays = null;
+
+  
   // Ray tracing components temporary vector
-  private boolean inLoggingMode = false;
-  private Vector<Line2D> savedRays = null;
   private Vector<Vector<Line2D>> calculatedVisibleSides = new Vector<Vector<Line2D>>();
   private Vector<Point2D> calculatedVisibleSidesSources = new Vector<Point2D>();
   private Vector<Line2D> calculatedVisibleSidesLines = new Vector<Line2D>();
@@ -1352,14 +1357,14 @@ public class ChannelModel {
     // Calculate all paths from source to destination, using above calculated tree
     Vector<RayPath> allPaths = getConnectingPaths(source, dest, visibleLinesTree);
 
-    if (inLoggingMode) {
-      logger.info("Saved rays:");
+    if (logMode) {
+    	logInfo.append("Signal components:\n");
       Enumeration<RayPath> pathsEnum = allPaths.elements();
       while (pathsEnum.hasMoreElements()) {
         RayPath currentPath = pathsEnum.nextElement();
-        logger.info("* " + currentPath);
+      	logInfo.append("* " + currentPath + "\n");
         for (int i=0; i < currentPath.getSubPathCount(); i++) {
-          savedRays.add(currentPath.getSubPath(i));
+          loggedRays.add(currentPath.getSubPath(i));
         }
       }
     }
@@ -1481,12 +1486,13 @@ public class ChannelModel {
 
         // Using Rician fading approach, TODO Only one best signal considered - combine these? (need two limits)
         totalPathGain += Math.pow(10, pathGain[i]/10.0)*Math.cos(2*Math.PI * pathModdedLengths[i]/wavelength);
-        if (inLoggingMode) {
-          logger.info("Adding ray path with gain " + pathGain[i] + " and phase " + (2*Math.PI * pathModdedLengths[i]/wavelength));
+        if (logMode) {
+        	logInfo.append("Signal component: " + String.format("%2.3f", pathGain[i]) + " dB, phase " + String.format("%2.3f", (2*/*Math.PI* */ pathModdedLengths[i]/wavelength)) + " pi\n");
         }
-      } else if (inLoggingMode) {
+      } else if (logMode) {
+      	/* TODO Log mode affects result? */
         pathModdedLengths[i] = (pathLengths[i] - pathLengths[bestSignalNr]) % wavelength;
-        logger.info("Not adding ray path with gain " + pathGain[i] + " and phase " + (2*Math.PI * pathModdedLengths[i]/wavelength));
+      	logInfo.append("(IGNORED) Signal component: " + String.format("%2.3f", pathGain[i]) + " dB, phase " + String.format("%2.3f", (2*/*Math.PI* */ pathModdedLengths[i]/wavelength)) + " pi\n");
       }
 
     }
@@ -1499,10 +1505,10 @@ public class ChannelModel {
     // Convert back to dB
     totalPathGain = 10*Math.log10(Math.abs(totalPathGain));
 
-    if (inLoggingMode) {
-      logger.info("Total path gain:\t" + totalPathGain);
-      logger.info("Delay spread:\t" + delaySpread);
-      logger.info("RMS Delay spread:\t" + delaySpreadRMS);
+    if (logMode) {
+    	logInfo.append("\nTotal path gain: " + String.format("%2.3f", totalPathGain) + " dB\n");
+    	logInfo.append("Delay spread: " + String.format("%2.3f", delaySpread) + "\n");
+    	logInfo.append("RMS delay spread: " + String.format("%2.3f", delaySpreadRMS) + "\n");
     }
 
     // - Calculate received power -
@@ -1520,8 +1526,8 @@ public class ChannelModel {
     double transmitterGain = getParameterDoubleValue("tx_antenna_gain"); // TODO Should depend on angle
 
     double receivedPower = outputPower + systemGain + transmitterGain + totalPathGain;
-    if (inLoggingMode) {
-      logger.info("Resulting received signal strength:\t" + receivedPower + " (" + accumulatedVariance + ")");
+    if (logMode) {
+    	logInfo.append("\nReceived signal strength: " + String.format("%2.3f", receivedPower) + " dB (variance " + accumulatedVariance + ")\n");
     }
 
     if (dataType == TransmissionData.DELAY_SPREAD || dataType == TransmissionData.DELAY_SPREAD_RMS) {
@@ -1531,6 +1537,11 @@ public class ChannelModel {
     return new double[] {receivedPower, accumulatedVariance};
   }
 
+  public class TrackedSignalComponents {
+  	ArrayList<Line2D> components;
+  	String log;
+  }
+  
   /**
    * Returns all rays from given source to given destination if a transmission
    * were to be made. The resulting rays depend on the current settings and may
@@ -1540,20 +1551,26 @@ public class ChannelModel {
    * @param sourceY Source position Y
    * @param destX Destination position X
    * @param destY Destination position Y
-   * @return All resulting rays of a simulated transmission from source to destination
+   * @return Signal components and printable description
    */
-  public Vector<Line2D> getRaysOfTransmission(double sourceX, double sourceY, double destX, double destY) {
+  public TrackedSignalComponents getRaysOfTransmission(double sourceX, double sourceY, double destX, double destY) {
+    TrackedSignalComponents tsc = new TrackedSignalComponents();
 
-    // Reset current rays vector
-    inLoggingMode = true;
-    savedRays = new Vector<Line2D>();
+    logInfo = new StringBuilder();
+    loggedRays = new ArrayList<Line2D>();
 
-    // Calculate rays, ignore power
+    /* TODO Include background noise? */
+    logMode = true;
     getProbability(sourceX, sourceY, destX, destY, -Double.MAX_VALUE);
+    logMode = false;
 
-    inLoggingMode = false;
-
-    return savedRays;
+    tsc.log = logInfo.toString();
+    tsc.components = loggedRays;
+    
+    logInfo = null;
+    loggedRays = null;
+    
+    return tsc;
   }
 
   /**
@@ -1601,8 +1618,8 @@ public class ChannelModel {
     snrData[0] -= noiseMean;
     snrData[1] += noiseVariance;
 
-    if (inLoggingMode) {
-      logger.info("SNR at receiver:\t" + snrData[0] + " (" + snrData[1] + ")");
+    if (logMode) {
+    	logInfo.append("\nReceived SNR: " + String.format("%2.3f", snrData[0]) + " (variance " + snrData[1] + ")\n");
     }
     return snrData;
   }
@@ -1634,9 +1651,10 @@ public class ChannelModel {
     double rxSensitivity = getParameterDoubleValue("rx_sensitivity");
 
     // Check signal strength against receiver sensitivity and interference
-    if (rxSensitivity > signalStrength - snrMean && threshold < rxSensitivity + snrMean - signalStrength) {
-      if (inLoggingMode) {
-        logger.info("Signal to low for receiver sensitivity, increasing threshold");
+    if (rxSensitivity > signalStrength - snrMean && 
+    		threshold < rxSensitivity + snrMean - signalStrength) {
+      if (logMode) {
+      	logInfo.append("Weak signal: increasing threshold\n");
       }
 
       // Keeping snr variance but increasing theshold to sensitivity
@@ -1660,8 +1678,9 @@ public class ChannelModel {
     double probReception = 1 - GaussianWrapper.cdfErrorAlgo(
         threshold, snrMean, snrStdDev);
 
-    if (inLoggingMode) {
-      logger.info("Probability of reception: " + probReception);
+    if (logMode) {
+    	logInfo.append("\nReceived SNR: " + String.format("%2.3f", snrData[0]) + " (variance " + snrData[1] + ")\n");
+      logInfo.append("Reception probability: " + String.format("%1.1f%%", 100*probReception) + "\n");
     }
 
     // Returns probabilities
