@@ -29,7 +29,10 @@
 package se.sics.cooja.interfaces;
 
 /**
- * Noise source radio. 
+ * The noise source radio is used to simulate ambient background noise or 
+ * point-sources of external interference (e.g. Wifi basestations).
+ * 
+ * COOJA's radio mediums may or may not choose to respect noise source radios.
  * 
  * @see MRM
  * @author Fredrik Osterlind
