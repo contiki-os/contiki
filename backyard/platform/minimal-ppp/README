@@ -1,5 +1,0 @@
-When ./contiki is started, it will open a pty and connect its internal pppd
-daemon to it.
-The host side of the pppd process will assign an IP number to the contiki
-interface, that means that it is not necessary to "ping" the contiki interface
-to give it a number.

@@ -1,6 +1,0 @@
-#!/bin/sh
-
-
-egrep -v 'ZP|BSS' contiki-labels | perl -n -e 'if(/^al 0000(.+) \.([^@]+)\n/){if($l{$2} eq ""){$l{$2}=$1;print ".exportzp $2\n$2=\$$1\n";}} elsif(/^al 00(.+) \.([^@]+)\n/){if($l{$2} eq ""){$l{$2}=$1;print ".export $2\n$2=\$$1\n";}}' > contiki-labels.s
-
-echo '.segment        "EXTZP": zeropage' >> contiki-labels.s
