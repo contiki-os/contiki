@@ -1,0 +1,10 @@
+*~
+*.swp
+*.ihex
+obj_*
+*.z1
+*.sky
+*.map
+*.a
+*pyc
+*.pyc
