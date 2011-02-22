@@ -1327,11 +1327,14 @@ public class ChannelModel {
    *         the random variable mean, and the second is the variance.
    */
   public double[] getReceivedSignalStrength(double sourceX, double sourceY, double destX, double destY) {
-    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.SIGNAL_STRENGTH);
+    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.SIGNAL_STRENGTH, null);
   }
-
+  public double[] getReceivedSignalStrength(double sourceX, double sourceY, double destX, double destY, Double txPower) {
+    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.SIGNAL_STRENGTH, txPower);
+  }
+  
   // TODO Fix better data type support
-  private double[] getTransmissionData(double sourceX, double sourceY, double destX, double destY, TransmissionData dataType) {
+  private double[] getTransmissionData(double sourceX, double sourceY, double destX, double destY, TransmissionData dataType, Double txPower) {
     Point2D source = new Point2D.Double(sourceX, sourceY);
     Point2D dest = new Point2D.Double(destX, destY);
     double accumulatedVariance = 0;
@@ -1515,7 +1518,12 @@ public class ChannelModel {
     // Using formula (dB)
     //  Received power = Output power + System gain + Transmitter gain + Path Loss + Receiver gain
     // TODO Update formulas
-    double outputPower = getParameterDoubleValue("tx_power");
+    double outputPower;
+    if (txPower == null) {
+      outputPower = getParameterDoubleValue("tx_power");
+    } else {
+    	outputPower = txPower;
+    }
     double systemGain = getParameterDoubleValue("system_gain_mean");
     if (getParameterBooleanValue("apply_random")) {
       Random random = new Random(); /* TODO Use main random generator? */
@@ -1579,19 +1587,19 @@ public class ChannelModel {
    * variable. This method uses current parameters such as transmitted power,
    * obstacles, overall system loss etc.
    *
-   * @param sourceX
-   *          Source position X
-   * @param sourceY
-   *          Source position Y
-   * @param destX
-   *          Destination position X
-   * @param destY
-   *          Destination position Y
-   * @return Received SNR (dB) random variable. The first value is the random
-   *         variable mean, and the second is the variance. The third value is the received signal strength which may be used in comparison with interference etc.
+   * @param sourceX Source position X
+   * @param sourceY Source position Y
+   * @param destX Destination position X
+   * @param destY Destination position Y
+   * @return Received SNR (dB) random variable:
+   * The first value in the array is the random variable mean.
+   * The second is the variance.
+   * The third value is the received signal strength which may be used in comparison with interference etc.
    */
   public double[] getSINR(double sourceX, double sourceY, double destX, double destY, double interference) {
-
+  	/* TODO Cache values: called repeatedly with noise sources. */
+  	
+  	
     // Calculate received signal strength
     double[] signalStrength = getReceivedSignalStrength(sourceX, sourceY, destX, destY);
 
@@ -1619,27 +1627,26 @@ public class ChannelModel {
     snrData[1] += noiseVariance;
 
     if (logMode) {
-    	logInfo.append("\nReceived SNR: " + String.format("%2.3f", snrData[0]) + " (variance " + snrData[1] + ")\n");
+    	logInfo.append("\nReceived SNR: " + String.format("%2.3f", snrData[0]) + " dB (variance " + snrData[1] + ")\n");
     }
     return snrData;
   }
 
 
   /**
-   * Calculates and returns probability that a receiver at given destination receives a packet from a transmitter at given source.
+   * Calculates probability that a receiver at given destination receives 
+   * a packet from a transmitter at given source.
    * This method uses current parameters such as transmitted power,
-   * obstacles, overall system loss, packet size etc. TODO Packet size?! TODO Interfering signal strength
+   * obstacles, overall system loss, packet size etc.
+   * 
+   * TODO Packet size
+   * TODO External interference/Background noise
    *
-   * @param sourceX
-   *          Source position X
-   * @param sourceY
-   *          Source position Y
-   * @param destX
-   *          Destination position X
-   * @param destY
-   *          Destination position Y
-   * @param interference
-   *          Current interference at destination (dBm)
+   * @param sourceX Source position X
+   * @param sourceY Source position Y
+   * @param destX Destination position X
+   * @param destY Destination position Y
+   * @param interference Current interference at destination (dBm)
    * @return [Probability of reception, signal strength at destination]
    */
   public double[] getProbability(double sourceX, double sourceY, double destX, double destY, double interference) {
@@ -1675,11 +1682,9 @@ public class ChannelModel {
     // current threshold.
 
     // (Using error algorithm method, much faster than taylor approximation!)
-    double probReception = 1 - GaussianWrapper.cdfErrorAlgo(
-        threshold, snrMean, snrStdDev);
+    double probReception = 1 - GaussianWrapper.cdfErrorAlgo(threshold, snrMean, snrStdDev);
 
     if (logMode) {
-    	logInfo.append("\nReceived SNR: " + String.format("%2.3f", snrData[0]) + " (variance " + snrData[1] + ")\n");
       logInfo.append("Reception probability: " + String.format("%1.1f%%", 100*probReception) + "\n");
     }
 
@@ -1703,7 +1708,7 @@ public class ChannelModel {
    * @return RMS delay spread
    */
   public double getRMSDelaySpread(double sourceX, double sourceY, double destX, double destY) {
-    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.DELAY_SPREAD)[1];
+    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.DELAY_SPREAD, null)[1];
   }
 
   /**

@@ -696,7 +696,7 @@ public class AreaViewer extends VisPlugin {
 
         String logHtml = 
         	"<html>" + 
-        	trackedComponents.log.replace("\n", "<br>") +
+        	trackedComponents.log.replace("\n", "<br>").replace(" pi", " &pi;") +
         	"</html>";
         t.setTipText(logHtml);
         
