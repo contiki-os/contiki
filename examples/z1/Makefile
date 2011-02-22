@@ -2,9 +2,9 @@ ifndef TARGET
 TARGET=z1
 endif
 
-CONTIKI_PROJECT = test-phidgets blink test-adxl345 tmp102-test test-battery
+CONTIKI_PROJECT = test-phidgets blink test-adxl345 tmp102-test test-battery test-potent
 CONTIKI_SOURCEFILES += cc2420-arch.c
-PROJECT_SOURCEFILES = i2cmaster.c tmp102.c adxl345.c battery-sensor.c sky-sensors.c
+PROJECT_SOURCEFILES = i2cmaster.c tmp102.c adxl345.c battery-sensor.c sky-sensors.c potentiometer-sensor.c
 APPS=serial-shell
 
 
