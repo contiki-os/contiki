@@ -202,6 +202,9 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
 
+  ANNOTATE("#A root=%u\n",dag->dag_id.u8[sizeof(dag->dag_id) - 1]);
+
+
   rpl_reset_dio_timer(dag, 1);
 
   return dag;
@@ -512,6 +515,9 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
          dio->instance_id, dag->rank);
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
+
+  ANNOTATE("#A join=%u\n",dag->dag_id.u8[sizeof(dag->dag_id) - 1]);
+
 
   dag->default_lifetime = dio->default_lifetime;
   dag->lifetime_unit = dio->lifetime_unit;
