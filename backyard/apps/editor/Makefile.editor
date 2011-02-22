@@ -1,2 +1,0 @@
-editor_src = editor.c memb.c ctk-filedialog.c
-editor_dsc = editor-dsc.c
