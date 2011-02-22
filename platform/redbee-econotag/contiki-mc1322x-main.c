@@ -422,6 +422,29 @@ main(void)
          RF_CHANNEL);
 #endif /* WITH_UIP6 */
 
+<<<<<<< HEAD
+=======
+  *MACA_MACPANID = 0xcdab; /* this is the hardcoded contiki pan, register is PACKET order */
+  *MACA_MAC16ADDR = 0xffff; /* short addressing isn't used, set this to 0xffff for now */
+
+  *MACA_MAC64HI =
+	  addr.u8[0] << 24 |
+	  addr.u8[1] << 16 |
+	  addr.u8[2] << 8 |
+	  addr.u8[3];
+  *MACA_MAC64LO =
+	  addr.u8[4] << 24 |
+	  addr.u8[5] << 16 |
+	  addr.u8[6] << 8 |
+	  addr.u8[7];
+  PRINTF("setting panid 0x%04x\n\r", *MACA_MACPANID);
+  PRINTF("setting short mac 0x%04x\n\r", *MACA_MAC16ADDR);
+  PRINTF("setting long mac 0x%08x_%08x\n\r", *MACA_MAC64HI, *MACA_MAC64LO);
+
+#if NULLRDC_CONF_802154_AUTOACK_HW
+  set_prm_mode(AUTOACK);
+#endif
+
 #if PROFILE_CONF_ON
   profile_init();
 #endif /* PROFILE_CONF_ON */
