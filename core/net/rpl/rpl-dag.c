@@ -505,13 +505,13 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   /* copy prefix information into the dag */
   memcpy(&dag->prefix_info, &dio->prefix_info, sizeof(rpl_prefix_t));
 
+  dag->rank = dag->of->calculate_rank(p, dio->rank);
+  dag->min_rank = dag->rank; /* So far this is the lowest rank we know of. */
+
   PRINTF("RPL: Joined DAG with instance ID %u, rank %hu, DAG ID ",
          dio->instance_id, dag->rank);
   PRINT6ADDR(&dag->dag_id);
   PRINTF("\n");
-
-  dag->rank = dag->of->calculate_rank(p, dio->rank);
-  dag->min_rank = dag->rank; /* So far this is the lowest rank we know of. */
 
   dag->default_lifetime = dio->default_lifetime;
   dag->lifetime_unit = dio->lifetime_unit;
