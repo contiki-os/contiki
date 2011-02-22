@@ -171,6 +171,9 @@ send_packet(mac_callback_t sent, void *ptr)
     case RADIO_TX_COLLISION:
       ret = MAC_TX_COLLISION;
       break;
+    case RADIO_TX_NOACK:
+      ret = MAC_TX_NOACK;
+      break;
     default:
       ret = MAC_TX_ERR;
       break;
