@@ -34,6 +34,7 @@ package se.sics.cooja.interfaces;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
@@ -61,7 +62,7 @@ import se.sics.cooja.Simulation;
  *
  * @author Fredrik Osterlind
  */
-public class ApplicationRadio extends Radio {
+public class ApplicationRadio extends Radio implements NoiseSourceRadio {
   private static Logger logger = Logger.getLogger(ApplicationRadio.class);
 
   private Simulation simulation;
@@ -321,7 +322,7 @@ public class ApplicationRadio extends Radio {
     updateButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         ssLabel.setText("Signal strength (not auto-updated): "
-            + getCurrentSignalStrength() + " dBm");
+            + String.format("%1.1f", getCurrentSignalStrength()) + " dBm");
       }
     });
 
@@ -337,7 +338,7 @@ public class ApplicationRadio extends Radio {
 
         lastEventLabel.setText("Last event (time=" + lastEventTime + "): " + lastEvent);
         ssLabel.setText("Signal strength (not auto-updated): "
-            + getCurrentSignalStrength() + " dBm");
+            + String.format("%1.1f", getCurrentSignalStrength()) + " dBm");
         if (getChannel() == -1) {
           channelLabel.setText("Current channel: ALL");
         } else {
@@ -354,17 +355,8 @@ public class ApplicationRadio extends Radio {
     return panel;
   }
 
-  public void releaseInterfaceVisualizer(JPanel panel) {
-    Observer observer = (Observer) panel.getClientProperty("intf_obs");
-    if (observer == null) {
-      logger.fatal("Error when releasing panel, observer is null");
-      return;
-    }
-
-    this.deleteObserver(observer);
-  }
-
   public Collection<Element> getConfigXML() {
+  	/* TODO Save channel info? */
     return null;
   }
 
@@ -390,4 +382,27 @@ public class ApplicationRadio extends Radio {
   public boolean isReceiverOn() {
     return radioOn;
   }
+
+  /* Noise source radio support */
+	public int getNoiseLevel() {
+		return noiseSignal;
+	}
+	public void addNoiseLevelListener(NoiseLevelListener l) {
+		noiseListeners.add(l);
+	}
+	public void removeNoiseLevelListener(NoiseLevelListener l) {
+		noiseListeners.remove(l);
+	}
+
+  /* Noise source radio support (app mote API) */
+	private int noiseSignal = Integer.MIN_VALUE;
+	private ArrayList<NoiseLevelListener> noiseListeners = new ArrayList<NoiseLevelListener>();
+	public void setNoiseLevel(int signal) {
+		this.noiseSignal = signal;
+		for (NoiseLevelListener l: noiseListeners) {
+			l.noiseLevelChanged(this, signal);
+		}
+	}
+  
+  
 }
