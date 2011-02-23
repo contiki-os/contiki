@@ -62,7 +62,9 @@
 //_____ M A C R O S ________________________________________________________
 
 //_____ D E F I N I T I O N ________________________________________________
+#if USB_CONF_STORAGE
 bit  ms_multiple_drive;
+#endif
 //_____ P R I V A T E   D E C L A R A T I O N ______________________________
 
 extern PGM_VOID_P pbuffer;
