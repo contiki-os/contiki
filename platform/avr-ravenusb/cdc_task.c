@@ -581,7 +581,22 @@ extern uip_ds6_netif_t uip_ds6_if;
 				PRINTF_P(PSTR("  * Configuration: %d, USB<->ETH is "), usb_configuration_nb);
                 if (usb_eth_is_active == 0) PRINTF_P(PSTR("not "));
                 PRINTF_P(PSTR("active\n\r"));
-                
+
+#if CONFIG_STACK_MONITOR
+/* See contiki-raven-main.c for initialization of the magic numbers */
+{
+extern uint16_t __bss_end;
+uint16_t p=(uint16_t)&__bss_end;
+    do {
+      if (*(uint16_t *)p != 0x4242) {
+        printf_P(PSTR("  * Never-used stack > %d bytes\n\r"),p-(uint16_t)&__bss_end);
+        break;
+      }
+      p+=100;
+    } while (p<RAMEND-100);
+}
+#endif
+             
 				break;
 
 			case 'e':
