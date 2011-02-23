@@ -228,30 +228,27 @@ void iab_to_eui64(rimeaddr_t *eui64, uint32_t oui, uint16_t iab, uint32_t ext) {
 	eui64->u8[1] =  0x50;
 	eui64->u8[2] =  0xc2;
 
-	/* EUI64 field */
-	eui64->u8[3] = 0xff;
-	eui64->u8[4] = 0xfe;
-
 	/* IAB */
-	eui64->u8[5] = (iab >> 4)  & 0xff;	
-	eui64->u8[6] = (iab & 0xf) << 4;
+	eui64->u8[3] = (iab >> 4)  & 0xff;
+	eui64->u8[4] = (iab & 0xf) << 4;
 
 	/* EXT */
-	eui64->u8[6] |= ((ext >> 8) &  0xf);	
-	eui64->u8[7] =    ext       & 0xff;
+
+	eui64->u8[4] = (ext >> 24) & 0xff;
+	eui64->u8[5] = (ext >> 16) & 0xff;
+	eui64->u8[6] = (ext >> 8)  & 0xff;
+	eui64->u8[7] =  ext        & 0xff;
 }
 
-void oui_to_eui64(rimeaddr_t *eui64, uint32_t oui, uint32_t ext) {
+void oui_to_eui64(rimeaddr_t *eui64, uint32_t oui, uint64_t ext) {
 	/* OUI */
 	eui64->u8[0] = (oui >> 16) & 0xff;
 	eui64->u8[1] = (oui >> 8)  & 0xff;
 	eui64->u8[2] =  oui        & 0xff;
 
-	/* EUI64 field */
-	eui64->u8[3] = 0xff;
-	eui64->u8[4] = 0xfe;
-
 	/* EXT */
+	eui64->u8[3] = (ext >> 32) & 0xff;
+	eui64->u8[4] = (ext >> 24) & 0xff;
 	eui64->u8[5] = (ext >> 16) & 0xff;
 	eui64->u8[6] = (ext >> 8)  & 0xff;
 	eui64->u8[7] =  ext        & 0xff;
@@ -285,7 +282,7 @@ set_rimeaddr(rimeaddr_t *addr)
 	  	iab_to_eui64(&eui64, OUI, IAB, EXT_ID);
    #else  /* ifdef EXT_ID */
 		PRINTF("address in flash blank, setting to defined IAB with a random extension.\n\r");
-		iab_to_eui64(&eui64, OUI, IAB, *MACA_RANDOM & 0xfff);
+		iab_to_eui64(&eui64, OUI, IAB, *MACA_RANDOM);
    #endif /* ifdef EXT_ID */
 
 #else  /* ifdef IAB */
@@ -295,7 +292,7 @@ set_rimeaddr(rimeaddr_t *addr)
 		oui_to_eui64(&eui64, OUI, EXT_ID);
    #else  /*ifdef EXT_ID */
 		PRINTF("address in flash blank, setting to defined OUI with a random extension.\n\r");
-		oui_to_eui64(&eui64, OUI, *MACA_RANDOM & 0xffffff);
+		oui_to_eui64(&eui64, OUI, ((*MACA_RANDOM << 32) | *MACA_RANDOM));
    #endif /*endif EXTID */
 
 #endif /* ifdef IAB */
