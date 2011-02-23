@@ -157,7 +157,8 @@ PROCESS_THREAD(border_router_process, ev, data)
   memcpy_P(buf,dag_id,sizeof(dag_id));
   dag = rpl_set_root((uip_ip6addr_t *)buf);
 
-/* Assign bbbb::11 to the uip stack, and bbbb::1 to the host network interface, e.g. $ip -6 address add bbbb::1/64 dev usb0 */
+/* Assign bbbb::200 to the uip stack, and bbbb::1 to the host network interface, e.g. $ip -6 address add bbbb::1/64 dev usb0 */
+/* Note the jackdaw uip stack will get packets intended for usb if they have the same address! */
 /* $ifconfig usb0 -arp on Ubuntu to skip the neighbor solicitations. Add explicit neighbors on other OSs */
   if(dag != NULL) {
     PRINTF("created a new RPL dag\n");
@@ -168,7 +169,7 @@ PROCESS_THREAD(border_router_process, ev, data)
 
 #else
     uip_ip6addr_t ipaddr;
-    uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1);
+    uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x200);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);
     rpl_set_prefix(dag, &ipaddr, 64);
 #endif
@@ -303,6 +304,20 @@ get_panaddr_from_eeprom(void) {
 static void initialize(void) {
   watchdog_init();
   watchdog_start();
+
+#if CONFIG_STACK_MONITOR
+  /* Simple stack pointer highwater monitor. The 'm' command in cdc_task.c
+   * looks for the first overwritten magic number.
+   */
+{
+extern uint16_t __bss_end;
+uint16_t p=(uint16_t)&__bss_end;
+    do {
+      *(uint16_t *)p = 0x4242;
+      p+=100;
+    } while (p<RAMEND-100);
+}
+#endif
 
   /* Initialize hardware */
   // Checks for "finger", jumps to DFU if present.

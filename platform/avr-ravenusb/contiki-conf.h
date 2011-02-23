@@ -99,6 +99,9 @@ unsigned long clock_seconds(void);
 /* Starting address for code received via the codeprop facility. Not tested on Jackdaw */
 //#define EEPROMFS_ADDR_CODEPROP 0x8000
 
+/* Simple stack monitor. Status is displayed from the USB menu with 'm' command */
+#define CONFIG_STACK_MONITOR 1
+
 /* ************************************************************************** */
 //#pragma mark USB Ethernet Hooks
 /* ************************************************************************** */
@@ -349,7 +352,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_ND6_RETRANS_TIMER  10000
 
 /* Save all the RAM we can */
-#define PROCESS_CONF_NO_PROCESS_NAMES 0
+#define PROCESS_CONF_NO_PROCESS_NAMES 1
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM           2
 #undef QUEUEBUF_CONF_REF_NUM
