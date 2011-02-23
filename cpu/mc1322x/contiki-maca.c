@@ -280,6 +280,10 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
 				NETSTACK_RDC.input();
 			}
 		}
+                /* Call ourself again to handle remaining packets in the queue */
+		if (rx_head != NULL) {
+			process_poll(&contiki_maca_process);
+		}
 		
  	};
 	
