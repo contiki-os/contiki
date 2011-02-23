@@ -1,0 +1,18 @@
+# Makefile for Z1 Starter Platform, adapted from the Z1 platform makefile
+
+CFLAGS += -DCONTIKI_TARGET_Z1
+
+CONTIKI_TARGET_DIRS += . dev 
+#CONTIKI_CORE=contiki-z1sp-main
+#CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.c
+
+# include here 
+CONTIKI_TARGET_SOURCEFILES += contiki-z1sp-platform.c potentiometer-sensor.c
+
+CONTIKIZ1PLATFORMDIR = $(CONTIKI)/platform/z1
+
+CLEAN += *.z1sp 
+
+include $(CONTIKIZ1PLATFORMDIR)/Makefile.common
+
+CONTIKI_TARGET_DIRS += ${addprefix $(CONTIKIZ1PLATFORMDIR)/,. dev apps net}

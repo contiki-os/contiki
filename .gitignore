@@ -8,3 +8,5 @@ obj_*
 *.a
 *pyc
 *.pyc
+symbols.c
+symbols.h
