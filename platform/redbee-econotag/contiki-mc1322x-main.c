@@ -422,8 +422,6 @@ main(void)
          RF_CHANNEL);
 #endif /* WITH_UIP6 */
 
-<<<<<<< HEAD
-=======
   *MACA_MACPANID = 0xcdab; /* this is the hardcoded contiki pan, register is PACKET order */
   *MACA_MAC16ADDR = 0xffff; /* short addressing isn't used, set this to 0xffff for now */
 
