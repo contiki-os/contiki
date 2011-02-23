@@ -31,17 +31,7 @@
 
 package se.sics.cooja.mspmote.interfaces;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
-
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
