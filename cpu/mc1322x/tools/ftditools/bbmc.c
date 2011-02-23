@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: bbmc.c,v 1.2 2011/01/17 15:45:02 maralvira Exp $
+ *
  */
 
 /* control reset and VREF2 lines */

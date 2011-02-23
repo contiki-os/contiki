@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: uart1.h,v 1.2 2010/11/10 22:06:28 maralvira Exp $
+ *
  */
 
 #ifndef UART1_H

@@ -200,7 +200,7 @@ xmem_pread(void *_p, int size, unsigned long offset)
   return size;
 }
 /*---------------------------------------------------------------------------*/
-static const char *
+static const unsigned char *
 program_page(unsigned long offset, const unsigned char *p, int nbytes)
 {
   const unsigned char *end = p + nbytes;

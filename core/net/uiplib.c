@@ -47,7 +47,8 @@ uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
 {
 #if UIP_CONF_IPV6
   uint16_t value;
-  int tmp, len, zero;
+  int tmp, zero;
+  unsigned int len;
   char c = 0;  //gcc warning if not initialized
 
   value = 0;

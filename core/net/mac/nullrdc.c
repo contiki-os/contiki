@@ -72,7 +72,12 @@ struct seqno {
   uint8_t seqno;
 };
 
-#define MAX_SEQNOS 8
+#ifdef NETSTACK_CONF_MAC_SEQNO_HISTORY
+#define MAX_SEQNOS NETSTACK_CONF_MAC_SEQNO_HISTORY
+#else /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
+#define MAX_SEQNOS 16
+#endif /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
+
 static struct seqno received_seqnos[MAX_SEQNOS];
 #endif /* NULLRDC_802154_AUTOACK */
 

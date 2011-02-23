@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: gpio.h,v 1.5 2010/11/07 14:29:04 maralvira Exp $
+ *
  */
 
 #ifndef GPIO_H

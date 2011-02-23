@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: freescale-ncb.h,v 1.1 2010/06/10 14:48:32 maralvira Exp $
+ *
  */
 
 #ifndef BOARD_FREESCALE_NCB_H

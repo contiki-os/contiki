@@ -455,7 +455,9 @@ send_packet(void)
   rtimer_clock_t t;
   rtimer_clock_t encounter_time = 0;
   int strobes;
+#if 0
   struct xmac_hdr *hdr;
+#endif
   uint8_t got_strobe_ack = 0;
   uint8_t got_ack = 0;
   uint8_t strobe[MAX_STROBE_SIZE];
@@ -495,7 +497,7 @@ send_packet(void)
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
   len = NETSTACK_FRAMER.create();
   strobe_len = len + sizeof(struct xmac_hdr);
-  if(len == 0 || strobe_len > sizeof(strobe)) {
+  if(len == 0 || strobe_len > (int)sizeof(strobe)) {
     /* Failed to send */
    PRINTF("xmac: send failed, too large header\n");
     return MAC_TX_ERR_FATAL;
@@ -602,9 +604,9 @@ send_packet(void)
 
       while(got_strobe_ack == 0 &&
 	    RTIMER_CLOCK_LT(RTIMER_NOW(), t + xmac_config.strobe_wait_time)) {
+#if 0
 	rtimer_clock_t now = RTIMER_NOW();
 
-#if 0
 	/* See if we got an ACK */
 	packetbuf_clear();
 	len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
@@ -647,7 +649,9 @@ send_packet(void)
 #endif
           off();
 	} else {
+#if 0
 	  rtimer_clock_t wt;
+#endif
           on();
 	  NETSTACK_RADIO.send(strobe, strobe_len);
 #if 0

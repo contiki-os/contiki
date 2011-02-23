@@ -1,0 +1,145 @@
+# Hey Emacs, this is a -*- makefile -*-
+
+# Set up a default target in case the user didn't already have one.
+# "all" means to build .bin for all defined targets for the currently-defined board
+all: $(addsuffix _$(BOARD).bin, $(TARGETS) $(TARGETS_WITH_ROM_VARS))
+.PHONY: all
+
+# Pretty print output.  Use "make Q=" to see full commands
+Q ?= @
+define pretty
+  @printf "%8s %s\n" "$1" "$2"
+endef
+
+# Don't delete intermediate targets
+.SECONDARY:
+
+#####
+# Tools and flags
+
+# Set up cross compiler and toolchain definitions.
+CROSS_COMPILE ?= arm-none-eabi-
+AS	= $(CROSS_COMPILE)as
+LD	= $(CROSS_COMPILE)ld
+CC	= $(CROSS_COMPILE)gcc
+CPP	= $(CC) -E
+AR	= $(CROSS_COMPILE)ar
+NM	= $(CROSS_COMPILE)nm
+STRIP	= $(CROSS_COMPILE)strip
+OBJCOPY = $(CROSS_COMPILE)objcopy
+OBJDUMP = $(CROSS_COMPILE)objdump
+RANLIB	= $(CROSS_COMPILE)ranlib
+
+# Build CFLAGS and prepend it to user-supplied CFLAGS
+CFLAGS_PLAT  ?= -march=armv4t -mtune=arm7tdmi-s -mlong-calls -msoft-float \
+		-mthumb-interwork -fno-strict-aliasing -fno-common -ffixed-r8 \
+		-ffunction-sections -ffreestanding -fno-builtin -nodefaultlibs
+CFLAGS_WARN  ?= -Wcast-align -Wall -Wstrict-prototypes -Wextra 
+CFLAGS_OPT   ?= -Os
+CFLAGS_DEBUG ?= -g -DDEBUG -Werror
+CFLAGS_MISC  ?= -pipe
+CFLAGS := $(CFLAGS_PLAT) $(CFLAGS_WARN) $(CFLAGS_OPT) $(CFLAGS_DEBUG) $(CFLAGS_MISC) $(CFLAGS)
+
+# Thumb flags, used for building most objects
+CFLAGS_THUMB ?= -mthumb -mcallee-super-interworking
+
+# Linker flags
+LINKERSCRIPT ?= $(MC1322X)/mc1322x.lds
+LDFLAGS      ?= -T $(LINKERSCRIPT) -nostartfiles -static -export-dynamic -u_start -Wl,-Map=$(@:.elf=.map)
+
+# Assembler flags
+AFLAGS       ?= -Wa,-gstabs $(CFLAGS)
+
+# Misc tool options
+OBJCOPYFLAGS ?= --gap-fill=0xff
+ARFLAGS      = cr
+
+#####
+
+include $(MC1322X)/board/Makefile.board
+include $(MC1322X)/lib/Makefile.lib
+include $(MC1322X)/src/Makefile.src
+
+#####
+# Rule for building ELF files.  We use both a wildcard rule that links
+# $(SRCLIB) as well as target-specific rules that link $(SRCLIB_ROMVARS)
+
+# Normal targets (wildcard rule):
+%_$(BOARD).elf: $(OBJDIR)/%.o $(TARGET_OBJ) $(SRCLIB)
+	$(call pretty,LINK,$@)
+	$Q$(CC) $(LDFLAGS) -o $@ -Wl,--start-group $^ -lm -Wl,--end-group
+
+# Targets that need space for rom variables:
+define build_elf_rule
+$(1)_$$(BOARD).elf: $$(OBJDIR)/$(1).o $$(TARGET_OBJ) $$(SRCLIB_ROMVARS)
+	$$(call pretty,LINK (romvars),$$@)
+	$$Q$$(CC) $$(LDFLAGS) -o $$@ -Wl,--start-group $$^ -lm -Wl,--end-group
+endef
+$(foreach t, $(TARGETS_WITH_ROM_VARS), $(eval $(call build_elf_rule,$(t))))
+
+
+# Generic rules
+%.srec: %.elf
+	$(call pretty,OBJCOPY,$@)
+	$Q$(OBJCOPY) $(OBJCOPYFLAGS) -O srec $< $@
+
+%.ihex: %.elf
+	$(call pretty,OBJCOPY,$@)
+	$Q$(OBJCOPY) $(OBJCOPYFLAGS) -O ihex $< $@
+
+%.bin: %.elf
+	$(call pretty,OBJCOPY,$@)
+	$Q$(OBJCOPY) $(OBJCOPYFLAGS) -O binary $< $@
+
+%.dis: %.elf
+	$(call pretty,OBJDUMP,$@)
+	$Q$(OBJDUMP) -Sd $< > $@ || rm -f $@
+
+%.dis: %.o
+	$(call pretty,OBJDUMP,$@)
+	$Q$(OBJDUMP) -d $< > $@ || rm -f $@
+
+%.o: %.c $(FORCE_C_DEPENDS)
+	$(call pretty,CC,$@)
+	$Q$(CC) $(CFLAGS) $(CFLAGS_THUMB) -MMD -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
+
+%.o: %.S
+	$(call pretty,AS,$@)
+	$Q$(CC) $(AFLAGS) -MMD -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
+
+# Fix the dependencies generated for a particular target .o
+# See http://make.paulandlesley.org/autodep.html#advanced
+define FINALIZE_DEPENDENCY
+  cp $(@:.o=.d) $(@:.o=.$$$$); \
+  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+      -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.$$$$) >> $(@:.o=.d); \
+  rm -f $(@:.o=.$$$$)
+endef
+
+clean::
+	rm -f *.{o,d,a,bin,elf,ihex,srec,dis,map,bak} *~
+
+.PHONY: clean
+
+##############################
+
+# If no single board was specified, invoke make recursively for each
+# board in $(BOARDS), or $(ALL_BOARDS) if that wasn't specified either.
+# This is at the end so that it can override all other targets.
+ifndef BOARD
+ifneq ($(MAKECMDGOALS),clean)
+.DEFAULT_GOAL=mc1322x-default
+BOARDS ?= $(ALL_BOARDS)
+define build_board
+	@echo "Building for board: $(1)"
+	@$(MAKE) --no-print-directory BOARD=$(1) $(2)
+
+endef
+$(MAKECMDGOALS):
+	$(foreach b, $(BOARDS), $(call build_board,$(b),$@))
+mc1322x-default:
+	$(foreach b, $(BOARDS), $(call build_board,$(b),))
+endif
+endif

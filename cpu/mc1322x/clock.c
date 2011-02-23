@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: clock.c,v 1.2 2010/11/07 14:42:02 maralvira Exp $
+ *
  */
 
 #include <sys/clock.h>

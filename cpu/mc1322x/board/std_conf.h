@@ -30,7 +30,7 @@
  * This file is part of libmc1322x: see http://mc1322x.devl.org
  * for details. 
  *
- * $Id: std_conf.h,v 1.1 2010/06/10 14:48:32 maralvira Exp $
+ *
  */
 
 #ifndef STDCONF_H
