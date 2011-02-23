@@ -383,10 +383,16 @@ public class MRM extends AbstractRadioMedium {
     }
 
     public double getDestinationSignalStrength(Radio radio) {
+    	if (signalStrengths.get(radio) == null) {
+    		return Double.MIN_VALUE;
+    	}
       return signalStrengths.get(radio);
     }
 
     public double getInterferenceSignalStrength(Radio radio) {
+    	if (signalStrengths.get(radio) == null) {
+    		return Double.MIN_VALUE;
+    	}
       return signalStrengths.get(radio);
     }
   }
