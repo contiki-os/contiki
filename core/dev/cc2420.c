@@ -139,7 +139,7 @@ static int cc2420_send(const void *data, unsigned short len);
 static int cc2420_receiving_packet(void);
 static int pending_packet(void);
 static int cc2420_cca(void);
-static int detected_energy(void);
+/*static int detected_energy(void);*/
 
 signed char cc2420_last_rssi;
 uint8_t cc2420_last_correlation;

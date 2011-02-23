@@ -108,9 +108,6 @@ collect_link_estimate_update_rx(struct collect_link_estimate *n)
 uint16_t
 collect_link_estimate(struct collect_link_estimate *le)
 {
-  int i;
-  uint16_t etx;
-
   if(le->num_estimates == 0) {
     return INITIAL_LINK_ESTIMATE * COLLECT_LINK_ESTIMATE_UNIT;
   }

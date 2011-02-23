@@ -147,7 +147,7 @@ void
 timetable_aggregate_compute_detailed(struct timetable_aggregate *a,
 				     struct timetable *timetable)
 {
-  int i;
+  unsigned int i;
   rtimer_clock_t t;
   
   t = timetable->timestamps[0].time;
@@ -179,7 +179,8 @@ void
 timetable_aggregate_compute_categories(struct timetable_aggregate *a,
 				       struct timetable *timetable)
 {
-  int i,j;
+  unsigned int i;
+  int j;
   rtimer_clock_t t;
   uint16_t categories[XXX_HACK_MAX_CATEGORIES];
   int categories_ptr = 0;

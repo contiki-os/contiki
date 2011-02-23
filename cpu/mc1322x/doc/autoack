@@ -1,0 +1,34 @@
+The known details about autoacking.
+
+1) Auto-acking is disabled if promiscuous mode in enabled. Auto-acking
+   is enabled when promiscuous mode is disabled. A more proper name
+   for this bit would be promiscuous/#autoack.
+
+2) If promiscuous mode is disabled and a recieved packet 1) matches
+   the address filters and 2) has the ack request bit set, then an
+   auto-ack will be sent (provided you do item 3 properly). The
+   sequence number is stuffed and transmitted automatically. Note: you
+   must have the address set properly in the maca hardware. That means
+   the EUI registers for long addressing and the PANID and short
+   addr. for short addressing.
+
+3) You must wait 200 maca clocks or so after receiving a packet that
+   needs an ack. This is necessary for the maca to do it's thing. If
+   you don't wait enough then it either will not send the ack, or if
+   you wait a little more (but not enough), the ack DSN will be zero.
+
+4) The following must be set properly, TXACKDELAY, RXACKDELAY,
+   RXEND. The best way to set these is to use a scope and the TX_ON
+   and RX_ON signals. You set TXACKDELAY so that the ack is
+   transmitted 12 symbols after the received packet (192 us). You set
+   RXACKDELAY to start before the ack is due to arrive (I'm doing
+   100us before). And you set RXEND to be long enough to receive the
+   ACK (I'm doing a 700us window or so).
+
+4b) CCA has its own set of timings.
+
+5) The transmitter must set TXSEQNR before MACA_DMATX.
+
+6) The status of the next "action complete" on the TX side tells you
+   if the ack was received or not. Status will be 0 (success) if you
+   got the ack and 5 (no_ack) if you did not.
