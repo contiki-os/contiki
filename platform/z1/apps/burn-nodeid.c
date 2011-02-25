@@ -61,6 +61,7 @@ PROCESS_THREAD(burn_process, ev, data)
   watchdog_stop();
   leds_on(LEDS_RED);
 #if NODEID
+  #warning "***** BURNING NODE ID"
   printf("Burning node id %d\n", NODEID);
   node_id_burn(NODEID);
   leds_on(LEDS_BLUE);

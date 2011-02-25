@@ -18,6 +18,10 @@ ifdef UIP_CONF_IPV6
 CFLAGS += -DWITH_UIP6=1
 endif
 
+ifdef nodemac
+CFLAGS += -DMACID=$(nodemac)
+endif 
+
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(CONTIKI_TARGET_MAIN)
 
 MCU=msp430x2617
