@@ -3,6 +3,7 @@
 *.ihex
 obj_*
 *.z1
+!Makefile.z1
 *.sky
 *.map
 *.a
