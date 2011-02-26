@@ -10,3 +10,5 @@ obj_*
 *.pyc
 symbols.c
 symbols.h
+*_del*
+tools/
