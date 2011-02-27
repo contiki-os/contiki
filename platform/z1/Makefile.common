@@ -1,6 +1,6 @@
 # $Id: Makefile.z1,v 1.5 2011/02/26 enricmcalvo Exp $
 
-#PROJECT_SOURCEFILES += i2cmaster.c adxl345.c
+PROJECT_SOURCEFILES += i2cmaster.c adxl345.c
 CFLAGS+=-Os -g
 CLEAN += symbols.c symbols.h
 #CFLAGS += -ffunction-sections

@@ -47,7 +47,7 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
-#if 1
+#if 0
 // this is now handled in the ADXL345 accelerometer code as it uses irq on port1 too.
 interrupt(CC2420_IRQ_VECTOR)
 cc24240_port1_interrupt(void)

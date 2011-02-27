@@ -371,7 +371,7 @@ PROCESS_THREAD(accmeter_process, ev, data) {
 /* XXX This interrupt vector is shared with the interrupts from CC2420, so that
   was moved here but should find a better home. XXX */
 
-#if 0
+#if 1
 static struct timer suppressTimer1, suppressTimer2;
 
 interrupt(PORT1_VECTOR) port1_isr (void) {
