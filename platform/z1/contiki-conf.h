@@ -192,7 +192,7 @@
 
 
 #ifdef PROJECT_CONF_H
-#include PROJECT_CONF_H
+#include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
 
