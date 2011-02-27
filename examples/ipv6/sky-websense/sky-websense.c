@@ -42,7 +42,7 @@
 #include "httpd-simple.h"
 #include "webserver-nogui.h"
 #include "dev/sht11-sensor.h"
-#include "dev/light-sensor.h"
+//#include "dev/light-sensor.h"
 #include "dev/leds.h"
 #include <stdio.h>
 
@@ -59,7 +59,8 @@ static int sensors_pos;
 static int
 get_light(void)
 {
-  return 10 * light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) / 7;
+  //return 10 * light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) / 7;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -151,7 +152,7 @@ PROCESS_THREAD(web_sense_process, ev, data)
   process_start(&webserver_nogui_process, NULL);
 
   etimer_set(&timer, CLOCK_SECOND * 2);
-  SENSORS_ACTIVATE(light_sensor);
+  //SENSORS_ACTIVATE(light_sensor);
   SENSORS_ACTIVATE(sht11_sensor);
 
   while(1) {
