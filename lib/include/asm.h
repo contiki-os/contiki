@@ -33,19 +33,84 @@
  *
  */
 
-#ifndef MC1322X_H
-#define MC1322X_H
+#ifndef ASM_H
+#define ASM_H
 
-#include "isr.h"
-#include "gpio.h"
-#include "crm.h"
-#include "nvm.h"
-#include "tmr.h"
-#include "kbi.h"
-#include "maca.h"
-#include "packet.h"
-#include "uart1.h"
-#include "utils.h"
-#include "asm.h"
+/* Structure-based register definitions */
+/* Example use:
+        ASM->KEY0 = 0xaabbccdd;
+	ASM->CONTROL1bits = (struct ASM_CONTROL1) {
+	         .MASK_IRQ = 1,
+		 .CBC = 1,
+	};
+	ASM->CONTROL1bits.SELF_TEST = 1;
+*/
+
+struct ASM_struct {
+	uint32_t KEY0;
+	uint32_t KEY1;
+	uint32_t KEY2;
+	uint32_t KEY3;
+	uint32_t DATA0;
+	uint32_t DATA1;
+	uint32_t DATA2;
+	uint32_t DATA3;
+	uint32_t CTR0;
+	uint32_t CTR1;
+	uint32_t CTR2;
+	uint32_t CTR3;
+	uint32_t CTR0_RESULT;
+	uint32_t CTR1_RESULT;
+	uint32_t CTR2_RESULT;
+	uint32_t CTR3_RESULT;
+	uint32_t CBC0_RESULT;
+	uint32_t CBC1_RESULT;
+	uint32_t CBC2_RESULT;
+	uint32_t CBC3_RESULT;
+
+	union {
+		uint32_t CONTROL0;
+		struct ASM_CONTROL0 {
+		        uint32_t :24;
+			uint32_t START:1;
+			uint32_t CLEAR:1;
+			uint32_t LOAD_MAC:1;
+       		        uint32_t :4;
+			uint32_t CLEAR_IRQ:1;
+		} CONTROL0bits;
+	};
+	union {
+		uint32_t CONTROL1;
+		struct ASM_CONTROL1 {
+			uint32_t ON:1;
+			uint32_t NORMAL_MODE:1;
+			uint32_t BYPASS:1;
+		        uint32_t :21;
+			uint32_t CBC:1;
+			uint32_t CTR:1;
+			uint32_t SELF_TEST:1;
+		        uint32_t :4;
+			uint32_t MASK_IRQ:1;
+		} CONTROL1bits;
+	};
+	union {
+		uint32_t STATUS;
+		struct ASM_STATUS {
+   		        uint32_t :24;
+			uint32_t DONE:1;
+			uint32_t TEST_PASS:1;
+		        uint32_t :6;
+		} STATUSbits;
+	};
+
+	uint32_t reserved;
+
+	uint32_t MAC0;
+	uint32_t MAC1;
+	uint32_t MAC2;
+	uint32_t MAC3;
+};
+
+static volatile struct ASM_struct * const ASM = (void *) (0x80008000);
 
 #endif

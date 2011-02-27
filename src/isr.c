@@ -86,6 +86,9 @@ void irq(void)
 				cal_isr();
 			}
 		}
+		if(bit_is_set(pending, INT_NUM_ASM)) {
+			if(asm_isr != 0) { asm_isr(); }
+		}
 
 		*INTFRC = 0; /* stop forcing interrupts */
 
