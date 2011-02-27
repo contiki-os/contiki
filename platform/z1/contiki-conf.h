@@ -54,8 +54,7 @@
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
 
-//Enric #define QUEUEBUF_CONF_NUM                4
-#define QUEUEBUF_CONF_NUM                8 //Enric like in SKY
+#define QUEUEBUF_CONF_NUM                4 
 
 
 #else /* WITH_UIP6 */
