@@ -54,7 +54,9 @@
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
 
-#define QUEUEBUF_CONF_NUM                4
+//Enric #define QUEUEBUF_CONF_NUM                4
+#define QUEUEBUF_CONF_NUM                8 //Enric like in SKY
+
 
 #else /* WITH_UIP6 */
 
@@ -63,7 +65,9 @@
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC     csma_driver
 /* #define NETSTACK_CONF_RDC     contikimac_driver */
-#define NETSTACK_CONF_RDC     nullrdc_driver
+ #define NETSTACK_CONF_RDC     contikimac_driver 
+//#define NETSTACK_CONF_RDC     nullrdc_driver
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8 //Enric like in SKY
 #define NETSTACK_CONF_FRAMER  framer_802154
 
 #define CC2420_CONF_AUTOACK              0
