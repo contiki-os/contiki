@@ -1,7 +1,11 @@
 # $Id: Makefile.z1,v 1.5 2011/02/26 enricmcalvo Exp $
 
+#PROJECT_SOURCEFILES += i2cmaster.c adxl345.c
 CFLAGS+=-Os -g
 CLEAN += symbols.c symbols.h
+#CFLAGS += -ffunction-sections
+#LDFLAGS += -Wl,--gc-sections,--undefined=_reset_vector__,--undefined=InterruptVectors,--undefined=_copy_data_init__,--undefined=_clear_bss_init__,--undefined=_end_of_init__
+
 
 ARCH=msp430.c leds.c watchdog.c xmem.c \
      spix.c cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c\
