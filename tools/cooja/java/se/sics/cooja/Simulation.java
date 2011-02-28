@@ -685,6 +685,12 @@ public class Simulation extends Observable implements Runnable {
 
     setChanged();
     notifyObservers(this);
+    
+    /* Execute simulation thread events now, before simulation starts */
+    while (hasPollRequests) {
+      popSimulationInvokes().run();
+    }
+    
     return true;
   }
 

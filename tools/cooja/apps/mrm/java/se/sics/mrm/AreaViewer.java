@@ -31,22 +31,79 @@
 
 package se.sics.mrm;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.*;
-import javax.swing.*;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Random;
+import java.util.Vector;
+
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSlider;
+import javax.swing.JToolTip;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
+import javax.swing.ProgressMonitor;
 import javax.swing.filechooser.FileFilter;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
-import se.sics.cooja.interfaces.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.RadioConnection;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
+import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.interfaces.Radio;
 
 /**
  * The class AreaViewer belongs to the MRM package.
@@ -128,7 +185,7 @@ public class AreaViewer extends VisPlugin {
   private boolean inSelectMode = true;
   private boolean inTrackMode = false;
 
-  private Vector<Line2D> trackedComponents = null;
+  private ChannelModel.TrackedSignalComponents trackedComponents = null;
 
   // Coloring variables
   private JPanel coloringIntervalPanel = null;
@@ -148,6 +205,8 @@ public class AreaViewer extends VisPlugin {
 
   private JRadioButton noneButton = null;
 
+  private JRadioButton trackModeButton;
+  
   /**
    * Initializes an AreaViewer.
    *
@@ -196,12 +255,13 @@ public class AreaViewer extends VisPlugin {
     zoomModeButton.setActionCommand("set zoom mode");
     zoomModeButton.addActionListener(canvasModeHandler);
 
-    JRadioButton trackModeButton = new JRadioButton ("track rays");
+    trackModeButton = new JRadioButton ("track rays");
     trackModeButton.setAlignmentY(Component.BOTTOM_ALIGNMENT);
     trackModeButton.setContentAreaFilled(false);
     trackModeButton.setActionCommand("set track rays mode");
     trackModeButton.addActionListener(canvasModeHandler);
-
+    trackModeButton.setEnabled(false);
+    
     ButtonGroup group = new ButtonGroup();
     group.add(selectModeButton);
     group.add(panModeButton);
@@ -565,19 +625,36 @@ public class AreaViewer extends VisPlugin {
   /**
    * Listens to mouse event on canvas
    */
-  private MouseListener canvasMouseHandler = new MouseListener() {
+  private MouseAdapter canvasMouseHandler = new MouseAdapter() {
+    private Popup popUpToolTip = null;
+
     public void mouseReleased(MouseEvent e) {
+      if (popUpToolTip != null) {
+        popUpToolTip.hide();
+        popUpToolTip = null;
+      }
     }
-    public void mouseExited(MouseEvent e) {
-    }
-    public void mouseClicked(MouseEvent e) {
+
+    public void mousePressed(MouseEvent e) {
+      if (popUpToolTip != null) {
+        popUpToolTip.hide();
+        popUpToolTip = null;
+      }
+
+      /* Zoom & Pan */
+      lastHandledPosition = new Point(e.getX(), e.getY());
+      zoomCenterX = e.getX() / currentZoomX - currentPanX;
+      zoomCenterY = e.getY() / currentZoomY - currentPanY;
+      zoomCenterPoint = e.getPoint();
+
+      /* Select */
       if (inSelectMode) {
         Vector<Radio> hitRadios = trackClickedRadio(e.getPoint());
-
         if (hitRadios == null || hitRadios.size() == 0) {
           if (e.getButton() != MouseEvent.BUTTON1) {
             selectedRadio = null;
             channelImage = null;
+            trackModeButton.setEnabled(false);
             canvas.repaint();
           }
           return;
@@ -589,39 +666,47 @@ public class AreaViewer extends VisPlugin {
 
         if (selectedRadio == null || !hitRadios.contains(selectedRadio)) {
           selectedRadio = hitRadios.firstElement();
+          trackModeButton.setEnabled(true);
         } else {
-          // Select next in list
           selectedRadio = hitRadios.get(
               (hitRadios.indexOf(selectedRadio)+1) % hitRadios.size()
           );
+          trackModeButton.setEnabled(true);
         }
 
         channelImage = null;
         canvas.repaint();
-      } else if (inTrackMode && selectedRadio != null) {
-        // Calculate real clicked position
+        return;
+      }
+
+      /* Track */
+      if (inTrackMode && selectedRadio != null) {
         double realClickedX = e.getX() / currentZoomX - currentPanX;
         double realClickedY = e.getY() / currentZoomY - currentPanY;
 
-        Position radioPosition = currentRadioMedium.getRadioPosition(selectedRadio);
+        Position radioPosition = selectedRadio.getPosition();
         final double radioX = radioPosition.getXCoordinate();
         final double radioY = radioPosition.getYCoordinate();
 
         trackedComponents = currentChannelModel.getRaysOfTransmission(radioX, radioY, realClickedX, realClickedY);
-
         canvas.repaint();
+        
+        /* Show popup */
+        JToolTip t = AreaViewer.this.createToolTip();
+
+        String logHtml = 
+        	"<html>" + 
+        	trackedComponents.log.replace("\n", "<br>").replace(" pi", " &pi;") +
+        	"</html>";
+        t.setTipText(logHtml);
+        
+        if (t.getTipText() == null || t.getTipText().equals("")) {
+          return;
+        }
+        popUpToolTip = PopupFactory.getSharedInstance().getPopup(
+        		AreaViewer.this, t, e.getXOnScreen(), e.getYOnScreen());
+        popUpToolTip.show();
       }
-
-    }
-    public void mouseEntered(MouseEvent e) {
-    }
-    public void mousePressed(MouseEvent e) {
-      lastHandledPosition = new Point(e.getX(), e.getY());
-
-      // Set zoom center (real world)
-      zoomCenterX = e.getX() / currentZoomX - currentPanX;
-      zoomCenterY = e.getY() / currentZoomY - currentPanY;
-      zoomCenterPoint = e.getPoint();
     }
   };
 
@@ -1523,6 +1608,7 @@ public class AreaViewer extends VisPlugin {
       // Clear selected radio (if any selected) and radio medium coverage
       selectedRadio = null;
       channelImage = null;
+      trackModeButton.setEnabled(false);
       canvas.repaint();
     }
   };
@@ -1616,7 +1702,7 @@ public class AreaViewer extends VisPlugin {
         final double height = canvas.getHeight() / currentZoomY;
 
         // Get sending radio position
-        Position radioPosition = currentRadioMedium.getRadioPosition(selectedRadio);
+        Position radioPosition = selectedRadio.getPosition();
         final double radioX = radioPosition.getXCoordinate();
         final double radioY = radioPosition.getYCoordinate();
 
@@ -1990,7 +2076,7 @@ public class AreaViewer extends VisPlugin {
 
         // Translate to real world radio position
         Radio radio = currentRadioMedium.getRegisteredRadio(i);
-        Position radioPosition = currentRadioMedium.getRadioPosition(radio);
+        Position radioPosition = radio.getPosition();
         g2d.translate(
             radioPosition.getXCoordinate(),
             radioPosition.getYCoordinate()
@@ -2129,16 +2215,14 @@ public class AreaViewer extends VisPlugin {
       g2d.setStroke(new BasicStroke((float) 0.0));
 
       Random random = new Random(); /* Do not use main random generator */
-      for (int i=0; i < trackedComponents.size(); i++) {
+      for (Line2D l: trackedComponents.components) {
         g2d.setColor(new Color(255, random.nextInt(255), random.nextInt(255), 255));
-        Line2D originalLine = trackedComponents.get(i);
         Line2D newLine = new Line2D.Double(
-            originalLine.getX1()*100.0,
-            originalLine.getY1()*100.0,
-            originalLine.getX2()*100.0,
-            originalLine.getY2()*100.0
+            l.getX1()*100.0,
+            l.getY1()*100.0,
+            l.getX2()*100.0,
+            l.getY2()*100.0
         );
-
         g2d.draw(newLine);
       }
     }
@@ -2167,7 +2251,7 @@ public class AreaViewer extends VisPlugin {
 
     for (int i=0; i < currentRadioMedium.getRegisteredRadioCount(); i++) {
       Radio testRadio = currentRadioMedium.getRegisteredRadio(i);
-      Position testPosition = currentRadioMedium.getRadioPosition(testRadio);
+      Position testPosition = testRadio.getPosition();
 
       if (realClickedX > testPosition.getXCoordinate() - realIconHalfWidth &&
           realClickedX < testPosition.getXCoordinate() + realIconHalfWidth &&

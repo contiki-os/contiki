@@ -100,7 +100,7 @@ public class SkyButton extends Button {
   }
 
   public boolean isPressed() {
-    logger.warn("Not implemented");
+  	/* Not implemented */
     return false;
   }
 

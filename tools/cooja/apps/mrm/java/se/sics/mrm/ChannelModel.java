@@ -33,6 +33,7 @@ package se.sics.mrm;
 
 import java.awt.geom.*;
 import java.util.*;
+
 import javax.swing.tree.DefaultMutableTreeNode;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -65,9 +66,13 @@ public class ChannelModel {
 
   private ObstacleWorld myObstacleWorld = new ObstacleWorld();
 
+  /* Log mode: visualize signal components */
+  private boolean logMode = false;
+  private StringBuilder logInfo = null;
+  private ArrayList<Line2D> loggedRays = null;
+
+  
   // Ray tracing components temporary vector
-  private boolean inLoggingMode = false;
-  private Vector<Line2D> savedRays = null;
   private Vector<Vector<Line2D>> calculatedVisibleSides = new Vector<Vector<Line2D>>();
   private Vector<Point2D> calculatedVisibleSidesSources = new Vector<Point2D>();
   private Vector<Line2D> calculatedVisibleSidesLines = new Vector<Line2D>();
@@ -1322,11 +1327,14 @@ public class ChannelModel {
    *         the random variable mean, and the second is the variance.
    */
   public double[] getReceivedSignalStrength(double sourceX, double sourceY, double destX, double destY) {
-    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.SIGNAL_STRENGTH);
+    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.SIGNAL_STRENGTH, null);
   }
-
+  public double[] getReceivedSignalStrength(double sourceX, double sourceY, double destX, double destY, Double txPower) {
+    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.SIGNAL_STRENGTH, txPower);
+  }
+  
   // TODO Fix better data type support
-  private double[] getTransmissionData(double sourceX, double sourceY, double destX, double destY, TransmissionData dataType) {
+  private double[] getTransmissionData(double sourceX, double sourceY, double destX, double destY, TransmissionData dataType, Double txPower) {
     Point2D source = new Point2D.Double(sourceX, sourceY);
     Point2D dest = new Point2D.Double(destX, destY);
     double accumulatedVariance = 0;
@@ -1352,14 +1360,14 @@ public class ChannelModel {
     // Calculate all paths from source to destination, using above calculated tree
     Vector<RayPath> allPaths = getConnectingPaths(source, dest, visibleLinesTree);
 
-    if (inLoggingMode) {
-      logger.info("Saved rays:");
+    if (logMode) {
+    	logInfo.append("Signal components:\n");
       Enumeration<RayPath> pathsEnum = allPaths.elements();
       while (pathsEnum.hasMoreElements()) {
         RayPath currentPath = pathsEnum.nextElement();
-        logger.info("* " + currentPath);
+      	logInfo.append("* " + currentPath + "\n");
         for (int i=0; i < currentPath.getSubPathCount(); i++) {
-          savedRays.add(currentPath.getSubPath(i));
+          loggedRays.add(currentPath.getSubPath(i));
         }
       }
     }
@@ -1481,12 +1489,13 @@ public class ChannelModel {
 
         // Using Rician fading approach, TODO Only one best signal considered - combine these? (need two limits)
         totalPathGain += Math.pow(10, pathGain[i]/10.0)*Math.cos(2*Math.PI * pathModdedLengths[i]/wavelength);
-        if (inLoggingMode) {
-          logger.info("Adding ray path with gain " + pathGain[i] + " and phase " + (2*Math.PI * pathModdedLengths[i]/wavelength));
+        if (logMode) {
+        	logInfo.append("Signal component: " + String.format("%2.3f", pathGain[i]) + " dB, phase " + String.format("%2.3f", (2*/*Math.PI* */ pathModdedLengths[i]/wavelength)) + " pi\n");
         }
-      } else if (inLoggingMode) {
+      } else if (logMode) {
+      	/* TODO Log mode affects result? */
         pathModdedLengths[i] = (pathLengths[i] - pathLengths[bestSignalNr]) % wavelength;
-        logger.info("Not adding ray path with gain " + pathGain[i] + " and phase " + (2*Math.PI * pathModdedLengths[i]/wavelength));
+      	logInfo.append("(IGNORED) Signal component: " + String.format("%2.3f", pathGain[i]) + " dB, phase " + String.format("%2.3f", (2*/*Math.PI* */ pathModdedLengths[i]/wavelength)) + " pi\n");
       }
 
     }
@@ -1499,17 +1508,22 @@ public class ChannelModel {
     // Convert back to dB
     totalPathGain = 10*Math.log10(Math.abs(totalPathGain));
 
-    if (inLoggingMode) {
-      logger.info("Total path gain:\t" + totalPathGain);
-      logger.info("Delay spread:\t" + delaySpread);
-      logger.info("RMS Delay spread:\t" + delaySpreadRMS);
+    if (logMode) {
+    	logInfo.append("\nTotal path gain: " + String.format("%2.3f", totalPathGain) + " dB\n");
+    	logInfo.append("Delay spread: " + String.format("%2.3f", delaySpread) + "\n");
+    	logInfo.append("RMS delay spread: " + String.format("%2.3f", delaySpreadRMS) + "\n");
     }
 
     // - Calculate received power -
     // Using formula (dB)
     //  Received power = Output power + System gain + Transmitter gain + Path Loss + Receiver gain
     // TODO Update formulas
-    double outputPower = getParameterDoubleValue("tx_power");
+    double outputPower;
+    if (txPower == null) {
+      outputPower = getParameterDoubleValue("tx_power");
+    } else {
+    	outputPower = txPower;
+    }
     double systemGain = getParameterDoubleValue("system_gain_mean");
     if (getParameterBooleanValue("apply_random")) {
       Random random = new Random(); /* TODO Use main random generator? */
@@ -1520,8 +1534,8 @@ public class ChannelModel {
     double transmitterGain = getParameterDoubleValue("tx_antenna_gain"); // TODO Should depend on angle
 
     double receivedPower = outputPower + systemGain + transmitterGain + totalPathGain;
-    if (inLoggingMode) {
-      logger.info("Resulting received signal strength:\t" + receivedPower + " (" + accumulatedVariance + ")");
+    if (logMode) {
+    	logInfo.append("\nReceived signal strength: " + String.format("%2.3f", receivedPower) + " dB (variance " + accumulatedVariance + ")\n");
     }
 
     if (dataType == TransmissionData.DELAY_SPREAD || dataType == TransmissionData.DELAY_SPREAD_RMS) {
@@ -1531,6 +1545,11 @@ public class ChannelModel {
     return new double[] {receivedPower, accumulatedVariance};
   }
 
+  public class TrackedSignalComponents {
+  	ArrayList<Line2D> components;
+  	String log;
+  }
+  
   /**
    * Returns all rays from given source to given destination if a transmission
    * were to be made. The resulting rays depend on the current settings and may
@@ -1540,20 +1559,26 @@ public class ChannelModel {
    * @param sourceY Source position Y
    * @param destX Destination position X
    * @param destY Destination position Y
-   * @return All resulting rays of a simulated transmission from source to destination
+   * @return Signal components and printable description
    */
-  public Vector<Line2D> getRaysOfTransmission(double sourceX, double sourceY, double destX, double destY) {
+  public TrackedSignalComponents getRaysOfTransmission(double sourceX, double sourceY, double destX, double destY) {
+    TrackedSignalComponents tsc = new TrackedSignalComponents();
 
-    // Reset current rays vector
-    inLoggingMode = true;
-    savedRays = new Vector<Line2D>();
+    logInfo = new StringBuilder();
+    loggedRays = new ArrayList<Line2D>();
 
-    // Calculate rays, ignore power
+    /* TODO Include background noise? */
+    logMode = true;
     getProbability(sourceX, sourceY, destX, destY, -Double.MAX_VALUE);
+    logMode = false;
 
-    inLoggingMode = false;
-
-    return savedRays;
+    tsc.log = logInfo.toString();
+    tsc.components = loggedRays;
+    
+    logInfo = null;
+    loggedRays = null;
+    
+    return tsc;
   }
 
   /**
@@ -1562,19 +1587,19 @@ public class ChannelModel {
    * variable. This method uses current parameters such as transmitted power,
    * obstacles, overall system loss etc.
    *
-   * @param sourceX
-   *          Source position X
-   * @param sourceY
-   *          Source position Y
-   * @param destX
-   *          Destination position X
-   * @param destY
-   *          Destination position Y
-   * @return Received SNR (dB) random variable. The first value is the random
-   *         variable mean, and the second is the variance. The third value is the received signal strength which may be used in comparison with interference etc.
+   * @param sourceX Source position X
+   * @param sourceY Source position Y
+   * @param destX Destination position X
+   * @param destY Destination position Y
+   * @return Received SNR (dB) random variable:
+   * The first value in the array is the random variable mean.
+   * The second is the variance.
+   * The third value is the received signal strength which may be used in comparison with interference etc.
    */
   public double[] getSINR(double sourceX, double sourceY, double destX, double destY, double interference) {
-
+  	/* TODO Cache values: called repeatedly with noise sources. */
+  	
+  	
     // Calculate received signal strength
     double[] signalStrength = getReceivedSignalStrength(sourceX, sourceY, destX, destY);
 
@@ -1601,28 +1626,27 @@ public class ChannelModel {
     snrData[0] -= noiseMean;
     snrData[1] += noiseVariance;
 
-    if (inLoggingMode) {
-      logger.info("SNR at receiver:\t" + snrData[0] + " (" + snrData[1] + ")");
+    if (logMode) {
+    	logInfo.append("\nReceived SNR: " + String.format("%2.3f", snrData[0]) + " dB (variance " + snrData[1] + ")\n");
     }
     return snrData;
   }
 
 
   /**
-   * Calculates and returns probability that a receiver at given destination receives a packet from a transmitter at given source.
+   * Calculates probability that a receiver at given destination receives 
+   * a packet from a transmitter at given source.
    * This method uses current parameters such as transmitted power,
-   * obstacles, overall system loss, packet size etc. TODO Packet size?! TODO Interfering signal strength
+   * obstacles, overall system loss, packet size etc.
+   * 
+   * TODO Packet size
+   * TODO External interference/Background noise
    *
-   * @param sourceX
-   *          Source position X
-   * @param sourceY
-   *          Source position Y
-   * @param destX
-   *          Destination position X
-   * @param destY
-   *          Destination position Y
-   * @param interference
-   *          Current interference at destination (dBm)
+   * @param sourceX Source position X
+   * @param sourceY Source position Y
+   * @param destX Destination position X
+   * @param destY Destination position Y
+   * @param interference Current interference at destination (dBm)
    * @return [Probability of reception, signal strength at destination]
    */
   public double[] getProbability(double sourceX, double sourceY, double destX, double destY, double interference) {
@@ -1634,9 +1658,10 @@ public class ChannelModel {
     double rxSensitivity = getParameterDoubleValue("rx_sensitivity");
 
     // Check signal strength against receiver sensitivity and interference
-    if (rxSensitivity > signalStrength - snrMean && threshold < rxSensitivity + snrMean - signalStrength) {
-      if (inLoggingMode) {
-        logger.info("Signal to low for receiver sensitivity, increasing threshold");
+    if (rxSensitivity > signalStrength - snrMean && 
+    		threshold < rxSensitivity + snrMean - signalStrength) {
+      if (logMode) {
+      	logInfo.append("Weak signal: increasing threshold\n");
       }
 
       // Keeping snr variance but increasing theshold to sensitivity
@@ -1657,11 +1682,10 @@ public class ChannelModel {
     // current threshold.
 
     // (Using error algorithm method, much faster than taylor approximation!)
-    double probReception = 1 - GaussianWrapper.cdfErrorAlgo(
-        threshold, snrMean, snrStdDev);
+    double probReception = 1 - GaussianWrapper.cdfErrorAlgo(threshold, snrMean, snrStdDev);
 
-    if (inLoggingMode) {
-      logger.info("Probability of reception: " + probReception);
+    if (logMode) {
+      logInfo.append("Reception probability: " + String.format("%1.1f%%", 100*probReception) + "\n");
     }
 
     // Returns probabilities
@@ -1684,7 +1708,7 @@ public class ChannelModel {
    * @return RMS delay spread
    */
   public double getRMSDelaySpread(double sourceX, double sourceY, double destX, double destY) {
-    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.DELAY_SPREAD)[1];
+    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.DELAY_SPREAD, null)[1];
   }
 
   /**

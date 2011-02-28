@@ -66,7 +66,7 @@
 #include "contiki-maca.h"
 #include "contiki-uart.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -85,14 +85,6 @@
 #ifndef RIMEADDR_NBYTES
 #define RIMEADDR_NBYTES 8
 #endif
-
-#define PLATFORM_DEBUG 1
-#if PLATFORM_DEBUG
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
-
 
 #if UIP_CONF_ROUTER
 
@@ -236,30 +228,27 @@ void iab_to_eui64(rimeaddr_t *eui64, uint32_t oui, uint16_t iab, uint32_t ext) {
 	eui64->u8[1] =  0x50;
 	eui64->u8[2] =  0xc2;
 
-	/* EUI64 field */
-	eui64->u8[3] = 0xff;
-	eui64->u8[4] = 0xfe;
-
 	/* IAB */
-	eui64->u8[5] = (iab >> 4)  & 0xff;	
-	eui64->u8[6] = (iab & 0xf) << 4;
+	eui64->u8[3] = (iab >> 4)  & 0xff;
+	eui64->u8[4] = (iab & 0xf) << 4;
 
 	/* EXT */
-	eui64->u8[6] |= ((ext >> 8) &  0xf);	
-	eui64->u8[7] =    ext       & 0xff;
+
+	eui64->u8[4] = (ext >> 24) & 0xff;
+	eui64->u8[5] = (ext >> 16) & 0xff;
+	eui64->u8[6] = (ext >> 8)  & 0xff;
+	eui64->u8[7] =  ext        & 0xff;
 }
 
-void oui_to_eui64(rimeaddr_t *eui64, uint32_t oui, uint32_t ext) {
+void oui_to_eui64(rimeaddr_t *eui64, uint32_t oui, uint64_t ext) {
 	/* OUI */
 	eui64->u8[0] = (oui >> 16) & 0xff;
 	eui64->u8[1] = (oui >> 8)  & 0xff;
 	eui64->u8[2] =  oui        & 0xff;
 
-	/* EUI64 field */
-	eui64->u8[3] = 0xff;
-	eui64->u8[4] = 0xfe;
-
 	/* EXT */
+	eui64->u8[3] = (ext >> 32) & 0xff;
+	eui64->u8[4] = (ext >> 24) & 0xff;
 	eui64->u8[5] = (ext >> 16) & 0xff;
 	eui64->u8[6] = (ext >> 8)  & 0xff;
 	eui64->u8[7] =  ext        & 0xff;
@@ -293,7 +282,7 @@ set_rimeaddr(rimeaddr_t *addr)
 	  	iab_to_eui64(&eui64, OUI, IAB, EXT_ID);
    #else  /* ifdef EXT_ID */
 		PRINTF("address in flash blank, setting to defined IAB with a random extension.\n\r");
-		iab_to_eui64(&eui64, OUI, IAB, *MACA_RANDOM & 0xfff);
+		iab_to_eui64(&eui64, OUI, IAB, *MACA_RANDOM);
    #endif /* ifdef EXT_ID */
 
 #else  /* ifdef IAB */
@@ -303,7 +292,7 @@ set_rimeaddr(rimeaddr_t *addr)
 		oui_to_eui64(&eui64, OUI, EXT_ID);
    #else  /*ifdef EXT_ID */
 		PRINTF("address in flash blank, setting to defined OUI with a random extension.\n\r");
-		oui_to_eui64(&eui64, OUI, *MACA_RANDOM & 0xffffff);
+		oui_to_eui64(&eui64, OUI, ((*MACA_RANDOM << 32) | *MACA_RANDOM));
    #endif /*endif EXTID */
 
 #endif /* ifdef IAB */
@@ -421,6 +410,27 @@ main(void)
                          NETSTACK_RDC.channel_check_interval()),
          RF_CHANNEL);
 #endif /* WITH_UIP6 */
+
+  *MACA_MACPANID = 0xcdab; /* this is the hardcoded contiki pan, register is PACKET order */
+  *MACA_MAC16ADDR = 0xffff; /* short addressing isn't used, set this to 0xffff for now */
+
+  *MACA_MAC64HI =
+	  addr.u8[0] << 24 |
+	  addr.u8[1] << 16 |
+	  addr.u8[2] << 8 |
+	  addr.u8[3];
+  *MACA_MAC64LO =
+	  addr.u8[4] << 24 |
+	  addr.u8[5] << 16 |
+	  addr.u8[6] << 8 |
+	  addr.u8[7];
+  PRINTF("setting panid 0x%04x\n\r", *MACA_MACPANID);
+  PRINTF("setting short mac 0x%04x\n\r", *MACA_MAC16ADDR);
+  PRINTF("setting long mac 0x%08x_%08x\n\r", *MACA_MAC64HI, *MACA_MAC64LO);
+
+#if NULLRDC_CONF_802154_AUTOACK_HW
+  set_prm_mode(AUTOACK);
+#endif
 
 #if PROFILE_CONF_ON
   profile_init();

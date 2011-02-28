@@ -42,6 +42,7 @@
 #include "net/mac/nullrdc.h"
 #include "net/packetbuf.h"
 #include "net/netstack.h"
+#include <string.h>
 
 #define DEBUG 0
 #if DEBUG
@@ -59,6 +60,14 @@
 #endif /* NULLRDC_CONF_802154_AUTOACK */
 #endif /* NULLRDC_802154_AUTOACK */
 
+#ifndef NULLRDC_802154_AUTOACK_HW
+#ifdef NULLRDC_CONF_802154_AUTOACK_HW
+#define NULLRDC_802154_AUTOACK_HW NULLRDC_CONF_802154_AUTOACK_HW
+#else
+#define NULLRDC_802154_AUTOACK_HW 0
+#endif /* NULLRDC_CONF_802154_AUTOACK_HW */
+#endif /* NULLRDC_802154_AUTOACK_HW */
+
 #if NULLRDC_802154_AUTOACK
 #include "sys/rtimer.h"
 #include "dev/watchdog.h"
@@ -66,7 +75,9 @@
 #define ACK_WAIT_TIME                      RTIMER_SECOND / 2500
 #define AFTER_ACK_DETECTED_WAIT_TIME       RTIMER_SECOND / 1500
 #define ACK_LEN 3
+#endif /* NULLRDC_802154_AUTOACK */
 
+#if NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW
 struct seqno {
   rimeaddr_t sender;
   uint8_t seqno;
@@ -79,7 +90,7 @@ struct seqno {
 #endif /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
 
 static struct seqno received_seqnos[MAX_SEQNOS];
-#endif /* NULLRDC_802154_AUTOACK */
+#endif /* NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW */
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -87,9 +98,9 @@ send_packet(mac_callback_t sent, void *ptr)
 {
   int ret;
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
-#if NULLRDC_802154_AUTOACK
+#if NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
-#endif /* NULLRDC_802154_AUTOACK */
+#endif /* NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW */
 
   if(NETSTACK_FRAMER.create() == 0) {
     /* Failed to allocate space for headers */
@@ -171,6 +182,9 @@ send_packet(mac_callback_t sent, void *ptr)
     case RADIO_TX_COLLISION:
       ret = MAC_TX_COLLISION;
       break;
+    case RADIO_TX_NOACK:
+      ret = MAC_TX_NOACK;
+      break;
     default:
       ret = MAC_TX_ERR;
       break;
@@ -193,7 +207,7 @@ packet_input(void)
   if(NETSTACK_FRAMER.parse() == 0) {
     PRINTF("nullrdc: failed to parse %u\n", packetbuf_datalen());
   } else {
-#if NULLRDC_802154_AUTOACK
+#if NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW
     /* Check for duplicate packet by comparing the sequence number
        of the incoming packet with the last few ones we saw. */
     int i;

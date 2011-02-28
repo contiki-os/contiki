@@ -31,17 +31,7 @@
 
 package se.sics.cooja.mspmote.interfaces;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
-
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -383,84 +373,6 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
       }, mote.getSimulation().getSimulationTime());
     }
     rssiLastCounter = 8;
-  }
-
-  public JPanel getInterfaceVisualizer() {
-    // Location
-    JPanel wrapperPanel = new JPanel(new BorderLayout());
-    JPanel panel = new JPanel(new GridLayout(5, 2));
-
-    final JLabel statusLabel = new JLabel("");
-    final JLabel lastEventLabel = new JLabel("");
-    final JLabel channelLabel = new JLabel("");
-    final JLabel powerLabel = new JLabel("");
-    final JLabel ssLabel = new JLabel("");
-    final JButton updateButton = new JButton("Update");
-
-    panel.add(new JLabel("STATE:"));
-    panel.add(statusLabel);
-
-    panel.add(new JLabel("LAST EVENT:"));
-    panel.add(lastEventLabel);
-
-    panel.add(new JLabel("CHANNEL:"));
-    panel.add(channelLabel);
-
-    panel.add(new JLabel("OUTPUT POWER:"));
-    panel.add(powerLabel);
-
-    panel.add(new JLabel("SIGNAL STRENGTH:"));
-    JPanel smallPanel = new JPanel(new GridLayout(1, 2));
-    smallPanel.add(ssLabel);
-    smallPanel.add(updateButton);
-    panel.add(smallPanel);
-
-    updateButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        channelLabel.setText(getChannel() + " (freq=" + getFrequency() + " MHz)");
-        powerLabel.setText(getCurrentOutputPower() + " dBm (indicator=" + getCurrentOutputPowerIndicator() + "/" + getOutputPowerIndicatorMax() + ")");
-        ssLabel.setText(getCurrentSignalStrength() + " dBm");
-      }
-    });
-
-    Observer observer;
-    this.addObserver(observer = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (isTransmitting()) {
-          statusLabel.setText("transmitting");
-        } else if (isReceiving()) {
-          statusLabel.setText("receiving");
-        } else if (isReceiverOn()) {
-          statusLabel.setText("listening for traffic");
-        } else {
-          statusLabel.setText("HW off");
-        }
-
-        lastEventLabel.setText(lastEvent + " @ time=" + lastEventTime);
-
-        channelLabel.setText(getChannel() + " (freq=" + getFrequency() + " MHz)");
-        powerLabel.setText(getCurrentOutputPower() + " dBm (indicator=" + getCurrentOutputPowerIndicator() + "/" + getOutputPowerIndicatorMax() + ")");
-        ssLabel.setText(getCurrentSignalStrength() + " dBm");
-      }
-    });
-
-    observer.update(null, null);
-
-    wrapperPanel.add(BorderLayout.NORTH, panel);
-
-    // Saving observer reference for releaseInterfaceVisualizer
-    wrapperPanel.putClientProperty("intf_obs", observer);
-    return wrapperPanel;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
-    Observer observer = (Observer) panel.getClientProperty("intf_obs");
-    if (observer == null) {
-      logger.fatal("Error when releasing panel, observer is null");
-      return;
-    }
-
-    this.deleteObserver(observer);
   }
 
   public Mote getMote() {

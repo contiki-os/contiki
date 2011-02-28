@@ -96,6 +96,7 @@ enum {
   RADIO_TX_OK,
   RADIO_TX_ERR,
   RADIO_TX_COLLISION,
+  RADIO_TX_NOACK,
 };
 
 #endif /* __RADIO_H__ */
