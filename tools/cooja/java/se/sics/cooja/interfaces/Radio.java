@@ -29,21 +29,37 @@
 
 package se.sics.cooja.interfaces;
 
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import org.apache.log4j.Logger;
+
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.RadioPacket;
+import se.sics.cooja.contikimote.interfaces.ContikiRadio;
 
 /**
- * A Radio represents a mote radio transceiver.
+ * A mote radio transceiver.
  *
- * @see RadioPacket
+ * @see ContikiRadio
  * @see CustomDataRadio
+ * @see NoiseSourceRadio
  *
  * @author Fredrik Osterlind
  */
 @ClassDescription("Radio")
 public abstract class Radio extends MoteInterface {
+  private static Logger logger = Logger.getLogger(Radio.class);
 
   /**
    * Events that radios should notify observers about.
@@ -191,4 +207,66 @@ public abstract class Radio extends MoteInterface {
    */
   public abstract Mote getMote();
 
+
+  public JPanel getInterfaceVisualizer() {
+    JPanel panel = new JPanel(new BorderLayout());
+    Box box = Box.createVerticalBox();
+
+    final JLabel statusLabel = new JLabel("");
+    final JLabel lastEventLabel = new JLabel("");
+    final JLabel channelLabel = new JLabel("");
+    final JLabel ssLabel = new JLabel("");
+    final JButton updateButton = new JButton("Update SS");
+
+    box.add(statusLabel);
+    box.add(lastEventLabel);
+    box.add(ssLabel);
+    box.add(updateButton);
+    box.add(channelLabel);
+
+    updateButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        ssLabel.setText("Signal strength (not auto-updated): "
+            + String.format("%1.1f", getCurrentSignalStrength()) + " dBm");
+      }
+    });
+
+    final Observer observer = new Observer() {
+      public void update(Observable obs, Object obj) {
+        if (isTransmitting()) {
+          statusLabel.setText("Transmitting");
+        } else if (isReceiving()) {
+          statusLabel.setText("Receiving");
+        } else {
+          statusLabel.setText("Listening");
+        }
+
+        lastEventLabel.setText("Last event: " + getLastEvent());
+        ssLabel.setText("Signal strength (not auto-updated): "
+            + String.format("%1.1f", getCurrentSignalStrength()) + " dBm");
+        if (getChannel() == -1) {
+          channelLabel.setText("Current channel: ALL");
+        } else {
+          channelLabel.setText("Current channel: " + getChannel());
+        }
+      }
+    };
+    this.addObserver(observer);
+
+    observer.update(null, null);
+
+    panel.add(BorderLayout.NORTH, box);
+    panel.putClientProperty("intf_obs", observer);
+    return panel;
+  }
+
+  public void releaseInterfaceVisualizer(JPanel panel) {
+    Observer observer = (Observer) panel.getClientProperty("intf_obs");
+    if (observer == null) {
+      logger.fatal("Error when releasing panel, observer is null");
+      return;
+    }
+
+    this.deleteObserver(observer);
+  }
 }
