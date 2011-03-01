@@ -51,3 +51,7 @@ include $(CONTIKI)/apps/collect-view/Makefile.collect-view
 ifeq ($(TARGET),sky)
   shell_src += shell-sky.c shell-exec.c shell-sensortweet.c
 endif
+
+ifeq ($(TARGET),z1)
+  shell_src += shell-sky.c shell-exec.c shell-sensortweet.c
+endif
