@@ -459,6 +459,8 @@ dao_input(void)
   uint8_t prefixlen;
   uint8_t flags;
   uint8_t subopt_type;
+  uint8_t pathcontrol;
+  uint8_t pathsequence;
   uip_ipaddr_t prefix;
   uip_ds6_route_t *rep;
   uint8_t buffer_length;
@@ -523,7 +525,9 @@ dao_input(void)
       break;
     case RPL_DIO_SUBOPT_TRANSIT:
       /* path sequence and control ignored */
-      lifetime = get32(buffer, i + 4);
+      pathcontrol = buffer[i + 3];
+      pathsequence = buffer[i + 4];
+      lifetime = buffer[i + 5];
       /* parent address also ignored */
       break;
     }
@@ -571,7 +575,7 @@ dao_input(void)
     PRINTF("RPL: Could not add a route after receiving a DAO\n");
     return;
   } else {
-    rep->state.lifetime = lifetime;
+    rep->state.lifetime = lifetime * dag->lifetime_unit;
     rep->state.learned_from = learned_from;
   }
 
@@ -637,13 +641,13 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
   memcpy(buffer + pos, &prefix, (prefixlen + 7) / CHAR_BIT);
   pos += ((prefixlen + 7) / CHAR_BIT);
 
-  /* create a transit information subopt */
+  /* create a transit information subopt (RPL-18)*/
   buffer[pos++] = RPL_DIO_SUBOPT_TRANSIT;
-  buffer[pos++] = 6;
-  buffer[pos++] = 0; /* path seq - ignored */
+  buffer[pos++] = 4;
+  buffer[pos++] = 0; /* flags - ignored */
   buffer[pos++] = 0; /* path control - ignored */
-  set32(buffer, pos, lifetime);
-  pos += 4;
+  buffer[pos++] = 0; /* path seq - ignored */
+  buffer[pos++] = (lifetime / dag->lifetime_unit) & 0xff;
 
   if(n == NULL) {
     uip_create_linklocal_rplnodes_mcast(&addr);
