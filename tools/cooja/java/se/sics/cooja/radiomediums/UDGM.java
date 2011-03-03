@@ -144,11 +144,16 @@ public class UDGM extends AbstractRadioMedium {
     }
     dgrm.requestEdgeAnalysis();
 
-    /* Register visualizer skin.
-     * TODO Should be unregistered when radio medium is removed */
+    /* Register visualizer skin */
     Visualizer.registerVisualizerSkin(UDGMVisualizerSkin.class);
   }
 
+  public void removed() {
+  	super.removed();
+  	
+		Visualizer.unregisterVisualizerSkin(UDGMVisualizerSkin.class);
+  }
+  
   public void setTxRange(double r) {
     TRANSMITTING_RANGE = r;
     dgrm.requestEdgeAnalysis();
