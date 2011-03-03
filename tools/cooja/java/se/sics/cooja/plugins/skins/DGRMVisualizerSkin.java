@@ -35,9 +35,6 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import org.apache.log4j.Logger;
 
@@ -59,22 +56,6 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 	private Simulation simulation = null;
 	private Visualizer visualizer = null;
 
-	private Mote selectedMote = null;
-
-	private MouseListener selectMoteMouseListener = new MouseAdapter() {
-		public void mouseClicked(MouseEvent e) {
-			Mote[] motes = visualizer.findMotesAtPosition(e.getX(), e.getY());
-			if (motes == null || motes.length == 0) {
-				selectedMote = null;
-				visualizer.repaint();
-				return;
-			}
-
-			selectedMote = motes[0];
-			visualizer.repaint();
-		}
-	};
-
 	public void setActive(Simulation simulation, Visualizer vis) {
 		if (!(simulation.getRadioMedium() instanceof DirectedGraphMedium)) {
 			logger.fatal("Cannot activate DGRM skin for unknown radio medium: " + simulation.getRadioMedium());
@@ -82,9 +63,6 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 		}
 		this.simulation = simulation;
 		this.visualizer = vis;
-
-		/* Register mouse listener */
-		visualizer.getCurrentCanvas().addMouseListener(selectMoteMouseListener);
 	}
 
 	public void setInactive() {
@@ -92,19 +70,18 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 			/* Skin was never activated */
 			return;
 		}
-
-		/* Remove mouse listener */
-		visualizer.getCurrentCanvas().removeMouseListener(selectMoteMouseListener);
 	}
 
 	public Color[] getColorOf(Mote mote) {
-		if (mote == selectedMote) {
-			return new Color[] { Color.CYAN };
-		}
-		return null;
+	  Mote selectedMote = visualizer.getSelectedMote();
+	  if (mote == selectedMote) {
+	    return new Color[] { Color.CYAN };
+	  }
+	  return null;
 	}
 
 	public void paintBeforeMotes(Graphics g) {
+          Mote selectedMote = visualizer.getSelectedMote();
 		if (simulation == null 
 				|| selectedMote == null
 				|| selectedMote.getInterfaces().getRadio() == null) {

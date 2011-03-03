@@ -83,28 +83,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
   private Visualizer visualizer = null;
   private UDGM radioMedium = null;
 
-  private Mote selectedMote = null;
-
   private Box top, ratioRX, ratioTX, rangeTX, rangeINT;
-
-  private MouseListener selectMoteMouseListener = new MouseAdapter() {
-    public void mousePressed(MouseEvent e) {
-      Mote[] motes = visualizer.findMotesAtPosition(e.getX(), e.getY());
-      if (motes == null || motes.length == 0) {
-        selectedMote = null;
-        rangeTX.setVisible(false);
-        rangeINT.setVisible(false);
-        ratioRX.setVisible(false);
-        ratioTX.setVisible(false);
-        top.setVisible(false);
-        visualizer.repaint();
-        return;
-      }
-
-      selectedMote = motes[0];
-      visualizer.repaint();
-    }
-  };
 
   public void setActive(Simulation simulation, Visualizer vis) {
     if (!(simulation.getRadioMedium() instanceof UDGM)) {
@@ -193,9 +172,6 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
       }
     });
 
-    /* Register mouse listener */
-    visualizer.getCurrentCanvas().addMouseListener(selectMoteMouseListener);
-
     /* Register menu actions */
     visualizer.registerSimulationMenuAction(RangeMenuAction.class);
     visualizer.registerSimulationMenuAction(SuccessRatioMenuAction.class);
@@ -245,9 +221,6 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
       return;
     }
 
-    /* Remove mouse listener */
-    visualizer.getCurrentCanvas().removeMouseListener(selectMoteMouseListener);
-
     /* Remove spinners etc */
     visualizer.getCurrentCanvas().remove(top);
 
@@ -257,6 +230,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
   }
 
   public Color[] getColorOf(Mote mote) {
+    Mote selectedMote = visualizer.getSelectedMote();
     if (mote == selectedMote) {
       return new Color[] { Color.CYAN };
     }
@@ -264,6 +238,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
   }
 
   public void paintBeforeMotes(Graphics g) {
+    Mote selectedMote = visualizer.getSelectedMote();
     if (simulation == null 
         || selectedMote == null
         || selectedMote.getInterfaces().getRadio() == null) {

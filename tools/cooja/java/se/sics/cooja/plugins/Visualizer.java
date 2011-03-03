@@ -203,9 +203,10 @@ public class Visualizer extends VisPlugin {
     String[] skins = gui.getProjectConfig().getStringArrayValue(Visualizer.class, "SKINS");
     if (skins != null) {
       for (String skinClass: skins) {
-        logger.info("Registering external visualizer skin: " + skinClass);
         Class<? extends VisualizerSkin> skin = gui.tryLoadClass(this, VisualizerSkin.class, skinClass);
-        registerVisualizerSkin(skin);
+        if (registerVisualizerSkin(skin)) {
+        	logger.info("Registered external visualizer skin: " + skinClass);
+        }
       }
     }
     
@@ -412,6 +413,7 @@ public class Visualizer extends VisPlugin {
         }
 
         handleMouseMove(e, true);
+        repaint();
       }
     });
 
@@ -597,11 +599,12 @@ public class Visualizer extends VisPlugin {
     moteMenuActions.remove(menuAction);
   }
 
-  public static void registerVisualizerSkin(Class<? extends VisualizerSkin> skin) {
+  public static boolean registerVisualizerSkin(Class<? extends VisualizerSkin> skin) {
     if (visualizerSkins.contains(skin)) {
-      return;
+      return false;
     }
     visualizerSkins.add(skin);
+    return true;
   }
 
   public static void unregisterVisualizerSkin(Class<? extends VisualizerSkin> skin) {
@@ -1102,6 +1105,13 @@ public class Visualizer extends VisPlugin {
     logger.fatal("Drag and drop not implemented: " + file);
   }
 
+  /**
+   * @return Selected mote
+   */
+  public Mote getSelectedMote() {
+    return clickedMote;
+  }
+  
   public Collection<Element> getConfigXML() {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;
