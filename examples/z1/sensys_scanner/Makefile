@@ -5,6 +5,9 @@ ifndef TARGET
 TARGET=z1
 endif
 
+CONTIKI_SOURCEFILES += cc2420-arch.c sensors.c sht11.c
+PROJECT_SOURCEFILES = i2cmaster.c tmp102.c adxl345.c battery-sensor.c sky-sensors.c #potentiometer-sensor.c
+
 # Give a name to your project 
 CONTIKI = ../../../../contiki-2.x/
 CONTIKI_PROJECT = rssi-scanner
@@ -24,3 +27,4 @@ viewrssi: ViewRSSI.class
 # ContikiProjects: including the makefile
 #include ../../../Makefile.projects
 include $(CONTIKI)/Makefile.include
+
