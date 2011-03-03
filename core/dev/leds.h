@@ -55,11 +55,18 @@ void leds_init(void);
  */
 void leds_blink(void);
 
+#ifndef LEDS_GREEN
 #define LEDS_GREEN  1
-#define LEDS_YELLOW 2
-#define LEDS_RED    4
-#define LEDS_BLUE   LEDS_YELLOW	/* Tmote Sky is colorblind? */
-#define leds_blue   leds_yellow
+#endif /* LEDS_GREEN */
+#ifndef LEDS_YELLOW
+#define LEDS_YELLOW  2
+#endif /* LEDS_YELLOW */
+#ifndef LEDS_RED
+#define LEDS_RED  4
+#endif /* LEDS_RED */
+#ifndef LEDS_BLUE
+#define LEDS_BLUE  LEDS_YELLOW
+#endif /* LEDS_BLUE */
 
 #ifdef LEDS_CONF_ALL
 #define LEDS_ALL    LEDS_CONF_ALL
@@ -75,18 +82,6 @@ void leds_on(unsigned char leds);
 void leds_off(unsigned char leds);
 void leds_toggle(unsigned char leds);
 void leds_invert(unsigned char leds);
-
-
-
-
-void leds_green(int onoroff);
-void leds_red(int onoroff);
-void leds_yellow(int onoroff);
-#define LEDS_ON  1
-#define LEDS_OFF 0
-
-
-
 
 /**
  * Leds implementation
