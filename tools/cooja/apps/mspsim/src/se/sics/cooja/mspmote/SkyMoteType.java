@@ -230,4 +230,9 @@ public class SkyMoteType extends MspMoteType {
 
     return new File(parentDir, sourceNoExtension + ".sky");
   }
+  
+  protected String getTargetName() {
+  	return "sky";
+  }
+
 }
