@@ -21,6 +21,9 @@ upload: $(CONTIKI_PROJECT).upload
 %.class: %.java
 	javac $(basename $<).java
 	
+viewrssi3d: ViewRSSI3D.class
+	make login | java ViewRSSI3D
+
 viewrssi: ViewRSSI.class
 	make login | java ViewRSSI
 
