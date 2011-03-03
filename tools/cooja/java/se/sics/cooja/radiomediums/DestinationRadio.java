@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,69 +26,53 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
+ * $Id: DirectedGraphMedium.java,v 1.8 2010/12/02 15:25:50 fros4943 Exp $
  */
 
-/**
- * \file
- *	Architecture-dependent functions for SD over SPI.
- * \author
- * 	Nicolas Tsiftes <nvt@sics.se>
- */
+package se.sics.cooja.radiomediums;
 
-#include "contiki.h"
-#include "msb430-uart1.h"
-#include "sd-arch.h"
+import java.util.ArrayList;
+import java.util.Collection;
 
-#define SPI_IDLE	0xff
+import org.apache.log4j.Logger;
+import org.jdom.Element;
 
-int
-sd_arch_init(void)
-{
-  P2SEL &= ~64;
-  P2DIR &= ~64;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.interfaces.Radio;
 
-  P5SEL |= 14;
-  P5SEL &= ~1;
-  P5OUT |= 1;
-  P5DIR |= 13;
-  P5DIR &= ~2;
+public class DestinationRadio {
+	private static Logger logger = Logger.getLogger(DestinationRadio.class);
 
-  uart_set_speed(UART_MODE_SPI, 2, 0, 0);
+	public Radio radio; /* destination radio */
+	public DestinationRadio() {
+	}
+	public DestinationRadio(Radio dest) {
+		this.radio = dest;
+	}
 
-  return 0;
-}
+	public String toString() {
+		return radio.getMote().toString();
+	}
 
+	public Collection<Element> getConfigXML() {
+		ArrayList<Element> config = new ArrayList<Element>();
+		Element element;
 
-void
-sd_arch_spi_write(int c)
-{
-  UART_TX = c;
-  UART_WAIT_TXDONE();
-}
+		element = new Element("radio");
+		element.setText("" + radio.getMote().getID());
+		config.add(element);
+		return config;
+	}
 
-void
-sd_arch_spi_write_block(uint8_t *bytes, int amount)
-{
-  int i;
-  volatile char dummy;
-
-  for(i = 0; i < amount; i++) {
-    UART_TX = bytes[i];
-    UART_WAIT_TXDONE();
-    UART_WAIT_RX();
-    dummy = UART_RX;
-  }
-}
-
-
-unsigned
-sd_arch_spi_read(void)
-{
-  if((U1IFG & URXIFG1) == 0) {
-    UART_TX = SPI_IDLE;
-    UART_WAIT_RX();
-  }
-  return UART_RX;
+	public boolean setConfigXML(Collection<Element> configXML, Simulation simulation) {
+		for (Element element : configXML) {
+			if (element.getName().equals("radio")) {
+				radio = simulation.getMoteWithID(Integer.parseInt(element.getText())).getInterfaces().getRadio();
+				if (radio == null) {
+					throw new RuntimeException("No mote with ID " + element.getText());
+				}
+			}
+		}
+		return true;
+	}
 }

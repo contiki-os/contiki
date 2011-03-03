@@ -48,9 +48,9 @@ import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
+import se.sics.cooja.radiomediums.DGRMDestinationRadio;
+import se.sics.cooja.radiomediums.DestinationRadio;
 import se.sics.cooja.radiomediums.DirectedGraphMedium;
-import se.sics.cooja.radiomediums.DirectedGraphMedium.DGRMDestinationRadio;
-import se.sics.cooja.radiomediums.DirectedGraphMedium.DestinationRadio;
 
 @ClassDescription("Radio environment (DGRM)")
 public class DGRMVisualizerSkin implements VisualizerSkin {
@@ -142,16 +142,15 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 			if (prob == 0.0d) {
 				continue;
 			}
-			msg = (double)(((int)(1000*prob))/10.0) + "%";
+			msg = String.format("%1.1f%%", 100.0*prob);
 			Position pos = r.radio.getPosition();
 			Point pixel = visualizer.transformPositionToPixel(pos);
 			msgWidth = fm.stringWidth(msg);
-			g.setColor(Color.LIGHT_GRAY);
+			g.setColor(new Color(1-(float)prob, (float)prob, 0.0f));
 			g.drawLine(x, y, pixel.x, pixel.y);
 			g.setColor(Color.BLACK);
 			g.drawString(msg, pixel.x - msgWidth/2, pixel.y + 2*Visualizer.MOTE_RADIUS + 3);
 		}
-
 	}
 
 	public void paintAfterMotes(Graphics g) {
