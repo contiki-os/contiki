@@ -59,8 +59,8 @@ set_frq(int c)
   f = c + 352; // Start from 2400 MHz to 2485 MHz,
   //FASTSPI_SETREG(CC2420_FSCTRL, f);
   //FASTSPI_STROBE(CC2420_SRXON);
-  setreg(CC2420_FSCTRL, f);
-  strobe(CC2420_SRXON);
+  CC2420_WRITE_REG(CC2420_FSCTRL, f);
+  CC2420_STROBE(CC2420_SRXON);
 }
 
 static void
