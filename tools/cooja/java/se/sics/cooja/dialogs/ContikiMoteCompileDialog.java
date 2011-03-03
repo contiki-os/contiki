@@ -381,4 +381,9 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     /* Start compiling */
     super.compileContiki();
   }
+  
+  protected String getTargetName() {
+  	return "cooja";
+  }
+
 }

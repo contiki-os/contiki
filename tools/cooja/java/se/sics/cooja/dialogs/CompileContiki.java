@@ -100,7 +100,7 @@ public class CompileContiki {
    * @param directory Directory in which to execute command
    * @param onSuccess Action called if compilation succeeds
    * @param onFailure Action called if compilation fails
-   * @param compilationOutput Is written both std and err process output
+   * @param messageDialog Is written both std and err process output
    * @param synchronous If true, method blocks until process completes
    * @return Sub-process if called asynchronously
    * @throws Exception If process returns error, or outputFile does not exist
@@ -115,15 +115,22 @@ public class CompileContiki {
       final MessageList compilationOutput,
       boolean synchronous)
   throws Exception {
-
+  	/* TODO Fix me */
+    final MessageList messageDialog;
+  	if (compilationOutput == null) {
+  		messageDialog = new MessageList();
+  	} else {
+  		messageDialog = compilationOutput;
+  	}
+  	
     {
       String cmd = "";
       for (String c: command) {
       	cmd += c + " ";
       }
       logger.info("> " + cmd);
-      compilationOutput.addMessage("", MessageList.NORMAL);
-      compilationOutput.addMessage("> " + cmd, MessageList.NORMAL);
+      messageDialog.addMessage("", MessageList.NORMAL);
+      messageDialog.addMessage("> " + cmd, MessageList.NORMAL);
     }
 
     final Process compileProcess;
@@ -140,7 +147,7 @@ public class CompileContiki {
           outputFile.delete();
         }
         if (outputFile.exists()) {
-          compilationOutput.addMessage("Error when deleting old " + outputFile.getName(), MessageList.ERROR);
+          messageDialog.addMessage("Error when deleting old " + outputFile.getName(), MessageList.ERROR);
           if (onFailure != null) {
             onFailure.actionPerformed(null);
           }
@@ -153,8 +160,8 @@ public class CompileContiki {
           try {
             String readLine;
             while ((readLine = processNormal.readLine()) != null) {
-              if (compilationOutput != null) {
-                compilationOutput.addMessage(readLine, MessageList.NORMAL);
+              if (messageDialog != null) {
+                messageDialog.addMessage(readLine, MessageList.NORMAL);
               }
             }
           } catch (IOException e) {
@@ -168,8 +175,8 @@ public class CompileContiki {
           try {
             String readLine;
             while ((readLine = processError.readLine()) != null) {
-              if (compilationOutput != null) {
-                compilationOutput.addMessage(readLine, MessageList.ERROR);
+              if (messageDialog != null) {
+                messageDialog.addMessage(readLine, MessageList.ERROR);
               }
             }
           } catch (IOException e) {
@@ -186,7 +193,7 @@ public class CompileContiki {
           try {
             compileProcess.waitFor();
           } catch (Exception e) {
-            compilationOutput.addMessage(e.getMessage(), MessageList.ERROR);
+            messageDialog.addMessage(e.getMessage(), MessageList.ERROR);
             syncException.setCompilationOutput(new MessageList());
             syncException.fillInStackTrace();
             return;
@@ -194,7 +201,7 @@ public class CompileContiki {
 
           /* Check return value */
           if (compileProcess.exitValue() != 0) {
-            compilationOutput.addMessage("Process returned error code " + compileProcess.exitValue(), MessageList.ERROR);
+            messageDialog.addMessage("Process returned error code " + compileProcess.exitValue(), MessageList.ERROR);
             if (onFailure != null) {
               onFailure.actionPerformed(null);
             }
@@ -212,7 +219,7 @@ public class CompileContiki {
           }
 
           if (!outputFile.exists()) {
-            compilationOutput.addMessage("No firmware file: " + outputFile, MessageList.ERROR);
+            messageDialog.addMessage("No firmware file: " + outputFile, MessageList.ERROR);
             if (onFailure != null) {
               onFailure.actionPerformed(null);
             }
@@ -221,8 +228,8 @@ public class CompileContiki {
             return;
           }
 
-          compilationOutput.addMessage("", MessageList.NORMAL);
-          compilationOutput.addMessage("Compilation succeded", MessageList.NORMAL);
+          messageDialog.addMessage("", MessageList.NORMAL);
+          messageDialog.addMessage("Compilation succeded", MessageList.NORMAL);
           if (onSuccess != null) {
             onSuccess.actionPerformed(null);
           }

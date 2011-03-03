@@ -98,4 +98,9 @@ public class MicaZCompileDialog extends AbstractCompileDialog {
   public void writeSettingsToMoteType() {
     /* Nothing to do */
   }
+  
+  protected String getTargetName() {
+  	return "micaz";
+  }
+
 }

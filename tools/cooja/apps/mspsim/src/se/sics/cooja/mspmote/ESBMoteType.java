@@ -210,4 +210,9 @@ public class ESBMoteType extends MspMoteType {
 
     return new File(parentDir, sourceNoExtension + ".esb");
   }
+  
+  protected String getTargetName() {
+  	return "esb";
+  }
+
 }
