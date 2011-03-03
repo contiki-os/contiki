@@ -205,7 +205,8 @@ handle_dao_timer(void *ptr)
      fan-out as being under investigation. */
   if(dag->preferred_parent != NULL) {
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
-    dao_output(dag->preferred_parent, DEFAULT_ROUTE_LIFETIME);
+    /* set time to maxtime */
+    dao_output(dag->preferred_parent, dag->lifetime_unit * 0xffUL);
   } else {
     PRINTF("RPL: Could not find a parent to send a DAO to \n");
   }
