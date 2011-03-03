@@ -76,7 +76,6 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
 	public DirectedGraphMedium() {
 		/* Do not initialize radio medium: use only for hash table */
 		super(null);
-		Visualizer.registerVisualizerSkin(DGRMVisualizerSkin.class);
 	}
 
 	public DirectedGraphMedium(Simulation simulation) {
@@ -90,7 +89,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
 		simulation.getGUI().registerPlugin(DGRMConfigurator.class);
 		Visualizer.registerVisualizerSkin(DGRMVisualizerSkin.class);
 	}
-
+	
 	public void removed() {
 		super.removed();
 
