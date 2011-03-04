@@ -153,13 +153,15 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   p2_etx = calculate_etx(p2);
 
   /* Maintain stability of the preferred parent in case of similar ranks. */
-  if(p1_etx < p2_etx + min_diff &&
-     p1_etx > p2_etx - min_diff) {
-    PRINTF("RPL: MRHOF hysteresis: %u <= %u <= %u\n",
-           p2_etx - min_diff,
-           p1_etx,
-           p2_etx + min_diff);
-    return dag->preferred_parent;
+  if(p1 == dag->preferred_parent || p2 == dag->preferred_parent) {
+    if(p1_etx < p2_etx + min_diff &&
+       p1_etx > p2_etx - min_diff) {
+      PRINTF("RPL: MRHOF hysteresis: %u <= %u <= %u\n",
+             p2_etx - min_diff,
+             p1_etx,
+             p2_etx + min_diff);
+      return dag->preferred_parent;
+    }
   }
 
   return p1_etx < p2_etx ? p1 : p2;
