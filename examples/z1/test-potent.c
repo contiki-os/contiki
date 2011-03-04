@@ -5,7 +5,7 @@
 
 
 /*---------------------------------------------------------------------------*/
-PROCESS(aplicacio, "Aplicacio de prova");
+PROCESS(aplicacio, "Testing Potentiometer");
 AUTOSTART_PROCESSES(&aplicacio);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(aplicacio, ev, data)
@@ -13,13 +13,14 @@ PROCESS_THREAD(aplicacio, ev, data)
 
   PROCESS_BEGIN();
   
-  SENSORS_ACTIVATE(potentiometer_sensor);
-  
+  // INSERT LINE HERE TO ENABLE POTENTIOMETER
+ 
   while (1)
   {
   
-    uint16_t v = potentiometer_sensor.value(0);
-  
+    uint16_t value
+   //INSERT LINE HERE TO READ POTENTIOMETER VALUE
+ 
     printf("Potentiometer Value: %i\n", v);
   }
   
