@@ -233,13 +233,14 @@ struct sicslowpan_addr_context {
  * \brief check whether we can compress the IID in
  * address 'a' to 16 bits.
  * This is used for unicast addresses only, and is true
- * if first 49 bits of IID are 0
+ * the address is on the format ::0000:00ff:fe00:XXXX
  */
 #define sicslowpan_is_iid_16_bit_compressable(a) \
   ((((a)->u16[4]) == 0) &&                       \
-   (((a)->u16[5]) == 0) &&                       \
-   (((a)->u16[6]) == 0) &&                       \
-   ((((a)->u8[14]) & 0x80) == 0))
+   (((a)->u8[10]) == 0) &&                       \
+   (((a)->u8[11]) == 0xff) &&                    \
+   (((a)->u8[12]) == 0xfe) &&                    \
+   (((a)->u8[13]) == 0))
 
 /**
  * \brief check whether the 9-bit group-id of the
