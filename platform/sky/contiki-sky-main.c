@@ -29,11 +29,11 @@
  * @(#)$Id: contiki-sky-main.c,v 1.87 2011/01/09 21:03:42 adamdunkels Exp $
  */
 
-#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <io.h>
+#include <signal.h>
 
 #include "contiki.h"
 
