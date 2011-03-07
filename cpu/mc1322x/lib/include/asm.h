@@ -33,65 +33,84 @@
  *
  */
 
-#include <mc1322x.h>
-#include <stdint.h>
+#ifndef ASM_H
+#define ASM_H
 
-static void (*tmr_isr_funcs[4])(void) = {
-	tmr0_isr,
-	tmr1_isr,
-	tmr2_isr,
-	tmr3_isr
+/* Structure-based register definitions */
+/* Example use:
+        ASM->KEY0 = 0xaabbccdd;
+	ASM->CONTROL1bits = (struct ASM_CONTROL1) {
+	         .MASK_IRQ = 1,
+		 .CBC = 1,
+	};
+	ASM->CONTROL1bits.SELF_TEST = 1;
+*/
+
+struct ASM_struct {
+	uint32_t KEY0;
+	uint32_t KEY1;
+	uint32_t KEY2;
+	uint32_t KEY3;
+	uint32_t DATA0;
+	uint32_t DATA1;
+	uint32_t DATA2;
+	uint32_t DATA3;
+	uint32_t CTR0;
+	uint32_t CTR1;
+	uint32_t CTR2;
+	uint32_t CTR3;
+	uint32_t CTR0_RESULT;
+	uint32_t CTR1_RESULT;
+	uint32_t CTR2_RESULT;
+	uint32_t CTR3_RESULT;
+	uint32_t CBC0_RESULT;
+	uint32_t CBC1_RESULT;
+	uint32_t CBC2_RESULT;
+	uint32_t CBC3_RESULT;
+
+	union {
+		uint32_t CONTROL0;
+		struct ASM_CONTROL0 {
+		        uint32_t :24;
+			uint32_t START:1;
+			uint32_t CLEAR:1;
+			uint32_t LOAD_MAC:1;
+       		        uint32_t :4;
+			uint32_t CLEAR_IRQ:1;
+		} CONTROL0bits;
+	};
+	union {
+		uint32_t CONTROL1;
+		struct ASM_CONTROL1 {
+			uint32_t ON:1;
+			uint32_t NORMAL_MODE:1;
+			uint32_t BYPASS:1;
+		        uint32_t :21;
+			uint32_t CBC:1;
+			uint32_t CTR:1;
+			uint32_t SELF_TEST:1;
+		        uint32_t :4;
+			uint32_t MASK_IRQ:1;
+		} CONTROL1bits;
+	};
+	union {
+		uint32_t STATUS;
+		struct ASM_STATUS {
+   		        uint32_t :24;
+			uint32_t DONE:1;
+			uint32_t TEST_PASS:1;
+		        uint32_t :6;
+		} STATUSbits;
+	};
+
+	uint32_t reserved;
+
+	uint32_t MAC0;
+	uint32_t MAC1;
+	uint32_t MAC2;
+	uint32_t MAC3;
 };
 
-void irq_register_timer_handler(int timer, void (*isr)(void))
-{
-	tmr_isr_funcs[timer] = isr;
-}
+static volatile struct ASM_struct * const ASM = (void *) (0x80008000);
 
-
-__attribute__ ((section (".irq")))
-__attribute__ ((interrupt("IRQ"))) 
-void irq(void)
-{
-	uint32_t pending;
-
-	while ((pending = *NIPEND)) {
-		
-		if(bit_is_set(pending, INT_NUM_TMR)) { 
-			/* dispatch to individual timer isrs if they exist */
-			/* timer isrs are responsible for determining if they
-			 * caused an interrupt */
-			/* and clearing their own interrupt flags */
-			if (tmr_isr_funcs[0] != 0) { (tmr_isr_funcs[0])(); }
-			if (tmr_isr_funcs[1] != 0) { (tmr_isr_funcs[1])(); }
-			if (tmr_isr_funcs[2] != 0) { (tmr_isr_funcs[2])(); }
-			if (tmr_isr_funcs[3] != 0) { (tmr_isr_funcs[3])(); }
-		}
-
-		if(bit_is_set(pending, INT_NUM_MACA)) {
-	 		if(maca_isr != 0) { maca_isr(); } 
-		}
-		if(bit_is_set(pending, INT_NUM_UART1)) {
-	 		if(uart1_isr != 0) { uart1_isr(); } 
-		}
-		if(bit_is_set(pending, INT_NUM_CRM)) {
-			if(rtc_wu_evt() && (rtc_isr != 0)) { rtc_isr(); }
-			if(kbi_evnt(4) && (kbi4_isr != 0)) { kbi4_isr(); }
-			if(kbi_evnt(5) && (kbi5_isr != 0)) { kbi5_isr(); }
-			if(kbi_evnt(6) && (kbi6_isr != 0)) { kbi6_isr(); }
-			if(kbi_evnt(7) && (kbi7_isr != 0)) { kbi7_isr(); }
-
-			if (CRM->STATUSbits.CAL_DONE && CRM->CAL_CNTLbits.CAL_IEN && cal_isr)
-			{
-				CRM->STATUSbits.CAL_DONE = 0;
-				cal_isr();
-			}
-		}
-		if(bit_is_set(pending, INT_NUM_ASM)) {
-			if(asm_isr != 0) { asm_isr(); }
-		}
-
-		*INTFRC = 0; /* stop forcing interrupts */
-
-	}	
-}
+#endif
