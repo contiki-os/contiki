@@ -238,8 +238,10 @@ struct sicslowpan_addr_context {
  */
 #define sicslowpan_is_iid_16_bit_compressable(a) \
   ((((a)->u16[4]) == 0) &&                       \
-   (((a)->u16[5]) == 0x00ff) &&                  \
-   (((a)->u16[6]) == 0xfe00))
+   (((a)->u8[10]) == 0)&&			    \
+   (((a)->u8[11]) == 0xff)&&			    \
+   (((a)->u8[12]) == 0xfe)&&			    \
+   (((a)->u8[13]) == 0))
 
 /**
  * \brief check whether the 9-bit group-id of the
