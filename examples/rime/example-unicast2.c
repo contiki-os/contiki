@@ -66,6 +66,8 @@ PROCESS_THREAD(example_unicast_process, ev, data)
   PROCESS_EXITHANDLER(unicast_close(&uc);)
     
   PROCESS_BEGIN();
+  cc2420_set_txpower(5);
+
 
   unicast_open(&uc, 222, &unicast_callbacks);
 

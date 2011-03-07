@@ -54,8 +54,11 @@ AUTOSTART_PROCESSES(&example_unicast_process);
 static void
 recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
 {
+  char mypkt[16];
   printf("unicast message received from %d.%d\n",
 	 from->u8[0], from->u8[1]);
+  memcpy(mypkt, packetbuf_dataptr(),sizeof(mypkt));
+  printf("Data =  %s\n", mypkt);
   leds_toggle(LEDS_GREEN); 
 }
 static const struct unicast_callbacks unicast_callbacks = {recv_uc};
@@ -66,6 +69,7 @@ PROCESS_THREAD(example_unicast_process, ev, data)
   PROCESS_EXITHANDLER(unicast_close(&uc);)
     
   PROCESS_BEGIN();
+  cc2420_set_txpower(5);
 
   unicast_open(&uc, 222, &unicast_callbacks);
 
