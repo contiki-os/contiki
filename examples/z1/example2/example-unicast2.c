@@ -66,7 +66,7 @@ PROCESS_THREAD(example_unicast_process, ev, data)
     
   PROCESS_BEGIN();
 
-  unicast_open(&uc, 133, &unicast_callbacks);
+  unicast_open(&uc, 199, &unicast_callbacks);
 
   while(1) {
     static struct etimer et;
@@ -76,12 +76,12 @@ PROCESS_THREAD(example_unicast_process, ev, data)
     
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    packetbuf_copyfrom("Enric Here!", 12);
-    addr.u8[0] = 200;
-    addr.u8[1] = 0;
-    if(!rimeaddr_cmp(&addr, &rimeaddr_node_addr)) {
-      unicast_send(&uc, &addr);
-    }
+    //packetbuf_copyfrom("Enric Here!", 12);
+    //addr.u8[0] = 200;
+    //addr.u8[1] = 0;
+    //if(!rimeaddr_cmp(&addr, &rimeaddr_node_addr)) {
+      //unicast_send(&uc, &addr);
+    //}
 
   }
 
