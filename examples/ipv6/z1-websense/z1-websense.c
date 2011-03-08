@@ -41,11 +41,9 @@
 #include "contiki.h"
 #include "httpd-simple.h"
 #include "webserver-nogui.h"
-//#include "dev/sht11-sensor.h"
-//#include "dev/light-sensor.h"
-  #include "dev/temperature-sensor.h"
-  #include "dev/battery-sensor.h"
-  #include "dev/cc2420.h"
+#include "dev/temperature-sensor.h"
+#include "dev/battery-sensor.h"
+#include "dev/cc2420.h"
 #include "dev/leds.h"
 #include <stdio.h>
 
@@ -68,19 +66,15 @@ static int sensors_pos;
 static int
 get_battery(void)
 {
-  //return 10 * light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC) / 7;
   return battery_sensor.value(0);
 }
 /*---------------------------------------------------------------------------*/
 static int
 get_temp(void)
 {
-  //return ((sht11_sensor.value(SHT11_SENSOR_TEMP) / 10) - 396) / 10;
   return temperature_sensor.value(0);
 }
 
-//float mytempv   = (get_temp()*2.500)/4096;
-//float mytemp    = (mytempv-0.986)*282;
 static float get_mybatt(void){ return (float) ((get_battery()*2.500*2)/4096);}
 static float get_mytemp(void){ return (float) (((get_temp()*2.500)/4096)-0.986)*282;}
 
