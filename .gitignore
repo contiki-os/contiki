@@ -13,3 +13,4 @@ symbols.c
 symbols.h
 *_del*
 tools/
+*.class
