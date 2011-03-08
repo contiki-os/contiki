@@ -121,13 +121,8 @@ PT_THREAD(send_values(struct httpd_state *s))
     /* Default page: show latest sensor values as text (does not
        require Internet connection to Google for charts). */
     blen = 0;
-    //float mybatt = (get_battery()*2.500*2)/4096;
-    //float mytempv   = (get_temp()*2.500)/4096;
-    //float mytemp    = (mytempv-0.986)*282;
     float mybatt = get_mybatt();
     float mytemp = get_mytemp();
-    //float mytempv   = (get_temp()*2.500)/4096;
-    //float mytemp    = (mytempv-0.986)*282;
     ADD("<h1>Current readings</h1>\n"
         "Battery: %ld.%03d V<br>"
         "Temperature: %ld.%03d &deg; C",
@@ -171,14 +166,12 @@ PROCESS_THREAD(web_sense_process, ev, data)
 {
   static struct etimer timer;
   PROCESS_BEGIN();
-  cc2420_set_txpower(3);
+  cc2420_set_txpower(31);
 
   sensors_pos = 0;
   process_start(&webserver_nogui_process, NULL);
 
   etimer_set(&timer, CLOCK_SECOND * 2);
-  //SENSORS_ACTIVATE(light_sensor);
-  //SENSORS_ACTIVATE(sht11_sensor);
   SENSORS_ACTIVATE(battery_sensor);
   SENSORS_ACTIVATE(temperature_sensor);
 
@@ -186,8 +179,6 @@ PROCESS_THREAD(web_sense_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
     etimer_reset(&timer);
 
-    //battery1[sensors_pos] = get_battery();;
-    //temperature[sensors_pos] = get_temp();
     battery1[sensors_pos] = get_mybatt()*1000;
     temperature[sensors_pos] = get_mytemp();
     sensors_pos = (sensors_pos + 1) % HISTORY;
