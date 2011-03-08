@@ -52,7 +52,7 @@
 #define COFFEE_STATIC     1
 #elif COFFEE_FILES==2           //2=eeprom for full file system
 #define COFFEE_AVR_EEPROM 1
-#elif COFFEE_FILES==2           //3=program flash for static file system
+#elif COFFEE_FILES==3           //3=program flash for static file system
 #define COFFEE_AVR_FLASH  1
 #define COFFEE_STATIC     1
 #else                           //4=program flash with full file system
