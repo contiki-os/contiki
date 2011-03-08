@@ -78,6 +78,12 @@ get_temp(void)
   //return ((sht11_sensor.value(SHT11_SENSOR_TEMP) / 10) - 396) / 10;
   return temperature_sensor.value(0);
 }
+
+//float mytempv   = (get_temp()*2.500)/4096;
+//float mytemp    = (mytempv-0.986)*282;
+static float get_mybatt(void){ return (float) ((get_battery()*2.500*2)/4096);}
+static float get_mytemp(void){ return (float) (((get_temp()*2.500)/4096)-0.986)*282;}
+
 /*---------------------------------------------------------------------------*/
 static const char *TOP = "<html><head><title>Contiki Web Sense</title></head><body>\n";
 static const char *BOTTOM = "</body></html>\n";
@@ -115,14 +121,18 @@ PT_THREAD(send_values(struct httpd_state *s))
     /* Default page: show latest sensor values as text (does not
        require Internet connection to Google for charts). */
     blen = 0;
-    float voltage      = (get_battery()*2.500*2)/4096;
-    float temperaturev = (get_temp()*2.500)/4096;
-    float temperature  = (temperaturev-0.986)*282;
+    //float mybatt = (get_battery()*2.500*2)/4096;
+    //float mytempv   = (get_temp()*2.500)/4096;
+    //float mytemp    = (mytempv-0.986)*282;
+    float mybatt = get_mybatt();
+    float mytemp = get_mytemp();
+    //float mytempv   = (get_temp()*2.500)/4096;
+    //float mytemp    = (mytempv-0.986)*282;
     ADD("<h1>Current readings</h1>\n"
         "Battery: %ld.%03d V<br>"
         "Temperature: %ld.%03d &deg; C",
-        (long) voltage, (unsigned) ((voltage-floor(voltage))*1000), 
-        (long) temperature, (unsigned) ((temperature-floor(temperature))*1000)); 
+        (long) mybatt, (unsigned) ((mybatt-floor(mybatt))*1000), 
+        (long) mytemp, (unsigned) ((mytemp-floor(mytemp))*1000)); 
     SEND_STRING(&s->sout, buf);
 
   } else if(s->filename[1] == '0') {
@@ -137,10 +147,10 @@ PT_THREAD(send_values(struct httpd_state *s))
 
   } else {
     if(s->filename[1] != 't') {
-      generate_chart("Battery", "Battery", 0, 5000, battery1);
+      generate_chart("Battery", "mV", 0, 4000, battery1);
       SEND_STRING(&s->sout, buf);
     }
-    if(s->filename[1] != 'l') {
+    if(s->filename[1] != 'b') {
       generate_chart("Temperature", "Celsius", 0, 50, temperature);
       SEND_STRING(&s->sout, buf);
     }
@@ -176,8 +186,10 @@ PROCESS_THREAD(web_sense_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
     etimer_reset(&timer);
 
-    battery1[sensors_pos] = get_battery();;
-    temperature[sensors_pos] = get_temp();
+    //battery1[sensors_pos] = get_battery();;
+    //temperature[sensors_pos] = get_temp();
+    battery1[sensors_pos] = get_mybatt()*1000;
+    temperature[sensors_pos] = get_mytemp();
     sensors_pos = (sensors_pos + 1) % HISTORY;
   }
 
