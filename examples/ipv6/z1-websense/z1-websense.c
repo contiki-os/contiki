@@ -50,6 +50,11 @@
 #include <stdio.h>
 
 
+float floor(float x){ 
+  if(x>=0.0f) return (float) ((int)x);
+  else        return (float) ((int)x-1);
+}
+
 PROCESS(web_sense_process, "Sense Web Demo");
 
 AUTOSTART_PROCESSES(&web_sense_process);
@@ -110,10 +115,14 @@ PT_THREAD(send_values(struct httpd_state *s))
     /* Default page: show latest sensor values as text (does not
        require Internet connection to Google for charts). */
     blen = 0;
+    float voltage      = (get_battery()*2.500*2)/4096;
+    float temperaturev = (get_temp()*2.500)/4096;
+    float temperature  = (temperaturev-0.986)*282;
     ADD("<h1>Current readings</h1>\n"
-        "Battery: %u<br>"
-        "Temperature: %u&deg; C",
-        get_battery(), get_temp());
+        "Battery: %ld.%03d V<br>"
+        "Temperature: %ld.%03d &deg; C",
+        (long) voltage, (unsigned) ((voltage-floor(voltage))*1000), 
+        (long) temperature, (unsigned) ((temperature-floor(temperature))*1000)); 
     SEND_STRING(&s->sout, buf);
 
   } else if(s->filename[1] == '0') {
