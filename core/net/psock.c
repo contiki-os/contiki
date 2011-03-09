@@ -286,31 +286,34 @@ PT_THREAD(psock_readto(CC_REGISTER_ARG struct psock *psock, unsigned char c))
   PT_END(&psock->psockpt);
 }
 /*---------------------------------------------------------------------------*/
-PT_THREAD(psock_readbuf(CC_REGISTER_ARG struct psock *psock))
+PT_THREAD(psock_readbuf_len(CC_REGISTER_ARG struct psock *psock, uint16_t len))
 {
   PT_BEGIN(&psock->psockpt);
 
   buf_setup(&psock->buf, psock->bufptr, psock->bufsize);
-  
+
   /* XXX: Should add buf_checkmarker() before do{} loop, if
      incoming data has been handled while waiting for a write. */
-
-  if(psock->readlen == 0) {
-    PT_WAIT_UNTIL(&psock->psockpt, psock_newdata(psock));
-    psock->state = STATE_READ;
-    psock->readptr = (u8_t *)uip_appdata;
-    psock->readlen = uip_datalen();
-  }
-  buf_bufdata(&psock->buf, psock->bufsize,
-              &psock->readptr,
-              &psock->readlen);
-
+  
+  /* read len bytes or to end of data */
+  do {
+    if(psock->readlen == 0) {
+      PT_WAIT_UNTIL(&psock->psockpt, psock_newdata(psock));
+      psock->state = STATE_READ;
+      psock->readptr = (u8_t *)uip_appdata;
+      psock->readlen = uip_datalen();
+    }
+  } while(buf_bufdata(&psock->buf, psock->bufsize,
+		      &psock->readptr, &psock->readlen) == BUF_NOT_FULL &&
+	  psock_datalen(psock) < len);
+  
   if(psock_datalen(psock) == 0) {
     psock->state = STATE_NONE;
     PT_RESTART(&psock->psockpt);
   }
   PT_END(&psock->psockpt);
 }
+
 /*---------------------------------------------------------------------------*/
 void
 psock_init(CC_REGISTER_ARG struct psock *psock,
