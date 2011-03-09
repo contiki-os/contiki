@@ -88,7 +88,7 @@ uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
       value = (value << 4) + (tmp & 0xf);
     }
   }
-  if(c != '\0') {
+  if(c != '\0' && c != ']') {
     PRINTF("uiplib: too large address\n");
     return 0;
   }
