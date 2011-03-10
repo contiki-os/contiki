@@ -483,9 +483,9 @@ avr_flash_read(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE siz
 BOOTLOADER_SECTION
 void avr_flash_erase(coffee_page_t sector) {
 	coffee_page_t i;
-	uint32_t addr32;
 
 #if FLASH_COMPLEMENT_DATA
+	uint32_t addr32;
 	volatile uint8_t sreg;
 
 	// Disable interrupts.
