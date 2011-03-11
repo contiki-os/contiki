@@ -45,8 +45,11 @@
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
 #include "dev/slip.h"
+#define INTERNAL_WEBSERVER 1
+#if INTERNAL_WEBSERVER
 #include "webserver-nogui.h"
 #include "httpd-simple.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,6 +68,7 @@ static uint8_t prefix_set;
 
 PROCESS(border_router_process, "Border router process");
 AUTOSTART_PROCESSES(&border_router_process);
+#if INTERNAL_WEBSERVER
 /*---------------------------------------------------------------------------*/
 /* Only one single web request at time */
 static const char *TOP = "<html><head><title>ContikiRPL</title></head><body>\n";
@@ -169,6 +173,7 @@ print_local_addresses(void)
     }
   }
 }
+#endif /* INTERNAL_WEBSERVER */
 /*---------------------------------------------------------------------------*/
 void
 request_prefix(void)
@@ -201,8 +206,9 @@ PROCESS_THREAD(border_router_process, ev, data)
   prefix_set = 0;
 
   PROCESS_PAUSE();
-
+#if INTERNAL_WEBSERVER
   process_start(&webserver_nogui_process, NULL);
+#endif
   SENSORS_ACTIVATE(button_sensor);
 
   PRINTF("RPL-Border router started\n");
@@ -219,8 +225,9 @@ PROCESS_THREAD(border_router_process, ev, data)
     rpl_set_prefix(dag, &prefix, 64);
     PRINTF("created a new RPL dag\n");
   }
-
+#if INTERNAL_WEBSERVER
   print_local_addresses();
+#endif
 
   /* The border router runs with a 100% duty cycle in order to ensure high
      packet reception rates. */
