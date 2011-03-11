@@ -210,7 +210,9 @@ serial_to_tun(FILE *inslip, int outfd)
 	  ssystem("ifconfig %s hw ether %s", tundev, &macs[6]);
           if (timestamp) stamptime();
 	  ssystem("ifconfig %s up", tundev);
-	} else if(uip.inbuf[1] == 'P') {
+	}
+      } else if(uip.inbuf[0] == '?') {
+	if(uip.inbuf[1] == 'P') {
           /* Prefix info requested */
           struct in6_addr addr;
 	  int i;
