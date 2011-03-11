@@ -121,8 +121,8 @@ enum {
 #define LFSR            6                    /* 1 use polynomial for Turbolink */
 #define TM              5
 
-#define MODE            3
-#define MODE_MASK       bit_mask(2,MODE)
+#define MACA_MODE       3
+#define MODE_MASK       bit_mask(2,MACA_MODE)
 #define NO_CCA          0
 #define NO_SLOT_CCA     1
 #define SLOT_CCA        2

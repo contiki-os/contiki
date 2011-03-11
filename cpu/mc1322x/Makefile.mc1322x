@@ -90,8 +90,6 @@ $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c $< -o $@
 
 CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
-%.o: %.S
-	$(CC) $(CFLAGS) $(AFLAGS) $(ARM_FLAGS) $< -c
 
 $(OBJECTDIR)/%.o: %.S
 	$(CC) $(CFLAGS) $(AFLAGS) $(ARM_FLAGS) $< -c  -o $@
