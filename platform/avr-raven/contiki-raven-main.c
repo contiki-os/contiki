@@ -130,7 +130,7 @@ extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via mak
 extern uint8_t server_name[16];
 extern uint8_t domain_name[30];
 #else
-uint8_t mac_address[8] PROGMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
+uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 #endif
 
 
