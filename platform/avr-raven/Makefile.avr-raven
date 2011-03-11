@@ -4,7 +4,9 @@ CONTIKI_CORE=contiki-raven-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 CONTIKI_TARGET_SOURCEFILES += contiki-raven-main.c contiki-raven-default-init-net.c
 #The avr cpu makefile will also add these files if COFFEE_FILES is specified.
-CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c
+#CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c
+#Needed for slip
+CONTIKI_TARGET_SOURCEFILES += button-sensor.c sensors.c slip_uart0.c slip.c
 
 CONTIKIAVR=$(CONTIKI)/cpu/avr
 CONTIKIBOARD=.
