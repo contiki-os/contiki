@@ -474,6 +474,11 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
   conn->snd_nxt[2] = iss[2];
   conn->snd_nxt[3] = iss[3];
 
+  conn->rcv_nxt[0] = 0;
+  conn->rcv_nxt[1] = 0;
+  conn->rcv_nxt[2] = 0;
+  conn->rcv_nxt[3] = 0;
+
   conn->initialmss = conn->mss = UIP_TCP_MSS;
   
   conn->len = 1;   /* TCP length of the SYN is one. */
