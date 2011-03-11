@@ -95,6 +95,22 @@
 
 #include "net/rime.h"
 
+/* Test rtimers, also for pings, stack monitor, neighbor/route printout and time stamps */
+#define TESTRTIMER 1
+#if TESTRTIMER
+//#define PINGS 64
+#define ROUTES 64
+#define STAMPS 30
+#define STACKMONITOR 128
+
+uint8_t rtimerflag=1;
+uint16_t rtime;
+struct rtimer rt;
+void rtimercycle(void) {rtimerflag=1;}
+static void ipaddr_add(const uip_ipaddr_t *addr);
+
+#endif /* TESTRTIMER */
+
 /*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
 typedef struct {unsigned char B2;unsigned char B1;unsigned char B0;} __signature_t;
@@ -374,21 +390,6 @@ void log_message(char *m1, char *m2)
 {
   PRINTF("%s%s\n", m1, m2);
 }
-/* Test rtimers, also for pings, stack monitor, neighbor/route printout and time stamps */
-#define TESTRTIMER 1
-#if TESTRTIMER
-//#define PINGS 64
-#define ROUTES 64
-#define STAMPS 30
-#define STACKMONITOR 128
-
-uint8_t rtimerflag=1;
-uint16_t rtime;
-struct rtimer rt;
-void rtimercycle(void) {rtimerflag=1;}
-static void ipaddr_add(const uip_ipaddr_t *addr);
-
-#endif /* TESTRTIMER */
 
 #if RF230BB
 extern char rf230_interrupt_flag, rf230processflag;
