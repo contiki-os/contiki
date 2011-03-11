@@ -184,7 +184,7 @@ void maca_init(void) {
         /* nop, promiscuous, no cca */
 	*MACA_CONTROL =
 		(prm_mode << PRM) |
-		(NO_CCA << MODE); 
+		(NO_CCA << MACA_MODE);
 	
 	enable_irq(MACA);
 	*INTFRC = (1 << INT_NUM_MACA);
