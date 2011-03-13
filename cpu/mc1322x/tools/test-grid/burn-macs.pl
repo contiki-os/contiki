@@ -5,11 +5,14 @@ my $bin = shift;
 my $terms = shift;
 
 my $addr = "0x1e000";
-my $company_id;
-my $iab = 0xabc; # Redwire, LLC's IAB
+my $iab = 0xa8c; # Redwire, LLC's IAB
+
+my $mac_h;
+my $mac_l;
 
 if(defined($iab)) {
-    $company_id = (0x0050C2 << 12) | $iab;
+    $mac_h = 0x0050C200 | ($iab >> 4);
+    $mac_l = ($iab & 0xf) << 28;
 }
 
 if (! $terms) {
@@ -19,15 +22,17 @@ if (! $terms) {
 
 for (my $t=0; $t<$terms; $t++) {
 	my $dev_num = 2 * $t + 1;
+	$mac_l |= $dev_num;
+	#stupid 32-bit thing...
 	my $mac;
-	if(defined($iab)) {
-	    $mac = ($company_id << 28) | $dev_num;
-	} else {
-	    $mac = ($company_id << 40) | $dev_num;
-	}
+	printf("mac_h %x\n", $mac_h);
+	printf("mac_l %x\n", $mac_l);
 	my @words;
-	for(my $i=0; $i<8; $i++) {
-	    push @words, ($mac >> ($i * 8)) & 0xff;
+	for(my $i=0; $i<4; $i++) {
+	    push @words, ($mac_h >> ($i * 8)) & 0xff;
+	}
+	for(my $i=0; $i<4; $i++) {
+	    push @words, ($mac_l >> ($i * 8)) & 0xff;
 	}
 	reverse @words;
 	foreach my $byte (@words) {
