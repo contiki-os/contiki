@@ -28,44 +28,69 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.3 2010/12/18 20:51:11 dak664 Exp $
  */
 
- /* Dummy watchdog routines for the Raven 1284p */
+/* Watchdog routines for the AVR */
+
+/* Default timeout of 2 seconds is available on most MCUs */
+#ifndef WATCHDOG_CONF_TIMEOUT
+#define WATCHDOG_CONF_TIMEOUT WDTO_2S
+//#define WATCHDOG_CONF_TIMEOUT WDTO_4S
+#endif
+ 
+ /* While balancing start and stop calls is a good idea, an imbalance will cause
+  * resets that can take a lot of time to track down.
+  * Some low power protocols may do this.
+  * The default is no balance; define WATCHDOG_CONF_BALANCE 1 to override.
+  */
+#ifndef WATCHDOG_CONF_BALANCE
+#define WATCHDOG_CONF_BALANCE 0
+#endif
+
 #include "dev/watchdog.h"
 #include <avr/wdt.h>
 #include <avr/interrupt.h>
 
+#if WATCHDOG_CONF_BALANCE
 static int stopped = 0;
+#endif
 
 /*---------------------------------------------------------------------------*/
 void
 watchdog_init(void)
 {
 	MCUSR&=~(1<<WDRF);
+#if WATCHDOG_CONF_BALANCE
 	stopped = 0;
+#endif
 	watchdog_stop();
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_start(void)
 {
+#if WATCHDOG_CONF_BALANCE
 	stopped--;
-//	if(!stopped)
-		wdt_enable(WDTO_2S);
+	if(!stopped)
+#endif
+		wdt_enable(WATCHDOG_CONF_TIMEOUT);
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_periodic(void)
 {
-//	if(!stopped)
+#if WATCHDOG_CONF_BALANCE
+	if(!stopped)
+#endif
 		wdt_reset();
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_stop(void)
 {
-//	stopped++;
+#if WATCHDOG_CONF_BALANCE
+	stopped++;
+#endif
 	wdt_disable();
 }
 /*---------------------------------------------------------------------------*/
