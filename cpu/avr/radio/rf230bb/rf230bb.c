@@ -148,9 +148,12 @@ struct timestamp {
 #if RADIOSTATS
 uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
 #endif
+
+#if RADIOCALIBRATE
 /* Set in clock.c every 256 seconds */
 uint8_t rf230_calibrate;
-uint8_t rf230_calibrated; //debugging
+uint8_t rf230_calibrated; //for debugging, prints from main loop when calibration occurs
+#endif
 
 /* Track flow through driver, see contiki-raven-main.c for example of use */
 //#define DEBUGFLOWSIZE 64
@@ -758,6 +761,7 @@ rf230_transmit(unsigned short payload_len)
  //   delay_us(TIME_SLEEP_TO_TRX_OFF);
     RF230_sleeping=0;
   } else {
+#if RADIOCALIBRATE
   /* If on, do periodic calibration. See clock.c */
     if (rf230_calibrate) {
       hal_subregister_write(SR_PLL_CF_START,1);   //takes 80us max
@@ -766,6 +770,7 @@ rf230_transmit(unsigned short payload_len)
       rf230_calibrated=1;
       delay_us(80); //?
     }
+#endif
   }
  
   /* Wait for any previous operation or state transition to finish */
