@@ -1,24 +1,31 @@
 #!/usr/bin/perl
-use strict;
-use Getopt::Long;
 
+use strict;
+use File::Copy;
+use Getopt::Long;
+use File::Basename;
+
+my $cmd;
 my $oui;
-my $addr = "0x1e000";
 my $iab;
-my $term = "/dev/ttyUSB1";
 
 GetOptions ('iab=s' => \$iab,
 	    'oui=s' => \$oui,
-	    'term=s' => \$term,
     ) or die 'bad options';
 
-my $bin = shift;
 my $address = shift;
+my $infile = shift;
+my $outfile = shift;
 
-if (!defined($address) || !defined($bin)) {
-	print "Usage: $0 [--iab=a8c | --oui=abcdef | --term device] flasher.bin address\n";
+if (!defined($address) || !defined($infile)) {
+	print "Usage: $0 [--iab=a8c | --oui=abcdef ] address infile [outfile]\n";
 	print "          iab is 12-bit and address is 28-bit e.g. --iab=a8c 1234567\n";
 	print "          oui is 24-bit and address is 40-bit e.g. --oui=abcdef 123456789a\n";
+	print "\n";
+	print "          if outfile is not specified, for infile foo.bin outfile will be\n";
+	print "          foo-[macaddress].bin e.g:\n";
+        print "          for --iab=a8c 1234567 foo.bin -> foo-0050c2a8c1234567.bin\n";
+        print "          for --oui=abcdef 123456789a foo.bin -> foo-abcdef123456789a.bin\n";
 	exit;
 }
 
@@ -56,10 +63,20 @@ reverse @words;
 #}
 #print "\n";
 
-my $word1 = sprintf("%02X%02X%02X%02X",$words[4],$words[5],$words[6],$words[7]);
-my $word2 = sprintf("%02X%02X%02X%02X",$words[0],$words[1],$words[2],$words[3]);
+if(!defined($outfile))
+{
+    my $basename = basename($infile,(".bin"));
+    $outfile = sprintf("-%08x%08x.bin",$mac_h, $mac_l);
+    $outfile = $basename . $outfile;
+    print "outfile $outfile\n";
+}
 
-my $cmd = "mc1322x-load.pl -e -f $bin -z -t $term  -c 'bbmc -l redbee-econotag reset' $addr,0x$word1,0x$word2 &";
+copy($infile, $outfile) or die("Couldn't copy $infile to $outfile");
+$cmd = sprintf("echo -n -e '\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X' | dd of=$outfile bs=1 seek=122872 conv=notrunc",
+	       $words[7],$words[6],$words[5],$words[4],
+	       $words[3],$words[2],$words[1],$words[0]);
+
 print "$cmd\n";
-system($cmd);
+system("bash -c \"$cmd\"");
+
 
