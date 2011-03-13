@@ -76,6 +76,7 @@ ISR(AVR_OUTPUT_COMPARE_INT)
       rcount=0;
       radioontime++;
     }
+  }
 #endif
 
 #if 1
@@ -166,7 +167,7 @@ clock_seconds(void)
   return tmp;
 }
 
-#if 1
+#ifdef HANG_ON_UNKNOWN_INTERRUPT
 /* Useful for diagnosing unknown interrupts that reset the mcu.
  * Currently set up for 12mega128rfa1.
  * For other mcus, enable all and then disable the conflicts.
