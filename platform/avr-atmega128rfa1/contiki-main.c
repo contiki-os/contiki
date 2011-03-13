@@ -28,18 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$$
  */
+#ifndef LED_ON_PORT1E
 #define LED_ON_PORTE1 0    //for Michael Hartman's prototype board
-#define ANNOUNCE_BOOT 1    //adds about 600 bytes to program size
-#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-
-#define DEBUG 0
-#if DEBUG
-#define PRINTFD(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#else
-#define PRINTFD(...)
 #endif
+#define ANNOUNCE_BOOT 1    //adds about 600 bytes to program size
+
+#define DEBUG DEBUG_PRINT
+#include "uip-debug.h" ////Does #define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args) for AVR
 
 #include <avr/pgmspace.h>
 #include <avr/fuse.h>
@@ -107,7 +103,6 @@ uint8_t rtimerflag=1;
 uint16_t rtime;
 struct rtimer rt;
 void rtimercycle(void) {rtimerflag=1;}
-static void ipaddr_add(const uip_ipaddr_t *addr);
 
 #endif /* TESTRTIMER */
 
@@ -186,9 +181,6 @@ extern uint8_t osccal_calibrated;
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
-  watchdog_init();
-  watchdog_start();
-
 #if !LED_ON_PORTE1    //Conflicts with USART0
 #if RAVEN_LCD_INTERFACE
   /* First rs232 port for Raven 3290 port */
@@ -206,6 +198,17 @@ void initialize(void)
   /* Redirect stdout to second port */
   rs232_redirect_stdout(RS232_PORT_1);
   clock_init();
+  
+#if 1
+  if(MCUSR & (1<<PORF )) PRINTA("Power-on reset.\n");
+  if(MCUSR & (1<<EXTRF)) PRINTA("External reset!\n");
+  if(MCUSR & (1<<BORF )) PRINTA("Brownout reset!\n");
+  if(MCUSR & (1<<WDRF )) PRINTA("Watchdog reset!\n");
+  if(MCUSR & (1<<JTRF )) PRINTA("JTAG reset!\n");
+#endif
+  
+  watchdog_init();
+  watchdog_start();
 
 #if STACKMONITOR
   /* Simple stack pointer highwater monitor. Checks for magic numbers in the main
@@ -226,22 +229,24 @@ uint16_t p=(uint16_t)&__bss_end;
 #if CONF_CALIBRATE_OSCCAL
 {
 uint8_t i;
-  PRINTF("\nBefore calibration OSCCAL=%x\n",OSCCAL);
+  watchdog_stop();
+  PRINTA("\nBefore calibration OSCCAL=%x\n",OSCCAL);
   for (i=0;i<10;i++) { 
     calibrate_rc_osc_32k();  
-    PRINTF("Calibrated=%x\n",osccal_calibrated);
+    PRINTA("Calibrated=%x\n",osccal_calibrated);
 //#include <util/delay_basic.h>
 //#define delay_us( us )   ( _delay_loop_2(1+(us*F_CPU)/4000000UL) ) 
 //   delay_us(50000);
  }
    clock_init();
+   watchdog_start();
 }
 #endif 
 
 #if ANNOUNCE_BOOT
-  PRINTF("\n*******Booting %s*******\n",CONTIKI_VERSION_STRING);
+  PRINTA("\n*******Booting %s*******\n",CONTIKI_VERSION_STRING);
 #endif
-  watchdog_start();
+
 /* rtimers needed for radio cycling */
   rtimer_init();
 
@@ -274,7 +279,7 @@ uint8_t i;
 
   rimeaddr_set_node_addr(&addr); 
 
-  PRINTFD("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+  PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 
   /* Initialize stack protocols */
   queuebuf_init();
@@ -283,19 +288,19 @@ uint8_t i;
   NETSTACK_NETWORK.init();
 
 #if ANNOUNCE_BOOT
-  PRINTF("%s %s, channel %u",NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
+  PRINTA("%s %s, channel %u",NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
   if (NETSTACK_RDC.channel_check_interval) {//function pointer is zero for sicslowmac
     unsigned short tmp;
     tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
                                    NETSTACK_RDC.channel_check_interval());
-    if (tmp<65535) PRINTF(", check rate %u Hz",tmp);
+    if (tmp<65535) PRINTA(", check rate %u Hz",tmp);
   }
-  PRINTF("\n");
+  PRINTA("\n");
 #endif
 
 #if UIP_CONF_ROUTER
 #if ANNOUNCE_BOOT
-  PRINTF("Routing Enabled\n");
+  PRINTA("Routing Enabled\n");
 #endif
 //  rime_init(rime_udp_init(NULL));
 // uip_router_register(&rimeroute);
@@ -324,9 +329,9 @@ uint8_t i;
   int fa = cfs_open( "/index.html", CFS_READ);
   if (fa<0) {     //Make some default web content
     PRINTF("No index.html file found, creating upload.html!\n");
-    PRINTF("Formatting FLASH file system for coffee...");
+    PRINTA("Formatting FLASH file system for coffee...");
     cfs_coffee_format();
-    PRINTF("Done!\n");
+    PRINTA("Done!\n");
     fa = cfs_open( "/index.html", CFS_WRITE);
     int r = cfs_write(fa, &"It works!", 9);
     if (r<0) PRINTF("Can''t create /index.html!\n");
@@ -357,29 +362,29 @@ uint8_t i;
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
 	if (uip_ds6_if.addr_list[i].isused) {	  
 	   httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr,buf);
-       PRINTF("IPv6 Address: %s\n",buf);
+       PRINTA("IPv6 Address: %s\n",buf);
 	}
   }
    eeprom_read_block (buf,server_name, sizeof(server_name));
    buf[sizeof(server_name)]=0;
-   PRINTF("%s",buf);
+   PRINTA("%s",buf);
    eeprom_read_block (buf,domain_name, sizeof(domain_name));
    buf[sizeof(domain_name)]=0;
    size=httpd_fs_get_size();
 #ifndef COFFEE_FILES
-   PRINTF(".%s online with fixed %u byte web content\n",buf,size);
+   PRINTA(".%s online with fixed %u byte web content\n",buf,size);
 #elif COFFEE_FILES==1
-   PRINTF(".%s online with static %u byte EEPROM file system\n",buf,size);
+   PRINTA(".%s online with static %u byte EEPROM file system\n",buf,size);
 #elif COFFEE_FILES==2
-   PRINTF(".%s online with dynamic %u KB EEPROM file system\n",buf,size>>10);
+   PRINTA(".%s online with dynamic %u KB EEPROM file system\n",buf,size>>10);
 #elif COFFEE_FILES==3
-   PRINTF(".%s online with static %u byte program memory file system\n",buf,size);
+   PRINTA(".%s online with static %u byte program memory file system\n",buf,size);
 #elif COFFEE_FILES==4
-   PRINTF(".%s online with dynamic %u KB program memory file system\n",buf,size>>10);
+   PRINTA(".%s online with dynamic %u KB program memory file system\n",buf,size>>10);
 #endif /* COFFEE_FILES */
 
 #else
-   PRINTF("Online\n");
+   PRINTA("Online\n");
 #endif /* WEBSERVER */
 
 #endif /* ANNOUNCE_BOOT */
@@ -388,7 +393,7 @@ uint8_t i;
 /*---------------------------------------------------------------------------*/
 void log_message(char *m1, char *m2)
 {
-  PRINTF("%s%s\n", m1, m2);
+  PRINTA("%s%s\n", m1, m2);
 }
 
 #if RF230BB
@@ -446,7 +451,7 @@ main(void)
  */
     extern uint8_t rf230_calibrated;
     if (rf230_calibrated) {
-      PRINTF("\nRF230 calibrated!\n");
+      PRINTA("\nRF230 calibrated!\n");
       rf230_calibrated=0;
     }
 #endif
@@ -463,14 +468,15 @@ main(void)
 
 #if STAMPS
 if ((rtime%STAMPS)==0) {
-  PRINTF("%us ",rtime);
+  PRINTA("%us ",rtime);
 }
 #endif
       rtime+=1;
 
 #if PINGS
+extern void raven_ping6(void); 
 if ((rtime%PINGS)==1) {
-  PRINTF("**Ping\n");
+  PRINTA("**Ping\n");
   raven_ping6();
 }
 #endif
@@ -478,45 +484,43 @@ if ((rtime%PINGS)==1) {
 #if ROUTES
 if ((rtime%ROUTES)==2) {
       
- //#if UIP_CONF_IPV6_RPL
-//#include "rpl.h"
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
 
   uint8_t i,j;
-  PRINTF("\nAddresses [%u max]\n",UIP_DS6_ADDR_NB);
+  PRINTA("\nAddresses [%u max]\n",UIP_DS6_ADDR_NB);
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
-    if (uip_ds6_if.addr_list[i].isused) {	  
-      ipaddr_add(&uip_ds6_if.addr_list[i].ipaddr);
-      PRINTF("\n");
+    if (uip_ds6_if.addr_list[i].isused) {
+      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
+      PRINTA("\n");
     }
   }
-  PRINTF("\nNeighbors [%u max]\n",UIP_DS6_NBR_NB);
+  PRINTA("\nNeighbors [%u max]\n",UIP_DS6_NBR_NB);
   for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
     if(uip_ds6_nbr_cache[i].isused) {
-      ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
-      PRINTF("\n");
+      uip_debug_ipaddr_print(&uip_ds6_nbr_cache[i].ipaddr);
+      PRINTA("\n");
       j=0;
     }
   }
-  if (j) PRINTF("  <none>");
-  PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
+  if (j) PRINTA("  <none>");
+  PRINTA("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
   for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
     if(uip_ds6_routing_table[i].isused) {
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      PRINTF("/%u (via ", uip_ds6_routing_table[i].length);
-      ipaddr_add(&uip_ds6_routing_table[i].nexthop);
+      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].ipaddr);
+      PRINTA("/%u (via ", uip_ds6_routing_table[i].length);
+      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].nexthop);
  //     if(uip_ds6_routing_table[i].state.lifetime < 600) {
-        PRINTF(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
+        PRINTA(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
  //     } else {
- //       PRINTF(")\n");
+ //       PRINTA(")\n");
  //     }
       j=0;
     }
   }
-  if (j) PRINTF("  <none>");
-  PRINTF("\n---------\n");
+  if (j) PRINTA("  <none>");
+  PRINTA("\n---------\n");
 }
 #endif
 
@@ -526,7 +530,7 @@ if ((rtime%STACKMONITOR)==3) {
   uint16_t p=(uint16_t)&__bss_end;
   do {
     if (*(uint16_t *)p != 0x4242) {
-      PRINTF("Never-used stack > %d bytes\n",p-(uint16_t)&__bss_end);
+      PRINTA("Never-used stack > %d bytes\n",p-(uint16_t)&__bss_end);
       break;
     }
     p+=10;
@@ -542,14 +546,14 @@ if ((rtime%STACKMONITOR)==3) {
 extern uint8_t debugflowsize,debugflow[];
   if (debugflowsize) {
     debugflow[debugflowsize]=0;
-    printf("%s",debugflow);
+    PRINTA("%s",debugflow);
     debugflowsize=0;
    }
 #endif
 
 #if RF230BB&&0
     if (rf230processflag) {
-      printf("rf230p%d",rf230processflag);
+      PRINTA("rf230p%d",rf230processflag);
       rf230processflag=0;
     }
 #endif
@@ -557,7 +561,7 @@ extern uint8_t debugflowsize,debugflow[];
 #if RF230BB&&0
     if (rf230_interrupt_flag) {
  //   if (rf230_interrupt_flag!=11) {
-        PRINTSHORT("**RI%u",rf230_interrupt_flag);
+        PRINTA("**RI%u",rf230_interrupt_flag);
  //   }
       rf230_interrupt_flag=0;
     }
@@ -565,27 +569,3 @@ extern uint8_t debugflowsize,debugflow[];
   }
   return 0;
 }
-
-/*---------------------------------------------------------------------------*/
-
-#if ROUTES
-static void
-ipaddr_add(const uip_ipaddr_t *addr)
-{
-  uint16_t a;
-  int8_t i, f;
-  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
-    a = (addr->u8[i] << 8) + addr->u8[i + 1];
-    if(a == 0 && f >= 0) {
-      if(f++ == 0) PRINTF("::");
-    } else {
-      if(f > 0) {
-        f = -1;
-      } else if(i > 0) {
-        PRINTF(":");
-      }
-      PRINTF("%x",a);
-    }
-  }
-}
-#endif
