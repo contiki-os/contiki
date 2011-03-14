@@ -434,6 +434,8 @@ public class LogScriptEngine {
 
     Hashtable<Object, Object> hash = new Hashtable<Object, Object>();
     engine.put("global", hash);
+    engine.put("sim", simulation);
+    engine.put("gui", simulation.getGUI());
 
     scriptMote = new ScriptMote();
     engine.put("node", scriptMote);
