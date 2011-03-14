@@ -32,15 +32,28 @@
 
 /* Watchdog routines for the AVR */
 
-/* Default timeout of 2 seconds is available on most MCUs */
+/* The default timeout of 2 seconds works on most MCUs.
+ * It should be disabled during sleep (unless used for wakeup) since
+ * it draws significant current (~5 uamp on 1284p, 20x the MCU consumption).
+ *
+ * Note the wdt is not properly simulated in AVR Studio 4 Simulator 1:
+ *   On many devices calls to wdt_reset will have no effect, and a wdt reboot will occur.
+ *   The MCUSR will not show the cause of a wdt reboot.
+ *   A 1MHz clock is assumed; at 8MHz timeout occurs 8x faster than it should.
+ * Simulator 2 is supposed to work on supported devices (not atmega128rfa1),
+ * but neither it nor Studio 5 beta do any resets on the 1284p.
+ *
+ * Setting WATCHDOG_CONF_TIMEOUT -1 will disable the WDT.
+ */
+//#define WATCHDOG_CONF_TIMEOUT -1
+
 #ifndef WATCHDOG_CONF_TIMEOUT
 #define WATCHDOG_CONF_TIMEOUT WDTO_2S
-//#define WATCHDOG_CONF_TIMEOUT WDTO_4S
 #endif
- 
+
  /* While balancing start and stop calls is a good idea, an imbalance will cause
   * resets that can take a lot of time to track down.
-  * Some low power protocols may do this.
+  * Some low power protocols may cause this.
   * The default is no balance; define WATCHDOG_CONF_BALANCE 1 to override.
   */
 #ifndef WATCHDOG_CONF_BALANCE
@@ -51,7 +64,7 @@
 #include <avr/wdt.h>
 #include <avr/interrupt.h>
 
-#if WATCHDOG_CONF_BALANCE
+#if WATCHDOG_CONF_BALANCE && WATCHDOG_CONF_TIMEOUT >= 0
 static int stopped = 0;
 #endif
 
@@ -59,39 +72,48 @@ static int stopped = 0;
 void
 watchdog_init(void)
 {
+/*  Clear startup bit and disable the wdt, whether or not it will be used.
+    Random code may have caused the last reset.
+ */
 	MCUSR&=~(1<<WDRF);
-#if WATCHDOG_CONF_BALANCE
-	stopped = 0;
+    wdt_disable();
+#if WATCHDOG_CONF_BALANCE && WATCHDOG_CONF_TIMEOUT >= 0
+	stopped = 1;
 #endif
-	watchdog_stop();
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_start(void)
 {
+#if WATCHDOG_CONF_TIMEOUT >= 0
 #if WATCHDOG_CONF_BALANCE
 	stopped--;
 	if(!stopped)
 #endif
 		wdt_enable(WATCHDOG_CONF_TIMEOUT);
+#endif  
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_periodic(void)
 {
+#if WATCHDOG_CONF_TIMEOUT >= 0
 #if WATCHDOG_CONF_BALANCE
 	if(!stopped)
 #endif
 		wdt_reset();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_stop(void)
 {
+#if WATCHDOG_CONF_TIMEOUT >= 0
 #if WATCHDOG_CONF_BALANCE
 	stopped++;
 #endif
 	wdt_disable();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -102,3 +124,9 @@ watchdog_reboot(void)
 	while(1); //loop
 }
 /*---------------------------------------------------------------------------*/
+#if 0
+/* Not all AVRs implement the wdt interrupt */
+ISR(WDT_vect)
+{
+}
+#endif
