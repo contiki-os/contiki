@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Mariano Alvira <mar@devl.org> and other contributors
+ * to the MC1322x project (http://mc1322x.devl.org)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,63 +27,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ * This file is part of libmc1322x: see http://mc1322x.devl.org
+ * for details.
  *
- * $Id: uip-debug.h,v 1.1 2010/04/30 13:20:57 joxe Exp $
- */
-/**
- * \file
- *         A set of debugging macros.
  *
- * \author Nicolas Tsiftes <nvt@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef UIP_DEBUG_H
-#define UIP_DEBUG_H
-
-#include "net/uip.h"
+#include <mc1322x.h>
+#include <board.h>
 #include <stdio.h>
 
-void uip_debug_ipaddr_print(const uip_ipaddr_t *addr);
-void uip_debug_lladdr_print(const uip_lladdr_t *addr);
+#include "config.h"
+#include "adc.h"
 
-#define DEBUG_NONE      0
-#define DEBUG_PRINT     1
-#define DEBUG_ANNOTATE  2
-#define DEBUG_FULL      DEBUG_ANNOTATE | DEBUG_PRINT
+int main(void)
+{
+	uint8_t c;
 
-/* PRINTA will always print if the debug routines are called directly */
-#ifdef __AVR__
-#include <avr/pgmspace.h>
-#define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#else
-#define PRINTA(...) printf(__VA_ARGS__)
-#endif
+	trim_xtal();
+	uart1_init(INC,MOD,SAMP);
+	adc_init();
 
-#if (DEBUG) & DEBUG_ANNOTATE
-#ifdef __AVR__
-#define ANNOTATE(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#else
-#define ANNOTATE(...) printf(__VA_ARGS__)
-#endif
-#else
-#define ANNOTATE(...)
-#endif /* (DEBUG) & DEBUG_ANNOTATE */
+	printf("adc test\r\n");
 
-#if (DEBUG) & DEBUG_PRINT
-#ifdef __AVR__
-#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#else
-#define PRINTF(...) printf(__VA_ARGS__)
-#endif
-#define PRINT6ADDR(addr) uip_debug_ipaddr_print(addr)
-#define PRINTLLADDR(lladdr) uip_debug_lladdr_print(lladdr)
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(lladdr)
-#endif /* (DEBUG) & DEBUG_PRINT */
+	printf("\x1B[2J"); // clear screen
 
-#endif
+	for(;;) {
+		printf("\x1B[H"); // cursor home
+		printf("# Value\r\n");
+		for (c=0; c<NUM_ADC_CHAN; c++) {
+			adc_service();
+			printf("%u %04u\r\n", c, adc_reading[c]);
+		}
+	}
+}

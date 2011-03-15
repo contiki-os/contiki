@@ -11,7 +11,9 @@ TARGETS := blink-red blink-green blink-blue blink-white blink-allio \
            tmr tmr-ints \
            sleep \
            printf \
-	   asm
+	   asm \
+	   adc \
+	   pwm
 
 # these targets are built with space reserved for variables needed by ROM services
 # this space is initialized with a rom call to rom_data_init

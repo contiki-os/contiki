@@ -28,19 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$$
  */
+#ifndef LED_ON_PORT1E
+#define LED_ON_PORTE1 0    //for Michael Hartman's prototype board
+#endif
 #define ANNOUNCE_BOOT 1    //adds about 600 bytes to program size
 
-#define DEBUG 0
-#if DEBUG
-#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#define PRINTSHORT(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-
-#else
-#define PRINTF(...)
-#define PRINTSHORT(...)
-#endif
+#define DEBUG DEBUG_PRINT
+#include "uip-debug.h" ////Does #define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args) for AVR
 
 #include <avr/pgmspace.h>
 #include <avr/fuse.h>
@@ -96,6 +91,21 @@
 
 #include "net/rime.h"
 
+/* Test rtimers, also for pings, stack monitor, neighbor/route printout and time stamps */
+#define TESTRTIMER 1
+#if TESTRTIMER
+//#define PINGS 64
+#define ROUTES 64
+#define STAMPS 30
+#define STACKMONITOR 128
+
+uint8_t rtimerflag=1;
+uint16_t rtime;
+struct rtimer rt;
+void rtimercycle(void) {rtimerflag=1;}
+
+#endif /* TESTRTIMER */
+
 /*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
 typedef struct {unsigned char B2;unsigned char B1;unsigned char B0;} __signature_t;
@@ -120,7 +130,7 @@ extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via mak
 extern uint8_t server_name[16];
 extern uint8_t domain_name[30];
 #else
-uint8_t mac_address[8] PROGMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
+uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 #endif
 
 
@@ -171,15 +181,16 @@ extern uint8_t osccal_calibrated;
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
-  watchdog_init();
-  watchdog_start();
-  
-#ifdef RAVEN_LCD_INTERFACE
+#if !LED_ON_PORTE1    //Conflicts with USART0
+#if RAVEN_LCD_INTERFACE
   /* First rs232 port for Raven 3290 port */
-  //conflicts with led on Hartmann's board, so bypass for now
-//  rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
+   rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
   /* Set input handler for 3290 port */
-//  rs232_set_input(0,raven_lcd_serial_input);
+   rs232_set_input(0,raven_lcd_serial_input);
+#else
+  //Slip border router on uart0
+  rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
+#endif
 #endif
 
   /* Second rs232 port for debugging */
@@ -187,27 +198,55 @@ void initialize(void)
   /* Redirect stdout to second port */
   rs232_redirect_stdout(RS232_PORT_1);
   clock_init();
+  
+#if 1
+  if(MCUSR & (1<<PORF )) PRINTA("Power-on reset.\n");
+  if(MCUSR & (1<<EXTRF)) PRINTA("External reset!\n");
+  if(MCUSR & (1<<BORF )) PRINTA("Brownout reset!\n");
+  if(MCUSR & (1<<WDRF )) PRINTA("Watchdog reset!\n");
+  if(MCUSR & (1<<JTRF )) PRINTA("JTAG reset!\n");
+#endif
+  
+  watchdog_init();
+  watchdog_start();
 
-#define CONF_CALIBRATE_OSCCAL 1
+#if STACKMONITOR
+  /* Simple stack pointer highwater monitor. Checks for magic numbers in the main
+   * loop. In conjuction with TESTRTIMER, never-used stack will be printed
+   * every STACKMONITOR seconds.
+   */
+{
+extern uint16_t __bss_end;
+uint16_t p=(uint16_t)&__bss_end;
+    do {
+      *(uint16_t *)p = 0x4242;
+      p+=10;
+    } while (p<SP-10); //don't overwrite our own stack
+}
+#endif
+
+#define CONF_CALIBRATE_OSCCAL 0
 #if CONF_CALIBRATE_OSCCAL
 {
 uint8_t i;
-  printf_P(PSTR("\nBefore calibration OSCCAL=%x\n"),OSCCAL);
+  watchdog_stop();
+  PRINTA("\nBefore calibration OSCCAL=%x\n",OSCCAL);
   for (i=0;i<10;i++) { 
     calibrate_rc_osc_32k();  
-    printf_P(PSTR("Calibrated=%x\n"),osccal_calibrated);
+    PRINTA("Calibrated=%x\n",osccal_calibrated);
 //#include <util/delay_basic.h>
 //#define delay_us( us )   ( _delay_loop_2(1+(us*F_CPU)/4000000UL) ) 
 //   delay_us(50000);
  }
    clock_init();
+   watchdog_start();
 }
 #endif 
 
 #if ANNOUNCE_BOOT
-  printf_P(PSTR("\n*******Booting %s*******\n"),CONTIKI_VERSION_STRING);
+  PRINTA("\n*******Booting %s*******\n",CONTIKI_VERSION_STRING);
 #endif
-  watchdog_start();
+
 /* rtimers needed for radio cycling */
   rtimer_init();
 
@@ -249,19 +288,19 @@ uint8_t i;
   NETSTACK_NETWORK.init();
 
 #if ANNOUNCE_BOOT
-  printf_P(PSTR("%s %s, channel %u"),NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
+  PRINTA("%s %s, channel %u",NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
   if (NETSTACK_RDC.channel_check_interval) {//function pointer is zero for sicslowmac
     unsigned short tmp;
     tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
                                    NETSTACK_RDC.channel_check_interval());
-    if (tmp<65535) printf_P(PSTR(", check rate %u Hz"),tmp);
+    if (tmp<65535) PRINTA(", check rate %u Hz",tmp);
   }
-  printf_P(PSTR("\n"));
+  PRINTA("\n");
 #endif
 
 #if UIP_CONF_ROUTER
 #if ANNOUNCE_BOOT
-  printf_P(PSTR("Routing Enabled\n"));
+  PRINTA("Routing Enabled\n");
 #endif
 //  rime_init(rime_udp_init(NULL));
 // uip_router_register(&rimeroute);
@@ -289,13 +328,13 @@ uint8_t i;
 #if COFFEE_FILES
   int fa = cfs_open( "/index.html", CFS_READ);
   if (fa<0) {     //Make some default web content
-    printf_P(PSTR("No index.html file found, creating upload.html!\n"));
-    printf_P(PSTR("Formatting FLASH file system for coffee..."));
+    PRINTF("No index.html file found, creating upload.html!\n");
+    PRINTA("Formatting FLASH file system for coffee...");
     cfs_coffee_format();
-    printf_P(PSTR("Done!\n"));
+    PRINTA("Done!\n");
     fa = cfs_open( "/index.html", CFS_WRITE);
     int r = cfs_write(fa, &"It works!", 9);
-    if (r<0) printf_P(PSTR("Can''t create /index.html!\n"));
+    if (r<0) PRINTF("Can''t create /index.html!\n");
     cfs_close(fa);
 //  fa = cfs_open("upload.html"), CFW_WRITE);
 // <html><body><form action="upload.html" enctype="multipart/form-data" method="post"><input name="userfile" type="file" size="50" /><input value="Upload" type="submit" /></form></body></html>
@@ -323,29 +362,29 @@ uint8_t i;
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
 	if (uip_ds6_if.addr_list[i].isused) {	  
 	   httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr,buf);
-       printf_P(PSTR("IPv6 Address: %s\n"),buf);
+       PRINTA("IPv6 Address: %s\n",buf);
 	}
   }
    eeprom_read_block (buf,server_name, sizeof(server_name));
    buf[sizeof(server_name)]=0;
-   printf_P(PSTR("%s"),buf);
+   PRINTA("%s",buf);
    eeprom_read_block (buf,domain_name, sizeof(domain_name));
    buf[sizeof(domain_name)]=0;
    size=httpd_fs_get_size();
 #ifndef COFFEE_FILES
-   printf_P(PSTR(".%s online with fixed %u byte web content\n"),buf,size);
+   PRINTA(".%s online with fixed %u byte web content\n",buf,size);
 #elif COFFEE_FILES==1
-   printf_P(PSTR(".%s online with static %u byte EEPROM file system\n"),buf,size);
+   PRINTA(".%s online with static %u byte EEPROM file system\n",buf,size);
 #elif COFFEE_FILES==2
-   printf_P(PSTR(".%s online with dynamic %u KB EEPROM file system\n"),buf,size>>10);
+   PRINTA(".%s online with dynamic %u KB EEPROM file system\n",buf,size>>10);
 #elif COFFEE_FILES==3
-   printf_P(PSTR(".%s online with static %u byte program memory file system\n"),buf,size);
+   PRINTA(".%s online with static %u byte program memory file system\n",buf,size);
 #elif COFFEE_FILES==4
-   printf_P(PSTR(".%s online with dynamic %u KB program memory file system\n"),buf,size>>10);
+   PRINTA(".%s online with dynamic %u KB program memory file system\n",buf,size>>10);
 #endif /* COFFEE_FILES */
 
 #else
-   printf_P(PSTR("Online\n"));
+   PRINTA("Online\n");
 #endif /* WEBSERVER */
 
 #endif /* ANNOUNCE_BOOT */
@@ -354,18 +393,8 @@ uint8_t i;
 /*---------------------------------------------------------------------------*/
 void log_message(char *m1, char *m2)
 {
-  printf_P(PSTR("%s%s\n"), m1, m2);
+  PRINTA("%s%s\n", m1, m2);
 }
-/* Test rtimers, also useful for pings and time stamps in simulator */
-#define TESTRTIMER 0
-#if TESTRTIMER
-#define PINGS 60
-#define STAMPS 30
-uint8_t rtimerflag=1;
-uint16_t rtime;
-struct rtimer rt;
-void rtimercycle(void) {rtimerflag=1;}
-#endif /* TESTRTIMER */
 
 #if RF230BB
 extern char rf230_interrupt_flag, rf230processflag;
@@ -379,98 +408,152 @@ uint16_t ledtimer;
 int
 main(void)
 {
-#define CONFIG_STACK_MONITOR 1
-#if CONFIG_STACK_MONITOR
-extern uint16_t __bss_end;
- __bss_end = 0x4242;
- *(uint16_t *)(&__bss_end+100) = 0x4242;
-#endif
 
   initialize();
 
+#if LED_ON_PORTE1
   /* NB: PORTE1 conflicts with UART0 */
-  DDRE|=(1<<DDE1);  //set led pin to output
+  DDRE|=(1<<DDE1);  //set led pin to output (Micheal Hatrtman board)
   PORTE&=~(1<<PE1); //and low to turn led off
+#endif
 
   while(1) {
      process_run();
 
+#if LED_ON_PORTE1
     /* Turn off LED after a while */
     if (ledtimer) {
       if (--ledtimer==0) {
-         PORTE&=~(1<<PE1);
+        PORTE&=~(1<<PE1);
     /* Currently LED was turned on by received ping; ping the other way for testing */
         extern void raven_ping6(void);         
-        raven_ping6(); //ping back
+ //       raven_ping6(); //ping back
       }
-    } 
-  
-#if CONFIG_STACK_MONITOR
-    if (*(uint16_t *)(&__bss_end+100) != 0x4242) {
-      printf_P(PSTR("\nStack Warning, overflow within 100 bytes!\n"));
-      if (__bss_end != 0x4242) {
-       __bss_end = 0x4242;
-        printf_P(PSTR("\n!!!!!!!Stack Overflow!!!!!!!!\n"));
-      }
-      *(uint16_t *)(&__bss_end+100) = 0x4242;
     }
 #endif
 
 #if 0
-extern uint8_t rf230_calibrated;
+/* Various entry points for debugging in the AVR Studio simulator.
+ * Set as next statement and step into the routine.
+ */
+    NETSTACK_RADIO.send(packetbuf_hdrptr(), 42);
+    process_poll(&rf230_process);
+    packetbuf_clear();
+    len = rf230_read(packetbuf_dataptr(), PACKETBUF_SIZE);
+    packetbuf_set_datalen(42);
+    NETSTACK_RDC.input();
+#endif
+
+    watchdog_periodic();
+#if 0
+/* Clock.c can trigger a periodic PLL calibration in the RF230BB driver.
+ * This can show when that happens.
+ */
+    extern uint8_t rf230_calibrated;
     if (rf230_calibrated) {
-      printf_P(PSTR("\nRF230 calibrated!"));
+      PRINTA("\nRF230 calibrated!\n");
       rf230_calibrated=0;
     }
-#endif    
-  
-//Various entry points for debugging in AVR simulator
-//    NETSTACK_RADIO.send(packetbuf_hdrptr(), 42);
-//    process_poll(&rf230_process);
-//    packetbuf_clear();
-//    len = rf230_read(packetbuf_dataptr(), PACKETBUF_SIZE);
-//    packetbuf_set_datalen(42);
-//    NETSTACK_RDC.input();
-    watchdog_periodic();
+#endif
+
 #if TESTRTIMER
-    if (rtimerflag) {  //8 seconds is maximum interval, my raven 6% slow
+/* Timeout can be increased up to 8 seconds maximum.
+ * A one second cycle is convenient for triggering the various debug printouts.
+ * The triggers are staggered to avoid printing everything at once.
+ * My raven is 6% slow.
+ */
+    if (rtimerflag) {
       rtimer_set(&rt, RTIMER_NOW()+ RTIMER_ARCH_SECOND*1UL, 1,(void *) rtimercycle, NULL);
       rtimerflag=0;
-#if STAMPS
-      if ((rtime%STAMPS)==0) {
-        printf("%us ",rtime);
-#if 0 //test timer0
-extern unsigned long seconds;
-        printf("clock=  %lus ",clock_seconds());
-        printf("scount=%us",scount);
-        printf(" %us %us",(unsigned int)(seconds&0xffff),(unsigned int)(seconds>>16));
-#endif
-      }
 
+#if STAMPS
+if ((rtime%STAMPS)==0) {
+  PRINTA("%us ",rtime);
+}
 #endif
       rtime+=1;
+
 #if PINGS
-      if ((rtime%PINGS)==0) {
-        PRINTF("**Ping\n");
-        raven_ping6();
-      }
+extern void raven_ping6(void); 
+if ((rtime%PINGS)==1) {
+  PRINTA("**Ping\n");
+  raven_ping6();
+}
 #endif
+
+#if ROUTES
+if ((rtime%ROUTES)==2) {
+      
+extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
+extern uip_ds6_route_t uip_ds6_routing_table[];
+extern uip_ds6_netif_t uip_ds6_if;
+
+  uint8_t i,j;
+  PRINTA("\nAddresses [%u max]\n",UIP_DS6_ADDR_NB);
+  for (i=0;i<UIP_DS6_ADDR_NB;i++) {
+    if (uip_ds6_if.addr_list[i].isused) {
+      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
+      PRINTA("\n");
     }
+  }
+  PRINTA("\nNeighbors [%u max]\n",UIP_DS6_NBR_NB);
+  for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
+    if(uip_ds6_nbr_cache[i].isused) {
+      uip_debug_ipaddr_print(&uip_ds6_nbr_cache[i].ipaddr);
+      PRINTA("\n");
+      j=0;
+    }
+  }
+  if (j) PRINTA("  <none>");
+  PRINTA("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
+  for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
+    if(uip_ds6_routing_table[i].isused) {
+      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].ipaddr);
+      PRINTA("/%u (via ", uip_ds6_routing_table[i].length);
+      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].nexthop);
+ //     if(uip_ds6_routing_table[i].state.lifetime < 600) {
+        PRINTA(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
+ //     } else {
+ //       PRINTA(")\n");
+ //     }
+      j=0;
+    }
+  }
+  if (j) PRINTA("  <none>");
+  PRINTA("\n---------\n");
+}
 #endif
+
+#if STACKMONITOR
+if ((rtime%STACKMONITOR)==3) {
+  extern uint16_t __bss_end;
+  uint16_t p=(uint16_t)&__bss_end;
+  do {
+    if (*(uint16_t *)p != 0x4242) {
+      PRINTA("Never-used stack > %d bytes\n",p-(uint16_t)&__bss_end);
+      break;
+    }
+    p+=10;
+  } while (p<RAMEND-10);
+}
+#endif
+
+    }
+#endif /* TESTRTIMER */
 
 //Use with RF230BB DEBUGFLOW to show path through driver
 #if RF230BB&&0
 extern uint8_t debugflowsize,debugflow[];
   if (debugflowsize) {
     debugflow[debugflowsize]=0;
-    printf("%s",debugflow);
+    PRINTA("%s",debugflow);
     debugflowsize=0;
    }
 #endif
 
 #if RF230BB&&0
     if (rf230processflag) {
-      printf("rf230p%d",rf230processflag);
+      PRINTA("rf230p%d",rf230processflag);
       rf230processflag=0;
     }
 #endif
@@ -478,7 +561,7 @@ extern uint8_t debugflowsize,debugflow[];
 #if RF230BB&&0
     if (rf230_interrupt_flag) {
  //   if (rf230_interrupt_flag!=11) {
-        PRINTSHORT("**RI%u",rf230_interrupt_flag);
+        PRINTA("**RI%u",rf230_interrupt_flag);
  //   }
       rf230_interrupt_flag=0;
     }

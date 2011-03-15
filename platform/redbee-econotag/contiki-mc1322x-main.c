@@ -230,11 +230,11 @@ void iab_to_eui64(rimeaddr_t *eui64, uint32_t oui, uint16_t iab, uint32_t ext) {
 
 	/* IAB */
 	eui64->u8[3] = (iab >> 4)  & 0xff;
-	eui64->u8[4] = (iab & 0xf) << 4;
+	eui64->u8[4] = (iab << 4) &  0xf0;
 
 	/* EXT */
 
-	eui64->u8[4] = (ext >> 24) & 0xff;
+	eui64->u8[4] |= (ext >> 24) & 0xf;
 	eui64->u8[5] = (ext >> 16) & 0xff;
 	eui64->u8[6] = (ext >> 8)  & 0xff;
 	eui64->u8[7] =  ext        & 0xff;

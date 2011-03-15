@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Mariano Alvira <mar@devl.org> and other contributors
+ * to the MC1322x project (http://mc1322x.devl.org)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,63 +27,59 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ * This file is part of libmc1322x: see http://mc1322x.devl.org
+ * for details.
  *
- * $Id: uip-debug.h,v 1.1 2010/04/30 13:20:57 joxe Exp $
- */
-/**
- * \file
- *         A set of debugging macros.
  *
- * \author Nicolas Tsiftes <nvt@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef UIP_DEBUG_H
-#define UIP_DEBUG_H
-
-#include "net/uip.h"
+#include <mc1322x.h>
+#include <board.h>
 #include <stdio.h>
 
-void uip_debug_ipaddr_print(const uip_ipaddr_t *addr);
-void uip_debug_lladdr_print(const uip_lladdr_t *addr);
+#include "config.h"
+#include "pwm.h"
+#include "rtc.h"
 
-#define DEBUG_NONE      0
-#define DEBUG_PRINT     1
-#define DEBUG_ANNOTATE  2
-#define DEBUG_FULL      DEBUG_ANNOTATE | DEBUG_PRINT
+int main(void) 
+{
+	int x = 32768;
+	
+	trim_xtal();
+	uart1_init(INC,MOD,SAMP);
+	rtc_init();
+	
+	printf("pwm test\r\n");
+	pwm_init_stopped(TMR0, 12000000, x);
+	pwm_init_stopped(TMR1, 12000000, x);
+	TMR0->ENBL |= TMR_ENABLE_BIT(TMR0) | TMR_ENABLE_BIT(TMR1);
 
-/* PRINTA will always print if the debug routines are called directly */
-#ifdef __AVR__
-#include <avr/pgmspace.h>
-#define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#else
-#define PRINTA(...) printf(__VA_ARGS__)
-#endif
+	for(;;) {
+		printf("duty %d = %d%%\r\n", x, ((x * 100 + 32768) / 65536));
+		switch(uart1_getc()) {
+		case '[': x -= 1; break;
+		case ']': x += 1; break;
+		case '-': x -= 32; break;
+		case '=': x += 32; break;
+		case '_': x -= 512; break;
+		case '+': x += 512; break;
 
-#if (DEBUG) & DEBUG_ANNOTATE
-#ifdef __AVR__
-#define ANNOTATE(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#else
-#define ANNOTATE(...) printf(__VA_ARGS__)
-#endif
-#else
-#define ANNOTATE(...)
-#endif /* (DEBUG) & DEBUG_ANNOTATE */
+		case '`': x = 65535 * 0/10; break;
+		case '1': x = 65535 * 1/10; break;
+		case '2': x = 65535 * 2/10; break;
+		case '3': x = 65535 * 3/10; break;
+		case '4': x = 65535 * 4/10; break;
+		case '5': x = 65535 * 5/10; break;
+		case '6': x = 65535 * 6/10; break;
+		case '7': x = 65535 * 7/10; break;
+		case '8': x = 65535 * 8/10; break;
+		case '9': x = 65535 * 9/10; break;
+		case '0': x = 65535 * 10/10; break;
 
-#if (DEBUG) & DEBUG_PRINT
-#ifdef __AVR__
-#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#else
-#define PRINTF(...) printf(__VA_ARGS__)
-#endif
-#define PRINT6ADDR(addr) uip_debug_ipaddr_print(addr)
-#define PRINTLLADDR(lladdr) uip_debug_lladdr_print(lladdr)
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(lladdr)
-#endif /* (DEBUG) & DEBUG_PRINT */
+		}
+		x &= 65535;
+		pwm_duty(TMR0, x);
+	}
+}
 
-#endif
+
