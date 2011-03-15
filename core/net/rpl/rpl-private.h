@@ -218,6 +218,7 @@ struct rpl_stats {
   uint16_t global_repairs;
   uint16_t malformed_msgs;
   uint16_t resets;
+  uint16_t parent_switch;
 };
 typedef struct rpl_stats rpl_stats_t;
 
