@@ -358,6 +358,7 @@ rpl_select_parent(rpl_dag_t *dag)
     rpl_reset_dio_timer(dag, 1);
     PRINTF("RPL: New preferred parent, rank changed from %u to %u\n",
 	   (unsigned)dag->rank, dag->of->calculate_rank(best, 0));
+    RPL_STAT(rpl_stats.parent_switch++);
   }
 
   /* Update the DAG rank, since link-layer information may have changed
