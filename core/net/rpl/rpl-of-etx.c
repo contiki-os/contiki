@@ -66,7 +66,7 @@ rpl_of_t rpl_of_etx = {
 
 #define NI_ETX_TO_RPL_ETX(etx)						\
 	((etx) * (RPL_DAG_MC_ETX_DIVISOR / NEIGHBOR_INFO_ETX_DIVISOR))
-#define RPL_ETX_TO_NI_ETX(etx)						\
+#define rpl_path_metric_tO_NI_ETX(etx)						\
 	((etx) / (RPL_DAG_MC_ETX_DIVISOR / NEIGHBOR_INFO_ETX_DIVISOR))
 
 /* Reject parents that have a higher link metric than the following. */
@@ -84,13 +84,12 @@ rpl_of_t rpl_of_etx = {
  */
 #define PARENT_SWITCH_THRESHOLD_DIV	2
 
-typedef uint16_t rpl_etx_t;
-#define MAX_ETX 65535
+typedef uint16_t rpl_path_metric_t;
 
 static uint16_t
-calculate_etx(rpl_parent_t *p)
+calculate_path_metric(rpl_parent_t *p)
 {
-  return p->mc.etx.etx + NI_ETX_TO_RPL_ETX(p->etx);
+  return p->mc.obj.etx + NI_ETX_TO_RPL_ETX(p->etx);
 }
 
 static void
@@ -140,48 +139,64 @@ static rpl_parent_t *
 best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 {
   rpl_dag_t *dag;
-  rpl_etx_t min_diff;
-  rpl_etx_t p1_etx;
-  rpl_etx_t p2_etx;
+  rpl_path_metric_t min_diff;
+  rpl_path_metric_t p1_metric;
+  rpl_path_metric_t p2_metric;
 
   dag = p1->dag; /* Both parents must be in the same DAG. */
 
   min_diff = RPL_DAG_MC_ETX_DIVISOR / 
              PARENT_SWITCH_THRESHOLD_DIV;
 
-  p1_etx = calculate_etx(p1);
-  p2_etx = calculate_etx(p2);
+  p1_metric = calculate_path_metric(p1);
+  p2_metric = calculate_path_metric(p2);
 
   /* Maintain stability of the preferred parent in case of similar ranks. */
   if(p1 == dag->preferred_parent || p2 == dag->preferred_parent) {
-    if(p1_etx < p2_etx + min_diff &&
-       p1_etx > p2_etx - min_diff) {
+    if(p1_metric < p2_metric + min_diff &&
+       p1_metric > p2_metric - min_diff) {
       PRINTF("RPL: MRHOF hysteresis: %u <= %u <= %u\n",
-             p2_etx - min_diff,
-             p1_etx,
-             p2_etx + min_diff);
+             p2_metric - min_diff,
+             p1_metric,
+             p2_metric + min_diff);
       return dag->preferred_parent;
     }
   }
 
-  return p1_etx < p2_etx ? p1 : p2;
+  return p1_metric < p2_metric ? p1 : p2;
 }
 
 static void
 update_metric_container(rpl_dag_t *dag)
 {
+#if RPL_DAG_MC == RPL_DAG_MC_ETX
   dag->mc.type = RPL_DAG_MC_ETX;
   dag->mc.flags = RPL_DAG_MC_FLAG_P;
   dag->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
   dag->mc.prec = 0;
-  dag->mc.length = sizeof(dag->mc.etx.etx);
+  dag->mc.length = sizeof(dag->mc.obj.etx);
   if(dag->rank == ROOT_RANK(dag)) {
-    dag->mc.etx.etx = 0;
+    dag->mc.obj.etx = 0;
   } else {
-    dag->mc.etx.etx = calculate_etx(dag->preferred_parent);
+    dag->mc.obj.etx = calculate_path_metric(dag->preferred_parent);
   }
+#elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
+  dag->mc.type = RPL_DAG_MC_ENERGY;
+  dag->mc.flags = RPL_DAG_MC_FLAG_P;
+  dag->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
+  dag->mc.prec = 0;
+  dag->mc.length = sizeof(dag->mc.obj.energy);
+  if(dag->rank == ROOT_RANK(dag)) {
+    dag->mc.obj.energy.flags = RPL_DAG_MC_ENERGY_TYPE_MAINS << RPL_DAG_MC_ENERGY_TYPE;
+  } else {
+    dag->mc.obj.energy.flags = RPL_DAG_MC_ENERGY_TYPE_BATTERY << RPL_DAG_MC_ENERGY_TYPE;
+  }
+  dag->mc.obj.energy.energy_est = calculate_path_metric(dag->preferred_parent);
+#else
+#error "Unsupported RPL_DAG_MC configured. See rpl.h."
+#endif /* RPL_DAG_MC */
 
   PRINTF("RPL: My path ETX to the root is %u.%u\n",
-	dag->mc.etx.etx / RPL_DAG_MC_ETX_DIVISOR,
-	(dag->mc.etx.etx % RPL_DAG_MC_ETX_DIVISOR * 100) / RPL_DAG_MC_ETX_DIVISOR);
+	dag->mc.obj.etx / RPL_DAG_MC_ETX_DIVISOR,
+	(dag->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) / RPL_DAG_MC_ETX_DIVISOR);
 }

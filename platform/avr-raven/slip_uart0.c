@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, University of Colombo School of Computing
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,56 +26,68 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
+ * @(#)$$
  */
 
 /**
  * \file
- *         A set of debugging tools
+ *         Machine dependent AVR SLIP routines for UART0.
  * \author
- *         Nicolas Tsiftes <nvt@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+ *         Kasun Hewage <kasun.ch@gmail.com>
  */
 
-#include "net/uip-debug.h"
+#include <stdio.h>
+#include "contiki.h"
+#include "dev/rs232.h"
+#include "slip.h"
 
 /*---------------------------------------------------------------------------*/
-void
-uip_debug_ipaddr_print(const uip_ipaddr_t *addr)
+static int
+slip_putchar(char c, FILE *stream)
 {
-#if UIP_CONF_IPV6
-  uint16_t a;
-  unsigned int i;
-  int f;
-  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
-    a = (addr->u8[i] << 8) + addr->u8[i + 1];
-    if(a == 0 && f >= 0) {
-      if(f++ == 0) {
-        PRINTA("::");
-      }
-    } else {
-      if(f > 0) {
-        f = -1;
-      } else if(i > 0) {
-        PRINTA(":");
-      }
-      PRINTA("%x", a);
-    }
+#define SLIP_END 0300
+  static char debug_frame = 0;
+
+  if (!debug_frame) {        /* Start of debug output */
+    slip_arch_writeb(SLIP_END);
+    slip_arch_writeb('\r'); /* Type debug line == '\r' */
+    debug_frame = 1;
   }
-#else /* UIP_CONF_IPV6 */
-  PRINTA("%u.%u.%u.%u", addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
-#endif /* UIP_CONF_IPV6 */
+
+  slip_arch_writeb((unsigned char)c);
+          
+  /*
+   * Line buffered output, a newline marks the end of debug output and
+   * implicitly flushes debug output.         
+   */
+  if (c == '\n') {
+    slip_arch_writeb(SLIP_END);
+    debug_frame = 0;
+  }
+
+  return c;
 }
 /*---------------------------------------------------------------------------*/
+static FILE slip_stdout = FDEV_SETUP_STREAM(slip_putchar, NULL,
+                                            _FDEV_SETUP_WRITE);
+/*---------------------------------------------------------------------------*/
 void
-uip_debug_lladdr_print(const uip_lladdr_t *addr)
+slip_arch_init(unsigned long ubr)
 {
-  unsigned int i;
-  for(i = 0; i < sizeof(uip_lladdr_t); i++) {
-    if(i > 0) {
-      PRINTA(":");
-    }
-    PRINTA("%02x", addr->addr[i]);
-  }
+  rs232_set_input(RS232_PORT_0, slip_input_byte);
+  stdout = &slip_stdout;
 }
 /*---------------------------------------------------------------------------*/
+/*
+ XXX:
+      Currently, the following function is in cpu/avr/dev/rs232.c file. this
+      should be moved to here from there hence this is a platform specific slip 
+      related function. 
+void
+slip_arch_writeb(unsigned char c)
+{
+  rs232_send(RS232_PORT_0, c);
+}
+*/
