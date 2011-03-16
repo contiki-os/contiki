@@ -66,7 +66,7 @@ rpl_of_t rpl_of_etx = {
 
 #define NI_ETX_TO_RPL_ETX(etx)						\
 	((etx) * (RPL_DAG_MC_ETX_DIVISOR / NEIGHBOR_INFO_ETX_DIVISOR))
-#define rpl_path_metric_tO_NI_ETX(etx)						\
+#define RPL_ETX_TO_NI_ETX(etx)					\
 	((etx) / (RPL_DAG_MC_ETX_DIVISOR / NEIGHBOR_INFO_ETX_DIVISOR))
 
 /* Reject parents that have a higher link metric than the following. */
@@ -74,9 +74,6 @@ rpl_of_t rpl_of_etx = {
 
 /* Reject parents that have a higher path cost than the following. */
 #define MAX_PATH_COST			100
-
-/* An initial guess of the link metric. */
-#define INITIAL_LINK_METRIC		3
 
 /*
  * The rank must differ more than 1/PARENT_SWITCH_THRESHOLD_DIV in order
@@ -89,7 +86,10 @@ typedef uint16_t rpl_path_metric_t;
 static uint16_t
 calculate_path_metric(rpl_parent_t *p)
 {
-  return p->mc.obj.etx + NI_ETX_TO_RPL_ETX(p->etx);
+  if(p->mc.obj.etx == 0 && p->rank > ROOT_RANK(p->dag)) {
+    return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
+  }
+  return p->mc.obj.etx + NI_ETX_TO_RPL_ETX(p->link_metric);
 }
 
 static void
@@ -112,12 +112,9 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     if(base_rank == 0) {
       return INFINITE_RANK;
     }
-    rank_increase = INITIAL_LINK_METRIC * DEFAULT_MIN_HOPRANKINC;
+    rank_increase = NEIGHBOR_INFO_FIX2ETX(INITIAL_LINK_METRIC) * DEFAULT_MIN_HOPRANKINC;
   } else {
-    if(p->etx == 0) {
-      p->etx = INITIAL_LINK_METRIC * NEIGHBOR_INFO_ETX_DIVISOR;
-    }
-    rank_increase = (p->etx * p->dag->min_hoprankinc) / NEIGHBOR_INFO_ETX_DIVISOR;
+    rank_increase = NEIGHBOR_INFO_FIX2ETX(p->link_metric) * p->dag->min_hoprankinc;
     if(base_rank == 0) {
       base_rank = p->rank;
     }
@@ -180,6 +177,10 @@ update_metric_container(rpl_dag_t *dag)
   } else {
     dag->mc.obj.etx = calculate_path_metric(dag->preferred_parent);
   }
+
+  PRINTF("RPL: My path ETX to the root is %u.%u\n",
+	dag->mc.obj.etx / RPL_DAG_MC_ETX_DIVISOR,
+	(dag->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) / RPL_DAG_MC_ETX_DIVISOR);
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
   dag->mc.type = RPL_DAG_MC_ENERGY;
   dag->mc.flags = RPL_DAG_MC_FLAG_P;
@@ -195,8 +196,4 @@ update_metric_container(rpl_dag_t *dag)
 #else
 #error "Unsupported RPL_DAG_MC configured. See rpl.h."
 #endif /* RPL_DAG_MC */
-
-  PRINTF("RPL: My path ETX to the root is %u.%u\n",
-	dag->mc.obj.etx / RPL_DAG_MC_ETX_DIVISOR,
-	(dag->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) / RPL_DAG_MC_ETX_DIVISOR);
 }
