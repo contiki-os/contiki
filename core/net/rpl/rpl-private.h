@@ -127,6 +127,8 @@
 
 #define INFINITE_RANK                   0xffff
 
+#define INITIAL_LINK_METRIC		NEIGHBOR_INFO_ETX2FIX(5)
+
 /* Represents 2^n ms. */
 /* Default value according to the specification is 3 which
    means 8 milliseconds, but that is an unreasonable value if
