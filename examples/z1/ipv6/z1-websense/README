@@ -1,6 +1,6 @@
 This example features a simple webserver running on top of the IPv6
-contiki stack on Sky motes to provide sensor values, and with a RPL
-border router to bridge the sensor network to Internet.
+contiki stack on Zolertia Z1 motes to provide sensor values, and with 
+a RPL border router to bridge the sensor network to Internet.
 
 
 To test the example in COOJA under Linux

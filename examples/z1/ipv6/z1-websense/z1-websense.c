@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Zolertia(TM) is a trademark by Advancare,SL
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,16 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: sky-websense.c,v 1.3 2010/06/08 13:27:06 nifi Exp $
  */
 
 /**
  * \file
- *         Light and temperatur sensor web demo
+ *         Battery and Temperature IPv6 Demo for Zolertia Z1
  * \author
  *         Niclas Finne    <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  *         Joel Hoglund    <joel@sics.se>
+ *         Enric M. Calvo  <ecalvo@zolertia.com>
  */
 
 #include "contiki.h"

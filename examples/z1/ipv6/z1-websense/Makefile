@@ -1,6 +1,6 @@
-all: sky-websense
+all: z1-websense
 
-CONTIKI=../../..
+CONTIKI=../../../..
 
 WITH_UIP6=1
 UIP_CONF_IPV6=1
@@ -9,7 +9,7 @@ APPS += webserver webbrowser
 
 CFLAGS += -DPROJECT_CONF_H=1
 CONTIKI_SOURCEFILES += wget.c
-PROJECTDIRS += ../rpl-border-router
+PROJECTDIRS += ../../../ipv6/rpl-border-router
 PROJECT_SOURCEFILES += httpd-simple.c
 
 include $(CONTIKI)/Makefile.include
