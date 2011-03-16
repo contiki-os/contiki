@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Zolertia(TM) is a trademark of Advancare,SL
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,9 @@
 
 /**
  * \file
- *         A quick program for testing the tmp102 driver
+ *         A quick program for testing the tmp102 driver in the Z1 platform
  * \author
- *         Enric Calvo <ecalvo@zolertia.com>
+ *         Enric M. Calvo <ecalvo@zolertia.com>
  */
 
 #include <stdio.h>
@@ -59,45 +59,41 @@
 
 #define TMP102_READ_INTERVAL (CLOCK_SECOND/2)
 
-PROCESS (temp_process, "Test Temperature process");
-AUTOSTART_PROCESSES (&temp_process);
+PROCESS(temp_process, "Test Temperature process");
+AUTOSTART_PROCESSES(&temp_process);
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 
-PROCESS_THREAD (temp_process, ev, data)
+PROCESS_THREAD(temp_process, ev, data)
 {
-  PROCESS_BEGIN ();
+  PROCESS_BEGIN();
 
-  {
-    int16_t  tempint;
-    uint16_t tempfrac;
-    int16_t  raw;
-    uint16_t absraw;
-    int16_t  sign;
-    char     minus = ' ';
+  int16_t tempint;
+  uint16_t tempfrac;
+  int16_t raw;
+  uint16_t absraw;
+  int16_t sign;
+  char minus = ' ';
 
-    tmp102_init();
+  tmp102_init();
 
-    while (1)
-      {
-        etimer_set(&et, TMP102_READ_INTERVAL);
-        PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+  while(1) {
+    etimer_set(&et, TMP102_READ_INTERVAL);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-        sign = 1;
+    sign = 1;
 
-	PRINTFDEBUG ("Reading Temp...\n");
-	raw = tmp102_read_temp_raw();
-        absraw = raw;
-        if (raw < 0) { // Perform 2C's if sensor returned negative data
-          absraw = (raw ^ 0xFFFF) + 1;
-          sign = -1;
-        }
-	tempint  = (absraw >> 8) * sign;
-        tempfrac = ((absraw>>4) % 16) * 625; // Info in 1/10000 of degree
-        minus = ((tempint == 0) & (sign == -1)) ? '-'  : ' ' ;
-	PRINTF ("Temp = %c%d.%04d\n", minus, tempint, tempfrac);
-      }
+    PRINTFDEBUG("Reading Temp...\n");
+    raw = tmp102_read_temp_raw();
+    absraw = raw;
+    if(raw < 0) {		// Perform 2C's if sensor returned negative data
+      absraw = (raw ^ 0xFFFF) + 1;
+      sign = -1;
+    }
+    tempint = (absraw >> 8) * sign;
+    tempfrac = ((absraw >> 4) % 16) * 625;	// Info in 1/10000 of degree
+    minus = ((tempint == 0) & (sign == -1)) ? '-' : ' ';
+    PRINTF("Temp = %c%d.%04d\n", minus, tempint, tempfrac);
   }
-  PROCESS_END ();
+  PROCESS_END();
 }
-
