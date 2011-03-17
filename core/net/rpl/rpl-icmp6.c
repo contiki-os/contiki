@@ -579,7 +579,7 @@ dao_input(void)
 
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
-    RPL_STAT(rpl_stats.memory_overflows++);
+    RPL_STAT(rpl_stats.mem_overflows++);
     PRINTF("RPL: Could not add a route after receiving a DAO\n");
     return;
   } else {

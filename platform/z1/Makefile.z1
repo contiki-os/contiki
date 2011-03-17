@@ -7,7 +7,7 @@ ARCH=msp430.c leds.c watchdog.c xmem.c \
      spix.c cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c\
      node-id.c sensors.c button-sensor.c cfs-coffee.c \
      radio-sensor.c uart0x.c uart0-putchar.c uip-ipchksum.c \
-     checkpoint-arch.c slip.c slip_uart0.c z1-phidgets.c
+     checkpoint-arch.c slip.c slip_uart0.c z1-phidgets.c adxl345.c i2cmaster.c
 
 CONTIKI_TARGET_DIRS = . dev apps net
 ifndef CONTIKI_TARGET_MAIN

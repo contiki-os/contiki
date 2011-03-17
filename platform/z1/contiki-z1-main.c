@@ -69,6 +69,7 @@
 
 SENSORS(&button_sensor);
 
+
 #if DCOSYNCH_CONF_ENABLED
 static struct timer mgt_timer;
 #endif
@@ -258,6 +259,8 @@ main(int argc, char **argv)
   set_rime_addr();
 
   cc2420_init();
+  accm_init();
+
   {
     uint8_t longaddr[8];
     uint16_t shortaddr;

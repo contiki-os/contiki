@@ -46,9 +46,7 @@
 #define ETX_LIMIT		15
 #define ETX_SCALE		100
 #define ETX_ALPHA		90
-#define ETX_FIRST_GUESS		5
-
-#define NOACK_PACKET_ETX        8
+#define ETX_NOACK_PENALTY       ETX_LIMIT
 /*---------------------------------------------------------------------------*/
 NEIGHBOR_ATTRIBUTE(uint8_t, etx, NULL);
 
@@ -61,16 +59,17 @@ update_etx(const rimeaddr_t *dest, int packet_etx)
   uint8_t recorded_etx, new_etx;
 
   etxp = (uint8_t *)neighbor_attr_get_data(&etx, dest);
+  packet_etx = NEIGHBOR_INFO_ETX2FIX(packet_etx);
   if(etxp == NULL || *etxp == 0) {
-    recorded_etx = NEIGHBOR_INFO_ETX2FIX(ETX_FIRST_GUESS);
+    recorded_etx = NEIGHBOR_INFO_ETX2FIX(ETX_LIMIT);
+    new_etx = packet_etx;
   } else {
     recorded_etx = *etxp;
+    /* Update the EWMA of the ETX for the neighbor. */
+    new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
+               (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
   }
 
-  /* Update the EWMA of the ETX for the neighbor. */
-  packet_etx = NEIGHBOR_INFO_ETX2FIX(packet_etx);
-  new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
-             (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
   PRINTF("neighbor-info: ETX changed from %d to %d (packet ETX = %d) %d\n",
 	 NEIGHBOR_INFO_FIX2ETX(recorded_etx),
 	 NEIGHBOR_INFO_FIX2ETX(new_etx),
@@ -96,9 +95,6 @@ add_neighbor(const rimeaddr_t *addr)
     PRINTF("neighbor-info: The neighbor is already known\n");
     break;
   default:
-    if(subscriber_callback != NULL) {
-      subscriber_callback(addr, 1, NEIGHBOR_INFO_ETX2FIX(ETX_FIRST_GUESS));
-    }
     break;
   }
 }
@@ -127,18 +123,15 @@ neighbor_info_packet_sent(int status, int numtx)
     packet_etx = numtx;
     break;
   case MAC_TX_NOACK:
-    packet_etx = NOACK_PACKET_ETX;
-  /* error and collissions will not cause high hits ??? */
+    packet_etx = ETX_NOACK_PENALTY;
     break;
-  case MAC_TX_ERR:
   default:
-    packet_etx = 0;
-    break;
+    /* Do not penalize the ETX when collisions or transmission
+       errors occur. */
+    return;
   }
 
-  if(packet_etx > 0) {
-    update_etx(dest, packet_etx);
-  }
+  update_etx(dest, packet_etx);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -175,6 +168,6 @@ neighbor_info_get_etx(const rimeaddr_t *addr)
   uint8_t *etxp;
 
   etxp = (uint8_t *)neighbor_attr_get_data(&etx, addr);
-  return etxp == NULL ? 0 : *etxp;
+  return etxp == NULL ? ETX_LIMIT : *etxp;
 }
 /*---------------------------------------------------------------------------*/

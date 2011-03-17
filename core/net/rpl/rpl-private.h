@@ -127,6 +127,8 @@
 
 #define INFINITE_RANK                   0xffff
 
+#define INITIAL_LINK_METRIC		NEIGHBOR_INFO_ETX2FIX(5)
+
 /* Represents 2^n ms. */
 /* Default value according to the specification is 3 which
    means 8 milliseconds, but that is an unreasonable value if
@@ -218,6 +220,7 @@ struct rpl_stats {
   uint16_t global_repairs;
   uint16_t malformed_msgs;
   uint16_t resets;
+  uint16_t parent_switch;
 };
 typedef struct rpl_stats rpl_stats_t;
 
