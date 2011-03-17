@@ -147,7 +147,7 @@ struct rpl_parent {
   rpl_metric_container_t mc;
   uip_ipaddr_t addr;
   rpl_rank_t rank;
-  uint8_t etx;
+  uint8_t link_metric;
   uint8_t dtsn;
   uint8_t updated;
 };

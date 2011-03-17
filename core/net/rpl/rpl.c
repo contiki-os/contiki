@@ -148,11 +148,10 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
     return;
   }
 
-  if(etx != parent->etx) {
-    /* Trigger DAG rank recalculation. */
-    parent->updated = 1;
-  }
-  parent->etx = etx;
+  /* Trigger DAG rank recalculation. */
+  parent->updated = 1;
+
+  parent->link_metric = etx;
 
   if(dag->of->parent_state_callback != NULL) {
     dag->of->parent_state_callback(parent, known, etx);
@@ -163,7 +162,6 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
     PRINT6ADDR(&parent->addr);
     PRINTF(" because of bad connectivity (ETX %d)\n", etx);
     parent->rank = INFINITE_RANK;
-    parent->updated = 1;
   }
 }
 /************************************************************************/

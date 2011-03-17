@@ -373,7 +373,7 @@ uip_ds6_aaddr_t *uip_ds6_aaddr_lookup(uip_ipaddr_t *ipaddr);
 /** @{ */
 uip_ds6_route_t *uip_ds6_route_lookup(uip_ipaddr_t *destipaddr);
 uip_ds6_route_t *uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
-                                   uip_ipaddr_t *next_hop, u8_t metric);
+                                   uip_ipaddr_t *next_hop, uint8_t metric);
 void uip_ds6_route_rm(uip_ds6_route_t *route);
 void uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop);
 
