@@ -116,6 +116,8 @@ static bool clean_route = false;
 static bool clean_neighb = false;
 static struct uip_eth_addr adapter_eth_addr;
 static char * if_name;
+static char * if_mac;
+
 OSVERSIONINFO osVersionInfo;
 
 /* Fictitious Ethernet address of the attached device (used in tun mode). */
@@ -357,7 +359,7 @@ read_more:
                       }
 
                       addLoWPANRoute(if_name, br_prefix, rem_ipaddr);
-                      addNeighbor(if_name, rem_ipaddr, DEV_MAC_ADDR);
+                      addNeighbor(if_name, rem_ipaddr, if_mac);//DEV_MAC_ADDR);
                   }
 
 			  }
@@ -1058,12 +1060,11 @@ main(int argc, char **argv)
         (int *)&adapter_eth_addr.addr[2],(int *)&adapter_eth_addr.addr[3],
         (int *)&adapter_eth_addr.addr[4],(int *)&adapter_eth_addr.addr[5]);
 	if_name = wpcap_start(&adapter_eth_addr, verbose);
-
+	if_mac = argv[1];
 
 	if(local_ipaddr!=NULL){
 		addAddress(if_name, local_ipaddr);
 	}
-
 
 	switch(baudrate) {
   case -2:
