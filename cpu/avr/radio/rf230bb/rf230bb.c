@@ -209,8 +209,7 @@ static int rf230_receiving_packet(void);
 static int pending_packet(void);
 static int rf230_cca(void);
 
-signed char rf230_last_rssi;
-uint8_t rf230_last_correlation;
+uint8_t rf230_last_correlation,rf230_last_rssi,rf230_smallest_rssi;
 
 const struct radio_driver rf230_driver =
   {
@@ -714,6 +713,24 @@ rf230_init(void)
   hal_register_write(RG_CSMA_SEED_0,hal_register_read(RG_PHY_RSSI) );//upper two RSSI reg bits RND_VALUE are random in rf231
  // hal_register_write(CSMA_SEED_1,42 );
 
+  /* CCA Mode Mode 1=Energy above threshold  2=Carrier sense only  3=Both 0=Either (RF231 only) */
+//hal_subregister_write(SR_CCA_MODE,1);  //1 is the power-on default
+
+  /* Carrier sense threshold (not implemented in RF230 or RF231) */
+// hal_subregister_write(SR_CCA_CS_THRES,1);
+
+  /* CCA energy threshold = -91dB + 2*SR_CCA_ED_THRESH. Reset defaults to -77dB */
+  /* Use RF230 base of -91;  RF231 base is -90 according to datasheet */
+#if RF230_CONF_CCA_THRES < -91
+#warning RF230_CONF_CCA_THRES below hardware limit, setting to -91dBm
+  hal_subregister_write(SR_CCA_ED_THRES,0);  
+#elif RF230_CONF_CCA_THRES > -61
+#warning RF230_CONF_CCA_THRES above hardware limit, setting to -61dBm
+  hal_subregister_write(SR_CCA_ED_THRES,15);  
+#else
+  hal_subregister_write(SR_CCA_ED_THRES,(RF230_CONF_CCA_THRES+91)/2);  
+#endif
+
   /* Use automatic CRC unless manual is specified */
 #if RF230_CONF_CHECKSUM
   hal_subregister_write(SR_TX_AUTO_CRC_ON, 0);
@@ -883,7 +900,6 @@ rf230_transmit(unsigned short payload_len)
   }
 
   RELEASE_LOCK();
-
   if (tx_result==1) {               //success, data pending from adressee
     tx_result=0;                    //Just show success?
   } else if (tx_result==3) {        //CSMA channel access failure
@@ -1332,6 +1348,10 @@ if (RF230_receive_on) {
 #endif
 #endif /* speed vs. generality */
 
+  /* Save the smallest rssi. The display routine can reset by setting it to zero */
+  if ((rf230_smallest_rssi==0) || (rf230_last_rssi<rf230_smallest_rssi))
+     rf230_smallest_rssi=rf230_last_rssi;
+
  //   rf230_last_correlation = rxframe[rxframe_head].lqi;
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rf230_last_rssi);
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, rf230_last_correlation);
@@ -1451,10 +1471,18 @@ rf230_cca(void)
     rf230_on();
   }
 
- // cca = CCA_IS_1;
   DEBUGFLOW('c');
-  cca=1;
+  /* CCA Mode Mode 1=Energy above threshold  2=Carrier sense only  3=Both 0=Either (RF231 only) */
+  /* Use the current mode. Note triggering a manual CCA is not recommended in extended mode */
+//hal_subregister_write(SR_CCA_MODE,1);
 
+  /* Start the CCA, wait till done, return result */
+  hal_subregister_write(SR_CCA_REQUEST,1);
+  delay_us(TIME_CCA);
+//while ((hal_register_read(RG_TRX_STATUS) & 0x80) == 0 ) {continue;}
+  while (!hal_subregister_read(SR_CCA_DONE)) {continue;}
+  cca=hal_subregister_read(SR_CCA_STATUS);
+  
   if(radio_was_off) {
     rf230_off();
   }
@@ -1481,4 +1509,3 @@ pending_packet(void)
   return pending;
 }
 /*---------------------------------------------------------------------------*/
-
