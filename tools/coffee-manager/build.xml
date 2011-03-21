@@ -7,7 +7,7 @@
 
   <target name="compile" depends="init">
     <mkdir dir="build"/>
-    <javac srcdir="se/sics/coffee" destdir="build" />
+    <javac srcdir="se/sics/coffee" destdir="build" includeantruntime="false" />
   </target>
 
   <target name="clean" depends="init">

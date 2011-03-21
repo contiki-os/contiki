@@ -23,7 +23,8 @@
   </target>
 
   <target name="compile" depends="init">
-    <javac srcdir="${src}" destdir="${build}" debug="on">
+    <javac srcdir="${src}" destdir="${build}" debug="on"
+           includeantruntime="false">
       <classpath>
         <pathelement location="${avrora_jar}"/>
         <pathelement location="${cooja_jar}"/>

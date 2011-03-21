@@ -36,7 +36,8 @@
   </target>
 
   <target name="compile" depends="init,mspsim,coffee">
-    <javac srcdir="${src}" destdir="${build}" debug="on">
+    <javac srcdir="${src}" destdir="${build}" debug="on"
+           includeantruntime="false">
       <classpath>
         <pathelement location="${mspsim_jar}"/>
         <pathelement location="${coffee_jar}"/>
