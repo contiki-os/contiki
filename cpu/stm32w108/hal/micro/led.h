@@ -49,16 +49,9 @@ void halSetLed(HalBoardLed led);
  */
 void halClearLed(HalBoardLed led);
 
-/** @brief Called by the stack to indicate activity over the radio (for 
- *  both transmission and reception). It is called once with \c turnOn TRUE and 
- *  shortly thereafter with \c turnOn FALSE.
- *
- *  Typically does something interesting, such as change the state of
- *  an LED.
- *
- *  @param turnOn  See Usage.
- */
-void halStackIndicateActivity(boolean turnOn);
+#ifdef CORTEXM3_STM32F103
+#include "micro/cortexm3/stm32f103ret/led-specific.h"
+#endif
 
 /** @} // END addtogroup 
  */

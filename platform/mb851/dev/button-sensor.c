@@ -49,6 +49,15 @@
 #define DEBOUNCE 1
 
 /**
+ * @brief Port and pin for BUTTON0.
+ */
+#undef  BUTTON_S1
+#define BUTTON_S1             PORTA_PIN(7)
+#define BUTTON_S1_INPUT_GPIO  BUTTON_INPUT_GPIO(PORTA)
+#define BUTTON_S1_GPIO_PIN    7
+#define BUTTON_S1_OUTPUT_GPIO GPIO_PAOUT
+
+/**
  * @brief Point the proper IRQ at the desired pin for BUTTON0.
  */
 #define BUTTON_S1_SEL()       do { GPIO_IRQCSEL = BUTTON_S1; } while(0)
@@ -88,6 +97,8 @@ init(void)
   timer_set(&debouncetimer, 0);
   #endif
   
+  /* Configure GPIO for BUTTONSs */
+  
   //Input, pulled up or down (selected by GPIO_PxOUT: 0 = pull-down, 1 = pull-up).  
   halGpioConfig(BUTTON_S1,GPIOCFG_IN_PUD);
   BUTTON_S1_OUTPUT_GPIO |= GPIOOUT_PULLUP << BUTTON_S1_GPIO_PIN;
@@ -95,6 +106,7 @@ init(void)
   
   BUTTON_S1_SEL();
   BUTTON_S1_INTCFG = 0x40;  // Falling edge triggered.  
+  
 }
 /*---------------------------------------------------------------------------*/
 static void

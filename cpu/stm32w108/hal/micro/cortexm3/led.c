@@ -10,12 +10,6 @@
 #include "hal/micro/micro-common.h"
 #include "hal/micro/cortexm3/micro-common.h"
 
-#define GPIO_PxCLR_BASE (GPIO_PACLR_ADDR)
-#define GPIO_PxSET_BASE (GPIO_PASET_ADDR)
-#define GPIO_PxOUT_BASE (GPIO_PAOUT_ADDR)
-// Each port is offset from the previous port by the same amount
-#define GPIO_Px_OFFSET  (GPIO_PBCFGL_ADDR-GPIO_PACFGL_ADDR)
-
 void halInitLed(void)
 {
   /* Set GPIO pins for Led D1 and Led D3  */
@@ -28,16 +22,12 @@ void halInitLed(void)
 
 void halSetLed(HalBoardLed led)
 {
-  if(led/8 < 3) {
-    *((volatile int32u *)(GPIO_PxCLR_BASE+(GPIO_Px_OFFSET*(led/8)))) = BIT(led&7);
-  }
+  halGpioSet(led, 0);
 }
 
 void halClearLed(HalBoardLed led)
 {
-  if(led/8 < 3) {
-    *((volatile int32u *)(GPIO_PxSET_BASE+(GPIO_Px_OFFSET*(led/8)))) = BIT(led&7);
-  }
+  halGpioSet(led, 1);
 }
 
 void halToggleLed(HalBoardLed led)
