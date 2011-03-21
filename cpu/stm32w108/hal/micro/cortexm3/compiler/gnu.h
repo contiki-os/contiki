@@ -22,13 +22,17 @@
   #error Improper PLATFORM_HEADER
 #endif
 
-#define GCC_VERSION (__GNUC__ * 10000 \
-                     + __GNUC_MINOR__ * 100 \
-                     + __GNUC_PATCHLEVEL__)
-
-#if GCC_VERSION < 40302
-#error Only GNU C version later than 4.3.2 are supported
-#endif
+#if (__GNUC__ < 4)
+  #error Only GNU C versions later than 4.3.2 are supported
+#elif (__GNUC__ == 4)
+  #if (__GNUC_MINOR__ < 3)
+    #error Only GNU C versions later than 4.3.2 are supported
+  #elif (__GNUC_MINOR__ == 3)
+    #if (__GNUC_PATCHLEVEL__ < 2)
+      #error Only GNU C versions later than 4.3.2 are supported
+    #endif
+  #endif
+#endif // __GNUC__
 
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -36,6 +40,7 @@
   #include <stdarg.h>
   #if defined (CORTEXM3_STM32W108)
     #include "micro/cortexm3/stm32w108/regs.h"
+    #include "micro/cortexm3/stm32w108/stm32w108_type.h"
   #else
     #error Unknown CORTEXM3 micro
   #endif
@@ -170,6 +175,16 @@ typedef unsigned int   PointerType;
 #endif
 
 /**
+ * @brief Set the application start and end address.
+ * This are useful to detect whether an image is for bootloader mode or not.
+ * This can be used also to clone image to another node via bootloader.
+ */
+#define APPLICATION_IMAGE_START ((u32) &__ApplicationFlashStart)
+#define APPLICATION_IMAGE_END ((u32) &__ApplicationFlashEnd)
+extern char __ApplicationFlashStart;
+extern char __ApplicationFlashEnd;
+
+/**
  * @brief Macro to reset the watchdog timer.  Note:  be very very
  * careful when using this as you can easily get into an infinite loop if you
  * are not careful.
@@ -251,6 +266,9 @@ void halInternalResetWatchDog(void);
  */
 #define VAR_AT_SEGMENT(__variableDeclaration, __segmentName) \
    __variableDeclaration __attribute__ ((section (__segmentName)))
+
+#define ALIGN_VAR(__variableDeclaration, alignment)		\
+  __variableDeclaration __attribute__ ((aligned(alignment)))
 
 ////////////////////////////////////////////////////////////////////////////////
 //@}  // end of Miscellaneous Macros

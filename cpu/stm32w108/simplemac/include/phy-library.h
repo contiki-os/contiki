@@ -5,7 +5,6 @@
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
 
-#include "stm32w108_type.h"
 
 //---------------------------------------------------------------------------
 // Definitions
@@ -30,7 +29,7 @@
 /**
  * @brief Version patch number
  */
-#define SIMPLEMAC_VERSION_PATCH 0
+#define SIMPLEMAC_VERSION_PATCH 2
 
 /**
  * @brief Version qualifier

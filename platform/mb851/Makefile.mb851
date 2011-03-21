@@ -5,7 +5,7 @@ ARCH= irq.c sensors.c acc-sensor.c button-sensor.c temperature-sensor.c mems.c
 
 CONTIKI_TARGET_DIRS = . dev
 ifndef CONTIKI_TARGET_MAIN
-CONTIKI_TARGET_MAIN = contiki-main.c #contiki-init-net.c
+CONTIKI_TARGET_MAIN = contiki-main.c board-mb851.c
 endif
 
 ifdef UIP_CONF_IPV6

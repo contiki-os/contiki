@@ -117,6 +117,7 @@ ADCUser startNextConversion()
           ADC_CFG = adcConfig[i];       // set the configuration to desired
           INT_ADCFLAG = 0xFFFF;
           INT_CFGSET = INT_ADC;
+	  break;                       //see DDTS MBTst38936
         }
       }
     } else {

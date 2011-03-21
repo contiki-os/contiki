@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #define RESERVED 0
-//#define DUMMY_MALLOC
-
+#define IAP_BOOTLOADER_APP_SWITCH_SIGNATURE  0xb001204d
+#define IAP_BOOTLOADER_MODE_UART  0
 /* Includes ----------------------------------------------------------------------*/
 #include PLATFORM_HEADER
 void NMI_Handler(void);
@@ -72,7 +72,7 @@ VAR_AT_SEGMENT(const HalFixedAddressTableType halFixedAddressTable, __FAT__);
 /* function prototypes ------------------------------------------------------*/
 void Reset_Handler(void) __attribute__((__interrupt__));
 extern int main(void);
-
+extern void  halInternalSwitchToXtal(void);
 
 /******************************************************************************
 *
@@ -119,6 +119,20 @@ void (* const g_pfnVectors[])(void) =
   halIrqCIsr,                // 30
   halIrqDIsr,                // 31
   halDebugIsr,               // 32
+};
+
+static  void setStackPointer(int32u address) __attribute__((noinline));
+static void setStackPointer(int32u address)
+{
+  // This code is needed to generate the instruction below
+  // that GNU ASM is refusing to add
+  // asm("MOVS SP, r0");
+  asm(".short 0x4685");
+}
+
+static const int16u blOffset[] = {
+  0x0715 - 0x03ad - 0x68,
+  0x0719 - 0x03ad - 0x6C
 };
 
 /*******************************************************************************
@@ -244,6 +258,21 @@ void Reset_Handler(void)
     while(1) { ; }
   }
 
+  //USART bootloader software activation check
+  if ((*((int32u *)RAM_BOTTOM) == IAP_BOOTLOADER_APP_SWITCH_SIGNATURE) && (*((int8u *)(RAM_BOTTOM+4)) == IAP_BOOTLOADER_MODE_UART)){
+    int8u cut = *(volatile int8u *) 0x08040798;
+    int16u offset = 0;
+    typedef void (*EntryPoint)(void);     
+    offset = (halFixedAddressTable.baseTable.version == 3) ? blOffset[cut - 2] : 0;
+    *((int32u *)RAM_BOTTOM) = 0;
+    if (offset) {
+      halInternalSwitchToXtal();
+    }
+    EntryPoint entryPoint = (EntryPoint)(*(int32u *)(FIB_BOTTOM+4) - offset);
+    setStackPointer(*(int32u *)FIB_BOTTOM);
+    entryPoint();
+  }
+
   INTERRUPTS_OFF();
   asm("CPSIE i");
 
@@ -302,12 +331,10 @@ caddr_t _sbrk ( int incr )
   return (caddr_t) prev_heap;
 }
 #else
-# ifdef DUMMY_MALLOC
 caddr_t _sbrk ( int incr )
 {
     return NULL;
 }
-# endif
 #endif
 int _lseek (int file,
 	int ptr,

@@ -1,5 +1,5 @@
 /******************** (C) COPYRIGHT 2008 STMicroelectronics ********************
-* File Name          : stm32f10x_systick.c
+* File Name          : stm32w108_systick.c
 * Author             : MCD Application Team
 * Version            : V2.0.3
 * Date               : 09/22/2008

@@ -18,7 +18,7 @@
 #ifndef __STM32W_SYSTICK_H
 #define __STM32W_SYSTICK_H
 
-#include "stm32w_type.h"
+#include "stm32w108_type.h"
 #include "stm32w_conf.h"
 
 #ifndef EXT

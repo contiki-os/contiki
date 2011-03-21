@@ -12,18 +12,25 @@
 
 void halInitButton(void)
 {
-   /* Set GPIO pin to PUD (input pull-up or pull-down) for button S1 */
-  halGpioConfig(BUTTON_S1,GPIOCFG_IN_PUD);
- /* Set the button S1 gpio pin to pull-up */
-  BUTTON_S1_OUTPUT_GPIO |= GPIOOUT_PULLUP << BUTTON_S1_GPIO_PIN;
+  int8u i;
+  /* Configure GPIO for BUTTONSs */
+  ButtonResourceType *buttons = (ButtonResourceType *) boardDescription->io->buttons;
+  for (i = 0; i < boardDescription->buttons; i++) {
+    halGpioConfig(PORTx_PIN(buttons[i].gpioPort, buttons[i].gpioPin), GPIOCFG_IN_PUD);
+    halGpioSet(PORTx_PIN(buttons[i].gpioPort, buttons[i].gpioPin), GPIOOUT_PULLUP);
+  }
 }/* end halInitButton() */
 
 
 int8u halGetButtonStatus(HalBoardButton button)
 {
-  if (button == BUTTON_S1)
-    return (BUTTON_S1_INPUT_GPIO & (1<<BUTTON_S1_GPIO_PIN)) ? BUTTON_RELEASED : BUTTON_PRESSED;
-  else 
-    return BUTTON_UNKNOWN;
+  int8u port = (button >> 3) & 0xf;
+  int8u pin = button & 0x7;
+
+  if (button != DUMMY_BUTTON)
+  {
+    return (BUTTON_INPUT_GPIO(port) & (1 << pin)) ? BUTTON_RELEASED : BUTTON_PRESSED;
+  }
+  return BUTTON_UNKNOWN;
 }/* end halGetButtonStatus()*/
 

@@ -24,24 +24,35 @@
 #endif //__STSTATUS_TYPE__
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
+#define PORTA (0 << 3)
+#define PORTB (1 << 3)
+#define PORTC (2 << 3)
+
 /**
  * @brief Some registers and variables require indentifying GPIO by
  * a single number instead of the port and pin.  This macro converts
  * Port A pins into a single number.
  */
-#define PORTA_PIN(y) ((0<<3)|y)
+#define PORTA_PIN(y) (PORTA|y)
 /**
  * @brief Some registers and variables require indentifying GPIO by
  * a single number instead of the port and pin.  This macro converts
  * Port B pins into a single number.
  */
-#define PORTB_PIN(y) ((1<<3)|y)
+#define PORTB_PIN(y) (PORTB|y)
 /**
  * @brief Some registers and variables require indentifying GPIO by
  * a single number instead of the port and pin.  This macro converts
  * Port C pins into a single number.
  */
-#define PORTC_PIN(y) ((2<<3)|y)
+#define PORTC_PIN(y) (PORTC|y)
+
+/**
+ * @brief Some registers and variables require indentifying GPIO by
+ * a single number instead of the port and pin.  This macro converts
+ * Port C pins into a single number.
+ */
+#define PORTx_PIN(x, y) (x|y)
 
 /**
  * @brief Resets the watchdog timer.  This function is pointed
@@ -61,6 +72,16 @@ void halInternalResetWatchDog( void );
  *
  */
 void halGpioConfig(int32u io, int32u config);
+
+/**
+ * @brief Set/Clear single GPIO bit
+ *
+ * @param io  The io pin to use, can be specified with the convenience macros
+ *            PORTA_PIN(), PORTB_PIN(), PORTC_PIN()
+ * @param value   A flag indicating whether to set or clear the io.
+ *
+ */
+void halGpioSet(int32u io, boolean value);
 
 
 /**
