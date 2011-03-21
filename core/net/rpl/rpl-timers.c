@@ -112,7 +112,7 @@ new_dio_interval(rpl_dag_t *dag)
            dag->version,
            dag->dio_totint, dag->dio_totsend,
            dag->dio_totrecv,dag->dio_intcurrent,
-	   dag->rank == ROOT_RANK ? "BLUE" : "ORANGE");
+	   dag->rank == ROOT_RANK(dag) ? "BLUE" : "ORANGE");
 #endif /* RPL_CONF_STATS */
 
   /* reset the redundancy counter */
