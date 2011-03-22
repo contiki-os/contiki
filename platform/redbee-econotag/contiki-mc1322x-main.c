@@ -203,6 +203,13 @@ init_lowlevel(void)
 	*CRM_RTC_TIMEOUT = cal_rtc_secs * 10;
 #endif
 
+#if (USE_WDT == 1)
+	/* set the watchdog timer timeout to 1 sec */
+	cop_timeout_ms(WDT_TIMEOUT);
+	/* enable the watchdog timer */
+	CRM->COP_CNTLbits.COP_EN = 1;
+#endif
+
 	/* XXX debug */
 	/* trigger periodic rtc int */
 //	clear_rtc_wu_evt();
@@ -478,6 +485,10 @@ main(void)
   /* Main scheduler loop */
   while(1) {
 	  check_maca();
+
+#if (USE_WDT == 1)
+	  cop_service();
+#endif
 
 	  /* TODO: replace this with a uart rx interrupt */
 	  if(uart1_input_handler != NULL) {
