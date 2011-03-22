@@ -13,7 +13,8 @@ TARGETS := blink-red blink-green blink-blue blink-white blink-allio \
            printf \
 	   asm \
 	   adc \
-	   pwm
+	   pwm \
+           wdt
 
 # these targets are built with space reserved for variables needed by ROM services
 # this space is initialized with a rom call to rom_data_init
