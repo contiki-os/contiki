@@ -48,38 +48,38 @@
 #define ETX_ALPHA		90
 #define ETX_NOACK_PENALTY       ETX_LIMIT
 /*---------------------------------------------------------------------------*/
-NEIGHBOR_ATTRIBUTE(uint8_t, etx, NULL);
+NEIGHBOR_ATTRIBUTE(link_metric_t, etx, NULL);
 
 static neighbor_info_subscriber_t subscriber_callback;
 /*---------------------------------------------------------------------------*/
 static void
-update_etx(const rimeaddr_t *dest, int packet_etx)
+update_metric(const rimeaddr_t *dest, int packet_metric)
 {
-  uint8_t *etxp;
-  uint8_t recorded_etx, new_etx;
+  link_metric_t *metricp;
+  link_metric_t recorded_metric, new_metric;
 
-  etxp = (uint8_t *)neighbor_attr_get_data(&etx, dest);
-  packet_etx = NEIGHBOR_INFO_ETX2FIX(packet_etx);
-  if(etxp == NULL || *etxp == 0) {
-    recorded_etx = NEIGHBOR_INFO_ETX2FIX(ETX_LIMIT);
-    new_etx = packet_etx;
+  metricp = (link_metric_t *)neighbor_attr_get_data(&etx, dest);
+  packet_metric = NEIGHBOR_INFO_ETX2FIX(packet_metric);
+  if(metricp == NULL || *metricp == 0) {
+    recorded_metric = NEIGHBOR_INFO_ETX2FIX(ETX_LIMIT);
+    new_metric = packet_metric;
   } else {
-    recorded_etx = *etxp;
+    recorded_metric = *metricp;
     /* Update the EWMA of the ETX for the neighbor. */
-    new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
-               (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+    new_metric = ((uint16_t)recorded_metric * ETX_ALPHA +
+               (uint16_t)packet_metric * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
   }
 
   PRINTF("neighbor-info: ETX changed from %d to %d (packet ETX = %d) %d\n",
-	 NEIGHBOR_INFO_FIX2ETX(recorded_etx),
-	 NEIGHBOR_INFO_FIX2ETX(new_etx),
-	 NEIGHBOR_INFO_FIX2ETX(packet_etx),
+	 NEIGHBOR_INFO_FIX2ETX(recorded_metric),
+	 NEIGHBOR_INFO_FIX2ETX(new_metric),
+	 NEIGHBOR_INFO_FIX2ETX(packet_metric),
          dest->u8[7]);
 
   if(neighbor_attr_has_neighbor(dest)) {
-    neighbor_attr_set_data(&etx, dest, &new_etx);
-    if(new_etx != recorded_etx && subscriber_callback != NULL) {
-      subscriber_callback(dest, 1, new_etx);
+    neighbor_attr_set_data(&etx, dest, &new_metric);
+    if(new_metric != recorded_metric && subscriber_callback != NULL) {
+      subscriber_callback(dest, 1, new_metric);
     }
   }
 }
@@ -103,7 +103,7 @@ void
 neighbor_info_packet_sent(int status, int numtx)
 {
   const rimeaddr_t *dest;
-  uint8_t packet_etx;
+  link_metric_t packet_metric;
 
   dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
   if(rimeaddr_cmp(dest, &rimeaddr_null)) {
@@ -116,14 +116,14 @@ neighbor_info_packet_sent(int status, int numtx)
 
   switch(status) {
   case MAC_TX_OK:
-    packet_etx = numtx;
+    packet_metric = numtx;
     add_neighbor(dest);
     break;
   case MAC_TX_COLLISION:
-    packet_etx = numtx;
+    packet_metric = numtx;
     break;
   case MAC_TX_NOACK:
-    packet_etx = ETX_NOACK_PENALTY;
+    packet_metric = ETX_NOACK_PENALTY;
     break;
   default:
     /* Do not penalize the ETX when collisions or transmission
@@ -131,7 +131,7 @@ neighbor_info_packet_sent(int status, int numtx)
     return;
   }
 
-  update_etx(dest, packet_etx);
+  update_metric(dest, packet_metric);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -162,12 +162,12 @@ neighbor_info_subscribe(neighbor_info_subscriber_t s)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-uint8_t
-neighbor_info_get_etx(const rimeaddr_t *addr)
+link_metric_t
+neighbor_info_get_metric(const rimeaddr_t *addr)
 {
-  uint8_t *etxp;
+  link_metric_t *metricp;
 
-  etxp = (uint8_t *)neighbor_attr_get_data(&etx, addr);
-  return etxp == NULL ? ETX_LIMIT : *etxp;
+  metricp = (link_metric_t *)neighbor_attr_get_data(&etx, addr);
+  return metricp == NULL ? ETX_LIMIT : *metricp;
 }
 /*---------------------------------------------------------------------------*/

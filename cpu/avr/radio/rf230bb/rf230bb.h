@@ -214,8 +214,7 @@ uint8_t rf230_get_txpower(void);
 void rf230_set_promiscuous_mode(bool isPromiscuous);
 bool rf230_is_ready_to_send();
 
-extern signed char rf230_last_rssi;
-extern uint8_t rf230_last_correlation;
+extern uint8_t rf230_last_correlation,rf230_last_rssi,rf230_smallest_rssi;
 
 uint8_t rf230_get_raw_rssi(void);
 
