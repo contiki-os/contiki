@@ -174,6 +174,17 @@ typedef struct unit_test {
                                  }                                            \
                                } while(0)
 
+/**
+ * Obtain the result of a certain unit test.
+ *
+ * If the unit test has not yet been executed, this macro returns 
+ * unit_test_failed. Otherwise it returns the result of the last
+ * execution of the unit test.
+ *
+ * \param name The name of the unit test.
+ */
+#define UNIT_TEST_RESULT(name) (unit_test_##name.result)
+
 /* The default print function. */
 void unit_test_print_report(const unit_test_t *utp);
 

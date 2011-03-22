@@ -73,6 +73,12 @@
 #define RG_CSMA_BE            CSMA_BE
 #define RG_CSMA_SEED_0        CSMA_SEED_0
 #define RG_PHY_RSSI           PHY_RSSI
+#define SR_CCA_MODE           0x08, 0x60, 5
+//#define SR_CCA_CS_THRES       0x09, 0xf0, 4
+#define SR_CCA_ED_THRES        0x09, 0x0f, 0
+#define SR_CCA_REQUEST         0x08, 0x80, 7
+#define SR_CCA_DONE            0x01, 0x80, 7
+#define SR_CCA_STATUS          0x01, 0x40, 6
 
 
 /* RF230 register assignments, for reference */

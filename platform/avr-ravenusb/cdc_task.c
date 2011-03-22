@@ -562,7 +562,12 @@ extern uip_ds6_netif_t uip_ds6_if;
 				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), rf230_get_channel());
 				PRINTF_P(PSTR("  * TX Power(0=3dBm, 15=-17.2dBm): %d\n\r"), rf230_get_txpower());
 #endif
-				PRINTF_P(PSTR("  * Current/Last RSSI: %d/%ddBm\n\r"), -91+(rf230_rssi()-1), -91+(rf230_last_rssi-1));
+                if (rf230_smallest_rssi) {
+                    PRINTF_P(PSTR("  * Current/Last/Smallest RSSI: %d/%d/%ddBm\n\r"), -91+(rf230_rssi()-1), -91+(rf230_last_rssi-1),-91+(rf230_smallest_rssi-1));
+                    rf230_smallest_rssi=0;
+                } else {
+                    PRINTF_P(PSTR("  * Current/Last/Smallest RSSI: %d/%d/--dBm\n\r"), -91+(rf230_rssi()-1), -91+(rf230_last_rssi-1));
+                }
 
 #else /* RF230BB */
 				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), radio_get_operating_channel());

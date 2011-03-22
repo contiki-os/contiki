@@ -109,6 +109,34 @@ public class MspMoteID extends MoteID {
 				}
 			});
 		}
+		if (moteMem.variableExists("ActiveMessageAddressC__addr")) {
+		  this.mote.getCPU().setBreakPoint(moteMem.getVariableAddress("ActiveMessageAddressC__addr"), new CPUMonitor() {
+		    public void cpuAction(int type, int adr, int data) {
+		      if (type != MEMORY_WRITE) {
+		        return;
+		      }
+		      if (data == moteID) {
+		        return;
+		      }
+		      Simulation s = mote.getSimulation();
+		      s.scheduleEvent(writeIDEvent, s.getSimulationTime());
+		    }
+		  });
+		}
+		if (moteMem.variableExists("ActiveMessageAddressC$addr")) {
+		  this.mote.getCPU().setBreakPoint(moteMem.getVariableAddress("ActiveMessageAddressC$addr"), new CPUMonitor() {
+		    public void cpuAction(int type, int adr, int data) {
+		      if (type != MEMORY_WRITE) {
+		        return;
+		      }
+		      if (data == moteID) {
+		        return;
+		      }
+		      Simulation s = mote.getSimulation();
+		      s.scheduleEvent(writeIDEvent, s.getSimulationTime());
+		    }
+		  });
+		}
 	}
 
 	public int getMoteID() {

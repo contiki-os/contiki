@@ -13,7 +13,8 @@
 
   <target name="compile" depends="init">
     <mkdir dir="${build}"/>
-    <javac srcdir="${src}" destdir="${build}" debug="on">
+    <javac srcdir="${src}" destdir="${build}" debug="on"
+           includeantruntime="false">
       <classpath>
         <pathelement location="${cooja_jar}"/>
       </classpath>
