@@ -81,7 +81,7 @@ unsigned long clock_seconds(void);
 #define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
 #define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
 
-/* Get Mac address, RF channel, PANID from EEPROM settings manager, or use hard-coded values? */
+/* Use EEPROM settings manager, or hard-coded EEPROM reads? */
 /* Generate random MAC address on first startup? */
 /* Random number from radio clock skew or ADC noise? */
 #define JACKDAW_CONF_USE_SETTINGS		0
@@ -273,10 +273,18 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* CCA theshold energy -91 to -61 dBm (default -77). Set this smaller than the expected minimum rssi to avoid packet collisions */
 /* The Jackdaw menu 'm' command is helpful for determining the smallest ever received rssi */
 #define RF230_CONF_CCA_THRES    -85
+/* Allow sneeze command from jackdaw menu. Useful for testing CCA on other radios */
+/* During sneezing, any access to an RF230 register will hang the MCU and cause a watchdog reset */
+/* The host interface, jackdaw menu and rf230_send routines are temporarily disabled to prevent this */
+/* But some calls from an internal uip stack might get through, e.g. from CCA or low power protocols, */
+/* as temporarily disabling all the possible accesses would add considerable complication to the radio driver! */
+#define RF230_CONF_SNEEZER        1
 /* Allow 6loWPAN fragmentation (more efficient for large payloads over a reliable channel) */
 #define SICSLOWPAN_CONF_FRAG      1
 /* Timeout for fragment reassembly. A reissued browser GET will also cancel reassembly, typically in 2-3 seconds */
 #define SICSLOWPAN_CONF_MAXAGE    3
+/* Allow sneeze command from jackdaw menu */
+#define RF230_CONF_SNEEZE         1
 
 #elif 0  /* Contiki-mac radio cycling */
 #define NETSTACK_CONF_MAC         nullmac_driver
