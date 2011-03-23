@@ -202,6 +202,8 @@ typedef void (*radio_rx_callback) (uint16_t data);
 const struct radio_driver rf230_driver;
 
 int rf230_init(void);
+void rf230_warm_reset(void);
+void rf230_start_sneeze(void);
 //int rf230_on(void);
 //int rf230_off(void);
 void rf230_set_channel(uint8_t channel);

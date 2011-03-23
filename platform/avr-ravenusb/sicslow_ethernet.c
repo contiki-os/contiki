@@ -311,6 +311,7 @@ void mac_ethernetSetup(void)
   usbstick_mode.translate = 1;
   usbstick_mode.debugOn= 1;
   usbstick_mode.raw = 0;
+  usbstick_mode.sneeze=0;
 
 #if !RF230BB
   sicslowinput = pinput;
@@ -339,14 +340,14 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
    return;
    #endif
 
-  // In sniffer mode we don't ever send anything
-  if (usbstick_mode.sendToRf == 0) {
+  /* In sniffer or sneezr mode we don't ever send anything */
+  if ((usbstick_mode.sendToRf == 0) || (usbstick_mode.sneeze != 0)) {
     uip_len = 0;
     return;
   }
 
 
-  //If not IPv6 we don't do anything
+  /* If not IPv6 we don't do anything. Disable ipv4 on the interface to prevent possible hangs from discovery packet flooding */
   if (((struct uip_eth_hdr *) ethHeader)->type != UIP_HTONS(UIP_ETHTYPE_IPV6)) {
     PRINTF("eth2low: Dropping packet w/type=0x%04x\n",uip_ntohs(((struct uip_eth_hdr *) ethHeader)->type));
   //      printf("!ipv6");
@@ -1043,10 +1044,12 @@ mac_log_802_15_4_rx(const uint8_t* buf, size_t len) {
     usb_eth_send(raw_buf, sendlen, 0);
   }
 }
-
+/* The rf230bb send driver may call this routine via  RF230BB_HOOK_IS_SEND_ENABLED */
 bool
 mac_is_send_enabled(void) {
-	return usbstick_mode.sendToRf;
+  if ((usbstick_mode.sendToRf == 0) || (usbstick_mode.sneeze != 0)) return 0;
+  return 1;
+//return usbstick_mode.sendToRf;
 }
 
 /** @} */

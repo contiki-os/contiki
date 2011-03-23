@@ -702,6 +702,27 @@ rf230_init(void)
     PRINTF("rf230: Unsupported manufacturer ID %u\n",tmanu);
 
   PRINTF("rf230: Version %u, ID %u\n",tvers,tmanu);
+  
+  rf230_warm_reset();
+ 
+ /* Start the packet receive process */
+  process_start(&rf230_process, NULL);
+ 
+ /* Leave radio in on state (?)*/
+  on();
+
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+/* Used to reinitialize radio parameters without losing pan and mac address, channel, power, etc. */
+void rf230_warm_reset(void) {
+#if RF230_CONF_SNEEZER && JACKDAW
+  /* Take jackdaw radio out of test mode */
+#warning Manipulating PORTB pins for RF230 Sneezer mode!
+  PORTB &= ~(1<<7);
+  DDRB  &= ~(1<<7);
+#endif
+  
   hal_register_write(RG_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
 
   /* Set up number of automatic retries 0-15 (0 implies PLL_ON sends instead of the extended TX_ARET mode */
@@ -738,19 +759,10 @@ rf230_init(void)
   hal_subregister_write(SR_TX_AUTO_CRC_ON, 1);
 #endif
 
-  /* Start the packet receive process */
-  process_start(&rf230_process, NULL);
-
 /* Limit tx power for testing miniature Raven mesh */
 #ifdef RF230_MAX_TX_POWER
   set_txpower(RF230_MAX_TX_POWER);  //0=3dbm 15=-17.2dbm
 #endif
-
-  /* Leave radio in on state (?)*/
-  on();
-
-  
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t buffer[RF230_MAX_TX_FRAME_LENGTH+AUX_LEN];
@@ -1509,3 +1521,46 @@ pending_packet(void)
   return pending;
 }
 /*---------------------------------------------------------------------------*/
+#if RF230_CONF_SNEEZER && JACKDAW
+/* See A.2 in the datasheet for the sequence needed.
+ * This version for RF230 only, hence Jackdaw.
+ * A full reset seems not necessary and allows keeping the pan address, etc.
+ * for an easy reset back to network mode.
+ */
+void rf230_start_sneeze(void) {
+//write buffer with random data for uniform spectral noise
+
+//uint8_t txpower = hal_register_read(0x05);  //save auto_crc bit and power
+//  hal_set_rst_low();
+//  hal_set_slptr_low();
+//  delay_us(TIME_RESET);
+//  hal_set_rst_high();
+    hal_register_write(0x0E, 0x01);
+    hal_register_write(0x02, 0x03);
+    hal_register_write(0x03, 0x10);
+ // hal_register_write(0x08, 0x20+26);    //channel 26
+    hal_subregister_write(SR_CCA_MODE,1); //leave channel unchanged
+
+ // hal_register_write(0x05, 0x00);       //output power maximum
+    hal_subregister_write(SR_TX_AUTO_CRC_ON, 0);  //clear AUTO_CRC, leave output power unchanged
+ 
+    hal_register_read(0x01);             //should be trx-off state=0x08  
+    hal_frame_write(buffer, 127);        //maximum length, random for spectral noise 
+
+    hal_register_write(0x36,0x0F);       //configure continuous TX
+    hal_register_write(0x3D,0x00);       //Modulated frame, other options are:
+//  hal_register_write(RG_TX_2,0x10);    //CW -2MHz
+//  hal_register_write(RG_TX_2,0x80);    //CW -500KHz
+//  hal_register_write(RG_TX_2,0xC0);    //CW +500KHz
+
+    DDRB  |= 1<<7;                       //Raven USB stick has PB7 connected to the RF230 TST pin.   
+    PORTB |= 1<<7;                       //Raise it to enable continuous TX Test Mode.
+
+    hal_register_write(0x02,0x09);       //Set TRX_STATE to PLL_ON
+    delay_us(TIME_TRX_OFF_TO_PLL_ACTIVE);
+    delay_us(TIME_PLL_LOCK);
+    delay_us(TIME_PLL_LOCK);
+ // while (hal_register_read(0x0f)!=1) {continue;}  //wait for pll lock-hangs
+    hal_register_write(0x02,0x02);       //Set TRX_STATE to TX_START
+}
+#endif
