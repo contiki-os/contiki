@@ -208,8 +208,8 @@ static int8u i2c_MEMS_Init (void)
   i += i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, STATUS_REG, 0x00);    //no flag
   i += i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, FF_WU_CFG, 0x00);     // all off
   i += i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, DD_CFG, 0x00);        // all off
-  i += i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, CTRL_REG2, (1<<4) | (1<<1) | (1 << 0));
-  i += i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, CTRL_REG1, 0xC7);
+  i += i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, CTRL_REG2, (0<<4) | (0<<1) | (0 << 0));
+  i += i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, CTRL_REG1, 0x47);
 
   if (i != 5)
     return 0;
@@ -228,6 +228,12 @@ static int8u i2c_MEMS_Read (t_mems_data *mems_data)
 {
   int8u i, i2c_buffer[8];
 
+  /* Wait for new set of data to be available */
+  while (1) {
+    i = i2c_read_reg (kLIS3L02DQ_SLAVE_ADDR, STATUS_REG, i2c_buffer, 1);
+    if (i2c_buffer[0] & (1 << 3))
+      break;
+  }
   i = i2c_read_reg (kLIS3L02DQ_SLAVE_ADDR, OUTX_L, i2c_buffer, 8);  
 
   mems_data->outx_h = i2c_buffer[0];

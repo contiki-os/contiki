@@ -15,6 +15,9 @@
 #include "memmap.h"
 #include "flash.h"
 
+#ifdef FLASH_PROGRAMMING_WITH_EMPTY_FIB
+#define ST_EMU_TEST
+#endif
 // A translation table used to convert FibStatus codes to corresponding
 //  StStatus values
 static const StStatus fibToStStatus[] = {

@@ -26,37 +26,6 @@ _estack = __Stack_Init + __Stack_Size;
 PROVIDE ( _Stack_Init = __Stack_Init ) ;
 
 
-/*
-this sends all unreferenced IRQHandlers to reset
-*/
-
-PROVIDE(NMI_Handler = 0 );
-PROVIDE(HardFault_Handler = 0 );
-PROVIDE(MemManage_Handler = 0 );
-PROVIDE(BusFault_Handler = 0 );
-PROVIDE(UsageFault_Handler = 0 );
-PROVIDE(SVC_Handler = 0 );
-PROVIDE(DebugMonitor_Handler = 0 );
-PROVIDE(PendSV_Handler = 0 );
-PROVIDE(SysTick_Handler = 0 );
-PROVIDE(halTimer1Isr = 0 );
-PROVIDE(halTimer2Isr = 0 );
-PROVIDE(halManagementIsr = 0 );
-PROVIDE(halBaseBandIsr = 0 );
-PROVIDE(halSleepTimerIsr = 0 );
-PROVIDE(halSc1Isr = 0 );
-PROVIDE(halSc2Isr = 0 );
-PROVIDE(halSecurityIsr = 0 );
-PROVIDE(halStackMacTimerIsr = 0 );
-PROVIDE(stmRadioTransmitIsr = 0 );
-PROVIDE(stmRadioReceiveIsr = 0 );
-PROVIDE(halAdcIsr = 0 );
-PROVIDE(halIrqAIsr = 0 );
-PROVIDE(halIrqBIsr = 0 );
-PROVIDE(halIrqCIsr = 0 );
-PROVIDE(halIrqDIsr = 0 );
-PROVIDE(halDebugIsr = 0 );
-
 /******************************************************************************/
 /*                       Peripheral memory map                                */
 /******************************************************************************/

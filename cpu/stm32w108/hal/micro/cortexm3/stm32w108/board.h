@@ -75,7 +75,7 @@
 /**
  * @brief Define the number of user buttons in the specific board revision
  */
-#define BUTTONS_MB951A 0
+#define BUTTONS_MB951A 1
 
 /**
  * @brief Data structure for led description

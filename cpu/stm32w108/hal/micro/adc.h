@@ -34,6 +34,8 @@
 #ifndef __ADC_H__
 #define __ADC_H__
 
+#ifdef CORTEXM3_STM32W108
+
 // A type for the ADC User enumeration.
 typedef int8u ADCUser;
 enum
@@ -287,6 +289,11 @@ boolean halAdcGetClock(void);
 boolean halAdcGetRange(void);
 #endif
 
+#endif /* CORTEXM3_STM32W108 */
+
+#ifdef CORTEXM3_STM32F103
+#include "micro/cortexm3/stm32f103ret/adc.h"
+#endif /* CORTEXM3_STM32F103 */
 #endif // __ADC_H__
 
 /** @} // END addtogroup
