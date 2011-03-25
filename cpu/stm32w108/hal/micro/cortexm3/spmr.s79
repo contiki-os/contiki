@@ -99,9 +99,9 @@ _disableBasePri:
 _basePriIsDisabled:
         MRS  R0, BASEPRI                    // read current BASEPRI
         CMP  R0, #INTERRUPTS_DISABLED_PRIORITY
-        ITE  le
-        LDRLE R0, =1
-        LDRGT R0, =0
+        ITE  lt
+        LDRLT R0, =0
+        LDRGE R0, =1
         BX   LR
         __CFI__(EndBlock cfiBlock3)
 

@@ -45,8 +45,13 @@
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
 #include "dev/slip.h"
+
+/* For internal webserver Makefile must set APPS += webserver and PROJECT_SOURCEFILES += httpd-simple.c */
+#if WEBSERVER
 #include "webserver-nogui.h"
 #include "httpd-simple.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,6 +70,8 @@ static uint8_t prefix_set;
 
 PROCESS(border_router_process, "Border router process");
 AUTOSTART_PROCESSES(&border_router_process);
+
+#if WEBSERVER
 /*---------------------------------------------------------------------------*/
 /* Only one single web request at time */
 static const char *TOP = "<html><head><title>ContikiRPL</title></head><body>\n";
@@ -151,6 +158,9 @@ httpd_simple_get_script(const char *name)
 {
   return generate_routes;
 }
+
+#endif /* WEBSERVER */
+
 /*---------------------------------------------------------------------------*/
 static void
 print_local_addresses(void)
@@ -158,14 +168,14 @@ print_local_addresses(void)
   int i;
   uint8_t state;
 
-  PRINTF("Server IPv6 addresses:\n");
+  PRINTA("Server IPv6 addresses:\n");
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      blen = 0;
-      ipaddr_add(&uip_ds6_if.addr_list[i].ipaddr);
-      PRINTF("  %s\n", buf);
+      PRINTA(" ");
+      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
+      PRINTA("\n");
     }
   }
 }
@@ -174,7 +184,7 @@ void
 request_prefix(void)
 {
   /* mess up uip_buf with a dirty request... */
-  uip_buf[0] = '!';
+  uip_buf[0] = '?';
   uip_buf[1] = 'P';
   uip_len = 2;
   slip_send();
@@ -202,7 +212,10 @@ PROCESS_THREAD(border_router_process, ev, data)
 
   PROCESS_PAUSE();
 
+#if WEBSERVER
   process_start(&webserver_nogui_process, NULL);
+#endif
+
   SENSORS_ACTIVATE(button_sensor);
 
   PRINTF("RPL-Border router started\n");
@@ -220,7 +233,9 @@ PROCESS_THREAD(border_router_process, ev, data)
     PRINTF("created a new RPL dag\n");
   }
 
+#if DEBUG || 1
   print_local_addresses();
+#endif
 
   /* The border router runs with a 100% duty cycle in order to ensure high
      packet reception rates. */

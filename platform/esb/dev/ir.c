@@ -251,7 +251,7 @@ interrupt(TIMERB1_VECTOR) Timer_B1 (void) {
       // reenable interrupt for falling edge
       P1IFG &= ~(0x04);
       P1IE  |= 0x04;                    // enable interrupt for recir RC5
-      leds_red(LEDS_OFF);
+      leds_off(LEDS_RED);
     }
     
   ir_pos++;
@@ -280,7 +280,7 @@ ir_irq(void)
   TBCCTL1 |= CCIE;          // CCR0 interrupt enabled, interrupt occurs when timer equals CCR0
   
   P1IE &= ~0x04;   // disable interrupt for P12 ( ReceiveIR )
-  leds_red(LEDS_ON);
+  leds_on(LEDS_RED);
   //GREENON;
 } 
 

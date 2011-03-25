@@ -43,13 +43,12 @@ import org.jdom.Element;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.RadioConnection;
-import se.sics.cooja.Simulation;
 import se.sics.cooja.SimEventCentral.MoteCountListener;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.skins.UDGMVisualizerSkin;
-import se.sics.cooja.radiomediums.DirectedGraphMedium.DestinationRadio;
 
 /**
  * The Unit Disk Graph Radio Medium abstracts radio transmission range as circles.
@@ -184,7 +183,6 @@ public class UDGM extends AbstractRadioMedium {
     Position senderPos = sender.getPosition();
     for (DestinationRadio dest: potentialDestinations) {
       Radio recv = dest.radio;
-      Position recvPos = recv.getPosition();
 
       /* Fail if radios are on different (but configured) channels */ 
       if (sender.getChannel() >= 0 &&
@@ -192,6 +190,7 @@ public class UDGM extends AbstractRadioMedium {
           sender.getChannel() != recv.getChannel()) {
         continue;
       }
+      Position recvPos = recv.getPosition();
 
       /* Fail if radio is turned off */
 //      if (!recv.isReceiverOn()) {

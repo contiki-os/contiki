@@ -56,6 +56,9 @@
 
 #include "dev/temperature-sensor.h"
 
+#undef  TEMPERATURE_SENSOR_GPIO
+#define TEMPERATURE_SENSOR_GPIO  PORTB_PIN(7)
+
 
 /*---------------------------------------------------------------------------*/
 static void

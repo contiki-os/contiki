@@ -250,9 +250,10 @@ dio_input(void)
       dio.mc.aggr = buffer[i + 4] >> 4;
       dio.mc.prec = buffer[i + 4] & 0xf;
       dio.mc.length = buffer[i + 5];
+
       if(dio.mc.type == RPL_DAG_MC_ETX) {
-        dio.mc.etx.etx = buffer[i + 6] << 8;
-        dio.mc.etx.etx |= buffer[i + 7];
+        dio.mc.obj.etx = buffer[i + 6] << 8;
+        dio.mc.obj.etx |= buffer[i + 7];
 
         PRINTF("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, ETX %u\n",
 	       (unsigned)dio.mc.type,  
@@ -260,7 +261,10 @@ dio_input(void)
 	       (unsigned)dio.mc.aggr, 
 	       (unsigned)dio.mc.prec, 
 	       (unsigned)dio.mc.length, 
-	       (unsigned)dio.mc.etx.etx);
+	       (unsigned)dio.mc.obj.etx);
+      } else if(dio.mc.type == RPL_DAG_MC_ENERGY) {
+        dio.mc.obj.energy.flags = buffer[i + 6];
+        dio.mc.obj.energy.energy_est = buffer[i + 7];
       } else {
        PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
        return;
@@ -380,8 +384,12 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
     buffer[pos++] |= dag->mc.prec;
     if(dag->mc.type == RPL_DAG_MC_ETX) {
       buffer[pos++] = 2;
-      buffer[pos++] = dag->mc.etx.etx >> 8;
-      buffer[pos++] = dag->mc.etx.etx & 0xff;
+      buffer[pos++] = dag->mc.obj.etx >> 8;
+      buffer[pos++] = dag->mc.obj.etx & 0xff;
+    } else if(dag->mc.type == RPL_DAG_MC_ENERGY) {
+      buffer[pos++] = 2;
+      buffer[pos++] = dag->mc.obj.energy.flags;
+      buffer[pos++] = dag->mc.obj.energy.energy_est;
     } else {
       PRINTF("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",
 	(unsigned)dag->mc.type);
@@ -459,6 +467,8 @@ dao_input(void)
   uint8_t prefixlen;
   uint8_t flags;
   uint8_t subopt_type;
+  uint8_t pathcontrol;
+  uint8_t pathsequence;
   uip_ipaddr_t prefix;
   uip_ds6_route_t *rep;
   uint8_t buffer_length;
@@ -523,7 +533,9 @@ dao_input(void)
       break;
     case RPL_DIO_SUBOPT_TRANSIT:
       /* path sequence and control ignored */
-      lifetime = get32(buffer, i + 4);
+      pathcontrol = buffer[i + 3];
+      pathsequence = buffer[i + 4];
+      lifetime = buffer[i + 5];
       /* parent address also ignored */
       break;
     }
@@ -567,11 +579,11 @@ dao_input(void)
 
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
-    RPL_STAT(rpl_stats.memory_overflows++);
+    RPL_STAT(rpl_stats.mem_overflows++);
     PRINTF("RPL: Could not add a route after receiving a DAO\n");
     return;
   } else {
-    rep->state.lifetime = lifetime;
+    rep->state.lifetime = lifetime * dag->lifetime_unit;
     rep->state.learned_from = learned_from;
   }
 
@@ -637,13 +649,13 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
   memcpy(buffer + pos, &prefix, (prefixlen + 7) / CHAR_BIT);
   pos += ((prefixlen + 7) / CHAR_BIT);
 
-  /* create a transit information subopt */
+  /* create a transit information subopt (RPL-18)*/
   buffer[pos++] = RPL_DIO_SUBOPT_TRANSIT;
-  buffer[pos++] = 6;
-  buffer[pos++] = 0; /* path seq - ignored */
+  buffer[pos++] = 4;
+  buffer[pos++] = 0; /* flags - ignored */
   buffer[pos++] = 0; /* path control - ignored */
-  set32(buffer, pos, lifetime);
-  pos += 4;
+  buffer[pos++] = 0; /* path seq - ignored */
+  buffer[pos++] = (lifetime / dag->lifetime_unit) & 0xff;
 
   if(n == NULL) {
     uip_create_linklocal_rplnodes_mcast(&addr);

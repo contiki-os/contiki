@@ -65,8 +65,12 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
+
+#if WEBSERVER
 #include "webserver-nogui.h"
 #include "httpd-cgi.h"
+#endif
+
 #include "raven-lcd.h"
 
 #include <string.h>
@@ -302,12 +306,16 @@ raven_gui_loop(process_event_t ev, process_data_t data)
                 raven_ping6();
                 break;
             case SEND_TEMP:
+#if WEBSERVER
                 /* Set temperature string in web server */
                 web_set_temp((char *)cmd.frame);
+#endif
                 break;
             case SEND_ADC2:
+#if WEBSERVER
                 /* Set ext voltage string in web server */
                 web_set_voltage((char *)cmd.frame);
+#endif
                 break;
             case SEND_SLEEP:
                 /* Sleep radio and 1284p. */
@@ -316,7 +324,8 @@ raven_gui_loop(process_event_t ev, process_data_t data)
                 } else {
                 /* Sleep specified number of seconds (3290p "DOZE" mode) */
                 /* It sleeps a bit longer so we will be always be awake for the next sleep command. */
-                /* Only sleep this cycle if no active TCP/IP connections */
+#if UIP_CONF_TCP
+                /* Only sleep this cycle if no active TCP/IP connections, for fast browser responsed */
                    activeconnections=0;
                    for(i = 0; i < UIP_CONNS; ++i) {
                       if((uip_conns[i].tcpstateflags & UIP_TS_MASK) != UIP_CLOSED) activeconnections++;
@@ -325,6 +334,7 @@ raven_gui_loop(process_event_t ev, process_data_t data)
                      PRINTF("\nWaiting for %d connections",activeconnections);
                      break;
                    }
+#endif
                 }
                 radio_state = NETSTACK_RADIO.off();
                 PRINTF ("\nsleep %d radio state %d...",cmd.frame[0],radio_state);

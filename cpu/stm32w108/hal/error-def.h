@@ -1,6 +1,6 @@
 /**
  * @file error-def.h
- * @brief Return-code definitions for StZNet stack API functions.
+ * @brief Return-code definitions for API functions.
  * 
  * See @ref status_codes for documentation.
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->

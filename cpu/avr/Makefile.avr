@@ -139,7 +139,7 @@ ifndef NOAVRSIZE
 endif
 
 %.hex: %.out
-	$(OBJCOPY) $^ -O ihex $@
+	$(OBJCOPY) $^ -j .text -j .data -O ihex $@
 
 %.ihex: %.out
 	$(OBJCOPY) $^ -O ihex $@

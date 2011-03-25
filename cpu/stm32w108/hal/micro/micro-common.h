@@ -15,6 +15,15 @@
 #ifndef __MICRO_COMMON_H__
 #define __MICRO_COMMON_H__
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifndef __STSTATUS_TYPE__
+#define __STSTATUS_TYPE__
+  //This is necessary here because halSleepForQsWithOptions returns an
+  //StStatus and not adding this typedef to this file breaks a
+  //whole lot of builds.
+  typedef int8u StStatus;
+#endif //__STSTATUS_TYPE__
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 /** @brief Initializes microcontroller-specific peripherals.
 */
@@ -109,6 +118,28 @@ enum
  */
 void halCommonDelayMicroseconds(int16u us);
 
+/** @brief Request the appplication to enter in bootloader mode
+ *
+ * This function will check whwther the user flash contains the bootloader
+ * and if yes it will jump into it according to the user parameters.
+ * 
+ *
+ * @param mode  The bootloader mode, 0 UART mode, 1 RF mode. All other
+ * values are reserved
+ * @param channel  The channel where the booloader will operate. 0 means
+ * default channel (only vaild for RF mode).
+ * @param panID  The panID where the booloader will operate. 0xFFFF means
+ * default panID (only vaild for RF mode).
+ * @return An error code or it will never return.
+ */
+StStatus halBootloaderStart(int8u mode, int8u channel, int16u panId);
+
+#ifdef CORTEXM3_STM32F103
+#include "micro/cortexm3/stm32f103ret/micro-specific.h"
+#endif
+#ifdef CORTEXM3_STM32W108
+#include "micro/cortexm3/micro-common.h"
+#endif
 
 #endif //__MICRO_COMMON_H__
 

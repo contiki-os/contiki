@@ -3,6 +3,10 @@ CONTIKI_TARGET_DIRS = . apps net loader
 CONTIKI_CORE=contiki-raven-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 CONTIKI_TARGET_SOURCEFILES += contiki-raven-main.c contiki-raven-default-init-net.c
+#The avr cpu makefile will also add these files if COFFEE_FILES is specified.
+#CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c
+#Needed for slip
+CONTIKI_TARGET_SOURCEFILES += button-sensor.c sensors.c slip_uart0.c slip.c
 
 CONTIKIAVR=$(CONTIKI)/cpu/avr
 CONTIKIBOARD=.
@@ -17,12 +21,14 @@ AVRDUDE_PROGRAMMER=jtag2
 #
 # The example is for an JTAGICE mkII used to program an ATmega128:
 # avrdude -v -P usb:xxxx -c jtag2 -p atmega128
-AVRDUDE_PORT=usb:00B000000D79
+#AVRDUDE_PORT=usb:00B000000D79
+AVRDUDE_PORT=usb
 
 
 # Additional avrdude options
 # Verify off
-AVRDUDE_OPTIONS=-V
+#AVRDUDE_OPTIONS=-V
+AVRDUDE_OPTIONS=
 
 
 include $(CONTIKIAVR)/Makefile.avr

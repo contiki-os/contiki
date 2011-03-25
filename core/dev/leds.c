@@ -121,7 +121,3 @@ leds_invert(unsigned char ledv) {
   show_leds(ledv);
 }
 /*---------------------------------------------------------------------------*/
-void leds_green(int o) { o?leds_on(LEDS_GREEN):leds_off(LEDS_GREEN); }
-void leds_yellow(int o) { o?leds_on(LEDS_YELLOW):leds_off(LEDS_YELLOW); }
-void leds_red(int o) { o?leds_on(LEDS_RED):leds_off(LEDS_RED); }
-/*---------------------------------------------------------------------------*/

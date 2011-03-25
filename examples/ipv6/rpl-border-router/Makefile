@@ -5,10 +5,17 @@ CONTIKI=../../..
 WITH_UIP6=1
 UIP_CONF_IPV6=1
 
-APPS += webserver
+#Override inclusion of internal webserver with make WITH_WEBSERVER=0
+WITH_WEBSERVER=1
 
+ifeq ($(WITH_WEBSERVER), 0)
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+PROJECT_SOURCEFILES += slip-bridge.c
+else
+APPS += webserver
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\" -DWEBSERVER
 PROJECT_SOURCEFILES += slip-bridge.c httpd-simple.c
+endif
 
 include $(CONTIKI)/Makefile.include
 

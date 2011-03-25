@@ -2,6 +2,9 @@
 #define __REGS_H__                                           1
 
 
+#define ReadRegister(a) a
+#define WriteRegister(a, b) a = b
+
 /* FLASH_BASE block */
 #define DATA_FLASH_BASE_BASE                                 (0x00000000u)
 #define DATA_FLASH_BASE_END                                  (0x0001FFFFu)

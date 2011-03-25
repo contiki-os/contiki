@@ -268,7 +268,7 @@ static uint8_t *hc06_ptr;
 /* Uncompression of linklocal */
 /*   0 -> 16 bytes from packet  */
 /*   1 -> 2 bytes from prefix - bunch of zeroes and 8 from packet */
-/*   2 -> 2 bytes from prefix - zeroes + 2 from packet */
+/*   2 -> 2 bytes from prefix - 0000::00ff:fe00:XXXX from packet */
 /*   3 -> 2 bytes from prefix - infer 8 bytes from lladdr */
 /*   NOTE: => the uncompress function does change 0xf to 0x10 */
 /*   NOTE: 0x00 => no-autoconfig => unspecified */
@@ -277,7 +277,7 @@ const uint8_t unc_llconf[] = {0x0f,0x28,0x22,0x20};
 /* Uncompression of ctx-based */
 /*   0 -> 0 bits from packet [unspecified / reserved] */
 /*   1 -> 8 bytes from prefix - bunch of zeroes and 8 from packet */
-/*   2 -> 8 bytes from prefix - zeroes + 2 from packet */
+/*   2 -> 8 bytes from prefix - 0000::00ff:fe00:XXXX + 2 from packet */
 /*   3 -> 8 bytes from prefix - infer 8 bytes from lladdr */
 const uint8_t unc_ctxconf[] = {0x00,0x88,0x82,0x80};
 
@@ -338,7 +338,7 @@ compress_addr_64(uint8_t bitpos, uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
   if(uip_is_addr_mac_addr_based(ipaddr, lladdr)) {
     return 3 << bitpos; /* 0-bits */
   } else if(sicslowpan_is_iid_16_bit_compressable(ipaddr)) {
-    /* compress IID to 16 bits xxxx::XXXX */
+    /* compress IID to 16 bits xxxx::0000:00ff:fe00:XXXX */
     memcpy(hc06_ptr, &ipaddr->u16[7], 2);
     hc06_ptr += 2;
     return 2 << bitpos; /* 16-bits */
@@ -377,6 +377,11 @@ uncompress_addr(uip_ipaddr_t *ipaddr, uint8_t const prefix[],
   }
   if(postcount > 0) {
     memcpy(&ipaddr->u8[16 - postcount], hc06_ptr, postcount);
+    if(postcount == 2 && prefcount < 11) {
+      /* 16 bits uncompression => 0000:00ff:fe00:XXXX */
+      ipaddr->u8[11] = 0xff;
+      ipaddr->u8[12] = 0xfe;
+    }
     hc06_ptr += postcount;
   } else if (prefcount > 0) {
     /* no IID based configuration if no prefix and no data => unspec */

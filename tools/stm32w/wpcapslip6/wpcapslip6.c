@@ -116,11 +116,11 @@ static bool clean_route = false;
 static bool clean_neighb = false;
 static struct uip_eth_addr adapter_eth_addr;
 static char * if_name;
+
 OSVERSIONINFO osVersionInfo;
 
 /* Fictitious Ethernet address of the attached device (used in tun mode). */
-#define DEV_MAC_ADDR "02-00-00-00-00-02"
-static const struct uip_eth_addr dev_eth_addr = {{0x02,0x00,0x00,0x00,0x00,0x02}};
+static struct uip_eth_addr dev_eth_addr = {{0x00,0x00,0x00,0x00,0x00,0x00}};
 
 
 static bool request_mac = true;
@@ -325,22 +325,51 @@ read_more:
 		  if(inpktbuf[0] == '!') {
 			  if (inpktbuf[1] == 'M' && inbufptr == 18) {
 				  /* Read gateway MAC address and autoconfigure tap0 interface */
-				  char macs[24];
-				  int i, pos;
+				  char macs64[24], macs48[18];
+				  int addr_bytes[8];				  
+				  int i, pos;				  
 				  for(i = 0, pos = 0; i < 16; i++) {
-					  macs[pos++] = inpktbuf[2 + i];
+					  macs64[pos++] = inpktbuf[2 + i];
 					  if ((i & 1) == 1 && i < 14) {
-						  macs[pos++] = ':';
+						  macs64[pos++] = '-';
 					  }
 				  }
-				  macs[pos] = '\0';
-				  printf("*** Gateway's MAC address: %s\n", macs);
+				  macs64[pos] = '\0';
+				  printf("*** Gateway's MAC address: %s\n", macs64);
 				  mac_received = true;
+				  
+				  sscanf(macs64, "%2X-%2X-%2X-%2X-%2X-%2X-%2X-%2X",
+                        &addr_bytes[0],
+                        &addr_bytes[1],
+                        &addr_bytes[2],
+                        &addr_bytes[3],
+                        &addr_bytes[4],
+                        &addr_bytes[5],
+                        &addr_bytes[6],
+                        &addr_bytes[7]);
+                        
+                  /* Form a fictitious MAC address for the attached device from its EUI-64 (2 middle bytes elided)  */
+                  addr_bytes[0] |= 0x02;
+                  for(i=0;i<3;i++){
+                      dev_eth_addr.addr[i] = addr_bytes[i];
+                  }
+                  for(i=3;i<6;i++){
+                      dev_eth_addr.addr[i] = addr_bytes[i+2];
+                  }
+                  sprintf(macs48,"%02X-%02X-%02X-%02X-%02X-%02X",
+                            dev_eth_addr.addr[0],
+                            dev_eth_addr.addr[1],
+                            dev_eth_addr.addr[2],
+                            dev_eth_addr.addr[3],
+                            dev_eth_addr.addr[4],
+                            dev_eth_addr.addr[5]);
+
+                  printf("Fictitious MAC-48: %s\n", macs48);
 
 
 				  if(autoconf){
 
-                      if(IPAddrFromPrefix(autoconf_addr, ipprefix, macs)!=0){
+                      if(IPAddrFromPrefix(autoconf_addr, ipprefix, macs64)!=0){
                           fprintf(stderr, "Invalid IPv6 address.\n");
 						  exit(1);
                       }
@@ -351,13 +380,13 @@ read_more:
                   if(br_prefix != NULL){
                       /* RPL Border Router mode. Add route towards LoWPAN. */
 
-                      if(IPAddrFromPrefix(rem_ipaddr, br_prefix, macs)!=0){
+                      if(IPAddrFromPrefix(rem_ipaddr, br_prefix, macs64)!=0){
                           fprintf(stderr, "Invalid IPv6 address.\n");
 						  exit(1);
                       }
 
                       addLoWPANRoute(if_name, br_prefix, rem_ipaddr);
-                      addNeighbor(if_name, rem_ipaddr, DEV_MAC_ADDR);
+                      addNeighbor(if_name, rem_ipaddr, macs48);
                   }
 
 			  }
@@ -858,7 +887,7 @@ int IPAddrFromPrefix(char * ipaddr, const char * ipprefix, const char * mac)
 
     // sscanf requires int instead of 8-bit for hexadecimal variables.
 
-    sscanf(mac, "%2X:%2X:%2X:%2X:%2X:%2X:%2X:%2X",
+    sscanf(mac, "%2X-%2X-%2X-%2X-%2X-%2X-%2X-%2X",
         &addr_bytes[0],
         &addr_bytes[1],
         &addr_bytes[2],
@@ -1059,11 +1088,9 @@ main(int argc, char **argv)
         (int *)&adapter_eth_addr.addr[4],(int *)&adapter_eth_addr.addr[5]);
 	if_name = wpcap_start(&adapter_eth_addr, verbose);
 
-
 	if(local_ipaddr!=NULL){
 		addAddress(if_name, local_ipaddr);
 	}
-
 
 	switch(baudrate) {
   case -2:

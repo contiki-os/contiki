@@ -18,7 +18,7 @@ FIQ_STACK_SIZE = 256;
 SVC_STACK_SIZE = 256;
 ABT_STACK_SIZE = 16;
 UND_STACK_SIZE = 16;
-HEAP_SIZE = 1024;
+HEAP_SIZE = 4096;
 
   /* Read-only sections, merged into text segment: */
   PROVIDE (__executable_start = 0x00400000); . = 0x00400000;
