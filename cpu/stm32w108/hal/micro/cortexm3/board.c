@@ -109,6 +109,14 @@ const ButtonResourceType ButtonsMB950A[] = {
   }
 };
 
+const ButtonResourceType ButtonsMB951A[] = {
+  {
+    "S1",
+    PORTA,
+    3
+  },
+};
+
 const TempSensorResourceType tempSensorMB851A = {
   "STLM20",
   PORTB,
@@ -141,6 +149,11 @@ const BoardIOType ioMB954A = {
 const BoardIOType ioMB950A = {
   LedsMB954A,
   ButtonsMB950A,  
+};
+
+const BoardIOType ioMB951A = {
+  LedsMB954A,
+  ButtonsMB951A,  
 };
 
 const BoardResourcesType MB851A = {
@@ -214,7 +227,7 @@ const BoardResourcesType MB951A = {
   (BOARD_HAS_STM32F),
   BUTTONS_MB951A,
   LEDS_MB951A,
-  &ioMB954A,
+  &ioMB951A,
   NULL,
   NULL,
   NULL,

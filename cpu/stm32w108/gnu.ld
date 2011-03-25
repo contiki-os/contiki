@@ -25,37 +25,6 @@ _estack = __Stack_Init + __Stack_Size;
 /*"PROVIDE" allows to easily override these values from an object file or the commmand line.*/
 PROVIDE ( _Stack_Init = __Stack_Init ) ;
 
-/*
-this sends all unreferenced IRQHandlers to a Default_Handler or a reset.
-*/
-
-PROVIDE(Default_Handler = 0 );
-PROVIDE(NMI_Handler = Default_Handler );
-PROVIDE(HardFault_Handler = Default_Handler );
-PROVIDE(MemManage_Handler = Default_Handler );
-PROVIDE(BusFault_Handler = Default_Handler );
-PROVIDE(UsageFault_Handler = Default_Handler );
-PROVIDE(SVC_Handler = Default_Handler );
-PROVIDE(DebugMonitor_Handler = Default_Handler );
-PROVIDE(PendSV_Handler = Default_Handler );
-PROVIDE(SysTick_Handler = Default_Handler );
-PROVIDE(halTimer1Isr = Default_Handler );
-PROVIDE(halTimer2Isr = Default_Handler );
-PROVIDE(halManagementIsr = Default_Handler );
-PROVIDE(halBaseBandIsr = Default_Handler );
-PROVIDE(halSleepTimerIsr = Default_Handler );
-PROVIDE(halSc1Isr = Default_Handler );
-PROVIDE(halSc2Isr = Default_Handler );
-PROVIDE(halSecurityIsr = Default_Handler );
-PROVIDE(halStackMacTimerIsr = Default_Handler );
-PROVIDE(stmRadioTransmitIsr = Default_Handler );
-PROVIDE(stmRadioReceiveIsr = Default_Handler );
-PROVIDE(halAdcIsr = Default_Handler );
-PROVIDE(halIrqAIsr = Default_Handler );
-PROVIDE(halIrqBIsr = Default_Handler );
-PROVIDE(halIrqCIsr = Default_Handler );
-PROVIDE(halIrqDIsr = Default_Handler );
-PROVIDE(halDebugIsr = Default_Handler );
 
 /******************************************************************************/
 /*                       Peripheral memory map                                */
