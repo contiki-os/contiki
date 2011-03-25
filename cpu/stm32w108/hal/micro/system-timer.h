@@ -48,9 +48,7 @@ int16u halInternalStartSystemTimer(void);
  * @return The least significant 16 bits of the current system time, in system
  * ticks.
  */
-#pragma pagezero_on  // place this function in zero-page memory for xap 
 int16u halCommonGetInt16uMillisecondTick(void);
-#pragma pagezero_off
 
 /**
  * @brief Returns the current system time in system ticks, as a 32-bit

@@ -67,8 +67,8 @@ void halSleepTimerIsr(void)
   sleepTimerInterruptOccurred = TRUE;
 }
 
-#define CONVERT_QS_TO_TICKS(x) (x << 8)
-#define CONVERT_TICKS_TO_QS(x) (x >> 8)
+#define CONVERT_QS_TO_TICKS(x) ((x) << 8)
+#define CONVERT_TICKS_TO_QS(x) ((x) >> 8)
 #define TIMER_MAX_QS           0x1000000 // = 4194304 seconds * 4 = 16777216
 static StStatus internalSleepForQs(boolean useGpioWakeMask,
                                       int32u *duration,

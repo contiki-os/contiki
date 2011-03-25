@@ -46,7 +46,6 @@ void stCalibrateVref(void)
   // Calibrate Vref by measuring a known voltage, Vdd/2.
   //
   // FIXME: add support for calibration if done in boost mode.
-  extern int16u stmRadioTxPowerMode;
   tokTypeMfgAnalogueTrimBoth biasTrim;
   
   halCommonGetMfgToken(&biasTrim, TOKEN_MFG_ANALOG_TRIM_BOTH);
