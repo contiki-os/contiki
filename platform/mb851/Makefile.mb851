@@ -28,4 +28,4 @@ endif
 
 
 login:
-	$(SERIALDUMP) -b115200 -d10000 $(DEV)
+	$(SERIALDUMP) -b115200 -d10000 $(PORT)
