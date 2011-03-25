@@ -10,6 +10,30 @@
 
 #include PLATFORM_HEADER
 #include "error.h"
+
+#ifdef NVM_RAM_EMULATION
+
+static int16u calibrationData[32+2]={
+   0xFFFF, 0xFFFF,
+   0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+   0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+   0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+   0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+};
+
+int8u halCommonReadFromNvm(void *data, int32u offset, int16u length)
+{
+ halCommonMemCopy(data, ((int8u *) calibrationData) + offset, length); 
+  return ST_SUCCESS;
+}
+int8u halCommonWriteToNvm(const void *data, int32u offset, int16u length)
+{
+  halCommonMemCopy(((int8u *) calibrationData) + offset, data, length);
+  return ST_SUCCESS;
+}
+
+#else
+
 //flash.h gives access to halInternalFlashErase and halInternalFlashWrite.
 #include "hal/micro/cortexm3/flash.h"
 //nvm.h includes memmap.h.  These two headers define the key parameters:
@@ -375,3 +399,4 @@ int8u halCommonWriteToNvm(const void *data, int32u offset, int16u length)
   }
 }
 
+#endif // NVM_RAM_EMULATION

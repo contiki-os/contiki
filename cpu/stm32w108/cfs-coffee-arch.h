@@ -67,7 +67,7 @@
 /* If using IAR, COFFEE_ADDRESS reflects the static value in the linker script
    iar-cfg-coffee.icf, so it can't be passed as a parameter for Make.*/
 #ifdef __ICCARM__
-#define COFFEE_ADDRESS            0x8010000
+#define COFFEE_ADDRESS            0x8010c00
 #endif
 #if (COFFEE_ADDRESS & 0x3FF) !=0
  #error "COFFEE_ADDRESS not aligned to a 1024-bytes page boundary."
@@ -96,9 +96,10 @@
 #define COFFEE_LOG_SIZE           128   // COFFEE_MICRO_LOGS is 0.
 
 
-#if COFFEE_PAGES <= 0x100
-#define coffee_page_t uint8_t
-#elif COFFEE_PAGES <= 0x10000
+#if COFFEE_PAGES <= 127
+#define coffee_page_t int8_t
+#elif COFFEE_PAGES <= 0x7FFF
+#define coffee_page_t int16_t
 #endif
 
 

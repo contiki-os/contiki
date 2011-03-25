@@ -1882,18 +1882,29 @@ public class GUI extends Observable {
   }
 
   /**
-   * Returns started plugin with given class name, if any.
+   * Returns started plugin that ends with given class name, if any.
    * 
    * @param classname Class name
    * @return Plugin instance
    */
-  public Plugin getStartedPlugin(String classname) {
+  public Plugin getPlugin(String classname) {
     for (Plugin p: startedPlugins) {
-      if (p.getClass().getName().equals(classname)) {
+      if (p.getClass().getName().endsWith(classname)) {
         return p;
       }
     }
     return null;
+  }
+  
+  /**
+   * Returns started plugin with given class name, if any.
+   * 
+   * @param classname Class name
+   * @return Plugin instance
+   * @deprecated
+   */
+  public Plugin getStartedPlugin(String classname) {
+    return getPlugin(classname);
   }
 
   public Plugin[] getStartedPlugins() {

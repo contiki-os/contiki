@@ -184,7 +184,7 @@ void maca_init(void) {
         /* nop, promiscuous, no cca */
 	*MACA_CONTROL =
 		(prm_mode << PRM) |
-		(NO_CCA << MODE); 
+		(NO_CCA << MACA_MODE);
 	
 	enable_irq(MACA);
 	*INTFRC = (1 << INT_NUM_MACA);
@@ -368,7 +368,9 @@ void post_receive(void) {
 			  ( 4 << PRECOUNT) |
 			  ( fcs_mode << NOFC ) |
 			  ( prm_mode << PRM) |
+#if 0 //dak says removing ctrl auto fixes the autoack checksum error --- doesn't cause a performance issue either
 			  (1 << maca_ctrl_auto) |
+#endif
 			  (maca_ctrl_seq_rx));
 	/* status bit 10 is set immediately */
         /* then 11, 10, and 9 get set */ 

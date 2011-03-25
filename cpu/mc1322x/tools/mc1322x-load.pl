@@ -24,7 +24,7 @@ GetOptions ('file=s' => \$filename,
 	    'zerolen' => \$zerolen,
 	    'terminal=s' => \$term, 
 	    'verbose' => \$verbose, 
-	    'baud=s' => \$baud,
+	    'u|baud=s' => \$baud,
 	    'rts=s' => \$rts,
 	    'command=s' => \$command,
 	    'a=s' => \$first_delay,
@@ -41,8 +41,8 @@ if($filename eq '') {
     print "       -f required: binary file to load\n";
     print "       -s optional: secondary binary file to send\n";
     print "       -z optional: send a zero length file as secondary\n";
-    print "       -t terminal default: /dev/ttyUSB0\n";
-    print "       -b baud rate default: 115200\n";
+    print "       -t, terminal default: /dev/ttyUSB0\n";
+    print "       -u, --baud baud rate default: 115200\n";
     print "       -r [none|rts] flow control default: rts\n";
     print "       -c command to run for autoreset: \n";
     print "              e.g. -c 'bbmc -l redbee-econotag -i 0 reset'\n";

@@ -111,7 +111,7 @@ loader_arch_load(unsigned short startaddr)
   /* If the checksum was wrong, we beep. The number of beeps indicate
      the numerival value of the calculated checksum. */
   if(sum != 0xff) {
-    leds_red(LEDS_ON);
+    leds_on(LEDS_RED);
     
     for(i = 0; i < (sum >> 4); ++i) {
       beep_beep(200);
@@ -131,23 +131,23 @@ loader_arch_load(unsigned short startaddr)
       }
     }
 
-    leds_red(LEDS_OFF);
+    leds_off(LEDS_RED);
     
     return;
     
   } else {
-    leds_green(LEDS_ON);
+    leds_on(LEDS_GREEN);
     for(i = 0; i < 4; ++i) {
       beep_beep(200);
       for(j = 0; j < 2; ++j) {
 	clock_delay(60000);
       }
     }
-    leds_green(LEDS_OFF);
+    leds_off(LEDS_GREEN);
   }
 
 
-  leds_yellow(LEDS_ON);
+  leds_on(LEDS_YELLOW);
   startaddr += 2;
   
   /* Read the size of the code segment from the next two bytes in EEPROM. */
@@ -185,9 +185,9 @@ loader_arch_load(unsigned short startaddr)
 
   flash_done();
 
-  leds_yellow(LEDS_OFF);
+  leds_off(LEDS_YELLOW);
 
-  leds_green(LEDS_ON);
+  leds_on(LEDS_GREEN);
   
   /* Read the size of the code segment from the first two bytes in EEPROM. */
   eeprom_read(startaddr + 2 + codelen, (char *)&datalen, 2);
@@ -205,7 +205,7 @@ loader_arch_load(unsigned short startaddr)
     clock_delay(20000);
   }
 
-  leds_green(LEDS_OFF);
+  leds_off(LEDS_GREEN);
   
   /* Execute the loaded program. */
   init = ((void (*)(void *))FLASHADDR);

@@ -21,7 +21,7 @@ void temperatureSensor_Init(void);
 
 /** @brief  Get temperature sensor value 
 */
-int32u temperatureSensor_GetValue(int8u type);
+int32u temperatureSensor_GetValue(void);
 
 #endif /* _TEMP_SENSOR_H_ */
 

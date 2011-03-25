@@ -110,7 +110,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_ND6_MAX_NEIGHBORS		2
 #define UIP_CONF_ND6_MAX_DEFROUTERS		1
 #define UIP_CONF_IP_FORWARD			0
-#define UIP_CONF_BUFFER_SIZE			200
+#define UIP_CONF_BUFFER_SIZE			140
 #define UIP_CONF_MAX_CONNECTIONS		6
 #define UIP_CONF_MAX_LISTENPORTS		6
 #define UIP_CONF_UDP_CONNS			3

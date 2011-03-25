@@ -159,7 +159,7 @@ contiki_main(int flag)
     uip_fw_default(&meshif);
   }
   
-  leds_green(LEDS_ON);
+  leds_on(LEDS_GREEN);
 
   rtimer_init();
   

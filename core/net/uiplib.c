@@ -53,15 +53,17 @@ uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
 
   value = 0;
   zero = -1;
+  if(*addrstr == '[') addrstr++;
+
   for(len = 0; len < sizeof(uip_ipaddr_t) - 1; addrstr++) {
     c = *addrstr;
-    if(c == ':' || c == '\0') {
+    if(c == ':' || c == '\0' || c == ']') {
       ipaddr->u8[len] = (value >> 8) & 0xff;
       ipaddr->u8[len + 1] = value & 0xff;
       len += 2;
       value = 0;
 
-      if(c == '\0') {
+      if(c == '\0' || c == ']') {
         break;
       }
 
@@ -86,7 +88,7 @@ uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
       value = (value << 4) + (tmp & 0xf);
     }
   }
-  if(c != '\0') {
+  if(c != '\0' && c != ']') {
     PRINTF("uiplib: too large address\n");
     return 0;
   }

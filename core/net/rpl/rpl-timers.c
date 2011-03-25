@@ -112,7 +112,7 @@ new_dio_interval(rpl_dag_t *dag)
            dag->version,
            dag->dio_totint, dag->dio_totsend,
            dag->dio_totrecv,dag->dio_intcurrent,
-	   dag->rank == ROOT_RANK ? "BLUE" : "ORANGE");
+	   dag->rank == ROOT_RANK(dag) ? "BLUE" : "ORANGE");
 #endif /* RPL_CONF_STATS */
 
   /* reset the redundancy counter */
@@ -205,7 +205,8 @@ handle_dao_timer(void *ptr)
      fan-out as being under investigation. */
   if(dag->preferred_parent != NULL) {
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
-    dao_output(dag->preferred_parent, DEFAULT_ROUTE_LIFETIME);
+    /* set time to maxtime */
+    dao_output(dag->preferred_parent, dag->lifetime_unit * 0xffUL);
   } else {
     PRINTF("RPL: Could not find a parent to send a DAO to \n");
   }

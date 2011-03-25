@@ -68,7 +68,8 @@ The COOJA Simulator
 
   <target name="compile" depends="init">
     <mkdir dir="${build}"/>
-    <javac srcdir="${java}" destdir="${build}" debug="on">
+    <javac srcdir="${java}" destdir="${build}" debug="on"
+           includeantruntime="false">
       <classpath>
         <pathelement path="."/>
         <pathelement location="lib/jdom.jar"/>
@@ -189,7 +190,7 @@ The COOJA Simulator
   </target>
 
   <target name="java_version" depends="init">
-    <exec executable="javac" dir="${build}">
+    <exec executable="javac" dir="${build}" includeantruntime="false">
       <arg value="-version"/>
     </exec>
   </target>

@@ -241,7 +241,7 @@ PT_THREAD(psock_generator_send(struct psock *psock,
  */
 #define PSOCK_CLOSE(psock) uip_close()
 
-PT_THREAD(psock_readbuf(struct psock *psock));
+PT_THREAD(psock_readbuf_len(struct psock *psock, uint16_t len));
 /**
  * Read data until the buffer is full.
  *
@@ -255,7 +255,24 @@ PT_THREAD(psock_readbuf(struct psock *psock));
  * \hideinitializer
  */
 #define PSOCK_READBUF(psock)				\
-  PT_WAIT_THREAD(&((psock)->pt), psock_readbuf(psock))
+  PT_WAIT_THREAD(&((psock)->pt), psock_readbuf_len(psock, 1))
+
+
+/**
+ * Read data until at least len bytes have been read.
+ *
+ * This macro will block waiting for data and read the data into the
+ * input buffer specified with the call to PSOCK_INIT(). Data is read
+ * until the buffer is full or len bytes have been read.
+ *
+ * \param psock (struct psock *) A pointer to the protosocket from which
+ * data should be read.
+ * \param len (uint16_t) The minimum number of bytes to read.
+ *
+ * \hideinitializer
+ */
+#define PSOCK_READBUF_LEN(psock, len)			\
+  PT_WAIT_THREAD(&((psock)->pt), psock_readbuf_len(psock, len))
 
 PT_THREAD(psock_readto(struct psock *psock, unsigned char c));
 /**

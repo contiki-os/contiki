@@ -146,7 +146,7 @@ print_remote_stats(struct stats *s)
 {
   unsigned long total_time;
   
-  printf("%d 1 %d %d %d %u %lu %lu %lu %lu %lu %lu # for automatic processing\n",
+  printf("%d 1 %d %d %d %lu %lu %lu %lu %lu %lu %lu # for automatic processing\n",
 	 current_type,
 	 s->sent, s->received, s->timedout,
 	 s->end - s->start,
@@ -173,7 +173,7 @@ print_local_stats(struct stats *s)
 {
   unsigned long total_time;
   
-  printf("%d 0 %d %d %d %u %lu %lu %lu %lu %lu %lu # for automatic processing\n",
+  printf("%d 0 %d %d %d %lu %lu %lu %lu %lu %lu %lu # for automatic processing\n",
 	 current_type, 
 	 s->sent, s->received, s->timedout,
 	 s->end - s->start,
@@ -185,12 +185,12 @@ print_local_stats(struct stats *s)
 
   printf("Local node statistics:\n");
  
-  printf("  Total transfer time:       %d.%d seconds, %d.%02d packets/second\n",
+  printf("  Total transfer time:       %lu.%02lu seconds, %lu.%02lu packets/second\n",
 	 (s->end - s->start) / CLOCK_SECOND,
 	 ((10 * (s->end - s->start)) / CLOCK_SECOND) % 10,
-	 CLOCK_SECOND * s->sent / (s->end - s->start),
-	 (100 * CLOCK_SECOND * s->sent / (s->end - s->start)) % 100);
-  
+	 ((1UL * CLOCK_SECOND * s->sent) / (s->end - s->start)),
+	 (((100UL * CLOCK_SECOND * s->sent) / (s->end - s->start)) % 100));
+ 
   printf("  Average round-trip-time:   %lu ms (%lu + %lu)\n",
 	 (1000 * (s->total_rx_latency + s->total_tx_latency) / s->received) /
 	 RTIMER_ARCH_SECOND,

@@ -9,6 +9,7 @@
 
 
 #include PLATFORM_HEADER
+#include BOARD_HEADER
 #include "error.h"
 #include "hal/micro/micro-common.h"
 #include "hal/micro/cortexm3/micro-common.h"
@@ -59,11 +60,16 @@ void halGpioConfig(int32u io, int32u config)
   *configRegs[io/4] = portcfg | (config <<((io&3)*4));
 }
 
-
-
-
-
-
+void halGpioSet(int32u gpio, boolean value)
+{
+  if(gpio/8 < 3) {
+    if (value) {
+      *((volatile int32u *)(GPIO_PxSET_BASE+(GPIO_Px_OFFSET*(gpio/8)))) = BIT(gpio&7);
+    } else {
+      *((volatile int32u *)(GPIO_PxCLR_BASE+(GPIO_Px_OFFSET*(gpio/8)))) = BIT(gpio&7);
+    }
+  }
+}
 
 int16u halInternalStartSystemTimer(void)
 {

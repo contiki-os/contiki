@@ -49,6 +49,17 @@
 #define RPL_CONF_STATS 0
 #endif /* RPL_CONF_STATS */
 
+/* 
+ * Select routing metric supported at runtime. This must be a valid
+ * DAG Metric Container Object Type (see below). Currently, we only 
+ * support RPL_DAG_MC_ETX and RPL_DAG_MC_ENERGY.
+ */
+#ifdef RPL_CONF_DAG_MC
+#define RPL_DAG_MC RPL_CONF_DAG_MC
+#else
+#define RPL_DAG_MC RPL_DAG_MC_ETX
+#endif /* RPL_CONF_DAG_MC */
+
 /*
  * The objective function used by RPL is configurable through the 
  * RPL_CONF_OF parameter. This should be defined to be the name of an 
@@ -78,8 +89,8 @@ typedef uint16_t rpl_ocp_t;
 /* DAG Metric Container Object Types, to be confirmed by IANA. */
 #define RPL_DAG_MC_NONE			0 /* Local identifier for empty MC */
 #define RPL_DAG_MC_NSA                  1 /* Node State and Attributes */
-#define RPL_DAG_MC_NE                   2 /* Node Energy */
-#define RPL_DAG_MC_HC                   3 /* Hop Count */
+#define RPL_DAG_MC_ENERGY               2 /* Node Energy */
+#define RPL_DAG_MC_HOPCOUNT             3 /* Hop Count */
 #define RPL_DAG_MC_THROUGHPUT           4 /* Throughput */
 #define RPL_DAG_MC_LATENCY              5 /* Latency */
 #define RPL_DAG_MC_LQL                  6 /* Link Quality Level */
@@ -99,9 +110,19 @@ typedef uint16_t rpl_ocp_t;
 #define RPL_DAG_MC_AGGR_MINIMUM         2
 #define RPL_DAG_MC_AGGR_MULTIPLICATIVE  3
 
-/* Logical representation of an ETX object in a DAG Metric Container. */
-struct rpl_metric_object_etx {
-  uint16_t etx;
+/* The bit index within the flags field of
+   the rpl_metric_object_energy structure. */
+#define RPL_DAG_MC_ENERGY_INCLUDED	3
+#define RPL_DAG_MC_ENERGY_TYPE		1
+#define RPL_DAG_MC_ENERGY_ESTIMATION	0
+
+#define RPL_DAG_MC_ENERGY_TYPE_MAINS		0
+#define RPL_DAG_MC_ENERGY_TYPE_BATTERY		1
+#define RPL_DAG_MC_ENERGY_TYPE_SCAVENGING	2
+
+struct rpl_metric_object_energy {
+  uint8_t flags;
+  uint8_t energy_est;
 };
 
 /* Logical representation of a DAG Metric Container. */
@@ -111,9 +132,10 @@ struct rpl_metric_container {
   uint8_t aggr;
   uint8_t prec;
   uint8_t length;
-  /* Once we support more objects, the etx field will be replaced by a
-     union of those. */
-  struct rpl_metric_object_etx etx;
+  union metric_object {
+    struct rpl_metric_object_energy energy;
+    uint16_t etx;
+  } obj;
 };
 typedef struct rpl_metric_container rpl_metric_container_t;
 /*---------------------------------------------------------------------------*/
@@ -125,7 +147,7 @@ struct rpl_parent {
   rpl_metric_container_t mc;
   uip_ipaddr_t addr;
   rpl_rank_t rank;
-  uint8_t etx;
+  uint8_t link_metric;
   uint8_t dtsn;
   uint8_t updated;
 };

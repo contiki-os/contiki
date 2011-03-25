@@ -10,6 +10,8 @@
 #ifndef LOADER
   #if defined (CORTEXM3_STM32W108)
     #include "hal/micro/cortexm3/stm32w108/memmap.h"
+  #elif defined (CORTEXM3_STM32F103)
+    #include "hal/micro/cortexm3/stm32f103ret/memmap.h"
   #else
     #error no appropriate micro defined
   #endif

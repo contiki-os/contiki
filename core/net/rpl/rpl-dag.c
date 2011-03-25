@@ -94,8 +94,6 @@ static rpl_of_t * const objective_functions[] = {&RPL_OF};
 #define RPL_DIO_INTERVAL_DOUBLINGS      RPL_CONF_DIO_INTERVAL_DOUBLINGS
 #endif /* !RPL_CONF_DIO_INTERVAL_DOUBLINGS */
 
-#define INITIAL_ETX  NEIGHBOR_INFO_ETX_DIVISOR * 5
-
 /************************************************************************/
 /* Allocate parents from the same static MEMB chunk to reduce memory waste. */
 MEMB(parent_memb, struct rpl_parent, RPL_MAX_PARENTS);
@@ -309,7 +307,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   memcpy(&p->addr, addr, sizeof(p->addr));
   p->dag = dag;
   p->rank = dio->rank;
-  p->etx = INITIAL_ETX;
+  p->link_metric = INITIAL_LINK_METRIC;
   p->dtsn = 0;
 
   memcpy(&p->mc, &dio->mc, sizeof(p->mc));
@@ -358,6 +356,7 @@ rpl_select_parent(rpl_dag_t *dag)
     rpl_reset_dio_timer(dag, 1);
     PRINTF("RPL: New preferred parent, rank changed from %u to %u\n",
 	   (unsigned)dag->rank, dag->of->calculate_rank(best, 0));
+    RPL_STAT(rpl_stats.parent_switch++);
   }
 
   /* Update the DAG rank, since link-layer information may have changed
@@ -457,8 +456,6 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
   PRINTF("succeeded\n");
-
-  p->etx = INITIAL_ETX; /* The lowest confidence for new parents. */
 
   /* Determine the objective function by using the
      objective code point of the DIO. */
@@ -732,7 +729,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       PRINTF(")\n");
       return;
     }
-    
+
     PRINTF("RPL: New candidate parent with rank %u: ", (unsigned)p->rank);
     PRINT6ADDR(from);
     PRINTF("\n");
@@ -742,7 +739,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
   
   /* We have allocated a candidate parent; process the DIO further. */
-  
+
+  memcpy(&p->mc, &dio->mc, sizeof(p->mc));    
   p->rank = dio->rank;
   if(rpl_process_parent_event(dag, p) == 0) {
     /* The candidate parent no longer exists. */

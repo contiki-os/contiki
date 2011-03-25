@@ -136,18 +136,6 @@
 
 
   /**
-   * @brief Works like C stdlib memcmp(), but takes a flash space source
-   * parameter.
-   */
-  int8s halCommonMemPGMCompare(const void *source0, void PGM *source1, int8u bytes);
-
-  /**
-   * @brief Same as the C stdlib memcpy(), but handles copying from const 
-   * program space.
-   */
-  void halCommonMemPGMCopy(void* dest, void PGM *source, int8u bytes);
-
-  /**
    * @brief Friendly convenience macro pointing to the full HAL function.
    */
   #define MEMSET(d,v,l)  halCommonMemSet(d,v,l)

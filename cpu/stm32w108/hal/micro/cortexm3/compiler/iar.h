@@ -33,6 +33,9 @@
   #include <stdarg.h>
   #if defined (CORTEXM3_STM32W108)
     #include "micro/cortexm3/stm32w108/regs.h"
+    #include "micro/cortexm3/stm32w108/stm32w108_type.h"
+  #elif defined (CORTEXM3_STM32F103)
+    #include "stm32f10x.h"
   #else
     #error Unknown CORTEXM3 micro
   #endif
@@ -164,6 +167,15 @@ typedef unsigned int   PointerType;
 #endif
 
 /**
+ * @brief Set the application start and end address.
+ * This are useful to detect whether an image is for bootloader mode or not.
+ * This can be used also to clone image to another node via bootloader.
+ */
+#define APPLICATION_IMAGE_START ((u32) __section_begin("FLASH_IMAGE"))
+#define APPLICATION_IMAGE_END ((u32) __section_end ("FLASH_IMAGE"))
+
+
+/**
  * @brief Macro to reset the watchdog timer.  Note:  be very very
  * careful when using this as you can easily get into an infinite loop if you
  * are not careful.
@@ -247,6 +259,11 @@ void halInternalResetWatchDog(void);
 #define VAR_AT_SEGMENT(__variableDeclaration, __segmentName) \
     __variableDeclaration @ __segmentName
 
+#define _QUOTEME(a) #a
+#define QUOTEME(a) _QUOTEME(a)
+#define ALIGN_VAR(__variableDeclaration, alignment) _Pragma(QUOTEME(data_alignment=alignment)) \
+ __variableDeclaration
+
 ////////////////////////////////////////////////////////////////////////////////
 //@}  // end of Miscellaneous Macros
 ////////////////////////////////////////////////////////////////////////////////
@@ -290,6 +307,8 @@ void halInternalResetWatchDog(void);
 #pragma segment=__TEXTRW__
 #pragma segment=__FAT__
 #pragma segment=__NVM__
+// Special pragma to get the application image start and end address
+#pragma segment="FLASH_IMAGE"
 /**@} */
 
 //A utility function for inserting barrier instructions.  These

@@ -1,5 +1,5 @@
 /******************** (C) COPYRIGHT 2008 STMicroelectronics ********************
-* File Name          : stm32f10x_conf.h
+* File Name          : stm32w_conf.h
 * Author             : MCD Application Team
 * Version            : V2.0.3
 * Date               : 09/22/2008
@@ -18,7 +18,7 @@
 #define __STM32F10x_CONF_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32w_type.h"
+#include "stm32w108_type.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

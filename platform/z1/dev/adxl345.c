@@ -43,7 +43,7 @@
 #include <signal.h>
 #include "contiki.h"
 #include "adxl345.h"
-#include "cc2420-arch.c"
+#include "cc2420.h"
 #include "i2cmaster.h"
 
 /* Callback pointers when interrupt occurs */
@@ -401,6 +401,7 @@ interrupt(PORT1_VECTOR) port1_isr (void) {
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+
 /*---------------------------------------------------------------------------*/
 
 #endif

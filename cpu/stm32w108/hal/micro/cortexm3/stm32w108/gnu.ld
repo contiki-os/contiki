@@ -13,71 +13,65 @@ GROUP(
 These are used by the startup in order to allocate stacks for the different modes.
 */
 
-__Stack_Size = 0x500 ;
+__Stack_Size = 0x400 ;
 
 PROVIDE ( _Stack_Size = __Stack_Size ) ;
 
-__Stack_Init = _estack  - __Stack_Size ;
+__Stack_Init = 0x20000000;
+
+_estack = __Stack_Init + __Stack_Size;
+
 
 /*"PROVIDE" allows to easily override these values from an object file or the commmand line.*/
 PROVIDE ( _Stack_Init = __Stack_Init ) ;
-
-/*
-There will be a link error if there is not this amount of RAM free at the end.
-*/
-_Minimum_Stack_Size = 0x500 ;
 
 
 /*
 this sends all unreferenced IRQHandlers to reset
 */
 
-PROVIDE(Default_Handler = 0 );
-PROVIDE(NMI_Handler = Default_Handler );
-PROVIDE(HardFault_Handler = Default_Handler );
-PROVIDE(MemManage_Handler = Default_Handler );
-PROVIDE(BusFault_Handler = Default_Handler );
-PROVIDE(UsageFault_Handler = Default_Handler );
-PROVIDE(SVC_Handler = Default_Handler );
-PROVIDE(DebugMonitor_Handler = Default_Handler );
-PROVIDE(PendSV_Handler = Default_Handler );
-PROVIDE(SysTick_Handler = Default_Handler );
-PROVIDE(halTimer1Isr = Default_Handler );
-PROVIDE(halTimer2Isr = Default_Handler );
-PROVIDE(halManagementIsr = Default_Handler );
-PROVIDE(halBaseBandIsr = Default_Handler );
-PROVIDE(halSleepTimerIsr = Default_Handler );
-PROVIDE(halSc1Isr = Default_Handler );
-PROVIDE(halSc2Isr = Default_Handler );
-PROVIDE(halSecurityIsr = Default_Handler );
-PROVIDE(halStackMacTimerIsr = Default_Handler );
-PROVIDE(stmRadioTransmitIsr = Default_Handler );
-PROVIDE(stmRadioReceiveIsr = Default_Handler );
-PROVIDE(halAdcIsr = Default_Handler );
-PROVIDE(halIrqAIsr = Default_Handler );
-PROVIDE(halIrqBIsr = Default_Handler );
-PROVIDE(halIrqCIsr = Default_Handler );
-PROVIDE(halIrqDIsr = Default_Handler );
-PROVIDE(halDebugIsr = Default_Handler );
-/*PROVIDE(stSerialPrintf = printf );*/
+PROVIDE(NMI_Handler = 0 );
+PROVIDE(HardFault_Handler = 0 );
+PROVIDE(MemManage_Handler = 0 );
+PROVIDE(BusFault_Handler = 0 );
+PROVIDE(UsageFault_Handler = 0 );
+PROVIDE(SVC_Handler = 0 );
+PROVIDE(DebugMonitor_Handler = 0 );
+PROVIDE(PendSV_Handler = 0 );
+PROVIDE(SysTick_Handler = 0 );
+PROVIDE(halTimer1Isr = 0 );
+PROVIDE(halTimer2Isr = 0 );
+PROVIDE(halManagementIsr = 0 );
+PROVIDE(halBaseBandIsr = 0 );
+PROVIDE(halSleepTimerIsr = 0 );
+PROVIDE(halSc1Isr = 0 );
+PROVIDE(halSc2Isr = 0 );
+PROVIDE(halSecurityIsr = 0 );
+PROVIDE(halStackMacTimerIsr = 0 );
+PROVIDE(stmRadioTransmitIsr = 0 );
+PROVIDE(stmRadioReceiveIsr = 0 );
+PROVIDE(halAdcIsr = 0 );
+PROVIDE(halIrqAIsr = 0 );
+PROVIDE(halIrqBIsr = 0 );
+PROVIDE(halIrqCIsr = 0 );
+PROVIDE(halIrqDIsr = 0 );
+PROVIDE(halDebugIsr = 0 );
 
 /******************************************************************************/
 /*                       Peripheral memory map                                */
 /******************************************************************************/
 /*this allows to compile the ST lib in "non-debug" mode*/
-
-
+_BOOTLOADER_SIZE = 0x3000 ;
+_ROM_base = DEFINED(ST_BTL) ? (0x08000000 + _BOOTLOADER_SIZE) : 0x08000000 ;
 /* include the memory spaces definitions sub-script */
 MEMORY
 {
   RAM_region (xrw) :            ORIGIN = 0x20000000,            LENGTH = 8K
-  ROM_region (rx) :           ORIGIN = 0x08000000,            LENGTH = 128K-3K
-  NVM_region (rx) :           ORIGIN = 0x0801F400,            LENGTH = 3K
+  ROM_region (rx) :           ORIGIN = 0x08000000,            LENGTH = 128K-2K
+  NVM_region (rx) :           ORIGIN = 0x0801F800,            LENGTH = 2K
   FIB_region (ra) :            ORIGIN = 0x08040000,            LENGTH = 2K
 }
 
-/* higher address of the user mode stack */
-_estack = 0x20002000;
 
 /* Sections management for FLASH mode */
 
@@ -87,9 +81,12 @@ SECTIONS
 {
 
     /* for Cortex devices, the beginning of the startup code is stored in the .isr_vector section, which goes to FLASH */
-    .isr_vector :
+    
+    .isr_vector (DEFINED(ST_BTL) ? (0x08000000 + _BOOTLOADER_SIZE) : 0x08000000) :
     {
 	. = ALIGN(4);
+	__ApplicationFlashStart = . ;
+	/*	. = . + _ROM_base ;*/
         KEEP(*(.isr_vector))            /* Startup code */
 	. = ALIGN(4);
     } >ROM_region
@@ -113,24 +110,12 @@ SECTIONS
         *(.rodata*)
         *(.glue_7)
         *(.glue_7t)
-        . = ALIGN(1024);
-    	*(.elf_text)
-    	. = ALIGN(1024);
-	/*. = ALIGN(4);*/
+
+	    . = ALIGN(4);
    	 _etext = .;
-	    /* This is used by the startup in order to initialize the .data section */
+	    /* This is used by the startup in order to initialize the .data secion */
    	 _sidata = _etext;
     } >ROM_region
-    
-    .coffee 0x08010000 :
-    {
-    	_coffee_start = ABSOLUTE(.);
-    	. = ALIGN(1024);
-    	*(.coffeefiles)
-    	. = ORIGIN(NVM_region) - _coffee_start;
-    } > ROM_region = 0x00
-
-    
     NVM (NOLOAD):
     {
       . = ALIGN(1024);
@@ -146,6 +131,12 @@ SECTIONS
       . = ALIGN(4);
     } > FIB_region
 
+/*
+    .FAT (NOLOAD):
+    {
+      KEEP(*(.FAT))
+    } > FIB_region
+*/
     /* after that it's only debugging information. */
     
 
@@ -153,10 +144,10 @@ SECTIONS
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
     It is one task of the startup to copy the initial values from FLASH to RAM. */
-    .data  : AT ( _sidata )
+    .data  _estack : AT ( _sidata )
     {
 	    . = ALIGN(4);
-        /* This is used by the startup in order to initialize the .data section */
+        /* This is used by the startup in order to initialize the .data secion */
         _sdata = . ;
         
         *(.data)
@@ -165,8 +156,8 @@ SECTIONS
 	    . = ALIGN(4);
 	    /* This is used by the startup in order to initialize the .data secion */
    	 _edata = . ;
-   	 ASSERT(_sidata + SIZEOF(.data) < LOADADDR(.coffee), ".data section overflow in ROM");
     } >RAM_region
+    
     
 
     /* This is the uninitialized data section */
@@ -177,6 +168,7 @@ SECTIONS
         _sbss = .;
         
         *(.bss)
+        *(.bss.*)
         *(COMMON)
         
 	    . = ALIGN(4);
@@ -186,21 +178,6 @@ SECTIONS
     
     PROVIDE ( end = _ebss );
     PROVIDE ( _end = _ebss );
-    
-    /* This is the user stack section 
-    This is just to check that there is enough RAM left for the User mode stack
-    It should generate an error if it's full.
-     */
-    ._usrstack :
-    {
-	    . = ALIGN(4);
-        _susrstack = . ;
-        
-        . = . + _Minimum_Stack_Size ;
-        
-	    . = ALIGN(4);
-        _eusrstack = . ;
-    } >RAM_region
        
     __exidx_start = .;
     __exidx_end = .;
@@ -247,3 +224,5 @@ SECTIONS
     .debug_typenames 0 : { *(.debug_typenames) }
     .debug_varnames  0 : { *(.debug_varnames) }
 }
+
+__ApplicationFlashEnd = _sidata + (_edata - _sdata);

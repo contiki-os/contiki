@@ -15,8 +15,7 @@
  *
  * To use the ADC system, include this file and ensure that
  * ::halInternalInitAdc() is called whenever the microcontroller is
- * started.  Call ::halInternalSleepAdc() to sleep the module and
- * ::halInternalInitAdc() to wake up the module.
+ * started.  
  *
  * A "user" is a separate thread of execution and usage.  That is,
  * internal St code is one user and clients are a different user.
@@ -170,13 +169,6 @@ typedef int8u ADCChannelType;
 /** @brief Initializes and powers-up the ADC. 
  */
 void halInternalInitAdc(void);
-
-
-/** @brief Shuts down the voltage reference and ADC system to
- * minimize power consumption in sleep.
- */
-void halInternalSleepAdc(void);
-
 
 /** @brief Starts an ADC conversion for the user specified by \c id.
  *
