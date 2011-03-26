@@ -32,7 +32,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h> //Enric_Joakim
+#include <stdarg.h> 
 
 #include <io.h>
 
@@ -246,7 +246,6 @@ main(int argc, char **argv)
   }
 #endif
 
-  //Enric random_init(node_mac[0] + node_id);
   
    /*
    * Initialize Contiki and our processes.
@@ -256,7 +255,7 @@ main(int argc, char **argv)
 
   ctimer_init();
 
-  init_platform(); //Enric_Z1SP process_start(&sensors_process, NULL);
+  init_platform(); 
 
   set_rime_addr();
 
@@ -291,7 +290,6 @@ main(int argc, char **argv)
 
 
 #if WITH_UIP6
-  PRINTF("in WITH_UIP6\n"); //Enric
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
 /*   sicslowpan_init(sicslowmac_init(&cc2420_driver)); */
