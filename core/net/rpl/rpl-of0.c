@@ -101,16 +101,16 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   PRINTF("RPL: Comparing parent ");
   PRINT6ADDR(&p1->addr);
   PRINTF(" (confidence %d, rank %d) with parent ",
-        p1->etx, p1->rank);
+        p1->link_metric, p1->rank);
   PRINT6ADDR(&p2->addr);
   PRINTF(" (confidence %d, rank %d)\n",
-        p2->etx, p2->rank);
+        p2->link_metric, p2->rank);
 
 
   r1 = DAG_RANK(p1->rank, (rpl_dag_t *)p1->dag) * NEIGHBOR_INFO_ETX_DIVISOR +
-    p1->etx;
+    p1->link_metric;
   r2 = DAG_RANK(p2->rank, (rpl_dag_t *)p1->dag) * NEIGHBOR_INFO_ETX_DIVISOR +
-    p2->etx;
+    p2->link_metric;
   /* Compare two parents by looking both and their rank and at the ETX
      for that parent. We choose the parent that has the most
      favourable combination. */
