@@ -92,12 +92,12 @@ ifndef DEBUG
 OPTI = -Os -ffunction-sections 
 endif
 
-CFLAGSNO = -mthumb -mcpu=cortex-m3 -fsigned-char -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/gnu.h\"" \
+CFLAGSNO = -mthumb -mcpu=cortex-m3 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/gnu.h\"" \
 			-D BOARD_HEADER=\"board.h\" -g -Wall -Wno-strict-aliasing -mlittle-endian \
 			-D BOARD_MB851   -D CORTEXM3 -D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
 			-D __SOURCEFILE__=\"$*.c\"
 CFLAGS  += $(CFLAGSNO) $(OPTI)
-ASFLAGS = -mthumb -mcpu=cortex-m3 -fsigned-char -c -g -Wall -Os -ffunction-sections \
+ASFLAGS = -mthumb -mcpu=cortex-m3 -c -g -Wall -Os -ffunction-sections \
 	    -mlittle-endian -fshort-enums -x assembler-with-cpp -Wa,-EL
 LDFLAGS += -mcpu=cortex-m3 \
 	    -mthumb  \
