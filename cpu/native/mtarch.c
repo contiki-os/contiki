@@ -33,14 +33,14 @@
  * $Id: mtarch.c,v 1.2 2007/04/03 18:37:15 oliverschmidt Exp $
  */
 
-#ifdef __CYGWIN__
+#if defined(_WIN32) || defined(__CYGWIN__)
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 static void *main_fiber;
 
-#else /* __CYGWIN__ */
+#else /* _WIN32 || __CYGWIN__ */
 
 #include <stdlib.h>
 #include <signal.h>
@@ -54,7 +54,7 @@ struct mtarch_t {
 static ucontext_t main_context;
 static ucontext_t *running_context;
 
-#endif /* __CYGWIN__ */
+#endif /* _WIN32 || __CYGWIN__ */
 
 #include "mtarch.h"
 
@@ -62,21 +62,21 @@ static ucontext_t *running_context;
 void
 mtarch_init(void)
 {
-#ifdef __CYGWIN__
+#if defined(_WIN32) || defined(__CYGWIN__)
 
   main_fiber = ConvertThreadToFiber(NULL);
 
-#endif /* __CYGWIN__ */
+#endif /* _WIN32 || __CYGWIN__ */
 }
 /*--------------------------------------------------------------------------*/
 void
 mtarch_remove(void)
 {
-#ifdef __CYGWIN__
+#if defined(_WIN32) || defined(__CYGWIN__)
 
   ConvertFiberToThread();
 
-#endif /* __CYGWIN__ */
+#endif /* _WIN32 || __CYGWIN__ */
 }
 /*--------------------------------------------------------------------------*/
 void
@@ -84,11 +84,11 @@ mtarch_start(struct mtarch_thread *thread,
 	     void (* function)(void *data),
 	     void *data)
 {
-#ifdef __CYGWIN__
+#if defined(_WIN32) || defined(__CYGWIN__)
 
   thread->mt_thread = CreateFiber(0, (LPFIBER_START_ROUTINE)function, data);
 
-#else /* __CYGWIN__ */
+#else /* _WIN32 || __CYGWIN__ */
 
   thread->mt_thread = malloc(sizeof(struct mtarch_t));
 
@@ -118,51 +118,51 @@ mtarch_start(struct mtarch_thread *thread,
   makecontext(&((struct mtarch_t *)thread->mt_thread)->context,
 	      (void (*)(void))function, 1, data);
 
-#endif /* __CYGWIN__ */
+#endif /* _WIN32 || __CYGWIN__ */
 }
 /*--------------------------------------------------------------------------*/
 void
 mtarch_yield(void)
 {
-#ifdef __CYGWIN__
+#if defined(_WIN32) || defined(__CYGWIN__)
 
   SwitchToFiber(main_fiber);
 
-#else /* __CYGWIN__ */
+#else /* _WIN32 || __CYGWIN__ */
 
   swapcontext(running_context, &main_context);
 
-#endif /* __CYGWIN__ */
+#endif /* _WIN32 || __CYGWIN__ */
 }
 /*--------------------------------------------------------------------------*/
 void
 mtarch_exec(struct mtarch_thread *thread)
 {
-#ifdef __CYGWIN__
+#if defined(_WIN32) || defined(__CYGWIN__)
 
   SwitchToFiber(thread->mt_thread);
 
-#else /* __CYGWIN__ */
+#else /* _WIN32 || __CYGWIN__ */
 
   running_context = &((struct mtarch_t *)thread->mt_thread)->context;
   swapcontext(&main_context, running_context);
   running_context = NULL;
 
-#endif /* __CYGWIN__ */
+#endif /* _WIN32 || __CYGWIN__ */
 }
 /*--------------------------------------------------------------------------*/
 void
 mtarch_stop(struct mtarch_thread *thread)
 {
-#ifdef __CYGWIN__
+#if defined(_WIN32) || defined(__CYGWIN__)
 
   DeleteFiber(thread->mt_thread);
 
-#else /* __CYGWIN__ */
+#else /* _WIN32 || __CYGWIN__ */
 
   free(thread->mt_thread);
 
-#endif /* __CYGWIN__ */
+#endif /* _WIN32 || __CYGWIN__ */
 }
 /*--------------------------------------------------------------------------*/
 void
