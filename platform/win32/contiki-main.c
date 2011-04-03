@@ -54,9 +54,15 @@
 #include "program-handler.h"
 #endif  /* PLATFORM_BUILD */
 
+#if WITH_GUI
+#define CTK_PROCESS &ctk_process,
+#else /* WITH_GUI */
+#define CTK_PROCESS
+#endif /* WITH_GUI */
+
 PROCINIT(&etimer_process,
 	 &wpcap_process,
-	 &ctk_process,
+	 CTK_PROCESS
 	 &tcpip_process,
 	 &resolv_process);
 
@@ -71,7 +77,11 @@ debug_printf(char *format, ...)
   vsprintf(buffer, format, argptr);
   va_end(argptr);
 
+#if WITH_GUI
   OutputDebugString(buffer);
+#else /* WITH_GUI */
+  fputs(buffer, stderr);
+#endif /* WITH_GUI */
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -130,9 +140,11 @@ main(void)
     /* Allow user-mode APC to execute. */
     SleepEx(10, TRUE);
 
+#if WITH_GUI
     if(console_resize()) {
 	ctk_restore();
     }
+#endif /* WITH_GUI */
   }
 }
 /*-----------------------------------------------------------------------------------*/
