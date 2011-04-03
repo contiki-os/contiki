@@ -108,7 +108,8 @@ CUSTOM_RULE_C_TO_CO=yes
 	$(OBJCOPY) -O binary $< $@
 
 symbols.c:
-	@${CONTIKI}/tools/make-empty-symbols
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
  
 %.$(TARGET): %_$(TARGET).bin
 	@
