@@ -94,9 +94,9 @@ loader-init.o: ${CONTIKI_TARGET}/loader/loader-init.S
 .PHONY: symbols.c symbols.h
 ifdef CORE
 symbols.c:
-#	@${CONTIKI}/tools/msp430-make-symbols $(CORE)
 	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
 else
 symbols.c symbols.h:
-	@${CONTIKI}/tools/make-empty-symbols
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
 endif

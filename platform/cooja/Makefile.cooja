@@ -120,4 +120,5 @@ mtype%.o: contiki-cooja-main.o
 
 symbols.c:
 	# Create initial symbol files if not existing
-	${CONTIKI}/tools/make-empty-symbols
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
