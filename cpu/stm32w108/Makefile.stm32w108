@@ -236,7 +236,8 @@ symbols.c:
 	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c	
 else
 symbols.c symbols.h:
-	@$(CONTIKI)/tools/make-empty-symbols
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
 endif
 
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(OBJECTDIR)/symbols.o
