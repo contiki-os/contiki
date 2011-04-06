@@ -69,7 +69,11 @@ void    splx_(spl_t);
 spl_t   splhigh_(void);
 
 #define splhigh() splhigh_()
+#ifdef __IAR_SYSTEMS_ICC__
+#define splx(sr) sr = __get_SR_register()
+#else
 #define splx(sr) __asm__ __volatile__("bis %0, r2" : : "r" (sr))
+#endif
 
 /* Workaround for bug in msp430-gcc compiler */
 #if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
