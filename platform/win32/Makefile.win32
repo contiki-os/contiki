@@ -50,9 +50,11 @@ include $(CONTIKI)/cpu/native/Makefile.native
 
 ifdef PLATFORM_BUILD
   CONTIKI_TARGET_SOURCEFILES += dll-loader.c
-  CFLAGS += -DPLATFORM_BUILD -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
+  CFLAGS += -DPLATFORM_BUILD -DWITH_GUI -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
   LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
              -u _cfs_open -u _cfs_opendir -u _uiplib_ipaddrconv
+  LINKFLAGS = -implib:contiki-main.$(TARGET).a $(OBJECTDIR)/program-handler.o \
+              -include:_cfs_open -include:_cfs_opendir -include:_uiplib_ipaddrconv
 else
   CONTIKI_TARGET_SOURCEFILES += unload.c
 endif
@@ -72,7 +74,31 @@ ${foreach PRG,$(PRGS),${eval ${call prg_template,$(PRG),${call appname,$(PRG)}}}
 ${foreach DSC,$(DSCS),${eval ${call dsc_template,$(DSC),${call appname,$(DSC)}}}}
 
 ### Generic module-link rules, no prerequisites here
-$(PRGS:=.prg):
+$(PRGS:=.prg) $(DSCS:=.dsc):
+ifdef VCINSTALLDIR
+	link -nologo -debug -dll $^ contiki-main.$(TARGET).a -out:$@
+else
 	$(LD) -shared $^ contiki-main.$(TARGET).a -o $@
-$(DSCS:=.dsc):
-	$(LD) -shared $^ contiki-main.$(TARGET).a -o $@
+endif
+
+ifdef VCINSTALLDIR
+
+VCFLAGS = -Od -Z7 $(filter-out -Wall -g -O,$(CFLAGS))
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c
+	cl -nologo $(VCFLAGS) -c $< -Fo$@
+
+CUSTOM_RULE_C_TO_CO = 1
+%.co: %.c
+	cl -nologo $(VCFLAGS) -DAUTOSTART_ENABLE -c $< -Fo$@
+
+CUSTOM_RULE_ALLOBJS_TO_TARGETLIB = 1
+contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES)
+	lib -nologo $^ -out:$@
+
+CUSTOM_RULE_LINK = 1
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	link -nologo $(LINKFLAGS) -debug -map:contiki-$(TARGET).map $^ user32.lib ws2_32.lib iphlpapi.lib -out:$@
+
+endif # VCINSTALLDIR
