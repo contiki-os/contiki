@@ -142,6 +142,8 @@ remove_worst_parent(rpl_dag_t *dag, rpl_rank_t min_worst_rank)
 static int
 should_send_dao(rpl_dag_t *dag, rpl_dio_t *dio, rpl_parent_t *p)
 {
+  /* if MOP is set to no downward routes no DAO should be sent */
+  if(dag->mop == RPL_MOP_NO_DOWNWARD_ROUTES) return 0;
   return dio->dtsn > p->dtsn && p == dag->preferred_parent;
 }
 /************************************************************************/
@@ -352,7 +354,9 @@ rpl_select_parent(rpl_dag_t *dag)
     dag->of->update_metric_container(dag);
     rpl_set_default_route(dag, &best->addr);
     /* The DAO parent set changed - schedule a DAO transmission. */
-    rpl_schedule_dao(dag);
+    if(dag->mop != RPL_MOP_NO_DOWNWARD_ROUTES) {
+      rpl_schedule_dao(dag);
+    }
     rpl_reset_dio_timer(dag, 1);
     PRINTF("RPL: New preferred parent, rank changed from %u to %u\n",
 	   (unsigned)dag->rank, dag->of->calculate_rank(best, 0));
