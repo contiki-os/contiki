@@ -571,7 +571,10 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
     iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_SAM_BIT,
                               &UIP_IP_BUF->srcipaddr, &uip_lladdr);
     /* No context found for this address */
-  } else if(uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) {
+  } else if(uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) &&
+	    UIP_IP_BUF->destipaddr.u16[1] == 0 &&
+	    UIP_IP_BUF->destipaddr.u16[2] == 0 &&
+	    UIP_IP_BUF->destipaddr.u16[3] == 0) {
     iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_SAM_BIT,
                               &UIP_IP_BUF->srcipaddr, &uip_lladdr);
   } else {
@@ -619,7 +622,10 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
       iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_DAM_BIT,
 	       &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)rime_destaddr);
       /* No context found for this address */
-    } else if(uip_is_addr_link_local(&UIP_IP_BUF->destipaddr)) {
+    } else if(uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) &&
+	      UIP_IP_BUF->destipaddr.u16[1] == 0 &&
+	      UIP_IP_BUF->destipaddr.u16[2] == 0 &&
+	      UIP_IP_BUF->destipaddr.u16[3] == 0) {
       iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_DAM_BIT,
                &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)rime_destaddr);
     } else {
