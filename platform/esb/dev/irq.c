@@ -33,6 +33,7 @@
 #include "lib/sensors.h"
 #include "dev/irq.h"
 #include "dev/lpm.h"
+#include <io.h>
 #include <signal.h>
 
 #define ADC12MCTL_NO(adcno) ((unsigned char *) ADC12MCTL0_)[adcno]
