@@ -82,10 +82,10 @@ int neighbor_info_subscribe(neighbor_info_subscriber_t);
 
 
 /**
- * Get link ETX value for a specific neighbor.
+ * Get link metric value for a specific neighbor.
  *
- * \return Returns ETX if the neighbor exists, and 0 if not.
+ * \return Returns link metric if the neighbor exists, and 0 if not.
  */
-link_metric_t neighbor_info_get_etx(const rimeaddr_t *addr);
+link_metric_t neighbor_info_get_metric(const rimeaddr_t *addr);
 
 #endif /* NEIGHBOR_INFO_H */
