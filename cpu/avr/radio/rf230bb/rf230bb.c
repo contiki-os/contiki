@@ -742,14 +742,20 @@ void rf230_warm_reset(void) {
 
   /* CCA energy threshold = -91dB + 2*SR_CCA_ED_THRESH. Reset defaults to -77dB */
   /* Use RF230 base of -91;  RF231 base is -90 according to datasheet */
+#ifdef RF230_CONF_CCA_THRES
 #if RF230_CONF_CCA_THRES < -91
+#warning
 #warning RF230_CONF_CCA_THRES below hardware limit, setting to -91dBm
+#warning
   hal_subregister_write(SR_CCA_ED_THRES,0);  
 #elif RF230_CONF_CCA_THRES > -61
+#warning
 #warning RF230_CONF_CCA_THRES above hardware limit, setting to -61dBm
+#warning
   hal_subregister_write(SR_CCA_ED_THRES,15);  
 #else
   hal_subregister_write(SR_CCA_ED_THRES,(RF230_CONF_CCA_THRES+91)/2);  
+#endif
 #endif
 
   /* Use automatic CRC unless manual is specified */
