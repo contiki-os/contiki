@@ -395,7 +395,11 @@ static int stm32w_radio_on(void)
   
   return 1;
 }
-
+/*---------------------------------------------------------------------------*/
+int stm32w_radio_is_on(void)
+{
+  return onoroff == ON;
+}
 /*---------------------------------------------------------------------------*/
 
 
@@ -512,7 +516,7 @@ PROCESS_THREAD(stm32w_radio_process, ev, data)
       NETSTACK_RDC.input();
     }
     if(!RXBUFS_EMPTY()){
-      // Some data packet still in rx buffer (this appens because process_poll doesn't queue requests),
+      // Some data packet still in rx buffer (this happens because process_poll doesn't queue requests),
       // so stm32w_radio_process need to be called again.
       process_poll(&stm32w_radio_process);
     }

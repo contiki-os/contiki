@@ -45,8 +45,14 @@
 #include "hal/hal.h"
 #include "dev/stm32w_systick.h"
 
-#include "sys/clock.h"
-#include "sys/etimer.h"
+#include "contiki.h"
+
+#include "uart1.h"
+#include "dev/leds.h"
+#include "dev/stm32w-radio.h"
+
+#define DEBUG DEBUG_NONE
+#include "net/uip-debug.h"
 
 // The value that will be load in the SysTick value register.
 #define RELOAD_VALUE 24000-1   // 1 ms with a 24 MHz clock
@@ -77,9 +83,9 @@ void SysTick_Handler(void)
 void clock_init(void)
 { 
   
-  INTERRUPTS_OFF();
-  
-  //Counts the number of ticks.  
+  ATOMIC(
+
+  //Counts the number of ticks.
   count = 0;
   
   SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
@@ -87,7 +93,8 @@ void clock_init(void)
   SysTick_ITConfig(ENABLE);
   SysTick_CounterCmd(SysTick_Counter_Enable);
   
-  INTERRUPTS_ON();
+  )
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -127,4 +134,52 @@ void clock_wait(int i)
 unsigned long clock_seconds(void)
 {
   return current_seconds;
+}
+
+#include <stdio.h>
+
+void sleep_seconds(int seconds)
+{
+  int32u quarter_seconds = seconds * 4;
+  uint8_t radio_on;
+
+
+  halPowerDown();
+  radio_on = stm32w_radio_is_on();
+  stm32w_radio_driver.off();
+
+  halSleepForQsWithOptions(&quarter_seconds, 0);
+
+
+  ATOMIC(
+
+  halPowerUp();
+
+  // Update OS system ticks.
+  current_seconds += seconds - quarter_seconds / 4 ; // Passed seconds
+  count += seconds * CLOCK_SECOND - quarter_seconds * CLOCK_SECOND / 4 ;
+
+  if(etimer_pending()) {
+    etimer_request_poll();
+  }
+
+  SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
+  SysTick_SetReload(RELOAD_VALUE);
+  SysTick_ITConfig(ENABLE);
+  SysTick_CounterCmd(SysTick_Counter_Enable);
+
+  )
+
+  stm32w_radio_driver.init();
+  if(radio_on){
+	  stm32w_radio_driver.on();
+  }
+
+  uart1_init(115200);
+  leds_init();
+  rtimer_init();
+
+  PRINTF("WakeInfo: %04x\r\n", halGetWakeInfo());
+
+
 }

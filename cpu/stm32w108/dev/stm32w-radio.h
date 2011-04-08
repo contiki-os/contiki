@@ -53,5 +53,7 @@ short last_packet_rssi();
 
 extern const struct radio_driver stm32w_radio_driver;
 
+int stm32w_radio_is_on(void);
+
 
 #endif /* __STM32W_H__ */
