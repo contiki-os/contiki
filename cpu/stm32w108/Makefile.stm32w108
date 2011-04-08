@@ -18,7 +18,7 @@ CONTIKI_CPU_DIRS = . dev hal simplemac hal/micro/cortexm3 hal/micro/cortexm3/stm
 
 STM32W_C = leds-arch.c leds.c clock.c watchdog.c uart1.c uart1-putchar.c slip_uart1.c slip.c\
 		stm32w-radio.c stm32w_systick.c uip_arch.c rtimer-arch.c adc.c micro.c sleep.c \
-		micro-common.c micro-common-internal.c clocks.c mfg-token.c nvm.c flash.c rand.c
+		micro-common.c micro-common-internal.c clocks.c mfg-token.c nvm.c flash.c rand.c system-timer.c
 
 STM32W_S = spmr.s79 context-switch.s79 
 

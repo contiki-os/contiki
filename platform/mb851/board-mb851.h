@@ -1,0 +1,4 @@
+
+void sensorsPowerDown();
+
+void sensorsPowerUp();
