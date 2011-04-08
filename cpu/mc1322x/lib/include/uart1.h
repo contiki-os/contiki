@@ -70,9 +70,29 @@
 #define UART2_UCTS       ((volatile uint32_t *) ( UART2_BASE + UCTS   ))
 #define UART2_UBRCNT     ((volatile uint32_t *) ( UART2_BASE + UBRCNT ))
 
-extern volatile uint32_t  u1_head, u1_tail;
+/* The mc1322x has a 32 byte hardware FIFO for transmitted characters.
+ * Currently it is always filled from a larger RAM buffer. It would be
+ * possible to eliminate that overhead by filling directly from a chain
+ * of data buffer pointers, but printf's would be not so easy.
+ */
+#define UART1_TX_BUFFERSIZE 1024
+extern volatile uint32_t  u1_tx_head, u1_tx_tail;
 void uart1_putc(char c);
+
+/* The mc1322x has a 32 byte hardware FIFO for received characters.
+ * If a larger rx buffersize is specified the FIFO will be extended into RAM.
+ * RAM transfers will occur on interrupt when the FIFO is nearly full.
+ * If a smaller buffersize is specified hardware flow control will be
+ * initiated at that FIFO level.
+ * Set to 32 for no flow control or RAM buffer.
+ */
+#define UART1_RX_BUFFERSIZE 128
+#if UART1_RX_BUFFERSIZE > 32
+extern volatile uint32_t  u1_rx_head, u1_rx_tail;
+#define uart1_can_get() ((u1_rx_head!=u1_rx_tail) || (*UART1_URXCON > 0))
+#else
 #define uart1_can_get() (*UART1_URXCON > 0)
+#endif
 uint8_t uart1_getc(void);
 
 

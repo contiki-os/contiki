@@ -48,6 +48,7 @@
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
+#include "lib/include/uart1.h"
 
 #if WITH_UIP6
 #include "net/sicslowpan.h"
@@ -490,7 +491,6 @@ main(void)
 	  cop_service();
 #endif
 
-	  /* TODO: replace this with a uart rx interrupt */
 	  if(uart1_input_handler != NULL) {
 		  if(uart1_can_get()) {
 			  uart1_input_handler(uart1_getc());
