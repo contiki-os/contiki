@@ -21,10 +21,6 @@ extend two makefiles are necessary:
 - Makefile plays the role of a Contiki 2.x project Makefile
 - Makefile.win32 is an ordinary (yet complex) Contiki 2.x Makefile.$(TARGET)
 
-As an alternative to building with Cygwin, gcc and the Contiki 2.x build system
-it is also possible to use Microsoft Visual Studio 2008 (including the Express
-Edition) by loading platform/win32/contiki.sln.
-
 As platform/win32/Makefile.win32 includes cpu/native/Makefile.native the WinPcap
 library is used for network I/O. Please consult cpu/native/net/README-WPCAP for
 further details.
