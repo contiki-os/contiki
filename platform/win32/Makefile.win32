@@ -36,8 +36,7 @@
 TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 
 CONTIKI_TARGET_DIRS = . cfs ctk loader
-CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32-dir.c \
-                             ctk-console.c
+CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32-dir.c ctk-console.c
 
 CONTIKI_SOURCEFILES += $(CTK) cfs-posix.c ctk-conio.c wpcap.c wpcap-drv.c \
                        $(CONTIKI_TARGET_SOURCEFILES)
@@ -88,6 +87,7 @@ VCFLAGS = -Od -Z7 $(filter-out -Wall -g -O,$(CFLAGS))
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c
 	cl -nologo $(VCFLAGS) -c $< -Fo$@
+	@makedepend $(CFLAGS) -o.o -f- $< 2> nul: | sed -e s!$(<:.c=.o)!$@! -e s!\\!/!g > $(@:.o=.d)
 
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
