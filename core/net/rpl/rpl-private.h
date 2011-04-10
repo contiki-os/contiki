@@ -170,7 +170,12 @@
 #define RPL_MOP_NON_STORING             1
 #define RPL_MOP_STORING_NO_MULTICAST    2
 #define RPL_MOP_STORING_MULTICAST       3
+
+#ifdef  RPL_CONF_MOP
+#define RPL_MOP_DEFAULT                 RPL_CONF_MOP
+#else
 #define RPL_MOP_DEFAULT                 RPL_MOP_STORING_NO_MULTICAST
+#endif
 
 /*
  * The ETX in the metric container is expressed as a fixed-point value 

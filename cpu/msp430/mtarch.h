@@ -39,7 +39,7 @@ struct mtarch_thread {
   unsigned short stack[MTARCH_STACKSIZE];
   unsigned short *sp;
   void *data;
-  void *function;
+  void (* function)(void *);
 };
 
 struct mt_thread;

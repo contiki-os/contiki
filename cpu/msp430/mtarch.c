@@ -34,6 +34,10 @@
 #include <stdio.h>
 #include "sys/mt.h"
 
+#ifdef __IAR_SYSTEMS_ICC__
+#define __asm__ asm
+#endif
+
 static unsigned short *sptmp;
 static struct mtarch_thread *running;
 
@@ -97,8 +101,14 @@ sw(void)
   __asm__("push r14");
   __asm__("push r15");
 
+#ifdef __IAR_SYSTEMS_ICC__
+/*  use IAR intrinsic functions */
+  running->sp = (unsigned short *) __get_SP_register();
+  __set_SP_register((unsigned short) sptmp);
+#else
   __asm__("mov.w r1,%0" : "=r" (running->sp));
   __asm__("mov.w %0,r1" : : "m" (sptmp));
+#endif
 
   __asm__("pop r15");
   __asm__("pop r14");

@@ -30,9 +30,10 @@
  *
  * @(#)$Id: sound-sensor.c,v 1.5 2010/02/08 00:00:45 nifi Exp $
  */
-#include <stdlib.h>
 #include "dev/sound-sensor.h"
 #include "dev/irq.h"
+#include <stdlib.h>
+#include <io.h>
 
 #define MIC_MIN_SENS 150
 #define SAMPLE 1

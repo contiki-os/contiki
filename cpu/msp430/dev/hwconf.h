@@ -35,7 +35,14 @@
 
 #include "sys/cc.h"
 
+#ifdef __GNUC__
 #include <io.h>
+#include <signal.h>
+#endif
+
+#ifdef __IAR_SYSTEMS_ICC__
+#include <io430.h>
+#endif 
 
 #define HWCONF_PIN(name, port, bit)                                           \
 static CC_INLINE void name##_SELECT() {P##port##SEL &= ~(1 << bit);}          \
