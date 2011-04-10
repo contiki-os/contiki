@@ -136,7 +136,7 @@ collect_common_send(void)
       nbr = uip_ds6_nbr_lookup(&preferred_parent->addr);
       if(nbr != NULL) {
         rimeaddr_copy(&parent, (rimeaddr_t *)&nbr->ipaddr.u8[8]);
-        parent_etx = neighbor_info_get_etx((rimeaddr_t *) &nbr->lladdr) / 2;
+        parent_etx = neighbor_info_get_metric((rimeaddr_t *) &nbr->lladdr) / 2;
       }
     }
     rtmetric = dag->rank;

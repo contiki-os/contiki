@@ -36,43 +36,91 @@
 #include <mc1322x.h>
 #include <stdint.h>
 
-volatile char u1_tx_buf[1024];
-volatile uint32_t u1_head, u1_tail;
+volatile char u1_tx_buf[UART1_TX_BUFFERSIZE];
+volatile uint32_t u1_tx_head, u1_tx_tail;
+
+#if UART1_RX_BUFFERSIZE > 32
+volatile char u1_rx_buf[UART1_RX_BUFFERSIZE-32];
+volatile uint32_t u1_rx_head, u1_rx_tail;
+#endif
 
 void uart1_isr(void) {
+
+#if UART1_RX_BUFFERSIZE > 32
+  if (*UART1_USTAT & ( 1 << 6)) {   //receive interrupt
+ 	while( *UART1_URXCON != 0 ) {   //flush the hardware fifo into the software buffer
+        uint32_t u1_rx_tail_next;
+        u1_rx_tail_next = u1_rx_tail+1;		
+		if (u1_rx_tail_next >= sizeof(u1_rx_buf))
+			u1_rx_tail_next = 0;
+        if (u1_rx_head != u1_rx_tail_next) {
+		    u1_rx_buf[u1_rx_tail]= *UART1_UDATA;       
+		    u1_rx_tail =  u1_rx_tail_next;
+        }
+	}
+    return;
+  }
+#endif
+
  	while( *UART1_UTXCON != 0 ) {
-		if (u1_head == u1_tail) {
+		if (u1_tx_head == u1_tx_tail) {
+#if UART1_RX_BUFFERSIZE > 32
+            *UART1_UCON |= (1 << 13); /*disable tx interrupt */
+#else
 			disable_irq(UART1);
+#endif
 			return;
 		}
-		*UART1_UDATA = u1_tx_buf[u1_tail];
-		u1_tail++;		
-		if (u1_tail >= sizeof(u1_tx_buf))
-			u1_tail = 0;
+
+		*UART1_UDATA = u1_tx_buf[u1_tx_tail];
+		u1_tx_tail++;		
+		if (u1_tx_tail >= sizeof(u1_tx_buf))
+			u1_tx_tail = 0;
 	}
 }
 
 void uart1_putc(char c) {
 	/* disable UART1 since */
-	/* UART1 isr modifies u1_head and u1_tail */ 
-	disable_irq(UART1);
+	/* UART1 isr modifies u1_tx_head and u1_tx_tail */ 
+#if UART1_RX_BUFFERSIZE > 32
+            *UART1_UCON |= (1 << 13); /*disable tx interrupt */
+#else
+			disable_irq(UART1);
+#endif
 
-	if( (u1_head == u1_tail) &&
+	if( (u1_tx_head == u1_tx_tail) &&
 	    (*UART1_UTXCON != 0)) {
 		*UART1_UDATA = c;
 	} else {
-		u1_tx_buf[u1_head] = c;
-		u1_head += 1;
-		if (u1_head >= sizeof(u1_tx_buf))
-			u1_head = 0;
-		if (u1_head == u1_tail) { /* drop chars when no room */
-			if (u1_head) { u1_head -=1; } else { u1_head = sizeof(u1_tx_buf); }
+		u1_tx_buf[u1_tx_head] = c;
+		u1_tx_head += 1;
+		if (u1_tx_head >= sizeof(u1_tx_buf))
+			u1_tx_head = 0;
+		if (u1_tx_head == u1_tx_tail) { /* drop chars when no room */
+			if (u1_tx_head) { u1_tx_head -=1; } else { u1_tx_head = sizeof(u1_tx_buf); }
 		}
+
+#if UART1_RX_BUFFERSIZE > 32
+        *UART1_UCON &= ~(1 << 13); /*enable tx interrupt */
+#else
 		enable_irq(UART1);
+#endif
+
 	}
 }
 
 uint8_t uart1_getc(void) {
+#if UART1_RX_BUFFERSIZE > 32
+/* First pull from the ram buffer */
+uint8_t c=0;
+  if (u1_rx_head != u1_rx_tail) {
+    c = u1_rx_buf[u1_rx_head++];
+    if (u1_rx_head >= sizeof(u1_rx_buf))
+        u1_rx_head=0;
+    return c;
+  }
+#endif
+/* Then pull from the hardware fifo */
 	while(uart1_can_get() == 0) { continue; }
 	return *UART1_UDATA;
 }

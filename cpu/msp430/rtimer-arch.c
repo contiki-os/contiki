@@ -38,8 +38,14 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#ifdef __GNUC__
 #include <io.h>
 #include <signal.h>
+#endif
+
+#ifdef __IAR_SYSTEMS_ICC__
+#include <io430.h>
+#endif 
 
 #include "sys/energest.h"
 #include "sys/rtimer.h"
