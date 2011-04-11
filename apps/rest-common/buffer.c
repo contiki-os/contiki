@@ -19,6 +19,7 @@ delete_buffer(void)
 {
   if (data_buffer) {
     free(data_buffer);
+    data_buffer = NULL;
     buffer_index = 0;
     buffer_size = 0;
   }
