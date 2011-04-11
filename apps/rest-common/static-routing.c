@@ -7,6 +7,8 @@
 
 #include "static-routing.h"
 
+#if !defined (CONTIKI_TARGET_MINIMAL_NET) /* Any other targets will be added here (&& ! defined (OTHER))*/
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -66,3 +68,4 @@ void configure_routing(void)
   }
 }
 #endif /*!UIP_CONF_IPV6_RPL*/
+#endif /*CONTIKI_TARGET_MINIMAL_NET*/

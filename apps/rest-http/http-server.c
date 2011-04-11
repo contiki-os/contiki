@@ -7,7 +7,7 @@
 #include "buffer.h"
 #include "rest-util.h"
 
-#if !UIP_CONF_IPV6_RPL
+#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET)
 #include "static-routing.h"
 #endif
 
@@ -586,7 +586,7 @@ PROCESS_THREAD(http_server, ev, data)
   PROCESS_BEGIN();
 
   /* if static routes are used rather than RPL */
-#if !UIP_CONF_IPV6_RPL
+#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET)
   set_global_address();
   configure_routing();
 #endif /*!UIP_CONF_IPV6_RPL*/
