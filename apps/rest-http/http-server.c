@@ -235,8 +235,6 @@ is_method_handled(connection_state_t* conn_state, const char* method)
   /*other method types can be added here if needed*/
   if(strncmp(method, http_get_string, 3) == 0) {
     conn_state->request.request_type = HTTP_METHOD_GET;
-  } else if(strncmp(method, http_head_string, 4) == 0) {
-    conn_state->request.request_type = HTTP_METHOD_HEAD;
   } else if (strncmp(method, http_post_string, 4) == 0) {
     conn_state->request.request_type = HTTP_METHOD_POST;
   } else if (strncmp(method, http_put_string, 3) == 0) {
