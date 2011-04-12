@@ -165,6 +165,70 @@ typedef unsigned short uip_stats_t;
 
 #endif /* UIP_CONF_IPV6 */
 
+#include <ctype.h>
+#define ctk_arch_isprint isprint
+
+#include "ctk/ctk-curses.h"
+
+#define CH_ULCORNER	          -10
+#define CH_URCORNER	          -11
+#define CH_LLCORNER	          -12
+#define CH_LRCORNER	          -13
+#define CH_ENTER	          '\n'
+#define CH_DEL		          '\b'
+#define CH_CURS_UP  	          -1
+#define CH_CURS_LEFT	          -2
+#define CH_CURS_RIGHT	          -3
+#define CH_CURS_DOWN	          -4
+
+#define CTK_CONF_MENU_KEY         -5  /* F10 */
+#define CTK_CONF_WINDOWSWITCH_KEY -6  /* Ctrl-Tab */
+#define CTK_CONF_WIDGETUP_KEY     -7  /* Shift-Tab */
+#define CTK_CONF_WIDGETDOWN_KEY   '\t'
+#define CTK_CONF_WIDGET_FLAGS     0
+#define CTK_CONF_SCREENSAVER      0
+
+#ifdef PLATFORM_BUILD
+#define CTK_CONF_MOUSE_SUPPORT    1
+#define CTK_CONF_WINDOWS          1
+#define CTK_CONF_WINDOWMOVE       1
+#define CTK_CONF_WINDOWCLOSE      1
+#define CTK_CONF_ICONS            1
+#define CTK_CONF_ICON_BITMAPS     0
+#define CTK_CONF_ICON_TEXTMAPS    1
+#define CTK_CONF_MENUS            1
+#define CTK_CONF_MENUWIDTH        16
+#define CTK_CONF_MAXMENUITEMS     10
+#else /* PLATFORM_BUILD */
+#define CTK_CONF_MOUSE_SUPPORT    1
+#define CTK_CONF_WINDOWS          0
+#define CTK_CONF_WINDOWMOVE       0
+#define CTK_CONF_WINDOWCLOSE      0
+#define CTK_CONF_ICONS            0
+#define CTK_CONF_MENUS            0
+#endif /* PLATFORM_BUILD */
+
+/* curses doesn't define this one */
+#define COLOR_GRAY COLOR_CYAN
+
+#define COLOR_BG COLOR_BLUE
+
+#define BORDERCOLOR         COLOR_BLACK
+#define SCREENCOLOR         COLOR_BLACK
+#define BACKGROUNDCOLOR     COLOR_BLACK
+#define WINDOWCOLOR_FOCUS   COLOR_WHITE  | COLOR_BG * 0x10
+#define WINDOWCOLOR         COLOR_GRAY   | COLOR_BG * 0x10
+#define DIALOGCOLOR         COLOR_WHITE  | COLOR_BG * 0x10
+#define WIDGETCOLOR_HLINK   COLOR_CYAN   | COLOR_BG * 0x10
+#define WIDGETCOLOR_FWIN    COLOR_WHITE  | COLOR_BG * 0x10
+#define WIDGETCOLOR         COLOR_GRAY   | COLOR_BG * 0x10
+#define WIDGETCOLOR_DIALOG  COLOR_WHITE  | COLOR_BG * 0x10
+#define WIDGETCOLOR_FOCUS   COLOR_YELLOW | COLOR_BG * 0x10
+#define MENUCOLOR           COLOR_WHITE  | COLOR_BG * 0x10
+#define OPENMENUCOLOR       COLOR_WHITE  | COLOR_BG * 0x10
+#define ACTIVEMENUITEMCOLOR COLOR_YELLOW | COLOR_BG * 0x10
+
+
 typedef unsigned long clock_time_t;
 
 #define CLOCK_CONF_SECOND 1000
