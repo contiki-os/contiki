@@ -43,6 +43,9 @@
 #include "contiki.h"
 #include "net/netstack.h"
 
+#include "ctk/ctk.h"
+#include "ctk/ctk-curses.h"
+
 #include "dev/serial-line.h"
 
 #include "net/uip.h"
@@ -187,6 +190,10 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   ctimer_init();
+
+#if WITH_GUI
+  process_start(&ctk_process, NULL);
+#endif
 
   set_rime_addr();
 
