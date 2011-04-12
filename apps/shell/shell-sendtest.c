@@ -117,10 +117,10 @@ print_usage(void)
 PROCESS_THREAD(shell_sendtest_process, ev, data)
 {
   static rimeaddr_t receiver;
+  static unsigned long cpu, lpm, rx, tx;
   const char *nextptr;
   const char *args;
   char buf[40];
-  static unsigned long cpu, lpm, rx, tx;
   unsigned long cpu2, lpm2, rx2, tx2;
   
   PROCESS_BEGIN();

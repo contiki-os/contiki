@@ -410,6 +410,8 @@ shell_register_command(struct shell_command *c)
 PROCESS_THREAD(shell_process, ev, data)
 {
   static struct process *started_process;
+  struct shell_input *input;
+  int ret;
   PROCESS_BEGIN();
 
   /* Let the system start up before showing the prompt. */
@@ -420,9 +422,7 @@ PROCESS_THREAD(shell_process, ev, data)
     
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     {
-      struct shell_input *input = data;
-      int ret;
-      
+      input = data;
       ret = shell_start_command(input->data1, input->len1, NULL,
 				&started_process);
 

@@ -67,6 +67,7 @@ PROCESS(shell_rsh_server_process, "rsh server");
 PROCESS_THREAD(shell_rsh_process, ev, data)
 {
   static rimeaddr_t receiver;
+  struct shell_input *input;
   const char *nextptr;
   char buf[40];
   
@@ -88,7 +89,6 @@ PROCESS_THREAD(shell_rsh_process, ev, data)
   meshconn_connect(&meshconn, &receiver);
 
   while(1) {
-    struct shell_input *input;
     PROCESS_WAIT_EVENT();
     if(ev == shell_event_input) {
       input = data;
@@ -114,6 +114,8 @@ PROCESS_THREAD(shell_rsh_process, ev, data)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_rsh_server_process, ev, data)
 {
+  struct shell_input *input;
+
   PROCESS_BEGIN();
 
   while(1) {
@@ -123,7 +125,6 @@ PROCESS_THREAD(shell_rsh_server_process, ev, data)
     if(ev == PROCESS_EVENT_EXITED) {
       front_process = NULL;
     } else if(ev == shell_event_input) {
-      struct shell_input *input;
       input = data;
       packetbuf_clear();
       memcpy(packetbuf_dataptr(), input->data1, input->len1);

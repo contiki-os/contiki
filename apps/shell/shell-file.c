@@ -103,6 +103,7 @@ PROCESS_THREAD(shell_ls_process, ev, data)
 PROCESS_THREAD(shell_append_process, ev, data)
 {
   static int fd = 0;
+  struct shell_input *input;
 
   PROCESS_EXITHANDLER(cfs_close(fd));
   
@@ -115,7 +116,6 @@ PROCESS_THREAD(shell_append_process, ev, data)
 		     "append: could not open file for writing: ", data);
   } else {
     while(1) {
-      struct shell_input *input;
       PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
       input = data;
       /*    printf("cat input %d %d\n", input->len1, input->len2);*/
@@ -139,6 +139,7 @@ PROCESS_THREAD(shell_append_process, ev, data)
 PROCESS_THREAD(shell_write_process, ev, data)
 {
   static int fd = 0;
+  struct shell_input *input;
   int r;
 
   PROCESS_EXITHANDLER(cfs_close(fd));
@@ -152,7 +153,6 @@ PROCESS_THREAD(shell_write_process, ev, data)
 		     "write: could not open file for writing: ", data);
   } else {
     while(1) {
-      struct shell_input *input;
       PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
       input = data;
       /*    printf("cat input %d %d\n", input->len1, input->len2);*/
@@ -187,11 +187,14 @@ PROCESS_THREAD(shell_write_process, ev, data)
 PROCESS_THREAD(shell_read_process, ev, data)
 {
   static int fd = 0;
+  static int block_size = MAX_BLOCKSIZE;
   char *next;
   char filename[MAX_FILENAME_LEN];
   int len;
   int offset = 0;
-  static int block_size = MAX_BLOCKSIZE;
+  char buf[MAX_BLOCKSIZE];
+  struct shell_input *input;
+
   PROCESS_EXITHANDLER(cfs_close(fd));
   PROCESS_BEGIN();
 
@@ -236,10 +239,6 @@ PROCESS_THREAD(shell_read_process, ev, data)
     } else {
       
       while(1) {
-	char buf[MAX_BLOCKSIZE];
-	int len;
-	struct shell_input *input;
-	
 	len = cfs_read(fd, buf, block_size);
 	if(len <= 0) {
 	  cfs_close(fd);
