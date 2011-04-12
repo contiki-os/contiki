@@ -54,6 +54,7 @@
 #include "lib/petsciiconv.h"
 
 static struct httpd_cgi_call *calls = NULL;
+static struct collect_neighbor_list neighbor_list;
 
 /*---------------------------------------------------------------------------*/
 static
@@ -168,7 +169,7 @@ static unsigned short
 make_neighbor(void *arg)
 {
   struct httpd_state *s = (struct httpd_state *)arg;
-  struct collect_neighbor *n = collect_neighbor_get(s->u.count);
+  struct collect_neighbor *n = collect_neighbor_list_get(&neighbor_list, s->u.count);
 
   if(n == NULL) {
     return 0;
@@ -188,12 +189,12 @@ PT_THREAD(neighborscall(struct httpd_state *s, char *ptr))
 
   announcement_listen(1);
   
-  /*  printf("neighbor_num %d\n", neighbor_num());*/
+  /*  printf("neighbor_num %d\n", collect_neighbor_list_num(&neighbor_list)); */
   
-  for(s->u.count = 0; s->u.count < collect_neighbor_num(); s->u.count++) {
-    /*    printf("count %d\n", s->u.count);*/
-    if(collect_neighbor_get(s->u.count) != NULL) {
-      /*      printf("!= NULL\n");*/
+  for(s->u.count = 0; s->u.count < collect_neighbor_list_num(&neighbor_list); s->u.count++) {
+    /*  printf("count %d\n", s->u.count); */
+    if(collect_neighbor_list_get(&neighbor_list, s->u.count) != NULL) {
+      /*  printf("!= NULL\n"); */
       PSOCK_GENERATOR_SEND(&s->sout, make_neighbor, s);
     }
   }
@@ -208,14 +209,14 @@ received_announcement(struct announcement *a, const rimeaddr_t *from,
 {
   struct collect_neighbor *n;
 
-  /*  printf("adv_received %d.%d\n", from->u8[0], from->u8[1]);*/
+  /*  printf("adv_received %d.%d\n", from->u8[0], from->u8[1]); */
   
-  n = collect_neighbor_find(from);
+  n = collect_neighbor_list_find(&neighbor_list, from);
   
   if(n == NULL) {
-    collect_neighbor_add(from, value, 1);
+    collect_neighbor_list_add(&neighbor_list, from, value);
   } else {
-    collect_neighbor_update(n, value);
+    collect_neighbor_update_rtmetric(n, value);
   }
 }
 
@@ -241,8 +242,11 @@ httpd_cgi_init(void)
 
   announcement_register(&announcement, 31,
 			received_announcement);
+  announcement_set_value(&announcement, 0);
   announcement_listen(2);
 
+  collect_neighbor_list_new(&neighbor_list);
+  collect_neighbor_init();
   /*  neighbor_discovery_open(&conn, 31,
 			  CLOCK_SECOND * 4,
 			  CLOCK_SECOND * 20,

@@ -8,6 +8,7 @@
 #ifndef STATICROUTING_H_
 #define STATICROUTING_H_
 
+#if !defined (CONTIKI_TARGET_MINIMAL_NET)
 #define NODE_IP(nodeid,type,ipaddr) NODE_##nodeid##_##type(ipaddr)
 
 /*desktop machine*/
@@ -56,4 +57,5 @@ do{\
 void set_global_address(void);
 void configure_routing(void);
 
+#endif /*CONTIKI_TARGET_MINIMAL_NET*/
 #endif /* STATICROUTING_H_ */
