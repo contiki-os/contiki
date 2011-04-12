@@ -271,6 +271,8 @@ msg_for_me(void)
 static
 PT_THREAD(handle_dhcp(process_event_t ev, void *data))
 {
+  clock_time_t ticks;
+
   PT_BEGIN(&s.pt);
   
  init:
@@ -350,7 +352,6 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
   }
 
   while(s.ticks > 0) {
-    clock_time_t ticks;
     ticks = IMIN(s.ticks, MAX_TICKS);
     s.ticks -= ticks;
     etimer_set(&s.etimer, ticks);
@@ -368,7 +369,6 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
   /* renewing: */
   xid++;
   do {
-    clock_time_t ticks;
     while(ev != tcpip_event) {
       tcpip_poll_udp(s.conn);
       PT_YIELD(&s.pt);
