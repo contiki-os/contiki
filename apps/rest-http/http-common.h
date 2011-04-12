@@ -50,10 +50,9 @@ extern const char* header_delimiter;
 /*HTTP method types*/
 typedef enum {
   HTTP_METHOD_GET = (1 << 0),
-  HTTP_METHOD_HEAD = (1 << 1),
-  HTTP_METHOD_POST = (1 << 2),
-  HTTP_METHOD_PUT = (1 << 3),
-  HTTP_METHOD_DELETE = (1 << 4)
+  HTTP_METHOD_POST = (1 << 1),
+  HTTP_METHOD_PUT = (1 << 2),
+  HTTP_METHOD_DELETE = (1 << 3)
 } http_method_t;
 
 //DY : FIXME right now same enum names with COAP with different values. Will this work fine?
