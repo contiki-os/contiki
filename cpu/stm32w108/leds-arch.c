@@ -40,15 +40,21 @@
 */
 /*---------------------------------------------------------------------------*/
 
+#include PLATFORM_HEADER
+#include BOARD_HEADER
 #include "contiki-conf.h"
 #include "dev/leds.h"
+#include "hal/micro/micro-common.h"
+#include "hal/micro/cortexm3/micro-common.h"
 
+#define LEDS_PORT *((volatile int32u *)(GPIO_PxOUT_BASE+(GPIO_Px_OFFSET*(LEDS_CONF_PORT/8))))
 
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_init(void)
 {   
-  LED_CONFIG();
+  halGpioConfig(PORTx_PIN(LEDS_CONF_PORT,LEDS_CONF_RED_PIN),GPIOCFG_OUT);
+  halGpioConfig(PORTx_PIN(LEDS_CONF_PORT,LEDS_CONF_GREEN_PIN),GPIOCFG_OUT);
   
   LEDS_PORT |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
 }

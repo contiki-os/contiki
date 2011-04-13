@@ -1,5 +1,7 @@
 #include PLATFORM_HEADER
 #include BOARD_HEADER
+#include "hal/micro/micro-common.h"
+#include "hal/micro/cortexm3/micro-common.h"
 
 #include "dev/button-sensor.h"
 #include "dev/temperature-sensor.h"
@@ -20,7 +22,7 @@ static uint8_t sensors_status;
 
 void halBoardPowerDown(void)
 {
-	/* Set everything to input value */
+	/* Set everything to input value except LEDs */
 	  GPIO_PACFGL = (GPIOCFG_IN              <<PA0_CFG_BIT)|
 	                (GPIOCFG_IN              <<PA1_CFG_BIT)|
 	                (GPIOCFG_IN              <<PA2_CFG_BIT)|
@@ -45,6 +47,8 @@ void halBoardPowerDown(void)
 	                (GPIOCFG_IN              <<PC5_CFG_BIT)|
 	                (GPIOCFG_IN              <<PC6_CFG_BIT)|  /* OSC32K */
 	                (GPIOCFG_IN              <<PC7_CFG_BIT);  /* OSC32K */
+
+	  leds_init();
 
 }
 

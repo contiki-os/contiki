@@ -143,12 +143,11 @@ typedef unsigned long long rtimer_clock_t;
 #define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
 
 /* LEDs ports MB851 */
-#define LEDS_CONF_RED			0x20
-#define LEDS_CONF_GREEN			0x40
-#define LEDS_PORT                       GPIO_PBOUT
-// Open drain
-#define LED_CONFIG()    GPIO_PBCFGH |= 0x0550;   \
-                        GPIO_PBCFGH &= 0xf55f
+#define LEDS_CONF_RED_PIN		5
+#define LEDS_CONF_GREEN_PIN		6
+#define LEDS_CONF_PORT			PORTB
+#define LEDS_CONF_RED			(1<<LEDS_CONF_RED_PIN)
+#define LEDS_CONF_GREEN			(1<<LEDS_CONF_GREEN_PIN)
 
 
 #define UIP_ARCH_ADD32           1
