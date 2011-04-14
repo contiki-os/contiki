@@ -96,8 +96,8 @@ console_init(void)
   cbreak();
   noecho();
   /*nonl();*/
-  intrflush(stdscr, false);
-  keypad(stdscr, true);
+  intrflush(stdscr, FALSE);
+  keypad(stdscr, TRUE);
   /* done here because ctk_mouse_init() is called before anyway */
   mousemask(ALL_MOUSE_EVENTS, &oldmask);
 
