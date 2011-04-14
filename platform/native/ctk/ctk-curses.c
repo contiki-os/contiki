@@ -76,6 +76,7 @@ ctrlhandler(int sig)
 void
 console_init(void)
 {
+  mmask_t oldmask;
   static unsigned char done;
   if(done) {
     return;
@@ -95,6 +96,9 @@ console_init(void)
   /*nonl();*/
   intrflush(stdscr, FALSE);
   keypad(stdscr, TRUE);
+
+  /* done here because ctk_mouse_init() is called before anyway */
+  mousemask(ALL_MOUSE_EVENTS, &oldmask);
 
   screensize(&width, &height);
 
@@ -325,6 +329,20 @@ console_readkey(int k)
   key = (ctk_arch_key_t)k;
   /*fprintf(stderr, "key: %d\n", k);*/
   switch (k) {
+    case KEY_MOUSE:
+    {
+      MEVENT event;
+      if (getmouse(&event) == OK) {
+        xpos = event.x;
+        ypos = event.y;
+        button = event.bstate & BUTTON1_PRESSED
+              || event.bstate & BUTTON1_CLICKED
+              || event.bstate & BUTTON1_DOUBLE_CLICKED;
+        /*fprintf(stderr, "mevent: %d: %d, %d, %d, %x ; %d\n",
+                  event.id, event.x, event.y, event.z, (int)event.bstate, button);*/
+      }
+      return;
+    }
     case KEY_LEFT:
       key = CH_CURS_LEFT;
       break;
