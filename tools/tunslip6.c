@@ -60,7 +60,7 @@ const char *netmask;
 int slipfd = 0;
 uint16_t basedelay=0,delaymsec=0;
 uint32_t startsec,startmsec,delaystartsec,delaystartmsec;
-int timestamp = 0;
+int timestamp = 0, flowcontrol=0;
 
 int ssystem(const char *fmt, ...)
      __attribute__((__format__ (__printf__, 1, 2)));
@@ -172,7 +172,7 @@ serial_to_tun(FILE *inslip, int outfd)
   if(inbufptr >= sizeof(uip.inbuf)) {
      inbufptr = 0;
      if(timestamp) stamptime();
-     fprintf(stderr, "*** dropping too large packet\n");
+     fprintf(stderr, "*** dropping large %d byte packet\n",inbufptr);
   }
   ret = fread(&c, 1, 1, inslip);
 #ifdef linux
@@ -459,7 +459,10 @@ stty_telos(int fd)
   /* Nonblocking read. */
   tty.c_cc[VTIME] = 0;
   tty.c_cc[VMIN] = 0;
-  tty.c_cflag &= ~CRTSCTS;
+  if (flowcontrol)
+    tty.c_cflag |= CRTSCTS;
+  else
+    tty.c_cflag &= ~CRTSCTS;
   tty.c_cflag &= ~HUPCL;
   tty.c_cflag &= ~CLOCAL;
 
@@ -616,12 +619,16 @@ main(int argc, char **argv)
   prog = argv[0];
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:D:Lhs:t:v::d::a:p:T")) != -1) {
+  while((c = getopt(argc, argv, "B:H:D:Lhs:t:v::d::a:p:T")) != -1) {
     switch(c) {
     case 'B':
       baudrate = atoi(optarg);
       break;
 
+    case 'H':
+      flowcontrol=1;
+      break;
+ 
     case 'L':
       timestamp=1;
       break;
@@ -671,6 +678,7 @@ fprintf(stderr,"usage:  %s [options] ipaddress\n", prog);
 fprintf(stderr,"example: tunslip6 -L -v2 -s ttyUSB1 aaaa::1/64\n");
 fprintf(stderr,"Options are:\n");
 fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default)\n");
+fprintf(stderr," -H             Hardware CTS/RTS flow control (default disabled)\n");
 fprintf(stderr," -L             Log output format (adds time stamps)\n");
 fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
 fprintf(stderr," -T             Make tap interface (default is tun interface)\n");
@@ -696,7 +704,7 @@ exit(1);
   argv += (optind - 1);
 
   if(argc != 2 && argc != 3) {
-    err(1, "usage: %s [-B baudrate] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] ipaddress", prog);
+    err(1, "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] ipaddress", prog);
   }
   ipaddr = argv[1];
 

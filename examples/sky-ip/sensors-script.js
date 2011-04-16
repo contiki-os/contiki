@@ -1,11 +1,11 @@
 /* This is the uncompressed version of the script in httpd-fs/sensordata.shtml */
-var start;
+var start, d = document;
 
-i = new Image(50,60)
-i.src = "spin.gif"
+i = new Image(50,60);
+i.src = "spin.gif";
 
 function load() {
-  var img = document.getElementById("spin");
+  var img = d.getElementById("spin");
   img.innerHTML = '&nbsp;';
   loadData();
 }
@@ -25,27 +25,27 @@ function loadData() {
   }
   r.onreadystatechange = function() {
     if(r.readyState == 1) {
-      var img = document.getElementById("spin");
+      var img = d.getElementById("spin");
       img.innerHTML = '<img src="spin.gif">';
     }
     if(r.readyState == 4) {
-      var img = document.getElementById("spin");
+      var img = d.getElementById("spin");
       img.innerHTML = 'took '  +
                       ((new Date()).getTime() -  start.getTime()) / 1000 +
                       ' seconds';
       eval(r.responseText);
      }
-   }
+  };
   start = new Date();
   r.open("GET", "/sensordata.shtml", true);
   r.send(null);
 }
 
 function e(el) {
-  d = document;
   if(d.getElementById) {
     return d.getElementById(el);
-  } else if (d.all) {
+  }
+  if (d.all) {
     return d.all[el];
   }
 }

@@ -7,7 +7,7 @@
 #include "buffer.h"
 #include "rest-util.h"
 
-#if !UIP_CONF_IPV6_RPL
+#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET)
 #include "static-routing.h"
 #endif
 
@@ -235,8 +235,6 @@ is_method_handled(connection_state_t* conn_state, const char* method)
   /*other method types can be added here if needed*/
   if(strncmp(method, http_get_string, 3) == 0) {
     conn_state->request.request_type = HTTP_METHOD_GET;
-  } else if(strncmp(method, http_head_string, 4) == 0) {
-    conn_state->request.request_type = HTTP_METHOD_HEAD;
   } else if (strncmp(method, http_post_string, 4) == 0) {
     conn_state->request.request_type = HTTP_METHOD_POST;
   } else if (strncmp(method, http_put_string, 3) == 0) {
@@ -392,10 +390,12 @@ content_type_t http_get_header_content_type(http_request_t* request)
 static
 PT_THREAD(handle_request(connection_state_t* conn_state))
 {
+  static int error;
+  const char* content_len;
+
   PSOCK_BEGIN(&(conn_state->sin));
 
-  static int error;
-  const char* content_len = NULL;
+  content_len = NULL;
 
   error = HTTP_NO_ERROR; /*always reinit static variables due to protothreads*/
 
@@ -512,14 +512,19 @@ PT_THREAD(handle_request(connection_state_t* conn_state))
 static
 PT_THREAD(send_data(connection_state_t* conn_state))
 {
+  uint16_t index;
+  http_response_t* response;
+  http_header_t* header;
+  uint8_t* buffer;
+
   PSOCK_BEGIN(&(conn_state->sout));
 
   PRINTF("send_data -> \n");
 
-  uint16_t index = 0;
-  http_response_t* response = &conn_state->response;
-  http_header_t* header = response->headers;
-  uint8_t* buffer = allocate_buffer(200);
+  index = 0;
+  response = &conn_state->response;
+  header = response->headers;
+  buffer = allocate_buffer(200);
 
   /*FIXME: what is the best solution here to send the data. Right now, if buffer is not allocated, no data is sent!*/
   if (buffer) {
@@ -583,10 +588,12 @@ PROCESS(http_server, "Httpd Process");
 
 PROCESS_THREAD(http_server, ev, data)
 {
+  connection_state_t *conn_state;
+
   PROCESS_BEGIN();
 
   /* if static routes are used rather than RPL */
-#if !UIP_CONF_IPV6_RPL
+#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET)
   set_global_address();
   configure_routing();
 #endif /*!UIP_CONF_IPV6_RPL*/
@@ -603,7 +610,7 @@ PROCESS_THREAD(http_server, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
 
-    connection_state_t *conn_state = (connection_state_t *)data;
+    conn_state = (connection_state_t *)data;
 
     if(uip_connected()) {
       PRINTF("##Connected##\n");

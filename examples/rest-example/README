@@ -10,7 +10,7 @@ Each resource has a handler function which is called by the REST layer to serve 
 (i.e. "helloworld" resource has a handler function named "helloworld_handler" which is called when a web service request is received for "helloworld" resource.)
 
 
-To run REST examples in COOJA under Linux
+To run REST examples in COOJA on Linux
 --------------------------------------------
 
 Accessing the server from outside:
@@ -50,9 +50,10 @@ Client periodically accesses resources of server and prints the payload.
 Note: If the generated binary is bigger than the MOTE code size, then you will get a "region text is full" error.
 Right now, REST+HTTP example uses (Contiki + ContikiMAC + uIPv6 + RPL + HTTP Server + REST Layer) which does not fit in Tmote Sky memory. 
 To save same code space and make the example fit, you can define static routes rather than using RPL or use nullrdc rather than ContikiMAC.
+If border router does not fit, then first try to update the Makefile of border router in <CONTIKI_HOME>/examples/ipv6/rpl-border-router by 
+setting WITH_WEBSERVER=0.
 
-
-To run REST server on real nodes under Linux
+To run REST server on real nodes (i.e. tmote sky)
 --------------------------------------------
 
 1. Program the nodes with the rest-server-example
@@ -71,7 +72,19 @@ To run REST server on real nodes under Linux
 5. Test the connectivity by pinging them.
   ping6 <IPv6 Address of the MOTE>
 
-6. Remaining parts are the same with the COOJA example. (i.e. if it is a COAP Server, it is available at <NODE_IP_ADDR>:61616)
+6. Remaining parts are the same with the COOJA example. (i.e. if it is a COAP Server, it's available at <NODE_IP_ADDR>:61616)
+
+
+To run REST server with minimal-net on Linux
+--------------------------------------------
+1. Compile with minimal-net setting.
+  make rest-server-example TARGET=minimal-net
+  
+2. Run the generated executable with sudo and note the IP address of the server which will be printed right after. 
+  sudo ./rest-server-example.minimal-net
+
+3. How to access and test the server is same with the other settings. (i.e. if it is a COAP Server, 
+it's available at <IP_ADDRESS_FROM_STEP_2>:61616 and if it's a HTTP Server it is available at <IP_ADDRESS_FROM_STEP_2>:8080)
 
 
 To Do
