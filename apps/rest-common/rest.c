@@ -291,6 +291,7 @@ PROCESS_THREAD(rest_manager_process, ev, data)
   PROCESS_PAUSE();
 
   /*Periodic resources are only available to COAP implementation*/
+#if 0
 #ifdef WITH_COAP
   periodic_resource_t* periodic_resource = NULL;
   for (periodic_resource = (periodic_resource_t*)list_head(restful_periodic_services); periodic_resource; periodic_resource = periodic_resource->next) {
@@ -327,6 +328,6 @@ PROCESS_THREAD(rest_manager_process, ev, data)
     }
   }
 #endif /*WITH_COAP*/
-
+#endif
   PROCESS_END();
 }

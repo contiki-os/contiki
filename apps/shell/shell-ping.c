@@ -133,8 +133,9 @@ send_ping(uip_ipaddr_t *dest_addr)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_ping_process, ev, data)
 {
+  static struct etimer e;
   struct shell_input *input;
-  
+
   PROCESS_BEGIN();
 
   if(data == NULL) {
@@ -149,9 +150,6 @@ PROCESS_THREAD(shell_ping_process, ev, data)
   running = 1;
 
   while(running) {
-    static struct etimer e;
-
-
     etimer_set(&e, CLOCK_SECOND * 10);
     
     PROCESS_WAIT_EVENT();

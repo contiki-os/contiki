@@ -153,7 +153,9 @@ typedef unsigned short uip_stats_t;
 #define SHELL_GUI_CONF_YSIZE 30
 
 
+#ifdef PLATFORM_BUILD
 #define TELNETD_CONF_GUI 1
+#endif /* PLATFORM_BUILD */
 
 
 #ifdef PLATFORM_BUILD

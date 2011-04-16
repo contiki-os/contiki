@@ -131,6 +131,7 @@ PROCESS_THREAD(shell_binprint_process, ev, data)
   uint16_t *ptr;
   int i;
   char buf[2*64], *bufptr;
+  uint16_t val;
 
   PROCESS_BEGIN();
 
@@ -145,9 +146,8 @@ PROCESS_THREAD(shell_binprint_process, ev, data)
     bufptr = buf;
     ptr = (uint16_t *)input->data1;
     for(i = 0; i < input->len1 && i < input->len1 - 1; i += 2) {
-      uint16_t data;
-      memcpy(&data, ptr, sizeof(data));
-      bufptr += sprintf(bufptr, "%u ", data);
+      memcpy(&val, ptr, sizeof(val));
+      bufptr += sprintf(bufptr, "%u ", val);
       if(bufptr - buf >= sizeof(buf) - 6) {
 	shell_output_str(&binprint_command, buf, "");
 	bufptr = buf;
@@ -160,9 +160,8 @@ PROCESS_THREAD(shell_binprint_process, ev, data)
     
     ptr = (uint16_t *)input->data2;
     for(i = 0; i < input->len2 && i < input->len2 - 1; i += 2) {
-      uint16_t data;
-      memcpy(&data, ptr, sizeof(data));
-      bufptr += sprintf(bufptr, "%u ", data);
+      memcpy(&val, ptr, sizeof(val));
+      bufptr += sprintf(bufptr, "%u ", val);
       if(bufptr - buf >= sizeof(buf) - 6) {
 	shell_output_str(&binprint_command, buf, "");
 	bufptr = buf;
@@ -180,8 +179,9 @@ PROCESS_THREAD(shell_binprint_process, ev, data)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_size_process, ev, data)
 {
-  struct shell_input *input;
   static unsigned long size;
+  struct shell_input *input;
+  char buf[10];
   
   PROCESS_BEGIN();
   size = 0;
@@ -193,7 +193,6 @@ PROCESS_THREAD(shell_size_process, ev, data)
     size += input->len1 + input->len2;
     
     if(input->len1 + input->len2 == 0) {
-      char buf[10];
       snprintf(buf, sizeof(buf), "%lu", size);
       shell_output_str(&size_command, buf, "");
       PROCESS_EXIT();

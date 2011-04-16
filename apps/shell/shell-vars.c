@@ -90,6 +90,8 @@ PROCESS_THREAD(shell_vars_process, ev, data)
 PROCESS_THREAD(shell_var_process, ev, data)
 {
   int i;
+  int j;
+  char numbuf[32];
   
   PROCESS_BEGIN();
 
@@ -99,8 +101,6 @@ PROCESS_THREAD(shell_var_process, ev, data)
     for(i = 0; i < symbols_nelts; ++i) {
       if(symbols[i].name != NULL &&
 	 strncmp(symbols[i].name, data, strlen(symbols[i].name)) == 0) {
-	char numbuf[32];
-	int j;
 	
 	sprintf(numbuf, " %d", *((int *)symbols[i].value));
 	shell_output_str(&var_command, (char *)symbols[i].name, numbuf);

@@ -91,11 +91,11 @@ PROCESS_THREAD(shell_time_process, ev, data)
     uint16_t time[2];
   } msg;
   unsigned long newtime;
+  const char *nextptr;
   
   PROCESS_BEGIN();
 
   if(data != NULL) {
-    const char *nextptr;
     newtime = shell_strtolong(data, &nextptr);
     if(data != nextptr) {
       shell_set_time(newtime);
@@ -122,6 +122,7 @@ PROCESS_THREAD(shell_time_process, ev, data)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_timestamp_process, ev, data)
 {
+  struct shell_input *input;
   struct msg {
     uint16_t len;
     uint16_t time[2];
@@ -132,7 +133,6 @@ PROCESS_THREAD(shell_timestamp_process, ev, data)
   PROCESS_BEGIN();
 
   while(1) {
-    struct shell_input *input;
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     input = data;
     if(input->len1 + input->len2 == 0) {
@@ -161,7 +161,9 @@ PROCESS_THREAD(shell_timestamp_process, ev, data)
 PROCESS_THREAD(shell_repeat_server_process, ev, data)
 {
   static char *command;
+  static struct process *started_process;
   char command_copy[MAX_COMMANDLENGTH];
+  int ret;
 
   if(ev == shell_event_input) {
     goto exit;
@@ -174,8 +176,6 @@ PROCESS_THREAD(shell_repeat_server_process, ev, data)
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE &&
 			   data == &shell_repeat_process);
   {
-    int ret;
-    static struct process *started_process;
     strncpy(command_copy, command, MAX_COMMANDLENGTH);
     ret = shell_start_command(command_copy, (int)strlen(command_copy),
 			      &repeat_command, &started_process);

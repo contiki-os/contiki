@@ -34,6 +34,7 @@
  */
 
 #include <stdlib.h>
+#include <io.h>
 #include <signal.h>
 
 #include "sys/energest.h"

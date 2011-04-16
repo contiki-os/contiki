@@ -47,7 +47,7 @@ void default_vreg_init(void) {
 
 void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp) {
 		
-        /* UART must be disabled to set the baudrate */
+	/* UART must be disabled to set the baudrate */
 	*UART1_UCON = 0;
 	*UART1_UBRCNT = ( inc << 16 ) | mod; 
 
@@ -63,18 +63,27 @@ void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp) {
 	/* you must enable the peripheral first BEFORE setting the function in GPIO_FUNC_SEL */
 	/* From the datasheet: "The peripheral function will control operation of the pad IF */
 	/* THE PERIPHERAL IS ENABLED. */
-	*UART1_UCON = (1 << 0) | (1 << 1); /* enable receive, transmit */
+
+#if UART1_RX_BUFFERSIZE > 32
+	*UART1_UCON = (1 << 0) | (1 << 1) ;	/* enable receive, transmit, and both interrupts */
+	*UART1_URXCON = 30;					/* interrupt when fifo is nearly full */
+	u1_rx_head = 0; u1_rx_tail = 0;
+#elif UART1_RX_BUFFERSIZE < 32			/* enable receive, transmit, flow control, disable rx interrupt */
+	*UART1_UCON = (1 << 0) | (1 << 1) | (1 << 12) | (1 << 14); 
+	*UART1_UCTS = UART1_RX_BUFFERSIZE;  /* drop cts when tx buffer at trigger level */
+	*GPIO_FUNC_SEL1 = ( (0x01 << (0*2)) | (0x01 << (1*2)) ); /* set GPIO17-16 to UART1 CTS and RTS */
+#else 
+	*UART1_UCON = (1 << 0) | (1 << 1) | (1 << 14); /* enable receive, transmit, disable rx interrupt */
+#endif
+
 	if(samp == UCON_SAMP_16X) 
 		set_bit(*UART1_UCON,UCON_SAMP);
 	*GPIO_FUNC_SEL0 = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
-       
+
 	/* interrupt when there are this number or more bytes free in the TX buffer*/
 	*UART1_UTXCON = 16;
+    u1_tx_head = 0; u1_tx_tail = 0;
 
-	u1_head = 0; u1_tail = 0;
-
-	/* tx and rx interrupts are enabled in the UART by default */
-	/* see status register bits 13 and 14 */
 	/* enable UART1 interrupts in the interrupt controller */
 	enable_irq(UART1);
 }

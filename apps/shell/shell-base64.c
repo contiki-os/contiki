@@ -117,13 +117,13 @@ base64_add_char(struct base64_decoder_state *s, char c)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_dec64_process, ev, data)
 {
+  struct shell_input *input;
+  struct base64_decoder_state s;
+  int i;
+
   PROCESS_BEGIN();
 
   while(1) {
-    struct shell_input *input;
-    struct base64_decoder_state s;
-    int i;
-
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     input = data;
 

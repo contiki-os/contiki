@@ -342,11 +342,18 @@ rpl_select_parent(rpl_dag_t *dag)
 
   best = NULL;
   for(p = list_head(dag->parents); p != NULL; p = p->next) {
-    if(best == NULL) {
+    if(p->rank == INFINITE_RANK) {
+      /* ignore this neighbor */
+    } else if(best == NULL) {
       best = p;
     } else {
       best = dag->of->best_parent(best, p);
     }
+  }
+
+  if(best == NULL) {
+    /* need to handle update of best... */
+    return NULL;
   }
 
   if(dag->preferred_parent != best) {
@@ -642,7 +649,8 @@ rpl_process_parent_event(rpl_dag_t *dag, rpl_parent_t *p)
     rpl_reset_dio_timer(dag, 1);
   }
 
-  if(!acceptable_rank(dag, dag->of->calculate_rank(NULL, parent_rank))) {
+  if(parent_rank == INFINITE_RANK ||
+     !acceptable_rank(dag, dag->of->calculate_rank(NULL, parent_rank))) {
     /* The candidate parent is no longer valid: the rank increase resulting
        from the choice of it as a parent would be too high. */
     return 0;
