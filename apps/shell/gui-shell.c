@@ -102,6 +102,12 @@ shell_prompt(char *str)
 {
 }
 /*-----------------------------------------------------------------------------------*/
+void
+shell_exit(char *str)
+{
+  ctk_window_close(&window);
+}
+/*-----------------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_gui_process, ev, data)
 {
   PROCESS_BEGIN();

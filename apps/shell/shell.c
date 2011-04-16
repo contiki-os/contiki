@@ -54,6 +54,14 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifndef SHELL_CONF_PROMPT
+#define SHELL_CONF_PROMPT "Contiki> "
+#endif
+
+#ifndef SHELL_CONF_BANNER
+#define SHELL_CONF_BANNER "Contiki command shell"
+#endif
+
 LIST(commands);
 
 int shell_event_input;
@@ -77,10 +85,13 @@ PROCESS(shell_kill_process, "kill");
 SHELL_COMMAND(kill_command, "kill", "kill <command>: stop a specific command",
 	      &shell_kill_process);
 PROCESS(shell_null_process, "null");
-SHELL_COMMAND(null_command,
-	      "null",
-	      "null: discard input",
+SHELL_COMMAND(null_command, "null", "null: discard input",
 	      &shell_null_process);
+PROCESS(shell_exit_process, "exit");
+SHELL_COMMAND(exit_command, "exit", "exit: exit shell",
+	      &shell_exit_process);
+SHELL_COMMAND(quit_command, "quit", "quit: exit shell",
+	      &shell_exit_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_null_process, ev, data)
 {
@@ -168,7 +179,16 @@ PROCESS_THREAD(help_command_process, ev, data)
       c = c->next) {
     shell_output_str(&help_command, c->description, "");
   }
-  
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_exit_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  shell_exit();
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -418,7 +438,7 @@ PROCESS_THREAD(shell_process, ev, data)
   PROCESS_PAUSE();
   
   while(1) {
-    shell_prompt("Contiki> ");
+    shell_prompt(SHELL_CONF_PROMPT);
     
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     {
@@ -483,6 +503,8 @@ shell_init(void)
   shell_register_command(&killall_command);
   shell_register_command(&kill_command);
   shell_register_command(&null_command);
+  shell_register_command(&exit_command);
+  shell_register_command(&quit_command);
   
   shell_event_input = process_alloc_event();
   
@@ -536,15 +558,21 @@ shell_set_time(unsigned long seconds)
 void
 shell_start(void)
 {
-  shell_output_str(NULL, "Contiki command shell", "");
+  shell_output_str(NULL, SHELL_CONF_BANNER, "");
   shell_output_str(NULL, "Type '?' and return for help", "");
-  shell_prompt("Contiki> ");
+  shell_prompt(SHELL_CONF_PROMPT);
+}
+/*---------------------------------------------------------------------------*/
+void
+shell_stop(void)
+{
+  killall();
 }
 /*---------------------------------------------------------------------------*/
 void
 shell_quit(void)
 {
-  killall();
+  shell_stop();
   process_exit(&shell_process);
   process_exit(&shell_server_process);
 }
