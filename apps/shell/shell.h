@@ -120,10 +120,20 @@ void shell_start(void);
 void shell_input(char *commandline, int commandline_len);
 
 /**
+ * \brief      Stop the shell
+ *
+ *             This function stops all running commands. It typically
+ *             is called by a shell back-end to to indicate that the
+ *             user has quit the shell.
+ *
+ */
+void shell_stop(void);
+
+/**
  * \brief      Quit the shell
  *
- *             This function is called by a shell back-end to indicate
- *             that the user has quit the shell.
+ *             This function is called by a shell back-end to stop the
+ *             shell processes.
  *
  */
 void shell_quit(void);
@@ -170,6 +180,16 @@ void shell_prompt(char *prompt);
  */
 void shell_default_output(const char *data1, int size1,
 			  const char *data2, int size2);
+
+/**
+ * \brief      Request shell exit
+ *
+ *             This function is called by the shell to request exiting
+ *             the current session. The shell back-end will later call
+ *             shell_stop() when the session was successfully exited.
+ *
+ */
+void shell_exit(void);
 
 /**
  * @}
