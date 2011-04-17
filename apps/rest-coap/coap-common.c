@@ -101,7 +101,7 @@ int serialize_packet(coap_packet_t* packet, uint8_t* buffer)
 
     memcpy((char*)&buffer[index], option->value, option->len);
     index += option->len;
-    option_delta += option->option;
+    option_delta = option->option;
   }
 
   if(packet->payload){
