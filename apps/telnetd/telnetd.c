@@ -186,14 +186,13 @@ PROCESS_THREAD(telnetd_process, ev, data)
 {
   PROCESS_BEGIN();
   
-  tcp_listen(UIP_HTONS(23));
-  buf_init(&buf);
-
   shell_init();
 
 #if TELNETD_CONF_GUI
   telnetd_gui_init();
 #endif /* TELNETD_CONF_GUI */
+
+  tcp_listen(UIP_HTONS(23));
 
   while(1) {
     PROCESS_WAIT_EVENT();
@@ -226,11 +225,6 @@ senddata(void)
   buf_copyto(&buf, uip_appdata, len);
   uip_send(uip_appdata, len);
   s.numsent = len;
-}
-/*---------------------------------------------------------------------------*/
-static void
-closed(void)
-{
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -347,6 +341,7 @@ void
 telnetd_appcall(void *ts)
 {
   if(uip_connected()) {
+    tcp_unlisten(UIP_HTONS(23));
     tcp_markconn(uip_conn, &s);
     buf_init(&buf);
     s.bufptr = 0;
@@ -363,7 +358,7 @@ telnetd_appcall(void *ts)
      uip_aborted() ||
      uip_timedout()) {
     shell_stop();
-    closed();
+    tcp_listen(UIP_HTONS(23));
   }
   if(uip_acked()) {
     acked();
