@@ -92,15 +92,15 @@ enum
 #if defined (CORTEXM3)
   /** Channel 0 : ADC0 on PB5 */
 #define ADC_MUX_ADC0    0x0
-  /** Channel 1 : ADC0 on PB6 */
+  /** Channel 1 : ADC1 on PB6 */
 #define ADC_MUX_ADC1    0x1
-  /** Channel 2 : ADC0 on PB7 */
+  /** Channel 2 : ADC2 on PB7 */
 #define ADC_MUX_ADC2    0x2
-  /** Channel 3 : ADC0 on PC1 */
+  /** Channel 3 : ADC3 on PC1 */
 #define ADC_MUX_ADC3    0x3
-  /** Channel 4 : ADC0 on PA4 */
+  /** Channel 4 : ADC4 on PA4 */
 #define ADC_MUX_ADC4    0x4
-  /** Channel 5 : ADC0 on PA5 */
+  /** Channel 5 : ADC5 on PA5 */
 #define ADC_MUX_ADC5    0x5
   /** Channel 8 : VSS (0V) - not for high voltage range */
 #define ADC_MUX_GND     0x8
@@ -127,9 +127,11 @@ enum
   ADC_SOURCE_ADC3_VREF2  = ((ADC_MUX_ADC3  <<ADC_MUXN_BITS) + ADC_MUX_VREF2),
   ADC_SOURCE_ADC3_GND    = ((ADC_MUX_ADC3  <<ADC_MUXN_BITS) + ADC_MUX_GND),
 
-  ADC_SOURCE_ADC4_VREF2  = ((ADC_MUX_ADC4  <<ADC_MUXN_BITS) + ADC_MUX_GND),
+  ADC_SOURCE_ADC4_VREF2  = ((ADC_MUX_ADC4  <<ADC_MUXN_BITS) + ADC_MUX_VREF2),
+  ADC_SOURCE_ADC4_GND    = ((ADC_MUX_ADC4  <<ADC_MUXN_BITS) + ADC_MUX_GND),
 
-  ADC_SOURCE_ADC5_VREF2  = ((ADC_MUX_ADC5  <<ADC_MUXN_BITS) + ADC_MUX_GND),
+  ADC_SOURCE_ADC5_VREF2  = ((ADC_MUX_ADC5  <<ADC_MUXN_BITS) + ADC_MUX_VREF2),
+  ADC_SOURCE_ADC5_GND    = ((ADC_MUX_ADC5  <<ADC_MUXN_BITS) + ADC_MUX_GND),  
 
   ADC_SOURCE_ADC1_ADC0   = ((ADC_MUX_ADC1  <<ADC_MUXN_BITS) + ADC_MUX_ADC0),
   ADC_SOURCE_ADC0_ADC1   = ((ADC_MUX_ADC1  <<ADC_MUXN_BITS) + ADC_MUX_ADC0),
@@ -159,6 +161,12 @@ enum
   ADC_SOURCE_VREG2_VREF2 = ((ADC_MUX_VREG2 <<ADC_MUXN_BITS) + ADC_MUX_VREF2),
   ADC_SOURCE_VDD_GND     = ((ADC_MUX_VREG2 <<ADC_MUXN_BITS) + ADC_MUX_GND)
 };
+
+/** @brief Macro that returns the ADCChannelType, from a given couple of sources
+ * (positive and negative). To be used with halStartAdcConversion().
+ */
+#define ADC_SOURCE(P,N)   (( P << ADC_MUXN_BITS ) + N)
+
 #endif // defined (CORTEXM3)
 
 
@@ -166,6 +174,17 @@ enum
  * (such as ::ADC_SOURCE_ADC0_GND)
  */
 typedef int8u ADCChannelType;
+
+/** @brief Returns the ADC channel from a given GPIO. Its value can can be used
+ * inside the ADC_SOURCE(P,N) macro to retrieve the input pair for
+ * halStartAdcConversion().
+ *
+ * @param io  The GPIO pin (it can be specified with the convenience macros
+ *            PORTA_PIN(), PORTB_PIN(), PORTC_PIN() )
+ * 
+ * @return The ADC_MUX value connected to the given GPIO.
+ */
+int8u halGetADCChannelFromGPIO(int32u io);
 
 
 /** @brief Initializes and powers-up the ADC. 
@@ -294,6 +313,7 @@ boolean halAdcGetRange(void);
 #ifdef CORTEXM3_STM32F103
 #include "micro/cortexm3/stm32f103ret/adc.h"
 #endif /* CORTEXM3_STM32F103 */
+
 #endif // __ADC_H__
 
 /** @} // END addtogroup

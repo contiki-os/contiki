@@ -72,7 +72,7 @@ value(int type)
   static int16u ADCvalue;
   static int16s volts;
   
-  halStartAdcConversion(ADC_USER_APP, ADC_REF_INT, ADC_SOURCE_ADC2_VREF2, ADC_CONVERSION_TIME_US_4096);
+  halStartAdcConversion(ADC_USER_APP, ADC_REF_INT, ADC_SOURCE(halGetADCChannelFromGPIO(TEMPERATURE_SENSOR_GPIO),ADC_MUX_VREF2), ADC_CONVERSION_TIME_US_4096);
   
   halReadAdcBlocking(ADC_USER_APP, &ADCvalue); // This blocks for a while, about 4ms.
   
