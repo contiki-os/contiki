@@ -83,10 +83,10 @@ rpl_of_t rpl_of_etx = {
 
 typedef uint16_t rpl_path_metric_t;
 
-static uint16_t
+static rpl_path_metric_t
 calculate_path_metric(rpl_parent_t *p)
 {
-  if(p->mc.obj.etx == 0 && p->rank > ROOT_RANK(p->dag)) {
+  if(p == NULL || (p->mc.obj.etx == 0 && p->rank > ROOT_RANK(p->dag))) {
     return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
   }
   return p->mc.obj.etx + NI_ETX_TO_RPL_ETX(p->link_metric);
@@ -166,34 +166,48 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 static void
 update_metric_container(rpl_dag_t *dag)
 {
-#if RPL_DAG_MC == RPL_DAG_MC_ETX
-  dag->mc.type = RPL_DAG_MC_ETX;
+  rpl_path_metric_t path_metric;
+#if RPL_DAG_MC == RPL_DAG_MC_ENERGY
+  uint8_t type;
+#endif
+
   dag->mc.flags = RPL_DAG_MC_FLAG_P;
   dag->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
   dag->mc.prec = 0;
-  dag->mc.length = sizeof(dag->mc.obj.etx);
+
   if(dag->rank == ROOT_RANK(dag)) {
-    dag->mc.obj.etx = 0;
+    path_metric = 0;
   } else {
-    dag->mc.obj.etx = calculate_path_metric(dag->preferred_parent);
+    path_metric = calculate_path_metric(dag->preferred_parent);
   }
+
+#if RPL_DAG_MC == RPL_DAG_MC_ETX
+
+  dag->mc.type = RPL_DAG_MC_ETX;
+  dag->mc.length = sizeof(dag->mc.obj.etx);
+  dag->mc.obj.etx = path_metric;
 
   PRINTF("RPL: My path ETX to the root is %u.%u\n",
 	dag->mc.obj.etx / RPL_DAG_MC_ETX_DIVISOR,
 	(dag->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) / RPL_DAG_MC_ETX_DIVISOR);
+
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
+
   dag->mc.type = RPL_DAG_MC_ENERGY;
-  dag->mc.flags = RPL_DAG_MC_FLAG_P;
-  dag->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
-  dag->mc.prec = 0;
   dag->mc.length = sizeof(dag->mc.obj.energy);
+
   if(dag->rank == ROOT_RANK(dag)) {
-    dag->mc.obj.energy.flags = RPL_DAG_MC_ENERGY_TYPE_MAINS << RPL_DAG_MC_ENERGY_TYPE;
+    type = RPL_DAG_MC_ENERGY_TYPE_MAINS;
   } else {
-    dag->mc.obj.energy.flags = RPL_DAG_MC_ENERGY_TYPE_BATTERY << RPL_DAG_MC_ENERGY_TYPE;
+    type = RPL_DAG_MC_ENERGY_TYPE_BATTERY;
   }
-  dag->mc.obj.energy.energy_est = calculate_path_metric(dag->preferred_parent);
+
+  dag->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
+  dag->mc.obj.energy.energy_est = path_metric;
+
 #else
+
 #error "Unsupported RPL_DAG_MC configured. See rpl.h."
+
 #endif /* RPL_DAG_MC */
 }
