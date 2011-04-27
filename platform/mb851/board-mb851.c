@@ -6,6 +6,7 @@
 #include "dev/button-sensor.h"
 #include "dev/temperature-sensor.h"
 #include "dev/acc-sensor.h"
+#include "dev/leds.h"
 
 void halBoardInit(void)
 {
