@@ -1,4 +1,0 @@
-
-void sensorsPowerDown();
-
-void sensorsPowerUp();
