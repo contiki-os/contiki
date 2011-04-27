@@ -101,11 +101,12 @@ sent_by_stunicast(struct stunicast_conn *stunicast, int status, int num_tx)
       PRINTF("%d.%d: runicast: packet %d timed out\n",
              rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
              c->sndnxt);
+      c->sndnxt = (c->sndnxt + 1) % (1 << RUNICAST_PACKET_ID_BITS);
     } else {
-      int shift;
+//      int shift;
       
-      shift = c->rxmit > 4? 4: c->rxmit;
-      stunicast_set_timer(&c->c, (REXMIT_TIME) << shift);
+//      shift = c->rxmit > 4? 4: c->rxmit;
+//      stunicast_set_timer(&c->c, (REXMIT_TIME) << shift);
     }
   }
 }
