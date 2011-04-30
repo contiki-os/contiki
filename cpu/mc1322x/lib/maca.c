@@ -538,6 +538,32 @@ void add_to_rx(volatile packet_t *p) {
 	return;
 }
 
+void insert_at_rx_head(volatile packet_t *p) {
+	safe_irq_disable(MACA);
+
+	BOUND_CHECK(p);
+
+	if(!p) {  PRINTF("insert_at_rx_head passed packet 0\n\r"); return; }
+	p->offset = 1; /* first byte is the length */
+	if(rx_head == 0) {
+		/* start a new queue if empty */
+		rx_end = p;
+		rx_end->left = 0; rx_end->right = 0;
+		rx_head = rx_end;
+	} else {
+		rx_head->right = p;
+		p->left = rx_head;
+		rx_head = p; rx_head->left = 0;
+	}
+
+//	print_packets("insert at rx head");
+	irq_restore();
+	if(bit_is_set(*NIPEND, INT_NUM_MACA)) { *INTFRC = (1 << INT_NUM_MACA); }
+
+	return;
+}
+
+
 void decode_status(void) {
 	volatile uint32_t code;
 	
@@ -656,6 +682,21 @@ void maca_isr(void) {
 		/* PRINTF("maca action complete %d\n\r", get_field(*MACA_CONTROL,SEQUENCE)); */
 		if(last_post == TX_POST) {
 			tx_head->status = get_field(*MACA_STATUS,CODE);
+#if MACA_INSERT_ACK
+			if(tx_head->status == SUCCESS) {
+				static volatile packet_t *ack_p;
+				if(ack_p = get_free_packet()) {
+					ack_p->length = 3;
+					ack_p->offset = 1;
+					ack_p->data[0] = 3;
+					ack_p->data[1] = 0x02;
+					ack_p->data[2] = 0;
+					ack_p->data[3] = *MACA_TXSEQNR;
+					insert_at_rx_head(ack_p);
+				}
+			}
+#endif
+
 			if(maca_tx_callback != 0) { maca_tx_callback(tx_head); }
 			dma_tx = 0;
 			free_tx_head();
