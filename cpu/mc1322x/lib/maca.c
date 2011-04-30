@@ -72,6 +72,10 @@
 #define CPL_TIMEOUT (2*128*CLK_PER_BYTE) 
 #endif
 
+#ifndef MACA_INSERT_ACK
+#define MACA_INSERT_ACK 1
+#endif
+
 #define reg(x) (*(volatile uint32_t *)(x))
 
 int count_packets(void);
