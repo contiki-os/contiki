@@ -618,7 +618,7 @@ void maca_isr(void) {
 		dma_rx->rx_time = *MACA_TIMESTAMP;
 
 		/* check if received packet needs an ack */
-		if(dma_rx->data[1] & 0x20) {
+		if(prm_mode == AUTOACK && (dma_rx->data[1] & 0x20)) {
 			/* this wait is necessary to auto-ack */
 			volatile uint32_t wait_clk;
 			wait_clk = *MACA_CLK + 200;
