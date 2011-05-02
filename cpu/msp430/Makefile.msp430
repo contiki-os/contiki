@@ -36,12 +36,13 @@ STRIP    = strip
 
 ifndef IAR_PATH
 # This works with cygwin...
-IAR_BIN_PATH = $(shell dirname `which $(CC)`)
-IAR_PATH_C = $(shell dirname $(IAR_BIN_PATH))
-IAR_PATH = $(shell cygpath -m $(IAR_PATH_C))
+IAR_BIN_PATH = $(shell dirname "`which $(CC)`")
+IAR_PATH_C = $(shell dirname "$(IAR_BIN_PATH)")
+IAR_PATH = $(shell cygpath -m "$(IAR_PATH_C)")
 endif
 
-CFLAGSNO = --dlib_config $(IAR_PATH)/LIB/DLIB/dl430xlfn.h -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X $(CFLAGSWERROR) --data_model large --double=32
+CFLAGSNO = --dlib_config "$(IAR_PATH)/LIB/DLIB/dl430xlfn.h" -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X $(CFLAGSWERROR) --data_model small --double=32
+# CFLAGSNO = --dlib_config $(IAR_PATH)/LIB/DLIB/dl430xlfn.h -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X $(CFLAGSWERROR) --data_model large --double=32
 CUSTOM_RULE_C_TO_O = 1
 %.o: %.c
 	$(CC) $(CFLAGS) $< -o $@
@@ -55,7 +56,8 @@ CUSTOM_RULE_C_TO_CO = 1
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
 
 AROPTS = -o
-LDFLAGS += -B $(IAR_PATH)/lib/dlib/dl430xlfn.r43 -f $(IAR_PATH)/config/lnk430f5437.xcl -l contiki-$(TARGET).map -Fintel-extended -s __program_start
+LDFLAGS += -B -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f5437.xcl" -l contiki-$(TARGET).map -Fintel-extended -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+
 
 else
 GCC      = 1
