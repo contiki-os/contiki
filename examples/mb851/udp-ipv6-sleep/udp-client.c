@@ -32,7 +32,7 @@
 #include "contiki-net.h"
 
 #include "sleep.h"
-#include "board-mb851.h"
+#include "board-sensors.h"
 
 #include <string.h>
 

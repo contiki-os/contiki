@@ -113,9 +113,11 @@ send(void *ptr)
   PRINTF("%d.%d: stunicast: resend to %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->receiver.u8[0], c->receiver.u8[1]);
-  queuebuf_to_packetbuf(c->buf);
-  unicast_send(&c->c, &c->receiver);
-  stunicast_set_timer(c, CLOCK_SECOND);
+	 if(c->buf) {
+  	queuebuf_to_packetbuf(c->buf);
+  	unicast_send(&c->c, &c->receiver);
+  	stunicast_set_timer(c, CLOCK_SECOND);
+  }
   /*  if(c->u->sent != NULL) {
     c->u->sent(c);
     }*/
