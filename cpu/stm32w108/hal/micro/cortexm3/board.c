@@ -314,7 +314,7 @@ void halBoardPowerDown(void)
                 (GPIOCFG_IN              <<PC7_CFG_BIT);  /* OSC32K */
 #endif
 
-#ifdef EMBERZNET_HAL
+
   /* Configure GPIO for BUTTONSs */
   {
     ButtonResourceType *buttons = (ButtonResourceType *) boardDescription->io->buttons;
@@ -324,9 +324,23 @@ void halBoardPowerDown(void)
         halGpioSet(PORTx_PIN(buttons[i].gpioPort, buttons[i].gpioPin), GPIOOUT_PULLUP);
     }
   }
-#endif
+
+  /* Configure GPIO for LEDs */
+  {
+    LedResourceType *leds = (LedResourceType *) boardDescription->io->leds;
+    int8u i;
+    for (i = 0; i < boardDescription->leds; i++) {
+          /* LED default off */
+      halGpioConfig(PORTx_PIN(leds[i].gpioPort, leds[i].gpioPin), GPIOCFG_OUT);
+      halGpioSet(PORTx_PIN(leds[i].gpioPort, leds[i].gpioPin), 1);
+    }
+  }
+
   /* Configure GPIO for power amplifier */
   if (boardDescription->flags & BOARD_HAS_PA) {
+	/* SiGe Ant Sel to output */
+	halGpioConfig(PORTB_PIN(5), GPIOCFG_OUT);
+	halGpioSet(PORTB_PIN(5), 1);
     /* SiGe Standby */
     halGpioConfig(PORTB_PIN(6), GPIOCFG_OUT);
     halGpioSet(PORTB_PIN(6), 0);

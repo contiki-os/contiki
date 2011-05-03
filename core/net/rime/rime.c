@@ -151,7 +151,7 @@ static void
 packet_sent(void *ptr, int status, int num_tx)
 {
   struct channel *c = ptr;
-
+  struct rime_sniffer *s;
   
   switch(status) {
   case MAC_TX_COLLISION:
@@ -166,17 +166,14 @@ packet_sent(void *ptr, int status, int num_tx)
   default:
     PRINTF("rime: error %d after %d tx\n", status, num_tx);
   }
-  
-  if(status == MAC_TX_OK) {
-    struct rime_sniffer *s;
-    /* Call sniffers, but only if the packet was sent. */
-    for(s = list_head(sniffers); s != NULL; s = list_item_next(s)) {
-      if(s->output_callback != NULL) {
-        s->output_callback();
-      }
+
+  /* Call sniffers, pass along the MAC status code. */
+  for(s = list_head(sniffers); s != NULL; s = list_item_next(s)) {
+    if(s->output_callback != NULL) {
+      s->output_callback(status);
     }
   }
-  
+
   abc_sent(c, status, num_tx);
 }
 /*---------------------------------------------------------------------------*/
