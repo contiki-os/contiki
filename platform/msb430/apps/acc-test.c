@@ -33,8 +33,9 @@
 
 #include "contiki.h"
 #include "net/rime.h"
-#include "dev/sd/sd.h"
+#include "dev/sd.h"
 
+#include <io.h>
 #include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
