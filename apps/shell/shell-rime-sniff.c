@@ -114,7 +114,7 @@ input_sniffer(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-output_sniffer(void)
+output_sniffer(int mac_status)
 {
   if(sniff_for_attributes) {
     sniff_attributes_output(SNIFFER_ATTRIBUTES_OUTPUT);
