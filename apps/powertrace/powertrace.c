@@ -293,7 +293,7 @@ input_printsniffer(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-output_printsniffer(void)
+output_printsniffer(int mac_status)
 {
   static int seqno = 0;
   sniffprint("O", seqno++);
