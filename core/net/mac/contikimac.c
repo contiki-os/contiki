@@ -633,35 +633,35 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   }
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 
-  if(WITH_CONTIKIMAC_HEADER) {
-    hdrlen = packetbuf_totlen();
-    if(packetbuf_hdralloc(sizeof(struct hdr)) == 0) {
-      /* Failed to allocate space for contikimac header */
-      PRINTF("contikimac: send failed, too large header\n");
-      return MAC_TX_ERR_FATAL;
-    }
-    chdr = packetbuf_hdrptr();
-    chdr->id = CONTIKIMAC_ID;
-    chdr->len = hdrlen;
-    
-    /* Create the MAC header for the data packet. */
-    hdrlen = NETSTACK_FRAMER.create();
-    if(hdrlen == 0) {
-      /* Failed to send */
-      PRINTF("contikimac: send failed, too large header\n");
-      packetbuf_hdr_remove(sizeof(struct hdr));
-      return MAC_TX_ERR_FATAL;
-    }
-    hdrlen += sizeof(struct hdr);
-  } else {
-    /* Create the MAC header for the data packet. */
-    hdrlen = NETSTACK_FRAMER.create();
-    if(hdrlen == 0) {
-      /* Failed to send */
-      PRINTF("contikimac: send failed, too large header\n");
-      return MAC_TX_ERR_FATAL;
-    }
+#if WITH_CONTIKIMAC_HEADER
+  hdrlen = packetbuf_totlen();
+  if(packetbuf_hdralloc(sizeof(struct hdr)) == 0) {
+    /* Failed to allocate space for contikimac header */
+    PRINTF("contikimac: send failed, too large header\n");
+    return MAC_TX_ERR_FATAL;
   }
+  chdr = packetbuf_hdrptr();
+  chdr->id = CONTIKIMAC_ID;
+  chdr->len = hdrlen;
+  
+  /* Create the MAC header for the data packet. */
+  hdrlen = NETSTACK_FRAMER.create();
+  if(hdrlen == 0) {
+    /* Failed to send */
+    PRINTF("contikimac: send failed, too large header\n");
+    packetbuf_hdr_remove(sizeof(struct hdr));
+    return MAC_TX_ERR_FATAL;
+  }
+  hdrlen += sizeof(struct hdr);
+#else
+  /* Create the MAC header for the data packet. */
+  hdrlen = NETSTACK_FRAMER.create();
+  if(hdrlen == 0) {
+    /* Failed to send */
+    PRINTF("contikimac: send failed, too large header\n");
+    return MAC_TX_ERR_FATAL;
+  }
+#endif
 
 
   /* Make sure that the packet is longer or equal to the shortest
