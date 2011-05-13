@@ -938,7 +938,7 @@ bool validIPAddr(const char * ip_addr, int prefix_len)
     char tmp_addr[INET6_ADDRSTRLEN], tmp2_addr[INET6_ADDRSTRLEN];
     char * substr;
 
-    strncpy(tmp_addr, br_prefix, INET6_ADDRSTRLEN);
+    strncpy(tmp_addr, ip_addr, INET6_ADDRSTRLEN);
 
     strtok(tmp_addr,"/");
 
@@ -985,7 +985,7 @@ main(int argc, char **argv)
 	osVersionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 	GetVersionEx(&osVersionInfo);
 
-    while((c = getopt(argc, argv, "B:D:hs:c:ra:p:v:tb:")) != -1) {
+    while((c = getopt(argc, argv, "B:D:hs:c:ra:p:vtb:")) != -1) {
 		switch (c) {
 	case 'B':
 		baudrate = atoi(optarg);

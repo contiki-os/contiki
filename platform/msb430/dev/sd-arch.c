@@ -40,6 +40,7 @@
 #include "contiki.h"
 #include "msb430-uart1.h"
 #include "sd-arch.h"
+#include <io.h>
 
 #define SPI_IDLE	0xff
 
