@@ -55,6 +55,10 @@
 #define BUTTON2_OUT			(0x1ULL << 22)
 #define BUTTON2_IN			(0x1ULL << 26)
 
+#define GPIO_LED_RED   GPIO_12
+#define GPIO_LED_GREEN GPIO_21
+#define GPIO_LED_BLUE  GPIO_35
+
 #define LED_RED   12
 #define LED_GREEN 21
 #define LED_BLUE  35
