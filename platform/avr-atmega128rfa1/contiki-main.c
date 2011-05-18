@@ -473,7 +473,7 @@ if ((rtime%STAMPS)==0) {
 #endif
       rtime+=1;
 
-#if PINGS
+#if PINGS && UIP_CONF_IPV6
 extern void raven_ping6(void); 
 if ((rtime%PINGS)==1) {
   PRINTA("**Ping\n");
@@ -481,7 +481,7 @@ if ((rtime%PINGS)==1) {
 }
 #endif
 
-#if ROUTES
+#if ROUTES && UIP_CONF_IPV6
 if ((rtime%ROUTES)==2) {
       
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
