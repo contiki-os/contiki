@@ -329,7 +329,10 @@ schedule_powercycle_fixed(struct rtimer *t, rtimer_clock_t fixed_time)
 static void
 powercycle_turn_radio_off(void)
 {
+#if CONTIKIMAC_CONF_COMPOWER
   uint8_t was_on = radio_is_on;
+#endif /* CONTIKIMAC_CONF_COMPOWER */
+  
   if(we_are_sending == 0) {
     off();
 #if CONTIKIMAC_CONF_COMPOWER
