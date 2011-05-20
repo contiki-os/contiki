@@ -47,6 +47,9 @@
 /* Platform TMOTE_SKY */
 #define TMOTE_SKY 1
 
+#define PLATFORM_HAS_LEDS   1
+#define PLATFORM_HAS_BUTTON 1
+
 /* CPU target speed in Hz */
 #define F_CPU 3900000uL /*2457600uL*/
 
