@@ -55,17 +55,15 @@
 #include <stdio.h>
 
 #ifdef SHELL_CONF_PROMPT
-extern char *shell_prompt_text;
-#define SHELL_PROMPT shell_prompt_text
+extern char shell_prompt_text[];
 #else
-#define SHELL_PROMPT "Contiki> "
+static char shell_prompt_text[] = "Contiki> ";
 #endif
 
 #ifdef SHELL_CONF_BANNER
-extern char *shell_banner_text;
-#define SHELL_BANNER shell_banner_text
+extern char shell_banner_text[];
 #else
-#define SHELL_BANNER "Contiki command shell"
+static char shell_banner_text[] = "Contiki command shell";
 #endif
 
 LIST(commands);
@@ -444,7 +442,7 @@ PROCESS_THREAD(shell_process, ev, data)
   PROCESS_PAUSE();
   
   while(1) {
-    shell_prompt(SHELL_PROMPT);
+    shell_prompt(shell_prompt_text);
     
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     {
@@ -564,9 +562,9 @@ shell_set_time(unsigned long seconds)
 void
 shell_start(void)
 {
-  shell_output_str(NULL, SHELL_BANNER, "");
+  shell_output_str(NULL, shell_banner_text, "");
   shell_output_str(NULL, "Type '?' and return for help", "");
-  shell_prompt(SHELL_PROMPT);
+  shell_prompt(shell_prompt_text);
 }
 /*---------------------------------------------------------------------------*/
 void
