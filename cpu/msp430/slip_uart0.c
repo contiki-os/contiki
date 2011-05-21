@@ -33,10 +33,14 @@
  * Machine dependent MSP430 SLIP routines for UART0.
  */
 
+#include "contiki-conf.h"
+
+#ifdef __IAR_SYSTEMS_ICC__
+#include <io430.h>
+#else
 #include <io.h>
 #include <signal.h>
-
-#include "contiki.h"
+#endif
 
 #include "dev/slip.h"
 #include "dev/uart0.h"

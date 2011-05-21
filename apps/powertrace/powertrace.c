@@ -90,8 +90,8 @@ powertrace_print(char *str)
   all_lpm = energest_type_time(ENERGEST_TYPE_LPM);
   all_transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
   all_listen = energest_type_time(ENERGEST_TYPE_LISTEN);
-  all_idle_transmit = compower_idle_activity.transmit - last_idle_transmit;
-  all_idle_listen = compower_idle_activity.listen - last_idle_listen;
+  all_idle_transmit = compower_idle_activity.transmit;
+  all_idle_listen = compower_idle_activity.listen;
 
   cpu = all_cpu - last_cpu;
   lpm = all_lpm - last_lpm;
@@ -267,7 +267,7 @@ input_sniffer(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-output_sniffer(void)
+output_sniffer(int mac_status)
 {
   add_packet_stats(OUTPUT);
 }
@@ -293,7 +293,7 @@ input_printsniffer(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-output_printsniffer(void)
+output_printsniffer(int mac_status)
 {
   static int seqno = 0;
   sniffprint("O", seqno++);
