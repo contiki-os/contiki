@@ -127,8 +127,8 @@ while(1) {
 	    my $i = 1;
 	    while(read(FILE, $c, 1)) {
 		$i++;
-		usleep($first_delay)  if ( $s == 0 );
-		usleep($second_delay) if ( $s == 1 );
+                usleep($first_delay)  if ( $s == 0 ) && ($first_delay != 0);
+                usleep($second_delay) if ( $s == 1 ) && ($second_delay != 0);
 		$ob->write($c);
 	    }
 	}

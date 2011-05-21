@@ -78,11 +78,14 @@ void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp) {
 
 	if(samp == UCON_SAMP_16X) 
 		set_bit(*UART1_UCON,UCON_SAMP);
-	*GPIO_FUNC_SEL0 = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
+
+        /* set GPIO15-14 to UART (UART1 TX and RX)*/
+	GPIO->FUNC_SEL.GPIO_14 = 1;
+	GPIO->FUNC_SEL.GPIO_15 = 1;
 
 	/* interrupt when there are this number or more bytes free in the TX buffer*/
 	*UART1_UTXCON = 16;
-    u1_tx_head = 0; u1_tx_tail = 0;
+	u1_tx_head = 0; u1_tx_tail = 0;
 
 	/* enable UART1 interrupts in the interrupt controller */
 	enable_irq(UART1);

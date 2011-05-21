@@ -85,6 +85,7 @@
 #define USE_32KHZ_XTAL              0
 
 #define BLOCKING_TX 1
+#define MACA_AUTOACK 1
 #define NULLRDC_CONF_802154_AUTOACK_HW 1
 
 #define USE_WDT 0

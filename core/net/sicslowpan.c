@@ -765,7 +765,7 @@ uncompress_hdr_hc06(uint16_t ip_len)
           SICSLOWPAN_IP_BUF->vtc = 0x60 | ((*hc06_ptr >> 2) & 0x0f);
           SICSLOWPAN_IP_BUF->tcflow = ((*hc06_ptr << 6) & 0xC0) | ((*hc06_ptr >> 2) & 0x30);
           SICSLOWPAN_IP_BUF->flow = 0;
-        hc06_ptr += 3;
+          hc06_ptr += 1;
       } else {
         /* Traffic class is compressed */
         SICSLOWPAN_IP_BUF->vtc = 0x60;

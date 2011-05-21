@@ -163,13 +163,12 @@ endif
 
 
 
-
-FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/linux/stm32w_flasher
+FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher
 
 # Check if we are running under Windows
 ifdef OS
   ifneq (,$(findstring Windows,$(OS)))
-  	FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/win/stm32w_flasher    
+  	FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher.exe   
   endif   
 endif
 

@@ -436,7 +436,7 @@ main(void)
   PRINTF("setting short mac 0x%04x\n\r", *MACA_MAC16ADDR);
   PRINTF("setting long mac 0x%08x_%08x\n\r", *MACA_MAC64HI, *MACA_MAC64LO);
 
-#if NULLRDC_CONF_802154_AUTOACK_HW
+#if MACA_AUTOACK
   set_prm_mode(AUTOACK);
 #endif
 

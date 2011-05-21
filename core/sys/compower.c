@@ -63,6 +63,8 @@ compower_accumulate(struct compower_activity *e)
   static uint32_t last_listen, last_transmit;
   uint32_t listen, transmit;
 
+  energest_flush();
+
   listen = energest_type_time(ENERGEST_TYPE_LISTEN);
   e->listen += listen - last_listen;
   last_listen = listen;
