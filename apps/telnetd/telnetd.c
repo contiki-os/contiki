@@ -55,6 +55,13 @@ AUTOSTART_PROCESSES(&telnetd_process);
 #define TELNETD_CONF_NUMLINES 25
 #endif
 
+#ifdef TELNETD_CONF_REJECT
+extern char telnetd_reject_text[];
+#else
+static char telnetd_reject_text[] =
+            "Too many connections, please try again later.";
+#endif
+
 struct telnetd_state {
   char buf[TELNETD_CONF_LINELEN + 1];
   char bufptr;
@@ -92,6 +99,8 @@ struct telnetd_buf {
 };
 
 static struct telnetd_buf buf;
+
+static uint8_t connected;
 
 #define MIN(a, b) ((a) < (b)? (a): (b))
 /*---------------------------------------------------------------------------*/
@@ -191,6 +200,8 @@ PROCESS_THREAD(telnetd_process, ev, data)
 #if TELNETD_CONF_GUI
   telnetd_gui_init();
 #endif /* TELNETD_CONF_GUI */
+
+  petsciiconv_toascii(telnetd_reject_text, strlen(telnetd_reject_text));
 
   tcp_listen(UIP_HTONS(23));
 
@@ -341,37 +352,52 @@ void
 telnetd_appcall(void *ts)
 {
   if(uip_connected()) {
-    tcp_unlisten(UIP_HTONS(23));
-    tcp_markconn(uip_conn, &s);
-    buf_init(&buf);
-    s.bufptr = 0;
-    s.state = STATE_NORMAL;
-    shell_start();
+    if(!connected) {
+      buf_init(&buf);
+      s.bufptr = 0;
+      s.state = STATE_NORMAL;
+      connected = 1;
+      shell_start();
+      ts = (char *)0;
+    } else {
+      uip_send(telnetd_reject_text, strlen(telnetd_reject_text));
+      ts = (char *)1;
+    }
+    tcp_markconn(uip_conn, ts);
   }
 
-  if(s.state == STATE_CLOSE) {
-    s.state = STATE_NORMAL;
-    uip_close();
-    return;
-  }
-  if(uip_closed() ||
-     uip_aborted() ||
-     uip_timedout()) {
-    shell_stop();
-    tcp_listen(UIP_HTONS(23));
-  }
-  if(uip_acked()) {
-    acked();
-  }
-  if(uip_newdata()) {
-    newdata();
-  }
-  if(uip_rexmit() ||
-     uip_newdata() ||
-     uip_acked() ||
-     uip_connected() ||
-     uip_poll()) {
-    senddata();
+  if(!ts) {
+    if(s.state == STATE_CLOSE) {
+      s.state = STATE_NORMAL;
+      uip_close();
+      return;
+    }
+    if(uip_closed() ||
+       uip_aborted() ||
+       uip_timedout()) {
+      shell_stop();
+      connected = 0;
+    }
+    if(uip_acked()) {
+      acked();
+    }
+    if(uip_newdata()) {
+      newdata();
+    }
+    if(uip_rexmit() ||
+       uip_newdata() ||
+       uip_acked() ||
+       uip_connected() ||
+       uip_poll()) {
+      senddata();
+    }
+  } else {
+    if(uip_poll()) {
+      tcp_markconn(uip_conn, ++(char *)ts);
+      if(ts == (char *)10) {
+        uip_close();
+      }
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
