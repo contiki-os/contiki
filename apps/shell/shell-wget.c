@@ -127,6 +127,7 @@ open_url(char *url)
     file = "/";
   }
   
+#if UIP_UDP
   /* Try to lookup the hostname. If it fails, we initiate a hostname
      lookup and print out an informative message on the statusbar. */
   if(uiplib_ipaddrconv(host, &addr) == 0) {
@@ -137,6 +138,9 @@ open_url(char *url)
       return;
     }
   }
+#else /* UIP_UDP */
+  uiplib_ipaddrconv(host, &addr);
+#endif /* UIP_UDP */
 
   /* The hostname we present in the hostname table, so we send out the
      initial GET request. */
@@ -164,6 +168,7 @@ PROCESS_THREAD(shell_wget_process, ev, data)
     
     if(ev == tcpip_event) {
       webclient_appcall(data);
+#if UIP_UDP
     } else if(ev == resolv_event_found) {
       /* Either found a hostname, or not. */
       if((char *)data != NULL &&
@@ -172,6 +177,7 @@ PROCESS_THREAD(shell_wget_process, ev, data)
       } else {
 	shell_output_str(&wget_command, "Host not found.", "");
       }
+#endif /* UIP_UDP */
     }
   }
 
