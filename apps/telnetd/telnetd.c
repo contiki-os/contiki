@@ -393,9 +393,10 @@ telnetd_appcall(void *ts)
     }
   } else {
     if(uip_poll()) {
-      tcp_markconn(uip_conn, ++(char *)ts);
       if(ts == (char *)10) {
         uip_close();
+      } else {
+        tcp_markconn(uip_conn, (char *)ts + 1);
       }
     }
   }
