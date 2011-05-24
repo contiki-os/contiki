@@ -809,8 +809,12 @@ void addAddress(const char * ifname, const char * ipaddr)
 	else{
 		execProcess(&exitCode,"netsh interface ipv6 add address \"%s\" %s",if_name,ipaddr);
 	}
-	if(exitCode==0)
-		clean_addr = true;	
+	if(exitCode==0){
+		clean_addr = true;
+	}
+	else {
+	  fprintf(stderr, "WARNING: subprocess exited with code %ld\n", exitCode);
+	}
 }
 
 void delAddress(const char * ifname, const char * ipaddr)
@@ -847,8 +851,12 @@ void addLoWPANRoute(const char * ifname, const char * net, const char * gw)
 	DWORD exitCode = -1;
 
 	execProcess(&exitCode,"netsh interface ipv6 add route %s/64 \"%s\" %s", net, if_name, gw);
-    if(exitCode==0)
+    if(exitCode==0){
         clean_route = true;
+    }
+    else {
+      fprintf(stderr, "WARNING: subprocess exited with code %ld\n", exitCode);
+    }
 }
 
 void delLoWPANRoute(const char * ifname, const char * net)
@@ -862,8 +870,12 @@ void addNeighbor(const char * ifname, const char * neighb, const char * neighb_m
 
 	if(osVersionInfo.dwMajorVersion >= 6){
         execProcess(&exitCode,"netsh interface ipv6 add neighbor \"%s\" %s \"%s\"", if_name, neighb, neighb_mac);
-        if(exitCode==0)
+        if(exitCode==0){
             clean_neighb = true;
+        }
+        else {
+          fprintf(stderr, "WARNING: subprocess exited with code %ld\n", exitCode);
+        }
 	}
 }
 
