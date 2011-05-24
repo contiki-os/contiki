@@ -159,9 +159,17 @@ if(defined($do_exit)) {
 }
 
 my $c; my $count;
+my $str="";
 while(1) {
     ($count, $c) = $ob->read(1);
-    print $c if (defined($count) && ($count != 0));
+    if (defined($count) && ($count != 0)) {
+      print $c;
+      $str = $str.$c;
+    }
+    if($str =~ /RPL-Border/) {
+      print "Existing because RPL-Border found\n";
+      exit;
+    }
 }
 
 $ob -> close or die "Close failed: $!\n";
