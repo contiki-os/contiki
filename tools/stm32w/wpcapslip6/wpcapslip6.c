@@ -70,12 +70,9 @@
 #include <windows.h>
 
 
-//#include "net/uip.h"
 #include "net/uip_arp.h"
 
-
-
-
+#include "ip-process.h"
 
 char * wpcap_start(struct uip_eth_addr *addr, int log);
 
@@ -286,7 +283,8 @@ is_sensible_string(const unsigned char *s, int len)
 void
 serial_to_wpcap(FILE *inslip)
 {
-	unsigned char buf[BUF_SIZE];
+	u16_t buf_aligned[BUF_SIZE/2];
+	u8_t *buf = (u8_t *)buf_aligned;
 
     static int inbufptr = 0;
     int ret;
@@ -425,6 +423,12 @@ read_more:
 
                   eth_hdr->type = htons(UIP_ETHTYPE_IPV6);
                   inbufptr += sizeof(struct uip_eth_hdr);
+
+                  // Process incoming packets to transform link layer addresses inside ICMP packets.
+                  // Try to do processing if we did not succeed to add the neighbor.
+                  if(clean_neighb == false){
+                    inbufptr = ip_process(buf, inbufptr);
+                  }
               }
               //print_packet(inpktbuf, inbufptr);
 
@@ -856,13 +860,7 @@ void addNeighbor(const char * ifname, const char * neighb, const char * neighb_m
 {
 	DWORD exitCode = -1;
 
-	if(osVersionInfo.dwMajorVersion < 6){ // < Windows Vista (i.e., Windows XP; check if this command is ok for Windows Server 2003 too).
-        
-        fprintf(stderr,"Bridge mode only supported on Windows Vista and later OSs.\r\n");
-        exit(-1);
-		
-	}
-	else{
+	if(osVersionInfo.dwMajorVersion >= 6){
         execProcess(&exitCode,"netsh interface ipv6 add neighbor \"%s\" %s \"%s\"", if_name, neighb, neighb_mac);
         if(exitCode==0)
             clean_neighb = true;
@@ -907,7 +905,7 @@ int IPAddrFromPrefix(char * ipaddr, const char * ipprefix, const char * mac)
     PRINTF("%02X ",dev_addr.addr[i]);
     PRINTF("\n");*/
 
-    dev_addr.addr[0] |= 0x02;				  
+    dev_addr.addr[0] ^= 0x02;
 
     strtok(tmp_ipprefix,"/");
 
