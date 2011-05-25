@@ -40,7 +40,14 @@
 
 #include "dev/temperature-sensor.h"
 #include "dev/sky-sensors.h"
+
+#include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
 #include <io.h>
+#include <signal.h>
+#endif
 
 #define INPUT_CHANNEL      (1 << INCH_10)
 #define INPUT_REFERENCE    SREF_1

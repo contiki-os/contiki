@@ -1,7 +1,15 @@
 # $Id: Makefile.z1,v 1.5 2011/02/26 enricmcalvo Exp $
 
 PROJECT_SOURCEFILES += i2cmaster.c adxl345.c
+
+ifdef GCC
 CFLAGS+=-Os -g
+endif
+
+ifdef IAR
+CFLAGS+=-e --vla
+endif
+
 CLEAN += symbols.c symbols.h
 #CFLAGS += -ffunction-sections
 #LDFLAGS += -Wl,--gc-sections,--undefined=_reset_vector__,--undefined=InterruptVectors,--undefined=_copy_data_init__,--undefined=_clear_bss_init__,--undefined=_end_of_init__
@@ -28,7 +36,7 @@ ifdef nodemac
 CFLAGS += -DMACID=$(nodemac)
 endif
 
-CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(CONTIKI_TARGET_MAIN)
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
 CONTIKI_TARGET_SOURCEFILES += contiki-z1-platform.c
 
 MCU=msp430x2617

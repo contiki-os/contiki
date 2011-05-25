@@ -38,14 +38,16 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include "contiki.h"
+
 #ifdef __GNUC__
 #include <io.h>
 #include <signal.h>
 #endif
 
 #ifdef __IAR_SYSTEMS_ICC__
-#include <io430.h>
-#endif 
+#include <msp430.h>
+#endif
 
 #include "sys/energest.h"
 #include "sys/rtimer.h"
@@ -61,7 +63,13 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
-interrupt(TIMERA0_VECTOR) timera0 (void) {
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=TIMERA0_VECTOR
+__interrupt void
+#else
+interrupt(TIMERA0_VECTOR)
+#endif
+timera0 (void) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   watchdog_start();

@@ -34,8 +34,14 @@
  */
 
 #include <stdlib.h>
+
+#include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
 #include <io.h>
 #include <signal.h>
+#endif
 
 #include "sys/energest.h"
 #include "dev/uart0.h"
@@ -139,7 +145,13 @@ uart0_init(unsigned long ubr)
 #endif /* TX_WITH_INTERRUPT */
 }
 /*---------------------------------------------------------------------------*/
+
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=USCIAB0RX_VECTOR
+__interrupt void
+#else
 interrupt(USCIAB0RX_VECTOR)
+#endif
 uart0_rx_interrupt(void)
 {
   uint8_t c;
@@ -160,19 +172,24 @@ uart0_rx_interrupt(void)
 }
 /*---------------------------------------------------------------------------*/
 #if TX_WITH_INTERRUPT
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=USCIAB0TX_VECTOR
+__interrupt void
+#else
 interrupt(USCIAB0TX_VECTOR)
+#endif
 uart0_tx_interrupt(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   if((IFG2 & UCA0TXIFG)){
-    
+
     if(ringbuf_elements(&txbuf) == 0) {
       transmitting = 0;
     } else {
       UCA0TXBUF = ringbuf_get(&txbuf);
     }
   }
-  
+
   /* In a stand-alone app won't work without this. Is the UG misleading? */
   IFG2 &= ~UCA0TXIFG;
 

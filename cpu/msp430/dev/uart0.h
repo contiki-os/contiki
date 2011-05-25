@@ -41,7 +41,7 @@
 #ifndef __UART0_H__
 #define __UART0_H__
 
-#include "msp430.h"
+#include "contiki.h"
 
 #define UART0_BAUD2UBR(baud) ((MSP430_CPU_SPEED)/(baud))
 

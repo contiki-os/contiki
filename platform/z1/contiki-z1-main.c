@@ -29,14 +29,17 @@
  * @(#)$Id: contiki-z1-main.c,v 1.4 2010/08/26 22:08:11 nifi Exp $
  */
 
-#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h> 
 
-#include <io.h>
-
 #include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
+#include <io.h>
+#include <signal.h>
+#endif
 
 #include "dev/cc2420.h"
 #include "dev/leds.h"

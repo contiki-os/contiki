@@ -41,6 +41,13 @@
 #define asmv(arg) __asm__ __volatile__(arg)
 /*---------------------------------------------------------------------------*/
 #ifdef UIP_ARCH_IPCHKSUM
+#ifdef __IAR_SYSTEMS_ICC__
+u16_t
+uip_ipchksum(void)
+{
+  return 0;
+}
+#else
 u16_t
 uip_ipchksum(void)
 {
@@ -65,5 +72,6 @@ uip_ipchksum(void)
   /* Return sum in network byte order. */
   return (sum == 0) ? 0xffff : sum;
 }
+#endif
 #endif
 /*---------------------------------------------------------------------------*/

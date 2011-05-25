@@ -30,8 +30,14 @@
  *
  * @(#)$Id: watchdog.c,v 1.12 2010/11/12 15:54:41 nifi Exp $
  */
+
+#include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
 #include <io.h>
 #include <signal.h>
+#endif
 #include "dev/watchdog.h"
 
 static int counter = 0;
@@ -70,7 +76,12 @@ printstring(char *s)
 #endif /* CONTIKI_TARGET_SKY */
 #endif /* PRINT_STACK_ON_REBOOT */
 /*---------------------------------------------------------------------------*/
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=WDT_VECTOR
+__interrupt void
+#else
 interrupt(WDT_VECTOR)
+#endif
 watchdog_interrupt(void)
 {
 #ifdef CONTIKI_TARGET_SKY

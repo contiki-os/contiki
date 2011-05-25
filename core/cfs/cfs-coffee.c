@@ -191,7 +191,7 @@ struct file_header {
   uint8_t deprecated_eof_hint;
   uint8_t flags;
   char name[COFFEE_NAME_LENGTH];
-} __attribute__((packed));
+};
 
 /* This is needed because of a buggy compiler. */
 struct log_param {
@@ -1141,7 +1141,7 @@ cfs_read(int fd, void *buf, unsigned size)
       r = bytes_left;
     }
     fdp->offset += r;
-    buf += r;
+    buf = (char *)buf + r;
   }
 #endif /* COFFEE_MICRO_LOGS */
 
@@ -1208,7 +1208,7 @@ cfs_write(int fd, const void *buf, unsigned size)
 	/* A log record was written. */
 	bytes_left -= i;
 	fdp->offset += i;
-	buf += i;
+	buf = (char *)buf + i;
 
         /* Update the file end for a potential log merge that might
            occur while writing log records. */

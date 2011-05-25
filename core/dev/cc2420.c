@@ -42,7 +42,7 @@
 #include <avr/io.h>
 #elif defined(__MSP430__)
 #ifdef __IAR_SYSTEMS_ICC__
-#include <io430.h>
+#include <msp430.h>
 #else
 #include <io.h>
 #endif

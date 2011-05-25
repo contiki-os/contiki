@@ -30,11 +30,10 @@
  *
  * @(#)$Id: msp430.c,v 1.15 2011/01/05 13:36:38 joxe Exp $
  */
+#include "contiki.h"
 #include <io.h>
 #include <signal.h>
 #include <sys/unistd.h>
-#include "msp430.h"
-#include "msp430def.h"
 #include "dev/watchdog.h"
 #include "net/uip.h"
 

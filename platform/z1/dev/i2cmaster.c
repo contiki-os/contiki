@@ -201,7 +201,12 @@ i2c_transmit_n(u8_t byte_ctr, u8_t *tx_buf) {
 }
 
 /*----------------------------------------------------------------------------*/
-interrupt (USCIAB1TX_VECTOR)   
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=USCIAB1TX_VECTOR
+__interrupt void
+#else
+interrupt (USCIAB1TX_VECTOR)
+#endif
 i2c_tx_interrupt (void) {
   // TX Part
   if (UC1IFG & UCB1TXIFG) {        // TX int. condition
@@ -232,7 +237,12 @@ i2c_tx_interrupt (void) {
 #endif
 }
 
-interrupt(USCIAB1RX_VECTOR)
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=USCIAB1RX_VECTOR
+__interrupt void
+#else
+interrupt (USCIAB1RX_VECTOR)
+#endif
 i2c_rx_interrupt(void) {
   if (UCB1STAT & UCNACKIFG){
     PRINTFDEBUG("!!! NACK received in RX\n");
