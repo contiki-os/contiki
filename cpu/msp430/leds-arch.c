@@ -39,10 +39,14 @@
  *           $Revision: 1.1 $
  */
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
-
+#include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
 #include <io.h>
+#endif
+
+#include "dev/leds.h"
 
 /*---------------------------------------------------------------------------*/
 void

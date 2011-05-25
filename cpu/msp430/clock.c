@@ -32,10 +32,13 @@
  */
 
 
+#include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
 #include <io.h>
 #include <signal.h>
-
-#include "contiki-conf.h"
+#endif
 
 #include "sys/energest.h"
 #include "sys/clock.h"
@@ -53,7 +56,13 @@ static volatile clock_time_t count = 0;
 /* last_tar is used for calculating clock_fine */
 static volatile uint16_t last_tar = 0;
 /*---------------------------------------------------------------------------*/
-interrupt(TIMERA1_VECTOR) timera1 (void) {
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=TIMERA1_VECTOR
+__interrupt void
+#else
+interrupt(TIMERA1_VECTOR)
+#endif
+timera1 (void) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   watchdog_start();

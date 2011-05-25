@@ -42,11 +42,17 @@
 #define __I2CMASTER_H__
 
 #include <stdio.h>
-#include <signal.h>
+#include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
 #include <io.h>
-#include <contiki.h>
+#include <signal.h>
+#endif
 #include <dev/spi.h>
 #include <dev/leds.h>
+
+
 
 void i2c_enable(void);
 
@@ -59,10 +65,17 @@ void i2c_transmit_n(u8_t byte_ctr, u8_t *tx_buf);
 u8_t i2c_busy(void);
 
 //XXX Temporary place for defines that are lacking in mspgcc4's gpio.h
+#ifdef __GNUC__
 #ifndef P5SEL2_
   #define P5SEL2_             0x0045  /* Port 5 Selection 2*/
   sfrb(P5SEL2, P5SEL2_);
 #endif
+#endif
+#ifdef __IAR_SYSTEMS_ICC__
+#define P5SEL2_              (0x0045u)  /* Port 5 Selection 2*/
+DEFC(   P5SEL2             , P5SEL2_)
+#endif
+
 //XXX Should these defines be in the contiki-conf.h to make it more platform-independent?
 #define I2C_PxDIR   P5DIR
 #define I2C_PxIN    P5IN

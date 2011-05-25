@@ -40,8 +40,14 @@
 
 
 #include <stdio.h>
-#include <signal.h>
 #include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
+#include <io.h>
+#include <signal.h>
+#endif
+
 #include "i2cmaster.h"
 #include "tmp102.h"
 

@@ -29,11 +29,16 @@
  * @(#)$Id: cc2420-arch.c,v 1.1 2010/11/07 08:38:51 enricmcalvo Exp $
  */
 
-#include <io.h>
-#include <signal.h>
-
 #include "contiki.h"
 #include "contiki-net.h"
+
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
+#include <io.h>
+#include <signal.h>
+#endif
+
 
 #include "dev/spi.h"
 #include "dev/cc2420.h"

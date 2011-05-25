@@ -41,7 +41,7 @@
 #endif
 
 #ifdef __IAR_SYSTEMS_ICC__
-#include <io430.h>
+#include <msp430.h>
 #endif 
 
 #define HWCONF_PIN(name, port, bit)                                           \

@@ -29,12 +29,16 @@
  * @(#)$Id: cc2420-arch-sfd.c,v 1.5 2010/12/16 22:49:12 adamdunkels Exp $
  */
 
+#include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
 #include <io.h>
 #include <signal.h>
+#endif
 
 #include "dev/spi.h"
 #include "dev/cc2420.h"
-#include "contiki-conf.h"
 
 extern volatile uint8_t cc2420_sfd_counter;
 extern volatile uint16_t cc2420_sfd_start_time;
@@ -42,7 +46,12 @@ extern volatile uint16_t cc2420_sfd_end_time;
 
 /*---------------------------------------------------------------------------*/
 /* SFD interrupt for timestamping radio packets */
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=TIMERB1_VECTOR
+__interrupt void
+#else
 interrupt(TIMERB1_VECTOR)
+#endif
 cc24240_timerb1_interrupt(void)
 {
   int tbiv;
