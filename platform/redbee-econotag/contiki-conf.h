@@ -97,6 +97,9 @@
 /* end of mc1322x specific config. */
 
 /* start of conitki config. */
+#define PLATFORM_HAS_LEDS 1
+#define PLATFORM_HAS_BUTTON 1
+
 #define RIMEADDR_CONF_SIZE              8
 
 /* EUI64 generation */
