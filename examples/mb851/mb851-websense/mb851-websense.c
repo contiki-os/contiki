@@ -164,15 +164,13 @@ PT_THREAD(send_values(struct httpd_state *s))
       end_acc_chart();
       SEND_STRING(&s->sout, buf);
 
-      SEND_STRING(&s->sout, BOTTOM);
-
     }
     if(s->filename[1] != 'a') {
       generate_chart("Temperature", "Celsius", 10, 50, temperature);
       SEND_STRING(&s->sout, buf);
-
-      SEND_STRING(&s->sout, BOTTOM);
     }
+
+    SEND_STRING(&s->sout, BOTTOM);
   }
 
   PSOCK_END(&s->sout);
