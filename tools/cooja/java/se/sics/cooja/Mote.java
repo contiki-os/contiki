@@ -148,4 +148,7 @@ public interface Mote {
    * Called when mote is removed from simulation 
    */
   public void removed();
+
+  public void setProperty(String key, Object obj);
+  public Object getProperty(String key);
 }
