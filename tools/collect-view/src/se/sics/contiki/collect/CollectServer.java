@@ -1443,6 +1443,7 @@ public class CollectServer implements SerialConnectionListener {
     String command = null;
     String logFileToLoad = null;
     String comPort = null;
+    int port = -1;
     for(int i = 0, n = args.length; i < n; i++) {
       String arg = args[i];
       if (arg.length() == 2 && arg.charAt(0) == '-') {
@@ -1454,6 +1455,13 @@ public class CollectServer implements SerialConnectionListener {
             usage(arg);
           }
           break;
+        case 'p':
+            if (i + 1 < n) {
+              port = Integer.parseInt(args[++i]);
+            } else {
+              usage(arg);
+            }
+            break;
         case 'r':
           resetSensorLog = true;
           break;
@@ -1485,7 +1493,9 @@ public class CollectServer implements SerialConnectionListener {
 
     CollectServer server = new CollectServer();
     SerialConnection serialConnection;
-    if (command == null) {
+    if (port > 0) {
+      serialConnection = new UDPConnection(server, port);
+    } else if (command == null) {
       serialConnection = new SerialDumpConnection(server);
     } else if (command == STDIN_COMMAND) {
       serialConnection = new StdinConnection(server);
@@ -1516,11 +1526,12 @@ public class CollectServer implements SerialConnectionListener {
     if (arg != null) {
       System.err.println("Unknown argument '" + arg + '\'');
     }
-    System.err.println("Usage: java CollectServer [-n] [-i] [-r] [-f [file]] [-c command] [COMPORT]");
+    System.err.println("Usage: java CollectServer [-n] [-i] [-r] [-f [file]] [-p port] [-c command] [COMPORT]");
     System.err.println("       -n : Do not read or save sensor data log");
     System.err.println("       -r : Clear any existing sensor data log at startup");
     System.err.println("       -i : Do not allow serial output");
     System.err.println("       -f : Read serial data from standard in");
+    System.err.println("       -p : Read data from specified UDP port");
     System.err.println("       -c : Use specified command for serial data input/output");
     System.err.println("   COMPORT: The serial port to connect to");
     System.exit(arg != null ? 1 : 0);
