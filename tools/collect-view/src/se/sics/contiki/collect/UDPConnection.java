@@ -40,7 +40,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-
+import java.io.*;
 /**
  *
  */
@@ -67,7 +67,7 @@ private DatagramSocket serverSocket;
     isClosed = false;
     try {
       serverSocket = new DatagramSocket(port);
-
+      System.out.println("Opened UDP port: " + port);
       /* Start thread listening on UDP */
       Thread readInput = new Thread(new Runnable() {
         public void run() {
@@ -79,8 +79,31 @@ private DatagramSocket serverSocket;
 
               InetAddress addr = packet.getAddress();
               System.out.println("UDP: received " + packet.getLength() + " bytes from " + addr.getHostAddress() + ":" + packet.getPort());
-              // TODO handle data
-//              serialData(line);
+
+	      StringWriter strOut = new StringWriter();
+	      PrintWriter out = new PrintWriter(strOut);
+	      int payloadLen = packet.getLength() - 2;
+	      out.printf("%d", 8 + payloadLen / 2);
+	      /* Timestamp. Ignore time synch for now. */
+	      long time = System.currentTimeMillis() / 1000;
+	      out.printf(" %d %d 0",
+				((time >> 16) & 0xffff), time & 0xffff);
+	      byte[] payload = packet.getData();
+	      int seqno = payload[0] & 0xff;
+	      int hops = 0;  /* how to get TTL / hot limit in Java??? */
+	      byte[] address = addr.getAddress();
+	      /* Ignore latency for now */
+	      out.printf(" %d %d %d %d",
+				(address[14] + (address[15] << 8))&0xffff,
+				seqno, hops, 0);
+	      int d = 0;
+	      for(int i = 0; i < payloadLen ; i += 2) {
+		  d = payload[i + 2] + (payload[i + 3] << 8);
+		  out.printf(" %d", d & 0xffff);
+	      }
+
+	      String line = strOut.toString();
+              serialData(line);
             }
             System.out.println("SerialConnection UDP terminated.");
             closeConnection();
