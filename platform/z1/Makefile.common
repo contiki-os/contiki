@@ -7,7 +7,7 @@ CFLAGS+=-Os -g
 endif
 
 ifdef IAR
-CFLAGS+=-e --vla
+CFLAGS+=-e --vla -Ohz --multiplier=16s --core=430X  --data_model small --double=32
 endif
 
 CLEAN += symbols.c symbols.h
@@ -41,6 +41,11 @@ CONTIKI_TARGET_SOURCEFILES += contiki-z1-platform.c
 
 MCU=msp430x2617
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
+
+# Add LDFLAGS after IAR_PATH is set
+ifdef IAR
+LDFLAGS += -B -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f2617.xcl" -l contiki-$(TARGET).map -Fintel-extended -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+endif
 
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 #	$(AR) rcf $@ $^
