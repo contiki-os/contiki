@@ -1,0 +1,5 @@
+%.upload: %.srec
+	uisp -dprog=mib510 -dserial=$(PORT) -dpart=ATmega128 --wr_fuse_h=0xd1 --wr_fuse_e=ff --erase --upload if=$< --verify
+
+erase:
+	uisp -dprog=mib510 -dserial=$(PORT) -dpart=ATmega128 --wr_fuse_h=0xd9 --wr_fuse_e=ff --erase        
