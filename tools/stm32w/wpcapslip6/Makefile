@@ -13,12 +13,12 @@ ifdef WITH_STDIN
 endif 
 
 clean:
-	rm -f wpcapslip6.o wpcap6.o
+	rm -f wpcapslip6.o wpcap6.o ip-process.o fakeuip.o
 
 
 vpath %.c $(CONTIKI)/core/net
 
-wpcapslip6: wpcapslip6.o wpcap6.o
+wpcapslip6: wpcapslip6.o wpcap6.o ip-process.o fakeuip.o
 
 %: %.o
 	$(CC) $(LDFLAGS) $^ /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a -o $@

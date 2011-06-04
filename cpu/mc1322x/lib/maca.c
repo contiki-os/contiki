@@ -76,6 +76,10 @@
 #define MACA_INSERT_ACK 1
 #endif
 
+/* Bit in first byte of 802.15.4 message that indicates an */
+/* acknowledgereply frame is expected */
+#define MAC_ACK_REQUEST_FLAG 0x20
+
 #define reg(x) (*(volatile uint32_t *)(x))
 
 int count_packets(void);
@@ -650,7 +654,7 @@ void maca_isr(void) {
 		dma_rx->rx_time = *MACA_TIMESTAMP;
 
 		/* check if received packet needs an ack */
-		if(prm_mode == AUTOACK && (dma_rx->data[1] & 0x20)) {
+		if(prm_mode == AUTOACK && (dma_rx->data[1] & MAC_ACK_REQUEST_FLAG)) {
 			/* this wait is necessary to auto-ack */
 			volatile uint32_t wait_clk;
 			wait_clk = *MACA_CLK + 200;
@@ -682,8 +686,18 @@ void maca_isr(void) {
 		/* PRINTF("maca action complete %d\n\r", get_field(*MACA_CONTROL,SEQUENCE)); */
 		if(last_post == TX_POST) {
 			tx_head->status = get_field(*MACA_STATUS,CODE);
+
 #if MACA_INSERT_ACK
-			if(tx_head->status == SUCCESS) {
+/* Having sent a message with the acknowledge request flag set the
+ * MACA hardware will only give a tx success indication if the message
+ * was acknowledged by the remote node. We need to detect this
+ * condition and inject an ACK packet into the internal receive stream
+ * as the higher layers are expecting to see an ACK packet.*/
+
+			if(tx_head->status == SUCCESS && (tx_head->data[0] & MAC_ACK_REQUEST_FLAG)) {
+
+				/* Create the dummy ack packet */
+
 				static volatile packet_t *ack_p;
 				if(ack_p = get_free_packet()) {
 					ack_p->length = 3;
@@ -694,6 +708,7 @@ void maca_isr(void) {
 					ack_p->data[3] = *MACA_TXSEQNR;
 					insert_at_rx_head(ack_p);
 				}
+
 			}
 #endif
 
