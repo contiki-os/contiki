@@ -47,13 +47,23 @@
 #include <dev/sht11.h>
 #include "sht11-arch.h"
 
+#define DEBUG 0
+
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+#ifndef SDA_0()
 #define SDA_0()   (SHT11_PxDIR |=  BV(SHT11_ARCH_SDA))	/* SDA Output=0 */
 #define SDA_1()   (SHT11_PxDIR &= ~BV(SHT11_ARCH_SDA))	/* SDA Input */
 #define SDA_IS_1  (SHT11_PxIN & BV(SHT11_ARCH_SDA))
 
 #define SCL_0()   (SHT11_PxOUT &= ~BV(SHT11_ARCH_SCL))	/* SCL Output=0 */
 #define SCL_1()   (SHT11_PxOUT |=  BV(SHT11_ARCH_SCL))	/* SCL Output=1 */
-
+#endif
 				/* adr   command  r/w */
 #define  STATUS_REG_W   0x06	/* 000    0011    0 */
 #define  STATUS_REG_R   0x07	/* 000    0011    1 */
@@ -62,7 +72,9 @@
 #define  RESET          0x1e	/* 000    1111    0 */
 
 /* This can probably be reduced to 250ns according to data sheet. */
+#ifndef delay_400ns()
 #define delay_400ns() _NOP()
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 sstart(void)
@@ -92,6 +104,7 @@ sreset(void)
     SCL_1();
     delay_400ns();
     SCL_0();
+    delay_400ns();
   }
   sstart();			/* Start transmission, why??? */
 }
@@ -115,6 +128,7 @@ swrite(unsigned _c)
     SCL_1();
     delay_400ns();
     SCL_0();
+    delay_400ns();
   }
 
   SDA_1();
@@ -142,6 +156,7 @@ sread(int send_ack)
       c |= 0x1;
     }
     SCL_0();
+    delay_400ns();
   }
 
   if(send_ack) {
@@ -202,9 +217,13 @@ sht11_init(void)
    * SDA 0: Output=0
    *     1: Input and pull-up (Output=0)
    */
+#ifdef SHT11_INIT()
+  SHT11_INIT();
+#else
   SHT11_PxOUT |= BV(SHT11_ARCH_PWR);
   SHT11_PxOUT &= ~(BV(SHT11_ARCH_SDA) | BV(SHT11_ARCH_SCL));
   SHT11_PxDIR |= BV(SHT11_ARCH_PWR) | BV(SHT11_ARCH_SCL);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -213,9 +232,13 @@ sht11_init(void)
 void
 sht11_off(void)
 {
+#ifdef SHT11_OFF()
+  SHT11_OFF();
+#else
   SHT11_PxOUT &= ~BV(SHT11_ARCH_PWR);
   SHT11_PxOUT &= ~(BV(SHT11_ARCH_SDA) | BV(SHT11_ARCH_SCL));
   SHT11_PxDIR |= BV(SHT11_ARCH_PWR) | BV(SHT11_ARCH_SCL);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -227,11 +250,13 @@ scmd(unsigned cmd)
   unsigned long n;
 
   if(cmd != MEASURE_HUMI && cmd != MEASURE_TEMP) {
+    PRINTF("Illegal command: %d\n", cmd);
     return -1;
   }
 
   sstart();			/* Start transmission */
   if(!swrite(cmd)) {
+    PRINTF("SHT11: scmd - swrite failed\n");
     goto fail;
   }
 
@@ -241,6 +266,7 @@ scmd(unsigned cmd)
       t0 = sread(1);
       t1 = sread(1);
       rcrc = sread(0);
+      PRINTF("SHT11: scmd - read %d, %d\n", t0, t1);
 #ifdef CRC_CHECK
       {
 	unsigned crc;
@@ -248,6 +274,8 @@ scmd(unsigned cmd)
 	crc = crc8_add(crc, t0);
 	crc = crc8_add(crc, t1);
 	if(crc != rev8bits(rcrc)) {
+	  PRINTF("SHT11: scmd - crc check failed %d vs %d\n",
+		 crc, rev8bits(rcrc));
 	  goto fail;
 	}
       }
