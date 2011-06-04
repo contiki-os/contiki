@@ -295,11 +295,11 @@ cc2420_init(void)
 
   /* Turn on voltage regulator and reset. */
   SET_VREG_ACTIVE();
-  //clock_delay(250); OK
+  clock_delay(250);
   SET_RESET_ACTIVE();
   clock_delay(127);
   SET_RESET_INACTIVE();
-  //clock_delay(125); OK
+  clock_delay(125);
 
 
   /* Turn on the crystal oscillator. */
