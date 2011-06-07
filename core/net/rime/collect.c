@@ -1452,6 +1452,7 @@ collect_send(struct collect_conn *tc, int rexmits)
              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       printf("%d.%d: drop originated packet: no queuebuf\n",
              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+      ret = 0;
     }
 
     
