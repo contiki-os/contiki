@@ -56,7 +56,7 @@
 #define PRINTF(...)
 #endif
 
-#ifndef SDA_0()
+#ifndef SDA_0
 #define SDA_0()   (SHT11_PxDIR |=  BV(SHT11_ARCH_SDA))	/* SDA Output=0 */
 #define SDA_1()   (SHT11_PxDIR &= ~BV(SHT11_ARCH_SDA))	/* SDA Input */
 #define SDA_IS_1  (SHT11_PxIN & BV(SHT11_ARCH_SDA))
@@ -72,7 +72,7 @@
 #define  RESET          0x1e	/* 000    1111    0 */
 
 /* This can probably be reduced to 250ns according to data sheet. */
-#ifndef delay_400ns()
+#ifndef delay_400ns
 #define delay_400ns() _NOP()
 #endif
 /*---------------------------------------------------------------------------*/
@@ -217,7 +217,7 @@ sht11_init(void)
    * SDA 0: Output=0
    *     1: Input and pull-up (Output=0)
    */
-#ifdef SHT11_INIT()
+#ifdef SHT11_INIT
   SHT11_INIT();
 #else
   SHT11_PxOUT |= BV(SHT11_ARCH_PWR);
@@ -232,7 +232,7 @@ sht11_init(void)
 void
 sht11_off(void)
 {
-#ifdef SHT11_OFF()
+#ifdef SHT11_OFF
   SHT11_OFF();
 #else
   SHT11_PxOUT &= ~BV(SHT11_ARCH_PWR);
