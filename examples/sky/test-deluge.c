@@ -50,6 +50,10 @@
 #define SINK_ID	1
 #endif
 
+#ifndef FILE_SIZE
+#define FILE_SIZE 1000
+#endif
+
 PROCESS(deluge_test_process, "Deluge test process");
 AUTOSTART_PROCESSES(&deluge_test_process);
 /*---------------------------------------------------------------------------*/
@@ -77,9 +81,13 @@ PROCESS_THREAD(deluge_test_process, ev, data)
     cfs_close(fd);
     process_exit(NULL);
   }
-  cfs_close(fd);
+
+  if(cfs_seek(fd, FILE_SIZE, CFS_SEEK_SET) != FILE_SIZE) {
+    printf("failed to seek to the end\n");
+  }
 
   deluge_disseminate("test", node_id == SINK_ID);
+  cfs_close(fd);
 
   etimer_set(&et, CLOCK_SECOND * 5);
   for(;;) {
