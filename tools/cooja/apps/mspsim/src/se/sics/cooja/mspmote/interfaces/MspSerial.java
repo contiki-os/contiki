@@ -46,6 +46,7 @@ import se.sics.cooja.mspmote.MspMoteTimeEvent;
 import se.sics.mspsim.core.IOUnit;
 import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.USARTListener;
+import se.sics.mspsim.core.USARTSource;
 
 /**
  * @author Fredrik Osterlind
@@ -73,13 +74,9 @@ public class MspSerial extends SerialUI implements SerialPort {
     if (ioUnit instanceof USART) {
       usart = (USART) ioUnit;
       usart.setUSARTListener(new USARTListener() {
-        public void dataReceived(USART arg0, int arg1) {
-          MspSerial.this.dataReceived(arg1);
-        }
-        public void stateChanged(int state) {
-          if (state == USARTListener.RXFLAG_CLEARED) {
-            /*tryWriteNextByte();*/
-          }
+        @Override
+        public void dataReceived(USARTSource source, int data) {
+          MspSerial.this.dataReceived(data);
         }
       });
     }

@@ -8,7 +8,8 @@
 # contikichecker
 
 #start the nodegui service
-service controlgui start
-service nodegui start
-#service stackchart start
+service -f controlgui start
+service -f nodegui start
+service -f serialgui start
+#service -f stackchart start
 start

@@ -31,18 +31,8 @@
 
 package se.sics.cooja.mspmote.interfaces;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
-
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -62,6 +52,7 @@ import se.sics.cooja.mspmote.MspMoteTimeEvent;
 import se.sics.mspsim.core.IOUnit;
 import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.USARTListener;
+import se.sics.mspsim.core.USARTSource;
 
 /**
  * TR1001 radio interface on ESB platform.
@@ -200,7 +191,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
   }
 
   /* USART listener support */
-  public void dataReceived(USART source, int data) {
+  public void dataReceived(USARTSource source, int data) {
     if (!isTransmitting()) {
       /* New transmission discovered */
       /*logger.info("----- NEW TR1001 TRANSMISSION DETECTED -----");*/
@@ -251,9 +242,6 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
       TR1001Radio.this.notifyObservers();
       /* logger.info("----- TR1001 TRANSMISSION ENDED -----"); */
     }
-  }
-
-  public void stateChanged(int state) {
   }
 
   /* General radio support */
