@@ -384,8 +384,8 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_MAX_LISTENPORTS    2
 #define UIP_CONF_UDP_CONNS          6
 
-/* Optional, TCP needed to serve the RPL neighbor web page currently hard coded at bbbb::11 */
-/* The RPL neighbors can also be viewed using the jack menu */
+/* Optional, TCP needed to serve the RPL neighbor web page currently hard coded at bbbb::200 */
+/* The RPL neighbors can also be viewed using the jackdaw menu */
 /* A small MSS is adequate for the internal jackdaw webserver and RAM is very limited*/
 #define RPL_HTTPD_SERVER            0
 #if RPL_HTTPD_SERVER

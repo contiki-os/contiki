@@ -95,38 +95,40 @@ PROCESS_NAME(deluge_process);
 #define CONST_OMEGA		8
 #define ESTIMATED_TX_TIME	(CLOCK_SECOND)
 
+typedef uint8_t deluge_object_id_t;
+
 struct deluge_msg_summary {
-  uint16_t object_id;
   uint8_t cmd;
   uint8_t version;
   uint8_t highest_available;
-} __attribute__((packed));
+  deluge_object_id_t object_id;
+};
 
 struct deluge_msg_request {
-  uint16_t object_id;
   uint8_t cmd;
   uint8_t version;
   uint8_t pagenum;
   uint8_t request_set;
-} __attribute__((packed));
+  deluge_object_id_t object_id;
+};
 
 struct deluge_msg_packet {
-  uint16_t object_id;
   uint8_t cmd;
   uint8_t version;
   uint8_t pagenum;
   uint8_t packetnum;
   uint16_t crc;
+  deluge_object_id_t object_id;
   unsigned char payload[S_PKT];
-} __attribute__((packed));
+};
 
 struct deluge_msg_profile {
-  uint16_t object_id;
   uint8_t cmd;
   uint8_t version;
   uint8_t npages;
+  deluge_object_id_t object_id;
   uint8_t version_vector[];
-} __attribute__((packed));
+};
 
 struct deluge_object {
   char *filename;

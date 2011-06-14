@@ -51,11 +51,11 @@ Berlin, 2007
  * ScatterWeb Bootload and Contiki.
  */
 
+#include "contiki.h"
 #include <io.h>
 #include <signal.h>
 #include <string.h>
 #include "dev/msb430-uart1.h"
-#include "msp430.h"
 #include "dev/lpm.h"
 
 #ifndef U1ME
