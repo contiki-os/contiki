@@ -46,11 +46,14 @@
  */
 #define PLATFORM PLATFORM_AVR
 
+#define HARWARE_REVISION IRIS
+//#define RAVEN_REVISION RAVEN_D
+
 /*
  * MCU and clock rate.
  * MICAZ runs on 7.3728 MHz clock.
  */
-#define MCU_MHZ 7
+#define MCU_MHZ 8
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 128
@@ -77,7 +80,7 @@
 #define EEPROM_NODE_ID_START 0x00
 
 
-#define NETSTACK_CONF_RADIO   cc2420_driver
+#define NETSTACK_CONF_RADIO   rf230_driver
 
 
 /*
@@ -113,83 +116,6 @@
 #define SPI_FLASH_HOLD()                ( P4OUT &= ~BV(FLASH_HOLD) )
 #define SPI_FLASH_UNHOLD()              ( P4OUT |=  BV(FLASH_HOLD) )
 
-/*
- * SPI bus - CC2420 pin configuration.
- */
-
-#define CC2420_CONF_SYMBOL_LOOP_COUNT 500
-
-/*
- * SPI bus - CC2420 pin configuration.
- */
-
-#define FIFO_P         6
-#define FIFO           7
-#define CCA            6
-
-#define SFD            4
 #define CSN            0
-#define VREG_EN        5
-#define RESET_N        6
-
-
-/* - Input: FIFOP from CC2420 - ATMEGA128 PORTE, PIN6 */
-#define CC2420_FIFOP_PORT(type)   P##type##E
-#define CC2420_FIFOP_PIN          6
-/* - Input: FIFO from CC2420 - ATMEGA128 PORTB, PIN7 */
-#define CC2420_FIFO_PORT(type)     P##type##B
-#define CC2420_FIFO_PIN            7
-/* - Input: CCA from CC2420 - ATMEGA128 PORTD, PIN6 */
-#define CC2420_CCA_PORT(type)      P##type##D
-#define CC2420_CCA_PIN             6
-/* - Input:  SFD from CC2420 - ATMEGA128 PORTD, PIN4 */
-#define CC2420_SFD_PORT(type)      P##type##D
-#define CC2420_SFD_PIN             4
-/* - Output: SPI Chip Select (CS_N) - ATMEGA128 PORTB, PIN0 */
-#define CC2420_CSN_PORT(type)      P##type##B
-#define CC2420_CSN_PIN             0
-/* - Output: VREG_EN to CC2420 - ATMEGA128 PORTA, PIN5 */
-#define CC2420_VREG_PORT(type)     P##type##A
-#define CC2420_VREG_PIN            5
-/* - Output: RESET_N to CC2420 - ATMEGA128 PORTA, PIN6 */
-#define CC2420_RESET_PORT(type)    P##type##A
-#define CC2420_RESET_PIN           6
-
-#define CC2420_IRQ_VECTOR INT6_vect
-
-/* Pin status. */
-#define CC2420_FIFOP_IS_1 (!!(CC2420_FIFOP_PORT(IN) & BV(CC2420_FIFOP_PIN)))
-#define CC2420_FIFO_IS_1  (!!(CC2420_FIFO_PORT(IN) & BV(CC2420_FIFO_PIN)))
-#define CC2420_CCA_IS_1   (!!(CC2420_CCA_PORT(IN) & BV(CC2420_CCA_PIN)))
-#define CC2420_SFD_IS_1   (!!(CC2420_SFD_PORT(IN) & BV(CC2420_SFD_PIN)))
-
-/* The CC2420 reset pin. */
-#define SET_RESET_INACTIVE()   (CC2420_RESET_PORT(ORT) |=  BV(CC2420_RESET_PIN))
-#define SET_RESET_ACTIVE()     (CC2420_RESET_PORT(ORT) &= ~BV(CC2420_RESET_PIN))
-
-/* CC2420 voltage regulator enable pin. */
-#define SET_VREG_ACTIVE()       (CC2420_VREG_PORT(ORT) |=  BV(CC2420_VREG_PIN))
-#define SET_VREG_INACTIVE()     (CC2420_VREG_PORT(ORT) &= ~BV(CC2420_VREG_PIN))
-
-/* CC2420 rising edge trigger for external interrupt 6 (FIFOP).
- * Enable the external interrupt request for INT6.
- * See Atmega128 datasheet about EICRB Register
- */
-#define CC2420_FIFOP_INT_INIT() do {\
-  EICRB |= 0x30; \
-  CC2420_CLEAR_FIFOP_INT(); \
-} while (0)
-
-/* FIFOP on external interrupt 6. */
-#define CC2420_ENABLE_FIFOP_INT()          do { EIMSK |= 0x40; } while (0)
-#define CC2420_DISABLE_FIFOP_INT()         do { EIMSK &= ~0x40; } while (0)
-#define CC2420_CLEAR_FIFOP_INT()           do { EIFR = 0x40; } while (0)
-
-/*
- * Enables/disables CC2420 access to the SPI bus (not the bus).
- * (Chip Select)
- */
-#define CC2420_SPI_ENABLE() (PORTB &= ~BV(CSN)) /* ENABLE CSn (active low) */
-#define CC2420_SPI_DISABLE() (PORTB |=  BV(CSN)) /* DISABLE CSn (active low) */
 
 #endif /* __PLATFORM_CONF_H__ */
