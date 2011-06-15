@@ -32,38 +32,94 @@
  */
 
 
-#include <avr/io.h>
+/**
+ * \file
+ *         Main file of the MICAz port.
+ *
+ * \author
+ *         Kasun Hewage <kasun.ch@gmail.com>
+ */
+
+#include <stdio.h>
+#include <avr/pgmspace.h>
 
 #include "contiki.h"
-#include "contiki-net.h"
-
-#include "dev/spi.h"
-#include "dev/cc2420.h"
+#include "contiki-lib.h"
+#include "net/rime.h"
 #include "dev/leds.h"
+#include "dev/rs232.h"
+#include "dev/watchdog.h"
+#include "dev/slip.h"
 
+#include "init-net.h"
+#include "dev/ds2401.h"
+#include "node-id.h"
+
+/*---------------------------------------------------------------------------*/
 void
-cc2420_arch_init(void)
+init_usart(void)
 {
-  SFIOR |= BV(PUD);             /* Beware, disable all pull-ups. */
+  /* First rs232 port for debugging */
+  rs232_init(RS232_PORT_0, USART_BAUD_115200,
+             USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 
-  spi_init();
+#if WITH_UIP || WITH_UIP6
+  slip_arch_init(USART_BAUD_115200);
+#else
+  rs232_redirect_stdout(RS232_PORT_0);
+#endif /* WITH_UIP */
 
-  DDRA |= BV(CC2420_RESET_PIN);
-  DDRA |= BV(CC2420_VREG_PIN);
-  DDRB &= ~BV(CC2420_FIFO_PIN);
-  DDRD &= ~BV(CC2420_CCA_PIN);
-  DDRD &= ~BV(CC2420_SFD_PIN);
-  DDRE &= ~BV(CC2420_FIFOP_PIN);
-
-  PORTA |= BV(CC2420_RESET_PIN);
-  PORTB |= BV(CC2420_CSN_PIN);
-
-  CC2420_SPI_DISABLE();                /* Unselect radio. */
 }
-
-ISR(CC2420_IRQ_VECTOR)
+/*---------------------------------------------------------------------------*/
+int
+main(void)
 {
-  /* TODO : wakeup from sleep mode */
-  cc2420_interrupt();
 
+  leds_init();
+
+  leds_on(LEDS_RED);
+
+  /* Initialize USART */
+  init_usart();
+  
+  /* Clock */
+  clock_init();
+
+  leds_on(LEDS_GREEN);
+
+  ds2401_init();
+  
+  node_id_restore();
+
+  random_init(ds2401_id[0] + node_id);
+
+  rtimer_init();
+
+  /* Process subsystem */
+  process_init();
+
+  process_start(&etimer_process, NULL);
+
+  ctimer_init();
+
+  leds_on(LEDS_YELLOW);
+  
+  init_net();
+  
+  printf_P(PSTR(CONTIKI_VERSION_STRING " started. Node id %u\n"), node_id);
+
+  leds_off(LEDS_ALL);
+
+  /* Autostart processes */
+  autostart_start(autostart_processes);
+
+  mmem_init();
+  /* Main scheduler loop */
+  do {
+
+    process_run();
+
+  }while(1);
+
+  return 0;
 }
