@@ -163,6 +163,12 @@ queuebuf_new_from_packetbuf(void)
 }
 /*---------------------------------------------------------------------------*/
 void
+queuebuf_update_attr_from_packetbuf(struct queuebuf *buf)
+{
+  packetbuf_attr_copyto(buf->attrs, buf->addrs);
+}
+/*---------------------------------------------------------------------------*/
+void
 queuebuf_free(struct queuebuf *buf)
 {
   if(memb_inmemb(&bufmem, buf)) {
