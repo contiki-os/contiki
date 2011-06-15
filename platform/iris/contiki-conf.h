@@ -55,7 +55,7 @@
 #define NETSTACK_CONF_RDC     nullrdc_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
-#define CC2420_CONF_AUTOACK              1
+#define RF230_CONF_AUTOACK              1
 #define MAC_CONF_CHANNEL_CHECK_RATE      8
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
 #define CXMAC_CONF_ANNOUNCEMENTS         0
@@ -69,7 +69,7 @@
 #define NETSTACK_CONF_RDC     cxmac_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
-#define CC2420_CONF_AUTOACK              1
+#define RF230_CONF_AUTOACK              1
 #define MAC_CONF_CHANNEL_CHECK_RATE      8
 
 #define COLLECT_CONF_ANNOUNCEMENTS       1
@@ -158,8 +158,8 @@
 #endif
 
 #define TIMESYNCH_CONF_ENABLED 1
-#define CC2420_CONF_TIMESTAMPS 1
-#define CC2420_CONF_SYMBOL_LOOP_COUNT 500
+#define RF230_CONF_TIMESTAMPS 0
+#define RF230_CONF_SYMBOL_LOOP_COUNT 500
 
 #define WITH_NULLMAC 0
 
@@ -167,7 +167,7 @@
 #define CLIF
 
 /* The process names are not used to save RAM */
-#define PROCESS_CONF_NO_PROCESS_NAMES 1
+#define PROCESS_CONF_NO_PROCESS_NAMES 0
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 
