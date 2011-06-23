@@ -244,9 +244,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
 
       /* This is needed to correctly attribute energy that we spent
          transmitting this packet. */
-      q = list_head(queued_packet_list);
-      queuebuf_free(q->buf);
-      q->buf = queuebuf_new_from_packetbuf();
+      queuebuf_update_attr_from_packetbuf(q->buf);
 
     } else {
       PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",

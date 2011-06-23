@@ -94,11 +94,11 @@ private DatagramSocket serverSocket;
 	      byte[] address = addr.getAddress();
 	      /* Ignore latency for now */
 	      out.printf(" %d %d %d %d",
-				(address[14] + (address[15] << 8))&0xffff,
-				seqno, hops, 0);
+			 ((address[14] & 0xff) +
+			  ((address[15] & 0xff) << 8))&0xffff, seqno, hops, 0);
 	      int d = 0;
 	      for(int i = 0; i < payloadLen ; i += 2) {
-		  d = payload[i + 2] + (payload[i + 3] << 8);
+		  d = (payload[i + 2] & 0xff) + ((payload[i + 3] & 0xff) << 8);
 		  out.printf(" %d", d & 0xffff);
 	      }
 
