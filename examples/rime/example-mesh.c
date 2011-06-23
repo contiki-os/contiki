@@ -33,7 +33,7 @@
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         An example of how the Mesh primitive can be used.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -48,6 +48,8 @@
 
 #include <stdio.h>
 
+#define MESSAGE "Hello"
+
 static struct mesh_conn mesh;
 /*---------------------------------------------------------------------------*/
 PROCESS(example_mesh_process, "Mesh example");
@@ -58,11 +60,13 @@ sent(struct mesh_conn *c)
 {
   printf("packet sent\n");
 }
+
 static void
 timedout(struct mesh_conn *c)
 {
   printf("packet timedout\n");
 }
+
 static void
 recv(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops)
 {
@@ -70,7 +74,7 @@ recv(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops)
 	 from->u8[0], from->u8[1],
 	 packetbuf_datalen(), (char *)packetbuf_dataptr(), packetbuf_datalen());
 
-  packetbuf_copyfrom("Hopp", 4);
+  packetbuf_copyfrom(MESSAGE, strlen(MESSAGE));
   mesh_send(&mesh, from);
 }
 
@@ -87,20 +91,15 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 
   while(1) {
     rimeaddr_t addr;
-    static struct etimer et;
 
-    /*    etimer_set(&et, CLOCK_SECOND * 4);*/
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
-			     (ev == sensors_event && data == &button_sensor));
+    /* Wait for button click before sending the first message. */
+    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event && data == &button_sensor);
 
-    printf("Button\n");
+    printf("Button clicked\n");
 
-    /*
-     * Send a message containing "Hej" (3 characters) to node number
-     * 6.
-     */
+    /* Send a message to node number 1. */
     
-    packetbuf_copyfrom("Hej", 3);
+    packetbuf_copyfrom(MESSAGE, strlen(MESSAGE));
     addr.u8[0] = 1;
     addr.u8[1] = 0;
     mesh_send(&mesh, &addr);
