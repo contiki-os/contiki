@@ -89,10 +89,15 @@ data_packet_forward(struct multihop_conn *multihop,
 		    const rimeaddr_t *prevhop, uint8_t hops)
 {
   struct route_entry *rt;
+  struct mesh_conn *c = (struct mesh_conn *)
+    ((char *)multihop - offsetof(struct mesh_conn, multihop));
 
   rt = route_lookup(dest);
   if(rt == NULL) {
+    route_discovery_discover(&c->route_discovery_conn, dest, PACKET_TIMEOUT);
     return NULL;
+  } else {
+    route_refresh(rt);
   }
   
   return &rt->nexthop;
