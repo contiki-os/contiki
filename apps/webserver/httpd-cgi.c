@@ -159,7 +159,6 @@ make_tcp_stats(void *arg)
   conn = &uip_conns[s->u.count];
 
 #if UIP_CONF_IPV6
-{
   char buf[48];
   httpd_sprint_ip6(conn->ripaddr, buf);
   return snprintf((char *)uip_appdata, uip_mss(),
@@ -172,7 +171,6 @@ make_tcp_stats(void *arg)
          conn->timer,
          (uip_outstanding(conn))? '*':' ',
          (uip_stopped(conn))? '!':' ');
-}
 #else
   return snprintf((char *)uip_appdata, uip_mss(),
          "<tr align=\"center\"><td>%d</td><td>%u.%u.%u.%u:%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
@@ -252,7 +250,7 @@ uint16_t numprinted;
   for (i=0; i<UIP_DS6_ADDR_NB;i++) {
     if (uip_ds6_if.addr_list[i].isused) {
       j++;
-//      numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, uip_appdata + numprinted);
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb); 
     }
   }
@@ -280,7 +278,7 @@ uint16_t numprinted;
   for (i=0; i<UIP_DS6_NBR_NB;i++) {
     if (uip_ds6_nbr_cache[i].isused) {
       j++;
-//      numprinted += httpd_cgi_sprint_ip6(uip_ds6_nbr_cache[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_nbr_cache[i].ipaddr, uip_appdata + numprinted);
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb); 
     }
   }
@@ -311,11 +309,10 @@ uint16_t numprinted;
   for (i=0; i<UIP_DS6_ROUTE_NB;i++) {
     if (uip_ds6_routing_table[i].isused) {
       j++;
-//      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, uip_ds6_routing_table[i].length);
- //     numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].nexthop, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].nexthop, uip_appdata + numprinted);
       if(uip_ds6_routing_table[i].state.lifetime < 3600*24) {
-	//if(uip_ds6_routing_table[i].state.lifetime < 3600) {
          numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, uip_ds6_routing_table[i].state.lifetime);
       } else {
          numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
