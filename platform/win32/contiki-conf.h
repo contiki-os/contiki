@@ -13,7 +13,6 @@
 #endif /* _USRDLL */
 #define CLIF __declspec(dllexport)
 
-
 #ifdef __CYGWIN__
 int strcasecmp(const char*, const char*);
 char* strdup(const char*);
@@ -54,7 +53,18 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_BUFFER_SIZE     420
 #define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 #define UIP_CONF_TCP_SPLIT       1
+#if UIP_CONF_IPV6
+#define UIP_CONF_IP_FORWARD 0
+#define UIP_CONF_DS6_NBR_NBU     100
+#define UIP_CONF_DS6_DEFRT_NBU   2
+#define UIP_CONF_DS6_PREFIX_NBU  5
+#define UIP_CONF_DS6_ROUTE_NBU   100
+#define UIP_CONF_DS6_ADDR_NBU    10
+#define UIP_CONF_DS6_MADDR_NBU   0  //VC++ does not allow zero length arrays
+#define UIP_CONF_DS6_AADDR_NBU   0  //inside a struct
+#else
 #define UIP_CONF_IP_FORWARD      1
+#endif
 #define UIP_CONF_LOGGING         1
 #define UIP_CONF_UDP_CHECKSUMS   1
 

@@ -83,6 +83,39 @@ pollhandler(void)
       uip_len = 0;
     }
   }
+
+#ifdef UIP_FALLBACK_INTERFACE
+
+  process_poll(&wpcap_process);
+  uip_len = wfall_poll();
+
+  if(uip_len > 0) {
+#if UIP_CONF_IPV6
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
+      tcpip_input();
+    } else
+	 goto bail;
+#endif /* UIP_CONF_IPV6 */
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
+      uip_len -= sizeof(struct uip_eth_hdr);
+      tcpip_input();
+#if !UIP_CONF_IPV6
+    } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
+       uip_arp_arpin();      //math
+      /* If the above function invocation resulted in data that
+         should be sent out on the network, the global variable
+         uip_len is set to a value > 0. */
+       if(uip_len > 0) {
+         wfall_send();
+       }
+#endif /* !UIP_CONF_IPV6 */
+    } else {
+bail:
+      uip_len = 0;
+    }
+  }
+#endif
+
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(wpcap_process, ev, data)
