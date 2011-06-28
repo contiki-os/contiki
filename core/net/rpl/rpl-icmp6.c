@@ -249,9 +249,11 @@ dio_input(void)
 	RPL_STAT(rpl_stats.malformed_msgs++);
         return;
       }
+
       dio.mc.type = buffer[i + 2];
-      dio.mc.flags = buffer[i + 3];
-      dio.mc.aggr = buffer[i + 4] >> 4;
+      dio.mc.flags = buffer[i + 3] << 1;
+      dio.mc.flags |= buffer[i + 4] >> 7;
+      dio.mc.aggr = (buffer[i + 4] >> 4) & 0x3;
       dio.mc.prec = buffer[i + 4] & 0xf;
       dio.mc.length = buffer[i + 5];
 
@@ -383,9 +385,10 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
     buffer[pos++] = RPL_DIO_SUBOPT_DAG_METRIC_CONTAINER;
     buffer[pos++] = 6;
     buffer[pos++] = dag->mc.type;
-    buffer[pos++] = dag->mc.flags;
-    buffer[pos] = dag->mc.aggr << 4;
-    buffer[pos++] |= dag->mc.prec;
+    buffer[pos++] = dag->mc.flags >> 1;
+    buffer[pos] = (dag->mc.flags & 1) << 7;
+    buffer[pos++] |= (dag->mc.aggr << 4) | dag->mc.prec;
+
     if(dag->mc.type == RPL_DAG_MC_ETX) {
       buffer[pos++] = 2;
       buffer[pos++] = dag->mc.obj.etx >> 8;
@@ -401,7 +404,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
     }
   }
 
-  /* always add a sub-option for DAG configuration */
+  /* Always add a sub-option for DAG configuration. */
   buffer[pos++] = RPL_DIO_SUBOPT_DAG_CONF;
   buffer[pos++] = 14;
   buffer[pos++] = 0; /* No Auth, PCS = 0 */
@@ -420,7 +423,7 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   buffer[pos++] = dag->lifetime_unit >> 8;
   buffer[pos++] = dag->lifetime_unit & 0xff;
 
-  /* if prefix info length > 0 then we have a prefix to send! */
+  /* Check if we have a prefix to send also. */
   if(dag->prefix_info.length > 0) {
     buffer[pos++] = RPL_DIO_SUBOPT_PREFIX_INFO;
     buffer[pos++] = 30; /* always 30 bytes + 2 long */
@@ -441,8 +444,6 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
     PRINTF("RPL: No prefix to announce (len %d)\n",
            dag->prefix_info.length);
   }
-
-  /* buffer[len++] = RPL_DIO_SUBOPT_PAD1; */
 
   /* Unicast requests get unicast replies! */
   if(uc_addr == NULL) {
