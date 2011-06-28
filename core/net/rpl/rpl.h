@@ -83,6 +83,7 @@
 #define RPL_PARENT_COUNT(dag)   list_length((dag)->parents)
 /*---------------------------------------------------------------------------*/
 typedef uint16_t rpl_rank_t;
+typedef uint8_t rpl_lifetime_t;
 typedef uint16_t rpl_ocp_t;
 
 /*---------------------------------------------------------------------------*/

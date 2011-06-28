@@ -101,14 +101,14 @@
 /* Special value indicating immediate removal. */
 #define ZERO_LIFETIME                   0
 
-/* Special value indicating that a DAO should not expire. */
-#define INFINITE_LIFETIME               0xffffffff
+/* Default route lifetime unit. */
+#define RPL_DEFAULT_LIFETIME_UNIT       0xffff
 
-/* Default route lifetime in seconds. */
-#define DEFAULT_ROUTE_LIFETIME          INFINITE_LIFETIME
+/* Default route lifetime as a multiple of the lifetime unit. */
+#define RPL_DEFAULT_LIFETIME        0xff
 
-#define DEFAULT_RPL_LIFETIME_UNIT       0xffff
-#define DEFAULT_RPL_DEF_LIFETIME        0xff
+#define RPL_LIFETIME(dag, lifetime) \
+          ((unsigned long)(dag)->lifetime_unit * lifetime)
 
 #ifndef RPL_CONF_MIN_HOPRANKINC
 #define DEFAULT_MIN_HOPRANKINC          256
@@ -207,7 +207,7 @@ struct rpl_dio {
   uint8_t dag_intdoubl;
   uint8_t dag_intmin;
   uint8_t dag_redund;
-  uint8_t default_lifetime;
+  rpl_lifetime_t default_lifetime;
   uint16_t lifetime_unit;
   rpl_rank_t dag_max_rankinc;
   rpl_rank_t dag_min_hoprankinc;
@@ -243,7 +243,7 @@ extern rpl_stats_t rpl_stats;
 /* ICMPv6 functions for RPL. */
 void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_dag_t *, uip_ipaddr_t *uc_addr);
-void dao_output(rpl_parent_t *, uint32_t lifetime);
+void dao_output(rpl_parent_t *, rpl_lifetime_t lifetime);
 void dao_ack_output(rpl_dag_t *, uip_ipaddr_t *, uint8_t);
 void uip_rpl_input(void);
 
