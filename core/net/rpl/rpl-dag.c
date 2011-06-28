@@ -191,8 +191,8 @@ rpl_set_root(uip_ipaddr_t *dag_id)
   dag->max_rankinc = DEFAULT_MAX_RANKINC;
   dag->min_hoprankinc = DEFAULT_MIN_HOPRANKINC;
 
-  dag->default_lifetime = DEFAULT_RPL_DEF_LIFETIME;
-  dag->lifetime_unit = DEFAULT_RPL_LIFETIME_UNIT;
+  dag->default_lifetime = RPL_DEFAULT_LIFETIME;
+  dag->lifetime_unit = RPL_DEFAULT_LIFETIME_UNIT;
 
   dag->rank = ROOT_RANK(dag);
 
@@ -238,11 +238,9 @@ rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from)
     PRINTF("RPL: Adding default route through ");
     PRINT6ADDR(from);
     PRINTF("\n");
-    if(DEFAULT_ROUTE_LIFETIME == INFINITE_LIFETIME) {
-      dag->def_route = uip_ds6_defrt_add(from, 0);
-    } else {
-      dag->def_route = uip_ds6_defrt_add(from, DEFAULT_ROUTE_LIFETIME);
-    }
+    dag->def_route = uip_ds6_defrt_add(from,
+                                       RPL_LIFETIME(dag,
+                                                    dag->default_lifetime));
     if(dag->def_route == NULL) {
       return 0;
     }

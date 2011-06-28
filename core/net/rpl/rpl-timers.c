@@ -201,14 +201,13 @@ handle_dao_timer(void *ptr)
     return;
   }
 
-  /* Send the DAO to the best parent. rpl-07 section C.2 lists the
-     fan-out as being under investigation. */
+  /* Send the DAO to the DAO parent set -- the preferred parent in our case. */
   if(dag->preferred_parent != NULL) {
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
-    /* set time to maxtime */
-    dao_output(dag->preferred_parent, dag->lifetime_unit * 0xffUL);
+    /* Set the route lifetime to the default value. */
+    dao_output(dag->preferred_parent, dag->default_lifetime);
   } else {
-    PRINTF("RPL: Could not find a parent to send a DAO to \n");
+    PRINTF("RPL: No suitable DAO parent\n");
   }
   ctimer_stop(&dag->dao_timer);
 }
