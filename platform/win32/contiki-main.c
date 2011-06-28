@@ -110,7 +110,7 @@ main(void)
 
   autostart_start(autostart_processes);
 
-#if 1
+#if !UIP_CONF_IPV6
   {
     uip_ipaddr_t addr;
     uip_ipaddr(&addr, 10,1,1,1);
@@ -129,6 +129,26 @@ main(void)
     resolv_conf(&addr);
     log_message("DNS Server:  ", inet_ntoa(*(struct in_addr*)&addr));
   }
+
+#else /* UIP_CONF_IPV6 */
+
+#if !UIP_CONF_IPV6_RPL
+#ifdef HARD_CODED_ADDRESS
+  uip_ipaddr_t ipaddr;
+  uiplib_ipaddrconv(HARD_CODED_ADDRESS, &ipaddr);
+  if ((ipaddr.u16[0]!=0) || (ipaddr.u16[1]!=0) || (ipaddr.u16[2]!=0) || (ipaddr.u16[3]!=0)) {
+#if UIP_CONF_ROUTER
+    uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
+#else /* UIP_CONF_ROUTER */
+    uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0);
+#endif /* UIP_CONF_ROUTER */
+#if !UIP_CONF_IPV6_RPL
+    uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+    uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+#endif
+  }
+#endif /* HARD_CODED_ADDRESS */
+#endif
 #endif
 
   while(1) {
