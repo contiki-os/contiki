@@ -198,6 +198,10 @@ dio_input(void)
 
   buffer_length = uip_len - uip_l2_l3_icmp_hdr_len;
 
+#if RPL_CONF_ADJUST_LLH_LEN
+  buffer_length+=UIP_LLH_LEN; //Add jackdaw, minimal-net ethernet header
+#endif
+
   /* Process the DIO base option. */
   i = 0;
   buffer = UIP_ICMP_PAYLOAD;
@@ -490,6 +494,9 @@ dao_input(void)
 
   buffer = UIP_ICMP_PAYLOAD;
   buffer_length = uip_len - uip_l2_l3_icmp_hdr_len;
+#if RPL_CONF_ADJUST_LLH_LEN
+  buffer_length+=UIP_LLH_LEN; //Add jackdaw, minimal-net ethernet header
+#endif
 
   pos = 0;
   instance_id = buffer[pos++];
@@ -687,6 +694,9 @@ dao_ack_input(void)
 
   buffer = UIP_ICMP_PAYLOAD;
   buffer_length = uip_len - uip_l2_l3_icmp_hdr_len;
+#if RPL_CONF_ADJUST_LLH_LEN
+  buffer_length+=UIP_LLH_LEN; //Add jackdaw, minimal-net ethernet header
+#endif
 
   instance_id = buffer[0];
   sequence = buffer[2];
