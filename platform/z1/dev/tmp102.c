@@ -181,11 +181,12 @@ tmp102_read_temp_simple (void)
   int16_t abstemp, temp_int;
 
   raw = (int16_t) tmp102_read_reg (TMP102_TEMP);
-  if (raw < 0)
-    {
-      abstemp = (raw ^ 0xFFFF) + 1;
-      sign = -1;
-    }
+  if(raw < 0) {
+    abstemp = (raw ^ 0xFFFF) + 1;
+    sign = -1;
+  } else {
+    abstemp = raw;
+  }
 
   /* Integer part of the temperature value */
   temp_int = (abstemp >> 8) * sign;
@@ -200,6 +201,3 @@ tmp102_read_temp_simple (void)
   rd = (int8_t) (temp_int);
   return rd;
 }
-
-
-
