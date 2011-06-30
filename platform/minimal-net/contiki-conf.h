@@ -73,6 +73,15 @@ typedef unsigned short uip_stats_t;
 //#define HARD_CODED_ADDRESS      "fdfd::" //assign prefix; address becomes fdfd::206:98ff:fe00:232
 //#define HARD_CODED_ADDRESS      "fdfd::10" //assign prefix and ipv6 address fdfd::ff:fe00:10
 
+/* The status.shtml page shows addresses, neighbors, and routes on ipv6 builds. Use this define to enable
+ * the needed routines in httpd-cgi.c on the webserver6 build. The status page is present in
+ * /apps/webserver/httpd-fs/ but not in the default /apps/webserver/httpd-fsdata.c file.
+ * To include it run the PERL script /../../tools/makefsdata from the /apps/webserver/ directory.
+ * NB: Webserver builds on all platforms will use the current httpd-fsdata.c file. The added 160 bytes
+ * could overflow memory on the smaller platforms.
+ */
+#define WEBSERVER_CONF_STATUSPAGE   1
+
 /* RPL currently works only on Windows. *nix would require converting the tun interface to two pcap tees. */ 
 #define UIP_CONF_IPV6_RPL           0
 #define RPL_BORDER_ROUTER           0
@@ -83,9 +92,14 @@ typedef unsigned short uip_stats_t;
  * Different instances can be made by changing the link layer portion of HARD_CODED_ADDRESS in contiki-main.c
  * Rename them to e.g. webserver6.10, webserver6.11, ...
  * They should all attach to a minimal-net rpl border that uses the same primary interface.
+ * For multihop testing, configure intermediate notes as routers.
  */
 #define RPL_CONF_ADJUST_LLH_LEN    1
-#define HARD_CODED_ADDRESS      "bbbb::10"  //the prefix is ignored for a rpl end node
+#define HARD_CODED_ADDRESS      "bbbb::10"  //the prefix is ignored for a rpl node
+#define UIP_CONF_ROUTER                 0
+#define UIP_CONF_ND6_SEND_RA            0
+#define UIP_CONF_ND6_REACHABLE_TIME     600000
+#define UIP_CONF_ND6_RETRANS_TIMER      10000
 
 #if RPL_BORDER_ROUTER
 /* RPL border router accepts packets from the host through the fallback and directs them to
@@ -105,6 +119,7 @@ typedef unsigned short uip_stats_t;
  * Possibly minimal-net RPL motes could also be added to this interface?
  * 
  */
+#undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER             1
 //#define RPL_CONF_STATS              0
 //#define UIP_CONF_BUFFER_SIZE	 1300
@@ -113,9 +128,9 @@ typedef unsigned short uip_stats_t;
 //#define WPCAP_FALLBACK_ADDRESS     "bbbb::1"  //bbbb::1 is the default fallback prefix
 #undef HARD_CODED_ADDRESS
 #define HARD_CODED_ADDRESS            "bbbb::1" //bbbb::ff:fe00:1 is the RPL border router default
-#define UIP_CONF_ND6_SEND_RA		0
-#define UIP_CONF_ND6_REACHABLE_TIME 600000
-#define UIP_CONF_ND6_RETRANS_TIMER  10000
+//#define UIP_CONF_ND6_SEND_RA		0
+//#define UIP_CONF_ND6_REACHABLE_TIME 600000
+//#define UIP_CONF_ND6_RETRANS_TIMER  10000
 #endif
 
 #endif

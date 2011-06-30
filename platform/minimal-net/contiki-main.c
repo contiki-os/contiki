@@ -173,7 +173,7 @@ main(void)
  *      ::10 becomes fe80::ff:fe00:10 and prefix awaits RA or RPL formation
  *      bbbb:: gives an address of bbbb::206:98ff:fe00:232 if non-RPL
 */
-//#define HARD_CODED_ADDRESS      "bbbb::40"
+//#define HARD_CODED_ADDRESS      "bbbb::20"
 #ifdef HARD_CODED_ADDRESS
 {
   uip_ipaddr_t ipaddr;
@@ -191,11 +191,12 @@ main(void)
 #endif
 
   process_init();
-
-  procinit_init();
-
+/* procinit_init initializes RPL which sets a ctimer for the first DIS */
+/* We must start etimers and ctimers,before calling it */
+  process_start(&etimer_process, NULL);
   ctimer_init();
 
+  procinit_init();
   autostart_start(autostart_processes);
 
 #if RPL_BORDER_ROUTER

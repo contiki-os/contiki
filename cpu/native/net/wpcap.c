@@ -609,6 +609,31 @@ wpcap_poll(void)
     PRINTF("SIN: Discarding echoed packet\n");
     return 0;
   }
+  
+/* To implement multihop, ignore packets to us from specified source macs
+ */
+//  printf("ethtype=%x %x",*(packet+2*UIP_LLADDR_LEN),*(packet+2*UIP_LLADDR_LEN+1));
+// printf("hopcount=%u",*(packet+21));
+#if 0
+  if (0
+//   || (*(packet+11) ==0x1)   //20 ignores router
+//  || (*(packet+11) ==0x10)
+    || (*(packet+11) ==0x20)  //router ignores 20
+  ) {
+   printf("i%x",*(packet+11));
+    return 0;
+  }
+/* If we are not the recipient, ignore packets from other RPL nodes */
+  if (0
+    || (*(packet+5) !=0x1)   //router
+//  || (*(packet+11) ==0x10)
+ //   || (*(packet+11) ==0x20)  //router ignores 20
+  ) {
+   printf("r%x",*(packet+11));
+    return 0;
+  }
+#endif
+
 #endif /* UIP_CONF_IPV6 */
 
   if(packet_header->caplen > UIP_BUFSIZE) {
@@ -665,8 +690,7 @@ wfall_poll(void)
 u8_t
 wpcap_send(uip_lladdr_t *lladdr)
 {
- // if(lladdr == NULL) {  //when fallback used this gets ptr to lladdr of all zeroes on forwarded packets
-    if(1) {
+  if(lladdr == NULL) {
 /* the dest must be multicast*/
     (&BUF->dest)->addr[0] = 0x33;
     (&BUF->dest)->addr[1] = 0x33;
@@ -675,7 +699,17 @@ wpcap_send(uip_lladdr_t *lladdr)
     (&BUF->dest)->addr[4] = IPBUF->destipaddr.u8[14];
     (&BUF->dest)->addr[5] = IPBUF->destipaddr.u8[15];
   } else {
-    memcpy(&BUF->dest, lladdr, UIP_LLADDR_LEN);
+   //when fallback used this gets ptr to lladdr of all zeroes on forwarded packets, turn them into multicast(?)
+    if ((lladdr->addr[0]==0)&&(lladdr->addr[1]==0)&&(lladdr->addr[2]==0)&&(lladdr->addr[3]==0)&&(lladdr->addr[4]==0)&&(lladdr->addr[5]==0)) {
+     (&BUF->dest)->addr[0] = 0x33;
+     (&BUF->dest)->addr[1] = 0x33;
+     (&BUF->dest)->addr[2] = IPBUF->destipaddr.u8[12];
+     (&BUF->dest)->addr[3] = IPBUF->destipaddr.u8[13];
+     (&BUF->dest)->addr[4] = IPBUF->destipaddr.u8[14];
+     (&BUF->dest)->addr[5] = IPBUF->destipaddr.u8[15];
+    } else {
+      memcpy(&BUF->dest, lladdr, UIP_LLADDR_LEN);
+    }
   }
   memcpy(&BUF->src, &uip_lladdr, UIP_LLADDR_LEN);
   PRINTF("SUT: %u\n", uip_len);
