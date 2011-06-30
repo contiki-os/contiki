@@ -227,7 +227,15 @@ PT_THREAD(processes(struct httpd_state *s, char *ptr))
   }
   PSOCK_END(&s->sout);
 }
-#if UIP_CONF_IPV6
+#if WEBSERVER_CONF_STATUSPAGE && UIP_CONF_IPV6
+/* These cgi's are invoked by the status.shtml page in /apps/webserver/httpd-fs.
+ * To keep the webserver build small that 160 byte page is not present in the
+ * default httpd-fsdata.c file. Run the PERL script /../../tools/makefsdata from the
+ * /apps/webserver/ directory to include it. Delete status.shtml before running
+ * the script if you want to exclude it again.
+ * NB: Webserver builds on all platforms will use the current httpd-fsdata.c file. The added 160 bytes
+ * could overflow memory on the smaller platforms.
+ */
 /*---------------------------------------------------------------------------*/
 #define HTTPD_STRING_ATTR
 #define httpd_snprintf snprintf
@@ -333,7 +341,7 @@ PT_THREAD(routes(struct httpd_state *s, char *ptr))
  
   PSOCK_END(&s->sout);
 }
-#endif /* UIP_CONF_IPV6 */
+#endif /* WEBSERVER_CONF_STATUSPAGE */
 /*---------------------------------------------------------------------------*/
 void
 httpd_cgi_add(struct httpd_cgi_call *c)
@@ -349,7 +357,7 @@ httpd_cgi_add(struct httpd_cgi_call *c)
   }
 }
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_IPV6
+#if WEBSERVER_CONF_STATUSPAGE && UIP_CONF_IPV6
 static const char   adrs_name[] HTTPD_STRING_ATTR = "addresses";
 static const char   nbrs_name[] HTTPD_STRING_ATTR = "neighbors";
 static const char   rtes_name[] HTTPD_STRING_ATTR = "routes";
@@ -357,7 +365,7 @@ static const char   rtes_name[] HTTPD_STRING_ATTR = "routes";
 HTTPD_CGI_CALL(file, file_name, file_stats);
 HTTPD_CGI_CALL(tcp, tcp_name, tcp_stats);
 HTTPD_CGI_CALL(proc, proc_name, processes);
-#if UIP_CONF_IPV6
+#if WEBSERVER_CONF_STATUSPAGE && UIP_CONF_IPV6
 HTTPD_CGI_CALL(adrs, adrs_name, addresses);
 HTTPD_CGI_CALL(nbrs, nbrs_name, neighbors);
 HTTPD_CGI_CALL(rtes, rtes_name, routes);
@@ -369,7 +377,7 @@ httpd_cgi_init(void)
   httpd_cgi_add(&file);
   httpd_cgi_add(&tcp);
   httpd_cgi_add(&proc);
-#if UIP_CONF_IPV6
+#if WEBSERVER_CONF_STATUSPAGE && UIP_CONF_IPV6
   httpd_cgi_add(&adrs);
   httpd_cgi_add(&nbrs);
   httpd_cgi_add(&rtes);
