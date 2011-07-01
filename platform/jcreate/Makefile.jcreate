@@ -1,7 +1,8 @@
-# $Id: Makefile.jcreate,v 1.3 2010/08/25 19:34:42 nifi Exp $
+# Use custom platform configuration
+CFLAGS += -DPLATFORM_CONF_H=\"platform-jcreate-conf.h\"
 
 # Some drivers such as ds2411.c only compile under platform sky
-CFLAGS += -DCONTIKI_TARGET_SKY -DLEDS_CONF_ALL=255
+CFLAGS += -DCONTIKI_TARGET_SKY
 
 CONTIKI_TARGET_SOURCEFILES += contiki-jcreate-platform.c \
 	battery-sensor.c radio-sensor.c \
