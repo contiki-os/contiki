@@ -1,4 +1,5 @@
-# $Id: Makefile.sentilla-usb,v 1.1 2010/08/25 19:57:33 nifi Exp $
+# Use custom platform configuration
+CFLAGS += -DPLATFORM_CONF_H=\"platform-sentilla-usb-conf.h\"
 
 # Some drivers such as ds2411.c only compile under platform sky
 CFLAGS += -DCONTIKI_TARGET_SKY
