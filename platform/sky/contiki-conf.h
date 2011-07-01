@@ -9,7 +9,11 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
+#ifdef PLATFORM_CONF_H
+#include PLATFORM_CONF_H
+#else
 #include "platform-conf.h"
+#endif /* PLATFORM_CONF_H */
 
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
