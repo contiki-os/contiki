@@ -73,6 +73,9 @@ void irq(void)
 		if(bit_is_set(pending, INT_NUM_UART1)) {
 	 		if(uart1_isr != 0) { uart1_isr(); } 
 		}
+		if(bit_is_set(pending, INT_NUM_UART2)) {
+	 		if(uart2_isr != 0) { uart2_isr(); } 
+		}
 		if(bit_is_set(pending, INT_NUM_CRM)) {
 			if(rtc_wu_evt() && (rtc_isr != 0)) { rtc_isr(); }
 			if(kbi_evnt(4) && (kbi4_isr != 0)) { kbi4_isr(); }

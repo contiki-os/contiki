@@ -33,17 +33,26 @@
  *
  */
 
-#ifndef LOWLEVEL_H
-#define LOWLEVEL_H
+#include <mc1322x.h>
+#include <board.h>
 
-#include "crm.h"
+#include "tests.h"
+#include "config.h"
 
-#define trim_xtal() pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS)
+void main(void) {
 
-void default_vreg_init(void);
-void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp);
-void uart2_init(uint16_t inc, uint16_t mod, uint8_t samp);
-
-void irq_register_timer_handler(int timer, void (*isr)(void));
-
-#endif
+	uart1_init(INC,MOD,SAMP);
+	uart2_init(INC,MOD,SAMP);
+	
+	while(1) {
+		if(uart1_can_get()) {
+			/* Receive buffer isn't empty */
+			/* read a byte and write it to the transmit buffer */
+			uart2_putc(uart1_getc());
+		}
+		if(uart2_can_get()) {
+			uart1_putc(uart2_getc());
+		}
+	}
+	
+}
