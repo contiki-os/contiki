@@ -2,7 +2,8 @@ import graph;
 size(350,250,IgnoreAspect);
 
 file fin=input("./1000pkt-64len.csv");
-real[][] A=dimension(csv(fin),0,2);
+fin.csv();
+real[][] A=fin.dimension(0,2);
 real[][] pdr=transpose(A);
 
 int[] lqi = sequence(100);
