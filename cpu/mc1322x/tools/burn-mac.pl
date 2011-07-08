@@ -6,10 +6,12 @@ my $oui;
 my $addr = "0x1e000";
 my $iab;
 my $term = "/dev/ttyUSB1";
+my $index = 0;
 
 GetOptions ('iab=s' => \$iab,
 	    'oui=s' => \$oui,
 	    'term=s' => \$term,
+	    'index=s' => \$index,
     ) or die 'bad options';
 
 my $bin = shift;
@@ -59,7 +61,7 @@ reverse @words;
 my $word1 = sprintf("%02X%02X%02X%02X",$words[4],$words[5],$words[6],$words[7]);
 my $word2 = sprintf("%02X%02X%02X%02X",$words[0],$words[1],$words[2],$words[3]);
 
-my $cmd = "mc1322x-load.pl -e -f $bin -z -t $term  -c 'bbmc -l redbee-econotag reset' $addr,0x$word1,0x$word2 &";
+my $cmd = "mc1322x-load.pl -e -f $bin -z -t $term  -c 'bbmc -i $index -l redbee-econotag reset' $addr,0x$word1,0x$word2 &";
 print "$cmd\n";
 system($cmd);
 

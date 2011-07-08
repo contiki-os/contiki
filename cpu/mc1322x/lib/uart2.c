@@ -36,65 +36,43 @@
 #include <mc1322x.h>
 #include <stdint.h>
 
-static void (*tmr_isr_funcs[4])(void) = {
-	tmr0_isr,
-	tmr1_isr,
-	tmr2_isr,
-	tmr3_isr
-};
+volatile char u2_tx_buf[64];
+volatile uint32_t u2_head, u2_tail;
 
-void irq_register_timer_handler(int timer, void (*isr)(void))
-{
-	tmr_isr_funcs[timer] = isr;
+void uart2_isr(void) {
+ 	while( *UART1_UTXCON != 0 ) {
+		if (u2_head == u2_tail) {
+			disable_irq(UART2);
+			return;
+		}
+		*UART2_UDATA = u2_tx_buf[u2_tail];
+		u2_tail++;		
+		if (u2_tail >= sizeof(u2_tx_buf))
+			u2_tail = 0;
+	}
 }
 
+void uart2_putc(char c) {
+	/* disable UART2 since */
+	/* UART2 isr modifies u2_head and u2_tail */ 
+	disable_irq(UART2);
 
-__attribute__ ((section (".irq")))
-__attribute__ ((interrupt("IRQ"))) 
-void irq(void)
-{
-	uint32_t pending;
+	if( (u2_head == u2_tail) &&
+	    (*UART2_UTXCON != 0)) {
+		*UART2_UDATA = c;
+	} else {
+		u2_tx_buf[u2_head] = c;
+		u2_head += 1;
+		if (u2_head >= sizeof(u2_tx_buf))
+			u2_head = 0;
+		if (u2_head == u2_tail) { /* drop chars when no room */
+			if (u2_head) { u2_head -=1; } else { u2_head = sizeof(u2_tx_buf); }
+		}
+		enable_irq(UART1);
+	}
+}
 
-	while ((pending = *NIPEND)) {
-		
-		if(bit_is_set(pending, INT_NUM_TMR)) { 
-			/* dispatch to individual timer isrs if they exist */
-			/* timer isrs are responsible for determining if they
-			 * caused an interrupt */
-			/* and clearing their own interrupt flags */
-			if (tmr_isr_funcs[0] != 0) { (tmr_isr_funcs[0])(); }
-			if (tmr_isr_funcs[1] != 0) { (tmr_isr_funcs[1])(); }
-			if (tmr_isr_funcs[2] != 0) { (tmr_isr_funcs[2])(); }
-			if (tmr_isr_funcs[3] != 0) { (tmr_isr_funcs[3])(); }
-		}
-
-		if(bit_is_set(pending, INT_NUM_MACA)) {
-	 		if(maca_isr != 0) { maca_isr(); } 
-		}
-		if(bit_is_set(pending, INT_NUM_UART1)) {
-	 		if(uart1_isr != 0) { uart1_isr(); } 
-		}
-		if(bit_is_set(pending, INT_NUM_UART2)) {
-	 		if(uart2_isr != 0) { uart2_isr(); } 
-		}
-		if(bit_is_set(pending, INT_NUM_CRM)) {
-			if(rtc_wu_evt() && (rtc_isr != 0)) { rtc_isr(); }
-			if(kbi_evnt(4) && (kbi4_isr != 0)) { kbi4_isr(); }
-			if(kbi_evnt(5) && (kbi5_isr != 0)) { kbi5_isr(); }
-			if(kbi_evnt(6) && (kbi6_isr != 0)) { kbi6_isr(); }
-			if(kbi_evnt(7) && (kbi7_isr != 0)) { kbi7_isr(); }
-
-			if (CRM->STATUSbits.CAL_DONE && CRM->CAL_CNTLbits.CAL_IEN && cal_isr)
-			{
-				CRM->STATUSbits.CAL_DONE = 0;
-				cal_isr();
-			}
-		}
-		if(bit_is_set(pending, INT_NUM_ASM)) {
-			if(asm_isr != 0) { asm_isr(); }
-		}
-
-		*INTFRC = 0; /* stop forcing interrupts */
-
-	}	
+uint8_t uart2_getc(void) {
+	while(uart2_can_get() == 0) { continue; }
+	return *UART2_UDATA;
 }

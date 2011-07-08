@@ -47,6 +47,7 @@ my $network = 230; # 802.15.4 no FCS
 
 my $newpacket = 0;
 my $len = 0;
+my $file_empty = 1;
 
 print pack('LSSLLLL',($magic,$major,$minor,$zone,$sig,$snaplen,$network));
 
@@ -75,15 +76,21 @@ while(1) {
 		    $newpacket = 0;
 		    print pack('LLLL',($sec,$usec,$len,$len));
 		    print STDERR "new packet: $sec $usec $len " . ($len) . "\n\r";
+		    # This header starts the file
+		    if ($file_empty == 1) {
+		    	$file_empty = 0;
+		    }
+		}
+		# packet payload (don't start the file with a payload)
+		if ($file_empty == 0) {
+		    print STDERR "dataline: ";		
+		    print STDERR $str . "\n\r";
+
+		    foreach my $data (@data) {
+		    print pack ('C',hex($data));
+		    }
 		}
 
-		# packet payload
-		print STDERR "dataline: ";		
-		print STDERR $str . "\n\r";
-
-		foreach my $data (@data) {
-		    print pack ('C',hex($data));
-		}		
 	    }
 	    $str = '';
 	}

@@ -44,7 +44,8 @@ for (my $t=0; $t<$terms; $t++) {
 	my $word2 = sprintf("%02X%02X%02X%02X",$words[0],$words[1],$words[2],$words[3]);
 
 	my $ftdi_num = $terms - $t - 1;
-	my $cmd = "mc1322x-load.pl -e -f $bin -z -t /dev/ttyUSB$dev_num  -c 'bbmc -l redbee-econotag -i $ftdi_num reset' $addr,0x$word1,0x$word2 &";
+
+	my $cmd = "../burn-mac.pl --iab=a8c --term=/dev/ttyUSB$dev_num --index=$ftdi_num $bin $dev_num";
 	print "$cmd\n";
 	system($cmd);
 }
