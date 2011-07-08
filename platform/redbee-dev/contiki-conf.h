@@ -67,10 +67,10 @@
 #define CLIF
 
 /* Baud rate */
-#define MOD 9999
+#define BRMOD 9999
 /*  230400 bps, INC=767, MOD=9999, 24Mhz 16x samp */
 /*  115200 bps, INC=767, MOD=9999, 24Mhz 8x samp */
-#define INC 767  
+#define BRINC 767  
 /*  921600 bps, MOD=9999, 24Mhz 16x samp */
 //#define INC 3071 
 #define SAMP UCON_SAMP_8X

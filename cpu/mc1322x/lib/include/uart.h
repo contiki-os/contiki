@@ -177,9 +177,18 @@ extern volatile uint32_t  u1_rx_head, u1_rx_tail;
 #endif
 uint8_t uart1_getc(void);
 
-extern volatile uint32_t  u2_head, u2_tail;
+
+#define UART2_TX_BUFFERSIZE 1024
+extern volatile uint32_t  u2_tx_head, u2_tx_tail;
 void uart2_putc(char c);
+
+#define UART2_RX_BUFFERSIZE 128
+#if UART2_RX_BUFFERSIZE > 32
+extern volatile uint32_t  u2_rx_head, u2_rx_tail;
+#define uart2_can_get() ((u2_rx_head!=u2_rx_tail) || (*UART2_URXCON > 0))
+#else
 #define uart2_can_get() (*UART2_URXCON > 0)
+#endif
 uint8_t uart2_getc(void);
 
 #endif
