@@ -103,7 +103,7 @@ AS       = avr-as
 AR       = avr-ar
 OBJCOPY  = avr-objcopy
 STRIP    = avr-strip
-CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 \
+CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 -fno-strict-aliasing \
            -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
            -I$(CONTIKI)/platform/$(TARGET) \
            $(CONTIKI_PLAT_DEFS)
