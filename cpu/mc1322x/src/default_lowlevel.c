@@ -45,16 +45,17 @@ void default_vreg_init(void) {
 	*CRM_VREG_CNTL = 0x00000ff8; /* start the regulators */
 }
 
-void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp) {
-		
-	/* UART must be disabled to set the baudrate */
-	*UART1_UCON = 0;
-	*UART1_UBRCNT = ( inc << 16 ) | mod; 
+void uart1_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t samp) {
+
+        /* UART must be disabled to set the baudrate */
+	UART1->CON = 0;
+	
+	UART1->BR = ( inc << 16 ) | mod;
 
 	/* TX and CTS as outputs */
 	GPIO->PAD_DIR_SET.GPIO_14 = 1;
 	GPIO->PAD_DIR_SET.GPIO_16 = 1;
-
+		
 	/* RX and RTS as inputs */
 	GPIO->PAD_DIR_RESET.GPIO_15 = 1;
 	GPIO->PAD_DIR_RESET.GPIO_17 = 1;
@@ -79,7 +80,7 @@ void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp) {
 	if(samp == UCON_SAMP_16X) 
 		set_bit(*UART1_UCON,UCON_SAMP);
 
-        /* set GPIO15-14 to UART (UART1 TX and RX)*/
+	/* set GPIO15-14 to UART (UART1 TX and RX)*/
 	GPIO->FUNC_SEL.GPIO_14 = 1;
 	GPIO->FUNC_SEL.GPIO_15 = 1;
 
@@ -89,4 +90,35 @@ void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp) {
 
 	/* enable UART1 interrupts in the interrupt controller */
 	enable_irq(UART1);
+}
+
+void uart2_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t samp) {
+		
+	/* UART must be disabled to set the baudrate */
+	UART2->CON = 0; 
+	UART2->BR = ( inc << 16 ) | mod; 
+
+	/* see Section 11.5.1.2 Alternate Modes */
+	/* you must enable the peripheral first BEFORE setting the function in GPIO_FUNC_SEL */
+	/* From the datasheet: "The peripheral function will control operation of the pad IF */
+	/* THE PERIPHERAL IS ENABLED. Can override with U2_ENABLE_DEFAULT. */
+	UART2->CON = (1 << 0) | (1 << 1); /* enable receive, transmit */
+
+	if(samp == UCON_SAMP_16X) 
+		set_bit(*UART2_UCON, samp);
+
+	/* set GPIO18-19 to UART (UART2 TX and RX)*/
+	GPIO->FUNC_SEL.GPIO_18 = 1;
+	GPIO->FUNC_SEL.GPIO_19 = 1;
+       
+	/* interrupt when there are this number or more bytes free in the TX buffer*/
+	UART2->TXCON = 16;
+	UART2->RXCON = 16;
+
+	u2_head = 0; u2_tail = 0;
+
+	/* tx and rx interrupts are enabled in the UART by default */
+	/* see status register bits 13 and 14 */
+	/* enable UART2 interrupts in the interrupt controller */
+	enable_irq(UART2);
 }
