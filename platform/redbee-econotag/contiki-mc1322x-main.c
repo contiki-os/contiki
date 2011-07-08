@@ -48,7 +48,7 @@
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
-#include "lib/include/uart1.h"
+#include "lib/include/mc1322x.h"
 
 #if WITH_UIP6
 #include "net/sicslowpan.h"
@@ -181,7 +181,7 @@ init_lowlevel(void)
 	trim_xtal();
 	
 	/* uart init */
-	uart_init(INC, MOD, SAMP);
+	uart_init(BRINC, BRMOD, SAMP);
 	
 	default_vreg_init();
 

@@ -196,7 +196,7 @@ init_lowlevel(void)
 	trim_xtal();
 	
 	/* uart init */
-	uart_init(INC, MOD, SAMP);
+	uart_init(BRINC, BRMOD, SAMP);
 	
 	default_vreg_init();
 

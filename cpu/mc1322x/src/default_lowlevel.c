@@ -93,32 +93,48 @@ void uart1_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t s
 }
 
 void uart2_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t samp) {
+
+        /* UART must be disabled to set the baudrate */
+	UART2->CON = 0;
+	
+	UART2->BR = ( inc << 16 ) | mod;
+
+	/* TX and CTS as outputs */
+	GPIO->PAD_DIR_SET.GPIO_14 = 1;
+	GPIO->PAD_DIR_SET.GPIO_16 = 1;
 		
-	/* UART must be disabled to set the baudrate */
-	UART2->CON = 0; 
-	UART2->BR = ( inc << 16 ) | mod; 
+	/* RX and RTS as inputs */
+	GPIO->PAD_DIR_RESET.GPIO_15 = 1;
+	GPIO->PAD_DIR_RESET.GPIO_17 = 1;
 
 	/* see Section 11.5.1.2 Alternate Modes */
 	/* you must enable the peripheral first BEFORE setting the function in GPIO_FUNC_SEL */
 	/* From the datasheet: "The peripheral function will control operation of the pad IF */
-	/* THE PERIPHERAL IS ENABLED. Can override with U2_ENABLE_DEFAULT. */
-	UART2->CON = (1 << 0) | (1 << 1); /* enable receive, transmit */
+	/* THE PERIPHERAL IS ENABLED. */
+
+#if UART2_RX_BUFFERSIZE > 32
+	*UART2_UCON = (1 << 0) | (1 << 1) ;	/* enable receive, transmit, and both interrupts */
+	*UART2_URXCON = 30;					/* interrupt when fifo is nearly full */
+	u2_rx_head = 0; u2_rx_tail = 0;
+#elif UART2_RX_BUFFERSIZE < 32			/* enable receive, transmit, flow control, disable rx interrupt */
+	*UART2_UCON = (1 << 0) | (1 << 1) | (1 << 12) | (1 << 14); 
+	*UART2_UCTS = UART2_RX_BUFFERSIZE;  /* drop cts when tx buffer at trigger level */
+	*GPIO_FUNC_SEL1 = ( (0x01 << (0*2)) | (0x01 << (1*2)) ); /* set GPIO17-16 to UART2 CTS and RTS */
+#else 
+	*UART2_UCON = (1 << 0) | (1 << 1) | (1 << 14); /* enable receive, transmit, disable rx interrupt */
+#endif
 
 	if(samp == UCON_SAMP_16X) 
-		set_bit(*UART2_UCON, samp);
+		set_bit(*UART2_UCON,UCON_SAMP);
 
-	/* set GPIO18-19 to UART (UART2 TX and RX)*/
-	GPIO->FUNC_SEL.GPIO_18 = 1;
-	GPIO->FUNC_SEL.GPIO_19 = 1;
-       
+	/* set GPIO15-14 to UART (UART2 TX and RX)*/
+	GPIO->FUNC_SEL.GPIO_14 = 1;
+	GPIO->FUNC_SEL.GPIO_15 = 1;
+
 	/* interrupt when there are this number or more bytes free in the TX buffer*/
-	UART2->TXCON = 16;
-	UART2->RXCON = 16;
+	*UART2_UTXCON = 16;
+	u2_tx_head = 0; u2_tx_tail = 0;
 
-	u2_head = 0; u2_tail = 0;
-
-	/* tx and rx interrupts are enabled in the UART by default */
-	/* see status register bits 13 and 14 */
 	/* enable UART2 interrupts in the interrupt controller */
 	enable_irq(UART2);
 }
