@@ -97,11 +97,29 @@ void uart1_putc(char c) {
 		if (u1_tx_head >= sizeof(u1_tx_buf))
 			u1_tx_head = 0;
 		if (u1_tx_head == u1_tx_tail) { /* drop chars when no room */
+#if UART1_DROP_CHARS
 			if (u1_tx_head) { u1_tx_head -=1; } else { u1_tx_head = sizeof(u1_tx_buf); }
+#else
+			{
+				uint32_t  u1_tx_tail_save=u1_tx_tail;
+                                /* Back up head to show buffer not empty, and enable tx interrupt */
+				u1_tx_head--;
+#if UART1_RX_BUFFERSIZE > 32
+				*UART1_UCON &= ~(1 << 13); /*enable tx interrupt */
+#else
+				enable_irq(UART1);
+#endif
+                                /* Tail will change after one character goes out */
+				while (u1_tx_tail_save == u1_tx_tail) ;
+                                /* Restore head to character we just stuffed */
+				u1_tx_head++;
+				return;
+			}
+#endif /* UART1_DROP_CHARS */
 		}
 
 #if UART1_RX_BUFFERSIZE > 32
-        *UART1_UCON &= ~(1 << 13); /*enable tx interrupt */
+		*UART1_UCON &= ~(1 << 13); /*enable tx interrupt */
 #else
 		enable_irq(UART1);
 #endif
