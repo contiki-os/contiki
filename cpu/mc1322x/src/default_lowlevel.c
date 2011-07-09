@@ -100,12 +100,12 @@ void uart2_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t s
 	UART2->BR = ( inc << 16 ) | mod;
 
 	/* TX and CTS as outputs */
-	GPIO->PAD_DIR_SET.GPIO_14 = 1;
-	GPIO->PAD_DIR_SET.GPIO_16 = 1;
+	GPIO->PAD_DIR_SET.GPIO_18 = 1;
+	GPIO->PAD_DIR_SET.GPIO_20 = 1;
 		
 	/* RX and RTS as inputs */
-	GPIO->PAD_DIR_RESET.GPIO_15 = 1;
-	GPIO->PAD_DIR_RESET.GPIO_17 = 1;
+	GPIO->PAD_DIR_RESET.GPIO_19 = 1;
+	GPIO->PAD_DIR_RESET.GPIO_21 = 1;
 
 	/* see Section 11.5.1.2 Alternate Modes */
 	/* you must enable the peripheral first BEFORE setting the function in GPIO_FUNC_SEL */
@@ -116,8 +116,8 @@ void uart2_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t s
 	*UART2_UCON = (1 << 0) | (1 << 1) ;	/* enable receive, transmit, and both interrupts */
 	*UART2_URXCON = 30;					/* interrupt when fifo is nearly full */
 	u2_rx_head = 0; u2_rx_tail = 0;
-#elif UART2_RX_BUFFERSIZE < 32			/* enable receive, transmit, flow control, disable rx interrupt */
-	*UART2_UCON = (1 << 0) | (1 << 1) | (1 << 12) | (1 << 14); 
+#elif UART2_RX_BUFFERSIZE < 32			/* enable receive, transmit, disable flow control, disable rx interrupt */
+	*UART2_UCON = (1 << 0) | (1 << 1) | (0 << 12) | (1 << 14);
 	*UART2_UCTS = UART2_RX_BUFFERSIZE;  /* drop cts when tx buffer at trigger level */
 	*GPIO_FUNC_SEL1 = ( (0x01 << (0*2)) | (0x01 << (1*2)) ); /* set GPIO17-16 to UART2 CTS and RTS */
 #else 
@@ -128,8 +128,8 @@ void uart2_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t s
 		set_bit(*UART2_UCON,UCON_SAMP);
 
 	/* set GPIO15-14 to UART (UART2 TX and RX)*/
-	GPIO->FUNC_SEL.GPIO_14 = 1;
-	GPIO->FUNC_SEL.GPIO_15 = 1;
+	GPIO->FUNC_SEL.GPIO_18 = 1;
+	GPIO->FUNC_SEL.GPIO_19 = 1;
 
 	/* interrupt when there are this number or more bytes free in the TX buffer*/
 	*UART2_UTXCON = 16;
