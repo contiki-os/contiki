@@ -74,7 +74,6 @@ void uart1_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t s
        
 	/* interrupt when there are this number or more bytes free in the TX buffer*/
 	UART1->TXCON = 16;
-	UART1->RXCON = 16;
 
 	u1_head = 0; u1_tail = 0;
 
@@ -105,7 +104,6 @@ void uart2_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t s
        
 	/* interrupt when there are this number or more bytes free in the TX buffer*/
 	UART2->TXCON = 16;
-	UART2->RXCON = 16;
 
 	u2_head = 0; u2_tail = 0;
 
