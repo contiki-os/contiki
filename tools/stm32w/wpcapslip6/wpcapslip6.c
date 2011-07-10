@@ -283,7 +283,7 @@ is_sensible_string(const unsigned char *s, int len)
 void
 serial_to_wpcap(FILE *inslip)
 {
-	u16_t buf_aligned[BUF_SIZE/2];
+	u16_t buf_aligned[BUF_SIZE/2 + 42]; //extra for possible eth_hdr and ip_process expansion
 	u8_t *buf = (u8_t *)buf_aligned;
 
     static int inbufptr = 0;
@@ -1119,6 +1119,15 @@ main(int argc, char **argv)
 	  break;
   case 115200:
 	  b_rate = B115200;
+	  break;
+  case 230400:
+	  b_rate = B230400;
+	  break;
+  case 460800:
+	  b_rate = B460800;
+	  break;
+  case 921600:
+	  b_rate = B921600;
 	  break;
   default:
 	  err(1, "unknown baudrate %d", baudrate);
