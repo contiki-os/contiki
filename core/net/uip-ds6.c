@@ -148,16 +148,19 @@ uip_ds6_init(void)
 void
 uip_ds6_periodic(void)
 {
+
   /* Periodic processing on unicast addresses */
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
     if(locaddr->isused) {
       if((!locaddr->isinfinite) && (stimer_expired(&locaddr->vlifetime))) {
         uip_ds6_addr_rm(locaddr);
+#if UIP_ND6_DEF_MAXDADNS > 0
       } else if((locaddr->state == ADDR_TENTATIVE)
                 && (locaddr->dadnscount <= uip_ds6_if.maxdadns)
                 && (timer_expired(&locaddr->dadtimer))) {
         uip_ds6_dad(locaddr);
+#endif /* UIP_ND6_DEF_MAXDADNS > 0 */
       }
     }
   }
@@ -549,7 +552,6 @@ uip_ds6_addr_add(uip_ipaddr_t *ipaddr, unsigned long vlifetime, uint8_t type)
       (uip_ds6_element_t **)&locaddr) == FREESPACE) {
     locaddr->isused = 1;
     uip_ipaddr_copy(&locaddr->ipaddr, ipaddr);
-    locaddr->state = ADDR_TENTATIVE;
     locaddr->type = type;
     if(vlifetime == 0) {
       locaddr->isinfinite = 1;
@@ -557,10 +559,15 @@ uip_ds6_addr_add(uip_ipaddr_t *ipaddr, unsigned long vlifetime, uint8_t type)
       locaddr->isinfinite = 0;
       stimer_set(&(locaddr->vlifetime), vlifetime);
     }
+#if UIP_ND6_DEF_MAXDADNS > 0
+    locaddr->state = ADDR_TENTATIVE;
     timer_set(&locaddr->dadtimer,
               random_rand() % (UIP_ND6_MAX_RTR_SOLICITATION_DELAY *
                                CLOCK_SECOND));
     locaddr->dadnscount = 0;
+#else /* UIP_ND6_DEF_MAXDADNS > 0 */
+    locaddr->state = ADDR_PREFERRED;
+#endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     uip_create_solicited_node(ipaddr, &loc_fipaddr);
     uip_ds6_maddr_add(&loc_fipaddr);
     return locaddr;
@@ -884,6 +891,7 @@ get_match_length(uip_ipaddr_t *src, uip_ipaddr_t *dst)
 }
 
 /*---------------------------------------------------------------------------*/
+#if UIP_ND6_DEF_MAXDADNS > 0
 void
 uip_ds6_dad(uip_ds6_addr_t *addr)
 {
@@ -922,10 +930,11 @@ uip_ds6_dad_failed(uip_ds6_addr_t * addr)
   uip_ds6_addr_rm(addr);
   return 1;
 }
+#endif /*UIP_ND6_DEF_MAXDADNS > 0 */
 
+/*---------------------------------------------------------------------------*/
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
-/*---------------------------------------------------------------------------*/
 void
 uip_ds6_send_ra_sollicited(void)
 {
