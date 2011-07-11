@@ -620,11 +620,11 @@ extern uip_ds6_netif_t uip_ds6_if;
 			}
 			
 			case 'G':
-				PRINTF_P(PSTR("Global repair returns %d\n\r"),rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE))); 
+				PRINTF_P(PSTR("Global repair returns %d\n\r"),rpl_repair_root(RPL_DEFAULT_INSTANCE));
 				break;
             
             case 'L':
-                rpl_local_repair(rpl_get_dag(RPL_ANY_INSTANCE));
+                rpl_local_repair(rpl_get_any_dag());
                  PRINTF_P(PSTR("Local repair initiated\n\r")); 
                  break;
  

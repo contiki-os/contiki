@@ -164,7 +164,7 @@ PROCESS_THREAD(border_router_process, ev, data)
 { rpl_dag_t *dag;
   char buf[sizeof(dag_id)];
   memcpy_P(buf,dag_id,sizeof(dag_id));
-  dag = rpl_set_root((uip_ip6addr_t *)buf);
+  dag = rpl_set_root(RPL_DEFAULT_INSTANCE,(uip_ip6addr_t *)buf);
 
 /* Assign separate addresses to the jackdaw uip stack and the host network interface, but with the same prefix */
 /* E.g. bbbb::200 to the jackdaw and bbbb::1 to the host network interface with $ip -6 address add bbbb::1/64 dev usb0 */
@@ -192,8 +192,6 @@ PROCESS_THREAD(border_router_process, ev, data)
   while(1) {
     PROCESS_YIELD();
     /* Local and global dag repair can be done from the jackdaw menu */
- //   rpl_set_prefix(rpl_get_dag(RPL_ANY_INSTANCE), &ipaddr, 64);
- //   rpl_repair_dag(rpl_get_dag(RPL_ANY_INSTANCE));
 
   }
 

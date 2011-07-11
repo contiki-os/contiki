@@ -75,17 +75,86 @@
 /* This value decides which DAG instance we should participate in by default. */
 #define RPL_DEFAULT_INSTANCE		0
 
-/* This value is used to access an arbitrary DAG. It will likely be 
-   replaced when we support multiple DAGs more. */
-#define RPL_ANY_INSTANCE               -1
+/*
+ * This value decides if this node must stay as a leaf or not
+ * as allowed by draft-ietf-roll-rpl-19#section-8.5
+ */
+#ifdef RPL_CONF_LEAF_ONLY
+#define RPL_LEAF_ONLY RPL_CONF_LEAF_ONLY
+#else
+#define RPL_LEAF_ONLY 0
+#endif
+
+/*
+ * Maximum of concurent rpl-instances
+ */
+#ifndef RPL_CONF_MAX_INSTANCES
+#define RPL_MAX_INSTANCES     1
+#else
+#define RPL_MAX_INSTANCES     RPL_CONF_MAX_INSTANCES
+#endif /* !RPL_CONF_MAX_INSTANCES */
+
+/*
+ * Maximum of concurent dodag inside an instance
+ */
+#ifndef RPL_CONF_MAX_DODAG_PER_INSTANCE
+#define RPL_MAX_DODAG_PER_INSTANCE     2
+#else
+#define RPL_MAX_DODAG_PER_INSTANCE     RPL_CONF_MAX_DODAG_PER_INSTANCE
+#endif /* !RPL_CONF_MAX_DODAG_PER_INSTANCE */
+
+/*
+ * 
+ */
+#ifndef RPL_CONF_DAO_SPECIFY_DODAG
+#if RPL_MAX_DODAG_PER_INSTANCE > 1
+#define RPL_DAO_SPECIFY_DODAG 1
+#else /* RPL_MAX_DODAG_PER_INSTANCE > 1*/
+#define RPL__DAO_SPECIFY_DODAG 0
+#endif /* RPL_MAX_DODAG_PER_INSTANCE > 1 */
+#else /* RPL_CONF_DAO_SPECIFY_DODAG */
+#define RPL_DAO_SPECIFY_DODAG RPL_CONF_DAO_SPECIFY_DODAG
+#endif /* RPL_CONF_DAO_SPECIFY_DODAG */
+
+
 /*---------------------------------------------------------------------------*/
 /* The amount of parents that this node has in a particular DAG. */
 #define RPL_PARENT_COUNT(dag)   list_length((dag)->parents)
 /*---------------------------------------------------------------------------*/
 typedef uint16_t rpl_rank_t;
-typedef uint8_t rpl_lifetime_t;
 typedef uint16_t rpl_ocp_t;
 
+/*---------------------------------------------------------------------------*/
+/* Lollipop counters */
+
+#define RPL_LOLLIPOP_MAX_VALUE           255
+#define RPL_LOLLIPOP_CIRCULAR_REGION     127
+#define RPL_LOLLIPOP_SEQUENCE_WINDOWS    16
+#define RPL_LOLLIPOP_INIT                RPL_LOLLIPOP_MAX_VALUE - RPL_LOLLIPOP_SEQUENCE_WINDOWS + 1
+#define RPL_LOLLIPOP_INCREMENT(counter)   (counter > RPL_LOLLIPOP_CIRCULAR_REGION ?\
+                                (counter == RPL_LOLLIPOP_MAX_VALUE ? counter=0 : ++counter):\
+                                (counter == RPL_LOLLIPOP_CIRCULAR_REGION ? counter=0 : ++counter))
+#define RPL_LOLLIPOP_IS_INIT(counter)    (counter > RPL_LOLLIPOP_CIRCULAR_REGION)
+#define RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B) (((A < B) && (RPL_LOLLIPOP_CIRCULAR_REGION + 1 - B + A < RPL_LOLLIPOP_SEQUENCE_WINDOWS)) || \
+                                              ((A > B) && (A - B < RPL_LOLLIPOP_SEQUENCE_WINDOWS)))
+#define RPL_LOLLIPOP_GREATER_THAN(A,B)   ((A > RPL_LOLLIPOP_CIRCULAR_REGION )?\
+                                           ((B > RPL_LOLLIPOP_CIRCULAR_REGION )?\
+                                             RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B):\
+                                             0):\
+                                           ((B > RPL_LOLLIPOP_CIRCULAR_REGION )?\
+                                             1:\
+                                             RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B)))
+
+/*---------------------------------------------------------------------------*/
+/* RPL IPv6 extension header option. */
+#define RPL_HDR_OPT_LEN			4
+#define RPL_OP_BY_OP_LEN		RPL_HDR_OPT_LEN+2+2
+#define RPL_HDR_OPT_DOWN		0x80
+#define RPL_HDR_OPT_DOWN_SHIFT  	7
+#define RPL_HDR_OPT_RANK_ERR		0x40
+#define RPL_HDR_OPT_RANK_ERR_SHIFT   	6
+#define RPL_HDR_OPT_FWD_ERR		0x20
+#define RPL_HDR_OPT_FWD_ERR_SHIFT   	5
 /*---------------------------------------------------------------------------*/
 /* DAG Metric Container Object Types, to be confirmed by IANA. */
 #define RPL_DAG_MC_NONE			0 /* Local identifier for empty MC */
@@ -139,6 +208,7 @@ struct rpl_metric_container {
 };
 typedef struct rpl_metric_container rpl_metric_container_t;
 /*---------------------------------------------------------------------------*/
+struct rpl_instance;
 struct rpl_dag;
 /*---------------------------------------------------------------------------*/
 struct rpl_parent {
@@ -152,6 +222,35 @@ struct rpl_parent {
   uint8_t updated;
 };
 typedef struct rpl_parent rpl_parent_t;
+/*---------------------------------------------------------------------------*/
+/* RPL DIO prefix suboption */
+struct rpl_prefix {
+  uip_ipaddr_t prefix;
+  uint32_t lifetime;
+  uint8_t length;
+  uint8_t flags;
+};
+typedef struct rpl_prefix rpl_prefix_t;
+/*---------------------------------------------------------------------------*/
+/* Directed Acyclic Graph */
+struct rpl_dag {
+  uip_ipaddr_t dag_id;
+  rpl_rank_t min_rank; /* should be reset per DODAG iteration! */
+  uint8_t version;
+  uint8_t grounded;
+  uint8_t preference;
+  uint8_t used;
+  /* live data for the DAG */
+  uint8_t joined;
+  rpl_parent_t *preferred_parent;
+  rpl_rank_t rank;
+  struct rpl_instance *instance;
+  void *parent_list;
+  list_t parents;
+  rpl_prefix_t prefix_info;
+};
+typedef struct rpl_dag rpl_dag_t;
+typedef struct rpl_instance rpl_instance_t;
 /*---------------------------------------------------------------------------*/
 /*
  * API for RPL objective functions (OF)
@@ -171,6 +270,10 @@ typedef struct rpl_parent rpl_parent_t;
  *
  *  Compares two parents and returns the best one, according to the OF.
  *
+ * best_dag(dodag1, dodag2)
+ *
+ *  Compares two dodags and returns the best one, according to the OF.
+ *
  * calculate_rank(parent, base_rank)
  *
  *  Calculates a rank value using the parent rank and a base rank.
@@ -188,47 +291,33 @@ struct rpl_of {
   void (*reset)(struct rpl_dag *);
   void (*parent_state_callback)(rpl_parent_t *, int, int);
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
+  rpl_dag_t *(*best_dag)(rpl_dag_t *, rpl_dag_t *);
   rpl_rank_t (*calculate_rank)(rpl_parent_t *, rpl_rank_t);
-  void (*update_metric_container)(struct rpl_dag *);
+  void (*update_metric_container)( rpl_instance_t *);
   rpl_ocp_t ocp;
 };
 typedef struct rpl_of rpl_of_t;
 /*---------------------------------------------------------------------------*/
-/* RPL DIO prefix suboption */
-struct rpl_prefix {
-  uip_ipaddr_t prefix;
-  uint32_t lifetime;
-  uint8_t length;
-  uint8_t flags;
-};
-typedef struct rpl_prefix rpl_prefix_t;
-/*---------------------------------------------------------------------------*/
-/* Directed Acyclic Graph */
-struct rpl_dag {
+/* Instance */
+struct rpl_instance {
   /* DAG configuration */
   rpl_metric_container_t mc;
   rpl_of_t *of;
-  uip_ipaddr_t dag_id;
+  uint8_t instance_id;
+  rpl_dag_t *current_dag;
+  uint8_t used;
+  rpl_dag_t dag_table[RPL_MAX_DODAG_PER_INSTANCE];
   /* The current default router - used for routing "upwards" */
   uip_ds6_defrt_t *def_route;
-  rpl_rank_t rank;
-  rpl_rank_t min_rank; /* should be reset per DODAG iteration! */
   uint8_t dtsn_out;
-  uint8_t instance_id;
-  uint8_t version;
-  uint8_t grounded;
   uint8_t mop;
-  uint8_t preference;
   uint8_t dio_intdoubl;
   uint8_t dio_intmin;
   uint8_t dio_redundancy;
   rpl_rank_t max_rankinc;
   rpl_rank_t min_hoprankinc;
-  uint8_t used;
   uint8_t default_lifetime;
   uint16_t lifetime_unit; /* lifetime in seconds = l_u * d_l */
-  /* live data for the DAG */
-  uint8_t joined;
   uint8_t dio_intcurrent;
   uint8_t dio_send; /* for keeping track of which mode the timer is in 
 */
@@ -241,19 +330,21 @@ struct rpl_dag {
   uint32_t dio_next_delay; /* delay for completion of dio interval */
   struct ctimer dio_timer;
   struct ctimer dao_timer;
-  rpl_parent_t *preferred_parent;
-  void *parent_list;
-  list_t parents;
-  rpl_prefix_t prefix_info;
 };
-typedef struct rpl_dag rpl_dag_t;
+
 /*---------------------------------------------------------------------------*/
 /* Public RPL functions. */
 void rpl_init(void);
-rpl_dag_t *rpl_set_root(uip_ipaddr_t *);
+rpl_dag_t *rpl_set_root(uint8_t instance_id, uip_ipaddr_t * dag_id);
 int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len);
-int rpl_repair_dag(rpl_dag_t *dag);
-int rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from);
-rpl_dag_t *rpl_get_dag(int instance_id);
+int rpl_repair_root(uint8_t instance_id);
+int rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from);
+rpl_dag_t *rpl_get_any_dag(void);
+rpl_dag_t *rpl_get_dodag(uint8_t instance_id,uip_ipaddr_t * dag_id);
+rpl_instance_t *rpl_get_instance(uint8_t instance_id);
+int rpl_add_header(rpl_instance_t *instance,int down);
+int rpl_add_header_root(void);
+void rpl_remove_header(void);
+u8_t rpl_invert_header(void);
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */
