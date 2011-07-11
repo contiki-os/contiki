@@ -370,6 +370,24 @@ uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr)
 }
 
 /*---------------------------------------------------------------------------*/
+uip_ds6_nbr_t *
+uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr)
+{
+  uip_ds6_nbr_t *fin;
+
+  for( locnbr=uip_ds6_nbr_cache, fin=locnbr + UIP_DS6_NBR_NB;
+       locnbr<fin;
+       ++locnbr) {
+    if(locnbr->isused) {
+      if(!memcmp(lladdr,&locnbr->lladdr,UIP_LLADDR_LEN)) {
+        return locnbr;
+      }
+    }
+  }
+  return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
 uip_ds6_defrt_t *
 uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
 {
