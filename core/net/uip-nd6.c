@@ -224,6 +224,7 @@ uip_nd6_ns_input(void)
 
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
   if(addr != NULL) {
+#if UIP_ND6_DEF_MAXDADNS > 0
     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
       /* DAD CASE */
 #if UIP_CONF_IPV6_CHECKS
@@ -242,6 +243,11 @@ uip_nd6_ns_input(void)
         uip_ds6_dad_failed(addr);
         goto discard;
       }
+#else /* UIP_ND6_DEF_MAXDADNS > 0 */
+    if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+      /* DAD CASE */
+      goto discard;
+#endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     }
 #if UIP_CONF_IPV6_CHECKS
     if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)) {
@@ -441,9 +447,11 @@ uip_nd6_na_input(void)
   addr = uip_ds6_addr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
   /* Message processing, including TLLAO if any */
   if(addr != NULL) {
+#if UIP_ND6_DEF_MAXDADNS > 0
     if(addr->state == ADDR_TENTATIVE) {
       uip_ds6_dad_failed(addr);
     }
+#endif /*UIP_ND6_DEF_MAXDADNS > 0 */
     PRINTF("NA received is bad\n");
     goto discard;
   } else {

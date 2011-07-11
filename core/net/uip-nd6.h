@@ -57,7 +57,16 @@
 #define UIP_ND6_INFINITE_LIFETIME       0xFFFFFFFF
 /** @} */
 
+#ifndef UIP_CONF_ND6_DEF_MAXDADNS
+/** \brief Do not try DAD when using EUI-64 as allowed by draft-ietf-6lowpan-nd-15 section 8.2 */
+#if UIP_CONF_LL_802154
+#define UIP_ND6_DEF_MAXDADNS 0
+#else /* UIP_CONF_LL_802154 */
 #define UIP_ND6_DEF_MAXDADNS 1
+#endif /* UIP_CONF_LL_802154 */
+#else /* UIP_CONF_ND6_DEF_MAXDADNS */
+#define UIP_ND6_DEF_MAXDADNS UIP_CONF_ND6_DEF_MAXDADNS
+#endif /* UIP_CONF_ND6_DEF_MAXDADNS */
 
 /** \name RFC 4861 Host constant */
 /** @{ */
