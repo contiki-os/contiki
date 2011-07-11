@@ -96,6 +96,8 @@
 
 #if UIP_CONF_IPV6_RPL
 void uip_rpl_input(void);
+void rpl_update_header_empty(void);
+int rpl_verify_header(int uip_ext_opt_offset);
 #endif /* UIP_CONF_IPV6_RPL */
 
 #if UIP_LOGGING == 1
@@ -163,6 +165,9 @@ u8_t uip_ext_opt_offset = 0;
 #define UIP_DESTO_BUF                    ((struct uip_desto_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_EXT_HDR_OPT_BUF            ((struct uip_ext_hdr_opt *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 #define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
+#if UIP_CONF_IPV6_RPL
+#define UIP_EXT_HDR_OPT_RPL_BUF    ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
+#endif /* UIP_CONF_IPV6_RPL */
 #define UIP_ICMP6_ERROR_BUF            ((struct uip_icmp6_error *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 /** @} */
 /** \name Buffer variables
@@ -827,6 +832,16 @@ ext_hdr_options_process() {
         PRINTF("Processing PADN option\n");
         uip_ext_opt_offset += UIP_EXT_HDR_OPT_PADN_BUF->opt_len + 2;
         break;
+#if UIP_CONF_IPV6_RPL
+      case UIP_EXT_HDR_OPT_RPL:
+        PRINTF("Processing RPL option\n");
+        if (rpl_verify_header(uip_ext_opt_offset)) {
+          PRINTF("RPL Option Error : Dropping Packet");
+          return 1;
+        }
+        uip_ext_opt_offset += (UIP_EXT_HDR_OPT_RPL_BUF->opt_len) + 2;
+        return 0;
+#endif /* UIP_CONF_IPV6_RPL */
       default:
         /*
          * check the two highest order bits of the option
@@ -1078,6 +1093,35 @@ uip_process(u8_t flag)
   }
 
 #if UIP_CONF_ROUTER
+  /*
+   * Next header field processing. In IPv6, we can have extension headers,
+   * if present, the Hop-by-Hop Option must be processed before forwarding
+   * the packet.
+   */
+  uip_next_hdr = &UIP_IP_BUF->proto;
+  uip_ext_len = 0;
+  uip_ext_bitmap = 0;
+  if (*uip_next_hdr == UIP_PROTO_HBHO) {
+#if UIP_CONF_IPV6_CHECKS
+    uip_ext_bitmap |= UIP_EXT_HDR_BITMAP_HBHO;
+#endif /*UIP_CONF_IPV6_CHECKS*/
+    switch(ext_hdr_options_process()) {
+      case 0:
+        /*continue*/
+        uip_next_hdr = &UIP_EXT_BUF->next;
+        uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
+        break;
+      case 1:
+        /*silently discard*/
+        goto drop;
+      case 2:
+        /* send icmp error message (created in ext_hdr_options_process)
+         * and discard*/
+        goto send;
+    }
+  }
+
+
   /* TBD Some Parameter problem messages */
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
      !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr)) {
@@ -1101,6 +1145,11 @@ uip_process(u8_t flag)
         UIP_STAT(++uip_stat.ip.drop);
         goto send;
       }
+
+#if UIP_CONF_IPV6_RPL
+      rpl_update_header_empty();
+#endif /* UIP_CONF_IPV6_RPL */
+
       UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
       PRINTF("Forwarding packet to ");
       PRINT6ADDR(&UIP_IP_BUF->destipaddr);
@@ -1131,7 +1180,6 @@ uip_process(u8_t flag)
     UIP_STAT(++uip_stat.ip.drop);
     goto drop;
   }
-#endif /* UIP_CONF_ROUTER */
 
   /*
    * Next header field processing. In IPv6, we can have extension headers,
@@ -1140,6 +1188,8 @@ uip_process(u8_t flag)
   uip_next_hdr = &UIP_IP_BUF->proto;
   uip_ext_len = 0;
   uip_ext_bitmap = 0;
+#endif /* UIP_CONF_ROUTER */
+
   while(1) {
     switch(*uip_next_hdr){
 #if UIP_TCP

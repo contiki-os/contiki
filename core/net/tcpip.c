@@ -80,7 +80,8 @@ extern struct uip_fallback_interface UIP_FALLBACK_INTERFACE;
 #endif
 #if UIP_CONF_IPV6_RPL
 void rpl_init(void);
-#endif
+int rpl_update_header_final(uip_ipaddr_t *addr);
+#endif /* UIP_CONF_IPV6_RPL */
 process_event_t tcpip_event;
 #if UIP_CONF_ICMP6
 process_event_t tcpip_icmp6_event;
@@ -590,6 +591,12 @@ tcpip_ipv6_output(void)
       }
     }
     /* end of next hop determination */
+#if UIP_CONF_IPV6_RPL
+    if (rpl_update_header_final(nexthop)) {
+      uip_len = 0;
+      return;
+    }
+#endif /* UIP_CONF_IPV6_RPL */
     if((nbr = uip_ds6_nbr_lookup(nexthop)) == NULL) {
       //      printf("add1 %d\n", nexthop->u8[15]);
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {

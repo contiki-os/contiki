@@ -1770,6 +1770,17 @@ typedef struct uip_ext_hdr_opt_padn {
   u8_t opt_len;
 } uip_ext_hdr_opt_padn;
 
+#if UIP_CONF_IPV6_RPL
+/* RPL option */
+typedef struct uip_ext_hdr_opt_rpl {
+  u8_t opt_type;
+  u8_t opt_len;
+  u8_t flags;
+  u8_t instance;
+  u16_t senderrank;
+} uip_ext_hdr_opt_rpl;
+#endif /* UIP_CONF_IPV6_RPL */
+
 /* TCP header */
 struct uip_tcp_hdr {
   u16_t srcport;
@@ -1840,6 +1851,10 @@ struct uip_udp_hdr {
 /** \brief  Destination and Hop By Hop extension headers option types */
 #define UIP_EXT_HDR_OPT_PAD1  0
 #define UIP_EXT_HDR_OPT_PADN  1
+#if UIP_CONF_IPV6_RPL
+#define UIP_EXT_HDR_OPT_RPL   0x63
+#endif /* UIP_CONF_IPV6_RPL */
+
 /** @} */
 
 /** @{ */
