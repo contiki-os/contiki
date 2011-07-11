@@ -39,6 +39,8 @@
 
 #include "net/neighbor-info.h"
 #include "net/neighbor-attr.h"
+#include "net/uip-ds6.h"
+#include "net/uip-nd6.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -104,6 +106,9 @@ neighbor_info_packet_sent(int status, int numtx)
 {
   const rimeaddr_t *dest;
   link_metric_t packet_metric;
+#if UIP_DS6_LL_NUD
+  uip_ds6_nbr_t * nbr;
+#endif /* UIP_DS6_LL_NUD */
 
   dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
   if(rimeaddr_cmp(dest, &rimeaddr_null)) {
@@ -118,6 +123,21 @@ neighbor_info_packet_sent(int status, int numtx)
   case MAC_TX_OK:
     packet_metric = numtx;
     add_neighbor(dest);
+#if UIP_DS6_LL_NUD
+    nbr=uip_ds6_nbr_ll_lookup((uip_lladdr_t *) dest);
+    if (nbr!=NULL) {
+      PRINTF("neighbor-info : nbr state = %u\n",nbr->state);
+    } else {
+      PRINTF("neighbor-info : no nbr\n");
+    }
+    if (nbr!=NULL && (nbr->state == STALE || nbr->state == DELAY || nbr->state == PROBE)) {
+      nbr->state = REACHABLE;
+      stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+      PRINTF("neighbor-info : received a linklayer ack : ");
+      PRINTLLADDR((uip_lladdr_t *)dest);
+      PRINTF(" is reachable.\n");
+    }
+#endif /* UIP_DS6_LL_NUD */
     break;
   case MAC_TX_COLLISION:
     packet_metric = numtx;

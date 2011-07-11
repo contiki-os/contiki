@@ -124,6 +124,13 @@
 #endif
 #define UIP_DS6_AADDR_NB UIP_DS6_AADDR_NBS + UIP_DS6_AADDR_NBU
 
+/*--------------------------------------------------*/
+/* Should we use LinkLayer acks in NUD ?*/
+#ifndef UIP_CONF_DS6_LL_NUD
+#define UIP_DS6_LL_NUD 0
+#else
+#define UIP_DS6_LL_NUD UIP_CONF_DS6_LL_NUD
+#endif
 
 /*--------------------------------------------------*/
 /** \brief Possible states for the nbr cache entries */
@@ -312,6 +319,7 @@ uip_ds6_nbr_t *uip_ds6_nbr_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
                                uint8_t isrouter, uint8_t state);
 void uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
 uip_ds6_nbr_t *uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr);
+uip_ds6_nbr_t *uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr);
 
 /** @} */
 
