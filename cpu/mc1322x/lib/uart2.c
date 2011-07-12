@@ -47,19 +47,21 @@ volatile uint32_t u2_rx_head, u2_rx_tail;
 void uart2_isr(void) {
 
 #if UART2_RX_BUFFERSIZE > 32
-  if (*UART2_USTAT & ( 1 << 6)) {   //receive interrupt
-	while( *UART2_URXCON != 0 ) {   //flush the hardware fifo into the software buffer
-        uint32_t u2_rx_tail_next;
-        u2_rx_tail_next = u2_rx_tail+1;
-		if (u2_rx_tail_next >= sizeof(u2_rx_buf))
-			u2_rx_tail_next = 0;
-        if (u2_rx_head != u2_rx_tail_next) {
-		    u2_rx_buf[u2_rx_tail]= *UART2_UDATA;
-		    u2_rx_tail =  u2_rx_tail_next;
-        }
+	if (*UART2_USTAT & ( 1 << 6)) {   //receive interrupt
+		while( *UART2_URXCON != 0 ) {   //flush the hardware fifo into the software buffer
+			uint32_t u2_rx_tail_next;
+			u2_rx_tail_next = u2_rx_tail+1;
+			if (u2_rx_tail_next >= sizeof(u2_rx_buf))
+				u2_rx_tail_next = 0;
+			if (u2_rx_head != u2_rx_tail_next) {
+				u2_rx_buf[u2_rx_tail]= *UART2_UDATA;
+				u2_rx_tail =  u2_rx_tail_next;
+			} else {  //buffer is full, flush the fifo
+				while (*UART2_URXCON !=0) if (*UART2_UDATA);
+			}
+		}
+		return;
 	}
-    return;
-  }
 #endif
 
 	while( *UART2_UTXCON != 0 ) {
