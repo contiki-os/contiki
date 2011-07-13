@@ -260,6 +260,48 @@ rpl_repair_root(uint8_t instance_id)
   return 0;
 }
 /************************************************************************/
+inline void
+allocate_ip_from_prefix(uip_ipaddr_t *ipaddr, rpl_prefix_t *prefix)
+{
+  memset(ipaddr, 0, sizeof(uip_ipaddr_t));
+  memcpy(ipaddr, &prefix->prefix, prefix->length);
+  uip_ds6_set_addr_iid(ipaddr, &uip_lladdr);
+}
+
+void
+rpl_check_prefix(rpl_prefix_t *last_prefix, rpl_prefix_t *new_prefix)
+{
+  uip_ipaddr_t ipaddr;
+  uip_ds6_addr_t *rep;
+  uint8_t flag = 0;
+
+  if((last_prefix != NULL)
+      && ((new_prefix == NULL)
+        || (flag = (last_prefix->length != new_prefix->length)
+          || (!uip_ipaddr_prefixcmp(&last_prefix->prefix, &new_prefix->prefix, new_prefix->length))
+          || (last_prefix->flags != new_prefix->flags)))) {
+    allocate_ip_from_prefix(&ipaddr,last_prefix);
+    if((rep = uip_ds6_addr_lookup(&ipaddr)) != NULL) {
+      PRINTF("RPL: removing global IP address ");
+      PRINT6ADDR(&ipaddr);
+      PRINTF("\n");
+      uip_ds6_addr_rm(rep);
+    }
+  }
+
+  if(((last_prefix == NULL)
+      && (new_prefix != NULL))
+        || flag) {
+    allocate_ip_from_prefix(&ipaddr,new_prefix);
+    if(uip_ds6_addr_lookup(&ipaddr) == NULL) {
+      PRINTF("RPL: adding global IP address ");
+      PRINT6ADDR(&ipaddr);
+      PRINTF("\n");
+      uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+    }
+  }
+}
+/************************************************************************/
 int
 rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len)
 {
@@ -269,6 +311,9 @@ rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len)
     dag->prefix_info.length = len;
     dag->prefix_info.flags = UIP_ND6_RA_FLAG_AUTONOMOUS;
     PRINTF("RPL: Prefix set - will announce this in DIOs\n");
+    /* Autoconfigure an address if this node does not already have an address
+       with this prefix. */
+    rpl_check_prefix(NULL,&dag->prefix_info);
     return 1;
   }
   return 0;
@@ -402,6 +447,11 @@ rpl_free_dodag(rpl_dag_t *dag)
     /* Remove routes installed by DAOs. */
     rpl_remove_routes(dag);
 
+   /* Remove autoconfigured address */
+    if((dag->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
+      rpl_check_prefix(&dag->prefix_info, NULL);
+    }
+
     remove_parents(dag, 0);
   }
   dag->used = 0;
@@ -519,6 +569,12 @@ rpl_select_dodag(rpl_instance_t * instance, rpl_parent_t *p)
     PRINTF("RPL: New preferred DODAG : ");
     PRINT6ADDR(&best_dag->dag_id);
     PRINTF("\n");
+
+    if(best_dag->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
+      rpl_check_prefix(&instance->current_dag->prefix_info, &best_dag->prefix_info);
+    } else if(instance->current_dag->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
+      rpl_check_prefix(&instance->current_dag->prefix_info, NULL);
+    }
 
     best_dag->joined = 1;
     instance->current_dag->joined = 0;
@@ -759,16 +815,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   /* Autoconfigure an address if this node does not already have an address
      with this prefix. */
   if((dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
-    uip_ipaddr_t ipaddr;
-    /* assume that the prefix ends with zeros! */
-    memcpy(&ipaddr, &dio->prefix_info.prefix, 16);
-    uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-    if(uip_ds6_addr_lookup(&ipaddr) == NULL) {
-      PRINTF("RPL: adding global IP address ");
-      PRINT6ADDR(&ipaddr);
-      PRINTF("\n");
-      uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
-    }
+    rpl_check_prefix(NULL, &dio->prefix_info);
   }
 
   dag->joined = 1;
