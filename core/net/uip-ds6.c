@@ -784,6 +784,10 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length, uip_ipaddr_t *nexthop,
     uip_ipaddr_copy(&(locroute->nexthop), nexthop);
     locroute->metric = metric;
 
+#ifdef UIP_DS6_ROUTE_STATE_TYPE
+    memset (&(locroute->state),0,sizeof(UIP_DS6_ROUTE_STATE_TYPE));
+#endif
+
     PRINTF("DS6: adding route: ");
     PRINT6ADDR(ipaddr);
     PRINTF(" via ");
