@@ -303,25 +303,24 @@ struct rpl_instance {
   /* DAG configuration */
   rpl_metric_container_t mc;
   rpl_of_t *of;
-  uint8_t instance_id;
   rpl_dag_t *current_dag;
-  uint8_t used;
   rpl_dag_t dag_table[RPL_MAX_DODAG_PER_INSTANCE];
   /* The current default router - used for routing "upwards" */
   uip_ds6_defrt_t *def_route;
+  uint8_t instance_id;
+  uint8_t used;
   uint8_t dtsn_out;
   uint8_t mop;
   uint8_t dio_intdoubl;
   uint8_t dio_intmin;
   uint8_t dio_redundancy;
+  uint8_t default_lifetime;
+  uint8_t dio_intcurrent;
+  uint8_t dio_send; /* for keeping track of which mode the timer is in */
+  uint8_t dio_counter;
   rpl_rank_t max_rankinc;
   rpl_rank_t min_hoprankinc;
-  uint8_t default_lifetime;
   uint16_t lifetime_unit; /* lifetime in seconds = l_u * d_l */
-  uint8_t dio_intcurrent;
-  uint8_t dio_send; /* for keeping track of which mode the timer is in 
-*/
-  uint8_t dio_counter;
 #if RPL_CONF_STATS
   uint16_t dio_totint;
   uint16_t dio_totsend;
