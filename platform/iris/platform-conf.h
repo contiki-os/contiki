@@ -47,11 +47,10 @@
 #define PLATFORM PLATFORM_AVR
 
 #define HARWARE_REVISION IRIS
-//#define RAVEN_REVISION RAVEN_D
 
 /*
  * MCU and clock rate.
- * MICAZ runs on 7.3728 MHz clock.
+ * IRIS runs on 8 MHz clock.
  */
 #define MCU_MHZ 8
 
