@@ -136,6 +136,14 @@ vpath %.S $(SOURCEDIRS)
 
 CFLAGS += ${addprefix -I,$(SOURCEDIRS)}
 
+### Check for a git repo and pass version if found
+### git.exe in Windows cmd shells may require no stderr redirection
+#RELSTR=${shell git describe --tags}
+RELSTR=${shell git describe --tags 2>/dev/null}
+ifneq ($(RELSTR),)
+CFLAGS += -DCONTIKI_VERSION_STRING=\"Contiki-$(RELSTR)\"
+endif
+
 ### Automatic dependency generation
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -152,7 +160,7 @@ sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 rm -f $(@:.o=.$$$$)
 endef
 
-clean:
+ clean:
 	rm -f *~ *core core *.srec \
 	*.lst *.map \
         *.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
