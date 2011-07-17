@@ -55,7 +55,11 @@
 #define NETSTACK_CONF_RDC     nullrdc_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
+#if SUBTARGET == MICAZ
 #define CC2420_CONF_AUTOACK              1
+#elif SUBTARGET == IRIS
+#define RF230_CONF_AUTOACK              1
+#endif
 #define MAC_CONF_CHANNEL_CHECK_RATE      8
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
 #define CXMAC_CONF_ANNOUNCEMENTS         0
@@ -69,7 +73,11 @@
 #define NETSTACK_CONF_RDC     cxmac_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
+#if SUBTARGET == MICAZ
 #define CC2420_CONF_AUTOACK              1
+#elif SUBTARGET == IRIS
+#define RF230_CONF_AUTOACK              1
+#endif
 #define MAC_CONF_CHANNEL_CHECK_RATE      8
 
 #define COLLECT_CONF_ANNOUNCEMENTS       1
@@ -158,15 +166,19 @@
 #endif
 
 #define TIMESYNCH_CONF_ENABLED 1
-#define CC2420_CONF_TIMESTAMPS 1
+#if SUBTARGET == MICAZ
+#define CC2420_CONF_TIMESTAMPS 0
 #define CC2420_CONF_SYMBOL_LOOP_COUNT 500
+#elif SUBTARGET == IRIS
+#define RF230_CONF_TIMESTAMPS 0
+#define RF230_CONF_SYMBOL_LOOP_COUNT 500
+#endif
 
 #define WITH_NULLMAC 0
 
 #define CCIF
 #define CLIF
 
-/* The process names are not used to save RAM */
 #define PROCESS_CONF_NO_PROCESS_NAMES 1
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
@@ -197,5 +209,9 @@ void clock_delay(unsigned int us2);
 void clock_wait(int ms10);
 void clock_set_seconds(unsigned long s);
 unsigned long clock_seconds(void);
+
+#ifdef PROJECT_CONF_H
+#include PROJECT_CONF_H
+#endif /* PROJECT_CONF_H */
 
 #endif /* __CONTIKI_CONF_H__ */
