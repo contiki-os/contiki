@@ -43,12 +43,22 @@
 #include <avr/pgmspace.h>
 
 #include "contiki.h"
-#include "dev/cc2420.h"
 #include "dev/rs232.h"
 #include "dev/slip.h"
 #include "dev/leds.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
+#if SUBTARGET  == MICAZ
+#include "dev/cc2420.h"
+#define INIT_NET_INIT cc2420_init
+#define INIT_NET_SET_PAN_ADDR cc2420_set_pan_addr
+#define INIT_NET_SET_CHANNEL cc2420_set_channel
+#elif SUBTARGET == IRIS
+#include "rf230bb.h"
+#define INIT_NET_INIT rf230_init
+#define INIT_NET_SET_PAN_ADDR rf230_set_pan_addr
+#define INIT_NET_SET_CHANNEL rf230_set_channel
+#endif
 
 #include "dev/ds2401.h"
 #include "node-id.h"
@@ -124,7 +134,7 @@ init_net(void)
 {
 
   set_rime_addr();
-  cc2420_init();
+  INIT_NET_INIT();
   {
     uint8_t longaddr[8];
     uint16_t shortaddr;
@@ -137,9 +147,9 @@ init_net(void)
              longaddr[0], longaddr[1], longaddr[2], longaddr[3],
              longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
     
-    cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
+    INIT_NET_SET_PAN_ADDR(IEEE802154_PANID, shortaddr, longaddr);
   }
-  cc2420_set_channel(RF_CHANNEL);
+  INIT_NET_SET_CHANNEL(RF_CHANNEL);
 
 
 #if WITH_UIP6

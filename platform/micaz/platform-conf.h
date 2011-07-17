@@ -40,17 +40,32 @@
 #ifndef __PLATFORM_CONF_H__
 #define __PLATFORM_CONF_H__
 
+#define MICAZ 1
+#define IRIS 2
+#ifndef SUBTARGET
+# define SUBTARGET MICAZ
+#endif
+
 /*
  * Definitions below are dictated by the hardware and not really
  * changeable!
  */
 #define PLATFORM PLATFORM_AVR
 
+#if SUBTARGET == IRIS
+#define HARWARE_REVISION IRIS
+#endif
+
 /*
  * MCU and clock rate.
  * MICAZ runs on 7.3728 MHz clock.
+ * IRIS runs on 8 MHz clock.
  */
+#if SUBTARGET == MICAZ
 #define MCU_MHZ 7
+#elif SUBTARGET == IRIS
+#define MCU_MHZ 8
+#endif
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 128
@@ -77,7 +92,11 @@
 #define EEPROM_NODE_ID_START 0x00
 
 
+#if SUBTARGET == MICAZ
 #define NETSTACK_CONF_RADIO   cc2420_driver
+#elif SUBTARGET == IRIS
+#define NETSTACK_CONF_RADIO   rf230_driver
+#endif
 
 
 /*
@@ -113,6 +132,7 @@
 #define SPI_FLASH_HOLD()                ( P4OUT &= ~BV(FLASH_HOLD) )
 #define SPI_FLASH_UNHOLD()              ( P4OUT |=  BV(FLASH_HOLD) )
 
+#if SUBTARGET == MICAZ
 /*
  * SPI bus - CC2420 pin configuration.
  */
@@ -128,7 +148,6 @@
 #define CCA            6
 
 #define SFD            4
-#define CSN            0
 #define VREG_EN        5
 #define RESET_N        6
 
@@ -191,5 +210,10 @@
  */
 #define CC2420_SPI_ENABLE() (PORTB &= ~BV(CSN)) /* ENABLE CSn (active low) */
 #define CC2420_SPI_DISABLE() (PORTB |=  BV(CSN)) /* DISABLE CSn (active low) */
+
+#endif /* SUBTARGET == MICAZ */
+
+/* In iris, only CSN is necessary */
+#define CSN            0
 
 #endif /* __PLATFORM_CONF_H__ */
