@@ -65,31 +65,31 @@ PROCESS_THREAD(example_shell_process, ev, data)
   /*shell_coffee_init();*/
   shell_download_init();
   /*shell_exec_init();*/
-  shell_file_init();
-  shell_httpd_init();
-  shell_irc_init();
+  //shell_file_init();
+  //shell_httpd_init();
+  //shell_irc_init();
   shell_netfile_init();
   /*shell_ping_init();*/ /* uIP ping */
   shell_power_init();
   /*shell_profile_init();*/
   shell_ps_init();
   /*shell_reboot_init();*/
-  shell_rime_debug_init();
-  shell_rime_netcmd_init();
-  shell_rime_ping_init(); /* Rime ping */
-  shell_rime_sendcmd_init();
-  shell_rime_sniff_init();
-  shell_rime_init();
+  //shell_rime_debug_init();
+  //shell_rime_netcmd_init();
+  //shell_rime_ping_init(); /* Rime ping */
+  //shell_rime_sendcmd_init();
+  //shell_rime_sniff_init();
+  //shell_rime_init();
   /*shell_rsh_init();*/
   shell_run_init();
   shell_sendtest_init();
   /*shell_sky_init();*/
   shell_tcpsend_init();
   shell_text_init();
-  shell_time_init();
+  //shell_time_init();
   shell_udpsend_init();
   shell_vars_init();
-  shell_wget_init();
+  //shell_wget_init();
   shell_tweet_init();
 
   PROCESS_END();
