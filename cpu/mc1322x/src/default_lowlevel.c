@@ -83,9 +83,9 @@ void uart1_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t s
 	/* set GPIO15-14 to UART (UART1 TX and RX)*/
 	GPIO->FUNC_SEL.GPIO_14 = 1;
 	GPIO->FUNC_SEL.GPIO_15 = 1;
-
+       
 	/* interrupt when there are this number or more bytes free in the TX buffer*/
-	*UART1_UTXCON = 16;
+	UART1->TXCON = 16;
 	u1_tx_head = 0; u1_tx_tail = 0;
 
 	/* enable UART1 interrupts in the interrupt controller */
@@ -132,7 +132,7 @@ void uart2_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t s
 	GPIO->FUNC_SEL.GPIO_19 = 1;
 
 	/* interrupt when there are this number or more bytes free in the TX buffer*/
-	*UART2_UTXCON = 16;
+	UART2->TXCON = 16;
 	u2_tx_head = 0; u2_tx_tail = 0;
 
 	/* enable UART2 interrupts in the interrupt controller */

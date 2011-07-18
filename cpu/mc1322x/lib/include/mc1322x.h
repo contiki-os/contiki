@@ -47,5 +47,6 @@
 #include "uart.h"
 #include "utils.h"
 #include "asm.h"
+#include "i2c.h"
 
 #endif
