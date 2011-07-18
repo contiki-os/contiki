@@ -92,6 +92,9 @@ void irq(void)
 		if(bit_is_set(pending, INT_NUM_ASM)) {
 			if(asm_isr != 0) { asm_isr(); }
 		}
+		if (bit_is_set(pending, INT_NUM_I2C)) {
+			if (i2c_isr != 0) { i2c_isr(); }
+		}
 
 		*INTFRC = 0; /* stop forcing interrupts */
 
