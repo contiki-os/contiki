@@ -124,7 +124,7 @@ init_net(void)
 {
 
   set_rime_addr();
-  rf230_init();
+  NETSTACK_RADIO.init();
   {
     uint8_t longaddr[8];
     uint16_t shortaddr;
