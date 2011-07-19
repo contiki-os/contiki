@@ -48,12 +48,6 @@
 
 #define HARWARE_REVISION IRIS
 
-/*
- * MCU and clock rate.
- * IRIS runs on 8 MHz clock.
- */
-#define MCU_MHZ 8
-
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 128
 
