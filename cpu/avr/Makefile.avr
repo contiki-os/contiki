@@ -201,6 +201,9 @@ endif
 %.u: %.hex
 	avrdude $(AVRDUDE_OPTIONS) $(AVRDUDE_PORT) $(AVRDUDE_PROGRAMMER) -p $(MCU) -U flash:w:$<
 
+%.eu: %.eep
+	avrdude ${AVRDUDE_OPTIONS} -P ${AVRDUDE_PORT} -c ${AVRDUDE_PROGRAMMER} -p ${MCU} -U eeprom:w:$<
+
 symbols.c:
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
 	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
