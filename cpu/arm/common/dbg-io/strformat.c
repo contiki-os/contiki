@@ -282,6 +282,7 @@ format_str_v(const StrFormatContext *ctxt, const char *format, va_list ap)
       if (*pos >= '0' && *pos <= '9') {
 	precision = parse_uint(&pos);
       } else if (*pos == '*') {
+	pos++;
 	precision = va_arg(ap,int);
       }
     }
