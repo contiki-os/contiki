@@ -166,7 +166,7 @@ if ($coffee) {
   print "Processing directory $directory as root of packed httpd-fs file system\n";
 }
 opendir(DIR, ".");
-@files =  grep { !/^\./ && !/(CVS|~)/ } readdir(DIR);
+@files =  grep { !/^\./ && !/(CVS|~)/ && !/(makefsdata.ignore)/ } readdir(DIR);
 closedir(DIR);
 
 foreach $file (@files) {
