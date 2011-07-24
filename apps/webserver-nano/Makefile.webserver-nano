@@ -1,0 +1,2 @@
+webserver-nano_src = webserver-nogui.c httpd.c psock.c memb.c httpd-fs.c httpd-cgi.c
+webserver-nano_dsc = webserver-dsc.c
