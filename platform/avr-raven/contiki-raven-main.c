@@ -76,7 +76,7 @@
 #include "raven-lcd.h"
 #endif
 
-#if WEBSERVER
+#if AVR_WEBSERVER
 #include "httpd-fs.h"
 #include "httpd-cgi.h"
 #endif
@@ -125,7 +125,7 @@ FUSES ={.low = 0xe2, .high = 0x99, .extended = 0xff,};
 /* Use existing EEPROM if it passes the integrity test, else reinitialize with build values */
 
 /* Put default MAC address in EEPROM */
-#if WEBSERVER
+#if AVR_WEBSERVER
 extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h
 extern uint8_t server_name[16];
 extern uint8_t domain_name[30];
@@ -340,7 +340,7 @@ uint8_t i;
 /*--------------------------Announce the configuration---------------------*/
 #if ANNOUNCE_BOOT
 
-#if WEBSERVER
+#if AVR_WEBSERVER
   uint8_t i;
   char buf[80];
   unsigned int size;
@@ -371,7 +371,7 @@ uint8_t i;
 
 #else
    PRINTF("Online\n");
-#endif /* WEBSERVER */
+#endif /* AVR_WEBSERVER */
 
 #endif /* ANNOUNCE_BOOT */
 }

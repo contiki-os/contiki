@@ -66,7 +66,7 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 
-#if WEBSERVER
+#if AVR_WEBSERVER
 #include "webserver-nogui.h"
 #include "httpd-cgi.h"
 #endif
@@ -306,13 +306,13 @@ raven_gui_loop(process_event_t ev, process_data_t data)
                 raven_ping6();
                 break;
             case SEND_TEMP:
-#if WEBSERVER
+#if AVR_WEBSERVER
                 /* Set temperature string in web server */
                 web_set_temp((char *)cmd.frame);
 #endif
                 break;
             case SEND_ADC2:
-#if WEBSERVER
+#if AVR_WEBSERVER
                 /* Set ext voltage string in web server */
                 web_set_voltage((char *)cmd.frame);
 #endif
@@ -449,7 +449,7 @@ raven_lcd_show_text(char *text) {
     send_frame(REPORT_TEXT_MSG, textlen, (uint8_t *) text);
 }
 
-#if WEBSERVER
+#if AVR_WEBSERVER
 static void
 lcd_show_servername(void) {
 
@@ -469,7 +469,7 @@ PROCESS_THREAD(raven_lcd_process, ev, data)
 
   PROCESS_BEGIN();
 
-#if WEBSERVER
+#if AVR_WEBSERVER
   lcd_show_servername();
 #endif
 
