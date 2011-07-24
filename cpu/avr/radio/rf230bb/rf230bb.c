@@ -142,7 +142,7 @@ struct timestamp {
 #endif
 
 /* See clock.c and httpd-cgi.c for RADIOSTATS code */
-#if WEBSERVER
+#if AVR_WEBSERVER
 #define RADIOSTATS 1
 #endif
 #if RADIOSTATS
