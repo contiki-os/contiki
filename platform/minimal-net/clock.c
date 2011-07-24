@@ -41,6 +41,16 @@
 #include "sys/clock.h"
 #include <sys/time.h>
 
+static long startsecs=0,startmsecs=0;
+/*---------------------------------------------------------------------------*/
+void
+clock_init(void)
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL) ;
+  startmsecs=tv.tv_usec/1000;
+  startsecs=tv.tv_sec;
+}
 /*---------------------------------------------------------------------------*/
 clock_time_t
 clock_time(void)
@@ -56,6 +66,19 @@ clock_time(void)
 unsigned long
 clock_seconds(void)
 {
+/* Returne seconds since startup */
+  long secs,msecs;
+  struct timeval tv;
+  gettimeofday(&tv, NULL) ;
+  msecs=tv.tv_usec/1000;
+  secs=tv.tv_sec;
+  secs -=startsecs;
+  msecs-=startmsecs;
+  if (msecs<0) secs--;
+  return secs;
+}
+#if 0
+ /* Return seconds since midnight*/
   struct timeval tv;
   struct timezone tz;
    
@@ -63,6 +86,7 @@ clock_seconds(void)
  
   return tv.tv_sec;
 }
+#endif
 /*---------------------------------------------------------------------------*/
 void
 clock_delay(unsigned int d)
