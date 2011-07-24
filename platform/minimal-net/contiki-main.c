@@ -163,6 +163,7 @@ sprint_ip6(uip_ip6addr_t addr)
 int
 main(void)
 {
+  clock_init();
 #if UIP_CONF_IPV6
 /* A hard coded address overrides the stack default MAC address to allow multiple instances.
  * uip6.c defines it as {0x00,0x06,0x98,0x00,0x02,0x32} giving an ipv6 address of [fe80::206:98ff:fe00:232]
@@ -264,6 +265,8 @@ main(void)
 
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
+
+    printf("\n*******%s online*******\n",CONTIKI_VERSION_STRING);
 
   while(1) {
     fd_set fds;
