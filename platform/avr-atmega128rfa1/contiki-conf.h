@@ -88,6 +88,9 @@ unsigned long clock_seconds(void);
 /* Starting address for code received via the codeprop facility. Not tested on Raven */
 //#define EEPROMFS_ADDR_CODEPROP 0x8000
 
+/* RADIOSTATS is used in rf230bb, clock.c and the webserver cgi to report radio usage */
+#define RADIOSTATS 1
+
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
 #undef PACKETBUF_CONF_HDR_SIZE                  //Use the packetbuf default for header size
