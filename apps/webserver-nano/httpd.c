@@ -355,6 +355,9 @@ PT_THREAD(handle_output(struct httpd_state *s))
   char *ptr;
   
   PT_BEGIN(&s->outputpt);
+#if DEBUGLOGIC
+   httpd_strcpy(s->filename,httpd_indexfn);
+#endif
   if(!httpd_fs_open(s->filename, &s->file)) {
 #if WEBSERVER_CONF_INCLUDE || WEBSERVER_CONF_CGI
     /* If index.html not found try index.shtml */
@@ -410,22 +413,22 @@ PT_THREAD(handle_input(struct httpd_state *s))
   if(s->inputbuf[1] == ISO_space) {
     httpd_strcpy(s->filename, httpd_indexfn);
   } else {
-    s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
-    strncpy(s->filename, &s->inputbuf[0], sizeof(s->filename));
-#if WEBSERVER_CONF_PASSQUERY
-/* Query string is left in the buffer until zeroed by the application! */
-{uint8_t i;
+    uint8_t i;
     for (i=0;i<sizeof(s->filename)+1;i++) {
-      if (s->inputbuf[i]==ISO_space) break;
+      if (i >= (PSOCK_DATALEN(&s->sin)-1)) break;
+      if (s->inputbuf[i]==ISO_space) break;	
+ #if WEBSERVER_CONF_PASSQUERY
+     /* Query string is left in the httpd_query buffer until zeroed by the application! */
       if (s->inputbuf[i]==ISO_qmark) {
-         s->inputbuf[i]=0;
-         strncpy(httpd_query,&s->inputbuf[i+1],sizeof(httpd_query));
-//		 raven_lcd_show_text(&s->inputbuf[i]);
+         strncpy(httpd_query,&s->inputbuf[i+1],sizeof(httpd_query)); 
+         break;
       }
-    }
-}
 #endif
+      s->filename[i]=s->inputbuf[i];
+    }
+    s->filename[i]=0;
   }
+
 #if WEBSERVER_CONF_LOG
   webserver_log_file(&uip_conn->ripaddr, s->filename);
 //  webserver_log(httpd_query);
@@ -447,6 +450,9 @@ PT_THREAD(handle_input(struct httpd_state *s))
 static void
 handle_connection(struct httpd_state *s)
 {
+#if DEBUGLOGIC
+  handle_output(s);
+#endif
   handle_input(s);
   if(s->state == STATE_OUTPUT) {
     handle_output(s);
@@ -456,6 +462,11 @@ handle_connection(struct httpd_state *s)
 void
 httpd_appcall(void *state)
 {
+#if DEBUGLOGIC
+  struct httpd_state *s;   //Enter here for debugging with output directed to TCPBUF
+  s = sg = (struct httpd_state *)memb_alloc(&conns);
+  if (1) {
+#else
   struct httpd_state *s = (struct httpd_state *)state;
   if(uip_closed() || uip_aborted() || uip_timedout()) {
     if(s != NULL) {
@@ -467,6 +478,7 @@ httpd_appcall(void *state)
       uip_abort();
       return;
     }
+#endif
     tcp_markconn(uip_conn, s);
     PSOCK_INIT(&s->sin, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
     PSOCK_INIT(&s->sout, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);

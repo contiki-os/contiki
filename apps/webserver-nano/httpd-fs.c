@@ -58,27 +58,6 @@ httpd_fs_get_size()
   return HTTPD_FS_SIZE;
 }
 /*-----------------------------------------------------------------------------------*/
-static u8_t
-httpd_fs_strcmp(const char *str1, const char *str2)
-{
-  u8_t i;
-  i = 0;
-
-loop:
-  if(str2[i] == 0 ||
-     str1[i] == '\r' || 
-     str1[i] == '\n') {
-    return 0;
-  }
-
-  if(str1[i] != str2[i]) {
-    return 1;
-  }
-
-  ++i;
-  goto loop;
-}
-/*-----------------------------------------------------------------------------------*/
 uint16_t
 httpd_fs_open(const char *name, struct httpd_fs_file *file)
 {
