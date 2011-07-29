@@ -67,6 +67,8 @@ ifndef MOTELIST
   CMOTES=$(MOTES)
 endif
 
+motelist: z1-motelist
+
 z1-motelist:
 	$(MOTELIST)
 z1-motes:

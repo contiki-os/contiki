@@ -73,6 +73,8 @@ ifndef MOTELIST
   CMOTES=$(MOTES)
 endif
 
+motelist: sky-motelist
+
 sky-motelist:
 	$(MOTELIST)
 sky-motes:
