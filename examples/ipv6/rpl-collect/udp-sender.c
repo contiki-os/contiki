@@ -135,7 +135,9 @@ collect_common_send(void)
       uip_ds6_nbr_t *nbr;
       nbr = uip_ds6_nbr_lookup(&preferred_parent->addr);
       if(nbr != NULL) {
-        rimeaddr_copy(&parent, (rimeaddr_t *)&nbr->ipaddr.u8[8]);
+        /* Use parts of the IPv6 address as the parent address, in reversed byte order. */
+        parent.u8[RIMEADDR_SIZE - 1] = nbr->ipaddr.u8[sizeof(uip_ipaddr_t) - 2];
+        parent.u8[RIMEADDR_SIZE - 2] = nbr->ipaddr.u8[sizeof(uip_ipaddr_t) - 1];
         parent_etx = neighbor_info_get_metric((rimeaddr_t *) &nbr->lladdr) / 2;
       }
     }
