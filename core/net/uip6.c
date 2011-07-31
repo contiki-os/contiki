@@ -355,7 +355,16 @@ uip_ipchksum(void)
 static u16_t
 upper_layer_chksum(u8_t proto)
 {
-  u16_t upper_layer_len;
+/* gcc 4.4.0 - 4.6.1 (maybe 4.3...) with -Os on 8 bit CPUS incorrectly compiles:
+ * int bar (int);
+ * int foo (unsigned char a, unsigned char b) {
+ *   int len = (a << 8) + b; //len becomes 0xff00&<random>+b
+ *   return len + bar (len);
+ * }
+ * upper_layer_len triggers this bug unless it is declared volatile.
+ * See https://sourceforge.net/apps/mantisbt/contiki/view.php?id=3
+ */
+  volatile u16_t upper_layer_len;
   u16_t sum;
   
   upper_layer_len = (((u16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1] - uip_ext_len) ;
