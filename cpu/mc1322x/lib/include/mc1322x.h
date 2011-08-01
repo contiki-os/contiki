@@ -48,5 +48,7 @@
 #include "utils.h"
 #include "asm.h"
 #include "i2c.h"
+#include "rtc.h"
+#include "adc.h"
 
 #endif
