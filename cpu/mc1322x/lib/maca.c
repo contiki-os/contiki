@@ -181,6 +181,8 @@ void maca_init(void) {
 	radio_init();
 	flyback_init();
 	init_phy();
+	set_channel(0); /* things get weird if you never set a channel */
+	set_power(0);   /* set the power too --- who knows what happens if you don't */
 	free_head = 0; tx_head = 0; rx_head = 0; rx_end = 0; tx_end = 0; dma_tx = 0; dma_rx = 0;
 	free_all_packets();
 
