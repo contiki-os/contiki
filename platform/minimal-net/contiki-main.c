@@ -235,9 +235,12 @@ main(void)
 #else /* UIP_CONF_IPV6 */
 
 #if !UIP_CONF_IPV6_RPL
-#ifdef HARD_CODED_ADDRESS
   uip_ipaddr_t ipaddr;
+#ifdef HARD_CODED_ADDRESS
   uiplib_ipaddrconv(HARD_CODED_ADDRESS, &ipaddr);
+#else
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+#endif
   if ((ipaddr.u16[0]!=0) || (ipaddr.u16[1]!=0) || (ipaddr.u16[2]!=0) || (ipaddr.u16[3]!=0)) {
 #if UIP_CONF_ROUTER
     uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
@@ -249,7 +252,6 @@ main(void)
     uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 #endif
   }
-#endif /* HARD_CODED_ADDRESS */
 #endif
 
 #if !RPL_BORDER_ROUTER  //Border router process prints addresses later
