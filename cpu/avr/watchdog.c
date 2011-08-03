@@ -64,6 +64,13 @@
 #include <avr/wdt.h>
 #include <avr/interrupt.h>
 
+//Not all AVR toolchains alias MCUSR to the older MSUSCR name
+//#if defined (__AVR_ATmega8__) || defined (__AVR_ATmega8515__) || defined (__AVR_ATmega16__)
+#if !defined (MCUSR) && defined (MCUCSR)
+#warning *** MCUSR not defined, using MCUCSR instead ***
+#define MCUSR MCUCSR
+#endif
+
 #if WATCHDOG_CONF_BALANCE && WATCHDOG_CONF_TIMEOUT >= 0
 static int stopped = 0;
 #endif

@@ -1,0 +1,19 @@
+CONTIKI_TARGET_DIRS = . dev apps loader
+CONTIKI_TARGET_MAIN = contiki-stk500-main.o
+
+CONTIKI_SOURCEFILES += rs232.c contiki-stk500-main.c
+
+CONTIKI_NO_NET=1
+CONTIKIAVR=$(CONTIKI)/cpu/avr
+CONTIKIBOARD=.
+
+//MCU=atmega8
+MCU=atmega8515
+//MCU=atmega644
+//MCU=atmega328p
+//MCU=atmega16
+//MCU=atmega32
+
+CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAUTO_CRC_PADDING=2
+
+include $(CONTIKIAVR)/Makefile.avr

@@ -177,8 +177,8 @@ endif
 #	$(STRIP) --strip-unneeded -g -x $@
 
 %.co: %.c
-	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
-	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+	cp $(CONTIKI)/tools/empty-symbols.c symbols.c
+	cp $(CONTIKI)/tools/empty-symbols.h symbols.h
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 
 %-stripped.o: %.o
@@ -191,8 +191,15 @@ endif
 	$(OBJCOPY) -O srec $< $@
 
 ### Upload image
+#Let avrdude use defaults if port or programmer not defined
+ifdef AVRDUDE_PORT
+ AVRDUDE_PORT:=-P $(AVRDUDE_PORT)
+endif
+ifdef AVRDUDE_PROGRAMMER
+ AVRDUDE_PROGRAMMER:=-c $(AVRDUDE_PROGRAMMER)
+endif
 %.u: %.hex
-	avrdude ${AVRDUDE_OPTIONS} -P ${AVRDUDE_PORT} -c ${AVRDUDE_PROGRAMMER} -p ${MCU} -U flash:w:$<
+	avrdude $(AVRDUDE_OPTIONS) $(AVRDUDE_PORT) $(AVRDUDE_PROGRAMMER) -p $(MCU) -U flash:w:$<
 
 symbols.c:
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c

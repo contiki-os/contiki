@@ -36,15 +36,21 @@
 
 #include <avr/interrupt.h>
 
-/* Will affect radio on/off timing for cx-mac */
-#define RTIMER_ARCH_SECOND (8192)
+/* Nominal ARCH_SECOND is F_CPU/prescaler, e.g. 8000000/1024 = 7812 */
+#ifndef RTIMER_ARCH_PRESCALER
+#define RTIMER_ARCH_PRESCALER 1024UL
+#endif
+#define RTIMER_ARCH_SECOND (F_CPU/RTIMER_ARCH_PRESCALER)
 
+/* Use TCNT1 if TCNT3 not available.
+ * Setting RTIMER_ARCH_PRESCALER to 0 will leave timer1 alone.
+ * Obviously this will disable rtimers.
+ */
 
-
-/* Handle that not all AVRs have TCNT3 - this should be configuratble
-   in contiki-conf later! */
 #ifdef TCNT3
 #define rtimer_arch_now() (TCNT3)
+#elif RTIMER_ARCH_PRESCALER
+#define rtimer_arch_now() (TCNT1)
 #else
 #define rtimer_arch_now() (0)
 #endif
