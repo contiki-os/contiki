@@ -69,17 +69,11 @@ static uip_ipaddr_t prefix;
 static uint8_t prefix_set;
 
 PROCESS(border_router_process, "Border router process");
-
-#if WEBSERVER==0
- /* No webserver */
 AUTOSTART_PROCESSES(&border_router_process);
-#elif WEBSERVER>1
-/* Use an external webserver process */
-//PROCESS_NAME(webserver_nogui_process);
-AUTOSTART_PROCESSES(&border_router_process,&webserver_nogui_process);
-#else
-AUTOSTART_PROCESSES(&border_router_process,&webserver_nogui_process);
-/* Use simple webserver with only one page */
+
+#if WEBSERVER
+/*---------------------------------------------------------------------------*/
+/* Only one single web request at time */
 static const char *TOP = "<html><head><title>ContikiRPL</title></head><body>\n";
 static const char *BOTTOM = "</body></html>\n";
 static char buf[128];
@@ -217,6 +211,10 @@ PROCESS_THREAD(border_router_process, ev, data)
   prefix_set = 0;
 
   PROCESS_PAUSE();
+
+#if WEBSERVER
+  process_start(&webserver_nogui_process, NULL);
+#endif
 
   SENSORS_ACTIVATE(button_sensor);
 
