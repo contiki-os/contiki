@@ -70,6 +70,13 @@
 #define ETIFR TIFR3
 #define TICIE3 ICIE3
 #endif
+
+#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega644__)
+#define TIMSK TIMSK1
+#define TICIE1 ICIE1
+#define TIFR TIFR1
+#endif
+
 /*---------------------------------------------------------------------------*/
 #ifdef TCNT3
 ISR (TIMER3_COMPA_vect) {
@@ -84,8 +91,13 @@ ISR (TIMER3_COMPA_vect) {
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
-#else
-#error "No Timer3 in rtimer-arch.c"
+#elif RTIMER_ARCH_PRESCALER
+#warning "No Timer3 in rtimer-arch.c - using Timer1 instead"
+ISR (TIMER1_COMPA_vect) {
+  TIMSK &= ~((1<<TICIE1)|(1<<OCIE1A)|(1<<OCIE1B)|(1<<TOIE1));
+
+  rtimer_run_next();
+}
 
 #endif
 /*---------------------------------------------------------------------------*/
@@ -113,13 +125,39 @@ rtimer_arch_init(void)
   /* Reset counter */
   TCNT3 = 0;
 
-  /* Start clock, maximum prescaler */
+  /* Start clock, maximum prescaler (1024)*/
   TCCR3B |= 5;
 
-#else
-#error "No Timer3 in rtimer-arch.c"
+#elif RTIMER_ARCH_PRESCALER
+  /* Leave timer1 alone if PRESCALER set to zero */
+  /* Obviously you can not then use rtimers */
 
+  TIMSK &= ~((1<<TICIE1)|(1<<OCIE1A)|(1<<OCIE1B)|(1<<TOIE1));
+  TIFR |= (1 << ICF1) | (1 << OCF1A) | (1 << OCF1B) | (1 << TOV1);
+
+  /* Default timer behaviour */
+  TCCR1A = 0;
+  TCCR1B = 0;
+
+  /* Reset counter */
+  TCNT1 = 0;
+
+  /* Start clock */
+#if RTIMER_ARCH_PRESCALER==1024
+  TCCR1B |= 5;
+#elif RTIMER_ARCH_PRESCALER==256
+  TCCR1B |= 4;
+#elif RTIMER_ARCH_PRESCALER==64
+  TCCR1B |= 3;
+#elif RTIMER_ARCH_PRESCALER==8
+  TCCR1B |= 2;
+#elif RTIMER_ARCH_PRESCALER==1
+  TCCR1B |= 1;
+#else
+#error PRESCALER factor not supported.
 #endif
+
+#endif /* TCNT3 */
 
   /* Restore interrupt state */
   SREG = sreg;
@@ -142,8 +180,11 @@ rtimer_arch_schedule(rtimer_clock_t t)
   /* Enable interrupt on OCR3A match */
   ETIMSK |= (1 << OCIE3A);
 
-#else
-#error "No Timer3 in rtimer-arch.c"
+#elif RTIMER_ARCH_PRESCALER
+  /* Set compare register */
+  OCR1A = t;
+  TIFR |= (1 << ICF1) | (1 << OCF1A) | (1 << OCF1B) | (1 << TOV1);
+  TIMSK |= (1 << OCIE1A);
 
 #endif
 

@@ -44,7 +44,7 @@
  * The RAM needed for each entry depends on script enabling and buffer sizes; see struct httpd_state below.
  * Typical range is 100 - 200 bytes per connection
  */
-#if CONTIKI_TARGET_SKY
+#if CONTIKI_TARGET_SKY || CONTIKI_TARGET_STK500
 #define WEBSERVER_CONF_CONNS     2
 #define WEBSERVER_CONF_NAMESIZE 16
 #define WEBSERVER_CONF_BUFSIZE  40

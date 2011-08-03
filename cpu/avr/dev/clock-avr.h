@@ -148,6 +148,102 @@
   TIMSK0 = _BV (OCIE0A);
 #endif /* AVR_CONF_USE32KCRYSTAL */
 
+#elif defined (__AVR_ATmega644__) || defined (__AVR_ATmega328P__)
+
+#define OCRSetup() \
+  /* Set counter to zero */   \
+  TCNT0 = 0;   \
+\
+  /*   \
+   * Set comparison register: \
+   * Crystal freq. is 8000000,\
+   * pre-scale factor is 256, i.e. we have 125 "ticks" / sec: \
+   * 8000000 = 256 * 250 * 125 \
+   */ \
+  OCR0A = 250; \
+\
+  /* \
+   * Set timer control register: \
+   *  - prescale: 256 (CS02) \
+   *  - counter reset via comparison register (WGM01) \
+   */ \
+  TCCR0A =  _BV(WGM01); \
+  TCCR0B =  _BV(CS02); \
+\
+  /* Clear interrupt flag register */ \
+  TIFR0 = 0x00; \
+\
+  /* \
+   * Raise interrupt when value in OCR0 is reached. Note that the \
+   * counter value in TCNT0 is cleared automatically. \
+   */ \
+  TIMSK0 = _BV (OCIE0A);
+
+#define AVR_OUTPUT_COMPARE_INT TIMER0_COMPA_vect
+
+#elif defined (__AVR_ATmega8515__) || defined (__AVR_ATmega16__) || defined (__AVR_ATmega32__)
+
+#define AVR_OUTPUT_COMPARE_INT TIMER0_COMP_vect
+
+#define OCRSetup() \
+  /* Set counter to zero */   \
+  TCNT0 = 0;   \
+\
+  /*   \
+   * Set comparison register: \
+   * Crystal freq. is 8000000,\
+   * pre-scale factor is 256, i.e. we have 125 "ticks" / sec: \
+   * 8000000 = 256 * 250 * 125 \
+   */ \
+  OCR0 = 250; \
+\
+  /* \
+   * Set timer control register: \
+   *  - prescale: 256 (CS02) \
+   *  - counter reset via comparison register (WGM01) \
+   */ \
+  TCCR0 =  _BV(CS02) |  _BV(WGM01); \
+\
+  /* Clear interrupt flag register */ \
+  TIFR = 0x00; \
+\
+  /* \
+   * Raise interrupt when value in OCR0 is reached. Note that the \
+   * counter value in TCNT0 is cleared automatically. \
+   */ \
+  TIMSK = _BV (OCIE0);
+
+#elif defined (__AVR_ATmega8__)
+
+#define AVR_OUTPUT_COMPARE_INT TIMER2_COMP_vect
+
+#define OCRSetup() \
+  /* Set counter to zero */   \
+  TCNT2 = 0;   \
+\
+  /*   \
+   * Set comparison register: \
+   * Crystal freq. is 8000000,\
+   * pre-scale factor is 256, i.e. we have 125 "ticks" / sec: \
+   * 8000000 = 256 * 250 * 125 \
+   */ \
+  OCR2 = 250; \
+\
+  /* \
+   * Set timer control register: \
+   *  - prescale: 256 (CS21 CS22) \
+   *  - counter reset via comparison register (WGM21) \
+   */ \
+  TCCR2 =  _BV(CS22) | _BV(CS21) |  _BV(WGM21); \
+\
+  /* Clear interrupt flag register */ \
+  TIFR = 0x00; \
+\
+  /* \
+   * Raise interrupt when value in OCR2 is reached. Note that the \
+   * counter value in TCNT2 is cleared automatically. \
+   */ \
+  TIMSK = _BV (OCIE2);
 #else
 #error "Setup CPU in clock-avr.h"
 #endif
