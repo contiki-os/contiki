@@ -1,0 +1,65 @@
+CONTIKI_TARGET_DIRS = . dev dev/sensors
+CONTIKI_CORE=contiki-iris
+CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
+
+SENSOR_BOARD_SOURCEFILES = mts300.c
+
+CONTIKI_TARGET_SOURCEFILES += adc.c rs232.c cfs-eeprom.c contiki-iris-main.c \
+                              leds-arch.c init-net.c node-id.c \
+                              clock.c spi.c rtimer-arch.c ds2401.c \
+                              battery-sensor.c slip.c slip_uart0.c
+
+CONTIKI_TARGET_SOURCEFILES += $(SENSOR_BOARD_SOURCEFILES)
+
+CONTIKIAVR=$(CONTIKI)/cpu/avr
+CONTIKIBOARD=.
+
+# IRIS runs on Clock rate 8 MHz
+CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAUTO_CRC_PADDING=2 #-DUSART_BAUD_115200
+
+MCU=atmega1281
+AVRDUDE_OPTIONS=-V
+AVRDUDE_PROGRAMMER=mib510
+#AVRDUDE_PROGRAMMER=jtag2
+#AVRDUDE_PORT=usb
+AVRDUDE_PORT=$(PORT)
+
+include $(CONTIKIAVR)/Makefile.avr
+
+
+%.od: %.$(TARGET)
+	avr-objdump -zhD $< > $@
+
+
+ifndef WINDIR
+  ifdef OS
+    ifneq (,$(findstring Windows,$(OS)))
+      WINDIR := Windows
+    endif
+  endif
+endif
+
+ifeq ($(PRGBOARD), )
+  PRGBOARD = mib510
+endif
+
+ifeq ($(PORT), )
+  ifndef WINDIR
+    PORT = /dev/ttyUSB0 
+  else
+    PORT = COM1
+  endif
+endif
+
+PRGBOARD_FILE = $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.$(PRGBOARD)
+HAVE_PRGBOARD_FILE = $(wildcard $(PRGBOARD_FILE))
+
+ifneq ($(strip $(HAVE_PRGBOARD_FILE)), )
+  include $(PRGBOARD_FILE)
+endif 
+
+include $(CONTIKIAVR)/radio/Makefile.radio
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
+endif
+
