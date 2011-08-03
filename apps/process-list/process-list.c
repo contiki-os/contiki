@@ -90,7 +90,7 @@ update_processwindow(void)
     CTK_WIDGET_ADD(&processwindow, &processidlabels[i]);
     
     CTK_LABEL_NEW(&processnamelabels[i],
-		  4, i + 1, 22, 1, (char *)p->name);
+		  4, i + 1, 22, 1, PROCESS_NAME_STRING(p));
     CTK_WIDGET_ADD(&processwindow, &processnamelabels[i]);
 
     ++i;

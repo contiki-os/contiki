@@ -207,8 +207,8 @@ static unsigned short
 make_processes(void *p)
 {
   char name[40];
-
-  strncpy(name, ((struct process *)p)->name, 40);
+ 
+  strncpy(name, PROCESS_NAME_STRING((struct process *)p), 40);
   petsciiconv_toascii(name, 40);
 
   return snprintf((char *)uip_appdata, uip_mss(),

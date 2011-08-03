@@ -58,7 +58,7 @@ PROCESS_THREAD(shell_ps_process, ev, data)
 
   shell_output_str(&ps_command, "Processes:", "");
   for(p = PROCESS_LIST(); p != NULL; p = p->next) {
-    shell_output_str(&ps_command, (char *)p->name, "");
+    shell_output_str(&ps_command, PROCESS_NAME_STRING(p), "");
   }
 
   PROCESS_END();
