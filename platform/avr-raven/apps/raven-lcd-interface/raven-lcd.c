@@ -28,7 +28,6 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.11 2010/12/22 17:09:03 dak664 Exp $
 */
 
 /**
@@ -166,7 +165,7 @@ char serial_char_received;
 /*---------------------------------------------------------------------------*/
 /* Sleep for howlong seconds, or until UART interrupt if howlong==0.
  * Uses TIMER2 with external 32768 Hz crystal to sleep in 1 second multiples.
- * TIMER2 may have already been set up for 125 ticks/second in clock.c
+ * TIMER2 may have already been set up for CLOCK_CONF_SECOND ticks/second in clock.c
 
  *
  * Until someone figures out how to get UART to wake from powerdown,

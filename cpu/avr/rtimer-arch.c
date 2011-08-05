@@ -34,7 +34,8 @@
 /**
  * \file
  *         AVR-specific rtimer code
- *         Currently only works on ATMEGAs that have Timer 3.
+ *         Defaults to Timer3 for those ATMEGAs that have it.
+ *         If Timer3 not present Timer1 will be used.
  * \author
  *         Fredrik Osterlind <fros@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
@@ -51,7 +52,6 @@
 #include "rtimer-arch.h"
 
 #if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega1284P__)
-//#error FTH081029 test timer 3
 #define ETIMSK TIMSK3
 #define ETIFR TIFR3
 #define TICIE3 ICIE3
@@ -78,7 +78,7 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
-#ifdef TCNT3
+#if defined(TCNT3) && RTIMER_ARCH_PRESCALER
 ISR (TIMER3_COMPA_vect) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
@@ -104,6 +104,7 @@ ISR (TIMER1_COMPA_vect) {
 void
 rtimer_arch_init(void)
 {
+#if RTIMER_ARCH_PRESCALER
   /* Disable interrupts (store old state) */
   uint8_t sreg;
   sreg = SREG;
@@ -125,8 +126,19 @@ rtimer_arch_init(void)
   /* Reset counter */
   TCNT3 = 0;
 
-  /* Start clock, maximum prescaler (1024)*/
+#if RTIMER_ARCH_PRESCALER==1024
   TCCR3B |= 5;
+#elif RTIMER_ARCH_PRESCALER==256
+  TCCR3B |= 4;
+#elif RTIMER_ARCH_PRESCALER==64
+  TCCR3B |= 3;
+#elif RTIMER_ARCH_PRESCALER==8
+  TCCR3B |= 2;
+#elif RTIMER_ARCH_PRESCALER==1
+  TCCR3B |= 1;
+#else
+#error Timer3 PRESCALER factor not supported.
+#endif
 
 #elif RTIMER_ARCH_PRESCALER
   /* Leave timer1 alone if PRESCALER set to zero */
@@ -154,18 +166,20 @@ rtimer_arch_init(void)
 #elif RTIMER_ARCH_PRESCALER==1
   TCCR1B |= 1;
 #else
-#error PRESCALER factor not supported.
+#error Timer1 PRESCALER factor not supported.
 #endif
 
 #endif /* TCNT3 */
 
   /* Restore interrupt state */
   SREG = sreg;
+#endif /* RTIMER_ARCH_PRESCALER */
 }
 /*---------------------------------------------------------------------------*/
 void
 rtimer_arch_schedule(rtimer_clock_t t)
 {
+#if RTIMER_ARCH_PRESCALER
   /* Disable interrupts (store old state) */
   uint8_t sreg;
   sreg = SREG;
@@ -190,4 +204,5 @@ rtimer_arch_schedule(rtimer_clock_t t)
 
   /* Restore interrupt state */
   SREG = sreg;
+#endif /* RTIMER_ARCH_PRESCALER */
 }
