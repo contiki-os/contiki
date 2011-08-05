@@ -36,16 +36,22 @@
 
 #include <avr/interrupt.h>
 
-/* Nominal ARCH_SECOND is F_CPU/prescaler, e.g. 8000000/1024 = 7812 */
+/* Nominal ARCH_SECOND is F_CPU/prescaler, e.g. 8000000/1024 = 7812
+ * Other prescaler values (1, 8, 64, 256) will give greater precision
+ * with shorter maximum intervals.
+ * Setting RTIMER_ARCH_PRESCALER to 0 will leave Timers alone.
+ * rtimer_arch_now() will then return 0, likely hanging the cpu if used.
+ * Timer1 is used if Timer3 is not available.
+ */
 #ifndef RTIMER_ARCH_PRESCALER
 #define RTIMER_ARCH_PRESCALER 1024UL
 #endif
+#if RTIMER_ARCH_PRESCALER
 #define RTIMER_ARCH_SECOND (F_CPU/RTIMER_ARCH_PRESCALER)
+#else
+#define RTIMER_ARCH_SECOND 0
+#endif
 
-/* Use TCNT1 if TCNT3 not available.
- * Setting RTIMER_ARCH_PRESCALER to 0 will leave timer1 alone.
- * Obviously this will disable rtimers.
- */
 
 #ifdef TCNT3
 #define rtimer_arch_now() (TCNT3)

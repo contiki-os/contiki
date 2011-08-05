@@ -97,9 +97,9 @@
 #define TESTRTIMER 0
 #if TESTRTIMER
 //#define PINGS 64
-#define ROUTES 64
-#define STAMPS 30
-#define STACKMONITOR 128
+#define ROUTES 300
+#define STAMPS 60
+#define STACKMONITOR 600
 
 uint8_t rtimerflag=1;
 uint16_t rtime;
@@ -416,10 +416,9 @@ main(void)
 #endif
 
 #if TESTRTIMER
-/* Timeout can be increased up to 8 seconds maximum.
+/* Timeout can be increased up to 8 seconds maximum (at 8MHz with 1024 prescaler)
  * A one second cycle is convenient for triggering the various debug printouts.
  * The triggers are staggered to avoid printing everything at once.
- * My raven is 6% slow.
  */
     if (rtimerflag) {
       rtimer_set(&rt, RTIMER_NOW()+ RTIMER_ARCH_SECOND*1UL, 1,(void *) rtimercycle, NULL);
