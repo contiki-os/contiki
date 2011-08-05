@@ -224,19 +224,9 @@ ISR(USART_RX_vect)
     rs232_ports[RS232_PORT_0].input_handler(c);
   }
 }
+
 #elif defined (__AVR_AT90USB1287__)
-static rs232_t rs232_ports[1] = {
-  {  // UART1
-    &UDR1,
-    &UBRR1H,
-    &UBRR1L,
-    &UCSR1B,
-    &UCSR1C,
-    0,
-    NULL
-  }
-};
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------*/
 ISR(USART1_TX_vect)
 {
   rs232_ports[RS232_PORT_0].txwait = 0;
@@ -254,7 +244,7 @@ ISR(USART1_RX_vect)
   }
 }
 #else
-#error Please define the UART registers for your MCU!
+#error Please define the interrupt vectors for your MCU!
 #endif
 
 /*---------------------------------------------------------------------------*/
