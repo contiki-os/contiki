@@ -566,7 +566,7 @@ set_txpower(uint8_t power)
 void
 calibrate_rc_osc_32k(void)
 {
-#if 1
+#if 0
 
     /* Calibrate RC Oscillator: The calibration routine is done by clocking TIMER2
      * from the external 32kHz crystal while running an internal timer simultaneously.
@@ -1473,8 +1473,8 @@ rf230_get_raw_rssi(void)
 static int
 rf230_cca(void)
 {
-  int cca;
-  int radio_was_off = 0;
+  uint8_t cca=0;
+  uint8_t radio_was_off = 0;
 
   /* If the radio is locked by an underlying thread (because we are
      being invoked through an interrupt), we preted that the coast is
@@ -1495,16 +1495,18 @@ rf230_cca(void)
 //hal_subregister_write(SR_CCA_MODE,1);
 
   /* Start the CCA, wait till done, return result */
+  /* Note reading the TRX_STATUS register clears both CCA_STATUS and CCA_DONE bits */
   hal_subregister_write(SR_CCA_REQUEST,1);
   delay_us(TIME_CCA);
-//while ((hal_register_read(RG_TRX_STATUS) & 0x80) == 0 ) {continue;}
-  while (!hal_subregister_read(SR_CCA_DONE)) {continue;}
-  cca=hal_subregister_read(SR_CCA_STATUS);
+  while ((cca & 0x80) == 0 ) {
+    cca=hal_register_read(RG_TRX_STATUS);
+  }
   
   if(radio_was_off) {
     rf230_off();
   }
-  return cca;
+  
+   if (cca & 0x70) return 1; else return 0;
 }
 /*---------------------------------------------------------------------------*/
 int
