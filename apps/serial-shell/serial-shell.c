@@ -72,7 +72,7 @@ shell_default_output(const char *text1, int len1, const char *text2, int len2)
 #if defined (__AVR__)
   printf("%s%s\r\n", text1, text2);
 #else
-  *printf("%.*s%.*s\r\n", len1, text1, len2, text2);
+  printf("%.*s%.*s\r\n", len1, text1, len2, text2);
 #endif
 
 }
