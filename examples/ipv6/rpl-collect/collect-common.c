@@ -49,8 +49,10 @@
 static unsigned long time_offset;
 static int send_active = 1;
 
+#ifndef PERIOD
 #define PERIOD 60
-#define RANDWAIT 60
+#endif
+#define RANDWAIT (PERIOD)
 
 /*---------------------------------------------------------------------------*/
 PROCESS(collect_common_process, "collect common process");
