@@ -1,4 +1,5 @@
-all: webserver6 $(WITH_WEBSERVER)
+CONTIKI_PROJECT=webserver6
+all: $(CONTIKI_PROJECT) $(WITH_WEBSERVER)
 
 ifeq ($(WITH_WEBSERVER),)
 #
@@ -22,14 +23,13 @@ ifeq ($(WITH_WEBSERVER),raven-webserver)
 APPS+=raven-lcd-interface
 endif
 #copy output to e.g. webserver-nano.sky, raven-webserver.avr-raven
-$(WITH_WEBSERVER) : webserver6
-	cp webserver6.$(TARGET) $(WITH_WEBSERVER).$(TARGET)
+$(WITH_WEBSERVER) : $(CONTIKI_PROJECT)
+	cp $(CONTIKI_PROJECT).$(TARGET) $(WITH_WEBSERVER).$(TARGET)
 else
 APPS=webserver
 endif
 
 UIP_CONF_IPV6=1
 DEFINES=WITH_UIP6
-
 CONTIKI = ../..
 include $(CONTIKI)/Makefile.include
