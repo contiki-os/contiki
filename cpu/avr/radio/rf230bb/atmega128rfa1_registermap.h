@@ -41,6 +41,7 @@
  * Registers can be read with a macro, but the args for subregisters don't expand properly so the actual address
  * is used with explicit _SFR_MEM8 in the subregister read/write routines.
  */
+#define RG_TRX_STATUS         TRX_STATUS
 #define SR_TRX_STATUS         0x141, 0x1f, 0
 #define SR_TRX_CMD            0x142, 0x1f, 0
 #define STATE_TRANSITION      (31)

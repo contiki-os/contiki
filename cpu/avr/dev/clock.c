@@ -22,12 +22,12 @@ volatile unsigned long radioontime;
 extern uint8_t RF230_receive_on;
 #endif
 
-/* Set RADIOCALIBRATE for periodic calibration of the PLL during extended radio on time.
- * The data sheet suggests every 5 minutes if the temperature is fluctuating.
- * Using an eight bit counter gives 256 second calibrations.
+/* Set RADIO_CONF_CALIBRATE_INTERVAL for periodic calibration of the PLL during extended radio on time.
+ * The RF230 data sheet suggests every 5 minutes if the temperature is fluctuating.
+ * At present the specified interval is ignored, and an 8 bit counter gives 256 second intervals.
  * Actual calibration is done by the driver on the next transmit request.
  */
-#if RADIOCALIBRATE
+#if RADIO_CONF_CALIBRATE_INTERVAL
 extern volatile uint8_t rf230_calibrate;
 static uint8_t calibrate_interval;
 #endif
@@ -65,7 +65,7 @@ ISR(AVR_OUTPUT_COMPARE_INT)
     scount = 0;
     seconds++;
   }
-#if RADIOCALIBRATE
+#if RADIO_CONF_CALIBRATE_INTERVAL
    if (++calibrate_interval==0) {
     rf230_calibrate=1;
   }
