@@ -191,14 +191,18 @@ unsigned long clock_seconds(void);
 #define UIP_CONF_WAIT_TIMEOUT     20
 
 #elif 1  /* Contiki-mac radio cycling */
-//#define NETSTACK_CONF_MAC         nullmac_driver
-#define NETSTACK_CONF_MAC         csma_driver
+#define NETSTACK_CONF_MAC         nullmac_driver
+//#define NETSTACK_CONF_MAC         csma_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
-#define RF230_CONF_AUTOACK        0
-#define RF230_CONF_AUTORETRIES    0
+/* The radio needs to interrupt during an rtimer interrupt */
+#define RTIMER_CONF_NESTED_INTERRUPTS 1
+#define RF230_CONF_AUTOACK        1
+#define RF230_CONF_AUTORETRIES    1
+#define RF230_CONF_CSMARETRIES    1
+#define CONTIKIMAC_CONF_RADIO_ALWAYS_ON  0
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
