@@ -82,8 +82,15 @@
 ISR (TIMER3_COMPA_vect) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
+  /* Disable rtimer interrupts */
   ETIMSK &= ~((1 << OCIE3A) | (1 << OCIE3B) | (1 << TOIE3) |
       (1 << TICIE3) | (1 << OCIE3C));
+
+#if RTIMER_CONF_NESTED_INTERRUPTS
+  /* Enable nested interrupts. Allows radio interrupt during rtimer interrupt. */
+  /* All interrupts are enabled including recursive rtimer, so use with caution */
+  sei();
+#endif
 
   /* Call rtimer callback */
   rtimer_run_next();
