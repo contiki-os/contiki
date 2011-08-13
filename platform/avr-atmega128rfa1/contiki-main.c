@@ -225,6 +225,18 @@ uint16_t p=(uint16_t)&__bss_end;
 }
 #endif
 
+/* Get a random (or probably different) seed for the 802.15.4 packet sequence number.
+ * Some layers will ignore duplicates found in a history (e.g. Contikimac)
+ * causing the initial packets to be ignored after a short-cycle restart.
+ */
+  ADMUX =0x1E;              //Select AREF as reference, measure 1.1 volt bandgap reference.
+  ADCSRA=1<<ADEN;           //Enable ADC, not free running, interrupt disabled, fastest clock
+  ADCSRA|=1<<ADSC;          //Start conversion
+  while (ADCSRA&(1<<ADSC)); //Wait till done
+  PRINTF("ADC=%d\n",ADC);
+  random_init(ADC);
+  ADCSRA=0;                 //Disable ADC
+  
 #define CONF_CALIBRATE_OSCCAL 0
 #if CONF_CALIBRATE_OSCCAL
 {
