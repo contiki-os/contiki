@@ -83,8 +83,8 @@ typedef unsigned short uip_stats_t;
 #define WEBSERVER_CONF_STATUSPAGE   1
 
 /* RPL currently works only on Windows. *nix would require converting the tun interface to two pcap tees. */ 
-#define UIP_CONF_IPV6_RPL           0
-#define RPL_BORDER_ROUTER           0
+//#define UIP_CONF_IPV6_RPL           0
+//#define RPL_BORDER_ROUTER           0
 #endif   
 
 #if UIP_CONF_IPV6_RPL

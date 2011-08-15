@@ -216,7 +216,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_ICMP6           1
 #define UIP_CONF_UDP             1
 #define UIP_CONF_TCP             0
-#define UIP_CONF_IPV6_RPL        0
+//#define UIP_CONF_IPV6_RPL        0
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
@@ -393,16 +393,22 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
  */
 
 #define UIP_CONF_ROUTER             1
+#define UIP_CONF_ND6_SEND_RA........0
+#define UIP_CONF_ND6_REACHABLE_TIME 600000
+#define UIP_CONF_ND6_RETRANS_TIMER  10000
+
+#ifndef RPL_BORDER_ROUTER
 #define RPL_BORDER_ROUTER           1
+#endif
 #define RPL_CONF_STATS              0
 #define UIP_CONF_BUFFER_SIZE	 1300
 //#define UIP_CONF_DS6_NBR_NBU       12
 //#define UIP_CONF_DS6_ROUTE_NBU     12
+
+#ifdef RPL_BORDER_ROUTER
 #undef UIP_FALLBACK_INTERFACE
 #define UIP_FALLBACK_INTERFACE rpl_interface
-#define UIP_CONF_ND6_SEND_RA		0
-#define UIP_CONF_ND6_REACHABLE_TIME 600000
-#define UIP_CONF_ND6_RETRANS_TIMER  10000
+#endif
 
 /* Save all the RAM we can */
 #define PROCESS_CONF_NO_PROCESS_NAMES 1
