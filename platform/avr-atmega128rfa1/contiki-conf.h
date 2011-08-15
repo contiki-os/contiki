@@ -66,11 +66,11 @@ unsigned long clock_seconds(void);
 #define INFINITE_TIME 0xffff
 
 /* Clock ticks per second */
-#define CLOCK_CONF_SECOND 125
+#define CLOCK_CONF_SECOND 128
 
-/* Maximum tick interval is 0xffff/125 = 524 seconds */
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
-#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
+/* Maximum tick interval is 0xffff/128 = 511 seconds */
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
 
 /* Michael Hartman's atmega128rfa1 board has an external 32768Hz crystal connected to TOSC1 and 2 pins similar to the Raven 1284p */
 /* and theoretically can use TIMER2 with it to keep time. Else TIMER0 is used. */
@@ -91,6 +91,12 @@ unsigned long clock_seconds(void);
 /* RADIOSTATS is used in rf230bb, clock.c and the webserver cgi to report radio usage */
 #define RADIOSTATS 1
 
+/* More extensive stats */
+#define ENERGEST_CONF_ON          1
+
+/* Debugflow macro, useful for tracing path through mac and radio interrupts */
+#define DEBUGFLOWSIZE 128
+
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
 #undef PACKETBUF_CONF_HDR_SIZE                  //Use the packetbuf default for header size
@@ -103,7 +109,7 @@ unsigned long clock_seconds(void);
 #define UIP_CONF_ICMP6            1
 #define UIP_CONF_UDP              1
 #define UIP_CONF_TCP              1
-#define UIP_CONF_IPV6_RPL         0
+//#define UIP_CONF_IPV6_RPL         0
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else

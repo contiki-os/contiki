@@ -4,6 +4,7 @@ CONTIKI=../../..
 
 WITH_UIP6=1
 UIP_CONF_IPV6=1
+CFLAGS+= -DUIP_CONF_IPV6_RPL
 
 #Override inclusion of internal webserver with make WITH_WEBSERVER=0
 WITH_WEBSERVER=1

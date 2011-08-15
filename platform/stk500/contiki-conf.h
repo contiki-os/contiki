@@ -20,7 +20,7 @@ typedef unsigned short clock_time_t;
 #define UIP_CONF_ICMP6            1
 #define UIP_CONF_UDP              1
 #define UIP_CONF_TCP              1
-#define UIP_CONF_IPV6_RPL         0
+//#define UIP_CONF_IPV6_RPL         0
 
 /* See uip-ds6.h */
 #define UIP_CONF_DS6_NBR_NBU      20
