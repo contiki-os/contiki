@@ -69,7 +69,11 @@
 /* RF230 does not support RX_START interrupts in extended mode, but it seems harmless to always enable it. */
 /* In non-extended mode this allows RX_START to sample the RF rssi at the end of the preamble */
 //#define RF230_SUPPORTED_INTERRUPT_MASK        ( 0x0C )  //disable RX_START
+#if defined(__AVR_ATmega128RFA1__)
+#define RF230_SUPPORTED_INTERRUPT_MASK          ( 0xFF )
+#else
 #define RF230_SUPPORTED_INTERRUPT_MASK          ( 0x0F )
+#endif
 
 #define RF230_MIN_CHANNEL                       ( 11 )
 #define RF230_MAX_CHANNEL                       ( 26 )

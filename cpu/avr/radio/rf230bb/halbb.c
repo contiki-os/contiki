@@ -58,7 +58,13 @@
  *  which communicates directly with the contiki core MAC layer.
  *  It is optimized for speed at the expense of generality.
  */
-
+#include "contiki-conf.h"
+#if DEBUGFLOWSIZE
+extern uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
+#define DEBUGFLOW(c) if (debugflowsize<(DEBUGFLOWSIZE-1)) debugflow[debugflowsize++]=c
+#else
+#define DEBUGFLOW(c)
+#endif
 
 
 /*============================ INCLUDE =======================================*/
@@ -814,118 +820,88 @@ volatile char rf230interruptflag;
 #endif
 
 #if defined(__AVR_ATmega128RFA1__)
-/* The atmega128rfa1 has individual interrupts for the integrated radio */
-/* Whichever are enabled by the RF230 driver must be present even if not used! */
+/* The atmega128rfa1 has individual interrupts for the integrated radio'
+ * Whichever are enabled by the RF230 driver must be present even if not used!
+ */
+/* Received packet interrupt */
 ISR(TRX24_RX_END_vect)
 {
-	   INTERRUPTDEBUG(11);	    	    
-       /* Received packet interrupt */ 
-       /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
-//         if (rxframe.length) break;			//toss packet if last one not processed yet
-         if (rxframe[rxframe_tail].length) INTERRUPTDEBUG(42); else INTERRUPTDEBUG(12);
+/* Get the rssi from ED if extended mode */
+#if RF230_CONF_AUTOACK
+	rf230_last_rssi=hal_register_read(RG_PHY_ED_LEVEL);
+#endif
+
+/* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
+/* Is a ram buffer available? */
+	if (rxframe[rxframe_tail].length) {DEBUGFLOW('0');} else DEBUGFLOW('1');
 
 #ifdef RF230_MIN_RX_POWER		 
-       /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes.*/
-       /* Save the rssi for printing in the main loop */
-#if RF230_CONF_AUTOACK
- //       rf230_last_rssi=hal_subregister_read(SR_ED_LEVEL);
-        rf230_last_rssi=hal_register_read(RG_PHY_ED_LEVEL);
+/* Discard packets weaker than the minimum if defined. This is for testing miniature meshes */
+/* This does not prevent an autoack. TODO:rfa1 radio can be set up to not autoack weak packets */
+	if (rf230_last_rssi >= RF230_MIN_RX_POWER) {
+#else
+	if (1) {
 #endif
-//      if (rf230_last_rssi >= RF230_MIN_RX_POWER) {
-        if (1) {        
-#endif
-         hal_frame_read(&rxframe[rxframe_tail]);
-         rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
-         rf230_interrupt();
-#ifdef RF230_MIN_RX_POWER
-        }
-#endif
+//		DEBUGFLOW('2');
+		hal_frame_read(&rxframe[rxframe_tail]);
+		rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
+		rf230_interrupt();
+	}
 }
+/* Preamble detected, starting frame reception */
 ISR(TRX24_RX_START_vect)
 {
-    INTERRUPTDEBUG(10);
-    /* Save RSSI for this packet if not in extended mode, scaling to 1dB resolution */
+//	DEBUGFLOW('3');
+/* Save RSSI for this packet if not in extended mode, scaling to 1dB resolution */
 #if !RF230_CONF_AUTOACK
     rf230_last_rssi = 3 * hal_subregister_read(SR_RSSI);
 #endif
 
 }
+
+/* PLL has locked, either from a transition out of TRX_OFF or a channel change while on */
 ISR(TRX24_PLL_LOCK_vect)
 {
+//	DEBUGFLOW('4');
 }
+
+/* PLL has unexpectedly unlocked */
 ISR(TRX24_PLL_UNLOCK_vect)
 {
+	DEBUGFLOW('5');
 }
+/* Flag is set by the following interrupts */
+extern volatile uint8_t rf230_interruptwait;
 
-#if 0
-HAL_RF230_ISR() //for reference, for now
+/* Wake has finished */
+ISR(TRX24_AWAKE_vect)
 {
-    /*The following code reads the current system time. This is done by first
-      reading the hal_system_time and then adding the 16 LSB directly from the
-      hardware counter.
-     */
-//    uint32_t isr_timestamp = hal_system_time;
-//    isr_timestamp <<= 16;
-//    isr_timestamp |= HAL_TICK_UPCNT(); // TODO: what if this wraps after reading hal_system_time?
-//   isr_timestamp /= HAL_US_PER_SYMBOL; /* Divide so that we get time in 16us resolution. */
-//   isr_timestamp &= HAL_SYMBOL_MASK;
-
-    uint8_t interrupt_source;
-
-    INTERRUPTDEBUG(1);
-
-    /*Read Interrupt source.*/
-    interrupt_source = IRQ_STATUS;
-
-    /*Handle the incomming interrupt. Prioritized.*/
-    if (interrupt_source & (1>>RX_START)){
-	   INTERRUPTDEBUG(10);
-    /* Save RSSI for this packet if not in extended mode, scaling to 1dB resolution */
-#if !RF230_CONF_AUTOACK
-       rf230_last_rssi = 3 * hal_subregister_read(SR_RSSI);
-#endif
-
-    } else if (interrupt_source & (1<<RX_END)){
-	   INTERRUPTDEBUG(11);	    	    
-       /* Received packet interrupt */ 
-       /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
-//         if (rxframe.length) break;			//toss packet if last one not processed yet
-         if (rxframe[rxframe_tail].length) INTERRUPTDEBUG(42); else INTERRUPTDEBUG(12);
-
-#ifdef RF230_MIN_RX_POWER		 
-       /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes.*/
-       /* Save the rssi for printing in the main loop */
-#if RF230_CONF_AUTOACK
-//        rf230_last_rssi=hal_subregister_read(SR_ED_LEVEL);
-        rf230_last_rssi=hal_register_read(RG_PHY_ED_LEVEL);
-#endif
-//      if (rf230_last_rssi >= RF230_MIN_RX_POWER) {
-        if (1) {        
-#endif
-         hal_frame_read(&rxframe[rxframe_tail]);
-         rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
-         rf230_interrupt();
-//       trx_end_callback(isr_timestamp);
-#ifdef RF230_MIN_RX_POWER
-        }
-#endif
-              
-    } else if (interrupt_source & (1<<TX_END)){
-        INTERRUPTDEBUG(13);
-        ;
-    } else if (interrupt_source & (1<<PLL_UNLOCK)){
-        INTERRUPTDEBUG(14);
-	    ;
-    } else if (interrupt_source & (1<<PLL_LOCK)){
-        INTERRUPTDEBUG(15);
-//      hal_pll_lock_flag++;
-        ;
-     } else {
-        INTERRUPTDEBUG(99);
-	    ;
-    }
+//	DEBUGFLOW('6');
+	rf230_interruptwait=0;
 }
-#endif
+
+/* Transmission has ended */
+ISR(TRX24_TX_END_vect)
+{
+//	DEBUGFLOW('7');
+	rf230_interruptwait=0;
+}
+
+/* Frame address has matched ours */
+extern volatile uint8_t rf230_pending;
+ISR(TRX24_XAH_AMI_vect)
+{
+//	DEBUGFLOW('8');
+	rf230_pending=1;
+}
+
+/* CCAED measurement has completed */
+ISR(TRX24_CCA_ED_DONE_vect)
+{
+	DEBUGFLOW('4');
+	rf230_interruptwait=0;
+}
+
 #else /* defined(__AVR_ATmega128RFA1__) */
 /* Separate RF230 has a single radio interrupt and the source must be read from the IRQ_STATUS register */
 HAL_RF230_ISR()
