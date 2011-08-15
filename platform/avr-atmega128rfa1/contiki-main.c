@@ -37,6 +37,13 @@
 #define DEBUG DEBUG_PRINT
 #include "uip-debug.h" ////Does #define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args) for AVR
 
+#if DEBUGFLOWSIZE
+uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
+#define DEBUGFLOW(c) if (debugflowsize<(DEBUGFLOWSIZE-1)) debugflow[debugflowsize++]=c
+#else
+#define DEBUGFLOW(c)
+#endif
+
 #include <avr/pgmspace.h>
 #include <avr/fuse.h>
 #include <avr/eeprom.h>
@@ -91,20 +98,22 @@
 
 #include "net/rime.h"
 
-/* Test rtimers, also for pings, stack monitor, neighbor/route printout and time stamps */
-#define TESTRTIMER 1
-#if TESTRTIMER
+/* Get periodic prints from idle loop, from clock seconds or rtimer interrupts */
+/* Use of rtimer will conflict with other rtimer interrupts such as contikimac radio cycling */
+#define PERIODICPRINTS 1
+#if PERIODICPRINTS
 //#define PINGS 64
-#define ROUTES 64
+#define ROUTES 128
 #define STAMPS 30
-#define STACKMONITOR 128
-
+#define STACKMONITOR 1024
+uint16_t clocktime;
+#define TESTRTIMER 0
+#if TESTRTIMER
 uint8_t rtimerflag=1;
-uint16_t rtime;
 struct rtimer rt;
 void rtimercycle(void) {rtimerflag=1;}
-
-#endif /* TESTRTIMER */
+#endif
+#endif
 
 /*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
@@ -212,7 +221,7 @@ void initialize(void)
 
 #if STACKMONITOR
   /* Simple stack pointer highwater monitor. Checks for magic numbers in the main
-   * loop. In conjuction with TESTRTIMER, never-used stack will be printed
+   * loop. In conjuction with PERIODICPRINTS, never-used stack will be printed
    * every STACKMONITOR seconds.
    */
 {
@@ -224,19 +233,21 @@ uint16_t p=(uint16_t)&__bss_end;
     } while (p<SP-10); //don't overwrite our own stack
 }
 #endif
-
+#if 0
 /* Get a random (or probably different) seed for the 802.15.4 packet sequence number.
  * Some layers will ignore duplicates found in a history (e.g. Contikimac)
  * causing the initial packets to be ignored after a short-cycle restart.
  */
-  ADMUX =0x1E;              //Select AREF as reference, measure 1.1 volt bandgap reference.
+  ADMUX =0x5E;              //Select AVDD as reference, measure 1.1 volt bandgap reference.
+//ADCSRB|=1<<MUX5;
+ //   ADMUX =0x49;              //Select AVDD as reference, measure ADC0 10x differential.
   ADCSRA=1<<ADEN;           //Enable ADC, not free running, interrupt disabled, fastest clock
   ADCSRA|=1<<ADSC;          //Start conversion
   while (ADCSRA&(1<<ADSC)); //Wait till done
   PRINTF("ADC=%d\n",ADC);
   random_init(ADC);
   ADCSRA=0;                 //Disable ADC
-  
+#endif 
 #define CONF_CALIBRATE_OSCCAL 0
 #if CONF_CALIBRATE_OSCCAL
 {
@@ -272,6 +283,15 @@ uint8_t i;
   ctimer_init();
   /* Start radio and radio receive process */
   NETSTACK_RADIO.init();
+
+#if 1
+{uint8_t somebits;
+  /* Upper two RSSI reg bits (RND_VALUE) are random in rf231 */
+  somebits= (PHY_RSSI>>6) | (PHY_RSSI>>4) | (PHY_RSSI>>4) | PHY_RSSI;
+  PRINTF("rnd=%d\n", somebits);
+  random_init(somebits);
+}
+#endif
 
   /* Set addresses BEFORE starting tcpip process */
 
@@ -432,6 +452,14 @@ main(void)
   while(1) {
      process_run();
 
+#if DEBUGFLOWSIZE
+  if (debugflowsize) {
+    debugflow[debugflowsize]=0;
+    PRINTA("%s",debugflow);
+    debugflowsize=0;
+   }
+#endif
+
 #if LED_ON_PORTE1
     /* Turn off LED after a while */
     if (ledtimer) {
@@ -468,33 +496,48 @@ main(void)
     }
 #endif
 
+#if PERIODICPRINTS
 #if TESTRTIMER
 /* Timeout can be increased up to 8 seconds maximum.
  * A one second cycle is convenient for triggering the various debug printouts.
  * The triggers are staggered to avoid printing everything at once.
- * My raven is 6% slow.
  */
     if (rtimerflag) {
       rtimer_set(&rt, RTIMER_NOW()+ RTIMER_ARCH_SECOND*1UL, 1,(void *) rtimercycle, NULL);
       rtimerflag=0;
+#else
+  if (clocktime!=clock_seconds()) {
+     clocktime=clock_seconds();
+#endif
 
 #if STAMPS
-if ((rtime%STAMPS)==0) {
-  PRINTA("%us ",rtime);
+if ((clocktime%STAMPS)==0) {
+#if ENERGEST_CONF_ON
+#include "lib/print-stats.h"
+	print_stats();
+#elif RADIOSTATS
+extern volatile unsigned long radioontime;
+  PRINTA("%u(%u)s",clocktime,radioontime);
+#else
+  PRINTA("%us ",clocktime);
+#endif
+
 }
 #endif
-      rtime+=1;
+#if TESTRTIMER
+      clocktime+=1;
+#endif
 
 #if PINGS && UIP_CONF_IPV6
 extern void raven_ping6(void); 
-if ((rtime%PINGS)==1) {
+if ((clocktime%PINGS)==1) {
   PRINTA("**Ping\n");
   raven_ping6();
 }
 #endif
 
 #if ROUTES && UIP_CONF_IPV6
-if ((rtime%ROUTES)==2) {
+if ((clocktime%ROUTES)==2) {
       
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
@@ -537,7 +580,7 @@ extern uip_ds6_netif_t uip_ds6_if;
 #endif
 
 #if STACKMONITOR
-if ((rtime%STACKMONITOR)==3) {
+if ((clocktime%STACKMONITOR)==3) {
   extern uint16_t __bss_end;
   uint16_t p=(uint16_t)&__bss_end;
   do {
@@ -551,17 +594,7 @@ if ((rtime%STACKMONITOR)==3) {
 #endif
 
     }
-#endif /* TESTRTIMER */
-
-//Use with RF230BB DEBUGFLOW to show path through driver
-#if RF230BB&&0
-extern uint8_t debugflowsize,debugflow[];
-  if (debugflowsize) {
-    debugflow[debugflowsize]=0;
-    PRINTA("%s",debugflow);
-    debugflowsize=0;
-   }
-#endif
+#endif /* PERIODICPRINTS */
 
 #if RF230BB&&0
     if (rf230processflag) {

@@ -44,14 +44,25 @@
 #include "sys/energest.h"
 
 #include <stdio.h>
+#ifdef __AVR__
+#include <avr/pgmspace.h>
+#define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTA(...) printf(__VA_ARGS__)
+#endif
 
 /*---------------------------------------------------------------------------*/
 void
 print_stats(void)
 {
-  printf("S %d.%d clock %lu tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu\n",
+  PRINTA("S %d.%d clock %lu tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+#ifdef __AVR__
+	 clock_seconds(),
+#else
 	 (unsigned long)clock_time() / CLOCK_SECOND,
+
+#endif
 	 rimestats.tx, rimestats.rx,
 	 rimestats.reliabletx, rimestats.reliablerx,
 	 rimestats.rexmit, rimestats.acktx, rimestats.noacktx,
@@ -61,9 +72,14 @@ print_stats(void)
 	 rimestats.contentiondrop, rimestats.sendingdrop,
 	 rimestats.lltx, rimestats.llrx);
 #if ENERGEST_CONF_ON
-  printf("E %d.%d clock %lu cpu %lu lpm %lu irq %lu gled %lu yled %lu rled %lu tx %lu listen %lu sensors %lu serial %lu\n",
+  PRINTA("E %d.%d clock %lu cpu %lu lpm %lu irq %lu gled %lu yled %lu rled %lu tx %lu listen %lu sensors %lu serial %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 (unsigned long)(clock_time() / CLOCK_SECOND),
+#ifdef __AVR__
+	 clock_seconds(),
+#else
+	 (unsigned long)clock_time() / CLOCK_SECOND,
+
+#endif
 	 energest_total_time[ENERGEST_TYPE_CPU].current,
 	 energest_total_time[ENERGEST_TYPE_LPM].current,
 	 energest_total_time[ENERGEST_TYPE_IRQ].current,
