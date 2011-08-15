@@ -166,10 +166,9 @@ uint8_t rf230_calibrate;
 uint8_t rf230_calibrated; //for debugging, prints from main loop when calibration occurs
 #endif
 
-/* Track flow through driver, see contiki-raven-main.c for example of use */
-//#define DEBUGFLOWSIZE 128
+/* Track flow through mac, rdc and radio drivers, see contiki-raven-main.c for example of use */
 #if DEBUGFLOWSIZE
-uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
+extern uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 #define DEBUGFLOW(c) if (debugflowsize<(DEBUGFLOWSIZE-1)) debugflow[debugflowsize++]=c
 #else
 #define DEBUGFLOW(c)
@@ -186,7 +185,11 @@ static unsigned long total_time_for_transmission, total_transmission_len;
 static int num_transmissions;
 #endif
 
-static uint8_t volatile pending;
+#if defined(__AVR_ATmega128RFA1__)
+volatile uint8_t rf230_interruptwait;
+#endif
+
+uint8_t volatile rf230_pending;
 
 /* RF230 hardware delay times, from datasheet */
 typedef enum{
@@ -217,7 +220,7 @@ static int rf230_transmit(unsigned short len);
 static int rf230_send(const void *data, unsigned short len);
 
 static int rf230_receiving_packet(void);
-static int pending_packet(void);
+static int rf230_pending_packet(void);
 static int rf230_cca(void);
 
 uint8_t rf230_last_correlation,rf230_last_rssi,rf230_smallest_rssi;
@@ -231,7 +234,7 @@ const struct radio_driver rf230_driver =
     rf230_read,
     rf230_cca,
     rf230_receiving_packet,
-    pending_packet,
+    rf230_pending_packet,
     rf230_on,
     rf230_off
   };
@@ -320,6 +323,7 @@ static bool radio_is_sleeping(void)
 static void
 radio_reset_state_machine(void)
 {
+    if (hal_get_slptr()) DEBUGFLOW('"');
     hal_set_slptr_low();
     delay_us(TIME_NOCLK_TO_WAKE);
     hal_subregister_write(SR_TRX_CMD, CMD_FORCE_TRX_OFF);
@@ -495,6 +499,15 @@ on(void)
 #endif
 
   if (hal_get_slptr()) {
+#if defined(__AVR_ATmega128RFA1__)
+	rf230_interruptwait=1;
+	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
+	PORTE|=(1<<PE1); //ledon
+	hal_set_slptr_low();
+	while (rf230_interruptwait) {}
+//	  rf230_waitidle(); //?
+  }
+#else
     uint8_t sreg = SREG;
     cli();
 //   DEBUGFLOW('0');
@@ -505,6 +518,7 @@ on(void)
 	SREG=sreg;
   }
   rf230_waitidle();
+#endif
 
 #if RF230_CONF_AUTOACK
  // radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
@@ -523,7 +537,6 @@ static void
 off(void)
 {
   RF230_receive_on = 0;
-
 #ifdef RF230BB_HOOK_RADIO_OFF
   RF230BB_HOOK_RADIO_OFF();
 #endif
@@ -540,6 +553,8 @@ off(void)
   radio_reset_state_machine();
 #if RADIOSLEEPSWHENOFF
   /* Sleep Radio */
+  ENERGEST_OFF(ENERGEST_TYPE_LED_RED);
+//  PORTE&=~(1<<PE1); //ledoff
   hal_set_slptr_high();
  // DEBUGFLOW('d');
   delay_us(TIME_SLEEP_TO_TRX_OFF); //?
@@ -800,6 +815,7 @@ void rf230_warm_reset(void) {
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t buffer[RF230_MAX_TX_FRAME_LENGTH+AUX_LEN];
+
 static int
 rf230_transmit(unsigned short payload_len)
 {
@@ -819,10 +835,22 @@ rf230_transmit(unsigned short payload_len)
   /* If radio is sleeping we have to turn it on first */
   /* This automatically does the PLL calibrations */
   if (hal_get_slptr()) {
+#if defined(__AVR_ATmega128RFA1__)
+	if (radiowason) DEBUGFLOW('e');
+	radiowason=0;
+//	DEBUGFLOW('j');
+	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
+//	PORTE|=(1<<PE1); //ledon
+	rf230_interruptwait=1;
+	hal_set_slptr_low();
+	while (rf230_interruptwait) {}	
+#else
     hal_set_slptr_low();
 	DEBUGFLOW('j');
     delay_us(TIME_SLEEP_TO_TRX_OFF);
 	delay_us(TIME_SLEEP_TO_TRX_OFF);
+#endif
+
   } else {
 #if RADIO_CONF_CALIBRATE_INTERVAL
   /* If nonzero, do periodic calibration. See clock.c */
@@ -922,6 +950,8 @@ rf230_transmit(unsigned short payload_len)
   if(radiowason) {
     DEBUGFLOW('l');
     on();
+  } else {
+    off();
   }
 
 #if RF230_CONF_TIMESTAMPS
@@ -1207,7 +1237,7 @@ if (RF230_receive_on) {
   TIMETABLE_TIMESTAMP(rf230_timetable, "interrupt");
 #endif /* RF230_TIMETABLE_PROFILING */
 
-  pending = 1;
+  rf230_pending = 1;
   
 #if RADIOSTATS //TODO:This will double count buffered packets
   RF230_receivepackets++;
@@ -1247,7 +1277,7 @@ PROCESS_THREAD(rf230_process, ev, data)
     TIMETABLE_TIMESTAMP(rf230_timetable, "poll");
 #endif /* RF230_TIMETABLE_PROFILING */
 
-    pending = 0;
+    rf230_pending = 0;
 
     packetbuf_clear();
     len = rf230_read(packetbuf_dataptr(), PACKETBUF_SIZE);        
@@ -1520,25 +1550,31 @@ rf230_cca(void)
 {
   uint8_t cca=0;
   uint8_t radio_was_off = 0;
+  uint8_t volatile saved_sreg = SREG;
 
   /* If the radio is locked by an underlying thread (because we are
      being invoked through an interrupt), we preted that the coast is
      clear (i.e., no packet is currently being transmitted by a
      neighbor). */
   if(locked) {
-    DEBUGFLOW('1');
-    return 1;
+    DEBUGFLOW('|');
+ //   return 1; rf230 hangs on occasion?
+	    return 0;
   }
-  
+
+  /* Don't allow interrupts! */
+//#if !defined(__AVR_ATmega128RFA1__)
+  cli();
+//#endif
   /* Turn radio on if necessary. If radio is currently busy return busy channel */
   /* This may happen when testing radio duty cycling with RADIOALWAYSON */
 
   if(RF230_receive_on) {
-    if (hal_get_slptr()) {
+    if (hal_get_slptr()) {  //should not be sleeping!
 	  DEBUGFLOW('<');
-	  	  return 0;
+	  goto busyexit;
 	} else {
-      if (!rf230_isidle()) {DEBUGFLOW('2');return 0;}
+      if (!rf230_isidle()) {DEBUGFLOW('2');goto busyexit;}
 	}
   } else {
     DEBUGFLOW('3');
@@ -1552,21 +1588,34 @@ rf230_cca(void)
 
   /* Start the CCA, wait till done, return result */
   /* Note reading the TRX_STATUS register clears both CCA_STATUS and CCA_DONE bits */
+#if defined(__AVR_ATmega128RFA1__)&&0
+	rf230_interruptwait=1;
+    hal_subregister_write(SR_CCA_REQUEST,1);
+	sei();
+	while (rf230_interruptwait) {}
+//  while ((cca & 0x80) == 0 ) {//TODO:why does this hang the 128rfa1?
+      cca=hal_register_read(RG_TRX_STATUS);
+//	}
+#else
   hal_subregister_write(SR_CCA_REQUEST,1);
   delay_us(TIME_CCA);
-  while ((cca & 0x80) == 0 ) {
+//  while ((cca & 0x80) == 0 ) {  //hangs 128rfa1
     cca=hal_register_read(RG_TRX_STATUS);
-  }
+ // }
+#endif
   
   if(radio_was_off) {
     rf230_off();
   }
-// if (cca & 0x40) {/*DEBUGFLOW('3')*/;} else {pending=1;DEBUGFLOW('4');}  
+// if (cca & 0x40) {/*DEBUGFLOW('3')*/;} else {rf230_pending=1;DEBUGFLOW('4');}  
    if (cca & 0x40) {
 //   DEBUGFLOW('5');
+ 	 SREG=saved_sreg; 
 	 return 1;
    } else {
-//   DEBUGFLOW('6');
+//  DEBUGFLOW('6');
+ busyexit:
+	 SREG=saved_sreg;
 	 return 0;
    }
 }
@@ -1576,12 +1625,12 @@ rf230_receiving_packet(void)
 {
   uint8_t radio_state;
   if (hal_get_slptr()) {
-    DEBUGFLOW('7');
+    DEBUGFLOW('=');
   } else {  
     radio_state = hal_subregister_read(SR_TRX_STATUS);
     if ((radio_state==BUSY_RX) || (radio_state==BUSY_RX_AACK)) {
-      DEBUGFLOW('8');
-	  pending=1;
+//      DEBUGFLOW('8');
+//	  rf230_pending=1;
       return 1;
     }
   }
@@ -1589,10 +1638,10 @@ rf230_receiving_packet(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-pending_packet(void)
+rf230_pending_packet(void)
 {
-  if (pending) DEBUGFLOW('9');
-  return pending;
+  if (rf230_pending) DEBUGFLOW('@');
+  return rf230_pending;
 }
 /*---------------------------------------------------------------------------*/
 #if RF230_CONF_SNEEZER && JACKDAW
