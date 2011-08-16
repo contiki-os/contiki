@@ -173,9 +173,9 @@ serial_to_tun(FILE *inslip, int outfd)
 
  read_more:
   if(inbufptr >= sizeof(uip.inbuf)) {
-     inbufptr = 0;
      if(timestamp) stamptime();
      fprintf(stderr, "*** dropping large %d byte packet\n",inbufptr);
+	 inbufptr = 0;
   }
   ret = fread(&c, 1, 1, inslip);
 #ifdef linux
