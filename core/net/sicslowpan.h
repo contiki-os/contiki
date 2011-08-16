@@ -321,6 +321,5 @@ struct sicslowpan_nh_compressor {
 
 extern const struct network_driver sicslowpan_driver;
 
-extern const struct mac_driver *sicslowpan_mac;
 #endif /* __SICSLOWPAN_H__ */
 /** @} */

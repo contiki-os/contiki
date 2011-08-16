@@ -179,9 +179,6 @@ void uip_log(char *msg);
 /** \name General variables
  *  @{
  */
-/** A pointer to the mac driver */
-const struct mac_driver *sicslowpan_mac;
-
 #ifdef SICSLOWPAN_NH_COMPRESSOR
 /** A pointer to the additional compressor */
 extern struct sicslowpan_nh_compressor SICSLOWPAN_NH_COMPRESSOR;
@@ -1766,9 +1763,6 @@ input(void)
 void
 sicslowpan_init(void)
 {
-  /* remember the mac driver */
-  sicslowpan_mac = &NETSTACK_MAC;
-
   /*
    * Set out output function as the function to be called from uIP to
    * send a packet.
