@@ -833,7 +833,7 @@ ISR(TRX24_RX_END_vect)
 
 /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
 /* Is a ram buffer available? */
-	if (rxframe[rxframe_tail].length) {DEBUGFLOW('0');} else DEBUGFLOW('1');
+	if (rxframe[rxframe_tail].length) {DEBUGFLOW('0');} else /*DEBUGFLOW('1')*/;
 
 #ifdef RF230_MIN_RX_POWER		 
 /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes */
