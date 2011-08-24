@@ -29,9 +29,6 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef LED_ON_PORT1E
-#define LED_ON_PORTE1 0    //for Michael Hartman's prototype board
-#endif
 #define ANNOUNCE_BOOT 1    //adds about 600 bytes to program size
 
 #define DEBUG DEBUG_PRINT
@@ -190,7 +187,7 @@ extern uint8_t osccal_calibrated;
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
-#if !LED_ON_PORTE1    //Conflicts with USART0
+#if !RF230BB_CONF_LEDONPORTE1   //Conflicts with USART0
 #if RAVEN_LCD_INTERFACE
   /* First rs232 port for Raven 3290 port */
    rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
@@ -443,7 +440,7 @@ main(void)
 
   initialize();
 
-#if LED_ON_PORTE1
+#if RF230BB_CONF_LEDONPORTE1
   /* NB: PORTE1 conflicts with UART0 */
   DDRE|=(1<<DDE1);  //set led pin to output (Micheal Hatrtman board)
   PORTE&=~(1<<PE1); //and low to turn led off
@@ -460,7 +457,7 @@ main(void)
    }
 #endif
 
-#if LED_ON_PORTE1
+#if RF230BB_CONF_LEDONPORTE1
     /* Turn off LED after a while */
     if (ledtimer) {
       if (--ledtimer==0) {
@@ -517,7 +514,7 @@ if ((clocktime%STAMPS)==0) {
 	print_stats();
 #elif RADIOSTATS
 extern volatile unsigned long radioontime;
-  PRINTA("%u(%u)s",clocktime,radioontime);
+  PRINTA("%u(%u)s ",clocktime,radioontime);
 #else
   PRINTA("%us ",clocktime);
 #endif
