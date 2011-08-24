@@ -97,6 +97,10 @@ unsigned long clock_seconds(void);
 /* Debugflow macro, useful for tracing path through mac and radio interrupts */
 #define DEBUGFLOWSIZE 128
 
+/* Michael Hartman's protobyte board has LED on PORTE1, can be used for pings and radio on indication */
+/* However it requires disabling UART0. */
+#define RF230BB_CONF_LEDONPORTE1  1
+
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
 #undef PACKETBUF_CONF_HDR_SIZE                  //Use the packetbuf default for header size

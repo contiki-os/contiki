@@ -502,7 +502,9 @@ on(void)
 #if defined(__AVR_ATmega128RFA1__)
 	rf230_interruptwait=1;
 	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
+#if RF230BB_CONF_LEDONPORTE1
 //	PORTE|=(1<<PE1); //ledon
+#endif
 	hal_set_slptr_low();
 	while (rf230_interruptwait) {}
   }
@@ -550,7 +552,9 @@ off(void)
   /* Sleep Radio */
   hal_set_slptr_high();
   ENERGEST_OFF(ENERGEST_TYPE_LED_RED);
+#if RF230BB_CONF_LEDONPORTE1
 //  PORTE&=~(1<<PE1); //ledoff
+#endif
 // DEBUGFLOW('d');
 #else
  // DEBUGFLOW('e');
@@ -834,7 +838,9 @@ rf230_transmit(unsigned short payload_len)
 	radiowason=0;
 //	DEBUGFLOW('j');
 	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
+#if RF230BB_CONF_LEDONPORTE1
 //	PORTE|=(1<<PE1); //ledon
+#endif
 	rf230_interruptwait=1;
 	hal_set_slptr_low();
 	while (rf230_interruptwait) {}	
