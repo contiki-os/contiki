@@ -17,6 +17,11 @@ PROJECT_SOURCEFILES += slip-bridge.c
 # WITH_WEBSERVER=webserver for /apps/webserver
 # WITH_WEBSERVER=raven-webserver for /platform/avr-raven/apps/raven-webserver/
 #make clean before changing webservers!
+
+#Note /apps/webserver contains a 2500 byte style sheet which is a severe test
+#of the slip connection. Large MSS together with low baud rates without flow
+#control will overrun the transmit buffer when the style sheet is requested.
+
 WITH_WEBSERVER=1
 ifeq ($(WITH_WEBSERVER),1)
 CFLAGS += -DWEBSERVER=1
