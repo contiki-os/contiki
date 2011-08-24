@@ -88,9 +88,10 @@ static const char   rtes_name[] HTTPD_STRING_ATTR = "routes";
 #if WEBSERVER_CONF_TICTACTOE
 static const char tictac_name[] HTTPD_STRING_ATTR = "tictac";
 #endif
+#endif
 
 /*Process states for processes cgi*/
-#endif
+
 #if WEBSERVER_CONF_PROCESSES || WEBSERVER_CONF_TCPSTATS
 static const char      closed[] HTTPD_STRING_ATTR = "CLOSED";
 static const char    syn_rcvd[] HTTPD_STRING_ATTR = "SYN-RCVD";
@@ -178,42 +179,58 @@ generate_header(void *arg)
 {
   unsigned short numprinted=0;
 #if WEBSERVER_CONF_HEADER_W3C
+#define _MSS1 100
   static const char httpd_cgi_headerw[] HTTPD_STRING_ATTR = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerw);
 #endif
 #if WEBSERVER_CONF_HEADER_ICON
+#define _MSS2 105
   static const char httpd_cgi_header1[] HTTPD_STRING_ATTR = "<html><head><title>Contiki-nano</title><link rel=\"icon\" href=\"favicon.gif\" type=\"image/gif\"></head><body>";
 #else
+#define _MSS2 52
   static const char httpd_cgi_header1[] HTTPD_STRING_ATTR = "<html><head><title>Contiki-nano</title></head><body>";
 #endif
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_header1);
 
 #if WEBSERVER_CONF_HEADER_MENU
+#define _MSS3 32
   static const char httpd_cgi_headerm1[] HTTPD_STRING_ATTR = "<pre><a href=\"/\">Front page</a>";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerm1);
 #if WEBSERVER_CONF_SENSORS
+#define _MSS4 34
   static const char httpd_cgi_headerm2[] HTTPD_STRING_ATTR = "|<a href=\"status.shtml\">Status</a>";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerm2);
 #endif
 #if WEBSERVER_CONF_TCPSTATS
+#define _MSS5 44
   static const char httpd_cgi_headerm3[] HTTPD_STRING_ATTR = "|<a href=\"tcp.shtml\">Network connections</a>";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerm3);
 #endif
 #if WEBSERVER_CONF_PROCESSES
+#define _MSS6 46
   static const char httpd_cgi_headerm4[] HTTPD_STRING_ATTR = "|<a href=\"processes.shtml\">System processes</a>";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerm4);
 #endif
 #if WEBSERVER_CONF_FILESTATS
+#define _MSS7 45
   static const char httpd_cgi_headerm5[] HTTPD_STRING_ATTR = "|<a href=\"files.shtml\">File statistics</a>";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerm5);
 #endif
 #if WEBSERVER_CONF_TICTACTOE
+#define _MSS8 44
   static const char httpd_cgi_headerm6[] HTTPD_STRING_ATTR = "|<a href=\"/ttt/ttt.shtml\">TicTacToe</a>";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerm6);
 #endif
   static const char httpd_cgi_headerme[] HTTPD_STRING_ATTR = "</pre>";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerme);
 #endif /* WEBSERVER_CONF_MENU */
+
+#if UIP_RECEIVE_WINDOW < _MSS1+_MSS2+_MSS3_+MSS4_+MSS5_MSS6+_MSS7+_MSS8
+#warning ************************************************************
+#warning UIP_RECEIVE_WINDOW not large enough for header cgi output.
+#warning Web pages will not render properly!
+#warning ************************************************************
+#endif
   return numprinted;
 }
 /*---------------------------------------------------------------------------*/
@@ -546,6 +563,14 @@ generate_sensor_readings(void *arg)
   m=s/60;
   s=s-m*60;
   numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor3, h,m,s);
+
+/* TODO: some gcc's have a bug with %02d format that adds a zero byte and extra chars to the end of the string.
+ * Seen with arm-none-eabi-gcc.exe (Sourcery G++ Lite 2008q3-66) 4.3.2
+ * Quick cosmetic fix to strip that off: */
+  if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
+  else if (*(char *)(uip_appdata + numprinted-2)==0) {numprinted-=2;}
+  else if (*(char *)(uip_appdata + numprinted-1)==0) {numprinted-=1;}
+
 #if 0
   if (sleepseconds) {
     p1=100UL*sleepseconds/seconds;
