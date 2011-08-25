@@ -103,7 +103,7 @@ uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 #define ROUTES 128
 #define STAMPS 30
 #define STACKMONITOR 1024
-uint16_t clocktime;
+uint32_t clocktime;
 #define TESTRTIMER 0
 #if TESTRTIMER
 uint8_t rtimerflag=1;
@@ -199,8 +199,10 @@ void initialize(void)
 #endif
 #endif
 
-  /* Second rs232 port for debugging */
+  /* Second rs232 port for debugging or slip alternative */
   rs232_init(RS232_PORT_1, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
+// rs232_init(RS232_PORT_1,  USART_BAUD_115200,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
+
   /* Redirect stdout to second port */
   rs232_redirect_stdout(RS232_PORT_1);
   clock_init();
@@ -514,9 +516,9 @@ if ((clocktime%STAMPS)==0) {
 	print_stats();
 #elif RADIOSTATS
 extern volatile unsigned long radioontime;
-  PRINTA("%u(%u)s ",clocktime,radioontime);
+  PRINTA("%u(%u)s\n",clocktime,radioontime);
 #else
-  PRINTA("%us ",clocktime);
+  PRINTA("%us\n",clocktime);
 #endif
 
 }
