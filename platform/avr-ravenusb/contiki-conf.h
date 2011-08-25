@@ -393,7 +393,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
  */
 
 #define UIP_CONF_ROUTER             1
-#define UIP_CONF_ND6_SEND_RA........0
+#define UIP_CONF_ND6_SEND_RA        0
 #define UIP_CONF_ND6_REACHABLE_TIME 600000
 #define UIP_CONF_ND6_RETRANS_TIMER  10000
 
