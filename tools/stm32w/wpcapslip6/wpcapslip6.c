@@ -536,8 +536,15 @@ read_more:
 		  if (timestamp) {
 			 if (inpktbuf[0]!='0' || inpktbuf[1]!=0 || inpktbuf[2]!=0 || inpktbuf[3]!=0) stamptime();
 		  }
-	  	  fwrite(inpktbuf, inbufptr, 1, stderr);
-		  inbufptr=0;		 
+/* This could be a proper debug string starting with CR just a print to stdout */
+/* Trap the CR which would cause overwriting of the timestamp */
+//{int i;for (i=0;i<inbufptr;i++) fprintf(stderr,"%2x ",inpktbuf[i]);}
+		  if(inpktbuf[0] == DEBUG_LINE_MARKER) {
+		    fwrite(inpktbuf + 1, inbufptr - 1, 1, stderr);
+		  } else {
+	  	    fwrite(inpktbuf, inbufptr, 1, stderr);
+		  }
+		  inbufptr=0; 
 		} else if (c == 0 || c == '\t' || c == '\r') {
 	    } else if(c < ' ' || '~' < c) {
 	      issensiblestring=0;
