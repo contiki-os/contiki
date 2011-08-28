@@ -452,12 +452,12 @@ raven_lcd_show_text(char *text) {
 static void
 lcd_show_servername(void) {
 
-//extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h 
-extern uint8_t server_name[16];
-//extern uint8_t domain_name[30];
-char buf[sizeof(server_name)+1];
-    eeprom_read_block (buf,server_name, sizeof(server_name));
-    buf[sizeof(server_name)]=0;
+//extern uint8_t eemem_mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h 
+extern uint8_t eemem_server_name[16];
+//extern uint8_t eemem_domain_name[30];
+char buf[sizeof(eemem_server_name)+1];
+    eeprom_read_block (buf,eemem_server_name, sizeof(eemem_server_name));
+    buf[sizeof(eemem_server_name)]=0;
     raven_lcd_show_text(buf);  //must fit in all the buffers or it will be truncated!
 }
 #endif
