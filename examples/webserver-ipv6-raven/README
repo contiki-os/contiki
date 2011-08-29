@@ -40,3 +40,15 @@ $make WEBDIR=xxx always forces regeneration of web content into httpd-fsdata.c a
 so requires PERL. A bare $make after that will not regenerate httpd-fsdata.c.
 Use $make WEBDIR=default to switch back to the default /http-fs/ content.
 
+See Makefile.webserver for optional switches for RPL or a coffee file system.
+$make WITH_RPL=1 for a RPL node, or if rpl has become the contiki default,
+$make WITH_RPL=0 to override
+
+Much headbanging can result if you do not $make clean when changing make options,
+as the normal build dependencies are bypassed and the needed object modules
+may not be rebuilt.
+
+$make connect will invoke the /tools/serial-log.pl perl script to connect to
+your serial debug port. This will log to the console and optional log file,
+adding useful time stamps. Edit the makefile for your serial port configuration.
+
