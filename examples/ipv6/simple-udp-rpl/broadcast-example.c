@@ -13,7 +13,7 @@
 
 #define UDP_PORT 1234
 
-#define SEND_INTERVAL		(10 * CLOCK_SECOND)
+#define SEND_INTERVAL		(20 * CLOCK_SECOND)
 #define SEND_TIME		(random_rand() % (SEND_INTERVAL))
 
 static struct simple_udp_connection broadcast_connection;
@@ -39,6 +39,7 @@ PROCESS_THREAD(broadcast_example_process, ev, data)
 {
   static struct etimer periodic_timer;
   static struct etimer send_timer;
+  uip_ipaddr_t addr;
 
   PROCESS_BEGIN();
 
@@ -48,18 +49,14 @@ PROCESS_THREAD(broadcast_example_process, ev, data)
 
   etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+    etimer_reset(&periodic_timer);
+    etimer_set(&send_timer, SEND_TIME);
 
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_TIMER);
-    if(data == &periodic_timer) {
-      etimer_reset(&periodic_timer);
-      etimer_set(&send_timer, SEND_TIME);
-    }
-    if(data == &send_timer) {
-      uip_ipaddr_t addr;
-      printf("Sending broadcast\n");
-      uip_create_linklocal_allnodes_mcast(&addr);
-      simple_udp_sendto(&broadcast_connection, "hej\n", 4, &addr);
-    }
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&send_timer));
+    printf("Sending broadcast\n");
+    uip_create_linklocal_allnodes_mcast(&addr);
+    simple_udp_sendto(&broadcast_connection, "Test", 4, &addr);
   }
 
   PROCESS_END();

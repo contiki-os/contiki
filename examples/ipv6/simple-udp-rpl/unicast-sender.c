@@ -65,6 +65,7 @@ PROCESS_THREAD(unicast_sender_process, ev, data)
 {
   static struct etimer periodic_timer;
   static struct etimer send_timer;
+  uip_ipaddr_t *addr;
 
   PROCESS_BEGIN();
 
@@ -78,25 +79,22 @@ PROCESS_THREAD(unicast_sender_process, ev, data)
   etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1) {
 
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_TIMER);
-    if(data == &periodic_timer) {
-      etimer_reset(&periodic_timer);
-      etimer_set(&send_timer, SEND_TIME);
-    }
-    if(data == &send_timer) {
-      uip_ipaddr_t *addr;
-      addr = servreg_hack_lookup(SERVICE_ID);
-      if(addr != NULL) {
-        char buf[20];
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+    etimer_reset(&periodic_timer);
+    etimer_set(&send_timer, SEND_TIME);
 
-        printf("Sending unicast to ");
-        uip_debug_ipaddr_print(addr);
-        printf("\n");
-        sprintf(buf, "From %d", node_id);
-        simple_udp_sendto(&unicast_connection, buf, strlen(buf) + 1, addr);
-      } else {
-        printf("Service %d not found\n", SERVICE_ID);
-      }
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&send_timer));
+    addr = servreg_hack_lookup(SERVICE_ID);
+    if(addr != NULL) {
+      char buf[20];
+
+      printf("Sending unicast to ");
+      uip_debug_ipaddr_print(addr);
+      printf("\n");
+      sprintf(buf, "From %d", node_id);
+      simple_udp_sendto(&unicast_connection, buf, strlen(buf) + 1, addr);
+    } else {
+      printf("Service %d not found\n", SERVICE_ID);
     }
   }
 
