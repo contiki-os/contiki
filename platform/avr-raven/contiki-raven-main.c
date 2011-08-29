@@ -30,14 +30,28 @@
  *
  * @(#)$$
  */
-#define ANNOUNCE_BOOT 1    //adds about 600 bytes to program size
 #define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+
+#define ANNOUNCE_BOOT 1    //adds about 600 bytes to program size
+#if ANNOUNCE_BOOT
+#define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTA(...)
+#endif
 
 #define DEBUG 0
 #if DEBUG
-#define PRINTFD(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#define PRINTD(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
 #else
-#define PRINTFD(...)
+#define PRINTD(...)
+#endif
+
+/* Track interrupt flow through mac, rdc and radio driver */
+#if DEBUGFLOWSIZE
+uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
+#define DEBUGFLOW(c) if (debugflowsize<(DEBUGFLOWSIZE-1)) debugflow[debugflowsize++]=c
+#else
+#define DEBUGFLOW(c)
 #endif
 
 #include <avr/pgmspace.h>
@@ -93,85 +107,334 @@
 
 #include "net/rime.h"
 
-/* Test rtimers, also for pings, stack monitor, neighbor/route printout and time stamps */
-#define TESTRTIMER 0
-#if TESTRTIMER
+/* Get periodic prints from idle loop, from clock seconds or rtimer interrupts */
+/* Use of rtimer will conflict with other rtimer interrupts such as contikimac radio cycling */
+/* STAMPS will print ENERGEST outputs if that is enabled. */
+#define PERIODICPRINTS 1
+#if PERIODICPRINTS
 //#define PINGS 64
-#define ROUTES 300
+#define ROUTES 600
 #define STAMPS 60
 #define STACKMONITOR 600
-
+uint32_t clocktime;
+#define TESTRTIMER 0
+#if TESTRTIMER
 uint8_t rtimerflag=1;
-uint16_t rtime;
 struct rtimer rt;
 void rtimercycle(void) {rtimerflag=1;}
-static void ipaddr_add(const uip_ipaddr_t *addr);
+#endif
+#endif
 
-#endif /* TESTRTIMER */
+#if WITH_NODE_ID
+uint16_t node_id;
+#endif
 
 /*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
-typedef struct {unsigned char B2;unsigned char B1;unsigned char B0;} __signature_t;
+#if 1
+/* The proper way to set the signature is */
+#include <avr/signature.h>
+#else
+/* Older avr-gcc's may not define the needed SIGNATURE bytes. Do it manually if you get an error */
+typedef struct {const unsigned char B2;const unsigned char B1;const unsigned char B0;} __signature_t;
 #define SIGNATURE __signature_t __signature __attribute__((section (".signature")))
 SIGNATURE = {
-/* Older AVR-GCCs may not define the SIGNATURE_n bytes so use explicit 1284p values */
-  .B2 = 0x05,//SIGNATURE_2,
-  .B1 = 0x97,//SIGNATURE_1,
-  .B0 = 0x1E,//SIGNATURE_0,
+  .B2 = 0x05,//SIGNATURE_2, //ATMEGA1284p
+  .B1 = 0x97,//SIGNATURE_1, //128KB flash
+  .B0 = 0x1E,//SIGNATURE_0, //Atmel
 };
+#endif
+
+/* JTAG, SPI enabled, Internal RC osc, Boot flash size 4K, 6CK+65msec delay, brownout disabled */
 FUSES ={.low = 0xe2, .high = 0x99, .extended = 0xff,};
 
-/*----------------------Configuration of EEPROM---------------------------*/
-/* Use existing EEPROM if it passes the integrity test, else reinitialize with build values */
-
-/* Put default MAC address in EEPROM */
+/* Put the default settings into program flash memory */
+/* Webserver builds can set some defaults in httpd-fsdata.c via makefsdata.h */
 #if AVR_WEBSERVER
-extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h
-extern uint8_t server_name[16];
-extern uint8_t domain_name[30];
+extern uint8_t default_mac_address[8];
+extern uint8_t default_server_name[16];
+extern uint8_t default_domain_name[30];
 #else
-uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
+#ifdef MAC_ADDRESS
+uint8_t default_mac_address[8] PROGMEM = MAC_ADDRESS;
+#else
+uint8_t default_mac_address[8] PROGMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 #endif
+#ifdef SERVER_NAME
+uint8_t default_server_name[16] PROGMEM = SERVER_NAME;
+#else
+uint8_t default_server_name[16] PROGMEM = "Raven_webserver";
+#endif
+#ifdef DOMAIN_NAME
+uint8_t default_domain_name[30] PROGMEM = DOMAIN_NAME
+#else
+uint8_t default_domain_name[30] PROGMEM = "localhost";
+#endif
+#endif /* AVR_WEBSERVER */
 
-
+#ifdef NODE_ID
+uint16_t default_nodeid PROGMEM = NODEID;
+#else
+uint16_t default_nodeid PROGMEM = 0;
+#endif
 #ifdef CHANNEL_802_15_4
-uint8_t rf_channel[2] EEMEM = {CHANNEL_802_15_4, ~CHANNEL_802_15_4};
+uint8_t default_channel PROGMEM = CHANNEL_802_15_4;
 #else
-uint8_t rf_channel[2] EEMEM = {22, ~22};
+uint8_t default_channel PROGMEM = 26;
 #endif
-	volatile uint8_t eeprom_channel;
-static uint8_t get_channel_from_eeprom() {
-//	volatile uint8_t eeprom_channel;
-	uint8_t eeprom_check;
-	eeprom_channel = eeprom_read_byte(&rf_channel[0]);
-	eeprom_check = eeprom_read_byte(&rf_channel[1]);
+#ifdef IEEE802154_PANID
+uint16_t default_panid PROGMEM = IEEE802154_PANID;
+#else
+uint16_t default_panid PROGMEM = 0xABCD;
+#endif
+#ifdef IEEE802154_PANADDR
+uint16_t default_panaddr PROGMEM = IEEE802154_PANID;
+#else
+uint16_t default_panaddr PROGMEM = 0;
+#endif
+#ifdef RF230_MAX_TX_POWER
+uint8_t default_txpower PROGMEM = RF230_MAX_TX_POWER;
+#else
+uint8_t default_txpower PROGMEM = 0;
+#endif
 
-	if(eeprom_channel==~eeprom_check)
-		return eeprom_channel;
+/* Get a pseudo random number using the ADC */
+static uint8_t
+rng_get_uint8(void) {
+uint8_t i,j;
+  ADCSRA=1<<ADEN;             //Enable ADC, not free running, interrupt disabled, fastest clock
+  for (i=0;i<4;i++) {
+    ADMUX = 0;                //toggle reference to increase noise
+    ADMUX =0x1E;              //Select AREF as reference, measure 1.1 volt bandgap reference.
+    ADCSRA|=1<<ADSC;          //Start conversion
+    while (ADCSRA&(1<<ADSC)); //Wait till done
+	j = (j<<2) + ADC;
+  }
+  ADCSRA=0;                   //Disable ADC
+  PRINTD("rng issues %d\n",j);
+  return j;
+}
 
+#if CONTIKI_CONF_RANDOM_MAC
+static void
+generate_new_eui64(uint8_t eui64[8]) {
+	eui64[0] = 0x02;
+	eui64[1] = rng_get_uint8();
+	eui64[2] = rng_get_uint8();
+	eui64[3] = 0xFF;
+	eui64[4] = 0xFE;
+	eui64[5] = rng_get_uint8();
+	eui64[6] = rng_get_uint8();
+	eui64[7] = rng_get_uint8();
+}
+#endif
+
+#if !CONTIKI_CONF_SETTINGS_MANAGER
+/****************************No settings manager*****************************/
+/* If not using the settings manager, put the default values into EEMEM
+ * These can be manually changed and kept over program reflash.
+ * The channel and bit complement are used to check EEMEM integrity,
+ * If corrupt all values will be rewritten with the default flash values.
+ * To make this work, get the channel before anything else.
+ */
+#if AVR_WEBSERVER
+extern uint8_t eemem_mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h
+extern uint8_t eemem_server_name[16];
+extern uint8_t eemem_domain_name[30];
+#else
+#ifdef MAC_ADDRESS
+uint8_t eemem_mac_address[8] EEMEM = MAC_ADDRESS;
+#else
+uint8_t eemem_mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
+#endif
+#ifdef SERVER_NAME
+uint8_t eemem_server_name[16] EEMEM = SERVER_NAME;
+#else
+uint8_t eemem_server_name[16] EEMEM = "Raven_webserver";
+#endif
+#ifdef DOMAIN_NAME
+uint8_t eemem_domain_name[30] EEMEM = DOMAIN_NAME
+#else
+uint8_t eemem_domain_name[30] EEMEM = "localhost";
+#endif
+#endif /*AVR_WEBSERVER */
+
+#ifdef NODE_ID
+uint16_t eemem_nodeid EEMEM = NODEID;
+#else
+uint16_t eemem_nodeid EEMEM = 0;
+#endif
 #ifdef CHANNEL_802_15_4
-	return(CHANNEL_802_15_4);
+uint8_t eemem_channel[2] EEMEM = {CHANNEL_802_15_4, ~CHANNEL_802_15_4};
 #else
-	return 26;
+uint8_t eemem_channel[2] EMEM = {26, ~26};
 #endif
+#ifdef IEEE802154_PANID
+uint16_t eemem_panid EEMEM = IEEE802154_PANID;
+#else
+uint16_t eemem_panid EEMEM = 0xABCD;
+#endif
+#ifdef IEEE802154_PANADDR
+uint16_t eemem_panaddr EEMEM = IEEE802154_PANADDR;
+#else
+uint16_t eemem_panaddr EEMEM = 0;
+#endif
+#ifdef RF230_MAX_TX_POWER
+uint8_t eemem_txpower EEMEM = RF230_MAX_TX_POWER;
+#else
+uint8_t eemem_txpower EEMEM = 0;
+#endif
+
+static uint8_t
+get_channel_from_eeprom() {
+  uint8_t x[2];
+  *(uint16_t *)x = eeprom_read_word ((uint16_t *)&eemem_channel);
+/* Don't return an invalid channel number */
+  if( (x[0]<11) || (x[0] > 26)) x[1]=x[0];
+/* Do exclusive or test on the two values read */
+  if((uint8_t)x[0]!=(uint8_t)~x[1]) {//~x[1] can promote comparison to 16 bit
+/* Verification fails, rewrite everything */
+    uint8_t i,buffer[32];
+    PRINTD("EEPROM is corrupt, rewriting with defaults.\n");
+#if CONTIKI_CONF_RANDOM_MAC
+    PRINTA("Generating random MAC address.\n");
+    generate_new_eui64(&buffer);
+#else
+    for (i=0;i<sizeof(default_mac_address);i++) buffer[i] = pgm_read_byte_near(default_mac_address+i);
+#endif
+    cli();
+    eeprom_write_block(&buffer,  &eemem_mac_address, sizeof(eemem_mac_address));
+    for (i=0;i<sizeof(default_server_name);i++) buffer[i] = pgm_read_byte_near(default_server_name+i);
+    eeprom_write_block(&buffer,  &eemem_server_name, sizeof(eemem_server_name));
+    for (i=0;i<sizeof(default_domain_name);i++) buffer[i] = pgm_read_byte_near(default_domain_name+i);
+    eeprom_write_block(&buffer,  &eemem_domain_name, sizeof(eemem_domain_name));
+    eeprom_write_word(&eemem_panid  , pgm_read_word_near(&default_panid));
+    eeprom_write_word(&eemem_panaddr, pgm_read_word_near(&default_panaddr));
+    eeprom_write_byte(&eemem_txpower, pgm_read_byte_near(&default_txpower));
+    eeprom_write_word(&eemem_nodeid, pgm_read_word_near(&default_nodeid));
+    x[0] = pgm_read_byte_near(&default_channel);
+    x[1]= ~x[0];
+    eeprom_write_word((uint16_t *)&eemem_channel, *(uint16_t *)x);
+	sei();
+  }
+/* Always returns a valid channel */
+  return x[0];
+}
+static bool
+get_eui64_from_eeprom(uint8_t macptr[sizeof(rimeaddr_t)]) {
+  cli();
+  eeprom_read_block ((void *)macptr, &eemem_mac_address, sizeof(rimeaddr_t));
+  sei();
+  return macptr[0]!=0xFF;
+}
+static uint16_t
+get_panid_from_eeprom(void) {
+  return eeprom_read_word(&eemem_panid);
+}
+static uint16_t
+get_panaddr_from_eeprom(void) {
+  return eeprom_read_word (&eemem_panaddr);
+}
+static uint8_t
+get_txpower_from_eeprom(void)
+{
+  return eeprom_read_byte(&eemem_txpower);
 }
 
-static bool get_mac_from_eeprom(uint8_t* macptr) {
-	eeprom_read_block ((void *)macptr,  &mac_address, 8);
-	return true;
-}
+#else /* !CONTIKI_CONF_SETTINGS_MANAGER */
+/******************************Settings manager******************************/
+#include "settings.h"
+/* Disable the settings add routines to reduce eeprom wear during testing */
+#if 0
+#define settings_add(...) 0
+#define settings_add_uint8(...) 0
+#define settings_add_uint16(...) 0
+#endif
 
-static uint16_t get_panid_from_eeprom(void) {
-	// TODO: Writeme!
-	return IEEE802154_PANID;
-}
+#if AVR_WEBSERVER
+extern uint8_t eemem_mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h
+extern uint8_t eemem_server_name[16];
+extern uint8_t eemem_domain_name[30];
+#endif
 
-static uint16_t get_panaddr_from_eeprom(void) {
-	// TODO: Writeme!
-	return 0;
+static uint8_t
+get_channel_from_eeprom() {
+  uint8_t x;
+  size_t  size = 1;
+  if (settings_get(SETTINGS_KEY_CHANNEL, 0,(unsigned char*)&x, &size) == SETTINGS_STATUS_OK) {
+    if ((x<11) || (x>26)) {
+      PRINTF("Unusual RF channel %u in EEPROM\n",x);
+	}
+    PRINTD("<=Get RF channel %u.\n",x);
+  } else {
+    x = pgm_read_byte_near(&default_channel);
+    if (settings_add_uint8(SETTINGS_KEY_CHANNEL,x ) == SETTINGS_STATUS_OK) {
+      PRINTD("->Set EEPROM RF channel to %d.\n",x);
+    }
+  }
+  return x;
 }
-
-void calibrate_rc_osc_32k();
+static bool
+get_eui64_from_eeprom(uint8_t macptr[8]) {
+  size_t size = sizeof(rimeaddr_t); 
+  if(settings_get(SETTINGS_KEY_EUI64, 0, (unsigned char*)macptr, &size) == SETTINGS_STATUS_OK) {
+    PRINTD("<=Get MAC address.\n");
+    return true;		
+  }
+#if CONTIKI_CONF_RANDOM_MAC
+  PRINTD("--Generating random MAC address.\n");
+  generate_new_eui64(macptr);
+#else
+  {uint8_t i;for (i=0;i<8;i++) macptr[i] = pgm_read_byte_near(default_mac_address+i);}
+#endif
+  if (settings_add(SETTINGS_KEY_EUI64,(unsigned char*)macptr,8)) {
+    PRINTD("->Set EEPROM MAC address.\n");
+  }
+  return true;
+}
+static uint16_t
+get_panid_from_eeprom(void) {
+  uint16_t x;
+  size_t  size = 2;
+  if (settings_get(SETTINGS_KEY_PAN_ID, 0,(unsigned char*)&x, &size) == SETTINGS_STATUS_OK) {
+    PRINTD("<-Get PAN ID of %04x.\n",x);
+  } else {
+    x=pgm_read_word_near(&default_panid);
+    if (settings_add_uint16(SETTINGS_KEY_PAN_ID,x)==SETTINGS_STATUS_OK) {
+      PRINTD("->Set EEPROM PAN ID to %04x.\n",x);
+    }
+  }
+  return x;
+}
+static uint16_t
+get_panaddr_from_eeprom(void) {
+  uint16_t x;
+  size_t  size = 2;
+  if (settings_get(SETTINGS_KEY_PAN_ADDR, 0,(unsigned char*)&x, &size) == SETTINGS_STATUS_OK) {
+    PRINTD("<-Get PAN address of %04x.\n",x);
+  } else {
+    x=pgm_read_word_near(&default_panaddr);
+    if (settings_add_uint16(SETTINGS_KEY_PAN_ADDR,x)==SETTINGS_STATUS_OK) {
+      PRINTD("->Set EEPROM PAN address to %04x.\n",x);
+    }
+  }        
+  return x;
+}
+static uint8_t
+get_txpower_from_eeprom(void) {
+  uint8_t x;
+  size_t  size = 1;
+  if (settings_get(SETTINGS_KEY_TXPOWER, 0,(unsigned char*)&x, &size) == SETTINGS_STATUS_OK) {
+    PRINTD("<-Get tx power of %d. (0=max)\n",x);
+  } else {
+    x=pgm_read_byte_near(&default_txpower);
+    if (settings_add_uint8(SETTINGS_KEY_TXPOWER,x)==SETTINGS_STATUS_OK) {
+      PRINTD("->Set EEPROM tx power of %d. (0=max)\n",x);
+    }
+  }
+  return x;
+}
+#endif /* CONTIKI_CONF_SETTINGS_MANAGER */
 
 /*-------------------------Low level initialization------------------------*/
 /*------Done in a subroutine to keep main routine stack usage small--------*/
@@ -195,7 +458,7 @@ void initialize(void)
 
 #if STACKMONITOR
   /* Simple stack pointer highwater monitor. Checks for magic numbers in the main
-   * loop. In conjuction with TESTRTIMER, never-used stack will be printed
+   * loop. In conjuction with PERIODICPRINTS, never-used stack will be printed
    * every STACKMONITOR seconds.
    */
 {
@@ -212,23 +475,18 @@ uint16_t p=(uint16_t)&__bss_end;
  * Some layers will ignore duplicates found in a history (e.g. Contikimac)
  * causing the initial packets to be ignored after a short-cycle restart.
  */
-  ADMUX =0x1E;              //Select AREF as reference, measure 1.1 volt bandgap reference.
-  ADCSRA=1<<ADEN;           //Enable ADC, not free running, interrupt disabled, fastest clock
-  ADCSRA|=1<<ADSC;          //Start conversion
-  while (ADCSRA&(1<<ADSC)); //Wait till done
-  PRINTFD("ADC=%d\n",ADC);
-  random_init(ADC);
-  ADCSRA=0;                 //Disable ADC
-  
+ random_init(rng_get_uint8());
+
 #define CONF_CALIBRATE_OSCCAL 0
 #if CONF_CALIBRATE_OSCCAL
+void calibrate_rc_osc_32k();
 {
 extern uint8_t osccal_calibrated;
 uint8_t i;
-  PRINTF("\nBefore calibration OSCCAL=%x\n",OSCCAL);
+  PRINTD("\nBefore calibration OSCCAL=%x\n",OSCCAL);
   for (i=0;i<10;i++) { 
     calibrate_rc_osc_32k();  
-    PRINTF("Calibrated=%x\n",osccal_calibrated);
+    PRINTD("Calibrated=%x\n",osccal_calibrated);
 //#include <util/delay_basic.h>
 //#define delay_us( us )   ( _delay_loop_2(1+(us*F_CPU)/4000000UL) ) 
 //   delay_us(50000);
@@ -237,16 +495,15 @@ uint8_t i;
 }
 #endif 
 
-#if ANNOUNCE_BOOT
-  PRINTF("\n*******Booting %s*******\n",CONTIKI_VERSION_STRING);
-#endif
+  PRINTA("\n*******Booting %s*******\n",CONTIKI_VERSION_STRING);
 
 /* rtimers needed for radio cycling */
   rtimer_init();
 
  /* Initialize process subsystem */
   process_init();
- /* etimers must be started before ctimer_init */
+
+  /* etimers must be started before ctimer_init */
   process_start(&etimer_process, NULL);
 
 #if RF230BB
@@ -258,22 +515,37 @@ uint8_t i;
   /* Set addresses BEFORE starting tcpip process */
 
   rimeaddr_t addr;
-  memset(&addr, 0, sizeof(rimeaddr_t));
-  get_mac_from_eeprom(addr.u8);
+//  memset(&addr, 0, sizeof(rimeaddr_t));
+  get_eui64_from_eeprom(addr.u8);
  
 #if UIP_CONF_IPV6 
-  memcpy(&uip_lladdr.addr, &addr.u8, 8);
+  memcpy(&uip_lladdr.addr, &addr.u8, sizeof(rimeaddr_t));
+#elif WITH_NODE_ID
+  node_id=get_panaddr_from_eeprom();
+  addr.u8[1]=node_id&0xff;
+  addr.u8[0]=(node_id&0xff00)>>8;
+  PRINTA("Node ID from eeprom: %X\n",node_id);
 #endif  
+  rimeaddr_set_node_addr(&addr); 
+
   rf230_set_pan_addr(
 	get_panid_from_eeprom(),
 	get_panaddr_from_eeprom(),
 	(uint8_t *)&addr.u8
   );
   rf230_set_channel(get_channel_from_eeprom());
+  rf230_set_txpower(get_txpower_from_eeprom());
 
-  rimeaddr_set_node_addr(&addr); 
-
-  PRINTFD("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+#if UIP_CONF_IPV6
+  PRINTA("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n\r",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+#else
+  PRINTA("MAC address ");
+  uint8_t i;
+  for (i=sizeof(rimeaddr_t); i>0; i--){
+    PRINTA("%x:",addr.u8[i-1]);
+  }
+  PRINTA("\n");
+#endif
 
   /* Initialize stack protocols */
   queuebuf_init();
@@ -282,20 +554,20 @@ uint8_t i;
   NETSTACK_NETWORK.init();
 
 #if ANNOUNCE_BOOT
-  PRINTF("%s %s, channel %u",NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
+  PRINTA("%s %s, channel %u power %u",NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel()),rf230_get_txpower();
   if (NETSTACK_RDC.channel_check_interval) {//function pointer is zero for sicslowmac
     unsigned short tmp;
     tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
                                    NETSTACK_RDC.channel_check_interval());
-    if (tmp<65535) printf_P(PSTR(", check rate %u Hz"),tmp);
+    if (tmp<65535) PRINTA(", check rate %u Hz",tmp);
   }
-  PRINTF("\n");
+  PRINTA("\n");
 
 #if UIP_CONF_IPV6_RPL
-  PRINTF("RPL Enabled\n");
+  PRINTA("RPL Enabled\n");
 #endif
 #if UIP_CONF_ROUTER
-  PRINTF("Routing Enabled\n");
+  PRINTA("Routing Enabled\n");
 #endif
 
 #endif /* ANNOUNCE_BOOT */
@@ -305,12 +577,12 @@ uint8_t i;
 
   process_start(&tcpip_process, NULL);
 
-#else
+#else /* !RF230BB */
 /* Original RF230 combined mac/radio driver */
 /* mac process must be started before tcpip process! */
   process_start(&mac_process, NULL);
   process_start(&tcpip_process, NULL);
-#endif /*RF230BB*/
+#endif /* RF230BB */
 
 #ifdef RAVEN_LCD_INTERFACE
   process_start(&raven_lcd_process, NULL);
@@ -326,13 +598,13 @@ uint8_t i;
 #if COFFEE_FILES
   int fa = cfs_open( "/index.html", CFS_READ);
   if (fa<0) {     //Make some default web content
-    PRINTF("No index.html file found, creating upload.html!\n");
-    PRINTF("Formatting FLASH file system for coffee...");
+    PRINTA("No index.html file found, creating upload.html!\n");
+    PRINTA("Formatting FLASH file system for coffee...");
     cfs_coffee_format();
-    PRINTF("Done!\n");
+    PRINTA("Done!\n");
     fa = cfs_open( "/index.html", CFS_WRITE);
     int r = cfs_write(fa, &"It works!", 9);
-    if (r<0) PRINTF("Can''t create /index.html!\n");
+    if (r<0) PRINTA("Can''t create /index.html!\n");
     cfs_close(fa);
 //  fa = cfs_open("upload.html"), CFW_WRITE);
 // <html><body><form action="upload.html" enctype="multipart/form-data" method="post"><input name="userfile" type="file" size="50" /><input value="Upload" type="submit" /></form></body></html>
@@ -351,7 +623,7 @@ uint8_t i;
 
 /*--------------------------Announce the configuration---------------------*/
 #if ANNOUNCE_BOOT
-
+{
 #if AVR_WEBSERVER
   uint8_t i;
   char buf[80];
@@ -360,36 +632,59 @@ uint8_t i;
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
 	if (uip_ds6_if.addr_list[i].isused) {	  
 	   httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr,buf);
-       PRINTF("IPv6 Address: %s\n",buf);
+       PRINTA("IPv6 Address: %s\n",buf);
 	}
   }
-   eeprom_read_block (buf,server_name, sizeof(server_name));
-   buf[sizeof(server_name)]=0;
-   PRINTF("%s",buf);
-   eeprom_read_block (buf,domain_name, sizeof(domain_name));
-   buf[sizeof(domain_name)]=0;
+   cli();
+   eeprom_read_block (buf,eemem_server_name, sizeof(eemem_server_name));
+   sei();
+   buf[sizeof(eemem_server_name)]=0;
+   PRINTA("%s",buf);
+   cli();
+   eeprom_read_block (buf,eemem_domain_name, sizeof(eemem_domain_name));
+   sei();
+   buf[sizeof(eemem_domain_name)]=0;
    size=httpd_fs_get_size();
 #ifndef COFFEE_FILES
-   PRINTF(".%s online with fixed %u byte web content\n",buf,size);
+   PRINTA(".%s online with fixed %u byte web content\n",buf,size);
 #elif COFFEE_FILES==1
-   PRINTF(".%s online with static %u byte EEPROM file system\n",buf,size);
+   PRINTA(".%s online with static %u byte EEPROM file system\n",buf,size);
 #elif COFFEE_FILES==2
-   PRINTF(".%s online with dynamic %u KB EEPROM file system\n",buf,size>>10);
+   PRINTA(".%s online with dynamic %u KB EEPROM file system\n",buf,size>>10);
 #elif COFFEE_FILES==3
-   PRINTF(".%s online with static %u byte program memory file system\n",buf,size);
+   PRINTA(".%s online with static %u byte program memory file system\n",buf,size);
 #elif COFFEE_FILES==4
-   PRINTF(".%s online with dynamic %u KB program memory file system\n",buf,size>>10);
+   PRINTA(".%s online with dynamic %u KB program memory file system\n",buf,size>>10);
 #endif /* COFFEE_FILES */
 
 #else
-   PRINTF("Online\n");
+   PRINTA("Online\n");
 #endif /* AVR_WEBSERVER */
 
 #endif /* ANNOUNCE_BOOT */
 }
+}
 
-#if RF230BB
-extern char rf230_interrupt_flag, rf230processflag;
+#if ROUTES && UIP_CONF_IPV6
+static void
+ipaddr_add(const uip_ipaddr_t *addr)
+{
+  uint16_t a;
+  int8_t i, f;
+  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
+    a = (addr->u8[i] << 8) + addr->u8[i + 1];
+    if(a == 0 && f >= 0) {
+      if(f++ == 0) PRINTF("::");
+    } else {
+      if(f > 0) {
+        f = -1;
+      } else if(i > 0) {
+        PRINTF(":");
+      }
+      PRINTF("%x",a);
+    }
+  }
+}
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -422,39 +717,64 @@ main(void)
  */
     extern uint8_t rf230_calibrated;
     if (rf230_calibrated) {
-      PRINTF("\nRF230 calibrated!\n");
+      PRINTD("\nRF230 calibrated!\n");
       rf230_calibrated=0;
     }
 #endif
 
+#if DEBUGFLOWSIZE
+  if (debugflowsize) {
+    debugflow[debugflowsize]=0;
+    PRINTF("%s",debugflow);
+    debugflowsize=0;
+   }
+#endif
+
+    watchdog_periodic();
+
+#if PERIODICPRINTS
 #if TESTRTIMER
-/* Timeout can be increased up to 8 seconds maximum (at 8MHz with 1024 prescaler)
+/* Timeout can be increased up to 8 seconds maximum.
  * A one second cycle is convenient for triggering the various debug printouts.
  * The triggers are staggered to avoid printing everything at once.
  */
     if (rtimerflag) {
       rtimer_set(&rt, RTIMER_NOW()+ RTIMER_ARCH_SECOND*1UL, 1,(void *) rtimercycle, NULL);
       rtimerflag=0;
+#else
+  if (clocktime!=clock_seconds()) {
+     clocktime=clock_seconds();
+#endif
 
 #if STAMPS
-if ((rtime%STAMPS)==0) {
-  PRINTF("%us ",rtime);
+if ((clocktime%STAMPS)==0) {
+#if ENERGEST_CONF_ON
+#include "lib/print-stats.h"
+	print_stats();
+#elif RADIOSTATS
+extern volatile unsigned long radioontime;
+  PRINTF("%u(%u)s\n",clocktime,radioontime);
+#else
+  PRINTF("%us\n",clocktime);
+#endif
+
 }
 #endif
-      rtime+=1;
+#if TESTRTIMER
+      clocktime+=1;
+#endif
 
-#if PINGS
-if ((rtime%PINGS)==1) {
+#if PINGS && UIP_CONF_IPV6
+extern void raven_ping6(void); 
+if ((clocktime%PINGS)==1) {
   PRINTF("**Ping\n");
   raven_ping6();
 }
 #endif
 
-#if ROUTES
-if ((rtime%ROUTES)==2) {
+#if ROUTES && UIP_CONF_IPV6
+if ((clocktime%ROUTES)==2) {
       
- //#if UIP_CONF_IPV6_RPL
-//#include "rpl.h"
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
@@ -462,7 +782,7 @@ extern uip_ds6_netif_t uip_ds6_if;
   uint8_t i,j;
   PRINTF("\nAddresses [%u max]\n",UIP_DS6_ADDR_NB);
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
-    if (uip_ds6_if.addr_list[i].isused) {	  
+    if (uip_ds6_if.addr_list[i].isused) {
       ipaddr_add(&uip_ds6_if.addr_list[i].ipaddr);
       PRINTF("\n");
     }
@@ -496,7 +816,7 @@ extern uip_ds6_netif_t uip_ds6_if;
 #endif
 
 #if STACKMONITOR
-if ((rtime%STACKMONITOR)==3) {
+if ((clocktime%STACKMONITOR)==3) {
   extern uint16_t __bss_end;
   uint16_t p=(uint16_t)&__bss_end;
   do {
@@ -510,19 +830,10 @@ if ((rtime%STACKMONITOR)==3) {
 #endif
 
     }
-#endif /* TESTRTIMER */
-
-//Use with RF230BB DEBUGFLOW to show path through driver
-#if RF230BB&&0
-extern uint8_t debugflowsize,debugflow[];
-  if (debugflowsize) {
-    debugflow[debugflowsize]=0;
-    PRINTF("%s",debugflow);
-    debugflowsize=0;
-   }
-#endif
+#endif /* PERIODICPRINTS */
 
 #if RF230BB&&0
+extern uint8_t rf230processflag;
     if (rf230processflag) {
       PRINTF("rf230p%d",rf230processflag);
       rf230processflag=0;
@@ -530,6 +841,7 @@ extern uint8_t debugflowsize,debugflow[];
 #endif
 
 #if RF230BB&&0
+extern uint8_t rf230_interrupt_flag;
     if (rf230_interrupt_flag) {
  //   if (rf230_interrupt_flag!=11) {
         PRINTF("**RI%u",rf230_interrupt_flag);
@@ -547,25 +859,3 @@ void log_message(char *m1, char *m2)
 {
   PRINTF("%s%s\n", m1, m2);
 }
-
-#if ROUTES
-static void
-ipaddr_add(const uip_ipaddr_t *addr)
-{
-  uint16_t a;
-  int8_t i, f;
-  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
-    a = (addr->u8[i] << 8) + addr->u8[i + 1];
-    if(a == 0 && f >= 0) {
-      if(f++ == 0) PRINTF("::");
-    } else {
-      if(f > 0) {
-        f = -1;
-      } else if(i > 0) {
-        PRINTF(":");
-      }
-      PRINTF("%x",a);
-    }
-  }
-}
-#endif
