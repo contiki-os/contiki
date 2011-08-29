@@ -139,6 +139,8 @@ servreg_hack_register(servreg_hack_id_t id, const uip_ipaddr_t *addr)
      list. If we cannot allocate a service registration, we reuse one
      from the service registrations made by others. */
 
+  servreg_hack_init();
+
   for(t = list_head(own_services);
       t != NULL;
       t = list_item_next(t)) {
@@ -188,6 +190,8 @@ uip_ipaddr_t *
 servreg_hack_lookup(servreg_hack_id_t id)
 {
   servreg_hack_item_t *t;
+
+  servreg_hack_init();
 
   purge_registrations();
 
