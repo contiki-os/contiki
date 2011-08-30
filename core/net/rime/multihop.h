@@ -104,6 +104,7 @@ void multihop_open(struct multihop_conn *c, uint16_t channel,
 	     const struct multihop_callbacks *u);
 void multihop_close(struct multihop_conn *c);
 int multihop_send(struct multihop_conn *c, const rimeaddr_t *to);
+void multihop_resend(const struct multihop_conn *const c, const rimeaddr_t *const nexthop);
 
 #endif /* __MULTIHOP_H__ */
 /** @} */
