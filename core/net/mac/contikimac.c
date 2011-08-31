@@ -232,6 +232,10 @@ static struct compower_activity current_packet;
 
 #include "net/mac/phase.h"
 
+#ifdef CONTIKIMAC_CONF_MAX_PHASE_NEIGHBORS
+#define MAX_PHASE_NEIGHBORS CONTIKIMAC_CONF_MAX_PHASE_NEIGHBORS
+#endif
+
 #ifndef MAX_PHASE_NEIGHBORS
 #define MAX_PHASE_NEIGHBORS 30
 #endif
