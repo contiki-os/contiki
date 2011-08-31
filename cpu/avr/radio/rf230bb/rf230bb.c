@@ -985,13 +985,13 @@ rf230_transmit(unsigned short payload_len)
     DEBUGFLOW('m');
     RIMESTATS_ADD(contentiondrop);
     PRINTF("rf230_transmit: Transmission never started\n");
-....tx_result = RADIO_TX_COLLISION;
+    tx_result = RADIO_TX_COLLISION;
   } else if (tx_result==5) {        //Expected ACK, none received
     DEBUGFLOW('n');
-....tx_result = RADIO_TX_NOACK;
+    tx_result = RADIO_TX_NOACK;
   } else if (tx_result==7) {        //Invalid (Can't happen since waited for idle above?)
     DEBUGFLOW('o');
-....tx_result = RADIO_TX_ERR;
+    tx_result = RADIO_TX_ERR;
   }
 
   return tx_result;
