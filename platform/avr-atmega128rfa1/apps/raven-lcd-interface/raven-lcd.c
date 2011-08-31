@@ -101,7 +101,11 @@ void rs232_send(uint8_t port, unsigned char c);
 void
 raven_ping6(void)
 {
-#define PING_GOOGLE 0
+#if UIP_CONF_IPV6_RPL||1
+/* No default router, so pick on someone else */
+#define PING_GOOGLE 1
+seqno++;
+#endif
 
     UIP_IP_BUF->vtc = 0x60;
     UIP_IP_BUF->tcflow = 1;
