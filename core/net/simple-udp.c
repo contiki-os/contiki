@@ -44,7 +44,7 @@
 #include "contiki-net.h"
 #include "net/simple-udp.h"
 
-#include <stdlib.h>
+#include <string.h>
 
 
 PROCESS(simple_udp_process, "Simple UDP process");
