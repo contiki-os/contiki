@@ -14,8 +14,8 @@ tools:
 
 shell: example-example-shell.native
 hello-world: example-hello-world.sky example-hello-world.native \
-             example-hello-world.minimal-net example-hello-world.msb430
-             example-hello-world.micaz example-hello-world.raven
+             example-hello-world.minimal-net example-hello-world.msb430 \
+             example-hello-world.micaz example-hello-world.raven \
              example-hello-world.redbee-econotag example-hello-world.z1
 rime-examples: example-rime.sky example-rime.z1 example-rime.esb example-rime.redbee-econotag
 ipso-ipv6-raven: example-ipso-ipv6-raven.raven
