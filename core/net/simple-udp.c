@@ -41,8 +41,11 @@
  *
  */
 
-#include "simple-udp.h"
 #include "contiki-net.h"
+#include "net/simple-udp.h"
+
+#include <stdlib.h>
+
 
 PROCESS(simple_udp_process, "Simple UDP process");
 static uint8_t started = 0;
