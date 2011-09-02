@@ -89,6 +89,11 @@
 /* end of mc1322x specific config. */
 
 /* start of conitki config. */
+
+/* Core rtimer.h defaults to 16 bit timer unless RTIMER_CLOCK_LT is defined */
+typedef unsigned long rtimer_clock_t;
+#define RTIMER_CLOCK_LT(a,b)     ((signed long)((a)-(b)) < 0)
+
 #define RIMEADDR_CONF_SIZE              8
 
 /* EUI64 generation */
