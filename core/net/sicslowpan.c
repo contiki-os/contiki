@@ -165,6 +165,16 @@ void uip_log(char *msg);
 /** \brief Size of the 802.15.4 payload (127byte - 25 for MAC header) */
 #define MAC_MAX_PAYLOAD 102
 
+
+/** \brief Some MAC layers need a minimum payload, which is
+    configurable through the SICSLOWPAN_CONF_MIN_MAC_PAYLOAD
+    option. */
+#ifdef SICSLOWPAN_CONF_COMPRESSION_THRESHOLD
+#define COMPRESSION_THRESHOLD SICSLOWPAN_CONF_COMPRESSION_THRESHOLD
+#else
+#define COMPRESSION_THRESHOLD 0
+#endif
+
 /** \name General variables
  *  @{
  */
@@ -433,7 +443,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
   uint8_t tmp, iphc0, iphc1;
 #if DEBUG
   PRINTF("before compression: ");
-  for (tmp = 0; tmp < UIP_IP_BUF->len[1] + 40; tmp++) {
+  for(tmp = 0; tmp < UIP_IP_BUF->len[1] + 40; tmp++) {
     uint8_t data = ((uint8_t *) (UIP_IP_BUF))[tmp];
     PRINTF("%02x", data);
   }
@@ -1204,7 +1214,7 @@ uncompress_hdr_hc1(uint16_t ip_len)
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1 */
 
 
-#if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_IPV6
+
 /*--------------------------------------------------------------------*/
 /** \name IPv6 dispatch "compression" function
  * @{                                                                 */
@@ -1232,9 +1242,6 @@ compress_hdr_ipv6(rimeaddr_t *rime_destaddr)
   return;
 }
 /** @} */
-#endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_IPV6 */
-
- 
 
 /*--------------------------------------------------------------------*/
 /** \name Input/output functions common to all compression schemes
@@ -1259,7 +1266,6 @@ packet_sent(void *ptr, int status, int transmissions)
 static void
 send_packet(rimeaddr_t *dest)
 {
-
   /* Set the link layer destination address for the packet as a
    * packetbuf attribute. The MAC layer can access the destination
    * address with the function packetbuf_addr(PACKETBUF_ADDR_RECEIVER).
@@ -1270,7 +1276,7 @@ send_packet(rimeaddr_t *dest)
 #if SICSLOWPAN_CONF_ACK_ALL
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
 #endif
-  
+
   /* Provide a callback function to receive the result of
      a packet transmission. */
   NETSTACK_MAC.send(&packet_sent, NULL);
@@ -1279,7 +1285,7 @@ send_packet(rimeaddr_t *dest)
      watchdog know that we are still alive. */
   watchdog_periodic();
 }
-
+/*--------------------------------------------------------------------*/
 /** \brief Take an IP packet and format it to be sent on an 802.15.4
  *  network using 6lowpan.
  *  \param localdest The MAC address of the destination
@@ -1294,7 +1300,6 @@ output(uip_lladdr_t *localdest)
 {
   /* The MAC address of the destination of the packet */
   rimeaddr_t dest;
-  
 
   /* init */
   uncomp_hdr_len = 0;
@@ -1334,19 +1339,23 @@ output(uip_lladdr_t *localdest)
   }
   
   PRINTFO("sicslowpan output: sending packet len %d\n", uip_len);
-  
-  /* Try to compress the headers */
+
+  if(uip_len >= COMPRESSION_THRESHOLD) {
+    /* Try to compress the headers */
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1
-  compress_hdr_hc1(&dest);
+    compress_hdr_hc1(&dest);
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1 */
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_IPV6
-  compress_hdr_ipv6(&dest);
+    compress_hdr_ipv6(&dest);
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_IPV6 */
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
-  compress_hdr_hc06(&dest);
+    compress_hdr_hc06(&dest);
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06 */
+  } else {
+    compress_hdr_ipv6(&dest);
+  }
   PRINTFO("sicslowpan output: header of len %d\n", rime_hdr_len);
-  
+
   if(uip_len - uncomp_hdr_len > MAC_MAX_PAYLOAD - rime_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
     struct queuebuf *q;
@@ -1357,7 +1366,6 @@ output(uip_lladdr_t *localdest)
      * IPv6/HC1/HC06/HC_UDP dispatchs/headers.
      * The following fragments contain only the fragn dispatch.
      */
-
 
     PRINTFO("Fragmentation sending packet len %d\n", uip_len);
     
