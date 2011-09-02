@@ -40,7 +40,7 @@ volatile char u2_tx_buf[64];
 volatile uint32_t u2_head, u2_tail;
 
 void uart2_isr(void) {
- 	while( *UART1_UTXCON != 0 ) {
+	while( *UART2_UTXCON != 0 ) {
 		if (u2_head == u2_tail) {
 			disable_irq(UART2);
 			return;
@@ -68,7 +68,7 @@ void uart2_putc(char c) {
 		if (u2_head == u2_tail) { /* drop chars when no room */
 			if (u2_head) { u2_head -=1; } else { u2_head = sizeof(u2_tx_buf); }
 		}
-		enable_irq(UART1);
+		enable_irq(UART2);
 	}
 }
 
