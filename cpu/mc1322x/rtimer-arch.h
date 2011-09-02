@@ -53,7 +53,7 @@
 #if USE_32KHZ_XTAL
 #define RTIMER_ARCH_SECOND 32768
 #else
-#define RTIMER_ARCH_SECOND 2000 /* bogus value --- you should set xmac_config after calibration */
+#define RTIMER_ARCH_SECOND 18778 /* close --- should get calibrated */
 #endif
 
 #define rtimer_arch_now() (*CRM_RTC_COUNT)
