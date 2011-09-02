@@ -808,7 +808,7 @@ static u8_t
 ext_hdr_options_process(void)
 {
  /*
-  * Length field in the extension header: length of th eheader in units of
+  * Length field in the extension header: length of the header in units of
   * 8 bytes, excluding the first 8 bytes
   * length field in an option : the length of data in the option
   */
