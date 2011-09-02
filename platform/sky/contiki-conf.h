@@ -4,7 +4,6 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-
 #ifdef PROJECT_CONF_H
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
@@ -43,6 +42,14 @@
 #if WITH_UIP6
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
+
+/* Specify a minimum packet size for 6lowpan compression to be
+   enabled. This is needed for ContikiMAC, which needs packets to be
+   larger than a specified size, if no ContikiMAC header should be
+   used. */
+#define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 60
+#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
+
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
 
