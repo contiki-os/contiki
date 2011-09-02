@@ -33,7 +33,7 @@
 
 /**
  * \file
- *         The Contiki power-saving MAC protocol (ContikiMAC)
+ *         Implementation of the ContikiMAC power-saving radio duty cycling protocol
  * \author
  *         Adam Dunkels <adam@sics.se>
  *         Niclas Finne <nfi@sics.se>
@@ -51,6 +51,7 @@
 #include "sys/pt.h"
 #include "sys/rtimer.h"
 
+
 /*#include "cooja-debug.h"*/
 #include "contiki-conf.h"
 
@@ -66,7 +67,9 @@
 #ifndef WITH_STREAMING
 #define WITH_STREAMING               0
 #endif
-#ifndef WITH_CONTIKIMAC_HEADER
+#ifdef CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
+#define WITH_CONTIKIMAC_HEADER       CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
+#else
 #define WITH_CONTIKIMAC_HEADER       1
 #endif
 #ifndef WITH_FAST_SLEEP
@@ -382,7 +385,7 @@ powercycle(struct rtimer *t, void *ptr)
         t0 = RTIMER_NOW();
         if(we_are_sending == 0) {
           powercycle_turn_radio_on();
-          //          schedule_powercycle_fixed(t, t0 + CCA_CHECK_TIME);
+          /*          schedule_powercycle_fixed(t, t0 + CCA_CHECK_TIME);*/
 #if 0
           while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_CHECK_TIME));
 #endif /* 0 */
@@ -398,7 +401,7 @@ powercycle(struct rtimer *t, void *ptr)
           }
           powercycle_turn_radio_off();
         }
-        //        schedule_powercycle_fixed(t, t0 + CCA_CHECK_TIME + CCA_SLEEP_TIME);
+        /*        schedule_powercycle_fixed(t, t0 + CCA_CHECK_TIME + CCA_SLEEP_TIME);*/
         schedule_powercycle_fixed(t, RTIMER_NOW() + CCA_SLEEP_TIME);
         /*        COOJA_DEBUG_STR("yield\n");*/
         PT_YIELD(&pt);
@@ -675,12 +678,10 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
      packet length. */
   transmit_len = packetbuf_totlen();
   if(transmit_len < SHORTEST_PACKET_SIZE) {
-#if 0
     /* Pad with zeroes */
     uint8_t *ptr;
     ptr = packetbuf_dataptr();
     memset(ptr + packetbuf_datalen(), 0, SHORTEST_PACKET_SIZE - packetbuf_totlen());
-#endif
 
     PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
     transmit_len = SHORTEST_PACKET_SIZE;
@@ -888,7 +889,6 @@ qsend_packet(mac_callback_t sent, void *ptr)
 {
   int ret = send_packet(sent, ptr);
   if(ret != MAC_TX_DEFERRED) {
-    //    printf("contikimac qsend_packet %p\n", ptr);
     mac_call_sent_callback(sent, ptr, ret, 1);
   }
 }
