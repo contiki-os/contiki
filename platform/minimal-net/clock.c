@@ -39,6 +39,7 @@
  */
 
 #include "sys/clock.h"
+#include <stdlib.h>
 #include <sys/time.h>
 
 static long startsecs=0,startmsecs=0;

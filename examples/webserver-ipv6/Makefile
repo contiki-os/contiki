@@ -25,8 +25,12 @@ endif
 #copy output to e.g. webserver-nano.sky, raven-webserver.avr-raven
 $(WITH_WEBSERVER) : $(CONTIKI_PROJECT)
 	cp $(CONTIKI_PROJECT).$(TARGET) $(WITH_WEBSERVER).$(TARGET)
+	@if (test -n "$(ELF_SIZE)");then $(ELF_SIZE) $(WITH_WEBSERVER).$(TARGET);fi
 else
 APPS=webserver
+
+all : $(CONTIKI_PROJECT)
+	@if (test -n "$(ELF_SIZE)");then $(ELF_SIZE) $(CONTIKI_PROJECT).$(TARGET);fi	
 endif
 
 UIP_CONF_IPV6=1

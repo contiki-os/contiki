@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2010, Mariano Alvira <mar@devl.org> and other contributors
- * to the MC1322x project (http://mc1322x.devl.org) and Contiki.
- *
+ * Copyright (c) 2005, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +26,20 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki OS.
+ * This file is part of the Contiki operating system.
  *
+ * Author: Adam Dunkels <adam@sics.se>
  *
  */
 
-/**
- * \file
- *         Header file for the mc1322x-specific rtimer code
- * \author
- *         Mariano Alvira <mar@devl.org>
- */
+#ifndef NODE_ID_H
+#define NODE_ID_H
 
-#ifndef __RTIMER_ARCH_H__
-#define __RTIMER_ARCH_H__
+#include "contiki-conf.h"
 
-/* contiki */
-#include "sys/rtimer.h"
+void node_id_restore(void);
+void node_id_burn(uint16_t node_id);
 
-/* mc1322x */
-#include "crm.h"
-#include "utils.h"
+extern uint16_t node_id;
 
-#if USE_32KHZ_XTAL
-#define RTIMER_ARCH_SECOND 32768
-#else
-#define RTIMER_ARCH_SECOND 18778 /* close --- should get calibrated */
-#endif
-
-#define rtimer_arch_now() (*CRM_RTC_COUNT)
-
-#endif /* __RTIMER_ARCH_H__ */
+#endif /* !NODE_ID_H */

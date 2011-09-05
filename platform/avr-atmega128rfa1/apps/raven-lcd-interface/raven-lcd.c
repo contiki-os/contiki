@@ -101,7 +101,11 @@ void rs232_send(uint8_t port, unsigned char c);
 void
 raven_ping6(void)
 {
-#define PING_GOOGLE 0
+#if UIP_CONF_IPV6_RPL||1
+/* No default router, so pick on someone else */
+#define PING_GOOGLE 1
+seqno++;
+#endif
 
     UIP_IP_BUF->vtc = 0x60;
     UIP_IP_BUF->tcflow = 1;
@@ -291,7 +295,9 @@ raven_gui_loop(process_event_t ev, process_data_t data)
     case ICMP6_ECHO_REQUEST:
         /* We have received a ping request over the air. Tell the 3290 */
  //       send_frame(REPORT_PING_BEEP, 0, 0);
+#if RF230BB_CONF_LEDONPORTE1
           PORTE|=(1<<PE1);ledtimer=1000; //turn on led, set counter for turnoff
+#endif
         break;
     case ICMP6_ECHO_REPLY:
         /* We have received a ping reply over the air.  Send frame back to 3290 */

@@ -9,6 +9,7 @@
  *	Mike Vidales mavida404@gmail.com
  *	Kevin Brown kbrown3@uccs.edu
  *	Nate Bohlmann nate@elfwerks.com
+ *  David Kopf dak664@embarqmail.com
  *
  *   All rights reserved.
  *
@@ -45,7 +46,6 @@
  *  \file
  *  \brief This file contains radio driver code.
  *
- *   $Id: rf230bb.h,v 1.6 2010/12/15 16:50:44 dak664 Exp $
  */
 
 #ifndef RADIO_H

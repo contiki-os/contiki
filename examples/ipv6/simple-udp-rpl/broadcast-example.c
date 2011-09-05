@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,68 +28,69 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-udp-packet.c,v 1.7 2009/10/18 22:02:01 adamdunkels Exp $
  */
 
-/**
- * \file
- *         Module for sending UDP packets through uIP.
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#include "contiki.h"
+#include "lib/random.h"
+#include "sys/ctimer.h"
+#include "sys/etimer.h"
+#include "net/uip.h"
+#include "net/uip-ds6.h"
 
-#include "contiki-conf.h"
+#include "simple-udp.h"
 
-extern u16_t uip_slen;
 
-#include "net/uip-udp-packet.h"
-
+#include <stdio.h>
 #include <string.h>
 
+#define UDP_PORT 1234
+
+#define SEND_INTERVAL		(20 * CLOCK_SECOND)
+#define SEND_TIME		(random_rand() % (SEND_INTERVAL))
+
+static struct simple_udp_connection broadcast_connection;
+
 /*---------------------------------------------------------------------------*/
-void
-uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
+PROCESS(broadcast_example_process, "UDP broadcast example process");
+AUTOSTART_PROCESSES(&broadcast_example_process);
+/*---------------------------------------------------------------------------*/
+static void
+receiver(struct simple_udp_connection *c,
+         const uip_ipaddr_t *sender_addr,
+         uint16_t sender_port,
+         const uip_ipaddr_t *receiver_addr,
+         uint16_t receiver_port,
+         const uint8_t *data,
+         uint16_t datalen)
 {
-#if UIP_UDP
-  if(data != NULL) {
-    uip_udp_conn = c;
-    uip_slen = len;
-    memcpy(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data,
-           len > UIP_BUFSIZE? UIP_BUFSIZE: len);
-    uip_process(UIP_UDP_SEND_CONN);
-#if UIP_CONF_IPV6
-    tcpip_ipv6_output();
-#else
-    if(uip_len > 0) {
-      tcpip_output();
-    }
-#endif
-  }
-  uip_slen = 0;
-#endif /* UIP_UDP */
+  printf("Data received on port %d from port %d with length %d\n",
+         receiver_port, sender_port, datalen);
 }
 /*---------------------------------------------------------------------------*/
-void
-uip_udp_packet_sendto(struct uip_udp_conn *c, const void *data, int len,
-		      const uip_ipaddr_t *toaddr, uint16_t toport)
+PROCESS_THREAD(broadcast_example_process, ev, data)
 {
-  uip_ipaddr_t curaddr;
-  uint16_t curport;
+  static struct etimer periodic_timer;
+  static struct etimer send_timer;
+  uip_ipaddr_t addr;
 
-  if(toaddr != NULL) {
-    /* Save current IP addr/port. */
-    uip_ipaddr_copy(&curaddr, &c->ripaddr);
-    curport = c->rport;
+  PROCESS_BEGIN();
 
-    /* Load new IP addr/port */
-    uip_ipaddr_copy(&c->ripaddr, toaddr);
-    c->rport = toport;
+  simple_udp_register(&broadcast_connection, UDP_PORT,
+                      NULL, UDP_PORT,
+                      receiver);
 
-    uip_udp_packet_send(c, data, len);
+  etimer_set(&periodic_timer, SEND_INTERVAL);
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+    etimer_reset(&periodic_timer);
+    etimer_set(&send_timer, SEND_TIME);
 
-    /* Restore old IP addr/port */
-    uip_ipaddr_copy(&c->ripaddr, &curaddr);
-    c->rport = curport;
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&send_timer));
+    printf("Sending broadcast\n");
+    uip_create_linklocal_allnodes_mcast(&addr);
+    simple_udp_sendto(&broadcast_connection, "Test", 4, &addr);
   }
+
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

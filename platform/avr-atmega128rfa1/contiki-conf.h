@@ -78,8 +78,16 @@ unsigned long clock_seconds(void);
 /* This has not been tested yet */
 #define AVR_CONF_USE32KCRYSTAL 0
 
-/* COM port to be used for SLIP connection. Not tested on Raven */
+/* Michael Hartman's protobyte board has LED on PORTE1, can be used for pings and radio on indication */
+/* However it requires disabling UART0. */
+#define RF230BB_CONF_LEDONPORTE1  1
+
+/* COM port to be used for SLIP connection. This is usually UART0, but see above */
+#if RF230BB_CONF_LEDONPORTE1
+#define SLIP_PORT RS232_PORT_1
+#else
 #define SLIP_PORT RS232_PORT_0
+#endif
 
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
 /* Default is 4096. Currently used only when elfloader is present. Not tested on Raven */
@@ -94,8 +102,11 @@ unsigned long clock_seconds(void);
 /* More extensive stats */
 #define ENERGEST_CONF_ON          1
 
+/* Possible watchdog timeouts depend on mcu. Default is WDTO_2S. -1 Disables the watchdog. */
+//#define WATCHDOG_CONF_TIMEOUT -1
+
 /* Debugflow macro, useful for tracing path through mac and radio interrupts */
-#define DEBUGFLOWSIZE 128
+//#define DEBUGFLOWSIZE 128
 
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
@@ -268,6 +279,8 @@ unsigned long clock_seconds(void);
 
 #undef UIP_CONF_UDP_CONNS
 #define UIP_CONF_UDP_CONNS       12
+/* For slow slip connections, to prevent buffer overruns */
+//#define UIP_CONF_RECEIVE_WINDOW 300
 #undef UIP_CONF_FWCACHE_SIZE
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1

@@ -99,10 +99,21 @@ unsigned long clock_seconds(void);
 //#define RADIO_CONF_CALIBRATE_INTERVAL 256
 
 /* RADIOSTATS is used in rf230bb, clock.c and the webserver cgi to report radio usage */
-#define RADIOSTATS 1
+#define RADIOSTATS                1
+
+/* More extensive stats */
+#define ENERGEST_CONF_ON          0
+
+/* Use settings manager to save configuration in EEPROM */
+/* Adds ~1700 bytes to progmem */
+#define CONTIKI_CONF_SETTINGS_MANAGER 1
 
 /* Possible watchdog timeouts depend on mcu. Default is WDTO_2S. -1 Disables the watchdog. */
+/* AVR Studio simulator tends to reboot due to clocking the WD 8 times too fast */
 //#define WATCHDOG_CONF_TIMEOUT -1
+
+/* Debugflow macro, useful for tracing path through mac and radio interrupts */
+//#define DEBUGFLOWSIZE 128
 
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB

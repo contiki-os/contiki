@@ -27,3 +27,8 @@ clean:
 #	rm ../../platform/avr-raven/apps/raven-webserver/httpd-fsdata.c
 	rm symbols.c symbols.h webserver6.elf $(OUTFILE).elf  $(OUTFILE).hex
 	rm -rf obj_avr-raven
+
+connect:
+#Connect to serial debug port for timestamp log (requires PERL).
+#Change the baud rate and device to agree with your serial connection.
+	../../tools/serial-log.pl -b 57600 -t /dev/com1 -l

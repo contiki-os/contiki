@@ -88,6 +88,7 @@ import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.analyzers.ICMPv6Analyzer;
 import se.sics.cooja.plugins.analyzers.IEEE802154Analyzer;
 import se.sics.cooja.plugins.analyzers.IPHCPacketAnalyzer;
+import se.sics.cooja.plugins.analyzers.IPv6PacketAnalyzer;
 import se.sics.cooja.plugins.analyzers.PacketAnalyzer;
 import se.sics.cooja.plugins.analyzers.RadioLoggerAnalyzerSuite;
 import se.sics.cooja.util.StringUtils;
@@ -142,11 +143,13 @@ public class RadioLogger extends VisPlugin {
     ArrayList<PacketAnalyzer> lowpanAnalyzers = new ArrayList<PacketAnalyzer>();
     lowpanAnalyzers.add(new IEEE802154Analyzer(false));
     lowpanAnalyzers.add(new IPHCPacketAnalyzer());
+    lowpanAnalyzers.add(new IPv6PacketAnalyzer());
     lowpanAnalyzers.add(new ICMPv6Analyzer());
 
     ArrayList<PacketAnalyzer> lowpanAnalyzersPcap = new ArrayList<PacketAnalyzer>();
     lowpanAnalyzersPcap.add(new IEEE802154Analyzer(true));
     lowpanAnalyzersPcap.add(new IPHCPacketAnalyzer());
+    lowpanAnalyzersPcap.add(new IPv6PacketAnalyzer());
     lowpanAnalyzersPcap.add(new ICMPv6Analyzer());
     model = new AbstractTableModel() {
 

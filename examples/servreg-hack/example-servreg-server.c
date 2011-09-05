@@ -48,25 +48,17 @@
 PROCESS(example_servreg_server_process, "Example servreg server");
 AUTOSTART_PROCESSES(&example_servreg_server_process);
 /*---------------------------------------------------------------------------*/
-static void
-set_global_address(void)
+PROCESS_THREAD(example_servreg_server_process, ev, data)
 {
   uip_ipaddr_t ipaddr;
+  PROCESS_BEGIN();
 
+  /* Set a global address. */
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(example_servreg_server_process, ev, data)
-{
-  PROCESS_BEGIN();
 
-  set_global_address();
-
-  servreg_hack_init();
-
-  servreg_hack_register(188);
+  servreg_hack_register(188, &ipaddr);
 
   PROCESS_END();
 }
