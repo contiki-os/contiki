@@ -149,7 +149,7 @@ multihop_send(struct multihop_conn *c, const rimeaddr_t *to)
 }
 /*---------------------------------------------------------------------------*/
 void
-multihop_resend(const struct multihop_conn *const c, const rimeaddr_t *const nexthop)
+multihop_resend(struct multihop_conn *c, const rimeaddr_t *nexthop)
 {
   unicast_send(&c->c, nexthop);
 }
