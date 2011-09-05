@@ -4,10 +4,6 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-#ifdef PROJECT_CONF_H
-#include "project-conf.h"
-#endif /* PROJECT_CONF_H */
-
 #ifdef PLATFORM_CONF_H
 #include PLATFORM_CONF_H
 #else
@@ -209,6 +205,12 @@
 #define UIP_CONF_TCP_SPLIT       0
 
 
+
+/* include the project config */
+/* PROJECT_CONF_H might be defined in the project Makefile */
+#ifdef PROJECT_CONF_H
+#include PROJECT_CONF_H
+#endif /* PROJECT_CONF_H */
 
 
 #endif /* CONTIKI_CONF_H */

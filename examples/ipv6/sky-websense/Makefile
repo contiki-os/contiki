@@ -8,7 +8,7 @@ CFLAGS+= -DUIP_CONF_IPV6_RPL
 
 APPS += webserver webbrowser
 
-CFLAGS += -DPROJECT_CONF_H=1
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 CONTIKI_SOURCEFILES += wget.c
 PROJECTDIRS += ../rpl-border-router
 PROJECT_SOURCEFILES += httpd-simple.c
