@@ -50,7 +50,7 @@
    enabled. This is needed for ContikiMAC, which needs packets to be
    larger than a specified size, if no ContikiMAC header should be
    used. */
-#define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 60
+#define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 63
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
 
 #define CC2420_CONF_AUTOACK              1
