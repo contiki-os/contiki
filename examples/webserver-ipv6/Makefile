@@ -10,6 +10,7 @@ ifeq ($(TARGET),)
   -include Makefile.target
 endif
 ifeq ($(TARGET),sky)
+SMALL=1
 WITH_WEBSERVER=webserver-nano
 else ifeq ($(TARGET),avr-raven)
 WITH_WEBSERVER=raven-webserver
