@@ -5,7 +5,7 @@
 #include "contiki-net.h"
 #include "rest.h"
 
-#if defined (PLATFROM_HAS_LIGHT)
+#if defined (PLATFORM_HAS_LIGHT)
 #include "dev/light-sensor.h"
 #endif
 #if defined (PLATFORM_HAS_BATT)
