@@ -33,7 +33,7 @@
 #define __PROJECT_RPL_WEB_CONF_H__
 
 #undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM          6
+#define QUEUEBUF_CONF_NUM          5
 
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE    140
@@ -43,5 +43,9 @@
 
 #undef WEBSERVER_CONF_CFS_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 2
+
+/* Reserve space for a file name (default is to not use file name) */
+#undef WEBSERVER_CONF_CFS_PATHLEN
+#define WEBSERVER_CONF_CFS_PATHLEN 80
 
 #endif /* __PROJECT_RPL_WEB_CONF_H__ */

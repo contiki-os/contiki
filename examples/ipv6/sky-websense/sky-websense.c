@@ -40,15 +40,27 @@
 
 #include "contiki.h"
 #include "httpd-simple.h"
-#include "webserver-nogui.h"
 #include "dev/sht11-sensor.h"
 #include "dev/light-sensor.h"
 #include "dev/leds.h"
 #include <stdio.h>
 
 PROCESS(web_sense_process, "Sense Web Demo");
+PROCESS(webserver_nogui_process, "Web server");
+PROCESS_THREAD(webserver_nogui_process, ev, data)
+{
+  PROCESS_BEGIN();
 
-AUTOSTART_PROCESSES(&web_sense_process);
+  httpd_init();
+
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
+    httpd_appcall(data);
+  }
+
+  PROCESS_END();
+}
+AUTOSTART_PROCESSES(&web_sense_process,&webserver_nogui_process);
 
 #define HISTORY 16
 static int temperature[HISTORY];
@@ -148,7 +160,6 @@ PROCESS_THREAD(web_sense_process, ev, data)
   PROCESS_BEGIN();
 
   sensors_pos = 0;
-  process_start(&webserver_nogui_process, NULL);
 
   etimer_set(&timer, CLOCK_SECOND * 2);
   SENSORS_ACTIVATE(light_sensor);
