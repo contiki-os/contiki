@@ -61,8 +61,9 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
 
     private static final int IPHC_DISPATCH = 0x60;
 
+    /* packet must be on network level && have a IPHC dispatch */
     public boolean matchPacket(Packet packet) {
-        return (packet.get(0) & 0xe0) == IPHC_DISPATCH;
+        return packet.level == NETWORK_LEVEL && (packet.get(0) & 0xe0) == IPHC_DISPATCH;
     }
 
     public int analyzePacket(Packet packet, StringBuffer brief,
@@ -83,6 +84,8 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         int sci = 0;
         int dci = 0;
 
+        String error = null;
+        
         brief.append("IPHC");
 
         /* need to decompress while analyzing - add that later... */
@@ -106,12 +109,14 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         int len = 0;
         int proto = 0;
         int ttl = 0;
-        byte[] srcAddress = null;
-        byte[] destAddress = null;
+        byte[] srcAddress = new byte[16];
+        byte[] destAddress = new byte[16];
         
         int srcPort = 0;
         int destPort = 0;
 
+        
+        try {
         /* Traffic class and flow label */
         if((packet.get(0) & SICSLOWPAN_IPHC_FL_C) == 0) {
             /* Flow label are carried inline */
@@ -180,7 +185,6 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                 break;
             case SICSLOWPAN_IPHC_SAM_01: /* 64 bits */
                 /* copy prefix from context */
-                srcAddress = new byte[16];
                 System.arraycopy(context, 0, srcAddress, 0, 8);
                 /* copy IID from packet */
                 packet.copy(hc06_ptr, srcAddress, 8, 8);
@@ -188,7 +192,6 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                 break;
             case SICSLOWPAN_IPHC_SAM_10: /* 16 bits */
                 /* unicast address */
-                srcAddress = new byte[16];
                 System.arraycopy(context, 0, srcAddress, 0, 8);
                 /* copy 6 NULL bytes then 2 last bytes of IID */
                 packet.copy(hc06_ptr, srcAddress, 14, 2);
@@ -196,7 +199,6 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                 break;
             case SICSLOWPAN_IPHC_SAM_11: /* 0-bits */
                 /* copy prefix from context */
-                srcAddress = new byte[16];
                 System.arraycopy(context, 0, srcAddress, 0, 8);
                 /* infer IID from L2 address */
                 System.arraycopy(packet.llsender, 0, srcAddress, 
@@ -209,12 +211,10 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
             switch(packet.get(1) & SICSLOWPAN_IPHC_SAM_11) {
             case SICSLOWPAN_IPHC_SAM_00: /* 128 bits */
                 /* copy whole address from packet */
-                srcAddress = new byte[16];
                 packet.copy(hc06_ptr, srcAddress, 0, 16);
                 hc06_ptr += 16;
                 break;
             case SICSLOWPAN_IPHC_SAM_01: /* 64 bits */
-                srcAddress = new byte[16];
                 srcAddress[0] = (byte) 0xfe;
                 srcAddress[1] = (byte) 0x80;
                 /* copy IID from packet */
@@ -222,7 +222,6 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                 hc06_ptr += 8;
                 break;
             case SICSLOWPAN_IPHC_SAM_10: /* 16 bits */
-                srcAddress = new byte[16];
                 srcAddress[0] = (byte) 0xfe;
                 srcAddress[1] = (byte) 0x80;
                 packet.copy(hc06_ptr, srcAddress, 14, 2);
@@ -230,7 +229,6 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                 break;
             case SICSLOWPAN_IPHC_SAM_11: /* 0 bits */
                 /* setup link-local address */
-                srcAddress = new byte[16];
                 srcAddress[0] = (byte) 0xfe;
                 srcAddress[1] = (byte) 0x80;
                 /* infer IID from L2 address */
@@ -252,26 +250,22 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                 switch (packet.get(1) & SICSLOWPAN_IPHC_DAM_11) {
                 case SICSLOWPAN_IPHC_DAM_00: /* 128 bits */
                     /* copy whole address from packet */
-                    destAddress = new byte[16];
                     packet.copy(hc06_ptr, destAddress, 0, 16);
                     hc06_ptr += 16;
                     break;
                 case SICSLOWPAN_IPHC_DAM_01: /* 48 bits FFXX::00XX:XXXX:XXXX */
-                    destAddress = new byte[16];
                     destAddress[0] = (byte) 0xff;
                     destAddress[1] = packet.get(hc06_ptr);
                     packet.copy(hc06_ptr + 1, destAddress, 11, 5);
                     hc06_ptr += 6;
                     break;
                 case SICSLOWPAN_IPHC_DAM_10: /* 32 bits FFXX::00XX:XXXX */
-                    destAddress = new byte[16];
                     destAddress[0] = (byte) 0xff;
                     destAddress[1] = packet.get(hc06_ptr);
                     packet.copy(hc06_ptr + 1, destAddress, 13, 3);
                     hc06_ptr += 4;
                     break;
                 case SICSLOWPAN_IPHC_DAM_11: /* 8 bits FF02::00XX */
-                    destAddress = new byte[16];
                     destAddress[0] = (byte) 0xff;
                     destAddress[1] = (byte) 0x02;
                     destAddress[15] = packet.get(hc06_ptr);
@@ -287,7 +281,6 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
 
                 switch (packet.get(1) & SICSLOWPAN_IPHC_DAM_11) {
                 case SICSLOWPAN_IPHC_DAM_01: /* 64 bits */
-                    destAddress = new byte[16];
                     System.arraycopy(context, 0, destAddress, 0, 8);
                     /* copy IID from packet */
                     packet.copy(hc06_ptr, destAddress, 8, 8);
@@ -295,7 +288,6 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                     break;
                 case SICSLOWPAN_IPHC_DAM_10: /* 16 bits */
                     /* unicast address */
-                    destAddress = new byte[16];
                     System.arraycopy(context, 0, destAddress, 0, 8);
                     /* copy IID from packet */
                     packet.copy(hc06_ptr, destAddress, 14, 2);
@@ -303,7 +295,6 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                     break;
                 case SICSLOWPAN_IPHC_DAM_11: /* 0 bits */
                     /* unicast address */
-                    destAddress = new byte[16];
                     System.arraycopy(context, 0, destAddress, 0, 8);
                     /* infer IID from L2 address */
                     System.arraycopy(packet.llreceiver, 0, destAddress, 
@@ -314,26 +305,22 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
                 /* not context based => link local M = 0, DAC = 0 - same as SAC */
                 switch (packet.get(1) & SICSLOWPAN_IPHC_DAM_11) {
                 case SICSLOWPAN_IPHC_DAM_00: /* 128 bits */
-                    destAddress = new byte[16];
                     packet.copy(hc06_ptr, destAddress, 0, 16);
                     hc06_ptr += 16;
                     break;
                 case SICSLOWPAN_IPHC_DAM_01: /* 64 bits */
-                    destAddress = new byte[16];
                     destAddress[0] = (byte) 0xfe;
                     destAddress[1] = (byte) 0x80;
                     packet.copy(hc06_ptr, destAddress, 8, 8);
                     hc06_ptr += 8;
                     break;
                 case SICSLOWPAN_IPHC_DAM_10: /* 16 bits */
-                    destAddress = new byte[16];
                     destAddress[0] = (byte) 0xfe;
                     destAddress[1] = (byte) 0x80;
                     packet.copy(hc06_ptr, destAddress, 14, 2);
                     hc06_ptr += 2;
                     break;
                 case SICSLOWPAN_IPHC_DAM_11: /* 0 bits */
-                    destAddress = new byte[16];
                     destAddress[0] = (byte) 0xfe;
                     destAddress[1] = (byte) 0x80;
                     System.arraycopy(packet.llreceiver, 0, destAddress, 
@@ -376,7 +363,6 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
             }
         }
 
-        packet.pos += hc06_ptr;
 
 //        /* IP length field. */
 //        if(ip_len == 0) {
@@ -396,6 +382,12 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
 
         /*--------------------------------------------- */        
 
+        } catch (Exception e) {
+            // some kind of unexpected error...
+            error = " error during IPHC parsing: " + e.getMessage();
+        }
+        packet.pos += hc06_ptr;
+        
         String protoStr = "" + proto;
         if (proto == PROTO_ICMP) {
             protoStr = "ICMPv6";
@@ -408,10 +400,17 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         printAddress(verbose, srcAddress);
         verbose.append("  to ");
         printAddress(verbose, destAddress);
+        if (error != null) verbose.append(" " + error);
         
         packet.lastDispatch = (byte) (proto & 0xff);
-        packet.level = NETWORK_LEVEL;
-        return ANALYSIS_OK_CONTINUE;
+        if (proto == PROTO_UDP || proto == PROTO_ICMP ||
+            proto == PROTO_TCP) {
+            packet.level = APPLICATION_LEVEL;
+            return ANALYSIS_OK_CONTINUE;
+        } else {
+            packet.level = NETWORK_LEVEL;
+            return ANALYSIS_OK_CONTINUE;
+        }
     }
 
     public static void printAddress(StringBuffer out, byte[] address) {

@@ -95,6 +95,6 @@ public class ICMPv6Analyzer extends PacketAnalyzer {
 
     @Override
     public boolean matchPacket(Packet packet) {
-        return packet.level == NETWORK_LEVEL && packet.lastDispatch == ICMPv6_DISPATCH;
+        return packet.level == APPLICATION_LEVEL && packet.lastDispatch == ICMPv6_DISPATCH;
     }
 }
