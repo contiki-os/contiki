@@ -144,7 +144,7 @@ should_send_dao(rpl_dag_t *dag, rpl_dio_t *dio, rpl_parent_t *p)
 {
   /* if MOP is set to no downward routes no DAO should be sent */
   if(dag->mop == RPL_MOP_NO_DOWNWARD_ROUTES) return 0;
-  return dio->dtsn > p->dtsn && p == dag->preferred_parent;
+  return dio->dtsn != p->dtsn && p == dag->preferred_parent;
 }
 /************************************************************************/
 static int
