@@ -280,7 +280,7 @@ uint16_t eemem_panid EEMEM = IEEE802154_PANID;
 uint16_t eemem_panid EEMEM = 0xABCD;
 #endif
 #ifdef IEEE802154_PANADDR
-uint16_t eemem_panaddr EEMEM = IEEE802154_PANID;
+uint16_t eemem_panaddr EEMEM = IEEE802154_PANADDR;
 #else
 uint16_t eemem_panaddr EEMEM = 0;
 #endif

@@ -43,8 +43,22 @@
  * Firefox network.http.max-connections-per-server is set to a lower number.
  * The RAM needed for each entry depends on script enabling and buffer sizes; see struct httpd_state below.
  * Typical range is 100 - 200 bytes per connection
+ * cgi's that use PSOCK_GENERATOR_SEND will have truncated output if UIP_CONF_RECEIVE_WINDOW and UIP_CONF_TCP_MSS
+ * are not large enough. The header-menu cgi needs ~340 bytes if all options are enabled, while the file-stats * cgi
+ * can exceed any MSS if there are enough files to display (e.g. tic-tac-toe).
+ * The advertised MSS is easily seen in wireshark.
+ * Some example set a small MSS by default. rpl-border-router for example uses a receive window of 60.
  */
+#ifndef WEBSERVER_CONF_NANO
 #if CONTIKI_TARGET_SKY || CONTIKI_TARGET_STK500
+#define WEBSERVER_CONF_NANO 1
+#else
+#define WEBSERVER_CONF_NANO 3
+#endif
+#endif
+
+#if WEBSERVER_CONF_NANO==1
+/* nano-size for constrained MCUs */
 #define WEBSERVER_CONF_CONNS     2
 #define WEBSERVER_CONF_NAMESIZE 16
 #define WEBSERVER_CONF_BUFSIZE  40
@@ -84,7 +98,12 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 /* Include referrer in log */
 #define WEBSERVER_CONF_REFERER   0
 
-#else /* !sky */
+#elif WEBSERVER_CONF_NANO==2
+/* webserver-mini having more content */
+#error webserver-micro not implemented
+
+#elif WEBSERVER_CONF_NANO==3
+/* webserver-mini having all content */
 #define WEBSERVER_CONF_CONNS     6
 #define WEBSERVER_CONF_NAMESIZE 20
 #define WEBSERVER_CONF_BUFSIZE  40
@@ -123,7 +142,10 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 #define WEBSERVER_CONF_LOG       1
 /* Include referrer in log */
 #define WEBSERVER_CONF_REFERER   1
-#endif
+
+#else
+#error Specified WEBSERVER_CONF_NANO configuration not supported.
+#endif /* WEBSERVER_CONF_NANO */
 
 /* Address printing used by cgi's and logging, but it can be turned off if desired */
 #if WEBSERVER_CONF_LOG || WEBSERVER_CONF_ADDRESSES || WEBSERVER_CONF_NEIGHBORS || WEBSERVER_CONF_ROUTES

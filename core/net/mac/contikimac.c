@@ -33,30 +33,25 @@
 
 /**
  * \file
- *         The Contiki power-saving MAC protocol (ContikiMAC)
+ *         Implementation of the ContikiMAC power-saving radio duty cycling protocol
  * \author
  *         Adam Dunkels <adam@sics.se>
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#include "net/netstack.h"
+#include "contiki-conf.h"
 #include "dev/leds.h"
 #include "dev/radio.h"
 #include "dev/watchdog.h"
 #include "lib/random.h"
 #include "net/mac/contikimac.h"
+#include "net/netstack.h"
 #include "net/rime.h"
 #include "sys/compower.h"
 #include "sys/pt.h"
 #include "sys/rtimer.h"
 
-/*#include "cooja-debug.h"*/
-#include "contiki-conf.h"
-
-#ifdef EXPERIMENT_SETUP
-#include "experiment-setup.h"
-#endif
 
 #include <string.h>
 
@@ -66,7 +61,9 @@
 #ifndef WITH_STREAMING
 #define WITH_STREAMING               0
 #endif
-#ifndef WITH_CONTIKIMAC_HEADER
+#ifdef CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
+#define WITH_CONTIKIMAC_HEADER       CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
+#else
 #define WITH_CONTIKIMAC_HEADER       1
 #endif
 #ifndef WITH_FAST_SLEEP
@@ -78,15 +75,6 @@
 #define WITH_PHASE_OPTIMIZATION 0
 #endif
 
-struct announcement_data {
-  uint16_t id;
-  uint16_t value;
-};
-
-/* The maximum number of announcements in a single announcement
-   message - may need to be increased in the future. */
-#define ANNOUNCEMENT_MAX 10
-
 #if WITH_CONTIKIMAC_HEADER
 #define CONTIKIMAC_ID 0x00
 
@@ -95,20 +83,6 @@ struct hdr {
   uint8_t len;
 };
 #endif /* WITH_CONTIKIMAC_HEADER */
-
-/* The structure of the announcement messages. */
-struct announcement_msg {
-  uint8_t announcement_magic[2];
-  uint16_t num;
-  struct announcement_data data[ANNOUNCEMENT_MAX];
-};
-
-#define ANNOUNCEMENT_MAGIC1 0xAD
-#define ANNOUNCEMENT_MAGIC2 0xAD
-
-/* The length of the header of the announcement message, i.e., the
-   "num" field in the struct. */
-#define ANNOUNCEMENT_MSG_HEADERLEN (sizeof(uint16_t) * 2)
 
 #ifdef CONTIKIMAC_CONF_CYCLE_TIME
 #define CYCLE_TIME (CONTIKIMAC_CONF_CYCLE_TIME)
@@ -178,19 +152,6 @@ struct announcement_msg {
 #define SHORTEST_PACKET_SIZE               43
 
 
-
-/* The cycle time for announcements. */
-#ifdef ANNOUNCEMENT_CONF_PERIOD
-#define ANNOUNCEMENT_PERIOD ANNOUNCEMENT_CONF_PERIOD
-#else /* ANNOUNCEMENT_CONF_PERIOD */
-#define ANNOUNCEMENT_PERIOD 1 * CLOCK_SECOND
-#endif /* ANNOUNCEMENT_CONF_PERIOD */
-
-/* The time before sending an announcement within one announcement
-   cycle. */
-#define ANNOUNCEMENT_TIME (random_rand() % (ANNOUNCEMENT_PERIOD))
-
-
 #define ACK_LEN 3
 
 #include <stdio.h>
@@ -213,13 +174,6 @@ static volatile unsigned char radio_is_on = 0;
 #define PRINTDEBUG(...)
 #endif
 
-#if CONTIKIMAC_CONF_ANNOUNCEMENTS
-/* Timers for keeping track of when to send announcements. */
-static struct ctimer announcement_cycle_ctimer, announcement_ctimer;
-
-static int announcement_radio_txpower;
-#endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
-
 /* Flag that is used to keep track of whether or not we are snooping
    for announcements from neighbors. */
 static volatile uint8_t is_snooping;
@@ -231,6 +185,10 @@ static struct compower_activity current_packet;
 #if WITH_PHASE_OPTIMIZATION
 
 #include "net/mac/phase.h"
+
+#ifdef CONTIKIMAC_CONF_MAX_PHASE_NEIGHBORS
+#define MAX_PHASE_NEIGHBORS CONTIKIMAC_CONF_MAX_PHASE_NEIGHBORS
+#endif
 
 #ifndef MAX_PHASE_NEIGHBORS
 #define MAX_PHASE_NEIGHBORS 30
@@ -281,8 +239,7 @@ static void
 off(void)
 {
   if(contikimac_is_on && radio_is_on != 0 && /*is_streaming == 0 &&*/
-     contikimac_keep_radio_on == 0
-     /* && is_snooping == 0*/) {
+     contikimac_keep_radio_on == 0) {
     radio_is_on = 0;
     NETSTACK_RADIO.off();
   }
@@ -308,6 +265,7 @@ schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
     }
   }
 }
+/*---------------------------------------------------------------------------*/
 static void
 schedule_powercycle_fixed(struct rtimer *t, rtimer_clock_t fixed_time)
 {
@@ -326,6 +284,7 @@ schedule_powercycle_fixed(struct rtimer *t, rtimer_clock_t fixed_time)
     }
   }
 }
+/*---------------------------------------------------------------------------*/
 static void
 powercycle_turn_radio_off(void)
 {
@@ -342,6 +301,7 @@ powercycle_turn_radio_off(void)
 #endif /* CONTIKIMAC_CONF_COMPOWER */
   }
 }
+/*---------------------------------------------------------------------------*/
 static void
 powercycle_turn_radio_on(void)
 {
@@ -349,6 +309,7 @@ powercycle_turn_radio_on(void)
     on();
   }
 }
+/*---------------------------------------------------------------------------*/
 static char
 powercycle(struct rtimer *t, void *ptr)
 {
@@ -378,10 +339,6 @@ powercycle(struct rtimer *t, void *ptr)
         t0 = RTIMER_NOW();
         if(we_are_sending == 0) {
           powercycle_turn_radio_on();
-          //          schedule_powercycle_fixed(t, t0 + CCA_CHECK_TIME);
-#if 0
-          while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_CHECK_TIME));
-#endif /* 0 */
           /* Check if a packet is seen in the air. If so, we keep the
              radio on for a while (LISTEN_TIME_AFTER_PACKET_DETECTED) to
              be able to receive the packet. We also continuously check
@@ -394,12 +351,10 @@ powercycle(struct rtimer *t, void *ptr)
           }
           powercycle_turn_radio_off();
         }
-        //        schedule_powercycle_fixed(t, t0 + CCA_CHECK_TIME + CCA_SLEEP_TIME);
         schedule_powercycle_fixed(t, RTIMER_NOW() + CCA_SLEEP_TIME);
-        /*        COOJA_DEBUG_STR("yield\n");*/
         PT_YIELD(&pt);
       }
-      
+
       if(packet_seen) {
         static rtimer_clock_t start;
         static uint8_t silence_periods, periods;
@@ -458,87 +413,13 @@ powercycle(struct rtimer *t, void *ptr)
             RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME * 8));
 
     if(RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME * 4)) {
-      /*      schedule_powercycle(t, CYCLE_TIME - (RTIMER_NOW() - cycle_start));*/
       schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start);
-      /*      printf("cycle_start 0x%02x now 0x%02x wait 0x%02x\n",
-              cycle_start, RTIMER_NOW(), CYCLE_TIME - (RTIMER_NOW() - cycle_start));*/
       PT_YIELD(&pt);
     }
   }
 
   PT_END(&pt);
 }
-/*---------------------------------------------------------------------------*/
-#if CONTIKIMAC_CONF_ANNOUNCEMENTS
-static int
-parse_announcements(void)
-{
-  /* Parse incoming announcements */
-  struct announcement_msg adata;
-  const rimeaddr_t *from;
-  int i;
-
-  memcpy(&adata, packetbuf_dataptr(),
-         MIN(packetbuf_datalen(), sizeof(adata)));
-  from = packetbuf_addr(PACKETBUF_ADDR_SENDER);
-
-  /*  printf("%d.%d: probe from %d.%d with %d announcements\n",
-     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-     from->u8[0], from->u8[1], adata.num); */
-  /*  for(i = 0; i < packetbuf_datalen(); ++i) {
-     printf("%02x ", ((uint8_t *)packetbuf_dataptr())[i]);
-     }
-     printf("\n"); */
-
-  if(adata.num / sizeof(struct announcement_data) > sizeof(struct announcement_msg)) {
-    /* Sanity check. The number of announcements is too large -
-       corrupt packet has been received. */
-    return 0;
-  }
-
-  for(i = 0; i < adata.num; ++i) {
-    /*    printf("%d.%d: announcement %d: %d\n",
-       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-       adata.data[i].id,
-       adata.data[i].value); */
-
-    announcement_heard(from, adata.data[i].id, adata.data[i].value);
-  }
-  return i;
-}
-/*---------------------------------------------------------------------------*/
-static int
-format_announcement(char *hdr)
-{
-  struct announcement_msg adata;
-  struct announcement *a;
-
-  /* Construct the announcements */
-  /*  adata = (struct announcement_msg *)hdr; */
-
-  adata.announcement_magic[0] = ANNOUNCEMENT_MAGIC1;
-  adata.announcement_magic[1] = ANNOUNCEMENT_MAGIC2;
-  adata.num = 0;
-  for(a = announcement_list();
-      a != NULL && adata.num < ANNOUNCEMENT_MAX;
-      a = a->next) {
-    if(a->has_value) {
-      adata.data[adata.num].id = a->id;
-      adata.data[adata.num].value = a->value;
-      adata.num++;
-    }
-  }
-
-  memcpy(hdr, &adata, sizeof(struct announcement_msg));
-
-  if(adata.num > 0) {
-    return ANNOUNCEMENT_MSG_HEADERLEN +
-      sizeof(struct announcement_data) * adata.num;
-  } else {
-    return 0;
-  }
-}
-#endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
 /*---------------------------------------------------------------------------*/
 static int
 broadcast_rate_drop(void)
@@ -586,7 +467,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     return MAC_TX_ERR_FATAL;
   }
 
-  
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
     is_broadcast = 1;
@@ -671,12 +551,10 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
      packet length. */
   transmit_len = packetbuf_totlen();
   if(transmit_len < SHORTEST_PACKET_SIZE) {
-#if 0
     /* Pad with zeroes */
     uint8_t *ptr;
     ptr = packetbuf_dataptr();
     memset(ptr + packetbuf_datalen(), 0, SHORTEST_PACKET_SIZE - packetbuf_totlen());
-#endif
 
     PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
     transmit_len = SHORTEST_PACKET_SIZE;
@@ -884,7 +762,6 @@ qsend_packet(mac_callback_t sent, void *ptr)
 {
   int ret = send_packet(sent, ptr);
   if(ret != MAC_TX_DEFERRED) {
-    //    printf("contikimac qsend_packet %p\n", ptr);
     mac_call_sent_callback(sent, ptr, ret, 1);
   }
 }
@@ -920,18 +797,6 @@ input_packet(void)
                      &rimeaddr_null))) {
       /* This is a regular packet that is destined to us or to the
          broadcast address. */
-
-#if CONTIKIMAC_CONF_ANNOUNCEMENTS
-      {
-        struct announcement_msg *hdr = packetbuf_dataptr();
-        uint8_t magic[2];
-        memcpy(magic, hdr->announcement_magic, 2);
-        if(magic[0] == ANNOUNCEMENT_MAGIC1 &&
-           magic[1] == ANNOUNCEMENT_MAGIC2) {
-          parse_announcements();
-        }
-      }
-#endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
 
 #if WITH_PHASE_OPTIMIZATION
       /* If the sender has set its pending flag, it has its radio
@@ -989,120 +854,6 @@ input_packet(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-#if CONTIKIMAC_CONF_ANNOUNCEMENTS
-static void
-send_announcement(void *ptr)
-{
-  int announcement_len;
-  int transmit_len;
-#if WITH_CONTIKIMAC_HEADER
-  struct hdr *chdr;
-#endif /* WITH_CONTIKIMAC_HEADER */
-  
-  /* Set up the probe header. */
-  packetbuf_clear();
-  announcement_len = format_announcement(packetbuf_dataptr());
-
-  if(announcement_len > 0) {
-    packetbuf_set_datalen(announcement_len);
-
-    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
-    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
-    packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER,
-                       announcement_radio_txpower);
-#if WITH_CONTIKIMAC_HEADER
-    transmit_len = packetbuf_totlen();
-    if(packetbuf_hdralloc(sizeof(struct hdr)) == 0) {
-      /* Failed to allocate space for contikimac header */
-      PRINTF("contikimac: send announcement failed, too large header\n");
-      return;
-    }
-    chdr = packetbuf_hdrptr();
-    chdr->id = CONTIKIMAC_ID;
-    chdr->len = transmit_len;
-#endif /* WITH_CONTIKIMAC_HEADER */
-
-    if(NETSTACK_FRAMER.create()) {
-      rtimer_clock_t t;
-      int i, collisions;
-      we_are_sending = 1;
-
-      /* Make sure that the packet is longer or equal to the shorest
-         packet length. */
-      transmit_len = packetbuf_totlen();
-      if(transmit_len < SHORTEST_PACKET_SIZE) {
-#if 0
-        /* Pad with zeroes */
-        uint8_t *ptr;
-        ptr = packetbuf_dataptr();
-        memset(ptr + packetbuf_datalen(), 0, SHORTEST_PACKET_SIZE - transmit_len);
-#endif
-
-        PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
-        transmit_len = SHORTEST_PACKET_SIZE;
-      }
-
-      collisions = 0;
-      /* Check for collisions */
-      for(i = 0; i < CCA_COUNT_MAX; ++i) {
-        t = RTIMER_NOW();
-        on();
-        while(RTIMER_CLOCK_LT(RTIMER_NOW(), t + CCA_CHECK_TIME));
-
-        if(NETSTACK_RADIO.channel_clear() == 0) {
-          collisions++;
-          off();
-          break;
-        }
-        off();
-        while(RTIMER_CLOCK_LT(RTIMER_NOW(), t + CCA_SLEEP_TIME + CCA_CHECK_TIME)) { }
-
-      }
-
-      if(collisions == 0) {
-        
-        NETSTACK_RADIO.prepare(packetbuf_hdrptr(), transmit_len);
-        
-        NETSTACK_RADIO.transmit(transmit_len);
-        t = RTIMER_NOW();
-        while(RTIMER_CLOCK_LT(RTIMER_NOW(), t + INTER_PACKET_INTERVAL)) { }
-
-        NETSTACK_RADIO.transmit(transmit_len);
-      }
-      we_are_sending = 0;
-    }
-  }
-}
-/*---------------------------------------------------------------------------*/
-static void
-cycle_announcement(void *ptr)
-{
-  ctimer_set(&announcement_ctimer, ANNOUNCEMENT_TIME,
-             send_announcement, NULL);
-  ctimer_set(&announcement_cycle_ctimer, ANNOUNCEMENT_PERIOD,
-             cycle_announcement, NULL);
-  if(is_snooping > 0) {
-    is_snooping--;
-    /*    printf("is_snooping %d\n", is_snooping); */
-  }
-}
-/*---------------------------------------------------------------------------*/
-static void
-listen_callback(int periods)
-{
-  printf("Snoop\n");
-  is_snooping = periods + 1;
-}
-#endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
-/*---------------------------------------------------------------------------*/
-void
-contikimac_set_announcement_radio_txpower(int txpower)
-{
-#if CONTIKIMAC_CONF_ANNOUNCEMENTS
-  announcement_radio_txpower = txpower;
-#endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
-}
-/*---------------------------------------------------------------------------*/
 static void
 init(void)
 {
@@ -1117,11 +868,6 @@ init(void)
   phase_init(&phase_list);
 #endif /* WITH_PHASE_OPTIMIZATION */
 
-#if CONTIKIMAC_CONF_ANNOUNCEMENTS
-  announcement_register_listen_callback(listen_callback);
-  ctimer_set(&announcement_cycle_ctimer, ANNOUNCEMENT_TIME,
-             cycle_announcement, NULL);
-#endif /* CONTIKIMAC_CONF_ANNOUNCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
 static int

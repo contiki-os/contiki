@@ -502,7 +502,9 @@ on(void)
 #if defined(__AVR_ATmega128RFA1__)
 	rf230_interruptwait=1;
 	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
+#if RF230BB_CONF_LEDONPORTE1
 //	PORTE|=(1<<PE1); //ledon
+#endif
 	hal_set_slptr_low();
 	while (rf230_interruptwait) {}
   }
@@ -550,7 +552,9 @@ off(void)
   /* Sleep Radio */
   hal_set_slptr_high();
   ENERGEST_OFF(ENERGEST_TYPE_LED_RED);
+#if RF230BB_CONF_LEDONPORTE1
 //  PORTE&=~(1<<PE1); //ledoff
+#endif
 // DEBUGFLOW('d');
 #else
  // DEBUGFLOW('e');
@@ -834,7 +838,9 @@ rf230_transmit(unsigned short payload_len)
 	radiowason=0;
 //	DEBUGFLOW('j');
 	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
+#if RF230BB_CONF_LEDONPORTE1
 //	PORTE|=(1<<PE1); //ledon
+#endif
 	rf230_interruptwait=1;
 	hal_set_slptr_low();
 	while (rf230_interruptwait) {}	
@@ -974,16 +980,18 @@ rf230_transmit(unsigned short payload_len)
 
   RELEASE_LOCK();
   if (tx_result==1) {               //success, data pending from adressee
-    tx_result=0;                    //Just show success?
+    tx_result = RADIO_TX_OK;        //Just show success?
   } else if (tx_result==3) {        //CSMA channel access failure
     DEBUGFLOW('m');
     RIMESTATS_ADD(contentiondrop);
     PRINTF("rf230_transmit: Transmission never started\n");
+    tx_result = RADIO_TX_COLLISION;
   } else if (tx_result==5) {        //Expected ACK, none received
     DEBUGFLOW('n');
-//	tx_result=0;
+    tx_result = RADIO_TX_NOACK;
   } else if (tx_result==7) {        //Invalid (Can't happen since waited for idle above?)
     DEBUGFLOW('o');
+    tx_result = RADIO_TX_ERR;
   }
 
   return tx_result;
