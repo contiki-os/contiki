@@ -130,7 +130,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
   s->script = NULL;
   s->script = httpd_simple_get_script(&s->filename[1]);
   if(s->script == NULL) {
-    strcpy(s->filename, "/notfound.html");
+    strncpy(s->filename, "/notfound.html", sizeof(s->filename));
     PT_WAIT_THREAD(&s->outputpt,
                    send_headers(s, http_header_404));
     PT_WAIT_THREAD(&s->outputpt,
