@@ -16,7 +16,7 @@ public class IPv6PacketAnalyzer extends PacketAnalyzer {
     private static final int IPV6_DISPATCH = 0x41;
 
     public boolean matchPacket(Packet packet) {
-        return packet.get(0) == IPV6_DISPATCH;
+        return packet.level == NETWORK_LEVEL && packet.get(0) == IPV6_DISPATCH;
     }
 
     public int analyzePacket(Packet packet, StringBuffer brief,
@@ -63,7 +63,7 @@ public class IPv6PacketAnalyzer extends PacketAnalyzer {
         printAddress(verbose, destAddress);
         
         packet.lastDispatch = (byte) (proto & 0xff);
-        packet.level = NETWORK_LEVEL;
+        packet.level = APPLICATION_LEVEL;
         return ANALYSIS_OK_CONTINUE;
     }
 
