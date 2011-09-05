@@ -1486,7 +1486,7 @@ input(void)
 #if SICSLOWPAN_CONF_FRAG
   /* tag of the fragment */
   uint16_t frag_tag = 0;
-  uint8_t first_fragment = 0;
+  uint8_t first_fragment = 0, last_fragment = 0;
 #endif /*SICSLOWPAN_CONF_FRAG*/
 
   /* init */
@@ -1532,6 +1532,15 @@ input(void)
       PRINTFI("size %d, tag %d, offset %d)\n",
              frag_size, frag_tag, frag_offset);
       rime_hdr_len += SICSLOWPAN_FRAGN_HDR_LEN;
+
+      /* If this is the last fragment, we may shave off any extrenous
+         bytes at the end. We must be liberal in what we accept. */
+      PRINTFI("last_fragment?: processed_ip_len %d rime_payload_len %d frag_size %d\n",
+              processed_ip_len, packetbuf_datalen() - rime_hdr_len, frag_size);
+
+      if(processed_ip_len + packetbuf_datalen() - rime_hdr_len >= frag_size) {
+        last_fragment = 1;
+      }
       break;
     default:
       break;
@@ -1631,7 +1640,15 @@ input(void)
     if(first_fragment != 0) {
       processed_ip_len += uncomp_hdr_len;
     }
-    processed_ip_len += rime_payload_len;
+    /* For the last fragment, we are OK if there is extrenous bytes at
+       the end of the packet. */
+    if(last_fragment != 0) {
+      processed_ip_len = frag_size;
+    } else {
+      processed_ip_len += rime_payload_len;
+    }
+    PRINTF("processed_ip_len %d, rime_payload_len %d\n", processed_ip_len, rime_payload_len);
+
   } else {
 #endif /* SICSLOWPAN_CONF_FRAG */
     sicslowpan_len = rime_payload_len + uncomp_hdr_len;
@@ -1642,6 +1659,8 @@ input(void)
    * If we have a full IP packet in sicslowpan_buf, deliver it to
    * the IP stack
    */
+  PRINTF("sicslowpan_init processed_ip_len %d, sicslowpan_len %d\n",
+         processed_ip_len, sicslowpan_len);
   if(processed_ip_len == 0 || (processed_ip_len == sicslowpan_len)) {
     PRINTFI("sicslowpan input: IP packet ready (length %d)\n",
            sicslowpan_len);
