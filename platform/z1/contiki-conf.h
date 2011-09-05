@@ -190,7 +190,7 @@
 
 
 #ifdef PROJECT_CONF_H
-#include "project-conf.h"
+#include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
 
 
