@@ -94,7 +94,15 @@ data_packet_forward(struct multihop_conn *multihop,
 
   rt = route_lookup(dest);
   if(rt == NULL) {
+    if(c->queued_data != NULL) {
+      queuebuf_free(c->queued_data);
+    }
+
+    PRINTF("data_packet_forward: queueing data, sending rreq\n");
+    c->queued_data = queuebuf_new_from_packetbuf();
+    rimeaddr_copy(&c->queued_data_dest, dest);
     route_discovery_discover(&c->route_discovery_conn, dest, PACKET_TIMEOUT);
+
     return NULL;
   } else {
     route_refresh(rt);
@@ -106,15 +114,21 @@ data_packet_forward(struct multihop_conn *multihop,
 static void
 found_route(struct route_discovery_conn *rdc, const rimeaddr_t *dest)
 {
+  struct route_entry *rt;
   struct mesh_conn *c = (struct mesh_conn *)
     ((char *)rdc - offsetof(struct mesh_conn, route_discovery_conn));
+
+  PRINTF("found_route\n");
 
   if(c->queued_data != NULL &&
      rimeaddr_cmp(dest, &c->queued_data_dest)) {
     queuebuf_to_packetbuf(c->queued_data);
     queuebuf_free(c->queued_data);
     c->queued_data = NULL;
-    if(multihop_send(&c->multihop, dest)) {
+
+    rt = route_lookup(dest);
+    if (rt != NULL) {
+      multihop_resend(&c->multihop, &rt->nexthop);
       c->cb->sent(c);
     } else {
       c->cb->timedout(c);
@@ -175,15 +189,7 @@ mesh_send(struct mesh_conn *c, const rimeaddr_t *to)
   could_send = multihop_send(&c->multihop, to);
 
   if(!could_send) {
-    if(c->queued_data != NULL) {
-      queuebuf_free(c->queued_data);
-    }
-
-    PRINTF("mesh_send: queueing data, sending rreq\n");
-    c->queued_data = queuebuf_new_from_packetbuf();
-    rimeaddr_copy(&c->queued_data_dest, to);
-    route_discovery_discover(&c->route_discovery_conn, to,
-			     PACKET_TIMEOUT);
+    PRINTF("mesh_send: could not send\n");
     return 0;
   }
   c->cb->sent(c);
