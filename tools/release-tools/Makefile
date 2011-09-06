@@ -3,7 +3,7 @@ ifndef TAG
     ${error You must specify the RELEASE variable (e.g. make RELEASE=2.5)}
   endif
   RELEASETAG=$(subst .,-,$(RELEASE))
-  TAG=contiki-$(RELEASETAG)
+  TAG=$(RELEASE)
 else
   RELEASE=$(TAG)
 endif
