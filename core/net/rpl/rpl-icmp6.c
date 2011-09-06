@@ -97,7 +97,7 @@ static uint32_t
 get32(uint8_t *buffer, int pos)
 {
   return (uint32_t)buffer[pos] << 24 | (uint32_t)buffer[pos + 1] << 16 |
-         (uint32_t)buffer[pos + 2] << 8  | buffer[pos + 3];
+         (uint32_t)buffer[pos + 2] << 8 | buffer[pos + 3];
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -106,6 +106,19 @@ set32(uint8_t *buffer, int pos, uint32_t value)
   buffer[pos++] = value >> 24;
   buffer[pos++] = (value >> 16) & 0xff;
   buffer[pos++] = (value >> 8) & 0xff;
+  buffer[pos++] = value & 0xff;
+}
+/*---------------------------------------------------------------------------*/
+static uint16_t
+get16(uint8_t *buffer, int pos)
+{
+  return (uint16_t)buffer[pos] << 8 | buffer[pos + 1];
+}
+/*---------------------------------------------------------------------------*/
+static void
+set16(uint8_t *buffer, int pos, uint16_t value)
+{
+  buffer[pos++] = value >> 8;
   buffer[pos++] = value & 0xff;
 }
 /*---------------------------------------------------------------------------*/
@@ -210,7 +223,7 @@ dio_input(void)
 
   dio.instance_id = buffer[i++];
   dio.version = buffer[i++];
-  dio.rank = (buffer[i] << 8) | buffer[i + 1];
+  dio.rank = get16(buffer, i);
   i += 2;
 
   PRINTF("RPL: Incoming DIO rank %u\n", (unsigned)dio.rank);
@@ -260,8 +273,7 @@ dio_input(void)
       dio.mc.length = buffer[i + 5];
 
       if(dio.mc.type == RPL_DAG_MC_ETX) {
-        dio.mc.obj.etx = buffer[i + 6] << 8;
-        dio.mc.obj.etx |= buffer[i + 7];
+        dio.mc.obj.etx = get16(buffer, i + 6);
 
         PRINTF("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, ETX %u\n",
 	       (unsigned)dio.mc.type,  
@@ -313,12 +325,12 @@ dio_input(void)
       dio.dag_intdoubl = buffer[i + 3];
       dio.dag_intmin = buffer[i + 4];
       dio.dag_redund = buffer[i + 5];
-      dio.dag_max_rankinc = (buffer[i + 6] << 8) | buffer[i + 7];
-      dio.dag_min_hoprankinc = (buffer[i + 8] << 8) | buffer[i + 9];
-      dio.ocp = (buffer[i + 10] << 8) | buffer[i + 11];
+      dio.dag_max_rankinc = get16(buffer, i + 6);
+      dio.dag_min_hoprankinc = get16(buffer, i + 8);
+      dio.ocp = get16(buffer, i + 10);
       /* buffer + 12 is reserved */
       dio.default_lifetime = buffer[i + 13];
-      dio.lifetime_unit = (buffer[i + 14] << 8) | buffer[i + 15];
+      dio.lifetime_unit = get16(buffer, i + 14);
       PRINTF("RPL: DIO Conf:dbl=%d, min=%d red=%d maxinc=%d mininc=%d ocp=%d d_l=%u l_u=%u\n",
              dio.dag_intdoubl, dio.dag_intmin, dio.dag_redund,
              dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp,
@@ -361,17 +373,15 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
   buffer = UIP_ICMP_PAYLOAD;
   buffer[pos++] = dag->instance_id;
   buffer[pos++] = dag->version;
-  buffer[pos++] = dag->rank >> 8;
-  buffer[pos++] = dag->rank & 0xff;
+  set16(buffer, pos, dag->rank);
+  pos += 2;
 
   buffer[pos] = 0;
   if(dag->grounded) {
     buffer[pos] |= RPL_DIO_GROUNDED;
   }
 
-  buffer[pos] = dag->mop << RPL_DIO_MOP_SHIFT;
-  pos++;
-
+  buffer[pos++] = dag->mop << RPL_DIO_MOP_SHIFT;
   buffer[pos++] = ++dag->dtsn_out;
 
   /* reserved 2 bytes */
@@ -393,8 +403,8 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
 
     if(dag->mc.type == RPL_DAG_MC_ETX) {
       buffer[pos++] = 2;
-      buffer[pos++] = dag->mc.obj.etx >> 8;
-      buffer[pos++] = dag->mc.obj.etx & 0xff;
+      set16(buffer, pos, dag->mc.obj.etx);
+      pos += 2;
     } else if(dag->mc.type == RPL_DAG_MC_ENERGY) {
       buffer[pos++] = 2;
       buffer[pos++] = dag->mc.obj.energy.flags;
@@ -406,24 +416,24 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
     }
   }
 
-  /* Always add a sub-option for DAG configuration. */
+  /* Always add a DAG configuration option. */
   buffer[pos++] = RPL_OPTION_DAG_CONF;
   buffer[pos++] = 14;
   buffer[pos++] = 0; /* No Auth, PCS = 0 */
   buffer[pos++] = dag->dio_intdoubl;
   buffer[pos++] = dag->dio_intmin;
   buffer[pos++] = dag->dio_redundancy;
-  buffer[pos++] = dag->max_rankinc >> 8;
-  buffer[pos++] = dag->max_rankinc & 0xff;
-  buffer[pos++] = dag->min_hoprankinc >> 8;
-  buffer[pos++] = dag->min_hoprankinc & 0xff;
+  set16(buffer, pos, dag->max_rankinc);
+  pos += 2;
+  set16(buffer, pos, dag->min_hoprankinc);
+  pos += 2;
   /* OCP is in the DAG_CONF option */
-  buffer[pos++] = dag->of->ocp >> 8;
-  buffer[pos++] = dag->of->ocp & 0xff;
+  set16(buffer, pos, dag->of->ocp);
+  pos += 2;
   buffer[pos++] = 0; /* reserved */
   buffer[pos++] = dag->default_lifetime;
-  buffer[pos++] = dag->lifetime_unit >> 8;
-  buffer[pos++] = dag->lifetime_unit & 0xff;
+  set16(buffer, pos, dag->lifetime_unit);
+  pos += 2;
 
   /* Check if we have a prefix to send also. */
   if(dag->prefix_info.length > 0) {
