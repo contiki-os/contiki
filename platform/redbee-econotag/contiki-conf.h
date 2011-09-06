@@ -125,7 +125,7 @@ typedef unsigned long rtimer_clock_t;
 #define NETSTACK_CONF_RADIO   contiki_maca_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
-#define MAC_CONF_CHANNEL_CHECK_RATE      8
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE      8
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
@@ -139,7 +139,7 @@ typedef unsigned long rtimer_clock_t;
 #define NETSTACK_CONF_RADIO   contiki_maca_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
-#define MAC_CONF_CHANNEL_CHECK_RATE      8
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE      8
 
 #define COLLECT_CONF_ANNOUNCEMENTS       1
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
