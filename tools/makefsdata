@@ -203,7 +203,7 @@ foreach $file (@files) {if ($file eq $includefile) {
 #--------------------Process data files-------------------
 $n=0;$coffeesize=0;$coffeesectors=0;
 foreach $file (@files) {if(-f $file) {
-  if (length($file)>($coffee_name_length-1)) {die "Aborted: File name $file is too long";}
+  if (length($file)>=($coffee_name_length-1)) {die "Aborted: File name $file is too long";}
   if (abs_path("$file") eq abs_path("$outputfile")) {
     print "Skipping output file $outputfile - recursive input NOT allowed\n";
     next;
@@ -224,7 +224,7 @@ foreach $file (@files) {if(-f $file) {
 #   $coffee_sectors=sprintf("%.0f",($coffee_header_length+$file_length+$coffee_sector_size-1)/$coffee_sector_size)-1;
     $coffee_length=$coffee_sectors*$coffee_sector_size;
   } else {
-    $coffee_length=$file_length+length($file)+2;
+    $coffee_length=$file_length+length($file)+1;
   }
   $flen[$n]=$file_length;
   $clen[$n]=$coffee_length;
@@ -275,34 +275,40 @@ foreach $file (@files) {if(-f $file) {
     printf(OUTPUT " %#02.2x,", $temp);
   }
   if ($coffee) {
-    for(; $j < $coffee_name_length; $j++) {printf(OUTPUT " $null,");}
+    for(; $j < $coffee_name_length-1; $j++) {printf(OUTPUT " $null,");}
+    {print(OUTPUT " $null");}
   } else {
-   {printf(OUTPUT " $null,");}
+    {printf(OUTPUT " $null");}
   }
-  print(OUTPUT "\n$tab");
 #------------------File Data---------------------------
   $coffee_length-=$coffee_header_length;
-  $i = 0;        
+  $i = 10;        
   while(read(FILE, $data, 1)) { 
     $temp=unpack("C", $data);   
     if ($complement) {$temp=$temp^0xff;}
-    printf(OUTPUT " 0x%2.2x,", $temp);
-    $i++;$coffee_length--;
     if($i == 10) {
-      print(OUTPUT "\n$tab");
+      printf(OUTPUT ",\n$tab 0x%2.2x", $temp);
       $i = 0;
+    } else {
+      printf(OUTPUT ", 0x%2.2x", $temp)
     }
+    $i++;$coffee_length--;
   }
+
   if ($coffee) {
-    while (--$coffee_length>1) {
-      print (OUTPUT " $null,");
-      if($i++ == 9) {
-        print(OUTPUT "\n$tab");
+    print (OUTPUT ",");
+    while (--$coffee_length) {
+      if($i==9) {
+        print(OUTPUT " $null,\n$tab");
         $i = 0;
+      } else {
+        print (OUTPUT " $null,");
+        $i++;
       }
     }
+    print (OUTPUT " $null");
   }
-  print (OUTPUT " $null};\n");
+  print (OUTPUT "};\n");
   close(FILE);
   push(@fvars, $fvar);
   push(@pfiles, $file);
