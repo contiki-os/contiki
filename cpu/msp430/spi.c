@@ -29,9 +29,14 @@
  * @(#)$Id: spi.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
  */
 
-#include <io.h>
-
 #include "contiki-conf.h"
+
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
+#include <io.h>
+#endif
+
 
 /*
  * On the Tmote sky access to I2C/SPI/UART0 must always be

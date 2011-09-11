@@ -36,7 +36,11 @@
 #include "dev/sky-sensors.h"
 #include "dev/light-sensor.h"
 
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
 #include <io.h>
+#endif
 
 /* Photodiode 1 (P64) on INCH_4 */
 /* Photodiode 2 (P65) on INCH_5 */

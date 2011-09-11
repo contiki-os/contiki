@@ -31,9 +31,14 @@
  * @(#)$Id: msp430.c,v 1.15 2011/01/05 13:36:38 joxe Exp $
  */
 #include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
 #include <io.h>
 #include <signal.h>
 #include <sys/unistd.h>
+#define asmv(arg) __asm__ __volatile__(arg)
+#endif
 #include "dev/watchdog.h"
 #include "net/uip.h"
 
@@ -182,8 +187,10 @@ init_ports(void)
 }
 /*---------------------------------------------------------------------------*/
 /* msp430-ld may align _end incorrectly. Workaround in cpu_init. */
+#if defined(__MSP430__) && defined(__GNUC__)
 extern int _end;		/* Not in sys/unistd.h */
 static char *cur_break = (char *)&_end;
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* add/remove_lpm_req - for requiring a specific LPM mode. currently Contiki */
@@ -215,14 +222,17 @@ msp430_cpu_init(void)
   init_ports();
   msp430_init_dco();
   eint();
+#if defined(__MSP430__) && defined(__GNUC__)
   if((uintptr_t)cur_break & 1) { /* Workaround for msp430-ld bug! */
     cur_break++;
   }
+#endif
+
   msp430_dco_required = 0;
 }
 /*---------------------------------------------------------------------------*/
-#define asmv(arg) __asm__ __volatile__(arg)
 
+#
 #define STACK_EXTRA 32
 
 /*
@@ -231,6 +241,7 @@ msp430_cpu_init(void)
  * be used to check if cur_break and the stack pointer meet during
  * runtime.
  */
+#if defined(__MSP430__) && defined(__GNUC__)
 void *
 sbrk(int incr)
 {
@@ -249,6 +260,7 @@ sbrk(int incr)
   */
   return old_break;
 }
+#endif
 /*---------------------------------------------------------------------------*/
 /*
  * Mask all interrupts that can be masked.
@@ -256,10 +268,15 @@ sbrk(int incr)
 int
 splhigh_(void)
 {
-  /* Clear the GIE (General Interrupt Enable) flag. */
   int sr;
+  /* Clear the GIE (General Interrupt Enable) flag. */
+#ifdef __IAR_SYSTEMS_ICC__
+  sr = __get_SR_register();
+  __bic_SR_register(GIE);
+#else
   asmv("mov r2, %0" : "=r" (sr));
   asmv("bic %0, r2" : : "i" (GIE));
+#endif
   return sr & GIE;		/* Ignore other sr bits. */
 }
 /*---------------------------------------------------------------------------*/
@@ -269,8 +286,12 @@ splhigh_(void)
 void
 splx_(int sr)
 {
+#ifdef __IAR_SYSTEMS_ICC__
+  __bis_SR_register(sr);
+#else
   /* If GIE was set, restore it. */
   asmv("bis %0, r2" : : "r" (sr));
+#endif
 }
 /*---------------------------------------------------------------------------*/
 /* this code will always start the TimerB if not already started */
