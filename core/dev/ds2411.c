@@ -50,9 +50,12 @@
 
 #include <string.h>
 
-#include <io.h>
-
 #include "contiki.h"
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
+#else
+#include <io.h>
+#endif
 
 #include "dev/ds2411.h"
 
