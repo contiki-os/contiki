@@ -83,6 +83,7 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_rime_debug_runicast_init();*/
   /*  shell_rime_sniff_init();*/
   shell_sky_init();
+  shell_power_init();
   shell_powertrace_init();
   /*  shell_base64_init();*/
   shell_text_init();
