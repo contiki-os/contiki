@@ -46,14 +46,10 @@
 #include <stdio.h>
 
 #ifdef __AVR__
-/* AVR clock_time() is only 16 bit, time would wrap in ~500 seconds */
-/* Might as well use program flash while we are dirtying the core */
 #include <avr/pgmspace.h>
 #define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
-#define DISPLAYTIME clock_seconds()
 #else
 #define PRINTA(...) printf(__VA_ARGS__)
-#define DISPLAYTIME (unsigned long)clock_time() / CLOCK_SECOND
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -62,7 +58,7 @@ print_stats(void)
 {
   PRINTA("S %d.%d clock %lu tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 DISPLAYTIME,
+	 clock_seconds(),
 	 rimestats.tx, rimestats.rx,
 	 rimestats.reliabletx, rimestats.reliablerx,
 	 rimestats.rexmit, rimestats.acktx, rimestats.noacktx,
@@ -74,7 +70,7 @@ print_stats(void)
 #if ENERGEST_CONF_ON
   PRINTA("E %d.%d clock %lu cpu %lu lpm %lu irq %lu gled %lu yled %lu rled %lu tx %lu listen %lu sensors %lu serial %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 DISPLAYTIME,
+	 clock_seconds(),
 	 energest_total_time[ENERGEST_TYPE_CPU].current,
 	 energest_total_time[ENERGEST_TYPE_LPM].current,
 	 energest_total_time[ENERGEST_TYPE_IRQ].current,
