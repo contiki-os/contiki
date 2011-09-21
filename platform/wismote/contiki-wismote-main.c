@@ -228,6 +228,7 @@ main(int argc, char **argv)
 
   /* Restore node id if such has been stored in external mem */
   //node_id_restore();
+  node_id = NODE_ID;
 
   /* for setting "hardcoded" IEEE 802.15.4 MAC addresses */
 #ifdef IEEE_802154_MAC_ADDRESS
@@ -279,10 +280,9 @@ main(int argc, char **argv)
   }
 
 #if WITH_UIP6
-  	//memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
-
-	for(i =0;i<RIMEADDR_SIZE;i++)
-		uip_lladdr.addr[i] = rimeaddr_node_addr.u8[i];
+  /* memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr)); */
+  memcpy(&uip_lladdr.addr, rimeaddr_node_addr.u8,
+         UIP_LLADDR_LEN > RIMEADDR_SIZE ? RIMEADDR_SIZE : UIP_LLADDR_LEN);
 
   /* Setup nullmac-like MAC for 802.15.4 */
 /*   sicslowpan_init(sicslowmac_init(&cc2520_driver)); */
@@ -391,6 +391,8 @@ main(int argc, char **argv)
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
   watchdog_start();
+  /* Stop the watchdog */
+  watchdog_stop();
 
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
