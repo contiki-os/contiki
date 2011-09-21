@@ -26,16 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AggregatedTimeChartPanel.java,v 1.1 2010/11/03 14:53:05 adamdunkels Exp $
- *
  * -----------------------------------------------------------------
  *
  * PacketChartPanel
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 6 sep 2010
- * Updated : $Date: 2010/11/03 14:53:05 $
- *           $Revision: 1.1 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -175,7 +171,7 @@ public abstract class AggregatedTimeChartPanel<T> extends JPanel implements Visu
                   series.add(new Minute(new Date((minute - 1) * 60000L)), 0);
                 }
               }
-              series.add(new Minute(new Date(minute * 60000L)), count);
+              series.add(new Minute(new Date(minute * 60000L)), getTotalDataValue(count));
               count = 0;
               lastMinute = minute + 1;
               minute = min;
@@ -196,6 +192,10 @@ public abstract class AggregatedTimeChartPanel<T> extends JPanel implements Visu
   protected abstract T createState(Node node);
 
   protected void clearState(Map<Node,T> map) {
+  }
+
+  protected int getTotalDataValue(int value) {
+    return value;
   }
 
   protected abstract int getSensorDataValue(SensorData sd, T nodeState);
