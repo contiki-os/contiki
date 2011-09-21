@@ -31,9 +31,11 @@
 #include "contiki.h"
 #include "dev/watchdog.h"
 
+#if DCOSYNCH_CONF_ENABLED
 /* dco_required set to 1 will cause the CPU not to go into
    sleep modes where the DCO clock stopped */
 int msp430_dco_required;
+#endif /* DCOSYNCH_CONF_ENABLED */
 
 /*---------------------------------------------------------------------------*/
 #if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
@@ -66,7 +68,17 @@ w_memset(void *out, int value, size_t n)
 void
 msp430_init_dco(void)
 {
-#if CONTIKI_TARGET_WISMOTE
+#if CONTIKI_TARGET_WISMOTE && defined(__IAR_SYSTEMS_ICC__)
+  /* set to 8 MHz 244 * 32768 ? */
+  /* set to 8 MHz 244 * 32768  (or 0x107a)? */
+  __bis_SR_register(SCG0);
+  UCSCTL0 = 0x0000;
+  UCSCTL1 = DCORSEL_4;
+
+  UCSCTL2 = 244 * 2; //0x107a;
+  UCSCTL4 = 0x33; /* instead of 0x44 that is DCO/2 */
+  __bic_SR_register(SCG0);
+#elif CONTIKI_TARGET_WISMOTE
   // Stop watchdog
   WDTCTL = WDTPW + WDTHOLD;
 
@@ -213,17 +225,21 @@ static char *cur_break = (char *)&_end;
 void
 msp430_add_lpm_req(int req)
 {
+#if DCOSYNCH_CONF_ENABLED
   if(req <= MSP430_REQUIRE_LPM1) {
     msp430_dco_required++;
   }
+#endif /* DCOSYNCH_CONF_ENABLED */
 }
 
 void
 msp430_remove_lpm_req(int req)
 {
+#if DCOSYNCH_CONF_ENABLED
   if(req <= MSP430_REQUIRE_LPM1) {
     msp430_dco_required--;
   }
+#endif /* DCOSYNCH_CONF_ENABLED */
 }
 
 void
@@ -240,7 +256,9 @@ msp430_cpu_init(void)
   }
 #endif
 
+#if DCOSYNCH_CONF_ENABLED
   msp430_dco_required = 0;
+#endif /* DCOSYNCH_CONF_ENABLED */
 }
 /*---------------------------------------------------------------------------*/
 
@@ -306,6 +324,21 @@ splhigh_(void)
 /*   asmv("bis %0, r2" : : "r" (sr)); */
 /* #endif */
 /* } */
+/*---------------------------------------------------------------------------*/
+#ifdef __IAR_SYSTEMS_ICC__
+int __low_level_init(void)
+{
+  /* turn off watchdog so that C-init will run */
+  WDTCTL = WDTPW + WDTHOLD;
+  /*
+   * Return value:
+   *
+   *  1 - Perform data segment initialization.
+   *  0 - Skip data segment initialization.
+   */
+  return 1;
+}
+#endif
 /*---------------------------------------------------------------------------*/
 #if DCOSYNCH_CONF_ENABLED
 /* this code will always start the TimerB if not already started */

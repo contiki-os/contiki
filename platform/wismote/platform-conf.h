@@ -141,7 +141,7 @@ typedef unsigned long off_t;
  * SPI bus - CC2520 pin configuration.
  */
 
-#define CC2520_CONF_SYMBOL_LOOP_COUNT 800
+#define CC2520_CONF_SYMBOL_LOOP_COUNT 2604      /* 326us msp430X @ 16MHz */
 
 /* P1.0 - Input: FIFOP from CC2520 */
 #define CC2520_FIFOP_PORT(type)   P1##type
