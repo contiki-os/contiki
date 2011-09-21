@@ -26,16 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.5 2010/12/07 22:46:13 adamdunkels Exp $
- *
  * -----------------------------------------------------------------
  *
  * CollectServer
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2010/12/07 22:46:13 $
- *           $Revision: 1.5 $
  */
 
 package se.sics.contiki.collect;
@@ -364,6 +360,44 @@ public class CollectServer implements SerialConnectionListener {
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
           }
           protected double getSensorDataValue(SensorData data) {
+            return data.getValue(SensorData.RTMETRIC);
+          }
+        },
+        new AggregatedTimeChartPanel<boolean[]>(this, NETWORK, "Avg Routing Metric (Over Time)", "Time",
+                "Average Routing Metric") {
+            private int nodeCount;
+          {
+            ValueAxis axis = chart.getXYPlot().getRangeAxis();
+            ((NumberAxis)axis).setAutoRangeIncludesZero(true);
+            axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+          }
+          @Override
+          protected boolean[] createState(Node node) {
+            return new boolean[1];
+          }
+          @Override
+          protected void clearState(Map<Node,boolean[]> map) {
+            nodeCount = 0;
+            for(boolean[] value : map.values()) {
+              value[0] = false;
+            }
+          }
+          @Override
+          protected String getTitle(int selectedCount, int dataCount, int duplicateCount) {
+            return "Average Routing Metric (" + dataCount + " packets from " + nodeCount + " node"
+                + (nodeCount > 1 ? "s" : "") + ')';
+          }
+          @Override
+          protected int getTotalDataValue(int value) {
+            // Return average value
+            return nodeCount > 0 ? (value / nodeCount) : value;
+          }
+          @Override
+          protected int getSensorDataValue(SensorData data, boolean[] nodeState) {
+            if (!nodeState[0]) {
+              nodeCount++;
+              nodeState[0] = true;
+            }
             return data.getValue(SensorData.RTMETRIC);
           }
         },
