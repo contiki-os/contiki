@@ -82,7 +82,7 @@ ifdef WERROR
 CFLAGSWERROR=-Werror
 endif
 
-CFLAGS  += $(CFLAGSNO)
+CFLAGS  += $(CFLAGSNO) -fno-strict-aliasing
 
 
 ### These flags can reduce the code size and RAM usage with up to 10%
