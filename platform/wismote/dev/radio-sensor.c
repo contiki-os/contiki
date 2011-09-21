@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,120 +28,39 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
+ * @(#)$Id: radio-sensor.c,v 1.6 2010/01/14 20:01:19 nifi Exp $
  */
 
-/**
- * \file
- *         MSP430-specific rtimer code
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#include "lib/sensors.h"
+#include "dev/cc2520.h"
+#include "dev/radio-sensor.h"
 
-#include "contiki.h"
-#include "sys/energest.h"
-#include "sys/rtimer.h"
-#include "sys/process.h"
-#include "dev/watchdog.h"
-
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+const struct sensors_sensor radio_sensor;
 
 /*---------------------------------------------------------------------------*/
-#if CONTIKI_TARGET_WISMOTE
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void
-#else
-interrupt(TIMER1_A0_VECTOR)
-#endif
-timera0 (void)
+static int
+value(int type)
 {
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
+  switch(type) {
+  case RADIO_SENSOR_LAST_PACKET:
+    return cc2520_last_correlation;
+  case RADIO_SENSOR_LAST_VALUE:
+  default:
+    return cc2520_last_rssi;
   }
-
-  watchdog_stop();
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#else
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void
-#else
-interrupt(TIMERA0_VECTOR)
-#endif
-timera0 (void)
-{
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
-  }
-
-  watchdog_stop();
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#endif
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
-{
-  dint();
-
-  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCTL0 = CCIE;
-#else
-  TACCTL0 = CCIE;
-#endif
-
-  /* Enable interrupts. */
-  eint();
 }
 /*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
+static int
+configure(int type, int c)
 {
-  rtimer_clock_t t1, t2;
-  do {
-#if CONTIKI_TARGET_WISMOTE
-    t1 = TA1R;
-    t2 = TA1R;
-#else
-    t1 = TAR;
-    t2 = TAR;
-#endif
-  } while(t1 != t2);
-  return t1;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-void
-rtimer_arch_schedule(rtimer_clock_t t)
+static int
+status(int type)
 {
-  PRINTF("rtimer_arch_schedule time %u\n", t);
-
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCR0 = t;
-#else
-  TACCR0 = t;
-#endif
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(radio_sensor, RADIO_SENSOR,
+	       value, configure, status);

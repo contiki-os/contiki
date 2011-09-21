@@ -37,7 +37,7 @@
 #include "sys/clock.h"
 #include "sys/etimer.h"
 #include "rtimer-arch.h"
-#include "watchdog.h"
+#include "dev/watchdog.h"
 
 #define INTERVAL (RTIMER_ARCH_SECOND / CLOCK_SECOND)
 
@@ -49,13 +49,68 @@ static volatile clock_time_t count = 0;
 /* last_tar is used for calculating clock_fine */
 static volatile uint16_t last_tar = 0;
 /*---------------------------------------------------------------------------*/
+#if CONTIKI_TARGET_WISMOTE
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=TIMER1_A1_VECTOR
+__interrupt void
+#else
+interrupt(TIMER1_A1_VECTOR)
+#endif
+timera1 (void)
+{
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  watchdog_start();
+
+  if(TA1IV == 2) { //CCR1
+
+    // HW timer bug fix: Interrupt handler called before TR==CCR.
+    // Occurrs when timer state is toggled between STOP and CONT.
+    while(TA1CTL & MC1 && TA1CCR1 - TA1R == 1);
+
+    // Make sure interrupt time is futures
+    do {
+      TA1CCR1 += INTERVAL;
+      ++count;
+
+      /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
+	 that the modulo operation below becomes a logical and and not
+	 an expensive divide. Algorithm from Wikipedia:
+	 http://en.wikipedia.org/wiki/Power_of_two */
+#if (CLOCK_CONF_SECOND & (CLOCK_CONF_SECOND - 1)) != 0
+#error CLOCK_CONF_SECOND must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
+#error Change CLOCK_CONF_SECOND in contiki-conf.h.
+#endif
+      if(count % CLOCK_CONF_SECOND == 0) {
+	++seconds;
+        energest_flush();
+      }
+    } while((TA1CCR1 - TA1R) > INTERVAL);
+
+    last_tar = TA1R;
+
+    if(etimer_pending() &&
+       (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
+      etimer_request_poll();
+      LPM4_EXIT;
+    }
+
+  }
+    /*if(process_nevents() >= 0) {
+    LPM4_EXIT;
+    }*/
+  watchdog_stop();
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+#else
 #ifdef __IAR_SYSTEMS_ICC__
 #pragma vector=TIMERA1_VECTOR
 __interrupt void
 #else
 interrupt(TIMERA1_VECTOR)
 #endif
-timera1 (void) {
+timera1 (void)
+{
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   watchdog_start();
@@ -102,6 +157,7 @@ timera1 (void) {
   
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+#endif
 /*---------------------------------------------------------------------------*/
 clock_time_t
 clock_time(void)
@@ -117,8 +173,13 @@ clock_time(void)
 void
 clock_set(clock_time_t clock, clock_time_t fclock)
 {
+#if CONTIKI_TARGET_WISMOTE
+  TA1R = fclock;
+  TA1CCR1 = fclock + INTERVAL;
+#else
   TAR = fclock;
   TACCR1 = fclock + INTERVAL;
+#endif
   count = clock;
 }
 /*---------------------------------------------------------------------------*/
@@ -135,22 +196,58 @@ clock_fine(void)
   /* Assign last_tar to local varible that can not be changed by interrupt */
   t = last_tar;
   /* perform calc based on t, TAR will not be changed during interrupt */
+#if CONTIKI_TARGET_WISMOTE
+  return (unsigned short) (TA1R - t);
+#else
   return (unsigned short) (TAR - t);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
 clock_init(void)
 {
   dint();
+#if CONTIKI_TARGET_WISMOTE
+  /* Select SMCLK (2.4576MHz), clear TAR */
+  //TA1CTL = TASSEL1 | TACLR | ID_3;
 
+  /* Select ACLK clock, divide*/
+  /* TA1CTL = TASSEL0 | TACLR | ID_1; */
+
+#if INTERVAL==32768/CLOCK_SECOND
+  TA1CTL = TASSEL0 | TACLR;
+#elif INTERVAL==16384/CLOCK_SECOND
+  TA1CTL = TASSEL0 | TACLR | ID_1;
+#else
+#error NEED TO UPDATE clock.c to match interval!
+#endif
+
+  /* Initialize ccr1 to create the X ms interval. */
+  /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */
+  TA1CCTL1 = CCIE;
+
+  /* Interrupt after X ms. */
+  TA1CCR1 = INTERVAL;
+
+  /* Start Timer_A in continuous mode. */
+  TA1CTL |= MC1;
+#else
   /* Select SMCLK (2.4576MHz), clear TAR */
   /* TACTL = TASSEL1 | TACLR | ID_3; */
-  
+
   /* Select ACLK 32768Hz clock, divide by 2 */
   /*  TACTL = TASSEL0 | TACLR | ID_1;*/
 
   /* Select ACLK 32768Hz clock */
+  /* TACTL = TASSEL0 | TACLR; */
+
+#if INTERVAL==32768/CLOCK_SECOND
   TACTL = TASSEL0 | TACLR;
+#elif INTERVAL==16384/CLOCK_SECOND
+  TACTL = TASSEL0 | TACLR | ID_1;
+#else
+#error NEED TO UPDATE clock.c to match interval!
+#endif
 
   /* Initialize ccr1 to create the X ms interval. */
   /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */
@@ -161,7 +258,7 @@ clock_init(void)
 
   /* Start Timer_A in continuous mode. */
   TACTL |= MC1;
-
+#endif
   count = 0;
 
   /* Enable interrupts. */
@@ -221,6 +318,10 @@ clock_seconds(void)
 rtimer_clock_t
 clock_counter(void)
 {
+#if CONTIKI_TARGET_WISMOTE
+  return TA1R;
+#else
   return TAR;
+#endif
 }
 /*---------------------------------------------------------------------------*/

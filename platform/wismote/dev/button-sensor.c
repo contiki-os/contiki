@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,121 +27,80 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
  */
+#include "lib/sensors.h"
+#include "dev/hwconf.h"
+#include "dev/button-sensor.h"
 
-/**
- * \file
- *         MSP430-specific rtimer code
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+const struct sensors_sensor button_sensor;
 
-#include "contiki.h"
-#include "sys/energest.h"
-#include "sys/rtimer.h"
-#include "sys/process.h"
-#include "dev/watchdog.h"
+static struct timer debouncetimer;
+static int status(int type);
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+HWCONF_PIN(BUTTON, 2, 7);
+HWCONF_IRQ(BUTTON, 2, 7);
 
 /*---------------------------------------------------------------------------*/
-#if CONTIKI_TARGET_WISMOTE
 #ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
+#pragma vector=PORT2_VECTOR
 __interrupt void
 #else
-interrupt(TIMER1_A0_VECTOR)
+interrupt(PORT2_VECTOR)
 #endif
-timera0 (void)
+     irq_p2(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
+  if(BUTTON_CHECK_IRQ()) {
+    if(timer_expired(&debouncetimer)) {
+      timer_set(&debouncetimer, CLOCK_SECOND / 4);
+      sensors_changed(&button_sensor);
+      LPM4_EXIT;
+    }
   }
-
-  watchdog_stop();
-
+  P2IFG = 0x00;
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
-#else
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void
-#else
-interrupt(TIMERA0_VECTOR)
-#endif
-timera0 (void)
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
 {
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+  return BUTTON_READ() || !timer_expired(&debouncetimer);
+}
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int c)
+{
+  switch (type) {
+  case SENSORS_ACTIVE:
+    if (c) {
+      if(!status(SENSORS_ACTIVE)) {
+	timer_set(&debouncetimer, 0);
+	BUTTON_IRQ_EDGE_SELECTD();
 
-  watchdog_start();
+	BUTTON_SELECT();
+	BUTTON_MAKE_INPUT();
 
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
+	BUTTON_ENABLE_IRQ();
+      }
+    } else {
+      BUTTON_DISABLE_IRQ();
+    }
+    return 1;
   }
-
-  watchdog_stop();
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+  return 0;
 }
-#endif
 /*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
+static int
+status(int type)
 {
-  dint();
-
-  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCTL0 = CCIE;
-#else
-  TACCTL0 = CCIE;
-#endif
-
-  /* Enable interrupts. */
-  eint();
+  switch (type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return BUTTON_IRQ_ENABLED();
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
-{
-  rtimer_clock_t t1, t2;
-  do {
-#if CONTIKI_TARGET_WISMOTE
-    t1 = TA1R;
-    t2 = TA1R;
-#else
-    t1 = TAR;
-    t2 = TAR;
-#endif
-  } while(t1 != t2);
-  return t1;
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_schedule(rtimer_clock_t t)
-{
-  PRINTF("rtimer_arch_schedule time %u\n", t);
-
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCR0 = t;
-#else
-  TACCR0 = t;
-#endif
-}
-/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
+	       value, configure, status);

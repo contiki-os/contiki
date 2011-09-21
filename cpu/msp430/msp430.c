@@ -27,12 +27,9 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * @(#)$Id: msp430.c,v 1.15 2011/01/05 13:36:38 joxe Exp $
  */
 #include "contiki.h"
 #include "dev/watchdog.h"
-#include "net/uip.h"
 
 /* dco_required set to 1 will cause the CPU not to go into
    sleep modes where the DCO clock stopped */
@@ -69,12 +66,33 @@ w_memset(void *out, int value, size_t n)
 void
 msp430_init_dco(void)
 {
-    /* This code taken from the FU Berlin sources and reformatted. */
+#if CONTIKI_TARGET_WISMOTE
+  // Stop watchdog
+  WDTCTL = WDTPW + WDTHOLD;
+
+  /** Configure XTAL **/
+  P7SEL |= BIT0 + BIT1;   // Activate XT1
+  UCSCTL6 &= ~XT1OFF;     // Set XT1 On
+
+  UCSCTL6 |= XT1DRIVE_2 | XTS | XT2OFF;     // Max drive strength, adjust
+  UCSCTL6 &= ~XT1DRIVE_1;
+
+  do {
+    UCSCTL7 &= ~(XT2OFFG + XT1LFOFFG + XT1HFOFFG + DCOFFG);
+    // Clear XT2,XT1,DCO fault flags
+    SFRIFG1 &= ~OFIFG;                      // Clear fault flags
+  }while (SFRIFG1&OFIFG);                   // Test oscillator fault flag
+
+  UCSCTL2 = FLLD0 + FLLD2;
+  UCSCTL5 |= DIVA__2 + DIVS__2+ DIVM__2;//DIVPA__32 + DIVA__32 + DIVS__2+ DIVM__2;
+  UCSCTL4 = SELA__DCOCLKDIV + SELS__XT1CLK + SELM__XT1CLK;       // Set MCLCK = XT1/2 , SMCLK = XT1/2 , ACLK = XT1/2
+
+#else
+  /* This code taken from the FU Berlin sources and reformatted. */
 #define DELTA    ((MSP430_CPU_SPEED) / (32768 / 8))
 
   unsigned int compare, oldcapture = 0;
   unsigned int i;
-
 
   BCSCTL1 = 0xa4; /* ACLK is devided by 4. RSEL=6 no division for MCLK
 		     and SSMCLK. XT2 is off. */
@@ -119,6 +137,8 @@ msp430_init_dco(void)
   TACTL = 0;                            /* Stop Timer_A */
 
   BCSCTL1 &= ~(DIVA1 + DIVA0);          /* remove /8 divisor from ACLK again */
+
+#endif
 }
 /*---------------------------------------------------------------------------*/
 
@@ -234,6 +254,7 @@ msp430_cpu_init(void)
  * runtime.
  */
 #if defined(__MSP430__) && defined(__GNUC__)
+#define asmv(arg) __asm__ __volatile__(arg)
 void *
 sbrk(int incr)
 {
@@ -286,6 +307,7 @@ splhigh_(void)
 /* #endif */
 /* } */
 /*---------------------------------------------------------------------------*/
+#if DCOSYNCH_CONF_ENABLED
 /* this code will always start the TimerB if not already started */
 void
 msp430_sync_dco(void) {
@@ -332,4 +354,5 @@ msp430_sync_dco(void) {
     }
   }
 }
+#endif /* DCOSYNCH_CONF_ENABLED */
 /*---------------------------------------------------------------------------*/

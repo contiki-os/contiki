@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,123 +25,61 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
- * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
- */
-
-/**
- * \file
- *         MSP430-specific rtimer code
- * \author
- *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
-#include "sys/energest.h"
-#include "sys/rtimer.h"
-#include "sys/process.h"
-#include "dev/watchdog.h"
+#include "contiki-net.h"
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
+#include "dev/spi.h"
+#include "dev/cc2520.h"
+
+#ifdef CC2520_CONF_SFD_TIMESTAMPS
+#define CONF_SFD_TIMESTAMPS CC2520_CONF_SFD_TIMESTAMPS
+#endif /* CC2520_CONF_SFD_TIMESTAMPS */
+
+#ifndef CONF_SFD_TIMESTAMPS
+#define CONF_SFD_TIMESTAMPS 0
+#endif /* CONF_SFD_TIMESTAMPS */
+
+#ifdef CONF_SFD_TIMESTAMPS
+#include "cc2520-arch-sfd.h"
 #endif
 
 /*---------------------------------------------------------------------------*/
-#if CONTIKI_TARGET_WISMOTE
 #ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
+#pragma vector=CC2520_IRQ_VECTOR
 __interrupt void
 #else
-interrupt(TIMER1_A0_VECTOR)
+interrupt(CC2520_IRQ_VECTOR)
 #endif
-timera0 (void)
+cc2520_port1_interrupt(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
+  if(cc2520_interrupt()) {
     LPM4_EXIT;
   }
 
-  watchdog_stop();
-
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#else
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void
-#else
-interrupt(TIMERA0_VECTOR)
-#endif
-timera0 (void)
-{
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
-  }
-
-  watchdog_stop();
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#endif
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
-{
-  dint();
-
-  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCTL0 = CCIE;
-#else
-  TACCTL0 = CCIE;
-#endif
-
-  /* Enable interrupts. */
-  eint();
-}
-/*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
-{
-  rtimer_clock_t t1, t2;
-  do {
-#if CONTIKI_TARGET_WISMOTE
-    t1 = TA1R;
-    t2 = TA1R;
-#else
-    t1 = TAR;
-    t2 = TAR;
-#endif
-  } while(t1 != t2);
-  return t1;
 }
 /*---------------------------------------------------------------------------*/
 void
-rtimer_arch_schedule(rtimer_clock_t t)
+cc2520_arch_init(void)
 {
-  PRINTF("rtimer_arch_schedule time %u\n", t);
+  spi_init();
 
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCR0 = t;
-#else
-  TACCR0 = t;
+  /* all input by default, set these as output */
+  CC2520_CSN_PORT(DIR) |= BV(CC2520_CSN_PIN);
+  CC2520_VREG_PORT(DIR) |= BV(CC2520_VREG_PIN);
+  CC2520_RESET_PORT(DIR) |= BV(CC2520_RESET_PIN);
+
+  P1DIR &= ~(BV(CC2520_FIFOP_PIN) | BV(CC2520_FIFO_PIN) | BV(CC2520_CCA_PIN));
+  P2DIR &= ~(BV(CC2520_SFD_PIN));
+
+#if CONF_SFD_TIMESTAMPS
+  cc2520_arch_sfd_init();
 #endif
+
+  CC2520_SPI_DISABLE();                /* Unselect radio. */
 }
 /*---------------------------------------------------------------------------*/
