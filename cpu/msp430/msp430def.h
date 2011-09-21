@@ -38,7 +38,6 @@
 #include <msp430.h>
 #define dint() __disable_interrupt()
 #define eint() __enable_interrupt()
-#define __MSP430F1611__ 1
 #define __MSP430__ 1
 #define CC_CONF_INLINE
 #define BV(x) (1 << x)

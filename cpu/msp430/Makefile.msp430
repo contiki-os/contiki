@@ -82,12 +82,13 @@ ifdef WERROR
 CFLAGSWERROR=-Werror
 endif
 
-CFLAGS  += $(CFLAGSNO) -fno-strict-aliasing
+CFLAGS  += $(CFLAGSNO)
 
 
 ### These flags can reduce the code size and RAM usage with up to 10%
 ifdef SMALL
 CFLAGS += -ffunction-sections
+# CFLAGS += -fdata-sections
 LDFLAGS += -Wl,--gc-sections,--undefined=_reset_vector__,--undefined=InterruptVectors,--undefined=_copy_data_init__,--undefined=_clear_bss_init__,--undefined=_end_of_init__
 endif # SMALL
 

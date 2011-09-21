@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,122 +26,80 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ * $Id: ext-sensor.c,v 1.3 2010/02/13 11:20:48 joxe Exp $
  *
- * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
- */
-
-/**
- * \file
- *         MSP430-specific rtimer code
- * \author
- *         Adam Dunkels <adam@sics.se>
+ * -----------------------------------------------------------------
+ *
+ * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Marcus Lundén,
+ *           Jesper Karlsson
+ * Created : 2005-11-01
+ * Updated : $Date: 2010/02/13 11:20:48 $
+ *           $Revision: 1.3 $
  */
 
 #include "contiki.h"
-#include "sys/energest.h"
-#include "sys/rtimer.h"
-#include "sys/process.h"
-#include "dev/watchdog.h"
+#include "dev/ext-sensor.h"
+#include "dev/sky-sensors.h"
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
-
+const struct sensors_sensor ext_sensor;
+static uint8_t active;
 /*---------------------------------------------------------------------------*/
-#if CONTIKI_TARGET_WISMOTE
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void
-#else
-interrupt(TIMER1_A0_VECTOR)
-#endif
-timera0 (void)
+static int
+value(int type)
 {
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
+  /* ADC0 corresponds to the port under the logo, ADC1 to the port over the logo,
+     ADC2 and ADC3 corresponds to port on the JCreate bottom expansion port)
+  switch(type) {
+    case ADC0:
+      return ADC12MEM6;
+    case ADC1:
+      return ADC12MEM7;
+    case ADC2:
+      return ADC12MEM8;
+    case ADC3:
+      return ADC12MEM9;
+  }*/
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch(type) {
+    case SENSORS_ACTIVE:
+    case SENSORS_READY:
+      return active;
   }
-
-  watchdog_stop();
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+  return 0;
 }
-#else
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void
-#else
-interrupt(TIMERA0_VECTOR)
-#endif
-timera0 (void)
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int c)
 {
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
+  switch(type) {
+    case SENSORS_ACTIVE:
+      if(c) {
+        if(!status(SENSORS_ACTIVE)) {
+          /* SREF_1 is Vref+
+          /* MemReg6 == P6.0/A0 == port "under" logo
+          ADC12MCTL6 = (INCH_0 + SREF_0);
+          /* MemReg7 == P6.1/A1 == port "over" logo
+          ADC12MCTL7 = (INCH_1 + SREF_0);
+          /* MemReg8 == P6.2/A2, bottom expansion port
+          ADC12MCTL8 = (INCH_2 + SREF_0);
+          /* MemReg9 == P6.1/A3, bottom expansion port, End Of (ADC-)Sequence
+          ADC12MCTL9 = (INCH_3 + SREF_0);
+	*/
+          sky_sensors_activate(0x0F);
+          active = 1;
+        }
+      } else {
+        sky_sensors_deactivate(0x0F);
+        active = 0;
+      }
   }
-
-  watchdog_stop();
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#endif
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
-{
-  dint();
-
-  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCTL0 = CCIE;
-#else
-  TACCTL0 = CCIE;
-#endif
-
-  /* Enable interrupts. */
-  eint();
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
-{
-  rtimer_clock_t t1, t2;
-  do {
-#if CONTIKI_TARGET_WISMOTE
-    t1 = TA1R;
-    t2 = TA1R;
-#else
-    t1 = TAR;
-    t2 = TAR;
-#endif
-  } while(t1 != t2);
-  return t1;
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_schedule(rtimer_clock_t t)
-{
-  PRINTF("rtimer_arch_schedule time %u\n", t);
-
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCR0 = t;
-#else
-  TACCR0 = t;
-#endif
-}
-/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(ext_sensor, "Ext",
+         value, configure, status);

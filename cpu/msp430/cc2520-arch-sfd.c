@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,123 +25,56 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
- * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
- */
-
-/**
- * \file
- *         MSP430-specific rtimer code
- * \author
- *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
-#include "sys/energest.h"
-#include "sys/rtimer.h"
-#include "sys/process.h"
-#include "dev/watchdog.h"
+#include "dev/spi.h"
+#include "dev/cc2520.h"
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+extern volatile uint8_t cc2520_sfd_counter;
+extern volatile uint16_t cc2520_sfd_start_time;
+extern volatile uint16_t cc2520_sfd_end_time;
 
 /*---------------------------------------------------------------------------*/
-#if CONTIKI_TARGET_WISMOTE
+/* SFD interrupt for timestamping radio packets */
 #ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
+#pragma vector=TIMERB1_VECTOR
 __interrupt void
 #else
-interrupt(TIMER1_A0_VECTOR)
+interrupt(TIMERB1_VECTOR)
 #endif
-timera0 (void)
+cc2520_timerb1_interrupt(void)
 {
+  int tbiv;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
+  /* always read TBIV to clear IFG */
+  tbiv = TBIV;
+  if(CC2520_SFD_IS_1) {
+    cc2520_sfd_counter++;
+    cc2520_sfd_start_time = TBCCR1;
+  } else {
+    cc2520_sfd_counter = 0;
+    cc2520_sfd_end_time = TBCCR1;
   }
-
-  watchdog_stop();
-
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#else
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void
-#else
-interrupt(TIMERA0_VECTOR)
-#endif
-timera0 (void)
-{
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
-  }
-
-  watchdog_stop();
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#endif
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
-{
-  dint();
-
-  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCTL0 = CCIE;
-#else
-  TACCTL0 = CCIE;
-#endif
-
-  /* Enable interrupts. */
-  eint();
-}
-/*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
-{
-  rtimer_clock_t t1, t2;
-  do {
-#if CONTIKI_TARGET_WISMOTE
-    t1 = TA1R;
-    t2 = TA1R;
-#else
-    t1 = TAR;
-    t2 = TAR;
-#endif
-  } while(t1 != t2);
-  return t1;
 }
 /*---------------------------------------------------------------------------*/
 void
-rtimer_arch_schedule(rtimer_clock_t t)
+cc2520_arch_sfd_init(void)
 {
-  PRINTF("rtimer_arch_schedule time %u\n", t);
+  /* Need to select the special function! */
+  P4SEL = BV(CC2520_SFD_PIN);
 
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCR0 = t;
-#else
-  TACCR0 = t;
-#endif
+  /* start timer B - 32768 ticks per second */
+  TBCTL = TBSSEL_1 | TBCLR;
+
+  /* CM_3 = capture mode - capture on both edges */
+  TBCCTL1 = CM_3 | CAP | SCS;
+  TBCCTL1 |= CCIE;
+
+  /* Start Timer_B in continuous mode. */
+  TBCTL |= MC1;
+
+  TBR = RTIMER_NOW();
 }
 /*---------------------------------------------------------------------------*/

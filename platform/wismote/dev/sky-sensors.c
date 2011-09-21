@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,120 +28,65 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
- */
-
-/**
- * \file
- *         MSP430-specific rtimer code
- * \author
- *         Adam Dunkels <adam@sics.se>
+ * $Id: sky-sensors.c,v 1.2 2010/02/06 18:28:26 joxe Exp $
+ *
+ * -----------------------------------------------------------------
+ *
+ * Author  : Joakim Eriksson
+ * Created : 2010-02-02
+ * Updated : $Date: 2010/02/06 18:28:26 $
+ *           $Revision: 1.2 $
  */
 
 #include "contiki.h"
-#include "sys/energest.h"
-#include "sys/rtimer.h"
-#include "sys/process.h"
-#include "dev/watchdog.h"
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
-
-/*---------------------------------------------------------------------------*/
-#if CONTIKI_TARGET_WISMOTE
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void
-#else
-interrupt(TIMER1_A0_VECTOR)
-#endif
-timera0 (void)
-{
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
-  }
-
-  watchdog_stop();
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#else
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt void
-#else
-interrupt(TIMERA0_VECTOR)
-#endif
-timera0 (void)
-{
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
-  }
-
-  watchdog_stop();
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#endif
+static uint8_t adc_on;
 /*---------------------------------------------------------------------------*/
 void
-rtimer_arch_init(void)
+sky_sensors_activate(uint8_t type)
 {
-  dint();
+  uint8_t pre = adc_on;
 
-  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCTL0 = CCIE;
-#else
-  TACCTL0 = CCIE;
-#endif
+  adc_on |= type;
+  P6SEL |= type;
 
-  /* Enable interrupts. */
-  eint();
-}
-/*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
-{
-  rtimer_clock_t t1, t2;
-  do {
-#if CONTIKI_TARGET_WISMOTE
-    t1 = TA1R;
-    t2 = TA1R;
-#else
-    t1 = TAR;
-    t2 = TAR;
-#endif
-  } while(t1 != t2);
-  return t1;
+  if(pre == 0 && adc_on > 0) {
+    P6DIR = 0xff;
+    P6OUT = 0x00;
+    /* if nothing was started before, start up the ADC system */
+    /* Set up the ADC. */
+    /* ADC12CTL0 = REF2_5V + SHT0_6 + SHT1_6 + MSC; /\* Setup ADC12, ref., sampling time *\/ */
+    /* ADC12CTL1 = SHP + CONSEQ_3 + CSTARTADD_0;	/\* Use sampling timer, repeat-sequenc-of-channels  */
+    /* /\* convert up to MEM4 *\/ */
+    /* ADC12MCTL9 |= EOS; */
+
+    /* ADC12CTL0 |= ADC12ON + REFON; */
+    /* ADC12CTL0 |= ENC;		/\* enable conversion  *\/ */
+    /* ADC12CTL0 |= ADC12SC;		/\* sample & convert *\/ */
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
-rtimer_arch_schedule(rtimer_clock_t t)
+sky_sensors_deactivate(uint8_t type)
 {
-  PRINTF("rtimer_arch_schedule time %u\n", t);
+  adc_on &= ~type;
 
-#if CONTIKI_TARGET_WISMOTE
-  TA1CCR0 = t;
-#else
-  TACCR0 = t;
-#endif
+  if(adc_on == 0) {
+    /* stop converting immediately, turn off reference voltage, etc. */
+    /* wait for conversion to stop */
+
+    /* ADC12CTL0 &= ~ENC; */
+    /* /\* need to remove CONSEQ_3 if not EOS is configured *\/ */
+    /* ADC12CTL1 &= ~CONSEQ_3; */
+
+    /* while(ADC12CTL1 & ADC12BUSY); */
+
+    /* ADC12CTL0 = 0; */
+    /* ADC12CTL1 = 0; */
+
+    /* P6DIR = 0x00; */
+    /* P6OUT = 0x00; */
+    /* P6SEL = 0x00; */
+  }
 }
 /*---------------------------------------------------------------------------*/

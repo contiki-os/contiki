@@ -112,9 +112,13 @@ watchdog_init(void)
      initialization. */
   counter = 0;
   watchdog_stop();
-
+#if CONTIKI_TARGET_WISMOTE
+  SFRIFG1 &= ~WDTIFG;
+  SFRIE1 |= WDTIE;
+#else
   IFG1 &= ~WDTIFG;
   IE1 |= WDTIE;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
