@@ -19,7 +19,7 @@ CFLAGS+=-Os -g
 endif
 
 ifdef IAR
-CFLAGS+=-e --vla -Ohz --multiplier=16s --core=430 --double=32
+CFLAGS += -D__MSP430F1611__=1 -e --vla -Ohz --multiplier=16s --core=430 --double=32
 CFLAGSNO = --dlib_config "$(IAR_PATH)/LIB/DLIB/dl430fn.h" $(CFLAGSWERROR)
 
 endif

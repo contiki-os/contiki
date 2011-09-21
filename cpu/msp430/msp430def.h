@@ -32,29 +32,31 @@
 #ifndef MSP430DEF_H
 #define MSP430DEF_H
 
-#if defined(__IAR_SYSTEMS_ICC__) || defined(__MSPGCC__)
-#include <msp430.h>
-#if __MSPGCC__
-#include <legacymsp430.h>
-#endif /* __MSPGCC__ */
-#else
-#include <io.h>
-#include <signal.h>
-#endif
-
 #ifdef __IAR_SYSTEMS_ICC__
 #include <intrinsics.h>
 #include <in430.h>
+#include <msp430.h>
 #define dint() __disable_interrupt()
 #define eint() __enable_interrupt()
 #define __MSP430F1611__ 1
 #define __MSP430__ 1
 #define CC_CONF_INLINE
 #define BV(x) (1 << x)
-#else
-#define CC_CONF_INLINE inline
+
+#else /* __IAR_SYSTEMS_ICC__ */
+
+#ifdef __MSPGCC__
+#include <msp430.h>
+#include <legacymsp430.h>
+#else /* __MSPGCC__ */
+#include <io.h>
+#include <signal.h>
 #define MSP430_MEMCPY_WORKAROUND 1
-#endif
+#endif /* __MSPGCC__ */
+
+#define CC_CONF_INLINE inline
+
+#endif /* __IAR_SYSTEMS_ICC__ */
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
