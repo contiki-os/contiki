@@ -37,6 +37,9 @@
 int msp430_dco_required;
 #endif /* DCOSYNCH_CONF_ENABLED */
 
+#if defined(__MSP430__) && defined(__GNUC__)
+#define asmv(arg) __asm__ __volatile__(arg)
+#endif
 /*---------------------------------------------------------------------------*/
 #if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
 void *
@@ -68,36 +71,25 @@ w_memset(void *out, int value, size_t n)
 void
 msp430_init_dco(void)
 {
-#if CONTIKI_TARGET_WISMOTE && defined(__IAR_SYSTEMS_ICC__)
-  /* set to 8 MHz 244 * 32768 ? */
-  /* set to 8 MHz 244 * 32768  (or 0x107a)? */
+#ifdef __MSP430X__
+
+#ifdef __IAR_SYSTEMS_ICC__
   __bis_SR_register(SCG0);
+#else
+  asmv("bis %0, r2" : : "i" (SCG0));
+#endif
+
   UCSCTL0 = 0x0000;
   UCSCTL1 = DCORSEL_4;
 
-  UCSCTL2 = 244 * 2; //0x107a;
+  UCSCTL2 = MSP430_CPU_SPEED / 32768;
   UCSCTL4 = 0x33; /* instead of 0x44 that is DCO/2 */
+
+#ifdef __IAR_SYSTEMS_ICC__
   __bic_SR_register(SCG0);
-#elif CONTIKI_TARGET_WISMOTE
-  // Stop watchdog
-  WDTCTL = WDTPW + WDTHOLD;
-
-  /** Configure XTAL **/
-  P7SEL |= BIT0 + BIT1;   // Activate XT1
-  UCSCTL6 &= ~XT1OFF;     // Set XT1 On
-
-  UCSCTL6 |= XT1DRIVE_2 | XTS | XT2OFF;     // Max drive strength, adjust
-  UCSCTL6 &= ~XT1DRIVE_1;
-
-  do {
-    UCSCTL7 &= ~(XT2OFFG + XT1LFOFFG + XT1HFOFFG + DCOFFG);
-    // Clear XT2,XT1,DCO fault flags
-    SFRIFG1 &= ~OFIFG;                      // Clear fault flags
-  }while (SFRIFG1&OFIFG);                   // Test oscillator fault flag
-
-  UCSCTL2 = FLLD0 + FLLD2;
-  UCSCTL5 |= DIVA__2 + DIVS__2+ DIVM__2;//DIVPA__32 + DIVA__32 + DIVS__2+ DIVM__2;
-  UCSCTL4 = SELA__DCOCLKDIV + SELS__XT1CLK + SELM__XT1CLK;       // Set MCLCK = XT1/2 , SMCLK = XT1/2 , ACLK = XT1/2
+#else
+  asmv("bic %0, r2" : : "i" (SCG0));
+#endif
 
 #else
   /* This code taken from the FU Berlin sources and reformatted. */
@@ -206,6 +198,16 @@ init_ports(void)
   P6OUT = 0;
 #endif
 
+#ifdef P7DIR
+  P7DIR = 0;
+  P7OUT = 0;
+#endif
+
+#ifdef P8DIR
+  P8DIR = 0;
+  P8OUT = 0;
+#endif
+
   P1IE = 0;
   P2IE = 0;
 }
@@ -272,7 +274,6 @@ msp430_cpu_init(void)
  * runtime.
  */
 #if defined(__MSP430__) && defined(__GNUC__)
-#define asmv(arg) __asm__ __volatile__(arg)
 void *
 sbrk(int incr)
 {
