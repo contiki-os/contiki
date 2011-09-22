@@ -68,21 +68,6 @@ typedef unsigned long off_t;
 /* the low-level radio driver */
 #define NETSTACK_CONF_RADIO   cc2520_driver
 
-/* LED ports */
-#define LEDS_PxDIR P2DIR
-#define LEDS_PxOUT P2OUT
-#define LEDS_CONF_RED    0x10
-#define LEDS_CONF_GREEN  0    //0x20
-#define LEDS_CONF_YELLOW 0    //0x40
-
-/* DCO speed resynchronization for more robust UART, etc. */
-#ifndef DCOSYNCH_CONF_ENABLED
-#define DCOSYNCH_CONF_ENABLED 0
-#endif /* DCOSYNCH_CONF_ENABLED */
-#ifndef DCOSYNCH_CONF_PERIOD
-#define DCOSYNCH_CONF_PERIOD 30
-#endif /* DCOSYNCH_CONF_PERIOD */
-
 #define ROM_ERASE_UNIT_SIZE  512
 #define XMEM_ERASE_UNIT_SIZE (64*1024L)
 
@@ -143,25 +128,25 @@ typedef unsigned long off_t;
 
 #define CC2520_CONF_SYMBOL_LOOP_COUNT 2604      /* 326us msp430X @ 16MHz */
 
-/* P1.0 - Input: FIFOP from CC2520 */
-#define CC2520_FIFOP_PORT(type)   P1##type
-#define CC2520_FIFOP_PIN          6
-/* P1.3 - Input: FIFO from CC2520 */
+/* P1.6 - Input: FIFOP from CC2520 */
+#define CC2520_FIFOP_PORT(type)    P1##type
+#define CC2520_FIFOP_PIN           6
+/* P1.5 - Input: FIFO from CC2520 */
 #define CC2520_FIFO_PORT(type)     P1##type
 #define CC2520_FIFO_PIN            5
-/* P1.4 - Input: CCA from CC2520 */
+/* P1.7 - Input: CCA from CC2520 */
 #define CC2520_CCA_PORT(type)      P1##type
 #define CC2520_CCA_PIN             7
-/* P4.1 - Input:  SFD from CC2520 */
+/* P2.0 - Input:  SFD from CC2520 */
 #define CC2520_SFD_PORT(type)      P2##type
 #define CC2520_SFD_PIN             0
-/* P4.2 - Output: SPI Chip Select (CS_N) */
+/* P3.0 - Output: SPI Chip Select (CS_N) */
 #define CC2520_CSN_PORT(type)      P3##type
 #define CC2520_CSN_PIN             0
-/* P4.5 - Output: VREG_EN to CC2520 */
+/* P4.3 - Output: VREG_EN to CC2520 */
 #define CC2520_VREG_PORT(type)     P4##type
 #define CC2520_VREG_PIN            3
-/* P4.6 - Output: RESET_N to CC2520 */
+/* P4.4 - Output: RESET_N to CC2520 */
 #define CC2520_RESET_PORT(type)    P4##type
 #define CC2520_RESET_PIN           4
 
