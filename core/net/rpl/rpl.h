@@ -73,7 +73,7 @@
 #endif /* RPL_CONF_OF */
 
 /* This value decides which DAG instance we should participate in by default. */
-#define RPL_DEFAULT_INSTANCE		0
+#define RPL_DEFAULT_INSTANCE	       0x1e
 
 /*
  * This value decides if this node must stay as a leaf or not

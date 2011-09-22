@@ -46,7 +46,7 @@
 #include "net/rpl/rpl-private.h"
 #include "net/neighbor-info.h"
 
-#define DEBUG 1
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 static void reset(rpl_dag_t *);
