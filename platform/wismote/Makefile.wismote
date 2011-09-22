@@ -23,7 +23,7 @@ CFLAGS += -DWITH_UIP6=1
 endif
 
 ifdef IAR
-CFLAGS += -D__MSP430F5437__=1 -e --vla -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X  --data_model small --double=32
+CFLAGS += -D__MSP430F5437__=1 -e --vla -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X --double=32
 else
 SMALL=1
 endif
