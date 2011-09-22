@@ -264,7 +264,7 @@ inline void
 allocate_ip_from_prefix(uip_ipaddr_t *ipaddr, rpl_prefix_t *prefix)
 {
   memset(ipaddr, 0, sizeof(uip_ipaddr_t));
-  memcpy(ipaddr, &prefix->prefix, prefix->length);
+  memcpy(ipaddr, &prefix->prefix, (prefix->length + 7) / 8);
   uip_ds6_set_addr_iid(ipaddr, &uip_lladdr);
 }
 
@@ -306,8 +306,11 @@ int
 rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len)
 {
   if(len <= 128) {
+    printf("** memset\n");
     memset(&dag->prefix_info.prefix, 0, 16);
+    printf("** memcpy\n");
     memcpy(&dag->prefix_info.prefix, prefix, (len + 7) / 8);
+    printf("** done\n");
     dag->prefix_info.length = len;
     dag->prefix_info.flags = UIP_ND6_RA_FLAG_AUTONOMOUS;
     PRINTF("RPL: Prefix set - will announce this in DIOs\n");
