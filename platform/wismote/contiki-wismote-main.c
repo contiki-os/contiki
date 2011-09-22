@@ -397,12 +397,6 @@ main(int argc, char **argv)
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
 
-  // LED Low Init
-  P2DIR |= BIT4;//TODO
-  P8DIR |= BIT6;
-  P2OUT |= BIT4;
-  P8OUT |= BIT6;
-
   /*
    * This is the scheduler loop.
    */
@@ -454,9 +448,6 @@ main(int argc, char **argv)
       watchdog_start();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
-
-      /* P8OUT |= BIT6; */
-      /* P2OUT |= BIT4; */
     }
   }
 
