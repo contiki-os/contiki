@@ -46,10 +46,11 @@
 #define PLATFORM_HAS_BUTTON 1
 
 /* CPU target speed in Hz */
-#define F_CPU 16000000uL /*2457600uL*/
+#define F_CPU 16000000uL
 
 /* Our clock resolution, this is the same as Unix HZ. */
 #define CLOCK_CONF_SECOND 128UL
+#define RTIMER_CONF_SECOND (4096U*8)
 
 #define BAUD2UBR(baud) ((F_CPU/baud))
 

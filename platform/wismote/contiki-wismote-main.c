@@ -450,8 +450,6 @@ main(int argc, char **argv)
       ENERGEST_ON(ENERGEST_TYPE_CPU);
     }
   }
-
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 #if LOG_CONF_ENABLED

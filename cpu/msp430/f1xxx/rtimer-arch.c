@@ -28,27 +28,83 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.h,v 1.9 2010/12/16 22:50:21 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
  */
 
 /**
  * \file
- *         Header file for the MSP430-specific rtimer code
+ *         MSP430-specific rtimer code
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __RTIMER_ARCH_H__
-#define __RTIMER_ARCH_H__
+#include "contiki.h"
 
+#include "sys/energest.h"
 #include "sys/rtimer.h"
+#include "sys/process.h"
+#include "dev/watchdog.h"
 
-#ifdef RTIMER_CONF_SECOND
-#define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
 #else
-#define RTIMER_ARCH_SECOND (4096U*8)
+#define PRINTF(...)
 #endif
 
-rtimer_clock_t rtimer_arch_now(void);
+/*---------------------------------------------------------------------------*/
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=TIMERA0_VECTOR
+__interrupt void
+#else
+interrupt(TIMERA0_VECTOR)
+#endif
+timera0 (void)
+{
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-#endif /* __RTIMER_ARCH_H__ */
+  watchdog_start();
+
+  rtimer_run_next();
+
+  if(process_nevents() > 0) {
+    LPM4_EXIT;
+  }
+
+  watchdog_stop();
+
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+/*---------------------------------------------------------------------------*/
+void
+rtimer_arch_init(void)
+{
+  dint();
+
+  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
+  TACCTL0 = CCIE;
+
+  /* Enable interrupts. */
+  eint();
+}
+/*---------------------------------------------------------------------------*/
+rtimer_clock_t
+rtimer_arch_now(void)
+{
+  rtimer_clock_t t1, t2;
+  do {
+    t1 = TAR;
+    t2 = TAR;
+  } while(t1 != t2);
+  return t1;
+}
+/*---------------------------------------------------------------------------*/
+void
+rtimer_arch_schedule(rtimer_clock_t t)
+{
+  PRINTF("rtimer_arch_schedule time %u\n", t);
+
+  TACCR0 = t;
+}
+/*---------------------------------------------------------------------------*/
