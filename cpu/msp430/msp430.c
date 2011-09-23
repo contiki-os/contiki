@@ -275,16 +275,16 @@ splhigh_(void)
 /*
  * Restore previous interrupt mask.
  */
-void
-splx_(int sr)
-{
-#ifdef __IAR_SYSTEMS_ICC__
-  __bis_SR_register(sr);
-#else
-  /* If GIE was set, restore it. */
-  asmv("bis %0, r2" : : "r" (sr));
-#endif
-}
+/* void */
+/* splx_(int sr) */
+/* { */
+/* #ifdef __IAR_SYSTEMS_ICC__ */
+/*   __bis_SR_register(sr); */
+/* #else */
+/*   /\* If GIE was set, restore it. *\/ */
+/*   asmv("bis %0, r2" : : "r" (sr)); */
+/* #endif */
+/* } */
 /*---------------------------------------------------------------------------*/
 /* this code will always start the TimerB if not already started */
 void
