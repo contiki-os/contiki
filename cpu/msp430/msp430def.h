@@ -91,12 +91,12 @@ void msp430_sync_dco(void);
 void   *sbrk(int);
 
 typedef int spl_t;
-void    splx_(spl_t);
+/* void    splx_(spl_t); */
 spl_t   splhigh_(void);
 
 #define splhigh() splhigh_()
 #ifdef __IAR_SYSTEMS_ICC__
-#define splx(sr) sr = __get_SR_register()
+#define splx(sr) __bis_SR_register(sr)
 #else
 #define splx(sr) __asm__ __volatile__("bis %0, r2" : : "r" (sr))
 #endif
