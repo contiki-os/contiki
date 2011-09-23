@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,45 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
- * $Id: rtimer-arch.h,v 1.9 2010/12/16 22:50:21 adamdunkels Exp $
  */
 
-/**
- * \file
- *         Header file for the MSP430-specific rtimer code
- * \author
- *         Adam Dunkels <adam@sics.se>
+#include "contiki.h"
+
+/*
+ * This is SPI initialization code for the MSP430X architecture.
+ *
  */
 
-#ifndef __RTIMER_ARCH_H__
-#define __RTIMER_ARCH_H__
+unsigned char spi_busy = 0;
 
-#include "sys/rtimer.h"
+/*
+ * Initialize SPI bus.
+ */
+void
+spi_init(void)
+{
+  // Initialize ports for communication with SPI units.
 
-#ifdef RTIMER_CONF_SECOND
-#define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
-#else
-#define RTIMER_ARCH_SECOND (4096U*8)
-#endif
+  UCB0CTL1 |=  UCSWRST;                //reset usci
+  UCB0CTL1 |=  UCSSEL_2;               //smclk while usci is reset
+  UCB0CTL0 = ( UCMSB | UCMST | UCSYNC | UCCKPL); // MSB-first 8-bit, Master, Synchronous, 3 pin SPI master, no ste, watch-out for clock-phase UCCKPH
 
-rtimer_clock_t rtimer_arch_now(void);
+  UCB0BR1 = 0x00;
+  UCB0BR0 = 0x02;
 
-#endif /* __RTIMER_ARCH_H__ */
+//  UCB0MCTL = 0;                       // Dont need modulation control.
+
+  P3SEL |= BV(SCK) | BV(MOSI) | BV(MISO); // Select Peripheral functionality
+  P3DIR |= BV(SCK) | BV(MISO);  // Configure as outputs(SIMO,CLK).
+
+  //ME1   |= USPIE0;            // Module enable ME1 --> U0ME? xxx/bg
+
+  // Clear pending interrupts before enable!!!
+  UCB0IE &= ~UCRXIFG;
+  UCB0IE &= ~UCTXIFG;
+  UCB0CTL1 &= ~UCSWRST;         // Remove RESET before enabling interrupts
+
+  //Enable UCB0 Interrupts
+  //IE2 |= UCB0TXIE;              // Enable USCI_B0 TX Interrupts
+  //IE2 |= UCB0RXIE;              // Enable USCI_B0 RX Interrupts
+}

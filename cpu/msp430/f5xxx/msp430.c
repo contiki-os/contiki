@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2011, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,48 +31,17 @@
 #include "contiki.h"
 #include "dev/watchdog.h"
 
-#if DCOSYNCH_CONF_ENABLED
 /* dco_required set to 1 will cause the CPU not to go into
    sleep modes where the DCO clock stopped */
 int msp430_dco_required;
-#endif /* DCOSYNCH_CONF_ENABLED */
 
 #if defined(__MSP430__) && defined(__GNUC__)
 #define asmv(arg) __asm__ __volatile__(arg)
 #endif
 /*---------------------------------------------------------------------------*/
-#if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
-void *
-w_memcpy(void *out, const void *in, size_t n)
-{
-  uint8_t *src, *dest;
-  src = (uint8_t *) in;
-  dest = (uint8_t *) out;
-  while(n-- > 0) {
-    *dest++ = *src++;
-  }
-  return out;
-}
-#endif /* __GNUC__ &&  __MSP430__ && MSP430_MEMCPY_WORKAROUND */
-/*---------------------------------------------------------------------------*/
-#if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
-void *
-w_memset(void *out, int value, size_t n)
-{
-  uint8_t *dest;
-  dest = (uint8_t *) out;
-  while(n-- > 0) {
-    *dest++ = value & 0xff;
-  }
-  return out;
-}
-#endif /* __GNUC__ &&  __MSP430__ && MSP430_MEMCPY_WORKAROUND */
-/*---------------------------------------------------------------------------*/
 void
 msp430_init_dco(void)
 {
-#ifdef __MSP430X__
-
 #ifdef __IAR_SYSTEMS_ICC__
   __bis_SR_register(SCG0);
 #else
@@ -89,59 +58,6 @@ msp430_init_dco(void)
   __bic_SR_register(SCG0);
 #else
   asmv("bic %0, r2" : : "i" (SCG0));
-#endif
-
-#else
-  /* This code taken from the FU Berlin sources and reformatted. */
-#define DELTA    ((MSP430_CPU_SPEED) / (32768 / 8))
-
-  unsigned int compare, oldcapture = 0;
-  unsigned int i;
-
-  BCSCTL1 = 0xa4; /* ACLK is devided by 4. RSEL=6 no division for MCLK
-		     and SSMCLK. XT2 is off. */
-
-  BCSCTL2 = 0x00; /* Init FLL to desired frequency using the 32762Hz
-		     crystal DCO frquenzy = 2,4576 MHz  */
-
-  BCSCTL1 |= DIVA1 + DIVA0;             /* ACLK = LFXT1CLK/8 */
-  for(i = 0xffff; i > 0; i--) {         /* Delay for XTAL to settle */
-    asm("nop");
-  }
-
-  CCTL2 = CCIS0 + CM0 + CAP;            // Define CCR2, CAP, ACLK
-  TACTL = TASSEL1 + TACLR + MC1;        // SMCLK, continous mode
-
-
-  while(1) {
-
-    while((CCTL2 & CCIFG) != CCIFG);    /* Wait until capture occured! */
-    CCTL2 &= ~CCIFG;                    /* Capture occured, clear flag */
-    compare = CCR2;                     /* Get current captured SMCLK */
-    compare = compare - oldcapture;     /* SMCLK difference */
-    oldcapture = CCR2;                  /* Save current captured SMCLK */
-
-    if(DELTA == compare) {
-      break;                            /* if equal, leave "while(1)" */
-    } else if(DELTA < compare) {        /* DCO is too fast, slow it down */
-      DCOCTL--;
-      if(DCOCTL == 0xFF) {              /* Did DCO role under? */
-	BCSCTL1--;
-      }
-    } else {                            /* -> Select next lower RSEL */
-      DCOCTL++;
-      if(DCOCTL == 0x00) {              /* Did DCO role over? */
-	BCSCTL1++;
-      }
-                                        /* -> Select next higher RSEL  */
-    }
-  }
-
-  CCTL2 = 0;                            /* Stop CCR2 function */
-  TACTL = 0;                            /* Stop Timer_A */
-
-  BCSCTL1 &= ~(DIVA1 + DIVA0);          /* remove /8 divisor from ACLK again */
-
 #endif
 }
 /*---------------------------------------------------------------------------*/
@@ -227,21 +143,17 @@ static char *cur_break = (char *)&_end;
 void
 msp430_add_lpm_req(int req)
 {
-#if DCOSYNCH_CONF_ENABLED
   if(req <= MSP430_REQUIRE_LPM1) {
     msp430_dco_required++;
   }
-#endif /* DCOSYNCH_CONF_ENABLED */
 }
 
 void
 msp430_remove_lpm_req(int req)
 {
-#if DCOSYNCH_CONF_ENABLED
   if(req <= MSP430_REQUIRE_LPM1) {
     msp430_dco_required--;
   }
-#endif /* DCOSYNCH_CONF_ENABLED */
 }
 
 void
@@ -258,14 +170,11 @@ msp430_cpu_init(void)
   }
 #endif
 
-#if DCOSYNCH_CONF_ENABLED
   msp430_dco_required = 0;
-#endif /* DCOSYNCH_CONF_ENABLED */
 }
 /*---------------------------------------------------------------------------*/
 
 #define STACK_EXTRA 32
-#define asmv(arg) __asm__ __volatile__(arg)
 
 /*
  * Allocate memory from the heap. Check that we don't collide with the
@@ -312,20 +221,6 @@ splhigh_(void)
   return sr & GIE;		/* Ignore other sr bits. */
 }
 /*---------------------------------------------------------------------------*/
-/*
- * Restore previous interrupt mask.
- */
-/* void */
-/* splx_(int sr) */
-/* { */
-/* #ifdef __IAR_SYSTEMS_ICC__ */
-/*   __bis_SR_register(sr); */
-/* #else */
-/*   /\* If GIE was set, restore it. *\/ */
-/*   asmv("bis %0, r2" : : "r" (sr)); */
-/* #endif */
-/* } */
-/*---------------------------------------------------------------------------*/
 #ifdef __IAR_SYSTEMS_ICC__
 int __low_level_init(void)
 {
@@ -340,53 +235,4 @@ int __low_level_init(void)
   return 1;
 }
 #endif
-/*---------------------------------------------------------------------------*/
-#if DCOSYNCH_CONF_ENABLED
-/* this code will always start the TimerB if not already started */
-void
-msp430_sync_dco(void) {
-  uint16_t last;
-  uint16_t diff;
-/*   uint32_t speed; */
-  /* DELTA_2 assumes an ACLK of 32768 Hz */
-#define DELTA_2    ((MSP430_CPU_SPEED) / 32768)
-
-  /* Select SMCLK clock, and capture on ACLK for TBCCR6 */
-  TBCTL = TBSSEL1 | TBCLR;
-  TBCCTL6 = CCIS0 + CM0 + CAP;
-  /* start the timer */
-  TBCTL |= MC1;
-
-  // wait for next Capture
-  TBCCTL6 &= ~CCIFG;
-  while(!(TBCCTL6 & CCIFG));
-  last = TBCCR6;
-
-  TBCCTL6 &= ~CCIFG;
-  // wait for next Capture - and calculate difference
-  while(!(TBCCTL6 & CCIFG));
-  diff = TBCCR6 - last;
-
-  /* Stop timer - conserves energy according to user guide */
-  TBCTL = 0;
-
-/*   speed = diff; */
-/*   speed = speed * 32768; */
-/*   printf("Last TAR diff:%d target: %ld ", diff, DELTA_2); */
-/*   printf("CPU Speed: %lu DCOCTL: %d\n", speed, DCOCTL); */
-
-  /* resynchronize the DCO speed if not at target */
-  if(DELTA_2 < diff) {        /* DCO is too fast, slow it down */
-    DCOCTL--;
-    if(DCOCTL == 0xFF) {              /* Did DCO role under? */
-      BCSCTL1--;
-    }
-  } else if (DELTA_2 > diff) {
-    DCOCTL++;
-    if(DCOCTL == 0x00) {              /* Did DCO role over? */
-      BCSCTL1++;
-    }
-  }
-}
-#endif /* DCOSYNCH_CONF_ENABLED */
 /*---------------------------------------------------------------------------*/

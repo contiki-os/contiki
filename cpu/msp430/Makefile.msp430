@@ -11,7 +11,11 @@ CONTIKI_CPU=$(CONTIKI)/cpu/msp430
 
 ### Define the source files we have in the MSP430 port
 
-CONTIKI_CPU_DIRS = . dev
+ifneq (,$(findstring msp430x5,$(MCU)))
+CONTIKI_CPU_DIRS = ${addprefix f5xxx/,. dev} . dev
+else
+CONTIKI_CPU_DIRS = ${addprefix f1xxx/,. dev} . dev
+endif
 
 MSP430     = msp430.c flash.c clock.c leds.c leds-arch.c \
              watchdog.c lpm.c mtarch.c rtimer-arch.c
