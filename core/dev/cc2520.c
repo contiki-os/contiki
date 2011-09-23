@@ -32,15 +32,8 @@
  * This code is almost device independent and should be easy to port.
  */
 
-#include <string.h>
-
 #include "contiki.h"
 
-#if defined(__AVR__)
-#include <avr/io.h>
-#endif
-
-#include "dev/leds.h"
 #include "dev/spi.h"
 #include "dev/cc2520.h"
 #include "dev/cc2520_const.h"
@@ -50,28 +43,15 @@
 #include "net/netstack.h"
 
 #include "sys/timetable.h"
-
-#define WITH_SEND_CCA 1
-
-#define FOOTER_LEN 2
-
-#ifndef CC2520_CONF_CHECKSUM
-#define CC2520_CONF_CHECKSUM 0
-#endif /* CC2520_CONF_CHECKSUM */
+#include <string.h>
 
 #ifndef CC2520_CONF_AUTOACK
 #define CC2520_CONF_AUTOACK 0
 #endif /* CC2520_CONF_AUTOACK */
 
-#if CC2520_CONF_CHECKSUM
-#include "lib/crc16.h"
-#define CHECKSUM_LEN 2
-#else
-#define CHECKSUM_LEN 0
-#endif /* CC2520_CONF_CHECKSUM */
+#define WITH_SEND_CCA 0
 
-#define AUX_LEN (CHECKSUM_LEN + FOOTER_LEN)
-
+#define FOOTER_LEN 2
 
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
@@ -84,10 +64,8 @@
 #define PRINTF(...)
 #endif
 
-#define DEBUG_LEDS DEBUG
-#undef LEDS_ON
-#undef LEDS_OFF
-#if DEBUG_LEDS
+#if 0 && DEBUG
+#include "dev/leds.h"
 #define LEDS_ON(x) leds_on(x)
 #define LEDS_OFF(x) leds_off(x)
 #else
@@ -299,8 +277,9 @@ cc2520_init(void)
   clock_delay(125);
 
   stat1 = status();
-  while(!(stat1 & 0x80))
+  while(!(stat1 & 0x80)) {
     stat1 = status();
+  }
 
   /* Change default values as recommended in the data sheet, */
   /* correlation threshold = 20, RX bandpass filter = 1.3uA.*/
@@ -361,25 +340,20 @@ cc2520_init(void)
 static int
 cc2520_transmit(unsigned short payload_len)
 {
+  uint16_t reg;
   int i, txpower;
-  uint8_t total_len;
-#if CC2520_CONF_CHECKSUM
-  uint16_t checksum;
-#endif /* CC2520_CONF_CHECKSUM */
 
   GET_LOCK();
-#if (DEBUG == 1)
-  P8OUT &= ~BIT6; // TODO LED FLASH for the debug on transmission
-#endif
+
+  LEDS_ON(LEDS_RED);
+
   txpower = 0;
   if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
     /* Remember the current transmission power */
     txpower = cc2520_get_txpower();
     /* Set the specified transmission power */
-    //TODOset_txpower(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) - 1);
+    set_txpower(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) - 1);
   }
-
-  total_len = payload_len + AUX_LEN;
 
   /* The TX FIFO can only hold one packet. Make sure to not overrun
    * FIFO by waiting for transmission to start here and synchronizing
@@ -446,11 +420,14 @@ cc2520_transmit(unsigned short payload_len)
         set_txpower(txpower & 0xff);
       }
 
+      reg = getreg(CC2520_EXCFLAG0);
       RELEASE_LOCK();
-      if (getreg(CC2520_EXCFLAG0) & TX_FRM_DONE )
-    	  return RADIO_TX_OK;
-      else
-    	  return RADIO_TX_COLLISION;
+
+      if (reg & TX_FRM_DONE) {
+        return RADIO_TX_OK;
+      } else {
+        return RADIO_TX_COLLISION;
+      }
     }
   }
 
@@ -472,9 +449,6 @@ static int
 cc2520_prepare(const void *payload, unsigned short payload_len)
 {
   uint8_t total_len;
-#if CC2520_CONF_CHECKSUM
-  uint16_t checksum;
-#endif /* CC2520_CONF_CHECKSUM */
   GET_LOCK();
 
   PRINTF("cc2520: sending %d bytes\n", payload_len);
@@ -490,15 +464,9 @@ cc2520_prepare(const void *payload, unsigned short payload_len)
   /* Write packet to TX FIFO. */
   strobe(CC2520_INS_SFLUSHTX);
 
-#if CC2520_CONF_CHECKSUM
-  checksum = crc16_data(payload, payload_len, 0);
-#endif /* CC2520_CONF_CHECKSUM */
-  total_len = payload_len + AUX_LEN;
+  total_len = payload_len + FOOTER_LEN;
   CC2520_WRITE_FIFO_BUF(&total_len, 1);
   CC2520_WRITE_FIFO_BUF(payload, payload_len);
-#if CC2520_CONF_CHECKSUM
-  CC2520_WRITE_FIFO_BUF(&checksum, CHECKSUM_LEN);
-#endif /* CC2520_CONF_CHECKSUM */
 
   RELEASE_LOCK();
   return 0;
@@ -685,7 +653,7 @@ PROCESS_THREAD(cc2520_process, ev, data)
     TIMETABLE_TIMESTAMP(cc2520_timetable, "end");
     timetable_aggregate_compute_detailed(&aggregate_time,
                                          &cc2520_timetable);
-      timetable_clear(&cc2520_timetable);
+    timetable_clear(&cc2520_timetable);
 #endif /* CC2520_TIMETABLE_PROFILING */
   }
 
@@ -697,16 +665,11 @@ cc2520_read(void *buf, unsigned short bufsize)
 {
   uint8_t footer[2];
   uint8_t len;
-#if CC2520_CONF_CHECKSUM
-  uint16_t checksum;
-#endif /* CC2520_CONF_CHECKSUM */
 
   if((!CC2520_FIFOP_IS_1) & !(getreg(CC2520_EXCFLAG1) & RX_FRM_DONE)) {
     return 0;
   }
-#if (DEBUG == 1)
-  P2OUT &= ~BIT4; // TODO LED FLASH for the debug on reception
-#endif
+  LEDS_ON(LEDS_GREEN); // TODO LED FLASH for the debug on reception
 
   //BUSYWAIT_UNTIL(	 (status() & BV(CC2520_RX_ACTIVE))	 , RTIMER_SECOND / 100);
   //BUSYWAIT_UNTIL(getreg(CC2520_EXCFLAG1) & RX_FRM_DONE , RTIMER_SECOND / 100);
@@ -730,38 +693,25 @@ cc2520_read(void *buf, unsigned short bufsize)
     return 0;
   }
 
-  if(len <= AUX_LEN) {
+  if(len <= FOOTER_LEN) {
     flushrx();
     RIMESTATS_ADD(tooshort);
     RELEASE_LOCK();
     return 0;
   }
 
-  if(len - AUX_LEN > bufsize) {
+  if(len - FOOTER_LEN > bufsize) {
     flushrx();
     RIMESTATS_ADD(toolong);
     RELEASE_LOCK();
     return 0;
   }
 
-  getrxdata(buf, len - AUX_LEN);
+  getrxdata(buf, len - FOOTER_LEN);
 
-#if CC2520_CONF_CHECKSUM
-  getrxdata(&checksum, CHECKSUM_LEN);
-#endif /* CC2520_CONF_CHECKSUM */
   getrxdata(footer, FOOTER_LEN);
 
-#if CC2520_CONF_CHECKSUM
-  if(checksum != crc16_data(buf, len - AUX_LEN, 0)) {
-    PRINTF("checksum failed 0x%04x != 0x%04x\n",
-	   checksum, crc16_data(buf, len - AUX_LEN, 0));
-  }
-
-  if(footer[1] & FOOTER1_CRC_OK &&
-     checksum == crc16_data(buf, len - AUX_LEN, 0)) {
-#else
   if(footer[1] & FOOTER1_CRC_OK) {
-#endif /* CC2520_CONF_CHECKSUM */
     cc2520_last_rssi = footer[0];
     cc2520_last_correlation = footer[1] & FOOTER1_CORRELATION;
 
@@ -773,7 +723,7 @@ cc2520_read(void *buf, unsigned short bufsize)
 
   } else {
     RIMESTATS_ADD(badcrc);
-    len = AUX_LEN;
+    len = FOOTER_LEN;
   }
 
   if(CC2520_FIFOP_IS_1) {
@@ -790,11 +740,11 @@ cc2520_read(void *buf, unsigned short bufsize)
 
   RELEASE_LOCK();
 
-  if(len < AUX_LEN) {
+  if(len < FOOTER_LEN) {
     return 0;
   }
 
-  return len - AUX_LEN;
+  return len - FOOTER_LEN;
 }
 /*---------------------------------------------------------------------------*/
 void
