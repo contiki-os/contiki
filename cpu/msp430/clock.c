@@ -272,17 +272,9 @@ clock_init(void)
 void
 clock_delay(unsigned int i)
 {
-  asm("add #-1, r15");
-  asm("jnz $-2");
-  /*
-   * This means that delay(i) will delay the CPU for CONST + 3x
-   * cycles. On a 2.4756 CPU, this means that each i adds 1.22us of
-   * delay.
-   *
-   * do {
-   *   --i;
-   * } while(i > 0);
-   */
+  while(i--) {
+    asm("nop");
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
