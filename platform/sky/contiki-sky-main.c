@@ -32,14 +32,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "contiki.h"
-
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#include <signal.h>
-#endif
-
 #include "dev/cc2420.h"
 #include "dev/ds2411.h"
 #include "dev/leds.h"

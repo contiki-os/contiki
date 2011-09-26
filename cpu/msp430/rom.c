@@ -29,8 +29,6 @@
  * @(#)$Id: rom.c,v 1.2 2006/12/01 15:06:42 bg- Exp $
  */
 
-#include <io.h>
-
 #include "contiki.h"
 
 #include "dev/rom.h"

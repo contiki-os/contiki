@@ -25,6 +25,16 @@ ifdef WITH_CODEPROP
   WITH_UIP=1
 endif
 
+ifdef GCC
+CFLAGS+=-Os -g
+endif
+
+ifdef IAR
+CFLAGS+=-e --vla -Ohz --multiplier=16s --core=430 --double=32
+CFLAGSNO = --dlib_config "$(IAR_PATH)/LIB/DLIB/dl430fn.h" $(CFLAGSWERROR)
+endif
+
+
 ifdef WITH_UIP
   ifndef WITH_SLIP
     WITH_SLIP=1

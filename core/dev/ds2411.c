@@ -51,12 +51,6 @@
 #include <string.h>
 
 #include "contiki.h"
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#endif
-
 #include "dev/ds2411.h"
 
 unsigned char ds2411_id[8];

@@ -50,6 +50,7 @@
  *
  */
 
+#include "contiki.h"
 #include "contiki-esb.h"
 
 #include "dev/tr1001.h"
@@ -59,8 +60,6 @@
 #include "net/netstack.h"
 #include "net/rime/rimestats.h"
 
-#include <io.h>
-#include <signal.h>
 #include <string.h>
 
 #ifdef TR1001_CONF_BEEP_ON_BAD_CRC

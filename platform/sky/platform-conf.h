@@ -51,10 +51,6 @@
 #define PLATFORM_HAS_BUTTON 1
 
 #ifdef __IAR_SYSTEMS_ICC__
-#include <intrinsics.h>
-#include <in430.h>
-#define dint() __disable_interrupt()
-#define eint() __enable_interrupt()
 #define __MSP430F1611__ 1
 #define __MSP430__ 1
 #define CC_CONF_INLINE

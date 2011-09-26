@@ -31,13 +31,6 @@
 
 #include "contiki-conf.h"
 
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#endif
-
-
 /*
  * On the Tmote sky access to I2C/SPI/UART0 must always be
  * exclusive. Set spi_busy so that interrupt handlers can check if

@@ -40,15 +40,6 @@
 
 #include "contiki.h"
 
-#ifdef __GNUC__
-#include <io.h>
-#include <signal.h>
-#endif
-
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#endif
-
 #include "sys/energest.h"
 #include "sys/rtimer.h"
 #include "sys/process.h"

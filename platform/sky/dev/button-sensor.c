@@ -30,15 +30,10 @@
  *
  * @(#)$Id: button-sensor.c,v 1.4 2010/01/14 20:01:19 nifi Exp $
  */
+#include "contiki.h"
 #include "lib/sensors.h"
 #include "dev/hwconf.h"
 #include "dev/button-sensor.h"
-
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <signal.h>
-#endif
 
 const struct sensors_sensor button_sensor;
 

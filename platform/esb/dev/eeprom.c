@@ -78,8 +78,8 @@ scatterweb@lists.spline.inf.fu-berlin.de (subscription via the Website).
 Berlin, 2003/2004
 */
 
-#include <msp430x14x.h>
-#include <io.h>
+#include "contiki.h"
+/* #include <msp430x14x.h> */
 
 #include "dev/eeprom.h"
 

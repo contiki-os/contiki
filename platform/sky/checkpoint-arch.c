@@ -55,13 +55,6 @@
 #include "dev/button-sensor.h"
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
-
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#include <signal.h>
-#endif
 #include <stdio.h>
 
 #define DEBUG 0
