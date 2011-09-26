@@ -38,10 +38,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#include "contiki-conf.h"
+#include "contiki.h"
 #include "dev/leds.h"
-
-#include <io.h>
 
 /*---------------------------------------------------------------------------*/
 void

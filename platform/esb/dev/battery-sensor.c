@@ -36,8 +36,8 @@
  *           $Revision: 1.6 $
  */
 
+#include "contiki.h"
 #include "dev/battery-sensor.h"
-#include <io.h>
 #include "dev/irq.h"
 
 const struct sensors_sensor battery_sensor;

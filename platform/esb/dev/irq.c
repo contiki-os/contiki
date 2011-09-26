@@ -30,11 +30,10 @@
  *
  * @(#)$Id: irq.c,v 1.4 2010/01/14 17:39:35 nifi Exp $
  */
+#include "contiki.h"
 #include "lib/sensors.h"
 #include "dev/irq.h"
 #include "dev/lpm.h"
-#include <io.h>
-#include <signal.h>
 
 #define ADC12MCTL_NO(adcno) ((unsigned char *) ADC12MCTL0_)[adcno]
 

@@ -38,10 +38,7 @@
  * (820 bytes on a msp430).
  */
 
-#include <io.h>
-
 #include "contiki.h"
-
 #include "dev/leds.h"
 
 void

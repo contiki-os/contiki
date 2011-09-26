@@ -31,14 +31,6 @@
  * @(#)$Id: msp430.c,v 1.15 2011/01/05 13:36:38 joxe Exp $
  */
 #include "contiki.h"
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#include <signal.h>
-#include <sys/unistd.h>
-#define asmv(arg) __asm__ __volatile__(arg)
-#endif
 #include "dev/watchdog.h"
 #include "net/uip.h"
 
@@ -232,8 +224,8 @@ msp430_cpu_init(void)
 }
 /*---------------------------------------------------------------------------*/
 
-#
 #define STACK_EXTRA 32
+#define asmv(arg) __asm__ __volatile__(arg)
 
 /*
  * Allocate memory from the heap. Check that we don't collide with the

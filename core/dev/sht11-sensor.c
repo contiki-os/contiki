@@ -34,13 +34,6 @@
 #include <stdlib.h>
 
 #include "contiki.h"
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#include <signal.h>
-#endif
-
 #include "lib/sensors.h"
 #include "dev/sht11.h"
 #include "dev/sht11-sensor.h"

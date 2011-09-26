@@ -42,9 +42,7 @@
  * This file contains an RS232 device driver for the MSP430 microcontroller.
  *
  */
-
-#include <io.h>
-#include <signal.h>
+#include "contiki.h"
 #include <string.h>
 #include "dev/msb430-uart1.h"
 #include "rs232.h"
