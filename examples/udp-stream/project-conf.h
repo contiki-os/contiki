@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,54 +26,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
+ * $Id: project-conf.h,v 1.1 2010/10/28 13:11:08 simonduq Exp $
  */
 
-/**
- * \file
- *	Coffee architecture-dependent header for the Tmote Sky platform.
- * \author
- * 	Nicolas Tsiftes <nvt@sics.se>
- */
+#ifndef __PROJECT_H__
+#define __PROJECT_H__
 
-#ifndef CFS_COFFEE_ARCH_H
-#define CFS_COFFEE_ARCH_H
+/* Free some code and RAM space */
+#define UIP_CONF_TCP                    0
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU            12
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU          12
 
-#include "contiki-conf.h"
-#include "dev/xmem.h"
+/* The total number of queuebuf */
+#undef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM               140
+/* The number of queuebuf actually stored in RAM. If
+   not set or equal to the total number of queuebuf,
+   swapping is disabled, and CFS not linked. */
+#define QUEUEBUFRAM_CONF_NUM            2
 
-/* Coffee configuration parameters. */
-#define COFFEE_SECTOR_SIZE		65536UL
-#define COFFEE_PAGE_SIZE		256UL
-#define COFFEE_START			COFFEE_SECTOR_SIZE
-#define COFFEE_SIZE			(1024UL * 1024UL - COFFEE_START)
-#define COFFEE_NAME_LENGTH		16
-#define COFFEE_MAX_OPEN_FILES		6
-#define COFFEE_FD_SET_SIZE		8
-#define COFFEE_LOG_TABLE_LIMIT		256
-#ifdef COFFEE_CONF_DYN_SIZE
-#define COFFEE_DYN_SIZE			COFFEE_CONF_DYN_SIZE
-#else
-#define COFFEE_DYN_SIZE     4*1024
-#endif
-#define COFFEE_LOG_SIZE			1024
+/* Set a large (1 sector) default size for coffee files. */
+#define COFFEE_CONF_DYN_SIZE     (COFFEE_SECTOR_SIZE - COFFEE_PAGE_SIZE + 1)
 
-#define COFFEE_IO_SEMANTICS		1
-#define COFFEE_APPEND_ONLY		0
-#define COFFEE_MICRO_LOGS		1
-
-/* Flash operations. */
-#define COFFEE_WRITE(buf, size, offset)				\
-		xmem_pwrite((char *)(buf), (size), COFFEE_START + (offset))
-
-#define COFFEE_READ(buf, size, offset)				\
-  		xmem_pread((char *)(buf), (size), COFFEE_START + (offset))
-
-#define COFFEE_ERASE(sector)					\
-  		xmem_erase(COFFEE_SECTOR_SIZE, COFFEE_START + (sector) * COFFEE_SECTOR_SIZE)
-
-/* Coffee types. */
-typedef int16_t coffee_page_t;
-
-#endif /* !COFFEE_ARCH_H */
+#endif /* __PROJECT_H__ */
