@@ -422,7 +422,7 @@ handle_incoming_data(void)
 
   PRINTF("uip_datalen received %u \n",(u16_t)uip_datalen());
 
-  char* data = uip_appdata + uip_ext_len;
+  char* data = (char *)uip_appdata + uip_ext_len;
   u16_t datalen = uip_datalen() - uip_ext_len;
 
   int data_size = 0;
