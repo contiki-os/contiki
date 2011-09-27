@@ -45,6 +45,13 @@
 #include "contiki-conf.h"
 #include "net/mac/mac.h"
 
+/* List of packets to be sent by RDC layer */
+struct rdc_buf_list {
+  struct rdc_buf_list *next;
+  struct queuebuf *buf;
+  void *ptr;
+};
+
 /**
  * The structure of a RDC (radio duty cycling) driver in Contiki.
  */
@@ -56,6 +63,9 @@ struct rdc_driver {
 
   /** Send a packet from the Rime buffer  */
   void (* send)(mac_callback_t sent_callback, void *ptr);
+
+  /** Send a packet list */
+  void (* send_list)(mac_callback_t sent_callback, void *ptr, struct rdc_buf_list *list);
 
   /** Callback for getting notified of incoming packet. */
   void (* input)(void);
