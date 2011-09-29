@@ -41,6 +41,7 @@
 #include "net/mac/nullrdc-noframer.h"
 #include "net/packetbuf.h"
 #include "net/netstack.h"
+#include <string.h>
 
 /*---------------------------------------------------------------------------*/
 static void
