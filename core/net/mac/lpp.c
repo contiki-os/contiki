@@ -726,7 +726,7 @@ send_packet(mac_callback_t sent, void *ptr)
   }
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 {
   if(buf_list != NULL) {
