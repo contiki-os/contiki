@@ -548,7 +548,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
 #if WITH_PHASE_OPTIMIZATION
     ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                      CYCLE_TIME, GUARD_TIME,
-                     mac_callback, mac_callback_ptr, buf_list, 0);
+                     mac_callback, mac_callback_ptr, buf_list);
     if(ret == PHASE_DEFERRED) {
       return MAC_TX_DEFERRED;
     }
@@ -748,14 +748,8 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   }
   /* Do not send during reception of a burst */
   if(we_are_receiving_burst) {
-    queuebuf_to_packetbuf(curr->buf);
-    /* We try to defer, and return an error this wasn't possible */
-    int ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-        CYCLE_TIME, GUARD_TIME,
-        sent, ptr, curr, 2);
-    if(ret != PHASE_DEFERRED) {
-      mac_call_sent_callback(sent, ptr, MAC_TX_ERR, 1);
-    }
+    /* Return COLLISION so the MAC may try again later */
+    mac_call_sent_callback(sent, ptr, MAC_TX_COLLISION, 1);
     return;
   }
   /* The receiver needs to be awoken before we send */

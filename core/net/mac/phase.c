@@ -167,7 +167,7 @@ phase_wait(struct phase_list *list,
            const rimeaddr_t *neighbor, rtimer_clock_t cycle_time,
            rtimer_clock_t guard_time,
            mac_callback_t mac_callback, void *mac_callback_ptr,
-           struct rdc_buf_list *buf_list, int extra_deferment)
+           struct rdc_buf_list *buf_list)
 {
   struct phase *e;
   //  const rimeaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
@@ -176,7 +176,7 @@ phase_wait(struct phase_list *list,
      time for the next expected phase and setup a ctimer to switch on
      the radio just before the phase. */
   e = find_neighbor(list, neighbor);
-  if((e != NULL) | extra_deferment) {
+  if(e != NULL) {
     rtimer_clock_t wait, now, expected, sync;
     clock_time_t ctimewait;
     
@@ -202,14 +202,10 @@ phase_wait(struct phase_list *list,
     if(wait < guard_time) {
       wait += cycle_time;
     }
-    if(extra_deferment) {
-      wait += extra_deferment * cycle_time;
-    }
-
 
     ctimewait = (CLOCK_SECOND * (wait - guard_time)) / RTIMER_ARCH_SECOND;
 
-    if((ctimewait > PHASE_DEFER_THRESHOLD) | extra_deferment) {
+    if(ctimewait > PHASE_DEFER_THRESHOLD) {
       struct phase_queueitem *p;
       
       p = memb_alloc(&queued_packets_memb);
