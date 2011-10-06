@@ -49,19 +49,19 @@
 #define CC2520_CONF_AUTOACK 0
 #endif /* CC2520_CONF_AUTOACK */
 
-#define WITH_SEND_CCA 0
+#define WITH_SEND_CCA 1
 
 #define FOOTER_LEN 2
 
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
 
-#define DEBUG 1
-#if DEBUG
 #include <stdio.h>
+#define DEBUG 0
+#if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
-#define PRINTF(...)
+#define PRINTF(...) do {} while (0)
 #endif
 
 #if 0 && DEBUG
@@ -81,8 +81,6 @@ rtimer_clock_t cc2520_time_of_arrival, cc2520_time_of_departure;
 int cc2520_authority_level_of_sender;
 
 int cc2520_packets_seen, cc2520_packets_read;
-
-static uint8_t volatile pending;
 
 #define BUSYWAIT_UNTIL(cond, max_time)                                  \
   do {                                                                  \
@@ -132,7 +130,6 @@ const struct radio_driver cc2520_driver =
     pending_packet,
     cc2520_on,
     cc2520_off,
-
   };
 
 static uint8_t receive_on;
@@ -161,7 +158,8 @@ flushrx(void)
   CC2520_STROBE(CC2520_INS_SFLUSHRX);
 }
 /*---------------------------------------------------------------------------*/
-static void strobe(uint8_t regname)
+static void
+strobe(uint8_t regname)
 {
   CC2520_STROBE(regname);
 }
@@ -179,11 +177,12 @@ static uint8_t locked, lock_on, lock_off;
 static void
 on(void)
 {
-  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   CC2520_ENABLE_FIFOP_INT();
   strobe(CC2520_INS_SRXON);
-  //BUSYWAIT_UNTIL(status() & (BV(CC2520_XOSC16M_STABLE)), RTIMER_SECOND / 100);
 
+  BUSYWAIT_UNTIL(status() & (BV(CC2520_XOSC16M_STABLE)), RTIMER_SECOND / 100);
+
+  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   receive_on = 1;
 }
 static void
@@ -193,12 +192,11 @@ off(void)
   receive_on = 0;
 
   /* Wait for transmission to end before turning radio off. */
-  //BUSYWAIT_UNTIL(!(status() & BV(CC2520_TX_ACTIVE)), RTIMER_SECOND / 10);
-  //while(status() & BV(CC2520_TX_ACTIVE));
+  BUSYWAIT_UNTIL(!(status() & BV(CC2520_TX_ACTIVE)), RTIMER_SECOND / 10);
 
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   strobe(CC2520_INS_SRFOFF);
   CC2520_DISABLE_FIFOP_INT();
-  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 
   if(!CC2520_FIFOP_IS_1) {
     flushrx();
@@ -221,7 +219,7 @@ static void RELEASE_LOCK(void) {
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
-getreg(unsigned regname)
+getreg(uint16_t regname)
 {
   uint8_t reg;
   CC2520_READ_REG(regname, reg);
@@ -229,7 +227,7 @@ getreg(unsigned regname)
 }
 /*---------------------------------------------------------------------------*/
 static void
-setreg(unsigned regname, unsigned value)
+setreg(uint16_t regname, uint8_t value)
 {
   CC2520_WRITE_REG(regname, value);
 }
@@ -237,26 +235,19 @@ setreg(unsigned regname, unsigned value)
 static void
 set_txpower(uint8_t power)
 {
-  uint16_t reg;
-
-  reg = getreg(CC2520_TXCTRL);
-  reg = (reg & 0xffe0) | (power & 0x1f);
-  setreg(CC2520_TXCTRL, reg);
+  setreg(CC2520_TXPOWER, power);
 }
 /*---------------------------------------------------------------------------*/
-#define AUTOACK (1 << 4)
-#define ADR_DECODE (1 << 11)
-#define RXFIFO_PROTECTION (1 << 9)
+#define AUTOCRC (1 << 6)
+#define AUTOACK (1 << 5)
+#define FRAME_MAX_VERSION ((1 << 3) | (1 << 2))
+#define FRAME_FILTER_ENABLE (1 << 0)
 #define CORR_THR(n) (((n) & 0x1f) << 6)
 #define FIFOP_THR(n) ((n) & 0x7f)
-#define RXBPF_LOCUR (1 << 13);
 /*---------------------------------------------------------------------------*/
-int temp_data;
 int
 cc2520_init(void)
 {
-  unsigned  stat1;
-
   {
     int s = splhigh();
     cc2520_arch_init();		/* Initalize ports and SPI. */
@@ -264,22 +255,21 @@ cc2520_init(void)
     CC2520_FIFOP_INT_INIT();
     splx(s);
   }
-  /* Turn on voltage regulator and reset. */
+
   SET_VREG_INACTIVE();
   clock_delay(250);
+  /* Turn on voltage regulator and reset. */
   SET_VREG_ACTIVE();
   clock_delay(250);
   SET_RESET_ACTIVE();
   clock_delay(127);
   SET_RESET_INACTIVE();
   clock_delay(125);
-  strobe(CC2520_INS_SXOSCON); // Turn on the crystal oscillator.
+  /* Turn on the crystal oscillator. */
+  strobe(CC2520_INS_SXOSCON);
   clock_delay(125);
 
-  stat1 = status();
-  while(!(stat1 & 0x80)) {
-    stat1 = status();
-  }
+  BUSYWAIT_UNTIL(status() & (BV(CC2520_XOSC16M_STABLE)), RTIMER_SECOND / 100);
 
   /* Change default values as recommended in the data sheet, */
   /* correlation threshold = 20, RX bandpass filter = 1.3uA.*/
@@ -313,9 +303,6 @@ cc2520_init(void)
   setreg(CC2520_AGCCTRL1,    0x11);  // Adjust target value for AGC control loop
   setreg(CC2520_AGCCTRL2,    0xEB);
 
-  //  Disable filter on @ (remove if you want to address specific wismote)
-  setreg(CC2520_FRMFILT0,    0x00);
-
   //  Disable external clock
   setreg(CC2520_EXTCLOCK,    0x00);
 
@@ -324,12 +311,22 @@ cc2520_init(void)
   setreg(CC2520_ADCTEST1,    0x0E);
   setreg(CC2520_ADCTEST2,    0x03);
 
-  //  Set auto CRC on frame
-  setreg(CC2520_FRMCTRL0,    0x60);
-  setreg(CC2520_FIFOPCTRL,    0x0F);
+  /* Set auto CRC on frame. */
+#if CC2520_CONF_AUTOACK
+  setreg(CC2520_FRMCTRL0,    AUTOCRC | AUTOACK);
+  setreg(CC2520_FRMFILT0,    FRAME_MAX_VERSION|FRAME_FILTER_ENABLE);
+#else
+  /* setreg(CC2520_FRMCTRL0,    0x60); */
+  setreg(CC2520_FRMCTRL0,    AUTOCRC);
+  /* Disable filter on @ (remove if you want to address specific wismote) */
+  setreg(CC2520_FRMFILT0,    0x00);
+#endif /* CC2520_CONF_AUTOACK */
 
-  cc2520_set_pan_addr(0xbabe, 0x0000, NULL);
-  cc2520_set_channel(15);
+  /* Set FIFOP threshold to maximum .*/
+  setreg(CC2520_FIFOPCTRL,   FIFOP_THR(0x7F));
+
+  cc2520_set_pan_addr(0xffff, 0x0000, NULL);
+  cc2520_set_channel(26);
 
   flushrx();
 
@@ -340,12 +337,10 @@ cc2520_init(void)
 static int
 cc2520_transmit(unsigned short payload_len)
 {
-  uint16_t reg;
   int i, txpower;
+  uint8_t reg;
 
   GET_LOCK();
-
-  LEDS_ON(LEDS_RED);
 
   txpower = 0;
   if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
@@ -370,7 +365,7 @@ cc2520_transmit(unsigned short payload_len)
 
 #if WITH_SEND_CCA
   strobe(CC2520_INS_SRXON);
-  //BUSYWAIT_UNTIL(status() & BV(CC2520_TX_ACTIVE) , RTIMER_SECOND / 100);
+  BUSYWAIT_UNTIL(status() & BV(CC2520_RSSI_VALID) , RTIMER_SECOND / 10);
   strobe(CC2520_INS_STXONCCA);
 #else /* WITH_SEND_CCA */
   strobe(CC2520_INS_STXON);
@@ -401,7 +396,7 @@ cc2520_transmit(unsigned short payload_len)
       /* We wait until transmission has ended so that we get an
 	 accurate measurement of the transmission time.*/
      //BUSYWAIT_UNTIL(getreg(CC2520_EXCFLAG0) & TX_FRM_DONE , RTIMER_SECOND / 100);
-     //BUSYWAIT_UNTIL(!(status() & BV(CC2520_TX_ACTIVE)), RTIMER_SECOND / 10);
+      BUSYWAIT_UNTIL(!(status() & BV(CC2520_TX_ACTIVE)), RTIMER_SECOND / 10);
 
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
       ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,cc2520_get_txpower());
@@ -475,7 +470,6 @@ cc2520_prepare(const void *payload, unsigned short payload_len)
 static int
 cc2520_send(const void *payload, unsigned short payload_len)
 {
-
   cc2520_prepare(payload, payload_len);
   return cc2520_transmit(payload_len);
 }
@@ -491,7 +485,7 @@ cc2520_off(void)
   /* If we are called when the driver is locked, we indicate that the
      radio should be turned off when the lock is unlocked. */
   if(locked) {
-    /*    ("Off when locked (%d)\n", locked);*/
+    /*    printf("Off when locked (%d)\n", locked);*/
     lock_off = 1;
     return 1;
   }
@@ -543,20 +537,19 @@ cc2520_set_channel(int c)
    * Subtract the base channel (11), multiply by 5, which is the
    * channel spacing. 357 is 2405-2048 and 0x4000 is LOCK_THR = 1.
    */
-
   channel = c;
 
   f = MIN_CHANNEL + ((channel - MIN_CHANNEL) * CHANNEL_SPACING);
   /*
    * Writing RAM requires crystal oscillator to be stable.
    */
-  while(!(status() & (BV(CC2520_XOSC16M_STABLE))));
+  BUSYWAIT_UNTIL((status() & (BV(CC2520_XOSC16M_STABLE))), RTIMER_SECOND / 10);
 
   /* Wait for any transmission to end. */
-  while(status() & BV(CC2520_TX_ACTIVE));
+  BUSYWAIT_UNTIL(!(status() & BV(CC2520_TX_ACTIVE)), RTIMER_SECOND / 10);
 
-  //  Define radio channel (between 11 and 25)
-  setreg(CC2520_FREQCTRL, f );
+  /* Define radio channel (between 11 and 25) */
+  setreg(CC2520_FREQCTRL, f);
 
   /* If we are in receive mode, we issue an SRXON command to ensure
      that the VCO is calibrated. */
@@ -580,7 +573,7 @@ cc2520_set_pan_addr(unsigned pan,
   /*
    * Writing RAM requires crystal oscillator to be stable.
    */
-  //BUSYWAIT_UNTIL(status() & (BV(CC2520_XOSC16M_STABLE)), RTIMER_SECOND / 10);
+  BUSYWAIT_UNTIL(status() & (BV(CC2520_XOSC16M_STABLE)), RTIMER_SECOND / 10);
 
   tmp[0] = pan & 0xff;
   tmp[1] = pan >> 8;
@@ -590,15 +583,15 @@ cc2520_set_pan_addr(unsigned pan,
   tmp[0] = addr & 0xff;
   tmp[1] = addr >> 8;
   CC2520_WRITE_RAM(&tmp, CC2520RAM_SHORTADDR, 2);
-  /*
   if(ieee_addr != NULL) {
+    int f;
     uint8_t tmp_addr[8];
     // LSB first, MSB last for 802.15.4 addresses in CC2520
     for (f = 0; f < 8; f++) {
       tmp_addr[7 - f] = ieee_addr[f];
     }
     CC2520_WRITE_RAM(tmp_addr, CC2520RAM_IEEEADDR, 8);
-  }*/
+  }
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
@@ -621,7 +614,6 @@ cc2520_interrupt(void)
 #endif /* CC2520_TIMETABLE_PROFILING */
 
   last_packet_timestamp = cc2520_sfd_start_time;
-  pending++;
   cc2520_packets_seen++;
   return 1;
 }
@@ -644,11 +636,10 @@ PROCESS_THREAD(cc2520_process, ev, data)
     packetbuf_clear();
     packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, last_packet_timestamp);
     len = cc2520_read(packetbuf_dataptr(), PACKETBUF_SIZE);
-
     packetbuf_set_datalen(len);
 
     NETSTACK_RDC.input();
-    flushrx();
+    /* flushrx(); */
 #if CC2520_TIMETABLE_PROFILING
     TIMETABLE_TIMESTAMP(cc2520_timetable, "end");
     timetable_aggregate_compute_detailed(&aggregate_time,
@@ -666,18 +657,9 @@ cc2520_read(void *buf, unsigned short bufsize)
   uint8_t footer[2];
   uint8_t len;
 
-  if((!CC2520_FIFOP_IS_1) & !(getreg(CC2520_EXCFLAG1) & RX_FRM_DONE)) {
+  if(!CC2520_FIFOP_IS_1) {
     return 0;
   }
-  LEDS_ON(LEDS_GREEN); // TODO LED FLASH for the debug on reception
-
-  //BUSYWAIT_UNTIL(	 (status() & BV(CC2520_RX_ACTIVE))	 , RTIMER_SECOND / 100);
-  //BUSYWAIT_UNTIL(getreg(CC2520_EXCFLAG1) & RX_FRM_DONE , RTIMER_SECOND / 100);
-  /*  if(!pending) {
-    return 0;
-    }*/
-
-  pending = 0;
 
   GET_LOCK();
 
@@ -708,7 +690,6 @@ cc2520_read(void *buf, unsigned short bufsize)
   }
 
   getrxdata(buf, len - FOOTER_LEN);
-
   getrxdata(footer, FOOTER_LEN);
 
   if(footer[1] & FOOTER1_CRC_OK) {
@@ -758,9 +739,9 @@ cc2520_set_txpower(uint8_t power)
 int
 cc2520_get_txpower(void)
 {
-  int power;
+  uint8_t power;
   GET_LOCK();
-  power = (int)(getreg(CC2520_TXCTRL) & 0x001f);
+  power = getreg(CC2520_TXPOWER);
   RELEASE_LOCK();
   return power;
 }
@@ -781,7 +762,7 @@ cc2520_rssi(void)
     radio_was_off = 1;
     cc2520_on();
   }
-  //BUSYWAIT_UNTIL(status() & BV(CC2520_RSSI_VALID), RTIMER_SECOND / 100);
+  BUSYWAIT_UNTIL(status() & BV(CC2520_RSSI_VALID), RTIMER_SECOND / 100);
 
   rssi = (int)((signed char)getreg(CC2520_RSSI));
 
@@ -842,7 +823,7 @@ cc2520_cca(void)
     return 1;
   }
 
-  //BUSYWAIT_UNTIL(status() & BV(CC2520_RSSI_VALID), RTIMER_SECOND / 100);
+  BUSYWAIT_UNTIL(status() & BV(CC2520_RSSI_VALID), RTIMER_SECOND / 100);
 
   cca = CC2520_CCA_IS_1;
 
@@ -868,9 +849,8 @@ pending_packet(void)
 void
 cc2520_set_cca_threshold(int value)
 {
-  uint16_t shifted = value << 8;
   GET_LOCK();
-  setreg(CC2520_RSSI, shifted);
+  setreg(CC2520_CCACTRL0, value & 0xff);
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/

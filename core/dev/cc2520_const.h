@@ -51,9 +51,10 @@ enum cc2520_status_byte {
   CC2520_RX_ACTIVE	= 0,
 
 };
-#define TX_FRM_DONE 0x02
-#define RX_FRM_DONE 0x01
-#define RX_FRM_ABORTED 0x20
+#define TX_FRM_DONE      0x02
+#define RX_FRM_DONE      0x01
+#define RX_FRM_ABORTED   0x20
+#define RX_FRM_UNDERFLOW 0x20
 
 /* Page 27. */
 enum cc2520_memory_size {
