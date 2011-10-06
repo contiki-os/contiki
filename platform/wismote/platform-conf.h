@@ -39,8 +39,6 @@
  * Definitions below are dictated by the hardware and not really
  * changeable!
  */
-/* Platform WISMOTE */
-#define WISMOTE 1
 
 #define PLATFORM_HAS_LEDS   1
 #define PLATFORM_HAS_BUTTON 1
@@ -52,7 +50,7 @@
 #define CLOCK_CONF_SECOND 128UL
 #define RTIMER_CONF_SECOND (4096U*8)
 
-#define BAUD2UBR(baud) ((F_CPU/baud))
+#define BAUD2UBR(baud) (baud)
 
 #define CCIF
 #define CLIF
@@ -96,16 +94,25 @@ typedef unsigned long off_t;
 #define SPI_RXBUF UCB0RXBUF
 
                                 /* USART0 Tx ready? */
-#define SPI_WAITFOREOTx() while (!(UCB0IFG & UCRXIFG))
+#define SPI_WAITFOREOTx() while ((UCB0STAT & UCBUSY) != 0)
                                 /* USART0 Rx ready? */
-#define SPI_WAITFOREORx() while (!(UCB0IFG & UCRXIFG))
+#define SPI_WAITFOREORx() while ((UCB0IFG & UCRXIFG) == 0)
                                 /* USART0 Tx buffer ready? */
-#define SPI_WAITFORTxREADY() while (!(UCB0IFG & UCRXIFG))
-#define SPI_BUSY_WAIT() 		while ((UCB0STAT & UCBUSY) == 1)
+#define SPI_WAITFORTxREADY() while ((UCB0IFG & UCTXIFG) == 0)
+/*                                 /\* USART0 Tx ready? *\/ */
+/* #define SPI_WAITFOREOTx() while (!(UCB0IFG & UCRXIFG)) */
+/*                                 /\* USART0 Rx ready? *\/ */
+/* #define SPI_WAITFOREORx() while (!(UCB0IFG & UCRXIFG)) */
+/*                                 /\* USART0 Tx buffer ready? *\/ */
+/* #define SPI_WAITFORTxREADY() while (!(UCB0IFG & UCRXIFG)) */
+/* #define SPI_BUSY_WAIT() 		while ((UCB0STAT & UCBUSY) == 1) */
 
-#define SCK            1  /* P3.1 - Output: SPI Serial Clock (SCLK) */
-#define MOSI           2  /* P3.2 - Output: SPI Master out - slave in (MOSI) */
-#define MISO           3  /* P3.3 - Input:  SPI Master in - slave out (MISO) */
+#define MOSI           1  /* P3.1 - Output: SPI Master out - slave in (MOSI) */
+#define MISO           2  /* P3.2 - Input:  SPI Master in - slave out (MISO) */
+#define SCK            3  /* P3.3 - Output: SPI Serial Clock (SCLK) */
+/* #define SCK            1  /\* P3.1 - Output: SPI Serial Clock (SCLK) *\/ */
+/* #define MOSI           2  /\* P3.2 - Output: SPI Master out - slave in (MOSI) *\/ */
+/* #define MISO           3  /\* P3.3 - Input:  SPI Master in - slave out (MISO) *\/ */
 
 /*
  * SPI bus - M25P80 external flash configuration.

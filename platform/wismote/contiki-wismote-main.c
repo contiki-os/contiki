@@ -205,10 +205,10 @@ main(int argc, char **argv)
 
   leds_on(LEDS_ALL);
 
-  uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
+  uart1_init(115200); /* Must come before first printf */
 
 #if WITH_UIP
-  slip_arch_init(BAUD2UBR(115200));
+  slip_arch_init(115200);
 #endif /* WITH_UIP */
 
   //ds2411_init();
