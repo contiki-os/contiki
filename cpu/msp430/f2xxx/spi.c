@@ -25,8 +25,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * @(#)$Id: spix.c,v 1.1 2010/08/24 16:23:20 joxe Exp $
  */
 
 #include "contiki.h"
@@ -43,12 +41,7 @@ unsigned char spi_busy = 0;
 void
 spi_init(void)
 {
-  //static unsigned char spi_inited = 0;
-
-  //if (spi_inited)
-    //return;
-
-  // Initalize ports for communication with SPI units.
+  // Initialize ports for communication with SPI units.
 
   UCB0CTL1 |=  UCSWRST;                //reset usci
   UCB0CTL1 |=  UCSSEL_2;               //smclk while usci is reset

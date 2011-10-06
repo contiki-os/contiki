@@ -92,11 +92,7 @@ handle_rxdma_timer(void *ptr)
 uint8_t
 uart1_active(void)
 {
-#if CONTIKI_TARGET_WISMOTE
-  return rx_in_progress | transmitting;
-#else
   return ((~ UTCTL1) & TXEPT) | rx_in_progress | transmitting;
-#endif
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -126,21 +122,16 @@ uart1_writeb(unsigned char c)
 
     /* Loop until the transmission buffer is available. */
     /*while((IFG2 & UTXIFG1) == 0);*/
-    UCA1TXBUF = ringbuf_get(&txbuf);
+    TXBUF1 = ringbuf_get(&txbuf);
   }
 
 #else /* TX_WITH_INTERRUPT */
 
-#if CONTIKI_TARGET_WISMOTE
-  while(!(UCA1IFG & UCTXIFG)); // USCI_A1 TX buffer ready?
-  UCA1TXBUF = c;
-#else
   /* Loop until the transmission buffer is available. */
   while((IFG2 & UTXIFG1) == 0);
 
   /* Transmit the data. */
   TXBUF1 = c;
-#endif
 #endif /* TX_WITH_INTERRUPT */
 }
 /*---------------------------------------------------------------------------*/
@@ -151,35 +142,6 @@ uart1_writeb(unsigned char c)
 void
 uart1_init(unsigned long ubr)
 {
-#if CONTIKI_TARGET_WISMOTE
-  P4DIR |= BIT5;
-  P4OUT |= BIT5 ;
-  P5SEL |= BIT6|BIT7;  // P5.6,7 = USCI_A1 TXD/RXD
-
-  P4SEL |= BIT7;
-  P4DIR |= BIT7;
-
-  UCA1CTL1 |= UCSWRST;                      // **Put state machine in reset**
-  UCA1CTL1 |= UCSSEL_2;                     // SMCLK
-  UCA1BR0 = 139;//69;                             // Baudrate 57600 (see User's Guide)
-  UCA1BR1 = 0;                              //
-  UCA1MCTL |= UCBRS_2 + UCBRF_0;            // Modulation UCBRFx=0
-  UCA1CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
-
-  UCA1IE |= UCRXIE;
-  UCA1IFG &= ~UCRXIFG;
-  //UCA1IFG &= ~UCTXIFG;
-
-  // UCA1TCTL1 |= URXSE;
-
-  rx_in_progress = 0;
-  transmitting = 0;
-#if TX_WITH_INTERRUPT
-  ringbuf_init(&txbuf, txbuf_data, sizeof(txbuf_data));
-  UCA1IE |= UCTXIE;
-  //UCA1IFG &= ~UCTXIFG;
-#endif /* TX_WITH_INTERRUPT */
-#else
   /* RS232 */
   P3DIR &= ~0x80;			/* Select P37 for input (UART1RX) */
   P3DIR |= 0x40;			/* Select P36 for output (UART1TX) */
@@ -271,53 +233,8 @@ uart1_init(unsigned long ubr)
 
   msp430_add_lpm_req(MSP430_REQUIRE_LPM1);
 #endif /* RX_WITH_DMA */
-
-#endif
 }
-
-
 /*---------------------------------------------------------------------------*/
-#if CONTIKI_TARGET_WISMOTE
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=USCI_A1_VECTOR
-__interrupt void
-#else
-interrupt(USCI_A1_VECTOR)
-#endif
-uart1_rx_interrupt(void)
-{
-  uint8_t c;
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  if(UCRXIFG & UCA1IFG) {
-    rx_in_progress = 0;
-    // Check status register for receive errors.
-    if(UCA1STAT & UCRXERR) {
-      c = UCA1RXBUF;   // Clear error flags by forcing a dummy read.
-    } else {
-      c = UCA1RXBUF;
-      if(uart1_input_handler != NULL) {
-        if(uart1_input_handler(c)) {
-          LPM4_EXIT;
-        }
-      }
-    }
-    UCA1IFG &= ~UCRXIFG;
-  }
-#if TX_WITH_INTERRUPT
-  if(UCTXIFG & UCA1IFG) {
-    if(ringbuf_elements(&txbuf) == 0) {
-      transmitting = 0;
-    } else {
-      UCA1TXBUF = ringbuf_get(&txbuf);
-    }
-    UCA1IFG &= ~UCTXIFG;
-  }
-#endif
-  //UCA1IFG &= 0x00;
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-#else
 #if !RX_WITH_DMA
 #ifdef __IAR_SYSTEMS_ICC__
 #pragma vector=UART1RX_VECTOR
@@ -375,5 +292,4 @@ uart1_tx_interrupt(void)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 #endif /* TX_WITH_INTERRUPT */
-#endif
 /*---------------------------------------------------------------------------*/
