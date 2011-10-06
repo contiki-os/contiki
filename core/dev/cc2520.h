@@ -106,7 +106,7 @@ void cc2520_set_cca_threshold(int value);
     CC2520_SPI_ENABLE();                                                \
     SPI_WRITE_FAST(CC2520_INS_MEMWR | ((adr>>8)&0xFF));                 \
     SPI_WRITE_FAST(adr & 0xff);                                         \
-    SPI_WRITE_FAST((u8_t) data);                                        \
+    SPI_WRITE_FAST((uint8_t) data);                                     \
     SPI_WAITFORTx_ENDED();                                              \
     CC2520_SPI_DISABLE();                                               \
   } while(0)
@@ -119,7 +119,6 @@ void cc2520_set_cca_threshold(int value);
     SPI_WRITE((CC2520_INS_MEMRD | ((adr>>8)&0xFF)));                    \
     SPI_WRITE((adr & 0xFF));                                            \
     SPI_READ(data);                                                     \
-    data = SPI_RXBUF;                                                   \
     CC2520_SPI_DISABLE();                                               \
   } while(0)
 
