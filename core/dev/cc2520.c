@@ -321,7 +321,8 @@ cc2520_init(void)
   /* Disable filter on @ (remove if you want to address specific wismote) */
   setreg(CC2520_FRMFILT0,    0x00);
 #endif /* CC2520_CONF_AUTOACK */
-
+  /* SET_RXENMASK_ON_TX */
+  setreg(CC2520_FRMCTRL1,          1);
   /* Set FIFOP threshold to maximum .*/
   setreg(CC2520_FIFOPCTRL,   FIFOP_THR(0x7F));
 
@@ -338,7 +339,6 @@ static int
 cc2520_transmit(unsigned short payload_len)
 {
   int i, txpower;
-  uint8_t reg;
 
   GET_LOCK();
 
@@ -415,14 +415,9 @@ cc2520_transmit(unsigned short payload_len)
         set_txpower(txpower & 0xff);
       }
 
-      reg = getreg(CC2520_EXCFLAG0);
       RELEASE_LOCK();
 
-      if (reg & TX_FRM_DONE) {
-        return RADIO_TX_OK;
-      } else {
-        return RADIO_TX_COLLISION;
-      }
+      return RADIO_TX_OK;
     }
   }
 
