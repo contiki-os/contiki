@@ -169,7 +169,7 @@ handle_incoming_data(void)
                     PRINTF("handle_incoming_data(): block_offset >= response->payload_len\n");
 
                     response->code = BAD_OPTION_4_02;
-                    coap_set_payload(response, (uint8_t*)"Block out of scope", 18);
+                    coap_set_payload(response, (uint8_t*)"BlockOutOfScope", 15);
                   }
                   else
                   {
@@ -308,55 +308,82 @@ RESOURCE(well_known_core, METHOD_GET, ".well-known/core", "");
 void
 well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  /* Response might be NULL for non-confirmable requests. */
-  if (response)
-  {
     size_t strpos = 0;
     size_t bufpos = 0;
+    size_t tmplen = 0;
     resource_t* resource = NULL;
 
     for (resource = (resource_t*)list_head(rest_get_resources()); resource; resource = resource->next)
     {
-      strpos += snprintf((char *) buffer + bufpos, REST_MAX_CHUNK_SIZE - bufpos + 1,
-                         "</%s>%s%s%s",
-                         resource->url,
-                         resource->attributes[0] ? ";" : "",
-                         resource->attributes,
-                         resource->next ? "," : "" );
+      PRINTF("res: /%s (%p)\n", resource->url, resource);
 
-      PRINTF("discover: %s\n", resource->url);
-
-      if (strpos <= *offset)
+      if (strpos >= *offset && bufpos < preferred_size)
       {
-        /* Discard output before current block */
-        PRINTF("  if %d <= %ld B\n", strpos, *offset);
-        PRINTF("  %s\n", buffer);
-        bufpos = 0;
+        buffer[bufpos++] = '<';
       }
-      else /* (strpos > *offset) */
+      ++strpos;
+
+      if (strpos >= *offset && bufpos < preferred_size)
       {
-        /* output partly in block */
-        size_t len = MIN(strpos - *offset, preferred_size);
+        buffer[bufpos++] = '/';
+      }
+      ++strpos;
 
-        PRINTF("  el %d/%d @ %ld B\n", len, preferred_size, *offset);
+      tmplen = strlen(resource->url);
+      if (strpos+tmplen > *offset)
+      {
+        bufpos += snprintf((char *) buffer + bufpos, preferred_size - bufpos + 1,
+                         "%s", resource->url + (*offset-strpos > 0 ? *offset-strpos : 0));
+      }
+      strpos += tmplen;
 
-        /* Block might start in the middle of the output; align with buffer start. */
-        if (bufpos == 0)
+      if (strpos >= *offset && bufpos < preferred_size)
+      {
+        buffer[bufpos++] = '>';
+      }
+      ++strpos;
+
+      if (resource->attributes[0])
+      {
+        if (strpos >= *offset && bufpos < preferred_size)
         {
-          memmove(buffer, buffer+strlen((char *)buffer)-strpos+*offset, len);
+          buffer[bufpos++] = ';';
         }
+        ++strpos;
 
-        bufpos = len;
-        PRINTF("  %s\n", buffer);
-
-        if (bufpos >= preferred_size)
+        tmplen = strlen(resource->attributes);
+        if (strpos+tmplen > *offset)
         {
-          break;
+          bufpos += snprintf((char *) buffer + bufpos, preferred_size - bufpos + 1,
+                         "%s", resource->attributes + (*offset-strpos > 0 ? *offset-strpos : 0));
         }
+        strpos += tmplen;
+
+      }
+
+      if (resource->next)
+      {
+        if (strpos >= *offset && bufpos < preferred_size)
+        {
+          buffer[bufpos++] = ',';
+        }
+        if (bufpos <= preferred_size)
+        {
+          ++strpos;
+        }
+      }
+
+      /* buffer full, but resource not completed yet; or: do not break if resource exactly fills buffer. */
+      if (bufpos >= preferred_size && strpos-bufpos > *offset)
+      {
+        PRINTF("res: BREAK at %s (%p)\n", resource->url, resource);
+        break;
       }
     }
 
     if (bufpos>0) {
+      PRINTF("BUF %d: %.*s\n", bufpos, bufpos, (char *) buffer);
+
       coap_set_payload(response, buffer, bufpos );
       coap_set_header_content_type(response, APPLICATION_LINK_FORMAT);
     }
@@ -365,17 +392,18 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
       PRINTF("well_known_core_handler(): bufpos<=0\n");
 
       coap_set_rest_status(response, BAD_OPTION_4_02);
-      coap_set_payload(response, (uint8_t*)"Block out of scope", 18);
+      coap_set_payload(response, (uint8_t*)"BlockOutOfScope", 15);
     }
 
     if (resource==NULL) {
+      PRINTF("res: DONE\n");
       *offset = -1;
     }
     else
     {
+      PRINTF("res: MORE at %s (%p)\n", resource->url, resource);
       *offset += bufpos;
     }
-  }
 }
 /*-----------------------------------------------------------------------------------*/
 PROCESS_THREAD(coap_receiver, ev, data)
