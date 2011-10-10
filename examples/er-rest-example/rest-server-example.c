@@ -301,11 +301,19 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
   }
 
   /* Generate data until reaching CHUNKS_TOTAL. */
-  while (strpos<REST_MAX_CHUNK_SIZE) {
-    strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "|%ld|", *offset);
+  while (strpos<preferred_size)
+  {
+    strpos += snprintf((char *)buffer+strpos, preferred_size-strpos+1, "|%ld|", *offset);
   }
-  /* Truncate if above. */
-  if (*offset+strpos > CHUNKS_TOTAL)
+
+  /* snprintf() does not adjust return value if truncated by size. */
+  if (strpos > preferred_size)
+  {
+    strpos = preferred_size;
+  }
+
+  /* Truncate if above total size. */
+  if (*offset+(int32_t)strpos > CHUNKS_TOTAL)
   {
     strpos = CHUNKS_TOTAL - *offset;
   }
@@ -315,7 +323,7 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
   /* IMPORTANT for chunk-wise resources: Signal chunk awareness to REST engine. */
   *offset += strpos;
 
-  /* Signal end of resource. */
+  /* Signal end of resource representation. */
   if (*offset>=CHUNKS_TOTAL)
   {
     *offset = -1;
