@@ -47,9 +47,9 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>skyweb</identifier>
       <description>Rest</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/rest-example/rest-server-example.c</source>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/er-rest-example/rest-server-example.c</source>
       <commands EXPORT="discard">make rest-server-example.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rest-example/rest-server-example.sky</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/er-rest-example/rest-server-example.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -98,7 +98,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>259</width>
-    <z>1</z>
+    <z>5</z>
     <height>179</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -115,21 +115,22 @@
       <viewport>7.9849281638410705 0.0 0.0 7.9849281638410705 -133.27812697619663 -225.04752569190535</viewport>
     </plugin_config>
     <width>300</width>
-    <z>0</z>
+    <z>4</z>
     <height>175</height>
-    <location_x>371</location_x>
-    <location_y>2</location_y>
+    <location_x>263</location_x>
+    <location_y>3</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
+      <coloring />
     </plugin_config>
-    <width>762</width>
-    <z>3</z>
+    <width>560</width>
+    <z>1</z>
     <height>326</height>
-    <location_x>12</location_x>
-    <location_y>294</location_y>
+    <location_x>1</location_x>
+    <location_y>293</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.RadioLogger
@@ -148,10 +149,10 @@
     SerialSocketServer
     <mote_arg>0</mote_arg>
     <width>422</width>
-    <z>5</z>
+    <z>2</z>
     <height>74</height>
-    <location_x>1234</location_x>
-    <location_y>93</location_y>
+    <location_x>39</location_x>
+    <location_y>199</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.TimeLine
@@ -166,10 +167,10 @@
       <zoomfactor>25.49079397896416</zoomfactor>
     </plugin_config>
     <width>1624</width>
-    <z>4</z>
+    <z>3</z>
     <height>252</height>
-    <location_x>166</location_x>
-    <location_y>699</location_y>
+    <location_x>4</location_x>
+    <location_y>622</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.MoteInterfaceViewer
@@ -178,11 +179,11 @@
       <interface>Serial port</interface>
       <scrollpos>0,0</scrollpos>
     </plugin_config>
-    <width>662</width>
-    <z>2</z>
-    <height>362</height>
-    <location_x>7</location_x>
-    <location_y>221</location_y>
+    <width>702</width>
+    <z>0</z>
+    <height>646</height>
+    <location_x>564</location_x>
+    <location_y>2</location_y>
   </plugin>
 </simconf>
 

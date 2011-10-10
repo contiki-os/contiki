@@ -34,9 +34,11 @@
 
 #define SICSLOWPAN_CONF_FRAG	1
 
-#ifndef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM       6
-#endif
+/* Save some memory for the sky platform */
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     10
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   10
 
 /* Increase rpl-border-router IP-buffer when using 128 */
 #ifndef REST_MAX_CHUNK_SIZE
@@ -45,7 +47,7 @@
 
 /* Decrease to 2 if no space left for stack when using 128-byte chunks */
 #ifndef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS   4 
+#define COAP_MAX_OPEN_TRANSACTIONS   4
 #endif
 
 /* Must be <= open transaction number */
@@ -61,5 +63,7 @@
 #ifndef WEBSERVER_CONF_CFS_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 2
 #endif
+
+
 
 #endif /* __PROJECT_RPL_WEB_CONF_H__ */
