@@ -699,7 +699,7 @@ qsend_packet(mac_callback_t sent, void *ptr)
   mac_call_sent_callback(sent, ptr, ret, 1);
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 {
   if(buf_list != NULL) {
