@@ -44,7 +44,7 @@
 
 #include "er-coap-07-engine.h"
 
-#define DEBUG 0
+#define DEBUG 0 
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
@@ -315,7 +315,7 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
 
     for (resource = (resource_t*)list_head(rest_get_resources()); resource; resource = resource->next)
     {
-      PRINTF("res: /%s (%p)\n", resource->url, resource);
+      PRINTF("res: /%s (%p)\npos: s%d, o%d, b%d\n", resource->url, resource, strpos, *offset, bufpos);
 
       if (strpos >= *offset && bufpos < preferred_size)
       {
@@ -333,7 +333,8 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
       if (strpos+tmplen > *offset)
       {
         bufpos += snprintf((char *) buffer + bufpos, preferred_size - bufpos + 1,
-                         "%s", resource->url + (*offset-strpos > 0 ? *offset-strpos : 0));
+                         "%s", resource->url + ((*offset-(int32_t)strpos > 0) ? (*offset-(int32_t)strpos) : 0));
+                                                          /* minimal-net requires these casts */
       }
       strpos += tmplen;
 
@@ -355,10 +356,9 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
         if (strpos+tmplen > *offset)
         {
           bufpos += snprintf((char *) buffer + bufpos, preferred_size - bufpos + 1,
-                         "%s", resource->attributes + (*offset-strpos > 0 ? *offset-strpos : 0));
+                         "%s", resource->attributes + (*offset-(int32_t)strpos > 0 ? *offset-(int32_t)strpos : 0));
         }
         strpos += tmplen;
-
       }
 
       if (resource->next)
@@ -367,10 +367,7 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
         {
           buffer[bufpos++] = ',';
         }
-        if (bufpos <= preferred_size)
-        {
-          ++strpos;
-        }
+        ++strpos;
       }
 
       /* buffer full, but resource not completed yet; or: do not break if resource exactly fills buffer. */
