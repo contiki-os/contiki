@@ -41,6 +41,7 @@
 
 #include "net/mac/nullrdc.h"
 #include "net/packetbuf.h"
+#include "net/queuebuf.h"
 #include "net/netstack.h"
 #include <string.h>
 
