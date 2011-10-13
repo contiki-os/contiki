@@ -159,6 +159,7 @@ void uip_log(char *msg);
 #define UIP_IP_BUF          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_UDP_BUF          ((struct uip_udp_hdr *)&uip_buf[UIP_LLIPH_LEN])
 #define UIP_TCP_BUF          ((struct uip_tcp_hdr *)&uip_buf[UIP_LLIPH_LEN])
+#define UIP_ICMP_BUF          ((struct uip_icmp_hdr *)&uip_buf[UIP_LLIPH_LEN])
 /** @} */
 
 
@@ -257,6 +258,52 @@ static struct timer reass_timer;
 #define sicslowpan_buf uip_buf
 #define sicslowpan_len uip_len
 #endif /* SICSLOWPAN_CONF_FRAG */
+
+/*-------------------------------------------------------------------------*/
+/* Rime Sniffer support for one single listener to enable powertrace of IP */
+/*-------------------------------------------------------------------------*/
+static struct rime_sniffer *callback = NULL;
+
+void
+rime_sniffer_add(struct rime_sniffer *s) {
+  callback = s;
+}
+
+void
+rime_sniffer_remove(struct rime_sniffer *s) {
+  callback = NULL;
+}
+
+static void
+set_packet_attrs() {
+  int c = 0;
+  /* set protocol in NETWORK_ID */
+  packetbuf_set_attr(PACKETBUF_ATTR_NETWORK_ID, UIP_IP_BUF->proto);
+
+  /* assign values to the channel attribute (port or type + code) */
+  if(UIP_IP_BUF->proto == UIP_PROTO_UDP) {
+    c = UIP_UDP_BUF->srcport;
+    if(UIP_UDP_BUF->destport < c) {
+      c = UIP_UDP_BUF->destport;
+    }
+  } else if(UIP_IP_BUF->proto == UIP_PROTO_TCP) {
+    c = UIP_TCP_BUF->srcport;
+    if(UIP_TCP_BUF->destport < c) {
+      c = UIP_TCP_BUF->destport;
+    }
+  } else if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6) {
+    c = UIP_ICMP_BUF->type << 8 | UIP_ICMP_BUF->icode;
+  }
+
+  packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, c);
+
+/*   if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)) { */
+/*     own = 1; */
+/*   } */
+
+}
+
+
 
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
 /** \name HC06 specific variables
@@ -1301,6 +1348,11 @@ output(uip_lladdr_t *localdest)
   /* The MAC address of the destination of the packet */
   rimeaddr_t dest;
 
+  if (callback) {
+    set_packet_attrs();
+    callback->output_callback(0);
+  }
+
   /* init */
   uncomp_hdr_len = 0;
   rime_hdr_len = 0;
@@ -1685,6 +1737,12 @@ input(void)
 #if SICSLOWPAN_CONF_NEIGHBOR_INFO
     neighbor_info_packet_received();
 #endif /* SICSLOWPAN_CONF_NEIGHBOR_INFO */
+
+    /* if callback is set then set attributes and call */
+    if (callback) {
+      set_packet_attrs();
+      callback->input_callback();
+    }
 
     tcpip_input();
 #if SICSLOWPAN_CONF_FRAG
