@@ -355,9 +355,10 @@ rpl_select_parent(rpl_dag_t *dag)
   }
 
   if(dag->preferred_parent != best) {
-    PRINTF("RPL: Sending a No-Path DAO to old DAO parent\n");
-    dao_output(dag->preferred_parent, ZERO_LIFETIME);
-
+    if(dag->mop != RPL_MOP_NO_DOWNWARD_ROUTES) {
+      PRINTF("RPL: Sending a No-Path DAO to old DAO parent\n");
+      dao_output(dag->preferred_parent, ZERO_LIFETIME);
+    }
     dag->preferred_parent = best; /* Cache the value. */
     dag->of->update_metric_container(dag);
     rpl_set_default_route(dag, &best->addr);
@@ -378,7 +379,9 @@ rpl_select_parent(rpl_dag_t *dag)
     dag->min_rank = dag->rank;
   } else if(!acceptable_rank(dag, best->rank)) {
     /* Send a No-Path DAO to the soon-to-be-removed preferred parent. */
-    dao_output(best, ZERO_LIFETIME);
+    if(dag->mop != RPL_MOP_NO_DOWNWARD_ROUTES) {
+      dao_output(best, ZERO_LIFETIME);
+    }
 
     remove_parents(dag, 0);
     return NULL;
