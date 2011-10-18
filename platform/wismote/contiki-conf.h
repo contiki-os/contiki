@@ -31,6 +31,7 @@
 #define CC2520_CONF_AUTOACK              1
 #endif /* CC2520_CONF_AUTOACK */
 
+#define NULLRDC_CONF_802154_AUTOACK      1
 
 #if WITH_UIP6
 /* Network setup for IPv6 */
