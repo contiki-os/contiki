@@ -265,17 +265,20 @@ static struct timer reass_timer;
 static struct rime_sniffer *callback = NULL;
 
 void
-rime_sniffer_add(struct rime_sniffer *s) {
+rime_sniffer_add(struct rime_sniffer *s)
+{
   callback = s;
 }
 
 void
-rime_sniffer_remove(struct rime_sniffer *s) {
+rime_sniffer_remove(struct rime_sniffer *s)
+{
   callback = NULL;
 }
 
 static void
-set_packet_attrs() {
+set_packet_attrs()
+{
   int c = 0;
   /* set protocol in NETWORK_ID */
   packetbuf_set_attr(PACKETBUF_ATTR_NETWORK_ID, UIP_IP_BUF->proto);
@@ -1303,6 +1306,9 @@ packet_sent(void *ptr, int status, int transmissions)
 #if SICSLOWPAN_CONF_NEIGHBOR_INFO
   neighbor_info_packet_sent(status, transmissions);
 #endif /* SICSLOWPAN_CONF_NEIGHBOR_INFO */
+  if(callback != NULL) {
+    callback->output_callback(status);
+  }
 }
 /*--------------------------------------------------------------------*/
 /**
@@ -1348,11 +1354,6 @@ output(uip_lladdr_t *localdest)
   /* The MAC address of the destination of the packet */
   rimeaddr_t dest;
 
-  if (callback) {
-    set_packet_attrs();
-    callback->output_callback(0);
-  }
-
   /* init */
   uncomp_hdr_len = 0;
   rime_hdr_len = 0;
@@ -1363,6 +1364,12 @@ output(uip_lladdr_t *localdest)
 
   packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
                      SICSLOWPAN_MAX_MAC_TRANSMISSIONS);
+
+  if(callback) {
+    /* call the attribution when the callback comes, but set attributes
+       here ! */
+    set_packet_attrs();
+  }
 
 #define TCP_FIN 0x01
 #define TCP_ACK 0x10
@@ -1739,7 +1746,7 @@ input(void)
 #endif /* SICSLOWPAN_CONF_NEIGHBOR_INFO */
 
     /* if callback is set then set attributes and call */
-    if (callback) {
+    if(callback) {
       set_packet_attrs();
       callback->input_callback();
     }
