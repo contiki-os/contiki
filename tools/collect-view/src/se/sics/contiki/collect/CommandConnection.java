@@ -132,6 +132,10 @@ public class CommandConnection extends SerialConnection {
         }
       }, "read error stream thread");
 
+      if (!isOpen) {
+        isOpen = true;
+        serialOpened();
+      }
       readInput.start();
       readError.start();
     } catch (Exception e) {
@@ -143,10 +147,6 @@ public class CommandConnection extends SerialConnection {
   }
 
   protected void standardData(String line) {
-    if (!isOpen) {
-      isOpen = true;
-      serialOpened();
-    }
     serialData(line);
   }
 
