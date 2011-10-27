@@ -1190,10 +1190,10 @@ uncompress_hdr_hc1(uint16_t ip_len)
   
   /* src and dest ip addresses */
   uip_ip6addr(&SICSLOWPAN_IP_BUF->srcipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
-  uip_sd6_set_addr_iid(&SICSLOWPAN_IP_BUF->srcipaddr,
+  uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->srcipaddr,
 		       (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
   uip_ip6addr(&SICSLOWPAN_IP_BUF->destipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
-  uip_sd6_set_addr_iid(&SICSLOWPAN_IP_BUF->destipaddr,
+  uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->destipaddr,
 		       (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   
   uncomp_hdr_len += UIP_IPH_LEN;
