@@ -492,12 +492,14 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
 {
   uint8_t tmp, iphc0, iphc1;
 #if DEBUG
-  PRINTF("before compression: ");
-  for(tmp = 0; tmp < UIP_IP_BUF->len[1] + 40; tmp++) {
-    uint8_t data = ((uint8_t *) (UIP_IP_BUF))[tmp];
-    PRINTF("%02x", data);
+  { uint16_t ndx;
+    PRINTF("before compression (%d): ", UIP_IP_BUF->len[1]);
+    for(ndx = 0; ndx < UIP_IP_BUF->len[1] + 40; ndx++) {
+      uint8_t data = ((uint8_t *) (UIP_IP_BUF))[ndx];
+      PRINTF("%02x", data);
+    }
+    PRINTF("\n");
   }
-  PRINTF("\n");
 #endif
 
   hc06_ptr = rime_ptr + 2;
@@ -1731,11 +1733,11 @@ input(void)
 
 #if DEBUG
     {
-      uint8_t tmp;
-      PRINTF("after decompression: ");
-      for (tmp = 0; tmp < SICSLOWPAN_IP_BUF->len[1] + 40; tmp++) {
-	uint8_t data = ((uint8_t *) (SICSLOWPAN_IP_BUF))[tmp];
-	PRINTF("%02x", data);
+      uint16_t ndx;
+      PRINTF("after decompression %u:", SICSLOWPAN_IP_BUF->len[1]);
+      for (ndx = 0; ndx < SICSLOWPAN_IP_BUF->len[1] + 40; ndx++) {
+        uint8_t data = ((uint8_t *) (SICSLOWPAN_IP_BUF))[ndx];
+        PRINTF("%02x", data);
       }
       PRINTF("\n");
     }
