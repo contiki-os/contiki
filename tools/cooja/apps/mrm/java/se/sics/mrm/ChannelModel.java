@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,29 @@
 
 package se.sics.mrm;
 
-import java.awt.geom.*;
-import java.util.*;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Vector;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
+
+import se.sics.cooja.Simulation;
+import se.sics.cooja.interfaces.DirectionalAntennaRadio;
+import se.sics.cooja.interfaces.Radio;
+import se.sics.cooja.radiomediums.AbstractRadioMedium;
 import statistics.GaussianWrapper;
 
 /**
@@ -53,9 +70,12 @@ import statistics.GaussianWrapper;
 public class ChannelModel {
   private static Logger logger = Logger.getLogger(ChannelModel.class);
 
+  private static final double C = 299792458; /* m/s */
+
   enum TransmissionData { SIGNAL_STRENGTH, SIGNAL_STRENGTH_VAR, SNR, SNR_VAR, PROB_OF_RECEPTION, DELAY_SPREAD, DELAY_SPREAD_RMS}
 
-  private Properties parameters = new Properties();
+  private Hashtable<Parameter,Object> parametersDefaults = new Hashtable<Parameter,Object>();
+  private Hashtable<Parameter,Object> parameters = new Hashtable<Parameter,Object>();
   private Properties parameterDescriptions = new Properties();
 
   // Parameters used for speeding up calculations
@@ -70,6 +90,8 @@ public class ChannelModel {
   private boolean logMode = false;
   private StringBuilder logInfo = null;
   private ArrayList<Line2D> loggedRays = null;
+
+  private Simulation simulation;
 
   
   // Ray tracing components temporary vector
@@ -89,105 +111,180 @@ public class ChannelModel {
     }
   }
   private SettingsObservable settingsObservable = new SettingsObservable();
+  public enum Parameter {
+    apply_random,
+    snr_threshold,
+    bg_noise_mean,
+    bg_noise_var,
+    system_gain_mean,
+    system_gain_var,
+    frequency,
+    tx_power,
+    tx_with_gain,
+    rx_sensitivity,
+    rx_with_gain,
+    rt_disallow_direct_path,
+    rt_ignore_non_direct,
+    rt_fspl_on_total_length,
+    rt_max_rays,
+    rt_max_refractions,
+    rt_max_reflections,
+    rt_max_diffractions,
+    rt_use_scattering,
+    rt_refrac_coefficient,
+    rt_reflec_coefficient,
+    rt_diffr_coefficient,
+    rt_scatt_coefficient,
+    obstacle_attenuation;
 
-  public ChannelModel() {
-    // - Set initial parameter values -
+    public static Object getDefaultValue(Parameter p) {
+      switch (p) {
+      case apply_random:
+        return new Boolean(false);
+      case snr_threshold:
+        return new Double(6);
+      case bg_noise_mean:
+        return new Double(AbstractRadioMedium.SS_NOTHING);
+      case bg_noise_var:
+        return new Double(1);
+      case system_gain_mean:
+        return new Double(0);
+      case system_gain_var:
+        return new Double(4);
+      case frequency: /* MHz */
+        return new Double(2400);
+      case tx_power:
+        return new Double(1.5);
+      case tx_with_gain:
+        return new Boolean(true);
+      case rx_sensitivity:
+        return new Double(-100);
+      case rx_with_gain:
+        return new Boolean(false);
+      case rt_disallow_direct_path:
+        return new Boolean(false);
+      case rt_ignore_non_direct:
+        return new Boolean(false);
+      case rt_fspl_on_total_length:
+        return new Boolean(true);
+      case rt_max_rays:
+        return new Integer(1);
+      case rt_max_refractions:
+        return new Integer(1);
+      case rt_max_reflections:
+        return new Integer(1);
+      case rt_max_diffractions:
+        return new Integer(0);
+      case rt_use_scattering:
+        return new Boolean(false);
+      case rt_refrac_coefficient:
+        return new Double(-3);
+      case rt_reflec_coefficient:
+        return new Double(-5);
+      case rt_diffr_coefficient:
+        return new Double(-10);
+      case rt_scatt_coefficient:
+        return new Double(-20);
+      case obstacle_attenuation:
+        return new Double(-3);
+      }
+      throw new RuntimeException("Unknown default value: " + p);
+    }
+    
+    public static Parameter fromString(String name) {
+      /* Backwards compatability */
+      if (name.equals("apply_random")) {
+        return apply_random;
+      } else if (name.equals("snr_threshold")) {
+        return snr_threshold;
+      } else if (name.equals("bg_noise_mean")) {
+        return bg_noise_mean;
+      } else if (name.equals("bg_noise_var")) {
+        return bg_noise_var;
+      } else if (name.equals("system_gain_mean")) {
+        return system_gain_mean;
+      } else if (name.equals("system_gain_var")) {
+        return system_gain_var;
+      } else if (name.equals("tx_power")) {
+        return tx_power;
+      } else if (name.equals("rx_sensitivity")) {
+        return rx_sensitivity;
+      } else if (name.equals("rt_disallow_direct_path")) {
+        return rt_disallow_direct_path;
+      } else if (name.equals("rt_ignore_non_direct")) {
+        return rt_ignore_non_direct;
+      } else if (name.equals("rt_fspl_on_total_length")) {
+        return rt_fspl_on_total_length;
+      } else if (name.equals("rt_max_rays")) {
+        return rt_max_rays;
+      } else if (name.equals("rt_max_refractions")) {
+        return rt_max_refractions;
+      } else if (name.equals("rt_max_reflections")) {
+        return rt_max_reflections;
+      } else if (name.equals("rt_max_diffractions")) {
+        return rt_max_diffractions;
+      } else if (name.equals("rt_use_scattering")) {
+        return rt_use_scattering;
+      } else if (name.equals("rt_refrac_coefficient")) {
+        return rt_refrac_coefficient;
+      } else if (name.equals("rt_reflec_coefficient")) {
+        return rt_reflec_coefficient;
+      } else if (name.equals("rt_diffr_coefficient")) {
+        return rt_diffr_coefficient;
+      } else if (name.equals("rt_scatt_coefficient")) {
+        return rt_scatt_coefficient;
+      } else if (name.equals("obstacle_attenuation")) {
+        return obstacle_attenuation;
+      }
+      return null;
+    }
 
-    // Using random variables
-    parameters.put("apply_random", new Boolean(false)); // TODO Should not use random variables as default
-    parameterDescriptions.put("apply_random", "Apply random values immediately");
+    public static String getDescription(Parameter p) {
+      switch (p) {
+      case apply_random: return "(DEBUG) Apply random values";
+      case snr_threshold: return "SNR reception threshold (dB)";
+      case bg_noise_mean: return "Background noise mean (dBm)";
+      case bg_noise_var: return "Background noise variance (dB)";
+      case system_gain_mean: return "Extra system gain mean (dB)";
+      case system_gain_var: return "Extra system gain variance (dB)";
+      case frequency: return "Frequency (MHz)";
+      case tx_power: return "Default transmitter output power (dBm)";
+      case tx_with_gain: return "Directional antennas: with TX gain";
+      case rx_sensitivity: return "Receiver sensitivity (dBm)";
+      case rx_with_gain: return "Directional antennas: with RX gain";
+      case rt_disallow_direct_path: return "Disallow direct path";
+      case rt_ignore_non_direct: return "If existing: return only use direct path";
+      case rt_fspl_on_total_length: return "Use FSPL on total path lengths only";
+      case rt_max_rays: return "Max path rays";
+      case rt_max_refractions: return "Max refractions";
+      case rt_max_reflections: return "Max reflections";
+      case rt_max_diffractions: return "Max diffractions";
+      case rt_refrac_coefficient: return "Refraction coefficient (dB)";
+      case rt_reflec_coefficient: return "Reflection coefficient (dB)";
+      case rt_diffr_coefficient: return "Diffraction coefficient (dB)";
+      case obstacle_attenuation: return "Obstacle attenuation (dB/m)";
+      }
+      throw new RuntimeException("Unknown decrption: " + p);
+    }
+  }
+  
+  public ChannelModel(Simulation simulation) {
+    this.simulation = simulation;
+    
+    /* Default values */
+    for (Parameter p: Parameter.values()) {
+      parameters.put(p, Parameter.getDefaultValue(p));
+    }
 
-    // Signal to noise reception threshold
-    parameters.put("snr_threshold", new Double(6));
-    parameterDescriptions.put("snr_threshold", "SNR reception threshold (dB)");
-
-    // Background noise mean
-    parameters.put("bg_noise_mean", new Double(-150));
-    parameterDescriptions.put("bg_noise_mean", "Background noise mean (dBm)");
-
-    // Background noise variance
-    parameters.put("bg_noise_var", new Double(1));
-    parameterDescriptions.put("bg_noise_var", "Background noise variance (dB)");
-
-    // Extra system gain mean
-    parameters.put("system_gain_mean", new Double(0));
-    parameterDescriptions.put("system_gain_mean", "Extra system gain mean (dB)");
-
-    // Extra system gain variance
-    parameters.put("system_gain_var", new Double(4)); // TODO Should probably be default 0 or 1
-    parameterDescriptions.put("system_gain_var", "Extra system gain variance (dB)");
-
-    // Transmission wavelength
-    parameters.put("wavelength", new Double(0.346)); // ~868 MHz (RFM TR1001)
-    parameterDescriptions.put("wavelength", "Wavelength w (m)");
-
-    // Transmitter output power
-    parameters.put("tx_power", new Double(1.5)); // dBm (deciBel milliwatts)
-    parameterDescriptions.put("tx_power", "Transmitter output power (dBm)");
-
-    // Transmitter antenna gain
-    parameters.put("tx_antenna_gain", new Double(0)); // TODO Should use angle
-    parameterDescriptions.put("tx_antenna_gain", "Transmitter antenna gain (dB)");
-
-    // Receiver sensitivity
-    parameters.put("rx_sensitivity", new Double(-100));
-    parameterDescriptions.put("rx_sensitivity", "Receiver sensitivity (dBm)");
-
-    // Receiver antenna gain
-    parameters.put("rx_antenna_gain", new Double(0)); // TODO Should use angle
-    parameterDescriptions.put("rx_antenna_gain", "Receiver antenna gain (dB)");
-
-    // Ray Tracer - Disallow direct path
-    parameters.put("rt_disallow_direct_path", new Boolean(false));
-    parameterDescriptions.put("rt_disallow_direct_path", "Disallow direct path");
-
-    // Ray Tracer - If direct path exists, ignore the non-direct (used for debugging)
-    parameters.put("rt_ignore_non_direct", new Boolean(false));
-    parameterDescriptions.put("rt_ignore_non_direct", "If existing, only use direct path");
-
-    // Ray Tracer - Use FSPL on total length only
-    parameters.put("rt_fspl_on_total_length", new Boolean(true));
-    parameterDescriptions.put("rt_fspl_on_total_length", "Use FSPL on total path lengths only");
-
-    // Ray Tracer - Max number of subrays
-    parameters.put("rt_max_rays", new Integer(1));
-    parameterDescriptions.put("rt_max_rays", "Max path rays");
-
-    // Ray Tracer - Max number of refractions
-    parameters.put("rt_max_refractions", new Integer(1));
-    parameterDescriptions.put("rt_max_refractions", "Max refractions");
-
-    // Ray Tracer - Max number of reflections
-    parameters.put("rt_max_reflections", new Integer(1));
-    parameterDescriptions.put("rt_max_reflections", "Max reflections");
-
-    // Ray Tracer - Max number of diffractions
-    parameters.put("rt_max_diffractions", new Integer(0));
-    parameterDescriptions.put("rt_max_diffractions", "Max diffractions");
+    parametersDefaults = (Hashtable<Parameter,Object>) parameters.clone();
 
     // Ray Tracer - Use scattering
-    //parameters.put("rt_use_scattering", new Boolean(false)); // TODO Not used yet
-    //parameterDescriptions.put("rt_use_scattering", "Use simple scattering");
-
-    // Ray Tracer - Refraction coefficient
-    parameters.put("rt_refrac_coefficient", new Double(-3));
-    parameterDescriptions.put("rt_refrac_coefficient", "Refraction coefficient (dB)");
-
-    // Ray Tracer - Reflection coefficient
-    parameters.put("rt_reflec_coefficient", new Double(-5));
-    parameterDescriptions.put("rt_reflec_coefficient", "Reflection coefficient (dB)");
-
-    // Ray Tracer - Diffraction coefficient
-    parameters.put("rt_diffr_coefficient", new Double(-10));
-    parameterDescriptions.put("rt_diffr_coefficient", "Diffraction coefficient (dB)");
+    //parameters.put(Parameters.rt_use_scattering, Parameter.getDefaultValue(Parameters.rt_use_scattering)); // TODO Not used yet
+    //parameterDescriptions.put(Parameters.rt_use_scattering, "Use simple scattering");
 
     // Ray Tracer - Scattering coefficient
-    //parameters.put("rt_scatt_coefficient", new Double(-20)); // TODO Not used yet
-    //parameterDescriptions.put("rt_scatt_coefficient", "!! Scattering coefficient (dB)");
-
-    // Shadowing - Obstacle Attenuation constant
-    parameters.put("obstacle_attenuation", new Double(-3));
-    parameterDescriptions.put("obstacle_attenuation", "Obstacle attenuation (dB/m)");
+    //parameters.put(Parameters.rt_scatt_coefficient, Parameter.getDefaultValue(Parameters.rt_scatt_coefficient)); // TODO Not used yet
+    //parameterDescriptions.put(Parameters.rt_scatt_coefficient, "!! Scattering coefficient (dB)");
   }
 
   /**
@@ -272,7 +369,7 @@ public class ChannelModel {
    * @param identifier Parameter identifier
    * @return Current parameter value
    */
-  public Object getParameterValue(String id) {
+  public Object getParameterValue(Parameter id) {
     Object value = parameters.get(id);
     if (value == null) {
       logger.fatal("No parameter with id:" + id + ", aborting");
@@ -287,7 +384,7 @@ public class ChannelModel {
    * @param identifier Parameter identifier
    * @return Current parameter value
    */
-  public double getParameterDoubleValue(String id) {
+  public double getParameterDoubleValue(Parameter id) {
     return ((Double) getParameterValue(id)).doubleValue();
   }
 
@@ -297,7 +394,7 @@ public class ChannelModel {
    * @param identifier Parameter identifier
    * @return Current parameter value
    */
-  public int getParameterIntegerValue(String id) {
+  public int getParameterIntegerValue(Parameter id) {
     return ((Integer) getParameterValue(id)).intValue();
   }
 
@@ -307,7 +404,7 @@ public class ChannelModel {
    * @param identifier Parameter identifier
    * @return Current parameter value
    */
-  public boolean getParameterBooleanValue(String id) {
+  public boolean getParameterBooleanValue(Parameter id) {
     return ((Boolean) getParameterValue(id)).booleanValue();
   }
 
@@ -317,7 +414,7 @@ public class ChannelModel {
    * @param id Parameter identifier
    * @param newValue New parameter value
    */
-  public void setParameterValue(String id, Object newValue) {
+  public void setParameterValue(Parameter id, Object newValue) {
     if (!parameters.containsKey(id)) {
       logger.fatal("No parameter with id:" + id + ", aborting");
       return;
@@ -332,21 +429,6 @@ public class ChannelModel {
   }
 
   /**
-   * Returns a parameter description
-   *
-   * @param identifier Parameter identifier
-   * @return Current parameter description
-   */
-  public String getParameterDescription(String id) {
-    Object value = parameterDescriptions.get(id);
-    if (value == null) {
-      logger.fatal("No parameter description with id:" + id + ", aborting");
-      return null;
-    }
-    return ((String) value);
-  }
-
-  /**
    * When this method is called all settings observers
    * will be notified.
    */
@@ -355,27 +437,20 @@ public class ChannelModel {
   }
 
   /**
-   * Returns the Free Space Path Loss factor (in dB), by using
-   * parts of the Friis equation. (FSPL <= 0)
+   * Path loss component from Friis' transmission equation.
+   * Uses frequency and distance only.
    *
-   * @param distance Distance from transmitter to receiver
-   * @return FSPL factor
+   * @param distance Transmitter-receiver distance
+   * @return Path loss (dB)
    */
   protected double getFSPL(double distance) {
-    // From Friis equation:
-    //  Pr(d) = Pt * (Gt * Gr * w2) / ( (4*PI)2 * d2 * L)
-    // For FSPL, ignoring Pt, Gt, Gr, L:
-    //  Pr(d) = 1 * (1 * 1 * w2) / ( (4*PI)2 * d2 * 1)
-    //  Pr(d) = w2 / ( (4*PI)2 * d2)
-    //  Pr_dB(d) = 20*log10(w) - 20*log10(4*PI) - 20*log10(d)
-
     if (needToPrecalculateFSPL) {
-      double w = getParameterDoubleValue("wavelength");
-      paramFSPL = 20*Math.log10(w) - 20*Math.log10(4*Math.PI);
+      double f = getParameterDoubleValue(Parameter.frequency);
+      paramFSPL = -32.44 -20*Math.log10(f /*mhz*/);
       needToPrecalculateFSPL = false;
     }
 
-    return Math.min(0.0, paramFSPL - 20*Math.log10(distance));
+    return Math.min(0.0, paramFSPL - 20*Math.log10(distance/1000.0 /*km*/));
   }
 
 
@@ -674,7 +749,7 @@ public class ChannelModel {
         // Check if direct path exists
         justBeforeDestination = sourcePoint;
 
-        if (!getParameterBooleanValue("rt_disallow_direct_path")) {
+        if (!getParameterBooleanValue(Parameter.rt_disallow_direct_path)) {
           directPathExists = isDirectPath(justBeforeDestination, dest);
         } else {
           directPathExists = false;
@@ -797,7 +872,7 @@ public class ChannelModel {
           allPaths.add(currentPath);
 
           // Stop here if no other paths should be considered
-          if (type == RayData.RayType.ORIGIN && getParameterBooleanValue("rt_ignore_non_direct")) {
+          if (type == RayData.RayType.ORIGIN && getParameterBooleanValue(Parameter.rt_ignore_non_direct)) {
             return allPaths;
           }
 
@@ -1326,17 +1401,15 @@ public class ChannelModel {
    * @return Received signal strength (dBm) random variable. The first value is
    *         the random variable mean, and the second is the variance.
    */
-  public double[] getReceivedSignalStrength(double sourceX, double sourceY, double destX, double destY) {
-    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.SIGNAL_STRENGTH, null);
-  }
-  public double[] getReceivedSignalStrength(double sourceX, double sourceY, double destX, double destY, Double txPower) {
-    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.SIGNAL_STRENGTH, txPower);
+  public double[] getReceivedSignalStrength(TxPair txPair) {
+    return getTransmissionData(txPair, TransmissionData.SIGNAL_STRENGTH);
   }
   
+
   // TODO Fix better data type support
-  private double[] getTransmissionData(double sourceX, double sourceY, double destX, double destY, TransmissionData dataType, Double txPower) {
-    Point2D source = new Point2D.Double(sourceX, sourceY);
-    Point2D dest = new Point2D.Double(destX, destY);
+  private double[] getTransmissionData(TxPair txPair, TransmissionData dataType) {
+    Point2D source = txPair.getFrom();
+    Point2D dest = txPair.getTo();
     double accumulatedVariance = 0;
 
     // - Get all ray paths from source to destination -
@@ -1344,28 +1417,24 @@ public class ChannelModel {
         RayData.RayType.ORIGIN,
         source,
         null,
-        getParameterIntegerValue("rt_max_rays"),
-        getParameterIntegerValue("rt_max_refractions"),
-        getParameterIntegerValue("rt_max_reflections"),
-        getParameterIntegerValue("rt_max_diffractions")
+        getParameterIntegerValue(Parameter.rt_max_rays),
+        getParameterIntegerValue(Parameter.rt_max_refractions),
+        getParameterIntegerValue(Parameter.rt_max_reflections),
+        getParameterIntegerValue(Parameter.rt_max_diffractions)
     );
 
-    // TODO Current (changing) signal strength should be built into 'build visible lines' to speed up things!
-
     // Check if origin tree is already calculated and saved
-    DefaultMutableTreeNode visibleLinesTree = null;
-    visibleLinesTree =
-      buildVisibleLinesTree(originRayData);
+    DefaultMutableTreeNode visibleLinesTree = buildVisibleLinesTree(originRayData);
 
     // Calculate all paths from source to destination, using above calculated tree
     Vector<RayPath> allPaths = getConnectingPaths(source, dest, visibleLinesTree);
 
     if (logMode) {
-    	logInfo.append("Signal components:\n");
+      logInfo.append("Signal components:\n");
       Enumeration<RayPath> pathsEnum = allPaths.elements();
       while (pathsEnum.hasMoreElements()) {
         RayPath currentPath = pathsEnum.nextElement();
-      	logInfo.append("* " + currentPath + "\n");
+        logInfo.append("* " + currentPath + "\n");
         for (int i=0; i < currentPath.getSubPathCount(); i++) {
           loggedRays.add(currentPath.getSubPath(i));
         }
@@ -1389,20 +1458,20 @@ public class ChannelModel {
         // Type specific losses
         // TODO Type specific losses depends on angles as well!
         if (subPathStartType == RayData.RayType.REFRACTION) {
-          pathGain[i] += getParameterDoubleValue("rt_refrac_coefficient");
+          pathGain[i] += getParameterDoubleValue(Parameter.rt_refrac_coefficient);
         } else if (subPathStartType == RayData.RayType.REFLECTION) {
-          pathGain[i] += getParameterDoubleValue("rt_reflec_coefficient");
+          pathGain[i] += getParameterDoubleValue(Parameter.rt_reflec_coefficient);
 
           // Add FSPL from last subpaths (if FSPL on individual rays)
-          if (!getParameterBooleanValue("rt_fspl_on_total_length") && accumulatedStraightLength > 0) {
+          if (!getParameterBooleanValue(Parameter.rt_fspl_on_total_length) && accumulatedStraightLength > 0) {
             pathGain[i] += getFSPL(accumulatedStraightLength);
           }
           accumulatedStraightLength = 0; // Reset straight length
         } else if (subPathStartType == RayData.RayType.DIFFRACTION) {
-          pathGain[i] += getParameterDoubleValue("rt_diffr_coefficient");
+          pathGain[i] += getParameterDoubleValue(Parameter.rt_diffr_coefficient);
 
           // Add FSPL from last subpaths (if FSPL on individual rays)
-          if (!getParameterBooleanValue("rt_fspl_on_total_length") && accumulatedStraightLength > 0) {
+          if (!getParameterBooleanValue(Parameter.rt_fspl_on_total_length) && accumulatedStraightLength > 0) {
             pathGain[i] += getFSPL(accumulatedStraightLength);
           }
           accumulatedStraightLength = 0; // Reset straight length
@@ -1414,7 +1483,7 @@ public class ChannelModel {
           // Ray passes through a wall, calculate distance through that wall
 
           // Fetch attenuation constant
-          double attenuationConstant = getParameterDoubleValue("obstacle_attenuation");
+          double attenuationConstant = getParameterDoubleValue(Parameter.obstacle_attenuation);
 
           Vector<Rectangle2D> allPossibleObstacles = myObstacleWorld.getAllObstaclesNear(subPath.getP1());
 
@@ -1434,9 +1503,7 @@ public class ChannelModel {
               pathGain[i] += attenuationConstant * line.getP1().distance(line.getP2());
               break;
             }
-
           }
-
         }
 
         // Add to total path length
@@ -1444,12 +1511,12 @@ public class ChannelModel {
       }
 
       // Add FSPL from last rays (if FSPL on individual rays)
-      if (!getParameterBooleanValue("rt_fspl_on_total_length") && accumulatedStraightLength > 0) {
+      if (!getParameterBooleanValue(Parameter.rt_fspl_on_total_length) && accumulatedStraightLength > 0) {
         pathGain[i] += getFSPL(accumulatedStraightLength);
       }
 
       // Free space path loss on total path length?
-      if (getParameterBooleanValue("rt_fspl_on_total_length")) {
+      if (getParameterBooleanValue(Parameter.rt_fspl_on_total_length)) {
         pathGain[i] += getFSPL(pathLengths[i]);
       }
 
@@ -1463,7 +1530,8 @@ public class ChannelModel {
     double[] pathModdedLengths = new double[allPaths.size()];
     double delaySpread = 0;
     double delaySpreadRMS = 0;
-    double wavelength = getParameterDoubleValue("wavelength");
+    double freq = getParameterDoubleValue(Parameter.frequency);
+    double wavelength = C/(freq*1000000d);
     double totalPathGain = 0;
     double delaySpreadTotalWeight = 0;
     double speedOfLight = 300; // Approximate value (m/us)
@@ -1490,12 +1558,12 @@ public class ChannelModel {
         // Using Rician fading approach, TODO Only one best signal considered - combine these? (need two limits)
         totalPathGain += Math.pow(10, pathGain[i]/10.0)*Math.cos(2*Math.PI * pathModdedLengths[i]/wavelength);
         if (logMode) {
-        	logInfo.append("Signal component: " + String.format("%2.3f", pathGain[i]) + " dB, phase " + String.format("%2.3f", (2*/*Math.PI* */ pathModdedLengths[i]/wavelength)) + " pi\n");
+          logInfo.append("Signal component: " + String.format("%2.3f", pathGain[i]) + " dB, phase " + String.format("%2.3f", (2*/*Math.PI* */ pathModdedLengths[i]/wavelength)) + " pi\n");
         }
       } else if (logMode) {
-      	/* TODO Log mode affects result? */
+        /* TODO Log mode affects result? */
         pathModdedLengths[i] = (pathLengths[i] - pathLengths[bestSignalNr]) % wavelength;
-      	logInfo.append("(IGNORED) Signal component: " + String.format("%2.3f", pathGain[i]) + " dB, phase " + String.format("%2.3f", (2*/*Math.PI* */ pathModdedLengths[i]/wavelength)) + " pi\n");
+        logInfo.append("(IGNORED) Signal component: " + String.format("%2.3f", pathGain[i]) + " dB, phase " + String.format("%2.3f", (2*/*Math.PI* */ pathModdedLengths[i]/wavelength)) + " pi\n");
       }
 
     }
@@ -1509,33 +1577,32 @@ public class ChannelModel {
     totalPathGain = 10*Math.log10(Math.abs(totalPathGain));
 
     if (logMode) {
-    	logInfo.append("\nTotal path gain: " + String.format("%2.3f", totalPathGain) + " dB\n");
-    	logInfo.append("Delay spread: " + String.format("%2.3f", delaySpread) + "\n");
-    	logInfo.append("RMS delay spread: " + String.format("%2.3f", delaySpreadRMS) + "\n");
+        logInfo.append("\nTotal path gain: " + String.format("%2.3f", totalPathGain) + " dB\n");
+        logInfo.append("Delay spread: " + String.format("%2.3f", delaySpread) + "\n");
+        logInfo.append("RMS delay spread: " + String.format("%2.3f", delaySpreadRMS) + "\n");
     }
 
     // - Calculate received power -
     // Using formula (dB)
     //  Received power = Output power + System gain + Transmitter gain + Path Loss + Receiver gain
     // TODO Update formulas
-    double outputPower;
-    if (txPower == null) {
-      outputPower = getParameterDoubleValue("tx_power");
-    } else {
-    	outputPower = txPower;
-    }
-    double systemGain = getParameterDoubleValue("system_gain_mean");
-    if (getParameterBooleanValue("apply_random")) {
+    double outputPower = txPair.getTxPower();
+    double systemGain = getParameterDoubleValue(Parameter.system_gain_mean);
+    if (getParameterBooleanValue(Parameter.apply_random)) {
       Random random = new Random(); /* TODO Use main random generator? */
-      systemGain += Math.sqrt(getParameterDoubleValue("system_gain_var")) * random.nextGaussian();
+      systemGain += Math.sqrt(getParameterDoubleValue(Parameter.system_gain_var)) * random.nextGaussian();
     } else {
-      accumulatedVariance += getParameterDoubleValue("system_gain_var");
+      accumulatedVariance += getParameterDoubleValue(Parameter.system_gain_var);
     }
-    double transmitterGain = getParameterDoubleValue("tx_antenna_gain"); // TODO Should depend on angle
+
+    double transmitterGain = 0;
+    if (getParameterBooleanValue(Parameter.tx_with_gain)) {
+      transmitterGain = txPair.getTxGain();
+    }
 
     double receivedPower = outputPower + systemGain + transmitterGain + totalPathGain;
     if (logMode) {
-    	logInfo.append("\nReceived signal strength: " + String.format("%2.3f", receivedPower) + " dB (variance " + accumulatedVariance + ")\n");
+        logInfo.append("\nReceived signal strength: " + String.format("%2.3f", receivedPower) + " dB (variance " + accumulatedVariance + ")\n");
     }
 
     if (dataType == TransmissionData.DELAY_SPREAD || dataType == TransmissionData.DELAY_SPREAD_RMS) {
@@ -1546,8 +1613,8 @@ public class ChannelModel {
   }
 
   public class TrackedSignalComponents {
-  	ArrayList<Line2D> components;
-  	String log;
+    ArrayList<Line2D> components;
+    String log;
   }
   
   /**
@@ -1561,7 +1628,7 @@ public class ChannelModel {
    * @param destY Destination position Y
    * @return Signal components and printable description
    */
-  public TrackedSignalComponents getRaysOfTransmission(double sourceX, double sourceY, double destX, double destY) {
+  public TrackedSignalComponents getRaysOfTransmission(TxPair txPair) {
     TrackedSignalComponents tsc = new TrackedSignalComponents();
 
     logInfo = new StringBuilder();
@@ -1569,7 +1636,7 @@ public class ChannelModel {
 
     /* TODO Include background noise? */
     logMode = true;
-    getProbability(sourceX, sourceY, destX, destY, -Double.MAX_VALUE);
+    getProbability(txPair, -Double.MAX_VALUE);
     logMode = false;
 
     tsc.log = logInfo.toString();
@@ -1596,27 +1663,26 @@ public class ChannelModel {
    * The second is the variance.
    * The third value is the received signal strength which may be used in comparison with interference etc.
    */
-  public double[] getSINR(double sourceX, double sourceY, double destX, double destY, double interference) {
-  	/* TODO Cache values: called repeatedly with noise sources. */
-  	
-  	
+  public double[] getSINR(TxPair txPair, double interference) {
+    /* TODO Cache values: called repeatedly with noise sources. */
+
     // Calculate received signal strength
-    double[] signalStrength = getReceivedSignalStrength(sourceX, sourceY, destX, destY);
+    double[] signalStrength = getReceivedSignalStrength(txPair);
+    double[] snrData = new double[] { signalStrength[0], signalStrength[1], signalStrength[0] };
 
-    double[] snrData =
-      new double[] { signalStrength[0], signalStrength[1], signalStrength[0] };
+    // Add antenna gain
+    if (getParameterBooleanValue(Parameter.rx_with_gain)) {
+      snrData[0] += txPair.getRxGain();
+    }
 
-    // Add antenna gain TODO Should depend on angle
-    snrData[0] += getParameterDoubleValue("rx_antenna_gain");
-
-    double noiseVariance = getParameterDoubleValue("bg_noise_var");
-    double noiseMean = getParameterDoubleValue("bg_noise_mean");
+    double noiseVariance = getParameterDoubleValue(Parameter.bg_noise_var);
+    double noiseMean = getParameterDoubleValue(Parameter.bg_noise_mean);
 
     if (interference > noiseMean) {
       noiseMean = interference;
     }
 
-    if (getParameterBooleanValue("apply_random")) {
+    if (getParameterBooleanValue(Parameter.apply_random)) {
       Random random = new Random(); /* TODO Use main random generator? */
       noiseMean += Math.sqrt(noiseVariance) * random.nextGaussian();
       noiseVariance = 0;
@@ -1627,7 +1693,7 @@ public class ChannelModel {
     snrData[1] += noiseVariance;
 
     if (logMode) {
-    	logInfo.append("\nReceived SNR: " + String.format("%2.3f", snrData[0]) + " dB (variance " + snrData[1] + ")\n");
+        logInfo.append("\nReceived SNR: " + String.format("%2.3f", snrData[0]) + " dB (variance " + snrData[1] + ")\n");
     }
     return snrData;
   }
@@ -1649,19 +1715,19 @@ public class ChannelModel {
    * @param interference Current interference at destination (dBm)
    * @return [Probability of reception, signal strength at destination]
    */
-  public double[] getProbability(double sourceX, double sourceY, double destX, double destY, double interference) {
-    double[] snrData = getSINR(sourceX, sourceY, destX, destY, interference);
+  public double[] getProbability(TxPair txPair, double interference) {
+    double[] snrData = getSINR(txPair, interference);
     double snrMean = snrData[0];
     double snrVariance = snrData[1];
     double signalStrength = snrData[2];
-    double threshold = getParameterDoubleValue("snr_threshold");
-    double rxSensitivity = getParameterDoubleValue("rx_sensitivity");
+    double threshold = getParameterDoubleValue(Parameter.snr_threshold);
+    double rxSensitivity = getParameterDoubleValue(Parameter.rx_sensitivity);
 
     // Check signal strength against receiver sensitivity and interference
     if (rxSensitivity > signalStrength - snrMean && 
-    		threshold < rxSensitivity + snrMean - signalStrength) {
+                threshold < rxSensitivity + snrMean - signalStrength) {
       if (logMode) {
-      	logInfo.append("Weak signal: increasing threshold\n");
+        logInfo.append("Weak signal: increasing threshold\n");
       }
 
       // Keeping snr variance but increasing theshold to sensitivity
@@ -1707,8 +1773,8 @@ public class ChannelModel {
    *          Destination position Y
    * @return RMS delay spread
    */
-  public double getRMSDelaySpread(double sourceX, double sourceY, double destX, double destY) {
-    return getTransmissionData(sourceX, sourceY, destX, destY, TransmissionData.DELAY_SPREAD, null)[1];
+  public double getRMSDelaySpread(TxPair tx) {
+    return getTransmissionData(tx, TransmissionData.DELAY_SPREAD)[1];
   }
 
   /**
@@ -1718,14 +1784,18 @@ public class ChannelModel {
    * @return XML element collection
    */
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
-    Enumeration paramEnum = parameters.keys();
+    Enumeration<Parameter> paramEnum = parameters.keys();
     while (paramEnum.hasMoreElements()) {
-      String name = (String) paramEnum.nextElement();
-      element = new Element(name);
-      element.setText(parameters.get(name).toString());
+      Parameter p = (Parameter) paramEnum.nextElement();
+      element = new Element(p.toString());
+      if (parametersDefaults.get(p).equals(parameters.get(p))) {
+        /* Default value */
+        continue;
+      }
+      element.setAttribute("value", parameters.get(p).toString());
       config.add(element);
     }
 
@@ -1749,19 +1819,47 @@ public class ChannelModel {
       if (element.getName().equals("obstacles")) {
         myObstacleWorld = new ObstacleWorld();
         myObstacleWorld.setConfigXML(element.getChildren());
-      } else {
-        // Assuming parameter value
+      } else /* Parameter values */ {
+        String name = element.getName();
+        String value;
+        Parameter param = null;
+    
+        if (name.equals("wavelength")) {
+          /* Backwards compatability: ignored parameters */
+          value = element.getAttributeValue("value");
+          if (value == null) {
+            value = element.getText();
+          }
+//          private static final double C = 299792458; /* m/s */
+          double frequency = C/Double.parseDouble(value);
+          frequency /= 1000000.0; /* mhz */
+          parameters.put(Parameter.frequency, frequency); /* mhz */
 
-        // Fetch current class before applying saved value
-        Object obj = parameters.get(element.getName());
-        Class paramClass = obj.getClass();
+          logger.warn("MRM parameter converted from wavelength to frequency: " + String.format("%1.1f MHz", frequency));
+          continue;
+        } else if (name.equals("tx_antenna_gain") || name.equals("rx_antenna_gain")) {
+          logger.warn("MRM parameter \"" + name + "\" was removed");
+          continue;
+        } else if (Parameter.fromString(name) != null) {
+          /* Backwards compatability: renamed parameters */
+          param = Parameter.fromString(name);
+        } else {
+          param = Parameter.valueOf(name);
+        }
 
+        value = element.getAttributeValue("value");
+        if (value == null || value.isEmpty()) {
+          /* Backwards compatability: renamed parameters */
+          value = element.getText();
+        }
+        
+        Class<?> paramClass = parameters.get(param).getClass();
         if (paramClass == Double.class) {
-          parameters.put(element.getName(), new Double(Double.parseDouble(element.getText())));
+          parameters.put(param, new Double(Double.parseDouble(value)));
         } else if (paramClass == Boolean.class) {
-          parameters.put(element.getName(), Boolean.parseBoolean(element.getText()));
+          parameters.put(param, Boolean.parseBoolean(value));
         } else if (paramClass == Integer.class) {
-          parameters.put(element.getName(), Integer.parseInt(element.getText()));
+          parameters.put(param, Integer.parseInt(value));
         } else {
           logger.fatal("Unsupported class type: " + paramClass);
         }
@@ -1772,4 +1870,85 @@ public class ChannelModel {
     settingsObservable.notifySettingsChanged();
     return true;
   }
+
+  public static abstract class TxPair {
+    public abstract double getFromX();
+    public abstract double getFromY();
+    public abstract double getToX();
+    public abstract double getToY();
+    public abstract double getTxPower();
+
+    public double getDistance() {
+      double w = getFromX() - getToX();
+      double h = getFromY() - getToY();
+      return Math.sqrt(w*w+h*h);
+    }
+
+    /**
+     * @return Radians
+     */
+    public double getAngle() {
+      return Math.atan2(getToY()-getFromY(), getToX()-getFromX());
+    }
+    public Point2D getFrom() {
+      return new Point2D.Double(getFromX(), getFromY());
+    }
+    public Point2D getTo() {
+      return new Point2D.Double(getToX(), getToY());
+    }
+    
+    /**
+     * @return Relative transmitter gain (zero for omnidirectional radios)
+     */
+    public abstract double getTxGain();
+    
+    /**
+     * @return Relative receiver gain (zero for omnidirectional radios)
+     */
+    public abstract double getRxGain();
+  }
+  public static abstract class RadioPair extends TxPair {
+    public abstract Radio getFromRadio();
+    public abstract Radio getToRadio();
+    
+    public double getDistance() {
+      double w = getFromX() - getToX();
+      double h = getFromY() - getToY();
+      return Math.sqrt(w*w+h*h);
+    }
+    public double getFromX() {
+      return getFromRadio().getPosition().getXCoordinate();
+    }
+    public double getFromY() {
+      return getFromRadio().getPosition().getYCoordinate();
+    }
+    public double getToX() {
+      return getToRadio().getPosition().getXCoordinate();
+    }
+    public double getToY() {
+      return getToRadio().getPosition().getYCoordinate();
+    }
+    public double getTxPower() {
+      return getFromRadio().getCurrentOutputPower();
+    }
+    public double getTxGain() {
+      if (!(getFromRadio() instanceof DirectionalAntennaRadio)) {
+        return 0;
+      }
+      DirectionalAntennaRadio r = (DirectionalAntennaRadio)getFromRadio();
+      double txGain = r.getRelativeGain(r.getDirection() + getAngle(), getAngle());
+      //logger.debug("tx gain: " + txGain + " (angle " + String.format("%1.1f", Math.toDegrees(r.getDirection() + getAngle())) + ")");
+      return txGain;
+    }
+    public double getRxGain() {
+      if (!(getToRadio() instanceof DirectionalAntennaRadio)) {
+        return 0;
+      }
+      DirectionalAntennaRadio r = (DirectionalAntennaRadio)getFromRadio();
+      double txGain = r.getRelativeGain(r.getDirection() + getAngle() + Math.PI, getDistance());
+      //logger.debug("rx gain: " + txGain + " (angle " + String.format("%1.1f", Math.toDegrees(r.getDirection() + getAngle() + Math.PI)) + ")");
+      return txGain;
+    }
+  }
+  
 }
