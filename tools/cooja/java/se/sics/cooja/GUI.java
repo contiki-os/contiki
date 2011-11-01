@@ -3117,6 +3117,10 @@ public class GUI extends Observable {
   public Simulation loadSimulationConfig(File file, boolean quick)
   throws UnsatisfiedLinkError, SimulationCreationException {
     this.currentConfigFile = file; /* Used to generate config relative paths */
+    try {
+      this.currentConfigFile = this.currentConfigFile.getCanonicalFile();
+    } catch (IOException e) {
+    }
 
     try {
       SAXBuilder builder = new SAXBuilder();
@@ -3236,6 +3240,10 @@ public class GUI extends Observable {
    */
    public void saveSimulationConfig(File file) {
     this.currentConfigFile = file; /* Used to generate config relative paths */
+    try {
+      this.currentConfigFile = this.currentConfigFile.getCanonicalFile();
+    } catch (IOException e) {
+    }
 
     try {
       // Create and write to document
