@@ -47,10 +47,10 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.TimeEvent;
 import se.sics.cooja.SimEventCentral.LogOutputEvent;
 import se.sics.cooja.SimEventCentral.LogOutputListener;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.TimeEvent;
 
 /**
  * Loads and executes a Contiki test script.
@@ -385,6 +385,16 @@ public class LogScriptEngine {
 
         semaphoreSim.release(100);
         throw new RuntimeException("test script killed");
+      }
+      public void writeFile(String filename, String msg) {
+        try{
+          FileWriter fstream = new FileWriter(filename, false);
+          BufferedWriter out = new BufferedWriter(fstream);
+          out.write(msg);
+          out.close();
+        } catch (Exception e) {
+          logger.warn("Write file failed: " + filename + ": " + e.getMessage());
+        }
       }
       public void testFailed() {
         log("TEST FAILED\n");
