@@ -42,6 +42,7 @@
  */ 
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "contiki-net.h"
@@ -56,6 +57,9 @@
 /* RADIOSTATS must also be set in clock.c and the radio driver */
 #if RF230BB
 #define RADIOSTATS 1
+#endif
+#if CONTIKI_TARGET_REDBEE_ECONOTAG
+#include "adc.h"
 #endif
 
 #if WEBSERVER_CONF_CGI
@@ -87,6 +91,9 @@ static const char   rtes_name[] HTTPD_STRING_ATTR = "routes";
 #endif
 #if WEBSERVER_CONF_TICTACTOE
 static const char tictac_name[] HTTPD_STRING_ATTR = "tictac";
+#endif
+#if WEBSERVER_CONF_AJAX
+static const char   ajax_name[] HTTPD_STRING_ATTR = "ajaxdata";
 #endif
 #endif
 
@@ -221,11 +228,16 @@ generate_header(void *arg)
   static const char httpd_cgi_headerm6[] HTTPD_STRING_ATTR = "|<a href=\"/ttt/ttt.shtml\">TicTacToe</a>";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerm6);
 #endif
+#if WEBSERVER_CONF_AJAX
+#define _MSS9 30
+  static const char httpd_cgi_headerm7[] HTTPD_STRING_ATTR = "|<a href=\"ajax.shtml\">Ajax</a>";
+  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerm7);
+#endif
   static const char httpd_cgi_headerme[] HTTPD_STRING_ATTR = "</pre>";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerme);
 #endif /* WEBSERVER_CONF_MENU */
 
-#if UIP_RECEIVE_WINDOW < _MSS1+_MSS2+_MSS3_+MSS4_+MSS5_MSS6+_MSS7+_MSS8
+#if UIP_RECEIVE_WINDOW < _MSS1+_MSS2+_MSS3_+MSS4_+MSS5_MSS6+_MSS7+_MSS8+_MSS9
 #warning ************************************************************
 #warning UIP_RECEIVE_WINDOW not large enough for header cgi output.
 #warning Web pages will not render properly!
@@ -551,6 +563,23 @@ generate_sensor_readings(void *arg)
   while (ADCSRA&(1<<ADSC)); //Wait till done
   h=1131632UL/ADC;          //Get supply voltage
 #endif
+#if CONTIKI_TARGET_REDBEE_ECONOTAG
+//#include "adc.h"
+{
+uint8_t c;
+		adc_reading[8]=0;
+		adc_init();
+		while (adc_reading[8]==0) adc_service();
+	//	for (c=0; c<NUM_ADC_CHAN; c++) printf("%u %04u\r\n", c, adc_reading[c]);
+		adc_disable();
+		snprintf(sensor_extvoltage, sizeof(sensor_extvoltage),"%u mV",1200*0xfff/adc_reading[8]);
+
+		static const char httpd_cgi_sensorv[] HTTPD_STRING_ATTR = "<em>ADC chans  :</em> %u %u %u %u %u %u %u %u \n";
+	    numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensorv,
+		    adc_reading[0],adc_reading[1],adc_reading[2],adc_reading[3],adc_reading[4],adc_reading[5],adc_reading[6],adc_reading[7]);
+
+}
+#endif
 
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
 //   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensr12, sensor_temperature,sensor_extvoltage);
@@ -584,6 +613,7 @@ generate_sensor_readings(void *arg)
 
 #if ENERGEST_CONF_ON
 {uint8_t p1,p2;
+ uint32_t sl;
 #if 0
 /* Update all the timers to get current values */
   for (p1=1;p1<ENERGEST_TYPE_MAX;p1++) {
@@ -595,20 +625,26 @@ generate_sensor_readings(void *arg)
 #else
   energest_flush();
 #endif
-
+  static const char httpd_cgi_sensor4[] HTTPD_STRING_ATTR =  "<em>CPU time   (ENERGEST):</em> %02u:%02u:%02u (%u.%02u%%)\n";
   static const char httpd_cgi_sensor10[] HTTPD_STRING_ATTR = "<em>Radio      (ENERGEST):</em> Tx %02u:%02u:%02u (%u.%02u%%)  ";
   static const char httpd_cgi_sensor11[] HTTPD_STRING_ATTR = "Rx %02u:%02u:%02u (%u.%02u%%)\n";
-  s=energest_total_time[ENERGEST_TYPE_TRANSMIT].current/RTIMER_ARCH_SECOND;
-  h=((10000UL*energest_total_time[ENERGEST_TYPE_TRANSMIT].current)/RTIMER_ARCH_SECOND)/seconds;
-  p1=h/100;p2=h-p1*100;h=s/3600;s=s-h*3600;m=s/60;s=s-m*60;
+  sl=energest_total_time[ENERGEST_TYPE_CPU].current/RTIMER_ARCH_SECOND;
+  h=(10000UL*sl)/seconds;p1=h/100;p2=h-p1*100;h=sl/3600;s=sl-h*3600;m=s/60;s=s-m*60;
+  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor4, h,m,s,p1,p2);
+  if (*(char *)(uip_appdata + numprinted-4)==0) {numprinted-=4;}
+  else if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
+  else if (*(char *)(uip_appdata + numprinted-2)==0) {numprinted-=2;}
+  else if (*(char *)(uip_appdata + numprinted-1)==0) {numprinted-=1;}
+
+  sl=energest_total_time[ENERGEST_TYPE_TRANSMIT].current/RTIMER_ARCH_SECOND;
+  h=(10000UL*sl)/seconds;p1=h/100;p2=h-p1*100;h=sl/3600;s=sl-h*3600;m=s/60;s=s-m*60;
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor10, h,m,s,p1,p2);
   if (*(char *)(uip_appdata + numprinted-4)==0) {numprinted-=4;}
   else if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
   else if (*(char *)(uip_appdata + numprinted-2)==0) {numprinted-=2;}
   else if (*(char *)(uip_appdata + numprinted-1)==0) {numprinted-=1;}
-  s=energest_total_time[ENERGEST_TYPE_LISTEN].current/RTIMER_ARCH_SECOND;
-  h=((10000UL*energest_total_time[ENERGEST_TYPE_LISTEN].current)/RTIMER_ARCH_SECOND)/seconds;
-  p1=h/100;p2=h-p1*100;h=s/3600;s=s-h*3600;m=s/60;s=s-m*60;
+  sl=energest_total_time[ENERGEST_TYPE_LISTEN].current/RTIMER_ARCH_SECOND;
+  h=(10000UL*sl)/seconds;p1=h/100;p2=h-p1*100;h=sl/3600;s=sl-h*3600;m=s/60;s=s-m*60;
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor11, h,m,s,p1,p2);
   if (*(char *)(uip_appdata + numprinted-4)==0) {numprinted-=4;}
   else if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
@@ -847,6 +883,121 @@ PT_THREAD(tictactoe(struct httpd_state *s, char *ptr))
 }
 #endif /* WEBSERVER_CONF_TICTACTOE */
 
+#if WEBSERVER_CONF_AJAX
+/*---------------------------------------------------------------------------*/
+static
+PT_THREAD(ajax_call(struct httpd_state *s, char *ptr))
+{
+  static struct timer t;
+  static int iter;
+  static char buf[128];
+  static uint8_t numprinted;
+  
+  PSOCK_BEGIN(&s->sout);
+/*TODO:pick up time from ? parameter */
+  timer_set(&t, 1*CLOCK_SECOND);
+  iter = 0;
+  
+  while(1) {
+
+#if CONTIKI_TARGET_SKY
+    SENSORS_ACTIVATE(sht11_sensor);
+    SENSORS_ACTIVATE(light_sensor);
+    numprinted = snprintf(buf, sizeof(buf),
+	     "t(%d);h(%d);l1(%d);l2(%d);",
+	     sht11_sensor.value(SHT11_SENSOR_TEMP),
+	     sht11_sensor.value(SHT11_SENSOR_HUMIDITY),
+         light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC),
+         light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR));
+    SENSORS_DEACTIVATE(sht11_sensor);
+    SENSORS_DEACTIVATE(light_sensor);
+#elif CONTIKI_TARGET_MB851
+  SENSORS_ACTIVATE(acc_sensor);    
+  numprinted = snprintf(buf, sizeof(buf),"t(%d);ax(%d);ay(%d);az(%d);",
+	     temperature_sensor.value(0),
+	     acc_sensor.value(ACC_X_AXIS),
+	     acc_sensor.value(ACC_Y_AXIS),
+	     acc_sensor.value(ACC_Z_AXIS));   
+  SENSORS_DEACTIVATE(acc_sensor);
+
+#elif CONTIKI_TARGET_REDBEE_ECONOTAG
+{
+//#include "adc.h"
+	uint8_t c;
+	adc_reading[8]=0;
+	adc_init();
+	while (adc_reading[8]==0) adc_service();
+    adc_disable();
+    numprinted = snprintf(buf, sizeof(buf),"b(%u);adc(%u,%u,%u,%u,%u,%u,%u,%u);",
+        1200*0xfff/adc_reading[8],adc_reading[0],adc_reading[1],adc_reading[2],adc_reading[3],adc_reading[4],adc_reading[5],adc_reading[6],adc_reading[7]);
+}		
+#elif CONTIKI_TARGET_MINIMAL_NET
+static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c7=0x3ff;
+    numprinted = snprintf(buf, sizeof(buf), "t(%d);b(%u);v(%u);",273+(rand()&0x3f),3300-iter/10,iter);
+	numprinted += snprintf(buf+numprinted, sizeof(buf)-numprinted,"adc(%u,%u,%u,%u,%u,%u,%u,%u);",c0,c1,c2,c3,c4,c5,c6,c7);
+	c0+=(rand()&0xf)-8;
+	c1+=(rand()&0xf)-8;
+	c2+=(rand()&0xf)-7;
+	c3+=(rand()&0x1f)-15;
+	c4+=(rand()&0x3)-1;
+	c5+=(rand()&0xf)-8;
+	c6+=(rand()&0xf)-8;
+	c7+=(rand()&0xf)-8;
+#else
+    numprinted = snprintf(buf, sizeof(buf), "v(%u);",iter);
+#endif
+
+  
+#if CONTIKIMAC_CONF_COMPOWER
+#include "sys/compower.h"
+{
+//sl=compower_idle_activity.transmit/RTIMER_ARCH_SECOND;
+//sl=compower_idle_activity.listen/RTIMER_ARCH_SECOND;
+}
+#endif
+
+#if RIMESTATS_CONF_ON
+
+#include "net/rime/rimestats.h"
+    numprinted += snprintf(buf+numprinted, sizeof(buf)-numprinted,"rime(%lu,%lu,%lu,%lu);",
+		rimestats.tx,rimestats.rx,rimestats.lltx-rimestats.tx,rimestats.llrx-rimestats.rx);
+#endif
+
+#if ENERGEST_CONF_ON
+{
+#if 1
+    static unsigned long last_cpu, last_lpm, last_listen, last_transmit;
+    energest_flush();
+    numprinted += snprintf(buf+numprinted, sizeof(buf)-numprinted,
+	    "p(%lu,%lu,%lu,%lu);",
+	    energest_type_time(ENERGEST_TYPE_CPU) - last_cpu,
+        energest_type_time(ENERGEST_TYPE_LPM) - last_lpm,
+        energest_type_time(ENERGEST_TYPE_TRANSMIT) - last_transmit,
+        energest_type_time(ENERGEST_TYPE_LISTEN) - last_listen);
+    last_cpu = energest_type_time(ENERGEST_TYPE_CPU);
+    last_lpm = energest_type_time(ENERGEST_TYPE_LPM);
+    last_transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
+    last_listen = energest_type_time(ENERGEST_TYPE_LISTEN);
+#endif
+#if 1
+	uint16_t cpp,txp,rxp;
+	energest_flush();
+    cpp=((10000UL*energest_type_time(ENERGEST_TYPE_CPU))/RTIMER_ARCH_SECOND)/clock_seconds();
+    txp=((10000UL*energest_type_time(ENERGEST_TYPE_TRANSMIT))/RTIMER_ARCH_SECOND)/clock_seconds();
+    rxp=((10000UL*energest_type_time(ENERGEST_TYPE_LISTEN))/RTIMER_ARCH_SECOND)/clock_seconds();
+    numprinted += snprintf(buf+numprinted, sizeof(buf)-numprinted,"ener(%u,%u,%u);",cpp,txp,rxp);
+#endif
+}
+#endif /* ENERGEST_CONF_ON */
+ 
+    PSOCK_SEND_STR(&s->sout, buf);
+    timer_restart(&t);
+	PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));
+	iter++;
+}
+  PSOCK_END(&s->sout);
+}
+#endif /* WEBSERVER_CONF_AJAX */
 /*---------------------------------------------------------------------------*/
 void
 httpd_cgi_add(struct httpd_cgi_call *c)
@@ -889,6 +1040,9 @@ HTTPD_CGI_CALL(sensors, sensor_name, sensor_readings);
 #if WEBSERVER_CONF_TICTACTOE
 HTTPD_CGI_CALL( tictac, tictac_name, tictactoe      );
 #endif
+#if WEBSERVER_CONF_AJAX
+HTTPD_CGI_CALL( ajax, ajax_name, ajax_call          );
+#endif
 
 void
 httpd_cgi_init(void)
@@ -919,6 +1073,9 @@ httpd_cgi_init(void)
 #endif
 #if  WEBSERVER_CONF_TICTACTOE
   httpd_cgi_add( &tictac);
+#endif
+#if  WEBSERVER_CONF_AJAX
+  httpd_cgi_add( &ajax);
 #endif
 }
 #endif /* WEBSERVER_CONF_CGI */
