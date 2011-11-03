@@ -197,9 +197,13 @@ public class MRM extends AbstractRadioMedium {
           recv.interfereAnyReception();
         } else if (recv.isInterfered()) {
           if (WITH_CAPTURE_EFFECT) {
-            /* XXX TODO This may be wrong:
-             * If the interfering signal is both weaker and the SFD has not 
-             * been received, then the stronger signal may actually be received.
+            /* XXX TODO Implement me:
+             * If the new transmission is both stronger and the SFD has not
+             * been received by the weaker transmission, then this new
+             * transmission should be received.
+             *
+             * When this is implemented, also implement
+             * RadioConnection.java:getReceptionStartTime()
              */
 
             /* Was interfered: keep interfering */
