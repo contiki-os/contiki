@@ -81,6 +81,7 @@
 #define WEBSERVER_CONF_ROUTES    1
 #define WEBSERVER_CONF_SENSORS   0
 #define WEBSERVER_CONF_TICTACTOE 0   //Needs passquery of at least 10 chars 
+#define WEBSERVER_CONF_AJAX      0
 //#define WEBSERVER_CONF_PASSQUERY 10
 #if WEBSERVER_CONF_PASSQUERY
 extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
@@ -126,6 +127,7 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 #define WEBSERVER_CONF_ROUTES    1
 #define WEBSERVER_CONF_SENSORS   1
 #define WEBSERVER_CONF_TICTACTOE 1   //Needs passquery of at least 10 chars 
+#define WEBSERVER_CONF_AJAX      1
 #define WEBSERVER_CONF_PASSQUERY 10
 #if WEBSERVER_CONF_PASSQUERY
 extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
