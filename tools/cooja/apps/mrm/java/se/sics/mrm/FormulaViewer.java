@@ -151,6 +151,27 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
         channelModel.getParameterDoubleValue(Parameter.frequency)
     );
 
+    addBooleanParameter(
+        Parameter.captureEffect,
+        Parameter.getDescription(Parameter.captureEffect),
+        collapsableArea,
+        channelModel.getParameterBooleanValue(Parameter.captureEffect)
+    );
+
+    addDoubleParameter(
+        Parameter.captureEffectPreambleDuration,
+        Parameter.getDescription(Parameter.captureEffectPreambleDuration),
+        collapsableArea,
+        channelModel.getParameterDoubleValue(Parameter.captureEffectPreambleDuration)
+    );
+    
+    addDoubleParameter(
+        Parameter.captureEffectSignalTreshold,
+        Parameter.getDescription(Parameter.captureEffectSignalTreshold),
+        collapsableArea,
+        channelModel.getParameterDoubleValue(Parameter.captureEffectSignalTreshold)
+    );
+    
     // Transmitter parameters
     collapsableArea = createCollapsableArea("Transmitter parameters", allComponents);
     areaTransmitter = collapsableArea;

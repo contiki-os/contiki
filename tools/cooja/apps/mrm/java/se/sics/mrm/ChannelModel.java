@@ -135,7 +135,10 @@ public class ChannelModel {
     rt_reflec_coefficient,
     rt_diffr_coefficient,
     rt_scatt_coefficient,
-    obstacle_attenuation;
+    obstacle_attenuation,
+    captureEffect,
+    captureEffectPreambleDuration,
+    captureEffectSignalTreshold;
 
     public static Object getDefaultValue(Parameter p) {
       switch (p) {
@@ -187,6 +190,12 @@ public class ChannelModel {
         return new Double(-20);
       case obstacle_attenuation:
         return new Double(-3);
+      case captureEffect:
+        return true;
+      case captureEffectPreambleDuration:
+        return (double) (1000*1000*4*0.5*8/250000); /* 2 bytes, 250kbit/s, us */
+      case captureEffectSignalTreshold:
+        return (double) 3; /* dB, according to previous 802.15.4 studies */
       }
       throw new RuntimeException("Unknown default value: " + p);
     }
@@ -235,6 +244,12 @@ public class ChannelModel {
         return rt_scatt_coefficient;
       } else if (name.equals("obstacle_attenuation")) {
         return obstacle_attenuation;
+      } else if (name.equals("captureEffect")) {
+        return captureEffect;
+      } else if (name.equals("captureEffectPreambleDuration")) {
+        return captureEffectPreambleDuration;
+      } else if (name.equals("captureEffectSignalTreshold")) {
+        return captureEffectSignalTreshold;
       }
       return null;
     }
@@ -263,6 +278,9 @@ public class ChannelModel {
       case rt_reflec_coefficient: return "Reflection coefficient (dB)";
       case rt_diffr_coefficient: return "Diffraction coefficient (dB)";
       case obstacle_attenuation: return "Obstacle attenuation (dB/m)";
+      case captureEffect: return "Use Capture Effect";
+      case captureEffectPreambleDuration: return "Capture effect preamble (us)";
+      case captureEffectSignalTreshold: return "Capture effect threshold (dB)";
       }
       throw new RuntimeException("Unknown decrption: " + p);
     }

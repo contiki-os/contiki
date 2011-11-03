@@ -91,12 +91,39 @@ public class RadioConnection {
   }
 
   /**
+   * @return Start time of ongoing reception
+   */
+  public long getReceptionStartTime() {
+    /* TODO XXX: This may currently return the start time of an ongoing 
+     * interference. */
+    return getStartTime();
+  }
+  
+  /**
    * Add (non-interfered) destination radio to connection.
    *
    * @param radio Radio
    */
   public void addDestination(Radio radio) {
     addDestination(radio, new Long(0));
+  }
+  
+  /**
+   * Experimental: remove destination.
+   *
+   * @param radio Radio
+   */
+  public void removeDestination(Radio radio) {
+    int idx = allDestinations.indexOf(radio);
+    if (idx < 0) {
+      logger.fatal("Radio is not a connection destination: " + radio);
+      return;
+    }
+    
+    allDestinations.remove(idx);
+    allDestinationDelays.remove(idx);
+    destinationsNonInterfered.remove(radio);
+    onlyInterfered.remove(radio);
   }
 
   /**
