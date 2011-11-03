@@ -80,8 +80,13 @@ public class MRM extends AbstractRadioMedium {
 
   public final static boolean WITH_NOISE = true; /* NoiseSourceRadio */
   public final static boolean WITH_DIRECTIONAL = true; /* DirectionalAntennaRadio */
-  public final static boolean WITH_CAPTURE_EFFECT = true;
 
+  private Observer channelModelObserver = null;
+
+  private boolean WITH_CAPTURE_EFFECT;
+  private double CAPTURE_EFFECT_THRESHOLD;
+  private double CAPTURE_EFFECT_PREAMBLE_DURATION;
+  
   private Simulation sim;
   private Random random = null;
   private ChannelModel currentChannelModel = null;
@@ -100,7 +105,19 @@ public class MRM extends AbstractRadioMedium {
     sim = simulation;
     random = simulation.getRandomGenerator();
     currentChannelModel = new ChannelModel(sim);
-
+    
+    WITH_CAPTURE_EFFECT = currentChannelModel.getParameterBooleanValue(ChannelModel.Parameter.captureEffect);
+    CAPTURE_EFFECT_THRESHOLD = currentChannelModel.getParameterDoubleValue(ChannelModel.Parameter.captureEffectSignalTreshold);
+    CAPTURE_EFFECT_PREAMBLE_DURATION = currentChannelModel.getParameterDoubleValue(ChannelModel.Parameter.captureEffectPreambleDuration);
+   
+    currentChannelModel.addSettingsObserver(channelModelObserver = new Observer() {
+      public void update(Observable o, Object arg) {
+        WITH_CAPTURE_EFFECT = currentChannelModel.getParameterBooleanValue(ChannelModel.Parameter.captureEffect);
+        CAPTURE_EFFECT_THRESHOLD = currentChannelModel.getParameterDoubleValue(ChannelModel.Parameter.captureEffectSignalTreshold);
+        CAPTURE_EFFECT_PREAMBLE_DURATION = currentChannelModel.getParameterDoubleValue(ChannelModel.Parameter.captureEffectPreambleDuration);
+      }
+    });
+    
     /* Register plugins */
     sim.getGUI().registerPlugin(AreaViewer.class);
     sim.getGUI().registerPlugin(FormulaViewer.class);
@@ -114,6 +131,8 @@ public class MRM extends AbstractRadioMedium {
     sim.getGUI().unregisterPlugin(AreaViewer.class);
     sim.getGUI().unregisterPlugin(FormulaViewer.class);
     Visualizer.unregisterVisualizerSkin(MRMVisualizerSkin.class);
+
+    currentChannelModel.deleteSettingsObserver(channelModelObserver);
   }
   
   private NoiseLevelListener noiseListener = new NoiseLevelListener() {
@@ -177,22 +196,26 @@ public class MRM extends AbstractRadioMedium {
           newConnection.addInterfered(recv);
           recv.interfereAnyReception();
         } else if (recv.isInterfered()) {
-          /* Was interfered: keep interfering */
-          newConnection.addInterfered(recv, recvSignalStrength);
+          if (WITH_CAPTURE_EFFECT) {
+            /* XXX TODO This may be wrong:
+             * If the interfering signal is both weaker and the SFD has not 
+             * been received, then the stronger signal may actually be received.
+             */
+
+            /* Was interfered: keep interfering */
+            newConnection.addInterfered(recv, recvSignalStrength);
+          } else {
+            /* Was interfered: keep interfering */
+            newConnection.addInterfered(recv, recvSignalStrength);
+          }
         } else if (recv.isTransmitting()) {
           newConnection.addInterfered(recv, recvSignalStrength);
         } else if (recv.isReceiving()) {
           /* Was already receiving: start interfering.
            * Assuming no continuous preambles checking */
-                
-                double currSignal = recv.getCurrentSignalStrength();
-                /* Capture effect: recv-radio is already receiving.
-                 * Are we strong enough to interfere? */
-                if (WITH_CAPTURE_EFFECT &&
-                                recvSignalStrength < currSignal - 3 /* config */) {
-                        /* No, we are too weak */
-                } else {
-                newConnection.addInterfered(recv, recvSignalStrength);
+
+          if (!WITH_CAPTURE_EFFECT) {
+            newConnection.addInterfered(recv, recvSignalStrength);
             recv.interfereAnyReception();
 
             /* Interfere receiver in all other active radio connections */
@@ -201,7 +224,42 @@ public class MRM extends AbstractRadioMedium {
                 conn.addInterfered(recv);
               }
             }
+          } else {
+            /* CAPTURE EFFECT */
+            double currSignal = recv.getCurrentSignalStrength();
+            /* Capture effect: recv-radio is already receiving.
+             * Are we strong enough to interfere? */
+
+            if (recvSignalStrength < currSignal - CAPTURE_EFFECT_THRESHOLD /* config */) {
+              /* No, we are too weak */
+            } else {
+              /* New signal is strong enough to either interfere with ongoing transmission,
+               * or to be received/captured */
+              long startTime = newConnection.getReceptionStartTime();
+              boolean interfering = (sim.getSimulationTime()-startTime) >= CAPTURE_EFFECT_PREAMBLE_DURATION; /* us */
+              if (interfering) {
+                newConnection.addInterfered(recv, recvSignalStrength);
+                recv.interfereAnyReception();
+
+                /* Interfere receiver in all other active radio connections */
+                for (RadioConnection conn : getActiveConnections()) {
+                  if (conn.isDestination(recv)) {
+                    conn.addInterfered(recv);
+                  }
                 }
+              } else {
+                /* XXX Warning: removing destination from other connections */
+                for (RadioConnection conn : getActiveConnections()) {
+                  if (conn.isDestination(recv)) {
+                    conn.removeDestination(recv);
+                  }
+                }
+
+                /* Success: radio starts receiving */
+                newConnection.addDestination(recv, recvSignalStrength);
+              }
+            }
+          }
 
         } else {
           /* Success: radio starts receiving */
