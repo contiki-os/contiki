@@ -981,10 +981,10 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
 #endif
 #if 1
 	uint16_t cpp,txp,rxp;
-	energest_flush();
-    cpp=((10000UL*energest_type_time(ENERGEST_TYPE_CPU))/RTIMER_ARCH_SECOND)/clock_seconds();
-    txp=((10000UL*energest_type_time(ENERGEST_TYPE_TRANSMIT))/RTIMER_ARCH_SECOND)/clock_seconds();
-    rxp=((10000UL*energest_type_time(ENERGEST_TYPE_LISTEN))/RTIMER_ARCH_SECOND)/clock_seconds();
+//	energest_flush();
+    cpp=((10000UL*energest_total_time(ENERGEST_TYPE_CPU.current))/RTIMER_ARCH_SECOND)/clock_seconds();
+    txp=((10000UL*energest_total_time(ENERGEST_TYPE_TRANSMIT.current))/RTIMER_ARCH_SECOND)/clock_seconds();
+    rxp=((10000UL*energest_total_time(ENERGEST_TYPE_LISTEN.current))/RTIMER_ARCH_SECOND)/clock_seconds();
     numprinted += snprintf(buf+numprinted, sizeof(buf)-numprinted,"ener(%u,%u,%u);",cpp,txp,rxp);
 #endif
 }
