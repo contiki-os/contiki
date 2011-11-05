@@ -1,6 +1,6 @@
 %! header
 %!: /ajax.js
-<input type="button" value="RUN" onclick="ls.stop=false; ls();"><input type="button" value="STOP" onclick="ls.stop=true;"><br><span id="date"></span>
+<input type="button" value="RUN" onclick="ls()"><input type="button" value="STOP" onclick="r.abort()"><br><span id="date"></span>
 <div id="v"></div>
 <pre><span id="rims"></span><div id="ener"></div></pre>
 <h2>Sensors</h2>
