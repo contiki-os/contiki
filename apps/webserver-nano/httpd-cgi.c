@@ -61,7 +61,7 @@
 #if CONTIKI_TARGET_REDBEE_ECONOTAG
 #include "adc.h"
 #endif
-
+short sleepcount;
 #if WEBSERVER_CONF_CGI
 static struct httpd_cgi_call *calls = NULL;
 /*cgi function names*/
@@ -346,9 +346,7 @@ make_tcp_stats(void *arg)
   conn = &uip_conns[s->u.count];
 
   numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_tcpstat1, uip_htons(conn->lport));
-#if WEBSERVER_CONF_PRINTADDR
   numprinted += httpd_cgi_sprint_ip6(conn->ripaddr, uip_appdata + numprinted);
-#endif
   httpd_strcpy(tstate,states[conn->tcpstateflags & UIP_TS_MASK]);
   numprinted +=  httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted,
                  httpd_cgi_tcpstat2,
@@ -429,13 +427,10 @@ uint16_t numprinted;
   for (i=0; i<UIP_DS6_ADDR_NB;i++) {
     if (uip_ds6_if.addr_list[i].isused) {
       j++;
-#if WEBSERVER_CONF_PRINTADDR
       numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, uip_appdata + numprinted);
-#endif
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb); 
     }
   }
-//if (j==0) numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrn);
   numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf, UIP_DS6_ADDR_NB-j); 
   return numprinted;
 }
@@ -463,13 +458,10 @@ uint16_t numprinted;
   for (i=0; i<UIP_DS6_NBR_NB;i++) {
     if (uip_ds6_nbr_cache[i].isused) {
       j++;
-#if WEBSERVER_CONF_PRINTADDR
       numprinted += httpd_cgi_sprint_ip6(uip_ds6_nbr_cache[i].ipaddr, uip_appdata + numprinted);
-#endif
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb); 
     }
   }
-//if (j==0) numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrn);
   numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,UIP_DS6_NBR_NB-j);
   return numprinted;
 }
@@ -500,13 +492,9 @@ uint16_t numprinted;
   for (i=0; i<UIP_DS6_ROUTE_NB;i++) {
     if (uip_ds6_routing_table[i].isused) {
       j++;
-#if WEBSERVER_CONF_PRINTADDR
       numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
-#endif
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, uip_ds6_routing_table[i].length);
-#if WEBSERVER_CONF_PRINTADDR
       numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].nexthop, uip_appdata + numprinted);
-#endif
       if(uip_ds6_routing_table[i].state.lifetime < 3600) {
          numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, (long unsigned int)uip_ds6_routing_table[i].state.lifetime);
       } else {
@@ -547,23 +535,58 @@ generate_sensor_readings(void *arg)
 // static const char httpd_cgi_sensor4[] HTTPD_STRING_ATTR = "<em>Sleeping time :</em> %02d:%02d:%02d (%d%%)<br>";
 
   numprinted=0;
-  if (last_tempupdate) {
-    numprinted =httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_sensor0,(unsigned int) (seconds-last_tempupdate));
-  }
-  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor1, sensor_temperature);
+  /* Generate temperature and voltage strings for each platform */
+#if CONTIKI_TARGET_AVR_ATMEGA128RFA1  
+{uint8_t i;
+  BATMON = 16; //give BATMON time to stabilize at highest range and lowest voltage
 
+/* Measure internal temperature sensor, see atmega128rfa1 datasheet */
+/* This code disabled by default for safety.
+   Selecting an internal reference will short it to anything connected to the AREF pin
+ */
 #if 0
-//Measuring AVcc might be useful to check on battery condition but on ext power it's always 3v3
-  ADMUX =0x1E;              //Select AREF as reference, measure 1.1 volt bandgap reference.
-//ADMUX =0x5E;              //Select AVCC as reference, measure 1.1 volt bandgap reference.
+  ADCSRB|=1<<MUX5;          //this bit buffered till ADMUX written to!
+  ADMUX =0xc9;              // Select internal 1.6 volt ref, temperature sensor ADC channel
+  ADCSRA=0x85;              //Enable ADC, not free running, interrupt disabled, clock divider 32 (250 KHz@ 8 MHz)
+//  while ((ADCSRB&(1<<AVDDOK))==0);  //wait for AVDD ok
+//  while ((ADCSRB&(1<<REFOK))==0);  //wait for ref ok 
+  ADCSRA|=1<<ADSC;          //Start throwaway conversion
+  while (ADCSRA&(1<<ADSC)); //Wait till done
+  ADCSRA|=1<<ADSC;          //Start another conversion
+  while (ADCSRA&(1<<ADSC)); //Wait till done
+  h=ADC;                    //Read adc
+  h=11*h-2728+(h>>2);       //Convert to celcius*10 (should be 11.3*h, approximate with 11.25*h)
+  ADCSRA=0;                 //disable ADC
+  ADMUX=0;                  //turn off internal vref      
+  m=h/10;s=h-10*m;
+  static const char httpd_cgi_sensor1_printf[] HTTPD_STRING_ATTR = "%d.%d C";
+  httpd_snprintf(sensor_temperature,sizeof(sensor_temperature),httpd_cgi_sensor1_printf,m,s);
+#endif
+
+/* Bandgap can't be measured against supply voltage in this chip. */
+/* Use BATMON register instead */
+  for ( i=16; i<31; i++) {
+    BATMON = i;
+    if ((BATMON&(1<<BATMON_OK))==0) break;
+  }
+  h=2550-75*16-75+75*i; //-75 to take the floor of the 75 mv transition window
+    static const char httpd_cgi_sensor2_printf[] HTTPD_STRING_ATTR = "%u mv";
+  httpd_snprintf(sensor_extvoltage,sizeof(sensor_extvoltage),httpd_cgi_sensor2_printf,h);
+
+#if 0  //usual way to get AVR supply voltage, measure 1.1v bandgap using Vcc as reference
+//ADMUX =0x1E;              //Select AREF as reference, measure 1.1 volt bandgap reference.
+  ADMUX =0x5E;              //Select AVCC as reference, measure 1.1 volt bandgap reference.
   ADCSRA=0x07;              //Enable ADC, not free running, interrupt disabled, clock divider  128 (62 KHz@ 8 MHz)
   ADCSRA|=1<<ADSC;          //Start throwaway conversion
   while (ADCSRA&(1<<ADSC)); //Wait till done
   ADCSRA|=1<<ADSC;          //Start another conversion
   while (ADCSRA&(1<<ADSC)); //Wait till done
   h=1131632UL/ADC;          //Get supply voltage
+  static const char httpd_cgi_sensor2_printf[] HTTPD_STRING_ATTR = "%u mv";
+  httpd_snprintf(sensor_extvoltage,sizeof(sensor_extvoltage),httpd_cgi_sensor2_printf,h);
 #endif
-#if CONTIKI_TARGET_REDBEE_ECONOTAG
+}
+#elif CONTIKI_TARGET_REDBEE_ECONOTAG
 //#include "adc.h"
 {
 uint8_t c;
@@ -580,7 +603,11 @@ uint8_t c;
 
 }
 #endif
-
+ 
+  if (last_tempupdate) {
+    numprinted =httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_sensor0,(unsigned int) (seconds-last_tempupdate));
+  }
+  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor1, sensor_temperature);
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
 //   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensr12, sensor_temperature,sensor_extvoltage);
 
@@ -895,10 +922,11 @@ PT_THREAD(ajax_call(struct httpd_state *s, char *ptr))
   
   PSOCK_BEGIN(&s->sout);
 /*TODO:pick up time from ? parameter */
-  timer_set(&t, 1*CLOCK_SECOND);
+  timer_set(&t, 2*CLOCK_SECOND);
   iter = 0;
   
   while(1) {
+  	iter++;
 
 #if CONTIKI_TARGET_SKY
     SENSORS_ACTIVATE(sht11_sensor);
@@ -911,6 +939,7 @@ PT_THREAD(ajax_call(struct httpd_state *s, char *ptr))
          light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR));
     SENSORS_DEACTIVATE(sht11_sensor);
     SENSORS_DEACTIVATE(light_sensor);
+
 #elif CONTIKI_TARGET_MB851
   SENSORS_ACTIVATE(acc_sensor);    
   numprinted = snprintf(buf, sizeof(buf),"t(%d);ax(%d);ay(%d);az(%d);",
@@ -921,16 +950,15 @@ PT_THREAD(ajax_call(struct httpd_state *s, char *ptr))
   SENSORS_DEACTIVATE(acc_sensor);
 
 #elif CONTIKI_TARGET_REDBEE_ECONOTAG
-{
-//#include "adc.h"
-	uint8_t c;
+{	uint8_t c;
 	adc_reading[8]=0;
 	adc_init();
 	while (adc_reading[8]==0) adc_service();
     adc_disable();
     numprinted = snprintf(buf, sizeof(buf),"b(%u);adc(%u,%u,%u,%u,%u,%u,%u,%u);",
         1200*0xfff/adc_reading[8],adc_reading[0],adc_reading[1],adc_reading[2],adc_reading[3],adc_reading[4],adc_reading[5],adc_reading[6],adc_reading[7]);
-}		
+}
+		
 #elif CONTIKI_TARGET_MINIMAL_NET
 static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c7=0x3ff;
     numprinted = snprintf(buf, sizeof(buf), "t(%d);b(%u);v(%u);",273+(rand()&0x3f),3300-iter/10,iter);
@@ -943,11 +971,98 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
 	c5+=(rand()&0xf)-8;
 	c6+=(rand()&0xf)-8;
 	c7+=(rand()&0xf)-8;
-#else
-    numprinted = snprintf(buf, sizeof(buf), "v(%u);",iter);
+  if (iter==1) {
+    static const char httpd_cgi_ajax11[] HTTPD_STRING_ATTR = "wt('Minimal-net ";
+	static const char httpd_cgi_ajax12[] HTTPD_STRING_ATTR = "');";
+    numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax11);
+#if WEBSERVER_CONF_PRINTADDR
+/* Note address table is filled from the end down */
+{int i;
+    for (i=0; i<UIP_DS6_ADDR_NB;i++) {
+      if (uip_ds6_if.addr_list[i].isused) {
+	    numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, buf + numprinted);
+	    break;
+	  }
+    }
+}
 #endif
+	numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax12);
+  }
 
-  
+#elif CONTIKI_TARGET_AVR_ATMEGA128RFA1
+{ uint8_t i;int16_t tmp,bat;
+  BATMON = 16; //give BATMON time to stabilize at highest range and lowest voltage
+/* Measure internal temperature sensor, see atmega128rfa1 datasheet */
+/* This code disabled by default for safety.
+   Selecting an internal reference will short it to anything connected to the AREF pin
+ */
+#if 1
+  ADCSRB|=1<<MUX5;          //this bit buffered till ADMUX written to!
+  ADMUX =0xc9;              // Select internal 1.6 volt ref, temperature sensor ADC channel
+  ADCSRA=0x85;              //Enable ADC, not free running, interrupt disabled, clock divider 32 (250 KHz@ 8 MHz)
+//  while ((ADCSRB&(1<<AVDDOK))==0);  //wait for AVDD ok
+//  while ((ADCSRB&(1<<REFOK))==0);  //wait for ref ok 
+  ADCSRA|=1<<ADSC;          //Start throwaway conversion
+  while (ADCSRA&(1<<ADSC)); //Wait till done
+  ADCSRA|=1<<ADSC;          //Start another conversion
+  while (ADCSRA&(1<<ADSC)); //Wait till done
+  tmp=ADC;                  //Read adc
+  tmp=11*tmp-2728+(tmp>>2); //Convert to celcius*10 (should be 11.3*h, approximate with 11.25*h)
+  ADCSRA=0;                 //disable ADC
+  ADMUX=0;                  //turn off internal vref      
+#endif
+/* Bandgap can't be measured against supply voltage in this chip. */
+/* Use BATMON register instead */
+  for ( i=16; i<31; i++) {
+    BATMON = i;
+    if ((BATMON&(1<<BATMON_OK))==0) break;
+  }
+  bat=2550-75*16-75+75*i;  //-75 to take the floor of the 75 mv transition window
+  static const char httpd_cgi_ajax10[] HTTPD_STRING_ATTR ="t(%u),b(%u);adc(%d,%d,%u,%u,%u,%u,%u,%lu);";
+  numprinted = httpd_snprintf(buf, sizeof(buf),httpd_cgi_ajax10,tmp,bat,iter,tmp,bat,sleepcount,OCR2A,0,clock_time(),clock_seconds());
+  if (iter==1) {
+    static const char httpd_cgi_ajax11[] HTTPD_STRING_ATTR = "wt('128rfa1 [";
+	static const char httpd_cgi_ajax12[] HTTPD_STRING_ATTR = "]');";
+    numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax11);
+#if WEBSERVER_CONF_PRINTADDR
+/* Note address table is filled from the end down */
+{int i;
+    for (i=0; i<UIP_DS6_ADDR_NB;i++) {
+      if (uip_ds6_if.addr_list[i].isused) {
+	    numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, buf + numprinted);
+	    break;
+	  }
+    }
+}
+#endif
+	numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax12);
+  }
+}
+
+//#elif CONTIKI_TARGET_IS_SOMETHING_ELSE
+#else
+  static const char httpd_cgi_ajax10[] HTTPD_STRING_ATTR ="v(%u);";
+  numprinted = httpd_snprintf(buf, sizeof(buf),httpd_cgi_ajax10,iter);
+  if (iter==1) {
+    static const char httpd_cgi_ajax11[] HTTPD_STRING_ATTR = "wt('Contiki Ajax ";
+	static const char httpd_cgi_ajax12[] HTTPD_STRING_ATTR = "');";
+    numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax11);
+#if WEBSERVER_CONF_PRINTADDR
+/* Note address table is filled from the end down */
+{int i;
+    for (i=0; i<UIP_DS6_ADDR_NB;i++) {
+      if (uip_ds6_if.addr_list[i].isused) {
+	    numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, buf + numprinted);
+	    break;
+	  }
+    }
+}
+#endif
+	numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax12);
+  }
+}
+#endif
+ 
 #if CONTIKIMAC_CONF_COMPOWER
 #include "sys/compower.h"
 {
@@ -959,33 +1074,52 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
 #if RIMESTATS_CONF_ON
 
 #include "net/rime/rimestats.h"
-    numprinted += snprintf(buf+numprinted, sizeof(buf)-numprinted,"rime(%lu,%lu,%lu,%lu);",
+    static const char httpd_cgi_ajaxr1[] HTTPD_STRING_ATTR ="rime(%lu,%lu,%lu,%lu);";
+    numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajaxr1,
 		rimestats.tx,rimestats.rx,rimestats.lltx-rimestats.tx,rimestats.llrx-rimestats.rx);
 #endif
 
 #if ENERGEST_CONF_ON
 {
 #if 1
+/* Send on times in percent since last update. Handle 16 bit rtimer wraparound. */
+/* Javascript must convert based on platform cpu, tx, rx power, e.g. 20ma*3v3=66mW*(% on time/100) */
+	static rtimer_clock_t last_send;
+	rtimer_clock_t delta_time;
     static unsigned long last_cpu, last_lpm, last_listen, last_transmit;
     energest_flush();
-    numprinted += snprintf(buf+numprinted, sizeof(buf)-numprinted,
-	    "p(%lu,%lu,%lu,%lu);",
-	    energest_type_time(ENERGEST_TYPE_CPU) - last_cpu,
-        energest_type_time(ENERGEST_TYPE_LPM) - last_lpm,
-        energest_type_time(ENERGEST_TYPE_TRANSMIT) - last_transmit,
-        energest_type_time(ENERGEST_TYPE_LISTEN) - last_listen);
-    last_cpu = energest_type_time(ENERGEST_TYPE_CPU);
-    last_lpm = energest_type_time(ENERGEST_TYPE_LPM);
-    last_transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
-    last_listen = energest_type_time(ENERGEST_TYPE_LISTEN);
+	delta_time=RTIMER_NOW()-last_send;
+	if (RTIMER_CLOCK_LT(RTIMER_NOW(),last_send)) delta_time+=RTIMER_ARCH_SECOND;
+	last_send=RTIMER_NOW();
+    static const char httpd_cgi_ajaxe1[] HTTPD_STRING_ATTR = "p(%lu,%lu,%lu,%lu);";	
+    numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajaxe1,
+	    (100UL*(energest_total_time[ENERGEST_TYPE_CPU].current - last_cpu))/delta_time,
+		(100UL*(energest_total_time[ENERGEST_TYPE_LPM].current - last_lpm))/delta_time,
+        (100UL*(energest_total_time[ENERGEST_TYPE_TRANSMIT].current - last_transmit))/delta_time,
+        (100UL*(energest_total_time[ENERGEST_TYPE_LISTEN].current - last_listen))/delta_time);
+    last_cpu = energest_total_time[ENERGEST_TYPE_CPU].current;
+    last_lpm = energest_total_time[ENERGEST_TYPE_LPM].current;
+    last_transmit = energest_total_time[ENERGEST_TYPE_TRANSMIT].current;
+    last_listen = energest_total_time[ENERGEST_TYPE_LISTEN].current;
 #endif
 #if 1
+/* Send cumulative on times in percent*100 */
 	uint16_t cpp,txp,rxp;
+	uint32_t sl,clockseconds=clock_seconds();
 //	energest_flush();
-    cpp=((10000UL*energest_total_time(ENERGEST_TYPE_CPU.current))/RTIMER_ARCH_SECOND)/clock_seconds();
-    txp=((10000UL*energest_total_time(ENERGEST_TYPE_TRANSMIT.current))/RTIMER_ARCH_SECOND)/clock_seconds();
-    rxp=((10000UL*energest_total_time(ENERGEST_TYPE_LISTEN.current))/RTIMER_ARCH_SECOND)/clock_seconds();
-    numprinted += snprintf(buf+numprinted, sizeof(buf)-numprinted,"ener(%u,%u,%u);",cpp,txp,rxp);
+//	sl=((10000UL*energest_total_time[ENERGEST_TYPE_CPU].current)/RTIMER_ARCH_SECOND)/clockseconds;
+    sl=energest_total_time[ENERGEST_TYPE_CPU].current/RTIMER_ARCH_SECOND;
+    cpp=(10000UL*sl)/clockseconds;
+//    txp=((10000UL*energest_total_time[ENERGEST_TYPE_TRANSMIT].current)/RTIMER_ARCH_SECOND)/clockseconds;
+    sl=energest_total_time[ENERGEST_TYPE_TRANSMIT].current/RTIMER_ARCH_SECOND;
+    txp=(10000UL*sl)/clockseconds;
+
+ //   rxp=((10000UL*energest_total_time[ENERGEST_TYPE_LISTEN].current)/RTIMER_ARCH_SECOND)/clockseconds;
+    sl=energest_total_time[ENERGEST_TYPE_LISTEN].current/RTIMER_ARCH_SECOND;
+    rxp=(10000UL*sl)/clockseconds;
+
+    static const char httpd_cgi_ajaxe2[] HTTPD_STRING_ATTR = "ener(%u,%u,%u);";	
+    numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajaxe2,cpp,txp,rxp);
 #endif
 }
 #endif /* ENERGEST_CONF_ON */
@@ -993,7 +1127,6 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
     PSOCK_SEND_STR(&s->sout, buf);
     timer_restart(&t);
 	PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));
-	iter++;
 }
   PSOCK_END(&s->sout);
 }
@@ -1088,7 +1221,6 @@ uint8_t httpd_cgi_sprint_ip6(uip_ip6addr_t addr, char * result)
     unsigned char numprinted = 0;
     char * starting = result;
     unsigned char i = 0;
-
         while (numprinted < 8)
                 {
                 //Address is zero, have we used our ability to
@@ -1111,6 +1243,8 @@ uint8_t httpd_cgi_sprint_ip6(uip_ip6addr_t addr, char * result)
                         //Cool - can replace a bunch of zeros
                         i += zerocnt;
                         numprinted += zerocnt;
+                        //all zeroes ?
+                       if (zerocnt > 7) {*result++ = ':';*result++ = ':';}
                         }
                 //Normal address, just print it
                 else
