@@ -871,7 +871,7 @@ ISR(TRX24_PLL_UNLOCK_vect)
 	DEBUGFLOW('5');
 }
 /* Flag is set by the following interrupts */
-extern volatile uint8_t rf230_interruptwait;
+extern volatile uint8_t rf230_interruptwait,rf230_ccawait;
 
 /* Wake has finished */
 ISR(TRX24_AWAKE_vect)
@@ -899,7 +899,7 @@ ISR(TRX24_XAH_AMI_vect)
 ISR(TRX24_CCA_ED_DONE_vect)
 {
 	DEBUGFLOW('4');
-	rf230_interruptwait=0;
+	rf230_ccawait=0;
 }
 
 #else /* defined(__AVR_ATmega128RFA1__) */
