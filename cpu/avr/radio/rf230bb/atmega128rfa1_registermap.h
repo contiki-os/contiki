@@ -67,6 +67,7 @@
 #define RG_IEEE_ADDR_7        IEEE_ADDR_7
 //#define SR_ED_LEVEL           0x147, 0xff, 0
 #define RG_PHY_ED_LEVEL       PHY_ED_LEVEL
+#define RG_RX_SYN             RX_SYN
 #define SR_RSSI               0x146, 0x1f, 0
 #define SR_PLL_CF_START       0x1a, 0x80, 7
 #define SR_PLL_DCU_START      0x1b, 0x80, 7

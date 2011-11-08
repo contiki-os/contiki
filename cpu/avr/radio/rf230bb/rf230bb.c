@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rf230bb.c,v 1.24 2010/12/22 20:10:00 dak664 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -96,6 +95,19 @@ static bool is_promiscuous;
 /* Valid range 1-16, zero disables extended mode. */
 #ifndef RF230_CONF_AUTORETRIES
 #define RF230_CONF_AUTORETRIES 3
+#endif
+
+/* In extended mode (AUTORETRIES>0) the tx routine waits for hardware
+ * processing of an expected ACK and returns RADIO_TX_OK/NOACK result.
+ * In non-extended mode the ACK is treated as a normal rx packet.
+ * If the caller needs the ACK to be returned as an rx packet,
+ * RF230_INSERTACK will generate one based on the hardware result.
+ * This is triggered when the read routine is called with a buffer
+ * length of three (the ack length).
+ */
+#if RF320_CONF_INSERTACK && RF230_CONF_AUTORETRIES
+#define RF230_INSERTACK 1
+uint8_t ack_pending,ack_seqnum;
 #endif
 
 /* RF230_CONF_CSMARETRIES is number of random-backoff/CCA retries. */
@@ -186,7 +198,7 @@ static int num_transmissions;
 #endif
 
 #if defined(__AVR_ATmega128RFA1__)
-volatile uint8_t rf230_interruptwait;
+volatile uint8_t rf230_interruptwait,rf230_ccawait;
 #endif
 
 uint8_t volatile rf230_pending;
@@ -355,9 +367,12 @@ rf230_isidle(void)
 static void
 rf230_waitidle(void)
 {
-  while (1) {
+int i;
+  for (i=0;i<10000;i++) {  //to avoid potential hangs
+ // while (1) {
     if (rf230_isidle()) break;
   }
+  if (i>=10000) {DEBUGFLOW('H');DEBUGFLOW('R');}
 }
 
 /*----------------------------------------------------------------------------*/
@@ -492,59 +507,59 @@ static uint8_t locked, lock_on, lock_off;
 static void
 on(void)
 {
+//   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);//testing
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-  
+  RF230_receive_on = 1;
 #ifdef RF230BB_HOOK_RADIO_ON
   RF230BB_HOOK_RADIO_ON();
 #endif
 
+/* If radio is off (slptr high), turn it on */
   if (hal_get_slptr()) {
-#if defined(__AVR_ATmega128RFA1__)
-	rf230_interruptwait=1;
-	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
+    ENERGEST_ON(ENERGEST_TYPE_LED_RED);
 #if RF230BB_CONF_LEDONPORTE1
-//	PORTE|=(1<<PE1); //ledon
+    PORTE|=(1<<PE1); //ledon
 #endif
-	hal_set_slptr_low();
-	while (rf230_interruptwait) {}
-  }
+#if defined(__AVR_ATmega128RFA1__)
+/* Use the poweron interrupt for delay */
+    rf230_interruptwait=1;
+    sei();
+    hal_set_slptr_low();
+    while (rf230_interruptwait) {}
 #else
+/* SPI based radios. The wake time depends on board capacitance, use 2x the nominal value for safety */
     uint8_t sreg = SREG;
     cli();
-//   DEBUGFLOW('0');
     hal_set_slptr_low();
-    delay_us(TIME_SLEEP_TO_TRX_OFF);
-    delay_us(TIME_SLEEP_TO_TRX_OFF);//extra delay for now, wake time depends on board capacitance
-	SREG=sreg;
+    delay_us(TIME_SLEEP_TO_TRX_OFF * 2);
+    SREG=sreg;
+#endif
   }
   rf230_waitidle();
-#endif
 
 #if RF230_CONF_AUTOACK
  // radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
   radio_set_trx_state(RX_AACK_ON);
-//DEBUGFLOW('a');
 #else
   radio_set_trx_state(RX_ON);
-  DEBUGFLOW('b');
 #endif
-
-  RF230_receive_on = 1;
 }
 static void
 off(void)
 {
+#if RF230BB_CONF_LEDONPORTE1
+  PORTE&=~(1<<PE1); //ledoff
+#endif
 #ifdef RF230BB_HOOK_RADIO_OFF
   RF230BB_HOOK_RADIO_OFF();
 #endif
 
-  /* Wait any transmission to end */
+  /* Wait for any transmission to end */
   rf230_waitidle(); 
-  RF230_receive_on = 0;
+
 #if RADIOALWAYSON
 /* Do not transmit autoacks when stack thinks radio is off */
   radio_set_trx_state(RX_ON);
-//DEBUGFLOW('c');
 #else 
   /* Force the device into TRX_OFF. */   
   radio_reset_state_machine();
@@ -552,17 +567,11 @@ off(void)
   /* Sleep Radio */
   hal_set_slptr_high();
   ENERGEST_OFF(ENERGEST_TYPE_LED_RED);
-#if RF230BB_CONF_LEDONPORTE1
-//  PORTE&=~(1<<PE1); //ledoff
 #endif
-// DEBUGFLOW('d');
-#else
- // DEBUGFLOW('e');
-#endif
-
 #endif /* RADIOALWAYSON */
 
-  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+   RF230_receive_on = 0;
+   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 }
 /*---------------------------------------------------------------------------*/
 #define GET_LOCK() locked = 1
@@ -781,6 +790,18 @@ void rf230_warm_reset(void) {
   /* Carrier sense threshold (not implemented in RF230 or RF231) */
 // hal_subregister_write(SR_CCA_CS_THRES,1);
 
+  /* Receiver sensitivity. If nonzero rf231/128rfa1 saves 0.5ma in rx mode */
+  /* Not implemented on rf230 but does not hurt to write to it */
+#ifdef RF230_MIN_RX_POWER
+#if RF230_MIN_RX_POWER > 84
+#warning rf231 power threshold clipped to -48dBm by hardware register
+ hal_register_write(RG_RX_SYN, 0xf);
+#elif RF230_MIN_RX_POWER < 0
+#error RF230_MIN_RX_POWER can not be negative!
+#endif
+  hal_register_write(RG_RX_SYN, RF230_MIN_RX_POWER/6 + 1); //1-15 -> -90 to -48dBm
+#endif
+
   /* CCA energy threshold = -91dB + 2*SR_CCA_ED_THRESH. Reset defaults to -77dB */
   /* Use RF230 base of -91;  RF231 base is -90 according to datasheet */
 #ifdef RF230_CONF_CCA_THRES
@@ -839,23 +860,29 @@ rf230_transmit(unsigned short payload_len)
 //	DEBUGFLOW('j');
 	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
 #if RF230BB_CONF_LEDONPORTE1
-//	PORTE|=(1<<PE1); //ledon
+    PORTE|=(1<<PE1); //ledon
 #endif
 	rf230_interruptwait=1;
 	hal_set_slptr_low();
-	while (rf230_interruptwait) {}	
+//	while (rf230_interruptwait) {}	
+    {
+      int i;
+      for (i=0;i<10000;i++) {
+        if (!rf230_interruptwait) break;
+      }
+    }
 #else
     hal_set_slptr_low();
-	DEBUGFLOW('j');
+    DEBUGFLOW('j');
     delay_us(TIME_SLEEP_TO_TRX_OFF);
-	delay_us(TIME_SLEEP_TO_TRX_OFF); //extra delay depends on board capacitance
+    delay_us(TIME_SLEEP_TO_TRX_OFF); //extra delay depends on board capacitance
 #endif
 
   } else {
 #if RADIO_CONF_CALIBRATE_INTERVAL
   /* If nonzero, do periodic calibration. See clock.c */
     if (rf230_calibrate) {
-	  DEBUGFLOW('k');
+      DEBUGFLOW('k');
       hal_subregister_write(SR_PLL_CF_START,1);   //takes 80us max
       hal_subregister_write(SR_PLL_DCU_START,1); //takes 6us, concurrently
       rf230_calibrate=0;
@@ -979,8 +1006,25 @@ rf230_transmit(unsigned short payload_len)
   }
 
   RELEASE_LOCK();
-  if (tx_result==1) {               //success, data pending from adressee
-    tx_result = RADIO_TX_OK;        //Just show success?
+
+#if RF230_INSERTACK
+   ack_pending = 0;
+#endif
+
+  if (tx_result==1) {        //success, data pending from adressee
+    tx_result=RADIO_TX_OK;           //handle as ordinary success
+  }
+
+  if (tx_result==RADIO_TX_OK) {
+    RIMESTATS_ADD(lltx);
+    if(packetbuf_attr(PACKETBUF_ATTR_RELIABLE))
+      RIMESTATS_ADD(ackrx);		//ack was requested and received
+#if RF230_INSERTACK
+  /* Not PAN broadcast to FFFF, and ACK was requested and received */
+  if (!((buffer[5]==0xff) && (buffer[6]==0xff)) && (buffer[0]&(1<<6)))
+    ack_pending=1;
+#endif
+
   } else if (tx_result==3) {        //CSMA channel access failure
     DEBUGFLOW('m');
     RIMESTATS_ADD(contentiondrop);
@@ -989,6 +1033,7 @@ rf230_transmit(unsigned short payload_len)
   } else if (tx_result==5) {        //Expected ACK, none received
     DEBUGFLOW('n');
     tx_result = RADIO_TX_NOACK;
+    RIMESTATS_ADD(badackrx);		//ack was requested but not received
   } else if (tx_result==7) {        //Invalid (Can't happen since waited for idle above?)
     DEBUGFLOW('o');
     tx_result = RADIO_TX_ERR;
@@ -1004,10 +1049,14 @@ rf230_prepare(const void *payload, unsigned short payload_len)
   uint8_t total_len,*pbuf;
 #if RF230_CONF_TIMESTAMPS
   struct timestamp timestamp;
-#endif /* RF230_CONF_TIMESTAMPS */
+#endif
 #if RF230_CONF_CHECKSUM
   uint16_t checksum;
-#endif /* RF230_CONF_CHECKSUM */
+#endif
+#if RF230_INSERTACK
+/* The sequence number is needed to construct the ack packet */
+  ack_seqnum=*(((uint8_t *)payload)+2);
+#endif
 
   GET_LOCK();
   DEBUGFLOW('p');
@@ -1015,7 +1064,7 @@ rf230_prepare(const void *payload, unsigned short payload_len)
 //  PRINTF("rf230: sending %d bytes\n", payload_len);
 //  PRINTSHORT("s%d ",payload_len);
 
-  RIMESTATS_ADD(lltx);
+  RIMESTATS_ADD(tx);
 
 #if RF230_CONF_CHECKSUM
   checksum = crc16_data(payload, payload_len, 0);
@@ -1031,7 +1080,7 @@ rf230_prepare(const void *payload, unsigned short payload_len)
     printf_P(PSTR("rf230_prepare: packet too large (%d, max: %d)\n"),total_len,RF230_MAX_TX_FRAME_LENGTH);
 #endif
     ret = -1;
-	goto bail;
+    goto bail;
   }
   pbuf=&buffer[0];
   memcpy(pbuf,payload,payload_len);
@@ -1243,6 +1292,7 @@ if (RF230_receive_on) {
 #if RADIOSTATS //TODO:This will double count buffered packets
   RF230_receivepackets++;
 #endif
+  RIMESTATS_ADD(llrx);
 
 #if RADIOALWAYSON
 } else {
@@ -1305,7 +1355,7 @@ PROCESS_THREAD(rf230_process, ev, data)
 /* Get packet from Radio if any, else return zero.
  * The two-byte checksum is appended but the returned length does not include it.
  * Frames are buffered in the interrupt routine so this routine
- * does not access the hardware or change its status
+ * does not access the hardware or change its status.
  */
 /*---------------------------------------------------------------------------*/
 static int
@@ -1314,13 +1364,25 @@ rf230_read(void *buf, unsigned short bufsize)
   uint8_t len,*framep;
 #if FOOTER_LEN
   uint8_t footer[FOOTER_LEN];
-#endif /* FOOTER_LEN */
+#endif
 #if RF230_CONF_CHECKSUM
   uint16_t checksum;
-#endif /* RF230_CONF_CHECKSUM */
+#endif
 #if RF230_CONF_TIMESTAMPS
   struct timestamp t;
-#endif /* RF230_CONF_TIMESTAMPS */
+#endif
+#if RF230_INSERTACK
+/* Return an ACK to the mac layer */
+  if(ack_pending && bufsize == 3){	
+    ack_pending=0;
+    uint8_t *buff=(uint8_t *)buf;
+    buff[0]=2;
+    buff[1]=0;
+    buff[2]=ack_seqnum;
+    return bufsize;
+ }
+#endif
+
   /* The length includes the twp-byte checksum but not the LQI byte */
   len=rxframe[rxframe_head].length;
   if (len==0) {
@@ -1450,7 +1512,7 @@ if (!RF230_receive_on) {
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rf230_last_rssi);
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, rf230_last_correlation);
 
-    RIMESTATS_ADD(llrx);
+    RIMESTATS_ADD(rx);
 
 #if RF230_CONF_TIMESTAMPS
     rf230_time_of_departure =
@@ -1563,12 +1625,9 @@ rf230_cca(void)
 	    return 0;
   }
 
-  /* Don't allow interrupts! */
-  cli();
 
   /* Turn radio on if necessary. If radio is currently busy return busy channel */
   /* This may happen when testing radio duty cycling with RADIOALWAYSON */
-
   if(RF230_receive_on) {
     if (hal_get_slptr()) {  //should not be sleeping!
 	  DEBUGFLOW('<');
@@ -1577,11 +1636,12 @@ rf230_cca(void)
       if (!rf230_isidle()) {DEBUGFLOW('2');goto busyexit;}
 	}
   } else {
-    DEBUGFLOW('3');
     radio_was_off = 1;
     rf230_on();
   }
-
+  /* Don't allow interrupts! */
+//  cli();
+  ENERGEST_ON(ENERGEST_TYPE_LED_YELLOW);
   /* CCA Mode Mode 1=Energy above threshold  2=Carrier sense only  3=Both 0=Either (RF231 only) */
   /* Use the current mode. Note triggering a manual CCA is not recommended in extended mode */
 //hal_subregister_write(SR_CCA_MODE,1);
@@ -1589,31 +1649,50 @@ rf230_cca(void)
   /* Start the CCA, wait till done, return result */
   /* Note reading the TRX_STATUS register clears both CCA_STATUS and CCA_DONE bits */
 #if defined(__AVR_ATmega128RFA1__)
-  /* Manual CCA gives no interrupt in extended mode, and testing cca done hangs the MCU */
-#if 0
-	rf230_interruptwait=1;
+#if 1  //interrupt method
     sei();
-    hal_subregister_write(SR_CCA_REQUEST,1);
-	while (rf230_interruptwait) {}
-    cca=hal_register_read(RG_TRX_STATUS);
+//rf230_waitidle();
+//TODO:disable reception for version bug
+  radio_set_trx_state(RX_ON);
+//  rf230_waitidle();
+    rf230_ccawait=1;
+//CCA_REQUEST is supposed to trigger the interrupt but it doesn't
+//  hal_subregister_write(SR_CCA_REQUEST,1);
+    hal_register_write(PHY_ED_LEVEL,0);
+//  delay_us(TIME_CCA);
+//  if (hal_register_read(RG_PHY_ED_LEVEL)<(91-77)) cca=0xff;
+    while (rf230_ccawait) {}
+#ifdef RF230_CONF_CCA_THRES
+    if (hal_register_read(RG_PHY_ED_LEVEL)<(91+RF230_CONF_CCA_THRES) cca=0xff;
+#else
+    if (hal_register_read(RG_PHY_ED_LEVEL)<(91-77)) cca=0xff;
 #endif
-  /* So just read the current ED register without delay */
+//TODO:see if the status register works!
+//   cca=hal_register_read(RG_TRX_STATUS);
+#if RF230_CONF_AUTOACK
+  radio_set_trx_state(RX_AACK_ON);
+#endif
+#else
+  /* If already in receive mode can read the current ED register without delay */
   /* CCA energy threshold = -91dB + 2*SR_CCA_ED_THRESH. Reset defaults to -77dB */
 #ifdef RF230_CONF_CCA_THRES
     if (hal_register_read(RG_PHY_ED_LEVEL)<(91+RF230_CONF_CCA_THRES) cca=0xff;
 #else
 	if (hal_register_read(RG_PHY_ED_LEVEL)<(91-77)) cca=0xff;
 #endif
+#endif
 
 
 #else /* RF230, RF231 */
+  /* Start the CCA, wait till done, return result */
+  /* Note reading the TRX_STATUS register clears both CCA_STATUS and CCA_DONE bits */
   hal_subregister_write(SR_CCA_REQUEST,1);
   delay_us(TIME_CCA);
   while ((cca & 0x80) == 0 ) {
     cca=hal_register_read(RG_TRX_STATUS);
   }
 #endif
-  
+  ENERGEST_OFF(ENERGEST_TYPE_LED_YELLOW); 
   if(radio_was_off) {
     rf230_off();
   }
@@ -1650,7 +1729,9 @@ rf230_receiving_packet(void)
 static int
 rf230_pending_packet(void)
 {
-  if (rf230_pending) DEBUGFLOW('@');
+#if RF230_INSERTACK
+    if(ack_pending == 1) return 1;
+#endif
   return rf230_pending;
 }
 /*---------------------------------------------------------------------------*/
