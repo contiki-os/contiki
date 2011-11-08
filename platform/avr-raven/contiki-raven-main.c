@@ -520,19 +520,32 @@ uint8_t i;
  
 #if UIP_CONF_IPV6 
   memcpy(&uip_lladdr.addr, &addr.u8, sizeof(rimeaddr_t));
-#elif WITH_NODE_ID
-  node_id=get_panaddr_from_eeprom();
-  addr.u8[1]=node_id&0xff;
-  addr.u8[0]=(node_id&0xff00)>>8;
-  PRINTA("Node ID from eeprom: %X\n",node_id);
-#endif  
   rimeaddr_set_node_addr(&addr); 
-
   rf230_set_pan_addr(
 	get_panid_from_eeprom(),
 	get_panaddr_from_eeprom(),
 	(uint8_t *)&addr.u8
   );
+#elif WITH_NODE_ID
+  node_id=get_panaddr_from_eeprom();
+  addr.u8[1]=node_id&0xff;
+  addr.u8[0]=(node_id&0xff00)>>8;
+  PRINTA("Node ID from eeprom: %X\n",node_id);
+  uint16_t inv_node_id=((node_id&0xff00)>>8)+((node_id&0xff)<<8); // change order of bytes for rf23x
+  rimeaddr_set_node_addr(&addr); 
+  rf230_set_pan_addr(
+	get_panid_from_eeprom(),
+	inv_node_id,
+  	NULL
+  );
+#else
+  rimeaddr_set_node_addr(&addr); 
+  rf230_set_pan_addr(
+	get_panid_from_eeprom(),
+	get_panaddr_from_eeprom(),
+	(uint8_t *)&addr.u8
+  );
+#endif
   rf230_set_channel(get_channel_from_eeprom());
   rf230_set_txpower(get_txpower_from_eeprom());
 
