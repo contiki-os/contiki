@@ -882,6 +882,14 @@ public class TimeLine extends VisPlugin {
     }
   };
 
+  private Action showInAllAction = new AbstractAction("All") {
+    private static final long serialVersionUID = -2458733078524773995L;
+    public void actionPerformed(ActionEvent e) {
+      logListenerAction.actionPerformed(null);
+      radioLoggerAction.actionPerformed(null);
+    }
+  };
+
   private boolean executionDetails = false;
   private boolean radioChannels = false;
   private Action executionDetailsAction = new AbstractAction("Show execution details in tooltips") {
@@ -1368,7 +1376,9 @@ public class TimeLine extends VisPlugin {
       
       popupMenu.addSeparator();
 
-      JMenu focusMenu = new JMenu("Focus");
+      JMenu focusMenu = new JMenu("Show in");
+      focusMenu.add(new JMenuItem(showInAllAction));
+      focusMenu.addSeparator();
       focusMenu.add(new JMenuItem(logListenerAction));
       focusMenu.add(new JMenuItem(radioLoggerAction));
       popupMenu.add(focusMenu);
@@ -1399,8 +1409,7 @@ public class TimeLine extends VisPlugin {
           /* Focus on double-click */
           if (System.currentTimeMillis() - lastClick < 250) {
             popupLocation = e.getPoint();
-            logListenerAction.actionPerformed(null);
-            radioLoggerAction.actionPerformed(null);
+            showInAllAction.actionPerformed(null);
 
             long time = (long) ((double)popupLocation.x*currentPixelDivisor);
             Plugin[] plugins = simulation.getGUI().getStartedPlugins();
