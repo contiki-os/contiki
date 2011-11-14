@@ -47,7 +47,7 @@
 //#define delay_us( us )   ( _delay_us( ( us ) ) )
 //_delay_loop_2(uint16_t count) is 4 CPU cycles per iteration, up to 32 milliseconds at 8MHz
 #include <util/delay_basic.h>
-#define delay_us( us )   ( _delay_loop_2(1+(us*F_CPU)/4000000UL) ) 
+#define delay_us( us )   ( _delay_loop_2(1+((unsigned long long)us*F_CPU)/4000000UL) ) 
 
 #include <avr/pgmspace.h>
 #elif defined(__MSP430__)
@@ -104,6 +104,10 @@ static bool is_promiscuous;
  * RF230_INSERTACK will generate one based on the hardware result.
  * This is triggered when the read routine is called with a buffer
  * length of three (the ack length).
+ * In extended nmode it can be enabled by default to support either
+ * method. In nonextended mode it would pass an extra ACK to RDCs
+ * that use the TX_OK result to signal a successful ACK.
+ * Adds 100 bytes of program flash and two bytes of RAM. 
  */
 #if RF320_CONF_INSERTACK && RF230_CONF_AUTORETRIES
 #define RF230_INSERTACK 1
@@ -527,15 +531,17 @@ on(void)
     hal_set_slptr_low();
     while (rf230_interruptwait) {}
 #else
-/* SPI based radios. The wake time depends on board capacitance, use 2x the nominal value for safety */
-    uint8_t sreg = SREG;
-    cli();
+/* SPI based radios. The wake time depends on board capacitance.
+ * Make sure the delay is long enough, as using SPI too soon will reset the MCU!
+ * Use 2x the nominal value for safety. 1.5x is not long enough for Raven!
+ */
+//  uint8_t sreg = SREG;cli();
     hal_set_slptr_low();
-    delay_us(TIME_SLEEP_TO_TRX_OFF * 2);
-    SREG=sreg;
+    delay_us(2*TIME_SLEEP_TO_TRX_OFF);
+//  delay_us(TIME_SLEEP_TO_TRX_OFF+TIME_SLEEP_TO_TRX_OFF/2);
+//  SREG=sreg;
 #endif
   }
-  rf230_waitidle();
 
 #if RF230_CONF_AUTOACK
  // radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
@@ -543,6 +549,7 @@ on(void)
 #else
   radio_set_trx_state(RX_ON);
 #endif
+  rf230_waitidle();
 }
 static void
 off(void)
@@ -874,8 +881,8 @@ rf230_transmit(unsigned short payload_len)
 #else
     hal_set_slptr_low();
     DEBUGFLOW('j');
-    delay_us(TIME_SLEEP_TO_TRX_OFF);
-    delay_us(TIME_SLEEP_TO_TRX_OFF); //extra delay depends on board capacitance
+    delay_us(2*TIME_SLEEP_TO_TRX_OFF); //extra delay depends on board capacitance
+//	delay_us(TIME_SLEEP_TO_TRX_OFF+TIME_SLEEP_TO_TRX_OFF/2);
 #endif
 
   } else {
@@ -1613,7 +1620,6 @@ rf230_cca(void)
 {
   uint8_t cca=0;
   uint8_t radio_was_off = 0;
-  uint8_t volatile saved_sreg = SREG;
 
   /* If the radio is locked by an underlying thread (because we are
      being invoked through an interrupt), we preted that the coast is
@@ -1639,8 +1645,7 @@ rf230_cca(void)
     radio_was_off = 1;
     rf230_on();
   }
-  /* Don't allow interrupts! */
-//  cli();
+
   ENERGEST_ON(ENERGEST_TYPE_LED_YELLOW);
   /* CCA Mode Mode 1=Energy above threshold  2=Carrier sense only  3=Both 0=Either (RF231 only) */
   /* Use the current mode. Note triggering a manual CCA is not recommended in extended mode */
@@ -1684,13 +1689,19 @@ rf230_cca(void)
 
 
 #else /* RF230, RF231 */
+  /* Don't allow interrupts! */
   /* Start the CCA, wait till done, return result */
   /* Note reading the TRX_STATUS register clears both CCA_STATUS and CCA_DONE bits */
+{ uint8_t volatile saved_sreg = SREG;
+  cli();
+  rf230_waitidle();
   hal_subregister_write(SR_CCA_REQUEST,1);
   delay_us(TIME_CCA);
   while ((cca & 0x80) == 0 ) {
     cca=hal_register_read(RG_TRX_STATUS);
   }
+  SREG=saved_sreg;
+}
 #endif
   ENERGEST_OFF(ENERGEST_TYPE_LED_YELLOW); 
   if(radio_was_off) {
@@ -1699,12 +1710,10 @@ rf230_cca(void)
 // if (cca & 0x40) {/*DEBUGFLOW('3')*/;} else {rf230_pending=1;DEBUGFLOW('4');}  
    if (cca & 0x40) {
 //   DEBUGFLOW('5');
- 	 SREG=saved_sreg; 
 	 return 1;
    } else {
 //  DEBUGFLOW('6');
  busyexit:
-	 SREG=saved_sreg;
 	 return 0;
    }
 }
