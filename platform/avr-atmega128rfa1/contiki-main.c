@@ -147,7 +147,7 @@ rng_get_uint8(void) {
 #if 1
   /* Upper two RSSI reg bits (RND_VALUE) are random in rf231 */
   uint8_t j;
-  j = (PHY_RSSI>>6) | (PHY_RSSI>>4) | (PHY_RSSI>>4) | PHY_RSSI;
+  j = (PHY_RSSI&0xc0) + ((PHY_RSSI>>2)&0x30) + ((PHY_RSSI>>4)&0x0c) + ((PHY_RSSI>>6)&0x03);
 #else
 /* Get a pseudo random number using the ADC */
   uint8_t i,j;
@@ -291,15 +291,9 @@ uint8_t i;
   NETSTACK_NETWORK.init();
 
 #if ANNOUNCE_BOOT
-  PRINTA("%s %s, channel %u power %u",NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel(),rf230_get_txpower());
-  if (NETSTACK_RDC.channel_check_interval) {//function pointer is zero for sicslowmac
-    unsigned short tmp;
-    tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
-                                   NETSTACK_RDC.channel_check_interval());
-    if (tmp<65535) PRINTA(", check rate %u Hz",tmp);
-  }
-  PRINTA("\n");
-
+  PRINTA("%s %s, channel %u , check rate %u Hz tx power %u\n",NETSTACK_MAC.name, NETSTACK_RDC.name, rf230_get_channel(),
+    CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:NETSTACK_RDC.channel_check_interval()),
+    rf230_get_txpower());	  
 #if UIP_CONF_IPV6_RPL
   PRINTA("RPL Enabled\n");
 #endif
