@@ -192,8 +192,14 @@ clock_seconds(void)
   } while(tmp != seconds);
   return tmp;
 }
-
+#ifdef HANDLE_UNSUPPORTED_INTERRUPTS
+/* Ignore unsupported interrupts, optionally hang for debugging */
+ISR(BADISR_vect) {
+//static volatile uint8_t x;while (1) x++;
+}
+#endif
 #ifdef HANG_ON_UNKNOWN_INTERRUPT
+/* Hang on any unsupported interrupt */
 /* Useful for diagnosing unknown interrupts that reset the mcu.
  * Currently set up for 12mega128rfa1.
  * For other mcus, enable all and then disable the conflicts.
