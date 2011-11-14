@@ -47,8 +47,9 @@
 #endif
 
 /* Track interrupt flow through mac, rdc and radio driver */
+//#define DEBUGFLOWSIZE 64
 #if DEBUGFLOWSIZE
-uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
+unsigned char debugflowsize,debugflow[DEBUGFLOWSIZE];
 #define DEBUGFLOW(c) if (debugflowsize<(DEBUGFLOWSIZE-1)) debugflow[debugflowsize++]=c
 #else
 #define DEBUGFLOW(c)
@@ -64,6 +65,7 @@ uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 #include "loader/symbols-def.h"
 #include "loader/symtab.h"
 
+#include "params.h"
 #if RF230BB        //radio driver using contiki core mac
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
@@ -125,10 +127,6 @@ void rtimercycle(void) {rtimerflag=1;}
 #endif
 #endif
 
-#if WITH_NODE_ID
-uint16_t node_id;
-#endif
-
 /*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
 #if 1
@@ -148,62 +146,12 @@ SIGNATURE = {
 /* JTAG, SPI enabled, Internal RC osc, Boot flash size 4K, 6CK+65msec delay, brownout disabled */
 FUSES ={.low = 0xe2, .high = 0x99, .extended = 0xff,};
 
-/* Put the default settings into program flash memory */
-/* Webserver builds can set some defaults in httpd-fsdata.c via makefsdata.h */
-#if AVR_WEBSERVER
-extern uint8_t default_mac_address[8];
-extern uint8_t default_server_name[16];
-extern uint8_t default_domain_name[30];
-#else
-#ifdef MAC_ADDRESS
-uint8_t default_mac_address[8] PROGMEM = MAC_ADDRESS;
-#else
-uint8_t default_mac_address[8] PROGMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
-#endif
-#ifdef SERVER_NAME
-uint8_t default_server_name[16] PROGMEM = SERVER_NAME;
-#else
-uint8_t default_server_name[16] PROGMEM = "Raven_webserver";
-#endif
-#ifdef DOMAIN_NAME
-uint8_t default_domain_name[30] PROGMEM = DOMAIN_NAME
-#else
-uint8_t default_domain_name[30] PROGMEM = "localhost";
-#endif
-#endif /* AVR_WEBSERVER */
-
-#ifdef NODE_ID
-uint16_t default_nodeid PROGMEM = NODEID;
-#else
-uint16_t default_nodeid PROGMEM = 0;
-#endif
-#ifdef CHANNEL_802_15_4
-uint8_t default_channel PROGMEM = CHANNEL_802_15_4;
-#else
-uint8_t default_channel PROGMEM = 26;
-#endif
-#ifdef IEEE802154_PANID
-uint16_t default_panid PROGMEM = IEEE802154_PANID;
-#else
-uint16_t default_panid PROGMEM = 0xABCD;
-#endif
-#ifdef IEEE802154_PANADDR
-uint16_t default_panaddr PROGMEM = IEEE802154_PANID;
-#else
-uint16_t default_panaddr PROGMEM = 0;
-#endif
-#ifdef RF230_MAX_TX_POWER
-uint8_t default_txpower PROGMEM = RF230_MAX_TX_POWER;
-#else
-uint8_t default_txpower PROGMEM = 0;
-#endif
-
 /* Get a pseudo random number using the ADC */
-static uint8_t
+uint8_t
 rng_get_uint8(void) {
 uint8_t i,j;
   ADCSRA=1<<ADEN;             //Enable ADC, not free running, interrupt disabled, fastest clock
-  for (i=0;i<4;i++) {
+  for (i=0,j=0;i<4;i++) {
     ADMUX = 0;                //toggle reference to increase noise
     ADMUX =0x1E;              //Select AREF as reference, measure 1.1 volt bandgap reference.
     ADCSRA|=1<<ADSC;          //Start conversion
@@ -215,231 +163,23 @@ uint8_t i,j;
   return j;
 }
 
-#if CONTIKI_CONF_RANDOM_MAC
-static void
-generate_new_eui64(uint8_t eui64[8]) {
-	eui64[0] = 0x02;
-	eui64[1] = rng_get_uint8();
-	eui64[2] = rng_get_uint8();
-	eui64[3] = 0xFF;
-	eui64[4] = 0xFE;
-	eui64[5] = rng_get_uint8();
-	eui64[6] = rng_get_uint8();
-	eui64[7] = rng_get_uint8();
-}
-#endif
-
-#if !CONTIKI_CONF_SETTINGS_MANAGER
-/****************************No settings manager*****************************/
-/* If not using the settings manager, put the default values into EEMEM
- * These can be manually changed and kept over program reflash.
- * The channel and bit complement are used to check EEMEM integrity,
- * If corrupt all values will be rewritten with the default flash values.
- * To make this work, get the channel before anything else.
- */
-#if AVR_WEBSERVER
-extern uint8_t eemem_mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h
-extern uint8_t eemem_server_name[16];
-extern uint8_t eemem_domain_name[30];
-#else
-#ifdef MAC_ADDRESS
-uint8_t eemem_mac_address[8] EEMEM = MAC_ADDRESS;
-#else
-uint8_t eemem_mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
-#endif
-#ifdef SERVER_NAME
-uint8_t eemem_server_name[16] EEMEM = SERVER_NAME;
-#else
-uint8_t eemem_server_name[16] EEMEM = "Raven_webserver";
-#endif
-#ifdef DOMAIN_NAME
-uint8_t eemem_domain_name[30] EEMEM = DOMAIN_NAME
-#else
-uint8_t eemem_domain_name[30] EEMEM = "localhost";
-#endif
-#endif /*AVR_WEBSERVER */
-
-#ifdef NODE_ID
-uint16_t eemem_nodeid EEMEM = NODEID;
-#else
-uint16_t eemem_nodeid EEMEM = 0;
-#endif
-#ifdef CHANNEL_802_15_4
-uint8_t eemem_channel[2] EEMEM = {CHANNEL_802_15_4, ~CHANNEL_802_15_4};
-#else
-uint8_t eemem_channel[2] EMEM = {26, ~26};
-#endif
-#ifdef IEEE802154_PANID
-uint16_t eemem_panid EEMEM = IEEE802154_PANID;
-#else
-uint16_t eemem_panid EEMEM = 0xABCD;
-#endif
-#ifdef IEEE802154_PANADDR
-uint16_t eemem_panaddr EEMEM = IEEE802154_PANADDR;
-#else
-uint16_t eemem_panaddr EEMEM = 0;
-#endif
-#ifdef RF230_MAX_TX_POWER
-uint8_t eemem_txpower EEMEM = RF230_MAX_TX_POWER;
-#else
-uint8_t eemem_txpower EEMEM = 0;
-#endif
-
-static uint8_t
-get_channel_from_eeprom() {
-  uint8_t x[2];
-  *(uint16_t *)x = eeprom_read_word ((uint16_t *)&eemem_channel);
-/* Don't return an invalid channel number */
-  if( (x[0]<11) || (x[0] > 26)) x[1]=x[0];
-/* Do exclusive or test on the two values read */
-  if((uint8_t)x[0]!=(uint8_t)~x[1]) {//~x[1] can promote comparison to 16 bit
-/* Verification fails, rewrite everything */
-    uint8_t i,buffer[32];
-    PRINTD("EEPROM is corrupt, rewriting with defaults.\n");
-#if CONTIKI_CONF_RANDOM_MAC
-    PRINTA("Generating random MAC address.\n");
-    generate_new_eui64(&buffer);
-#else
-    for (i=0;i<sizeof(default_mac_address);i++) buffer[i] = pgm_read_byte_near(default_mac_address+i);
-#endif
-    cli();
-    eeprom_write_block(&buffer,  &eemem_mac_address, sizeof(eemem_mac_address));
-    for (i=0;i<sizeof(default_server_name);i++) buffer[i] = pgm_read_byte_near(default_server_name+i);
-    eeprom_write_block(&buffer,  &eemem_server_name, sizeof(eemem_server_name));
-    for (i=0;i<sizeof(default_domain_name);i++) buffer[i] = pgm_read_byte_near(default_domain_name+i);
-    eeprom_write_block(&buffer,  &eemem_domain_name, sizeof(eemem_domain_name));
-    eeprom_write_word(&eemem_panid  , pgm_read_word_near(&default_panid));
-    eeprom_write_word(&eemem_panaddr, pgm_read_word_near(&default_panaddr));
-    eeprom_write_byte(&eemem_txpower, pgm_read_byte_near(&default_txpower));
-    eeprom_write_word(&eemem_nodeid, pgm_read_word_near(&default_nodeid));
-    x[0] = pgm_read_byte_near(&default_channel);
-    x[1]= ~x[0];
-    eeprom_write_word((uint16_t *)&eemem_channel, *(uint16_t *)x);
-	sei();
-  }
-/* Always returns a valid channel */
-  return x[0];
-}
-static bool
-get_eui64_from_eeprom(uint8_t macptr[sizeof(rimeaddr_t)]) {
-  cli();
-  eeprom_read_block ((void *)macptr, &eemem_mac_address, sizeof(rimeaddr_t));
-  sei();
-  return macptr[0]!=0xFF;
-}
-static uint16_t
-get_panid_from_eeprom(void) {
-  return eeprom_read_word(&eemem_panid);
-}
-static uint16_t
-get_panaddr_from_eeprom(void) {
-  return eeprom_read_word (&eemem_panaddr);
-}
-static uint8_t
-get_txpower_from_eeprom(void)
-{
-  return eeprom_read_byte(&eemem_txpower);
-}
-
-#else /* !CONTIKI_CONF_SETTINGS_MANAGER */
-/******************************Settings manager******************************/
-#include "settings.h"
-/* Disable the settings add routines to reduce eeprom wear during testing */
-#if 0
-#define settings_add(...) 0
-#define settings_add_uint8(...) 0
-#define settings_add_uint16(...) 0
-#endif
-
-#if AVR_WEBSERVER
-extern uint8_t eemem_mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h
-extern uint8_t eemem_server_name[16];
-extern uint8_t eemem_domain_name[30];
-#endif
-
-static uint8_t
-get_channel_from_eeprom() {
-  uint8_t x;
-  size_t  size = 1;
-  if (settings_get(SETTINGS_KEY_CHANNEL, 0,(unsigned char*)&x, &size) == SETTINGS_STATUS_OK) {
-    if ((x<11) || (x>26)) {
-      PRINTF("Unusual RF channel %u in EEPROM\n",x);
-	}
-    PRINTD("<=Get RF channel %u.\n",x);
-  } else {
-    x = pgm_read_byte_near(&default_channel);
-    if (settings_add_uint8(SETTINGS_KEY_CHANNEL,x ) == SETTINGS_STATUS_OK) {
-      PRINTD("->Set EEPROM RF channel to %d.\n",x);
-    }
-  }
-  return x;
-}
-static bool
-get_eui64_from_eeprom(uint8_t macptr[8]) {
-  size_t size = sizeof(rimeaddr_t); 
-  if(settings_get(SETTINGS_KEY_EUI64, 0, (unsigned char*)macptr, &size) == SETTINGS_STATUS_OK) {
-    PRINTD("<=Get MAC address.\n");
-    return true;		
-  }
-#if CONTIKI_CONF_RANDOM_MAC
-  PRINTD("--Generating random MAC address.\n");
-  generate_new_eui64(macptr);
-#else
-  {uint8_t i;for (i=0;i<8;i++) macptr[i] = pgm_read_byte_near(default_mac_address+i);}
-#endif
-  if (settings_add(SETTINGS_KEY_EUI64,(unsigned char*)macptr,8)) {
-    PRINTD("->Set EEPROM MAC address.\n");
-  }
-  return true;
-}
-static uint16_t
-get_panid_from_eeprom(void) {
-  uint16_t x;
-  size_t  size = 2;
-  if (settings_get(SETTINGS_KEY_PAN_ID, 0,(unsigned char*)&x, &size) == SETTINGS_STATUS_OK) {
-    PRINTD("<-Get PAN ID of %04x.\n",x);
-  } else {
-    x=pgm_read_word_near(&default_panid);
-    if (settings_add_uint16(SETTINGS_KEY_PAN_ID,x)==SETTINGS_STATUS_OK) {
-      PRINTD("->Set EEPROM PAN ID to %04x.\n",x);
-    }
-  }
-  return x;
-}
-static uint16_t
-get_panaddr_from_eeprom(void) {
-  uint16_t x;
-  size_t  size = 2;
-  if (settings_get(SETTINGS_KEY_PAN_ADDR, 0,(unsigned char*)&x, &size) == SETTINGS_STATUS_OK) {
-    PRINTD("<-Get PAN address of %04x.\n",x);
-  } else {
-    x=pgm_read_word_near(&default_panaddr);
-    if (settings_add_uint16(SETTINGS_KEY_PAN_ADDR,x)==SETTINGS_STATUS_OK) {
-      PRINTD("->Set EEPROM PAN address to %04x.\n",x);
-    }
-  }        
-  return x;
-}
-static uint8_t
-get_txpower_from_eeprom(void) {
-  uint8_t x;
-  size_t  size = 1;
-  if (settings_get(SETTINGS_KEY_TXPOWER, 0,(unsigned char*)&x, &size) == SETTINGS_STATUS_OK) {
-    PRINTD("<-Get tx power of %d. (0=max)\n",x);
-  } else {
-    x=pgm_read_byte_near(&default_txpower);
-    if (settings_add_uint8(SETTINGS_KEY_TXPOWER,x)==SETTINGS_STATUS_OK) {
-      PRINTD("->Set EEPROM tx power of %d. (0=max)\n",x);
-    }
-  }
-  return x;
-}
-#endif /* CONTIKI_CONF_SETTINGS_MANAGER */
-
 /*-------------------------Low level initialization------------------------*/
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
+/* A jtag or brownout reset of the mcu tristates the RF230 control pins while
+ * it is in operation, which can result in a mulfunctioning condition when the
+ * radio is later re-initialized.
+ * This manifests as an incorrectly computed hardware FCS checksum.
+ * Setting up the pins as soon as possible after mcu reset seems to fix this.
+ * Additionally, hold the radio in reset to prevent premature rx interrupts.
+ */
+#if RF230BB
+#include "radio/rf230bb/hal.h"
+  hal_init();
+  hal_set_rst_low();
+#endif
+ 
   watchdog_init();
   watchdog_start();
 
@@ -448,13 +188,24 @@ void initialize(void)
   rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
   /* Set input handler for 3290 port */
   rs232_set_input(0,raven_lcd_serial_input);
+#else
+  /* Generic or slip connection on uart0 */
+  rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 #endif
 
-  /* Second rs232 port for debugging */
+  /* Second rs232 port for debugging or slip alternative */
   rs232_init(RS232_PORT_1, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
   /* Redirect stdout to second port */
   rs232_redirect_stdout(RS232_PORT_1);
   clock_init();
+
+  PRINTD("\n\nChecking MCUSR...\n");
+  if(MCUSR & (1<<PORF )) PRINTD("Power-on reset.\n");
+  if(MCUSR & (1<<EXTRF)) PRINTD("External reset!\n");
+  if(MCUSR & (1<<BORF )) PRINTD("Brownout reset!\n");
+  if(MCUSR & (1<<WDRF )) PRINTD("Watchdog reset!\n");
+  if(MCUSR & (1<<JTRF )) PRINTD("JTAG reset!\n");
+  MCUSR = 0;
 
 #if STACKMONITOR
   /* Simple stack pointer highwater monitor. Checks for magic numbers in the main
@@ -471,12 +222,7 @@ uint16_t p=(uint16_t)&__bss_end;
 }
 #endif
 
-/* Get a random (or probably different) seed for the 802.15.4 packet sequence number.
- * Some layers will ignore duplicates found in a history (e.g. Contikimac)
- * causing the initial packets to be ignored after a short-cycle restart.
- */
- random_init(rng_get_uint8());
-
+/* Calibrate internal mcu clock against external 32768Hz watch crystal */
 #define CONF_CALIBRATE_OSCCAL 0
 #if CONF_CALIBRATE_OSCCAL
 void calibrate_rc_osc_32k();
@@ -512,45 +258,40 @@ uint8_t i;
   /* Start radio and radio receive process */
   NETSTACK_RADIO.init();
 
+/* Get a random seed for the 802.15.4 packet sequence number.
+ * Some layers will ignore duplicates found in a history (e.g. Contikimac)
+ * causing the initial packets to be ignored after a short-cycle restart.
+ */
+  random_init(rng_get_uint8());
+
   /* Set addresses BEFORE starting tcpip process */
 
   rimeaddr_t addr;
-//  memset(&addr, 0, sizeof(rimeaddr_t));
-  get_eui64_from_eeprom(addr.u8);
+  if (params_get_eui64(addr.u8)) {
+      PRINTA("Random EUI64 address generated\n");
+  }
  
 #if UIP_CONF_IPV6 
   memcpy(&uip_lladdr.addr, &addr.u8, sizeof(rimeaddr_t));
-  rimeaddr_set_node_addr(&addr); 
-  rf230_set_pan_addr(
-	get_panid_from_eeprom(),
-	get_panaddr_from_eeprom(),
-	(uint8_t *)&addr.u8
-  );
+  rimeaddr_set_node_addr(&addr);  
+  rf230_set_pan_addr(params_get_panid(),params_get_panaddr(),(uint8_t *)&addr.u8);
 #elif WITH_NODE_ID
   node_id=get_panaddr_from_eeprom();
   addr.u8[1]=node_id&0xff;
   addr.u8[0]=(node_id&0xff00)>>8;
   PRINTA("Node ID from eeprom: %X\n",node_id);
   uint16_t inv_node_id=((node_id&0xff00)>>8)+((node_id&0xff)<<8); // change order of bytes for rf23x
-  rimeaddr_set_node_addr(&addr); 
-  rf230_set_pan_addr(
-	get_panid_from_eeprom(),
-	inv_node_id,
-  	NULL
-  );
+  rimeaddr_set_node_addr(&addr);
+  rf230_set_pan_addr(params_get_panid(),inv_node_id,NULL);
 #else
-  rimeaddr_set_node_addr(&addr); 
-  rf230_set_pan_addr(
-	get_panid_from_eeprom(),
-	get_panaddr_from_eeprom(),
-	(uint8_t *)&addr.u8
-  );
+  rimeaddr_set_node_addr(&addr);
+  rf230_set_pan_addr(params_get_panid(),params_get_panaddr(),(uint8_t *)&addr.u8);
 #endif
-  rf230_set_channel(get_channel_from_eeprom());
-  rf230_set_txpower(get_txpower_from_eeprom());
+  rf230_set_channel(params_get_channel());
+  rf230_set_txpower(params_get_txpower());
 
 #if UIP_CONF_IPV6
-  PRINTA("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n\r",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+  PRINTA("EUI-64 MAC: %x-%x-%x-%x-%x-%x-%x-%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 #else
   PRINTA("MAC address ");
   uint8_t i;
@@ -567,22 +308,15 @@ uint8_t i;
   NETSTACK_NETWORK.init();
 
 #if ANNOUNCE_BOOT
-  PRINTA("%s %s, channel %u power %u",NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel()),rf230_get_txpower();
-  if (NETSTACK_RDC.channel_check_interval) {//function pointer is zero for sicslowmac
-    unsigned short tmp;
-    tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
-                                   NETSTACK_RDC.channel_check_interval());
-    if (tmp<65535) PRINTA(", check rate %u Hz",tmp);
-  }
-  PRINTA("\n");
-
+  PRINTA("%s %s, channel %u , check rate %u Hz tx power %u\n",NETSTACK_MAC.name, NETSTACK_RDC.name, rf230_get_channel(),
+    CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:NETSTACK_RDC.channel_check_interval()),
+    rf230_get_txpower());	   
 #if UIP_CONF_IPV6_RPL
   PRINTA("RPL Enabled\n");
 #endif
 #if UIP_CONF_ROUTER
   PRINTA("Routing Enabled\n");
 #endif
-
 #endif /* ANNOUNCE_BOOT */
 
 // rime_init(rime_udp_init(NULL));
@@ -603,9 +337,6 @@ uint8_t i;
 
   /* Autostart other processes */
   autostart_start(autostart_processes);
-
-  //Give ourselves a prefix
-  // init_net();
 
   /*---If using coffee file system create initial web content if necessary---*/
 #if COFFEE_FILES
@@ -650,12 +381,10 @@ uint8_t i;
   }
    cli();
    eeprom_read_block (buf,eemem_server_name, sizeof(eemem_server_name));
+   eeprom_read_block (buf,eemem_domain_name, sizeof(eemem_domain_name));
    sei();
    buf[sizeof(eemem_server_name)]=0;
    PRINTA("%s",buf);
-   cli();
-   eeprom_read_block (buf,eemem_domain_name, sizeof(eemem_domain_name));
-   sei();
    buf[sizeof(eemem_domain_name)]=0;
    size=httpd_fs_get_size();
 #ifndef COFFEE_FILES
@@ -735,6 +464,7 @@ main(void)
     }
 #endif
 
+/* Set DEBUGFLOWSIZE in contiki-conf.h to track path through MAC, RDC, and RADIO */
 #if DEBUGFLOWSIZE
   if (debugflowsize) {
     debugflow[debugflowsize]=0;
@@ -742,8 +472,6 @@ main(void)
     debugflowsize=0;
    }
 #endif
-
-    watchdog_periodic();
 
 #if PERIODICPRINTS
 #if TESTRTIMER
@@ -763,7 +491,7 @@ main(void)
 if ((clocktime%STAMPS)==0) {
 #if ENERGEST_CONF_ON
 #include "lib/print-stats.h"
-	print_stats();
+//	print_stats();
 #elif RADIOSTATS
 extern volatile unsigned long radioontime;
   PRINTF("%u(%u)s\n",clocktime,radioontime);
