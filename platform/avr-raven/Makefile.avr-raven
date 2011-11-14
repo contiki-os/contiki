@@ -2,7 +2,7 @@ CONTIKI_TARGET_DIRS = . apps net loader
 
 CONTIKI_CORE=contiki-raven-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
-CONTIKI_TARGET_SOURCEFILES += contiki-raven-main.c contiki-raven-default-init-net.c
+CONTIKI_TARGET_SOURCEFILES += contiki-raven-main.c params.c
 #The avr cpu makefile will also add these files if COFFEE_FILES is specified.
 #CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c
 #Needed for slip

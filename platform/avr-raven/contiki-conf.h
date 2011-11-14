@@ -102,11 +102,7 @@ unsigned long clock_seconds(void);
 #define RADIOSTATS                1
 
 /* More extensive stats */
-#define ENERGEST_CONF_ON          0
-
-/* Use settings manager to save configuration in EEPROM */
-/* Adds ~1700 bytes to progmem */
-#define CONTIKI_CONF_SETTINGS_MANAGER 1
+#define ENERGEST_CONF_ON          1
 
 /* Possible watchdog timeouts depend on mcu. Default is WDTO_2S. -1 Disables the watchdog. */
 /* AVR Studio simulator tends to reboot due to clocking the WD 8 times too fast */
@@ -115,9 +111,31 @@ unsigned long clock_seconds(void);
 /* Debugflow macro, useful for tracing path through mac and radio interrupts */
 //#define DEBUGFLOWSIZE 128
 
+/* Define MAX_*X_POWER to reduce tx power and ignore weak rx packets for testing a miniature multihop network.
+ * Leave undefined for full power and sensitivity.
+ * tx=0 (3dbm, default) to 15 (-17.2dbm)
+ * RF230_CONF_AUTOACK sets the extended mode using the energy-detect register with rx=0 (-91dBm) to 84 (-7dBm)
+ *   else the rssi register is used having range 0 (91dBm) to 28 (-10dBm)
+ *   For simplicity RF230_MIN_RX_POWER is based on the energy-detect value and divided by 3 when autoack is not set.
+ * On the RF230 a reduced rx power threshold will not prevent autoack if enabled and requested.
+ * These numbers applied to both Raven and Jackdaw give a maximum communication distance of about 15 cm
+ * and a 10 meter range to a full-sensitivity RF230 sniffer.
+#define RF230_MAX_TX_POWER 15
+#define RF230_MIN_RX_POWER 30
+ */
+  /* The rf231 and atmega128rfa1 can use an rssi threshold for triggering rx_busy that saves 0.5ma in rx mode */
+/* 1 - 15 maps into -90 to -48 dBm; the register is written with RF230_MIN_RX_POWER/6 + 1. Undefine for -100dBm sensitivity */
+//#define RF230_MIN_RX_POWER        0
+
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
 #undef PACKETBUF_CONF_HDR_SIZE                  //Use the packetbuf default for header size
+/* TX routine passes the cca/ack result in the return parameter */
+#define RDC_CONF_HARDWARE_ACK      1
+/* TX routine does automatic cca and optional backoff */
+#define RDC_CONF_HARDWARE_CSMA     1
+/* Allow MCU sleeping between channel checks */
+#define RDC_CONF_MCU_SLEEP         1
 #else
 #define PACKETBUF_CONF_HDR_SIZE    0            //RF230 combined driver/mac handles headers internally
 #endif /*RF230BB */
@@ -136,15 +154,6 @@ unsigned long clock_seconds(void);
 #define NETSTACK_CONF_NETWORK     rime_driver
 #endif /* UIP_CONF_IPV6 */
 
-/* See uip-ds6.h */
-#define UIP_CONF_DS6_NBR_NBU      20
-#define UIP_CONF_DS6_DEFRT_NBU    2
-#define UIP_CONF_DS6_PREFIX_NBU   3
-#define UIP_CONF_DS6_ROUTE_NBU    20
-#define UIP_CONF_DS6_ADDR_NBU     3
-#define UIP_CONF_DS6_MADDR_NBU    0
-#define UIP_CONF_DS6_AADDR_NBU    0
-
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         0
 
@@ -156,26 +165,9 @@ unsigned long clock_seconds(void);
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 
-/* 211 bytes per queue buffer */
-#define QUEUEBUF_CONF_NUM         8
-
-/* 54 bytes per queue ref buffer */
-#define QUEUEBUF_CONF_REF_NUM     2
-
 /* Take the default TCP maximum segment size for efficiency and simpler wireshark captures */
 /* Use this to prevent 6LowPAN fragmentation (whether or not fragmentation is enabled) */
 //#define UIP_CONF_TCP_MSS      48
-
-/* 30 bytes per TCP connection */
-/* 6LoWPAN does not do well with concurrent TCP streams, as new browser GETs collide with packets coming */
-/* from previous GETs, causing decreased throughput, retransmissions, and timeouts. Increase to study this. */
-#define UIP_CONF_MAX_CONNECTIONS 1
-
-/* 2 bytes per TCP listening port */
-#define UIP_CONF_MAX_LISTENPORTS 1
-
-/* 25 bytes per UDP connection */
-#define UIP_CONF_UDP_CONNS      10
 
 #define UIP_CONF_IP_FORWARD      0
 #define UIP_CONF_FWCACHE_SIZE    0
@@ -187,7 +179,6 @@ unsigned long clock_seconds(void);
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_TCP_SPLIT       1
 #define UIP_CONF_DHCP_LIGHT      1
-
 
 #if 1 /* No radio cycling */
 
@@ -214,23 +205,72 @@ unsigned long clock_seconds(void);
 #define SICSLOWPAN_CONF_MAXAGE    3
 /* How long to wait before terminating an idle TCP connection. Smaller to allow faster sleep. Default is 120 seconds */
 #define UIP_CONF_WAIT_TIMEOUT     5
+/* 211 bytes per queue buffer */
+#define QUEUEBUF_CONF_NUM         8
+/* 54 bytes per queue ref buffer */
+#define QUEUEBUF_CONF_REF_NUM     2
+/* Allocate remaining RAM as desired */
+/* 30 bytes per TCP connection */
+/* 6LoWPAN does not do well with concurrent TCP streams, as new browser GETs collide with packets coming */
+/* from previous GETs, causing decreased throughput, retransmissions, and timeouts. Increase to study this. */
+/* ACKs to other ports become interleaved with computation-intensive GETs, so ACKs are particularly missed. */
+/* Increasing the number of packet receive buffers in RAM helps to keep ACKs from being lost */
+#define UIP_CONF_MAX_CONNECTIONS  4
+/* 2 bytes per TCP listening port */
+#define UIP_CONF_MAX_LISTENPORTS  4
+/* 25 bytes per UDP connection */
+#define UIP_CONF_UDP_CONNS       10
+/* See uip-ds6.h */
+#define UIP_CONF_DS6_NBR_NBU      20
+#define UIP_CONF_DS6_DEFRT_NBU    2
+#define UIP_CONF_DS6_PREFIX_NBU   3
+#define UIP_CONF_DS6_ROUTE_NBU    20
+#define UIP_CONF_DS6_ADDR_NBU     3
+#define UIP_CONF_DS6_MADDR_NBU    0
+#define UIP_CONF_DS6_AADDR_NBU    0
 
 #elif 1  /* Contiki-mac radio cycling */
-#define NETSTACK_CONF_MAC         nullmac_driver
-//#define NETSTACK_CONF_MAC         csma_driver
+//#define NETSTACK_CONF_MAC         nullmac_driver
+/* csma needed for burst mode at present. Webserver won't work without it */
+#define NETSTACK_CONF_MAC         csma_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
+/* Default is two CCA separated by 500 usec */
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE   8
+/* Wireshark won't decode with the header, but padded packets will fail ipv6 checksum */
+#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
+/* So without the header this needed for RPL mesh to form */
+#define CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE   43-18  //multicast RPL DIS length
+/* Not tested much yet */
+#define WITH_PHASE_OPTIMIZATION                0
+#define CONTIKIMAC_CONF_COMPOWER               1
+#define RIMESTATS_CONF_ON                      1
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 /* The radio needs to interrupt during an rtimer interrupt */
 #define RTIMER_CONF_NESTED_INTERRUPTS 1
 #define RF230_CONF_AUTOACK        1
+/* A 0 here means non-extended mode; 1 means extended mode with no retry, >1 for retrys */
 #define RF230_CONF_AUTORETRIES    1
+/* A 0 here means no cca; 1 means extended mode with cca but no retry, >1 for backoff retrys */
 #define RF230_CONF_CSMARETRIES    1
-#define CONTIKIMAC_CONF_RADIO_ALWAYS_ON  0
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
+/* 211 bytes per queue buffer. Contikimac burst mode needs 15 for a 1280 byte MTU */
+#define QUEUEBUF_CONF_NUM         15
+/* 54 bytes per queue ref buffer */
+#define QUEUEBUF_CONF_REF_NUM     2
+/* Allocate remaining RAM. Not much left due to queuebuf increase  */
+#define UIP_CONF_MAX_CONNECTIONS  2
+#define UIP_CONF_MAX_LISTENPORTS  4
+#define UIP_CONF_UDP_CONNS        5
+#define UIP_CONF_DS6_NBR_NBU      4
+#define UIP_CONF_DS6_DEFRT_NBU    2
+#define UIP_CONF_DS6_PREFIX_NBU   3
+#define UIP_CONF_DS6_ROUTE_NBU    4
+#define UIP_CONF_DS6_ADDR_NBU     3
+#define UIP_CONF_DS6_MADDR_NBU    0
+#define UIP_CONF_DS6_AADDR_NBU    0
 
 #elif 1  /* cx-mac radio cycling */
 /* RF230 does clear-channel assessment in extended mode (autoretries>0) */
@@ -249,11 +289,26 @@ unsigned long clock_seconds(void);
 #define SICSLOWPAN_CONF_MAXAGE    3
 #define CXMAC_CONF_ANNOUNCEMENTS  0
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
-
+/* 211 bytes per queue buffer. Burst mode will need 15 for a 1280 byte MTU */
+#define QUEUEBUF_CONF_NUM         15
+/* 54 bytes per queue ref buffer */
+#define QUEUEBUF_CONF_REF_NUM     2
+/* Allocate remaining RAM. Not much left due to queuebuf increase  */
+#define UIP_CONF_MAX_CONNECTIONS  2
+#define UIP_CONF_MAX_LISTENPORTS  4
+#define UIP_CONF_UDP_CONNS        5
+#define UIP_CONF_DS6_NBR_NBU      4
+#define UIP_CONF_DS6_DEFRT_NBU    2
+#define UIP_CONF_DS6_PREFIX_NBU   3
+#define UIP_CONF_DS6_ROUTE_NBU    4
+#define UIP_CONF_DS6_ADDR_NBU     3
+#define UIP_CONF_DS6_MADDR_NBU    0
+#define UIP_CONF_DS6_AADDR_NBU    0
 //Below gives 10% duty cycle, undef for default 5%
 //#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 80)
 //Below gives 50% duty cycle
 //#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 16)
+
 
 #else
 #error Network configuration not specified!
@@ -267,26 +322,12 @@ unsigned long clock_seconds(void);
 /* ************************************************************************** */
 #if UIP_CONF_IPV6_RPL
 
-/* Define MAX_*X_POWER to reduce tx power and ignore weak rx packets for testing a miniature multihop network.
- * Leave undefined for full power and sensitivity.
- * tx=0 (3dbm, default) to 15 (-17.2dbm)
- * RF230_CONF_AUTOACK sets the extended mode using the energy-detect register with rx=0 (-91dBm) to 84 (-7dBm)
- *   else the rssi register is used having range 0 (91dBm) to 28 (-10dBm)
- *   For simplicity RF230_MIN_RX_POWER is based on the energy-detect value and divided by 3 when autoack is not set.
- * On the RF230 a reduced rx power threshold will not prevent autoack if enabled and requested.
- * These numbers applied to both Raven and Jackdaw give a maximum communication distance of about 15 cm
- * and a 10 meter range to a full-sensitivity RF230 sniffer.
-#define RF230_MAX_TX_POWER 15
-#define RF230_MIN_RX_POWER 30
- */
-
 #define UIP_CONF_ROUTER                 1
 #define UIP_CONF_ND6_SEND_RA		    0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
-
-#undef UIP_CONF_UDP_CONNS
-#define UIP_CONF_UDP_CONNS       12
+/* For slow slip connections, to prevent buffer overruns */
+//#define UIP_CONF_RECEIVE_WINDOW 300
 #undef UIP_CONF_FWCACHE_SIZE
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
