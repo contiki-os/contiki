@@ -570,18 +570,27 @@ generate_sensor_readings(void *arg)
     if ((BATMON&(1<<BATMON_OK))==0) break;
   }
   h=2550-75*16-75+75*i; //-75 to take the floor of the 75 mv transition window
-    static const char httpd_cgi_sensor2_printf[] HTTPD_STRING_ATTR = "%u mv";
+  static const char httpd_cgi_sensor2_printf[] HTTPD_STRING_ATTR = "%u mv";
   httpd_snprintf(sensor_extvoltage,sizeof(sensor_extvoltage),httpd_cgi_sensor2_printf,h);
-
-#if 0  //usual way to get AVR supply voltage, measure 1.1v bandgap using Vcc as reference
-//ADMUX =0x1E;              //Select AREF as reference, measure 1.1 volt bandgap reference.
+}
+#elif CONTIKI_TARGET_AVR_RAVEN
+{
+#if 1
+/* Usual way to get AVR supply voltage, measure 1.1v bandgap using Vcc as reference.
+ * This connects the bandgap to the AREF pin, so enable only if there is no external AREF!
+ * A capacitor may be connected to this pin to reduce reference noise.
+ */
   ADMUX =0x5E;              //Select AVCC as reference, measure 1.1 volt bandgap reference.
-  ADCSRA=0x07;              //Enable ADC, not free running, interrupt disabled, clock divider  128 (62 KHz@ 8 MHz)
+  ADCSRA=0x87;              //Enable ADC, not free running, interrupt disabled, clock divider  128 (62 KHz@ 8 MHz)
   ADCSRA|=1<<ADSC;          //Start throwaway conversion
   while (ADCSRA&(1<<ADSC)); //Wait till done
   ADCSRA|=1<<ADSC;          //Start another conversion
   while (ADCSRA&(1<<ADSC)); //Wait till done
-  h=1131632UL/ADC;          //Get supply voltage
+//h=1126400UL/ADC;          //Get supply voltage (factor nominally 1100*1024)
+  h=1198070UL/ADC;          //My Raven
+  ADCSRA=0;                 //disable ADC
+  ADMUX=0;                  //turn off internal vref    
+
   static const char httpd_cgi_sensor2_printf[] HTTPD_STRING_ATTR = "%u mv";
   httpd_snprintf(sensor_extvoltage,sizeof(sensor_extvoltage),httpd_cgi_sensor2_printf,h);
 #endif
@@ -1038,9 +1047,53 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
 	numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax12);
   }
 }
+#elif CONTIKI_TARGET_AVR_RAVEN
+{ int16_t tmp,bat;
+#if 1
+/* Usual way to get AVR supply voltage, measure 1.1v bandgap using Vcc as reference.
+ * This connects the bandgap to the AREF pin, so enable only if there is no external AREF!
+ * A capacitor may be connected to this pin to reduce reference noise.
+ */
+  ADMUX =0x5E;              //Select AVCC as reference, measure 1.1 volt bandgap reference.
+  ADCSRA=0x87;              //Enable ADC, not free running, interrupt disabled, clock divider  128 (62 KHz@ 8 MHz)
+  ADCSRA|=1<<ADSC;          //Start throwaway conversion
+  while (ADCSRA&(1<<ADSC)); //Wait till done
+  ADCSRA|=1<<ADSC;          //Start another conversion
+  while (ADCSRA&(1<<ADSC)); //Wait till done
+//bat=1126400UL/ADC;        //Get supply voltage (factor nominally 1100*1024)
+  bat=1198070UL/ADC;        //My Raven
+  ADCSRA=0;                 //disable ADC
+  ADMUX=0;                  //turn off internal vref
+#else
+  bat=3300;  
+#endif
+   
+  tmp=420;
+  
+  static const char httpd_cgi_ajax10[] HTTPD_STRING_ATTR ="t(%u),b(%u);adc(%d,%d,%u,%u,%u,%u,%u,%lu);";
+  numprinted = httpd_snprintf(buf, sizeof(buf),httpd_cgi_ajax10,tmp,bat,iter,tmp,bat,sleepcount,OCR2A,0,clock_time(),clock_seconds());
+  if (iter<3) {
+    static const char httpd_cgi_ajax11[] HTTPD_STRING_ATTR = "wt('Raven [";
+	static const char httpd_cgi_ajax12[] HTTPD_STRING_ATTR = "]');";
+    numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax11);
+#if WEBSERVER_CONF_PRINTADDR
+/* Note address table is filled from the end down */
+{int i;
+    for (i=0; i<UIP_DS6_ADDR_NB;i++) {
+      if (uip_ds6_if.addr_list[i].isused) {
+	    numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, buf + numprinted);
+	    break;
+	  }
+    }
+}
+#endif
+	numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax12);
+  }
+}
 
 //#elif CONTIKI_TARGET_IS_SOMETHING_ELSE
 #else
+{
   static const char httpd_cgi_ajax10[] HTTPD_STRING_ATTR ="v(%u);";
   numprinted = httpd_snprintf(buf, sizeof(buf),httpd_cgi_ajax10,iter);
   if (iter==1) {
