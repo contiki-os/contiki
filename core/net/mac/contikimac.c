@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.48 2011/01/25 14:29:46 adamdunkels Exp $
  */
 
 /**
@@ -55,16 +54,32 @@
 
 #include <string.h>
 
+/* TX/RX cycles are synchronized with neighbor wake periods */
 #ifndef WITH_PHASE_OPTIMIZATION
 #define WITH_PHASE_OPTIMIZATION      1
 #endif
+/* Two byte header added to allow recovery of padded short packets */
+/* Wireshark will not understand such packets at present */
 #ifdef CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
 #define WITH_CONTIKIMAC_HEADER       CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
 #else
 #define WITH_CONTIKIMAC_HEADER       1
 #endif
+/* More aggressive radio sleeping when channel is busy with other traffic */
 #ifndef WITH_FAST_SLEEP
 #define WITH_FAST_SLEEP              1
+#endif
+/* Radio does CSMA and autobackoff */
+#ifndef RDC_CONF_HARDWARE_CSMA
+#define RDC_CONF_HARDWARE_CSMA       0
+#endif
+/* Radio returns TX_OK/TX_NOACK after autoack wait */
+#ifndef RDC_CONF_HARDWARE_ACK
+#define RDC_CONF_HARDWARE_ACK        0
+#endif
+/* MCU can sleep during radio off */
+#ifndef RDC_CONF_MCU_SLEEP
+#define RDC_CONF_MCU_SLEEP           0
 #endif
 
 #if NETSTACK_RDC_CHANNEL_CHECK_RATE >= 64
@@ -107,10 +122,16 @@ static int is_receiver_awake = 0;
 #define CCA_COUNT_MAX_TX                   6
 
 /* CCA_CHECK_TIME is the time it takes to perform a CCA check. */
+/* Note this may be zero. AVRs have 7612 ticks/sec, but block until cca is done */
 #define CCA_CHECK_TIME                     RTIMER_ARCH_SECOND / 8192
 
 /* CCA_SLEEP_TIME is the time between two successive CCA checks. */
+/* Add 1 when rtimer ticks are coarse */
+#if RTIMER_ARCH_SECOND > 8000
 #define CCA_SLEEP_TIME                     RTIMER_ARCH_SECOND / 2000
+#else
+#define CCA_SLEEP_TIME                     (RTIMER_ARCH_SECOND / 2000) + 1
+#endif
 
 /* CHECK_TIME is the total time it takes to perform CCA_COUNT_MAX
    CCAs. */
@@ -161,8 +182,15 @@ static int is_receiver_awake = 0;
 /* SHORTEST_PACKET_SIZE is the shortest packet that ContikiMAC
    allows. Packets have to be a certain size to be able to be detected
    by two consecutive CCA checks, and here is where we define this
-   shortest size. */
+   shortest size.
+   Padded packets will have the wrong ipv6 checksum unless CONTIKIMAC_HEADER
+   is used (on both sides) and the receiver will ignore them.
+   With no header, reduce to transmit a proper multicast RPL DIS. */
+#ifdef CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE
+#define SHORTEST_PACKET_SIZE  CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE
+#else
 #define SHORTEST_PACKET_SIZE               43
+#endif
 
 
 #define ACK_LEN 3
@@ -367,11 +395,15 @@ powercycle(struct rtimer *t, void *ptr)
              received (as indicated by the
              NETSTACK_RADIO.pending_packet() function), we stop
              snooping. */
+#if !RDC_CONF_HARDWARE_CSMA
+       /* A cca cycle will disrupt rx on some radios, e.g. mc1322x, rf230 */
+       /*TODO: Modify those drivers to just return the internal RSSI when already in rx mode */
         if(NETSTACK_RADIO.channel_clear()) {
           ++silence_periods;
         } else {
           silence_periods = 0;
         }
+#endif
 
         ++periods;
 
@@ -407,8 +439,22 @@ powercycle(struct rtimer *t, void *ptr)
     }
 
     if(RTIMER_CLOCK_LT(RTIMER_NOW() - cycle_start, CYCLE_TIME - CHECK_TIME * 4)) {
+	     /* Schedule the next powercycle interrupt, or sleep the mcu until then.
+                Sleeping will not exit from this interrupt, so ensure an occasional wake cycle
+				or foreground processing will be blocked until a packet is detected */
+#if RDC_CONF_MCU_SLEEP
+      static uint8_t sleepcycle;
+      if ((sleepcycle++<16) && !we_are_sending && !radio_is_on) {
+        rtimer_arch_sleep(CYCLE_TIME - (RTIMER_NOW() - cycle_start));
+      } else {
+        sleepcycle = 0;
+        schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start);
+        PT_YIELD(&pt);
+      }
+#else
       schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start);
       PT_YIELD(&pt);
+#endif
     }
   }
 
@@ -449,7 +495,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
   uint8_t is_known_receiver = 0;
   uint8_t collisions;
   int transmit_len;
-  int i;
   int ret;
   uint8_t contikimac_was_on;
   uint8_t seqno;
@@ -594,12 +639,17 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
   contikimac_was_on = contikimac_is_on;
   contikimac_is_on = 1;
 
-  if(is_receiver_awake == 0) {
+#if !RDC_CONF_HARDWARE_CSMA
     /* Check if there are any transmissions by others. */
+    /* TODO: why does this give collisions before sending with the mc1322x? */
+  if(is_receiver_awake == 0) {
+	int i;
     for(i = 0; i < CCA_COUNT_MAX_TX; ++i) {
       t0 = RTIMER_NOW();
       on();
+#if CCA_CHECK_TIME > 0
       while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_CHECK_TIME)) { }
+#endif
       if(NETSTACK_RADIO.channel_clear() == 0) {
         collisions++;
         off();
@@ -618,10 +668,15 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
     contikimac_is_on = contikimac_was_on;
     return MAC_TX_COLLISION;
   }
+#endif /* RDC_CONF_HARDWARE_CSMA */
 
+#if !RDC_CONF_HARDWARE_ACK
   if(!is_broadcast) {
-    on();
+  /* Turn radio on to receive expected unicast ack.
+      Not necessary with hardware ack detection, and may trigger an unnecessary cca or rx cycle */	 
+     on();
   }
+#endif
 
   watchdog_periodic();
   t0 = RTIMER_NOW();
@@ -649,6 +704,23 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
       txtime = RTIMER_NOW();
       ret = NETSTACK_RADIO.transmit(transmit_len);
 
+#if RDC_CONF_HARDWARE_ACK
+     /* For radios that block in the transmit routine and detect the ACK in hardware */
+      if(ret == RADIO_TX_OK) {
+        if(!is_broadcast) {
+          got_strobe_ack = 1;
+          encounter_time = previous_txtime;
+          break;
+        }
+      } else if (ret == RADIO_TX_NOACK) {
+      } else if (ret == RADIO_TX_COLLISION) {
+          PRINTF("contikimac: collisions while sending\n");
+          collisions++;
+      }
+	  wt = RTIMER_NOW();
+      while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + INTER_PACKET_INTERVAL)) { }
+#else
+     /* Wait for the ACK packet */
       wt = RTIMER_NOW();
       while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + INTER_PACKET_INTERVAL)) { }
 
@@ -669,6 +741,8 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
           collisions++;
         }
       }
+#endif /* RDC_CONF_HARDWARE_ACK */
+
       previous_txtime = txtime;
     }
   }
@@ -743,12 +817,11 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   struct rdc_buf_list *next;
   int ret;
   if(curr == NULL) {
+    mac_call_sent_callback(sent, ptr, MAC_TX_ERR, 1);
     return;
   }
   /* Do not send during reception of a burst */
   if(we_are_receiving_burst) {
-    /* Prepare the packetbuf for callback */
-    queuebuf_to_packetbuf(curr->buf);
     /* Return COLLISION so the MAC may try again later */
     mac_call_sent_callback(sent, ptr, MAC_TX_COLLISION, 1);
     return;
