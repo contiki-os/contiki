@@ -952,7 +952,7 @@ HAL_RF230_ISR()
     /* Save RSSI for this packet if not in extended mode, scaling to 1dB resolution */
 #if !RF230_CONF_AUTOACK
 #if 0  // 3-clock shift and add is faster on machines with no hardware multiply
-       // While the compiler should use similar code for multiply by 3 there may be a bug with -Os in avr-gcc that calls the general subroutine
+       // With -Os avr-gcc saves a byte by using the general routine for multiply by 3
         rf230_last_rssi = hal_subregister_read(SR_RSSI);
         rf230_last_rssi = (rf230_last_rssi <<1)  + rf230_last_rssi;
 #else  // Faster with 1-clock multiply. Raven and Jackdaw have 2-clock multiply so same speed while saving 2 bytes of program memory
