@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: collect-common.c,v 1.2 2010/11/06 11:55:15 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +43,7 @@
 #include "collect-common.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
 
 static unsigned long time_offset;
