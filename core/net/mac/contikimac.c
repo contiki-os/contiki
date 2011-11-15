@@ -817,11 +817,12 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   struct rdc_buf_list *next;
   int ret;
   if(curr == NULL) {
-    mac_call_sent_callback(sent, ptr, MAC_TX_ERR, 1);
     return;
   }
   /* Do not send during reception of a burst */
   if(we_are_receiving_burst) {
+    /* Prepare the packetbuf for callback */
+    queuebuf_to_packetbuf(curr->buf);
     /* Return COLLISION so the MAC may try again later */
     mac_call_sent_callback(sent, ptr, MAC_TX_COLLISION, 1);
     return;
