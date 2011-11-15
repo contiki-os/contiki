@@ -46,7 +46,7 @@
 * @return      none
 */
 
-#pragma optimize=none
+/* #pragma optimize=none */
 void halMcuWaitUs(uint16_t usec) // 5 cycles for calling
 {
     // The least we can wait is 3 usec:
