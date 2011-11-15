@@ -167,19 +167,6 @@ uint8_t i,j;
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
-/* A jtag or brownout reset of the mcu tristates the RF230 control pins while
- * it is in operation, which can result in a mulfunctioning condition when the
- * radio is later re-initialized.
- * This manifests as an incorrectly computed hardware FCS checksum.
- * Setting up the pins as soon as possible after mcu reset seems to fix this.
- * Additionally, hold the radio in reset to prevent premature rx interrupts.
- */
-#if RF230BB
-#include "radio/rf230bb/hal.h"
-  hal_init();
-  hal_set_rst_low();
-#endif
- 
   watchdog_init();
   watchdog_start();
 
@@ -370,7 +357,7 @@ uint8_t i;
 {
 #if AVR_WEBSERVER
   uint8_t i;
-  char buf[80];
+  char buf1[40],buf[40];
   unsigned int size;
 
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
@@ -380,11 +367,11 @@ uint8_t i;
 	}
   }
    cli();
-   eeprom_read_block (buf,eemem_server_name, sizeof(eemem_server_name));
+   eeprom_read_block (buf1,eemem_server_name, sizeof(eemem_server_name));
    eeprom_read_block (buf,eemem_domain_name, sizeof(eemem_domain_name));
    sei();
-   buf[sizeof(eemem_server_name)]=0;
-   PRINTA("%s",buf);
+   buf1[sizeof(eemem_server_name)]=0;
+   PRINTA("%s",buf1);
    buf[sizeof(eemem_domain_name)]=0;
    size=httpd_fs_get_size();
 #ifndef COFFEE_FILES
@@ -491,7 +478,7 @@ main(void)
 if ((clocktime%STAMPS)==0) {
 #if ENERGEST_CONF_ON
 #include "lib/print-stats.h"
-//	print_stats();
+  print_stats();
 #elif RADIOSTATS
 extern volatile unsigned long radioontime;
   PRINTF("%u(%u)s\n",clocktime,radioontime);

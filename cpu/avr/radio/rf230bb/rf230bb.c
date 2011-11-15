@@ -721,18 +721,29 @@ rf230_init(void)
 {
   uint8_t i;
   DEBUGFLOW('i');
-
+/* A jtag or brownout reset of the mcu tristates the RF230 control pins while
+ * it is in operation, which can result in a mulfunctioning condition when the
+ * radio is later re-initialized.
+ * This manifests as an incorrectly computed hardware FCS checksum.
+ * Setting up the pins before the poweron time delay seems to fix this.
+ */
+#if 1  //this works after a brownout or jtag reset
+  /* Initialize Hardware Abstraction Layer */
+  hal_init();
   /* Wait in case VCC just applied */
   delay_us(TIME_TO_ENTER_P_ON);
+#else  //this gives FCS errors 5 out of 6 times
+  /* Wait in case VCC just applied */
+  delay_us(TIME_TO_ENTER_P_ON);
+  /* Initialize Hardware Abstraction Layer */
+  hal_init();
+#endif
  
   /* Calibrate oscillator */
  // printf_P(PSTR("\nBefore calibration OSCCAL=%x\n"),OSCCAL);
  // calibrate_rc_osc_32k();
  // printf_P(PSTR("After calibration OSCCAL=%x\n"),OSCCAL); 
 
-  /* Initialize Hardware Abstraction Layer */
-  hal_init();
-  
   /* Set receive buffers empty and point to the first */
   for (i=0;i<RF230_CONF_RX_BUFFERS;i++) rxframe[i].length=0;
   rxframe_head=0;rxframe_tail=0;
