@@ -501,9 +501,9 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
 #endif /* UIP_TCP && UIP_ACTIVE_OPEN */
 /*---------------------------------------------------------------------------*/
 void
-remove_ext_hdr(void) {
-  /* remove ext header - before TCP/UDP processing */
-  int i;
+remove_ext_hdr(void)
+{
+  /* Remove ext header before TCP/UDP processing. */
   if(uip_ext_len > 0) {
     PRINTF("Cutting ext-header before TCP send (%d)\n", uip_ext_len);
     memmove(((uint8_t *)UIP_TCP_BUF) - uip_ext_len, (uint8_t *)UIP_TCP_BUF,
@@ -511,14 +511,9 @@ remove_ext_hdr(void) {
 
     uip_len -= uip_ext_len;
 
-    for(i = 0; i < uip_len - UIP_IPH_LEN; i++) {
-      printf("%02x ", uip_buf[uip_l2_l3_hdr_len + i]);
-    }
-    printf("\n");
-
-    /* update the IP length */
-    UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
-    UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+    /* Update the IP length. */
+    UIP_IP_BUF->len[0] = (uip_len - UIP_IPH_LEN) >> 8;
+    UIP_IP_BUF->len[1] = (uip_len - UIP_IPH_LEN) & 0xff;
     uip_ext_len = 0;
   }
 }
