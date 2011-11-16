@@ -178,7 +178,8 @@ void
 rpl_reset_dio_timer(rpl_instance_t *instance, uint8_t force)
 {
 #if !RPL_LEAF_ONLY
-  /* only reset if not just reset or started */
+  /* Do not reset if we are already on the minimum interval,
+     unless forced to do so. */
   if(force || instance->dio_intcurrent > instance->dio_intmin) {
     instance->dio_counter = 0;
     instance->dio_intcurrent = instance->dio_intmin;
@@ -197,8 +198,8 @@ handle_dao_timer(void *ptr)
 
   instance = (rpl_instance_t *)ptr;
 
-  if (!dio_send_ok && uip_ds6_get_link_local(ADDR_PREFERRED) == NULL) {
-    PRINTF("RPL: Postpone DAO transmission... \n");
+  if(!dio_send_ok && uip_ds6_get_link_local(ADDR_PREFERRED) == NULL) {
+    PRINTF("RPL: Postpone DAO transmission\n");
     ctimer_set(&instance->dao_timer, CLOCK_SECOND, handle_dao_timer, instance);
     return;
   }

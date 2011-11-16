@@ -233,7 +233,7 @@ dio_input(void)
 
   PRINTF("RPL: Incoming DIO DODAG ");
   PRINT6ADDR(&dio.dag_id);
-  PRINTF("  preference : %u\n",dio.preference);
+  PRINTF(", preference: %u\n", dio.preference);
 
   /* Check if there are any DIO suboptions. */
   for(; i < buffer_length; i += len) {

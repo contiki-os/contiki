@@ -561,7 +561,7 @@ rpl_select_dodag(rpl_instance_t * instance, rpl_parent_t *p)
   }
 
   if(best_dag == NULL) {
-    /* No parent found : the calling function handle this problem. */
+    /* No parent found: the calling function handle this problem. */
     return NULL;
   }
 
@@ -569,7 +569,7 @@ rpl_select_dodag(rpl_instance_t * instance, rpl_parent_t *p)
     /* Remove routes installed by DAOs. */
     rpl_remove_routes(instance->current_dag);
 
-    PRINTF("RPL: New preferred DODAG : ");
+    PRINTF("RPL: New preferred DODAG: ");
     PRINT6ADDR(&best_dag->dag_id);
     PRINTF("\n");
 
@@ -986,7 +986,7 @@ rpl_local_repair(rpl_instance_t *instance)
     }
   }
 
-  rpl_reset_dio_timer(instance,1);
+  rpl_reset_dio_timer(instance, 0);
 
   RPL_STAT(rpl_stats.local_repairs++);
 }
@@ -1105,14 +1105,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   instance = rpl_get_instance(dio->instance_id);
   if(instance == NULL) {
-    PRINTF("RPL : New instance detected : Joining...\n");
+    PRINTF("RPL: New instance detected: Joining...\n");
     rpl_join_instance(from, dio);
     return;
   }
 
   dag = rpl_get_dodag(dio->instance_id,&dio->dag_id);
   if(dag == NULL) {
-    PRINTF("RPL : Adding new dodag to known instance.\n");
+    PRINTF("RPL: Adding new dodag to known instance.\n");
     rpl_add_dodag(from,dio);
     return;
   }
@@ -1122,7 +1122,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       PRINTF("RPL: Root received inconsistent DIO version number\n");
         dag->version = dio->version;
         RPL_LOLLIPOP_INCREMENT(dag->version);
-        rpl_reset_dio_timer(instance, 1);
+        rpl_reset_dio_timer(instance, 0);
     } else {
       global_repair(from, dag, dio);
     }
@@ -1132,7 +1132,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       /* Inconsistency detected - someone is still on old version */
       PRINTF("RPL: old version received => inconsistency detected\n");
       if(dag->joined) {
-        rpl_reset_dio_timer(instance, 1);
+        rpl_reset_dio_timer(instance, 0);
         return;
       }
     }
@@ -1140,7 +1140,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   if(dio->rank == INFINITE_RANK) {
     if(dag->joined) {
-      rpl_reset_dio_timer(instance, 1);
+      rpl_reset_dio_timer(instance, 0);
     }
   } else if(dio->rank < ROOT_RANK(instance)) {
     PRINTF("RPL: Ignoring DIO with too low rank: %u\n",
@@ -1150,7 +1150,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   if(dag->rank == ROOT_RANK(instance)) {
     if(dio->rank != INFINITE_RANK) {
-        instance->dio_counter++;
+      instance->dio_counter++;
     }
     return;
   }
@@ -1199,7 +1199,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINTF("RPL current state: Prefered DODAG: ");
   PRINT6ADDR(&instance->current_dag->dag_id);
   PRINTF(", rank: %u, min_rank: %u, ",instance->current_dag->rank,instance->current_dag->min_rank);
-  PRINTF("p->rank : %u, p->mc.obj.etx : %u, p->link_metric : %u, instance->mc.obj.etx %u\n", p->rank, p->mc.obj.etx, p->link_metric,instance->mc.obj.etx);
+  PRINTF("p->rank: %u, p->mc.obj.etx: %u, p->link_metric: %u, instance->mc.obj.etx %u\n", p->rank, p->mc.obj.etx, p->link_metric,instance->mc.obj.etx);
 
   /* We have allocated a candidate parent; process the DIO further. */
 
