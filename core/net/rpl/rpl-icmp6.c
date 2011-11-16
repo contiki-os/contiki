@@ -632,13 +632,11 @@ dao_input(void)
     }
   }
 
+  rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
-    rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
-    if(rep == NULL) {
-      RPL_STAT(rpl_stats.mem_overflows++);
-      PRINTF("RPL: Could not add a route after receiving a DAO\n");
-      return;
-    }
+    RPL_STAT(rpl_stats.mem_overflows++);
+    PRINTF("RPL: Could not add a route after receiving a DAO\n");
+    return;
   }
 
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
