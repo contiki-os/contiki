@@ -238,7 +238,7 @@ public class ProjectConfig {
   public boolean appendConfigFile(File propertyFile)
       throws FileNotFoundException, IOException {
     if (!propertyFile.exists()) {
-      logger.warn("Trying to import non-existant project configuration");
+      logger.warn("Trying to import non-existant project configuration: " + propertyFile.toString());
       return true;
     }
 
