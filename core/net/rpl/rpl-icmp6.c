@@ -120,8 +120,8 @@ dis_input(void)
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
 
-  for( instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
-    if ( instance->used == 1 ) {
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
+    if(instance->used == 1 ) {
 #if RPL_LEAF_ONLY
       if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
 #else /* !RPL_LEAF_ONLY */
@@ -399,7 +399,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
   buffer[pos++] = instance->dtsn_out;
 
-  if (RPL_LOLLIPOP_IS_INIT(instance->dtsn_out))
+  if(RPL_LOLLIPOP_IS_INIT(instance->dtsn_out))
     RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
 
   /* reserved 2 bytes */
