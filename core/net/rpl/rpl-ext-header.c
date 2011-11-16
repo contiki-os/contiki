@@ -77,7 +77,7 @@ rpl_verify_header(int uip_ext_opt_offset)
 
   instance = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance);
   if(instance == NULL) {
-    PRINTF("RPL: Unknown instance : %u\n",
+    PRINTF("RPL: Unknown instance: %u\n",
            UIP_EXT_HDR_OPT_RPL_BUF->instance);
     return 1;
   }
@@ -90,7 +90,7 @@ rpl_verify_header(int uip_ext_opt_offset)
   if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_DOWN) {
     PRINTF("RPL: Packet going down :\n");
     if(UIP_EXT_HDR_OPT_RPL_BUF->senderrank > instance->current_dag->rank) {
-      PRINTF("RPL: Loop detected : Sender rank > our rank\n");
+      PRINTF("RPL: Loop detected: Sender rank > our rank\n");
       if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
         PRINTF("RPL: Loop detected !\n");
         /* We should try to repair it, not implemented for the moment */
@@ -103,7 +103,7 @@ rpl_verify_header(int uip_ext_opt_offset)
   } else {
     PRINTF("RPL: Packet going up :");
     if(UIP_EXT_HDR_OPT_RPL_BUF->senderrank < instance->current_dag->rank) {
-      PRINTF("RPL: Rank error : Sender rank < our rank\n");
+      PRINTF("RPL: Rank error: Sender rank < our rank\n");
       if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
         PRINTF("RPL: Loop detected !\n");
         /* We should try to repair it, not implemented for the moment */
@@ -236,7 +236,7 @@ rpl_add_header(rpl_instance_t *instance, int down)
   uip_ext_opt_offset = 2;
 
   if(instance == NULL || !instance->used || !instance->current_dag->joined) {
-    PRINTF("Unable to add RPL hop-by-hop extension header : incorrect instance\n");
+    PRINTF("Unable to add RPL hop-by-hop extension header: incorrect instance\n");
     return 0;
   }
 
