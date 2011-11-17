@@ -40,17 +40,6 @@
 */
 #include "contiki.h"
 
-#define DATA_OUT() P3DIR |= BIT7
-#define DATA_IN()  P3DIR &= ~BIT7
-#define DATA_SET() P3OUT |= BIT7;  halMcuWaitUs(10)
-#define DATA_CLR() P3OUT &= ~BIT7; halMcuWaitUs(10)
-#define DATA_VAL() (P3IN & BIT7)
-
-#define SCK_OUT() P5DIR |= BIT4
-#define SCK_SET() P5OUT |= BIT4;  halMcuWaitUs(10)
-#define SCK_CLR() P5OUT &= ~BIT4; halMcuWaitUs(10)
-
-
 /***********************************************************************************
 *   SHT15 functions
 */
