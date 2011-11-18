@@ -3043,13 +3043,13 @@ public class GUI extends Observable {
           }
           plugin.updateScript(scriptFile);
           plugin.setScriptActive(true);
-          sim.setDelayTime(0);
-          sim.startSimulation();
         } else {
           logger.fatal("No test editor controlling simulation, aborting");
           System.exit(1);
         }
       }
+      sim.setDelayTime(0);
+      sim.startSimulation();
       
     } else if (args.length > 0 && args[0].startsWith("-applet")) {
 

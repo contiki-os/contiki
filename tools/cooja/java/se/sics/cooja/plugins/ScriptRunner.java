@@ -617,8 +617,6 @@ public class ScriptRunner extends VisPlugin {
     if (!GUI.isVisualized()) {
       /* Automatically activate script */
       setScriptActive(true);
-      simulation.setDelayTime(0);
-      simulation.startSimulation();
     }
     return true;
   }
