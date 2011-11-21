@@ -592,7 +592,7 @@ rpl_select_dodag(rpl_instance_t * instance, rpl_parent_t *p)
   if(best_dag->rank < best_dag->min_rank) {
     best_dag->min_rank = best_dag->rank;
   } else if(!acceptable_rank(best_dag, best_dag->rank)) {
-    PRINTF("RPL: New rank unacceptable !\n");
+    PRINTF("RPL: New rank unacceptable!\n");
     instance->current_dag->preferred_parent = NULL;
     if(instance->mop != RPL_MOP_NO_DOWNWARD_ROUTES && last_parent != NULL) {
       /* Send a No-Path DAO to the removed preferred parent. */
@@ -757,7 +757,7 @@ rpl_get_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id)
 
   for(i = 0; i < RPL_MAX_DODAG_PER_INSTANCE; ++i) {
     dag = &instance->dag_table[i];
-    if(dag->used && !uip_ipaddr_cmp(&dag->dag_id, dag_id)) {
+    if(dag->used && uip_ipaddr_cmp(&dag->dag_id, dag_id)) {
       return dag;
     }
   }
