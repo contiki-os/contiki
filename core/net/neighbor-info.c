@@ -115,13 +115,14 @@ neighbor_info_packet_sent(int status, int numtx)
     return;
   }
 
-  PRINTF("neighbor-info: packet sent to %d.%d, status=%d, numtx=%d\n",
+  packet_metric = numtx;
+
+  PRINTF("neighbor-info: packet sent to %d.%d, status=%d, metric=%u\n",
 	dest->u8[sizeof(*dest) - 2], dest->u8[sizeof(*dest) - 1],
-	status, numtx);
+	status, (unsigned)packet_metric);
 
   switch(status) {
   case MAC_TX_OK:
-    packet_metric = numtx;
     add_neighbor(dest);
 #if UIP_DS6_LL_NUD
     nbr=uip_ds6_nbr_ll_lookup((uip_lladdr_t *) dest);
@@ -138,9 +139,6 @@ neighbor_info_packet_sent(int status, int numtx)
       PRINTF(" is reachable.\n");
     }
 #endif /* UIP_DS6_LL_NUD */
-    break;
-  case MAC_TX_COLLISION:
-    packet_metric = numtx;
     break;
   case MAC_TX_NOACK:
     packet_metric = ETX_NOACK_PENALTY;

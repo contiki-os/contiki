@@ -14,7 +14,19 @@ ifdef UIP_CONF_IPV6
 CFLAGS += -DWITH_UIP6=1
 endif
 
-CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(CONTIKI_TARGET_MAIN)
+ifdef GCC
+CFLAGS+=-Os -g
+endif
+
+ifdef IAR
+CFLAGS+=-e --vla -Ohz --multiplier=16s --core=430 --double=32
+CFLAGSNO = --dlib_config "$(IAR_PATH)/LIB/DLIB/dl430fn.h" $(CFLAGSWERROR)
+
+endif
+
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) #$(CONTIKI_TARGET_MAIN)
+CONTIKI_TARGET_SOURCEFILES += contiki-sky-platform.c
 
 MCU=msp430x1611
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
@@ -22,6 +34,14 @@ include $(CONTIKI)/cpu/msp430/Makefile.msp430
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 #	$(AR) rcf $@ $^
 
+
+ifdef IAR
+ifdef ELF
+LDFLAGS += -B -xm "$(IAR_PATH)/lib/dlib/dl430fn.r43" -f "$(IAR_PATH)/config/lnk430f1611.xcl" -l contiki-$(TARGET).map -Felf -yn -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+else
+LDFLAGS += -B -xm "$(IAR_PATH)/lib/dlib/dl430fn.r43" -f "$(IAR_PATH)/config/lnk430f1611.xcl" -l contiki-$(TARGET).map -Fintel-extended -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+endif
+endif
 
 NUMPAR=20
 IHEXFILE=tmpimage.ihex
@@ -72,6 +92,8 @@ ifndef MOTELIST
      perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
   CMOTES=$(MOTES)
 endif
+
+motelist: sky-motelist
 
 sky-motelist:
 	$(MOTELIST)

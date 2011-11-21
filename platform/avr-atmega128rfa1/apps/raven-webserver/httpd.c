@@ -459,6 +459,10 @@ httpd_appcall(void *state)
   if (1) {
 #else
   struct httpd_state *s = (struct httpd_state *)state;
+#if RF230BB_CONF_LEDONPORTE1
+  extern uint16_t ledtimer;
+  PORTE|=(1<<PE1);ledtimer=1000; //turn on led, set counter for turnoff
+#endif
   if(uip_closed() || uip_aborted() || uip_timedout()) {
     if(s != NULL) {
       memb_free(&conns, s);

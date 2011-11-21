@@ -52,8 +52,6 @@ Berlin, 2007
  */
 
 #include "contiki.h"
-#include <io.h>
-#include <signal.h>
 #include <string.h>
 #include "dev/msb430-uart1.h"
 #include "dev/lpm.h"

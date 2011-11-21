@@ -28,7 +28,6 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.11 2010/12/22 17:09:03 dak664 Exp $
 */
 
 /**
@@ -66,7 +65,7 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 
-#if WEBSERVER
+#if AVR_WEBSERVER
 #include "webserver-nogui.h"
 #include "httpd-cgi.h"
 #endif
@@ -166,7 +165,7 @@ char serial_char_received;
 /*---------------------------------------------------------------------------*/
 /* Sleep for howlong seconds, or until UART interrupt if howlong==0.
  * Uses TIMER2 with external 32768 Hz crystal to sleep in 1 second multiples.
- * TIMER2 may have already been set up for 125 ticks/second in clock.c
+ * TIMER2 may have already been set up for CLOCK_CONF_SECOND ticks/second in clock.c
 
  *
  * Until someone figures out how to get UART to wake from powerdown,
@@ -216,8 +215,8 @@ void micro_sleep(uint8_t howlong)
        sleep_mode();                            // Sleep
 
        /* Adjust clock.c for the time spent sleeping */
-       extern void clock_adjust_seconds(uint8_t howmany);
-       clock_adjust_seconds(howlong);
+       extern void clock_adjust_ticks(uint16_t howmany);
+       clock_adjust_ticks(howlong * CLOCK_SECOND);
 
 //     if (TIMSK2&(1<<OCIE2A)) break;           // Exit sleep if not awakened by TIMER2
        PRINTF(".");
@@ -306,13 +305,13 @@ raven_gui_loop(process_event_t ev, process_data_t data)
                 raven_ping6();
                 break;
             case SEND_TEMP:
-#if WEBSERVER
+#if AVR_WEBSERVER
                 /* Set temperature string in web server */
                 web_set_temp((char *)cmd.frame);
 #endif
                 break;
             case SEND_ADC2:
-#if WEBSERVER
+#if AVR_WEBSERVER
                 /* Set ext voltage string in web server */
                 web_set_voltage((char *)cmd.frame);
 #endif
@@ -449,16 +448,16 @@ raven_lcd_show_text(char *text) {
     send_frame(REPORT_TEXT_MSG, textlen, (uint8_t *) text);
 }
 
-#if WEBSERVER
+#if AVR_WEBSERVER
 static void
 lcd_show_servername(void) {
 
-//extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h 
-extern uint8_t server_name[16];
-//extern uint8_t domain_name[30];
-char buf[sizeof(server_name)+1];
-    eeprom_read_block (buf,server_name, sizeof(server_name));
-    buf[sizeof(server_name)]=0;
+//extern uint8_t eemem_mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h 
+extern uint8_t eemem_server_name[16];
+//extern uint8_t eemem_domain_name[30];
+char buf[sizeof(eemem_server_name)+1];
+    eeprom_read_block (buf,eemem_server_name, sizeof(eemem_server_name));
+    buf[sizeof(eemem_server_name)]=0;
     raven_lcd_show_text(buf);  //must fit in all the buffers or it will be truncated!
 }
 #endif
@@ -469,7 +468,7 @@ PROCESS_THREAD(raven_lcd_process, ev, data)
 
   PROCESS_BEGIN();
 
-#if WEBSERVER
+#if AVR_WEBSERVER
   lcd_show_servername();
 #endif
 

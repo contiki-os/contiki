@@ -68,6 +68,7 @@ tcpip_handler(void)
            UIP_IP_BUF->srcipaddr.u8[sizeof(UIP_IP_BUF->srcipaddr.u8) - 1]);
     PRINTF("\n");
 #if SERVER_REPLY
+    PRINTF("DATA sending reply\n");
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
     uip_udp_packet_send(server_conn, "Reply", sizeof("Reply"));
     uip_create_unspecified(&server_conn->ripaddr);

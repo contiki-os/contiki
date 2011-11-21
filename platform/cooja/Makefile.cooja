@@ -33,10 +33,12 @@ $(CONTIKI)/tools/cooja/dist/cooja.jar:
 	(cd $(CONTIKI)/tools/cooja && ant jar)
 
 # Quickstart rule
+ifneq ($(MAKECMDGOALS),clean)
 .PHONY: $(MAKECMDGOALS)
 .PRECIOUS: $(MAKECMDGOALS)
 $(MAKECMDGOALS): $(CONTIKI)/tools/cooja/dist/cooja.jar
 	 java -mx512m -jar $< -quickstart='$(firstword $(MAKECMDGOALS))' -contiki='$(CONTIKI)'
+endif
 
 endif ## QUICKSTART
 

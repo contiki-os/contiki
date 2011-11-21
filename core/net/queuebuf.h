@@ -56,11 +56,29 @@
 
 #include "net/packetbuf.h"
 
+/* QUEUEBUF_NUM is the total number of queuebuf */
 #ifdef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_NUM QUEUEBUF_CONF_NUM
 #else
 #define QUEUEBUF_NUM 8
 #endif
+
+/* QUEUEBUFRAM_NUM is the number of queuebufs stored in RAM.
+   If QUEUEBUFRAM_CONF_NUM is set lower than QUEUEBUF_NUM,
+   swapping is enabled and queuebufs are stored either in RAM of CFS.
+   If QUEUEBUFRAM_CONF_NUM is unset or >= to QUEUEBUF_NUM, all
+   queuebufs are in RAM and swapping is disabled. */
+#ifdef QUEUEBUFRAM_CONF_NUM
+  #if QUEUEBUFRAM_CONF_NUM>QUEUEBUF_NUM
+    #error "QUEUEBUFRAM_CONF_NUM cannot be greater than QUEUEBUF_NUM"
+  #else
+    #define QUEUEBUFRAM_NUM QUEUEBUFRAM_CONF_NUM
+    #define WITH_SWAP (QUEUEBUFRAM_NUM < QUEUEBUF_NUM)
+  #endif
+#else /* QUEUEBUFRAM_CONF_NUM */
+  #define QUEUEBUFRAM_NUM QUEUEBUF_NUM
+  #define WITH_SWAP 0
+#endif /* QUEUEBUFRAM_CONF_NUM */
 
 #ifdef QUEUEBUF_CONF_DEBUG
 #define QUEUEBUF_DEBUG QUEUEBUF_CONF_DEBUG

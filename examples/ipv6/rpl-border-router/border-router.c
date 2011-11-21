@@ -46,18 +46,12 @@
 #include "dev/button-sensor.h"
 #include "dev/slip.h"
 
-/* For internal webserver Makefile must set APPS += webserver and PROJECT_SOURCEFILES += httpd-simple.c */
-#if WEBSERVER
-#include "webserver-nogui.h"
-#include "httpd-simple.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
@@ -69,11 +63,33 @@ static uip_ipaddr_t prefix;
 static uint8_t prefix_set;
 
 PROCESS(border_router_process, "Border router process");
-AUTOSTART_PROCESSES(&border_router_process);
 
-#if WEBSERVER
-/*---------------------------------------------------------------------------*/
-/* Only one single web request at time */
+#if WEBSERVER==0
+/* No webserver */
+AUTOSTART_PROCESSES(&border_router_process);
+#elif WEBSERVER>1
+/* Use an external webserver application */
+#include "webserver-nogui.h"
+AUTOSTART_PROCESSES(&border_router_process,&webserver_nogui_process);
+#else
+/* Use simple webserver with only one page */
+#include "httpd-simple.h"
+PROCESS(webserver_nogui_process, "Web server");
+PROCESS_THREAD(webserver_nogui_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  httpd_init();
+
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
+    httpd_appcall(data);
+  }
+  
+  PROCESS_END();
+}
+AUTOSTART_PROCESSES(&border_router_process,&webserver_nogui_process);
+
 static const char *TOP = "<html><head><title>ContikiRPL</title></head><body>\n";
 static const char *BOTTOM = "</body></html>\n";
 static char buf[128];
@@ -114,11 +130,11 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   SEND_STRING(&s->sout, TOP);
 
   blen = 0;
-  ADD("<h2>Neighbors</h2>");
+  ADD("Neighbors<pre>");
   for(i = 0; i < UIP_DS6_NBR_NB; i++) {
     if(uip_ds6_nbr_cache[i].isused) {
       ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
-      ADD("<br>\n");
+      ADD("\n");
       if(blen > sizeof(buf) - 45) {
         SEND_STRING(&s->sout, buf);
         blen = 0;
@@ -126,7 +142,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
     }
   }
 
-  ADD("<h2>Routes</h2>");
+  ADD("</pre>Routes<pre>");
   SEND_STRING(&s->sout, buf);
   blen = 0;
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
@@ -135,18 +151,19 @@ PT_THREAD(generate_routes(struct httpd_state *s))
       ADD("/%u (via ", uip_ds6_routing_table[i].length);
       ipaddr_add(&uip_ds6_routing_table[i].nexthop);
       if(uip_ds6_routing_table[i].state.lifetime < 600) {
-        ADD(") %lus<br>\n", uip_ds6_routing_table[i].state.lifetime);
+        ADD(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
       } else {
-        ADD(")<br>\n");
+        ADD(")\n");
       }
       SEND_STRING(&s->sout, buf);
       blen = 0;
     }
   }
-  if(blen > 0) {
+  ADD("</pre>");
+//if(blen > 0) {
     SEND_STRING(&s->sout, buf);
-    blen = 0;
-  }
+// blen = 0;
+//}
 
   SEND_STRING(&s->sout, BOTTOM);
 
@@ -211,10 +228,6 @@ PROCESS_THREAD(border_router_process, ev, data)
   prefix_set = 0;
 
   PROCESS_PAUSE();
-
-#if WEBSERVER
-  process_start(&webserver_nogui_process, NULL);
-#endif
 
   SENSORS_ACTIVATE(button_sensor);
 

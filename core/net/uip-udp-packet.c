@@ -46,23 +46,25 @@ extern u16_t uip_slen;
 
 #include <string.h>
 
-
 /*---------------------------------------------------------------------------*/
 void
 uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
 {
 #if UIP_UDP
-  uip_udp_conn = c;
-  uip_slen = len;
-  memcpy(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data, len > UIP_BUFSIZE? UIP_BUFSIZE: len);
-  uip_process(UIP_UDP_SEND_CONN);
-#if UIP_CONF_IPV6 //math
-  tcpip_ipv6_output();
+  if(data != NULL) {
+    uip_udp_conn = c;
+    uip_slen = len;
+    memcpy(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data,
+           len > UIP_BUFSIZE? UIP_BUFSIZE: len);
+    uip_process(UIP_UDP_SEND_CONN);
+#if UIP_CONF_IPV6
+    tcpip_ipv6_output();
 #else
-  if(uip_len > 0) {
-     tcpip_output();
-  }
+    if(uip_len > 0) {
+      tcpip_output();
+    }
 #endif
+  }
   uip_slen = 0;
 #endif /* UIP_UDP */
 }
@@ -74,18 +76,20 @@ uip_udp_packet_sendto(struct uip_udp_conn *c, const void *data, int len,
   uip_ipaddr_t curaddr;
   uint16_t curport;
 
-  /* Save current IP addr/port. */
-  uip_ipaddr_copy(&curaddr, &c->ripaddr);
-  curport = c->rport;
+  if(toaddr != NULL) {
+    /* Save current IP addr/port. */
+    uip_ipaddr_copy(&curaddr, &c->ripaddr);
+    curport = c->rport;
 
-  /* Load new IP addr/port */
-  uip_ipaddr_copy(&c->ripaddr, toaddr);
-  c->rport = toport;
+    /* Load new IP addr/port */
+    uip_ipaddr_copy(&c->ripaddr, toaddr);
+    c->rport = toport;
 
-  uip_udp_packet_send(c, data, len);
+    uip_udp_packet_send(c, data, len);
 
-  /* Restore old IP addr/port */
-  uip_ipaddr_copy(&c->ripaddr, &curaddr);
-  c->rport = curport;
+    /* Restore old IP addr/port */
+    uip_ipaddr_copy(&c->ripaddr, &curaddr);
+    c->rport = curport;
+  }
 }
 /*---------------------------------------------------------------------------*/

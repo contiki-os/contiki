@@ -12,14 +12,17 @@ tools:
 	@(cd ../../../tools ; $(MAKE))
 	@(cd ../../../tools/sky/uip6-bridge ; $(MAKE))
 
-shell: example-example-shell.native example-example-shell.netsim
+shell: example-example-shell.native
 hello-world: example-hello-world.sky example-hello-world.native \
-             example-hello-world.netsim example-hello-world.minimal-net example-hello-world.msb430
-rime-examples: example-rime.sky example-rime.netsim example-rime.esb
-ipso-ipv6-raven: example-ipso-ipv6-raven.raven
+             example-hello-world.minimal-net example-hello-world.msb430 \
+             example-hello-world.micaz example-hello-world.avr-raven \
+             example-hello-world.redbee-econotag example-hello-world.z1
+rime-examples: example-rime.sky example-rime.z1 example-rime.esb example-rime.redbee-econotag
+ipso-ipv6-raven: example-ipso-ipv6-raven.avr-raven
 jcreate: example-jcreate.jcreate
 multi-threading: example-multi-threading.sky \
-                 example-multi-threading.native example-multi-threading.msb430
+                 example-multi-threading.native example-multi-threading.msb430 \
+		 example-multi-threading.z1
 sky: example-sky.sky
 sky-ip: example-sky-ip.sky
 sky-shell: example-sky-shell.sky

@@ -37,8 +37,8 @@
  *           $Revision: 1.2 $
  */
 
-#include <io.h>
 
+#include "contiki.h"
 #include "dev/ext-sensor.h"
 #include "dev/sky-sensors.h"
 

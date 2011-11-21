@@ -37,8 +37,7 @@
  * 	Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include <io.h>
-#include <signal.h>
+#include "contiki.h"
 #include <msp430/adc12.h>
 
 #include "contiki-msb430.h"

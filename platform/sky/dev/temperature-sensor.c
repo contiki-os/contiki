@@ -38,9 +38,9 @@
  *         Niclas Finne <nfi@sics.se>
  */
 
+#include "contiki.h"
 #include "dev/temperature-sensor.h"
 #include "dev/sky-sensors.h"
-#include <io.h>
 
 #define INPUT_CHANNEL      (1 << INCH_10)
 #define INPUT_REFERENCE    SREF_1

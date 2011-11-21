@@ -50,6 +50,17 @@
 #define PLATFORM_HAS_LEDS   1
 #define PLATFORM_HAS_BUTTON 1
 
+#ifdef __IAR_SYSTEMS_ICC__
+#define __MSP430F1611__ 1
+#define __MSP430__ 1
+#define CC_CONF_INLINE
+#define BV(x) (1 << x)
+#else
+#define CC_CONF_INLINE inline
+#define MSP430_MEMCPY_WORKAROUND 1
+#endif
+
+
 /* CPU target speed in Hz */
 #define F_CPU 3900000uL /*2457600uL*/
 
@@ -61,10 +72,7 @@
 #define CCIF
 #define CLIF
 
-#define CC_CONF_INLINE inline
-
 #define HAVE_STDINT_H
-#define MSP430_MEMCPY_WORKAROUND 1
 #include "msp430def.h"
 
 

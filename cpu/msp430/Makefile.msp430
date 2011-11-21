@@ -41,8 +41,14 @@ IAR_PATH_C = $(shell dirname "$(IAR_BIN_PATH)")
 IAR_PATH = $(shell cygpath -m "$(IAR_PATH_C)")
 endif
 
+CFLAGS += --diag_suppress=Pa050 --silent
+
+#defaults on the MSP430X core include file here (xlfn.h)
+ifndef CFLAGSNO
 CFLAGSNO = --dlib_config "$(IAR_PATH)/LIB/DLIB/dl430xlfn.h" $(CFLAGSWERROR)
 # CFLAGSNO = --dlib_config $(IAR_PATH)/LIB/DLIB/dl430xlfn.h -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X $(CFLAGSWERROR) --data_model large --double=32
+endif
+
 CUSTOM_RULE_C_TO_O = 1
 %.o: %.c
 	$(CC) $(CFLAGS) $< -o $@
@@ -68,7 +74,7 @@ OBJCOPY  = msp430-objcopy
 STRIP    = msp430-strip
 BSL      = msp430-bsl
 CFLAGSNO = -Wall -mmcu=$(MCU) -g $(CFLAGSWERROR)
-CFLAGS  += $(CFLAGSNO) -Os
+CFLAGS  += $(CFLAGSNO) -Os -fno-strict-aliasing
 LDFLAGS += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
 endif
 

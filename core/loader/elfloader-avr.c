@@ -38,6 +38,7 @@
 #include "dev/rs232.h"
 #include "elfloader-arch.h"
 #include "lib/mmem.h"
+#include <string.h> //memset
 
 #define R_AVR_NONE             0
 #define R_AVR_32               1
@@ -116,7 +117,7 @@ BOOTLOADER_SECTION void
 elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char *mem)
 {
     unsigned char   buf[SPM_PAGESIZE];
-    unsigned short* flashptr = mem;
+    unsigned short* flashptr = (unsigned short *) mem;
 
 
     // Sanity-check size of loadable module
@@ -127,7 +128,7 @@ elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char
     // Seek to patched module and burn it to flash (in chunks of
     // size SPM_PAGESIZE, i.e. 256 bytes on the ATmega128)
     cfs_seek(fd, textoff, CFS_SEEK_SET);
-    for (flashptr=mem; flashptr < mem + size; flashptr += SPM_PAGESIZE) {
+    for (flashptr=(unsigned short *)mem; flashptr < (unsigned short *) mem + size; flashptr += SPM_PAGESIZE) {
 	memset (buf, 0, SPM_PAGESIZE);
 	cfs_read(fd, buf, SPM_PAGESIZE);
 

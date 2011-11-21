@@ -41,12 +41,17 @@
 
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
-/* #define NETSTACK_CONF_MAC nullmac_driver */
-/* #define NETSTACK_CONF_RDC sicslowmac_driver */
 #define NETSTACK_CONF_MAC     csma_driver
 #define NETSTACK_CONF_RDC     contikimac_driver
 #define NETSTACK_CONF_RADIO   cc2420_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
+
+/* Specify a minimum packet size for 6lowpan compression to be
+   enabled. This is needed for ContikiMAC, which needs packets to be
+   larger than a specified size, if no ContikiMAC header should be
+   used. */
+#define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 63
+#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
 
 #define CC2420_CONF_AUTOACK              1
 #define NETSTACK_RDC_CHANNEL_CHECK_RATE  8
@@ -62,14 +67,12 @@
 /* Network setup for non-IPv6 (rime). */
 
 #define NETSTACK_CONF_NETWORK rime_driver
-#define NETSTACK_CONF_MAC     nullmac_driver
-/* #define NETSTACK_CONF_RDC     contikimac_driver */
-#define NETSTACK_CONF_RDC     nullrdc_driver
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 128 
+#define NETSTACK_CONF_MAC     csma_driver
+#define NETSTACK_CONF_RDC     contikimac_driver
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #define NETSTACK_CONF_FRAMER  framer_802154
 
-#define CC2420_CONF_AUTOACK              0
-#define MAC_CONF_CHANNEL_CHECK_RATE      8
+#define CC2420_CONF_AUTOACK              1
 
 #define COLLECT_CONF_ANNOUNCEMENTS       1
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
@@ -102,7 +105,7 @@
 #define CFS_CONF_OFFSET_TYPE	long
 
 #define PROFILE_CONF_ON 0
-#define ENERGEST_CONF_ON 0
+#define ENERGEST_CONF_ON 1
 
 #define ELFLOADER_CONF_TEXT_IN_ROM 0
 #define ELFLOADER_CONF_DATAMEMORY_SIZE 0x400
@@ -186,7 +189,7 @@
 
 
 #ifdef PROJECT_CONF_H
-#include "project-conf.h"
+#include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
 
 

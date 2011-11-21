@@ -12,7 +12,7 @@
 #define NETSTACK_CONF_NETWORK		rime_driver
 #define NETSTACK_CONF_FRAMER		framer_nullmac
 
-#define MAC_CONF_CHANNEL_CHECK_RATE	8
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE	8
 
 #define ENERGEST_CONF_ON		1
 

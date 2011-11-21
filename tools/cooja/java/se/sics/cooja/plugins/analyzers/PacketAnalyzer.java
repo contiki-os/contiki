@@ -9,6 +9,7 @@ public abstract class PacketAnalyzer {
     public static final int RADIO_LEVEL = 0;
     public static final int MAC_LEVEL = 1;
     public static final int NETWORK_LEVEL = 2;
+    public static final int APPLICATION_LEVEL = 3;
     
     public static class Packet {
         byte[] data;

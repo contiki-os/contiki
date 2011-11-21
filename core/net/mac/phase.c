@@ -52,6 +52,7 @@ struct phase_queueitem {
   mac_callback_t mac_callback;
   void *mac_callback_ptr;
   struct queuebuf *q;
+  struct rdc_buf_list *buf_list;
 };
 
 #define PHASE_DEFER_THRESHOLD 1
@@ -150,17 +151,23 @@ send_packet(void *ptr)
 {
   struct phase_queueitem *p = ptr;
 
-  queuebuf_to_packetbuf(p->q);
-  queuebuf_free(p->q);
+  if(p->buf_list == NULL) {
+    queuebuf_to_packetbuf(p->q);
+    queuebuf_free(p->q);
+    NETSTACK_RDC.send(p->mac_callback, p->mac_callback_ptr);
+  } else {
+    NETSTACK_RDC.send_list(p->mac_callback, p->mac_callback_ptr, p->buf_list);
+  }
+
   memb_free(&queued_packets_memb, p);
-  NETSTACK_RDC.send(p->mac_callback, p->mac_callback_ptr);
 }
 /*---------------------------------------------------------------------------*/
 phase_status_t
 phase_wait(struct phase_list *list,
            const rimeaddr_t *neighbor, rtimer_clock_t cycle_time,
            rtimer_clock_t guard_time,
-           mac_callback_t mac_callback, void *mac_callback_ptr)
+           mac_callback_t mac_callback, void *mac_callback_ptr,
+           struct rdc_buf_list *buf_list)
 {
   struct phase *e;
   //  const rimeaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
@@ -170,7 +177,7 @@ phase_wait(struct phase_list *list,
      the radio just before the phase. */
   e = find_neighbor(list, neighbor);
   if(e != NULL) {
-    rtimer_clock_t wait, now, expected;
+    rtimer_clock_t wait, now, expected, sync;
     clock_time_t ctimewait;
     
     /* We expect phases to happen every CYCLE_TIME time
@@ -188,31 +195,34 @@ phase_wait(struct phase_list *list,
             }*/
     
     now = RTIMER_NOW();
-    wait = (rtimer_clock_t)((e->time - now) &
+
+    sync = (e == NULL) ? now : e->time;
+    wait = (rtimer_clock_t)((sync - now) &
                             (cycle_time - 1));
     if(wait < guard_time) {
       wait += cycle_time;
     }
-    
+
     ctimewait = (CLOCK_SECOND * (wait - guard_time)) / RTIMER_ARCH_SECOND;
-    
+
     if(ctimewait > PHASE_DEFER_THRESHOLD) {
       struct phase_queueitem *p;
       
       p = memb_alloc(&queued_packets_memb);
       if(p != NULL) {
-        p->q = queuebuf_new_from_packetbuf();
-        if(p->q != NULL) {
-          p->mac_callback = mac_callback;
-          p->mac_callback_ptr = mac_callback_ptr;
-          ctimer_set(&p->timer, ctimewait, send_packet, p);
-          return PHASE_DEFERRED;
-        } else {
-          memb_free(&queued_packets_memb, p);
+        if(buf_list == NULL) {
+          p->q = queuebuf_new_from_packetbuf();
         }
+        p->mac_callback = mac_callback;
+        p->mac_callback_ptr = mac_callback_ptr;
+        p->buf_list = buf_list;
+        ctimer_set(&p->timer, ctimewait, send_packet, p);
+        return PHASE_DEFERRED;
+      } else {
+        memb_free(&queued_packets_memb, p);
       }
     }
-    
+
     expected = now + wait - guard_time;
     if(!RTIMER_CLOCK_LT(expected, now)) {
       /* Wait until the receiver is expected to be awake */

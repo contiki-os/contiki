@@ -23,3 +23,12 @@ code as follows:
   3ffe:0501:ffff:0100:0206:98ff:fe00:0232
 - Finally you can use 'wget http://[3ffe:0501:ffff:0100:0206:98ff:fe00:0232]' 
   to get the web page (index.html file)
+  
+  The default webserver and content is in /apps/webserver/...
+  Change that using e.g. 
+  $make clean
+  $make WITH_WEBSERVER=webserver-nano
+  $make TARGET=redbee-econotag WITH_WEBSERVER=webserver-nano
+  $make TARGET=avr-raven WITH_WEBSERVER=raven-webserver
+  
+  ******** Make clean when switching webservers! **********

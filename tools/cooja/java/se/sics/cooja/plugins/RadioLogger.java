@@ -66,6 +66,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
@@ -88,6 +89,7 @@ import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.analyzers.ICMPv6Analyzer;
 import se.sics.cooja.plugins.analyzers.IEEE802154Analyzer;
 import se.sics.cooja.plugins.analyzers.IPHCPacketAnalyzer;
+import se.sics.cooja.plugins.analyzers.IPv6PacketAnalyzer;
 import se.sics.cooja.plugins.analyzers.PacketAnalyzer;
 import se.sics.cooja.plugins.analyzers.RadioLoggerAnalyzerSuite;
 import se.sics.cooja.util.StringUtils;
@@ -142,11 +144,13 @@ public class RadioLogger extends VisPlugin {
     ArrayList<PacketAnalyzer> lowpanAnalyzers = new ArrayList<PacketAnalyzer>();
     lowpanAnalyzers.add(new IEEE802154Analyzer(false));
     lowpanAnalyzers.add(new IPHCPacketAnalyzer());
+    lowpanAnalyzers.add(new IPv6PacketAnalyzer());
     lowpanAnalyzers.add(new ICMPv6Analyzer());
 
     ArrayList<PacketAnalyzer> lowpanAnalyzersPcap = new ArrayList<PacketAnalyzer>();
     lowpanAnalyzersPcap.add(new IEEE802154Analyzer(true));
     lowpanAnalyzersPcap.add(new IPHCPacketAnalyzer());
+    lowpanAnalyzersPcap.add(new IPv6PacketAnalyzer());
     lowpanAnalyzersPcap.add(new ICMPv6Analyzer());
     model = new AbstractTableModel() {
 
@@ -276,8 +280,7 @@ public class RadioLogger extends VisPlugin {
     dataTable.addKeyListener(new KeyAdapter() {
       public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-          timeLineAction.actionPerformed(null);
-          logListenerAction.actionPerformed(null);
+          showInAllAction.actionPerformed(null);
         } else if (e.getKeyCode() == KeyEvent.VK_F && 
         		(e.getModifiers() & KeyEvent.CTRL_MASK) != 0) {
         	searchField.setVisible(true);
@@ -320,7 +323,9 @@ public class RadioLogger extends VisPlugin {
     popupMenu.add(new JMenuItem(saveAction));
     popupMenu.addSeparator();
 
-    JMenu focusMenu = new JMenu("Focus (Space)");
+    JMenu focusMenu = new JMenu("Show in");
+    focusMenu.add(new JMenuItem(showInAllAction));
+    focusMenu.addSeparator();
     focusMenu.add(new JMenuItem(timeLineAction));
     focusMenu.add(new JMenuItem(logListenerAction));
     popupMenu.add(focusMenu);
@@ -825,7 +830,7 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
-  private Action timeLineAction = new AbstractAction("in Timeline") {
+  private Action timeLineAction = new AbstractAction("Timeline") {
     private static final long serialVersionUID = -4035633464748224192L;
     public void actionPerformed(ActionEvent e) {
       int selectedRow = dataTable.getSelectedRow();
@@ -845,7 +850,7 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
-  private Action logListenerAction = new AbstractAction("in Log Listener") {
+  private Action logListenerAction = new AbstractAction("Log Listener") {
     private static final long serialVersionUID = 1985006491187878651L;
     public void actionPerformed(ActionEvent e) {
       int selectedRow = dataTable.getSelectedRow();
@@ -862,6 +867,17 @@ public class RadioLogger extends VisPlugin {
       	LogListener plugin = (LogListener) p;
         plugin.trySelectTime(time);
       }
+    }
+  };
+
+  private Action showInAllAction = new AbstractAction("All") {
+    private static final long serialVersionUID = -3888292108886138128L;
+    {
+       putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true));
+    }
+    public void actionPerformed(ActionEvent e) {
+      timeLineAction.actionPerformed(null);
+      logListenerAction.actionPerformed(null);
     }
   };
 

@@ -120,11 +120,12 @@ remove_neighbor(void *n)
  * neighbor table.
  */
 static void
-received_announcement(struct announcement *a, rimeaddr_t *from,
+received_announcement(struct announcement *a,
+                      const rimeaddr_t *from,
 		      uint16_t id, uint16_t value)
 {
   struct example_neighbor *e;
-  
+
   /*  printf("Got announcement from %d.%d, id %d, value %d\n",
       from->u8[0], from->u8[1], id, value);*/
 
@@ -216,8 +217,10 @@ PROCESS_THREAD(example_multihop_process, ev, data)
      Rime channel we use to open the multihop connection above. */
   announcement_register(&example_announcement,
 			CHANNEL,
-			0,
 			received_announcement);
+
+  /* Set a dummy value to start sending out announcments. */
+  announcement_set_value(&example_announcement, 0);
 
   /* Activate the button sensor. We use the button to drive traffic -
      when the button is pressed, a packet is sent. */
@@ -235,11 +238,11 @@ PROCESS_THREAD(example_multihop_process, ev, data)
     packetbuf_copyfrom("Hello", 6);
 
     /* Set the Rime address of the final receiver of the packet to
-       1.1. This is just a dummy value that happens to work nicely in a
-       netsim simulation (because the default simulation setup creates
-       one node with address 1.1). */
+       1.0. This is a value that happens to work nicely in a Cooja
+       simulation (because the default simulation setup creates one
+       node with address 1.0). */
     to.u8[0] = 1;
-    to.u8[1] = 1;
+    to.u8[1] = 0;
 
     /* Send the packet. */
     multihop_send(&multihop, &to);

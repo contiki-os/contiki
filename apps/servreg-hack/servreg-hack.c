@@ -86,6 +86,8 @@ PROCESS(servreg_hack_process, "Service regstry hack");
 
 static struct etimer sendtimer;
 
+static uint8_t started = 0;
+
 /*---------------------------------------------------------------------------*/
 /* Go through the list of registrations and remove those that are too
    old. */
@@ -117,15 +119,18 @@ purge_registrations(void)
 void
 servreg_hack_init(void)
 {
-  list_init(others_services);
-  list_init(own_services);
-  memb_init(&registrations);
+  if(started == 0) {
+    list_init(others_services);
+    list_init(own_services);
+    memb_init(&registrations);
 
-  process_start(&servreg_hack_process, NULL);
+    process_start(&servreg_hack_process, NULL);
+    started = 1;
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
-servreg_hack_register(servreg_hack_id_t id)
+servreg_hack_register(servreg_hack_id_t id, const uip_ipaddr_t *addr)
 {
   servreg_hack_item_t *t;
   struct servreg_hack_registration *r;
@@ -133,6 +138,8 @@ servreg_hack_register(servreg_hack_id_t id)
      registered. If not, allocate a new registration and put it on our
      list. If we cannot allocate a service registration, we reuse one
      from the service registrations made by others. */
+
+  servreg_hack_init();
 
   for(t = list_head(own_services);
       t != NULL;
@@ -149,6 +156,7 @@ servreg_hack_register(servreg_hack_id_t id)
   }
   r->id = id;
   r->seqno = 1;
+  uip_ipaddr_copy(&r->addr, addr);
   timer_set(&r->timer, LIFETIME / 2);
   list_push(own_services, r);
 
@@ -183,6 +191,8 @@ servreg_hack_lookup(servreg_hack_id_t id)
 {
   servreg_hack_item_t *t;
 
+  servreg_hack_init();
+
   purge_registrations();
 
   for(t = servreg_hack_list_head(); t != NULL; t = list_item_next(t)) {
@@ -212,8 +222,6 @@ handle_incoming_reg(const uip_ipaddr_t *owner, servreg_hack_id_t id, uint8_t seq
      now - we might later choose to discard the oldest registration
      that we have). */
 
-  /*  printf("Handle incoming reg id %d seqno %d\n", id, seqno);*/
-  
   for(t = servreg_hack_list_head();
       t != NULL;
       t = list_item_next(t)) {
@@ -276,34 +284,28 @@ send_udp_packet(struct uip_udp_conn *conn)
   uint8_t buf[MAX_BUFSIZE];
   int bufptr;
   servreg_hack_item_t *t;
-  uip_ds6_addr_t *addr;
-  
-  addr = uip_ds6_get_global(-1);
-  
+
   buf[MSG_FLAGS_OFFSET]   = 0;
 
   numregs = 0;
   bufptr = MSG_ADDRS_OFFSET;
-
-
-  if(addr != NULL) {
-    for(t = list_head(own_services);
-        (bufptr + MSG_ADDRS_LEN <= MAX_BUFSIZE) && t != NULL;
-        t = list_item_next(t)) {
-      
-      uip_ipaddr_copy((uip_ipaddr_t *)&buf[bufptr + MSG_IPADDR_SUBOFFSET],
-                      &addr->ipaddr);
-      buf[bufptr + MSG_REGS_SUBOFFSET] =
-        servreg_hack_item_id(t);
-      buf[bufptr + MSG_REGS_SUBOFFSET + 1] =
-        buf[bufptr + MSG_REGS_SUBOFFSET + 2] = 0;
-      buf[bufptr + MSG_SEQNO_SUBOFFSET] = ((struct servreg_hack_registration *)t)->seqno;
-      
-      bufptr += MSG_ADDRS_LEN;
-      ++numregs;
-    }
-  }
   
+  for(t = list_head(own_services);
+      (bufptr + MSG_ADDRS_LEN <= MAX_BUFSIZE) && t != NULL;
+      t = list_item_next(t)) {
+
+    uip_ipaddr_copy((uip_ipaddr_t *)&buf[bufptr + MSG_IPADDR_SUBOFFSET],
+                    servreg_hack_item_address(t));
+    buf[bufptr + MSG_REGS_SUBOFFSET] =
+      servreg_hack_item_id(t);
+    buf[bufptr + MSG_REGS_SUBOFFSET + 1] =
+      buf[bufptr + MSG_REGS_SUBOFFSET + 2] = 0;
+    buf[bufptr + MSG_SEQNO_SUBOFFSET] = ((struct servreg_hack_registration *)t)->seqno;
+
+    bufptr += MSG_ADDRS_LEN;
+    ++numregs;
+  }
+
   for(t = servreg_hack_list_head();
       (bufptr + MSG_ADDRS_LEN <= MAX_BUFSIZE) && t != NULL;
       t = list_item_next(t)) {
@@ -338,7 +340,7 @@ parse_incoming_packet(const u8_t *buf, int len)
   numregs = buf[MSG_NUMREGS_OFFSET];
   flags   = buf[MSG_FLAGS_OFFSET];
 
-  /*  printf("Numregs %d flags %d\n", numregs, flags);*/
+  /*  printf("parse_incoming_packet Numregs %d flags %d\n", numregs, flags);*/
 
   bufptr = MSG_ADDRS_OFFSET;
   for(i = 0; i < numregs; ++i) {

@@ -46,9 +46,8 @@ Berlin, 2005
  * reformatted to fit the Contiki ESB port.
  */
 
-#include "contiki-conf.h"
+#include "contiki.h"
 #include "dev/ds1629.h"
-#include <io.h>
 
 #define SDA_HIGH  (P5OUT |= 0x01) /* RTC data line high */
 #define SDA_LOW   (P5OUT &= 0xFE) /* RTC data line low */

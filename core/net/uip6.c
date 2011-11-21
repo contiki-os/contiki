@@ -360,7 +360,16 @@ uip_ipchksum(void)
 static u16_t
 upper_layer_chksum(u8_t proto)
 {
-  u16_t upper_layer_len;
+/* gcc 4.4.0 - 4.6.1 (maybe 4.3...) with -Os on 8 bit CPUS incorrectly compiles:
+ * int bar (int);
+ * int foo (unsigned char a, unsigned char b) {
+ *   int len = (a << 8) + b; //len becomes 0xff00&<random>+b
+ *   return len + bar (len);
+ * }
+ * upper_layer_len triggers this bug unless it is declared volatile.
+ * See https://sourceforge.net/apps/mantisbt/contiki/view.php?id=3
+ */
+  volatile u16_t upper_layer_len;
   u16_t sum;
   
   upper_layer_len = (((u16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1] - uip_ext_len) ;
@@ -427,7 +436,6 @@ uip_init(void)
   }
 #endif /* UIP_UDP */
 }
-
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP && UIP_ACTIVE_OPEN
 struct uip_conn *
@@ -517,7 +525,6 @@ remove_ext_hdr(void)
     uip_ext_len = 0;
   }
 }
-
 /*---------------------------------------------------------------------------*/
 #if UIP_UDP
 struct uip_udp_conn *
@@ -538,7 +545,6 @@ uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport)
       goto again;
     }
   }
-
 
   conn = 0;
   for(c = 0; c < UIP_UDP_CONNS; ++c) {
@@ -564,8 +570,6 @@ uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport)
   return conn;
 }
 #endif /* UIP_UDP */
-
-
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP
 void
@@ -578,8 +582,6 @@ uip_unlisten(u16_t port)
     }
   }
 }
-
-
 /*---------------------------------------------------------------------------*/
 void
 uip_listen(u16_t port)
@@ -593,7 +595,6 @@ uip_listen(u16_t port)
 }
 #endif
 /*---------------------------------------------------------------------------*/
-
 
 #if UIP_CONF_IPV6_REASSEMBLY
 #define UIP_REASS_BUFSIZE (UIP_BUFSIZE - UIP_LLH_LEN)
@@ -827,15 +828,16 @@ uip_add_rcv_nxt(u16_t n)
  * \brief Process the options in Destination and Hop By Hop extension headers
  */
 static u8_t
-ext_hdr_options_process() {
+ext_hdr_options_process(void)
+{
  /*
-  * Length field in the extension header: length of th eheader in units of
+  * Length field in the extension header: length of the header in units of
   * 8 bytes, excluding the first 8 bytes
   * length field in an option : the length of data in the option
   */
   uip_ext_opt_offset = 2;
-  while(uip_ext_opt_offset  < ((UIP_EXT_BUF->len << 3) + 8)) {
-    switch (UIP_EXT_HDR_OPT_BUF->type) {
+  while(uip_ext_opt_offset < ((UIP_EXT_BUF->len << 3) + 8)) {
+    switch(UIP_EXT_HDR_OPT_BUF->type) {
       /*
        * for now we do not support any options except padding ones
        * PAD1 does not make sense as the header must be 8bytes aligned,

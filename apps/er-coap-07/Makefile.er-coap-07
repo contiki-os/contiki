@@ -1,0 +1,1 @@
+er-coap-07_src = er-coap-07-engine.c er-coap-07.c er-coap-07-transactions.c er-coap-07-observing.c er-coap-07-separate.c

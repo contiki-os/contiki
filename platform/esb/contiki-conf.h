@@ -11,9 +11,19 @@
 #define PROFILE_CONF_ON 0
 #define ENERGEST_CONF_ON 1
 
-#define HAVE_STDINT_H
+#ifdef __IAR_SYSTEMS_ICC__
+#define __MSP430F149__ 1
+#define __MSP430__ 1
+#define CC_CONF_INLINE
+#define BV(x) (1 << x)
+#else
+#define CC_CONF_INLINE inline
 #define MSP430_MEMCPY_WORKAROUND 1
+#endif
+
+#define HAVE_STDINT_H
 #include "msp430def.h"
+
 
 #define PROCESS_CONF_NUMEVENTS 8
 #define PROCESS_CONF_STATS 0
@@ -30,8 +40,6 @@
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
-
-#define CC_CONF_INLINE inline
 
 #define CC_CONF_VA_ARGS                1
 

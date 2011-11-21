@@ -39,13 +39,10 @@
  *         unwritten data will read as zeros (UNIX style).
  */
 
-#include <stdio.h>
-#include <string.h>
-
-#include <io.h>
-#include <signal.h>
 
 #include "contiki.h"
+#include <stdio.h>
+#include <string.h>
 
 #include "dev/spi.h"
 #include "dev/xmem.h"

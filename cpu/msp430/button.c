@@ -29,11 +29,7 @@
  * @(#)$Id: button.c,v 1.2 2006/08/17 15:41:13 bg- Exp $
  */
 
-#include <io.h>
-#include <signal.h>
-
 #include "contiki.h"
-
 #include "dev/button.h"
 
 #define BUTTON_PORT 2

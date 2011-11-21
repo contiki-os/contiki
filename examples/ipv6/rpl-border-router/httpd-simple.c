@@ -43,12 +43,11 @@
 
 #include "contiki-net.h"
 
-#include "webserver.h"
-#include "lib/petsciiconv.h"
-#include "http-strings.h"
-#include "urlconv.h"
+//#include "urlconv.h"
 
 #include "httpd-simple.h"
+#define webserver_log_file(...)
+#define webserver_log(...)
 
 #ifndef WEBSERVER_CONF_CFS_CONNS
 #define CONNS UIP_CONNS
@@ -90,6 +89,7 @@ PT_THREAD(send_string(struct httpd_state *s, const char *str))
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
+const char http_content_type_html[] = "Content-type: text/html\r\n\r\n";
 static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
@@ -120,18 +120,17 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
+const char http_header_200[] = "HTTP/1.0 200 OK\r\nServer: Contiki/2.4 http://www.sics.se/contiki/\r\nConnection: close\r\n";
+const char http_header_404[] = "HTTP/1.0 404 Not found\r\nServer: Contiki/2.4 http://www.sics.se/contiki/\r\nConnection: close\r\n";
 static
 PT_THREAD(handle_output(struct httpd_state *s))
 {
   PT_BEGIN(&s->outputpt);
 
   s->script = NULL;
-  petsciiconv_topetscii(s->filename, sizeof(s->filename));
   s->script = httpd_simple_get_script(&s->filename[1]);
-  petsciiconv_toascii(s->filename, sizeof(s->filename));
   if(s->script == NULL) {
-    strcpy(s->filename, "/notfound.html");
-    petsciiconv_toascii(s->filename, sizeof(s->filename));
+    strncpy(s->filename, "/notfound.html", sizeof(s->filename));
     PT_WAIT_THREAD(&s->outputpt,
                    send_headers(s, http_header_404));
     PT_WAIT_THREAD(&s->outputpt,
@@ -149,6 +148,9 @@ PT_THREAD(handle_output(struct httpd_state *s))
   PT_END(&s->outputpt);
 }
 /*---------------------------------------------------------------------------*/
+const char http_get[] = "GET ";
+const char http_index_html[] = "/index.html";
+//const char http_referer[] = "Referer:"
 static
 PT_THREAD(handle_input(struct httpd_state *s))
 {
@@ -177,19 +179,18 @@ PT_THREAD(handle_input(struct httpd_state *s))
   }
 #endif /* URLCONV */
 
-  petsciiconv_topetscii(s->filename, sizeof(s->filename));
   webserver_log_file(&uip_conn->ripaddr, s->filename);
-  petsciiconv_toascii(s->filename, sizeof(s->filename));
+
   s->state = STATE_OUTPUT;
 
   while(1) {
     PSOCK_READTO(&s->sin, ISO_nl);
-
+#if 0
     if(strncmp(s->inputbuf, http_referer, 8) == 0) {
       s->inputbuf[PSOCK_DATALEN(&s->sin) - 2] = 0;
-      petsciiconv_topetscii(s->inputbuf, PSOCK_DATALEN(&s->sin) - 2);
       webserver_log(s->inputbuf);
     }
+#endif
   }
 
   PSOCK_END(&s->sin);
@@ -203,6 +204,7 @@ handle_connection(struct httpd_state *s)
     handle_output(s);
   }
 }
+
 /*---------------------------------------------------------------------------*/
 void
 httpd_appcall(void *state)
@@ -245,10 +247,12 @@ httpd_appcall(void *state)
     uip_abort();
   }
 }
+
 /*---------------------------------------------------------------------------*/
 void
 httpd_init(void)
 {
+
   tcp_listen(UIP_HTONS(80));
   memb_init(&conns);
 #if URLCONV

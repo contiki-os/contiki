@@ -43,6 +43,7 @@
 #include "net/queuebuf.h"
 
 #include "sys/ctimer.h"
+#include "sys/clock.h"
 
 #include "lib/random.h"
 
@@ -76,26 +77,51 @@
 #error Change CSMA_CONF_MAX_MAC_TRANSMISSIONS in contiki-conf.h or in your Makefile.
 #endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS < 1 */
 
-struct queued_packet {
-  struct queued_packet *next;
-  struct queuebuf *buf;
-  /*  struct ctimer retransmit_timer;*/
+/* Packet metadata */
+struct qbuf_metadata {
   mac_callback_t sent;
   void *cptr;
-  uint8_t transmissions, max_transmissions;
-  uint8_t collisions, deferrals;
+  uint8_t max_transmissions;
 };
 
-#define MAX_QUEUED_PACKETS 6
-MEMB(packet_memb, struct queued_packet, MAX_QUEUED_PACKETS);
-LIST(queued_packet_list);
+/* Every neighbor has its own packet queue */
+struct neighbor_queue {
+  struct neighbor_queue *next;
+  rimeaddr_t addr;
+  struct ctimer transmit_timer;
+  uint8_t transmissions;
+  uint8_t collisions, deferrals;
+  LIST_STRUCT(queued_packet_list);
+};
 
-static struct ctimer transmit_timer;
+/* The maximum number of co-existing neighbor queues */
+#ifdef CSMA_CONF_MAX_NEIGHBOR_QUEUES
+#define CSMA_MAX_NEIGHBOR_QUEUES CSMA_CONF_MAX_NEIGHBOR_QUEUES
+#else
+#define CSMA_MAX_NEIGHBOR_QUEUES 2
+#endif /* CSMA_CONF_MAX_NEIGHBOR_QUEUES */
 
-static uint8_t rdc_is_transmitting;
+#define MAX_QUEUED_PACKETS QUEUEBUF_NUM
+MEMB(neighbor_memb, struct neighbor_queue, CSMA_MAX_NEIGHBOR_QUEUES);
+MEMB(packet_memb, struct rdc_buf_list, MAX_QUEUED_PACKETS);
+MEMB(metadata_memb, struct qbuf_metadata, MAX_QUEUED_PACKETS);
+LIST(neighbor_list);
 
 static void packet_sent(void *ptr, int status, int num_transmissions);
+static void transmit_packet_list(void *ptr);
 
+/*---------------------------------------------------------------------------*/
+static struct
+neighbor_queue *neighbor_queue_from_addr(const rimeaddr_t *addr) {
+  struct neighbor_queue *n = list_head(neighbor_list);
+  while(n != NULL) {
+    if(rimeaddr_cmp(&n->addr, addr)) {
+      return n;
+    }
+    n = list_item_next(n);
+  }
+  return NULL;
+}
 /*---------------------------------------------------------------------------*/
 static clock_time_t
 default_timebase(void)
@@ -115,61 +141,44 @@ default_timebase(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-transmit_queued_packet(void *ptr)
+transmit_packet_list(void *ptr)
 {
-  /*  struct queued_packet *q = ptr;*/
-  struct queued_packet *q;
-
-  /* Don't transmit a packet if the RDC is still transmitting the
-     previous one. */
-  if(rdc_is_transmitting) {
-    return;
-  }
-  
-  //  printf("q %d\n", list_length(queued_packet_list));
-
-  q = list_head(queued_packet_list);
-
-  if(q != NULL) {
-    queuebuf_to_packetbuf(q->buf);
-    PRINTF("csma: sending number %d %p, queue len %d\n", q->transmissions, q,
-           list_length(queued_packet_list));
-    //    printf("s %d\n", packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0]);
-    rdc_is_transmitting = 1;
-    NETSTACK_RDC.send(packet_sent, q);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static void
-start_transmission_timer(void)
-{
-  PRINTF("csma: start_transmission_timer, queue len %d\n",
-         list_length(queued_packet_list));
-  if(list_length(queued_packet_list) > 0) {
-    if(ctimer_expired(&transmit_timer)) {
-      ctimer_set(&transmit_timer, 0,
-                 transmit_queued_packet, NULL);
+  struct neighbor_queue *n = ptr;
+  if(n) {
+    struct rdc_buf_list *q = list_head(n->queued_packet_list);
+    if(q != NULL) {
+      PRINTF("csma: preparing number %d %p, queue len %d\n", n->transmissions, q,
+          list_length(n->queued_packet_list));
+      /* Send packets in the neighbor's list */
+      NETSTACK_RDC.send_list(packet_sent, n, q);
     }
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
-free_queued_packet(void)
+free_first_packet(struct neighbor_queue *n)
 {
-  struct queued_packet *q;
-
-  //  printf("q %d\n", list_length(queued_packet_list));
-
-  q = list_head(queued_packet_list);
-
+  struct rdc_buf_list *q = list_head(n->queued_packet_list);
   if(q != NULL) {
+    /* Remove first packet from list and deallocate */
     queuebuf_free(q->buf);
-    list_remove(queued_packet_list, q);
+    list_pop(n->queued_packet_list);
+    memb_free(&metadata_memb, q->ptr);
     memb_free(&packet_memb, q);
     PRINTF("csma: free_queued_packet, queue length %d\n",
-           list_length(queued_packet_list));
-    if(list_length(queued_packet_list) > 0) {
-      ctimer_set(&transmit_timer, default_timebase(), transmit_queued_packet, NULL);
+        list_length(n->queued_packet_list));
+    if(list_head(n->queued_packet_list)) {
+      /* There is a next packet. We reset current tx information */
+      n->transmissions = 0;
+      n->collisions = 0;
+      n->deferrals = 0;
+      /* Set a timer for next transmissions */
+      ctimer_set(&n->transmit_timer, default_timebase(), transmit_packet_list, n);
+    } else {
+      /* This was the last packet in the queue, we free the neighbor */
+      ctimer_stop(&n->transmit_timer);
+      list_remove(neighbor_list, n);
+      memb_free(&neighbor_memb, n);
     }
   }
 }
@@ -177,32 +186,32 @@ free_queued_packet(void)
 static void
 packet_sent(void *ptr, int status, int num_transmissions)
 {
-  struct queued_packet *q = ptr;
+  struct neighbor_queue *n = ptr;
+  struct rdc_buf_list *q = list_head(n->queued_packet_list);
+  struct qbuf_metadata *metadata = (struct qbuf_metadata *)q->ptr;
   clock_time_t time = 0;
   mac_callback_t sent;
   void *cptr;
   int num_tx;
   int backoff_transmissions;
 
-  rdc_is_transmitting = 0;
-  
   switch(status) {
   case MAC_TX_OK:
   case MAC_TX_NOACK:
-    q->transmissions++;
+    n->transmissions++;
     break;
   case MAC_TX_COLLISION:
-    q->collisions++;
+    n->collisions++;
     break;
   case MAC_TX_DEFERRED:
-    q->deferrals++;
+    n->deferrals++;
     break;
   }
 
-  sent = q->sent;
-  cptr = q->cptr;
-  num_tx = q->transmissions;
-  
+  sent = metadata->sent;
+  cptr = metadata->cptr;
+  num_tx = n->transmissions;
+
   if(status == MAC_TX_COLLISION ||
      status == MAC_TX_NOACK) {
 
@@ -211,13 +220,13 @@ packet_sent(void *ptr, int status, int num_transmissions)
     
     switch(status) {
     case MAC_TX_COLLISION:
-      PRINTF("csma: rexmit collision %d\n", q->transmissions);
+      PRINTF("csma: rexmit collision %d\n", n->transmissions);
       break;
     case MAC_TX_NOACK:
-      PRINTF("csma: rexmit noack %d\n", q->transmissions);
+      PRINTF("csma: rexmit noack %d\n", n->transmissions);
       break;
     default:
-      PRINTF("csma: rexmit err %d, %d\n", status, q->transmissions);
+      PRINTF("csma: rexmit err %d, %d\n", status, n->transmissions);
     }
 
     /* The retransmission time must be proportional to the channel
@@ -227,7 +236,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
     /* The retransmission time uses a linear backoff so that the
        interval between the transmissions increase with each
        retransmit. */
-    backoff_transmissions = q->transmissions + 1;
+    backoff_transmissions = n->transmissions + 1;
 
     /* Clamp the number of backoffs so that we don't get a too long
        timeout here, since that will delay all packets in the
@@ -235,32 +244,29 @@ packet_sent(void *ptr, int status, int num_transmissions)
     if(backoff_transmissions > 3) {
       backoff_transmissions = 3;
     }
+
     time = time + (random_rand() % (backoff_transmissions * time));
 
-    if(q->transmissions < q->max_transmissions) {
+    if(n->transmissions < metadata->max_transmissions) {
       PRINTF("csma: retransmitting with time %lu %p\n", time, q);
-      ctimer_set(&transmit_timer, time,
-                 transmit_queued_packet, NULL);
-
+      ctimer_set(&n->transmit_timer, time,
+                 transmit_packet_list, n);
       /* This is needed to correctly attribute energy that we spent
          transmitting this packet. */
       queuebuf_update_attr_from_packetbuf(q->buf);
-
     } else {
       PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
-             status, q->transmissions, q->collisions);
-      /*      queuebuf_to_packetbuf(q->buf);*/
-      free_queued_packet();
+             status, n->transmissions, n->collisions);
+      free_first_packet(n);
       mac_call_sent_callback(sent, cptr, status, num_tx);
     }
   } else {
     if(status == MAC_TX_OK) {
-      PRINTF("csma: rexmit ok %d\n", q->transmissions);
+      PRINTF("csma: rexmit ok %d\n", n->transmissions);
     } else {
-      PRINTF("csma: rexmit failed %d: %d\n", q->transmissions, status);
+      PRINTF("csma: rexmit failed %d: %d\n", n->transmissions, status);
     }
-    /*    queuebuf_to_packetbuf(q->buf);*/
-    free_queued_packet();
+    free_first_packet(n);
     mac_call_sent_callback(sent, cptr, status, num_tx);
   }
 }
@@ -268,53 +274,89 @@ packet_sent(void *ptr, int status, int num_transmissions)
 static void
 send_packet(mac_callback_t sent, void *ptr)
 {
-  struct queued_packet *q;
+  struct rdc_buf_list *q;
+  struct neighbor_queue *n;
   static uint16_t seqno;
-  
+
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, seqno++);
   
   /* If the packet is a broadcast, do not allocate a queue
      entry. Instead, just send it out.  */
   if(!rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                    &rimeaddr_null)) {
+    const rimeaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
-    /* Remember packet for later. */
-    q = memb_alloc(&packet_memb);
-    if(q != NULL) {
-      q->buf = queuebuf_new_from_packetbuf();
-      if(q->buf != NULL) {
-        if(packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS) == 0) {
-          /* Use default configuration for max transmissions */
-          q->max_transmissions = CSMA_MAX_MAC_TRANSMISSIONS;
-        } else {
-          q->max_transmissions =
-            packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS);
-        }
-        q->transmissions = 0;
-        q->collisions = 0;
-        q->deferrals = 0;
-        q->sent = sent;
-        q->cptr = ptr;
-        if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
-           PACKETBUF_ATTR_PACKET_TYPE_ACK) {
-          list_push(queued_packet_list, q);
-        } else {
-          list_add(queued_packet_list, q);
-        }
-        start_transmission_timer();
-        return;
+    /* Look for the neighbor entry */
+    n = neighbor_queue_from_addr(addr);
+    if(n == NULL) {
+      /* Allocate a new neighbor entry */
+      n = memb_alloc(&neighbor_memb);
+      if(n != NULL) {
+        /* Init neighbor entry */
+        rimeaddr_copy(&n->addr, addr);
+        n->transmissions = 0;
+        n->collisions = 0;
+        n->deferrals = 0;
+        /* Init packet list for this neighbor */
+        LIST_STRUCT_INIT(n, queued_packet_list);
+        /* Add neighbor to the list */
+        list_add(neighbor_list, n);
       }
-      memb_free(&packet_memb, q);
-      PRINTF("csma: could not allocate queuebuf, will drop if collision or noack\n");
     }
-    PRINTF("csma: could not allocate memb, will drop if collision or noack\n");
+
+    if(n != NULL) {
+      /* Add packet to the neighbor's queue */
+      q = memb_alloc(&packet_memb);
+      if(q != NULL) {
+        q->ptr = memb_alloc(&metadata_memb);
+        if(q->ptr != NULL) {
+          q->buf = queuebuf_new_from_packetbuf();
+          if(q->buf != NULL) {
+            struct qbuf_metadata *metadata = (struct qbuf_metadata *)q->ptr;
+            /* Neighbor and packet successfully allocated */
+            if(packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS) == 0) {
+              /* Use default configuration for max transmissions */
+              metadata->max_transmissions = CSMA_MAX_MAC_TRANSMISSIONS;
+            } else {
+              metadata->max_transmissions =
+                  packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS);
+            }
+            metadata->sent = sent;
+            metadata->cptr = ptr;
+
+            if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+                PACKETBUF_ATTR_PACKET_TYPE_ACK) {
+              list_push(n->queued_packet_list, q);
+            } else {
+              list_add(n->queued_packet_list, q);
+            }
+
+            /* If q is the first packet in the neighbor's queue, send asap */
+            if(list_head(n->queued_packet_list) == q) {
+              ctimer_set(&n->transmit_timer, 0, transmit_packet_list, n);
+            }
+            return;
+          }
+          memb_free(&metadata_memb, q->ptr);
+          PRINTF("csma: could not allocate queuebuf, dropping packet\n");
+        }
+        memb_free(&packet_memb, q);
+        PRINTF("csma: could not allocate queuebuf, dropping packet\n");
+      }
+      /* The packet allocation failed. Remove and free neighbor entry if empty. */
+      if(list_length(n->queued_packet_list) == 0) {
+        list_remove(neighbor_list, n);
+        memb_free(&neighbor_memb, n);
+      }
+      PRINTF("csma: could not allocate packet, dropping packet\n");
+    } else {
+      PRINTF("csma: could not allocate neighbor, dropping packet\n");
+    }
+    mac_call_sent_callback(sent, ptr, MAC_TX_ERR, 1);
   } else {
-    PRINTF("csma: send broadcast (%d) or without retransmissions (%d)\n",
-           !rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                         &rimeaddr_null),
-           packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS));
+    PRINTF("csma: send broadcast\n");
+    NETSTACK_RDC.send(sent, ptr);
   }
-  NETSTACK_RDC.send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -348,7 +390,8 @@ static void
 init(void)
 {
   memb_init(&packet_memb);
-  rdc_is_transmitting = 0;
+  memb_init(&metadata_memb);
+  memb_init(&neighbor_memb);
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver csma_driver = {

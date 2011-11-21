@@ -4,7 +4,7 @@ CONTIKI_TARGET_DIRS = . dev apps net
 CONTIKI_CORE=contiki-mc1322x-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
-CONTIKI_TARGET_SOURCEFILES += contiki-mc1322x-main.c clock.c button-sensor.c sensors.c slip.c light-sensor.c
+CONTIKI_TARGET_SOURCEFILES += contiki-mc1322x-main.c clock.c button-sensor.c sensors.c slip.c light-sensor.c tmp102-sensor.c
 
 CONTIKIMC1322X=$(CONTIKI)/cpu/mc1322x
 CONTIKIBOARD=.

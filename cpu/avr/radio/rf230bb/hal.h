@@ -74,11 +74,13 @@
 // RCB_B : RZ200 kit from Atmel based on 1281V
 // ZIGBIT : Zigbit module from Meshnetics
 // ATMEGA128RFA1 : Bare chip with internal radio
+// IRIS : IRIS Mote from MEMSIC
 #define RAVEN_D	    4
 #define RAVENUSB_C  1
 #define RCB_B	    	2
 #define ZIGBIT			3
 #define ATMEGA128RFA1   4
+#define IRIS			5
 
 
 
@@ -214,6 +216,26 @@
 #   define HAS_SPARE_TIMER
 
 
+#elif HARWARE_REVISION == IRIS
+/* 1281 IRIS */
+#   define SSPORT     B
+#   define SSPIN      (0x00)
+#   define SPIPORT    B
+#   define MOSIPIN    (0x02)
+#   define MISOPIN    (0x03)
+#   define SCKPIN     (0x01)
+#   define RSTPORT    A
+#   define RSTPIN     (0x06)
+#   define IRQPORT    D
+#   define IRQPIN     (0x04)
+#   define SLPTRPORT  B
+#   define SLPTRPIN   (0x07)
+//#   define TXCWPORT   B
+//#   define TXCWPIN    (0x07)
+#   define USART      1
+#   define USARTVECT  USART1_RX_vect
+//#   define TICKTIMER  3
+//#   define HAS_SPARE_TIMER // Not used
 #else
 
 #error "Platform undefined in hal.h"
@@ -323,7 +345,8 @@
 #define hal_set_rst_high( )   ( TRXPR |= ( 1 << TRXRST ) ) /**< This macro pulls the RST pin high. */
 #define hal_set_slptr_high( ) ( TRXPR |= ( 1 << SLPTR ) )      /**< This macro pulls the SLP_TR pin high. */
 #define hal_set_slptr_low( )  ( TRXPR &= ~( 1 << SLPTR ) )     /**< This macro pulls the SLP_TR pin low. */
-#define hal_get_slptr( ) (    ( TRXPR & ( 1 << SLPTR ) ) >> SLPTR )  /**< Read current state of the SLP_TR pin (High/Low). */
+//#define hal_get_slptr( ) (    ( TRXPR & ( 1 << SLPTR ) ) >> SLPTR )  /**< Read current state of the SLP_TR pin (High/Low). */
+#define hal_get_slptr( )      ( TRXPR & ( 1 << SLPTR ) )  /**< Read current state of the SLP_TR pin (High/Low). */
 
 #else
 #define SLP_TR                SLPTRPIN            /**< Pin number that corresponds to the SLP_TR pin. */
@@ -332,7 +355,8 @@
 #define PIN_SLP_TR            PIN( SLPTRPORT )    /**< Pin (Read Access) where SLP_TR is connected. */
 #define hal_set_slptr_high( ) ( PORT_SLP_TR |= ( 1 << SLP_TR ) )      /**< This macro pulls the SLP_TR pin high. */
 #define hal_set_slptr_low( )  ( PORT_SLP_TR &= ~( 1 << SLP_TR ) )     /**< This macro pulls the SLP_TR pin low. */
-#define hal_get_slptr( ) (    ( PIN_SLP_TR & ( 1 << SLP_TR ) ) >> SLP_TR )  /**< Read current state of the SLP_TR pin (High/Low). */
+//#define hal_get_slptr( ) (    ( PIN_SLP_TR & ( 1 << SLP_TR ) ) >> SLP_TR )  /**< Read current state of the SLP_TR pin (High/Low). */
+#define hal_get_slptr( )      ( PIN_SLP_TR & ( 1 << SLP_TR ) )   /**< Read current state of the SLP_TR pin (High/Low). */
 #define RST                   RSTPIN              /**< Pin number that corresponds to the RST pin. */
 #define DDR_RST               DDR( RSTPORT )      /**< Data Direction Register that corresponds to the port where RST is */
 #define PORT_RST              PORT( RSTPORT )     /**< Port (Write Access) where RST is connected. */

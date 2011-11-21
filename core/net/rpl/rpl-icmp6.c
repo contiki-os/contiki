@@ -72,6 +72,15 @@ static void dio_input(void);
 static void dao_input(void);
 static void dao_ack_input(void);
 
+/* some debug callbacks useful when debugging RPL networks */
+#ifdef RPL_DEBUG_DIO_INPUT
+void RPL_DEBUG_DIO_INPUT(uip_ipaddr_t *, rpl_dio_t *);
+#endif
+
+#ifdef RPL_DEBUG_DAO_OUTPUT
+void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
+#endif
+
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 /*---------------------------------------------------------------------------*/
 static int
@@ -97,7 +106,7 @@ static uint32_t
 get32(uint8_t *buffer, int pos)
 {
   return (uint32_t)buffer[pos] << 24 | (uint32_t)buffer[pos + 1] << 16 |
-         (uint32_t)buffer[pos + 2] << 8  | buffer[pos + 3];
+         (uint32_t)buffer[pos + 2] << 8 | buffer[pos + 3];
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -106,6 +115,19 @@ set32(uint8_t *buffer, int pos, uint32_t value)
   buffer[pos++] = value >> 24;
   buffer[pos++] = (value >> 16) & 0xff;
   buffer[pos++] = (value >> 8) & 0xff;
+  buffer[pos++] = value & 0xff;
+}
+/*---------------------------------------------------------------------------*/
+static uint16_t
+get16(uint8_t *buffer, int pos)
+{
+  return (uint16_t)buffer[pos] << 8 | buffer[pos + 1];
+}
+/*---------------------------------------------------------------------------*/
+static void
+set16(uint8_t *buffer, int pos, uint16_t value)
+{
+  buffer[pos++] = value >> 8;
   buffer[pos++] = value & 0xff;
 }
 /*---------------------------------------------------------------------------*/
@@ -175,6 +197,8 @@ dio_input(void)
   uip_ipaddr_t from;
   uip_ds6_nbr_t *nbr;
 
+  memset(&dio, 0, sizeof(dio));
+
   dio.dag_intdoubl = DEFAULT_DIO_INTERVAL_DOUBLINGS;
   dio.dag_intmin = DEFAULT_DIO_INTERVAL_MIN;
   dio.dag_redund = DEFAULT_DIO_REDUNDANCY;
@@ -214,7 +238,7 @@ dio_input(void)
 
   dio.instance_id = buffer[i++];
   dio.version = buffer[i++];
-  dio.rank = (buffer[i] << 8) | buffer[i + 1];
+  dio.rank = get16(buffer, i);
   i += 2;
 
   PRINTF("RPL: Incoming DIO InstanceID-Version %u-%u\n", (unsigned)dio.instance_id,(unsigned)dio.version);
@@ -238,7 +262,7 @@ dio_input(void)
   /* Check if there are any DIO suboptions. */
   for(; i < buffer_length; i += len) {
     subopt_type = buffer[i];
-    if(subopt_type == RPL_DIO_SUBOPT_PAD1) {
+    if(subopt_type == RPL_OPTION_PAD1) {
       len = 1;
     } else {
       /* Suboption with a two-byte header + payload */
@@ -251,10 +275,10 @@ dio_input(void)
       return;
     }
 
-    PRINTF("RPL: DIO suboption %u, length: %u\n", subopt_type, len - 2);
+    PRINTF("RPL: DIO option %u, length: %u\n", subopt_type, len - 2);
 
     switch(subopt_type) {
-    case RPL_DIO_SUBOPT_DAG_METRIC_CONTAINER:
+    case RPL_OPTION_DAG_METRIC_CONTAINER:
       if(len < 6) {
         PRINTF("RPL: Invalid DAG MC, len = %d\n", len);
 	RPL_STAT(rpl_stats.malformed_msgs++);
@@ -268,8 +292,7 @@ dio_input(void)
       dio.mc.length = buffer[i + 5];
 
       if(dio.mc.type == RPL_DAG_MC_ETX) {
-        dio.mc.obj.etx = buffer[i + 6] << 8;
-        dio.mc.obj.etx |= buffer[i + 7];
+        dio.mc.obj.etx = get16(buffer, i + 6);
 
         PRINTF("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, ETX %u\n",
 	       (unsigned)dio.mc.type,  
@@ -286,7 +309,7 @@ dio_input(void)
        return;
       }
       break;
-    case RPL_DIO_SUBOPT_ROUTE_INFO:
+    case RPL_OPTION_ROUTE_INFO:
       if(len < 9) {
         PRINTF("RPL: Invalid destination prefix option, len = %d\n", len);
 	RPL_STAT(rpl_stats.malformed_msgs++);
@@ -298,7 +321,7 @@ dio_input(void)
       dio.destination_prefix.flags = buffer[i + 3];
       dio.destination_prefix.lifetime = get32(buffer, i + 4);
 
-      if(((dio.destination_prefix.length + 7)/ 8) + 8 <= len &&
+      if(((dio.destination_prefix.length + 7) / 8) + 8 <= len &&
          dio.destination_prefix.length <= 128) {
         PRINTF("RPL: Copying destination prefix\n");
         memcpy(&dio.destination_prefix.prefix, &buffer[i + 8],
@@ -310,7 +333,7 @@ dio_input(void)
       }
 
       break;
-    case RPL_DIO_SUBOPT_DAG_CONF:
+    case RPL_OPTION_DAG_CONF:
       if(len != 16) {
         PRINTF("RPL: Invalid DAG configuration option, len = %d\n", len);
 	RPL_STAT(rpl_stats.malformed_msgs++);
@@ -321,18 +344,18 @@ dio_input(void)
       dio.dag_intdoubl = buffer[i + 3];
       dio.dag_intmin = buffer[i + 4];
       dio.dag_redund = buffer[i + 5];
-      dio.dag_max_rankinc = (buffer[i + 6] << 8) | buffer[i + 7];
-      dio.dag_min_hoprankinc = (buffer[i + 8] << 8) | buffer[i + 9];
-      dio.ocp = (buffer[i + 10] << 8) | buffer[i + 11];
+      dio.dag_max_rankinc = get16(buffer, i + 6);
+      dio.dag_min_hoprankinc = get16(buffer, i + 8);
+      dio.ocp = get16(buffer, i + 10);
       /* buffer + 12 is reserved */
       dio.default_lifetime = buffer[i + 13];
-      dio.lifetime_unit = (buffer[i + 14] << 8) | buffer[i + 15];
+      dio.lifetime_unit = get16(buffer, i + 14);
       PRINTF("RPL: DIO Conf:dbl=%d, min=%d red=%d maxinc=%d mininc=%d ocp=%d d_l=%u l_u=%u\n",
              dio.dag_intdoubl, dio.dag_intmin, dio.dag_redund,
              dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp,
              dio.default_lifetime, dio.lifetime_unit);
       break;
-    case RPL_DIO_SUBOPT_PREFIX_INFO:
+    case RPL_OPTION_PREFIX_INFO:
       if(len != 32) {
         PRINTF("RPL: DAG Prefix info not ok, len != 32\n");
 	RPL_STAT(rpl_stats.malformed_msgs++);
@@ -352,6 +375,10 @@ dio_input(void)
 	(unsigned)subopt_type);
     }
   }
+
+#ifdef RPL_DEBUG_DIO_INPUT
+  RPL_DEBUG_DIO_INPUT(&from, &dio);
+#endif
 
   rpl_process_dio(&from, &dio);
 }
@@ -381,12 +408,11 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   buffer[pos++] = instance->instance_id;
   buffer[pos++] = dag->version;
 #if RPL_LEAF_ONLY
-  buffer[pos++] = INFINITE_RANK >> 8;
-  buffer[pos++] = INFINITE_RANK & 0xff;
+  set16(buffer, pos, INFINITE_RANK);
 #else /* RPL_LEAF_ONLY */
-  buffer[pos++] = dag->rank >> 8;
-  buffer[pos++] = dag->rank & 0xff;
+  set16(buffer, pos, dag->rank);
 #endif /* RPL_LEAF_ONLY */
+  pos += 2;
 
   buffer[pos] = 0;
   if(dag->grounded) {
@@ -399,8 +425,9 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
   buffer[pos++] = instance->dtsn_out;
 
-  if(RPL_LOLLIPOP_IS_INIT(instance->dtsn_out))
+  if(RPL_LOLLIPOP_IS_INIT(instance->dtsn_out)) {
     RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
+  }
 
   /* reserved 2 bytes */
   buffer[pos++] = 0; /* flags */
@@ -413,7 +440,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   if(instance->mc.type != RPL_DAG_MC_NONE) {
     instance->of->update_metric_container(instance);
 
-    buffer[pos++] = RPL_DIO_SUBOPT_DAG_METRIC_CONTAINER;
+    buffer[pos++] = RPL_OPTION_DAG_METRIC_CONTAINER;
     buffer[pos++] = 6;
     buffer[pos++] = instance->mc.type;
     buffer[pos++] = instance->mc.flags >> 1;
@@ -421,8 +448,8 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     buffer[pos++] |= (instance->mc.aggr << 4) | instance->mc.prec;
     if(instance->mc.type == RPL_DAG_MC_ETX) {
       buffer[pos++] = 2;
-      buffer[pos++] = instance->mc.obj.etx >> 8;
-      buffer[pos++] = instance->mc.obj.etx & 0xff;
+      set16(buffer, pos, instance->mc.obj.etx);
+      pos += 2;
     } else if(instance->mc.type == RPL_DAG_MC_ENERGY) {
       buffer[pos++] = 2;
       buffer[pos++] = instance->mc.obj.energy.flags;
@@ -434,30 +461,28 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     }
   }
 
-#endif /* RPL_LEAF_ONLY */
-
-  /* Always add a sub-option for DAG configuration */
-  buffer[pos++] = RPL_DIO_SUBOPT_DAG_CONF;
+  /* Always add a DAG configuration option. */
+  buffer[pos++] = RPL_OPTION_DAG_CONF;
   buffer[pos++] = 14;
   buffer[pos++] = 0; /* No Auth, PCS = 0 */
   buffer[pos++] = instance->dio_intdoubl;
   buffer[pos++] = instance->dio_intmin;
   buffer[pos++] = instance->dio_redundancy;
-  buffer[pos++] = instance->max_rankinc >> 8;
-  buffer[pos++] = instance->max_rankinc & 0xff;
-  buffer[pos++] = instance->min_hoprankinc >> 8;
-  buffer[pos++] = instance->min_hoprankinc & 0xff;
+  set16(buffer, pos, instance->max_rankinc);
+  pos += 2;
+  set16(buffer, pos, instance->min_hoprankinc);
+  pos += 2;
   /* OCP is in the DAG_CONF option */
-  buffer[pos++] = instance->of->ocp >> 8;
-  buffer[pos++] = instance->of->ocp & 0xff;
+  set16(buffer, pos, instance->of->ocp);
+  pos += 2;
   buffer[pos++] = 0; /* reserved */
   buffer[pos++] = instance->default_lifetime;
-  buffer[pos++] = instance->lifetime_unit >> 8;
-  buffer[pos++] = instance->lifetime_unit & 0xff;
+  set16(buffer, pos, instance->lifetime_unit);
+  pos += 2;
 
   /* Check if we have a prefix to send also. */
   if(dag->prefix_info.length > 0) {
-    buffer[pos++] = RPL_DIO_SUBOPT_PREFIX_INFO;
+    buffer[pos++] = RPL_OPTION_PREFIX_INFO;
     buffer[pos++] = 30; /* always 30 bytes + 2 long */
     buffer[pos++] = dag->prefix_info.length;
     buffer[pos++] = dag->prefix_info.flags;
@@ -568,25 +593,25 @@ dao_input(void)
     /* Perhaps, there are verification to do but ... */
   }
 
-  /* Check if there are any DIO sub-options. */
+  /* Check if there are any RPL options present. */
   i = pos;
   for(; i < buffer_length; i += len) {
     subopt_type = buffer[i];
-    if(subopt_type == RPL_DIO_SUBOPT_PAD1) {
+    if(subopt_type == RPL_OPTION_PAD1) {
       len = 1;
     } else {
-      /* Sub-option with a two-byte header + payload */
+      /* The option consists of a two-byte header and a payload. */
       len = 2 + buffer[i + 1];
     }
 
     switch(subopt_type) {
-    case RPL_DIO_SUBOPT_TARGET:
-      /* handle the target option */
+    case RPL_OPTION_TARGET:
+      /* Handle the target option. */
       prefixlen = buffer[i + 3];
       memset(&prefix, 0, sizeof(prefix));
       memcpy(&prefix, buffer + i + 4, (prefixlen + 7) / CHAR_BIT);
       break;
-    case RPL_DIO_SUBOPT_TRANSIT:
+    case RPL_OPTION_TRANSIT:
       /* The path sequence and control are ignored. */
       pathcontrol = buffer[i + 3];
       pathsequence = buffer[i + 4];
@@ -605,7 +630,7 @@ dao_input(void)
 
   if(lifetime == ZERO_LIFETIME) {
     /* No-Path DAO received; invoke the route purging routine. */
-    if(rep != NULL && rep->state.saved_lifetime == 0 && rep->length==prefixlen) {
+    if(rep != NULL && rep->state.saved_lifetime == 0 && rep->length == prefixlen) {
       PRINTF("RPL: Setting expiration timer for prefix ");
       PRINT6ADDR(&prefix);
       PRINTF("\n");
@@ -685,6 +710,10 @@ dao_output(rpl_parent_t *n, uint8_t lifetime)
 
   instance = dag->instance;
 
+#ifdef RPL_DEBUG_DAO_OUTPUT
+  RPL_DEBUG_DAO_OUTPUT(n);
+#endif
+
   buffer = UIP_ICMP_PAYLOAD;
 
   RPL_LOLLIPOP_INCREMENT(dao_sequence);
@@ -708,7 +737,7 @@ dao_output(rpl_parent_t *n, uint8_t lifetime)
 
   /* create target subopt */
   prefixlen = sizeof(prefix) * CHAR_BIT;
-  buffer[pos++] = RPL_DIO_SUBOPT_TARGET;
+  buffer[pos++] = RPL_OPTION_TARGET;
   buffer[pos++] = 2 + ((prefixlen + 7) / CHAR_BIT);
   buffer[pos++] = 0; /* reserved */
   buffer[pos++] = prefixlen;
@@ -716,7 +745,7 @@ dao_output(rpl_parent_t *n, uint8_t lifetime)
   pos += ((prefixlen + 7) / CHAR_BIT);
 
   /* Create a transit information sub-option. */
-  buffer[pos++] = RPL_DIO_SUBOPT_TRANSIT;
+  buffer[pos++] = RPL_OPTION_TRANSIT;
   buffer[pos++] = 4;
   buffer[pos++] = 0; /* flags - ignored */
   buffer[pos++] = 0; /* path control - ignored */
