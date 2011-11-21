@@ -11,15 +11,21 @@ CONTIKI_CPU=$(CONTIKI)/cpu/msp430
 
 ### Define the source files we have in the MSP430 port
 
-ifneq (,$(findstring msp430x5,$(MCU)))
- CONTIKI_CPU_FAM_DIR = f5xxx
+ifneq (,$(findstring msp430x1,$(MCU)))
+ CONTIKI_CPU_FAM_DIR = f1xxx
 else
- ifneq (,$(findstring msp430x2,$(MCU)))
-  CONTIKI_CPU_FAM_DIR = f2xxx
+ ifneq (,$(findstring msp430x5,$(MCU)))
+  CONTIKI_CPU_FAM_DIR = f5xxx
+ else
+   ifneq (,$(findstring msp430x2,$(MCU)))
+     CONTIKI_CPU_FAM_DIR = f2xxx f1xxx
+   else
+     ${error Unhandled MSP430 family: "$(MCU)"}
+   endif
  endif
 endif
 
-CONTIKI_CPU_DIRS = $(CONTIKI_CPU_FAM_DIR) f1xxx . dev
+CONTIKI_CPU_DIRS = $(CONTIKI_CPU_FAM_DIR) . dev
 
 MSP430     = msp430.c flash.c clock.c leds.c leds-arch.c \
              watchdog.c lpm.c mtarch.c rtimer-arch.c
