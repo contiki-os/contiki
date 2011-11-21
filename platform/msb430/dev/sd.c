@@ -41,7 +41,6 @@
 #include "sd.h"
 #include "sd-arch.h"
 
-#include <io.h>
 #include <string.h>
 
 #define DEBUG 0

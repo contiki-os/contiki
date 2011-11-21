@@ -47,19 +47,21 @@ volatile uint32_t u1_rx_head, u1_rx_tail;
 void uart1_isr(void) {
 
 #if UART1_RX_BUFFERSIZE > 32
-  if (*UART1_USTAT & ( 1 << 6)) {   //receive interrupt
-	while( *UART1_URXCON != 0 ) {   //flush the hardware fifo into the software buffer
-        uint32_t u1_rx_tail_next;
-        u1_rx_tail_next = u1_rx_tail+1;
-		if (u1_rx_tail_next >= sizeof(u1_rx_buf))
-			u1_rx_tail_next = 0;
-        if (u1_rx_head != u1_rx_tail_next) {
-		    u1_rx_buf[u1_rx_tail]= *UART1_UDATA;
-		    u1_rx_tail =  u1_rx_tail_next;
-        }
+	if (*UART1_USTAT & ( 1 << 6)) {   //receive interrupt
+		while( *UART1_URXCON != 0 ) {   //flush the hardware fifo into the software buffer
+			uint32_t u1_rx_tail_next;
+			u1_rx_tail_next = u1_rx_tail+1;
+			if (u1_rx_tail_next >= sizeof(u1_rx_buf))
+				u1_rx_tail_next = 0;
+			if (u1_rx_head != u1_rx_tail_next) {
+				u1_rx_buf[u1_rx_tail]= *UART1_UDATA;
+				u1_rx_tail =  u1_rx_tail_next;
+			} else { //buffer is full, flush the fifo
+				while (*UART1_URXCON !=0) if (*UART1_UDATA);
+			}
+		}
+		return;
 	}
-    return;
-  }
 #endif
 
 	while( *UART1_UTXCON != 0 ) {

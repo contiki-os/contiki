@@ -34,6 +34,10 @@ CONTIKI_TARGET_SOURCEFILES  += $(USB)
 //AVR        = clock.c mtarch.c eeprom.c flash.c leds-arch.c watchdog.c rtimer-arch.c
 endif
 
+ifdef WITH_RPL
+ CFLAGS += -DUIP_CONF_IPV6_RPL=$(WITH_RPL) 
+endif
+
 #For a coffee file system, the application makefile can define COFFEE_FILES=n
 #to select the type and COFFEE_ADDRESS=0xaaaaaaaa as the starting byte address.
 #If only one is define the other will use the (Raven webserver 1284p) defaults
@@ -101,9 +105,10 @@ CC       = avr-gcc
 LD       = avr-gcc
 AS       = avr-as
 AR       = avr-ar
+ELF_SIZE = avr-size -C --mcu=$(MCU)
 OBJCOPY  = avr-objcopy
 STRIP    = avr-strip
-CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 \
+CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 -fno-strict-aliasing \
            -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
            -I$(CONTIKI)/platform/$(TARGET) \
            $(CONTIKI_PLAT_DEFS)
@@ -177,8 +182,8 @@ endif
 #	$(STRIP) --strip-unneeded -g -x $@
 
 %.co: %.c
-	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
-	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+	cp $(CONTIKI)/tools/empty-symbols.c symbols.c
+	cp $(CONTIKI)/tools/empty-symbols.h symbols.h
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 
 %-stripped.o: %.o
@@ -191,8 +196,18 @@ endif
 	$(OBJCOPY) -O srec $< $@
 
 ### Upload image
+#Let avrdude use defaults if port or programmer not defined
+ifdef AVRDUDE_PORT
+ AVRDUDE_PORT:=-P $(AVRDUDE_PORT)
+endif
+ifdef AVRDUDE_PROGRAMMER
+ AVRDUDE_PROGRAMMER:=-c $(AVRDUDE_PROGRAMMER)
+endif
 %.u: %.hex
-	avrdude ${AVRDUDE_OPTIONS} -P ${AVRDUDE_PORT} -c ${AVRDUDE_PROGRAMMER} -p ${MCU} -U flash:w:$<
+	avrdude $(AVRDUDE_OPTIONS) $(AVRDUDE_PORT) $(AVRDUDE_PROGRAMMER) -p $(MCU) -U flash:w:$<
+
+%.eu: %.eep
+	avrdude ${AVRDUDE_OPTIONS} -P ${AVRDUDE_PORT} -c ${AVRDUDE_PROGRAMMER} -p ${MCU} -U eeprom:w:$<
 
 symbols.c:
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c

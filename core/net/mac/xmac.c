@@ -764,6 +764,15 @@ qsend_packet(mac_callback_t sent, void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
+qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
+{
+  if(buf_list != NULL) {
+    queuebuf_to_packetbuf(buf_list->buf);
+    qsend_packet(sent, ptr);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
 input_packet(void)
 {
   struct xmac_hdr *hdr;
@@ -999,6 +1008,7 @@ const struct rdc_driver xmac_driver =
     "X-MAC",
     init,
     qsend_packet,
+    qsend_list,
     input_packet,
     turn_on,
     turn_off,

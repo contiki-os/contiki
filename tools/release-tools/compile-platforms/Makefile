@@ -4,12 +4,13 @@ all:
 	@uname -a
 	@$(MAKE) -s -k compile || cat *.output
 
-compile: 6502 msp430 native avr
+compile: 6502 msp430 native avr arm
 
 6502:	c64.platform c128.platform apple2enh.platform atari.platform
-msp430: sky.platform esb.platform # msb430.platform
-native: native.platform netsim.platform minimal-net.platform
+msp430: sky.platform esb.platform z1.platform
+native: native.platform minimal-net.platform
 avr:    avr-raven.platform
+arm:    redbee-econotag.platform redbee-dev.platform
 
 clean:
 	@rm -rf [a-z]*

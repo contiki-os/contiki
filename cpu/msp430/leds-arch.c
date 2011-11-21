@@ -40,12 +40,6 @@
  */
 
 #include "contiki.h"
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#endif
-
 #include "dev/leds.h"
 
 /*---------------------------------------------------------------------------*/

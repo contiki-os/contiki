@@ -4,7 +4,7 @@ raven-webserver_src = webserver-nogui.c httpd.c http-strings.c psock.c memb.c \
 raven-webserver_dsc = webserver-dsc.c
 
 #Tell platform main routine webserver is present, for parameter display at startup
-CFLAGS             += -DWEBSERVER
+CFLAGS             += -DAVR_WEBSERVER
 
 #$(CONTIKI)/apps/webserver/http-strings.c: $(CONTIKI)/apps/webserver/http-strings
 #	cd $(CONTIKI)/apps/webserver/; $(CONTIKI)/tools/makestrings $<

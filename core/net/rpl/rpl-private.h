@@ -79,19 +79,20 @@
 #define RPL_CODE_SEC_DAO               0x82   /* Secure DAO */
 #define RPL_CODE_SEC_DAO_ACK           0x83   /* Secure DAO ACK */
 
-/* RPL DIO/DAO suboption types */
-#define RPL_DIO_SUBOPT_PAD1              	0
-#define RPL_DIO_SUBOPT_PADN              	1
-#define RPL_DIO_SUBOPT_DAG_METRIC_CONTAINER	2
-#define RPL_DIO_SUBOPT_ROUTE_INFO        	3
-#define RPL_DIO_SUBOPT_DAG_CONF          	4
-#define RPL_DIO_SUBOPT_TARGET            	5
-#define RPL_DIO_SUBOPT_TRANSIT           	6
-#define RPL_DIO_SUBOPT_SOLICITED_INFO    	7
-#define RPL_DIO_SUBOPT_PREFIX_INFO       	8
+/* RPL control message options. */
+#define RPL_OPTION_PAD1              	0
+#define RPL_OPTION_PADN              	1
+#define RPL_OPTION_DAG_METRIC_CONTAINER	2
+#define RPL_OPTION_ROUTE_INFO        	3
+#define RPL_OPTION_DAG_CONF          	4
+#define RPL_OPTION_TARGET            	5
+#define RPL_OPTION_TRANSIT           	6
+#define RPL_OPTION_SOLICITED_INFO    	7
+#define RPL_OPTION_PREFIX_INFO       	8
+#define RPL_OPTION_TARGET_DESC          9
 
 #define RPL_DAO_K_FLAG                   0x80 /* DAO ACK requested */
-#define RPL_DAO_D_FLAG                   0x40 /* DODAG ID Present */
+#define RPL_DAO_D_FLAG                   0x40 /* DODAG ID present */
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
 

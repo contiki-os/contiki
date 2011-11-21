@@ -163,6 +163,7 @@ sprint_ip6(uip_ip6addr_t addr)
 int
 main(void)
 {
+  clock_init();
 #if UIP_CONF_IPV6
 /* A hard coded address overrides the stack default MAC address to allow multiple instances.
  * uip6.c defines it as {0x00,0x06,0x98,0x00,0x02,0x32} giving an ipv6 address of [fe80::206:98ff:fe00:232]
@@ -234,9 +235,12 @@ main(void)
 #else /* UIP_CONF_IPV6 */
 
 #if !UIP_CONF_IPV6_RPL
-#ifdef HARD_CODED_ADDRESS
   uip_ipaddr_t ipaddr;
+#ifdef HARD_CODED_ADDRESS
   uiplib_ipaddrconv(HARD_CODED_ADDRESS, &ipaddr);
+#else
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+#endif
   if ((ipaddr.u16[0]!=0) || (ipaddr.u16[1]!=0) || (ipaddr.u16[2]!=0) || (ipaddr.u16[3]!=0)) {
 #if UIP_CONF_ROUTER
     uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
@@ -248,7 +252,6 @@ main(void)
     uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 #endif
   }
-#endif /* HARD_CODED_ADDRESS */
 #endif
 
 #if !RPL_BORDER_ROUTER  //Border router process prints addresses later
@@ -264,6 +267,8 @@ main(void)
 
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
+
+    printf("\n*******%s online*******\n",CONTIKI_VERSION_STRING);
 
   while(1) {
     fd_set fds;

@@ -56,43 +56,14 @@ AUTOSTART_PROCESSES(&testcoffee_process);
 
 /*---------------------------------------------------------------------------*/
 static int
-coffee_gc_test(void)
-{
-  int i;
-
-  cfs_remove("alpha");
-  cfs_remove("beta");
-
-
-  for (i = 0; i < 100; i++) {
-    if (i & 1) {
-      if(cfs_coffee_reserve("alpha", random_rand() & 0xffff) < 0) {
-	return -i;
-      }
-      cfs_remove("beta");
-    } else {
-      if(cfs_coffee_reserve("beta", 93171) < 0) {
-	return -1;
-      }
-      cfs_remove("alpha");
-    }
-  }
-
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-coffee_file_test(void)
+coffee_test_basic(void)
 {
   int error;
   int wfd, rfd, afd;
-  unsigned char buf[256], buf2[11];
-  int r, i, j, total_read;
-  unsigned offset;
+  unsigned char buf[256];
+  int r;
 
   cfs_remove("T1");
-  cfs_remove("T2");
-  cfs_remove("T3");
 
   wfd = rfd = afd = -1;
 
@@ -103,130 +74,207 @@ coffee_file_test(void)
   /* Test 1: Open for writing. */
   wfd = cfs_open("T1", CFS_WRITE);
   if(wfd < 0) {
-    FAIL(-1);
+    FAIL(1);
   }
 
-  /* Test 2: Write buffer. */
+  /* Test 2 and 3: Write buffer. */
   r = cfs_write(wfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(-2);
+    FAIL(2);
   } else if(r < sizeof(buf)) {
-    FAIL(-3);
+    FAIL(3);
   }
 
-  /* Test 3: Deny reading. */
+  /* Test 4: Deny reading. */
   r = cfs_read(wfd, buf, sizeof(buf));
   if(r >= 0) {
-    FAIL(-4);
+    FAIL(4);
   }
 
-  /* Test 4: Open for reading. */
+  /* Test 5: Open for reading. */
   rfd = cfs_open("T1", CFS_READ);
   if(rfd < 0) {
-    FAIL(-5);
+    FAIL(5);
   }
 
-  /* Test 5: Write to read-only file. */
+  /* Test 6: Write to read-only file. */
   r = cfs_write(rfd, buf, sizeof(buf));
   if(r >= 0) {
-    FAIL(-6);
+    FAIL(6);
   }
 
-  /* Test 7: Read the buffer written in Test 2. */
+  /* Test 7 and 8: Read the buffer written in Test 2. */
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(-8);
+    FAIL(7);
   } else if(r < sizeof(buf)) {
     printf("r=%d\n", r);
-    FAIL(-9);
+    FAIL(8);
   }
 
-  /* Test 8: Verify that the buffer is correct. */
+  /* Test 9: Verify that the buffer is correct. */
   for(r = 0; r < sizeof(buf); r++) {
     if(buf[r] != r) {
       printf("r=%d. buf[r]=%d\n", r, buf[r]);
-      FAIL(-10);
+      FAIL(9);
     }
   }
 
-  /* Test 9: Seek to beginning. */
+  /* Test 10: Seek to beginning. */
   if(cfs_seek(wfd, 0, CFS_SEEK_SET) != 0) {
-    FAIL(-11);
+    FAIL(10);
   }
 
-  /* Test 10: Write to the log. */
+  /* Test 11 and 12: Write to the log. */
   r = cfs_write(wfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(-12);
+    FAIL(11);
   } else if(r < sizeof(buf)) {
-    FAIL(-13);
+    FAIL(12);
   }
 
-  /* Test 11: Read the data from the log. */
+  /* Test 13 and 14: Read the data from the log. */
   cfs_seek(rfd, 0, CFS_SEEK_SET);
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(-14);
+    FAIL(14);
   } else if(r < sizeof(buf)) {
-    FAIL(-15);
+    FAIL(15);
   }
 
-  /* Test 12: Verify that the data is correct. */
+  /* Test 16: Verify that the data is correct. */
   for(r = 0; r < sizeof(buf); r++) {
     if(buf[r] != r) {
-      FAIL(-16);
+      FAIL(16);
     }
   }
 
-  /* Test 13: Write a reversed buffer to the file. */
+  /* Test 17 to 20: Write a reversed buffer to the file. */
   for(r = 0; r < sizeof(buf); r++) {
     buf[r] = sizeof(buf) - r - 1;
   }
   if(cfs_seek(wfd, 0, CFS_SEEK_SET) != 0) {
-    FAIL(-17);
+    FAIL(17);
   }
   r = cfs_write(wfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(-18);
+    FAIL(18);
   } else if(r < sizeof(buf)) {
-    FAIL(-19);
+    FAIL(19);
   }
   if(cfs_seek(rfd, 0, CFS_SEEK_SET) != 0) {
-    FAIL(-20);
+    FAIL(20);
   }
 
-  /* Test 14: Read the reversed buffer. */
+  /* Test 21 and 22: Read the reversed buffer. */
   cfs_seek(rfd, 0, CFS_SEEK_SET);
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(-21);
+    FAIL(21);
   } else if(r < sizeof(buf)) {
     printf("r = %d\n", r);
-    FAIL(-22);
+    FAIL(22);
   }
 
-  /* Test 15: Verify that the data is correct. */
+  /* Test 23: Verify that the data is correct. */
   for(r = 0; r < sizeof(buf); r++) {
     if(buf[r] != sizeof(buf) - r - 1) {
-      FAIL(-23);
+      FAIL(23);
     }
   }
 
-  cfs_close(rfd);
+  error = 0;
+end:
   cfs_close(wfd);
+  cfs_close(rfd);
+  return error;
+}
+/*---------------------------------------------------------------------------*/
+static int
+coffee_test_append(void)
+{
+  int error;
+  int afd;
+  unsigned char buf[256], buf2[11];
+  int r, i, j, total_read;
+#define APPEND_BYTES 1000
+#define BULK_SIZE 10
 
-  if(cfs_coffee_reserve("T2", FILE_SIZE) < 0) {
-    FAIL(-24);
+  cfs_remove("T2");
+
+  /* Test 1 and 2: Append data to the same file many times. */
+  for(i = 0; i < APPEND_BYTES; i += BULK_SIZE) {
+    afd = cfs_open("T3", CFS_WRITE | CFS_APPEND);
+    if(afd < 0) {
+      FAIL(1);
+    }
+    for(j = 0; j < BULK_SIZE; j++) {
+      buf[j] = 1 + ((i + j) & 0x7f);
+    }
+    if((r = cfs_write(afd, buf, BULK_SIZE)) != BULK_SIZE) {
+      printf("r=%d\n", r);
+      FAIL(2);
+    }
+    cfs_close(afd);
+  }
+
+  /* Test 3-6: Read back the data written previously and verify that it 
+     is correct. */
+  afd = cfs_open("T3", CFS_READ);
+  if(afd < 0) {
+    FAIL(3);
+  }
+  total_read = 0;
+  while((r = cfs_read(afd, buf2, sizeof(buf2))) > 0) {
+    for(j = 0; j < r; j++) {
+      if(buf2[j] != 1 + ((total_read + j) & 0x7f)) {
+	FAIL(4);
+      }
+    }
+    total_read += r;
+  }
+  if(r < 0) {
+    FAIL(5);
+  }
+  if(total_read != APPEND_BYTES) {
+    FAIL(6);
+  }
+  cfs_close(afd);
+
+  error = 0;
+end:
+  cfs_close(afd);
+  return error;
+}
+/*---------------------------------------------------------------------------*/
+static int
+coffee_test_modify(void)
+{
+  int error;
+  int wfd;
+  unsigned char buf[256];
+  int r, i;
+  unsigned offset;
+
+  cfs_remove("T3");
+  wfd = -1;
+
+  if(cfs_coffee_reserve("T3", FILE_SIZE) < 0) {
+    FAIL(1);
+  }
+
+  if(cfs_coffee_configure_log("T3", FILE_SIZE / 2, 11) < 0) {
+    FAIL(2);
   }
 
   /* Test 16: Test multiple writes at random offset. */
   for(r = 0; r < 100; r++) {
     wfd = cfs_open("T2", CFS_WRITE | CFS_READ);
     if(wfd < 0) {
-      FAIL(-25);
+      FAIL(3);
     }
 
     offset = random_rand() % FILE_SIZE;
@@ -236,88 +284,101 @@ coffee_file_test(void)
     }
 
     if(cfs_seek(wfd, offset, CFS_SEEK_SET) != offset) {
-      FAIL(-26);
+      FAIL(4);
     }
 
     if(cfs_write(wfd, buf, sizeof(buf)) != sizeof(buf)) {
-      FAIL(-27);
+      FAIL(5);
     }
 
     if(cfs_seek(wfd, offset, CFS_SEEK_SET) != offset) {
-      FAIL(-28);
+      FAIL(6);
     }
 
     memset(buf, 0, sizeof(buf));
     if(cfs_read(wfd, buf, sizeof(buf)) != sizeof(buf)) {
-      FAIL(-29);
+      FAIL(7);
     }
 
     for(i = 0; i < sizeof(buf); i++) {
       if(buf[i] != i) {
         printf("buf[%d] != %d\n", i, buf[i]);
-        FAIL(-30);
+        FAIL(8);
       }
     }
   }
-
-  /* Test 17: Append data to the same file many times. */
-#define APPEND_BYTES 1000
-#define BULK_SIZE 10
-  for(i = 0; i < APPEND_BYTES; i += BULK_SIZE) {
-    afd = cfs_open("T3", CFS_WRITE | CFS_APPEND);
-    if(afd < 0) {
-      FAIL(-31);
-    }
-    for(j = 0; j < BULK_SIZE; j++) {
-      buf[j] = 1 + ((i + j) & 0x7f);
-    }
-    if((r = cfs_write(afd, buf, BULK_SIZE)) != BULK_SIZE) {
-      printf("r=%d\n", r);
-      FAIL(-32);
-    }
-    cfs_close(afd);
-  }
-
-  /* Test 18: Read back the data written in Test 17 and verify that it 
-     is correct. */
-  afd = cfs_open("T3", CFS_READ);
-  if(afd < 0) {
-    FAIL(-33);
-  }
-  total_read = 0;
-  while((r = cfs_read(afd, buf2, sizeof(buf2))) > 0) {
-    for(j = 0; j < r; j++) {
-      if(buf2[j] != 1 + ((total_read + j) & 0x7f)) {
-	FAIL(-34);
-      }
-    }
-    total_read += r;
-  }
-  if(r < 0) {
-    FAIL(-35);
-  }
-  if(total_read != APPEND_BYTES) {
-    FAIL(-36);
-  }
-  cfs_close(afd);
 
   error = 0;
 end:
-  cfs_close(wfd); cfs_close(rfd); cfs_close(afd);
+  cfs_close(wfd);
   return error;
+}
+/*---------------------------------------------------------------------------*/
+static int
+coffee_test_gc(void)
+{
+  int i;
+
+  cfs_remove("alpha");
+  cfs_remove("beta");
+
+
+  for (i = 0; i < 100; i++) {
+    if (i & 1) {
+      if(cfs_coffee_reserve("alpha", random_rand() & 0xffff) < 0) {
+	return i;
+      }
+      cfs_remove("beta");
+    } else {
+      if(cfs_coffee_reserve("beta", 93171) < 0) {
+	return i;
+      }
+      cfs_remove("alpha");
+    }
+  }
+
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static void
+print_result(const char *test_name, int result)
+{
+  printf("%s: ", test_name);
+  if(result == 0) {
+    printf("OK\n");
+  } else {
+    printf("ERROR (test %d)\n", result);
+  }
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(testcoffee_process, ev, data)
 {
   int start;
+  int result;
 
   PROCESS_BEGIN();
 
   start = clock_seconds();
-  printf("Coffee format: %d\n", cfs_coffee_format());
-  printf("Coffee file test: %d\n", coffee_file_test());
-  printf("Coffee garbage collection test: %d\n", coffee_gc_test());
-  printf("Test time: %d seconds\n", (int)(clock_seconds() - start));
+
+  printf("Coffee test started\n");
+
+  result = cfs_coffee_format();
+  print_result("Formatting", result);
+
+  result = coffee_test_basic();
+  print_result("Basic operations", result);
+
+  result = coffee_test_append();
+  print_result("File append", result);
+
+  result = coffee_test_modify();
+  print_result("File modification", result);
+
+  result = coffee_test_gc();
+  print_result("Garbage collection", result);
+
+  printf("Coffee test finished. Duration: %d seconds\n", 
+         (int)(clock_seconds() - start));
 
   PROCESS_END();
 }

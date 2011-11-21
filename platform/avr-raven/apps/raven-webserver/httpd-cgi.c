@@ -269,7 +269,7 @@ make_processes(void *p)
   static const char httpd_cgi_proc[] HTTPD_STRING_ATTR = "<tr align=\"center\"><td>%p</td><td>%s</td><td>%p</td><td>%s</td></tr>\r\n";
   char name[40],tstate[20];
 
-  strncpy(name, ((struct process *)p)->name, 40);
+  strncpy(name, PROCESS_NAME_STRING((struct process *)p), 40);
   petsciiconv_toascii(name, 40);
   httpd_strcpy(tstate,states[9 + ((struct process *)p)->state]);
   return httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_proc, p, name,

@@ -47,6 +47,7 @@
 #include "dev/leds.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #define MESSAGE "Hello"
 

@@ -32,6 +32,30 @@
 #ifndef MSP430DEF_H
 #define MSP430DEF_H
 
+#if defined(__IAR_SYSTEMS_ICC__) || defined(__MSPGCC__)
+#include <msp430.h>
+#if __MSPGCC__
+#include <legacymsp430.h>
+#endif /* __MSPGCC__ */
+#else
+#include <io.h>
+#include <signal.h>
+#endif
+
+#ifdef __IAR_SYSTEMS_ICC__
+#include <intrinsics.h>
+#include <in430.h>
+#define dint() __disable_interrupt()
+#define eint() __enable_interrupt()
+#define __MSP430F1611__ 1
+#define __MSP430__ 1
+#define CC_CONF_INLINE
+#define BV(x) (1 << x)
+#else
+#define CC_CONF_INLINE inline
+#define MSP430_MEMCPY_WORKAROUND 1
+#endif
+
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #else
@@ -67,12 +91,12 @@ void msp430_sync_dco(void);
 void   *sbrk(int);
 
 typedef int spl_t;
-void    splx_(spl_t);
+/* void    splx_(spl_t); */
 spl_t   splhigh_(void);
 
 #define splhigh() splhigh_()
 #ifdef __IAR_SYSTEMS_ICC__
-#define splx(sr) sr = __get_SR_register()
+#define splx(sr) __bis_SR_register(sr)
 #else
 #define splx(sr) __asm__ __volatile__("bis %0, r2" : : "r" (sr))
 #endif

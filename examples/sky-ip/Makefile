@@ -3,6 +3,7 @@ all: sky-webserver sky-telnet-server telnet-tweet
 PLATFORM_BUILD=1 # This is needed to avoid the shell to include the httpd-cfs version of the webserver
 APPS = webserver twitter telnetd
 CFLAGS = -DWITH_UIP=1 -I.
+SMALL=1
 DEFINES=NETSTACK_CONF_RDC=cxmac_driver,NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE=8
 
 # The webserver application normally contains a built-in file system and support

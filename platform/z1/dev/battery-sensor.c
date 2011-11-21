@@ -39,13 +39,6 @@
 #include "dev/battery-sensor.h"
 #include "dev/sky-sensors.h"
 
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#endif
-
-
 /* Configure ADC12_2 to sample channel 11 (voltage) and use */
 /* the Vref+ as reference (SREF_1) since it is a stable reference */
 #define INPUT_CHANNEL   (1 << INCH_11)

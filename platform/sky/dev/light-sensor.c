@@ -36,8 +36,6 @@
 #include "dev/sky-sensors.h"
 #include "dev/light-sensor.h"
 
-#include <io.h>
-
 /* Photodiode 1 (P64) on INCH_4 */
 /* Photodiode 2 (P65) on INCH_5 */
 #define INPUT_CHANNEL      ((1 << INCH_4) | (1 << INCH_5))

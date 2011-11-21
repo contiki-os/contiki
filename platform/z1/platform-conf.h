@@ -45,6 +45,8 @@
  */
 #define ZOLERTIA_Z1 1  /* Enric */
 
+#define PLATFORM_HAS_LEDS   1
+
 #ifdef __IAR_SYSTEMS_ICC__
 #include <intrinsics.h>
 #include <in430.h>

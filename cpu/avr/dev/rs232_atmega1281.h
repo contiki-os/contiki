@@ -86,6 +86,21 @@
 #define USART_BAUD_230400 1
 #define USART_BAUD_250000 1
 #define USART_BAUD_500000 0
+#elif (F_CPU == 4000000UL)
+/* Single speed operation (U2X = 0)*/
+#define USART_BAUD_2400 103
+#define USART_BAUD_4800 51
+#define USART_BAUD_9600 25
+#define USART_BAUD_14400 16
+#define USART_BAUD_19200 12
+#define USART_BAUD_28800 8
+#define USART_BAUD_38400 6
+#define USART_BAUD_57600 3
+#define USART_BAUD_76800 2
+#define USART_BAUD_115200 1
+#define USART_BAUD_230400 0
+#define USART_BAUD_250000 0
+#define USART_BAUD_500000 0
 #else
 #error "Please define the baud rates for your CPU clock: ATmega128 handbook p. \
 195-198 or set the rate in contiki-conf.h"

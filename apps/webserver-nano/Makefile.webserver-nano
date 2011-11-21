@@ -1,0 +1,12 @@
+webserver-nano_src = webserver-nogui.c httpd.c psock.c memb.c httpd-fs.c httpd-cgi.c
+webserver-nano_dsc = webserver-dsc.c
+
+#Run makefsdata to regenerate httpd-fsdata.c when web content has been edited. This requires PERL.
+#  Note: Deleting files or transferring pages from makefsdata.ignore will not trigger this rule
+#        when there is no change in modification dates.
+$(CONTIKI)/apps/webserver-nano/httpd-fsdata.c : $(CONTIKI)/apps/webserver-nano/httpd-fs/*.*
+	$(CONTIKI)/tools/makefsdata -A HTTPD_STRING_ATTR -d $(CONTIKI)/apps/webserver-nano/httpd-fs -o $(CONTIKI)/apps/webserver-nano/httpd-fsdata.c
+	
+#Rebuild httpd-fs.c when makefsdata has changed httpd-fsdata.c
+$(CONTIKI)/apps/webserver-nano/httpd-fs.c: $(CONTIKI)/apps/webserver-nano/httpd-fsdata.c
+	touch $(CONTIKI)/apps/webserver-nano/httpd-fs.c

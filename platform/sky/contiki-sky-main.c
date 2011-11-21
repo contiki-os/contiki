@@ -31,12 +31,7 @@
 
 #include <stdio.h>
 #include <string.h>
-
-#include <io.h>
-#include <signal.h>
-
 #include "contiki.h"
-
 #include "dev/cc2420.h"
 #include "dev/ds2411.h"
 #include "dev/leds.h"

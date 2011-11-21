@@ -34,13 +34,6 @@
 #include <stdarg.h> 
 
 #include "contiki.h"
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#include <signal.h>
-#endif
-
 #include "dev/cc2420.h"
 #include "dev/leds.h"
 #include "dev/serial-line.h"
@@ -214,7 +207,6 @@ main(int argc, char **argv)
   slip_arch_init(BAUD2UBR(115200));
 #endif /* WITH_UIP */
 
-    
   xmem_init();
 
   rtimer_init();
@@ -225,31 +217,47 @@ main(int argc, char **argv)
   /* Restore node id if such has been stored in external mem */
   node_id_restore();
 
+  /* If no MAC address was burned, we use the node ID. */
+  if(node_mac[0] | node_mac[1] | node_mac[2] | node_mac[3] |
+     node_mac[4] | node_mac[5] | node_mac[6] | node_mac[7]) {
+    node_mac[0] = 0xc1;  /* Hardcoded for Z1 */
+    node_mac[1] = 0x0c;  /* Hardcoded for Revision C */
+    node_mac[2] = 0x00;  /* Hardcoded to arbitrary even number so that
+                            the 802.15.4 MAC address is compatible with
+                            an Ethernet MAC address - byte 0 (byte 2 in
+                            the DS ID) */
+    node_mac[3] = 0x00;  /* Hardcoded */
+    node_mac[4] = 0x00;  /* Hardcoded */
+    node_mac[5] = 0x00;  /* Hardcoded */
+    node_mac[6] = node_id >> 8;
+    node_mac[7] = node_id & 0xff;
+  }
+
   /* Overwrite node MAC if desired at compile time */
-#ifdef MACID 
+#ifdef MACID
   #warning "***** CHANGING DEFAULT MAC *****"
-  node_mac[0] = 0xC1;  // Hardcoded for Z1
-  node_mac[1] = 0x0C;  // Hardcoded for Revision C
-  node_mac[2] = 0x00;  // Hardcoded to arbitrary even number so that the 802.15.4 MAC address 
-                       // is compatible with an Ethernet MAC address - byte 0 (byte 2 in the DS ID)
-  node_mac[3] = 0x00;  // Hardcoded 
-  node_mac[4] = 0x00;  // Hardcoded 
-  node_mac[5] = 0x00;  // Hardcoded
+  node_mac[0] = 0xc1;  /* Hardcoded for Z1 */
+  node_mac[1] = 0x0c;  /* Hardcoded for Revision C */
+  node_mac[2] = 0x00;  /* Hardcoded to arbitrary even number so that
+                          the 802.15.4 MAC address is compatible with
+                          an Ethernet MAC address - byte 0 (byte 2 in
+                          the DS ID) */
+  node_mac[3] = 0x00;  /* Hardcoded */
+  node_mac[4] = 0x00;  /* Hardcoded */
+  node_mac[5] = 0x00;  /* Hardcoded */
   node_mac[6] = MACID >> 8;
   node_mac[7] = MACID & 0xff;
 #endif
 
-
-  /* for setting "hardcoded" IEEE 802.15.4 MAC addresses */
 #ifdef IEEE_802154_MAC_ADDRESS
+  /* for setting "hardcoded" IEEE 802.15.4 MAC addresses */
   {
     uint8_t ieee[] = IEEE_802154_MAC_ADDRESS;
     memcpy(node_mac, ieee, sizeof(uip_lladdr.addr));
     node_mac[7] = node_id & 0xff;
   }
-#endif
+#endif /* IEEE_802154_MAC_ADDRESS */
 
-  
    /*
    * Initialize Contiki and our processes.
    */

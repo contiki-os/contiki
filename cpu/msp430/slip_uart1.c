@@ -33,11 +33,7 @@
  * Machine dependent MSP430 SLIP routines for UART1.
  */
 
-#include <io.h>
-#include <signal.h>
-
 #include "contiki.h"
-
 #include "dev/slip.h"
 #include "dev/uart1.h"
 /*---------------------------------------------------------------------------*/

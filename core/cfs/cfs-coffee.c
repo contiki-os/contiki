@@ -1135,8 +1135,8 @@ cfs_read(int fd, void *buf, unsigned size)
 
     /* Read from the original file if we cannot find the data in the log. */
     if(r < 0) {
-      COFFEE_READ(buf, bytes_left, absolute_offset(file->page, fdp->offset));
-      r = bytes_left;
+      COFFEE_READ(buf, lp.size, absolute_offset(file->page, fdp->offset));
+      r = lp.size;
     }
     fdp->offset += r;
     buf = (char *)buf + r;

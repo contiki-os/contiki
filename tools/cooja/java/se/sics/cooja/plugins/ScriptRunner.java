@@ -272,6 +272,16 @@ public class ScriptRunner extends VisPlugin {
   }
 
   public void setScriptActive(boolean active) {
+    /* Reload script from file */
+    if (scriptFile != null) {
+      String script = StringUtils.loadFromFile(scriptFile);
+      if (script == null) {
+        logger.fatal("Failed to load script from: " + scriptFile.getAbsolutePath());
+      } else {
+        updateScript(script);
+      }
+    }
+    
     if (active) {
       /* Free any resources */
       setScriptActive(false);

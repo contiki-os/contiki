@@ -36,9 +36,9 @@
  *           $Revision: 1.2 $
  */
 
+#include "contiki.h"
 #include "dev/acc-sensor.h"
 #include "dev/sky-sensors.h"
-#include <io.h>
 
 /* Configure ADC12_2 to sample channel 4, 5, 6 and use */
 /* the Vref+ as reference (SREF_1) since it is a stable reference */

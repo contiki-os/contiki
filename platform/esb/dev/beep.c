@@ -31,8 +31,7 @@
  * @(#)$Id: beep.c,v 1.4 2006/07/07 06:36:38 nifi Exp $
  */
 
-#include <io.h>
-
+#include "contiki.h"
 #include "contiki-esb.h"
 
 #define ON  1
