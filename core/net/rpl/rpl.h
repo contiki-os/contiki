@@ -335,13 +335,13 @@ struct rpl_instance {
 /* Public RPL functions. */
 void rpl_init(void);
 rpl_dag_t *rpl_set_root(uint8_t instance_id, uip_ipaddr_t * dag_id);
-int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, int len);
+int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len);
 int rpl_repair_root(uint8_t instance_id);
 int rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from);
 rpl_dag_t *rpl_get_any_dag(void);
-rpl_dag_t *rpl_get_dodag(uint8_t instance_id,uip_ipaddr_t * dag_id);
+rpl_dag_t *rpl_get_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id);
 rpl_instance_t *rpl_get_instance(uint8_t instance_id);
-int rpl_add_header(rpl_instance_t *instance,int down);
+int rpl_add_header(rpl_instance_t *instance, int down);
 int rpl_add_header_root(void);
 void rpl_remove_header(void);
 u8_t rpl_invert_header(void);

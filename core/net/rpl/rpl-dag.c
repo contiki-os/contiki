@@ -567,7 +567,6 @@ rpl_select_dodag(rpl_instance_t * instance, rpl_parent_t *p)
     return NULL;
   }
 
-<<<<<<< HEAD
   if(instance->current_dag != best_dag) {
     /* Remove routes installed by DAOs. */
     rpl_remove_routes(instance->current_dag);
@@ -758,7 +757,7 @@ rpl_get_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id)
 
   for(i = 0; i < RPL_MAX_DODAG_PER_INSTANCE; ++i) {
     dag = &instance->dag_table[i];
-    if(dag->used && !uip_ipaddr_cmp(dag->dag_id, dag_id)) {
+    if(dag->used && !uip_ipaddr_cmp(&dag->dag_id, dag_id)) {
       return dag;
     }
   }

@@ -82,6 +82,16 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 #endif
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
+
+/* some debug callbacks useful when debugging RPL networks */
+#ifdef RPL_DEBUG_DIO_INPUT
+void RPL_DEBUG_DIO_INPUT(uip_ipaddr_t *, rpl_dio_t *);
+#endif
+
+#ifdef RPL_DEBUG_DAO_OUTPUT
+void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
+#endif
+
 /*---------------------------------------------------------------------------*/
 static int
 get_global_addr(uip_ipaddr_t *addr)
@@ -407,6 +417,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   buffer = UIP_ICMP_PAYLOAD;
   buffer[pos++] = instance->instance_id;
   buffer[pos++] = dag->version;
+
 #if RPL_LEAF_ONLY
   set16(buffer, pos, INFINITE_RANK);
 #else /* RPL_LEAF_ONLY */
@@ -460,6 +471,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
       return;
     }
   }
+#endif /* !RPL_LEAF_ONLY */
 
   /* Always add a DAG configuration option. */
   buffer[pos++] = RPL_OPTION_DAG_CONF;
