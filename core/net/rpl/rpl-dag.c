@@ -533,7 +533,7 @@ rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
 }
 /************************************************************************/
 rpl_dag_t *
-rpl_select_dodag(rpl_instance_t * instance, rpl_parent_t *p)
+rpl_select_dodag(rpl_instance_t *instance, rpl_parent_t *p)
 {
   rpl_parent_t *last_parent;
   rpl_dag_t *dag, *end, *best_dag;
@@ -643,9 +643,8 @@ rpl_select_parent(rpl_dag_t *dag)
 
   if(best != NULL) {
     dag->preferred_parent = best;
-  } else {
-    /* We should probably do something here .... */
   }
+
   return best;
 }
 /************************************************************************/
@@ -693,8 +692,7 @@ rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
   if(parent == dag_src->preferred_parent) {
       dag_src->preferred_parent = NULL;
       dag_src->rank = INFINITE_RANK;
-    if(dag_src->joined
-        && dag_src->instance->def_route != NULL) {
+    if(dag_src->joined && dag_src->instance->def_route != NULL) {
       if(dag_src->instance->def_route->isused) {
         PRINTF("RPL: Removing default route ");
         PRINT6ADDR(&parent->addr);
@@ -966,6 +964,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
   dag->instance->of->reset(dag);
   dag->min_rank = INFINITE_RANK;
   RPL_LOLLIPOP_INCREMENT(dag->instance->dtsn_out);
+
   p = rpl_add_parent(dag, dio, from);
   if(p == NULL) {
     PRINTF("RPL: Failed to add a parent during the global repair\n");
@@ -975,6 +974,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     dag->min_rank = dag->rank ;
     rpl_process_parent_event(dag->instance, p);
   }
+
   PRINTF("RPL: Participating in a global repair (version=%u, rank=%hu)\n",
          dag->version, dag->rank);
 
@@ -1137,7 +1137,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   } else {
     if(RPL_LOLLIPOP_GREATER_THAN(dag->version, dio->version)) {
-      /* Inconsistency detected - someone is still on old version */
+      /* The DIO sender is on an older version of the DAG. */
       PRINTF("RPL: old version received => inconsistency detected\n");
       if(dag->joined) {
         rpl_reset_dio_timer(instance, 0);
@@ -1219,8 +1219,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  /* We don't use route control, so we can have only one official parent */
-  if(dag->joined&&(p==dag->preferred_parent)) {
+  /* We don't use route control, so we can have only one official parent. */
+  if(dag->joined && p == dag->preferred_parent) {
     if(should_send_dao(instance, dio, p)) {
       RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
       rpl_schedule_dao(instance);
