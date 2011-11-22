@@ -51,13 +51,13 @@
 #include <string.h>
 
 /************************************************************************/
-#define UIP_IP_BUF                          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define UIP_EXT_BUF                        ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
-#define UIP_HBHO_BUF                      ((struct uip_hbho_hdr *)&uip_buf[uip_l2_l3_hdr_len])
-#define UIP_HBHO_NEXT_BUF                  ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len + RPL_OP_BY_OP_LEN])
-#define UIP_EXT_HDR_OPT_BUF            ((struct uip_ext_hdr_opt *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
+#define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define UIP_EXT_BUF               ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+#define UIP_HBHO_BUF              ((struct uip_hbho_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+#define UIP_HBHO_NEXT_BUF         ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len + RPL_OP_BY_OP_LEN])
+#define UIP_EXT_HDR_OPT_BUF       ((struct uip_ext_hdr_opt *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 #define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
-#define UIP_EXT_HDR_OPT_RPL_BUF    ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
+#define UIP_EXT_HDR_OPT_RPL_BUF   ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 /************************************************************************/
 int
 rpl_verify_header(int uip_ext_opt_offset)
@@ -315,7 +315,7 @@ rpl_remove_header(void)
       UIP_IP_BUF->proto = UIP_HBHO_BUF->next;
       temp_len = UIP_IP_BUF->len[1];
       uip_len -= UIP_HBHO_BUF->len + 8;
-      UIP_IP_BUF->len[1] -= (UIP_HBHO_BUF->len + 8);
+      UIP_IP_BUF->len[1] -= UIP_HBHO_BUF->len + 8;
       if(UIP_IP_BUF->len[1] > temp_len) {
         UIP_IP_BUF->len[0]--;
       }

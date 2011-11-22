@@ -57,15 +57,6 @@ rpl_stats_t rpl_stats;
 
 /************************************************************************/
 extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
-
-#define UIP_IP_BUF                          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define UIP_EXT_BUF                        ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
-#define UIP_HBHO_BUF                      ((struct uip_hbho_hdr *)&uip_buf[uip_l2_l3_hdr_len])
-#define UIP_HBHO_NEXT_BUF                  ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len + RPL_OP_BY_OP_LEN])
-#define UIP_EXT_HDR_OPT_BUF            ((struct uip_ext_hdr_opt *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
-#define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
-#define UIP_EXT_HDR_OPT_RPL_BUF    ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
-
 /************************************************************************/
 void
 rpl_purge_routes(void)
