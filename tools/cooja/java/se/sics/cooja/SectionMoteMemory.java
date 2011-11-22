@@ -62,7 +62,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
   }
 
   public String[] getVariableNames() {
-    return addresses.values().toArray(new String[0]);
+    return addresses.keySet().toArray(new String[0]);
   }
 
   public int getVariableAddress(String varName) throws UnknownVariableException {

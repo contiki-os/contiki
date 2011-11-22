@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<project name="Native IP Gateway" default="jar" basedir=".">
+  <property name="java" location="java"/>
+  <property name="build" location="build"/>
+  <property name="lib" location="lib"/>
+  <property name="cooja_jar" value="../../dist/cooja.jar"/>
+
+  <target name="help">
+    <echo>
+The Native IP Gateway COOJA project provides access from natively running
+applications like ping and telnet, to simulated nodes.
+
+Requires pre-installation of Jpcap and (Windows-only) WinPcap.
+ http://netresearch.ics.uci.edu/kfujii/Jpcap/doc/download.html
+ http://www.winpcap.org/install/default.htm
+    </echo>
+  </target>
+
+  <target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build}"/>
+    <javac srcdir="${java}" destdir="${build}" debug="on"
+           includeantruntime="false">
+      <classpath>
+        <pathelement path="."/>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="clean" depends="init">
+    <delete dir="${build}"/>
+  </target>
+
+  <target name="jar" depends="clean, init, compile">
+    <mkdir dir="${lib}"/>
+    <jar destfile="${lib}/native_gateway.jar" basedir="${build}">
+      <manifest>
+        <attribute name="Class-Path" value="."/>
+      </manifest>
+    </jar>
+  </target>
+
+</project>
