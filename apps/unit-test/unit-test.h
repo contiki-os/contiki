@@ -88,7 +88,7 @@ typedef struct unit_test {
  *
  * \param name The name of the unit test.
  */
-#define UNIT_TEST(name) unit_test_result_t unit_test_function_##name(unit_test_t *utp)
+#define UNIT_TEST(name) static void unit_test_function_##name(unit_test_t *utp)
 
 /**
  * Mark the starting point of the unit test function.
@@ -103,8 +103,7 @@ typedef struct unit_test {
  */
 #define UNIT_TEST_END() UNIT_TEST_SUCCEED();                                  \
                         unit_test_end:                                        \
-                          utp->end = RTIMER_NOW();                            \
-                          return utp->result;
+                          utp->end = RTIMER_NOW()
 
 /*
  * The test result is printed with a function that is selected by 
