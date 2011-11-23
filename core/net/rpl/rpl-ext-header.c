@@ -133,6 +133,7 @@ rpl_update_header_empty(void)
   uip_ext_opt_offset = 2;
 
   PRINTF("RPL: Verifying the presence of the RPL header option\n");
+
   switch(UIP_IP_BUF->proto) {
   case UIP_PROTO_HBHO:
     if(UIP_HBHO_BUF->len != RPL_OP_BY_OP_LEN - 8) {
@@ -189,13 +190,13 @@ rpl_update_header_empty(void)
 int
 rpl_update_header_final(uip_ipaddr_t *addr)
 {
+  rpl_parent_t *parent;
   int uip_ext_opt_offset;
   int last_uip_ext_len;
 
-  last_uip_ext_len=uip_ext_len;
-  uip_ext_len=0;
+  last_uip_ext_len = uip_ext_len;
+  uip_ext_len = 0;
   uip_ext_opt_offset = 2;
-  rpl_parent_t *parent;
 
   if(UIP_IP_BUF->proto == UIP_PROTO_HBHO) {
     if(UIP_HBHO_BUF->len != RPL_OP_BY_OP_LEN - 8) {
@@ -277,19 +278,19 @@ rpl_add_header(rpl_instance_t *instance, int down)
   }
 
   switch(UIP_EXT_HDR_OPT_BUF->type) {
-    case UIP_EXT_HDR_OPT_RPL:
-      PRINTF("RPL: Updating RPL option\n");
-      UIP_EXT_HDR_OPT_RPL_BUF->opt_type = UIP_EXT_HDR_OPT_RPL;
-      UIP_EXT_HDR_OPT_RPL_BUF->opt_len = RPL_HDR_OPT_LEN;
-      UIP_EXT_HDR_OPT_RPL_BUF->flags = RPL_HDR_OPT_DOWN&(down<<RPL_HDR_OPT_DOWN_SHIFT);
-      UIP_EXT_HDR_OPT_RPL_BUF->instance = instance->instance_id;
-      UIP_EXT_HDR_OPT_RPL_BUF->senderrank = instance->current_dag->rank;
-      uip_ext_len = last_uip_ext_len;
-      return 1;
-    default:
-      PRINTF("RPL: Multi Hop-by-hop options not implemented\n");
-      uip_ext_len = last_uip_ext_len;
-      return 0;
+  case UIP_EXT_HDR_OPT_RPL:
+    PRINTF("RPL: Updating RPL option\n");
+    UIP_EXT_HDR_OPT_RPL_BUF->opt_type = UIP_EXT_HDR_OPT_RPL;
+    UIP_EXT_HDR_OPT_RPL_BUF->opt_len = RPL_HDR_OPT_LEN;
+    UIP_EXT_HDR_OPT_RPL_BUF->flags = RPL_HDR_OPT_DOWN&(down<<RPL_HDR_OPT_DOWN_SHIFT);
+    UIP_EXT_HDR_OPT_RPL_BUF->instance = instance->instance_id;
+    UIP_EXT_HDR_OPT_RPL_BUF->senderrank = instance->current_dag->rank;
+    uip_ext_len = last_uip_ext_len;
+    return 1;
+  default:
+    PRINTF("RPL: Multi Hop-by-hop options not implemented\n");
+    uip_ext_len = last_uip_ext_len;
+    return 0;
   }
 }
 /************************************************************************/
@@ -310,19 +311,19 @@ rpl_remove_header(void)
 
   PRINTF("RPL: Verifying the presence of the RPL header option\n");
   switch(UIP_IP_BUF->proto){
-    case UIP_PROTO_HBHO:
-      PRINTF("RPL: Removing the present RPL header option\n");
-      UIP_IP_BUF->proto = UIP_HBHO_BUF->next;
-      temp_len = UIP_IP_BUF->len[1];
-      uip_len -= UIP_HBHO_BUF->len + 8;
-      UIP_IP_BUF->len[1] -= UIP_HBHO_BUF->len + 8;
-      if(UIP_IP_BUF->len[1] > temp_len) {
-        UIP_IP_BUF->len[0]--;
-      }
-      memmove(UIP_EXT_BUF, UIP_HBHO_NEXT_BUF, uip_len - UIP_IPH_LEN);
-      break;
-    default:
-      PRINTF("RPL: No Hop-by-Hop Option found\n");
+  case UIP_PROTO_HBHO:
+    PRINTF("RPL: Removing the present RPL header option\n");
+    UIP_IP_BUF->proto = UIP_HBHO_BUF->next;
+    temp_len = UIP_IP_BUF->len[1];
+    uip_len -= UIP_HBHO_BUF->len + 8;
+    UIP_IP_BUF->len[1] -= UIP_HBHO_BUF->len + 8;
+    if(UIP_IP_BUF->len[1] > temp_len) {
+      UIP_IP_BUF->len[0]--;
+    }
+    memmove(UIP_EXT_BUF, UIP_HBHO_NEXT_BUF, uip_len - UIP_IPH_LEN);
+    break;
+  default:
+    PRINTF("RPL: No Hop-by-Hop Option found\n");
   }
 }
 /************************************************************************/
@@ -338,12 +339,12 @@ rpl_invert_header(void)
 
   PRINTF("RPL: Verifying the presence of the RPL header option\n");
   switch(UIP_IP_BUF->proto) {
-    case UIP_PROTO_HBHO:
-      break;
-    default:
-      PRINTF("RPL: No Hop-by-Hop Option found\n");
-      uip_ext_len = last_uip_ext_len;
-      return 0;
+  case UIP_PROTO_HBHO:
+    break;
+  default:
+    PRINTF("RPL: No Hop-by-Hop Option found\n");
+    uip_ext_len = last_uip_ext_len;
+    return 0;
   }
   switch (UIP_EXT_HDR_OPT_BUF->type) {
   case UIP_EXT_HDR_OPT_RPL:
