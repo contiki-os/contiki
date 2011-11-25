@@ -3960,7 +3960,7 @@ public class GUI extends Observable {
     	String defp = GUI.getExternalToolsSetting("PATH_CONTIKI", null);
     	
     	
-		for(int i = 0; i < elem; elem++){
+		for(int i = 0; i < elem; i++){
 			path[i] = new File(GUI.getExternalToolsSetting(PATH_IDENTIFIER[i][1], defp + PATH_IDENTIFIER[i][2]));			
 			canonicals[i] = path[i].getCanonicalPath();
 			if (fileCanonical.startsWith(canonicals[i])){
