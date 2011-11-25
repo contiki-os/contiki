@@ -347,7 +347,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 						String s1 = "Remove";
 						String s2 = "Cancel";
 						Object[] options = { s1, s2 };
-						int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+						int n = JOptionPane.showOptionDialog(ProjectDirectoriesDialog.this,
 								"Remove COOJA project?\n" + project,
 								"Remove COOJA project?", JOptionPane.YES_NO_OPTION,
 								JOptionPane.WARNING_MESSAGE, null, options, s1);
