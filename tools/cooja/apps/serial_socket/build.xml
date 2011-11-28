@@ -22,7 +22,7 @@
 	<delete dir="build"/>
   </target>
 
-  <target name="jar" depends="clean, init, compile">
+  <target name="jar" depends="init, compile">
     <mkdir dir="lib"/>
     <jar destfile="lib/serial_socket.jar" basedir="build">
       <manifest>
