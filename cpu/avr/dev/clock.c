@@ -67,25 +67,29 @@ void clock_adjust_seconds(uint8_t howmany) {
 
 /*---------------------------------------------------------------------------*/
 /* This routine can be called to add ticks to the clock after a sleep.
+ * Leap ticks or seconds can (rarely) be introduced if the ISR is not blocked.
  */
 void clock_adjust_ticks(uint16_t howmany) {
+// uint8_t sreg = SREG;cli();
    count  += howmany;
-   scount += howmany;
-   while(scount >= CLOCK_SECOND) {
-      scount -= CLOCK_SECOND;
+   howmany+= scount;
+   while(howmany >= CLOCK_SECOND) {
+      howmany -= CLOCK_SECOND;
       seconds++;
       sleepseconds++;
 #if RADIOSTATS
       if (RF230_receive_on) radioontime += 1;
 #endif
    }
+   scount = howmany;
+// SREG=sreg;
 }
 /*---------------------------------------------------------------------------*/
 //SIGNAL(SIG_OUTPUT_COMPARE0)
 ISR(AVR_OUTPUT_COMPARE_INT)
 {
   count++;
-  if(++scount == CLOCK_SECOND) {
+  if(++scount >= CLOCK_SECOND) {
     scount = 0;
     seconds++;
   }
@@ -96,7 +100,7 @@ ISR(AVR_OUTPUT_COMPARE_INT)
 #endif
 #if RADIOSTATS
   if (RF230_receive_on) {
-    if (++rcount == CLOCK_SECOND) {
+    if (++rcount >= CLOCK_SECOND) {
       rcount=0;
       radioontime++;
     }
