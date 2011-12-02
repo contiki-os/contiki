@@ -631,8 +631,8 @@ tcpip_ipv6_output(void)
         }
         /*        memcpy(nbr->queue_buf, UIP_IP_BUF, uip_len);
                   nbr->queue_buf_len = uip_len;*/
-        uip_len = 0;
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
+        uip_len = 0;
         return;
       }
       /* if running NUD (nbc->state == STALE, DELAY, or PROBE ) keep
