@@ -27,10 +27,8 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- *
- * $Id: tcpip.c,v 1.30 2010/10/29 05:36:07 adamdunkels Exp $
  */
+
 /**
  * \file
  *         Code for tunnelling uIP packets over the Rime mesh routing module
@@ -39,29 +37,20 @@
  * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
  * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
  */
+
 #include "contiki-net.h"
-
 #include "net/uip-split.h"
-
 #include "net/uip-packetqueue.h"
-
-#include <string.h>
 
 #if UIP_CONF_IPV6
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 #endif
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#endif
+#include <string.h>
+
+#define DEBUG DEBUG_NONE
+#include "net/uip-debug.h"
 
 #if UIP_LOGGING
 #include <stdio.h>
@@ -88,11 +77,11 @@ process_event_t tcpip_event;
 process_event_t tcpip_icmp6_event;
 #endif /* UIP_CONF_ICMP6 */
 
-/*periodic check of active connections*/
+/* Periodic check of active connections. */
 static struct etimer periodic;
 
 #if UIP_CONF_IPV6 && UIP_CONF_IPV6_REASSEMBLY
-/*timer for reassembly*/
+/* Timer for reassembly. */
 extern struct etimer uip_reass_timer;
 #endif
 
@@ -412,21 +401,19 @@ eventhandler(process_event_t ev, process_data_t data)
             cptr->appstate.p = PROCESS_NONE;
             cptr->tcpstateflags = UIP_CLOSED;
           }
-	       
         }
-	    
       }
 #endif /* UIP_TCP */
 #if UIP_UDP
       {
         register struct uip_udp_conn *cptr;
+
         for(cptr = &uip_udp_conns[0];
             cptr < &uip_udp_conns[UIP_UDP_CONNS]; ++cptr) {
           if(cptr->appstate.p == p) {
             cptr->lport = 0;
           }
         }
-      
       }
 #endif /* UIP_UDP */
       break;
@@ -482,7 +469,7 @@ eventhandler(process_event_t ev, process_data_t data)
           uip_ds6_periodic();
           tcpip_ipv6_output();
         }*/
-#if !UIP_CONF_ROUTER	    
+#if !UIP_CONF_ROUTER
         if(data == &uip_ds6_timer_rs &&
            etimer_expired(&uip_ds6_timer_rs)){
           uip_ds6_send_rs();
@@ -551,22 +538,24 @@ void
 tcpip_ipv6_output(void)
 {
   uip_ds6_nbr_t *nbr = NULL;
-  uip_ipaddr_t* nexthop;
-  
+  uip_ipaddr_t *nexthop;
+
   if(uip_len == 0) {
     return;
   }
-  
+
   if(uip_len > UIP_LINK_MTU) {
     UIP_LOG("tcpip_ipv6_output: Packet to big");
     uip_len = 0;
     return;
   }
+
   if(uip_is_addr_unspecified(&UIP_IP_BUF->destipaddr)){
     UIP_LOG("tcpip_ipv6_output: Destination address unspecified");
     uip_len = 0;
     return;
   }
+
   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     /* Next hop determination */
     nbr = NULL;
@@ -583,14 +572,13 @@ tcpip_ipv6_output(void)
 	  if(uip_ext_len > 0) {
 	    uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
 	    remove_ext_hdr();
-	    /* this should be copied from the ext header... */
+	    /* This should be copied from the ext header... */
 	    UIP_IP_BUF->proto = proto;
 	  }
 	  UIP_FALLBACK_INTERFACE.output();
-	    
 #else
           PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
-#endif
+#endif /* !UIP_FALLBACK_INTERFACE */
           uip_len = 0;
           return;
         }
@@ -598,7 +586,7 @@ tcpip_ipv6_output(void)
 	nexthop = &locrt->nexthop;
       }
     }
-    /* end of next hop determination */
+    /* End of next hop determination */
 #if UIP_CONF_IPV6_RPL
     if(rpl_update_header_final(nexthop)) {
       uip_len = 0;
@@ -611,7 +599,7 @@ tcpip_ipv6_output(void)
         return;
       } else {
 #if UIP_CONF_IPV6_QUEUE_PKT
-        /* copy outgoing pkt in the queuing buffer for later transmmit */
+        /* Copy outgoing pkt in the queuing buffer for later transmit. */
         if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
           memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
           uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
@@ -629,59 +617,47 @@ tcpip_ipv6_output(void)
           uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
         }
 
-        stimer_set(&(nbr->sendns), uip_ds6_if.retrans_timer / 1000);
+        stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         nbr->nscount = 1;
       }
     } else {
       if(nbr->state == NBR_INCOMPLETE) {
         PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
 #if UIP_CONF_IPV6_QUEUE_PKT
-        /* copy outgoing pkt in the queuing buffer for later transmmit and set
-           the destination nbr to nbr */
+        /* Copy outgoing pkt in the queuing buffer for later transmit and set
+           the destination nbr to nbr. */
         if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
           memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
           uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
         }
-        /*        memcpy(nbr->queue_buf, UIP_IP_BUF, uip_len);
-                  nbr->queue_buf_len = uip_len;*/
         uip_len = 0;
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
         return;
       }
-      /* if running NUD (nbc->state == STALE, DELAY, or PROBE ) keep
-         sending in parallel see rfc 4861 Node behavior in section 7.7.3*/
-	 
+      /* Send in parallel if we are running NUD (nbc state is either STALE,
+         DELAY, or PROBE). See RFC 4861, section 7.7.3 on node behavior. */
       if(nbr->state == NBR_STALE) {
         nbr->state = NBR_DELAY;
-        stimer_set(&(nbr->reachable),
-                  UIP_ND6_DELAY_FIRST_PROBE_TIME);
+        stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
         nbr->nscount = 0;
         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
-      
-      stimer_set(&(nbr->sendns),
-                uip_ds6_if.retrans_timer / 1000);
 
-      tcpip_output(&(nbr->lladdr));
-
+      stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+      tcpip_output(&nbr->lladdr);
 
 #if UIP_CONF_IPV6_QUEUE_PKT
-      /* Send the queued packets from here, may not be 100% perfect though.
+      /*
+       * Send the queued packets from here, may not be 100% perfect though.
        * This happens in a few cases, for example when instead of receiving a
        * NA after sendiong a NS, you receive a NS with SLLAO: the entry moves
-       *to STALE, and you must both send a NA and the queued packet
+       * to STALE, and you must both send a NA and the queued packet.
        */
-      /*      if(nbr->queue_buf_len != 0) {
-        uip_len = nbr->queue_buf_len;
-        memcpy(UIP_IP_BUF, nbr->queue_buf, uip_len);
-        nbr->queue_buf_len = 0;
-        tcpip_output(&(nbr->lladdr));
-        }*/
       if(uip_packetqueue_buflen(&nbr->packethandle) != 0) {
         uip_len = uip_packetqueue_buflen(&nbr->packethandle);
         memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
         uip_packetqueue_free(&nbr->packethandle);
-        tcpip_output(&(nbr->lladdr));
+        tcpip_output(&nbr->lladdr);
       }
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
 
@@ -689,14 +665,13 @@ tcpip_ipv6_output(void)
       return;
     }
   }
-   
-  /*multicast IP destination address */
+
+  /* Multicast IP destination address. */
   tcpip_output(NULL);
   uip_len = 0;
   uip_ext_len = 0;
-   
 }
-#endif
+#endif /* UIP_CONF_IPV6 */
 /*---------------------------------------------------------------------------*/
 #if UIP_UDP
 void
