@@ -66,6 +66,8 @@ int
 rpl_verify_header(int uip_ext_opt_offset)
 {
   rpl_instance_t *instance;
+  long diff;
+  int down;
 
   if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
     PRINTF("RPL: Bad header option! (wrong length)\n");
@@ -90,32 +92,24 @@ rpl_verify_header(int uip_ext_opt_offset)
     return 1;
   }
 
+  down = 0;
   if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_DOWN) {
-    PRINTF("RPL: Packet going down :\n");
-    if(UIP_EXT_HDR_OPT_RPL_BUF->senderrank > instance->current_dag->rank) {
-      PRINTF("RPL: Loop detected: Sender rank > our rank\n");
-      if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
-        PRINTF("RPL: Loop detected !\n");
-        /* We should try to repair it, not implemented for the moment */
-        return 3;
-      }
-      PRINTF("RPL: Single error tolerated\n");
-      UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_RANK_ERR;
-      return 0;
+    down = 1;
+  }
+
+  PRINTF("RPL: Packet going %s\n", down == 1 ? "down" : "up");
+
+  diff = UIP_EXT_HDR_OPT_RPL_BUF->senderrank - instance->current_dag->rank;
+  if((down && diff > 0) || (!down && diff < 0)) {
+    PRINTF("RPL: Loop detected\n");
+    if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
+      PRINTF("RPL: Rank error signalled in RPL option!\n");
+      /* We should try to repair it, not implemented for the moment */
+      return 3;
     }
-  } else {
-    PRINTF("RPL: Packet going up :");
-    if(UIP_EXT_HDR_OPT_RPL_BUF->senderrank < instance->current_dag->rank) {
-      PRINTF("RPL: Rank error: Sender rank < our rank\n");
-      if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
-        PRINTF("RPL: Loop detected !\n");
-        /* We should try to repair it, not implemented for the moment */
-        return 3;
-      }
-      PRINTF("RPL: Single error tolerated\n");
-      UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_RANK_ERR;
-      return 0;
-    }
+    PRINTF("RPL: Single error tolerated\n");
+    UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_RANK_ERR;
+    return 0;
   }
 
   PRINTF("RPL: Rank OK\n");
@@ -135,9 +129,9 @@ set_rpl_opt(unsigned uip_ext_opt_offset)
   UIP_HBHO_BUF->len = RPL_HOP_BY_HOP_LEN - 8;
   UIP_EXT_HDR_OPT_RPL_BUF->opt_type = UIP_EXT_HDR_OPT_RPL;
   UIP_EXT_HDR_OPT_RPL_BUF->opt_len = RPL_HDR_OPT_LEN;
-  UIP_EXT_HDR_OPT_RPL_BUF->flags = 0    ;
-  UIP_EXT_HDR_OPT_RPL_BUF->instance = 0          ;
-  UIP_EXT_HDR_OPT_RPL_BUF->senderrank = 0   ;
+  UIP_EXT_HDR_OPT_RPL_BUF->flags = 0;
+  UIP_EXT_HDR_OPT_RPL_BUF->instance = 0;
+  UIP_EXT_HDR_OPT_RPL_BUF->senderrank = 0;
   uip_len += RPL_HOP_BY_HOP_LEN;
   temp_len = UIP_IP_BUF->len[1];
   UIP_IP_BUF->len[1] += UIP_HBHO_BUF->len + 8;
@@ -247,7 +241,7 @@ rpl_remove_header(void)
   PRINTF("RPL: Verifying the presence of the RPL header option\n");
   switch(UIP_IP_BUF->proto){
   case UIP_PROTO_HBHO:
-    PRINTF("RPL: Removing the present RPL header option\n");
+    PRINTF("RPL: Removing the RPL header option\n");
     UIP_IP_BUF->proto = UIP_HBHO_BUF->next;
     temp_len = UIP_IP_BUF->len[1];
     uip_len -= UIP_HBHO_BUF->len + 8;
@@ -258,7 +252,7 @@ rpl_remove_header(void)
     memmove(UIP_EXT_BUF, UIP_HBHO_NEXT_BUF, uip_len - UIP_IPH_LEN);
     break;
   default:
-    PRINTF("RPL: No Hop-by-Hop Option found\n");
+    PRINTF("RPL: No hop-by-hop Option found\n");
   }
 }
 /************************************************************************/
@@ -277,13 +271,14 @@ rpl_invert_header(void)
   case UIP_PROTO_HBHO:
     break;
   default:
-    PRINTF("RPL: No Hop-by-Hop Option found\n");
+    PRINTF("RPL: No hop-by-hop Option found\n");
     uip_ext_len = last_uip_ext_len;
     return 0;
   }
+
   switch (UIP_EXT_HDR_OPT_BUF->type) {
   case UIP_EXT_HDR_OPT_RPL:
-    PRINTF("RPL: Updating RPL option (Inverting Up<->Down)\n");
+    PRINTF("RPL: Updating RPL option (switching direction)\n");
     UIP_EXT_HDR_OPT_RPL_BUF->flags &= RPL_HDR_OPT_DOWN;
     UIP_EXT_HDR_OPT_RPL_BUF->flags ^= RPL_HDR_OPT_DOWN;
     UIP_EXT_HDR_OPT_RPL_BUF->senderrank = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance)->current_dag->rank;
