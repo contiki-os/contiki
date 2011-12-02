@@ -95,9 +95,7 @@
 #endif
 
 #if UIP_CONF_IPV6_RPL
-void uip_rpl_input(void);
-void rpl_update_header_empty(void);
-int rpl_verify_header(int uip_ext_opt_offset);
+#include "rpl/rpl.h"
 #endif /* UIP_CONF_IPV6_RPL */
 
 #if UIP_LOGGING == 1
@@ -854,7 +852,7 @@ ext_hdr_options_process(void)
 #if UIP_CONF_IPV6_RPL
       case UIP_EXT_HDR_OPT_RPL:
         PRINTF("Processing RPL option\n");
-        if (rpl_verify_header(uip_ext_opt_offset)) {
+        if(rpl_verify_header(uip_ext_opt_offset)) {
           PRINTF("RPL Option Error : Dropping Packet");
           return 1;
         }
@@ -1120,7 +1118,7 @@ uip_process(u8_t flag)
   uip_next_hdr = &UIP_IP_BUF->proto;
   uip_ext_len = 0;
   uip_ext_bitmap = 0;
-  if (*uip_next_hdr == UIP_PROTO_HBHO) {
+  if(*uip_next_hdr == UIP_PROTO_HBHO) {
 #if UIP_CONF_IPV6_CHECKS
     uip_ext_bitmap |= UIP_EXT_HDR_BITMAP_HBHO;
 #endif /*UIP_CONF_IPV6_CHECKS*/
