@@ -144,17 +144,6 @@ typedef uint16_t rpl_ocp_t;
                                            ((B > RPL_LOLLIPOP_CIRCULAR_REGION )?\
                                              1:\
                                              RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B)))
-
-/*---------------------------------------------------------------------------*/
-/* RPL IPv6 extension header option. */
-#define RPL_HDR_OPT_LEN			4
-#define RPL_OP_BY_OP_LEN		RPL_HDR_OPT_LEN+2+2
-#define RPL_HDR_OPT_DOWN		0x80
-#define RPL_HDR_OPT_DOWN_SHIFT  	7
-#define RPL_HDR_OPT_RANK_ERR		0x40
-#define RPL_HDR_OPT_RANK_ERR_SHIFT   	6
-#define RPL_HDR_OPT_FWD_ERR		0x20
-#define RPL_HDR_OPT_FWD_ERR_SHIFT   	5
 /*---------------------------------------------------------------------------*/
 /* DAG Metric Container Object Types, to be confirmed by IANA. */
 #define RPL_DAG_MC_NONE			0 /* Local identifier for empty MC */
@@ -334,6 +323,7 @@ struct rpl_instance {
 /*---------------------------------------------------------------------------*/
 /* Public RPL functions. */
 void rpl_init(void);
+void uip_rpl_input(void);
 rpl_dag_t *rpl_set_root(uint8_t instance_id, uip_ipaddr_t * dag_id);
 int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len);
 int rpl_repair_root(uint8_t instance_id);
@@ -341,9 +331,10 @@ int rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from);
 rpl_dag_t *rpl_get_any_dag(void);
 rpl_dag_t *rpl_get_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id);
 rpl_instance_t *rpl_get_instance(uint8_t instance_id);
-int rpl_add_header(rpl_instance_t *instance, int down);
-int rpl_add_header_root(void);
+void rpl_update_header_empty(void);
+int rpl_update_header_final(uip_ipaddr_t *addr);
+int rpl_verify_header(int);
 void rpl_remove_header(void);
-u8_t rpl_invert_header(void);
+uint8_t rpl_invert_header(void);
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */
