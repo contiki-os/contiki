@@ -94,6 +94,16 @@
 #define RPL_DAO_K_FLAG                   0x80 /* DAO ACK requested */
 #define RPL_DAO_D_FLAG                   0x40 /* DODAG ID present */
 /*---------------------------------------------------------------------------*/
+/* RPL IPv6 extension header option. */
+#define RPL_HDR_OPT_LEN			4
+#define RPL_HOP_BY_HOP_LEN		(RPL_HDR_OPT_LEN + 2 + 2)
+#define RPL_HDR_OPT_DOWN		0x80
+#define RPL_HDR_OPT_DOWN_SHIFT  	7
+#define RPL_HDR_OPT_RANK_ERR		0x40
+#define RPL_HDR_OPT_RANK_ERR_SHIFT   	6
+#define RPL_HDR_OPT_FWD_ERR		0x20
+#define RPL_HDR_OPT_FWD_ERR_SHIFT   	5
+/*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
 
 /* The default value for the DAO timer. */
@@ -250,12 +260,6 @@ void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint8_t lifetime);
 void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t);
-void uip_rpl_input(void);
-
-/* RPL Header Option */
-int rpl_verify_header(int uip_ext_opt_offset);
-void rpl_update_header_empty();
-int rpl_update_header_final(uip_ipaddr_t *addr);
 
 /* RPL logic functions. */
 void rpl_join_dag(uip_ipaddr_t *from, rpl_dio_t *dio);
