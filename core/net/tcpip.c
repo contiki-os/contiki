@@ -78,16 +78,15 @@ void uip_log(char *msg);
 #ifdef UIP_FALLBACK_INTERFACE
 extern struct uip_fallback_interface UIP_FALLBACK_INTERFACE;
 #endif
+
 #if UIP_CONF_IPV6_RPL
-void rpl_init(void);
-int rpl_update_header_final(uip_ipaddr_t *addr);
-#endif /* UIP_CONF_IPV6_RPL */
+#include "rpl/rpl.h"
+#endif
+
 process_event_t tcpip_event;
 #if UIP_CONF_ICMP6
 process_event_t tcpip_icmp6_event;
 #endif /* UIP_CONF_ICMP6 */
-
-/*static struct tcpip_event_args ev_args;*/
 
 /*periodic check of active connections*/
 static struct etimer periodic;
@@ -601,15 +600,13 @@ tcpip_ipv6_output(void)
     }
     /* end of next hop determination */
 #if UIP_CONF_IPV6_RPL
-    if (rpl_update_header_final(nexthop)) {
+    if(rpl_update_header_final(nexthop)) {
       uip_len = 0;
       return;
     }
 #endif /* UIP_CONF_IPV6_RPL */
     if((nbr = uip_ds6_nbr_lookup(nexthop)) == NULL) {
-      //      printf("add1 %d\n", nexthop->u8[15]);
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
-        //        printf("add n\n");
         uip_len = 0;
         return;
       } else {
