@@ -75,7 +75,7 @@ public class MspBreakpointContainer implements WatchpointMote {
    * @param address Executable address
    */
   public void addBreakpoint(Integer address) {
-    addBreakpoint((File) null, (Integer) null, address);
+    addBreakpoint((File) null, (Integer) 0, address);
   }
 
   /**
