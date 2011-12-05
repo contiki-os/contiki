@@ -204,22 +204,24 @@ phase_wait(struct phase_list *list,
     sync = (e == NULL) ? now : e->time;
 
 #if PHASE_DRIFT_CORRECT
-{ int32_t s;
-  if (e->drift > cycle_time) {
-    s = e->drift%cycle_time/(e->drift/cycle_time);  //drift per cycle
-    s = s*(now-sync)/cycle_time;                    //estimated drift to now
-    sync += s;                                      //add it in
-  }
-}
+    {
+      int32_t s;
+      if(e->drift > cycle_time) {
+        s = e->drift % cycle_time / (e->drift / cycle_time);  /* drift per cycle */
+        s = s * (now - sync) / cycle_time;                    /* estimated drift to now */
+        sync += s;                                            /* add it in */
+      }
+    }
 #endif
 
-#if 1
-    /* Faster if cycle_time is a power of two */
-    wait = (rtimer_clock_t)((sync - now) & (cycle_time - 1));
-#else
-    /* Works generally */
-    wait = cycle_time - (rtimer_clock_t)((now - sync) % cycle_time);
-#endif
+    /* Check if cycle_time is a power of two */
+    if(!(cycle_time & (cycle_time - 1))) {
+      /* Faster if cycle_time is a power of two */
+      wait = (rtimer_clock_t)((sync - now) & (cycle_time - 1));
+    } else {
+      /* Works generally */
+      wait = cycle_time - (rtimer_clock_t)((now - sync) % cycle_time);
+    }
 
     if(wait < guard_time) {
       wait += cycle_time;
