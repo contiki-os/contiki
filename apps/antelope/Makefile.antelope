@@ -1,0 +1,4 @@
+antelope_src = antelope.c aql-adt.c aql-exec.c aql-lexer.c aql-parser.c \
+        index.c index-inline.c index-maxheap.c lvm.c relation.c \
+        result.c storage-cfs.c
+antelope_dsc = 
