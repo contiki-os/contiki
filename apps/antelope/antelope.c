@@ -72,7 +72,7 @@ db_get_result_message(db_result_t code)
   case DB_NAME_ERROR:
     return "Invalid name";
   case DB_RELATIONAL_ERROR:
-    return "Relational algebra error";
+    return "Semantic error";
   case DB_TYPE_ERROR:
     return "Type error";
   case DB_IMPLEMENTATION_ERROR:
