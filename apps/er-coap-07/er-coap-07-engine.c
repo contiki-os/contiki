@@ -148,6 +148,7 @@ handle_incoming_data(void)
           }
           else
           {
+            block_size = REST_MAX_CHUNK_SIZE;
             new_offset = 0;
           }
 
@@ -304,7 +305,7 @@ coap_set_rest_status(void *packet, unsigned int code)
 /*- Server part ---------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 /* The discover resource is automatically included for CoAP. */
-RESOURCE(well_known_core, METHOD_GET, ".well-known/core", "");
+RESOURCE(well_known_core, METHOD_GET, ".well-known/core", "ct=40");
 void
 well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
