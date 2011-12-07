@@ -123,9 +123,9 @@ int
 uint32_2_bytes(uint8_t *bytes, uint32_t var)
 {
   int i = 0;
-  if (0xFF000000 & var) bytes[i++] = var>>24;
-  if (0xFF0000 & var) bytes[i++] = var>>16;
-  if (0xFF00 & var) bytes[i++] = var>>8;
+  if (0xFF000000 & var) bytes[i++] = (0xFF & var>>24);
+  if (0xFFFF0000 & var) bytes[i++] = (0xFF & var>>16);
+  if (0xFFFFFF00 & var) bytes[i++] = (0xFF & var>>8);
   bytes[i++] = 0xFF & var;
 
   return i;
