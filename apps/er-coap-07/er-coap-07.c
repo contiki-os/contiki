@@ -449,7 +449,6 @@ coap_serialize_message(void *packet, uint8_t *buffer)
     PRINTF("Block2 [%lu%s (%u B/blk)]\n", ((coap_packet_t *)packet)->block2_num, ((coap_packet_t *)packet)->block2_more ? "+" : "", ((coap_packet_t *)packet)->block2_size);
 
     uint32_t block = ((coap_packet_t *)packet)->block2_num << 4;
-printf("encode %lu\n", block>>4);
     if (((coap_packet_t *)packet)->block2_more) block |= 0x8;
     block |= 0xF & log_2(((coap_packet_t *)packet)->block2_size/16);
 
