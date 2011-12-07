@@ -137,10 +137,10 @@ serialize_int_option(int number, int current_number, uint8_t *buffer, uint32_t v
 
   uint8_t *option = &buffer[i];
 
-  if (0xFF000000 & value) buffer[++i] = (uint8_t) (value>>24);
-  if (0x00FF0000 & value) buffer[++i] = (uint8_t) (value>>16);
-  if (0x0000FF00 & value) buffer[++i] = (uint8_t) (value>>8);
-  if (0x000000FF & value) buffer[++i] = (uint8_t) value;
+  if (0xFF000000 & value) buffer[++i] = (uint8_t) (0xFF & value>>24);
+  if (0xFFFF0000 & value) buffer[++i] = (uint8_t) (0xFF & value>>16);
+  if (0xFFFFFF00 & value) buffer[++i] = (uint8_t) (0xFF & value>>8);
+  if (0xFFFFFFFF & value) buffer[++i] = (uint8_t) (0xFF & value);
 
   i += set_option_header(number - current_number, i-start_i, option);
 
@@ -449,6 +449,7 @@ coap_serialize_message(void *packet, uint8_t *buffer)
     PRINTF("Block2 [%lu%s (%u B/blk)]\n", ((coap_packet_t *)packet)->block2_num, ((coap_packet_t *)packet)->block2_more ? "+" : "", ((coap_packet_t *)packet)->block2_size);
 
     uint32_t block = ((coap_packet_t *)packet)->block2_num << 4;
+printf("encode %lu\n", block>>4);
     if (((coap_packet_t *)packet)->block2_more) block |= 0x8;
     block |= 0xF & log_2(((coap_packet_t *)packet)->block2_size/16);
 
@@ -680,7 +681,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
           ((coap_packet_t *)packet)->block2_num = parse_int_option(current_option, option_len);
           ((coap_packet_t *)packet)->block2_more = (((coap_packet_t *)packet)->block2_num & 0x08)>>3;
           ((coap_packet_t *)packet)->block2_size = 16 << (((coap_packet_t *)packet)->block2_num & 0x07);
-          ((coap_packet_t *)packet)->block2_offset = (((coap_packet_t *)packet)->block2_num & ~0x0F)<<(((coap_packet_t *)packet)->block2_num & 0x07);
+          ((coap_packet_t *)packet)->block2_offset = (((coap_packet_t *)packet)->block2_num & ~0x0000000F)<<(((coap_packet_t *)packet)->block2_num & 0x07);
           ((coap_packet_t *)packet)->block2_num >>= 4;
           PRINTF("Block2 [%lu%s (%u B/blk)]\n", ((coap_packet_t *)packet)->block2_num, ((coap_packet_t *)packet)->block2_more ? "+" : "", ((coap_packet_t *)packet)->block2_size);
           break;
@@ -1035,7 +1036,7 @@ coap_set_header_block2(void *packet, uint32_t num, uint8_t more, uint16_t size)
   if (num>0x0FFFFF) return 0;
 
   ((coap_packet_t *)packet)->block2_num = num;
-  ((coap_packet_t *)packet)->block2_more = more;
+  ((coap_packet_t *)packet)->block2_more = more ? 1 : 0;
   ((coap_packet_t *)packet)->block2_size = size;
 
   SET_OPTION((coap_packet_t *)packet, COAP_OPTION_BLOCK2);
