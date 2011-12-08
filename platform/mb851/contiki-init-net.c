@@ -120,7 +120,7 @@ void set_net_address(void)
   print_addresses();
   
 #if RPL_BORDER_ROUTER
-  dag = rpl_set_root(&ipaddr);
+  dag = rpl_set_root(RPL_DEFAULT_INSTANCE,&ipaddr);
   if(dag != NULL) {
     PRINTF("This node is setted as root of a DAG.\r\n");
   }
