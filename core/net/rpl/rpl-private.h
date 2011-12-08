@@ -94,6 +94,16 @@
 #define RPL_DAO_K_FLAG                   0x80 /* DAO ACK requested */
 #define RPL_DAO_D_FLAG                   0x40 /* DODAG ID present */
 /*---------------------------------------------------------------------------*/
+/* RPL IPv6 extension header option. */
+#define RPL_HDR_OPT_LEN			4
+#define RPL_HOP_BY_HOP_LEN		(RPL_HDR_OPT_LEN + 2 + 2)
+#define RPL_HDR_OPT_DOWN		0x80
+#define RPL_HDR_OPT_DOWN_SHIFT  	7
+#define RPL_HDR_OPT_RANK_ERR		0x40
+#define RPL_HDR_OPT_RANK_ERR_SHIFT   	6
+#define RPL_HDR_OPT_FWD_ERR		0x20
+#define RPL_HDR_OPT_FWD_ERR_SHIFT   	5
+/*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
 
 /* The default value for the DAO timer. */
@@ -108,8 +118,8 @@
 /* Default route lifetime as a multiple of the lifetime unit. */
 #define RPL_DEFAULT_LIFETIME        0xff
 
-#define RPL_LIFETIME(dag, lifetime) \
-          ((unsigned long)(dag)->lifetime_unit * lifetime)
+#define RPL_LIFETIME(instance, lifetime) \
+          (((unsigned long)(instance)->lifetime_unit) * lifetime)
 
 #ifndef RPL_CONF_MIN_HOPRANKINC
 #define DEFAULT_MIN_HOPRANKINC          256
@@ -118,13 +128,13 @@
 #endif
 #define DEFAULT_MAX_RANKINC             (3 * DEFAULT_MIN_HOPRANKINC)
 
-#define DAG_RANK(fixpt_rank, dag)	((fixpt_rank) / (dag)->min_hoprankinc)
+#define DAG_RANK(fixpt_rank, instance)	((fixpt_rank) / (instance)->min_hoprankinc)
 
 /* Rank of a virtual root node that coordinates DAG root nodes. */
 #define BASE_RANK                       0
 
 /* Rank of a root node. */
-#define ROOT_RANK(dag)                  (dag)->min_hoprankinc
+#define ROOT_RANK(instance)                  (instance)->min_hoprankinc
 
 #define INFINITE_RANK                   0xffff
 
@@ -208,7 +218,7 @@ struct rpl_dio {
   uint8_t dag_intdoubl;
   uint8_t dag_intmin;
   uint8_t dag_redund;
-  rpl_lifetime_t default_lifetime;
+  uint8_t default_lifetime;
   uint16_t lifetime_unit;
   rpl_rank_t dag_max_rankinc;
   rpl_rank_t dag_min_hoprankinc;
@@ -241,33 +251,44 @@ extern rpl_stats_t rpl_stats;
 #define RPL_STAT(code)
 #endif /* RPL_CONF_STATS */
 /*---------------------------------------------------------------------------*/
+/* Instances */
+extern rpl_instance_t instance_table[];
+rpl_instance_t *default_instance;
+
 /* ICMPv6 functions for RPL. */
 void dis_output(uip_ipaddr_t *addr);
-void dio_output(rpl_dag_t *, uip_ipaddr_t *uc_addr);
-void dao_output(rpl_parent_t *, rpl_lifetime_t lifetime);
-void dao_ack_output(rpl_dag_t *, uip_ipaddr_t *, uint8_t);
-void uip_rpl_input(void);
+void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
+void dao_output(rpl_parent_t *, uint8_t lifetime);
+void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t);
 
 /* RPL logic functions. */
-void rpl_join_dag(rpl_dag_t *);
-void rpl_local_repair(rpl_dag_t *dag);
-int rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from);
+void rpl_join_dag(uip_ipaddr_t *from, rpl_dio_t *dio);
+void rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio);
+void rpl_local_repair(rpl_instance_t *instance);
 void rpl_process_dio(uip_ipaddr_t *, rpl_dio_t *);
-int rpl_process_parent_event(rpl_dag_t *, rpl_parent_t *);
+int rpl_process_parent_event(rpl_instance_t *, rpl_parent_t *);
 
 /* DAG object management. */
-rpl_dag_t *rpl_alloc_dag(uint8_t);
-void rpl_free_dag(rpl_dag_t *);
+rpl_dag_t *rpl_alloc_dodag(uint8_t, uip_ipaddr_t *);
+rpl_instance_t *rpl_alloc_instance(uint8_t);
+void rpl_free_dodag(rpl_dag_t *);
+void rpl_free_instance(rpl_instance_t *);
 
 /* DAG parent management function. */
 rpl_parent_t *rpl_add_parent(rpl_dag_t *, rpl_dio_t *dio, uip_ipaddr_t *);
 rpl_parent_t *rpl_find_parent(rpl_dag_t *, uip_ipaddr_t *);
-int rpl_remove_parent(rpl_dag_t *, rpl_parent_t *);
+rpl_parent_t * rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr);
+rpl_dag_t * rpl_find_parent_dag(rpl_instance_t *instance, uip_ipaddr_t *addr);
+void rpl_nullify_parent(rpl_dag_t *, rpl_parent_t *);
+void rpl_remove_parent(rpl_dag_t *, rpl_parent_t *);
+void rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent);
 rpl_parent_t *rpl_select_parent(rpl_dag_t *dag);
+rpl_dag_t *rpl_select_dodag(rpl_instance_t *instance,rpl_parent_t *parent);
 void rpl_recalculate_ranks(void);
 
 /* RPL routing table functions. */
 void rpl_remove_routes(rpl_dag_t *dag);
+void rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag);
 uip_ds6_route_t *rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix,
                                int prefix_len, uip_ipaddr_t *next_hop);
 void rpl_purge_routes(void);
@@ -276,8 +297,8 @@ void rpl_purge_routes(void);
 rpl_of_t *rpl_find_of(rpl_ocp_t);
 
 /* Timer functions. */
-void rpl_schedule_dao(rpl_dag_t *);
-void rpl_reset_dio_timer(rpl_dag_t *, uint8_t);
+void rpl_schedule_dao(rpl_instance_t *);
+void rpl_reset_dio_timer(rpl_instance_t *, uint8_t);
 void rpl_reset_periodic_timer(void);
 
 /* Route poisoning. */

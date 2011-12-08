@@ -54,9 +54,24 @@
 #define PRINTADDR(addr)
 #endif
 
+/**  \brief The sequence number (0x00 - 0xff) added to the transmitted
+ *   data or MAC command frame. The default is a random value within
+ *   the range.
+ */
 static uint8_t mac_dsn;
+
 static uint8_t initialized = 0;
+
+/**  \brief The 16-bit identifier of the PAN on which the device is
+ *   sending to.  If this value is 0xffff, the device is not
+ *   associated.
+ */
 static const uint16_t mac_dst_pan_id = IEEE802154_PANID;
+
+/**  \brief The 16-bit identifier of the PAN on which the device is
+ *   operating.  If this value is 0xffff, the device is not
+ *   associated.
+ */
 static const uint16_t mac_src_pan_id = IEEE802154_PANID;
 
 /*---------------------------------------------------------------------------*/
@@ -145,7 +160,7 @@ create(void)
 
   /* Set the source PAN ID to the global variable. */
   params.src_pid = mac_src_pan_id;
-  
+
   /*
    * Set up the source address using only the long address mode for
    * phase 1.

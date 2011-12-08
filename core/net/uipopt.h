@@ -194,12 +194,12 @@
 #define UIP_CONF_IPV6_QUEUE_PKT       0
 #endif
 
-#ifndef UIP_CONF_IPV6_CHECKS 
+#ifndef UIP_CONF_IPV6_CHECKS
 /** Do we do IPv6 consistency checks (highly recommended, default: yes) */
 #define UIP_CONF_IPV6_CHECKS          1
 #endif
 
-#ifndef UIP_CONF_IPV6_REASSEMBLY 
+#ifndef UIP_CONF_IPV6_REASSEMBLY
 /** Do we do IPv6 fragmentation (default: no) */
 #define UIP_CONF_IPV6_REASSEMBLY      0
 #endif
@@ -209,19 +209,19 @@
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
 #endif
 
-#ifndef UIP_CONF_ND6_MAX_PREFIXES 
+#ifndef UIP_CONF_DS6_PREFIX_NBU
 /** Default number of IPv6 prefixes associated to the node's interface */
-#define UIP_CONF_ND6_MAX_PREFIXES     3
+#define UIP_CONF_DS6_PREFIX_NBU     2
 #endif
 
-#ifndef UIP_CONF_ND6_MAX_NEIGHBORS 
+#ifndef UIP_CONF_DS6_NBR_NBU
 /** Default number of neighbors that can be stored in the %neighbor cache */
-#define UIP_CONF_ND6_MAX_NEIGHBORS    4  
+#define UIP_CONF_DS6_NBR_NBU    4
 #endif
 
-#ifndef UIP_CONF_ND6_MAX_DEFROUTERS
+#ifndef UIP_CONF_DS6_DEFRT_NBU
 /** Minimum number of default routers */
-#define UIP_CONF_ND6_MAX_DEFROUTERS   2
+#define UIP_CONF_DS6_DEFRT_NBU       2
 #endif
 /** @} */
 
