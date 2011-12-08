@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,29 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *
  */
 
-#ifndef __PROJECT_RPL_WEB_CONF_H__
-#define __PROJECT_RPL_WEB_CONF_H__
+/**
+ * \file
+ *	Declarations of the main Antelope functions.
+ * \author
+ * 	Nicolas Tsiftes <nvt@sics.se>
+ */
 
-#define SICSLOWPAN_CONF_FRAG	1
+#ifndef DB_H
+#define DB_H
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
+#include "db-types.h"
+#include "result.h"
+#include "aql.h"
 
-/* Save some memory for the sky platform. */
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     10
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   10
+typedef int (*db_output_function_t)(const char *, ...);
 
-/* Increase rpl-border-router IP-buffer when using 128. */
-#ifndef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE    64
-#endif
+void db_init(void);
+void db_set_output_function(db_output_function_t f);
+const char *db_get_result_message(db_result_t code);
+db_result_t db_print_header(db_handle_t *handle);
+db_result_t db_print_tuple(db_handle_t *handle);
+int db_processing(db_handle_t *handle);
 
-/* Multiplies with chunk size, be aware of memory constraints. */
-#ifndef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS   4
-#endif
-
-/* Must be <= open transaction number. */
-#ifndef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS      COAP_MAX_OPEN_TRANSACTIONS
-#endif
-
-
-#ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW  60
-#endif
-
-#ifndef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 2
-#endif
-
-
-
-#endif /* __PROJECT_RPL_WEB_CONF_H__ */
+#endif /* DB_H */

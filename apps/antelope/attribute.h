@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,65 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *
  */
 
-#ifndef __PROJECT_RPL_WEB_CONF_H__
-#define __PROJECT_RPL_WEB_CONF_H__
+/**
+ * \file
+ *	Definitions for attributes.
+ * \author
+ * 	Nicolas Tsiftes <nvt@sics.se>
+ */
 
-#define SICSLOWPAN_CONF_FRAG	1
+#ifndef ATTRIBUTE_H
+#define ATTRIBUTE_H
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
+#include <stdint.h>
+#include <stdlib.h>
 
-/* Save some memory for the sky platform. */
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     10
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   10
+#include "lib/list.h"
 
-/* Increase rpl-border-router IP-buffer when using 128. */
-#ifndef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE    64
-#endif
+#include "db-options.h"
 
-/* Multiplies with chunk size, be aware of memory constraints. */
-#ifndef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS   4
-#endif
+typedef enum {
+  DOMAIN_UNSPECIFIED = 0,
+  DOMAIN_INT = 1,
+  DOMAIN_LONG = 2,
+  DOMAIN_STRING = 3,
+  DOMAIN_FLOAT = 4
+} domain_t;
 
-/* Must be <= open transaction number. */
-#ifndef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS      COAP_MAX_OPEN_TRANSACTIONS
-#endif
+#define ATTRIBUTE_FLAG_NO_STORE		0x1
+#define ATTRIBUTE_FLAG_INVALID		0x2
+#define ATTRIBUTE_FLAG_PRIMARY_KEY	0x4
+#define ATTRIBUTE_FLAG_UNIQUE		0x8
 
+struct attribute {
+  struct attribute *next;
+  void *index;
+  long aggregation_value;
+  uint8_t aggregator;
+  uint8_t domain;
+  uint8_t element_size;
+  uint8_t flags;
+  char name[ATTRIBUTE_NAME_LENGTH + 1];
+};
 
-#ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW  60
-#endif
+typedef struct attribute attribute_t;
+typedef uint8_t attribute_id_t;
 
-#ifndef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 2
-#endif
+struct attribute_value {
+  union {
+    int int_value;
+    long long_value;
+    unsigned char *string_value;
+  } u;
+  domain_t domain;
+};
 
+typedef struct attribute_value attribute_value_t;
 
+#define VALUE_LONG(value)   (value)->u.long_value
+#define VALUE_INT(value)    (value)->u.int_value
+#define VALUE_STRING(value) (value)->u.string_value
 
-#endif /* __PROJECT_RPL_WEB_CONF_H__ */
+#endif /* ATTRIBUTES_H */

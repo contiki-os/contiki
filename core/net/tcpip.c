@@ -630,8 +630,8 @@ tcpip_ipv6_output(void)
           memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
           uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
         }
-        uip_len = 0;
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
+        uip_len = 0;
         return;
       }
       /* Send in parallel if we are running NUD (nbc state is either STALE,

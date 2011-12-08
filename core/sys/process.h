@@ -221,7 +221,7 @@ typedef unsigned char process_num_events_t;
  */
 #define PROCESS_PAUSE()             do {				\
   process_post(PROCESS_CURRENT(), PROCESS_EVENT_CONTINUE, NULL);	\
-  PROCESS_WAIT_EVENT();							\
+  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);               \
 } while(0)
 
 /** @} end of protothread functions */

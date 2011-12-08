@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,56 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *
  */
 
-#ifndef __PROJECT_RPL_WEB_CONF_H__
-#define __PROJECT_RPL_WEB_CONF_H__
+/**
+ * \file
+ *	Declarations for the result acquisition API.
+ * \author
+ * 	Nicolas Tsiftes <nvt@sics.se>
+ */
 
-#define SICSLOWPAN_CONF_FRAG	1
+#ifndef RESULT_H
+#define RESULT_H
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
+#include "index.h"
+#include "relation.h"
+#include "storage.h"
 
-/* Save some memory for the sky platform. */
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     10
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   10
+#define RESULT_TUPLE_INVALID(tuple)	((tuple) == NULL)
+#define RESULT_TUPLE_SIZE(handle)	(handle).rel->row_length
 
-/* Increase rpl-border-router IP-buffer when using 128. */
-#ifndef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE    64
-#endif
+typedef unsigned char *tuple_t;
 
-/* Multiplies with chunk size, be aware of memory constraints. */
-#ifndef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS   4
-#endif
+#define DB_HANDLE_FLAG_INDEX_STEP	0x01
+#define DB_HANDLE_FLAG_SEARCH_INDEX	0x02
+#define DB_HANDLE_FLAG_PROCESSING	0x04
 
-/* Must be <= open transaction number. */
-#ifndef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS      COAP_MAX_OPEN_TRANSACTIONS
-#endif
+struct db_handle {
+  index_iterator_t index_iterator;
+  tuple_id_t tuple_id;
+  tuple_id_t current_row;
+  relation_t *rel;
+  relation_t *left_rel;
+  relation_t *join_rel;
+  relation_t *right_rel;
+  relation_t *result_rel;
+  attribute_t *left_join_attr;
+  attribute_t *right_join_attr;
+  tuple_t tuple;
+  uint8_t flags;
+  uint8_t ncolumns;
+  void *adt;
+};
+typedef struct db_handle db_handle_t;
 
+db_result_t db_get_value(attribute_value_t *value,
+                         db_handle_t *handle, unsigned col);
+db_result_t db_phy_to_value(attribute_value_t *value,
+                            attribute_t *attr, unsigned char *ptr);
+db_result_t db_value_to_phy(unsigned char *ptr,
+                            attribute_t *attr, attribute_value_t *value);
+long db_value_to_long(attribute_value_t *value);
+db_result_t db_free(db_handle_t *handle);
 
-#ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW  60
-#endif
-
-#ifndef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 2
-#endif
-
-
-
-#endif /* __PROJECT_RPL_WEB_CONF_H__ */
+#endif /* !RESULT_H */
