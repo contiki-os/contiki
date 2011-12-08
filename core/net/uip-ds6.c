@@ -5,9 +5,9 @@
 
 /**
  * \file
- *         IPv6 data structures handling functions
+ *         IPv6 data structures handling functions.
  *         Comprises part of the Neighbor discovery (RFC 4861)
- *         and auto configuration (RFC 4862 )state machines
+ *         and auto configuration (RFC 4862) state machines.
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
  */
@@ -375,11 +375,11 @@ uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr)
 {
   uip_ds6_nbr_t *fin;
 
-  for( locnbr=uip_ds6_nbr_cache, fin=locnbr + UIP_DS6_NBR_NB;
-       locnbr<fin;
+  for(locnbr = uip_ds6_nbr_cache, fin = locnbr + UIP_DS6_NBR_NB;
+       locnbr < fin;
        ++locnbr) {
     if(locnbr->isused) {
-      if(!memcmp(lladdr,&locnbr->lladdr,UIP_LLADDR_LEN)) {
+      if(!memcmp(lladdr, &locnbr->lladdr, UIP_LLADDR_LEN)) {
         return locnbr;
       }
     }
@@ -785,7 +785,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length, uip_ipaddr_t *nexthop,
     locroute->metric = metric;
 
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
-    memset (&(locroute->state),0,sizeof(UIP_DS6_ROUTE_STATE_TYPE));
+    memset(&locroute->state, 0, sizeof(UIP_DS6_ROUTE_STATE_TYPE));
 #endif
 
     PRINTF("DS6: adding route: ");
