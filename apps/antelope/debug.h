@@ -26,49 +26,39 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
  *
+ * $Id: uip-debug.h,v 1.1 2010/04/30 13:20:57 joxe Exp $
+ */
+/**
+ * \file
+ *         A set of debugging macros.
+ *
+ * \author Nicolas Tsiftes <nvt@sics.se>
+ *         Niclas Finne <nfi@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __PROJECT_RPL_WEB_CONF_H__
-#define __PROJECT_RPL_WEB_CONF_H__
+#ifndef UIP_DEBUG_H
+#define UIP_DEBUG_H
 
-#define SICSLOWPAN_CONF_FRAG	1
+#define DEBUG_NONE      0
+#define DEBUG_PRINT     1
+#define DEBUG_ANNOTATE  2
+#define DEBUG_FULL      DEBUG_ANNOTATE | DEBUG_PRINT
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
+#if (DEBUG) & DEBUG_ANNOTATE
+#include <stdio.h>
+#define ANNOTATE(...) printf(__VA_ARGS__)
+#else
+#define ANNOTATE(...)
+#endif /* (DEBUG) & DEBUG_ANNOTATE */
 
-/* Save some memory for the sky platform. */
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     10
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   10
+#if (DEBUG) & DEBUG_PRINT
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif /* (DEBUG) & DEBUG_PRINT */
 
-/* Increase rpl-border-router IP-buffer when using 128. */
-#ifndef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE    64
 #endif
-
-/* Multiplies with chunk size, be aware of memory constraints. */
-#ifndef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS   4
-#endif
-
-/* Must be <= open transaction number. */
-#ifndef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS      COAP_MAX_OPEN_TRANSACTIONS
-#endif
-
-
-#ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW  60
-#endif
-
-#ifndef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 2
-#endif
-
-
-
-#endif /* __PROJECT_RPL_WEB_CONF_H__ */

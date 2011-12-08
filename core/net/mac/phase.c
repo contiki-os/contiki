@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: phase.c,v 1.17 2010/12/18 22:12:53 dak664 Exp $
  */
 
 /**
@@ -108,6 +107,9 @@ phase_update(const struct phase_list *list,
   e = find_neighbor(list, neighbor);
   if(e != NULL) {
     if(mac_status == MAC_TX_OK) {
+#if PHASE_DRIFT_CORRECT
+      e->drift = time-e->time;
+#endif
       e->time = time;
     }
     /* If the neighbor didn't reply to us, it may have switched
@@ -140,6 +142,9 @@ phase_update(const struct phase_list *list,
       }
       rimeaddr_copy(&e->neighbor, neighbor);
       e->time = time;
+#if PHASE_DRIFT_CORRECT
+      e->drift = 0;
+#endif
       e->noacks = 0;
       list_push(*list->list, e);
     }
@@ -197,8 +202,27 @@ phase_wait(struct phase_list *list,
     now = RTIMER_NOW();
 
     sync = (e == NULL) ? now : e->time;
-    wait = (rtimer_clock_t)((sync - now) &
-                            (cycle_time - 1));
+
+#if PHASE_DRIFT_CORRECT
+    {
+      int32_t s;
+      if(e->drift > cycle_time) {
+        s = e->drift % cycle_time / (e->drift / cycle_time);  /* drift per cycle */
+        s = s * (now - sync) / cycle_time;                    /* estimated drift to now */
+        sync += s;                                            /* add it in */
+      }
+    }
+#endif
+
+    /* Check if cycle_time is a power of two */
+    if(!(cycle_time & (cycle_time - 1))) {
+      /* Faster if cycle_time is a power of two */
+      wait = (rtimer_clock_t)((sync - now) & (cycle_time - 1));
+    } else {
+      /* Works generally */
+      wait = cycle_time - (rtimer_clock_t)((now - sync) % cycle_time);
+    }
+
     if(wait < guard_time) {
       wait += cycle_time;
     }
@@ -226,6 +250,7 @@ phase_wait(struct phase_list *list,
     expected = now + wait - guard_time;
     if(!RTIMER_CLOCK_LT(expected, now)) {
       /* Wait until the receiver is expected to be awake */
+//    printf("%d ",expected%cycle_time);  //for spreadsheet export
       while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
     }
     return PHASE_SEND_NOW;

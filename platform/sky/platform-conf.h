@@ -47,8 +47,11 @@
 /* Platform TMOTE_SKY */
 #define TMOTE_SKY 1
 
-#define PLATFORM_HAS_LEDS   1
-#define PLATFORM_HAS_BUTTON 1
+#define PLATFORM_HAS_LEDS    1
+#define PLATFORM_HAS_BUTTON  1
+#define PLATFORM_HAS_LIGHT   1
+#define PLATFORM_HAS_BATTERY 1
+#define PLATFORM_HAS_SHT11   1
 
 #ifdef __IAR_SYSTEMS_ICC__
 #define __MSP430F1611__ 1
