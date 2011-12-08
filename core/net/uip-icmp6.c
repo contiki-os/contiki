@@ -69,7 +69,7 @@
 static uip_ipaddr_t tmp_ipaddr;
 
 #if UIP_CONF_IPV6_RPL
-int  rpl_invert_header(void);
+#include "rpl/rpl.h"
 #endif /* UIP_CONF_IPV6_RPL */
 
 /*---------------------------------------------------------------------------*/
