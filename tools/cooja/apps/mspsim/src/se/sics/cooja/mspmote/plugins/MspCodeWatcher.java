@@ -25,8 +25,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: MspCodeWatcher.java,v 1.24 2010/08/26 14:10:43 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -68,24 +66,25 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
+import se.sics.cooja.GUI.RunnableInEDT;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
-import se.sics.cooja.GUI.RunnableInEDT;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.cooja.util.StringUtils;
 import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.ui.DebugUI;
-import se.sics.mspsim.util.ELFDebug;
 import se.sics.mspsim.util.DebugInfo;
+import se.sics.mspsim.util.ELFDebug;
 
 @ClassDescription("Msp Code Watcher")
 @PluginType(PluginType.MOTE_PLUGIN)
 public class MspCodeWatcher extends VisPlugin implements MotePlugin {
+  private static final long serialVersionUID = -8463196456352243367L;
   private static Logger logger = Logger.getLogger(MspCodeWatcher.class);
   private Simulation simulation;
   private Observer simObserver;
@@ -131,6 +130,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       }
     });
     fileComboBox.setRenderer(new BasicComboBoxRenderer() {
+      private static final long serialVersionUID = -2135703608960229528L;
       public Component getListCellRendererComponent(JList list, Object value,
           int index, boolean isSelected, boolean cellHasFocus) {
         if (isSelected) {
@@ -165,13 +165,9 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     browseBox.add(mapButton);
     browseBox.add(Box.createHorizontalStrut(10));
 
-    mapAction.putValue(Action.NAME, "Map");
-
-    
     /* Execution control panel (south) */
     JPanel controlPanel = new JPanel();
     JButton button = new JButton(stepAction);
-    stepAction.putValue(Action.NAME, "Step instruction");
     controlPanel.add(button);
 
     
@@ -272,7 +268,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     currentFileAction.setEnabled(true);
     currentFileAction.putValue(Action.NAME, currentCodeFile.getName() + ":" + currentLineNumber);
     currentFileAction.putValue(Action.SHORT_DESCRIPTION, currentCodeFile.getAbsolutePath() + ":" + currentLineNumber);
-    fileComboBox.setSelectedIndex(0);
+    fileComboBox.setSelectedItem(currentCodeFile.getName());
 
     displaySourceFile(currentCodeFile, currentLineNumber);
   }
@@ -294,24 +290,23 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
         return;
       }
 
-      String path = 
-        new File(debugInfo.getPath(), debugInfo.getFile()).getPath().replace('\\', '/');
+      String path = new File(debugInfo.getPath(), debugInfo.getFile()).getPath();
       if (path == null) {
         return;
       }
+      path = path.replace('\\', '/');
 
       /* Debug info to source file map */
       if (debugInfoMap != null && debugInfoMap.length == 2) {
         if (path.startsWith(debugInfoMap[0])) {
-          path = path.replace(debugInfoMap[0], debugInfoMap[1]);
+          path = debugInfoMap[1] + path.substring(debugInfoMap[0].length());
         }
       }
 
       /* Nasty Cygwin-Windows fix */
-      if (path.contains("/cygdrive/")) {
-        int index = path.indexOf("/cygdrive/");
-        char driveCharacter = path.charAt(index+10);
-        path = path.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
+      if (path.length() > 10 && path.startsWith("/cygdrive/")) {
+        char driveCharacter = path.charAt(10);
+        path = driveCharacter + ":/" + path.substring(11);
       }
 
       currentCodeFile = new File(path).getCanonicalFile();
@@ -327,16 +322,16 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     final String[] debugFiles;
     try {
       ELFDebug debug = ((MspMoteType)mspMote.getType()).getELF().getDebug();
-      if (debug == null) {
+      debugFiles = debug != null ? debug.getSourceFiles() : null;
+      if (debugFiles == null) {
         logger.fatal("Error: No debug information is available");
         return;
       }
-      debugFiles = debug.getSourceFiles();
     } catch (IOException e1) {
       logger.fatal("Error: " + e1.getMessage(), e1);
       return;
     }
-    debugInfoMap = new RunnableInEDT<String[]>() {
+    String[] map = new RunnableInEDT<String[]>() {
       public String[] work() {
         /* Select which source file to use */
         int counter = 0, n;
@@ -345,12 +340,12 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
           n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
               "Choose which source file to manually locate.\n\n" +
               "Some source files may not exist, as debug info is also inherited from the toolchain.\n" +
-              "\"Next\" selects the next source file in the debug info.\n\n" +
-              (counter+1) + "/" + debugFiles.length + ": " + debugFiles[counter],
+              "\"Next File\" proceeds to the next source file in the debug info.\n\n" +
+              debugFiles[counter] + " (" + (counter+1) + '/' + debugFiles.length + ')',
               "Select source file to locate", JOptionPane.YES_NO_CANCEL_OPTION,
               JOptionPane.QUESTION_MESSAGE, null, 
-              new String[] { "Next", "Locate", "Cancel"}, "Next");
-          if (n == JOptionPane.CANCEL_OPTION) {
+              new String[] { "Next File", "Locate File", "Cancel"}, "Next File");
+          if (n == JOptionPane.CANCEL_OPTION || n == JOptionPane.CLOSED_OPTION) {
             return null;
           }
           if (n == JOptionPane.NO_OPTION) {
@@ -369,6 +364,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
                 return "Source file " + filename;
               }
             });
+            fc.setCurrentDirectory(new File(GUI.getExternalToolsSetting("PATH_CONTIKI", ".")));
             int returnVal = fc.showOpenDialog(GUI.getTopParentContainer());
             if (returnVal == JFileChooser.APPROVE_OPTION) {
               correspondingFile = fc.getSelectedFile();
@@ -442,18 +438,22 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
         }
       }
     }.invokeAndWait();
-    updateFileComboBox();
+
+    if (map != null) {
+      debugInfoMap = map;
+      updateFileComboBox();
+    }
   }
   
   private static File[] getSourceFiles(MspMote mote, String[] map) {
     final String[] sourceFiles;
     try {
       ELFDebug debug = ((MspMoteType)mote.getType()).getELF().getDebug();
-      if (debug == null) {
+      sourceFiles = debug != null ? debug.getSourceFiles() : null;
+      if (sourceFiles == null) {
         logger.fatal("Error: No debug information is available");
         return new File[0];
       }
-      sourceFiles = debug.getSourceFiles();
     } catch (IOException e1) {
       logger.fatal("Error: " + e1.getMessage(), e1);
       return null;
@@ -474,15 +474,14 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       sourceFile = sourceFile.replace('\\', '/');
       if (map != null && map.length == 2) {
         if (sourceFile.startsWith(map[0])) {
-          sourceFile = sourceFile.replace(map[0], map[1]);
+          sourceFile = map[1] + sourceFile.substring(map[0].length());
         }
       }
 
       /* Nasty Cygwin-Windows fix */
-      if (sourceFile.contains("/cygdrive/")) {
-        int index = sourceFile.indexOf("/cygdrive/");
-        char driveCharacter = sourceFile.charAt(index+10);
-        sourceFile = sourceFile.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
+      if (sourceFile.length() > 10 && sourceFile.contains("/cygdrive/")) {
+        char driveCharacter = sourceFile.charAt(10);
+        sourceFile = driveCharacter + ":/" + sourceFile.substring(11);
       }
 
       File file = new File(sourceFile);
@@ -569,9 +568,6 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       } catch (MalformedURLException e) {
         logger.warn("Failure to read source code: " + e);
         return null;
-      } catch (IOException e) {
-        logger.warn("Failure to read source code: " + e);
-        return null;
       }
     }
 
@@ -606,6 +602,8 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   }
 
   private AbstractAction currentFileAction = new AbstractAction() {
+    private static final long serialVersionUID = -3218306989816724883L;
+
     public void actionPerformed(ActionEvent e) {
       if (currentCodeFile == null) {
         return;
@@ -614,13 +612,17 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     }
   };
 
-  private AbstractAction mapAction = new AbstractAction() {
+  private AbstractAction mapAction = new AbstractAction("Map") {
+    private static final long serialVersionUID = -3929432830596292495L;
+
     public void actionPerformed(ActionEvent e) {
       tryMapDebugInfo();
     }
   };
 
-  private AbstractAction stepAction = new AbstractAction() {
+  private AbstractAction stepAction = new AbstractAction("Step instruction") {
+    private static final long serialVersionUID = 3520750710757816575L;
+
     public void actionPerformed(ActionEvent e) {
       try {
         mspMote.getCPU().stepInstructions(1);

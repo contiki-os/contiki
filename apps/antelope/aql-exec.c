@@ -98,7 +98,7 @@ aql_execute(db_handle_t *handle, aql_adt_t *adt)
   switch(optype) {
   case AQL_TYPE_CREATE_ATTRIBUTE:
     attr = &adt->attributes[0];
-    if(relation_attribute_add(rel, DB_MEMORY, attr->name, attr->domain, 
+    if(relation_attribute_add(rel, DB_STORAGE, attr->name, attr->domain, 
        attr->element_size) != NULL) {
       result = DB_OK;
     }
