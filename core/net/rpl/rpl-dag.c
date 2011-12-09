@@ -96,6 +96,7 @@ MEMB(parent_memb, struct rpl_parent, RPL_MAX_PARENTS_PER_DODAG*RPL_MAX_INSTANCES
 /************************************************************************/
 /* Allocate instance table. */
 rpl_instance_t instance_table[RPL_MAX_INSTANCES];
+rpl_instance_t *default_instance;
 
 /************************************************************************/
 /* Remove DAG parents with a rank that is at least the same as minimum_rank. */
