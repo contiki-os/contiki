@@ -38,6 +38,7 @@
  *         Logic for Directed Acyclic Graphs in RPL.
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ * Contributors: George Oikonomou <oikonomou@users.sourceforge.net> (multicast)
  */
 
 
@@ -46,6 +47,7 @@
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/nbr-table.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 #include "lib/list.h"
 #include "lib/memb.h"
 #include "sys/ctimer.h"
@@ -1147,7 +1149,13 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_dag_t *dag, *previous_dag;
   rpl_parent_t *p;
 
+#if RPL_CONF_MULTICAST
+  /* If the root is advertising MOP 2 but we support MOP 3 we can still join
+   * In that scenario, we suppress DAOs for multicast targets */
+  if(dio->mop < RPL_MOP_STORING_NO_MULTICAST) {
+#else
   if(dio->mop != RPL_MOP_DEFAULT) {
+#endif
     PRINTF("RPL: Ignoring a DIO with an unsupported MOP: %d\n", dio->mop);
     return;
   }
