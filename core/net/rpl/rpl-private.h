@@ -253,7 +253,7 @@ extern rpl_stats_t rpl_stats;
 /*---------------------------------------------------------------------------*/
 /* Instances */
 extern rpl_instance_t instance_table[];
-rpl_instance_t *default_instance;
+extern rpl_instance_t *default_instance;
 
 /* ICMPv6 functions for RPL. */
 void dis_output(uip_ipaddr_t *addr);
