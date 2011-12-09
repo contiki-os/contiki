@@ -40,6 +40,7 @@
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  * Contributors: Niclas Finne <nfi@sics.se>, Joel Hoglund <joel@sics.se>,
  *               Mathieu Pouillot <m.pouillot@watteco.com>
+ *               George Oikonomou <oikonomou@users.sourceforge.net> (multicast)
  */
 
 #include "net/ip/tcpip.h"
@@ -49,6 +50,7 @@
 #include "net/ipv6/uip-icmp6.h"
 #include "net/rpl/rpl-private.h"
 #include "net/packetbuf.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 
 #include <limits.h>
 #include <string.h>
@@ -86,6 +88,9 @@ static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 
 extern rpl_of_t RPL_OF;
 
+#if RPL_CONF_MULTICAST
+static uip_mcast6_route_t *mcast_group;
+#endif
 /*---------------------------------------------------------------------------*/
 static int
 get_global_addr(uip_ipaddr_t *addr)
@@ -682,6 +687,17 @@ dao_input(void)
   PRINT6ADDR(&prefix);
   PRINTF("\n");
 
+#if RPL_CONF_MULTICAST
+  if(uip_is_addr_mcast_global(&prefix)) {
+    mcast_group = uip_mcast6_route_add(&prefix);
+    if(mcast_group) {
+      mcast_group->dag = dag;
+      mcast_group->lifetime = RPL_LIFETIME(instance, lifetime);
+    }
+    goto fwd_dao;
+  }
+#endif
+
   rep = uip_ds6_route_lookup(&prefix);
 
   if(lifetime == RPL_ZERO_LIFETIME) {
@@ -751,6 +767,10 @@ dao_input(void)
 
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
   rep->state.learned_from = learned_from;
+
+#if RPL_CONF_MULTICAST
+fwd_dao:
+#endif
 
   if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
     if(dag->preferred_parent != NULL &&
