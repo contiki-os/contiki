@@ -76,16 +76,7 @@
 
 /*------------------------------------------------------------------*/
 #define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(addr)
-#endif
+#include "net/uip-debug.h"
 
 #if UIP_LOGGING
 #include <stdio.h>
@@ -154,11 +145,11 @@ create_llao(uint8_t *llao, uint8_t type) {
 void
 uip_nd6_ns_input(void)
 {
-  PRINTF("Received NS from");
+  PRINTF("Received NS from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("to");
+  PRINTF(" to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("with target address");
+  PRINTF(" with target address");
   PRINT6ADDR((uip_ipaddr_t *) (&UIP_ND6_NS_BUF->tgtipaddr));
   PRINTF("\n");
   UIP_STAT(++uip_stat.nd6.recv);
@@ -224,6 +215,7 @@ uip_nd6_ns_input(void)
 
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
   if(addr != NULL) {
+#if UIP_ND6_DEF_MAXDADNS > 0
     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
       /* DAD CASE */
 #if UIP_CONF_IPV6_CHECKS
@@ -242,6 +234,11 @@ uip_nd6_ns_input(void)
         uip_ds6_dad_failed(addr);
         goto discard;
       }
+#else /* UIP_ND6_DEF_MAXDADNS > 0 */
+    if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+      /* DAD CASE */
+      goto discard;
+#endif /* UIP_ND6_DEF_MAXDADNS > 0 */
     }
 #if UIP_CONF_IPV6_CHECKS
     if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)) {
@@ -307,11 +304,11 @@ create_na:
     UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NA_LEN + UIP_ND6_OPT_LLAO_LEN;
 
   UIP_STAT(++uip_stat.nd6.sent);
-  PRINTF("Sending NA to");
+  PRINTF("Sending NA to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("from");
+  PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("with target address");
+  PRINTF(" with target address ");
   PRINT6ADDR(&UIP_ND6_NA_BUF->tgtipaddr);
   PRINTF("\n");
   return;
@@ -441,9 +438,11 @@ uip_nd6_na_input(void)
   addr = uip_ds6_addr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
   /* Message processing, including TLLAO if any */
   if(addr != NULL) {
+#if UIP_ND6_DEF_MAXDADNS > 0
     if(addr->state == ADDR_TENTATIVE) {
       uip_ds6_dad_failed(addr);
     }
+#endif /*UIP_ND6_DEF_MAXDADNS > 0 */
     PRINTF("NA received is bad\n");
     goto discard;
   } else {
