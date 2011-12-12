@@ -144,7 +144,7 @@ collect_common_send(void)
       }
     }
     rtmetric = dag->rank;
-    beacon_interval = (uint16_t) ((2L << dag->dio_intcurrent) / 1000);
+    beacon_interval = (uint16_t) ((2L << dag->instance->dio_intcurrent) / 1000);
     num_neighbors = RPL_PARENT_COUNT(dag);
   } else {
     rtmetric = 0;
