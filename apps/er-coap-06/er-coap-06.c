@@ -136,10 +136,10 @@ serialize_int_option(int number, int current_number, uint8_t *buffer, uint32_t v
 
   uint8_t *option = &buffer[i];
 
-  if (0xFF000000 & value) buffer[++i] = (uint8_t) (value>>24);
-  if (0x00FF0000 & value) buffer[++i] = (uint8_t) (value>>16);
-  if (0x0000FF00 & value) buffer[++i] = (uint8_t) (value>>8);
-  if (0x000000FF & value) buffer[++i] = (uint8_t) value;
+  if (0xFF000000 & value) buffer[++i] = (uint8_t) (0xFF & value>>24);
+  if (0xFFFF0000 & value) buffer[++i] = (uint8_t) (0xFF & value>>16);
+  if (0xFFFFFF00 & value) buffer[++i] = (uint8_t) (0xFF & value>>8);
+  if (             value) buffer[++i] = (uint8_t) (0xFF & value);
 
   i += set_option_header(number - current_number, i-start_i, option);
 
