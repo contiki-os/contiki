@@ -43,7 +43,10 @@
 #include <stdio.h>
 #include "contiki.h"
 #include "serial-shell.h"
-#include "adxl345.h"
+#include "shell-ps.h"
+#include "shell-file.h"
+#include "shell-text.h"
+#include "dev/adxl345.h"
 
 #define LED_INT_ONTIME        CLOCK_SECOND/2
 #define ACCM_READ_INTERVAL    CLOCK_SECOND
