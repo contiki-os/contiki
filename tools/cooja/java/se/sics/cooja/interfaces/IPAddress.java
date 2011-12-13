@@ -139,7 +139,7 @@ public class IPAddress extends MoteInterface {
     return null;
   }
 
-  public String compressIPv6Address(String ipString) {
+  public static String compressIPv6Address(String ipString) {
     while (ipString.contains(":0000:")) {
     	ipString = ipString.replaceAll(":0000:", "::");
     }
