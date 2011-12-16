@@ -119,6 +119,8 @@
 #undef LEDS_RED
 #define LEDS_YELLOW 4
 #if MODEL_CC2531
+#undef LEDS_CONF_ALL
+#define LEDS_CONF_ALL 3
 #define LEDS_RED    1
 #define LEDS_GREEN  2
 #else
