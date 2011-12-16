@@ -42,13 +42,25 @@
 #include "cc253x.h"
 
 /*
- * LEDS
- *  1: P1_0
- *  2: P1_1
- *  3: P1_4
+ * Smart RF LEDs
+ *  1: P1_0 (Green)
+ *  2: P1_1 (Red)
+ *  3: P1_4 (Yellow)
  *  4: P0_1 (LED4 shares port/pin with B1 and is currently unused)
+ *
+ * USB Dongle LEDs
+ *  1: P0_0 (Red)
+ *  2: P1_1 (Green - active: low)
  */
 
+#if MODEL_CC2531
+#define LED2_PIN P0_0
+#define LED1_PIN P1_1
+
+/* P0DIR and P0SEL masks */
+#define LED2_MASK  0x01
+#define LED1_MASK  0x02
+#else
 /* H/W Connections */
 #define LED1_PIN P1_0
 #define LED2_PIN P1_1
@@ -59,29 +71,41 @@
 #define LED2_MASK  0x02
 #define LED3_MASK  0x10
 #define LED4_MASK  0x02
+#endif
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_init(void)
 {
+#if MODEL_CC2531
+  P1SEL &= ~LED1_MASK;
+  P1DIR |= LED1_MASK;
+  P0SEL &= ~LED2_MASK;
+  P0DIR |= LED2_MASK;
+#else
   P1SEL &= ~(LED1_MASK | LED2_MASK | LED3_MASK);
   P1DIR |= (LED1_MASK | LED2_MASK | LED3_MASK);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 unsigned char
 leds_arch_get(void)
 {
-  unsigned char v;
-
-  v = (unsigned char) (LED1_PIN | (LED2_PIN << 1) | (LED3_PIN << 2));
-
-  return v;
+#if MODEL_CC2531
+  return (unsigned char) (LED1_PIN | ((LED2_PIN ^ 0x01) << 1));
+#else
+  return (unsigned char) (LED1_PIN | (LED2_PIN << 1) | (LED3_PIN << 2));
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_set(unsigned char leds)
 {
   LED1_PIN = leds & 0x01;
+#if MODEL_CC2531
+  LED2_PIN = ((leds & 0x02) >> 1) ^ 0x01;
+#else
   LED2_PIN = (leds & 0x02) >> 1;
   LED3_PIN = (leds & 0x04) >> 2;
+#endif
 }
 /*---------------------------------------------------------------------------*/
