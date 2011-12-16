@@ -114,10 +114,17 @@
 #endif
 
 /* Some files include leds.h before us */
+#undef LEDS_GREEN
 #undef LEDS_YELLOW
 #undef LEDS_RED
 #define LEDS_YELLOW 4
+#if MODEL_CC2531
+#define LEDS_RED    1
+#define LEDS_GREEN  2
+#else
+#define LEDS_GREEN  1
 #define LEDS_RED    2
+#endif
 
 /* DMA Configuration */
 #ifndef DMA_CONF_ON
