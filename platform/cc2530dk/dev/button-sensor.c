@@ -80,8 +80,13 @@ int configure(int type, int value)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+#if MODEL_CC2531
+void
+port_1_isr(void) __interrupt(P1INT_VECTOR)
+#else
 void
 port_0_isr(void) __interrupt(P0INT_VECTOR)
+#endif
 {
   EA = 0;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);

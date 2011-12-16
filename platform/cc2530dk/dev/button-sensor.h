@@ -43,23 +43,38 @@
 #include "contiki-conf.h"
 #include "lib/sensors.h"
 
-#define BUTTON_PORT 0
-#define BUTTON_PIN  1
-
 #define BUTTON_SENSOR "Button"
 
 /*
  * SmartRF Buttons
  * B1: P0_1, B2: Not Connected
+ *
+ * USB Dongle Buttons
+ * B1: P1_2
+ * B2: P1_3
+ *
  */
+#if MODEL_CC2531
+#define BUTTON_PORT 1
+#define BUTTON_PIN  2
+#else
+#define BUTTON_PORT 0
+#define BUTTON_PIN  1
+#endif
+
 #ifdef BUTTON_SENSOR_CONF_ON
 #define BUTTON_SENSOR_ON BUTTON_SENSOR_CONF_ON
 #endif /* BUTTON_SENSOR_CONF_ON */
 
 #if BUTTON_SENSOR_ON
 extern const struct sensors_sensor button_sensor;
+#if MODEL_CC2531
+/* Button 1: P1_2 - Port 1 ISR needed */
+void port_1_isr(void) __interrupt(P1INT_VECTOR);
+#else
 /* Button 1: P0_1 - Port 0 ISR needed */
 void port_0_isr(void) __interrupt(P0INT_VECTOR);
+#endif
 #define   BUTTON_SENSOR_ACTIVATE() button_sensor.configure(SENSORS_ACTIVE, 1)
 #else
 #define   BUTTON_SENSOR_ACTIVATE()
