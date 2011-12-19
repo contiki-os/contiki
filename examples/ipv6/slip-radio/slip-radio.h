@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,39 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:15:55 $
- *           $Revision: 1.2 $
  */
 
-#include "dev/temperature-sensor.h"
+#ifndef __SLIP_RADIO_H__
+#define __SLIP_RADIO_H__
 
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);
+struct slip_radio_sensors {
+  /** Initialize the driver */
+  void (* init)(void);
+  /** Send the sensor data packet via the command send */
+  void (* send)(void);
+};
+
+#endif /* __SLIP_RADIO_H__ */

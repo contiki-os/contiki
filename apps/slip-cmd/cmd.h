@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,29 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:15:55 $
- *           $Revision: 1.2 $
  */
 
-#include "dev/temperature-sensor.h"
+/**
+ * \file
+ *         Simple command handler
+ * \author
+ *         Niclas Finne <nfi@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
+ */
 
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);
+#ifndef __CMD_H__
+#define __CMD_H__
+
+#include "contiki.h"
+
+#define CMD_TYPE_ERR 'E'
+
+typedef int (* cmd_handler_t)(const uint8_t *data, int len);
+
+#define CMD_HANDLERS(...) \
+const cmd_handler_t cmd_handlers[] = {__VA_ARGS__, NULL}
+
+void cmd_input(const uint8_t *data, int data_len);
+void cmd_send(const uint8_t *data, int data_len);
+
+#endif /* __CMD_H__ */

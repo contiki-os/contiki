@@ -58,7 +58,10 @@ ifdef UIP_CONF_IPV6
           resolv.c tcpdump.c uiplib.c simple-udp.c
   NET   += $(UIP) uip-icmp6.c uip-nd6.c uip-packetqueue.c \
           sicslowpan.c neighbor-attr.c neighbor-info.c uip-ds6.c
-  include $(CONTIKI)/core/net/rpl/Makefile.rpl
+  ifneq ($(UIP_CONF_RPL),0)
+    CFLAGS += -DUIP_CONF_IPV6_RPL=1
+    include $(CONTIKI)/core/net/rpl/Makefile.rpl
+  endif # UIP_CONF_RPL
 else # UIP_CONF_IPV6
   UIP   = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
           uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \

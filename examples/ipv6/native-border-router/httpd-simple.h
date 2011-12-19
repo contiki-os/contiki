@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,39 +26,49 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:15:55 $
- *           $Revision: 1.2 $
  */
 
-#include "dev/temperature-sensor.h"
+/**
+ * \file
+ *         A simple webserver
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ *         Niclas Finne <nfi@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
+ */
 
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);
+#ifndef __HTTPD_SIMPLE_H__
+#define __HTTPD_SIMPLE_H__
+
+#include "contiki-net.h"
+
+/* The current internal border router webserver ignores the requested file name */
+/* and needs no per-connection output buffer, so save some RAM */
+#ifndef WEBSERVER_CONF_CFS_PATHLEN
+#define HTTPD_PATHLEN 2
+#else /* WEBSERVER_CONF_CFS_CONNS */
+#define HTTPD_PATHLEN WEBSERVER_CONF_CFS_PATHLEN
+#endif /* WEBSERVER_CONF_CFS_CONNS */
+
+struct httpd_state;
+typedef char (* httpd_simple_script_t)(struct httpd_state *s);
+
+struct httpd_state {
+  struct timer timer;
+  struct psock sin, sout;
+  struct pt outputpt;
+  char inputbuf[HTTPD_PATHLEN + 24];
+/*char outputbuf[UIP_TCP_MSS]; */
+  char filename[HTTPD_PATHLEN];
+  httpd_simple_script_t script;
+  char state;
+};
+
+void httpd_init(void);
+void httpd_appcall(void *state);
+
+httpd_simple_script_t httpd_simple_get_script(const char *name);
+
+#define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
+
+#endif /* __HTTPD_SIMPLE_H__ */

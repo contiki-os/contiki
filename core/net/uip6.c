@@ -511,7 +511,14 @@ remove_ext_hdr(void)
 {
   /* Remove ext header before TCP/UDP processing. */
   if(uip_ext_len > 0) {
-    PRINTF("Cutting ext-header before TCP send (%d)\n", uip_ext_len);
+    PRINTF("Cutting ext-header before TCP send (extlen: %d, uiplen: %d)\n",
+	   uip_ext_len, uip_len);
+    if(uip_len - UIP_IPH_LEN- uip_ext_len < 0) {
+      PRINTF("ERROR: uip_len too short compared to ext len\n");
+      uip_ext_len = 0;
+      uip_len = 0;
+      return;
+    }
     memmove(((uint8_t *)UIP_TCP_BUF) - uip_ext_len, (uint8_t *)UIP_TCP_BUF,
 	    uip_len - UIP_IPH_LEN - uip_ext_len);
 
@@ -1349,7 +1356,7 @@ uip_process(u8_t flag)
   
   icmp6_input:
   /* This is IPv6 ICMPv6 processing code. */
-  PRINTF("icmp6_input: length %d\n", uip_len);
+  PRINTF("icmp6_input: length %d type: %d \n", uip_len, UIP_ICMP_BUF->type);
 
 #if UIP_CONF_IPV6_CHECKS
   /* Compute and check the ICMP header checksum */
@@ -1357,6 +1364,7 @@ uip_process(u8_t flag)
     UIP_STAT(++uip_stat.icmp.drop);
     UIP_STAT(++uip_stat.icmp.chkerr);
     UIP_LOG("icmpv6: bad checksum.");
+    PRINTF("icmpv6: bad checksum.");
     goto drop;
   }
 #endif /*UIP_CONF_IPV6_CHECKS*/

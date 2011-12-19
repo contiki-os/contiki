@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,66 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:15:55 $
- *           $Revision: 1.2 $
  */
 
-#include "dev/temperature-sensor.h"
+#include "contiki.h"
+#include "lib/sensors.h"
+#include "dev/sht11-sensor.h"
+#include "slip-radio.h"
+#include "cmd.h"
+#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
-static int
-value(int type)
+static void
+init(void)
 {
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, int c)
+write_percent_float(char *data, int maxlen, int temp)
 {
-  return 0;
+  int t;
+  t = temp % 100;
+  if(t < 0) {
+    t = -t;
+  }
+  return snprintf(data, maxlen, "%d.%02d", temp / 100, t);
 }
 /*---------------------------------------------------------------------------*/
-static int
-status(int type)
+static void
+send(void)
 {
-  return 0;
+#define MAX_SIZE 40
+  char data[MAX_SIZE];
+  int temperature;
+  int ms;
+  long hum;
+  int pos = 0;
+
+  /* SENSORS_ACTIVATE(light_sensor); */
+  SENSORS_ACTIVATE(sht11_sensor);
+
+  pos += snprintf(data, MAX_SIZE, "!D");
+  /* int light1 = light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC); */
+  /* int light2 = light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR); */
+  temperature = -3970 + sht11_sensor.value(SHT11_SENSOR_TEMP);
+  ms = sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
+  /* this is in * 10000 */
+  /* -2.0468  + 0.0367 * ms +  -1.5955e-6 * ms * ms ...too small value...  */
+  hum = (-20468L + 367L * ms) / 100L;
+
+  /* SENSORS_DEACTIVATE(light_sensor); */
+  SENSORS_DEACTIVATE(sht11_sensor);
+
+  pos += snprintf(&data[pos], MAX_SIZE - pos, "temp=");
+  pos += write_percent_float(&data[pos], MAX_SIZE - pos, temperature);
+  pos += snprintf(&data[pos], MAX_SIZE - pos, ";hum=");
+  pos += write_percent_float(&data[pos], MAX_SIZE - pos, hum);
+
+  cmd_send((uint8_t *)data, pos);
 }
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);
+/* ---------------------------------------------------------------------- */
+const struct slip_radio_sensors slip_radio_sky_sensors = {
+  init, send
+};
+/* ---------------------------------------------------------------------- */

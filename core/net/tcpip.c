@@ -567,7 +567,7 @@ tcpip_ipv6_output(void)
       if(locrt == NULL) {
         if((nexthop = uip_ds6_defrt_choose()) == NULL) {
 #ifdef UIP_FALLBACK_INTERFACE
-	  printf("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
+	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
 		 uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
 	  if(uip_ext_len > 0) {
 	    uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);

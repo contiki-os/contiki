@@ -10,22 +10,22 @@ button_press(void)
   sensors_changed(&button_sensor);
 }
 /*---------------------------------------------------------------------------*/
-static unsigned int
+static int
 value(int type)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int value)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
