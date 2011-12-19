@@ -26,14 +26,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: acc-sensor.c,v 1.6 2010/01/14 20:01:18 nifi Exp $
- *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:01:18 $
- *           $Revision: 1.6 $
  */
 
 #include "dev/acc-sensor.h"
@@ -101,15 +97,15 @@ value(int type)
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, int c)
+configure(int type, int value)
 {
-  switch(type) {
-  case SENSORS_ACTIVE:
-    if (c) {
+  if(type == SENSORS_ACTIVE) {
+    if(value) {
       activate();
     } else {
       deactivate();
     }
+    return 1;
   }
   return 0;
 }
@@ -121,8 +117,9 @@ status(int type)
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return active;
+  default:
+    return 0;
   }
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(acc_sensor, ACC_SENSOR,

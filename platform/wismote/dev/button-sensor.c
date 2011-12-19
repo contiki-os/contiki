@@ -51,12 +51,10 @@ interrupt(PORT2_VECTOR)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  if(BUTTON_CHECK_IRQ()) {
-    if(timer_expired(&debouncetimer)) {
-      timer_set(&debouncetimer, CLOCK_SECOND / 4);
-      sensors_changed(&button_sensor);
-      LPM4_EXIT;
-    }
+  if(BUTTON_CHECK_IRQ() && timer_expired(&debouncetimer)) {
+    timer_set(&debouncetimer, CLOCK_SECOND / 4);
+    sensors_changed(&button_sensor);
+    LPM4_EXIT;
   }
   P2IFG = 0x00;
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
@@ -69,11 +67,14 @@ value(int type)
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, int c)
+configure(int type, int value)
 {
-  switch (type) {
-  case SENSORS_ACTIVE:
-    if (c) {
+  if(type == SENSORS_ACTIVE) {
+    if(value == 0) {
+      /* Deactivate button sensor */
+      BUTTON_DISABLE_IRQ();
+    } else {
+      /* Activate button sensor */
       if(!status(SENSORS_ACTIVE)) {
 	timer_set(&debouncetimer, 0);
 	BUTTON_IRQ_EDGE_SELECTD();
@@ -83,8 +84,6 @@ configure(int type, int c)
 
 	BUTTON_ENABLE_IRQ();
       }
-    } else {
-      BUTTON_DISABLE_IRQ();
     }
     return 1;
   }
@@ -94,12 +93,13 @@ configure(int type, int c)
 static int
 status(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return BUTTON_IRQ_ENABLED();
+  default:
+    return 0;
   }
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
