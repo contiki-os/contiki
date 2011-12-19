@@ -18,7 +18,6 @@
 #define BV(x) (1 << x)
 #else
 #define CC_CONF_INLINE inline
-#define MSP430_MEMCPY_WORKAROUND 1
 #endif
 
 #define HAVE_STDINT_H
