@@ -39,6 +39,11 @@ CONTIKI_TARGET_SOURCEFILES += $(MSP430) \
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
 ### Compiler definitions
+
+ifdef WERROR
+CFLAGSWERROR=-Werror
+endif
+
 ifdef IAR
 CC	 = icc430
 LD       = xlink
@@ -46,7 +51,6 @@ AS       = iasm430
 AR       = xar
 OBJCOPY  = ielftool
 STRIP    = strip
-
 
 ifndef IAR_PATH
 # This works with cygwin...
@@ -87,27 +91,22 @@ NM       = msp430-nm
 OBJCOPY  = msp430-objcopy
 STRIP    = msp430-strip
 BSL      = msp430-bsl
+ifndef CFLAGSNO
 CFLAGSNO = -Wall -mmcu=$(MCU) -g $(CFLAGSWERROR)
-CFLAGS  += $(CFLAGSNO) -Os -fno-strict-aliasing
+endif
+CFLAGS  += -Os -fno-strict-aliasing
 LDFLAGS += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
-endif
-
-ifdef WERROR
-CFLAGSWERROR=-Werror
-endif
-
-CFLAGS  += $(CFLAGSNO)
-
 
 ### These flags can reduce the code size and RAM usage with up to 10%
 ifdef SMALL
-ifndef IAR
 CFLAGS += -ffunction-sections
 # CFLAGS += -fdata-sections
 LDFLAGS += -Wl,--gc-sections,--undefined=_reset_vector__,--undefined=InterruptVectors,--undefined=_copy_data_init__,--undefined=_clear_bss_init__,--undefined=_end_of_init__
-endif # !IAR
 endif # SMALL
 
+endif # IAR
+
+CFLAGS  += $(CFLAGSNO)
 
 PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 
