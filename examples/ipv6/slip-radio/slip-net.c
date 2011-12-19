@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,79 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:15:55 $
- *           $Revision: 1.2 $
  */
 
-#include "dev/temperature-sensor.h"
+#include "contiki.h"
+#include "net/netstack.h"
+#include "net/uip.h"
+#include "net/packetbuf.h"
+#include "dev/slip.h"
+#include <stdio.h>
+
+#define SLIP_END     0300
+#define SLIP_ESC     0333
+#define SLIP_ESC_END 0334
+#define SLIP_ESC_ESC 0335
+
+#define DEBUG 0
 
 /*---------------------------------------------------------------------------*/
-static int
-value(int type)
+void
+slipnet_init(void)
 {
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
+void
+slip_send_packet(const uint8_t *ptr, int len)
 {
-  return 0;
+  uint16_t i;
+  uint8_t c;
+
+  slip_arch_writeb(SLIP_END);
+  for(i = 0; i < len; ++i) {
+    c = *ptr++;
+    if(c == SLIP_END) {
+      slip_arch_writeb(SLIP_ESC);
+      c = SLIP_ESC_END;
+    } else if(c == SLIP_ESC) {
+      slip_arch_writeb(SLIP_ESC);
+      c = SLIP_ESC_ESC;
+    }
+    slip_arch_writeb(c);
+  }
+  slip_arch_writeb(SLIP_END);
 }
 /*---------------------------------------------------------------------------*/
-static int
-status(int type)
+void
+slipnet_input(void)
 {
-  return 0;
+  int i;
+  /* radio should be configured for filtering so this should be simple */
+  /* this should be sent over SLIP! */
+  /* so just copy into uip-but and send!!! */
+  /* Format: !R<data> ? */
+  uip_len = packetbuf_datalen();
+  i = packetbuf_copyto(uip_buf);
+
+  if(DEBUG) {
+    printf("Slipnet got input of len: %d, copied: %d\n",
+	   packetbuf_datalen(), i);
+
+    for(i = 0; i < uip_len; i++) {
+      printf("%02x", (unsigned char) uip_buf[i]);
+      if((i & 15) == 15) printf("\n");
+      else if((i & 7) == 7) printf(" ");
+    }
+    printf("\n");
+  }
+
+  /* printf("SUT: %u\n", uip_len); */
+  slip_send_packet(uip_buf, uip_len);
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);
+const struct network_driver slipnet_driver = {
+  "slipnet",
+  slipnet_init,
+  slipnet_input
+};
+/*---------------------------------------------------------------------------*/

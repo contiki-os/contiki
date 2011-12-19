@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,52 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:15:55 $
- *           $Revision: 1.2 $
  */
 
-#include "dev/temperature-sensor.h"
+#ifndef __PROJECT_CONF_H__
+#define __PROJECT_CONF_H__
 
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);
+#undef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM          4
+
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE    140
+
+#undef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER                 0
+
+#undef UIP_CONF_IPV6_RPL
+#define UIP_CONF_IPV6_RPL               0
+
+#define CMD_CONF_OUTPUT slip_radio_cmd_output
+
+/* add the cmd_handler_cc2420 + some sensors if TARGET_SKY */
+#ifdef CONTIKI_TARGET_SKY
+#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_cc2420
+#define SLIP_RADIO_CONF_SENSORS slip_radio_sky_sensors
+#else
+#define CMD_CONF_HANDLERS slip_radio_cmd_handler
+#endif
+
+
+/* configuration for the slipradio/network driver */
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     nullmac_driver
+
+#undef NETSTACK_CONF_RDC
+/* #define NETSTACK_CONF_RDC     nullrdc_noframer_driver */
+#define NETSTACK_CONF_RDC     contikimac_driver
+
+#undef NETSTACK_CONF_NETWORK
+#define NETSTACK_CONF_NETWORK slipnet_driver
+
+#undef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER no_framer
+
+#undef CC2420_CONF_AUTOACK
+#define CC2420_CONF_AUTOACK              1
+
+#undef UART1_CONF_RX_WITH_DMA
+#define UART1_CONF_RX_WITH_DMA           1
+
+#endif /* __PROJECT_CONF_H__ */

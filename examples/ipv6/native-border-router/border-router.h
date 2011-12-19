@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,34 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:15:55 $
- *           $Revision: 1.2 $
  */
 
-#include "dev/temperature-sensor.h"
+/**
+ * \file
+ *         Border router header file
+ * \author
+ *         Joakim Eriksson <joakime@sics.se>
+ */
 
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);
+#ifndef __BORDER_ROUTER_H__
+#define __BORDER_ROUTER_H__
+
+#include "contiki.h"
+#include "net/uip.h"
+
+int border_router_cmd_handler(const uint8_t *data, int len);
+int slip_config_handle_arguments(int argc, char **argv);
+void write_to_slip(const uint8_t *buf, int len);
+
+void border_router_set_prefix_64(const uip_ipaddr_t *prefix_64);
+void border_router_set_mac(const uint8_t *data);
+void border_router_set_sensors(const char *data, int len);
+void border_router_print_stat(void);
+
+void tun_init(void);
+
+int slip_init(void);
+int slip_set_fd(int maxfd, fd_set *rset, fd_set *wset);
+void slip_handle_fd(fd_set *rset, fd_set *wset);
+
+#endif /* __BORDER_ROUTER_H__ */

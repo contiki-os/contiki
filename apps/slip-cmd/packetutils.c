@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,57 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:15:55 $
- *           $Revision: 1.2 $
  */
 
-#include "dev/temperature-sensor.h"
+#include "contiki.h"
+#include "net/packetbuf.h"
+#define DEBUG DEBUG_NONE
+#include "net/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
-static int
-value(int type)
+int
+packetutils_serialize_atts(uint8_t *data, int size)
 {
-  return 0;
+  int i;
+  /* set the length first later */
+  int pos = 1;
+  int cnt = 0;
+  /* assume that values are 16-bit */
+  uint16_t val;
+  PRINTF("packetutils: serializing packet atts");
+  for(i = 0; i < PACKETBUF_NUM_ATTRS; i++) {
+    val = packetbuf_attr(i);
+    if(val != 0) {
+      if(pos + 3 > size) {
+        return -1;
+      }
+      data[pos++] = i;
+      data[pos++] = val >> 8;
+      data[pos++] = val & 255;
+      cnt++;
+      PRINTF(" %d=%d", i, val);
+    }
+  }
+  PRINTF(" (%d)\n", cnt);
+
+  data[0] = cnt;
+  return pos;
 }
 /*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
+int
+packetutils_deserialize_atts(const uint8_t *data, int size)
 {
-  return 0;
+  int i, cnt, pos;
+
+  pos = 0;
+  cnt = data[pos++];
+  PRINTF("packetutils: deserializing %d packet atts:", cnt);
+  for(i = 0; i < cnt; i++) {
+    PRINTF(" %d=%d", data[pos], (data[pos + 1] << 8) | data[pos + 2]);
+    packetbuf_set_attr(data[pos], (data[pos + 1] << 8) | data[pos + 2]);
+    pos += 3;
+  }
+  PRINTF("\n");
+  return pos;
 }
 /*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);

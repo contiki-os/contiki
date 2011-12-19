@@ -48,25 +48,26 @@ static unsigned int vib;
 void
 vib_sensor_changed(void)
 {
+  vib++;
   sensors_changed(&vib_sensor);
 }
 /*---------------------------------------------------------------------------*/
-static unsigned int
+static int
 value(int type)
+{
+  return vib;
+}
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int c)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void *
 status(int type)
 {
-  return NULL;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(vib_sensor, VIB_SENSOR,

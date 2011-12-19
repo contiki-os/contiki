@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,39 +26,35 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
+ * This file is part of the Contiki operating system.
  *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:15:55 $
- *           $Revision: 1.2 $
+ * Sets up some commands for the CC2420 radio chip.
  */
 
-#include "dev/temperature-sensor.h"
+#include "contiki.h"
+#include "dev/cc2420.h"
+#include "cmd.h"
+#include <stdio.h>
 
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
+int
+cmd_handler_cc2420(const uint8_t *data, int len)
 {
+  if(data[0] == '!') {
+    if(data[1] == 'C') {
+      printf("cc2420_cmd: setting channel: %d\n", data[2]);
+      cc2420_set_channel(data[2]);
+      return 1;
+    }
+  } else if(data[0] == '?') {
+    if(data[1] == 'C') {
+      uint8_t buf[4];
+      printf("cc2420_cmd: getting channel: %d\n", data[2]);
+      buf[0] = '!';
+      buf[1] = 'C';
+      buf[2] = cc2420_get_channel();
+      cmd_send(buf, 3);
+      return 1;
+    }
+  }
   return 0;
 }
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);

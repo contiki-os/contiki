@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,26 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
- * $Id: nullrdc.c,v 1.4 2010/11/23 18:11:00 nifi Exp $
  */
 
 /**
  * \file
- *         A null RDC implementation that uses framer for headers.
+ *         A null RDC implementation that uses framer for headers and sends
+ *         the packets over slip instead of radio.
  * \author
  *         Adam Dunkels <adam@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
  *         Niclas Finne <nfi@sics.se>
  */
 
 #include "net/packetbuf.h"
 #include "net/queuebuf.h"
 #include "net/netstack.h"
-#include <string.h>
-#include "packetbuf.h"
 #include "packetutils.h"
+#include "border-router.h"
+#include <string.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -61,101 +59,83 @@ static int callback_pos;
    from radio... */
 struct tx_callback {
   mac_callback_t cback;
-  int status;
-  int tx;
   void *ptr;
-  struct packetbuf_attr attr;
-  struct packetbuf_addr addr;
+  struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
+  struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
 };
 
-static void send_callback(struct tx_callback *tx);
-
-
 static struct tx_callback callbacks[MAX_CALLBACKS];
-
+/*---------------------------------------------------------------------------*/
 void packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
 {
   if(sessionid < MAX_CALLBACKS) {
     struct tx_callback *callback;
     callback = &callbacks[sessionid];
-    packetbuf_attr_copyfrom(&callback->attr, &callback->addr);
-    callback->status = status;
-    callback->tx = tx;
-    send_callback(callback);
+    packetbuf_clear();
+    packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
+    mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
   } else {
     printf("*** ERROR: too high session id %d\n", sessionid);
   }
 }
-
+/*---------------------------------------------------------------------------*/
 static int
-  setup_callback(mac_callback_t sent, void *ptr)
+setup_callback(mac_callback_t sent, void *ptr)
 {
-  int tmp = callback_pos;
   struct tx_callback *callback;
+  int tmp = callback_pos;
   callback = &callbacks[callback_pos];
   callback->cback = sent;
   callback->ptr = ptr;
-  packetbuf_attr_copyto(&callback->attr, &callback->addr);
-  
+  packetbuf_attr_copyto(callback->attrs, callback->addrs);
+
   callback_pos++;
-  if(callback_pos >= MAX_CALLBACKS)
+  if(callback_pos >= MAX_CALLBACKS) {
     callback_pos = 0;
-  
+  }
+
   return tmp;
 }
 /*---------------------------------------------------------------------------*/
 static void
 send_packet(mac_callback_t sent, void *ptr)
 {
-  int ret;
+  int size;
+  /* 3 bytes per packet attribute is required for serialization */
+  uint8_t buf[PACKETBUF_NUM_ATTRS * 3 + PACKETBUF_SIZE + 3];
+  uint8_t sid;
+
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
 
   /* ack or not ? */
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 
-  if(NETSTACK_FRAMER.create() == FRAMER_FAILED) {
+  if(NETSTACK_FRAMER.create() < 0) {
     /* Failed to allocate space for headers */
     PRINTF("br-rdc: send failed, too large header\n");
-    ret = MAC_TX_ERR_FATAL;
+    mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
+
   } else {
-    int is_broadcast;
-    uint8_t dsn;
-    uint8_t sid;
-    int size;
-    uint8_t attbuf[64]; /* 3 bytes per attribute - hopefully enough with 64 */
-
-    sid = setup_callback(sent, ptr);
-
-    dsn = ((uint8_t *)packetbuf_hdrptr())[2] & 0xff;
-
-    is_broadcast = rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                                &rimeaddr_null);
-
     /* here we send the data over SLIP to the radio-chip */
-    /* NETSTACK_RADIO.transmit(packetbuf_totlen())); */
-    /* and store the "call" with a timeout - for fail and if success
-       we just make a callback */
-    /* TODO: store the call for later "ack" / feedback handling... */
-    if((size = packetutils_serialize_atts(attbuf, sizeof(attbuf))) > 0) {
-      /* alloc and copy attributes */
-      packetbuf_hdralloc(size);
-      memcpy(packetbuf_hdrptr(), attbuf, size);	
-      packetbuf_hdralloc(3);
-      uint8_t *buf = (uint8_t *) packetbuf_hdrptr();
+
+    size = packetutils_serialize_atts(&buf[3], sizeof(buf) - 3);
+    if(size < 0 || size + packetbuf_totlen() + 3 > sizeof(buf)) {
+      PRINTF("br-rdc: send failed, too large header\n");
+      mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
+    } else {
+      sid = setup_callback(sent, ptr);
+
       buf[0] = '!';
       buf[1] = 'S';
       buf[2] = sid; /* sequence or session number for this packet */
-      write_to_slip(packetbuf_hdrptr(), packetbuf_totlen());
+
+      /* Copy packet data */
+      memcpy(&buf[3 + size], packetbuf_hdrptr(), packetbuf_totlen());
+
+      write_to_slip(buf, packetbuf_totlen() + size + 3);
     }
   }
 }
-
-/* */
-static void send_callback(struct tx_callback *tx)
-{
-  mac_call_sent_callback(tx->cback, tx->ptr, tx->status, tx->tx);
-}
-
 /*---------------------------------------------------------------------------*/
 static void
 send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
@@ -169,7 +149,7 @@ send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 static void
 packet_input(void)
 {
-  if(NETSTACK_FRAMER.parse() == FRAMER_FAILED) {
+  if(NETSTACK_FRAMER.parse() < 0) {
     PRINTF("br-rdc: failed to parse %u\n", packetbuf_datalen());
   } else {
     NETSTACK_MAC.input();
