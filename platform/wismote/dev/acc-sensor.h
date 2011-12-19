@@ -26,14 +26,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: acc-sensor.h,v 1.1 2009/01/15 21:06:02 adamdunkels Exp $
- *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2009/01/15 21:06:02 $
- *           $Revision: 1.1 $
  */
 
 #ifndef __ACC_SENSOR_H__

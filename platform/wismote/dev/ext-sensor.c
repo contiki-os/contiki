@@ -26,15 +26,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ext-sensor.c,v 1.3 2010/02/13 11:20:48 joxe Exp $
- *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Marcus Lundén,
  *           Jesper Karlsson
  * Created : 2005-11-01
- * Updated : $Date: 2010/02/13 11:20:48 $
- *           $Revision: 1.3 $
  */
 
 #include "contiki.h"
@@ -66,11 +62,12 @@ static int
 status(int type)
 {
   switch(type) {
-    case SENSORS_ACTIVE:
-    case SENSORS_READY:
-      return active;
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return active;
+  default:
+    return 0;
   }
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -97,8 +94,10 @@ configure(int type, int c)
         sky_sensors_deactivate(0x0F);
         active = 0;
       }
+      return 1;
+  default:
+    return 0;
   }
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(ext_sensor, "Ext",
