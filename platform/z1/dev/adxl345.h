@@ -278,12 +278,12 @@ void    accm_set_irq(uint8_t int1, uint8_t int2);
 #define ADXL345_SRATE_0_10      0x00    // 0.10 Hz, when I2C data rate >= 100 kHz
 
 /* Callback pointers for the interrupts */
-void (*accm_int1_cb)(u8_t reg);
-void (*accm_int2_cb)(u8_t reg);
+extern void (*accm_int1_cb)(u8_t reg);
+extern void (*accm_int2_cb)(u8_t reg);
 
 /* Interrupt 1 and 2 events; ADXL345 signals interrupt on INT1 or INT2 pins,
   ISR is invoked and polls the accelerometer process which invokes the callbacks. */
-process_event_t int1_event, int2_event;   // static ?
+extern process_event_t int1_event, int2_event;   // static ?
 
 #define ACCM_INT1    0x01
 #define ACCM_INT2    0x02
