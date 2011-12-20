@@ -31,7 +31,9 @@ CONTIKI_TARGET_SOURCEFILES += contiki-sky-platform.c
 MCU=msp430x1611
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
+ifdef CORE
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+endif
 #	$(AR) rcf $@ $^
 
 
