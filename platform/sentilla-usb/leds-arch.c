@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: leds-arch.c,v 1.1 2010/08/25 19:57:33 nifi Exp $
  */
 
 /**
@@ -43,8 +42,6 @@
 #include "contiki-conf.h"
 #include "dev/leds.h"
 
-#include <io.h>
-
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_init(void)
@@ -56,8 +53,10 @@ leds_arch_init(void)
 unsigned char
 leds_arch_get(void)
 {
-  return ((LEDS_PxOUT & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((LEDS_PxOUT & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+  unsigned char leds;
+  leds = LEDS_PxOUT;
+  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
+    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
 }
 /*---------------------------------------------------------------------------*/
 void
