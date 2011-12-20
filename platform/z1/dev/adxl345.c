@@ -46,8 +46,10 @@
 #include "i2cmaster.h"
 
 /* Callback pointers when interrupt occurs */
-extern void (*accm_int1_cb)(u8_t reg);
-extern void (*accm_int2_cb)(u8_t reg);
+void (*accm_int1_cb)(u8_t reg);
+void (*accm_int2_cb)(u8_t reg);
+
+process_event_t int1_event, int2_event;
 
 /* Bitmasks for the interrupts */
 static uint16_t int1_mask = 0, int2_mask = 0;
