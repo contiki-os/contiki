@@ -29,14 +29,10 @@
  * This file is part of the Configurable Sensor Network Application
  * Architecture for sensor nodes running the Contiki operating system.
  *
- * $Id: leds-arch.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
- *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-03
- * Updated : $Date: 2006/06/17 22:41:21 $
- *           $Revision: 1.1 $
  */
 
 #include "contiki.h"
@@ -53,9 +49,11 @@ leds_arch_init(void)
 unsigned char
 leds_arch_get(void)
 {
-  return ((LEDS_PxOUT & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((LEDS_PxOUT & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN)
-    | ((LEDS_PxOUT & LEDS_CONF_YELLOW) ? 0 : LEDS_YELLOW);
+  unsigned char leds;
+  leds = LEDS_PxOUT;
+  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
+    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN)
+    | ((leds & LEDS_CONF_YELLOW) ? 0 : LEDS_YELLOW);
 }
 /*---------------------------------------------------------------------------*/
 void
