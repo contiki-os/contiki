@@ -75,7 +75,7 @@ PROCESS_THREAD(shell_echo_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  shell_output(&echo_command, data, (int)strlen(data), "\n", 1);
+  shell_output(&echo_command, data, (int)strlen(data), "", 0);
   
   PROCESS_END();
 }
