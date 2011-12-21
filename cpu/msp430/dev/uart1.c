@@ -55,12 +55,8 @@ static volatile uint8_t transmitting;
 #ifdef UART1_CONF_RX_WITH_DMA
 #define RX_WITH_DMA UART1_CONF_RX_WITH_DMA
 #else /* UART1_CONF_RX_WITH_DMA */
-#define RX_WITH_DMA 0
+#define RX_WITH_DMA 1
 #endif /* UART1_CONF_RX_WITH_DMA */
-
-#if RX_WITH_DMA
-#warning RX_WITH_DMA ENABLED - WILL NOT WORK WITH MSPSIM / COOJA!
-#endif /* RX_WITH_DMA */
 
 #if TX_WITH_INTERRUPT
 #define TXBUFSIZE 128
