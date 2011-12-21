@@ -2632,11 +2632,7 @@ public class GUI extends Observable {
    *          New value
    */
   public static void setExternalToolsSetting(String name, String newVal) {
-    if (specifiedContikiPath != null && "PATH_CONTIKI".equals(name)) {
-      specifiedContikiPath = newVal;
-    } else {
-      currentExternalToolsSettings.setProperty(name, newVal);
-    }
+    currentExternalToolsSettings.setProperty(name, newVal);
   }
 
   /**
