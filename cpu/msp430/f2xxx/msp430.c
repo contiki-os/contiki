@@ -27,19 +27,14 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * @(#)$Id: msp430.c,v 1.1 2010/08/24 16:26:38 joxe Exp $
  */
 
 #include "contiki.h"
+#include "dev/watchdog.h"
 
-#ifndef __IAR_SYSTEMS_ICC__
+#if defined(__MSP430__) && defined(__GNUC__)
 #define asmv(arg) __asm__ __volatile__(arg)
 #endif
-
-#include "msp430def.h"
-#include "dev/watchdog.h"
-#include "net/uip.h"
 
 /*---------------------------------------------------------------------------*/
 #if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
@@ -83,11 +78,12 @@ msp430_init_dco(void)
   }
 
   /*BCSCTL1 |= XT2OFF; // Make sure XT2 is off */
-  /* BCSCTL2 = 0x00;   //  MCLK  = DCOCLK/1 */ 
+  /* BCSCTL2 = 0x00;   //  MCLK  = DCOCLK/1 */
   /* SMCLK = DCOCLK/1 */
   /* DCO Internal Resistor  */
 }
 /*---------------------------------------------------------------------------*/
+
 /*---------------------------------------------------------------------------*/
 /* Start CPU with full speed (? good or bad?) and go downwards               */
 /*---------------------------------------------------------------------------*/
@@ -142,69 +138,13 @@ msp430_quick_synch_dco(void) {
 /*     vals[current_bit] = diff; */
 
     /* should we keep the bit cleared or not ? */
-    if (diff < DELTA_2) { /* DCO is too slow - fewer ticks than desired */
+    if(diff < DELTA_2) { /* DCO is too slow - fewer ticks than desired */
       /* toggle bit again to get it back to one */
       dco_reg = dco_reg ^ (1 << current_bit);
     }
   }
 }
 /*---------------------------------------------------------------------------*/
-void
-msp430_init_dco_old(void) /*Enric NOT IN USE, RIGHT NOW */
-{
-    /* This code taken from the FU Berlin sources and reformatted. */
-#define DELTA    ((MSP430_CPU_SPEED) / (32768 / 8))
-
-  unsigned int compare, oldcapture = 0;
-  unsigned int i;
-
-
-  BCSCTL1 = 0xa4; /* ACLK is devided by 4. RSEL=6 no division for MCLK
-		     and SSMCLK. XT2 is off. */
-
-  BCSCTL2 = 0x00; /* Init FLL to desired frequency using the 32762Hz
-		     crystal DCO frquenzy = 2,4576 MHz  */
-
-  BCSCTL1 |= DIVA1 + DIVA0;             /* ACLK = LFXT1CLK/8 */
-  for(i = 0xffff; i > 0; i--) {         /* Delay for XTAL to settle */
-    asm("nop");
-  }
-
-  CCTL2 = CCIS0 + CM0 + CAP;            /* Define CCR2, CAP, ACLK */
-  TACTL = TASSEL1 + TACLR + MC1;        // SMCLK, continous mode
-
-
-  while(1) {
-
-    while((CCTL2 & CCIFG) != CCIFG);    /* Wait until capture occured! */
-    CCTL2 &= ~CCIFG;                    /* Capture occured, clear flag */
-    compare = CCR2;                     /* Get current captured SMCLK */
-    compare = compare - oldcapture;     /* SMCLK difference */
-    oldcapture = CCR2;                  /* Save current captured SMCLK */
-
-    if(DELTA == compare) {
-      break;                            /* if equal, leave "while(1)" */
-    } else if(DELTA < compare) {        /* DCO is too fast, slow it down */
-      DCOCTL--;
-      if(DCOCTL == 0xFF) {              /* Did DCO role under? */
-	BCSCTL1--;
-      }
-    } else {                            /* -> Select next lower RSEL */
-      DCOCTL++;
-      if(DCOCTL == 0x00) {              /* Did DCO role over? */
-	BCSCTL1++;
-      }
-                                        /* -> Select next higher RSEL  */
-    }
-  }
-
-  CCTL2 = 0;                            /* Stop CCR2 function */
-  TACTL = 0;                            /* Stop Timer_A */
-
-  BCSCTL1 &= ~(DIVA1 + DIVA0);          /* remove /8 divisor from ACLK again */
-}
-/*---------------------------------------------------------------------------*/
-
 static void
 init_ports(void)
 {
@@ -258,12 +198,22 @@ init_ports(void)
   P6OUT = 0;
 #endif
 
+#ifdef P7DIR
+  P7DIR = 0;
+  P7OUT = 0;
+#endif
+
+#ifdef P8DIR
+  P8DIR = 0;
+  P8OUT = 0;
+#endif
+
   P1IE = 0;
   P2IE = 0;
 }
 /*---------------------------------------------------------------------------*/
 /* msp430-ld may align _end incorrectly. Workaround in cpu_init. */
-#ifdef __GNUC__
+#if defined(__MSP430__) && defined(__GNUC__)
 extern int _end;		/* Not in sys/unistd.h */
 static char *cur_break = (char *)&_end;
 #endif
@@ -276,15 +226,13 @@ msp430_cpu_init(void)
   init_ports();
   msp430_quick_synch_dco();
   eint();
-#ifdef __GNUC__
+#if defined(__MSP430__) && defined(__GNUC__)
   if((uintptr_t)cur_break & 1) { /* Workaround for msp430-ld bug! */
     cur_break++;
   }
 #endif
 }
 /*---------------------------------------------------------------------------*/
-
-#define STACK_EXTRA 32
 
 /*---------------------------------------------------------------------------*/
 /*
@@ -308,17 +256,33 @@ splhigh_(void)
 /*
  * Restore previous interrupt mask.
  */
-void
-splx_(int sr)
-{
-#ifdef __IAR_SYSTEMS_ICC__
-  __bis_SR_register(sr);
-#else
-  /* If GIE was set, restore it. */
-  asmv("bis %0, r2" : : "r" (sr));
-#endif
-}
+/* void */
+/* splx_(int sr) */
+/* { */
+/* #ifdef __IAR_SYSTEMS_ICC__ */
+/*   __bis_SR_register(sr); */
+/* #else */
+/*   /\* If GIE was set, restore it. *\/ */
+/*   asmv("bis %0, r2" : : "r" (sr)); */
+/* #endif */
+/* } */
 /*---------------------------------------------------------------------------*/
+#ifdef __IAR_SYSTEMS_ICC__
+int __low_level_init(void)
+{
+  /* turn off watchdog so that C-init will run */
+  WDTCTL = WDTPW + WDTHOLD;
+  /*
+   * Return value:
+   *
+   *  1 - Perform data segment initialization.
+   *  0 - Skip data segment initialization.
+   */
+  return 1;
+}
+#endif
+/*---------------------------------------------------------------------------*/
+#if DCOSYNCH_CONF_ENABLED
 /* this code will always start the TimerB if not already started */
 void
 msp430_sync_dco(void) {
@@ -358,11 +322,12 @@ msp430_sync_dco(void) {
     if(DCOCTL == 0xFF) {              /* Did DCO role under? */
       BCSCTL1--;
     }
-  } else if (DELTA_2 > diff) {
+  } else if(DELTA_2 > diff) {
     DCOCTL++;
     if(DCOCTL == 0x00) {              /* Did DCO role over? */
       BCSCTL1++;
     }
   }
 }
+#endif /* DCOSYNCH_CONF_ENABLED */
 /*---------------------------------------------------------------------------*/
