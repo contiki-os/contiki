@@ -10,6 +10,8 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
+#include "models.h"
+
 /*
  * Define this as 1 to poll the etimer process from within main instead of from
  * the clock ISR. This reduces the ISR's stack usage and may prevent crashes.
@@ -111,21 +113,6 @@
 /* Low Power Modes - We only support PM0/Idle and PM1 */
 #ifndef LPM_CONF_MODE
 #define LPM_CONF_MODE         0 /* 0: no LPM, 1: MCU IDLE, 2: Drop to PM1 */
-#endif
-
-/* Some files include leds.h before us */
-#undef LEDS_GREEN
-#undef LEDS_YELLOW
-#undef LEDS_RED
-#define LEDS_YELLOW 4
-#if MODEL_CC2531
-#undef LEDS_CONF_ALL
-#define LEDS_CONF_ALL 3
-#define LEDS_RED    1
-#define LEDS_GREEN  2
-#else
-#define LEDS_GREEN  1
-#define LEDS_RED    2
 #endif
 
 /* DMA Configuration */
