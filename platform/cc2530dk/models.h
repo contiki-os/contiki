@@ -31,49 +31,69 @@
 
 /**
  * \file
- *         Platform-specific led driver for the TI SmartRF05 Eval. Board.
+ *         Header file use to configure differences between cc2530dk builds for
+ *         the SmartRF/cc2530 and the cc2531 USB stick.
+ *
+ *         These configuration directives are hardware-specific and you
+ *         normally won't have to modify them.
  *
  * \author
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
-#include "contiki-conf.h"
-#include "dev/leds.h"
-#include "dev/leds-arch.h"
-#include "cc253x.h"
+
+#ifndef __MODELS_H__
+#define __MODELS_H__
+
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
-{
+/* LEDs */
+/*---------------------------------------------------------------------------*/
+/* Some files include leds.h before us */
+#undef LEDS_GREEN
+#undef LEDS_YELLOW
+#undef LEDS_RED
+#define LEDS_YELLOW 4
+
+/*
+ * Smart RF LEDs
+ *  1: P1_0 (Green)
+ *  2: P1_1 (Red)
+ *  3: P1_4 (Yellow)
+ *  4: P0_1 (LED4 shares port/pin with B1 and is currently unused)
+ *
+ * USB Dongle LEDs
+ *  1: P0_0 (Red)
+ *  2: P1_1 (Green - active: low)
+ */
 #if MODEL_CC2531
-  P1SEL &= ~LED1_MASK;
-  P1DIR |= LED1_MASK;
-  P0SEL &= ~LED2_MASK;
-  P0DIR |= LED2_MASK;
+#undef LEDS_CONF_ALL
+#define LEDS_CONF_ALL 3
+#define LEDS_RED      1
+#define LEDS_GREEN    2
+
+/* H/W Connections */
+#define LED2_PIN   P0_0
+#define LED1_PIN   P1_1
+
+/* P0DIR and P0SEL masks */
+#define LED2_MASK  0x01
+#define LED1_MASK  0x02
 #else
-  P1SEL &= ~(LED1_MASK | LED2_MASK | LED3_MASK);
-  P1DIR |= (LED1_MASK | LED2_MASK | LED3_MASK);
+#define LEDS_GREEN    1
+#define LEDS_RED      2
+
+/* H/W Connections */
+#define LED1_PIN   P1_0
+#define LED2_PIN   P1_1
+#define LED3_PIN   P1_4
+
+/* P0DIR and P0SEL masks */
+#define LED1_MASK  0x01
+#define LED2_MASK  0x02
+#define LED3_MASK  0x10
+#define LED4_MASK  0x02
 #endif
-}
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-#if MODEL_CC2531
-  return (unsigned char) (LED1_PIN | ((LED2_PIN ^ 0x01) << 1));
-#else
-  return (unsigned char) (LED1_PIN | (LED2_PIN << 1) | (LED3_PIN << 2));
-#endif
-}
+/* Buttons */
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
-{
-  LED1_PIN = leds & 0x01;
-#if MODEL_CC2531
-  LED2_PIN = ((leds & 0x02) >> 1) ^ 0x01;
-#else
-  LED2_PIN = (leds & 0x02) >> 1;
-  LED3_PIN = (leds & 0x04) >> 2;
-#endif
-}
-/*---------------------------------------------------------------------------*/
+
+#endif /* __MODELS_H__ */
