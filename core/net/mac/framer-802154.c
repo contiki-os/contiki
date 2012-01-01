@@ -180,7 +180,7 @@ create(void)
     return len;
   } else {
     PRINTF("15.4-OUT: too large header: %u\n", len);
-    return 0;
+    return FRAMER_FAILED;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -197,7 +197,7 @@ parse(void)
          frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         PRINTF("15.4: for another pan %u\n", frame.dest_pid);
-        return 0;
+        return FRAMER_FAILED;
       }
       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
         packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (rimeaddr_t *)&frame.dest_addr);
@@ -215,7 +215,7 @@ parse(void)
 
     return len - frame.payload_len;
   }
-  return 0;
+  return FRAMER_FAILED;
 }
 /*---------------------------------------------------------------------------*/
 const struct framer framer_802154 = {

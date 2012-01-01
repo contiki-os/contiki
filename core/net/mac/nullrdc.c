@@ -109,7 +109,7 @@ send_packet(mac_callback_t sent, void *ptr)
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 #endif /* NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW */
 
-  if(NETSTACK_FRAMER.create() == 0) {
+  if(NETSTACK_FRAMER.create() < 0) {
     /* Failed to allocate space for headers */
     PRINTF("nullrdc: send failed, too large header\n");
     ret = MAC_TX_ERR_FATAL;
@@ -220,7 +220,7 @@ packet_input(void)
     /* PRINTF("nullrdc: ignored ack\n"); */
   } else
 #endif /* NULLRDC_802154_AUTOACK */
-  if(NETSTACK_FRAMER.parse() == 0) {
+  if(NETSTACK_FRAMER.parse() < 0) {
     PRINTF("nullrdc: failed to parse %u\n", packetbuf_datalen());
 #if NULLRDC_ADDRESS_FILTER
   } else if(!rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),

@@ -550,7 +550,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
   
   /* Create the MAC header for the data packet. */
   hdrlen = NETSTACK_FRAMER.create();
-  if(hdrlen == 0) {
+  if(hdrlen < 0) {
     /* Failed to send */
     PRINTF("contikimac: send failed, too large header\n");
     packetbuf_hdr_remove(sizeof(struct hdr));
@@ -560,7 +560,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
 #else
   /* Create the MAC header for the data packet. */
   hdrlen = NETSTACK_FRAMER.create();
-  if(hdrlen == 0) {
+  if(hdrlen < 0) {
     /* Failed to send */
     PRINTF("contikimac: send failed, too large header\n");
     return MAC_TX_ERR_FATAL;
@@ -877,7 +877,7 @@ input_packet(void)
 
   /*  printf("cycle_start 0x%02x 0x%02x\n", cycle_start, cycle_start % CYCLE_TIME);*/
   
-  if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse()) {
+  if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse() >= 0) {
 
 #if WITH_CONTIKIMAC_HEADER
     struct hdr *chdr;

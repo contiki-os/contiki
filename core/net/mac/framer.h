@@ -42,6 +42,8 @@
 #ifndef __FRAMER_H__
 #define __FRAMER_H__
 
+#define FRAMER_FAILED -1
+
 struct framer {
 
   int (* create)(void);
