@@ -72,6 +72,11 @@ u16_t tmp102_read_temp_raw();
 */
 int8_t tmp102_read_temp_simple();
 
+/* Read only integer part of the temperature in 1deg. precision.
+    no args needed
+*/
+int16_t tmp102_read_temp_x100();
+
 /* -------------------------------------------------------------------------- */
 /* Reference definitions */
 /* TMP102 slave address */
