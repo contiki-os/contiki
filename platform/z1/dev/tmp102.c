@@ -160,13 +160,8 @@ tmp102_read_temp_raw (void)
   return rd;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Simple Read temperature. Return is an integer with temperature in 1deg. precision 
-   Return value is a signed 8 bit integer.
-*/
-
-int8_t
-tmp102_read_temp_simple (void)
+int16_t
+tmp102_read_temp_x100(void)
 {
   int16_t raw = 0;
   int8_t rd = 0;
@@ -181,9 +176,10 @@ tmp102_read_temp_simple (void)
     abstemp = raw;
   }
 
-  /* Integer part of the temperature value */
-  temp_int = (abstemp >> 8) * sign;
-
+  /* Integer part of the temperature value and percents*/
+  temp_int = (abstemp >> 8) * sign * 100;
+  temp_int += ((abstemp & 0xff) * 100) / 0x100;
+  
   /* See test-tmp102.c on how to print values of temperature with decimals 
      fractional part in 1/10000 of degree 
      temp_frac = ((abstemp >>4) % 16) * 625; 
@@ -191,6 +187,16 @@ tmp102_read_temp_simple (void)
      Data could be multiplied by 64 (<< 6) to trade-off precision for speed 
   */
 
-  rd = (int8_t) (temp_int);
-  return rd;
+  return temp_int;
+}
+
+/*---------------------------------------------------------------------------*/
+/* Simple Read temperature. Return is an integer with temperature in 1deg. precision 
+   Return value is a signed 8 bit integer.
+*/
+
+int8_t
+tmp102_read_temp_simple (void)
+{
+  return (int8_t) tmp102_read_temp_x100() / 100;
 }
