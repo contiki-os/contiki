@@ -147,14 +147,14 @@ main(int argc, char **argv)
   while(1) {
     fd_set fdr;
     fd_set fdw;
-    int n;
     int maxfd;
+    int retval;
     struct timeval tv;
     
-    n = process_run();
+    process_run();
 
     tv.tv_sec = 0;
-    tv.tv_usec = 1;
+    tv.tv_usec = 1000;
 
     FD_ZERO(&fdr);
     FD_ZERO(&fdw);
@@ -164,9 +164,10 @@ main(int argc, char **argv)
 #ifdef SELECT_CALLBACK
     maxfd = SELECT_CALLBACK->set_fd(maxfd, &fdr, &fdw);
 #endif
-    if(select(maxfd + 1, &fdr, &fdw, NULL, &tv) < 0) {
+    if((retval = select(maxfd + 1, &fdr, &fdw, NULL, &tv)) < 0) {
       perror("select");
-    } else {
+    } else if(retval > 0) {
+      /* timeout => retval == 0 */
       if(FD_ISSET(STDIN_FILENO, &fdr)) {
 	char c;
 	if(read(STDIN_FILENO, &c, 1) > 0) {
