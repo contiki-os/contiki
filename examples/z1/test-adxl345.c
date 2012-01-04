@@ -43,7 +43,10 @@
 #include <stdio.h>
 #include "contiki.h"
 #include "serial-shell.h"
-#include "adxl345.h"
+#include "shell-ps.h"
+#include "shell-file.h"
+#include "shell-text.h"
+#include "dev/adxl345.h"
 
 #define LED_INT_ONTIME        CLOCK_SECOND/2
 #define ACCM_READ_INTERVAL    CLOCK_SECOND
@@ -176,8 +179,8 @@ PROCESS_THREAD(accel_process, ev, data) {
     accm_init();
 
     /* Register the callback functions for each interrupt */
-    ACCM_REGISTER_INT1_CB((void *)accm_ff_cb);
-    ACCM_REGISTER_INT2_CB((void *)accm_tap_cb);
+    ACCM_REGISTER_INT1_CB(accm_ff_cb);
+    ACCM_REGISTER_INT2_CB(accm_tap_cb);
 
     /* Set what strikes the corresponding interrupts. Several interrupts per pin is 
       possible. For the eight possible interrupts, see adxl345.h and adxl345 datasheet. */
