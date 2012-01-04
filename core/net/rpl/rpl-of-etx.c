@@ -137,27 +137,15 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
 static rpl_dag_t *
 best_dag(rpl_dag_t *d1, rpl_dag_t *d2)
 {
-  if(d1->grounded) {
-    if (!d2->grounded) {
-      return d1;
-    }
-  } else if(d2->grounded) {
-    return d2;
+  if(d1->grounded != d2->grounded) {
+    return d1->grounded ? d1 : d2;
   }
 
-  if(d1->preference < d2->preference) {
-    return d2;
-  } else {
-    if(d1->preference > d2->preference) {
-      return d1;
-    }
+  if(d1->preference != d2->preference) {
+    return d1->preference > d2->preference ? d1 : d2;
   }
 
-  if(d2->rank < d1->rank) {
-    return d2;
-  } else {
-    return d1;
-  }
+  return d1->rank < d2->rank ? d1 : d2;
 }
 
 static rpl_parent_t *
