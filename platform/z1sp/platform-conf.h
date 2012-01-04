@@ -65,6 +65,28 @@
 #define MSP430_MEMCPY_WORKAROUND 1
 #include "msp430def.h"
 
+/* XXX Temporary place for defines that are lacking in mspgcc4's gpio.h */
+#ifdef __IAR_SYSTEMS_ICC__
+#ifndef P1SEL2_
+#define P1SEL2_              (0x0041u)  /* Port 1 Selection 2*/
+DEFC(   P1SEL2             , P1SEL2_)
+#endif
+#ifndef P5SEL2_
+#define P5SEL2_              (0x0045u)  /* Port 5 Selection 2*/
+DEFC(   P5SEL2             , P5SEL2_)
+#endif
+#else /* __IAR_SYSTEMS_ICC__ */
+#ifdef __GNUC__
+#ifndef P1SEL2_
+  #define P1SEL2_             0x0041  /* Port 1 Selection 2*/
+  sfrb(P1SEL2, P1SEL2_);
+#endif
+#ifndef P5SEL2_
+  #define P5SEL2_             0x0045  /* Port 5 Selection 2*/
+  sfrb(P5SEL2, P5SEL2_);
+#endif
+#endif /* __GNUC__ */
+#endif /* __IAR_SYSTEMS_ICC__ */
 
 /* Types for clocks and uip_stats */
 typedef unsigned short uip_stats_t;
