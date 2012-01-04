@@ -55,7 +55,7 @@
 /*---------------------------------------------------------------------------*/
 /** \brief Is IPv6 address addr the link-local, all-RPL-nodes
     multicast address? */
-#define uip_is_addr_linklocal_rplnodes_mcast(a)		    \
+#define uip_is_addr_linklocal_rplnodes_mcast(addr)	    \
   ((addr)->u8[0] == 0xff) &&				    \
   ((addr)->u8[1] == 0x02) &&				    \
   ((addr)->u16[1] == 0) &&				    \
