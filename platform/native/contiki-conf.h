@@ -48,6 +48,7 @@ struct select_callback {
 #define CC_CONF_VA_ARGS                1
 /*#define CC_CONF_INLINE                 inline*/
 
+
 #define CCIF
 #define CLIF
 
@@ -66,6 +67,10 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_TCP_SPLIT       0
 #define UIP_CONF_LOGGING         0
 #define UIP_CONF_UDP_CHECKSUMS   1
+
+#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
+#endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
 
 #if UIP_CONF_IPV6
 

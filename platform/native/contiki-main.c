@@ -61,7 +61,7 @@ PROCINIT(&etimer_process, &tcpip_process);
 SENSORS(&pir_sensor, &vib_sensor, &button_sensor);
 
 static uint8_t serial_id[] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
-
+static uint16_t node_id = 0x0102;
 /*---------------------------------------------------------------------------*/
 static void
 set_rime_addr(void)
@@ -98,7 +98,7 @@ char **contiki_argv;
 int
 main(int argc, char **argv)
 {
-  printf("Starting Contiki: IPV6:%d \n", UIP_CONF_IPV6);
+  printf("Starting Contiki:\n", UIP_CONF_IPV6);
 
   /* crappy way of remembering and accessing argc/v */
   contiki_argc = argc;
