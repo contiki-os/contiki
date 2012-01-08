@@ -156,6 +156,9 @@ slip_input_callback(void)
 static void
 init(void)
 {
+#ifndef BAUD2UBR
+#define BAUD2UBR(baud) baud
+#endif
   slip_arch_init(BAUD2UBR(115200));
   process_start(&slip_process, NULL);
   slip_set_input_callback(slip_input_callback);

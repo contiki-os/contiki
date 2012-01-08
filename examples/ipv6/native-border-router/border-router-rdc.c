@@ -75,7 +75,7 @@ void packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
     packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
     mac_call_sent_callback(callback->cback, callback->ptr, status, tx);
   } else {
-    printf("*** ERROR: too high session id %d\n", sessionid);
+    PRINTF("*** ERROR: too high session id %d\n", sessionid);
   }
 }
 /*---------------------------------------------------------------------------*/

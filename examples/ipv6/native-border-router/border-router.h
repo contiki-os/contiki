@@ -39,6 +39,7 @@
 
 #include "contiki.h"
 #include "net/uip.h"
+#include <stdio.h>
 
 int border_router_cmd_handler(const uint8_t *data, int len);
 int slip_config_handle_arguments(int argc, char **argv);
