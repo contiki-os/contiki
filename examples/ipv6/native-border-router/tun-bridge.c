@@ -74,9 +74,6 @@ extern uint16_t slip_config_basedelay;
 static int tunfd;
 static int initialized = 0;
 
-static uint16_t delaymsec=0;
-static uint32_t delaystartsec,delaystartmsec;
-
 int ssystem(const char *fmt, ...)
      __attribute__((__format__ (__printf__, 1, 2)));
 int
@@ -175,6 +172,24 @@ tun_alloc(char *dev)
   return devopen(dev, O_RDWR);
 }
 #endif
+
+#ifdef __CYGWIN__
+/*wpcap process is used to connect to host interface */
+void
+tun_init()
+{
+  setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
+
+  slip_init();
+
+  initialized = 1;
+}
+
+#else
+
+static uint16_t delaymsec=0;
+static uint32_t delaystartsec,delaystartmsec;
+
 /*---------------------------------------------------------------------------*/
 void
 tun_init()
@@ -235,6 +250,9 @@ output(void)
 const struct uip_fallback_interface rpl_interface = {
   init, output
 };
+
+#endif /*  __CYGWIN_ */
+
 /*---------------------------------------------------------------------------*/
 /* tun and slip select callback                                              */
 /*---------------------------------------------------------------------------*/
@@ -259,6 +277,10 @@ handle_fd(fd_set *rset, fd_set *wset)
   if(!initialized) return;
 
   slip_handle_fd(rset, wset);
+  
+#ifdef __CYGWIN__
+/* Packets from host interface are handled by wpcap process */
+#else
 
   /* Optional delay between outgoing packets */
   /* Base delay times number of 6lowpan fragments to be sent */
@@ -290,6 +312,7 @@ handle_fd(fd_set *rset, fd_set *wset)
       }
     }
   }
+#endif /* __CYGWIN__ */
 }
 
 /*---------------------------------------------------------------------------*/

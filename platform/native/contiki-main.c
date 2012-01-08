@@ -38,6 +38,10 @@
 #include <unistd.h>
 #include <sys/select.h>
 
+#ifdef __CYGWIN__
+#include "net/wpcap-drv.h"
+#endif /* __CYGWIN__ */
+
 #include "contiki.h"
 #include "net/netstack.h"
 
@@ -98,7 +102,15 @@ char **contiki_argv;
 int
 main(int argc, char **argv)
 {
-  printf("Starting Contiki:\n", UIP_CONF_IPV6);
+#if UIP_CONF_IPV6
+#if UIP_CONF_IPV6_RPL
+  printf("Starting Contiki IPV6, RPL\n");
+#else
+  printf("Starting Contiki IPV6\n");
+#endif
+#else
+  printf("Starting Contiki IPV4\n");
+#endif
 
   /* crappy way of remembering and accessing argc/v */
   contiki_argc = argc;
@@ -113,7 +125,9 @@ main(int argc, char **argv)
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
 
   process_start(&tcpip_process, NULL);
-
+#ifdef __CYGWIN__
+  process_start(&wpcap_process, NULL);
+#endif
   printf("Tentative link-local IPv6 address ");
   {
     uip_ds6_addr_t *lladdr;
