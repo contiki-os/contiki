@@ -13,6 +13,19 @@ CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c leds.c leds-arch.c \
                 button-sensor.c pir-sensor.c vib-sensor.c xmem.c \
                 sensors.c irq.c cfs-posix.c cfs-posix-dir.c
 
+ifeq ($(OS),Windows_NT)
+CONTIKI_TARGET_SOURCEFILES += wpcap-drv.c wpcap.c
+TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
+else
+CONTIKI_TARGET_SOURCEFILES += tapdev-drv.c
+#math
+ifndef UIP_CONF_IPV6
+CONTIKI_TARGET_SOURCEFILES += tapdev.c
+else
+CONTIKI_TARGET_SOURCEFILES += tapdev6.c
+endif
+endif
+
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
 .SUFFIXES:

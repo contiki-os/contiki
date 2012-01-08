@@ -269,7 +269,11 @@ write_to_serial(int outfd, const uint8_t *inbuf, int len)
   int i;
 
   if(slip_config_verbose > 2) {
+#ifdef __CYGWIN__
+    printf("Packet from WPCAP of length %d - write SLIP\n", len);
+#else
     printf("Packet from TUN of length %d - write SLIP\n", len);
+#endif
     if(slip_config_verbose > 4) {
 #if WIRESHARK_IMPORT_FORMAT
       printf("0000");
