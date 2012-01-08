@@ -117,7 +117,7 @@ slip_config_handle_arguments(int argc, char **argv)
 fprintf(stderr,"usage:  %s [options] ipaddress\n", prog);
 fprintf(stderr,"example: border-router.native -L -v2 -s ttyUSB1 aaaa::1/64\n");
 fprintf(stderr,"Options are:\n");
-fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default)\n");
+fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200,921600 (default 115200)\n");
 fprintf(stderr," -H             Hardware CTS/RTS flow control (default disabled)\n");
 fprintf(stderr," -L             Log output format (adds time stamps)\n");
 fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
@@ -162,6 +162,9 @@ exit(1);
     break;
   case 115200:
     slip_config_b_rate = B115200;
+    break;
+  case 921600:
+    slip_config_b_rate = B921600;
     break;
   default:
     err(1, "unknown baudrate %d", baudrate);
