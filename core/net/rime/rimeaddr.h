@@ -134,7 +134,7 @@ int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
 #else
 extern inline int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
 {
-	return memcmp((char *)addr1, (char *)addr2, RIMEADDR_SIZE);
+	return !memcmp((char *)addr1, (char *)addr2, RIMEADDR_SIZE);
 }
 #endif
 
