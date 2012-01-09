@@ -61,6 +61,7 @@
 #include "net/packetbuf.h"
 #include "net/rime/announcement.h"
 #include "sys/compower.h"
+#include "net/mac/framer.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -437,7 +438,7 @@ send_probe(void)
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
   {
     int hdrlen = NETSTACK_FRAMER.create();
-    if(hdrlen == 0) {
+    if(hdrlen < 0) {
       /* Failed to send */
       return;
     }
@@ -651,7 +652,7 @@ send_packet(mac_callback_t sent, void *ptr)
 
   {
     int hdrlen = NETSTACK_FRAMER.create();
-    if(hdrlen == 0) {
+    if(hdrlen < 0) {
       /* Failed to send */
       mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 0);
       return;
@@ -783,7 +784,7 @@ input_packet(void)
 
   reception_time = clock_time();
 
-  if(!NETSTACK_FRAMER.parse()) {
+  if(NETSTACK_FRAMER.parse() < 0) {
     printf("lpp input_packet framer error\n");
   }
 

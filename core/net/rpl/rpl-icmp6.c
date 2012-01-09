@@ -159,7 +159,7 @@ dis_input(void)
 #else /* !RPL_LEAF_ONLY */
       if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
         PRINTF("RPL: Multicast DIS => reset DIO timer\n");
-        rpl_reset_dio_timer(instance, 0);
+        rpl_reset_dio_timer(instance);
       } else {
 #endif /* !RPL_LEAF_ONLY */
         PRINTF("RPL: Unicast DIS, reply to sender\n");

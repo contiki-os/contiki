@@ -29,7 +29,11 @@
 
 /**
  * \file
- *	Main functions for Antelope.
+ *	Main functions for Antelope, a DBMS for sensor devices.
+ *
+ *      Antelope is described and evaluated in the paper A Database in
+ *      Every Sensor, N. Tsiftes and A. Dunkels, in Proceedings of
+ *      ACM SenSys 2011.
  * \author
  * 	Nicolas Tsiftes <nvt@sics.se>
  */

@@ -42,22 +42,22 @@
 #include "dev/temperature-sensor.h"
 
 /*---------------------------------------------------------------------------*/
-static unsigned int
+static int
 value(int type)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,

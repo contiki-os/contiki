@@ -13,22 +13,22 @@ pir_sensor_changed(int strength)
   sensors_changed(&pir_sensor);
 }
 /*---------------------------------------------------------------------------*/
-static unsigned int
+static int
 value(int type)
 {
   return pir_value;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(pir_sensor, PIR_SENSOR,

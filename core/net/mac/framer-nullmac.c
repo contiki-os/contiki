@@ -69,7 +69,7 @@ create(void)
     return sizeof(struct nullmac_hdr);
   }
   PRINTF("PNULLMAC-UT: too large header: %u\n", len);
-  return 0;
+  return FRAMER_FAILED;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -88,7 +88,7 @@ parse(void)
 
     return sizeof(struct nullmac_hdr);
   }
-  return 0;
+  return FRAMER_FAILED;
 }
 /*---------------------------------------------------------------------------*/
 const struct framer framer_nullmac = {

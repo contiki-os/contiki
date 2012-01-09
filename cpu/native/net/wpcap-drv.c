@@ -36,9 +36,31 @@
 #include "net/wpcap.h"
 
 #include "net/wpcap-drv.h"
+#include <string.h>
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 #define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+
+/* It is not particularly easy to install tun interfaces in Windows/cygwin, so wpcap
+ * is used instead. The ip4 or ip6 address of the interface to connect to is passed
+ * on the command line that invokes the minimal-net and native executables.
+ *
+ * The minimal-net border router uses wpcap to connect to both primary
+ * and fallback interfaces. It is passed two addresses, and the uip stack is compiled
+ * with space for the ethernet headers on both interfaces.
+ *
+ * However the native border router uses wpcap to connect to a fallback interface only.
+ * The primary interface is the serial connection to the slip radio, and the
+ * uip stack is compiled without space for ethernet headers.
+ * The following define adds or strips ethernet headers from the fallback interface.
+ * Since it is at present used only with the native border router, it is also used
+ * as a hack to bypass polling of the primary interface.
+ *
+ * SELECT_CALLBACK is defined in /examples/ipv6/native-border-router/project-conf.h
+ */
+#ifdef SELECT_CALLBACK
+#define FALLBACK_HAS_ETHERNET_HEADERS  1
+#endif
 
 PROCESS(wpcap_process, "WinPcap driver");
 
@@ -57,12 +79,14 @@ wpcap_output(void)
 static void
 pollhandler(void)
 {
+#if !FALLBACK_HAS_ETHERNET_HEADERS //native br is fallback only
   process_poll(&wpcap_process);
   uip_len = wpcap_poll();
 
   if(uip_len > 0) {
 #if UIP_CONF_IPV6
     if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
+      printf("wpcap poll calls tcpip");
       tcpip_input();
     } else
 #endif /* UIP_CONF_IPV6 */
@@ -83,14 +107,26 @@ pollhandler(void)
       uip_len = 0;
     }
   }
-
+#endif
 #ifdef UIP_FALLBACK_INTERFACE
 
   process_poll(&wpcap_process);
   uip_len = wfall_poll();
 
   if(uip_len > 0) {
-#if UIP_CONF_IPV6
+#if FALLBACK_HAS_ETHERNET_HEADERS
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
+	//remove ethernet header and pass ipv6 packet to stack
+	uip_len-=14;
+//{int i;printf("\n0000 ");for (i=0;i<uip_len;i++) printf("%02x ",*(unsigned char*)(uip_buf+i));printf("\n");}
+ //   memcpy(uip_buf, uip_buf+14, uip_len);
+        memcpy(&uip_buf[UIP_LLH_LEN], uip_buf+14, uip_len);  //LLH_LEN is zero for native border router to slip radio
+//	CopyMemory(uip_buf, uip_buf+14, uip_len);
+//{int i;printf("\n0000 ");for (i=0;i<uip_len;i++) printf("%02x ",*(char*)(uip_buf+i));printf("\n");}	
+      tcpip_input();
+    } else
+	 goto bail;
+#elif UIP_CONF_IPV6
     if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
       tcpip_input();
     } else
@@ -129,7 +165,9 @@ PROCESS_THREAD(wpcap_process, ev, data)
 #if !UIP_CONF_IPV6
   tcpip_set_outputfunc(wpcap_output);
 #else
+#if !FALLBACK_HAS_ETHERNET_HEADERS
   tcpip_set_outputfunc(wpcap_send);
+#endif
 #endif /* !UIP_CONF_IPV6 */
 
   process_poll(&wpcap_process);
