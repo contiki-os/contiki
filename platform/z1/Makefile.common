@@ -7,7 +7,7 @@ CFLAGS+=-Os -g
 endif
 
 ifdef IAR
-CFLAGS+=-e --vla -Ohz --multiplier=16s --core=430X --double=32
+CFLAGS += -D__MSP430F2617__=1 -e --vla -Ohz --multiplier=16s --core=430X --double=32
 endif
 
 CLEAN += symbols.c symbols.h
