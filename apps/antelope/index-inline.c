@@ -32,8 +32,8 @@
  *	A binary search index for attributes that are constrained to be 
  *      monotonically increasing, which is a rather common pattern for
  *      time series or keys. Since this index has no storage overhead,
- *      it does not wear out the flash memory nor does it occupy scarce
- *      scarce space. Furthermore, unlike B+-trees, it has a O(1) memory
+ *      it does not wear out the flash memory nor does it occupy any
+ *      space. Furthermore, unlike B+-trees, it has a O(1) memory
  *      footprint in relation to the number of data items.
  * \author
  * 	Nicolas Tsiftes <nvt@sics.se>
@@ -85,13 +85,8 @@ index_api_t index_inline = {
 static attribute_value_t *
 get_value(tuple_id_t *index, relation_t *rel, attribute_t *attr)
 {
-  unsigned char *row;
+  unsigned char row[rel->row_length];
   static attribute_value_t value;
-
-  row = alloca(rel->row_length);
-  if(row == NULL) {
-    return NULL;
-  }
 
   if(DB_ERROR(storage_get_row(rel, index, row))) {
     return NULL;
@@ -142,7 +137,8 @@ binary_search(index_iterator_t *index_iterator,
     } else {
       max = center - 1;
     }
-  } while(min <= max && db_value_to_long(target_value) != db_value_to_long(cmp_value));
+  } while(min <= max &&
+          db_value_to_long(target_value) != db_value_to_long(cmp_value));
 
   if(exact_match &&
      db_value_to_long(target_value) != db_value_to_long(cmp_value)) {
