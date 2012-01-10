@@ -50,7 +50,8 @@
 #define ETX_ALPHA		90
 #define ETX_NOACK_PENALTY       ETX_LIMIT
 /*---------------------------------------------------------------------------*/
-NEIGHBOR_ATTRIBUTE(link_metric_t, etx, NULL);
+NEIGHBOR_ATTRIBUTE_GLOBAL(link_metric_t, attr_etx, NULL);
+NEIGHBOR_ATTRIBUTE_GLOBAL(unsigned long, attr_timestamp, NULL);
 
 static neighbor_info_subscriber_t subscriber_callback;
 /*---------------------------------------------------------------------------*/
@@ -59,8 +60,9 @@ update_metric(const rimeaddr_t *dest, int packet_metric)
 {
   link_metric_t *metricp;
   link_metric_t recorded_metric, new_metric;
+  unsigned long time;
 
-  metricp = (link_metric_t *)neighbor_attr_get_data(&etx, dest);
+  metricp = (link_metric_t *)neighbor_attr_get_data(&attr_etx, dest);
   packet_metric = NEIGHBOR_INFO_ETX2FIX(packet_metric);
   if(metricp == NULL || *metricp == 0) {
     recorded_metric = NEIGHBOR_INFO_ETX2FIX(ETX_LIMIT);
@@ -79,7 +81,9 @@ update_metric(const rimeaddr_t *dest, int packet_metric)
          dest->u8[7]);
 
   if(neighbor_attr_has_neighbor(dest)) {
-    neighbor_attr_set_data(&etx, dest, &new_metric);
+    time = clock_seconds();
+    neighbor_attr_set_data(&attr_etx, dest, &new_metric);
+    neighbor_attr_set_data(&attr_timestamp, dest, &time);
     if(new_metric != recorded_metric && subscriber_callback != NULL) {
       subscriber_callback(dest, 1, new_metric);
     }
@@ -168,7 +172,8 @@ int
 neighbor_info_subscribe(neighbor_info_subscriber_t s)
 {
   if(subscriber_callback == NULL) {
-    neighbor_attr_register(&etx);
+    neighbor_attr_register(&attr_etx);
+    neighbor_attr_register(&attr_timestamp);
     subscriber_callback = s;
     return 1;
   }
@@ -181,7 +186,7 @@ neighbor_info_get_metric(const rimeaddr_t *addr)
 {
   link_metric_t *metricp;
 
-  metricp = (link_metric_t *)neighbor_attr_get_data(&etx, addr);
+  metricp = (link_metric_t *)neighbor_attr_get_data(&attr_etx, addr);
   return metricp == NULL ? ETX_LIMIT : *metricp;
 }
 /*---------------------------------------------------------------------------*/
