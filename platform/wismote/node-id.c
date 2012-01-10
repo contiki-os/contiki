@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,45 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * $Id: node-id.c,v 1.1 2007/03/23 09:59:08 nifi Exp $
  */
 
 /**
  * \file
- *         A leds implementation for the sentilla usb platform
+ *         Utility to store a node id in the external flash
  * \author
  *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  */
 
+#include "node-id.h"
 #include "contiki-conf.h"
-#include "dev/leds.h"
+#include "dev/xmem.h"
+
+unsigned short node_id = 0;
 
 /*---------------------------------------------------------------------------*/
 void
-leds_arch_init(void)
+node_id_restore(void)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
-}
-/*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+  /* unsigned char buf[4]; */
+  /* xmem_pread(buf, 4, NODE_ID_XMEM_OFFSET); */
+  /* if(buf[0] == 0xad && */
+  /*    buf[1] == 0xde) { */
+  /*   node_id = (buf[2] << 8) | buf[3]; */
+  /* } else { */
+    node_id = 0;
+  /* } */
 }
 /*---------------------------------------------------------------------------*/
 void
-leds_arch_set(unsigned char leds)
+node_id_burn(unsigned short id)
 {
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  /* unsigned char buf[4]; */
+  /* buf[0] = 0xad; */
+  /* buf[1] = 0xde; */
+  /* buf[2] = id >> 8; */
+  /* buf[3] = id & 0xff; */
+  //xmem_erase(XMEM_ERASE_UNIT_SIZE, NODE_ID_XMEM_OFFSET);
+  //xmem_pwrite(buf, 4, NODE_ID_XMEM_OFFSET);
 }
 /*---------------------------------------------------------------------------*/

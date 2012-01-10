@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,82 +28,50 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
  */
 
 /**
  * \file
- *         MSP430-specific rtimer code
+ *	Coffee architecture-dependent header for the Tmote Sky platform.
  * \author
- *         Adam Dunkels <adam@sics.se>
+ * 	Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include "contiki.h"
+#ifndef CFS_COFFEE_ARCH_H
+#define CFS_COFFEE_ARCH_H
 
-#include "sys/energest.h"
-#include "sys/rtimer.h"
-#include "sys/process.h"
+#include "contiki-conf.h"
+#include "dev/xmem.h"
 #include "dev/watchdog.h"
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+/* Coffee configuration parameters. */
+#define COFFEE_SECTOR_SIZE		65536UL
+#define COFFEE_PAGE_SIZE		256UL
+#define COFFEE_START			COFFEE_SECTOR_SIZE
+#define COFFEE_SIZE			(1024UL * 1024UL - COFFEE_START)
+#define COFFEE_NAME_LENGTH		16
+#define COFFEE_MAX_OPEN_FILES		6
+#define COFFEE_FD_SET_SIZE		8
+#define COFFEE_LOG_TABLE_LIMIT		256
+#define COFFEE_DYN_SIZE			4*1024
+#define COFFEE_LOG_SIZE			1024
 
-/*---------------------------------------------------------------------------*/
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMERA0_VECTOR
-__interrupt void
-#else
-interrupt(TIMERA0_VECTOR)
-#endif
-timera0 (void) {
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+#define COFFEE_MICRO_LOGS		1
 
-  watchdog_start();
+#define COFFEE_WATCHDOG_START()		watchdog_start()
+#define COFFEE_WATCHDOG_STOP()		watchdog_stop()
 
-  rtimer_run_next();
+/* Flash operations. */
+#define COFFEE_WRITE(buf, size, offset)				\
+		xmem_pwrite((char *)(buf), (size), COFFEE_START + (offset))
 
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
-  }
+#define COFFEE_READ(buf, size, offset)				\
+  		xmem_pread((char *)(buf), (size), COFFEE_START + (offset))
 
-  watchdog_stop();
+#define COFFEE_ERASE(sector)					\
+  		xmem_erase(COFFEE_SECTOR_SIZE, COFFEE_START + (sector) * COFFEE_SECTOR_SIZE)
 
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
-{
-  dint();
+/* Coffee types. */
+typedef int16_t coffee_page_t;
 
-  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
-  TACCTL0 = CCIE;
-
-  /* Enable interrupts. */
-  eint();
-}
-/*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
-{
-  rtimer_clock_t t1, t2;
-  do {
-    t1 = TAR;
-    t2 = TAR;
-  } while(t1 != t2);
-  return t1;
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_schedule(rtimer_clock_t t)
-{
-  PRINTF("rtimer_arch_schedule time %u\n", t);
-
-  TACCR0 = t;
-}
-/*---------------------------------------------------------------------------*/
+#endif /* !COFFEE_ARCH_H */

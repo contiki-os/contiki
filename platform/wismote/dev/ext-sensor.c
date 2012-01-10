@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,44 +26,79 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ * -----------------------------------------------------------------
  *
+ * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Marcus Lundén,
+ *           Jesper Karlsson
+ * Created : 2005-11-01
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- */
+#include "contiki.h"
+#include "dev/ext-sensor.h"
+#include "dev/sky-sensors.h"
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
-
+const struct sensors_sensor ext_sensor;
+static uint8_t active;
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
+static int
+value(int type)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+  /* ADC0 corresponds to the port under the logo, ADC1 to the port over the logo,
+     ADC2 and ADC3 corresponds to port on the JCreate bottom expansion port)
+  switch(type) {
+    case ADC0:
+      return ADC12MEM6;
+    case ADC1:
+      return ADC12MEM7;
+    case ADC2:
+      return ADC12MEM8;
+    case ADC3:
+      return ADC12MEM9;
+  }*/
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
+static int
+status(int type)
 {
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return active;
+  default:
+    return 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
+static int
+configure(int type, int c)
 {
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  switch(type) {
+    case SENSORS_ACTIVE:
+      if(c) {
+        if(!status(SENSORS_ACTIVE)) {
+          /* SREF_1 is Vref+
+          /* MemReg6 == P6.0/A0 == port "under" logo
+          ADC12MCTL6 = (INCH_0 + SREF_0);
+          /* MemReg7 == P6.1/A1 == port "over" logo
+          ADC12MCTL7 = (INCH_1 + SREF_0);
+          /* MemReg8 == P6.2/A2, bottom expansion port
+          ADC12MCTL8 = (INCH_2 + SREF_0);
+          /* MemReg9 == P6.1/A3, bottom expansion port, End Of (ADC-)Sequence
+          ADC12MCTL9 = (INCH_3 + SREF_0);
+	*/
+          sky_sensors_activate(0x0F);
+          active = 1;
+        }
+      } else {
+        sky_sensors_deactivate(0x0F);
+        active = 0;
+      }
+      return 1;
+  default:
+    return 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(ext_sensor, "Ext",
+         value, configure, status);

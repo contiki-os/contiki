@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,44 +26,71 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ * $Id: battery-sensor.c,v 1.10 2010/02/03 20:30:07 nifi Exp $
  *
+ * -----------------------------------------------------------------
+ *
+ * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
+ * Created : 2005-11-01
+ * Updated : $Date: 2010/02/03 20:30:07 $
+ *           $Revision: 1.10 $
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- */
+#include "dev/battery-sensor.h"
+#include "dev/sky-sensors.h"
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
+const struct sensors_sensor battery_sensor;
+static uint8_t active;
+/*---------------------------------------------------------------------------*/
+static void
+activate(void)
+{
+  /* Configure ADC12_2 to sample channel 11 (voltage) and use */
+  /* the Vref+ as reference (SREF_1) since it is a stable reference */
+//  ADC12MCTL2 = (INCH_11 + SREF_1);
 
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
-{
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+//  sky_sensors_activate(0x80);
+
+  active = 1;
 }
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
+static void
+deactivate(void)
 {
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+//  sky_sensors_deactivate(0x80);
+  active = 0;
 }
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
+static int
+value(int type)
 {
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  return 0;//ADC12MEM2/*battery_value*/;
 }
 /*---------------------------------------------------------------------------*/
+static int
+configure(int type, int c)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+    if(c) {
+      activate();
+    } else {
+      deactivate();
+    }
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return active;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(battery_sensor, BATTERY_SENSOR,
+	       value, configure, status);

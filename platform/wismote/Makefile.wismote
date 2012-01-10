@@ -1,0 +1,55 @@
+CONTIKI_TARGET_SOURCEFILES += contiki-wismote-platform.c \
+	sht11.c sht11-sensor.c light-sensor.c battery-sensor.c \
+	button-sensor.c radio-sensor.c
+
+#ARCH=spi.c ds2411.c xmem.c i2c.c node-id.c sensors.c cfs-coffee.c \
+     cc2520.c cc2520-arch.c cc2520-arch-sfd.c \
+     sky-sensors.c uip-ipchksum.c \
+     checkpoint-arch.c uart1.c slip_uart1.c uart1-putchar.c
+
+ARCH=spi.c i2c.c node-id.c sensors.c cfs-coffee.c sht15.c \
+     cc2520.c cc2520-arch.c cc2520-arch-sfd.c \
+     sky-sensors.c uip-ipchksum.c \
+     checkpoint-arch.c uart1.c slip_uart1.c uart1-putchar.c
+
+
+CONTIKI_TARGET_DIRS = . dev apps net
+ifndef CONTIKI_TARGET_MAIN
+CONTIKI_TARGET_MAIN = contiki-wismote-main.c
+endif
+
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
+endif
+
+ifdef IAR
+CFLAGS += -D__MSP430F5437__=1 -e --vla -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X --double=32
+else
+SMALL=1
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
+
+MCU=msp430x5437
+include $(CONTIKI)/cpu/msp430/Makefile.msp430
+
+ifdef IAR
+LDFLAGS += -B -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f5437.xcl" -l contiki-$(TARGET).map -Fintel-extended -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+endif
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+#	$(AR) rcf $@ $^
+
+ifdef IAR
+%.hex: %.$(TARGET)
+	mv $< $@
+else
+%.hex: %.ihex
+	mv $< $@
+endif
+
+%.upload: %.hex
+	msp430flasher -n msp430x5437 -e ERASE_MAIN -w $< -v -z [VCC]
+
+%.upload-clean: %.hex
+	msp430flasher -n msp430x5437 -w $< -v -z [VCC]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,83 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
  */
 
 /**
  * \file
- *         A leds implementation for the sentilla usb platform
+ *         MSP430-specific rtimer code
  * \author
  *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
  */
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
+#include "contiki.h"
+
+#include "sys/energest.h"
+#include "sys/rtimer.h"
+#include "sys/process.h"
+#include "dev/watchdog.h"
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=TIMERA0_VECTOR
+__interrupt void
+#else
+interrupt(TIMERA0_VECTOR)
+#endif
+timera0 (void)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  watchdog_start();
+
+  rtimer_run_next();
+
+  if(process_nevents() > 0) {
+    LPM4_EXIT;
+  }
+
+  watchdog_stop();
+
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
+void
+rtimer_arch_init(void)
 {
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+  dint();
+
+  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
+  TACCTL0 = CCIE;
+
+  /* Enable interrupts. */
+  eint();
+}
+/*---------------------------------------------------------------------------*/
+rtimer_clock_t
+rtimer_arch_now(void)
+{
+  rtimer_clock_t t1, t2;
+  do {
+    t1 = TAR;
+    t2 = TAR;
+  } while(t1 != t2);
+  return t1;
 }
 /*---------------------------------------------------------------------------*/
 void
-leds_arch_set(unsigned char leds)
+rtimer_arch_schedule(rtimer_clock_t t)
 {
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  PRINTF("rtimer_arch_schedule time %u\n", t);
+
+  TACCR0 = t;
 }
 /*---------------------------------------------------------------------------*/

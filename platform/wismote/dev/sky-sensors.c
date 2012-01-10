@@ -28,42 +28,65 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * $Id: sky-sensors.c,v 1.2 2010/02/06 18:28:26 joxe Exp $
+ *
+ * -----------------------------------------------------------------
+ *
+ * Author  : Joakim Eriksson
+ * Created : 2010-02-02
+ * Updated : $Date: 2010/02/06 18:28:26 $
+ *           $Revision: 1.2 $
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- */
+#include "contiki.h"
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
-
+static uint8_t adc_on;
 /*---------------------------------------------------------------------------*/
 void
-leds_arch_init(void)
+sky_sensors_activate(uint8_t type)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
-}
-/*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+  uint8_t pre = adc_on;
+
+  adc_on |= type;
+  P6SEL |= type;
+
+  if(pre == 0 && adc_on > 0) {
+    P6DIR = 0xff;
+    P6OUT = 0x00;
+    /* if nothing was started before, start up the ADC system */
+    /* Set up the ADC. */
+    /* ADC12CTL0 = REF2_5V + SHT0_6 + SHT1_6 + MSC; /\* Setup ADC12, ref., sampling time *\/ */
+    /* ADC12CTL1 = SHP + CONSEQ_3 + CSTARTADD_0;	/\* Use sampling timer, repeat-sequenc-of-channels  */
+    /* /\* convert up to MEM4 *\/ */
+    /* ADC12MCTL9 |= EOS; */
+
+    /* ADC12CTL0 |= ADC12ON + REFON; */
+    /* ADC12CTL0 |= ENC;		/\* enable conversion  *\/ */
+    /* ADC12CTL0 |= ADC12SC;		/\* sample & convert *\/ */
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
-leds_arch_set(unsigned char leds)
+sky_sensors_deactivate(uint8_t type)
 {
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  adc_on &= ~type;
+
+  if(adc_on == 0) {
+    /* stop converting immediately, turn off reference voltage, etc. */
+    /* wait for conversion to stop */
+
+    /* ADC12CTL0 &= ~ENC; */
+    /* /\* need to remove CONSEQ_3 if not EOS is configured *\/ */
+    /* ADC12CTL1 &= ~CONSEQ_3; */
+
+    /* while(ADC12CTL1 & ADC12BUSY); */
+
+    /* ADC12CTL0 = 0; */
+    /* ADC12CTL1 = 0; */
+
+    /* P6DIR = 0x00; */
+    /* P6OUT = 0x00; */
+    /* P6SEL = 0x00; */
+  }
 }
 /*---------------------------------------------------------------------------*/

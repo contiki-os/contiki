@@ -26,44 +26,101 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ * -----------------------------------------------------------------
  *
+ * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
+ * Created : 2005-11-01
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- */
+#include "dev/acc-sensor.h"
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
+const struct sensors_sensor acc_sensor;
+static uint8_t active;
 
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
+static void
+activate(void)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+  /* This assumes that some other sensor system already did setup the ADC
+  /* (in the case of the sky platform it is sensors_light_init that does it)
+
+  P6SEL |= 0x70;
+  P6DIR = 0x00;
+  P6OUT = 0x00;
+
+  P2DIR |= 0x48;
+  P2OUT |= 0x48;
+
+
+  /* stop converting immediately
+  ADC12CTL0 &= ~ENC;
+  ADC12CTL1 &= ~CONSEQ_3;
+
+  /* Configure ADC12_2 to sample channel 11 (voltage) and use
+  /* the Vref+ as reference (SREF_1) since it is a stable reference
+  ADC12MCTL2 = (INCH_4 + SREF_1);
+  ADC12MCTL3 = (INCH_5 + SREF_1);
+  ADC12MCTL4 = (INCH_6 + SREF_1);
+  /* internal temperature can be read as value(3)
+  ADC12MCTL5 = (INCH_10 + SREF_1);
+
+  ADC12CTL1 |= CONSEQ_3;
+  ADC12CTL0 |= ENC | ADC12SC;
+
+  /*  Irq_adc12_activate(&acc_sensor, 6, (INCH_11 + SREF_1)); */
+  active = 1;
 }
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
+static void
+deactivate(void)
 {
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+  /*  irq_adc12_deactivate(&acc_sensor, 6);
+      acc_value = 0;*/
+  active = 0;
 }
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
+static int
+value(int type)
 {
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+/*
+  switch(type) {
+  case 0:
+    return ADC12MEM2;
+  case 1:
+    return ADC12MEM3;
+  case 2:
+    return ADC12MEM4;
+  case 3:
+    return ADC12MEM5;
+  }*/
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
+static int
+configure(int type, int value)
+{
+  if(type == SENSORS_ACTIVE) {
+    if(value) {
+      activate();
+    } else {
+      deactivate();
+    }
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch (type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return active;
+  default:
+    return 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(acc_sensor, ACC_SENSOR,
+	       value, configure, status);

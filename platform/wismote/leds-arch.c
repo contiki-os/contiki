@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,38 +32,52 @@
 
 /**
  * \file
- *         A leds implementation for the sentilla usb platform
+ *         Leds arch specific file for the WiSMote platform
  * \author
- *         Adam Dunkels <adam@sics.se>
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#include "contiki-conf.h"
+#include "contiki.h"
 #include "dev/leds.h"
 
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_init(void)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+  P2DIR |= BIT4;
+  P2OUT |= BIT4;
+  P5OUT |= BIT2;
+  P5DIR |= BIT2;
+  P8DIR |= BIT6;
+  P8OUT |= BIT6;
 }
 /*---------------------------------------------------------------------------*/
 unsigned char
 leds_arch_get(void)
 {
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+  return ((P2OUT & BIT4) ? 0 : LEDS_GREEN)
+    | ((P5OUT & BIT2) ? 0 : LEDS_YELLOW)
+    | ((P8OUT & BIT6) ? 0 : LEDS_RED);
 }
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_set(unsigned char leds)
 {
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  if(leds & LEDS_GREEN) {
+    P2OUT &= ~BIT4;
+  } else {
+    P2OUT |= BIT4;
+  }
+  if(leds & LEDS_YELLOW) {
+    P5OUT &= ~BIT2;
+  } else {
+    P5OUT |= BIT2;
+  }
+  if(leds & LEDS_RED) {
+    P8OUT &= ~BIT6;
+  } else {
+    P8OUT |= BIT6;
+  }
 }
 /*---------------------------------------------------------------------------*/
