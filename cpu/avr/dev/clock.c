@@ -93,6 +93,50 @@ ISR(AVR_OUTPUT_COMPARE_INT)
     scount = 0;
     seconds++;
   }
+
+#if F_CPU == 0x800000 && USE_32K_CRYSTAL
+/* Special routine to phase lock CPU to 32768 watch crystal.
+   We are interrupting 128 times per second.
+   If RTIMER_ARCH_SECOND is a multiple of 128 we can use the residual modulo
+   128 to determine whether the clock is too fast or too slow.
+   E.g. for 8192 the phase should be constant modulo 0x40
+   OSCCAL is started in the lower range at 90, allowed to stabilize, then
+   rapidly raised or lowered based on the phase comparison.
+   It gives less phase noise to do this every tick and doesn't seem to hurt anything.
+*/
+#include "rtimer-arch.h"
+{
+volatile static uint8_t lockcount;
+volatile static int16_t last_phase;
+volatile static uint8_t osccalhigh,osccallow;
+    if (seconds < 60) { //give a minute to stabilize
+      if(++lockcount >= 8192UL*128/RTIMER_ARCH_SECOND) {
+        lockcount=0;
+        rtimer_phase = TCNT3 & 0x0fff;
+        if (seconds < 2) OSCCAL=100;
+        if (last_phase > rtimer_phase) osccalhigh=++OSCCAL; else osccallow=--OSCCAL;
+        last_phase = rtimer_phase;
+      }
+    } else {
+#if TICK_MODULO
+    static uint8_t lock_clock;
+    if (++lock_clock>=TICK_MODULO) {
+      lock_clock=0;
+#endif
+      uint8_t error = (TCNT3 - last_phase) & 0x3f;
+      if (error == 0) {
+      } else if (error<32) {
+        OSCCAL=osccallow-1;
+      } else {
+        OSCCAL=osccalhigh+1;
+      }
+#if TICK_MODULO
+    }
+#endif
+    }
+}
+#endif
+
 #if RADIO_CONF_CALIBRATE_INTERVAL
    if (++calibrate_interval==0) {
     rf230_calibrate=1;
@@ -198,6 +242,7 @@ clock_seconds(void)
 }
 #ifdef HANDLE_UNSUPPORTED_INTERRUPTS
 /* Ignore unsupported interrupts, optionally hang for debugging */
+/* BADISR is a gcc weak symbol that matches any undefined interrupt */
 ISR(BADISR_vect) {
 //static volatile uint8_t x;while (1) x++;
 }

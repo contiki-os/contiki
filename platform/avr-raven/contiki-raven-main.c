@@ -65,7 +65,6 @@ unsigned char debugflowsize,debugflow[DEBUGFLOWSIZE];
 #include "loader/symbols-def.h"
 #include "loader/symtab.h"
 
-#include "params.h"
 #if RF230BB        //radio driver using contiki core mac
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
@@ -109,6 +108,8 @@ unsigned char debugflowsize,debugflow[DEBUGFLOWSIZE];
 
 #include "net/rime.h"
 
+#include "params.h"
+
 /* Get periodic prints from idle loop, from clock seconds or rtimer interrupts */
 /* Use of rtimer will conflict with other rtimer interrupts such as contikimac radio cycling */
 /* STAMPS will print ENERGEST outputs if that is enabled. */
@@ -143,8 +144,10 @@ SIGNATURE = {
 };
 #endif
 
+#if !MCU_CONF_LOW_WEAR
 /* JTAG, SPI enabled, Internal RC osc, Boot flash size 4K, 6CK+65msec delay, brownout disabled */
 FUSES ={.low = 0xe2, .high = 0x99, .extended = 0xff,};
+#endif
 
 /* Get a pseudo random number using the ADC */
 uint8_t
@@ -193,6 +196,10 @@ void initialize(void)
   if(MCUSR & (1<<WDRF )) PRINTD("Watchdog reset!\n");
   if(MCUSR & (1<<JTRF )) PRINTD("JTAG reset!\n");
   MCUSR = 0;
+  
+  PRINTD("CLOCK_SECOND %d\n",CLOCK_SECOND);
+  PRINTD("RTIMER_ARCH_SECOND %lu\n",RTIMER_ARCH_SECOND);
+  PRINTD("F_CPU %lu\n",F_CPU);
 
 #if STACKMONITOR
   /* Simple stack pointer highwater monitor. Checks for magic numbers in the main
