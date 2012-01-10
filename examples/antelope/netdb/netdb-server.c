@@ -34,6 +34,7 @@
  * 	Nicolas Tsiftes <nvt@sics.se>
  */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "contiki.h"
