@@ -168,7 +168,7 @@ rpl_update_header_empty(void)
     break;
   default:
     PRINTF("RPL: No hop-by-hop option found, creating it\n");
-    if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_LINK_MTU) {
+    if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE) {
       PRINTF("RPL: Packet too long: impossible to add hop-by-hop option\n");
       uip_ext_len = last_uip_ext_len;
       return;
