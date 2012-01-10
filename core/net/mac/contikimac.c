@@ -96,10 +96,22 @@ struct hdr {
 };
 #endif /* WITH_CONTIKIMAC_HEADER */
 
+/* CYCLE_TIME for channel cca checks, in rtimer ticks. */
 #ifdef CONTIKIMAC_CONF_CYCLE_TIME
 #define CYCLE_TIME (CONTIKIMAC_CONF_CYCLE_TIME)
 #else
 #define CYCLE_TIME (RTIMER_ARCH_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE)
+#endif
+
+/* CHANNEL_CHECK_RATE is enforced to be a power of two.
+ * If RTIMER_ARCH_SECOND is not also a power of two, there will be an inexact
+ * number of channel checks per second due to the truncation of CYCLE_TIME.
+ * This will degrade the effectiveness of phase optimization with neighbors that
+ * do not have the same truncation error.
+ * Define SYNC_CYCLE_STARTS to ensure an integral number of checks per second.
+ */
+#if RTIMER_ARCH_SECOND & (RTIMER_ARCH_SECOND - 1)
+#define SYNC_CYCLE_STARTS                    1
 #endif
 
 /* Are we currently receiving a burst? */
@@ -348,14 +360,35 @@ powercycle(struct rtimer *t, void *ptr)
 {
   PT_BEGIN(&pt);
 
+#if SYNC_CYCLE_STARTS
+static volatile rtimer_clock_t sync_cycle_start;
+static volatile uint8_t sync_cycle_phase;
+  sync_cycle_start = RTIMER_NOW();
+#else
   cycle_start = RTIMER_NOW();
-  
+#endif
+
   while(1) {
     static uint8_t packet_seen;
     static rtimer_clock_t t0;
     static uint8_t count;
 
+#if SYNC_CYCLE_STARTS
+    /* Compute cycle start when RTIMER_ARCH_SECOND is not a multiple of CHANNEL_CHECK_RATE */
+    if (sync_cycle_phase++ == NETSTACK_RDC_CHANNEL_CHECK_RATE) {
+       sync_cycle_phase = 0;
+       sync_cycle_start += RTIMER_ARCH_SECOND;
+       cycle_start = sync_cycle_start;
+    } else {
+#if (RTIMER_ARCH_SECOND * NETSTACK_RDC_CHANNEL_CHECK_RATE) > 65535
+       cycle_start = sync_cycle_start + ((unsigned long)(sync_cycle_phase*RTIMER_ARCH_SECOND))/NETSTACK_RDC_CHANNEL_CHECK_RATE;
+#else
+       cycle_start = sync_cycle_start + (sync_cycle_phase*RTIMER_ARCH_SECOND)/NETSTACK_RDC_CHANNEL_CHECK_RATE;
+#endif
+    }
+#else
     cycle_start += CYCLE_TIME;
+#endif
 
     packet_seen = 0;
 
