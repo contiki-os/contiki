@@ -25,13 +25,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: platform-conf.h,v 1.1 2010/08/24 16:26:38 joxe Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is
+ *         Platform configuration for the Z1SP platform
  * \author
  *         Joakim Eriksson <joakime@sics.se>
  */
@@ -47,8 +45,7 @@
 #define ZOLERTIA_Z1SP 1  /* Enric */
 
 /* CPU target speed in Hz */
-/* CPU target speed in Hz */
-#define F_CPU 8000000uL // 8MHz by default 
+#define F_CPU 8000000uL /* 8MHz by default */
 //Enric #define F_CPU 3900000uL /*2457600uL*/
 
 /* Our clock resolution, this is the same as Unix HZ. */
@@ -58,8 +55,6 @@
 
 #define CCIF
 #define CLIF
-
-#define CC_CONF_INLINE inline
 
 #define HAVE_STDINT_H
 #include "msp430def.h"
