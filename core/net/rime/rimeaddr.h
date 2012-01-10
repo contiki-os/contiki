@@ -67,6 +67,11 @@
 #define RIMEADDR_MEM_FUNC 1
 #endif
 
+#if RIMEADDR_MEM_FUNC
+#include <string.h>
+#endif
+
+
 typedef union {
   unsigned char u8[RIMEADDR_SIZE];
 } rimeaddr_t;
