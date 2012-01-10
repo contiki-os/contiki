@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.h,v 1.5 2010/02/18 17:21:44 dak664 Exp $
  */
 
 #ifndef __RTIMER_ARCH_H__
@@ -42,6 +41,13 @@
  * Setting RTIMER_ARCH_PRESCALER to 0 will leave Timers alone.
  * rtimer_arch_now() will then return 0, likely hanging the cpu if used.
  * Timer1 is used if Timer3 is not available.
+ *
+ * Note the rtimer tick to clock tick conversion will be nominally correct only
+ * when the same oscillator is used for both clocks.
+ * When an external 32768 watch crystal is used for clock ticks my raven CPU
+ * oscillator is 1% slow, 32768 counts on crystal = ~7738 rtimer ticks.
+ * For more accuracy define F_CPU to 0x800000 and optionally phase lock CPU
+ * clock to 32768 crystal. This gives RTIMER_ARCH_SECOND = 8192.
  */
 #ifndef RTIMER_ARCH_PRESCALER
 #define RTIMER_ARCH_PRESCALER 1024UL

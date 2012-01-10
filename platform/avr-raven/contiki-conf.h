@@ -49,6 +49,11 @@
 #ifndef F_CPU
 #define F_CPU          8000000UL
 #endif
+
+/* MCU_CONF_LOW_WEAR will remove the signature and eeprom from the .elf file */
+/* This reduces reprogramming wear during development */
+#define MCU_CONF_LOW_WEAR 0
+
 #include <stdint.h>
 
 typedef int32_t s32_t;
@@ -76,6 +81,7 @@ unsigned long clock_seconds(void);
 
 /* The 1284p can use TIMER2 with the external 32768Hz crystal to keep time. Else TIMER0 is used. */
 /* The sleep timer in raven-lcd.c also uses the crystal and adds a TIMER2 interrupt routine if not already define by clock.c */
+/* If F_CPU is 0x800000 the clock tick interrupt routine will (attempt to) keep the cpu clock phase locked to the crystal. */
 #define AVR_CONF_USE32KCRYSTAL 1
 
 /* Rtimer is implemented through the 16 bit Timer1, clocked at F_CPU through a 1024 prescaler. */
