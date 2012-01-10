@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2005-2010, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,63 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- */
+#include "contiki.h"
+#include "lib/sensors.h"
+#include "dev/sky-sensors.h"
+#include "dev/light-sensor.h"
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
+const struct sensors_sensor light_sensor;
 
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
+static int
+value(int type)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+  /* switch(type) { */
+  /* case LIGHT_SENSOR_PHOTOSYNTHETIC: */
+  /*    /\* Photosynthetically Active Radiation. *\/ */
+  /*   return ADC12MEM0; */
+  /* case LIGHT_SENSOR_TOTAL_SOLAR: */
+  /*   /\* Total Solar Radiation. *\/ */
+  /*   return ADC12MEM1; */
+  /* } */
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
+static int
+status(int type)
 {
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+/*
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return (ADC12CTL0 & (ADC12ON + REFON)) == (ADC12ON + REFON);
+  }
+*/
+  return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int c)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+    if(c) {
+      if(!status(SENSORS_ACTIVE)) {
+
+//	ADC12MCTL0 = (INCH_4 + SREF_0); // photodiode 1 (P64)
+//	ADC12MCTL1 = (INCH_5 + SREF_0); // photodiode 2 (P65)
+
+	sky_sensors_activate(0x30);
+      }
+    } else {
+      sky_sensors_deactivate(0x30);
+    }
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
-{
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
-}
-/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(light_sensor, "Light",
+	       value, configure, status);

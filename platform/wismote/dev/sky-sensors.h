@@ -27,43 +27,20 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
+ * $Id: sky-sensors.h,v 1.1 2010/02/02 20:59:45 joxe Exp $
  *
+ * -----------------------------------------------------------------
+ *
+ * Author  : Joakim Eriksson
+ * Created : 2010-02-02
+ * Updated : $Date: 2010/02/02 20:59:45 $
+ *           $Revision: 1.1 $
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- */
+#ifndef __SKY_SENSORS_H__
+#define __SKY_SENSORS_H__
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
+void sky_sensors_activate(uint8_t);
+void sky_sensors_deactivate(uint8_t);
 
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
-{
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
-}
-/*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
-}
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
-{
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
-}
-/*---------------------------------------------------------------------------*/
+#endif /* __SKY_SENSORS_H__ */

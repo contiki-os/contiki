@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,45 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
+ */
+
+#include "contiki.h"
+
+/*
+ * This is SPI initialization code for the MSP430X architecture.
  *
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+unsigned char spi_busy = 0;
+
+/*
+ * Initialize SPI bus.
  */
-
-#include "contiki-conf.h"
-#include "dev/leds.h"
-
-/*---------------------------------------------------------------------------*/
 void
-leds_arch_init(void)
+spi_init(void)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+  // Initialize ports for communication with SPI units.
+
+  UCB0CTL1 |=  UCSWRST;                //reset usci
+  UCB0CTL1 |=  UCSSEL_2;               //smclk while usci is reset
+  UCB0CTL0 = ( UCMSB | UCMST | UCSYNC | UCCKPL); // MSB-first 8-bit, Master, Synchronous, 3 pin SPI master, no ste, watch-out for clock-phase UCCKPH
+
+  UCB0BR1 = 0x00;
+  UCB0BR0 = 0x02;
+
+//  UCB0MCTL = 0;                       // Dont need modulation control.
+
+  P3SEL |= BV(SCK) | BV(MOSI) | BV(MISO); // Select Peripheral functionality
+  P3DIR |= BV(SCK) | BV(MISO);  // Configure as outputs(SIMO,CLK).
+
+  //ME1   |= USPIE0;            // Module enable ME1 --> U0ME? xxx/bg
+
+  // Clear pending interrupts before enable!!!
+  UCB0IE &= ~UCRXIFG;
+  UCB0IE &= ~UCTXIFG;
+  UCB0CTL1 &= ~UCSWRST;         // Remove RESET before enabling interrupts
+
+  //Enable UCB0 Interrupts
+  //IE2 |= UCB0TXIE;              // Enable USCI_B0 TX Interrupts
+  //IE2 |= UCB0RXIE;              // Enable USCI_B0 RX Interrupts
 }
-/*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
-}
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
-{
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
-}
-/*---------------------------------------------------------------------------*/

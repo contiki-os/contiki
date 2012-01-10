@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,15 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * Author: Niclas Finne <nfi@sics.se>, Joakim Eriksson <joakime@sics.se>
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- */
+#include "dev/button-sensor.h"
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
+SENSORS(&button_sensor);
 
-/*---------------------------------------------------------------------------*/
 void
-leds_arch_init(void)
+init_platform(void)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+  process_start(&sensors_process, NULL);
 }
-/*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
-}
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
-{
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
-}
-/*---------------------------------------------------------------------------*/

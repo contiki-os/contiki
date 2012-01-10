@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,56 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- */
+#include "contiki.h"
+#include "dev/spi.h"
+#include "dev/cc2520.h"
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
+extern volatile uint8_t cc2520_sfd_counter;
+extern volatile uint16_t cc2520_sfd_start_time;
+extern volatile uint16_t cc2520_sfd_end_time;
 
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
+/* SFD interrupt for timestamping radio packets */
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=TIMERB1_VECTOR
+__interrupt void
+#else
+interrupt(TIMERB1_VECTOR)
+#endif
+cc2520_timerb1_interrupt(void)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+  int tbiv;
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+  /* always read TBIV to clear IFG */
+  tbiv = TBIV;
+  if(CC2520_SFD_IS_1) {
+    cc2520_sfd_counter++;
+    cc2520_sfd_start_time = TBCCR1;
+  } else {
+    cc2520_sfd_counter = 0;
+    cc2520_sfd_end_time = TBCCR1;
+  }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
-}
-/*---------------------------------------------------------------------------*/
 void
-leds_arch_set(unsigned char leds)
+cc2520_arch_sfd_init(void)
 {
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  /* Need to select the special function! */
+  P4SEL = BV(CC2520_SFD_PIN);
+
+  /* start timer B - 32768 ticks per second */
+  TBCTL = TBSSEL_1 | TBCLR;
+
+  /* CM_3 = capture mode - capture on both edges */
+  TBCCTL1 = CM_3 | CAP | SCS;
+  TBCCTL1 |= CCIE;
+
+  /* Start Timer_B in continuous mode. */
+  TBCTL |= MC1;
+
+  TBR = RTIMER_NOW();
 }
 /*---------------------------------------------------------------------------*/

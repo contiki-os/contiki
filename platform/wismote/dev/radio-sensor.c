@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,39 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * @(#)$Id: radio-sensor.c,v 1.6 2010/01/14 20:01:19 nifi Exp $
  */
 
-/**
- * \file
- *         A leds implementation for the sentilla usb platform
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- */
+#include "lib/sensors.h"
+#include "dev/cc2520.h"
+#include "dev/radio-sensor.h"
 
-#include "contiki-conf.h"
-#include "dev/leds.h"
+const struct sensors_sensor radio_sensor;
 
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
+static int
+value(int type)
 {
-  LEDS_PxDIR |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
-  LEDS_PxOUT = (LEDS_CONF_RED | LEDS_CONF_GREEN);
+  switch(type) {
+  case RADIO_SENSOR_LAST_PACKET:
+    return cc2520_last_correlation;
+  case RADIO_SENSOR_LAST_VALUE:
+  default:
+    return cc2520_last_rssi;
+  }
 }
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
+static int
+configure(int type, int c)
 {
-  unsigned char leds;
-  leds = LEDS_PxOUT;
-  return ((leds & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((leds & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
+static int
+status(int type)
 {
-  LEDS_PxOUT = (LEDS_PxOUT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(radio_sensor, RADIO_SENSOR,
+	       value, configure, status);

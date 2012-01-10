@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science
+ * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -26,50 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: spix.c,v 1.1 2010/08/24 16:23:20 joxe Exp $
+ * This file is part of the Contiki operating system.
+ *
+ * @(#)$Id: light.h,v 1.1 2006/08/02 14:44:46 bg- Exp $
  */
+#ifndef __LIGHT_H__
+#define __LIGHT_H__
 
-#include "contiki.h"
-/*
- * This is SPI initialization code for the MSP430X architecture.
- * 
- */
-unsigned char spi_busy = 0;
+void sensors_light_init(void);
 
-/*
- * Initialize SPI bus.
- */
-void
-spi_init(void)
-{
-  //static unsigned char spi_inited = 0;
+unsigned sensors_light1(void);
+unsigned sensors_light2(void);
 
-  //if (spi_inited)
-    //return;
-
-  // Initalize ports for communication with SPI units. 
-
-    UCB0CTL1 |=  UCSWRST;                //reset usci
-    UCB0CTL1 |=  UCSSEL_2;               //smclk while usci is reset
-    UCB0CTL0 = ( UCMSB | UCMST | UCSYNC | UCCKPL); // MSB-first 8-bit, Master, Synchronous, 3 pin SPI master, no ste, watch-out for clock-phase UCCKPH
-
-    UCB0BR1 = 0x00;
-    UCB0BR0 = 0x02;
-
-//  UCB0MCTL = 0;			// Dont need modulation control. 
-
-  P3SEL |= BV(SCK) | BV(MOSI) | BV(MISO); // Select Peripheral functionality 
-  P3DIR |= BV(SCK) | BV(MISO);	// Configure as outputs(SIMO,CLK). 
-
-  //ME1   |= USPIE0;	        // Module enable ME1 --> U0ME? xxx/bg 
-  
-  // Clear pending interrupts before enable!!! 
-  IFG2 &= ~UCB0RXIFG;
-  IFG2 &= ~UCB0TXIFG;
-  UCB0CTL1 &= ~UCSWRST;		// Remove RESET before enabling interrupts
-  //Enable UCB0 Interrupts 
-  //IE2 |= UCB0TXIE;              // Enable USCI_B0 TX Interrupts
-  //IE2 |= UCB0RXIE;              // Enable USCI_B0 RX Interrupts
-}
-
-
+#endif /* __LIGHT_H__ */

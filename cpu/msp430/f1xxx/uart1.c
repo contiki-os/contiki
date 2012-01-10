@@ -33,7 +33,6 @@
  * Machine dependent MSP430 UART1 code.
  */
 
-#include <stdlib.h>
 #include "contiki.h"
 #include "sys/energest.h"
 #include "dev/uart1.h"
@@ -151,7 +150,7 @@ uart1_init(unsigned long ubr)
   UCTL1 = SWRST | CHAR;                 /* 8-bit character, UART mode */
 
 #if 0
-   U1RCTL &= ~URXEIE; /* even erroneous characters trigger interrupts */
+  U1RCTL &= ~URXEIE; /* even erroneous characters trigger interrupts */
 #endif
 
   UTCTL1 = SSEL1;                       /* UCLK = MCLK */
@@ -234,10 +233,7 @@ uart1_init(unsigned long ubr)
 
   msp430_add_lpm_req(MSP430_REQUIRE_LPM1);
 #endif /* RX_WITH_DMA */
-
 }
-
-
 /*---------------------------------------------------------------------------*/
 #if !RX_WITH_DMA
 #ifdef __IAR_SYSTEMS_ICC__
@@ -277,7 +273,12 @@ uart1_rx_interrupt(void)
 #endif /* !RX_WITH_DMA */
 /*---------------------------------------------------------------------------*/
 #if TX_WITH_INTERRUPT
+#ifdef __IAR_SYSTEMS_ICC__
+#pragma vector=UART1TX_VECTOR
+__interrupt void
+#else
 interrupt(UART1TX_VECTOR)
+#endif
 uart1_tx_interrupt(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);

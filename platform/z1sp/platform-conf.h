@@ -62,7 +62,6 @@
 #define CC_CONF_INLINE inline
 
 #define HAVE_STDINT_H
-#define MSP430_MEMCPY_WORKAROUND 1
 #include "msp430def.h"
 
 /* XXX Temporary place for defines that are lacking in mspgcc4's gpio.h */

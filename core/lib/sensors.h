@@ -60,9 +60,9 @@ struct sensors_sensor {
   int          (* status)    (int type);
 };
 
-struct sensors_sensor *sensors_find(const char *type);
-struct sensors_sensor *sensors_next(const struct sensors_sensor *s);
-struct sensors_sensor *sensors_first(void);
+const struct sensors_sensor *sensors_find(const char *type);
+const struct sensors_sensor *sensors_next(const struct sensors_sensor *s);
+const struct sensors_sensor *sensors_first(void);
 
 void sensors_changed(const struct sensors_sensor *s);
 
