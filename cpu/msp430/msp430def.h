@@ -25,8 +25,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
- *
- * @(#)$Id: msp430def.h,v 1.5 2010/03/19 14:50:07 joxe Exp $
  */
 
 #ifndef MSP430DEF_H
@@ -40,7 +38,6 @@
 #define eint() __enable_interrupt()
 #define __MSP430__ 1
 #define CC_CONF_INLINE
-#define BV(x) (1 << x)
 
 #else /* __IAR_SYSTEMS_ICC__ */
 
@@ -58,6 +55,10 @@
 #define CC_CONF_INLINE inline
 
 #endif /* __IAR_SYSTEMS_ICC__ */
+
+#ifndef BV
+#define BV(x) (1 << x)
+#endif
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
