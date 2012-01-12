@@ -1440,6 +1440,9 @@ uip_process(u8_t flag)
 #if UIP_UDP
   /* UDP input processing. */
  udp_input:
+
+  remove_ext_hdr();
+
   PRINTF("Receiving UDP packet\n");
   UIP_STAT(++uip_stat.udp.recv);
  
