@@ -73,7 +73,7 @@
 #endif
 
 /* TODO: This server address is hard-coded for Cooja. */
-#define SERVER_NODE(ipaddr)   uip_ip6addr(ipaddr, 0xfe80, 0, 0, 0, 0x0212, 0x7402, 0x0002, 0x0202) /* cooja2 */
+#define SERVER_NODE(ipaddr)   uip_ip6addr(ipaddr, 0xaaaa, 0, 0, 0, 0x0212, 0x7402, 0x0002, 0x0202) /* cooja2 */
 
 #define LOCAL_PORT      UIP_HTONS(COAP_DEFAULT_PORT+1)
 #define REMOTE_PORT     UIP_HTONS(COAP_DEFAULT_PORT)
@@ -89,7 +89,8 @@ static struct etimer et;
 
 /* Example URIs that can be queried. */
 #define NUMBER_OF_URLS 4
-char* service_urls[NUMBER_OF_URLS] = {".well-known/core", "/toggle", "battery/", "error/in//path"};
+/* leading and ending slashes only for demo purposes, get cropped automatically when setting the Uri-Path */
+char* service_urls[NUMBER_OF_URLS] = {".well-known/core", "/actuators/toggle", "battery/", "error/in//path"};
 #if PLATFORM_HAS_BUTTON
 static int uri_switch = 0;
 #endif
