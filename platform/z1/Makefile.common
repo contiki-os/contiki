@@ -8,6 +8,8 @@ endif
 
 ifdef IAR
 CFLAGS += -D__MSP430F2617__=1 -e --vla -Ohz --multiplier=16s --core=430X --double=32
+else
+LDFLAGS += -Wl,--defsym -Wl,__P1SEL2=0x0041 -Wl,--defsym -Wl,__P5SEL2=0x0045
 endif
 
 CLEAN += symbols.c symbols.h
