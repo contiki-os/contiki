@@ -59,8 +59,15 @@
     </javadoc>
   </target>
 
-  <target name="jar" depends="init, compile">
-    <jar destfile="${cooja_mspsim_jar}" basedir="${build}">
+  <target name="copy" depends="init">
+    <copy todir="build">
+        <fileset file="exp5438.png"/>
+        <fileset file="tyndall.png"/>
+	</copy>
+  </target>
+
+  <target name="jar" depends="init, compile, copy">
+  	<jar destfile="${cooja_mspsim_jar}" basedir="${build}">
       <manifest>
         <attribute name="Class-Path" value="."/>
       </manifest>
