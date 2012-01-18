@@ -50,7 +50,7 @@
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC border_router_rdc_driver
 
-#define SELECT_CALLBACK (&tun_select_callback)
-extern struct select_callback tun_select_callback;
+/* used by wpcap (see /cpu/native/net/wpcap-drv.c) */
+#define SELECT_CALLBACK 1
 
 #endif /* __PROJECT_ROUTER_CONF_H__ */

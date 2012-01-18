@@ -51,7 +51,7 @@
 #include <sys/socket.h>
 
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 #ifdef linux
@@ -65,14 +65,20 @@
 #include "cmd.h"
 #include "border-router.h"
 
-extern int slip_config_verbose;
 extern const char *slip_config_ipaddr;
-extern int slip_config_flowcontrol;
 extern char slip_config_tundev[32];
 extern uint16_t slip_config_basedelay;
 
+#ifndef __CYGWIN__
 static int tunfd;
-static int initialized = 0;
+
+static int set_fd(fd_set *rset, fd_set *wset);
+static void handle_fd(fd_set *rset, fd_set *wset);
+static const struct select_callback tun_select_callback = {
+  set_fd,
+  handle_fd
+};
+#endif /* __CYGWIN__ */
 
 int ssystem(const char *fmt, ...)
      __attribute__((__format__ (__printf__, 1, 2)));
@@ -181,8 +187,6 @@ tun_init()
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
   slip_init();
-
-  initialized = 1;
 }
 
 #else
@@ -200,6 +204,9 @@ tun_init()
 
   tunfd = tun_alloc(slip_config_tundev);
   if(tunfd == -1) err(1, "main: open");
+
+  select_set_callback(tunfd, &tun_select_callback);
+
   fprintf(stderr, "opened %s device ``/dev/%s''\n",
           "tun", slip_config_tundev);
 
@@ -208,8 +215,6 @@ tun_init()
   signal(SIGTERM, sigcleanup);
   signal(SIGINT, sigcleanup);
   ifconf(slip_config_tundev, slip_config_ipaddr);
-
-  initialized = 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -251,22 +256,14 @@ const struct uip_fallback_interface rpl_interface = {
   init, output
 };
 
-#endif /*  __CYGWIN_ */
-
 /*---------------------------------------------------------------------------*/
 /* tun and slip select callback                                              */
 /*---------------------------------------------------------------------------*/
 static int
-set_fd(int maxfd, fd_set *rset, fd_set *wset)
+set_fd(fd_set *rset, fd_set *wset)
 {
-  if(!initialized) return maxfd;
-
-  maxfd = slip_set_fd(maxfd, rset, wset);
-
   FD_SET(tunfd, rset);
-  if(tunfd > maxfd) maxfd = tunfd;
-
-  return maxfd;
+  return 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -274,14 +271,6 @@ set_fd(int maxfd, fd_set *rset, fd_set *wset)
 static void
 handle_fd(fd_set *rset, fd_set *wset)
 {
-  if(!initialized) return;
-
-  slip_handle_fd(rset, wset);
-  
-#ifdef __CYGWIN__
-/* Packets from host interface are handled by wpcap process */
-#else
-
   /* Optional delay between outgoing packets */
   /* Base delay times number of 6lowpan fragments to be sent */
   /* delaymsec = 10; */
@@ -312,12 +301,7 @@ handle_fd(fd_set *rset, fd_set *wset)
       }
     }
   }
-#endif /* __CYGWIN__ */
 }
+#endif /*  __CYGWIN_ */
 
 /*---------------------------------------------------------------------------*/
-
-struct select_callback tun_select_callback = {
-  set_fd,
-  handle_fd
-};

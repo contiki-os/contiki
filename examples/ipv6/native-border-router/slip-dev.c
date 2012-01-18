@@ -368,6 +368,31 @@ stty_telos(int fd)
   if(tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
 }
 /*---------------------------------------------------------------------------*/
+static int
+set_fd(fd_set *rset, fd_set *wset)
+{
+  if(!slip_empty()) {		/* Anything to flush? */
+    FD_SET(slipfd, wset);
+  }
+
+  FD_SET(slipfd, rset);	/* Read from slip ASAP! */
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+static void
+handle_fd(fd_set *rset, fd_set *wset)
+{
+  if(FD_ISSET(slipfd, rset)) {
+    serial_input(inslip);
+  }
+
+  if(FD_ISSET(slipfd, wset)) {
+    slip_flushbuf(slipfd);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static const struct select_callback slip_callback = { set_fd, handle_fd };
+/*---------------------------------------------------------------------------*/
 void
 slip_init(void)
 {
@@ -395,35 +420,12 @@ slip_init(void)
     }
   }
 
+  select_set_callback(slipfd, &slip_callback);
+
   fprintf(stderr, "********SLIP started on ``/dev/%s''\n", slip_config_siodev);
   stty_telos(slipfd);
 
   slip_send(slipfd, SLIP_END);
   inslip = fdopen(slipfd, "r");
   if(inslip == NULL) err(1, "main: fdopen");
-}
-/*---------------------------------------------------------------------------*/
-int
-slip_set_fd(int maxfd, fd_set *rset, fd_set *wset)
-{
-  if(!slip_empty()) {		/* Anything to flush? */
-    FD_SET(slipfd, wset);
-  }
-
-  FD_SET(slipfd, rset);	/* Read from slip ASAP! */
-  if(slipfd > maxfd) maxfd = slipfd;
-
-  return maxfd;
-}
-/*---------------------------------------------------------------------------*/
-void
-slip_handle_fd(fd_set *rset, fd_set *wset)
-{
-  if(FD_ISSET(slipfd, rset)) {
-    serial_input(inslip);
-  }
-
-  if(FD_ISSET(slipfd, wset)) {
-    slip_flushbuf(slipfd);
-  }
 }

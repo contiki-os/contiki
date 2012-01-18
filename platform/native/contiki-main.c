@@ -29,8 +29,6 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.14 2011/01/21 14:19:57 nvt-se Exp $
- *
  */
 
 #include <stdio.h>
@@ -59,13 +57,71 @@
 
 #include "net/rime.h"
 
+#ifdef SELECT_CONF_MAX
+#define SELECT_MAX SELECT_CONF_MAX
+#else
+#define SELECT_MAX 8
+#endif
 
-PROCINIT(&etimer_process, &tcpip_process);
+static const struct select_callback *select_callback[SELECT_MAX];
+static int select_max = 0;
 
 SENSORS(&pir_sensor, &vib_sensor, &button_sensor);
 
 static uint8_t serial_id[] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 static uint16_t node_id = 0x0102;
+/*---------------------------------------------------------------------------*/
+int
+select_set_callback(int fd, const struct select_callback *callback)
+{
+  int i;
+  if(fd >= 0 && fd < SELECT_MAX) {
+    /* Check that the callback functions are set */
+    if(callback != NULL &&
+       (callback->set_fd == NULL || callback->handle_fd == NULL)) {
+      callback = NULL;
+    }
+
+    select_callback[fd] = callback;
+
+    /* Update fd max */
+    if(callback != NULL) {
+      if(fd > select_max) {
+        select_max = fd;
+      }
+    } else {
+      select_max = 0;
+      for(i = SELECT_MAX - 1; i > 0; i--) {
+        if(select_callback[i] != NULL) {
+          select_max = i;
+          break;
+        }
+      }
+    }
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+stdin_set_fd(fd_set *rset, fd_set *wset)
+{
+  FD_SET(STDIN_FILENO, rset);
+  return 1;
+}
+static void
+stdin_handle_fd(fd_set *rset, fd_set *wset)
+{
+  char c;
+  if(FD_ISSET(STDIN_FILENO, rset)) {
+    if(read(STDIN_FILENO, &c, 1) > 0) {
+      serial_line_input_byte(c);
+    }
+  }
+}
+const static struct select_callback stdin_fd = {
+  stdin_set_fd, stdin_handle_fd
+};
 /*---------------------------------------------------------------------------*/
 static void
 set_rime_addr(void)
@@ -104,12 +160,12 @@ main(int argc, char **argv)
 {
 #if UIP_CONF_IPV6
 #if UIP_CONF_IPV6_RPL
-  printf("Starting Contiki IPV6, RPL\n");
+  printf(CONTIKI_VERSION_STRING " started with IPV6, RPL\n");
 #else
-  printf("Starting Contiki IPV6\n");
+  printf(CONTIKI_VERSION_STRING " started with IPV6\n");
 #endif
 #else
-  printf("Starting Contiki IPV4\n");
+  printf(CONTIKI_VERSION_STRING " started\n");
 #endif
 
   /* crappy way of remembering and accessing argc/v */
@@ -117,9 +173,15 @@ main(int argc, char **argv)
   contiki_argv = argv;
 
   process_init();
+  process_start(&etimer_process, NULL);
   ctimer_init();
 
-  set_rime_addr(); 
+  set_rime_addr();
+
+  queuebuf_init();
+
+  netstack_init();
+  printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
@@ -142,14 +204,9 @@ main(int argc, char **argv)
 
     printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
-
+#else
+  process_start(&tcpip_process, NULL);
 #endif
-
-  queuebuf_init();
-
-  netstack_init();
-  
-  procinit_init();
 
   serial_line_init();
   
@@ -157,45 +214,45 @@ main(int argc, char **argv)
   
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
-  
+
+  select_set_callback(STDIN_FILENO, &stdin_fd);
   while(1) {
     fd_set fdr;
     fd_set fdw;
     int maxfd;
+    int i;
     int retval;
     struct timeval tv;
-    
-    process_run();
+
+    retval = process_run();
 
     tv.tv_sec = 0;
-    tv.tv_usec = 1000;
+    tv.tv_usec = retval ? 1 : 1000;
 
     FD_ZERO(&fdr);
     FD_ZERO(&fdw);
-    FD_SET(STDIN_FILENO, &fdr);
-    maxfd = STDIN_FILENO;
+    maxfd = 0;
+    for(i = 0; i <= select_max; i++) {
+      if(select_callback[i] != NULL && select_callback[i]->set_fd(&fdr, &fdw)) {
+        maxfd = i;
+      }
+    }
 
-#ifdef SELECT_CALLBACK
-    maxfd = SELECT_CALLBACK->set_fd(maxfd, &fdr, &fdw);
-#endif
-    if((retval = select(maxfd + 1, &fdr, &fdw, NULL, &tv)) < 0) {
+    retval = select(maxfd + 1, &fdr, &fdw, NULL, &tv);
+    if(retval < 0) {
       perror("select");
     } else if(retval > 0) {
       /* timeout => retval == 0 */
-      if(FD_ISSET(STDIN_FILENO, &fdr)) {
-	char c;
-	if(read(STDIN_FILENO, &c, 1) > 0) {
-	  serial_line_input_byte(c);
-	}
+      for(i = 0; i <= maxfd; i++) {
+        if(select_callback[i] != NULL) {
+          select_callback[i]->handle_fd(&fdr, &fdw);
+        }
       }
-#ifdef SELECT_CALLBACK
-      SELECT_CALLBACK->handle_fd(&fdr, &fdw);
-#endif
     }
 
     etimer_request_poll();
   }
-  
+
   return 0;
 }
 /*---------------------------------------------------------------------------*/
