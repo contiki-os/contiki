@@ -66,8 +66,8 @@ int
 rpl_verify_header(int uip_ext_opt_offset)
 {
   rpl_instance_t *instance;
-  long diff;
   int down;
+  uint8_t sender_closer;
 
   if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
     PRINTF("RPL: Bad header option! (wrong length)\n");
@@ -99,9 +99,11 @@ rpl_verify_header(int uip_ext_opt_offset)
 
   PRINTF("RPL: Packet going %s\n", down == 1 ? "down" : "up");
 
-  diff = UIP_EXT_HDR_OPT_RPL_BUF->senderrank - instance->current_dag->rank;
-  if((down && diff > 0) || (!down && diff < 0)) {
-    PRINTF("RPL: Loop detected\n");
+  sender_closer = UIP_EXT_HDR_OPT_RPL_BUF->senderrank < instance->current_dag->rank;
+  if((down && !sender_closer) || (!down && sender_closer)) {
+    PRINTF("RPL: Loop detected - senderrank: %d my-rank: %d sender_closer: %d\n",
+	   UIP_EXT_HDR_OPT_RPL_BUF->senderrank, instance->current_dag->rank,
+	   sender_closer);
     if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
       PRINTF("RPL: Rank error signalled in RPL option!\n");
       /* We should try to repair it, not implemented for the moment */
@@ -168,7 +170,7 @@ rpl_update_header_empty(void)
     break;
   default:
     PRINTF("RPL: No hop-by-hop option found, creating it\n");
-    if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_LINK_MTU) {
+    if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE) {
       PRINTF("RPL: Packet too long: impossible to add hop-by-hop option\n");
       uip_ext_len = last_uip_ext_len;
       return;

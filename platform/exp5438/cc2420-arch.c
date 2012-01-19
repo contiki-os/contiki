@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,84 +26,68 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
- * $Id: rtimer-arch.c,v 1.17 2010/11/27 15:27:20 nifi Exp $
+ * @(#)$Id: cc2420-arch.c,v 1.9 2010/06/23 10:19:15 joxe Exp $
  */
 
-/**
- * \file
- *         MSP430-specific rtimer code
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
 
 #include "contiki.h"
 
-#include "sys/energest.h"
-#include "sys/rtimer.h"
-#include "sys/process.h"
-#include "dev/watchdog.h"
-
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
+#ifdef __IAR_SYSTEMS_ICC__
+#include <msp430.h>
 #else
-#define PRINTF(...)
+#include <io.h>
+#include <signal.h>
+#endif
+
+#include "contiki-net.h"
+
+#include "dev/spi.h"
+#include "dev/cc2420.h"
+#include "dev/leds.h"
+
+#ifndef CONF_SFD_TIMESTAMPS
+#define CONF_SFD_TIMESTAMPS 0
+#endif /* CONF_SFD_TIMESTAMPS */
+
+#ifdef CONF_SFD_TIMESTAMPS
+#include "cc2420-arch-sfd.h"
 #endif
 
 /*---------------------------------------------------------------------------*/
 #ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMERA0_VECTOR
+#pragma vector=CC2420_IRQ_VECTOR
 __interrupt void
 #else
-interrupt(TIMERA0_VECTOR)
+interrupt(CC2420_IRQ_VECTOR)
 #endif
-timera0 (void) {
+cc24240_fifop_interrupt(void)
+{
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  watchdog_start();
-
-  rtimer_run_next();
-
-  if(process_nevents() > 0) {
-    LPM4_EXIT;
+  /* check TA0IV - if 4 (CCR2 => FIFOP interrupt ) */
+  if(P1IV == (2 * (1 + CC2420_FIFOP_PIN))) {
+    if(cc2420_interrupt()) {
+      LPM4_EXIT;
+    }
   }
-
-  watchdog_stop();
-
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+
 /*---------------------------------------------------------------------------*/
 void
-rtimer_arch_init(void)
+cc2420_arch_init(void)
 {
-  dint();
+  spi_init();
 
-  /* CCR0 interrupt enabled, interrupt occurs when timer equals CCR0. */
-  TACCTL0 = CCIE;
+  /* all input by default, set these as output */
+  CC2420_CSN_PORT(DIR) |= BV(CC2420_CSN_PIN);
+  CC2420_VREG_PORT(DIR) |= BV(CC2420_VREG_PIN);
+  CC2420_RESET_PORT(DIR) |= BV(CC2420_RESET_PIN);
 
-  /* Enable interrupts. */
-  eint();
-}
-/*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
-{
-  rtimer_clock_t t1, t2;
-  do {
-    t1 = TAR;
-    t2 = TAR;
-  } while(t1 != t2);
-  return t1;
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_schedule(rtimer_clock_t t)
-{
-  PRINTF("rtimer_arch_schedule time %u\n", t);
+#if CONF_SFD_TIMESTAMPS
+  cc2420_arch_sfd_init();
+#endif
 
-  TACCR0 = t;
+  /* CC2420_SPI_DISABLE();                /\* Unselect radio. *\/ */
 }
 /*---------------------------------------------------------------------------*/

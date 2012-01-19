@@ -25,13 +25,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: platform-conf.h,v 1.1 2010/08/24 16:26:38 joxe Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is
+ *         Platform configuration for the Z1 platform
  * \author
  *         Joakim Eriksson <joakime@sics.se>
  */
@@ -46,19 +44,7 @@
 #define ZOLERTIA_Z1 1  /* Enric */
 
 #define PLATFORM_HAS_LEDS   1
-
-#ifdef __IAR_SYSTEMS_ICC__
-#include <intrinsics.h>
-#include <in430.h>
-#define dint() __disable_interrupt()
-#define eint() __enable_interrupt()
-#define __MSP430F2617__ 1
-#define __MSP430__ 1
-#define CC_CONF_INLINE
-#define BV(x) (1 << x)
-#else
-#define CC_CONF_INLINE inline
-#endif
+#define PLATFORM_HAS_BUTTON 1
 
 /* CPU target speed in Hz */
 #define F_CPU 8000000uL /* 8MHz by default */
@@ -73,7 +59,6 @@
 #define CLIF
 
 #define HAVE_STDINT_H
-#define MSP430_MEMCPY_WORKAROUND 1
 #include "msp430def.h"
 
 /* XXX Temporary place for defines that are lacking in mspgcc4's gpio.h */

@@ -82,9 +82,6 @@ handle_incoming_data(void)
 
   PRINTF("handle_incoming_data(): received uip_datalen=%u \n",(uint16_t)uip_datalen());
 
-  uint8_t *data = uip_appdata + uip_ext_len;
-  uint16_t data_len = uip_datalen() - uip_ext_len;
-
   /* Static declaration reduces stack peaks and program code size. */
   static coap_packet_t message[1]; /* This way the packet can be treated as pointer as usual. */
   static coap_packet_t response[1];
@@ -94,11 +91,11 @@ handle_incoming_data(void)
 
     PRINTF("receiving UDP datagram from: ");
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-    PRINTF(":%u\n  Length: %u\n  Data: ", uip_ntohs(UIP_UDP_BUF->srcport), data_len );
-    PRINTBITS(data, data_len);
+    PRINTF(":%u\n  Length: %u\n  Data: ", uip_ntohs(UIP_UDP_BUF->srcport), uip_datalen() );
+    PRINTBITS(uip_appdata, uip_datalen());
     PRINTF("\n");
 
-    coap_error_code = coap_parse_message(message, data, data_len);
+    coap_error_code = coap_parse_message(message, uip_appdata, uip_datalen());
 
     if (coap_error_code==NO_ERROR)
     {
@@ -262,7 +259,7 @@ handle_incoming_data(void)
       /* Reuse input buffer for error message. */
       coap_init_message(message, COAP_TYPE_ACK, coap_error_code, message->tid);
       coap_set_payload(message, (uint8_t *) coap_error_message, strlen(coap_error_message));
-      coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, data, coap_serialize_message(message, data));
+      coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, uip_appdata, coap_serialize_message(message, uip_appdata));
     }
   } /* if (new data) */
 

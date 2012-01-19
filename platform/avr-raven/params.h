@@ -6,7 +6,7 @@
  *   This allows parameter changes using a hardware programmer or custom application code.
  *   Corruption test is based on channel verify so get the channel before anything else!
  * 2 Obtained from eeprom using the general settings manager and read from program flash if not present.
- *   Useful for for testing builds without wearing out flash memory.
+ *   Useful for for testing builds without wearing out eeprom memory.
  * 3 Obtained from eeprom using the settings manager and rewritten from flash if not present.
  *   This ensures all parameters are present in upper eeprom flash.
  *
@@ -21,9 +21,17 @@
 //#define CONTIKI_CONF_RANDOM_MAC 1        //adds 78 bytes
 
 #if CONTIKI_CONF_SETTINGS_MANAGER
+#if MCU_CONF_LOW_WEAR
 #define PARAMETER_STORAGE 2
 #else
+#define PARAMETER_STORAGE 3
+#endif
+#else
+#if MCU_CONF_LOW_WEAR
+#define PARAMETER_STORAGE 0
+#else
 #define PARAMETER_STORAGE 1
+#endif
 #endif
 
 /* Include settings.h, then dummy out the write routines */

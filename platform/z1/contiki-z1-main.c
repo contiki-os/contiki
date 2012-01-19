@@ -105,6 +105,7 @@ static uint8_t is_gateway;
 #endif
 
 void init_platform(void);
+void clock_wait(int i);
 
 /*---------------------------------------------------------------------------*/
 #if 0

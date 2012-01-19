@@ -139,10 +139,10 @@
 
 /* configure number of neighbors and routes */
 #ifndef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     30
+#define UIP_CONF_DS6_NBR_NBU     20
 #endif /* UIP_CONF_DS6_NBR_NBU */
 #ifndef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   30
+#define UIP_CONF_DS6_ROUTE_NBU   20
 #endif /* UIP_CONF_DS6_ROUTE_NBU */
 
 #define UIP_CONF_ND6_SEND_RA		0

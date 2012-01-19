@@ -86,9 +86,23 @@
 #define USART_BAUD_230400 1
 #define USART_BAUD_250000 1
 #define USART_BAUD_500000 0
+#elif F_CPU == 0x800000UL
+/* 8192 KHz with external 32768 crystal */
+#define USART_BAUD_38400 12
+#define USART_BAUD_57600 8
+#define USART_BAUD_115200 4
 #else
-#error "Please define the baud rates for your CPU clock: ATmega128 handbook p. \
-195-198 or set the rate in contiki-conf.h"
+/* UBRR = F_CPU/(16*BAUD) - 1 */
+#warning "Unusual CPU Clock Rate!!!!"
+#warning "You may have to tune the UBRR regisgers for the correct baud rates"
+#warning "See ATmega128 handbook p. 195-198 or set the rate in contiki-conf.h"
+#ifndef USART_BAUD_38400
+#define USART_BAUD_38400 F_CPU/(16*38400) - 1
+#endif
+#ifndef USART_BAUD_57600
+#define USART_BAUD_57600 F_CPU/(16*57600) - 1
+#endif
+
 #endif
 
 

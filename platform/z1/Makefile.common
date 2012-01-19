@@ -7,7 +7,9 @@ CFLAGS+=-Os -g
 endif
 
 ifdef IAR
-CFLAGS+=-e --vla -Ohz --multiplier=16s --core=430X  --data_model small --double=32
+CFLAGS += -D__MSP430F2617__=1 -e --vla -Ohz --multiplier=16s --core=430X --double=32
+else
+LDFLAGS += -Wl,--defsym -Wl,__P1SEL2=0x0041 -Wl,--defsym -Wl,__P5SEL2=0x0045
 endif
 
 CLEAN += symbols.c symbols.h
@@ -16,9 +18,9 @@ CLEAN += symbols.c symbols.h
 
 
 ARCH=msp430.c leds.c watchdog.c xmem.c \
-     spix.c cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c\
+     spi.c cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c\
      node-id.c sensors.c button-sensor.c cfs-coffee.c \
-     radio-sensor.c uart0x.c uart0-putchar.c uip-ipchksum.c \
+     radio-sensor.c uart0.c uart0-putchar.c uip-ipchksum.c \
      checkpoint-arch.c slip.c slip_uart0.c \
      z1-phidgets.c sht11.c sht11-sensor.c light-sensor.c \
      battery-sensor.c sky-sensors.c tmp102.c temperature-sensor.c

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2011, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +27,14 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * @(#)$Id: clock.c,v 1.26 2010/12/16 22:50:21 adamdunkels Exp $
  */
-
 
 #include "contiki.h"
 #include "sys/energest.h"
 #include "sys/clock.h"
 #include "sys/etimer.h"
 #include "rtimer-arch.h"
-#include "watchdog.h"
+#include "dev/watchdog.h"
 
 #define INTERVAL (RTIMER_ARCH_SECOND / CLOCK_SECOND)
 
@@ -46,46 +43,47 @@
 static volatile unsigned long seconds;
 
 static volatile clock_time_t count = 0;
-/* last_tar is used for calculating clock_fine */
+/* last_tar is used for calculating clock_fine, last_ccr might be better? */
 static volatile uint16_t last_tar = 0;
 /*---------------------------------------------------------------------------*/
 #ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMERA1_VECTOR
+#pragma vector=TIMER1_A1_VECTOR
 __interrupt void
 #else
-interrupt(TIMERA1_VECTOR)
+interrupt(TIMER1_A1_VECTOR)
 #endif
-timera1 (void) {
+timera1 (void)
+{
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  watchdog_start();
+  /* watchdog_start(); */
 
-  if(TAIV == 2) {
+  if(TA1IV == 2) {
 
     /* HW timer bug fix: Interrupt handler called before TR==CCR.
-     * Occurrs when timer state is toggled between STOP and CONT. */
-    while(TACTL & MC1 && TACCR1 - TAR == 1);
+     * Occurs when timer state is toggled between STOP and CONT. */
+    while(TA1CTL & MC1 && TA1CCR1 - TA1R == 1);
 
     /* Make sure interrupt time is future */
     do {
-      TACCR1 += INTERVAL;
+      TA1CCR1 += INTERVAL;
       ++count;
 
       /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
-	 that the modulo operation below becomes a logical and and not
-	 an expensive divide. Algorithm from Wikipedia:
-	 http://en.wikipedia.org/wiki/Power_of_two */
+         that the modulo operation below becomes a logical and and not
+         an expensive divide. Algorithm from Wikipedia:
+         http://en.wikipedia.org/wiki/Power_of_two */
 #if (CLOCK_CONF_SECOND & (CLOCK_CONF_SECOND - 1)) != 0
 #error CLOCK_CONF_SECOND must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
 #error Change CLOCK_CONF_SECOND in contiki-conf.h.
 #endif
       if(count % CLOCK_CONF_SECOND == 0) {
-	++seconds;
+        ++seconds;
         energest_flush();
       }
-    } while((TACCR1 - TAR) > INTERVAL);
+    } while((TA1CCR1 - TA1R) > INTERVAL);
 
-    last_tar = TAR;
+    last_tar = TA1R;
 
     if(etimer_pending() &&
        (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
@@ -98,8 +96,8 @@ timera1 (void) {
     LPM4_EXIT;
     }*/
 
-  watchdog_stop();
-  
+  /* watchdog_stop(); */
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
@@ -117,8 +115,8 @@ clock_time(void)
 void
 clock_set(clock_time_t clock, clock_time_t fclock)
 {
-  TAR = fclock;
-  TACCR1 = fclock + INTERVAL;
+  TA1R = fclock;
+  TA1CCR1 = fclock + INTERVAL;
   count = clock;
 }
 /*---------------------------------------------------------------------------*/
@@ -135,7 +133,7 @@ clock_fine(void)
   /* Assign last_tar to local varible that can not be changed by interrupt */
   t = last_tar;
   /* perform calc based on t, TAR will not be changed during interrupt */
-  return (unsigned short) (TAR - t);
+  return (unsigned short) (TA1R - t);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -145,22 +143,27 @@ clock_init(void)
 
   /* Select SMCLK (2.4576MHz), clear TAR */
   /* TACTL = TASSEL1 | TACLR | ID_3; */
-  
-  /* Select ACLK 32768Hz clock, divide by 2 */
-  /*  TACTL = TASSEL0 | TACLR | ID_1;*/
 
-  /* Select ACLK 32768Hz clock */
-  TACTL = TASSEL0 | TACLR;
+  /* Select ACLK 32768Hz clock, divide by 2 */
+/*   TA1CTL = TASSEL0 | TACLR | ID_1; */
+
+#if INTERVAL==32768/CLOCK_SECOND
+  TA1CTL = TASSEL0 | TACLR;
+#elif INTERVAL==16384/CLOCK_SECOND
+  TA1CTL = TASSEL0 | TACLR | ID_1;
+#else
+#error NEED TO UPDATE clock.c to match interval!
+#endif
 
   /* Initialize ccr1 to create the X ms interval. */
   /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */
-  TACCTL1 = CCIE;
+  TA1CCTL1 = CCIE;
 
   /* Interrupt after X ms. */
-  TACCR1 = INTERVAL;
+  TA1CCR1 = INTERVAL;
 
   /* Start Timer_A in continuous mode. */
-  TACTL |= MC1;
+  TA1CTL |= MC1;
 
   count = 0;
 
@@ -175,17 +178,9 @@ clock_init(void)
 void
 clock_delay(unsigned int i)
 {
-  asm("add #-1, r15");
-  asm("jnz $-2");
-  /*
-   * This means that delay(i) will delay the CPU for CONST + 3x
-   * cycles. On a 2.4756 CPU, this means that each i adds 1.22us of
-   * delay.
-   *
-   * do {
-   *   --i;
-   * } while(i > 0);
-   */
+  while(i--) {
+    _NOP();
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -204,7 +199,10 @@ clock_wait(int i)
 void
 clock_set_seconds(unsigned long sec)
 {
-
+  int s;
+  s = splhigh();
+  seconds = sec;
+  splx(s);
 }
 /*---------------------------------------------------------------------------*/
 unsigned long
@@ -221,6 +219,11 @@ clock_seconds(void)
 rtimer_clock_t
 clock_counter(void)
 {
-  return TAR;
+  rtimer_clock_t t1, t2;
+  do {
+    t1 = TA1R;
+    t2 = TA1R;
+  } while(t1 != t2);
+  return t1;
 }
 /*---------------------------------------------------------------------------*/

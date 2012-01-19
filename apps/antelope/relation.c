@@ -475,19 +475,17 @@ relation_remove(char *name, int remove_tuples)
 db_result_t
 relation_insert(relation_t *rel, attribute_value_t *values)
 {
-  size_t size;
   attribute_t *attr;
-  storage_row_t record;
+  unsigned char record[rel->row_length];
   unsigned char *ptr;
   attribute_value_t *value;
   db_result_t result;
 
   value = values;
 
-  size = rel->row_length;
-  PRINTF("DB: Relation %s has a record size of %d bytes\n",
-	 rel->name, (int)size);
-  ptr = record = alloca(size);
+  PRINTF("DB: Relation %s has a record size of %u bytes\n",
+	 rel->name, (unsigned)rel->row_length);
+  ptr = record;
 
   PRINTF("DB: Insert (");
 
