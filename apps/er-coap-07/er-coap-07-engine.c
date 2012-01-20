@@ -301,13 +301,14 @@ coap_set_rest_status(void *packet, unsigned int code)
 /*-----------------------------------------------------------------------------------*/
 /*- Server part ---------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
+
 /* The discover resource is automatically included for CoAP. */
 RESOURCE(well_known_core, METHOD_GET, ".well-known/core", "ct=40");
 void
 well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-    size_t strpos = 0;
-    size_t bufpos = 0;
+    size_t strpos = 0; /* position in overall string (which is larger than the buffer) */
+    size_t bufpos = 0; /* position within buffer (bytes written) */
     size_t tmplen = 0;
     resource_t* resource = NULL;
 
@@ -333,6 +334,10 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
         bufpos += snprintf((char *) buffer + bufpos, preferred_size - bufpos + 1,
                          "%s", resource->url + ((*offset-(int32_t)strpos > 0) ? (*offset-(int32_t)strpos) : 0));
                                                           /* minimal-net requires these casts */
+        if (bufpos >= preferred_size)
+        {
+          break;
+        }
       }
       strpos += tmplen;
 
@@ -355,6 +360,10 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
         {
           bufpos += snprintf((char *) buffer + bufpos, preferred_size - bufpos + 1,
                          "%s", resource->attributes + (*offset-(int32_t)strpos > 0 ? *offset-(int32_t)strpos : 0));
+          if (bufpos >= preferred_size)
+          {
+            break;
+          }
         }
         strpos += tmplen;
       }
@@ -397,7 +406,7 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
     else
     {
       PRINTF("res: MORE at %s (%p)\n", resource->url, resource);
-      *offset += bufpos;
+      *offset += preferred_size;
     }
 }
 /*-----------------------------------------------------------------------------------*/
