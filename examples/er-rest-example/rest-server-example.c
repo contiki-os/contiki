@@ -45,14 +45,14 @@
 
 /* Define which resources to include to meet memory constraints. */
 #define REST_RES_HELLO 1
-#define REST_RES_MIRROR 0
+#define REST_RES_MIRROR 0 /* causes largest code size */
 #define REST_RES_CHUNKS 1
-#define REST_RES_POLLING 0
+#define REST_RES_POLLING 1
 #define REST_RES_EVENT 1
-#define REST_RES_LEDS 0
+#define REST_RES_LEDS 1
 #define REST_RES_TOGGLE 1
 #define REST_RES_LIGHT 1
-#define REST_RES_BATTERY 0
+#define REST_RES_BATTERY 1
 
 
 
@@ -173,28 +173,29 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 
   int strpos = 0;
   /* snprintf() counts the terminating '\0' to the size parameter.
-   * Add +1 to fill the complete buffer.
-   * The additional byte is taken care of by allocating REST_MAX_CHUNK_SIZE+1 bytes in the REST framework. */
+   * The additional byte is taken care of by allocating REST_MAX_CHUNK_SIZE+1 bytes in the REST framework.
+   * Add +1 to fill the complete buffer. */
   strpos += snprintf((char *)buffer, REST_MAX_CHUNK_SIZE+1, "CT %u\n", content_type);
 
   /* Some getters such as for ETag or Location are omitted, as these options should not appear in a request.
    * Max-Age might appear in HTTP requests or used for special purposes in CoAP. */
-  if (REST.get_header_max_age(request, &max_age))
+  if (strpos<=REST_MAX_CHUNK_SIZE && REST.get_header_max_age(request, &max_age))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "MA %lu\n", max_age);
   }
-  if ((len = REST.get_header_host(request, &str)))
+
+  if (strpos<=REST_MAX_CHUNK_SIZE && (len = REST.get_header_host(request, &str)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "UH %.*s\n", len, str);
   }
 
 /* CoAP-specific example: actions not required for normal RESTful Web service. */
 #if WITH_COAP > 1
-  if (coap_get_header_observe(request, &observe))
+  if (strpos<=REST_MAX_CHUNK_SIZE && coap_get_header_observe(request, &observe))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "Ob %lu\n", observe);
   }
-  if ((len = coap_get_header_token(request, &bytes)))
+  if (strpos<=REST_MAX_CHUNK_SIZE && (len = coap_get_header_token(request, &bytes)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "To 0x");
     int index = 0;
@@ -203,7 +204,7 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
     }
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "\n");
   }
-  if ((len = coap_get_header_etag(request, &bytes)))
+  if (strpos<=REST_MAX_CHUNK_SIZE && (len = coap_get_header_etag(request, &bytes)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "ET 0x");
     int index = 0;
@@ -212,34 +213,34 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
     }
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "\n");
   }
-  if ((len = coap_get_header_uri_path(request, &str)))
+  if (strpos<=REST_MAX_CHUNK_SIZE && (len = coap_get_header_uri_path(request, &str)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "UP ");
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "%.*s\n", len, str);
   }
 #if WITH_COAP == 3
-  if ((len = coap_get_header_location(request, &str)))
+  if (strpos<=REST_MAX_CHUNK_SIZE && (len = coap_get_header_location(request, &str)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "Lo %.*s\n", len, str);
   }
-  if (coap_get_header_block(request, &block_num, &block_more, &block_size, NULL)) /* This getter allows NULL pointers to get only a subset of the block parameters. */
+  if (strpos<=REST_MAX_CHUNK_SIZE && coap_get_header_block(request, &block_num, &block_more, &block_size, NULL)) /* This getter allows NULL pointers to get only a subset of the block parameters. */
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "Bl %lu%s (%u)\n", block_num, block_more ? "+" : "", block_size);
   }
 #elif WITH_COAP >= 5
-  if ((len = coap_get_header_location_path(request, &str)))
+  if (strpos<=REST_MAX_CHUNK_SIZE && (len = coap_get_header_location_path(request, &str)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "LP %.*s\n", len, str);
   }
-  if ((len = coap_get_header_location_query(request, &str)))
+  if (strpos<=REST_MAX_CHUNK_SIZE && (len = coap_get_header_location_query(request, &str)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "LQ %.*s\n", len, str);
   }
-  if (coap_get_header_block2(request, &block_num, &block_more, &block_size, NULL)) /* This getter allows NULL pointers to get only a subset of the block parameters. */
+  if (strpos<=REST_MAX_CHUNK_SIZE && coap_get_header_block2(request, &block_num, &block_more, &block_size, NULL)) /* This getter allows NULL pointers to get only a subset of the block parameters. */
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "B2 %lu%s (%u)\n", block_num, block_more ? "+" : "", block_size);
   }
-  if (coap_get_header_block1(request, &block_num, &block_more, &block_size, NULL)) /* This getter allows NULL pointers to get only a subset of the block parameters. */
+  if (strpos<=REST_MAX_CHUNK_SIZE && coap_get_header_block1(request, &block_num, &block_more, &block_size, NULL)) /* This getter allows NULL pointers to get only a subset of the block parameters. */
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "B1 %lu%s (%u)\n", block_num, block_more ? "+" : "", block_size);
   }
@@ -250,16 +251,16 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 #endif
 #endif /* CoAP-specific example */
 
-  if ((len = REST.get_query(request, &query)))
+  if (strpos<=REST_MAX_CHUNK_SIZE && (len = REST.get_query(request, &query)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "Qu %.*s\n", len, query);
   }
-  if ((len = REST.get_request_payload(request, &bytes)))
+  if (strpos<=REST_MAX_CHUNK_SIZE && (len = REST.get_request_payload(request, &bytes)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "%.*s", len, bytes);
   }
 
-  if (strpos == REST_MAX_CHUNK_SIZE)
+  if (strpos >= REST_MAX_CHUNK_SIZE)
   {
       buffer[REST_MAX_CHUNK_SIZE-1] = 0xBB; /* '»' to indicate truncation */
   }
@@ -332,7 +333,7 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
     strpos = preferred_size;
   }
 
-  /* Truncate if above total size. */
+  /* Truncate if above CHUNKS_TOTAL bytes. */
   if (*offset+(int32_t)strpos > CHUNKS_TOTAL)
   {
     strpos = CHUNKS_TOTAL - *offset;
