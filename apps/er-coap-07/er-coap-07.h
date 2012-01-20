@@ -213,18 +213,18 @@ typedef struct {
   coap_content_type_t content_type; /* Parse options once and store; allows setting options in random order  */
   uint32_t max_age;
   size_t proxy_uri_len;
-  char *proxy_uri;
+  const char *proxy_uri;
   uint8_t etag_len;
   uint8_t etag[COAP_ETAG_LEN];
   size_t uri_host_len;
-  char *uri_host;
+  const char *uri_host;
   size_t location_path_len;
-  char *location_path;
+  const char *location_path;
   uint16_t uri_port;
   size_t location_query_len;
-  char *location_query;
+  const char *location_query;
   size_t uri_path_len;
-  char *uri_path;
+  const char *uri_path;
   uint16_t observe;
   uint8_t token_len;
   uint8_t token[COAP_TOKEN_LEN];
@@ -241,7 +241,7 @@ typedef struct {
   uint16_t block1_size;
   uint32_t block1_offset;
   size_t uri_query_len;
-  char *uri_query;
+  const char *uri_query;
   uint8_t if_none_match;
 
   uint16_t payload_len;
@@ -268,41 +268,41 @@ int coap_get_post_variable(void *packet, const char *name, const char **output);
 unsigned int coap_get_header_content_type(void *packet);
 int coap_set_header_content_type(void *packet, unsigned int content_type);
 
-int coap_get_header_accept(void *packet, uint16_t **accept);
+int coap_get_header_accept(void *packet, const uint16_t **accept);
 int coap_set_header_accept(void *packet, uint16_t accept);
 
 int coap_get_header_max_age(void *packet, uint32_t *age);
 int coap_set_header_max_age(void *packet, uint32_t age);
 
 int coap_get_header_etag(void *packet, const uint8_t **etag);
-int coap_set_header_etag(void *packet, uint8_t *etag, size_t etag_len);
+int coap_set_header_etag(void *packet, const uint8_t *etag, size_t etag_len);
 
 int coap_get_header_if_match(void *packet, const uint8_t **etag);
-int coap_set_header_if_match(void *packet, uint8_t *etag, size_t etag_len);
+int coap_set_header_if_match(void *packet, const uint8_t *etag, size_t etag_len);
 
 int coap_get_header_if_none_match(void *packet);
 int coap_set_header_if_none_match(void *packet);
 
 int coap_get_header_token(void *packet, const uint8_t **token);
-int coap_set_header_token(void *packet, uint8_t *token, size_t token_len);
+int coap_set_header_token(void *packet, const uint8_t *token, size_t token_len);
 
 int coap_get_header_proxy_uri(void *packet, const char **uri); /* In-place string might not be 0-terminated. */
-int coap_set_header_proxy_uri(void *packet, char *uri);
+int coap_set_header_proxy_uri(void *packet, const char *uri);
 
 int coap_get_header_uri_host(void *packet, const char **host); /* In-place string might not be 0-terminated. */
-int coap_set_header_uri_host(void *packet, char *host);
+int coap_set_header_uri_host(void *packet, const char *host);
 
 int coap_get_header_uri_path(void *packet, const char **path); /* In-place string might not be 0-terminated. */
-int coap_set_header_uri_path(void *packet, char *path);
+int coap_set_header_uri_path(void *packet, const char *path);
 
 int coap_get_header_uri_query(void *packet, const char **query); /* In-place string might not be 0-terminated. */
-int coap_set_header_uri_query(void *packet, char *query);
+int coap_set_header_uri_query(void *packet, const char *query);
 
 int coap_get_header_location_path(void *packet, const char **path); /* In-place string might not be 0-terminated. */
-int coap_set_header_location_path(void *packet, char *path); /* Also splits optional query into Location-Query option. */
+int coap_set_header_location_path(void *packet, const char *path); /* Also splits optional query into Location-Query option. */
 
 int coap_get_header_location_query(void *packet, const char **query); /* In-place string might not be 0-terminated. */
-int coap_set_header_location_query(void *packet, char *query);
+int coap_set_header_location_query(void *packet, const char *query);
 
 int coap_get_header_observe(void *packet, uint32_t *observe);
 int coap_set_header_observe(void *packet, uint32_t observe);

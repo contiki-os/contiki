@@ -209,6 +209,7 @@ coap_merge_multi_option(char **dst, size_t *dst_len, uint8_t *option, size_t opt
   /* Merge multiple options. */
   if (*dst_len > 0)
   {
+    /* dst already contains an option: concatenate */
     (*dst)[*dst_len] = separator;
     *dst_len += 1;
 
@@ -219,7 +220,8 @@ coap_merge_multi_option(char **dst, size_t *dst_len, uint8_t *option, size_t opt
   }
   else
   {
-    *dst = (char *) option; /* thus pointer pointer */
+    /* dst is empty: set to option */
+    *dst = (char *) option;
     *dst_len = option_len;
   }
 }
@@ -613,7 +615,8 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
           PRINTF("Uri-Host [%.*s]\n", ((coap_packet_t *)packet)->uri_host_len, ((coap_packet_t *)packet)->uri_host);
           break;
         case COAP_OPTION_LOCATION_PATH:
-          coap_merge_multi_option(&(((coap_packet_t *)packet)->location_path), &(((coap_packet_t *)packet)->location_path_len), current_option, option_len, '/');
+          /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
+          coap_merge_multi_option( (char **) &(((coap_packet_t *)packet)->location_path), &(((coap_packet_t *)packet)->location_path_len), current_option, option_len, '/');
           PRINTF("Location-Path [%.*s]\n", ((coap_packet_t *)packet)->location_path_len, ((coap_packet_t *)packet)->location_path);
           break;
         case COAP_OPTION_URI_PORT:
@@ -621,11 +624,13 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
           PRINTF("Uri-Port [%u]\n", ((coap_packet_t *)packet)->uri_port);
           break;
         case COAP_OPTION_LOCATION_QUERY:
-          coap_merge_multi_option(&(((coap_packet_t *)packet)->location_query), &(((coap_packet_t *)packet)->location_query_len), current_option, option_len, '&');
+          /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
+          coap_merge_multi_option( (char **) &(((coap_packet_t *)packet)->location_query), &(((coap_packet_t *)packet)->location_query_len), current_option, option_len, '&');
           PRINTF("Location-Query [%.*s]\n", ((coap_packet_t *)packet)->location_query_len, ((coap_packet_t *)packet)->location_query);
           break;
         case COAP_OPTION_URI_PATH:
-          coap_merge_multi_option(&(((coap_packet_t *)packet)->uri_path), &(((coap_packet_t *)packet)->uri_path_len), current_option, option_len, '/');
+          /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
+          coap_merge_multi_option( (char **) &(((coap_packet_t *)packet)->uri_path), &(((coap_packet_t *)packet)->uri_path_len), current_option, option_len, '/');
           PRINTF("Uri-Path [%.*s]\n", ((coap_packet_t *)packet)->uri_path_len, ((coap_packet_t *)packet)->uri_path);
           break;
         case COAP_OPTION_OBSERVE:
@@ -673,7 +678,8 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
           PRINTF("Fence-Post\n");
           break;
         case COAP_OPTION_URI_QUERY:
-          coap_merge_multi_option(&(((coap_packet_t *)packet)->uri_query), &(((coap_packet_t *)packet)->uri_query_len), current_option, option_len, '&');
+          /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
+          coap_merge_multi_option( (char **) &(((coap_packet_t *)packet)->uri_query), &(((coap_packet_t *)packet)->uri_query_len), current_option, option_len, '&');
           PRINTF("Uri-Query [%.*s]\n", ((coap_packet_t *)packet)->uri_query_len, ((coap_packet_t *)packet)->uri_query);
           break;
         case COAP_OPTION_BLOCK2:
@@ -752,7 +758,7 @@ coap_set_header_content_type(void *packet, unsigned int content_type)
 }
 /*-----------------------------------------------------------------------------------*/
 int
-coap_get_header_accept(void *packet, uint16_t **accept)
+coap_get_header_accept(void *packet, const uint16_t **accept)
 {
   if (!IS_OPTION((coap_packet_t *)packet, COAP_OPTION_ACCEPT)) return 0;
 
@@ -802,7 +808,7 @@ coap_get_header_etag(void *packet, const uint8_t **etag)
 }
 
 int
-coap_set_header_etag(void *packet, uint8_t *etag, size_t etag_len)
+coap_set_header_etag(void *packet, const uint8_t *etag, size_t etag_len)
 {
   ((coap_packet_t *)packet)->etag_len = MIN(COAP_ETAG_LEN, etag_len);
   memcpy(((coap_packet_t *)packet)->etag, etag, ((coap_packet_t *)packet)->etag_len);
@@ -822,7 +828,7 @@ coap_get_header_if_match(void *packet, const uint8_t **etag)
 }
 
 int
-coap_set_header_if_match(void *packet, uint8_t *etag, size_t etag_len)
+coap_set_header_if_match(void *packet, const uint8_t *etag, size_t etag_len)
 {
   ((coap_packet_t *)packet)->if_match_len = MIN(COAP_ETAG_LEN, etag_len);
   memcpy(((coap_packet_t *)packet)->if_match, etag, ((coap_packet_t *)packet)->if_match_len);
@@ -854,7 +860,7 @@ coap_get_header_token(void *packet, const uint8_t **token)
 }
 
 int
-coap_set_header_token(void *packet, uint8_t *token, size_t token_len)
+coap_set_header_token(void *packet, const uint8_t *token, size_t token_len)
 {
   ((coap_packet_t *)packet)->token_len = MIN(COAP_TOKEN_LEN, token_len);
   memcpy(((coap_packet_t *)packet)->token, token, ((coap_packet_t *)packet)->token_len);
@@ -873,7 +879,7 @@ coap_get_header_proxy_uri(void *packet, const char **uri)
 }
 
 int
-coap_set_header_proxy_uri(void *packet, char *uri)
+coap_set_header_proxy_uri(void *packet, const char *uri)
 {
   ((coap_packet_t *)packet)->proxy_uri = uri;
   ((coap_packet_t *)packet)->proxy_uri_len = strlen(uri);
@@ -892,7 +898,7 @@ coap_get_header_uri_host(void *packet, const char **host)
 }
 
 int
-coap_set_header_uri_host(void *packet, char *host)
+coap_set_header_uri_host(void *packet, const char *host)
 {
   ((coap_packet_t *)packet)->uri_host = host;
   ((coap_packet_t *)packet)->uri_host_len = strlen(host);
@@ -911,7 +917,7 @@ coap_get_header_uri_path(void *packet, const char **path)
 }
 
 int
-coap_set_header_uri_path(void *packet, char *path)
+coap_set_header_uri_path(void *packet, const char *path)
 {
   while (path[0]=='/') ++path;
 
@@ -932,7 +938,7 @@ coap_get_header_uri_query(void *packet, const char **query)
 }
 
 int
-coap_set_header_uri_query(void *packet, char *query)
+coap_set_header_uri_query(void *packet, const char *query)
 {
   while (query[0]=='?') ++query;
 
@@ -953,7 +959,7 @@ coap_get_header_location_path(void *packet, const char **path)
 }
 
 int
-coap_set_header_location_path(void *packet, char *path)
+coap_set_header_location_path(void *packet, const char *path)
 {
   char *query;
 
@@ -985,7 +991,7 @@ coap_get_header_location_query(void *packet, const char **query)
 }
 
 int
-coap_set_header_location_query(void *packet, char *query)
+coap_set_header_location_query(void *packet, const char *query)
 {
   while (query[0]=='?') ++query;
 

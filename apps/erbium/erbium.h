@@ -146,7 +146,7 @@ struct rest_implementation {
   /** Get request URI path */
   int (* get_url)(void *request, const char **url);
 
-  int (* set_url)(void *request, char *url);
+  int (* set_url)(void *request, const char *url);
 
   /** Get the method of a request. */
   rest_resource_flags_t (* get_method_type)(void *request);
@@ -160,7 +160,7 @@ struct rest_implementation {
   /** Set the content-type of a response. */
   int (* set_header_content_type)(void *response, unsigned int content_type);
 
-  int (* get_header_accept)(void *request, uint16_t **accept);
+  int (* get_header_accept)(void *request, const uint16_t **accept);
 
   /** Get the Max-Age option of a request. */
   int (* get_header_max_age)(void *request, uint32_t *age);
@@ -169,7 +169,7 @@ struct rest_implementation {
   int (* set_header_max_age)(void *response, uint32_t age);
 
   /** Set the ETag option of a response. */
-  int (* set_header_etag)(void *response, uint8_t *etag, size_t length);
+  int (* set_header_etag)(void *response, const uint8_t *etag, size_t length);
 
   /** Get the If-Match option of a request. */
   int (* get_header_if_match)(void *request, const uint8_t **etag);
@@ -181,7 +181,7 @@ struct rest_implementation {
   int (* get_header_host)(void *request, const char **host);
 
   /** Set the location option of a response. */
-  int (* set_header_location)(void *response, char *location);
+  int (* set_header_location)(void *response, const char *location);
 
   /** Get the payload option of a request. */
   int (* get_request_payload)(void *request, const uint8_t **payload);

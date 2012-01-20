@@ -84,8 +84,6 @@
 /* For CoAP-specific example: not required for normal RESTful Web service. */
 #if WITH_COAP == 3
 #include "er-coap-03.h"
-#elif WITH_COAP == 6
-#include "er-coap-06.h"
 #elif WITH_COAP == 7
 #include "er-coap-07.h"
 #else
@@ -227,7 +225,7 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "Bl %lu%s (%u)\n", block_num, block_more ? "+" : "", block_size);
   }
-#elif WITH_COAP >= 5
+#else
   if (strpos<=REST_MAX_CHUNK_SIZE && (len = coap_get_header_location_path(request, &str)))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "LP %.*s\n", len, str);
@@ -240,15 +238,15 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "B2 %lu%s (%u)\n", block_num, block_more ? "+" : "", block_size);
   }
-  if (strpos<=REST_MAX_CHUNK_SIZE && coap_get_header_block1(request, &block_num, &block_more, &block_size, NULL)) /* This getter allows NULL pointers to get only a subset of the block parameters. */
+  /*
+   * Critical Block1 option is currently rejected by engine.
+   *
+  if (strpos<=REST_MAX_CHUNK_SIZE && coap_get_header_block1(request, &block_num, &block_more, &block_size, NULL))
   {
     strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "B1 %lu%s (%u)\n", block_num, block_more ? "+" : "", block_size);
   }
-#if WITH_COAP >= 7
-
-#endif
-
-#endif
+  */
+#endif /* CoAP > 03 */
 #endif /* CoAP-specific example */
 
   if (strpos<=REST_MAX_CHUNK_SIZE && (len = REST.get_query(request, &query)))
@@ -281,16 +279,13 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
   coap_set_header_observe(response, 10);
 #if WITH_COAP == 3
   coap_set_header_block(response, 42, 0, 64); /* The block option might be overwritten by the framework when blockwise transfer is requested. */
-#elif WITH_COAP >= 5
+#else
   coap_set_header_proxy_uri(response, "ftp://x");
   coap_set_header_block2(response, 42, 0, 64); /* The block option might be overwritten by the framework when blockwise transfer is requested. */
   coap_set_header_block1(response, 23, 0, 16);
-#if WITH_COAP >= 7
   coap_set_header_accept(response, TEXT_PLAIN);
   coap_set_header_if_none_match(response);
-#endif
-
-#endif
+#endif /* CoAP > 03 */
 #endif /* CoAP-specific example */
 }
 #endif /* REST_RES_MIRROR */
@@ -497,7 +492,7 @@ light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
   uint16_t light_photosynthetic = light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);
   uint16_t light_solar = light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR);
 
-  uint16_t *accept = NULL;
+  const uint16_t *accept = NULL;
   int num = REST.get_header_accept(request, &accept);
 
   if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
@@ -537,7 +532,7 @@ battery_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
 {
   int battery = battery_sensor.value(0);
 
-  uint16_t *accept = NULL;
+  const uint16_t *accept = NULL;
   int num = REST.get_header_accept(request, &accept);
 
   if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
