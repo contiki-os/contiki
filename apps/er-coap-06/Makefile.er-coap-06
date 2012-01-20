@@ -1,1 +1,0 @@
-er-coap-06_src = er-coap-06-engine.c er-coap-06.c er-coap-06-transactions.c er-coap-06-observing.c er-coap-06-separate.c
