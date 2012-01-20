@@ -59,33 +59,6 @@ LIST(restful_services);
 LIST(restful_periodic_services);
 
 
-#ifdef WITH_HTTP
-
-char *
-rest_to_http_max_age(uint32_t age)
-{
-  /* Cache-Control: max-age=age for HTTP */
-  static char temp_age[19];
-  snprintf(temp_age, sizeof(temp_age), "max-age=%lu", age);
-  return temp_age;
-}
-
-char *
-rest_to_http_etag(uint8_t *etag, uint8_t etag_len)
-{
-  static char temp_etag[17];
-  int index = 0;
-
-  for (index = 0; index<sizeof(temp_etag) && index<etag_len; ++index) {
-    snprintf(temp_etag+2*index, sizeof(temp_etag), "%02x", etag[index]);
-  }
-  temp_etag[2*index] = '\0';
-
-  return temp_etag;
-}
-#endif /*WITH_COAP*/
-
-
 void
 rest_init_framework(void)
 {
