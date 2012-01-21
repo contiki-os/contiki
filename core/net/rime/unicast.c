@@ -82,7 +82,7 @@ sent_by_broadcast(struct broadcast_conn *broadcast, int status, int num_tx)
 {
   struct unicast_conn *c = (struct unicast_conn *)broadcast;
 
-  PRINTF("%d.%d: uc: recv_from_broadcast, receiver %d.%d\n",
+  PRINTF("%d.%d: uc: sent_by_broadcast, receiver %d.%d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
 	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
