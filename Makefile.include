@@ -65,7 +65,7 @@ ifdef UIP_CONF_IPV6
 else # UIP_CONF_IPV6
   UIP   = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
           uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
-          uip-over-mesh.c dhcpc.c #rawpacket-udp.c
+          uip-over-mesh.c dhcpc.c simple-udp.c
   NET   += $(UIP) uaodv.c uaodv-rt.c
 endif # UIP_CONF_IPV6
 
