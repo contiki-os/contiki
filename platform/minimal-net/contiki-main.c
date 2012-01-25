@@ -60,7 +60,7 @@ PROCINIT(&etimer_process, &tapdev_process, &tcpip_process, &serial_line_process)
 #if RPL_BORDER_ROUTER
 #include "net/rpl/rpl.h"
 
-uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
+static uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
 PROCESS(border_router_process, "RPL Border Router");
 PROCESS_THREAD(border_router_process, ev, data)
@@ -237,7 +237,7 @@ main(void)
     uip_getnetmask(&addr);
     if(addr.u8[0] == 0) {
       uip_ipaddr(&addr, 255,0,0,0);
-    uip_setnetmask(&addr);
+      uip_setnetmask(&addr);
     }
     printf("Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
     
@@ -288,7 +288,6 @@ main(void)
 #endif /* !RPL_BORDER_ROUTER */
 #endif /* !UIP_CONF_IPV6 */
 
-  print_processes(autostart_processes);
   procinit_init();
   autostart_start(autostart_processes);
 
@@ -322,7 +321,8 @@ main(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-void log_message(char *m1, char *m2)
+void
+log_message(char *m1, char *m2)
 {
   printf("%s%s\n", m1, m2);
 }
