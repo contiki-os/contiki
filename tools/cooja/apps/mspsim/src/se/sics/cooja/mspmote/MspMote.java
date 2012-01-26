@@ -299,6 +299,15 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
    */
   protected abstract boolean initEmulator(File ELFFile);
 
+  private boolean booted = false;
+
+  public void simTimeChanged(long diff) {
+    /* Compensates for simulation time changes (without simulation execution) */
+    lastExecute -= diff;
+    nextExecute -= diff;
+    scheduleNextWakeup(nextExecute);
+  }
+
   private long lastExecute = -1; /* Last time mote executed */
   private long nextExecute;
   public void execute(long time) {
@@ -306,10 +315,11 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   }
   public void execute(long t, int duration) {
     /* Wait until mote boots */
-    if (myMoteInterfaceHandler.getClock().getTime() < 0) {
+    if (!booted && myMoteInterfaceHandler.getClock().getTime() < 0) {
       scheduleNextWakeup(t - myMoteInterfaceHandler.getClock().getTime());
       return;
     }
+    booted = true;
 
     if (stopNextInstruction) {
       stopNextInstruction = false;
@@ -524,20 +534,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     /*return executeCLICommand("line " + myCpu.reg[MSP430Constants.PC]);*/
   }
 
-  private class MultiCPUMonitor implements CPUMonitor {
-    private ArrayList<CPUMonitor> ms = new ArrayList<CPUMonitor>();
-    public void add(CPUMonitor m) {
-      ms.add(m);
-    }
-    public void remove(CPUMonitor m) {
-      ms.remove(m);
-    }
-    public void cpuAction(int type, int adr, int data) {
-      for (CPUMonitor m: ms) {
-        m.cpuAction(type, adr, data);
-      }
-    }
-  }
   public MemoryMonitor createMemoryMonitor(final MemoryEventHandler meh) {
     return new MemoryMonitor() {
       private boolean started = false;
@@ -568,24 +564,8 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         };
 
         /* TODO Make sure no other part of Cooja overrides this! */
-        
         for (int a = address; a < address+size; a++) {
-          if (myCpu.hasBreakPoint(a)) {
-            if (myCpu.breakPoints[a] instanceof MultiCPUMonitor) {
-              /* Extend */
-              ((MultiCPUMonitor)myCpu.breakPoints[a]).add(myMonitor);
-            } else {
-              /* Create multi and replace */
-              CPUMonitor existingMonitor = myCpu.breakPoints[a];
-              MultiCPUMonitor multiMonitor = new MultiCPUMonitor();
-              multiMonitor.add(existingMonitor);
-              multiMonitor.add(myMonitor);
-              myCpu.clearBreakPoint(a);
-              myCpu.setBreakPoint(a, multiMonitor);
-            }
-          } else {
-            myCpu.setBreakPoint(a, myMonitor);
-          }
+          myCpu.addWatchPoint(a, myMonitor);
         }
 
         this.address = address;
@@ -600,22 +580,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         started = false;
         
         for (int a = address; a < address+size; a++) {
-          if (!myCpu.hasBreakPoint(a)) {
-            logger.fatal("Memory breakpoint was previously removed");
-            return;
-          }
-
-          if (myCpu.breakPoints[a] instanceof MultiCPUMonitor) {
-            /* Remove */
-            ((MultiCPUMonitor)myCpu.breakPoints[a]).remove(myMonitor);
-          } else {
-            /* Clear */
-            if (myCpu.breakPoints[a] != myMonitor) {
-              logger.fatal("Memory breakpoint is not mine");
-              return;
-            }
-            myCpu.clearBreakPoint(a);
-          }
+          myCpu.removeWatchPoint(a, myMonitor);
         }
       }
       public Mote getMote() {
