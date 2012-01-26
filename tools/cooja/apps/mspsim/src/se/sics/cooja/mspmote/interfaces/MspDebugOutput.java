@@ -67,6 +67,7 @@ public class MspDebugOutput extends Log {
   private MspMoteMemory mem;
   
   private String lastLog = null;
+  private CPUMonitor cpuMonitor = null;
   
   public MspDebugOutput(Mote mote) {
     this.mote = (MspMote) mote;
@@ -76,8 +77,8 @@ public class MspDebugOutput extends Log {
       /* Disabled */
       return;
     }
-    this.mote.getCPU().setBreakPoint(mem.getVariableAddress(CONTIKI_POINTER),
-        new CPUMonitor() {
+    this.mote.getCPU().addWatchPoint(mem.getVariableAddress(CONTIKI_POINTER),
+        cpuMonitor = new CPUMonitor() {
       public void cpuAction(int type, int adr, int data) {
         if (type != MEMORY_WRITE) {
           return;
@@ -136,6 +137,9 @@ public class MspDebugOutput extends Log {
 
   public void removed() {
     super.removed();
-    /* TODO Remove watchpoint */
+
+    if (cpuMonitor != null) {
+      mote.getCPU().removeWatchPoint(mem.getVariableAddress(CONTIKI_POINTER), cpuMonitor);
+    }
   }
 }
