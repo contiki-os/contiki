@@ -437,21 +437,7 @@ public class LogListener extends VisPlugin {
         updateTitle();
       }
       public void newLogOutput(LogOutputEvent ev) {
-        /* Display new log output */
-      	if (!hasHours && ev.getTime() > TIME_HOUR) {
-      		hasHours = true;
-      		repaintTimeColumn();
-      	}
-      	LogData data = new LogData(ev);
-      	logUpdateAggregator.add(data);
-        if (appendToFile) {
-          appendToFile(appendStreamFile,
-              data.getTime() + "\t" +
-              data.getID() + "\t" +
-              data.ev.getMessage() + "\n"
-          );
-
-        }
+        registerNewLogOutput(ev);
       }
       public void removedLogOutput(LogOutputEvent ev) {
       }
@@ -498,6 +484,28 @@ public class LogListener extends VisPlugin {
     pack();
     setSize(gui.getDesktopPane().getWidth(), 150);
     setLocation(0, gui.getDesktopPane().getHeight() - 300);
+  }
+
+  public void registerNewLogOutput(Mote mote, long time, String msg) {
+    LogOutputEvent ev = new LogOutputEvent(mote, time, msg);
+    registerNewLogOutput(ev);
+  }
+
+  private void registerNewLogOutput(LogOutputEvent ev) {
+    /* Display new log output */
+    if (!hasHours && ev.getTime() > TIME_HOUR) {
+            hasHours = true;
+            repaintTimeColumn();
+    }
+    LogData data = new LogData(ev);
+    logUpdateAggregator.add(data);
+    if (appendToFile) {
+      appendToFile(appendStreamFile,
+          data.getTime() + "\t" +
+          data.getID() + "\t" +
+          data.ev.getMessage() + "\n"
+      );
+    }
   }
 
   private void repaintTimeColumn() {
@@ -872,14 +880,18 @@ public class LogListener extends VisPlugin {
     private static final long serialVersionUID = -2115620313183440224L;
 
     public void actionPerformed(ActionEvent e) {
-      int size = logs.size();
-      if (size > 0) {
-        logs.clear();
-        model.fireTableRowsDeleted(0, size - 1);
-      }
+      clear();
     }
   };
 
+  public void clear() {
+    int size = logs.size();
+    if (size > 0) {
+      logs.clear();
+      model.fireTableRowsDeleted(0, size - 1);
+    }
+  }
+  
   private Action copyAction = new AbstractAction("Selected") {
     private static final long serialVersionUID = -8433490108577001803L;
 
