@@ -238,6 +238,11 @@ public class Simulation extends Observable implements Runnable {
     }
   };
   
+  public void clearEvents() {
+    eventQueue.removeAll();
+    pollRequests.clear();
+  }
+  
   public void run() {
     long lastStartTime = System.currentTimeMillis();
     logger.info("Simulation main loop started, system time: " + lastStartTime);
@@ -974,7 +979,7 @@ public class Simulation extends Observable implements Runnable {
    * @param simulationTime
    *          New simulation time (ms)
    */
-  public void setSimulationTime(int simulationTime) {
+  public void setSimulationTime(long simulationTime) {
     currentSimulationTime = simulationTime;
 
     this.setChanged();
