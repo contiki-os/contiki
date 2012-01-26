@@ -82,6 +82,33 @@ public class StringUtils {
     return hexDump(data, 5, 4);
   }
 
+  public static byte[] fromHex(String[] data) {
+    StringBuilder sb = new StringBuilder();
+    for (String s: data) {
+      sb.append(s);
+    }
+    return fromHex(sb.toString());
+  }
+  
+  /**
+   * This method is compatible with the output from {@link #toHex(byte)}.
+   * 
+   * @param data Hexadecimal data
+   * @return Binary data
+   * @see #toHex(byte[], int)
+   */
+  public static byte[] fromHex(String data) {
+    data = data.replace(" ", "");
+    if (data.length() % 2 != 0) {
+      throw new RuntimeException("Bad hex string: " + data);
+    }
+    byte[] bin = new byte[data.length()/2];
+    for (int i=0; i < bin.length; i++) {
+      bin[i] = (byte) (0xff&Integer.parseInt(data.substring(i*2, i*2+2), 16));
+    }
+    return bin;
+  }
+  
   public static String hexDump(byte[] data, int groupsPerLine, int bytesPerGroup) {
     if (bytesPerGroup <= 0) {
       throw new IllegalArgumentException("0 bytes per group");
