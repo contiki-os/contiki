@@ -49,6 +49,10 @@
 /* use uart1 for console */
 #define uart_init uart1_init
 
+/* nvm interface */
+#define NVM_INTERFACE gNvmInternalInterface_c
+/*#define NVM_INTERFACE gNvmExternalInterface_c */
+
 /* nvm-read */
 #define READ_ADDR 0x1f000
 #define READ_NBYTES 1024
