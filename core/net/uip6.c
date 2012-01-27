@@ -154,8 +154,8 @@ u8_t uip_ext_opt_offset = 0;
 #define FBUF                             ((struct uip_tcpip_hdr *)&uip_reassbuf[0])
 #define UIP_IP_BUF                          ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF                      ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
-#define UIP_UDP_BUF                        ((struct uip_udp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
-#define UIP_TCP_BUF                        ((struct uip_tcp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+#define UIP_UDP_BUF                        ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
+#define UIP_TCP_BUF                        ((struct uip_tcp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
 #define UIP_EXT_BUF                        ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_ROUTING_BUF                ((struct uip_routing_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_FRAG_BUF                      ((struct uip_frag_hdr *)&uip_buf[uip_l2_l3_hdr_len])
@@ -370,8 +370,11 @@ upper_layer_chksum(u8_t proto)
   volatile u16_t upper_layer_len;
   u16_t sum;
   
-  upper_layer_len = (((u16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1] - uip_ext_len) ;
+  upper_layer_len = (((u16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1] - uip_ext_len);
   
+  PRINTF("Upper layer checksum len: %d from: %d\n", upper_layer_len,
+	 UIP_IPH_LEN + UIP_LLH_LEN + uip_ext_len);
+
   /* First sum pseudoheader. */
   /* IP protocol and length fields. This addition cannot carry. */
   sum = upper_layer_len + proto;
@@ -511,15 +514,15 @@ remove_ext_hdr(void)
 {
   /* Remove ext header before TCP/UDP processing. */
   if(uip_ext_len > 0) {
-    PRINTF("Cutting ext-header before TCP send (extlen: %d, uiplen: %d)\n",
+    PRINTF("Cutting ext-header before processing (extlen: %d, uiplen: %d)\n",
 	   uip_ext_len, uip_len);
-    if(uip_len - UIP_IPH_LEN- uip_ext_len < 0) {
+    if(uip_len - UIP_IPH_LEN - uip_ext_len < 0) {
       PRINTF("ERROR: uip_len too short compared to ext len\n");
       uip_ext_len = 0;
       uip_len = 0;
       return;
     }
-    memmove(((uint8_t *)UIP_TCP_BUF) - uip_ext_len, (uint8_t *)UIP_TCP_BUF,
+    memmove(((uint8_t *)UIP_TCP_BUF), (uint8_t *)UIP_TCP_BUF + uip_ext_len,
 	    uip_len - UIP_IPH_LEN - uip_ext_len);
 
     uip_len -= uip_ext_len;
@@ -1053,7 +1056,7 @@ uip_process(u8_t flag)
   if(flag == UIP_UDP_TIMER) {
     if(uip_udp_conn->lport != 0) {
       uip_conn = NULL;
-      uip_sappdata = uip_appdata = &uip_buf[uip_l2_l3_udp_hdr_len];
+      uip_sappdata = uip_appdata = &uip_buf[UIP_IPUDPH_LEN];
       uip_len = uip_slen = 0;
       uip_flags = UIP_POLL;
       UIP_UDP_APPCALL();
@@ -1451,17 +1454,17 @@ uip_process(u8_t flag)
      work. If the application sets uip_slen, it has a packet to
      send. */
 #if UIP_UDP_CHECKSUMS
-  uip_len = uip_len - uip_l3_udp_hdr_len;
-  uip_appdata = &uip_buf[uip_l2_l3_udp_hdr_len];
+  uip_len = uip_len - UIP_IPUDPH_LEN;
+  uip_appdata = &uip_buf[UIP_IPUDPH_LEN];
   if(UIP_UDP_BUF->udpchksum != 0 && uip_udpchksum() != 0xffff) {
     UIP_STAT(++uip_stat.udp.drop);
     UIP_STAT(++uip_stat.udp.chkerr);
-    PRINTF("udp: bad checksum 0x%04x 0x%04x\n", UIP_UDP_BUF->udpchksum,
+    printf("udp: bad checksum 0x%04x 0x%04x\n", UIP_UDP_BUF->udpchksum,
            uip_udpchksum());
     goto drop;
   }
 #else /* UIP_UDP_CHECKSUMS */
-  uip_len = uip_len - uip_l3_udp_hdr_len;
+  uip_len = uip_len - UIP_IPUDPH_LEN;
 #endif /* UIP_UDP_CHECKSUMS */
 
   /* Make sure that the UDP destination port number is not zero. */
@@ -1505,7 +1508,7 @@ uip_process(u8_t flag)
  
   uip_conn = NULL;
   uip_flags = UIP_NEWDATA;
-  uip_sappdata = uip_appdata = &uip_buf[uip_l2_l3_udp_hdr_len];
+  uip_sappdata = uip_appdata = &uip_buf[UIP_IPUDPH_LEN];
   uip_slen = 0;
   UIP_UDP_APPCALL();
 
@@ -1515,8 +1518,7 @@ uip_process(u8_t flag)
   if(uip_slen == 0) {
     goto drop;
   }
-  /* TODO: ext_header len here ? */
-  uip_len = uip_slen + uip_l3_udp_hdr_len; /* UIP_IPUDPH_LEN; */
+  uip_len = uip_slen + UIP_IPUDPH_LEN;
 
   /* For IPv6, the IP length field does not include the IPv6 IP header
      length. */
@@ -1717,7 +1719,7 @@ uip_process(u8_t flag)
   /* Parse the TCP MSS option, if present. */
   if((UIP_TCP_BUF->tcpoffset & 0xf0) > 0x50) {
     for(c = 0; c < ((UIP_TCP_BUF->tcpoffset >> 4) - 5) << 2 ;) {
-      opt = uip_buf[UIP_TCPIP_HLEN + uip_ext_len + UIP_LLH_LEN + c];
+      opt = uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + c];
       if(opt == TCP_OPT_END) {
         /* End of options. */
         break;
@@ -1725,10 +1727,10 @@ uip_process(u8_t flag)
         ++c;
         /* NOP option. */
       } else if(opt == TCP_OPT_MSS &&
-                uip_buf[UIP_TCPIP_HLEN + uip_ext_len + UIP_LLH_LEN + 1 + c] == TCP_OPT_MSS_LEN) {
+                uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c] == TCP_OPT_MSS_LEN) {
         /* An MSS option with the right option length. */
-        tmp16 = ((u16_t)uip_buf[UIP_TCPIP_HLEN + uip_ext_len + UIP_LLH_LEN + 2 + c] << 8) |
-          (u16_t)uip_buf[UIP_IPTCPH_LEN + uip_ext_len + UIP_LLH_LEN + 3 + c];
+        tmp16 = ((u16_t)uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 2 + c] << 8) |
+          (u16_t)uip_buf[UIP_IPTCPH_LEN + UIP_LLH_LEN + 3 + c];
         uip_connr->initialmss = uip_connr->mss =
           tmp16 > UIP_TCP_MSS? UIP_TCP_MSS: tmp16;
    
@@ -1737,12 +1739,12 @@ uip_process(u8_t flag)
       } else {
         /* All other options have a length field, so that we easily
            can skip past them. */
-        if(uip_buf[UIP_TCPIP_HLEN + uip_ext_len + UIP_LLH_LEN + 1 + c] == 0) {
+        if(uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c] == 0) {
           /* If the length field is zero, the options are malformed
              and we don't process them further. */
           break;
         }
-        c += uip_buf[UIP_TCPIP_HLEN + uip_ext_len + UIP_LLH_LEN + 1 + c];
+        c += uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c];
       }
     }
   }
@@ -1765,7 +1767,7 @@ uip_process(u8_t flag)
   UIP_TCP_BUF->optdata[1] = TCP_OPT_MSS_LEN;
   UIP_TCP_BUF->optdata[2] = (UIP_TCP_MSS) / 256;
   UIP_TCP_BUF->optdata[3] = (UIP_TCP_MSS) & 255;
-  uip_len = UIP_IPTCPH_LEN + TCP_OPT_MSS_LEN + uip_ext_len;
+  uip_len = UIP_IPTCPH_LEN + TCP_OPT_MSS_LEN;
   UIP_TCP_BUF->tcpoffset = ((UIP_TCPH_LEN + TCP_OPT_MSS_LEN) / 4) << 4;
   goto tcp_send;
 
@@ -1791,7 +1793,7 @@ uip_process(u8_t flag)
   /* uip_len will contain the length of the actual TCP data. This is
      calculated by subtracing the length of the TCP header (in
      c) and the length of the IP header (20 bytes). */
-  uip_len = uip_len - c - UIP_IPH_LEN - uip_ext_len;
+  uip_len = uip_len - c - UIP_IPH_LEN;
 
   /* First, check if the sequence number of the incoming packet is
      what we're expecting next. If not, we send out an ACK with the
@@ -1898,7 +1900,7 @@ uip_process(u8_t flag)
         /* Parse the TCP MSS option, if present. */
         if((UIP_TCP_BUF->tcpoffset & 0xf0) > 0x50) {
           for(c = 0; c < ((UIP_TCP_BUF->tcpoffset >> 4) - 5) << 2 ;) {
-            opt = uip_buf[UIP_IPTCPH_LEN + UIP_LLH_LEN + c + uip_ext_len];
+            opt = uip_buf[UIP_IPTCPH_LEN + UIP_LLH_LEN + c];
             if(opt == TCP_OPT_END) {
               /* End of options. */
               break;
@@ -1906,10 +1908,10 @@ uip_process(u8_t flag)
               ++c;
               /* NOP option. */
             } else if(opt == TCP_OPT_MSS &&
-                      uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c + uip_ext_len] == TCP_OPT_MSS_LEN) {
+                      uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c] == TCP_OPT_MSS_LEN) {
               /* An MSS option with the right option length. */
-              tmp16 = (uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 2 + c + uip_ext_len] << 8) |
-                uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 3 + c + uip_ext_len];
+              tmp16 = (uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 2 + c] << 8) |
+                uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 3 + c];
               uip_connr->initialmss =
                 uip_connr->mss = tmp16 > UIP_TCP_MSS? UIP_TCP_MSS: tmp16;
 
@@ -1918,12 +1920,12 @@ uip_process(u8_t flag)
             } else {
               /* All other options have a length field, so that we easily
                  can skip past them. */
-              if(uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c + uip_ext_len] == 0) {
+              if(uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c] == 0) {
                 /* If the length field is zero, the options are malformed
                    and we don't process them further. */
                 break;
               }
-              c += uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c + uip_ext_len];
+              c += uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + 1 + c];
             }
           }
         }
@@ -2194,7 +2196,7 @@ uip_process(u8_t flag)
   UIP_TCP_BUF->flags = TCP_ACK;
 
  tcp_send_nodata:
-  uip_len = UIP_IPTCPH_LEN; /* TODO: maybe ext_len??? */
+  uip_len = UIP_IPTCPH_LEN;
 
  tcp_send_noopts:
   UIP_TCP_BUF->tcpoffset = (UIP_TCPH_LEN / 4) << 4;
