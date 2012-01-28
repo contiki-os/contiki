@@ -57,7 +57,7 @@ static uip_ipaddr_t last_sender;
 static void
 slip_input_callback(void)
 {
-  PRINTF("SIN: %u\n", uip_len);
+ // PRINTF("SIN: %u\n", uip_len);
   if(uip_buf[0] == '!') {
     PRINTF("Got configuration message of type %c\n", uip_buf[1]);
     uip_len = 0;
@@ -113,7 +113,7 @@ output(void)
     PRINT6ADDR(&UIP_IP_BUF->destipaddr);
     PRINTF("\n");
   } else {
-    PRINTF("SUT: %u\n", uip_len);
+ //   PRINTF("SUT: %u\n", uip_len);
     slip_send();
   }
 }

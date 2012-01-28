@@ -225,6 +225,7 @@ PROCESS_THREAD(border_router_process, ev, data)
   rpl_dag_t *dag;
 
   PROCESS_BEGIN();
+
   prefix_set = 0;
 
   PROCESS_PAUSE();
@@ -233,6 +234,12 @@ PROCESS_THREAD(border_router_process, ev, data)
 
   PRINTF("RPL-Border router started\n");
 
+   /* The border router runs with a 100% duty cycle in order to ensure high
+     packet reception rates.
+     Note if the MAC RDC is not turned off now, aggressive power management of the
+     cpu will interfere with establishing the SLIP connection */
+  NETSTACK_MAC.off(1);
+ 
   /* Request prefix until it has been received */
   while(!prefix_set) {
     etimer_set(&et, CLOCK_SECOND);
@@ -249,10 +256,6 @@ PROCESS_THREAD(border_router_process, ev, data)
 #if DEBUG || 1
   print_local_addresses();
 #endif
-
-  /* The border router runs with a 100% duty cycle in order to ensure high
-     packet reception rates. */
-  NETSTACK_MAC.off(1);
 
   while(1) {
     PROCESS_YIELD();

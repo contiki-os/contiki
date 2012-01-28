@@ -58,7 +58,7 @@ CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
            -DWITH_ASCII -DMCK=$(MCK) \
            -Werror $(ARCH_FLAGS) -g 
 
-CFLAGS  += $(CFLAGSNO) -Os -DRUN_AS_SYSTEM -DROM_RUN -fno-strict-aliasing  -fno-common -ffixed-r8 -msoft-float -DTEXT_BASE=$(TEXT_BASE) -fno-builtin-printf -fno-builtin-sprintf
+CFLAGS  += $(CFLAGSNO) -Os -DRUN_AS_SYSTEM -DROM_RUN -fno-strict-aliasing  -fno-common -ffixed-r8 -msoft-float -DTEXT_BASE=$(TEXT_BASE) -fno-builtin-printf -fno-builtin-sprintf -MMD
 LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles -static -u_start -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS) -gstabs
 
@@ -74,9 +74,9 @@ CFLAGS += -I$(OBJECTDIR) -I$(CONTIKI_CPU)/board -DBOARD=$(TARGET)
 $(OBJECTDIR)/board.h: $(OBJECTDIR) 
 ifneq (,$(findstring Windows,$(OS)))
 	${info Cygwin detected.}
-	ln -f $(CONTIKI_CPU)/board/$(TARGET).h $(OBJECTDIR)/board.h
+	ln -f $(CONTIKI_CPU)/board/board.h $(OBJECTDIR)/board.h
 else
-	ln -sf ../$(CONTIKI_CPU)/board/$(TARGET).h $(OBJECTDIR)/board.h
+	ln -sf ../$(CONTIKI_CPU)/board/board.h $(OBJECTDIR)/board.h
 endif
 
 
@@ -107,14 +107,10 @@ CUSTOM_RULE_C_TO_CO=yes
 %_$(TARGET).bin: %.elf
 	$(OBJCOPY) -O binary $< $@
 
-symbols.c:
-	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
-	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
- 
 %.$(TARGET): %_$(TARGET).bin
 	@
 
-%.elf: $(OBJECTDIR)/board.h  %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/symbols.o
+%.elf: $(OBJECTDIR)/board.h  %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) 
 	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(filter %.a,$^)
 
 
