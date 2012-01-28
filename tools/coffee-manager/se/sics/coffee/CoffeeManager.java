@@ -26,10 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
- * $Id: CoffeeManager.java,v 1.6 2009/08/13 12:15:35 nvt-se Exp $
- *
  * @author Nicolas Tsiftes
  *
  */
@@ -39,7 +35,6 @@ package se.sics.coffee;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import se.sics.coffee.CoffeeFS.CoffeeException;
 import se.sics.coffee.CoffeeFS.CoffeeFileException;
@@ -161,8 +156,7 @@ public class CoffeeManager {
 			Iterator<Map.Entry<String, CoffeeFile>> iterator =
 				coffeeFS.getFiles().entrySet().iterator();
 			while (iterator.hasNext()) {
-				Map.Entry<String, CoffeeFile> pair = (Map.Entry<String, CoffeeFile>) iterator.next();
-				String key = pair.getKey();
+				Map.Entry<String, CoffeeFile> pair = iterator.next();
 				CoffeeFile file = pair.getValue();
 				bytesWritten += file.getLength();
 				bytesReserved += file.getHeader().getReservedSize();
@@ -188,8 +182,7 @@ public class CoffeeManager {
 		try {
 			Iterator<Map.Entry<String, CoffeeFile>> iterator = files.entrySet().iterator();
 			while (iterator.hasNext()) {
-				Map.Entry<String, CoffeeFile> pair = (Map.Entry<String, CoffeeFile>) iterator.next();
-				String key = pair.getKey();
+				Map.Entry<String, CoffeeFile> pair = iterator.next();
 				CoffeeFile file = pair.getValue();
 				System.out.println(file.getName() + " " + file.getLength());
 			}

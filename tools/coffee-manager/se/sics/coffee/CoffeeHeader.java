@@ -26,10 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
- * $Id: CoffeeHeader.java,v 1.2 2009/08/10 12:51:52 nvt-se Exp $
- *
  * @author Nicolas Tsiftes
  *
  */
@@ -37,9 +33,8 @@
 package se.sics.coffee;
 
 class CoffeeHeader {
-	private CoffeeFS coffeeFS;
-	private CoffeeConfiguration conf;
-	private int page;
+	private final CoffeeConfiguration conf;
+	private final int page;
 
 	private static final int HDR_FLAG_VALID		= 0x1;
 	private static final int HDR_FLAG_ALLOCATED	= 0x2;
@@ -54,24 +49,21 @@ class CoffeeHeader {
 	int maxPages;
 	String name;
 
-	private boolean valid;
-	private boolean allocated;
-	private boolean obsolete;
-	private boolean modified;
-	private boolean log;
-	private boolean isolated;
+	private int flags;
 
 	public CoffeeHeader(CoffeeFS coffeeFS, int page) {
-		this.coffeeFS = coffeeFS;
 		this.page = page;
 		conf = coffeeFS.getConfiguration();
 	}
 
 	public CoffeeHeader(CoffeeFS coffeeFS, int page, byte[] bytes) {
-		this.coffeeFS = coffeeFS;
-		this.page = page;
+		this(coffeeFS, page);
 
 		processRawHeader(bytes);
+	}
+
+	private int getInt(byte[] bytes, int index) {
+	    return (bytes[index] & 0xff) + ((bytes[index + 1] & 0xff) << 8);
 	}
 
 	private void processRawHeader(byte[] bytes) {
@@ -80,10 +72,10 @@ class CoffeeHeader {
 		logPage = getPageValue(bytes, 0);
 		index += conf.pageTypeSize;
 
-		logRecords = bytes[index] + (bytes[index + 1] << 8);
+		logRecords = getInt(bytes, index);
 		index += 2;
 
-		logRecordSize = bytes[index] + (bytes[index + 1] << 8);
+		logRecordSize = getInt(bytes, index);
 		index += 2;
 
 		maxPages = getPageValue(bytes, index);
@@ -91,61 +83,14 @@ class CoffeeHeader {
 
 		index++; // Skip deprecated EOF hint field.
 
-		processFlags((int)bytes[index]);
+		flags = bytes[index] & 0xff;
 		index++;
 
 		name = new String(bytes).substring(index,
-				index + conf.NAME_LENGTH);
+				index + conf.nameLength);
 		int nullCharOffset = name.indexOf(0);
 		if (nullCharOffset >= 0) {
 			name = name.substring(0, nullCharOffset);
-		}
-	}
-
-	private byte composeFlags() {
-		byte flags = 0;
-
-		if (valid) {
-			flags |= HDR_FLAG_VALID;
-		}
-		if (allocated) {
-			flags |= HDR_FLAG_ALLOCATED;
-		}
-		if (obsolete) {
-			flags |= HDR_FLAG_OBSOLETE;
-		}
-		if (modified) {
-			flags |= HDR_FLAG_MODIFIED;
-		}
-		if (log) {
-			flags |= HDR_FLAG_LOG;
-		}
-
-		if (isolated) {
-			flags |= HDR_FLAG_ISOLATED;
-		}
-
-		return flags;
-	}
-
-	private void processFlags(int flags) {
-		if ((flags & HDR_FLAG_VALID) != 0) {
-			valid = true;
-		}
-		if ((flags & HDR_FLAG_ALLOCATED) != 0) {
-			allocated = true;
-		}
-		if ((flags & HDR_FLAG_OBSOLETE) != 0) {
-			obsolete = true;
-		}
-		if ((flags & HDR_FLAG_MODIFIED) != 0) {
-			modified = true;
-		}
-		if ((flags & HDR_FLAG_LOG) != 0) {
-			log = true;
-		}
-		if ((flags & HDR_FLAG_ISOLATED) != 0) {
-			isolated = true;
 		}
 	}
 
@@ -160,16 +105,15 @@ class CoffeeHeader {
 
 	private int getPageValue(byte[] bytes, int offset) {
 		int page = 0;
-
 		for (int i = 0; i < conf.pageTypeSize; i++) {
-			page |= bytes[offset + i] << (8 * i);
+			page |= (bytes[offset + i] & 0xff) << (8 * i);
 		}
 		return page;
 	}
 
 	public byte[] toRawHeader() {
 		byte[] bytes = new byte[2 * conf.pageTypeSize + 
-					conf.NAME_LENGTH + 6];
+					conf.nameLength + 6];
 		int index = 0;
 
 		System.arraycopy(setPageValue(logPage), 0, bytes, 0, 
@@ -187,18 +131,18 @@ class CoffeeHeader {
 		index += conf.pageTypeSize;
 
 		bytes[index++] = 0; // Deprecated EOF hint field.
-		bytes[index++] = composeFlags();
+		bytes[index++] = (byte) flags;
 
 		byte[] nameBytes = name.getBytes();
-		int copyLength = nameBytes.length > conf.NAME_LENGTH ?
-					conf.NAME_LENGTH : nameBytes.length;
+		int copyLength = nameBytes.length > conf.nameLength ?
+					conf.nameLength : nameBytes.length;
 		System.arraycopy(nameBytes, 0, bytes, index, copyLength);
 
 		return bytes;
 	}
 
 	public int rawLength() {
-		return 2 * conf.pageTypeSize + conf.NAME_LENGTH + 6;
+		return 2 * conf.pageTypeSize + conf.nameLength + 6;
 	}
 
 	public int getPage() {
@@ -206,27 +150,27 @@ class CoffeeHeader {
 	}
 
 	public boolean isValid() {
-		return valid;
+		return (flags & HDR_FLAG_VALID) != 0;
 	}
 
 	public boolean isAllocated() {
-		return allocated;
+		return (flags & HDR_FLAG_ALLOCATED) != 0;
 	}
 
 	public boolean isObsolete() {
-		return obsolete;
+		return (flags & HDR_FLAG_OBSOLETE) != 0;
 	}
 
 	public boolean isModified() {
-		return modified;
+		return (flags & HDR_FLAG_MODIFIED) != 0;
 	}
 
 	public boolean isIsolated() {
-		return isolated;
+		return (flags & HDR_FLAG_ISOLATED) != 0;
 	}
 
 	public boolean isLog() {
-		return log;
+		return (flags & HDR_FLAG_LOG) != 0;
 	}
 
 	public boolean isFree() {
@@ -238,11 +182,11 @@ class CoffeeHeader {
 	}
 
 	public void allocate() {
-		allocated = true;
+	    flags |= HDR_FLAG_ALLOCATED;
 	}
 
 	public void makeObsolete() {
-		obsolete = true;
+	    flags |= HDR_FLAG_OBSOLETE;
 	}
 
 	public void setName(String name) {

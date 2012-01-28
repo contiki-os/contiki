@@ -26,10 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
- * $Id: CoffeeFile.java,v 1.6 2009/08/11 17:03:59 fros4943 Exp $
- *
  * @author Nicolas Tsiftes
  *
  */
@@ -43,7 +39,6 @@ public class CoffeeFile {
 	protected CoffeeHeader header;
 	private String name;
 	private int length;
-	private int startPage;
 	private int reservedSize;
 	private CoffeeMicroLog microLog;
 	private boolean knownLength;
@@ -52,7 +47,6 @@ public class CoffeeFile {
 		this.coffeeFS = coffeeFS;
 		this.header = header;
 		name = header.name;
-		startPage = header.getPage();
 		reservedSize = header.maxPages * coffeeFS.getConfiguration().pageSize;
 		if (header.isModified() && 
 		   coffeeFS.getConfiguration().useMicroLogs == true) {

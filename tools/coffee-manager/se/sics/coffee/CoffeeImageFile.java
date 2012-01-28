@@ -26,10 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
- * $Id: CoffeeImageFile.java,v 1.2 2009/08/10 12:51:52 nvt-se Exp $
- *
  * @author Nicolas Tsiftes
  *
  */
@@ -41,12 +37,10 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class CoffeeImageFile implements CoffeeImage {
-	private String filename;
 	private RandomAccessFile imageFile;
 	private CoffeeConfiguration conf;
 
 	public CoffeeImageFile(String filename, CoffeeConfiguration conf) throws IOException {
-		this.filename = filename;
 		this.conf = conf;
 		File file = new File(filename);
 		imageFile = new RandomAccessFile(file, "rw");
