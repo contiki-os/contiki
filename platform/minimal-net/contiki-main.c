@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.25 2010/10/19 18:29:05 adamdunkels Exp $
  *
  */
 
@@ -222,6 +221,9 @@ main(void)
   printf("RPL enabled\n");
 #endif
 
+  procinit_init();
+  autostart_start(autostart_processes); 
+
   /* Set default IP addresses if not specified */
 #if !UIP_CONF_IPV6
   {
@@ -274,7 +276,17 @@ main(void)
   }
 #endif /* !UIP_CONF_IPV6_RPL */
 
-#if !RPL_BORDER_ROUTER  /* Border router process prints addresses later */
+#endif /* !UIP_CONF_IPV6 */
+
+ // procinit_init();
+ // autostart_start(autostart_processes); 
+
+  /* Make standard output unbuffered. */
+  setvbuf(stdout, (char *)NULL, _IONBF, 0);
+
+  printf("\n*******%s online*******\n",CONTIKI_VERSION_STRING);
+
+#if UIP_CONF_IPV6 && !RPL_BORDER_ROUTER  /* Border router process prints addresses later */
   {
     uint8_t i;
     for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
@@ -285,16 +297,7 @@ main(void)
       }
     }
   }
-#endif /* !RPL_BORDER_ROUTER */
-#endif /* !UIP_CONF_IPV6 */
-
-  procinit_init();
-  autostart_start(autostart_processes);
-
-  /* Make standard output unbuffered. */
-  setvbuf(stdout, (char *)NULL, _IONBF, 0);
-
-  printf("\n*******%s online*******\n",CONTIKI_VERSION_STRING);
+#endif
 
   while(1) {
     fd_set fds;

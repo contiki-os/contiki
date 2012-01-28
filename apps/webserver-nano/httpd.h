@@ -52,6 +52,8 @@
 #ifndef WEBSERVER_CONF_NANO
 #if CONTIKI_TARGET_SKY || CONTIKI_TARGET_STK500
 #define WEBSERVER_CONF_NANO 1
+#elif CONTIKI_TARGET_REDBEE_ECONOTAG || CONTIKI_TARGET_AVR_RAVEN || CONTIKI_TARGET_AVR_ATMEGA128RFA1
+#define WEBSERVER_CONF_NANO 2
 #else
 #define WEBSERVER_CONF_NANO 3
 #endif
@@ -73,6 +75,7 @@
 //#define WEBSERVER_CONF_HEADER_W3C  1 //Proper header
 #define WEBSERVER_CONF_HEADER_MENU 1 //with links to other pages
 //#define WEBSERVER_CONF_HEADER_ICON 1 //with favicon
+#define WEBSERVER_CONF_LOADTIME  0  //show load time in filestats
 #define WEBSERVER_CONF_FILESTATS 1
 #define WEBSERVER_CONF_TCPSTATS  0
 #define WEBSERVER_CONF_PROCESSES 0
@@ -101,7 +104,47 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 
 #elif WEBSERVER_CONF_NANO==2
 /* webserver-mini having more content */
-#error webserver-micro not implemented
+#define WEBSERVER_CONF_CONNS     2
+#define WEBSERVER_CONF_NAMESIZE 20
+#define WEBSERVER_CONF_BUFSIZE  40
+/* Allow include in .shtml pages, e.g. %!: /header.html */
+#define WEBSERVER_CONF_INCLUDE   1
+/* Allow cgi in .shtml pages, e.g. %! file-stats . */
+#define WEBSERVER_CONF_CGI       1
+/* MAX_SCRIPT_NAME_LENGTH should be at least the maximum file name length+2 for %!: includes */
+#define MAX_SCRIPT_NAME_LENGTH   WEBSERVER_CONF_NAMESIZE+2
+/* Enable specific cgi's */
+#define WEBSERVER_CONF_HEADER    1
+//#define WEBSERVER_CONF_HEADER_W3C  1 //Proper header
+#define WEBSERVER_CONF_HEADER_MENU 1 //with links to other pages
+//#define WEBSERVER_CONF_HEADER_ICON 1 //with favicon
+#define WEBSERVER_CONF_LOADTIME  1
+#define WEBSERVER_CONF_FILESTATS 1
+#define WEBSERVER_CONF_TCPSTATS  1
+#define WEBSERVER_CONF_PROCESSES 1
+#define WEBSERVER_CONF_ADDRESSES 1
+#define WEBSERVER_CONF_NEIGHBORS 1
+#define WEBSERVER_CONF_ROUTES    1
+#define WEBSERVER_CONF_SENSORS   1
+//#define WEBSERVER_CONF_TICTACTOE 1   //Needs passquery of at least 10 chars 
+#define WEBSERVER_CONF_AJAX      1
+//#define WEBSERVER_CONF_PASSQUERY 10
+#if WEBSERVER_CONF_PASSQUERY
+extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
+#endif
+/* Enable specific file types */
+#define WEBSERVER_CONF_JPG       1
+#define WEBSERVER_CONF_PNG       1
+#define WEBSERVER_CONF_GIF       1
+#define WEBSERVER_CONF_TXT       1
+#define WEBSERVER_CONF_CSS       1
+#define WEBSERVER_CONF_BIN       1
+
+/* Log page accesses */
+#define WEBSERVER_CONF_LOG       1
+/* Include referrer in log */
+#define WEBSERVER_CONF_REFERER   1
+
 
 #elif WEBSERVER_CONF_NANO==3
 /* webserver-mini having all content */
@@ -119,6 +162,7 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 //#define WEBSERVER_CONF_HEADER_W3C  1 //Proper header
 #define WEBSERVER_CONF_HEADER_MENU 1 //with links to other pages
 //#define WEBSERVER_CONF_HEADER_ICON 1 //with favicon
+#define WEBSERVER_CONF_LOADTIME  1
 #define WEBSERVER_CONF_FILESTATS 1
 #define WEBSERVER_CONF_TCPSTATS  1
 #define WEBSERVER_CONF_PROCESSES 1
@@ -212,6 +256,9 @@ struct httpd_state {
 #if WEBSERVER_CONF_INCLUDE || WEBSERVER_CONF_CGI
   char *scriptptr;
   int scriptlen;
+#endif
+#if WEBSERVER_CONF_LOADTIME
+  clock_time_t pagetime;
 #endif
 #if WEBSERVER_CONF_CGI
   union {
