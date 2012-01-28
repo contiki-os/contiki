@@ -75,13 +75,13 @@ coap_register_as_transaction_handler()
 }
 
 coap_transaction_t *
-coap_new_transaction(uint16_t tid, uip_ipaddr_t *addr, uint16_t port)
+coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
 {
   coap_transaction_t *t = memb_alloc(&transactions_memb);
 
   if (t)
   {
-    t->tid = tid;
+    t->mid = mid;
     t->retrans_counter = 0;
 
     /* save client address */
@@ -95,7 +95,7 @@ coap_new_transaction(uint16_t tid, uip_ipaddr_t *addr, uint16_t port)
 void
 coap_send_transaction(coap_transaction_t *t)
 {
-  PRINTF("Sending transaction %u\n", t->tid);
+  PRINTF("Sending transaction %u\n", t->mid);
 
   coap_send_message(&t->addr, t->port, t->packet, t->packet_len);
 
@@ -103,7 +103,7 @@ coap_send_transaction(coap_transaction_t *t)
   {
     if (t->retrans_counter<COAP_MAX_RETRANSMIT)
     {
-      PRINTF("Keeping transaction %u\n", t->tid);
+      PRINTF("Keeping transaction %u\n", t->mid);
 
       if (t->retrans_counter==0)
       {
@@ -154,7 +154,7 @@ coap_clear_transaction(coap_transaction_t *t)
 {
   if (t)
   {
-    PRINTF("Freeing transaction %u: %p\n", t->tid, t);
+    PRINTF("Freeing transaction %u: %p\n", t->mid, t);
 
     etimer_stop(&t->retrans_timer);
     list_remove(transactions_list, t);
@@ -163,15 +163,15 @@ coap_clear_transaction(coap_transaction_t *t)
 }
 
 coap_transaction_t *
-coap_get_transaction_by_tid(uint16_t tid)
+coap_get_transaction_by_mid(uint16_t mid)
 {
   coap_transaction_t *t = NULL;
 
   for (t = (coap_transaction_t*)list_head(transactions_list); t; t = t->next)
   {
-    if (t->tid==tid)
+    if (t->mid==mid)
     {
-      PRINTF("Found transaction for TID %u: %p\n", t->tid, t);
+      PRINTF("Found transaction for MID %u: %p\n", t->mid, t);
       return t;
     }
   }
@@ -188,7 +188,7 @@ coap_check_transactions()
     if (etimer_expired(&t->retrans_timer))
     {
       ++(t->retrans_counter);
-      PRINTF("Retransmitting %u (%u)\n", t->tid, t->retrans_counter);
+      PRINTF("Retransmitting %u (%u)\n", t->mid, t->retrans_counter);
       coap_send_transaction(t);
     }
   }

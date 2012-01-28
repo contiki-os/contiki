@@ -61,7 +61,7 @@
 /*- Variables -----------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 static struct uip_udp_conn *udp_conn = NULL;
-static uint16_t current_tid = 0;
+static uint16_t current_mid = 0;
 
 coap_status_t coap_error_code = NO_ERROR;
 char *coap_error_message = "";
@@ -274,19 +274,19 @@ coap_init_connection(uint16_t port)
   PRINTF("Listening on port %u\n", uip_ntohs(udp_conn->lport));
 
   /* Initialize transaction ID. */
-  current_tid = random_rand();
+  current_mid = random_rand();
 }
 /*-----------------------------------------------------------------------------------*/
 uint16_t
-coap_get_tid()
+coap_get_mid()
 {
-  return ++current_tid;
+  return ++current_mid;
 }
 /*-----------------------------------------------------------------------------------*/
 /*- MEASSAGE PROCESSING -------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 void
-coap_init_message(void *packet, coap_message_type_t type, uint8_t code, uint16_t tid)
+coap_init_message(void *packet, coap_message_type_t type, uint8_t code, uint16_t mid)
 {
   coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
 
@@ -295,7 +295,7 @@ coap_init_message(void *packet, coap_message_type_t type, uint8_t code, uint16_t
 
   coap_pkt->type = type;
   coap_pkt->code = code;
-  coap_pkt->tid = tid;
+  coap_pkt->mid = mid;
 }
 /*-----------------------------------------------------------------------------------*/
 size_t
@@ -508,8 +508,8 @@ coap_serialize_message(void *packet, uint8_t *buffer)
   coap_pkt->buffer[0] |= COAP_HEADER_TYPE_MASK & (coap_pkt->type)<<COAP_HEADER_TYPE_POSITION;
   coap_pkt->buffer[0] |= COAP_HEADER_OPTION_COUNT_MASK & (coap_pkt->option_count)<<COAP_HEADER_OPTION_COUNT_POSITION;
   coap_pkt->buffer[1] = coap_pkt->code;
-  coap_pkt->buffer[2] = 0xFF & (coap_pkt->tid)>>8;
-  coap_pkt->buffer[3] = 0xFF & coap_pkt->tid;
+  coap_pkt->buffer[2] = 0xFF & (coap_pkt->mid)>>8;
+  coap_pkt->buffer[3] = 0xFF & coap_pkt->mid;
 
   PRINTF("-Done %u options, header len %u, payload len %u-\n", coap_pkt->option_count, option - buffer, coap_pkt->payload_len);
 
@@ -547,7 +547,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
   coap_pkt->type = (COAP_HEADER_TYPE_MASK & coap_pkt->buffer[0])>>COAP_HEADER_TYPE_POSITION;
   coap_pkt->option_count = (COAP_HEADER_OPTION_COUNT_MASK & coap_pkt->buffer[0])>>COAP_HEADER_OPTION_COUNT_POSITION;
   coap_pkt->code = coap_pkt->buffer[1];
-  coap_pkt->tid = coap_pkt->buffer[2]<<8 | coap_pkt->buffer[3];
+  coap_pkt->mid = coap_pkt->buffer[2]<<8 | coap_pkt->buffer[3];
 
   if (coap_pkt->version != 1)
   {

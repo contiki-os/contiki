@@ -154,7 +154,7 @@ coap_notify_observers(const char *url, int type, uint32_t observe, uint8_t *payl
 
       /*TODO implement special transaction for CON, sharing the same buffer to allow for more observers */
 
-      if ( (transaction = coap_new_transaction(coap_get_tid(), &obs->addr, obs->port)) )
+      if ( (transaction = coap_new_transaction(coap_get_mid(), &obs->addr, obs->port)) )
       {
         /* Use CON to check whether client is still there/interested after COAP_OBSERVING_REFRESH_INTERVAL. */
         if (stimer_expired(&obs->refresh_timer))
@@ -166,7 +166,7 @@ coap_notify_observers(const char *url, int type, uint32_t observe, uint8_t *payl
 
         /* prepare response */
         coap_packet_t push[1]; /* This way the packet can be treated as pointer as usual. */
-        coap_init_message(push, (coap_message_type_t)type, CONTENT_2_05, transaction->tid );
+        coap_init_message(push, (coap_message_type_t)type, CONTENT_2_05, transaction->mid );
         coap_set_header_observe(push, observe);
         coap_set_header_token(push, obs->token, obs->token_len);
         coap_set_payload(push, payload, payload_len);
