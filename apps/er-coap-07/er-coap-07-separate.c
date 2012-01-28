@@ -55,15 +55,18 @@
 /*-----------------------------------------------------------------------------------*/
 void coap_separate_handler(resource_t *resource, void *request, void *response)
 {
+  coap_packet_t *const coap_req = (coap_packet_t *) request;
+  coap_packet_t *const coap_res = (coap_packet_t *) response;
+
   PRINTF("Separate response for /%s \n", resource->url);
   /* send separate ACK. */
   coap_packet_t ack[1];
   /* ACK with empty code (0) */
-  coap_init_message(ack, COAP_TYPE_ACK, 0, ((coap_packet_t *)request)->tid);
+  coap_init_message(ack, COAP_TYPE_ACK, 0, coap_req->tid);
   /* Should only overwrite Header which is already parsed to request. */
   coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, (uip_appdata + uip_ext_len), coap_serialize_message(ack, (uip_appdata + uip_ext_len)));
 
   /* Change response to separate response. */
-  ((coap_packet_t *)response)->type = COAP_TYPE_CON;
-  ((coap_packet_t *)response)->tid = coap_get_tid();
+  coap_res->type = COAP_TYPE_CON;
+  coap_res->tid = coap_get_tid();
 }

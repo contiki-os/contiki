@@ -59,7 +59,7 @@ DETAILS
 The Erbium CoAP currently implements draft 08.
 Central features are commented in rest-server-example.c.
 In general, apps/er-coap-07 supports:
-* All CoAP-07 header options
+* All draft 08 header options
 * CON Retransmissions (note COAP_MAX_OPEN_TRANSACTIONS)
 * Blockwise Transfers (note REST_MAX_CHUNK_SIZE)
 * Separate Responses (see rest_set_pre_handler() and coap_separate_handler())
@@ -73,6 +73,7 @@ The Makefile uses WITH_COAP to configure different implementations for the Erbiu
   The default port for coap-07 is 5683.
 * WITH_COAP=3 uses Erbium CoAP 03 apps/er-coap-03/.
   The default port for coap-03 is 61616.
+  er-coap-03 produces some warnings, as it not fully maintained anymore.
 * WITH_COAP=0 is a stub to link an Erbium HTTP engine that uses the same resource abstraction (REST.x() functions and RESOURCE macros. 
 
 TODOs

@@ -167,7 +167,7 @@ handle_incoming_data(void)
                     PRINTF("handle_incoming_data(): block_offset >= response->payload_len\n");
 
                     response->code = BAD_OPTION_4_02;
-                    coap_set_payload(response, (uint8_t*)"BlockOutOfScope", 15);
+                    coap_set_payload(response, "BlockOutOfScope", 15); /* a const char str[] and sizeof(str) produces larger code size */
                   }
                   else
                   {
@@ -259,7 +259,7 @@ handle_incoming_data(void)
       }
       /* Reuse input buffer for error message. */
       coap_init_message(message, COAP_TYPE_ACK, coap_error_code, message->tid);
-      coap_set_payload(message, (uint8_t *) coap_error_message, strlen(coap_error_message));
+      coap_set_payload(message, coap_error_message, strlen(coap_error_message));
       coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, uip_appdata, coap_serialize_message(message, uip_appdata));
     }
   } /* if (new data) */
@@ -396,7 +396,7 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
       PRINTF("well_known_core_handler(): bufpos<=0\n");
 
       coap_set_rest_status(response, BAD_OPTION_4_02);
-      coap_set_payload(response, (uint8_t*)"BlockOutOfScope", 15);
+      coap_set_payload(response, "BlockOutOfScope", 15);
     }
 
     if (resource==NULL) {
