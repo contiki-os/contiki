@@ -158,7 +158,7 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 
   /* The other getters copy the value (or string/array pointer) to the given pointers and return 1 for success or the length of strings/arrays. */
   uint32_t max_age = 0;
-  const char *str = "";
+  const char *str = NULL;
   uint32_t observe = 0;
   const uint8_t *bytes = NULL;
   uint32_t block_num = 0;
@@ -312,7 +312,9 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
   {
     REST.set_response_status(response, REST.status.BAD_OPTION);
     /* A block error message should not exceed the minimum block size (16). */
-    REST.set_response_payload(response, (uint8_t*)"BlockOutOfScope", 15);
+
+    const char error_msg[] = "BlockOutOfScope";
+    REST.set_response_payload(response, (uint8_t *)error_msg, sizeof(error_msg)-1);
     return;
   }
 
@@ -359,7 +361,10 @@ void
 polling_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  REST.set_response_payload(response, (uint8_t *)"It's periodic!", 14);
+
+  /* Usually, a CoAP server would response with the current resource representation. */
+  const char msg[] = "It's periodic!";
+  REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
 
   /* A post_handler that handles subscriptions will be called for periodic resources by the REST framework. */
 }
@@ -397,7 +402,10 @@ void
 event_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  REST.set_response_payload(response, (uint8_t *)"It's eventful!", 14);
+
+  /* Usually, a CoAP server would response with the current resource representation. */
+  const char msg[] = "It's eventful!";
+  REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
 
   /* A post_handler that handles subscriptions/observing will be called for periodic resources by the framework. */
 }
@@ -519,7 +527,8 @@ light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
   else
   {
     REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
-    REST.set_response_payload(response, (uint8_t *)"Supporting content-types text/plain, application/xml, and application/json", 74);
+    const char msg[] = "Supporting content-types text/plain, application/xml, and application/json";
+    REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
   }
 }
 #endif /* PLATFORM_HAS_LIGHT */
@@ -552,7 +561,8 @@ battery_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
   else
   {
     REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
-    REST.set_response_payload(response, (uint8_t *)"Supporting content-types text/plain and application/json", 56);
+    const char msg[] = "Supporting content-types text/plain and application/json";
+    REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
   }
 }
 #endif /* PLATFORM_HAS_BATTERY */

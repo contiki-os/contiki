@@ -186,27 +186,25 @@ coap_notify_observers(const char *url, int type, uint32_t observe, uint8_t *payl
 void
 coap_observe_handler(resource_t *resource, void *request, void *response)
 {
+  coap_packet_t *const coap_req = (coap_packet_t *) request;
+  coap_packet_t *const coap_res = (coap_packet_t *) response;
+
   static char content[26];
 
-  if (response && ((coap_packet_t *)response)->code<128) /* response without error code */
+  if (coap_res && coap_res->code<128) /* response without error code */
   {
-    if (IS_OPTION((coap_packet_t *)request, COAP_OPTION_OBSERVE))
+    if (IS_OPTION(coap_req, COAP_OPTION_OBSERVE))
     {
-      if (!IS_OPTION((coap_packet_t *)request, COAP_OPTION_TOKEN))
-      {
-        /* Set default token. */
-        coap_set_header_token(request, (uint8_t *)"", 1);
-      }
 
-      if (coap_add_observer(resource->url, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, ((coap_packet_t *)request)->token, ((coap_packet_t *)request)->token_len))
+      if (coap_add_observer(resource->url, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, coap_req->token, coap_req->token_len))
       {
-        coap_set_header_observe(response, 0);
-        coap_set_payload(response, (uint8_t *)content, snprintf(content, sizeof(content), "Added as observer %u/%u", list_length(observers_list), COAP_MAX_OBSERVERS));
+        coap_set_header_observe(coap_res, 0);
+        coap_set_payload(coap_res, content, snprintf(content, sizeof(content), "Added as observer %u/%u", list_length(observers_list), COAP_MAX_OBSERVERS));
       }
       else
       {
-        ((coap_packet_t *)response)->code = SERVICE_UNAVAILABLE_5_03;
-        coap_set_payload(response, (uint8_t *)"Too many observers", 18);
+        coap_res->code = SERVICE_UNAVAILABLE_5_03;
+        coap_set_payload(coap_res, "TooManyObservers", 16);
       } /* if (added observer) */
     }
     else /* if (observe) */
