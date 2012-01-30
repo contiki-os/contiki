@@ -191,7 +191,7 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
 
   static char content[26];
 
-  if (coap_res && coap_res->code<128) /* response without error code */
+  if (coap_req->code==COAP_GET && coap_res && coap_res->code<128) /* GET request and response without error code */
   {
     if (IS_OPTION(coap_req, COAP_OPTION_OBSERVE))
     {
