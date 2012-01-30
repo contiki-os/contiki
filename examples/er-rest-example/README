@@ -8,7 +8,7 @@ coap-client-example.c: A CoAP client that polls the /toggle resource every 10 se
 
 PRELIMINARIES
 -------------
-a) Make sure rpl-border-router has the same stack and fits into mote memory, e.g.:
+a) Make sure rpl-border-router has the same stack and fits into mote memory:
    Disable RDC in border-router project-conf.h
    #undef NETSTACK_CONF_RDC
    #define NETSTACK_CONF_RDC     nullrdc_driver
@@ -17,7 +17,7 @@ b) For convenience, define the Cooja addresses in /etc/hosts
    aaaa::0212:7402:0002:0202	cooja2
    ...
 c) Get the Copper CoAP browser from https://addons.mozilla.org/en-US/firefox/addon/copper-270430/
-d) Optional: Save Tmotes as default target
+d) Optional: Save your target as default target
    $ make TARGET=sky savetarget
 
 COOJA HOWTO
@@ -56,7 +56,7 @@ Add a client:
 
 DETAILS
 -------
-The Erbium CoAP currently implements draft 08.
+The Erbium CoAP currently implements draft 08 (name "er-coap-07" stems from last technical draft changes).
 Central features are commented in rest-server-example.c.
 In general, apps/er-coap-07 supports:
 * All draft 08 header options
