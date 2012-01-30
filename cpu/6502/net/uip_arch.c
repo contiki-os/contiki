@@ -43,7 +43,7 @@
 /*-----------------------------------------------------------------------------------*/
 #pragma optimize(push, off)
 void
-uip_add32(u8_t *op32, u16_t op16)
+uip_add32(uint8_t *op32, uint16_t op16)
 {
   asm("ldy #3");
   asm("jsr ldaxysp");
@@ -71,12 +71,12 @@ uip_add32(u8_t *op32, u16_t op16)
 }
 #pragma optimize(pop)
 /*-----------------------------------------------------------------------------------*/
-static u16_t chksum_ptr, chksum_len, chksum_tmp;
-static u8_t chksum_protocol;
-static u16_t chksum(void);
+static uint16_t chksum_ptr, chksum_len, chksum_tmp;
+static uint8_t chksum_protocol;
+static uint16_t chksum(void);
 /*-----------------------------------------------------------------------------------*/
 #pragma optimize(push, off)
-u16_t
+uint16_t
 chksum(void) {
 
   asm("lda #0");
@@ -172,14 +172,14 @@ chksum(void) {
 }
 #pragma optimize(pop)
 /*-----------------------------------------------------------------------------------*/
-u16_t
-uip_chksum(u16_t *buf, u16_t len)
+uint16_t
+uip_chksum(uint16_t *buf, uint16_t len)
 {
   /*  unsigned long sum;
 
   sum = 0;
 
-  chksum_ptr = (u16_t)buf;
+  chksum_ptr = (uint16_t)buf;
   while(len >= 256) {  
     chksum_len = 256;
     sum += chksum();
@@ -199,28 +199,28 @@ uip_chksum(u16_t *buf, u16_t len)
   return sum;*/
 
   chksum_len = len;
-  chksum_ptr = (u16_t)buf;
+  chksum_ptr = (uint16_t)buf;
   return chksum();
 }
 /*-----------------------------------------------------------------------------------*/
-u16_t
+uint16_t
 uip_ipchksum(void)
 {  
-  chksum_ptr = (u16_t)uip_buf + UIP_LLH_LEN;
+  chksum_ptr = (uint16_t)uip_buf + UIP_LLH_LEN;
   chksum_len = UIP_IPH_LEN;  
   return chksum();
 }
 /*-----------------------------------------------------------------------------------*/
 #pragma optimize(push, off)
-static u16_t
-transport_chksum(u8_t protocol)
+static uint16_t
+transport_chksum(uint8_t protocol)
 {
   chksum_protocol = protocol;
-  chksum_ptr = (u16_t)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN];
+  chksum_ptr = (uint16_t)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN];
   chksum_len = UIP_TCPH_LEN;  
   chksum_tmp = chksum();
 
-  chksum_ptr = (u16_t)uip_appdata;
+  chksum_ptr = (uint16_t)uip_appdata;
   asm("lda _uip_aligned_buf+3+%b", UIP_LLH_LEN);
   asm("sec");
   asm("sbc #%b", UIP_IPTCPH_LEN);
@@ -313,16 +313,16 @@ transport_chksum(u8_t protocol)
 #pragma optimize(pop)
 
 /*-----------------------------------------------------------------------------------*/
-u16_t
+uint16_t
 uip_tcpchksum(void)
 {
   return transport_chksum(IP_PROTO_TCP);
 #if 0
-  chksum_ptr = (u16_t)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN];
+  chksum_ptr = (uint16_t)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN];
   chksum_len = UIP_TCPH_LEN;  
   chksum_tmp = chksum();
 
-  chksum_ptr = (u16_t)uip_appdata;
+  chksum_ptr = (uint16_t)uip_appdata;
   asm("lda _uip_buf+3+%b", UIP_LLH_LEN);
   asm("sec");
   asm("sbc #%b", UIP_IPTCPH_LEN);
@@ -416,16 +416,16 @@ uip_tcpchksum(void)
 
 /*-----------------------------------------------------------------------------------*/
 #if UIP_UDP_CHECKSUMS
-u16_t
+uint16_t
 uip_udpchksum(void)
 {
   return transport_chksum(IP_PROTO_UDP);
 #if 0
-  chksum_ptr = (u16_t)&uip_buf[20 + UIP_LLH_LEN];
+  chksum_ptr = (uint16_t)&uip_buf[20 + UIP_LLH_LEN];
   chksum_len = 20;  
   chksum_tmp = chksum();
 
-  chksum_ptr = (u16_t)uip_appdata;
+  chksum_ptr = (uint16_t)uip_appdata;
   asm("lda _uip_buf+3+%b", UIP_LLH_LEN);
   asm("sec");
   asm("sbc #40");

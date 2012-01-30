@@ -121,14 +121,14 @@ static int (* pcap_sendpacket)(struct pcap *, unsigned char *, int);
 struct ethip_hdr {
   struct uip_eth_hdr ethhdr;
   /* IP header. */
-  u8_t vhl,
+  uint8_t vhl,
     tos,
     len[2],
     ipid[2],
     ipoffset[2],
     ttl,
     proto;
-  u16_t ipchksum;
+  uint16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
 };
 
@@ -149,7 +149,7 @@ struct arp_hdr {
 struct arp_entry {
   uip_ipaddr_t ipaddr;
   struct uip_eth_addr ethaddr;
-  u8_t time;
+  uint8_t time;
 };
 static struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
 static const uip_ipaddr_t all_zeroes_addr = { { 0x0, /* rest is 0 */ } };

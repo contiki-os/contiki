@@ -31,23 +31,15 @@ include $(CONTIKIAVR)/Makefile.avr
 	avr-objdump -zhD $< > $@
 
 
-ifndef WINDIR
-  ifdef OS
-    ifneq (,$(findstring Windows,$(OS)))
-      WINDIR := Windows
-    endif
-  endif
-endif
-
 ifeq ($(PRGBOARD), )
   PRGBOARD = mib510
 endif
 
 ifeq ($(PORT), )
-  ifndef WINDIR
-    PORT = /dev/ttyUSB0 
-  else
+  ifeq ($(HOST_OS), Windows)
     PORT = COM1
+  else
+    PORT = /dev/ttyUSB0
   endif
 endif
 

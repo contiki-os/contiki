@@ -436,7 +436,7 @@ struct httpd_fsdata_file {
    const char *data;                     //offset to coffee file data
    const int len;                        //length of file data
 #if HTTPD_FS_STATISTICS == 1             //not enabled since list is in PROGMEM
-   u16_t count;                          //storage for file statistics
+   uint16_t count;                       //storage for file statistics
 #endif
 }
 */

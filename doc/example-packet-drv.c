@@ -29,7 +29,7 @@ PROCESS(example_packet_driver_process, "Example packet driver process");
  * The packet is located in the uip_buf[] buffer, and the length of the
  * packet is in the uip_len variable.
  */
-u8_t
+uint8_t
 example_packet_driver_output(void)
 {
   let_the_hardware_send_the_packet(uip_buf, uip_len);

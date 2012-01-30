@@ -65,6 +65,7 @@ unsigned long clock_seconds(void);
 
 typedef unsigned short uip_stats_t;
 
+/* These names are deprecated, use C99 names. */
 typedef uint8_t u8_t;
 typedef int8_t s8_t;
 typedef uint16_t u16_t;

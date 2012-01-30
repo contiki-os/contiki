@@ -81,6 +81,7 @@
 #define SR_CCA_REQUEST         0x08, 0x80, 7
 #define SR_CCA_DONE            0x01, 0x80, 7
 #define SR_CCA_STATUS          0x01, 0x40, 6
+#define SR_AACK_SET_PD         0x2e, 0x20, 5
 
 
 /* RF230 register assignments, for reference */

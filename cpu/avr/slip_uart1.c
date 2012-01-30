@@ -73,7 +73,7 @@ FDEV_SETUP_STREAM(slip_putchar, NULL, _FDEV_SETUP_WRITE);
 void
 slip_arch_init(unsigned long ubr)
 {
-  u8_t dummy;
+  uint8_t dummy;
   spl_t s = splhigh();
 
   UBRR1L = ubr;

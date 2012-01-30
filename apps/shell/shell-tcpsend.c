@@ -82,7 +82,7 @@ telnet_text_output(struct telnet_state *s, char *text1, char *text2)
 }
 /*---------------------------------------------------------------------------*/
 void
-telnet_newdata(struct telnet_state *s, char *data, u16_t len)
+telnet_newdata(struct telnet_state *s, char *data, uint16_t len)
 {
   shell_output(&tcpsend_command, data, len, "", 0);
 }

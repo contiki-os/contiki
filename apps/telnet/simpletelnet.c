@@ -152,7 +152,7 @@ static void
 connect(void)
 {
   uip_ipaddr_t addr, *addrptr;
-  u16_t port;
+  uint16_t port;
   char *cptr;
   struct uip_conn *conn;
 
@@ -310,7 +310,7 @@ telnet_timedout(struct telnet_state *s)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-telnet_newdata(struct telnet_state *s, char *data, u16_t len)
+telnet_newdata(struct telnet_state *s, char *data, uint16_t len)
 {
   petsciiconv_topetscii(data, len);
   data[len] = 0;

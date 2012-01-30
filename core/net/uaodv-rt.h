@@ -47,14 +47,14 @@ struct uaodv_rt_entry {
   struct uaodv_rt_entry *next;
   uip_ipaddr_t dest;
   uip_ipaddr_t nexthop;
-  u32_t hseqno;			/* In host byte order! */
-  u8_t hop_count;
-  u8_t is_bad;			/* Only one bit is used. */
+  uint32_t hseqno;			/* In host byte order! */
+  uint8_t hop_count;
+  uint8_t is_bad;			/* Only one bit is used. */
 };
 
 struct uaodv_rt_entry *
 uaodv_rt_add(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop,
-	     unsigned hop_count, const u32_t *seqno);
+	     unsigned hop_count, const uint32_t *seqno);
 struct uaodv_rt_entry *uaodv_rt_lookup_any(uip_ipaddr_t *dest);
 struct uaodv_rt_entry *uaodv_rt_lookup(uip_ipaddr_t *dest);
 void uaodv_rt_remove(struct uaodv_rt_entry *e);

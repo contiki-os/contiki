@@ -66,7 +66,7 @@ struct telnetd_state {
   char buf[TELNETD_CONF_LINELEN + 1];
   char bufptr;
   uint16_t numsent;
-  u8_t state;
+  uint8_t state;
 #define STATE_NORMAL 0
 #define STATE_IAC    1
 #define STATE_WILL   2
@@ -239,7 +239,7 @@ senddata(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-get_char(u8_t c)
+get_char(uint8_t c)
 {
   PRINTF("telnetd: get_char '%c' %d %d\n", c, c, s.bufptr);
 
@@ -264,7 +264,7 @@ get_char(u8_t c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-sendopt(u8_t option, u8_t value)
+sendopt(uint8_t option, uint8_t value)
 {
   char line[4];
   line[0] = (char)TELNET_IAC;
@@ -278,8 +278,8 @@ sendopt(u8_t option, u8_t value)
 static void
 newdata(void)
 {
-  u16_t len;
-  u8_t c;
+  uint16_t len;
+  uint8_t c;
   uint8_t *ptr;
     
   len = uip_datalen();

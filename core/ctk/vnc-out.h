@@ -51,12 +51,12 @@ void vnc_out_acked(struct vnc_server_state *vs);
 void vnc_out_poll(struct vnc_server_state *vs);
 
 
-void vnc_out_update_screen(u8_t x, u8_t y, u8_t c, u8_t color);
+void vnc_out_update_screen(uint8_t x, uint8_t y, uint8_t c, uint8_t color);
 char vnc_out_getkey(void);
 char vnc_out_keyavail(void);
 
 void vnc_out_update_area(struct vnc_server_state *vs,
-			 u8_t x, u8_t y, u8_t w, u8_t h);
+			 uint8_t x, uint8_t y, uint8_t w, uint8_t h);
 
 #include "ctk/ctk.h"
 

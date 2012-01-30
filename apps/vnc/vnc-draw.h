@@ -39,7 +39,7 @@
 #include "net/uip_arch.h"
 
 /* Pointer to the bitmap area in memory. */
-extern u8_t vnc_draw_bitmap[];
+extern uint8_t vnc_draw_bitmap[];
 
 /* Initialize the vnc-draw module. */
 void vnc_draw_init(void);
@@ -48,14 +48,14 @@ void vnc_draw_init(void);
    given by the "data" argument and the length of data is given by the
    "datalen" argument. The data format is one pixel per byte in bgr233
    format (bbgggrrr). */
-void vnc_draw_pixelline(u16_t x, u16_t y,
-			u8_t *data, u16_t datalen);
+void vnc_draw_pixelline(uint16_t x, uint16_t y,
+			uint8_t *data, uint16_t datalen);
 
 /* The following functions should return the x and y coordinates and
    the width and height of the viewport. */
-u16_t vnc_draw_viewport_x(void);
-u16_t vnc_draw_viewport_y(void);
-u16_t vnc_draw_viewport_w(void);
-u16_t vnc_draw_viewport_h(void);
+uint16_t vnc_draw_viewport_x(void);
+uint16_t vnc_draw_viewport_y(void);
+uint16_t vnc_draw_viewport_w(void);
+uint16_t vnc_draw_viewport_h(void);
 
 #endif /* __VNC_DRAW_H__ */

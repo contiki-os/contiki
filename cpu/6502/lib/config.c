@@ -48,7 +48,7 @@ static char * CC_FASTCALL
 ipaddrtoa(uip_ipaddr_t *ipaddr, char *buffer)
 {
   char *ptr = buffer;
-  u8_t i;
+  uint8_t i;
 
   for(i = 0; i < 4; ++i) {
     *ptr = '.';

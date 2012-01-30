@@ -50,7 +50,7 @@ int httpd_fs_open(const char *name, struct httpd_fs_file *file);
 
 #ifdef HTTPD_FS_STATISTICS
 #if HTTPD_FS_STATISTICS == 1  
-u16_t httpd_fs_count(char *name);
+uint16_t httpd_fs_count(char *name);
 #endif /* HTTPD_FS_STATISTICS */
 #endif /* HTTPD_FS_STATISTICS */
 
