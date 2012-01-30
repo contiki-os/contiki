@@ -1193,7 +1193,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       PRINTF("\n");
     } else {
       p = rpl_find_parent(previous_dag, from);
-      rpl_move_parent(previous_dag, dag, p);
+      if(p != NULL) {
+        rpl_move_parent(previous_dag, dag, p);
+      }
     }
   } else {
     if(p->rank == dio->rank) {
