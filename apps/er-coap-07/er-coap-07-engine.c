@@ -285,20 +285,6 @@ coap_get_rest_method(void *packet)
   return (rest_resource_flags_t)(1 << (((coap_packet_t *)packet)->code - 1));
 }
 /*-----------------------------------------------------------------------------------*/
-int
-coap_set_rest_status(void *packet, unsigned int code)
-{
-  if (code <= 0xFF)
-  {
-    ((coap_packet_t *)packet)->code = (uint8_t) code;
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
-}
-/*-----------------------------------------------------------------------------------*/
 /*- Server part ---------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 
@@ -395,7 +381,7 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
     {
       PRINTF("well_known_core_handler(): bufpos<=0\n");
 
-      coap_set_rest_status(response, BAD_OPTION_4_02);
+      coap_set_status_code(response, BAD_OPTION_4_02);
       coap_set_payload(response, "BlockOutOfScope", 15);
     }
 
@@ -522,7 +508,7 @@ const struct rest_implementation coap_rest_implementation = {
   coap_get_header_uri_path,
   coap_set_header_uri_path,
   coap_get_rest_method,
-  coap_set_rest_status,
+  coap_set_status_code,
 
   coap_get_header_content_type,
   coap_set_header_content_type,

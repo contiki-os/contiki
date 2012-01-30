@@ -50,7 +50,21 @@ endif
 APPS += erbium
 
 
+#CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+#CUSTOM_RULE_S_TO_OBJECTDIR_O = 1
+
 include $(CONTIKI)/Makefile.include
+
+#$(OBJECTDIR)/%.o: asmdir/%.S
+#	$(CC) $(CFLAGS) -MMD -c $< -o $@
+#	@$(FINALIZE_DEPENDENCY)
+#
+#asmdir/%.S: %.c
+#	$(CC) $(CFLAGS) -MMD -S $< -o $@
+ 
+ 
+
+
 
 $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
 	(cd $(CONTIKI)/tools && $(MAKE) tunslip6)
