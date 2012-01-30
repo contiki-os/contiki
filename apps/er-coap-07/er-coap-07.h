@@ -265,6 +265,10 @@ coap_status_t coap_parse_message(void *request, uint8_t *data, uint16_t data_len
 int coap_get_query_variable(void *packet, const char *name, const char **output);
 int coap_get_post_variable(void *packet, const char *name, const char **output);
 
+/*-----------------------------------------------------------------------------------*/
+
+int coap_set_status_code(void *packet, unsigned int code);
+
 unsigned int coap_get_header_content_type(void *packet);
 int coap_set_header_content_type(void *packet, unsigned int content_type);
 

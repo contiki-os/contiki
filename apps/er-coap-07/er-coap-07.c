@@ -760,6 +760,20 @@ coap_get_post_variable(void *packet, const char *name, const char **output)
   return 0;
 }
 /*-----------------------------------------------------------------------------------*/
+int
+coap_set_status_code(void *packet, unsigned int code)
+{
+  if (code <= 0xFF)
+  {
+    ((coap_packet_t *)packet)->code = (uint8_t) code;
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+/*-----------------------------------------------------------------------------------*/
 /*- HEADER OPTION GETTERS AND SETTERS -----------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 unsigned int
