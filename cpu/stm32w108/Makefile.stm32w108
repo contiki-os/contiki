@@ -166,10 +166,8 @@ endif
 FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher
 
 # Check if we are running under Windows
-ifdef OS
-  ifneq (,$(findstring Windows,$(OS)))
-  	FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher.exe   
-  endif   
+ifeq ($(HOST_OS),Windows)
+  FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher.exe
 endif
 
 

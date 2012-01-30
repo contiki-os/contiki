@@ -69,18 +69,18 @@
 #define cmd_len 8
 #define data_len 20
 
-static u8_t seqno;
+static uint8_t seqno;
 uip_ipaddr_t ping_addr;
 uip_ipaddr_t udp_addr;
 static struct uip_udp_conn *udp_conn;
 char udp_data[data_len];
 
 static struct{
-  u8_t frame[cmd_len];
-  u8_t ndx;
-  u8_t len;
-  u8_t cmd;
-  u8_t done;
+  uint8_t frame[cmd_len];
+  uint8_t ndx;
+  uint8_t len;
+  uint8_t cmd;
+  uint8_t done;
 } cmd;
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -114,8 +114,8 @@ raven_ping6(void)
   memset((void *)UIP_ICMP_BUF + UIP_ICMPH_LEN, 0, 4);
     
   uip_len = UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN + UIP_IPH_LEN;
-  UIP_IP_BUF->len[0] = (u8_t)((uip_len - 40) >> 8);
-  UIP_IP_BUF->len[1] = (u8_t)((uip_len - 40) & 0x00FF);
+  UIP_IP_BUF->len[0] = (uint8_t)((uip_len - 40) >> 8);
+  UIP_IP_BUF->len[1] = (uint8_t)((uip_len - 40) & 0x00FF);
     
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
@@ -140,7 +140,7 @@ send_frame(uint8_t cmd, uint8_t len, uint8_t *payload)
 }
 
 /*------------------------------------------------------------------*/
-static u8_t
+static uint8_t
 raven_gui_loop(process_event_t ev, process_data_t data)
 {
   if(ev == tcpip_icmp6_event) {
@@ -235,7 +235,7 @@ int raven_lcd_serial_input(unsigned char ch)
 PROCESS(raven_lcd_process, "Raven LCD interface process");
 PROCESS_THREAD(raven_lcd_process, ev, data)
 {
-  u8_t error;
+  uint8_t error;
 
   PROCESS_BEGIN();
 

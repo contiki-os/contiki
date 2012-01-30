@@ -53,19 +53,19 @@ void  tmp102_init(void);
       reg       register to write to
       val       value to write
 */
-void    tmp102_write_reg(u8_t reg, u16_t val);
+void    tmp102_write_reg(uint8_t reg, uint16_t val);
 
 /* Read one register.
     args:
       reg       what register to read
     returns the value of the read register
 */
-u16_t tmp102_read_reg(u8_t reg);
+uint16_t tmp102_read_reg(uint8_t reg);
 
 /* Read temperature in raw format
     no args needed
 */
-u16_t tmp102_read_temp_raw();
+uint16_t tmp102_read_temp_raw();
 
 /* Read only integer part of the temperature in 1deg. precision.
     no args needed

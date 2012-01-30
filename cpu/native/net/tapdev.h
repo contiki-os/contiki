@@ -38,7 +38,7 @@
 #define __TAPDEV_H__
 
 void tapdev_init(void);
-u16_t tapdev_poll(void);
+uint16_t tapdev_poll(void);
 void tapdev_send(void);
 void tapdev_exit(void);
 

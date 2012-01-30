@@ -66,12 +66,12 @@ enum {
 
 struct buf_packet {
   struct buf_packet *next;
-  u8_t data[UIP_BUFSIZE];
+  uint8_t data[UIP_BUFSIZE];
   int len;
-  u8_t resends;
-  u8_t acked;
-  u8_t want_ack;
-  u16_t crc;
+  uint8_t resends;
+  uint8_t acked;
+  uint8_t want_ack;
+  uint16_t crc;
   uip_ipaddr_t finaldest;
   struct etimer etimer;
 };
@@ -87,21 +87,21 @@ static const struct radio_driver *radio;
 
 /*---------------------------------------------------------------------------*/
 static void receiver(const struct radio_driver *d);
-u8_t radio_uip_uaodv_send(void);
+uint8_t radio_uip_uaodv_send(void);
 void radio_uip_uaodv_init(const struct radio_driver *d);
-int radio_uip_handle_ack(u8_t *buf, int len);
-u16_t radio_uip_calc_crc(u8_t *buf, int len);
-int radio_uip_buffer_outgoing_packet(u8_t *buf, int len, uip_ipaddr_t *dest, int max_sends);
-int radio_uip_is_ack(u8_t *buf, int len);
-int radio_uip_uaodv_add_header(u8_t *buf, int len, uip_ipaddr_t *addr);
-int radio_uip_uaodv_remove_header(u8_t *buf, int len);
-void radio_uip_uaodv_change_header(u8_t *buf, int len, uip_ipaddr_t *addr);
-int radio_uip_uaodv_header_exists(u8_t *buf, int len);
+int radio_uip_handle_ack(uint8_t *buf, int len);
+uint16_t radio_uip_calc_crc(uint8_t *buf, int len);
+int radio_uip_buffer_outgoing_packet(uint8_t *buf, int len, uip_ipaddr_t *dest, int max_sends);
+int radio_uip_is_ack(uint8_t *buf, int len);
+int radio_uip_uaodv_add_header(uint8_t *buf, int len, uip_ipaddr_t *addr);
+int radio_uip_uaodv_remove_header(uint8_t *buf, int len);
+void radio_uip_uaodv_change_header(uint8_t *buf, int len, uip_ipaddr_t *addr);
+int radio_uip_uaodv_header_exists(uint8_t *buf, int len);
 int radio_uip_uaodv_is_broadcast(uip_ipaddr_t *addr);
-int radio_uip_uaodv_fwd_is_broadcast(u8_t *buf, int len);
-int radio_uip_uaodv_fwd_is_me(u8_t *buf, int len);
-int radio_uip_uaodv_dest_is_me(u8_t *buf, int len);
-int radio_uip_uaodv_dest_port(u8_t *buf, int len);
+int radio_uip_uaodv_fwd_is_broadcast(uint8_t *buf, int len);
+int radio_uip_uaodv_fwd_is_me(uint8_t *buf, int len);
+int radio_uip_uaodv_dest_is_me(uint8_t *buf, int len);
+int radio_uip_uaodv_dest_port(uint8_t *buf, int len);
 /*---------------------------------------------------------------------------*/
 
 /* Main process - handles (re)transmissions and acks */
@@ -117,10 +117,10 @@ PROCESS_THREAD(radio_uip_process, ev, data)
     if(ev == EVENT_SEND_ACK) {
 
       /* Prepare and send ack for given 16-bit CRC */
-      u8_t ackPacket[ACK_PACKET_LENGTH];
+      uint8_t ackPacket[ACK_PACKET_LENGTH];
       memcpy(ackPacket, ACK_ID, ACK_ID_LENGTH);
-      ackPacket[ACK_CRC] = ((u16_t) data >> 8);
-      ackPacket[ACK_CRC+1] = ((u16_t) data & 0xff);
+      ackPacket[ACK_CRC] = ((uint16_t) data >> 8);
+      ackPacket[ACK_CRC+1] = ((uint16_t) data & 0xff);
       radio->send(ackPacket, ACK_PACKET_LENGTH);
 
     } else if(ev == PROCESS_EVENT_TIMER) {
@@ -187,9 +187,9 @@ receiver(const struct radio_driver *d)
 
   {
     /* Send ack as soon as possible */
-    u16_t crc;
+    uint16_t crc;
     crc = radio_uip_calc_crc(&uip_buf[UIP_LLH_LEN], uip_len);
-    process_post(&radio_uip_process, EVENT_SEND_ACK, (void*) (u32_t) crc);
+    process_post(&radio_uip_process, EVENT_SEND_ACK, (void*) (uint32_t) crc);
   }
 
   /* Strip header and receive packet */
@@ -197,7 +197,7 @@ receiver(const struct radio_driver *d)
   tcpip_input();
 }
 /*---------------------------------------------------------------------------*/
-u8_t
+uint8_t
 radio_uip_uaodv_send(void)
 {
   struct uaodv_rt_entry *route;
@@ -261,10 +261,10 @@ radio_uip_uaodv_init(const struct radio_driver *d)
   radio->on();
 }
 /*---------------------------------------------------------------------------*/
-u16_t
-radio_uip_calc_crc(u8_t *buf, int len)
+uint16_t
+radio_uip_calc_crc(uint8_t *buf, int len)
 {
-    u16_t crcacc = 0xffff;
+    uint16_t crcacc = 0xffff;
     int counter;
 
     /* TODO Not effective */
@@ -275,11 +275,11 @@ radio_uip_calc_crc(u8_t *buf, int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_buffer_outgoing_packet(u8_t *buf, int len, uip_ipaddr_t *dest, int max_sends)
+radio_uip_buffer_outgoing_packet(uint8_t *buf, int len, uip_ipaddr_t *dest, int max_sends)
 {
   struct buf_packet *packet;
 
-  u16_t crc;
+  uint16_t crc;
   
   /* Calculate packet's unique CRC */
   crc = radio_uip_calc_crc(&uip_buf[UIP_LLH_LEN], uip_len);
@@ -323,7 +323,7 @@ radio_uip_buffer_outgoing_packet(u8_t *buf, int len, uip_ipaddr_t *dest, int max
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_is_ack(u8_t *buf, int len)
+radio_uip_is_ack(uint8_t *buf, int len)
 {
   if (len != ACK_PACKET_LENGTH)
     return 0;
@@ -333,12 +333,12 @@ radio_uip_is_ack(u8_t *buf, int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_handle_ack(u8_t *buf, int len)
+radio_uip_handle_ack(uint8_t *buf, int len)
 {
   struct buf_packet *packet;
-  u16_t ackCRC;
+  uint16_t ackCRC;
   
-  ackCRC = (u16_t) (buf[ACK_CRC] << 8) + (u16_t) (0xff&buf[ACK_CRC+1]);
+  ackCRC = (uint16_t) (buf[ACK_CRC] << 8) + (uint16_t) (0xff&buf[ACK_CRC+1]);
   
   /* Locate which packet was acknowledged */
   for(packet = list_head(buf_packet_list);
@@ -355,9 +355,9 @@ radio_uip_handle_ack(u8_t *buf, int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_uaodv_add_header(u8_t *buf, int len, uip_ipaddr_t *addr)
+radio_uip_uaodv_add_header(uint8_t *buf, int len, uip_ipaddr_t *addr)
 {
-  u8_t tempbuf[len];
+  uint8_t tempbuf[len];
   memcpy(tempbuf, buf, len);
   memcpy(&buf[FWD_PACKET_LENGTH], tempbuf, len);
   memcpy(buf, FWD_ID, FWD_ID_LENGTH);
@@ -366,22 +366,22 @@ radio_uip_uaodv_add_header(u8_t *buf, int len, uip_ipaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_uaodv_remove_header(u8_t *buf, int len)
+radio_uip_uaodv_remove_header(uint8_t *buf, int len)
 {
-  u8_t tempbuf[len];
+  uint8_t tempbuf[len];
   memcpy(tempbuf, &buf[FWD_PACKET_LENGTH], len);
   memcpy(buf, tempbuf, len);
   return len - FWD_PACKET_LENGTH;
 }
 /*---------------------------------------------------------------------------*/
 void
-radio_uip_uaodv_change_header(u8_t *buf, int len, uip_ipaddr_t *addr)
+radio_uip_uaodv_change_header(uint8_t *buf, int len, uip_ipaddr_t *addr)
 {
   memcpy(&buf[FWD_NEXT_IP], addr, 4);
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_uaodv_header_exists(u8_t *buf, int len)
+radio_uip_uaodv_header_exists(uint8_t *buf, int len)
 {
   return !memcmp(buf, FWD_ID, FWD_ID_LENGTH);
 }
@@ -393,25 +393,25 @@ radio_uip_uaodv_is_broadcast(uip_ipaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_uaodv_fwd_is_broadcast(u8_t *buf, int len)
+radio_uip_uaodv_fwd_is_broadcast(uint8_t *buf, int len)
 {
   return radio_uip_uaodv_is_broadcast((uip_ipaddr_t*) &buf[FWD_NEXT_IP]);
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_uaodv_fwd_is_me(u8_t *buf, int len)
+radio_uip_uaodv_fwd_is_me(uint8_t *buf, int len)
 {
   return !memcmp(&buf[FWD_NEXT_IP], &uip_hostaddr, 4);
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_uaodv_dest_is_me(u8_t *buf, int len)
+radio_uip_uaodv_dest_is_me(uint8_t *buf, int len)
 {
   return !memcmp((&((struct uip_udpip_hdr *)buf)->destipaddr), &uip_hostaddr, 4);
 }
 /*---------------------------------------------------------------------------*/
 int
-radio_uip_uaodv_dest_port(u8_t *buf, int len)
+radio_uip_uaodv_dest_port(uint8_t *buf, int len)
 {
   if (len < sizeof(struct uip_udpip_hdr))
     return -1;

@@ -27,7 +27,7 @@
 	.area	_CODE
 
 	;; ---------------------------------
-	;; void uip_add32(u8_t *op32, u16_t op16);
+	;; void uip_add32(uint8_t *op32, uint16_t op16);
 	;; Stack; retl reth op32l op32h op16l op16h
 	;; ABCDEHL____
 	;; return void
@@ -102,7 +102,7 @@ _uip_add32_nocarry0:
 _uip_add32_end::		
 	
 	;; ---------------------------------
-	;; static u16_t chksum(u16_t sum, const u8_t *data, u16_t len)
+	;; static uint16_t chksum(uint16_t sum, const uint8_t *data, uint16_t len)
 	;; Stack; retl reth suml sumh datal datah lenl lenh
 	;; ABCDEHL____
 	;; return HL
@@ -188,11 +188,11 @@ _uip_arch_chksum_loop_exit:
 _uip_arch_chksum_end::	
 	
 	;; ---------------------------------
-	;; u16_t uip_chksum(void);
+	;; uint16_t uip_chksum(void);
 	;; Stack; retl reth datal datah lenl lenh
 	;; ABCDEHL____
 	;; return HL
-	;; return htons(chksum(0, (u8_t *)data, len));
+	;; return htons(chksum(0, (uint8_t *)data, len));
 	;; ---------------------------------
 _uip_chksum_start::
 _uip_chksum:

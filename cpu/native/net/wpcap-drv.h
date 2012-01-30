@@ -38,6 +38,6 @@
 
 PROCESS_NAME(wpcap_process);
 
-u8_t wpcap_output(void);
+uint8_t wpcap_output(void);
 
 #endif /* __WPCAP_DRV_H__ */

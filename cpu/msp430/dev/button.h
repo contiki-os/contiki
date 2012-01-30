@@ -35,8 +35,8 @@
 #define BUTTON_MSG_TYPE       1
 
 struct button_msg {
-  u8_t type;
-  u8_t value;
+  uint8_t type;
+  uint8_t value;
 };
 
 void button_init(struct process *proc);

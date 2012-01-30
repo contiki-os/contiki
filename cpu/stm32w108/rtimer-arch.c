@@ -55,12 +55,12 @@
 
 
 
-static u32_t time_msb = 0;  // Most significant bits of the current time.
+static uint32_t time_msb = 0;  // Most significant bits of the current time.
 
 // time of the next rtimer event. Initially is set to the max value.
 static rtimer_clock_t next_rtimer_time = 0;
 
-static u16_t saved_TIM1CFG;
+static uint16_t saved_TIM1CFG;
 
 
 /*---------------------------------------------------------------------------*/
@@ -150,7 +150,7 @@ void
 rtimer_arch_schedule(rtimer_clock_t t)
 {
   
-  PRINTF("rtimer_arch_schedule time %4x\r\n", /*((u32_t*)&t)+1,*/(u32_t)t);
+  PRINTF("rtimer_arch_schedule time %4x\r\n", /*((uint32_t*)&t)+1,*/(uint32_t)t);
   
   next_rtimer_time = t;
   

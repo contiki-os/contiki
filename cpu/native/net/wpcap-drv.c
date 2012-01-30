@@ -65,7 +65,7 @@ PROCESS(wpcap_process, "WinPcap driver");
 
 /*---------------------------------------------------------------------------*/
 #if !UIP_CONF_IPV6
-u8_t
+uint8_t
 wpcap_output(void)
 {
    uip_arp_out();

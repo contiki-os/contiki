@@ -21,11 +21,22 @@ ifeq ($(DEFINES),)
   endif
 endif
 
+ifndef HOST_OS
+  ifeq ($(OS),Windows_NT)
+  ## TODO: detect more specific Windows set-ups,
+  ## e.g. CygWin, MingW, VisualC, Watcom, Interix
+    $(warning Windows (NT) detected.)
+    HOST_OS := Windows
+  else
+    HOST_OS := $(shell uname)
+  endif
+endif
+
 usage:
 	@echo "make MAKETARGETS... [TARGET=(TARGET)] [savetarget] [targets]"
 
 targets:
-	@ls -1 $(CONTIKI)/platform | grep -v CVS
+	@ls -1 $(CONTIKI)/platform $(TARGETDIRS) | grep -v CVS
 
 savetarget:
 	-@rm -f Makefile.target
@@ -109,7 +120,7 @@ endif
 
 ### Include target makefile (TODO Unsafe?)
 
-target_makefile := $(wildcard ${realpath $(CONTIKI)}/platform/$(TARGET)/Makefile.$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.$(TARGET)})
+target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.$(TARGET)})
 
 # Check if the target makefile exists, and create the object directory if necessary.
 ifeq ($(strip $(target_makefile)),)

@@ -293,7 +293,7 @@ PROCESS_THREAD(shell_send_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
+recv_collect(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct collect_msg collect_msg;
   char *dataptr;

@@ -38,7 +38,7 @@ PROCESS(test_ctimer_process, "Callback timer test process");
 AUTOSTART_PROCESSES(&test_ctimer_process);
 /*---------------------------------------------------------------------------*/
 static struct ctimer ct;
-static u16_t counter = 0;
+static uint16_t counter = 0;
 /*---------------------------------------------------------------------------*/
 static void
 callback(void *ptr)

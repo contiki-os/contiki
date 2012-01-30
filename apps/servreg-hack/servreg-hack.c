@@ -330,7 +330,7 @@ send_udp_packet(struct uip_udp_conn *conn)
 }
 /*---------------------------------------------------------------------------*/
 static void
-parse_incoming_packet(const u8_t *buf, int len)
+parse_incoming_packet(const uint8_t *buf, int len)
 {
   int numregs;
   int flags;

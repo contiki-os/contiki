@@ -154,7 +154,7 @@ uip_nd6_ns_input(void)
   PRINTF("\n");
   UIP_STAT(++uip_stat.nd6.recv);
 
-  u8_t flags;
+  uint8_t flags;
 
 #if UIP_CONF_IPV6_CHECKS
   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
@@ -403,11 +403,11 @@ uip_nd6_na_input(void)
    * booleans. the three last one are not 0 or 1 but 0 or 0x80, 0x40, 0x20
    * but it works. Be careful though, do not use tests such as is_router == 1 
    */
-  u8_t is_llchange = 0;
-  u8_t is_router = ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_ROUTER));
-  u8_t is_solicited =
+  uint8_t is_llchange = 0;
+  uint8_t is_router = ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_ROUTER));
+  uint8_t is_solicited =
     ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_SOLICITED));
-  u8_t is_override =
+  uint8_t is_override =
     ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_OVERRIDE));
 
 #if UIP_CONF_IPV6_CHECKS

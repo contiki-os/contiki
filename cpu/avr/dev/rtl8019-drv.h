@@ -41,6 +41,6 @@
 
 PROCESS_NAME(rtl8019_process);
 
-u8_t rtl8019_output(void);
+uint8_t rtl8019_output(void);
 
 #endif /* __RTL8019_DRV_H__ */

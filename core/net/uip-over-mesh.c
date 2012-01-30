@@ -196,7 +196,7 @@ uip_over_mesh_make_announced_gateway(void)
 const static struct trickle_callbacks trickle_call = {gateway_announce_recv};
 /*---------------------------------------------------------------------------*/
 void
-uip_over_mesh_init(u16_t channels)
+uip_over_mesh_init(uint16_t channels)
 {
 
   PRINTF("Our address is %d.%d (%d.%d.%d.%d)\n",
@@ -215,7 +215,7 @@ uip_over_mesh_init(u16_t channels)
   route_set_lifetime(30);
 }
 /*---------------------------------------------------------------------------*/
-u8_t
+uint8_t
 uip_over_mesh_send(void)
 {
   rimeaddr_t receiver;

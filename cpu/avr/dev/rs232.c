@@ -384,14 +384,6 @@ rs232_set_input(uint8_t port, int (*f)(unsigned char))
 #endif
 }
 
-void
-rs232_print_p(uint8_t port, prog_char *buf)
-{
-  while(pgm_read_byte(buf)) {
-    rs232_send(port, pgm_read_byte(buf));
-    ++buf;
-  }
-}
 /*---------------------------------------------------------------------------*/
 void
 rs232_print(uint8_t port, char *buf)

@@ -323,8 +323,8 @@ print(OUTPUT "$tab const struct httpd_fsdata_file *next; //actual flash address 
 print(OUTPUT "$tab const char *name;                     //offset to coffee file name\n");
 print(OUTPUT "$tab const char *data;                     //offset to coffee file data\n");
 print(OUTPUT "$tab const int len;                        //length of file data\n");
-print(OUTPUT "#if HTTPD_FS_STATISTICS == 1             //not enabled since list is in PROGMEM\n");
-print(OUTPUT "$tab u16_t count;                          //storage for file statistics\n");
+print(OUTPUT "#if HTTPD_FS_STATISTICS == 1               //not enabled since list is in PROGMEM\n");
+print(OUTPUT "$tab uint16_t count;                       //storage for file statistics\n");
 print(OUTPUT "#endif\n");
 print(OUTPUT "}\n*/\n");
 

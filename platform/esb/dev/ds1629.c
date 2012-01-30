@@ -106,10 +106,10 @@ cl_stop()
 }
 /*--------------------------------------------------------------------------*/
 /* Writes a byte on the bus, returns the acknowledge bit. */
-static u16_t
-cl_writeOnBus(u8_t byte)
+static uint16_t
+cl_writeOnBus(uint8_t byte)
 {
-  u16_t i, ack;
+  uint16_t i, ack;
   for(i=0;i<8;i++) {
     if(byte & 0x80) SDA_HIGH; else SDA_LOW;
     SCL_HIGH;
@@ -126,11 +126,11 @@ cl_writeOnBus(u8_t byte)
   return ack;
 }
 /*--------------------------------------------------------------------------*/
-static u8_t
-cl_readFromBus(u16_t ack)
+static uint8_t
+cl_readFromBus(uint16_t ack)
 {
-  u16_t i;
-  u8_t byte = 0;
+  uint16_t i;
+  uint8_t byte = 0;
   P5DIR &= 0xFE;                              /* P50(SDA) input */
   for(i=0;i<8;i++) {
     byte = byte << 1;
@@ -145,10 +145,10 @@ cl_readFromBus(u16_t ack)
   return byte;
 }
 /*--------------------------------------------------------------------------*/
-static u16_t
-getReg16bit(u8_t acc, u16_t bitmask)
+static uint16_t
+getReg16bit(uint8_t acc, uint16_t bitmask)
 {
-  u16_t config = 0;
+  uint16_t config = 0;
   do cl_start();
   while(!cl_writeOnBus(BUS_WRITE));
   cl_writeOnBus(acc);
@@ -166,7 +166,7 @@ getReg16bit(u8_t acc, u16_t bitmask)
 /*--------------------------------------------------------------------------*/
 /* Only first 8 bit of Configuration Status Register can be set */
 static void
-setCSReg(u8_t setting)
+setCSReg(uint8_t setting)
 {
   do cl_start();
   while(!cl_writeOnBus(BUS_WRITE));
@@ -192,7 +192,7 @@ System_startConversion(void)
 static void
 initClock(void)
 {
-  u8_t csr = getReg16bit(ACC_CSR,0xFF00) >> 8;
+  uint8_t csr = getReg16bit(ACC_CSR,0xFF00) >> 8;
   if(csr!=CSR_DEFAULT) setCSReg(CSR_DEFAULT); /* if desired config isnt in clock => set it */
   /* IMPORTANT: Ensure quartz is generating 32768 Hz */
   /* (sometimes CH bit gets set when clock is read while reset) */

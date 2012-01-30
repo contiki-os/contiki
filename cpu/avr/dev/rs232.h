@@ -31,7 +31,6 @@
  * Author:   Adam Dunkels <adam@sics.se>
  *           Simon Barner <barner@in.tum.de>
  *
- * @(#)$Id: rs232.h,v 1.6 2008/11/29 18:36:12 c_oflynn Exp $
  */
 
 #ifndef __RS232_H__
@@ -109,19 +108,6 @@ rs232_set_input(uint8_t port, int (* f)(unsigned char));
  *             RS232. The string must be terminated by a null
  *             byte. The RS232 module must be correctly initalized and
  *             configured for this function to work.
- */
-void
-rs232_print_p(uint8_t port, prog_char *buf);
-
-/**
- * \brief      Print a text string on RS232
- * \param port The RS232 port to be used.
- * \param str  A pointer to the string that is to be printed
- *
- *             This function prints a string to RS232. The string must
- *             be terminated by a null byte. The RS232 module must be
- *             correctly initalized and configured for this function
- *             to work.
  */
 void
 rs232_print(uint8_t port, char *buf);
