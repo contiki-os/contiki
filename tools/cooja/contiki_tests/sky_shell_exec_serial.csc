@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -22,8 +19,8 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #sky1</description>
-      <source>[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.c</source>
-      <commands>echo CLEANING
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.c</source>
+      <commands EXPORT="discard">echo CLEANING
 make clean TARGET=sky
 
 echo COMPILING CONTIKI EXECUTABLE
@@ -35,7 +32,7 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
 make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
 make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
 make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
-      <firmware>[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.sky</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -44,12 +41,10 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -61,6 +56,11 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
+      <interface_config>
+        se.sics.cooja.mspmote.interfaces.MspSerial
+        <history>ls~;~K~;ls~;read hello-world.b64~;</history>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -70,7 +70,6 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.MoteInterfaceViewer
@@ -84,7 +83,6 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
     <height>551</height>
     <location_x>3</location_x>
     <location_y>347</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.mspmote.plugins.MspStackWatcher
@@ -94,7 +92,6 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
     <height>201</height>
     <location_x>247</location_x>
     <location_y>-1</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
@@ -151,7 +148,7 @@ while (!msg.contains("Contiki&gt;")) {
     log.testFailed();
   } else {
     log.log("VERIFIED: " + msg + "\n");
-    sb.replace(0, msg.length()-1, new String(""));
+    sb.replace(0, msg.trim().length(), new String(""));
   }
 
   YIELD();
@@ -192,8 +189,7 @@ while (true) {
     log.log("&gt; ELF loader error: " + msg +"\n");
     log.testFailed();
   }
-}
-</script>
+}</script>
       <active>true</active>
     </plugin_config>
     <width>600</width>
@@ -201,7 +197,6 @@ while (true) {
     <height>700</height>
     <location_x>215</location_x>
     <location_y>199</location_y>
-    <minimized>false</minimized>
   </plugin>
 </simconf>
 
