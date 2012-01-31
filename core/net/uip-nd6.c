@@ -351,6 +351,11 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
     } else {
       uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
     }
+    if (uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+      PRINTF("Dropping NS due to no suitable source address\n");
+      uip_len = 0;
+      return;
+    }
     UIP_IP_BUF->len[1] =
       UIP_ICMPH_LEN + UIP_ND6_NS_LEN + UIP_ND6_OPT_LLAO_LEN;
 
