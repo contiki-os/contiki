@@ -226,7 +226,7 @@ typedef enum
   NO_ERROR,
 
   /* Memory errors */
-  MEMORY_ALLOC_ERR,
+  MEMORY_ALLOCATION_ERROR,
   MEMORY_BOUNDARY_EXCEEDED,
 
   /* CoAP errors */

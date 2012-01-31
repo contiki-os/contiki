@@ -87,6 +87,8 @@ coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
     /* save client address */
     uip_ipaddr_copy(&t->addr, addr);
     t->port = port;
+
+    list_add(transactions_list, t); /* List itself makes sure same element is not added twice. */
   }
 
   return t;
@@ -121,8 +123,6 @@ coap_send_transaction(coap_transaction_t *t)
       process_current = transaction_handler_process;
       etimer_restart(&t->retrans_timer); /* interval updated above */
       process_current = process_actual;
-
-      list_add(transactions_list, t); /* List itself makes sure same element is not added twice. */
 
       t = NULL;
     }

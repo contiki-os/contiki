@@ -100,7 +100,7 @@ handle_incoming_data(void)
     if (coap_error_code==NO_ERROR)
     {
 
-      /*TODO duplicates suppression, if required */
+      /*TODO duplicates suppression, if required by application */
 
       PRINTF("  Parsed: v %u, t %u, oc %u, c %u, mid %u\n", message->version, message->type, message->option_count, message->code, message->mid);
       PRINTF("  URL: %.*s\n", message->uri_path_len, message->uri_path);
@@ -112,10 +112,10 @@ handle_incoming_data(void)
         /* Use transaction buffer for response to confirmable request. */
         if ( (transaction = coap_new_transaction(message->mid, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport)) )
         {
-          static uint32_t block_num = 0;
-          static uint16_t block_size = REST_MAX_CHUNK_SIZE;
-          static uint32_t block_offset = 0;
-          static int32_t new_offset = 0;
+          uint32_t block_num = 0;
+          uint16_t block_size = REST_MAX_CHUNK_SIZE;
+          uint32_t block_offset = 0;
+          int32_t new_offset = 0;
 
           /* prepare response */
           if (message->type==COAP_TYPE_CON)
@@ -143,11 +143,6 @@ handle_incoming_data(void)
               block_size = MIN(block_size, REST_MAX_CHUNK_SIZE);
               new_offset = block_offset;
           }
-          else
-          {
-            block_size = REST_MAX_CHUNK_SIZE;
-            new_offset = 0;
-          }
 
           /* Invoke resource handler. */
           if (service_cbk)
@@ -155,42 +150,55 @@ handle_incoming_data(void)
             /* Call REST framework and check if found and allowed. */
             if (service_cbk(message, response, transaction->packet+COAP_MAX_HEADER_SIZE, block_size, &new_offset))
             {
-              /* Apply blockwise transfers. */
-              if ( IS_OPTION(message, COAP_OPTION_BLOCK2) )
+              if (coap_error_code==NO_ERROR)
               {
-                /* unchanged new_offset indicates that resource is unaware of blockwise transfer */
-                if (new_offset==block_offset)
+                /* Apply blockwise transfers. */
+                if ( IS_OPTION(message, COAP_OPTION_BLOCK2) )
                 {
-                  PRINTF("Blockwise: unaware resource with payload length %u/%u\n", response->payload_len, block_size);
-                  if (block_offset >= response->payload_len)
+                  /* unchanged new_offset indicates that resource is unaware of blockwise transfer */
+                  if (new_offset==block_offset)
                   {
-                    PRINTF("handle_incoming_data(): block_offset >= response->payload_len\n");
+                    PRINTF("Blockwise: unaware resource with payload length %u/%u\n", response->payload_len, block_size);
+                    if (block_offset >= response->payload_len)
+                    {
+                      PRINTF("handle_incoming_data(): block_offset >= response->payload_len\n");
 
-                    response->code = BAD_OPTION_4_02;
-                    coap_set_payload(response, "BlockOutOfScope", 15); /* a const char str[] and sizeof(str) produces larger code size */
+                      response->code = BAD_OPTION_4_02;
+                      coap_set_payload(response, "BlockOutOfScope", 15); /* a const char str[] and sizeof(str) produces larger code size */
+                    }
+                    else
+                    {
+                      coap_set_header_block2(response, block_num, response->payload_len - block_offset > block_size, block_size);
+                      coap_set_payload(response, response->payload+block_offset, MIN(response->payload_len - block_offset, block_size));
+                    } /* if (valid offset) */
                   }
                   else
                   {
-                    coap_set_header_block2(response, block_num, response->payload_len - block_offset > block_size, block_size);
-                    coap_set_payload(response, response->payload+block_offset, MIN(response->payload_len - block_offset, block_size));
-                  } /* if (valid offset) */
+                    /* resource provides chunk-wise data */
+                    PRINTF("Blockwise: blockwise resource, new offset %ld\n", new_offset);
+                    coap_set_header_block2(response, block_num, new_offset!=-1 || response->payload_len > block_size, block_size);
+                    if (response->payload_len > block_size) coap_set_payload(response, response->payload, block_size);
+                  } /* if (resource aware of blockwise) */
                 }
-                else
+                else if (new_offset!=0)
                 {
-                  /* resource provides chunk-wise data */
-                  PRINTF("Blockwise: blockwise resource, new offset %ld\n", new_offset);
-                  coap_set_header_block2(response, block_num, new_offset!=-1 || response->payload_len > block_size, block_size);
-                  if (response->payload_len > block_size) coap_set_payload(response, response->payload, block_size);
-                } /* if (resource aware of blockwise) */
-              }
-              else if (new_offset!=0)
-              {
-                PRINTF("Blockwise: no block option for blockwise resource, using block size %u\n", REST_MAX_CHUNK_SIZE);
+                  PRINTF("Blockwise: no block option for blockwise resource, using block size %u\n", REST_MAX_CHUNK_SIZE);
 
-                coap_set_header_block2(response, 0, new_offset!=-1, REST_MAX_CHUNK_SIZE);
-                coap_set_payload(response, response->payload, MIN(response->payload_len, REST_MAX_CHUNK_SIZE));
-              } /* if (blockwise request) */
+                  coap_set_header_block2(response, 0, new_offset!=-1, REST_MAX_CHUNK_SIZE);
+                  coap_set_payload(response, response->payload, MIN(response->payload_len, REST_MAX_CHUNK_SIZE));
+                } /* if (blockwise request) */
+              } /* no errors/hooks */
+            } /* successful service callback */
+
+            /* Serialize response. */
+            if (coap_error_code==NO_ERROR)
+            {
+              if ((transaction->packet_len = coap_serialize_message(response, transaction->packet))==0)
+              {
+                coap_error_code = PACKET_SERIALIZATION_ERROR;
+              }
             }
+
           }
           else
           {
@@ -198,14 +206,8 @@ handle_incoming_data(void)
             coap_error_message = "Service callback undefined";
           } /* if (service callback) */
 
-          /* serialize Response. */
-          if ((transaction->packet_len = coap_serialize_message(response, transaction->packet))==0)
-          {
-            coap_error_code = PACKET_SERIALIZATION_ERROR;
-          }
-
         } else {
-            coap_error_code = MEMORY_ALLOC_ERR;
+            coap_error_code = MEMORY_ALLOCATION_ERROR;
             coap_error_message = "Transaction buffer allocation failed";
         } /* if (transaction buffer) */
       }
@@ -241,11 +243,19 @@ handle_incoming_data(void)
           }
         } /* if (ACKed transaction) */
         transaction = NULL;
-      }
+
+      } /* Request or Response */
+
     } /* if (parsed correctly) */
 
-    if (coap_error_code==NO_ERROR) {
+    if (coap_error_code==NO_ERROR)
+    {
       if (transaction) coap_send_transaction(transaction);
+    }
+    else if (coap_error_code==MANUAL_RESPONSE)
+    {
+      PRINTF("Clearing transaction for manual response");
+      coap_clear_transaction(transaction);
     }
     else
     {

@@ -60,7 +60,7 @@ LIST(restful_periodic_services);
 
 
 void
-rest_init_framework(void)
+rest_init_engine(void)
 {
   list_init(restful_services);
 

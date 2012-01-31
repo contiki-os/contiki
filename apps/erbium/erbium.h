@@ -282,7 +282,7 @@ periodic_resource_t periodic_resource_##name = {NULL, &resource_##name, period, 
 /*
  * Initializes REST framework and starts HTTP or COAP process
  */
-void rest_init_framework(void);
+void rest_init_engine(void);
 
 /*
  * Resources wanted to be accessible should be activated with the following code.
