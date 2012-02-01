@@ -594,6 +594,11 @@ set_txpower(uint8_t power)
     hal_subregister_write(SR_TX_PWR, power);
   }
 }
+void rf230_setpendingbit(uint8_t value)
+{
+  hal_subregister_write(SR_AACK_SET_PD, value);
+}
+#if 0
 /*----------------------------------------------------------------------------*/
 /**
     \brief Calibrate the internal RC oscillator
@@ -609,7 +614,6 @@ set_txpower(uint8_t power)
 void
 calibrate_rc_osc_32k(void)
 {
-#if 0
 
     /* Calibrate RC Oscillator: The calibration routine is done by clocking TIMER2
      * from the external 32kHz crystal while running an internal timer simultaneously.
@@ -699,31 +703,18 @@ calibrate_rc_osc_32k(void)
     //    PRR0 |= (1 << PRTIM2);/* |(1 << PRTIM1); */
 
     AVR_LEAVE_CRITICAL_REGION();
-#endif
 }
+#endif
 /*---------------------------------------------------------------------------*/
 int
 rf230_init(void)
 {
   uint8_t i;
   DEBUGFLOW('i');
-/* A jtag or brownout reset of the mcu tristates the RF230 control pins while
- * it is in operation, which can result in a mulfunctioning condition when the
- * radio is later re-initialized.
- * This manifests as an incorrectly computed hardware FCS checksum.
- * Setting up the pins before the poweron time delay seems to fix this.
- */
-#if 1  //this works after a brownout or jtag reset
-  /* Initialize Hardware Abstraction Layer */
-  hal_init();
-  /* Wait in case VCC just applied */
-  delay_us(TIME_TO_ENTER_P_ON);
-#else  //this gives FCS errors 5 out of 6 times
   /* Wait in case VCC just applied */
   delay_us(TIME_TO_ENTER_P_ON);
   /* Initialize Hardware Abstraction Layer */
   hal_init();
-#endif
  
   /* Calibrate oscillator */
  // printf_P(PSTR("\nBefore calibration OSCCAL=%x\n"),OSCCAL);
@@ -737,7 +728,18 @@ rf230_init(void)
   /* Do full rf230 Reset */
   hal_set_rst_low();
   hal_set_slptr_low();
+#if 1
+  /* On powerup a TIME_RESET delay is needed here, however on some other MCU reset
+   * (JTAG, WDT, Brownout) the radio may be sleeping. It can enter an uncertain
+   * state (sending wrong hardware FCS for example) unless the full wakeup delay
+   * is done.
+   * Wake time depends on board capacitance; use 2x the nominal delay for safety.
+   * See www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=78725
+   */
+  delay_us(2*TIME_SLEEP_TO_TRX_OFF);
+#else
   delay_us(TIME_RESET);
+#endif
   hal_set_rst_high();
 
   /* Force transition to TRX_OFF */
