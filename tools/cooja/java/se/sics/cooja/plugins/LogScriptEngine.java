@@ -98,12 +98,6 @@ public class LogScriptEngine {
 
   private boolean scriptActive = false;
 
-  private interface ScriptLog {
-    public void log(String log);
-    public void testOK();
-    public void testFailed();
-    public void generateMessage(long delay, String msg);
-  }
 
   /* Only called from the simulation loop */
   private void stepScript() {
