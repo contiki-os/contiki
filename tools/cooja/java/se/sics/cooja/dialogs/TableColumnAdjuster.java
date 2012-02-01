@@ -40,6 +40,8 @@ package se.sics.cooja.dialogs;
 import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
+
 import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -68,16 +70,23 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
     this(table, 6);
   }
 
+  private boolean[] adjustColumns;
+
   /*
    *  Specify the table and spacing
    */
   public TableColumnAdjuster(JTable table, int spacing) {
     this.table = table;
     this.spacing = spacing;
+    TableColumnModel tcm = table.getColumnModel();
+    adjustColumns = new boolean[tcm.getColumnCount()];
+    Arrays.fill(adjustColumns, true);
+
     setColumnHeaderIncluded(true);
     setColumnDataIncluded(true);
     setOnlyAdjustLarger(true);
     setDynamicAdjustment(false);
+    
   }
 
   public void packColumns() {
@@ -97,10 +106,16 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
   public void adjustColumns() {
     TableColumnModel tcm = table.getColumnModel();
     for (int i = 0, n = tcm.getColumnCount(); i < n; i++) {
-      adjustColumn(i, isOnlyAdjustLarger);
+      if (adjustColumns[i]) {
+        adjustColumn(i, isOnlyAdjustLarger);
+      }
     }
   }
 
+  public void setAdjustColumn(int i, boolean adjust) {
+    adjustColumns[i] = adjust;
+  }
+  
   /*
    *  Adjust the width of the specified column in the table
    */
@@ -109,6 +124,9 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
   }
 
   private void adjustColumn(int column, boolean onlyAdjustLarger) {
+    if (!adjustColumns[column]) {
+      return;
+    }
     int viewColumn = table.convertColumnIndexToView(column);
     if (viewColumn < 0) {
       return;
@@ -194,6 +212,9 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
   private void adjustColumnsForNewRows(int firstRow, int lastRow) {
     TableColumnModel tcm = table.getColumnModel();
     for (int column = 0, n = tcm.getColumnCount(); column < n; column++) {
+      if (!adjustColumns[column]) {
+        continue;
+      }
       int viewColumn = table.convertColumnIndexToView(column);
       if (viewColumn < 0) {
         continue;
@@ -302,6 +323,9 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 
       } else if (isOnlyAdjustLarger) {
         //  Only need to worry about an increase in width for these cells
+        if (!adjustColumns[column]) {
+          return;
+        }
         int viewColumn = table.convertColumnIndexToView(column);
         if (viewColumn < 0) {
           // Column is not visible
