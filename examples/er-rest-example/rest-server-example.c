@@ -47,8 +47,8 @@
 #define REST_RES_HELLO 1
 #define REST_RES_MIRROR 0 /* causes largest code size */
 #define REST_RES_CHUNKS 1
-#define REST_RES_POLLING 0
 #define REST_RES_SEPARATE 1
+#define REST_RES_PUSHING 1
 #define REST_RES_EVENT 1
 #define REST_RES_LEDS 1
 #define REST_RES_TOGGLE 1
@@ -313,8 +313,8 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
     REST.set_response_status(response, REST.status.BAD_OPTION);
     /* A block error message should not exceed the minimum block size (16). */
 
-    const char error_msg[] = "BlockOutOfScope";
-    REST.set_response_payload(response, (uint8_t *)error_msg, sizeof(error_msg)-1);
+    const char *error_msg = "BlockOutOfScope";
+    REST.set_response_payload(response, error_msg, strlen(error_msg));
     return;
   }
 
@@ -349,47 +349,6 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 }
 #endif
 
-#if REST_RES_POLLING
-/*
- * Example for a periodic resource.
- * It takes an additional period parameter, which defines the interval to call [name]_periodic_handler().
- * A default post_handler takes care of subscriptions by managing a list of subscribers to notify.
- */
-PERIODIC_RESOURCE(polling, METHOD_GET, "debug/poll", "title=\"Periodic demo\";rt=\"Observable\"", 5*CLOCK_SECOND);
-
-void
-polling_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
-{
-  REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-
-  /* Usually, a CoAP server would response with the current resource representation. */
-  const char msg[] = "It's periodic!";
-  REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
-
-  /* A post_handler that handles subscriptions will be called for periodic resources by the REST framework. */
-}
-
-/*
- * Additionally, a handler function named [resource name]_handler must be implemented for each PERIODIC_RESOURCE.
- * It will be called by the REST manager process with the defined period.
- */
-int
-polling_periodic_handler(resource_t *r)
-{
-  static uint32_t periodic_i = 0;
-  static char content[16];
-
-  PRINTF("TICK /%s\n", r->url);
-  periodic_i = periodic_i + 1;
-
-  /* Notify the registered observers with the given message type, observe option, and payload. */
-  REST.notify_subscribers(r->url, 1, periodic_i, (uint8_t *)content, snprintf(content, sizeof(content), "TICK %lu", periodic_i));
-  /*                              |-> implementation-specific, e.g. CoAP: 1=CON and 0=NON notification */
-
-  return 1;
-}
-#endif
-
 #if REST_RES_SEPARATE && WITH_COAP > 3
 /* Required to manually (=not by the engine) handle the response transaction. */
 #include "er-coap-07-separate.h"
@@ -413,8 +372,8 @@ separate_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
   if (separate_active)
   {
     REST.set_response_status(response, REST.status.SERVICE_UNAVAILABLE);
-    const char msg[] = "AlreadyInUse";
-    REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
+    const char *msg = "AlreadyInUse";
+    REST.set_response_payload(response, msg, strlen(msg));
   }
   else
   {
@@ -463,6 +422,47 @@ separate_finalize_handler()
 }
 #endif
 
+#if REST_RES_PUSHING
+/*
+ * Example for a periodic resource.
+ * It takes an additional period parameter, which defines the interval to call [name]_periodic_handler().
+ * A default post_handler takes care of subscriptions by managing a list of subscribers to notify.
+ */
+PERIODIC_RESOURCE(pushing, METHOD_GET, "debug/push", "title=\"Periodic demo\";rt=\"Observable\"", 5*CLOCK_SECOND);
+
+void
+pushing_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+
+  /* Usually, a CoAP server would response with the resource representation matching the periodic_handler. */
+  const char *msg = "It's periodic!";
+  REST.set_response_payload(response, msg, strlen(msg));
+
+  /* A post_handler that handles subscriptions will be called for periodic resources by the REST framework. */
+}
+
+/*
+ * Additionally, a handler function named [resource name]_handler must be implemented for each PERIODIC_RESOURCE.
+ * It will be called by the REST manager process with the defined period.
+ */
+int
+pushing_periodic_handler(resource_t *r)
+{
+  static uint32_t periodic_i = 0;
+  static char content[16];
+
+  PRINTF("TICK /%s\n", r->url);
+  periodic_i = periodic_i + 1;
+
+  /* Notify the registered observers with the given message type, observe option, and payload. */
+  REST.notify_subscribers(r->url, 1, periodic_i, (uint8_t *)content, snprintf(content, sizeof(content), "TICK %lu", periodic_i));
+  /*                              |-> implementation-specific, e.g. CoAP: 1=CON and 0=NON notification */
+
+  return 1;
+}
+#endif
+
 #if defined (PLATFORM_HAS_BUTTON) && REST_RES_EVENT
 /*
  * Example for an event resource.
@@ -475,10 +475,9 @@ void
 event_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-
   /* Usually, a CoAP server would response with the current resource representation. */
-  const char msg[] = "It's eventful!";
-  REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
+  const char *msg = "It's eventful!";
+  REST.set_response_payload(response, (uint8_t *)msg, strlen(msg));
 
   /* A post_handler that handles subscriptions/observing will be called for periodic resources by the framework. */
 }
@@ -600,8 +599,8 @@ light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
   else
   {
     REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
-    const char msg[] = "Supporting content-types text/plain, application/xml, and application/json";
-    REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
+    const char *msg = "Supporting content-types text/plain, application/xml, and application/json";
+    REST.set_response_payload(response, msg, strlen(msg));
   }
 }
 #endif /* PLATFORM_HAS_LIGHT */
@@ -634,8 +633,8 @@ battery_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
   else
   {
     REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
-    const char msg[] = "Supporting content-types text/plain and application/json";
-    REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
+    const char *msg = "Supporting content-types text/plain and application/json";
+    REST.set_response_payload(response, msg, strlen(msg));
   }
 }
 #endif /* PLATFORM_HAS_BATTERY */
@@ -680,8 +679,8 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #if REST_RES_CHUNKS
   rest_activate_resource(&resource_chunks);
 #endif
-#if REST_RES_POLLING
-  rest_activate_periodic_resource(&periodic_resource_polling);
+#if REST_RES_PUSHING
+  rest_activate_periodic_resource(&periodic_resource_pushing);
 #endif
 #if REST_RES_SEPARATE && WITH_COAP > 3
   rest_set_pre_handler(&resource_separate, coap_separate_handler);
