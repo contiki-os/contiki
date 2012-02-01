@@ -225,8 +225,8 @@ handle_incoming_data(void)
           /* Cancel possible subscriptions. */
           if (IS_OPTION(message, COAP_OPTION_TOKEN))
           {
-            /* RST must be empty, so it is a full client reset. */
-            coap_remove_observer_by_client(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport);
+            /* Erbium stores last MID for each observer. */
+            coap_remove_observer_by_mid(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, message->mid);
           }
         }
 
