@@ -223,11 +223,7 @@ handle_incoming_data(void)
         {
           PRINTF("Received RST\n");
           /* Cancel possible subscriptions. */
-          if (IS_OPTION(message, COAP_OPTION_TOKEN))
-          {
-            /* Erbium stores last MID for each observer. */
-            coap_remove_observer_by_mid(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, message->mid);
-          }
+          coap_remove_observer_by_mid(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, message->mid);
         }
 
         if ( (transaction = coap_get_transaction_by_mid(message->mid)) )
