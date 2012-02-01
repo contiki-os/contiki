@@ -118,7 +118,7 @@ coap_remove_observer_by_token(uip_ipaddr_t *addr, uint16_t port, uint8_t *token,
   for (obs = (coap_observer_t*)list_head(observers_list); obs; obs = obs->next)
   {
     PRINTF("Remove check Token 0x%02X%02X\n", token[0], token[1]);
-    if (uip_ipaddr_cmp(&obs->addr, addr) && obs->port==port && memcmp(obs->token, token, token_len)==0)
+    if (uip_ipaddr_cmp(&obs->addr, addr) && obs->port==port && obs->token_len==token_len && memcmp(obs->token, token, token_len)==0)
     {
       coap_remove_observer(obs);
       removed++;
@@ -153,7 +153,7 @@ coap_remove_observer_by_mid(uip_ipaddr_t *addr, uint16_t port, uint16_t mid)
 
   for (obs = (coap_observer_t*)list_head(observers_list); obs; obs = obs->next)
   {
-    PRINTF("Remove check URL %p\n", url);
+    PRINTF("Remove check MID %u\n", mid);
     if (uip_ipaddr_cmp(&obs->addr, addr) && obs->port==port && obs->last_mid==mid)
     {
       coap_remove_observer(obs);
