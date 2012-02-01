@@ -158,7 +158,8 @@ uip_ds6_periodic(void)
 #if UIP_ND6_DEF_MAXDADNS > 0
       } else if((locaddr->state == ADDR_TENTATIVE)
                 && (locaddr->dadnscount <= uip_ds6_if.maxdadns)
-                && (timer_expired(&locaddr->dadtimer))) {
+                && (timer_expired(&locaddr->dadtimer))
+                && (uip_len == 0)) {
         uip_ds6_dad(locaddr);
 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
       }
@@ -195,7 +196,7 @@ uip_ds6_periodic(void)
       case NBR_INCOMPLETE:
         if(locnbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
           uip_ds6_nbr_rm(locnbr);
-        } else if(stimer_expired(&locnbr->sendns)) {
+        } else if(stimer_expired(&locnbr->sendns) && (uip_len == 0)) {
           locnbr->nscount++;
           PRINTF("NBR_INCOMPLETE: NS %u\n", locnbr->nscount);
           uip_nd6_ns_output(NULL, NULL, &locnbr->ipaddr);
@@ -211,7 +212,7 @@ uip_ds6_periodic(void)
         }
         break;
       case NBR_DELAY:
-        if(stimer_expired(&locnbr->reachable)) {
+        if(stimer_expired(&locnbr->reachable) && (uip_len == 0)) {
           locnbr->state = NBR_PROBE;
           locnbr->nscount = 1;
           PRINTF("DELAY: moving to PROBE + NS %u\n", locnbr->nscount);
@@ -226,7 +227,7 @@ uip_ds6_periodic(void)
             uip_ds6_defrt_rm(locdefrt);
           }
           uip_ds6_nbr_rm(locnbr);
-        } else if(stimer_expired(&locnbr->sendns)) {
+        } else if(stimer_expired(&locnbr->sendns) && (uip_len == 0)) {
           locnbr->nscount++;
           PRINTF("PROBE: NS %u\n", locnbr->nscount);
           uip_nd6_ns_output(NULL, &locnbr->ipaddr, &locnbr->ipaddr);
@@ -241,7 +242,7 @@ uip_ds6_periodic(void)
 
 #if UIP_CONF_ROUTER & UIP_ND6_SEND_RA
   /* Periodic RA sending */
-  if(stimer_expired(&uip_ds6_timer_ra)) {
+  if(stimer_expired(&uip_ds6_timer_ra) && (uip_len == 0)) {
     uip_ds6_send_ra_periodic();
   }
 #endif /* UIP_CONF_ROUTER & UIP_ND6_SEND_RA */
