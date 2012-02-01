@@ -745,7 +745,7 @@ coap_set_header_uri_query(void *packet, const char *query)
 /*- PAYLOAD -------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 int
-coap_get_payload(void *packet, const uint8_t **payload)
+coap_get_payload(void *packet, uint8_t **payload)
 {
   if (((coap_packet_t *)packet)->payload) {
     *payload = ((coap_packet_t *)packet)->payload;
@@ -757,11 +757,11 @@ coap_get_payload(void *packet, const uint8_t **payload)
 }
 
 int
-coap_set_payload(void *packet, uint8_t *payload, size_t length)
+coap_set_payload(void *packet, const void *payload, size_t length)
 {
   PRINTF("setting payload (%u/%u)\n", length, REST_MAX_CHUNK_SIZE);
 
-  ((coap_packet_t *)packet)->payload = payload;
+  ((coap_packet_t *)packet)->payload = (uint8_t *) payload;
   ((coap_packet_t *)packet)->payload_len = MIN(REST_MAX_CHUNK_SIZE, length);
 
   return ((coap_packet_t *)packet)->payload_len;

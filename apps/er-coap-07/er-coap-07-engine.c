@@ -225,8 +225,8 @@ handle_incoming_data(void)
           /* Cancel possible subscriptions. */
           if (IS_OPTION(message, COAP_OPTION_TOKEN))
           {
-            PRINTF("  Token 0x%02X%02X\n", message->token[0], message->token[1]);
-            coap_remove_observer_by_token(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, message->token, message->token_len);
+            /* RST must be empty, so it is a full client reset. */
+            coap_remove_observer_by_client(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport);
           }
         }
 
