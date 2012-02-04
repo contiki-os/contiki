@@ -98,7 +98,7 @@ struct ADC_struct {
 			uint16_t TIMER1_ON:1;
 			uint16_t TIMER2_ON:1;
 			uint16_t SOFT_RESET:1;
-			uint16_t AD1_FREFHL_EN:1;
+			uint16_t AD1_VREFHL_EN:1;
 			uint16_t AD2_VREFHL_EN:1;
 			uint16_t :6;
 			uint16_t COMPARE_IRQ_MASK:1;
