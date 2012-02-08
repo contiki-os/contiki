@@ -196,4 +196,11 @@ mesh_send(struct mesh_conn *c, const rimeaddr_t *to)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+int
+mesh_ready(struct mesh_conn *c){
+	if(c->queued_data == NULL) return 1;
+	return 0;
+}
+
+
 /** @} */
