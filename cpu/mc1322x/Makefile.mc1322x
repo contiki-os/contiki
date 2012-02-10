@@ -107,14 +107,10 @@ CUSTOM_RULE_C_TO_CO=yes
 %_$(TARGET).bin: %.elf
 	$(OBJCOPY) -O binary $< $@
 
-symbols.c:
-	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
-	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
- 
 %.$(TARGET): %_$(TARGET).bin
 	@
 
-%.elf: $(OBJECTDIR)/board.h  %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/symbols.o
+%.elf: $(OBJECTDIR)/board.h  %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) 
 	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(filter %.a,$^)
 
 
