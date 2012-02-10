@@ -107,7 +107,7 @@ endif
 
 ### Include target makefile (TODO Unsafe?)
 
-target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET))
+target_makefile := $(wildcard ${realpath $(CONTIKI)}/platform/$(TARGET)/Makefile.$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.$(TARGET)})
 
 # Check if the target makefile exists, and create the object directory if necessary.
 ifeq ($(strip $(target_makefile)),)
@@ -116,7 +116,10 @@ else
   ifeq (${wildcard $(OBJECTDIR)},)
     DUMMY := ${shell mkdir $(OBJECTDIR)}
   endif
-  include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
+  ifneq (1, ${words $(target_makefile)})
+    ${error More than one TARGET Makefile found: $(target_makefile)}
+  endif
+  include $(target_makefile)
 endif
 
 ### Forward comma-separated list of arbitrary defines to the compiler
@@ -126,13 +129,13 @@ CFLAGS += ${addprefix -D,${subst $(COMMA), ,$(DEFINES)}}
 
 ### Setup directory search path for source and header files
 
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix ${dir $(target_makefile)}, \
                                $(CONTIKI_TARGET_DIRS)}
 CONTIKI_CPU_DIRS_CONCAT    = ${addprefix $(CONTIKI_CPU)/, \
                                $(CONTIKI_CPU_DIRS)}
 
 SOURCEDIRS = . $(PROJECTDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-             $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDIRS)
+             $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDIRS) ${dir $(target_makefile)}
 
 vpath %.c $(SOURCEDIRS)
 vpath %.S $(SOURCEDIRS)
