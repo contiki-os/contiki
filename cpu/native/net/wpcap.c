@@ -167,6 +167,10 @@ static struct pcap *(* pcap_open_live)(char *, int, int, int, char *);
 static int (* pcap_next_ex)(struct pcap *, struct pcap_pkthdr **, unsigned char **);
 static int (* pcap_sendpacket)(struct pcap *, unsigned char *, int);
 
+#define UIP_IP_BUF        ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+
 #ifdef UIP_FALLBACK_INTERFACE
 static struct pcap *pfall;
 struct in_addr addrfall;
@@ -183,14 +187,9 @@ init(void)
 /*---------------------------------------------------------------------------*/
 u8_t wfall_send(uip_lladdr_t *lladdr);
 #if FALLBACK_HAS_ETHERNET_HEADERS
-#define UIP_IP_BUF        ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+#undef IPBUF
 #define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[14])
 static uip_ipaddr_t last_sender;
-#else
-#define UIP_IP_BUF        ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
-#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 #endif
 
 static void
@@ -375,6 +374,8 @@ init_pcap(struct in_addr addr)
             }
 #ifdef UIP_FALLBACK_INTERFACE
 			log_message("init_pcap:      Opened as primary interface","");
+#else
+			log_message("init_pcap:      Opened as interface","");
 #endif
 //          pcap_setdirection(PCAP_D_IN);  //Not implemented in windows yet?
 			set_ethaddr(addr);
