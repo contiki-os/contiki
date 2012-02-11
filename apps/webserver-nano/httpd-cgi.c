@@ -259,12 +259,16 @@ PT_THREAD(header(struct httpd_state *s, char *ptr))
 #endif /* WEBSERVER_CONF_HEADER */
 
 #if WEBSERVER_CONF_FILESTATS
-static char *thisfilename; //todo move to s->ptr
 /*---------------------------------------------------------------------------*/
 static unsigned short
 generate_file_stats(void *arg)
 {
+  struct httpd_state *s = (struct httpd_state *)arg;
+#if WEBSERVER_CONF_LOADTIME
+  static const char httpd_cgi_filestat1[] HTTPD_STRING_ATTR = "<p align=\"right\"><br><br><i>This page has been sent %u times (%1u.%u sec)</i></body></html>";
+#else
   static const char httpd_cgi_filestat1[] HTTPD_STRING_ATTR = "<p align=\"right\"><br><br><i>This page has been sent %u times</i></body></html>";
+#endif
   static const char httpd_cgi_filestat2[] HTTPD_STRING_ATTR = "<tr><td><a href=\"%s\">%s</a></td><td>%d</td>";
   static const char httpd_cgi_filestat3[] HTTPD_STRING_ATTR = "%5u";
   char tmp[20];
@@ -272,11 +276,17 @@ generate_file_stats(void *arg)
   u16_t i;
   unsigned short numprinted;
   /* Transfer arg from whichever flash that contains the html file to RAM */
-  httpd_fs_cpy(&tmp, (char *)arg, 20);
+  httpd_fs_cpy(&tmp, s->u.ptr, 20);
 
   /* Count for this page, with common page footer */
   if (tmp[0]=='.') { 
-    numprinted=httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_filestat1, httpd_fs_open(thisfilename, 0));
+#if WEBSERVER_CONF_LOADTIME
+    s->pagetime = clock_time() - s->pagetime;
+    numprinted=httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_filestat1, httpd_fs_open(s->filename, 0), 
+            (unsigned int)s->pagetime/CLOCK_SECOND,(unsigned int)s->pagetime%CLOCK_SECOND);
+#else
+    numprinted=httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_filestat1, httpd_fs_open(s->filename, 0));
+#endif
 
   /* Count for all files */
   /* Note buffer will overflow if there are too many files! */
@@ -310,13 +320,10 @@ PT_THREAD(file_stats(struct httpd_state *s, char *ptr))
 {
 
   PSOCK_BEGIN(&s->sout);
-//printf("s->filename is %c%c%c%c%c%c",s->filename[0],s->filename[1],s->filename[2],s->filename[3],s->filename[4],s->filename[5]);
-//printf("s->filename string is %s",s->filename);
-  thisfilename=&s->filename[0]; //temporary way to pass filename to generate_file_stats
 
-//	  printf("thisfilename is %s",thisfilename); //minimal net wants this
-  
-  PSOCK_GENERATOR_SEND(&s->sout, generate_file_stats, (void *) ptr);
+  /* Pass string after cgi invocation to the generator */
+  s->u.ptr = ptr;
+  PSOCK_GENERATOR_SEND(&s->sout, generate_file_stats, s);
   
   PSOCK_END(&s->sout);
 }
@@ -632,12 +639,6 @@ uint8_t c;
   	h=h-days*24;	
 	numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor3d, days,h,m,s);
   }
-/* TODO: some gcc's have a bug with %02d format that adds an extra char after the string terminator.
- * Seen with arm-none-eabi-gcc.exe (Sourcery G++ Lite 2008q3-66) 4.3.2
- * Quick cosmetic fix to strip that off: */
-    if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
-    else if (*(char *)(uip_appdata + numprinted-2)==0) {numprinted-=2;}
-    else if (*(char *)(uip_appdata + numprinted-1)==0) {numprinted-=1;}
 	
 #if 0
   if (sleepseconds) {
@@ -667,25 +668,14 @@ uint8_t c;
   sl=energest_total_time[ENERGEST_TYPE_CPU].current/RTIMER_ARCH_SECOND;
   h=(10000UL*sl)/seconds;p1=h/100;p2=h-p1*100;h=sl/3600;s=sl-h*3600;m=s/60;s=s-m*60;
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor4, h,m,s,p1,p2);
-  if (*(char *)(uip_appdata + numprinted-4)==0) {numprinted-=4;}
-  else if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
-  else if (*(char *)(uip_appdata + numprinted-2)==0) {numprinted-=2;}
-  else if (*(char *)(uip_appdata + numprinted-1)==0) {numprinted-=1;}
 
   sl=energest_total_time[ENERGEST_TYPE_TRANSMIT].current/RTIMER_ARCH_SECOND;
   h=(10000UL*sl)/seconds;p1=h/100;p2=h-p1*100;h=sl/3600;s=sl-h*3600;m=s/60;s=s-m*60;
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor10, h,m,s,p1,p2);
-  if (*(char *)(uip_appdata + numprinted-4)==0) {numprinted-=4;}
-  else if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
-  else if (*(char *)(uip_appdata + numprinted-2)==0) {numprinted-=2;}
-  else if (*(char *)(uip_appdata + numprinted-1)==0) {numprinted-=1;}
+
   sl=energest_total_time[ENERGEST_TYPE_LISTEN].current/RTIMER_ARCH_SECOND;
   h=(10000UL*sl)/seconds;p1=h/100;p2=h-p1*100;h=sl/3600;s=sl-h*3600;m=s/60;s=s-m*60;
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor11, h,m,s,p1,p2);
-  if (*(char *)(uip_appdata + numprinted-4)==0) {numprinted-=4;}
-  else if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
-  else if (*(char *)(uip_appdata + numprinted-2)==0) {numprinted-=2;}
-  else if (*(char *)(uip_appdata + numprinted-1)==0) {numprinted-=1;}
 }
 #endif /* ENERGEST_CONF_ON */
 
@@ -700,18 +690,12 @@ uint8_t c;
   h=((10000UL*compower_idle_activity.transmit)/RTIMER_ARCH_SECOND)/seconds;
   p1=h/100;p2=h-p1*100;h=s/3600;s=s-h*3600;m=s/60;s=s-m*60;
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor31, h,m,s,p1,p2);
-  if (*(char *)(uip_appdata + numprinted-4)==0) {numprinted-=4;}
-  else if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
-  else if (*(char *)(uip_appdata + numprinted-2)==0) {numprinted-=2;}
-  else if (*(char *)(uip_appdata + numprinted-1)==0) {numprinted-=1;}
+
   s=compower_idle_activity.listen/RTIMER_ARCH_SECOND;
   h=((10000UL*compower_idle_activity.listen)/RTIMER_ARCH_SECOND)/seconds;
   p1=h/100;p2=h-p1*100;h=s/3600;s=s-h*3600;m=s/60;s=s-m*60;
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor32, h,m,s,p1,p2);
-  if (*(char *)(uip_appdata + numprinted-4)==0) {numprinted-=4;}
-  else if (*(char *)(uip_appdata + numprinted-3)==0) {numprinted-=3;}
-  else if (*(char *)(uip_appdata + numprinted-2)==0) {numprinted-=2;}
-  else if (*(char *)(uip_appdata + numprinted-1)==0) {numprinted-=1;}
+
 }
 #endif
 
