@@ -67,7 +67,7 @@ $1-makes:
 	$(MAKE) -C ../../examples/irc        TARGET=$1
 	$(MAKE) -C ../../examples/email      TARGET=$1
 	$(MAKE) -C ../../examples/ftp        TARGET=$1
-	$(MAKE) -C ../../../../contikiprojects/vandenbrande.com/twitter/platform/$1
+	$(MAKE) -C ../../../contikiprojects/vandenbrande.com/twitter/platform/$1
 endef
 
 $(eval $(call makes,apple2enh))
@@ -125,7 +125,7 @@ apple2enh-4-disk: apple2enh-makes
 	java -jar $(AC) -p    contiki-4.dsk dhcp.system     sys 0 < ../apple2enh/loader.system
 	java -jar $(AC) -cc65 contiki-4.dsk dhcp            bin 0 < ../../cpu/6502/dhcp/dhcp-client.apple2enh
 	java -jar $(AC) -p    contiki-4.dsk breadbox.system sys 0 < ../apple2enh/loader.system
-	java -jar $(AC) -cc65 contiki-4.dsk breadbox        bin   < ../../../../contikiprojects/vandenbrande.com/twitter/platform/apple2enh/breadbox64.apple2enh
+	java -jar $(AC) -cc65 contiki-4.dsk breadbox        bin   < ../../../contikiprojects/vandenbrande.com/twitter/platform/apple2enh/breadbox64.apple2enh
 	java -jar $(AC) -p    contiki-4.dsk cs8900a.eth     rel 0 < ../../cpu/6502/dhcp/cs8900a.eth
 	java -jar $(AC) -p    contiki-4.dsk lan91c96.eth    rel 0 < ../../cpu/6502/dhcp/lan91c96.eth
 	java -jar $(AC) -p    contiki-4.dsk a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
@@ -150,35 +150,35 @@ c64-1-disk: c64-makes
 
 c64-2-disk: c64-makes
 	$(C1541) -format contiki,00 d64 contiki-2.d64
-	$(C1541) -attach contiki-2.d64 -write dummy.cfg                                                                        contiki.cfg,u
-	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/dhcp-client.c64                                              dhcp,p
-	$(C1541) -attach contiki-2.d64 -write ../../examples/email/email-client.c64                                            email,p
-	$(C1541) -attach contiki-2.d64 -write ../../examples/ftp/ftp-client.c64                                                ftp,p
-	$(C1541) -attach contiki-2.d64 -write ../../../../contikiprojects/vandenbrande.com/twitter/platform/c64/breadbox64.c64 breadbox64,p
-	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/cs8900a.eth                                                  cs8900a.eth,u
-	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/lan91c96.eth                                                 lan91c96.eth,u
-	$(C1541) -attach contiki-2.d64 -write $(CC65_HOME)/mou/c64-1351.mou                                                    c64-1351.mou,u
+	$(C1541) -attach contiki-2.d64 -write dummy.cfg                                                                     contiki.cfg,u
+	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/dhcp-client.c64                                           dhcp,p
+	$(C1541) -attach contiki-2.d64 -write ../../examples/email/email-client.c64                                         email,p
+	$(C1541) -attach contiki-2.d64 -write ../../examples/ftp/ftp-client.c64                                             ftp,p
+	$(C1541) -attach contiki-2.d64 -write ../../../contikiprojects/vandenbrande.com/twitter/platform/c64/breadbox64.c64 breadbox64,p
+	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/cs8900a.eth                                               cs8900a.eth,u
+	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/dhcp/lan91c96.eth                                              lan91c96.eth,u
+	$(C1541) -attach contiki-2.d64 -write $(CC65_HOME)/mou/c64-1351.mou                                                 c64-1351.mou,u
 
 $(eval $(call makes,c128))
 
 c128-1-disk: c128-makes
 	$(C1541) -format contiki,00 d71 contiki-1.d71
-	$(C1541) -attach contiki-1.d71 -write dummy.cfg                                                                          contiki.cfg,u
-	$(C1541) -attach contiki-1.d71 -write ../../cpu/6502/dhcp/dhcp-client.c128                                               dhcp,p
-	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/webserver-example.c128                                    webserver,p
-	$(C1541) -attach contiki-1.d71 -write ../../examples/webbrowser/webbrowser.c128                                          webbrowser,p
-	$(C1541) -attach contiki-1.d71 -write ../../examples/wget/wget.c128                                                      wget,p
-	$(C1541) -attach contiki-1.d71 -write ../../examples/irc/irc-client.c128                                                 irc,p
-	$(C1541) -attach contiki-1.d71 -write ../../examples/email/email-client.c128                                             email,p
-	$(C1541) -attach contiki-1.d71 -write ../../examples/ftp/ftp-client.c128                                                 ftp,p
-	$(C1541) -attach contiki-1.d71 -write ../../../../contikiprojects/vandenbrande.com/twitter/platform/c128/breadbox64.c128 breadbox64,p
-	$(C1541) -attach contiki-1.d71 -write ../../cpu/6502/dhcp/cs8900a.eth                                                    cs8900a.eth,u
-	$(C1541) -attach contiki-1.d71 -write ../../cpu/6502/dhcp/lan91c96.eth                                                   lan91c96.eth,u
-	$(C1541) -attach contiki-1.d71 -write $(CC65_HOME)/mou/c128-1351.mou                                                     c128-1351.mou,u
-	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/index.htm                                       index.htm,u
-	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/backgrnd.gif                                    backgrnd.gif,u
-	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/contiki.gif                                     contiki.gif,u
-	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/notfound.htm                                    notfound.htm,u
+	$(C1541) -attach contiki-1.d71 -write dummy.cfg                                                                       contiki.cfg,u
+	$(C1541) -attach contiki-1.d71 -write ../../cpu/6502/dhcp/dhcp-client.c128                                            dhcp,p
+	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/webserver-example.c128                                 webserver,p
+	$(C1541) -attach contiki-1.d71 -write ../../examples/webbrowser/webbrowser.c128                                       webbrowser,p
+	$(C1541) -attach contiki-1.d71 -write ../../examples/wget/wget.c128                                                   wget,p
+	$(C1541) -attach contiki-1.d71 -write ../../examples/irc/irc-client.c128                                              irc,p
+	$(C1541) -attach contiki-1.d71 -write ../../examples/email/email-client.c128                                          email,p
+	$(C1541) -attach contiki-1.d71 -write ../../examples/ftp/ftp-client.c128                                              ftp,p
+	$(C1541) -attach contiki-1.d71 -write ../../../contikiprojects/vandenbrande.com/twitter/platform/c128/breadbox64.c128 breadbox64,p
+	$(C1541) -attach contiki-1.d71 -write ../../cpu/6502/dhcp/cs8900a.eth                                                 cs8900a.eth,u
+	$(C1541) -attach contiki-1.d71 -write ../../cpu/6502/dhcp/lan91c96.eth                                                lan91c96.eth,u
+	$(C1541) -attach contiki-1.d71 -write $(CC65_HOME)/mou/c128-1351.mou                                                  c128-1351.mou,u
+	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/index.htm                                    index.htm,u
+	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/backgrnd.gif                                 backgrnd.gif,u
+	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/contiki.gif                                  contiki.gif,u
+	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/httpd-cfs/notfound.htm                                 notfound.htm,u
 
 $(eval $(call makes,atari))
 
@@ -221,10 +221,10 @@ atari-3-disk: atari-makes
 
 atari-4-disk: atari-makes
 	mkdir -p atr
-	cp ../atari/dos.sys                                                                     atr/dos.sys
-	cp ../atari/dup.sys                                                                     atr/dup.sys
-	cp dummy.cfg                                                                            atr/contiki.cfg
-	cp ../../cpu/6502/dhcp/dhcp-client.atari                                                atr/dhcp.com
-	cp ../../../../contikiprojects/vandenbrande.com/twitter/platform/atari/breadbox64.atari atr/breadbox.com
+	cp ../atari/dos.sys                                                                  atr/dos.sys
+	cp ../atari/dup.sys                                                                  atr/dup.sys
+	cp dummy.cfg                                                                         atr/contiki.cfg
+	cp ../../cpu/6502/dhcp/dhcp-client.atari                                             atr/dhcp.com
+	cp ../../../contikiprojects/vandenbrande.com/twitter/platform/atari/breadbox64.atari atr/breadbox.com
 	$(DIR2ATR) -b Dos25 1040 contiki-4.atr atr
 	rm -r atr
