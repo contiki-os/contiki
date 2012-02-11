@@ -433,6 +433,9 @@ PT_THREAD(handle_input(struct httpd_state *s))
   webserver_log_file(&uip_conn->ripaddr, s->filename);
 //  webserver_log(httpd_query);
 #endif
+#if WEBSERVER_CONF_LOADTIME
+    s->pagetime = clock_time();
+#endif
   s->state = STATE_OUTPUT;
   while(1) {
     PSOCK_READTO(&s->sin, ISO_nl);

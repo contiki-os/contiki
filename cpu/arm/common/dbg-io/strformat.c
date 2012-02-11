@@ -503,6 +503,7 @@ format_str_v(const StrFormatContext *ctxt, const char *format, va_list ap)
 	if ((flags & JUSTIFY_MASK) == JUSTIFY_RIGHT) {
 	  if (flags & PAD_ZERO) {
 	    precision_fill += field_fill;
+        field_fill = 0;  /* Do not double count padding */
 	  } else {
 	    CHECKCB(fill_space(ctxt,field_fill));
 	  }
