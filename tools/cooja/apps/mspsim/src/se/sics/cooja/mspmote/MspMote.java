@@ -335,7 +335,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     if (t < lastExecute) {
       throw new RuntimeException("Bad event ordering: " + lastExecute + " < " + t);
     }
-
+    
     /* Execute MSPSim-based mote */
     /* TODO Try-catch overhead */
     try {
@@ -345,6 +345,10 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       lastExecute = t;
     } catch (EmulationException e) {
       String stackTraceOutput = sendCLICommandAndPrint("stacktrace");
+      if (stackTraceOutput == null) {
+        stackTraceOutput = "";
+      }
+      stackTraceOutput = e.getMessage() + "\n\n" + stackTraceOutput;
       throw (ContikiError)
       new ContikiError(stackTraceOutput).initCause(e);
     }
