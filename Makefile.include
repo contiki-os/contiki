@@ -109,7 +109,7 @@ endif
 
 ### Include target makefile (TODO Unsafe?)
 
-target_makefile := $(wildcard ${realpath $(CONTIKI)}/platform/$(TARGET)/Makefile.$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.$(TARGET)})
+target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.$(TARGET)})
 
 # Check if the target makefile exists, and create the object directory if necessary.
 ifeq ($(strip $(target_makefile)),)
