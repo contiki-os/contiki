@@ -76,45 +76,45 @@ static struct uip_fw_netif *defaultnetif = NULL;
 
 struct tcpip_hdr {
   /* IP header. */
-  u8_t vhl,
+  uint8_t vhl,
     tos;
-  u16_t len,
+  uint16_t len,
     ipid,
     ipoffset;
-  u8_t ttl,
+  uint8_t ttl,
     proto;
-  u16_t ipchksum;
+  uint16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
   
   /* TCP header. */
-  u16_t srcport,
+  uint16_t srcport,
     destport;
-  u8_t seqno[4],
+  uint8_t seqno[4],
     ackno[4],
     tcpoffset,
     flags,
     wnd[2];
-  u16_t tcpchksum;
-  u8_t urgp[2];
-  u8_t optdata[4];
+  uint16_t tcpchksum;
+  uint8_t urgp[2];
+  uint8_t optdata[4];
 };
 
 struct icmpip_hdr {
   /* IP header. */
-  u8_t vhl,
+  uint8_t vhl,
     tos,
     len[2],
     ipid[2],
     ipoffset[2],
     ttl,
     proto;
-  u16_t ipchksum;
+  uint16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
   /* ICMP (echo) header. */
-  u8_t type, icode;
-  u16_t icmpchksum;
-  u16_t id, seqno;
-  u8_t payload[1];
+  uint8_t type, icode;
+  uint16_t icmpchksum;
+  uint16_t id, seqno;
+  uint8_t payload[1];
 };
 
 /* ICMP ECHO. */
@@ -138,20 +138,20 @@ struct icmpip_hdr {
  * duplicate packets.
  */
 struct fwcache_entry {
-  u16_t timer;
+  uint16_t timer;
   
   uip_ipaddr_t srcipaddr;
   uip_ipaddr_t destipaddr;
-  u16_t ipid;
-  u8_t proto;
-  u8_t unused;
+  uint16_t ipid;
+  uint8_t proto;
+  uint8_t unused;
 
 #if notdef
-  u16_t payload[2];
+  uint16_t payload[2];
 #endif
 
 #if UIP_REASSEMBLY > 0
-  u16_t len, offset;
+  uint16_t len, offset;
 #endif
 };
 
@@ -242,7 +242,7 @@ time_exceeded(void)
 
   /* Calculate the ICMP checksum. */
   ICMPBUF->icmpchksum = 0;
-  ICMPBUF->icmpchksum = ~uip_chksum((u16_t *)&(ICMPBUF->type), 36);
+  ICMPBUF->icmpchksum = ~uip_chksum((uint16_t *)&(ICMPBUF->type), 36);
 
   /* Set the IP destination address to be the source address of the
      original packet. */
@@ -255,7 +255,7 @@ time_exceeded(void)
      IP header (20) = 56. */
   uip_len = 56;
   ICMPBUF->len[0] = 0;
-  ICMPBUF->len[1] = (u8_t)uip_len;
+  ICMPBUF->len[1] = (uint8_t)uip_len;
 
   /* Fill in the other fields in the IP header. */
   ICMPBUF->vhl = 0x45;
@@ -351,7 +351,7 @@ find_netif(void)
  * function is passed unmodified as a return value.
  */
 /*------------------------------------------------------------------------------*/
-u8_t
+uint8_t
 uip_fw_output(void)
 {
   struct uip_fw_netif *netif;
@@ -400,7 +400,7 @@ uip_fw_output(void)
  * the packet should be processed locally.
  */
 /*------------------------------------------------------------------------------*/
-u8_t
+uint8_t
 uip_fw_forward(void)
 {
   struct fwcache_entry *fw;

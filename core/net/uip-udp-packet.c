@@ -40,7 +40,7 @@
 
 #include "contiki-conf.h"
 
-extern u16_t uip_slen;
+extern uint16_t uip_slen;
 
 #include "net/uip-udp-packet.h"
 

@@ -38,13 +38,13 @@ struct dhcpc_state {
   char state;
   struct uip_udp_conn *conn;
   struct etimer etimer;
-  u32_t ticks;
+  uint32_t ticks;
   const void *mac_addr;
   int mac_len;
   
-  u8_t serverid[4];
+  uint8_t serverid[4];
 
-  u16_t lease_time[2];
+  uint16_t lease_time[2];
   uip_ipaddr_t ipaddr;
   uip_ipaddr_t netmask;
   uip_ipaddr_t dnsaddr;

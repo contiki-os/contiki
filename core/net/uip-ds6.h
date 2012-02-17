@@ -194,8 +194,8 @@ typedef struct uip_ds6_prefix {
   uip_ipaddr_t ipaddr;
   uint8_t length;
   uint8_t advertise;
-  u32_t vlifetime;
-  u32_t plifetime;
+  uint32_t vlifetime;
+  uint32_t plifetime;
   uint8_t l_a_reserved; /**< on-link and autonomous flags + 6 reserved bits */
 } uip_ds6_prefix_t;
 #else /* UIP_CONF_ROUTER */

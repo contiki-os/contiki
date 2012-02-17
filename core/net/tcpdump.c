@@ -38,15 +38,15 @@
 
  struct ip_hdr {
   /* IP header. */
-   u8_t vhl,
+   uint8_t vhl,
     tos,
      len[2],
      ipid[2],
      ipoffset[2],
      ttl,
      proto;
-   u16_t ipchksum;
-   u8_t srcipaddr[4],
+   uint16_t ipchksum;
+   uint8_t srcipaddr[4],
      destipaddr[4];
  };
 
@@ -60,27 +60,27 @@
 
 struct tcpip_hdr {
   /* IP header. */
-   u8_t vhl,
+   uint8_t vhl,
     tos,
      len[2],
      ipid[2],
      ipoffset[2],
      ttl,
      proto;
-   u16_t ipchksum;
-   u8_t srcipaddr[4],
+   uint16_t ipchksum;
+   uint8_t srcipaddr[4],
      destipaddr[4];
   /* TCP header. */
-  u16_t srcport,
+  uint16_t srcport,
     destport;
-  u8_t seqno[4],
+  uint8_t seqno[4],
     ackno[4],
     tcpoffset,
     flags,
     wnd[2];
-  u16_t tcpchksum;
-  u8_t urgp[2];
-  u8_t optdata[4];
+  uint16_t tcpchksum;
+  uint8_t urgp[2];
+  uint8_t optdata[4];
 };
 
 #define ICMP_ECHO_REPLY 0
@@ -88,43 +88,43 @@ struct tcpip_hdr {
 
 struct icmpip_hdr {
   /* IP header. */
-   u8_t vhl,
+   uint8_t vhl,
     tos,
      len[2],
      ipid[2],
      ipoffset[2],
      ttl,
      proto;
-  u16_t ipchksum;
-  u8_t srcipaddr[4],
+  uint16_t ipchksum;
+  uint8_t srcipaddr[4],
     destipaddr[4];
   /* The ICMP and IP headers. */
   /* ICMP (echo) header. */
-  u8_t type, icode;
-  u16_t icmpchksum;
-  u16_t id, seqno;
+  uint8_t type, icode;
+  uint16_t icmpchksum;
+  uint16_t id, seqno;
 };
 
 
 /* The UDP and IP headers. */
 struct udpip_hdr {
   /* IP header. */
-   u8_t vhl,
+   uint8_t vhl,
     tos,
      len[2],
      ipid[2],
      ipoffset[2],
      ttl,
      proto;
-   u16_t ipchksum;
-  u8_t srcipaddr[4],
+   uint16_t ipchksum;
+  uint8_t srcipaddr[4],
     destipaddr[4];
   
   /* UDP header. */
-  u16_t srcport,
+  uint16_t srcport,
     destport;
-  u16_t udplen;
-  u16_t udpchksum;
+  uint16_t udplen;
+  uint16_t udpchksum;
 };
 
 #define ETHBUF    ((struct eth_hdr *)&packet[0])
@@ -158,10 +158,10 @@ tcpflags(unsigned char flags, char *flagsstr)
 }
 /*---------------------------------------------------------------------------*/
 static char * CC_FASTCALL
-n(u16_t num, char *ptr)
+n(uint16_t num, char *ptr)
 {
-  u16_t d;
-  u8_t a, f;
+  uint16_t d;
+  uint8_t a, f;
 
   if(num == 0) {
     *ptr = '0';
@@ -195,8 +195,8 @@ s(char *str, char *ptr)
 }
 /*---------------------------------------------------------------------------*/
 int
-tcpdump_format(u8_t *packet, u16_t packetlen,
-	       char *buf, u16_t buflen)
+tcpdump_format(uint8_t *packet, uint16_t packetlen,
+	       char *buf, uint16_t buflen)
 {
   char flags[8];
   if(IPBUF->proto == UIP_PROTO_ICMP) {

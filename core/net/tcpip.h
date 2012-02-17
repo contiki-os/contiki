@@ -126,7 +126,7 @@ CCIF void tcp_attach(struct uip_conn *conn,
  * \param port The port number in network byte order.
  *
  */
-CCIF void tcp_listen(u16_t port);
+CCIF void tcp_listen(uint16_t port);
 
 /**
  * Close a listening TCP port.
@@ -140,7 +140,7 @@ CCIF void tcp_listen(u16_t port);
  * \param port The port number in network byte order.
  *
  */
-CCIF void tcp_unlisten(u16_t port);
+CCIF void tcp_unlisten(uint16_t port);
 
 /**
  * Open a TCP connection to the specified IP address and port.
@@ -165,7 +165,7 @@ CCIF void tcp_unlisten(u16_t port);
  * memory could not be allocated for the connection.
  *
  */
-CCIF struct uip_conn *tcp_connect(uip_ipaddr_t *ripaddr, u16_t port,
+CCIF struct uip_conn *tcp_connect(uip_ipaddr_t *ripaddr, uint16_t port,
 				  void *appstate);
 
 /**
@@ -226,7 +226,7 @@ void udp_attach(struct uip_udp_conn *conn,
  * \return A pointer to the newly created connection, or NULL if
  * memory could not be allocated for the connection.
  */
-CCIF struct uip_udp_conn *udp_new(const uip_ipaddr_t *ripaddr, u16_t port,
+CCIF struct uip_udp_conn *udp_new(const uip_ipaddr_t *ripaddr, uint16_t port,
 				  void *appstate);
 
 /**
@@ -241,7 +241,7 @@ CCIF struct uip_udp_conn *udp_new(const uip_ipaddr_t *ripaddr, u16_t port,
  * \return A pointer to the newly created connection, or NULL if
  * memory could not be allocated for the connection.
  */
-struct uip_udp_conn *udp_broadcast_new(u16_t port, void *appstate);
+struct uip_udp_conn *udp_broadcast_new(uint16_t port, void *appstate);
 
 /**
  * Bind a UDP connection to a local port.
@@ -302,14 +302,14 @@ CCIF extern process_event_t tcpip_icmp6_event;
  * If an application registers here, it will be polled with a
  * process_post_synch every time an ICMPv6 packet is received.
  */
-u8_t icmp6_new(void *appstate);
+uint8_t icmp6_new(void *appstate);
 
 /**
  * This function is called at reception of an ICMPv6 packet
  * If an application registered as an ICMPv6 listener (with
  * icmp6_new), it will be called through a process_post_synch()
  */
-void tcpip_icmp6_call(u8_t type);
+void tcpip_icmp6_call(uint8_t type);
 #endif /*UIP_CONF_ICMP6*/
 
 /** @} */
@@ -341,11 +341,11 @@ CCIF void tcpip_input(void);
  * The eventual parameter is the MAC address of the destination.
  */
 #if UIP_CONF_IPV6
-u8_t tcpip_output(uip_lladdr_t *);
-void tcpip_set_outputfunc(u8_t (* f)(uip_lladdr_t *));
+uint8_t tcpip_output(uip_lladdr_t *);
+void tcpip_set_outputfunc(uint8_t (* f)(uip_lladdr_t *));
 #else
-u8_t tcpip_output(void);
-void tcpip_set_outputfunc(u8_t (* f)(void));
+uint8_t tcpip_output(void);
+void tcpip_set_outputfunc(uint8_t (* f)(void));
 #endif
 
 /**
