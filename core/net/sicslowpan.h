@@ -183,9 +183,9 @@
  * offset field is just not used
  */
 /* struct sicslowpan_frag_hdr { */
-/*   u16_t dispatch_size; */
-/*   u16_t tag; */
-/*   u8_t offset; */
+/*   uint16_t dispatch_size; */
+/*   uint16_t tag; */
+/*   uint8_t offset; */
 /* }; */
 
 /**
@@ -197,21 +197,21 @@
  * structure
  */
 /* struct sicslowpan_hc1_hdr { */
-/*   u8_t dispatch; */
-/*   u8_t encoding; */
-/*   u8_t ttl; */
+/*   uint8_t dispatch; */
+/*   uint8_t encoding; */
+/*   uint8_t ttl; */
 /* }; */
 
 /**
  * \brief HC1 followed by HC_UDP
  */
 /* struct sicslowpan_hc1_hc_udp_hdr { */
-/*   u8_t dispatch; */
-/*   u8_t hc1_encoding; */
-/*   u8_t hc_udp_encoding; */
-/*   u8_t ttl; */
-/*   u8_t ports; */
-/*   u16_t udpchksum; */
+/*   uint8_t dispatch; */
+/*   uint8_t hc1_encoding; */
+/*   uint8_t hc_udp_encoding; */
+/*   uint8_t ttl; */
+/*   uint8_t ports; */
+/*   uint16_t udpchksum; */
 /* }; */
 
 /**
@@ -219,9 +219,9 @@
  * each context can have upto 8 bytes
  */
 struct sicslowpan_addr_context {
-  u8_t used; /* possibly use as prefix-length */
-  u8_t number;
-  u8_t prefix[8];
+  uint8_t used; /* possibly use as prefix-length */
+  uint8_t number;
+  uint8_t prefix[8];
 };
 
 /**
@@ -248,7 +248,7 @@ struct sicslowpan_addr_context {
  * compressed multicast address is known. It is true
  * if the 9-bit group is the all nodes or all routers
  * group.
- * \param a is typed u8_t *
+ * \param a is typed uint8_t *
  */
 #define sicslowpan_is_mcast_addr_decompressable(a) \
    (((*a & 0x01) == 0) &&                           \

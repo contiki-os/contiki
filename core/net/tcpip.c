@@ -90,7 +90,7 @@ extern struct etimer uip_reass_timer;
  * \internal Structure for holding a TCP port and a process ID.
  */
 struct listenport {
-  u16_t port;
+  uint16_t port;
   struct process *p;
 };
 
@@ -109,9 +109,9 @@ enum {
 /* Called on IP packet output. */
 #if UIP_CONF_IPV6
 
-static u8_t (* outputfunc)(uip_lladdr_t *a);
+static uint8_t (* outputfunc)(uip_lladdr_t *a);
 
-u8_t
+uint8_t
 tcpip_output(uip_lladdr_t *a)
 {
   int ret;
@@ -124,14 +124,14 @@ tcpip_output(uip_lladdr_t *a)
 }
 
 void
-tcpip_set_outputfunc(u8_t (*f)(uip_lladdr_t *))
+tcpip_set_outputfunc(uint8_t (*f)(uip_lladdr_t *))
 {
   outputfunc = f;
 }
 #else
 
-static u8_t (* outputfunc)(void);
-u8_t
+static uint8_t (* outputfunc)(void);
+uint8_t
 tcpip_output(void)
 {
   if(outputfunc != NULL) {
@@ -142,7 +142,7 @@ tcpip_output(void)
 }
 
 void
-tcpip_set_outputfunc(u8_t (*f)(void))
+tcpip_set_outputfunc(uint8_t (*f)(void))
 {
   outputfunc = f;
 }
@@ -226,7 +226,7 @@ packet_input(void)
 #if UIP_TCP
 #if UIP_ACTIVE_OPEN
 struct uip_conn *
-tcp_connect(uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
+tcp_connect(uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
 {
   struct uip_conn *c;
   
@@ -245,7 +245,7 @@ tcp_connect(uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
 #endif /* UIP_ACTIVE_OPEN */
 /*---------------------------------------------------------------------------*/
 void
-tcp_unlisten(u16_t port)
+tcp_unlisten(uint16_t port)
 {
   static unsigned char i;
   struct listenport *l;
@@ -263,7 +263,7 @@ tcp_unlisten(u16_t port)
 }
 /*---------------------------------------------------------------------------*/
 void
-tcp_listen(u16_t port)
+tcp_listen(uint16_t port)
 {
   static unsigned char i;
   struct listenport *l;
@@ -306,7 +306,7 @@ udp_attach(struct uip_udp_conn *conn,
 }
 /*---------------------------------------------------------------------------*/
 struct uip_udp_conn *
-udp_new(const uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
+udp_new(const uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
 {
   struct uip_udp_conn *c;
   uip_udp_appstate_t *s;
@@ -324,7 +324,7 @@ udp_new(const uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
 }
 /*---------------------------------------------------------------------------*/
 struct uip_udp_conn *
-udp_broadcast_new(u16_t port, void *appstate)
+udp_broadcast_new(uint16_t port, void *appstate)
 {
   uip_ipaddr_t addr;
   struct uip_udp_conn *conn;
@@ -343,7 +343,7 @@ udp_broadcast_new(u16_t port, void *appstate)
 #endif /* UIP_UDP */
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_ICMP6
-u8_t
+uint8_t
 icmp6_new(void *appstate) {
   if(uip_icmp6_conns.appstate.p == PROCESS_NONE) {
     uip_icmp6_conns.appstate.p = PROCESS_CURRENT();
@@ -354,7 +354,7 @@ icmp6_new(void *appstate) {
 }
 
 void
-tcpip_icmp6_call(u8_t type)
+tcpip_icmp6_call(uint8_t type)
 {
   if(uip_icmp6_conns.appstate.p != PROCESS_NONE) {
     /* XXX: This is a hack that needs to be updated. Passing a pointer (&type)

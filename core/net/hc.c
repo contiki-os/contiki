@@ -48,27 +48,27 @@
 #define FLAGS_BROADCASTDATA  0x4000
 
 struct hc_hdr {
-  u16_t flagsport;
+  uint16_t flagsport;
   uip_ipaddr_t srcipaddr;
 };
 
 struct udpip_hdr {
   /* IP header. */
-  u8_t vhl,
+  uint8_t vhl,
     tos,
     len[2],
     ipid[2],
     ipoffset[2],
     ttl,
     proto;
-  u16_t ipchksum;
+  uint16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
   
   /* UDP header. */
-  u16_t srcport,
+  uint16_t srcport,
     destport;
-  u16_t udplen;
-  u16_t udpchksum;
+  uint16_t udplen;
+  uint16_t udpchksum;
 };
 
 #include <stdio.h>
@@ -100,7 +100,7 @@ hc_init(void)
  */
 /*---------------------------------------------------------------------------*/
 int
-hc_compress(u8_t *buf, int len)
+hc_compress(uint8_t *buf, int len)
 {
   struct hc_hdr *hdr;
   struct udpip_hdr *uhdr;
@@ -162,7 +162,7 @@ hc_compress(u8_t *buf, int len)
  */
 /*---------------------------------------------------------------------------*/
 int
-hc_inflate(u8_t *buf, int len)
+hc_inflate(uint8_t *buf, int len)
 {
   struct udpip_hdr *uhdr;
   struct hc_hdr *hdr;

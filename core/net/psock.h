@@ -100,7 +100,7 @@
  *
  */
 struct psock_buf {
-  u8_t *ptr;
+  uint8_t *ptr;
   unsigned short left;
 };
 
@@ -114,14 +114,14 @@ struct psock {
   struct pt pt, psockpt; /* Protothreads - one that's using the psock
 			    functions, and one that runs inside the
 			    psock functions. */
-  const u8_t *sendptr;   /* Pointer to the next data to be sent. */
-  u8_t *readptr;         /* Pointer to the next data to be read. */
+  const uint8_t *sendptr;   /* Pointer to the next data to be sent. */
+  uint8_t *readptr;         /* Pointer to the next data to be read. */
   
   uint8_t *bufptr;          /* Pointer to the buffer used for buffering
 			    incoming data. */
   
-  u16_t sendlen;         /* The number of bytes left to be sent. */
-  u16_t readlen;         /* The number of bytes left to be read. */
+  uint16_t sendlen;         /* The number of bytes left to be sent. */
+  uint16_t readlen;         /* The number of bytes left to be read. */
 
   struct psock_buf buf;  /* The structure holding the state of the
 			    input buffer. */
@@ -304,7 +304,7 @@ PT_THREAD(psock_readto(struct psock *psock, unsigned char c));
  */
 #define PSOCK_DATALEN(psock) psock_datalen(psock)
 
-u16_t psock_datalen(struct psock *psock);
+uint16_t psock_datalen(struct psock *psock);
 
 /**
  * Exit the protosocket's protothread.
