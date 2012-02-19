@@ -305,7 +305,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
 	*/
 
 	/* new solution */
-    instr[2] = (u8_t) ((int)addr) & 0xff;
+    instr[2] = (uint8_t) ((int)addr) & 0xff;
     instr[3] = ((int)addr) >> 8;
     cfs_write(fd, instr, 4);
     break;
