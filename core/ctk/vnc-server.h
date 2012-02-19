@@ -37,9 +37,9 @@
 
 
 /*struct vnc_server_updatearea {
-  u8_t active;
-  u8_t x, y;
-  u8_t w, h;
+  uint8_t active;
+  uint8_t x, y;
+  uint8_t w, h;
   };*/
 
 struct vnc_server_update {
@@ -49,29 +49,29 @@ struct vnc_server_update {
 #define VNC_SERVER_UPDATE_PARTS 1
 #define VNC_SERVER_UPDATE_FULL  2
 
-  u8_t type;
+  uint8_t type;
 
-  u8_t x, y;
-  u8_t w, h;  
+  uint8_t x, y;
+  uint8_t w, h;  
 };
 
 struct vnc_server_state {
-  u16_t counter;
-  u8_t type;
-  u8_t state;
-  u16_t height, width;
+  uint16_t counter;
+  uint8_t type;
+  uint8_t state;
+  uint16_t height, width;
 
-  u8_t update_requested;
+  uint8_t update_requested;
   
   /* Variables used when sending screen updates. */
-  u8_t x, y, x1, y1, x2, y2;
-  u8_t w, h;
+  uint8_t x, y, x1, y1, x2, y2;
+  uint8_t w, h;
 
   
 
-  u16_t readlen;
-  u8_t sendmsg;
-  u8_t button;
+  uint16_t readlen;
+  uint8_t sendmsg;
+  uint8_t button;
 
   
   struct vnc_server_update *updates_current;
@@ -131,30 +131,30 @@ enum {
 #include "contiki-net.h"
 
 void vnc_server_send_data(struct vnc_server_state *vs);
-u8_t vnc_server_draw_rect(u8_t *ptr, u16_t x, u16_t y, u16_t w, u16_t h, u8_t c);
+uint8_t vnc_server_draw_rect(uint8_t *ptr, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t c);
 
 
 /* Generic rectangle - x, y coordinates, width and height. */
 struct rfb_rect {
-  u16_t x;
-  u16_t y;
-  u16_t w;
-  u16_t h;
+  uint16_t x;
+  uint16_t y;
+  uint16_t w;
+  uint16_t h;
 };
 
 /* Pixel format definition. */
 struct rfb_pixel_format {
-  u8_t bps;       /* Bits per pixel: 8, 16 or 32. */
-  u8_t depth;     /* Color depth: 8-32 */
-  u8_t endian;    /* 1 - big endian (motorola), 0 - little endian
+  uint8_t bps;       /* Bits per pixel: 8, 16 or 32. */
+  uint8_t depth;     /* Color depth: 8-32 */
+  uint8_t endian;    /* 1 - big endian (motorola), 0 - little endian
 		     (x86) */
-  u8_t truecolor; /* 1 - true color is used, 0 - true color is not used. */
+  uint8_t truecolor; /* 1 - true color is used, 0 - true color is not used. */
 
   /* The following fields are only used if true color is used. */
-  u16_t red_max, green_max, blue_max;
-  u8_t red_shift, green_shift, blue_shift;
-  u8_t pad1;
-  u16_t pad2;
+  uint16_t red_max, green_max, blue_max;
+  uint8_t red_shift, green_shift, blue_shift;
+  uint8_t pad1;
+  uint16_t pad2;
 };
 
 
@@ -197,100 +197,100 @@ struct rfb_pixel_format {
 /* Server to client messages. */
 
 struct rfb_server_init {
-  u16_t width;
-  u16_t height;
+  uint16_t width;
+  uint16_t height;
   struct rfb_pixel_format format;
-  u8_t namelength[4];
+  uint8_t namelength[4];
   /* Followed by name. */
 };
 
 struct rfb_fb_update {
-  u8_t type;
-  u8_t pad;
-  u16_t rects; /* Number of rectanges (struct rfb_fb_update_rect_hdr +
+  uint8_t type;
+  uint8_t pad;
+  uint16_t rects; /* Number of rectanges (struct rfb_fb_update_rect_hdr +
 		  data) that follows. */
 };
 
 struct rfb_fb_update_rect_hdr {
   struct rfb_rect rect;
-  u8_t encoding[4];
+  uint8_t encoding[4];
 };
 
 struct rfb_copy_rect {
-  u16_t srcx;
-  u16_t srcy;
+  uint16_t srcx;
+  uint16_t srcy;
 };
 
 struct rfb_rre_hdr {
-  u16_t subrects[2];  /* Number of subrectangles (struct
+  uint16_t subrects[2];  /* Number of subrectangles (struct
 			 rfb_rre_subrect) to follow. */
-  u8_t bgpixel;
+  uint8_t bgpixel;
 };
 
 struct rfb_rre_subrect {
-  u8_t pixel;
+  uint8_t pixel;
   struct rfb_rect rect;
 };
 
 struct rfb_corre_rect {
-  u8_t x;
-  u8_t y;
-  u8_t w;
-  u8_t h;
+  uint8_t x;
+  uint8_t y;
+  uint8_t w;
+  uint8_t h;
 };
 
 /* Client to server messages. */
 
 struct rfb_set_pixel_format {
-  u8_t type;
-  u8_t pad;
-  u16_t pad2;
+  uint8_t type;
+  uint8_t pad;
+  uint16_t pad2;
   struct rfb_pixel_format format;
 };
 
 struct rfb_fix_colormap_entries {
-  u8_t type;
-  u8_t pad;
-  u16_t firstcolor;
-  u16_t colors;
+  uint8_t type;
+  uint8_t pad;
+  uint16_t firstcolor;
+  uint16_t colors;
 };
 
 struct rfb_set_encoding {
-  u8_t type;
-  u8_t pad;
-  u16_t encodings;
+  uint8_t type;
+  uint8_t pad;
+  uint16_t encodings;
 };
 
 struct rfb_fb_update_request {
-  u8_t type;
-  u8_t incremental;
-  u16_t x;
-  u16_t y;
-  u16_t w;
-  u16_t h;
+  uint8_t type;
+  uint8_t incremental;
+  uint16_t x;
+  uint16_t y;
+  uint16_t w;
+  uint16_t h;
 };
 
 struct rfb_key_event {
-  u8_t type;
-  u8_t down;
-  u16_t pad;
-  u8_t key[4];
+  uint8_t type;
+  uint8_t down;
+  uint16_t pad;
+  uint8_t key[4];
 };
 
 #define RFB_BUTTON_MASK1 1
 #define RFB_BUTTON_MASK2 2
 #define RFB_BUTTON_MASK3 4
 struct rfb_pointer_event {
-  u8_t type;
-  u8_t buttonmask;
-  u16_t x;
-  u16_t y;
+  uint8_t type;
+  uint8_t buttonmask;
+  uint16_t x;
+  uint16_t y;
 };
 
 struct rfb_client_cut_text {
-  u8_t type;
-  u8_t pad[3];
-  u8_t len[4];
+  uint8_t type;
+  uint8_t pad[3];
+  uint8_t len[4];
 };
 
 #endif /* __VNC_SERVER_H__ */

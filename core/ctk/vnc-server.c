@@ -65,10 +65,10 @@
 #define RFB_SERVER_VERSION_STRING rfb_server_version_string
 
 /* "RFB 003.003" */
-static u8_t rfb_server_version_string[12] = {82,70,66,32,48,48,51,46,48,48,51,10};
+static uint8_t rfb_server_version_string[12] = {82,70,66,32,48,48,51,46,48,48,51,10};
 
 /* uVNC */
-static u8_t uvnc_name[4] = {117,86,78,67};
+static uint8_t uvnc_name[4] = {117,86,78,67};
 #if 1
 #define PRINTF(x)
 #else
@@ -76,8 +76,8 @@ static u8_t uvnc_name[4] = {117,86,78,67};
 #endif
 
 /*-----------------------------------------------------------------------------------*/
-u8_t
-vnc_server_draw_rect(u8_t *ptr, u16_t x, u16_t y, u16_t w, u16_t h, u8_t c)
+uint8_t
+vnc_server_draw_rect(uint8_t *ptr, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t c)
 {
   register struct rfb_fb_update_rect_hdr *recthdr;
   struct rfb_rre_hdr *rrehdr;
@@ -244,16 +244,16 @@ vnc_pointer_event(struct vnc_server_state *vs)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static u8_t
+static uint8_t
 vnc_read_data(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
-  u8_t *appdata;
-  u16_t len;
+  uint8_t *appdata;
+  uint16_t len;
   struct rfb_fb_update_request *req;
-  /*  u8_t niter;*/
+  /*  uint8_t niter;*/
   
   len = uip_datalen();
-  appdata = (u8_t *)uip_appdata;
+  appdata = (uint8_t *)uip_appdata;
   
   /* First, check if there is data left to discard since last read. */
   if(vs->readlen > 0) {
