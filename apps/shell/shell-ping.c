@@ -85,8 +85,8 @@ send_ping(uip_ipaddr_t *dest_addr)
   
   uip_len = UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN +
     UIP_IPH_LEN + PING_DATALEN;
-  UIP_IP_BUF->len[0] = (u8_t)((uip_len - 40) >> 8);
-  UIP_IP_BUF->len[1] = (u8_t)((uip_len - 40) & 0x00ff);
+  UIP_IP_BUF->len[0] = (uint8_t)((uip_len - 40) >> 8);
+  UIP_IP_BUF->len[1] = (uint8_t)((uip_len - 40) & 0x00ff);
   
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
@@ -116,11 +116,11 @@ send_ping(uip_ipaddr_t *dest_addr)
   UIP_ICMP_BUF->seqno = uip_htons(seqno++);
   
   uip_len = UIP_ICMPH_LEN + UIP_IPH_LEN + PING_DATALEN;
-  UIP_IP_BUF->len[0] = (u8_t)((uip_len) >> 8);
-  UIP_IP_BUF->len[1] = (u8_t)((uip_len) & 0x00ff);
+  UIP_IP_BUF->len[0] = (uint8_t)((uip_len) >> 8);
+  UIP_IP_BUF->len[1] = (uint8_t)((uip_len) & 0x00ff);
   
   UIP_ICMP_BUF->icmpchksum = 0;
-  UIP_ICMP_BUF->icmpchksum = ~uip_chksum((u16_t *)&(UIP_ICMP_BUF->type),
+  UIP_ICMP_BUF->icmpchksum = ~uip_chksum((uint16_t *)&(UIP_ICMP_BUF->type),
 					 UIP_ICMPH_LEN + PING_DATALEN);
 
   /* Calculate IP checksum. */

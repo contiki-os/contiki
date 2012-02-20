@@ -48,7 +48,7 @@
 #define RFB_SERVER_VERSION_STRING rfb_server_version_string
 
 /* "RFB 003.003" */
-static u8_t rfb_server_version_string[12] =
+static uint8_t rfb_server_version_string[12] =
   {82,70,66,32,48,48,51,46,48,48,51,10};
 
 #if 0
@@ -77,7 +77,7 @@ vnc_viewer_close(void)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-vnc_viewer_connect(u16_t *server, u8_t display)
+vnc_viewer_connect(uint16_t *server, uint8_t display)
 {
   struct uip_conn *conn;
 
@@ -96,10 +96,10 @@ vnc_viewer_connect(u16_t *server, u8_t display)
 static void
 senddata(void)
 {
-  register u8_t *dataptr;
-  u16_t dataleft;
+  register uint8_t *dataptr;
+  uint16_t dataleft;
 
-  dataptr = (u8_t *)uip_appdata;
+  dataptr = (uint8_t *)uip_appdata;
     
   switch(vs->sendmsg) {
   case VNC_SEND_VERSION:
@@ -115,7 +115,7 @@ senddata(void)
   case VNC_SEND_CINIT:
     PRINTF(("Sending CINIT\n"));
     /* Send one byte of client init. */
-    *(u8_t *)dataptr = 1;
+    *(uint8_t *)dataptr = 1;
     uip_send(uip_appdata, 1);
     break;
   case VNC_SEND_PFMT:
@@ -144,10 +144,10 @@ senddata(void)
     dataptr += sizeof(struct rfb_set_encodings);
     dataptr[0] = dataptr[1] = dataptr[2] = 0;
     dataptr[3] = RFB_ENC_RAW;
-    /*    ((u8_t *)dataptr + sizeof(struct rfb_set_encodings))[4] =
-      ((u8_t *)dataptr + sizeof(struct rfb_set_encodings))[5] =
-      ((u8_t *)dataptr + sizeof(struct rfb_set_encodings))[6] = 0;
-      ((u8_t *)dataptr + sizeof(struct rfb_set_encodings))[7] = RFB_ENC_RRE;*/
+    /*    ((uint8_t *)dataptr + sizeof(struct rfb_set_encodings))[4] =
+      ((uint8_t *)dataptr + sizeof(struct rfb_set_encodings))[5] =
+      ((uint8_t *)dataptr + sizeof(struct rfb_set_encodings))[6] = 0;
+      ((uint8_t *)dataptr + sizeof(struct rfb_set_encodings))[7] = RFB_ENC_RRE;*/
     uip_send(uip_appdata, sizeof(struct rfb_set_encodings) + 4);
     break;
   case VNC_SEND_UPDATERQ:
@@ -230,7 +230,7 @@ senddata(void)
 }
 /*-----------------------------------------------------------------------------------*/
 static void
-buffer_data(u8_t *data, u16_t datalen)
+buffer_data(uint8_t *data, uint16_t datalen)
 {
   PRINTF(("Buffering %d bytes of data\n", datalen));
 
@@ -254,11 +254,11 @@ clearbuffer(void)
 }
 /*-----------------------------------------------------------------------------------*/
 /* Returns: the amount of bytes actually read. */
-static u16_t
-recv_rectstate(u8_t *dataptr, u16_t datalen)
+static uint16_t
+recv_rectstate(uint8_t *dataptr, uint16_t datalen)
 {
-  u16_t pixels;
-  u16_t pixelsleft;
+  uint16_t pixels;
+  uint16_t pixelsleft;
   
   switch(vs->rectstate) {
   case VNC_RECTSTATE_RAW:
@@ -309,7 +309,7 @@ recv_rectstate(u8_t *dataptr, u16_t datalen)
    rect can be drawn. */
 static unsigned short
 recv_update_rect(CC_REGISTER_ARG struct rfb_fb_update_rect_hdr *rhdr,
-		 u16_t dataleft)
+		 uint16_t dataleft)
 {
   struct rfb_rre_hdr *rrehdr;
 
@@ -319,7 +319,7 @@ recv_update_rect(CC_REGISTER_ARG struct rfb_fb_update_rect_hdr *rhdr,
       rhdr->encoding[2]) == 0) {
     switch(rhdr->encoding[3]) {
     case RFB_ENC_RAW:
-      vs->rectstateleft = (u32_t)uip_htons(rhdr->rect.w) * (u32_t)uip_htons(rhdr->rect.h);
+      vs->rectstateleft = (uint32_t)uip_htons(rhdr->rect.w) * (uint32_t)uip_htons(rhdr->rect.h);
       vs->rectstate = VNC_RECTSTATE_RAW;
       vs->rectstatex0 = vs->rectstatex = uip_htons(rhdr->rect.x);
       vs->rectstatey0 = vs->rectstatey = uip_htons(rhdr->rect.y);
@@ -330,14 +330,14 @@ recv_update_rect(CC_REGISTER_ARG struct rfb_fb_update_rect_hdr *rhdr,
       break;
 
     case RFB_ENC_RRE:
-      rrehdr = (struct rfb_rre_hdr *)((u8_t *)rhdr +
+      rrehdr = (struct rfb_rre_hdr *)((uint8_t *)rhdr +
 				      sizeof(struct rfb_fb_update_rect_hdr));
       PRINTF(("Received RRE subrects %d (%d)\n",
 	     (uip_htons(rrehdr->subrects[1]) << 16) +
 	     uip_htons(rrehdr->subrects[0]),
 	     rrehdr->bgpixel));
-      vs->rectstateleft = ((u32_t)(uip_htons(rrehdr->subrects[1]) << 16) +
-			(u32_t)uip_htons(rrehdr->subrects[0]));
+      vs->rectstateleft = ((uint32_t)(uip_htons(rrehdr->subrects[1]) << 16) +
+			(uint32_t)uip_htons(rrehdr->subrects[0]));
       vs->rectstate = VNC_RECTSTATE_RRE;
 
       break;
@@ -363,8 +363,8 @@ recv_update_rect(CC_REGISTER_ARG struct rfb_fb_update_rect_hdr *rhdr,
  * incoming message and returns the number of bytes of data that is to
  * be expected.
  */
-static u16_t
-identify_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
+static uint16_t
+identify_data(CC_REGISTER_ARG uint8_t *data, uint16_t datalen)
 {
   switch(vs->waitmsg) {
   case VNC_WAIT_VERSION:
@@ -405,7 +405,7 @@ identify_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
       
     default:
       uip_abort();
-      PRINTF(("Weird message type received (%d)\n", *(u8_t *)uip_appdata));
+      PRINTF(("Weird message type received (%d)\n", *(uint8_t *)uip_appdata));
       return 0;
     }
     break;
@@ -425,7 +425,7 @@ identify_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
  * Handles the data.
  */
 static unsigned short
-handle_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
+handle_data(CC_REGISTER_ARG uint8_t *data, uint16_t datalen)
 {
   
   switch(vs->waitmsg) {
@@ -461,7 +461,7 @@ handle_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
 	   uip_htons(((struct rfb_server_init *)data)->height),
 	   ((struct rfb_server_init *)data)->format.bps,
 	   ((struct rfb_server_init *)data)->format.depth,
-	   ((u8_t *)data + sizeof(struct rfb_server_init))));*/
+	   ((uint8_t *)data + sizeof(struct rfb_server_init))));*/
     vs->w = uip_htons(((struct rfb_server_init *)data)->width);
     vs->h = uip_htons(((struct rfb_server_init *)data)->height);
     vs->sendmsg = VNC_SEND_PFMT;
@@ -490,7 +490,7 @@ handle_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
       break;
       
     default:
-      PRINTF(("Weird message type received (%d)\n", *(u8_t *)data));
+      PRINTF(("Weird message type received (%d)\n", *(uint8_t *)data));
       break;
     }
     break;
@@ -525,15 +525,15 @@ handle_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
  * care of the next time this function is invoked (i.e., for the next
  * incoming data chunk).
  */
-static u8_t
+static uint8_t
 newdata(void)
 {
-  u16_t datalen;
-  u16_t readlen;
-  u8_t *dataptr;
+  uint16_t datalen;
+  uint16_t readlen;
+  uint8_t *dataptr;
   
   datalen = uip_datalen();
-  dataptr = (u8_t *)uip_appdata;
+  dataptr = (uint8_t *)uip_appdata;
 
   PRINTF(("newdata: %d bytes\n", datalen));
   
@@ -558,7 +558,7 @@ newdata(void)
 	 sequence for the data that is left in the incoming chunk. */
       datalen -= vs->bufferleft;
       dataptr += vs->bufferleft;
-      buffer_data((u8_t *)uip_appdata, vs->bufferleft);
+      buffer_data((uint8_t *)uip_appdata, vs->bufferleft);
       handle_data(vs->buffer, vs->buffersize);
       clearbuffer();
     } else { /* datalen < vs->bufferleft */
@@ -710,9 +710,9 @@ vnc_viewer_appcall(void * nullptr)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-vnc_viewer_post_event(u8_t type,
-		      u16_t data1, u16_t data2,
-		      u16_t data3, u16_t data4)
+vnc_viewer_post_event(uint8_t type,
+		      uint16_t data1, uint16_t data2,
+		      uint16_t data3, uint16_t data4)
 {
   register struct vnc_event *ev;
   struct vnc_event *ev0;

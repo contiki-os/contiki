@@ -52,7 +52,7 @@ struct ftp_dataconn {
 #define CONNTYPE_LIST 0
 #define CONNTYPE_FILE 1
 
-  u16_t port;
+  uint16_t port;
   
   unsigned char filenameptr;
   char filename[MAX_FILENAMELEN];
@@ -128,7 +128,7 @@ ftpc_init(void)
 }
 /*---------------------------------------------------------------------------*/
 void *
-ftpc_connect(uip_ipaddr_t *ipaddr, u16_t port)
+ftpc_connect(uip_ipaddr_t *ipaddr, uint16_t port)
 {
   struct ftp_connection *c;
 
@@ -212,8 +212,8 @@ handle_input(struct ftp_connection *c)
 static void
 newdata(struct ftp_connection *c)
 {
-  u16_t i;
-  u8_t d;
+  uint16_t i;
+  uint8_t d;
   
   for(i = 0; i < uip_datalen(); ++i) {
     d = ((char *)uip_appdata)[i];
@@ -268,17 +268,17 @@ acked(struct ftp_connection *c)
 static void
 senddata(struct ftp_connection *c)
 {
-  u16_t len;
+  uint16_t len;
   
   switch(c->state) {
   case STATE_SEND_USER:
-    len = 5 + (u16_t)strlen(ftpc_username()) + 2;
+    len = 5 + (uint16_t)strlen(ftpc_username()) + 2;
     strcpy(uip_appdata, "USER ");
     strncpy((char *)uip_appdata + 5, ftpc_username(), uip_mss() - 5 - 2);
     strcpy((char *)uip_appdata + len - 2, "\r\n");
     break;
   case STATE_SEND_PASS:
-    len = 5 + (u16_t)strlen(ftpc_password()) + 2;
+    len = 5 + (uint16_t)strlen(ftpc_password()) + 2;
     strcpy(uip_appdata, "PASS ");
     strncpy((char *)uip_appdata + 5, ftpc_password(), uip_mss() - 5 - 2);
     strcpy((char *)uip_appdata + len - 2, "\r\n");
@@ -290,7 +290,7 @@ senddata(struct ftp_connection *c)
 		  (c->dataconn.port) & 0xff);
     break;
   case STATE_SEND_OPTIONS:
-    len = (u16_t)strlen(options.commands[c->optionsptr]);
+    len = (uint16_t)strlen(options.commands[c->optionsptr]);
     strcpy(uip_appdata, options.commands[c->optionsptr]);
     break;
   case STATE_SEND_NLST:

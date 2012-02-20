@@ -553,7 +553,7 @@ PROCESS_THREAD(www_process, ev, data)
  * text entry widget in the browser window).
  */
 static void
-set_url(char *host, u16_t port, char *file)
+set_url(char *host, uint16_t port, char *file)
 {
   char *urlptr;
 
@@ -636,7 +636,7 @@ webclient_connected(void)
  * has arrived.
  */
 void
-webclient_datahandler(char *data, u16_t len)
+webclient_datahandler(char *data, uint16_t len)
 {
   if(len > 0) {
     if(strcmp(webclient_mimetype(), http_texthtml) == 0) {
