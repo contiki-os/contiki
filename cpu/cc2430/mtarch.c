@@ -47,7 +47,7 @@ void
 mtarch_start(struct mtarch_thread *t,
 	     void (*function)(void *), void *data)
 {
-  u16_t i;
+  uint16_t i;
   
   for(i = 0; i < MTARCH_STACKSIZE; i++) {
     t->stack[i] = i;
@@ -57,15 +57,15 @@ mtarch_start(struct mtarch_thread *t,
 
   
   /* A parameter for method for thread function. */
-  *t->sp = (u16_t)data;
+  *t->sp = (uint16_t)data;
   --t->sp;
 
   /* This will be a return address of thread function. */
-  *t->sp = (u16_t)mt_exit;
+  *t->sp = (uint16_t)mt_exit;
   --t->sp;
 
   /* The thread function, is used as a return address of mtarch_switch. */
-  *t->sp = (u16_t)function;
+  *t->sp = (uint16_t)function;
   --t->sp;
 
   /*
@@ -82,7 +82,7 @@ mtarch_start(struct mtarch_thread *t,
 }
 /*--------------------------------------------------------------------------*/
 static struct mtarch_thread *running_thread;
-static u16_t *sptmp;
+static uint16_t *sptmp;
 static void
 mtarch_switch()
 {
@@ -180,7 +180,7 @@ mtarch_pstart()
 int
 mtarch_stack_usage(struct mtarch_thread *t)
 {
-  u16_t i;
+  uint16_t i;
   for (i = 0; i < MTARCH_STACKSIZE; i++) {
     if (t->stack[i] != i) {
       return MTARCH_STACKSIZE - i;
