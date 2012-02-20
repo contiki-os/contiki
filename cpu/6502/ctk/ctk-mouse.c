@@ -44,7 +44,7 @@
 #if CTK_CONF_MOUSE_SUPPORT
 
 static struct mouse_pos pos;
-static u8_t okay;
+static uint8_t okay;
 
 /*-----------------------------------------------------------------------------------*/
 void
