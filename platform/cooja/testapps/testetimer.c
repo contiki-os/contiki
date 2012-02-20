@@ -40,7 +40,7 @@ AUTOSTART_PROCESSES(&test_etimer_process);
 PROCESS_THREAD(test_etimer_process, ev, data)
 {
   static struct etimer et;
-  static u16_t counter = 0;
+  static uint16_t counter = 0;
 
   PROCESS_BEGIN();
 

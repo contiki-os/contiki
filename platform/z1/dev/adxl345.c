@@ -46,8 +46,8 @@
 #include "i2cmaster.h"
 
 /* Callback pointers when interrupt occurs */
-void (*accm_int1_cb)(u8_t reg);
-void (*accm_int2_cb)(u8_t reg);
+void (*accm_int1_cb)(uint8_t reg);
+void (*accm_int2_cb)(uint8_t reg);
 
 process_event_t int1_event, int2_event;
 
@@ -119,8 +119,8 @@ PROCESS(accmeter_process, "Accelerometer process");
 */
 
 void
-accm_write_reg(u8_t reg, u8_t val) {
-  u8_t tx_buf[] = {reg, val};
+accm_write_reg(uint8_t reg, uint8_t val) {
+  uint8_t tx_buf[] = {reg, val};
 
   i2c_transmitinit(ADXL345_ADDR);
   while (i2c_busy());
@@ -140,7 +140,7 @@ accm_write_reg(u8_t reg, u8_t val) {
   The data is then written from second byte and increasing. */
 
 void
-accm_write_stream(u8_t len, u8_t *data) {
+accm_write_stream(uint8_t len, uint8_t *data) {
   i2c_transmitinit(ADXL345_ADDR);
   while (i2c_busy());
   PRINTFDEBUG("I2C Ready to TX(stream)\n");
@@ -157,10 +157,10 @@ accm_write_stream(u8_t len, u8_t *data) {
     returns the value of the read register
 */
 
-u8_t
-accm_read_reg(u8_t reg) {
-  u8_t retVal = 0;
-  u8_t rtx = reg;
+uint8_t
+accm_read_reg(uint8_t reg) {
+  uint8_t retVal = 0;
+  uint8_t rtx = reg;
   PRINTFDEBUG("READ_REG 0x%02X\n", reg);
 
   /* transmit the register to read */
@@ -187,8 +187,8 @@ accm_read_reg(u8_t reg) {
 */
 
 void
-accm_read_stream(u8_t reg, u8_t len, u8_t *whereto) {
-  u8_t rtx = reg;
+accm_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto) {
+  uint8_t rtx = reg;
   PRINTFDEBUG("READ_STR %u B from 0x%02X\n", len, reg);
 
   /* transmit the register to start reading from */
@@ -213,7 +213,7 @@ accm_read_stream(u8_t reg, u8_t len, u8_t *whereto) {
 int16_t
 accm_read_axis(enum ADXL345_AXIS axis){
   int16_t rd = 0;
-  u8_t tmp[2];
+  uint8_t tmp[2];
   if(axis > Z_AXIS){
     return 0;
   }
@@ -234,13 +234,13 @@ accm_read_axis(enum ADXL345_AXIS axis){
     */
 
 void
-accm_set_grange(u8_t grange){
+accm_set_grange(uint8_t grange){
   if(grange > ADXL345_RANGE_16G) {
     // invalid g-range.
     PRINTFDEBUG("ADXL grange invalid: %u\n", grange);
     return;
   }
-  u8_t tempreg = 0;
+  uint8_t tempreg = 0;
 
   /* preserve the previous contents of the register */
   tempreg = (accm_read_reg(ADXL345_DATA_FORMAT) & 0xFC);  // zero out the last two bits (grange)
