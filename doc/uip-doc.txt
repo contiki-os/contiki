@@ -820,7 +820,7 @@ parts, first the "Hello" part and then the "world!" part.
 #define STATE_WORLD   2
 
 struct example6_state {
-  u8_t state;
+  uint8_t state;
   char *textptr;
   int  textlen;
 };

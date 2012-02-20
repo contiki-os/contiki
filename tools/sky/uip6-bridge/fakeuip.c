@@ -12,13 +12,13 @@
 
 uip_buf_t uip_aligned_buf;
 
-u16_t uip_len;
+uint16_t uip_len;
 
 struct uip_stats uip_stat;
 
 uip_lladdr_t uip_lladdr;
 
-u16_t uip_htons(u16_t val) { return UIP_HTONS(val);}
+uint16_t uip_htons(uint16_t val) { return UIP_HTONS(val);}
 
 uip_ds6_netif_t uip_ds6_if;
 
@@ -69,12 +69,12 @@ uip_ds6_addr_add(uip_ipaddr_t *ipaddr, unsigned long vlifetime, uint8_t type)
 }
 /********** UIP.c ****************/
 
-static u16_t
-chksum(u16_t sum, const u8_t *data, u16_t len)
+static uint16_t
+chksum(uint16_t sum, const uint8_t *data, uint16_t len)
 {
-  u16_t t;
-  const u8_t *dataptr;
-  const u8_t *last_byte;
+  uint16_t t;
+  const uint8_t *dataptr;
+  const uint8_t *last_byte;
 
   dataptr = data;
   last_byte = data + len - 1;
@@ -100,19 +100,19 @@ chksum(u16_t sum, const u8_t *data, u16_t len)
   return sum;
 }
 
-static u16_t
-upper_layer_chksum(u8_t proto)
+static uint16_t
+upper_layer_chksum(uint8_t proto)
 {
-  u16_t upper_layer_len;
-  u16_t sum;
+  uint16_t upper_layer_len;
+  uint16_t sum;
 
-  upper_layer_len = (((u16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1]) ;
+  upper_layer_len = (((uint16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1]) ;
 
   /* First sum pseudoheader. */
   /* IP protocol and length fields. This addition cannot carry. */
   sum = upper_layer_len + proto;
   /* Sum IP source and destination addresses. */
-  sum = chksum(sum, (u8_t *)&UIP_IP_BUF->srcipaddr, 2 * sizeof(uip_ipaddr_t));
+  sum = chksum(sum, (uint8_t *)&UIP_IP_BUF->srcipaddr, 2 * sizeof(uip_ipaddr_t));
 
   /* Sum TCP header and data. */
   sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN],
@@ -122,7 +122,7 @@ upper_layer_chksum(u8_t proto)
 }
 
 /*---------------------------------------------------------------------------*/
-u16_t
+uint16_t
 uip_icmp6chksum(void)
 {
   return upper_layer_chksum(UIP_PROTO_ICMP6);
