@@ -44,8 +44,8 @@ struct httpd_fs_file {
 uint16_t httpd_fs_open(const char *name, struct httpd_fs_file *file);
 
 #if WEBSERVER_CONF_FILESTATS
-extern u16_t httpd_filecount[];
-u16_t httpd_fs_count(char *name);
+extern uint16_t httpd_filecount[];
+uint16_t httpd_fs_count(char *name);
 void* httpd_fs_get_root(void);
 #endif
 

@@ -43,7 +43,7 @@
 #include "httpd-fsdata.c"
 
 #if WEBSERVER_CONF_FILESTATS==1
-u16_t httpd_filecount[HTTPD_FS_NUMFILES];
+uint16_t httpd_filecount[HTTPD_FS_NUMFILES];
 #endif
 /*-----------------------------------------------------------------------------------*/
 void *
@@ -52,7 +52,7 @@ httpd_fs_get_root()
   return (void *)HTTPD_FS_ROOT;
 }
 /*-----------------------------------------------------------------------------------*/
-u16_t
+uint16_t
 httpd_fs_get_size()
 {
   return HTTPD_FS_SIZE;
@@ -62,7 +62,7 @@ uint16_t
 httpd_fs_open(const char *name, struct httpd_fs_file *file)
 {
 #if WEBSERVER_CONF_FILESTATS
-  u16_t i = 0;
+  uint16_t i = 0;
 #endif
   struct httpd_fsdata_file_noconst *f,fram;
 
@@ -105,7 +105,7 @@ void
 httpd_fs_init(void)
 {
 #if WEBSERVER_CONF_FILESTATS==1
-  u16_t i;
+  uint16_t i;
   for(i = 0; i < HTTPD_FS_NUMFILES; i++) {
     httpd_filecount[i] = 0;
   }
@@ -113,11 +113,11 @@ httpd_fs_init(void)
 }
 /*-----------------------------------------------------------------------------------*/
 #if WEBSERVER_CONF_FILESTATS && 0
-u16_t
+uint16_t
 httpd_fs_count(char *name)
 {
   struct httpd_fsdata_file_noconst *f;
-  u16_t i;
+  uint16_t i;
 
   i = 0;
   for(f = (struct httpd_fsdata_file_noconst *)HTTPD_FS_ROOT;

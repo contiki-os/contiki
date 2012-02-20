@@ -125,7 +125,7 @@ static void
 connect(void)
 {
   uip_ipaddr_t addr, *addrptr;
-  u16_t port;
+  uint16_t port;
   char *cptr;
 
   /* Find the first space character in host and put a zero there
