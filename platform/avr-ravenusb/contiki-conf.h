@@ -58,6 +58,7 @@
 #include <stdint.h>
 #include <string.h>
 
+/* These names are deprecated, use C99 names. */
 typedef int32_t  s32_t;
 typedef unsigned char u8_t;
 typedef unsigned short u16_t;

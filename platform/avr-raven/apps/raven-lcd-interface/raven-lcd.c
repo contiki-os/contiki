@@ -79,17 +79,17 @@
 #include <avr/sleep.h>
 #include <dev/watchdog.h>
 
-static u8_t count = 0;
-static u8_t seqno;
+static uint8_t count = 0;
+static uint8_t seqno;
 uip_ipaddr_t dest_addr;
 
 #define MAX_CMD_LEN 20
 static struct{
-    u8_t frame[MAX_CMD_LEN];
-    u8_t ndx;
-    u8_t len;
-    u8_t cmd;
-    u8_t done;
+    uint8_t frame[MAX_CMD_LEN];
+    uint8_t ndx;
+    uint8_t len;
+    uint8_t cmd;
+    uint8_t done;
 } cmd;
 
 #define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -137,8 +137,8 @@ raven_ping6(void)
      
     
     uip_len = UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN + UIP_IPH_LEN + PING6_DATALEN;
-    UIP_IP_BUF->len[0] = (u8_t)((uip_len - 40) >> 8);
-    UIP_IP_BUF->len[1] = (u8_t)((uip_len - 40) & 0x00FF);
+    UIP_IP_BUF->len[0] = (uint8_t)((uip_len - 40) >> 8);
+    UIP_IP_BUF->len[1] = (uint8_t)((uip_len - 40) & 0x00FF);
     
     UIP_ICMP_BUF->icmpchksum = 0;
     UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
@@ -253,12 +253,12 @@ ISR(TIMER2_COMPA_vect)
 #endif /* !AVR_CONF_USE32KCRYSTAL */
 
 #if DEBUGSERIAL
-u8_t serialcount;
+uint8_t serialcount;
 char dbuf[30];
 #endif 
 
 /*---------------------------------------------------------------------------*/
-static u8_t
+static uint8_t
 raven_gui_loop(process_event_t ev, process_data_t data)
 {
     uint8_t i,activeconnections,radio_state;
