@@ -151,7 +151,7 @@ const struct uip_fallback_interface rpl_interface = {
 #include "net/rpl/rpl.h"
 
 // avr-objdump --section .bss -x ravenusbstick.elf
-uint16_t dag_id[] PROGMEM = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
+const uint16_t dag_id[] PROGMEM = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
 PROCESS(border_router_process, "RPL Border Router");
 PROCESS_THREAD(border_router_process, ev, data)
@@ -220,26 +220,26 @@ SIGNATURE = {
 FUSES ={.low = 0xde, .high = 0x99, .extended = 0xff,};
 
 /* Save the default settings into program flash memory */
-uint8_t default_mac_address[8] PROGMEM = {0x02, 0x12, 0x13, 0xff, 0xfe, 0x14, 0x15, 0x16};
+const uint8_t default_mac_address[8] PROGMEM = {0x02, 0x12, 0x13, 0xff, 0xfe, 0x14, 0x15, 0x16};
 #ifdef CHANNEL_802_15_4
-uint8_t default_channel PROGMEM = CHANNEL_802_15_4;
+const uint8_t default_channel PROGMEM = CHANNEL_802_15_4;
 #else
-uint8_t default_channel PROGMEM = 26;
+const uint8_t default_channel PROGMEM = 26;
 #endif
 #ifdef IEEE802154_PANID
-uint16_t default_panid PROGMEM = IEEE802154_PANID;
+const uint16_t default_panid PROGMEM = IEEE802154_PANID;
 #else
-uint16_t default_panid PROGMEM = 0xABCD;
+const uint16_t default_panid PROGMEM = 0xABCD;
 #endif
 #ifdef IEEE802154_PANADDR
-uint16_t default_panaddr PROGMEM = IEEE802154_PANID;
+const uint16_t default_panaddr PROGMEM = IEEE802154_PANID;
 #else
-uint16_t default_panaddr PROGMEM = 0;
+const uint16_t default_panaddr PROGMEM = 0;
 #endif
 #ifdef RF230_MAX_TX_POWER
-uint8_t default_txpower PROGMEM = RF230_MAX_TX_POWER;
+const uint8_t default_txpower PROGMEM = RF230_MAX_TX_POWER;
 #else
-uint8_t default_txpower PROGMEM = 0;
+const uint8_t default_txpower PROGMEM = 0;
 #endif
 
 #if JACKDAW_CONF_RANDOM_MAC
