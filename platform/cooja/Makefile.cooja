@@ -11,14 +11,6 @@ ifndef CONTIKI
   $(error CONTIKI not defined!)
 endif
 
-ifndef WINDIR
-  ifdef OS
-    ifneq (,$(findstring Windows,$(OS)))
-      WINDIR := Windows
-    endif
-  endif
-endif
-
 ### Assuming simulator quickstart if no JNI library name set from Cooja
 ifndef LIBNAME
 QUICKSTART=1

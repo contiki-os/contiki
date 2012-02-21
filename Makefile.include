@@ -21,6 +21,15 @@ ifeq ($(DEFINES),)
   endif
 endif
 
+ifndef HOST_OS
+  ifeq ($(OS),Windows_NT)
+    $(warning Windows (NT) deteced.)
+    HOST_OS := Windows
+  else
+    HOST_OS := $(shell uname)
+  endif
+endif
+
 usage:
 	@echo "make MAKETARGETS... [TARGET=(TARGET)] [savetarget] [targets]"
 
