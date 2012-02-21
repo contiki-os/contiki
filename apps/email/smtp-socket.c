@@ -52,9 +52,9 @@ struct smtp_state {
   char *from;
   char *subject;
   char *msg;
-  u8_t msgwidth;
-  u8_t msgheight;
-  u8_t line;
+  uint8_t msgwidth;
+  uint8_t msgheight;
+  uint8_t line;
 };
 
 static struct smtp_state s;
@@ -209,7 +209,7 @@ smtp_configure(char *lhostname, uip_ipaddr_t *server)
 /*---------------------------------------------------------------------------*/
 unsigned char
 smtp_send(char *to, char *cc, char *from, char *subject,
-	  char *msg, u8_t msgwidth, u8_t msgheight)
+	  char *msg, uint8_t msgwidth, uint8_t msgheight)
 {
   struct uip_conn *conn;
 

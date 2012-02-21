@@ -39,16 +39,16 @@
 struct telnet_state {
   unsigned char flags;
   char *text;
-  u16_t textlen;
-  u16_t sentlen;
+  uint16_t textlen;
+  uint16_t sentlen;
 };
 
 /*DISPATCHER_UIPCALL(telnet_app, s);*/
 void telnet_app(void *s);
-unsigned char telnet_send(struct telnet_state *s, char *text, u16_t len);
+unsigned char telnet_send(struct telnet_state *s, char *text, uint16_t len);
 unsigned char telnet_close(struct telnet_state *s);
 unsigned char telnet_abort(struct telnet_state *s);
-struct telnet_state *telnet_connect(struct telnet_state *s, uip_ipaddr_t *addr, u16_t port);
+struct telnet_state *telnet_connect(struct telnet_state *s, uip_ipaddr_t *addr, uint16_t port);
 
 
 /* Callbacks, implemented by the caller. */
@@ -57,5 +57,5 @@ void telnet_closed(struct telnet_state *s);
 void telnet_sent(struct telnet_state *s);
 void telnet_aborted(struct telnet_state *s);
 void telnet_timedout(struct telnet_state *s);
-void telnet_newdata(struct telnet_state *s, char *data, u16_t len);
+void telnet_newdata(struct telnet_state *s, char *data, uint16_t len);
 #endif /* __TELNET_H__ */

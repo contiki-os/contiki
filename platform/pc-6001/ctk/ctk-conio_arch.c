@@ -49,57 +49,57 @@
 /*
  * Offset constants for assembler
  */
-const u8_t off_widget_x        = offsetof(struct ctk_widget, x);
-const u8_t off_widget_y        = offsetof(struct ctk_widget, y);
-const u8_t off_widget_w        = offsetof(struct ctk_widget, w);
-const u8_t off_widget_h        = offsetof(struct ctk_widget, h);
-const u8_t off_widget_type     = offsetof(struct ctk_widget, type);
-const u8_t off_widget_window   = offsetof(struct ctk_widget, window);
+const uint8_t off_widget_x        = offsetof(struct ctk_widget, x);
+const uint8_t off_widget_y        = offsetof(struct ctk_widget, y);
+const uint8_t off_widget_w        = offsetof(struct ctk_widget, w);
+const uint8_t off_widget_h        = offsetof(struct ctk_widget, h);
+const uint8_t off_widget_type     = offsetof(struct ctk_widget, type);
+const uint8_t off_widget_window   = offsetof(struct ctk_widget, window);
 
-const u8_t off_widget_label_text      = offsetof(struct ctk_widget, widget) +
+const uint8_t off_widget_label_text      = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_label, text);
-const u8_t off_widget_button_text     = offsetof(struct ctk_widget, widget) +
+const uint8_t off_widget_button_text     = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_button, text);
-const u8_t off_widget_textentry_text  = offsetof(struct ctk_widget, widget) +
+const uint8_t off_widget_textentry_text  = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_textentry, text);
-const u8_t off_widget_textentry_xpos  = offsetof(struct ctk_widget, widget) +
+const uint8_t off_widget_textentry_xpos  = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_textentry, xpos);
-const u8_t off_widget_textentry_ypos  = offsetof(struct ctk_widget, widget) +
+const uint8_t off_widget_textentry_ypos  = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_textentry, ypos);
-const u8_t off_widget_textentry_state = offsetof(struct ctk_widget, widget) +
+const uint8_t off_widget_textentry_state = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_textentry, state);
 #if CTK_CONF_HYPERLINK
-const u8_t off_widget_hyperlink_text = offsetof(struct ctk_widget, widget) +
+const uint8_t off_widget_hyperlink_text = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_hyperlink, text);
 #endif /* CTK_CONF_HYPERLINK */
 
 #if CTK_CONF_ICONS
-const u8_t off_widget_icon_title      = offsetof(struct ctk_widget, widget) +
+const uint8_t off_widget_icon_title      = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_icon, title);
-const u8_t off_widget_icon_textmap    = offsetof(struct ctk_widget, widget) +
+const uint8_t off_widget_icon_textmap    = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_icon, textmap);
 #endif /* CTK_CONF_ICONS */
 
-const u8_t off_window_x        = offsetof(struct ctk_window, x);
-const u8_t off_window_y        = offsetof(struct ctk_window, y);
-const u8_t off_window_h        = offsetof(struct ctk_window, h);
-const u8_t off_window_w        = offsetof(struct ctk_window, w);
-const u8_t off_window_inactive = offsetof(struct ctk_window, inactive);
-const u8_t off_window_active   = offsetof(struct ctk_window, active);
-const u8_t off_window_next     = offsetof(struct ctk_window, next);
-const u8_t off_window_focused  = offsetof(struct ctk_window, focused);
+const uint8_t off_window_x        = offsetof(struct ctk_window, x);
+const uint8_t off_window_y        = offsetof(struct ctk_window, y);
+const uint8_t off_window_h        = offsetof(struct ctk_window, h);
+const uint8_t off_window_w        = offsetof(struct ctk_window, w);
+const uint8_t off_window_inactive = offsetof(struct ctk_window, inactive);
+const uint8_t off_window_active   = offsetof(struct ctk_window, active);
+const uint8_t off_window_next     = offsetof(struct ctk_window, next);
+const uint8_t off_window_focused  = offsetof(struct ctk_window, focused);
 
 #if CTK_CONF_MENUS
-const u8_t off_menu_title      = offsetof(struct ctk_menu, title);
-const u8_t off_menu_active     = offsetof(struct ctk_menu, active);
-const u8_t off_menu_nitems     = offsetof(struct ctk_menu, nitems);
-const u8_t off_menu_items      = offsetof(struct ctk_menu, items);
-const u8_t off_menu_next       = offsetof(struct ctk_menu, next);
-const u8_t off_menuitem_title  = offsetof(struct ctk_menuitem, title);
-const u8_t size_menuitem       = sizeof(struct ctk_menuitem);
-const u8_t off_menus_open      = offsetof(struct ctk_menus, open);
-const u8_t off_menus_menus     = offsetof(struct ctk_menus, menus);
-const u8_t off_menus_desktopmenu = offsetof(struct ctk_menus, desktopmenu);
+const uint8_t off_menu_title      = offsetof(struct ctk_menu, title);
+const uint8_t off_menu_active     = offsetof(struct ctk_menu, active);
+const uint8_t off_menu_nitems     = offsetof(struct ctk_menu, nitems);
+const uint8_t off_menu_items      = offsetof(struct ctk_menu, items);
+const uint8_t off_menu_next       = offsetof(struct ctk_menu, next);
+const uint8_t off_menuitem_title  = offsetof(struct ctk_menuitem, title);
+const uint8_t size_menuitem       = sizeof(struct ctk_menuitem);
+const uint8_t off_menus_open      = offsetof(struct ctk_menus, open);
+const uint8_t off_menus_menus     = offsetof(struct ctk_menus, menus);
+const uint8_t off_menus_desktopmenu = offsetof(struct ctk_menus, desktopmenu);
 #endif
 
 /*---------------------------------------------------------------------------*/

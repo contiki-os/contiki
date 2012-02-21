@@ -15,7 +15,7 @@ delay(void)
 }
 /*-----------------------------------------------------------------------------------*/
 static char buffer[40];
-static prog_char hextab[] =
+static const char hextab[] PROGMEM = 
   {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -60,7 +60,7 @@ debug_print16(unsigned short v)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-debug_print(prog_char *str)
+debug_print(char *str)
 {
   /*  unsigned char i;
 

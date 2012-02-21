@@ -40,10 +40,10 @@ PROCESS(pinger, "Pinger");
 static struct uip_udp_conn *conn;
 
 struct data {
-  u8_t dummy_data[20];
-  u16_t id;
-  u16_t seqno;
-  u8_t pingpong;
+  uint8_t dummy_data[20];
+  uint16_t id;
+  uint16_t seqno;
+  uint8_t pingpong;
 #define PING 0
 #define PONG 1
 };

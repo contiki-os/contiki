@@ -37,9 +37,9 @@
  */
 
 /* These typedefs limits object file size! */
-typedef u16_t cle_off;		/* Offset from start of file. */
-typedef u16_t cle_word;
-typedef u16_t cle_half;
+typedef uint16_t cle_off;		/* Offset from start of file. */
+typedef uint16_t cle_word;
+typedef uint16_t cle_half;
 
 /* Also used for address arithmetic (can't be void *). */
 #ifdef __AVR__

@@ -46,7 +46,7 @@ init_recv_buffer()
   recv_buffer.flags = USB_BUFFER_SHORT_END | USB_BUFFER_NOTIFY;
 }
 
-u8_t
+uint8_t
 usbeth_send(void)
 {
   if ((xmit_buffer[0].flags & USB_BUFFER_SUBMITTED)) return UIP_FW_DROPPED;

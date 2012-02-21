@@ -55,8 +55,8 @@ PROCESS(tcp_loader_process, "TCP loader");
 
 static
 struct codeprop_state {
-  u16_t addr;
-  u16_t len;
+  uint16_t addr;
+  uint16_t len;
   struct pt tcpthread_pt;
 } s;
 

@@ -49,7 +49,7 @@
 
 int rand(void)
 {
-	u16_t rand_num;
+	uint16_t rand_num;
 
 	ST_RadioGetRandomNumbers(&rand_num, 1);
 

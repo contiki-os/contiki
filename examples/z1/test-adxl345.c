@@ -99,24 +99,24 @@ print_int(uint16_t reg){
 /* accelerometer free fall detection callback */
 
 void
-accm_ff_cb(u8_t reg){
+accm_ff_cb(uint8_t reg){
   L_ON(LEDS_B);
   process_post(&led_process, ledOff_event, NULL);
-  printf("~~[%u] Freefall detected! (0x%02X) -- ", ((u16_t) clock_time())/128, reg);
+  printf("~~[%u] Freefall detected! (0x%02X) -- ", ((uint16_t) clock_time())/128, reg);
   print_int(reg);
 }
 /*---------------------------------------------------------------------------*/
 /* accelerometer tap and double tap detection callback */
 
 void
-accm_tap_cb(u8_t reg){
+accm_tap_cb(uint8_t reg){
   process_post(&led_process, ledOff_event, NULL);
   if(reg & ADXL345_INT_DOUBLETAP){
     L_ON(LEDS_G);
-    printf("~~[%u] DoubleTap detected! (0x%02X) -- ", ((u16_t) clock_time())/128, reg);
+    printf("~~[%u] DoubleTap detected! (0x%02X) -- ", ((uint16_t) clock_time())/128, reg);
   } else {
     L_ON(LEDS_R);
-    printf("~~[%u] Tap detected! (0x%02X) -- ", ((u16_t) clock_time())/128, reg);
+    printf("~~[%u] Tap detected! (0x%02X) -- ", ((uint16_t) clock_time())/128, reg);
   }
   print_int(reg);
 }
@@ -145,11 +145,11 @@ PROCESS_THREAD(led_process, ev, data) {
       printf("Port1: %s\n", char2bin(P1IN));
 */    
 /*
-static u8_t b[9];
+static uint8_t b[9];
 
-static u8_t
-*char2bin(u8_t x) {
-  u8_t z;
+static uint8_t
+*char2bin(uint8_t x) {
+  uint8_t z;
   b[8] = '\0';
   for (z = 0; z < 8; z++) {
     b[7-z] = (x & (1 << z)) ? '1' : '0';

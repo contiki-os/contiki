@@ -42,7 +42,7 @@
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5])
 #else
 #define PRINTF(...)
@@ -56,9 +56,9 @@
 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 
 static struct etimer ping6_periodic_timer;
-static u8_t count = 0;
+static uint8_t count = 0;
 static char command[20];
-static u16_t addr[8];
+static uint16_t addr[8];
 uip_ipaddr_t dest_addr;
 
 PROCESS(ping6_process, "PING6 process");
@@ -66,7 +66,7 @@ AUTOSTART_PROCESSES(&ping6_process);
 
 
 /*---------------------------------------------------------------------------*/
-static u8_t
+static uint8_t
 ping6handler(process_event_t ev, process_data_t data)
 {
   if(count == 0){
@@ -130,8 +130,8 @@ ping6handler(process_event_t ev, process_data_t data)
 
 
     uip_len = UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN + UIP_IPH_LEN + PING6_DATALEN;
-    UIP_IP_BUF->len[0] = (u8_t)((uip_len - 40) >> 8);
-    UIP_IP_BUF->len[1] = (u8_t)((uip_len - 40) & 0x00FF);
+    UIP_IP_BUF->len[0] = (uint8_t)((uip_len - 40) >> 8);
+    UIP_IP_BUF->len[1] = (uint8_t)((uip_len - 40) & 0x00FF);
 
     UIP_ICMP_BUF->icmpchksum = 0;
     UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
@@ -157,7 +157,7 @@ ping6handler(process_event_t ev, process_data_t data)
 PROCESS_THREAD(ping6_process, ev, data)
 {
 
-  u8_t cont = 1;
+  uint8_t cont = 1;
 
   PROCESS_BEGIN();
   PRINTF("In Process PING6\n");

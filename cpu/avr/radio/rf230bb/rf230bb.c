@@ -855,9 +855,6 @@ rf230_transmit(unsigned short payload_len)
   /* This automatically does the PLL calibrations */
   if (hal_get_slptr()) {
 #if defined(__AVR_ATmega128RFA1__)
-	if (radiowason) DEBUGFLOW('e');
-	radiowason=0;
-//	DEBUGFLOW('j');
 	ENERGEST_ON(ENERGEST_TYPE_LED_RED);
 #if RF230BB_CONF_LEDONPORTE1
     PORTE|=(1<<PE1); //ledon

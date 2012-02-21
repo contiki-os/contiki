@@ -176,10 +176,10 @@ make_neighbor(void *arg)
   char ipaddr_str[41];
   
   uip_ip6addr(&ipaddr, NET_ADDR_A, NET_ADDR_B, NET_ADDR_C, NET_ADDR_D,
-              (u16_t)(((u16_t)(n->addr.u8[0]^0x02))<<8 | (u16_t)n->addr.u8[1]),
-              ((u16_t)(n->addr.u8[2]))<<8 | (u16_t)n->addr.u8[3],
-              (u16_t)(n->addr.u8[4])<<8 | n->addr.u8[5],
-              (u16_t)(n->addr.u8[6])<<8 | n->addr.u8[7]);
+              (uint16_t)(((uint16_t)(n->addr.u8[0]^0x02))<<8 | (uint16_t)n->addr.u8[1]),
+              ((uint16_t)(n->addr.u8[2]))<<8 | (uint16_t)n->addr.u8[3],
+              (uint16_t)(n->addr.u8[4])<<8 | n->addr.u8[5],
+              (uint16_t)(n->addr.u8[6])<<8 | n->addr.u8[7]);
   httpd_sprint_ip6(ipaddr, ipaddr_str);
   
   return snprintf((char *)uip_appdata, uip_mss(),
@@ -200,10 +200,10 @@ make_neighbor(void *arg)
    */
   return snprintf((char *)uip_appdata, uip_mss(),
                   "<li><a id=node name='%x:%x:%x:%x'>%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X</a>\r\n",
-                  (u16_t)(((u16_t)(n->addr.u8[0]^0x02))<<8 | (u16_t)n->addr.u8[1]),
-                  ((u16_t)(n->addr.u8[2]))<<8 | (u16_t)n->addr.u8[3],
-                  (u16_t)(n->addr.u8[4])<<8 | n->addr.u8[5],
-                  (u16_t)(n->addr.u8[6])<<8 | n->addr.u8[7],
+                  (uint16_t)(((uint16_t)(n->addr.u8[0]^0x02))<<8 | (uint16_t)n->addr.u8[1]),
+                  ((uint16_t)(n->addr.u8[2]))<<8 | (uint16_t)n->addr.u8[3],
+                  (uint16_t)(n->addr.u8[4])<<8 | n->addr.u8[5],
+                  (uint16_t)(n->addr.u8[6])<<8 | n->addr.u8[7],
                   n->addr.u8[0],
                   n->addr.u8[1],
                   n->addr.u8[2],

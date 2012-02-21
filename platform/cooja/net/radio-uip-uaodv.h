@@ -40,7 +40,7 @@
 void
 radio_uip_uaodv_init(const struct radio_driver *d);
 
-u8_t
+uint8_t
 radio_uip_uaodv_send(void);
 
 #endif /* __RADIO_UIP_UAODV_H__ */

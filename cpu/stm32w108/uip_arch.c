@@ -49,7 +49,7 @@
 /*-----------------------------------------------------------------------------------*/
 #if UIP_TCP
 void
-uip_add32(u8_t *op32, u16_t op16)
+uip_add32(uint8_t *op32, uint16_t op16)
 {
   uint32_t op32_align, uip_acc32_align;
   
