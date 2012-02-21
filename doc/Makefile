@@ -13,12 +13,12 @@ export doclatex	:= NO
 export docroot	:= ../
 
 # Get appropriate root for doxygen path cutoff
-ifneq (,$(findstring Windows,$(OS)))
-# on windows need to convert cygwin path to windows path for doxygen
-ifneq (,$(findstring cygdrive,$(pwd)))
-	cygroot	= $(subst /,$(space),$(patsubst /cygdrive/%,%,$(pwd)))
-	export docroot = $(firstword $(cygroot)):/$(subst $(space),/,$(wordlist 2,$(words $(cygroot)),$(cygroot)))
-endif
+ifeq ($(HOST_OS),Windows)
+  # on windows need to convert cygwin path to windows path for doxygen
+  ifneq (,$(findstring cygdrive,$(pwd)))
+    cygroot = $(subst /,$(space),$(patsubst /cygdrive/%,%,$(pwd)))
+    export docroot = $(firstword $(cygroot)):/$(subst $(space),/,$(wordlist 2,$(words $(cygroot)),$(cygroot)))
+  endif
 endif
 
 .PHONY: clean html pdf upload

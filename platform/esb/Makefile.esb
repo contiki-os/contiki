@@ -68,23 +68,15 @@ send:	$(CONTIKI)/tools/codeprop.c
 
 ### System dependent Makefile
 
-ifndef WINDIR
-  ifdef OS
-    ifneq (,$(findstring Windows,$(OS)))
-      WINDIR := Windows
-    endif
-  endif
-endif
-
-ifeq (${HOSTTYPE},FreeBSD)
+ifeq ($(HOST_OS),FreeBSD)
   # settings for FreeBSD
   -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.freebsd
 else
-ifndef WINDIR
-  # settings for unix
-  -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.unix
-else
-  # settings for windows
-  -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.win
-endif
+  ifeq ($(HOST_OS),Windows)
+    # settings for Windows
+    -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.win
+  else
+    # settings for an arbitary unix-like platform
+    -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.unix
+  endif
 endif

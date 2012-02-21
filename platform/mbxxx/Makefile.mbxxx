@@ -18,10 +18,8 @@ include $(CONTIKI)/cpu/stm32w108/Makefile.stm32w108
 
 SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-linux
 
-ifdef OS
-  ifneq (,$(findstring Windows,$(OS)))
-    SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-windows
-  endif
+ifeq ($(HOST_OS),Windows)
+  SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-windows
 endif
 
 
