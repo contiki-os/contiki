@@ -100,6 +100,21 @@ rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 rpl_instance_t *default_instance;
 
 /************************************************************************/
+/* lollipop greater than function.                                      */
+/************************************************************************/
+int rpl_lollipop_greater_than(int a, int b) {
+  /* Check if we are comparing an initial value with an old value */
+  if(a > RPL_LOLLIPOP_CIRCULAR_REGION && b <= RPL_LOLLIPOP_CIRCULAR_REGION) {
+    return (RPL_LOLLIPOP_MAX_VALUE + 1 + b - a) > RPL_LOLLIPOP_SEQUENCE_WINDOWS;
+  }
+  /* Otherwise check if a > b and comparable => ok, or
+     if they have wrapped and are still comparable */
+  return (a > b && (a - b) < RPL_LOLLIPOP_SEQUENCE_WINDOWS) ||
+    (a < b && (b - a) > (RPL_LOLLIPOP_CIRCULAR_REGION + 1-
+			 RPL_LOLLIPOP_SEQUENCE_WINDOWS));
+}
+
+/************************************************************************/
 /* Remove DAG parents with a rank that is at least the same as minimum_rank. */
 static void
 remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
@@ -161,10 +176,9 @@ should_send_dao(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
   if(instance->mop == RPL_MOP_NO_DOWNWARD_ROUTES) {
     return 0;
   }
+  /* check if the new DTSN is more recent */
   return p == instance->current_dag->preferred_parent &&
-    (RPL_LOLLIPOP_GREATER_THAN(dio->dtsn, p->dtsn) ||
-     ((RPL_LOLLIPOP_GREATER_THAN(p->dtsn, dio->dtsn)) &&
-      RPL_LOLLIPOP_IS_INIT(dio->dtsn)));
+    (rpl_lollipop_greater_than(dio->dtsn, p->dtsn));
 }
 /************************************************************************/
 static int
@@ -1127,18 +1141,18 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  if(RPL_LOLLIPOP_GREATER_THAN(dio->version, dag->version)) {
+  if(rpl_lollipop_greater_than(dio->version, dag->version)) {
     if(dag->rank == ROOT_RANK(instance)) {
       PRINTF("RPL: Root received inconsistent DIO version number\n");
-        dag->version = dio->version;
-        RPL_LOLLIPOP_INCREMENT(dag->version);
-        rpl_reset_dio_timer(instance);
+      dag->version = dio->version;
+      RPL_LOLLIPOP_INCREMENT(dag->version);
+      rpl_reset_dio_timer(instance);
     } else {
       global_repair(from, dag, dio);
     }
     return;
   } else {
-    if(RPL_LOLLIPOP_GREATER_THAN(dag->version, dio->version)) {
+    if(rpl_lollipop_greater_than(dag->version, dio->version)) {
       /* The DIO sender is on an older version of the DAG. */
       PRINTF("RPL: old version received => inconsistency detected\n");
       if(dag->joined) {
