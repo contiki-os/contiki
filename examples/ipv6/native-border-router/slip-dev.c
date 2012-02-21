@@ -43,22 +43,24 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <signal.h>
 #include <termios.h>
+#include <signal.h>
 #include <sys/ioctl.h>
-
-#include <unistd.h>
-#include <errno.h>
-
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <err.h>
+
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "cmd.h"
 
 extern int slip_config_verbose;
-extern const char *slip_config_ipaddr;
 extern int slip_config_flowcontrol;
 extern const char *slip_config_siodev;
+extern const char *slip_config_host;
+extern const char *slip_config_port;
 extern uint16_t slip_config_basedelay;
 extern speed_t slip_config_b_rate;
 
@@ -82,6 +84,62 @@ void slip_send(int fd, unsigned char c);
 #define SLIP_ESC_END 0334
 #define SLIP_ESC_ESC 0335
 
+/*---------------------------------------------------------------------------*/
+static void *
+get_in_addr(struct sockaddr *sa)
+{
+  if(sa->sa_family == AF_INET) {
+    return &(((struct sockaddr_in*)sa)->sin_addr);
+  }
+  return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+/*---------------------------------------------------------------------------*/
+static int
+connect_to_server(const char *host, const char *port)
+{
+  /* Setup TCP connection */
+  struct addrinfo hints, *servinfo, *p;
+  char s[INET6_ADDRSTRLEN];
+  int rv, fd;
+
+  memset(&hints, 0, sizeof hints);
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+
+  if((rv = getaddrinfo(host, port, &hints, &servinfo)) != 0) {
+    err(1, "getaddrinfo: %s", gai_strerror(rv));
+    return -1;
+  }
+
+  /* loop through all the results and connect to the first we can */
+  for(p = servinfo; p != NULL; p = p->ai_next) {
+    if((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+      perror("client: socket");
+      continue;
+    }
+
+    if(connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
+      close(fd);
+      perror("client: connect");
+      continue;
+    }
+    break;
+  }
+
+  if(p == NULL) {
+    err(1, "can't connect to ``%s:%s''", host, port);
+    return -1;
+  }
+
+  fcntl(fd, F_SETFL, O_NONBLOCK);
+
+  inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
+	    s, sizeof(s));
+
+  /* all done with this structure */
+  freeaddrinfo(servinfo);
+  return fd;
+}
 /*---------------------------------------------------------------------------*/
 int
 is_sensible_string(const unsigned char *s, int len)
@@ -398,11 +456,21 @@ slip_init(void)
 {
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  if(slip_config_siodev != NULL) {
+  if(slip_config_host != NULL) {
+    if(slip_config_port == NULL) {
+      slip_config_port = "60001";
+    }
+    slipfd = connect_to_server(slip_config_siodev, slip_config_port);
+    if(slipfd == -1) {
+      err(1, "can't connect to ``%s:%s''", slip_config_host, slip_config_port);
+    }
+
+  } else if(slip_config_siodev != NULL) {
     slipfd = devopen(slip_config_siodev, O_RDWR | O_NONBLOCK);
     if(slipfd == -1) {
       err(1, "can't open siodev ``/dev/%s''", slip_config_siodev);
     }
+
   } else {
     static const char *siodevs[] = {
       "ttyUSB0", "cuaU0", "ucom0" /* linux, fbsd6, fbsd5 */
@@ -422,10 +490,18 @@ slip_init(void)
 
   select_set_callback(slipfd, &slip_callback);
 
-  fprintf(stderr, "********SLIP started on ``/dev/%s''\n", slip_config_siodev);
-  stty_telos(slipfd);
+  if(slip_config_host != NULL) {
+    fprintf(stderr, "********SLIP opened to ``%s:%s''\n", slip_config_host,
+	    slip_config_port);
+  } else {
+    fprintf(stderr, "********SLIP started on ``/dev/%s''\n", slip_config_siodev);
+    stty_telos(slipfd);
+  }
 
   slip_send(slipfd, SLIP_END);
   inslip = fdopen(slipfd, "r");
-  if(inslip == NULL) err(1, "main: fdopen");
+  if(inslip == NULL) {
+    err(1, "main: fdopen");
+  }
 }
+/*---------------------------------------------------------------------------*/
