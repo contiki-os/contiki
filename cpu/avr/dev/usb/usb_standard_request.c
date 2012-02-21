@@ -250,6 +250,7 @@ void usb_get_string_descriptor_sram(U8  string_type) {
 	
 	dummy = Usb_read_byte();                     //!< don't care of wIndex field
 	dummy = Usb_read_byte();
+    if (dummy) {;}                                   //avoid gcc unused variable warning
 	requested_length = Usb_read_byte();              //!< read wLength
 	requested_length |= Usb_read_byte()<<8;
 	
@@ -341,6 +342,7 @@ void usb_get_string_descriptor(U8  string_type) {
 	
 	dummy = Usb_read_byte();                     //!< don't care of wIndex field
 	dummy = Usb_read_byte();
+    if (dummy) {;}  
 	requested_length = Usb_read_byte();              //!< read wLength
 	requested_length |= Usb_read_byte()<<8;
 	
@@ -468,6 +470,7 @@ void usb_get_descriptor(void)
 	default:
 		dummy = Usb_read_byte();
 		dummy = Usb_read_byte();
+        if (dummy) {;}  
 		LSBwLength = Usb_read_byte();
 		MSBwLength = Usb_read_byte();
 		byteswereread=1;
@@ -567,6 +570,7 @@ U8 dummy;
 
    dummy    = Usb_read_byte();                 //!< dummy read
    dummy    = Usb_read_byte();                 //!< dummy read
+   if (dummy) {;}  
    wIndex = Usb_read_byte();
 
    switch(bmRequestType)
@@ -617,6 +621,7 @@ U8 dummy;
    {
       wValue = Usb_read_byte();
       dummy    = Usb_read_byte();                //!< dummy read
+      if (dummy) {;}  
 
       if (wValue == FEATURE_ENDPOINT_HALT)
       {
@@ -673,6 +678,7 @@ U8 dummy;
    {
       wValue = Usb_read_byte();
       dummy  = Usb_read_byte();                //!< dummy read
+      if (dummy) {;}
 
       if (wValue == FEATURE_ENDPOINT_HALT)
       {
@@ -730,6 +736,7 @@ void usb_set_interface (void)
 	
 	alt_setting = Usb_read_byte();
 	dummy    = Usb_read_byte();
+    if (dummy) {;}  
 	interface = Usb_read_byte();
 	
 	if(usb_user_set_alt_interface(interface, alt_setting)) {

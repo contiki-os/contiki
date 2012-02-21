@@ -332,7 +332,7 @@ typedef char      r_uart_ptchar;
 #define _ConstType_	__flash
 #define _MemType_
 #define _GenericType_ __generic
-#define FLASH PROGMEM
+#define FLASH const PROGMEM
 #define XDATA
 #define IDATA
 #define DATA
