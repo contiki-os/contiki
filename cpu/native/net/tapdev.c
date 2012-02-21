@@ -122,7 +122,7 @@ tapdev_init(void)
   lasttime = 0;
 }
 /*---------------------------------------------------------------------------*/
-u16_t
+uint16_t
 tapdev_poll(void)
 {
   fd_set fdset;

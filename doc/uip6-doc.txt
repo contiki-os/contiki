@@ -75,8 +75,8 @@ bytes as we do not have larger buffers.
 An IPv6 address has 128 bits and is defined as follows:
 \code
 typedef union uip_ip6addr_t {
-  u8_t  u8[16]
-  u16_t u16[8];
+  uint8_t  u8[16]
+  uint16_t u16[8];
 } uip_ip6addr_t;
 \endcode
 
@@ -299,7 +299,7 @@ The link-layer influences the following IP layer objects:
 #UIP_LLADDR_LEN.
 \code
 struct uip_eth_addr {
-  u8_t addr[6];
+  uint8_t addr[6];
 };
 typedef struct uip_eth_addr uip_lladdr_t;
 #define UIP_LLADDR_LEN 6

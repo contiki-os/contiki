@@ -51,12 +51,12 @@
 
 PROCESS(slip_process, "SLIP driver");
 
-u8_t slip_active;
+uint8_t slip_active;
 
 #if 1
 #define SLIP_STATISTICS(statement)
 #else
-u16_t slip_rubbish, slip_twopackets, slip_overflow, slip_ip_drop;
+uint16_t slip_rubbish, slip_twopackets, slip_overflow, slip_ip_drop;
 #define SLIP_STATISTICS(statement) statement
 #endif
 
@@ -81,10 +81,10 @@ enum {
  * they are discarded.
  */
 
-static u8_t state = STATE_TWOPACKETS;
-static u16_t begin, end;
-static u8_t rxbuf[RX_BUFSIZE];
-static u16_t pkt_end;		/* SLIP_END tracker. */
+static uint8_t state = STATE_TWOPACKETS;
+static uint16_t begin, end;
+static uint8_t rxbuf[RX_BUFSIZE];
+static uint16_t pkt_end;		/* SLIP_END tracker. */
 
 static void (* input_callback)(void) = NULL;
 /*---------------------------------------------------------------------------*/
@@ -98,19 +98,19 @@ slip_set_input_callback(void (*c)(void))
  * was used in slip-bridge.c
  */
 //#if WITH_UIP
-u8_t
+uint8_t
 slip_send(void)
 {
-  u16_t i;
-  u8_t *ptr;
-  u8_t c;
+  uint16_t i;
+  uint8_t *ptr;
+  uint8_t c;
 
   slip_arch_writeb(SLIP_END);
 
   ptr = &uip_buf[UIP_LLH_LEN];
   for(i = 0; i < uip_len; ++i) {
     if(i == UIP_TCPIP_HLEN) {
-      ptr = (u8_t *)uip_appdata;
+      ptr = (uint8_t *)uip_appdata;
     }
     c = *ptr++;
     if(c == SLIP_END) {
@@ -128,12 +128,12 @@ slip_send(void)
 }
 //#endif /* WITH_UIP */
 /*---------------------------------------------------------------------------*/
-u8_t
+uint8_t
 slip_write(const void *_ptr, int len)
 {
-  const u8_t *ptr = _ptr;
-  u16_t i;
-  u8_t c;
+  const uint8_t *ptr = _ptr;
+  uint16_t i;
+  uint8_t c;
 
   slip_arch_writeb(SLIP_END);
 
@@ -161,8 +161,8 @@ rxbuf_init(void)
 }
 /*---------------------------------------------------------------------------*/
 /* Upper half does the polling. */
-static u16_t
-slip_poll_handler(u8_t *outbuf, u16_t blen)
+static uint16_t
+slip_poll_handler(uint8_t *outbuf, uint16_t blen)
 {
   /* This is a hack and won't work across buffer edge! */
   if(rxbuf[begin] == 'C') {
@@ -212,7 +212,7 @@ slip_poll_handler(u8_t *outbuf, u16_t blen)
    * If pkt_end != begin it will not change again.
    */
   if(begin != pkt_end) {
-    u16_t len;
+    uint16_t len;
 
     if(begin < pkt_end) {
       len = pkt_end - begin;
@@ -275,12 +275,12 @@ PROCESS_THREAD(slip_process, ev, data)
       }
       slip_write(buf, 8);
     } else if(uip_len > 0
-       && uip_len == (((u16_t)(BUF->len[0]) << 8) + BUF->len[1])
+       && uip_len == (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1])
        && uip_ipchksum() == 0xffff) {
 #define IP_DF   0x40
       if(BUF->ipid[0] == 0 && BUF->ipid[1] == 0 && BUF->ipoffset[0] & IP_DF) {
-	static u16_t ip_id;
-	u16_t nid = ip_id++;
+	static uint16_t ip_id;
+	uint16_t nid = ip_id++;
 	BUF->ipid[0] = nid >> 8;
 	BUF->ipid[1] = nid;
 	nid = uip_htons(nid);

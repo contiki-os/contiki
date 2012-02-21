@@ -55,10 +55,12 @@ int select_set_callback(int fd, const struct select_callback *callback);
 #define CCIF
 #define CLIF
 
+/* These names are deprecated, use C99 names. */
 typedef uint8_t   u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
 typedef  int32_t s32_t;
+
 typedef unsigned short uip_stats_t;
 
 #define UIP_CONF_UDP             1

@@ -48,7 +48,7 @@ PROCESS(tapdev_process, "TAP driver");
 
 /*---------------------------------------------------------------------------*/
 #if !UIP_CONF_IPV6
-u8_t
+uint8_t
 tapdev_output(void)
 {
    uip_arp_out();

@@ -138,8 +138,8 @@ uart1_init(unsigned long ubr)
   GPIO_PBCFGL &= 0xF00F;
   GPIO_PBCFGL |= 0x0490;  
   
-  u16_t uartper = (u32_t)24e6/(2*ubr);
-  u32_t rest = (u32_t)24e6%(2*ubr);
+  uint16_t uartper = (uint32_t)24e6/(2*ubr);
+  uint32_t rest = (uint32_t)24e6%(2*ubr);
   
   SC1_UARTFRAC = 0;
   

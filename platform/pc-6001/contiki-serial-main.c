@@ -46,7 +46,7 @@
 
 #undef RS232_INTR
 #ifdef RS232_INTR
-void rs232_arch_writeb(u8_t ch);
+void rs232_arch_writeb(uint8_t ch);
 void rs232_arch_init(int (* callback)(unsigned char), unsigned long ubr);
 #else
 #include "dev/rs232.h"

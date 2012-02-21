@@ -25,10 +25,10 @@ static const char *prompt = "contiki> ";
 
 /*---------------------------------------------------------------------------*/
 static char * CC_FASTCALL
-n(u16_t num, char *ptr)
+n(uint16_t num, char *ptr)
 {
-  u16_t d;
-  u8_t a, f;
+  uint16_t d;
+  uint8_t a, f;
 
   if(num == 0) {
     *ptr = '0';

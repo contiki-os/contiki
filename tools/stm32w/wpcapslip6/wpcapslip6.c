@@ -331,8 +331,8 @@ is_sensible_string(const unsigned char *s, int len)
 void
 serial_to_wpcap(FILE *inslip)
 {
-	u16_t buf_aligned[BUF_SIZE/2 + 42]; //extra for possible eth_hdr and ip_process expansion
-	u8_t *buf = (u8_t *)buf_aligned;
+	uint16_t buf_aligned[BUF_SIZE/2 + 42]; //extra for possible eth_hdr and ip_process expansion
+	uint8_t *buf = (uint8_t *)buf_aligned;
 
     static int inbufptr = 0, issensiblestring=1;
     int ret;

@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki VNC server
  *
- * $Id: ctk-vncfont.c,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
  *
  */
 
@@ -37,13 +36,12 @@
 #define o 0x01 /* 1001 0010 */
 #define X 0x02 /* 1111 0110 */
 
-#ifdef WITH_AVR
+#ifdef __AVR__
 #include <avr/pgmspace.h>
+const unsigned char vncfont[] PROGMEM = {
 #else
-#define prog_char const unsigned char
+const unsigned char vncfont[] = {
 #endif
-
-prog_char ctk_vncfont[] = {
 /* char 0 */
 X,o,_,_,_,_,
 o,X,_,_,_,_,

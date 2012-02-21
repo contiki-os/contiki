@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.73 2011/01/18 16:05:53 adamdunkels Exp $
  */
 
 /**
@@ -126,7 +125,7 @@ struct ack_msg {
    full, incoming packets are dropped instead of being forwarded. */
 #define MAX_MAC_REXMITS            2
 #define MAX_ACK_MAC_REXMITS        5
-#define REXMIT_TIME                CLOCK_SECOND * 32 / NETSTACK_RDC_CHANNEL_CHECK_RATE
+#define REXMIT_TIME                (CLOCK_SECOND * 32 / NETSTACK_RDC_CHANNEL_CHECK_RATE)
 #define FORWARD_PACKET_LIFETIME_BASE    REXMIT_TIME * 2
 #define MAX_SENDING_QUEUE          3 * QUEUEBUF_NUM / 4
 #define MIN_AVAILABLE_QUEUE_ENTRIES 4

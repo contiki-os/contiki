@@ -107,7 +107,7 @@ init_lowlevel(void)
 static struct etimer et;
 PROCESS_THREAD(rcb_leds, ev, data)
 {
-  u8_t error;
+  uint8_t error;
 
   PROCESS_BEGIN();
   

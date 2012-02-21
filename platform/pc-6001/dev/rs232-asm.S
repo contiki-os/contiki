@@ -65,7 +65,7 @@ _rs232_arch_putc_next2:
 .endif
 	
 	;; ---------------------------------
-	;; void rs232_writeb(u8_t c)
+	;; void rs232_writeb(uint8_t c)
 	;; Stack; retl reth c
 	;; AF__D_HL____
 	;; return void

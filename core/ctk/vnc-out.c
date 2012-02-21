@@ -70,14 +70,14 @@
 #define BGR(b,g,r) (((b) << 6) | (g) << 3 | (r))
 
 
-static const u8_t menucolor[] = {
+static const uint8_t menucolor[] = {
   BGR(3,7,7), /* Background. */           
   BGR(2,6,6), /* Anti-alias font color. */ 
   BGR(0,0,0), /* Font color. */            
 };
 
 
-static const u8_t activemenucolor[] = {
+static const uint8_t activemenucolor[] = {
   BGR(0,0,0), /* Background. */           
   BGR(2,5,5), /* Anti-alias font color. */ 
   BGR(3,7,7), /* Font color. */            
@@ -160,7 +160,7 @@ static const unsigned char iconcol_w[] =
 
 
 
-static const u8_t * const colortheme[] =
+static const uint8_t * const colortheme[] =
   {
     backgroundcolor,
     
@@ -193,15 +193,15 @@ static const u8_t * const colortheme[] =
 static int mouse_x, mouse_y, mouse_button;
 
 #ifdef CTK_VNCSERVER_CONF_SCREEN
-static u8_t *screen = CTK_VNCSERVER_CONF_SCREEN;
+static uint8_t *screen = CTK_VNCSERVER_CONF_SCREEN;
 #else
-static u8_t screen[CHARS_WIDTH * CHARS_HEIGHT];
+static uint8_t screen[CHARS_WIDTH * CHARS_HEIGHT];
 #endif
 
 #ifdef CTK_VNCSERVER_CONF_COLORSCREEN
-staitc u8_t *colorscreen = CTK_VNCSERVER_CONF_COLORSCREEN;
+staitc uint8_t *colorscreen = CTK_VNCSERVER_CONF_COLORSCREEN;
 #else
-static u8_t colorscreen[CHARS_WIDTH * CHARS_HEIGHT];
+static uint8_t colorscreen[CHARS_WIDTH * CHARS_HEIGHT];
 #endif
 
 
@@ -214,7 +214,7 @@ struct ctk_icon *icons[MAX_ICONS];
 unsigned char
 vnc_out_add_icon(struct ctk_icon *icon)
 {
-  u8_t i;
+  uint8_t i;
   signed int empty;
 
   empty = -1;
@@ -238,14 +238,14 @@ vnc_out_add_icon(struct ctk_icon *icon)
 void
 vnc_out_init(void)
 {
-  u16_t i;
+  uint16_t i;
   for(i = 0; i < CHARS_WIDTH * CHARS_HEIGHT; ++i) {
     screen[i] = 0x20;
   }
 }
 
 void
-vnc_out_update_screen(u8_t xpos, u8_t ypos, u8_t c, u8_t color)
+vnc_out_update_screen(uint8_t xpos, uint8_t ypos, uint8_t c, uint8_t color)
 {
   screen[xpos + ypos * CHARS_WIDTH] = c;
   colorscreen[xpos + ypos * CHARS_WIDTH] = color;
@@ -253,9 +253,9 @@ vnc_out_update_screen(u8_t xpos, u8_t ypos, u8_t c, u8_t color)
 /*-----------------------------------------------------------------------------------*/
 void
 vnc_out_update_area(struct vnc_server_state *vs,
-		    u8_t x, u8_t y, u8_t w, u8_t h)
+		    uint8_t x, uint8_t y, uint8_t w, uint8_t h)
 {
-  u8_t x2, y2, ax2, ay2;
+  uint8_t x2, y2, ax2, ay2;
   register struct vnc_server_update *a, *b;
 
   PRINTF(("update_area_connection: should update (%d:%d) (%d:%d)\n",
@@ -420,21 +420,21 @@ check_updates(CC_REGISTER_ARG struct vnc_server_state *vs)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static u8_t tmp[CTK_VNCFONT_WIDTH * CTK_VNCFONT_HEIGHT];
+static uint8_t tmp[CTK_VNCFONT_WIDTH * CTK_VNCFONT_HEIGHT];
 static void
-makechar(CC_REGISTER_ARG char *ptr, u8_t x, u8_t y)
+makechar(CC_REGISTER_ARG char *ptr, uint8_t x, uint8_t y)
 {
-  u8_t i, *tmpptr;
-  register u8_t *colorscheme;
+  uint8_t i, *tmpptr;
+  register uint8_t *colorscheme;
   unsigned char *bitmap;
-  u8_t b, b2;
-  u8_t xmove, ymove;
+  uint8_t b, b2;
+  uint8_t xmove, ymove;
   unsigned char c, color;
 
   color = colorscreen[x + y * CHARS_WIDTH];
   c = screen[x + y * CHARS_WIDTH];
 
-  colorscheme = (u8_t *)colortheme[color];
+  colorscheme = (uint8_t *)colortheme[color];
       
   /* First check if the character is a special icon character. These
      are to be interpreted in a special manner: the first character of
@@ -457,7 +457,7 @@ makechar(CC_REGISTER_ARG char *ptr, u8_t x, u8_t y)
 
     if(bitmap != NULL) {
       bitmap = bitmap + ymove * 8*3;
-      colorscheme = (u8_t *)colortheme[VNC_OUT_ICONCOLOR + (c >> 6)];
+      colorscheme = (uint8_t *)colortheme[VNC_OUT_ICONCOLOR + (c >> 6)];
       switch(xmove) {
       case 0:
 	for(i = 0; i < CTK_VNCFONT_HEIGHT; ++i) {
@@ -523,7 +523,7 @@ makechar(CC_REGISTER_ARG char *ptr, u8_t x, u8_t y)
 void
 vnc_out_new(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
-  u8_t i;
+  uint8_t i;
   
   vs->width = SCREEN_WIDTH;
   vs->height = SCREEN_HEIGHT;
@@ -545,9 +545,9 @@ void
 vnc_out_send_blank(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
   register struct rfb_fb_update *umsg;
-  u8_t *ptr;
-  u16_t len;
-  u8_t msglen;
+  uint8_t *ptr;
+  uint16_t len;
+  uint8_t msglen;
       
   vs->x = vs->y = 0;
   vs->x2 = vs->y2 = 0;
@@ -557,7 +557,7 @@ vnc_out_send_blank(CC_REGISTER_ARG struct vnc_server_state *vs)
   umsg->type = RFB_FB_UPDATE;
   umsg->rects = UIP_HTONS(2);
 
-  ptr = (u8_t *)umsg + sizeof(struct rfb_fb_update);
+  ptr = (uint8_t *)umsg + sizeof(struct rfb_fb_update);
   len = sizeof(struct rfb_fb_update);
   
   msglen = vnc_server_draw_rect(ptr, 0, 0,
@@ -590,15 +590,15 @@ static short tmpbuf[30];
 void
 vnc_out_send_update(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
-  u8_t x, y, x0;
-  u8_t msglen;
-  u16_t len, n;
-  u8_t *ptr;
+  uint8_t x, y, x0;
+  uint8_t msglen;
+  uint16_t len, n;
+  uint8_t *ptr;
   struct rfb_fb_update *umsg;
   register struct rfb_fb_update_rect_hdr *recthdr;
   struct rfb_rre_hdr *rrehdr;
-  u8_t c, color, lastcolor;
-  u8_t numblanks;
+  uint8_t c, color, lastcolor;
+  uint8_t numblanks;
 
   /* First, check if we need to feed the update function with a new
      pending update. */
@@ -615,7 +615,7 @@ vnc_out_send_update(CC_REGISTER_ARG struct vnc_server_state *vs)
   x0 = vs->x1;
   n = 0;
   msglen = 0;
-  ptr = (u8_t *)umsg + sizeof(struct rfb_fb_update);
+  ptr = (uint8_t *)umsg + sizeof(struct rfb_fb_update);
   len = sizeof(struct rfb_fb_update);
   
   /* Loop over all characters that are covered by this update. */
@@ -741,7 +741,7 @@ vnc_out_send_update(CC_REGISTER_ARG struct vnc_server_state *vs)
 	  recthdr->encoding[2] = 0;
 	recthdr->encoding[3] = RFB_ENC_RAW;
 
-	makechar((u8_t *)recthdr +
+	makechar((uint8_t *)recthdr +
 		 sizeof(struct rfb_fb_update_rect_hdr),
 		 x, y);
       }
@@ -837,7 +837,7 @@ void
 vnc_out_pointer_event(struct vnc_server_state *vs)
 {
   struct rfb_pointer_event *ev;
-  u16_t evx, evy;
+  uint16_t evx, evy;
   
   ev = (struct rfb_pointer_event *)uip_appdata;
 

@@ -376,8 +376,9 @@ write_to_serial(int outfd, const uint8_t *inbuf, int len)
 void
 write_to_slip(const uint8_t *buf, int len)
 {
-  /* printf("Packet to SLIP: %d\n", len); */
-  write_to_serial(slipfd, buf, len);
+  if(slipfd > 0) {
+    write_to_serial(slipfd, buf, len);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -460,12 +461,16 @@ slip_init(void)
     if(slip_config_port == NULL) {
       slip_config_port = "60001";
     }
-    slipfd = connect_to_server(slip_config_siodev, slip_config_port);
+    slipfd = connect_to_server(slip_config_host, slip_config_port);
     if(slipfd == -1) {
       err(1, "can't connect to ``%s:%s''", slip_config_host, slip_config_port);
     }
 
   } else if(slip_config_siodev != NULL) {
+    if(strcmp(slip_config_siodev, "null") == 0) {
+      /* Disable slip */
+      return;
+    }
     slipfd = devopen(slip_config_siodev, O_RDWR | O_NONBLOCK);
     if(slipfd == -1) {
       err(1, "can't open siodev ``/dev/%s''", slip_config_siodev);

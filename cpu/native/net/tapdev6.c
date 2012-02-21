@@ -77,17 +77,17 @@ static unsigned long lasttime;
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#define PRINT6ADDR(addr) PRINTF("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #else
 #define PRINTF(...)
 #define PRINT6ADDR(addr)
 #endif
 
 static void do_send(void);
-u8_t tapdev_send(uip_lladdr_t *lladdr);
+uint8_t tapdev_send(uip_lladdr_t *lladdr);
 
 
-u16_t
+uint16_t
 tapdev_poll(void)
 {
   fd_set fdset;
@@ -192,7 +192,7 @@ do_send(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-u8_t tapdev_send(uip_lladdr_t *lladdr)
+uint8_t tapdev_send(uip_lladdr_t *lladdr)
 {
   /*
    * If L3 dest is multicast, build L2 multicast address

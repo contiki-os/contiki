@@ -57,12 +57,13 @@
 #define CCIF
 #define CLIF
 
+/* These names are deprecated, use C99 names. */
 typedef uint8_t   u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
 typedef  int32_t s32_t;
-typedef unsigned short uip_stats_t;
 
+typedef unsigned short uip_stats_t;
 
 //#define FIXED_NET_ADDRESS             1
 //#define NET_ADDR_A                    0x2001

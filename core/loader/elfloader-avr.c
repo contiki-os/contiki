@@ -28,14 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-avr.c,v 1.10 2009/07/16 18:02:34 dak664 Exp $
  */
 
 #include <stdio.h>
 #include <avr/boot.h>
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
-#include "dev/rs232.h"
 #include "elfloader-arch.h"
 #include "lib/mmem.h"
 #include <string.h> //memset
@@ -64,8 +62,8 @@
 
 #define DEBUG 0
 #if DEBUG
-/*#define PRINTF(...) rs232_print_p(RS232_PORT_1, __VA_ARGS__)*/
-#define PRINTF(...) printf(__VA_ARGS__)
+#include <avr/pgmspace.h>
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
 #else
 #define PRINTF(...)
 #endif
@@ -305,7 +303,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
 	*/
 
 	/* new solution */
-    instr[2] = (u8_t) ((int)addr) & 0xff;
+    instr[2] = (uint8_t) ((int)addr) & 0xff;
     instr[3] = ((int)addr) >> 8;
     cfs_write(fd, instr, 4);
     break;
