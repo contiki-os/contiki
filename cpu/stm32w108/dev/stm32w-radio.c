@@ -227,7 +227,7 @@ static int stm32w_radio_init(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-int stm32w_radio_set_channel(u8_t channel)
+int stm32w_radio_set_channel(uint8_t channel)
 {
   if (ST_RadioSetChannel(channel) == ST_SUCCESS)
     return 0;
@@ -300,7 +300,7 @@ static int stm32w_radio_transmit(unsigned short payload_len)
       PRINTF("stm32w: sending %d bytes\r\n", payload_len);
         
 #if DEBUG > 1
-      for(u8_t c=1; c <= stm32w_txbuf[0]-2; c++){
+      for(uint8_t c=1; c <= stm32w_txbuf[0]-2; c++){
         PRINTF("%x:",stm32w_txbuf[c]);
       }
       PRINTF("\r\n");
@@ -503,7 +503,7 @@ PROCESS_THREAD(stm32w_radio_process, ev, data)
     PRINTF("stm32w_radio_process: calling receiver callback\r\n");
     
 #if DEBUG > 1
-    for(u8_t c=1; c <= RCVD_PACKET_LEN; c++){
+    for(uint8_t c=1; c <= RCVD_PACKET_LEN; c++){
       PRINTF("%x",stm32w_rxbuf[c]);
     }
     PRINTF("\r\n");

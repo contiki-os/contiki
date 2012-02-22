@@ -38,8 +38,8 @@
 #define CODEPROP_DATA_PORT 6510
 
 struct codeprop_tcphdr {
-  u16_t len;
-  u16_t pad;
+  uint16_t len;
+  uint16_t pad;
 };
 
 PROCESS_NAME(codeprop_process);

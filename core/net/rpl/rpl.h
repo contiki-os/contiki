@@ -131,19 +131,12 @@ typedef uint16_t rpl_ocp_t;
 #define RPL_LOLLIPOP_CIRCULAR_REGION     127
 #define RPL_LOLLIPOP_SEQUENCE_WINDOWS    16
 #define RPL_LOLLIPOP_INIT                RPL_LOLLIPOP_MAX_VALUE - RPL_LOLLIPOP_SEQUENCE_WINDOWS + 1
-#define RPL_LOLLIPOP_INCREMENT(counter)   (counter > RPL_LOLLIPOP_CIRCULAR_REGION ?\
-                                (counter == RPL_LOLLIPOP_MAX_VALUE ? counter=0 : ++counter):\
-                                (counter == RPL_LOLLIPOP_CIRCULAR_REGION ? counter=0 : ++counter))
+#define RPL_LOLLIPOP_INCREMENT(ctr) (ctr > RPL_LOLLIPOP_CIRCULAR_REGION ? \
+				     ++ctr & RPL_LOLLIPOP_MAX_VALUE :     \
+				     ++ctr & RPL_LOLLIPOP_CIRCULAR_REGION)
+
 #define RPL_LOLLIPOP_IS_INIT(counter)    (counter > RPL_LOLLIPOP_CIRCULAR_REGION)
-#define RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B) (((A < B) && (RPL_LOLLIPOP_CIRCULAR_REGION + 1 - B + A < RPL_LOLLIPOP_SEQUENCE_WINDOWS)) || \
-                                              ((A > B) && (A - B < RPL_LOLLIPOP_SEQUENCE_WINDOWS)))
-#define RPL_LOLLIPOP_GREATER_THAN(A,B)   ((A > RPL_LOLLIPOP_CIRCULAR_REGION )?\
-                                           ((B > RPL_LOLLIPOP_CIRCULAR_REGION )?\
-                                             RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B):\
-                                             0):\
-                                           ((B > RPL_LOLLIPOP_CIRCULAR_REGION )?\
-                                             1:\
-                                             RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B)))
+
 /*---------------------------------------------------------------------------*/
 /* DAG Metric Container Object Types, to be confirmed by IANA. */
 #define RPL_DAG_MC_NONE			0 /* Local identifier for empty MC */

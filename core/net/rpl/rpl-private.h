@@ -129,7 +129,7 @@
 #else
 #define DEFAULT_MIN_HOPRANKINC          RPL_CONF_MIN_HOPRANKINC
 #endif
-#define DEFAULT_MAX_RANKINC             (3 * DEFAULT_MIN_HOPRANKINC)
+#define DEFAULT_MAX_RANKINC             (7 * DEFAULT_MIN_HOPRANKINC)
 
 #define DAG_RANK(fixpt_rank, instance)	((fixpt_rank) / (instance)->min_hoprankinc)
 

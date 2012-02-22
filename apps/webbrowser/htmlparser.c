@@ -553,11 +553,11 @@ parse_tag(void)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static u16_t
-parse_word(char *data, u8_t dlen)
+static uint16_t
+parse_word(char *data, uint8_t dlen)
 {
-  static u8_t i;
-  static u8_t len;
+  static uint8_t i;
+  static uint8_t len;
   unsigned char c;
 
   len = dlen;
@@ -825,15 +825,15 @@ parse_word(char *data, u8_t dlen)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-htmlparser_parse(char *data, u16_t datalen)
+htmlparser_parse(char *data, uint16_t datalen)
 {
-  u16_t plen;
+  uint16_t plen;
   
   while(datalen > 0) {
     if(datalen > 255) {
       plen = parse_word(data, 255);
     } else {
-      plen = parse_word(data, (u8_t)datalen);
+      plen = parse_word(data, (uint8_t)datalen);
     }
     datalen -= plen;
     data += plen;

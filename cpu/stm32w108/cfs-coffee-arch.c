@@ -525,7 +525,7 @@ void stm32w_flash_write(int32u address, const void * data, int32u length)
     halInternalFlashWrite(curr_page, (int16u *)buf, FLASH_PAGE_SIZE/2);
     ENERGEST_OFF(ENERGEST_TYPE_FLASH_WRITE);
     
-    data = (u8_t *)data + next_page - i;
+    data = (uint8_t *)data + next_page - i;
     i = next_page;
   }
   

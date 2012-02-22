@@ -185,7 +185,7 @@ init(void)
 /* Nothing to do here */
 }
 /*---------------------------------------------------------------------------*/
-u8_t wfall_send(uip_lladdr_t *lladdr);
+uint8_t wfall_send(uip_lladdr_t *lladdr);
 #if FALLBACK_HAS_ETHERNET_HEADERS
 #undef IPBUF
 #define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[14])
@@ -597,7 +597,7 @@ wpcap_init(void)
 }
 
 /*---------------------------------------------------------------------------*/
-u16_t
+uint16_t
 wpcap_poll(void)
 {
   struct pcap_pkthdr *packet_header;
@@ -656,12 +656,12 @@ wpcap_poll(void)
   }
 //  PRINTF("SIN: %lu\n", packet_header->caplen);
   CopyMemory(uip_buf, packet, packet_header->caplen);
-  return (u16_t)packet_header->caplen;
+  return (uint16_t)packet_header->caplen;
 
 }
 
 #ifdef UIP_FALLBACK_INTERFACE
-u16_t
+uint16_t
 wfall_poll(void)
 {
   struct pcap_pkthdr *packet_header;
@@ -699,7 +699,7 @@ wfall_poll(void)
   }
   PRINTF("FIN: %lu\n", packet_header->caplen);
   CopyMemory(uip_buf, packet, packet_header->caplen);
-  return (u16_t)packet_header->caplen;
+  return (uint16_t)packet_header->caplen;
 
 }
 
@@ -707,7 +707,7 @@ wfall_poll(void)
 
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_IPV6
-u8_t
+uint8_t
 wpcap_send(uip_lladdr_t *lladdr)
 {
   if(lladdr == NULL) {
@@ -744,7 +744,7 @@ wpcap_send(uip_lladdr_t *lladdr)
 return 0;
 }
 #ifdef UIP_FALLBACK_INTERFACE
-u8_t
+uint8_t
 wfall_send(uip_lladdr_t *lladdr)
 {
 #if FALLBACK_HAS_ETHERNET_HEADERS

@@ -58,6 +58,8 @@
 /* Uncomment to enable demonstration of multi-threading libary */
 /* #define MT_DEMO */
 
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+
 //TODO: What happened to cfs_eeprom_process?
 //PROCINIT(&etimer_process, &tcpip_process, &uip_fw_process, &cfs_eeprom_process);
 #if UIP_CONF_IPV6
@@ -72,8 +74,7 @@ static struct mt_thread threads[3];
 static
 void thread_handler1 (void* data) {
   while (1) {
-    rs232_print_p (RS232_PORT_1, PSTR ("Thread 1. Data: ") );
-    rs232_printf (RS232_PORT_1, "0x%x, %d\n", data, *(uint8_t*)data );
+    PRINTF ("Thread 1. Data: 0x%x, %d\n", data, *(uint8_t*)data );
     mt_yield ();
   }
 }
@@ -81,8 +82,7 @@ void thread_handler1 (void* data) {
 static
 void thread_handler2 (void* data) {
   while (1) {
-    rs232_print_p (RS232_PORT_1, PSTR ("Thread 2. Data: "));
-    rs232_printf (RS232_PORT_1, "0x%x, %d\n", data, *(uint8_t*)data );
+    PRINTF ("Thread 2. Data: 0x%x, %d\n", data, *(uint8_t*)data );
     mt_yield ();
   }
 }
@@ -138,7 +138,7 @@ main(void)
   /* Perform rest of initializations */
   process_start(&contiki_stk501_main_init_process, NULL);
 
-  rs232_print_p (RS232_PORT_1, PSTR ("Initialized.\n"));
+  PRINTF"Initialized.\n");
 
 #ifdef MT_DEMO
   mt_start (&threads[0], thread_handler1, &d1);

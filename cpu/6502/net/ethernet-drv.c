@@ -44,7 +44,7 @@
 PROCESS(ethernet_process, "Ethernet driver");
 
 /*---------------------------------------------------------------------------*/
-u8_t
+uint8_t
 ethernet_output(void)
 {
   uip_arp_out();

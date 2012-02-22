@@ -58,18 +58,18 @@
 #define ISO_space    0x20
 
 struct webclient_state {
-  u8_t timer;
-  u8_t state;
-  u8_t httpflag;
+  uint8_t timer;
+  uint8_t state;
+  uint8_t httpflag;
 
-  u16_t port;
+  uint16_t port;
   char host[40];
   char file[WWW_CONF_MAX_URLLEN];
-  u16_t getrequestptr;
-  u16_t getrequestleft;
+  uint16_t getrequestptr;
+  uint16_t getrequestleft;
   
   char httpheaderline[200];
-  u16_t httpheaderlineptr;
+  uint16_t httpheaderlineptr;
 
   char mimetype[32];
 };
@@ -117,8 +117,8 @@ init_connection(void)
     sizeof(http_crnl) - 1 +
     sizeof(http_host) - 1 +
     sizeof(http_crnl) - 1 +
-    (u16_t)strlen(http_user_agent_fields) +
-    (u16_t)strlen(s.file) + (u16_t)strlen(s.host);
+    (uint16_t)strlen(http_user_agent_fields) +
+    (uint16_t)strlen(s.file) + (uint16_t)strlen(s.host);
   s.getrequestptr = 0;
 
   s.httpheaderlineptr = 0;
@@ -131,7 +131,7 @@ webclient_close(void)
 }
 /*-----------------------------------------------------------------------------------*/
 unsigned char
-webclient_get(const char *host, u16_t port, const char *file)
+webclient_get(const char *host, uint16_t port, const char *file)
 {
   uip_ipaddr_t addr;
   struct uip_conn *conn;
@@ -212,7 +212,7 @@ window_copy(int curptr, const char *data, unsigned char datalen)
 static void
 senddata(void)
 {
-  u16_t len;
+  uint16_t len;
   int curptr;
   
   if(s.getrequestleft > 0) {
@@ -246,7 +246,7 @@ senddata(void)
 static void
 acked(void)
 {
-  u16_t len;
+  uint16_t len;
   
   if(s.getrequestleft > 0) {
     len = s.getrequestleft > uip_mss()?
@@ -257,8 +257,8 @@ acked(void)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static u16_t
-parse_statusline(u16_t len)
+static uint16_t
+parse_statusline(uint16_t len)
 {
   char *cptr;
   
@@ -324,8 +324,8 @@ casecmp(char *str1, const char *str2, char len)
   return 0;
 }
 /*-----------------------------------------------------------------------------------*/
-static u16_t
-parse_headers(u16_t len)
+static uint16_t
+parse_headers(uint16_t len)
 {
   char *cptr;
   static unsigned char i;
@@ -393,7 +393,7 @@ parse_headers(u16_t len)
 static void
 newdata(void)
 {
-  u16_t len;
+  uint16_t len;
 
   len = uip_datalen();
 

@@ -53,7 +53,7 @@ static void
 sniffer_callback(const struct radio_driver *driver)
 {
   static char buf[40];
-  static u8_t packet[UIP_BUFSIZE];
+  static uint8_t packet[UIP_BUFSIZE];
   static int len;
   len = driver->read(packet, sizeof(packet));
   if(len > 0) {

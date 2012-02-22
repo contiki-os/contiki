@@ -101,8 +101,8 @@ PROCESS_THREAD(resolv_process, ev, data)
 
 /** \internal The DNS message header. */
 struct dns_hdr {
-  u16_t id;
-  u8_t flags1, flags2;
+  uint16_t id;
+  uint8_t flags1, flags2;
 #define DNS_FLAG1_RESPONSE        0x80
 #define DNS_FLAG1_OPCODE_STATUS   0x10
 #define DNS_FLAG1_OPCODE_INVERSE  0x08
@@ -114,21 +114,21 @@ struct dns_hdr {
 #define DNS_FLAG2_ERR_MASK        0x0f
 #define DNS_FLAG2_ERR_NONE        0x00
 #define DNS_FLAG2_ERR_NAME        0x03
-  u16_t numquestions;
-  u16_t numanswers;
-  u16_t numauthrr;
-  u16_t numextrarr;
+  uint16_t numquestions;
+  uint16_t numanswers;
+  uint16_t numauthrr;
+  uint16_t numextrarr;
 };
 
 /** \internal The DNS answer message structure. */
 struct dns_answer {
   /* DNS answer record starts with either a domain name or a pointer
      to a name already present somewhere in the packet. */
-  u16_t type;
-  u16_t class;
-  u16_t ttl[2];
-  u16_t len;
-  u8_t ipaddr[4];
+  uint16_t type;
+  uint16_t class;
+  uint16_t ttl[2];
+  uint16_t len;
+  uint8_t ipaddr[4];
 };
 
 struct namemap {
@@ -137,11 +137,11 @@ struct namemap {
 #define STATE_ASKING 2
 #define STATE_DONE   3
 #define STATE_ERROR  4
-  u8_t state;
-  u8_t tmr;
-  u8_t retries;
-  u8_t seqno;
-  u8_t err;
+  uint8_t state;
+  uint8_t tmr;
+  uint8_t retries;
+  uint8_t seqno;
+  uint8_t err;
   char name[32];
   uip_ipaddr_t ipaddr;
 };
@@ -155,7 +155,7 @@ struct namemap {
 
 static struct namemap names[RESOLV_ENTRIES];
 
-static u8_t seqno;
+static uint8_t seqno;
 
 static struct uip_udp_conn *resolv_conn = NULL;
 
@@ -276,8 +276,8 @@ newdata(void)
   unsigned char *nameptr;
   struct dns_answer *ans;
   struct dns_hdr *hdr;
-  static u8_t nquestions, nanswers;
-  static u8_t i;
+  static uint8_t nquestions, nanswers;
+  static uint8_t i;
   register struct namemap *namemapptr;
   
   hdr = (struct dns_hdr *)uip_appdata;
@@ -293,7 +293,7 @@ newdata(void)
 
   /* The ID in the DNS header should be our entry into the name
      table. */
-  i = (u8_t)uip_htons(hdr->id);
+  i = (uint8_t)uip_htons(hdr->id);
   namemapptr = &names[i];
   if(i < RESOLV_ENTRIES &&
      namemapptr->state == STATE_ASKING) {
@@ -311,8 +311,8 @@ newdata(void)
 
     /* We only care about the question(s) and the answers. The authrr
        and the extrarr are simply discarded. */
-    nquestions = (u8_t)uip_htons(hdr->numquestions);
-    nanswers = (u8_t)uip_htons(hdr->numanswers);
+    nquestions = (uint8_t)uip_htons(hdr->numquestions);
+    nanswers = (uint8_t)uip_htons(hdr->numanswers);
 
     /* Skip the name in the question. XXX: This should really be
        checked agains the name in the question, to be sure that they
@@ -417,8 +417,8 @@ PROCESS_THREAD(resolv_process, ev, data)
 void
 resolv_query(const char *name)
 {
-  static u8_t i;
-  static u8_t lseq, lseqi;
+  static uint8_t i;
+  static uint8_t lseq, lseqi;
   register struct namemap *nameptr;
       
   lseq = lseqi = 0;
@@ -466,7 +466,7 @@ resolv_query(const char *name)
 uip_ipaddr_t *
 resolv_lookup(const char *name)
 {
-  static u8_t i;
+  static uint8_t i;
   struct namemap *nameptr;
   
   /* Walk through the list to see if the name is in there. If it is

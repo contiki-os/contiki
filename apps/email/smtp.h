@@ -45,7 +45,7 @@ void smtp_configure(char *localhostname, uip_ipaddr_t *smtpserver);
 
 unsigned char smtp_send(char *to, char *cc, char *from,
 			char *subject, char *msg,
-			u8_t msgwidth, u8_t msgheight);
+			uint8_t msgwidth, uint8_t msgheight);
 
 void smtp_appcall(void *state);
 

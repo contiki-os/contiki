@@ -674,7 +674,7 @@ ftpc_connected(void *connection)
 }
 /*---------------------------------------------------------------------------*/
 void
-ftpc_data(u8_t *data, u16_t len)
+ftpc_data(uint8_t *data, uint16_t len)
 {
   if(data == NULL) {
     show_statustext("Download complete", "");

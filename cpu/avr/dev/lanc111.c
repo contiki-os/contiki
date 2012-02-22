@@ -476,17 +476,17 @@
 
 #define MSBV(bit)       (1 << ((bit) - 8))
 
-#define nic_outlb(addr, val) (*(volatile u8_t *)(addr) = (val))
-#define nic_outhb(addr, val) (*(volatile u8_t *)((addr) + 1) = (val))
-#define nic_outwx(addr, val) (*(volatile u16_t *)(addr) = (val))
+#define nic_outlb(addr, val) (*(volatile uint8_t *)(addr) = (val))
+#define nic_outhb(addr, val) (*(volatile uint8_t *)((addr) + 1) = (val))
+#define nic_outwx(addr, val) (*(volatile uint16_t *)(addr) = (val))
 #define nic_outw(addr, val) { \
-    *(volatile u8_t *)(addr) = (u8_t)(val); \
-    *((volatile u8_t *)(addr) + 1) = (u8_t)((val) >> 8); \
+    *(volatile uint8_t *)(addr) = (uint8_t)(val); \
+    *((volatile uint8_t *)(addr) + 1) = (uint8_t)((val) >> 8); \
 }
 
-#define nic_inlb(addr) (*(volatile u8_t *)(addr))
-#define nic_inhb(addr) (*(volatile u8_t *)((addr) + 1))
-#define nic_inw(addr) (*(volatile u16_t *)(addr))
+#define nic_inlb(addr) (*(volatile uint8_t *)(addr))
+#define nic_inhb(addr) (*(volatile uint8_t *)((addr) + 1))
+#define nic_inw(addr) (*(volatile uint16_t *)(addr))
 
 #define nic_bs(bank)    nic_outlb(NIC_BSR, bank)
 
@@ -513,11 +513,11 @@
  *
  * \return Contents of the PHY interface rgister.
  */
-static u8_t NicPhyRegSelect(u8_t reg, u8_t we)
+static uint8_t NicPhyRegSelect(uint8_t reg, uint8_t we)
 {
-    u8_t rs;
-    u8_t msk;
-    u8_t i;
+    uint8_t rs;
+    uint8_t msk;
+    uint8_t i;
 
     nic_bs(3);
     rs = (nic_inlb(NIC_MGMT) & ~(MGMT_MCLK | MGMT_MDO)) | MGMT_MDOE;
@@ -577,11 +577,11 @@ static u8_t NicPhyRegSelect(u8_t reg, u8_t we)
  *
  * \return Contents of the specified register.
  */
-static u16_t NicPhyRead(u8_t reg)
+static uint16_t NicPhyRead(uint8_t reg)
 {
-    u16_t rc = 0;
-    u8_t rs;
-    u8_t i;
+    uint16_t rc = 0;
+    uint8_t rs;
+    uint8_t i;
 
     /* Select register for reading. */
     rs = NicPhyRegSelect(reg, 0);
@@ -613,10 +613,10 @@ static u16_t NicPhyRead(u8_t reg)
  * \param reg PHY register number.
  * \param val Value to write.
  */
-static void NicPhyWrite(u8_t reg, u16_t val)
+static void NicPhyWrite(uint8_t reg, uint16_t val)
 {
-    u16_t msk;
-    u8_t rs;
+    uint16_t msk;
+    uint8_t rs;
 
     /* Select register for writing. */
     rs = NicPhyRegSelect(reg, 1);
@@ -649,10 +649,10 @@ static void NicPhyWrite(u8_t reg, u16_t val)
  */
 static int NicPhyConfig(void)
 {
-    u16_t phy_sor;
-    u16_t phy_sr;
-    u16_t phy_to;
-    u16_t mode;
+    uint16_t phy_sor;
+    uint16_t phy_sr;
+    uint16_t phy_to;
+    uint16_t mode;
 
     /* 
      * Reset the PHY and wait until this self clearing bit
@@ -739,7 +739,7 @@ static int NicPhyConfig(void)
  *
  * \return 0 on success or -1 on timeout.
  */
-static INLINE int NicMmuWait(u16_t tmo)
+static INLINE int NicMmuWait(uint16_t tmo)
 {
     while (tmo--) {
         if ((nic_inlb(NIC_MMUCR) & MMUCR_BUSY) == 0)
@@ -803,9 +803,9 @@ static int NicReset(void)
  *
  * \param mac Six byte unique MAC address.
  */
-static int NicStart(CONST u8_t * mac)
+static int NicStart(CONST uint8_t * mac)
 {
-    u8_t i;
+    uint8_t i;
 
     if (NicReset())
         return -1;
@@ -843,8 +843,8 @@ static int NicStart(CONST u8_t * mac)
 #if 0
 static void NicInterrupt(void *arg)
 {
-    u8_t isr;
-    u8_t imr;
+    uint8_t isr;
+    uint8_t imr;
     NICINFO *ni = (NICINFO *) ((NUTDEVICE *) arg)->dev_dcb;
 
     ni->ni_interrupts++;
@@ -912,11 +912,11 @@ static void NicInterrupt(void *arg)
 /*
  * Write data block to the NIC.
  */
-static void NicWrite(u8_t * buf, u16_t len)
+static void NicWrite(uint8_t * buf, uint16_t len)
 {
-    register u16_t l = len - 1;
-    register u8_t ih = (u16_t) l >> 8;
-    register u8_t il = (u8_t) l;
+    register uint16_t l = len - 1;
+    register uint8_t ih = (uint16_t) l >> 8;
+    register uint8_t il = (uint8_t) l;
 
     if (!len)
         return;
@@ -931,11 +931,11 @@ static void NicWrite(u8_t * buf, u16_t len)
 /*
  * Read data block from the NIC.
  */
-static void NicRead(u8_t * buf, u16_t len)
+static void NicRead(uint8_t * buf, uint16_t len)
 {
-    register u16_t l = len - 1;
-    register u8_t ih = (u16_t) l >> 8;
-    register u8_t il = (u8_t) l;
+    register uint16_t l = len - 1;
+    register uint8_t ih = (uint16_t) l >> 8;
+    register uint8_t il = (uint8_t) l;
 
     if (!len)
         return;
@@ -960,9 +960,9 @@ static void NicRead(u8_t * buf, u16_t len)
 static NETBUF *NicGetPacket(void)
 {
     NETBUF *nb = 0;
-    //u8_t *buf;
-    u16_t fsw;
-    u16_t fbc;
+    //uint8_t *buf;
+    uint16_t fsw;
+    uint16_t fbc;
 
     /* Check the fifo empty bit. If it is set, then there is 
        nothing in the receiver fifo. */
@@ -1028,9 +1028,9 @@ static NETBUF *NicGetPacket(void)
 #if 0
 static int NicPutPacket(NETBUF * nb)
 {
-    u16_t sz;
-    u8_t odd = 0;
-    u8_t imsk;
+    uint16_t sz;
+    uint8_t odd = 0;
+    uint8_t imsk;
 
     //printf("[P]");
     /*
@@ -1130,7 +1130,7 @@ PROCESS_THREAD(lanc111_process, ev, data)
     IFNET *ifn;
     NICINFO *ni;
     NETBUF *nb;*/
-  u8_t imsk;
+  uint8_t imsk;
   static struct etimer et;
   
     /*    dev = arg;

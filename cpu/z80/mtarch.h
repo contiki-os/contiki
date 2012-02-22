@@ -48,12 +48,12 @@ struct mtarch_thread {
    * On top of the mtarch_thread must be the address for the stack pointer.
    * See details at mtarch_switch in mtarch.c
    */
-  u16_t *sp;
+  uint16_t *sp;
   /*
    * Stack is 2-byte wide, so please note that you need 2 * MTARCH_STACKSIZE
    * bytes for the stack area for each thread.
    */
-  u16_t stack[MTARCH_STACKSIZE];
+  uint16_t stack[MTARCH_STACKSIZE];
 };
 
 /*

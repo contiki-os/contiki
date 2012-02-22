@@ -66,8 +66,8 @@
 
 struct Area {
   unsigned char mode;
-  u16_t size;
-  u16_t checksum;
+  uint16_t size;
+  uint16_t checksum;
 };
 
 /*
@@ -82,8 +82,8 @@ struct Area {
 
 struct Relocation {
   unsigned char mode;
-  u16_t address;
-  u16_t data;
+  uint16_t address;
+  uint16_t data;
 };
 
 unsigned char load_byte();

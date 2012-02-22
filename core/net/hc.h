@@ -43,8 +43,8 @@
 #include "net/uip.h"
 
 void hc_init(void);
-int  hc_compress(u8_t *buf, int len);
-int  hc_inflate(u8_t *buf, int len);
+int  hc_compress(uint8_t *buf, int len);
+int  hc_inflate(uint8_t *buf, int len);
 
 #define HC_HLEN 6
 
