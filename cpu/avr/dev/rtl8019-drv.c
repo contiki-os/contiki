@@ -42,7 +42,7 @@
 PROCESS(rtl8019_process, "RTL8019 driver");
 
 /*---------------------------------------------------------------------------*/
-u8_t
+uint8_t
 rtl8019_output(void)
 {
   uip_arp_out();

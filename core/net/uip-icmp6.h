@@ -99,7 +99,7 @@
 
 /** \brief ICMPv6 Error message constant part */
 typedef struct uip_icmp6_error{
-  u32_t param;
+  uint32_t param;
 } uip_icmp6_error;
 
 /** \name ICMPv6 RFC4443 Message processing and sending */
@@ -120,7 +120,7 @@ uip_icmp6_echo_request_input(void);
  * \param type 32 bit parameter of the error message, semantic depends on error 
  */
 void
-uip_icmp6_error_output(u8_t type, u8_t code, u32_t param); 
+uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param); 
 
 /**
  * \brief Send an icmpv6 message

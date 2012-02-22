@@ -49,6 +49,18 @@
  * The advertised MSS is easily seen in wireshark.
  * Some example set a small MSS by default. rpl-border-router for example uses a receive window of 60.
  */
+ 
+ /* Titles of web pages served with the !header cgi can be configured to show characteristics of the node.
+  * For example "CD1A:3456" to show the node id and clock time of last access.
+  * Change this line and rebuild to make indentifiable instances.
+  * Undefine to reduce program size, giving "Contiki-Nano" title on all pages.
+  * WAD indexes into the uip destaddr field, which contains the address that we responded to.
+  */
+#define WEBSERVER_CONF_PAGETITLE sprintf(buf,"[%02x%02x]",WAD[14],WAD[15]);
+//#define WEBSERVER_CONF_PAGETITLE sprintf(buf,"Nano[%02x%02x%02x]",WAD[13],WAD[14],WAD[15]);
+//#define WEBSERVER_CONF_PAGETITLE sprintf(buf,"Nano[%02x%02x...%02x%02x]",WAD[0],WAD[1],WAD[14],WAD[15]);
+//#define WEBSERVER_CONF_PAGETITLE sprintf(buf,"%2x%02x...%2x%02x [%lu]",WAD[0],WAD[1],WAD[14],WAD[15],clock_seconds());
+
 #ifndef WEBSERVER_CONF_NANO
 #if CONTIKI_TARGET_SKY || CONTIKI_TARGET_STK500
 #define WEBSERVER_CONF_NANO 1

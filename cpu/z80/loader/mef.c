@@ -50,9 +50,9 @@ mef_load(unsigned char* offset)
 {
   unsigned char* start = offset;
   unsigned char areasize = load_byte();
-  u16_t relocsize;
+  uint16_t relocsize;
   unsigned int i, j;
-  u16_t checksum = 0;
+  uint16_t checksum = 0;
   unsigned char* buf;
   struct Relocation reloc;
   
@@ -94,12 +94,12 @@ mef_reloc(unsigned char* offset, struct Relocation *reloc)
   }
   offset += reloc->address;
   if (reloc->mode & MEF_RELOC_MSB_BYTE) {
-    *offset = (unsigned char) ((reloc->data + (u16_t) offset) >> 8);
+    *offset = (unsigned char) ((reloc->data + (uint16_t) offset) >> 8);
   } else if (reloc->mode & MEF_RELOC_LSB_BYTE) {
-    *offset = (unsigned char) ((reloc->data + (u16_t) offset) & 0xff);
+    *offset = (unsigned char) ((reloc->data + (uint16_t) offset) & 0xff);
   } else { /* word */
-    *offset++ = (unsigned char) ((reloc->data + (u16_t) offset) & 0xff);
-    *offset = (unsigned char) ((reloc->data + (u16_t) offset) >> 8);
+    *offset++ = (unsigned char) ((reloc->data + (uint16_t) offset) & 0xff);
+    *offset = (unsigned char) ((reloc->data + (uint16_t) offset) >> 8);
   }
 }
 

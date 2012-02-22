@@ -175,13 +175,13 @@ unsigned char recir_getAddress(void){ return ((recvdata & 0x07C0) >> 6); }
 unsigned char recir_getToggle(void){  return ((recvdata & 0x0800) >> 11); }
 unsigned char recir_getError(void){ return ((recvdata & 0x2000) >> 13); }
 
-u16_t
+uint16_t
 ir_data(void)
 {
   return recvdata;
 }
 
-u8_t
+uint8_t
 ir_poll(void)
 {
   if(recvdata & 0x1000) {

@@ -19,6 +19,6 @@ PROCESS_NAME(example_packet_driver_process);
 /*
  * Finally we declare the output function for use with uIP packet forwarding.
  */
-u8_t example_packet_driver_output(void);
+uint8_t example_packet_driver_output(void);
 
 #endif /* __EXAMPLE_PACKET_DRV_H__ */

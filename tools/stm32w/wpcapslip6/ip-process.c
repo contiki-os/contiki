@@ -14,7 +14,7 @@
 
 #undef uip_buf
 extern unsigned char *uip_buf;
-extern u16_t uip_len;
+extern uint16_t uip_len;
 
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -200,7 +200,7 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 {
  /*   uint8_t j, match; */
 
-	u8_t tmp[8];
+	uint8_t tmp[8];
 
 	memcpy(tmp,lowpan,sizeof(uip_lladdr_t));
 
@@ -247,7 +247,7 @@ void slide(uint8_t * data, uint8_t length, int16_t slide)
 
 
 
-u16_t ip_process(unsigned char *buf, unsigned int len)
+uint16_t ip_process(unsigned char *buf, unsigned int len)
 {
 	uip_buf = buf;
 	uip_len = len;

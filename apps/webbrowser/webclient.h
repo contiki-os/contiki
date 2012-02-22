@@ -43,7 +43,7 @@
 /* Callback functions that have to be implemented by the application
    program. */
 struct webclient_state;
-void webclient_datahandler(char *data, u16_t len);
+void webclient_datahandler(char *data, uint16_t len);
 void webclient_connected(void);
 void webclient_timedout(void);
 void webclient_aborted(void);
@@ -52,7 +52,7 @@ void webclient_closed(void);
 
 /* Functions. */
 void webclient_init(void);
-unsigned char webclient_get(const char *host, u16_t port, const char *file);
+unsigned char webclient_get(const char *host, uint16_t port, const char *file);
 void webclient_close(void);
 
 void webclient_appcall(void *state);

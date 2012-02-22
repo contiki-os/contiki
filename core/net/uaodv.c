@@ -62,9 +62,9 @@ PROCESS(uaodv_process, "uAODV");
 static struct uip_udp_conn *bcastconn, *unicastconn;
 
 /* Compare sequence numbers as per RFC 3561. */
-#define SCMP32(a, b) ((s32_t)((a) - (b)))
+#define SCMP32(a, b) ((int32_t)((a) - (b)))
 
-static CC_INLINE u32_t
+static CC_INLINE uint32_t
 last_known_seqno(uip_ipaddr_t *host)
 {
   struct uaodv_rt_entry *route = uaodv_rt_lookup_any(host);
@@ -76,24 +76,24 @@ last_known_seqno(uip_ipaddr_t *host)
 }
 
 
-static u32_t rreq_id, my_hseqno;	/* In host byte order! */
+static uint32_t rreq_id, my_hseqno;	/* In host byte order! */
 
 #define NFWCACHE 16
 
 static struct {
   uip_ipaddr_t orig;
-  u32_t id;
+  uint32_t id;
 } fwcache[NFWCACHE];
 
 static CC_INLINE int
-fwc_lookup(const uip_ipaddr_t *orig, const u32_t *id)
+fwc_lookup(const uip_ipaddr_t *orig, const uint32_t *id)
 {
   unsigned n = (orig->u8[2] + orig->u8[3]) % NFWCACHE;
   return fwcache[n].id == *id && uip_ipaddr_cmp(&fwcache[n].orig, orig);
 }
 
 static CC_INLINE void
-fwc_add(const uip_ipaddr_t *orig, const u32_t *id)
+fwc_add(const uip_ipaddr_t *orig, const uint32_t *id)
 {
   unsigned n = (orig->u8[2] + orig->u8[3]) % NFWCACHE;
   fwcache[n].id = *id;
@@ -206,7 +206,7 @@ send_rreq(uip_ipaddr_t *addr)
 /*---------------------------------------------------------------------------*/
 static void
 send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig,
-	  u32_t *seqno, unsigned hop_count)
+	  uint32_t *seqno, unsigned hop_count)
 {
   struct uaodv_msg_rrep *rm = (struct uaodv_msg_rrep *)uip_appdata;
   
@@ -225,7 +225,7 @@ send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig,
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_rerr(uip_ipaddr_t *addr, u32_t *seqno)
+send_rerr(uip_ipaddr_t *addr, uint32_t *seqno)
 {
   struct uaodv_msg_rerr *rm = (struct uaodv_msg_rerr *)uip_appdata;
   
@@ -284,17 +284,17 @@ handle_incoming_rreq(void)
 #ifdef AODV_BAD_HOP_EXTENSION
   if(uip_len > (sizeof(*rm) + 2)) {
     struct uaodv_bad_hop_ext *ext = (void *)(uip_appdata + sizeof(*rm));
-    u8_t *end = uip_appdata + uip_len;
+    uint8_t *end = uip_appdata + uip_len;
     for(;
-	(u8_t *)ext < end;
-	ext = (void *)((u8_t *)ext + ext->length + 2)) {
-      u8_t *eend = (u8_t *)ext + ext->length;
+	(uint8_t *)ext < end;
+	ext = (void *)((uint8_t *)ext + ext->length + 2)) {
+      uint8_t *eend = (uint8_t *)ext + ext->length;
       if(eend > end)
 	eend = end;
 
       if(ext->type == RREQ_BAD_HOP_EXT) {
 	uip_ipaddr_t *a;
-	for(a = ext->addrs; (u8_t *)a < eend; a++) {
+	for(a = ext->addrs; (uint8_t *)a < eend; a++) {
 	  if(uip_ipaddr_cmp(a, &uip_hostaddr)) {
 	    print_debug("BAD_HOP drop\n");
 	    return;
@@ -330,7 +330,7 @@ handle_incoming_rreq(void)
   }
 
   if (fw != NULL) {
-    u32_t net_seqno;
+    uint32_t net_seqno;
 
     print_debug("RREQ for known route\n");
     uip_ipaddr_copy(&dest_addr, &rm->dest_addr);
@@ -339,7 +339,7 @@ handle_incoming_rreq(void)
     send_rrep(&dest_addr, &rt->nexthop, &orig_addr, &net_seqno,
 	      fw->hop_count + 1);
   } else if(uip_ipaddr_cmp(&rm->dest_addr, &uip_hostaddr)) {
-    u32_t net_seqno;
+    uint32_t net_seqno;
 
     print_debug("RREQ for our address\n");
     uip_ipaddr_copy(&dest_addr, &rm->dest_addr);
@@ -381,7 +381,7 @@ handle_incoming_rrep(void)
   /* Useless HELLO message? */
   if(uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)) {
 #ifdef AODV_RESPOND_TO_HELLOS
-    u32_t net_seqno;
+    uint32_t net_seqno;
 #ifdef CC2420_RADIO
     int ret = cc2420_check_remote(uip_udp_sender()->u16[1]);
 
@@ -518,7 +518,7 @@ static enum {
 } command;
 
 static uip_ipaddr_t bad_dest;
-static u32_t bad_seqno;		/* In network byte order! */
+static uint32_t bad_seqno;		/* In network byte order! */
 
 void
 uaodv_bad_dest(uip_ipaddr_t *dest)

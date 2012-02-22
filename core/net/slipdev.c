@@ -76,10 +76,10 @@
 #define SLIP_ESC_END 0334
 #define SLIP_ESC_ESC 0335
 
-static u8_t slip_buf[UIP_BUFSIZE];
+static uint8_t slip_buf[UIP_BUFSIZE];
 
-static u16_t len, tmplen;
-static u8_t lastc;
+static uint16_t len, tmplen;
+static uint8_t lastc;
 
 /*-----------------------------------------------------------------------------------*/
 /**
@@ -93,12 +93,12 @@ static u8_t lastc;
  * \return This function will always return UIP_FW_OK.
  */
 /*-----------------------------------------------------------------------------------*/
-u8_t
+uint8_t
 slipdev_send(void)
 {
-  u16_t i;
-  u8_t *ptr;
-  u8_t c;
+  uint16_t i;
+  uint8_t *ptr;
+  uint8_t c;
 
   slipdev_char_put(SLIP_END);
 
@@ -140,10 +140,10 @@ slipdev_send(void)
  * zero if no packet is available.
  */
 /*-----------------------------------------------------------------------------------*/
-u16_t
+uint16_t
 slipdev_poll(void)
 {
-  u8_t c;
+  uint8_t c;
   
   while(slipdev_char_poll(&c)) {
     switch(c) {

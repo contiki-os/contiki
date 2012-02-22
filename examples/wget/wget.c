@@ -236,7 +236,7 @@ webclient_connected(void)
  * has arrived.
  */
 void
-webclient_datahandler(char *data, u16_t len)
+webclient_datahandler(char *data, uint16_t len)
 {
   static unsigned long dload_bytes;
   int ret;

@@ -41,14 +41,14 @@
 #include "httpd-fsdata.c"
 
 #if HTTPD_FS_STATISTICS
-static u16_t count[HTTPD_FS_NUMFILES];
+static uint16_t count[HTTPD_FS_NUMFILES];
 #endif /* HTTPD_FS_STATISTICS */
 
 /*-----------------------------------------------------------------------------------*/
-static u8_t
+static uint8_t
 httpd_fs_strcmp(const char *str1, const char *str2)
 {
-  u8_t i;
+  uint8_t i;
   i = 0;
 
 loop:
@@ -70,7 +70,7 @@ int
 httpd_fs_open(const char *name, struct httpd_fs_file *file)
 {
 #if HTTPD_FS_STATISTICS
-  u16_t i = 0;
+  uint16_t i = 0;
 #endif /* HTTPD_FS_STATISTICS */
   struct httpd_fsdata_file_noconst *f;
 
@@ -98,7 +98,7 @@ void
 httpd_fs_init(void)
 {
 #if HTTPD_FS_STATISTICS
-  u16_t i;
+  uint16_t i;
   for(i = 0; i < HTTPD_FS_NUMFILES; i++) {
     count[i] = 0;
   }
@@ -106,11 +106,11 @@ httpd_fs_init(void)
 }
 /*-----------------------------------------------------------------------------------*/
 #if HTTPD_FS_STATISTICS
-u16_t
+uint16_t
 httpd_fs_count(char *name)
 {
   struct httpd_fsdata_file_noconst *f;
-  u16_t i;
+  uint16_t i;
 
   i = 0;
   for(f = (struct httpd_fsdata_file_noconst *)HTTPD_FS_ROOT;

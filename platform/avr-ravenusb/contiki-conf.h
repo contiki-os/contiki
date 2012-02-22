@@ -58,6 +58,7 @@
 #include <stdint.h>
 #include <string.h>
 
+/* These names are deprecated, use C99 names. */
 typedef int32_t  s32_t;
 typedef unsigned char u8_t;
 typedef unsigned short u16_t;
@@ -391,7 +392,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define RF230_MAX_TX_POWER 15
 #define RF230_MIN_RX_POWER 30
  */
-
+#define RPL_CONF_ADJUST_LLH_LEN     1
 #define UIP_CONF_ROUTER             1
 #define UIP_CONF_ND6_SEND_RA        0
 #define UIP_CONF_ND6_REACHABLE_TIME 600000

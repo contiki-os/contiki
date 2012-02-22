@@ -77,7 +77,7 @@ AUTOSTART_PROCESSES(&dhcp_process);
 
 /*-----------------------------------------------------------------------------------*/
 static char *
-makebyte(u8_t byte, char *str)
+makebyte(uint8_t byte, char *str)
 {
   if(byte >= 100) {
     *str++ = (byte / 100 ) % 10 + '0';

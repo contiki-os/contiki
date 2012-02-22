@@ -191,7 +191,7 @@ shell_wget_init(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-webclient_datahandler(char *data, u16_t len)
+webclient_datahandler(char *data, uint16_t len)
 {
   if(len == 0) {
     running = 0;

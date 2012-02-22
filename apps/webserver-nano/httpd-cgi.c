@@ -30,7 +30,6 @@
  *
  *
  */
-/* Line endings in git repository are LF instead of CR-LF ? */
 /*
  * This file includes functions that are called by the web server
  * scripts. The functions takes no argument, and the return value is
@@ -185,19 +184,38 @@ static unsigned short
 generate_header(void *arg)
 {
   unsigned short numprinted=0;
+
 #if WEBSERVER_CONF_HEADER_W3C
 #define _MSS1 100
   static const char httpd_cgi_headerw[] HTTPD_STRING_ATTR = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_headerw);
 #endif
+
 #if WEBSERVER_CONF_HEADER_ICON
 #define _MSS2 105
-  static const char httpd_cgi_header1[] HTTPD_STRING_ATTR = "<html><head><title>Contiki-nano</title><link rel=\"icon\" href=\"favicon.gif\" type=\"image/gif\"></head><body>";
+#ifdef WEBSERVER_CONF_PAGETITLE
+  static const char httpd_cgi_header1[] HTTPD_STRING_ATTR = "<html><head><title>%s</title><link rel=\"icon\" href=\"favicon.gif\" type=\"image/gif\"></head><body>";
+#else
+  static const char httpd_cgi_header1[] HTTPD_STRING_ATTR = "<html><head><title>Contiki-Nano</title><link rel=\"icon\" href=\"favicon.gif\" type=\"image/gif\"></head><body>";
+#endif
 #else
 #define _MSS2 52
-  static const char httpd_cgi_header1[] HTTPD_STRING_ATTR = "<html><head><title>Contiki-nano</title></head><body>";
+#ifdef WEBSERVER_CONF_PAGETITLE
+  static const char httpd_cgi_header1[] HTTPD_STRING_ATTR = "<html><head><title>%s</title></head><body>";
+#else
+  static const char httpd_cgi_header1[] HTTPD_STRING_ATTR = "<html><head><title>Contiki-Nano</title></head><body>";
 #endif
+#endif
+
+#ifdef WEBSERVER_CONF_PAGETITLE
+#define WAD ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])->destipaddr.u8
+{  char buf[40];
+    WEBSERVER_CONF_PAGETITLE;
+    numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_header1,buf);
+}
+#else
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_header1);
+#endif
 
 #if WEBSERVER_CONF_HEADER_MENU
 #define _MSS3 32
@@ -273,7 +291,7 @@ generate_file_stats(void *arg)
   static const char httpd_cgi_filestat3[] HTTPD_STRING_ATTR = "%5u";
   char tmp[20];
   struct httpd_fsdata_file_noconst *f,fram;
-  u16_t i;
+  uint16_t i;
   unsigned short numprinted;
   /* Transfer arg from whichever flash that contains the html file to RAM */
   httpd_fs_cpy(&tmp, s->u.ptr, 20);
@@ -538,7 +556,7 @@ generate_sensor_readings(void *arg)
   static const char httpd_cgi_sensor2[] HTTPD_STRING_ATTR = "<em>Battery    :</em> %s\n";
 //  static const char httpd_cgi_sensr12[] HTTPD_STRING_ATTR = "<em>Temperature:</em> %s   <em>Battery:</em> %s<br>";
   static const char httpd_cgi_sensor3[] HTTPD_STRING_ATTR = "<em>Uptime     :</em> %02d:%02d:%02d\n";
-  static const char httpd_cgi_sensor3d[] HTTPD_STRING_ATTR = "<em>Uptime    :</em> %u days %02u:%02u:%02u/n";
+  static const char httpd_cgi_sensor3d[] HTTPD_STRING_ATTR = "<em>Uptime    :</em> %u days %02u:%02u:%02u\n";
 // static const char httpd_cgi_sensor4[] HTTPD_STRING_ATTR = "<em>Sleeping time :</em> %02d:%02d:%02d (%d%%)<br>";
 
   numprinted=0;
@@ -624,7 +642,17 @@ uint8_t c;
     numprinted =httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_sensor0,(unsigned int) (seconds-last_tempupdate));
   }
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor1, sensor_temperature);
+#if CONTIKI_TARGET_REDBEE_ECONOTAG
+/* Econotag at 3v55 with 10 ohms to LiFePO4 battery:  3680mv usb 3106 battery (meter 3.08). Take 3500 as breakpoint for USB connected */
+    static const char httpd_cgi_sensor2u[] HTTPD_STRING_ATTR = "<em>Vcc (USB)  :</em> %s\n";
+    if(adc_reading[8]<1404) {
+        numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2u, sensor_extvoltage);
+    } else {
+        numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
+    }
+#else
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
+#endif
 //   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensr12, sensor_temperature,sensor_extvoltage);
 
 #if RADIOSTATS
