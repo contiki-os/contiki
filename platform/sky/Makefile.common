@@ -43,7 +43,7 @@ NUMPAR=20
 IHEXFILE=tmpimage.ihex
 
 # Check if we are running under Windows
-
+ifeq ($(HOST_OS),Windows)
   USBDEVPREFIX=/dev/com
   SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-windows
   MOTELIST = $(CONTIKI)/tools/sky/motelist-windows
