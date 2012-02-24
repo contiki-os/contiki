@@ -23,7 +23,9 @@ endif
 
 ifndef HOST_OS
   ifeq ($(OS),Windows_NT)
-    $(warning Windows (NT) deteced.)
+  ## TODO: detect more specific Windows set-ups,
+  ## e.g. CygWin, MingW, VisualC, Watcom, Interix
+    $(warning Windows (NT) detected.)
     HOST_OS := Windows
   else
     HOST_OS := $(shell uname)
