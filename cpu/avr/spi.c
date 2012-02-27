@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: spi.c,v 1.1 2007/01/25 18:22:55 bg- Exp $
  */
 
 #include <avr/io.h>
@@ -48,11 +47,6 @@ unsigned char spi_busy = 0;
 void
 spi_init(void)
 {
-  static unsigned char spi_inited = 0;
-
-  if (spi_inited)
-    return;
-
   /* Initalize ports for communication with SPI units. */
   /* CSN=SS and must be output when master! */
   DDRB  |= BV(MOSI) | BV(SCK) | BV(CSN);
