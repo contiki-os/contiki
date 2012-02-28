@@ -40,7 +40,12 @@
 
 static void *main_fiber;
 
-#elif defined(__linux)
+#elif defined(__linux) || defined(__APPLE__)
+
+#ifdef __APPLE__
+/* Avoid deprecated error on Darwin */
+#define _XOPEN_SOURCE
+#endif
 
 #include <stdlib.h>
 #include <signal.h>
