@@ -127,7 +127,7 @@ ifconf(const char *tundev, const char *ipaddr)
 #ifdef linux
   ssystem("ifconfig %s inet6 `hostname` up", tundev);
   ssystem("ifconfig %s add %s", tundev, ipaddr);
-#elif defined(__MACH__)
+#elif defined(__APPLE__)
   ssystem("ifconfig %s inet6 %s up", tundev, ipaddr);
   ssystem("sysctl -w net.inet.ip.forwarding=1");
 #else
