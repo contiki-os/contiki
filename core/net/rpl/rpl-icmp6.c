@@ -445,9 +445,8 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
   buffer[pos++] = instance->dtsn_out;
 
-  if(RPL_LOLLIPOP_IS_INIT(instance->dtsn_out)) {
-    RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
-  }
+  /* always request new DAO to refresh route */
+  RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
 
   /* reserved 2 bytes */
   buffer[pos++] = 0; /* flags */
