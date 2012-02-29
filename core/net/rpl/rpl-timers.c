@@ -225,8 +225,8 @@ rpl_schedule_dao(rpl_instance_t *instance)
   if(!etimer_expired(&instance->dao_timer.etimer)) {
     PRINTF("RPL: DAO timer already scheduled\n");
   } else {
-    expiration_time = DEFAULT_DAO_LATENCY / 2 +
-      (random_rand() % (DEFAULT_DAO_LATENCY));
+    expiration_time = RPL_DAO_LATENCY / 2 +
+      (random_rand() % (RPL_DAO_LATENCY));
     PRINTF("RPL: Scheduling DAO timer %u ticks in the future\n",
            (unsigned)expiration_time);
     ctimer_set(&instance->dao_timer, expiration_time,
