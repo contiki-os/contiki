@@ -36,6 +36,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.PrintStream;
+
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -43,6 +45,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
@@ -51,7 +54,9 @@ import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.mspmote.MspMote;
+import se.sics.mspsim.cli.CommandContext;
 import se.sics.mspsim.cli.LineListener;
+import se.sics.mspsim.cli.LineOutputStream;
 
 @ClassDescription("Msp CLI")
 @PluginType(PluginType.MOTE_PLUGIN)
@@ -66,8 +71,6 @@ public class MspCLI extends VisPlugin implements MotePlugin {
   private int historyPos = 0;
   private int historyCount = 0;
 
-  private LineListener myListener;
-
   public MspCLI(Mote mote, Simulation simulationToVisualize, GUI gui) {
     super("Msp CLI (" + mote.getID() + ')', gui);
     this.mspMote = (MspMote) mote;
@@ -79,20 +82,27 @@ public class MspCLI extends VisPlugin implements MotePlugin {
     logArea.setEditable(false);
     panel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
+    LineListener lineListener = new LineListener() {
+      public void lineRead(String line) {
+        addCLIData(line);
+      }
+    };
+    PrintStream po = new PrintStream(new LineOutputStream(lineListener));
+    final CommandContext commandContext = new CommandContext(mspMote.getCLICommandHandler(), null, "", new String[0], 1, null);
+    commandContext.out = po;
+    commandContext.err = po;
+
     JPopupMenu popupMenu = new JPopupMenu();
     JMenuItem clearItem = new JMenuItem("Clear");
     clearItem.addActionListener(new ActionListener() {
-
       public void actionPerformed(ActionEvent e) {
         logArea.setText("");
       }
-
     });
     popupMenu.add(clearItem);
     logArea.setComponentPopupMenu(popupMenu);
 
     ActionListener action = new ActionListener() {
-
       public void actionPerformed(ActionEvent e) {
         String command = trim(commandField.getText());
         if (command != null) {
@@ -107,15 +117,16 @@ public class MspCLI extends VisPlugin implements MotePlugin {
             }
             historyPos = historyCount;
             addCLIData("> " + command);
-            mspMote.sendCLICommand(command);
+
+            mspMote.executeCLICommand(command, commandContext);
             commandField.setText("");
           } catch (Exception ex) {
             System.err.println("could not send '" + command + "':");
             ex.printStackTrace();
             JOptionPane.showMessageDialog(panel,
-                                          "could not send '" + command + "':\n"
-                                          + ex, "ERROR",
-                                          JOptionPane.ERROR_MESSAGE);
+                "could not send '" + command + "':\n"
+                + ex, "ERROR",
+                JOptionPane.ERROR_MESSAGE);
           }
         } else {
           commandField.getToolkit().beep();
@@ -166,19 +177,9 @@ public class MspCLI extends VisPlugin implements MotePlugin {
 
     });
     panel.add(commandField, BorderLayout.SOUTH);
-
-    myListener = new LineListener() {
-      public void lineRead(String line) {
-        addCLIData(line);
-      }
-    };
-    mspMote.addCLIListener(myListener);
   }
 
   public void closePlugin() {
-    if (myListener != null) {
-      mspMote.addCLIListener(null);
-    }
   }
 
   public void addCLIData(final String text) {
@@ -199,7 +200,7 @@ public class MspCLI extends VisPlugin implements MotePlugin {
   private String trim(String text) {
     return (text != null) && ((text = text.trim()).length() > 0) ? text : null;
   }
-  
+
   public Mote getMote() {
     return mspMote;
   }
