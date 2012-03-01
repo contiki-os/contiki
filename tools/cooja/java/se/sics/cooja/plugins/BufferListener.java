@@ -335,14 +335,17 @@ public class BufferListener extends VisPlugin {
         java.awt.Point p = e.getPoint();
         int rowIndex = rowAtPoint(p);
         int colIndex = columnAtPoint(p);
-        int columnIndex = convertColumnIndexToModel(colIndex);
-        if (rowIndex < 0 || columnIndex < 0) {
+        if (rowIndex < 0 || colIndex < 0) {
+          return super.getToolTipText(e);
+        }
+        int row = convertRowIndexToModel(rowIndex);
+        int column = convertColumnIndexToModel(colIndex);
+        if (row < 0 || column < 0) {
           return super.getToolTipText(e);
         }
         
-        Object v = getValueAt(rowIndex, columnIndex);
-        if (columnIndex == COLUMN_SOURCE) {
-          BufferAccess ba = logs.get(rowIndex);
+        if (column == COLUMN_SOURCE) {
+          BufferAccess ba = logs.get(row);
           if (ba.stackTrace != null) {
             return
             "<html><pre>" +
@@ -351,24 +354,25 @@ public class BufferListener extends VisPlugin {
           }
           return "No stack trace (enable in popup menu)";
         }
-        if (v instanceof BufferAccess && parser instanceof GraphicalParser) {
-          return
-          "<html><font face=\"Verdana\">" + 
-          StringUtils.hexDump(((BufferAccess)v).mem, 4, 4).replaceAll("\n", "<br>") + 
-          "</html>";
-        }
-        if (v != null) {
-          String t = v.toString();
-          if (t.length() > 60) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("<html>");
-            do {
-              sb.append(t.substring(0, 60)).append("<br>");
-              t = t.substring(60);
-            } while (t.length() > 60);
-            return sb.append(t).append("</html>").toString();
+        if (column == COLUMN_DATA) {
+          BufferAccess ba = logs.get(row);
+          if (parser instanceof GraphicalParser) {
+            return
+            "<html><pre>" +
+            StringUtils.hexDump(ba.mem, 4, 4) +
+            "</pre></html>";
           }
+          
+          String baString = ba.getParsedString();
+          StringBuilder sb = new StringBuilder();
+          sb.append("<html>");
+          while (baString.length() > 60) {
+            sb.append(baString.substring(0, 60)).append("<br>");
+            baString = baString.substring(60);
+          };
+          return sb.append(baString).append("</html>").toString();
         }
+
         return super.getToolTipText(e);
       }
     };
