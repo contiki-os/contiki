@@ -198,6 +198,9 @@ public class BufferListener extends VisPlugin {
   private boolean hideReads = true;
   private JCheckBoxMenuItem hideReadsCheckbox;
   
+  private boolean withStackTrace = false;
+  private JCheckBoxMenuItem withStackTraceCheckbox;
+  
   private JMenu parserMenu = new JMenu("Parser");
   private JMenu bufferMenu = new JMenu("Buffer");
   
@@ -336,7 +339,18 @@ public class BufferListener extends VisPlugin {
         if (rowIndex < 0 || columnIndex < 0) {
           return super.getToolTipText(e);
         }
+        
         Object v = getValueAt(rowIndex, columnIndex);
+        if (columnIndex == COLUMN_SOURCE) {
+          BufferAccess ba = logs.get(rowIndex);
+          if (ba.stackTrace != null) {
+            return
+            "<html><pre>" +
+            ba.stackTrace +
+            "</pre></html>";
+          }
+          return "No stack trace (enable in popup menu)";
+        }
         if (v instanceof BufferAccess && parser instanceof GraphicalParser) {
           return
           "<html><font face=\"Verdana\">" + 
@@ -493,6 +507,7 @@ public class BufferListener extends VisPlugin {
     /* Automatically update column widths */
     final TableColumnAdjuster adjuster = new TableColumnAdjuster(logTable, 0);
     adjuster.packColumns();
+    logTable.getColumnModel().getColumn(COLUMN_DATA).setWidth(400);
 
     /* Popup menu */
     JPopupMenu popupMenu = new JPopupMenu();
@@ -555,7 +570,7 @@ public class BufferListener extends VisPlugin {
         repaint();
       }
     });
-    hideReadsCheckbox = new JCheckBoxMenuItem("Hide READs", true);
+    hideReadsCheckbox = new JCheckBoxMenuItem("Hide READs", hideReads);
     popupMenu.add(hideReadsCheckbox);
     hideReadsCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -565,7 +580,16 @@ public class BufferListener extends VisPlugin {
       }
     });
 
-
+    withStackTraceCheckbox = new JCheckBoxMenuItem("Capture stack traces", withStackTrace);
+    popupMenu.add(withStackTraceCheckbox);
+    withStackTraceCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        withStackTrace = withStackTraceCheckbox.isSelected();
+        setFilter(getFilter());
+        repaint();
+      }
+    });
+    
     logTable.setComponentPopupMenu(popupMenu);
 
     /* Column width adjustment */
@@ -573,6 +597,7 @@ public class BufferListener extends VisPlugin {
       public void run() {
         /* Make sure this happens *after* adding history */
         adjuster.setDynamicAdjustment(true);
+        adjuster.setAdjustColumn(COLUMN_DATA, false);
       }
     });
 
@@ -775,6 +800,10 @@ public class BufferListener extends VisPlugin {
       element = new Element("showreads");
       config.add(element);
     }
+    if (withStackTrace) {
+      element = new Element("stacktrace");
+      config.add(element);
+    }
     element = new Element("parser");
     element.setText(parser.getClass().getName());
     config.add(element);
@@ -815,6 +844,9 @@ public class BufferListener extends VisPlugin {
       } else if ("showreads".equals(name)) {
         hideReads = false;
         hideReadsCheckbox.setSelected(false);
+      } else if ("stacktrace".equals(name)) {
+        withStackTrace = true;
+        withStackTraceCheckbox.setSelected(true);
       } else if ("formatted_time".equals(name)) {
         formatTimeString = true;
         repaintTimeColumn();
@@ -928,6 +960,7 @@ public class BufferListener extends VisPlugin {
     
     public final String typeStr;
     public final String sourceStr;
+    public final String stackTrace;
     public final byte[] mem;
     
     private boolean[] accessedBitpattern = null;
@@ -970,6 +1003,11 @@ public class BufferListener extends VisPlugin {
       typeStr = type.toString();
       String s = mote.getPCString();
       sourceStr = s==null?"[unknown]":s;
+      if (withStackTrace) {
+        this.stackTrace = mote.getStackTrace();
+      } else {
+        this.stackTrace = null;
+      }
     }
 
     public Object getParsedData() {
@@ -1285,8 +1323,7 @@ public class BufferListener extends VisPlugin {
     }
     
     parser = bp;
-    logTable.getColumnModel().getColumn(COLUMN_DATA).setHeaderValue(
-        GUI.getDescriptionOf(bp));
+    logTable.getColumnModel().getColumn(COLUMN_DATA).setHeaderValue(GUI.getDescriptionOf(bp));
 
     repaint();
   }
