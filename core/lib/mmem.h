@@ -86,6 +86,7 @@ struct mmem {
 int  mmem_alloc(struct mmem *m, unsigned int size);
 void mmem_free(struct mmem *);
 void mmem_init(void);
+int mmem_realloc(struct mmem *mem, unsigned int size);
 
 #endif /* MMEM_H_ */
 
