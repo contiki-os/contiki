@@ -283,7 +283,7 @@ generate_file_stats(void *arg)
 {
   struct httpd_state *s = (struct httpd_state *)arg;
 #if WEBSERVER_CONF_LOADTIME
-  static const char httpd_cgi_filestat1[] HTTPD_STRING_ATTR = "<p align=\"right\"><br><br><i>This page has been sent %u times (%1u.%u sec)</i></body></html>";
+  static const char httpd_cgi_filestat1[] HTTPD_STRING_ATTR = "<p align=\"right\"><br><br><i>This page has been sent %u times (%1u.%02u sec)</i></body></html>";
 #else
   static const char httpd_cgi_filestat1[] HTTPD_STRING_ATTR = "<p align=\"right\"><br><br><i>This page has been sent %u times</i></body></html>";
 #endif
@@ -301,7 +301,7 @@ generate_file_stats(void *arg)
 #if WEBSERVER_CONF_LOADTIME
     s->pagetime = clock_time() - s->pagetime;
     numprinted=httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_filestat1, httpd_fs_open(s->filename, 0), 
-            (unsigned int)s->pagetime/CLOCK_SECOND,(unsigned int)s->pagetime%CLOCK_SECOND);
+            (unsigned int)s->pagetime/CLOCK_SECOND,(100*((unsigned int)s->pagetime%CLOCK_SECOND))/CLOCK_SECOND);
 #else
     numprinted=httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_filestat1, httpd_fs_open(s->filename, 0));
 #endif
@@ -433,10 +433,12 @@ PT_THREAD(processes(struct httpd_state *s, char *ptr))
 #endif /* WEBSERVER_CONF_PROCESSES */
 
 #if WEBSERVER_CONF_ADDRESSES || WEBSERVER_CONF_NEIGHBORS || WEBSERVER_CONF_ROUTES
-static const char httpd_cgi_addrh[] HTTPD_STRING_ATTR = "<code>";
-static const char httpd_cgi_addrf[] HTTPD_STRING_ATTR = "</code>[Room for %u more]";
-static const char httpd_cgi_addrb[] HTTPD_STRING_ATTR = "<br>";
-static const char httpd_cgi_addrn[] HTTPD_STRING_ATTR = "(none)<br>";
+#if WEBSERVER_CONF_SHOW_ROOM
+static const char httpd_cgi_addrf[] HTTPD_STRING_ATTR = "[Room for %u more]\n";
+#else
+static const char httpd_cgi_addrf[] HTTPD_STRING_ATTR = "[Table is full]\n";
+#endif
+static const char httpd_cgi_addrn[] HTTPD_STRING_ATTR = "[None]\n";
 #endif
 
 #if WEBSERVER_CONF_ADDRESSES
@@ -447,16 +449,21 @@ static unsigned short
 make_addresses(void *p)
 {
 uint8_t i,j=0;
-uint16_t numprinted;
-  numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
+uint16_t numprinted = 0;
   for (i=0; i<UIP_DS6_ADDR_NB;i++) {
     if (uip_ds6_if.addr_list[i].isused) {
       j++;
       numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, uip_appdata + numprinted);
-      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb); 
+      *((char *)uip_appdata+numprinted++) = '\n';
     }
   }
-  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf, UIP_DS6_ADDR_NB-j); 
+#if WEBSERVER_CONF_SHOW_ROOM
+  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf, UIP_DS6_ADDR_NB-j);
+#else
+  if(UIP_DS6_ADDR_NB == j) {
+    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf);
+  }
+#endif
   return numprinted;
 }
 /*---------------------------------------------------------------------------*/
@@ -477,17 +484,55 @@ extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 static unsigned short
 make_neighbors(void *p)
 {
-uint8_t i,j=0;
-uint16_t numprinted;
-  numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
-  for (i=0; i<UIP_DS6_NBR_NB;i++) {
+uint8_t i,j;
+uint16_t numprinted=0;
+struct httpd_state *s=p;
+  /* Span generator calls over tcp segments */
+  /* Note retransmissions will execute thise code multiple times for a segment */
+  i=s->starti;j=s->startj;
+  for (;i<UIP_DS6_NBR_NB;i++) {
     if (uip_ds6_nbr_cache[i].isused) {
       j++;
+
+#if WEBSERVER_CONF_NEIGHBOR_STATUS
+static const char httpd_cgi_nbrs1[] HTTPD_STRING_ATTR = " INCOMPLETE";
+static const char httpd_cgi_nbrs2[] HTTPD_STRING_ATTR = " REACHABLE";
+static const char httpd_cgi_nbrs3[] HTTPD_STRING_ATTR = " STALE";
+static const char httpd_cgi_nbrs4[] HTTPD_STRING_ATTR = " DELAY";
+static const char httpd_cgi_nbrs5[] HTTPD_STRING_ATTR = " NBR_PROBE";
+{uint16_t k=numprinted+25;
       numprinted += httpd_cgi_sprint_ip6(uip_ds6_nbr_cache[i].ipaddr, uip_appdata + numprinted);
-      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb); 
+      while (numprinted < k) {*((char *)uip_appdata+numprinted++) = ' ';}
+      switch (uip_ds6_nbr_cache[i].state) {
+      case NBR_INCOMPLETE: numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs1);break;
+      case NBR_REACHABLE:  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs2);break;
+      case NBR_STALE:      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs3);break;  
+      case NBR_DELAY:      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs4);break;
+      case NBR_PROBE:      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs5);break;
+      }
+}
+#else
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_nbr_cache[i].ipaddr, uip_appdata + numprinted);
+#endif
+	  *((char *)uip_appdata+numprinted++) = '\n';
+
+	  /* If buffer near full, send it and wait for the next call. Could be a retransmission, or the next segment */
+	  if(numprinted > (uip_mss() - 50)) {
+		s->savei=i;s->savej=j;
+	    return numprinted;
+	  }
     }
   }
-  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,UIP_DS6_NBR_NB-j);
+#if WEBSERVER_CONF_SHOW_ROOM
+    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,UIP_DS6_NBR_NB-j);
+#else
+  if(UIP_DS6_NBR_NB == j) {
+  	numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf);
+  }
+#endif
+
+  /* Signal that this was the last segment */
+  s->savei = 0;  
   return numprinted;
 }
 /*---------------------------------------------------------------------------*/
@@ -496,7 +541,13 @@ PT_THREAD(neighbors(struct httpd_state *s, char *ptr))
 {
   PSOCK_BEGIN(&s->sout);
 
-  PSOCK_GENERATOR_SEND(&s->sout, make_neighbors, s->u.ptr);  
+  /* Send as many TCP segments as needed for the neighbor table */
+  /* Move to next seqment after each successful transmission */
+  s->starti=s->startj=0;
+  do {
+	PSOCK_GENERATOR_SEND(&s->sout, make_neighbors, (void *)s);
+	s->starti=s->savei+1;s->startj=s->savej;
+  } while(s->savei);  
   
   PSOCK_END(&s->sout);
 }
@@ -508,27 +559,57 @@ extern uip_ds6_route_t uip_ds6_routing_table[];
 static unsigned short
 make_routes(void *p)
 {
-static const char httpd_cgi_rtes1[] HTTPD_STRING_ATTR = "(%u (via ";
-static const char httpd_cgi_rtes2[] HTTPD_STRING_ATTR = ") %lus<br>";
-static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")<br>";
-uint8_t i,j=0;
-uint16_t numprinted;
-  numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
-  for (i=0; i<UIP_DS6_ROUTE_NB;i++) {
+static const char httpd_cgi_rtes1[] HTTPD_STRING_ATTR = "/%u (via ";
+static const char httpd_cgi_rtes2[] HTTPD_STRING_ATTR = ") %lus\n";
+static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")\n";
+uint8_t i,j;
+uint16_t numprinted=0;
+struct httpd_state *s=p;
+  /* Span generator calls over tcp segments */
+  /* Note retransmissions will execute thise code multiple times for a segment */
+  i=s->starti;j=s->startj;
+  for (;i<UIP_DS6_ROUTE_NB;i++) {
     if (uip_ds6_routing_table[i].isused) {
       j++;
+
+#if WEBSERVER_CONF_ROUTE_LINKS
+static const char httpd_cgi_rtesl1[] HTTPD_STRING_ATTR = "<a href=http://[";
+static const char httpd_cgi_rtesl2[] HTTPD_STRING_ATTR = "]/status.shtml>";
+static const char httpd_cgi_rtesl3[] HTTPD_STRING_ATTR = "</a>";
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl1);
       numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl2);
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl3);
+#else
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+#endif
+
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, uip_ds6_routing_table[i].length);
       numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].nexthop, uip_appdata + numprinted);
-      if(uip_ds6_routing_table[i].state.lifetime < 3600) {
+      if(1 || uip_ds6_routing_table[i].state.lifetime < 3600) {
          numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, (long unsigned int)uip_ds6_routing_table[i].state.lifetime);
       } else {
          numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
       }
+      /* If buffer nearly full, send it and wait for the next call. Could be a retransmission, or the next segment */
+      if(numprinted > (uip_mss() - 200)) {
+        s->savei=i;s->savej=j;
+        return numprinted;
+      }
     }
   }
   if (j==0) numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrn);
-  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,UIP_DS6_ROUTE_NB-j);
+#if WEBSERVER_CONF_SHOW_ROOM
+    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,UIP_DS6_ROUTE_NB-j);
+#else
+  if(UIP_DS6_ROUTE_NB == j) {
+    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf);
+  }
+#endif
+
+  /* Signal that this was the last segment */
+  s->savei = 0;
   return numprinted;
 }
 /*---------------------------------------------------------------------------*/
@@ -536,8 +617,14 @@ static
 PT_THREAD(routes(struct httpd_state *s, char *ptr))
 {
   PSOCK_BEGIN(&s->sout);
- 
-  PSOCK_GENERATOR_SEND(&s->sout, make_routes, s->u.ptr); 
+
+  /* Send as many TCP segments as needed for the route table */
+  /* Move to next seqment after each successful transmission */
+  s->starti=s->startj=0;
+  do {
+    PSOCK_GENERATOR_SEND(&s->sout, make_routes, s);
+    s->starti=s->savei+1;s->startj=s->savej;
+  } while(s->savei);
  
   PSOCK_END(&s->sout);
 }
@@ -548,18 +635,15 @@ PT_THREAD(routes(struct httpd_state *s, char *ptr))
 static unsigned short
 generate_sensor_readings(void *arg)
 {
-  uint16_t numprinted;
+  uint16_t numprinted=0;
   uint16_t days,h,m,s;
   unsigned long seconds=clock_seconds();
-  static const char httpd_cgi_sensor0[] HTTPD_STRING_ATTR = "[Updated %d seconds ago]<br><br>";
-  static const char httpd_cgi_sensor1[] HTTPD_STRING_ATTR = "<pre><em>Temperature:</em> %s\n";
+  static const char httpd_cgi_sensor0[] HTTPD_STRING_ATTR = "[Updated %d seconds ago]\n";
+  static const char httpd_cgi_sensor1[] HTTPD_STRING_ATTR = "<em>Temperature:</em> %s\n";
   static const char httpd_cgi_sensor2[] HTTPD_STRING_ATTR = "<em>Battery    :</em> %s\n";
-//  static const char httpd_cgi_sensr12[] HTTPD_STRING_ATTR = "<em>Temperature:</em> %s   <em>Battery:</em> %s<br>";
   static const char httpd_cgi_sensor3[] HTTPD_STRING_ATTR = "<em>Uptime     :</em> %02d:%02d:%02d\n";
   static const char httpd_cgi_sensor3d[] HTTPD_STRING_ATTR = "<em>Uptime    :</em> %u days %02u:%02u:%02u\n";
-// static const char httpd_cgi_sensor4[] HTTPD_STRING_ATTR = "<em>Sleeping time :</em> %02d:%02d:%02d (%d%%)<br>";
 
-  numprinted=0;
   /* Generate temperature and voltage strings for each platform */
 #if CONTIKI_TARGET_AVR_ATMEGA128RFA1  
 {uint8_t i;
@@ -623,29 +707,36 @@ generate_sensor_readings(void *arg)
 #elif CONTIKI_TARGET_REDBEE_ECONOTAG
 //#include "adc.h"
 {
+#if 0
+/* Scan ADC channels if not already being done elsewhere */
 uint8_t c;
-		adc_reading[8]=0;
-		adc_init();
-		while (adc_reading[8]==0) adc_service();
-	//	for (c=0; c<NUM_ADC_CHAN; c++) printf("%u %04u\r\n", c, adc_reading[c]);
-		adc_disable();
-		snprintf(sensor_extvoltage, sizeof(sensor_extvoltage),"%u mV",1200*0xfff/adc_reading[8]);
+  adc_reading[8]=0;
+  adc_init();
+  while (adc_reading[8]==0) adc_service();
+//for (c=0; c<NUM_ADC_CHAN; c++) printf("%u %04u\r\n", c, adc_reading[c]);
+  adc_disable();
+#endif
 
-		static const char httpd_cgi_sensorv[] HTTPD_STRING_ATTR = "<em>ADC chans  :</em> %u %u %u %u %u %u %u %u \n";
-	    numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensorv,
-		    adc_reading[0],adc_reading[1],adc_reading[2],adc_reading[3],adc_reading[4],adc_reading[5],adc_reading[6],adc_reading[7]);
+  snprintf(sensor_extvoltage, sizeof(sensor_extvoltage),"%u mV",1200*0xfff/adc_reading[8]);
+
+  static const char httpd_cgi_sensorv[] HTTPD_STRING_ATTR = "<em>ADC chans  :</em> %u %u %u %u %u %u %u %u \n";
+  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensorv,
+  adc_reading[0],adc_reading[1],adc_reading[2],adc_reading[3],adc_reading[4],adc_reading[5],adc_reading[6],adc_reading[7]);
 
 }
 #endif
- 
+
   if (last_tempupdate) {
     numprinted =httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_sensor0,(unsigned int) (seconds-last_tempupdate));
   }
-  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor1, sensor_temperature);
+  if (sensor_temperature[0]!='N') {
+    numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor1, sensor_temperature);
+  }
+
 #if CONTIKI_TARGET_REDBEE_ECONOTAG
-/* Econotag at 3v55 with 10 ohms to LiFePO4 battery:  3680mv usb 3106 battery (meter 3.08). Take 3500 as breakpoint for USB connected */
+/* Econotag at 3v55 with 10 ohms to LiFePO4 battery:  3680mv usb 3573 2 Fresh alkaline AAs. Take 3590 as threshold for USB connected */
     static const char httpd_cgi_sensor2u[] HTTPD_STRING_ATTR = "<em>Vcc (USB)  :</em> %s\n";
-    if(adc_reading[8]<1404) {
+    if(adc_reading[8]<1368) {
         numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2u, sensor_extvoltage);
     } else {
         numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
@@ -653,7 +744,6 @@ uint8_t c;
 #else
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
 #endif
-//   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensr12, sensor_temperature,sensor_extvoltage);
 
 #if RADIOSTATS
   /* Remember radioontime for display below - slow connection might make it report longer than cpu ontime! */
@@ -667,14 +757,20 @@ uint8_t c;
   	h=h-days*24;	
 	numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor3d, days,h,m,s);
   }
-	
-#if 0
-  if (sleepseconds) {
-	uint8_t p1;
-	p1=100UL*sleepseconds/seconds;h=sleepseconds/3600;s=sleepseconds-h*3600;m=s/60;s=s-m*60;
-    numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor4, h,m,s,p1);
-  }
-#endif
+  return numprinted;
+}
+#if WEBSERVER_CONF_STATISTICS
+/*---------------------------------------------------------------------------*/
+static unsigned short
+generate_stats(void *arg)
+{
+  uint16_t numprinted;
+  uint16_t h,m,s;
+  uint8_t p1,p2;
+  uint32_t seconds=clock_seconds();
+  
+  static const char httpd_cgi_stats[] HTTPD_STRING_ATTR = "\n<big><b>Statistics</b></big>\n";
+  numprinted=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_stats);
 
 #if ENERGEST_CONF_ON
 {uint8_t p1,p2;
@@ -733,23 +829,11 @@ uint8_t c;
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor21,
 		rimestats.tx,rimestats.rx,rimestats.lltx-rimestats.tx,rimestats.llrx-rimestats.rx);
 #endif
-  static const char httpd_cgi_sensor99[] HTTPD_STRING_ATTR = "</pre>";
-  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor99);
 
-  return numprinted;
-
-}
 #if RADIOSTATS
-/*---------------------------------------------------------------------------*/
-static unsigned short
-generate_radio_stats(void *arg)
-{
-  uint16_t numprinted;
-  uint16_t h,m,s;
-  uint8_t p1,p2;
-  unsigned long seconds=clock_seconds();
-  static const char httpd_cgi_sensor10[] HTTPD_STRING_ATTR = "<em>Radio on time  :</em> %02d:%02d:%02d (%d.%02d%%)<br>";
-  static const char httpd_cgi_sensor11[] HTTPD_STRING_ATTR = "<em>Packets:</em> Tx=%5d Rx=%5d  TxL=%5d RxL=%5d RSSI=%2ddBm\n";
+  /* From RF230 statistics */
+  static const char httpd_cgi_sensor10[] HTTPD_STRING_ATTR = "<em>Radio on  (RF230BB)  :</em> %02d:%02d:%02d (%d.%02d%%)\n";
+  static const char httpd_cgi_sensor11[] HTTPD_STRING_ATTR = "<em>Packets:  (RF230BB)  :</em> Tx=%5d Rx=%5d  TxL=%5d RxL=%5d RSSI=%2ddBm\n";
 
   s=(10000UL*savedradioontime)/seconds;
   p1=s/100;
@@ -772,7 +856,7 @@ generate_radio_stats(void *arg)
   numprinted+=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_sensor11,\
     RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail,p1);
 #endif
- 
+#endif /* RADIOSTATS */
   return numprinted;
 }
 #endif
@@ -783,8 +867,8 @@ PT_THREAD(sensor_readings(struct httpd_state *s, char *ptr))
   PSOCK_BEGIN(&s->sout);
 
   PSOCK_GENERATOR_SEND(&s->sout, generate_sensor_readings, s);
-#if RADIOSTATS
-  PSOCK_GENERATOR_SEND(&s->sout, generate_radio_stats, s);
+#if WEBSERVER_CONF_STATISTICS
+  PSOCK_GENERATOR_SEND(&s->sout, generate_stats, s);
 #endif
  
   PSOCK_END(&s->sout);
@@ -971,15 +1055,40 @@ PT_THREAD(ajax_call(struct httpd_state *s, char *ptr))
   SENSORS_DEACTIVATE(acc_sensor);
 
 #elif CONTIKI_TARGET_REDBEE_ECONOTAG
-{	uint8_t c;
-	adc_reading[8]=0;
-	adc_init();
-	while (adc_reading[8]==0) adc_service();
-    adc_disable();
-    numprinted = snprintf(buf, sizeof(buf),"b(%u);adc(%u,%u,%u,%u,%u,%u,%u,%u);",
-        1200*0xfff/adc_reading[8],adc_reading[0],adc_reading[1],adc_reading[2],adc_reading[3],adc_reading[4],adc_reading[5],adc_reading[6],adc_reading[7]);
+#if 0
+/* Scan ADC channels if not already done elsewhere */
+{ uint8_t c;
+  adc_reading[8]=0;
+  adc_init();
+  while (adc_reading[8]==0) adc_service();
+  adc_disable();
+#endif
+
+#if 0
+   numprinted = snprintf(buf, sizeof(buf),"b(%u);adc(%u,%u,%u,%u,%u,%u,%u,%u);",
+      1200*0xfff/adc_reading[8],adc_reading[0],adc_reading[1],adc_reading[2],adc_reading[3],adc_reading[4],adc_reading[5],adc_reading[6],adc_reading[7]);
+#else
+ //    numprinted = snprintf(buf, sizeof(buf),"b(%u);",1200*0xfff/adc_reading[8]);
+        numprinted = snprintf(buf, sizeof(buf),"b(%u);adc(%u,%u,%u);",1200*0xfff/adc_reading[8],adc_reading[1],adc_reading[7],adc_reading[8]);
+#endif
 }
-		
+   if (iter<3) {
+    static const char httpd_cgi_ajax11[] HTTPD_STRING_ATTR = "wt('Econtag [";
+   static const char httpd_cgi_ajax12[] HTTPD_STRING_ATTR = "]');";
+    numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax11);
+#if WEBSERVER_CONF_PRINTADDR
+/* Note address table is filled from the end down */
+{int i;
+    for (i=0; i<UIP_DS6_ADDR_NB;i++) {
+      if (uip_ds6_if.addr_list[i].isused) {
+       numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, buf + numprinted);
+        break;
+      }
+    }
+}
+#endif
+    numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax12);
+  }
 #elif CONTIKI_TARGET_MINIMAL_NET
 static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c7=0x3ff;
     numprinted = snprintf(buf, sizeof(buf), "t(%d);b(%u);v(%u);",273+(rand()&0x3f),3300-iter/10,iter);

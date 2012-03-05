@@ -24,12 +24,3 @@ ifndef BASE_IP
 BASE_IP := 172.16.1.1
 endif
 
-### System dependent Makefile
-
-ifndef WINDIR
-  ifdef OS
-    ifneq (,$(findstring Windows,$(OS)))
-      WINDIR := Windows
-    endif
-  endif
-endif
