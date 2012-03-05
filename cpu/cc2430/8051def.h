@@ -4,11 +4,33 @@
  *	Modified from z80 port for cc2430 port.
  *
  * \author
- *	Takahide Matsutsuka <markn@markn.org>
+ *	 Takahide Matsutsuka <markn@markn.org> (Original)
+ *	 George Oikonomou - <oikonomou@users.sourceforge.net>
+ *	   (recent updates for the sensinode/cc2430 port)
  */
 
 #ifndef __8051_DEF_H__
 #define __8051_DEF_H__
+
+#include <stdint.h>
+
+/*
+ * lint - style defines to help syntax parsers with sdcc-specific 8051 code
+ * They don't interfere with actual compilation
+ */
+#if !defined(__SDCC_mcs51) && !defined(SDCC_mcs51)
+#define __data
+#define __xdata
+#define __code
+#define __bit bool
+#define __sfr volatile unsigned char
+#define __sbit volatile bool
+#define __critical
+#define __at(x)
+#define __using(x)
+#define __interrupt(x)
+#define __naked
+#endif
 
 #define CC_CONF_FUNCTION_POINTER_ARGS	1
 #define CC_CONF_FASTCALL
@@ -18,30 +40,24 @@
 #define CC_CONF_FUNCTION_POINTER_KEYWORD __reentrant
 
 /* Generic types. */
-typedef   signed char    int8_t;
-typedef unsigned char   uint8_t;
-typedef   signed short  int16_t;
-typedef unsigned short uint16_t;
-typedef unsigned long  uint32_t;
 typedef unsigned char   u8_t;      /* 8 bit type */
 typedef unsigned short u16_t;      /* 16 bit type */
 typedef unsigned long  u32_t;      /* 32 bit type */
 typedef   signed long  s32_t;      /* 32 bit type */
 typedef unsigned short uip_stats_t;
-typedef   signed long  int32_t;    /* 32 bit type */
-#ifndef _SIZE_T_DEFINED
-#define _SIZE_T_DEFINED
-typedef unsigned int size_t;
-#endif
+
+
+/* Time type. */
+typedef unsigned short clock_time_t;
+#define MAX_TICKS (~((clock_time_t)0) / 2)
 
 /* Compiler configurations */
 #define CCIF
 #define CLIF
-#define CC_CONF_CONST_FUNCTION_BUG
 
 /* Critical section management */
-#define DISABLE_INTERRUPTS()	EA = 0;
-#define ENABLE_INTERRUPTS()		EA = 1;
+#define DISABLE_INTERRUPTS()  do {EA = 0;} while(0)
+#define ENABLE_INTERRUPTS()   do {EA = 1;} while(0)
 
 #define ENTER_CRITICAL()	\
 {	\
@@ -64,20 +80,12 @@ typedef unsigned int size_t;
 	__endasm; 		\
 }
 
-/*
- * Enable architecture-depend checksum calculation
- * for uIP configuration.
- * @see uip_arch.h
- * @see uip_arch-asm.S
- */
-/*
- * DO NOT USE UIP_ARCH flags!
- * uip_arch code was copied from z80 directory but NOT ported
- */
+/* Macro for a soft reset. In many respects better than H/W reboot via W/D */
+#define SOFT_RESET() {((void (__code *) (void)) 0x0000) ();}
 
+/* We don't provide architecture-specific checksum calculations */
 #define UIP_ARCH_ADD32		0
 #define UIP_ARCH_CHKSUM	0
-#define UIP_ARCH_IPCHKSUM
 
 #define CC_CONF_ASSIGN_AGGREGATE(dest, src)	\
     memcpy(dest, src, sizeof(*dest))

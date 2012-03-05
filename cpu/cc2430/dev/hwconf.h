@@ -36,8 +36,6 @@
 #include "sys/cc.h"
 
 #include <cc2430_sfr.h>
-extern uint8_t p0ien;
-extern uint8_t p2ien;
 
 #define HWCONF_PIN(name, port, bit)                                           	\
 static CC_INLINE void name##_SELECT() {P##port##SEL &= ~(1 << bit);}          	\
@@ -51,10 +49,10 @@ static CC_INLINE void name##_MAKE_INPUT() {P##port##DIR &= ~(1 << bit); }
 
 #define HWCONF_IRQ_XXX(name, port, bit)                                           	\
 static CC_INLINE void name##_ENABLE_IRQ() { 				      	\
-  if ( port == 2 ) { PICTL |= P2IEN; p2ien |= 1<<bit; } 		   	\
-  if (( port == 0) && ( bit <4)) { PICTL |= P0IENL; p0ien |= 1<<bit; }      \
-  if ((port == 0) && ( bit >=4)) { PICTL |= P0IENH; p0ien |= 1<<bit; }     \
-  if ( port == 1) { P##port##IEN |= 1 << bit; } 			      	\
+  if ( port == 2 ) { PICTL |= P2IEN; p2ien |= 1<<bit; IEN2 |= P2IE; } 		   	\
+  if (( port == 0) && ( bit <4)) { PICTL |= P0IENL; p0ien |= 1<<bit; IEN1 |= P0IE; }      \
+  if ((port == 0) && ( bit >=4)) { PICTL |= P0IENH; p0ien |= 1<<bit; IEN1 |= P0IE; }     \
+  if ( port == 1) { P##port##IEN |= 1 << bit; IEN2 |= P1IE; } 			      	\
 } 	         							      	\
 static CC_INLINE void name##_DISABLE_IRQ() { 				      	\
   if ( port == 2 ) { 						      	\
@@ -73,7 +71,11 @@ static CC_INLINE void name##_DISABLE_IRQ() { 				      	\
 } 	         							      	\
 static CC_INLINE int  name##_IRQ_ENABLED() {return P##port##IEN & (1 << bit);} 	\
 static CC_INLINE int  name##_CHECK_IRQ() {return P##port##IFG & (1 << bit);} \
-static CC_INLINE int  name##_IRQ_PORT() {return IRQ_PORT##port;}
+static CC_INLINE void  name##_IRQ_FLAG_OFF() { \
+  P##port##IFG &= ~(1 << bit); \
+  if (port == 0) {IRCON &= ~P0IF;} \
+  else {IRCON2 &= ~P##port##IF;} \
+}
 
 #define HWCONF_IRQ(name, port, bit)                                           	\
 static CC_INLINE void name##_ENABLE_IRQ() { 				      	\
@@ -85,5 +87,63 @@ static CC_INLINE void name##_DISABLE_IRQ() { 				      	\
 static CC_INLINE int  name##_IRQ_ENABLED() {return P##port##IEN & (1 << bit);} 	\
 static CC_INLINE int  name##_CHECK_IRQ() {return P##port##IFG & (1 << bit);} \
 static CC_INLINE int  name##_IRQ_PORT() {return IRQ_PORT##port;}
+
+#define HWCONF_PORT_0_IRQ(name, bit)                                             \
+static CC_INLINE void name##_ENABLE_IRQ() {                                      \
+  if ( bit <4 ) { PICTL |= P0IENL; p0ien |= 1<<bit; IEN1 |= P0IE; }              \
+  if ( bit >=4 ) { PICTL |= P0IENH; p0ien |= 1<<bit; IEN1 |= P0IE; }             \
+}                                                                                \
+static CC_INLINE void name##_DISABLE_IRQ() {   \
+  if ( bit <4) {                               \
+    p0ien &= ~(1<<bit);                        \
+    if ((p0ien&0xf)==0) PICTL &= ~P0IENL;      \
+  }                                                                              \
+  if ( bit >=4) {                              \
+    p0ien &= ~(1<<bit);                        \
+    if ((p0ien&0xf0)==0) PICTL &= ~P0IENH;     \
+  }                                            \
+ }                                                                               \
+static CC_INLINE int  name##_IRQ_ENABLED() {return p0ien & (1 << bit);}          \
+static CC_INLINE void name##_IRQ_EDGE_SELECTD() {PICTL |= P0ICON;}        \
+static CC_INLINE void name##_IRQ_EDGE_SELECTU() {PICTL &= ~P0ICON;}       \
+static CC_INLINE int  name##_CHECK_IRQ() {return P0IFG & (1 << bit);}            \
+static CC_INLINE void  name##_IRQ_FLAG_OFF() { \
+  IRCON_P0IF = 0; \
+  P0IFG = 0; \
+}
+
+#define HWCONF_PORT_1_IRQ(name, bit)                                             \
+static CC_INLINE void name##_ENABLE_IRQ()   { P1IEN |= 1 << bit; IEN2 |= P1IE; } \
+static CC_INLINE void name##_DISABLE_IRQ()  { \
+  P1IEN &= ~(1 << bit);                       \
+  if (P1IEN == 0) { IEN2 &= ~P1IE; }          \
+}                                                                                \
+static CC_INLINE int  name##_IRQ_ENABLED()  { return P1IEN & (1 << bit); }       \
+static CC_INLINE void name##_IRQ_EDGE_SELECTD() {PICTL |= P1ICON;}        \
+static CC_INLINE void name##_IRQ_EDGE_SELECTU() {PICTL &= ~P1ICON;}       \
+static CC_INLINE int  name##_CHECK_IRQ()    { return P1IFG & (1 << bit); }       \
+static CC_INLINE void name##_IRQ_FLAG_OFF() {  \
+  IRCON2_P1IF = 0;                             \
+  P1IFG = 0;                                   \
+}
+
+#define HWCONF_PORT_2_IRQ(name, bit)                                             \
+static CC_INLINE void name##_ENABLE_IRQ() { \
+  PICTL |= P2IEN;                           \
+  p2ien |= 1<<bit;                          \
+  IEN2 |= P2IE;                             \
+}                                                                                \
+static CC_INLINE void name##_DISABLE_IRQ() {        \
+  p2ien &= ~(1<<bit);                               \
+  if (p2ien==0) { PICTL &= ~P2IEN; IEN2 &= ~P2IE; } \
+}                                                                                \
+static CC_INLINE int  name##_IRQ_ENABLED() {return p2ien & (1 << bit);}          \
+static CC_INLINE void name##_IRQ_EDGE_SELECTD() {PICTL |= P2ICON;}        \
+static CC_INLINE void name##_IRQ_EDGE_SELECTU() {PICTL &= ~P2ICON;}       \
+static CC_INLINE int  name##_CHECK_IRQ() {return P2IFG & (1 << bit);}            \
+static CC_INLINE void  name##_IRQ_FLAG_OFF() {  \
+  IRCON2_P2IF = 0;                              \
+  P2IFG = 0;                                    \
+}
 
 #endif /* __HWCONF_H__ */

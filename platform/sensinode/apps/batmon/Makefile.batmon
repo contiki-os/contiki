@@ -1,0 +1,3 @@
+batmon_src = batmon.c
+
+CFLAGS += -DBATMON_CONF_ON=1
