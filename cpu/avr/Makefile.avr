@@ -1,15 +1,5 @@
 # $Id: Makefile.avr,v 1.27 2010/12/22 21:13:09 dak664 Exp $
 	
-### Check if we are running under Windows
-
-ifndef WINDIR
-  ifdef OS
-    ifneq (,$(findstring Windows,$(OS)))
-      WINDIR := Windows
-    endif
-  endif
-endif
-
 .SUFFIXES:
 
 ### Optimization setting. $make OPTI=0 for easier debugging of changed source file(s)

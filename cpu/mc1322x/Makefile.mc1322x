@@ -72,8 +72,7 @@ CUSTOM_RULE_C_TO_O=yes
 CFLAGS += -I$(OBJECTDIR) -I$(CONTIKI_CPU)/board -DBOARD=$(TARGET)
 
 $(OBJECTDIR)/board.h: $(OBJECTDIR) 
-ifneq (,$(findstring Windows,$(OS)))
-	${info Cygwin detected.}
+ifeq ($(HOST_OS),Windows)
 	ln -f $(CONTIKI_CPU)/board/board.h $(OBJECTDIR)/board.h
 else
 	ln -sf ../$(CONTIKI_CPU)/board/board.h $(OBJECTDIR)/board.h

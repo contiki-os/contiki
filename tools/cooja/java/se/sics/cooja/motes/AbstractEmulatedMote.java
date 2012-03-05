@@ -60,7 +60,11 @@ public abstract class AbstractEmulatedMote extends AbstractWakeupMote implements
   public String getPCString() {
     return null;
   }
-  
+
+  public String getStackTrace() {
+    return null;
+  }
+
   public interface MemoryMonitor {
     public boolean start(int address, int size);
     public void stop();

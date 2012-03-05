@@ -191,7 +191,7 @@ coap_get_tid()
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_send_message(uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
+coap_send_message(uip_ipaddr_t *addr, uint16_t port, const uint8_t *data, uint16_t length)
 {
   /*configure connection to reply to client*/
   uip_ipaddr_copy(&udp_conn->ripaddr, addr);
@@ -586,7 +586,7 @@ coap_get_header_etag(void *packet, const uint8_t **etag)
 }
 
 int
-coap_set_header_etag(void *packet, uint8_t *etag, size_t etag_len)
+coap_set_header_etag(void *packet, const uint8_t *etag, size_t etag_len)
 {
   ((coap_packet_t *)packet)->etag_len = MIN(COAP_ETAG_LEN, etag_len);
   memcpy(((coap_packet_t *)packet)->etag, etag, ((coap_packet_t *)packet)->etag_len);
@@ -605,9 +605,9 @@ coap_get_header_uri_host(void *packet, const char **host)
 }
 
 int
-coap_set_header_uri_host(void *packet, char *host)
+coap_set_header_uri_host(void *packet, const char *host)
 {
-  ((coap_packet_t *)packet)->uri_host = (char *) host;
+  ((coap_packet_t *)packet)->uri_host = host;
   ((coap_packet_t *)packet)->uri_host_len = strlen(host);
 
   SET_OPTION((coap_packet_t *)packet, COAP_OPTION_URI_HOST);
@@ -615,20 +615,20 @@ coap_set_header_uri_host(void *packet, char *host)
 }
 /*-----------------------------------------------------------------------------------*/
 int
-coap_get_header_location(void *packet, const char **uri)
+coap_get_header_location(void *packet, const char **location)
 {
   if (!IS_OPTION((coap_packet_t *)packet, COAP_OPTION_LOCATION_PATH)) return 0;
 
-  *uri = ((coap_packet_t *)packet)->location_path;
+  *location = ((coap_packet_t *)packet)->location_path;
   return ((coap_packet_t *)packet)->location_path_len;
 }
 
 int
-coap_set_header_location(void *packet, char *location)
+coap_set_header_location(void *packet, const char *location)
 {
   while (location[0]=='/') ++location;
 
-  ((coap_packet_t *)packet)->location_path = (char *) location;
+  ((coap_packet_t *)packet)->location_path = location;
   ((coap_packet_t *)packet)->location_path_len = strlen(location);
 
   SET_OPTION((coap_packet_t *)packet, COAP_OPTION_LOCATION_PATH);
@@ -645,11 +645,11 @@ coap_get_header_uri_path(void *packet, const char **path)
 }
 
 int
-coap_set_header_uri_path(void *packet, char *path)
+coap_set_header_uri_path(void *packet, const char *path)
 {
   while (path[0]=='/') ++path;
 
-  ((coap_packet_t *)packet)->uri_path = (char *) path;
+  ((coap_packet_t *)packet)->uri_path = path;
   ((coap_packet_t *)packet)->uri_path_len = strlen(path);
 
   SET_OPTION((coap_packet_t *)packet, COAP_OPTION_URI_PATH);
@@ -683,7 +683,7 @@ coap_get_header_token(void *packet, const uint8_t **token)
 }
 
 int
-coap_set_header_token(void *packet, uint8_t *token, size_t token_len)
+coap_set_header_token(void *packet, const uint8_t *token, size_t token_len)
 {
   ((coap_packet_t *)packet)->token_len = MIN(COAP_TOKEN_LEN, token_len);
   memcpy(((coap_packet_t *)packet)->token, token, ((coap_packet_t *)packet)->token_len);
@@ -731,7 +731,7 @@ coap_get_header_uri_query(void *packet, const char **query)
 }
 
 int
-coap_set_header_uri_query(void *packet, char *query)
+coap_set_header_uri_query(void *packet, const char *query)
 {
   while (query[0]=='?') ++query;
 
@@ -745,7 +745,7 @@ coap_set_header_uri_query(void *packet, char *query)
 /*- PAYLOAD -------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 int
-coap_get_payload(void *packet, const uint8_t **payload)
+coap_get_payload(void *packet, uint8_t **payload)
 {
   if (((coap_packet_t *)packet)->payload) {
     *payload = ((coap_packet_t *)packet)->payload;
@@ -757,11 +757,11 @@ coap_get_payload(void *packet, const uint8_t **payload)
 }
 
 int
-coap_set_payload(void *packet, uint8_t *payload, size_t length)
+coap_set_payload(void *packet, const void *payload, size_t length)
 {
   PRINTF("setting payload (%u/%u)\n", length, REST_MAX_CHUNK_SIZE);
 
-  ((coap_packet_t *)packet)->payload = payload;
+  ((coap_packet_t *)packet)->payload = (uint8_t *) payload;
   ((coap_packet_t *)packet)->payload_len = MIN(REST_MAX_CHUNK_SIZE, length);
 
   return ((coap_packet_t *)packet)->payload_len;

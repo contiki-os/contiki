@@ -50,7 +50,7 @@ static void reset(rpl_dag_t *);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_dag_t *best_dag(rpl_dag_t *, rpl_dag_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
-static void update_metric_container(rpl_dag_t *);
+static void update_metric_container(rpl_instance_t *);
 
 rpl_of_t rpl_of0 = {
   reset,
@@ -62,7 +62,7 @@ rpl_of_t rpl_of0 = {
   0
 };
 
-#define DEFAULT_RANK_INCREMENT  DEFAULT_MIN_HOPRANKINC
+#define DEFAULT_RANK_INCREMENT  RPL_MIN_HOPRANKINC
 
 #define MIN_DIFFERENCE (NEIGHBOR_INFO_ETX_DIVISOR + NEIGHBOR_INFO_ETX_DIVISOR / 2)
 
@@ -83,7 +83,9 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     base_rank = p->rank;
   }
 
-  increment = p != NULL ? p->dag->min_hoprankinc : DEFAULT_RANK_INCREMENT;
+  increment = p != NULL ?
+                p->dag->instance->min_hoprankinc :
+                DEFAULT_RANK_INCREMENT;
 
   if((rpl_rank_t)(base_rank + increment) < base_rank) {
     PRINTF("RPL: OF0 rank %d incremented to infinite rank due to wrapping\n",
@@ -135,10 +137,10 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
         p2->link_metric, p2->rank);
 
 
-  r1 = DAG_RANK(p1->rank, (rpl_dag_t *)p1->dag) * NEIGHBOR_INFO_ETX_DIVISOR +
-    p1->link_metric;
-  r2 = DAG_RANK(p2->rank, (rpl_dag_t *)p1->dag) * NEIGHBOR_INFO_ETX_DIVISOR +
-    p2->link_metric;
+  r1 = DAG_RANK(p1->rank, p1->dag->instance) * NEIGHBOR_INFO_ETX_DIVISOR +
+         p1->link_metric;
+  r2 = DAG_RANK(p2->rank, p1->dag->instance) * NEIGHBOR_INFO_ETX_DIVISOR +
+         p2->link_metric;
   /* Compare two parents by looking both and their rank and at the ETX
      for that parent. We choose the parent that has the most
      favourable combination. */
