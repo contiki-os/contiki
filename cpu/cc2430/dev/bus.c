@@ -38,14 +38,14 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "banked.h"
 #include "cc2430_sfr.h"
 #include "dev/bus.h"
 #include "sys/clock.h"
+#include "contiki-conf.h"
 
 /*---------------------------------------------------------------------------*/
 void
-bus_init (void) __banked
+bus_init (void)
 {
   CLKCON = (0x00 | OSC32K); 			/* 32k internal */
   while(CLKCON != (0x00 | OSC32K));
@@ -65,8 +65,9 @@ bus_init (void) __banked
  * \param buffer  buffer to store data
  * \param size    number of bytes to read
  */
+#if !SHORTCUTS_CONF_FLASH_READ
 void
-flash_read (uint8_t *buf, uint32_t address, uint8_t size) __banked
+flash_read(uint8_t *buf, uint32_t address, uint8_t size)
 {
   buf;	 	/*dptr0*/
   address; 	/*stack-6*/
@@ -130,4 +131,5 @@ lp1:
   ENABLE_INTERRUPTS();
   DPL1 = *buf++;
 }
+#endif
 /*---------------------------------------------------------------------------*/

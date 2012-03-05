@@ -1,20 +1,32 @@
 # Sensinode CC2430 platform makefile
 # Supported products: N100, N600, N601, N710, N711
+# Support for N740 is experimental.
 
-# /dev supports defines for product models using the following format
+# We support defines for product models using the following format
 # e.g. MODEL_N601. Run make TARGET=sensinode DEFINES=MODEL_N601 to 
 # automatically configure the correct LED, button, UART etc. settings
-# for that product model. If no model is defined, MODEL_N100 is chosen by default.
-# Models settings are defined in /dev/models.h
+# for that product model. If undefined, MODEL_N100 is chosen by default.
+# Model settings are defined in /dev/models.h
 
 # make sensinode.upload - Will use nano_programmer to upload file using D2xx Devboard
 # make sensinode.serialdump - Will use the Contiki serialdump tool on the default UART
+# make foo.model - Will copy foo.ihx to foo-XYZ.ihx (e.g. foo-n740.ihx)
+PATH:=$(CONTIKI)/platform/$(TARGET)/tools/bin:$(PATH)
+export PATH 
 
 ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
-CFLAGS  += -DRIME_CONF_NO_POLITE_ANNOUCEMENTS
-RIME_CONF_NO_POLITE_ANNOUCEMENTS = 1
+
+# Determine our model and (later on) add it as part of the .ihx filename
+# Handy when building for various models so we can easily tell which ihx
+# is for what model.
+# Defaults to N100 (which is what the contiki code does as well)
+MODEL_SUFFIX=n100
+ifdef DEFINES
+	MODEL_SUFFIX=$(patsubst MODEL_N%,n%, \
+		$(filter MODEL_%,$(subst $(COMMA), ,$(DEFINES))))
+endif
 
 # Define the default UART for tools and tool commands
 DEFUART = /dev/ttyUSB0
@@ -22,16 +34,48 @@ PROG = $(CONTIKI)/tools/sensinode/nano_programmer/nano_programmer -d $(DEFUART)
 SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux -b115200 $(DEFUART)
 
 CONTIKI_TARGET_DIRS = . dev
-CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-sensinode-main.o}
+CONTIKI_TARGET_MAIN = $(addprefix $(OBJECTDIR)/,contiki-sensinode-main.rel)
 
-CONTIKI_TARGET_SOURCEFILES = contiki-sensinode-main.c \
-                             leds.c leds-arch.c serial-line.c
+CONTIKI_TARGET_SOURCEFILES = contiki-sensinode-main.c
+CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c serial-line.c sensors.c
+CONTIKI_TARGET_SOURCEFILES += sensinode-sensors.c button-sensor.c adc-sensor.c
+CONTIKI_TARGET_SOURCEFILES += n740.c models.c m25p16.c slip-arch.c slip.c
+CONTIKI_TARGET_SOURCEFILES += putchar.c sensinode-debug.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
-.SUFFIXES:
+ifdef UIP_CONF_IPV6
+  ifeq ($(OFFSET_FIRMWARE),1)
+    CFLAGS += -DDISCO_ENABLED=1
+    CONTIKI_TARGET_SOURCEFILES += disco.c
+  endif
+  CONTIKI_TARGET_SOURCEFILES += viztool.c
+  CONTIKI_SOURCEFILES += rpl-of0.c
+endif
 
-%.upload: %.ihx
+FORCE:
+
+# .sensinode target so we can behave similar to other targets
+# Lastly, it will create a %-$(MODEL).ihx file
+%.$(TARGET): %.hex FORCE
+	cp $< $(<:.hex=.$(TARGET))
+	if [ -f $(<:.hex=.ihx) ] ; then \
+	cp $(<:.hex=.ihx) $(<:.hex=-$(MODEL_SUFFIX).ihx); fi
+	@echo "\nReport"
+	@echo "==============="
+	@echo 'Code footprint:'
+	@echo    'Area                                Addr        Size' \
+	         '         Decimal'
+	@echo    '----------------------------------  --------    --------' \
+	         '     --------'
+	@echo -n 'HOME,CSEG,CONST,XINIT,GS*           $(HOME_START)    '
+	@egrep ',CODE\)' $(<:.hex=.map) | egrep -v '(^BANK[1-9][^=])' | uniq | \
+	awk '{ SUM += $$5 } END { printf "%08X =    %8d", SUM, SUM }'
+	@echo '. bytes (REL,CON,CODE)'
+	@egrep '(^BANK[1-9][^=])' $(<:.hex=.map) | uniq | sort
+	@egrep -A 5 'Other memory' $(<:.hex=.mem)
+
+%.upload: %.hex
 	$(PROG) -P $<
 
 sensinode.serialdump:
@@ -41,4 +85,4 @@ sensinode.serialdump:
 CONTIKI_CPU=$(CONTIKI)/cpu/cc2430
 include $(CONTIKI)/cpu/cc2430/Makefile.cc2430
 
-contiki-$(TARGET).a:# ${addprefix $(OBJECTDIR)/,symbols.o}
+contiki-$(TARGET).a:# $(addprefix $(OBJECTDIR)/,symbols.rel)

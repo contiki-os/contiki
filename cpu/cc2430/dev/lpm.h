@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Loughborough University - Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +27,31 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
+ */
+
+/**
+ * \file
+ *         Header file for the cc2430 Low Power Modes (LPM)
+ *         We currently support the following:
+ *           - Set MCU IDLE while in PM0. This is working as intended
+ *           - Drop to PM1. This results in incoming radio packet losses.
  *
- * @(#)$Id: lpm.h,v 1.1 2009/12/22 09:28:15 zdshelby Exp $
+ * \author
+ *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 #ifndef __LPM_H__
 #define __LPM_H__
 
-#include <io.h>
 #include "contiki-conf.h"
 
-#ifdef LPM_CONF_ON
-#define LPM_ON LPM_CONF_ON
+#define LPM_MODE_NONE 0 /* No LPM - Always on */
+#define LPM_MODE_IDLE 1 /* Set MCU Idle as part of the main loop */
+#define LPM_MODE_PM2  2 /* Drop to PM1 - causes radio packet losses for now */
+
+#ifdef LPM_CONF_MODE
+#define LPM_MODE LPM_CONF_MODE
 #else
-#define LPM_ON LPM1
-#endif /* LPM_CONF_ON */
-
-#ifdef LPM_CONF_OFF
-#define LPM_OFF LPM_CONF_OFF
-#else
-#define LPM_OFF LPM1_EXIT
-#endif /* LPM_CONF_OFF */
-
-#define LPM_SLEEP() do { if(lpm_status == LPM_STATUS_ON) LPM_ON; } while(0)
-#define LPM_AWAKE() do { if(lpm_status == LPM_STATUS_ON) LPM_OFF; } while(0)
-
-extern unsigned char lpm_status;
-
-void lpm_on(void);
-void lpm_off(void);
-
-#define LPM_STATUS_OFF 0
-#define LPM_STATUS_ON  1
-
+#define LPM_MODE LPM_MODE_IDLE
+#endif /* LPM_CONF_MODE */
 
 #endif /* __LPM_H__ */

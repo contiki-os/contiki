@@ -1,7 +1,7 @@
 #ifndef CONVERTER_H
 #define CONVERTER_H
 
-#define CONVERTER_VERSION "v1.3"
+#define CONVERTER_VERSION "v1.4"
 
 typedef struct {
 	int target_type;

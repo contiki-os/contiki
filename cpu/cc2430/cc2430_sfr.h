@@ -11,6 +11,8 @@
 #ifndef REG_CC2430_H
 #define REG_CC2430_H
 
+#include "8051def.h"
+
 /*  BYTE Register  */
 
 __sfr __at (0x80) P0   ;
@@ -260,6 +262,7 @@ __sfr __at (0xBC)   RNDL;
 __sfr __at (0xBD)   RNDH;
 
 __sfr __at (0xBE)   SLEEP;
+#define OSC32K_CALDIS  0x80
 #define XOSC_STB	0x40
 #define HFRC_STB	0x20
 #define RST1		0x10
