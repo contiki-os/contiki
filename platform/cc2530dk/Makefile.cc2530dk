@@ -1,0 +1,52 @@
+# cc2530dk platform makefile
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+CONTIKI_TARGET_DIRS = . dev
+CONTIKI_TARGET_MAIN = $(addprefix $(OBJECTDIR)/,contiki-main.rel)
+
+CONTIKI_TARGET_SOURCEFILES = contiki-main.c
+CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c
+CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c
+CONTIKI_TARGET_SOURCEFILES += button-sensor.c adc-sensor.c smartrf-sensors.c
+CONTIKI_TARGET_SOURCEFILES += serial-line.c slip-arch.c slip.c #serial-flash.c
+CONTIKI_TARGET_SOURCEFILES += putchar.c debug.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.cc2530dk
+
+ifdef UIP_CONF_IPV6
+  CONTIKI_TARGET_SOURCEFILES += viztool.c
+endif
+
+FORCE:
+
+# .sensinode target so we can behave similar to other targets
+%.$(TARGET): %.hex FORCE
+	cp $< $(<:.hex=.$(TARGET))
+	@echo "\nReport"
+	@echo "==============="
+	@echo 'Code footprint:'
+	@echo    'Area                                Addr        Size' \
+	         '         Decimal'
+	@echo    '----------------------------------  --------    --------' \
+	         '     --------'
+	@echo -n 'HOME,CSEG,CONST,XINIT,GS*           $(HOME_START)    '
+	@egrep ',CODE\)' $(<:.hex=.map) | egrep -v '(^BANK[1-9][^=])' | uniq | \
+	awk '{ SUM += $$5 } END { printf "%08X =    %8d", SUM, SUM }'
+	@echo '. bytes (REL,CON,CODE)'
+	@egrep '(^BANK[1-9][^=])' $(<:.hex=.map) | uniq | sort
+	@egrep -A 5 'Other memory' $(<:.hex=.mem)
+
+%.upload: %.hex
+	$(PROG) -P $<
+
+sensinode.serialdump:
+	$(SERIALDUMP)
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/cc253x
+include $(CONTIKI_CPU)/Makefile.cc253x
