@@ -226,7 +226,7 @@ typedef enum
   NO_ERROR,
 
   /* Memory errors */
-  MEMORY_ALLOC_ERR,
+  MEMORY_ALLOCATION_ERROR,
   MEMORY_BOUNDARY_EXCEEDED,
 
   /* CoAP errors */
@@ -278,7 +278,7 @@ int coap_set_header_block(void *packet, uint32_t num, uint8_t more, uint16_t siz
 int coap_get_header_uri_query(void *packet, const char **query); /*CAUTION in-place string might not be 0-terminated */
 int coap_set_header_uri_query(void *packet, const char *query);
 
-int coap_get_payload(void *packet, const uint8_t **payload);
-int coap_set_payload(void *packet, uint8_t *payload, size_t length);
+int coap_get_payload(void *packet, uint8_t **payload);
+int coap_set_payload(void *packet, const void *payload, size_t length);
 
 #endif /* COAP_03_H_ */

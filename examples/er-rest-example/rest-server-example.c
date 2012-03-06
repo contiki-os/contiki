@@ -47,11 +47,12 @@
 #define REST_RES_HELLO 1
 #define REST_RES_MIRROR 0 /* causes largest code size */
 #define REST_RES_CHUNKS 1
-#define REST_RES_POLLING 1
+#define REST_RES_SEPARATE 1
+#define REST_RES_PUSHING 1
 #define REST_RES_EVENT 1
 #define REST_RES_LEDS 1
 #define REST_RES_TOGGLE 1
-#define REST_RES_LIGHT 1
+#define REST_RES_LIGHT 0
 #define REST_RES_BATTERY 1
 
 
@@ -149,8 +150,7 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
   /* The ETag and Token is copied to the header. */
   uint8_t opaque[] = {0x0A, 0xBC, 0xDE};
 
-  /* Strings are not copied and should be static or in program memory (char *str = "string in .text";).
-   * They must be '\0'-terminated as the setters use strlen(). */
+  /* Strings are not copied, so use static string buffers or strings in .text memory (char *str = "string in .text";). */
   static char location[] = {'/','f','/','a','?','k','&','e', 0};
 
   /* Getter for the header option Content-Type. If the option is not set, text/plain is returned by default. */
@@ -313,8 +313,8 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
     REST.set_response_status(response, REST.status.BAD_OPTION);
     /* A block error message should not exceed the minimum block size (16). */
 
-    const char error_msg[] = "BlockOutOfScope";
-    REST.set_response_payload(response, (uint8_t *)error_msg, sizeof(error_msg)-1);
+    const char *error_msg = "BlockOutOfScope";
+    REST.set_response_payload(response, error_msg, strlen(error_msg));
     return;
   }
 
@@ -349,22 +349,95 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 }
 #endif
 
-#if REST_RES_POLLING
+#if REST_RES_SEPARATE && WITH_COAP > 3
+/* Required to manually (=not by the engine) handle the response transaction. */
+#include "er-coap-07-separate.h"
+#include "er-coap-07-transactions.h"
+/*
+ * CoAP-specific example for separate responses.
+ * This resource is .
+ */
+RESOURCE(separate, METHOD_GET, "debug/separate", "title=\"Separate demo\"");
+
+static uint8_t separate_active = 0;
+static coap_separate_t separate_store[1];
+
+void
+separate_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  /*
+   * Example allows only one open separate response.
+   * For multiple, the application must manage the list of stores.
+   */
+  if (separate_active)
+  {
+    REST.set_response_status(response, REST.status.SERVICE_UNAVAILABLE);
+    const char *msg = "AlreadyInUse";
+    REST.set_response_payload(response, msg, strlen(msg));
+  }
+  else
+  {
+    separate_active = 1;
+
+    /* Take over and skip response by engine. */
+    coap_separate_response(response, separate_store);
+
+    /*
+     * At the moment, only the minimal information is stored in the store (client address, port, token, MID, type, and Block2).
+     * Extend the store, if the application requires additional information from this handler.
+     * buffer is an example field for custom information.
+     */
+    snprintf(separate_store->buffer, sizeof(separate_store->buffer), "StoredInfo");
+  }
+}
+
+void
+separate_finalize_handler()
+{
+  if (separate_active)
+  {
+    coap_transaction_t *transaction = NULL;
+    if ( (transaction = coap_new_transaction(separate_store->mid, &separate_store->addr, separate_store->port)) )
+    {
+      coap_packet_t response[1]; /* This way the packet can be treated as pointer as usual. */
+      coap_init_message(response, separate_store->type, CONTENT_2_05, separate_store->mid);
+
+      coap_set_payload(response, separate_store->buffer, strlen(separate_store->buffer));
+
+      /* Warning: No check for serialization error. */
+      transaction->packet_len = coap_serialize_message(response, transaction->packet);
+      coap_send_transaction(transaction);
+      /* The engine will clear the transaction (right after send for NON, after acked for CON). */
+
+      separate_active = 0;
+    }
+    else
+    {
+      /*
+       * Set timer for retry, send error message, ...
+       * The example simply waits for another button press.
+       */
+    }
+  } /* if (separate_active) */
+}
+#endif
+
+#if REST_RES_PUSHING
 /*
  * Example for a periodic resource.
  * It takes an additional period parameter, which defines the interval to call [name]_periodic_handler().
  * A default post_handler takes care of subscriptions by managing a list of subscribers to notify.
  */
-PERIODIC_RESOURCE(polling, METHOD_GET, "debug/poll", "title=\"Periodic demo\";rt=\"Observable\"", 5*CLOCK_SECOND);
+PERIODIC_RESOURCE(pushing, METHOD_GET, "debug/push", "title=\"Periodic demo\";rt=\"Observable\"", 5*CLOCK_SECOND);
 
 void
-polling_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+pushing_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
 
-  /* Usually, a CoAP server would response with the current resource representation. */
-  const char msg[] = "It's periodic!";
-  REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
+  /* Usually, a CoAP server would response with the resource representation matching the periodic_handler. */
+  const char *msg = "It's periodic!";
+  REST.set_response_payload(response, msg, strlen(msg));
 
   /* A post_handler that handles subscriptions will be called for periodic resources by the REST framework. */
 }
@@ -374,7 +447,7 @@ polling_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
  * It will be called by the REST manager process with the defined period.
  */
 int
-polling_periodic_handler(resource_t *r)
+pushing_periodic_handler(resource_t *r)
 {
   static uint32_t periodic_i = 0;
   static char content[16];
@@ -402,10 +475,9 @@ void
 event_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-
   /* Usually, a CoAP server would response with the current resource representation. */
-  const char msg[] = "It's eventful!";
-  REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
+  const char *msg = "It's eventful!";
+  REST.set_response_payload(response, (uint8_t *)msg, strlen(msg));
 
   /* A post_handler that handles subscriptions/observing will be called for periodic resources by the framework. */
 }
@@ -527,8 +599,8 @@ light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
   else
   {
     REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
-    const char msg[] = "Supporting content-types text/plain, application/xml, and application/json";
-    REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
+    const char *msg = "Supporting content-types text/plain, application/xml, and application/json";
+    REST.set_response_payload(response, msg, strlen(msg));
   }
 }
 #endif /* PLATFORM_HAS_LIGHT */
@@ -561,8 +633,8 @@ battery_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
   else
   {
     REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
-    const char msg[] = "Supporting content-types text/plain and application/json";
-    REST.set_response_payload(response, (uint8_t *)msg, sizeof(msg)-1);
+    const char *msg = "Supporting content-types text/plain and application/json";
+    REST.set_response_payload(response, msg, strlen(msg));
   }
 }
 #endif /* PLATFORM_HAS_BATTERY */
@@ -594,8 +666,8 @@ PROCESS_THREAD(rest_server_example, ev, data)
   configure_routing();
 #endif
 
-  /* Initialize the REST framework. */
-  rest_init_framework();
+  /* Initialize the REST engine. */
+  rest_init_engine();
 
   /* Activate the application-specific resources. */
 #if REST_RES_HELLO
@@ -607,9 +679,14 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #if REST_RES_CHUNKS
   rest_activate_resource(&resource_chunks);
 #endif
-#if REST_RES_POLLING
-  rest_activate_periodic_resource(&periodic_resource_polling);
+#if REST_RES_PUSHING
+  rest_activate_periodic_resource(&periodic_resource_pushing);
 #endif
+#if REST_RES_SEPARATE && WITH_COAP > 3
+  rest_set_pre_handler(&resource_separate, coap_separate_handler);
+  rest_activate_resource(&resource_separate);
+#endif
+
 #if defined (PLATFORM_HAS_BUTTON) && REST_RES_EVENT
   SENSORS_ACTIVATE(button_sensor);
   rest_activate_event_resource(&resource_event);
@@ -634,11 +711,17 @@ PROCESS_THREAD(rest_server_example, ev, data)
   /* Define application-specific events here. */
   while(1) {
     PROCESS_WAIT_EVENT();
-#if defined (PLATFORM_HAS_BUTTON) && REST_RES_EVENT
+#if defined (PLATFORM_HAS_BUTTON)
     if (ev == sensors_event && data == &button_sensor) {
       PRINTF("BUTTON\n");
+#if REST_RES_EVENT
       /* Call the event_handler for this application-specific event. */
       event_event_handler(&resource_event);
+#endif
+#if REST_RES_SEPARATE && WITH_COAP>3
+      /* Also call the separate response example handler. */
+      separate_finalize_handler();
+#endif
     }
 #endif /* PLATFORM_HAS_BUTTON */
   } /* while (1) */

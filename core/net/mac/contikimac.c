@@ -535,6 +535,12 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
   struct hdr *chdr;
 #endif /* WITH_CONTIKIMAC_HEADER */
 
+ /* Exit if RDC and radio were explicitly turned off */
+   if (!contikimac_is_on && !contikimac_keep_radio_on) {
+    PRINTF("contikimac: radio is turned off\n");
+    return MAC_TX_ERR_FATAL;
+  }
+  
   if(packetbuf_totlen() == 0) {
     PRINTF("contikimac: send_packet data len 0\n");
     return MAC_TX_ERR_FATAL;

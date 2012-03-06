@@ -58,7 +58,7 @@ LIST(observers_list);
 
 /*-----------------------------------------------------------------------------------*/
 coap_observer_t *
-coap_add_observer(const char *url, uip_ipaddr_t *addr, uint16_t port, const uint8_t *token, size_t token_len)
+coap_add_observer(uip_ipaddr_t *addr, uint16_t port, const uint8_t *token, size_t token_len, const char *url)
 {
   coap_observer_t *o = memb_alloc(&observers_memb);
 
@@ -173,7 +173,7 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
     {
       if (IS_OPTION((coap_packet_t *)request, COAP_OPTION_TOKEN))
       {
-        if (coap_add_observer(resource->url, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, ((coap_packet_t *)request)->token, ((coap_packet_t *)request)->token_len))
+        if (coap_add_observer(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, ((coap_packet_t *)request)->token, ((coap_packet_t *)request)->token_len, resource->url))
         {
           coap_set_header_observe(response, 0);
           coap_set_payload(response, (uint8_t *)content, snprintf(content, sizeof(content), "Added as observer %u/%u", list_length(observers_list), COAP_MAX_OBSERVERS));

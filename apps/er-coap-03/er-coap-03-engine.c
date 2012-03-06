@@ -206,7 +206,7 @@ handle_incoming_data(void)
             }
 
         } else {
-            error = MEMORY_ALLOC_ERR;
+            error = MEMORY_ALLOCATION_ERROR;
         }
       }
       else
