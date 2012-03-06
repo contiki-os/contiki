@@ -549,8 +549,9 @@ public class RadioLogger extends VisPlugin {
   
   private boolean analyzePacket(PacketAnalyzer.Packet packet, StringBuffer brief, StringBuffer verbose) {
       if (analyzers == null) return false;
-      boolean analyze = true;
-      while (analyze) {
+      try {
+        boolean analyze = true;
+        while (analyze) {
           analyze = false;
           for (int i = 0; i < analyzers.size(); i++) {
               PacketAnalyzer analyzer = analyzers.get(i);
@@ -569,6 +570,10 @@ public class RadioLogger extends VisPlugin {
                   break;
               }
           }
+      }
+      } catch (Exception e) {
+        logger.debug("Error when analyzing packet: " + e.getMessage(), e);
+        return false;
       }
       return brief.length() > 0;
   }
