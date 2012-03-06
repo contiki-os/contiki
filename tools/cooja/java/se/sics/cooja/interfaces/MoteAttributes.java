@@ -46,8 +46,6 @@ import org.jdom.Element;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
-import se.sics.cooja.SimEventCentral.LogOutputEvent;
-import se.sics.cooja.SimEventCentral.LogOutputListener;
 import se.sics.cooja.plugins.skins.AttributeVisualizerSkin;
 
 /**
@@ -86,33 +84,38 @@ public class MoteAttributes extends MoteInterface {
 
   private HashMap<String, Object> attributes = new HashMap<String, Object>();
 
-  private LogOutputListener logListener;
-
+  private Observer logObserver = new Observer() {
+    public void update(Observable o, Object arg) {
+      String msg = ((Log) o).getLastLogMessage();
+      handleNewLog(msg);
+    };
+  };
+  
   public MoteAttributes(Mote mote) {
     this.mote = mote;
-    
-    mote.getSimulation().getEventCentral().addLogOutputListener(logListener = new LogOutputListener() {
-      public void moteWasAdded(Mote mote) {
-        /* Ignored */
-      }
-      public void moteWasRemoved(Mote mote) {
-        /* Ignored */
-      }
-      public void newLogOutput(LogOutputEvent ev) {
-        if (ev.getMote() != MoteAttributes.this.mote) {
-          return;
-        }
-        handleNewLog(ev.msg);
-      }
-      public void removedLogOutput(LogOutputEvent ev) {
-        /* Ignored */
-      }
-    });
   }
 
+  public void added() {
+    super.added();
+    
+    /* Observe log interfaces */
+    for (MoteInterface mi: mote.getInterfaces().getInterfaces()) {
+      if (mi instanceof Log) {
+        ((Log)mi).addObserver(logObserver);
+      }
+    }
+  }
+  
   public void removed() {
     super.removed();
-    mote.getSimulation().getEventCentral().removeLogOutputListener(logListener);
+
+    /* Stop observing log interfaces */
+    for (MoteInterface mi: mote.getInterfaces().getInterfaces()) {
+      if (mi instanceof Log) {
+        ((Log)mi).deleteObserver(logObserver);
+      }
+    }
+    logObserver = null;
   }
 
   private void handleNewLog(String msg) {
