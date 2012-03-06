@@ -603,39 +603,44 @@ ifconf(const char *tundev, const char *ipaddr)
 #elif 1
 /* Generate a link local address a la sixxs/aiccu */
 /* First a full parse, stripping off the prefix length */
-{
-char lladdr[40];
-char c,*ptr=(char *)ipaddr;
-uint16_t digit,ai,a[8],cc,scc,i;
-  for(ai=0;ai<8;ai++) a[ai]=0;
-  ai=0;cc=scc=0;
-  while(c=*ptr++) {
-    if(c=='/') break;
-    if(c==':') {
-      if(cc) scc = ai;
-      cc = 1;
-      if (++ai>7) break;
-    } else {
-      cc=0;
-      digit = c-'0'; if (digit > 9) digit = 10 + (c & 0xdf) - 'A';
-      a[ai] = (a[ai] << 4) + digit;
+  {
+    char lladdr[40];
+    char c, *ptr=(char *)ipaddr;
+    uint16_t digit,ai,a[8],cc,scc,i;
+    for(ai=0; ai<8; ai++) {
+      a[ai]=0;
     }
-  }
- /* Get # elided and shift what's after to the end */
-  cc=8-ai;
-  for(i=0;i<cc;i++) {
-    if ((8-i-cc) <= scc) {
-      a[7-i] = 0;
-    } else {
-      a[7-i] = a[8-i-cc];
-      a[8-i-cc]=0;
+    ai=0;
+    cc=scc=0;
+    while(c=*ptr++) {
+      if(c=='/') break;
+      if(c==':') {
+	if(cc)
+	  scc = ai;
+	cc = 1;
+	if(++ai>7) break;
+      } else {
+	cc=0;
+	digit = c-'0';
+	if (digit > 9) 
+	  digit = 10 + (c & 0xdf) - 'A';
+	a[ai] = (a[ai] << 4) + digit;
+      }
     }
+    /* Get # elided and shift what's after to the end */
+    cc=8-ai;
+    for(i=0;i<cc;i++) {
+      if ((8-i-cc) <= scc) {
+	a[7-i] = 0;
+      } else {
+	a[7-i] = a[8-i-cc];
+	a[8-i-cc]=0;
+      }
+    }
+    sprintf(lladdr,"fe80::%x:%x:%x:%x",a[1]&0xfefd,a[2],a[3],a[7]);
+    if (timestamp) stamptime();
+    ssystem("ifconfig %s add %s/64", tundev, lladdr);
   }
-  sprintf(lladdr,"fe80::%x:%x:%x:%x",a[1]&0xfefd,a[2],a[3],a[7]);
-
-  if (timestamp) stamptime();
-  ssystem("ifconfig %s add %s/64", tundev, lladdr);
-
 #endif /* link local */
 
 #else

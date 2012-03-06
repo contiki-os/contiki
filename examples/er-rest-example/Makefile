@@ -17,10 +17,14 @@ UIP_CONF_IPV6=1
 # configure CoAP implementation (3|7)
 WITH_COAP=7
 
-# must be CFLAGS not variables
-# minimal-net does not support RPL, avoid redefine warnings
+# new variable since slip-radio
 ifneq ($(TARGET), minimal-net)
-CFLAGS += -DUIP_CONF_IPV6_RPL=1
+UIP_CONF_RPL=1
+else
+# minimal-net does not support RPL under Linux and is mostly used to test CoAP only
+${info INFO: compiling without RPL}
+UIP_CONF_RPL=0
+CFLAGS += -DUIP_CONF_ND6_DEF_MAXDADNS=0
 endif
 
 # linker optimizations
