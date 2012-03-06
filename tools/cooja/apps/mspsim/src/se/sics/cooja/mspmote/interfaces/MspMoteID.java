@@ -183,22 +183,6 @@ public class MspMoteID extends MoteID {
 		this.deleteObserver(observer);
 	}
 
-	public Collection<Element> getConfigXML() {
-		ArrayList<Element> config = new ArrayList<Element>();
-		Element element = new Element("id");
-		element.setText(Integer.toString(getMoteID()));
-		config.add(element);
-		return config;
-	}
-
-	public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-		for (Element element : configXML) {
-			if (element.getName().equals("id")) {
-				setMoteID(Integer.parseInt(element.getText()));
-			}
-		}
-	}
-
 	public void removed() {
 	  super.removed();
 	  if (moteMem.variableExists("node_id")) {
