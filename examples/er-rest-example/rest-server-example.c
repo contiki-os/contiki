@@ -355,12 +355,22 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 #include "er-coap-07-transactions.h"
 /*
  * CoAP-specific example for separate responses.
- * This resource is .
+ * Note the call "rest_set_pre_handler(&resource_separate, coap_separate_handler);" in the main process.
+ * The pre-handler takes care of the empty ACK and updates the MID and message type for CON requests.
+ * The resource handler must store all information that required to finalize the response later.
  */
 RESOURCE(separate, METHOD_GET, "debug/separate", "title=\"Separate demo\"");
 
+/* A structure to store the required information */
+typedef struct application_separate_store {
+  /* Provided by Erbium to store generic request information such as remote address and token. */
+  coap_separate_t request_metadata;
+  /* Add fields for addition information to be stored for finalizing, e.g.: */
+  char buffer[16];
+} application_separate_store_t;
+
 static uint8_t separate_active = 0;
-static coap_separate_t separate_store[1];
+static application_separate_store_t separate_store[1];
 
 void
 separate_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
@@ -380,7 +390,7 @@ separate_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
     separate_active = 1;
 
     /* Take over and skip response by engine. */
-    coap_separate_response(response, separate_store);
+    coap_separate_response(request, &separate_store->request_metadata);
 
     /*
      * At the moment, only the minimal information is stored in the store (client address, port, token, MID, type, and Block2).
@@ -397,10 +407,10 @@ separate_finalize_handler()
   if (separate_active)
   {
     coap_transaction_t *transaction = NULL;
-    if ( (transaction = coap_new_transaction(separate_store->mid, &separate_store->addr, separate_store->port)) )
+    if ( (transaction = coap_new_transaction(separate_store->request_metadata.mid, &separate_store->request_metadata.addr, separate_store->request_metadata.port)) )
     {
       coap_packet_t response[1]; /* This way the packet can be treated as pointer as usual. */
-      coap_init_message(response, separate_store->type, CONTENT_2_05, separate_store->mid);
+      coap_init_message(response, separate_store->request_metadata.type, CONTENT_2_05, separate_store->request_metadata.mid);
 
       coap_set_payload(response, separate_store->buffer, strlen(separate_store->buffer));
 

@@ -48,6 +48,7 @@
 #include "lib/random.h"
 #include "net/rime.h"
 #include "net/rime/timesynch.h"
+#include <string.h>
 
 #if TIMESYNCH_CONF_ENABLED
 static int authority_level;
