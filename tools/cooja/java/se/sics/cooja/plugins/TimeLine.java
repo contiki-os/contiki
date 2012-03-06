@@ -229,12 +229,6 @@ public class TimeLine extends VisPlugin {
     });
     eventCheckboxes.add(eventCheckBox);
 
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        recalculateMoteHeight();
-      }
-    });
-    
     /* Panel: timeline canvas w. scroll pane and add mote button */
     timeline = new Timeline();
     timelineScrollPane = new JScrollPane(
@@ -268,6 +262,7 @@ public class TimeLine extends VisPlugin {
 
     getContentPane().add(splitPane);
 
+    recalculateMoteHeight();
     pack();
     setSize(gui.getDesktopPane().getWidth(), 150);
     setLocation(0, gui.getDesktopPane().getHeight() - 150);
@@ -1198,9 +1193,11 @@ public class TimeLine extends VisPlugin {
     if (showWatchpoints) {
       h += EVENT_PIXEL_HEIGHT;
     }
-    paintedMoteHeight = h;
-    timelineMoteRuler.repaint();
-    timeline.repaint();
+    if (h != paintedMoteHeight) {
+      paintedMoteHeight = h;
+      timelineMoteRuler.repaint();
+      timeline.repaint();
+    }
   }
 
   public void closePlugin() {
