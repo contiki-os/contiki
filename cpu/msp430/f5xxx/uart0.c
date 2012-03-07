@@ -38,6 +38,7 @@
 #include "sys/energest.h"
 #include "dev/uart0.h"
 #include "dev/watchdog.h"
+#include "isr_compat.h"
 
 static int (*uart0_input_handler)(unsigned char c);
 
@@ -98,18 +99,12 @@ uart0_init(unsigned long ubr)
   UCA0IE |= UCRXIE;                        /* Enable UCA0 RX interrupt */
 }
 /*---------------------------------------------------------------------------*/
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=USCI_A0_VECTOR
-__interrupt void
-#else
-interrupt(USCI_A0_VECTOR)
-#endif
-uart0_rx_interrupt(void)
+ISR(USCI_A0, uart0_rx_interrupt)
 {
   uint8_t c;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  if (UCA0IV == 2) {
+  if(UCA0IV == 2) {
     if(UCA0STAT & UCRXERR) {
       c = UCA0RXBUF;   /* Clear error flags by forcing a dummy read. */
     } else {
