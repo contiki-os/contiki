@@ -35,6 +35,7 @@
 #include "lib/sensors.h"
 #include "dev/hwconf.h"
 #include "dev/button-sensor.h"
+#include "isr_compat.h"
 
 const struct sensors_sensor button_sensor;
 
@@ -45,14 +46,7 @@ HWCONF_PIN(BUTTON, 2, 5);
 HWCONF_IRQ(BUTTON, 2, 5);
 
 /*---------------------------------------------------------------------------*/
-
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=PORT2_VECTOR
-__interrupt void
-#else
-interrupt(PORT2_VECTOR)
-#endif
-     irq_p2(void)
+ISR(PORT2, irq_p2)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 

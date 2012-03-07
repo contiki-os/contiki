@@ -33,6 +33,7 @@
 #include "contiki-net.h"
 #include "dev/spi.h"
 #include "dev/cc2420.h"
+#include "isr_compat.h"
 
 #ifndef CONF_SFD_TIMESTAMPS
 #define CONF_SFD_TIMESTAMPS 0
@@ -45,8 +46,7 @@
 /*---------------------------------------------------------------------------*/
 #if 0
 // this is now handled in the ADXL345 accelerometer code as it uses irq on port1 too.
-interrupt(CC2420_IRQ_VECTOR)
-cc24240_port1_interrupt(void)
+ISR(CC2420_IRQ, cc24240_port1_interrupt)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   if(cc2420_interrupt()) {
