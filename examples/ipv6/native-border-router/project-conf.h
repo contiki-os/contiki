@@ -37,7 +37,7 @@
 #define QUEUEBUF_CONF_NUM         4
 
 #undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    140
+#define UIP_CONF_BUFFER_SIZE    1280
 
 #undef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW  60
@@ -50,7 +50,7 @@
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC border_router_rdc_driver
 
-#define SELECT_CALLBACK (&tun_select_callback)
-extern struct select_callback tun_select_callback;
+/* used by wpcap (see /cpu/native/net/wpcap-drv.c) */
+#define SELECT_CALLBACK 1
 
 #endif /* __PROJECT_ROUTER_CONF_H__ */

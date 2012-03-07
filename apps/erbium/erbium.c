@@ -45,7 +45,7 @@
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",(lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3],(lladdr)->addr[4], (lladdr)->addr[5])
 #else
 #define PRINTF(...)
@@ -59,35 +59,8 @@ LIST(restful_services);
 LIST(restful_periodic_services);
 
 
-#ifdef WITH_HTTP
-
-char *
-rest_to_http_max_age(uint32_t age)
-{
-  /* Cache-Control: max-age=age for HTTP */
-  static char temp_age[19];
-  snprintf(temp_age, sizeof(temp_age), "max-age=%lu", age);
-  return temp_age;
-}
-
-char *
-rest_to_http_etag(uint8_t *etag, uint8_t etag_len)
-{
-  static char temp_etag[17];
-  int index = 0;
-
-  for (index = 0; index<sizeof(temp_etag) && index<etag_len; ++index) {
-    snprintf(temp_etag+2*index, sizeof(temp_etag), "%02x", etag[index]);
-  }
-  temp_etag[2*index] = '\0';
-
-  return temp_etag;
-}
-#endif /*WITH_COAP*/
-
-
 void
-rest_init_framework(void)
+rest_init_engine(void)
 {
   list_init(restful_services);
 

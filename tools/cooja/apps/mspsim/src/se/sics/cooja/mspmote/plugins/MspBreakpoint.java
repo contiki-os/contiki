@@ -128,11 +128,11 @@ public class MspBreakpoint implements Watchpoint {
         breakpoints.signalBreakpointTrigger(MspBreakpoint.this);
       }
     };
-    mspMote.getCPU().setBreakPoint(address, cpuMonitor);
+    mspMote.getCPU().addWatchPoint(address, cpuMonitor);
   }
   
   public void unregisterBreakpoint() {
-    mspMote.getCPU().setBreakPoint(address, null);
+    mspMote.getCPU().removeWatchPoint(address, cpuMonitor);
   }
 
   public Collection<Element> getConfigXML() {

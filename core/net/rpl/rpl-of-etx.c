@@ -66,11 +66,6 @@ rpl_of_t rpl_of_etx = {
   1
 };
 
-#define NI_ETX_TO_RPL_ETX(etx)						\
-	((etx) * (RPL_DAG_MC_ETX_DIVISOR / NEIGHBOR_INFO_ETX_DIVISOR))
-#define RPL_ETX_TO_NI_ETX(etx)					\
-	((etx) / (RPL_DAG_MC_ETX_DIVISOR / NEIGHBOR_INFO_ETX_DIVISOR))
-
 /* Reject parents that have a higher link metric than the following. */
 #define MAX_LINK_METRIC			10
 
@@ -90,8 +85,11 @@ calculate_path_metric(rpl_parent_t *p)
 {
   if(p == NULL || (p->mc.obj.etx == 0 && p->rank > ROOT_RANK(p->dag->instance))) {
     return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
+  } else {
+    long etx = p->link_metric;
+    etx = (etx * RPL_DAG_MC_ETX_DIVISOR) / NEIGHBOR_INFO_ETX_DIVISOR;
+    return p->mc.obj.etx + (uint16_t) etx;
   }
-  return p->mc.obj.etx + NI_ETX_TO_RPL_ETX(p->link_metric);
 }
 
 static void
@@ -114,9 +112,10 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     if(base_rank == 0) {
       return INFINITE_RANK;
     }
-    rank_increase = NEIGHBOR_INFO_FIX2ETX(INITIAL_LINK_METRIC) * DEFAULT_MIN_HOPRANKINC;
+    rank_increase = NEIGHBOR_INFO_FIX2ETX(INITIAL_LINK_METRIC) * RPL_MIN_HOPRANKINC;
   } else {
-    rank_increase = NEIGHBOR_INFO_FIX2ETX(p->link_metric) * p->dag->instance->min_hoprankinc;
+    /* multiply first, then scale down to avoid truncation effects */
+    rank_increase = NEIGHBOR_INFO_FIX2ETX(p->link_metric * p->dag->instance->min_hoprankinc);
     if(base_rank == 0) {
       base_rank = p->rank;
     }

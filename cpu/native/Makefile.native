@@ -14,7 +14,11 @@ CFLAGSWERROR=-Werror -pedantic -std=c99 -Werror
 endif
 CFLAGSNO = -Wall -g -I/usr/local/include $(CFLAGSWERROR)
 CFLAGS  += $(CFLAGSNO) -O
-LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
+ifeq ($(HOST_OS),Linux)
+  LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
+else
+  LDFLAGS  = -Wl
+endif
 
 ### Compilation rules
 

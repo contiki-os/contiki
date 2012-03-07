@@ -41,6 +41,26 @@
 
 #include "er-coap-07.h"
 
-void coap_separate_handler(resource_t *resource, void *request, void *response);
+typedef struct coap_separate {
+
+  uip_ipaddr_t addr;
+  uint16_t port;
+
+  coap_message_type_t type;
+  uint16_t mid;
+
+  uint8_t token_len;
+  uint8_t token[COAP_TOKEN_LEN];
+
+  /* separate + blockwise is untested! */
+  uint32_t block2_num;
+  uint8_t block2_more;
+  uint16_t block2_size;
+  uint32_t block2_offset;
+
+} coap_separate_t;
+
+int coap_separate_handler(resource_t *resource, void *request, void *response);
+int coap_separate_response(void *response, coap_separate_t *separate_store);
 
 #endif /* COAP_SEPARATE_H_ */

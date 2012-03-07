@@ -53,7 +53,7 @@
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]",(lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3],(lladdr)->addr[4], (lladdr)->addr[5])
 #else
 #define PRINTF(...)
@@ -75,18 +75,20 @@ coap_register_as_transaction_handler()
 }
 
 coap_transaction_t *
-coap_new_transaction(uint16_t tid, uip_ipaddr_t *addr, uint16_t port)
+coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
 {
   coap_transaction_t *t = memb_alloc(&transactions_memb);
 
   if (t)
   {
-    t->tid = tid;
+    t->mid = mid;
     t->retrans_counter = 0;
 
     /* save client address */
     uip_ipaddr_copy(&t->addr, addr);
     t->port = port;
+
+    list_add(transactions_list, t); /* List itself makes sure same element is not added twice. */
   }
 
   return t;
@@ -95,7 +97,7 @@ coap_new_transaction(uint16_t tid, uip_ipaddr_t *addr, uint16_t port)
 void
 coap_send_transaction(coap_transaction_t *t)
 {
-  PRINTF("Sending transaction %u\n", t->tid);
+  PRINTF("Sending transaction %u\n", t->mid);
 
   coap_send_message(&t->addr, t->port, t->packet, t->packet_len);
 
@@ -103,7 +105,7 @@ coap_send_transaction(coap_transaction_t *t)
   {
     if (t->retrans_counter<COAP_MAX_RETRANSMIT)
     {
-      PRINTF("Keeping transaction %u\n", t->tid);
+      PRINTF("Keeping transaction %u\n", t->mid);
 
       if (t->retrans_counter==0)
       {
@@ -121,8 +123,6 @@ coap_send_transaction(coap_transaction_t *t)
       process_current = transaction_handler_process;
       etimer_restart(&t->retrans_timer); /* interval updated above */
       process_current = process_actual;
-
-      list_add(transactions_list, t); /* List itself makes sure same element is not added twice. */
 
       t = NULL;
     }
@@ -154,7 +154,7 @@ coap_clear_transaction(coap_transaction_t *t)
 {
   if (t)
   {
-    PRINTF("Freeing transaction %u: %p\n", t->tid, t);
+    PRINTF("Freeing transaction %u: %p\n", t->mid, t);
 
     etimer_stop(&t->retrans_timer);
     list_remove(transactions_list, t);
@@ -163,15 +163,15 @@ coap_clear_transaction(coap_transaction_t *t)
 }
 
 coap_transaction_t *
-coap_get_transaction_by_tid(uint16_t tid)
+coap_get_transaction_by_mid(uint16_t mid)
 {
   coap_transaction_t *t = NULL;
 
   for (t = (coap_transaction_t*)list_head(transactions_list); t; t = t->next)
   {
-    if (t->tid==tid)
+    if (t->mid==mid)
     {
-      PRINTF("Found transaction for TID %u: %p\n", t->tid, t);
+      PRINTF("Found transaction for MID %u: %p\n", t->mid, t);
       return t;
     }
   }
@@ -188,7 +188,7 @@ coap_check_transactions()
     if (etimer_expired(&t->retrans_timer))
     {
       ++(t->retrans_counter);
-      PRINTF("Retransmitting %u (%u)\n", t->tid, t->retrans_counter);
+      PRINTF("Retransmitting %u (%u)\n", t->mid, t->retrans_counter);
       coap_send_transaction(t);
     }
   }

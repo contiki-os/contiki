@@ -345,7 +345,9 @@
 #define RG_CSMA_BE                      0x2f
 /** Access parameters for sub-register MIN_BE in register @ref RG_CSMA_SEED_1 */
 #define SR_MIN_BE                    0x2e, 0xc0, 6
-#define SR_reserved_2e_2             0x2e, 0x30, 4
+/** Access parameters for AACK_SET_PD bit in register @ref RG_CSMA_SEED_1 */
+#define SR_AACK_SET_PD               0x2e, 0x20, 5
+//#define SR_reserved_2e_2             0x2e, 0x30, 4
 /** Access parameters for sub-register I_AM_COORD in register @ref RG_CSMA_SEED_1 */
 #define SR_I_AM_COORD                0x2e, 0x08, 3
 /** Access parameters for sub-register CSMA_SEED_1 in register @ref RG_CSMA_SEED_1 */

@@ -26,10 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
- * $Id: CoffeeConfiguration.java,v 1.5 2009/09/22 16:31:36 nvt-se Exp $
- *
  * @author Nicolas Tsiftes
  *
  */
@@ -45,20 +41,19 @@ public class CoffeeConfiguration {
 	public static final int FD_SET_SIZE = 256;
 	public static final int MAX_OPEN_FILES = 256;
 	public static final int LOG_TABLE_LIMIT = 256;
-	public static final int NAME_LENGTH = 16;
-	public static int fsSize, sectorSize, pageSize;
-	public static int startOffset, pageTypeSize;
-	public static int defaultFileSize, defaultLogSize;
-	public static int pagesPerSector;
-	public static boolean useMicroLogs;
+	public final int nameLength;
+	public final int fsSize, sectorSize, pageSize;
+	public final int startOffset, pageTypeSize;
+	public final int defaultFileSize, defaultLogSize;
+	public final int pagesPerSector;
+	public final boolean useMicroLogs;
 
 	public CoffeeConfiguration(String filename)
 			throws CoffeeException, IOException {
-		String[] validParameters = {"use_micro_logs", "fs_size", 
-					    "page_size", "sector_size", 
+		String[] requiredParameters = {"name_length", "use_micro_logs", "fs_size",
+					    "page_size", "sector_size",
 					    "start_offset", "default_file_size",
 					    "default_log_size", "page_type_size"};
-		String property;
 		Properties prop = new Properties();
 		InputStream stream = CoffeeConfiguration.class.getResourceAsStream("/" + filename);
 		if (stream == null) {
@@ -66,20 +61,21 @@ public class CoffeeConfiguration {
 		}
 
 		prop.load(stream);
-		for (int i = 0; i < validParameters.length; i++) {
-			if (prop.getProperty(validParameters[i]) == null) {
-				throw new CoffeeException("missing the parameter \"" + validParameters[i] + "\" in the configuration file " + filename);
+		for (int i = 0; i < requiredParameters.length; i++) {
+			if (prop.getProperty(requiredParameters[i]) == null) {
+				throw new CoffeeException("missing the parameter \"" + requiredParameters[i] + "\" in the configuration file " + filename);
 			}
 		}
 
+		nameLength = Integer.parseInt(prop.getProperty("name_length"));
 		useMicroLogs = new Boolean(prop.getProperty("use_micro_logs")).booleanValue();
-		fsSize = new Integer(prop.getProperty("fs_size")).intValue();
-		sectorSize = new Integer(prop.getProperty("sector_size")).intValue();
-		pageSize = new Integer(prop.getProperty("page_size")).intValue();
-		defaultFileSize = new Integer(prop.getProperty("default_file_size")).intValue();
-		defaultLogSize = new Integer(prop.getProperty("default_log_size")).intValue();
-		startOffset = new Integer(prop.getProperty("start_offset")).intValue();
-		pageTypeSize = new Integer(prop.getProperty("page_type_size")).intValue();
+		fsSize = Integer.parseInt(prop.getProperty("fs_size"));
+		sectorSize = Integer.parseInt(prop.getProperty("sector_size"));
+		pageSize = Integer.parseInt(prop.getProperty("page_size"));
+		defaultFileSize = Integer.parseInt(prop.getProperty("default_file_size"));
+		defaultLogSize = Integer.parseInt(prop.getProperty("default_log_size"));
+		startOffset = Integer.parseInt(prop.getProperty("start_offset"));
+		pageTypeSize = Integer.parseInt(prop.getProperty("page_type_size"));
 
 		pagesPerSector = sectorSize / pageSize;
 	}

@@ -52,6 +52,8 @@ const char *slip_config_ipaddr;
 int slip_config_flowcontrol = 0;
 int slip_config_timestamp = 0;
 const char *slip_config_siodev = NULL;
+const char *slip_config_host = NULL;
+const char *slip_config_port = NULL;
 char slip_config_tundev[32] = { "" };
 uint16_t slip_config_basedelay = 0;
 
@@ -101,6 +103,14 @@ slip_config_handle_arguments(int argc, char **argv)
       }
       break;
 
+    case 'a':
+      slip_config_host = optarg;
+      break;
+
+    case 'p':
+      slip_config_port = optarg;
+      break;
+
     case 'd':
       slip_config_basedelay = 10;
       if(optarg) slip_config_basedelay = atoi(optarg);
@@ -117,10 +127,16 @@ slip_config_handle_arguments(int argc, char **argv)
 fprintf(stderr,"usage:  %s [options] ipaddress\n", prog);
 fprintf(stderr,"example: border-router.native -L -v2 -s ttyUSB1 aaaa::1/64\n");
 fprintf(stderr,"Options are:\n");
+#ifdef linux
 fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200,921600 (default 115200)\n");
+#else
+fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default 115200)\n");
+#endif
 fprintf(stderr," -H             Hardware CTS/RTS flow control (default disabled)\n");
 fprintf(stderr," -L             Log output format (adds time stamps)\n");
 fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
+fprintf(stderr," -a host        Connect via TCP to server at <host>\n");
+fprintf(stderr," -p port        Connect via TCP to server at <host>:<port>\n");
 fprintf(stderr," -t tundev      Name of interface (default tun0)\n");
 fprintf(stderr," -v[level]      Verbosity level\n");
 fprintf(stderr,"    -v0         No messages\n");
@@ -141,7 +157,7 @@ exit(1);
   argv += optind - 1;
 
   if(argc != 2 && argc != 3) {
-    err(1, "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] ipaddress", prog);
+    err(1, "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] ipaddress", prog);
   }
   slip_config_ipaddr = argv[1];
 
@@ -163,9 +179,11 @@ exit(1);
   case 115200:
     slip_config_b_rate = B115200;
     break;
+#ifdef linux
   case 921600:
     slip_config_b_rate = B921600;
     break;
+#endif
   default:
     err(1, "unknown baudrate %d", baudrate);
     break;

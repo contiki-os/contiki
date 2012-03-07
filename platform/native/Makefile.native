@@ -2,6 +2,10 @@ ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
 
+ifeq ($(HOST_OS),Darwin)
+  AROPTS = rc
+endif
+
 ifdef UIP_CONF_IPV6
 CFLAGS += -DWITH_UIP6=1
 endif
@@ -13,7 +17,7 @@ CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c leds.c leds-arch.c \
                 button-sensor.c pir-sensor.c vib-sensor.c xmem.c \
                 sensors.c irq.c cfs-posix.c cfs-posix-dir.c
 
-ifeq ($(OS),Windows_NT)
+ifeq ($(HOST_OS),Windows)
 CONTIKI_TARGET_SOURCEFILES += wpcap-drv.c wpcap.c
 TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 else

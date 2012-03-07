@@ -239,6 +239,11 @@ public class Simulation extends Observable implements Runnable {
     }
   };
   
+  public void clearEvents() {
+    eventQueue.removeAll();
+    pollRequests.clear();
+  }
+  
   public void run() {
     long lastStartTime = System.currentTimeMillis();
     logger.info("Simulation main loop started, system time: " + lastStartTime);
@@ -249,8 +254,8 @@ public class Simulation extends Observable implements Runnable {
     this.setChanged();
     this.notifyObservers(this);
 
+    TimeEvent nextEvent = null;
     try {
-      TimeEvent nextEvent;
       while (isRunning) {
 
         /* Handle all poll requests */
@@ -285,7 +290,11 @@ public class Simulation extends Observable implements Runnable {
     			/* Quit simulator if in test mode */
     			System.exit(1);
     		} else {
-    			GUI.showErrorDialog(GUI.getTopParentContainer(), "Simulation error", e, false);
+    		  String title = "Simulation error";
+    		  if (nextEvent instanceof MoteTimeEvent) {
+    		    title += ": " + ((MoteTimeEvent)nextEvent).getMote();
+    		  }
+    		  GUI.showErrorDialog(GUI.getTopParentContainer(), title, e, false);
     		}
     	}
     }
@@ -1007,7 +1016,7 @@ public class Simulation extends Observable implements Runnable {
    * @param simulationTime
    *          New simulation time (ms)
    */
-  public void setSimulationTime(int simulationTime) {
+  public void setSimulationTime(long simulationTime) {
     currentSimulationTime = simulationTime;
 
     this.setChanged();

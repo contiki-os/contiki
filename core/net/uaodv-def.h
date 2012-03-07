@@ -54,17 +54,17 @@ struct uaodv_rtentry {
   uip_ipaddr_t dest_addr;
   uip_ipaddr_t next_hop;
   uip_ipaddr_t precursors[NUM_PRECURSORS];
-  u32_t dest_seqno;  
-  u16_t lifetime;
-  u8_t dest_seqno_flag;
-  u8_t route_flags;
-  u8_t hop_count;
+  uint32_t dest_seqno;  
+  uint16_t lifetime;
+  uint8_t dest_seqno_flag;
+  uint8_t route_flags;
+  uint8_t hop_count;
 };
 #endif
 
 /* Generic AODV message */
 struct uaodv_msg {
-  u8_t type;
+  uint8_t type;
 };
 
 /* AODV RREQ message */
@@ -76,15 +76,15 @@ struct uaodv_msg {
 #define UAODV_RREQ_UNKSEQNO (1 << 3)
 
 struct uaodv_msg_rreq {
-  u8_t type;
-  u8_t flags;
-  u8_t reserved;
-  u8_t hop_count;
-  u32_t rreq_id;
+  uint8_t type;
+  uint8_t flags;
+  uint8_t reserved;
+  uint8_t hop_count;
+  uint32_t rreq_id;
   uip_ipaddr_t dest_addr;
-  u32_t dest_seqno;
+  uint32_t dest_seqno;
   uip_ipaddr_t orig_addr;
-  u32_t orig_seqno;
+  uint32_t orig_seqno;
 };
 
 /* AODV RREP message */
@@ -93,14 +93,14 @@ struct uaodv_msg_rreq {
 #define UAODV_RREP_ACK     (1 << 6)
 
 struct uaodv_msg_rrep {
-  u8_t type;
-  u8_t flags;
-  u8_t prefix_sz;		/* prefix_sz:5 */
-  u8_t hop_count;
+  uint8_t type;
+  uint8_t flags;
+  uint8_t prefix_sz;		/* prefix_sz:5 */
+  uint8_t hop_count;
   uip_ipaddr_t dest_addr;
-  u32_t dest_seqno;
+  uint32_t dest_seqno;
   uip_ipaddr_t orig_addr;
-  u32_t lifetime;
+  uint32_t lifetime;
 };
 
 /* AODV RERR message */
@@ -109,13 +109,13 @@ struct uaodv_msg_rrep {
 #define UAODV_RERR_UNKNOWN  (1 << 6) /* Non standard extension /bg. */
 
 struct uaodv_msg_rerr {
-  u8_t type;
-  u8_t flags;
-  u8_t reserved;
-  u8_t dest_count;
+  uint8_t type;
+  uint8_t flags;
+  uint8_t reserved;
+  uint8_t dest_count;
   struct {
     uip_ipaddr_t addr;
-    u32_t seqno;
+    uint32_t seqno;
   } unreach[1];
 };
 
@@ -123,23 +123,23 @@ struct uaodv_msg_rerr {
 #define UAODV_RREP_ACK_TYPE     4
 
 struct uaodv_msg_rrep_ack {
-  u8_t type;
-  u8_t reserved;
+  uint8_t type;
+  uint8_t reserved;
 };
 
 #define RREP_HELLO_INTERVAL_EXT 1 /* Per RFC 3561. */
 #define RREQ_BAD_HOP_EXT 101	/* Non standard extension /bg */
 
 struct uaodv_extension {
-  u8_t type;
-  u8_t length;
-  /* u8_t value[length]; */
+  uint8_t type;
+  uint8_t length;
+  /* uint8_t value[length]; */
 };
 
 struct uaodv_bad_hop_ext {
-  u8_t type;
-  u8_t length;
-  u8_t unused1, unused2;
+  uint8_t type;
+  uint8_t length;
+  uint8_t unused1, unused2;
   uip_ipaddr_t addrs[1];
 };
 

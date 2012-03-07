@@ -40,7 +40,7 @@
 #include "contiki-net.h"
 
 void tapdev_init(void);
-u8_t tapdev_send(void);
-u16_t tapdev_poll(void);
+uint8_t tapdev_send(void);
+uint16_t tapdev_poll(void);
 void tapdev_do_send(void);
 #endif /* __TAPDEV_H__ */

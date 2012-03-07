@@ -11,14 +11,6 @@ ifndef CONTIKI
   $(error CONTIKI not defined!)
 endif
 
-ifndef WINDIR
-  ifdef OS
-    ifneq (,$(findstring Windows,$(OS)))
-      WINDIR := Windows
-    endif
-  endif
-endif
-
 ### Assuming simulator quickstart if no JNI library name set from Cooja
 ifndef LIBNAME
 QUICKSTART=1
@@ -87,6 +79,14 @@ endif
 ifdef WITH_UIP
   CFLAGS += -DWITH_UIP=1
 endif
+
+## Copied from Makefile.include, since Cooja overrides CFLAGS et al
+ifdef UIP_CONF_IPV6
+  CFLAGS += -DUIP_CONF_IPV6=1
+  ifneq ($(UIP_CONF_RPL),0)
+    CFLAGS += -DUIP_CONF_IPV6_RPL=1
+  endif # UIP_CONF_RPL
+endif # UIP_CONF_IPV6
 
 REDEF_PRINTF=1 # Redefine functions to enable printf()s inside Cooja
 

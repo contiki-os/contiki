@@ -59,6 +59,7 @@ import se.sics.cooja.mspmote.plugins.CodeVisualizerSkin;
 import se.sics.cooja.mspmote.plugins.MspBreakpointContainer;
 import se.sics.cooja.plugins.BufferListener.BufferAccess;
 import se.sics.cooja.plugins.Visualizer;
+import se.sics.mspsim.cli.CommandContext;
 import se.sics.mspsim.cli.CommandHandler;
 import se.sics.mspsim.cli.LineListener;
 import se.sics.mspsim.cli.LineOutputStream;
@@ -74,6 +75,7 @@ import se.sics.mspsim.util.DebugInfo;
 import se.sics.mspsim.util.ELF;
 import se.sics.mspsim.util.MapEntry;
 import se.sics.mspsim.util.MapTable;
+import se.sics.mspsim.util.SimpleProfiler;
 
 /**
  * @author Fredrik Osterlind
@@ -88,7 +90,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   }
 
   private CommandHandler commandHandler;
-  private ArrayList<LineListener> commandListeners = new ArrayList<LineListener>();
   private MSP430 myCpu = null;
   private MspMoteType myMoteType = null;
   private MspMoteMemory myMemory = null;
@@ -148,24 +149,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
   protected MoteInterfaceHandler createMoteInterfaceHandler() {
     return new MoteInterfaceHandler(this, getType().getMoteInterfaceClasses());
-  }
-
-  public void sendCLICommand(String line) {
-    if (commandHandler != null) {
-      commandHandler.lineRead(line);
-    }
-  }
-
-  public boolean hasCLIListener() {
-    return !commandListeners.isEmpty();
-  }
-
-  public void addCLIListener(LineListener listener) {
-    commandListeners.add(listener);
-  }
-
-  public void removeCLIListener(LineListener listener) {
-    commandListeners.remove(listener);
   }
 
   /**
@@ -234,17 +217,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
    * @throws IOException Preparing mote failed
    */
   protected void prepareMote(File fileELF, GenericNode node) throws IOException {
-    LineOutputStream lout = new LineOutputStream(new LineListener() {
-      public void lineRead(String line) {
-        for (LineListener l: commandListeners.toArray(new LineListener[0])) {
-          if (l == null) {
-            continue;
-          }
-          l.lineRead(line);
-        }
-      }});
-    PrintStream out = new PrintStream(lout);
-    this.commandHandler = new CommandHandler(out, out);
+    this.commandHandler = new CommandHandler(System.out, System.err);
     node.setCommandHandler(commandHandler);
 
     ConfigManager config = new ConfigManager();
@@ -269,6 +242,10 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
     heapStartAddress = map.heapStartAddress;
     myCpu.reset();
+  }
+
+  public CommandHandler getCLICommandHandler() {
+    return commandHandler;
   }
 
   /* called when moteID is updated */
@@ -299,6 +276,15 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
    */
   protected abstract boolean initEmulator(File ELFFile);
 
+  private boolean booted = false;
+
+  public void simTimeChanged(long diff) {
+    /* Compensates for simulation time changes (without simulation execution) */
+    lastExecute -= diff;
+    nextExecute -= diff;
+    scheduleNextWakeup(nextExecute);
+  }
+
   private long lastExecute = -1; /* Last time mote executed */
   private long nextExecute;
   public void execute(long time) {
@@ -306,10 +292,11 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   }
   public void execute(long t, int duration) {
     /* Wait until mote boots */
-    if (myMoteInterfaceHandler.getClock().getTime() < 0) {
+    if (!booted && myMoteInterfaceHandler.getClock().getTime() < 0) {
       scheduleNextWakeup(t - myMoteInterfaceHandler.getClock().getTime());
       return;
     }
+    booted = true;
 
     if (stopNextInstruction) {
       stopNextInstruction = false;
@@ -325,7 +312,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     if (t < lastExecute) {
       throw new RuntimeException("Bad event ordering: " + lastExecute + " < " + t);
     }
-
+    
     /* Execute MSPSim-based mote */
     /* TODO Try-catch overhead */
     try {
@@ -334,9 +321,9 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         myCpu.stepMicros(t - lastExecute, duration);
       lastExecute = t;
     } catch (EmulationException e) {
-      String stackTraceOutput = sendCLICommandAndPrint("stacktrace");
+      String trace = e.getMessage() + "\n\n" + getStackTrace();
       throw (ContikiError)
-      new ContikiError(stackTraceOutput).initCause(e);
+      new ContikiError(trace).initCause(e);
     }
 
     /* Schedule wakeup */
@@ -363,22 +350,29 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     }*/
   }
   
-  public String sendCLICommandAndPrint(String cmd) {
-  	String response = executeCLICommand(cmd); 
-  	logger.fatal(response);
-    return response;
+  public String getStackTrace() {
+    return executeCLICommand("stacktrace");
+  }
+
+  public int executeCLICommand(String cmd, CommandContext context) {
+    return commandHandler.executeCommand(cmd, context);
   }
   
   public String executeCLICommand(String cmd) {
     final StringBuilder sb = new StringBuilder();
-    LineListener tmp = new LineListener() {
+    LineListener ll = new LineListener() {
       public void lineRead(String line) {
-        sb.append(line + "\n");
+        sb.append(line).append("\n");
       }
     };
-    commandListeners.add(tmp);
-    sendCLICommand(cmd);
-    commandListeners.remove(tmp);
+    PrintStream po = new PrintStream(new LineOutputStream(ll));
+    CommandContext c = new CommandContext(commandHandler, null, "", new String[0], 1, null);
+    c.out = po;
+    c.err = po;
+    
+    if (0 != executeCLICommand(cmd, c)) {
+      sb.append("\nWarning: command failed");
+    }
     
     return sb.toString();
   }
@@ -393,7 +387,9 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
     setSimulation(simulation);
-    myMoteInterfaceHandler = createMoteInterfaceHandler();
+    if (myMoteInterfaceHandler == null) {
+      myMoteInterfaceHandler = createMoteInterfaceHandler();
+    }
 
     /* Create watchpoint container */
     try {
@@ -493,7 +489,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   }
 
   public String getPCString() {
-    int pc = myCpu.reg[MSP430Constants.PC];
+    int pc = myCpu.getPC();
     ELF elf = (ELF)myCpu.getRegistry().getComponent(ELF.class); 
     DebugInfo di = elf.getDebugInfo(pc);
     
@@ -503,7 +499,23 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     }
     if (di == null) {
       /* Return PC value */
-      return String.format("*%02x", myCpu.reg[MSP430Constants.PC]);
+      SimpleProfiler sp = (SimpleProfiler)myCpu.getProfiler();
+      try {
+        MapEntry mapEntry = sp.getCallMapEntry(0);
+        if (mapEntry != null) {
+          String file = mapEntry.getFile();
+          if (file != null) {
+            if (file.indexOf('/') >= 0) {
+              file = file.substring(file.lastIndexOf('/')+1);
+            }
+          }
+          String name = mapEntry.getName();
+          return file + ":?:" + name; 
+        }
+        return String.format("*%02x", myCpu.reg[MSP430Constants.PC]);
+      } catch (Exception e) {
+        return null;
+      }
     }
 
     int lineNo = di.getLine();
@@ -513,31 +525,21 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       /* strip path */
       file = file.substring(file.lastIndexOf('/')+1, file.length());
     }
+    
     String function = di.getFunction();
-    function = function==null?"?":function;
+    function = function==null?"":function;
     if (function.contains(":")) {
       /* strip arguments */
       function = function.substring(0, function.lastIndexOf(':'));
     }
-    return file + ":" + function + ":" + lineNo;
+    if (function.equals("* not available")) {
+      function = "?";
+    }
+    return file + ":" + lineNo + ":" + function;
     
-    /*return executeCLICommand("line " + myCpu.reg[MSP430Constants.PC]);*/
+    /*return executeCLICommand("line " + myCpu.getPC());*/
   }
 
-  private class MultiCPUMonitor implements CPUMonitor {
-    private ArrayList<CPUMonitor> ms = new ArrayList<CPUMonitor>();
-    public void add(CPUMonitor m) {
-      ms.add(m);
-    }
-    public void remove(CPUMonitor m) {
-      ms.remove(m);
-    }
-    public void cpuAction(int type, int adr, int data) {
-      for (CPUMonitor m: ms) {
-        m.cpuAction(type, adr, data);
-      }
-    }
-  }
   public MemoryMonitor createMemoryMonitor(final MemoryEventHandler meh) {
     return new MemoryMonitor() {
       private boolean started = false;
@@ -568,24 +570,8 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         };
 
         /* TODO Make sure no other part of Cooja overrides this! */
-        
         for (int a = address; a < address+size; a++) {
-          if (myCpu.hasBreakPoint(a)) {
-            if (myCpu.breakPoints[a] instanceof MultiCPUMonitor) {
-              /* Extend */
-              ((MultiCPUMonitor)myCpu.breakPoints[a]).add(myMonitor);
-            } else {
-              /* Create multi and replace */
-              CPUMonitor existingMonitor = myCpu.breakPoints[a];
-              MultiCPUMonitor multiMonitor = new MultiCPUMonitor();
-              multiMonitor.add(existingMonitor);
-              multiMonitor.add(myMonitor);
-              myCpu.clearBreakPoint(a);
-              myCpu.setBreakPoint(a, multiMonitor);
-            }
-          } else {
-            myCpu.setBreakPoint(a, myMonitor);
-          }
+          myCpu.addWatchPoint(a, myMonitor);
         }
 
         this.address = address;
@@ -600,22 +586,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         started = false;
         
         for (int a = address; a < address+size; a++) {
-          if (!myCpu.hasBreakPoint(a)) {
-            logger.fatal("Memory breakpoint was previously removed");
-            return;
-          }
-
-          if (myCpu.breakPoints[a] instanceof MultiCPUMonitor) {
-            /* Remove */
-            ((MultiCPUMonitor)myCpu.breakPoints[a]).remove(myMonitor);
-          } else {
-            /* Clear */
-            if (myCpu.breakPoints[a] != myMonitor) {
-              logger.fatal("Memory breakpoint is not mine");
-              return;
-            }
-            myCpu.clearBreakPoint(a);
-          }
+          myCpu.removeWatchPoint(a, myMonitor);
         }
       }
       public Mote getMote() {

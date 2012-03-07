@@ -79,7 +79,7 @@ void    accm_init(void);
       reg       register to write to
       val       value to write
 */
-void    accm_write_reg(u8_t reg, u8_t val);
+void    accm_write_reg(uint8_t reg, uint8_t val);
 
 /* Write several registers from a stream.
     args:
@@ -88,14 +88,14 @@ void    accm_write_reg(u8_t reg, u8_t val);
   First byte in stream must be the register address to begin writing to.
   The data is then written from the second byte and increasing. The address byte
   is not included in length len. */
-void    accm_write_stream(u8_t len, u8_t *data);
+void    accm_write_stream(uint8_t len, uint8_t *data);
 
 /* Read one register.
     args:
       reg       what register to read
     returns the value of the read register
 */
-u8_t    accm_read_reg(u8_t reg);
+uint8_t    accm_read_reg(uint8_t reg);
 
 /* Read several registers in a stream.
     args:
@@ -103,7 +103,7 @@ u8_t    accm_read_reg(u8_t reg);
       len       number of bytes to read
       whereto   pointer to where the data is saved
 */
-void    accm_read_stream(u8_t reg, u8_t len, u8_t *whereto);
+void    accm_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto);
 
 /* Read an axis of the accelerometer (x, y or z). Return value is a signed 10 bit int.
   The resolution of the acceleration measurement can be increased up to 13 bit, but
@@ -120,14 +120,14 @@ int16_t accm_read_axis(enum ADXL345_AXIS axis);
     Example:
         accm_set_grange(ADXL345_RANGE_4G);
     */
-void    accm_set_grange(u8_t grange);
+void    accm_set_grange(uint8_t grange);
 
 /* Map interrupt (FF, tap, dbltap etc) to interrupt pin (IRQ_INT1, IRQ_INT2).
     This must come after accm_init() as the registers will otherwise be overwritten. */
 void    accm_set_irq(uint8_t int1, uint8_t int2);
 
 /* Macros for setting the pointers to callback functions from the interrupts.
-  The function will be called with an u8_t as parameter, containing the interrupt
+  The function will be called with an uint8_t as parameter, containing the interrupt
   flag register from the ADXL345. That way, several interrupts can be mapped to
   the same pin and be read from the  */
 #define ACCM_REGISTER_INT1_CB(ptr)   accm_int1_cb = ptr;
@@ -278,8 +278,8 @@ void    accm_set_irq(uint8_t int1, uint8_t int2);
 #define ADXL345_SRATE_0_10      0x00    // 0.10 Hz, when I2C data rate >= 100 kHz
 
 /* Callback pointers for the interrupts */
-extern void (*accm_int1_cb)(u8_t reg);
-extern void (*accm_int2_cb)(u8_t reg);
+extern void (*accm_int1_cb)(uint8_t reg);
+extern void (*accm_int2_cb)(uint8_t reg);
 
 /* Interrupt 1 and 2 events; ADXL345 signals interrupt on INT1 or INT2 pins,
   ISR is invoked and polls the accelerometer process which invokes the callbacks. */

@@ -44,29 +44,27 @@ endif
 NUMPAR=20
 
 # Check if we are running under Windows
-ifdef OS
-  ifneq (,$(findstring Windows,$(OS)))
-    USBDEVPREFIX=/dev/com
-    SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-windows
-    MOTELIST = $(CONTIKI)/tools/sky/motelist-windows
-    TMOTE_BSL_FILE = tmote-bsl
-    TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/$(TMOTE_BSL_FILE).exe),1,0)
-    ifeq ($(TMOTE_BSL), 1)
-      NUMPAR = 1
-      BSL =  $(CONTIKI)/tools/sky/$(TMOTE_BSL_FILE)
-      MOTES = $(shell $(MOTELIST) | grep COM | \
-         cut -f 4 -d \  )
-    else
-      BSL = $(CONTIKI)/tools/sky/msp430-bsl-windows --telosb
-      BSL_FILETYPE = -I
-      MOTES = $(shell $(MOTELIST) | grep COM | \
-         cut -f 4 -d \  | \
-         perl -ne 'print $$1 - 1 . " " if(/COM(\d+)/);')
-    endif
-    CMOTES = $(shell $(MOTELIST) | grep COM | \
+ifeq ($(HOST_OS),Windows)
+  USBDEVPREFIX=/dev/com
+  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-windows
+  MOTELIST = $(CONTIKI)/tools/sky/motelist-windows
+  TMOTE_BSL_FILE = tmote-bsl
+  TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/$(TMOTE_BSL_FILE).exe),1,0)
+  ifeq ($(TMOTE_BSL), 1)
+    NUMPAR = 1
+    BSL =  $(CONTIKI)/tools/sky/$(TMOTE_BSL_FILE)
+    MOTES = $(shell $(MOTELIST) | grep COM | \
+       cut -f 4 -d \  )
+  else
+    BSL = $(CONTIKI)/tools/sky/msp430-bsl-windows --telosb
+    BSL_FILETYPE = -I
+    MOTES = $(shell $(MOTELIST) | grep COM | \
        cut -f 4 -d \  | \
-       perl -ne 'print $$1 . " " if(/COM(\d+)/);')
+       perl -ne 'print $$1 - 1 . " " if(/COM(\d+)/);')
   endif
+  CMOTES = $(shell $(MOTELIST) | grep COM | \
+     cut -f 4 -d \  | \
+     perl -ne 'print $$1 . " " if(/COM(\d+)/);')
 endif
 
 # If we are not running under Windows, we assume Linux

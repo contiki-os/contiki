@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-raw.c,v 1.8 2010/05/28 06:18:39 nifi Exp $
  */
 
 /**
@@ -104,27 +103,25 @@ input(void)
       continue;
     }
 #endif /* CHAMELEON_WITH_MAC_LINK_ADDRESSES */
-    PRINTF("%d.%d: unpack_header type %s, len %d\n",
+    PRINTF("%d.%d: unpack_header type %d, len %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   packetbuf_attr_strings[a->type], a->len);
+	   a->type, a->len);
     len = (a->len & 0xf8) + ((a->len & 7) ? 8: 0);
     if(PACKETBUF_IS_ADDR(a->type)) {
       const rimeaddr_t addr;
       memcpy((uint8_t *)&addr, &hdrptr[byteptr], len / 8);
-      PRINTF("%d.%d: unpack_header type %s, addr %d.%d\n",
+      PRINTF("%d.%d: unpack_header type %d, addr %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	     packetbuf_attr_strings[a->type],
-	     addr.u8[0], addr.u8[1]);
+	     a->type, addr.u8[0], addr.u8[1]);
       packetbuf_set_addr(a->type, &addr);
     } else {
       packetbuf_attr_t val = 0;
       memcpy((uint8_t *)&val, &hdrptr[byteptr], len / 8);
 
       packetbuf_set_attr(a->type, val);
-      PRINTF("%d.%d: unpack_header type %s, val %d\n",
+      PRINTF("%d.%d: unpack_header type %d, val %d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	     packetbuf_attr_strings[a->type],
-	     val);
+	     a->type, val);
     }
     byteptr += len / 8;
   }
@@ -160,9 +157,9 @@ output(struct channel *c)
       continue;
     }
 #endif /* CHAMELEON_WITH_MAC_LINK_ADDRESSES */
-    PRINTF("%d.%d: pack_header type %s, len %d\n",
+    PRINTF("%d.%d: pack_header type %d, len %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   packetbuf_attr_strings[a->type], a->len);
+	   a->type, a->len);
     len = (a->len & 0xf8) + ((a->len & 7) ? 8: 0);
     if(PACKETBUF_IS_ADDR(a->type)) {
       const rimeaddr_t *rimeaddr;
@@ -199,10 +196,8 @@ hdrsize(const struct packetbuf_attrlist *a)
   
   size = 0;
   for(; a->type != PACKETBUF_ATTR_NONE; ++a) {
-    /*    PRINTF("chameleon header_size: header type %s (%d) len %d\n",
-	   packetbuf_attr_strings[a->type],
-	   a->type,
-	   a->len);*/
+    /*    PRINTF("chameleon header_size: header type %d len %d\n",
+	   a->type, a->len);*/
 #if CHAMELEON_WITH_MAC_LINK_ADDRESSES
     if(a->type == PACKETBUF_ADDR_SENDER ||
        a->type == PACKETBUF_ADDR_RECEIVER) {

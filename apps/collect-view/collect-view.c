@@ -49,7 +49,7 @@
 /*---------------------------------------------------------------------------*/
 void
 collect_view_construct_message(struct collect_view_data_msg *msg,
-                               rimeaddr_t *parent,
+                               const rimeaddr_t *parent,
                                uint16_t parent_etx,
                                uint16_t current_rtmetric,
                                uint16_t num_neighbors,

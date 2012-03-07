@@ -62,7 +62,7 @@ uaodv_rt_init(void)
 /*---------------------------------------------------------------------------*/
 struct uaodv_rt_entry *
 uaodv_rt_add(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop,
-	     unsigned hop_count, const u32_t *seqno)
+	     unsigned hop_count, const uint32_t *seqno)
 {
   struct uaodv_rt_entry *e;
 

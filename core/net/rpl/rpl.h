@@ -97,24 +97,24 @@
 /*
  * Maximum of concurent dodag inside an instance
  */
-#ifndef RPL_CONF_MAX_DODAG_PER_INSTANCE
-#define RPL_MAX_DODAG_PER_INSTANCE     2
+#ifndef RPL_CONF_MAX_DAG_PER_INSTANCE
+#define RPL_MAX_DAG_PER_INSTANCE     2
 #else
-#define RPL_MAX_DODAG_PER_INSTANCE     RPL_CONF_MAX_DODAG_PER_INSTANCE
-#endif /* !RPL_CONF_MAX_DODAG_PER_INSTANCE */
+#define RPL_MAX_DAG_PER_INSTANCE     RPL_CONF_MAX_DAG_PER_INSTANCE
+#endif /* !RPL_CONF_MAX_DAG_PER_INSTANCE */
 
 /*
  * 
  */
-#ifndef RPL_CONF_DAO_SPECIFY_DODAG
-#if RPL_MAX_DODAG_PER_INSTANCE > 1
-#define RPL_DAO_SPECIFY_DODAG 1
-#else /* RPL_MAX_DODAG_PER_INSTANCE > 1*/
-#define RPL_DAO_SPECIFY_DODAG 0
-#endif /* RPL_MAX_DODAG_PER_INSTANCE > 1 */
-#else /* RPL_CONF_DAO_SPECIFY_DODAG */
-#define RPL_DAO_SPECIFY_DODAG RPL_CONF_DAO_SPECIFY_DODAG
-#endif /* RPL_CONF_DAO_SPECIFY_DODAG */
+#ifndef RPL_CONF_DAO_SPECIFY_DAG
+#if RPL_MAX_DAG_PER_INSTANCE > 1
+#define RPL_DAO_SPECIFY_DAG 1
+#else /* RPL_MAX_DAG_PER_INSTANCE > 1*/
+#define RPL_DAO_SPECIFY_DAG 0
+#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
+#else /* RPL_CONF_DAO_SPECIFY_DAG */
+#define RPL_DAO_SPECIFY_DAG RPL_CONF_DAO_SPECIFY_DAG
+#endif /* RPL_CONF_DAO_SPECIFY_DAG */
 
 
 /*---------------------------------------------------------------------------*/
@@ -123,27 +123,6 @@
 /*---------------------------------------------------------------------------*/
 typedef uint16_t rpl_rank_t;
 typedef uint16_t rpl_ocp_t;
-
-/*---------------------------------------------------------------------------*/
-/* Lollipop counters */
-
-#define RPL_LOLLIPOP_MAX_VALUE           255
-#define RPL_LOLLIPOP_CIRCULAR_REGION     127
-#define RPL_LOLLIPOP_SEQUENCE_WINDOWS    16
-#define RPL_LOLLIPOP_INIT                RPL_LOLLIPOP_MAX_VALUE - RPL_LOLLIPOP_SEQUENCE_WINDOWS + 1
-#define RPL_LOLLIPOP_INCREMENT(counter)   (counter > RPL_LOLLIPOP_CIRCULAR_REGION ?\
-                                (counter == RPL_LOLLIPOP_MAX_VALUE ? counter=0 : ++counter):\
-                                (counter == RPL_LOLLIPOP_CIRCULAR_REGION ? counter=0 : ++counter))
-#define RPL_LOLLIPOP_IS_INIT(counter)    (counter > RPL_LOLLIPOP_CIRCULAR_REGION)
-#define RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B) (((A < B) && (RPL_LOLLIPOP_CIRCULAR_REGION + 1 - B + A < RPL_LOLLIPOP_SEQUENCE_WINDOWS)) || \
-                                              ((A > B) && (A - B < RPL_LOLLIPOP_SEQUENCE_WINDOWS)))
-#define RPL_LOLLIPOP_GREATER_THAN(A,B)   ((A > RPL_LOLLIPOP_CIRCULAR_REGION )?\
-                                           ((B > RPL_LOLLIPOP_CIRCULAR_REGION )?\
-                                             RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B):\
-                                             0):\
-                                           ((B > RPL_LOLLIPOP_CIRCULAR_REGION )?\
-                                             1:\
-                                             RPL_LOLLIPOP_GREATER_THAN_LOCAL(A,B)))
 /*---------------------------------------------------------------------------*/
 /* DAG Metric Container Object Types, to be confirmed by IANA. */
 #define RPL_DAG_MC_NONE			0 /* Local identifier for empty MC */
@@ -224,7 +203,7 @@ typedef struct rpl_prefix rpl_prefix_t;
 /* Directed Acyclic Graph */
 struct rpl_dag {
   uip_ipaddr_t dag_id;
-  rpl_rank_t min_rank; /* should be reset per DODAG iteration! */
+  rpl_rank_t min_rank; /* should be reset per DAG iteration! */
   uint8_t version;
   uint8_t grounded;
   uint8_t preference;
@@ -293,7 +272,7 @@ struct rpl_instance {
   rpl_metric_container_t mc;
   rpl_of_t *of;
   rpl_dag_t *current_dag;
-  rpl_dag_t dag_table[RPL_MAX_DODAG_PER_INSTANCE];
+  rpl_dag_t dag_table[RPL_MAX_DAG_PER_INSTANCE];
   /* The current default router - used for routing "upwards" */
   uip_ds6_defrt_t *def_route;
   uint8_t instance_id;

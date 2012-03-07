@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: wpcap-drv.c,v 1.7 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 #include "contiki-net.h"
@@ -66,7 +65,7 @@ PROCESS(wpcap_process, "WinPcap driver");
 
 /*---------------------------------------------------------------------------*/
 #if !UIP_CONF_IPV6
-u8_t
+uint8_t
 wpcap_output(void)
 {
    uip_arp_out();
@@ -86,7 +85,7 @@ pollhandler(void)
   if(uip_len > 0) {
 #if UIP_CONF_IPV6
     if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
-      printf("wpcap poll calls tcpip");
+//     printf("wpcap poll calls tcpip");
       tcpip_input();
     } else
 #endif /* UIP_CONF_IPV6 */

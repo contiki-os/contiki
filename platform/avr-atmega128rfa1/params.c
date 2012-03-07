@@ -77,9 +77,9 @@ extern uint8_t default_mac_address[8];
 extern uint8_t default_server_name[16];
 extern uint8_t default_domain_name[30];
 #else
-uint8_t default_mac_address[8] PROGMEM = PARAMS_EUI64ADDR;
-uint8_t default_server_name[] PROGMEM = PARAMS_SERVERNAME;
-uint8_t default_domain_name[] PROGMEM = PARAMS_DOMAINNAME;
+const uint8_t default_mac_address[8] PROGMEM = PARAMS_EUI64ADDR;
+const uint8_t default_server_name[] PROGMEM = PARAMS_SERVERNAME;
+const uint8_t default_domain_name[] PROGMEM = PARAMS_DOMAINNAME;
 #endif
 
 #if PARAMETER_STORAGE==0

@@ -108,26 +108,17 @@ public class SkyCoffeeFilesystem extends MoteInterface {
   }
 
   private void updateFS() {
-    if (SwingUtilities.isEventDispatchThread()) {
-      /* Don't call me in EDT */
-      new Thread(new Runnable() {
-        public void run() {
-          updateFS();
-        }
-      }).start();
-      return;
-    }
-
     /* Create new filesystem instance */
     try {
       SkyFlash flash = mote.getInterfaces().getInterfaceOfType(SkyFlash.class);
       coffeeFS = new CoffeeFS(flash.m24p80);
     } catch (IOException e) {
+      logger.fatal(e.getMessage(), e);
       coffeeFS = null;
     }
 
-    final CoffeeFile[] tmpFiles = coffeeFS.getFiles().values().toArray(new CoffeeFile[0]);
-    for (CoffeeFile file : tmpFiles) {
+    files = coffeeFS.getFiles().values().toArray(new CoffeeFile[0]);
+    for (CoffeeFile file : files) {
       file.getName();
       try {
         file.getLength();
@@ -137,8 +128,6 @@ public class SkyCoffeeFilesystem extends MoteInterface {
 
     EventQueue.invokeLater(new Runnable() {
       public void run() {
-        /* Update table */
-        files = tmpFiles;
         ((AbstractTableModel)filesTable.getModel()).fireTableDataChanged();
       }
     });
@@ -323,6 +312,7 @@ public class SkyCoffeeFilesystem extends MoteInterface {
   
   public boolean insertFile(String diskFilename) {
     try {
+      updateFS();
       return coffeeFS.insertFile(diskFilename) != null;
     } catch (RuntimeException e) {
       logger.fatal("Error: " + e.getMessage(), e);

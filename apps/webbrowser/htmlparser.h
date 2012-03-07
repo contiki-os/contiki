@@ -73,7 +73,7 @@ void htmlparser_renderstate(unsigned char state);
 
 /* Functions. */
 void htmlparser_init(void);
-void htmlparser_parse(char *data, u16_t len);
+void htmlparser_parse(char *data, uint16_t len);
 
 
 #endif /* __HTMLPARSER_H__ */

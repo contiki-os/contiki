@@ -43,7 +43,7 @@ PROCESS_THREAD(test_cfs_process, ev, data)
 {
   static struct etimer et;
   static int fd;
-  static u16_t counter;
+  static uint16_t counter;
   static char buf[30];
 
   PROCESS_BEGIN();

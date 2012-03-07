@@ -38,10 +38,12 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #include <sys/select.h>
 #endif
+
 struct select_callback {
-  int (* set_fd)(int maxfd, fd_set *fdr, fd_set *fdw);
+  int  (* set_fd)(fd_set *fdr, fd_set *fdw);
   void (* handle_fd)(fd_set *fdr, fd_set *fdw);
 };
+int select_set_callback(int fd, const struct select_callback *callback);
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
@@ -53,10 +55,12 @@ struct select_callback {
 #define CCIF
 #define CLIF
 
+/* These names are deprecated, use C99 names. */
 typedef uint8_t   u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
 typedef  int32_t s32_t;
+
 typedef unsigned short uip_stats_t;
 
 #define UIP_CONF_UDP             1
@@ -176,6 +180,5 @@ int strcasecmp(const char*, const char*);
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
-
 
 #endif /* __CONTIKI_CONF_H__ */

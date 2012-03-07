@@ -1,3 +1,5 @@
+# -*- makefile -*-
+
 ifndef CONTIKI
   ${error CONTIKI not defined! You must specify where CONTIKI resides}
 endif
@@ -19,11 +21,22 @@ ifeq ($(DEFINES),)
   endif
 endif
 
+ifndef HOST_OS
+  ifeq ($(OS),Windows_NT)
+  ## TODO: detect more specific Windows set-ups,
+  ## e.g. CygWin, MingW, VisualC, Watcom, Interix
+    $(warning Windows (NT) detected.)
+    HOST_OS := Windows
+  else
+    HOST_OS := $(shell uname)
+  endif
+endif
+
 usage:
 	@echo "make MAKETARGETS... [TARGET=(TARGET)] [savetarget] [targets]"
 
 targets:
-	@ls -1 $(CONTIKI)/platform | grep -v CVS
+	@ls -1 $(CONTIKI)/platform $(TARGETDIRS) | grep -v CVS
 
 savetarget:
 	-@rm -f Makefile.target
@@ -65,7 +78,7 @@ ifdef UIP_CONF_IPV6
 else # UIP_CONF_IPV6
   UIP   = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
           uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
-          uip-over-mesh.c dhcpc.c #rawpacket-udp.c
+          uip-over-mesh.c dhcpc.c simple-udp.c
   NET   += $(UIP) uaodv.c uaodv-rt.c
 endif # UIP_CONF_IPV6
 
@@ -93,9 +106,9 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFI
 
 ifdef APPS
   APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
-                ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
-		${addprefix , $(APPS)}}
-  APPINCLUDES = ${foreach APP, $(APPS), ${wildcard \
+	     ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
+	     ${addprefix , $(APPS)}}
+  APPINCLUDES = ${foreach APP, $(APPS),  ${wildcard ${foreach DIR, $(APPDIRS), $(DIR)/Makefile.$(APP)} \
                  $(CONTIKI)/apps/$(APP)/Makefile.$(APP) \
                  $(CONTIKI)/platform/$(TARGET)/apps/$(APP)/Makefile.$(APP) \
 	         $(APP)/Makefile.$(APP)}}
@@ -107,7 +120,7 @@ endif
 
 ### Include target makefile (TODO Unsafe?)
 
-target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET))
+target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.$(TARGET)})
 
 # Check if the target makefile exists, and create the object directory if necessary.
 ifeq ($(strip $(target_makefile)),)
@@ -116,7 +129,10 @@ else
   ifeq (${wildcard $(OBJECTDIR)},)
     DUMMY := ${shell mkdir $(OBJECTDIR)}
   endif
-  include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
+  ifneq (1, ${words $(target_makefile)})
+    ${error More than one TARGET Makefile found: $(target_makefile)}
+  endif
+  include $(target_makefile)
 endif
 
 ### Forward comma-separated list of arbitrary defines to the compiler
@@ -126,13 +142,13 @@ CFLAGS += ${addprefix -D,${subst $(COMMA), ,$(DEFINES)}}
 
 ### Setup directory search path for source and header files
 
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix ${dir $(target_makefile)}, \
                                $(CONTIKI_TARGET_DIRS)}
 CONTIKI_CPU_DIRS_CONCAT    = ${addprefix $(CONTIKI_CPU)/, \
                                $(CONTIKI_CPU_DIRS)}
 
 SOURCEDIRS = . $(PROJECTDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-             $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDIRS)
+             $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDIRS) ${dir $(target_makefile)}
 
 vpath %.c $(SOURCEDIRS)
 vpath %.S $(SOURCEDIRS)

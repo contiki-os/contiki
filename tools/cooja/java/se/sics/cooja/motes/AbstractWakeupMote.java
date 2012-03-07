@@ -98,6 +98,16 @@ public abstract class AbstractWakeupMote implements Mote {
   }
 
   /**
+   * @return Next wakeup time, or -1 if not scheduled
+   */
+  public long getNextWakeupTime() {
+	  if (!executeMoteEvent.isScheduled()) {
+		  return -1;
+	  }
+	  return executeMoteEvent.getTime();
+  }
+  
+  /**
    * Execute mote software at given time, or earlier.
    * 
    * If a wakeup is already scheduled earlier than given argument,
@@ -126,6 +136,7 @@ public abstract class AbstractWakeupMote implements Mote {
       /*logger.info("Rescheduled wakeup from " + executeMoteEvent.getTime() + " to " + time);*/
       executeMoteEvent.remove();
     }
+
     simulation.scheduleEvent(executeMoteEvent, time);
     return true;
   }

@@ -40,11 +40,12 @@
 #include <string.h>
 
 #include "er-coap-07-separate.h"
+#include "er-coap-07-transactions.h"
 
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]",(lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3],(lladdr)->addr[4], (lladdr)->addr[5])
 #else
 #define PRINTF(...)
@@ -53,17 +54,59 @@
 #endif
 
 /*-----------------------------------------------------------------------------------*/
-void coap_separate_handler(resource_t *resource, void *request, void *response)
+int coap_separate_handler(resource_t *resource, void *request, void *response)
 {
-  PRINTF("Separate response for /%s \n", resource->url);
-  /* send separate ACK. */
-  coap_packet_t ack[1];
-  /* ACK with empty code (0) */
-  coap_init_message(ack, COAP_TYPE_ACK, 0, ((coap_packet_t *)request)->tid);
-  /* Should only overwrite Header which is already parsed to request. */
-  coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, (uip_appdata + uip_ext_len), coap_serialize_message(ack, (uip_appdata + uip_ext_len)));
+  coap_packet_t *const coap_req = (coap_packet_t *) request;
+  coap_packet_t *const coap_res = (coap_packet_t *) response;
 
-  /* Change response to separate response. */
-  ((coap_packet_t *)response)->type = COAP_TYPE_CON;
-  ((coap_packet_t *)response)->tid = coap_get_tid();
+  PRINTF("Separate response for /%s MID %u\n", resource->url, coap_res->mid);
+
+  /* Only ack CON requests. */
+  if (coap_req->type==COAP_TYPE_CON)
+  {
+    coap_transaction_t *const t = coap_get_transaction_by_mid(coap_res->mid);
+
+    /* send separate ACK. */
+    coap_packet_t ack[1];
+    /* ACK with empty code (0) */
+    coap_init_message(ack, COAP_TYPE_ACK, 0, coap_req->mid);
+    /* Serializing into IPBUF: Only overwrites header parts that are already parsed into the request struct. */
+    coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, (uip_appdata), coap_serialize_message(ack, uip_appdata));
+  }
+
+  /* Pre-handlers could skip the handling by returning 0. */
+  return 1;
+}
+
+int
+coap_separate_response(void *request, coap_separate_t *separate_store)
+{
+  coap_packet_t *const coap_req = (coap_packet_t *) request;
+  coap_transaction_t *const t = coap_get_transaction_by_mid(coap_req->mid);
+
+  if (t)
+  {
+    uip_ipaddr_copy(&separate_store->addr, &t->addr);
+    separate_store->port = t->port;
+
+    separate_store->type = coap_req->type==COAP_TYPE_CON ? COAP_TYPE_CON : COAP_TYPE_NON;
+    separate_store->mid = coap_get_mid(); // if it was NON, we burned one MID in the engine...
+
+    memcpy(separate_store->token, coap_req->token, coap_req->token_len);
+    separate_store->token_len = coap_req->token_len;
+
+    separate_store->block2_num = coap_req->block2_num;
+    separate_store->block2_more = coap_req->block2_more;
+    separate_store->block2_size = coap_req->block2_size;
+    separate_store->block2_offset = coap_req->block2_offset;
+
+    /* Signal the engine to skip automatic response and clear transaction by engine. */
+    coap_error_code = MANUAL_RESPONSE;
+
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }

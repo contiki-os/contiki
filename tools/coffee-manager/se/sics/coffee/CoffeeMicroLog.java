@@ -26,10 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
- *
- * $Id: CoffeeMicroLog.java,v 1.2 2009/08/11 14:42:58 nvt-se Exp $
- *
  * @author Nicolas Tsiftes
  *
  */
@@ -54,7 +50,6 @@ public class CoffeeMicroLog extends CoffeeFile {
 		if (header.logRecordSize == 0) {
 			logRecordSize = conf.pageSize;
 		}
-		int logAreaSize;
 		if (header.logRecords == 0) {
 			logRecords = conf.defaultLogSize / logRecordSize;
 		} else {
@@ -78,9 +73,6 @@ public class CoffeeMicroLog extends CoffeeFile {
 	}
 
 	public byte[] getRegion(int region) throws IOException {
-		int headerSize = header.rawLength();
-		int indexSize = logRecords * 2;
-
 		for (int i = logRecords - 1; i >= 0; i--) {
 			if (index[i] - 1 == region) {
 				byte[] bytes = new byte[logRecordSize];

@@ -47,7 +47,7 @@
 #define DEBUG 0 
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",(lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3],(lladdr)->addr[4], (lladdr)->addr[5])
 #define PRINTBITS(buf,len) { \
       int i,j=0; \
@@ -100,9 +100,9 @@ handle_incoming_data(void)
     if (coap_error_code==NO_ERROR)
     {
 
-      /*TODO duplicates suppression, if required */
+      /*TODO duplicates suppression, if required by application */
 
-      PRINTF("  Parsed: v %u, t %u, oc %u, c %u, tid %u\n", message->version, message->type, message->option_count, message->code, message->tid);
+      PRINTF("  Parsed: v %u, t %u, oc %u, c %u, mid %u\n", message->version, message->type, message->option_count, message->code, message->mid);
       PRINTF("  URL: %.*s\n", message->uri_path_len, message->uri_path);
       PRINTF("  Payload: %.*s\n", message->payload_len, message->payload);
 
@@ -110,23 +110,23 @@ handle_incoming_data(void)
       if (message->code >= COAP_GET && message->code <= COAP_DELETE)
       {
         /* Use transaction buffer for response to confirmable request. */
-        if ( (transaction = coap_new_transaction(message->tid, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport)) )
+        if ( (transaction = coap_new_transaction(message->mid, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport)) )
         {
-          static uint32_t block_num = 0;
-          static uint16_t block_size = REST_MAX_CHUNK_SIZE;
-          static uint32_t block_offset = 0;
-          static int32_t new_offset = 0;
+          uint32_t block_num = 0;
+          uint16_t block_size = REST_MAX_CHUNK_SIZE;
+          uint32_t block_offset = 0;
+          int32_t new_offset = 0;
 
           /* prepare response */
           if (message->type==COAP_TYPE_CON)
           {
             /* Reliable CON requests are answered with an ACK. */
-            coap_init_message(response, COAP_TYPE_ACK, CONTENT_2_05, message->tid);
+            coap_init_message(response, COAP_TYPE_ACK, CONTENT_2_05, message->mid);
           }
           else
           {
             /* Unreliable NON requests are answered with a NON as well. */
-            coap_init_message(response, COAP_TYPE_NON, CONTENT_2_05, coap_get_tid());
+            coap_init_message(response, COAP_TYPE_NON, CONTENT_2_05, coap_get_mid());
           }
 
           /* resource handlers must take care of different handling (e.g., TOKEN_OPTION_REQUIRED_240) */
@@ -143,11 +143,6 @@ handle_incoming_data(void)
               block_size = MIN(block_size, REST_MAX_CHUNK_SIZE);
               new_offset = block_offset;
           }
-          else
-          {
-            block_size = REST_MAX_CHUNK_SIZE;
-            new_offset = 0;
-          }
 
           /* Invoke resource handler. */
           if (service_cbk)
@@ -155,57 +150,64 @@ handle_incoming_data(void)
             /* Call REST framework and check if found and allowed. */
             if (service_cbk(message, response, transaction->packet+COAP_MAX_HEADER_SIZE, block_size, &new_offset))
             {
-              /* Apply blockwise transfers. */
-              if ( IS_OPTION(message, COAP_OPTION_BLOCK2) )
+              if (coap_error_code==NO_ERROR)
               {
-                /* unchanged new_offset indicates that resource is unaware of blockwise transfer */
-                if (new_offset==block_offset)
+                /* Apply blockwise transfers. */
+                if ( IS_OPTION(message, COAP_OPTION_BLOCK2) )
                 {
-                  PRINTF("Blockwise: unaware resource with payload length %u/%u\n", response->payload_len, block_size);
-                  if (block_offset >= response->payload_len)
+                  /* unchanged new_offset indicates that resource is unaware of blockwise transfer */
+                  if (new_offset==block_offset)
                   {
-                    PRINTF("handle_incoming_data(): block_offset >= response->payload_len\n");
+                    PRINTF("Blockwise: unaware resource with payload length %u/%u\n", response->payload_len, block_size);
+                    if (block_offset >= response->payload_len)
+                    {
+                      PRINTF("handle_incoming_data(): block_offset >= response->payload_len\n");
 
-                    response->code = BAD_OPTION_4_02;
-                    coap_set_payload(response, (uint8_t*)"BlockOutOfScope", 15);
+                      response->code = BAD_OPTION_4_02;
+                      coap_set_payload(response, "BlockOutOfScope", 15); /* a const char str[] and sizeof(str) produces larger code size */
+                    }
+                    else
+                    {
+                      coap_set_header_block2(response, block_num, response->payload_len - block_offset > block_size, block_size);
+                      coap_set_payload(response, response->payload+block_offset, MIN(response->payload_len - block_offset, block_size));
+                    } /* if (valid offset) */
                   }
                   else
                   {
-                    coap_set_header_block2(response, block_num, response->payload_len - block_offset > block_size, block_size);
-                    coap_set_payload(response, response->payload+block_offset, MIN(response->payload_len - block_offset, block_size));
-                  } /* if (valid offset) */
+                    /* resource provides chunk-wise data */
+                    PRINTF("Blockwise: blockwise resource, new offset %ld\n", new_offset);
+                    coap_set_header_block2(response, block_num, new_offset!=-1 || response->payload_len > block_size, block_size);
+                    if (response->payload_len > block_size) coap_set_payload(response, response->payload, block_size);
+                  } /* if (resource aware of blockwise) */
                 }
-                else
+                else if (new_offset!=0)
                 {
-                  /* resource provides chunk-wise data */
-                  PRINTF("Blockwise: blockwise resource, new offset %ld\n", new_offset);
-                  coap_set_header_block2(response, block_num, new_offset!=-1 || response->payload_len > block_size, block_size);
-                  if (response->payload_len > block_size) coap_set_payload(response, response->payload, block_size);
-                } /* if (resource aware of blockwise) */
-              }
-              else if (new_offset!=0)
-              {
-                PRINTF("Blockwise: no block option for blockwise resource, using block size %u\n", REST_MAX_CHUNK_SIZE);
+                  PRINTF("Blockwise: no block option for blockwise resource, using block size %u\n", REST_MAX_CHUNK_SIZE);
 
-                coap_set_header_block2(response, 0, new_offset!=-1, REST_MAX_CHUNK_SIZE);
-                coap_set_payload(response, response->payload, MIN(response->payload_len, REST_MAX_CHUNK_SIZE));
-              } /* if (blockwise request) */
+                  coap_set_header_block2(response, 0, new_offset!=-1, REST_MAX_CHUNK_SIZE);
+                  coap_set_payload(response, response->payload, MIN(response->payload_len, REST_MAX_CHUNK_SIZE));
+                } /* if (blockwise request) */
+              } /* no errors/hooks */
+            } /* successful service callback */
+
+            /* Serialize response. */
+            if (coap_error_code==NO_ERROR)
+            {
+              if ((transaction->packet_len = coap_serialize_message(response, transaction->packet))==0)
+              {
+                coap_error_code = PACKET_SERIALIZATION_ERROR;
+              }
             }
+
           }
           else
           {
-            coap_error_code = INTERNAL_SERVER_ERROR_5_00;
-            coap_error_message = "Service callback undefined";
+            coap_error_code = NOT_IMPLEMENTED_5_01;
+            coap_error_message = "NoServiceCallbck"; // no a to fit 16 bytes
           } /* if (service callback) */
 
-          /* serialize Response. */
-          if ((transaction->packet_len = coap_serialize_message(response, transaction->packet))==0)
-          {
-            coap_error_code = PACKET_SERIALIZATION_ERROR;
-          }
-
         } else {
-            coap_error_code = MEMORY_ALLOC_ERR;
+            coap_error_code = MEMORY_ALLOCATION_ERROR;
             coap_error_message = "Transaction buffer allocation failed";
         } /* if (transaction buffer) */
       }
@@ -221,14 +223,10 @@ handle_incoming_data(void)
         {
           PRINTF("Received RST\n");
           /* Cancel possible subscriptions. */
-          if (IS_OPTION(message, COAP_OPTION_TOKEN))
-          {
-            PRINTF("  Token 0x%02X%02X\n", message->token[0], message->token[1]);
-            coap_remove_observer_by_token(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, message->token, message->token_len);
-          }
+          coap_remove_observer_by_mid(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, message->mid);
         }
 
-        if ( (transaction = coap_get_transaction_by_tid(message->tid)) )
+        if ( (transaction = coap_get_transaction_by_mid(message->mid)) )
         {
           /* Free transaction memory before callback, as it may create a new transaction. */
           restful_response_handler callback = transaction->callback;
@@ -241,11 +239,19 @@ handle_incoming_data(void)
           }
         } /* if (ACKed transaction) */
         transaction = NULL;
-      }
+
+      } /* Request or Response */
+
     } /* if (parsed correctly) */
 
-    if (coap_error_code==NO_ERROR) {
+    if (coap_error_code==NO_ERROR)
+    {
       if (transaction) coap_send_transaction(transaction);
+    }
+    else if (coap_error_code==MANUAL_RESPONSE)
+    {
+      PRINTF("Clearing transaction for manual response");
+      coap_clear_transaction(transaction);
     }
     else
     {
@@ -258,8 +264,8 @@ handle_incoming_data(void)
         coap_error_code = INTERNAL_SERVER_ERROR_5_00;
       }
       /* Reuse input buffer for error message. */
-      coap_init_message(message, COAP_TYPE_ACK, coap_error_code, message->tid);
-      coap_set_payload(message, (uint8_t *) coap_error_message, strlen(coap_error_message));
+      coap_init_message(message, COAP_TYPE_ACK, coap_error_code, message->mid);
+      coap_set_payload(message, coap_error_message, strlen(coap_error_message));
       coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, uip_appdata, coap_serialize_message(message, uip_appdata));
     }
   } /* if (new data) */
@@ -285,29 +291,16 @@ coap_get_rest_method(void *packet)
   return (rest_resource_flags_t)(1 << (((coap_packet_t *)packet)->code - 1));
 }
 /*-----------------------------------------------------------------------------------*/
-int
-coap_set_rest_status(void *packet, unsigned int code)
-{
-  if (code <= 0xFF)
-  {
-    ((coap_packet_t *)packet)->code = (uint8_t) code;
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
-}
-/*-----------------------------------------------------------------------------------*/
 /*- Server part ---------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
+
 /* The discover resource is automatically included for CoAP. */
 RESOURCE(well_known_core, METHOD_GET, ".well-known/core", "ct=40");
 void
 well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-    size_t strpos = 0;
-    size_t bufpos = 0;
+    size_t strpos = 0; /* position in overall string (which is larger than the buffer) */
+    size_t bufpos = 0; /* position within buffer (bytes written) */
     size_t tmplen = 0;
     resource_t* resource = NULL;
 
@@ -333,6 +326,10 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
         bufpos += snprintf((char *) buffer + bufpos, preferred_size - bufpos + 1,
                          "%s", resource->url + ((*offset-(int32_t)strpos > 0) ? (*offset-(int32_t)strpos) : 0));
                                                           /* minimal-net requires these casts */
+        if (bufpos >= preferred_size)
+        {
+          break;
+        }
       }
       strpos += tmplen;
 
@@ -355,6 +352,10 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
         {
           bufpos += snprintf((char *) buffer + bufpos, preferred_size - bufpos + 1,
                          "%s", resource->attributes + (*offset-(int32_t)strpos > 0 ? *offset-(int32_t)strpos : 0));
+          if (bufpos >= preferred_size)
+          {
+            break;
+          }
         }
         strpos += tmplen;
       }
@@ -386,8 +387,8 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
     {
       PRINTF("well_known_core_handler(): bufpos<=0\n");
 
-      coap_set_rest_status(response, BAD_OPTION_4_02);
-      coap_set_payload(response, (uint8_t*)"BlockOutOfScope", 15);
+      coap_set_status_code(response, BAD_OPTION_4_02);
+      coap_set_payload(response, "BlockOutOfScope", 15);
     }
 
     if (resource==NULL) {
@@ -397,7 +398,7 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
     else
     {
       PRINTF("res: MORE at %s (%p)\n", resource->url, resource);
-      *offset += bufpos;
+      *offset += preferred_size;
     }
 }
 /*-----------------------------------------------------------------------------------*/
@@ -453,8 +454,8 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
   block_error = 0;
 
   do {
-    request->tid = coap_get_tid();
-    if ((state->transaction = coap_new_transaction(request->tid, remote_ipaddr, remote_port)))
+    request->mid = coap_get_mid();
+    if ((state->transaction = coap_new_transaction(request->mid, remote_ipaddr, remote_port)))
     {
       state->transaction->callback = blocking_request_callback;
       state->transaction->callback_data = state;
@@ -467,7 +468,7 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
       state->transaction->packet_len = coap_serialize_message(request, state->transaction->packet);
 
       coap_send_transaction(state->transaction);
-      PRINTF("Requested #%lu (TID %u)\n", state->block_num, request->tid);
+      PRINTF("Requested #%lu (MID %u)\n", state->block_num, request->mid);
 
       PT_YIELD_UNTIL(&state->pt, ev == PROCESS_EVENT_POLL);
 
@@ -513,7 +514,7 @@ const struct rest_implementation coap_rest_implementation = {
   coap_get_header_uri_path,
   coap_set_header_uri_path,
   coap_get_rest_method,
-  coap_set_rest_status,
+  coap_set_status_code,
 
   coap_get_header_content_type,
   coap_set_header_content_type,
