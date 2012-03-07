@@ -1,7 +1,5 @@
 # $Id: Makefile.z1,v 1.5 2011/02/26 enricmcalvo Exp $
 
-PROJECT_SOURCEFILES += i2cmaster.c adxl345.c
-
 ifdef GCC
 CFLAGS+=-Os -g
 endif
@@ -13,9 +11,6 @@ LDFLAGS += -Wl,--defsym -Wl,__P1SEL2=0x0041 -Wl,--defsym -Wl,__P5SEL2=0x0045
 endif
 
 CLEAN += symbols.c symbols.h
-#CFLAGS += -ffunction-sections
-#LDFLAGS += -Wl,--gc-sections,--undefined=_reset_vector__,--undefined=InterruptVectors,--undefined=_copy_data_init__,--undefined=_clear_bss_init__,--undefined=_end_of_init__
-
 
 ARCH=msp430.c leds.c watchdog.c xmem.c \
      spi.c cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c\
@@ -39,14 +34,15 @@ CFLAGS += -DMACID=$(nodemac)
 endif
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
-CONTIKI_TARGET_SOURCEFILES += contiki-z1-platform.c
+CONTIKI_TARGET_SOURCEFILES += i2cmaster.c adxl345.c
 
 MCU=msp430x2617
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
 # Add LDFLAGS after IAR_PATH is set
 ifdef IAR
-LDFLAGS += -B -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f2617.xcl" -l contiki-$(TARGET).map -Fintel-extended -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+LDFLAGSNO += -B -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f2617.xcl" -l contiki-$(TARGET).map -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+LDFLAGS += $(LDFLAGSNO) -Felf -yn
 endif
 
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}

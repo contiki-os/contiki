@@ -32,6 +32,7 @@
 #include "contiki.h"
 #include "dev/spi.h"
 #include "dev/cc2420.h"
+#include "isr_compat.h"
 
 extern volatile uint8_t cc2420_sfd_counter;
 extern volatile uint16_t cc2420_sfd_start_time;
@@ -39,13 +40,7 @@ extern volatile uint16_t cc2420_sfd_end_time;
 
 /*---------------------------------------------------------------------------*/
 /* SFD interrupt for timestamping radio packets */
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMERB1_VECTOR
-__interrupt void
-#else
-interrupt(TIMERB1_VECTOR)
-#endif
-cc24240_timerb1_interrupt(void)
+ISR(TIMERB1, cc2420_timerb1_interrupt)
 {
   int tbiv;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);

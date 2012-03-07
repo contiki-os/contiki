@@ -60,8 +60,6 @@
 #define CCIF
 #define CLIF
 
-#define CC_CONF_INLINE inline
-
 #define HAVE_STDINT_H
 #include "msp430def.h"
 
