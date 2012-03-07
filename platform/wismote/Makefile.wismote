@@ -34,19 +34,15 @@ MCU=msp430x5437
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
 ifdef IAR
-LDFLAGS += -B -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f5437.xcl" -l contiki-$(TARGET).map -Fintel-extended -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+LDFLAGSNO += -B -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f5437.xcl" -l contiki-$(TARGET).map -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+LDFLAGS += $(LDFLAGSNO) -Felf -yn
 endif
 
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 #	$(AR) rcf $@ $^
 
-ifdef IAR
-%.hex: %.$(TARGET)
-	mv $< $@
-else
 %.hex: %.ihex
 	mv $< $@
-endif
 
 %.upload: %.hex
 	msp430flasher -n msp430x5437 -e ERASE_MAIN -w $< -v -z [VCC]

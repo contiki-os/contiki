@@ -71,10 +71,19 @@ CUSTOM_RULE_C_TO_O = 1
 %.o: %.c
 	$(CC) $(CFLAGS) $< -o $@
 
+define FINALIZE_CYGWIN_DEPENDENCY
+sed -e 's/ \([A-Z]\):\\/ \/cygdrive\/\L\1\//' -e 's/\\/\//g' \
+	    <$(@:.o=.P) >$(@:.o=.d); \
+rm -f $(@:.o=.P)
+endef
+
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c
-	$(CC) $(CFLAGS) $< -o $@
-#	@$(FINALIZE_DEPENDENCY)
+	$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
+ifeq ($(HOST_OS),Windows)
+	@$(FINALIZE_CYGWIN_DEPENDENCY)
+endif
+
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
@@ -82,6 +91,7 @@ CUSTOM_RULE_C_TO_CO = 1
 AROPTS = -o
 
 else
+
 GCC      = 1
 CC       = msp430-gcc
 LD       = msp430-gcc
@@ -129,8 +139,13 @@ PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 %.firmware:	%.${TARGET}
 	mv $< $@
 
+ifdef IAR
+%.ihex: %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(LD) $(LDFLAGSNO) -Fintel-extended -yn $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+else
 %.ihex: %.$(TARGET)
 	$(OBJCOPY) $^ -O ihex $@
+endif
 
 %.mspsim:	%.${TARGET}
 	java -jar ${CONTIKI}/tools/mspsim/mspsim.jar -platform=${TARGET} $<
