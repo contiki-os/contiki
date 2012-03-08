@@ -32,18 +32,11 @@
  */
 
 #include "contiki-conf.h"
-
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#include <signal.h>
-#endif
-
 #include "sys/energest.h"
 #include "sys/clock.h"
 #include "sys/etimer.h"
 #include "rtimer-arch.h"
+#include "isr_compat.h"
 
 #include "dev/leds.h"
 
@@ -57,13 +50,7 @@ static volatile clock_time_t count = 0;
 /* last_tar is used for calculating clock_fine, last_ccr might be better? */
 static unsigned short last_tar = 0;
 /*---------------------------------------------------------------------------*/
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMER1_A1_VECTOR
-__interrupt void
-#else
-interrupt(TIMER1_A1_VECTOR)
-#endif
-timera1 (void)
+ISR(TIMER1_A1, timera1)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 

@@ -31,19 +31,12 @@
 
 
 #include "contiki.h"
-
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#include <signal.h>
-#endif
-
 #include "contiki-net.h"
 
 #include "dev/spi.h"
 #include "dev/cc2420.h"
 #include "dev/leds.h"
+#include "isr_compat.h"
 
 #ifndef CONF_SFD_TIMESTAMPS
 #define CONF_SFD_TIMESTAMPS 0
@@ -54,13 +47,7 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=CC2420_IRQ_VECTOR
-__interrupt void
-#else
-interrupt(CC2420_IRQ_VECTOR)
-#endif
-cc24240_fifop_interrupt(void)
+ISR(CC2420_IRQ, cc24240_fifop_interrupt)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
