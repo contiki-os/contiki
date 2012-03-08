@@ -42,12 +42,6 @@
 #include "contiki-conf.h"
 #include "dev/leds.h"
 
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#endif
-
 /* LED ports */
 #define LEDS_CONF_RED    0x01
 #define LEDS_CONF_GREEN  0x02
