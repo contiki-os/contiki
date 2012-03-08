@@ -358,11 +358,14 @@ powercycle_turn_radio_on(void)
 static char
 powercycle(struct rtimer *t, void *ptr)
 {
+#if SYNC_CYCLE_STARTS
+  static volatile rtimer_clock_t sync_cycle_start;
+  static volatile uint8_t sync_cycle_phase;
+#endif
+
   PT_BEGIN(&pt);
 
 #if SYNC_CYCLE_STARTS
-static volatile rtimer_clock_t sync_cycle_start;
-static volatile uint8_t sync_cycle_phase;
   sync_cycle_start = RTIMER_NOW();
 #else
   cycle_start = RTIMER_NOW();
