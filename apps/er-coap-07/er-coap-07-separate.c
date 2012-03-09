@@ -57,28 +57,18 @@
 int coap_separate_handler(resource_t *resource, void *request, void *response)
 {
   coap_packet_t *const coap_req = (coap_packet_t *) request;
-  coap_packet_t *const coap_res = (coap_packet_t *) response;
 
   PRINTF("Separate response for /%s MID %u\n", resource->url, coap_res->mid);
 
   /* Only ack CON requests. */
   if (coap_req->type==COAP_TYPE_CON)
   {
-    coap_transaction_t *const t = coap_get_transaction_by_mid(coap_res->mid);
-
     /* send separate ACK. */
     coap_packet_t ack[1];
     /* ACK with empty code (0) */
     coap_init_message(ack, COAP_TYPE_ACK, 0, coap_req->mid);
     /* Serializing into IPBUF: Only overwrites header parts that are already parsed into the request struct. */
     coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, (uip_appdata), coap_serialize_message(ack, uip_appdata));
-
-    /* Change response to separate response. */
-    coap_res->type = COAP_TYPE_CON;
-    coap_res->mid = coap_get_mid();
-
-    /* Update MID in transaction for identification. */
-    t->mid = coap_res->mid;
   }
 
   /* Pre-handlers could skip the handling by returning 0. */
@@ -86,26 +76,24 @@ int coap_separate_handler(resource_t *resource, void *request, void *response)
 }
 
 int
-coap_separate_response(void *response, coap_separate_t *separate_store)
+coap_separate_yield(void *request, coap_separate_t *separate_store)
 {
-  coap_packet_t *const coap_res = (coap_packet_t *) response;
-  coap_transaction_t *const t = coap_get_transaction_by_mid(coap_res->mid);
+  coap_packet_t *const coap_req = (coap_packet_t *) request;
+  coap_transaction_t *const t = coap_get_transaction_by_mid(coap_req->mid);
 
   if (t)
   {
     uip_ipaddr_copy(&separate_store->addr, &t->addr);
     separate_store->port = t->port;
 
-    separate_store->mid = coap_res->mid;
-    separate_store->type = coap_res->type;
+    separate_store->type = coap_req->type==COAP_TYPE_CON ? COAP_TYPE_CON : COAP_TYPE_NON;
+    separate_store->mid = coap_get_mid(); // if it was NON, we burned one MID in the engine...
 
-    memcpy(separate_store->token, coap_res->token, coap_res->token_len);
-    separate_store->token_len = coap_res->token_len;
+    memcpy(separate_store->token, coap_req->token, coap_req->token_len);
+    separate_store->token_len = coap_req->token_len;
 
-    separate_store->block2_num = coap_res->block2_num;
-    separate_store->block2_more = coap_res->block2_more;
-    separate_store->block2_size = coap_res->block2_size;
-    separate_store->block2_offset = coap_res->block2_offset;
+    separate_store->block2_num = coap_req->block2_num;
+    separate_store->block2_size = coap_req->block2_size;
 
     /* Signal the engine to skip automatic response and clear transaction by engine. */
     coap_error_code = MANUAL_RESPONSE;
@@ -116,4 +104,11 @@ coap_separate_response(void *response, coap_separate_t *separate_store)
   {
     return 0;
   }
+}
+
+void
+coap_separate_resume(void *response, coap_separate_t *separate_store, uint8_t code)
+{
+  coap_init_message(response, separate_store->type, code, separate_store->mid);
+  coap_set_header_token(response, separate_store->token, separate_store->token_len);
 }

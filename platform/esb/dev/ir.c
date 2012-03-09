@@ -78,6 +78,7 @@ Contributors: Thomas Pietsch, Bjoern Lichtblau
 
 #include "dev/leds.h"
 #include "dev/beep.h"
+#include "isr_compat.h"
 
 PROCESS(ir_process, "IR receiver");
 process_event_t ir_event_received;
@@ -202,7 +203,7 @@ static void clearDataAvailableBit(void){ recvdata &= 0xEFFF; }
 
 
 /// Timer B0 interrupt service routine
-interrupt(TIMERB1_VECTOR) Timer_B1 (void) {
+ISR(TIMERB1, Timer_B1) {
 
   /*P2OUT = (P2OUT & 0xf7) | (8 - (P2OUT & 0x08));*/
   

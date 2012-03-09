@@ -1,7 +1,7 @@
 #ifndef CC1020_INTERNAL_H
 #define CC1020_INTERNAL_H
 
-#include <signal.h>
+#include "contiki.h"
 
 #define CC1020_MAIN		0x00
 #define CC1020_INTERFACE	0x01

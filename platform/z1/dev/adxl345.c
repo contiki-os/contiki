@@ -44,6 +44,7 @@
 #include "adxl345.h"
 #include "cc2420.h"
 #include "i2cmaster.h"
+#include "isr_compat.h"
 
 /* Callback pointers when interrupt occurs */
 void (*accm_int1_cb)(uint8_t reg);
@@ -375,13 +376,8 @@ PROCESS_THREAD(accmeter_process, ev, data) {
 #if 1
 static struct timer suppressTimer1, suppressTimer2;
 
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=PORT1_VECTOR
-__interrupt void
-#else
-interrupt (PORT1_VECTOR)
-#endif
-port1_isr (void) {
+ISR(PORT1, port1_isr)
+{
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   /* ADXL345_IFG.x goes high when interrupt occurs, use to check what interrupted */
   if ((ADXL345_IFG & ADXL345_INT1_PIN) && !(ADXL345_IFG & BV(CC2420_FIFOP_PIN))){

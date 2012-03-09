@@ -30,9 +30,6 @@
  */
 
 package se.sics.cooja.mspmote.interfaces;
-
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -40,7 +37,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
-import org.jdom.Element;
 
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteTimeEvent;
@@ -76,41 +72,6 @@ public class MspMoteID extends MoteID {
 	public MspMoteID(Mote m) {
 		this.mote = (MspMote) m;
 		this.moteMem = (MspMoteMemory) mote.getMemory();
-
-		final MoteTimeEvent writeIDEvent = new MoteTimeEvent(mote, 0) {
-			public void execute(long t) {
-				setMoteID(moteID);
-			}
-		};
-
-		cpuMonitor = new CPUMonitor() {
-		  public void cpuAction(int type, int adr, int data) {
-		    if (type != MEMORY_WRITE) {
-		      return;
-		    }
-		    if (data == moteID) {
-		      return;
-		    }
-		    Simulation s = mote.getSimulation();
-		    if (writeIDEvent.isScheduled()) {
-		      return;
-		    }
-		    s.scheduleEvent(writeIDEvent, s.getSimulationTime());
-		  }
-		}; 
-
-		if (moteMem.variableExists("node_id")) {
-		  this.mote.getCPU().addWatchPoint(moteMem.getVariableAddress("node_id"), cpuMonitor);
-		}
-		if (moteMem.variableExists("TOS_NODE_ID")) {
-		  this.mote.getCPU().addWatchPoint(moteMem.getVariableAddress("TOS_NODE_ID"), cpuMonitor);
-		}
-		if (moteMem.variableExists("ActiveMessageAddressC__addr")) {
-		  this.mote.getCPU().addWatchPoint(moteMem.getVariableAddress("ActiveMessageAddressC__addr"), cpuMonitor);
-		}
-		if (moteMem.variableExists("ActiveMessageAddressC$addr")) {
-		  this.mote.getCPU().addWatchPoint(moteMem.getVariableAddress("ActiveMessageAddressC$addr"), cpuMonitor);
-		}
 	}
 
 	public int getMoteID() {
@@ -149,6 +110,42 @@ public class MspMoteID extends MoteID {
 		if (moteMem.variableExists("ActiveMessageAddressC$addr")) {
 			moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
 		}
+		if (cpuMonitor == null) {
+		    final MoteTimeEvent writeIDEvent = new MoteTimeEvent(mote, 0) {
+		        public void execute(long t) {
+		            setMoteID(moteID);
+		        }
+		    };
+
+		    cpuMonitor = new CPUMonitor() {
+		        public void cpuAction(int type, int address, int data) {
+		            if (type != MEMORY_WRITE) {
+		                return;
+		            }
+		            if (data == moteID) {
+		                return;
+		            }
+		            if (writeIDEvent.isScheduled()) {
+		                return;
+		            }
+		            Simulation s = mote.getSimulation();
+		            s.scheduleEvent(writeIDEvent, s.getSimulationTime());
+		        }
+		    };
+
+		    if (moteMem.variableExists("node_id")) {
+		        this.mote.getCPU().addWatchPoint(moteMem.getVariableAddress("node_id"), cpuMonitor);
+		    }
+		    if (moteMem.variableExists("TOS_NODE_ID")) {
+		        this.mote.getCPU().addWatchPoint(moteMem.getVariableAddress("TOS_NODE_ID"), cpuMonitor);
+		    }
+		    if (moteMem.variableExists("ActiveMessageAddressC__addr")) {
+		        this.mote.getCPU().addWatchPoint(moteMem.getVariableAddress("ActiveMessageAddressC__addr"), cpuMonitor);
+		    }
+		    if (moteMem.variableExists("ActiveMessageAddressC$addr")) {
+		        this.mote.getCPU().addWatchPoint(moteMem.getVariableAddress("ActiveMessageAddressC$addr"), cpuMonitor);
+		    }
+		}
 
 		notifyObservers();
 	}
@@ -185,17 +182,20 @@ public class MspMoteID extends MoteID {
 
 	public void removed() {
 	  super.removed();
-	  if (moteMem.variableExists("node_id")) {
-	    this.mote.getCPU().removeWatchPoint(moteMem.getVariableAddress("node_id"), cpuMonitor);
-	  }
-	  if (moteMem.variableExists("TOS_NODE_ID")) {
-	    this.mote.getCPU().removeWatchPoint(moteMem.getVariableAddress("TOS_NODE_ID"), cpuMonitor);
-	  }
-	  if (moteMem.variableExists("ActiveMessageAddressC__addr")) {
-	    this.mote.getCPU().removeWatchPoint(moteMem.getVariableAddress("ActiveMessageAddressC__addr"), cpuMonitor);
-	  }
-	  if (moteMem.variableExists("ActiveMessageAddressC$addr")) {
-	    this.mote.getCPU().removeWatchPoint(moteMem.getVariableAddress("ActiveMessageAddressC$addr"), cpuMonitor);
+	  if (cpuMonitor != null) {
+	      if (moteMem.variableExists("node_id")) {
+	          this.mote.getCPU().removeWatchPoint(moteMem.getVariableAddress("node_id"), cpuMonitor);
+	      }
+	      if (moteMem.variableExists("TOS_NODE_ID")) {
+	          this.mote.getCPU().removeWatchPoint(moteMem.getVariableAddress("TOS_NODE_ID"), cpuMonitor);
+	      }
+	      if (moteMem.variableExists("ActiveMessageAddressC__addr")) {
+	          this.mote.getCPU().removeWatchPoint(moteMem.getVariableAddress("ActiveMessageAddressC__addr"), cpuMonitor);
+	      }
+	      if (moteMem.variableExists("ActiveMessageAddressC$addr")) {
+	          this.mote.getCPU().removeWatchPoint(moteMem.getVariableAddress("ActiveMessageAddressC$addr"), cpuMonitor);
+	      }
+	      cpuMonitor = null;
 	  }
 	}
 }

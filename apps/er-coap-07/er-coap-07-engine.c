@@ -202,8 +202,8 @@ handle_incoming_data(void)
           }
           else
           {
-            coap_error_code = INTERNAL_SERVER_ERROR_5_00;
-            coap_error_message = "Service callback undefined";
+            coap_error_code = NOT_IMPLEMENTED_5_01;
+            coap_error_message = "NoServiceCallbck"; // no a to fit 16 bytes
           } /* if (service callback) */
 
         } else {
