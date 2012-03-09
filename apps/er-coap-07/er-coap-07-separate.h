@@ -52,17 +52,14 @@ typedef struct coap_separate {
   uint8_t token_len;
   uint8_t token[COAP_TOKEN_LEN];
 
+  /* separate + blockwise is untested! */
   uint32_t block2_num;
-  uint8_t block2_more;
   uint16_t block2_size;
-  uint32_t block2_offset;
-
-  /* Add fields for addition information to be saved here, e.g.: */
-  char buffer[17];
 
 } coap_separate_t;
 
 int coap_separate_handler(resource_t *resource, void *request, void *response);
-int coap_separate_response(void *response, coap_separate_t *separate_store);
+int coap_separate_yield(void *request, coap_separate_t *separate_store);
+void coap_separate_resume(void *response, coap_separate_t *separate_store, uint8_t code);
 
 #endif /* COAP_SEPARATE_H_ */

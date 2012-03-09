@@ -41,10 +41,11 @@
 #include "contiki-msb430.h"
 #include "dev/cc1020.h"
 #include "dev/dma.h"
+#include "isr_compat.h"
 
 static void (*callbacks[DMA_LINES])(void);
 
-interrupt(DACDMA_VECTOR) irq_dacdma(void)
+ISR(DACDMA, irq_dacdma)
 {
   if(DMA0CTL & DMAIFG) {
     DMA0CTL &= ~(DMAIFG | DMAIE);

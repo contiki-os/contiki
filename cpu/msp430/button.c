@@ -31,6 +31,7 @@
 
 #include "contiki.h"
 #include "dev/button.h"
+#include "isr_compat.h"
 
 #define BUTTON_PORT 2
 #define BUTTON_PIN  7
@@ -57,8 +58,7 @@ button_init(struct process *proc)
     P2IE &= ~BV(BUTTON_PIN);
 }
 
-interrupt(PORT2_VECTOR)
-__button_interrupt(void)
+ISR(PORT2, __button_interrupt)
 {
   static struct timer debouncetimer;
 

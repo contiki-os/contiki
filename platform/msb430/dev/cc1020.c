@@ -41,7 +41,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <signal.h>
 
 #include "contiki.h"
 #include "contiki-msb430.h"
@@ -52,6 +51,7 @@
 #include "net/rime/rimestats.h"
 #include "dev/dma.h"
 #include "sys/energest.h"
+#include "isr_compat.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -458,7 +458,7 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
   PROCESS_END();
 }
 
-interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
+ISR(UART0RX, cc1020_rxhandler)
 {
   static signed char syncbs;
   static union {

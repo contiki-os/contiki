@@ -51,10 +51,8 @@ Berlin, 2007
  * across both blocks are not allowed.
  */
 #include <string.h>
-#include <signal.h>
 #include <stdarg.h>
 #include "contiki-conf.h"
-#include <msp430/flash.h>
 #include "infomem.h"
 
 void
