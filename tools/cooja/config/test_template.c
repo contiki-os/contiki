@@ -34,9 +34,12 @@
 #include <stdint.h>
 #include <string.h>
 
+/* This is a stripped version of platform/cooja/contiki-cooja-main.c, used by
+ * Cooja's Contiki Mote Configuration Wizard */
+
 const struct simInterface *simInterfaces[] = {NULL};
 
-long ref_var; /* Placed somewhere in the BSS section */
+long referenceVar; /* Placed somewhere in the BSS section */
 
 /* Variables with known memory addresses */
 int var1=1;
@@ -60,8 +63,9 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_getMemory(JNIEnv *env, jobject obj, jin
       mem_arr,
       0,
       (size_t) length,
-      (jbyte *) (((long)rel_addr) + ref_var)
+      (jbyte *) (((long)rel_addr) + referenceVar)
   );
+
 }
 /*---------------------------------------------------------------------------*/
 JNIEXPORT void JNICALL
@@ -69,7 +73,7 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_setMemory(JNIEnv *env, jobject obj, jin
 {
   jbyte *mem = (*env)->GetByteArrayElements(env, mem_arr, 0);
   memcpy(
-      (char*) (((long)rel_addr) + ref_var),
+      (char*) (((long)rel_addr) + referenceVar),
       mem,
       length);
   (*env)->ReleaseByteArrayElements(env, mem_arr, mem, 0);
@@ -85,5 +89,5 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
 JNIEXPORT void JNICALL
 Java_se_sics_cooja_corecomm_[CLASS_NAME]_setReferenceAddress(JNIEnv *env, jobject obj, jint addr)
 {
-  ref_var = (((long)&ref_var) - ((long)addr));
+  referenceVar = (((long)&referenceVar) - ((long)addr));
 }
