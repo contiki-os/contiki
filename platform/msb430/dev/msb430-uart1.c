@@ -55,6 +55,7 @@ Berlin, 2007
 #include <string.h>
 #include "dev/msb430-uart1.h"
 #include "dev/lpm.h"
+#include "isr_compat.h"
 
 #ifndef U1ME
 #define U1ME	ME2
@@ -204,8 +205,7 @@ uart_get_mode(void)
   return uart_mode;
 }
 /*---------------------------------------------------------------------------*/
-interrupt(UART1RX_VECTOR)
-uart_rx(void)
+ISR(UART1RX, uart_rx)
 {
   uart_handler_t handler = uart_handler[uart_mode];
   int c;

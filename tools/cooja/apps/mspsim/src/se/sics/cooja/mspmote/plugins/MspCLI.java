@@ -37,6 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.PrintStream;
+import java.util.List;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -44,7 +45,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
@@ -53,6 +53,7 @@ import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
+import se.sics.cooja.dialogs.UpdateAggregator;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.mspsim.cli.CommandContext;
 import se.sics.mspsim.cli.LineListener;
@@ -77,8 +78,8 @@ public class MspCLI extends VisPlugin implements MotePlugin {
 
     final Container panel = getContentPane();
 
-    logArea = new JTextArea(4, 30);
-    logArea.setTabSize(4);
+    logArea = new JTextArea(4, 20);
+    logArea.setTabSize(8);
     logArea.setEditable(false);
     panel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
@@ -176,26 +177,40 @@ public class MspCLI extends VisPlugin implements MotePlugin {
       }
 
     });
+
+    cliResponseAggregator.start();
+
     panel.add(commandField, BorderLayout.SOUTH);
+    setSize(500,500);
   }
 
   public void closePlugin() {
+    cliResponseAggregator.stop();
   }
 
   public void addCLIData(final String text) {
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        String current = logArea.getText();
-        int len = current.length();
-        if (len > 4096) {
-          current = current.substring(len - 4096);
-        }
-        current = len > 0 ? (current + '\n' + text) : text;
-        logArea.setText(current);
-        logArea.setCaretPosition(current.length());
-      }
-    });
+    cliResponseAggregator.add(text);
   }
+
+  private static final int UPDATE_INTERVAL = 250;
+  private UpdateAggregator<String> cliResponseAggregator = new UpdateAggregator<String>(UPDATE_INTERVAL) {
+    protected void handle(List<String> ls) {
+      String current = logArea.getText();
+      int len = current.length();
+      if (len > 4096) {
+        current = current.substring(len - 4096);
+      }
+
+      /* Add */
+      StringBuilder sb = new StringBuilder(current);
+      for (String l: ls) {
+        sb.append(l);
+        sb.append('\n');
+      }
+      logArea.setText(sb.toString());
+      logArea.setCaretPosition(sb.length());
+    }
+  };
 
   private String trim(String text) {
     return (text != null) && ((text = text.trim()).length() > 0) ? text : null;

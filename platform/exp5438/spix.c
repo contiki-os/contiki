@@ -30,17 +30,12 @@
  */
 
 #include "contiki-conf.h"
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#endif
 
 /*
  * This is SPI initialization code for the MSP430X architecture.
  *
  */
-unsigned char spi_busy = 0;
+/* unsigned char spi_busy = 0; */
 /*---------------------------------------------------------------------------*/
 /*
  * Initialize SPI bus.

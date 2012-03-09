@@ -72,14 +72,26 @@ AUTOSTART_PROCESSES(&border_router_process);
 #include "webserver-nogui.h"
 AUTOSTART_PROCESSES(&border_router_process,&webserver_nogui_process);
 #else
-/* Use simple webserver with only one page */
+/* Use simple webserver with only one page for minimum footprint.
+ * Multiple connections can result in interleaved tcp segments since
+ * a single static buffer is used for all segments.
+ */
 #include "httpd-simple.h"
-
+/* The internal webserver can provide additional information if
+ * enough program flash is available.
+ */
 #define WEBSERVER_CONF_LOADTIME 0
 #define WEBSERVER_CONF_FILESTATS 0
 #define WEBSERVER_CONF_NEIGHBOR_STATUS 0
+/* Adding links requires a larger RAM buffer. To avoid static allocation
+ * the stack can be used for formatting; however tcp retransmissions
+ * and multiple connections can result in garbled segments.
+ * TODO:use PSOCk_GENERATOR_SEND and tcp state storage to fix this.
+ */
 #define WEBSERVER_CONF_ROUTE_LINKS 0
+#if WEBSERVER_CONF_ROUTE_LINKS
 #define BUF_USES_STACK 1
+#endif
 
 PROCESS(webserver_nogui_process, "Web server");
 PROCESS_THREAD(webserver_nogui_process, ev, data)
