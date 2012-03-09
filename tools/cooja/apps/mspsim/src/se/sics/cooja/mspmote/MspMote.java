@@ -238,7 +238,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     /* Create mote address memory */
     MapTable map = ((MspMoteType)getType()).getELF().getMap();
     MapEntry[] allEntries = map.getAllEntries();
-    myMemory = new MspMoteMemory(allEntries, myCpu);
+    myMemory = new MspMoteMemory(this, allEntries, myCpu);
 
     heapStartAddress = map.heapStartAddress;
     myCpu.reset();
@@ -538,85 +538,5 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     return file + ":" + lineNo + ":" + function;
     
     /*return executeCLICommand("line " + myCpu.getPC());*/
-  }
-
-  public MemoryMonitor createMemoryMonitor(final MemoryEventHandler meh) {
-    return new MemoryMonitor() {
-      private boolean started = false;
-      private int address = -1;
-      private int size = -1;
-      private CPUMonitor myMonitor = null;
-      private boolean isPointer = false;
-      private MemoryMonitor pointedMemory = null;
-      public boolean start(int address, int size) {
-        if (started) {
-          return started;
-        }
-
-        final MemoryMonitor thisMonitor = this;
-        myMonitor = new CPUMonitor() {
-          public void cpuAction(int type, int adr, int data) {
-            MemoryEventType t;
-            if (type == CPUMonitor.MEMORY_WRITE) {
-              t = MemoryEventType.WRITE;
-            } else if (type == CPUMonitor.MEMORY_READ) {
-              t = MemoryEventType.READ;
-            } else {
-              t = MemoryEventType.UNKNOWN;
-            }
-
-            meh.event(thisMonitor, t, adr, data);
-          }
-        };
-
-        /* TODO Make sure no other part of Cooja overrides this! */
-        for (int a = address; a < address+size; a++) {
-          myCpu.addWatchPoint(a, myMonitor);
-        }
-
-        this.address = address;
-        this.size = size;
-        started = true;
-        return started;
-      }
-      public void stop() {
-        if (!started) {
-          return;
-        }
-        started = false;
-        
-        for (int a = address; a < address+size; a++) {
-          myCpu.removeWatchPoint(a, myMonitor);
-        }
-      }
-      public Mote getMote() {
-        return MspMote.this;
-      }
-      public int getAddress() {
-        return address;
-      }
-      public int getSize() {
-        return size;
-      }
-
-      public boolean isPointer() {
-        return isPointer;
-      }
-      public void setPointer(boolean isPointer, MemoryMonitor pointedMemory) {
-        this.isPointer = isPointer;
-        this.pointedMemory = pointedMemory;
-      }
-      public MemoryMonitor getPointedMemory() {
-        return pointedMemory;
-      }
-      
-      private BufferAccess lastBufferAccess = null;
-      public void setLastBufferAccess(BufferAccess ba) {
-        this.lastBufferAccess = ba;
-      }
-      public BufferAccess getLastBufferAccess() {
-        return lastBufferAccess;
-      }
-    };
   }
 }
