@@ -64,27 +64,4 @@ public abstract class AbstractEmulatedMote extends AbstractWakeupMote implements
   public String getStackTrace() {
     return null;
   }
-
-  public interface MemoryMonitor {
-    public boolean start(int address, int size);
-    public void stop();
-    public Mote getMote();
-    public int getAddress();
-    public int getSize();
-
-    public void setLastBufferAccess(BufferAccess ba);
-    public BufferAccess getLastBufferAccess();
-
-    public boolean isPointer();
-    public void setPointer(boolean isPointer, MemoryMonitor pointedMemory);
-    public MemoryMonitor getPointedMemory();
-  }
-
-  public enum MemoryEventType { READ, WRITE, UNKNOWN };
-  public interface MemoryEventHandler {
-    public void event(MemoryMonitor mm, MemoryEventType type, int adr, int data);
-  }
-
-  public abstract MemoryMonitor createMemoryMonitor(MemoryEventHandler meh);
-
 }
