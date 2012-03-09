@@ -35,6 +35,7 @@
 #include "sys/etimer.h"
 #include "rtimer-arch.h"
 #include "dev/watchdog.h"
+#include "isr_compat.h"
 
 #define INTERVAL (RTIMER_ARCH_SECOND / CLOCK_SECOND)
 
@@ -46,13 +47,7 @@ static volatile clock_time_t count = 0;
 /* last_tar is used for calculating clock_fine */
 static volatile uint16_t last_tar = 0;
 /*---------------------------------------------------------------------------*/
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMERA1_VECTOR
-__interrupt void
-#else
-interrupt(TIMERA1_VECTOR)
-#endif
-timera1 (void)
+ISR(TIMERA1, timera1)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 

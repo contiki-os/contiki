@@ -262,6 +262,7 @@ public class TimeLine extends VisPlugin {
 
     getContentPane().add(splitPane);
 
+    recalculateMoteHeight();
     pack();
     setSize(gui.getDesktopPane().getWidth(), 150);
     setLocation(0, gui.getDesktopPane().getHeight() - 150);
@@ -1192,9 +1193,11 @@ public class TimeLine extends VisPlugin {
     if (showWatchpoints) {
       h += EVENT_PIXEL_HEIGHT;
     }
-    paintedMoteHeight = h;
-    timelineMoteRuler.repaint();
-    timeline.repaint();
+    if (h != paintedMoteHeight) {
+      paintedMoteHeight = h;
+      timelineMoteRuler.repaint();
+      timeline.repaint();
+    }
   }
 
   public void closePlugin() {
@@ -1346,6 +1349,7 @@ public class TimeLine extends VisPlugin {
     return true;
   }
 
+  
   private int mousePixelPositionX = -1;
   private int mousePixelPositionY = -1;
   private int mouseDownPixelPositionX = -1; 

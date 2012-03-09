@@ -387,7 +387,9 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
     setSimulation(simulation);
-    myMoteInterfaceHandler = createMoteInterfaceHandler();
+    if (myMoteInterfaceHandler == null) {
+      myMoteInterfaceHandler = createMoteInterfaceHandler();
+    }
 
     /* Create watchpoint container */
     try {
@@ -497,18 +499,23 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     }
     if (di == null) {
       /* Return PC value */
-      MapEntry mapEntry = ((SimpleProfiler)myCpu.getProfiler()).getCallMapEntry(0);
-      if (mapEntry != null) {
-        String file = mapEntry.getFile();
-        if (file != null) {
-          if (file.indexOf('/') >= 0) {
-            file = file.substring(file.lastIndexOf('/')+1);
+      SimpleProfiler sp = (SimpleProfiler)myCpu.getProfiler();
+      try {
+        MapEntry mapEntry = sp.getCallMapEntry(0);
+        if (mapEntry != null) {
+          String file = mapEntry.getFile();
+          if (file != null) {
+            if (file.indexOf('/') >= 0) {
+              file = file.substring(file.lastIndexOf('/')+1);
+            }
           }
+          String name = mapEntry.getName();
+          return file + ":?:" + name; 
         }
-        String name = mapEntry.getName();
-        return file + ":?:" + name; 
+        return String.format("*%02x", myCpu.reg[MSP430Constants.PC]);
+      } catch (Exception e) {
+        return null;
       }
-      return String.format("*%02x", myCpu.reg[MSP430Constants.PC]);
     }
 
     int lineNo = di.getLine();
