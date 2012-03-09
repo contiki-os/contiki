@@ -245,6 +245,7 @@ public class GUI extends Observable {
     "PATH_LINKER", "LINK_COMMAND_1", "LINK_COMMAND_2",
     "PATH_AR", "AR_COMMAND_1", "AR_COMMAND_2",
     "PATH_OBJDUMP", "OBJDUMP_ARGS",
+    "PATH_OBJCOPY",
     "PATH_JAVAC",
 
     "CONTIKI_STANDARD_PROCESSES",
@@ -929,7 +930,7 @@ public class GUI extends Observable {
       menuItem.setToolTipText("Not available in applet version");
     }
     
-    menuItem = new JMenuItem("Compiler configuration wizard");
+    menuItem = new JMenuItem("Contiki mote configuration wizard");
     menuItem.setActionCommand("configuration wizard");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
@@ -940,14 +941,6 @@ public class GUI extends Observable {
 
     menu.add(new JMenuItem(showBufferSettingsAction));
     
-    menu.addSeparator();
-
-    menuItem = new JMenuItem("Java version: "
-        + System.getProperty("java.version") + " ("
-        + System.getProperty("java.vendor") + ")");
-    menuItem.setEnabled(false);
-    menu.add(menuItem);
-
     /* Help */
     menu = new JMenu("Help");
     menu.setMnemonic(KeyEvent.VK_H);
@@ -957,6 +950,22 @@ public class GUI extends Observable {
     menu.add(checkBox);
     menuBar.add(menu);
 
+    menu.addSeparator();        
+
+    menuItem = new JMenuItem("Java version: "
+        + System.getProperty("java.version") + " ("
+        + System.getProperty("java.vendor") + ")");
+    menuItem.setEnabled(false);
+    menu.add(menuItem);
+    menuItem = new JMenuItem("System's \"os.arch\": "
+        + System.getProperty("os.arch"));
+    menuItem.setEnabled(false);
+    menu.add(menuItem);
+    menuItem = new JMenuItem("System's \"sun.arch.data.model\": "
+        + System.getProperty("sun.arch.data.model"));
+    menuItem.setEnabled(false);
+    menu.add(menuItem);
+    
     // Mote plugins popup menu (not available via menu bar)
     if (menuMotePluginClasses == null) {
       menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
