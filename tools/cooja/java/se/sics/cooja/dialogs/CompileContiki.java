@@ -495,6 +495,7 @@ public class CompileContiki {
     env.add(new String[] { "COOJA_SOURCEDIRS", "" });
     env.add(new String[] { "COOJA_SOURCEFILES", "" });
     env.add(new String[] { "CC", GUI.getExternalToolsSetting("PATH_C_COMPILER") });
+    env.add(new String[] { "OBJCOPY", GUI.getExternalToolsSetting("PATH_OBJCOPY") });
     env.add(new String[] { "EXTRA_CC_ARGS", ccFlags });
     env.add(new String[] { "LD", GUI.getExternalToolsSetting("PATH_LINKER") });
     env.add(new String[] { "LINK_COMMAND_1", link1 });
