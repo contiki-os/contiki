@@ -1,10 +1,14 @@
 %! header
-<h4>Addresses</h4>
+<pre><big><b>Addresses</b></big>
 %! addresses
-<h4>Neighbors</h4>
+
+<big><b>Neighbors</b></big>
 %! neighbors
-<h4>Routes</h4>
+
+<big><b>Routes</b></big>
 %! routes
-<h4>Sensors</h4>
+
+<big><b>Sensors</b></big>
 %! sensors
+</pre>
 %! file-stats .
