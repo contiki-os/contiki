@@ -555,6 +555,11 @@ PT_THREAD(neighbors(struct httpd_state *s, char *ptr))
 
 #if WEBSERVER_CONF_ROUTES
 extern uip_ds6_route_t uip_ds6_routing_table[];
+#if WEBSERVER_CONF_ROUTE_LINKS
+static const char httpd_cgi_rtesl1[] HTTPD_STRING_ATTR = "<a href=http://[";
+static const char httpd_cgi_rtesl2[] HTTPD_STRING_ATTR = "]/status.shtml>";
+static const char httpd_cgi_rtesl3[] HTTPD_STRING_ATTR = "</a>";
+#endif
 /*---------------------------------------------------------------------------*/			
 static unsigned short
 make_routes(void *p)
@@ -573,9 +578,6 @@ struct httpd_state *s=p;
       j++;
 
 #if WEBSERVER_CONF_ROUTE_LINKS
-static const char httpd_cgi_rtesl1[] HTTPD_STRING_ATTR = "<a href=http://[";
-static const char httpd_cgi_rtesl2[] HTTPD_STRING_ATTR = "]/status.shtml>";
-static const char httpd_cgi_rtesl3[] HTTPD_STRING_ATTR = "</a>";
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl1);
       numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl2);
@@ -592,7 +594,7 @@ static const char httpd_cgi_rtesl3[] HTTPD_STRING_ATTR = "</a>";
       } else {
          numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
       }
-      /* If buffer nearly full, send it and wait for the next call. Could be a retransmission, or the next segment */
+      /* If buffer near full, send it and wait for the next call. Could be a retransmission, or the next segment */
       if(numprinted > (uip_mss() - 200)) {
         s->savei=i;s->savej=j;
         return numprinted;
@@ -607,7 +609,40 @@ static const char httpd_cgi_rtesl3[] HTTPD_STRING_ATTR = "</a>";
     numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf);
   }
 #endif
+{
+ static const char httpd_cgi_defr1[] HTTPD_STRING_ATTR = "\n<big><b>RPL Parent</b></big>\n";
+ static const char httpd_cgi_defr2[] HTTPD_STRING_ATTR = " (%u sec)\n";
+#if 0
+  uip_ip6addr_t *nexthop = uip_ds6_defrt_choose();
+  if (nexthop) {
+    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_defr1);   
+    numprinted += httpd_cgi_sprint_ip6(*nexthop, uip_appdata + numprinted);
+    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_defr2,nexthop->lifetime.start+nexthop->lifetime.interval-clock_seconds()); 
+  }
+#else
+uip_ds6_defrt_t *locdefrt;
+extern uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_DEFRT_NB];
+    for(locdefrt = uip_ds6_defrt_list;
+      locdefrt < uip_ds6_defrt_list + UIP_DS6_DEFRT_NB; locdefrt++) {
+    if(locdefrt->isused) {    
+        numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_defr1);
 
+#if WEBSERVER_CONF_ROUTE_LINKS && 0
+        numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl1);
+        numprinted += httpd_cgi_sprint_ip6(locdefrt->ipaddr, uip_appdata + numprinted); 
+        numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl2);
+        numprinted += httpd_cgi_sprint_ip6(locdefrt->ipaddr, uip_appdata + numprinted); 
+        numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl3);
+#else
+        numprinted += httpd_cgi_sprint_ip6(locdefrt->ipaddr, uip_appdata + numprinted); 
+#endif   
+        numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_defr2,locdefrt->lifetime.start+locdefrt->lifetime.interval-clock_seconds());
+  //      break;
+        }
+   }
+ 
+#endif
+}
   /* Signal that this was the last segment */
   s->savei = 0;
   return numprinted;
@@ -717,8 +752,6 @@ uint8_t c;
   adc_disable();
 #endif
 
-  snprintf(sensor_extvoltage, sizeof(sensor_extvoltage),"%u mV",1200*0xfff/adc_reading[8]);
-
   static const char httpd_cgi_sensorv[] HTTPD_STRING_ATTR = "<em>ADC chans  :</em> %u %u %u %u %u %u %u %u \n";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensorv,
   adc_reading[0],adc_reading[1],adc_reading[2],adc_reading[3],adc_reading[4],adc_reading[5],adc_reading[6],adc_reading[7]);
@@ -770,7 +803,7 @@ generate_stats(void *arg)
   uint32_t seconds=clock_seconds();
   
   static const char httpd_cgi_stats[] HTTPD_STRING_ATTR = "\n<big><b>Statistics</b></big>\n";
-  numprinted=httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted, httpd_cgi_stats);
+  numprinted=httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_stats);
 
 #if ENERGEST_CONF_ON
 {uint8_t p1,p2;
@@ -1024,10 +1057,27 @@ PT_THREAD(ajax_call(struct httpd_state *s, char *ptr))
   static int iter;
   static char buf[128];
   static uint8_t numprinted;
-  
+  uint16_t dt;  
   PSOCK_BEGIN(&s->sout);
-/*TODO:pick up time from ? parameter */
-  timer_set(&t, 2*CLOCK_SECOND);
+
+#if WEBSERVER_CONF_PASSQUERY
+/* Get update time from ? string, if present */
+{
+   uint8_t i;uint16_t dt=0;
+   for (i=0;i<WEBSERVER_CONF_PASSQUERY;i++) {
+    if (httpd_query[i] < '0' || httpd_query[i] > '9') break;
+    dt = dt*10 + httpd_query[i]-'0';
+   }
+   if (dt < 1) dt = 1;
+ //  printf("dt %u\n",dt);
+   timer_set(&t, dt*CLOCK_SECOND);
+   httpd_query[i]=0; //necessary?
+   if (dt > WEBSERVER_CONF_TIMEOUT/2) s->ajax_timeout = 2*dt; else s->ajax_timeout = WEBSERVER_CONF_TIMEOUT;
+}
+#else
+    timer_set(&t, 2*CLOCK_SECOND);
+#endif
+
   iter = 0;
   
   while(1) {
@@ -1064,7 +1114,8 @@ PT_THREAD(ajax_call(struct httpd_state *s, char *ptr))
   adc_disable();
 #endif
 
-#if 0
+
+#if 1
    numprinted = snprintf(buf, sizeof(buf),"b(%u);adc(%u,%u,%u,%u,%u,%u,%u,%u);",
       1200*0xfff/adc_reading[8],adc_reading[0],adc_reading[1],adc_reading[2],adc_reading[3],adc_reading[4],adc_reading[5],adc_reading[6],adc_reading[7]);
 #else
@@ -1074,14 +1125,14 @@ PT_THREAD(ajax_call(struct httpd_state *s, char *ptr))
 }
    if (iter<3) {
     static const char httpd_cgi_ajax11[] HTTPD_STRING_ATTR = "wt('Econtag [";
-   static const char httpd_cgi_ajax12[] HTTPD_STRING_ATTR = "]');";
+    static const char httpd_cgi_ajax12[] HTTPD_STRING_ATTR = "]');";
     numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajax11);
 #if WEBSERVER_CONF_PRINTADDR
 /* Note address table is filled from the end down */
 {int i;
     for (i=0; i<UIP_DS6_ADDR_NB;i++) {
       if (uip_ds6_if.addr_list[i].isused) {
-       numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, buf + numprinted);
+        numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, buf + numprinted);
         break;
       }
     }
@@ -1256,8 +1307,15 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
 #if ENERGEST_CONF_ON
 {
 #if 1
-/* Send on times in percent since last update. Handle 16 bit rtimer wraparound. */
-/* Javascript must convert based on platform cpu, tx, rx power, e.g. 20ma*3v3=66mW*(% on time/100) */
+/* Send on times in percent since last update. Handle 16 bit rtimer wraparound.
+ * Javascript must convert based on platform cpu, tx, rx power.
+ * e.g. for cpu drawing 1.2ma@3v3, cp = 1.2*3.3*(% on time)/100 = 0.0396*c;
+ * Low power mode l is essentially zero for cpus that sleep.
+ * function p(c,l,t,r){cp=0.013*c;lt=0.465*t;lr=0.400*r;n=cp+lt+lr;//128rfa1@3v3,3dBm
+ * function p(c,l,t,r){cp=0.013*c;lt=0.317*t;lr=0.400*r;n=cp+lt+lr;//128rfa1@3v3,0dBm
+ * function p(c,l,t,r){cp=0.109*c;lt=0.848*t;lr=0.617*r;n=cp+lt+lr;//mc1322x@3v3,0dBm
+ * Precision can be increased by multiplying by another 100 before sending.
+ */
 	static rtimer_clock_t last_send;
 	rtimer_clock_t delta_time;
     static unsigned long last_cpu, last_lpm, last_listen, last_transmit;
@@ -1267,10 +1325,10 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
 	last_send=RTIMER_NOW();
     static const char httpd_cgi_ajaxe1[] HTTPD_STRING_ATTR = "p(%lu,%lu,%lu,%lu);";	
     numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajaxe1,
-	    (100UL*(energest_total_time[ENERGEST_TYPE_CPU].current - last_cpu))/delta_time,
-		(100UL*(energest_total_time[ENERGEST_TYPE_LPM].current - last_lpm))/delta_time,
-        (100UL*(energest_total_time[ENERGEST_TYPE_TRANSMIT].current - last_transmit))/delta_time,
-        (100UL*(energest_total_time[ENERGEST_TYPE_LISTEN].current - last_listen))/delta_time);
+        (10000UL*(energest_total_time[ENERGEST_TYPE_CPU].current - last_cpu))/delta_time,
+        (10000UL*(energest_total_time[ENERGEST_TYPE_LPM].current - last_lpm))/delta_time,
+        (10000UL*(energest_total_time[ENERGEST_TYPE_TRANSMIT].current - last_transmit))/delta_time,
+        (10000UL*(energest_total_time[ENERGEST_TYPE_LISTEN].current - last_listen))/delta_time);
     last_cpu = energest_total_time[ENERGEST_TYPE_CPU].current;
     last_lpm = energest_total_time[ENERGEST_TYPE_LPM].current;
     last_transmit = energest_total_time[ENERGEST_TYPE_TRANSMIT].current;
@@ -1299,8 +1357,14 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
 #endif /* ENERGEST_CONF_ON */
  
     PSOCK_SEND_STR(&s->sout, buf);
+    /* Can do fixed intervals or fixed starting points */
+#if FIXED_INTERVALS
     timer_restart(&t);
-	PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));
+    PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));
+#else
+    PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));
+    timer_reset(&t);
+#endif
 }
   PSOCK_END(&s->sout);
 }
