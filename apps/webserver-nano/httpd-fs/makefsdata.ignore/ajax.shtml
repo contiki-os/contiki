@@ -1,6 +1,8 @@
 %! header
 %!: /ajax.js
-<input type="button" value="RUN" onclick="ls()"><input type="button" value="STOP" onclick="r.abort()"><br><span id="date"></span>
+<input id="ss" type="button" value="STOP" onclick="tb(0)">
+Interval <input id="tc" type="text" style="width:60;text-align:right;" maxlength="5" value="10" onchange="tb(1)"> seconds<br>
+<span id="date"></span>
 <div id="v"></div>
 <pre><span id="rims"></span><div id="ener"></div></pre>
 <h2>Sensors</h2>

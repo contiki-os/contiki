@@ -32,6 +32,7 @@
 
 #include "dev/spi.h"
 #include "dev/cc2520.h"
+#include "isr_compat.h"
 
 #ifdef CC2520_CONF_SFD_TIMESTAMPS
 #define CONF_SFD_TIMESTAMPS CC2520_CONF_SFD_TIMESTAMPS
@@ -46,13 +47,7 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=CC2520_IRQ_VECTOR
-__interrupt void
-#else
-interrupt(CC2520_IRQ_VECTOR)
-#endif
-cc2520_port1_interrupt(void)
+ISR(CC2520_IRQ, cc2520_port1_interrupt)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 

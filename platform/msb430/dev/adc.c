@@ -38,8 +38,6 @@
  */
 
 #include "contiki.h"
-#include <msp430/adc12.h>
-
 #include "contiki-msb430.h"
 
 void

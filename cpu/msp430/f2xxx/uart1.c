@@ -37,8 +37,8 @@
 #include "sys/energest.h"
 #include "dev/uart1.h"
 #include "dev/watchdog.h"
-
 #include "lib/ringbuf.h"
+#include "isr_compat.h"
 
 static int (*uart1_input_handler)(unsigned char c);
 
@@ -120,8 +120,7 @@ uart1_init(unsigned long ubr)
  
 }
 /*---------------------------------------------------------------------------*/
-interrupt(USCIAB1RX_VECTOR)
-uart1_rx_interrupt(void)
+ISR(USCIAB1RX, uart1_rx_interrupt)
 {
   uint8_t c;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
@@ -141,8 +140,7 @@ uart1_rx_interrupt(void)
 }
 /*---------------------------------------------------------------------------*/
 #if TX_WITH_INTERRUPT
-interrupt(USCIAB1TX_VECTOR)
-uart1_tx_interrupt(void)
+ISR(USCIAB1TX, uart1_tx_interrupt)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   if(IFG2 & UCA0TXIFG) {

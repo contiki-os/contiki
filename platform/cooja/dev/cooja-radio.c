@@ -148,9 +148,27 @@ radio_read(void *buf, unsigned short bufsize)
 }
 /*---------------------------------------------------------------------------*/
 static int
+channel_clear(void)
+{
+  if(simSignalStrength > CCA_SS_THRESHOLD) {
+    return 0;
+  }
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+static int
 radio_send(const void *payload, unsigned short payload_len)
 {
   int radiostate = simRadioHWOn;
+
+  /* XXX Simulate turnaround time of 1ms? */
+#define WITH_TURNAROUND 1
+#if WITH_TURNAROUND
+  printf("WITH_TURNAROUND\n");
+  simProcessRunValue = 1;
+  cooja_mt_yield();
+  printf("WITH_TURNAROUND post\n");
+#endif /* WITH_TURNAROUND */
 
   if(!simRadioHWOn) {
     /* Turn on radio temporarily */
@@ -165,6 +183,15 @@ radio_send(const void *payload, unsigned short payload_len)
   if(simOutSize > 0) {
     return RADIO_TX_ERR;
   }
+
+  /* XXX Transmit only on CCA? */
+#define WITH_SEND_CCA 1
+#if WITH_SEND_CCA
+  if (!channel_clear()) {
+    printf("WITH_SEND_CCA return\n");
+    return RADIO_TX_COLLISION;
+  }
+#endif /* WITH_SEND_CCA */
 
   /* Copy packet data to temporary storage */
   memcpy(simOutDataBuffer, payload, payload_len);
@@ -206,15 +233,6 @@ static int
 pending_packet(void)
 {
   return !simReceiving && simInSize > 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-channel_clear(void)
-{
-  if(simSignalStrength > CCA_SS_THRESHOLD) {
-    return 0;
-  }
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cooja_radio_process, ev, data)

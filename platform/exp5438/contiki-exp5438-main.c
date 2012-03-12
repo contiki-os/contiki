@@ -30,13 +30,6 @@
  */
 
 #include "contiki.h"
-#ifdef __IAR_SYSTEMS_ICC__
-#include <msp430.h>
-#else
-#include <io.h>
-#include <signal.h>
-#endif
-
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>

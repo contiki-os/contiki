@@ -305,8 +305,6 @@ main(void)
       watchdog_start();
     }
   }
-
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 /* char *arg_alloc(char size) {return NULL;} */
