@@ -44,6 +44,7 @@
 #include "sys/rtimer.h"
 #include "sys/process.h"
 #include "dev/watchdog.h"
+#include "isr_compat.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -54,13 +55,7 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=TIMERA0_VECTOR
-__interrupt void
-#else
-interrupt(TIMERA0_VECTOR)
-#endif
-timera0 (void)
+ISR(TIMERA0, timera0)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 

@@ -76,6 +76,8 @@
 #define WEBSERVER_CONF_CONNS     2
 #define WEBSERVER_CONF_NAMESIZE 16
 #define WEBSERVER_CONF_BUFSIZE  40
+/* Short tcp timeouts allow new connections sooner */
+#define WEBSERVER_CONF_TIMEOUT  20
 /* Allow include in .shtml pages, e.g. %!: /header.html */
 #define WEBSERVER_CONF_INCLUDE   1
 /* Allow cgi in .shtml pages, e.g. %! file-stats . */
@@ -116,13 +118,13 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 #define WEBSERVER_CONF_LOG       0
 /* Include referrer in log */
 #define WEBSERVER_CONF_REFERER   0
-
 /*-----------------------------------------------------------------------------*/
 #elif WEBSERVER_CONF_NANO==2
 /* webserver-mini having more content */
 #define WEBSERVER_CONF_CONNS     2
 #define WEBSERVER_CONF_NAMESIZE 20
 #define WEBSERVER_CONF_BUFSIZE  40
+#define WEBSERVER_CONF_TIMEOUT  20
 /* Allow include in .shtml pages, e.g. %!: /header.html */
 #define WEBSERVER_CONF_INCLUDE   1
 /* Allow cgi in .shtml pages, e.g. %! file-stats . */
@@ -148,7 +150,7 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 //#define WEBSERVER_CONF_TICTACTOE 1   //Needs passquery of at least 10 chars 
 #define WEBSERVER_CONF_AJAX      1
 #define WEBSERVER_CONF_SHOW_ROOM 0
-//#define WEBSERVER_CONF_PASSQUERY 10
+#define WEBSERVER_CONF_PASSQUERY 10
 #if WEBSERVER_CONF_PASSQUERY
 extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 #endif
@@ -171,6 +173,7 @@ extern char httpd_query[WEBSERVER_CONF_PASSQUERY];
 #define WEBSERVER_CONF_CONNS     6
 #define WEBSERVER_CONF_NAMESIZE 20
 #define WEBSERVER_CONF_BUFSIZE  40
+#define WEBSERVER_CONF_TIMEOUT  20
 /* Allow include in .shtml pages, e.g. %!: /header.html */
 #define WEBSERVER_CONF_INCLUDE   1
 /* Allow cgi in .shtml pages, e.g. %! file-stats . */
@@ -284,6 +287,9 @@ struct httpd_state {
 #endif
 #if WEBSERVER_CONF_LOADTIME
   clock_time_t pagetime;
+#endif
+#if WEBSERVER_CONF_AJAX
+  uint16_t ajax_timeout;
 #endif
 #if WEBSERVER_CONF_NEIGHBORS || WEBSERVER_CONF_ROUTES
   uint8_t starti,savei,startj,savej;

@@ -33,6 +33,7 @@
 
 #include "contiki.h"
 #include "dev/watchdog.h"
+#include "isr_compat.h"
 
 static int counter = 0;
 
@@ -70,13 +71,7 @@ printstring(char *s)
 #endif /* CONTIKI_TARGET_SKY */
 #endif /* PRINT_STACK_ON_REBOOT */
 /*---------------------------------------------------------------------------*/
-#ifdef __IAR_SYSTEMS_ICC__
-#pragma vector=WDT_VECTOR
-__interrupt void
-#else
-interrupt(WDT_VECTOR)
-#endif
-watchdog_interrupt(void)
+ISR(WDT, watchdog_interrupt)
 {
 #ifdef CONTIKI_TARGET_SKY
 #if PRINT_STACK_ON_REBOOT

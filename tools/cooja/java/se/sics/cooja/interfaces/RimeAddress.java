@@ -41,13 +41,12 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.AddressMemory;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
-import se.sics.cooja.MoteTimeEvent;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.TimeEvent;
+import se.sics.cooja.MoteMemory;
+import se.sics.cooja.MoteMemory.MemoryEventType;
+import se.sics.cooja.MoteMemory.MemoryMonitor;
 
 /**
  * Read-only interface to Rime address read from Contiki variable: rimeaddr_node_addr.
@@ -59,37 +58,27 @@ import se.sics.cooja.TimeEvent;
 @ClassDescription("Rime address")
 public class RimeAddress extends MoteInterface {
   private static Logger logger = Logger.getLogger(RimeAddress.class);
-  private AddressMemory moteMem;
+  private MoteMemory moteMem;
 
   public static final int RIME_ADDR_LENGTH = 2;
-  
+
+  private MemoryMonitor memMonitor = null;
+
   public RimeAddress(final Mote mote) {
-    moteMem = (AddressMemory) mote.getMemory();
-
-    /* Detect startup address (only zeroes) */
-    TimeEvent updateWhenAddressReady = new MoteTimeEvent(mote, 0) {
-      public void execute(long t) {
-        if (!hasRimeAddress()) {
-          return;
-        }
-
-        String addrString = getAddressString();
-        addrString = addrString.replace(".", "");
-        addrString = addrString.replace("0", "");
-        if (!addrString.isEmpty()) {
+    moteMem = mote.getMemory();
+    if (hasRimeAddress()) {
+      memMonitor = new MemoryMonitor() {
+        public void memoryChanged(MoteMemory memory, MemoryEventType type, int address) {
+          if (type != MemoryEventType.WRITE) {
+            return;
+          }
           setChanged();
           notifyObservers();
-          return;
         }
-
-        /* Postpone until address has been set */
-        mote.getSimulation().scheduleEvent(
-            this,
-            mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
-        return;
-      }
-    };
-    updateWhenAddressReady.execute(0);
+      };
+      /* TODO XXX Timeout? */
+      moteMem.addMemoryMonitor(moteMem.getVariableAddress("rimeaddr_node_addr"), RIME_ADDR_LENGTH, memMonitor);
+    }
   }
 
   public boolean hasRimeAddress() {
@@ -138,6 +127,13 @@ public class RimeAddress extends MoteInterface {
     }
 
     this.deleteObserver(observer);
+  }
+
+  public void removed() {
+    super.removed();
+    if (memMonitor != null) {
+      moteMem.removeMemoryMonitor(moteMem.getVariableAddress("rimeaddr_node_addr"), RIME_ADDR_LENGTH, memMonitor);
+    }
   }
 
   public Collection<Element> getConfigXML() {

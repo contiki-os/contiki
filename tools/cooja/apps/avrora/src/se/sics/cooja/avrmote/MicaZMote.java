@@ -270,9 +270,4 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   public String toString() {
     return "MicaZ " + getID();
   }
-
-  public MemoryMonitor createMemoryMonitor(MemoryEventHandler meh) {
-    logger.fatal("Not implemented");
-    return null;
-  }
 }

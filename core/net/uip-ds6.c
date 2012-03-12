@@ -224,7 +224,9 @@ uip_ds6_periodic(void)
         if(locnbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
           PRINTF("PROBE END\n");
           if((locdefrt = uip_ds6_defrt_lookup(&locnbr->ipaddr)) != NULL) {
-            uip_ds6_defrt_rm(locdefrt);
+            if (!locdefrt->isinfinite) {
+              uip_ds6_defrt_rm(locdefrt);
+            }
           }
           uip_ds6_nbr_rm(locnbr);
         } else if(stimer_expired(&locnbr->sendns) && (uip_len == 0)) {
