@@ -82,8 +82,8 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   private RadioPacket lastOutgoingPacket = null;
   private RadioPacket lastIncomingPacket = null;
 
-  public SkyByteRadio(Mote mote) {
-    this.mote = (MspMote)mote;
+  public SkyByteRadio(Mote m) {
+    this.mote = (MspMote)m;
     this.cc2420 = (CC2420) this.mote.getCPU().getChip(CC2420.class);
     if (cc2420 == null) {
       throw new IllegalStateException("Mote is not equipped with a CC2420");
@@ -98,6 +98,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
           lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
           lastEvent = RadioEvent.TRANSMISSION_STARTED;
           isTransmitting = true;
+          len = 0;
           /*logger.debug("----- SKY TRANSMISSION STARTED -----");*/
           setChanged();
           notifyObservers();
@@ -133,9 +134,6 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
           setChanged();
           notifyObservers();
 
-
-//          System.out.println("## CC2420 Transmission finished...");
-
           lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
           /*logger.debug("----- SKY TRANSMISSION FINISHED -----");*/
           isTransmitting = false;
@@ -150,36 +148,59 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     cc2420.addOperatingModeListener(new OperatingModeListener() {
       public void modeChanged(Chip source, int mode) {
         if (isReceiverOn()) {
+          lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
           lastEvent = RadioEvent.HW_ON;
+          setChanged();
+          notifyObservers();
         } else {
-          /* Radio was turned off during transmission.
-           * May for example happen if watchdog triggers */
-          if (isTransmitting()) {
-            logger.fatal("Turning off radio while transmitting");
-            lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
-            /*logger.debug("----- SKY TRANSMISSION FINISHED -----");*/
-            isTransmitting = false;
-            lastEvent = RadioEvent.TRANSMISSION_FINISHED;
-            setChanged();
-            notifyObservers();
-          }
-          lastEvent = RadioEvent.HW_OFF;
+          radioOff();
         }
+      }
+    });
+
+    cc2420.setChannelListener(new CC2420.ChannelListener() {
+      public void changedChannel(int channel) {
+        /* XXX Currently assumes zero channel switch time */
+        lastEvent = RadioEvent.UNKNOWN;
         lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
         setChanged();
         notifyObservers();
       }
     });
+  }
 
-    cc2420.setChannelListener(new CC2420.ChannelListener() {
-			public void changedChannel(int channel) {
-				/* XXX Currently assumes zero channel switch time */
-        lastEvent = RadioEvent.UNKNOWN;
-				lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
-        setChanged();
-        notifyObservers();
-			}
-		});
+  private void radioOff() {
+    /* Radio was turned off during transmission.
+     * May for example happen if watchdog triggers */
+    if (isTransmitting()) {
+      logger.warn("Turning off radio while transmitting, ending packet prematurely");
+
+      /* Simulate end of packet */
+      lastOutgoingPacket = new RadioPacket() {
+        public byte[] getPacketData() {
+          return new byte[0];
+        }
+      };
+
+      lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
+      lastEvent = RadioEvent.PACKET_TRANSMITTED;
+      /*logger.debug("----- SKY PACKET TRANSMITTED -----");*/
+      setChanged();
+      notifyObservers();
+
+      /* Register that transmission ended in radio medium */
+      lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
+      /*logger.debug("----- SKY TRANSMISSION FINISHED -----");*/
+      isTransmitting = false;
+      lastEvent = RadioEvent.TRANSMISSION_FINISHED;
+      setChanged();
+      notifyObservers();
+    }
+
+    lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
+    lastEvent = RadioEvent.HW_OFF;
+    setChanged();
+    notifyObservers();
   }
 
   /* Packet radio support */
