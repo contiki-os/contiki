@@ -45,8 +45,10 @@
 #include "dev/cooja-radio.h"
 
 #define COOJA_RADIO_BUFSIZE PACKETBUF_SIZE
-
 #define CCA_SS_THRESHOLD -95
+
+#define WITH_TURNAROUND 1
+#define WITH_SEND_CCA 1
 
 const struct simInterface radio_interface;
 
@@ -109,16 +111,16 @@ radio_off(void)
 static void
 doInterfaceActionsBeforeTick(void)
 {
-  if (!simRadioHWOn) {
+  if(!simRadioHWOn) {
     simInSize = 0;
     return;
   }
-  if (simReceiving) {
+  if(simReceiving) {
     simLastSignalStrength = simSignalStrength;
     return;
   }
 
-  if (simInSize > 0) {
+  if(simInSize > 0) {
     process_poll(&cooja_radio_process);
   }
 }
@@ -133,7 +135,7 @@ radio_read(void *buf, unsigned short bufsize)
 {
   int tmp = simInSize;
 
-  if (simInSize == 0) {
+  if(simInSize == 0) {
     return 0;
   }
   if(bufsize < simInSize) {
@@ -161,13 +163,10 @@ radio_send(const void *payload, unsigned short payload_len)
 {
   int radiostate = simRadioHWOn;
 
-  /* XXX Simulate turnaround time of 1ms? */
-#define WITH_TURNAROUND 1
+  /* Simulate turnaround time of 1ms */
 #if WITH_TURNAROUND
-  printf("WITH_TURNAROUND\n");
   simProcessRunValue = 1;
   cooja_mt_yield();
-  printf("WITH_TURNAROUND post\n");
 #endif /* WITH_TURNAROUND */
 
   if(!simRadioHWOn) {
@@ -184,11 +183,9 @@ radio_send(const void *payload, unsigned short payload_len)
     return RADIO_TX_ERR;
   }
 
-  /* XXX Transmit only on CCA? */
-#define WITH_SEND_CCA 1
+  /* Transmit on CCA */
 #if WITH_SEND_CCA
-  if (!channel_clear()) {
-    printf("WITH_SEND_CCA return\n");
+  if(!channel_clear()) {
     return RADIO_TX_COLLISION;
   }
 #endif /* WITH_SEND_CCA */
