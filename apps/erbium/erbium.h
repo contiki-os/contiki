@@ -257,6 +257,13 @@ void name##_handler(void *, void *, uint8_t *, uint16_t, int32_t *); \
 resource_t resource_##name = {NULL, flags, url, attributes, name##_handler, NULL, NULL, NULL}
 
 /*
+ * Macro to define a sub-resource
+ * Make sure to define its parent resource beforehand and set 'parent' to that name.
+ */
+#define SUB_RESOURCE(name, flags, url, attributes, parent)		\
+resource_t resource_##name = {NULL, flags, url, attributes, parent##_handler, NULL, NULL, NULL}
+
+/*
  * Macro to define an event resource
  * Like periodic resources, event resources have a post_handler that manages a subscriber list.
  * Instead of a periodic_handler, an event_callback must be provided.

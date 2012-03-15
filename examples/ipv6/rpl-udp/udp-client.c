@@ -147,7 +147,9 @@ PROCESS_THREAD(udp_client_process, ev, data)
 {
   static struct etimer periodic;
   static struct ctimer backoff_timer;
+#if WITH_COMPOWER
   static int print = 0;
+#endif
 
   PROCESS_BEGIN();
 
