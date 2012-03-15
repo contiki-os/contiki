@@ -64,7 +64,10 @@
 #endif /* RIMEADDR_SIZE */
 
 #ifndef RIMEADDR_MEM_FUNC
-#define RIMEADDR_MEM_FUNC 1
+// 0 is the default from the original contiki
+// 1 uses string-functions. This is useful if the compiler supports optimizing these functions.
+// 2 uses inline-functions. This is noramlly faster and smaller than the original solution. 
+#define RIMEADDR_MEM_FUNC 0
 #endif
 
 #if RIMEADDR_MEM_FUNC
@@ -114,10 +117,19 @@ extern const rimeaddr_t rimeaddr_null;
  */
 #if ! RIMEADDR_MEM_FUNC
 void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
-#else
+#elif RIMEADDR_MEM_FUNC == 1
 extern inline void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from)
 {
 	memcpy((char *)dest, (char *)from, RIMEADDR_SIZE);
+}
+#else
+extern inline void
+rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
+{
+  u8_t i;
+  for(i = 0; i < RIMEADDR_SIZE; i++) {
+    dest->u8[i] = src->u8[i];
+  }
 }
 #endif
 
@@ -136,14 +148,24 @@ extern inline void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from)
 
 #if ! RIMEADDR_MEM_FUNC
 int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
-#else
+#elif RIMEADDR_MEM_FUNC == 1
 extern inline int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
 {
 	return !memcmp((char *)addr1, (char *)addr2, RIMEADDR_SIZE);
 }
+#else
+extern inline int
+rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
+{
+  u8_t i;
+  for(i = 0; i < RIMEADDR_SIZE; i++) {
+    if(addr1->u8[i] != addr2->u8[i]) {
+      return 0;
+    }
+  }
+  return 1;
+}
 #endif
-
-
 
 
 /**
