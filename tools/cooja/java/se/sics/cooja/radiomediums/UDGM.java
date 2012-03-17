@@ -287,6 +287,12 @@ public class UDGM extends AbstractRadioMedium {
         conn.getSource().setCurrentSignalStrength(SS_STRONG);
       }
       for (Radio dstRadio : conn.getDestinations()) {
+        if (conn.getSource().getChannel() >= 0 &&
+            dstRadio.getChannel() >= 0 &&
+            conn.getSource().getChannel() != dstRadio.getChannel()) {
+          continue;
+        }
+
         double dist = conn.getSource().getPosition().getDistanceTo(dstRadio.getPosition());
 
         double maxTxDist = TRANSMITTING_RANGE
@@ -303,6 +309,12 @@ public class UDGM extends AbstractRadioMedium {
     /* Set signal strength to below weak on interfered */
     for (RadioConnection conn : conns) {
       for (Radio intfRadio : conn.getInterfered()) {
+        if (conn.getSource().getChannel() >= 0 &&
+            intfRadio.getChannel() >= 0 &&
+            conn.getSource().getChannel() != intfRadio.getChannel()) {
+          continue;
+        }
+
         double dist = conn.getSource().getPosition().getDistanceTo(intfRadio.getPosition());
 
         double maxTxDist = TRANSMITTING_RANGE
