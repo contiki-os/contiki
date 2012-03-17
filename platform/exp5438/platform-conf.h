@@ -44,19 +44,6 @@
  * changeable!
  */
 #define TYNDALL 1
-/* Test for IAR compiler */
-#ifdef __IAR_SYSTEMS_ICC__
-#include <intrinsics.h>
-#include <in430.h>
-#define dint() __disable_interrupt()
-#define eint() __enable_interrupt()
-#define __MSP430F5437__ 1
-#define __MSP430__ 1
-#define CC_CONF_INLINE
-#define BV(x) (1 << x)
-#else
-#define CC_CONF_INLINE inline
-#endif
 
 /* CPU target speed in Hz */
 #define F_CPU 8000000uL // 8MHz by default

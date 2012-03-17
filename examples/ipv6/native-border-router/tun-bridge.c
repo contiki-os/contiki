@@ -125,13 +125,13 @@ void
 ifconf(const char *tundev, const char *ipaddr)
 {
 #ifdef linux
-  ssystem("ifconfig %s inet6 `hostname` up", tundev);
+  ssystem("ifconfig %s inet `hostname` up", tundev);
   ssystem("ifconfig %s add %s", tundev, ipaddr);
 #elif defined(__APPLE__)
   ssystem("ifconfig %s inet6 %s up", tundev, ipaddr);
   ssystem("sysctl -w net.inet.ip.forwarding=1");
 #else
-  ssystem("ifconfig %s inet6 `hostname` %s up", tundev, ipaddr);
+  ssystem("ifconfig %s inet `hostname` %s up", tundev, ipaddr);
   ssystem("sysctl -w net.inet.ip.forwarding=1");
 #endif /* !linux */
 

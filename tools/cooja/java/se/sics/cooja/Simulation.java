@@ -790,6 +790,12 @@ public class Simulation extends Observable implements Runnable {
         
         motes.add(mote);
         currentRadioMedium.registerMote(mote, Simulation.this);
+
+        /* Notify mote interfaces that node was added */
+        for (MoteInterface i: mote.getInterfaces().getInterfaces()) {
+          i.added();
+        }
+        
         setChanged();
         notifyObservers(mote);
       }

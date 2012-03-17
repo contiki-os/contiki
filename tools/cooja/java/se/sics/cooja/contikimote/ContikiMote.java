@@ -152,8 +152,9 @@ public class ContikiMote extends AbstractWakeupMote implements Mote {
 
     /* Copy mote memory from Contiki */
     myType.getCoreMemory(myMemory);
-
+    
     /* Poll mote interfaces */
+    myMemory.pollForMemoryChanges();
     myInterfaceHandler.doActiveActionsAfterTick();
     myInterfaceHandler.doPassiveActionsAfterTick();
   }

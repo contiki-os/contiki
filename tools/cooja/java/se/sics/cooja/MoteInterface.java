@@ -147,5 +147,11 @@ public abstract class MoteInterface extends Observable {
    */
   public void removed() {
   }
+  
+  /**
+   * Called when all mote interfaces have been added to mote.
+   */
+  public void added() {
+  }
 
 }

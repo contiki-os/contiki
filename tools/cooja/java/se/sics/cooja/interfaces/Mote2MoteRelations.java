@@ -48,8 +48,7 @@ import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
-import se.sics.cooja.SimEventCentral.LogOutputEvent;
-import se.sics.cooja.SimEventCentral.LogOutputListener;
+import se.sics.cooja.SimEventCentral.MoteCountListener;
 
 /**
  * Mote2Mote Relations is used to show mote relations in simulated
@@ -83,13 +82,32 @@ public class Mote2MoteRelations extends MoteInterface {
   private ArrayList<Mote> relations = new ArrayList<Mote>();
   private GUI gui;
 
-  private LogOutputListener logListener;
-
+  private Observer logObserver = new Observer() {
+    public void update(Observable o, Object arg) {
+      String msg = ((Log) o).getLastLogMessage();
+      handleNewLog(msg);
+    };
+  };
+  
+  private MoteCountListener moteCountListener;
+  
   public Mote2MoteRelations(Mote mote) {
     this.mote = mote;
     this.gui = mote.getSimulation().getGUI();
+  }
 
-    mote.getSimulation().getEventCentral().addLogOutputListener(logListener = new LogOutputListener() {
+  public void added() {
+    super.added();
+    
+    /* Observe log interfaces */
+    for (MoteInterface mi: mote.getInterfaces().getInterfaces()) {
+      if (mi instanceof Log) {
+        ((Log)mi).addObserver(logObserver);
+      }
+    }
+
+    /* Observe other motes: if removed, remove our relations to them too */
+    mote.getSimulation().getEventCentral().addMoteCountListener(moteCountListener = new MoteCountListener() {
       public void moteWasAdded(Mote mote) {
         /* Ignored */
       }
@@ -106,28 +124,28 @@ public class Mote2MoteRelations extends MoteInterface {
         relations.remove(mote);
         gui.removeMoteRelation(Mote2MoteRelations.this.mote, mote);
       }
-      public void newLogOutput(LogOutputEvent ev) {
-        if (ev.getMote() != Mote2MoteRelations.this.mote) {
-          return;
-        }
-        handleNewLog(ev.msg);
-      }
-      public void removedLogOutput(LogOutputEvent ev) {
-        /* Ignored */
-      }
     });
   }
-
+  
   public void removed() {
     super.removed();
 
+    /* Stop observing log interfaces */
+    for (MoteInterface mi: mote.getInterfaces().getInterfaces()) {
+      if (mi instanceof Log) {
+        ((Log)mi).deleteObserver(logObserver);
+      }
+    }
+    logObserver = null;
+
+    /* Remove all relations to other motes */
     Mote[] relationsArr = relations.toArray(new Mote[0]);
     for (Mote m: relationsArr) {
       gui.removeMoteRelation(Mote2MoteRelations.this.mote, m);
     }
     relations.clear();
 
-    mote.getSimulation().getEventCentral().removeLogOutputListener(logListener);
+    mote.getSimulation().getEventCentral().removeMoteCountListener(moteCountListener);
   }
 
   private void handleNewLog(String msg) {
