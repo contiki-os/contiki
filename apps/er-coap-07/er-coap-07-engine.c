@@ -153,7 +153,14 @@ handle_incoming_data(void)
               if (coap_error_code==NO_ERROR)
               {
                 /* Apply blockwise transfers. */
-                if ( IS_OPTION(message, COAP_OPTION_BLOCK2) )
+                if ( IS_OPTION(message, COAP_OPTION_BLOCK1) && response->code<BAD_REQUEST_4_00 && !IS_OPTION(response, COAP_OPTION_BLOCK1) )
+                {
+                  PRINTF("Block1 NOT IMPLEMENTED\n");
+
+                  coap_error_code = NOT_IMPLEMENTED_5_01;
+                  coap_error_message = "NoBlock1Support";
+                }
+                else if ( IS_OPTION(message, COAP_OPTION_BLOCK2) )
                 {
                   /* unchanged new_offset indicates that resource is unaware of blockwise transfer */
                   if (new_offset==block_offset)
@@ -207,8 +214,8 @@ handle_incoming_data(void)
           } /* if (service callback) */
 
         } else {
-            coap_error_code = MEMORY_ALLOCATION_ERROR;
-            coap_error_message = "Transaction buffer allocation failed";
+            coap_error_code = SERVICE_UNAVAILABLE_5_03;
+            coap_error_message = "NoFreeTraBuffer";
         } /* if (transaction buffer) */
       }
       else

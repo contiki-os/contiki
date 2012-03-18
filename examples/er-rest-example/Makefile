@@ -1,4 +1,4 @@
-all: rest-server-example coap-client-example
+all: rest-server-example coap-client-example plugtest-server
 
 CONTIKI=../..
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
@@ -25,6 +25,8 @@ else
 ${info INFO: compiling without RPL}
 UIP_CONF_RPL=0
 CFLAGS += -DUIP_CONF_ND6_DEF_MAXDADNS=0
+CFLAGS += -DHARD_CODED_ADDRESS=\"fdfd::10\"
+CFLAGS += -DUIP_CONF_BUFFER_SIZE=1280
 endif
 
 # linker optimizations
@@ -78,3 +80,6 @@ connect-router:	$(CONTIKI)/tools/tunslip6
 
 connect-router-cooja:	$(CONTIKI)/tools/tunslip6
 	sudo $(CONTIKI)/tools/tunslip6 -a 127.0.0.1 aaaa::1/64
+
+tap0up:
+	sudo ip address add fdfd::1/64 dev tap0
