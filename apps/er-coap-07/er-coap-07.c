@@ -697,10 +697,12 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
           PRINTF("Block2 [%lu%s (%u B/blk)]\n", coap_pkt->block2_num, coap_pkt->block2_more ? "+" : "", coap_pkt->block2_size);
           break;
         case COAP_OPTION_BLOCK1:
-          PRINTF("Block1 NOT IMPLEMENTED\n");
-          /*TODO implement */
-          coap_error_message = "Blockwise POST/PUT not supported";
-          return NOT_IMPLEMENTED_5_01;
+          coap_pkt->block1_num = parse_int_option(current_option, option_len);
+          coap_pkt->block1_more = (coap_pkt->block1_num & 0x08)>>3;
+          coap_pkt->block1_size = 16 << (coap_pkt->block1_num & 0x07);
+          coap_pkt->block1_offset = (coap_pkt->block1_num & ~0x0000000F)<<(coap_pkt->block1_num & 0x07);
+          coap_pkt->block1_num >>= 4;
+          PRINTF("Block1 [%lu%s (%u B/blk)]\n", coap_pkt->block1_num, coap_pkt->block1_more ? "+" : "", coap_pkt->block1_size);
           break;
         case COAP_OPTION_IF_NONE_MATCH:
           coap_pkt->if_none_match = 1;
@@ -779,7 +781,11 @@ coap_set_status_code(void *packet, unsigned int code)
 unsigned int
 coap_get_header_content_type(void *packet)
 {
-  return ((coap_packet_t *)packet)->content_type;
+  coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
+
+  if (!IS_OPTION(coap_pkt, COAP_OPTION_CONTENT_TYPE)) return -1;
+
+  return coap_pkt->content_type;
 }
 
 int

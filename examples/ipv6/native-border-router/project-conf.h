@@ -45,6 +45,8 @@
 #undef WEBSERVER_CONF_CFS_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 2
 
+#define SERIALIZE_ATTRIBUTES 1
+
 #define CMD_CONF_OUTPUT border_router_cmd_output
 
 #undef NETSTACK_CONF_RDC
