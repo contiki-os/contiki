@@ -99,14 +99,13 @@ test_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_
 
   uint8_t method = REST.get_method_type(request);
 
-  REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  REST.set_response_payload(response, buffer, snprintf((char *)buffer, MAX_PLUGFEST_PAYLOAD, "Type: %u\nCode: %u\nMID: %u", coap_req->type, coap_req->code, coap_req->mid));
-
   PRINTF("/test           ");
   if (method & METHOD_GET)
   {
     PRINTF("GET ");
     /* Code 2.05 CONTENT is default. */
+    REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+    REST.set_response_payload(response, buffer, snprintf((char *)buffer, MAX_PLUGFEST_PAYLOAD, "Type: %u\nCode: %u\nMID: %u", coap_req->type, coap_req->code, coap_req->mid));
   }
   else if (method & METHOD_POST)
   {
@@ -215,7 +214,7 @@ separate_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
   }
   else
   {
-    PRINTF("ACKED ");
+    PRINTF("STORED ");
     separate_active = 1;
 
     /* Take over and skip response by engine. */
@@ -237,7 +236,7 @@ separate_periodic_handler(resource_t *resource)
     coap_transaction_t *transaction = NULL;
     if ( (transaction = coap_new_transaction(separate_store->request_metadata.mid, &separate_store->request_metadata.addr, separate_store->request_metadata.port)) )
     {
-      PRINTF("RESPONSE");
+      PRINTF("RESPONSE (%s %u)\n", separate_store->request_metadata.type==COAP_TYPE_CON?"CON":"NON", separate_store->request_metadata.mid);
 
       coap_packet_t response[1]; /* This way the packet can be treated as pointer as usual. */
 
@@ -262,7 +261,7 @@ separate_periodic_handler(resource_t *resource)
 
       return 1;
     } else {
-      PRINTF("ERROR (transaction)");
+      PRINTF("ERROR (transaction)\n");
     }
   } /* if (separate_active) */
 
