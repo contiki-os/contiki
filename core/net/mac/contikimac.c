@@ -127,7 +127,11 @@ static int is_receiver_awake = 0;
    consists of two or more CCA checks. CCA_COUNT_MAX is the number of
    CCAs to be done for each periodic channel check. The default is
    two.*/
+#ifdef CONTIKIMAC_CONF_CCA_COUNT_MAX
+#define CCA_COUNT_MAX                      CONTIKIMAC_CONF_CCA_COUNT_MAX
+#else
 #define CCA_COUNT_MAX                      2
+#endif
 
 /* Before starting a transmission, Contikimac checks the availability
    of the channel with CCA_COUNT_MAX_TX consecutive CCAs */
@@ -176,7 +180,11 @@ static int is_receiver_awake = 0;
 
 /* GUARD_TIME is the time before the expected phase of a neighbor that
    a transmitted should begin transmitting packets. */
+#ifdef CONTIKIMAC_CONF_GUARD_TIME
+#define GUARD_TIME                         CONTIKIMAC_CONF_GUARD_TIME * CHECK_TIME + CHECK_TIME_TX
+#else
 #define GUARD_TIME                         10 * CHECK_TIME + CHECK_TIME_TX
+#endif
 
 /* INTER_PACKET_INTERVAL is the interval between two successive packet transmissions */
 #define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
@@ -543,7 +551,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
     PRINTF("contikimac: radio is turned off\n");
     return MAC_TX_ERR_FATAL;
   }
-  
+ 
   if(packetbuf_totlen() == 0) {
     PRINTF("contikimac: send_packet data len 0\n");
     return MAC_TX_ERR_FATAL;
@@ -723,7 +731,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
   watchdog_periodic();
   t0 = RTIMER_NOW();
   seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
-
+  previous_txtime = RTIMER_NOW();
   for(strobes = 0, collisions = 0;
       got_strobe_ack == 0 && collisions == 0 &&
       RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + STROBE_TIME); strobes++) {
@@ -737,7 +745,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
 
     len = 0;
 
-    previous_txtime = RTIMER_NOW();
+    
     {
       rtimer_clock_t wt;
       rtimer_clock_t txtime;

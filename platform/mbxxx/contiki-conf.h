@@ -36,6 +36,7 @@
 *			contiki-conf.h for MBXXX.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+*			Chi-Anh La <la@imag.fr>
 */
 /*---------------------------------------------------------------------------*/
 
@@ -82,12 +83,55 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RADIO		stm32w_radio_driver
 
 #if WITH_UIP6
+#define NETSTACK_CONF_RDC_ENABLED               0
 
+#if NETSTACK_CONF_RDC_ENABLED
+/* With radio cycling */
+/* RDC params */
+/* rtimer_second = 11719 */
+#define RT_CONF_RESOLUTION                      2 
+/* TX routine passes the cca/ack result in the return parameter */
+#define RDC_CONF_HARDWARE_ACK                   1
+/* TX routine does automatic cca and optional backoff */
+#define RDC_CONF_HARDWARE_CSMA                  0
+/* Channel check rate (per second) */
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
+/* Use ACK for optimization (LPP, XMAC) */
+#define WITH_ACK_OPTIMIZATION                   0
+/* RDC debug with LED */
+#define RDC_CONF_DEBUG_LED                      1
+
+/* ContikiMAC config */
+#define CONTIKIMAC_CONF_CCA_COUNT_MAX           3
+#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
+#define WITH_PHASE_OPTIMIZATION                 1
+#define CONTIKIMAC_CONF_COMPOWER                1
+#define CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT    0
+#define CONTIKIMAC_CONF_ANNOUNCEMENTS           0
+#define WITH_FAST_SLEEP                         0
+#define CONTIKIMAC_CONF_GUARD_TIME              4
+
+/* CXMAC config */
+#define CXMAC_CONF_ANNOUNCEMENTS                0
+#define CXMAC_CONF_COMPOWER                     1
+
+/* XMAC config */
+#define XMAC_CONF_ANNOUNCEMENTS                 0
+#define XMAC_CONF_COMPOWER                      1
+
+/* Netstacks */
+#define NETSTACK_CONF_NETWORK		sicslowpan_driver
+#define NETSTACK_CONF_MAC		csma_driver
+#define NETSTACK_CONF_RDC		contikimac_driver
+#define NETSTACK_CONF_FRAMER		framer_802154
+#else
 /* No radio cycling */
 #define NETSTACK_CONF_NETWORK		sicslowpan_driver
 #define NETSTACK_CONF_MAC		nullmac_driver
 #define NETSTACK_CONF_RDC		sicslowmac_driver
 #define NETSTACK_CONF_FRAMER		framer_802154
+#endif
+
 
 #define RIMEADDR_CONF_SIZE              8
 #define UIP_CONF_LL_802154              1
