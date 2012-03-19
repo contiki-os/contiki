@@ -37,6 +37,7 @@
 *			Contiki main file.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+*			Chi-Anh La <la@imag.fr>
 */
 /*---------------------------------------------------------------------------*/
 
@@ -82,9 +83,9 @@
 
 
 #if UIP_CONF_IPV6
-PROCINIT(&etimer_process, &tcpip_process, &sensors_process);
+PROCINIT(&tcpip_process, &sensors_process);
 #else
-PROCINIT(&etimer_process, &sensors_process);
+PROCINIT(&sensors_process);
 #warning "No TCP/IP process!"
 #endif
 
@@ -161,7 +162,13 @@ main(void)
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
+  /* rtimer and ctimer should be initialized before radio duty cycling layers*/
+  rtimer_init();
+  /* etimer_process should be initialized before ctimer */
+  process_start(&etimer_process, NULL);   
+  ctimer_init();
   
+    
   netstack_init();
 #if !UIP_CONF_IPV6
   ST_RadioEnableAutoAck(FALSE); // Because frames are not 802.15.4 compatible. 
@@ -169,9 +176,6 @@ main(void)
 #endif
 
   set_rime_addr();
-  
-  ctimer_init();
-  rtimer_init();
   
   procinit_init();    
 
