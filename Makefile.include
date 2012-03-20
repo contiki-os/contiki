@@ -107,11 +107,8 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFI
 ifdef APPS
   APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
 	     ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
-	     ${addprefix , $(APPS)}}
-  APPINCLUDES = ${foreach APP, $(APPS),  ${wildcard ${foreach DIR, $(APPDIRS), $(DIR)/Makefile.$(APP)} \
-                 $(CONTIKI)/apps/$(APP)/Makefile.$(APP) \
-                 $(CONTIKI)/platform/$(TARGET)/apps/$(APP)/Makefile.$(APP) \
-	         $(APP)/Makefile.$(APP)}}
+	     $(APPS)}
+  APPINCLUDES = ${foreach APP, $(APPS), ${wildcard ${foreach DIR, $(APPDIRS), $(DIR)/Makefile.$(APP)}}}
   -include $(APPINCLUDES)
   APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
   DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}

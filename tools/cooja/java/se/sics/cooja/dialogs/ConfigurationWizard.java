@@ -50,7 +50,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
-import java.util.Properties;
+import java.util.HashMap;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -66,11 +66,12 @@ import javax.swing.JScrollPane;
 
 import se.sics.cooja.CoreComm;
 import se.sics.cooja.GUI;
-import se.sics.cooja.SectionMoteMemory;
 import se.sics.cooja.MoteType.MoteTypeCreationException;
+import se.sics.cooja.SectionMoteMemory;
 import se.sics.cooja.contikimote.ContikiMoteType;
 
 /* TODO Test common section */
+/* TODO Test readonly section */
 
 public class ConfigurationWizard extends JDialog {
   private static final long serialVersionUID = 1L;
@@ -141,7 +142,7 @@ public class ConfigurationWizard extends JDialog {
   private static File cLibraryFile;
   private static String javaLibraryName;
   private static CoreComm javaLibrary;
-  private static Properties addresses;
+  private static HashMap<String, Integer> addresses;
   private static int relDataSectionAddr;
   private static int dataSectionSize;
   private static int relBssSectionAddr;
@@ -195,7 +196,7 @@ public class ConfigurationWizard extends JDialog {
         "Changes made in this wizard are reflected in menu Settings, External tools paths.\n" +
         "\n" +
         "NOTE: You do not need to complete this wizard for emulating motes, such as Sky motes.\n",
-        "Configuration Wizard",
+        "Contiki mote configuration wizard",
         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE,
         null, options, options[0]);
 
@@ -756,7 +757,7 @@ public class ConfigurationWizard extends JDialog {
     }
 
     testOutput.addMessage("### Parsing map file data for addresses");
-    addresses = new Properties();
+    addresses = new HashMap<String, Integer>();
     boolean parseOK = ContikiMoteType.parseMapFileData(mapData, addresses);
     if (!parseOK) {
       testOutput.addMessage("### Error: Failed parsing map file data", MessageList.ERROR);
@@ -836,7 +837,7 @@ public class ConfigurationWizard extends JDialog {
     }
 
     testOutput.addMessage("### Parsing command output for addresses");
-    addresses = new Properties();
+    addresses = new HashMap<String, Integer>();
     boolean parseOK = ContikiMoteType.parseCommandData(commandData, addresses);
     if (!parseOK) {
       testOutput.addMessage("### Error: Failed parsing command output", MessageList.ERROR);
@@ -930,11 +931,11 @@ public class ConfigurationWizard extends JDialog {
     testOutput.addMessage("### Testing Contiki library memory replacement");
 
     testOutput.addMessage("### Configuring Contiki using parsed reference address");
-    int relRefAddress = (Integer) addresses.get("ref_var");
-    if (!addresses.containsKey("ref_var")) {
-      testOutput.addMessage("Could not find address of ref_var", MessageList.ERROR);
+    if (!addresses.containsKey("referenceVar")) {
+      testOutput.addMessage("Could not find address of referenceVar", MessageList.ERROR);
       return false;
     }
+    int relRefAddress = (Integer) addresses.get("referenceVar");
     javaLibrary.setReferenceAddress(relRefAddress);
 
     testOutput.addMessage("### Creating data and BSS memory sections");
@@ -942,7 +943,7 @@ public class ConfigurationWizard extends JDialog {
     byte[] initialBssSection = new byte[bssSectionSize];
     javaLibrary.getMemory(relDataSectionAddr, dataSectionSize, initialDataSection);
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
-    SectionMoteMemory memory = new SectionMoteMemory(addresses);
+    SectionMoteMemory memory = new SectionMoteMemory(addresses, 0);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
 

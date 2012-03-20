@@ -106,9 +106,9 @@ ifdef SYMBOLS
 endif ## SYMBOLS
 ifdef REDEF_PRINTF
 	@echo Redefining printf
-	-$(foreach OBJ,$^, objcopy --redefine-sym printf=log_printf $(OBJ); )		
-	-$(foreach OBJ,$^, objcopy --redefine-sym puts=log_puts $(OBJ); )		
-	-$(foreach OBJ,$^, objcopy --redefine-sym putchar=log_putchar $(OBJ); )		
+	-$(foreach OBJ,$^, $(OBJCOPY) --redefine-sym printf=log_printf $(OBJ); )
+	-$(foreach OBJ,$^, $(OBJCOPY) --redefine-sym puts=log_puts $(OBJ); )
+	-$(foreach OBJ,$^, $(OBJCOPY) --redefine-sym putchar=log_putchar $(OBJ); )
 endif ## REDEF_PRINTF
 	$(LINK_COMMAND_1) $^ $(LINK_COMMAND_2)
 

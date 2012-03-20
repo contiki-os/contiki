@@ -17,7 +17,7 @@ endif
 CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(ESB) \
         contiki-esb-default-init-lowlevel.c \
         contiki-esb-default-init-apps.c \
-	rs232.c rs232-putchar.c fader.c $(CONTIKI_TARGET_MAIN)
+	rs232.c rs232-putchar.c fader.c
 
 ifdef WITH_CODEPROP
   CONTIKI_TARGET_DIRS += ../../apps/codeprop
@@ -30,7 +30,7 @@ CFLAGS+=-Os -g
 endif
 
 ifdef IAR
-CFLAGS+=-e --vla -Ohz --multiplier=16s --core=430 --double=32
+CFLAGS += -D__MSP430F149__=1 -e --vla -Ohz --multiplier=16s --core=430 --double=32
 CFLAGSNO = --dlib_config "$(IAR_PATH)/LIB/DLIB/dl430fn.h" $(CFLAGSWERROR)
 endif
 
@@ -52,6 +52,11 @@ include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
 
 MCU=msp430x149
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
+
+ifdef IAR
+LDFLAGSNO += -B -xm "$(IAR_PATH)/lib/dlib/dl430fn.r43" -f "$(IAR_PATH)/config/lnk430f149.xcl" -l contiki-$(TARGET).map -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+LDFLAGS += $(LDFLAGSNO) -Felf -yn
+endif # IAR
 
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 #	$(AR) rcf $@ $^

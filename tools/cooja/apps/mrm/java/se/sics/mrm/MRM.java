@@ -300,6 +300,11 @@ public class MRM extends AbstractRadioMedium {
     for (RadioConnection conn : conns) {
       for (Radio dstRadio : ((MRMRadioConnection) conn).getDestinations()) {
         double signalStrength = ((MRMRadioConnection) conn).getDestinationSignalStrength(dstRadio);
+        if (conn.getSource().getChannel() >= 0 &&
+            dstRadio.getChannel() >= 0 &&
+            conn.getSource().getChannel() != dstRadio.getChannel()) {
+          continue;
+        }
         if (dstRadio.getCurrentSignalStrength() < signalStrength) {
           dstRadio.setCurrentSignalStrength(signalStrength);
         }
@@ -312,6 +317,11 @@ public class MRM extends AbstractRadioMedium {
         double signalStrength = ((MRMRadioConnection) conn).getInterferenceSignalStrength(intfRadio);
         if (intfRadio.getCurrentSignalStrength() < signalStrength) {
                 intfRadio.setCurrentSignalStrength(signalStrength);
+        }
+        if (conn.getSource().getChannel() >= 0 &&
+            intfRadio.getChannel() >= 0 &&
+            conn.getSource().getChannel() != intfRadio.getChannel()) {
+          continue;
         }
 
         if (!intfRadio.isInterfered()) {
