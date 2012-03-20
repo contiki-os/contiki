@@ -113,7 +113,7 @@ public class UDGM extends AbstractRadioMedium {
               /* Add potential destination */
               addEdge(
                   new DirectedGraphMedium.Edge(source, 
-                      new DestinationRadio(dest)));
+                      new DGRMDestinationRadio(dest)));
             }
           }
         }
