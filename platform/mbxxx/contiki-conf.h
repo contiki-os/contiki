@@ -29,135 +29,121 @@
  *
  * This file is part of the Contiki OS
  *
+ * $Id: contiki-conf.h,v 1.2 2010/10/27 14:05:24 salvopitru Exp $
  */
 /*---------------------------------------------------------------------------*/
 /**
 * \file
-*			contiki-conf.h for MBXXX.
+*     contiki-conf.h for MBXXX.
 * \author
-*			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+*     Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+*     Chi-Anh La <la@imag.fr>
+*     Simon Duquennoy <simonduq@sics.se>
 */
 /*---------------------------------------------------------------------------*/
-
 
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
-#include PLATFORM_HEADER
+#ifdef PLATFORM_CONF_H
+#include PLATFORM_CONF_H
+#else
+#include "platform-conf.h"
+#endif /* PLATFORM_CONF_H */
 
-#include <inttypes.h>
-#include <string.h>  // For memcpm().
+/* Radio and 802.15.4 params */
+/* 802.15.4 radio channel */
+#define RF_CHANNEL                              16
+/* 802.15.4 PAN ID */
+#define IEEE802154_CONF_PANID                   0x1234
+/* Use EID 64, enable hardware autoack and address filtering */
+#define RIMEADDR_CONF_SIZE                      8
+#define UIP_CONF_LL_802154                      1
+#define ST_CONF_RADIO_AUTOACK                   1
+/* Number of buffers for incoming frames */
+#define RADIO_RXBUFS                            2
+/* Set to 0 for non ethernet links */
+#define UIP_CONF_LLH_LEN                        0
 
-#define CC_CONF_REGISTER_ARGS          0
-#define CC_CONF_FUNCTION_POINTER_ARGS  1
-#define CC_CONF_FASTCALL
-#define CC_CONF_VA_ARGS                1
-#define CC_CONF_INLINE                 inline
+/* RDC params */
+/* TX routine passes the cca/ack result in the return parameter */
+#define RDC_CONF_HARDWARE_ACK                   1
+/* TX routine does automatic cca and optional backoff */
+#define RDC_CONF_HARDWARE_CSMA                  0
+/* RDC debug with LED */
+#define RDC_CONF_DEBUG_LED                      1
+/* Channel check rate (per second) */
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
+/* Use ACK for optimization (LPP, XMAC) */
+#define WITH_ACK_OPTIMIZATION                   0
 
-#define CCIF
-#define CLIF
+/* Netstack config */
+#define NETSTACK_CONF_MAC                       csma_driver
+#define NETSTACK_CONF_RDC                       contikimac_driver
+#define NETSTACK_CONF_FRAMER                    framer_802154
+#define NETSTACK_CONF_RADIO                     stm32w_radio_driver
 
-/* These names are deprecated, use C99 names. */
-typedef uint8_t   u8_t;
-typedef uint16_t u16_t;
-typedef uint32_t u32_t;
-typedef  int32_t s32_t;
+/* ContikiMAC config */
+#define CONTIKIMAC_CONF_COMPOWER                1
+#define CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT    0
+#define CONTIKIMAC_CONF_ANNOUNCEMENTS           0
 
-typedef unsigned short uip_stats_t;
+/* CXMAC config */
+#define CXMAC_CONF_ANNOUNCEMENTS                0
+#define CXMAC_CONF_COMPOWER                     1
 
-//#define FIXED_NET_ADDRESS             1
-//#define NET_ADDR_A                    0x2001
-//#define NET_ADDR_B                    0xdb8
-//#define NET_ADDR_C                    0xbbbb
-//#define NET_ADDR_D                    0xabcd
+/* XMAC config */
+#define XMAC_CONF_ANNOUNCEMENTS                 0
+#define XMAC_CONF_COMPOWER                      1
 
-#define UART1_CONF_TX_WITH_INTERRUPT		0
-#define WITH_SERIAL_LINE_INPUT			1
-#define ENERGEST_CONF_ON			0
-#define TELNETD_CONF_NUMLINES			6
-
-#define QUEUEBUF_CONF_NUM			2       
-
-
-#define NETSTACK_CONF_RADIO		stm32w_radio_driver
+/* Other */
+#define ENERGEST_CONF_ON                        0
+#define QUEUEBUF_CONF_NUM                       2
 
 #if WITH_UIP6
 
-/* No radio cycling */
-#define NETSTACK_CONF_NETWORK		sicslowpan_driver
-#define NETSTACK_CONF_MAC		nullmac_driver
-#define NETSTACK_CONF_RDC		sicslowmac_driver
-#define NETSTACK_CONF_FRAMER		framer_802154
+/* Network setup for IPv6 */
+#define NETSTACK_CONF_NETWORK sicslowpan_driver
 
-#define RIMEADDR_CONF_SIZE              8
-#define UIP_CONF_LL_802154              1
+/* Specify a minimum packet size for 6lowpan compression to be
+   enabled. This is needed for ContikiMAC, which needs packets to be
+   larger than a specified size, if no ContikiMAC header should be
+   used. */
+#define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD   63
+#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
 
-#define UIP_CONF_ROUTER				1
-#define UIP_CONF_IPV6_RPL			1
-#define UIP_CONF_ND6_SEND_RA			0
-//#define RPL_BORDER_ROUTER			0
+#define UIP_CONF_ROUTER                         1
+#define UIP_CONF_IPV6_RPL                       1
+#define UIP_CONF_ND6_SEND_RA                    0
 
-/* A trick to resolve a compilation error with IAR. */
-#ifdef __ICCARM__
-#define UIP_CONF_DS6_AADDR_NBU			1
-#endif
+#define UIP_CONF_IPV6                           1
+#define UIP_CONF_IPV6_QUEUE_PKT                 0
+#define UIP_CONF_IPV6_CHECKS                    1
+#define UIP_CONF_IPV6_REASSEMBLY                0
+#define UIP_CONF_ND6_MAX_PREFIXES               2
+#define UIP_CONF_ND6_MAX_NEIGHBORS              2
+#define UIP_CONF_ND6_MAX_DEFROUTERS             1
+#define UIP_CONF_IP_FORWARD                     0
+#define UIP_CONF_BUFFER_SIZE                    140
+#define UIP_CONF_MAX_CONNECTIONS                4
+#define UIP_CONF_MAX_LISTENPORTS                8
+#define UIP_CONF_UDP_CONNS                      4
 
-#define UIP_CONF_IPV6				1
-#define UIP_CONF_IPV6_QUEUE_PKT			0   // This is a very costly feature as it increases the RAM usage by approximately UIP_ND6_MAX_NEIGHBORS * UIP_LINK_MTU bytes.
-#define UIP_CONF_IPV6_CHECKS			1
-#define UIP_CONF_IPV6_REASSEMBLY		0
-#define UIP_CONF_ND6_MAX_PREFIXES		2
-#define UIP_CONF_ND6_MAX_NEIGHBORS		2
-#define UIP_CONF_ND6_MAX_DEFROUTERS		1
-#define UIP_CONF_IP_FORWARD			0
-#define UIP_CONF_BUFFER_SIZE			140
-#define UIP_CONF_MAX_CONNECTIONS		6
-#define UIP_CONF_MAX_LISTENPORTS		6
-#define UIP_CONF_UDP_CONNS			3
-
-#define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
-#define SICSLOWPAN_CONF_COMPRESSION_HC1         1
-#define SICSLOWPAN_CONF_COMPRESSION_HC06        2
+#include "net/sicslowpan.h"
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_HC06
 #define SICSLOWPAN_CONF_FRAG                    1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
 #define SICSLOWPAN_CONF_MAXAGE                  2
 
-#define UIP_CONF_ICMP6				0
+#else /* WITH_UIP6 */
+
+/* Network setup for non-IPv6 (rime). */
+#define NETSTACK_CONF_NETWORK rime_driver
+
 #endif /* WITH_UIP6 */
-
-#define UIP_CONF_UDP				1
-#define UIP_CONF_TCP				1
-
-#define IEEE802154_CONF_PANID		0x1234
-#define STM32W_NODE_ID			0x5678   // to be deleted
-#define RF_CHANNEL			16
-#define RADIO_RXBUFS                    2   // Set to a number greater than 1 to decrease packet loss probability at high rates (e.g, with fragmented packets)
-#define UIP_CONF_LLH_LEN                0
-
-typedef unsigned long clock_time_t;
-
-#define CLOCK_CONF_SECOND 1000
-
-typedef unsigned long long rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
-
-/* LEDs ports MB8xxx */
-
-#define LEDS_CONF_GREEN			LED_D1
-#define LEDS_CONF_YELLOW        LED_D3
-#define LEDS_CONF_RED           LED_D3
-
-
-#define UIP_ARCH_ADD32           1
-#define UIP_ARCH_CHKSUM          0
-
-#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
-
 
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
-
 
 #endif /* __CONTIKI_CONF_H__ */
