@@ -51,11 +51,15 @@
 #include "platform-conf.h"
 #endif /* PLATFORM_CONF_H */
 
-/* Radio and 802.15.4 params*/
+/* Radio and 802.15.4 params */
 /* 802.15.4 radio channel */
 #define RF_CHANNEL                              16
-/* 802.15.4 PAN ID*/
+/* 802.15.4 PAN ID */
 #define IEEE802154_CONF_PANID                   0x1234
+/* Use EID 64, enable hardware autoack and address filtering */
+#define RIMEADDR_CONF_SIZE                      8
+#define UIP_CONF_LL_802154                      1
+#define ST_CONF_RADIO_AUTOACK                   1
 /* Number of buffers for incoming frames */
 #define RADIO_RXBUFS                            2
 /* Set to 0 for non ethernet links */
@@ -78,7 +82,6 @@
 #define NETSTACK_CONF_RDC                       contikimac_driver
 #define NETSTACK_CONF_FRAMER                    framer_802154
 #define NETSTACK_CONF_RADIO                     stm32w_radio_driver
-#define NETSTACK_CONF_RDC_ENABLED               1
 
 /* ContikiMAC config */
 #define CONTIKIMAC_CONF_COMPOWER                1
@@ -125,8 +128,6 @@
 #define UIP_CONF_MAX_CONNECTIONS                4
 #define UIP_CONF_MAX_LISTENPORTS                8
 #define UIP_CONF_UDP_CONNS                      4
-#define RIMEADDR_CONF_SIZE                      8
-#define UIP_CONF_LL_802154                      1
 
 #include "net/sicslowpan.h"
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_HC06
