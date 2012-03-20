@@ -38,6 +38,7 @@
 * \author
 *					Salvatore Pitrulli
 *					Chi-Anh La la@imag.fr
+*         Simon Duquennoy <simonduq@sics.se>
 */
 /*---------------------------------------------------------------------------*/
 
@@ -60,6 +61,12 @@
 
 #include "dev/leds.h"
 #define LED_ACTIVITY 0
+
+#ifdef ST_CONF_RADIO_AUTOACK
+#define ST_RADIO_AUTOACK ST_CONF_RADIO_AUTOACK
+#else
+#define ST_RADIO_AUTOACK 0
+#endif /* ST_CONF_RADIO_AUTOACK */
 
 #if RDC_CONF_DEBUG_LED
 #define LED_RDC RDC_CONF_DEBUG_LED
@@ -108,7 +115,7 @@
 #define LED_RDC_OFF() 
 #endif
 
-#if NETSTACK_CONF_RDC_ENABLED
+#if RDC_CONF_HARDWARE_CSMA
 #define MAC_RETRIES 0
 #endif
 
@@ -145,7 +152,7 @@
                                   ENERGEST_OFF(ENERGEST_TYPE_LISTEN); \
                                 }                                     \
                               }
-#if NETSTACK_CONF_RDC_ENABLED
+#if RDC_CONF_HARDWARE_CSMA
 #define ST_RADIO_CHECK_CCA FALSE
 #define ST_RADIO_CCA_ATTEMPT_MAX 0
 #define ST_BACKOFF_EXP_MIN 0
@@ -274,12 +281,17 @@ static int stm32w_radio_init(void)
   ST_RadioInit(ST_RADIO_POWER_MODE_OFF);
   
   onoroff = OFF;
-  ST_RadioSetNodeId(STM32W_NODE_ID);   // To be deleted.
   ST_RadioSetPanId(IEEE802154_PANID);
   
   CLEAN_RXBUFS();
   CLEAN_TXBUF();
-  ST_RadioEnableAutoAck(1);
+
+#if ST_RADIO_AUTOACK && !(UIP_CONF_LL_802154 && RIMEADDR_CONF_SIZE==8)
+#error "Autoack and address filtering can only be used with EUI 64"
+#endif
+  ST_RadioEnableAutoAck(ST_RADIO_AUTOACK);
+  ST_RadioEnableAddressFiltering(ST_RADIO_AUTOACK);
+
   locked = 0;
   process_start(&stm32w_radio_process, NULL);
   
