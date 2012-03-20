@@ -37,6 +37,7 @@
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 *			Chi-Anh La <la@imag.fr>
+*			Simon Duquennoy <simonduq@sics.se>
 */
 /*---------------------------------------------------------------------------*/
 
@@ -102,14 +103,11 @@ typedef unsigned short uip_stats_t;
 #define RDC_CONF_DEBUG_LED                      1
 
 /* ContikiMAC config */
-#define CONTIKIMAC_CONF_CCA_COUNT_MAX           3
+#define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD   63
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
-#define WITH_PHASE_OPTIMIZATION                 1
 #define CONTIKIMAC_CONF_COMPOWER                1
 #define CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT    0
 #define CONTIKIMAC_CONF_ANNOUNCEMENTS           0
-#define WITH_FAST_SLEEP                         0
-#define CONTIKIMAC_CONF_GUARD_TIME              4
 
 /* CXMAC config */
 #define CXMAC_CONF_ANNOUNCEMENTS                0
