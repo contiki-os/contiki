@@ -181,7 +181,7 @@ typedef unsigned long clock_time_t;
 
 #define CLOCK_CONF_SECOND 1000
 
-typedef unsigned long long rtimer_clock_t;
+typedef unsigned long rtimer_clock_t;
 #define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
 
 /* LEDs ports MB8xxx */
