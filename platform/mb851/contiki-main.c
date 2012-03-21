@@ -37,6 +37,7 @@
 *			Contiki main file.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+*			Chi-Anh La <la@imag.fr>
 */
 /*---------------------------------------------------------------------------*/
 
@@ -82,9 +83,9 @@
 
 
 #if UIP_CONF_IPV6
-PROCINIT(&etimer_process, &tcpip_process, &sensors_process);
+PROCINIT(&tcpip_process, &sensors_process);
 #else
-PROCINIT(&etimer_process, &sensors_process);
+PROCINIT(&sensors_process);
 #warning "No TCP/IP process!"
 #endif
 
@@ -108,9 +109,6 @@ set_rime_addr(void)
                   eui64.u8[c] = stm32w_eui64[7 - c];
           }
   }
-  PRINTF("\n\rRadio EUI-64:");
-  PRINTLLADDR(eui64);
-  PRINTF("\n\r");
   
 #if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &eui64, sizeof(uip_lladdr.addr));
@@ -161,17 +159,25 @@ main(void)
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
+  /* rtimer and ctimer should be initialized before radio duty cycling layers*/
+  rtimer_init();
+  /* etimer_process should be initialized before ctimer */
+  process_start(&etimer_process, NULL);   
+  ctimer_init();
   
+    
   netstack_init();
-#if !UIP_CONF_IPV6
-  ST_RadioEnableAutoAck(FALSE); // Because frames are not 802.15.4 compatible. 
-  ST_RadioEnableAddressFiltering(FALSE);
-#endif
 
   set_rime_addr();
-  
-  ctimer_init();
-  rtimer_init();
+
+  printf("%s %s, channel check rate %lu Hz\n",
+         NETSTACK_MAC.name, NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+                                  NETSTACK_RDC.channel_check_interval()));
+  printf("802.15.4 PAN ID 0x%x, EUI-%d:",
+      IEEE802154_CONF_PANID, UIP_CONF_LL_802154?64:16);
+  uip_debug_lladdr_print(&rimeaddr_node_addr);
+  printf(", radio channel %u\n", RF_CHANNEL);
   
   procinit_init();    
 
