@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,49 +26,49 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.11 2009/10/27 10:02:48 fros4943 Exp $
+ * $Id: CodeUI.java,v 1.8 2009/09/23 08:16:06 fros4943 Exp $
  */
 
-package se.sics.cooja.mspmote;
+package se.sics.cooja.util;
 
+import java.awt.event.ActionEvent;
 import java.io.File;
+
+import javax.swing.Action;
+import javax.swing.JMenuItem;
+import javax.swing.text.JTextComponent;
+
+import jsyntaxpane.SyntaxDocument;
+import jsyntaxpane.actions.DefaultSyntaxAction;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.Simulation;
-import se.sics.mspsim.platform.esb.ESBNode;
+import se.sics.cooja.WatchpointMote;
 
-/**
- * @author Fredrik Osterlind
- */
-public class ESBMote extends MspMote {
-  private static Logger logger = Logger.getLogger(ESBMote.class);
+public class JSyntaxAddBreakpoint extends DefaultSyntaxAction {
+  private static Logger logger = Logger.getLogger(JSyntaxAddBreakpoint.class);
 
-  public ESBNode esbNode = null;
-
-  public ESBMote() {
-    super();
+  public JSyntaxAddBreakpoint() {
+    super("addbreakpoint");
   }
-
-  public ESBMote(MspMoteType moteType, Simulation sim) {
-    super(moteType, sim);
-  }
-
-  protected boolean initEmulator(File fileELF) {
-    try {
-      esbNode = new ESBNode();
-      registry = esbNode.getRegistry();
-      prepareMote(fileELF, esbNode);
-
-    } catch (Exception e) {
-      logger.fatal("Error when creating ESB mote:", e);
-      return false;
+  
+  public void actionPerformed(ActionEvent e) {
+    JMenuItem menuItem = (JMenuItem) e.getSource();
+    Action action = menuItem.getAction();
+    WatchpointMote watchpointMote = (WatchpointMote) action.getValue("WatchpointMote");
+    if (watchpointMote == null) {
+      logger.warn("Error: No source, cannot configure breakpoint");
+      return;
     }
-    return true;
-  }
 
-  public String toString() {
-    return "ESB " + getID();
-  }
+    File file = (File) action.getValue("WatchpointFile");
+    Integer line = (Integer) action.getValue("WatchpointLine");
+    Integer address = (Integer) action.getValue("WatchpointAddress");
+    if (file == null || line == null || address == null) {
+      logger.warn("Error: Bad breakpoint info, cannot add breakpoint");
+      return;
+    }
 
+    watchpointMote.addBreakpoint(file, line, address);
+  }
 }

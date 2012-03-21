@@ -32,6 +32,7 @@
 package se.sics.cooja.plugins;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Window;
@@ -53,9 +54,12 @@ import java.util.Observer;
 
 import javax.script.ScriptException;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -63,8 +67,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileFilter;
+
+import jsyntaxpane.DefaultSyntaxKit;
+import jsyntaxpane.actions.DefaultSyntaxAction;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -83,6 +89,10 @@ public class ScriptRunner extends VisPlugin {
   private static final long serialVersionUID = 7614358340336799109L;
   private static Logger logger = Logger.getLogger(ScriptRunner.class);
 
+  {
+    DefaultSyntaxKit.initKit();
+  }
+
   final String[] EXAMPLE_SCRIPTS = new String[] {
       "basic.js", "Various commands",
       "helloworld.js", "Wait for 'Hello, world'",
@@ -97,23 +107,18 @@ public class ScriptRunner extends VisPlugin {
 
   private static BufferedWriter logWriter = null; /* For non-GUI tests */
 
-  private JTextArea scriptTextArea = null;
+  private JEditorPane codeEditor = null;
 
   private JTextArea logTextArea = null;
   private JButton toggleButton = null;
   private JButton examplesButton = null;
 
-  private int scriptFirstLinesNumber;
+  private JSyntaxLinkFile actionLinkFile = null;
+  private File linkedFile = null;
 
   public ScriptRunner(Simulation simulation, GUI gui) {
     super("Contiki Test Editor", gui, false);
     this.simulation = simulation;
-
-    final JTextArea lineTextArea = new JTextArea();
-    lineTextArea.setEnabled(false);
-    lineTextArea.setMargin(new Insets(5,0,5,0));
-
-    scriptFirstLinesNumber = 1;
 
     /* Examples popup menu */
     final JPopupMenu popupMenu = new JPopupMenu();
@@ -148,65 +153,19 @@ public class ScriptRunner extends VisPlugin {
       }
     });
 
+    {
+      /* Workaround to configure jsyntaxpane */
+      JEditorPane e = new JEditorPane();
+      new JScrollPane(e);
+      e.setContentType("text/javascript");
+      DefaultSyntaxKit kit = (DefaultSyntaxKit) e.getEditorKit();
+      kit.setProperty("PopupMenu", "copy-to-clipboard,-,find,find-next,goto-line,-,linkfile");
+      kit.setProperty("Action.linkfile", JSyntaxLinkFile.class.getName());
+    }
+
     /* Script area */
-    scriptTextArea = new JTextArea(12,50);
-    scriptTextArea.getDocument().addDocumentListener(new DocumentListener() {
-      private int lastLines = -1;
-
-      private void update() {
-        int lines = scriptTextArea.getLineCount() + scriptFirstLinesNumber;
-        if (lines == lastLines) {
-          return;
-        }
-        lastLines = lines;
-
-        String txt = "";
-        for (int i=scriptFirstLinesNumber; i < 10; i++) {
-          if (i > lines) {
-            break;
-          }
-          txt += "00" + i + "\n";
-        }
-        for (int i=10; i < 100; i++) {
-          if (i > lines) {
-            break;
-          }
-          txt += "0" + i + "\n";
-        }
-        for (int i=100; i < 1000; i++) {
-          if (i > lines) {
-            break;
-          }
-          txt += i + "\n";
-        }
-        lineTextArea.setText(txt);
-        
-        /*ScriptParser parser;
-        try {
-          parser = new ScriptParser(scriptTextArea.getText());
-          String tooltip = parser.getJSCode();
-          tooltip = tooltip.replaceAll("\n", "<br>");
-          tooltip = "<html><b>Generated code:</b><p>" + tooltip + "</html>";
-          lineTextArea.setToolTipText(tooltip);
-        } catch (ScriptSyntaxErrorException e) {
-          lineTextArea.setToolTipText("Unable to generate code: " + e.getMessage());
-        }*/
-      }
-
-      public void changedUpdate(DocumentEvent e) {
-        update();
-      }
-      public void insertUpdate(DocumentEvent e) {
-        update();
-      }
-      public void removeUpdate(DocumentEvent e) {
-        update();
-      }
-    });
-    scriptTextArea.setMargin(new Insets(5,0,5,5));
-    scriptTextArea.setEditable(true);
-    scriptTextArea.setCursor(null);
-    scriptTextArea.setTabSize(1);
+    setLayout(new BorderLayout());
+    codeEditor = new JEditorPane();
 
     logTextArea = new JTextArea(12,50);
     logTextArea.setMargin(new Insets(5,5,5,5));
@@ -231,22 +190,36 @@ public class ScriptRunner extends VisPlugin {
       }
     });
 
-    JPanel scriptArea = new JPanel(new BorderLayout());
-    scriptArea.setEnabled(false);
-    scriptArea.add(BorderLayout.WEST, lineTextArea);
-    scriptArea.add(BorderLayout.CENTER, scriptTextArea);
-
+    doLayout();
     JSplitPane centerPanel = new JSplitPane(
         JSplitPane.VERTICAL_SPLIT,
-        new JScrollPane(scriptArea),
+        new JScrollPane(codeEditor),
         new JScrollPane(logTextArea)
     );
+
+    codeEditor.setContentType("text/javascript");
+    DefaultSyntaxKit kit = (DefaultSyntaxKit) codeEditor.getEditorKit();
+    kit.setProperty("PopupMenu", "copy-to-clipboard,-,find,find-next,goto-line,-,linkfile");
+    kit.setProperty("Action.linkfile", JSyntaxLinkFile.class.getName());
+
+    JPopupMenu p = codeEditor.getComponentPopupMenu();
+    for (Component c: p.getComponents()) {
+      if (c instanceof JMenuItem) {
+        if (((JMenuItem) c).getAction() != null &&
+            ((JMenuItem) c).getAction() instanceof JSyntaxLinkFile) {
+          actionLinkFile = (JSyntaxLinkFile)(((JMenuItem) c).getAction());
+          actionLinkFile.setMenuText("Link script to disk file");
+          actionLinkFile.putValue("ScriptRunner", this);
+        }
+      }
+    }
+
     centerPanel.setOneTouchExpandable(true);
     centerPanel.setResizeWeight(0.5);
 
     JPanel buttonPanel = new JPanel(new BorderLayout());
     buttonPanel.add(BorderLayout.CENTER, toggleButton);
-    buttonPanel.add(BorderLayout.WEST, examplesButton);  
+    buttonPanel.add(BorderLayout.WEST, examplesButton);
     buttonPanel.add(BorderLayout.EAST, runTestButton);
 
     JPanel southPanel = new JPanel(new BorderLayout());
@@ -271,20 +244,42 @@ public class ScriptRunner extends VisPlugin {
     }
   }
 
-  public void setScriptActive(boolean active) {
-    /* Reload script from file */
-    if (scriptFile != null) {
-      String script = StringUtils.loadFromFile(scriptFile);
-      if (script == null) {
-        logger.fatal("Failed to load script from: " + scriptFile.getAbsolutePath());
-      } else {
-        updateScript(script);
-      }
+  public void setLinkFile(File source) {
+    linkedFile = source;
+    if (source == null) {
+      updateScript("");
+
+      actionLinkFile.setMenuText("Link script to disk file");
+      actionLinkFile.putValue("JavascriptSource", null);
+
+      codeEditor.setEditable(true);
+    } else {
+      updateScript(linkedFile);
+
+      actionLinkFile.setMenuText("Unlink script: " + source.getName());
+      actionLinkFile.putValue("JavascriptSource", source);
+
+      codeEditor.setEditable(false);
     }
-    
+    updateTitle();
+  }
+
+  public void setScriptActive(boolean active) {
     if (active) {
+      /* setScriptActive(true) */
+
       /* Free any resources */
       setScriptActive(false);
+
+      /* Reload script from file */
+      if (linkedFile != null) {
+        String script = StringUtils.loadFromFile(linkedFile);
+        if (script == null) {
+          logger.fatal("Failed to load script from: " + linkedFile.getAbsolutePath());
+        } else {
+          updateScript(script);
+        }
+      }
 
       /* Create new engine */
       engine = new LogScriptEngine(simulation);
@@ -331,14 +326,14 @@ public class ScriptRunner extends VisPlugin {
 
       /* Activate engine */
       try {
-        engine.activateScript(scriptTextArea.getText());
+        engine.activateScript(codeEditor.getText());
 
+        actionLinkFile.setEnabled(false);
         toggleButton.setText("Deactivate");
         examplesButton.setEnabled(false);
         logTextArea.setText("");
-        scriptTextArea.setEnabled(false);
-        setTitle("Contiki Test Editor (ACTIVE) "
-            + (scriptFile==null?"":" (" + scriptFile.getName() + ")"));
+        codeEditor.setEnabled(false);
+        updateTitle();
 
         logger.info("Test script activated");
 
@@ -355,19 +350,19 @@ public class ScriptRunner extends VisPlugin {
       }
 
     } else {
-      if (engine == null) {
-        return;
-      }
+      /* setScriptActive(false) */
 
-      /* Deactivate script */
-      engine.deactivateScript();
-      engine.setScriptLogObserver(null);
-      engine = null;
+      if (engine != null) {
+        /* Deactivate script */
+        engine.deactivateScript();
+        engine.setScriptLogObserver(null);
+        engine = null;
+      }
 
       if (logWriter != null) {
         try {
           logWriter.write(
-              "Test ended at simulation time: " + 
+              "Test ended at simulation time: " +
               (simulation!=null?simulation.getSimulationTime():"?") + "\n");
           logWriter.flush();
           logWriter.close();
@@ -376,13 +371,24 @@ public class ScriptRunner extends VisPlugin {
         logWriter = null;
       }
 
+      actionLinkFile.setEnabled(true);
       toggleButton.setText("Activate");
-      examplesButton.setEnabled(true);
-      scriptTextArea.setEnabled(scriptFile==null?true:false);
+      examplesButton.setEnabled(linkedFile==null?true:false);
+      codeEditor.setEnabled(true);
       logger.info("Test script deactivated");
-      setTitle("Contiki Test Editor"
-          + (scriptFile==null?"":" (" + scriptFile.getName() + ")"));
+      updateTitle();
     }
+  }
+
+  private void updateTitle() {
+    String title = "Contiki Test Editor ";
+    if (linkedFile != null) {
+      title += ": " + linkedFile.getName() + " ";
+    }
+    if (isActive()) {
+      title += "(ACTIVE) ";
+    }
+    setTitle(title);
   }
 
   private void exportAndRun() {
@@ -432,7 +438,7 @@ public class ScriptRunner extends VisPlugin {
       String s1 = "Start";
       String s2 = "Cancel";
       int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-          "Starting COOJA in " + coojaBuild.getPath() + ":\n" + 
+          "Starting COOJA in " + coojaBuild.getPath() + ":\n" +
           " " + command[0] + " " + command[1] + " " + command[2] + " " + command[3] + "\n",
           "Starting COOJA without GUI", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE, null, new Object[] { s1, s2 }, s1);
@@ -558,7 +564,7 @@ public class ScriptRunner extends VisPlugin {
       return;
     }
 
-    scriptTextArea.setText(script);
+    codeEditor.setText(script);
     logTextArea.setText("");
   }
 
@@ -566,29 +572,32 @@ public class ScriptRunner extends VisPlugin {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
-    if (scriptFile != null) {
+    if (linkedFile != null) {
       element = new Element("scriptfile");
-      element.setText(simulation.getGUI().createPortablePath(scriptFile).getPath().replace('\\', '/'));
+      element.setText(simulation.getGUI().createPortablePath(linkedFile).getPath().replace('\\', '/'));
       config.add(element);
       /*StringUtils.saveToFile(scriptFile, scriptTextArea.getText());*/
     } else {
       element = new Element("script");
-      element.setText(scriptTextArea.getText());
+      element.setText(codeEditor.getText());
       config.add(element);
     }
 
     element = new Element("active");
-    element.setText("" + (engine != null));
+    element.setText("" + isActive());
     config.add(element);
 
     return config;
   }
 
+  public boolean isActive() {
+    return engine != null;
+
+  }
   public void closePlugin() {
     setScriptActive(false);
   }
 
-  private File scriptFile = null;
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       String name = element.getName();
@@ -598,14 +607,7 @@ public class ScriptRunner extends VisPlugin {
         }
       } else if ("scriptfile".equals(name)) {
         File file = simulation.getGUI().restorePortablePath(new File(element.getText().trim()));
-        String script = StringUtils.loadFromFile(file);
-        if (script == null) {
-          logger.fatal("Failed to load script from: " + file.getAbsolutePath());
-        } else {
-          updateScript(script);
-        }
-        scriptFile = file;
-        scriptTextArea.setEnabled(false);
+        setLinkFile(file);
       } else if ("active".equals(name)) {
         boolean active = Boolean.parseBoolean(element.getText());
         if (GUI.isVisualized()) {
@@ -627,4 +629,45 @@ public class ScriptRunner extends VisPlugin {
     return StringUtils.loadFromURL(ScriptRunner.class.getResource("/scripts/" + file));
   }
 
+  public static class JSyntaxLinkFile extends DefaultSyntaxAction {
+    private static Logger logger = Logger.getLogger(JSyntaxLinkFile.class);
+
+    public JSyntaxLinkFile() {
+      super("linkfile");
+    }
+
+    public void actionPerformed(ActionEvent e) {
+      JMenuItem menuItem = (JMenuItem) e.getSource();
+      Action action = menuItem.getAction();
+      ScriptRunner scriptRunner = (ScriptRunner) action.getValue("ScriptRunner");
+      File currentSource = (File) action.getValue("JavascriptSource");
+
+      if (currentSource != null) {
+        scriptRunner.setLinkFile(null);
+        return;
+      }
+
+      JFileChooser fileChooser = new JFileChooser();
+      fileChooser.setCurrentDirectory(new java.io.File("."));
+      fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      fileChooser.setDialogTitle("Select script file");
+      fileChooser.setFileFilter(new FileFilter() {
+        public boolean accept(File file) {
+          if (file.isDirectory()) { return true; }
+          if (file.getName().endsWith(".js")) {
+            return true;
+          }
+          return false;
+        }
+        public String getDescription() {
+          return "Javascript";
+        }
+      });
+      if (fileChooser.showOpenDialog(scriptRunner) != JFileChooser.APPROVE_OPTION) {
+        logger.debug("cancel");
+        return;
+      }
+      scriptRunner.setLinkFile(fileChooser.getSelectedFile());
+    }
+  }
 }
