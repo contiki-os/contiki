@@ -52,6 +52,14 @@ send(mac_callback_t sent, void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
+send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *list)
+{
+  if(sent) {
+    sent(ptr, MAC_TX_OK, 1);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
 input(void)
 {
 }
@@ -83,6 +91,7 @@ const struct rdc_driver stub_rdc_driver = {
     "stub-rdc",
     init,
     send,
+    send_list,
     input,
     on,
     off,
