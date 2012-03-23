@@ -224,11 +224,11 @@ CUSTOM_RULE_C_TO_CE = 1
 
 CUSTOM_RULE_LINK = 1
 
-.PHONY: symbols.c symbols.h
 ifdef CORE
 ifeq ($(wildcard $(CORE)),)
  ${error $(CORE) doesn't exist}
 endif
+.PHONY: symbols.c symbols.h
 symbols.c:
 	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c	
 else
