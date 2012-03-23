@@ -465,7 +465,7 @@ obs_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_s
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   REST.set_header_max_age(response, 5);
 
-  REST.set_response_payload(response, buffer, snprintf((char *)buffer, MAX_PLUGFEST_PAYLOAD, "TICK %lu", obs_counter));
+  REST.set_response_payload(response, obs_content, snprintf(obs_content, MAX_PLUGFEST_PAYLOAD, "TICK %lu", obs_counter));
 
   /* A post_handler that handles subscriptions will be called for periodic resources by the REST framework. */
 }
@@ -486,8 +486,8 @@ obs_periodic_handler(resource_t *r)
   coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
   coap_init_message(notification, COAP_TYPE_NON, CONTENT_2_05, 0 );
 
-  REST.set_response_payload(notification, obs_content, snprintf(obs_content, sizeof(obs_content), "TICK %u", obs_counter));
-  REST.set_header_content_type(notification, REST.type.TEXT_PLAIN);
+  /* Better use a generator function for both handlers that only takes *resonse. */
+  obs_handler(NULL, notification, NULL, 0, NULL);
 
   /* Notify the registered observers with the given message type, observe option, and payload. */
   REST.notify_subscribers(r, obs_counter, notification);
