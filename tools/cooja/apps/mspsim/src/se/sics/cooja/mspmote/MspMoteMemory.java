@@ -36,21 +36,17 @@ import org.apache.log4j.Logger;
 import se.sics.cooja.AddressMemory;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteMemory;
-import se.sics.cooja.MoteTimeEvent;
-import se.sics.cooja.TimeEvent;
-import se.sics.mspsim.core.CPUMonitor;
 import se.sics.mspsim.core.MSP430;
+import se.sics.mspsim.core.Memory.AccessType;
 import se.sics.mspsim.util.MapEntry;
 
 public class MspMoteMemory implements MoteMemory, AddressMemory {
   private static Logger logger = Logger.getLogger(MspMoteMemory.class);
   private final ArrayList<MapEntry> mapEntries;
 
-  private MSP430 cpu;
-  private Mote mote;
+  private final MSP430 cpu;
 
   public MspMoteMemory(Mote mote, MapEntry[] allEntries, MSP430 cpu) {
-    this.mote = mote;
     this.mapEntries = new ArrayList<MapEntry>();
 
     for (MapEntry entry: allEntries) {
@@ -191,7 +187,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
   }
 
   private ArrayList<MemoryCPUMonitor> cpuMonitorArray = new ArrayList<MemoryCPUMonitor>();
-  class MemoryCPUMonitor implements CPUMonitor {
+  class MemoryCPUMonitor extends se.sics.mspsim.core.MemoryMonitor.Adapter {
     public final MemoryMonitor mm;
     public final int address;
     public final int size;
@@ -202,22 +198,14 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
       this.size = size;
     }
 
-    public void cpuAction(int type, final int adr, int data) {
-      final MemoryEventType t;
-      if (type == CPUMonitor.MEMORY_WRITE) {
-        t = MemoryEventType.WRITE;
-      } else {
-        t = MemoryEventType.READ;
-      }
+    @Override
+    public void notifyReadAfter(int address, int mode, AccessType type) {
+        mm.memoryChanged(MspMoteMemory.this, MemoryEventType.READ, address);
+    }
 
-      /* XXX Workaround to avoid using soon-obsolete data argument.
-       * This causes a delay between memory rw and listener notifications */
-      TimeEvent e = new MoteTimeEvent(mote, 0) {
-        public void execute(long time) {
-          mm.memoryChanged(MspMoteMemory.this, t, adr);
-        }
-      };
-      mote.getSimulation().scheduleEvent(e, mote.getSimulation().getSimulationTime());
+    @Override
+    public void notifyWriteAfter(int dstAddress, int data, int mode) {
+        mm.memoryChanged(MspMoteMemory.this, MemoryEventType.WRITE, dstAddress);
     }
   }
 
