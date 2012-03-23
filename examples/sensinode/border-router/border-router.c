@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 #include "net/rpl/rpl.h"
 #include "dev/watchdog.h"
