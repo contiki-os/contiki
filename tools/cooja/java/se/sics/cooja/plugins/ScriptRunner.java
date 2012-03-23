@@ -34,6 +34,7 @@ package se.sics.cooja.plugins;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -89,8 +90,13 @@ public class ScriptRunner extends VisPlugin {
   private static final long serialVersionUID = 7614358340336799109L;
   private static Logger logger = Logger.getLogger(ScriptRunner.class);
 
+  static boolean headless;
   {
-    DefaultSyntaxKit.initKit();
+    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    headless = ge.isHeadless();
+    if (!headless) {
+      DefaultSyntaxKit.initKit();
+    }
   }
 
   final String[] EXAMPLE_SCRIPTS = new String[] {
@@ -158,9 +164,11 @@ public class ScriptRunner extends VisPlugin {
       JEditorPane e = new JEditorPane();
       new JScrollPane(e);
       e.setContentType("text/javascript");
-      DefaultSyntaxKit kit = (DefaultSyntaxKit) e.getEditorKit();
-      kit.setProperty("PopupMenu", "copy-to-clipboard,-,find,find-next,goto-line,-,linkfile");
-      kit.setProperty("Action.linkfile", JSyntaxLinkFile.class.getName());
+      if (e.getEditorKit() instanceof DefaultSyntaxKit) {
+        DefaultSyntaxKit kit = (DefaultSyntaxKit) e.getEditorKit();
+        kit.setProperty("PopupMenu", "copy-to-clipboard,-,find,find-next,goto-line,-,linkfile");
+        kit.setProperty("Action.linkfile", JSyntaxLinkFile.class.getName());
+      }
     }
 
     /* Script area */
@@ -198,18 +206,22 @@ public class ScriptRunner extends VisPlugin {
     );
 
     codeEditor.setContentType("text/javascript");
-    DefaultSyntaxKit kit = (DefaultSyntaxKit) codeEditor.getEditorKit();
-    kit.setProperty("PopupMenu", "copy-to-clipboard,-,find,find-next,goto-line,-,linkfile");
-    kit.setProperty("Action.linkfile", JSyntaxLinkFile.class.getName());
+    if (codeEditor.getEditorKit() instanceof DefaultSyntaxKit) {
+      DefaultSyntaxKit kit = (DefaultSyntaxKit) codeEditor.getEditorKit();
+      kit.setProperty("PopupMenu", "copy-to-clipboard,-,find,find-next,goto-line,-,linkfile");
+      kit.setProperty("Action.linkfile", JSyntaxLinkFile.class.getName());
+    }
 
     JPopupMenu p = codeEditor.getComponentPopupMenu();
-    for (Component c: p.getComponents()) {
-      if (c instanceof JMenuItem) {
-        if (((JMenuItem) c).getAction() != null &&
-            ((JMenuItem) c).getAction() instanceof JSyntaxLinkFile) {
-          actionLinkFile = (JSyntaxLinkFile)(((JMenuItem) c).getAction());
-          actionLinkFile.setMenuText("Link script to disk file");
-          actionLinkFile.putValue("ScriptRunner", this);
+    if (p != null) {
+      for (Component c: p.getComponents()) {
+        if (c instanceof JMenuItem) {
+          if (((JMenuItem) c).getAction() != null &&
+              ((JMenuItem) c).getAction() instanceof JSyntaxLinkFile) {
+            actionLinkFile = (JSyntaxLinkFile)(((JMenuItem) c).getAction());
+            actionLinkFile.setMenuText("Link script to disk file");
+            actionLinkFile.putValue("ScriptRunner", this);
+          }
         }
       }
     }
@@ -328,12 +340,14 @@ public class ScriptRunner extends VisPlugin {
       try {
         engine.activateScript(codeEditor.getText());
 
-        actionLinkFile.setEnabled(false);
-        toggleButton.setText("Deactivate");
-        examplesButton.setEnabled(false);
-        logTextArea.setText("");
-        codeEditor.setEnabled(false);
-        updateTitle();
+        if (!headless) {
+          actionLinkFile.setEnabled(false);
+          toggleButton.setText("Deactivate");
+          examplesButton.setEnabled(false);
+          logTextArea.setText("");
+          codeEditor.setEnabled(false);
+          updateTitle();
+        }
 
         logger.info("Test script activated");
 
@@ -371,12 +385,14 @@ public class ScriptRunner extends VisPlugin {
         logWriter = null;
       }
 
-      actionLinkFile.setEnabled(true);
-      toggleButton.setText("Activate");
-      examplesButton.setEnabled(linkedFile==null?true:false);
-      codeEditor.setEnabled(true);
+      if (!headless) {
+        actionLinkFile.setEnabled(true);
+        toggleButton.setText("Activate");
+        examplesButton.setEnabled(linkedFile==null?true:false);
+        codeEditor.setEnabled(true);
+        updateTitle();
+      }
       logger.info("Test script deactivated");
-      updateTitle();
     }
   }
 
@@ -429,6 +445,7 @@ public class ScriptRunner extends VisPlugin {
 
       String command[] = {
           "java",
+          "-Djava.awt.headless=true",
           "-jar",
           "../dist/cooja.jar",
           "-nogui=" + configFile.getAbsolutePath()
