@@ -92,8 +92,7 @@ public class ScriptRunner extends VisPlugin {
 
   static boolean headless;
   {
-    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    headless = ge.isHeadless();
+    headless = GraphicsEnvironment.isHeadless();
     if (!headless) {
       DefaultSyntaxKit.initKit();
     }
@@ -183,10 +182,14 @@ public class ScriptRunner extends VisPlugin {
     toggleButton = new JButton("Activate");
     toggleButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
-        if (toggleButton.getText().equals("Activate")) {
-          setScriptActive(true);
-        } else {
-          setScriptActive(false);
+        try {
+          if (!isActive()) {
+            setScriptActive(true);
+          } else {
+            setScriptActive(false);
+          }
+        } catch (Exception e) {
+          logger.fatal("Error: " + e.getMessage(), e);
         }
       }
     });
@@ -276,7 +279,8 @@ public class ScriptRunner extends VisPlugin {
     updateTitle();
   }
 
-  public void setScriptActive(boolean active) {
+  public void setScriptActive(boolean active)
+  throws Exception {
     if (active) {
       /* setScriptActive(true) */
 
@@ -612,7 +616,10 @@ public class ScriptRunner extends VisPlugin {
 
   }
   public void closePlugin() {
-    setScriptActive(false);
+    try {
+      setScriptActive(false);
+    } catch (Exception e) {
+    }
   }
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
@@ -628,14 +635,22 @@ public class ScriptRunner extends VisPlugin {
       } else if ("active".equals(name)) {
         boolean active = Boolean.parseBoolean(element.getText());
         if (GUI.isVisualized()) {
-          setScriptActive(active);
+          try {
+            setScriptActive(active);
+          } catch (Exception e) {
+            logger.fatal("Error: " + e.getMessage(), e);
+          }
         }
       }
     }
 
     if (!GUI.isVisualized()) {
       /* Automatically activate script */
-      setScriptActive(true);
+      try {
+        setScriptActive(true);
+      } catch (Exception e) {
+        logger.fatal("Error: " + e.getMessage(), e);
+      }
       simulation.setDelayTime(0);
       simulation.startSimulation();
     }
