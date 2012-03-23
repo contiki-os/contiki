@@ -482,9 +482,12 @@ obs_periodic_handler(resource_t *r)
   PRINTF("TICK %u for /%s\n", obs_counter, r->url);
 
   /* Build notification. */
+  /*TODO: REST.new_response() */
   coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
   coap_init_message(notification, COAP_TYPE_NON, CONTENT_2_05, 0 );
-  coap_set_payload(notification, obs_content, snprintf(obs_content, sizeof(obs_content), "TICK %u", obs_counter));
+
+  REST.set_response_payload(notification, obs_content, snprintf(obs_content, sizeof(obs_content), "TICK %u", obs_counter));
+  REST.set_header_content_type(notification, REST.type.TEXT_PLAIN);
 
   /* Notify the registered observers with the given message type, observe option, and payload. */
   REST.notify_subscribers(r, obs_counter, notification);
