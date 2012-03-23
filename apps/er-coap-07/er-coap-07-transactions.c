@@ -105,6 +105,7 @@ coap_send_transaction(coap_transaction_t *t)
   {
     if (t->retrans_counter<COAP_MAX_RETRANSMIT)
     {
+      /* Not timed out yet. */
       PRINTF("Keeping transaction %u\n", t->mid);
 
       if (t->retrans_counter==0)
@@ -118,7 +119,10 @@ coap_send_transaction(coap_transaction_t *t)
         PRINTF("Doubled (%u) interval %f\n", t->retrans_counter, (float)t->retrans_timer.timer.interval/CLOCK_SECOND);
       }
 
-      /*FIXME hack, maybe there is a better way, but avoid posting everything to the process */
+      /*FIXME
+       * Hack: Setting timer for responsible process.
+       * Maybe there is a better way, but avoid posting everything to the process.
+       */
       struct process *process_actual = PROCESS_CURRENT();
       process_current = transaction_handler_process;
       etimer_restart(&t->retrans_timer); /* interval updated above */
@@ -128,7 +132,7 @@ coap_send_transaction(coap_transaction_t *t)
     }
     else
     {
-      /* timeout */
+      /* Timed out. */
       PRINTF("Timeout\n");
       restful_response_handler callback = t->callback;
       void *callback_data = t->callback_data;

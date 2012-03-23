@@ -225,7 +225,7 @@ separate_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
   PRINTF("(%s %u)\n", coap_req->type==COAP_TYPE_CON?"CON":"NON", coap_req->mid);
 }
 
-int
+void
 separate_periodic_handler(resource_t *resource)
 {
   if (separate_active)
@@ -256,14 +256,10 @@ separate_periodic_handler(resource_t *resource)
       /* The engine will clear the transaction (right after send for NON, after acked for CON). */
 
       separate_active = 0;
-
-      return 1;
     } else {
       PRINTF("ERROR (transaction)\n");
     }
   } /* if (separate_active) */
-
-  return 0;
 }
 #endif
 
@@ -364,7 +360,7 @@ large_update_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
       *offset = -1;
     }
   } else {
-    const uint8_t *incoming = NULL;
+    uint8_t *incoming = NULL;
     size_t len = 0;
 
     unsigned int ct = REST.get_header_content_type(request);
@@ -415,9 +411,8 @@ void
 large_create_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   coap_packet_t *const coap_req = (coap_packet_t *) request;
-  uint8_t method = REST.get_method_type(request);
 
-  const uint8_t *incoming = NULL;
+  uint8_t *incoming = NULL;
   size_t len = 0;
 
   unsigned int ct = REST.get_header_content_type(request);
@@ -461,7 +456,7 @@ large_create_handler(void* request, void* response, uint8_t *buffer, uint16_t pr
  */
 PERIODIC_RESOURCE(obs, METHOD_GET, "obs", "title=\"Observable resource which changes every 5 seconds\";obs;rt=\"observe\"", 5*CLOCK_SECOND);
 
-static uint32_t obs_counter = 0;
+static uint16_t obs_counter = 0;
 static char obs_content[16];
 
 void
@@ -479,18 +474,20 @@ obs_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_s
  * Additionally, a handler function named [resource name]_handler must be implemented for each PERIODIC_RESOURCE.
  * It will be called by the REST manager process with the defined period.
  */
-int
+void
 obs_periodic_handler(resource_t *r)
 {
+  ++obs_counter;
 
-  PRINTF("TICK /%s\n", r->url);
-  obs_counter = obs_counter + 1;
+  PRINTF("TICK %u for /%s\n", obs_counter, r->url);
+
+  /* Build notification. */
+  coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
+  coap_init_message(notification, COAP_TYPE_NON, CONTENT_2_05, 0 );
+  coap_set_payload(notification, obs_content, snprintf(obs_content, sizeof(obs_content), "TICK %u", obs_counter));
 
   /* Notify the registered observers with the given message type, observe option, and payload. */
-  REST.notify_subscribers(r->url, 1, obs_counter, (uint8_t *)obs_content, snprintf(obs_content, sizeof(obs_content), "TICK %lu", obs_counter));
-  /*                              |-> implementation-specific, e.g. CoAP: 0=CON and 1=NON notification */
-
-  return 1;
+  REST.notify_subscribers(r, obs_counter, notification);
 }
 #endif
 
