@@ -465,20 +465,23 @@ pushing_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
  * Additionally, a handler function named [resource name]_handler must be implemented for each PERIODIC_RESOURCE.
  * It will be called by the REST manager process with the defined period.
  */
-int
+void
 pushing_periodic_handler(resource_t *r)
 {
-  static uint32_t periodic_i = 0;
-  static char content[16];
+  static uint16_t obs_counter = 0;
+  static char content[11];
 
-  PRINTF("TICK /%s\n", r->url);
-  periodic_i = periodic_i + 1;
+  ++obs_counter;
+
+  PRINTF("TICK %u for /%s\n", periodic_i, r->url);
+
+  /* Build notification. */
+  coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
+  coap_init_message(notification, COAP_TYPE_NON, CONTENT_2_05, 0 );
+  coap_set_payload(notification, content, snprintf(content, sizeof(content), "TICK %u", obs_counter));
 
   /* Notify the registered observers with the given message type, observe option, and payload. */
-  REST.notify_subscribers(r->url, 1, periodic_i, (uint8_t *)content, snprintf(content, sizeof(content), "TICK %lu", periodic_i));
-  /*                              |-> implementation-specific, e.g. CoAP: 0=CON and 1=NON notification */
-
-  return 1;
+  REST.notify_subscribers(r, obs_counter, notification);
 }
 #endif
 
@@ -503,21 +506,23 @@ event_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
 
 /* Additionally, a handler function named [resource name]_event_handler must be implemented for each PERIODIC_RESOURCE defined.
  * It will be called by the REST manager process with the defined period. */
-int
+void
 event_event_handler(resource_t *r)
 {
-  static uint32_t event_i = 0;
-  static char content[10];
+  static uint16_t event_counter = 0;
+  static char content[12];
 
-  PRINTF("EVENT /%s\n", r->url);
-  ++event_i;
+  ++event_counter;
 
-  /* Notify registered observers with the given message type, observe option, and payload.
-   * The token will be set automatically. */
+  PRINTF("TICK %u for /%s\n", event_counter, r->url);
 
-  // FIXME provide a rest_notify_subscribers call; how to manage specific options such as COAP_TYPE?
-  REST.notify_subscribers(r->url, 0, event_i, content, snprintf(content, sizeof(content), "EVENT %lu", event_i));
-  return 1;
+  /* Build notification. */
+  coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
+  coap_init_message(notification, COAP_TYPE_CON, CONTENT_2_05, 0 );
+  coap_set_payload(notification, content, snprintf(content, sizeof(content), "EVENT %u", event_counter));
+
+  /* Notify the registered observers with the given message type, observe option, and payload. */
+  REST.notify_subscribers(r, event_counter, notification);
 }
 #endif /* PLATFORM_HAS_BUTTON */
 
