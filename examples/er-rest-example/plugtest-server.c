@@ -207,10 +207,8 @@ separate_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
   PRINTF("/separate       ");
   if (separate_active)
   {
-    PRINTF("BUSY ");
-    REST.set_response_status(response, REST.status.SERVICE_UNAVAILABLE);
-    const char *msg = "AlreadyInUse";
-    REST.set_response_payload(response, msg, strlen(msg));
+    PRINTF("REJECTED ");
+    coap_separate_reject();
   }
   else
   {
@@ -218,7 +216,7 @@ separate_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
     separate_active = 1;
 
     /* Take over and skip response by engine. */
-    coap_separate_yield(request, &separate_store->request_metadata);
+    coap_separate_accept(request, &separate_store->request_metadata);
     /* Be aware to respect the Block2 option, which is also stored in the coap_separate_t. */
 
     snprintf(separate_store->buffer, MAX_PLUGFEST_PAYLOAD, "Type: %u\nCode: %u\nMID: %u", coap_req->type, coap_req->code, coap_req->mid);
@@ -537,7 +535,6 @@ PROCESS_THREAD(plugtest_server, ev, data)
   rest_activate_resource(&resource_query);
 #endif
 #if REST_RES_SEPARATE
-  rest_set_pre_handler(&resource_separate, coap_separate_handler);
   rest_activate_periodic_resource(&periodic_resource_separate);
 #endif
 #if REST_RES_LARGE
