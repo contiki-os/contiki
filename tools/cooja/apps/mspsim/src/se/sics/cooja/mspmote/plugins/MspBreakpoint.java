@@ -43,7 +43,8 @@ import org.jdom.Element;
 import se.sics.cooja.Watchpoint;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.util.StringUtils;
-import se.sics.mspsim.core.CPUMonitor;
+import se.sics.mspsim.core.Memory;
+import se.sics.mspsim.core.MemoryMonitor;
 
 /**
  * Mspsim watchpoint.
@@ -59,7 +60,7 @@ public class MspBreakpoint implements Watchpoint {
   private File codeFile = null; /* Source code, may be null*/
   private int lineNr = -1; /* Source code line number, may be null */
 
-  private CPUMonitor cpuMonitor = null;
+  private MemoryMonitor memoryMonitor = null;
 
   private boolean stopsSimulation = true;
 
@@ -130,16 +131,17 @@ public class MspBreakpoint implements Watchpoint {
   }
 
   private void createMonitor() {
-    cpuMonitor = new CPUMonitor() {
-      public void cpuAction(int type, int adr, int data) {
-        if (type != CPUMonitor.EXECUTE) {
+    memoryMonitor = new MemoryMonitor.Adapter() {
+      @Override
+      public void notifyReadBefore(int addr, int mode, Memory.AccessType type) {
+        if (type != Memory.AccessType.EXECUTE) {
           return;
         }
 
         mspMote.signalBreakpointTrigger(MspBreakpoint.this);
       }
     };
-    mspMote.getCPU().addWatchPoint(address, cpuMonitor);
+    mspMote.getCPU().addWatchPoint(address, memoryMonitor);
 
 
     /* Remember Contiki code, to verify it when reloaded */
@@ -156,7 +158,7 @@ public class MspBreakpoint implements Watchpoint {
   }
 
   public void unregisterBreakpoint() {
-    mspMote.getCPU().removeWatchPoint(address, cpuMonitor);
+    mspMote.getCPU().removeWatchPoint(address, memoryMonitor);
   }
 
   public Collection<Element> getConfigXML() {
