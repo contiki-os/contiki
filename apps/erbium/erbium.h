@@ -259,7 +259,7 @@ resource_t resource_##name = {NULL, flags, url, attributes, name##_handler, NULL
  * Macro to define a sub-resource
  * Make sure to define its parent resource beforehand and set 'parent' to that name.
  */
-#define SUB_RESOURCE(name, flags, url, attributes, parent)		\
+#define SUB_RESOURCE(name, flags, url, attributes, parent) \
 resource_t resource_##name = {NULL, flags, url, attributes, parent##_handler, NULL, NULL, NULL}
 
 /*
