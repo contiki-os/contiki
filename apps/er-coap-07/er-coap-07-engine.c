@@ -311,8 +311,19 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
     size_t tmplen = 0;
     resource_t* resource = NULL;
 
+    /* For filtering. */
+    const char *filter = NULL;
+    int len = coap_get_query_variable(request, "rt", &filter);
+    char *rt = NULL;
+
     for (resource = (resource_t*)list_head(rest_get_resources()); resource; resource = resource->next)
     {
+      /* Filtering */
+      if (len && ((rt=strstr(resource->attributes, "rt=\""))==NULL || memcmp(rt+4, filter, len-1)!=0 || (filter[len-1]!='*' && (filter[len-1]!=rt[3+len] || rt[4+len]!='"'))))
+      {
+        continue;
+      }
+
       PRINTF("res: /%s (%p)\npos: s%d, o%d, b%d\n", resource->url, resource, strpos, *offset, bufpos);
 
       if (strpos >= *offset && bufpos < preferred_size)
@@ -390,7 +401,7 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
       coap_set_payload(response, buffer, bufpos );
       coap_set_header_content_type(response, APPLICATION_LINK_FORMAT);
     }
-    else
+    else if (strpos>0)
     {
       PRINTF("well_known_core_handler(): bufpos<=0\n");
 
