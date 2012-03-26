@@ -1624,7 +1624,7 @@ input(void)
      * reassembly is off
      * start it if we received a fragment
      */
-    if(frag_size > 0) {
+    if((frag_size > 0) && (frag_size <= UIP_BUFSIZE)) {
       sicslowpan_len = frag_size;
       reass_tag = frag_tag;
       timer_set(&reass_timer, SICSLOWPAN_REASS_MAXAGE*CLOCK_SECOND);
