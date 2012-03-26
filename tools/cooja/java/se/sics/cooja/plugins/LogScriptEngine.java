@@ -64,9 +64,9 @@ public class LogScriptEngine {
   private static Logger logger = Logger.getLogger(LogScriptEngine.class);
   private static final long DEFAULT_TIMEOUT = 20*60*1000*Simulation.MILLISECOND; /* 1200s = 20 minutes */
 
-  private ScriptEngine engine = 
+  private ScriptEngine engine =
     new ScriptEngineManager().getEngineByName("JavaScript");
-  
+
   /* Log output listener */
   private LogOutputListener logOutputListener = new LogOutputListener() {
     public void moteWasAdded(Mote mote) {
@@ -97,11 +97,20 @@ public class LogScriptEngine {
 
   private boolean scriptActive = false;
 
+  private long timeout;
+  private long startTime;
+  private long startRealTime;
+  private long nextProgress;
+
   private interface ScriptLog {
     public void log(String log);
     public void testOK();
     public void testFailed();
     public void generateMessage(long delay, String msg);
+  }
+
+  public LogScriptEngine(Simulation simulation) {
+    this.simulation = simulation;
   }
 
   /* Only called from the simulation loop */
@@ -128,10 +137,6 @@ public class LogScriptEngine {
       quitRunnable.run();
       quitCooja = false;
     }
-  }
-
-  public LogScriptEngine(Simulation simulation) {
-    this.simulation = simulation;
   }
 
   /* Only called from the simulation loop */
@@ -195,37 +200,31 @@ public class LogScriptEngine {
     }
     scriptActive = false;
 
-    if (semaphoreScript == null) {
-      /*logger.warn("semaphoreScript is not initialized");*/
-    }
-    if (semaphoreSim == null) {
-      /*logger.warn("semaphoreSim is not initialized");*/
-    }
-    if (scriptThread == null) {
-      /*logger.warn("scriptThread is not initialized");*/
-    }
-
     timeoutEvent.remove();
     timeoutProgressEvent.remove();
-    
+
     simulation.getEventCentral().removeLogOutputListener(logOutputListener);
 
     engine.put("SHUTDOWN", true);
 
     try {
-      semaphoreScript.release(100);
+      if (semaphoreScript != null) {
+        semaphoreScript.release(100);
+      }
     } catch (Exception e) {
     } finally {
       semaphoreScript = null;
     }
     try {
-      semaphoreSim.release(100);
+      if (semaphoreSim != null) {
+        semaphoreSim.release(100);
+      }
     } catch (Exception e) {
     } finally {
       semaphoreSim = null;
     }
 
-    if (scriptThread != null && 
+    if (scriptThread != null &&
         scriptThread != Thread.currentThread() /* XXX May deadlock */ ) {
       try {
         scriptThread.join();
@@ -235,7 +234,6 @@ public class LogScriptEngine {
       }
     }
     scriptThread = null;
-
   }
 
   public void activateScript(String scriptCode) throws ScriptException {
@@ -245,42 +243,28 @@ public class LogScriptEngine {
     scriptActive = true;
 
     if (semaphoreScript != null) {
-      logger.warn("semaphoreScript is already initialized");
+      logger.warn("Semaphores were not reset correctly");
+      semaphoreScript.release(100);
+      semaphoreScript = null;
     }
     if (semaphoreSim != null) {
-      logger.warn("semaphoreSim is already initialized");
+      logger.warn("Semaphores were not reset correctly");
+      semaphoreSim.release(100);
+      semaphoreSim = null;
     }
-    if (scriptThread != null) {
-      logger.warn("scriptThread is already initialized");
-    }
+    scriptThread = null;
 
     /* Parse current script */
     ScriptParser parser = new ScriptParser(scriptCode);
     String jsCode = parser.getJSCode();
 
-    long timeoutTime = parser.getTimeoutTime();
-    if (timeoutTime < 0) {
-      logger.info("No timeout defined, using default (us): " + DEFAULT_TIMEOUT);
-      timeoutTime = DEFAULT_TIMEOUT;
+    timeout = parser.getTimeoutTime();
+    if (timeout < 0) {
+      timeout = DEFAULT_TIMEOUT;
+      logger.info("Default script timeout in " + (timeout/Simulation.MILLISECOND) + " ms");
+    } else {
+      logger.info("Script timeout in " + (timeout/Simulation.MILLISECOND) + " ms");
     }
-
-    final long duration = timeoutTime;
-    simulation.invokeSimulationThread(new Runnable() {
-      public void run() {
-      	final long startTime = simulation.getSimulationTime();
-      	final long interval = (long) (0.01*5*duration);
-      	
-      	simulation.scheduleEvent(timeoutProgressEvent = new TimeEvent(0) {
-      		public void execute(long t) {
-      			int percent = (int) (5*(t-startTime)/interval);
-      			logger.info("Test script at " + percent + "%");
-      			simulation.scheduleEvent(this, t+interval);
-      		}
-      	}, startTime+interval);
-        
-        simulation.scheduleEvent(timeoutEvent, startTime + duration);
-      }
-    });
 
     engine.eval(jsCode);
 
@@ -352,95 +336,7 @@ public class LogScriptEngine {
     simulation.getEventCentral().addLogOutputListener(logOutputListener);
 
     /* Create script output logger */
-    engine.put("log", new ScriptLog() {
-      public void log(String msg) {
-        if (scriptLogObserver != null) {
-          scriptLogObserver.update(null, msg);
-        }
-      }
-      public void append(String filename, String msg) {
-        try{
-          FileWriter fstream = new FileWriter(filename, true);
-          BufferedWriter out = new BufferedWriter(fstream);
-          out.write(msg);
-          out.close();
-        } catch (Exception e) {
-          logger.warn("Test append failed: " + filename + ": " + e.getMessage());
-        }
-      }
-      public void testOK() {
-        log("TEST OK\n");
-
-        if (GUI.isVisualized()) {
-          log("[if test was run without visualization, COOJA would now have been terminated]\n");
-          stopSimulation = true;
-          simulation.invokeSimulationThread(stopSimulationRunnable);
-        } else {
-          quitCooja = true;
-          simulation.invokeSimulationThread(quitRunnable);
-        }
-
-        timeoutEvent.remove();
-        timeoutProgressEvent.remove();
-
-        semaphoreSim.release(100);
-        throw new RuntimeException("test script killed");
-      }
-      public void writeFile(String filename, String msg) {
-        try{
-          FileWriter fstream = new FileWriter(filename, false);
-          BufferedWriter out = new BufferedWriter(fstream);
-          out.write(msg);
-          out.close();
-        } catch (Exception e) {
-          logger.warn("Write file failed: " + filename + ": " + e.getMessage());
-        }
-      }
-      public void testFailed() {
-        log("TEST FAILED\n");
-
-        if (GUI.isVisualized()) {
-          log("[if test was run without visualization, COOJA would now have been terminated]\n");
-          stopSimulation = true;
-          simulation.invokeSimulationThread(stopSimulationRunnable);
-        } else {
-          quitCooja = true;
-          simulation.invokeSimulationThread(quitRunnable);
-        }
-
-        semaphoreSim.release(100);
-        throw new RuntimeException("test script killed");
-      }
-
-      public void generateMessage(final long delay, final String msg) {
-        final Mote currentMote = (Mote) engine.get("mote");
-        final TimeEvent generateEvent = new TimeEvent(0) {
-          public void execute(long t) {
-            if (scriptThread == null ||
-                !scriptThread.isAlive()) {
-              logger.info("script thread not alive. try deactivating script.");
-              /*scriptThread.isInterrupted()*/
-              return;
-            }
-
-            /* Update script variables */
-            engine.put("mote", currentMote);
-            engine.put("id", currentMote.getID());
-            engine.put("time", currentMote.getSimulation().getSimulationTime());
-            engine.put("msg", msg);
-
-            stepScript();
-          }
-        };
-        simulation.invokeSimulationThread(new Runnable() {
-          public void run() {
-            simulation.scheduleEvent(
-                generateEvent,
-                simulation.getSimulationTime() + delay*Simulation.MILLISECOND);
-          }
-        });
-      }
-    });
+    engine.put("log", scriptLog);
 
     Hashtable<Object, Object> hash = new Hashtable<Object, Object>();
     engine.put("global", hash);
@@ -449,27 +345,53 @@ public class LogScriptEngine {
 
     scriptMote = new ScriptMote();
     engine.put("node", scriptMote);
+
+    Runnable activate = new Runnable() {
+      public void run() {
+        startRealTime = System.currentTimeMillis();
+        startTime = simulation.getSimulationTime();
+        long endTime = startTime + timeout;
+        nextProgress = startTime + (endTime - startTime)/20;
+
+        timeoutProgressEvent.remove();
+        simulation.scheduleEvent(timeoutProgressEvent, nextProgress);
+        timeoutEvent.remove();
+        simulation.scheduleEvent(timeoutEvent, endTime);
+      }
+    };
+    if (simulation.isRunning()) {
+      simulation.invokeSimulationThread(activate);
+    } else {
+      activate.run();
+    }
   }
 
   private TimeEvent timeoutEvent = new TimeEvent(0) {
     public void execute(long t) {
-    	if (!scriptActive) {
-    		return;
-    	}
+      if (!scriptActive) {
+        return;
+      }
       logger.info("Timeout event @ " + t);
       engine.put("TIMEOUT", true);
       stepScript();
     }
   };
   private TimeEvent timeoutProgressEvent = new TimeEvent(0) {
-		public void execute(long t) { }
-	};
-  
+    public void execute(long t) {
+      nextProgress = t + timeout/20;
+      simulation.scheduleEvent(this, nextProgress);
+
+      double progress = 1.0*(t - startTime)/timeout;
+      long realDuration = System.currentTimeMillis()-startRealTime;
+      double estimatedLeft = 1.0*realDuration/progress - realDuration;
+      if (estimatedLeft == 0) estimatedLeft = 1;
+      logger.info(String.format("Test script at %2.2f%%, done in %2.1f sec", 100*progress, estimatedLeft/1000));
+    }
+  };
+
   private Runnable stopSimulationRunnable = new Runnable() {
     public void run() {
       simulation.stopSimulation();
-      timeoutEvent.remove();
-      timeoutProgressEvent.remove();
     }
   };
   private Runnable quitRunnable = new Runnable() {
@@ -491,4 +413,83 @@ public class LogScriptEngine {
     }
   };
 
+  private ScriptLog scriptLog = new ScriptLog() {
+    public void log(String msg) {
+      if (scriptLogObserver != null) {
+        scriptLogObserver.update(null, msg);
+      }
+    }
+    public void append(String filename, String msg) {
+      try{
+        FileWriter fstream = new FileWriter(filename, true);
+        BufferedWriter out = new BufferedWriter(fstream);
+        out.write(msg);
+        out.close();
+      } catch (Exception e) {
+        logger.warn("Test append failed: " + filename + ": " + e.getMessage());
+      }
+    }
+    public void writeFile(String filename, String msg) {
+      try{
+        FileWriter fstream = new FileWriter(filename, false);
+        BufferedWriter out = new BufferedWriter(fstream);
+        out.write(msg);
+        out.close();
+      } catch (Exception e) {
+        logger.warn("Write file failed: " + filename + ": " + e.getMessage());
+      }
+    }
+
+    public void testOK() {
+      log("TEST OK\n");
+      deactive();
+    }
+    public void testFailed() {
+      log("TEST FAILED\n");
+      deactive();
+    }
+    private void deactive() {
+      deactivateScript();
+
+      if (GUI.isVisualized()) {
+        log("[if test was run without visualization, COOJA would now have been terminated]\n");
+        stopSimulation = true;
+        simulation.invokeSimulationThread(stopSimulationRunnable);
+      } else {
+        quitCooja = true;
+        simulation.invokeSimulationThread(quitRunnable);
+      }
+
+      throw new RuntimeException("test script killed");
+    }
+
+    public void generateMessage(final long delay, final String msg) {
+      final Mote currentMote = (Mote) engine.get("mote");
+      final TimeEvent generateEvent = new TimeEvent(0) {
+        public void execute(long t) {
+          if (scriptThread == null ||
+              !scriptThread.isAlive()) {
+            logger.info("script thread not alive. try deactivating script.");
+            /*scriptThread.isInterrupted()*/
+            return;
+          }
+
+          /* Update script variables */
+          engine.put("mote", currentMote);
+          engine.put("id", currentMote.getID());
+          engine.put("time", currentMote.getSimulation().getSimulationTime());
+          engine.put("msg", msg);
+
+          stepScript();
+        }
+      };
+      simulation.invokeSimulationThread(new Runnable() {
+        public void run() {
+          simulation.scheduleEvent(
+              generateEvent,
+              simulation.getSimulationTime() + delay*Simulation.MILLISECOND);
+        }
+      });
+    }
+  };
 }

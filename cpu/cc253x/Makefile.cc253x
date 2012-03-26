@@ -1,0 +1,198 @@
+### Compiler definitions
+CC       = sdcc
+LD       = sdcc
+AS       = sdcc
+AR       = sdcclib
+OBJCOPY  = objcopy
+STRIP    = strip
+
+### Hex file conversions
+PACKIHX    = packihx
+SREC_CAT   = srec_cat
+SREC_FLAGS = -disable_sequence_warnings
+
+BANK_ALLOC = $(CONTIKI_CPU)/bank-alloc.py
+SEGMENT_RULES = $(OBJECTDIR)/segment.rules
+
+CFLAGS  += --model-$(MEMORY_MODEL) --stack-auto --std-c99
+
+LDFLAGS += --model-$(MEMORY_MODEL) --stack-auto --out-fmt-ihx
+LDFLAGS += --xram-loc 0x0000 --xram-size 0x1F00
+LDFLAGS += --code-loc $(START_ADDR) --code-size $(CODE_SIZE)
+
+ASFLAGS += -plosgff
+
+AROPTS   = -a
+
+### Our object files are .rel, so we can't use the default finalize dependency
+### generation. Override here.
+define FINALIZE_SDCC_DEPENDENCY
+cp $(@:.rel=.d) $(@:.rel=.$$$$); \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+    -e '/^$$/ d' -e 's/$$/ :/' < $(@:.rel=.$$$$) >> $(@:.rel=.d); \
+rm -f $(@:.rel=.$$$$)
+endef
+
+### Banking Guesswork:
+### Generic examples do not specify banking.
+### We automatically turn it on if its unspecified and if we are building with
+### UIP_CONF_IPV6
+ifndef HAVE_BANKING
+  ifeq ($(UIP_CONF_IPV6),1)
+    HAVE_BANKING=1
+  else
+    HAVE_BANKING=0
+  endif
+endif
+
+### Does the project want us to offset the firmware?
+### define start address and max code size accordingly
+ifeq ($(OFFSET_FIRMWARE),1)
+  START_ADDR = 0x01000
+  HOME_START = 00001000
+  ifeq ($(HAVE_BANKING),1)
+    CODE_SIZE = 0x3F000
+  else
+    CODE_SIZE = 0x0F000
+  endif
+else
+  START_ADDR = 0x00000
+  HOME_START = 00000000
+  ifeq ($(HAVE_BANKING),1)
+    CODE_SIZE = 0x40000
+  else
+    CODE_SIZE = 0x10000
+  endif
+endif
+
+### Are we building with BANKing supoprt?
+ifeq ($(HAVE_BANKING),1)
+  ## Yes
+  MEMORY_MODEL=huge
+  LDFLAGS += -Wl-r
+  LD_PRE_FLAGS += -Wl-bBANK1=0x018000
+  CFLAGS += -DHAVE_SDCC_BANKING
+  #use this in $(call c_seg,$<) to get segment for a source file.
+  c_seg = --codeseg $(shell python $(BANK_ALLOC) $1 $(SEGMENT_RULES) $2)
+else
+  ## No banking
+  MEMORY_MODEL=large
+  c_seg =
+endif 
+
+### CPU-dependent cleanup files
+CLEAN += *.lnk *.lk *.sym *.lib *.ihx *.rel *.mem *.rst *.asm *.hex
+CLEAN += *.omf *.cdb *.banks *.flags *.banked-hex
+CLEAN += symbols.c symbols.h
+
+### CPU-dependent directories
+CONTIKI_CPU_DIRS = . dev
+
+### CPU-dependent source files
+CONTIKI_SOURCEFILES += soc.c clock.c
+CONTIKI_SOURCEFILES += uart0.c uart1.c uart-intr.c
+CONTIKI_SOURCEFILES += dma.c dma_intr.c
+CONTIKI_SOURCEFILES += cc2530-rf.c
+CONTIKI_SOURCEFILES += watchdog.c rtimer-arch.c
+CONTIKI_ASMFILES +=
+
+CONTIKI_ASMOBJECTFILES = $(addprefix $(OBJECTDIR)/,$(CONTIKI_ASMFILES:.S=.rel))
+
+CONTIKI_CASMOBJECTFILES = $(addprefix $(OBJECTDIR)/, \
+	$(CONTIKI_CASMFILES:.cS=.rel))
+
+CONTIKI_PLATFORM_DIRS = $(PLATFORM_APPDIRS) \
+	 $(addprefix $(CONTIKI)/platform/$(TARGET)/, $(CONTIKI_TARGET_DIRS))
+
+CONTIKI_CPU_DIRS_LIST    = $(addprefix $(CONTIKI_CPU)/, \
+                               $(CONTIKI_CPU_DIRS))
+
+oname = $(patsubst %.c,%.rel,$(patsubst %.S,%.rel,$(1)))
+
+CONTIKI_OBJECTFILES = $(addprefix $(OBJECTDIR)/, \
+	$(call oname, $(CONTIKI_SOURCEFILES)))
+
+PROJECT_OBJECTFILES = $(addprefix $(OBJECTDIR)/, \
+	$(call oname, $(PROJECT_SOURCEFILES)))
+
+### Compilation rules
+
+SEGMENT_RULE_FILES = $(foreach dir, . $(CONTIKI_PLATFORM_DIRS) \
+	$(CONTIKI_CPU_DIRS_LIST), $(wildcard $(dir)/segment.rules) )
+
+$(SEGMENT_RULES): $(SEGMENT_RULE_FILES)
+	cat $(SEGMENT_RULE_FILES) | \
+	   sed -e 's/#.*$$//' -e 's/^\s*//' -e '/^$$/d' > $@
+
+CUSTOM_RULE_LINK=1
+CUSTOM_RULE_C_TO_OBJECTDIR_O=1
+CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
+
+$(OBJECTDIR)/%.rel: %.c $(SEGMENT_RULES)
+	$(CC) $(call c_seg,$<,$@) $(CFLAGS) -c $< -o $@ -Wp,-MMD,$(@:.rel=.d),-MQ,$@
+	@$(FINALIZE_SDCC_DEPENDENCY)
+
+$(OBJECTDIR)/%.rel: %.cS
+	cp $< $(OBJECTDIR)/$*.c
+	$(CC) $(CFLAGS) -E $(OBJECTDIR)/$*.c > $(OBJECTDIR)/tmp
+	perl -pe "s/^#(.*)/;$$1/" $(OBJECTDIR)/tmp > $(OBJECTDIR)/$*.S
+	$(AS) $(ASFLAGS) -o $@ $(OBJECTDIR)/$*.S
+	rm -f $(OBJECTDIR)/tmp
+
+contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) \
+	$(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
+	rm -f $@
+	for target in $^; do echo $$target >> $@; done
+
+.PRECIOUS: %.$(TARGET) %.hex
+
+# build app/example local object files. We need a separate rule so that we can
+# pass -DAUTOSTART_ENABLE for those files only
+$(OBJECTDIR)/%.app.rel: %.c $(SEGMENT_RULES)
+	$(CC) $(call c_seg,$<,$@) -DAUTOSTART_ENABLE $(CFLAGS) -c $< -o $@
+
+# .ihx is the sdcc binary output file
+ifeq ($(HAVE_BANKING),1)
+### Build bankable firmware
+%.ihx: $(OBJECTDIR)/%.app.rel $(CONTIKI_TARGET_MAIN) contiki-$(TARGET).lib
+	@echo "\nFirst Link"
+	@echo "==============="
+	$(CC) $(LDFLAGS) $(LD_PRE_FLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib > /dev/null
+
+%.flags: %.ihx
+### Allocate modules to banks and relocate object files
+	@echo "\nBank Allocation"
+	@echo "==============="
+	python $(BANK_ALLOC) $(basename $(@F)) $(SEGMENT_RULES) $(OFFSET_FIRMWARE)
+
+%.banked-hex: %.flags
+### Link again with new bank allocations
+	@echo "\nFinal Link"
+	@echo "==============="
+	$(CC) $(LDFLAGS) $(shell cat $<) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib > /dev/null
+
+%.hex: %.banked-hex
+### Post-process the hex file for programmers which dislike SDCC output hex format
+	$(eval BANKS := $(shell egrep '(^BANK[0-9])=' $(@:.hex=.map) | sed -e 's/BANK\([0-9]\).*/\1/' | uniq))
+	$(eval FILES := $(addsuffix .hex,$(addprefix bank,$(BANKS))))
+	@echo "\nPack hex file"
+	@echo "==============="
+	@for bank in $(BANKS); do \
+		echo $(SREC_CAT) $(SREC_FLAGS) $(@:.hex=.banked-hex) -intel \
+		-crop 0x"$$bank"8000 "0x"$$bank"FFFF" \
+		-offset -$$((0x8000 * $$bank + 0x08000)) -o bank"$$bank".hex -intel; \
+		$(SREC_CAT) $(SREC_FLAGS) $(@:.hex=.banked-hex) -intel \
+		-crop 0x"$$bank"8000 "0x"$$bank"FFFF" \
+		-offset -$$((0x8000 * $$bank + 0x08000)) -o bank"$$bank".hex -intel; \
+	done 
+	$(SREC_CAT) $(SREC_FLAGS) $(@:.hex=.banked-hex) -intel -crop 0x00000 0x07FFF -o home.ihx -intel
+	srec_cat home.ihx -intel $(foreach file,$(FILES),$(file) -intel) -o $@ -intel
+	rm -f home.ihx $(FILES)
+else
+### Build non-banked firmware
+%.ihx: $(OBJECTDIR)/%.app.rel $(CONTIKI_TARGET_MAIN) contiki-$(TARGET).lib
+	$(CC) $(LDFLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib > /dev/null
+
+%.hex: %.ihx
+	$(PACKIHX) $< > $@
+endif

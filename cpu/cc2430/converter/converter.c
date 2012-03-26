@@ -13,7 +13,7 @@ void usage(char *prg_name)
 {
 	printf("\nUsage: %s -f ihex file\n", prg_name);
 	printf("General options:\n");
-	printf("	-V/--version	Get converter version\n");
+	printf("	-v/--version	Get converter version\n");
 }
 
 conf_opts_t conf_opts;
@@ -22,11 +22,11 @@ static int option_index = 0;
 
 int do_exit = 0;
 
-#define OPTIONS_STRING "Vhf:"
+#define OPTIONS_STRING "vhf:"
 /* long option list */
 static struct option long_options[] =
 {
-  {"version", 0, NULL, 'V'},
+  {"version", 0, NULL, 'v'},
   {"file", 1, NULL, 'f'},
   {"help", 0, NULL, 'h'},
   {0, 0, 0, 0}
@@ -43,7 +43,7 @@ int parse_opts(int count, char* param[])
   {
     switch(opt)
 		{
-			case 'V':
+			case 'v':
 				conf_opts.target_type = VERSION;
 				break;
 
@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
 	conf_opts.target_type = 0;
 		
 
+  printf("Sensinode hex file converter "CONVERTER_VERSION "\n");
 	if ( (argc < 1) || (error = parse_opts(argc, argv)) )
 	{
 		usage(argv[0]);
@@ -133,14 +134,14 @@ int main(int argc, char *argv[])
 			}
 			else if (memcmp(&buffer[7], "01", 2) == 0)
 			{	/*end file*/
-				printf("\nFile read complete.\n");
+				printf("File read complete.\n");
 				break;
 			}
 			else if (memcmp(&buffer[7], "04", 2) == 0)
 			{
 				sscanf((char *)&(buffer[3]),"%4hx", &addr);
 				sscanf((char *)&(buffer[9]),"%4lx", &ext_addr);
-				printf("\rExtended page address: 0x%8.8lX\r", ext_addr*0x8000 );
+				/*printf("Extended page address: 0x%8.8lX\n", ext_addr*0x8000 );*/
 				
 				if (ext_addr >= 0x0002) sdcc_file = 1;
 				
@@ -166,7 +167,7 @@ int main(int argc, char *argv[])
 				*ptr = 0;
 			}
 		}
-		strcat(conf_opts.ihex_file, "_linear.hex");
+		strcat(conf_opts.ihex_file, ".hex");
  		printf("Output file: %s.\n", conf_opts.ihex_file);
 		ihex = fopen(conf_opts.ihex_file, "wb");
 		ext_addr=0;
@@ -180,7 +181,7 @@ int main(int argc, char *argv[])
 				addr = (i & 0x1F) * 2048;
 				if ( ((i / 32) * 0x10000) != ext_addr)
 				{	/*write out ext addr*/
-					printf("Ext: %4.4X\n", ((i / 32) * 0x10000));
+					/*printf("Ext: %4.4X\n", ((i / 32) * 0x10000));*/
 					ext_addr = (i / 32) * 0x10000;
 					fprintf(ihex, ":02000004%4.4X%2.2X\r\n", 
 									         (int)(ext_addr>>16), (int)(0xFA-(ext_addr>>16)));
@@ -188,7 +189,7 @@ int main(int argc, char *argv[])
 								
 				if (page_table[i] != 0)
 				{
-					printf("%4.4X", addr & 0xF800);
+					/*printf("%4.4X", addr & 0xF800);*/
 					for (j=0; j<2048; j++)
 					{
 						addr =(i & 0x1F) * 2048 + j;
@@ -208,8 +209,10 @@ int main(int argc, char *argv[])
 						}
 					}
 				}
+				/*
 				if ((i & 0x07) == 0x07) printf("\n");
 				else printf(" ");
+				*/
 			}
 			fprintf(ihex, ":00000001FF\r\n");
 			printf("Write complete.\n");
@@ -219,10 +222,6 @@ int main(int argc, char *argv[])
 	else if(conf_opts.target_type == UNDEFINED)
 	{
 		usage(argv[0]);
-	}
-	else
-	{
-		printf("\nSensinode hex file converter "CONVERTER_VERSION "\n");
 	}
 	return error;
 }

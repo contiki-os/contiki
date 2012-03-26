@@ -140,6 +140,7 @@ sprint_ip6(uip_ip6addr_t addr)
   unsigned char i = 0;
   unsigned char zerocnt = 0;
   unsigned char numprinted = 0;
+  unsigned char notskipped = 0;
   char thestring[40];
   char *result = thestring;
 
@@ -149,10 +150,11 @@ sprint_ip6(uip_ip6addr_t addr)
       while(addr.u16[zerocnt + i] == 0) {
 	zerocnt++;
       }
-      if(zerocnt == 1) {
+      if(zerocnt == 1 && notskipped) {
         *result++ = '0';
          numprinted++;
-         break;
+         notskipped = 1;
+         continue;
       }
       i += zerocnt;
       numprinted += zerocnt;
@@ -290,7 +292,7 @@ main(void)
   {
     uint8_t i;
     for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
-      if(uip_ds6_if.addr_list[i].isused) {	  
+      if(uip_ds6_if.addr_list[i].isused) {
 	printf("IPV6 Addresss: ");
 	sprint_ip6(uip_ds6_if.addr_list[i].ipaddr);
 	printf("\n");

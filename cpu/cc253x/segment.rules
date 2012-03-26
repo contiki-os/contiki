@@ -1,0 +1,22 @@
+# segment.rules files assign source code modules to specific banks
+# These files are only used when we build code with banking (HAVE_BANKING=1)
+# The final segment.rules file is constructed from any segment.rules found in
+# the search path, defined in the CPU Makefile
+# When building bankable code, the bank-alloc.py script automatically allocates
+# modules to banks. segment.rules files provide hints, instructing the script
+# as to which files are safe to move around and which files to leave alone
+# In other words, only specify a rule for a file if you need to
+# comments starting with "#" are supported
+# The file spec in rules is actually interpreted as a python regex so you can
+# write a rule that will match multiple files
+#
+# general rules --
+#  This file is only used when the Makefile defines HAVE_BANKING=1
+#  SDCC's standard libraries will always go in CSEG - We don't touch them
+#  Interrupt code must be in HOME. Specify all files with an ISR here
+#  All files without an associated rule get allocated to a bank automatically
+
+# Files with ISRs must be in HOME
+HOME intr.c   # Match all files ending in intr.c (e.g. uart-intr.c)
+HOME rtimer-arch.c
+HOME clock.c

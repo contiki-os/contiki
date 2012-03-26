@@ -44,11 +44,14 @@
 
 #include "cc2430_sfr.h"
 #include "8051def.h"
+#include "contiki-conf.h"
 
 #define inline
 
-void bus_init(void) __banked;
-void flash_read(uint8_t *buf, uint32_t address, uint8_t size) __banked;
-void cc2430_clock_ISR( void ) __interrupt (ST_VECTOR);
+void bus_init(void);
+#if !SHORTCUTS_CONF_FLASH_READ
+void flash_read(uint8_t *buf, uint32_t address, uint8_t size);
+#endif
+void clock_ISR( void ) __interrupt (ST_VECTOR);
 
 #endif /* __BUS_H__ */

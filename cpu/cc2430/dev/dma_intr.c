@@ -14,9 +14,10 @@
 
 #include "dev/dma.h"
 #include "cc2430_sfr.h"
-#include "banked.h"
 
-extern struct process * dma_callback[4];
+#if DMA_ON
+extern struct process * dma_callback[DMA_CHANNEL_COUNT];
+#endif
 
 /*---------------------------------------------------------------------------*/
 #ifdef HAVE_RF_DMA
@@ -34,10 +35,11 @@ extern void spi_rx_dma_callback(void);
 void
 dma_ISR(void) __interrupt (DMA_VECTOR)
 {
-#ifdef HAVE_DMA
+#if DMA_ON
   uint8_t i;
 #endif
   EA=0;
+  IRCON_DMAIF = 0;
 #ifdef HAVE_RF_DMA
   if((DMAIRQ & 1) != 0) {
     DMAIRQ &= ~1;
@@ -51,17 +53,16 @@ dma_ISR(void) __interrupt (DMA_VECTOR)
     spi_rx_dma_callback();
   }
 #endif
-#ifdef HAVE_DMA
-  for(i = 0; i < 4; i++) {
-    if((DMAIRQ & (1 << i + 1)) != 0) {
-      DMAIRQ &= ~(1 << i+1);
+#if DMA_ON
+  for(i = 0; i < DMA_CHANNEL_COUNT; i++) {
+    if((DMAIRQ & (1 << i)) != 0) {
+      DMAIRQ &= ~(1 << i);
       if(dma_callback[i] != 0) {
-	process_poll(dma_callback[i]);
+        process_poll(dma_callback[i]);
       }
     }
   }
 #endif
-  IRCON_DMAIF = 0;
   EA = 1;
 }
 /*---------------------------------------------------------------------------*/
