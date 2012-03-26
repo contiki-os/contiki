@@ -30,18 +30,16 @@
 package se.sics.cooja.mspmote.plugins;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -54,8 +52,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
@@ -72,11 +69,12 @@ import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
+import se.sics.cooja.Watchpoint;
+import se.sics.cooja.WatchpointMote;
+import se.sics.cooja.WatchpointMote.WatchpointListener;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteType;
-import se.sics.cooja.util.StringUtils;
 import se.sics.mspsim.core.EmulationException;
-import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.ui.DebugUI;
 import se.sics.mspsim.util.DebugInfo;
 import se.sics.mspsim.util.ELFDebug;
@@ -85,25 +83,31 @@ import se.sics.mspsim.util.ELFDebug;
 @PluginType(PluginType.MOTE_PLUGIN)
 public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   private static final long serialVersionUID = -8463196456352243367L;
+
+  private static final int SOURCECODE = 0;
+  private static final int BREAKPOINTS = 2;
+
   private static Logger logger = Logger.getLogger(MspCodeWatcher.class);
   private Simulation simulation;
   private Observer simObserver;
-  private MspMote mspMote;
 
   private File currentCodeFile = null;
   private int currentLineNumber = -1;
 
-  private JSplitPane leftSplitPane, rightSplitPane;
   private DebugUI assCodeUI;
   private CodeUI sourceCodeUI;
   private BreakpointsUI breakpointsUI;
 
-  private MspBreakpointContainer breakpoints = null;
+  private MspMote mspMote; /* currently the only supported mote */
+  private WatchpointMote watchpointMote;
+  private WatchpointListener watchpointListener;
 
   private JComboBox fileComboBox;
   private String[] debugInfoMap = null;
   private File[] sourceFiles;
-  
+
+  private JTabbedPane mainPane;
+
   /**
    * Mini-debugger for MSP Motes.
    * Visualizes instructions, source code and allows a user to manipulate breakpoints.
@@ -113,15 +117,13 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
    * @param gui Simulator
    */
   public MspCodeWatcher(Mote mote, Simulation simulationToVisualize, GUI gui) {
-    super("Msp Code Watcher", gui);
-    this.mspMote = (MspMote) mote;
+    super("Msp Code Watcher - " + mote, gui);
     simulation = simulationToVisualize;
+    this.mspMote = (MspMote) mote;
+    this.watchpointMote = (WatchpointMote) mote;
 
     getContentPane().setLayout(new BorderLayout());
 
-    /* Breakpoints */
-    breakpoints = mspMote.getBreakpointsContainer();
-    
     /* Create source file list */
     fileComboBox = new JComboBox();
     fileComboBox.addActionListener(new ActionListener() {
@@ -149,58 +151,68 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       }
     });
     updateFileComboBox();
-    
+
     /* Browse code control (north) */
-    JButton currentFileButton = new JButton(currentFileAction);
-    JButton mapButton = new JButton(mapAction);
-    
-    Box browseBox = Box.createHorizontalBox();
-    browseBox.add(Box.createHorizontalStrut(10));
-    browseBox.add(new JLabel("Program counter: "));
-    browseBox.add(currentFileButton);
-    browseBox.add(Box.createHorizontalGlue());
-    browseBox.add(new JLabel("Browse: "));
-    browseBox.add(fileComboBox);
-    browseBox.add(Box.createHorizontalStrut(10));
-    browseBox.add(mapButton);
-    browseBox.add(Box.createHorizontalStrut(10));
+    Box sourceCodeControl = Box.createHorizontalBox();
+    sourceCodeControl.add(new JButton(stepAction));
+    sourceCodeControl.add(Box.createHorizontalStrut(10));
+    sourceCodeControl.add(new JLabel("Current location: "));
+    sourceCodeControl.add(new JButton(currentFileAction));
+    sourceCodeControl.add(Box.createHorizontalGlue());
+    sourceCodeControl.add(new JLabel("Source files: "));
+    sourceCodeControl.add(fileComboBox);
+    sourceCodeControl.add(Box.createHorizontalStrut(5));
+    sourceCodeControl.add(new JButton(mapAction));
+    sourceCodeControl.add(Box.createHorizontalStrut(10));
 
-    /* Execution control panel (south) */
-    JPanel controlPanel = new JPanel();
-    JButton button = new JButton(stepAction);
-    controlPanel.add(button);
+    /* Execution control panel (south of source code panel) */
 
-    
-    /* Main components: assembler and C code + breakpoints (center) */
+    /* Layout */
+    mainPane = new JTabbedPane();
+
+    sourceCodeUI = new CodeUI(watchpointMote);
+    JPanel sourceCodePanel = new JPanel(new BorderLayout());
+    sourceCodePanel.add(BorderLayout.CENTER, sourceCodeUI);
+    sourceCodePanel.add(BorderLayout.SOUTH, sourceCodeControl);
+    mainPane.addTab("Source code", null, sourceCodePanel, null); /* SOURCECODE */
+
     assCodeUI = new DebugUI(this.mspMote.getCPU(), true);
-    breakpointsUI = new BreakpointsUI(breakpoints, this);
-    sourceCodeUI = new CodeUI(breakpoints);
-    leftSplitPane = new JSplitPane(
-        JSplitPane.HORIZONTAL_SPLIT,
-        new JScrollPane(assCodeUI),
-        new JScrollPane(breakpointsUI)
-    );
-    leftSplitPane.setOneTouchExpandable(true);
-    leftSplitPane.setDividerLocation(0.0);
-    rightSplitPane = new JSplitPane(
-        JSplitPane.HORIZONTAL_SPLIT,
-        leftSplitPane,
-        new JScrollPane(sourceCodeUI)
-        );
-    rightSplitPane.setOneTouchExpandable(true);
-    rightSplitPane.setDividerLocation(0.0);
+    for (Component c: assCodeUI.getComponents()) {
+      c.setBackground(Color.WHITE);
+    }
+    mainPane.addTab("Instructions", null, assCodeUI, null);
 
-    add(BorderLayout.NORTH, browseBox);
-    add(BorderLayout.CENTER, rightSplitPane);
-    add(BorderLayout.SOUTH, controlPanel);
+    breakpointsUI = new BreakpointsUI(mspMote, this);
+    mainPane.addTab("Breakpoints", null, breakpointsUI, "Right-click source code to add"); /* BREAKPOINTS */
 
-    
+    add(BorderLayout.CENTER, mainPane);
+
+    /* Listen for breakpoint changes */
+    watchpointMote.addWatchpointListener(watchpointListener = new WatchpointListener() {
+      public void watchpointTriggered(final Watchpoint watchpoint) {
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            logger.info("Watchpoint triggered: " + watchpoint);
+            if (simulation.isRunning()) {
+              return;
+            }
+            breakpointsUI.selectBreakpoint(watchpoint);
+            sourceCodeUI.updateBreakpoints();
+            showCurrentPC();
+          }
+        });
+      }
+      public void watchpointsChanged() {
+        sourceCodeUI.updateBreakpoints();
+      }
+    });
+
     /* Observe when simulation starts/stops */
     simulation.addObserver(simObserver = new Observer() {
       public void update(Observable obs, Object obj) {
         if (!simulation.isRunning()) {
           stepAction.setEnabled(true);
-          updateInfo();
+          showCurrentPC();
         } else {
           stepAction.setEnabled(false);
         }
@@ -208,7 +220,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     });
 
     setSize(750, 500);
-    updateInfo();
+    showCurrentPC();
   }
 
   private void updateFileComboBox() {
@@ -221,25 +233,12 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     fileComboBox.setSelectedIndex(0);
   }
 
-  public void displaySourceFile(File file, final int line) {
-    if (file != null &&
-        sourceCodeUI.displayedFile != null &&
-        file.compareTo(sourceCodeUI.displayedFile) == 0) {
-      /* No need to reload source file */
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          sourceCodeUI.displayLine(line);
-        }
-      });
-      return;
-    }
-
-    /* Load source file from disk */
-    String[] codeData = readTextFile(file);
-    if (codeData == null) {
-      return;
-    }
-    sourceCodeUI.displayNewCode(file, codeData, line);
+  public void displaySourceFile(final File file, final int line, final boolean markCurrent) {
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        mainPane.setSelectedIndex(SOURCECODE); /* code */
+        sourceCodeUI.displayNewCode(file, line, markCurrent);
+      }});
   }
 
   private void sourceFileSelectionChanged() {
@@ -249,32 +248,40 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     }
 
     File selectedFile = sourceFiles[index-1];
-    displaySourceFile(selectedFile, -1);
+    displaySourceFile(selectedFile, -1, false);
   }
 
-  private void updateInfo() {
+  private void showCurrentPC() {
     /* Instructions */
     assCodeUI.updateRegs();
     assCodeUI.repaint();
 
     /* Source */
     updateCurrentSourceCodeFile();
-    if (currentCodeFile == null) {
+    File file = currentCodeFile;
+    Integer line = currentLineNumber;
+    if (file == null || line == null) {
       currentFileAction.setEnabled(false);
       currentFileAction.putValue(Action.NAME, "[unknown]");
       currentFileAction.putValue(Action.SHORT_DESCRIPTION, null);
       return;
     }
     currentFileAction.setEnabled(true);
-    currentFileAction.putValue(Action.NAME, currentCodeFile.getName() + ":" + currentLineNumber);
-    currentFileAction.putValue(Action.SHORT_DESCRIPTION, currentCodeFile.getAbsolutePath() + ":" + currentLineNumber);
-    fileComboBox.setSelectedItem(currentCodeFile.getName());
+    currentFileAction.putValue(Action.NAME, file.getName() + ":" + line);
+    currentFileAction.putValue(Action.SHORT_DESCRIPTION, file.getAbsolutePath() + ":" + line);
+    fileComboBox.setSelectedItem(file.getName());
 
-    displaySourceFile(currentCodeFile, currentLineNumber);
+    displaySourceFile(file, line, true);
   }
 
   public void closePlugin() {
+    watchpointMote.removeWatchpointListener(watchpointListener);
+    watchpointListener = null;
+
     simulation.deleteObserver(simObserver);
+    simObserver = null;
+
+    /* TODO XXX Unregister breakpoints? */
   }
 
   private void updateCurrentSourceCodeFile() {
@@ -285,8 +292,12 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       if (debug == null) {
         return;
       }
-      DebugInfo debugInfo = debug.getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
+      int pc = mspMote.getCPU().getPC();
+      DebugInfo debugInfo = debug.getDebugInfo(pc);
       if (debugInfo == null) {
+        if (pc != 0) {
+          logger.warn("No sourcecode info at " + String.format("0x%04x", mspMote.getCPU().getPC()));
+        }
         return;
       }
 
@@ -321,6 +332,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   private void tryMapDebugInfo() {
     final String[] debugFiles;
     try {
+
       ELFDebug debug = ((MspMoteType)mspMote.getType()).getELF().getDebug();
       debugFiles = debug != null ? debug.getSourceFiles() : null;
       if (debugFiles == null) {
@@ -343,7 +355,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
               "\"Next File\" proceeds to the next source file in the debug info.\n\n" +
               debugFiles[counter] + " (" + (counter+1) + '/' + debugFiles.length + ')',
               "Select source file to locate", JOptionPane.YES_NO_CANCEL_OPTION,
-              JOptionPane.QUESTION_MESSAGE, null, 
+              JOptionPane.QUESTION_MESSAGE, null,
               new String[] { "Next File", "Locate File", "Cancel"}, "Next File");
           if (n == JOptionPane.CANCEL_OPTION || n == JOptionPane.CLOSED_OPTION) {
             return null;
@@ -421,14 +433,14 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
             optionPane.setOptions(new String[] { "OK" });
             optionPane.setInitialValue("OK");
             JDialog dialog = optionPane.createDialog(
-                GUI.getTopParentContainer(), 
-                "Mapping debug info to real sources");
+                GUI.getTopParentContainer(),
+            "Mapping debug info to real sources");
             dialog.setVisible(true);
-            
+
             replace = replaceInput.getText();
             replacement = replacementInput.getText();
           }
-          
+
           replace = replace.replace('\\', '/');
           replacement = replacement.replace('\\', '/');
           return new String[] { replace, replacement };
@@ -444,7 +456,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       updateFileComboBox();
     }
   }
-  
+
   private static File[] getSourceFiles(MspMote mote, String[] map) {
     final String[] sourceFiles;
     try {
@@ -465,7 +477,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       } catch (IOException e1) {
       }
     }
-    
+
     /* Verify that files exist */
     ArrayList<File> existing = new ArrayList<File>();
     for (String sourceFile: sourceFiles) {
@@ -512,7 +524,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
               "Make sure the source files were not moved after the firmware compilation.\n" +
               "\n" +
               "If you want to manually locate the sources, click \"Map\" button.",
-              "No source files found", 
+              "No source files found",
               JOptionPane.WARNING_MESSAGE);
           return true;
         }
@@ -530,7 +542,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       }
       sorted.add(index, file);
     }
-    
+
     /* Add Contiki source first */
     if (contikiSource != null && contikiSource.exists()) {
       sorted.add(0, contikiSource);
@@ -539,63 +551,21 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     return sorted.toArray(new File[0]);
   }
 
-  /**
-   * Tries to open and read given text file.
-   *
-   * @param file File
-   * @return Line-by-line text in file
-   */
-  public static String[] readTextFile(File file) {
-    if (GUI.isVisualizedInApplet()) {
-      /* Download from web server instead */
-      String path = file.getPath();
-
-      /* Extract Contiki build path */
-      String contikiBuildPath = GUI.getExternalToolsSetting("PATH_CONTIKI_BUILD");
-      String contikiWebPath = GUI.getExternalToolsSetting("PATH_CONTIKI_WEB");
-
-      if (!path.startsWith(contikiBuildPath)) {
-        return null;
-      }
-
-      try {
-        /* Replace Contiki parent path with web server code base */
-        path = contikiWebPath + '/' + path.substring(contikiBuildPath.length());
-        path = path.replace('\\', '/');
-        URL url = new URL(GUI.getAppletCodeBase(), path);
-        String data = StringUtils.loadFromURL(url);
-        return data!=null?data.split("\n"):null;
-      } catch (MalformedURLException e) {
-        logger.warn("Failure to read source code: " + e);
-        return null;
-      }
-    }
-
-    String data = StringUtils.loadFromFile(file);
-    return data!=null?data.split("\n"):null;
-  }
-
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
-    
-    element = new Element("split_1");
-    element.addContent("" + leftSplitPane.getDividerLocation());
+
+    element = new Element("tab");
+    element.addContent("" + mainPane.getSelectedIndex());
     config.add(element);
-    
-    element = new Element("split_2");
-    element.addContent("" + rightSplitPane.getDividerLocation());
-    config.add(element);
-    
+
     return config;
   }
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
-      if (element.getName().equals("split_1")) {
-        leftSplitPane.setDividerLocation(Integer.parseInt(element.getText()));
-      } else if (element.getName().equals("split_2")) {
-        rightSplitPane.setDividerLocation(Integer.parseInt(element.getText()));
+      if (element.getName().equals("tab")) {
+        mainPane.setSelectedIndex(Integer.parseInt(element.getText()));
       }
     }
     return true;
@@ -608,11 +578,11 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       if (currentCodeFile == null) {
         return;
       }
-      displaySourceFile(currentCodeFile, currentLineNumber);
+      displaySourceFile(currentCodeFile, currentLineNumber, true);
     }
   };
 
-  private AbstractAction mapAction = new AbstractAction("Map") {
+  private AbstractAction mapAction = new AbstractAction("Locate sources") {
     private static final long serialVersionUID = -3929432830596292495L;
 
     public void actionPerformed(ActionEvent e) {
@@ -622,14 +592,13 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
 
   private AbstractAction stepAction = new AbstractAction("Step instruction") {
     private static final long serialVersionUID = 3520750710757816575L;
-
     public void actionPerformed(ActionEvent e) {
       try {
         mspMote.getCPU().stepInstructions(1);
       } catch (EmulationException ex) {
         logger.fatal("Error: ", ex);
       }
-      updateInfo();
+      showCurrentPC();
     }
   };
 

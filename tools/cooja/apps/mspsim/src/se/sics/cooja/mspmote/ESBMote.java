@@ -32,10 +32,10 @@
 package se.sics.cooja.mspmote;
 
 import java.io.File;
+
 import org.apache.log4j.Logger;
-import se.sics.cooja.MoteInterfaceHandler;
+
 import se.sics.cooja.Simulation;
-import se.sics.cooja.interfaces.*;
 import se.sics.mspsim.platform.esb.ESBNode;
 
 /**

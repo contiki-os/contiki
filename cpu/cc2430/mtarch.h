@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Takahide Matsutsuka.
+ * Copyright (c) 2010, Loughborough University - Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+
  /*
   * \file
-  * 	Z80 machine-specific difinitions for supporting multithread.
-  * 
+  * 	Stub header file for cc2430 multi-threading. It doesn't do anything, it
+  * 	just exists so that mt.c can compile cleanly.
+  *
+  * 	This is based on the original mtarch.h for z80 by Takahide Matsutsuka
+  *
   * \author
-  *	Takahide Matsutsuka <markn@markn.org>
+  *	  George Oikonomou - <oikonomou@users.sourceforge.net>
   */
 #ifndef __MTARCH_H__
 #define __MTARCH_H__
 
-/* Unit of the stack is 2byte wide. */
-#ifndef MTARCH_STACKSIZE
-#define MTARCH_STACKSIZE 128
-#endif /* MTARCH_STACKSIZE */
-
 struct mtarch_thread {
-  /* 
-   * On top of the mtarch_thread must be the address for the stack pointer.
-   * See details at mtarch_switch in mtarch.c
-   */
-  uint16_t *sp;
-  /*
-   * Stack is 2-byte wide, so please note that you need 2 * MTARCH_STACKSIZE
-   * bytes for the stack area for each thread.
-   */
-  uint16_t stack[MTARCH_STACKSIZE];
+  unsigned char *sp;
 };
-
-/*
- * A function for debugging purpose, placed here by following other implementations.
- */
-int mtarch_stack_usage(struct mtarch_thread *t);
 
 #endif /* __MTARCH_H__ */
 

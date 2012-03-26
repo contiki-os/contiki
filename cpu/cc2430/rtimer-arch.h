@@ -33,18 +33,31 @@
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Hardware-dependent function declarations used to
+ *         support the contiki rtimer module.
+ *
+ *         We use Timer 1 on the cc2431.
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Zach Shelby (Original)
+ *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *           (rtimer-arch implementation for cc2430)
  */
 
 #ifndef __RTIMER_ARCH_H__
 #define __RTIMER_ARCH_H__
 
 #include "contiki-conf.h"
+#include "cc2430_sfr.h"
 
-#define RTIMER_ARCH_SECOND 1000
+/*
+ * 32 MHz clock, prescaled down to 500 kHz for all 4 timers in clock_init().
+ * Further prescaled factor 32 for T1, thus T1 is 15625 Hz
+ */
+#define RTIMER_ARCH_SECOND (15625U)
 
-#define rtimer_arch_now() clock_time()
+#define rtimer_arch_now() ((rtimer_clock_t)(T1CNTL + (T1CNTH << 8)))
+
+void cc2430_timer_1_ISR(void) __interrupt (T1_VECTOR);
 
 #endif /* __RTIMER_ARCH_H__ */
