@@ -1,6 +1,11 @@
 
 .SUFFIXES:
 
+define \n
+
+
+endef
+
 ifdef IAR
 ${info Using IAR...}
 #IAR_PATH =  C:/Program\ Files/IAR\ Systems/Embedded\ Workbench\ 5.4\ Evaluation
@@ -18,7 +23,7 @@ CONTIKI_CPU_DIRS = . dev hal simplemac hal/micro/cortexm3 hal/micro/cortexm3/stm
 
 STM32W_C = leds-arch.c leds.c clock.c watchdog.c uart1.c uart1-putchar.c slip_uart1.c slip.c\
 		stm32w-radio.c stm32w_systick.c uip_arch.c rtimer-arch.c adc.c micro.c sleep.c \
-		micro-common.c micro-common-internal.c clocks.c mfg-token.c nvm.c flash.c rand.c system-timer.c
+		micro-common.c micro-common-internal.c clocks.c mfg-token.c nvm.c flash.c rand.c system-timer.c mpu.c
 
 STM32W_S = spmr.s79 context-switch.s79 
 
@@ -163,7 +168,7 @@ endif
 
 
 
-FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher
+FLASHER = sudo $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher
 
 # Check if we are running under Windows
 ifeq ($(HOST_OS),Windows)
@@ -250,6 +255,19 @@ endif
 
 endif #IAR
 
+MOTELIST = $(CONTIKI)/tools/stm32w/motelist-linux
+
+MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
+     cut -f 4 -d \  | \
+     perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+
+motelist: stm-motelist
+
+stm-motelist:
+	$(MOTELIST)
+stm-motes:
+	@echo $(MOTES)
+
 $(OBJECTDIR)/%.o: %.s79
 	$(AS) $(ASFLAGS) -o $@ $<
 	
@@ -258,7 +276,24 @@ $(OBJECTDIR)/%.o: %.s
 	
 %.bin: %.$(TARGET)
 	$(OBJCOPY) $(OBJOPTS) $< $@ 
-	
-%.flash: %.bin
-	$(FLASHER) $(FLASHEROPTS) $<
-	
+
+# reset all stm32w devices sequentially, as stm32w_flasher cannot access different ports in parallel
+stm-reset:
+	$(foreach PORT, $(MOTES), $(FLASHER) -r -p $(PORT);$(\n))
+	@echo Done
+		
+ifdef MOTE
+%.upload: %.bin
+	$(FLASHER) $(FLASHEROPTS) $< -p $(word $(MOTE), $(MOTES))
+else # MOTE
+%.upload: %.bin
+	$(foreach PORT, $(MOTES), $(FLASHER) $(FLASHEROPTS) $< -p $(PORT);$(\n))
+endif # MOTE
+
+ifdef MOTE
+login:
+	$(SERIALDUMP) -b115200 -d10000 $(USBDEVPREFIX)$(word $(MOTE), $(MOTES))
+else
+login:
+	$(SERIALDUMP) -b115200 -d10000 $(USBDEVPREFIX)$(firstword $(MOTES))
+endif

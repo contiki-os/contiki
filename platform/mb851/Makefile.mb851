@@ -22,8 +22,3 @@ SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-linux
 ifeq ($(HOST_OS),Windows)
   SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-windows
 endif
-
-
-
-login:
-	$(SERIALDUMP) -b115200 -d10000 $(PORT)
