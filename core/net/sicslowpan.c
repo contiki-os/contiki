@@ -211,6 +211,11 @@ static uint8_t rime_payload_len;
  * is used this includes the UDP header in addition to the IP header).
  */
 static uint8_t uncomp_hdr_len;
+
+/**
+ * the result of the last transmitted fragment
+ */
+static int last_tx_status;
 /** @} */
 
 #if SICSLOWPAN_CONF_FRAG
@@ -1308,6 +1313,7 @@ packet_sent(void *ptr, int status, int transmissions)
   if(callback != NULL) {
     callback->output_callback(status);
   }
+  last_tx_status = status;
 }
 /*--------------------------------------------------------------------*/
 /**
@@ -1465,6 +1471,14 @@ output(uip_lladdr_t *localdest)
     queuebuf_free(q);
     q = NULL;
 
+    /* Check tx result. */
+    if((last_tx_status == MAC_TX_COLLISION) ||
+       (last_tx_status == MAC_TX_ERR) ||
+       (last_tx_status == MAC_TX_ERR_FATAL)) {
+      PRINTFO("error in fragment tx, dropping subsequent fragments.\n");
+      return 0;
+    }
+
     /* set processed_ip_out_len to what we already sent from the IP payload*/
     processed_ip_out_len = rime_payload_len + uncomp_hdr_len;
     
@@ -1503,8 +1517,15 @@ output(uip_lladdr_t *localdest)
       queuebuf_free(q);
       q = NULL;
       processed_ip_out_len += rime_payload_len;
+
+      /* Check tx result. */
+      if((last_tx_status == MAC_TX_COLLISION) ||
+         (last_tx_status == MAC_TX_ERR) ||
+         (last_tx_status == MAC_TX_ERR_FATAL)) {
+        PRINTFO("error in fragment tx, dropping subsequent fragments.\n");
+        return 0;
+      }
     }
-    
 #else /* SICSLOWPAN_CONF_FRAG */
     PRINTFO("sicslowpan output: Packet too large to be sent without fragmentation support; dropping packet\n");
     return 0;
