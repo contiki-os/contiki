@@ -21,8 +21,8 @@ endif
 %.so: $(OBJECTDIR)/%.o
 	$(LD) -shared -o $@ $^
 
-# .PHONY: symbols.c symbols.h
 ifdef CORE
+.PHONY: symbols.c symbols.h
 symbols.c symbols.h:
 	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
 else

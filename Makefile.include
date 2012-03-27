@@ -228,6 +228,12 @@ ifndef CUSTOM_RULE_LINK
 	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 endif
 
+%.ramprof: %.$(TARGET)
+	nm -S -td --size-sort $< | grep -i " [abdrw] " | cut -d' ' -f2,4
+
+%.flashprof: %.$(TARGET)
+	nm -S -td --size-sort $< | grep -i " [t] " | cut -d' ' -f2,4
+
 # Don't treat %.$(TARGET) as an intermediate file because it is
 # in fact the primary target.
 .PRECIOUS: %.$(TARGET)

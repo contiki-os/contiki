@@ -34,6 +34,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
@@ -41,7 +42,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
-import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -275,7 +275,7 @@ public class GUI extends Observable {
     "COMMAND_DATA_START", "COMMAND_DATA_END",
     "COMMAND_BSS_START", "COMMAND_BSS_END",
     "COMMAND_COMMON_START", "COMMAND_COMMON_END",
-    
+
     "HIDE_WARNINGS"
   };
 
@@ -303,7 +303,7 @@ public class GUI extends Observable {
   private Vector<Plugin> startedPlugins = new Vector<Plugin>();
 
   private ArrayList<GUIAction> guiActions = new ArrayList<GUIAction>();
-  
+
   // Platform configuration variables
   // Maintained via method reparseProjectConfig()
   private ProjectConfig projectConfig;
@@ -384,12 +384,12 @@ public class GUI extends Observable {
     quickHelpScroll = new JScrollPane(quickHelpTextPane, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     quickHelpScroll.setPreferredSize(new Dimension(200, 0));
     quickHelpScroll.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(Color.GRAY), 
+        BorderFactory.createLineBorder(Color.GRAY),
         BorderFactory.createEmptyBorder(0, 3, 0, 0)
     ));
     quickHelpScroll.setVisible(false);
     loadQuickHelp("KEYBOARD_SHORTCUTS");
-    
+
     // Load default and overwrite with user settings (if any)
     loadExternalToolsDefaultSettings();
     loadExternalToolsUserSettings();
@@ -615,7 +615,7 @@ public class GUI extends Observable {
       menu.add(lastItem);
     }
   }
-  
+
   private void doLoadConfigAsync(final boolean ask, final boolean quick, final File file) {
     new Thread(new Runnable() {
       public void run() {
@@ -664,7 +664,7 @@ public class GUI extends Observable {
     for (GUIAction a: guiActions) {
       a.setEnabled(a.shouldBeEnabled());
     }
-    
+
     /* Mote and mote type menues */
     if (menuMoteTypeClasses != null) {
       menuMoteTypeClasses.setEnabled(getSimulation() != null);
@@ -673,7 +673,7 @@ public class GUI extends Observable {
       menuMoteTypes.setEnabled(getSimulation() != null);
     }
   }
-  
+
   private JMenuBar createMenuBar() {
     JMenuBar menuBar = new JMenuBar();
     JMenu menu;
@@ -691,7 +691,7 @@ public class GUI extends Observable {
     guiActions.add(startStopSimulationAction);
     guiActions.add(removeAllMotesAction);
     guiActions.add(showBufferSettingsAction);
-    
+
     /* File menu */
     menu = new JMenu("File");
     menu.addMenuListener(new MenuListener() {
@@ -751,7 +751,7 @@ public class GUI extends Observable {
     });
     menu.setMnemonic(KeyEvent.VK_S);
     menuBar.add(menu);
-    
+
     menu.add(new JMenuItem(startStopSimulationAction));
 
     GUIAction guiAction = new StartPluginGUIAction("Control panel");
@@ -947,7 +947,7 @@ public class GUI extends Observable {
       menuItem.setEnabled(false);
       menuItem.setToolTipText("Not available in applet version");
     }
-    
+
     menuItem = new JMenuItem("Contiki mote configuration wizard");
     menuItem.setActionCommand("configuration wizard");
     menuItem.addActionListener(guiEventHandler);
@@ -958,7 +958,7 @@ public class GUI extends Observable {
     }
 
     menu.add(new JMenuItem(showBufferSettingsAction));
-    
+
     /* Help */
     menu = new JMenu("Help");
     menu.setMnemonic(KeyEvent.VK_H);
@@ -968,7 +968,7 @@ public class GUI extends Observable {
     menu.add(checkBox);
     menuBar.add(menu);
 
-    menu.addSeparator();        
+    menu.addSeparator();
 
     menuItem = new JMenuItem("Java version: "
         + System.getProperty("java.version") + " ("
@@ -983,7 +983,7 @@ public class GUI extends Observable {
         + System.getProperty("sun.arch.data.model"));
     menuItem.setEnabled(false);
     menu.add(menuItem);
-    
+
     // Mote plugins popup menu (not available via menu bar)
     if (menuMotePluginClasses == null) {
       menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
@@ -1374,7 +1374,7 @@ public class GUI extends Observable {
     unregisterPositioners();
     unregisterRadioMediums();
     projectDirClassLoader = null;
-    
+
     /* Build cooja configuration */
     try {
       projectConfig = new ProjectConfig(true);
@@ -1399,7 +1399,7 @@ public class GUI extends Observable {
               "Error when reading project config: " + e.getMessage()).initCause(e);
         }
       }
-      
+
       /* Create project class loader */
       try {
         projectDirClassLoader = createClassLoader(currentProjects);
@@ -1603,7 +1603,7 @@ public class GUI extends Observable {
    * Same as the {@link #startPlugin(Class, GUI, Simulation, Mote)} method,
    * but does not throw exceptions. If COOJA is visualised, an error dialog
    * is shown if plugin could not be started.
-   * 
+   *
    * @see #startPlugin(Class, GUI, Simulation, Mote)
    * @param pluginClass Plugin class
    * @param argGUI Plugin GUI argument
@@ -1627,7 +1627,7 @@ public class GUI extends Observable {
             return null;
           }
         } while (cause != null && (cause=cause.getCause()) != null);
-        
+
         logger.fatal("Error when starting plugin", ex);
       }
     }
@@ -1640,15 +1640,15 @@ public class GUI extends Observable {
   }
 
   public Plugin startPlugin(final Class<? extends Plugin> pluginClass,
-      final GUI argGUI, final Simulation argSimulation, final Mote argMote) 
-  throws PluginConstructionException 
+      final GUI argGUI, final Simulation argSimulation, final Mote argMote)
+  throws PluginConstructionException
   {
     return startPlugin(pluginClass, argGUI, argSimulation, argMote, true);
   }
 
   /**
    * Starts given plugin. If visualized, the plugin is also shown.
-   * 
+   *
    * @see PluginType
    * @param pluginClass Plugin class
    * @param argGUI Plugin GUI argument
@@ -1683,7 +1683,7 @@ public class GUI extends Observable {
           throw new PluginConstructionException("No mote argument for mote plugin");
         }
 
-        plugin = 
+        plugin =
           pluginClass.getConstructor(new Class[] { Mote.class, Simulation.class, GUI.class })
           .newInstance(argMote, argSimulation, argGUI);
 
@@ -1696,7 +1696,7 @@ public class GUI extends Observable {
           throw new PluginConstructionException("No simulation argument for simulation plugin");
         }
 
-        plugin = 
+        plugin =
           pluginClass.getConstructor(new Class[] { Simulation.class, GUI.class })
           .newInstance(argSimulation, argGUI);
 
@@ -1735,7 +1735,7 @@ public class GUI extends Observable {
     if (activate && plugin.getGUI() != null) {
       myGUI.showPlugin(plugin);
     }
-    
+
     return plugin;
   }
 
@@ -1825,7 +1825,7 @@ public class GUI extends Observable {
           // Create 'start plugin'-menu item
           JMenuItem menuItem;
           String tooltip = "<html>";
-          
+
           /* Sort menu according to plugin type */
           int itemIndex=0;
           if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
@@ -1910,7 +1910,7 @@ public class GUI extends Observable {
 
   /**
    * Returns started plugin that ends with given class name, if any.
-   * 
+   *
    * @param classname Class name
    * @return Plugin instance
    */
@@ -1922,10 +1922,10 @@ public class GUI extends Observable {
     }
     return null;
   }
-  
+
   /**
    * Returns started plugin with given class name, if any.
-   * 
+   *
    * @param classname Class name
    * @return Plugin instance
    * @deprecated
@@ -1995,21 +1995,21 @@ public class GUI extends Observable {
   /**
    * Creates a new mote type of the given mote type class.
    * This may include displaying a dialog for user configurations.
-   * 
+   *
    * If mote type is created successfully, the add motes dialog will appear.
-   * 
+   *
    * @param moteTypeClass Mote type class
    */
   public void doCreateMoteType(Class<? extends MoteType> moteTypeClass) {
     doCreateMoteType(moteTypeClass, true);
   }
-  
+
   /**
    * Creates a new mote type of the given mote type class.
    * This may include displaying a dialog for user configurations.
-   * 
+   *
    * @param moteTypeClass Mote type class
-   * @param addMotes Show add motes dialog after successfully adding mote type  
+   * @param addMotes Show add motes dialog after successfully adding mote type
    */
   public void doCreateMoteType(Class<? extends MoteType> moteTypeClass, boolean addMotes) {
     if (mySimulation == null) {
@@ -2254,7 +2254,7 @@ public class GUI extends Observable {
         PROGRESS_WARNINGS.clear();
         newSim = loadSimulationConfig(fileToLoad, quick);
         myGUI.setSimulation(newSim, false);
-        
+
         /* Optionally show compilation warnings */
         boolean hideWarn = Boolean.parseBoolean(
             GUI.getExternalToolsSetting("HIDE_WARNINGS", "false")
@@ -2263,7 +2263,7 @@ public class GUI extends Observable {
           showWarningsDialog(frame, PROGRESS_WARNINGS.toArray(new String[0]));
         }
         PROGRESS_WARNINGS.clear();
-        
+
       } catch (UnsatisfiedLinkError e) {
         shouldRetry = showErrorDialog(GUI.getTopParentContainer(), "Simulation load error", e, true);
       } catch (SimulationCreationException e) {
@@ -2294,7 +2294,7 @@ public class GUI extends Observable {
     if (warnMemory()) {
       return;
     }
-    
+
     final JDialog progressDialog = new JDialog(frame, "Reloading", true);
     final Thread loadThread = new Thread(new Runnable() {
       public void run() {
@@ -2323,7 +2323,7 @@ public class GUI extends Observable {
             if (autoStart) {
               newSim.startSimulation();
             }
-            
+
             /* Optionally show compilation warnings */
             boolean hideWarn = Boolean.parseBoolean(
                 GUI.getExternalToolsSetting("HIDE_WARNINGS", "false")
@@ -2332,7 +2332,7 @@ public class GUI extends Observable {
               showWarningsDialog(frame, PROGRESS_WARNINGS.toArray(new String[0]));
             }
             PROGRESS_WARNINGS.clear();
-            
+
           } catch (UnsatisfiedLinkError e) {
             shouldRetry = showErrorDialog(frame, "Simulation reload error", e, true);
 
@@ -2477,7 +2477,7 @@ public class GUI extends Observable {
         return saveFile;
       } else {
       	JOptionPane.showMessageDialog(
-      			getTopParentContainer(), "No write access to " + saveFile, "Save failed", 
+      			getTopParentContainer(), "No write access to " + saveFile, "Save failed",
       			JOptionPane.ERROR_MESSAGE);
         logger.fatal("No write access to file: " + saveFile.getAbsolutePath());
       }
@@ -2771,8 +2771,8 @@ public class GUI extends Observable {
         ExternalToolsDialog.showDialog(GUI.getTopParentContainer());
       } else if (e.getActionCommand().equals("manage projects")) {
         COOJAProject[] newProjects = ProjectDirectoriesDialog.showDialog(
-            GUI.getTopParentContainer(), 
-            GUI.this, 
+            GUI.getTopParentContainer(),
+            GUI.this,
             getProjects()
         );
         if (newProjects != null) {
@@ -3057,7 +3057,7 @@ public class GUI extends Observable {
         System.exit(1);
       }
       GUI gui = sim.getGUI();
-      
+
       /* Make sure at least one test editor is controlling the simulation */
       boolean hasEditor = false;
       for (Plugin startedPlugin : gui.startedPlugins) {
@@ -3079,7 +3079,12 @@ public class GUI extends Observable {
             System.exit(1);
           }
           plugin.updateScript(scriptFile);
-          plugin.setScriptActive(true);
+          try {
+            plugin.setScriptActive(true);
+          } catch (Exception e) {
+            logger.fatal("Error: " + e.getMessage(), e);
+            System.exit(1);
+          }
         } else {
           logger.fatal("No test editor controlling simulation, aborting");
           System.exit(1);
@@ -3286,11 +3291,11 @@ public class GUI extends Observable {
       // Create and write to document
       Document doc = new Document(extractSimulationConfig());
       OutputStream out = new FileOutputStream(file);
-      
+
       if (file.getName().endsWith(".gz")) {
       	out = new GZIPOutputStream(out);
       }
-      
+
       XMLOutputter outputter = new XMLOutputter();
       outputter.setFormat(Format.getPrettyFormat());
       outputter.output(doc, out);
@@ -3302,7 +3307,7 @@ public class GUI extends Observable {
       e.printStackTrace();
     }
   }
-  
+
   public Element extractSimulationConfig() {
     // Create simulation config
     Element root = new Element("simconf");
@@ -3419,7 +3424,7 @@ public class GUI extends Observable {
           projectFile = projectFile.getCanonicalFile();
         } catch (IOException e) {
         }
-        
+
         boolean found = false;
         for (COOJAProject currentProject: currentProjects) {
           if (projectFile.getPath().replaceAll("\\\\", "/").
@@ -3501,7 +3506,7 @@ public class GUI extends Observable {
 
         /* Activate plugin */
         startedPlugin.startPlugin();
-        
+
         /* If Cooja not visualized, ignore window configuration */
         if (startedPlugin.getGUI() == null) {
           continue;
@@ -3539,7 +3544,7 @@ public class GUI extends Observable {
                         pluginGUI.setIcon(true);
                       } catch (PropertyVetoException e) {
                       }
-                    };                    
+                    };
                   });
                 }
               }
@@ -3646,7 +3651,7 @@ public class GUI extends Observable {
             list.addPopupMenuItem(null, true);
             tabbedPane.addTab("Contiki error", new JScrollPane(list));
           }
-          
+
           /* Compilation output */
           MessageList compilationOutput = null;
           if (exception instanceof MoteTypeCreationException
@@ -3732,7 +3737,7 @@ public class GUI extends Observable {
   private static void showWarningsDialog(final Frame parent, final String[] warnings) {
     new RunnableInEDT<Boolean>() {
       public Boolean work() {
-        final JDialog dialog = new JDialog((Frame)parent, "Compilation warnings", false);
+        final JDialog dialog = new JDialog(parent, "Compilation warnings", false);
         Box buttonBox = Box.createHorizontalBox();
 
         /* Warnings message list */
@@ -3776,7 +3781,7 @@ public class GUI extends Observable {
       }
     }.invokeAndWait();
   }
-  
+
   /**
    * Runs work method in event dispatcher thread.
    * Worker method returns a value.
@@ -3913,9 +3918,9 @@ public class GUI extends Observable {
   /**
    * Tries to convert given file to be "portable".
    * The portable path is either relative to Contiki, or to the configuration (.csc) file.
-   * 
+   *
    * If this method fails, it returns the original file.
-   * 
+   *
    * @param file Original file
    * @return Portable file, or original file is conversion failed
    */
@@ -3925,7 +3930,7 @@ public class GUI extends Observable {
 
   public File createPortablePath(File file, boolean allowConfigRelativePaths) {
     File portable = null;
-    
+
     portable = createContikiRelativePath(file);
     if (portable != null) {
       /*logger.info("Generated Contiki relative path '" + file.getPath() + "' to '" + portable.getPath() + "'");*/
@@ -3939,7 +3944,7 @@ public class GUI extends Observable {
         return portable;
       }
     }
-    
+
     logger.warn("Path is not portable: '" + file.getPath());
     return file;
   }
@@ -3947,7 +3952,7 @@ public class GUI extends Observable {
   /**
    * Tries to restore a previously "portable" file to be "absolute".
    * If the given file already exists, no conversion is performed.
-   * 
+   *
    * @see #createPortablePath(File)
    * @param file Portable file
    * @return Absolute file
@@ -3970,7 +3975,7 @@ public class GUI extends Observable {
       /*logger.info("Restored config relative path '" + file.getPath() + "' to '" + absolute.getPath() + "'");*/
       return absolute;
     }
-    
+
     /*logger.info("Portable path was not restored: '" + file.getPath());*/
     return file;
   }
@@ -4103,10 +4108,10 @@ public class GUI extends Observable {
 
       /* Replace config's canonical path with config identifier */
       String portablePath = fileCanonical.replaceFirst(
-          java.util.regex.Matcher.quoteReplacement(configCanonical), 
+          java.util.regex.Matcher.quoteReplacement(configCanonical),
           java.util.regex.Matcher.quoteReplacement(id));
       File portable = new File(portablePath);
-      
+
       /* Verify conversion */
       File verify = restoreConfigRelativePath(portable);
       if (verify == null || !verify.exists()) {
@@ -4162,11 +4167,11 @@ public class GUI extends Observable {
      */
     public String getQuickHelp();
   }
-  
+
   /**
    * Load quick help for given object or identifier. Note that this method does not
    * show the quick help pane.
-   *  
+   *
    * @param obj If string: help identifier. Else, the class name of the argument
    * is used as help identifier.
    */
@@ -4181,7 +4186,7 @@ public class GUI extends Observable {
     } else {
       key = obj.getClass().getName();
     }
-    
+
     String help = null;
     if (obj instanceof HasQuickHelp) {
       help = ((HasQuickHelp) obj).getQuickHelp();
@@ -4367,13 +4372,13 @@ public class GUI extends Observable {
         }
         outputFile.delete();
       }
-      
+
       final File finalOutputFile = outputFile;
       setExternalToolsSetting("EXECUTE_JAR_LAST", outputFile.getPath());
       new Thread() {
         public void run() {
           try {
-            ExecuteJAR.buildExecutableJAR(GUI.this, finalOutputFile);   
+            ExecuteJAR.buildExecutableJAR(GUI.this, finalOutputFile);
           } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
                 ex.getMessage(),
@@ -4434,7 +4439,7 @@ public class GUI extends Observable {
     public void actionPerformed(final ActionEvent e) {
       new Thread(new Runnable() {
         public void run() {
-          Class<Plugin> pluginClass = 
+          Class<Plugin> pluginClass =
             (Class<Plugin>) ((JMenuItem) e.getSource()).getClientProperty("class");
           Mote mote = (Mote) ((JMenuItem) e.getSource()).getClientProperty("mote");
           tryStartPlugin(pluginClass, myGUI, mySimulation, mote);
@@ -4509,6 +4514,6 @@ public class GUI extends Observable {
       return mySimulation != null;
     }
   };
-  
+
 }
 

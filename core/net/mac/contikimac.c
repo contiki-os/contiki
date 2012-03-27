@@ -522,7 +522,7 @@ static int
 send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_list *buf_list)
 {
   rtimer_clock_t t0;
-  rtimer_clock_t encounter_time = 0, previous_txtime = 0;
+  rtimer_clock_t encounter_time = 0;
   int strobes;
   uint8_t got_strobe_ack = 0;
   int hdrlen, len;
@@ -543,7 +543,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
     PRINTF("contikimac: radio is turned off\n");
     return MAC_TX_ERR_FATAL;
   }
-  
+ 
   if(packetbuf_totlen() == 0) {
     PRINTF("contikimac: send_packet data len 0\n");
     return MAC_TX_ERR_FATAL;
@@ -723,7 +723,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
   watchdog_periodic();
   t0 = RTIMER_NOW();
   seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
-
   for(strobes = 0, collisions = 0;
       got_strobe_ack == 0 && collisions == 0 &&
       RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + STROBE_TIME); strobes++) {
@@ -737,7 +736,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
 
     len = 0;
 
-    previous_txtime = RTIMER_NOW();
+    
     {
       rtimer_clock_t wt;
       rtimer_clock_t txtime;
@@ -751,7 +750,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
       if(ret == RADIO_TX_OK) {
         if(!is_broadcast) {
           got_strobe_ack = 1;
-          encounter_time = previous_txtime;
+          encounter_time = txtime;
           break;
         }
       } else if (ret == RADIO_TX_NOACK) {
@@ -776,7 +775,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
         len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
         if(len == ACK_LEN && seqno == ackbuf[ACK_LEN-1]) {
           got_strobe_ack = 1;
-          encounter_time = previous_txtime;
+          encounter_time = txtime;
           break;
         } else {
           PRINTF("contikimac: collisions while sending\n");
@@ -784,8 +783,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
         }
       }
 #endif /* RDC_CONF_HARDWARE_ACK */
-
-      previous_txtime = txtime;
     }
   }
 

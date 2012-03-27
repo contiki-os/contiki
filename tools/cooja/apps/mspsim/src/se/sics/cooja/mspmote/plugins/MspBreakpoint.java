@@ -34,129 +34,151 @@ package se.sics.cooja.mspmote.plugins;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.Watchpoint;
 import se.sics.cooja.mspmote.MspMote;
+import se.sics.cooja.util.StringUtils;
 import se.sics.mspsim.core.CPUMonitor;
 
 /**
- * Breakpoint.
- * Contains meta data such source code file and line number.
+ * Mspsim watchpoint.
  *
  * @author Fredrik Osterlind
  */
 public class MspBreakpoint implements Watchpoint {
   private static Logger logger = Logger.getLogger(MspBreakpoint.class);
 
-  private MspBreakpointContainer breakpoints;
   private MspMote mspMote;
+
+  private int address = -1; /* Binary address */
+  private File codeFile = null; /* Source code, may be null*/
+  private int lineNr = -1; /* Source code line number, may be null */
 
   private CPUMonitor cpuMonitor = null;
 
   private boolean stopsSimulation = true;
 
-  private Integer address = null; /* Binary address */
-
-  private File codeFile = null; /* Source code, may be null*/
-  private Integer lineNr = null; /* Source code line number, may be null */
-
   private String msg = null;
   private Color color = Color.BLACK;
 
-  public MspBreakpoint(MspBreakpointContainer breakpoints, MspMote mote) {
-    this.breakpoints = breakpoints;
+  private String contikiCode = null;
+
+  public MspBreakpoint(MspMote mote) {
     this.mspMote = mote;
+    /* expects setConfigXML(..) */
   }
 
-  public MspBreakpoint(MspBreakpointContainer breakpoints, MspMote mote, Integer address) {
-    this(breakpoints, mote);
+  public MspBreakpoint(MspMote mote, Integer address, File codeFile, Integer lineNr) {
+    this(mote);
     this.address = address;
+    this.codeFile = codeFile;
+    this.lineNr = lineNr;
 
     createMonitor();
   }
 
-  public MspBreakpoint(MspBreakpointContainer breakpoints, MspMote mote, Integer address, File codeFile, Integer lineNr) {
-    this(breakpoints, mote, address);
-    this.codeFile = codeFile;
-    this.lineNr = lineNr;
-  }
-
-  /**
-   * @return MSP mote
-   */
   public MspMote getMote() {
     return mspMote;
   }
 
-  /**
-   * @return Executable address
-   */
-  public Integer getExecutableAddress() {
-    return address;
+  public Color getColor() {
+    return color;
   }
-  
-  /**
-   * @return Source code file
-   */
+  public void setColor(Color color) {
+    this.color = color;
+  }
+
+  public String getDescription() {
+    String desc = "";
+    if (codeFile != null) {
+      desc += codeFile.getPath() + ":" + lineNr + " (0x" + Integer.toHexString(address) + ")";
+    } else if (address >= 0) {
+      desc += "0x" + Integer.toHexString(address);
+    }
+    if (msg != null) {
+      desc += "\n\n" + msg;
+    }
+    return desc;
+  }
+  public void setUserMessage(String msg) {
+    this.msg = msg;
+  }
+  public String getUserMessage() {
+    return msg;
+  }
+
   public File getCodeFile() {
     return codeFile;
   }
-
-  /**
-   * @return Source code file line number
-   */
-  public Integer getLineNumber() {
+  public int getLineNumber() {
     return lineNr;
   }
-
-  public boolean stopsSimulation() {
-    return stopsSimulation;
+  public int getExecutableAddress() {
+    return address;
   }
 
   public void setStopsSimulation(boolean stops) {
     stopsSimulation = stops;
   }
+  public boolean stopsSimulation() {
+    return stopsSimulation;
+  }
 
   private void createMonitor() {
     cpuMonitor = new CPUMonitor() {
       public void cpuAction(int type, int adr, int data) {
-        breakpoints.signalBreakpointTrigger(MspBreakpoint.this);
+        if (type != CPUMonitor.EXECUTE) {
+          return;
+        }
+
+        mspMote.signalBreakpointTrigger(MspBreakpoint.this);
       }
     };
     mspMote.getCPU().addWatchPoint(address, cpuMonitor);
+
+
+    /* Remember Contiki code, to verify it when reloaded */
+    if (contikiCode == null) {
+      final String code = StringUtils.loadFromFile(codeFile);
+      if (code != null) {
+        String[] lines = code.split("\n");
+        if (lineNr-1 < lines.length) {
+          contikiCode = lines[lineNr-1].trim();
+        }
+      }
+    }
+
   }
-  
+
   public void unregisterBreakpoint() {
     mspMote.getCPU().removeWatchPoint(address, cpuMonitor);
   }
 
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
-
-    element = new Element("address");
-    element.setText(address.toString());
-    config.add(element);
 
     element = new Element("stops");
     element.setText("" + stopsSimulation);
     config.add(element);
 
-    if (codeFile != null) {
-      element = new Element("codefile");
-      File file = mspMote.getSimulation().getGUI().createPortablePath(codeFile);
-      element.setText(file.getPath().replaceAll("\\\\", "/"));
-      config.add(element);
-    }
+    element = new Element("codefile");
+    File file = mspMote.getSimulation().getGUI().createPortablePath(codeFile);
+    element.setText(file.getPath().replaceAll("\\\\", "/"));
+    config.add(element);
 
-    if (lineNr != null) {
-      element = new Element("line");
-      element.setText(lineNr.toString());
+    element = new Element("line");
+    element.setText("" + lineNr);
+    config.add(element);
+
+    if (contikiCode != null) {
+      element = new Element("contikicode");
+      element.setText(contikiCode);
       config.add(element);
     }
 
@@ -177,7 +199,7 @@ public class MspBreakpoint implements Watchpoint {
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     /* Already knows mote and breakpoints */
-    
+
     for (Element element : configXML) {
       if (element.getName().equals("codefile")) {
         File file = new File(element.getText());
@@ -193,8 +215,23 @@ public class MspBreakpoint implements Watchpoint {
         }
       } else if (element.getName().equals("line")) {
         lineNr = Integer.parseInt(element.getText());
-      } else if (element.getName().equals("address")) {
-        address = Integer.parseInt(element.getText());
+      } else if (element.getName().equals("contikicode")) {
+        String lastContikiCode = element.getText().trim();
+
+        /* Verify that Contiki code did not change */
+        final String code = StringUtils.loadFromFile(codeFile);
+        if (code != null) {
+          String[] lines = code.split("\n");
+          if (lineNr-1 < lines.length) {
+            contikiCode = lines[lineNr-1].trim();
+          }
+        }
+
+        if (!lastContikiCode.equals(contikiCode)) {
+          logger.warn("Detected modified Contiki code at breakpoint: " + codeFile.getPath() + ":" + lineNr + ".");
+          logger.warn("From: '" + lastContikiCode + "'");
+          logger.warn("  To: '" + contikiCode + "'");
+        }
       } else if (element.getName().equals("msg")) {
         msg = element.getText();
       } else if (element.getName().equals("color")) {
@@ -204,51 +241,18 @@ public class MspBreakpoint implements Watchpoint {
       }
     }
 
-    if (address == null) {
+    /* Update executable address */
+    address = mspMote.getExecutableAddressOf(codeFile, lineNr);
+    if (address < 0) {
+      logger.fatal("Could not restore breakpoint, did source code change?");
       return false;
     }
-
-    /* TODO Save source code line */
-
-    if (codeFile != null && lineNr != null) {
-      /* Update executable address */
-      address = mspMote.getBreakpointsContainer().getExecutableAddressOf(codeFile, lineNr);
-      if (address == null) {
-        logger.fatal("Could not restore breakpoint, did source code change?");
-        address = 0;
-      }
-    }
-    
     createMonitor();
+
     return true;
   }
 
-  public void setUserMessage(String msg) {
-    this.msg = msg;
+  public String toString() {
+    return getMote() + ": " + getDescription();
   }
-  public String getUserMessage() {
-    return msg;
-  }
-
-  public void setColor(Color color) {
-    this.color = color;
-  }
-
-  public String getDescription() {
-    String desc = "";
-    if (codeFile != null) {
-      desc += codeFile.getPath() + ":" + lineNr + " (0x" + Integer.toHexString(address.intValue()) + ")";
-    } else if (address != null) {
-      desc += "0x" + Integer.toHexString(address.intValue());
-    }
-    if (msg != null) {
-      desc += "\n\n" + msg;
-    }
-    return desc;
-  }
-
-  public Color getColor() {
-    return color;
-  }
-
 }

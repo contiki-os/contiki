@@ -781,6 +781,7 @@ input_packet(void)
 {
   struct lpp_hdr hdr;
   clock_time_t reception_time;
+  int ret;
 
   reception_time = clock_time();
 
@@ -845,7 +846,7 @@ input_packet(void)
           if(i->broadcast_flag == BROADCAST_FLAG_NONE ||
              i->broadcast_flag == BROADCAST_FLAG_SEND) {
             i->num_transmissions = 1;
-            NETSTACK_RADIO.send(queuebuf_dataptr(i->packet),
+            ret = NETSTACK_RADIO.send(queuebuf_dataptr(i->packet),
                                 queuebuf_datalen(i->packet));
             sent = 1;
             PRINTF("%d.%d: got a probe from %d.%d, sent packet to %d.%d\n",
@@ -860,7 +861,7 @@ input_packet(void)
           }
 #else /* WITH_PENDING_BROADCAST */
           i->num_transmissions = 1;
-          NETSTACK_RADIO.send(queuebuf_dataptr(i->packet),
+          ret = NETSTACK_RADIO.send(queuebuf_dataptr(i->packet),
                                queuebuf_datalen(i->packet));
           PRINTF("%d.%d: got a probe from %d.%d, sent packet to %d.%d\n",
                  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -879,11 +880,22 @@ input_packet(void)
              neighbors, and are dequeued by the dutycycling function
              instead, after the appropriate time. */
           if(!rimeaddr_cmp(receiver, &rimeaddr_null)) {
+#if RDC_CONF_HARDWARE_ACK   
+       
+            if(ret == RADIO_TX_OK) {
+              remove_queued_packet(i, 1);
+            } else {
+              remove_queued_packet(i, 0);
+            }
+#else
             if(detect_ack()) {
               remove_queued_packet(i, 1);
             } else {
               remove_queued_packet(i, 0);
             }
+
+#endif /* RDC_CONF_HARDWARE_ACK */
+
 
 #if WITH_PROBE_AFTER_TRANSMISSION
             /* Send a probe packet to catch any reply from the other node. */

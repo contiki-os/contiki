@@ -50,6 +50,7 @@ The COOJA Simulator
           <pathelement path="${build}"/>
           <pathelement location="lib/jdom.jar"/>
           <pathelement location="lib/log4j.jar"/>
+          <pathelement location="lib/jsyntaxpane.jar"/>
         </classpath>
     </java>
   </target>
@@ -62,6 +63,7 @@ The COOJA Simulator
       <classpath>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
+        <pathelement location="lib/jsyntaxpane.jar"/>
       </classpath>
     </javadoc>
   </target>
@@ -74,6 +76,7 @@ The COOJA Simulator
         <pathelement path="."/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
+        <pathelement location="lib/jsyntaxpane.jar"/>
       </classpath>
     </javac>
   </target>
@@ -104,6 +107,7 @@ The COOJA Simulator
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
+        <pathelement location="lib/jsyntaxpane.jar"/>
       </classpath>
     </java>
   </target>
@@ -118,6 +122,7 @@ The COOJA Simulator
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
+        <pathelement location="lib/jsyntaxpane.jar"/>
       </classpath>
     </java>
   </target>
@@ -131,6 +136,7 @@ The COOJA Simulator
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
+        <pathelement location="lib/jsyntaxpane.jar"/>
       </classpath>
     </java>
   </target>
@@ -144,6 +150,7 @@ The COOJA Simulator
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
+        <pathelement location="lib/jsyntaxpane.jar"/>
       </classpath>
     </java>
   </target>
@@ -156,6 +163,7 @@ The COOJA Simulator
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
+        <pathelement location="lib/jsyntaxpane.jar"/>
         <pathelement location="../mspsim/lib/jfreechart-1.0.11.jar"/>
         <pathelement location="../mspsim/lib/jcommon-1.0.14.jar"/>
       </classpath>
@@ -170,6 +178,7 @@ The COOJA Simulator
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
+        <pathelement location="lib/jsyntaxpane.jar"/>
       </classpath>
     </java>
   </target>
@@ -190,6 +199,7 @@ The COOJA Simulator
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
+        <pathelement location="lib/jsyntaxpane.jar"/>
       </classpath>
     </java>
   </target>
@@ -214,7 +224,7 @@ The COOJA Simulator
     <jar destfile="${dist}/cooja.jar" basedir="${build}">
       <manifest>
         <attribute name="Main-Class" value="se.sics.cooja.GUI"/>
-        <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar"/>
+        <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar lib/jsyntaxpane.jar"/>
       </manifest>
     </jar>
     <mkdir dir="${dist}/lib"/>
