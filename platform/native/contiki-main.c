@@ -172,6 +172,18 @@ main(int argc, char **argv)
   contiki_argc = argc;
   contiki_argv = argv;
 
+  /* native under windows is hardcoded to use the first one or two args */
+  /* for wpcap configuration so this needs to be "removed" from         */
+  /* contiki_args (used by the native-border-router) */
+#ifdef __CYGWIN__
+  contiki_argc--;
+  contiki_argv++;
+#ifdef UIP_FALLBACK_INTERFACE
+  contiki_argc--;
+  contiki_argv++;
+#endif
+#endif
+
   process_init();
   process_start(&etimer_process, NULL);
   ctimer_init();
