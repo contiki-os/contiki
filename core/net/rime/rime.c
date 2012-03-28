@@ -61,8 +61,6 @@
 
 #include "lib/list.h"
 
-const struct mac_driver *rime_mac;
-
 #ifdef RIME_CONF_BROADCAST_ANNOUNCEMENT_CHANNEL
 #define BROADCAST_ANNOUNCEMENT_CHANNEL RIME_CONF_BROADCAST_ANNOUNCEMENT_CHANNEL
 #else /* RIME_CONF_BROADCAST_ANNOUNCEMENT_CHANNEL */
@@ -130,7 +128,6 @@ init(void)
   packetbuf_clear();
   announcement_init();
 
-  rime_mac = &NETSTACK_MAC;
   chameleon_init();
   
   /* XXX This is initializes the transmission of announcements but it
