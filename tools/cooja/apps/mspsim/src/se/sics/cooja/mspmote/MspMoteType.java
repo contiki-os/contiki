@@ -317,7 +317,7 @@ public abstract class MspMoteType implements MoteType {
           logger.warn("Old simulation config detected: SkySerial was replaced by MspSerial");
           intfClass = MspSerial.class.getName();
         }
-        
+
         Class<? extends MoteInterface> moteInterfaceClass =
           simulation.getGUI().tryLoadClass(this, MoteInterface.class, intfClass);
 
@@ -368,7 +368,7 @@ public abstract class MspMoteType implements MoteType {
   private static ELF loadELF(String filepath) throws IOException {
     return ELF.readELF(filepath);
   }
-  
+
   private ELF elf; /* cached */
   public ELF getELF() throws IOException {
     if (elf == null) {
@@ -379,9 +379,9 @@ public abstract class MspMoteType implements MoteType {
     }
     return elf;
   }
-  
+
   private Hashtable<File, Hashtable<Integer, Integer>> debuggingInfo = null; /* cached */
-  public Hashtable<File, Hashtable<Integer, Integer>> getFirmwareDebugInfo() 
+  public Hashtable<File, Hashtable<Integer, Integer>> getFirmwareDebugInfo()
   throws IOException {
     if (debuggingInfo == null) {
       debuggingInfo = getFirmwareDebugInfo(getELF());
@@ -407,33 +407,35 @@ public abstract class MspMoteType implements MoteType {
 
     for (int address: addresses) {
       DebugInfo info = elf.getDebugInfo(address);
-
-      if (info != null && info.getPath() != null && info.getFile() != null && info.getLine() >= 0) {
-
-        /* Nasty Cygwin-Windows fix */
-        String path = info.getPath();
-        if (path.contains("/cygdrive/")) {
-          int index = path.indexOf("/cygdrive/");
-          char driveCharacter = path.charAt(index+10);
-
-          path = path.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
-        }
-
-        File file = new File(path, info.getFile());
-        try {
-          file = file.getCanonicalFile();
-        } catch (IOException e) {
-        } catch (java.security.AccessControlException e) {
-        }
-
-        Hashtable<Integer, Integer> lineToAddrHash = fileToLineHash.get(file);
-        if (lineToAddrHash == null) {
-          lineToAddrHash = new Hashtable<Integer, Integer>();
-          fileToLineHash.put(file, lineToAddrHash);
-        }
-
-        lineToAddrHash.put(info.getLine(), address);
+      if (info == null) {
+        continue;
       }
+      if (info.getPath() == null && info.getFile() == null) {
+        continue;
+      }
+      if (info.getLine() < 0) {
+        continue;
+      }
+
+      File file;
+      if (info.getPath() != null) {
+        file = new File(info.getPath(), info.getFile());
+      } else {
+        file = new File(info.getFile());
+      }
+      try {
+        file = file.getCanonicalFile();
+      } catch (IOException e) {
+      } catch (java.security.AccessControlException e) {
+      }
+
+      Hashtable<Integer, Integer> lineToAddrHash = fileToLineHash.get(file);
+      if (lineToAddrHash == null) {
+        lineToAddrHash = new Hashtable<Integer, Integer>();
+        fileToLineHash.put(file, lineToAddrHash);
+      }
+
+      lineToAddrHash.put(info.getLine(), address);
     }
 
     return fileToLineHash;
