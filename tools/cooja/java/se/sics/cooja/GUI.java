@@ -2943,24 +2943,24 @@ public class GUI extends Observable {
    *          null
    */
   public static void main(String[] args) {
-	String logConfigFile = null;
+    String logConfigFile = null;
     for (String element : args) {
-        if (element.startsWith("-log4j=")) {
-          String arg = element.substring("-log4j=".length());
-          logConfigFile = arg;
-        }
+      if (element.startsWith("-log4j=")) {
+        String arg = element.substring("-log4j=".length());
+        logConfigFile = arg;
+      }
     }
-	  
+
     try {
       // Configure logger
-	  if ( logConfigFile != null){
-		if(new File(logConfigFile).exists()) {
-			DOMConfigurator.configure(logConfigFile);
-		} else {
-			System.err.println("Failed to open " + logConfigFile);
-			System.exit(1);
-		}	    	
-      } else if ((new File(LOG_CONFIG_FILE)).exists()) {
+      if (logConfigFile != null) {
+        if (new File(logConfigFile).exists()) {
+          DOMConfigurator.configure(logConfigFile);
+        } else {
+          System.err.println("Failed to open " + logConfigFile);
+          System.exit(1);
+        }
+      } else if (new File(LOG_CONFIG_FILE).exists()) {
         DOMConfigurator.configure(LOG_CONFIG_FILE);
       } else {
         // Used when starting from jar
