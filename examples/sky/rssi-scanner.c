@@ -41,6 +41,7 @@
 
 #include "contiki.h"
 #include "net/rime.h"
+#include "net/netstack.h"
 
 #include "dev/leds.h"
 #include "dev/cc2420.h"
@@ -81,7 +82,7 @@ PROCESS_THREAD(scanner_process, ev, data)
 {
   PROCESS_BEGIN();
   /* switch mac layer off, and turn radio on */
-  rime_mac->off(0);
+  NETSTACK_MAC.off(0);
   cc2420_on();
 
   while(1) {
