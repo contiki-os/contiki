@@ -67,7 +67,6 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
-import se.sics.cooja.GUI.RunnableInEDT;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
@@ -141,6 +140,26 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     } catch (IOException e1) {
       throw new RuntimeException("No debugging info found in firmware, aborting");
     }
+
+    /* XXX Temporary workaround: source file removing duplicates awaiting Mspsim update */
+    {
+      ArrayList<String> newDebugSourceFiles = new ArrayList<String>();
+      for (String sf: debugSourceFiles) {
+        boolean found = false;
+        for (String nsf: newDebugSourceFiles) {
+          if (sf.equals(nsf)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          newDebugSourceFiles.add(sf);
+        }
+      }
+      debugSourceFiles = newDebugSourceFiles.toArray(new String[0]);
+    }
+
+
     rules = new ArrayList<Rule>();
 
     loadDefaultRules();
@@ -681,24 +700,6 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
       if (f != null && f.exists()) {
         existing.add(f);
       }
-    }
-
-    /* If no files were found, suggest map function */
-    if (debugSourceFiles.length > 0 && existing.isEmpty() && GUI.isVisualized()) {
-      new RunnableInEDT<Boolean>() {
-        public Boolean work() {
-          JOptionPane.showMessageDialog(
-              GUI.getTopParentContainer(),
-              "The firmware debug info specifies " + debugSourceFiles.length + " source files.\n" +
-              "However, MspCodeWatcher could not find any of these files.\n" +
-              "Make sure the source files were not moved after the firmware compilation.\n" +
-              "\n" +
-              "If you want to manually locate the sources, click the \"Locate sources\" button.",
-              "No source files found",
-              JOptionPane.WARNING_MESSAGE);
-          return true;
-        }
-      }.invokeAndWait();
     }
 
     /* Sort alphabetically */
