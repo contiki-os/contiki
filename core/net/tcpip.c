@@ -570,6 +570,7 @@ tcpip_ipv6_output(void)
 	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
 		 uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
 	  if(uip_ext_len > 0) {
+	    extern void remove_ext_hdr(void);
 	    uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
 	    remove_ext_hdr();
 	    /* This should be copied from the ext header... */
@@ -643,7 +644,6 @@ tcpip_ipv6_output(void)
         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
 
-      stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
       tcpip_output(&nbr->lladdr);
 
 #if UIP_CONF_IPV6_QUEUE_PKT

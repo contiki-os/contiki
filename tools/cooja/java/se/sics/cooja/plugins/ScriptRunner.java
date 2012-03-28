@@ -696,7 +696,6 @@ public class ScriptRunner extends VisPlugin {
         }
       });
       if (fileChooser.showOpenDialog(scriptRunner) != JFileChooser.APPROVE_OPTION) {
-        logger.debug("cancel");
         return;
       }
       scriptRunner.setLinkFile(fileChooser.getSelectedFile());

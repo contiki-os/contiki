@@ -166,8 +166,8 @@ loader-init.o: ${CONTIKI_TARGET}/loader/loader-init.S
 	$(AS) -o $(notdir $(<:.S=.o)) $<
 # 	cp loader-init.o build-app/
 
-.PHONY: symbols.c symbols.h
 ifdef CORE
+.PHONY: symbols.c symbols.h
 symbols.c:
 	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
 else

@@ -212,12 +212,11 @@ uip_ds6_periodic(void)
         }
         break;
       case NBR_DELAY:
-        if(stimer_expired(&locnbr->reachable) && (uip_len == 0)) {
+        if(stimer_expired(&locnbr->reachable)) {
           locnbr->state = NBR_PROBE;
-          locnbr->nscount = 1;
-          PRINTF("DELAY: moving to PROBE + NS %u\n", locnbr->nscount);
-          uip_nd6_ns_output(NULL, &locnbr->ipaddr, &locnbr->ipaddr);
-          stimer_set(&locnbr->sendns, uip_ds6_if.retrans_timer / 1000);
+          locnbr->nscount = 0;
+          PRINTF("DELAY: moving to PROBE\n");
+          stimer_set(&locnbr->sendns, 0);
         }
         break;
       case NBR_PROBE:
