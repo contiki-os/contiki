@@ -643,7 +643,6 @@ tcpip_ipv6_output(void)
         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
 
-      stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
       tcpip_output(&nbr->lladdr);
 
 #if UIP_CONF_IPV6_QUEUE_PKT
