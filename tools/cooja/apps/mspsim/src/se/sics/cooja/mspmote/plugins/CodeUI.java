@@ -163,6 +163,8 @@ public class CodeUI extends JPanel {
         }
 
         /* Configure breakpoint menu options */
+        /* XXX TODO We should ask for the file specified in the firmware, not
+         * the actual file on disk. */
         Integer address =
           CodeUI.this.mote.getExecutableAddressOf(displayedFile, line);
         if (address == null) {
