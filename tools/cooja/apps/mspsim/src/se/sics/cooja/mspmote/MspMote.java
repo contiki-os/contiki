@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Observable;
 
@@ -582,9 +581,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     /* Match file */
     Hashtable<Integer, Integer> lineTable = debuggingInfo.get(file);
     if (lineTable == null) {
-      Enumeration<File> fileEnum = debuggingInfo.keys();
-      while (fileEnum.hasMoreElements()) {
-        File f = fileEnum.nextElement();
+      for (File f: debuggingInfo.keySet()) {
         if (f != null && f.getName().equals(file.getName())) {
           lineTable = debuggingInfo.get(f);
           break;
@@ -598,9 +595,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     /* Match line number */
     Integer address = lineTable.get(lineNr);
     if (address != null) {
-      Enumeration<Integer> lineEnum = lineTable.keys();
-      while (lineEnum.hasMoreElements()) {
-        Integer l = lineEnum.nextElement();
+      for (Integer l: lineTable.keySet()) {
         if (l != null && l.intValue() == lineNr) {
           /* Found line address */
           return lineTable.get(l);
