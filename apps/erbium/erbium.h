@@ -269,8 +269,8 @@ resource_t resource_##name = {NULL, flags, url, attributes, parent##_handler, NU
  */
 #define EVENT_RESOURCE(name, flags, url, attributes) \
 void name##_handler(void *, void *, uint8_t *, uint16_t, int32_t *); \
-resource_t resource_##name = {NULL, flags, url, attributes, name##_handler, NULL, NULL, NULL}; \
-int name##_event_handler(resource_t*)
+void name##_event_handler(resource_t*); \
+resource_t resource_##name = {NULL, flags, url, attributes, name##_handler, NULL, NULL, NULL}
 
 /*
  * Macro to define a periodic resource

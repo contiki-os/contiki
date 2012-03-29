@@ -60,6 +60,9 @@ LIST(observers_list);
 coap_observer_t *
 coap_add_observer(uip_ipaddr_t *addr, uint16_t port, const uint8_t *token, size_t token_len, const char *url)
 {
+  /* Remove existing observe relationship, if any. */
+  coap_remove_observer_by_url(addr, port, url);
+
   coap_observer_t *o = memb_alloc(&observers_memb);
 
   if (o)

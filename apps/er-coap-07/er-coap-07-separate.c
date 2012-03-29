@@ -54,7 +54,7 @@
 #endif
 
 /*----------------------------------------------------------------------------*/
-int
+void
 coap_separate_reject()
 {
   coap_error_code = SERVICE_UNAVAILABLE_5_03;
