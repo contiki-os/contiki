@@ -36,7 +36,7 @@
 #include "dev/button-sensor.h"
 #include "debug.h"
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/uip-debug.h"
 
 #define PING6_NB 5
@@ -47,7 +47,6 @@
 
 static struct etimer ping6_periodic_timer;
 static uint8_t count = 0;
-static uint16_t addr[8];
 static uip_ipaddr_t dest_addr;
 
 PROCESS(ping6_process, "PING6 process");
@@ -81,9 +80,9 @@ ping6handler()
     UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
 
-    PRINTF("Echo Request to");
+    PRINTF("Echo Request to ");
     PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-    PRINTF("from");
+    PRINTF(" from ");
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
     PRINTF("\n");
     UIP_STAT(++uip_stat.icmp.sent);
