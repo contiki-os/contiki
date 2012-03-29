@@ -47,7 +47,7 @@ typedef unsigned short uip_stats_t;
 #define CLIF
 
 /* Single asm instruction without messing up syntax highlighting */
-#if defined SDCC_mcs51
+#if defined(__SDCC_mcs51) || defined(SDCC_mcs51)
 #define ASM(x) __asm \
   x \
   __endasm
