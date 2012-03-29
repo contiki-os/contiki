@@ -381,16 +381,14 @@ separate_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
    */
   if (separate_active)
   {
-    REST.set_response_status(response, REST.status.SERVICE_UNAVAILABLE);
-    const char *msg = "AlreadyInUse";
-    REST.set_response_payload(response, msg, strlen(msg));
+    coap_separate_reject();
   }
   else
   {
     separate_active = 1;
 
     /* Take over and skip response by engine. */
-    coap_separate_yield(request, &separate_store->request_metadata);
+    coap_separate_accept(request, &separate_store->request_metadata);
     /* Be aware to respect the Block2 option, which is also stored in the coap_separate_t. */
 
     /*
@@ -710,8 +708,7 @@ PROCESS_THREAD(rest_server_example, ev, data)
   rest_activate_event_resource(&resource_event);
 #endif
 #if defined (PLATFORM_HAS_BUTTON) && REST_RES_SEPARATE && WITH_COAP > 3
-  /* Use this pre-handler for separate response resources. */
-  rest_set_pre_handler(&resource_separate, coap_separate_handler);
+  /* No pre-handler anymore, user coap_separate_accept() and coap_separate_reject(). */
   rest_activate_resource(&resource_separate);
 #endif
 #if defined (PLATFORM_HAS_BUTTON) && (REST_RES_EVENT || (REST_RES_SEPARATE && WITH_COAP > 3))

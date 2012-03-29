@@ -5,7 +5,9 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 # for static routing, if enabled
 ifneq ($(TARGET), minimal-net)
+ifneq ($(TARGET), native)
 PROJECT_SOURCEFILES += static-routing.c
+endif
 endif
 
 # variable for root Makefile.include
@@ -25,7 +27,7 @@ else
 ${info INFO: compiling without RPL}
 UIP_CONF_RPL=0
 CFLAGS += -DUIP_CONF_ND6_DEF_MAXDADNS=0
-CFLAGS += -DHARD_CODED_ADDRESS=\"2001:620:8:1010::10\"
+CFLAGS += -DHARD_CODED_ADDRESS=\"fdfd::10\"
 CFLAGS += -DUIP_CONF_BUFFER_SIZE=1280
 endif
 
@@ -37,13 +39,11 @@ ifeq ($(WITH_COAP), 7)
 ${info INFO: compiling with CoAP-07}
 CFLAGS += -DWITH_COAP=7
 CFLAGS += -DREST=coap_rest_implementation
-CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-07
 else ifeq ($(WITH_COAP), 3)
 ${info INFO: compiling with CoAP-03}
 CFLAGS += -DWITH_COAP=3
 CFLAGS += -DREST=coap_rest_implementation
-CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-03
 else
 ${info INFO: compiling with HTTP}
