@@ -42,6 +42,7 @@ import se.sics.cooja.Mote;
 import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteMemory;
+import se.sics.mspsim.core.Memory;
 import se.sics.mspsim.core.MemoryMonitor;
 
 /**
@@ -112,7 +113,7 @@ public class MspMoteID extends MoteID {
 		    memoryMonitor = new MemoryMonitor.Adapter() {
 
 		        @Override
-		        public void notifyWriteAfter(int dstAddress, int data, int mode) {
+		        public void notifyWriteAfter(int dstAddress, int data, Memory.AccessMode mode) {
 		            byte[] id = new byte[2];
 		            id[0] = (byte) (moteID & 0xff);
 		            id[1] = (byte) ((moteID >> 8) & 0xff);
