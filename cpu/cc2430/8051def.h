@@ -75,8 +75,8 @@ typedef unsigned short clock_time_t;
 	__endasm; 		\
 }
 
-/* Macro for a soft reset. In many respects better than H/W reboot via W/D */
-#define SOFT_RESET() {((void (__code *) (void)) 0x0000) ();}
+/* Macro for a soft reset. */
+#define SOFT_RESET() do {((void (__code *) (void)) 0x0000) ();} while(0)
 
 /* We don't provide architecture-specific checksum calculations */
 #define UIP_ARCH_ADD32		0
