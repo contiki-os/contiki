@@ -81,7 +81,7 @@ public class MspDebugOutput extends Log {
     this.mote.getCPU().addWatchPoint(mem.getVariableAddress(CONTIKI_POINTER),
         memoryMonitor = new MemoryMonitor.Adapter() {
         @Override
-        public void notifyWriteAfter(int adr, int data, int mode) {
+        public void notifyWriteAfter(int adr, int data, Memory.AccessMode mode) {
           String msg = extractString(mem, data);
           if (msg != null && msg.length() > 0) {
             lastLog = "DEBUG: " + msg;

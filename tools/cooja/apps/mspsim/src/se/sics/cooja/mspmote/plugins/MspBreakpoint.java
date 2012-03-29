@@ -133,7 +133,7 @@ public class MspBreakpoint implements Watchpoint {
   private void createMonitor() {
     memoryMonitor = new MemoryMonitor.Adapter() {
       @Override
-      public void notifyReadBefore(int addr, int mode, Memory.AccessType type) {
+      public void notifyReadBefore(int addr, Memory.AccessMode mode, Memory.AccessType type) {
         if (type != Memory.AccessType.EXECUTE) {
           return;
         }

@@ -37,6 +37,7 @@ import se.sics.cooja.AddressMemory;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteMemory;
 import se.sics.mspsim.core.MSP430;
+import se.sics.mspsim.core.Memory.AccessMode;
 import se.sics.mspsim.core.Memory.AccessType;
 import se.sics.mspsim.util.MapEntry;
 
@@ -199,12 +200,12 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     }
 
     @Override
-    public void notifyReadAfter(int address, int mode, AccessType type) {
+    public void notifyReadAfter(int address, AccessMode mode, AccessType type) {
         mm.memoryChanged(MspMoteMemory.this, MemoryEventType.READ, address);
     }
 
     @Override
-    public void notifyWriteAfter(int dstAddress, int data, int mode) {
+    public void notifyWriteAfter(int dstAddress, int data, AccessMode mode) {
         mm.memoryChanged(MspMoteMemory.this, MemoryEventType.WRITE, dstAddress);
     }
   }
