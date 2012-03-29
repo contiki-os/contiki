@@ -40,12 +40,7 @@
 #define CC_CONF_FUNCTION_POINTER_KEYWORD __reentrant
 
 /* Generic types. */
-typedef unsigned char   u8_t;      /* 8 bit type */
-typedef unsigned short u16_t;      /* 16 bit type */
-typedef unsigned long  u32_t;      /* 32 bit type */
-typedef   signed long  s32_t;      /* 32 bit type */
 typedef unsigned short uip_stats_t;
-
 
 /* Time type. */
 typedef unsigned short clock_time_t;

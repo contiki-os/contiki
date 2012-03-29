@@ -46,8 +46,8 @@
 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 
 static struct etimer ping6_periodic_timer;
-static u8_t count = 0;
-static u16_t addr[8];
+static uint8_t count = 0;
+static uint16_t addr[8];
 static uip_ipaddr_t dest_addr;
 
 PROCESS(ping6_process, "PING6 process");
@@ -74,8 +74,8 @@ ping6handler()
 
 
     uip_len = UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN + UIP_IPH_LEN + PING6_DATALEN;
-    UIP_IP_BUF->len[0] = (u8_t)((uip_len - 40) >> 8);
-    UIP_IP_BUF->len[1] = (u8_t)((uip_len - 40) & 0x00FF);
+    UIP_IP_BUF->len[0] = (uint8_t)((uip_len - 40) >> 8);
+    UIP_IP_BUF->len[1] = (uint8_t)((uip_len - 40) & 0x00FF);
 
     UIP_ICMP_BUF->icmpchksum = 0;
     UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
