@@ -758,8 +758,7 @@ send_next_packet(struct collect_conn *tc)
 static void
 handle_ack(struct collect_conn *tc)
 {
-  struct ack_msg *msg;
-  uint16_t rtmetric;
+  struct ack_msg msg;
   struct collect_neighbor *n;
 
   PRINTF("handle_ack: sender %d.%d current_parent %d.%d, id %d seqno %d\n",
@@ -778,8 +777,7 @@ handle_ack(struct collect_conn *tc)
            (int)(((100 * (clock_time() - tc->send_time)) / CLOCK_SECOND) % 100));*/
     
     stats.ackrecv++;
-    msg = packetbuf_dataptr();
-    memcpy(&rtmetric, &msg->rtmetric, sizeof(uint16_t));
+    memcpy(&msg, packetbuf_dataptr(), sizeof(struct ack_msg));
 
     /* It is possible that we receive an ACK for a packet that we
        think we have not yet sent: if our transmission was received by
@@ -797,7 +795,7 @@ handle_ack(struct collect_conn *tc)
 
     if(n != NULL) {
       collect_neighbor_tx(n, tc->transmissions);
-      collect_neighbor_update_rtmetric(n, rtmetric);
+      collect_neighbor_update_rtmetric(n, msg.rtmetric);
       update_rtmetric(tc);
     }
 
@@ -805,8 +803,8 @@ handle_ack(struct collect_conn *tc)
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
            tc->current_parent.u8[0], tc->current_parent.u8[1],
            tc->transmissions,
-           msg->flags,
-           rtmetric);
+           msg.flags,
+           msg.rtmetric);
 
     /* The ack contains information about the state of the packet and
        of the node that received it. We do different things depending
@@ -814,20 +812,20 @@ handle_ack(struct collect_conn *tc)
        the receiving node was congested. If so, we add a maximum
        transmission number to its routing metric, which increases the
        chance that another parent will be chosen. */
-    if(msg->flags & ACK_FLAGS_CONGESTED) {
+    if(msg.flags & ACK_FLAGS_CONGESTED) {
       PRINTF("ACK flag indicated parent was congested.\n");
       collect_neighbor_set_congested(n);
       collect_neighbor_tx(n, tc->max_rexmits * 2);
       update_rtmetric(tc);
     }
-    if((msg->flags & ACK_FLAGS_DROPPED) == 0) {
+    if((msg.flags & ACK_FLAGS_DROPPED) == 0) {
       /* If the packet was successfully received, we send the next packet. */
       send_next_packet(tc);
     } else {
       /* If the packet was lost due to its lifetime being exceeded,
          there is not much more we can do with the packet, so we send
          the next one instead. */
-      if((msg->flags & ACK_FLAGS_LIFETIME_EXCEEDED)) {
+      if((msg.flags & ACK_FLAGS_LIFETIME_EXCEEDED)) {
         send_next_packet(tc);
       } else {
         /* If the packet was dropped, but without the node being
@@ -845,7 +843,7 @@ handle_ack(struct collect_conn *tc)
 
     /* Our neighbor's rtmetric needs to be updated, so we bump our
        advertisements. */
-    if(msg->flags & ACK_FLAGS_RTMETRIC_NEEDS_UPDATE) {
+    if(msg.flags & ACK_FLAGS_RTMETRIC_NEEDS_UPDATE) {
       bump_advertisement(tc);
     }
     set_keepalive_timer(tc);
