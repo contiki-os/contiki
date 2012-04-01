@@ -98,7 +98,7 @@ uint8_t rf_error = 0;
 #endif
 
 /*---------------------------------------------------------------------------*/
-#if !SHORTCUTS_CONF_NETSTACK
+#if !NETSTACK_CONF_SHORTCUTS
 PROCESS(cc2430_rf_process, "CC2430 RF driver");
 #endif
 /*---------------------------------------------------------------------------*/
@@ -152,7 +152,7 @@ flush_rx()
   cc2430_rf_command(ISFLUSHRX);
   cc2430_rf_command(ISFLUSHRX);
 
-#if !SHORTCUTS_CONF_NETSTACK
+#if !NETSTACK_CONF_SHORTCUTS
   IEN2 |= RFIE;
 #endif
 #if CC2430_RFERR_INTERRUPT
@@ -338,7 +338,7 @@ init(void)
   RFIF &= ~(IRQ_FIFOP);
 
   S1CON &= ~(RFIF_0 | RFIF_1);
-#if !SHORTCUTS_CONF_NETSTACK
+#if !NETSTACK_CONF_SHORTCUTS
   IEN2 |= RFIE;
 #endif
 
@@ -351,7 +351,7 @@ init(void)
   RF_RX_LED_OFF();
   rf_initialized = 1;
 
-#if !SHORTCUTS_CONF_NETSTACK
+#if !NETSTACK_CONF_SHORTCUTS
   process_start(&cc2430_rf_process, NULL);
 #endif
 
@@ -476,7 +476,7 @@ read(void *buf, unsigned short bufsize)
 #endif /* CC2420_CONF_CHECKSUM */
 
   /* Don't interrupt us while emptying the FIFO */
-#if !SHORTCUTS_CONF_NETSTACK
+#if !NETSTACK_CONF_SHORTCUTS
   IEN2 &= ~RFIE;
 #endif
 #if CC2430_RFERR_INTERRUPT
@@ -576,7 +576,7 @@ read(void *buf, unsigned short bufsize)
 
   RF_RX_LED_OFF();
 
-#if !SHORTCUTS_CONF_NETSTACK
+#if !NETSTACK_CONF_SHORTCUTS
   IEN2 |= RFIE;
 #endif
 #if CC2430_RFERR_INTERRUPT
@@ -688,7 +688,7 @@ const struct radio_driver cc2430_rf_driver =
     off,
 };
 /*---------------------------------------------------------------------------*/
-#if !SHORTCUTS_CONF_NETSTACK
+#if !NETSTACK_CONF_SHORTCUTS
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc2430_rf_process, ev, data)
 {

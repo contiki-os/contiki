@@ -69,9 +69,9 @@
  *   - process_post_synch() in tcpip_uipcall (we call the relevant pthread)
  *   - mac_call_sent_callback() is replaced with sent() in various places
  *
- * These are good things to do, we reduce stack usage, RAM size and code size
+ * These are good things to do, they reduce stack usage and prevent crashes
  */
-#define SHORTCUTS_CONF_NETSTACK   1
+#define NETSTACK_CONF_SHORTCUTS   1
 
 /*
  * Sensors
