@@ -10,12 +10,6 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
-/* Time type. */
-typedef unsigned short clock_time_t;
-
-/* Defines tick counts for a second. */
-#define CLOCK_CONF_SECOND		128
-
 /* Energest Module */
 #ifndef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON      0

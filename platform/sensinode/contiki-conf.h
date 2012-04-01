@@ -10,9 +10,6 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
-/* Defines tick counts for a second. */
-#define CLOCK_CONF_SECOND		128
-
 /* The clock ISR is stack-hungry and may cause crashes.
  * Define this as 0 if you are suffering from frequent stack overflows */
 #ifndef CLOCK_CONF_ACCURATE
