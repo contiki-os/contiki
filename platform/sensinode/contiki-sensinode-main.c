@@ -118,7 +118,7 @@ set_rime_addr(void)
     /* Don't interrupt us to make sure no BANK switching happens while working */
     DISABLE_INTERRUPTS();
 
-    /* Switch to BANK3, map CODE: 0x8000 – 0xFFFF to FLASH: 0x18000 – 0x1FFFF */
+    /* Switch to BANK3, map CODE: 0x8000 - 0xFFFF to FLASH: 0x18000 - 0x1FFFF */
     FMAP = 3;
 
     /* Set our pointer to the correct address and fetch 8 bytes of MAC */
@@ -129,7 +129,7 @@ set_rime_addr(void)
       macp++;
     }
 
-    /* Remap 0x8000 – 0xFFFF to BANK1 */
+    /* Remap 0x8000 - 0xFFFF to BANK1 */
     FMAP = 1;
     ENABLE_INTERRUPTS();
 
