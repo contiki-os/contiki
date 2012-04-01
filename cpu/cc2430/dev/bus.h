@@ -49,9 +49,6 @@
 #define inline
 
 void bus_init(void);
-#if !SHORTCUTS_CONF_FLASH_READ
-void flash_read(uint8_t *buf, uint32_t address, uint8_t size);
-#endif
 void clock_ISR( void ) __interrupt (ST_VECTOR);
 
 #endif /* __BUS_H__ */

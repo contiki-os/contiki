@@ -96,12 +96,6 @@
 #define SHORTCUTS_CONF_NETSTACK   1
 
 /*
- * Directly read mac from flash with a __code pointer, instead of using the
- * generic flash_read() routine. This reduces HOME code size
- */
-#define SHORTCUTS_CONF_FLASH_READ 1
-
-/*
  * Sensors
  * It is harmless to #define XYZ 1
  * even if the sensor is not present on our device

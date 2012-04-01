@@ -99,12 +99,7 @@ set_rime_addr(void)
   uint8_t *addr_long = NULL;
   uint16_t addr_short = 0;
   char i;
-
-#if SHORTCUTS_CONF_FLASH_READ
   __code unsigned char * macp;
-#else
-  static uint8_t ft_buffer[8];
-#endif
 
   PUTSTRING("Rime is 0x");
   PUTHEX(sizeof(rimeaddr_t));
@@ -112,7 +107,6 @@ set_rime_addr(void)
 
   if(node_id == 0) {
     PUTSTRING("Reading MAC from flash\n");
-#if SHORTCUTS_CONF_FLASH_READ
     /*
      * The MAC is always stored in 0x1FFF8 of our flash. This maps to address
      * 0xFFF8 of our CODE segment, when BANK3 is selected.
@@ -138,18 +132,6 @@ set_rime_addr(void)
     /* Remap 0x8000 – 0xFFFF to BANK1 */
     FMAP = 1;
     ENABLE_INTERRUPTS();
-#else
-    /*
-     * Or use the more generic flash_read() routine which can read from any
-     * address of our flash
-     */
-    flash_read(ft_buffer, 0x1FFF8, 8);
-
-    /* Flip the byte order and store MSB first */
-    for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
-      rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1 - i] = ft_buffer[i];
-    }
-#endif
 
   } else {
     PUTSTRING("Setting manual address from node_id\n");
