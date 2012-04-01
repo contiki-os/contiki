@@ -40,8 +40,8 @@
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
-#ifndef SENSINODE_DEBUG_H_
-#define SENSINODE_DEBUG_H_
+#ifndef DEBUG_H_
+#define DEBUG_H_
 
 #include "8051def.h"
 #include "dev/uart1.h"
@@ -51,4 +51,4 @@ void putstring(char *s);
 void puthex(uint8_t c);
 void putbin(uint8_t c);
 
-#endif /* SENSINODE_DEBUG_H_ */
+#endif /* DEBUG_H_ */

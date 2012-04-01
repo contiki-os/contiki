@@ -35,7 +35,7 @@
 
 #if CONTIKI_TARGET_SENSINODE
 #include "dev/sensinode-sensors.h"
-#include "sensinode-debug.h"
+#include "debug.h"
 #endif
 
 #define DEBUG DEBUG_NONE

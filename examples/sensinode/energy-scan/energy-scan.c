@@ -40,7 +40,7 @@
 #include "contiki.h"
 #include "cc2430_sfr.h"
 
-#include "sensinode-debug.h"
+#include "debug.h"
 #include "dev/cc2430_rf.h"
 #include <stdio.h>
 

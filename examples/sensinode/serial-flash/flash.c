@@ -49,7 +49,7 @@
 #define DEBUG 1
 #if DEBUG
 #include <stdio.h>
-#include "sensinode-debug.h"
+#include "debug.h"
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PUTBIN(b) putbin(b)
 #else
