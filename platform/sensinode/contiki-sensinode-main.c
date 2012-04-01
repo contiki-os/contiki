@@ -15,7 +15,7 @@
 #include "net/rime.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
-#include "sensinode-debug.h"
+#include "debug.h"
 #include "dev/watchdog-cc2430.h"
 #include "dev/sensinode-sensors.h"
 #include "disco.h"
