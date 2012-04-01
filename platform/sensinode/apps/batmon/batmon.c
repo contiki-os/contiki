@@ -99,7 +99,7 @@ static struct etimer et;
 PROCESS(batmon_process, "Logger Process");
 /*---------------------------------------------------------------------------*/
 static int
-find_gap()
+find_gap() CC_NON_BANKED
 {
   uint8_t seq[3];
   uint32_t address = FLASH_START_ADDR;
@@ -124,7 +124,7 @@ find_gap()
 }
 /*---------------------------------------------------------------------------*/
 static void
-abort()
+abort() CC_NON_BANKED
 {
   PRINTF("BatMon: Abort\n");
   etimer_stop(&et);

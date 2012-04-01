@@ -95,7 +95,7 @@ __xdata __at(BOOTTY_CMD_LOCATION) static uint8_t bd;
 static void timer_handler(void * p);
 /*---------------------------------------------------------------------------*/
 static void
-abort()
+abort() CC_NON_BANKED
 {
   PRINTF("Disco: Abort @ %lu\n", clock_seconds());
   n740_analog_deactivate();
@@ -108,7 +108,7 @@ abort()
 }
 /*---------------------------------------------------------------------------*/
 static void
-restart_timer(uint16_t t)
+restart_timer(uint16_t t) CC_NON_BANKED
 {
   interval = t;
   ctimer_stop(&disco_timer);
@@ -160,7 +160,9 @@ timer_handler(void * p)
   }
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t is_protected(uint8_t a) {
+static uint8_t
+is_protected(uint8_t a) CC_NON_BANKED
+{
   uint8_t bp = M25P16_BP() >> 2;
 
   if(bp > 5) {
@@ -176,7 +178,7 @@ static uint8_t is_protected(uint8_t a) {
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
-cmd_init()
+cmd_init() CC_NON_BANKED
 {
   PRINTF("Disco: Init 0x%02x\n", req->addr[0]);
   if(uip_datalen() != DISCO_LEN_INIT) {
@@ -209,7 +211,7 @@ cmd_init()
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
-cmd_write()
+cmd_write() CC_NON_BANKED
 {
   PRINTF("Disco: Write 0x%02x%02x%02x\n", req->addr[0], req->addr[1], req->addr[2]);
   if(uip_datalen() != DISCO_LEN_WRITE) {
@@ -228,7 +230,7 @@ cmd_write()
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
-cmd_switch()
+cmd_switch() CC_NON_BANKED
 {
   PRINTF("Disco: Switch 0x%02x\n", req->addr[0]);
   if(uip_datalen() != DISCO_LEN_SWITCH) {
@@ -253,7 +255,7 @@ cmd_switch()
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
-cmd_done()
+cmd_done() CC_NON_BANKED
 {
   PRINTF("Disco: Done\n");
   if(uip_datalen() != DISCO_LEN_DONE) {
@@ -268,7 +270,7 @@ cmd_done()
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
-event_handler(process_event_t ev)
+event_handler(process_event_t ev) CC_NON_BANKED
 {
   uint8_t rv = DISCO_RESPONSE_NONE;
 
