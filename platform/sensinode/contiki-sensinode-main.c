@@ -32,7 +32,7 @@ PROCESS_NAME(viztool_process);
 PROCESS_NAME(batmon_process);
 #endif
 
-#if SHORTCUTS_CONF_NETSTACK
+#if NETSTACK_CONF_SHORTCUTS
 static __data int len;
 #endif
 
@@ -306,7 +306,7 @@ main(void)
 #endif
       r = process_run();
     } while(r > 0);
-#if SHORTCUTS_CONF_NETSTACK
+#if NETSTACK_CONF_SHORTCUTS
     len = NETSTACK_RADIO.pending_packet();
     if(len) {
       packetbuf_clear();
