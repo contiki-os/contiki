@@ -254,7 +254,6 @@ main(void)
       watchdog_periodic();
       r = process_run();
     } while(r > 0);
-#if SHORTCUTS_CONF_NETSTACK
     len = NETSTACK_RADIO.pending_packet();
     if(len) {
       packetbuf_clear();
@@ -264,7 +263,6 @@ main(void)
         NETSTACK_RDC.input();
       }
     }
-#endif
 
 #if LPM_MODE
 #if (LPM_MODE==LPM_MODE_PM2)

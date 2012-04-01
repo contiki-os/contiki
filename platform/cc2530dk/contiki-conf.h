@@ -64,10 +64,6 @@
 
 /* Code Shortcuts */
 /*
- * When set, the RF driver is no longer a contiki process and the RX ISR is
- * disabled. Instead of polling the radio process when data arrives, we
- * periodically check for data by directly invoking the driver from main()
-
  * When set, this directive also configures the following bypasses:
  *   - process_post_synch() in tcpip_input() (we call packet_input())
  *   - process_post_synch() in tcpip_uipcall (we call the relevant pthread)
