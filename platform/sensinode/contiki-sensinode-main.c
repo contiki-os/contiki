@@ -72,7 +72,7 @@ static unsigned long irq_energest = 0;
 #endif
 /*---------------------------------------------------------------------------*/
 static void
-fade(int l)
+fade(int l) CC_NON_BANKED
 {
   volatile int i, a;
   int k, j;
@@ -91,7 +91,7 @@ fade(int l)
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_rime_addr(void)
+set_rime_addr(void) CC_NON_BANKED
 {
   uint8_t *addr_long = NULL;
   uint16_t addr_short = 0;

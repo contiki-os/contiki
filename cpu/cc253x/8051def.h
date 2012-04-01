@@ -38,6 +38,13 @@
 #define CC_CONF_UNSIGNED_CHAR_BUGS	0
 #define CC_CONF_REGISTER_ARGS		0
 #define CC_CONF_FUNCTION_POINTER_KEYWORD __reentrant
+#define CC_CONF_NON_BANKED_OPTIMIZATION 1
+
+#if (defined(__SDCC_mcs51) || defined(SDCC_mcs51)) && CC_CONF_NON_BANKED_OPTIMIZATION
+#define CC_NON_BANKED __nonbanked
+#else
+#define CC_NON_BANKED
+#endif
 
 /* Generic types. */
 typedef unsigned short uip_stats_t;

@@ -63,7 +63,7 @@
 /*---------------------------------------------------------------------------*/
 /* Bit-Bang write a byte to the chip */
 static void
-bit_bang_write(uint8_t byte)
+bit_bang_write(uint8_t byte) CC_NON_BANKED
 {
   uint8_t i;
   uint8_t bit;
@@ -85,7 +85,7 @@ bit_bang_write(uint8_t byte)
 /*---------------------------------------------------------------------------*/
 /* Bit-Bang read a byte from the chip */
 static uint8_t
-bit_bang_read()
+bit_bang_read() CC_NON_BANKED
 {
   int8_t i;
   uint8_t bits = 0;
@@ -102,7 +102,7 @@ bit_bang_read()
 }
 /*---------------------------------------------------------------------------*/
 static void
-select()
+select() CC_NON_BANKED
 {
   /* Read current ser/par value */
   uint8_t ser_par = n740_ser_par_get();
@@ -116,7 +116,7 @@ select()
 }
 /*---------------------------------------------------------------------------*/
 static void
-deselect()
+deselect() CC_NON_BANKED
 {
   /* Read current ser/par value */
   uint8_t ser_par = n740_ser_par_get();

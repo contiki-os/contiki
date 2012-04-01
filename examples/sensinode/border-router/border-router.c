@@ -50,7 +50,7 @@ PROCESS(border_router_process, "Border Router process");
 AUTOSTART_PROCESSES(&border_router_process);
 /*---------------------------------------------------------------------------*/
 static void
-print_local_addresses(void)
+print_local_addresses(void) CC_NON_BANKED
 {
   int i;
   uint8_t state;
@@ -70,8 +70,9 @@ print_local_addresses(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-void
-request_prefix(void) {
+static void
+request_prefix(void) CC_NON_BANKED
+{
   /* mess up uip_buf with a dirty request... */
   uip_buf[0] = '?';
   uip_buf[1] = 'P';
@@ -82,7 +83,8 @@ request_prefix(void) {
 /*---------------------------------------------------------------------------*/
 /* Set our prefix when we receive one over SLIP */
 void
-set_prefix_64(uip_ipaddr_t *prefix_64) {
+set_prefix_64(uip_ipaddr_t *prefix_64)
+{
   rpl_dag_t *dag;
   uip_ipaddr_t ipaddr;
   memcpy(&ipaddr, prefix_64, 16);

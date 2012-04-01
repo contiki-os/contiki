@@ -73,7 +73,7 @@ extern uip_ds6_nbr_t uip_ds6_nbr_cache[UIP_DS6_NBR_NB];
 extern uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_DEFRT_NB];
 /*---------------------------------------------------------------------------*/
 static uint8_t
-process_request()
+process_request() CC_NON_BANKED
 {
   uint8_t len;
   uint8_t count; /* How many did we pack? */
@@ -251,7 +251,7 @@ process_request()
 PROCESS(viztool_process, "Network Visualization Tool Process");
 /*---------------------------------------------------------------------------*/
 static void
-tcpip_handler(void)
+tcpip_handler(void) CC_NON_BANKED
 {
   if(uip_newdata()) {
     memset(buf, 0, VIZTOOL_MAX_PAYLOAD_LEN);
