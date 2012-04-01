@@ -1,7 +1,7 @@
 /*
  * \file
  *	This file contains a set of configuration for using SDCC as a compiler.
- *	Modified from z80 port for cc2430 port.
+ *	This is based on the cc2430 file (which in turn is based on the z80 one)
  *
  * \author
  *	 Takahide Matsutsuka <markn@markn.org> (Original)
@@ -41,6 +41,12 @@
 
 /* Generic types. */
 typedef unsigned short uip_stats_t;
+
+/* Time type. */
+typedef unsigned short clock_time_t;
+#define MAX_TICKS (~((clock_time_t)0) / 2)
+/* Defines tick counts for a second. */
+#define CLOCK_CONF_SECOND   128
 
 /* Compiler configurations */
 #define CCIF
