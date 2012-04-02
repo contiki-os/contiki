@@ -44,14 +44,14 @@
 /* Sleep timer runs on the 32k RC osc. */
 /* One clock tick is 7.8 ms */
 #define TICK_VAL (32768/128)  /* 256 */
-
-/* Used in sleep timer interrupt for calculating the next interrupt time */
-static unsigned long timer_value;
+/*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
 volatile __bit sleep_flag;
 #else
 #endif
-
+/*---------------------------------------------------------------------------*/
+/* Used in sleep timer interrupt for calculating the next interrupt time */
+static unsigned long timer_value;
 static volatile __data clock_time_t count = 0; /* Uptime in ticks */
 static volatile __data clock_time_t seconds = 0; /* Uptime in secs */
 /*---------------------------------------------------------------------------*/

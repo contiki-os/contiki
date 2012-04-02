@@ -29,7 +29,7 @@
 #define ENERGEST_CONF_ON      0
 #endif
 
-/* Verbose Startup? Turning this off saves 700+ bytes of CODE in HOME */
+/* Verbose Startup? Turning this off reduces our footprint a fair bit */
 #define STARTUP_CONF_VERBOSE  0
 
 /* More CODE space savings by turning off process names */
@@ -37,9 +37,9 @@
 
 /*
  * UARTs: 1=>Enabled, 0=>Disabled. Default: Both Disabled (see uart.h)
- * Disabling UART0 saves ~200 bytes of CODE.
- * Disabling UART1 saves ~500 bytes of CODE but also disables all debugging
- * output. Should be used when nodes are meant to run on batteries
+ * Disabling UARTs reduces our CODE footprint
+ * Disabling UART1 also disables all debugging output.
+ * Should be used when nodes are meant to run on batteries
  *
  * On N740, by enabling UART1, you are also enabling an ugly hack which aims
  * to detect the USB connection during execution. It will then turn on/off
