@@ -10,10 +10,12 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
-/* The clock ISR is stack-hungry and may cause crashes.
- * Define this as 0 if you are suffering from frequent stack overflows */
-#ifndef CLOCK_CONF_ACCURATE
-#define CLOCK_CONF_ACCURATE 1
+/*
+ * Define this as 1 to poll the etimer process from within main instead of from
+ * the clock ISR. This reduces the ISR's stack usage and may prevent crashes.
+ */
+#ifndef CLOCK_CONF_STACK_FRIENDLY
+#define CLOCK_CONF_STACK_FRIENDLY 1
 #endif
 
 /* Memory filesystem RAM size. */
