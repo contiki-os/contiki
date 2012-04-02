@@ -60,6 +60,9 @@ LIST(observers_list);
 coap_observer_t *
 coap_add_observer(uip_ipaddr_t *addr, uint16_t port, const uint8_t *token, size_t token_len, const char *url)
 {
+  /* Remove existing observe relationship, if any. */
+  coap_remove_observer_by_url(addr, port, url);
+
   coap_observer_t *o = memb_alloc(&observers_memb);
 
   if (o)
@@ -164,42 +167,50 @@ coap_remove_observer_by_mid(uip_ipaddr_t *addr, uint16_t port, uint16_t mid)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_notify_observers(const char *url, int type, uint32_t observe, uint8_t *payload, size_t payload_len)
+coap_notify_observers(resource_t *resource, uint16_t obs_counter, void *notification)
 {
+  coap_packet_t *const coap_res = (coap_packet_t *) notification;
   coap_observer_t* obs = NULL;
+  uint8_t preferred_type = coap_res->type;
+
+  PRINTF("Observing: Notification from %s\n", resource->url);
+
+  /* Iterate over observers. */
   for (obs = (coap_observer_t*)list_head(observers_list); obs; obs = obs->next)
   {
-    if (obs->url==url) /* using RESOURCE url pointer as handle */
+    if (obs->url==resource->url) /* using RESOURCE url pointer as handle */
     {
       coap_transaction_t *transaction = NULL;
 
-      /*TODO implement special transaction for CON, sharing the same buffer to allow for more observers */
+      /*TODO implement special transaction for CON, sharing the same buffer to allow for more observers. */
 
       if ( (transaction = coap_new_transaction(coap_get_mid(), &obs->addr, obs->port)) )
       {
-        /* Use CON to check whether client is still there/interested after COAP_OBSERVING_REFRESH_INTERVAL. */
-        if (stimer_expired(&obs->refresh_timer))
-        {
-          PRINTF("Observing: Refresh client with CON\n");
-          type = COAP_TYPE_CON;
-          stimer_restart(&obs->refresh_timer);
-        }
-
-        /* prepare response */
-        coap_packet_t push[1]; /* This way the packet can be treated as pointer as usual. */
-        coap_init_message(push, (coap_message_type_t)type, CONTENT_2_05, transaction->mid );
-        coap_set_header_observe(push, observe);
-        coap_set_header_token(push, obs->token, obs->token_len);
-        coap_set_payload(push, payload, payload_len);
-        transaction->packet_len = coap_serialize_message(push, transaction->packet);
-
-        PRINTF("Observing: Notify from /%s for ", url);
+        PRINTF("           Observer ");
         PRINT6ADDR(&obs->addr);
         PRINTF(":%u\n", obs->port);
-        PRINTF("  %.*s\n", payload_len, payload);
 
         /* Update last MID for RST matching. */
         obs->last_mid = transaction->mid;
+
+        /* Prepare response */
+        coap_res->mid = transaction->mid;
+        coap_set_header_observe(coap_res, obs_counter);
+        coap_set_header_token(coap_res, obs->token, obs->token_len);
+
+        /* Use CON to check whether client is still there/interested after COAP_OBSERVING_REFRESH_INTERVAL. */
+        if (stimer_expired(&obs->refresh_timer))
+        {
+          PRINTF("           Refreshing with CON\n");
+          coap_res->type = COAP_TYPE_CON;
+          stimer_restart(&obs->refresh_timer);
+        }
+        else
+        {
+          coap_res->type = preferred_type;
+        }
+
+        transaction->packet_len = coap_serialize_message(coap_res, transaction->packet);
 
         coap_send_transaction(transaction);
       }

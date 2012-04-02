@@ -41,7 +41,7 @@
 
 #if CONTIKI_TARGET_SENSINODE
 #include "dev/sensinode-sensors.h"
-#include "sensinode-debug.h"
+#include "debug.h"
 #else
 #define putstring(s)
 #endif
@@ -77,7 +77,7 @@ tcpip_handler(void)
     leds_on(LEDS_RED);
     len = uip_datalen();
     memcpy(buf, uip_appdata, len);
-    PRINTF("%u bytes from [", len, *(uint16_t *)buf);
+    PRINTF("%u bytes from [", len);
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
     PRINTF("]:%u", UIP_HTONS(UIP_UDP_BUF->srcport));
     PRINTF(" V=%u", *buf);

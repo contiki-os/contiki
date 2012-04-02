@@ -46,7 +46,7 @@
 #include "dev/leds.h"
 #if CONTIKI_TARGET_SENSINODE
 #include "dev/sensinode-sensors.h"
-#include "sensinode-debug.h"
+#include "debug.h"
 #endif
 
 #define DEBUG 0

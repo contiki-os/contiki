@@ -15,7 +15,7 @@
 #include "net/rime.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
-#include "sensinode-debug.h"
+#include "debug.h"
 #include "dev/watchdog-cc2430.h"
 #include "dev/sensinode-sensors.h"
 #include "disco.h"
@@ -32,7 +32,7 @@ PROCESS_NAME(viztool_process);
 PROCESS_NAME(batmon_process);
 #endif
 
-#if SHORTCUTS_CONF_NETSTACK
+#if NETSTACK_CONF_SHORTCUTS
 static __data int len;
 #endif
 
@@ -99,12 +99,7 @@ set_rime_addr(void)
   uint8_t *addr_long = NULL;
   uint16_t addr_short = 0;
   char i;
-
-#if SHORTCUTS_CONF_FLASH_READ
   __code unsigned char * macp;
-#else
-  static uint8_t ft_buffer[8];
-#endif
 
   PUTSTRING("Rime is 0x");
   PUTHEX(sizeof(rimeaddr_t));
@@ -112,7 +107,6 @@ set_rime_addr(void)
 
   if(node_id == 0) {
     PUTSTRING("Reading MAC from flash\n");
-#if SHORTCUTS_CONF_FLASH_READ
     /*
      * The MAC is always stored in 0x1FFF8 of our flash. This maps to address
      * 0xFFF8 of our CODE segment, when BANK3 is selected.
@@ -124,7 +118,7 @@ set_rime_addr(void)
     /* Don't interrupt us to make sure no BANK switching happens while working */
     DISABLE_INTERRUPTS();
 
-    /* Switch to BANK3, map CODE: 0x8000 – 0xFFFF to FLASH: 0x18000 – 0x1FFFF */
+    /* Switch to BANK3, map CODE: 0x8000 - 0xFFFF to FLASH: 0x18000 - 0x1FFFF */
     FMAP = 3;
 
     /* Set our pointer to the correct address and fetch 8 bytes of MAC */
@@ -135,21 +129,9 @@ set_rime_addr(void)
       macp++;
     }
 
-    /* Remap 0x8000 – 0xFFFF to BANK1 */
+    /* Remap 0x8000 - 0xFFFF to BANK1 */
     FMAP = 1;
     ENABLE_INTERRUPTS();
-#else
-    /*
-     * Or use the more generic flash_read() routine which can read from any
-     * address of our flash
-     */
-    flash_read(ft_buffer, 0x1FFF8, 8);
-
-    /* Flip the byte order and store MSB first */
-    for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
-      rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1 - i] = ft_buffer[i];
-    }
-#endif
 
   } else {
     PUTSTRING("Setting manual address from node_id\n");
@@ -324,7 +306,7 @@ main(void)
 #endif
       r = process_run();
     } while(r > 0);
-#if SHORTCUTS_CONF_NETSTACK
+#if NETSTACK_CONF_SHORTCUTS
     len = NETSTACK_RADIO.pending_packet();
     if(len) {
       packetbuf_clear();

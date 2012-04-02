@@ -111,7 +111,7 @@ PROCESS_THREAD(clock_test_process, ev, data)
     etimer_reset(&et);
 
     sec = clock_seconds();
-    printf("%u seconds\n", (u16_t) sec);
+    printf("%u seconds\n", (uint16_t) sec);
 
     leds_toggle(LEDS_GREEN);
     i++;
