@@ -13,7 +13,7 @@
 
 #include "cc2430_sfr.h"
 #include "8051def.h"
-#include "sensinode-debug.h"
+#include "debug.h"
 
 static const char hexconv[] = "0123456789abcdef";
 static const char binconv[] = "01";

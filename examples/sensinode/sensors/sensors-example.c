@@ -96,7 +96,7 @@
 #if DEBUG
 #include <stdio.h>
 #if CONTIKI_TARGET_SENSINODE
-#include "sensinode-debug.h"
+#include "debug.h"
 #endif /* CONTIKI_TARGET_SENSINODE */
 #define PRINTF(...) printf(__VA_ARGS__)
 #else /* DEBUG */

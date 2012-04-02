@@ -96,23 +96,22 @@ static void
 adv_packet_received(struct broadcast_conn *ibc, const rimeaddr_t *from)
 {
   struct neighbor_discovery_conn *c = (struct neighbor_discovery_conn *)ibc;
-  struct adv_msg *msg = packetbuf_dataptr();
-  uint16_t val;
+  struct adv_msg msg;
 
-  memcpy(&val, &msg->val, sizeof(val));
+  memcpy(&msg, packetbuf_dataptr(), sizeof(struct adv_msg));
 
   PRINTF("%d.%d: adv_packet_received from %d.%d with val %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 from->u8[0], from->u8[1], val);
+	 from->u8[0], from->u8[1], msg.val);
   
   /* If we receive an announcement with a lower value than ours, we
      cancel our own announcement. */
-  if(val < c->val) {
+  if(msg.val < c->val) {
     /*    ctimer_stop(&c->send_timer);*/
   }
 
   if(c->u->recv) {
-    c->u->recv(c, from, val);
+    c->u->recv(c, from, msg.val);
   }
 }
 /*---------------------------------------------------------------------------*/

@@ -71,7 +71,6 @@ extern uip_ds6_netif_t uip_ds6_if;
 extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[UIP_DS6_NBR_NB];
 extern uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_DEFRT_NB];
-extern u16_t uip_len;
 /*---------------------------------------------------------------------------*/
 static uint8_t
 process_request()

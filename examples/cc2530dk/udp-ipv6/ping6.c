@@ -36,16 +36,8 @@
 #include "dev/button-sensor.h"
 #include "debug.h"
 
-#define DEBUG 1
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#endif
+#define DEBUG DEBUG_PRINT
+#include "net/uip-debug.h"
 
 #define PING6_NB 5
 #define PING6_DATALEN 16
@@ -54,8 +46,7 @@
 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 
 static struct etimer ping6_periodic_timer;
-static u8_t count = 0;
-static u16_t addr[8];
+static uint8_t count = 0;
 static uip_ipaddr_t dest_addr;
 
 PROCESS(ping6_process, "PING6 process");
@@ -82,16 +73,16 @@ ping6handler()
 
 
     uip_len = UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN + UIP_IPH_LEN + PING6_DATALEN;
-    UIP_IP_BUF->len[0] = (u8_t)((uip_len - 40) >> 8);
-    UIP_IP_BUF->len[1] = (u8_t)((uip_len - 40) & 0x00FF);
+    UIP_IP_BUF->len[0] = (uint8_t)((uip_len - 40) >> 8);
+    UIP_IP_BUF->len[1] = (uint8_t)((uip_len - 40) & 0x00FF);
 
     UIP_ICMP_BUF->icmpchksum = 0;
     UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
 
-    PRINTF("Echo Request to");
+    PRINTF("Echo Request to ");
     PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-    PRINTF("from");
+    PRINTF(" from ");
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
     PRINTF("\n");
     UIP_STAT(++uip_stat.icmp.sent);

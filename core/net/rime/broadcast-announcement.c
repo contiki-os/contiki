@@ -56,7 +56,6 @@
 #endif
 
 #include <string.h>
-#include <stdio.h>
 #include <stddef.h>
 
 struct announcement_data {
@@ -131,32 +130,31 @@ static void
 adv_packet_received(struct broadcast_conn *ibc, const rimeaddr_t *from)
 {
   struct announcement_msg adata;
+  struct announcement_data data;
+  uint8_t *ptr;
   int i;
 
+  ptr = packetbuf_dataptr();
+
   /* Copy number of announcements */
-  memcpy(&adata, packetbuf_dataptr(), sizeof(struct announcement_msg));
+  memcpy(&adata, ptr, sizeof(struct announcement_msg));
   PRINTF("%d.%d: adv_packet_received from %d.%d with %d announcements\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], adata.num);
 
-  if(adata.num / sizeof(struct announcement_data) > sizeof(struct announcement_msg)) {
+  if(ANNOUNCEMENT_MSG_HEADERLEN + adata.num * sizeof(struct announcement_data) > packetbuf_datalen()) {
     /* The number of announcements is too large - corrupt packet has
        been received. */
-    printf("adata.num way out there: %d\n", adata.num);
+    PRINTF("adata.num way out there: %d\n", adata.num);
     return;
   }
-  
-  for(i = 0; i < adata.num; ++i) {
-    struct announcement_data data;
 
+  ptr += ANNOUNCEMENT_MSG_HEADERLEN;
+  for(i = 0; i < adata.num; ++i) {
     /* Copy announcements */
-    memcpy(&data.id, &((struct announcement_msg *)packetbuf_dataptr())->data[i].id,
-          sizeof(uint16_t));
-    memcpy(&data.value, &((struct announcement_msg *)packetbuf_dataptr())->data[i].value,
-          sizeof(uint16_t));
-    announcement_heard(from,
-		       data.id,
-		       data.value);
+    memcpy(&data, ptr, sizeof(struct announcement_data));
+    announcement_heard(from, data.id, data.value);
+    ptr += sizeof(struct announcement_data);
   }
 }
 /*---------------------------------------------------------------------------*/
