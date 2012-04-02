@@ -47,6 +47,11 @@
 /* One clock tick is 7.8 ms */
 #define TICK_VAL (32768/128)  /* 256 */
 /*---------------------------------------------------------------------------*/
+#if CLOCK_CONF_STACK_FRIENDLY
+volatile __bit sleep_flag;
+#else
+#endif
+/*---------------------------------------------------------------------------*/
 /* Do NOT remove the absolute address and do NOT remove the initialiser here */
 __xdata __at(0x0000) static unsigned long timer_value = 0;
 
@@ -158,10 +163,14 @@ clock_isr(void) __interrupt(ST_VECTOR)
     ++seconds;
   }
   
+#if CLOCK_CONF_STACK_FRIENDLY
+  sleep_flag = 1;
+#else
   if(etimer_pending()
       && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
     etimer_request_poll();
   }
+#endif
   
   STIF = 0; /* IRCON.STIF */
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
