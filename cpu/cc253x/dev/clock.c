@@ -59,15 +59,16 @@ static volatile __data clock_time_t count = 0; /* Uptime in ticks */
 static volatile __data clock_time_t seconds = 0; /* Uptime in secs */
 /*---------------------------------------------------------------------------*/
 /**
- * One delay is about 0.6 us, so this function delays for len * 0.6 us
+ * Each iteration is ~1.0xy usec, so this function delays for roughly len usec
  */
 void
 clock_delay(unsigned int len)
 {
-  unsigned int i;
-  for(i = 0; i< len; i++) {
+  DISABLE_INTERRUPTS();
+  while(len--) {
     ASM(nop);
   }
+  ENABLE_INTERRUPTS();
 }
 /*---------------------------------------------------------------------------*/
 /**
