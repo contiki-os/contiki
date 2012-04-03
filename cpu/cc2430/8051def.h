@@ -52,6 +52,15 @@ typedef unsigned short clock_time_t;
 #define CCIF
 #define CLIF
 
+/* Single asm instruction without messing up syntax highlighting */
+#if defined(__SDCC_mcs51) || defined(SDCC_mcs51)
+#define ASM(x) __asm \
+  x \
+  __endasm
+#else
+#define ASM(x)
+#endif
+
 /* Critical section management */
 #define DISABLE_INTERRUPTS()  do {EA = 0;} while(0)
 #define ENABLE_INTERRUPTS()   do {EA = 1;} while(0)
