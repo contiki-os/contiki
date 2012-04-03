@@ -60,7 +60,6 @@ uart0_init()
   UART0_RX_EN();
 
   UART0_RX_INT(1);
-  U0DBUF = 0;
 }
 /*---------------------------------------------------------------------------*/
 /* Write one byte over the UART. */
