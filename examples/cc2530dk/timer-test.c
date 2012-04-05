@@ -1,9 +1,7 @@
 /**
  * \file
  *         Tests related to clocks and timers
- *
- *         This is clock_test.c plus a small addition by George Oikonomou
- *         (Loughborough University) in order to test the rtimer
+ *         This is based on clock_test.c from the original sensinode port
  *
  * \author
  *         Zach Shelby <zach@sensinode.com> (Original)
@@ -17,7 +15,6 @@
 #include "dev/leds.h"
 
 #include <stdio.h>
-
 /*---------------------------------------------------------------------------*/
 #define TEST_CLOCK_DELAY     1
 #define TEST_RTIMER          1
@@ -27,7 +24,7 @@
 static struct etimer et;
 
 #if TEST_CLOCK_DELAY
-static clock_time_t start_count, end_count, diff;
+static rtimer_clock_t start_count, end_count, diff;
 #endif
 
 #if TEST_CLOCK_SECONDS
@@ -70,12 +67,13 @@ PROCESS_THREAD(clock_test_process, ev, data)
 #if TEST_CLOCK_DELAY
   printf("Clock delay test, (10,000 x i) cycles:\n");
   i = 1;
-  while(i < 6) {
-    start_count = clock_time();
+  while(i < 7) {
+    start_count = RTIMER_NOW();
     clock_delay(10000 * i);
-    end_count = clock_time();
+    end_count = RTIMER_NOW();
     diff = end_count - start_count;
-    printf("Delayed %u = %u ticks = ~%u ms\n", 10000 * i, diff, diff * 8);
+    printf("Delayed %u = %u rtimer ticks = ~%u us\n", 10000 * i, diff,
+        diff * 64);
     i++;
   }
 #endif

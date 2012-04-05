@@ -10,6 +10,14 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
+/*
+ * Define this as 1 to poll the etimer process from within main instead of from
+ * the clock ISR. This reduces the ISR's stack usage and may prevent crashes.
+ */
+#ifndef CLOCK_CONF_STACK_FRIENDLY
+#define CLOCK_CONF_STACK_FRIENDLY 1
+#endif
+
 /* Energest Module */
 #ifndef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON      0
