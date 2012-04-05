@@ -27,15 +27,14 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * $Id: clock.c,v 1.1 2009/09/08 20:07:35 zdshelby Exp $
  */
 
 /**
  * \file
- *         Implementation of the clock functions for the 8051 CPU
+ *         Implementation of the clock functions for the cc253x.
+ *         Ported over from the cc243x original.
  * \author
- *         Zach Shelby (zach@sensinode.com) - original
+ *         Zach Shelby (zach@sensinode.com) - original (cc243x)
  *         George Oikonomou - <oikonomou@users.sourceforge.net> - cc2530 port
  */
 #include "sfr-bits.h"
@@ -47,8 +46,11 @@
 /* Sleep timer runs on the 32k RC osc. */
 /* One clock tick is 7.8 ms */
 #define TICK_VAL (32768/128)  /* 256 */
-
-#define MAX_TICKS (~((clock_time_t)0) / 2)
+/*---------------------------------------------------------------------------*/
+#if CLOCK_CONF_STACK_FRIENDLY
+volatile __bit sleep_flag;
+#else
+#endif
 /*---------------------------------------------------------------------------*/
 /* Do NOT remove the absolute address and do NOT remove the initialiser here */
 __xdata __at(0x0000) static unsigned long timer_value = 0;
@@ -57,15 +59,16 @@ static volatile __data clock_time_t count = 0; /* Uptime in ticks */
 static volatile __data clock_time_t seconds = 0; /* Uptime in secs */
 /*---------------------------------------------------------------------------*/
 /**
- * One delay is about 0.6 us, so this function delays for len * 0.6 us
+ * Each iteration is ~1.0xy usec, so this function delays for roughly len usec
  */
 void
 clock_delay(unsigned int len)
 {
-  unsigned int i;
-  for(i = 0; i< len; i++) {
+  DISABLE_INTERRUPTS();
+  while(len--) {
     ASM(nop);
   }
+  ENABLE_INTERRUPTS();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -117,7 +120,7 @@ clock_init(void)
   CLKCONCMD |= CLKCONCMD_TICKSPD2 | CLKCONCMD_TICKSPD1;
   while(CLKCONSTA != CLKCONCMD);
 
-  /*Initialize tick value*/
+  /* Initialize tick value */
   timer_value = ST0;
   timer_value += ((unsigned long int) ST1) << 8;
   timer_value += ((unsigned long int) ST2) << 16;
@@ -126,7 +129,7 @@ clock_init(void)
   ST1 = (unsigned char) (timer_value >> 8);
   ST0 = (unsigned char) timer_value;
   
-  STIE = 1;		/* IEN0.STIE interrupt enable */
+  STIE = 1; /* IEN0.STIE interrupt enable */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -134,15 +137,6 @@ clock_isr(void) __interrupt(ST_VECTOR)
 {
   DISABLE_INTERRUPTS();
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  /*
-   * If the Sleep timer throws an interrupt while we are powering down to
-   * PM1, we need to abort the power down. Clear SLEEP.MODE, this will signal
-   * main() to abort the PM1 transition
-   *
-   * On cc2430 this would be:
-   * SLEEPCMD &= 0xFC;
-   */
 
   /*
    * Read value of the ST0:ST1:ST2, add TICK_VAL and write it back.
@@ -170,10 +164,14 @@ clock_isr(void) __interrupt(ST_VECTOR)
     ++seconds;
   }
   
+#if CLOCK_CONF_STACK_FRIENDLY
+  sleep_flag = 1;
+#else
   if(etimer_pending()
       && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
     etimer_request_poll();
   }
+#endif
   
   STIF = 0; /* IRCON.STIF */
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
