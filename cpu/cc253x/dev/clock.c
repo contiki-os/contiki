@@ -75,7 +75,7 @@ clock_delay(unsigned int len)
  * Wait for a multiple of ~8 ms (a tick)
  */
 void
-clock_wait(int i)
+clock_wait(clock_time_t i)
 {
   clock_time_t start;
 

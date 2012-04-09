@@ -46,6 +46,7 @@
 #include "net/mac/frame802154.h"
 #include "dev/button-sensor.h"
 #include "dev/adxl345.h"
+#include "sys/clock.h"
 
 #if WITH_UIP6
 #include "net/uip-ds6.h"
@@ -105,7 +106,6 @@ static uint8_t is_gateway;
 #endif
 
 void init_platform(void);
-void clock_wait(int i);
 
 /*---------------------------------------------------------------------------*/
 #if 0

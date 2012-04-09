@@ -33,6 +33,7 @@
 
 #include "contiki.h"
 #include "contiki-esb.h"
+#include "sys/clock.h"
 
 #define ON  1
 #define OFF 0
