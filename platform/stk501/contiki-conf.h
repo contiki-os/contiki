@@ -45,17 +45,40 @@
 /*
  * MCU and clock rate. Various MCUs can be inserted in the ZIF socket.
  */
+ /* Platform name, type, and MCU clock rate */
+#define PLATFORM_NAME  "STK501"
+#define PLATFORM_TYPE  STK501
 #ifndef MCU
 #define MCU      atmega128
 #endif
 #ifndef F_CPU
-#define F_CPU    16000000UL
+#define F_CPU          16000000UL
 #endif
-#define PLATFORM PLATFORM_AVR
 
-/* Cock ticks per second */
+#define HAVE_STDINT_H
+#include "avrdef.h"
+
+/* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.
+ * 125 Hz needs slightly more overhead during the interrupt, as does a 32 bit
+ * clock_time_t.
+ */
+ /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /*Default uses 600*/
+#if 1
+/* 16 bit counter overflows every ~10 minutes */
+typedef unsigned short clock_time_t;
+#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffff
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#else
+typedef unsigned long clock_time_t;
+#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffffffff
+#endif
+/* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
+void clock_delay_msec(uint16_t howlong);
+void clock_adjust_ticks(clock_time_t howmany);
 
 /* COM port to be used for SLIP connection */
 #define SLIP_PORT RS232_PORT_0
@@ -83,13 +106,7 @@
 #define HAVE_STDINT_H
 #include "avrdef.h"
 
-typedef unsigned short clock_time_t;
 typedef unsigned short uip_stats_t;
 typedef unsigned long off_t;
-
-void clock_delay(unsigned int us2);
-void clock_wait(int ms10);
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
 
 #endif /* __CONTIKI_CONF_H__ */

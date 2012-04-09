@@ -130,7 +130,7 @@ void clock_delay(unsigned int i)
  * Wait for a multiple of 1 ms.
  *
  */
-void clock_wait(int i)
+void clock_wait(clock_time_t i)
 {
   clock_time_t start;
 

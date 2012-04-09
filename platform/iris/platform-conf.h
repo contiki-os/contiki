@@ -44,13 +44,34 @@
  * Definitions below are dictated by the hardware and not really
  * changeable!
  */
-#define PLATFORM PLATFORM_AVR
+/* Platform name, type, and MCU clock rate */
+#define PLATFORM_NAME  "Iris"
+#define PLATFORM_TYPE  IRIS
+#ifndef F_CPU
+#define F_CPU          8000000UL
+#endif
 
-#define HARWARE_REVISION IRIS
-
+/* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.
+ * 125 Hz needs slightly more overhead during the interrupt, as does a 32 bit
+ * clock_time_t.
+ */
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 128
-
+#if 1
+/* 16 bit counter overflows every ~10 minutes */
+typedef unsigned short clock_time_t;
+#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffff
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#else
+typedef unsigned long clock_time_t;
+#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffffffff
+#endif
+/* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
+void clock_delay_msec(uint16_t howlong);
+void clock_adjust_ticks(clock_time_t howmany);
 
 /* LED ports */
 #define LEDS_PxDIR DDRA // port direction register
