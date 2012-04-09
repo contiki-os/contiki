@@ -1057,7 +1057,6 @@ PT_THREAD(ajax_call(struct httpd_state *s, char *ptr))
   static int iter;
   static char buf[128];
   static uint8_t numprinted;
-  uint16_t dt;  
   PSOCK_BEGIN(&s->sout);
 
 #if WEBSERVER_CONF_PASSQUERY

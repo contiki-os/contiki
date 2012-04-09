@@ -3,7 +3,7 @@
 function e(el){return document.getElementById(el);}
 function ls(){try{r=new XMLHttpRequest();}catch(e){alert("Browswer does not support Ajax");return false;}r.open("GET","/ajaxdata.shtml",true);
 x=0;r.onreadystatechange=function(){e('date').innerHTML=(new Date()).toTimeString();if(r.readyState>0){j=r.responseText.substr(x);x+=j.length;eval(j);}};r.send(null);}
-function tb(x){var t=e('ss');if(x||t.value=="RUN"){t.value="STOP";ls();}else{t.value="RUN";r.abort();}}
+function tb(x){var t=e('ss');try{r.abort();}if(x||t.value=="RUN"){t.value="STOP";ls();}else t.value="RUN";}
 function s(el,n,max,text){e(el).innerHTML='<table width=504 border=0 cellpadding=1 cellspacing=0>'+'<tr><td width=200>'+text+'</td>'+'<td width='+(10+300*n/max)+' bgcolor="gray">&nbsp;</td>'+'<td width='+(310-300*n/max)+' bgcolor="lightgray">&nbsp;</td>'+'</table>';}
 function wt(m){document.title=m;e('v').innerHTML=m;}
 function dc(n,d){return n.toFixed(d);}
