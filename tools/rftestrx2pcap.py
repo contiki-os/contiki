@@ -40,11 +40,13 @@ while chan != int(sys.argv[2]) - 11:
 	while 1:
 		chanstr += os.read(serport, 1)
 		m = re.match(".*channel: (\w+)\s+", chanstr)
-		if m != None:
+		if m is not None:
 			chan = int(m.group(1))
 			break
 
 os.close(serport)
+
+sys.stderr.write("RX: 0")
 
 try:
 	serport = open(sys.argv[1], 'r+')
@@ -75,7 +77,7 @@ try:
 
 		m_rftestline = re.match(".*rftest-rx --- len 0x(\w\w).*", line)
 
-		if m_rftestline != None:
+		if m_rftestline is not None:
 			newpacket = 1
 			t = time.time()
 			sec = int(t)
@@ -102,7 +104,8 @@ try:
 			for d in line.split(' '):
 				# do a match because their might be a \r floating around
 				m = re.match('.*(\w\w).*', d)
-				sys.stdout.write(pack('<B', int(m.group(1),16)))
+				if m is not None:
+					sys.stdout.write(pack('<B', int(m.group(1),16)))
 
 
 #             cn.recv_block()
