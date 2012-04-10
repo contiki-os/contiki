@@ -11,18 +11,23 @@ CONTIKI_CPU=$(CONTIKI)/cpu/msp430
 
 ### Define the source files we have in the MSP430 port
 
-ifneq (,$(findstring msp430x1,$(MCU)))
- CONTIKI_CPU_FAM_DIR = f1xxx
-else
- ifneq (,$(findstring msp430x5,$(MCU)))
-  CONTIKI_CPU_FAM_DIR = f5xxx
- else
-   ifneq (,$(findstring msp430x2,$(MCU)))
-     CONTIKI_CPU_FAM_DIR = f2xxx f1xxx
-   else
-     ${error Unhandled MSP430 family: "$(MCU)"}
-   endif
+ifndef CONTIKI_CPU_FAM_DIR
+ ifneq (,$(findstring msp430f1,$(MCU)))
+  CONTIKI_CPU_FAM_DIR = f1xxx
  endif
+endif
+ifndef CONTIKI_CPU_FAM_DIR
+ ifneq (,$(findstring msp430f5,$(MCU)))
+  CONTIKI_CPU_FAM_DIR = f5xxx
+ endif
+endif
+ifndef CONTIKI_CPU_FAM_DIR
+ ifneq (,$(findstring msp430f2,$(MCU)))
+  CONTIKI_CPU_FAM_DIR = f2xxx f1xxx
+ endif
+endif
+ifndef CONTIKI_CPU_FAM_DIR
+ ${error Unhandled MSP430 family: "$(MCU)"}
 endif
 
 CONTIKI_CPU_DIRS = $(CONTIKI_CPU_FAM_DIR) . dev
@@ -54,9 +59,9 @@ STRIP    = strip
 
 ifndef IAR_PATH
 # This works with cygwin...
-IAR_BIN_PATH = $(shell dirname "`which $(CC)`")
-IAR_PATH_C = $(shell dirname "$(IAR_BIN_PATH)")
-IAR_PATH = $(shell cygpath -m "$(IAR_PATH_C)")
+IAR_BIN_PATH := $(shell dirname "`which $(CC)`")
+IAR_PATH_C := $(shell dirname "$(IAR_BIN_PATH)")
+IAR_PATH := $(shell cygpath -m "$(IAR_PATH_C)")
 endif
 
 CFLAGS += --diag_suppress=Pa050 --silent
@@ -101,11 +106,33 @@ NM       = msp430-nm
 OBJCOPY  = msp430-objcopy
 STRIP    = msp430-strip
 BSL      = msp430-bsl
+
+# From version 4.6.x, mspgcc does not support generic MCU identifiers such as
+# msp430x1611 in contrast to msp430f1611
+ifndef CC_MCU
+ ifndef MSPGCC_VERSION
+  MSPGCC_VERSION := ${shell $(CC) -dumpversion}
+ endif
+endif
+ifndef CC_MCU
+ ifneq (,$(findstring 4.4.,$(MSPGCC_VERSION)))
+  CC_MCU := ${subst msp430f,msp430x,$(MCU)}
+ endif
+endif
+ifndef CC_MCU
+ ifneq (,$(findstring 3.2.,$(MSPGCC_VERSION)))
+  CC_MCU := ${subst msp430f,msp430x,$(MCU)}
+ endif
+endif
+ifndef CC_MCU
+ CC_MCU := $(MCU)
+endif
+
 ifndef CFLAGSNO
-CFLAGSNO = -Wall -mmcu=$(MCU) -g $(CFLAGSWERROR)
+CFLAGSNO = -Wall -mmcu=$(CC_MCU) -g $(CFLAGSWERROR)
 endif
 CFLAGS  += -Os -fno-strict-aliasing
-LDFLAGS += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
+LDFLAGS += -mmcu=$(CC_MCU) -Wl,-Map=contiki-$(TARGET).map
 
 ### These flags can reduce the code size and RAM usage with up to 10%
 ifeq ($(SMALL),1)

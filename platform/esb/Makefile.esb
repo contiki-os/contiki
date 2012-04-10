@@ -50,7 +50,7 @@ endif
 
 include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
 
-MCU=msp430x149
+MCU=msp430f149
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
 ifdef IAR

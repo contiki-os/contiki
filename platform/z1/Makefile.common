@@ -36,7 +36,7 @@ endif
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
 CONTIKI_TARGET_SOURCEFILES += i2cmaster.c adxl345.c
 
-MCU=msp430x2617
+MCU=msp430f2617
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
 # Add LDFLAGS after IAR_PATH is set
