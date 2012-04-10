@@ -1,17 +1,18 @@
 <?xml version="1.0"?>
 
 <project name="Cooja: Power Tracker" default="jar" basedir=".">
-	<property name="cooja" location="../.."/>
+  <property name="cooja" location="../.."/>
   <property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
 
-  <available file="${cooja_jar}" type="file" property="cooja_jar_exists"/>
-  <fail message="COOJA jar not found at '${cooja_jar}'. Please compile COOJA first." unless="cooja_jar_exists"/>
+
 
   <target name="init">
     <tstamp/>
   </target>
 	
   <target name="compile" depends="init">
+    <available file="${cooja_jar}" type="file" property="cooja_jar_exists"/>
+    <fail message="COOJA jar not found at '${cooja_jar}'. Please compile COOJA first." unless="cooja_jar_exists"/>
     <mkdir dir="build"/>
     <javac srcdir="java" destdir="build" debug="on" includeantruntime="false">
       <classpath>
