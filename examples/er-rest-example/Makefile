@@ -5,7 +5,9 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 # for static routing, if enabled
 ifneq ($(TARGET), minimal-net)
+ifneq ($(TARGET), native)
 PROJECT_SOURCEFILES += static-routing.c
+endif
 endif
 
 # variable for root Makefile.include
@@ -37,13 +39,11 @@ ifeq ($(WITH_COAP), 7)
 ${info INFO: compiling with CoAP-07}
 CFLAGS += -DWITH_COAP=7
 CFLAGS += -DREST=coap_rest_implementation
-CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-07
 else ifeq ($(WITH_COAP), 3)
 ${info INFO: compiling with CoAP-03}
 CFLAGS += -DWITH_COAP=3
 CFLAGS += -DREST=coap_rest_implementation
-CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-03
 else
 ${info INFO: compiling with HTTP}

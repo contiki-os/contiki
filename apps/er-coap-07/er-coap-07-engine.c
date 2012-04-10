@@ -67,13 +67,13 @@
 
 PROCESS(coap_receiver, "CoAP Receiver");
 
-/*-----------------------------------------------------------------------------------*/
-/*- Variables -----------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*- Variables ----------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 static service_callback_t service_cbk = NULL;
-/*-----------------------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 static
 int
 handle_incoming_data(void)
@@ -279,27 +279,27 @@ handle_incoming_data(void)
 
   return coap_error_code;
 }
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 void
 coap_receiver_init()
 {
   process_start(&coap_receiver, NULL);
 }
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 void
 coap_set_service_callback(service_callback_t callback)
 {
   service_cbk = callback;
 }
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 rest_resource_flags_t
 coap_get_rest_method(void *packet)
 {
   return (rest_resource_flags_t)(1 << (((coap_packet_t *)packet)->code - 1));
 }
-/*-----------------------------------------------------------------------------------*/
-/*- Server part ---------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*- Server part --------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 
 /* The discover resource is automatically included for CoAP. */
 RESOURCE(well_known_core, METHOD_GET, ".well-known/core", "ct=40");
@@ -311,8 +311,19 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
     size_t tmplen = 0;
     resource_t* resource = NULL;
 
+    /* For filtering. */
+    const char *filter = NULL;
+    int len = coap_get_query_variable(request, "rt", &filter);
+    char *rt = NULL;
+
     for (resource = (resource_t*)list_head(rest_get_resources()); resource; resource = resource->next)
     {
+      /* Filtering */
+      if (len && ((rt=strstr(resource->attributes, "rt=\""))==NULL || memcmp(rt+4, filter, len-1)!=0 || (filter[len-1]!='*' && (filter[len-1]!=rt[3+len] || rt[4+len]!='"'))))
+      {
+        continue;
+      }
+
       PRINTF("res: /%s (%p)\npos: s%d, o%d, b%d\n", resource->url, resource, strpos, *offset, bufpos);
 
       if (strpos >= *offset && bufpos < preferred_size)
@@ -390,7 +401,7 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
       coap_set_payload(response, buffer, bufpos );
       coap_set_header_content_type(response, APPLICATION_LINK_FORMAT);
     }
-    else
+    else if (strpos>0)
     {
       PRINTF("well_known_core_handler(): bufpos<=0\n");
 
@@ -408,7 +419,7 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
       *offset += preferred_size;
     }
 }
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 PROCESS_THREAD(coap_receiver, ev, data)
 {
   PROCESS_BEGIN();
@@ -433,15 +444,15 @@ PROCESS_THREAD(coap_receiver, ev, data)
 
   PROCESS_END();
 }
-/*-----------------------------------------------------------------------------------*/
-/*- Client part ---------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*- Client part --------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 void blocking_request_callback(void *callback_data, void *response) {
   struct request_state_t *state = (struct request_state_t *) callback_data;
   state->response = (coap_packet_t*) response;
   process_poll(state->process);
 }
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t ev,
                                 uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
                                 coap_packet_t *request,
@@ -509,9 +520,9 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
 
   PT_END(&state->pt);
 }
-/*-----------------------------------------------------------------------------------*/
-/*- Engine Interface ----------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*- Engine Interface ---------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 const struct rest_implementation coap_rest_implementation = {
   "CoAP-07",
 

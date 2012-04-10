@@ -163,6 +163,8 @@ public class CodeUI extends JPanel {
         }
 
         /* Configure breakpoint menu options */
+        /* XXX TODO We should ask for the file specified in the firmware, not
+         * the actual file on disk. */
         Integer address =
           CodeUI.this.mote.getExecutableAddressOf(displayedFile, line);
         if (address == null) {
@@ -254,7 +256,8 @@ public class CodeUI extends JPanel {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         displayedFile = null;
-        codeEditor.setText(null);
+        codeEditor.setText("[no source displayed]");
+        codeEditor.setEnabled(false);
         codeEditorLines.clear();
         displayLine(-1, markCurrent);
       }
@@ -275,6 +278,7 @@ public class CodeUI extends JPanel {
         displayNoCode(markCurrent);
         return;
       }
+      codeEditor.setEnabled(true);
 
       String[] lines = data.split("\n");
       logger.info("Opening " + codeFile + " (" + lines.length + " lines)");

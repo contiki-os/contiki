@@ -75,7 +75,7 @@ struct periodic_resource_s;
 typedef void (*restful_handler) (void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 typedef int (*restful_pre_handler) (struct resource_s *resource, void* request, void* response);
 typedef void (*restful_post_handler) (struct resource_s *resource, void* request, void* response);
-typedef int (*restful_periodic_handler) (struct resource_s* resource);
+typedef void (*restful_periodic_handler) (struct resource_s* resource);
 typedef void (*restful_response_handler) (void *data, void* response);
 
 /* Signature of the rest-engine service function. */
@@ -133,6 +133,31 @@ struct rest_implementation_type
   unsigned int APPLICATION_JSON;
   unsigned int APPLICATION_X_OBIX_BINARY;
 };
+
+/*
+ * Data structure representing a resource in REST.
+ */
+struct resource_s {
+  struct resource_s *next; /* for LIST, points to next resource defined */
+  rest_resource_flags_t flags; /* handled RESTful methods */
+  const char* url; /*handled URL*/
+  const char* attributes; /* link-format attributes */
+  restful_handler handler; /* handler function */
+  restful_pre_handler pre_handler; /* to be called before handler, may perform initializations */
+  restful_post_handler post_handler; /* to be called after handler, may perform finalizations (cleanup, etc) */
+  void* user_data; /* pointer to user specific data */
+  unsigned int benchmark; /* to benchmark resource handler, used for separate response */
+};
+typedef struct resource_s resource_t;
+
+struct periodic_resource_s {
+  struct periodic_resource_s *next; /* for LIST, points to next resource defined */
+  resource_t *resource;
+  uint32_t period;
+  struct etimer periodic_timer;
+  restful_periodic_handler periodic_handler;
+};
+typedef struct periodic_resource_s periodic_resource_t;
 
 struct rest_implementation {
   char *name;
@@ -199,7 +224,7 @@ struct rest_implementation {
   int (* get_post_variable)(void *request, const char *name, const char **value);
 
   /** Send the payload to all subscribers of the resource at url. */
-  void (* notify_subscribers)(const char *url, int implementation_secific_mode, uint32_t counter, uint8_t *payload, size_t payload_len);
+  void (* notify_subscribers)(resource_t *resource, uint16_t counter, void *notification);
 
   /** The handler for resource subscriptions. */
   restful_post_handler subscription_handler;
@@ -223,32 +248,6 @@ struct rest_implementation {
 extern const struct rest_implementation REST;
 
 /*
- * Data structure representing a resource in REST.
- */
-struct resource_s {
-  struct resource_s *next; /* for LIST, points to next resource defined */
-  rest_resource_flags_t flags; /* handled RESTful methods */
-  const char* url; /*handled URL*/
-  const char* attributes; /* link-format attributes */
-  restful_handler handler; /* handler function */
-  restful_pre_handler pre_handler; /* to be called before handler, may perform initializations */
-  restful_post_handler post_handler; /* to be called after handler, may perform finalizations (cleanup, etc) */
-  void* user_data; /* pointer to user specific data */
-  unsigned int benchmark; /* to benchmark resource handler, used for separate response */
-};
-typedef struct resource_s resource_t;
-
-struct periodic_resource_s {
-  struct periodic_resource_s *next; /* for LIST, points to next resource defined */
-  resource_t *resource;
-  uint32_t period;
-  struct etimer periodic_timer;
-  restful_periodic_handler periodic_handler;
-};
-typedef struct periodic_resource_s periodic_resource_t;
-
-
-/*
  * Macro to define a Resource
  * Resources are statically defined for the sake of efficiency and better memory management.
  */
@@ -260,7 +259,7 @@ resource_t resource_##name = {NULL, flags, url, attributes, name##_handler, NULL
  * Macro to define a sub-resource
  * Make sure to define its parent resource beforehand and set 'parent' to that name.
  */
-#define SUB_RESOURCE(name, flags, url, attributes, parent)		\
+#define SUB_RESOURCE(name, flags, url, attributes, parent) \
 resource_t resource_##name = {NULL, flags, url, attributes, parent##_handler, NULL, NULL, NULL}
 
 /*
@@ -270,8 +269,8 @@ resource_t resource_##name = {NULL, flags, url, attributes, parent##_handler, NU
  */
 #define EVENT_RESOURCE(name, flags, url, attributes) \
 void name##_handler(void *, void *, uint8_t *, uint16_t, int32_t *); \
-resource_t resource_##name = {NULL, flags, url, attributes, name##_handler, NULL, NULL, NULL}; \
-int name##_event_handler(resource_t*)
+void name##_event_handler(resource_t*); \
+resource_t resource_##name = {NULL, flags, url, attributes, name##_handler, NULL, NULL, NULL}
 
 /*
  * Macro to define a periodic resource
@@ -282,7 +281,7 @@ int name##_event_handler(resource_t*)
 #define PERIODIC_RESOURCE(name, flags, url, attributes, period) \
 void name##_handler(void *, void *, uint8_t *, uint16_t, int32_t *); \
 resource_t resource_##name = {NULL, flags, url, attributes, name##_handler, NULL, NULL, NULL}; \
-int name##_periodic_handler(resource_t*); \
+void name##_periodic_handler(resource_t*); \
 periodic_resource_t periodic_resource_##name = {NULL, &resource_##name, period, {{0}}, name##_periodic_handler}
 
 

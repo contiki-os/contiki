@@ -317,7 +317,6 @@ uint32_t longhowlong;
     watchdog_start();
 
 /* Adjust clock.c for the time spent sleeping */
-    extern void clock_adjust_ticks(uint16_t howmany);
 	longhowlong=CLOCK_CONF_SECOND;
 	longhowlong*=howlong;
     clock_adjust_ticks(longhowlong/RTIMER_ARCH_SECOND);

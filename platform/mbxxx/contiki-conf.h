@@ -96,9 +96,16 @@
 #define XMAC_CONF_ANNOUNCEMENTS                 0
 #define XMAC_CONF_COMPOWER                      1
 
-/* Other */
+/* Other (RAM saving) */
 #define ENERGEST_CONF_ON                        0
 #define QUEUEBUF_CONF_NUM                       2
+#define QUEUEBUF_CONF_REF_NUM                   0
+#define UIP_CONF_DS6_NBR_NBU                    4
+#define UIP_CONF_DS6_ROUTE_NBU                  4
+#define RPL_CONF_MAX_PARENTS_PER_DAG            4
+#define RPL_CONF_MAX_INSTANCES                  1
+#define RPL_CONF_MAX_DAG_PER_INSTANCE           1
+#define PROCESS_CONF_NUMEVENTS                  16
 
 #if WITH_UIP6
 
@@ -129,11 +136,16 @@
 #define UIP_CONF_MAX_LISTENPORTS                8
 #define UIP_CONF_UDP_CONNS                      4
 
-#include "net/sicslowpan.h"
-#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_HC06
+#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
+#ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    1
+#endif /* SICSLOWPAN_CONF_FRAG */
+#ifndef SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
+#endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS */
+#ifndef SICSLOWPAN_CONF_MAXAGE
 #define SICSLOWPAN_CONF_MAXAGE                  2
+#endif /* SICSLOWPAN_CONF_MAXAGE */
 
 #else /* WITH_UIP6 */
 

@@ -53,41 +53,40 @@
 #define PRINTLLADDR(addr)
 #endif
 
-/*-----------------------------------------------------------------------------------*/
-int coap_separate_handler(resource_t *resource, void *request, void *response)
+/*----------------------------------------------------------------------------*/
+void
+coap_separate_reject()
 {
-  coap_packet_t *const coap_req = (coap_packet_t *) request;
-
-  PRINTF("Separate response for /%s MID %u\n", resource->url, coap_res->mid);
-
-  /* Only ack CON requests. */
-  if (coap_req->type==COAP_TYPE_CON)
-  {
-    /* send separate ACK. */
-    coap_packet_t ack[1];
-    /* ACK with empty code (0) */
-    coap_init_message(ack, COAP_TYPE_ACK, 0, coap_req->mid);
-    /* Serializing into IPBUF: Only overwrites header parts that are already parsed into the request struct. */
-    coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, (uip_appdata), coap_serialize_message(ack, uip_appdata));
-  }
-
-  /* Pre-handlers could skip the handling by returning 0. */
-  return 1;
+  coap_error_code = SERVICE_UNAVAILABLE_5_03;
+  coap_error_message = "AlreadyInUse";
 }
-
+/*----------------------------------------------------------------------------*/
 int
-coap_separate_yield(void *request, coap_separate_t *separate_store)
+coap_separate_accept(void *request, coap_separate_t *separate_store)
 {
   coap_packet_t *const coap_req = (coap_packet_t *) request;
   coap_transaction_t *const t = coap_get_transaction_by_mid(coap_req->mid);
 
+  PRINTF("Separate ACCEPT: /%.*s MID %u\n", coap_req->uri_path_len, coap_req->uri_path, coap_req->mid);
   if (t)
   {
+    /* Send separate ACK for CON. */
+    if (coap_req->type==COAP_TYPE_CON)
+    {
+      coap_packet_t ack[1];
+      /* ACK with empty code (0) */
+      coap_init_message(ack, COAP_TYPE_ACK, 0, coap_req->mid);
+      /* Serializing into IPBUF: Only overwrites header parts that are already parsed into the request struct. */
+      coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, (uip_appdata), coap_serialize_message(ack, uip_appdata));
+    }
+
+    /* Store remote address. */
     uip_ipaddr_copy(&separate_store->addr, &t->addr);
     separate_store->port = t->port;
 
+    /* Store correct response type. */
     separate_store->type = coap_req->type==COAP_TYPE_CON ? COAP_TYPE_CON : COAP_TYPE_NON;
-    separate_store->mid = coap_get_mid(); // if it was NON, we burned one MID in the engine...
+    separate_store->mid = coap_get_mid(); /* if it was a NON, we burned one MID in the engine... */
 
     memcpy(separate_store->token, coap_req->token, coap_req->token_len);
     separate_store->token_len = coap_req->token_len;
@@ -102,13 +101,17 @@ coap_separate_yield(void *request, coap_separate_t *separate_store)
   }
   else
   {
+    PRINTF("ERROR: Response transaction for separate request not found!\n");
     return 0;
   }
 }
-
+/*----------------------------------------------------------------------------*/
 void
 coap_separate_resume(void *response, coap_separate_t *separate_store, uint8_t code)
 {
   coap_init_message(response, separate_store->type, code, separate_store->mid);
-  coap_set_header_token(response, separate_store->token, separate_store->token_len);
+  if (separate_store->token_len)
+  {
+    coap_set_header_token(response, separate_store->token, separate_store->token_len);
+  }
 }

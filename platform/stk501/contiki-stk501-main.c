@@ -138,7 +138,7 @@ main(void)
   /* Perform rest of initializations */
   process_start(&contiki_stk501_main_init_process, NULL);
 
-  PRINTF"Initialized.\n");
+  PRINTF("Initialized.\n");
 
 #ifdef MT_DEMO
   mt_start (&threads[0], thread_handler1, &d1);

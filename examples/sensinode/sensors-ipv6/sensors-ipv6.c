@@ -58,7 +58,7 @@
 #include <stdio.h>
 
 #if CONTIKI_TARGET_SENSINODE
-#include "sensinode-debug.h"
+#include "debug.h"
 #include "dev/sensinode-sensors.h"
 #else
 #define putstring(s)

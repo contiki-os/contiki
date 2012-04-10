@@ -45,6 +45,10 @@ PROCESS_NAME(viztool_process);
 #define PUTCHAR(...) do {} while(0)
 #endif
 /*---------------------------------------------------------------------------*/
+#if CLOCK_CONF_STACK_FRIENDLY
+extern volatile __bit sleep_flag;
+#endif
+/*---------------------------------------------------------------------------*/
 extern rimeaddr_t rimeaddr_node_addr;
 static __data int r;
 static __data int len;
@@ -252,9 +256,18 @@ main(void)
     do {
       /* Reset watchdog and handle polls and events */
       watchdog_periodic();
+
+#if CLOCK_CONF_STACK_FRIENDLY
+      if(sleep_flag) {
+        if(etimer_pending() &&
+            (etimer_next_expiration_time() - clock_time() - 1) > MAX_TICKS) {
+          etimer_request_poll();
+        }
+        sleep_flag = 0;
+      }
+#endif
       r = process_run();
     } while(r > 0);
-#if SHORTCUTS_CONF_NETSTACK
     len = NETSTACK_RADIO.pending_packet();
     if(len) {
       packetbuf_clear();
@@ -264,7 +277,6 @@ main(void)
         NETSTACK_RDC.input();
       }
     }
-#endif
 
 #if LPM_MODE
 #if (LPM_MODE==LPM_MODE_PM2)

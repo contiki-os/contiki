@@ -53,6 +53,8 @@
 #define SR_TX_AUTO_CRC_ON     0x144, 0x20, 5
 #define SR_TRAC_STATUS        0x142, 0xe0, 5
 #define SR_CHANNEL            0x148, 0x1f, 0
+#define SR_CCA_MODE           0x148, 0x60, 5
+#define SR_CCA_REQUEST        0x148, 0x80, 7
 #define RG_PAN_ID_0           PAN_ID_0
 #define RG_PAN_ID_1           PAN_ID_1
 #define RG_SHORT_ADDR_0       SHORT_ADDR_0
@@ -69,19 +71,17 @@
 #define RG_PHY_ED_LEVEL       PHY_ED_LEVEL
 #define RG_RX_SYN             RX_SYN
 #define SR_RSSI               0x146, 0x1f, 0
-#define SR_PLL_CF_START       0x1a, 0x80, 7
-#define SR_PLL_DCU_START      0x1b, 0x80, 7
-#define SR_MAX_CSMA_RETRIES   0x2c, 0x0e, 1
+#define SR_PLL_CF_START       0x15a, 0x80, 7
+#define SR_PLL_DCU_START      0x15b, 0x80, 7
+#define SR_MAX_CSMA_RETRIES   0x16c, 0x0e, 1
 #define RG_CSMA_BE            CSMA_BE
 #define RG_CSMA_SEED_0        CSMA_SEED_0
 #define RG_PHY_RSSI           PHY_RSSI
-#define SR_CCA_MODE           0x08, 0x60, 5
-//#define SR_CCA_CS_THRES       0x09, 0xf0, 4
-#define SR_CCA_ED_THRES        0x09, 0x0f, 0
-#define SR_CCA_REQUEST         0x08, 0x80, 7
-#define SR_CCA_DONE            0x01, 0x80, 7
-#define SR_CCA_STATUS          0x01, 0x40, 6
-#define SR_AACK_SET_PD         0x2e, 0x20, 5
+//#define SR_CCA_CS_THRES       0x149, 0xf0, 4
+#define SR_CCA_ED_THRES        0x149, 0x0f, 0
+#define SR_CCA_DONE            0x141, 0x80, 7
+#define SR_CCA_STATUS          0x141, 0x40, 6
+#define SR_AACK_SET_PD         0x16e, 0x20, 5
 
 
 /* RF230 register assignments, for reference */

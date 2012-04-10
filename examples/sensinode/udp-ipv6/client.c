@@ -36,7 +36,7 @@
 
 #if CONTIKI_TARGET_SENSINODE
 #include "dev/sensinode-sensors.h"
-#include "sensinode-debug.h"
+#include "debug.h"
 #else
 #define putstring(s)
 #define puthex(s)

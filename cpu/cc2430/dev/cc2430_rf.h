@@ -77,7 +77,7 @@ int8_t cc2430_rf_channel_set(uint8_t channel);
 uint8_t cc2430_rf_power_set(uint8_t new_power);
 void cc2430_rf_set_addr(unsigned pan, unsigned addr, const uint8_t *ieee_addr);
 
-#if !SHORTCUTS_CONF_NETSTACK
+#if !NETSTACK_CONF_SHORTCUTS
 extern void cc2430_rf_ISR( void ) __interrupt (RF_VECTOR);
 #endif
 #if CC2430_RFERR_INTERRUPT

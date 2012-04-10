@@ -10,13 +10,12 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
-/* Defines tick counts for a second. */
-#define CLOCK_CONF_SECOND		128
-
-/* The clock ISR is stack-hungry and may cause crashes.
- * Define this as 0 if you are suffering from frequent stack overflows */
-#ifndef CLOCK_CONF_ACCURATE
-#define CLOCK_CONF_ACCURATE 1
+/*
+ * Define this as 1 to poll the etimer process from within main instead of from
+ * the clock ISR. This reduces the ISR's stack usage and may prevent crashes.
+ */
+#ifndef CLOCK_CONF_STACK_FRIENDLY
+#define CLOCK_CONF_STACK_FRIENDLY 1
 #endif
 
 /* Memory filesystem RAM size. */
@@ -30,7 +29,7 @@
 #define ENERGEST_CONF_ON      0
 #endif
 
-/* Verbose Startup? Turning this off saves 700+ bytes of CODE in HOME */
+/* Verbose Startup? Turning this off reduces our footprint a fair bit */
 #define STARTUP_CONF_VERBOSE  0
 
 /* More CODE space savings by turning off process names */
@@ -38,9 +37,9 @@
 
 /*
  * UARTs: 1=>Enabled, 0=>Disabled. Default: Both Disabled (see uart.h)
- * Disabling UART0 saves ~200 bytes of CODE.
- * Disabling UART1 saves ~500 bytes of CODE but also disables all debugging
- * output. Should be used when nodes are meant to run on batteries
+ * Disabling UARTs reduces our CODE footprint
+ * Disabling UART1 also disables all debugging output.
+ * Should be used when nodes are meant to run on batteries
  *
  * On N740, by enabling UART1, you are also enabling an ugly hack which aims
  * to detect the USB connection during execution. It will then turn on/off
@@ -85,21 +84,15 @@
  * When set, the RF driver is no longer a contiki process and the RX ISR is
  * disabled. Instead of polling the radio process when data arrives, we
  * periodically check for data by directly invoking the driver from main()
-
+ *
  * When set, this directive also configures the following bypasses:
  *   - process_post_synch() in tcpip_input() (we call packet_input())
  *   - process_post_synch() in tcpip_uipcall (we call the relevant pthread)
  *   - mac_call_sent_callback() is replaced with sent() in various places
  *
- * These are good things to do, we reduce stack usage, RAM size and code size
+ * These are good things to do, they reduce stack usage and prevent crashes
  */
-#define SHORTCUTS_CONF_NETSTACK   1
-
-/*
- * Directly read mac from flash with a __code pointer, instead of using the
- * generic flash_read() routine. This reduces HOME code size
- */
-#define SHORTCUTS_CONF_FLASH_READ 1
+#define NETSTACK_CONF_SHORTCUTS   1
 
 /*
  * Sensors

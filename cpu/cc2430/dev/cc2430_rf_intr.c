@@ -50,7 +50,7 @@ uint8_t rf_error = 0;
 
 PROCESS_NAME(cc2430_rf_process);
 
-#if !SHORTCUTS_CONF_NETSTACK
+#if !NETSTACK_CONF_SHORTCUTS
 /*---------------------------------------------------------------------------*/
 /**
  * RF interrupt service routine.

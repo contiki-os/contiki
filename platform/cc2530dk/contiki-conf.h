@@ -10,11 +10,13 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
-/* Time type. */
-typedef unsigned short clock_time_t;
-
-/* Defines tick counts for a second. */
-#define CLOCK_CONF_SECOND		128
+/*
+ * Define this as 1 to poll the etimer process from within main instead of from
+ * the clock ISR. This reduces the ISR's stack usage and may prevent crashes.
+ */
+#ifndef CLOCK_CONF_STACK_FRIENDLY
+#define CLOCK_CONF_STACK_FRIENDLY 1
+#endif
 
 /* Energest Module */
 #ifndef ENERGEST_CONF_ON
@@ -70,18 +72,14 @@ typedef unsigned short clock_time_t;
 
 /* Code Shortcuts */
 /*
- * When set, the RF driver is no longer a contiki process and the RX ISR is
- * disabled. Instead of polling the radio process when data arrives, we
- * periodically check for data by directly invoking the driver from main()
-
  * When set, this directive also configures the following bypasses:
  *   - process_post_synch() in tcpip_input() (we call packet_input())
  *   - process_post_synch() in tcpip_uipcall (we call the relevant pthread)
  *   - mac_call_sent_callback() is replaced with sent() in various places
  *
- * These are good things to do, we reduce stack usage, RAM size and code size
+ * These are good things to do, they reduce stack usage and prevent crashes
  */
-#define SHORTCUTS_CONF_NETSTACK   1
+#define NETSTACK_CONF_SHORTCUTS   1
 
 /*
  * Sensors

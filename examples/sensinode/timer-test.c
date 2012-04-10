@@ -1,9 +1,7 @@
 /**
  * \file
  *         Tests related to clocks and timers
- *
- *         This is clock_test.c plus a small addition by George Oikonomou
- *         (Loughborough University)in order to test the rtimer
+ *         This is based on clock_test.c from the original sensinode port
  *
  * \author
  *         Zach Shelby <zach@sensinode.com> (Original)
@@ -23,59 +21,73 @@
 #define TEST_ETIMER          1
 #define TEST_CLOCK_SECONDS   1
 /*---------------------------------------------------------------------------*/
+static struct etimer et;
+
+#if TEST_CLOCK_DELAY
+static rtimer_clock_t start_count, end_count, diff;
+#endif
+
+#if TEST_CLOCK_SECONDS
+static unsigned long sec;
+#endif
+
+#if TEST_ETIMER
+static clock_time_t count;
+#endif
+
+#if TEST_RTIMER
+static struct rtimer rt;
+rtimer_clock_t rt_now, rt_for;
+static clock_time_t ct;
+#endif
+
+static uint8_t i;
+/*---------------------------------------------------------------------------*/
 PROCESS(clock_test_process, "Clock test process");
 AUTOSTART_PROCESSES(&clock_test_process);
 /*---------------------------------------------------------------------------*/
 #if TEST_RTIMER
 void
 rt_callback(struct rtimer *t, void *ptr) {
-  printf("Task called at %u\n", RTIMER_NOW());
+  rt_now = RTIMER_NOW();
+  ct = clock_time();
+  printf("Task called at %u (clock = %u)\n", rt_now, ct);
 }
 #endif
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(clock_test_process, ev, data)
 {
-  static struct etimer et;
-
-#if TEST_CLOCK_DELAY
-  static clock_time_t start_count, end_count, diff;
-#endif
-#if TEST_CLOCK_SECONDS
-  static unsigned long sec;
-#endif
-#if TEST_ETIMER
-  static clock_time_t count;
-#endif
-#if TEST_RTIMER
-  uint16_t rt_now, rt_for;
-  static struct rtimer rt;
-#endif
-  static uint8_t i;
 
   PROCESS_BEGIN();
 
+  etimer_set(&et, 2 * CLOCK_SECOND);
+
+  PROCESS_YIELD();
+
 #if TEST_CLOCK_DELAY
-  printf("Clock delay test (10 x (10,000xi) cycles):\n");
+  printf("Clock delay test, (10,000 x i) cycles:\n");
   i = 1;
-  while(i < 6) {
-    start_count = clock_time();
+  while(i < 7) {
+    start_count = RTIMER_NOW();
     clock_delay(10000 * i);
-    end_count = clock_time();
+    end_count = RTIMER_NOW();
     diff = end_count - start_count;
-    printf("Delayed %u = %u ticks = ~%u ms\n", 10000 * i, diff, diff * 8);
+    printf("Delayed %u = %u rtimer ticks = ~%u us\n", 10000 * i, diff,
+        diff * 64);
     i++;
   }
 #endif
 
 #if TEST_RTIMER
-  printf("Rtimer Test (10 x 1s):\n");
+  printf("Rtimer Test, 1 sec (%u rtimer ticks):\n", RTIMER_SECOND);
   i = 0;
-  while(i < 10) {
+  while(i < 5) {
     etimer_set(&et, 2*CLOCK_SECOND);
-    puts("=======================");
+    printf("=======================\n");
+    ct = clock_time();
     rt_now = RTIMER_NOW();
     rt_for = rt_now + RTIMER_SECOND;
-    printf("%Now=%u - For=%u\n", rt_now, rt_for);
+    printf("Now=%u (clock = %u) - For=%u\n", rt_now, ct, rt_for);
     if (rtimer_set(&rt, rt_for, 1,
               (void (*)(struct rtimer *, void *))rt_callback, NULL) != RTIMER_OK) {
       printf("Error setting\n");
@@ -87,7 +99,7 @@ PROCESS_THREAD(clock_test_process, ev, data)
 #endif
 
 #if TEST_ETIMER
-  printf("Clock tick and etimer test (10 x 1s):\n");
+  printf("Clock tick and etimer test, 1 sec (%u clock ticks):\n", CLOCK_SECOND);
   i = 0;
   while(i < 10) {
     etimer_set(&et, CLOCK_SECOND);
@@ -103,7 +115,7 @@ PROCESS_THREAD(clock_test_process, ev, data)
 #endif
 
 #if TEST_CLOCK_SECONDS
-  printf("Clock seconds test (10 x 5s):\n");
+  printf("Clock seconds test (5s):\n");
   i = 0;
   while(i < 10) {
     etimer_set(&et, 5 * CLOCK_SECOND);
@@ -111,12 +123,14 @@ PROCESS_THREAD(clock_test_process, ev, data)
     etimer_reset(&et);
 
     sec = clock_seconds();
-    printf("%u seconds\n", (u16_t) sec);
+    printf("%lu seconds\n", sec);
 
     leds_toggle(LEDS_GREEN);
     i++;
   }
 #endif
+
+  printf("Done!\n");
 
   PROCESS_END();
 }
