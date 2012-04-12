@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: uip6-bridge-tap.c,v 1.2 2011/01/19 09:13:06 salvopitru Exp $
  *
  */
 
@@ -43,14 +42,13 @@
 #include "dev/slip.h"
 #include "dev/leds.h"
 #include "sicslow_ethernet.h"
+#include "sys/clock.h"
 
 #include "net/packetbuf.h"
 
 
 #include <stdio.h>
 #include <string.h>
-
-void clock_wait(int i);
 
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 

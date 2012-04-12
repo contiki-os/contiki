@@ -41,8 +41,8 @@ so requires PERL. A bare $make after that will not regenerate httpd-fsdata.c.
 Use $make WEBDIR=default to switch back to the default /http-fs/ content.
 
 See Makefile.webserver for optional switches for RPL or a coffee file system.
-$make WITH_RPL=1 for a RPL node, or if rpl has become the contiki default,
-$make WITH_RPL=0 to override
+$make UIP_CONF_RPL=1 for a RPL node, or if rpl has become the contiki default,
+$make UIP_CONF_RPL=0 to override
 
 Much headbanging can result if you do not $make clean when changing make options,
 as the normal build dependencies are bypassed and the needed object modules

@@ -42,8 +42,6 @@
 
 typedef unsigned long clock_time_t;
 
-void clock_wait(int ms10);
-
 #define LOG_CONF_ENABLED 0
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1

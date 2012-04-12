@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<project name="Cooja: Power Tracker" default="jar" basedir=".">
+  <property name="cooja" location="../.."/>
+  <property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
+
+
+
+  <target name="init">
+    <tstamp/>
+  </target>
+	
+  <target name="compile" depends="init">
+    <available file="${cooja_jar}" type="file" property="cooja_jar_exists"/>
+    <fail message="COOJA jar not found at '${cooja_jar}'. Please compile COOJA first." unless="cooja_jar_exists"/>
+    <mkdir dir="build"/>
+    <javac srcdir="java" destdir="build" debug="on" includeantruntime="false">
+      <classpath>
+        <pathelement path="."/>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="clean" depends="init">
+    <delete dir="build"/>
+  </target>
+
+  <target name="jar" depends="clean, init, compile">
+    <mkdir dir="lib"/>
+    <jar destfile="lib/powertracker.jar" basedir="build">
+      <manifest>
+        <attribute name="Class-Path" value="."/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="jar_and_cooja_run">
+    <ant antfile="build.xml" dir="${cooja}" target="jar" inheritAll="false"/>
+    <ant antfile="build.xml" dir="." target="jar" inheritAll="false"/>
+    <ant antfile="build.xml" dir="${cooja}" target="run" inheritAll="false"/>
+  </target>
+
+</project>

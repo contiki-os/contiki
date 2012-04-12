@@ -41,38 +41,36 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
-/* MCU and clock rate */
-#define PLATFORM       PLATFORM_AVR
-#define HARWARE_REVISION ATMEGA128RFA1
+/* Platform name, type, and MCU clock rate */
+#define PLATFORM_NAME  "RFA1"
+#define PLATFORM_TYPE  ATMEGA128RFA1
 #ifndef F_CPU
 #define F_CPU          8000000UL
 #endif
+
 #include <stdint.h>
 
-/* These names are deprecated, use C99 names. */
-typedef int32_t s32_t;
-typedef unsigned char u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long u32_t;
-
-typedef unsigned short clock_time_t;
-typedef unsigned short uip_stats_t;
-typedef unsigned long off_t;
-
-void clock_delay(unsigned int us2);
-void clock_wait(int ms10);
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
-
-/* Maximum timer interval for 16 bit clock_time_t */
-#define INFINITE_TIME 0xffff
-
-/* Clock ticks per second */
+/* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.
+ * 125 Hz needs slightly more overhead during the interrupt, as does a 32 bit
+ * clock_time_t.
+ */
+ /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 128
-
-/* Maximum tick interval is 0xffff/128 = 511 seconds */
+#if 1
+/* 16 bit counter overflows every ~10 minutes */
+typedef unsigned short clock_time_t;
+#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffff
 #define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
 #define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#else
+typedef unsigned long clock_time_t;
+#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffffffff
+#endif
+/* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
+void clock_delay_msec(uint16_t howlong);
+void clock_adjust_ticks(clock_time_t howmany);
 
 /* Michael Hartman's atmega128rfa1 board has an external 32768Hz crystal connected to TOSC1 and 2 pins similar to the Raven 1284p */
 /* and theoretically can use TIMER2 with it to keep time. Else TIMER0 is used. */
@@ -94,7 +92,8 @@ unsigned long clock_seconds(void);
 /* Default is 4096. Currently used only when elfloader is present. Not tested on Raven */
 //#define MMEM_CONF_SIZE 256
 
-/* Starting address for code received via the codeprop facility. Not tested on Raven */
+/* Starting address for code received via the codeprop facility. Not tested. */
+typedef unsigned long off_t;
 //#define EEPROMFS_ADDR_CODEPROP 0x8000
 
 /* Logging adds 200 bytes to program size. RS232 output slows down webserver. */
@@ -106,6 +105,10 @@ unsigned long clock_seconds(void);
 
 /* More extensive stats, via main loop printfs or webserver status pages */
 #define ENERGEST_CONF_ON          1
+
+/* Packet statistics */
+typedef unsigned short uip_stats_t;
+#define UIP_STATISTICS            0
 
 /* Available watchdog timeouts depend on mcu. Default is WDTO_2S. -1 Disables the watchdog. */
 /* AVR Studio simulator tends to reboot due to clocking the WD 8 times too fast */

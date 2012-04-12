@@ -12,7 +12,7 @@ endif
 
 CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(MSB) $(CONTIKI_TARGET_MAIN)
 
-MCU=msp430x1612
+MCU=msp430f1612
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}

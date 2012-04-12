@@ -78,7 +78,12 @@ clock_init()
 	*TMR_ENBL = 0xf;                   /* enable all the timers --- why not? */
 
 	enable_irq(TMR);
-
+/* Do startup scan of the ADC */
+#if CLOCK_CONF_SAMPLEADC
+	adc_reading[8]=0;
+	adc_init();
+	while (adc_reading[8]==0) adc_service();
+#endif
 }
 
 void tmr0_isr(void) {
@@ -89,8 +94,14 @@ void tmr0_isr(void) {
 #if BLINK_SECONDS
 			leds_toggle(LEDS_GREEN);
 #endif
+/* ADC can be serviced every tick or every second */
+#if CLOCK_CONF_SAMPLEADC > 1
+			adc_service();
+#endif
 		}
-		
+#if CLOCK_CONF_SAMPLEADC == 1
+		adc_service();
+#endif
 		if(etimer_pending() &&
 		   (etimer_next_expiration_time() - current_clock - 1) > MAX_TICKS) {
  			etimer_request_poll();
@@ -98,9 +109,9 @@ void tmr0_isr(void) {
 
 
 		/* clear the compare flags */
-		clear_bit(*TMR(0,SCTRL),TCF);                
-		clear_bit(*TMR(0,CSCTRL),TCF1);                
-		clear_bit(*TMR(0,CSCTRL),TCF2);                
+		clear_bit(*TMR(0,SCTRL),TCF);
+		clear_bit(*TMR(0,CSCTRL),TCF1);
+		clear_bit(*TMR(0,CSCTRL),TCF2);
 		return;
 	} else {
 		/* this timer didn't create an interrupt condition */
@@ -120,13 +131,63 @@ clock_seconds(void)
 	return seconds;
 }
 
-/* clock delay from cc2430 */
-/* I don't see any documentation about how this routine is suppose to behave */
 void
-clock_delay(unsigned int len)
+clock_wait(clock_time_t t)
 {
-  unsigned int i;
-  for(i = 0; i< len; i++) {
-	  asm("nop");
+  clock_time_t endticks = current_clock + t;
+  while ((signed long)(current_clock - endticks) < 0) {;}
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Delay the CPU for up to 65535 microseconds.
+ * Use the 250KHz MACA clock for longer delays to avoid interrupt effects.
+ * However that can't be used if the radio is being power cycled!
+ */
+void
+clock_delay_usec(uint16_t howlong)
+{
+  if(howlong<2) return;
+#if 0
+  if(howlong>400) {
+    volatile register uint32_t i=*MACA_CLK+howlong/4;
+    while (i > *MACA_CLK) ;
+    return;
   }
+#endif
+   /* These numbers at 25MHz, gcc -Os */
+    volatile register uint32_t i=4000*howlong/2301;
+    while(--i);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Delay the CPU for up to 65535 milliseconds. The watchdog is NOT disabled.
+ */
+void
+clock_delay_msec(uint16_t howlong)
+{
+  while(howlong--) clock_delay_usec(1000);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Legacy delay. The original clock_delay for the msp430 used a granularity
+ * of 2.83 usec. This approximates that delay for values up to 1456 usec.
+ * (The largest core call in leds.c uses 400).
+ */
+void
+clock_delay(unsigned int howlong)
+{
+  if(howlong--) return;
+  clock_delay_usec((283*howlong)/100);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Adjust clock ticks after a cpu sleep.
+ */
+void clock_adjust_ticks(clock_time_t howmany) {
+/* Add seconds */
+	seconds+=howmany/CLOCK_CONF_SECOND;
+/* Handle tick overflow */
+	if(((current_clock % CLOCK_CONF_SECOND) + (howmany % CLOCK_CONF_SECOND)) >= CLOCK_CONF_SECOND) seconds++;
+/* Add ticks */
+	current_clock+=howmany;
 }
