@@ -43,43 +43,40 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
-/* MCU and clock rate */
-#define PLATFORM       PLATFORM_AVR
-#define RAVEN_REVISION RAVEN_D
+/* Platform name, type, and MCU clock rate */
+#define PLATFORM_NAME  "Raven"
+#define PLATFORM_TYPE  RAVEN_D
 #ifndef F_CPU
 #define F_CPU          8000000UL
 #endif
 
 /* MCU_CONF_LOW_WEAR will remove the signature and eeprom from the .elf file */
 /* This reduces reprogramming wear during development */
-#define MCU_CONF_LOW_WEAR 0
+//#define MCU_CONF_LOW_WEAR 1
 
 #include <stdint.h>
 
-/* These names are deprecated, use C99 names. */
-typedef int32_t s32_t;
-typedef unsigned char u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long u32_t;
-
-typedef unsigned short clock_time_t;
-typedef unsigned short uip_stats_t;
-typedef unsigned long off_t;
-
-void clock_delay(unsigned int us2);
-void clock_wait(int ms10);
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
-
-/* Maximum timer interval for 16 bit clock_time_t */
-#define INFINITE_TIME 0xffff
-
+/* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.
+ * 125 Hz needs slightly more overhead during the interrupt, as does a 32 bit
+ * clock_time_t.
+ */
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 128
-
-/* Maximum tick interval is 0xffff/128 = 511 seconds */
+#if 1
+/* 16 bit counter overflows every ~10 minutes */
+typedef unsigned short clock_time_t;
+#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffff
 #define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
 #define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#else
+typedef unsigned long clock_time_t;
+#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffffffff
+#endif
+/* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
+void clock_delay_msec(uint16_t howlong);
+void clock_adjust_ticks(clock_time_t howmany);
 
 /* The 1284p can use TIMER2 with the external 32768Hz crystal to keep time. Else TIMER0 is used. */
 /* The sleep timer in raven-lcd.c also uses the crystal and adds a TIMER2 interrupt routine if not already define by clock.c */
@@ -100,6 +97,7 @@ unsigned long clock_seconds(void);
 //#define MMEM_CONF_SIZE 256
 
 /* Starting address for code received via the codeprop facility. Not tested on Raven */
+typedef unsigned long off_t;
 //#define EEPROMFS_ADDR_CODEPROP 0x8000
 
 /* RADIO_CONF_CALIBRATE_INTERVAL is used in rf230bb and clock.c. If nonzero a 256 second interval is used */
@@ -111,6 +109,11 @@ unsigned long clock_seconds(void);
 
 /* More extensive stats */
 #define ENERGEST_CONF_ON          1
+
+/* Packet statistics */
+typedef unsigned short uip_stats_t;
+#define UIP_STATISTICS            0
+
 
 /* Possible watchdog timeouts depend on mcu. Default is WDTO_2S. -1 Disables the watchdog. */
 /* AVR Studio simulator tends to reboot due to clocking the WD 8 times too fast */
@@ -143,7 +146,7 @@ unsigned long clock_seconds(void);
 /* TX routine does automatic cca and optional backoff */
 #define RDC_CONF_HARDWARE_CSMA     1
 /* Allow MCU sleeping between channel checks */
-#define RDC_CONF_MCU_SLEEP         1
+#define RDC_CONF_MCU_SLEEP         0
 #else
 #define PACKETBUF_CONF_HDR_SIZE    0            //RF230 combined driver/mac handles headers internally
 #endif /*RF230BB */
@@ -270,11 +273,11 @@ unsigned long clock_seconds(void);
 #define QUEUEBUF_CONF_REF_NUM     2
 /* Allocate remaining RAM. Not much left due to queuebuf increase  */
 #define UIP_CONF_MAX_CONNECTIONS  2
-#define UIP_CONF_MAX_LISTENPORTS  4
-#define UIP_CONF_UDP_CONNS        5
-#define UIP_CONF_DS6_NBR_NBU      4
+#define UIP_CONF_MAX_LISTENPORTS  2
+#define UIP_CONF_UDP_CONNS        4
+#define UIP_CONF_DS6_NBR_NBU     10
 #define UIP_CONF_DS6_DEFRT_NBU    2
-#define UIP_CONF_DS6_PREFIX_NBU   3
+#define UIP_CONF_DS6_PREFIX_NBU   2
 #define UIP_CONF_DS6_ROUTE_NBU    4
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0

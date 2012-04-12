@@ -47,40 +47,38 @@
 //#pragma mark Basic Configuration
 /* ************************************************************************** */
 
-/* MCU and clock rate */
-#define PLATFORM         PLATFORM_AVR
-#define RAVEN_REVISION	 RAVENUSB_C
+/* Platform name, type, and MCU clock rate */
+#define PLATFORM_NAME  "RAVENUSB"
+#define PLATFORM_TYPE  RAVENUSB_C
 #ifndef F_CPU
-#define F_CPU            8000000UL
+#define F_CPU          8000000UL
 #endif
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
-/* These names are deprecated, use C99 names. */
-typedef int32_t  s32_t;
-typedef unsigned char u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long u32_t;
-typedef unsigned short clock_time_t;
-typedef unsigned short uip_stats_t;
-typedef unsigned long off_t;
-
-void clock_delay(unsigned int us2);
-void clock_wait(int ms10);
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
-
-/* Maximum timer interval for 16 bit clock_time_t */
-#define INFINITE_TIME 0xffff
-
-/* Clock ticks per second */
+/* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.
+ * 125 Hz needs slightly more overhead during the interrupt, as does a 32 bit
+ * clock_time_t.
+ */
+ /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
-
-/* Maximum tick interval is 0xffff/125 = 524 seconds */
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
-#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
+#if 1
+/* 16 bit counter overflows every ~10 minutes */
+typedef unsigned short clock_time_t;
+#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffff
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#else
+typedef unsigned long clock_time_t;
+#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffffffff
+#endif
+/* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
+void clock_delay_msec(uint16_t howlong);
+void clock_adjust_ticks(clock_time_t howmany);
 
 /* Use EEPROM settings manager, or hard-coded EEPROM reads? */
 /* Generate random MAC address on first startup? */
@@ -98,6 +96,7 @@ unsigned long clock_seconds(void);
 //#define MMEM_CONF_SIZE 256
 
 /* Starting address for code received via the codeprop facility. Not tested on Jackdaw */
+typedef unsigned long off_t;
 //#define EEPROMFS_ADDR_CODEPROP 0x8000
 
 /* Simple stack monitor. Status is displayed from the USB menu with 'm' command */
@@ -265,6 +264,8 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_TCP_SPLIT       0
+
+typedef unsigned short uip_stats_t;
 #define UIP_CONF_STATISTICS      1
 
   /* Network setup */

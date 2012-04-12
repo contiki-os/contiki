@@ -51,6 +51,8 @@
 
 #include <stdint.h>
 
+#define PLATFORM_NAME  "Econotag"
+#define PLATFORM_TYPE  MC1322X
 /* mc1322x files */
 #include "contiki-mc1322x-conf.h"
 /* this is from cpu/mc1322x/board */
@@ -62,6 +64,9 @@
 /* FIXME setting this will break the sensor button (and other gpio) */
 /* since leds_arch hits the entire gpio_data */
 #define BLINK_SECONDS 0
+/* Set to 1 to sample an ADC channel every second, 9 second refresh */
+/* Set >1 to sample an ADC channel every tick, 90 msec refresh  */
+#define CLOCK_CONF_SAMPLEADC 1
 
 #define CCIF
 #define CLIF

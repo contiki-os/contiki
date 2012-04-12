@@ -1,5 +1,4 @@
 #include "rtl8019.h"
-#include "delay.h"
 #include "debug.h"
 #include "avr/pgmspace.h"
 #include "rtlregs.h"
@@ -36,6 +35,8 @@
 *    Corrected the overrun function - overrun flag was not reset after overrun
 *    Added support for the Imagecraft Compiler
 *    Added support to communicate with the NIC using general I/O ports
+* March 10, 2012 - David Kopf
+*    Use contiki clock_delay_usec call.
 *
 *****************************************************************************/
 
@@ -85,7 +86,25 @@ void writeRTL(unsigned char address, unsigned char data)
 
 
 #endif
-
+void
+delay_msec(uint16_t howlong)
+{
+#if F_CPU>=16000000
+  while(howlong--) clock_delay_usec(1000);
+#elif F_CPU>=8000000
+  uint16_t i=996;
+  while(howlong--) {clock_delay_usec(i);i=999;}
+#elif F_CPU>=4000000
+  uint16_t i=992;
+  while(howlong--) {clock_delay_usec(i);i=999;}
+#elif F_CPU>=2000000
+  uint16_t i=989;
+  while(howlong--) {clock_delay_usec(i);i=999;}
+#else
+  uint16_t i=983;
+  while(howlong--) {clock_delay_usec(i);i=999;}
+#endif
+}
 /*****************************************************************************
 *  readRTL(RTL_ADDRESS)
 *  Args:        unsigned char RTL_ADDRESS - register offset of RTL register
@@ -191,7 +210,7 @@ volatile unsigned char *base = (unsigned char *)0x8300;
 *  Description: Simply toggles the pin that resets the NIC
 *****************************************************************************/
 /*#define HARD_RESET_RTL8019() do{ sbi(RTL8019_RESET_PORT, RTL8019_RESET_PIN); \
-                                Delay_10ms(1); \
+                                delay_msec(10); \
                                 cbi(RTL8019_RESET_PORT, RTL8019_RESET_PIN);} \
                                 while(0)*/
 
@@ -503,7 +522,7 @@ void overrun(void)
 
 	data_L = readRTL(CR);
 	writeRTL(CR, 0x21);
-	Delay_1ms(2);
+	delay_msec(2);
 	writeRTL(RBCR0, 0x00);
 	writeRTL(RBCR1, 0x00);
 	if(!(data_L & 0x04))
@@ -686,7 +705,11 @@ void initRTL8019(void)
      */
     nic_write(NIC_PG3_EECR, 0);
     /*    NutSleep(WAIT500);*/
-    Delay_10ms(50);
+
+    delay_msec(500);
+
+
+
 
     /*
      * Switch to register page 0 and set data configuration register
@@ -772,7 +795,10 @@ void initRTL8019(void)
     nic_write(NIC_PG0_TCR, 0);
 
     /*    NutSleep(WAIT500);*/
-    Delay_10ms(50);
+    delay_msec(500);
+
+
+
 
 
 #endif /* 0 */
@@ -788,7 +814,8 @@ void initRTL8019(void)
     nic_write(NIC_PG3_CONFIG2, NIC_CONFIG2_BSELB);
     nic_write(NIC_PG3_EECR, 0);
     /*    Delay(50000);*/
-    Delay_10ms(200);
+    delay_msec(2000);
+
     nic_write(NIC_CR, NIC_CR_STP | NIC_CR_RD2);
     nic_write(NIC_PG0_DCR, NIC_DCR_LS | NIC_DCR_FT1);
     nic_write(NIC_PG0_RBCR0, 0);
@@ -813,7 +840,7 @@ void initRTL8019(void)
     nic_write(NIC_CR, NIC_CR_STA | NIC_CR_RD2);
     nic_write(NIC_PG0_TCR, 0);
     /*    Delay(1000000)*/
-    Delay_10ms(200);
+    delay_msec(2000);
 
 
         nic_write(NIC_CR, NIC_CR_STA | NIC_CR_RD2 | NIC_CR_PS0 | NIC_CR_PS1);
@@ -874,10 +901,10 @@ void initRTL8019(void)
 
   // do soft reset
   writeRTL( ISR, readRTL(ISR) ) ;
-  Delay_10ms(5);
+  delay_msec(50);
   
   writeRTL(CR,0x21);       // stop the NIC, abort DMA, page 0
-  Delay_1ms(2);               // make sure nothing is coming in or going out
+  delay_msec(2);               // make sure nothing is coming in or going out
   writeRTL(DCR, DCR_INIT);    // 0x58
   writeRTL(RBCR0,0x00);
   writeRTL(RBCR1,0x00);
@@ -888,7 +915,7 @@ void initRTL8019(void)
   writeRTL(BNRY, RXSTART_INIT);
   writeRTL(PSTOP, RXSTOP_INIT);
   writeRTL(CR, 0x61);
-  Delay_1ms(2);
+  delay_msec(2);
   writeRTL(CURR, RXSTART_INIT);
   
   writeRTL(PAR0+0, MYMAC_0);

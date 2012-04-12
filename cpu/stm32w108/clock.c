@@ -46,6 +46,7 @@
 #include "dev/stm32w_systick.h"
 
 #include "contiki.h"
+#include "sys/clock.h"
 
 #include "uart1.h"
 #include "dev/leds.h"
@@ -122,7 +123,7 @@ void clock_delay(unsigned int i)
  * Wait for a multiple of 1 ms.
  *
  */
-void clock_wait(int i)
+void clock_wait(clock_timt_t i)
 {
   clock_time_t start;
 

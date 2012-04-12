@@ -3,15 +3,37 @@
 
 #include<stdint.h>
 
+/* Platform name, type, and MCU clock rate */
+#define PLATFORM_NAME  "STK500"
+#define PLATFORM_TYPE  STK500
+#ifndef F_CPU
+#define F_CPU          8000000UL
+#endif
+
 #define CCIF
 #define CLIF
 
-typedef unsigned short clock_time_t;
+/* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.
+ * 125 Hz needs slightly more overhead during the interrupt, as does a 32 bit
+ * clock_time_t.
+ */
+ /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
-/* Maximum tick interval is 0xffff/125 = 524 seconds */
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
-#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME CLOCK_CONF_SECOND * 524UL /* Default uses 600UL */
-
+#if 1
+/* 16 bit counter overflows every ~10 minutes */
+typedef unsigned short clock_time_t;
+#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffff
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#else
+typedef unsigned long clock_time_t;
+#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffffffff
+#endif
+/* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
+void clock_delay_msec(uint16_t howlong);
+void clock_adjust_ticks(clock_time_t howmany);
 
 #define SLIP_PORT 0
 
@@ -55,13 +77,6 @@ typedef unsigned short clock_time_t;
 #define RIMEADDR_CONF_SIZE        2
 #define NETSTACK_CONF_NETWORK     rime_driver
 #endif /* UIP_CONF_IPV6 */
-
-void clock_delay(unsigned int us2);
-
-void clock_wait(int ms10);
-
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
 
 typedef unsigned short uip_stats_t;
 

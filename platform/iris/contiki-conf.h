@@ -188,15 +188,8 @@
 
 #define UIP_CONF_TCP_SPLIT       0
 
-
-typedef unsigned short clock_time_t;
 typedef unsigned short uip_stats_t;
 typedef unsigned long off_t;
-
-void clock_delay(unsigned int us2);
-void clock_wait(int ms10);
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
 
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H

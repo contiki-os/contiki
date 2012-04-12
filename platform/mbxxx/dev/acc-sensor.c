@@ -42,9 +42,8 @@
 
 
 #include "dev/acc-sensor.h"
+#include "sys/clock.h"
 #include "mems.h"
-
-void clock_wait(int i);
 
 #define FALSE 0
 #define TRUE  1

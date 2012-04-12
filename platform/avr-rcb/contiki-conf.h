@@ -44,17 +44,39 @@
 
 #include <stdint.h>
 
-typedef int32_t s32_t;
+//typedef int32_t s32_t;
 
 /*
  * MCU and clock rate
  */
-#define MCU_MHZ 8
-#define PLATFORM PLATFORM_AVR
-#define RCB_REVISION RCB_B
+ /* Platform name, type, and MCU clock rate */
+#define PLATFORM_NAME  "RCB"
+#define PLATFORM_TYPE  RCB_B
+#ifndef F_CPU
+#define F_CPU          8000000UL
+#endif
 
+/* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.
+ * 125 Hz needs slightly more overhead during the interrupt, as does a 32 bit
+ * clock_time_t.
+ */
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
+#if 1
+/* 16 bit counter overflows every ~10 minutes */
+typedef unsigned short clock_time_t;
+#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffff
+#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
+#else
+typedef unsigned long clock_time_t;
+#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define INFINITE_TIME 0xffffffff
+#endif
+/* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
+void clock_delay_msec(uint16_t howlong);
+void clock_adjust_ticks(clock_time_t howmany);
 
 /* COM port to be used for SLIP connection */
 #define SLIP_PORT RS232_PORT_0
@@ -114,18 +136,13 @@ typedef int32_t s32_t;
 #define UIP_CONF_TCP_SPLIT       0
 
 
-typedef unsigned short clock_time_t;
 
 /* These names are deprecated, use C99 names. */
-typedef unsigned char u8_t;
+/*typedef unsigned char u8_t;
 typedef unsigned short u16_t;
 typedef unsigned long u32_t;
+*/
 typedef unsigned short uip_stats_t;
 typedef unsigned long off_t;
-
-void clock_delay(unsigned int us2);
-void clock_wait(int ms10);
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
 
 #endif /* __CONTIKI_CONF_H__ */

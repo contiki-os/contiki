@@ -9,6 +9,7 @@
  *	Mike Vidales mavida404@gmail.com
  *	Kevin Brown kbrown3@uccs.edu
  *	Nate Bohlmann nate@elfwerks.com
+ *  David Kopf dak664@embarqmail.com
  *
  *   All rights reserved.
  *
@@ -67,25 +68,22 @@
  * \brief Change these values to port to other platforms.
  * \{
  */
-/* Define all possible revisions here */
+/* Define all possible platform types/revisions here. */
 // Don't use zero, it will match if undefined!
 // RAVEN_D : Raven kit with LCD display
-// RAVENUSB_C : used for USB key or Raven card 
+// RAVENUSB_C : used for RZRAVEN USB key
 // RCB_B : RZ200 kit from Atmel based on 1281V
 // ZIGBIT : Zigbit module from Meshnetics
 // ATMEGA128RFA1 : Bare chip with internal radio
 // IRIS : IRIS Mote from MEMSIC
-#define RAVEN_D	    4
-#define RAVENUSB_C  1
-#define RCB_B	    	2
-#define ZIGBIT			3
-#define ATMEGA128RFA1   4
+#define RAVENUSB_C      1
+#define RAVEN_D	        2
+#define RCB_B	    	3
+#define ZIGBIT			4
 #define IRIS			5
+#define ATMEGA128RFA1   6
 
-
-
-/* TODO: Move to platform (or CPU specific) */
-#if RCB_REVISION == RCB_B
+#if PLATFORM_TYPE == RCB_B
 /* 1281 rcb */
 #   define SSPORT     B
 #   define SSPIN      (0x00)
@@ -104,7 +102,7 @@
 #   define TICKTIMER  3
 #   define HAS_SPARE_TIMER
 
-#elif HARWARE_REVISION == ZIGBIT
+#elif PLATFORM_TYPE == ZIGBIT
 /* 1281V Zigbit */
 #   define SSPORT     B
 #   define SSPIN      (0x00)
@@ -126,7 +124,7 @@
 //#   define HAS_SPARE_TIMER // Not used
 
 
-#elif RAVEN_REVISION == RAVEN_D
+#elif PLATFORM_TYPE == RAVEN_D
 /* 1284 raven */
 #   define SSPORT     B
 #   define SSPIN      (0x04)
@@ -148,7 +146,7 @@
 #   define HAS_CW_MODE
 #   define HAS_SPARE_TIMER
 
-#elif RAVEN_REVISION == RAVENUSB_C
+#elif PLATFORM_TYPE == RAVENUSB_C
 /* 1287USB raven */
 #   define SSPORT     B
 #   define SSPIN      (0x00)
@@ -170,24 +168,8 @@
 #   define HAS_CW_MODE
 #   define HAS_SPARE_TIMER
 
-#elif HARWARE_REVISION == ATMEGA128RFA1
+#elif PLATFORM_TYPE == ATMEGA128RFA1
 /* ATmega1281 with internal AT86RF231 radio */
-#if 0
-#   define SSPORT     B
-#   define SSPIN      (0x04)
-#   define SPIPORT    B
-#   define MOSIPIN    (0x05)
-#   define MISOPIN    (0x06)
-#   define SCKPIN     (0x07)
-#   define RSTPORT    B
-#   define RSTPIN     (0x01)
-#   define IRQPORT    D
-#   define IRQPIN     (0x06)
-#   define SLPTRPORT  B
-#   define SLPTRPIN   (0x03)
-#   define TXCWPORT   B
-#   define TXCWPIN    (0x00)
-#endif
 #   define SLPTRPORT  TRXPR
 #   define SLPTRPIN   1
 #   define USART      1
@@ -198,7 +180,6 @@
 
 #elif CONTIKI_TARGET_MULLE
 /* mulle 5.2 (TODO: move to platform specific) */
-
 #   define SSPORT     3
 #   define SSPIN      5
 #   define MOSIPORT   1
@@ -215,8 +196,7 @@
 #   define SLPTRPIN   7
 #   define HAS_SPARE_TIMER
 
-
-#elif HARWARE_REVISION == IRIS
+#elif PLATFORM_TYPE == IRIS
 /* 1281 IRIS */
 #   define SSPORT     B
 #   define SSPIN      (0x00)
@@ -238,7 +218,7 @@
 //#   define HAS_SPARE_TIMER // Not used
 #else
 
-#error "Platform undefined in hal.h"
+#error "PLATFORM_TYPE undefined in hal.h"
 
 #endif
 
@@ -427,7 +407,7 @@
     #error "Clock speed not supported."
 #endif
 
-#if HARWARE_REVISION == ZIGBIT
+#if PLATFORM_TYPE == ZIGBIT
 // IRQ E5 for Zigbit example
 #define RADIO_VECT INT5_vect
 #define HAL_ENABLE_RADIO_INTERRUPT( ) { ( EIMSK |= ( 1 << INT5 ) ) ; EICRB |= 0x0C ; PORTE &= ~(1<<PE5);  DDRE &= ~(1<<DDE5); }
