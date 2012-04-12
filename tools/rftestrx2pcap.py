@@ -2,12 +2,12 @@
 # (C) 2012, Mariano Alvira <mar@devl.org>
 
 import sys,os,time
-from termios import *
 from struct import *
 import re
+import serial
 
 if len(sys.argv) < 3:
-	sys.stderr.write( "Usage: %s tty channel\n" %(sys.argv[0]))
+	sys.stderr.write( "Usage: %s tty channel [outfile]\n" %(sys.argv[0]))
         sys.stderr.write( "       channel = 11-26\n")
 	sys.exit(2)
 
@@ -16,44 +16,29 @@ if len(sys.argv) < 3:
 # send a character until we get to the right channel
 
 try:
-	serport = os.open(sys.argv[1], os.O_RDWR|os.O_NOCTTY)
+	serport = serial.Serial(sys.argv[1], 115200, timeout=1)
 except IOError:
 	print "error opening port"
 	sys.exit(2)
 
-try:
-	oldattrs = tcgetattr(serport)
-	attrs = [IGNPAR, oldattrs[1], 0, 0, B115200, B115200, oldattrs[6]]
-	attrs[2] = B115200 | CS8 | CLOCAL | CREAD
-	attrs[6][VTIME] = 0
-	attrs[6][VMIN] = 1
-	tcflush(serport, TCIFLUSH)
-	tcsetattr(serport, TCSANOW, attrs)
-except IOError:
-	print "IOError in termios"
-	sys.exit(2)
-
 chan = ''
 while chan != int(sys.argv[2]) - 11:
-	os.write(serport, ' ')
+	serport.write(' ')
 	chanstr = ''
 	while 1:
-		chanstr += os.read(serport, 1)
+		chanstr += serport.read(1)
 		m = re.match(".*channel: (\w+)\s+", chanstr)
 		if m is not None:
 			chan = int(m.group(1))
 			break
 
-os.close(serport)
-
-sys.stderr.write("RX: 0")
-
 try:
-	serport = open(sys.argv[1], 'r+')
-except IOError:
-	print "error opening port"
-	sys.exit(2)
+	sys.stderr.write('writing to file %s \n' % (sys.argv[3]))
+	outfile = open(sys.argv[3], 'w+b')
+except IndexError:
+	outfile = sys.stdout
 
+sys.stderr.write("RX: 0\r")
 
 ### PCAP setup
 MAGIC = 0xa1b2c3d4;
@@ -65,7 +50,7 @@ SNAPLEN = 0xffff;
 NETWORK = 230; # 802.15.4 no FCS
 
 # output overall PCAP header
-sys.stdout.write(pack('<LHHLLLL', MAGIC, MAJOR, MINOR, ZONE, SIG, SNAPLEN, NETWORK))
+outfile.write(pack('<LHHLLLL', MAGIC, MAJOR, MINOR, ZONE, SIG, SNAPLEN, NETWORK))
 
 count = 0
 fileempty = 1
@@ -90,11 +75,10 @@ try:
 			# if this is a new packet, add a packet header
 		if newpacket == 1:
 			newpacket = 0
-			sys.stdout.write(pack('<LLLL',sec,usec,length,length))
+			outfile.write(pack('<LLLL',sec,usec,length,length))
 
 			count += 1
-			sys.stderr.write("\x1b[G") # Move the cursor up one
-			sys.stderr.write("RX: %d" % count)
+			sys.stderr.write("RX: %d\r" % count)			
 
 			# clear file empty flag
 			if fileempty:
@@ -105,7 +89,7 @@ try:
 				# do a match because their might be a \r floating around
 				m = re.match('.*(\w\w).*', d)
 				if m is not None:
-					sys.stdout.write(pack('<B', int(m.group(1),16)))
+					outfile.write(pack('<B', int(m.group(1),16)))
 
 
 #             cn.recv_block()
