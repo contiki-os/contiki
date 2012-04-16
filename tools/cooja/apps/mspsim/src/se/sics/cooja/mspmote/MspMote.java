@@ -481,7 +481,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
           String name = mapEntry.getName();
           return file + ":?:" + name;
         }
-        return String.format("*%02x", myCpu.reg[MSP430Constants.PC]);
+        return String.format("*%02x", pc);
       } catch (Exception e) {
         return null;
       }

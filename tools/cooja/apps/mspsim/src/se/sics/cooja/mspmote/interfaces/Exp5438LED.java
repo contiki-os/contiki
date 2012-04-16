@@ -72,7 +72,7 @@ public class Exp5438LED extends LED {
 
     IOUnit unit = mspMote.getCPU().getIOUnit("P1");
     if (unit instanceof IOPort) {
-      ((IOPort) unit).setPortListener(new PortListener() {
+      ((IOPort) unit).addPortListener(new PortListener() {
         public void portWrite(IOPort source, int data) {
           redOn = (data & Exp5438Node.LEDS_CONF_RED) != 0;
           yellowOn = (data & Exp5438Node.LEDS_CONF_YELLOW) != 0;
