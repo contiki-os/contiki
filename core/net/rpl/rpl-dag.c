@@ -174,6 +174,28 @@ acceptable_rank(rpl_dag_t *dag, rpl_rank_t rank)
      DAG_RANK(rank, dag->instance) <= DAG_RANK(dag->min_rank + dag->instance->max_rankinc, dag->instance));
 }
 /************************************************************************/
+static rpl_dag_t *
+get_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
+{
+  rpl_instance_t *instance;
+  rpl_dag_t *dag;
+  int i;
+
+  instance = rpl_get_instance(instance_id);
+  if(instance == NULL) {
+    return NULL;
+  }
+
+  for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; ++i) {
+    dag = &instance->dag_table[i];
+    if(dag->used && uip_ipaddr_cmp(&dag->dag_id, dag_id)) {
+      return dag;
+    }
+  }
+
+  return NULL;
+}
+/************************************************************************/
 rpl_dag_t *
 rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
 {
@@ -182,7 +204,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   uint8_t version;
 
   version = RPL_LOLLIPOP_INIT;
-  dag = rpl_get_dag(instance_id, dag_id);
+  dag = get_dag(instance_id, dag_id);
   if(dag != NULL) {
     version = dag->version;
     RPL_LOLLIPOP_INCREMENT(version);
@@ -388,8 +410,7 @@ rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
   for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
     if(!dag->used) {
       memset(dag, 0, sizeof(*dag));
-      dag->parents = &dag->parent_list;
-      list_init(dag->parents);
+      LIST_STRUCT_INIT(dag, parents);
       dag->used = 1;
       dag->rank = INFINITE_RANK;
       dag->min_rank = INFINITE_RANK;
@@ -733,28 +754,6 @@ rpl_get_instance(uint8_t instance_id)
       return &instance_table[i];
     }
   }
-  return NULL;
-}
-/************************************************************************/
-rpl_dag_t *
-rpl_get_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
-{
-  rpl_instance_t *instance;
-  rpl_dag_t *dag;
-  int i;
-
-  instance = rpl_get_instance(instance_id);
-  if(instance == NULL) {
-    return NULL;
-  }
-
-  for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; ++i) {
-    dag = &instance->dag_table[i];
-    if(dag->used && uip_ipaddr_cmp(&dag->dag_id, dag_id)) {
-      return dag;
-    }
-  }
-
   return NULL;
 }
 /************************************************************************/
@@ -1114,7 +1113,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  dag = rpl_get_dag(dio->instance_id, &dio->dag_id);
+  dag = get_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Adding new DAG to known instance.\n");
     rpl_add_dag(from, dio);
