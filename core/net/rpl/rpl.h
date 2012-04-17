@@ -213,8 +213,7 @@ struct rpl_dag {
   rpl_parent_t *preferred_parent;
   rpl_rank_t rank;
   struct rpl_instance *instance;
-  void *parent_list;
-  list_t parents;
+  LIST_STRUCT(parents);
   rpl_prefix_t prefix_info;
 };
 typedef struct rpl_dag rpl_dag_t;
