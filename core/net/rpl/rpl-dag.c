@@ -469,6 +469,10 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
 {
   rpl_parent_t *p;
 
+  if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS_PER_DAG) {
+    return NULL;
+  }
+
   p = memb_alloc(&parent_memb);
   if(p == NULL) {
     RPL_STAT(rpl_stats.mem_overflows++);
