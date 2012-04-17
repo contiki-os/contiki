@@ -182,7 +182,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   uint8_t version;
 
   version = RPL_LOLLIPOP_INIT;
-  dag = rpl_get_dodag(instance_id, dag_id);
+  dag = rpl_get_dag(instance_id, dag_id);
   if(dag != NULL) {
     version = dag->version;
     RPL_LOLLIPOP_INCREMENT(version);
@@ -190,10 +190,10 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
     if(dag == dag->instance->current_dag) {
       dag->instance->current_dag = NULL;
     }
-    rpl_free_dodag(dag);
+    rpl_free_dag(dag);
   }
 
-  dag = rpl_alloc_dodag(instance_id, dag_id);
+  dag = rpl_alloc_dag(instance_id, dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG\n");
     return NULL;
@@ -371,27 +371,18 @@ rpl_alloc_instance(uint8_t instance_id)
 }
 /************************************************************************/
 rpl_dag_t *
-rpl_alloc_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id)
+rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
 {
   rpl_dag_t *dag, *end;
   rpl_instance_t *instance;
 
   instance = rpl_get_instance(instance_id);
-  if(instance == NULL ) {
+  if(instance == NULL) {
     instance = rpl_alloc_instance(instance_id);
-    if(instance == NULL ) {
+    if(instance == NULL) {
       RPL_STAT(rpl_stats.mem_overflows++);
       return NULL;
     }
-    dag = &instance->dag_table[0];
-    dag->parents = &dag->parent_list;
-    list_init(dag->parents);
-    dag->used = 1;
-    dag->rank = INFINITE_RANK;
-    dag->min_rank = INFINITE_RANK;
-    dag->instance = instance;
-    instance->current_dag = dag;
-    return dag;
   }
 
   for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
@@ -426,7 +417,7 @@ rpl_free_instance(rpl_instance_t *instance)
   /* Remove any DAG inside this instance */
   for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
     if(dag->used) {
-      rpl_free_dodag(dag);
+      rpl_free_dag(dag);
     }
   }
 
@@ -443,7 +434,7 @@ rpl_free_instance(rpl_instance_t *instance)
 }
 /************************************************************************/
 void
-rpl_free_dodag(rpl_dag_t *dag)
+rpl_free_dag(rpl_dag_t *dag)
 {
   if(dag->joined) {
     PRINTF("RPL: Leaving the DAG ");
@@ -539,7 +530,7 @@ rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
 }
 /************************************************************************/
 rpl_dag_t *
-rpl_select_dodag(rpl_instance_t *instance, rpl_parent_t *p)
+rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
 {
   rpl_parent_t *last_parent;
   rpl_dag_t *dag, *end, *best_dag;
@@ -746,7 +737,7 @@ rpl_get_instance(uint8_t instance_id)
 }
 /************************************************************************/
 rpl_dag_t *
-rpl_get_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id)
+rpl_get_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
 {
   rpl_instance_t *instance;
   rpl_dag_t *dag;
@@ -791,7 +782,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_parent_t *p;
   rpl_of_t *of;
 
-  dag = rpl_alloc_dodag(dio->instance_id, &dio->dag_id);
+  dag = rpl_alloc_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG object!\n");
     return;
@@ -880,14 +871,14 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
 /************************************************************************/
 void
-rpl_add_dodag(uip_ipaddr_t *from, rpl_dio_t *dio)
+rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
   rpl_instance_t *instance;
   rpl_dag_t *dag, *previous_dag;
   rpl_parent_t *p;
   rpl_of_t *of;
 
-  dag = rpl_alloc_dodag(dio->instance_id, &dio->dag_id);
+  dag = rpl_alloc_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG object!\n");
     return;
@@ -1072,7 +1063,7 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
     }
   }
 
-  if(rpl_select_dodag(instance, p) == NULL) {
+  if(rpl_select_dag(instance, p) == NULL) {
     /* No suitable parent; trigger a local repair. */
     PRINTF("RPL: No parents found in any DAG\n");
     rpl_local_repair(instance);
@@ -1123,10 +1114,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  dag = rpl_get_dodag(dio->instance_id, &dio->dag_id);
+  dag = rpl_get_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
-    PRINTF("RPL: Adding new dodag to known instance.\n");
-    rpl_add_dodag(from, dio);
+    PRINTF("RPL: Adding new DAG to known instance.\n");
+    rpl_add_dag(from, dio);
     return;
   }
 
