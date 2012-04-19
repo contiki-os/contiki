@@ -38,6 +38,7 @@
 #include "contiki.h"
 #include "cmd.h"
 #include "border-router.h"
+#include "border-router-cmds.h"
 #include "dev/serial-line.h"
 #include "net/rpl/rpl.h"
 #include "net/uiplib.h"
@@ -45,6 +46,9 @@
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
+
+
+uint8_t command_context;
 
 void packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx);
 void nbr_print_stat(void);
@@ -61,27 +65,27 @@ border_router_cmd_handler(const uint8_t *data, int len)
   /* handle global repair, etc here */
   if(data[0] == '!') {
     PRINTF("Got configuration message of type %c\n", data[1]);
-    if(data[1] == 'G') {
+    if(data[1] == 'G' && command_context == CMD_CONTEXT_STDIO) {
       /* This is supposed to be from stdin */
       printf("Performing Global Repair...\n");
       rpl_repair_root(RPL_DEFAULT_INSTANCE);
       return 1;
-    } else if(data[1] == 'M') {
+    } else if(data[1] == 'M' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */
       PRINTF("Setting MAC address\n");
       border_router_set_mac(&data[2]);
       return 1;
-    } else if(data[1] == 'C') {
+    } else if(data[1] == 'C' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */
       printf("Channel is:%d\n", data[2]);
       return 1;
-    } else if(data[1] == 'R') {
+    } else if(data[1] == 'R' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */
       PRINTF("Packet data report for sid:%d st:%d tx:%d\n",
 	     data[2], data[3], data[4]);
       packet_sent(data[2], data[3], data[4]);
       return 1;
-    } else if(data[1] == 'D') {
+    } else if(data[1] == 'D' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here... */
       PRINTF("Sensor data received\n");
       border_router_set_sensors((const char *)&data[2], len - 2);
@@ -89,7 +93,7 @@ border_router_cmd_handler(const uint8_t *data, int len)
     }
   } else if(data[0] == '?') {
     PRINTF("Got request message of type %c\n", data[1]);
-    if(data[1] == 'M') {
+    if(data[1] == 'M' && command_context == CMD_CONTEXT_STDIO) {
       uint8_t buf[20];
       char* hexchar = "0123456789abcdef";
       int j;
@@ -102,7 +106,7 @@ border_router_cmd_handler(const uint8_t *data, int len)
       }
       cmd_send(buf, 18);
       return 1;
-    } else if(data[1] == 'C') {
+    } else if(data[1] == 'C' && command_context == CMD_CONTEXT_STDIO) {
       /* send on! */
       write_to_slip(data, len);
       return 1;
@@ -134,6 +138,7 @@ PROCESS_THREAD(border_router_cmd_process, ev, data)
     if(ev == serial_line_event_message && data != NULL) {
       PRINTF("Got serial data!!! %s of len: %d\n",
 	     (char *)data, strlen((char *)data));
+      command_context = CMD_CONTEXT_STDIO;
       cmd_input(data, strlen((char *)data));
     }
   }
