@@ -55,6 +55,7 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "cmd.h"
+#include "border-router-cmds.h"
 
 extern int slip_config_verbose;
 extern int slip_config_flowcontrol;
@@ -206,6 +207,7 @@ serial_input(FILE *inslip)
   case SLIP_END:
     if(inbufptr > 0) {
       if(uip.inbuf[0] == '!') {
+	command_context = CMD_CONTEXT_RADIO;
 	cmd_input(uip.inbuf, inbufptr);
       } else if(uip.inbuf[0] == '?') {
 #define DEBUG_LINE_MARKER '\r'
