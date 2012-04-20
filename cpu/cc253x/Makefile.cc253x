@@ -15,6 +15,7 @@ BANK_ALLOC = $(CONTIKI_CPU)/bank-alloc.py
 SEGMENT_RULES = $(OBJECTDIR)/segment.rules
 
 CFLAGS  += --model-$(MEMORY_MODEL) --stack-auto --std-c99
+CFLAGS  +=  -DCC2530_LAST_FLASH_BANK=$(HIGH_FLASH_BANK)
 
 LDFLAGS += --model-$(MEMORY_MODEL) --stack-auto --out-fmt-ihx
 LDFLAGS += --xram-loc 0x0000 --xram-size 0x1F00
@@ -32,6 +33,16 @@ sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
     -e '/^$$/ d' -e 's/$$/ :/' < $(@:.rel=.$$$$) >> $(@:.rel=.d); \
 rm -f $(@:.rel=.$$$$)
 endef
+
+### SoC flavor (F256, F128, F64, F32) as the ID of the last flash bank (0...7)
+### We assume F256, project Makefile can override
+###
+### ToDo:
+###       Fix --code-size accordingly
+###       Fix the bank allocator to play for all flavors
+ifndef HIGH_FLASH_BANK
+  HIGH_FLASH_BANK=7
+endif
 
 ### Banking Guesswork:
 ### Generic examples do not specify banking.
