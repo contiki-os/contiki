@@ -160,21 +160,7 @@ main(void)
     break;
   }
 
-  putstring("-F");
-  switch(CHIPINFO0 & 0x70) {
-  case 0x40:
-    putstring("256, ");
-    break;
-  case 0x30:
-    putstring("128, ");
-    break;
-  case 0x20:
-    putstring("64, ");
-    break;
-  case 0x10:
-    putstring("32, ");
-    break;
-  }
+  putstring("-" CC2530_FLAVOR_STRING ", ");
   puthex(CHIPINFO1 + 1);
   putstring("KB SRAM\n");
 
