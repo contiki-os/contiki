@@ -64,7 +64,6 @@ import se.sics.mspsim.cli.LineListener;
 import se.sics.mspsim.cli.LineOutputStream;
 import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
-import se.sics.mspsim.core.MSP430Constants;
 import se.sics.mspsim.platform.GenericNode;
 import se.sics.mspsim.ui.JFrameWindowManager;
 import se.sics.mspsim.util.ComponentRegistry;
@@ -138,6 +137,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
    */
   public void stopNextInstruction() {
     stopNextInstruction = true;
+    getCPU().stop();
   }
 
   protected MoteInterfaceHandler createMoteInterfaceHandler() {
