@@ -27,22 +27,16 @@
 PROCESS_NAME(viztool_process);
 #endif
 /*---------------------------------------------------------------------------*/
-#ifdef STARTUP_CONF_VERBOSE
-#define STARTUP_VERBOSE STARTUP_CONF_VERBOSE
-#else
-#define STARTUP_VERBOSE 0
-#endif
-
-#if STARTUP_VERBOSE
+#if STARTUP_CONF_VERBOSE
 #define PUTSTRING(...) putstring(__VA_ARGS__)
 #define PUTHEX(...) puthex(__VA_ARGS__)
 #define PUTBIN(...) putbin(__VA_ARGS__)
 #define PUTCHAR(...) putchar(__VA_ARGS__)
 #else
-#define PUTSTRING(...) do {} while(0)
-#define PUTHEX(...) do {} while(0)
-#define PUTBIN(...) do {} while(0)
-#define PUTCHAR(...) do {} while(0)
+#define PUTSTRING(...)
+#define PUTHEX(...)
+#define PUTBIN(...)
+#define PUTCHAR(...)
 #endif
 /*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
@@ -104,7 +98,7 @@ set_rime_addr(void)
   }
 
   /* Now the address is stored MSB first */
-#if STARTUP_VERBOSE
+#if STARTUP_CONF_VERBOSE
   PUTSTRING("Rime configured with address ");
   for(i = 0; i < RIMEADDR_SIZE - 1; i++) {
     PUTHEX(rimeaddr_node_addr.u8[i]);
@@ -185,7 +179,7 @@ main(void)
   putstring("KB SRAM\n");
 
   PUTSTRING("\nSDCC Build:\n");
-#if STARTUP_VERBOSE
+#if STARTUP_CONF_VERBOSE
 #ifdef HAVE_SDCC_BANKING
   PUTSTRING("  With Banking.\n");
 #endif /* HAVE_SDCC_BANKING */
