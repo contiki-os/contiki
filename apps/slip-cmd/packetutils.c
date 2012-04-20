@@ -70,7 +70,16 @@ packetutils_deserialize_atts(const uint8_t *data, int size)
   pos = 0;
   cnt = data[pos++];
   PRINTF("packetutils: deserializing %d packet atts:", cnt);
+  if(cnt > PACKETBUF_NUM_ATTRS) {
+    PRINTF(" *** too many: %u!\n", PACKETBUF_NUM_ATTRS);
+    return -1;
+  }
   for(i = 0; i < cnt; i++) {
+    if(data[pos] >= PACKETBUF_NUM_ATTRS) {
+      /* illegal attribute identifier */
+      PRINTF(" *** unknown attribute %u\n", data[pos]);
+      return -1;
+    }
     PRINTF(" %d=%d", data[pos], (data[pos + 1] << 8) | data[pos + 2]);
     packetbuf_set_attr(data[pos], (data[pos + 1] << 8) | data[pos + 2]);
     pos += 3;
