@@ -80,22 +80,49 @@ fade(int l)
 static void
 set_rime_addr(void)
 {
-  uint8_t *addr_long = NULL;
-  uint16_t addr_short = 0;
   char i;
 
+#if CC2530_CONF_MAC_FROM_PRIMARY
   __xdata unsigned char * macp = &X_IEEE_ADDR;
+#else
+  __code unsigned char * macp = (__code unsigned char *) 0xFFE8;
+#endif
 
   PUTSTRING("Rime is 0x");
   PUTHEX(sizeof(rimeaddr_t));
   PUTSTRING(" bytes long\n");
 
+#if CC2530_CONF_MAC_FROM_PRIMARY
   PUTSTRING("Reading MAC from Info Page\n");
+#else
+  PUTSTRING("Reading MAC from flash\n");
+
+  /*
+   * The MAC is always stored in 0xFFE8 of the highest BANK of our flash. This
+   * maps to address 0xFFF8 of our CODE segment, when this BANK is selected.
+   * Load the bank, read 8 bytes starting at 0xFFE8 and restore last BANK.
+   * Since we are called from main(), this MUST be BANK1 or something is very
+   * wrong. This code can be used even without a bankable firmware.
+   */
+
+  /* Don't interrupt us to make sure no BANK switching happens while working */
+  DISABLE_INTERRUPTS();
+
+  /* Switch to the BANKn,
+   * map CODE: 0x8000 - 0xFFFF to FLASH: 0xn8000 - 0xnFFFF */
+  FMAP = CC2530_LAST_FLASH_BANK;
+#endif
 
   for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
     rimeaddr_node_addr.u8[i] = *macp;
     macp++;
   }
+
+#if !CC2530_CONF_MAC_FROM_PRIMARY
+  /* Remap 0x8000 - 0xFFFF to BANK1 */
+  FMAP = 1;
+  ENABLE_INTERRUPTS();
+#endif
 
   /* Now the address is stored MSB first */
 #if STARTUP_CONF_VERBOSE

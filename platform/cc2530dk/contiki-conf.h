@@ -84,6 +84,15 @@
 #define NETSTACK_CONF_SHORTCUTS   1
 
 /*
+ * By default we read our MAC from the (read-only) Information Page (primary
+ * location). In order to have a user-programmable mac, define this as 0 to
+ * use the secondary location (addresses 0xFFE8 - 0xFFEF on the last flash page)
+ */
+#ifndef CC2530_CONF_MAC_FROM_PRIMARY
+#define CC2530_CONF_MAC_FROM_PRIMARY 1
+#endif
+
+/*
  * Sensors
  * It is harmless to #define XYZ 1
  * even if the sensor is not present on our device
