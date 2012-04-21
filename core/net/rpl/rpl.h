@@ -29,8 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  * \file
- *	ContikiRPL - an implementation of the routing protocol for low 
- *	power and lossy networks. See: draft-ietf-roll-rpl-17.
+ *	Public API declarations for ContikiRPL.
  * \author
  *	Joakim Eriksson <joakime@sics.se> & Nicolas Tsiftes <nvt@sics.se>
  *
@@ -39,83 +38,12 @@
 #ifndef RPL_H
 #define RPL_H
 
+#include "rpl-conf.h"
+
 #include "lib/list.h"
 #include "net/uip.h"
 #include "net/uip-ds6.h"
 #include "sys/ctimer.h"
-
-/* set to 1 for some statistics on trickle / DIO */
-#ifndef RPL_CONF_STATS
-#define RPL_CONF_STATS 0
-#endif /* RPL_CONF_STATS */
-
-/* 
- * Select routing metric supported at runtime. This must be a valid
- * DAG Metric Container Object Type (see below). Currently, we only 
- * support RPL_DAG_MC_ETX and RPL_DAG_MC_ENERGY.
- */
-#ifdef RPL_CONF_DAG_MC
-#define RPL_DAG_MC RPL_CONF_DAG_MC
-#else
-#define RPL_DAG_MC RPL_DAG_MC_ETX
-#endif /* RPL_CONF_DAG_MC */
-
-/*
- * The objective function used by RPL is configurable through the 
- * RPL_CONF_OF parameter. This should be defined to be the name of an 
- * rpl_of_t object linked into the system image, e.g., rpl_of0.
- */
-#ifdef RPL_CONF_OF
-#define RPL_OF RPL_CONF_OF
-#else
-/* ETX is the default objective function. */
-#define RPL_OF rpl_of_etx
-#endif /* RPL_CONF_OF */
-
-/* This value decides which DAG instance we should participate in by default. */
-#define RPL_DEFAULT_INSTANCE	       0x1e
-
-/*
- * This value decides if this node must stay as a leaf or not
- * as allowed by draft-ietf-roll-rpl-19#section-8.5
- */
-#ifdef RPL_CONF_LEAF_ONLY
-#define RPL_LEAF_ONLY RPL_CONF_LEAF_ONLY
-#else
-#define RPL_LEAF_ONLY 0
-#endif
-
-/*
- * Maximum of concurent rpl-instances
- */
-#ifndef RPL_CONF_MAX_INSTANCES
-#define RPL_MAX_INSTANCES     1
-#else
-#define RPL_MAX_INSTANCES     RPL_CONF_MAX_INSTANCES
-#endif /* !RPL_CONF_MAX_INSTANCES */
-
-/*
- * Maximum of concurent dodag inside an instance
- */
-#ifndef RPL_CONF_MAX_DAG_PER_INSTANCE
-#define RPL_MAX_DAG_PER_INSTANCE     2
-#else
-#define RPL_MAX_DAG_PER_INSTANCE     RPL_CONF_MAX_DAG_PER_INSTANCE
-#endif /* !RPL_CONF_MAX_DAG_PER_INSTANCE */
-
-/*
- * 
- */
-#ifndef RPL_CONF_DAO_SPECIFY_DAG
-#if RPL_MAX_DAG_PER_INSTANCE > 1
-#define RPL_DAO_SPECIFY_DAG 1
-#else /* RPL_MAX_DAG_PER_INSTANCE > 1*/
-#define RPL_DAO_SPECIFY_DAG 0
-#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
-#else /* RPL_CONF_DAO_SPECIFY_DAG */
-#define RPL_DAO_SPECIFY_DAG RPL_CONF_DAO_SPECIFY_DAG
-#endif /* RPL_CONF_DAO_SPECIFY_DAG */
-
 
 /*---------------------------------------------------------------------------*/
 /* The amount of parents that this node has in a particular DAG. */

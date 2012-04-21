@@ -28,21 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Joakim Eriksson, Nicolas Tsiftes
+ * \file
+ *   Private declarations for ContikiRPL.
+ * \author
+ *   Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
 
 #ifndef RPL_PRIVATE_H
 #define RPL_PRIVATE_H
-
-/*
- * ContikiRPL - an implementation of the routing protocol for low power and
- * lossy networks. See: draft-ietf-roll-rpl-17.
- *
- * --
- * The DIOs handle prefix information option for setting global IP addresses
- * on the nodes, but the current handling is not awaiting the join of the DAG
- * so it does not currently support multiple DAGs.
- */
 
 #include "net/rpl/rpl.h"
 
