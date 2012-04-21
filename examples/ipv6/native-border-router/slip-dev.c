@@ -32,7 +32,6 @@
  /* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
 #define WIRESHARK_IMPORT_FORMAT 1
 #include "contiki.h"
-#include "net/uip.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,6 +54,7 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "cmd.h"
+#include "border-router-cmds.h"
 
 extern int slip_config_verbose;
 extern int slip_config_flowcontrol;
@@ -64,6 +64,11 @@ extern const char *slip_config_port;
 extern uint16_t slip_config_basedelay;
 extern speed_t slip_config_b_rate;
 
+#ifdef SLIP_DEV_CONF_SEND_DELAY
+#define SEND_DELAY SLIP_DEV_CONF_SEND_DELAY
+#else
+#define SEND_DELAY 0
+#endif
 
 int devopen(const char *dev, int flags);
 
@@ -75,7 +80,6 @@ long slip_received = 0;
 
 int slipfd = 0;
 
-void slip_send(int fd, unsigned char c);
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while(0)
 
@@ -172,9 +176,7 @@ slip_packet_input(unsigned char *data, int len)
 void
 serial_input(FILE *inslip)
 {
-  static union {
-    unsigned char inbuf[2000];
-  } uip;
+  unsigned char inbuf[2048];
   static int inbufptr = 0;
   int ret,i;
   unsigned char c;
@@ -186,7 +188,7 @@ serial_input(FILE *inslip)
 #endif
 
  read_more:
-  if(inbufptr >= sizeof(uip.inbuf)) {
+  if(inbufptr >= sizeof(inbuf)) {
      fprintf(stderr, "*** dropping large %d byte packet\n", inbufptr);
      inbufptr = 0;
   }
@@ -205,15 +207,16 @@ serial_input(FILE *inslip)
   switch(c) {
   case SLIP_END:
     if(inbufptr > 0) {
-      if(uip.inbuf[0] == '!') {
-	cmd_input(uip.inbuf, inbufptr);
-      } else if(uip.inbuf[0] == '?') {
+      if(inbuf[0] == '!') {
+	command_context = CMD_CONTEXT_RADIO;
+	cmd_input(inbuf, inbufptr);
+      } else if(inbuf[0] == '?') {
 #define DEBUG_LINE_MARKER '\r'
-      } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
-	fwrite(uip.inbuf + 1, inbufptr - 1, 1, stdout);
-      } else if(is_sensible_string(uip.inbuf, inbufptr)) {
+      } else if(inbuf[0] == DEBUG_LINE_MARKER) {
+	fwrite(inbuf + 1, inbufptr - 1, 1, stdout);
+      } else if(is_sensible_string(inbuf, inbufptr)) {
         if(slip_config_verbose == 1) {   /* strings already echoed below for verbose>1 */
-          fwrite(uip.inbuf, inbufptr, 1, stdout);
+          fwrite(inbuf, inbufptr, 1, stdout);
         }
       } else {
         if(slip_config_verbose > 2) {
@@ -221,11 +224,11 @@ serial_input(FILE *inslip)
           if(slip_config_verbose > 4) {
 #if WIRESHARK_IMPORT_FORMAT
             printf("0000");
-	    for(i = 0; i < inbufptr; i++) printf(" %02x", uip.inbuf[i]);
+	    for(i = 0; i < inbufptr; i++) printf(" %02x", inbuf[i]);
 #else
             printf("         ");
             for(i = 0; i < inbufptr; i++) {
-              printf("%02x", uip.inbuf[i]);
+              printf("%02x", inbuf[i]);
               if((i & 3) == 3) printf(" ");
               if((i & 15) == 15) printf("\n         ");
             }
@@ -233,7 +236,7 @@ serial_input(FILE *inslip)
             printf("\n");
           }
         }
-	slip_packet_input(uip.inbuf, inbufptr);
+	slip_packet_input(inbuf, inbufptr);
       }
       inbufptr = 0;
     }
@@ -257,7 +260,7 @@ serial_input(FILE *inslip)
     }
     /* FALLTHROUGH */
   default:
-    uip.inbuf[inbufptr++] = c;
+    inbuf[inbufptr++] = c;
 
     /* Echo lines as they are received for verbose=2,3,5+ */
     /* Echo all printable characters for verbose==4 */
@@ -266,8 +269,8 @@ serial_input(FILE *inslip)
 	fwrite(&c, 1, 1, stdout);
       }
     } else if(slip_config_verbose >= 2) {
-      if(c == '\n' && is_sensible_string(uip.inbuf, inbufptr)) {
-        fwrite(uip.inbuf, inbufptr, 1, stdout);
+      if(c == '\n' && is_sensible_string(inbuf, inbufptr)) {
+        fwrite(inbuf, inbufptr, 1, stdout);
         inbufptr = 0;
       }
     }
@@ -277,10 +280,13 @@ serial_input(FILE *inslip)
   goto read_more;
 }
 
-unsigned char slip_buf[2000];
-int slip_end, slip_begin;
+unsigned char slip_buf[2048];
+int slip_end, slip_begin, slip_packet_end, slip_packet_count;
+static struct timer send_delay_timer;
+/* delay between slip packets */
+static clock_time_t send_delay = SEND_DELAY;
 /*---------------------------------------------------------------------------*/
-void
+static void
 slip_send(int fd, unsigned char c)
 {
   if(slip_end >= sizeof(slip_buf)) {
@@ -289,12 +295,19 @@ slip_send(int fd, unsigned char c)
   slip_buf[slip_end] = c;
   slip_end++;
   slip_sent++;
+  if(c == SLIP_END) {
+    /* Full packet received. */
+    slip_packet_count++;
+    if(slip_packet_end == 0) {
+      slip_packet_end = slip_end;
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
 int
 slip_empty()
 {
-  return slip_end == 0;
+  return slip_packet_end == 0;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -306,16 +319,35 @@ slip_flushbuf(int fd)
     return;
   }
 
-  n = write(fd, slip_buf + slip_begin, slip_end - slip_begin);
+  n = write(fd, slip_buf + slip_begin, slip_packet_end - slip_begin);
 
   if(n == -1 && errno != EAGAIN) {
     err(1, "slip_flushbuf write failed");
   } else if(n == -1) {
-    PROGRESS("Q");		/* Outqueueis full! */
+    PROGRESS("Q");		/* Outqueue is full! */
   } else {
     slip_begin += n;
-    if(slip_begin == slip_end) {
-      slip_begin = slip_end = 0;
+    if(slip_begin == slip_packet_end) {
+      slip_packet_count--;
+      if(slip_end > slip_packet_end) {
+        memcpy(slip_buf, slip_buf + slip_packet_end,
+               slip_end - slip_packet_end);
+      }
+      slip_end -= slip_packet_end;
+      slip_begin = slip_packet_end = 0;
+      if(slip_end > 0) {
+        /* Find end of next slip packet */
+        for(n = 1; n < slip_end; n++) {
+          if(slip_buf[n] == SLIP_END) {
+            slip_packet_end = n + 1;
+            break;
+          }
+        }
+        /* a delay between slip packets to avoid losing data */
+        if(send_delay > 0) {
+          timer_set(&send_delay_timer, send_delay);
+        }
+      }
     }
   }
 }
@@ -430,7 +462,8 @@ stty_telos(int fd)
 static int
 set_fd(fd_set *rset, fd_set *wset)
 {
-  if(!slip_empty()) {		/* Anything to flush? */
+  /* Anything to flush? */
+  if(!slip_empty() && (send_delay == 0 || timer_expired(&send_delay_timer))) {
     FD_SET(slipfd, wset);
   }
 
@@ -503,6 +536,7 @@ slip_init(void)
     stty_telos(slipfd);
   }
 
+  timer_set(&send_delay_timer, 0);
   slip_send(slipfd, SLIP_END);
   inslip = fdopen(slipfd, "r");
   if(inslip == NULL) {
