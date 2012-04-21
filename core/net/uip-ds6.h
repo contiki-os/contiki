@@ -390,21 +390,21 @@ void uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop);
 /** @} */
 
 /** \brief set the last 64 bits of an IP address based on the MAC address */
-void uip_ds6_set_addr_iid(uip_ipaddr_t * ipaddr, uip_lladdr_t * lladdr);
+void uip_ds6_set_addr_iid(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr);
 
 /** \brief Get the number of matching bits of two addresses */
-uint8_t get_match_length(uip_ipaddr_t * src, uip_ipaddr_t * dst);
+uint8_t get_match_length(uip_ipaddr_t *src, uip_ipaddr_t *dst);
 
 #if UIP_ND6_DEF_MAXDADNS >0
 /** \brief Perform Duplicate Address Selection on one address */
-void uip_ds6_dad(uip_ds6_addr_t * ifaddr);
+void uip_ds6_dad(uip_ds6_addr_t *ifaddr);
 
 /** \brief Callback when DAD failed */
-int uip_ds6_dad_failed(uip_ds6_addr_t * ifaddr);
+int uip_ds6_dad_failed(uip_ds6_addr_t *ifaddr);
 #endif /* UIP_ND6_DEF_MAXDADNS */
 
 /** \brief Source address selection, see RFC 3484 */
-void uip_ds6_select_src(uip_ipaddr_t * src, uip_ipaddr_t * dst);
+void uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst);
 
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
