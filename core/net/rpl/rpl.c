@@ -34,7 +34,8 @@
  */
 /**
  * \file
- *         ContikiRPL, an implementation of IETF ROLL RPL.
+ *         ContikiRPL, an implementation of RPL: IPv6 Routing Protocol
+ *         for Low-Power and Lossy Networks (IETF RFC 6550)
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */

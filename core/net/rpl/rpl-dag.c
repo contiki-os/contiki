@@ -88,7 +88,9 @@ rpl_instance_t *default_instance;
 /************************************************************************/
 /* Greater-than function for the lollipop counter.                      */
 /************************************************************************/
-int rpl_lollipop_greater_than(int a, int b) {
+static int
+lollipop_greater_than(int a, int b)
+{
   /* Check if we are comparing an initial value with an old value */
   if(a > RPL_LOLLIPOP_CIRCULAR_REGION && b <= RPL_LOLLIPOP_CIRCULAR_REGION) {
     return (RPL_LOLLIPOP_MAX_VALUE + 1 + b - a) > RPL_LOLLIPOP_SEQUENCE_WINDOWS;
@@ -163,7 +165,7 @@ should_send_dao(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
   }
   /* check if the new DTSN is more recent */
   return p == instance->current_dag->preferred_parent &&
-    (rpl_lollipop_greater_than(dio->dtsn, p->dtsn));
+    (lollipop_greater_than(dio->dtsn, p->dtsn));
 }
 /************************************************************************/
 static int
@@ -418,6 +420,9 @@ rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
       return dag;
     }
   }
+
+  RPL_STAT(rpl_stats.mem_overflows++);
+  rpl_free_instance(instance);
   return NULL;
 }
 /************************************************************************/
@@ -814,7 +819,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   /* Autoconfigure an address if this node does not already have an address
      with this prefix. */
-  if((dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
+  if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
     check_prefix(NULL, &dio->prefix_info);
   }
 
@@ -825,8 +830,8 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   instance->of = of;
   instance->mop = dio->mop;
+  instance->current_dag = dag;
   instance->dtsn_out = RPL_LOLLIPOP_INIT;
-  instance->instance_id = dio->instance_id;
 
   instance->max_rankinc = dio->dag_max_rankinc;
   instance->min_hoprankinc = dio->dag_min_hoprankinc;
@@ -839,13 +844,14 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   memcpy(&dag->dag_id, &dio->dag_id, sizeof(dio->dag_id));
 
-  /* copy prefix information into the dag */
+  /* Copy prefix information from the DIO into the DAG object. */
   memcpy(&dag->prefix_info, &dio->prefix_info, sizeof(rpl_prefix_t));
 
   dag->preferred_parent = p;
   instance->of->update_metric_container(instance);
   dag->rank = instance->of->calculate_rank(p, 0);
-  dag->min_rank = dag->rank; /* So far this is the lowest rank we know of. */
+  /* So far this is the lowest rank we are aware of. */
+  dag->min_rank = dag->rank;
 
   if(default_instance == NULL) {
     default_instance = instance;
@@ -966,7 +972,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     dag->rank = INFINITE_RANK;
   } else {
     dag->rank = dag->instance->of->calculate_rank(p, 0);
-    dag->min_rank = dag->rank ;
+    dag->min_rank = dag->rank;
     rpl_process_parent_event(dag->instance, p);
   }
 
@@ -1039,20 +1045,10 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
   old_rank = instance->current_dag->rank;
   return_value = 1;
 
-  if(p->rank == INFINITE_RANK) {
-    /* This parent is no longer valid */
-    PRINTF("RPL: This parent is no longer valid \n");
-    if(p != instance->current_dag->preferred_parent) {
-      rpl_nullify_parent(p->dag, p);
-      return 0;
-    } else {
-      rpl_nullify_parent(p->dag, p);
-      return_value = 0;
-    }
-  } else if(!acceptable_rank(p->dag, p->rank)) {
+  if(!acceptable_rank(p->dag, p->rank)) {
     /* The candidate parent is no longer valid: the rank increase resulting
        from the choice of it as a parent would be too high. */
-    PRINTF("RPL: Unacceptable rank\n");
+    PRINTF("RPL: Unacceptable rank %u\n", (unsigned)p->rank);
     if(p != instance->current_dag->preferred_parent) {
       rpl_nullify_parent(p->dag, p);
       return 0;
@@ -1120,7 +1116,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  if(rpl_lollipop_greater_than(dio->version, dag->version)) {
+  if(lollipop_greater_than(dio->version, dag->version)) {
     if(dag->rank == ROOT_RANK(instance)) {
       PRINTF("RPL: Root received inconsistent DIO version number\n");
       dag->version = dio->version;
@@ -1130,25 +1126,23 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       global_repair(from, dag, dio);
     }
     return;
-  } else {
-    if(rpl_lollipop_greater_than(dag->version, dio->version)) {
-      /* The DIO sender is on an older version of the DAG. */
-      PRINTF("RPL: old version received => inconsistency detected\n");
-      if(dag->joined) {
-        rpl_reset_dio_timer(instance);
-        return;
-      }
+  }
+
+  if(lollipop_greater_than(dag->version, dio->version)) {
+    /* The DIO sender is on an older version of the DAG. */
+    PRINTF("RPL: old version received => inconsistency detected\n");
+    if(dag->joined) {
+      rpl_reset_dio_timer(instance);
+      return;
     }
   }
 
-  if(dio->rank == INFINITE_RANK) {
-    if(dag->joined) {
-      rpl_reset_dio_timer(instance);
-    }
-  } else if(dio->rank < ROOT_RANK(instance)) {
+  if(dio->rank < ROOT_RANK(instance)) {
     PRINTF("RPL: Ignoring DIO with too low rank: %u\n",
            (unsigned)dio->rank);
     return;
+  } else if(dio->rank == INFINITE_RANK && dag->joined) {
+    rpl_reset_dio_timer(instance);
   }
 
   if(dag->rank == ROOT_RANK(instance)) {
