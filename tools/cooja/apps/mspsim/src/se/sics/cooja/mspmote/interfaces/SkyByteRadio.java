@@ -46,6 +46,7 @@ import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteTimeEvent;
 import se.sics.mspsim.chip.CC2420;
+import se.sics.mspsim.chip.ChannelListener;
 import se.sics.mspsim.chip.RFListener;
 import se.sics.mspsim.core.Chip;
 import se.sics.mspsim.core.OperatingModeListener;
@@ -89,7 +90,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
       throw new IllegalStateException("Mote is not equipped with a CC2420");
     }
 
-    cc2420.setRFListener(new RFListener() {
+    cc2420.addRFListener(new RFListener() {
       int len = 0;
       int expLen = 0;
       byte[] buffer = new byte[127 + 15];
@@ -158,8 +159,8 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
       }
     });
 
-    cc2420.setChannelListener(new CC2420.ChannelListener() {
-      public void changedChannel(int channel) {
+    cc2420.addChannelListener(new ChannelListener() {
+      public void channelChanged(int channel) {
         /* XXX Currently assumes zero channel switch time */
         lastEvent = RadioEvent.UNKNOWN;
         lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();

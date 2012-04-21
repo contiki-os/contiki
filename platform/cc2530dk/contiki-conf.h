@@ -24,7 +24,9 @@
 #endif
 
 /* Verbose Startup? Turning this off saves plenty of bytes of CODE in HOME */
+#ifndef STARTUP_CONF_VERBOSE
 #define STARTUP_CONF_VERBOSE  0
+#endif
 
 /* More CODE space savings by turning off process names */
 #define PROCESS_CONF_NO_PROCESS_NAMES 1
@@ -80,6 +82,15 @@
  * These are good things to do, they reduce stack usage and prevent crashes
  */
 #define NETSTACK_CONF_SHORTCUTS   1
+
+/*
+ * By default we read our MAC from the (read-only) Information Page (primary
+ * location). In order to have a user-programmable mac, define this as 0 to
+ * use the secondary location (addresses 0xFFE8 - 0xFFEF on the last flash page)
+ */
+#ifndef CC2530_CONF_MAC_FROM_PRIMARY
+#define CC2530_CONF_MAC_FROM_PRIMARY 1
+#endif
 
 /*
  * Sensors

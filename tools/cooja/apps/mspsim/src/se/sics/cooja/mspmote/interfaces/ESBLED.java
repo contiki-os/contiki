@@ -68,7 +68,7 @@ public class ESBLED extends LED implements PortListener {
     /* Listen for port writes */
     IOUnit unit = this.mote.getCPU().getIOUnit("Port 2");
     if (unit instanceof IOPort) {
-      ((IOPort) unit).setPortListener(this);
+      ((IOPort) unit).addPortListener(this);
     }
   }
 

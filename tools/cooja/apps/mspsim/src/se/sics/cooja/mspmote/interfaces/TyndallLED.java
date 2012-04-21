@@ -73,7 +73,7 @@ public class TyndallLED extends LED {
 
     IOUnit unit = mspMote.getCPU().getIOUnit("P7");
     if (unit instanceof IOPort) {
-      ((IOPort) unit).setPortListener(new PortListener() {
+      ((IOPort) unit).addPortListener(new PortListener() {
         public void portWrite(IOPort source, int data) {
           redOn = (data & TyndallNode.LEDS_CONF_RED) == 0;
           setChanged();
@@ -83,7 +83,7 @@ public class TyndallLED extends LED {
     }
     unit = mspMote.getCPU().getIOUnit("P8");
     if (unit instanceof IOPort) {
-      ((IOPort) unit).setPortListener(new PortListener() {
+      ((IOPort) unit).addPortListener(new PortListener() {
         public void portWrite(IOPort source, int data) {
           greenOn = (data & TyndallNode.LEDS_CONF_GREEN) == 0;
           setChanged();
