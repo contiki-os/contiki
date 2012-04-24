@@ -165,7 +165,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
 #if BUTTON_SENSOR_ON
     } else if(ev == sensors_event && data == &button_sensor) {
         print_stats();
-#endif /* (CONTIKI_TARGET_SENSINODE && BUTTON_SENSOR_ON) */
+#endif /* BUTTON_SENSOR_ON */
     }
   }
 
