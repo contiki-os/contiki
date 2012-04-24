@@ -165,9 +165,9 @@ typedef struct rpl_instance rpl_instance_t;
  *
  *  Compares two parents and returns the best one, according to the OF.
  *
- * best_dag(dodag1, dodag2)
+ * best_dag(dag1, dag2)
  *
- *  Compares two dodags and returns the best one, according to the OF.
+ *  Compares two DAGs and returns the best one, according to the OF.
  *
  * calculate_rank(parent, base_rank)
  *
@@ -235,7 +235,6 @@ int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len);
 int rpl_repair_root(uint8_t instance_id);
 int rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from);
 rpl_dag_t *rpl_get_any_dag(void);
-rpl_dag_t *rpl_get_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id);
 rpl_instance_t *rpl_get_instance(uint8_t instance_id);
 void rpl_update_header_empty(void);
 int rpl_update_header_final(uip_ipaddr_t *addr);
