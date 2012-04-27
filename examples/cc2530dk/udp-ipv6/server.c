@@ -96,8 +96,6 @@ print_stats()
   PRINTF("llrx=%lu, lltx=%lu, rx=%lu, tx=%lu\n",
       rimestats.llrx, rimestats.lltx, rimestats.rx, rimestats.tx);
 }
-#else
-#define print_stats()
 #endif
 /*---------------------------------------------------------------------------*/
 static void
@@ -146,9 +144,6 @@ create_dag()
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(udp_server_process, ev, data)
 {
-#if BUTTON_SENSOR_ON
-  static struct sensors_sensor *b1;
-#endif
 
   PROCESS_BEGIN();
   putstring("Starting UDP server\n");
@@ -170,7 +165,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
     PROCESS_YIELD();
     if(ev == tcpip_event) {
       tcpip_handler();
-#if BUTTON_SENSOR_ON
+#if (BUTTON_SENSOR_ON && (DEBUG==DEBUG_PRINT))
     } else if(ev == sensors_event && data == &button_sensor) {
         print_stats();
 #endif /* BUTTON_SENSOR_ON */
