@@ -24,10 +24,6 @@ CONTIKI_TARGET_SOURCEFILES  += $(USB)
 //AVR        = clock.c mtarch.c eeprom.c flash.c leds-arch.c watchdog.c rtimer-arch.c
 endif
 
-ifdef WITH_RPL
- CFLAGS += -DUIP_CONF_IPV6_RPL=$(WITH_RPL) 
-endif
-
 #For a coffee file system, the application makefile can define COFFEE_FILES=n
 #to select the type and COFFEE_ADDRESS=0xaaaaaaaa as the starting byte address.
 #If only one is define the other will use the (Raven webserver 1284p) defaults
@@ -99,9 +95,9 @@ ELF_SIZE = avr-size -C --mcu=$(MCU)
 OBJCOPY  = avr-objcopy
 STRIP    = avr-strip
 CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 -fno-strict-aliasing \
-           -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
-           -I$(CONTIKI)/platform/$(TARGET) \
-           $(CONTIKI_PLAT_DEFS)
+            -I$(CONTIKI)/platform/$(TARGET) \
+            -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
+            $(CONTIKI_PLAT_DEFS)
 CFLAGS   += $(CFLAGSNO) -O$(OPTI)
 ifndef BOOTLOADER_START
   BOOTLOADER_START = 0x1F800
