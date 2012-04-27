@@ -14,6 +14,11 @@
 
 #include <stdint.h>
 
+/* In watchdog mode, our WDT can't be stopped once started
+ * Include watchdog_stop()'s declaration and then trash it */
+#include "dev/watchdog.h"
+#define watchdog_stop() watchdog_periodic()
+
 /*
  * lint - style defines to help syntax parsers with sdcc-specific 8051 code
  * They don't interfere with actual compilation
