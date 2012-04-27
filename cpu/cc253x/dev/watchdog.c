@@ -39,7 +39,6 @@
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
-#include "sys/energest.h"
 #include "cc253x.h"
 #include "sfr-bits.h"
 #include "contiki-conf.h"
@@ -67,22 +66,16 @@ watchdog_periodic(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-watchdog_stop(void)
-{
-  /* In watchdog mode, stopping is impossible so we just reset the timer */
-  watchdog_periodic();
-}
-/*---------------------------------------------------------------------------*/
-void
 watchdog_reboot(void)
 {
   WDCTL = WDT_TIMEOUT_MIN;
   /* Dis-acknowledge all interrupts while we wait for the dog to bark */
   DISABLE_INTERRUPTS();
+
+  WDCTL |= WDCTL_MODE1; /* Just in case it's not started... */
+
   /* NOP till the dog barks... */
   while(1) {
-    __asm
-      nop
-    __endasm;
+    ASM(nop);
   }
 }
