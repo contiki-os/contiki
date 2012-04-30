@@ -34,6 +34,7 @@
  */
 #include "dev/port.h"
 #include "dev/button-sensor.h"
+#include "dev/watchdog.h"
 /*---------------------------------------------------------------------------*/
 static __data struct timer debouncetimer;
 /*---------------------------------------------------------------------------*/
@@ -150,7 +151,11 @@ port_1_isr(void) __interrupt(P1INT_VECTOR)
   if(BUTTON_IRQ_CHECK(2)) {
     if(timer_expired(&debouncetimer)) {
       timer_set(&debouncetimer, CLOCK_SECOND / 8);
+#if CC2531_CONF_B2_REBOOTS
+      watchdog_reboot();
+#else /* General Purpose */
       sensors_changed(&button_2_sensor);
+#endif
     }
   }
 

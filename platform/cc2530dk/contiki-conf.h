@@ -102,6 +102,12 @@
 #ifndef BUTTON_SENSOR_CONF_ON
 #define BUTTON_SENSOR_CONF_ON   1  /* Buttons */
 #endif
+
+/* B2 on the cc2531 USB stick can be a reset button or a general-purpose one */
+#ifndef CC2531_CONF_B2_REBOOTS
+#define CC2531_CONF_B2_REBOOTS        0  /* General Purpose by default */
+#endif
+
 /* ADC - Turning this off will disable everything below */
 #ifndef ADC_SENSOR_CONF_ON
 #define ADC_SENSOR_CONF_ON      1
