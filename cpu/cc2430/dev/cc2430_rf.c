@@ -104,6 +104,7 @@ PROCESS(cc2430_rf_process, "CC2430 RF driver");
 /*---------------------------------------------------------------------------*/
 static uint8_t rf_initialized = 0;
 static uint8_t __data rf_flags;
+static uint8_t rf_channel;
 
 static int on(void); /* prepare() needs our prototype */
 static int off(void); /* transmit() needs our prototype */
@@ -194,7 +195,15 @@ cc2430_rf_channel_set(uint8_t channel)
 
   cc2430_rf_command(ISRXON);
 
+  rf_channel = channel;
+
   return (int8_t) channel;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+cc2430_rf_channel_get()
+{
+  return rf_channel;
 }
 /*---------------------------------------------------------------------------*/
 /**
