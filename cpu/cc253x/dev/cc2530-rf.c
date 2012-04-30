@@ -287,7 +287,7 @@ transmit(unsigned short transmit_len)
 
   counter = 0;
   while(!(FSMSTAT1 & FSMSTAT1_TX_ACTIVE) && (counter++ < 3)) {
-    clock_delay(10);
+    clock_delay_usec(6);
   }
 
   if(!(FSMSTAT1 & FSMSTAT1_TX_ACTIVE)) {

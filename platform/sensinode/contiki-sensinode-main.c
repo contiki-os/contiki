@@ -371,7 +371,7 @@ main(void)
        * On occasion the XOSC is reported stable when in reality it's not.
        * We need to wait for a safeguard of 64us or more before selecting it
        */
-      clock_delay(10);
+      clock_delay_usec(65);
       while(CLKCON & OSC);         /* Wait till it's happened */
     }
 #endif /* LPM_MODE==LPM_MODE_PM2 */

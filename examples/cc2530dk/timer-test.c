@@ -16,14 +16,14 @@
 
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
-#define TEST_CLOCK_DELAY     1
-#define TEST_RTIMER          1
-#define TEST_ETIMER          1
-#define TEST_CLOCK_SECONDS   1
+#define TEST_CLOCK_DELAY_USEC 1
+#define TEST_RTIMER           1
+#define TEST_ETIMER           1
+#define TEST_CLOCK_SECONDS    1
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 
-#if TEST_CLOCK_DELAY
+#if TEST_CLOCK_DELAY_USEC
 static rtimer_clock_t start_count, end_count, diff;
 #endif
 
@@ -64,16 +64,16 @@ PROCESS_THREAD(clock_test_process, ev, data)
 
   PROCESS_YIELD();
 
-#if TEST_CLOCK_DELAY
-  printf("Clock delay test, (10,000 x i) cycles:\n");
+#if TEST_CLOCK_DELAY_USEC
+  printf("clock_delay_usec test, (10,000 x i) usec:\n");
   i = 1;
   while(i < 7) {
     start_count = RTIMER_NOW();
-    clock_delay(10000 * i);
+    clock_delay_usec(10000 * i);
     end_count = RTIMER_NOW();
     diff = end_count - start_count;
-    printf("Delayed %u = %u rtimer ticks = ~%u us\n", 10000 * i, diff,
-        diff * 64);
+    printf("Requested: %u usec, Real: %u rtimer ticks = ~%u us\n",
+        10000 * i, diff, diff * 64);
     i++;
   }
 #endif

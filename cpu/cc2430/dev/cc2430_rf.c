@@ -126,7 +126,7 @@ cc2430_rf_command(uint8_t command)
     case ISTXON:
       fifo_count = RXFIFOCNT;
       RFST = command;
-      clock_delay(2);
+      clock_delay_usec(2);
       if(fifo_count != RXFIFOCNT) {
         RFST = ISFLUSHRX;
         RFST = ISFLUSHRX;
@@ -430,7 +430,7 @@ transmit(unsigned short transmit_len)
   cc2430_rf_command(ISTXON);
   counter = 0;
   while(!(RFSTATUS & TX_ACTIVE) && (counter++ < 3)) {
-    clock_delay(10);
+    clock_delay_usec(6);
   }
 
   if(!(RFSTATUS & TX_ACTIVE)) {
