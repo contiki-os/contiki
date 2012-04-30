@@ -19,6 +19,11 @@
 #include "dev/watchdog.h"
 #define watchdog_stop() watchdog_periodic()
 
+/* This port no longer implements the legacy clock_delay. Hack its usages
+ * outta the way till it gets phased out completely
+ * NB: This also overwrites the prototype so delay_usec() is declared twice */
+#define clock_delay(t) clock_delay_usec(t)
+
 /*
  * lint - style defines to help syntax parsers with sdcc-specific 8051 code
  * They don't interfere with actual compilation
