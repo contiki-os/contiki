@@ -475,7 +475,7 @@ off(void)
   CC2530_CSP_ISRFOFF();
   CC2530_CSP_ISFLUSHRX();
 
-  rf_flags = 0;
+  rf_flags &= ~RX_ACTIVE;
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   return 1;
