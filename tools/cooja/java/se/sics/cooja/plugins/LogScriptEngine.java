@@ -116,15 +116,17 @@ public class LogScriptEngine {
   /* Only called from the simulation loop */
   private void stepScript() {
     /* Release script - halt simulation */
-    if (semaphoreScript == null || semaphoreSim == null) {
+    Semaphore semScript = semaphoreScript;
+    Semaphore semSim = semaphoreSim;
+    if (semScript == null || semSim == null) {
       return;
     }
-    semaphoreScript.release();
+    semScript.release();
 
     /* ... script executing ... */
 
     try {
-      semaphoreSim.acquire();
+      semSim.acquire();
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
