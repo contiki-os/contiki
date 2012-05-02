@@ -116,6 +116,9 @@ public class LogScriptEngine {
   /* Only called from the simulation loop */
   private void stepScript() {
     /* Release script - halt simulation */
+    if (semaphoreScript == null || semaphoreSim == null) {
+      return;
+    }
     semaphoreScript.release();
 
     /* ... script executing ... */
