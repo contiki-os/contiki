@@ -58,8 +58,8 @@ CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
            -DWITH_ASCII -DMCK=$(MCK) \
            -Werror $(ARCH_FLAGS) -g 
 
-CFLAGS  += $(CFLAGSNO) -Os -DRUN_AS_SYSTEM -DROM_RUN -fno-strict-aliasing  -fno-common -ffixed-r8 -msoft-float -DTEXT_BASE=$(TEXT_BASE) -fno-builtin-printf -fno-builtin-sprintf -MMD
-LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles -static -u_start -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
+CFLAGS  += $(CFLAGSNO) -Os -DRUN_AS_SYSTEM -DROM_RUN -fno-strict-aliasing  -fno-common -ffixed-r8 -msoft-float -DTEXT_BASE=$(TEXT_BASE) -fno-builtin-printf -fno-builtin-sprintf -ffunction-sections -fdata-sections -MMD 
+LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles -static -u_start -Wl,-Map=contiki-$(TARGET).map,-export-dynamic,-gc-sections
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS) -gstabs
 
 CDEPFLAGS = $(CFLAGS) -D __MAKING_DEPS__
