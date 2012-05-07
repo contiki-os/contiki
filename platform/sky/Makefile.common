@@ -62,7 +62,7 @@ else
 ifeq ($(HOST_OS),Darwin)
   ifndef MOTELIST
     USBDEVPREFIX=
-    SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+    SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-macos
     MOTELIST = $(CONTIKI)/tools/sky/motelist-macos
     TMOTE_BSL_FILE = tmote-bsl-linux
     TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/$(TMOTE_BSL_FILE)),1,0)
