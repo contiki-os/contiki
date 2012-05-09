@@ -71,6 +71,7 @@ import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.Watchpoint;
 import se.sics.cooja.WatchpointMote;
@@ -85,6 +86,7 @@ import se.sics.mspsim.util.ELFDebug;
 
 @ClassDescription("Msp Code Watcher")
 @PluginType(PluginType.MOTE_PLUGIN)
+@SupportedArguments(motes = {MspMote.class})
 public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   private static final long serialVersionUID = -8463196456352243367L;
 
@@ -314,7 +316,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     }
     currentFileAction.setEnabled(true);
     currentFileAction.putValue(Action.NAME, file.getName() + ":" + line);
-    currentFileAction.putValue(Action.SHORT_DESCRIPTION, file.getAbsolutePath() + ":" + line);
+    currentFileAction.putValue(Action.SHORT_DESCRIPTION, file.getAbsolutePath() + ":" + line + ", PC:" + String.format("0x%04x", mspMote.getCPU().getPC()));
     fileComboBox.setSelectedItem(file.getName());
 
     displaySourceFile(file, line, true);

@@ -92,8 +92,10 @@ import se.sics.cooja.GUI.MoteRelation;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.PluginType;
+import se.sics.cooja.RadioMedium;
 import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.interfaces.LED;
 import se.sics.cooja.interfaces.Position;
@@ -704,6 +706,23 @@ public class Visualizer extends VisPlugin {
           }
         }
       });
+
+
+      /* Check if skin depends on any particular radio medium */
+      boolean showMenuItem = true;
+      if (skinClass.getAnnotation(SupportedArguments.class) != null) {
+        showMenuItem = false;
+        Class<? extends RadioMedium>[] radioMediums = skinClass.getAnnotation(SupportedArguments.class).radioMediums();
+        for (Class<? extends Object> o: radioMediums) {
+          if (o.isAssignableFrom(simulation.getRadioMedium().getClass())) {
+            showMenuItem = true;
+            break;
+          }
+        }
+      }
+      if (!showMenuItem) {
+        continue;
+      }
 
       if (skinMenu instanceof JMenu) {
         ((JMenu)skinMenu).add(item);

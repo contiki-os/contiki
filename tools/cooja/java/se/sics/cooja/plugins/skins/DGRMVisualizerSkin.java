@@ -41,6 +41,7 @@ import org.apache.log4j.Logger;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.Visualizer;
@@ -50,6 +51,7 @@ import se.sics.cooja.radiomediums.DestinationRadio;
 import se.sics.cooja.radiomediums.DirectedGraphMedium;
 
 @ClassDescription("Radio environment (DGRM)")
+@SupportedArguments(radioMediums = {DirectedGraphMedium.class})
 public class DGRMVisualizerSkin implements VisualizerSkin {
 	private static Logger logger = Logger.getLogger(DGRMVisualizerSkin.class);
 
@@ -82,7 +84,7 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 
 	public void paintBeforeMotes(Graphics g) {
           Mote selectedMote = visualizer.getSelectedMote();
-		if (simulation == null 
+		if (simulation == null
 				|| selectedMote == null
 				|| selectedMote.getInterfaces().getRadio() == null) {
 			return;
@@ -100,7 +102,7 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 		g.setColor(Color.BLACK);
 
 		DirectedGraphMedium radioMedium = (DirectedGraphMedium) simulation.getRadioMedium();
-		
+
 		/* Print transmission success probabilities */
 		DestinationRadio[] dests = radioMedium.getPotentialDestinations(selectedRadio);
 		if (dests == null || dests.length == 0) {
