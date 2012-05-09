@@ -1852,6 +1852,8 @@ public class GUI extends Observable {
             return false;
           }
 
+          /* TODO Check if plugin specifies supported arguments here */
+
           /* Check if plugin was imported by a project directory */
           File project =
             getProjectConfig().getUserProjectDefining(GUI.class, "PLUGINS", newPluginClass.getName());
@@ -1934,6 +1936,34 @@ public class GUI extends Observable {
       JMenuItem menuItem = new JMenuItem(guiAction);
       menuItem.putClientProperty("class", motePluginClass);
       menuItem.putClientProperty("mote", mote);
+
+      /* Check if mote plugin depends on any particular type of mote */
+      boolean enableMenuItem = true;
+      if (motePluginClass.getAnnotation(SupportedArguments.class) != null) {
+        enableMenuItem = false;
+        Class<? extends Mote>[] motes = motePluginClass.getAnnotation(SupportedArguments.class).motes();
+        StringBuilder sb = new StringBuilder();
+        sb.append(
+            "<html><pre>This plugin:\n" +
+            motePluginClass.getName() +
+            "\ndoes not support motes of type:\n" +
+            mote.getClass().getName() +
+            "\n\nIt only supports motes of types:\n"
+        );
+        for (Class<? extends Object> o: motes) {
+          sb.append(o.getName() + "\n");
+          if (o.isAssignableFrom(mote.getClass())) {
+            enableMenuItem = true;
+            break;
+          }
+        }
+        sb.append("</html>");
+        if (!enableMenuItem) {
+          menuItem.setToolTipText(sb.toString());
+        }
+      }
+
+      menuItem.setEnabled(enableMenuItem);
       menuMotePlugins.add(menuItem);
     }
     return menuMotePlugins;
