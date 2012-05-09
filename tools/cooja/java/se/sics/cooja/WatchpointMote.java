@@ -70,6 +70,6 @@ public interface WatchpointMote extends Mote {
   public boolean breakpointExists(int address);
   public boolean breakpointExists(File file, int lineNr);
 
-  public Integer getExecutableAddressOf(File file, int lineNr);
+  public int getExecutableAddressOf(File file, int lineNr);
 
 }

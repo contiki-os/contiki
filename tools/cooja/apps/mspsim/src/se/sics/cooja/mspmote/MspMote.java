@@ -573,9 +573,9 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     return false;
   }
 
-  public Integer getExecutableAddressOf(File file, int lineNr) {
+  public int getExecutableAddressOf(File file, int lineNr) {
     if (file == null || lineNr < 0 || debuggingInfo == null) {
-      return null;
+      return -1;
     }
 
     /* Match file */
@@ -589,7 +589,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       }
     }
     if (lineTable == null) {
-      return null;
+      return -1;
     }
 
     /* Match line number */
@@ -603,10 +603,16 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       }
     }
 
-    return null;
+    return -1;
   }
 
+  private long lastBreakpointCycles = -1;
   public void signalBreakpointTrigger(MspBreakpoint b) {
+    if (lastBreakpointCycles == myCpu.cycles) {
+      return;
+    }
+
+    lastBreakpointCycles = myCpu.cycles;
     if (b.stopsSimulation() && getSimulation().isRunning()) {
       /* Stop simulation immediately */
       stopNextInstruction();
