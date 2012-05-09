@@ -1235,11 +1235,11 @@ uint32_t init_from_flash(uint32_t addr) {
 			err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, addr+i, 32);
 			i += 4*exec_init_entry(buf, ram_values);
 		}
-		return i;
 	} else {
-		return 0;
+		i = 0;
 	}
- 	
+	nvm_setsvar(1);
+	return i;
 }
 
 /* 
