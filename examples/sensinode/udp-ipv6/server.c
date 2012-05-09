@@ -55,14 +55,14 @@ static struct uip_udp_conn *server_conn;
 static char buf[MAX_PAYLOAD_LEN];
 static uint16_t len;
 
-#if UIP_CONF_ROUTER
-static uip_ipaddr_t ipaddr;
-#endif
-
 #define SERVER_REPLY          1
 
 /* Should we act as RPL root? */
 #define SERVER_RPL_ROOT       1
+
+#if SERVER_RPL_ROOT
+static uip_ipaddr_t ipaddr;
+#endif
 /*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor adc_sensor;
 /*---------------------------------------------------------------------------*/
@@ -133,24 +133,12 @@ print_local_addresses(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(udp_server_process, ev, data)
+#if SERVER_RPL_ROOT
+void
+create_dag()
 {
-#if (CONTIKI_TARGET_SENSINODE && BUTTON_SENSOR_ON)
-  static struct sensors_sensor *b1;
-  static struct sensors_sensor *b2;
-#endif
-#if SERVER_RPL_ROOT
   rpl_dag_t *dag;
-#endif
-  PROCESS_BEGIN();
-  putstring("Starting UDP server\n");
 
-#if (CONTIKI_TARGET_SENSINODE && BUTTON_SENSOR_ON)
-  putstring("Button 1: Print RIME stats\n");
-  putstring("Button 2: Reboot\n");
-#endif
-
-#if SERVER_RPL_ROOT
   uip_ip6addr(&ipaddr, 0x2001, 0x630, 0x301, 0x6453, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
@@ -165,7 +153,27 @@ PROCESS_THREAD(udp_server_process, ev, data)
     PRINT6ADDR(&dag->dag_id);
     PRINTF("\n");
   }
+}
 #endif /* SERVER_RPL_ROOT */
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(udp_server_process, ev, data)
+{
+#if (CONTIKI_TARGET_SENSINODE && BUTTON_SENSOR_ON)
+  static struct sensors_sensor *b1;
+  static struct sensors_sensor *b2;
+#endif
+
+  PROCESS_BEGIN();
+  putstring("Starting UDP server\n");
+
+#if (CONTIKI_TARGET_SENSINODE && BUTTON_SENSOR_ON)
+  putstring("Button 1: Print RIME stats\n");
+  putstring("Button 2: Reboot\n");
+#endif
+
+#if SERVER_RPL_ROOT
+  create_dag();
+#endif
 
   server_conn = udp_new(NULL, UIP_HTONS(0), NULL);
   udp_bind(server_conn, UIP_HTONS(3000));

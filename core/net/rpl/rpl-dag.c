@@ -88,7 +88,9 @@ rpl_instance_t *default_instance;
 /************************************************************************/
 /* Greater-than function for the lollipop counter.                      */
 /************************************************************************/
-int rpl_lollipop_greater_than(int a, int b) {
+static int
+lollipop_greater_than(int a, int b)
+{
   /* Check if we are comparing an initial value with an old value */
   if(a > RPL_LOLLIPOP_CIRCULAR_REGION && b <= RPL_LOLLIPOP_CIRCULAR_REGION) {
     return (RPL_LOLLIPOP_MAX_VALUE + 1 + b - a) > RPL_LOLLIPOP_SEQUENCE_WINDOWS;
@@ -163,7 +165,7 @@ should_send_dao(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
   }
   /* check if the new DTSN is more recent */
   return p == instance->current_dag->preferred_parent &&
-    (rpl_lollipop_greater_than(dio->dtsn, p->dtsn));
+    (lollipop_greater_than(dio->dtsn, p->dtsn));
 }
 /************************************************************************/
 static int
@@ -174,6 +176,28 @@ acceptable_rank(rpl_dag_t *dag, rpl_rank_t rank)
      DAG_RANK(rank, dag->instance) <= DAG_RANK(dag->min_rank + dag->instance->max_rankinc, dag->instance));
 }
 /************************************************************************/
+static rpl_dag_t *
+get_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
+{
+  rpl_instance_t *instance;
+  rpl_dag_t *dag;
+  int i;
+
+  instance = rpl_get_instance(instance_id);
+  if(instance == NULL) {
+    return NULL;
+  }
+
+  for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; ++i) {
+    dag = &instance->dag_table[i];
+    if(dag->used && uip_ipaddr_cmp(&dag->dag_id, dag_id)) {
+      return dag;
+    }
+  }
+
+  return NULL;
+}
+/************************************************************************/
 rpl_dag_t *
 rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
 {
@@ -182,7 +206,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   uint8_t version;
 
   version = RPL_LOLLIPOP_INIT;
-  dag = rpl_get_dodag(instance_id, dag_id);
+  dag = get_dag(instance_id, dag_id);
   if(dag != NULL) {
     version = dag->version;
     RPL_LOLLIPOP_INCREMENT(version);
@@ -190,10 +214,10 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
     if(dag == dag->instance->current_dag) {
       dag->instance->current_dag = NULL;
     }
-    rpl_free_dodag(dag);
+    rpl_free_dag(dag);
   }
 
-  dag = rpl_alloc_dodag(instance_id, dag_id);
+  dag = rpl_alloc_dag(instance_id, dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG\n");
     return NULL;
@@ -371,34 +395,24 @@ rpl_alloc_instance(uint8_t instance_id)
 }
 /************************************************************************/
 rpl_dag_t *
-rpl_alloc_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id)
+rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
 {
   rpl_dag_t *dag, *end;
   rpl_instance_t *instance;
 
   instance = rpl_get_instance(instance_id);
-  if(instance == NULL ) {
+  if(instance == NULL) {
     instance = rpl_alloc_instance(instance_id);
-    if(instance == NULL ) {
+    if(instance == NULL) {
       RPL_STAT(rpl_stats.mem_overflows++);
       return NULL;
     }
-    dag = &instance->dag_table[0];
-    dag->parents = &dag->parent_list;
-    list_init(dag->parents);
-    dag->used = 1;
-    dag->rank = INFINITE_RANK;
-    dag->min_rank = INFINITE_RANK;
-    dag->instance = instance;
-    instance->current_dag = dag;
-    return dag;
   }
 
   for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
     if(!dag->used) {
       memset(dag, 0, sizeof(*dag));
-      dag->parents = &dag->parent_list;
-      list_init(dag->parents);
+      LIST_STRUCT_INIT(dag, parents);
       dag->used = 1;
       dag->rank = INFINITE_RANK;
       dag->min_rank = INFINITE_RANK;
@@ -406,6 +420,9 @@ rpl_alloc_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id)
       return dag;
     }
   }
+
+  RPL_STAT(rpl_stats.mem_overflows++);
+  rpl_free_instance(instance);
   return NULL;
 }
 /************************************************************************/
@@ -426,7 +443,7 @@ rpl_free_instance(rpl_instance_t *instance)
   /* Remove any DAG inside this instance */
   for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
     if(dag->used) {
-      rpl_free_dodag(dag);
+      rpl_free_dag(dag);
     }
   }
 
@@ -443,7 +460,7 @@ rpl_free_instance(rpl_instance_t *instance)
 }
 /************************************************************************/
 void
-rpl_free_dodag(rpl_dag_t *dag)
+rpl_free_dag(rpl_dag_t *dag)
 {
   if(dag->joined) {
     PRINTF("RPL: Leaving the DAG ");
@@ -468,6 +485,10 @@ rpl_parent_t *
 rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
 {
   rpl_parent_t *p;
+
+  if(RPL_PARENT_COUNT(dag) == RPL_MAX_PARENTS_PER_DAG) {
+    return NULL;
+  }
 
   p = memb_alloc(&parent_memb);
   if(p == NULL) {
@@ -535,7 +556,7 @@ rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
 }
 /************************************************************************/
 rpl_dag_t *
-rpl_select_dodag(rpl_instance_t *instance, rpl_parent_t *p)
+rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
 {
   rpl_parent_t *last_parent;
   rpl_dag_t *dag, *end, *best_dag;
@@ -741,28 +762,6 @@ rpl_get_instance(uint8_t instance_id)
   return NULL;
 }
 /************************************************************************/
-rpl_dag_t *
-rpl_get_dodag(uint8_t instance_id, uip_ipaddr_t *dag_id)
-{
-  rpl_instance_t *instance;
-  rpl_dag_t *dag;
-  int i;
-
-  instance = rpl_get_instance(instance_id);
-  if(instance == NULL) {
-    return NULL;
-  }
-
-  for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; ++i) {
-    dag = &instance->dag_table[i];
-    if(dag->used && uip_ipaddr_cmp(&dag->dag_id, dag_id)) {
-      return dag;
-    }
-  }
-
-  return NULL;
-}
-/************************************************************************/
 rpl_of_t *
 rpl_find_of(rpl_ocp_t ocp)
 {
@@ -787,7 +786,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_parent_t *p;
   rpl_of_t *of;
 
-  dag = rpl_alloc_dodag(dio->instance_id, &dio->dag_id);
+  dag = rpl_alloc_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG object!\n");
     return;
@@ -820,7 +819,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   /* Autoconfigure an address if this node does not already have an address
      with this prefix. */
-  if((dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS)) {
+  if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
     check_prefix(NULL, &dio->prefix_info);
   }
 
@@ -831,8 +830,8 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   instance->of = of;
   instance->mop = dio->mop;
+  instance->current_dag = dag;
   instance->dtsn_out = RPL_LOLLIPOP_INIT;
-  instance->instance_id = dio->instance_id;
 
   instance->max_rankinc = dio->dag_max_rankinc;
   instance->min_hoprankinc = dio->dag_min_hoprankinc;
@@ -845,13 +844,14 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   memcpy(&dag->dag_id, &dio->dag_id, sizeof(dio->dag_id));
 
-  /* copy prefix information into the dag */
+  /* Copy prefix information from the DIO into the DAG object. */
   memcpy(&dag->prefix_info, &dio->prefix_info, sizeof(rpl_prefix_t));
 
   dag->preferred_parent = p;
   instance->of->update_metric_container(instance);
   dag->rank = instance->of->calculate_rank(p, 0);
-  dag->min_rank = dag->rank; /* So far this is the lowest rank we know of. */
+  /* So far this is the lowest rank we are aware of. */
+  dag->min_rank = dag->rank;
 
   if(default_instance == NULL) {
     default_instance = instance;
@@ -876,14 +876,14 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
 /************************************************************************/
 void
-rpl_add_dodag(uip_ipaddr_t *from, rpl_dio_t *dio)
+rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
   rpl_instance_t *instance;
   rpl_dag_t *dag, *previous_dag;
   rpl_parent_t *p;
   rpl_of_t *of;
 
-  dag = rpl_alloc_dodag(dio->instance_id, &dio->dag_id);
+  dag = rpl_alloc_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG object!\n");
     return;
@@ -972,7 +972,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     dag->rank = INFINITE_RANK;
   } else {
     dag->rank = dag->instance->of->calculate_rank(p, 0);
-    dag->min_rank = dag->rank ;
+    dag->min_rank = dag->rank;
     rpl_process_parent_event(dag->instance, p);
   }
 
@@ -1045,20 +1045,10 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
   old_rank = instance->current_dag->rank;
   return_value = 1;
 
-  if(p->rank == INFINITE_RANK) {
-    /* This parent is no longer valid */
-    PRINTF("RPL: This parent is no longer valid \n");
-    if(p != instance->current_dag->preferred_parent) {
-      rpl_nullify_parent(p->dag, p);
-      return 0;
-    } else {
-      rpl_nullify_parent(p->dag, p);
-      return_value = 0;
-    }
-  } else if(!acceptable_rank(p->dag, p->rank)) {
+  if(!acceptable_rank(p->dag, p->rank)) {
     /* The candidate parent is no longer valid: the rank increase resulting
        from the choice of it as a parent would be too high. */
-    PRINTF("RPL: Unacceptable rank\n");
+    PRINTF("RPL: Unacceptable rank %u\n", (unsigned)p->rank);
     if(p != instance->current_dag->preferred_parent) {
       rpl_nullify_parent(p->dag, p);
       return 0;
@@ -1068,7 +1058,7 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
     }
   }
 
-  if(rpl_select_dodag(instance, p) == NULL) {
+  if(rpl_select_dag(instance, p) == NULL) {
     /* No suitable parent; trigger a local repair. */
     PRINTF("RPL: No parents found in any DAG\n");
     rpl_local_repair(instance);
@@ -1119,14 +1109,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  dag = rpl_get_dodag(dio->instance_id, &dio->dag_id);
+  dag = get_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
-    PRINTF("RPL: Adding new dodag to known instance.\n");
-    rpl_add_dodag(from, dio);
+    PRINTF("RPL: Adding new DAG to known instance.\n");
+    rpl_add_dag(from, dio);
     return;
   }
 
-  if(rpl_lollipop_greater_than(dio->version, dag->version)) {
+  if(lollipop_greater_than(dio->version, dag->version)) {
     if(dag->rank == ROOT_RANK(instance)) {
       PRINTF("RPL: Root received inconsistent DIO version number\n");
       dag->version = dio->version;
@@ -1136,25 +1126,23 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       global_repair(from, dag, dio);
     }
     return;
-  } else {
-    if(rpl_lollipop_greater_than(dag->version, dio->version)) {
-      /* The DIO sender is on an older version of the DAG. */
-      PRINTF("RPL: old version received => inconsistency detected\n");
-      if(dag->joined) {
-        rpl_reset_dio_timer(instance);
-        return;
-      }
+  }
+
+  if(lollipop_greater_than(dag->version, dio->version)) {
+    /* The DIO sender is on an older version of the DAG. */
+    PRINTF("RPL: old version received => inconsistency detected\n");
+    if(dag->joined) {
+      rpl_reset_dio_timer(instance);
+      return;
     }
   }
 
-  if(dio->rank == INFINITE_RANK) {
-    if(dag->joined) {
-      rpl_reset_dio_timer(instance);
-    }
-  } else if(dio->rank < ROOT_RANK(instance)) {
+  if(dio->rank < ROOT_RANK(instance)) {
     PRINTF("RPL: Ignoring DIO with too low rank: %u\n",
            (unsigned)dio->rank);
     return;
+  } else if(dio->rank == INFINITE_RANK && dag->joined) {
+    rpl_reset_dio_timer(instance);
   }
 
   if(dag->rank == ROOT_RANK(instance)) {
@@ -1192,7 +1180,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       PRINTF("\n");
     } else {
       p = rpl_find_parent(previous_dag, from);
-      rpl_move_parent(previous_dag, dag, p);
+      if(p != NULL) {
+        rpl_move_parent(previous_dag, dag, p);
+      }
     }
   } else {
     if(p->rank == dio->rank) {

@@ -38,6 +38,11 @@
 #ifndef __BORDER_ROUTER_CMDS_H__
 #define __BORDER_ROUTER_CMDS_H__
 
+#define CMD_CONTEXT_RADIO  0
+#define CMD_CONTEXT_STDIO  1
+
+extern uint8_t command_context;
+
 PROCESS_NAME(border_router_cmd_process);
 
 #endif /* __BORDER_ROUTER_CMDS_H__ */

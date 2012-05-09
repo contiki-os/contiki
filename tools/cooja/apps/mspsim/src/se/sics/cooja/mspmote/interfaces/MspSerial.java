@@ -73,7 +73,7 @@ public class MspSerial extends SerialUI implements SerialPort {
     IOUnit ioUnit = this.mote.getCPU().getIOUnit(ioConfigString());
     if (ioUnit instanceof USARTSource) {
       usart = (USARTSource) ioUnit;
-      usart.setUSARTListener(new USARTListener() {
+      usart.addUSARTListener(new USARTListener() {
         public void dataReceived(USARTSource source, int data) {
           MspSerial.this.dataReceived(data);
         }

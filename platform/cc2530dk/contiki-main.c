@@ -27,22 +27,16 @@
 PROCESS_NAME(viztool_process);
 #endif
 /*---------------------------------------------------------------------------*/
-#ifdef STARTUP_CONF_VERBOSE
-#define STARTUP_VERBOSE STARTUP_CONF_VERBOSE
-#else
-#define STARTUP_VERBOSE 0
-#endif
-
-#if STARTUP_VERBOSE
+#if STARTUP_CONF_VERBOSE
 #define PUTSTRING(...) putstring(__VA_ARGS__)
 #define PUTHEX(...) puthex(__VA_ARGS__)
 #define PUTBIN(...) putbin(__VA_ARGS__)
 #define PUTCHAR(...) putchar(__VA_ARGS__)
 #else
-#define PUTSTRING(...) do {} while(0)
-#define PUTHEX(...) do {} while(0)
-#define PUTBIN(...) do {} while(0)
-#define PUTCHAR(...) do {} while(0)
+#define PUTSTRING(...)
+#define PUTHEX(...)
+#define PUTBIN(...)
+#define PUTCHAR(...)
 #endif
 /*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
@@ -65,7 +59,7 @@ static unsigned long irq_energest = 0;
 #endif
 /*---------------------------------------------------------------------------*/
 static void
-fade(int l)
+fade(int l) CC_NON_BANKED
 {
   volatile int i, a;
   int k, j;
@@ -84,27 +78,54 @@ fade(int l)
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_rime_addr(void)
+set_rime_addr(void) CC_NON_BANKED
 {
-  uint8_t *addr_long = NULL;
-  uint16_t addr_short = 0;
   char i;
 
+#if CC2530_CONF_MAC_FROM_PRIMARY
   __xdata unsigned char * macp = &X_IEEE_ADDR;
+#else
+  __code unsigned char * macp = (__code unsigned char *) 0xFFE8;
+#endif
 
   PUTSTRING("Rime is 0x");
   PUTHEX(sizeof(rimeaddr_t));
   PUTSTRING(" bytes long\n");
 
+#if CC2530_CONF_MAC_FROM_PRIMARY
   PUTSTRING("Reading MAC from Info Page\n");
+#else
+  PUTSTRING("Reading MAC from flash\n");
+
+  /*
+   * The MAC is always stored in 0xFFE8 of the highest BANK of our flash. This
+   * maps to address 0xFFF8 of our CODE segment, when this BANK is selected.
+   * Load the bank, read 8 bytes starting at 0xFFE8 and restore last BANK.
+   * Since we are called from main(), this MUST be BANK1 or something is very
+   * wrong. This code can be used even without a bankable firmware.
+   */
+
+  /* Don't interrupt us to make sure no BANK switching happens while working */
+  DISABLE_INTERRUPTS();
+
+  /* Switch to the BANKn,
+   * map CODE: 0x8000 - 0xFFFF to FLASH: 0xn8000 - 0xnFFFF */
+  FMAP = CC2530_LAST_FLASH_BANK;
+#endif
 
   for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
     rimeaddr_node_addr.u8[i] = *macp;
     macp++;
   }
 
+#if !CC2530_CONF_MAC_FROM_PRIMARY
+  /* Remap 0x8000 - 0xFFFF to BANK1 */
+  FMAP = 1;
+  ENABLE_INTERRUPTS();
+#endif
+
   /* Now the address is stored MSB first */
-#if STARTUP_VERBOSE
+#if STARTUP_CONF_VERBOSE
   PUTSTRING("Rime configured with address ");
   for(i = 0; i < RIMEADDR_SIZE - 1; i++) {
     PUTHEX(rimeaddr_node_addr.u8[i]);
@@ -115,10 +136,11 @@ set_rime_addr(void)
 #endif
 
   cc2530_rf_set_addr(IEEE802154_PANID);
+  return;
 }
 /*---------------------------------------------------------------------------*/
 int
-main(void)
+main(void) CC_NON_BANKED
 {
   /* Hardware initialization */
   clock_init();
@@ -166,26 +188,12 @@ main(void)
     break;
   }
 
-  putstring("-F");
-  switch(CHIPINFO0 & 0x70) {
-  case 0x40:
-    putstring("256, ");
-    break;
-  case 0x30:
-    putstring("128, ");
-    break;
-  case 0x20:
-    putstring("64, ");
-    break;
-  case 0x10:
-    putstring("32, ");
-    break;
-  }
+  putstring("-" CC2530_FLAVOR_STRING ", ");
   puthex(CHIPINFO1 + 1);
   putstring("KB SRAM\n");
 
   PUTSTRING("\nSDCC Build:\n");
-#if STARTUP_VERBOSE
+#if STARTUP_CONF_VERBOSE
 #ifdef HAVE_SDCC_BANKING
   PUTSTRING("  With Banking.\n");
 #endif /* HAVE_SDCC_BANKING */

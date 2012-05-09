@@ -234,7 +234,7 @@ cc2430_rf_tx_enable(void)
   * Set MAC addresses
   *
   * \param pan The PAN address to set
-  * \param adde The short address to set
+  * \param addr The short address to set
   * \param ieee_addr The 64-bit IEEE address to set
   */
 void

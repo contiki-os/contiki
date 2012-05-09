@@ -99,9 +99,12 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       packet_ids[packet_pos] = data[2];
 
       packetbuf_clear();
-      pos = 3;
-      pos += packetutils_deserialize_atts(&data[pos], len - pos);
-
+      pos = packetutils_deserialize_atts(&data[3], len - 3);
+      if(pos < 0) {
+        PRINTF("slip-radio: illegal packet attributes\n");
+        return 1;
+      }
+      pos += 3;
       len -= pos;
       if(len > PACKETBUF_SIZE) {
         len = PACKETBUF_SIZE;
@@ -109,11 +112,12 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
       memcpy(packetbuf_dataptr(), &data[pos], len);
       packetbuf_set_datalen(len);
 
-      PRINTF("slip-radio: sending: %d\n", packetbuf_datalen());
+      PRINTF("slip-radio: sending %u (%d bytes)\n",
+             data[2], packetbuf_datalen());
 
       /* parse frame before sending to get addresses, etc. */
       no_framer.parse();
-      NETSTACK_MAC.send(&packet_sent, &packet_ids[packet_pos]);
+      NETSTACK_MAC.send(packet_sent, &packet_ids[packet_pos]);
 
       packet_pos++;
       if(packet_pos >= sizeof(packet_ids)) {

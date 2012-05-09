@@ -46,14 +46,16 @@ PROCESS_THREAD(blink_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  blinks = 0;
+
   while(1) {
     etimer_set(&et_blink, CLOCK_SECOND);
 
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
 
-    blinks = leds_get();
     leds_off(LEDS_ALL);
-    leds_on((blinks + 1) & LEDS_ALL);
+    leds_on(blinks & LEDS_ALL);
+    blinks++;
     printf("Blink... (state %0.2X)\n", leds_get());
   }
 

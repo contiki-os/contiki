@@ -69,7 +69,7 @@ public class SkyLED extends LED {
 
     IOUnit unit = mspMote.getCPU().getIOUnit("Port 5");
     if (unit instanceof IOPort) {
-      ((IOPort) unit).setPortListener(new PortListener() {
+      ((IOPort) unit).addPortListener(new PortListener() {
         public void portWrite(IOPort source, int data) {
           blueOn = (data & SkyNode.BLUE_LED) == 0;
           greenOn = (data & SkyNode.GREEN_LED) == 0;

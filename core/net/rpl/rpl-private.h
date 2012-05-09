@@ -28,21 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Joakim Eriksson, Nicolas Tsiftes
+ * \file
+ *   Private declarations for ContikiRPL.
+ * \author
+ *   Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
 
 #ifndef RPL_PRIVATE_H
 #define RPL_PRIVATE_H
-
-/*
- * ContikiRPL - an implementation of the routing protocol for low power and
- * lossy networks. See: draft-ietf-roll-rpl-17.
- *
- * --
- * The DIOs handle prefix information option for setting global IP addresses
- * on the nodes, but the current handling is not awaiting the join of the DAG
- * so it does not currently support multiple DAGs.
- */
 
 #include "net/rpl/rpl.h"
 
@@ -287,9 +280,9 @@ void rpl_process_dio(uip_ipaddr_t *, rpl_dio_t *);
 int rpl_process_parent_event(rpl_instance_t *, rpl_parent_t *);
 
 /* DAG object management. */
-rpl_dag_t *rpl_alloc_dodag(uint8_t, uip_ipaddr_t *);
+rpl_dag_t *rpl_alloc_dag(uint8_t, uip_ipaddr_t *);
 rpl_instance_t *rpl_alloc_instance(uint8_t);
-void rpl_free_dodag(rpl_dag_t *);
+void rpl_free_dag(rpl_dag_t *);
 void rpl_free_instance(rpl_instance_t *);
 
 /* DAG parent management function. */
@@ -300,7 +293,7 @@ void rpl_nullify_parent(rpl_dag_t *, rpl_parent_t *);
 void rpl_remove_parent(rpl_dag_t *, rpl_parent_t *);
 void rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent);
 rpl_parent_t *rpl_select_parent(rpl_dag_t *dag);
-rpl_dag_t *rpl_select_dodag(rpl_instance_t *instance,rpl_parent_t *parent);
+rpl_dag_t *rpl_select_dag(rpl_instance_t *instance,rpl_parent_t *parent);
 void rpl_recalculate_ranks(void);
 
 /* RPL routing table functions. */

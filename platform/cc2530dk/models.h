@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, George Oikonomou - <oikonomou@users.sourceforge.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +25,75 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
  */
 
-#include "contiki.h"
-#include "net/packetbuf.h"
-#define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+/**
+ * \file
+ *         Header file use to configure differences between cc2530dk builds for
+ *         the SmartRF/cc2530 and the cc2531 USB stick.
+ *
+ *         These configuration directives are hardware-specific and you
+ *         normally won't have to modify them.
+ *
+ * \author
+ *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ */
+
+#ifndef __MODELS_H__
+#define __MODELS_H__
 
 /*---------------------------------------------------------------------------*/
-int
-packetutils_serialize_atts(uint8_t *data, int size)
-{
-  int i;
-  /* set the length first later */
-  int pos = 1;
-  int cnt = 0;
-  /* assume that values are 16-bit */
-  uint16_t val;
-  PRINTF("packetutils: serializing packet atts");
-  for(i = 0; i < PACKETBUF_NUM_ATTRS; i++) {
-    val = packetbuf_attr(i);
-    if(val != 0) {
-      if(pos + 3 > size) {
-        return -1;
-      }
-      data[pos++] = i;
-      data[pos++] = val >> 8;
-      data[pos++] = val & 255;
-      cnt++;
-      PRINTF(" %d=%d", i, val);
-    }
-  }
-  PRINTF(" (%d)\n", cnt);
-
-  data[0] = cnt;
-  return pos;
-}
+/* LEDs */
 /*---------------------------------------------------------------------------*/
-int
-packetutils_deserialize_atts(const uint8_t *data, int size)
-{
-  int i, cnt, pos;
+/* Some files include leds.h before us */
+#undef LEDS_GREEN
+#undef LEDS_YELLOW
+#undef LEDS_RED
+#define LEDS_YELLOW 4
 
-  pos = 0;
-  cnt = data[pos++];
-  PRINTF("packetutils: deserializing %d packet atts:", cnt);
-  if(cnt > PACKETBUF_NUM_ATTRS) {
-    PRINTF(" *** too many: %u!\n", PACKETBUF_NUM_ATTRS);
-    return -1;
-  }
-  for(i = 0; i < cnt; i++) {
-    if(data[pos] >= PACKETBUF_NUM_ATTRS) {
-      /* illegal attribute identifier */
-      PRINTF(" *** unknown attribute %u\n", data[pos]);
-      return -1;
-    }
-    PRINTF(" %d=%d", data[pos], (data[pos + 1] << 8) | data[pos + 2]);
-    packetbuf_set_attr(data[pos], (data[pos + 1] << 8) | data[pos + 2]);
-    pos += 3;
-  }
-  PRINTF("\n");
-  return pos;
-}
+/*
+ * Smart RF LEDs
+ *  1: P1_0 (Green)
+ *  2: P1_1 (Red)
+ *  3: P1_4 (Yellow)
+ *  4: P0_1 (LED4 shares port/pin with B1 and is currently unused)
+ *
+ * USB Dongle LEDs
+ *  1: P0_0 (Red)
+ *  2: P1_1 (Green - active: low)
+ */
+#if MODEL_CC2531
+#undef LEDS_CONF_ALL
+#define LEDS_CONF_ALL 3
+#define LEDS_RED      1
+#define LEDS_GREEN    2
+
+/* H/W Connections */
+#define LED2_PIN   P0_0
+#define LED1_PIN   P1_1
+
+/* P0DIR and P0SEL masks */
+#define LED2_MASK  0x01
+#define LED1_MASK  0x02
+#else
+#define LEDS_GREEN    1
+#define LEDS_RED      2
+
+/* H/W Connections */
+#define LED1_PIN   P1_0
+#define LED2_PIN   P1_1
+#define LED3_PIN   P1_4
+
+/* P0DIR and P0SEL masks */
+#define LED1_MASK  0x01
+#define LED2_MASK  0x02
+#define LED3_MASK  0x10
+#define LED4_MASK  0x02
+#endif
 /*---------------------------------------------------------------------------*/
+/* Buttons */
+/*---------------------------------------------------------------------------*/
+
+#endif /* __MODELS_H__ */
