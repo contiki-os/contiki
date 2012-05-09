@@ -44,6 +44,7 @@
 #include "contiki.h"
 
 void i2c_enable(void);
+void i2c_disable(void);
 
 void i2c_receiveinit(uint8_t slave_address);
 uint8_t i2c_receive_n(uint8_t byte_ctr, uint8_t *rx_buf);
