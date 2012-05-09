@@ -5,6 +5,8 @@ CONTIKI=../../../..
 WITH_UIP6=1
 UIP_CONF_IPV6=1
 
+SMALL=1
+
 APPS += webserver webbrowser
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
