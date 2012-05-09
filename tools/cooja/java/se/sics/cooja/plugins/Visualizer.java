@@ -1246,7 +1246,6 @@ public class Visualizer extends VisPlugin {
         }
         sb.append(skin.getClass().getName());
       }
-      logger.debug("sb.toString() " + sb.toString());
       GUI.setExternalToolsSetting("VISUALIZER_DEFAULT_SKINS", sb.toString());
     }
   };
