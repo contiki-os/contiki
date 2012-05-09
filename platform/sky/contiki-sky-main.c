@@ -156,6 +156,7 @@ set_rime_addr(void)
   printf("%d\n", addr.u8[i]);
 }
 /*---------------------------------------------------------------------------*/
+#if !PROCESS_CONF_NO_PROCESS_NAMES
 static void
 print_processes(struct process * const processes[])
 {
@@ -167,6 +168,7 @@ print_processes(struct process * const processes[])
   }
   putchar('\n');
 }
+#endif /* !PROCESS_CONF_NO_PROCESS_NAMES */
 /*--------------------------------------------------------------------------*/
 #if WITH_UIP
 static void
@@ -393,7 +395,11 @@ main(int argc, char **argv)
 
   watchdog_start();
 
+#if !PROCESS_CONF_NO_PROCESS_NAMES
   print_processes(autostart_processes);
+#else /* !PROCESS_CONF_NO_PROCESS_NAMES */
+  putchar('\n'); /* include putchar() */
+#endif /* !PROCESS_CONF_NO_PROCESS_NAMES */
   autostart_start(autostart_processes);
 
   /*
