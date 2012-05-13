@@ -52,7 +52,7 @@
 
 /* Multiplies with chunk size, be aware of memory constraints. */
 #ifndef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS   4
+#define COAP_MAX_OPEN_TRANSACTIONS   2
 #endif
 
 /* Must be <= open transaction number. */
@@ -60,15 +60,8 @@
 #define COAP_MAX_OBSERVERS      COAP_MAX_OPEN_TRANSACTIONS-1
 #endif
 
-
-#ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW  60
-#endif
-
-#ifndef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 2
-#endif
-
-
+/* Reduce 802.15.4 frame queue to save RAM. */
+#undef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM               4
 
 #endif /* __PROJECT_RPL_WEB_CONF_H__ */

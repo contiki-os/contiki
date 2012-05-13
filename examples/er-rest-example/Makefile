@@ -1,4 +1,5 @@
-all: rest-server-example coap-client-example plugtest-server
+all: rest-server-example coap-client-example
+# Use this target explicitly if requried: plugtest-server
 
 CONTIKI=../..
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
@@ -6,7 +7,9 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 # for static routing, if enabled
 ifneq ($(TARGET), minimal-net)
 ifneq ($(TARGET), native)
+ifneq ($(findstring avr,$(TARGET)), avr)
 PROJECT_SOURCEFILES += static-routing.c
+endif
 endif
 endif
 
@@ -16,7 +19,7 @@ WITH_UIP6=1
 UIP_CONF_IPV6=1
 
 # variable for this Makefile
-# configure CoAP implementation (3|7)
+# configure CoAP implementation (3|7) (er-coap-07 also supports CoAP draft 08)
 WITH_COAP=7
 
 # new variable since slip-radio
@@ -36,14 +39,16 @@ SMALL=1
 
 # REST framework, requires WITH_COAP
 ifeq ($(WITH_COAP), 7)
-${info INFO: compiling with CoAP-07}
+${info INFO: compiling with CoAP-08}
 CFLAGS += -DWITH_COAP=7
 CFLAGS += -DREST=coap_rest_implementation
+CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-07
 else ifeq ($(WITH_COAP), 3)
 ${info INFO: compiling with CoAP-03}
 CFLAGS += -DWITH_COAP=3
 CFLAGS += -DREST=coap_rest_implementation
+CFLAGS += -DUIP_CONF_TCP=0
 APPS += er-coap-03
 else
 ${info INFO: compiling with HTTP}
@@ -55,23 +60,21 @@ endif
 
 APPS += erbium
 
-
+# optional rules to get assembly
 #CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 #CUSTOM_RULE_S_TO_OBJECTDIR_O = 1
 
 include $(CONTIKI)/Makefile.include
 
+# optional rules to get assembly
 #$(OBJECTDIR)/%.o: asmdir/%.S
 #	$(CC) $(CFLAGS) -MMD -c $< -o $@
 #	@$(FINALIZE_DEPENDENCY)
 #
 #asmdir/%.S: %.c
 #	$(CC) $(CFLAGS) -MMD -S $< -o $@
- 
- 
 
-
-
+# border router rules
 $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
 	(cd $(CONTIKI)/tools && $(MAKE) tunslip6)
 
