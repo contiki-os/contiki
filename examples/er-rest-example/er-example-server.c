@@ -31,7 +31,7 @@
 
 /**
  * \file
- *      Example for the CoAP REST Engine
+ *      Erbium (Er) REST Engine example (with CoAP-specific code)
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
@@ -88,7 +88,7 @@
 #elif WITH_COAP == 7
 #include "er-coap-07.h"
 #else
-#warning "REST example without CoAP"
+#warning "Erbium example without CoAP-specifc functionality"
 #endif /* CoAP-specific example */
 
 #define DEBUG 0
@@ -102,7 +102,7 @@
 #define PRINTLLADDR(addr)
 #endif
 
-
+/******************************************************************************/
 #if REST_RES_HELLO
 /*
  * Resources are defined by the RESOURCE macro.
@@ -140,6 +140,7 @@ helloworld_handler(void* request, void* response, uint8_t *buffer, uint16_t pref
 }
 #endif
 
+/******************************************************************************/
 #if REST_RES_MIRROR
 /* This resource mirrors the incoming request. It shows how to access the options and how to set them for the response. */
 RESOURCE(mirror, METHOD_GET | METHOD_POST | METHOD_PUT | METHOD_DELETE, "debug/mirror", "title=\"Returns your decoded message\";rt=\"Debug\"");
@@ -290,6 +291,7 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 }
 #endif /* REST_RES_MIRROR */
 
+/******************************************************************************/
 #if REST_RES_CHUNKS
 /*
  * For data larger than REST_MAX_CHUNK_SIZE (e.g., stored in flash) resources must be aware of the buffer limitation
@@ -298,7 +300,7 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
  * These chunk-wise resources must set the offset value to its new position or -1 of the end is reached.
  * (The offset for CoAP's blockwise transfer can go up to 2'147'481'600 = ~2047 M for block size 2048 (reduced to 1024 in observe-03.)
  */
-RESOURCE(chunks, METHOD_GET, "debug/chunks", "title=\"Blockwise demo\";rt=\"Data\"");
+RESOURCE(chunks, METHOD_GET, "test/chunks", "title=\"Blockwise demo\";rt=\"Data\"");
 
 #define CHUNKS_TOTAL    2050
 
@@ -349,7 +351,8 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 }
 #endif
 
-#if defined (PLATFORM_HAS_BUTTON) && REST_RES_SEPARATE && WITH_COAP > 3
+/******************************************************************************/
+#if REST_RES_SEPARATE && defined (PLATFORM_HAS_BUTTON) && WITH_COAP > 3
 /* Required to manually (=not by the engine) handle the response transaction. */
 #include "er-coap-07-separate.h"
 #include "er-coap-07-transactions.h"
@@ -359,7 +362,7 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
  * The pre-handler takes care of the empty ACK and updates the MID and message type for CON requests.
  * The resource handler must store all information that required to finalize the response later.
  */
-RESOURCE(separate, METHOD_GET, "debug/separate", "title=\"Separate demo\"");
+RESOURCE(separate, METHOD_GET, "test/separate", "title=\"Separate demo\"");
 
 /* A structure to store the required information */
 typedef struct application_separate_store {
@@ -439,13 +442,14 @@ separate_finalize_handler()
 }
 #endif
 
+/******************************************************************************/
 #if REST_RES_PUSHING
 /*
  * Example for a periodic resource.
  * It takes an additional period parameter, which defines the interval to call [name]_periodic_handler().
  * A default post_handler takes care of subscriptions by managing a list of subscribers to notify.
  */
-PERIODIC_RESOURCE(pushing, METHOD_GET, "debug/push", "title=\"Periodic demo\";obs", 5*CLOCK_SECOND);
+PERIODIC_RESOURCE(pushing, METHOD_GET, "test/push", "title=\"Periodic demo\";obs", 5*CLOCK_SECOND);
 
 void
 pushing_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
@@ -483,7 +487,8 @@ pushing_periodic_handler(resource_t *r)
 }
 #endif
 
-#if defined (PLATFORM_HAS_BUTTON) && REST_RES_EVENT
+/******************************************************************************/
+#if REST_RES_EVENT && defined (PLATFORM_HAS_BUTTON)
 /*
  * Example for an event resource.
  * Additionally takes a period parameter that defines the interval to call [name]_periodic_handler().
@@ -524,7 +529,9 @@ event_event_handler(resource_t *r)
 }
 #endif /* PLATFORM_HAS_BUTTON */
 
+/******************************************************************************/
 #if defined (PLATFORM_HAS_LEDS)
+/******************************************************************************/
 #if REST_RES_LEDS
 /*A simple actuator example, depending on the color query parameter and post variable mode, corresponding led is activated or deactivated*/
 RESOURCE(leds, METHOD_POST | METHOD_PUT , "actuators/leds", "title=\"LEDs: ?color=r|g|b, POST/PUT mode=on|off\";rt=\"Control\"");
@@ -574,6 +581,7 @@ leds_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_
 }
 #endif
 
+/******************************************************************************/
 #if REST_RES_TOGGLE
 /* A simple actuator example. Toggles the red led */
 RESOURCE(toggle, METHOD_GET | METHOD_PUT | METHOD_POST, "actuators/toggle", "title=\"Red LED\";rt=\"Control\"");
@@ -585,7 +593,8 @@ toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 #endif
 #endif /* PLATFORM_HAS_LEDS */
 
-#if defined (PLATFORM_HAS_LIGHT) && REST_RES_LIGHT
+/******************************************************************************/
+#if REST_RES_LIGHT && defined (PLATFORM_HAS_LIGHT)
 /* A simple getter example. Returns the reading from light sensor with a simple etag */
 RESOURCE(light, METHOD_GET, "sensors/light", "title=\"Photosynthetic and solar light (supports JSON)\";rt=\"LightSensor\"");
 void
@@ -627,7 +636,8 @@ light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
 }
 #endif /* PLATFORM_HAS_LIGHT */
 
-#if defined (PLATFORM_HAS_BATTERY) && REST_RES_BATTERY
+/******************************************************************************/
+#if REST_RES_BATTERY && defined (PLATFORM_HAS_BATTERY)
 /* A simple getter example. Returns the reading from light sensor with a simple etag */
 RESOURCE(battery, METHOD_GET, "sensors/battery", "title=\"Battery status\";rt=\"Battery\"");
 void
@@ -661,14 +671,16 @@ battery_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
 }
 #endif /* PLATFORM_HAS_BATTERY */
 
-PROCESS(rest_server_example, "Rest Server Example");
+
+
+PROCESS(rest_server_example, "Erbium Example Server");
 AUTOSTART_PROCESSES(&rest_server_example);
 
 PROCESS_THREAD(rest_server_example, ev, data)
 {
   PROCESS_BEGIN();
 
-  PRINTF("Rest Example\n");
+  PRINTF("Starting Erbium Example Server\n");
 
 #ifdef RF_CHANNEL
   PRINTF("RF channel: %u\n", RF_CHANNEL);
@@ -683,7 +695,7 @@ PROCESS_THREAD(rest_server_example, ev, data)
   PRINTF("REST max chunk: %u\n", REST_MAX_CHUNK_SIZE);
 
 /* if static routes are used rather than RPL */
-#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET)
+#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET) && !defined (CONTIKI_TARGET_NATIVE)
   set_global_address();
   configure_routing();
 #endif
