@@ -76,7 +76,7 @@ static service_callback_t service_cbk = NULL;
 /*----------------------------------------------------------------------------*/
 static
 int
-handle_incoming_data(void)
+coap_receive(void)
 {
   coap_error_code = NO_ERROR;
 
@@ -435,7 +435,7 @@ PROCESS_THREAD(coap_receiver, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      handle_incoming_data();
+      coap_receive();
     } else if (ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
       coap_check_transactions();
@@ -447,7 +447,7 @@ PROCESS_THREAD(coap_receiver, ev, data)
 /*----------------------------------------------------------------------------*/
 /*- Client part --------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
-void blocking_request_callback(void *callback_data, void *response) {
+void coap_blocking_request_callback(void *callback_data, void *response) {
   struct request_state_t *state = (struct request_state_t *) callback_data;
   state->response = (coap_packet_t*) response;
   process_poll(state->process);
@@ -475,7 +475,7 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
     request->mid = coap_get_mid();
     if ((state->transaction = coap_new_transaction(request->mid, remote_ipaddr, remote_port)))
     {
-      state->transaction->callback = blocking_request_callback;
+      state->transaction->callback = coap_blocking_request_callback;
       state->transaction->callback_data = state;
 
       if (state->block_num>0)
