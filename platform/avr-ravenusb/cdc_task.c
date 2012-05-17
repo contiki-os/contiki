@@ -104,10 +104,6 @@ extern char usb_busy;
 //! Counter for USB Serial port
 extern U8    tx_counter;
 
-//! Timers for LEDs
-uint8_t led3_timer;
-
-
 //! previous configuration
 static uint8_t previous_uart_usb_control_line_state = 0;
 
@@ -148,10 +144,6 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
 #endif
 
 	while(1) {
-	    // turn off LED's if necessary
-		if (led3_timer) led3_timer--;
-		else			Led3_off();
-		
  		if(Is_device_enumerated()) {
 			// If the configuration is different than the last time we checked...
 			if((uart_usb_get_control_line_state()&1)!=previous_uart_usb_control_line_state) {
@@ -755,14 +747,14 @@ uint16_t p=(uint16_t)&__bss_end;
 							accRSSI[i-11]+=RSSI;
 						}
 						if(j&(1<<7)) {
-							Led3_on();
+							LedVCP_on();
 							if(!(j&((1<<7)-1))) {
 								PRINTF_P(PSTR("."));
 								uart_usb_flush();
 							}
 						}
 						else
-							Led3_off();
+							LedVCP_off();
 						watchdog_periodic();
 					}
 #if RF230BB
@@ -856,14 +848,5 @@ uint16_t p=(uint16_t)&__bss_end;
 
 }
 
-
-/**
-    @brief This will enable the VCP_TRX_END LED for a period
-*/
-void vcptx_end_led(void)
-{
-    Led3_on();
-    led3_timer = 5;
-}
 /** @}  */
 

@@ -28,6 +28,7 @@ CONTIKI_TARGET_SOURCEFILES +=   cfs-eeprom.c eeprom.c random.c \
                                 mmem.c contiki-raven-default-init-lowlevel.c \
                                 contiki-raven-default-init-net.c contiki-raven-main.c httpd-simple-avr.c \
                                 sicslow_ethernet.c queuebuf.c packetbuf.c rng.c \
+                                status-leds.c \
                 $(RPL) \
                 $(USB)
 
