@@ -236,21 +236,21 @@ main(void)
 
     uip_gethostaddr(&addr);
     if(addr.u8[0] == 0) {
-      uip_ipaddr(&addr, 10,1,1,1);
+      uip_ipaddr(&addr, 172,18,0,2);
     }
     printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
     uip_sethostaddr(&addr);
     
     uip_getnetmask(&addr);
     if(addr.u8[0] == 0) {
-      uip_ipaddr(&addr, 255,0,0,0);
+      uip_ipaddr(&addr, 255,255,0,0);
       uip_setnetmask(&addr);
     }
     printf("Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
     
     uip_getdraddr(&addr);
     if(addr.u8[0] == 0) {
-      uip_ipaddr(&addr, 10,1,1,100);
+      uip_ipaddr(&addr, 172,18,0,1);
       uip_setdraddr(&addr);
     }
     printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
