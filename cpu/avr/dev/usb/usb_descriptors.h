@@ -482,7 +482,7 @@ typedef struct
 {
    S_usb_configuration_descriptor cfg;
    S_usb_interface_descriptor     ifc0;
-   U8 CS1_INTERFACE[5+5];
+   U8 CS1_INTERFACE[5+5+4];
    S_usb_ethernet_networking_functional_descriptor fd0;
 #if CDC_ECM_USES_INTERRUPT_ENDPOINT
    S_usb_endpoint_descriptor      ep1;
@@ -502,7 +502,7 @@ typedef struct
    S_usb_configuration_descriptor cfg;
   S_usb_interface_association_descriptor   iad0;
    S_usb_interface_descriptor     ifc0;
-   U8 CS1_INTERFACE[5+5];
+   U8 CS1_INTERFACE[5+5+4];
    S_usb_ethernet_networking_functional_descriptor fd0;
 #if CDC_ECM_USES_INTERRUPT_ENDPOINT
    S_usb_endpoint_descriptor      ep1;

@@ -76,8 +76,8 @@ cdc_ecm_notify_network_connection(uint8_t value) {
 		return;
 	}
 
-	if(usb_endpoint_wait_for_IN_ready()!=0) {
-		//PRINTF_P(PSTR("cdc_ecm: cdc_ecm_notify_network_connection: Timeout waiting for interrupt endpoint to be available\n"));
+	if(!Is_usb_write_enabled()) {
+		//PRINTF_P(PSTR("cdc_ecm: Unable to send CDC_NOTIFY_NETWORK_CONNECTION.\n"));
 		return;
 	}
 
@@ -85,49 +85,14 @@ cdc_ecm_notify_network_connection(uint8_t value) {
 
 	Usb_write_byte(0x51); // 10100001b
 	Usb_write_byte(CDC_NOTIFY_NETWORK_CONNECTION);
-	Usb_write_byte(value);
-	Usb_write_byte(0x00);
+	Usb_write_word((uint16_t)value);
 	Usb_write_word(ECM_INTERFACE0_NB);
-	Usb_write_word(0x0000);
+	Usb_write_word(0x0000);				// Length
 
 	Usb_send_in();
 	PRINTF_P(PSTR("cdc_ecm: CDC_NOTIFY_NETWORK_CONNECTION %d\n"),value);
 #endif
 }
-
-#define CDC_ECM_DATA_ENDPOINT_SIZE		64
-
-void cdc_ecm_configure_endpoints() {
-#if CDC_ECM_USES_INTERRUPT_ENDPOINT
-	usb_configure_endpoint(INT_EP,      \
-						 TYPE_INTERRUPT,     \
-						 DIRECTION_IN,  \
-						 SIZE_8,       \
-						 TWO_BANKS,     \
-						 NYET_ENABLED);
-#endif
-
-	usb_configure_endpoint(TX_EP,      \
-						 TYPE_BULK,  \
-						 DIRECTION_IN,  \
-						 SIZE_64,     \
-						 TWO_BANKS,     \
-						 NYET_ENABLED);
-
-	usb_configure_endpoint(RX_EP,      \
-						 TYPE_BULK,     \
-						 DIRECTION_OUT,  \
-						 SIZE_64,       \
-						 TWO_BANKS,     \
-						 NYET_ENABLED);
-#if CDC_ECM_USES_INTERRUPT_ENDPOINT
-	Usb_reset_endpoint(INT_EP);
-#endif
-	Usb_reset_endpoint(TX_EP);
-	Usb_reset_endpoint(RX_EP);
-	usb_eth_is_active = 1;
-}
-
 
 void
 cdc_ecm_notify_connection_speed_change(uint32_t upstream,uint32_t downstream) {
@@ -137,8 +102,10 @@ cdc_ecm_notify_connection_speed_change(uint32_t upstream,uint32_t downstream) {
 	if(!Is_usb_endpoint_enabled())
 		return;
 
-	if(usb_endpoint_wait_for_IN_ready()!=0)
+	if(!Is_usb_write_enabled()) {
+//		PRINTF_P(PSTR("cdc_ecm: Unable to send CDC_NOTIFY_CONNECTION_SPEED_CHANGE.\n"));
 		return;
+	}
 
 	Usb_send_control_in();
 
@@ -157,13 +124,12 @@ cdc_ecm_notify_connection_speed_change(uint32_t upstream,uint32_t downstream) {
 	Usb_write_long(downstream);
 	Usb_send_in();
 
-	PRINTF_P(PSTR("cdc_ecm: CDC_NOTIFY_CONNECTION_SPEED_CHANGE UP:%d DOWN:%d\n"),upstream,downstream);
+	PRINTF_P(PSTR("cdc_ecm: CDC_NOTIFY_CONNECTION_SPEED_CHANGE UP:%lubps DOWN:%lubps\n"),upstream,downstream);
 #endif
 }
 
 void cdc_ecm_set_active(uint8_t value) {
 	if(value!=usb_eth_is_active) {
-		Led3_on();
 
 		usb_eth_is_active = value;
 		cdc_ecm_notify_network_connection(value);
@@ -173,6 +139,35 @@ void cdc_ecm_set_active(uint8_t value) {
 			cdc_ecm_notify_connection_speed_change(0,0);
 		}
 	}
+}
+
+#define CDC_ECM_DATA_ENDPOINT_SIZE		64
+
+void cdc_ecm_configure_endpoints() {
+	usb_configure_endpoint(INT_EP,      \
+						 TYPE_INTERRUPT,     \
+						 DIRECTION_IN,  \
+						 SIZE_8,       \
+						 TWO_BANKS,     \
+						 NYET_ENABLED);
+
+	usb_configure_endpoint(TX_EP,      \
+						 TYPE_BULK,  \
+						 DIRECTION_IN,  \
+						 SIZE_64,     \
+						 TWO_BANKS,     \
+						 NYET_ENABLED);
+
+	usb_configure_endpoint(RX_EP,      \
+						 TYPE_BULK,     \
+						 DIRECTION_OUT,  \
+						 SIZE_64,       \
+						 TWO_BANKS,     \
+						 NYET_ENABLED);
+	Usb_reset_endpoint(INT_EP);
+	Usb_reset_endpoint(TX_EP);
+	Usb_reset_endpoint(RX_EP);
+	usb_eth_is_active = 1;
 }
 
 uint8_t
@@ -192,13 +187,7 @@ cdc_ecm_process(void) {
 		cdc_ecm_notify_network_connection(1);
 		cdc_ecm_notify_connection_speed_change(250000,250000);
 		doInit = 0;
-		if(usb_ecm_packet_filter & PACKET_TYPE_PROMISCUOUS) {
-#if RF230BB
-			rf230_set_promiscuous_mode(true);
-#else		
-			radio_set_trx_state(RX_ON);
-#endif
-		}
+		USB_ETH_HOOK_SET_PROMISCIOUS_MODE(PACKET_TYPE_PROMISCUOUS==(usb_ecm_packet_filter&PACKET_TYPE_PROMISCUOUS));
 
 		// Select again, just to make sure.
 		Usb_select_endpoint(RX_EP);
@@ -213,7 +202,6 @@ cdc_ecm_process(void) {
 	}
 
 	//Connected!
-	Led0_on();
 
 	if(Is_usb_read_enabled()) {
 		uint16_t bytecounter;
@@ -327,4 +315,59 @@ ecm_send(uint8_t * senddata, uint16_t sendlen, uint8_t led) {
 	return 1;
 }
 
+uint8_t
+cdc_ecm_handle_send_encapsulated_command(uint16_t wLength) {
+	// Here we are simply checking to see if
+	// Windows is abusing us by treating us like RNDIS.
+	// So, if we get treated line RNDIS, we will
+	// just magically turn into RNDIS so that windows
+	// will work. Hopefully.
 
+    // So far this doesn't seem to be working, but
+    // it may prove to be a fruitful approach in the
+    // future, so I'm leaving it here for now.
+
+#define REMOTE_NDIS_INITIALIZE_MSG		0X00000002
+
+	usb_eth_switch_to_windows_mode();
+	return TRUE;
+
+	// We only care about the message type, so bail
+	// if the length is too short.
+	if(wLength<4)
+		return FALSE;
+
+	Usb_ack_receive_setup();
+
+    //Clear NAK bit
+    Usb_ack_nak_in();
+
+	uint32_t type = 0;
+
+	// Read in the message type.
+	((uint8_t*)&type)[0] = Usb_read_byte();
+	((uint8_t*)&type)[1] = Usb_read_byte();
+	((uint8_t*)&type)[2] = Usb_read_byte();
+	((uint8_t*)&type)[3] = Usb_read_byte();
+
+	if(type == REMOTE_NDIS_INITIALIZE_MSG) {
+		// Gah! It thinks we are RNDIS!!!
+		usb_eth_switch_to_windows_mode();
+	} else {
+		// Nope, not for us. Stall.
+		Usb_enable_stall_handshake();
+
+		// Clear some flags.
+		Usb_ack_receive_setup();
+		Usb_ack_receive_out();
+		Usb_ack_in_ready();
+	}
+
+	return TRUE;
+}
+
+uint8_t
+cdc_ecm_handle_get_encapsulated_command() {
+	usb_eth_switch_to_windows_mode();
+	return true;
+}

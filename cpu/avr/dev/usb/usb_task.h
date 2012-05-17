@@ -169,8 +169,8 @@
 
 
 typedef enum {
-	rndis_only,
-	rndis_debug,
+	default_usb_mode,
+	rndis_debug,		// Windows mode.
 	mass_storage,
 	eem
 } usb_mode_t;
