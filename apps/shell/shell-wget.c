@@ -130,12 +130,14 @@ open_url(char *url)
   /* Try to lookup the hostname. If it fails, we initiate a hostname
      lookup and print out an informative message on the statusbar. */
   if(uiplib_ipaddrconv(host, &addr) == 0) {
+    uip_ipaddr_t *addrptr;
     shell_output_str(&wget_command, "Not an IP address", "");
-    if(resolv_lookup(host) == NULL) {
+    if(resolv_lookup(host, &addrptr) == RESOLV_STATUS_UNCACHED) {
       shell_output_str(&wget_command, "Not resolved", "");
       resolv_query(host);
       return;
     }
+    uip_ipaddr_copy(&addr, addrptr);
   }
 #else /* UIP_UDP */
   uiplib_ipaddrconv(host, &addr);
@@ -171,7 +173,7 @@ PROCESS_THREAD(shell_wget_process, ev, data)
     } else if(ev == resolv_event_found) {
       /* Either found a hostname, or not. */
       if((char *)data != NULL &&
-	 resolv_lookup((char *)data) != NULL) {
+	 resolv_lookup((char *)data, NULL) == RESOLV_STATUS_CACHED) {
 	open_url(url);
       } else {
 	shell_output_str(&wget_command, "Host not found.", "");

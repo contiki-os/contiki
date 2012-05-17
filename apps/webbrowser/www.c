@@ -348,11 +348,13 @@ open_url(void)
   /* Try to lookup the hostname. If it fails, we initiate a hostname
      lookup and print out an informative message on the statusbar. */
   if(uiplib_ipaddrconv(host, &addr) == 0) {
-    if(resolv_lookup(host) == NULL) {
+    uip_ipaddr_t *addrptr;
+    if(resolv_lookup(host, &addrptr) != RESOLV_STATUS_CACHED) {
       resolv_query(host);
       show_statustext("Resolving host...");
       return;
     }
+    uip_ipaddr_copy(&addr, addrptr);
   }
 #else /* UIP_UDP */
   uiplib_ipaddrconv(host, &addr);
@@ -553,7 +555,8 @@ PROCESS_THREAD(www_process, ev, data)
 #if UIP_UDP
     } else if(ev == resolv_event_found) {
       /* Either found a hostname, or not. */
-      if((char *)data != NULL && resolv_lookup((char *)data) != NULL) {
+      if((char *)data != NULL &&
+	 resolv_lookup((char *)data, NULL) == RESOLV_STATUS_CACHED) {
 	open_url();
       } else {
 	show_statustext("Host not found");
