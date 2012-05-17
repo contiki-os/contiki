@@ -37,6 +37,7 @@ webserver-ipv6/sky \
 webserver-ipv6/econotag \
 wget/minimal-net \
 z1/z1 \
+settings-example/avr-raven \
 sensinode/sensinode \
 sensinode/border-router/sensinode \
 sensinode/udp-ipv6/sensinode \

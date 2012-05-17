@@ -58,6 +58,12 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <avr/eeprom.h>
+
+/* Skip the last four bytes of the EEPROM, to leave room for things
+ * like the avrdude erase count and bootloader signaling. */
+#define EEPROM_CONF_SIZE		((E2END + 1) - 4)
+
 /* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.
  * 125 Hz needs slightly more overhead during the interrupt, as does a 32 bit
  * clock_time_t.
