@@ -50,6 +50,12 @@
 #define F_CPU          8000000UL
 #endif
 
+#include <avr/eeprom.h>
+
+/* Skip the last four bytes of the EEPROM, to leave room for things
+ * like the avrdude erase count and bootloader signaling. */
+#define EEPROM_CONF_SIZE		((E2END + 1) - 4)
+
 /* MCU_CONF_LOW_WEAR will remove the signature and eeprom from the .elf file */
 /* This reduces reprogramming wear during development */
 //#define MCU_CONF_LOW_WEAR 1
