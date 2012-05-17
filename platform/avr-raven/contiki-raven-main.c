@@ -432,8 +432,21 @@ main(void)
   initialize();
 
   while(1) {
-    process_run();
     watchdog_periodic();
+
+    if(process_run()==0) {
+      clock_time_t sleep_period = etimer_next_expiration_time() - clock_time();
+
+      //PRINTF("Going to sleep for %lu clock ticks...\n",(unsigned long)sleep_period);
+
+      watchdog_stop();
+
+      clock_sleep_with_max_duration(sleep_period);
+
+      watchdog_start();
+
+      //PRINTF("...Woke from sleep\n");
+    }
 
 #if 0
 /* Various entry points for debugging in the AVR Studio simulator.

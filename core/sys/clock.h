@@ -117,6 +117,16 @@ CCIF unsigned long clock_seconds(void);
 void clock_set_seconds(unsigned long sec);
 
 /**
+ * Sleep the CPU for no more than the given number of ticks.
+ * If an interrupt occurs, the function will return once the
+ * interrupt has been handled. Useful for automatically
+ * sleeping the microcontroller to save power while remaining
+ * responsive to events.
+ * \param t   The maximum number of ticks to sleep
+ */
+void clock_sleep_with_max_duration(clock_time_t t);
+
+/**
  * Wait for a given number of ticks.
  * \param t   How many ticks.
  *

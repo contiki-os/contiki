@@ -600,9 +600,21 @@ main(void)
 #endif
 
   while(1) {
-    process_run();
-
     watchdog_periodic();
+
+    if(process_run()==0) {
+      clock_time_t sleep_period = etimer_next_expiration_time() - clock_time();
+
+      //PRINTD("Going to sleep for %lu clock ticks...\n",(unsigned long)sleep_period);
+
+      watchdog_stop();
+
+      clock_sleep_with_max_duration(sleep_period);
+
+      watchdog_start();
+
+      //PRINTD("...Woke from sleep\n");
+    }
 
 /* Print rssi of all received packets, useful for range testing */
 #ifdef RF230_MIN_RX_POWER
