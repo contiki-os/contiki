@@ -85,6 +85,13 @@ static unsigned long lasttime;
 static void do_send(void);
 uint8_t tapdev_send(uip_lladdr_t *lladdr);
 
+/*---------------------------------------------------------------------------*/
+int
+tapdev_fd(void)
+{
+  return fd;
+}
+
 
 uint16_t
 tapdev_poll(void)
@@ -161,6 +168,7 @@ tapdev_init(void)
   /*  gdk_input_add(fd, GDK_INPUT_READ,
       read_callback, NULL);*/
 
+  atexit(&tapdev_exit);
 }
 /*---------------------------------------------------------------------------*/
 static void
