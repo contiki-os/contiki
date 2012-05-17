@@ -70,6 +70,13 @@ static unsigned long lasttime;
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
 /*---------------------------------------------------------------------------*/
+int
+tapdev_fd(void)
+{
+  return fd;
+}
+
+/*---------------------------------------------------------------------------*/
 static void
 remove_route(void)
 {
