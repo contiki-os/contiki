@@ -134,8 +134,7 @@ connect(void)
 
   addrptr = &addr;
   if(uiplib_ipaddrconv(host, &addr) == 0) {
-    addrptr = resolv_lookup(host);
-    if(addrptr == NULL) {
+    if(resolv_lookup(host, &addrptr) == RESOLV_STATUS_UNCACHED) {
       resolv_query(host);
       show("Resolving host...");
       return;
@@ -198,7 +197,7 @@ PROCESS_THREAD(vnc_process, ev, data)
       LOADER_UNLOAD();
     } else if(ev == resolv_event_found) {
       if(strcmp(data, host) == 0) {
-	if(resolv_lookup(host) != NULL) {
+	if(resolv_lookup(host, NULL) == RESOLV_STATUS_CACHED) {
 	  connect();
 	} else {
 	  show("Host not found");
