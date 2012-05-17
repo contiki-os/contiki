@@ -13,7 +13,7 @@ CONTIKI_PLAT_DEFS =
 
 MCU=arm7tdmi-s
 
-ifdef UIP_CONF_IPV6
+ifeq ($(UIP_CONF_IPV6),1)
 CFLAGS += -DWITH_UIP6=1
 endif
 
