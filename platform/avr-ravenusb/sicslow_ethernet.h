@@ -48,11 +48,6 @@
 #ifndef SICSLOW_ETHERNET_H
 #define SICSLOW_ETHERNET_H
 
-#if !RF230BB
-#include "sicslowmac.h"
-#include "frame.h"
-#endif
-
 typedef enum {
     ll_802154_type,
 	ll_8023_type
@@ -71,7 +66,9 @@ typedef struct {
 
 #define UIP_ETHTYPE_802154 0x809A
 
-extern usbstick_mode_t usbstick_mode;
+
+extern usbstick_mode_t usbstick_mode; // TODO: Rename!
+extern uint64_t macLongAddr;
 
 
 int8_t mac_translateIcmpLinkLayer(lltype_t target);
@@ -79,10 +76,6 @@ int8_t mac_translateIPLinkLayer(lltype_t target);
 void mac_LowpanToEthernet(void);
 void mac_ethernetToLowpan(uint8_t * ethHeader);
 void mac_ethernetSetup(void);
-#if !RF230BB
-void mac_802154raw(const struct mac_driver *r);
-void mac_logTXtoEthernet(frame_create_params_t *p,frame_result_t *frame_result);
-#endif
 
 #endif
 

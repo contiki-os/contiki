@@ -8,4 +8,6 @@ CONTIKI_NO_NET=1
 
 CONTIKI = ../..
 
+CFLAGS += -DJACKDAW=1
+
 include $(CONTIKI)/Makefile.include

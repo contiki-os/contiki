@@ -56,11 +56,6 @@
 #include "rndis/rndis_protocol.h"
 #include "rndis/rndis_task.h"
 #include "sicslow_ethernet.h"
-#if RF230BB
-#include "rf230bb.h"
-#else
-#include "radio.h"
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,6 +68,8 @@
 #include <avr/eeprom.h>
 #include <avr/wdt.h>
 #include <util/delay.h>
+
+#include "rf230bb.h"
 
 #if JACKDAW_CONF_USE_SETTINGS
 #include "settings.h"
@@ -298,16 +295,10 @@ void menu_process(char c)
 					channel_string[channel_string_i] = 0;
 					tempchannel = atoi(channel_string);
 
-#if RF230BB
 					if ((tempchannel < 11) || (tempchannel > 26))  {
 						PRINTF_P(PSTR("\n\rInvalid input\n\r"));
 					} else {
 						rf230_set_channel(tempchannel);
-#else
-					if(radio_set_operating_channel(tempchannel)!=RADIO_SUCCESS) {
-						PRINTF_P(PSTR("\n\rInvalid input\n\r"));
-					} else {
-#endif
 #if JACKDAW_CONF_USE_SETTINGS
 						if(settings_set_uint8(SETTINGS_KEY_CHANNEL, tempchannel)==SETTINGS_STATUS_OK) {                       
                             PRINTF_P(PSTR("\n\rChannel changed to %d and stored in EEPROM.\n\r"),tempchannel);
@@ -480,11 +471,7 @@ void menu_process(char c)
 				PRINTF_P(PSTR("Jackdaw now in sniffer mode\n\r"));
 				usbstick_mode.sendToRf = 0;
 				usbstick_mode.translate = 0;
-#if RF230BB
 				rf230_listen_channel(rf230_get_channel());
-#else		
-				radio_set_trx_state(RX_ON);
-#endif
 				break;
 
 #if RF230BB && RF230_CONF_SNEEZER
@@ -516,11 +503,7 @@ void menu_process(char c)
 				PRINTF_P(PSTR("Jackdaw now in network mode\n\r"));
 				usbstick_mode.sendToRf = 1;
 				usbstick_mode.translate = 1;
-#if RF230BB
 				rf230_set_channel(rf230_get_channel());
-#else		
-			    radio_set_trx_state(RX_AACK_ON);  //TODO: Use startup state which may be RX_ON
-#endif
 				break;
 
 			case '6':
@@ -557,11 +540,7 @@ void menu_process(char c)
 
 
 			case 'c':
-#if RF230BB
-				PRINTF_P(PSTR("\nSelect 802.15.4 Channel in range 11-26 [%d]: "), rf230_get_channel());
-#else
-				PRINTF_P(PSTR("\nSelect 802.15.4 Channel in range 11-26 [%d]: "), radio_get_operating_channel());
-#endif
+				PRINTF_P(PSTR("Select 802.15.4 Channel in range 11-26 [%d]: "), rf230_get_channel());
 				menustate = channel;
 				channel_string_i = 0;
 				break;
@@ -675,7 +654,9 @@ extern uip_ds6_netif_t uip_ds6_if;
 					((uint8_t *)&macLongAddr)[6],
 					((uint8_t *)&macLongAddr)[7]
 				);
-#if RF230BB
+#if UIP_CONF_IPV6_RPL
+				PRINTF_P(PSTR("  * Suports RPL mesh routing\n\r"));
+#endif
 #if CONVERTTXPOWER
 				PRINTF_P(PSTR("  * Operates on channel %d with TX power "),rf230_get_channel());
 				printtxpower();
@@ -691,19 +672,6 @@ extern uip_ds6_netif_t uip_ds6_if;
 					PRINTF_P(PSTR("  * Current/Last/Smallest RSSI: %d/%d/--dBm\n\r"), -91+(rf230_rssi()-1), -91+(rf230_last_rssi-1));
 				}
 
-#else /* RF230BB */
-				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), radio_get_operating_channel());
-				PRINTF_P(PSTR("  * TX Power Level: 0x%02X\n\r"), radio_get_tx_power_level());
-				{
-					PRINTF_P(PSTR("  * Current RSSI: "));
-					int8_t rssi = 0;
-					if(radio_get_rssi_value(&rssi)==RADIO_SUCCESS)
-						PRINTF_P(PSTR("%ddB\n\r"), -91+3*(rssi-1));
-					else
-						PRINTF_P(PSTR("Unknown\n\r"));
-				}
-				
-#endif /* RF230BB */
 
 				PRINTF_P(PSTR("  * Configuration: %d, USB<->ETH is "), usb_configuration_nb);
 				if (usb_eth_is_active == 0) PRINTF_P(PSTR("not "));
@@ -732,11 +700,7 @@ uint16_t p=(uint16_t)&__bss_end;
 				{
 					uint8_t i;
 					uint16_t j;
-#if RF230BB
 					uint8_t previous_channel = rf230_get_channel();
-#else // RF230BB
-					uint8_t previous_channel = radio_get_operating_channel();
-#endif
 					int8_t RSSI, maxRSSI[17];
 					uint16_t accRSSI[17];
 					
@@ -745,18 +709,9 @@ uint16_t p=(uint16_t)&__bss_end;
 					
 					for(j=0;j<(1<<12);j++) {
 						for(i=11;i<=26;i++) {
-#if RF230BB
 							rf230_listen_channel(i);
-#else // RF230BB
-							radio_set_operating_channel(i);
-#endif
 							_delay_us(3*10);
-#if RF230BB
-							RSSI = rf230_rssi();  //multiplies rssi register by 3 for consistency with energy-detect register
-#else // RF230BB
-							radio_get_rssi_value(&RSSI);
-							RSSI*=3;
-#endif
+							RSSI = rf230_rssi();
 							maxRSSI[i-11]=Max(maxRSSI[i-11],RSSI);
 							accRSSI[i-11]+=RSSI;
 						}
@@ -771,11 +726,7 @@ uint16_t p=(uint16_t)&__bss_end;
 							Led3_off();
 						watchdog_periodic();
 					}
-#if RF230BB
 					rf230_set_channel(previous_channel);
-#else // RF230BB
-					radio_set_operating_channel(previous_channel);
-#endif
 					PRINTF_P(PSTR("\n"));
 					for(i=11;i<=26;i++) {
 						uint8_t activity=Min(maxRSSI[i-11],accRSSI[i-11]/(1<<7));

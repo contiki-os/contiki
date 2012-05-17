@@ -155,11 +155,12 @@ struct timestamp {
 
 /* Leave radio on when USB powered or for testing low power protocols */
 /* This allows DEBUGFLOW indication of packets received when the radio is "off" */
-#if JACKDAW
+#ifndef RADIOALWAYSON
 #define RADIOALWAYSON 1
-#else
-#define RADIOALWAYSON 0
-#define RADIOSLEEPSWHENOFF 1
+#endif
+
+#ifndef RADIOSLEEPSWHENOFF
+#define RADIOSLEEPSWHENOFF !RADIOALWAYSON
 #endif
 
 /* RS232 delays will cause 6lowpan fragment overruns! Use DEBUGFLOW instead. */
@@ -506,7 +507,8 @@ rf230_set_promiscuous_mode(bool isPromiscuous) {
 #if RF230_CONF_AUTOACK
     is_promiscuous = isPromiscuous;
 /* TODO: Figure out when to pass promisc state to 802.15.4 */
-//    radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
+    rf230_waitidle();
+    radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
 #endif
 }
 
@@ -574,8 +576,8 @@ radio_on(void)
   }
 
 #if RF230_CONF_AUTOACK
- // radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
-  radio_set_trx_state(RX_AACK_ON);
+  // We can only auto-ack if we aren't in promiscuous mode.
+  radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
 #else
   radio_set_trx_state(RX_ON);
 #endif
@@ -994,10 +996,11 @@ rf230_transmit(unsigned short payload_len)
 
  /* Get the transmission result */  
 #if RF230_CONF_FRAME_RETRIES
-  tx_result = hal_subregister_read(SR_TRAC_STATUS);
-#else
-  tx_result=RADIO_TX_OK;
+  if(!is_promiscuous)
+      tx_result = hal_subregister_read(SR_TRAC_STATUS);
+  else
 #endif
+  tx_result=RADIO_TX_OK;
 
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
   ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,rf230_get_txpower());
@@ -1217,6 +1220,7 @@ rf230_set_channel(uint8_t c)
   rf230_waitidle();
   channel=c;
   hal_subregister_write(SR_CHANNEL, c);
+  radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -1440,6 +1444,9 @@ rf230_read(void *buf, unsigned short bufsize)
     DEBUGFLOW('u');
     flushrx();
     RIMESTATS_ADD(badsynch);
+#if RADIOSTATS
+    RF230_receivefail++;
+#endif
     return 0;
   }
 
@@ -1448,6 +1455,9 @@ rf230_read(void *buf, unsigned short bufsize)
     //PRINTF("len <= AUX_LEN\n");
     flushrx();
     RIMESTATS_ADD(tooshort);
+#if RADIOSTATS
+    RF230_receivefail++;
+#endif
     return 0;
   }
 
@@ -1456,6 +1466,9 @@ rf230_read(void *buf, unsigned short bufsize)
     //PRINTF("len - AUX_LEN > bufsize\n");
     flushrx();
     RIMESTATS_ADD(toolong);
+#if RADIOSTATS
+    RF230_receivefail++;
+#endif
     return 0;
   }
 
@@ -1496,6 +1509,9 @@ rf230_read(void *buf, unsigned short bufsize)
     DEBUGFLOW('w');
     //PRINTF("checksum failed 0x%04x != 0x%04x\n",
     //  checksum, crc16_data(buf, len - AUX_LEN, 0));
+#if RADIOSTATS
+    RF230_receivefail++;
+#endif // RADIOSTATS
   }
 #if FOOTER_LEN
   if(footer[1] & FOOTER1_CRC_OK &&
@@ -1544,6 +1560,9 @@ rf230_read(void *buf, unsigned short bufsize)
     //PRINTF("bad crc");
     RIMESTATS_ADD(badcrc);
     len = AUX_LEN;
+#if RADIOSTATS
+    RF230_receivefail++;
+#endif
   }
 #endif
 #endif
