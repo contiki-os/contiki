@@ -58,7 +58,7 @@ import se.sics.cooja.interfaces.RimeAddress;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
-import se.sics.cooja.mspmote.interfaces.SkyByteRadio;
+import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.TyndallLED;
 import se.sics.cooja.mspmote.interfaces.UsciA0Serial;
 
@@ -188,7 +188,7 @@ public class TyndallMoteType extends MspMoteType {
         MoteAttributes.class,
         MspClock.class,
         MspMoteID.class,
-        SkyByteRadio.class,
+        Msp802154Radio.class,
         UsciA0Serial.class,
         TyndallLED.class,
         MspDebugOutput.class
