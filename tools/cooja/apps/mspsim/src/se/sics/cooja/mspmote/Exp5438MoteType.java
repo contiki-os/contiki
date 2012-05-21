@@ -59,7 +59,7 @@ import se.sics.cooja.mspmote.interfaces.Exp5438LED;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
-import se.sics.cooja.mspmote.interfaces.SkyByteRadio;
+import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.UsciA1Serial;
 
 @ClassDescription("TI MSP-EXP430F5438")
@@ -188,7 +188,7 @@ public class Exp5438MoteType extends MspMoteType {
         MoteAttributes.class,
         MspClock.class,
         MspMoteID.class,
-        SkyByteRadio.class,
+        Msp802154Radio.class,
         UsciA1Serial.class,
         Exp5438LED.class, 
         /*Exp5438LCD.class,*/ /* TODO */

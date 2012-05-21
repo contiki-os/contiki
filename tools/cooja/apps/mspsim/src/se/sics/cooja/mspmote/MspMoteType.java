@@ -50,6 +50,7 @@ import se.sics.cooja.MoteType;
 import se.sics.cooja.ProjectConfig;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.IPAddress;
+import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.MspSerial;
 import se.sics.mspsim.util.DebugInfo;
 import se.sics.mspsim.util.ELF;
@@ -271,6 +272,10 @@ public abstract class MspMoteType implements MoteType {
         if (intfClass.equals("se.sics.cooja.mspmote.interfaces.ESBLog")) {
           logger.warn("Old simulation config detected: ESBLog was replaced by MspSerial");
           intfClass = MspSerial.class.getName();
+        }
+        if (intfClass.equals("se.sics.cooja.mspmote.interfaces.SkyByteRadio")) {
+          logger.warn("Old simulation config detected: SkyByteRadio was replaced by Msp802154Radio");
+          intfClass = Msp802154Radio.class.getName();
         }
         if (intfClass.equals("se.sics.cooja.mspmote.interfaces.SkySerial")) {
           logger.warn("Old simulation config detected: SkySerial was replaced by MspSerial");
