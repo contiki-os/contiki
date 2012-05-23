@@ -80,7 +80,6 @@ public class SkyMoteType extends MspMoteType {
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
   throws MoteTypeCreationException {
-    this.simulation = simulation;
 
     /* SPECIAL CASE: Cooja started in applet.
      * Use preconfigured Contiki firmware */

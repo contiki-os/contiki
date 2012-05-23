@@ -208,7 +208,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     return myConfig;
   }
 
-  public Collection<Element> getConfigXML() {
+  public Collection<Element> getConfigXML(Simulation simulation) {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 

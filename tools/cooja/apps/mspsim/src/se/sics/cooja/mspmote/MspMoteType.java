@@ -39,8 +39,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
-import java.util.Vector;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -48,10 +46,8 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
@@ -79,8 +75,6 @@ public abstract class MspMoteType implements MoteType {
 
   private String identifier = null;
   private String description = null;
-
-  protected Simulation simulation;
 
   /* If source file is defined, the firmware is recompiled when loading simulations */
   private File fileSource = null;
@@ -223,8 +217,8 @@ public abstract class MspMoteType implements MoteType {
     return null;
   }
 
-  public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+  public Collection<Element> getConfigXML(Simulation simulation) {
+    ArrayList<Element> config = new ArrayList<Element>();
 
     Element element;
 
@@ -259,7 +253,7 @@ public abstract class MspMoteType implements MoteType {
     config.add(element);
 
     // Mote interfaces
-    for (Class moteInterface : getMoteInterfaceClasses()) {
+    for (Class<? extends MoteInterface> moteInterface : getMoteInterfaceClasses()) {
       element = new Element("moteinterface");
       element.setText(moteInterface.getName());
       config.add(element);
@@ -271,7 +265,6 @@ public abstract class MspMoteType implements MoteType {
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable)
       throws MoteTypeCreationException {
-    this.simulation = simulation;
 
     ArrayList<Class<? extends MoteInterface>> intfClassList = new ArrayList<Class<? extends MoteInterface>>();
     for (Element element : configXML) {
