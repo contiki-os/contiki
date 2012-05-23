@@ -214,10 +214,16 @@ public interface MoteType {
       Simulation simulation, Collection<Element> configXML, boolean visAvailable)
   throws MoteTypeCreationException;
 
-  public class MoteTypeCreationException extends Exception {
-    private MessageList compilationOutput = null;
+  public static class MoteTypeCreationException extends Exception {
+    private static final long serialVersionUID = 7625450894307392953L;
+
+    private MessageList compilationOutput;
+
     public MoteTypeCreationException(String message) {
       super(message);
+    }
+    public MoteTypeCreationException(String message, Throwable cause) {
+      super(message, cause);
     }
     public boolean hasCompilationOutput() {
       return compilationOutput != null;
