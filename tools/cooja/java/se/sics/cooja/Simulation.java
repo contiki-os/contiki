@@ -660,7 +660,7 @@ public class Simulation extends Observable implements Runnable {
 
         if (moteTypeClass == null) {
           logger.fatal("Could not load mote type class: " + moteTypeClassName);
-          return false;
+          throw new MoteType.MoteTypeCreationException("Could not load mote type class: " + moteTypeClassName);
         }
 
         MoteType moteType = moteTypeClass.getConstructor((Class[]) null).newInstance();
