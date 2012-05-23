@@ -1306,7 +1306,7 @@ public class ContikiMoteType implements MoteType {
     element.setText(getDescription());
     config.add(element);
 
-    element = new Element("contikiapp");
+    element = new Element("source");
     File file = simulation.getGUI().createPortablePath(getContikiSourceFile());
     element.setText(file.getPath().replaceAll("\\\\", "/"));
     config.add(element);
@@ -1350,7 +1350,7 @@ public class ContikiMoteType implements MoteType {
         identifier = element.getText();
       } else if (name.equals("description")) {
         description = element.getText();
-      } else if (name.equals("contikiapp")) {
+      } else if (name.equals("contikiapp") || name.equals("source")) {
         File file = new File(element.getText());
         if (!file.exists()) {
           file = simulation.getGUI().restorePortablePath(file);
