@@ -126,7 +126,8 @@ public abstract class AbstractMspMoteType extends MspMoteType {
             /* Handle multiple compilation commands one by one */
             String[] arr = getCompileCommands().split("\n");
             for (String cmd: arr) {
-                if (cmd.trim().isEmpty()) {
+                cmd = cmd.trim();
+                if (cmd.isEmpty()) {
                     continue;
                 }
 
@@ -143,8 +144,7 @@ public abstract class AbstractMspMoteType extends MspMoteType {
                             );
                 } catch (Exception e) {
                     MoteTypeCreationException newException =
-                            new MoteTypeCreationException("Mote type creation failed: " + e.getMessage());
-                    newException = (MoteTypeCreationException) newException.initCause(e);
+                            new MoteTypeCreationException("Mote type creation failed: " + e.getMessage(), e);
                     newException.setCompilationOutput(compilationOutput);
 
                     /* Print last 10 compilation errors to console */
