@@ -69,8 +69,6 @@ public class MoteTypeInformation extends VisPlugin {
         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
         JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
     pack();
-    setPreferredSize(new Dimension(350,500));
-    setSize(new Dimension(350,500));
 
     mySimulation.addObserver(simObserver = new Observer() {
       public void update(Observable obs, Object obj) {
@@ -79,7 +77,6 @@ public class MoteTypeInformation extends VisPlugin {
             new JScrollPane(createPanel(),
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
-        setPreferredSize(MoteTypeInformation.this.getSize());
         pack();
       }
     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2007-2012, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,19 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: MspMoteType.java,v 1.38 2010/10/25 14:13:38 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 import se.sics.cooja.ClassDescription;
@@ -57,7 +49,6 @@ import se.sics.cooja.ProjectConfig;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.mspmote.interfaces.MspSerial;
-import se.sics.cooja.util.ArrayUtils;
 import se.sics.mspsim.util.DebugInfo;
 import se.sics.mspsim.util.ELF;
 
@@ -139,74 +130,50 @@ public abstract class MspMoteType implements MoteType {
 
   protected abstract MspMote createMote(Simulation simulation);
 
+  @Override
   public JPanel getTypeVisualizer() {
-    /* TODO Move to emulated layer */
-    JPanel panel = new JPanel();
-    JLabel label = new JLabel();
-    JPanel smallPane;
-
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
+    StringBuilder sb = new StringBuilder();
     // Identifier
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Identifier");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(getIdentifier());
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
+    sb.append("<html><table><tr><td>Identifier</td><td>")
+    .append(getIdentifier()).append("</td></tr>");
 
     // Description
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Description");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(getDescription());
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
+    sb.append("<tr><td>Description</td><td>")
+    .append(getDescription()).append("</td></tr>");
 
     /* Contiki source */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Contiki source");
-    smallPane.add(BorderLayout.WEST, label);
+    sb.append("<tr><td>Contiki source</td><td>");
     if (getContikiSourceFile() != null) {
-      label = new JLabel(getContikiSourceFile().getName());
-      label.setToolTipText(getContikiSourceFile().getPath());
+      sb.append(getContikiSourceFile().getAbsolutePath());
     } else {
-      label = new JLabel("[not specified]");
+      sb.append("[not specified]");
     }
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
+    sb.append("</td></tr>");
 
     /* Contiki firmware */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Contiki firmware");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(getContikiFirmwareFile().getName());
-    label.setToolTipText(getContikiFirmwareFile().getPath());
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
+    sb.append("<tr><td>Contiki firmware</td><td>")
+    .append(getContikiFirmwareFile().getAbsolutePath()).append("</td></tr>");
 
     /* Compile commands */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Compile commands");
-    smallPane.add(BorderLayout.WEST, label);
-    JTextArea textArea = new JTextArea(getCompileCommands());
-    textArea.setEditable(false);
-    textArea.setBorder(BorderFactory.createEmptyBorder());
-    smallPane.add(BorderLayout.EAST, textArea);
-    panel.add(smallPane);
+    String compileCommands = getCompileCommands();
+    if (compileCommands == null) {
+        compileCommands = "";
+    }
+    sb.append("<tr><td valign=top>Compile commands</td><td>")
+    .append(compileCommands.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")).append("</td></tr>");
 
+    JLabel label = new JLabel(sb.append("</table></html>").toString());
+    label.setVerticalTextPosition(JLabel.TOP);
     /* Icon (if available) */
     if (!GUI.isVisualizedInApplet()) {
       Icon moteTypeIcon = getMoteTypeIcon();
       if (moteTypeIcon != null) {
-        smallPane = new JPanel(new BorderLayout());
-        label = new JLabel(moteTypeIcon);
-        smallPane.add(BorderLayout.CENTER, label);
-        panel.add(smallPane);
+        label.setIcon(moteTypeIcon);
       }
     }
 
-    panel.add(Box.createRigidArea(new Dimension(0, 5)));
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(BorderLayout.CENTER, label);
     return panel;
   }
 
@@ -350,13 +317,6 @@ public abstract class MspMoteType implements MoteType {
 
   public abstract Class<? extends MoteInterface>[] getAllMoteInterfaceClasses();
   public abstract File getExpectedFirmwareFile(File source);
-
-  private static ELF loadELF(URL url) throws Exception {
-    byte[] data = ArrayUtils.readFromStream(url.openStream());
-    ELF elf = new ELF(data);
-    elf.readAll();
-    return elf;
-  }
 
   private static ELF loadELF(String filepath) throws IOException {
     return ELF.readELF(filepath);
