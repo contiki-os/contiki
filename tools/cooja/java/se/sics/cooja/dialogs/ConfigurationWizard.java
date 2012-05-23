@@ -83,10 +83,10 @@ public class ConfigurationWizard extends JDialog {
     "-mno-cygwin -Wall -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'",
     "-Wall -D_JNI_IMPLEMENTATION_ -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'",
     "-mno-cygwin -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'",
-    
+
     "Linux:",
     "-I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/linux' -fno-builtin-printf -fPIC",
-    
+
     "Mac OS X:",
     "-Wall -I/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers -dynamiclib -fno-common"
   };
@@ -535,6 +535,7 @@ public class ConfigurationWizard extends JDialog {
 
     /* Show dialog */
     JDialog dialog = optionPane.createDialog(parent, title);
+    dialog.setResizable(true);
     dialog.setVisible(true);
     return (String) optionPane.getValue();
   }
@@ -935,7 +936,7 @@ public class ConfigurationWizard extends JDialog {
       testOutput.addMessage("Could not find address of referenceVar", MessageList.ERROR);
       return false;
     }
-    int relRefAddress = (Integer) addresses.get("referenceVar");
+    int relRefAddress = addresses.get("referenceVar");
     javaLibrary.setReferenceAddress(relRefAddress);
 
     testOutput.addMessage("### Creating data and BSS memory sections");
