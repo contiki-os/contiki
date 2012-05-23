@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: MicaZCompileDialog.java,v 1.1 2009/09/17 10:45:14 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -64,17 +62,10 @@ public class MicaZCompileDialog extends AbstractCompileDialog {
 
   private MicaZCompileDialog(Container parent, Simulation simulation, MoteType moteType) {
     super(parent, simulation, moteType);
+  }
 
-    /* Add all available MicaZ mote interfaces
-     * Selected by default unless interfaces already configured */
-    boolean selected = true;
-    if (moteIntfBox.getComponentCount() > 0) {
-      selected = false;
-    }
-
-    for (Class<? extends MoteInterface> intfClass: ((MicaZMoteType)moteType).getAllMoteInterfaceClasses()) {
-      addMoteInterface(intfClass, selected);
-    }
+  public Class<? extends MoteInterface>[] getDefaultMoteInterfaces() {
+    return ((MicaZMoteType)moteType).getAllMoteInterfaceClasses();
   }
 
   public boolean canLoadFirmware(File file) {
@@ -98,7 +89,7 @@ public class MicaZCompileDialog extends AbstractCompileDialog {
   public void writeSettingsToMoteType() {
     /* Nothing to do */
   }
-  
+
   protected String getTargetName() {
   	return "micaz";
   }

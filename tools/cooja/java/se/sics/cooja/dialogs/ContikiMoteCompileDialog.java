@@ -37,6 +37,7 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -100,7 +101,6 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     }
 
     /* Add Contiki mote type specifics */
-    addMoteInterfaceClasses();
     addAdvancedTab(tabbedPane);
   }
 
@@ -171,7 +171,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
       		moteType,
       		env
       );
-      
+
       String[] envOneDimension = new String[env.length];
       for (int i=0; i < env.length; i++) {
         envOneDimension[i] = env[i][0] + "=" + env[i][1];
@@ -200,14 +200,10 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     return ContikiMoteType.getExpectedFirmwareFile(source);
   }
 
-  private void addMoteInterfaceClasses() {
+  public Class<? extends MoteInterface>[] getDefaultMoteInterfaces() {
     ProjectConfig projectConfig = moteType.getConfig();
     String[] intfNames = projectConfig.getStringArrayValue(ContikiMoteType.class, "MOTE_INTERFACES");
-
-    boolean selected = true;
-    if (moteIntfBox.getComponentCount() > 0) {
-      selected = false;
-    }
+    ArrayList<Class<? extends MoteInterface>> classes = new ArrayList<Class<? extends MoteInterface>>();
 
     /* Load mote interface classes */
     for (String intfName : intfNames) {
@@ -219,8 +215,9 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
         continue;
       }
 
-      addMoteInterface(intfClass, selected);
+      classes.add(intfClass);
     }
+    return classes.toArray(new Class[0]);
   }
 
   private void addAdvancedTab(JTabbedPane parent) {
@@ -274,7 +271,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     netStackBox.add(netStackComboBox);
     netStackHeaderBox.setVisible((NetworkStack)netStackComboBox.getSelectedItem() == NetworkStack.MANUAL);
 
-    
+
     /* Advanced tab */
     Box box = Box.createVerticalBox();
     box.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
@@ -381,7 +378,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     /* Start compiling */
     super.compileContiki();
   }
-  
+
   protected String getTargetName() {
   	return "cooja";
   }

@@ -117,7 +117,7 @@ $(CONTIKI_APP).cooja: $(JNILIB)
 	cp $(JNILIB) $@
 	rm $(CONTIKI_APP_OBJ)
 
-mtype%.o: contiki-cooja-main.o
+%.o: contiki-cooja-main.o
 	mv contiki-cooja-main.o $@
 
 symbols.c:
