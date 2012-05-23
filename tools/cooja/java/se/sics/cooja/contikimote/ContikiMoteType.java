@@ -50,15 +50,12 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
 import se.sics.cooja.AbstractionLevelDescription;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.CoreComm;
@@ -194,8 +191,6 @@ public class ContikiMoteType implements MoteType {
 
   private NetworkStack netStack = NetworkStack.DEFAULT;
 
-  private Simulation simulation = null;
-
   // Type specific class configuration
   private ProjectConfig myConfig = null;
 
@@ -217,7 +212,6 @@ public class ContikiMoteType implements MoteType {
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation,
       boolean visAvailable) throws MoteTypeCreationException {
-    this.simulation = simulation;
     myConfig = simulation.getGUI().getProjectConfig().clone();
 
     if (visAvailable) {
@@ -1270,7 +1264,7 @@ public class ContikiMoteType implements MoteType {
     smallPane.add(BorderLayout.WEST, label);
     panel.add(smallPane);
 
-    for (Class intf : moteInterfacesClasses) {
+    for (Class<? extends MoteInterface> intf : moteInterfacesClasses) {
       smallPane = new JPanel(new BorderLayout());
       label = new JLabel(intf.getSimpleName());
       smallPane.add(BorderLayout.EAST, label);
@@ -1294,8 +1288,8 @@ public class ContikiMoteType implements MoteType {
     return panel;
   }
 
-  public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+  public Collection<Element> getConfigXML(Simulation simulation) {
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
     element = new Element("identifier");
@@ -1341,7 +1335,6 @@ public class ContikiMoteType implements MoteType {
     File oldVersionSource = null;
 
     moteInterfacesClasses = new ArrayList<Class<? extends MoteInterface>>();
-    this.simulation = simulation;
 
     for (Element element : configXML) {
       String name = element.getName();

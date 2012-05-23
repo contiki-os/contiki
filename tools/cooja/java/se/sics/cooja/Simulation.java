@@ -512,7 +512,7 @@ public class Simulation extends Observable implements Runnable {
       element = new Element("motetype");
       element.setText(moteType.getClass().getName());
 
-      Collection<Element> moteTypeXML = moteType.getConfigXML();
+      Collection<Element> moteTypeXML = moteType.getConfigXML(this);
       if (moteTypeXML != null) {
         element.addContent(moteTypeXML);
       }

@@ -73,7 +73,6 @@ public class TyndallMoteType extends MspMoteType {
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
   throws MoteTypeCreationException {
-    this.simulation = simulation;
 
     /* If visualized, show compile dialog and let user configure */
     if (visAvailable) {
