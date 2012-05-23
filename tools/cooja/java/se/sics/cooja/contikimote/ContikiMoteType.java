@@ -127,7 +127,7 @@ public class ContikiMoteType implements MoteType {
   public enum NetworkStack {
     DEFAULT, MANUAL;
     public String manualHeader = "netstack-conf-example.h";
-    
+
     public String toString() {
       if (this == DEFAULT) {
         return "Default (from contiki-conf.h)";
@@ -427,7 +427,7 @@ public class ContikiMoteType implements MoteType {
         readonlySectionAddr = -1;
         readonlySectionSize = -1;
       }
-      
+
     } else {
       /* Parse command output */
       if (mapFile == null ||
@@ -459,28 +459,28 @@ public class ContikiMoteType implements MoteType {
     if (dataSectionAddr >= 0) {
       logger.info(getContikiFirmwareFile().getName() +
           ": data section at 0x" + Integer.toHexString(dataSectionAddr) +
-          " (" + dataSectionSize + " bytes)");
+          " (" + dataSectionSize + " == 0x" + Integer.toHexString(dataSectionSize) + " bytes)");
     } else {
       logger.fatal(getContikiFirmwareFile().getName() + ": no data section found");
     }
     if (bssSectionAddr >= 0) {
       logger.info(getContikiFirmwareFile().getName() +
           ": BSS section at 0x" + Integer.toHexString(bssSectionAddr) +
-          " (" + bssSectionSize + " bytes)");
+          " (" + bssSectionSize + " == 0x" + Integer.toHexString(bssSectionSize) + " bytes)");
     } else {
       logger.fatal(getContikiFirmwareFile().getName() + ": no BSS section found");
     }
     if (commonSectionAddr >= 0) {
       logger.info(getContikiFirmwareFile().getName() +
           ": common section at 0x" + Integer.toHexString(commonSectionAddr) +
-          " (" + commonSectionSize + " bytes)");
+          " (" + commonSectionSize + " == 0x" + Integer.toHexString(commonSectionSize) + " bytes)");
     } else {
       logger.info(getContikiFirmwareFile().getName() + ": no common section found");
     }
     if (readonlySectionAddr >= 0) {
       logger.info(getContikiFirmwareFile().getName() +
           ": readonly section at 0x" + Integer.toHexString(readonlySectionAddr) +
-          " (" + readonlySectionSize + " bytes)");
+          " (" + readonlySectionSize + " == 0x" + Integer.toHexString(readonlySectionSize) + " bytes)");
     } else {
       logger.warn(getContikiFirmwareFile().getName() + ": no readonly section found");
     }
@@ -494,18 +494,18 @@ public class ContikiMoteType implements MoteType {
 
     try {
       /* Relative <-> absolute addresses offset */
-      int referenceVar = (Integer) addresses.get("referenceVar");
+      int referenceVar = addresses.get("referenceVar");
       myCoreComm.setReferenceAddress(referenceVar);
     } catch (Exception e) {
       throw (MoteTypeCreationException) new MoteTypeCreationException(
           "JNI call error: " + e.getMessage()).initCause(e);
     }
 
-    /* We first need the value of Contiki's referenceVar, which tells us the 
+    /* We first need the value of Contiki's referenceVar, which tells us the
      * memory offset between Contiki's variable and the relative addresses that
      * were calculated directly from the library file.
-     *  
-     * This offset will be used in Cooja in the memory abstraction to match 
+     *
+     * This offset will be used in Cooja in the memory abstraction to match
      * Contiki's and Cooja's address spaces */
     int offset;
     {
@@ -521,24 +521,24 @@ public class ContikiMoteType implements MoteType {
       logger.info(getContikiFirmwareFile().getName() +
           ": offsetting Contiki mote address space: " + offset);
     }
-    
+
     /* Create initial memory: data+bss+optional common */
     initialMemory = new SectionMoteMemory(addresses, offset);
-    
+
     byte[] initialDataSection = new byte[dataSectionSize];
     getCoreMemory(dataSectionAddr, dataSectionSize, initialDataSection);
     initialMemory.setMemorySegmentNative(dataSectionAddr, initialDataSection);
-    
+
     byte[] initialBssSection = new byte[bssSectionSize];
     getCoreMemory(bssSectionAddr, bssSectionSize, initialBssSection);
     initialMemory.setMemorySegmentNative(bssSectionAddr, initialBssSection);
-    
+
     if (commonSectionAddr >= 0 && commonSectionSize > 0) {
       byte[] initialCommonSection = new byte[commonSectionSize];
       getCoreMemory(commonSectionAddr, commonSectionSize, initialCommonSection);
       initialMemory.setMemorySegmentNative(commonSectionAddr, initialCommonSection);
     }
-    
+
     /* Read "read-only" memory */
     if (readonlySectionAddr >= 0 && readonlySectionSize > 0) {
       byte[] readonlySection = new byte[readonlySectionSize];
@@ -619,7 +619,7 @@ public class ContikiMoteType implements MoteType {
   public static boolean parseCommandData(String[] output, HashMap<String, Integer> addresses) {
     int nrNew = 0, nrOld = 0, nrMismatch = 0;
 
-    Pattern pattern = 
+    Pattern pattern =
       Pattern.compile(GUI.getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS"));
 
     for (String line : output) {
@@ -634,7 +634,7 @@ public class ContikiMoteType implements MoteType {
           nrNew++;
           addresses.put(symbol, new Integer(address));
         } else {
-          int oldAddress = (Integer) addresses.get(symbol);
+          int oldAddress = addresses.get(symbol);
           if (oldAddress != address) {
             /*logger.warn("Warning, command response not matching previous entry of: "
                 + varName);*/
@@ -827,8 +827,8 @@ public class ContikiMoteType implements MoteType {
 
   protected int getVariableSize(Vector<String> lines, String varName) {
     Pattern pattern = Pattern.compile(
-        GUI.getExternalToolsSetting("MAPFILE_VAR_SIZE_1") + 
-        varName + 
+        GUI.getExternalToolsSetting("MAPFILE_VAR_SIZE_1") +
+        varName +
         GUI.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
     for (int i = 0; i < lines.size(); i++) {
       Matcher matcher = pattern.matcher(lines.get(i));
@@ -840,7 +840,7 @@ public class ContikiMoteType implements MoteType {
   }
 
   private static int parseFirstHexInt(String regexp, String[] data) {
-    String retString = 
+    String retString =
       getFirstMatchGroup(data, regexp, 1);
 
     if (retString != null) {
@@ -962,7 +962,7 @@ public class ContikiMoteType implements MoteType {
     }
     return end - start;
   }
-  
+
   private static int parseCommandReadonlySectionAddr(String[] output) {
     return parseFirstHexInt("^([0-9A-Fa-f]*)[ \t]t[ \t].text$", output);
   }
@@ -971,7 +971,7 @@ public class ContikiMoteType implements MoteType {
     if (start < 0) {
       return -1;
     }
-    
+
     /* Extract the last specified address, assuming that the interval covers all the memory */
     String last  = output[output.length-1];
     int lastAddress = Integer.parseInt(last.split("[ \t]")[0],16);
@@ -979,9 +979,9 @@ public class ContikiMoteType implements MoteType {
   }
 
   private static int getRelVarAddr(String mapFileData[], String varName) {
-    String regExp = 
+    String regExp =
       GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1") +
-      varName + 
+      varName +
       GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
     String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
@@ -1016,14 +1016,14 @@ public class ContikiMoteType implements MoteType {
       }
 
       /* Prepare command */
-      command = command.replace("$(LIBFILE)", 
+      command = command.replace("$(LIBFILE)",
           libraryFile.getName().replace(File.separatorChar, '/'));
 
       /* Execute command, read response */
       String line;
       Process p = Runtime.getRuntime().exec(
-          command.split(" "), 
-          null, 
+          command.split(" "),
+          null,
           libraryFile.getParentFile()
       );
       BufferedReader input = new BufferedReader(
