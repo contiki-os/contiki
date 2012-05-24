@@ -46,10 +46,6 @@ public class JCreateMote extends MspMote {
 
     private JCreateNode mote;
 
-    public JCreateMote() {
-        super();
-    }
-
     public JCreateMote(MspMoteType moteType, Simulation sim) {
         super(moteType, sim);
     }
