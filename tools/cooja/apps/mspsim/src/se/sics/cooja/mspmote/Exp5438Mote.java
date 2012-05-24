@@ -44,10 +44,6 @@ public class Exp5438Mote extends MspMote {
 
   public Exp5438Node exp5438Node = null;
 
-  public Exp5438Mote() {
-    super();
-  }
-
   public Exp5438Mote(MspMoteType moteType, Simulation sim) {
     super(moteType, sim);
   }

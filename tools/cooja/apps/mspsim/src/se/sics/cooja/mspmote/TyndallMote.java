@@ -34,7 +34,6 @@ import java.io.File;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.Simulation;
-import se.sics.mspsim.platform.ti.Exp5438Node;
 import se.sics.mspsim.platform.tyndall.TyndallNode;
 
 /**
@@ -44,10 +43,6 @@ public class TyndallMote extends MspMote {
   private static Logger logger = Logger.getLogger(TyndallMote.class);
 
   public TyndallNode tyndallNode = null;
-
-  public TyndallMote() {
-    super();
-  }
 
   public TyndallMote(MspMoteType moteType, Simulation sim) {
     super(moteType, sim);
