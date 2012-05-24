@@ -100,13 +100,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   private int heapStartAddress;
   private StackOverflowObservable stackOverflowObservable = new StackOverflowObservable();
 
-  public MspMote() {
-    myMoteType = null;
-    myCpu = null;
-    myMemory = null;
-    myMoteInterfaceHandler = null;
-  }
-
   public MspMote(MspMoteType moteType, Simulation simulation) {
     this.simulation = simulation;
     myMoteType = moteType;

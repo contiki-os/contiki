@@ -48,10 +48,6 @@ public class SkyMote extends MspMote {
 
   public SkyNode skyNode = null;
 
-  public SkyMote() {
-    super();
-  }
-
   public SkyMote(MspMoteType moteType, Simulation sim) {
     super(moteType, sim);
   }
@@ -61,7 +57,7 @@ public class SkyMote extends MspMote {
       skyNode = new SkyNode();
       registry = skyNode.getRegistry();
       skyNode.setFlash(new CoojaM25P80(skyNode.getCPU()));
-      
+
       prepareMote(fileELF, skyNode);
     } catch (Exception e) {
       logger.fatal("Error when creating Sky mote: ", e);
@@ -98,7 +94,7 @@ public class SkyMote extends MspMote {
       );
     }
   }*/
-  
+
   public void idUpdated(int newID) {
     skyNode.setNodeID(newID);
 
