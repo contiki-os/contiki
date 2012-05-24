@@ -52,6 +52,7 @@ import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.dialogs.UpdateAggregator;
 import se.sics.cooja.mspmote.MspMote;
@@ -61,6 +62,7 @@ import se.sics.mspsim.cli.LineOutputStream;
 
 @ClassDescription("Msp CLI")
 @PluginType(PluginType.MOTE_PLUGIN)
+@SupportedArguments(motes = {MspMote.class})
 public class MspCLI extends VisPlugin implements MotePlugin {
 
   private static final long serialVersionUID = 2833218439838209672L;
