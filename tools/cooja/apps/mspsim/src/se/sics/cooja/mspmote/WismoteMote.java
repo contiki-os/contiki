@@ -43,10 +43,6 @@ public class WismoteMote extends MspMote {
 
     private static Logger logger = Logger.getLogger(WismoteMote.class);
 
-    public WismoteMote() {
-        super();
-    }
-
     public WismoteMote(MspMoteType moteType, Simulation sim) {
         super(moteType, sim);
     }

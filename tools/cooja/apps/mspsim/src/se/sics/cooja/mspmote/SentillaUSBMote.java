@@ -47,10 +47,6 @@ public class SentillaUSBMote extends MspMote {
 
     private SentillaUSBNode mote;
 
-    public SentillaUSBMote() {
-        super();
-    }
-
     public SentillaUSBMote(MspMoteType moteType, Simulation sim) {
         super(moteType, sim);
     }
