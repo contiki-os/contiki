@@ -31,17 +31,38 @@
 
 package se.sics.mrm;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
-import java.util.*;
-import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.mrm.ChannelModel.Parameter;
 
 /**
@@ -51,6 +72,7 @@ import se.sics.mrm.ChannelModel.Parameter;
  */
 @ClassDescription("MRM Settings")
 @PluginType(PluginType.SIM_PLUGIN)
+@SupportedArguments(radioMediums = {MRM.class})
 public class FormulaViewer extends se.sics.cooja.VisPlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(FormulaViewer.class);
@@ -164,14 +186,14 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
         collapsableArea,
         channelModel.getParameterDoubleValue(Parameter.captureEffectPreambleDuration)
     );
-    
+
     addDoubleParameter(
         Parameter.captureEffectSignalTreshold,
         Parameter.getDescription(Parameter.captureEffectSignalTreshold),
         collapsableArea,
         channelModel.getParameterDoubleValue(Parameter.captureEffectSignalTreshold)
     );
-    
+
     // Transmitter parameters
     collapsableArea = createCollapsableArea("Transmitter parameters", allComponents);
     areaTransmitter = collapsableArea;
@@ -429,14 +451,14 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
       textField.setBackground(null);
       textField.setToolTipText(null);
     }
-    
+
     allDoubleParameters.add(textField);
 
     contentPane.add(panel);
 
     return textField;
   }
-  
+
   /**
    * Creates and adds a panel with a label and a
    * text field which accepts integers.
@@ -534,7 +556,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
     } else {
       checkBox.setText("");
     }
-    
+
     allBooleanParameters.add(checkBox);
 
     contentPane.add(panel);

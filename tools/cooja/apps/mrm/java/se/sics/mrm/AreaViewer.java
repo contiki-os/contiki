@@ -102,6 +102,7 @@ import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.interfaces.DirectionalAntennaRadio;
 import se.sics.cooja.interfaces.Position;
@@ -123,6 +124,7 @@ import se.sics.mrm.ChannelModel.TxPair;
  */
 @ClassDescription("MRM Radio environment")
 @PluginType(PluginType.SIM_PLUGIN)
+@SupportedArguments(radioMediums = {MRM.class})
 public class AreaViewer extends VisPlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(AreaViewer.class);
@@ -211,9 +213,9 @@ public class AreaViewer extends VisPlugin {
   private JRadioButton panModeButton;
   private JRadioButton zoomModeButton;
   private JRadioButton trackModeButton;
-  
+
   private Action paintEnvironmentAction;
-  
+
   /**
    * Initializes an AreaViewer.
    *
@@ -267,7 +269,7 @@ public class AreaViewer extends VisPlugin {
     trackModeButton.setActionCommand("set track rays mode");
     trackModeButton.addActionListener(canvasModeHandler);
     trackModeButton.setEnabled(false);
-    
+
     ButtonGroup group = new ButtonGroup();
     group.add(selectModeButton);
     group.add(panModeButton);
@@ -676,7 +678,7 @@ public class AreaViewer extends VisPlugin {
         panModeButton.doClick();
         //canvasModeHandler.actionPerformed(new ActionEvent(e, 0, "set zoom mode"));
       }
-      
+
       if (popUpToolTip != null) {
         popUpToolTip.hide();
         popUpToolTip = null;
@@ -751,16 +753,16 @@ public class AreaViewer extends VisPlugin {
         };
         trackedComponents = currentChannelModel.getRaysOfTransmission(txPair);
         canvas.repaint();
-        
+
         /* Show popup */
         JToolTip t = AreaViewer.this.createToolTip();
 
-        String logHtml = 
-                "<html>" + 
+        String logHtml =
+                "<html>" +
                 trackedComponents.log.replace("\n", "<br>").replace(" pi", " &pi;") +
                 "</html>";
         t.setTipText(logHtml);
-        
+
         if (t.getTipText() == null || t.getTipText().equals("")) {
           return;
         }
