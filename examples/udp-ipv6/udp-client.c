@@ -56,11 +56,11 @@ tcpip_handler(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+static char buf[MAX_PAYLOAD_LEN];
 static void
 timeout_handler(void)
 {
   static int seq_id;
-  char buf[MAX_PAYLOAD_LEN];
 
   printf("Client sending to: ");
   PRINT6ADDR(&client_conn->ripaddr);
