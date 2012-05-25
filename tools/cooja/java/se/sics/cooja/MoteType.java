@@ -30,7 +30,9 @@ package se.sics.cooja;
 import java.awt.Container;
 import java.io.File;
 import java.util.Collection;
-import javax.swing.JPanel;
+
+import javax.swing.JComponent;
+
 import org.jdom.Element;
 
 import se.sics.cooja.contikimote.ContikiMoteType;
@@ -146,7 +148,7 @@ public interface MoteType {
    *
    * @return Mote type visualizer
    */
-  public JPanel getTypeVisualizer();
+  public JComponent getTypeVisualizer();
 
   /**
    * Returns this mote type's project configuration.
