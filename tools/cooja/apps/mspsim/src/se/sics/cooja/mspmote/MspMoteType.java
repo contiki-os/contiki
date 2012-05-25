@@ -29,17 +29,19 @@
 
 package se.sics.cooja.mspmote;
 
-import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
+
 import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
+
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
@@ -131,7 +133,7 @@ public abstract class MspMoteType implements MoteType {
   protected abstract MspMote createMote(Simulation simulation);
 
   @Override
-  public JPanel getTypeVisualizer() {
+  public JComponent getTypeVisualizer() {
     StringBuilder sb = new StringBuilder();
     // Identifier
     sb.append("<html><table><tr><td>Identifier</td><td>")
@@ -171,10 +173,7 @@ public abstract class MspMoteType implements MoteType {
         label.setIcon(moteTypeIcon);
       }
     }
-
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.add(BorderLayout.CENTER, label);
-    return panel;
+    return label;
   }
 
   public abstract Icon getMoteTypeIcon();

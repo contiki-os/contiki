@@ -25,19 +25,28 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: MoteTypeInformation.java,v 1.4 2008/02/11 14:37:17 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.util.Observable;
 import java.util.Observer;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
 
 /**
  * Shows a summary of all mote types.
@@ -49,83 +58,69 @@ import se.sics.cooja.*;
 public class MoteTypeInformation extends VisPlugin {
   private static Logger logger = Logger.getLogger(MoteTypeInformation.class);
 
-  private static final long serialVersionUID = 1L;
-
-  private Simulation mySimulation;
-
+  private Simulation simulation;
   private Observer simObserver;
+  private int nrMotesTypes = -1;
 
   /**
-   * Create a new mote type information window.
-   *
    * @param simulation Simulation
+   * @param gui Cooja
    */
   public MoteTypeInformation(Simulation simulation, GUI gui) {
     super("Mote Type Information", gui);
-    mySimulation = simulation;
+    this.simulation = simulation;
 
     this.getContentPane().add(BorderLayout.CENTER,
         new JScrollPane(createPanel(),
         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
         JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
     pack();
+    setSize(Math.min(getWidth(), 600), Math.min(getHeight(), 600));
+    nrMotesTypes = simulation.getMoteTypes().length;
 
-    mySimulation.addObserver(simObserver = new Observer() {
+    simulation.addObserver(simObserver = new Observer() {
       public void update(Observable obs, Object obj) {
+        if (MoteTypeInformation.this.simulation.getMoteTypes().length == nrMotesTypes) {
+          return;
+        }
+        nrMotesTypes = MoteTypeInformation.this.simulation.getMoteTypes().length;
         MoteTypeInformation.this.getContentPane().removeAll();
         MoteTypeInformation.this.getContentPane().add(BorderLayout.CENTER,
             new JScrollPane(createPanel(),
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
-        pack();
+        revalidate();
+        repaint();
       }
     });
-
-    try {
-      setSelected(true);
-    } catch (java.beans.PropertyVetoException e) {
-      // Could not select
-    }
-
   }
 
-  private JPanel createPanel() {
-    JLabel label;
-    JPanel smallPane;
+  private JComponent createPanel() {
+    Box box = Box.createVerticalBox();
+    box.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-    JPanel panel = new JPanel();
-    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    /* Mote types */
+    for (MoteType moteType: simulation.getMoteTypes()) {
+      String moteTypeString =
+        GUI.getDescriptionOf(moteType) +": " +
+        "ID=" + moteType.getIdentifier() +
+        ", \"" + moteType.getDescription() + "\"";
 
-    // Visualize mote types
-    for (MoteType moteType: mySimulation.getMoteTypes()) {
-      smallPane = new JPanel();
-      smallPane.setLayout(new BorderLayout());
-
-      label = new JLabel(GUI.getDescriptionOf(moteType) +": " +
-          "ID=" + moteType.getIdentifier() +
-          ", \"" + moteType.getDescription() + "\"");
-      label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-      smallPane.add(BorderLayout.NORTH, label);
-
-      JPanel moteTypeVisualizer = moteType.getTypeVisualizer();
-      if (moteTypeVisualizer != null) {
-        moteTypeVisualizer.setBorder(BorderFactory.createEtchedBorder());
-        smallPane.add(BorderLayout.CENTER, moteTypeVisualizer);
-      } else {
-        smallPane.add(BorderLayout.CENTER, Box.createVerticalStrut(25));
+      JComponent moteTypeVisualizer = moteType.getTypeVisualizer();
+      if (moteTypeVisualizer == null) {
+        moteTypeVisualizer = new JLabel("[no information available]");
       }
-
-      panel.add(smallPane);
-      panel.add(Box.createRigidArea(new Dimension(0,20)));
+      moteTypeVisualizer.setAlignmentX(Box.LEFT_ALIGNMENT);
+      moteTypeVisualizer.setBorder(BorderFactory.createTitledBorder(moteTypeString));
+      box.add(moteTypeVisualizer);
+      box.add(Box.createVerticalStrut(15));
     }
-
-    return panel;
+    return box;
   }
 
 
   public void closePlugin() {
-    mySimulation.deleteObserver(simObserver);
+    simulation.deleteObserver(simObserver);
   }
 
 }
