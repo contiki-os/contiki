@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -21,46 +18,56 @@
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
-      <description>Sky Mote Type #1</description>
+      <description>UDP client</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/udp-ipv6/udp-client.c</source>
       <commands EXPORT="discard">make clean TARGET=sky
 make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,SICSLOWPAN_CONF_FRAG=1,SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION=1</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/udp-ipv6/udp-client.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
     </motetype>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky2</identifier>
-      <description>Sky Mote Type #2</description>
+      <description>UDP server</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/udp-ipv6/udp-server.c</source>
       <commands EXPORT="discard">make udp-server.sky TARGET=sky DEFINES=SICSLOWPAN_CONF_FRAG=1</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/udp-ipv6/udp-server.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
     </motetype>
     <mote>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>65.934608127183</x>
-        <y>63.70462190529231</y>
+        <x>56.49442624080769</x>
+        <y>69.16564756567392</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -73,8 +80,8 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>67.66105781539623</x>
-        <y>63.13924301161143</y>
+        <x>70.13661699393737</x>
+        <y>61.114518596613784</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -87,7 +94,7 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>248</width>
-    <z>2</z>
+    <z>4</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -96,12 +103,14 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
+      <formatted_time />
+      <coloring />
     </plugin_config>
-    <width>816</width>
+    <width>683</width>
     <z>1</z>
-    <height>333</height>
-    <location_x>1</location_x>
-    <location_y>366</location_y>
+    <height>550</height>
+    <location_x>12</location_x>
+    <location_y>417</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.Visualizer
@@ -109,13 +118,15 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,
       <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.AddressVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>123.21660699387752 0.0 0.0 123.21660699387752 -8113.602333266065 -7760.635326525308</viewport>
+      <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
+      <viewport>6.1185311939665725 0.0 0.0 6.1185311939665725 -264.82328143448046 -341.0405575126179</viewport>
     </plugin_config>
-    <width>246</width>
-    <z>3</z>
-    <height>167</height>
-    <location_x>0</location_x>
-    <location_y>198</location_y>
+    <width>250</width>
+    <z>2</z>
+    <height>183</height>
+    <location_x>6</location_x>
+    <location_y>214</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
@@ -140,9 +151,21 @@ log.testOK(); /* Report test success and quit */</script>
     </plugin_config>
     <width>572</width>
     <z>0</z>
-    <height>700</height>
-    <location_x>380</location_x>
-    <location_y>-11</location_y>
+    <height>552</height>
+    <location_x>704</location_x>
+    <location_y>417</location_y>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.RadioLogger
+    <plugin_config>
+      <split>183</split>
+      <analyzers name="6lowpan" />
+    </plugin_config>
+    <width>1008</width>
+    <z>3</z>
+    <height>406</height>
+    <location_x>261</location_x>
+    <location_y>7</location_y>
   </plugin>
 </simconf>
 
