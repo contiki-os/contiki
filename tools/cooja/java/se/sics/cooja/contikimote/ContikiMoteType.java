@@ -31,9 +31,7 @@
 
 package se.sics.cooja.contikimote;
 
-import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,12 +48,13 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
+
+import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
+
 import se.sics.cooja.AbstractionLevelDescription;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.CoreComm;
@@ -1194,98 +1193,52 @@ public class ContikiMoteType implements MoteType {
    *
    * @return Mote type visualizer
    */
-  public JPanel getTypeVisualizer() {
-    JPanel panel = new JPanel();
-    JLabel label = new JLabel();
-    JPanel smallPane;
+  public JComponent getTypeVisualizer() {
+    StringBuilder sb = new StringBuilder();
+    // Identifier
+    sb.append("<html><table><tr><td>Identifier</td><td>")
+    .append(getIdentifier()).append("</td></tr>");
 
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-    /* Identifier */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Identifier");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(identifier);
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
-
-    /* Description */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Description");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(description);
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
+    // Description
+    sb.append("<tr><td>Description</td><td>")
+    .append(getDescription()).append("</td></tr>");
 
     /* Contiki application */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Contiki application");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(getContikiSourceFile().getName());
-    label.setToolTipText(getContikiSourceFile().getAbsolutePath());
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
-
-    panel.add(Box.createVerticalStrut(15));
+    sb.append("<tr><td>Contiki application</td><td>")
+    .append(getContikiSourceFile().getAbsolutePath()).append("</td></tr>");
 
     /* Contiki firmware */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Contiki firmware");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(getContikiFirmwareFile().getName());
-    label.setToolTipText(getContikiFirmwareFile().getAbsolutePath());
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
+    sb.append("<tr><td>Contiki firmware</td><td>")
+    .append(getContikiFirmwareFile().getAbsolutePath()).append("</td></tr>");
 
-    /* JNI Class */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Java class (JNI)");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(this.javaClassName);
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
+    /* JNI class */
+    sb.append("<tr><td>JNI library</td><td>")
+    .append(this.javaClassName).append("</td></tr>");
 
-    /* Sensors */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Sensors");
-    smallPane.add(BorderLayout.WEST, label);
-    panel.add(smallPane);
-
-    for (String sensor : sensors) {
-      smallPane = new JPanel(new BorderLayout());
-      label = new JLabel(sensor);
-      smallPane.add(BorderLayout.EAST, label);
-      panel.add(smallPane);
+    /* Contiki sensors */
+    sb.append("<tr><td valign=\"top\">Contiki sensors</td><td>");
+    for (String sensor: sensors) {
+      sb.append(sensor).append("<br>");
     }
+    sb.append("</td></tr>");
 
-    /* Mote Interfaces */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Mote interfaces");
-    smallPane.add(BorderLayout.WEST, label);
-    panel.add(smallPane);
-
-    for (Class<? extends MoteInterface> intf : moteInterfacesClasses) {
-      smallPane = new JPanel(new BorderLayout());
-      label = new JLabel(intf.getSimpleName());
-      smallPane.add(BorderLayout.EAST, label);
-      panel.add(smallPane);
+    /* Mote interfaces */
+    sb.append("<tr><td valign=\"top\">Mote interface</td><td>");
+    for (Class<? extends MoteInterface> moteInterface: moteInterfacesClasses) {
+      sb.append(moteInterface.getSimpleName()).append("<br>");
     }
+    sb.append("</td></tr>");
 
-    /* Core Interfaces */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Core interfaces");
-    smallPane.add(BorderLayout.WEST, label);
-    panel.add(smallPane);
-
-    for (String intf : getCoreInterfaces()) {
-      smallPane = new JPanel(new BorderLayout());
-      label = new JLabel(intf);
-      smallPane.add(BorderLayout.EAST, label);
-      panel.add(smallPane);
+    /* Contiki core mote interfaces */
+    sb.append("<tr><td valign=\"top\">Contiki's mote interface</td><td>");
+    for (String coreInterface: getCoreInterfaces()) {
+      sb.append(coreInterface).append("<br>");
     }
+    sb.append("</td></tr>");
 
-    panel.add(Box.createRigidArea(new Dimension(0, 5)));
-    return panel;
+    JLabel label = new JLabel(sb.append("</table></html>").toString());
+    label.setVerticalTextPosition(JLabel.TOP);
+    return label;
   }
 
   public Collection<Element> getConfigXML(Simulation simulation) {

@@ -145,10 +145,11 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     sb.append("<tr><td>Description</td><td>")
     .append(getDescription()).append("</td></tr>");
 
+    sb.append("<tr><td valign=\"top\">Mote interface</td><td>");
     for (Class<? extends MoteInterface> moteInterface : moteInterfaceClasses) {
-      sb.append("<tr><td>Mote interface</td><td>")
-      .append(moteInterface.getSimpleName()).append("</td></tr>");
+      sb.append(moteInterface.getSimpleName()).append("<br>");
     }
+    sb.append("</td></tr>");
 
     JLabel label = new JLabel(sb.append("</table></html>").toString());
     label.setVerticalTextPosition(JLabel.TOP);
