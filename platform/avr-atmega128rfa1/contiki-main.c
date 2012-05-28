@@ -45,14 +45,6 @@
 #define PRINTD(...)
 #endif
 
-/* Track interrupt flow through mac, rdc and radio driver */
-#if DEBUGFLOWSIZE
-uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
-#define DEBUGFLOW(c) if (debugflowsize<(DEBUGFLOWSIZE-1)) debugflow[debugflowsize++]=c
-#else
-#define DEBUGFLOW(c)
-#endif
-
 #include <avr/pgmspace.h>
 #include <avr/fuse.h>
 #include <avr/eeprom.h>
@@ -97,6 +89,15 @@ uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 #endif
 
 #include "net/rime.h"
+
+/* Track interrupt flow through mac, rdc and radio driver */
+//#define DEBUGFLOWSIZE 32
+#if DEBUGFLOWSIZE
+uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
+#define DEBUGFLOW(c) if (debugflowsize<(DEBUGFLOWSIZE-1)) debugflow[debugflowsize++]=c
+#else
+#define DEBUGFLOW(c)
+#endif
 
 /* Get periodic prints from idle loop, from clock seconds or rtimer interrupts */
 /* Use of rtimer will conflict with other rtimer interrupts such as contikimac radio cycling */
@@ -187,8 +188,12 @@ void initialize(void)
 
   /* Second rs232 port for debugging or slip alternative */
   rs232_init(RS232_PORT_1, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
-  /* Redirect stdout to second port */
+  /* Redirect stdout */
+#if RF230BB_CONF_LEDONPORTE1 || defined(RAVEN_LCD_INTERFACE)
   rs232_redirect_stdout(RS232_PORT_1);
+#else
+  rs232_redirect_stdout(RS232_PORT_0);
+#endif
   clock_init();
 
   if(MCUSR & (1<<PORF )) PRINTD("Power-on reset.\n");
