@@ -71,11 +71,20 @@ static void
 acked(struct runicast_conn *ruc, const rimeaddr_t *to, uint8_t retransmissions)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
+  int len;
   PRINTF("%d.%d: rucb acked\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   c->chunk++;
-  if(read_data(c) > 0) {
+  len = read_data(c);
+  if(len == 0 && c->last_size == 0) {
+    /* Nothing more to do */
+    return;
+  }
+
+  if(len >= 0) {
     runicast_send(&c->c, &c->receiver, MAX_TRANSMISSIONS);
+    c->last_size = len;
+
     /*    {
       extern struct timetable cc2420_timetable;
       timetable_print(&cc2420_timetable);
@@ -146,6 +155,7 @@ rucb_open(struct rucb_conn *c, uint16_t channel,
   runicast_open(&c->c, channel, &ruc);
   c->u = u;
   c->last_seqno = -1;
+  c->last_size = -1;
 }
 /*---------------------------------------------------------------------------*/
 void

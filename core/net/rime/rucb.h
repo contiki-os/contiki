@@ -67,6 +67,7 @@ struct rucb_conn {
   rimeaddr_t receiver, sender;
   uint16_t chunk;
   uint8_t last_seqno;
+  int last_size;
 };
 
 void rucb_open(struct rucb_conn *c, uint16_t channel,
