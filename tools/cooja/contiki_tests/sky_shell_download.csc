@@ -130,7 +130,8 @@
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(250000, log.log("last msg: " + msg + "\n"));
+      <script>TIMEOUT(350000, log.log("last msg: " + msg + "\n"));
+DELAY = 10000;
 
 /* Wait for nodes to boot */
 GENERATE_MSG(5000, "continue");
@@ -181,7 +182,7 @@ while (fileID &lt; 30) {
 
 
   /* Delay */
-  GENERATE_MSG(5000, "continue");
+  GENERATE_MSG(DELAY, "continue");
   YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 
 
@@ -218,7 +219,7 @@ while (fileID &lt; 30) {
 
 
   /* Delay */
-  GENERATE_MSG(5000, "continue");
+  GENERATE_MSG(DELAY, "continue");
   YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 }
 
