@@ -2,7 +2,7 @@
 <simconf>
   <simulation>
     <title>My simulation</title>
-    <delaytime>0</delaytime>
+    <delaytime>-2147483648</delaytime>
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -21,28 +21,33 @@
       <description>Sky Mote Type #sky1</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.c</source>
       <commands EXPORT="discard">echo CLEANING
-make clean TARGET=sky
-
-echo COMPILING CONTIKI EXECUTABLE
-make hello-world.ce TARGET=sky
+make TARGET=sky clean CLEAN=symbols.?
 
 echo COMPILING FIRMWARE WITH CORE
-make sky-shell-exec.sky TARGET=sky
-make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
-make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
-make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
-make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
+make sky-shell-exec.sky TARGET=sky SMALL=0
+make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky SMALL=0
+make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky SMALL=0
+make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky SMALL=0
+make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky SMALL=0
+
+echo COMPILING CONTIKI EXECUTABLE
+make hello-world.ce TARGET=sky SMALL=0</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
     </motetype>
     <mote>
       <breakpoints />
@@ -58,15 +63,15 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspSerial
-        <history>ls~;~K~;ls~;read hello-world.b64~;</history>
+        <history>ls~;~K~;ls~;read hello-world.b64~;ls~;~K~;ls~;</history>
       </interface_config>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     se.sics.cooja.plugins.SimControl
-    <width>248</width>
-    <z>3</z>
+    <width>255</width>
+    <z>5</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -78,20 +83,11 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
       <interface>Serial port</interface>
       <scrollpos>0,0</scrollpos>
     </plugin_config>
-    <width>545</width>
+    <width>656</width>
     <z>1</z>
-    <height>551</height>
-    <location_x>3</location_x>
-    <location_y>347</location_y>
-  </plugin>
-  <plugin>
-    se.sics.cooja.mspmote.plugins.MspStackWatcher
-    <mote_arg>0</mote_arg>
-    <width>566</width>
-    <z>2</z>
-    <height>201</height>
-    <location_x>247</location_x>
-    <location_y>-1</location_y>
+    <height>295</height>
+    <location_x>9</location_x>
+    <location_y>674</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
@@ -178,6 +174,7 @@ YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 write(mote, "exec hello-world.ce\n");
 while (true) {
   YIELD();
+  log.log("&gt; " + msg + "\n");
   if (msg.contains("OK")) {
     log.log("&gt; ELF loader returned OK\n");
   }
@@ -185,18 +182,52 @@ while (true) {
     log.log("&gt; Hello world process started\n");
     log.testOK();
   }
-  if (msg.contains("Symbol not found")) {
-    log.log("&gt; ELF loader error: " + msg +"\n");
-    log.testFailed();
-  }
 }</script>
       <active>true</active>
     </plugin_config>
     <width>600</width>
+    <z>2</z>
+    <height>966</height>
+    <location_x>670</location_x>
+    <location_y>8</location_y>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.LogListener
+    <plugin_config>
+      <filter />
+      <coloring />
+    </plugin_config>
+    <width>659</width>
+    <z>4</z>
+    <height>250</height>
+    <location_x>7</location_x>
+    <location_y>419</location_y>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
+      <viewport>0.9090909090909091 0.0 0.0 0.9090909090909091 52.925895580668964 -30.727309217874634</viewport>
+    </plugin_config>
+    <width>211</width>
+    <z>3</z>
+    <height>164</height>
+    <location_x>16</location_x>
+    <location_y>239</location_y>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.MoteInterfaceViewer
+    <mote_arg>0</mote_arg>
+    <plugin_config>
+      <interface>Coffee Filesystem</interface>
+      <scrollpos>0,0</scrollpos>
+    </plugin_config>
+    <width>397</width>
     <z>0</z>
-    <height>700</height>
-    <location_x>215</location_x>
-    <location_y>199</location_y>
+    <height>395</height>
+    <location_x>263</location_x>
+    <location_y>13</location_y>
   </plugin>
 </simconf>
 
