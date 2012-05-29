@@ -43,7 +43,6 @@
 #include "dev/ctsrts-sensor.h"
 #include "dev/irq.h"
 #include "dev/hwconf.h"
-#include <signal.h>
 
 const struct sensors_sensor ctsrts_sensor;
 
