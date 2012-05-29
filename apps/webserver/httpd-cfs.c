@@ -106,7 +106,7 @@ PT_THREAD(send_string(struct httpd_state *s, const char *str))
 static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
-  const char *ptr;
+  static const char *ptr;
 
   PSOCK_BEGIN(&s->sout);
 
