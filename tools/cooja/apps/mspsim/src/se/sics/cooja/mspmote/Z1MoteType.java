@@ -41,9 +41,9 @@ import se.sics.cooja.interfaces.RimeAddress;
 import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
+import se.sics.cooja.mspmote.interfaces.MspDefaultSerial;
 import se.sics.cooja.mspmote.interfaces.MspLED;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
-import se.sics.cooja.mspmote.interfaces.UsciA0Serial;
 
 @ClassDescription("Z1 Mote Type")
 @AbstractionLevelDescription("Emulated level")
@@ -82,7 +82,7 @@ public class Z1MoteType extends AbstractMspMoteType {
                 MspMoteID.class,
 //                SkyFlash.class,
                 Msp802154Radio.class,
-                UsciA0Serial.class,
+                MspDefaultSerial.class,
                 MspLED.class,
                 MspDebugOutput.class /* EXPERIMENTAL: Enable me for COOJA_DEBUG(..) */
         );
