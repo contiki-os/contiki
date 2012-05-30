@@ -420,7 +420,8 @@ send_packet(void)
   uint8_t strobe[MAX_STROBE_SIZE];
   int strobe_len, len;
   int is_broadcast = 0;
-/*int is_reliable;*/
+  int is_dispatch, is_strobe_ack;
+  /*int is_reliable;*/
   struct encounter *e;
   struct queuebuf *packet;
   int is_already_streaming = 0;
@@ -566,7 +567,9 @@ send_packet(void)
 	  packetbuf_set_datalen(len);
 	  if(NETSTACK_FRAMER.parse() >= 0) {
 	    hdr = packetbuf_dataptr();
-	    if(hdr->dispatch == DISPATCH && hdr->type == TYPE_STROBE_ACK) {
+	    is_dispatch = hdr->dispatch == DISPATCH;
+	    is_strobe_ack = hdr->type == TYPE_STROBE_ACK;
+	    if(is_dispatch && is_strobe_ack) {
 	      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
 			      &rimeaddr_node_addr)) {
 		/* We got an ACK from the receiver, so we can immediately send
