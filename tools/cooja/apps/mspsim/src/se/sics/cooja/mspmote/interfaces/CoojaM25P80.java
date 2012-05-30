@@ -36,6 +36,7 @@ import java.util.Arrays;
 import se.sics.coffee.CoffeeConfiguration;
 import se.sics.coffee.CoffeeImage;
 import se.sics.mspsim.chip.M25P80;
+import se.sics.mspsim.chip.Storage;
 import se.sics.mspsim.core.MSP430Core;
 
 public class CoojaM25P80 extends M25P80 implements CoffeeImage {
@@ -43,6 +44,53 @@ public class CoojaM25P80 extends M25P80 implements CoffeeImage {
   public static int SIZE = 1024*1024;
   private byte[] data = new byte[SIZE];
   private long pos;
+  private Storage storage = new Storage() {
+
+    @Override
+    public int read(long pos, byte[] buffer) throws IOException {
+        System.arraycopy(data, (int) pos, buffer, 0, buffer.length);
+        return buffer.length;
+    }
+
+    @Override
+    public int read(long pos, byte[] buffer, int offset, int len)
+            throws IOException {
+        System.arraycopy(data, (int) pos, buffer, offset, len);
+        return len;
+    }
+
+    @Override
+    public void write(long pos, byte[] buffer) throws IOException {
+        System.arraycopy(buffer, 0, data, (int) pos, buffer.length);
+    }
+
+    @Override
+    public void write(long pos, byte[] buffer, int offset, int len)
+            throws IOException {
+        System.arraycopy(buffer, offset, data, (int) pos, len);
+    }
+
+    @Override
+    public long getMaxSize() {
+        return SIZE;
+    }
+
+    @Override
+    public void setMaxSize(long size) {
+        // Ignore
+    }
+
+    @Override
+    public void close() {
+        // Nothing to close
+    }
+
+    @Override
+    public String info() {
+        return CoojaM25P80.class.getName();
+    }
+
+  };
 
   private static CoffeeConfiguration COFFEE_CONF;
   static {
@@ -57,6 +105,7 @@ public class CoojaM25P80 extends M25P80 implements CoffeeImage {
   public CoojaM25P80(MSP430Core cpu) {
     super(cpu);
     pos = 0;
+    setStorage(storage);
   }
 
   public void seek(long pos) throws IOException {
