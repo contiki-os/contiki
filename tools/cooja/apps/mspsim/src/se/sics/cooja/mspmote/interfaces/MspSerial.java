@@ -41,7 +41,6 @@ import se.sics.cooja.dialogs.SerialUI;
 import se.sics.cooja.interfaces.SerialPort;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteTimeEvent;
-import se.sics.mspsim.core.IOUnit;
 import se.sics.mspsim.core.USARTListener;
 import se.sics.mspsim.core.USARTSource;
 
@@ -68,11 +67,9 @@ public class MspSerial extends SerialUI implements SerialPort {
   public MspSerial(Mote mote) {
     this.mote = (MspMote) mote;
     this.simulation = mote.getSimulation();
-
     /* Listen to port writes */
-    IOUnit ioUnit = this.mote.getCPU().getIOUnit(ioConfigString());
-    if (ioUnit instanceof USARTSource) {
-      usart = (USARTSource) ioUnit;
+    usart = getUSARTSource(this.mote);
+    if (usart != null) {
       usart.addUSARTListener(new USARTListener() {
         public void dataReceived(USARTSource source, int data) {
           MspSerial.this.dataReceived(data);
@@ -91,6 +88,10 @@ public class MspSerial extends SerialUI implements SerialPort {
       }
     };
 
+  }
+
+  protected USARTSource getUSARTSource(MspMote mote) {
+      return mote.getCPU().getIOUnit(USARTSource.class, ioConfigString());
   }
 
   public void writeByte(byte b) {

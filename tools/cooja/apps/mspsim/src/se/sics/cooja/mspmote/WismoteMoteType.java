@@ -41,9 +41,9 @@ import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.MspButton;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
+import se.sics.cooja.mspmote.interfaces.MspDefaultSerial;
 import se.sics.cooja.mspmote.interfaces.MspLED;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
-import se.sics.cooja.mspmote.interfaces.UsciA1Serial;
 
 @ClassDescription("Wismote Mote Type")
 @AbstractionLevelDescription("Emulated level")
@@ -84,8 +84,7 @@ public class WismoteMoteType extends AbstractMspMoteType {
 //                SkyFlash.class,
 //                SkyCoffeeFilesystem.class,
                 Msp802154Radio.class,
-//                MspSerial.class,
-                UsciA1Serial.class,
+                MspDefaultSerial.class,
                 MspLED.class,
                 MspDebugOutput.class /* EXPERIMENTAL: Enable me for COOJA_DEBUG(..) */
         );
