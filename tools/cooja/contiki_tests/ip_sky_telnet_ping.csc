@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/avrora</project>
-  <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
-    <delaytime>1</delaytime>
+    <delaytime>-2147483648</delaytime>
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -16,28 +12,33 @@
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
+    <events>
+      <logoutput>40000</logoutput>
+    </events>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
-      <description>Sky Mote Type #1</description>
-      <source>../../../examples/sky-ip/sky-telnet-server.c</source>
-      <commands>make clean TARGET=sky
-make sky-telnet-server.sky TARGET=sky</commands>
-      <firmware>../../../examples/sky-ip/sky-telnet-server.sky</firmware>
+      <description>Telnet server example</description>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/sky-ip/sky-telnet-server.c</source>
+      <commands EXPORT="discard">make sky-telnet-server.sky TARGET=sky</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky-ip/sky-telnet-server.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
     </motetype>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -49,30 +50,33 @@ make sky-telnet-server.sky TARGET=sky</commands>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
+      <interface_config>
+        se.sics.cooja.mspmote.interfaces.MspSerial
+        <history></history>
+      </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     se.sics.cooja.plugins.SimControl
-    <width>248</width>
-    <z>4</z>
-    <height>200</height>
-    <location_x>2</location_x>
-    <location_y>2</location_y>
-    <minimized>false</minimized>
+    <width>261</width>
+    <z>3</z>
+    <height>206</height>
+    <location_x>7</location_x>
+    <location_y>4</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.NativeIPGateway
     <mote_arg>0</mote_arg>
     <plugin_config>
-      <network_interface>\Device\NPF_{6AE59250-8082-40D4-B2F4-89EC57DD3321}</network_interface>
+      <network_interface>lo</network_interface>
       <register_routes>true</register_routes>
     </plugin_config>
     <width>388</width>
-    <z>2</z>
-    <height>332</height>
-    <location_x>2</location_x>
-    <location_y>401</location_y>
-    <minimized>false</minimized>
+    <z>1</z>
+    <height>350</height>
+    <location_x>75</location_x>
+    <location_y>599</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.MoteInterfaceViewer
@@ -81,31 +85,31 @@ make sky-telnet-server.sky TARGET=sky</commands>
       <interface>Serial port</interface>
       <scrollpos>0,0</scrollpos>
     </plugin_config>
-    <width>385</width>
-    <z>1</z>
-    <height>239</height>
-    <location_x>2</location_x>
-    <location_y>201</location_y>
-    <minimized>false</minimized>
+    <width>550</width>
+    <z>0</z>
+    <height>357</height>
+    <location_x>39</location_x>
+    <location_y>223</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.Visualizer
     <plugin_config>
-      <skin>LEDs</skin>
-      <skin>Addresses: IP or Rime</skin>
-      <skin>Radio environment (UDGM)</skin>
+      <skin>se.sics.cooja.plugins.skins.LEDVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.AddressVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
+      <viewport>1.473063973063973 0.0 0.0 1.473063973063973 21.959789842145003 40.69175483313324</viewport>
     </plugin_config>
-    <width>140</width>
-    <z>3</z>
-    <height>201</height>
-    <location_x>249</location_x>
-    <location_y>0</location_y>
-    <minimized>false</minimized>
+    <width>313</width>
+    <z>4</z>
+    <height>169</height>
+    <location_x>294</location_x>
+    <location_y>27</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(30000);
+      <script>TIMEOUT(60000);
 
 /* conf */
 nrReplies = 0;
@@ -121,16 +125,16 @@ if (osName.startsWith("win")) {
 replyMsg = "from " + ipAddress;
 
 /* wait for mote startup */
-WAIT_UNTIL(msg.contains('Sky telnet process'));
+GENERATE_MSG(5000, "continue");
+WAIT_UNTIL(msg.equals("continue"));
 
 /* make gateway */
 pingOnceProcess  = new java.lang.Runtime.getRuntime().exec(pingOnceCmd);
 GENERATE_MSG(5000, "continue");
 WAIT_UNTIL(msg.equals("continue"));
-log.log("cont\n");
 
-/* override simulation delay, test will time out is too fast otherwise */
-mote.getSimulation().setDelayTime(1);
+/* override simulation delay to realtime */
+mote.getSimulation().setDelayTime(java.lang.Integer.MIN_VALUE);
 
 /* start ping process */
 var runnableObj = new Object();
@@ -159,12 +163,11 @@ var thread = new java.lang.Thread(new java.lang.Runnable(runnableObj));
 thread.start();</script>
       <active>true</active>
     </plugin_config>
-    <width>603</width>
-    <z>0</z>
-    <height>732</height>
-    <location_x>389</location_x>
-    <location_y>0</location_y>
-    <minimized>false</minimized>
+    <width>589</width>
+    <z>2</z>
+    <height>900</height>
+    <location_x>631</location_x>
+    <location_y>38</location_y>
   </plugin>
 </simconf>
 
