@@ -8,7 +8,7 @@ CMD_PING_PREFIX = "ping6 -c " + NR_PINGS + " -I tun0 ";
 CMD_TUNNEL = "./tunslip6 -a 127.0.0.1 aaaa::1/64"; // "make connect-router-cooja";
 CMD_WGET_ROUTER = "wget -t 1 -T 10 -O - http:\/\/[" + ADDRESS_ROUTER + "]";
 CMD_WGET_SERVER = "wget -t 1 -T 10 -O - http:\/\/[" + ADDRESS_SERVER + "]";
-COAP_SAMPLECLIENT_JAR = "/home/user/JCoAP/SampleClient.jar";
+COAP_SAMPLECLIENT_JAR = "/home/user/Californium/ExampleClient.jar";
 
 /* delay */
 msg = "";
@@ -123,7 +123,7 @@ log.log(testname + "\n");
 testSummary += testname;
 processOutput = "";
 executeAndWait("java -jar " + COAP_SAMPLECLIENT_JAR + " DISCOVER coap:\/\/[" + ADDRESS_SERVER + "]");
-if (processOutput.indexOf("+[.well-known]") != -1) {
+if (processOutput.indexOf("+[.well-known/core]") != -1) {
   testSummary += ": OK\n";
 } else {
   testSummary += ": FAILED\n";
