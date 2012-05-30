@@ -264,15 +264,19 @@ public class ScriptRunner extends VisPlugin {
     if (source == null) {
       updateScript("");
 
-      actionLinkFile.setMenuText("Link script to disk file");
-      actionLinkFile.putValue("JavascriptSource", null);
+      if (actionLinkFile != null) {
+        actionLinkFile.setMenuText("Link script to disk file");
+        actionLinkFile.putValue("JavascriptSource", null);
+      }
 
       codeEditor.setEditable(true);
     } else {
       updateScript(linkedFile);
 
-      actionLinkFile.setMenuText("Unlink script: " + source.getName());
-      actionLinkFile.putValue("JavascriptSource", source);
+      if (actionLinkFile != null) {
+        actionLinkFile.setMenuText("Unlink script: " + source.getName());
+        actionLinkFile.putValue("JavascriptSource", source);
+      }
 
       codeEditor.setEditable(false);
     }
