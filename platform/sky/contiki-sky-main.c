@@ -204,9 +204,6 @@ main(int argc, char **argv)
 
 
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
-#if WITH_UIP
-  slip_arch_init(BAUD2UBR(115200));
-#endif /* WITH_UIP */
 
   leds_on(LEDS_GREEN);
   ds2411_init();
@@ -252,6 +249,10 @@ main(int argc, char **argv)
   process_start(&etimer_process, NULL);
 
   ctimer_init();
+
+#if WITH_UIP
+  slip_arch_init(BAUD2UBR(115200));
+#endif /* WITH_UIP */
 
   init_platform();
 
