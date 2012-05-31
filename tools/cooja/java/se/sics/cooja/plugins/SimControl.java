@@ -102,6 +102,7 @@ public class SimControl extends VisPlugin {
     smallPanel.add(startButton = new JButton(startAction));
     smallPanel.add(stopButton = new JButton(stopAction));
     smallPanel.add(new JButton(stepAction));
+    smallPanel.add(new JButton(reloadAction));
 
     smallPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     controlPanel.add(smallPanel);
@@ -371,9 +372,14 @@ public class SimControl extends VisPlugin {
       startButton.requestFocus();
     }
   };
-  private Action stepAction = new AbstractAction("Step millisecond") {
+  private Action stepAction = new AbstractAction("Step") {
     public void actionPerformed(ActionEvent e) {
       simulation.stepMillisecondSimulation();
+    }
+  };
+  private Action reloadAction = new AbstractAction("Reload") {
+    public void actionPerformed(ActionEvent e) {
+      simulation.getGUI().reloadCurrentSimulation(simulation.isRunning());
     }
   };
 }

@@ -681,7 +681,7 @@ public abstract class AbstractCompileDialog extends JDialog {
   private void addMoteInterfacesTab(JTabbedPane parent) {
     moteIntfBox = Box.createVerticalBox();
     JPanel panel = new JPanel(new BorderLayout());
-    JLabel label = new JLabel("COOJA interacts with simulated motes via mote interfaces. You normally do not need to change these settings!");
+    JLabel label = new JLabel("Cooja interacts with simulated motes via mote interfaces. These settings normally do not need to be changed.");
     Box b = Box.createHorizontalBox();
     b.add(new JButton(defaultAction));
     b.add(label);

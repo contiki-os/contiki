@@ -209,7 +209,7 @@ public class CreateSimDialog extends JDialog {
     horizBox = Box.createHorizontalBox();
     horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
     horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    label = new JLabel("Simulation title");
+    label = new JLabel("Simulation name");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
 
     textField = new JTextField();
@@ -228,7 +228,7 @@ public class CreateSimDialog extends JDialog {
     horizBox = Box.createHorizontalBox();
     horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
     horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    label = new JLabel("Radio Medium");
+    label = new JLabel("Radio medium");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
 
     Vector<String> radioMediumDescriptions = new Vector<String>();
@@ -259,7 +259,7 @@ public class CreateSimDialog extends JDialog {
     horizBox = Box.createHorizontalBox();
     horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
     horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    label = new JLabel("Random startup (max, ms)");
+    label = new JLabel("Mote startup delay (ms)");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
 
     numberField = new JFormattedTextField(integerFormat);
@@ -279,7 +279,7 @@ public class CreateSimDialog extends JDialog {
     horizBox = Box.createHorizontalBox();
     horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
     horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    label = new JLabel("Main random seed");
+    label = new JLabel("Random seed");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
 
     numberField = new JFormattedTextField(integerFormat);
@@ -287,6 +287,19 @@ public class CreateSimDialog extends JDialog {
     numberField.setColumns(4);
     randomSeed = numberField;
 
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(150));
+    horizBox.add(numberField);
+    horizBox.setToolTipText("Simulation random seed. Controls the random behavior such as mote startup delays, node positions etc.");
+
+    advancedBox.add(horizBox);
+    advancedBox.add(Box.createVerticalStrut(5));
+
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    label = new JLabel("New random seed on reload");
+    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     randomSeedGenerated = new JCheckBox();
     randomSeedGenerated.setToolTipText("Automatically generate random seed at simulation load");
     randomSeedGenerated.addActionListener(new ActionListener() {
@@ -301,11 +314,10 @@ public class CreateSimDialog extends JDialog {
       }
 
     });
+
     horizBox.add(label);
-    horizBox.add(Box.createHorizontalStrut(150));
-    horizBox.add(numberField);
+    horizBox.add(Box.createHorizontalStrut(116));
     horizBox.add(randomSeedGenerated);
-    horizBox.setToolTipText("Simulation random seed. Controls the random behavior such as mote startup delays, node positions etc.");
 
     advancedBox.add(horizBox);
     advancedBox.add(Box.createVerticalStrut(5));

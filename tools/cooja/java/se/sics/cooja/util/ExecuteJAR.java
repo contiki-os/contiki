@@ -348,7 +348,7 @@ public class ExecuteJAR {
         }
       }
 
-      differingSettings.store(out, "COOJA External Tools (User specific)");
+      differingSettings.store(out, "Cooja External Tools (User specific)");
       out.close();
       logger.info("Wrote external tools config: " + externalToolsConfig.getName());
     } catch (Exception e2) {
@@ -368,7 +368,7 @@ public class ExecuteJAR {
         newConfig.setProperty(name, pConfig.getStringValue(name));
       }
       FileOutputStream out = new FileOutputStream(newConfigFile);
-      newConfig.store(out, "COOJA Project Config");
+      newConfig.store(out, "Cooja Project Config");
       logger.info("Wrote project config: " + newConfigFile.getName());
     } catch (Exception e1) {
       e1.printStackTrace();
