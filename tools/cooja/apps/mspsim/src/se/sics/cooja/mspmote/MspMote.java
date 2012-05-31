@@ -214,10 +214,9 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     this.myCpu.setMonitorExec(true);
     this.myCpu.setTrace(0); /* TODO Enable */
 
-    int[] memory = myCpu.memory;
     logger.info("Loading firmware from: " + fileELF.getAbsolutePath());
     GUI.setProgressMessage("Loading " + fileELF.getName());
-    node.loadFirmware(((MspMoteType)getType()).getELF(), memory);
+    node.loadFirmware(((MspMoteType)getType()).getELF());
 
     /* Throw exceptions at bad memory access */
     /*myCpu.setThrowIfWarning(true);*/
