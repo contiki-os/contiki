@@ -50,14 +50,17 @@ Currently, four event types are supported (see below). Note that the control pan
 
 se.sics.cooja.plugins.SimControl = \
 <b>Control Panel</b>\
-<p>Use the control panel to start and stop the current simulation. \
-<p>Note that toggling simulation execution is also possible by the keyboard shortcut <i>Ctrl+S</i>. \
-<p><i>Step millisecond</i> executes all events within the next simulated millisecond. \
-<p>The execution speed can be controlled via the bottom slider. \
-If the slider value is non-zero, sleep events are scheduled in the simulation loop. \
-<p>By setting the slider to <i>Real time</i>, the execution speed is limited to at maximum real time. \
-The <i>Real time</i> slider value is to the right of <i>No simulation delay</i>: select the slider button and use to keyboard to navigate here. \
-<p><i>Run until</i> can be used to configure a time (in milliseconds) where the simulation will automatically pause.
+<p>The control panel controls the simulation. \
+<p><i>Start</i> starts the simulation. \
+<p><i>Pause</i> stops the simulation. \
+<p>The keyboard shortcut for starting and pausing the simulation is <i>Ctrl+S</i>. \
+<p><i>Step</i> runs the simulation for one millisecond. \
+<p><i>Reload</i> reloads and restarts the simulation. \
+<p>Writing simulation time in milliseconds in the <i>Stop at</i> field causes the simulation to pause at the given time. \
+<p>Simulation speed is controlled via the bottom slider. \
+If the slider value is zero, simulation runs at full speed. \
+<p>Setting the slider to <i>Real time</i>, simulation speed is capped to not run faster than real time. \
+The <i>Real time</i> slider value is to the right of <i>No simulation delay</i>: click on the slider button and press the right arrow key on the keyboard. \
 
 se.sics.cooja.mspmote.plugins.MspCLI = \
 <b>MSPSim's Command Line Interface</b>\
