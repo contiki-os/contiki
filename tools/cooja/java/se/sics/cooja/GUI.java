@@ -143,7 +143,7 @@ import se.sics.cooja.util.ExecuteJAR;
  * Main file of COOJA Simulator. Typically contains a visualizer for the
  * simulator, but can also be started without visualizer.
  *
- * This class loads external Java classes (in project directories), and handles the
+ * This class loads external Java classes (in extension directories), and handles the
  * COOJA plugins as well as the configuration system. If provides a number of
  * help methods for the rest of the COOJA system, and is the starting point for
  * loading and saving simulation configs.
@@ -197,12 +197,12 @@ public class GUI extends Observable {
   public static final String LOG_CONFIG_FILE = "log4j_config.xml";
 
   /**
-   * Default project configuration filename.
+   * Default extension configuration filename.
    */
   public static String PROJECT_DEFAULT_CONFIG_FILENAME = null;
 
   /**
-   * User project configuration filename.
+   * User extension configuration filename.
    */
   public static final String PROJECT_CONFIG_FILENAME = "cooja.config";
 
@@ -225,7 +225,7 @@ public class GUI extends Observable {
       return false;
     }
     public String getDescription() {
-      return "COOJA Configuration files (.csc or .csc.gz)";
+      return "Cooja simulation (.csc, .csc.gz)";
     }
     public String toString() {
       return ".csc";
@@ -280,6 +280,8 @@ public class GUI extends Observable {
   private static final int FRAME_STANDARD_WIDTH = 150;
 
   private static final int FRAME_STANDARD_HEIGHT = 300;
+
+  private static final String WINDOW_TITLE = "Cooja: The Contiki Simulation Environment";
 
   private GUI myGUI;
 
@@ -361,7 +363,7 @@ public class GUI extends Observable {
     mySimulation = null;
     myDesktopPane = desktop;
     if (menuPlugins == null) {
-      menuPlugins = new JMenu("Plugins");
+      menuPlugins = new JMenu("Tools");
       menuPlugins.removeAll();
 
       /* COOJA/GUI plugins at top, simulation plugins in middle, mote plugins at bottom */
@@ -400,7 +402,7 @@ public class GUI extends Observable {
       }
     });*/
 
-    // Register default project directories
+    // Register default extension directories
     String defaultProjectDirs = getExternalToolsSetting("DEFAULT_PROJECTDIRS", null);
     if (defaultProjectDirs != null && defaultProjectDirs.length() > 0) {
       String[] arr = defaultProjectDirs.split(";");
@@ -410,18 +412,18 @@ public class GUI extends Observable {
       }
     }
 
-    /* Parse current project configuration */
+    /* Parse current extension configuration */
     try {
       reparseProjectConfig();
     } catch (ParseProjectsException e) {
-      logger.fatal("Error when loading projects: " + e.getMessage(), e);
+      logger.fatal("Error when loading extensions: " + e.getMessage(), e);
       if (isVisualized()) {
       	JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-      			"All COOJA projects could not load.\n\n" +
-      			"To manage COOJA projects:\n" +
-      			"Menu->Settings->COOJA projects",
-      			"Reconfigure COOJA projects", JOptionPane.INFORMATION_MESSAGE);
-      	showErrorDialog(getTopParentContainer(), "COOJA projects load error", e, false);
+      			"All Cooja extensions could not load.\n\n" +
+      			"To manage Cooja extensions:\n" +
+      			"Menu->Settings->Cooja extensions",
+      			"Reconfigure Cooja extensions", JOptionPane.INFORMATION_MESSAGE);
+      	showErrorDialog(getTopParentContainer(), "Cooja extensions load error", e, false);
       }
     }
 
@@ -667,7 +669,7 @@ public class GUI extends Observable {
     guiActions.add(reloadSimulationAction);
     guiActions.add(reloadRandomSimulationAction);
     guiActions.add(saveSimulationAction);
-    guiActions.add(closePluginsAction);
+    /*    guiActions.add(closePluginsAction);*/
     guiActions.add(exportExecutableJARAction);
     guiActions.add(exitCoojaAction);
     guiActions.add(startStopSimulationAction);
@@ -692,13 +694,6 @@ public class GUI extends Observable {
 
     menu.add(new JMenuItem(newSimulationAction));
 
-    menuItem = new JMenu("Reload simulation");
-    menuItem.add(new JMenuItem(reloadSimulationAction));
-    menuItem.add(new JMenuItem(reloadRandomSimulationAction));
-    menu.add(menuItem);
-
-    menu.add(new JMenuItem(closeSimulationAction));
-
     menuOpenSimulation = new JMenu("Open simulation");
     menuOpenSimulation.setMnemonic(KeyEvent.VK_O);
     menu.add(menuOpenSimulation);
@@ -707,14 +702,22 @@ public class GUI extends Observable {
       menuOpenSimulation.setToolTipText("Not available in applet version");
     }
 
+    menu.add(new JMenuItem(closeSimulationAction));
+
     hasFileHistoryChanged = true;
 
     menu.add(new JMenuItem(saveSimulationAction));
 
-    menu.addSeparator();
-
-    menu.add(new JMenuItem(closePluginsAction));
     menu.add(new JMenuItem(exportExecutableJARAction));
+
+    menuItem = new JMenu("Reload simulation");
+    menuItem.add(new JMenuItem(reloadSimulationAction));
+    menuItem.add(new JMenuItem(reloadRandomSimulationAction));
+    menu.add(menuItem);
+
+    /*    menu.addSeparator();*/
+
+    /*    menu.add(new JMenuItem(closePluginsAction));*/
 
     menu.addSeparator();
 
@@ -736,14 +739,14 @@ public class GUI extends Observable {
 
     menu.add(new JMenuItem(startStopSimulationAction));
 
-    GUIAction guiAction = new StartPluginGUIAction("Control panel");
+    GUIAction guiAction = new StartPluginGUIAction("Control panel...");
     menuItem = new JMenuItem(guiAction);
     guiActions.add(guiAction);
     menuItem.setMnemonic(KeyEvent.VK_C);
     menuItem.putClientProperty("class", SimControl.class);
     menu.add(menuItem);
 
-    guiAction = new StartPluginGUIAction("Information");
+    guiAction = new StartPluginGUIAction("Simulation...");
     menuItem = new JMenuItem(guiAction);
     guiActions.add(guiAction);
     menuItem.setMnemonic(KeyEvent.VK_I);
@@ -751,7 +754,7 @@ public class GUI extends Observable {
     menu.add(menuItem);
 
     // Mote type menu
-    menu = new JMenu("Mote Types");
+    menu = new JMenu("Mote types");
     menu.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
         updateGUIComponentState();
@@ -829,7 +832,7 @@ public class GUI extends Observable {
     });
     menu.add(menuMoteTypeClasses);
 
-    guiAction = new StartPluginGUIAction("Information");
+    guiAction = new StartPluginGUIAction("Mote types...");
     menuItem = new JMenuItem(guiAction);
     guiActions.add(guiAction);
     menuItem.putClientProperty("class", MoteTypeInformation.class);
@@ -883,18 +886,19 @@ public class GUI extends Observable {
     });
     menu.add(menuMoteTypes);
 
+
     menu.add(new JMenuItem(removeAllMotesAction));
 
     // Plugins menu
     if (menuPlugins == null) {
-      menuPlugins = new JMenu("Plugins");
+      menuPlugins = new JMenu("Tools");
       menuPlugins.removeAll();
 
       /* COOJA/GUI plugins at top, simulation plugins in middle, mote plugins at bottom */
       menuPlugins.addSeparator();
       menuPlugins.addSeparator();
     } else {
-      menuPlugins.setText("Plugins");
+      menuPlugins.setText("Tools");
     }
     menuPlugins.setMnemonic(KeyEvent.VK_P);
     menuBar.add(menuPlugins);
@@ -967,7 +971,7 @@ public class GUI extends Observable {
     });
     menuBar.add(menu);
 
-    menuItem = new JMenuItem("External tools paths");
+    menuItem = new JMenuItem("External tools paths...");
     menuItem.setActionCommand("edit paths");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
@@ -976,8 +980,8 @@ public class GUI extends Observable {
       menuItem.setToolTipText("Not available in applet version");
     }
 
-    menuItem = new JMenuItem("COOJA projects");
-    menuItem.setActionCommand("manage projects");
+    menuItem = new JMenuItem("Cooja extensions...");
+    menuItem.setActionCommand("manage extensions");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
     if (isVisualizedInApplet()) {
@@ -985,7 +989,7 @@ public class GUI extends Observable {
       menuItem.setToolTipText("Not available in applet version");
     }
 
-    menuItem = new JMenuItem("Contiki mote configuration wizard");
+    menuItem = new JMenuItem("Cooja mote configuration wizard...");
     menuItem.setActionCommand("configuration wizard");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
@@ -1012,11 +1016,11 @@ public class GUI extends Observable {
         + System.getProperty("java.vendor") + ")");
     menuItem.setEnabled(false);
     menu.add(menuItem);
-    menuItem = new JMenuItem("System's \"os.arch\": "
+    menuItem = new JMenuItem("System \"os.arch\": "
         + System.getProperty("os.arch"));
     menuItem.setEnabled(false);
     menu.add(menuItem);
-    menuItem = new JMenuItem("System's \"sun.arch.data.model\": "
+    menuItem = new JMenuItem("System \"sun.arch.data.model\": "
         + System.getProperty("sun.arch.data.model"));
     menuItem.setEnabled(false);
     menu.add(menuItem);
@@ -1031,7 +1035,7 @@ public class GUI extends Observable {
   private static void configureFrame(final GUI gui, boolean createSimDialog) {
 
     if (frame == null) {
-      frame = new JFrame("COOJA Simulator");
+      frame = new JFrame(WINDOW_TITLE);
     }
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -1217,10 +1221,10 @@ public class GUI extends Observable {
   }
 
   public static Simulation quickStartSimulationConfig(File config, boolean vis) {
-    logger.info("> Starting COOJA");
+    logger.info("> Starting Cooja");
     JDesktopPane desktop = createDesktopPane();
     if (vis) {
-      frame = new JFrame("COOJA Simulator");
+      frame = new JFrame(WINDOW_TITLE);
     }
     GUI gui = new GUI(desktop);
     if (vis) {
@@ -1252,9 +1256,9 @@ public class GUI extends Observable {
    * @return True if simulation was created
    */
   private static boolean quickStartSimulation(String source) {
-    logger.info("> Starting COOJA");
+    logger.info("> Starting Cooja");
     JDesktopPane desktop = createDesktopPane();
-    frame = new JFrame("COOJA Simulator");
+    frame = new JFrame(WINDOW_TITLE);
     GUI gui = new GUI(desktop);
     configureFrame(gui, false);
 
@@ -1271,7 +1275,7 @@ public class GUI extends Observable {
     logger.info("> Creating mote type");
     ContikiMoteType moteType = new ContikiMoteType();
     moteType.setContikiSourceFile(new File(source));
-    moteType.setDescription("Contiki Mote Type (" + source + ")");
+    moteType.setDescription("Cooja Mote Type (" + source + ")");
 
     try {
       boolean compileOK = moteType.configureAndInit(GUI.getTopParentContainer(), simulation, true);
@@ -1390,10 +1394,10 @@ public class GUI extends Observable {
   }
 
   /**
-   * Builds new project configuration using current project directories settings.
+   * Builds new extension configuration using current extension directories settings.
    * Reregisters mote types, plugins, positioners and radio
    * mediums. This method may still return true even if all classes could not be
-   * registered, but always returns false if all project directory configuration
+   * registered, but always returns false if all extension directory configuration
    * files were not parsed correctly.
    */
   public void reparseProjectConfig() throws ParseProjectsException {
@@ -1416,13 +1420,13 @@ public class GUI extends Observable {
     try {
       projectConfig = new ProjectConfig(true);
     } catch (FileNotFoundException e) {
-      logger.fatal("Could not find default project config file: " + PROJECT_DEFAULT_CONFIG_FILENAME);
+      logger.fatal("Could not find default extension config file: " + PROJECT_DEFAULT_CONFIG_FILENAME);
       throw (ParseProjectsException) new ParseProjectsException(
-          "Could not find default project config file: " + PROJECT_DEFAULT_CONFIG_FILENAME).initCause(e);
+          "Could not find default extension config file: " + PROJECT_DEFAULT_CONFIG_FILENAME).initCause(e);
     } catch (IOException e) {
-      logger.fatal("Error when reading default project config file: " + PROJECT_DEFAULT_CONFIG_FILENAME);
+      logger.fatal("Error when reading default extension config file: " + PROJECT_DEFAULT_CONFIG_FILENAME);
       throw (ParseProjectsException) new ParseProjectsException(
-          "Error when reading default project config file: " + PROJECT_DEFAULT_CONFIG_FILENAME).initCause(e);
+          "Error when reading default extension config file: " + PROJECT_DEFAULT_CONFIG_FILENAME).initCause(e);
     }
     if (!isVisualizedInApplet()) {
       for (COOJAProject project: currentProjects) {
@@ -1430,14 +1434,14 @@ public class GUI extends Observable {
           projectConfig.appendProjectDir(project.dir);
         } catch (FileNotFoundException e) {
           throw (ParseProjectsException) new ParseProjectsException(
-              "Error when loading project: " + e.getMessage()).initCause(e);
+              "Error when loading extension: " + e.getMessage()).initCause(e);
         } catch (IOException e) {
           throw (ParseProjectsException) new ParseProjectsException(
-              "Error when reading project config: " + e.getMessage()).initCause(e);
+              "Error when reading extension config: " + e.getMessage()).initCause(e);
         }
       }
 
-      /* Create project class loader */
+      /* Create extension class loader */
       try {
         projectDirClassLoader = createClassLoader(currentProjects);
       } catch (ClassLoaderCreationException e) {
@@ -1522,18 +1526,18 @@ public class GUI extends Observable {
   }
 
   /**
-   * Returns the current project configuration common to the entire simulator.
+   * Returns the current extension configuration common to the entire simulator.
    *
-   * @return Current project configuration
+   * @return Current extension configuration
    */
   public ProjectConfig getProjectConfig() {
     return projectConfig;
   }
 
   /**
-   * Returns the current project directories common to the entire simulator.
+   * Returns the current extension directories common to the entire simulator.
    *
-   * @return Current project directories.
+   * @return Current extension directories.
    */
   public COOJAProject[] getProjects() {
     return currentProjects.toArray(new COOJAProject[0]);
@@ -1551,7 +1555,7 @@ public class GUI extends Observable {
       public Boolean work() {
         JInternalFrame pluginFrame = plugin.getGUI();
         if (pluginFrame == null) {
-          logger.fatal("Failed trying to show plugin without visualizer!");
+          logger.fatal("Failed trying to show plugin without visualizer.");
           return false;
         }
 
@@ -1701,7 +1705,7 @@ public class GUI extends Observable {
 
     // Check that plugin class is registered
     if (!pluginClasses.contains(pluginClass)) {
-      throw new PluginConstructionException("Plugin class not registered: " + pluginClass);
+      throw new PluginConstructionException("Tool class not registered: " + pluginClass);
     }
 
     // Construct plugin depending on plugin type
@@ -1751,11 +1755,11 @@ public class GUI extends Observable {
         throw new PluginConstructionException("Bad plugin type: " + pluginType);
       }
     } catch (PluginRequiresVisualizationException e) {
-      PluginConstructionException ex = new PluginConstructionException("Plugin class requires visualization: " + pluginClass.getName());
+      PluginConstructionException ex = new PluginConstructionException("Tool class requires visualization: " + pluginClass.getName());
       ex.initCause(e);
       throw ex;
     } catch (Exception e) {
-      PluginConstructionException ex = new PluginConstructionException("Construction error for plugin of class: " + pluginClass.getName());
+      PluginConstructionException ex = new PluginConstructionException("Construction error for tool of class: " + pluginClass.getName());
       ex.initCause(e);
       throw ex;
     }
@@ -1871,7 +1875,7 @@ public class GUI extends Observable {
                 break;
               }
             }
-            tooltip += "COOJA plugin: " + newPluginClass.getName();
+            tooltip += "Cooja plugin: " + newPluginClass.getName();
             menuItem = new JMenuItem(description);
             menuItem.addActionListener(new ActionListener() {
               public void actionPerformed(ActionEvent e) {
@@ -1907,11 +1911,11 @@ public class GUI extends Observable {
             return false;
           }
 
-          /* Check if plugin was imported by a project directory */
+          /* Check if plugin was imported by a extension directory */
           File project =
             getProjectConfig().getUserProjectDefining(GUI.class, "PLUGINS", newPluginClass.getName());
           if (project != null) {
-            tooltip += "\nLoaded by project: " + project.getPath();
+            tooltip += "\nLoaded by extension: " + project.getPath();
           }
 
           tooltip += "</html>";
@@ -1982,7 +1986,7 @@ public class GUI extends Observable {
    * @return Mote plugins menu
    */
   public JMenu createMotePluginsSubmenu(Mote mote) {
-    JMenu menuMotePlugins = new JMenu("Open mote plugin for " + mote);
+    JMenu menuMotePlugins = new JMenu("Mote tools for " + mote);
 
     for (Class<? extends Plugin> motePluginClass: menuMotePluginClasses) {
       GUIAction guiAction = new StartPluginGUIAction(getDescriptionOf(motePluginClass));
@@ -2040,7 +2044,7 @@ public class GUI extends Observable {
 
     // Set frame title
     if (frame != null) {
-      frame.setTitle(sim.getTitle() + " - COOJA Simulator");
+      frame.setTitle(sim.getTitle() + " - The Contiki Simulation Environment");
     }
 
     // Open standard plugins (if none opened already)
@@ -2165,7 +2169,7 @@ public class GUI extends Observable {
 
     // Reset frame title
     if (isVisualizedInFrame()) {
-      frame.setTitle("COOJA Simulator");
+      frame.setTitle(WINDOW_TITLE);
     }
 
     setChanged();
@@ -2272,7 +2276,7 @@ public class GUI extends Observable {
 
           PROGRESS_BAR = progressBar; /* Allow various parts of COOJA to show messages */
 
-          button = new JButton("Cancel");
+          button = new JButton("Abort");
           button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
               if (loadThread.isAlive()) {
@@ -2422,7 +2426,7 @@ public class GUI extends Observable {
 
     PROGRESS_BAR = progressBar; /* Allow various parts of COOJA to show messages */
 
-    JButton button = new JButton("Cancel");
+    JButton button = new JButton("Abort");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (loadThread.isAlive()) {
@@ -2459,12 +2463,12 @@ public class GUI extends Observable {
     }
 
     DecimalFormat format = new DecimalFormat("0.000");
-    logger.warn("Reboot COOJA to avoid out of memory error! (memory usage: " + format.format(100*memRatio) + "%)");
+    logger.warn("Memory usage is getting critical. Reboot Cooja to avoid out of memory error. Current memory usage is " + format.format(100*memRatio) + "%.");
     if (isVisualized()) {
       int n = JOptionPane.showOptionDialog(
           GUI.getTopParentContainer(),
-          "Reboot COOJA to avoid out of memory error!\n" +
-          "Current memory usage: " + format.format(100*memRatio) + "%.",
+          "Reboot Cooja to avoid out of memory error.\n" +
+          "Current memory usage is " + format.format(100*memRatio) + "%.",
           "Out of memory warning",
           JOptionPane.YES_NO_OPTION,
           JOptionPane.WARNING_MESSAGE, null,
@@ -2609,7 +2613,7 @@ public class GUI extends Observable {
       Object[] options = { s1, s2 };
       int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
           "Sure you want to quit?",
-          "Close COOJA Simulator", JOptionPane.YES_NO_OPTION,
+          "Quit", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE, null, options, s1);
       if (n != JOptionPane.YES_OPTION) {
         return;
@@ -2813,7 +2817,7 @@ public class GUI extends Observable {
         }
       }
 
-      differingSettings.store(out, "COOJA External Tools (User specific)");
+      differingSettings.store(out, "Cooja External Tools (User specific)");
       out.close();
     } catch (FileNotFoundException ex) {
       // Could not open settings file for writing, aborting
@@ -2838,7 +2842,7 @@ public class GUI extends Observable {
             .getClientProperty("motetype"));
       } else if (e.getActionCommand().equals("edit paths")) {
         ExternalToolsDialog.showDialog(GUI.getTopParentContainer());
-      } else if (e.getActionCommand().equals("manage projects")) {
+      } else if (e.getActionCommand().equals("manage extensions")) {
         COOJAProject[] newProjects = ProjectDirectoriesDialog.showDialog(
             GUI.getTopParentContainer(),
             GUI.this,
@@ -2852,15 +2856,15 @@ public class GUI extends Observable {
           try {
             reparseProjectConfig();
           } catch (ParseProjectsException ex) {
-            logger.fatal("Error when loading projects: " + ex.getMessage(), ex);
+            logger.fatal("Error when loading extensions: " + ex.getMessage(), ex);
             if (isVisualized()) {
             	JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-            			"All COOJA projects could not load.\n\n" +
-            			"To manage COOJA projects:\n" +
-            			"Menu->Settings->COOJA projects",
-            			"Reconfigure COOJA projects", JOptionPane.INFORMATION_MESSAGE);
+            			"All Cooja extensions could not load.\n\n" +
+            			"To manage Cooja extensions:\n" +
+            			"Menu->Settings->Cooja extensions",
+            			"Reconfigure Cooja extensions", JOptionPane.INFORMATION_MESSAGE);
             }
-            showErrorDialog(getTopParentContainer(), "COOJA projects load error", ex, false);
+            showErrorDialog(getTopParentContainer(), "Cooja extensions load error", ex, false);
           }
         }
       } else if (e.getActionCommand().equals("configuration wizard")) {
@@ -3062,7 +3066,7 @@ public class GUI extends Observable {
     /* Warn at no JAVA_HOME */
     String javaHome = System.getenv().get("JAVA_HOME");
     if (javaHome == null || javaHome.equals("")) {
-      logger.warn("JAVA_HOME environment variable not set, Contiki motes (OS-level) may not compile");
+      logger.warn("JAVA_HOME environment variable not set, Cooja motes may not compile");
     }
 
     // Parse general command arguments
@@ -3203,7 +3207,7 @@ public class GUI extends Observable {
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           JDesktopPane desktop = createDesktopPane();
-          frame = new JFrame("COOJA Simulator");
+          frame = new JFrame(WINDOW_TITLE);
           GUI gui = new GUI(desktop);
           configureFrame(gui, false);
         }
@@ -3258,11 +3262,11 @@ public class GUI extends Observable {
     try {
       // Check that config file version is correct
       if (!root.getName().equals("simconf")) {
-        logger.fatal("Not a valid COOJA simulation config!");
+        logger.fatal("Not a valid Cooja simulation config.");
         return null;
       }
 
-      /* Verify project directories */
+      /* Verify extension directories */
       boolean projectsOk = verifyProjects(root.getChildren(), !quick);
 
       /* GENERATE UNIQUE MOTE TYPE IDENTIFIERS */
@@ -3381,7 +3385,7 @@ public class GUI extends Observable {
     // Create simulation config
     Element root = new Element("simconf");
 
-    /* Store project directories meta data */
+    /* Store extension directories meta data */
     for (COOJAProject project: currentProjects) {
       Element projectElement = new Element("project");
       projectElement.addContent(createPortablePath(project.dir).getPath().replaceAll("\\\\", "/"));
@@ -3485,7 +3489,7 @@ public class GUI extends Observable {
   public boolean verifyProjects(Collection<Element> configXML, boolean visAvailable) {
     boolean allOk = true;
 
-    /* Match current projects against projects in simulation config */
+    /* Match current extensions against extensions in simulation config */
     for (final Element pluginElement : configXML.toArray(new Element[0])) {
       if (pluginElement.getName().equals("project")) {
         File projectFile = restorePortablePath(new File(pluginElement.getText()));
@@ -3504,7 +3508,7 @@ public class GUI extends Observable {
         }
 
         if (!found) {
-          logger.warn("Loaded simulation may depend on not found  project: '" + projectFile + "'");
+          logger.warn("Loaded simulation may depend on not found  extension: '" + projectFile + "'");
           allOk = false;
         }
       }
@@ -4259,7 +4263,7 @@ public class GUI extends Observable {
     }
     public abstract boolean shouldBeEnabled();
   }
-  GUIAction newSimulationAction = new GUIAction("New simulation", KeyEvent.VK_N, KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK)) {
+  GUIAction newSimulationAction = new GUIAction("New simulation...", KeyEvent.VK_N, KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK)) {
 		private static final long serialVersionUID = 5053703908505299911L;
 		public void actionPerformed(ActionEvent e) {
       myGUI.doCreateSimulation(true);
@@ -4277,7 +4281,7 @@ public class GUI extends Observable {
       return getSimulation() != null;
     }
   };
-  GUIAction reloadSimulationAction = new GUIAction("keep random seed", KeyEvent.VK_K, KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK)) {
+  GUIAction reloadSimulationAction = new GUIAction("Reload with same random seed", KeyEvent.VK_K, KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK)) {
 		private static final long serialVersionUID = 66579555555421977L;
 		public void actionPerformed(ActionEvent e) {
       if (getSimulation() == null) {
@@ -4299,7 +4303,7 @@ public class GUI extends Observable {
       return true;
     }
   };
-  GUIAction reloadRandomSimulationAction = new GUIAction("new random seed", KeyEvent.VK_N, KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK)) {
+  GUIAction reloadRandomSimulationAction = new GUIAction("Reload with new random seed", KeyEvent.VK_N, KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK)) {
 		private static final long serialVersionUID = -4494402222740250203L;
 		public void actionPerformed(ActionEvent e) {
       /* Replace seed before reloading */
@@ -4312,7 +4316,7 @@ public class GUI extends Observable {
       return getSimulation() != null;
     }
   };
-  GUIAction saveSimulationAction = new GUIAction("Save simulation", KeyEvent.VK_S) {
+  GUIAction saveSimulationAction = new GUIAction("Save simulation as...", KeyEvent.VK_S) {
 		private static final long serialVersionUID = 1132582220401954286L;
 		public void actionPerformed(ActionEvent e) {
       myGUI.doSaveConfig(true);
@@ -4324,7 +4328,7 @@ public class GUI extends Observable {
       return getSimulation() != null;
     }
   };
-  GUIAction closePluginsAction = new GUIAction("Close all plugins") {
+    /*  GUIAction closePluginsAction = new GUIAction("Close all plugins") {
 		private static final long serialVersionUID = -37575622808266989L;
 		public void actionPerformed(ActionEvent e) {
       Object[] plugins = startedPlugins.toArray();
@@ -4335,8 +4339,8 @@ public class GUI extends Observable {
     public boolean shouldBeEnabled() {
       return !startedPlugins.isEmpty();
     }
-  };
-  GUIAction exportExecutableJARAction = new GUIAction("Export simulation as executable JAR") {
+    };*/
+  GUIAction exportExecutableJARAction = new GUIAction("Export simulation...") {
 		private static final long serialVersionUID = -203601967460630049L;
 		public void actionPerformed(ActionEvent e) {
       getSimulation().stopSimulation();
@@ -4345,10 +4349,10 @@ public class GUI extends Observable {
       String[] options = new String[] { "OK", "Cancel" };
       int n = JOptionPane.showOptionDialog(
           GUI.getTopParentContainer(),
-          "This function attempts to build an executable COOJA JAR from the current simulation.\n" +
-          "The JAR will contain all simulation dependencies, including project JAR files and mote firmware files.\n" +
+          "This function attempts to build an executable Cooja JAR from the current simulation.\n" +
+          "The JAR will contain all simulation dependencies, including extension JAR files and mote firmware files.\n" +
           "\nExecutable simulations can be used to run already prepared simulations on several computers.\n" +
-          "\nThis is an experimental feature!",
+          "\nThis is an experimental feature.",
           "Export simulation to executable JAR", JOptionPane.OK_CANCEL_OPTION,
           JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
       if (n != JOptionPane.OK_OPTION) {
@@ -4425,7 +4429,7 @@ public class GUI extends Observable {
       return true;
     }
   };
-  GUIAction startStopSimulationAction = new GUIAction("Start/Stop simulation", KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)) {
+  GUIAction startStopSimulationAction = new GUIAction("Start simulation", KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)) {
 		private static final long serialVersionUID = 6750107157493939710L;
 		public void actionPerformed(ActionEvent e) {
       /* Start/Stop current simulation */
@@ -4441,9 +4445,9 @@ public class GUI extends Observable {
     }
     public void setEnabled(boolean newValue) {
       if (getSimulation() == null) {
-        putValue(NAME, "Start/Stop simulation");
+        putValue(NAME, "Start simulation");
       } else if (getSimulation().isRunning()) {
-        putValue(NAME, "Stop simulation");
+        putValue(NAME, "Pause simulation");
       } else {
         putValue(NAME, "Start simulation");
       }
@@ -4524,7 +4528,7 @@ public class GUI extends Observable {
       return true;
     }
   };
-  GUIAction showBufferSettingsAction = new GUIAction("Buffer sizes") {
+  GUIAction showBufferSettingsAction = new GUIAction("Buffer sizes...") {
 		private static final long serialVersionUID = 7018661735211901837L;
 		public void actionPerformed(ActionEvent e) {
       if (mySimulation == null) {
