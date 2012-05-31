@@ -131,7 +131,7 @@ public class ConfigurationWizard extends JDialog {
 
   private static final String OPTION_RUN_TEST = "Run test";
   private static final String OPTION_NEXT_TEST = "Next test";
-  private static final String OPTION_CLOSE_WIZARD = "Close Wizard";
+  private static final String OPTION_CLOSE_WIZARD = "Close wizard";
 
   private static final String testTemplate = "test_template.c";
 
@@ -189,14 +189,14 @@ public class ConfigurationWizard extends JDialog {
   public static boolean showWizardInfo(Container parent, GUI gui) {
     String options[] = {"Start tests", OPTION_CLOSE_WIZARD};
     int value = JOptionPane.showOptionDialog(parent,
-        "This wizard configures and tests your toolchain for simulating Contiki motes in COOJA.\n" +
+        "This wizard configures and tests your toolchain for simulation of Cooja motes.\n" +
         "Throughout the wizard, Contiki libraries are compiled and loaded while allowing you to \n" +
         "alter external tools settings such as compiler arguments.\n" +
         "\n" +
         "Changes made in this wizard are reflected in menu Settings, External tools paths.\n" +
         "\n" +
-        "NOTE: You do not need to complete this wizard for emulating motes, such as Sky motes.\n",
-        "Contiki mote configuration wizard",
+        "NOTE: You do not need to complete this wizard for emulated motes, such as Sky motes.\n",
+        "Cooja mote configuration wizard",
         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE,
         null, options, options[0]);
 
@@ -213,7 +213,7 @@ public class ConfigurationWizard extends JDialog {
     while (value.equals(OPTION_RUN_TEST)) {
       value = showStepDialog(
           parent,
-          "Generates, compiles and links a COOJA/Contiki stub.\n",
+          "Generates, compiles and links a Cooja/Contiki stub.\n",
           testDescription,
           new String[] {
               "COMPILER_ARGS", "LINK_COMMAND_1", "LINK_COMMAND_2", "AR_COMMAND_1", "AR_COMMAND_2"
@@ -378,8 +378,8 @@ public class ConfigurationWizard extends JDialog {
     while (value.equals(OPTION_RUN_TEST)) {
       value = showStepDialog(
           parent,
-          "Tests copying memory sections between Contiki and COOJA.\n" +
-          "Variable values are both altered in Contiki and in COOJA.\n" +
+          "Tests copying memory sections between Contiki and Cooja.\n" +
+          "Variable values are both altered in Contiki and in Cooja.\n" +
           "\n" +
           "This is the final test!\n",
           testDescription,

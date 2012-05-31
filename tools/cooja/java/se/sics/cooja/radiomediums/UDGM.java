@@ -381,7 +381,7 @@ public class UDGM extends AbstractRadioMedium {
       /* Backwards compatibility */
       if (element.getName().equals("success_ratio")) {
         SUCCESS_RATIO_TX = Double.parseDouble(element.getText());
-        logger.warn("Loading old COOJA Config, XML element \"sucess_ratio\" parsed at \"sucess_ratio_tx\"");
+        logger.warn("Loading old Cooja Config, XML element \"sucess_ratio\" parsed at \"sucess_ratio_tx\"");
       }
 
       if (element.getName().equals("success_ratio_tx")) {

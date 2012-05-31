@@ -139,12 +139,12 @@ public class AddMoteDialog extends JDialog {
 
     buttonPane.add(Box.createHorizontalGlue());
 
-    button = new JButton("Cancel");
+    button = new JButton("Do not add motes");
     button.setActionCommand("cancel");
     button.addActionListener(myEventHandler);
     buttonPane.add(button);
 
-    button = new JButton("Create and Add");
+    button = new JButton("Add motes");
     button.setActionCommand("add");
     button.addActionListener(myEventHandler);
     this.getRootPane().setDefaultButton(button);
@@ -554,9 +554,9 @@ public class AddMoteDialog extends JDialog {
           newMotes = null;
           JOptionPane.showMessageDialog(
               AddMoteDialog.this,
-              "Out of memory!\nException message: \"" + e2.getMessage() + "\"\n\n" +
-              "Reduce number of nodes or start COOJA with more memory (\">ant run_bigmem\").",
-              "Not enough heap memory!", JOptionPane.ERROR_MESSAGE
+              "Out of memory.\nException message: \"" + e2.getMessage() + "\"\n\n" +
+              "Reduce number of nodes or start Cooja with more memory (\">ant run_bigmem\").",
+              "Not enough heap memory.", JOptionPane.ERROR_MESSAGE
           );
         }
       }

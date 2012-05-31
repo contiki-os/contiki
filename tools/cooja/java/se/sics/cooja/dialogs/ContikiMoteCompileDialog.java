@@ -152,7 +152,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     ((ContikiMoteType)moteType).javaClassName = CoreComm.getAvailableClassName();
 
     if (((ContikiMoteType)moteType).javaClassName == null) {
-      logger.fatal("Could not allocate a core communicator!");
+      logger.fatal("Could not allocate a core communicator.");
       return "";
     }
 

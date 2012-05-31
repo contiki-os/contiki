@@ -1052,7 +1052,7 @@ public class Simulation extends Observable implements Runnable {
 
     // Change current radio medium to new one
     if (radioMedium == null) {
-      logger.fatal("Radio medium could not be created!");
+      logger.fatal("Radio medium could not be created.");
       return;
     }
     this.currentRadioMedium = radioMedium;

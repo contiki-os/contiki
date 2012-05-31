@@ -69,6 +69,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.JToolTip;
@@ -161,13 +162,17 @@ public class TimeLine extends VisPlugin {
    * @param gui GUI
    */
   public TimeLine(final Simulation simulation, final GUI gui) {
-    super("Timeline (Add motes to observe by clicking +)", gui);
+    super("Timeline", gui);
     this.simulation = simulation;
 
     currentPixelDivisor = ZOOM_LEVELS[ZOOM_LEVELS.length/2];
 
     /* Box: events to observe */
     eventCheckboxes = Box.createVerticalBox();
+
+    eventCheckboxes.add(new JButton(addMoteAction));
+    eventCheckboxes.add(new JSeparator());
+
     JCheckBox eventCheckBox;
     eventCheckBox = createEventCheckbox("Radio RX/TX", "Show radio transmissions, receptions, and collisions");
     eventCheckBox.setSelected(showRadioRXTX);
@@ -237,15 +242,9 @@ public class TimeLine extends VisPlugin {
         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
         JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
     timelineScrollPane.getHorizontalScrollBar().setUnitIncrement(50);
-    JButton timelineAddMoteButton = new JButton(addMoteAction);
-    timelineAddMoteButton.setText("+");
-    timelineAddMoteButton.setToolTipText("Add mote");
-    timelineAddMoteButton.setBorderPainted(false);
-    timelineAddMoteButton.setFont(new Font("SansSerif", Font.PLAIN, 11));
-
+    
     timelineMoteRuler = new MoteRuler();
     timelineScrollPane.setRowHeaderView(timelineMoteRuler);
-    timelineScrollPane.setCorner(JScrollPane.LOWER_LEFT_CORNER, timelineAddMoteButton);
     timelineScrollPane.setBackground(Color.WHITE);
 
     splitPane = new JSplitPane(
@@ -265,8 +264,8 @@ public class TimeLine extends VisPlugin {
 
     recalculateMoteHeight();
     pack();
-    setSize(gui.getDesktopPane().getWidth(), 150);
-    setLocation(0, gui.getDesktopPane().getHeight() - 150);
+    setSize(gui.getDesktopPane().getWidth(), 160);
+    setLocation(0, gui.getDesktopPane().getHeight() - 160);
 
     numberMotesWasUpdated();
 
@@ -913,9 +912,9 @@ public class TimeLine extends VisPlugin {
   private void numberMotesWasUpdated() {
     /* Plugin title */
     if (allMoteEvents.isEmpty()) {
-      setTitle("Timeline (Add motes to observe by clicking +)");
+      setTitle("Timeline");
     } else {
-      setTitle("Timeline (" + allMoteEvents.size() + " motes)");
+      setTitle("Timeline showing " + allMoteEvents.size() + " motes");
     }
     timelineMoteRuler.revalidate();
     timelineMoteRuler.repaint();
