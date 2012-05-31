@@ -102,6 +102,12 @@
 #ifndef BUTTON_SENSOR_CONF_ON
 #define BUTTON_SENSOR_CONF_ON   1  /* Buttons */
 #endif
+
+/* B2 on the cc2531 USB stick can be a reset button or a general-purpose one */
+#ifndef CC2531_CONF_B2_REBOOTS
+#define CC2531_CONF_B2_REBOOTS        0  /* General Purpose by default */
+#endif
+
 /* ADC - Turning this off will disable everything below */
 #ifndef ADC_SENSOR_CONF_ON
 #define ADC_SENSOR_CONF_ON      1
@@ -176,8 +182,15 @@
 #define UIP_CONF_UDP_CHECKSUMS               1
 
 /* ND and Routing */
-#define UIP_CONF_ROUTER                      1 
-#define UIP_CONF_IPV6_RPL                    1
+#ifndef UIP_CONF_ROUTER
+#define UIP_CONF_ROUTER                      1
+#endif
+
+/* Prevent SDCC compile error when UIP_CONF_ROUTER == 0 */
+#if !UIP_CONF_ROUTER
+#define UIP_CONF_DS6_AADDR_NBU               1
+#endif
+
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0

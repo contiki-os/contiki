@@ -103,7 +103,7 @@ public class ScriptRunner extends VisPlugin {
       "helloworld.js", "Wait for 'Hello, world'",
       "log_all.js", "Just log all printf()'s and timeout",
       "shell.js", "Basic shell interaction",
-      "plugins.js", "Interact with surrounding COOJA plugins",
+      "plugins.js", "Interact with surrounding Cooja plugins",
   };
 
   private Simulation simulation;
@@ -264,15 +264,19 @@ public class ScriptRunner extends VisPlugin {
     if (source == null) {
       updateScript("");
 
-      actionLinkFile.setMenuText("Link script to disk file");
-      actionLinkFile.putValue("JavascriptSource", null);
+      if (actionLinkFile != null) {
+        actionLinkFile.setMenuText("Link script to disk file");
+        actionLinkFile.putValue("JavascriptSource", null);
+      }
 
       codeEditor.setEditable(true);
     } else {
       updateScript(linkedFile);
 
-      actionLinkFile.setMenuText("Unlink script: " + source.getName());
-      actionLinkFile.putValue("JavascriptSource", source);
+      if (actionLinkFile != null) {
+        actionLinkFile.setMenuText("Unlink script: " + source.getName());
+        actionLinkFile.putValue("JavascriptSource", source);
+      }
 
       codeEditor.setEditable(false);
     }
@@ -444,7 +448,7 @@ public class ScriptRunner extends VisPlugin {
 
       if (!coojaJAR.exists()) {
         JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-            "Can't start COOJA, cooja.jar not found:" +
+            "Can't start Cooja, cooja.jar not found:" +
             "\n" + coojaJAR.getAbsolutePath()
             + "\n\nVerify that PATH_CONTIKI is correct in external tools settings.",
             "cooja.jar not found", JOptionPane.ERROR_MESSAGE);
@@ -465,9 +469,9 @@ public class ScriptRunner extends VisPlugin {
       String s1 = "Start";
       String s2 = "Cancel";
       int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-          "Starting COOJA in " + coojaBuild.getPath() + ":\n" +
+          "Starting Cooja in " + coojaBuild.getPath() + ":\n" +
           " " + command[0] + " " + command[1] + " " + command[2] + " " + command[3] + "\n",
-          "Starting COOJA without GUI", JOptionPane.YES_NO_OPTION,
+          "Starting Cooja without GUI", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE, null, new Object[] { s1, s2 }, s1);
       if (n != JOptionPane.YES_OPTION) {
         return;
@@ -542,10 +546,10 @@ public class ScriptRunner extends VisPlugin {
               }
             }
             if (testSucceeded) {
-              progressDialog.setTitle("Test run completed. Test succeeded!");
+              progressDialog.setTitle("Test run completed. Test succeeded.");
               button.setText("Test OK");
             } else {
-              progressDialog.setTitle("Test run completed. Test failed!");
+              progressDialog.setTitle("Test run completed. Test failed.");
               button.setText("Test failed");
             }
           } catch (FileNotFoundException e) {

@@ -31,7 +31,7 @@
 
 /**
  * \file
- *      CoAP client example
+ *      Erbium (Er) CoAP client example
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */

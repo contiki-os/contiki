@@ -136,12 +136,8 @@ set_rime_addr(void)
   //	Set node address
 #if UIP_CONF_IPV6
   //memcpy(addr.u8, ds2411_id, sizeof(addr.u8));
-  n_addr.u8[7] = NODE_ID & 0xff;
-  n_addr.u8[6] = NODE_ID >> 8;
-
-  //  n_addr.u8[7] = node_id & 0xff;
-  //  n_addr.u8[6] = node_id >> 8;
-
+  n_addr.u8[7] = node_id & 0xff;
+  n_addr.u8[6] = node_id >> 8;
 #else
  /* if(node_id == 0) {
     for(i = 0; i < sizeof(rimeaddr_t); ++i) {
@@ -151,8 +147,8 @@ set_rime_addr(void)
     addr.u8[0] = node_id & 0xff;
     addr.u8[1] = node_id >> 8;
   }*/
-  n_addr.u8[0] = NODE_ID >> 8;
-  n_addr.u8[1] = NODE_ID & 0xff;
+  n_addr.u8[0] = node_id & 0xff;
+  n_addr.u8[1] = node_id >> 8;
 #endif
 
   rimeaddr_set_node_addr(&n_addr);
@@ -163,6 +159,7 @@ set_rime_addr(void)
   printf("%d\n", n_addr.u8[i]);
 }
 /*---------------------------------------------------------------------------*/
+#if !PROCESS_CONF_NO_PROCESS_NAMES
 static void
 print_processes(struct process * const processes[])
 {
@@ -174,6 +171,7 @@ print_processes(struct process * const processes[])
   }
   putchar('\n');
 }
+#endif /* !PROCESS_CONF_NO_PROCESS_NAMES */
 /*--------------------------------------------------------------------------*/
 #if WITH_UIP
 static void
@@ -203,7 +201,7 @@ main(int argc, char **argv)
   clock_init();
   leds_init();
 
-  leds_on(LEDS_ALL);
+  leds_on(LEDS_RED);
 
   uart1_init(115200); /* Must come before first printf */
 
@@ -211,6 +209,7 @@ main(int argc, char **argv)
   slip_arch_init(115200);
 #endif /* WITH_UIP */
 
+  leds_on(LEDS_GREEN);
   //ds2411_init();
 
   /* XXX hack: Fix it so that the 802.15.4 MAC address is compatible
@@ -218,17 +217,19 @@ main(int argc, char **argv)
      cannot be odd. */
   //ds2411_id[2] &= 0xfe;
 
+  leds_on(LEDS_BLUE);
   //xmem_init();
 
+  leds_off(LEDS_RED);
   rtimer_init();
   /*
    * Hardware initialization done!
    */
 
+  node_id = NODE_ID;
 
   /* Restore node id if such has been stored in external mem */
   //node_id_restore();
-  node_id = NODE_ID;
 
   /* for setting "hardcoded" IEEE 802.15.4 MAC addresses */
 #ifdef IEEE_802154_MAC_ADDRESS
@@ -394,7 +395,11 @@ main(int argc, char **argv)
   /* Stop the watchdog */
   watchdog_stop();
 
+#if !PROCESS_CONF_NO_PROCESS_NAMES
   print_processes(autostart_processes);
+#else /* !PROCESS_CONF_NO_PROCESS_NAMES */
+  putchar('\n'); /* include putchar() */
+#endif /* !PROCESS_CONF_NO_PROCESS_NAMES */
   autostart_start(autostart_processes);
 
   /*

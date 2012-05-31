@@ -159,8 +159,8 @@ create_dag()
 PROCESS_THREAD(udp_server_process, ev, data)
 {
 #if (CONTIKI_TARGET_SENSINODE && BUTTON_SENSOR_ON)
-  static struct sensors_sensor *b1;
-  static struct sensors_sensor *b2;
+  static const struct sensors_sensor *b1;
+  static const struct sensors_sensor *b2;
 #endif
 
   PROCESS_BEGIN();

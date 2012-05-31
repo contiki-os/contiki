@@ -23,8 +23,6 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $Id: Mote.java,v 1.9 2010/10/12 10:58:31 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -50,7 +48,7 @@ public interface Mote {
    * @return Unique mote ID
    */
   public int getID();
-  
+
   /**
    * Returns the interface handler of this mote.
    *
@@ -58,15 +56,6 @@ public interface Mote {
    * @return Mote interface handler
    */
   public MoteInterfaceHandler getInterfaces();
-
-  /**
-   * Sets the interface handler of this mote.
-   *
-   * @param moteInterfaceHandler
-   *          New interface handler
-   * @see #getInterfaces()
-   */
-  public void setInterfaces(MoteInterfaceHandler moteInterfaceHandler);
 
   /**
    * Returns the memory of this mote.
@@ -77,15 +66,6 @@ public interface Mote {
   public MoteMemory getMemory();
 
   /**
-   * Sets the memory of this mote.
-   *
-   * @see #getMemory()
-   * @param memory
-   *          Mote memory
-   */
-  public void setMemory(MoteMemory memory);
-
-  /**
    * Returns mote type.
    *
    * @see #setType(MoteType)
@@ -94,30 +74,12 @@ public interface Mote {
   public MoteType getType();
 
   /**
-   * Sets mote type to given argument.
-   *
-   * @see #getType()
-   * @param type
-   *          New type
-   */
-  public void setType(MoteType type);
-
-  /**
    * Returns simulation which holds this mote.
    *
    * @see #setSimulation(Simulation)
    * @return Simulation
    */
   public Simulation getSimulation();
-
-  /**
-   * Sets the simulation which holds this mote.
-   *
-   * @see #getSimulation()
-   * @param simulation
-   *          Simulation
-   */
-  public void setSimulation(Simulation simulation);
 
   /**
    * Returns XML elements representing the current config of this mote. This is
@@ -145,7 +107,7 @@ public interface Mote {
       Collection<Element> configXML, boolean visAvailable);
 
   /**
-   * Called when mote is removed from simulation 
+   * Called when mote is removed from simulation
    */
   public void removed();
 

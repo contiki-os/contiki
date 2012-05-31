@@ -76,7 +76,7 @@ PROCESS_THREAD(energy_scan, ev, data)
   while(1) {
     cmax = RSSI_BASE;
     cc2430_rf_channel_set(channel);
-    clock_delay(200);
+    clock_delay_usec(200);
 
     for(j = 0; j < RSSI_SAMPLES; j++) {
       t0 = RTIMER_NOW();

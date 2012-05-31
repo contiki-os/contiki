@@ -183,6 +183,14 @@ i2c_enable(void) {
   I2C_PxOUT |= (I2C_SDA | I2C_SCL);    // Select pull-up resistors
 }
 
+void
+i2c_disable(void) {
+  I2C_PxSEL &= ~(I2C_SDA | I2C_SCL);    // GPIO function selected
+  I2C_PxSEL2 &= ~(I2C_SDA | I2C_SCL);   // GPIO function selected
+  I2C_PxREN &= ~(I2C_SDA | I2C_SCL);    // Deactivate internal pull-up/-down resistors
+  I2C_PxOUT &= ~(I2C_SDA | I2C_SCL);    // Select pull-up resistors
+}
+
 /*----------------------------------------------------------------------------*/
 //------------------------------------------------------------------------------
 // void i2c_transmit_n(unsigned char byte_ctr, unsigned char *field)

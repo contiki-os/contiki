@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/serial_socket</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/collect-view</project>
   <simulation>
     <title>REST with RPL router</title>
     <delaytime>-2147483648</delaytime>
-    <randomseed>123456</randomseed>
+    <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
@@ -25,7 +20,7 @@
       <identifier>rplroot</identifier>
       <description>Sky RPL Root</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/rpl-border-router/border-router.c</source>
-      <commands EXPORT="discard">make border-router.sky TARGET=sky</commands>
+      <commands EXPORT="discard">make border-router.sky TARGET=sky DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_driver,NULLRDC_CONF_802154_AUTOACK=0,CC2420_CONF_AUTOACK=0,ENERGEST_CONF_ON=0,PROCESS_CONF_NO_PROCESS_NAMES=1</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/rpl-border-router/border-router.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
@@ -46,10 +41,10 @@
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>skyweb</identifier>
-      <description>Rest</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/er-rest-example/rest-server-example.c</source>
-      <commands EXPORT="discard">make rest-server-example.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/er-rest-example/rest-server-example.sky</firmware>
+      <description>Rest server</description>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/er-rest-example/er-example-server.c</source>
+      <commands EXPORT="discard">make er-example-server.sky TARGET=sky DEFINES=NETSTACK_MAC=nullmac_driver,NETSTACK_RDC=nullrdc_driver,NULLRDC_CONF_802154_AUTOACK=0,CC2420_CONF_AUTOACK=0,ENERGEST_CONF_ON=0,PROCESS_CONF_NO_PROCESS_NAMES=1</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/er-rest-example/er-example-server.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -98,7 +93,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>259</width>
-    <z>5</z>
+    <z>6</z>
     <height>179</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -110,14 +105,14 @@
       <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.AttributeVisualizerSkin</skin>
-      <skin>se.sics.cooja.plugins.skins.LEDVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.AddressVisualizerSkin</skin>
-      <viewport>7.9849281638410705 0.0 0.0 7.9849281638410705 -133.27812697619663 -225.04752569190535</viewport>
+      <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
+      <viewport>3.3323852179491644 0.0 0.0 3.3323852179491644 -30.392247168885415 -60.79227000363299</viewport>
     </plugin_config>
-    <width>300</width>
-    <z>4</z>
-    <height>175</height>
-    <location_x>263</location_x>
+    <width>176</width>
+    <z>5</z>
+    <height>173</height>
+    <location_x>259</location_x>
     <location_y>3</location_y>
   </plugin>
   <plugin>
@@ -126,33 +121,33 @@
       <filter />
       <coloring />
     </plugin_config>
-    <width>560</width>
-    <z>1</z>
-    <height>326</height>
-    <location_x>1</location_x>
-    <location_y>293</location_y>
+    <width>576</width>
+    <z>0</z>
+    <height>492</height>
+    <location_x>12</location_x>
+    <location_y>260</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.RadioLogger
     <plugin_config>
-      <split>150</split>
+      <split>114</split>
       <analyzers name="6lowpan" />
     </plugin_config>
-    <width>451</width>
+    <width>574</width>
     <z>-1</z>
-    <height>305</height>
-    <location_x>73</location_x>
-    <location_y>140</location_y>
+    <height>471</height>
+    <location_x>412</location_x>
+    <location_y>190</location_y>
     <minimized>true</minimized>
   </plugin>
   <plugin>
     SerialSocketServer
     <mote_arg>0</mote_arg>
-    <width>422</width>
-    <z>2</z>
+    <width>428</width>
+    <z>4</z>
     <height>74</height>
-    <location_x>39</location_x>
-    <location_y>199</location_y>
+    <location_x>7</location_x>
+    <location_y>181</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.TimeLine
@@ -160,30 +155,68 @@
       <mote>0</mote>
       <mote>1</mote>
       <showRadioRXTX />
-      <showRadioHW />
       <showLEDs />
-      <showWatchpoints />
-      <split>125</split>
-      <zoomfactor>25.49079397896416</zoomfactor>
+      <split>23</split>
+      <zoomfactor>24060.2737326431</zoomfactor>
     </plugin_config>
-    <width>1624</width>
-    <z>3</z>
-    <height>252</height>
-    <location_x>4</location_x>
-    <location_y>622</location_y>
+    <width>579</width>
+    <z>2</z>
+    <height>152</height>
+    <location_x>6</location_x>
+    <location_y>758</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>1</mote_arg>
+    se.sics.cooja.plugins.Notes
     <plugin_config>
-      <interface>Serial port</interface>
-      <scrollpos>0,0</scrollpos>
+      <notes>Nightly test exercising Contiki's Erbium CoAP implementation:
+* One REST server, and one RPL border router w. corresponding tun0 netif
+* ContikiMAC is disabled to make firmwares fit on Tmote Sky nodes.
+* Additional compile-time DEFINES used in this simulation:
+NETSTACK_MAC=nullmac_driver
+NETSTACK_RDC=nullrdc_driver
+NULLRDC_CONF_802154_AUTOACK=0
+CC2420_CONF_AUTOACK=0
+ENERGEST_CONF_ON=0
+PROCESS_CONF_NO_PROCESS_NAMES=1
+
+The test script communicates with the REST server via the RPL border router using external commands.
+(* $ make connect-router-cooja)
+* $ ping6 -c 10 -I tun0 aaaa::212:7401:1:101
+* $ ping6 -c 10 -I tun0 aaaa::212:7402:2:202
+* $ wget -t 1 -T 10 -O - http://[aaaa::212:7402:2:202]
+
+The final test uses the CoAP Java implementation by Matthias Kovatsch, downloaded from:
+https://github.com/mkovatsc/Californium/blob/master/run/ExampleClient.jar
+* $ java -jar ExampleClient.jar DISCOVER coap://[aaaa::212:7402:2:202]
+* $ java -jar ExampleClient.jar GET coap://[aaaa::212:7402:2:202]/hello</notes>
+      <decorations>true</decorations>
     </plugin_config>
-    <width>702</width>
-    <z>0</z>
-    <height>646</height>
-    <location_x>564</location_x>
-    <location_y>2</location_y>
+    <width>751</width>
+    <z>3</z>
+    <height>369</height>
+    <location_x>439</location_x>
+    <location_y>3</location_y>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <scriptfile>[CONFIG_DIR]/rest_rpl_coap.js</scriptfile>
+      <active>true</active>
+    </plugin_config>
+    <width>596</width>
+    <z>1</z>
+    <height>725</height>
+    <location_x>591</location_x>
+    <location_y>225</location_y>
+  </plugin>
+  <plugin>
+    PowerTracker
+    <width>400</width>
+    <z>-1</z>
+    <height>155</height>
+    <location_x>132</location_x>
+    <location_y>152</location_y>
+    <minimized>true</minimized>
   </plugin>
 </simconf>
 

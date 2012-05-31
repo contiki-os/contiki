@@ -23,21 +23,16 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $Id: AbstractApplicationMoteType.java,v 1.10 2010/02/18 11:13:21 joxe Exp $
  */
 
 package se.sics.cooja.motes;
 
-import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -68,7 +63,8 @@ public abstract class AbstractApplicationMoteType implements MoteType {
   private String identifier = null;
   private String description = null;
 
-  private final Class<? extends MoteInterface>[] moteInterfaceClasses = new Class[] { 
+  @SuppressWarnings("unchecked")
+  private final Class<? extends MoteInterface>[] moteInterfaceClasses = new Class[] {
       SimpleMoteID.class,
       Position.class,
       ApplicationSerialPort.class,
@@ -88,7 +84,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     this.description = "Application Mote Type #" + identifier;
   }
 
-  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) 
+  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
   throws MoteTypeCreationException {
     if (identifier == null) {
       /* Create unique identifier */
@@ -139,44 +135,25 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     throw new RuntimeException("Can not change the mote interface classes");
   }
 
-  public JPanel getTypeVisualizer() {
-    JPanel panel = new JPanel();
-    JLabel label = new JLabel();
-    JPanel smallPane;
-
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
+  public JComponent getTypeVisualizer() {
+    StringBuilder sb = new StringBuilder();
     // Identifier
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Identifier");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(identifier);
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
+    sb.append("<html><table><tr><td>Identifier</td><td>")
+    .append(getIdentifier()).append("</td></tr>");
 
     // Description
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Description");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(description);
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
+    sb.append("<tr><td>Description</td><td>")
+    .append(getDescription()).append("</td></tr>");
 
-    // Mote Interfaces
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Mote interfaces");
-    smallPane.add(BorderLayout.WEST, label);
-    panel.add(smallPane);
-
+    sb.append("<tr><td valign=\"top\">Mote interface</td><td>");
     for (Class<? extends MoteInterface> moteInterface : moteInterfaceClasses) {
-      smallPane = new JPanel(new BorderLayout());
-      label = new JLabel(moteInterface.getSimpleName());
-      smallPane.add(BorderLayout.EAST, label);
-      panel.add(smallPane);
+      sb.append(moteInterface.getSimpleName()).append("<br>");
     }
+    sb.append("</td></tr>");
 
-    panel.add(Box.createRigidArea(new Dimension(0, 5)));
-    return panel;
+    JLabel label = new JLabel(sb.append("</table></html>").toString());
+    label.setVerticalTextPosition(JLabel.TOP);
+    return label;
   }
 
   public File getContikiSourceFile() {
@@ -208,7 +185,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     return myConfig;
   }
 
-  public Collection<Element> getConfigXML() {
+  public Collection<Element> getConfigXML(Simulation simulation) {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 

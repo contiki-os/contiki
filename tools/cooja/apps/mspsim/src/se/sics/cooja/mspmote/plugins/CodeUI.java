@@ -35,6 +35,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -165,9 +166,9 @@ public class CodeUI extends JPanel {
         /* Configure breakpoint menu options */
         /* XXX TODO We should ask for the file specified in the firmware, not
          * the actual file on disk. */
-        Integer address =
+        int address =
           CodeUI.this.mote.getExecutableAddressOf(displayedFile, line);
-        if (address == null) {
+        if (address < 0) {
           return;
         }
         final int start = codeEditorLines.get(line);
@@ -328,7 +329,10 @@ public class CodeUI extends JPanel {
         SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             try {
-              codeEditor.scrollRectToVisible(codeEditor.modelToView(start));
+              Rectangle r = codeEditor.modelToView(start);
+              if (r != null) {
+                codeEditor.scrollRectToVisible(codeEditor.modelToView(start));
+              }
             } catch (BadLocationException e) {
             }
           }

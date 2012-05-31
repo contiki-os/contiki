@@ -23,8 +23,6 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $Id: MoteType.java,v 1.10 2009/03/10 21:05:00 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -32,7 +30,9 @@ package se.sics.cooja;
 import java.awt.Container;
 import java.io.File;
 import java.util.Collection;
-import javax.swing.JPanel;
+
+import javax.swing.JComponent;
+
 import org.jdom.Element;
 
 import se.sics.cooja.contikimote.ContikiMoteType;
@@ -148,7 +148,7 @@ public interface MoteType {
    *
    * @return Mote type visualizer
    */
-  public JPanel getTypeVisualizer();
+  public JComponent getTypeVisualizer();
 
   /**
    * Returns this mote type's project configuration.
@@ -191,9 +191,11 @@ public interface MoteType {
    * configuration file. For example a Contiki base directory may be saved.
    *
    * @see #setConfigXML(Simulation, Collection, boolean)
+   * @param simulation
+   *          Current simulation
    * @return XML elements representing the current mote type's config
    */
-  public Collection<Element> getConfigXML();
+  public Collection<Element> getConfigXML(Simulation simulation);
 
   /**
    * Sets the current mote type config depending on the given XML elements.
@@ -214,10 +216,16 @@ public interface MoteType {
       Simulation simulation, Collection<Element> configXML, boolean visAvailable)
   throws MoteTypeCreationException;
 
-  public class MoteTypeCreationException extends Exception {
-    private MessageList compilationOutput = null;
+  public static class MoteTypeCreationException extends Exception {
+    private static final long serialVersionUID = 7625450894307392953L;
+
+    private MessageList compilationOutput;
+
     public MoteTypeCreationException(String message) {
       super(message);
+    }
+    public MoteTypeCreationException(String message, Throwable cause) {
+      super(message, cause);
     }
     public boolean hasCompilationOutput() {
       return compilationOutput != null;

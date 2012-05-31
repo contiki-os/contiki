@@ -92,8 +92,10 @@ import se.sics.cooja.GUI.MoteRelation;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.PluginType;
+import se.sics.cooja.RadioMedium;
 import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.interfaces.LED;
 import se.sics.cooja.interfaces.Position;
@@ -110,10 +112,10 @@ import se.sics.cooja.plugins.skins.TrafficVisualizerSkin;
 import se.sics.cooja.plugins.skins.UDGMVisualizerSkin;
 
 /**
- * Simulation visualizer supporting visualization skins.
+ * Simulation visualizer supporting different visualizers
  * Motes are painted in the XY-plane, as seen from positive Z axis.
  *
- * Supports drag-n-drop motes, right-click popup menu, and visualization skins.
+ * Supports drag-n-drop motes, right-click popup menu, and visualizers
  *
  * Observes the simulation and all mote positions.
  *
@@ -155,7 +157,7 @@ public class Visualizer extends VisPlugin {
   private boolean moveConfirm;
   private Cursor moveCursor = new Cursor(Cursor.MOVE_CURSOR);
 
-  /* Visualizer skins */
+  /* Visualizers */
   private final JButton skinButton = new JButton("Select visualizer skins");
   private static ArrayList<Class<? extends VisualizerSkin>> visualizerSkins =
     new ArrayList<Class<? extends VisualizerSkin>>();
@@ -210,7 +212,7 @@ public class Visualizer extends VisPlugin {
       for (String skinClass: skins) {
         Class<? extends VisualizerSkin> skin = gui.tryLoadClass(this, VisualizerSkin.class, skinClass);
         if (registerVisualizerSkin(skin)) {
-        	logger.info("Registered external visualizer skin: " + skinClass);
+        	logger.info("Registered external visualizer: " + skinClass);
         }
       }
     }
@@ -487,7 +489,7 @@ public class Visualizer extends VisPlugin {
   private void generateAndActivateSkin(Class<? extends VisualizerSkin> skinClass) {
     for (VisualizerSkin skin: currentSkins) {
       if (skinClass == skin.getClass()) {
-        logger.warn("Selected skin already active: " + skinClass);
+        logger.warn("Selected visualizer already active: " + skinClass);
         return;
       }
     }
@@ -503,7 +505,7 @@ public class Visualizer extends VisPlugin {
       e1.printStackTrace();
     }
 
-    skinButton.setText("Select visualizer skins " +
+    skinButton.setText("Select visualizer " +
         "(" + currentSkins.size() + "/" + visualizerSkins.size() + ")");
     repaint();
   }
@@ -581,7 +583,6 @@ public class Visualizer extends VisPlugin {
 
   private void handlePopupRequest(final int x, final int y) {
     JPopupMenu menu = new JPopupMenu();
-    menu.add(new JLabel("Select action:"));
 
     /* Mote specific actions */
     final Mote[] motes = findMotesAtPosition(x, y);
@@ -635,10 +636,10 @@ public class Visualizer extends VisPlugin {
 
     /* Visualizer skin actions */
     menu.add(new JSeparator());
-    JMenu skinMenu = new JMenu("Visualizer skins");
+    JMenu skinMenu = new JMenu("Visualizers");
     populateSkinMenu(skinMenu);
     menu.add(skinMenu);
-    makeSkinsDefaultAction.putValue(Action.NAME, "Make current skins default");
+    makeSkinsDefaultAction.putValue(Action.NAME, "Set default visualizers");
     JMenuItem skinDefaultItem = new JMenuItem(makeSkinsDefaultAction);
     menu.add(skinDefaultItem);
 
@@ -693,17 +694,34 @@ public class Visualizer extends VisPlugin {
               }
             }
             if (skinToDeactivate == null) {
-              logger.fatal("Unknown visualizer skin to deactivate: " + skinClass);
+              logger.fatal("Unknown visualizer to deactivate: " + skinClass);
               return;
             }
             skinToDeactivate.setInactive();
             repaint();
             currentSkins.remove(skinToDeactivate);
-            skinButton.setText("Select visualizer skins " +
+            skinButton.setText("Select visualizers " +
                 "(" + currentSkins.size() + "/" + visualizerSkins.size() + ")");
           }
         }
       });
+
+
+      /* Check if skin depends on any particular radio medium */
+      boolean showMenuItem = true;
+      if (skinClass.getAnnotation(SupportedArguments.class) != null) {
+        showMenuItem = false;
+        Class<? extends RadioMedium>[] radioMediums = skinClass.getAnnotation(SupportedArguments.class).radioMediums();
+        for (Class<? extends Object> o: radioMediums) {
+          if (o.isAssignableFrom(simulation.getRadioMedium().getClass())) {
+            showMenuItem = true;
+            break;
+          }
+        }
+      }
+      if (!showMenuItem) {
+        continue;
+      }
 
       if (skinMenu instanceof JMenu) {
         ((JMenu)skinMenu).add(item);
@@ -1210,7 +1228,7 @@ public class Visualizer extends VisPlugin {
           }
         }
         if (wanted != null) {
-          logger.warn("Could not load skin: " + element.getText());
+          logger.warn("Could not load visualizer: " + element.getText());
         }
       } else if (element.getName().equals("viewport")) {
         try {

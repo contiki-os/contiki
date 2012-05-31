@@ -59,11 +59,11 @@ static volatile __data clock_time_t seconds = 0; /* Uptime in secs */
  * Each iteration is ~1.0xy usec, so this function delays for roughly len usec
  */
 void
-clock_delay(unsigned int len)
+clock_delay_usec(uint16_t len)
 {
   DISABLE_INTERRUPTS();
   while(len--) {
-    ASM(nop); ASM(nop); ASM(nop);
+    ASM(nop); ASM(nop);
     ASM(nop); ASM(nop);
   }
   ENABLE_INTERRUPTS();

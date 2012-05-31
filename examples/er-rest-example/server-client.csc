@@ -45,11 +45,11 @@
     </motetype>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
-      <identifier>skyweb</identifier>
-      <description>CoAP Server</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/er-rest-example/rest-server-example.c</source>
-      <commands EXPORT="discard">make rest-server-example.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/er-rest-example/rest-server-example.sky</firmware>
+      <identifier>server</identifier>
+      <description>Erbium Server</description>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/er-rest-example/er-example-server.c</source>
+      <commands EXPORT="discard">make er-example-server.sky TARGET=sky</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/er-rest-example/er-example-server.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -68,11 +68,11 @@
     </motetype>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
-      <identifier>sky1</identifier>
-      <description>CoAP Client</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/er-rest-example/coap-client-example.c</source>
-      <commands EXPORT="discard">make coap-client-example.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/er-rest-example/coap-client-example.sky</firmware>
+      <identifier>client</identifier>
+      <description>Erbium Client</description>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/er-rest-example/er-example-client.c</source>
+      <commands EXPORT="discard">make er-example-client.sky TARGET=sky</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/er-rest-example/er-example-client.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -115,7 +115,7 @@
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
       </interface_config>
-      <motetype_identifier>skyweb</motetype_identifier>
+      <motetype_identifier>server</motetype_identifier>
     </mote>
     <mote>
       <breakpoints />
@@ -129,7 +129,7 @@
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>3</id>
       </interface_config>
-      <motetype_identifier>sky1</motetype_identifier>
+      <motetype_identifier>client</motetype_identifier>
     </mote>
   </simulation>
   <plugin>

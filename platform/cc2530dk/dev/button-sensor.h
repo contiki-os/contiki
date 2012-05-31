@@ -69,14 +69,12 @@
 #endif /* BUTTON_SENSOR_CONF_ON */
 
 #define button_sensor button_1_sensor
+extern const struct sensors_sensor button_1_sensor;
+extern const struct sensors_sensor button_2_sensor;
 
 #if BUTTON_SENSOR_ON
-/* Common */
-extern const struct sensors_sensor button_1_sensor;
-
 #if MODEL_CC2531
 /* USB Dongle */
-extern const struct sensors_sensor button_2_sensor;
 /* Buttons: P1_2 & P1_3 - Port 1 ISR needed */
 void port_1_isr(void) __interrupt(P1INT_VECTOR);
 #define   BUTTON_SENSOR_ACTIVATE() do { \

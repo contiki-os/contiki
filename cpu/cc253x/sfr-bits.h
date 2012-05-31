@@ -93,7 +93,7 @@
 #define WDCTL_CLR2  0x40
 #define WDCTL_CLR1  0x20
 #define WDCTL_CLR0  0x10
-#define WDCTL_MODE1 0x04
+#define WDCTL_MODE1 0x08
 #define WDCTL_MODE0 0x04
 #define WDCTL_INT1  0x02
 #define WDCTL_INT0  0x01

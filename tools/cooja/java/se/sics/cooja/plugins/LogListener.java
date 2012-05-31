@@ -483,7 +483,7 @@ public class LogListener extends VisPlugin {
     updateTitle();
     pack();
     setSize(gui.getDesktopPane().getWidth(), 150);
-    setLocation(0, gui.getDesktopPane().getHeight() - 300);
+    setLocation(0, gui.getDesktopPane().getHeight() - 310);
   }
 
   public void registerNewLogOutput(Mote mote, long time, String msg) {
@@ -515,8 +515,8 @@ public class LogListener extends VisPlugin {
 	}
 
 	private void updateTitle() {
-    setTitle("Log Listener (listening on " 
-        + simulation.getEventCentral().getLogOutputObservationsCount() + " log interfaces)");
+    setTitle("Log Listener listening on " 
+        + simulation.getEventCentral().getLogOutputObservationsCount() + " log interfaces");
   }
 
   public void closePlugin() {

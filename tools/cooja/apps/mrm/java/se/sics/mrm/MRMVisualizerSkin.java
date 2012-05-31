@@ -39,6 +39,7 @@ import org.apache.log4j.Logger;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.Visualizer;
@@ -47,6 +48,7 @@ import se.sics.mrm.ChannelModel.RadioPair;
 import se.sics.mrm.ChannelModel.TxPair;
 
 @ClassDescription("Radio environment (MRM)")
+@SupportedArguments(radioMediums = {MRM.class})
 public class MRMVisualizerSkin implements VisualizerSkin {
   private static Logger logger = Logger.getLogger(MRMVisualizerSkin.class);
 
@@ -79,7 +81,7 @@ public class MRMVisualizerSkin implements VisualizerSkin {
 
   public void paintBeforeMotes(Graphics g) {
     final Mote selectedMote = visualizer.getSelectedMote();
-    if (simulation == null 
+    if (simulation == null
         || selectedMote == null
         || selectedMote.getInterfaces().getRadio() == null) {
       return;

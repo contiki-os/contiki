@@ -70,7 +70,7 @@ char *coap_error_message = "";
 /*-----------------------------------------------------------------------------------*/
 static
 uint16_t
-log_2(uint16_t value)
+coap_log_2(uint16_t value)
 {
   uint16_t result = 0;
   do {
@@ -83,7 +83,7 @@ log_2(uint16_t value)
 /*-----------------------------------------------------------------------------------*/
 static
 uint32_t
-parse_int_option(uint8_t *bytes, uint16_t length)
+coap_parse_int_option(uint8_t *bytes, uint16_t length)
 {
   uint32_t var = 0;
   int i = 0;
@@ -96,7 +96,7 @@ parse_int_option(uint8_t *bytes, uint16_t length)
 }
 static
 size_t
-set_option_header(int delta, size_t length, uint8_t *buffer)
+coap_set_option_header(int delta, size_t length, uint8_t *buffer)
 {
   if (length<15)
   {
@@ -113,13 +113,13 @@ set_option_header(int delta, size_t length, uint8_t *buffer)
 /*-----------------------------------------------------------------------------------*/
 static
 size_t
-insert_option_fence_posts(int number, int *current_number, uint8_t *buffer)
+coap_insert_option_fence_posts(int number, int *current_number, uint8_t *buffer)
 {
   size_t i = 0;
   while (number-*current_number > 15)
   {
     uint8_t delta = COAP_OPTION_FENCE_POST - (*current_number%COAP_OPTION_FENCE_POST);
-    set_option_header(delta, 0, &buffer[i++]);
+    coap_set_option_header(delta, 0, &buffer[i++]);
     *current_number += delta;
 
     PRINTF("OPTION FENCE POST delta %u\n", delta);
@@ -129,10 +129,10 @@ insert_option_fence_posts(int number, int *current_number, uint8_t *buffer)
 /*-----------------------------------------------------------------------------------*/
 static
 size_t
-serialize_int_option(int number, int current_number, uint8_t *buffer, uint32_t value)
+coap_serialize_int_option(int number, int current_number, uint8_t *buffer, uint32_t value)
 {
   /* Insert fence-posts for large deltas */
-  size_t i = insert_option_fence_posts(number, &current_number, buffer);
+  size_t i = coap_insert_option_fence_posts(number, &current_number, buffer);
   size_t start_i = i;
 
   uint8_t *option = &buffer[i];
@@ -142,7 +142,7 @@ serialize_int_option(int number, int current_number, uint8_t *buffer, uint32_t v
   if (0xFFFFFF00 & value) buffer[++i] = (uint8_t) (0xFF & value>>8);
   if (0xFFFFFFFF & value) buffer[++i] = (uint8_t) (0xFF & value);
 
-  i += set_option_header(number - current_number, i-start_i, option);
+  i += coap_set_option_header(number - current_number, i-start_i, option);
 
   PRINTF("OPTION type %u, delta %u, len %u\n", number, number - current_number, i-start_i);
 
@@ -154,10 +154,10 @@ serialize_int_option(int number, int current_number, uint8_t *buffer, uint32_t v
  */
 static
 size_t
-serialize_array_option(int number, int current_number, uint8_t *buffer, uint8_t *array, size_t length, uint8_t *split_option)
+coap_serialize_array_option(int number, int current_number, uint8_t *buffer, uint8_t *array, size_t length, uint8_t *split_option)
 {
   /* Insert fence-posts for large deltas */
-  size_t i = insert_option_fence_posts(number, &current_number, buffer);
+  size_t i = coap_insert_option_fence_posts(number, &current_number, buffer);
 
   if (split_option!=NULL)
   {
@@ -176,7 +176,7 @@ serialize_array_option(int number, int current_number, uint8_t *buffer, uint8_t 
         part_end = array + j;
         temp_length = part_end-part_start;
 
-        i += set_option_header(number - current_number, temp_length, &buffer[i]);
+        i += coap_set_option_header(number - current_number, temp_length, &buffer[i]);
         memcpy(&buffer[i], part_start, temp_length);
         i += temp_length;
 
@@ -192,7 +192,7 @@ serialize_array_option(int number, int current_number, uint8_t *buffer, uint8_t 
   }
   else
   {
-    i += set_option_header(number - current_number, length, &buffer[i]);
+    i += coap_set_option_header(number - current_number, length, &buffer[i]);
     memcpy(&buffer[i], array, length);
     i += length;
 
@@ -317,14 +317,14 @@ coap_serialize_message(void *packet, uint8_t *buffer)
   if (IS_OPTION(coap_pkt, COAP_OPTION_CONTENT_TYPE)) {
     PRINTF("Content-Type [%u]\n", coap_pkt->content_type);
 
-    option += serialize_int_option(COAP_OPTION_CONTENT_TYPE, current_number, option, coap_pkt->content_type);
+    option += coap_serialize_int_option(COAP_OPTION_CONTENT_TYPE, current_number, option, coap_pkt->content_type);
     coap_pkt->option_count += 1;
     current_number = COAP_OPTION_CONTENT_TYPE;
   }
   if (IS_OPTION(coap_pkt, COAP_OPTION_MAX_AGE)) {
     PRINTF("Max-Age [%lu]\n", coap_pkt->max_age);
 
-    option += serialize_int_option(COAP_OPTION_MAX_AGE, current_number, option, coap_pkt->max_age);
+    option += coap_serialize_int_option(COAP_OPTION_MAX_AGE, current_number, option, coap_pkt->max_age);
     coap_pkt->option_count += 1;
     current_number = COAP_OPTION_MAX_AGE;
   }
@@ -335,7 +335,7 @@ coap_serialize_message(void *packet, uint8_t *buffer)
     int j = 0;
     while (length>0)
     {
-        option += serialize_array_option(COAP_OPTION_PROXY_URI, current_number, option, (uint8_t *) coap_pkt->proxy_uri + j*270, MIN(270, length), NULL);
+        option += coap_serialize_array_option(COAP_OPTION_PROXY_URI, current_number, option, (uint8_t *) coap_pkt->proxy_uri + j*270, MIN(270, length), NULL);
         coap_pkt->option_count += 1;
         current_number = COAP_OPTION_PROXY_URI;
 
@@ -355,14 +355,14 @@ coap_serialize_message(void *packet, uint8_t *buffer)
       coap_pkt->etag[7]
     ); /*FIXME always prints 8 bytes */
 
-    option += serialize_array_option(COAP_OPTION_ETAG, current_number, option, coap_pkt->etag, coap_pkt->etag_len, NULL);
+    option += coap_serialize_array_option(COAP_OPTION_ETAG, current_number, option, coap_pkt->etag, coap_pkt->etag_len, NULL);
     coap_pkt->option_count += 1;
     current_number = COAP_OPTION_ETAG;
   }
   if (IS_OPTION(coap_pkt, COAP_OPTION_URI_HOST)) {
     PRINTF("Uri-Host [%.*s]\n", coap_pkt->uri_host_len, coap_pkt->uri_host);
 
-    option += serialize_array_option(COAP_OPTION_URI_HOST, current_number, option, (uint8_t *) coap_pkt->uri_host, coap_pkt->uri_host_len, NULL);
+    option += coap_serialize_array_option(COAP_OPTION_URI_HOST, current_number, option, (uint8_t *) coap_pkt->uri_host, coap_pkt->uri_host_len, NULL);
     coap_pkt->option_count += 1;
     current_number = COAP_OPTION_URI_HOST;
   }
@@ -371,14 +371,14 @@ coap_serialize_message(void *packet, uint8_t *buffer)
 
     uint8_t split_options = '/';
 
-    option += serialize_array_option(COAP_OPTION_LOCATION_PATH, current_number, option, (uint8_t *) coap_pkt->location_path, coap_pkt->location_path_len, &split_options);
+    option += coap_serialize_array_option(COAP_OPTION_LOCATION_PATH, current_number, option, (uint8_t *) coap_pkt->location_path, coap_pkt->location_path_len, &split_options);
     coap_pkt->option_count += split_options;
     current_number = COAP_OPTION_LOCATION_PATH;
   }
   if (IS_OPTION(coap_pkt, COAP_OPTION_URI_PORT)) {
     PRINTF("Uri-Port [%u]\n", coap_pkt->uri_port);
 
-    option += serialize_int_option(COAP_OPTION_URI_PORT, current_number, option, coap_pkt->uri_port);
+    option += coap_serialize_int_option(COAP_OPTION_URI_PORT, current_number, option, coap_pkt->uri_port);
     coap_pkt->option_count += 1;
     current_number = COAP_OPTION_URI_PORT;
   }
@@ -387,7 +387,7 @@ coap_serialize_message(void *packet, uint8_t *buffer)
 
     uint8_t split_options = '&';
 
-    option += serialize_array_option(COAP_OPTION_LOCATION_QUERY, current_number, option, (uint8_t *) coap_pkt->location_query, coap_pkt->location_query_len, &split_options);
+    option += coap_serialize_array_option(COAP_OPTION_LOCATION_QUERY, current_number, option, (uint8_t *) coap_pkt->location_query, coap_pkt->location_query_len, &split_options);
     coap_pkt->option_count += split_options;
     current_number = COAP_OPTION_LOCATION_QUERY;
   }
@@ -396,14 +396,14 @@ coap_serialize_message(void *packet, uint8_t *buffer)
 
     uint8_t split_options = '/';
 
-    option += serialize_array_option(COAP_OPTION_URI_PATH, current_number, option, (uint8_t *) coap_pkt->uri_path, coap_pkt->uri_path_len, &split_options);
+    option += coap_serialize_array_option(COAP_OPTION_URI_PATH, current_number, option, (uint8_t *) coap_pkt->uri_path, coap_pkt->uri_path_len, &split_options);
     coap_pkt->option_count += split_options;
     current_number = COAP_OPTION_URI_PATH;
   }
   if (IS_OPTION(coap_pkt, COAP_OPTION_OBSERVE)) {
     PRINTF("Observe [%u]\n", coap_pkt->observe);
 
-    option += serialize_int_option(COAP_OPTION_OBSERVE, current_number, option, coap_pkt->observe);
+    option += coap_serialize_int_option(COAP_OPTION_OBSERVE, current_number, option, coap_pkt->observe);
     coap_pkt->option_count += 1;
     current_number = COAP_OPTION_OBSERVE;
   }
@@ -419,7 +419,7 @@ coap_serialize_message(void *packet, uint8_t *buffer)
       coap_pkt->token[7]
     ); /*FIXME always prints 8 bytes */
 
-    option += serialize_array_option(COAP_OPTION_TOKEN, current_number, option, coap_pkt->token, coap_pkt->token_len, NULL);
+    option += coap_serialize_array_option(COAP_OPTION_TOKEN, current_number, option, coap_pkt->token, coap_pkt->token_len, NULL);
     coap_pkt->option_count += 1;
     current_number = COAP_OPTION_TOKEN;
   }
@@ -429,7 +429,7 @@ coap_serialize_message(void *packet, uint8_t *buffer)
     {
       PRINTF("Accept [%u]\n", coap_pkt->accept[i]);
 
-      option += serialize_int_option(COAP_OPTION_ACCEPT, current_number, option, (uint32_t)coap_pkt->accept[i]);
+      option += coap_serialize_int_option(COAP_OPTION_ACCEPT, current_number, option, (uint32_t)coap_pkt->accept[i]);
       coap_pkt->option_count += 1;
       current_number = COAP_OPTION_ACCEPT;
     }
@@ -437,7 +437,7 @@ coap_serialize_message(void *packet, uint8_t *buffer)
   if (IS_OPTION(coap_pkt, COAP_OPTION_IF_MATCH)) {
     PRINTF("If-Match [FIXME]\n");
 
-    option += serialize_array_option(COAP_OPTION_IF_MATCH, current_number, option, coap_pkt->if_match, coap_pkt->if_match_len, NULL);
+    option += coap_serialize_array_option(COAP_OPTION_IF_MATCH, current_number, option, coap_pkt->if_match, coap_pkt->if_match_len, NULL);
     coap_pkt->option_count += 1;
     current_number = COAP_OPTION_IF_MATCH;
   }
@@ -446,7 +446,7 @@ coap_serialize_message(void *packet, uint8_t *buffer)
 
     uint8_t split_options = '&';
 
-    option += serialize_array_option(COAP_OPTION_URI_QUERY, current_number, option, (uint8_t *) coap_pkt->uri_query, coap_pkt->uri_query_len, &split_options);
+    option += coap_serialize_array_option(COAP_OPTION_URI_QUERY, current_number, option, (uint8_t *) coap_pkt->uri_query, coap_pkt->uri_query_len, &split_options);
     coap_pkt->option_count += split_options + (COAP_OPTION_URI_QUERY-current_number)/COAP_OPTION_FENCE_POST;
     current_number = COAP_OPTION_URI_QUERY;
   }
@@ -456,11 +456,11 @@ coap_serialize_message(void *packet, uint8_t *buffer)
 
     uint32_t block = coap_pkt->block2_num << 4;
     if (coap_pkt->block2_more) block |= 0x8;
-    block |= 0xF & log_2(coap_pkt->block2_size/16);
+    block |= 0xF & coap_log_2(coap_pkt->block2_size/16);
 
     PRINTF("Block2 encoded: 0x%lX\n", block);
 
-    option += serialize_int_option(COAP_OPTION_BLOCK2, current_number, option, block);
+    option += coap_serialize_int_option(COAP_OPTION_BLOCK2, current_number, option, block);
 
     coap_pkt->option_count += 1 + (COAP_OPTION_BLOCK2-current_number)/COAP_OPTION_FENCE_POST;
     current_number = COAP_OPTION_BLOCK2;
@@ -471,11 +471,11 @@ coap_serialize_message(void *packet, uint8_t *buffer)
 
     uint32_t block = coap_pkt->block1_num << 4;
     if (coap_pkt->block1_more) block |= 0x8;
-    block |= 0xF & log_2(coap_pkt->block1_size/16);
+    block |= 0xF & coap_log_2(coap_pkt->block1_size/16);
 
     PRINTF("Block1 encoded: 0x%lX\n", block);
 
-    option += serialize_int_option(COAP_OPTION_BLOCK1, current_number, option, block);
+    option += coap_serialize_int_option(COAP_OPTION_BLOCK1, current_number, option, block);
 
     coap_pkt->option_count += 1 + (COAP_OPTION_BLOCK1-current_number)/COAP_OPTION_FENCE_POST;
     current_number = COAP_OPTION_BLOCK1;
@@ -483,7 +483,7 @@ coap_serialize_message(void *packet, uint8_t *buffer)
   if (IS_OPTION(coap_pkt, COAP_OPTION_IF_NONE_MATCH)) {
     PRINTF("If-None-Match\n");
 
-    option += serialize_int_option(COAP_OPTION_IF_NONE_MATCH, current_number, option, 0);
+    option += coap_serialize_int_option(COAP_OPTION_IF_NONE_MATCH, current_number, option, 0);
 
     coap_pkt->option_count += 1 + (COAP_OPTION_IF_NONE_MATCH-current_number)/COAP_OPTION_FENCE_POST;
     current_number = COAP_OPTION_IF_NONE_MATCH;
@@ -585,11 +585,11 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
 
       switch (current_number) {
         case COAP_OPTION_CONTENT_TYPE:
-          coap_pkt->content_type = parse_int_option(current_option, option_len);
+          coap_pkt->content_type = coap_parse_int_option(current_option, option_len);
           PRINTF("Content-Type [%u]\n", coap_pkt->content_type);
           break;
         case COAP_OPTION_MAX_AGE:
-          coap_pkt->max_age = parse_int_option(current_option, option_len);
+          coap_pkt->max_age = coap_parse_int_option(current_option, option_len);
           PRINTF("Max-Age [%lu]\n", coap_pkt->max_age);
           break;
         case COAP_OPTION_PROXY_URI:
@@ -626,7 +626,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
           PRINTF("Location-Path [%.*s]\n", coap_pkt->location_path_len, coap_pkt->location_path);
           break;
         case COAP_OPTION_URI_PORT:
-          coap_pkt->uri_port = parse_int_option(current_option, option_len);
+          coap_pkt->uri_port = coap_parse_int_option(current_option, option_len);
           PRINTF("Uri-Port [%u]\n", coap_pkt->uri_port);
           break;
         case COAP_OPTION_LOCATION_QUERY:
@@ -640,7 +640,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
           PRINTF("Uri-Path [%.*s]\n", coap_pkt->uri_path_len, coap_pkt->uri_path);
           break;
         case COAP_OPTION_OBSERVE:
-          coap_pkt->observe = parse_int_option(current_option, option_len);
+          coap_pkt->observe = coap_parse_int_option(current_option, option_len);
           PRINTF("Observe [%u]\n", coap_pkt->observe);
           break;
         case COAP_OPTION_TOKEN:
@@ -660,7 +660,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
         case COAP_OPTION_ACCEPT:
           if (coap_pkt->accept_num < COAP_MAX_ACCEPT_NUM)
           {
-            coap_pkt->accept[coap_pkt->accept_num] = parse_int_option(current_option, option_len);
+            coap_pkt->accept[coap_pkt->accept_num] = coap_parse_int_option(current_option, option_len);
             coap_pkt->accept_num += 1;
             PRINTF("Accept [%u]\n", coap_pkt->content_type);
           }
@@ -689,7 +689,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
           PRINTF("Uri-Query [%.*s]\n", coap_pkt->uri_query_len, coap_pkt->uri_query);
           break;
         case COAP_OPTION_BLOCK2:
-          coap_pkt->block2_num = parse_int_option(current_option, option_len);
+          coap_pkt->block2_num = coap_parse_int_option(current_option, option_len);
           coap_pkt->block2_more = (coap_pkt->block2_num & 0x08)>>3;
           coap_pkt->block2_size = 16 << (coap_pkt->block2_num & 0x07);
           coap_pkt->block2_offset = (coap_pkt->block2_num & ~0x0000000F)<<(coap_pkt->block2_num & 0x07);
@@ -697,7 +697,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
           PRINTF("Block2 [%lu%s (%u B/blk)]\n", coap_pkt->block2_num, coap_pkt->block2_more ? "+" : "", coap_pkt->block2_size);
           break;
         case COAP_OPTION_BLOCK1:
-          coap_pkt->block1_num = parse_int_option(current_option, option_len);
+          coap_pkt->block1_num = coap_parse_int_option(current_option, option_len);
           coap_pkt->block1_more = (coap_pkt->block1_num & 0x08)>>3;
           coap_pkt->block1_size = 16 << (coap_pkt->block1_num & 0x07);
           coap_pkt->block1_offset = (coap_pkt->block1_num & ~0x0000000F)<<(coap_pkt->block1_num & 0x07);

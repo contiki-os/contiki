@@ -78,7 +78,7 @@ else
 endif 
 
 ### CPU-dependent cleanup files
-CLEAN += *.lnk *.lk *.sym *.lib *.ihx *.rel *.mem *.rst *.asm *.hex *.sensinode
+CLEAN += *.lnk *.lk *.sym *.lib *.ihx *.rel *.mem *.rst *.asm *.hex
 CLEAN += *.omf *.cdb *.banks
 CLEAN += symbols.c symbols.h
 

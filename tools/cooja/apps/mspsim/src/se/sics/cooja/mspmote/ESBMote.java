@@ -46,10 +46,6 @@ public class ESBMote extends MspMote {
 
   public ESBNode esbNode = null;
 
-  public ESBMote() {
-    super();
-  }
-
   public ESBMote(MspMoteType moteType, Simulation sim) {
     super(moteType, sim);
   }

@@ -44,6 +44,8 @@
 
 #include "net/uip.h"
 #include "sys/stimer.h"
+/* The size of uip_ds6_addr_t depends on UIP_ND6_DEF_MAXDADNS. Include uip-nd6.h to define it. */
+#include "net/uip-nd6.h"
 
 /*--------------------------------------------------*/
 /** Configuration. For all tables (Neighbor cache, Prefix List, Routing Table,

@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>-2147483648</delaytime>
@@ -21,9 +17,9 @@
     </events>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype611</identifier>
-      <description>Contiki Mote Type #1</description>
-      <contikiapp>[CONTIKI_DIR]/examples/telnet-server/telnet-server.c</contikiapp>
+      <identifier>mtype696</identifier>
+      <description>Telnet server example</description>
+      <source>[CONTIKI_DIR]/examples/telnet-server/telnet-server.c</source>
       <commands>make telnet-server.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
@@ -40,6 +36,7 @@
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLED</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiCFS</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
       <symbols>false</symbols>
     </motetype>
     <mote>
@@ -53,7 +50,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>1</id>
       </interface_config>
-      <motetype_identifier>mtype611</motetype_identifier>
+      <motetype_identifier>mtype696</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -66,7 +63,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>2</id>
       </interface_config>
-      <motetype_identifier>mtype611</motetype_identifier>
+      <motetype_identifier>mtype696</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -79,7 +76,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>3</id>
       </interface_config>
-      <motetype_identifier>mtype611</motetype_identifier>
+      <motetype_identifier>mtype696</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -92,7 +89,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>4</id>
       </interface_config>
-      <motetype_identifier>mtype611</motetype_identifier>
+      <motetype_identifier>mtype696</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -105,17 +102,16 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>5</id>
       </interface_config>
-      <motetype_identifier>mtype611</motetype_identifier>
+      <motetype_identifier>mtype696</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     se.sics.cooja.plugins.SimControl
-    <width>248</width>
+    <width>273</width>
     <z>5</z>
-    <height>200</height>
+    <height>201</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.Visualizer
@@ -126,15 +122,14 @@
       <skin>se.sics.cooja.plugins.skins.LEDVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
-      <viewport>6.0123843024302435 0.0 0.0 6.0123843024302435 81.22165451665171 95.03179722772279</viewport>
+      <viewport>3.9267917714869 0.0 0.0 3.9267917714869 52.173676425591204 89.17520347194386</viewport>
       <hidden />
     </plugin_config>
-    <width>659</width>
-    <z>4</z>
-    <height>198</height>
-    <location_x>246</location_x>
-    <location_y>2</location_y>
-    <minimized>false</minimized>
+    <width>443</width>
+    <z>2</z>
+    <height>203</height>
+    <location_x>271</location_x>
+    <location_y>0</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
@@ -222,50 +217,47 @@ if (testOK == 1) {
 log.testFailed();</script>
       <active>true</active>
     </plugin_config>
-    <width>600</width>
-    <z>2</z>
-    <height>702</height>
-    <location_x>903</location_x>
+    <width>565</width>
+    <z>0</z>
+    <height>517</height>
+    <location_x>715</location_x>
     <location_y>1</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
+      <coloring />
     </plugin_config>
-    <width>904</width>
-    <z>1</z>
-    <height>538</height>
+    <width>1280</width>
+    <z>4</z>
+    <height>310</height>
     <location_x>0</location_x>
     <location_y>519</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.NativeIPGateway
     <mote_arg>0</mote_arg>
     <plugin_config>
-      <network_interface>\Device\NPF_{8ABD0E53-3824-4541-B397-5FAF535206CF}</network_interface>
+      <network_interface>lo</network_interface>
       <register_routes>true</register_routes>
     </plugin_config>
     <width>388</width>
-    <z>6</z>
+    <z>3</z>
     <height>321</height>
     <location_x>1</location_x>
     <location_y>200</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.RadioLogger
     <plugin_config>
       <split>150</split>
     </plugin_config>
-    <width>517</width>
-    <z>3</z>
+    <width>324</width>
+    <z>6</z>
     <height>321</height>
     <location_x>389</location_x>
     <location_y>200</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.TimeLine
@@ -276,15 +268,14 @@ log.testFailed();</script>
       <mote>3</mote>
       <mote>4</mote>
       <showRadioRXTX />
-      <split>1</split>
-      <zoom>11</zoom>
+      <split>26</split>
+      <zoomfactor>16662.274975375385</zoomfactor>
     </plugin_config>
-    <width>600</width>
-    <z>0</z>
-    <height>355</height>
-    <location_x>903</location_x>
-    <location_y>702</location_y>
-    <minimized>false</minimized>
+    <width>1278</width>
+    <z>1</z>
+    <height>149</height>
+    <location_x>1</location_x>
+    <location_y>831</location_y>
   </plugin>
 </simconf>
 

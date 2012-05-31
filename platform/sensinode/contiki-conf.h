@@ -201,8 +201,15 @@
 #define UIP_CONF_UDP_CHECKSUMS               1
 
 /* ND and Routing */
+#ifndef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                      1 
-#define UIP_CONF_IPV6_RPL                    1
+#endif
+
+/* Prevent SDCC compile error when UIP_CONF_ROUTER == 0 */
+#if !UIP_CONF_ROUTER
+#define UIP_CONF_DS6_AADDR_NBU               1
+#endif
+
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0

@@ -278,6 +278,10 @@ uip_nd6_ns_input(void)
 
 
 create_na:
+    /* If the node is a router it should set R flag in NAs */
+#if UIP_CONF_ROUTER
+    flags = flags | UIP_ND6_NA_FLAG_ROUTER;
+#endif
   uip_ext_len = 0;
   UIP_IP_BUF->vtc = 0x60;
   UIP_IP_BUF->tcflow = 0;

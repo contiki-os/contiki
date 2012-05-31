@@ -72,8 +72,8 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
     setDescription("Imported App Mote Type #" + identifier);
   }
 
-  public Collection<Element> getConfigXML() {
-    Collection<Element> config = super.getConfigXML();
+  public Collection<Element> getConfigXML(Simulation simulation) {
+    Collection<Element> config = super.getConfigXML(simulation);
 
     if (moteClassPath != null) {
       Element element = new Element("motepath");
