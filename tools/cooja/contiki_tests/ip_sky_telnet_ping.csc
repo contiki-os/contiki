@@ -109,7 +109,7 @@
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(60000);
+      <script>TIMEOUT(180000);
 
 /* conf */
 nrReplies = 0;
@@ -117,10 +117,10 @@ ipAddress = "172.16.1.0";
 osName = java.lang.System.getProperty("os.name").toLowerCase();
 if (osName.startsWith("win")) {
   pingOnceCmd = "ping -n 1 " + ipAddress;
-  pingCmd = "ping -n 10 " + ipAddress;
+  pingCmd = "ping -w 10000 -n 10 " + ipAddress;
 } else {
   pingOnceCmd = "ping -c 1 " + ipAddress;
-  pingCmd = "ping -c 10 " + ipAddress;
+  pingCmd = "ping -i 4 -c 10 " + ipAddress;
 }
 replyMsg = "from " + ipAddress;
 
