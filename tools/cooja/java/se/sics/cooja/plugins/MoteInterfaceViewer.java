@@ -51,13 +51,13 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
+import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
-import se.sics.cooja.GUI.HasQuickHelp;
 
 /**
  * Mote Interface Viewer views information about a specific mote interface.
@@ -208,7 +208,7 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp, Mote
         setSelectedInterface(element.getText());
       } else if (element.getName().equals("scrollpos")) {
         String[] scrollPos = element.getText().split(",");
-        final Point pos = new Point(Integer.parseInt(scrollPos[0]), Integer.parseInt(scrollPos[1])); 
+        final Point pos = new Point(Integer.parseInt(scrollPos[0]), Integer.parseInt(scrollPos[1]));
         EventQueue.invokeLater(new Runnable() {
           public void run()  {
             mainScrollPane.getViewport().setViewPosition(pos);
@@ -222,7 +222,7 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp, Mote
   public String getQuickHelp() {
     String help = "<b>" + GUI.getDescriptionOf(this) + "</b>";
     help += "<p>Lists mote interfaces, and allows mote inspection and interaction via mote interface visualizers.";
-    
+
     MoteInterface intf = selectedMoteInterface;
     if (intf != null) {
       if (intf instanceof HasQuickHelp) {

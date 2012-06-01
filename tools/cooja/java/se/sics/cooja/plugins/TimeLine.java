@@ -86,6 +86,7 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
+import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Plugin;
 import se.sics.cooja.PluginType;
@@ -107,7 +108,7 @@ import se.sics.cooja.motes.AbstractEmulatedMote;
  */
 @ClassDescription("Timeline")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
-public class TimeLine extends VisPlugin {
+public class TimeLine extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = -883154261246961973L;
   public static final int LED_PIXEL_HEIGHT = 2;
   public static final int EVENT_PIXEL_HEIGHT = 4;
@@ -242,7 +243,7 @@ public class TimeLine extends VisPlugin {
         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
         JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
     timelineScrollPane.getHorizontalScrollBar().setUnitIncrement(50);
-    
+
     timelineMoteRuler = new MoteRuler();
     timelineScrollPane.setRowHeaderView(timelineMoteRuler);
     timelineScrollPane.setBackground(Color.WHITE);
@@ -2385,5 +2386,26 @@ public class TimeLine extends VisPlugin {
       }
     }
   });
+
+  public String getQuickHelp() {
+    return
+        "<b>Timeline</b>" +
+        "<p>The timeline arranges historical simulation events into a graphical timeline. " +
+        "The timeline can for example be used to overview the behavior of complex power-saving MAC protocols." +
+        "<p>Events appear as colored rectangles in the timeline. For more information about a particular event, hover the mouse above it." +
+        "<p>The checkboxes in the left pane control what event types are shown in the timeline. " +
+        "Currently, four event types are supported (see below). Note that the control pane can be hidden to save space. " +
+        "<p>All simulated motes are by default added to the timeline, however, any unwanted motes can be removed by mouse clicking the node ID (left)." +
+        "<p>To display a vertical time marker on the timeline, press and hold the mouse on the time ruler (top)." +
+        "<p>For more options, such as zooming and saving raw data to file, right-click the mouse for a popup menu." +
+        "<p><b>Radio RX/TX</b>" +
+        "<br>Shows radio connection events. Transmissions are painted blue, receptions are green, and interfered radios are red." +
+        "<p><b>Radio ON/OFF</b>" +
+        "<br>Shows whether the mote radio is on or off. Turned on radios are indicated with gray color." +
+        "<p><b>LEDs</b>" +
+        "<br>Shows LED state: red, green, and blue. (Assumes all mote types have exactly three LEDs.)" +
+        "<p><b>Watchpoints</b>" +
+        "<br>Shows triggered watchpoints, currently only supported by MSPSim-based motes. To add watchpoints, use the Msp Code Watcher plugin.";
+  }
 
 }

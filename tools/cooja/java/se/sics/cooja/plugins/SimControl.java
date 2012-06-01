@@ -31,19 +31,41 @@
 
 package se.sics.cooja.plugins;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
-import java.util.*;
-import javax.swing.*;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.event.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.HasQuickHelp;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.TimeEvent;
+import se.sics.cooja.VisPlugin;
 
 /**
  * Control panel for starting and pausing the current simulation.
@@ -53,7 +75,7 @@ import se.sics.cooja.*;
  */
 @ClassDescription("Control Panel")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
-public class SimControl extends VisPlugin {
+public class SimControl extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = 8452253637624664192L;
   private static Logger logger = Logger.getLogger(SimControl.class);
 
@@ -84,7 +106,7 @@ public class SimControl extends VisPlugin {
 
     /* Update current time label when simulation is running */
     if (simulation.isRunning()) {
-      updateLabelTimer.start(); 
+      updateLabelTimer.start();
     }
 
     /* Container */
@@ -197,9 +219,9 @@ public class SimControl extends VisPlugin {
     smallPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 10, 5));
 
     sliderDelay = new JSlider(
-        JSlider.HORIZONTAL, 
-        SLIDE_MIN, 
-        SLIDE_MAX, 
+        JSlider.HORIZONTAL,
+        SLIDE_MIN,
+        SLIDE_MAX,
         convertTimeToSlide(simulation.getDelayTime()));
     sliderDelay.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
@@ -285,9 +307,9 @@ public class SimControl extends VisPlugin {
       return Integer.MIN_VALUE;
     }
     if (slide <= 0) {
-      return slide-2; /* Ignore special cases */ 
+      return slide-2; /* Ignore special cases */
     }
-    return slide; 
+    return slide;
   }
 
   private int convertTimeToSlide(int time) {
@@ -341,7 +363,7 @@ public class SimControl extends VisPlugin {
           + " ms");
 
       long systemTimeDiff = System.currentTimeMillis() - lastSystemTimeTimestamp;
-      
+
       if(systemTimeDiff > 1000) {
 
         long simulationTimeDiff = simulation.getSimulationTimeMillis() - lastSimulationTimeTimestamp;
@@ -382,4 +404,19 @@ public class SimControl extends VisPlugin {
       simulation.getGUI().reloadCurrentSimulation(simulation.isRunning());
     }
   };
+
+  public String getQuickHelp() {
+    return "<b>Control Panel</b>" +
+        "<p>The control panel controls the simulation. " +
+        "<p><i>Start</i> starts the simulation. " +
+        "<p><i>Pause</i> stops the simulation. " +
+        "<p>The keyboard shortcut for starting and pausing the simulation is <i>Ctrl+S</i>. " +
+        "<p><i>Step</i> runs the simulation for one millisecond. " +
+        "<p><i>Reload</i> reloads and restarts the simulation. " +
+        "<p>Writing simulation time in milliseconds in the <i>Stop at</i> field causes the simulation to pause at the given time. " +
+        "<p>Simulation speed is controlled via the bottom slider. " +
+        "If the slider value is zero, simulation runs at full speed. " +
+        "<p>Setting the slider to <i>Real time</i>, simulation speed is capped to not run faster than real time. " +
+        "The <i>Real time</i> slider value is to the right of <i>No simulation delay</i>: click on the slider button and press the right arrow key on the keyboard. ";
+  }
 }

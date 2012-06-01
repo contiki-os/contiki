@@ -71,7 +71,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -89,6 +88,7 @@ import org.jdom.Element;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.GUI.MoteRelation;
+import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.PluginType;
@@ -127,7 +127,7 @@ import se.sics.cooja.plugins.skins.UDGMVisualizerSkin;
  */
 @ClassDescription("Simulation visualizer")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
-public class Visualizer extends VisPlugin {
+public class Visualizer extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(Visualizer.class);
 
@@ -1434,5 +1434,24 @@ public class Visualizer extends VisPlugin {
       }
       return true;
     }
+  }
+
+  public String getQuickHelp() {
+    return
+        "<b>Visualizer</b> " +
+        "<p>The visualizer shows the positions of simulated motes as viewed from above (XY-plane). " +
+        "It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. Motes can be moved by dragging them (ALT+Mouse drag). " +
+        "Mouse right-click a mote or unoccupied space for a popup menu with more options. " +
+        "<p>The visualizer supports \"visualizer skins\". " +
+        "Each skin provides some specific information, such as ongoing simulated radio traffic, or the IP addresses of motes. " +
+        "Multiple skins can be active at the same time. " +
+        "Click the upper \"Select visualizer skin\" button to select or deselect skins. " +
+        "<p><b>Useful skins</b> " +
+        "<br>Mote IDs: prints the unique mote IDs inside motes. " +
+        "<br>Log output: prints the last printf message above motes. " +
+        "<br>Radio traffic: displays inter-mote radio communication. " +
+        "<br>Radio environment (UDGM): enables configurating the UDGM radio medium. " +
+        "<p><b>Tip</b><br> " +
+        "Right-click visualizer to show the popup menu, and click \"Hide window decorations\".";
   };
 }
