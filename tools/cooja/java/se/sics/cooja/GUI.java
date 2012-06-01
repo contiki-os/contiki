@@ -2067,7 +2067,7 @@ public class GUI extends Observable {
 
     // Set frame title
     if (frame != null) {
-      frame.setTitle(sim.getTitle() + " - The Contiki Simulation Environment");
+      frame.setTitle(sim.getTitle() + " - " + WINDOW_TITLE);
     }
 
     // Open standard plugins (if none opened already)
