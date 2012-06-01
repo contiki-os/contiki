@@ -42,6 +42,7 @@
  */
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include "lib/random.h"
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
@@ -78,6 +79,10 @@ uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_DEFRT_NB];             /** \brief Def
 uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
 uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];          /** \brief Routing table */
 
+/* Used by Cooja to enable extraction of addresses from memory.*/
+uint8_t uip_ds6_addr_size;
+uint8_t uip_ds6_netif_addr_list_offset;
+
 /** @} */
 
 /* "full" (as opposed to pointer) ip address used in this file,  */
@@ -106,6 +111,8 @@ uip_ds6_init(void)
   memset(uip_ds6_prefix_list, 0, sizeof(uip_ds6_prefix_list));
   memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
   memset(uip_ds6_routing_table, 0, sizeof(uip_ds6_routing_table));
+  uip_ds6_addr_size = sizeof(struct uip_ds6_addr);
+  uip_ds6_netif_addr_list_offset = offsetof(struct uip_ds6_netif, addr_list);
 
   /* Set interface parameters */
   uip_ds6_if.link_mtu = UIP_LINK_MTU;
