@@ -157,6 +157,11 @@ public class GUI extends Observable {
   private static Logger logger = Logger.getLogger(GUI.class);
 
   /**
+   * External tools configuration.
+   */
+  public static final String EXTERNAL_TOOLS_SETTINGS_FILENAME = "/external_tools.config";
+
+  /**
    * External tools default Win32 settings filename.
    */
   public static final String EXTERNAL_TOOLS_WIN32_SETTINGS_FILENAME = "/external_tools_win32.config";
@@ -2762,11 +2767,18 @@ public class GUI extends Observable {
     }
 
     try {
-      InputStream in = GUI.class.getResourceAsStream(filename);
+      InputStream in = GUI.class.getResourceAsStream(EXTERNAL_TOOLS_SETTINGS_FILENAME);
       if (in == null) {
         throw new FileNotFoundException(filename + " not found");
       }
       Properties settings = new Properties();
+      settings.load(in);
+      in.close();
+
+      in = GUI.class.getResourceAsStream(filename);
+      if (in == null) {
+        throw new FileNotFoundException(filename + " not found");
+      }
       settings.load(in);
       in.close();
 
