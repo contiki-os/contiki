@@ -369,6 +369,7 @@ public class GUI extends Observable {
     myDesktopPane = desktop;
     if (menuPlugins == null) {
       menuPlugins = new JMenu("Tools");
+      menuPlugins.setMnemonic(KeyEvent.VK_T);
       menuPlugins.removeAll();
 
       /* COOJA/GUI plugins at top, simulation plugins in middle, mote plugins at bottom */
@@ -785,7 +786,6 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    menu.setMnemonic(KeyEvent.VK_T);
     menuBar.add(menu);
 
     // Mote type classes sub menu
@@ -921,7 +921,7 @@ public class GUI extends Observable {
     } else {
       menuPlugins.setText("Tools");
     }
-    menuPlugins.setMnemonic(KeyEvent.VK_P);
+    menuPlugins.setMnemonic(KeyEvent.VK_T);
     menuBar.add(menuPlugins);
     menuPlugins.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
