@@ -2622,8 +2622,7 @@ public class GUI extends Observable {
   /**
    * Quit program
    *
-   * @param askForConfirmation
-   *          Should we ask for confirmation before quitting?
+   * @param askForConfirmation Should we ask for confirmation before quitting?
    */
   public void doQuit(boolean askForConfirmation) {
     if (isVisualizedInApplet()) {
@@ -2631,15 +2630,25 @@ public class GUI extends Observable {
     }
 
     if (askForConfirmation) {
-      String s1 = "Quit";
-      String s2 = "Cancel";
-      Object[] options = { s1, s2 };
-      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-          "Sure you want to quit?",
-          "Quit", JOptionPane.YES_NO_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, s1);
-      if (n != JOptionPane.YES_OPTION) {
-        return;
+      if (getSimulation() != null) {
+        /* Save? */
+        String s1 = "Yes";
+        String s2 = "No";
+        String s3 = "Cancel";
+        Object[] options = { s1, s2, s3 };
+        int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+            "Do you want to save the current simulation?",
+            WINDOW_TITLE, JOptionPane.YES_NO_CANCEL_OPTION,
+            JOptionPane.WARNING_MESSAGE, null, options, s1);
+        if (n == JOptionPane.YES_OPTION) {
+          if (myGUI.doSaveConfig(true) == null) {
+            return;
+          }
+        } else if (n == JOptionPane.CANCEL_OPTION) {
+          return;
+        } else if (n != JOptionPane.NO_OPTION) {
+          return;
+        }
       }
     }
 
