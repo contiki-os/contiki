@@ -387,10 +387,27 @@ public class GUI extends Observable {
     ));
     quickHelpScroll.setVisible(false);
     loadQuickHelp("KEYBOARD_SHORTCUTS");
+    loadQuickHelp("GETTING_STARTED");
 
     // Load default and overwrite with user settings (if any)
     loadExternalToolsDefaultSettings();
     loadExternalToolsUserSettings();
+
+    final boolean showQuickhelp = getExternalToolsSetting("SHOW_QUICKHELP", "true").equalsIgnoreCase("true");
+    if (showQuickhelp) {
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          JCheckBoxMenuItem checkBox = ((JCheckBoxMenuItem)showQuickHelpAction.getValue("checkbox"));
+          if (checkBox == null) {
+            return;
+          }
+          if (checkBox.isSelected()) {
+            return;
+          }
+          checkBox.doClick();
+        }
+      });
+    }
 
     /* Debugging - Break on repaints outside EDT */
     /*RepaintManager.setCurrentManager(new RepaintManager() {
@@ -1003,6 +1020,7 @@ public class GUI extends Observable {
     /* Help */
     menu = new JMenu("Help");
     menu.setMnemonic(KeyEvent.VK_H);
+    menu.add(new JMenuItem(showGettingStartedAction));
     menu.add(new JMenuItem(showKeyboardShortcutsAction));
     JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(showQuickHelpAction);
     showQuickHelpAction.putValue("checkbox", checkBox);
@@ -1971,6 +1989,7 @@ public class GUI extends Observable {
    * @return Plugin instance
    * @deprecated
    */
+  @Deprecated
   public Plugin getStartedPlugin(String classname) {
     return getPlugin(classname);
   }
@@ -4502,8 +4521,27 @@ public class GUI extends Observable {
       boolean show = ((JCheckBoxMenuItem) e.getSource()).isSelected();
       quickHelpTextPane.setVisible(show);
       quickHelpScroll.setVisible(show);
+      setExternalToolsSetting("SHOW_QUICKHELP", new Boolean(show).toString());
       ((JPanel)frame.getContentPane()).revalidate();
       updateDesktopSize(getDesktopPane());
+    }
+
+    public boolean shouldBeEnabled() {
+      return true;
+    }
+  };
+  GUIAction showGettingStartedAction = new GUIAction("Getting started") {
+    private static final long serialVersionUID = 2382848024856978524L;
+    public void actionPerformed(ActionEvent e) {
+      loadQuickHelp("GETTING_STARTED");
+      JCheckBoxMenuItem checkBox = ((JCheckBoxMenuItem)showQuickHelpAction.getValue("checkbox"));
+      if (checkBox == null) {
+        return;
+      }
+      if (checkBox.isSelected()) {
+        return;
+      }
+      checkBox.doClick();
     }
 
     public boolean shouldBeEnabled() {
