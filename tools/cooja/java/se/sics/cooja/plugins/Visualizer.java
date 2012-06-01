@@ -494,6 +494,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       }
     }
 
+    if (!isSkinCompatible(skinClass)) {
+      /*logger.warn("Skin is not compatible with current simulation: " + skinClass);*/
+      return;
+    }
+
     /* Create and activate new skin */
     try {
       VisualizerSkin newSkin = skinClass.newInstance();
@@ -707,19 +712,8 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       });
 
 
-      /* Check if skin depends on any particular radio medium */
-      boolean showMenuItem = true;
-      if (skinClass.getAnnotation(SupportedArguments.class) != null) {
-        showMenuItem = false;
-        Class<? extends RadioMedium>[] radioMediums = skinClass.getAnnotation(SupportedArguments.class).radioMediums();
-        for (Class<? extends Object> o: radioMediums) {
-          if (o.isAssignableFrom(simulation.getRadioMedium().getClass())) {
-            showMenuItem = true;
-            break;
-          }
-        }
-      }
-      if (!showMenuItem) {
+      /* Should skin be enabled in this simulation? */
+      if (!isSkinCompatible(skinClass)) {
         continue;
       }
 
@@ -730,6 +724,29 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         ((JPopupMenu)skinMenu).add(item);
       }
     }
+  }
+
+  public boolean isSkinCompatible(Class<? extends VisualizerSkin> skinClass) {
+    if (skinClass == null) {
+      return false;
+    }
+
+    /* Check if skin depends on any particular radio medium */
+    boolean showMenuItem = true;
+    if (skinClass.getAnnotation(SupportedArguments.class) != null) {
+      showMenuItem = false;
+      Class<? extends RadioMedium>[] radioMediums = skinClass.getAnnotation(SupportedArguments.class).radioMediums();
+      for (Class<? extends Object> o: radioMediums) {
+        if (o.isAssignableFrom(simulation.getRadioMedium().getClass())) {
+          showMenuItem = true;
+          break;
+        }
+      }
+    }
+    if (!showMenuItem) {
+      return false;
+    }
+    return true;
   }
 
   private void handleMousePress(MouseEvent mouseEvent) {
