@@ -391,7 +391,6 @@ public class GUI extends Observable {
         BorderFactory.createEmptyBorder(0, 3, 0, 0)
     ));
     quickHelpScroll.setVisible(false);
-    loadQuickHelp("KEYBOARD_SHORTCUTS");
     loadQuickHelp("GETTING_STARTED");
 
     // Load default and overwrite with user settings (if any)
@@ -4215,14 +4214,6 @@ public class GUI extends Observable {
     if (type != MessageList.NORMAL) {
       PROGRESS_WARNINGS.add(msg);
     }
-  }
-
-  public interface HasQuickHelp {
-    /**
-     * @return Quick help. May be HTML formatted, but must not include the
-     *         document html-tags.
-     */
-    public String getQuickHelp();
   }
 
   /**

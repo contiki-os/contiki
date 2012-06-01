@@ -84,13 +84,14 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
+import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Plugin;
 import se.sics.cooja.PluginType;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.VisPlugin;
 import se.sics.cooja.SimEventCentral.LogOutputEvent;
 import se.sics.cooja.SimEventCentral.LogOutputListener;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
 import se.sics.cooja.dialogs.TableColumnAdjuster;
 import se.sics.cooja.dialogs.UpdateAggregator;
 import se.sics.cooja.util.ArrayQueue;
@@ -103,7 +104,7 @@ import se.sics.cooja.util.ArrayQueue;
  */
 @ClassDescription("Log Listener")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
-public class LogListener extends VisPlugin {
+public class LogListener extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = 3294595371354857261L;
   private static Logger logger = Logger.getLogger(LogListener.class);
 
@@ -124,7 +125,7 @@ public class LogListener extends VisPlugin {
 
   private boolean formatTimeString = false;
   private boolean hasHours = false;
-  
+
   private final JTable logTable;
   private TableRowSorter<TableModel> logFilter;
   private ArrayQueue<LogData> logs = new ArrayQueue<LogData>();
@@ -147,9 +148,9 @@ public class LogListener extends VisPlugin {
 
   private boolean hideDebug = false;
   private JCheckBoxMenuItem hideDebugCheckbox;
-  
+
   private JCheckBoxMenuItem appendCheckBox;
-  
+
   private static final int UPDATE_INTERVAL = 250;
   private UpdateAggregator<LogData> logUpdateAggregator = new UpdateAggregator<LogData>(UPDATE_INTERVAL) {
     private Runnable scroll = new Runnable() {
@@ -187,7 +188,7 @@ public class LogListener extends VisPlugin {
       }
     }
   };
-  
+
   /**
    * @param simulation Simulation
    * @param gui GUI
@@ -394,7 +395,7 @@ public class LogListener extends VisPlugin {
     	}
     });
 
-    
+
     logTable.setComponentPopupMenu(popupMenu);
 
     /* Fetch log output history */
@@ -515,7 +516,7 @@ public class LogListener extends VisPlugin {
 	}
 
 	private void updateTitle() {
-    setTitle("Log Listener listening on " 
+    setTitle("Log Listener listening on "
         + simulation.getEventCentral().getLogOutputObservationsCount() + " log interfaces");
   }
 
@@ -655,7 +656,7 @@ public class LogListener extends VisPlugin {
           return;
         }
       }
-    });  
+    });
   }
 
   private class LogData {
@@ -726,8 +727,8 @@ public class LogListener extends VisPlugin {
         PrintWriter outStream = new PrintWriter(new FileWriter(saveFile));
         for(LogData data : logs) {
           outStream.println(
-              data.getTime() + "\t" + 
-              data.getID() + "\t" + 
+              data.getTime() + "\t" +
+              data.getID() + "\t" +
               data.ev.getMessage());
         }
         outStream.close();
@@ -817,7 +818,7 @@ public class LogListener extends VisPlugin {
       }
     }
   };
-  
+
   private Action timeLineAction = new AbstractAction("Timeline") {
     private static final long serialVersionUID = -6358463434933029699L;
     public void actionPerformed(ActionEvent e) {
@@ -833,7 +834,7 @@ public class LogListener extends VisPlugin {
       	if (!(p instanceof TimeLine)) {
       		continue;
       	}
-      	
+
         /* Select simulation time */
       	TimeLine plugin = (TimeLine) p;
         plugin.trySelectTime(time);
@@ -856,7 +857,7 @@ public class LogListener extends VisPlugin {
       	if (!(p instanceof RadioLogger)) {
       		continue;
       	}
-      	
+
         /* Select simulation time */
       	RadioLogger plugin = (RadioLogger) p;
         plugin.trySelectTime(time);
@@ -891,7 +892,7 @@ public class LogListener extends VisPlugin {
       model.fireTableRowsDeleted(0, size - 1);
     }
   }
-  
+
   private Action copyAction = new AbstractAction("Selected") {
     private static final long serialVersionUID = -8433490108577001803L;
 
@@ -952,5 +953,21 @@ public class LogListener extends VisPlugin {
       clipboard.setContents(stringSelection, null);
     }
   };
+
+  public String getQuickHelp() {
+    return
+        "<b>Log Listener</b>" +
+        "<p>Listens to log output from all simulated motes. " +
+        "Right-click the main area for a popup menu with more options. " +
+        "<p>You may filter shown logs by entering regular expressions in the bottom text field. " +
+        "Filtering is performed on both the Mote and the Data columns." +
+        "<p><b>Filter examples:</b> " +
+        "<br><br>Hello<br><i>logs containing the string 'Hello'</i>" +
+        "<br><br>^Contiki<br><i>logs starting with 'Contiki'</i>" +
+        "<br><br>^[CR]<br><i>logs starting either a C or an R</i>" +
+        "<br><br>Hello$<br><i>logs ending with 'Hello'</i>" +
+        "<br><br>^ID:[2-5]$<br><i>logs from motes 2 to 5</i>" +
+        "<br><br>^ID:[2-5] Contiki<br><i>logs from motes 2 to 5 starting with 'Contiki'</i>";
+  }
 
 }
