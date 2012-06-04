@@ -64,6 +64,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -102,7 +103,7 @@ import se.sics.cooja.util.ArrayQueue;
  *
  * @author Fredrik Osterlind, Niclas Finne
  */
-@ClassDescription("Log Listener")
+@ClassDescription("Mote output...")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class LogListener extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = 3294595371354857261L;
@@ -131,7 +132,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
   private ArrayQueue<LogData> logs = new ArrayQueue<LogData>();
 
   private Simulation simulation;
-
+  
   private JTextField filterTextField = null;
   private JLabel filterLabel = new JLabel("Filter: ");
   private Color filterTextFieldBackground;
@@ -194,8 +195,63 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
    * @param gui GUI
    */
   public LogListener(final Simulation simulation, final GUI gui) {
-    super("Log Listener - Listening on ?? mote logs", gui);
+    super("Mote output", gui);
     this.simulation = simulation;
+
+    /* Menus */
+    JMenuBar menuBar = new JMenuBar();
+    JMenu fileMenu = new JMenu("File");
+    JMenu editMenu = new JMenu("Edit");
+    JMenu showMenu = new JMenu("View");
+
+    menuBar.add(fileMenu);
+    menuBar.add(editMenu);
+    menuBar.add(showMenu);
+    this.setJMenuBar(menuBar);
+    
+    editMenu.add(new JMenuItem(copyAllAction));
+    editMenu.add(new JMenuItem(copyAllMessagesAction));
+    editMenu.add(new JMenuItem(copyAction));
+    editMenu.addSeparator();
+    editMenu.add(new JMenuItem(clearAction));
+    
+    
+    fileMenu.add(new JMenuItem(saveAction));
+    appendCheckBox = new JCheckBoxMenuItem(appendAction);
+    fileMenu.add(appendCheckBox);
+    
+    colorCheckbox = new JCheckBoxMenuItem("Mote-specific coloring");
+    showMenu.add(colorCheckbox);
+    colorCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        backgroundColors = colorCheckbox.isSelected();
+        repaint();
+      }
+    });
+    hideDebugCheckbox = new JCheckBoxMenuItem("Hide \"DEBUG: \" messages");
+    showMenu.add(hideDebugCheckbox);
+    hideDebugCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        hideDebug = hideDebugCheckbox.isSelected();
+        setFilter(getFilter());
+        repaint();
+      }
+    });
+    inverseFilterCheckbox = new JCheckBoxMenuItem("Inverse filter");
+    showMenu.add(inverseFilterCheckbox);
+    inverseFilterCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        inverseFilter = inverseFilterCheckbox.isSelected();
+        if (inverseFilter) {
+          filterLabel.setText("Exclude:");
+        } else {
+          filterLabel.setText("Filter:");
+        }
+        setFilter(getFilter());
+        repaint();
+      }
+    });
+
 
     model = new AbstractTableModel() {
       private static final long serialVersionUID = 3065150390849332924L;
@@ -344,7 +400,9 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
     adjuster.packColumns();
 
     /* Popup menu */
+    
     JPopupMenu popupMenu = new JPopupMenu();
+    /*
     JMenu copyClipboard = new JMenu("Copy to clipboard");
     copyClipboard.add(new JMenuItem(copyAllAction));
     copyClipboard.add(new JMenuItem(copyAllMessagesAction));
@@ -356,12 +414,14 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
     appendCheckBox = new JCheckBoxMenuItem(appendAction);
     popupMenu.add(appendCheckBox);
     popupMenu.addSeparator();
+    */
     JMenu focusMenu = new JMenu("Show in");
     focusMenu.add(new JMenuItem(showInAllAction));
     focusMenu.addSeparator();
     focusMenu.add(new JMenuItem(timeLineAction));
     focusMenu.add(new JMenuItem(radioLoggerAction));
     popupMenu.add(focusMenu);
+    /*
     popupMenu.addSeparator();
     colorCheckbox = new JCheckBoxMenuItem("Mote-specific coloring");
     popupMenu.add(colorCheckbox);
@@ -397,7 +457,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
 
 
     logTable.setComponentPopupMenu(popupMenu);
-
+*/
     /* Fetch log output history */
     LogOutputEvent[] history = simulation.getEventCentral().getLogOutputHistory();
     if (history.length > 0) {
@@ -483,8 +543,10 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
 
     updateTitle();
     pack();
-    setSize(gui.getDesktopPane().getWidth(), 150);
-    setLocation(0, gui.getDesktopPane().getHeight() - 310);
+    
+    /* XXX HACK: here we set the position and size of the window when it appears on a blank simulation screen. */
+    this.setLocation(400, 160);
+    this.setSize(gui.getDesktopPane().getWidth() - 400, 240);
   }
 
   public void registerNewLogOutput(Mote mote, long time, String msg) {
@@ -516,8 +578,8 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
 	}
 
 	private void updateTitle() {
-    setTitle("Log Listener listening on "
-        + simulation.getEventCentral().getLogOutputObservationsCount() + " log interfaces");
+ /*   setTitle("Log Listener listening on "
+        + simulation.getEventCentral().getLogOutputObservationsCount() + " log interfaces");*/
   }
 
   public void closePlugin() {
@@ -877,7 +939,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
     }
   };
 
-  private Action clearAction = new AbstractAction("Clear") {
+  private Action clearAction = new AbstractAction("Clear all messages") {
     private static final long serialVersionUID = -2115620313183440224L;
 
     public void actionPerformed(ActionEvent e) {
@@ -893,7 +955,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
     }
   }
 
-  private Action copyAction = new AbstractAction("Selected") {
+  private Action copyAction = new AbstractAction("Copy selected") {
     private static final long serialVersionUID = -8433490108577001803L;
 
     public void actionPerformed(ActionEvent e) {
@@ -916,7 +978,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
     }
   };
 
-  private Action copyAllAction = new AbstractAction("All") {
+  private Action copyAllAction = new AbstractAction("Copy all data") {
     private static final long serialVersionUID = -5038884975254178373L;
 
     public void actionPerformed(ActionEvent e) {
@@ -937,7 +999,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
     }
   };
 
-  private Action copyAllMessagesAction = new AbstractAction("All messages") {
+  private Action copyAllMessagesAction = new AbstractAction("Copy all messages") {
     private static final long serialVersionUID = -5038884975254178373L;
 
     public void actionPerformed(ActionEvent e) {
