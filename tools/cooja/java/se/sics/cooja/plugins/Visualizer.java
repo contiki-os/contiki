@@ -72,6 +72,7 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -125,7 +126,7 @@ import se.sics.cooja.plugins.skins.UDGMVisualizerSkin;
  * @see UDGMVisualizerSkin
  * @author Fredrik Osterlind
  */
-@ClassDescription("Simulation visualizer")
+@ClassDescription("Network...")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class Visualizer extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = 1L;
@@ -138,6 +139,8 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   private Simulation simulation = null;
   private final JPanel canvas;
   private boolean loadedConfig = false;
+
+  private final JMenu viewMenu;
 
   /* Viewport */
   private AffineTransform viewportTransform;
@@ -202,20 +205,57 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     new ArrayList<Class<? extends MoteMenuAction>>();
 
   public Visualizer(Simulation simulation, GUI gui) {
-    super("Simulation Visualizer", gui);
+    super("Network", gui);
     this.gui = gui;
     this.simulation = simulation;
 
-    /* Register external skins */
+    /* Register external visualizers */
     String[] skins = gui.getProjectConfig().getStringArrayValue(Visualizer.class, "SKINS");
     if (skins != null) {
       for (String skinClass: skins) {
         Class<? extends VisualizerSkin> skin = gui.tryLoadClass(this, VisualizerSkin.class, skinClass);
         if (registerVisualizerSkin(skin)) {
-        	logger.info("Registered external visualizer: " + skinClass);
+          logger.info("Registered external visualizer: " + skinClass);
         }
       }
     }
+
+
+    /* Menus */
+    JMenuBar menuBar = new JMenuBar();
+    
+    viewMenu = new JMenu("View");
+    JMenu zoomMenu = new JMenu("Zoom");
+    
+    menuBar.add(viewMenu);
+    menuBar.add(zoomMenu);
+
+    this.setJMenuBar(menuBar);
+
+    JMenuItem zoomInItem = new JMenuItem("Zoom in");
+    zoomInItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        zoomToFactor(zoomFactor() * 1.2);
+      }
+    });
+    zoomMenu.add(zoomInItem);
+
+    JMenuItem zoomOutItem = new JMenuItem("Zoom out");
+    zoomOutItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        zoomToFactor(zoomFactor() / 1.2);
+      }
+    });
+    zoomMenu.add(zoomOutItem);
+
+    JMenuItem resetViewportItem = new JMenuItem("Reset viewport");
+    resetViewportItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        resetViewport = 1;
+        repaint();
+      }
+    });
+    zoomMenu.add(resetViewportItem);
 
     /* Main canvas */
     canvas = new JPanel() {
@@ -254,7 +294,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         skinPopupMenu.setVisible(true);
       }
     });
-    this.add(BorderLayout.NORTH, skinButton);
+    /*this.add(BorderLayout.NORTH, skinButton);*/
     this.add(BorderLayout.CENTER, canvas);
 
     /* Observe simulation and mote positions */
@@ -481,9 +521,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         new DropTarget(canvas, DnDConstants.ACTION_COPY_OR_MOVE, dTargetListener, true, null)
     );
 
-    this.setSize(300, 300);
-    setLocation(gui.getDesktopPane().getWidth() - getWidth(), 0);
     resetViewport = 3; /* XXX Quick-fix */
+
+    /* XXX HACK: here we set the position and size of the window when it appears on a blank simulation screen. */
+    this.setLocation(1, 1);
+    this.setSize(400, 400);       
   }
 
   private void generateAndActivateSkin(Class<? extends VisualizerSkin> skinClass) {
@@ -531,6 +573,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         simulation.getGUI().tryLoadClass(this, VisualizerSkin.class, skin);
       generateAndActivateSkin(skinClass);
     }
+    populateSkinMenu(viewMenu);
   }
 
   public VisualizerSkin[] getCurrentSkins() {
@@ -641,12 +684,12 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     /* Visualizer skin actions */
     menu.add(new JSeparator());
-    JMenu skinMenu = new JMenu("Visualizers");
+    /*JMenu skinMenu = new JMenu("Visualizers");
     populateSkinMenu(skinMenu);
     menu.add(skinMenu);
     makeSkinsDefaultAction.putValue(Action.NAME, "Set default visualizers");
     JMenuItem skinDefaultItem = new JMenuItem(makeSkinsDefaultAction);
-    menu.add(skinDefaultItem);
+    menu.add(skinDefaultItem);*/
 
     /* Show menu */
     menu.setLocation(new Point(
@@ -752,7 +795,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   private void handleMousePress(MouseEvent mouseEvent) {
     int x = mouseEvent.getX();
     int y = mouseEvent.getY();
-  	clickedMote = null;
+    clickedMote = null;
 
     if (mouseEvent.isControlDown()) {
       /* Zoom */
@@ -765,7 +808,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     final Mote[] motes = findMotesAtPosition(x, y);
     if (mouseEvent.isShiftDown() ||
-            (!mouseEvent.isAltDown() && (motes == null || motes.length == 0))) {
+        (!mouseEvent.isAltDown() && (motes == null || motes.length == 0))) {
       /* No motes clicked or shift pressed: We should pan */
       panning = true;
       panningPosition = transformPixelToPosition(x, y);
@@ -774,8 +817,8 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     if (motes != null && motes.length > 0) {
       /* One of the clicked motes should be moved */
-    	clickedMote = motes[0];
-      beginMoveRequest(motes[0], !mouseEvent.isAltDown(), !mouseEvent.isAltDown());
+      clickedMote = motes[0];
+      beginMoveRequest(motes[0], false, false);
     }
   }
 
@@ -789,6 +832,26 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     moveConfirm = confirm;
     movedMote = moteToMove;
     repaint();
+  }
+
+  private double zoomFactor()
+  {
+    return viewportTransform.getScaleX();
+  }
+
+  private void zoomToFactor(double newZoom) {
+    viewportTransform.setToScale(
+        newZoom,
+        newZoom
+    );
+    
+    /*Position moved = transformPixelToPosition(zoomingPixel);
+     viewportTransform.translate(
+         moved.getXCoordinate() - zoomingPosition.getXCoordinate(),
+         moved.getYCoordinate() - zoomingPosition.getYCoordinate()
+     );*/
+    repaint();
+
   }
 
   private void handleMouseMove(MouseEvent e, boolean stop) {
@@ -841,28 +904,35 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     /* Moving */
     if (moving) {
+      Position newPos = transformPixelToPosition(x, y);
+
       if (!stop) {
         canvas.setCursor(moveCursor);
+        movedMote.getInterfaces().getPosition().setCoordinates(
+            newPos.getXCoordinate(),
+            newPos.getYCoordinate(),
+            movedMote.getInterfaces().getPosition().getZCoordinate()
+        );
+        repaint();
         return;
       }
-
       /* Restore cursor */
       canvas.setCursor(Cursor.getDefaultCursor());
+      
 
       /* Move mote */
       if (moveStartTime < 0 || System.currentTimeMillis() - moveStartTime > 300) {
-        Position newPos = transformPixelToPosition(x, y);
         if (moveConfirm) {
-            String options[] = {"Yes", "Cancel"};
-            int returnValue = JOptionPane.showOptionDialog(Visualizer.this,
-                    "Move mote to" +
-                    "\nX=" + newPos.getXCoordinate() +
-                    "\nY=" + newPos.getYCoordinate() +
-                    "\nZ=" + movedMote.getInterfaces().getPosition().getZCoordinate(),
-                    "Move mote?",
-                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
-                    null, options, options[0]);
-            moving = returnValue == JOptionPane.YES_OPTION;
+          String options[] = {"Yes", "Cancel"};
+          int returnValue = JOptionPane.showOptionDialog(Visualizer.this,
+              "Move mote to" +
+              "\nX=" + newPos.getXCoordinate() +
+              "\nY=" + newPos.getYCoordinate() +
+              "\nZ=" + movedMote.getInterfaces().getPosition().getZCoordinate(),
+              "Move mote?",
+              JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+              null, options, options[0]);
+          moving = returnValue == JOptionPane.YES_OPTION;
         }
         if (moving) {
           movedMote.getInterfaces().getPosition().setCoordinates(
@@ -1392,7 +1462,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       return "Move " + mote;
     }
     public void doAction(Visualizer visualizer, Mote mote) {
-      visualizer.beginMoveRequest(mote, false, true);
+      visualizer.beginMoveRequest(mote, false, false);
     }
   };
 
@@ -1455,20 +1525,13 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
   public String getQuickHelp() {
     return
-        "<b>Visualizer</b> " +
-        "<p>The visualizer shows the positions of simulated motes as viewed from above (XY-plane). " +
-        "It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. Motes can be moved by dragging them (ALT+Mouse drag). " +
-        "Mouse right-click a mote or unoccupied space for a popup menu with more options. " +
-        "<p>The visualizer supports \"visualizer skins\". " +
-        "Each skin provides some specific information, such as ongoing simulated radio traffic, or the IP addresses of motes. " +
-        "Multiple skins can be active at the same time. " +
-        "Click the upper \"Select visualizer skin\" button to select or deselect skins. " +
-        "<p><b>Useful skins</b> " +
-        "<br>Mote IDs: prints the unique mote IDs inside motes. " +
-        "<br>Log output: prints the last printf message above motes. " +
-        "<br>Radio traffic: displays inter-mote radio communication. " +
-        "<br>Radio environment (UDGM): enables configurating the UDGM radio medium. " +
-        "<p><b>Tip</b><br> " +
-        "Right-click visualizer to show the popup menu, and click \"Hide window decorations\".";
+    "<b>Network</b> " +
+    "<p>The network windo shows the positions of simulated motes. " +
+    "It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. Motes can be moved by dragging them. " +
+    "Mouse right-click motes for options. " +
+    "<p>The network window suppors different views. " +
+    "Each view provides some specific information, such as the IP addresses of motes. " +
+    "Multiple views can be active at the same time. " +
+    "Use the View menu to select views. ";
   };
 }
