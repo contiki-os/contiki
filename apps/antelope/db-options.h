@@ -87,6 +87,10 @@
 #endif /* DB_MAX_ELEMENT_SIZE */
 
 
+#ifndef DB_VM_BYTECODE_SIZE
+#define DB_VM_BYTECODE_SIZE		128
+#endif /* DB_VM_BYTECODE_SIZE */
+
 /* Language options. */
 #ifndef AQL_MAX_QUERY_LENGTH
 #define AQL_MAX_QUERY_LENGTH        	128
