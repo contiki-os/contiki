@@ -34,7 +34,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
-import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
@@ -42,6 +41,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
+import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -109,6 +109,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
@@ -286,7 +288,7 @@ public class GUI extends Observable {
 
   private static final int FRAME_STANDARD_HEIGHT = 300;
 
-  private static final String WINDOW_TITLE = "Cooja: The Contiki Simulation Environment";
+  private static final String WINDOW_TITLE = "Cooja: The Contiki Network Simulator";
 
   private GUI myGUI;
 
@@ -294,7 +296,7 @@ public class GUI extends Observable {
 
   protected GUIEventHandler guiEventHandler = new GUIEventHandler();
 
-  private JMenu menuPlugins, menuMoteTypeClasses, menuMoteTypes;
+  private JMenu toolsMenu, menuMoteTypeClasses, menuMoteTypes;
 
   private JMenu menuOpenSimulation;
   private boolean hasFileHistoryChanged;
@@ -367,14 +369,13 @@ public class GUI extends Observable {
     myGUI = this;
     mySimulation = null;
     myDesktopPane = desktop;
-    if (menuPlugins == null) {
-      menuPlugins = new JMenu("Tools");
-      menuPlugins.setMnemonic(KeyEvent.VK_T);
-      menuPlugins.removeAll();
+    if (toolsMenu == null) {
+      toolsMenu = new JMenu("Tools");
+      toolsMenu.removeAll();
 
       /* COOJA/GUI plugins at top, simulation plugins in middle, mote plugins at bottom */
-      menuPlugins.addSeparator();
-      menuPlugins.addSeparator();
+      /*toolsMenu.addSeparator();
+      toolsMenu.addSeparator();*/
     }
     if (menuMotePluginClasses == null) {
       menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
@@ -681,8 +682,7 @@ public class GUI extends Observable {
   }
 
   private JMenuBar createMenuBar() {
-    JMenuBar menuBar = new JMenuBar();
-    JMenu menu;
+ 
     JMenuItem menuItem;
 
     /* Prepare GUI actions */
@@ -698,9 +698,30 @@ public class GUI extends Observable {
     guiActions.add(removeAllMotesAction);
     guiActions.add(showBufferSettingsAction);
 
+    /* Menus */
+    JMenuBar menuBar = new JMenuBar();
+    JMenu fileMenu = new JMenu("File");
+    JMenu simulationMenu = new JMenu("Simulation");
+    JMenu motesMenu = new JMenu("Motes");
+    /* toolsMenu = new JMenu("Tools"); */
+    JMenu settingsMenu = new JMenu("Settings");
+    JMenu helpMenu = new JMenu("Help");
+    
+    menuBar.add(fileMenu);
+    menuBar.add(simulationMenu);
+    menuBar.add(motesMenu);
+    menuBar.add(toolsMenu);
+    menuBar.add(settingsMenu);
+    menuBar.add(helpMenu);
+    
+    fileMenu.setMnemonic(KeyEvent.VK_F);
+    simulationMenu.setMnemonic(KeyEvent.VK_S);
+    motesMenu.setMnemonic(KeyEvent.VK_M);
+    toolsMenu.setMnemonic(KeyEvent.VK_T);
+    helpMenu.setMnemonic(KeyEvent.VK_H);
+    
     /* File menu */
-    menu = new JMenu("File");
-    menu.addMenuListener(new MenuListener() {
+    fileMenu.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
         updateGUIComponentState();
         updateOpenHistoryMenuItems();
@@ -711,43 +732,35 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    menu.setMnemonic(KeyEvent.VK_F);
-    menuBar.add(menu);
-
-    menu.add(new JMenuItem(newSimulationAction));
+    
+    fileMenu.add(new JMenuItem(newSimulationAction));
 
     menuOpenSimulation = new JMenu("Open simulation");
     menuOpenSimulation.setMnemonic(KeyEvent.VK_O);
-    menu.add(menuOpenSimulation);
+    fileMenu.add(menuOpenSimulation);
     if (isVisualizedInApplet()) {
       menuOpenSimulation.setEnabled(false);
       menuOpenSimulation.setToolTipText("Not available in applet version");
     }
 
-    menu.add(new JMenuItem(closeSimulationAction));
+    fileMenu.add(new JMenuItem(closeSimulationAction));
 
     hasFileHistoryChanged = true;
 
-    menu.add(new JMenuItem(saveSimulationAction));
+    fileMenu.add(new JMenuItem(saveSimulationAction));
 
-    menu.add(new JMenuItem(exportExecutableJARAction));
-
-    menuItem = new JMenu("Reload simulation");
-    menuItem.add(new JMenuItem(reloadSimulationAction));
-    menuItem.add(new JMenuItem(reloadRandomSimulationAction));
-    menu.add(menuItem);
+    fileMenu.add(new JMenuItem(exportExecutableJARAction));
 
     /*    menu.addSeparator();*/
 
     /*    menu.add(new JMenuItem(closePluginsAction));*/
 
-    menu.addSeparator();
+    fileMenu.addSeparator();
 
-    menu.add(new JMenuItem(exitCoojaAction));
+    fileMenu.add(new JMenuItem(exitCoojaAction));
 
     /* Simulation menu */
-    menu = new JMenu("Simulation");
-    menu.addMenuListener(new MenuListener() {
+    simulationMenu.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
         updateGUIComponentState();
       }
@@ -756,28 +769,30 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    menu.setMnemonic(KeyEvent.VK_S);
-    menuBar.add(menu);
 
-    menu.add(new JMenuItem(startStopSimulationAction));
+    simulationMenu.add(new JMenuItem(startStopSimulationAction));
+
+    JMenuItem reloadSimulationMenuItem = new JMenu("Reload simulation");
+    reloadSimulationMenuItem.add(new JMenuItem(reloadSimulationAction));
+    reloadSimulationMenuItem.add(new JMenuItem(reloadRandomSimulationAction));
+    simulationMenu.add(reloadSimulationMenuItem);
 
     GUIAction guiAction = new StartPluginGUIAction("Control panel...");
     menuItem = new JMenuItem(guiAction);
     guiActions.add(guiAction);
     menuItem.setMnemonic(KeyEvent.VK_C);
     menuItem.putClientProperty("class", SimControl.class);
-    menu.add(menuItem);
+    simulationMenu.add(menuItem);
 
     guiAction = new StartPluginGUIAction("Simulation...");
     menuItem = new JMenuItem(guiAction);
     guiActions.add(guiAction);
     menuItem.setMnemonic(KeyEvent.VK_I);
     menuItem.putClientProperty("class", SimInformation.class);
-    menu.add(menuItem);
+    simulationMenu.add(menuItem);
 
     // Mote type menu
-    menu = new JMenu("Mote types");
-    menu.addMenuListener(new MenuListener() {
+    motesMenu.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
         updateGUIComponentState();
       }
@@ -786,10 +801,9 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    menuBar.add(menu);
 
     // Mote type classes sub menu
-    menuMoteTypeClasses = new JMenu("Create mote type");
+    menuMoteTypeClasses = new JMenu("Create new mote type");
     menuMoteTypeClasses.setMnemonic(KeyEvent.VK_C);
     menuMoteTypeClasses.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
@@ -828,7 +842,7 @@ public class GUI extends Observable {
           menuItem = new JMenuItem(description);
           menuItem.setActionCommand("create mote type");
           menuItem.putClientProperty("class", moteTypeClass);
-          menuItem.setToolTipText(abstractionLevelDescription);
+        /*  menuItem.setToolTipText(abstractionLevelDescription);*/
           menuItem.addActionListener(guiEventHandler);
           if (isVisualizedInApplet() && moteTypeClass.equals(ContikiMoteType.class)) {
             menuItem.setEnabled(false);
@@ -851,18 +865,12 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    menu.add(menuMoteTypeClasses);
+    
 
-    guiAction = new StartPluginGUIAction("Mote types...");
-    menuItem = new JMenuItem(guiAction);
-    guiActions.add(guiAction);
-    menuItem.putClientProperty("class", MoteTypeInformation.class);
-
-    menu.add(menuItem);
+    
 
     // Mote menu
-    menu = new JMenu("Motes");
-    menu.addMenuListener(new MenuListener() {
+    motesMenu.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
         updateGUIComponentState();
       }
@@ -871,32 +879,39 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    menu.setMnemonic(KeyEvent.VK_M);
-    menuBar.add(menu);
+    
 
     // Mote types sub menu
-    menuMoteTypes = new JMenu("Add motes of type");
+    menuMoteTypes = new JMenu("Add motes");
     menuMoteTypes.setMnemonic(KeyEvent.VK_A);
     menuMoteTypes.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
         // Clear menu
         menuMoteTypes.removeAll();
 
-        if (mySimulation == null) {
-          return;
-        }
+        
+        
+        if (mySimulation != null) {
+          
+          // Recreate menu items
+          JMenuItem menuItem;
 
-        // Recreate menu items
-        JMenuItem menuItem;
-
-        for (MoteType moteType : mySimulation.getMoteTypes()) {
-          menuItem = new JMenuItem(moteType.getDescription());
-          menuItem.setActionCommand("add motes");
-          menuItem.setToolTipText(getDescriptionOf(moteType.getClass()));
-          menuItem.putClientProperty("motetype", moteType);
-          menuItem.addActionListener(guiEventHandler);
-          menuMoteTypes.add(menuItem);
+          for (MoteType moteType : mySimulation.getMoteTypes()) {
+            menuItem = new JMenuItem(moteType.getDescription());
+            menuItem.setActionCommand("add motes");
+            menuItem.setToolTipText(getDescriptionOf(moteType.getClass()));
+            menuItem.putClientProperty("motetype", moteType);
+            menuItem.addActionListener(guiEventHandler);
+            menuMoteTypes.add(menuItem);
+          }
+          
+          if(mySimulation.getMoteTypes().length > 0) {
+            menuMoteTypes.add(new JSeparator());
+          }
         }
+        
+        
+        menuMoteTypes.add(menuMoteTypeClasses);
       }
 
       public void menuDeselected(MenuEvent e) {
@@ -905,27 +920,21 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    menu.add(menuMoteTypes);
+    motesMenu.add(menuMoteTypes);
 
+    guiAction = new StartPluginGUIAction("Mote types...");
+    menuItem = new JMenuItem(guiAction);
+    guiActions.add(guiAction);
+    menuItem.putClientProperty("class", MoteTypeInformation.class);
 
-    menu.add(new JMenuItem(removeAllMotesAction));
+    motesMenu.add(menuItem);
+    
+    motesMenu.add(new JMenuItem(removeAllMotesAction));
 
-    // Plugins menu
-    if (menuPlugins == null) {
-      menuPlugins = new JMenu("Tools");
-      menuPlugins.removeAll();
-
-      /* COOJA/GUI plugins at top, simulation plugins in middle, mote plugins at bottom */
-      menuPlugins.addSeparator();
-      menuPlugins.addSeparator();
-    } else {
-      menuPlugins.setText("Tools");
-    }
-    menuPlugins.setMnemonic(KeyEvent.VK_T);
-    menuBar.add(menuPlugins);
-    menuPlugins.addMenuListener(new MenuListener() {
+    // Tools menu    
+    toolsMenu.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
-        for (Component menuComponent: menuPlugins.getMenuComponents()) {
+        for (Component menuComponent: toolsMenu.getMenuComponents()) {
           if (!(menuComponent instanceof JMenuItem)) {
             continue;
           }
@@ -980,8 +989,7 @@ public class GUI extends Observable {
     });
 
     // Settings menu
-    menu = new JMenu("Settings");
-    menu.addMenuListener(new MenuListener() {
+    settingsMenu.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
         updateGUIComponentState();
       }
@@ -990,12 +998,11 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    menuBar.add(menu);
 
     menuItem = new JMenuItem("External tools paths...");
     menuItem.setActionCommand("edit paths");
     menuItem.addActionListener(guiEventHandler);
-    menu.add(menuItem);
+    settingsMenu.add(menuItem);
     if (isVisualizedInApplet()) {
       menuItem.setEnabled(false);
       menuItem.setToolTipText("Not available in applet version");
@@ -1004,7 +1011,7 @@ public class GUI extends Observable {
     menuItem = new JMenuItem("Cooja extensions...");
     menuItem.setActionCommand("manage extensions");
     menuItem.addActionListener(guiEventHandler);
-    menu.add(menuItem);
+    settingsMenu.add(menuItem);
     if (isVisualizedInApplet()) {
       menuItem.setEnabled(false);
       menuItem.setToolTipText("Not available in applet version");
@@ -1013,39 +1020,36 @@ public class GUI extends Observable {
     menuItem = new JMenuItem("Cooja mote configuration wizard...");
     menuItem.setActionCommand("configuration wizard");
     menuItem.addActionListener(guiEventHandler);
-    menu.add(menuItem);
+    settingsMenu.add(menuItem);
     if (isVisualizedInApplet()) {
       menuItem.setEnabled(false);
       menuItem.setToolTipText("Not available in applet version");
     }
 
-    menu.add(new JMenuItem(showBufferSettingsAction));
+    settingsMenu.add(new JMenuItem(showBufferSettingsAction));
 
-    /* Help */
-    menu = new JMenu("Help");
-    menu.setMnemonic(KeyEvent.VK_H);
-    menu.add(new JMenuItem(showGettingStartedAction));
-    menu.add(new JMenuItem(showKeyboardShortcutsAction));
+    /* Help */    
+    helpMenu.add(new JMenuItem(showGettingStartedAction));
+    helpMenu.add(new JMenuItem(showKeyboardShortcutsAction));
     JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(showQuickHelpAction);
     showQuickHelpAction.putValue("checkbox", checkBox);
-    menu.add(checkBox);
-    menuBar.add(menu);
+    helpMenu.add(checkBox);
 
-    menu.addSeparator();
+    helpMenu.addSeparator();
 
     menuItem = new JMenuItem("Java version: "
         + System.getProperty("java.version") + " ("
         + System.getProperty("java.vendor") + ")");
     menuItem.setEnabled(false);
-    menu.add(menuItem);
+    helpMenu.add(menuItem);
     menuItem = new JMenuItem("System \"os.arch\": "
         + System.getProperty("os.arch"));
     menuItem.setEnabled(false);
-    menu.add(menuItem);
+    helpMenu.add(menuItem);
     menuItem = new JMenuItem("System \"sun.arch.data.model\": "
         + System.getProperty("sun.arch.data.model"));
     menuItem.setEnabled(false);
-    menu.add(menuItem);
+    helpMenu.add(menuItem);
 
     // Mote plugins popup menu (not available via menu bar)
     if (menuMotePluginClasses == null) {
@@ -1171,11 +1175,21 @@ public class GUI extends Observable {
 
     ToolTipManager.sharedInstance().setDismissDelay(60000);
 
-    /* Nimbus */
+    /* Nimbus */  
     try {
       String osName = System.getProperty("os.name").toLowerCase();
       if (osName.startsWith("linux")) {
-        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        try {
+          for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+            if ("Nimbus".equals(info.getName())) {
+                UIManager.setLookAndFeel(info.getClassName());
+                break;
+            }
+          }
+          
+        } catch (UnsupportedLookAndFeelException e) {
+          UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } 
       } else {
         UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
       }
@@ -1297,7 +1311,7 @@ public class GUI extends Observable {
     logger.info("> Creating mote type");
     ContikiMoteType moteType = new ContikiMoteType();
     moteType.setContikiSourceFile(new File(source));
-    moteType.setDescription("Cooja Mote Type (" + source + ")");
+    moteType.setDescription("Cooja mote type (" + source + ")");
 
     try {
       boolean compileOK = moteType.configureAndInit(GUI.getTopParentContainer(), simulation, true);
@@ -1821,14 +1835,14 @@ public class GUI extends Observable {
    */
   public void unregisterPlugin(Class<? extends Plugin> pluginClass) {
     /* Remove from menu */
-    for (Component menuComponent : menuPlugins.getMenuComponents()) {
+    for (Component menuComponent : toolsMenu.getMenuComponents()) {
     	if (!(menuComponent instanceof JMenuItem)) {
     		continue;
     	}
 
       JMenuItem menuItem = (JMenuItem) menuComponent;
       if (menuItem.getClientProperty("class").equals(pluginClass)) {
-      	menuPlugins.remove(menuItem);
+      	toolsMenu.remove(menuItem);
       }
     }
 
@@ -1882,7 +1896,7 @@ public class GUI extends Observable {
       return false;
     }
 
-    if (addToMenu && menuPlugins != null) {
+    if (addToMenu && toolsMenu != null) {
       new RunnableInEDT<Boolean>() {
         public Boolean work() {
           // Create 'start plugin'-menu item
@@ -1892,8 +1906,8 @@ public class GUI extends Observable {
           /* Sort menu according to plugin type */
           int itemIndex=0;
           if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-            for (; itemIndex < menuPlugins.getItemCount(); itemIndex++) {
-              if (menuPlugins.getItem(itemIndex) == null /* separator */) {
+            for (; itemIndex < toolsMenu.getItemCount(); itemIndex++) {
+              if (toolsMenu.getItem(itemIndex) == null /* separator */) {
                 break;
               }
             }
@@ -1905,14 +1919,14 @@ public class GUI extends Observable {
               }
             });
           } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
-            for (; itemIndex < menuPlugins.getItemCount(); itemIndex++) {
-              if (menuPlugins.getItem(itemIndex) == null /* separator */) {
+            for (; itemIndex < toolsMenu.getItemCount(); itemIndex++) {
+              if (toolsMenu.getItem(itemIndex) == null /* separator */) {
                 break;
               }
             }
             itemIndex++;
-            for (; itemIndex < menuPlugins.getItemCount(); itemIndex++) {
-              if (menuPlugins.getItem(itemIndex) == null /* separator */) {
+            for (; itemIndex < toolsMenu.getItemCount(); itemIndex++) {
+              if (toolsMenu.getItem(itemIndex) == null /* separator */) {
                 break;
               }
             }
@@ -1927,7 +1941,7 @@ public class GUI extends Observable {
             tooltip += "Mote plugin: " + newPluginClass.getName();
             tooltip += "\nStart mote plugins by right-clicking a mote in the simulation visualizer";
             menuMotePluginClasses.add(newPluginClass);
-            itemIndex = menuPlugins.getItemCount();
+            itemIndex = toolsMenu.getItemCount();
           } else {
             logger.warn("Unknown plugin type: " + pluginType);
             return false;
@@ -1941,10 +1955,10 @@ public class GUI extends Observable {
           }
 
           tooltip += "</html>";
-          menuItem.setToolTipText(tooltip);
+          /*menuItem.setToolTipText(tooltip); */
           menuItem.putClientProperty("class", newPluginClass);
 
-          menuPlugins.add(menuItem, itemIndex);
+          toolsMenu.add(menuItem, itemIndex);
           return true;
         }
       }.invokeAndWait();
@@ -1958,12 +1972,12 @@ public class GUI extends Observable {
    * Unregister all plugin classes
    */
   public void unregisterPlugins() {
-    if (menuPlugins != null) {
-      menuPlugins.removeAll();
+    if (toolsMenu != null) {
+      toolsMenu.removeAll();
 
       /* COOJA/GUI plugins at top, simulation plugins in middle, mote plugins at bottom */
-      menuPlugins.addSeparator();
-      menuPlugins.addSeparator();
+      toolsMenu.addSeparator();
+      toolsMenu.addSeparator();
     }
     if (menuMotePluginClasses != null) {
       menuMotePluginClasses.clear();
@@ -2154,7 +2168,7 @@ public class GUI extends Observable {
           int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
               "You have an active simulation.\nDo you want to remove it?",
               "Remove current simulation?", JOptionPane.YES_NO_OPTION,
-              JOptionPane.QUESTION_MESSAGE, null, options, s1);
+              JOptionPane.QUESTION_MESSAGE, null, options, s2);
           if (n != JOptionPane.YES_OPTION) {
             return false;
           }
