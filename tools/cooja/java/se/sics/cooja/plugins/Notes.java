@@ -56,13 +56,13 @@ import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
 
-@ClassDescription("Notes")
-@PluginType(PluginType.SIM_PLUGIN)
+@ClassDescription("Notes...")
+@PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class Notes extends VisPlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(Visualizer.class);
 
-  private JTextArea notes = new JTextArea("enter simulation notes here");
+  private JTextArea notes = new JTextArea("Enter notes here");
   private boolean decorationsVisible = true;
 
   public Notes(Simulation simulation, GUI gui) {
@@ -100,7 +100,10 @@ public class Notes extends VisPlugin {
       });
     }
 
-    this.setSize(300, 300);
+
+    /* XXX HACK: here we set the position and size of the window when it appears on a blank simulation screen. */
+    this.setLocation(680, 0);
+    this.setSize(gui.getDesktopPane().getWidth() - 680, 160);
   }
 
   public String getNotes() {
