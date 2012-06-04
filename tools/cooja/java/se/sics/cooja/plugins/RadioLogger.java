@@ -57,11 +57,13 @@ import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -100,8 +102,8 @@ import se.sics.cooja.util.StringUtils;
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Radio Logger")
-@PluginType(PluginType.SIM_PLUGIN)
+@ClassDescription("Radio messages...")
+@PluginType(PluginType.SIM_PLUGIN) 
 public class RadioLogger extends VisPlugin {
   private static Logger logger = Logger.getLogger(RadioLogger.class);
   private static final long serialVersionUID = -6927091711697081353L;
@@ -135,12 +137,26 @@ public class RadioLogger extends VisPlugin {
   private JTextField searchField = new JTextField(30);
 
   public RadioLogger(final Simulation simulationToControl, final GUI gui) {
-    super("Radio Logger", gui);
+    super("Radio messages", gui);
     setLayout(new BorderLayout());
     
     simulation = simulationToControl;
     radioMedium = simulation.getRadioMedium();
 
+    /* Menus */
+    JMenuBar menuBar = new JMenuBar();
+    JMenu fileMenu = new JMenu("File");
+    JMenu editMenu = new JMenu("Edit");
+    JMenu analyzerMenu = new JMenu("Analyzer");
+    JMenu payloadMenu = new JMenu("Payload");
+    
+    menuBar.add(fileMenu);
+    menuBar.add(editMenu);
+    menuBar.add(analyzerMenu);
+    menuBar.add(payloadMenu);
+    
+    this.setJMenuBar(menuBar);
+    
     ArrayList<PacketAnalyzer> lowpanAnalyzers = new ArrayList<PacketAnalyzer>();
     lowpanAnalyzers.add(new IEEE802154Analyzer(false));
     lowpanAnalyzers.add(new IPHCPacketAnalyzer());
@@ -313,16 +329,18 @@ public class RadioLogger extends VisPlugin {
 
     dataTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
-    JPopupMenu popupMenu = new JPopupMenu();
-    popupMenu.add(new JMenuItem(copyAction));
-    popupMenu.add(new JMenuItem(copyAllAction));
-    popupMenu.add(new JMenuItem(clearAction));
-    popupMenu.addSeparator();
-    popupMenu.add(new JMenuItem(aliasAction));
-    popupMenu.addSeparator();
-    popupMenu.add(new JMenuItem(saveAction));
-    popupMenu.addSeparator();
+    editMenu.add(new JMenuItem(copyAllAction));
+    editMenu.add(new JMenuItem(copyAction));
+    editMenu.add(new JSeparator());
+    editMenu.add(new JMenuItem(clearAction));
+    
+    payloadMenu.add(new JMenuItem(aliasAction));
+    
+    fileMenu.add(new JMenuItem(saveAction));
 
+    
+    JPopupMenu popupMenu = new JPopupMenu();
+    
     JMenu focusMenu = new JMenu("Show in");
     focusMenu.add(new JMenuItem(showInAllAction));
     focusMenu.addSeparator();
@@ -331,22 +349,22 @@ public class RadioLogger extends VisPlugin {
     popupMenu.add(focusMenu);
 
     //a group of radio button menu items
-    popupMenu.addSeparator();
+    
     ButtonGroup group = new ButtonGroup();
     JRadioButtonMenuItem rbMenuItem = new JRadioButtonMenuItem(
             createAnalyzerAction("No Analyzer", "none", null, true));
     group.add(rbMenuItem);
-    popupMenu.add(rbMenuItem);
+    analyzerMenu.add(rbMenuItem);
 
     rbMenuItem = new JRadioButtonMenuItem(createAnalyzerAction(
         "6LoWPAN Analyzer", "6lowpan", lowpanAnalyzers, false));
     group.add(rbMenuItem);
-    popupMenu.add(rbMenuItem);
+    analyzerMenu.add(rbMenuItem);
 
     rbMenuItem = new JRadioButtonMenuItem(createAnalyzerAction(
             "6LoWPAN Analyzer with PCAP", "6lowpan-pcap", lowpanAnalyzersPcap, false));
     group.add(rbMenuItem);
-    popupMenu.add(rbMenuItem);
+    analyzerMenu.add(rbMenuItem);
 
     
     /* Load additional analyzers specified by projects (cooja.config) */
@@ -436,11 +454,11 @@ public class RadioLogger extends VisPlugin {
             if (isVisible) {
               dataTable.scrollRectToVisible(dataTable.getCellRect(dataTable.getRowCount() - 1, 0, true));
             }
-            setTitle("Radio Logger: " + dataTable.getRowCount() + " packets");
-          }
+            setTitle("Radio messages: " + dataTable.getRowCount() + " messages seen");
+          }  
         });
-      }
-    });
+        }
+      });
 
     setSize(500, 300);
     try {
@@ -788,7 +806,7 @@ public class RadioLogger extends VisPlugin {
     }
   };
   
-  private Action saveAction = new AbstractAction("Save to file") {
+  private Action saveAction = new AbstractAction("Save to file...") {
     private static final long serialVersionUID = -3942984643211482179L;
 
     public void actionPerformed(ActionEvent e) {
@@ -855,7 +873,7 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
-  private Action logListenerAction = new AbstractAction("Log Listener") {
+  private Action logListenerAction = new AbstractAction("Mote output") {
     private static final long serialVersionUID = 1985006491187878651L;
     public void actionPerformed(ActionEvent e) {
       int selectedRow = dataTable.getSelectedRow();
@@ -875,7 +893,7 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
-  private Action showInAllAction = new AbstractAction("All") {
+  private Action showInAllAction = new AbstractAction("Timeline and mote output") {
     private static final long serialVersionUID = -3888292108886138128L;
     {
        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true));
@@ -887,7 +905,7 @@ public class RadioLogger extends VisPlugin {
   };
 
   private Properties aliases = null;
-  private Action aliasAction = new AbstractAction("Assign alias") {
+  private Action aliasAction = new AbstractAction("Payload alias...") {
     private static final long serialVersionUID = -1678771087456128721L;
 
     public void actionPerformed(ActionEvent e) {
