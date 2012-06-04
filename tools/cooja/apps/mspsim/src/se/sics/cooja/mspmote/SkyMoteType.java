@@ -69,7 +69,7 @@ import se.sics.cooja.mspmote.interfaces.SkyLED;
 import se.sics.cooja.mspmote.interfaces.MspSerial;
 import se.sics.cooja.mspmote.interfaces.SkyTemperature;
 
-@ClassDescription("Sky Mote Type")
+@ClassDescription("Sky mote...")
 @AbstractionLevelDescription("Emulated level")
 public class SkyMoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(SkyMoteType.class);
