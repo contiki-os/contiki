@@ -416,6 +416,10 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         }
 
         MoteInterface moteInterface = getInterfaces().getInterfaceOfType(moteInterfaceClass);
+        if (moteInterface == null) {
+            logger.fatal("Could not find mote interface of class: " + moteInterfaceClass);
+            return false;
+        }
         moteInterface.setConfigXML(element.getChildren(), visAvailable);
       }
     }
