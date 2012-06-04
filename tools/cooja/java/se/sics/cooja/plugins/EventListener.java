@@ -47,7 +47,7 @@ import se.sics.cooja.interfaces.*;
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Event Listener")
+@ClassDescription("Breakpoints...")
 @PluginType(PluginType.SIM_PLUGIN)
 public class EventListener extends VisPlugin {
   private static final long serialVersionUID = 1L;
