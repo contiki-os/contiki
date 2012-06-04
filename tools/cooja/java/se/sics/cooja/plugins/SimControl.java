@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,70 +25,53 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: SimControl.java,v 1.18 2010/11/03 12:29:47 adamdunkels Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.text.NumberFormat;
 import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import org.apache.log4j.Logger;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
-import se.sics.cooja.TimeEvent;
 import se.sics.cooja.VisPlugin;
 
 /**
  * Control panel for starting and pausing the current simulation.
- * Allows for configuring the simulation delay.
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Control Panel")
+@ClassDescription("Simulation control...")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class SimControl extends VisPlugin implements HasQuickHelp {
-  private static final long serialVersionUID = 8452253637624664192L;
-  private static Logger logger = Logger.getLogger(SimControl.class);
+  private static final int LABEL_UPDATE_INTERVAL = 150;
 
   private Simulation simulation;
-  private static final int SLIDE_MIN = -100;
-  private static final int SLIDE_MAX = 1000;
-
-  private static final int LABEL_UPDATE_INTERVAL = 100;
 
   private JButton startButton, stopButton;
-  private JSlider sliderDelay;
-  private JLabel simulationTime, simulationSpeedup, delayLabel;
-  private JFormattedTextField stopTimeTextField;
+  private JLabel simulationTime, simulationSpeedup;
 
   private Observer simObserver;
 
@@ -101,12 +84,60 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
    * @param simulation Simulation to control
    */
   public SimControl(Simulation simulation, GUI gui) {
-    super("Control Panel", gui);
+    super("Simulation control", gui);
     this.simulation = simulation;
 
     /* Update current time label when simulation is running */
     if (simulation.isRunning()) {
       updateLabelTimer.start();
+    }
+
+    /* Menus */
+    JMenuBar menuBar = new JMenuBar();
+    JMenu runMenu = new JMenu("Run");
+    JMenu speedMenu = new JMenu("Speed limit");
+
+    menuBar.add(runMenu);
+    menuBar.add(speedMenu);
+    this.setJMenuBar(menuBar);
+
+    runMenu.add(new JMenuItem(startAction));
+    runMenu.add(new JMenuItem(stopAction));
+    runMenu.add(new JMenuItem(stepAction));
+    runMenu.add(new JMenuItem(reloadAction));
+
+    ButtonGroup speedlimitButtonGroup = new ButtonGroup();
+    JRadioButtonMenuItem limitMenuItemNo = new JRadioButtonMenuItem(
+        new ChangeMaxSpeedLimitAction("No speed limit", null));
+    speedlimitButtonGroup.add(limitMenuItemNo);
+    speedMenu.add(limitMenuItemNo);
+    JRadioButtonMenuItem limitMenuItem1 = new JRadioButtonMenuItem(
+        new ChangeMaxSpeedLimitAction("1%", 0.01));
+    speedlimitButtonGroup.add(limitMenuItem1);
+    speedMenu.add(limitMenuItem1);
+    JRadioButtonMenuItem limitMenuItem2 = new JRadioButtonMenuItem(
+        new ChangeMaxSpeedLimitAction("10%", 0.10));
+    speedlimitButtonGroup.add(limitMenuItem2);
+    speedMenu.add(limitMenuItem2);
+    JRadioButtonMenuItem limitMenuItem3 = new JRadioButtonMenuItem(
+        new ChangeMaxSpeedLimitAction("100%", 1.0));
+    speedlimitButtonGroup.add(limitMenuItem3);
+    speedMenu.add(limitMenuItem3);
+    JRadioButtonMenuItem limitMenuItem4 = new JRadioButtonMenuItem(
+        new ChangeMaxSpeedLimitAction("1000%", 10.0));
+    speedlimitButtonGroup.add(limitMenuItem4);
+    speedMenu.add(limitMenuItem4);
+
+    if (simulation.getSpeedLimit() == null) {
+      limitMenuItemNo.setSelected(true);
+    } else if (simulation.getSpeedLimit().doubleValue() == 0.01) {
+      limitMenuItem1.setSelected(true);
+    } else if (simulation.getSpeedLimit().doubleValue() == 0.10) {
+      limitMenuItem2.setSelected(true);
+    } else if (simulation.getSpeedLimit().doubleValue() == 1.0) {
+      limitMenuItem3.setSelected(true);
+    } else if (simulation.getSpeedLimit().doubleValue() == 10) {
+      limitMenuItem4.setSelected(true);
     }
 
     /* Container */
@@ -129,51 +160,6 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
     smallPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     controlPanel.add(smallPanel);
 
-    /* Run until */
-    smallPanel = new JPanel();
-    smallPanel.setLayout(new BoxLayout(smallPanel, BoxLayout.X_AXIS));
-    smallPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
-
-    JLabel label = new JLabel("Stop at:");
-    smallPanel.add(label);
-
-    smallPanel.add(Box.createHorizontalStrut(10));
-
-    NumberFormat integerFormat = NumberFormat.getIntegerInstance();
-    stopTimeTextField = new JFormattedTextField(integerFormat);
-    stopTimeTextField.addPropertyChangeListener("value", new PropertyChangeListener() {
-      public void propertyChange(PropertyChangeEvent e) {
-        /* Remove already scheduled stop event */
-        if (stopEvent.isScheduled()) {
-          stopEvent.remove();
-        }
-
-        final long t = ((Number)e.getNewValue()).intValue()*Simulation.MILLISECOND;
-        if (t <= SimControl.this.simulation.getSimulationTime()) {
-          /* No simulation stop scheduled */
-          stopTimeTextField.setBackground(Color.LIGHT_GRAY);
-          stopTimeTextField.setToolTipText("Enter simulation time when to automatically pause");
-        } else {
-          /* Schedule simulation stop */
-          stopTimeTextField.setBackground(Color.WHITE);
-          stopTimeTextField.setToolTipText("Simulation will stop at time (us): " + t);
-          SimControl.this.simulation.invokeSimulationThread(new Runnable() {
-            public void run() {
-              if (stopEvent.isScheduled()) {
-                stopEvent.remove();
-              }
-              SimControl.this.simulation.scheduleEvent(stopEvent, t);
-            }
-          });
-        }
-      }
-    });
-    stopTimeTextField.setValue(simulation.getSimulationTimeMillis());
-    stopTimeTextField.setSize(100, stopTimeTextField.getHeight());
-
-    smallPanel.add(stopTimeTextField);
-    smallPanel.add(Box.createHorizontalGlue());
-
     smallPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     controlPanel.add(smallPanel);
 
@@ -182,7 +168,7 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
     smallPanel.setLayout(new BoxLayout(smallPanel, BoxLayout.X_AXIS));
     smallPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
 
-    label = new JLabel("?");
+    JLabel label = new JLabel("?");
     smallPanel.add(label);
     simulationTime = label;
 
@@ -197,41 +183,6 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
     label = new JLabel("?");
     smallPanel.add(label);
     simulationSpeedup = label;
-
-    smallPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    controlPanel.add(smallPanel);
-
-    /* Delay label */
-    smallPanel = new JPanel();
-    smallPanel.setLayout(new BoxLayout(smallPanel, BoxLayout.X_AXIS));
-    smallPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
-
-    label = new JLabel("?");
-    smallPanel.add(label);
-    delayLabel = label;
-
-    smallPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    controlPanel.add(smallPanel);
-
-    /* Delay slider */
-    smallPanel = new JPanel();
-    smallPanel.setLayout(new BoxLayout(smallPanel, BoxLayout.X_AXIS));
-    smallPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 10, 5));
-
-    sliderDelay = new JSlider(
-        JSlider.HORIZONTAL,
-        SLIDE_MIN,
-        SLIDE_MAX,
-        convertTimeToSlide(simulation.getDelayTime()));
-    sliderDelay.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-        SimControl.this.simulation.setDelayTime(
-            convertSlideToTime(sliderDelay.getValue()));
-        updateValues();
-      }
-    });
-
-    smallPanel.add(sliderDelay);
 
     smallPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     controlPanel.add(smallPanel);
@@ -253,32 +204,30 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
 
     this.lastSystemTimeTimestamp = System.currentTimeMillis();
     this.lastSimulationTimeTimestamp = 0;
+
+    /* XXX HACK: here we set the position and size of the window when it
+     * appears on a blank simulation screen. */
+    this.setLocation(400, 0);
+    this.setSize(280, 160);
+  }
+
+  private class ChangeMaxSpeedLimitAction extends AbstractAction {
+    private Double maxSpeed;
+    public ChangeMaxSpeedLimitAction(String name, Double maxSpeed) {
+      super(name);
+      this.maxSpeed = maxSpeed;
+    }
+    public void actionPerformed(ActionEvent e) {
+      simulation.setSpeedLimit(maxSpeed);
+    }
   }
 
   private void updateValues() {
-    /* Update simulation delay */
-    sliderDelay.setValue(convertTimeToSlide(simulation.getDelayTime()));
-    if (simulation.getDelayTime() == 0) {
-      delayLabel.setText("No simulation delay");
-    } else if (simulation.getDelayTime() == Integer.MIN_VALUE) {
-      delayLabel.setText("Real time");
-    } else if (simulation.getDelayTime() > 0) {
-      delayLabel.setText("Delay: " + simulation.getDelayTime() + " ms");
-    } else {
-      delayLabel.setText("Delay: 1/" + (-simulation.getDelayTime()) + " ms");
-    }
-
     /* Update current time */
-    simulationTime.setText("Simulation time: "
-        + simulation.getSimulationTimeMillis()
-        + " ms");
-    simulationSpeedup.setText("Relative speed: ---");
+    simulationTime.setText(getTimeString());
+    simulationSpeedup.setText("Speed: ---");
     if (simulation.isRunning() && !updateLabelTimer.isRunning()) {
       updateLabelTimer.start();
-    }
-    if (!simulation.isRunning()) {
-      simulationTime.setToolTipText("Simulation time in microseconds: "
-          + simulation.getSimulationTime());
     }
 
     /* Update control buttons */
@@ -287,44 +236,34 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
       stopAction.setEnabled(true);
       stepAction.setEnabled(false);
     } else {
-      startAction.setEnabled(true);
-      stopAction.setEnabled(false);
-      stepAction.setEnabled(true);
-
-      if (!stopEvent.isScheduled()) {
-        stopTimeTextField.setValue(simulation.getSimulationTimeMillis());
+      if(simulation.isRunnable()) {
+        startAction.setEnabled(true);
+        stepAction.setEnabled(true);
+      } else {
+        startAction.setEnabled(false);
+        stepAction.setEnabled(false);
       }
+      stopAction.setEnabled(false);
     }
   }
 
-  private int convertSlideToTime(int slide) {
-    if (slide == SLIDE_MIN) {
-      /* Special case: no delay */
-      return 0;
+  private static final long TIME_SECOND = 1000*Simulation.MILLISECOND;
+  private static final long TIME_MINUTE = 60*TIME_SECOND;
+  private static final long TIME_HOUR = 60*TIME_MINUTE;
+  public String getTimeString() {
+    long t = simulation.getSimulationTime();
+    long h = (t / TIME_HOUR);
+    t -= (t / TIME_HOUR)*TIME_HOUR;
+    long m = (t / TIME_MINUTE);
+    t -= (t / TIME_MINUTE)*TIME_MINUTE;
+    long s = (t / TIME_SECOND);
+    t -= (t / TIME_SECOND)*TIME_SECOND;
+    long ms = t / Simulation.MILLISECOND;
+    if (h > 0) {
+      return String.format("Time: %d:%02d:%02d.%03d", h,m,s,ms);
+    } else {
+      return String.format("Time: %02d:%02d.%03d", m,s,ms);
     }
-    if (slide == SLIDE_MIN+1) {
-      /* Special case: real time */
-      return Integer.MIN_VALUE;
-    }
-    if (slide <= 0) {
-      return slide-2; /* Ignore special cases */
-    }
-    return slide;
-  }
-
-  private int convertTimeToSlide(int time) {
-    if (time == 0) {
-      /* Special case: no delay */
-      return SLIDE_MIN;
-    }
-    if (time == Integer.MIN_VALUE) {
-      /* Special case: real time */
-      return SLIDE_MIN+1;
-    }
-    if (time < 0) {
-      return time+2; /* Ignore special cases */
-    }
-    return time;
   }
 
   public void closePlugin() {
@@ -333,46 +272,23 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
       simulation.deleteObserver(simObserver);
     }
 
-    /* Remove stop event */
-    if (stopEvent.isScheduled()) {
-      stopEvent.remove();
-    }
-
     /* Remove label update timer */
     updateLabelTimer.stop();
   }
 
-  private TimeEvent stopEvent = new TimeEvent(0) {
-    public void execute(long t) {
-      /* Stop simulation */
-      simulation.stopSimulation();
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          stopTimeTextField.setBackground(Color.LIGHT_GRAY);
-          stopTimeTextField.setToolTipText("Enter simulation time when to automatically pause");
-          stopTimeTextField.requestFocus();
-        }
-      });
-    }
-  };
-
   private Timer updateLabelTimer = new Timer(LABEL_UPDATE_INTERVAL, new ActionListener() {
     public void actionPerformed(ActionEvent e) {
-      simulationTime.setText("Simulation time: "
-          + simulation.getSimulationTimeMillis()
-          + " ms");
+      simulationTime.setText(getTimeString());
 
       long systemTimeDiff = System.currentTimeMillis() - lastSystemTimeTimestamp;
 
-      if(systemTimeDiff > 1000) {
-
+      if (systemTimeDiff > 1000) {
         long simulationTimeDiff = simulation.getSimulationTimeMillis() - lastSimulationTimeTimestamp;
         lastSimulationTimeTimestamp = simulation.getSimulationTimeMillis();
         lastSystemTimeTimestamp = System.currentTimeMillis();
 
-        //        long String.format("%2.2f"
         double speedup = (double)simulationTimeDiff / (double)systemTimeDiff;
-        simulationSpeedup.setText(String.format("Relative speed: %2.2f%%", 100 * speedup));
+        simulationSpeedup.setText(String.format("Speed: %2.2f%%", 100 * speedup));
       }
 
       /* Automatically stop if simulation is no longer running */
@@ -413,10 +329,6 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
         "<p>The keyboard shortcut for starting and pausing the simulation is <i>Ctrl+S</i>. " +
         "<p><i>Step</i> runs the simulation for one millisecond. " +
         "<p><i>Reload</i> reloads and restarts the simulation. " +
-        "<p>Writing simulation time in milliseconds in the <i>Stop at</i> field causes the simulation to pause at the given time. " +
-        "<p>Simulation speed is controlled via the bottom slider. " +
-        "If the slider value is zero, simulation runs at full speed. " +
-        "<p>Setting the slider to <i>Real time</i>, simulation speed is capped to not run faster than real time. " +
-        "The <i>Real time</i> slider value is to the right of <i>No simulation delay</i>: click on the slider button and press the right arrow key on the keyboard. ";
+        "<p>Simulation speed is controlled via the Speed limit menu.";
   }
 }

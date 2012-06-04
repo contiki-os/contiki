@@ -34,6 +34,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
@@ -41,7 +42,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
-import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -109,8 +109,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
@@ -682,7 +682,7 @@ public class GUI extends Observable {
   }
 
   private JMenuBar createMenuBar() {
- 
+
     JMenuItem menuItem;
 
     /* Prepare GUI actions */
@@ -706,20 +706,20 @@ public class GUI extends Observable {
     /* toolsMenu = new JMenu("Tools"); */
     JMenu settingsMenu = new JMenu("Settings");
     JMenu helpMenu = new JMenu("Help");
-    
+
     menuBar.add(fileMenu);
     menuBar.add(simulationMenu);
     menuBar.add(motesMenu);
     menuBar.add(toolsMenu);
     menuBar.add(settingsMenu);
     menuBar.add(helpMenu);
-    
+
     fileMenu.setMnemonic(KeyEvent.VK_F);
     simulationMenu.setMnemonic(KeyEvent.VK_S);
     motesMenu.setMnemonic(KeyEvent.VK_M);
     toolsMenu.setMnemonic(KeyEvent.VK_T);
     helpMenu.setMnemonic(KeyEvent.VK_H);
-    
+
     /* File menu */
     fileMenu.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
@@ -732,7 +732,7 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    
+
     fileMenu.add(new JMenuItem(newSimulationAction));
 
     menuOpenSimulation = new JMenu("Open simulation");
@@ -865,9 +865,9 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    
 
-    
+
+
 
     // Mote menu
     motesMenu.addMenuListener(new MenuListener() {
@@ -879,7 +879,7 @@ public class GUI extends Observable {
       public void menuCanceled(MenuEvent e) {
       }
     });
-    
+
 
     // Mote types sub menu
     menuMoteTypes = new JMenu("Add motes");
@@ -889,10 +889,10 @@ public class GUI extends Observable {
         // Clear menu
         menuMoteTypes.removeAll();
 
-        
-        
+
+
         if (mySimulation != null) {
-          
+
           // Recreate menu items
           JMenuItem menuItem;
 
@@ -904,13 +904,13 @@ public class GUI extends Observable {
             menuItem.addActionListener(guiEventHandler);
             menuMoteTypes.add(menuItem);
           }
-          
+
           if(mySimulation.getMoteTypes().length > 0) {
             menuMoteTypes.add(new JSeparator());
           }
         }
-        
-        
+
+
         menuMoteTypes.add(menuMoteTypeClasses);
       }
 
@@ -928,10 +928,10 @@ public class GUI extends Observable {
     menuItem.putClientProperty("class", MoteTypeInformation.class);
 
     motesMenu.add(menuItem);
-    
+
     motesMenu.add(new JMenuItem(removeAllMotesAction));
 
-    // Tools menu    
+    // Tools menu
     toolsMenu.addMenuListener(new MenuListener() {
       public void menuSelected(MenuEvent e) {
         for (Component menuComponent: toolsMenu.getMenuComponents()) {
@@ -1028,7 +1028,7 @@ public class GUI extends Observable {
 
     settingsMenu.add(new JMenuItem(showBufferSettingsAction));
 
-    /* Help */    
+    /* Help */
     helpMenu.add(new JMenuItem(showGettingStartedAction));
     helpMenu.add(new JMenuItem(showKeyboardShortcutsAction));
     JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(showQuickHelpAction);
@@ -1175,7 +1175,7 @@ public class GUI extends Observable {
 
     ToolTipManager.sharedInstance().setDismissDelay(60000);
 
-    /* Nimbus */  
+    /* Nimbus */
     try {
       String osName = System.getProperty("os.name").toLowerCase();
       if (osName.startsWith("linux")) {
@@ -1186,10 +1186,10 @@ public class GUI extends Observable {
                 break;
             }
           }
-          
+
         } catch (UnsupportedLookAndFeelException e) {
           UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        } 
+        }
       } else {
         UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
       }
@@ -3211,7 +3211,7 @@ public class GUI extends Observable {
             logger.fatal("Error: " + e.getMessage(), e);
             System.exit(1);
           }
-          sim.setDelayTime(0);
+          sim.setSpeedLimit(null);
           sim.startSimulation();
         } else {
           logger.fatal("No test editor controlling simulation, aborting");
@@ -4499,7 +4499,7 @@ public class GUI extends Observable {
       super.setEnabled(newValue);
     }
     public boolean shouldBeEnabled() {
-      return getSimulation() != null;
+      return getSimulation() != null && getSimulation().isRunnable();
     }
   };
   class StartPluginGUIAction extends GUIAction {

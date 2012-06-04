@@ -133,8 +133,8 @@ pingOnceProcess  = new java.lang.Runtime.getRuntime().exec(pingOnceCmd);
 GENERATE_MSG(5000, "continue");
 WAIT_UNTIL(msg.equals("continue"));
 
-/* override simulation delay to realtime */
-mote.getSimulation().setDelayTime(java.lang.Integer.MIN_VALUE);
+/* override simulation speed limit to realtime */
+mote.getSimulation().setSpeedLimit(1.0);
 
 /* start ping process */
 var runnableObj = new Object();
