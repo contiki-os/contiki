@@ -71,7 +71,7 @@ import se.sics.cooja.interfaces.Position;
  * 
  * @author Joakim Eriksson, Fredrik Osterlind
  */
-@ClassDescription("MicaZ Mote Type")
+@ClassDescription("MicaZ mote...")
 @AbstractionLevelDescription("Emulated level")
 public class MicaZMoteType implements MoteType {
   private static Logger logger = Logger.getLogger(MicaZMoteType.class);
