@@ -31,8 +31,10 @@
 package se.sics.cooja.mspmote.interfaces;
 
 import java.util.Collection;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
+
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.RadioPacket;
@@ -42,6 +44,7 @@ import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteTimeEvent;
+import se.sics.mspsim.chip.CC2420;
 import se.sics.mspsim.chip.ChannelListener;
 import se.sics.mspsim.chip.RFListener;
 import se.sics.mspsim.chip.Radio802154;
@@ -207,8 +210,8 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
 
     lastIncomingPacket = packet;
     /* TODO Check isReceiverOn() instead? */
-    if (radio.isReadyToReceive()) {
-      logger.warn("Radio is turned off, dropping packet data");
+    if (!radio.isReadyToReceive()) {
+      logger.warn("Radio receiver not ready, dropping packet data");
       return;
     }
 
@@ -394,7 +397,16 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
-  public boolean isReceiverOn() {
-      return radio.isReadyToReceive();
+  public boolean isRadioOn() {
+    if (radio.isReadyToReceive()) {
+      return true;
+    }
+    if (radio.getMode() == CC2420.MODE_POWER_OFF) {
+      return false;
+    }
+    if (radio.getMode() == CC2420.MODE_TXRX_OFF) {
+      return false;
+    }
+    return true;
   }
 }

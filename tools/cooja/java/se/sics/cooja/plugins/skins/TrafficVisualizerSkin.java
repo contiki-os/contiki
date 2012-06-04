@@ -192,7 +192,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
       return null;
     }
 
-    if (!moteRadio.isReceiverOn()) {
+    if (!moteRadio.isRadioOn()) {
       return new Color[] { Color.GRAY };
     }
 

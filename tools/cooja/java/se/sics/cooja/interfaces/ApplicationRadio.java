@@ -392,7 +392,7 @@ public class ApplicationRadio extends Radio implements NoiseSourceRadio, Directi
     this.setChanged();
     this.notifyObservers();
   }
-  public boolean isReceiverOn() {
+  public boolean isRadioOn() {
     return radioOn;
   }
 
