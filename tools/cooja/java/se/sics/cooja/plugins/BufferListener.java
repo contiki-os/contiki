@@ -107,7 +107,7 @@ import se.sics.cooja.util.StringUtils;
 /**
  * @author Fredrik Osterlind, Niclas Finne
  */
-@ClassDescription("Buffer Listener")
+@ClassDescription("Buffer view...")
 @PluginType(PluginType.SIM_PLUGIN)
 public class BufferListener extends VisPlugin {
   private static final long serialVersionUID = 1L;

@@ -90,7 +90,7 @@ import se.sics.cooja.util.StringUtils;
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Cooja Mote Type")
+@ClassDescription("Cooja mote...")
 @AbstractionLevelDescription("OS level")
 public class ContikiMoteType implements MoteType {
   private static Logger logger = Logger.getLogger(ContikiMoteType.class);

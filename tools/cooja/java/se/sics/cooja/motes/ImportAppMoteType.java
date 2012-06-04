@@ -52,7 +52,7 @@ import se.sics.cooja.util.ArrayUtils;
 /**
  * @author Fredrik Osterlind
  */
-@ClassDescription("Imported App Mote Type")
+@ClassDescription("Import Java mote...")
 @AbstractionLevelDescription("Application level")
 public class ImportAppMoteType extends AbstractApplicationMoteType {
 
