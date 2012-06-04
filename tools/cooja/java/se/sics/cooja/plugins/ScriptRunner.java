@@ -132,16 +132,16 @@ public class ScriptRunner extends VisPlugin {
     JMenu fileMenu = new JMenu("File");
     JMenu editMenu = new JMenu("Edit");
     JMenu runMenu = new JMenu("Run");
-    
+
     menuBar.add(fileMenu);
     menuBar.add(editMenu);
     menuBar.add(runMenu);
-    
+
     this.setJMenuBar(menuBar);
-    
+
     /* Examples popup menu */
     JMenu examplesMenu = new JMenu("Load example script");
-    
+
     for (int i=0; i < EXAMPLE_SCRIPTS.length; i += 2) {
       final String file = EXAMPLE_SCRIPTS[i];
       JMenuItem exampleItem = new JMenuItem(EXAMPLE_SCRIPTS[i+1]);
@@ -161,7 +161,7 @@ public class ScriptRunner extends VisPlugin {
     }
 
     fileMenu.add(examplesMenu);
-    
+
     {
       /* Workaround to configure jsyntaxpane */
       JEditorPane e = new JEditorPane();
@@ -242,7 +242,7 @@ public class ScriptRunner extends VisPlugin {
 
     JPanel buttonPanel = new JPanel(new BorderLayout());
     /*buttonPanel.add(BorderLayout.CENTER, toggleButton);*/
-    
+
 /*    buttonPanel.add(BorderLayout.EAST, runTestButton);*/
 
     JPanel southPanel = new JPanel(new BorderLayout());
@@ -663,7 +663,7 @@ public class ScriptRunner extends VisPlugin {
       } catch (Exception e) {
         logger.fatal("Error: " + e.getMessage(), e);
       }
-      simulation.setDelayTime(0);
+      simulation.setSpeedLimit(null);
       simulation.startSimulation();
     }
     return true;

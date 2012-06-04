@@ -63,8 +63,13 @@ public class Simulation extends Observable implements Runnable {
 
   private Vector<MoteType> moteTypes = new Vector<MoteType>();
 
-  private int delayTime=0, delayPeriod=1;
-  private long delayLastSim;
+  /* If true, run simulation at full speed */
+  private boolean speedLimitNone = true;
+  /* Limit simulation speed to maxSpeed; if maxSpeed is 1.0 simulation is run at real-time speed */
+  private double speedLimit;
+  /* Used to restrict simulation speed */
+  private long speedLimitLastSimtime;
+  private long speedLimitLastRealtime;
 
   private long currentSimulationTime = 0;
 
@@ -191,35 +196,32 @@ public class Simulation extends Observable implements Runnable {
 
   private TimeEvent delayEvent = new TimeEvent(0) {
     public void execute(long t) {
-      /* As fast as possible: no need to reschedule delay event */
-      if (delayTime == 0) {
+      if (speedLimitNone) {
+        /* As fast as possible: no need to reschedule delay event */
         return;
       }
 
-      /* Special case: real time */
-      if (delayPeriod == Integer.MIN_VALUE) {
-        delayLastSim++;
-        long tmp = System.currentTimeMillis();
-        if (delayLastSim > tmp) {
-          try {
-            Thread.sleep(delayLastSim-tmp);
-          } catch (InterruptedException e) {
-          }
+      long diffSimtime = (getSimulationTime() - speedLimitLastSimtime)/1000; /* ms */
+      long diffRealtime = System.currentTimeMillis() - speedLimitLastRealtime; /* ms */
+      long expectedDiffRealtime = (long) (diffSimtime/speedLimit);
+      long sleep = expectedDiffRealtime - diffRealtime;
+      if (sleep >= 0) {
+        /* Slow down simulation */
+        try {
+          Thread.sleep(sleep);
+        } catch (InterruptedException e) {
         }
-
-        /* Reschedule us next millisecond */
         scheduleEvent(this, t+MILLISECOND);
-        return;
+      } else {
+        /* Reduce slow-down: execute this delay event less often */
+        scheduleEvent(this, t-sleep*MILLISECOND);
       }
 
-      /* Normal operation */
-      try {
-        Thread.sleep(delayTime);
-      } catch (InterruptedException e) {
+      /* Update counters every second */
+      if (diffRealtime > 1000) {
+        speedLimitLastRealtime = System.currentTimeMillis();
+        speedLimitLastSimtime = getSimulationTime();
       }
-
-      /* Reschedule us next period */
-      scheduleEvent(this, t+delayPeriod*MILLISECOND);
     }
     public String toString() {
       return "DELAY";
@@ -249,7 +251,8 @@ public class Simulation extends Observable implements Runnable {
     long lastStartTime = System.currentTimeMillis();
     logger.info("Simulation main loop started, system time: " + lastStartTime);
     isRunning = true;
-    delayLastSim = System.currentTimeMillis();
+    speedLimitLastRealtime = System.currentTimeMillis();
+    speedLimitLastSimtime = getSimulationTime();
 
     /* Simulation starting */
     this.setChanged();
@@ -473,10 +476,12 @@ public class Simulation extends Observable implements Runnable {
     element.setText(title);
     config.add(element);
 
-    // Delay time
-    element = new Element("delaytime");
-    element.setText("" + getDelayTime());
-    config.add(element);
+    /* Max simulation speed */
+    if (!speedLimitNone) {
+      element = new Element("speedlimit");
+      element.setText("" + getSpeedLimit());
+      config.add(element);
+    }
 
     // Random seed
     element = new Element("randomseed");
@@ -560,9 +565,14 @@ public class Simulation extends Observable implements Runnable {
         title = element.getText();
       }
 
-      // Delay time
-      if (element.getName().equals("delaytime")) {
-        setDelayTime(Integer.parseInt(element.getText()));
+      /* Max simulation speed */
+      if (element.getName().equals("speedlimit")) {
+        String text = element.getText();
+        if (text.equals("null")) {
+          setSpeedLimit(null);
+        } else {
+          setSpeedLimit(Double.parseDouble(text));
+        }
       }
 
       // Random seed
@@ -942,42 +952,27 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * Set delay time (ms).
-   * The simulation loop delays given value every simulated millisecond.
-   * If the value is zero there is no delay.
-   * If the value is negative, the simulation loop delays 1ms every (-time) simulated milliseconds.
-   *
-   * Examples:
-   * time=0: no sleeping (simulation runs as fast as possible).
-   * time=10: simulation delays 10ms every simulated millisecond.
-   * time=-5: simulation delays 1ms every 5 simulated milliseconds.
-   *
-   * Special case:
-   * time=Integer.MIN_VALUE: simulation tries to execute at real time.
-   *
-   * @param time New delay time value
+   * Limit simulation speed to given ratio.
+   * This method may be called from outside the simulation thread.
+   * @param newSpeedLimit
    */
-  public void setDelayTime(int time) {
-    if (time == Integer.MIN_VALUE) {
-      /* Special case: real time */
-      delayTime = Integer.MIN_VALUE;
-      delayPeriod = Integer.MIN_VALUE;
-      delayLastSim = System.currentTimeMillis();
-    } else if (time < 0) {
-      delayTime = 1;
-      delayPeriod = -time;
-    } else {
-      delayTime = time;
-      delayPeriod = 1; /* minimum */
-    }
-
+  public void setSpeedLimit(final Double newSpeedLimit) {
     invokeSimulationThread(new Runnable() {
       public void run() {
-        if (!delayEvent.isScheduled()) {
-          scheduleEvent(
-              delayEvent,
-              currentSimulationTime - (currentSimulationTime % MILLISECOND) + MILLISECOND);
+        if (newSpeedLimit == null) {
+          speedLimitNone = true;
+          return;
         }
+
+        speedLimitNone = false;
+        speedLimitLastRealtime = System.currentTimeMillis();
+        speedLimitLastSimtime = getSimulationTime();
+        speedLimit = newSpeedLimit.doubleValue();
+
+        if (delayEvent.isScheduled()) {
+          delayEvent.remove();
+        }
+        scheduleEvent(delayEvent, currentSimulationTime);
         Simulation.this.setChanged();
         Simulation.this.notifyObservers(this);
       }
@@ -985,23 +980,13 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * Returns current delay time value.
-   * Note that this value can be negative.
-   *
-   * @see #setDelayTime(int)
-   * @return Delay time value. May be negative, see {@link #setDelayTime(int)}
+   * @return Max simulation speed ratio. Returns null if no limit.
    */
-  public int getDelayTime() {
-    /* Special case: real time */
-    if (delayPeriod == Integer.MIN_VALUE) {
-      return Integer.MIN_VALUE;
+  public Double getSpeedLimit() {
+    if (speedLimitNone) {
+      return null;
     }
-
-    if (delayPeriod > 1) {
-      return -delayPeriod;
-    }
-
-    return delayTime;
+    return new Double(speedLimit);
   }
 
   /**
@@ -1087,9 +1072,12 @@ public class Simulation extends Observable implements Runnable {
    * @return True if simulation is runnable
    */
   public boolean isRunnable() {
-    return motes.size() > 0;
+    if (motes.isEmpty()) {
+      return false;
+    }
+    return isRunning || hasPollRequests || eventQueue.peekFirst() != null;
   }
-  
+
   /**
    * Get current simulation title (short description).
    *
@@ -1108,5 +1096,4 @@ public class Simulation extends Observable implements Runnable {
   public void setTitle(String title) {
     this.title = title;
   }
-
 }

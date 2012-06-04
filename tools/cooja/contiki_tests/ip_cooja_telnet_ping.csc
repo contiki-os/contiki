@@ -161,8 +161,8 @@ while (currentMote &lt;= NR_MOTES) {
 GENERATE_MSG(1000, "continue");
 WAIT_UNTIL(msg.equals("continue"));
 
-/* override simulation delay to realtime */
-mote.getSimulation().setDelayTime(java.lang.Integer.MIN_VALUE);
+/* override simulation speed limit to realtime */
+mote.getSimulation().setSpeedLimit(1.0);
 
 /* ping motes */
 currentMote = 1;
