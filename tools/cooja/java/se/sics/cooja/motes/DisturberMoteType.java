@@ -57,7 +57,7 @@ import se.sics.cooja.interfaces.Radio.RadioEvent;
  * @see DisturberMote
  * @author Fredrik Osterlind, Thiemo Voigt
  */
-@ClassDescription("Disturber Mote Type")
+@ClassDescription("Disturber mote")
 @AbstractionLevelDescription("Application level")
 public class DisturberMoteType extends AbstractApplicationMoteType {
   private static Logger logger = Logger.getLogger(DisturberMoteType.class);
