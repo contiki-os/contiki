@@ -108,7 +108,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     counters.add(Box.createHorizontalStrut(10));
     counters.add(interferedCounter);
 
-    visualizer.getCurrentCanvas().add(counters);
+ /*   visualizer.getCurrentCanvas().add(counters);*/
 
     /* Start observing radio medium and radios */
     radioMedium.addRadioMediumObserver(radioMediumObserver = new Observer() {
