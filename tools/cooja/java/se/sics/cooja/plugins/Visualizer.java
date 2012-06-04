@@ -68,7 +68,6 @@ import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
@@ -88,16 +87,16 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
-import se.sics.cooja.GUI.MoteRelation;
 import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.RadioMedium;
-import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.VisPlugin;
+import se.sics.cooja.GUI.MoteRelation;
+import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.interfaces.LED;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.SerialPort;

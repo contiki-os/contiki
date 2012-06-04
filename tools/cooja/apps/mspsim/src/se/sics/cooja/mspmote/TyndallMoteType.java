@@ -62,7 +62,7 @@ import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.TyndallLED;
 import se.sics.cooja.mspmote.interfaces.UsciA0Serial;
 
-@ClassDescription("Tyndall")
+@ClassDescription("Tyndall mote...")
 @AbstractionLevelDescription("Emulated level")
 public class TyndallMoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(TyndallMoteType.class);
