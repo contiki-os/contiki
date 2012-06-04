@@ -354,7 +354,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
     return mote;
   }
 
-  public boolean isReceiverOn() {
+  public boolean isRadioOn() {
     /* TODO Implement me */
     return true;
   }

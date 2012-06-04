@@ -215,7 +215,7 @@ public class UDGM extends AbstractRadioMedium {
       if (distance <= moteTransmissionRange) {
         /* Within transmission range */
 
-        if (!recv.isReceiverOn()) {
+        if (!recv.isRadioOn()) {
           newConnection.addInterfered(recv);
           recv.interfereAnyReception();
         } else if (recv.isInterfered()) {

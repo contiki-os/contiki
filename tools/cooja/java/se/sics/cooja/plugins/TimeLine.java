@@ -1004,7 +1004,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
     final Radio moteRadio = mote.getInterfaces().getRadio();
     if (moteRadio != null) {
       RadioHWEvent startupHW = new RadioHWEvent(
-          simulation.getSimulationTime(), moteRadio.isReceiverOn());
+          simulation.getSimulationTime(), moteRadio.isRadioOn());
       if (radioChannels) {
       	startupHW.channel = moteRadio.getChannel();
       }
@@ -1024,7 +1024,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       			lastChannel = nowChannel;
 
             RadioHWEvent ev = new RadioHWEvent(
-                simulation.getSimulationTime(), moteRadio.isReceiverOn());
+                simulation.getSimulationTime(), moteRadio.isRadioOn());
             if (radioChannels) {
             	ev.channel = moteRadio.getChannel();
             }
@@ -1044,7 +1044,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         	if (moteRadio.getLastEvent() == RadioEvent.HW_ON ||
               moteRadio.getLastEvent() == RadioEvent.HW_OFF) {
             RadioHWEvent ev = new RadioHWEvent(
-                simulation.getSimulationTime(), moteRadio.isReceiverOn());
+                simulation.getSimulationTime(), moteRadio.isRadioOn());
             if (radioChannels) {
             	ev.channel = moteRadio.getChannel();
             }
@@ -1074,7 +1074,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
             if (moteRadio.isTransmitting()) {
               ev = new RadioRXTXEvent(
                   simulation.getSimulationTime(), RXTXRadioEvent.TRANSMITTING);
-            } else if (!moteRadio.isReceiverOn()) {
+            } else if (!moteRadio.isRadioOn()) {
               ev = new RadioRXTXEvent(
                   simulation.getSimulationTime(), RXTXRadioEvent.IDLE);
             } else if (moteRadio.isInterfered()) {

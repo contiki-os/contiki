@@ -192,7 +192,7 @@ public class MRM extends AbstractRadioMedium {
       double recvSignalStrength = probData[1];
       if (recvProb == 1.0 || random.nextDouble() < recvProb) {
         /* Yes, the receiver *may* receive this packet (it's strong enough) */
-        if (!recv.isReceiverOn()) {
+        if (!recv.isRadioOn()) {
           newConnection.addInterfered(recv);
           recv.interfereAnyReception();
         } else if (recv.isInterfered()) {
