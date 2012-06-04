@@ -1082,6 +1082,15 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
+   * Return true is simulation is runnable.
+   *
+   * @return True if simulation is runnable
+   */
+  public boolean isRunnable() {
+    return motes.size() > 0;
+  }
+  
+  /**
    * Get current simulation title (short description).
    *
    * @return Title
