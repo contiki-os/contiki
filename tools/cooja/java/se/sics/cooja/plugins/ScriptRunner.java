@@ -58,9 +58,12 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -84,7 +87,7 @@ import se.sics.cooja.VisPlugin;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.util.StringUtils;
 
-@ClassDescription("Contiki Test Editor")
+@ClassDescription("Simulation script editor...")
 @PluginType(PluginType.SIM_PLUGIN)
 public class ScriptRunner extends VisPlugin {
   private static final long serialVersionUID = 7614358340336799109L;
@@ -115,28 +118,34 @@ public class ScriptRunner extends VisPlugin {
   private JEditorPane codeEditor = null;
 
   private JTextArea logTextArea = null;
-  private JButton toggleButton = null;
-  private JButton examplesButton = null;
+  /*private JButton toggleButton = null;*/
 
   private JSyntaxLinkFile actionLinkFile = null;
   private File linkedFile = null;
 
   public ScriptRunner(Simulation simulation, GUI gui) {
-    super("Contiki Test Editor", gui, false);
+    super("Simulation script editor", gui, false);
     this.simulation = simulation;
 
+    /* Menus */
+    JMenuBar menuBar = new JMenuBar();
+    JMenu fileMenu = new JMenu("File");
+    JMenu editMenu = new JMenu("Edit");
+    JMenu runMenu = new JMenu("Run");
+    
+    menuBar.add(fileMenu);
+    menuBar.add(editMenu);
+    menuBar.add(runMenu);
+    
+    this.setJMenuBar(menuBar);
+    
     /* Examples popup menu */
-    final JPopupMenu popupMenu = new JPopupMenu();
-    JMenuItem moteItem;
-    moteItem = new JMenuItem("Example script to import:");
-    moteItem.setEnabled(false);
-    popupMenu.add(moteItem);
-    popupMenu.addSeparator();
-
+    JMenu examplesMenu = new JMenu("Load example script");
+    
     for (int i=0; i < EXAMPLE_SCRIPTS.length; i += 2) {
       final String file = EXAMPLE_SCRIPTS[i];
-      moteItem = new JMenuItem(EXAMPLE_SCRIPTS[i+1]);
-      moteItem.addActionListener(new ActionListener() {
+      JMenuItem exampleItem = new JMenuItem(EXAMPLE_SCRIPTS[i+1]);
+      exampleItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String script = loadScript(file);
           if (script == null) {
@@ -148,16 +157,11 @@ public class ScriptRunner extends VisPlugin {
           updateScript(script);
         }
       });
-      popupMenu.add(moteItem);
+      examplesMenu.add(exampleItem);
     }
 
-    examplesButton = new JButton("Example scripts");
-    examplesButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        popupMenu.show(examplesButton, 0, examplesButton.getHeight());
-      }
-    });
-
+    fileMenu.add(examplesMenu);
+    
     {
       /* Workaround to configure jsyntaxpane */
       JEditorPane e = new JEditorPane();
@@ -179,8 +183,9 @@ public class ScriptRunner extends VisPlugin {
     logTextArea.setEditable(true);
     logTextArea.setCursor(null);
 
-    toggleButton = new JButton("Activate");
-    toggleButton.addActionListener(new ActionListener() {
+    /*toggleButton = new JButton("Activate");*/
+    JCheckBoxMenuItem activateMenuItem = new JCheckBoxMenuItem("Activate");
+    activateMenuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         try {
           if (!isActive()) {
@@ -193,9 +198,12 @@ public class ScriptRunner extends VisPlugin {
         }
       }
     });
+    runMenu.add(activateMenuItem);
 
-    JButton runTestButton = new JButton("Run without GUI");
-    runTestButton.addActionListener(new ActionListener() {
+    /*JButton runTestButton = new JButton("Run without GUI");*/
+    JMenuItem runTestMenuItem = new JMenuItem("Save simulation and run with script");
+    runMenu.add(runTestMenuItem);
+    runTestMenuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         exportAndRun();
       }
@@ -233,9 +241,9 @@ public class ScriptRunner extends VisPlugin {
     centerPanel.setResizeWeight(0.5);
 
     JPanel buttonPanel = new JPanel(new BorderLayout());
-    buttonPanel.add(BorderLayout.CENTER, toggleButton);
-    buttonPanel.add(BorderLayout.WEST, examplesButton);
-    buttonPanel.add(BorderLayout.EAST, runTestButton);
+    /*buttonPanel.add(BorderLayout.CENTER, toggleButton);*/
+    
+/*    buttonPanel.add(BorderLayout.EAST, runTestButton);*/
 
     JPanel southPanel = new JPanel(new BorderLayout());
     southPanel.add(BorderLayout.EAST, buttonPanel);
@@ -350,8 +358,8 @@ public class ScriptRunner extends VisPlugin {
 
         if (!headless) {
           actionLinkFile.setEnabled(false);
-          toggleButton.setText("Deactivate");
-          examplesButton.setEnabled(false);
+       /*   toggleButton.setText("Deactivate");*/
+          /*examplesButton.setEnabled(false);*/
           logTextArea.setText("");
           codeEditor.setEnabled(false);
           updateTitle();
@@ -395,8 +403,8 @@ public class ScriptRunner extends VisPlugin {
 
       if (!headless) {
         actionLinkFile.setEnabled(true);
-        toggleButton.setText("Activate");
-        examplesButton.setEnabled(linkedFile==null?true:false);
+        /*toggleButton.setText("Activate")*/;
+        /*examplesButton.setEnabled(linkedFile==null?true:false);*/
         codeEditor.setEnabled(true);
         updateTitle();
       }
@@ -405,14 +413,14 @@ public class ScriptRunner extends VisPlugin {
   }
 
   private void updateTitle() {
-    String title = "Contiki Test Editor ";
+    /*String title = "Contiki Test Editor ";
     if (linkedFile != null) {
       title += ": " + linkedFile.getName() + " ";
     }
     if (isActive()) {
       title += "(ACTIVE) ";
     }
-    setTitle(title);
+    setTitle(title);*/
   }
 
   private void exportAndRun() {
