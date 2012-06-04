@@ -62,7 +62,7 @@ import se.sics.cooja.mspmote.interfaces.MspMoteID;
 import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.UsciA1Serial;
 
-@ClassDescription("TI MSP-EXP430F5438")
+@ClassDescription("EXP430F5438 mote...")
 @AbstractionLevelDescription("Emulated level")
 public class Exp5438MoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(Exp5438MoteType.class);
