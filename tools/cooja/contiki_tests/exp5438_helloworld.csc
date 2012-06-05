@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
   <simulation>
-    <title>Hello World (ESB)</title>
+    <title>Hello World (Exp5438)</title>
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -15,49 +15,57 @@
       <logoutput>40000</logoutput>
     </events>
     <motetype>
-      se.sics.cooja.mspmote.ESBMoteType
-      <identifier>esb1</identifier>
-      <description>ESB Mote Type #esb1</description>
+      se.sics.cooja.mspmote.Exp5438MoteType
+      <identifier>exp5438#1</identifier>
+      <description>Exp5438 Mote Type exp5438#1</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/hello-world/hello-world.c</source>
-      <commands EXPORT="discard">make hello-world.esb TARGET=esb</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/hello-world/hello-world.esb</firmware>
+      <commands EXPORT="discard">make hello-world.exp5438 TARGET=exp5438</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/hello-world/hello-world.exp5438</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.ESBLED</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.ESBButton</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.TR1001Radio</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.UsciA1Serial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.Exp5438LED</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
     </motetype>
     <mote>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>57.296459690977144</x>
-        <y>73.20759478605089</y>
+        <x>26.321738050614275</x>
+        <y>34.93092009073432</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
-      <motetype_identifier>esb1</motetype_identifier>
+      <motetype_identifier>exp5438#1</motetype_identifier>
     </mote>
   </simulation>
+  <plugin>
+    se.sics.cooja.plugins.SimControl
+    <width>280</width>
+    <z>2</z>
+    <height>160</height>
+    <location_x>38</location_x>
+    <location_y>49</location_y>
+  </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
     </plugin_config>
-    <width>623</width>
+    <width>680</width>
     <z>1</z>
-    <height>270</height>
-    <location_x>29</location_x>
-    <location_y>256</location_y>
+    <height>240</height>
+    <location_x>86</location_x>
+    <location_y>384</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
@@ -67,17 +75,9 @@
     </plugin_config>
     <width>600</width>
     <z>0</z>
-    <height>453</height>
-    <location_x>337</location_x>
-    <location_y>25</location_y>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.SimControl
-    <width>280</width>
-    <z>2</z>
-    <height>160</height>
-    <location_x>20</location_x>
-    <location_y>23</location_y>
+    <height>700</height>
+    <location_x>347</location_x>
+    <location_y>21</location_y>
   </plugin>
 </simconf>
 

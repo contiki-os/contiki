@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
   <simulation>
-    <title>Hello World (ESB)</title>
+    <title>Hello World (Z1)</title>
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -15,49 +15,57 @@
       <logoutput>40000</logoutput>
     </events>
     <motetype>
-      se.sics.cooja.mspmote.ESBMoteType
-      <identifier>esb1</identifier>
-      <description>ESB Mote Type #esb1</description>
+      se.sics.cooja.mspmote.Z1MoteType
+      <identifier>z11</identifier>
+      <description>Z1 Mote Type #z11</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/hello-world/hello-world.c</source>
-      <commands EXPORT="discard">make hello-world.esb TARGET=esb</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/hello-world/hello-world.esb</firmware>
+      <commands EXPORT="discard">make hello-world.z1 TARGET=z1</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/hello-world/hello-world.z1</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.ESBLED</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.ESBButton</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.TR1001Radio</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDefaultSerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspLED</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
     </motetype>
     <mote>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>57.296459690977144</x>
-        <y>73.20759478605089</y>
+        <x>94.96401380574989</x>
+        <y>21.247662337471553</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
-      <motetype_identifier>esb1</motetype_identifier>
+      <motetype_identifier>z11</motetype_identifier>
     </mote>
   </simulation>
+  <plugin>
+    se.sics.cooja.plugins.SimControl
+    <width>280</width>
+    <z>2</z>
+    <height>160</height>
+    <location_x>38</location_x>
+    <location_y>13</location_y>
+  </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
     </plugin_config>
-    <width>623</width>
+    <width>680</width>
     <z>1</z>
-    <height>270</height>
-    <location_x>29</location_x>
-    <location_y>256</location_y>
+    <height>240</height>
+    <location_x>109</location_x>
+    <location_y>377</location_y>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
@@ -67,17 +75,9 @@
     </plugin_config>
     <width>600</width>
     <z>0</z>
-    <height>453</height>
-    <location_x>337</location_x>
-    <location_y>25</location_y>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.SimControl
-    <width>280</width>
-    <z>2</z>
-    <height>160</height>
-    <location_x>20</location_x>
-    <location_y>23</location_y>
+    <height>700</height>
+    <location_x>330</location_x>
+    <location_y>24</location_y>
   </plugin>
 </simconf>
 
