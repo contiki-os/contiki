@@ -572,7 +572,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         simulation.getGUI().tryLoadClass(this, VisualizerSkin.class, skin);
       generateAndActivateSkin(skinClass);
     }
+    
     populateSkinMenu(viewMenu);
+
   }
 
   public VisualizerSkin[] getCurrentSkins() {
@@ -1338,6 +1340,18 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         skinButton.setVisible(false);
       }
     }
+    
+    /*
+     * This is a hack: since the viewers are activated through an invokeLater
+     * mechanism (see above), we'll have to invoke the
+     * populateSkinMenu(viewMenu) later too. Lets just hope the invokation of
+     * populateSkinMenu() is done later than the activation of the viewers...
+     */ 
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        populateSkinMenu(viewMenu);
+      }
+    });
     return true;
   }
 
