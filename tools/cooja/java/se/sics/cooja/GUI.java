@@ -2031,30 +2031,54 @@ public class GUI extends Observable {
       menuItem.putClientProperty("class", motePluginClass);
       menuItem.putClientProperty("mote", mote);
 
-      /* Check if mote plugin depends on any particular type of mote */
+      /* Check mote plugin requirements */
       boolean enableMenuItem = true;
       if (motePluginClass.getAnnotation(SupportedArguments.class) != null) {
-        enableMenuItem = false;
-        Class<? extends Mote>[] motes = motePluginClass.getAnnotation(SupportedArguments.class).motes();
-        StringBuilder sb = new StringBuilder();
-        sb.append(
-            "<html><pre>This plugin:\n" +
-            motePluginClass.getName() +
-            "\ndoes not support motes of type:\n" +
-            mote.getClass().getName() +
-            "\n\nIt only supports motes of types:\n"
+        /* Check mote interfaces */
+        boolean moteInterfacesOK = true;
+        Class<? extends MoteInterface>[] moteInterfaces = motePluginClass.getAnnotation(SupportedArguments.class).moteInterfaces();
+        StringBuilder moteTypeInterfacesError = new StringBuilder();
+        moteTypeInterfacesError.append(
+            "The plugin:\n" +
+            getDescriptionOf(motePluginClass) +
+            "\nrequires the following mote interfaces:\n"
         );
-        for (Class<? extends Object> o: motes) {
-          sb.append(o.getName() + "\n");
-          if (o.isAssignableFrom(mote.getClass())) {
-            enableMenuItem = true;
-            break;
+        for (Class<? extends MoteInterface> requiredMoteInterface: moteInterfaces) {
+          moteTypeInterfacesError.append(getDescriptionOf(requiredMoteInterface) + "\n");
+          if (mote.getInterfaces().getInterfaceOfType(requiredMoteInterface) == null) {
+            moteInterfacesOK = false;
           }
         }
-        sb.append("</html>");
-        if (!enableMenuItem) {
-          menuItem.setToolTipText(sb.toString());
+
+        /* Check mote type */
+        boolean moteTypeOK = false;
+        Class<? extends Mote>[] motes = motePluginClass.getAnnotation(SupportedArguments.class).motes();
+        StringBuilder moteTypeError = new StringBuilder();
+        moteTypeError.append(
+            "The plugin:\n" +
+            getDescriptionOf(motePluginClass) +
+            "\ndoes not support motes of type:\n" +
+            getDescriptionOf(mote) +
+            "\n\nIt only supports motes of types:\n"
+        );
+        for (Class<? extends Mote> supportedMote: motes) {
+          moteTypeError.append(getDescriptionOf(supportedMote) + "\n");
+          if (supportedMote.isAssignableFrom(mote.getClass())) {
+            moteTypeOK = true;
+          }
         }
+
+        if (!moteInterfacesOK) {
+          menuItem.setToolTipText(
+              "<html><pre>" + moteTypeInterfacesError + "</html>"
+          );
+        }
+        if (!moteTypeOK) {
+          menuItem.setToolTipText(
+              "<html><pre>" + moteTypeError + "</html>"
+          );
+        }
+        enableMenuItem = moteInterfacesOK && moteTypeOK;
       }
 
       menuItem.setEnabled(enableMenuItem);
