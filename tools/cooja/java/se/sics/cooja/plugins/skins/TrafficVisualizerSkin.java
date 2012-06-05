@@ -69,14 +69,16 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   private Visualizer visualizer = null;
   private AbstractRadioMedium radioMedium = null;
 
-  private ArrayList<RadioConnectionArrow> history = new ArrayList<RadioConnectionArrow>();
+  private ArrayList<RadioConnectionArrow> historyList = new ArrayList<RadioConnectionArrow>();
+  private RadioConnectionArrow[] history = null;
 
   private Observer radioMediumObserver = new Observer() {
     public void update(Observable obs, Object obj) {
       RadioConnection last = radioMedium.getLastConnection();
-      if (last != null && history.size() < MAX_HISTORY_SIZE) {
-        history.add(new RadioConnectionArrow(last));
-        visualizer.repaint();
+      if (last != null && historyList.size() < MAX_HISTORY_SIZE) {
+        historyList.add(new RadioConnectionArrow(last));
+        history = historyList.toArray(new RadioConnectionArrow[0]);
+        visualizer.repaint(500);
       }
     }
   };
@@ -86,11 +88,11 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
         return;
       }
 
-      if (history.size() > 0) {
+      if (historyList.size() > 0) {
         boolean hasOld = false;
 
         /* Increase age */
-        for (RadioConnectionArrow connArrow : history) {
+        for (RadioConnectionArrow connArrow : historyList) {
           connArrow.increaseAge();
           if(connArrow.getAge() >= connArrow.getMaxAge()) {
             hasOld = true;
@@ -99,15 +101,16 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
         /* Remove too old arrows */
         if (hasOld) {
-          RadioConnectionArrow[] historyArr = history.toArray(new RadioConnectionArrow[0]);
+          RadioConnectionArrow[] historyArr = historyList.toArray(new RadioConnectionArrow[0]);
           for (RadioConnectionArrow connArrow : historyArr) {
             if(connArrow.getAge() >= connArrow.getMaxAge()) {
-              history.remove(connArrow);
+              historyList.remove(connArrow);
             }
           }
+          historyArr = historyList.toArray(new RadioConnectionArrow[0]);
         }
 
-        visualizer.repaint();
+        visualizer.repaint(500);
       }
 
       /* Reschedule myself */
@@ -120,10 +123,12 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     this.simulation = simulation;
     this.visualizer = vis;
     this.active = true;
-    history.clear();
 
     simulation.invokeSimulationThread(new Runnable() {
       public void run() {
+        historyList.clear();
+        history = null;
+
         /* Start observing radio medium for transmissions */
         radioMedium.addRadioMediumObserver(radioMediumObserver);
 
@@ -179,8 +184,11 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   }
 
   public void paintBeforeMotes(Graphics g) {
-    RadioConnectionArrow[] historyArr = history.toArray(new RadioConnectionArrow[0]);
-    for (RadioConnectionArrow connArrow : historyArr) {
+    RadioConnectionArrow[] historyCopy = history;
+    if (historyCopy == null) {
+      return;
+    }
+    for (RadioConnectionArrow connArrow : historyCopy) {
       float colorHistoryIndex = (float)connArrow.getAge() / (float)connArrow.getMaxAge();
       g.setColor(new Color(colorHistoryIndex, colorHistoryIndex, 1.0f));
       Radio source = connArrow.getConnection().getSource();
@@ -203,13 +211,15 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   private static class RadioConnectionArrow {
     private RadioConnection conn;
     private int age;
-    private final int MAX_AGE = 10;
+    private static final int MAX_AGE = 10;
     RadioConnectionArrow(RadioConnection conn) {
       this.conn = conn;
       this.age = 0;
     }
     public void increaseAge() {
-      age++;
+      if (age < MAX_AGE) {
+        age++;
+      }
     }
     public int getAge() {
       return age;
