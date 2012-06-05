@@ -34,6 +34,7 @@ package se.sics.cooja.plugins.skins;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.util.ArrayDeque;
 import java.util.Observable;
 import java.util.Observer;
@@ -72,25 +73,23 @@ import se.sics.cooja.radiomediums.AbstractRadioMedium;
 @ClassDescription("Radio traffic")
 public class TrafficVisualizerSkin implements VisualizerSkin {
   private static Logger logger = Logger.getLogger(TrafficVisualizerSkin.class);
-
-  private static final boolean DRAW_ARROWS = true;
-  private static final Color COLOR_HISTORY = new Color(100, 100, 100, 100);
-
+  
   private Simulation simulation = null;
   private Visualizer visualizer = null;
 
   private Box counters;
 
-  private final static int HISTORY_SIZE = 16;
-  private boolean showHistory = false;
-  private ArrayDeque<RadioConnection> history = new ArrayDeque<RadioConnection>();
+  private final int MAX_HISTORY_SIZE = 200;
+  private boolean showHistory = true;
+  private ArrayDeque<RadioConnectionArrow> history = new ArrayDeque<RadioConnectionArrow>();
 
   private AbstractRadioMedium radioMedium;
   private Observer radioObserver, radioMediumObserver;
 
-  public void setActive(Simulation simulation, Visualizer vis) {
+  public void setActive(final Simulation simulation, Visualizer vis) {
     if (!(simulation.getRadioMedium() instanceof AbstractRadioMedium)) {
-      logger.fatal("Radio medium type not supported: " + simulation.getRadioMedium());
+      logger.fatal("Radio medium type not supported: "
+          + simulation.getRadioMedium());
       return;
     }
     this.radioMedium = (AbstractRadioMedium) simulation.getRadioMedium();
@@ -99,7 +98,8 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
     final JLabel txCounter = new JLabel("TX: " + radioMedium.COUNTER_TX);
     final JLabel rxCounter = new JLabel("RX: " + radioMedium.COUNTER_RX);
-    final JLabel interferedCounter = new JLabel("INT: " + radioMedium.COUNTER_INTERFERED);
+    final JLabel interferedCounter = new JLabel("INT: "
+        + radioMedium.COUNTER_INTERFERED);
 
     counters = Box.createHorizontalBox();
     counters.add(txCounter);
@@ -108,22 +108,19 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     counters.add(Box.createHorizontalStrut(10));
     counters.add(interferedCounter);
 
- /*   visualizer.getCurrentCanvas().add(counters);*/
+    /* visualizer.getCurrentCanvas().add(counters); */
 
     /* Start observing radio medium and radios */
     radioMedium.addRadioMediumObserver(radioMediumObserver = new Observer() {
       public void update(Observable obs, Object obj) {
         txCounter.setText("TX: " + radioMedium.COUNTER_TX);
         rxCounter.setText("RX: " + radioMedium.COUNTER_RX);
-        interferedCounter.setText("INT: " +  + radioMedium.COUNTER_INTERFERED);
+        interferedCounter.setText("INT: " + +radioMedium.COUNTER_INTERFERED);
 
         if (showHistory) {
           RadioConnection last = radioMedium.getLastConnection();
-          if (last != null) {
-            history.add(last);
-            while (history.size() > HISTORY_SIZE) {
-              history.removeFirst();
-            }
+          if (last != null && history.size() < MAX_HISTORY_SIZE) {
+            history.add(new RadioConnectionArrow(last));
           }
         }
         visualizer.repaint();
@@ -141,6 +138,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
           r.addObserver(radioObserver);
         }
       }
+
       public void moteWasRemoved(Mote mote) {
         Radio r = mote.getInterfaces().getRadio();
         if (r != null) {
@@ -149,13 +147,33 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
         history.clear();
       }
     });
-    for (Mote mote: simulation.getMotes()) {
+    for (Mote mote : simulation.getMotes()) {
       Radio r = mote.getInterfaces().getRadio();
       if (r != null) {
         r.addObserver(radioObserver);
       }
     }
 
+    simulation.addMillisecondObserver(new Observer() {
+      public void update(Observable obs, Object obj) {
+        if((simulation.getSimulationTimeMillis() % 100) == 0) {
+          RadioConnectionArrow[] historyArr = history.toArray(new RadioConnectionArrow[0]);
+          if(historyArr.length > 0) {
+            visualizer.repaint();
+          }
+          for (RadioConnectionArrow connArrow : historyArr) {
+            if (connArrow == null) {
+              continue;
+            }
+            connArrow.increaseAge();
+            if(connArrow.getAge() >= connArrow.getMaxAge()) {
+              history.remove(connArrow);            
+            }
+          }
+        }
+        
+      }
+    });
     /* Register menu actions */
     visualizer.registerSimulationMenuAction(ToggleHistoryAction.class);
   }
@@ -170,7 +188,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
     /* Stop observing radio medium and radios */
     radioMedium.deleteRadioMediumObserver(radioMediumObserver);
-    for (Mote mote: simulation.getMotes()) {
+    for (Mote mote : simulation.getMotes()) {
       Radio r = mote.getInterfaces().getRadio();
       if (r != null) {
         r.addObserver(radioObserver);
@@ -182,35 +200,38 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   }
 
   public Color[] getColorOf(Mote mote) {
-    if (simulation == null) {
-      /* Skin was never activated */
-      return null;
-    }
-
-    Radio moteRadio = mote.getInterfaces().getRadio();
-    if (moteRadio == null) {
-      return null;
-    }
-
-    if (!moteRadio.isRadioOn()) {
-      return new Color[] { Color.GRAY };
-    }
-
-    if (moteRadio.isTransmitting()) {
-      return new Color[] { Color.BLUE };
-    }
-
-    if (moteRadio.isInterfered()) {
-      return new Color[] { Color.RED };
-    }
-
-    if (moteRadio.isReceiving()) {
-      return new Color[] { Color.GREEN };
-    }
-
     return null;
   }
 
+  private Polygon arrowPoly = new Polygon();
+  private void drawArrow(Graphics g, int xSource, int ySource, int xDest, int yDest, int delta) {
+    double dx = xSource - xDest;
+    double dy = ySource - yDest;
+    double dir = Math.atan2(dx, dy);
+    double len = Math.sqrt(dx * dx + dy * dy);
+    dx /= len;
+    dy /= len;
+    len -= delta;
+    xDest = xSource - (int) (dx * len);
+    yDest = ySource - (int) (dy * len);
+    g.drawLine(xDest, yDest, xSource, ySource);
+
+    final int size = 8;
+    arrowPoly.reset();
+    arrowPoly.addPoint(xDest, yDest);
+    arrowPoly.addPoint(xDest + xCor(size, dir + 0.5), yDest + yCor(size, dir + 0.5));
+    arrowPoly.addPoint(xDest + xCor(size, dir - 0.5), yDest + yCor(size, dir - 0.5));
+    arrowPoly.addPoint(xDest, yDest);
+    g.fillPolygon(arrowPoly);
+  }
+
+  private int yCor(int len, double dir) {
+    return (int)(0.5 + len * Math.cos(dir));
+  }
+
+  private int xCor(int len, double dir) {
+    return (int)(0.5 + len * Math.sin(dir));
+  }
   public void paintBeforeMotes(Graphics g) {
     if (simulation == null) {
       /* Skin was never activated */
@@ -219,18 +240,20 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
     if (showHistory) {
       /* Paint history in gray */
-      RadioConnection[] historyArr = history.toArray(new RadioConnection[0]);
-      for (RadioConnection conn : historyArr) {
-        if (conn == null) {
+      RadioConnectionArrow[] historyArr = history.toArray(new RadioConnectionArrow[0]);
+      for (RadioConnectionArrow connArrow : historyArr) {
+        if (connArrow == null) {
           continue;
         }
-        g.setColor(COLOR_HISTORY);
-        Radio source = conn.getSource();
-        Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
-        for (Radio destRadio : conn.getDestinations()) {
+        float colorHistoryIndex = (float)connArrow.getAge() / (float)connArrow.getMaxAge();
+        g.setColor(new Color(colorHistoryIndex, colorHistoryIndex, 1.0f));
+        Radio source = connArrow.getConnection().getSource();
+        Point sourcePoint = visualizer.transformPositionToPixel(source
+            .getPosition());
+        for (Radio destRadio : connArrow.getConnection().getDestinations()) {
           Position destPos = destRadio.getPosition();
-          Point destPoint = visualizer.transformPositionToPixel(destPos);
-          g.drawLine(sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y);
+          Point destPoint = visualizer.transformPositionToPixel(destPos);          
+          drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, 8);
         }
       }
     }
@@ -244,24 +267,15 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
           continue;
         }
         Radio source = conn.getSource();
-        Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
+        Point sourcePoint = visualizer.transformPositionToPixel(source
+            .getPosition());
         for (Radio destRadio : conn.getDestinations()) {
           if (destRadio == null) {
             continue;
           }
           Position destPos = destRadio.getPosition();
           Point destPoint = visualizer.transformPositionToPixel(destPos);
-          g.drawLine(sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y);
-
-          /* Draw arrows */
-          if (DRAW_ARROWS) {
-            Point centerPoint = new Point(
-                destPoint.x/2 + sourcePoint.x/2,
-                destPoint.y/2 + sourcePoint.y/2
-            );
-            int startAngle = (int) (-180 * Math.atan2(destPoint.y - sourcePoint.y, destPoint.x - sourcePoint.x)/Math.PI - 90);
-            g.drawArc(centerPoint.x-5, centerPoint.y-5, 10, 10, startAngle, 180);
-          }
+          drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, 8);          
         }
       }
     }
@@ -269,7 +283,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
   public void paintAfterMotes(Graphics g) {
   }
-  
+
   public static class ToggleHistoryAction implements SimulationMenuAction {
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
       return true;
@@ -278,9 +292,9 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     public String getDescription(Visualizer visualizer, Simulation simulation) {
       VisualizerSkin[] skins = visualizer.getCurrentSkins();
       boolean showing = false;
-      for (VisualizerSkin skin: skins) {
+      for (VisualizerSkin skin : skins) {
         if (skin instanceof TrafficVisualizerSkin) {
-          showing = ((TrafficVisualizerSkin)skin).showHistory;
+          showing = ((TrafficVisualizerSkin) skin).showHistory;
         }
       }
       if (showing) {
@@ -291,9 +305,9 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
     public void doAction(Visualizer visualizer, Simulation simulation) {
       VisualizerSkin[] skins = visualizer.getCurrentSkins();
-      for (VisualizerSkin skin: skins) {
+      for (VisualizerSkin skin : skins) {
         if (skin instanceof TrafficVisualizerSkin) {
-          ((TrafficVisualizerSkin)skin).showHistory = !((TrafficVisualizerSkin)skin).showHistory;
+          ((TrafficVisualizerSkin) skin).showHistory = !((TrafficVisualizerSkin) skin).showHistory;
           visualizer.repaint();
         }
       }
@@ -302,5 +316,27 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
   public Visualizer getVisualizer() {
     return visualizer;
+  }
+  
+  private class RadioConnectionArrow {
+    private RadioConnection conn;
+    private int age;
+    private final int MAX_AGE = 10;
+    RadioConnectionArrow(RadioConnection conn) {
+      this.conn = conn;
+      this.age = 0;
+    }
+    public void increaseAge() {
+      age++;
+    }
+    public int getAge() {
+      return age;
+    }
+    public RadioConnection getConnection() {
+      return conn;
+    }
+    public int getMaxAge() {
+      return MAX_AGE;
+    }
   }
 }
