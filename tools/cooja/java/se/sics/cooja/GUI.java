@@ -2631,6 +2631,7 @@ public class GUI extends Observable {
           mySimulation.addMote(newMote);
         }
       }
+      updateGUIComponentState();
 
     } else {
       logger.warn("No simulation active");
