@@ -53,6 +53,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -67,6 +68,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -75,6 +77,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -240,20 +243,28 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     this.setJMenuBar(menuBar);
 
-    JMenuItem zoomInItem = new JMenuItem("Zoom in");
-    zoomInItem.addActionListener(new ActionListener() {
+    Action zoomInAction = new AbstractAction("Zoom in") {
       public void actionPerformed(ActionEvent e) {
         zoomToFactor(zoomFactor() * 1.2);
       }
-    });
+    };
+    zoomInAction.putValue(
+        Action.ACCELERATOR_KEY,
+        KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, ActionEvent.CTRL_MASK)
+    );
+    JMenuItem zoomInItem = new JMenuItem(zoomInAction);
     zoomMenu.add(zoomInItem);
 
-    JMenuItem zoomOutItem = new JMenuItem("Zoom out");
-    zoomOutItem.addActionListener(new ActionListener() {
+    Action zoomOutAction = new AbstractAction("Zoom out") {
       public void actionPerformed(ActionEvent e) {
         zoomToFactor(zoomFactor() / 1.2);
       }
-    });
+    };
+    zoomOutAction.putValue(
+        Action.ACCELERATOR_KEY,
+        KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ActionEvent.CTRL_MASK)
+    );
+    JMenuItem zoomOutItem = new JMenuItem(zoomOutAction);
     zoomMenu.add(zoomOutItem);
 
     JMenuItem resetViewportItem = new JMenuItem("Reset viewport");
@@ -820,24 +831,26 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     repaint();
   }
 
-  private double zoomFactor()
-  {
+  private double zoomFactor() {
     return viewportTransform.getScaleX();
   }
 
   private void zoomToFactor(double newZoom) {
+    Position center = transformPixelToPosition(
+        new Point(canvas.getWidth()/2, canvas.getHeight()/2)
+    );
     viewportTransform.setToScale(
         newZoom,
         newZoom
     );
-
-    /*Position moved = transformPixelToPosition(zoomingPixel);
-     viewportTransform.translate(
-         moved.getXCoordinate() - zoomingPosition.getXCoordinate(),
-         moved.getYCoordinate() - zoomingPosition.getYCoordinate()
-     );*/
+    Position newCenter = transformPixelToPosition(
+        new Point(canvas.getWidth()/2, canvas.getHeight()/2)
+    );
+    viewportTransform.translate(
+        newCenter.getXCoordinate() - center.getXCoordinate(),
+        newCenter.getYCoordinate() - center.getYCoordinate()
+    );
     repaint();
-
   }
 
   private void handleMouseMove(MouseEvent e, boolean stop) {
@@ -1509,10 +1522,10 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   public String getQuickHelp() {
     return
     "<b>Network</b> " +
-    "<p>The network windo shows the positions of simulated motes. " +
+    "<p>The network window shows the positions of simulated motes. " +
     "It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. Motes can be moved by dragging them. " +
     "Mouse right-click motes for options. " +
-    "<p>The network window suppors different views. " +
+    "<p>The network window supports different views. " +
     "Each view provides some specific information, such as the IP addresses of motes. " +
     "Multiple views can be active at the same time. " +
     "Use the View menu to select views. ";
