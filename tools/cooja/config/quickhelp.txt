@@ -4,7 +4,6 @@ KEYBOARD_SHORTCUTS = \
 <br><i>Ctrl+S:</i> Start/pause simulation\
 <br><i>Ctrl+R:</i> Reload current simulation. If no simulation exists, the last used simulation config is loaded\
 <br><i>Ctrl+Shift+R:</i> Reload current simulation with another random seed\
-<br><i>Ctrl+X:</i> Quit COOJA\
 <br>\
 <br><i>F1:</i> Toggle quick help
 
