@@ -61,4 +61,9 @@ public @interface SupportedArguments {
    * @return List of accepted radio medium classes.
    */
   Class<? extends RadioMedium>[] radioMediums() default { RadioMedium.class };
+
+  /**
+   * @return List of required mote interfaces.
+   */
+  Class<? extends MoteInterface>[] moteInterfaces() default { MoteInterface.class };
 }
