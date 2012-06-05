@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: TrafficVisualizerSkin.java,v 1.5 2010/02/26 07:46:26 nifi Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -35,12 +33,9 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Polygon;
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
-
-import javax.swing.Box;
-import javax.swing.JLabel;
 
 import org.apache.log4j.Logger;
 
@@ -48,155 +43,105 @@ import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.RadioConnection;
 import se.sics.cooja.Simulation;
-import se.sics.cooja.SimEventCentral.MoteCountListener;
+import se.sics.cooja.SupportedArguments;
+import se.sics.cooja.TimeEvent;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
-import se.sics.cooja.plugins.Visualizer.SimulationMenuAction;
 import se.sics.cooja.radiomediums.AbstractRadioMedium;
 
 /**
- * Radio traffic visualizer skin.
- * 
- * Transmitting motes are painted blue. Receiving motes are painted green.
- * Interfered motes are painted red. Motes without radios are painted gray. All
- * other motes are painted white.
- * 
- * In contrast to the {@link UDGMVisualizerSkin}, this skin listens to all mote
- * radios, not to the radio medium. The radio traffic skin also displays a
- * history.
- * 
+ * Radio traffic history visualizer skin.
+ *
  * @see UDGMVisualizerSkin
  * @author Fredrik Osterlind
  */
 @ClassDescription("Radio traffic")
+@SupportedArguments(radioMediums = {AbstractRadioMedium.class})
 public class TrafficVisualizerSkin implements VisualizerSkin {
   private static Logger logger = Logger.getLogger(TrafficVisualizerSkin.class);
-  
-  private Simulation simulation = null;
-  private Visualizer visualizer = null;
-
-  private Box counters;
 
   private final int MAX_HISTORY_SIZE = 200;
-  private boolean showHistory = true;
-  private ArrayDeque<RadioConnectionArrow> history = new ArrayDeque<RadioConnectionArrow>();
 
-  private AbstractRadioMedium radioMedium;
-  private Observer radioObserver, radioMediumObserver;
+  private boolean active = false;
+  private Simulation simulation = null;
+  private Visualizer visualizer = null;
+  private AbstractRadioMedium radioMedium = null;
+
+  private ArrayList<RadioConnectionArrow> history = new ArrayList<RadioConnectionArrow>();
+
+  private Observer radioMediumObserver = new Observer() {
+    public void update(Observable obs, Object obj) {
+      RadioConnection last = radioMedium.getLastConnection();
+      if (last != null && history.size() < MAX_HISTORY_SIZE) {
+        history.add(new RadioConnectionArrow(last));
+        visualizer.repaint();
+      }
+    }
+  };
+  private TimeEvent ageArrowsTimeEvent = new TimeEvent(0) {
+    public void execute(long t) {
+      if (!active) {
+        return;
+      }
+
+      if (history.size() > 0) {
+        boolean hasOld = false;
+
+        /* Increase age */
+        for (RadioConnectionArrow connArrow : history) {
+          connArrow.increaseAge();
+          if(connArrow.getAge() >= connArrow.getMaxAge()) {
+            hasOld = true;
+          }
+        }
+
+        /* Remove too old arrows */
+        if (hasOld) {
+          RadioConnectionArrow[] historyArr = history.toArray(new RadioConnectionArrow[0]);
+          for (RadioConnectionArrow connArrow : historyArr) {
+            if(connArrow.getAge() >= connArrow.getMaxAge()) {
+              history.remove(connArrow);
+            }
+          }
+        }
+
+        visualizer.repaint();
+      }
+
+      /* Reschedule myself */
+      simulation.scheduleEvent(this, t + 100*Simulation.MILLISECOND);
+    }
+  };
 
   public void setActive(final Simulation simulation, Visualizer vis) {
-    if (!(simulation.getRadioMedium() instanceof AbstractRadioMedium)) {
-      logger.fatal("Radio medium type not supported: "
-          + simulation.getRadioMedium());
-      return;
-    }
     this.radioMedium = (AbstractRadioMedium) simulation.getRadioMedium();
     this.simulation = simulation;
     this.visualizer = vis;
+    this.active = true;
+    history.clear();
 
-    final JLabel txCounter = new JLabel("TX: " + radioMedium.COUNTER_TX);
-    final JLabel rxCounter = new JLabel("RX: " + radioMedium.COUNTER_RX);
-    final JLabel interferedCounter = new JLabel("INT: "
-        + radioMedium.COUNTER_INTERFERED);
+    simulation.invokeSimulationThread(new Runnable() {
+      public void run() {
+        /* Start observing radio medium for transmissions */
+        radioMedium.addRadioMediumObserver(radioMediumObserver);
 
-    counters = Box.createHorizontalBox();
-    counters.add(txCounter);
-    counters.add(Box.createHorizontalStrut(10));
-    counters.add(rxCounter);
-    counters.add(Box.createHorizontalStrut(10));
-    counters.add(interferedCounter);
-
-    /* visualizer.getCurrentCanvas().add(counters); */
-
-    /* Start observing radio medium and radios */
-    radioMedium.addRadioMediumObserver(radioMediumObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        txCounter.setText("TX: " + radioMedium.COUNTER_TX);
-        rxCounter.setText("RX: " + radioMedium.COUNTER_RX);
-        interferedCounter.setText("INT: " + +radioMedium.COUNTER_INTERFERED);
-
-        if (showHistory) {
-          RadioConnection last = radioMedium.getLastConnection();
-          if (last != null && history.size() < MAX_HISTORY_SIZE) {
-            history.add(new RadioConnectionArrow(last));
-          }
-        }
-        visualizer.repaint();
+        /* Fade away arrows */
+        simulation.scheduleEvent(ageArrowsTimeEvent, simulation.getSimulationTime() + 100*Simulation.MILLISECOND);
       }
     });
-    radioObserver = new Observer() {
-      public void update(Observable o, Object arg) {
-        visualizer.repaint();
-      }
-    };
-    simulation.getEventCentral().addMoteCountListener(new MoteCountListener() {
-      public void moteWasAdded(Mote mote) {
-        Radio r = mote.getInterfaces().getRadio();
-        if (r != null) {
-          r.addObserver(radioObserver);
-        }
-      }
-
-      public void moteWasRemoved(Mote mote) {
-        Radio r = mote.getInterfaces().getRadio();
-        if (r != null) {
-          r.deleteObserver(radioObserver);
-        }
-        history.clear();
-      }
-    });
-    for (Mote mote : simulation.getMotes()) {
-      Radio r = mote.getInterfaces().getRadio();
-      if (r != null) {
-        r.addObserver(radioObserver);
-      }
-    }
-
-    simulation.addMillisecondObserver(new Observer() {
-      public void update(Observable obs, Object obj) {
-        if((simulation.getSimulationTimeMillis() % 100) == 0) {
-          RadioConnectionArrow[] historyArr = history.toArray(new RadioConnectionArrow[0]);
-          if(historyArr.length > 0) {
-            visualizer.repaint();
-          }
-          for (RadioConnectionArrow connArrow : historyArr) {
-            if (connArrow == null) {
-              continue;
-            }
-            connArrow.increaseAge();
-            if(connArrow.getAge() >= connArrow.getMaxAge()) {
-              history.remove(connArrow);            
-            }
-          }
-        }
-        
-      }
-    });
-    /* Register menu actions */
-    visualizer.registerSimulationMenuAction(ToggleHistoryAction.class);
   }
 
   public void setInactive() {
+    this.active = false;
     if (simulation == null) {
       /* Skin was never activated */
       return;
     }
 
-    visualizer.getCurrentCanvas().remove(counters);
-
-    /* Stop observing radio medium and radios */
+    /* Stop observing radio medium */
     radioMedium.deleteRadioMediumObserver(radioMediumObserver);
-    for (Mote mote : simulation.getMotes()) {
-      Radio r = mote.getInterfaces().getRadio();
-      if (r != null) {
-        r.addObserver(radioObserver);
-      }
-    }
-
-    /* Unregister menu actions */
-    visualizer.unregisterSimulationMenuAction(ToggleHistoryAction.class);
   }
 
   public Color[] getColorOf(Mote mote) {
@@ -232,51 +177,18 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   private int xCor(int len, double dir) {
     return (int)(0.5 + len * Math.sin(dir));
   }
+
   public void paintBeforeMotes(Graphics g) {
-    if (simulation == null) {
-      /* Skin was never activated */
-      return;
-    }
-
-    if (showHistory) {
-      /* Paint history in gray */
-      RadioConnectionArrow[] historyArr = history.toArray(new RadioConnectionArrow[0]);
-      for (RadioConnectionArrow connArrow : historyArr) {
-        if (connArrow == null) {
-          continue;
-        }
-        float colorHistoryIndex = (float)connArrow.getAge() / (float)connArrow.getMaxAge();
-        g.setColor(new Color(colorHistoryIndex, colorHistoryIndex, 1.0f));
-        Radio source = connArrow.getConnection().getSource();
-        Point sourcePoint = visualizer.transformPositionToPixel(source
-            .getPosition());
-        for (Radio destRadio : connArrow.getConnection().getDestinations()) {
-          Position destPos = destRadio.getPosition();
-          Point destPoint = visualizer.transformPositionToPixel(destPos);          
-          drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, 8);
-        }
-      }
-    }
-
-    /* Paint active connections in black */
-    RadioConnection[] conns = radioMedium.getActiveConnections();
-    if (conns != null) {
-      g.setColor(Color.BLACK);
-      for (RadioConnection conn : conns) {
-        if (conn == null) {
-          continue;
-        }
-        Radio source = conn.getSource();
-        Point sourcePoint = visualizer.transformPositionToPixel(source
-            .getPosition());
-        for (Radio destRadio : conn.getDestinations()) {
-          if (destRadio == null) {
-            continue;
-          }
-          Position destPos = destRadio.getPosition();
-          Point destPoint = visualizer.transformPositionToPixel(destPos);
-          drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, 8);          
-        }
+    RadioConnectionArrow[] historyArr = history.toArray(new RadioConnectionArrow[0]);
+    for (RadioConnectionArrow connArrow : historyArr) {
+      float colorHistoryIndex = (float)connArrow.getAge() / (float)connArrow.getMaxAge();
+      g.setColor(new Color(colorHistoryIndex, colorHistoryIndex, 1.0f));
+      Radio source = connArrow.getConnection().getSource();
+      Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
+      for (Radio destRadio : connArrow.getConnection().getDestinations()) {
+        Position destPos = destRadio.getPosition();
+        Point destPoint = visualizer.transformPositionToPixel(destPos);
+        drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, 8);
       }
     }
   }
@@ -284,41 +196,11 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   public void paintAfterMotes(Graphics g) {
   }
 
-  public static class ToggleHistoryAction implements SimulationMenuAction {
-    public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
-      return true;
-    }
-
-    public String getDescription(Visualizer visualizer, Simulation simulation) {
-      VisualizerSkin[] skins = visualizer.getCurrentSkins();
-      boolean showing = false;
-      for (VisualizerSkin skin : skins) {
-        if (skin instanceof TrafficVisualizerSkin) {
-          showing = ((TrafficVisualizerSkin) skin).showHistory;
-        }
-      }
-      if (showing) {
-        return "Hide traffic history";
-      }
-      return "Show traffic history";
-    }
-
-    public void doAction(Visualizer visualizer, Simulation simulation) {
-      VisualizerSkin[] skins = visualizer.getCurrentSkins();
-      for (VisualizerSkin skin : skins) {
-        if (skin instanceof TrafficVisualizerSkin) {
-          ((TrafficVisualizerSkin) skin).showHistory = !((TrafficVisualizerSkin) skin).showHistory;
-          visualizer.repaint();
-        }
-      }
-    }
-  };
-
   public Visualizer getVisualizer() {
     return visualizer;
   }
-  
-  private class RadioConnectionArrow {
+
+  private static class RadioConnectionArrow {
     private RadioConnection conn;
     private int age;
     private final int MAX_AGE = 10;
