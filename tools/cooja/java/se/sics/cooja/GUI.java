@@ -39,6 +39,7 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -296,12 +297,12 @@ public class GUI extends Observable {
 
   protected GUIEventHandler guiEventHandler = new GUIEventHandler();
 
-  private JMenu toolsMenu, menuMoteTypeClasses, menuMoteTypes;
+  private JMenu menuMoteTypeClasses, menuMoteTypes;
 
   private JMenu menuOpenSimulation;
   private boolean hasFileHistoryChanged;
 
-  private Vector<Class<? extends Plugin>> menuMotePluginClasses;
+  private Vector<Class<? extends Plugin>> menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
 
   private JDesktopPane myDesktopPane;
 
@@ -369,17 +370,6 @@ public class GUI extends Observable {
     myGUI = this;
     mySimulation = null;
     myDesktopPane = desktop;
-    if (toolsMenu == null) {
-      toolsMenu = new JMenu("Tools");
-      toolsMenu.removeAll();
-
-      /* COOJA/GUI plugins at top, simulation plugins in middle, mote plugins at bottom */
-      /*toolsMenu.addSeparator();
-      toolsMenu.addSeparator();*/
-    }
-    if (menuMotePluginClasses == null) {
-      menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
-    }
 
     /* Help panel */
     quickHelpTextPane = new JTextPane();
@@ -703,7 +693,7 @@ public class GUI extends Observable {
     JMenu fileMenu = new JMenu("File");
     JMenu simulationMenu = new JMenu("Simulation");
     JMenu motesMenu = new JMenu("Motes");
-    /* toolsMenu = new JMenu("Tools"); */
+    final JMenu toolsMenu = new JMenu("Tools");
     JMenu settingsMenu = new JMenu("Settings");
     JMenu helpMenu = new JMenu("Help");
 
@@ -931,55 +921,117 @@ public class GUI extends Observable {
 
     motesMenu.add(new JMenuItem(removeAllMotesAction));
 
-    // Tools menu
+    /* Tools menu */
     toolsMenu.addMenuListener(new MenuListener() {
-      public void menuSelected(MenuEvent e) {
-        for (Component menuComponent: toolsMenu.getMenuComponents()) {
-          if (!(menuComponent instanceof JMenuItem)) {
-            continue;
-          }
-          JMenuItem menuItem = (JMenuItem) menuComponent;
-          Class<? extends Plugin> pluginClass = (Class<? extends Plugin>) menuItem.getClientProperty("class");
-          int pluginType;
-          if (pluginClass.isAnnotationPresent(PluginType.class)) {
-            pluginType = pluginClass.getAnnotation(PluginType.class).value();
-          } else {
-            pluginType = PluginType.UNDEFINED_PLUGIN;
-          }
+      private ActionListener menuItemListener = new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          Object pluginClass = ((JMenuItem)e.getSource()).getClientProperty("class");
+          Object mote = ((JMenuItem)e.getSource()).getClientProperty("mote");
+          tryStartPlugin((Class<? extends Plugin>) pluginClass, myGUI, getSimulation(), (Mote)mote);
+        }
+      };
+      private JMenuItem createMenuItem(Class<? extends Plugin> newPluginClass, int pluginType) {
+        String description = getDescriptionOf(newPluginClass);
+        JMenuItem menuItem = new JMenuItem(description + "...");
+        menuItem.putClientProperty("class", newPluginClass);
+        menuItem.addActionListener(menuItemListener);
 
-          /* No simulation -> deactivate non-GUI plugins */
-          if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-            menuItem.setEnabled(true);
-            continue;
-          }
-          /* Mote plugin -> not accessed from this menu */
-          if (pluginType == PluginType.MOTE_PLUGIN) {
-            menuItem.setEnabled(false);
-            continue;
-          }
-          if (pluginType != PluginType.SIM_PLUGIN && pluginType != PluginType.SIM_STANDARD_PLUGIN) {
-            /* Unknown */
-            menuItem.setEnabled(false);
-            continue;
-          }
+        String tooltip = "<html><pre>";
+        if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
+          tooltip += "Cooja plugin: ";
+        } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+          tooltip += "Simulation plugin: ";
           if (getSimulation() == null) {
             menuItem.setEnabled(false);
-            continue;
           }
+        } else if (pluginType == PluginType.MOTE_PLUGIN) {
+          tooltip += "Mote plugin: ";
+        }
+        tooltip += description + " (" + newPluginClass.getName() + ")";
 
-          /* Check if simulation plugin depends on any particular radio medium */
-          if (pluginClass.getAnnotation(SupportedArguments.class) != null) {
-            menuItem.setEnabled(false);
-            Class<? extends RadioMedium>[] radioMediums = pluginClass.getAnnotation(SupportedArguments.class).radioMediums();
+        /* Check if simulation plugin depends on any particular radio medium */
+        if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+          if (newPluginClass.getAnnotation(SupportedArguments.class) != null) {
+            boolean active = false;
+            Class<? extends RadioMedium>[] radioMediums = newPluginClass.getAnnotation(SupportedArguments.class).radioMediums();
             for (Class<? extends Object> o: radioMediums) {
               if (o.isAssignableFrom(getSimulation().getRadioMedium().getClass())) {
-                menuItem.setEnabled(true);
+                active = true;
                 break;
               }
             }
-          } else {
-            menuItem.setEnabled(true);
+            if (!active) {
+              menuItem.setVisible(false);
+            }
           }
+        }
+
+        /* Check if plugin was imported by a extension directory */
+        File project =
+          getProjectConfig().getUserProjectDefining(GUI.class, "PLUGINS", newPluginClass.getName());
+        if (project != null) {
+          tooltip += "\nLoaded by extension: " + project.getPath();
+        }
+
+        tooltip += "</html>";
+        /*menuItem.setToolTipText(tooltip);*/
+        return menuItem;
+      }
+
+      public void menuSelected(MenuEvent e) {
+        /* Populate tools menu */
+        toolsMenu.removeAll();
+
+        /* Cooja plugins */
+        boolean hasCoojaPlugins = false;
+        for (Class<? extends Plugin> pluginClass: pluginClasses) {
+          int pluginType = pluginClass.getAnnotation(PluginType.class).value();
+          if (pluginType != PluginType.COOJA_PLUGIN && pluginType != PluginType.COOJA_STANDARD_PLUGIN) {
+            continue;
+          }
+          toolsMenu.add(createMenuItem(pluginClass, pluginType));
+          hasCoojaPlugins = true;
+        }
+
+        /* Simulation plugins */
+        boolean hasSimPlugins = false;
+        for (Class<? extends Plugin> pluginClass: pluginClasses) {
+          if (pluginClass.equals(SimControl.class)) {
+            continue; /* ignore */
+          }
+          if (pluginClass.equals(SimInformation.class)) {
+            continue; /* ignore */
+          }
+          if (pluginClass.equals(MoteTypeInformation.class)) {
+            continue; /* ignore */
+          }
+
+          int pluginType = pluginClass.getAnnotation(PluginType.class).value();
+          if (pluginType != PluginType.SIM_PLUGIN && pluginType != PluginType.SIM_STANDARD_PLUGIN) {
+            continue;
+          }
+
+          if (hasCoojaPlugins) {
+            hasCoojaPlugins = false;
+            toolsMenu.addSeparator();
+          }
+
+          toolsMenu.add(createMenuItem(pluginClass, pluginType));
+          hasSimPlugins = true;
+        }
+
+        for (Class<? extends Plugin> pluginClass: pluginClasses) {
+          int pluginType = pluginClass.getAnnotation(PluginType.class).value();
+          if (pluginType != PluginType.MOTE_PLUGIN) {
+            continue;
+          }
+
+          if (hasSimPlugins) {
+            hasSimPlugins = false;
+            toolsMenu.addSeparator();
+          }
+
+          toolsMenu.add(createMotePluginsSubmenu(pluginClass));
         }
       }
       public void menuDeselected(MenuEvent e) {
@@ -1051,10 +1103,6 @@ public class GUI extends Observable {
     menuItem.setEnabled(false);
     helpMenu.add(menuItem);
 
-    // Mote plugins popup menu (not available via menu bar)
-    if (menuMotePluginClasses == null) {
-      menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
-    }
     return menuBar;
   }
 
@@ -1504,9 +1552,9 @@ public class GUI extends Observable {
     }
 
     // Register plugins
-    registerPlugin(SimControl.class, false); // Not in menu
-    registerPlugin(SimInformation.class, false); // Not in menu
-    registerPlugin(MoteTypeInformation.class, false); // Not in menu
+    registerPlugin(SimControl.class);
+    registerPlugin(SimInformation.class);
+    registerPlugin(MoteTypeInformation.class);
     String[] pluginClassNames = projectConfig.getStringArrayValue(GUI.class,
     "PLUGINS");
     if (pluginClassNames != null) {
@@ -1817,154 +1865,53 @@ public class GUI extends Observable {
   }
 
   /**
-   * Register a plugin to be included in the GUI. The plugin will be visible in
-   * the menubar.
-   *
-   * @param newPluginClass
-   *          New plugin to register
-   * @return True if this plugin was registered ok, false otherwise
-   */
-  public boolean registerPlugin(Class<? extends Plugin> newPluginClass) {
-    return registerPlugin(newPluginClass, true);
-  }
-
-  /**
    * Unregister a plugin class. Removes any plugin menu items links as well.
    *
    * @param pluginClass Plugin class
    */
   public void unregisterPlugin(Class<? extends Plugin> pluginClass) {
-    /* Remove from menu */
-    for (Component menuComponent : toolsMenu.getMenuComponents()) {
-    	if (!(menuComponent instanceof JMenuItem)) {
-    		continue;
-    	}
-
-      JMenuItem menuItem = (JMenuItem) menuComponent;
-      if (menuItem.getClientProperty("class").equals(pluginClass)) {
-      	toolsMenu.remove(menuItem);
-      }
-    }
-
-    menuMotePluginClasses.remove(pluginClass);
     pluginClasses.remove(pluginClass);
+    menuMotePluginClasses.remove(pluginClass);
   }
 
   /**
    * Register a plugin to be included in the GUI.
    *
-   * @param newPluginClass
-   *          New plugin to register
-   * @param addToMenu
-   *          Should this plugin be added to the dedicated plugins menubar?
+   * @param pluginClass New plugin to register
    * @return True if this plugin was registered ok, false otherwise
    */
-  private boolean registerPlugin(final Class<? extends Plugin> newPluginClass,
-      boolean addToMenu) {
+  public boolean registerPlugin(final Class<? extends Plugin> pluginClass) {
 
-    // Get description annotation (if any)
-    final String description = getDescriptionOf(newPluginClass);
-
-    // Get plugin type annotation (required)
+    /* Check plugin type */
     final int pluginType;
-    if (newPluginClass.isAnnotationPresent(PluginType.class)) {
-      pluginType = newPluginClass.getAnnotation(PluginType.class).value();
+    if (pluginClass.isAnnotationPresent(PluginType.class)) {
+      pluginType = pluginClass.getAnnotation(PluginType.class).value();
     } else {
-      pluginType = PluginType.UNDEFINED_PLUGIN;
+      logger.fatal("Could not register plugin, no plugin type found: " + pluginClass);
+      return false;
     }
 
-    // Check that plugin type is valid and constructor exists
+    /* Check plugin constructor */
     try {
-      if (pluginType == PluginType.MOTE_PLUGIN) {
-        newPluginClass.getConstructor(new Class[] { Mote.class,
-            Simulation.class, GUI.class });
-      } else if (pluginType == PluginType.SIM_PLUGIN
-          || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
-        newPluginClass.getConstructor(new Class[] { Simulation.class, GUI.class });
-      } else if (pluginType == PluginType.COOJA_PLUGIN
-          || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-        newPluginClass.getConstructor(new Class[] { GUI.class });
+      if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
+        pluginClass.getConstructor(new Class[] { GUI.class });
+      } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+        pluginClass.getConstructor(new Class[] { Simulation.class, GUI.class });
+      } else if (pluginType == PluginType.MOTE_PLUGIN) {
+        pluginClass.getConstructor(new Class[] { Mote.class, Simulation.class, GUI.class });
+        menuMotePluginClasses.add(pluginClass);
       } else {
-        logger.fatal("Could not find valid plugin type annotation in class " + newPluginClass);
+        logger.fatal("Could not register plugin, bad plugin type: " + pluginType);
         return false;
       }
+      pluginClasses.add(pluginClass);
     } catch (NoClassDefFoundError e) {
-      logger.fatal("No plugin class: " + newPluginClass + ": " + e.getMessage());
+      logger.fatal("No plugin class: " + pluginClass + ": " + e.getMessage());
       return false;
     } catch (NoSuchMethodException e) {
-      logger.fatal("No plugin class constructor: " + newPluginClass + ": " + e.getMessage());
+      logger.fatal("No plugin class constructor: " + pluginClass + ": " + e.getMessage());
       return false;
     }
-
-    if (addToMenu && toolsMenu != null) {
-      new RunnableInEDT<Boolean>() {
-        public Boolean work() {
-          // Create 'start plugin'-menu item
-          JMenuItem menuItem;
-          String tooltip = "<html><pre>";
-
-          /* Sort menu according to plugin type */
-          int itemIndex=0;
-          if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-            for (; itemIndex < toolsMenu.getItemCount(); itemIndex++) {
-              if (toolsMenu.getItem(itemIndex) == null /* separator */) {
-                break;
-              }
-            }
-            tooltip += "Cooja plugin: " + newPluginClass.getName();
-            menuItem = new JMenuItem(description);
-            menuItem.addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent e) {
-                tryStartPlugin(newPluginClass, myGUI, null, null);
-              }
-            });
-          } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
-            for (; itemIndex < toolsMenu.getItemCount(); itemIndex++) {
-              if (toolsMenu.getItem(itemIndex) == null /* separator */) {
-                break;
-              }
-            }
-            itemIndex++;
-            for (; itemIndex < toolsMenu.getItemCount(); itemIndex++) {
-              if (toolsMenu.getItem(itemIndex) == null /* separator */) {
-                break;
-              }
-            }
-            tooltip += "Simulation plugin: " + newPluginClass.getName();
-            GUIAction guiAction = new StartPluginGUIAction(description);
-            menuItem = new JMenuItem(guiAction);
-            guiActions.add(guiAction);
-          } else if (pluginType == PluginType.MOTE_PLUGIN) {
-            // Disable previous menu item and add new item to mote plugins menu
-            menuItem = new JMenuItem(description);
-            menuItem.setEnabled(false);
-            tooltip += "Mote plugin: " + newPluginClass.getName();
-            tooltip += "\nStart mote plugins by right-clicking a mote in the simulation visualizer";
-            menuMotePluginClasses.add(newPluginClass);
-            itemIndex = toolsMenu.getItemCount();
-          } else {
-            logger.warn("Unknown plugin type: " + pluginType);
-            return false;
-          }
-
-          /* Check if plugin was imported by a extension directory */
-          File project =
-            getProjectConfig().getUserProjectDefining(GUI.class, "PLUGINS", newPluginClass.getName());
-          if (project != null) {
-            tooltip += "\nLoaded by extension: " + project.getPath();
-          }
-
-          tooltip += "</html>";
-          /*menuItem.setToolTipText(tooltip); */
-          menuItem.putClientProperty("class", newPluginClass);
-
-          toolsMenu.add(menuItem, itemIndex);
-          return true;
-        }
-      }.invokeAndWait();
-    }
-
-    pluginClasses.add(newPluginClass);
     return true;
   }
 
@@ -1972,16 +1919,7 @@ public class GUI extends Observable {
    * Unregister all plugin classes
    */
   public void unregisterPlugins() {
-    if (toolsMenu != null) {
-      toolsMenu.removeAll();
-
-      /* COOJA/GUI plugins at top, simulation plugins in middle, mote plugins at bottom */
-      toolsMenu.addSeparator();
-      toolsMenu.addSeparator();
-    }
-    if (menuMotePluginClasses != null) {
-      menuMotePluginClasses.clear();
-    }
+    menuMotePluginClasses.clear();
     pluginClasses.clear();
   }
 
@@ -2016,6 +1954,107 @@ public class GUI extends Observable {
     return startedPlugins.toArray(new Plugin[0]);
   }
 
+  private boolean isMotePluginCompatible(Class<? extends Plugin> motePluginClass, Mote mote) {
+    if (motePluginClass.getAnnotation(SupportedArguments.class) == null) {
+      return true;
+    }
+
+    /* Check mote interfaces */
+    boolean moteInterfacesOK = true;
+    Class<? extends MoteInterface>[] moteInterfaces =
+      motePluginClass.getAnnotation(SupportedArguments.class).moteInterfaces();
+    StringBuilder moteTypeInterfacesError = new StringBuilder();
+    moteTypeInterfacesError.append(
+        "The plugin:\n" +
+        getDescriptionOf(motePluginClass) +
+        "\nrequires the following mote interfaces:\n"
+    );
+    for (Class<? extends MoteInterface> requiredMoteInterface: moteInterfaces) {
+      moteTypeInterfacesError.append(getDescriptionOf(requiredMoteInterface) + "\n");
+      if (mote.getInterfaces().getInterfaceOfType(requiredMoteInterface) == null) {
+        moteInterfacesOK = false;
+      }
+    }
+
+    /* Check mote type */
+    boolean moteTypeOK = false;
+    Class<? extends Mote>[] motes =
+      motePluginClass.getAnnotation(SupportedArguments.class).motes();
+    StringBuilder moteTypeError = new StringBuilder();
+    moteTypeError.append(
+        "The plugin:\n" +
+        getDescriptionOf(motePluginClass) +
+        "\ndoes not support motes of type:\n" +
+        getDescriptionOf(mote) +
+        "\n\nIt only supports motes of types:\n"
+    );
+    for (Class<? extends Mote> supportedMote: motes) {
+      moteTypeError.append(getDescriptionOf(supportedMote) + "\n");
+      if (supportedMote.isAssignableFrom(mote.getClass())) {
+        moteTypeOK = true;
+      }
+    }
+
+    /*if (!moteInterfacesOK) {
+      menuItem.setToolTipText(
+          "<html><pre>" + moteTypeInterfacesError + "</html>"
+      );
+    }
+    if (!moteTypeOK) {
+      menuItem.setToolTipText(
+          "<html><pre>" + moteTypeError + "</html>"
+      );
+    }*/
+
+    return moteInterfacesOK && moteTypeOK;
+  }
+
+  public JMenu createMotePluginsSubmenu(Class<? extends Plugin> pluginClass) {
+    JMenu menu = new JMenu(getDescriptionOf(pluginClass));
+    if (getSimulation() == null || getSimulation().getMotesCount() == 0) {
+      menu.setEnabled(false);
+      return menu;
+    }
+
+    ActionListener menuItemListener = new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        Object pluginClass = ((JMenuItem)e.getSource()).getClientProperty("class");
+        Object mote = ((JMenuItem)e.getSource()).getClientProperty("mote");
+        tryStartPlugin((Class<? extends Plugin>) pluginClass, myGUI, getSimulation(), (Mote)mote);
+      }
+    };
+
+    final int MAX_PER_ROW = 30;
+    final int MAX_COLUMNS = 5;
+
+    int added = 0;
+    for (Mote mote: getSimulation().getMotes()) {
+      if (!isMotePluginCompatible(pluginClass, mote)) {
+        continue;
+      }
+
+      JMenuItem menuItem = new JMenuItem(mote.toString() + "...");
+      menuItem.putClientProperty("class", pluginClass);
+      menuItem.putClientProperty("mote", mote);
+      menuItem.addActionListener(menuItemListener);
+
+      menu.add(menuItem);
+      added++;
+
+      if (added == MAX_PER_ROW) {
+        menu.getPopupMenu().setLayout(new GridLayout(MAX_PER_ROW, MAX_COLUMNS));
+      }
+      if (added >= MAX_PER_ROW*MAX_COLUMNS) {
+        break;
+      }
+    }
+    if (added == 0) {
+      menu.setEnabled(false);
+    }
+
+    return menu;
+  }
+
   /**
    * Return a mote plugins submenu for given mote.
    *
@@ -2026,62 +2065,15 @@ public class GUI extends Observable {
     JMenu menuMotePlugins = new JMenu("Mote tools for " + mote);
 
     for (Class<? extends Plugin> motePluginClass: menuMotePluginClasses) {
-      GUIAction guiAction = new StartPluginGUIAction(getDescriptionOf(motePluginClass));
+      if (!isMotePluginCompatible(motePluginClass, mote)) {
+        continue;
+      }
+
+      GUIAction guiAction = new StartPluginGUIAction(getDescriptionOf(motePluginClass) + "...");
       JMenuItem menuItem = new JMenuItem(guiAction);
       menuItem.putClientProperty("class", motePluginClass);
       menuItem.putClientProperty("mote", mote);
 
-      /* Check mote plugin requirements */
-      boolean enableMenuItem = true;
-      if (motePluginClass.getAnnotation(SupportedArguments.class) != null) {
-        /* Check mote interfaces */
-        boolean moteInterfacesOK = true;
-        Class<? extends MoteInterface>[] moteInterfaces = motePluginClass.getAnnotation(SupportedArguments.class).moteInterfaces();
-        StringBuilder moteTypeInterfacesError = new StringBuilder();
-        moteTypeInterfacesError.append(
-            "The plugin:\n" +
-            getDescriptionOf(motePluginClass) +
-            "\nrequires the following mote interfaces:\n"
-        );
-        for (Class<? extends MoteInterface> requiredMoteInterface: moteInterfaces) {
-          moteTypeInterfacesError.append(getDescriptionOf(requiredMoteInterface) + "\n");
-          if (mote.getInterfaces().getInterfaceOfType(requiredMoteInterface) == null) {
-            moteInterfacesOK = false;
-          }
-        }
-
-        /* Check mote type */
-        boolean moteTypeOK = false;
-        Class<? extends Mote>[] motes = motePluginClass.getAnnotation(SupportedArguments.class).motes();
-        StringBuilder moteTypeError = new StringBuilder();
-        moteTypeError.append(
-            "The plugin:\n" +
-            getDescriptionOf(motePluginClass) +
-            "\ndoes not support motes of type:\n" +
-            getDescriptionOf(mote) +
-            "\n\nIt only supports motes of types:\n"
-        );
-        for (Class<? extends Mote> supportedMote: motes) {
-          moteTypeError.append(getDescriptionOf(supportedMote) + "\n");
-          if (supportedMote.isAssignableFrom(mote.getClass())) {
-            moteTypeOK = true;
-          }
-        }
-
-        if (!moteInterfacesOK) {
-          menuItem.setToolTipText(
-              "<html><pre>" + moteTypeInterfacesError + "</html>"
-          );
-        }
-        if (!moteTypeOK) {
-          menuItem.setToolTipText(
-              "<html><pre>" + moteTypeError + "</html>"
-          );
-        }
-        enableMenuItem = moteInterfacesOK && moteTypeOK;
-      }
-
-      menuItem.setEnabled(enableMenuItem);
       menuMotePlugins.add(menuItem);
     }
     return menuMotePlugins;
@@ -4528,8 +4520,8 @@ public class GUI extends Observable {
     }
   };
   class StartPluginGUIAction extends GUIAction {
-		private static final long serialVersionUID = 7368495576372376196L;
-		public StartPluginGUIAction(String name) {
+               private static final long serialVersionUID = 7368495576372376196L;
+               public StartPluginGUIAction(String name) {
       super(name);
     }
     public void actionPerformed(final ActionEvent e) {
@@ -4546,6 +4538,7 @@ public class GUI extends Observable {
       return getSimulation() != null;
     }
   }
+
   GUIAction removeAllMotesAction = new GUIAction("Remove all motes") {
 		private static final long serialVersionUID = 4709776747913364419L;
 		public void actionPerformed(ActionEvent e) {
