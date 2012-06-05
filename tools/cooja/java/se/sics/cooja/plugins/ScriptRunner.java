@@ -75,7 +75,6 @@ import javax.swing.filechooser.FileFilter;
 
 import jsyntaxpane.DefaultSyntaxKit;
 import jsyntaxpane.actions.DefaultSyntaxAction;
-import jsyntaxpane.actions.ScriptRunnerAction;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -169,6 +168,7 @@ public class ScriptRunner extends VisPlugin {
         DefaultSyntaxKit kit = (DefaultSyntaxKit) e.getEditorKit();
         kit.setProperty("PopupMenu", "copy-to-clipboard,-,find,find-next,goto-line,-,linkfile");
         kit.setProperty("Action.linkfile", JSyntaxLinkFile.class.getName());
+        kit.setProperty("Action.execute-script", "jsyntaxpane.actions.ScriptRunnerAction");
       }
     }
 
@@ -229,6 +229,7 @@ public class ScriptRunner extends VisPlugin {
       DefaultSyntaxKit kit = (DefaultSyntaxKit) codeEditor.getEditorKit();
       kit.setProperty("PopupMenu", "copy-to-clipboard,-,find,find-next,goto-line,-,linkfile");
       kit.setProperty("Action.linkfile", JSyntaxLinkFile.class.getName());
+      kit.setProperty("Action.execute-script", "jsyntaxpane.actions.ScriptRunnerAction");
     }
 
     JPopupMenu p = codeEditor.getComponentPopupMenu();
@@ -242,13 +243,9 @@ public class ScriptRunner extends VisPlugin {
         }
         Action a = ((JMenuItem) c).getAction();
         if (a instanceof JSyntaxLinkFile) {
-          actionLinkFile = (JSyntaxLinkFile)(((JMenuItem) c).getAction());
+          actionLinkFile = (JSyntaxLinkFile) a;
           actionLinkFile.setMenuText("Link script to disk file");
           actionLinkFile.putValue("ScriptRunner", this);
-        } else if (a instanceof ScriptRunnerAction) {
-          /* XXX Disable run action */
-          ScriptRunnerAction sra = (ScriptRunnerAction) ((JMenuItem) c).getAction();
-          sra.setEnabled(false);
         }
       }
     }
