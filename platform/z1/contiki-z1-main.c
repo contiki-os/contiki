@@ -220,8 +220,8 @@ main(int argc, char **argv)
   node_id_restore();
 
   /* If no MAC address was burned, we use the node ID. */
-  if(node_mac[0] | node_mac[1] | node_mac[2] | node_mac[3] |
-     node_mac[4] | node_mac[5] | node_mac[6] | node_mac[7]) {
+  if(!(node_mac[0] | node_mac[1] | node_mac[2] | node_mac[3] |
+       node_mac[4] | node_mac[5] | node_mac[6] | node_mac[7])) {
     node_mac[0] = 0xc1;  /* Hardcoded for Z1 */
     node_mac[1] = 0x0c;  /* Hardcoded for Revision C */
     node_mac[2] = 0x00;  /* Hardcoded to arbitrary even number so that
