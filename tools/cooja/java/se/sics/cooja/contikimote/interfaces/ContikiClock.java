@@ -25,19 +25,20 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id: ContikiClock.java,v 1.13 2010/02/05 08:49:18 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
 import java.util.Collection;
+
 import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.Mote;
+import se.sics.cooja.SectionMoteMemory;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.Clock;
@@ -74,7 +75,7 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
 
   private long moteTime; /* Microseconds */
   private long timeDrift; /* Microseconds */
-  
+
   /**
    * @param mote Mote
    *
@@ -117,9 +118,9 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
     /* Update time */
     setTime(mote.getSimulation().getSimulationTime() + timeDrift);
   }
-  
+
   public void doActionsAfterTick() {
-    
+
     /* Request next tick for remaining events / timers */
     int processRunValue = moteMem.getIntValueOf("simProcessRunValue");
     if (processRunValue != 0) {
@@ -137,12 +138,12 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
     /* Request tick next wakeup time */
     int nextExpirationTime = moteMem.getIntValueOf("simNextExpirationTime");
     if (nextExpirationTime <= 0) {
-      logger.warn("Event timer already expired, but has been delayed: " + nextExpirationTime);
+      /*logger.warn("Event timer already expired, but has been delayed: " + nextExpirationTime);*/
       mote.scheduleNextWakeup(simulation.getSimulationTime() + Simulation.MILLISECOND);
       return;
     }
-    
-    mote.scheduleNextWakeup(simulation.getSimulationTime() + Simulation.MILLISECOND*(long)nextExpirationTime);
+
+    mote.scheduleNextWakeup(simulation.getSimulationTime() + Simulation.MILLISECOND*nextExpirationTime);
   }
 
 

@@ -37,7 +37,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
@@ -54,6 +53,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -68,7 +68,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.AbstractAction;
-import javax.swing.JButton;
+import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -77,9 +77,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
 
 import org.apache.log4j.Logger;
@@ -87,16 +90,16 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
+import se.sics.cooja.GUI.MoteRelation;
 import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.RadioMedium;
+import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.VisPlugin;
-import se.sics.cooja.GUI.MoteRelation;
-import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.interfaces.LED;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.SerialPort;
@@ -160,7 +163,6 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   private Cursor moveCursor = new Cursor(Cursor.MOVE_CURSOR);
 
   /* Visualizers */
-  private final JButton skinButton = new JButton("Select visualizer skins");
   private static ArrayList<Class<? extends VisualizerSkin>> visualizerSkins =
     new ArrayList<Class<? extends VisualizerSkin>>();
   static {
@@ -222,29 +224,47 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     /* Menus */
     JMenuBar menuBar = new JMenuBar();
-    
+
     viewMenu = new JMenu("View");
+    viewMenu.addMenuListener(new MenuListener() {
+      public void menuSelected(MenuEvent e) {
+        viewMenu.removeAll();
+        populateSkinMenu(viewMenu);
+      }
+      public void menuDeselected(MenuEvent e) {
+      }
+      public void menuCanceled(MenuEvent e) {
+      }
+    });
     JMenu zoomMenu = new JMenu("Zoom");
-    
+
     menuBar.add(viewMenu);
     menuBar.add(zoomMenu);
 
     this.setJMenuBar(menuBar);
 
-    JMenuItem zoomInItem = new JMenuItem("Zoom in");
-    zoomInItem.addActionListener(new ActionListener() {
+    Action zoomInAction = new AbstractAction("Zoom in") {
       public void actionPerformed(ActionEvent e) {
         zoomToFactor(zoomFactor() * 1.2);
       }
-    });
+    };
+    zoomInAction.putValue(
+        Action.ACCELERATOR_KEY,
+        KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, ActionEvent.CTRL_MASK)
+    );
+    JMenuItem zoomInItem = new JMenuItem(zoomInAction);
     zoomMenu.add(zoomInItem);
 
-    JMenuItem zoomOutItem = new JMenuItem("Zoom out");
-    zoomOutItem.addActionListener(new ActionListener() {
+    Action zoomOutAction = new AbstractAction("Zoom out") {
       public void actionPerformed(ActionEvent e) {
         zoomToFactor(zoomFactor() / 1.2);
       }
-    });
+    };
+    zoomOutAction.putValue(
+        Action.ACCELERATOR_KEY,
+        KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ActionEvent.CTRL_MASK)
+    );
+    JMenuItem zoomOutItem = new JMenuItem(zoomOutAction);
     zoomMenu.add(zoomOutItem);
 
     JMenuItem resetViewportItem = new JMenuItem("Reset viewport");
@@ -280,20 +300,6 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     canvas.setBackground(Color.WHITE);
     viewportTransform = new AffineTransform();
 
-    /* Skin selector */
-    skinButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        Point mouse = MouseInfo.getPointerInfo().getLocation();
-        JPopupMenu skinPopupMenu = new JPopupMenu();
-
-        populateSkinMenu(skinPopupMenu);
-
-        skinPopupMenu.setLocation(mouse);
-        skinPopupMenu.setInvoker(skinButton);
-        skinPopupMenu.setVisible(true);
-      }
-    });
-    /*this.add(BorderLayout.NORTH, skinButton);*/
     this.add(BorderLayout.CENTER, canvas);
 
     /* Observe simulation and mote positions */
@@ -524,7 +530,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     /* XXX HACK: here we set the position and size of the window when it appears on a blank simulation screen. */
     this.setLocation(1, 1);
-    this.setSize(400, 400);       
+    this.setSize(400, 400);
   }
 
   private void generateAndActivateSkin(Class<? extends VisualizerSkin> skinClass) {
@@ -550,9 +556,6 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     } catch (IllegalAccessException e1) {
       e1.printStackTrace();
     }
-
-    skinButton.setText("Select visualizer " +
-        "(" + currentSkins.size() + "/" + visualizerSkins.size() + ")");
     repaint();
   }
 
@@ -572,7 +575,6 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         simulation.getGUI().tryLoadClass(this, VisualizerSkin.class, skin);
       generateAndActivateSkin(skinClass);
     }
-    populateSkinMenu(viewMenu);
   }
 
   public VisualizerSkin[] getCurrentSkins() {
@@ -698,11 +700,15 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     menu.setVisible(true);
   }
 
-  private void populateSkinMenu(MenuElement skinMenu) {
-    JCheckBoxMenuItem item;
+  private void populateSkinMenu(MenuElement menu) {
     for (Class<? extends VisualizerSkin> skinClass: visualizerSkins) {
+      /* Should skin be enabled in this simulation? */
+      if (!isSkinCompatible(skinClass)) {
+        continue;
+      }
+
       String description = GUI.getDescriptionOf(skinClass);
-      item = new JCheckBoxMenuItem(description, false);
+      JCheckBoxMenuItem item = new JCheckBoxMenuItem(description, false);
       item.putClientProperty("skinclass", skinClass);
 
       /* Select skin if active */
@@ -747,23 +753,15 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
             skinToDeactivate.setInactive();
             repaint();
             currentSkins.remove(skinToDeactivate);
-            skinButton.setText("Select visualizers " +
-                "(" + currentSkins.size() + "/" + visualizerSkins.size() + ")");
           }
         }
       });
 
-
-      /* Should skin be enabled in this simulation? */
-      if (!isSkinCompatible(skinClass)) {
-        continue;
+      if (menu instanceof JMenu) {
+        ((JMenu)menu).add(item);
       }
-
-      if (skinMenu instanceof JMenu) {
-        ((JMenu)skinMenu).add(item);
-      }
-      if (skinMenu instanceof JPopupMenu) {
-        ((JPopupMenu)skinMenu).add(item);
+      if (menu instanceof JPopupMenu) {
+        ((JPopupMenu)menu).add(item);
       }
     }
   }
@@ -833,24 +831,26 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     repaint();
   }
 
-  private double zoomFactor()
-  {
+  private double zoomFactor() {
     return viewportTransform.getScaleX();
   }
 
   private void zoomToFactor(double newZoom) {
+    Position center = transformPixelToPosition(
+        new Point(canvas.getWidth()/2, canvas.getHeight()/2)
+    );
     viewportTransform.setToScale(
         newZoom,
         newZoom
     );
-    
-    /*Position moved = transformPixelToPosition(zoomingPixel);
-     viewportTransform.translate(
-         moved.getXCoordinate() - zoomingPosition.getXCoordinate(),
-         moved.getYCoordinate() - zoomingPosition.getYCoordinate()
-     );*/
+    Position newCenter = transformPixelToPosition(
+        new Point(canvas.getWidth()/2, canvas.getHeight()/2)
+    );
+    viewportTransform.translate(
+        newCenter.getXCoordinate() - center.getXCoordinate(),
+        newCenter.getYCoordinate() - center.getYCoordinate()
+    );
     repaint();
-
   }
 
   private void handleMouseMove(MouseEvent e, boolean stop) {
@@ -917,7 +917,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       }
       /* Restore cursor */
       canvas.setCursor(Cursor.getDefaultCursor());
-      
+
 
       /* Move mote */
       if (moveStartTime < 0 || System.currentTimeMillis() - moveStartTime > 300) {
@@ -1294,7 +1294,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   }
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-    loadedConfig  = true;
+    loadedConfig = true;
 
     for (Element element : configXML) {
       if (element.getName().equals("skin")) {
@@ -1335,7 +1335,6 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       } else if (element.getName().equals("hidden")) {
         BasicInternalFrameUI ui = (BasicInternalFrameUI) getUI();
         ui.getNorthPane().setPreferredSize(new Dimension(0,0));
-        skinButton.setVisible(false);
       }
     }
     return true;
@@ -1489,11 +1488,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
           ui.getNorthPane().getPreferredSize().height == 0) {
         /* Restore window decorations */
         ui.getNorthPane().setPreferredSize(null);
-        visualizer.skinButton.setVisible(true);
       } else {
         /* Hide window decorations */
         ui.getNorthPane().setPreferredSize(new Dimension(0,0));
-        visualizer.skinButton.setVisible(false);
       }
       visualizer.revalidate();
       SwingUtilities.invokeLater(new Runnable() {
@@ -1525,10 +1522,10 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   public String getQuickHelp() {
     return
     "<b>Network</b> " +
-    "<p>The network windo shows the positions of simulated motes. " +
+    "<p>The network window shows the positions of simulated motes. " +
     "It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. Motes can be moved by dragging them. " +
     "Mouse right-click motes for options. " +
-    "<p>The network window suppors different views. " +
+    "<p>The network window supports different views. " +
     "Each view provides some specific information, such as the IP addresses of motes. " +
     "Multiple views can be active at the same time. " +
     "Use the View menu to select views. ";
