@@ -34,13 +34,17 @@ APPS += $(WITH_WEBSERVER)
 CFLAGS += -DWEBSERVER=2
 endif
 
+ifeq ($(PREFIX),)
+ PREFIX = aaaa::1/64
+endif
+
 include $(CONTIKI)/Makefile.include
 
 $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
 	(cd $(CONTIKI)/tools && $(MAKE) tunslip6)
 
 connect-router:	$(CONTIKI)/tools/tunslip6
-	sudo $(CONTIKI)/tools/tunslip6 aaaa::1/64
+	sudo $(CONTIKI)/tools/tunslip6 $(PREFIX)
 
 connect-router-cooja:	$(CONTIKI)/tools/tunslip6
-	sudo $(CONTIKI)/tools/tunslip6 -a 127.0.0.1 aaaa::1/64
+	sudo $(CONTIKI)/tools/tunslip6 -a 127.0.0.1 $(PREFIX)
