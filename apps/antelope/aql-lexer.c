@@ -50,7 +50,7 @@ struct keyword {
 
 /* The keywords are arranged primarily by length and
    secondarily by expected lookup frequency. */
-static struct keyword keywords[] = {
+static const struct keyword keywords[] = {
   {";", END},
   {"(", LEFT_PAREN},
   {")", RIGHT_PAREN},
