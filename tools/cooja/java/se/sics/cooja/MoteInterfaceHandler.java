@@ -105,8 +105,8 @@ public class MoteInterfaceHandler {
    */
   public <N extends MoteInterface> N getInterfaceOfType(Class<N> interfaceType) {
     for (MoteInterface intf : moteInterfaces) {
-      if (interfaceType.isAssignableFrom(intf.getClass())) {
-        return (N) intf;
+      if (interfaceType.isInstance(intf)) {
+        return interfaceType.cast(intf);
       }
     }
 
