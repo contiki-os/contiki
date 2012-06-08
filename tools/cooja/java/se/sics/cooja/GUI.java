@@ -4479,7 +4479,7 @@ public class GUI extends Observable {
       return getSimulation() != null;
     }
   };
-  GUIAction exitCoojaAction = new GUIAction("Exit") {
+  GUIAction exitCoojaAction = new GUIAction("Exit", 'x') {
 		private static final long serialVersionUID = 7523822251658687665L;
 		public void actionPerformed(ActionEvent e) {
       myGUI.doQuit(true);
