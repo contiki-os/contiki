@@ -54,6 +54,7 @@
 #define REST_RES_TOGGLE 1
 #define REST_RES_LIGHT 0
 #define REST_RES_BATTERY 0
+#define REST_RES_RADIO 1
 
 
 
@@ -79,6 +80,9 @@
 #endif
 #if defined (PLATFORM_HAS_SHT11)
 #include "dev/sht11-sensor.h"
+#endif
+#if defined (PLATFORM_HAS_RADIO)
+#include "dev/radio-sensor.h"
 #endif
 
 
@@ -672,6 +676,67 @@ battery_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
 #endif /* PLATFORM_HAS_BATTERY */
 
 
+#if defined (PLATFORM_HAS_RADIO) && REST_RES_RADIO
+/* A simple getter example. Returns the reading of the rssi/lqi from radio sensor */
+RESOURCE(radio, METHOD_GET, "sensor/radio", "title=\"RADIO: ?p=lqi|rssi\";rt=\"RadioSensor\"");
+
+void
+radio_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  size_t len = 0;
+  const char *p = NULL;
+  uint8_t param = 0;
+  int success = 1;
+
+  const uint16_t *accept = NULL;
+  int num = REST.get_header_accept(request, &accept);
+
+  if ((len=REST.get_query_variable(request, "p", &p))) {
+    PRINTF("p %.*s\n", len, p);
+    if (strncmp(p, "lqi", len)==0) {
+      param = RADIO_SENSOR_LAST_VALUE;
+    } else if(strncmp(p,"rssi", len)==0) {
+      param = RADIO_SENSOR_LAST_PACKET;
+    } else {
+      success = 0;
+    }
+  } else {
+    success = 0;
+  }
+
+  if (success) {
+    if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
+    {
+      REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+      snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", radio_sensor.value(param));
+
+      REST.set_response_payload(response, (uint8_t *)buffer, strlen(buffer));
+    }
+    else if (num && (accept[0]==REST.type.APPLICATION_JSON))
+    {
+      REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
+
+      if (param == RADIO_SENSOR_LAST_VALUE) {
+        snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'lqi':%d}", radio_sensor.value(param));
+      } else if (param == RADIO_SENSOR_LAST_PACKET) {
+        snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'rssi':%d}", radio_sensor.value(param));
+      }
+
+      REST.set_response_payload(response, buffer, strlen(buffer));
+    }
+    else
+    {
+      REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
+      const char *msg = "Supporting content-types text/plain and application/json";
+      REST.set_response_payload(response, msg, strlen(msg));
+    }
+  } else {
+    REST.set_response_status(response, REST.status.BAD_REQUEST);
+  }
+}
+#endif
+
+
 
 PROCESS(rest_server_example, "Erbium Example Server");
 AUTOSTART_PROCESSES(&rest_server_example);
@@ -741,6 +806,10 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #if defined (PLATFORM_HAS_BATTERY) && REST_RES_BATTERY
   SENSORS_ACTIVATE(battery_sensor);
   rest_activate_resource(&resource_battery);
+#endif
+#if defined (PLATFORM_HAS_RADIO) && REST_RES_RADIO
+  SENSORS_ACTIVATE(radio_sensor);
+  rest_activate_resource(&resource_radio);
 #endif
 
   /* Define application-specific events here. */
