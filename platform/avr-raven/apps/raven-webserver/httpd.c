@@ -307,8 +307,6 @@ generate_header(void *hstr)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-char http_htm[10]   PROGMEM ="text/html";
-char http_css[ 9]   PROGMEM ="text/css";
 const char httpd_mime_htm[] HTTPD_STRING_ATTR = "text/html";
 const char httpd_mime_css[] HTTPD_STRING_ATTR = "text/css";
 const char httpd_mime_png[] HTTPD_STRING_ATTR = "image/png";
