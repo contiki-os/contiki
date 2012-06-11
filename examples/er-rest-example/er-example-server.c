@@ -50,10 +50,12 @@
 #define REST_RES_SEPARATE 1
 #define REST_RES_PUSHING 1
 #define REST_RES_EVENT 1
+#define REST_RES_SUB 1
 #define REST_RES_LEDS 1
 #define REST_RES_TOGGLE 1
 #define REST_RES_LIGHT 0
 #define REST_RES_BATTERY 0
+#define REST_RES_RADIO 1
 
 
 
@@ -79,6 +81,9 @@
 #endif
 #if defined (PLATFORM_HAS_SHT11)
 #include "dev/sht11-sensor.h"
+#endif
+#if defined (PLATFORM_HAS_RADIO)
+#include "dev/radio-sensor.h"
 #endif
 
 
@@ -475,7 +480,7 @@ pushing_periodic_handler(resource_t *r)
 
   ++obs_counter;
 
-  PRINTF("TICK %u for /%s\n", periodic_i, r->url);
+  PRINTF("TICK %u for /%s\n", obs_counter, r->url);
 
   /* Build notification. */
   coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
@@ -528,6 +533,36 @@ event_event_handler(resource_t *r)
   REST.notify_subscribers(r, event_counter, notification);
 }
 #endif /* PLATFORM_HAS_BUTTON */
+
+/******************************************************************************/
+#if REST_RES_SUB
+/*
+ * Example for a resource that also handles all its sub-resources.
+ * Use REST.get_url() to multiplex the handling of the request depending on the Uri-Path.
+ */
+RESOURCE(sub, METHOD_GET | HAS_SUB_RESOURCES, "test/path", "title=\"Sub-resource demo\"");
+
+void
+sub_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+
+  const char *uri_path = NULL;
+  int len = REST.get_url(request, &uri_path);
+  int base_len = strlen(resource_sub.url);
+
+  if (len==base_len)
+  {
+	snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "Request any sub-resource of /%s", resource_sub.url);
+  }
+  else
+  {
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, ".%s", uri_path+base_len);
+  }
+
+  REST.set_response_payload(response, buffer, strlen((char *)buffer));
+}
+#endif
 
 /******************************************************************************/
 #if defined (PLATFORM_HAS_LEDS)
@@ -609,23 +644,23 @@ light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
   if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
   {
     REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-    snprintf(buffer, REST_MAX_CHUNK_SIZE, "%u;%u", light_photosynthetic, light_solar);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u;%u", light_photosynthetic, light_solar);
 
-    REST.set_response_payload(response, (uint8_t *)buffer, strlen(buffer));
+    REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
   }
   else if (num && (accept[0]==REST.type.APPLICATION_XML))
   {
     REST.set_header_content_type(response, REST.type.APPLICATION_XML);
-    snprintf(buffer, REST_MAX_CHUNK_SIZE, "<light photosynthetic=\"%u\" solar=\"%u\"/>", light_photosynthetic, light_solar);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<light photosynthetic=\"%u\" solar=\"%u\"/>", light_photosynthetic, light_solar);
 
-    REST.set_response_payload(response, buffer, strlen(buffer));
+    REST.set_response_payload(response, buffer, strlen((char *)buffer));
   }
   else if (num && (accept[0]==REST.type.APPLICATION_JSON))
   {
     REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
-    snprintf(buffer, REST_MAX_CHUNK_SIZE, "{'light':{'photosynthetic':%u,'solar':%u}}", light_photosynthetic, light_solar);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'light':{'photosynthetic':%u,'solar':%u}}", light_photosynthetic, light_solar);
 
-    REST.set_response_payload(response, buffer, strlen(buffer));
+    REST.set_response_payload(response, buffer, strlen((char *)buffer));
   }
   else
   {
@@ -651,16 +686,16 @@ battery_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
   if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
   {
     REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-    snprintf(buffer, REST_MAX_CHUNK_SIZE, "%d", battery);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", battery);
 
-    REST.set_response_payload(response, (uint8_t *)buffer, strlen(buffer));
+    REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
   }
   else if (num && (accept[0]==REST.type.APPLICATION_JSON))
   {
     REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
-    snprintf(buffer, REST_MAX_CHUNK_SIZE, "{'battery':%d}", battery);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'battery':%d}", battery);
 
-    REST.set_response_payload(response, buffer, strlen(buffer));
+    REST.set_response_payload(response, buffer, strlen((char *)buffer));
   }
   else
   {
@@ -670,6 +705,67 @@ battery_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
   }
 }
 #endif /* PLATFORM_HAS_BATTERY */
+
+
+#if defined (PLATFORM_HAS_RADIO) && REST_RES_RADIO
+/* A simple getter example. Returns the reading of the rssi/lqi from radio sensor */
+RESOURCE(radio, METHOD_GET, "sensor/radio", "title=\"RADIO: ?p=lqi|rssi\";rt=\"RadioSensor\"");
+
+void
+radio_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  size_t len = 0;
+  const char *p = NULL;
+  uint8_t param = 0;
+  int success = 1;
+
+  const uint16_t *accept = NULL;
+  int num = REST.get_header_accept(request, &accept);
+
+  if ((len=REST.get_query_variable(request, "p", &p))) {
+    PRINTF("p %.*s\n", len, p);
+    if (strncmp(p, "lqi", len)==0) {
+      param = RADIO_SENSOR_LAST_VALUE;
+    } else if(strncmp(p,"rssi", len)==0) {
+      param = RADIO_SENSOR_LAST_PACKET;
+    } else {
+      success = 0;
+    }
+  } else {
+    success = 0;
+  }
+
+  if (success) {
+    if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
+    {
+      REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+      snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", radio_sensor.value(param));
+
+      REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
+    }
+    else if (num && (accept[0]==REST.type.APPLICATION_JSON))
+    {
+      REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
+
+      if (param == RADIO_SENSOR_LAST_VALUE) {
+        snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'lqi':%d}", radio_sensor.value(param));
+      } else if (param == RADIO_SENSOR_LAST_PACKET) {
+        snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'rssi':%d}", radio_sensor.value(param));
+      }
+
+      REST.set_response_payload(response, buffer, strlen((char *)buffer));
+    }
+    else
+    {
+      REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
+      const char *msg = "Supporting content-types text/plain and application/json";
+      REST.set_response_payload(response, msg, strlen(msg));
+    }
+  } else {
+    REST.set_response_status(response, REST.status.BAD_REQUEST);
+  }
+}
+#endif
 
 
 
@@ -726,6 +822,9 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #if defined (PLATFORM_HAS_BUTTON) && (REST_RES_EVENT || (REST_RES_SEPARATE && WITH_COAP > 3))
   SENSORS_ACTIVATE(button_sensor);
 #endif
+#if REST_RES_SUB
+  rest_activate_resource(&resource_sub);
+#endif
 #if defined (PLATFORM_HAS_LEDS)
 #if REST_RES_LEDS
   rest_activate_resource(&resource_leds);
@@ -741,6 +840,10 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #if defined (PLATFORM_HAS_BATTERY) && REST_RES_BATTERY
   SENSORS_ACTIVATE(battery_sensor);
   rest_activate_resource(&resource_battery);
+#endif
+#if defined (PLATFORM_HAS_RADIO) && REST_RES_RADIO
+  SENSORS_ACTIVATE(radio_sensor);
+  rest_activate_resource(&resource_radio);
 #endif
 
   /* Define application-specific events here. */

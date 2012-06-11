@@ -39,6 +39,7 @@ import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.RimeAddress;
 import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
+import se.sics.cooja.mspmote.interfaces.MspButton;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
 import se.sics.cooja.mspmote.interfaces.MspDefaultSerial;
@@ -80,6 +81,7 @@ public class Z1MoteType extends AbstractMspMoteType {
                 MoteAttributes.class,
                 MspClock.class,
                 MspMoteID.class,
+                MspButton.class,
 //                SkyFlash.class,
                 Msp802154Radio.class,
                 MspDefaultSerial.class,
