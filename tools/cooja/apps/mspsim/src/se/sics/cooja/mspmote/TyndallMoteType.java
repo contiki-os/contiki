@@ -55,14 +55,14 @@ import se.sics.cooja.interfaces.Mote2MoteRelations;
 import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.RimeAddress;
+import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
-import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.TyndallLED;
 import se.sics.cooja.mspmote.interfaces.UsciA0Serial;
 
-@ClassDescription("Tyndall mote...")
+@ClassDescription("Tyndall mote")
 @AbstractionLevelDescription("Emulated level")
 public class TyndallMoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(TyndallMoteType.class);
@@ -201,7 +201,7 @@ public class TyndallMoteType extends MspMoteType {
 
     return new File(parentDir, sourceNoExtension + ".tyndall");
   }
-  
+
   protected String getTargetName() {
   	return "tyndall";
   }

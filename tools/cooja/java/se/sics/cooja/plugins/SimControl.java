@@ -63,7 +63,7 @@ import se.sics.cooja.VisPlugin;
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Simulation control...")
+@ClassDescription("Simulation control")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class SimControl extends VisPlugin implements HasQuickHelp {
   private static final int LABEL_UPDATE_INTERVAL = 150;
