@@ -40,7 +40,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
+
 import org.jdom.Element;
+
 import se.sics.cooja.AbstractionLevelDescription;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
@@ -52,7 +54,7 @@ import se.sics.cooja.util.ArrayUtils;
 /**
  * @author Fredrik Osterlind
  */
-@ClassDescription("Import Java mote...")
+@ClassDescription("Import Java mote")
 @AbstractionLevelDescription("Application level")
 public class ImportAppMoteType extends AbstractApplicationMoteType {
 
@@ -109,7 +111,7 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
   }
 
   public boolean configureAndInit(Container parentContainer,
-      Simulation simulation, boolean visAvailable) 
+      Simulation simulation, boolean visAvailable)
   throws MoteTypeCreationException {
     this.simulation = simulation;
 
@@ -256,7 +258,7 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
     public boolean isTestSubclass(Class<?> type) {
       return type.isAssignableFrom(testClass);
     }
-    
+
     public Class<?> getTestClass() {
       return testClass;
     }

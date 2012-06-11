@@ -107,7 +107,7 @@ import se.sics.cooja.util.StringUtils;
 /**
  * @author Fredrik Osterlind, Niclas Finne
  */
-@ClassDescription("Buffer view...")
+@ClassDescription("Buffer view")
 @PluginType(PluginType.SIM_PLUGIN)
 public class BufferListener extends VisPlugin {
   private static final long serialVersionUID = 1L;
@@ -132,7 +132,7 @@ public class BufferListener extends VisPlugin {
 
   final static int MAX_BUFFER_SIZE = 128;
 
-  private static ArrayList<Class<? extends Parser>> bufferParsers = 
+  private static ArrayList<Class<? extends Parser>> bufferParsers =
     new ArrayList<Class<? extends Parser>>();
   static {
     registerBufferParser(ByteArrayParser.class);
@@ -148,7 +148,7 @@ public class BufferListener extends VisPlugin {
 
   /* TODO Hide identical lines? */
 
-  private static ArrayList<Class<? extends Buffer>> bufferTypes = 
+  private static ArrayList<Class<? extends Buffer>> bufferTypes =
     new ArrayList<Class<? extends Buffer>>();
   static {
     registerBufferType(PacketbufBuffer.class);
@@ -787,7 +787,7 @@ public class BufferListener extends VisPlugin {
   private void updateTitle() {
     if (buffer != null) {
       String status = buffer.getStatusString();
-      setTitle("Buffer Listener - " + 
+      setTitle("Buffer Listener - " +
           ((status!=null)?status:GUI.getDescriptionOf(buffer)) + " " +
           "- " + memoryMonitors.size() + " buffers on " + motes.size() + " motes");
     }
@@ -872,7 +872,7 @@ public class BufferListener extends VisPlugin {
         repaintTimeColumn();
       } else if ("parser".equals(name)) {
         String parserClassname = element.getText();
-        Class<? extends Parser> parserClass = 
+        Class<? extends Parser> parserClass =
           simulation.getGUI().tryLoadClass(this, Parser.class, parserClassname);
         if (parserClass == null) {
           logger.warn("Could not create buffer parser: could not find class: " + parserClassname);
@@ -960,7 +960,7 @@ public class BufferListener extends VisPlugin {
           return;
         }
       }
-    });  
+    });
   }
 
   public static class BufferAccess {
@@ -1271,7 +1271,7 @@ public class BufferListener extends VisPlugin {
     @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
       Class<? extends Parser> bpClass =
-        (Class<? extends Parser>) 
+        (Class<? extends Parser>)
         ((JMenuItem) e.getSource()).getClientProperty("CLASS");
       setParser(bpClass);
     }
@@ -1291,7 +1291,7 @@ public class BufferListener extends VisPlugin {
     @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
       Class<? extends Buffer> btClass =
-        (Class<? extends Buffer>) 
+        (Class<? extends Buffer>)
         ((JMenuItem) e.getSource()).getClientProperty("CLASS");
 
       Buffer b = createBufferInstance(btClass);
@@ -1610,7 +1610,7 @@ public class BufferListener extends VisPlugin {
   public static class PrintableCharactersParser extends StringParser {
     public String parseString(BufferAccess ba) {
       /* TODO Diff? */
-      return new String(ba.mem).replaceAll("[^\\p{Print}]", ""); 
+      return new String(ba.mem).replaceAll("[^\\p{Print}]", "");
     }
   }
 
@@ -1692,7 +1692,7 @@ public class BufferListener extends VisPlugin {
         if (diff != null && diff[x]) {
           red = true;
         }
-        int v = (int)0xff&ba.mem[x];
+        int v = 0xff&ba.mem[x];
         int h = Math.min(v/16, 15); /* crop */
         if (red) {
           g.setColor(Color.RED);
