@@ -69,18 +69,21 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
+import se.sics.cooja.GUI.RunnableInEDT;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SupportedArguments;
 import se.sics.cooja.VisPlugin;
-import se.sics.cooja.GUI.RunnableInEDT;
 import se.sics.cooja.dialogs.CompileContiki;
 import se.sics.cooja.dialogs.MessageList;
+import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.interfaces.SerialPort;
 
 @ClassDescription("Open Native IP Gateway")
 @PluginType(PluginType.MOTE_PLUGIN)
+@SupportedArguments(moteInterfaces = {IPAddress.class})
 public class NativeIPGateway extends VisPlugin implements MotePlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(NativeIPGateway.class);
@@ -238,7 +241,7 @@ public class NativeIPGateway extends VisPlugin implements MotePlugin {
         }
 
         /* Detect selected network interface */
-        NetworkInterfaceW intf = 
+        NetworkInterfaceW intf =
           (NetworkInterfaceW) ((JComboBox)e.getSource()).getSelectedItem();
         if (networkInterface == intf) {
           /* Already selected */
@@ -546,7 +549,7 @@ public class NativeIPGateway extends VisPlugin implements MotePlugin {
     final JDialog progressDialog;
     if (GUI.isVisualized()) {
       progressDialog = new JDialog(
-          (Window)GUI.getTopParentContainer(), 
+          (Window)GUI.getTopParentContainer(),
           "Starting Native IP Gateway plugin"
       );
     } else {
@@ -564,7 +567,7 @@ public class NativeIPGateway extends VisPlugin implements MotePlugin {
           progressDialog.getContentPane().add(BorderLayout.NORTH, progressBar);
           progressDialog.getContentPane().add(BorderLayout.CENTER, new JScrollPane(output));
           progressDialog.setSize(350, 150);
-          progressDialog.setLocationRelativeTo((Window)GUI.getTopParentContainer());
+          progressDialog.setLocationRelativeTo(GUI.getTopParentContainer());
           progressDialog.setVisible(true);
           GUI.setProgressMessage("Compiling hello-world.minimal-net (Native IP Gateway)");
           return true;
@@ -613,7 +616,7 @@ public class NativeIPGateway extends VisPlugin implements MotePlugin {
         }
       });
       Runtime.getRuntime().addShutdownHook(shutdownHook);
-      
+
       /* Waiting some time - otherwise pcap may not discover the new interface */
       Thread.sleep(250);
 
@@ -622,7 +625,7 @@ public class NativeIPGateway extends VisPlugin implements MotePlugin {
       logger.fatal("Error when creating tap0: " + e.getMessage());
       logger.fatal("Try using an already existing network interface");
     }
-    
+
     /* Hide progress bar */
     if (GUI.isVisualized()) {
       new RunnableInEDT<Boolean>() {
@@ -1007,7 +1010,7 @@ public class NativeIPGateway extends VisPlugin implements MotePlugin {
     }
 
     deleteTunInterface();
-    
+
     if (shutdownHook != null) {
       Runtime.getRuntime().removeShutdownHook(shutdownHook);
       shutdownHook = null;

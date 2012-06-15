@@ -204,7 +204,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 			buttonPane.setBorder(BorderFactory.createEmptyBorder(0,3,3,3));
 			buttonPane.add(Box.createHorizontalGlue());
 
-			button = new JButton("View merged config");
+			button = new JButton("View config");
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					try {
@@ -277,6 +277,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 					}
 
 					GUI.setExternalToolsSetting("DEFAULT_PROJECTDIRS", newDefaultProjectDirs);
+					dispose();
 				}
 			});
 			buttonPane.add(button);
@@ -289,12 +290,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 			treePanel = new DirectoryTreePanel(this);
 
 			sortPane = new JPanel(new BorderLayout());
-			Icon icon = UIManager.getLookAndFeelDefaults().getIcon("Table.ascendingSortIcon");
-			if (icon == null) {
-				button = new JButton("Up");
-			} else {
-				button = new JButton(icon);
-			}
+			button = new JButton("Move up");
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					int selectedIndex = table.getSelectedRow();
@@ -308,12 +304,8 @@ public class ProjectDirectoriesDialog extends JDialog {
 				}
 			});
 			sortPane.add(BorderLayout.NORTH, button);
-			icon = UIManager.getLookAndFeelDefaults().getIcon("Table.descendingSortIcon");
-			if (icon == null) {
-				button = new JButton("Down");
-			} else {
-				button = new JButton(icon);
-			}
+			
+			button = new JButton("Move down");
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					int selectedIndex = table.getSelectedRow();
@@ -332,8 +324,8 @@ public class ProjectDirectoriesDialog extends JDialog {
 			sortPane.add(BorderLayout.SOUTH, button);
 
 			{
-				button = new JButton("X");
-				button.setBackground(Color.RED);
+				button = new JButton("Remove");
+				
 				button.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						int selectedIndex = table.getSelectedRow();

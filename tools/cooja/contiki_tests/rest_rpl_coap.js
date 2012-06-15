@@ -15,8 +15,8 @@ msg = "";
 GENERATE_MSG(5000, "continue");
 WAIT_UNTIL(msg.equals("continue"));
 
-/* override simulation delay to realtime */
-sim.setDelayTime(java.lang.Integer.MIN_VALUE);
+/* override simulation speed limit to realtime */
+sim.setSpeedLimit(1.0);
 
 /* create tunnel interface */
 log.log("create tunnel interface\n");

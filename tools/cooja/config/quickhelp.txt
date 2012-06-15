@@ -1,78 +1,14 @@
-se.sics.cooja.plugins.Visualizer = \
-<b>Visualizer</b> \
-<p>The visualizer shows the positions of simulated motes as viewed from above (XY-plane). \
-It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. Motes can be moved by dragging them (ALT+Mouse drag). \
-Mouse right-click a mote or unoccupied space for a popup menu with more options. \
-<p>The visualizer supports "visualizer skins". \
-Each skin provides some specific information, such as ongoing simulated radio traffic, or the IP addresses of motes. \
-Multiple skins can be active at the same time. \
-Click the upper "Select visualizer skin" button to select or deselect skins. \
-<p><b>Useful skins</b> \
-<br>Mote IDs: prints the unique mote IDs inside motes. \
-<br>Log output: prints the last printf message above motes. \
-<br>Radio traffic: displays inter-mote radio communication. \
-<br>Radio environment (UDGM): enables configurating the UDGM radio medium. \
-<p><b>Tip</b><br> \
-Right-click visualizer to show the popup menu, and click "Hide window decorations".
-
-se.sics.cooja.plugins.LogListener = \
-<b>Log Listener</b>\
-<p>Listens to log output from all simulated motes. \
-Right-click the main area for a popup menu with more options. \
-<p>You may filter shown logs by entering regular expressions in the bottom text field. \
-Filtering is performed on both the Mote and the Data columns.\
-<p><b>Filter examples:</b> \
-<br><br>Hello<br><i>logs containing the string 'Hello'</i>\
-<br><br>^Contiki<br><i>logs starting with 'Contiki'</i>\
-<br><br>^[CR]<br><i>logs starting either a C or an R</i>\
-<br><br>Hello$<br><i>logs ending with 'Hello'</i>\
-<br><br>^ID:[2-5]$<br><i>logs from motes 2 to 5</i>\
-<br><br>^ID:[2-5] Contiki<br><i>logs from motes 2 to 5 starting with 'Contiki'</i>
-
-se.sics.cooja.plugins.TimeLine = \
-<b>Timeline</b>\
-<p>The timeline arranges historical simulation events into a graphical timeline. \
-The timeline can for example be used to overview the behavior of complex power-saving MAC protocols.\
-<p>Events appear as colored rectangles in the timeline. For more information about a particular event, hover the mouse above it.\
-<p>The checkboxes in the left pane control what event types are shown in the timeline. \
-Currently, four event types are supported (see below). Note that the control pane can be hidden to save space. \
-<p>All simulated motes are by default added to the timeline, however, any unwanted motes can be removed by mouse clicking the node ID (left).\
-<p>To display a vertical time marker on the timeline, press and hold the mouse on the time ruler (top).\
-<p>For more options, such as zooming and saving raw data to file, right-click the mouse for a popup menu.\
-<p><b>Radio RX/TX</b>\
-<br>Shows radio connection events. Transmissions are painted blue, receptions are green, and interfered radios are red.\
-<p><b>Radio ON/OFF</b>\
-<br>Shows whether the mote radio is on or off. Turned on radios are indicated with gray color.\
-<p><b>LEDs</b>\
-<br>Shows LED state: red, green, and blue. (Assumes all mote types have exactly three LEDs.)\
-<p><b>Watchpoints</b>\
-<br>Shows triggered watchpoints, currently only supported by MSPSim-based motes. To add watchpoints, use the Msp Code Watcher plugin.
-
-se.sics.cooja.plugins.SimControl = \
-<b>Control Panel</b>\
-<p>Use the control panel to start and stop the current simulation. \
-<p>Note that toggling simulation execution is also possible by the keyboard shortcut <i>Ctrl+S</i>. \
-<p><i>Step millisecond</i> executes all events within the next simulated millisecond. \
-<p>The execution speed can be controlled via the bottom slider. \
-If the slider value is non-zero, sleep events are scheduled in the simulation loop. \
-<p>By setting the slider to <i>Real time</i>, the execution speed is limited to at maximum real time. \
-The <i>Real time</i> slider value is to the right of <i>No simulation delay</i>: select the slider button and use to keyboard to navigate here. \
-<p><i>Run until</i> can be used to configure a time (in milliseconds) where the simulation will automatically pause.
-
-se.sics.cooja.mspmote.plugins.MspCLI = \
-<b>MSPSim's Command Line Interface</b>\
-<br><br>help<br><i>lists available commands</i>\
-<br><br>info CC2420<br><i>shows radio chip details</i>\
-<br><br>log CC2420 > mylog.txt<br><i>logs radio chip details to file</i>\
-<br><br>stacktrace<br><i>shows current stacktrace</i>
-
 KEYBOARD_SHORTCUTS = \
 <b>Keyboard shortcuts</b><br>\
 <br><i>Ctrl+N:</i> New simulation\
 <br><i>Ctrl+S:</i> Start/pause simulation\
 <br><i>Ctrl+R:</i> Reload current simulation. If no simulation exists, the last used simulation config is loaded\
 <br><i>Ctrl+Shift+R:</i> Reload current simulation with another random seed\
-<br><i>Ctrl+X:</i> Quit COOJA\
 <br>\
 <br><i>F1:</i> Toggle quick help
+
+GETTING_STARTED = \
+<b>Getting started</b><br>\
+<br>\
+<br><i>F1:</i> Toggle quick help</i>
 

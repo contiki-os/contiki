@@ -111,7 +111,7 @@ public class MicaZRadio extends Radio802154 {
       return (int) cc2420.getFrequency();
   }
 
-  public boolean isReceiverOn() {
+  public boolean isRadioOn() {
       FiniteStateMachine fsm = cc2420.getFiniteStateMachine();
       /* based on reading the source code it seems that the fsm state = 3 means on */
       //System.out.println("COOJA: cc2420 FSM: " + fsm.getCurrentState());

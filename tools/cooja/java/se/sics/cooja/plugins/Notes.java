@@ -57,12 +57,12 @@ import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
 
 @ClassDescription("Notes")
-@PluginType(PluginType.SIM_PLUGIN)
+@PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class Notes extends VisPlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(Visualizer.class);
 
-  private JTextArea notes = new JTextArea("enter simulation notes here");
+  private JTextArea notes = new JTextArea("Enter notes here");
   private boolean decorationsVisible = true;
 
   public Notes(Simulation simulation, GUI gui) {
@@ -85,7 +85,7 @@ public class Notes extends VisPlugin {
         public void mousePressed(MouseEvent e) {
           if (e.isPopupTrigger()) {
             popup.show(Notes.this, e.getX(), e.getY());
-          } 
+          }
         }
         public void mouseReleased(MouseEvent e) {
           if (e.isPopupTrigger()) {
@@ -100,17 +100,20 @@ public class Notes extends VisPlugin {
       });
     }
 
-    this.setSize(300, 300);
+
+    /* XXX HACK: here we set the position and size of the window when it appears on a blank simulation screen. */
+    this.setLocation(680, 0);
+    this.setSize(gui.getDesktopPane().getWidth() - 680, 160);
   }
 
   public String getNotes() {
     return notes.getText();
   }
-  
+
   public void setNotes(String text) {
     this.notes.setText(text);
   }
-  
+
   private void setDecorationsVisible(boolean visible) {
     if (!(Notes.this.getUI() instanceof BasicInternalFrameUI)) {
       return;
@@ -121,7 +124,7 @@ public class Notes extends VisPlugin {
       ui.getNorthPane().setPreferredSize(null);
     } else {
       ui.getNorthPane().setPreferredSize(new Dimension(0,0));
-    }      
+    }
 
     Notes.this.revalidate();
     SwingUtilities.invokeLater(new Runnable() {
@@ -132,7 +135,7 @@ public class Notes extends VisPlugin {
 
     decorationsVisible = visible;
   }
-  
+
   public Collection<Element> getConfigXML() {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;

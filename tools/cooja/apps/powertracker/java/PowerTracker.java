@@ -69,7 +69,7 @@ import se.sics.cooja.interfaces.Radio;
  *
  * @author Fredrik Osterlind, Adam Dunkels
  */
-@ClassDescription("PowerTracker")
+@ClassDescription("Mote radio duty cycle")
 @PluginType(PluginType.SIM_PLUGIN)
 public class PowerTracker extends VisPlugin {
   private static Logger logger = Logger.getLogger(PowerTracker.class);
@@ -310,7 +310,7 @@ public class PowerTracker extends VisPlugin {
       this.mote = mote;
       this.radio = mote.getInterfaces().getRadio();
 
-      radioWasOn = radio.isReceiverOn();
+      radioWasOn = radio.isRadioOn();
       if (radio.isTransmitting()) {
         lastRadioState = RadioState.TRANSMITTING;
       } else if (radio.isReceiving()) {
@@ -350,7 +350,7 @@ public class PowerTracker extends VisPlugin {
       /* Await next radio event */
       if (radio.isTransmitting()) {
         lastRadioState = RadioState.TRANSMITTING;
-      } else if (!radio.isReceiverOn()) {
+      } else if (!radio.isRadioOn()) {
         lastRadioState = RadioState.IDLE;
       } else if (radio.isInterfered()) {
         lastRadioState = RadioState.INTERFERED;
@@ -359,7 +359,7 @@ public class PowerTracker extends VisPlugin {
       } else {
         lastRadioState = RadioState.IDLE;
       }
-      radioWasOn = radio.isReceiverOn();
+      radioWasOn = radio.isRadioOn();
       lastUpdateTime = now;
     }
 

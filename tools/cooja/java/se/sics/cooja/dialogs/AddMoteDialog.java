@@ -31,16 +31,45 @@
 
 package se.sics.cooja.dialogs;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.*;
-import java.text.*;
-import java.util.*;
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.Vector;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.*;
-import se.sics.cooja.interfaces.*;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.Positioner;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.interfaces.MoteID;
+import se.sics.cooja.interfaces.Position;
 
 /**
  * A dialog for adding motes.
@@ -66,7 +95,7 @@ public class AddMoteDialog extends JDialog {
 
   private JFormattedTextField numberOfMotesField, startX, endX, startY, endY,
       startZ, endZ;
-  private JComboBox positionDistributionBox /*, ipDistributionBox*/;
+  private JComboBox positionDistributionBox;
 
 
   /**
@@ -175,36 +204,6 @@ public class AddMoteDialog extends JDialog {
 
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0, 5)));
-
-    // IP address distribution
-    /*smallPane = new JPanel();
-    smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
-    label = new JLabel("IP Addressing");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
-
-    Vector<Class<? extends IPDistributor>> ipDistributors = simulation.getGUI()
-        .getRegisteredIPDistributors();
-    String[] ipDistributions = new String[ipDistributors.size()];
-    for (int i = 0; i < ipDistributions.length; i++) {
-      ipDistributions[i] = GUI.getDescriptionOf(ipDistributors.get(i));
-    }
-
-    comboBox = new JComboBox(ipDistributions);
-
-    comboBox.setSelectedIndex(0);
-    comboBox.addActionListener(myEventHandler);
-    comboBox.addFocusListener(myEventHandler);
-    ipDistributionBox = comboBox;
-    label.setLabelFor(comboBox);
-
-    smallPane.add(label);
-    smallPane.add(Box.createHorizontalStrut(10));
-    smallPane.add(comboBox);
-
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0, 5)));
-     */
 
     // Position distribution
     smallPane = new JPanel();
@@ -504,7 +503,7 @@ public class AddMoteDialog extends JDialog {
             }
           }
 
-          /* Set unique mote id's for all new motes 
+          /* Set unique mote id's for all new motes
            * TODO ID should be provided differently; not rely on the unsafe MoteID interface */
           int nextMoteID = 1;
           for (Mote m: simulation.getMotes()) {
@@ -521,33 +520,6 @@ public class AddMoteDialog extends JDialog {
               logger.warn("Can't set mote ID (no mote ID interface): " + m);
             }
           }
-
-          // IP address new motes
-          /*Class<? extends IPDistributor> ipDistClass = null;
-          for (Class<? extends IPDistributor> ipDistributor : simulation.getGUI()
-              .getRegisteredIPDistributors()) {
-            if (GUI.getDescriptionOf(ipDistributor).equals(
-                ipDistributionBox.getSelectedItem())) {
-              ipDistClass = ipDistributor;
-            }
-          }
-
-          IPDistributor ipDistributor = IPDistributor.generateIPDistributor(
-              ipDistClass, newMotes);
-
-          if (ipDistributor == null) {
-            logger.fatal("Could not create IP distributor");
-            dispose();
-            return;
-          }
-
-          for (int i = 0; i < newMotes.size(); i++) {
-            String newIPString = ipDistributor.getNextIPAddress();
-            if (newMotes.get(i).getInterfaces().getIPAddress() != null) {
-              newMotes.get(i).getInterfaces().getIPAddress().setIPString(
-                  newIPString);
-            }
-          }*/
 
           dispose();
         } catch (OutOfMemoryError e2) {

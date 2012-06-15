@@ -265,7 +265,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
       }
 
 
-      if (!dest.radio.isReceiverOn()) {
+      if (!dest.radio.isRadioOn()) {
         /* Fail: radio is off */
         /*logger.info(source + ": Fail, off");*/
         newConn.addInterfered(dest.radio);

@@ -139,18 +139,18 @@ public abstract class Radio extends MoteInterface {
   public abstract boolean isInterfered();
 
   /**
-   * @return True if the simulated radio receiver is turned on
+   * @return True if the simulated radio transceiver is on
    */
-  public abstract boolean isReceiverOn();
+  public abstract boolean isRadioOn();
 
   /**
    * Interferes with any current reception. If this method is called, the packet
    * will be dropped. This method can be used to simulate radio interference
    * such as high background noise or radio packet collisions.
-   * 
-   * When the radio is no longer interfered, the {@link #signalReceptionEnd()} 
+   *
+   * When the radio is no longer interfered, the {@link #signalReceptionEnd()}
    * method must be called.
-   *  
+   *
    * @see #signalReceptionEnd()
    */
   public abstract void interfereAnyReception();

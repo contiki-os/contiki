@@ -134,7 +134,7 @@
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(300000);
+      <script>TIMEOUT(900000);
 
 /* conf */
 NR_MOTES = 5;
@@ -142,9 +142,9 @@ NR_PINGS = 20;
 NR_PINGS_MIN = 10;
 osName = java.lang.System.getProperty("os.name").toLowerCase();
 if (osName.startsWith("win")) {
-  pingCmd = "ping -n " + NR_PINGS + " "; /* + ip */
+  pingCmd = "ping -w 10000 -n " + NR_PINGS + " "; /* + ip */
 } else {
-  pingCmd = "ping -c " + NR_PINGS + " "; /* + ip */
+  pingCmd = "ping -i 4 -c " + NR_PINGS + " "; /* + ip */
 }
 var nrReplies = new Array();
 replyMsg = "from "; /* + ip */
@@ -161,8 +161,8 @@ while (currentMote &lt;= NR_MOTES) {
 GENERATE_MSG(1000, "continue");
 WAIT_UNTIL(msg.equals("continue"));
 
-/* override simulation delay to realtime */
-mote.getSimulation().setDelayTime(java.lang.Integer.MIN_VALUE);
+/* override simulation speed limit to realtime */
+mote.getSimulation().setSpeedLimit(1.0);
 
 /* ping motes */
 currentMote = 1;

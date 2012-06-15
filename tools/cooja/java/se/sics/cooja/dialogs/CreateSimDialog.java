@@ -224,6 +224,10 @@ public class CreateSimDialog extends JDialog {
     vertBox.add(horizBox);
     vertBox.add(Box.createRigidArea(new Dimension(0,5)));
 
+    // -- Advanced settings --
+    Box advancedBox = Box.createVerticalBox();
+    advancedBox.setBorder(BorderFactory.createTitledBorder("Advanced settings"));
+
     // Radio Medium selection
     horizBox = Box.createHorizontalBox();
     horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
@@ -248,12 +252,10 @@ public class CreateSimDialog extends JDialog {
     horizBox.add(comboBox);
     horizBox.setToolTipText("Determines the radio surroundings behaviour");
 
-    vertBox.add(horizBox);
-    vertBox.add(Box.createRigidArea(new Dimension(0,5)));
-
-    // -- Advanced settings --
-    Box advancedBox = Box.createVerticalBox();
-    advancedBox.setBorder(BorderFactory.createTitledBorder("Advanced settings"));
+    /*vertBox.add(horizBox);
+    vertBox.add(Box.createRigidArea(new Dimension(0,5)));*/
+    advancedBox.add(horizBox);
+    advancedBox.add(Box.createRigidArea(new Dimension(0,5)));
 
     // Delayed startup
     horizBox = Box.createHorizontalBox();
@@ -316,7 +318,7 @@ public class CreateSimDialog extends JDialog {
     });
 
     horizBox.add(label);
-    horizBox.add(Box.createHorizontalStrut(116));
+    horizBox.add(Box.createHorizontalStrut(144));
     horizBox.add(randomSeedGenerated);
 
     advancedBox.add(horizBox);
