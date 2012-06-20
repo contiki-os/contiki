@@ -90,6 +90,8 @@
 /* Bit Masks for the last byte in the RX FIFO */
 #define CRC_BIT_MASK 0x80
 #define LQI_BIT_MASK 0x7F
+/* RSSI Offset */
+#define RSSI_OFFSET    73
 
 /* 192 ms, radio off -> on interval */
 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
@@ -385,7 +387,7 @@ read(void *buf, unsigned short bufsize)
   PUTSTRING("\n");
 
   /* Read the RSSI and CRC/Corr bytes */
-  rssi = ((int8_t) RFD) - 45;
+  rssi = ((int8_t) RFD) - RSSI_OFFSET;
   crc_corr = RFD;
 
 #if CC2530_RF_CONF_HEXDUMP
