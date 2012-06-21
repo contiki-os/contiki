@@ -349,7 +349,11 @@ SFRX(OBSSEL4,    0x6247); /* Observation output control - register 4 */
 SFRX(OBSSEL5,    0x6248); /* Observation output control - register 5 */
 SFRX(CHVER,      0x6249); /* Chip version */
 SFRX(CHIPID,     0x624A); /* Chip identification */
-SFRX(TR0,        0x624B); /* Test register 0 */
+
+/* TR0 below is renamed to TESTREG0 to avoid namespace conflicts with the
+ * bit-addressable TCON.TR0 on the default 8051. See SDCC bug 3513300 */
+SFRX(TESTREG0,   0x624B); /* Test register 0 */
+
 SFRX(DBGDATA,    0x6260); /* Debug interface write data */
 SFRX(SRCRC,      0x6262); /* Sleep reset CRC */
 SFRX(BATTMON,    0x6264); /* Battery monitor */
