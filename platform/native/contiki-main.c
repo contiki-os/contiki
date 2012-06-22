@@ -270,6 +270,12 @@ main(int argc, char **argv)
     }
 
     etimer_request_poll();
+
+#if WITH_GUI
+    if(console_resize()) {
+       ctk_restore();
+    }
+#endif /* WITH_GUI */
   }
 
   return 0;
