@@ -94,10 +94,17 @@ console_init(void)
   initscr();
   start_color();
   cbreak();
+
+  /* don't echo typed characters */
   noecho();
   /*nonl();*/
+
+  /* hide text cursor, CTK draws its own */
+  curs_set(0);
+
   intrflush(stdscr, FALSE);
   keypad(stdscr, TRUE);
+
   /* done here because ctk_mouse_init() is called before anyway */
   mousemask(ALL_MOUSE_EVENTS, &oldmask);
 
@@ -111,9 +118,11 @@ console_init(void)
 	      init_pair(MKPAIR(bg, fg), fg, bg);
   }
 
+  /* set window title */
   putp("\033]0;Contiki\a");
 
-  timeout(25);
+  /* don't block on read, just timeout 1ms */
+  timeout(1);
 
   signal(SIGINT, ctrlhandler);
   atexit(console_exit);
@@ -195,6 +204,8 @@ clrscr(void)
 void
 bgcolor(unsigned char c)
 {
+  color = (c << 4 | color & 0xF0);
+
   /* Presume this to be one of the first calls. */
   console_init();
 }
@@ -339,8 +350,12 @@ console_readkey(int k)
         button = event.bstate & BUTTON1_PRESSED
               || event.bstate & BUTTON1_CLICKED
               || event.bstate & BUTTON1_DOUBLE_CLICKED;
-        /*fprintf(stderr, "mevent: %d: %d, %d, %d, %x ; %d\n",
-                  event.id, event.x, event.y, event.z, (int)event.bstate, button);*/
+        /*fprintf(stderr, "mevent: %d: %d, %d, %d, %lx ; %d\n",
+                  event.id, event.x, event.y, event.z, event.bstate, button);*/
+      }
+      /* just in case */
+      while (getmouse(&event) == OK) {
+        /*fprintf(stderr, "pumped mevent\n");*/
       }
       return;
     }
@@ -356,6 +371,7 @@ console_readkey(int k)
     case KEY_DOWN:
       key = CH_CURS_DOWN;
       break;
+    case KEY_F(9): /* Gnome uses F10 as menu trigger now... */
     case KEY_F(10):
       key = CTK_CONF_MENU_KEY;
       break;
