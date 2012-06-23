@@ -59,12 +59,12 @@ static unsigned char color;
 static unsigned char reversed;
 
 static ctk_arch_key_t keys[256];
-static unsigned char  keys_in, keys_out;
-static unsigned char  available;
+static unsigned char keys_in, keys_out;
+static unsigned char available;
 
 static unsigned short xpos;
 static unsigned short ypos;
-static unsigned char  button;
+static unsigned char button;
 
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -78,22 +78,29 @@ console_init(void)
 {
   mmask_t oldmask;
   static unsigned char done;
+
   if(done) {
     return;
   }
   done = 1;
 
-  stdinhandle  = STDIN_FILENO;
+  stdinhandle = STDIN_FILENO;
   stdouthandle = STDOUT_FILENO;
 
   /* will display an error and exit if the term can't be initialized */
-  /*setupterm((char *)0, STDOUT_FILENO, (int *)0);*/
+  /*setupterm((char *)0, STDOUT_FILENO, (int *)0); */
 
   initscr();
   start_color();
   cbreak();
+
+  /* don't echo typed characters */
   noecho();
-  /*nonl();*/
+  /*nonl(); */
+
+  /* hide text cursor, CTK draws its own */
+  curs_set(0);
+
   intrflush(stdscr, FALSE);
   keypad(stdscr, TRUE);
 
@@ -105,14 +112,17 @@ console_init(void)
   /* curses color handling is weird... */
   {
     int bg, fg;
-      for (fg = 0; fg < 8; fg++)
-        for (bg = 0; bg < 8; bg++)
-	      init_pair(MKPAIR(bg, fg), fg, bg);
+
+    for(fg = 0; fg < 8; fg++)
+      for(bg = 0; bg < 8; bg++)
+        init_pair(MKPAIR(bg, fg), fg, bg);
   }
 
+  /* set window title */
   putp("\033]0;Contiki\a");
 
-  timeout(25);
+  /* don't block on read, just timeout 1ms */
+  timeout(1);
 
   signal(SIGINT, ctrlhandler);
   atexit(console_exit);
@@ -145,9 +155,8 @@ console_resize(void)
 
   screensize(&new_width, &new_height);
 
-  if(new_width  != width ||
-     new_height != height) {
-    width  = new_width;
+  if(new_width != width || new_height != height) {
+    width = new_width;
     height = new_height;
     return 1;
   }
@@ -160,11 +169,12 @@ setcolor(void)
 {
   int bg, fg;
   int attrs;
+
   fg = (color & 0x0F);
   bg = (color & 0xF0) >> 4;
 
   attrs = COLOR_PAIR(MKPAIR(bg, fg));
-  if (reversed)
+  if(reversed)
     attrs |= WA_REVERSE;
   attrset(attrs);
 }
@@ -173,7 +183,9 @@ unsigned char
 wherex(void)
 {
   int x, y;
+
   getyx(stdscr, y, x);
+  (void)y;
   return (unsigned char)x;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -181,7 +193,9 @@ unsigned char
 wherey(void)
 {
   int x, y;
+
   getyx(stdscr, y, x);
+  (void)x;
   return (unsigned char)y;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -194,6 +208,8 @@ clrscr(void)
 void
 bgcolor(unsigned char c)
 {
+  color = ((c << 4) | (color & 0xF0));
+
   /* Presume this to be one of the first calls. */
   console_init();
 }
@@ -209,6 +225,7 @@ void
 screensize(unsigned char *x, unsigned char *y)
 {
   int mx, my;
+
   getmaxyx(stdscr, my, mx);
   *x = (unsigned char)mx;
   *y = (unsigned char)my;
@@ -225,25 +242,26 @@ void
 console_cputc(char c)
 {
   int ch = c;
+
   /* usually ACS_* don't fit in a char */
   switch (c) {
-    case CH_ULCORNER:
-      ch = ACS_ULCORNER;
-      break;
-    case CH_LLCORNER:
-      ch = ACS_LLCORNER;
-      break;
-    case CH_URCORNER:
-      ch = ACS_URCORNER;
-      break;
-    case CH_LRCORNER:
-      ch = ACS_LRCORNER;
-      break;
-    default:
-      break;
+  case CH_ULCORNER:
+    ch = ACS_ULCORNER;
+    break;
+  case CH_LLCORNER:
+    ch = ACS_LLCORNER;
+    break;
+  case CH_URCORNER:
+    ch = ACS_URCORNER;
+    break;
+  case CH_LRCORNER:
+    ch = ACS_LRCORNER;
+    break;
+  default:
+    break;
   }
   addch(ch);
-  /*refresh();*/
+  /*refresh(); */
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -257,7 +275,7 @@ void
 cclear(unsigned char length)
 {
   hline(' ', length);
-  /*refresh();*/
+  /*refresh(); */
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -326,63 +344,69 @@ console_readkey(int k)
 {
   ctk_arch_key_t key;
 
-  key = (ctk_arch_key_t)k;
-  /*fprintf(stderr, "key: %d\n", k);*/
+  key = (ctk_arch_key_t) k;
+  /*fprintf(stderr, "key: %d\n", k); */
   switch (k) {
-    case KEY_MOUSE:
+  case KEY_MOUSE:
     {
       MEVENT event;
-      if (getmouse(&event) == OK) {
+
+      if(getmouse(&event) == OK) {
         xpos = event.x;
         ypos = event.y;
         button = event.bstate & BUTTON1_PRESSED
-              || event.bstate & BUTTON1_CLICKED
-              || event.bstate & BUTTON1_DOUBLE_CLICKED;
-        /*fprintf(stderr, "mevent: %d: %d, %d, %d, %x ; %d\n",
-                  event.id, event.x, event.y, event.z, (int)event.bstate, button);*/
+          || event.bstate & BUTTON1_CLICKED
+          || event.bstate & BUTTON1_DOUBLE_CLICKED;
+        /*fprintf(stderr, "mevent: %d: %d, %d, %d, %lx ; %d\n",
+           event.id, event.x, event.y, event.z, event.bstate, button); */
+      }
+      /* just in case */
+      while(getmouse(&event) == OK) {
+        /*fprintf(stderr, "pumped mevent\n"); */
       }
       return;
     }
-    case KEY_LEFT:
-      key = CH_CURS_LEFT;
-      break;
-    case KEY_UP:
-      key = CH_CURS_UP;
-      break;
-    case KEY_RIGHT:
-      key = CH_CURS_RIGHT;
-      break;
-    case KEY_DOWN:
-      key = CH_CURS_DOWN;
-      break;
-    case KEY_F(10):
-      key = CTK_CONF_MENU_KEY;
-      break;
-    case KEY_ENTER:
-      key = CH_ENTER;
-      break;
-    case 127:
-    case KEY_BACKSPACE:
-    case KEY_DC:
-      key = CH_DEL;
-      break;
-    case KEY_BTAB:
-    case KEY_CTAB:
-    case KEY_PPAGE:
-    case KEY_PREVIOUS:
-      key = CTK_CONF_WIDGETUP_KEY;
-      break;
-    case KEY_NPAGE:
-    case KEY_NEXT:
-      key = CTK_CONF_WIDGETDOWN_KEY;
-      break;
-    case KEY_STAB:
-    case KEY_HOME:
-    case KEY_END:
-      key = CTK_CONF_WINDOWSWITCH_KEY;
-      break;
-    default:
-      break;
+  case KEY_LEFT:
+    key = CH_CURS_LEFT;
+    break;
+  case KEY_UP:
+    key = CH_CURS_UP;
+    break;
+  case KEY_RIGHT:
+    key = CH_CURS_RIGHT;
+    break;
+  case KEY_DOWN:
+    key = CH_CURS_DOWN;
+    break;
+  case KEY_F(9):               /* Gnome uses F10 as menu trigger now... */
+  case KEY_F(10):
+    key = CTK_CONF_MENU_KEY;
+    break;
+  case KEY_ENTER:
+    key = CH_ENTER;
+    break;
+  case 127:
+  case KEY_BACKSPACE:
+  case KEY_DC:
+    key = CH_DEL;
+    break;
+  case KEY_BTAB:
+  case KEY_CTAB:
+  case KEY_PPAGE:
+  case KEY_PREVIOUS:
+    key = CTK_CONF_WIDGETUP_KEY;
+    break;
+  case KEY_NPAGE:
+  case KEY_NEXT:
+    key = CTK_CONF_WIDGETDOWN_KEY;
+    break;
+  case KEY_STAB:
+  case KEY_HOME:
+  case KEY_END:
+    key = CTK_CONF_WINDOWSWITCH_KEY;
+    break;
+  default:
+    break;
   }
   if(key == 0) {
     return;
@@ -397,8 +421,9 @@ static void
 console_read(void)
 {
   int k;
+
   k = getch();
-  if (k != ERR)
+  if(k != ERR)
     console_readkey(k);
 }
 /*-----------------------------------------------------------------------------------*/
@@ -407,6 +432,7 @@ ctk_arch_getkey(void)
 {
   console_read();
   char k = keys[keys_out++];
+
   available--;
   return k;
 }
