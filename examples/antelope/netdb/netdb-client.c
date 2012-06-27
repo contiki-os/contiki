@@ -35,6 +35,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "contiki.h"
 #include "dev/serial-line.h"
