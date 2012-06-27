@@ -46,7 +46,7 @@ import se.sics.cooja.mspmote.interfaces.MspDefaultSerial;
 import se.sics.cooja.mspmote.interfaces.MspLED;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
 
-@ClassDescription("Z1 mote...")
+@ClassDescription("Z1 mote")
 @AbstractionLevelDescription("Emulated level")
 public class Z1MoteType extends AbstractMspMoteType {
 

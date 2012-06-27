@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2011-2012, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,49 +26,45 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IdIPDistributor.java,v 1.2 2009/09/17 13:20:03 fros4943 Exp $
+ * This file is part of the Contiki operating system.
  */
-
-package se.sics.cooja.ipdistributors;
-import java.util.Vector;
-import se.sics.cooja.*;
 
 /**
- * Generates IP addresses on the form 10.[id/256 mod 256*256].[id mod 256].1.
- * 
- * Observe!
- * - ID must be set before this is called (otherwise IP=0.0.0.0).
- * - Only supports 256*256 motes, (IPs will wrap if above).
- * 
- * @author Fredrik Osterlind
+ * \file
+ *         A few JSON defines used for parsing and generating JSON.
+ * \author
+ *         Niclas Finne <nfi@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
  */
-@ClassDescription("From ID (10.id.id.1)")
-public class IdIPDistributor extends IPDistributor {
-  private Vector<String> generatedIPAddresses;
 
-  /**
-   * Creates a Id IP distributor.
-   * @param newMotes All motes which later will be assigned IP numbers.
-   */
-  public IdIPDistributor(Vector<Mote> newMotes) {
-    generatedIPAddresses = new Vector<String>();
+#ifndef __JSON_H__
+#define __JSON_H__
 
-    for (int i=0; i < newMotes.size(); i++) {
-      int moteId = newMotes.get(i).getID();
-      generatedIPAddresses.add("10." + 
-          (moteId / 256 % (256*256))
-          + "." + 
-          (moteId % 256)
-          + ".1");
-    }
+#define JSON_TYPE_ARRAY '['
+#define JSON_TYPE_OBJECT '{'
+#define JSON_TYPE_PAIR ':'
+#define JSON_TYPE_PAIR_NAME 'N' /* for N:V pairs */
+#define JSON_TYPE_STRING '"'
+#define JSON_TYPE_INT 'I'
+#define JSON_TYPE_NUMBER '0'
+#define JSON_TYPE_ERROR 0
 
-  }
+/* how should we handle null vs false - both can be 0? */
+#define JSON_TYPE_NULL 'n'
+#define JSON_TYPE_TRUE 't'
+#define JSON_TYPE_FALSE 'f'
 
-  public String getNextIPAddress() {
-    if (generatedIPAddresses.size() > 0)
-      return generatedIPAddresses.remove(0);
-    else
-      return "0.0.0.0";
-  }
+#define JSON_TYPE_CALLBACK 'C'
 
-}
+enum {
+  JSON_ERROR_OK,
+  JSON_ERROR_SYNTAX,
+  JSON_ERROR_UNEXPECTED_ARRAY,
+  JSON_ERROR_UNEXPECTED_END_OF_ARRAY,
+  JSON_ERROR_UNEXPECTED_OBJECT,
+  JSON_ERROR_UNEXPECTED_STRING
+};
+
+#define JSON_CONTENT_TYPE "application/json"
+
+#endif /* __JSON_H__ */
