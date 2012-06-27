@@ -829,7 +829,7 @@ public class GUI extends Observable {
           }
 
           String description = GUI.getDescriptionOf(moteTypeClass);
-          menuItem = new JMenuItem(description);
+          menuItem = new JMenuItem(description + "...");
           menuItem.setActionCommand("create mote type");
           menuItem.putClientProperty("class", moteTypeClass);
         /*  menuItem.setToolTipText(abstractionLevelDescription);*/

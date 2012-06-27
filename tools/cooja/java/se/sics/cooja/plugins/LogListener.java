@@ -103,7 +103,7 @@ import se.sics.cooja.util.ArrayQueue;
  *
  * @author Fredrik Osterlind, Niclas Finne
  */
-@ClassDescription("Mote output...")
+@ClassDescription("Mote output")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class LogListener extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = 3294595371354857261L;
@@ -132,7 +132,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
   private ArrayQueue<LogData> logs = new ArrayQueue<LogData>();
 
   private Simulation simulation;
-  
+
   private JTextField filterTextField = null;
   private JLabel filterLabel = new JLabel("Filter: ");
   private Color filterTextFieldBackground;
@@ -208,18 +208,18 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
     menuBar.add(editMenu);
     menuBar.add(showMenu);
     this.setJMenuBar(menuBar);
-    
+
     editMenu.add(new JMenuItem(copyAllAction));
     editMenu.add(new JMenuItem(copyAllMessagesAction));
     editMenu.add(new JMenuItem(copyAction));
     editMenu.addSeparator();
     editMenu.add(new JMenuItem(clearAction));
-    
-    
+
+
     fileMenu.add(new JMenuItem(saveAction));
     appendCheckBox = new JCheckBoxMenuItem(appendAction);
     fileMenu.add(appendCheckBox);
-    
+
     colorCheckbox = new JCheckBoxMenuItem("Mote-specific coloring");
     showMenu.add(colorCheckbox);
     colorCheckbox.addActionListener(new ActionListener() {
@@ -400,7 +400,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
     adjuster.packColumns();
 
     /* Popup menu */
-    
+
     JPopupMenu popupMenu = new JPopupMenu();
     /*
     JMenu copyClipboard = new JMenu("Copy to clipboard");
@@ -543,7 +543,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
 
     updateTitle();
     pack();
-    
+
     /* XXX HACK: here we set the position and size of the window when it appears on a blank simulation screen. */
     this.setLocation(400, 160);
     this.setSize(gui.getDesktopPane().getWidth() - 400, 240);

@@ -30,16 +30,42 @@
 package se.sics.cooja.plugins;
 
 import java.awt.Component;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
-import se.sics.cooja.GUI.PluginConstructionException;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
 import se.sics.cooja.contikimote.ContikiMoteType;
-import se.sics.cooja.interfaces.*;
+import se.sics.cooja.interfaces.Button;
+import se.sics.cooja.interfaces.LED;
+import se.sics.cooja.interfaces.Log;
+import se.sics.cooja.interfaces.PIR;
+import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.interfaces.Radio;
 
 /**
  * Allows a user to observe several different parts of the simulator, stopping a
@@ -47,7 +73,7 @@ import se.sics.cooja.interfaces.*;
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Breakpoints...")
+@ClassDescription("Breakpoints")
 @PluginType(PluginType.SIM_PLUGIN)
 public class EventListener extends VisPlugin {
   private static final long serialVersionUID = 1L;
@@ -113,7 +139,7 @@ public class EventListener extends VisPlugin {
           + myParent.mySimulation.getSimulationTime(), new AbstractAction(
           "View interface visualizer") {
         public void actionPerformed(ActionEvent e) {
-          MoteInterfaceViewer plugin = 
+          MoteInterfaceViewer plugin =
             (MoteInterfaceViewer) mySimulation.getGUI().tryStartPlugin(
                 MoteInterfaceViewer.class, mySimulation.getGUI(), mySimulation, myMote);
           plugin.setSelectedInterface(GUI.getDescriptionOf(moteInterface.getClass()));

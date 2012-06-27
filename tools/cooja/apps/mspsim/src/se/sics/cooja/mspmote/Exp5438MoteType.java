@@ -56,13 +56,13 @@ import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.RimeAddress;
 import se.sics.cooja.mspmote.interfaces.Exp5438LED;
+import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
-import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.UsciA1Serial;
 
-@ClassDescription("EXP430F5438 mote...")
+@ClassDescription("EXP430F5438 mote")
 @AbstractionLevelDescription("Emulated level")
 public class Exp5438MoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(Exp5438MoteType.class);
@@ -190,7 +190,7 @@ public class Exp5438MoteType extends MspMoteType {
         MspMoteID.class,
         Msp802154Radio.class,
         UsciA1Serial.class,
-        Exp5438LED.class, 
+        Exp5438LED.class,
         /*Exp5438LCD.class,*/ /* TODO */
         MspDebugOutput.class
     };
@@ -202,7 +202,7 @@ public class Exp5438MoteType extends MspMoteType {
 
     return new File(parentDir, sourceNoExtension + ".exp5438");
   }
-  
+
   protected String getTargetName() {
   	return "exp5438";
   }

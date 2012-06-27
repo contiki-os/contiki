@@ -87,7 +87,7 @@ import se.sics.cooja.VisPlugin;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.util.StringUtils;
 
-@ClassDescription("Simulation script editor...")
+@ClassDescription("Simulation script editor")
 @PluginType(PluginType.SIM_PLUGIN)
 public class ScriptRunner extends VisPlugin {
   private static final long serialVersionUID = 7614358340336799109L;

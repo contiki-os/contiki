@@ -69,7 +69,7 @@ import se.sics.cooja.interfaces.Radio;
  *
  * @author Fredrik Osterlind, Adam Dunkels
  */
-@ClassDescription("Mote radio duty cycle...")
+@ClassDescription("Mote radio duty cycle")
 @PluginType(PluginType.SIM_PLUGIN)
 public class PowerTracker extends VisPlugin {
   private static Logger logger = Logger.getLogger(PowerTracker.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2011-2012, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,34 +26,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RandomIPDistributor.java,v 1.2 2009/02/18 12:07:19 fros4943 Exp $
+ * This file is part of the Contiki operating system.
  */
-
-package se.sics.cooja.ipdistributors;
-import java.util.Random;
-import java.util.Vector;
-import se.sics.cooja.*;
 
 /**
- * Generates IP addresses randomly on the form 10.10.[1-20].[1-20].
- * Nothing prevents several motes from getting the same IP number.
- *
- * @author Fredrik Osterlind
+ * \file
+ *         JSON webservice util
+ * \author
+ *         Niclas Finne    <nfi@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
+ *         Joel Hoglund    <joel@sics.se>
  */
-@ClassDescription("Random (10.10.?.?)")
-public class RandomIPDistributor extends IPDistributor {
 
-  private Random random = new Random(); /* Do not use main random generator for setup */
+#ifndef __JSON_WS_H__
+#define __JSON_WS_H__
 
-  /**
-   * Creates a random IP distributor.
-   * @param newMotes All motes which later will be assigned IP numbers.
-   */
-  public RandomIPDistributor(Vector<Mote> newMotes) {
-  }
+#include "jsontree.h"
 
-  public String getNextIPAddress() {
-    return "" + 10 + "." + 10 + "." + (1+random.nextInt(20)) + "." + (1+random.nextInt(20));
-  }
+void json_ws_init(struct jsontree_object *json);
+void json_ws_set_callback(const char *json_path);
+int  json_ws_udp_setup(const char *host, uint16_t port);
 
-}
+extern struct jsontree_object json_subscribe_callback;
+extern struct jsontree_callback json_time_callback;
+
+#if PLATFORM_HAS_LEDS
+extern struct jsontree_callback json_leds_callback;
+#endif
+extern struct jsontree_object cosm_tree;
+
+#endif /* __JSON_WS_H__ */

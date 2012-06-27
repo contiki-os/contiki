@@ -56,7 +56,6 @@ import java.util.Observer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -70,7 +69,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.JToolTip;
@@ -107,7 +105,7 @@ import se.sics.cooja.motes.AbstractEmulatedMote;
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Timeline...")
+@ClassDescription("Timeline")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class TimeLine extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = -883154261246961973L;
@@ -177,16 +175,16 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
     JMenu eventsMenu = new JMenu("Events");
     JMenu viewMenu = new JMenu("View");
     JMenu zoomMenu = new JMenu("Zoom");
-    
+
     menuBar.add(fileMenu);
     menuBar.add(editMenu);
     menuBar.add(viewMenu);
     menuBar.add(zoomMenu);
     menuBar.add(eventsMenu);
     menuBar.add(motesMenu);
-    
+
     this.setJMenuBar(menuBar);
-    
+
     motesMenu.add(new JMenuItem(addMoteAction));
     zoomMenu.add(new JMenuItem(zoomInAction));
     zoomMenu.add(new JMenuItem(zoomOutAction));
@@ -203,7 +201,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       		return radioChannels;
 	    }
     });
-    
+
     fileMenu.add(new JMenuItem(saveDataAction));
     fileMenu.add(new JMenuItem(statisticsAction));
     editMenu.add(new JMenuItem(clearAction));
@@ -270,14 +268,14 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       }
     });
     eventsMenu.add(eventCheckBox);
-    
+
     /* Box: events to observe */
-    
+
     eventCheckboxes = Box.createVerticalBox();
     /*
     eventCheckboxes.add(new JButton(addMoteAction));
     eventCheckboxes.add(new JSeparator());
-    
+
     JCheckBox eventCheckBox;
     eventCheckBox = createEventCheckbox("Radio RX/TX", "Show radio transmissions, receptions, and collisions");
     eventCheckBox.setSelected(showRadioRXTX);
@@ -347,7 +345,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
         JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
     timelineScrollPane.getHorizontalScrollBar().setUnitIncrement(50);
-    
+
     timelineMoteRuler = new MoteRuler();
     timelineScrollPane.setRowHeaderView(timelineMoteRuler);
     timelineScrollPane.setBackground(Color.WHITE);
@@ -420,7 +418,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         timer.start();
       }
     });
-    
+
     /* XXX HACK: here we set the position and size of the window when it appears on a blank simulation screen. */
     this.setLocation(0, gui.getDesktopPane().getHeight() - 166);
     this.setSize(gui.getDesktopPane().getWidth(), 166);
@@ -2513,5 +2511,5 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         "<br>Shows LED state: red, green, and blue. (Assumes all mote types have exactly three LEDs.)" +
         "<p><b>Watchpoints</b>" +
         "<br>Shows triggered watchpoints, currently only supported by MSPSim-based motes. To add watchpoints, use the Msp Code Watcher plugin.";
-  }  
+  }
 }

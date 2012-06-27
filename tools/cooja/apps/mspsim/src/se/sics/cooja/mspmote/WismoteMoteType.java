@@ -45,7 +45,7 @@ import se.sics.cooja.mspmote.interfaces.MspDefaultSerial;
 import se.sics.cooja.mspmote.interfaces.MspLED;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
 
-@ClassDescription("Wismote mote...")
+@ClassDescription("Wismote mote")
 @AbstractionLevelDescription("Emulated level")
 public class WismoteMoteType extends AbstractMspMoteType {
 
