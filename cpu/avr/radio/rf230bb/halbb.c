@@ -217,7 +217,7 @@ hal_init(void)
  //   TCCR1B = HAL_TCCR1B_CONFIG;       /* Set clock prescaler */
  //   TIFR1 |= (1 << ICF1);             /* Clear Input Capture Flag. */
  //   HAL_ENABLE_OVERFLOW_INTERRUPT(); /* Enable Timer1 overflow interrupt. */
-    hal_enable_trx_interrupt();    /* Enable interrupts from the radio transceiver. */
+    //hal_enable_trx_interrupt();    /* NOT USED: Enable interrupt pin from the radio transceiver. */
 }
 
 #elif defined(__AVR__)
