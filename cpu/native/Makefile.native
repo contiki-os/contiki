@@ -3,12 +3,12 @@ CONTIKI_CPU_DIRS = . net
 CONTIKI_SOURCEFILES += mtarch.c rtimer-arch.c elfloader-stub.c watchdog.c
 
 ### Compiler definitions
-CC       = gcc
-LD       = gcc
-AS       = as
-NM       = nm
-OBJCOPY  = objcopy
-STRIP    = strip
+CC       ?= gcc
+LD       ?= gcc
+AS       ?= as
+NM       ?= nm
+OBJCOPY  ?= objcopy
+STRIP    ?= strip
 ifdef WERROR
 CFLAGSWERROR=-Werror -pedantic -std=c99 -Werror
 endif
