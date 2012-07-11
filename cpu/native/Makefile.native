@@ -15,9 +15,9 @@ endif
 CFLAGSNO = -Wall -g -I/usr/local/include $(CFLAGSWERROR)
 CFLAGS  += $(CFLAGSNO) -O
 ifeq ($(HOST_OS),Linux)
-  LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
+  LDFLAGS  += -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 else
-  LDFLAGS  = -Wl
+  LDFLAGS  += -Wl
 endif
 
 ### Compilation rules
