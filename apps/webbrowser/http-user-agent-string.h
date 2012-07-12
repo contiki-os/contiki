@@ -1,1 +1,1 @@
-extern const char http_user_agent_fields[81];
+extern const char http_user_agent_fields[78];
