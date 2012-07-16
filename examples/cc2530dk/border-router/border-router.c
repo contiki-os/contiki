@@ -118,7 +118,7 @@ PROCESS_THREAD(border_router_process, ev, data)
   }
   cc2530_rf_channel_get();
   /* We have created a new DODAG when we reach here */
-  printf("On Channel %u\n", cc2530_rf_channel_get());
+  PRINTF("On Channel %u\n", cc2530_rf_channel_get());
 
   print_local_addresses();
 
