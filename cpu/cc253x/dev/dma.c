@@ -1,6 +1,7 @@
 /**
  * \file
- *         Driver for the cc2430 DMA controller. Can be assigned to any bank
+ *         Driver for the cc2530 DMA controller. Derived from the cc2430
+ *         equivalent
  *
  * \author
  *         Original: Martti Huttunen <martti@sensinode.com>
