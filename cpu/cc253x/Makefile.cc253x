@@ -106,6 +106,7 @@ CONTIKI_SOURCEFILES += uart0.c uart1.c uart-intr.c
 CONTIKI_SOURCEFILES += dma.c dma_intr.c
 CONTIKI_SOURCEFILES += cc2530-rf.c
 CONTIKI_SOURCEFILES += watchdog.c rtimer-arch.c
+CONTIKI_SOURCEFILES += p2-intr.c
 CONTIKI_ASMFILES +=
 
 CONTIKI_ASMOBJECTFILES = $(addprefix $(OBJECTDIR)/,$(CONTIKI_ASMFILES:.S=.rel))
