@@ -122,7 +122,11 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 			double pos_rssi = rssi + 100;
 			int lqi = ((DGRMDestinationRadio)r).lqi;
 			float red = (float)(1 - prob*pos_rssi/90*lqi/100);
+			if(red > 1) red = 1;
+			if(red < 0) red = 0;
 			float green = (float)(prob*pos_rssi/90*lqi/100);
+			if(green > 1) green = 1;
+			if(green < 0) green = 0;
 			if (prob == 0.0d) {
 				continue;
 			}
