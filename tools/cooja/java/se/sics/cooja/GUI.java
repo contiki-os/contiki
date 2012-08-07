@@ -671,7 +671,7 @@ public class GUI extends Observable {
   /**
    * Enables/disables menues and menu items depending on whether a simulation is loaded etc.
    */
-  private void updateGUIComponentState() {
+  public void updateGUIComponentState() {
     if (!isVisualized()) {
       return;
     }
