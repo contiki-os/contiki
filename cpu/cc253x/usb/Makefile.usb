@@ -1,0 +1,60 @@
+### Put generated sources in a separate directory
+BUILTSRCDIR = src_$(TARGET)
+ifeq (${wildcard $(BUILTSRCDIR)},)
+  DUMMY := ${shell mkdir $(BUILTSRCDIR)}
+endif
+
+STRUCTGEN = structgen
+
+PROJECTDIRS += $(BUILTSRCDIR)
+
+USB_STRING_DESCRIPTORS ?= $(CONTIKI_CPU_ARM)/common/usb/cdc-acm/string-descriptors.xml
+
+XMLDIRS=
+
+USB = usb-arch.c usb-core.c
+
+ifdef USB_CDC_ACM_CLASS
+CONTIKI_CPU_DIRS += ../common/usb/cdc-acm
+USB += cdc-acm.c cdc-acm-descriptors.c cdc-acm-string-descriptors.c
+XMLDIRS += $(CONTIKI_CPU_ARM)/common/usb/cdc-acm/
+endif
+
+ifdef USB_CDC_ETH_CLASS
+CONTIKI_CPU_DIRS += ../common/usb/cdc-eth
+USB += cdc-eth.c cdc-eth-descriptors.c cdc-eth-string-descriptors.c dhcps.c
+XMLDIRS += $(CONTIKI_CPU_ARM)/common/usb/cdc-eth/
+endif
+
+ifdef USB_MASS_STORAGE_CLASS
+CONTIKI_CPU_DIRS += ../common/usb/msc
+USB += usb-msc-bulk.c usb-rbc.c msc-descriptors-consts.c msc-descriptors.c 
+XMLDIRS += $(CONTIKI_CPU_ARM)/common/usb/msc
+endif
+
+ifdef USB_MSC_QIC157
+CONTIKI_CPU_DIRS += ../common/usb/msc
+USB += usb-msc-bulk.c usb-qic157.c msc-qic157-descriptors.c msc-qic157-string-descriptors.c
+XMLDIRS += $(CONTIKI_CPU_ARM)/common/usb/msc
+endif
+
+ifdef USB_MSC_STREAMING
+CONTIKI_CPU_DIRS += ../common/usb/msc
+USB += usb-msc-bulk.c usb-streaming.c msc-scsi-streaming-descriptors-consts.c msc-scsi-streaming-descriptors.c
+XMLDIRS += $(CONTIKI_CPU_ARM)/common/usb/msc
+endif
+
+ifdef USB_MTP_CLASS
+CONTIKI_CPU_DIRS += ../common/usb/mtp
+USB += usb-mtp.c mtp-descriptors-consts.c mtp-descriptors.c
+STRUCTGENDIRS += $(CONTIKI_CPU_ARM)/common/usb/mtp
+endif
+
+vpath %.xml $(XMLDIRS)
+vpath %.gen.c $(STRUCTGENDIRS)
+
+%.c: %.xml
+	$(XSLTPROC) $(CONTIKI_CPU_ARM)/common/usb/string-descriptors.xslt $^ >$(BUILTSRCDIR)/$@
+
+%-consts.c: %.gen.c 
+	$(CPP) -I$(CFLAGS) $< | $(STRUCTGEN) --output $(BUILTSRCDIR)/$*-consts.c
