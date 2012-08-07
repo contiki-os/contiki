@@ -33,7 +33,9 @@ package se.sics.cooja.mspmote;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -64,6 +66,8 @@ import se.sics.mspsim.cli.CommandHandler;
 import se.sics.mspsim.cli.LineListener;
 import se.sics.mspsim.cli.LineOutputStream;
 import se.sics.mspsim.core.EmulationException;
+import se.sics.mspsim.core.IOUnit;
+import se.sics.mspsim.core.Loggable;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.platform.GenericNode;
 import se.sics.mspsim.ui.JFrameWindowManager;
@@ -108,12 +112,49 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     /* Schedule us immediately */
     requestImmediateWakeup();
   }
+  
+  private class LogOut extends OutputStream {
+ 	  
+    StringBuilder buf = new StringBuilder(); 
+		  
+    @Override
+    public void write(int b) throws IOException {
+      if((char) b != '\n'){
+        buf.append((char) b);
+		return;
+	  }		
+	  //It's newline!
+	  logger.warn(MspMote.this.toString() + ": " + buf.toString());
+	  buf.delete(0, buf.length()); //Flush
+	}
+		  
+  };
+  
 
   protected void initMote() {
     if (myMoteType != null) {
       initEmulator(myMoteType.getContikiFirmwareFile());
       myMoteInterfaceHandler = createMoteInterfaceHandler();
-
+      /*
+        This is the better solution, but let's use reflection for now :/
+      for(Loggable loggable : myCpu.getLoggables()){
+    	  PrintStream ps = new PrintStream(new LogOut(), true);
+    	  loggable.setWarnStream(ps);
+      }
+      */
+      try {
+        Method sWS = Loggable.class.getMethod("setWarnStream", new Class[]{PrintStream.class});
+        if(sWS != null){
+          for(Loggable loggable : myCpu.getLoggables()){
+            PrintStream ps = new PrintStream(new LogOut(), true);
+            sWS.invoke(loggable, ps);
+          }
+        }
+      } catch (Exception e1) {
+        //Just ignore if it is not supported.
+        //e1.printStackTrace();
+      }
+      
       /* TODO Setup COOJA-specific window manager */
       registry.registerComponent("windowManager", new JFrameWindowManager());
 
