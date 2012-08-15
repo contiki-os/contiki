@@ -44,6 +44,8 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import javax.swing.Action;
 
@@ -87,8 +89,13 @@ public class CompileContiki {
       final MessageList compilationOutput,
       boolean synchronous)
   throws Exception {
-    /* TODO Split into correct arguments: parse " and ' */
-  	return compile(command.split(" "), env, outputFile, directory, onSuccess, onFailure, compilationOutput, synchronous);
+    Pattern p = Pattern.compile("([^\\s\"']|\"[^\"]*\"|'[^']*')+");
+    Matcher m = p.matcher(command);
+    ArrayList<String> commandList = new ArrayList<String>();
+    while(m.find()) { 
+      commandList.add(m.group().replaceAll("['\"]",""));
+    }
+    return compile(commandList.toArray(new String[commandList.size()]), env, outputFile, directory, onSuccess, onFailure, compilationOutput, synchronous);
   }
 
   /**
