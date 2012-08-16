@@ -67,6 +67,9 @@
 #if MODEL_CC2531
 #define USB_CONF_ENABLE 1
 
+/* Enabled the ISR for Interrupt Num 6 */
+#define PORT_2_ISR_ENABLED 1
+
 #ifndef USB_CONF_CLASS
 #define DMA_CONF_ON	1
 #define DMA_USB_CHANNEL	0
