@@ -31,19 +31,50 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "cc253x.h"
 #include "p2-intr.h"
 
-extern struct cc253x_p2_handler *handlers;
+struct cc253x_p2_handler *handlers = NULL;
 
 void
-port_2_isr(void) __interrupt(P2INT_VECTOR)
+cc253x_p2_register_handler(struct cc253x_p2_handler *h)
 {
-  struct cc253x_p2_handler *h;
-  uint8_t handled = 0;
+  uint8_t flags;
 
-  for(h = handlers; h != NULL; h = h->next) {
-    handled |= h->cb();
+  if(!h) {
+    return;
   }
 
-  if(handled) {
-    P2IF = 0;
+  cc253x_p2_irq_disable(flags);
+
+  h->next = handlers;
+  handlers = h;
+
+  cc253x_p2_irq_enable(flags);
+}
+
+void
+cc253x_p2_unregister_handler(struct cc253x_p2_handler *remove)
+{
+  uint8_t flags;
+  struct cc253x_p2_handler *h = handlers;
+
+  // Protect against dumb users
+  if(!h || !remove) {
+    return;
   }
+
+  cc253x_p2_irq_disable(flags);
+
+  if(h == remove) {
+    // First element in the list
+    handlers = h->next;
+  } else {
+    while(h->next) {
+      if(h->next == remove) {
+        h->next = h->next->next;
+        break;
+      }
+      h = h->next;
+    }
+  }
+
+  cc253x_p2_irq_enable(flags);
 }
