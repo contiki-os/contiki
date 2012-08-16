@@ -56,5 +56,6 @@
 #define SHT11_PxIN	P5IN
 #define SHT11_PxOUT	P5OUT
 #define SHT11_PxSEL	P5SEL
+#define SHT11_PxREN     P5REN
 
 #endif
