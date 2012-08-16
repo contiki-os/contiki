@@ -106,7 +106,7 @@ CONTIKI_SOURCEFILES += uart0.c uart1.c uart-intr.c
 CONTIKI_SOURCEFILES += dma.c dma_intr.c
 CONTIKI_SOURCEFILES += cc2530-rf.c
 CONTIKI_SOURCEFILES += watchdog.c rtimer-arch.c
-CONTIKI_SOURCEFILES += p2-intr.c port2.c
+CONTIKI_SOURCEFILES += port2-intr.c port2.c
 CONTIKI_ASMFILES +=
 
 include $(CONTIKI_CPU)/usb/Makefile.usb
