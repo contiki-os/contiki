@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "contiki.h"
 #include "usb-arch.h"
-#include "p2-intr.h"
+#include "port2.h"
 
 #include "cc253x.h"
 #include "sfr-bits.h"
