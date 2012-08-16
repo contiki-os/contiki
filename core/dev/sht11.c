@@ -212,6 +212,17 @@ sht11_init(void)
 #ifdef SHT11_INIT
   SHT11_INIT();
 #else
+  /* As this driver is bit-bang based, disable the I2C first
+     This assumes the SDA/SCL pins passed in the -arch.h file are 
+     actually the same used for I2C operation, else comment out the following
+  */
+  #warning SHT11: DISABLING I2C BUS
+  SHT11_PxSEL &= ~(BV(SHT11_ARCH_SDA) | BV(SHT11_ARCH_SCL));
+  #if defined(__MSP430_HAS_MSP430X_CPU__) || defined(__MSP430_HAS_MSP430XV2_CPU__)
+    SHT11_PxREN &= ~(BV(SHT11_ARCH_SDA) | BV(SHT11_ARCH_SCL));
+  #endif
+
+  /* Configure SDA/SCL as GPIOs */
   SHT11_PxOUT |= BV(SHT11_ARCH_PWR);
   SHT11_PxOUT &= ~(BV(SHT11_ARCH_SDA) | BV(SHT11_ARCH_SCL));
   SHT11_PxDIR |= BV(SHT11_ARCH_PWR) | BV(SHT11_ARCH_SCL);
