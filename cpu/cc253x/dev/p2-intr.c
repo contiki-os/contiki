@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 static struct cc253x_p2_handler *handlers = NULL;
 
 void
-cc253x_p2_int(void) __interrupt(P2INT_VECTOR)
+port_2_isr(void) __interrupt(P2INT_VECTOR)
 {
   struct cc253x_p2_handler *h;
   uint8_t handled = 0;
