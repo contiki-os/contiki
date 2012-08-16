@@ -11,7 +11,7 @@
 #include "dev/cc2530-rf.h"
 #include "dev/watchdog.h"
 #include "dev/clock-isr.h"
-#include "dev/p2-intr.h"
+#include "dev/port2.h"
 #include "dev/lpm.h"
 #include "dev/button-sensor.h"
 #include "dev/adc-sensor.h"

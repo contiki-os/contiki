@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "cc253x.h"
-#include "p2-intr.h"
+#include "port2.h"
 
 struct cc253x_p2_handler *handlers = NULL;
 
