@@ -43,7 +43,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -89,11 +88,15 @@ public class CompileContiki {
       final MessageList compilationOutput,
       boolean synchronous)
   throws Exception {
-    Pattern p = Pattern.compile("([^\\s\"']|\"[^\"]*\"|'[^']*')+");
+    Pattern p = Pattern.compile("([^\\s\"']+|\"[^\"]*\"|'[^']*')");
     Matcher m = p.matcher(command);
     ArrayList<String> commandList = new ArrayList<String>();
-    while(m.find()) { 
-      commandList.add(m.group().replaceAll("['\"]",""));
+    while(m.find()) {
+      String arg = m.group();
+      if (arg.length() > 1 && (arg.charAt(0) == '"' || arg.charAt(0) == '\'')) {
+          arg = arg.substring(1, arg.length() - 1);
+      }
+      commandList.add(arg);
     }
     return compile(commandList.toArray(new String[commandList.size()]), env, outputFile, directory, onSuccess, onFailure, compilationOutput, synchronous);
   }
