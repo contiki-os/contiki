@@ -61,4 +61,7 @@
 
 void soc_init();
 
+void cc253x_stack_poison(void);
+uint8_t cc253x_get_max_stack(void);
+
 #endif /* __SOC_H__ */
