@@ -16,6 +16,7 @@ SEGMENT_RULES = $(OBJECTDIR)/segment.rules
 
 CFLAGS  += --model-$(MEMORY_MODEL) --stack-auto --std-c99
 CFLAGS  +=  -DCC2530_LAST_FLASH_BANK=$(HIGH_FLASH_BANK)
+CFLAGS  += --fomit-frame-pointer
 
 LDFLAGS += --model-$(MEMORY_MODEL) --stack-auto --out-fmt-ihx
 LDFLAGS += --xram-loc 0x0000 --xram-size 0x1F00
