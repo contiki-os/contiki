@@ -443,18 +443,14 @@ radio_set_trx_state(uint8_t new_state)
         radio_reset_state_machine(); /* Go to TRX_OFF from any state. */
     } else {
         /* It is not allowed to go from RX_AACK_ON or TX_AACK_ON and directly to */
-        /* TX_AACK_ON or RX_AACK_ON respectively. Need to go via RX_ON or PLL_ON. */
-        if ((new_state == TX_ARET_ON) &&
-            (original_state == RX_AACK_ON)){
-            /* First do intermediate state transition to PLL_ON, then to TX_ARET_ON. */
-            /* The final state transition to TX_ARET_ON is handled after the if-else if. */
+        /* TX_AACK_ON or RX_AACK_ON respectively. Need to go via PLL_ON. */
+        /* (Old datasheets allowed other transitions, but this code complies with */
+        /* the current specification for RF230, RF231 and 128RFA1.) */
+        if (((new_state == TX_ARET_ON) && (original_state == RX_AACK_ON)) ||
+            ((new_state == RX_AACK_ON) && (original_state == TX_ARET_ON))){
+            /* First do intermediate state transition to PLL_ON. */
+            /* The final state transition is handled after the if-else if. */
             hal_subregister_write(SR_TRX_CMD, PLL_ON);
-            delay_us(TIME_STATE_TRANSITION_PLL_ACTIVE);
-        } else if ((new_state == RX_AACK_ON) &&
-                 (original_state == TX_ARET_ON)){
-            /* First do intermediate state transition to RX_ON, then to RX_AACK_ON. */
-            /* The final state transition to RX_AACK_ON is handled after the if-else if. */
-            hal_subregister_write(SR_TRX_CMD, RX_ON);
             delay_us(TIME_STATE_TRANSITION_PLL_ACTIVE);
         }
 
