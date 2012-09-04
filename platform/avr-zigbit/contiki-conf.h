@@ -116,7 +116,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        1
-#define RF230_CONF_AUTORETRIES    2
+#define RF230_CONF_FRAME_RETRIES    2
 #define SICSLOWPAN_CONF_FRAG      1
 //Most browsers reissue GETs after 3 seconds which stops frag reassembly, longer MAXAGE does no good
 #define SICSLOWPAN_CONF_MAXAGE    3

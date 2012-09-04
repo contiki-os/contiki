@@ -10,6 +10,7 @@
  *	Kevin Brown kbrown3@uccs.edu
  *	Nate Bohlmann nate@elfwerks.com
  *  David Kopf dak664@embarqmail.com
+ *  Ivan Delamer delamer@ieee.com
  *
  *   All rights reserved.
  *
@@ -82,7 +83,6 @@
 #define RF230_MIN_ED_THRESHOLD                  ( 0 )
 #define RF230_MAX_ED_THRESHOLD                  ( 15 )
 #define RF230_MAX_TX_FRAME_LENGTH               ( 127 ) /**< 127 Byte PSDU. */
-//#define RF230_MAX_PACKET_LEN                    127
 
 #define TX_PWR_3DBM                             ( 0 )
 #define TX_PWR_17_2DBM                          ( 15 )
@@ -166,7 +166,6 @@ typedef enum{
  *
  */
 typedef enum{
-//    CCA_ED                   = 0,    /**< Use energy detection above threshold mode. */ conflicts with atmega128rfa1 mcu definition
     CCA_ENERGY_DETECT         = 0,    /**< Use energy detection above threshold mode. */
     CCA_CARRIER_SENSE         = 1,    /**< Use carrier sense mode. */
     CCA_CARRIER_SENSE_WITH_ED = 2     /**< Use a combination of both energy detection and carrier sense. */
@@ -210,8 +209,6 @@ const struct radio_driver rf230_driver;
 int rf230_init(void);
 void rf230_warm_reset(void);
 void rf230_start_sneeze(void);
-//int rf230_on(void);
-//int rf230_off(void);
 void rf230_set_channel(uint8_t channel);
 void rf230_listen_channel(uint8_t channel);
 uint8_t rf230_get_channel(void);

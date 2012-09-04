@@ -10,6 +10,7 @@
  *	Kevin Brown kbrown3@uccs.edu
  *	Nate Bohlmann nate@elfwerks.com
  *  David Kopf dak664@embarqmail.com
+ *  Ivan Delamer delamer@ieee.com
  *
  *   All rights reserved.
  *
@@ -60,10 +61,6 @@
 #include "contiki-conf.h"
 /*============================ MACROS ========================================*/
 
-// TEST CODE
-#define TRIG1 DDRB |= 0x04, PINB |= 0x04
-#define TRIG2 DDRD |= 0x80, PIND |= 0x80
-
 /** \name This is the list of pin configurations needed for a given platform.
  * \brief Change these values to port to other platforms.
  * \{
@@ -97,10 +94,6 @@
 #   define IRQPIN     (0x04)
 #   define SLPTRPORT  B
 #   define SLPTRPIN   (0x04)
-#   define USART      1
-#   define USARTVECT  USART1_RX_vect
-#   define TICKTIMER  3
-#   define HAS_SPARE_TIMER
 
 #elif PLATFORM_TYPE == ZIGBIT
 /* 1281V Zigbit */
@@ -116,12 +109,6 @@
 #   define IRQPIN     (0x05)
 #   define SLPTRPORT  B
 #   define SLPTRPIN   (0x04)
-#   define TXCWPORT   B
-#   define TXCWPIN    (0x07)
-#   define USART      1
-#   define USARTVECT  USART1_RX_vect
-//#   define TICKTIMER  3
-//#   define HAS_SPARE_TIMER // Not used
 
 
 #elif PLATFORM_TYPE == RAVEN_D
@@ -138,13 +125,6 @@
 #   define IRQPIN     (0x06)
 #   define SLPTRPORT  B
 #   define SLPTRPIN   (0x03)
-#   define TXCWPORT   B
-#   define TXCWPIN    (0x00)
-#   define USART      1
-#   define USARTVECT  USART1_RX_vect
-#   define TICKTIMER  3
-#   define HAS_CW_MODE
-#   define HAS_SPARE_TIMER
 
 #elif PLATFORM_TYPE == RAVENUSB_C
 /* 1287USB raven */
@@ -160,23 +140,11 @@
 #   define IRQPIN     (0x04)
 #   define SLPTRPORT  B
 #   define SLPTRPIN   (0x04)
-#   define TXCWPORT   B
-#   define TXCWPIN    (0x07)
-#   define USART      1
-#   define USARTVECT  USART1_RX_vect
-#   define TICKTIMER  3
-#   define HAS_CW_MODE
-#   define HAS_SPARE_TIMER
 
 #elif PLATFORM_TYPE == ATMEGA128RFA1
 /* ATmega1281 with internal AT86RF231 radio */
 #   define SLPTRPORT  TRXPR
 #   define SLPTRPIN   1
-#   define USART      1
-#   define USARTVECT  USART1_RX_vect
-#   define TICKTIMER  3
-#   define HAS_CW_MODE
-#   define HAS_SPARE_TIMER
 
 #elif CONTIKI_TARGET_MULLE
 /* mulle 5.2 (TODO: move to platform specific) */
@@ -194,7 +162,6 @@
 #   define IRQPIN     3
 #   define SLPTRPORT  0
 #   define SLPTRPIN   7
-#   define HAS_SPARE_TIMER
 
 #elif PLATFORM_TYPE == IRIS
 /* 1281 IRIS */
@@ -210,12 +177,6 @@
 #   define IRQPIN     (0x04)
 #   define SLPTRPORT  B
 #   define SLPTRPIN   (0x07)
-//#   define TXCWPORT   B
-//#   define TXCWPIN    (0x07)
-#   define USART      1
-#   define USARTVECT  USART1_RX_vect
-//#   define TICKTIMER  3
-//#   define HAS_SPARE_TIMER // Not used
 #else
 
 #error "PLATFORM_TYPE undefined in hal.h"
@@ -252,63 +213,17 @@
  */
 #if defined(__AVR__)
 #define CAT(x, y)      x##y
-#define CAT2(x, y, z)  x##y##z
 #define DDR(x)         CAT(DDR,  x)
 #define PORT(x)        CAT(PORT, x)
 #define PIN(x)         CAT(PIN,  x)
-#define UCSR(num, let) CAT2(UCSR,num,let)
-#define RXEN(x)        CAT(RXEN,x)
-#define TXEN(x)        CAT(TXEN,x)
-#define TXC(x)         CAT(TXC,x)
-#define RXC(x)         CAT(RXC,x)
-#define RXCIE(x)       CAT(RXCIE,x)
-#define UCSZ(x,y)      CAT2(UCSZ,x,y)
-#define UBRR(x,y)      CAT2(UBRR,x,y)
-#define UDRE(x)        CAT(UDRE,x)
-#define UDRIE(x)       CAT(UDRIE,x)
-#define UDR(x)         CAT(UDR,x)
-#define TCNT(x)        CAT(TCNT,x)
-#define TIMSK(x)       CAT(TIMSK,x)
-#define TCCR(x,y)      CAT2(TCCR,x,y)
-#define COM(x,y)       CAT2(COM,x,y)
-#define OCR(x,y)       CAT2(OCR,x,y)
-#define CS(x,y)        CAT2(CS,x,y)
-#define WGM(x,y)       CAT2(WGM,x,y)
-#define OCIE(x,y)      CAT2(OCIE,x,y)
-#define COMPVECT(x)    CAT2(TIMER,x,_COMPA_vect)
-#define UDREVECT(x)    CAT2(USART,x,_UDRE_vect)
-#define RXVECT(x)      CAT2(USART,x,_RX_vect)
 #endif
 
 /* TODO: Move to CPU specific */
 #if defined(CONTIKI_TARGET_MULLE)
 #define CAT(x, y)      x##y.BYTE
-#define CAT2(x, y, z)  x##y##z.BYTE
 #define DDR(x)         CAT(PD,  x)
 #define PORT(x)        CAT(P, x)
 #define PIN(x)         CAT(P, x)
-#define UCSR(num, let) CAT2(UCSR,num,let)
-#define RXEN(x)        CAT(RXEN,x)
-#define TXEN(x)        CAT(TXEN,x)
-#define TXC(x)         CAT(TXC,x)
-#define RXC(x)         CAT(RXC,x)
-#define RXCIE(x)       CAT(RXCIE,x)
-#define UCSZ(x,y)      CAT2(UCSZ,x,y)
-#define UBRR(x,y)      CAT2(UBRR,x,y)
-#define UDRE(x)        CAT(UDRE,x)
-#define UDRIE(x)       CAT(UDRIE,x)
-#define UDR(x)         CAT(UDR,x)
-#define TCNT(x)        CAT(TCNT,x)
-#define TIMSK(x)       CAT(TIMSK,x)
-#define TCCR(x,y)      CAT2(TCCR,x,y)
-#define COM(x,y)       CAT2(COM,x,y)
-#define OCR(x,y)       CAT2(OCR,x,y)
-#define CS(x,y)        CAT2(CS,x,y)
-#define WGM(x,y)       CAT2(WGM,x,y)
-#define OCIE(x,y)      CAT2(OCIE,x,y)
-#define COMPVECT(x)    CAT2(TIMER,x,_COMPA_vect)
-#define UDREVECT(x)    CAT2(USART,x,_UDRE_vect)
-#define RXVECT(x)      CAT2(USART,x,_RX_vect)
 #endif
 
 /** \} */
@@ -325,7 +240,6 @@
 #define hal_set_rst_high( )   ( TRXPR |= ( 1 << TRXRST ) ) /**< This macro pulls the RST pin high. */
 #define hal_set_slptr_high( ) ( TRXPR |= ( 1 << SLPTR ) )      /**< This macro pulls the SLP_TR pin high. */
 #define hal_set_slptr_low( )  ( TRXPR &= ~( 1 << SLPTR ) )     /**< This macro pulls the SLP_TR pin low. */
-//#define hal_get_slptr( ) (    ( TRXPR & ( 1 << SLPTR ) ) >> SLPTR )  /**< Read current state of the SLP_TR pin (High/Low). */
 #define hal_get_slptr( )      ( TRXPR & ( 1 << SLPTR ) )  /**< Read current state of the SLP_TR pin (High/Low). */
 
 #else
@@ -335,7 +249,6 @@
 #define PIN_SLP_TR            PIN( SLPTRPORT )    /**< Pin (Read Access) where SLP_TR is connected. */
 #define hal_set_slptr_high( ) ( PORT_SLP_TR |= ( 1 << SLP_TR ) )      /**< This macro pulls the SLP_TR pin high. */
 #define hal_set_slptr_low( )  ( PORT_SLP_TR &= ~( 1 << SLP_TR ) )     /**< This macro pulls the SLP_TR pin low. */
-//#define hal_get_slptr( ) (    ( PIN_SLP_TR & ( 1 << SLP_TR ) ) >> SLP_TR )  /**< Read current state of the SLP_TR pin (High/Low). */
 #define hal_get_slptr( )      ( PIN_SLP_TR & ( 1 << SLP_TR ) )   /**< Read current state of the SLP_TR pin (High/Low). */
 #define RST                   RSTPIN              /**< Pin number that corresponds to the RST pin. */
 #define DDR_RST               DDR( RSTPORT )      /**< Data Direction Register that corresponds to the port where RST is */
@@ -370,42 +283,7 @@
 #define HAL_SS_HIGH( ) (HAL_PORT_SS |= ( 1 << HAL_SS_PIN )) /**< MACRO for pulling SS high. */
 #define HAL_SS_LOW( )  (HAL_PORT_SS &= ~( 1 << HAL_SS_PIN )) /**< MACRO for pulling SS low. */
 
-/** \brief Macros defined for HAL_TIMER1.
- *
- *  These macros are used to define the correct setupt of the AVR's Timer1, and
- *  to ensure that the hal_get_system_time function returns the system time in
- *  symbols (16 us ticks).
- */
-
 #if defined(__AVR__)
-#if ( F_CPU == 16000000UL )
-    #define HAL_TCCR1B_CONFIG ( ( 1 << ICES1 ) | ( 1 << CS12 ) )
-    #define HAL_US_PER_SYMBOL ( 1 )
-    #define HAL_SYMBOL_MASK   ( 0xFFFFffff )
-#elif ( F_CPU == 0x800000UL )
-    #define HAL_TCCR1B_CONFIG ( ( 1 << ICES1 ) | ( 1 << CS11 ) | ( 1 << CS10 ) )
-    #define HAL_US_PER_SYMBOL ( 2 )
-    #define HAL_SYMBOL_MASK   ( 0x7FFFffff )
-#elif ( F_CPU == 8000000UL )
-    #define HAL_TCCR1B_CONFIG ( ( 1 << ICES1 ) | ( 1 << CS11 ) | ( 1 << CS10 ) )
-    #define HAL_US_PER_SYMBOL ( 2 )
-    #define HAL_SYMBOL_MASK   ( 0x7FFFffff )
-//#elif ( F_CPU == 7953408UL )
-#elif ( F_CPU == 7954432UL )
-    #define HAL_TCCR1B_CONFIG ( ( 1 << ICES1 ) | ( 1 << CS11 ) | ( 1 << CS10 ) )
-    #define HAL_US_PER_SYMBOL ( 2 )
-    #define HAL_SYMBOL_MASK   ( 0x7FFFffff )
-#elif ( F_CPU == 4000000UL )
-    #define HAL_TCCR1B_CONFIG ( ( 1 << ICES1 ) | ( 1 << CS11 ) | ( 1 << CS10 ) )
-    #define HAL_US_PER_SYMBOL ( 1 )
-    #define HAL_SYMBOL_MASK   ( 0xFFFFffff )
-#elif ( F_CPU == 1000000UL )
-    #define HAL_TCCR1B_CONFIG ( ( 1 << ICES1 ) | ( 1 << CS11 ) )
-    #define HAL_US_PER_SYMBOL ( 2 )
-    #define HAL_SYMBOL_MASK   ( 0x7FFFffff )
-#else
-    #error "Clock speed not supported."
-#endif
 
 #if PLATFORM_TYPE == ZIGBIT
 // IRQ E5 for Zigbit example
@@ -485,31 +363,9 @@ typedef struct{
     bool crc;                             /**< Flag - did CRC pass for received frame? */
 } hal_rx_frame_t;
 
-/** RX_START event handler callback type. Is called with timestamp in IEEE 802.15.4 symbols and frame length. See hal_set_rx_start_event_handler(). */
-typedef void (*hal_rx_start_isr_event_handler_t)(uint32_t const isr_timestamp, uint8_t const frame_length);
-
-/** RRX_END event handler callback type. Is called with timestamp in IEEE 802.15.4 symbols and frame length. See hal_set_trx_end_event_handler(). */
-typedef void (*hal_trx_end_isr_event_handler_t)(uint32_t const isr_timestamp);
-
-typedef void (*rx_callback_t) (uint16_t data);
 
 /*============================ PROTOTYPES ====================================*/
 void hal_init( void );
-
-void hal_reset_flags( void );
-uint8_t hal_get_bat_low_flag( void );
-void hal_clear_bat_low_flag( void );
-
-hal_trx_end_isr_event_handler_t hal_get_trx_end_event_handler( void );
-void hal_set_trx_end_event_handler( hal_trx_end_isr_event_handler_t trx_end_callback_handle );
-void hal_clear_trx_end_event_handler( void );
-
-hal_rx_start_isr_event_handler_t hal_get_rx_start_event_handler( void );
-void hal_set_rx_start_event_handler( hal_rx_start_isr_event_handler_t rx_start_callback_handle );
-void hal_clear_rx_start_event_handler( void );
-
-uint8_t hal_get_pll_lock_flag( void );
-void hal_clear_pll_lock_flag( void );
 
 /* Hack for atmega128rfa1 with integrated radio. Access registers directly, not through SPI */
 #if defined(__AVR_ATmega128RFA1__)
@@ -534,8 +390,6 @@ void hal_subregister_write( uint8_t address, uint8_t mask, uint8_t position,
 
 
 
-//void hal_frame_read(hal_rx_frame_t *rx_frame, rx_callback_t rx_callback);
-/* For speed RF230BB does not use a callback */
 void hal_frame_read(hal_rx_frame_t *rx_frame);
 void hal_frame_write( uint8_t *write_buffer, uint8_t length );
 void hal_sram_read( uint8_t address, uint8_t length, uint8_t *data );
