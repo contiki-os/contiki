@@ -282,13 +282,13 @@ typedef unsigned short uip_stats_t;
 /* Request 802.15.4 ACK on all packets sent by sicslowpan.c (else autoretry) */
 /* Broadcasts will be duplicated by the retry count, since no one will ACK them! */
 #define SICSLOWPAN_CONF_ACK_ALL   0
-/* Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
-#define RF230_CONF_AUTORETRIES    2
+/* 1 + Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
+#define RF230_CONF_FRAME_RETRIES    2
 /* CCA theshold energy -91 to -61 dBm (default -77). Set this smaller than the expected minimum rssi to avoid packet collisions */
 /* The Jackdaw menu 'm' command is helpful for determining the smallest ever received rssi */
 #define RF230_CONF_CCA_THRES    -85
 /* Number of CSMA attempts 0-7. 802.15.4 2003 standard max is 5. */
-#define RF230_CONF_CSMARETRIES    5
+#define RF230_CONF_CSMA_RETRIES    5
 /* Allow sneeze command from jackdaw menu. Useful for testing CCA on other radios */
 /* During sneezing, any access to an RF230 register will hang the MCU and cause a watchdog reset */
 /* The host interface, jackdaw menu and rf230_send routines are temporarily disabled to prevent this */
@@ -310,9 +310,9 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 /* Enable extended mode with autoack, but no csma/autoretry */
-#define RF230_CONF_AUTORETRIES    1
+#define RF230_CONF_FRAME_RETRIES    1
 #define RF230_CONF_AUTOACK        1
-#define RF230_CONF_CSMARETRIES    0
+#define RF230_CONF_CSMA_RETRIES    0
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
 /* Jackdaw has USB power, can be always listening */
@@ -347,7 +347,7 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 #define RF230_CONF_AUTOACK        1
-#define RF230_CONF_AUTORETRIES    1
+#define RF230_CONF_FRAME_RETRIES    1
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
 #define CXMAC_CONF_ANNOUNCEMENTS    0

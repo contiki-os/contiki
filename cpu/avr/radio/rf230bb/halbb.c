@@ -10,6 +10,7 @@
  *	Kevin Brown kbrown3@uccs.edu
  *	Nate Bohlmann nate@elfwerks.com
  *	David Kopf dak664@embarqmail.com
+ *  Ivan Delamer delamer@ieee.com
  *
  *   All rights reserved.
  *
@@ -80,66 +81,18 @@ extern uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 #endif
 
 /*============================ VARIABLES =====================================*/
-/** \brief This is a file internal variable that contains the 16 MSB of the
- *         system time.
- *
- *         The system time (32-bit) is the current time in microseconds. For the
- *         AVR microcontroller implementation this is solved by using a 16-bit
- *         timer (Timer1) with a clock frequency of 1MHz. The hal_system_time is
- *         incremented when the 16-bit timer overflows, representing the 16 MSB.
- *         The timer value it self (TCNT1) is then the 16 LSB.
- *
- *  \see hal_get_system_time
- */
-static uint16_t hal_system_time = 0;
-volatile extern signed char rf230_last_rssi;
 
-//static uint8_t volatile hal_bat_low_flag;
-//static uint8_t volatile hal_pll_lock_flag;
+volatile extern signed char rf230_last_rssi;
 
 /*============================ CALLBACKS =====================================*/
 
-/** \brief This function is called when a rx_start interrupt is signaled.
- *
- *         If this function pointer is set to something else than NULL, it will
- *         be called when a RX_START event is signaled. The function takes two
- *         parameters: timestamp in IEEE 802.15.4 symbols (16 us resolution) and
- *         frame length. The event handler will be called in the interrupt domain,
- *         so the function must be kept short and not be blocking! Otherwise the
- *         system performance will be greatly degraded.
- *
- *  \see hal_set_rx_start_event_handler
- */
-//static hal_rx_start_isr_event_handler_t rx_start_callback;
-
-/** \brief This function is called when a trx_end interrupt is signaled.
- *
- *         If this function pointer is set to something else than NULL, it will
- *         be called when a TRX_END event is signaled. The function takes one
- *         parameter: timestamp in IEEE 802.15.4 symbols (16 us resolution).
- *         The event handler will be called in the interrupt domain,
- *         so the function must not block!
- *
- *  \see hal_set_trx_end_event_handler
- */
-//static hal_trx_end_isr_event_handler_t trx_end_callback;
 
 /*============================ IMPLEMENTATION ================================*/
 #if defined(__AVR_ATmega128RFA1__)
-//#include <avr/io.h>
-#include <avr/interrupt.h>
+
 /* AVR1281 with internal RF231 radio */
-#define HAL_SPI_TRANSFER_OPEN() 
-//#define HAL_SPI_TRANSFER_WRITE(to_write) (SPDR = (to_write))
-#define HAL_SPI_TRANSFER_WAIT()
-#define HAL_SPI_TRANSFER_READ() (SPDR)
-#define HAL_SPI_TRANSFER_CLOSE()
-#if 0
-#define HAL_SPI_TRANSFER(to_write) (	  \
-				    HAL_SPI_TRANSFER_WRITE(to_write),	\
-				    HAL_SPI_TRANSFER_WAIT(),		\
-				    HAL_SPI_TRANSFER_READ() )
-#endif
+#include <avr/interrupt.h>
+
 #elif defined(__AVR__)
 /*
  * AVR with hardware SPI tranfers (TODO: move to hw spi hal for avr cpu)
@@ -206,30 +159,22 @@ inline uint8_t spiWrite(uint8_t byte)
 /** \brief  This function initializes the Hardware Abstraction Layer.
  */
 #if defined(__AVR_ATmega128RFA1__)
-//#define HAL_RF230_ISR() ISR(RADIO_VECT)
-#define HAL_TIME_ISR()  ISR(TIMER1_OVF_vect)
-#define HAL_TICK_UPCNT() (TCNT1)
+
 void
 hal_init(void)
 {
     /*Reset variables used in file.*/
-    hal_system_time = 0;
- //   TCCR1B = HAL_TCCR1B_CONFIG;       /* Set clock prescaler */
- //   TIFR1 |= (1 << ICF1);             /* Clear Input Capture Flag. */
- //   HAL_ENABLE_OVERFLOW_INTERRUPT(); /* Enable Timer1 overflow interrupt. */
-    //hal_enable_trx_interrupt();    /* NOT USED: Enable interrupt pin from the radio transceiver. */
+    /* (none at the moment) */
 }
 
 #elif defined(__AVR__)
+
 #define HAL_RF230_ISR() ISR(RADIO_VECT)
-#define HAL_TIME_ISR()  ISR(TIMER1_OVF_vect)
-#define HAL_TICK_UPCNT() (TCNT1)
+
 void
 hal_init(void)
 {
     /*Reset variables used in file.*/
-    hal_system_time = 0;
-//  hal_reset_flags();
 
     /*IO Specific Initialization - sleep and reset pins. */
     /* Set pins low before they are initialized as output? Does not seem to matter */
@@ -249,11 +194,8 @@ hal_init(void)
     SPCR         = (1 << SPE) | (1 << MSTR); /* Enable SPI module and master operation. */
     SPSR         = (1 << SPI2X); /* Enable doubled SPI speed in master mode. */
 
-    /*TIMER1 Specific Initialization.*/
-    TCCR1B = HAL_TCCR1B_CONFIG;       /* Set clock prescaler */
-    TIFR1 |= (1 << ICF1);             /* Clear Input Capture Flag. */
-    HAL_ENABLE_OVERFLOW_INTERRUPT(); /* Enable Timer1 overflow interrupt. */
-    hal_enable_trx_interrupt();    /* Enable interrupts from the radio transceiver. */
+    /* Enable interrupts from the radio transceiver. */
+    hal_enable_trx_interrupt();
 }
 
 #else /* __AVR__ */
@@ -266,8 +208,6 @@ void
 hal_init(void)
 {
     /*Reset variables used in file.*/
-    hal_system_time = 0;
-//  hal_reset_flags();
 
     /*IO Specific Initialization - sleep and reset pins. */
     DDR_SLP_TR |= (1 << SLP_TR); /* Enable SLP_TR as output. */
@@ -295,144 +235,12 @@ hal_init(void)
     TBSR.BIT.TB4S = 1; // Start Timer B4
     INT1IC.BIT.POL = 1; // Select rising edge
     HAL_ENABLE_OVERFLOW_INTERRUPT(); /* Enable Timer overflow interrupt. */
-    hal_enable_trx_interrupt();    /* Enable interrupts from the radio transceiver. */
+
+    /* Enable interrupts from the radio transceiver. */
+    hal_enable_trx_interrupt();
 }
 #endif  /* !__AVR__ */
 
-/*----------------------------------------------------------------------------*/
-/** \brief  This function reset the interrupt flags and interrupt event handlers
- *          (Callbacks) to their default value.
- */
-//void
-//hal_reset_flags(void)
-//{
-//    HAL_ENTER_CRITICAL_REGION();
-
-    /* Reset Flags. */
-//    hal_bat_low_flag     = 0;
-//    hal_pll_lock_flag    = 0;
-
-    /* Reset Associated Event Handlers. */
-//    rx_start_callback = NULL;
-//    trx_end_callback  = NULL;
-
-//    HAL_LEAVE_CRITICAL_REGION();
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  This function returns the current value of the BAT_LOW flag.
- *
- *  The BAT_LOW flag is incremented each time a BAT_LOW event is signaled from the
- *  radio transceiver. This way it is possible for the end user to poll the flag
- *  for new event occurances.
- */
-//uint8_t
-//hal_get_bat_low_flag(void)
-//{
-//    return hal_bat_low_flag;
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  This function clears the BAT_LOW flag.
- */
-//void
-//hal_clear_bat_low_flag(void)
-//{
-//    HAL_ENTER_CRITICAL_REGION();
-//    hal_bat_low_flag = 0;
-//    HAL_LEAVE_CRITICAL_REGION();
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  This function is used to set new TRX_END event handler, overriding
- *          old handler reference.
- */
-//hal_trx_end_isr_event_handler_t
-//hal_get_trx_end_event_handler(void)
-//{
-//    return trx_end_callback;
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  This function is used to set new TRX_END event handler, overriding
- *          old handler reference.
- */
-//void
-//hal_set_trx_end_event_handler(hal_trx_end_isr_event_handler_t trx_end_callback_handle)
-//{
-//    HAL_ENTER_CRITICAL_REGION();
-//    trx_end_callback = trx_end_callback_handle;
-//    HAL_LEAVE_CRITICAL_REGION();
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  Remove event handler reference.
- */
-//void
-//hal_clear_trx_end_event_handler(void)
-//{
-//    HAL_ENTER_CRITICAL_REGION();
-//    trx_end_callback = NULL;
-//    HAL_LEAVE_CRITICAL_REGION();
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  This function returns the active RX_START event handler
- *
- *  \return Current RX_START event handler registered.
- */
-//hal_rx_start_isr_event_handler_t
-//hal_get_rx_start_event_handler(void)
-//{
-//    return rx_start_callback;
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  This function is used to set new RX_START event handler, overriding
- *          old handler reference.
- */
-//void
-//hal_set_rx_start_event_handler(hal_rx_start_isr_event_handler_t rx_start_callback_handle)
-//{
-//    HAL_ENTER_CRITICAL_REGION();
-//    rx_start_callback = rx_start_callback_handle;
-//    HAL_LEAVE_CRITICAL_REGION();
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  Remove event handler reference.
- */
-//void
-//hal_clear_rx_start_event_handler(void)
-//{
-//    HAL_ENTER_CRITICAL_REGION();
-//    rx_start_callback = NULL;
-//    HAL_LEAVE_CRITICAL_REGION();
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  This function returns the current value of the PLL_LOCK flag.
- *
- *  The PLL_LOCK flag is incremented each time a PLL_LOCK event is signaled from the
- *  radio transceiver. This way it is possible for the end user to poll the flag
- *  for new event occurances.
- */
-//uint8_t
-//hal_get_pll_lock_flag(void)
-//{
-//    return hal_pll_lock_flag;
-//}
-
-/*----------------------------------------------------------------------------*/
-/** \brief  This function clears the PLL_LOCK flag.
- */
-//void
-//hal_clear_pll_lock_flag(void)
-//{
-//    HAL_ENTER_CRITICAL_REGION();
-//    hal_pll_lock_flag = 0;
-//    HAL_LEAVE_CRITICAL_REGION();
-//}
 
 #if defined(__AVR_ATmega128RFA1__)
 /* Hack for internal radio registers. hal_register_read and hal_register_write are
@@ -459,14 +267,16 @@ void
 hal_subregister_write(uint16_t address, uint8_t mask, uint8_t position,
                             uint8_t value)
 {
- cli();
+    HAL_ENTER_CRITICAL_REGION();
+
     uint8_t register_value = _SFR_MEM8(address);
     register_value &= ~mask;
     value <<= position;
     value &= mask;
     value |= register_value;
     _SFR_MEM8(address) = value;
- sei();
+
+    HAL_LEAVE_CRITICAL_REGION();
 }
 
 #else /* defined(__AVR_ATmega128RFA1__) */
@@ -597,41 +407,57 @@ hal_frame_read(hal_rx_frame_t *rx_frame)
      * Bypassing the length check can result in overrun if buffer is < 256 bytes.
      */
     frame_length = TST_RX_LENGTH;
-    if ( 0 || ((frame_length >= HAL_MIN_FRAME_LENGTH) && (frame_length <= HAL_MAX_FRAME_LENGTH))) {
-        rx_frame->length = frame_length;
+    if ((frame_length < HAL_MIN_FRAME_LENGTH) || (frame_length > HAL_MAX_FRAME_LENGTH)) {
+        /* Length test failed */
+        rx_frame->length = 0;
+        rx_frame->lqi    = 0;
+        rx_frame->crc    = false;
+        return;
+    }
+    rx_frame->length = frame_length;
 
-        /* Start of buffer in I/O space, pointer to RAM buffer */
-        rx_buffer=(uint8_t *)0x180;
-        rx_data = (rx_frame->data);
+    /* Start of buffer in I/O space, pointer to RAM buffer */
+    rx_buffer=(uint8_t *)0x180;
+    rx_data = (rx_frame->data);
 
-        do{
-            *rx_data++ = _SFR_MEM8(rx_buffer++);
-        } while (--frame_length > 0);
+    do{
+        *rx_data++ = _SFR_MEM8(rx_buffer++);
+    } while (--frame_length > 0);
 
-        /*Read LQI value for this frame.*/
-        rx_frame->lqi = *rx_buffer;
+    /*Read LQI value for this frame.*/
+    rx_frame->lqi = *rx_buffer;
+
+    /* If crc was calculated set crc field in hal_rx_frame_t accordingly.
+     * Else show the crc has passed the hardware check.
+     */
+    rx_frame->crc   = true;
     
 #else /* defined(__AVR_ATmega128RFA1__) */
 
-    uint8_t *rx_data;
+    uint8_t frame_length, *rx_data;
 
     /*Send frame read (long mode) command.*/
     HAL_SPI_TRANSFER_OPEN();
     HAL_SPI_TRANSFER(0x20);
 
     /*Read frame length. This includes the checksum. */
-    uint8_t frame_length = HAL_SPI_TRANSFER(0);
+    frame_length = HAL_SPI_TRANSFER(0);
 
     /*Check for correct frame length. Bypassing this test can result in a buffer overrun! */
-    if ( 0 || ((frame_length >= HAL_MIN_FRAME_LENGTH) && (frame_length <= HAL_MAX_FRAME_LENGTH))) {
-
+    if ((frame_length < HAL_MIN_FRAME_LENGTH) || (frame_length > HAL_MAX_FRAME_LENGTH)) {
+        /* Length test failed */
+        rx_frame->length = 0;
+        rx_frame->lqi    = 0;
+        rx_frame->crc    = false;
+    }
+    else {
         rx_data = (rx_frame->data);
         rx_frame->length = frame_length;
 
         /*Transfer frame buffer to RAM buffer */
 
-	    HAL_SPI_TRANSFER_WRITE(0);
-	    HAL_SPI_TRANSFER_WAIT();
+        HAL_SPI_TRANSFER_WRITE(0);
+        HAL_SPI_TRANSFER_WAIT();
         do{
             *rx_data++ = HAL_SPI_TRANSFER_READ();
             HAL_SPI_TRANSFER_WRITE(0);
@@ -643,7 +469,7 @@ hal_frame_read(hal_rx_frame_t *rx_frame)
              * The 802.15.4 standard requires 640us after a greater than 18 byte frame.
              * With a low interrupt latency overwrites should never occur.
              */
-//          crc = _crc_ccitt_update(crc, tempData);
+    //          crc = _crc_ccitt_update(crc, tempData);
 
             HAL_SPI_TRANSFER_WAIT();
 
@@ -651,23 +477,17 @@ hal_frame_read(hal_rx_frame_t *rx_frame)
 
 
         /*Read LQI value for this frame.*/
-	    rx_frame->lqi = HAL_SPI_TRANSFER_READ();
-        
-#endif /* defined(__AVR_ATmega128RFA1__) */
+        rx_frame->lqi = HAL_SPI_TRANSFER_READ();
 
         /* If crc was calculated set crc field in hal_rx_frame_t accordingly.
          * Else show the crc has passed the hardware check.
          */
         rx_frame->crc   = true;
-
-    } else {
-        /* Length test failed */
-        rx_frame->length = 0;
-        rx_frame->lqi    = 0;
-        rx_frame->crc    = false;
     }
 
     HAL_SPI_TRANSFER_CLOSE();
+
+#endif /* defined(__AVR_ATmega128RFA1__) */
 }
 
 /*----------------------------------------------------------------------------*/
@@ -765,25 +585,27 @@ hal_sram_read(uint8_t address, uint8_t length, uint8_t *data)
  * \param length  Length of the write burst
  * \param data    Pointer to an array of bytes that should be written
  */
-//void
-//hal_sram_write(uint8_t address, uint8_t length, uint8_t *data)
-//{
-//    HAL_SPI_TRANSFER_OPEN();
+#if 0  //omit unless needed
+void
+hal_sram_write(uint8_t address, uint8_t length, uint8_t *data)
+{
+    HAL_SPI_TRANSFER_OPEN();
 
     /*Send SRAM write command.*/
-//    HAL_SPI_TRANSFER(0x40);
+    HAL_SPI_TRANSFER(0x40);
 
     /*Send address where to start writing to.*/
-//    HAL_SPI_TRANSFER(address);
+    HAL_SPI_TRANSFER(address);
 
     /*Upload the chosen memory area.*/
-//    do{
-//        HAL_SPI_TRANSFER(*data++);
-//    } while (--length > 0);
+    do{
+        HAL_SPI_TRANSFER(*data++);
+    } while (--length > 0);
 
-//    HAL_SPI_TRANSFER_CLOSE();
+    HAL_SPI_TRANSFER_CLOSE();
 
-//}
+}
+#endif
 
 /*----------------------------------------------------------------------------*/
 /* This #if compile switch is used to provide a "standard" function body for the */
@@ -862,28 +684,26 @@ ISR(TRX24_PLL_UNLOCK_vect)
 	DEBUGFLOW('5');
 }
 /* Flag is set by the following interrupts */
-extern volatile uint8_t rf230_interruptwait,rf230_ccawait;
+extern volatile uint8_t rf230_wakewait, rf230_txendwait,rf230_ccawait;
 
 /* Wake has finished */
 ISR(TRX24_AWAKE_vect)
 {
 //	DEBUGFLOW('6');
-	rf230_interruptwait=0;
+  rf230_wakewait=0;
 }
 
 /* Transmission has ended */
 ISR(TRX24_TX_END_vect)
 {
 //	DEBUGFLOW('7');
-	rf230_interruptwait=0;
+  rf230_txendwait=0;
 }
 
 /* Frame address has matched ours */
-extern volatile uint8_t rf230_pending;
 ISR(TRX24_XAH_AMI_vect)
 {
 //	DEBUGFLOW('8');
-	rf230_pending=1;
 }
 
 /* CCAED measurement has completed */
@@ -897,14 +717,6 @@ ISR(TRX24_CCA_ED_DONE_vect)
 /* Separate RF230 has a single radio interrupt and the source must be read from the IRQ_STATUS register */
 HAL_RF230_ISR()
 {
-    /*The following code reads the current system time. This is done by first
-      reading the hal_system_time and then adding the 16 LSB directly from the
-      hardware counter.
-     */
-//    uint32_t isr_timestamp = hal_system_time;
-//    isr_timestamp <<= 16;
-//    isr_timestamp |= HAL_TICK_UPCNT(); // TODO: what if this wraps after reading hal_system_time?
-
     volatile uint8_t state;
     uint8_t interrupt_source; /* used after HAL_SPI_TRANSFER_OPEN/CLOSE block */
 
@@ -919,22 +731,10 @@ HAL_RF230_ISR()
     /*Send Register address and read register content.*/
     HAL_SPI_TRANSFER_WRITE(0x80 | RG_IRQ_STATUS);
 
-    /* This is the second part of the convertion of system time to a 16 us time
-       base. The division is moved here so we can spend less time waiting for SPI
-       data.
-     */
-//   isr_timestamp /= HAL_US_PER_SYMBOL; /* Divide so that we get time in 16us resolution. */
-//   isr_timestamp &= HAL_SYMBOL_MASK;
-
     HAL_SPI_TRANSFER_WAIT(); /* AFTER possible interleaved processing */
 
-#if 0 //dak
-    interrupt_source = HAL_SPI_TRANSFER_READ(); /* The interrupt variable is used as a dummy read. */
-
-    interrupt_source = HAL_SPI_TRANSFER(interrupt_source);
-#else
     interrupt_source = HAL_SPI_TRANSFER(0);
-#endif
+
     HAL_SPI_TRANSFER_CLOSE();
 
     /*Handle the incomming interrupt. Prioritized.*/
@@ -950,44 +750,30 @@ HAL_RF230_ISR()
         rf230_last_rssi = 3 * hal_subregister_read(SR_RSSI);
 #endif
 #endif
-//       if(rx_start_callback != NULL){
-//            /* Read Frame length and call rx_start callback. */
-//            HAL_SPI_TRANSFER_OPEN();
-//            uint8_t frame_length = HAL_SPI_TRANSFER(0x20);
-//            frame_length = HAL_SPI_TRANSFER(frame_length);
 
-//            HAL_SPI_TRANSFER_CLOSE();
-
-//            rx_start_callback(isr_timestamp, frame_length);
-//       }
     } else if (interrupt_source & HAL_TRX_END_MASK){
 	   INTERRUPTDEBUG(11);	    	    
-//	   if(trx_end_callback != NULL){
-//       trx_end_callback(isr_timestamp);
-//     }
         
        state = hal_subregister_read(SR_TRX_STATUS);
        if((state == BUSY_RX_AACK) || (state == RX_ON) || (state == BUSY_RX) || (state == RX_AACK_ON)){
-       /* Received packet interrupt */ 
-       /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
-//         if (rxframe.length) break;			//toss packet if last one not processed yet
+         /* Received packet interrupt */
+         /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
          if (rxframe[rxframe_tail].length) INTERRUPTDEBUG(42); else INTERRUPTDEBUG(12);
  
 #ifdef RF230_MIN_RX_POWER		 
-       /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes.*/
-       /* Save the rssi for printing in the main loop */
+         /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes.*/
+         /* Save the rssi for printing in the main loop */
 #if RF230_CONF_AUTOACK
- //       rf230_last_rssi=hal_subregister_read(SR_ED_LEVEL);
-        rf230_last_rssi=hal_register_read(RG_PHY_ED_LEVEL);
+         //rf230_last_rssi=hal_subregister_read(SR_ED_LEVEL);
+         rf230_last_rssi=hal_register_read(RG_PHY_ED_LEVEL);
 #endif
-        if (rf230_last_rssi >= RF230_MIN_RX_POWER) {       
+         if (rf230_last_rssi >= RF230_MIN_RX_POWER) {
 #endif
-         hal_frame_read(&rxframe[rxframe_tail]);
-         rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
-         rf230_interrupt();
-//       trx_end_callback(isr_timestamp);
+           hal_frame_read(&rxframe[rxframe_tail]);
+           rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
+           rf230_interrupt();
 #ifdef RF230_MIN_RX_POWER
-        }
+         }
 #endif
 
        }
@@ -1000,7 +786,6 @@ HAL_RF230_ISR()
 	    ;
     } else if (interrupt_source & HAL_PLL_LOCK_MASK){
         INTERRUPTDEBUG(15);
-//      hal_pll_lock_flag++;
         ;
     } else if (interrupt_source & HAL_BAT_LOW_MASK){
         /*  Disable BAT_LOW interrupt to prevent endless interrupts. The interrupt */
@@ -1009,7 +794,6 @@ HAL_RF230_ISR()
         uint8_t trx_isr_mask = hal_register_read(RG_IRQ_MASK);
         trx_isr_mask &= ~HAL_BAT_LOW_MASK;
         hal_register_write(RG_IRQ_MASK, trx_isr_mask);
-//      hal_bat_low_flag++; /* Increment BAT_LOW flag. */
         INTERRUPTDEBUG(16);
         ;
      } else {
@@ -1019,21 +803,6 @@ HAL_RF230_ISR()
 }
 #endif /* defined(__AVR_ATmega128RFA1__) */ 
 #   endif /* defined(DOXYGEN) */
-
-/*----------------------------------------------------------------------------*/
-/* This #if compile switch is used to provide a "standard" function body for the */
-/* doxygen documentation. */
-#if defined(DOXYGEN)
-/** \brief Timer Overflow ISR
- * This is the interrupt service routine for timer1 overflow.
- */
-void TIMER1_OVF_vect(void);
-#else  /* !DOXYGEN */
-HAL_TIME_ISR()
-{
-    hal_system_time++;
-}
-#endif
 
 /** @} */
 /** @} */

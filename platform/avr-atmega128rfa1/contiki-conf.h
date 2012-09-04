@@ -137,7 +137,7 @@ typedef unsigned short uip_stats_t;
 /* Network setup */
 /* TX routine passes the cca/ack result in the return parameter */
 #define RDC_CONF_HARDWARE_ACK    1
-/* TX routine does automatic cca and optional backoff */
+/* TX routine does automatic cca and optional backoffs */
 #define RDC_CONF_HARDWARE_CSMA   1
 /* Allow MCU sleeping between channel checks */
 #define RDC_CONF_MCU_SLEEP         1
@@ -193,8 +193,10 @@ typedef unsigned short uip_stats_t;
 #define RF230_CONF_AUTOACK        1
 /* Request 802.15.4 ACK on all packets sent (else autoretry). This is primarily for testing. */
 #define SICSLOWPAN_CONF_ACK_ALL   0
-/* Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
-#define RF230_CONF_AUTORETRIES    2
+/* 1 + Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode) */
+#define RF230_CONF_FRAME_RETRIES    2
+/* Number of csma retry attempts 0-5 in extended tx mode (7 does immediate tx with no csma) */
+#define RF230_CONF_CSMA_RETRIES   5
 /* Default is one RAM buffer for received packets. More than one may benefit multiple TCP connections or ports */
 #define RF230_CONF_RX_BUFFERS     3
 #define SICSLOWPAN_CONF_FRAG      1
@@ -250,9 +252,10 @@ typedef unsigned short uip_stats_t;
 #define RTIMER_CONF_NESTED_INTERRUPTS 1
 #define RF230_CONF_AUTOACK        1
 /* A 0 here means non-extended mode; 1 means extended mode with no retry, >1 for retrys */
-#define RF230_CONF_AUTORETRIES    1
-/* A 0 here means no cca; 1 means extended mode with cca but no retry, >1 for backoff retrys */
-#define RF230_CONF_CSMARETRIES    1
+/* Contikimac strobes on its own, but hardware retries are faster */
+#define RF230_CONF_FRAME_RETRIES  1
+/* Long csma backoffs will compromise radio cycling; set to 0 for 1 csma */
+#define RF230_CONF_CSMA_RETRIES   0
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
 /* 211 bytes per queue buffer. Contikimac burst mode needs 15 for a 1280 byte MTU */
@@ -263,7 +266,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_MAX_CONNECTIONS  2
 #define UIP_CONF_MAX_LISTENPORTS  4
 #define UIP_CONF_UDP_CONNS        5
-#define UIP_CONF_DS6_NBR_NBU      4
+#define UIP_CONF_DS6_NBR_NBU      20
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   3
 #define UIP_CONF_DS6_ROUTE_NBU    4
@@ -274,8 +277,10 @@ typedef unsigned short uip_stats_t;
 
 #elif 1  /* cx-mac radio cycling */
 /* RF230 does clear-channel assessment in extended mode (autoretries>0) */
-#define RF230_CONF_AUTORETRIES    1
-#if RF230_CONF_AUTORETRIES
+/* These values are guesses */
+#define RF230_CONF_FRAME_RETRIES  10
+#define RF230_CONF_CSMA_RETRIES   2
+#if RF230_CONF_CSMA_RETRIES
 #define NETSTACK_CONF_MAC         nullmac_driver
 #else
 #define NETSTACK_CONF_MAC         csma_driver
