@@ -44,6 +44,7 @@ extern volatile uint8_t sleep_flag;
 #endif
 /*---------------------------------------------------------------------------*/
 extern rimeaddr_t rimeaddr_node_addr;
+static CC_AT_DATA uint16_t len;
 /*---------------------------------------------------------------------------*/
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
@@ -260,7 +261,6 @@ main(void) CC_NON_BANKED
 
   while(1) {
     uint8_t r;
-    static uint16_t len;
     do {
       /* Reset watchdog and handle polls and events */
       watchdog_periodic();
