@@ -107,7 +107,7 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
 #define CC2530_RF_AUTOACK 1
 #endif
 /*---------------------------------------------------------------------------*/
-static uint8_t __data rf_flags;
+static uint8_t CC_AT_DATA rf_flags;
 
 static int on(void); /* prepare() needs our prototype */
 static int off(void); /* transmit() needs our prototype */
