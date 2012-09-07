@@ -47,7 +47,6 @@
 /*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
 volatile __bit sleep_flag;
-#else
 #endif
 /*---------------------------------------------------------------------------*/
 /* Used in sleep timer interrupt for calculating the next interrupt time */
