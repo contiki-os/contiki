@@ -101,7 +101,7 @@ CLEAN += symbols.c symbols.h
 CONTIKI_CPU_DIRS = . dev
 
 ### CPU-dependent source files
-CONTIKI_SOURCEFILES += soc.c clock.c
+CONTIKI_SOURCEFILES += soc.c clock.c stack.c
 CONTIKI_SOURCEFILES += uart0.c uart1.c uart-intr.c
 CONTIKI_SOURCEFILES += dma.c dma_intr.c
 CONTIKI_SOURCEFILES += cc2530-rf.c

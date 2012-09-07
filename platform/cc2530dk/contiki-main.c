@@ -1,5 +1,6 @@
 #include "contiki.h"
 #include "soc.h"
+#include "stack.h"
 #include "sys/clock.h"
 #include "sys/autostart.h"
 #include "dev/serial-line.h"
@@ -145,6 +146,8 @@ main(void) CC_NON_BANKED
   clock_init();
   soc_init();
   rtimer_init();
+
+  stack_poison();
 
   /* Init LEDs here */
   leds_init();

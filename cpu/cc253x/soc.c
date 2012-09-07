@@ -51,34 +51,3 @@ soc_init()
   /* Enable Global Interrupt */
   ENABLE_INTERRUPTS();
 }
-
-#ifndef STACK_POISON
-#define STACK_POISON 0xAA
-#endif
-
-void 
-cc253x_stack_poison(void) 
-{
-  __asm
-  mov r1, _SP
-poison_loop:
-  inc r1
-  mov @r1, #STACK_POISON
-  cjne r1, #0xFF, poison_loop
-  __endasm;
-}
-
-uint8_t
-cc253x_get_max_stack(void)
-{
-  __data uint8_t * sp = (__data uint8_t *) 0xff;
-  uint8_t free = 0;
-
-  while(*sp-- == STACK_POISON) {
-    free++;
-  }
-
-  return 0xff - free;
-}
-
-
