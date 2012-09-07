@@ -50,5 +50,6 @@ void putchar(char c);
 void putstring(char *s);
 void puthex(uint8_t c);
 void putbin(uint8_t c);
+void putdec(uint8_t c);
 
 #endif /* DEBUG_H_ */
