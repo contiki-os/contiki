@@ -10,6 +10,7 @@ BANK_ALLOC = $(CONTIKI)/cpu/cc2430/bank-alloc.py
 SEGMENT_RULES = $(OBJECTDIR)/segment.rules
 
 CFLAGS  += --model-$(MEMORY_MODEL) --stack-auto -DSDCC_CC2430 --std-c99
+CFLAGS  += --fomit-frame-pointer
 
 LDFLAGS += --model-$(MEMORY_MODEL) --stack-auto -DSDCC_CC2430 --out-fmt-ihx
 LDFLAGS += --xram-loc 0xE000 --xram-size 0x1F00
