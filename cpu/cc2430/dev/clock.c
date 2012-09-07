@@ -46,7 +46,7 @@
 #define TICK_VAL (32768/128)  /* 256 */
 /*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
-volatile __bit sleep_flag;
+volatile uint8_t sleep_flag;
 #endif
 /*---------------------------------------------------------------------------*/
 /* Used in sleep timer interrupt for calculating the next interrupt time */

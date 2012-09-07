@@ -55,7 +55,7 @@ static __data int len;
 #endif
 
 #if CLOCK_CONF_STACK_FRIENDLY
-extern volatile __bit sleep_flag;
+extern volatile uint8_t sleep_flag;
 #endif
 
 extern rimeaddr_t rimeaddr_node_addr;
