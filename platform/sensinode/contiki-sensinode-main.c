@@ -16,6 +16,7 @@
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
 #include "debug.h"
+#include "stack.h"
 #include "dev/watchdog-cc2430.h"
 #include "dev/sensinode-sensors.h"
 #include "disco.h"
@@ -163,6 +164,8 @@ main(void)
   /* Hardware initialization */
   bus_init();
   rtimer_init();
+
+  stack_poison();
 
   /* model-specific h/w init. */
   model_init();
