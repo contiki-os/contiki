@@ -31,34 +31,41 @@
 
 /**
  * \file
- *         Header file with cc253x SoC-specific defines and prototypes
+ *         8051 stack debugging facilities
  *
  * \author
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *         Philippe Retornaz (EPFL)
  */
+#include "contiki.h"
 
-
-#ifndef __SOC_H__
-#define __SOC_H__
-
-
-#ifndef CC2530_LAST_FLASH_BANK
-#define CC2530_LAST_FLASH_BANK 7 /* Default to F256 */
+#ifndef STACK_POISON
+#define STACK_POISON 0xAA
 #endif
 
-#if CC2530_LAST_FLASH_BANK==7 /* F256 */
-#define CC2530_FLAVOR_STRING "F256"
-#elif CC2530_LAST_FLASH_BANK==3 /* F128 */
-#define CC2530_FLAVOR_STRING "F128"
-#elif CC2530_LAST_FLASH_BANK==1 /* F64 */
-#define CC2530_FLAVOR_STRING "F64"
-#elif CC2530_LAST_FLASH_BANK==0 /* F32 */
-#define CC2530_FLAVOR_STRING "F32"
-#else
-#error "Unknown SoC Type specified. Check the value of HIGH_FLASH_BANK in your"
-#error "Makefile. Valid values are 0, 1, 3, 7"
-#endif
+CC_AT_DATA uint8_t sp;
 
-void soc_init();
+void
+stack_poison(void)
+{
+  __asm
+  mov r1, _SP
+poison_loop:
+  inc r1
+  mov @r1, #STACK_POISON
+  cjne r1, #0xFF, poison_loop
+  __endasm;
+}
 
-#endif /* __SOC_H__ */
+uint8_t
+stack_get_max(void)
+{
+  __data uint8_t * sp = (__data uint8_t *) 0xff;
+  uint8_t free = 0;
+
+  while(*sp-- == STACK_POISON) {
+    free++;
+  }
+
+  return 0xff - free;
+}

@@ -31,34 +31,39 @@
 
 /**
  * \file
- *         Header file with cc253x SoC-specific defines and prototypes
+ *         Header file for 8051 stack debugging facilities
  *
  * \author
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *         Philippe Retornaz (EPFL)
  */
+#ifndef STACK_H_
+#define STACK_H_
 
+#if STACK_CONF_DEBUGGING
+extern CC_AT_DATA uint8_t sp;
 
-#ifndef __SOC_H__
-#define __SOC_H__
+#define stack_dump(f) do { \
+  putstring(f); \
+  sp = SP; \
+  puthex(sp); \
+  putchar('\n'); \
+} while(0)
 
+#define stack_max_sp_print(f) do { \
+  putstring(f); \
+  sp = SP; \
+  puthex(stack_get_max()); \
+  putchar('\n'); \
+} while(0)
 
-#ifndef CC2530_LAST_FLASH_BANK
-#define CC2530_LAST_FLASH_BANK 7 /* Default to F256 */
-#endif
-
-#if CC2530_LAST_FLASH_BANK==7 /* F256 */
-#define CC2530_FLAVOR_STRING "F256"
-#elif CC2530_LAST_FLASH_BANK==3 /* F128 */
-#define CC2530_FLAVOR_STRING "F128"
-#elif CC2530_LAST_FLASH_BANK==1 /* F64 */
-#define CC2530_FLAVOR_STRING "F64"
-#elif CC2530_LAST_FLASH_BANK==0 /* F32 */
-#define CC2530_FLAVOR_STRING "F32"
+void stack_poison(void);
+uint8_t stack_get_max(void);
 #else
-#error "Unknown SoC Type specified. Check the value of HIGH_FLASH_BANK in your"
-#error "Makefile. Valid values are 0, 1, 3, 7"
+#define stack_dump(...)
+#define stack_max_sp_print(...)
+#define stack_poison()
+#define stack_get_max()
 #endif
 
-void soc_init();
-
-#endif /* __SOC_H__ */
+#endif /* STACK_H_ */
