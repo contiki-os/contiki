@@ -33,7 +33,7 @@ PROCESS_NAME(batmon_process);
 #endif
 
 #if NETSTACK_CONF_SHORTCUTS
-static __data int len;
+static __data uint16_t len;
 #endif
 
 #ifdef STARTUP_CONF_VERBOSE
@@ -59,7 +59,6 @@ extern volatile uint8_t sleep_flag;
 #endif
 
 extern rimeaddr_t rimeaddr_node_addr;
-static __data int r;
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
 #define ENERGEST_IRQ_SAVE(a) do { \
@@ -287,6 +286,7 @@ main(void)
   watchdog_start();
 
   while(1) {
+    uint8_t r;
     do {
       /* Reset watchdog and handle polls and events */
       watchdog_periodic();
