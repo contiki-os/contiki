@@ -32,6 +32,10 @@ extern void spi_rx_dma_callback(void);
  *
  * if callback defined a poll is made to that process
  */
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 void
 dma_ISR(void) __interrupt (DMA_VECTOR)
 {
@@ -65,4 +69,5 @@ dma_ISR(void) __interrupt (DMA_VECTOR)
 #endif
   EA = 1;
 }
+#pragma restore
 /*---------------------------------------------------------------------------*/

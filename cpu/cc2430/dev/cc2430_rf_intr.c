@@ -56,6 +56,10 @@ PROCESS_NAME(cc2430_rf_process);
  * RF interrupt service routine.
  *
  */
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 void
 cc2430_rf_ISR( void ) __interrupt (RF_VECTOR)
 {
@@ -75,6 +79,7 @@ cc2430_rf_ISR( void ) __interrupt (RF_VECTOR)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
   EA = 1;
 }
+#pragma restore
 #endif
 /*---------------------------------------------------------------------------*/
 #if CC2430_RFERR_INTERRUPT
@@ -82,6 +87,10 @@ cc2430_rf_ISR( void ) __interrupt (RF_VECTOR)
  * RF error interrupt service routine.
  * Turned off by default, can be turned on in contiki-conf.h
  */
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 void
 cc2430_rf_error_ISR( void ) __interrupt (RFERR_VECTOR)
 {
@@ -98,5 +107,6 @@ cc2430_rf_error_ISR( void ) __interrupt (RFERR_VECTOR)
   RF_TX_LED_OFF();
   EA = 1;
 }
+#pragma restore
 #endif
 /*---------------------------------------------------------------------------*/

@@ -47,6 +47,10 @@
 /*---------------------------------------------------------------------------*/
 /* The watchdog only throws interrupts in timer mode */
 #if WDT_TIMER_MODE
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 void
 cc4230_watchdog_ISR(void) __interrupt (WDT_VECTOR)
 {
@@ -57,6 +61,7 @@ cc4230_watchdog_ISR(void) __interrupt (WDT_VECTOR)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
   EA = 1;
 }
+#pragma restore
 #endif
 /*---------------------------------------------------------------------------*/
 void

@@ -36,6 +36,10 @@ uart0_set_input(int (*input)(unsigned char c))
 }
 
 /*---------------------------------------------------------------------------*/
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 void
 uart0_rx_ISR(void) __interrupt (URX0_VECTOR)
 {
@@ -51,6 +55,7 @@ void
 uart0_tx_ISR( void ) __interrupt (UTX0_VECTOR)
 {
 }
+#pragma restore
 #endif /* UART_ZERO_ENABLE */
 #if UART_ONE_ENABLE
 /*---------------------------------------------------------------------------*/
@@ -61,6 +66,10 @@ uart1_set_input(int (*input)(unsigned char c))
 }
 /*---------------------------------------------------------------------------*/
 #if UART_ONE_CONF_WITH_INPUT
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 void
 uart1_rx_ISR(void) __interrupt (URX1_VECTOR)
 {
@@ -76,6 +85,7 @@ void
 uart1_tx_ISR( void ) __interrupt (UTX1_VECTOR)
 {
 }
+#pragma restore
 /*---------------------------------------------------------------------------*/
 #endif /* UART_ONE_CONF_WITH_INPUT */
 #endif /* UART_ONE_ENABLE */

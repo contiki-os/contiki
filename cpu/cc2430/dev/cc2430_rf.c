@@ -105,7 +105,7 @@ uint8_t rf_error = 0;
 PROCESS(cc2430_rf_process, "CC2430 RF driver");
 #endif
 /*---------------------------------------------------------------------------*/
-static uint8_t __data rf_flags;
+static uint8_t CC_AT_DATA rf_flags;
 static uint8_t rf_channel;
 
 static int on(void); /* prepare() needs our prototype */
