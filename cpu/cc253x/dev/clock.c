@@ -49,7 +49,6 @@
 /*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
 volatile uint8_t sleep_flag;
-#else
 #endif
 /*---------------------------------------------------------------------------*/
 /* Do NOT remove the absolute address and do NOT remove the initialiser here */
