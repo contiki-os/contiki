@@ -51,8 +51,8 @@ volatile uint8_t sleep_flag;
 /*---------------------------------------------------------------------------*/
 /* Used in sleep timer interrupt for calculating the next interrupt time */
 static unsigned long timer_value;
-static volatile __data clock_time_t count = 0; /* Uptime in ticks */
-static volatile __data clock_time_t seconds = 0; /* Uptime in secs */
+static volatile CC_AT_DATA clock_time_t count = 0; /* Uptime in ticks */
+static volatile CC_AT_DATA clock_time_t seconds = 0; /* Uptime in secs */
 /*---------------------------------------------------------------------------*/
 /**
  * Each iteration is ~1.0xy usec, so this function delays for roughly len usec
@@ -109,6 +109,10 @@ clock_init(void)
   IEN0_STIE = 1; /* IEN0.STIE acknowledge Sleep Timer Interrupt */
 }
 /*---------------------------------------------------------------------------*/
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 void
 clock_ISR(void) __interrupt(ST_VECTOR)
 {
@@ -161,4 +165,5 @@ clock_ISR(void) __interrupt(ST_VECTOR)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
   ENABLE_INTERRUPTS();
 }
+#pragma restore
 /*---------------------------------------------------------------------------*/

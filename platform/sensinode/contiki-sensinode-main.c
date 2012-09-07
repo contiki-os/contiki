@@ -33,7 +33,7 @@ PROCESS_NAME(batmon_process);
 #endif
 
 #if NETSTACK_CONF_SHORTCUTS
-static __data uint16_t len;
+static CC_AT_DATA uint16_t len;
 #endif
 
 #ifdef STARTUP_CONF_VERBOSE
