@@ -95,9 +95,10 @@
 
 /* 192 ms, radio off -> on interval */
 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
+
 /*---------------------------------------------------------------------------*/
 #if CC2530_RF_CONF_HEXDUMP
-#include "uart0.h"
+#include "dev/io-arch.h"
 static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
 #endif
 /*---------------------------------------------------------------------------*/
@@ -364,11 +365,11 @@ read(void *buf, unsigned short bufsize)
 
 #if CC2530_RF_CONF_HEXDUMP
   /* If we reach here, chances are the FIFO is holding a valid frame */
-  uart0_writeb(magic[0]);
-  uart0_writeb(magic[1]);
-  uart0_writeb(magic[2]);
-  uart0_writeb(magic[3]);
-  uart0_writeb(len);
+  io_arch_writeb(magic[0]);
+  io_arch_writeb(magic[1]);
+  io_arch_writeb(magic[2]);
+  io_arch_writeb(magic[3]);
+  io_arch_writeb(len);
 #endif
 
   RF_RX_LED_ON();
@@ -380,7 +381,7 @@ read(void *buf, unsigned short bufsize)
   for(i = 0; i < len; ++i) {
     ((unsigned char*)(buf))[i] = RFD;
 #if CC2530_RF_CONF_HEXDUMP
-    uart0_writeb(((unsigned char*)(buf))[i]);
+    io_arch_writeb(((unsigned char*)(buf))[i]);
 #endif
     PUTHEX(((unsigned char*)(buf))[i]);
   }
@@ -391,8 +392,9 @@ read(void *buf, unsigned short bufsize)
   crc_corr = RFD;
 
 #if CC2530_RF_CONF_HEXDUMP
-  uart0_writeb(rssi);
-  uart0_writeb(crc_corr);
+  io_arch_writeb(rssi);
+  io_arch_writeb(crc_corr);
+  io_arch_flush();
 #endif
 
   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
