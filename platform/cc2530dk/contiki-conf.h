@@ -57,6 +57,11 @@
 #define UART0_CONF_HIGH_SPEED 0
 #endif
 
+/* USB output buffering enabled by default (relevant to cc2531 builds only) */
+#ifndef USB_SERIAL_CONF_BUFFERED
+#define USB_SERIAL_CONF_BUFFERED 1
+#endif
+
 /* Are we a SLIP bridge? */
 #if SLIP_ARCH_CONF_ENABLE
 /* Make sure the UART is enabled, with interrupts */
