@@ -13,6 +13,7 @@ CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c
 CONTIKI_TARGET_SOURCEFILES += button-sensor.c adc-sensor.c
 CONTIKI_TARGET_SOURCEFILES += serial-line.c slip-arch.c slip.c
 CONTIKI_TARGET_SOURCEFILES += putchar.c debug.c
+CONTIKI_TARGET_SOURCEFILES += usb-serial.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
