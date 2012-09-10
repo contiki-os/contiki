@@ -6,7 +6,7 @@
 #include "dev/serial-line.h"
 #include "dev/slip.h"
 #include "dev/leds.h"
-#include "dev/uart0.h"
+#include "dev/io-arch.h"
 #include "dev/dma.h"
 #include "dev/cc2530-rf.h"
 #include "dev/watchdog.h"
@@ -158,17 +158,16 @@ main(void) CC_NON_BANKED
   /* initialize process manager. */
   process_init();
 
-  /* Init UART */
-  uart0_init();
-
 #if DMA_ON
   dma_init();
 #endif
 
+  io_arch_init();
+
 #if SLIP_ARCH_CONF_ENABLE
   slip_arch_init(0);
 #else
-  uart0_set_input(serial_line_input_byte);
+  io_arch_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
   fade(LEDS_RED);
