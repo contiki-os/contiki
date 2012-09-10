@@ -56,6 +56,26 @@
 #define CC_NON_BANKED
 #endif
 
+/*
+ * Max Stack Depth manipulation. It is possible to get up to 247 bytes
+ * allocated for the stack if:
+ * - You set this to 1 and
+ * - You have a patched toolchain and
+ * - You don't use __bit variables
+ * - You do not link libraries using BIT registers (e.g. printf_large)
+ * Enabling this will mean ISRs will NOT push bits (#pragma exclude bits) so
+ * make sure you know what you're doing
+ *
+ * More information on the wiki
+ */
+#define CC_CONF_OPTIMIZE_STACK_SIZE 0
+
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#define CC_AT_DATA
+#else
+#define CC_AT_DATA __data
+#endif
+
 /* Generic types. */
 typedef unsigned short uip_stats_t;
 

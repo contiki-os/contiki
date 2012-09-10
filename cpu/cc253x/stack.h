@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science
+ * Copyright (c) 2011, George Oikonomou - <oikonomou@users.sourceforge.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,43 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
  */
 
 /**
  * \file
- *	Architecture-specific definitions for the SHT11 sensor on Tmote Sky.
+ *         Header file for 8051 stack debugging facilities
+ *
  * \author
- * 	Niclas Finne <nfi@sics.se>
+ *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *         Philippe Retornaz (EPFL)
  */
+#ifndef STACK_H_
+#define STACK_H_
 
-#ifndef SHT11_ARCH_H
-#define SHT11_ARCH_H
+#if STACK_CONF_DEBUGGING
+extern CC_AT_DATA uint8_t sp;
 
-#define SHT11_ARCH_SDA	5	/* P1.5 */
-#define SHT11_ARCH_SCL	6	/* P1.6 */
-#define SHT11_ARCH_PWR	7	/* P1.7 */
+#define stack_dump(f) do { \
+  putstring(f); \
+  sp = SP; \
+  puthex(sp); \
+  putchar('\n'); \
+} while(0)
 
-#define	SHT11_PxDIR	P1DIR
-#define SHT11_PxIN	P1IN
-#define SHT11_PxOUT	P1OUT
-#define SHT11_PxSEL	P1SEL
-#define SHT11_PxREN     P1REN
+#define stack_max_sp_print(f) do { \
+  putstring(f); \
+  sp = SP; \
+  puthex(stack_get_max()); \
+  putchar('\n'); \
+} while(0)
 
+void stack_poison(void);
+uint8_t stack_get_max(void);
+#else
+#define stack_dump(...)
+#define stack_max_sp_print(...)
+#define stack_poison()
+#define stack_get_max()
 #endif
+
+#endif /* STACK_H_ */

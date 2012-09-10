@@ -51,4 +51,3 @@ soc_init()
   /* Enable Global Interrupt */
   ENABLE_INTERRUPTS();
 }
-

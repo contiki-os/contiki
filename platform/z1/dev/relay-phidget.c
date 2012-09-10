@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,26 +28,80 @@
  *
  * This file is part of the Contiki operating system.
  *
- */
-
-/**
+ *
+ * -----------------------------------------------------------------
+ *
  * \file
- *	Architecture-specific definitions for the SHT11 sensor on Tmote Sky.
+ *         Device simple driver for generic relay in phidget port of Zolertia Z1
  * \author
- * 	Niclas Finne <nfi@sics.se>
+ *         Antonio Lignan, Zolertia <alinan@zolertia.com>
+ *
  */
 
-#ifndef SHT11_ARCH_H
-#define SHT11_ARCH_H
+#include "contiki.h"
+#include "relay-phidget.h"
 
-#define SHT11_ARCH_SDA	5	/* P1.5 */
-#define SHT11_ARCH_SCL	6	/* P1.6 */
-#define SHT11_ARCH_PWR	7	/* P1.7 */
+static uint8_t controlPin;
 
-#define	SHT11_PxDIR	P1DIR
-#define SHT11_PxIN	P1IN
-#define SHT11_PxOUT	P1OUT
-#define SHT11_PxSEL	P1SEL
-#define SHT11_PxREN     P1REN
+enum PHIDGET_RELAY_STATUSTYPES
+{
+  /* must be a bit and not more, not using 0x00. */
+  INITED = 0x01,
+  RUNNING = 0x02,
+  STOPPED = 0x04,
+};
 
-#endif
+static enum PHIDGET_RELAY_STATUSTYPES _RELAY_STATUS = 0x00;
+
+/*---------------------------------------------------------------------------*/
+
+void
+relay_enable(uint8_t pin)
+{
+
+  if (!(_RELAY_STATUS & INITED)){
+
+    _RELAY_STATUS |= INITED;
+
+    // Selects the pin to be configure as the control pin of the relay module
+    controlPin = (1 << pin);
+
+    // Configures the control pin
+    P6SEL &= ~controlPin;
+    P6DIR |= controlPin;
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void
+relay_on()
+{
+  if ((_RELAY_STATUS & INITED)){
+    P6OUT |= controlPin;
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+void
+relay_off()
+{
+  if ((_RELAY_STATUS & INITED)){
+    P6OUT &= ~controlPin;
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint8_t
+relay_toggle()
+{
+  uint8_t status;
+  if ((_RELAY_STATUS & INITED)){
+    P6OUT ^= controlPin;
+    if((P6OUT & controlPin)) return 1;
+    return 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
+

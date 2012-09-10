@@ -39,7 +39,7 @@
 #include "dev/watchdog.h"
 #include "dev/slip.h"
 #include "dev/leds.h"
-#include "cc253x.h"
+#include "dev/cc2530-rf.h"
 
 static uint8_t prefix_set;
 /*---------------------------------------------------------------------------*/
@@ -116,9 +116,9 @@ PROCESS_THREAD(border_router_process, ev, data)
     leds_off(LEDS_GREEN);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
-
+  cc2530_rf_channel_get();
   /* We have created a new DODAG when we reach here */
-  PRINTF("On Channel %u\n", (uint8_t)((FREQCTRL + 44) / 5));
+  PRINTF("On Channel %u\n", cc2530_rf_channel_get());
 
   print_local_addresses();
 

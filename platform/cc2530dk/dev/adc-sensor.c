@@ -111,7 +111,7 @@ configure(int type, int value)
 #if TEMP_SENSOR_ON
     /* Connect temperature sensor to the SoC */
     ATEST = 1;
-    TR0 = 1;
+    TESTREG0 = 1;
 #endif
     APCFG = 0; /* Disables Input Channels */
     break;

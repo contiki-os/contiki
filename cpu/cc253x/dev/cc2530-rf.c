@@ -90,6 +90,8 @@
 /* Bit Masks for the last byte in the RX FIFO */
 #define CRC_BIT_MASK 0x80
 #define LQI_BIT_MASK 0x7F
+/* RSSI Offset */
+#define RSSI_OFFSET    73
 
 /* 192 ms, radio off -> on interval */
 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
@@ -105,7 +107,7 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
 #define CC2530_RF_AUTOACK 1
 #endif
 /*---------------------------------------------------------------------------*/
-static uint8_t __data rf_flags;
+static uint8_t CC_AT_DATA rf_flags;
 
 static int on(void); /* prepare() needs our prototype */
 static int off(void); /* transmit() needs our prototype */
@@ -168,7 +170,7 @@ init(void)
     return 0;
   }
 
-#ifdef CC2530_RF_LOW_POWER_RX
+#if CC2530_RF_LOW_POWER_RX
   /* Reduce RX power consumption current to 20mA at the cost of sensitivity */
   RXCTRL = 0x00;
   FSCTRL = 0x50;
@@ -385,7 +387,7 @@ read(void *buf, unsigned short bufsize)
   PUTSTRING("\n");
 
   /* Read the RSSI and CRC/Corr bytes */
-  rssi = ((int8_t) RFD) - 45;
+  rssi = ((int8_t) RFD) - RSSI_OFFSET;
   crc_corr = RFD;
 
 #if CC2530_RF_CONF_HEXDUMP
@@ -473,7 +475,7 @@ off(void)
   CC2530_CSP_ISRFOFF();
   CC2530_CSP_ISFLUSHRX();
 
-  rf_flags = 0;
+  rf_flags &= ~RX_ACTIVE;
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   return 1;

@@ -20,6 +20,10 @@
 #define CLOCK_CONF_STACK_FRIENDLY 1
 #endif
 
+#ifndef STACK_CONF_DEBUGGING
+#define STACK_CONF_DEBUGGING  0
+#endif
+
 /* Energest Module */
 #ifndef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON      0

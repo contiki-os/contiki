@@ -48,15 +48,15 @@
 #define TICK_VAL (32768/128)  /* 256 */
 /*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
-volatile __bit sleep_flag;
+volatile uint8_t sleep_flag;
 #else
 #endif
 /*---------------------------------------------------------------------------*/
 /* Do NOT remove the absolute address and do NOT remove the initialiser here */
 __xdata __at(0x0000) static unsigned long timer_value = 0;
 
-static volatile __data clock_time_t count = 0; /* Uptime in ticks */
-static volatile __data clock_time_t seconds = 0; /* Uptime in secs */
+static volatile CC_AT_DATA clock_time_t count = 0; /* Uptime in ticks */
+static volatile CC_AT_DATA clock_time_t seconds = 0; /* Uptime in secs */
 /*---------------------------------------------------------------------------*/
 /**
  * Each iteration is ~1.0xy usec, so this function delays for roughly len usec
@@ -132,6 +132,11 @@ clock_init(void)
   STIE = 1; /* IEN0.STIE interrupt enable */
 }
 /*---------------------------------------------------------------------------*/
+/* avoid referencing bits, we don't call code which use them */
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 void
 clock_isr(void) __interrupt(ST_VECTOR)
 {
@@ -177,4 +182,5 @@ clock_isr(void) __interrupt(ST_VECTOR)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
   ENABLE_INTERRUPTS();
 }
+#pragma restore
 /*---------------------------------------------------------------------------*/

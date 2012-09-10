@@ -76,10 +76,13 @@
 #define PRINTF(...) do {} while (0)
 #endif
 
-#define RX_ACTIVE 0x80
-#define TX_ACK 0x40
-#define TX_ON_AIR 0x20
-#define WAS_OFF 0x10
+/* rf_flags bits */
+#define RX_ACTIVE   0x80
+#define TX_ACK      0x40
+#define TX_ON_AIR   0x20
+#define WAS_OFF     0x10
+#define INITIALISED 0x01
+
 #define RX_NO_DMA
 /* Bits of the last byte in the RX FIFO */
 #define CRC_BIT_MASK 0x80
@@ -102,8 +105,8 @@ uint8_t rf_error = 0;
 PROCESS(cc2430_rf_process, "CC2430 RF driver");
 #endif
 /*---------------------------------------------------------------------------*/
-static uint8_t rf_initialized = 0;
 static uint8_t __data rf_flags;
+static uint8_t rf_channel;
 
 static int on(void); /* prepare() needs our prototype */
 static int off(void); /* transmit() needs our prototype */
@@ -194,7 +197,15 @@ cc2430_rf_channel_set(uint8_t channel)
 
   cc2430_rf_command(ISRXON);
 
+  rf_channel = channel;
+
   return (int8_t) channel;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+cc2430_rf_channel_get()
+{
+  return rf_channel;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -299,7 +310,7 @@ cc2430_rf_send_ack(uint8_t pending)
 static int
 init(void)
 {
-  if(rf_initialized) {
+  if(rf_flags & INITIALISED) {
     return 0;
   }
 
@@ -349,7 +360,8 @@ init(void)
 
   RF_TX_LED_OFF();
   RF_RX_LED_OFF();
-  rf_initialized = 1;
+
+  rf_flags |= INITIALISED;
 
 #if !NETSTACK_CONF_SHORTCUTS
   process_start(&cc2430_rf_process, NULL);

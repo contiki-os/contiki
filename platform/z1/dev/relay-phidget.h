@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,26 +28,23 @@
  *
  * This file is part of the Contiki operating system.
  *
- */
-
-/**
+ * -----------------------------------------------------------------
+ *
  * \file
- *	Architecture-specific definitions for the SHT11 sensor on Tmote Sky.
+ *         Device simple driver for generic relay in phidget port of Zolertia Z1
  * \author
- * 	Niclas Finne <nfi@sics.se>
+ *         Antonio Lignan, Zolertia <alinan@zolertia.com>
+ *
  */
 
-#ifndef SHT11_ARCH_H
-#define SHT11_ARCH_H
+#ifndef __RELAY_PHIDGET_H__
+#define __RELAY_PHIDGETS_H__
 
-#define SHT11_ARCH_SDA	5	/* P1.5 */
-#define SHT11_ARCH_SCL	6	/* P1.6 */
-#define SHT11_ARCH_PWR	7	/* P1.7 */
+void relay_enable(uint8_t pin);
 
-#define	SHT11_PxDIR	P1DIR
-#define SHT11_PxIN	P1IN
-#define SHT11_PxOUT	P1OUT
-#define SHT11_PxSEL	P1SEL
-#define SHT11_PxREN     P1REN
+void relay_on();
+void relay_off();
+uint8_t relay_toogle();
 
-#endif
+
+#endif /* __RELAY_PHIDGET_H__ */

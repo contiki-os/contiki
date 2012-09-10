@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science
+ * Copyright (c) 2011, Zolertia(TM) is a trademark of Advancare,SL
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,52 @@
 
 /**
  * \file
- *	Architecture-specific definitions for the SHT11 sensor on Tmote Sky.
+ *         A quick program for testing a generic relay device connected in the
+ *         phidget port
  * \author
- * 	Niclas Finne <nfi@sics.se>
+ *         Antonio Lignan <alinan@zolertia.com>
  */
 
-#ifndef SHT11_ARCH_H
-#define SHT11_ARCH_H
+#include <stdio.h>
+#include "contiki.h"
+#include "dev/relay-phidget.h"
 
-#define SHT11_ARCH_SDA	5	/* P1.5 */
-#define SHT11_ARCH_SCL	6	/* P1.6 */
-#define SHT11_ARCH_PWR	7	/* P1.7 */
 
-#define	SHT11_PxDIR	P1DIR
-#define SHT11_PxIN	P1IN
-#define SHT11_PxOUT	P1OUT
-#define SHT11_PxSEL	P1SEL
-#define SHT11_PxREN     P1REN
-
+#if 1
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
 #endif
+
+
+#if 0
+#define PRINTFDEBUG(...) printf(__VA_ARGS__)
+#else
+#define PRINTFDEBUG(...)
+#endif
+
+
+#define RELAY_INTERVAL (CLOCK_SECOND)
+
+PROCESS(test_process, "Relay test process");
+AUTOSTART_PROCESSES(&test_process);
+/*---------------------------------------------------------------------------*/
+static struct etimer et;
+static uint8_t status;
+
+PROCESS_THREAD(test_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  /* Selects P6.7 as control pin of the relay module */
+  relay_enable(7);
+
+  while(1) {
+    etimer_set(&et, RELAY_INTERVAL);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    
+    status = relay_toggle();
+    PRINTF("Relay [%d]\n", status);
+  }
+  PROCESS_END();
+}

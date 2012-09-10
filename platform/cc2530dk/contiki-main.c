@@ -1,5 +1,6 @@
 #include "contiki.h"
 #include "soc.h"
+#include "stack.h"
 #include "sys/clock.h"
 #include "sys/autostart.h"
 #include "dev/serial-line.h"
@@ -40,12 +41,11 @@ PROCESS_NAME(viztool_process);
 #endif
 /*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
-extern volatile __bit sleep_flag;
+extern volatile uint8_t sleep_flag;
 #endif
 /*---------------------------------------------------------------------------*/
 extern rimeaddr_t rimeaddr_node_addr;
-static __data int r;
-static __data int len;
+static CC_AT_DATA uint16_t len;
 /*---------------------------------------------------------------------------*/
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
@@ -146,6 +146,8 @@ main(void) CC_NON_BANKED
   clock_init();
   soc_init();
   rtimer_init();
+
+  stack_poison();
 
   /* Init LEDs here */
   leds_init();
@@ -261,6 +263,7 @@ main(void) CC_NON_BANKED
   fade(LEDS_YELLOW);
 
   while(1) {
+    uint8_t r;
     do {
       /* Reset watchdog and handle polls and events */
       watchdog_periodic();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science
+ * Copyright (c) 2011, George Oikonomou - <oikonomou@users.sourceforge.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,45 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
  */
 
 /**
  * \file
- *	Architecture-specific definitions for the SHT11 sensor on Tmote Sky.
+ *         8051 stack debugging facilities
+ *
  * \author
- * 	Niclas Finne <nfi@sics.se>
+ *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *         Philippe Retornaz (EPFL)
  */
+#include "contiki.h"
 
-#ifndef SHT11_ARCH_H
-#define SHT11_ARCH_H
-
-#define SHT11_ARCH_SDA	5	/* P1.5 */
-#define SHT11_ARCH_SCL	6	/* P1.6 */
-#define SHT11_ARCH_PWR	7	/* P1.7 */
-
-#define	SHT11_PxDIR	P1DIR
-#define SHT11_PxIN	P1IN
-#define SHT11_PxOUT	P1OUT
-#define SHT11_PxSEL	P1SEL
-#define SHT11_PxREN     P1REN
-
+#ifndef STACK_POISON
+#define STACK_POISON 0xAA
 #endif
+
+CC_AT_DATA uint8_t sp;
+
+void
+stack_poison(void)
+{
+  __asm
+  mov r1, _SP
+poison_loop:
+  inc r1
+  mov @r1, #STACK_POISON
+  cjne r1, #0xFF, poison_loop
+  __endasm;
+}
+
+uint8_t
+stack_get_max(void)
+{
+  __data uint8_t * sp = (__data uint8_t *) 0xff;
+  uint8_t free = 0;
+
+  while(*sp-- == STACK_POISON) {
+    free++;
+  }
+
+  return 0xff - free;
+}

@@ -2,8 +2,8 @@ ifndef TARGET
 TARGET=z1
 endif
 
-CONTIKI_PROJECT = test-phidgets blink test-adxl345 test-tmp102 test-light-ziglet test-battery test-sht11 #test-potent
-CONTIKI_SOURCEFILES += sht11.c potentiometer-sensor.c
+CONTIKI_PROJECT = test-phidgets blink test-adxl345 test-tmp102 test-light-ziglet test-battery test-sht11 test-relay-phidget #test-potent
+CONTIKI_SOURCEFILES += sht11.c# potentiometer-sensor.c
 APPS=serial-shell
 
 

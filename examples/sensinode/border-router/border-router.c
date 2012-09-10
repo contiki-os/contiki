@@ -40,10 +40,6 @@
 #include "dev/slip.h"
 #include "dev/leds.h"
 
-#ifndef CC2430_RF_CONF_CHANNEL
-#define CC2430_RF_CONF_CHANNEL 0xFF
-#endif
-
 static uint8_t prefix_set;
 /*---------------------------------------------------------------------------*/
 PROCESS(border_router_process, "Border Router process");
@@ -123,7 +119,7 @@ PROCESS_THREAD(border_router_process, ev, data)
   }
 
   /* We have created a new DODAG when we reach here */
-  PRINTF("On Channel %u\n", CC2430_RF_CONF_CHANNEL);
+  PRINTF("On Channel %u\n", cc2430_rf_channel_get());
 
   print_local_addresses();
 

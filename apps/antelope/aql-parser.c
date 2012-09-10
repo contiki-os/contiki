@@ -99,36 +99,15 @@ static const char *error_function;
     }						\
   } while(0)
 
-
-/*
- * The grammar of this language is defined in Extended Backus-Naur Form, 
- * where capitalized strings correspond to lexical tokens defined in 
- * aql.h and interpreted in lexer.c.
- *
- * operand = LEFT_PAREN, expr, RIGHT_PAREN | INTEGER | FLOAT |
- *             IDENTIFIER | STRING ;
- * operator = ADD | SUB | MUL | DIV ;
- * expr = operand, operator, operand ;
- *
- * comparison-operator = GE | GEQ | LE | LEQ | EQ | NEQ ;
- * comparison = expr, comparison-operator, expr ;
- * condition = comparison, [(AND | OR), comparison] ;
- * relation-list = IDENTIFIER, {COMMA, relation-list} ;
- * attribute-list = IDENTIFIER, {COMMA, attribute-list} ;
- * select = SELECT, attribute-list, FROM, relation-list, WHERE, condition, END ;
- *
- * value = INTEGER | FLOAT | STRING ;
- * value-list = value, {COMMA, value} ;
- * insert = INSERT, LEFT_PAREN, value-list, RIGHT_PAREN, INTO, IDENTIFIER, END ;
- *
- * sqrl = select | insert ;
- */
-
+/* The parsing of AQL results in this aql_adt_t object. */
 static aql_adt_t *adt;
 
+/* Conditional statements are compiled into VM bytecode, which is stored in
+   an instance of the LogicVM. */
 static lvm_instance_t p;
-static unsigned char vmcode[128];
+static unsigned char vmcode[DB_VM_BYTECODE_SIZE];
 
+/* Parsing functions for AQL. */
 PARSER_TOKEN(cmp)
 {
   NEXT;

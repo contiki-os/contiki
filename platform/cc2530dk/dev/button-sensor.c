@@ -36,9 +36,9 @@
 #include "dev/button-sensor.h"
 #include "dev/watchdog.h"
 /*---------------------------------------------------------------------------*/
-static __data struct timer debouncetimer;
+static CC_AT_DATA struct timer debouncetimer;
 /*---------------------------------------------------------------------------*/
-/* Button 1 - SmartRT and cc2531 USb Dongle */
+/* Button 1 - SmartRF and cc2531 USB Dongle */
 /*---------------------------------------------------------------------------*/
 static
 int value_b1(int type)
@@ -133,6 +133,11 @@ int configure_b2(int type, int value)
 /*---------------------------------------------------------------------------*/
 /* ISRs */
 /*---------------------------------------------------------------------------*/
+/* avoid referencing bits, we don't call code which use them */
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 #if MODEL_CC2531
 void
 port_1_isr(void) __interrupt(P1INT_VECTOR)
@@ -187,6 +192,7 @@ port_0_isr(void) __interrupt(P0INT_VECTOR)
   EA = 1;
 }
 #endif
+#pragma restore
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(button_1_sensor, BUTTON_SENSOR, value_b1, configure_b1, status_b1);
 #if MODEL_CC2531
