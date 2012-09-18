@@ -75,8 +75,6 @@ slip_input_callback(void)
      packet back if no route is found */
   uip_ipaddr_copy(&last_sender, &UIP_IP_BUF->srcipaddr);
 }
-#include "debug.h"
-
 /*---------------------------------------------------------------------------*/
 static void
 init(void)
