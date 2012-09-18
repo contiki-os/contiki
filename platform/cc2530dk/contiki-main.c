@@ -174,7 +174,7 @@ main(void) CC_NON_BANKED
 
   PUTSTRING("##########################################\n");
   putstring(CONTIKI_VERSION_STRING "\n");
-  putstring("TI SmartRF05 EB\n");
+  putstring(MODEL_STRING);
   switch(CHIPID) {
   case 0xA5:
     putstring("cc2530");
