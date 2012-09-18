@@ -40,26 +40,41 @@
 #include "dev/slip.h"
 #include "dev/leds.h"
 #include "dev/cc2530-rf.h"
+#include "debug.h"
 
 static uint8_t prefix_set;
+
+#if DEBUG
+#define PUTSTRING(...) putstring(__VA_ARGS__)
+#define PUTHEX(...) puthex(__VA_ARGS__)
+#define PUTBIN(...) putbin(__VA_ARGS__)
+#define PUTDEC(...) putdec(__VA_ARGS__)
+#define PUTCHAR(...) putchar(__VA_ARGS__)
+#else
+#define PUTSTRING(...)
+#define PUTHEX(...)
+#define PUTBIN(...)
+#define PUTDEC(...)
+#define PUTCHAR(...)
+#endif
 /*---------------------------------------------------------------------------*/
 PROCESS(border_router_process, "Border Router process");
 AUTOSTART_PROCESSES(&border_router_process);
 /*---------------------------------------------------------------------------*/
 static void
-print_local_addresses(void)
+print_local_addresses(void) CC_NON_BANKED
 {
   int i;
   uint8_t state;
 
-  PRINTF("Router's IPv6 addresses:\n");
+  PUTSTRING("Router's IPv6 addresses:\n");
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused && (state == ADDR_TENTATIVE || state
         == ADDR_PREFERRED)) {
-      PRINTF("  ");
+      PUTSTRING("  ");
       PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
-      PRINTF("\n");
+      PUTCHAR('\n');
       if (state == ADDR_TENTATIVE) {
         uip_ds6_if.addr_list[i].state = ADDR_PREFERRED;
       }
@@ -67,8 +82,9 @@ print_local_addresses(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-void
-request_prefix(void) {
+static void
+request_prefix(void) CC_NON_BANKED
+{
   /* mess up uip_buf with a dirty request... */
   uip_buf[0] = '?';
   uip_buf[1] = 'P';
@@ -79,7 +95,8 @@ request_prefix(void) {
 /*---------------------------------------------------------------------------*/
 /* Set our prefix when we receive one over SLIP */
 void
-set_prefix_64(uip_ipaddr_t *prefix_64) {
+set_prefix_64(uip_ipaddr_t *prefix_64)
+{
   rpl_dag_t *dag;
   uip_ipaddr_t ipaddr;
   memcpy(&ipaddr, prefix_64, 16);
@@ -91,9 +108,9 @@ set_prefix_64(uip_ipaddr_t *prefix_64) {
   dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &ipaddr);
   if(dag != NULL) {
     rpl_set_prefix(dag, &ipaddr, 64);
-    PRINTF("Created a new RPL dag with ID: ");
+    PUTSTRING("Created a new RPL dag with ID: ");
     PRINT6ADDR(&dag->dag_id);
-    PRINTF("\n");
+    PUTCHAR('\n');
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -102,27 +119,28 @@ PROCESS_THREAD(border_router_process, ev, data)
   static struct etimer et;
 
   PROCESS_BEGIN();
-  PRINTF("Border Router started\n");
+  PUTSTRING("Border Router started\n");
   prefix_set = 0;
 
-  leds_on(LEDS_RED);
+  leds_on(LEDS_GREEN);
 
   /* Request prefix until it has been received */
   while(!prefix_set) {
-    leds_on(LEDS_GREEN);
-    PRINTF("Prefix request.\n");
+    leds_on(LEDS_RED);
+    PUTSTRING("Prefix request.\n");
     etimer_set(&et, CLOCK_SECOND);
     request_prefix();
-    leds_off(LEDS_GREEN);
+    leds_off(LEDS_RED);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
-  cc2530_rf_channel_get();
   /* We have created a new DODAG when we reach here */
-  PRINTF("On Channel %u\n", cc2530_rf_channel_get());
+  PUTSTRING("On Channel ");
+  PUTDEC(cc2530_rf_channel_get());
+  PUTCHAR('\n');
 
   print_local_addresses();
 
-  leds_off(LEDS_RED);
+  leds_off(LEDS_GREEN);
 
   PROCESS_EXIT();
 
