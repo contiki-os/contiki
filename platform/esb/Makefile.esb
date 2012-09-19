@@ -54,7 +54,7 @@ MCU=msp430f149
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
 ifdef IAR
-LDFLAGSNO += -B -xm "$(IAR_PATH)/lib/dlib/dl430fn.r43" -f "$(IAR_PATH)/config/lnk430f149.xcl" -l contiki-$(TARGET).map -s __program_start -D_STACK_SIZE=80 -D_DATA16_HEAP_SIZE=80 -D_DATA20_HEAP_SIZE=80
+LDFLAGSNO += -xm "$(IAR_PATH)/lib/dlib/dl430fn.r43" -f "$(IAR_PATH)/config/lnk430f149.xcl"
 LDFLAGS += $(LDFLAGSNO) -Felf -yn
 endif # IAR
 

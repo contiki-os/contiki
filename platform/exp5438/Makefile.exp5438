@@ -58,8 +58,7 @@ contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 
 
 ifdef IAR
-STACKSIZE=300
-LDFLAGSNO += -B -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f5437.xcl" -l contiki-$(TARGET).map -s __program_start -D_STACK_SIZE=$(STACKSIZE) -D_DATA16_HEAP_SIZE=$(STACKSIZE) -D_DATA20_HEAP_SIZE=$(STACKSIZE)
+LDFLAGSNO += -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f5437.xcl"
 LDFLAGS += $(LDFLAGSNO) -Felf -yn
 endif
 
