@@ -52,7 +52,6 @@ extern CC_AT_DATA uint8_t sp;
 
 #define stack_max_sp_print(f) do { \
   putstring(f); \
-  sp = SP; \
   puthex(stack_get_max()); \
   putchar('\n'); \
 } while(0)
