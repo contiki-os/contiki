@@ -34,7 +34,11 @@
 	.short	_start
 
 	.section ".ivec","a"
-#define IV(x) .weak _##x##_handler | .short _##x##_handler
+	.macro	_iv	x
+	.weak	\x
+	.short	\x
+	.endm
+#define IV(x) _iv _##x##_handler
 #define IVx() .short 0
 
 	/* To use a vector, simply define a global function named foo_handler()
