@@ -335,7 +335,7 @@ uip_ds6_nbr_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
     for(n = uip_ds6_nbr_cache;
         n < &uip_ds6_nbr_cache[UIP_DS6_NBR_NB];
         n++) {
-      if(n->isused) {
+      if(n->isused && !uip_ds6_defrt_lookup(&n->ipaddr)) {
         if(n->last_lookup < oldest_time) {
           oldest = n;
           oldest_time = n->last_lookup;
