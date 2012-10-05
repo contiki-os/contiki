@@ -51,6 +51,75 @@
    gpio_reset(GPIO_08);
 */
 
+// GPIO to Function Alias macros:
+
+#define ADC0 GPIO_30
+#define ADC1 GPIO_31
+#define ADC2 GPIO_32
+#define ADC3 GPIO_33
+#define ADC4 GPIO_34
+#define ADC5 GPIO_35
+#define ADC6 GPIO_36
+#define ADC7 GPIO_37
+#define TDO GPIO_49
+#define TDI GPIO_48
+#define TCK GPIO_47
+#define TMS GPIO_46
+#define U2RTS GPIO_21
+#define U2CTS GPIO_20
+#define U2RX GPIO_19
+#define U2TX GPIO_18
+#define U1RTS GPIO_17
+#define U1CTS GPIO_16
+#define U1RX GPIO_15
+#define U1TX GPIO_14
+#define SDA GPIO_13
+#define SCL GPIO_12
+#define TMR3 GPIO_11
+#define TMR2 GPIO_10
+#define TMR1 GPIO_09
+#define TMR0 GPIO_08
+#define SCK GPIO_07
+#define MOSI GPIO_06
+#define MISO GPIO_05
+#define SS GPIO_04
+#define BTCK GPIO_03
+#define FSYN GPIO_02
+#define SSIRX GPIO_01
+#define SSITX GPIO_00
+#define KBI7 GPIO_29
+#define KBI6 GPIO_28
+#define KBI5 GPIO_27
+#define KBI4 GPIO_26
+#define KBI3 GPIO_25
+#define KBI2 GPIO_24
+#define KBI1 GPIO_23
+#define KBI0 GPIO_22
+#define TXON GPIO_44
+#define RXON GPIO_45
+#define ANT1 GPIO_42
+#define ANT2 GPIO_43 
+#define VREF2H GPIO_38
+#define VREF2L GPIO_39
+#define VREF1H GPIO_40
+#define VREF1L GPIO_41
+#define MDO0 GPIO_51 
+#define MDO1 GPIO_52
+#define MDO2 GPIO_53
+#define MDO3 GPIO_54
+#define MDO4 GPIO_55
+#define MDO5 GPIO_56
+#define MDO6 GPIO_57
+#define MDO7 GPIO_58
+#define MSEO0 GPIO_59
+#define MSEO1 GPIO_60
+#define RDY GPIO_61
+#define EVTO GPIO_62
+#define MCKO GPIO_50
+#define EVTI GPIO_63
+
+
+
 #define _V(x,n,i) uint32_t x##_##i : n;
 #define _REP(x,n) \
 	_V(x,n,00) _V(x,n,01) _V(x,n,02) _V(x,n,03) _V(x,n,04) _V(x,n,05) _V(x,n,06) _V(x,n,07) \
