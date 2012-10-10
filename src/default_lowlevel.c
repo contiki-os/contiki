@@ -45,6 +45,19 @@ void default_vreg_init(void) {
 	*CRM_VREG_CNTL = 0x00000ff8; /* start the regulators */
 }
 
+void buck_init(void) {
+	CRM->SYS_CNTLbits.PWR_SOURCE = 1;
+	CRM->VREG_CNTLbits.BUCK_SYNC_REC_EN = 1;
+	CRM->VREG_CNTLbits.BUCK_BYPASS_EN = 0;
+	CRM->VREG_CNTLbits.BUCK_EN = 1;
+	while(CRM->STATUSbits.VREG_BUCK_RDY == 0) { continue; }
+	CRM->VREG_CNTLbits.VREG_1P5V_SEL = 3;
+	CRM->VREG_CNTLbits.VREG_1P5V_EN = 3;
+	CRM->VREG_CNTLbits.VREG_1P8V_EN = 1;
+	while(CRM->STATUSbits.VREG_1P5V_RDY == 0) { continue; }
+	while(CRM->STATUSbits.VREG_1P8V_RDY == 0) { continue; }
+}
+
 void uart1_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t samp) {
 
         /* UART must be disabled to set the baudrate */

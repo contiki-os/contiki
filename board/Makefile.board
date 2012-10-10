@@ -1,6 +1,6 @@
 # -*- makefile -*-
 
-ALL_BOARDS = redbee-dev redbee-r1 redbee-usb redbee-econotag quahogcon freescale-ncb
+ALL_BOARDS = redbee-dev redbee-r1 redbee-usb redbee-econotag quahogcon freescale-ncb m12
 
 OBJDIR = obj_$(BOARD)
 CFLAGS += -I. -I$(OBJDIR) -I$(MC1322X)/board -DBOARD=$(BOARD)

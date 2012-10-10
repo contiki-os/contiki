@@ -33,18 +33,22 @@
  *
  */
 
-#ifndef LOWLEVEL_H
-#define LOWLEVEL_H
+#ifndef BOARD_M12_H
+#define BOARD_M12_H
 
-#include "crm.h"
+/* XTAL TUNE parameters */
+/* see http://devl.org/pipermail/mc1322x/2009-December/000162.html */
+/* for details about how to make this measurement */
 
-#define trim_xtal() pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS)
+/* Econotag also needs an addtional 12pf on board */
+/* Coarse tune: add 4pf */
+#define CTUNE_4PF 1
+/* Coarse tune: add 0-15 pf (CTUNE is 4 bits) */
+#define CTUNE 3
+/* Fine tune: add FTUNE * 156fF (FTUNE is 5bits) */
+#define FTUNE 3
 
-void default_vreg_init(void);
-void buck_init(void);
-void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp);
-void uart2_init(uint16_t inc, uint16_t mod, uint8_t samp);
-
-void irq_register_timer_handler(int timer, void (*isr)(void));
+#define vreg_init buck_init
+#include <std_conf.h>
 
 #endif
