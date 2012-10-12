@@ -51,6 +51,7 @@ int first_delay = 50;
 int second_delay = 100;
 int do_exit = 0;
 int zerolen = 0;
+char *args = NULL;
 
 struct stat sbuf;
 struct termios options;
@@ -125,6 +126,9 @@ int main(int argc, char **argv)
         abort();
     }
   }
+  /* Get other arguments */
+  if (optind < argc)
+	args = argv[optind];
 
   /* Print settings */
   if (verbose) {
@@ -207,8 +211,8 @@ int main(int argc, char **argv)
     printf("Cannot open firmware file %s!\n", filename);
     return -1;
   }
-  printf("Sending %s (%i bytes)...\n", filename, sbuf.st_size);
   s = sbuf.st_size;
+  printf("Sending %s (%i bytes)...\n", filename, s);
   r = write(pfd, (const void*)&s, 4);
   i = 0;
   r = read(ffd, buf, 1);
@@ -258,24 +262,33 @@ int main(int argc, char **argv)
         printf("Cannot open secondary file %s!\n", second);
         return -1;
       }
-    }
-
-    /* Send secondary file */
-    printf("Sending %s (%i bytes)...\n", second, sbuf.st_size);
-    s = sbuf.st_size;
-    r = write(pfd, (const void*)&s, 4);
-    i = 0;
-    r = read(sfd, buf, 1);
-    while (r > 0) {
-      do {
-        usleep(second_delay);
-        c = write(pfd, (const void*)buf, r);
-      } while(c < r);
-      i += r;
-      printf("Written %i\r", i); fflush(stdout);
+      s = sbuf.st_size;
+      printf("Sending %s (%i bytes)...\n", second, s);
+      r = write(pfd, (const void*)&s, 4);
+      i = 0;
       r = read(sfd, buf, 1);
+      while (r > 0) {
+        do {
+          usleep(second_delay);
+          c = write(pfd, (const void*)buf, r);
+        } while(c < r);
+        i += r;
+        printf("Written %i\r", i); fflush(stdout);
+        r = read(sfd, buf, 1);
+      }
+      printf("\n");
+    } else if (zerolen) {
+      s = 0;
+      printf("Sending %i...\n", s);
+      write(pfd, (const void*)&s, 4);
     }
-    printf("\n");
+  }
+
+  /* Send the remaining arguments */
+  if (args) {
+    printf("Sending %s\n", args);
+    r = write(pfd, (const void*)args, strlen(args));
+    r = write(pfd, (const void*)",", 1);
   }
 
   /* Drop in echo mode */
