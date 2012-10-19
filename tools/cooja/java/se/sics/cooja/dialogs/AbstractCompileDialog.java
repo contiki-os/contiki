@@ -184,6 +184,10 @@ public abstract class AbstractCompileDialog extends JDialog {
       public void actionPerformed(ActionEvent e) {
         JFileChooser fc = new JFileChooser();
 
+        File fp = new File(contikiField.getText());
+        if (fp.exists() && fp.isFile()) {
+            lastFile = fp;
+        }
         if (lastFile == null) {
           String path = GUI.getExternalToolsSetting("COMPILE_LAST_FILE", null);
           if (path != null) {
@@ -691,6 +695,8 @@ public abstract class AbstractCompileDialog extends JDialog {
   }
 
   private Action defaultAction = new AbstractAction("Use default") {
+    private static final long serialVersionUID = 2874355910493988933L;
+
     public void actionPerformed(ActionEvent e) {
       /* Unselect all */
       for (Component c : moteIntfBox.getComponents()) {
@@ -713,7 +719,7 @@ public abstract class AbstractCompileDialog extends JDialog {
    * @return Currently selected mote interface classes
    */
   public Class<? extends MoteInterface>[] getSelectedMoteInterfaceClasses() {
-    ArrayList<Class<? extends MoteInterface>> selected = new ArrayList();
+    ArrayList<Class<? extends MoteInterface>> selected = new ArrayList<Class<? extends MoteInterface>>();
 
     for (Component c : moteIntfBox.getComponents()) {
       if (!(c instanceof JCheckBox)) {
@@ -736,8 +742,7 @@ public abstract class AbstractCompileDialog extends JDialog {
     }
 
     Class<? extends MoteInterface>[] arr = new Class[selected.size()];
-    selected.toArray(arr);
-    return arr;
+    return selected.toArray(arr);
   }
 
   /**
