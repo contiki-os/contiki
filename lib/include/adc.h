@@ -40,7 +40,19 @@
 #include "utils.h"
 
 /* the Vbatt measurment reads about 200mV low --- trim by ADC_VBATT_TRIM */
-#define ADC_VBATT_TRIM 200
+/* correction tracks well --- within 50mV over 2.1V to 3.6V */
+/* offset from correct for tags running from 3.29 vreg */
+/* trim = 146 */
+/* tag 1: -90mV */
+/* tag 2: -30mV */
+/* tag 3: -30mV */
+/* tag 4: -40mV */
+/* tag 5: +10mV */
+/* tag 6: -40mV */
+/* new trim 183 */
+
+/* without per unit calibration, vbatt is probably +/- 75mV */
+#define ADC_VBATT_TRIM 183
 
 /* ADC registers are all 16-bit wide with 16-bit access only */
 #define ADC_BASE        (0x8000D000)
