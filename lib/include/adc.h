@@ -39,6 +39,9 @@
 #include <stdint.h>
 #include "utils.h"
 
+/* the Vbatt measurment reads about 200mV low --- trim by ADC_VBATT_TRIM */
+#define ADC_VBATT_TRIM 200
+
 /* ADC registers are all 16-bit wide with 16-bit access only */
 #define ADC_BASE        (0x8000D000)
 
@@ -153,8 +156,14 @@ static volatile struct ADC_struct * const ADC = (void *) (ADC_BASE);
 #define adc_enable()  (ADC->CONTROLbits.ON = 1)
 #define adc_disable() (ADC->CONTROLbits.ON = 0)
 #define adc_select_channels(chans) (ADC->SEQ_1 = (ADC->SEQ_1 & 0xFE00) | chans)
+void adc_setup_chan(uint8_t channel);
 
 extern uint16_t adc_reading[NUM_ADC_CHAN];
+/* use the internal reference to return adc_readings in mV */
+#define adc_voltage(x) (adc_reading[x] * 1200/adc_reading[8]) 
+/* return vbatt voltage in mV */
+#define adc_vbatt 4095 * 1200/adc_reading[8] + ADC_VBATT_TRIM
+
 void ADC_flush(void);
 uint16_t ADC_READ(void);
 void read_scanners(void);

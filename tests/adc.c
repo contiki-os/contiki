@@ -52,12 +52,17 @@ int main(void)
 
 	printf("\x1B[2J"); // clear screen
 
+	for (c=0; c<=7; c++) {
+		adc_setup_chan(c);
+	}
+
 	for(;;) {
 		printf("\x1B[H"); // cursor home
 		printf("# Value\r\n");
 		for (c=0; c<NUM_ADC_CHAN; c++) {
 			adc_service();
-			printf("%u %04u\r\n", c, adc_reading[c]);
+			printf("%u %04u %04u mV\r\n", c, adc_reading[c], adc_voltage(c));
 		}
+		printf("vbatt: %04u mV", adc_vbatt);
 	}
 }
