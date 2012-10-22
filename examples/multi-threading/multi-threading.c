@@ -48,6 +48,7 @@
 
 #include "contiki.h"
 #include "sys/mt.h"
+#include <stdio.h>
 
 static char *ptr;
 
