@@ -27,13 +27,15 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * @(#)$Id: mtarch.h,v 1.3 2008/11/21 10:28:32 fros4943 Exp $
  */
 #ifndef __MTARCH_H__
 #define __MTARCH_H__
 
+#include "contiki.h"
+
+#ifndef MTARCH_STACKSIZE
 #define MTARCH_STACKSIZE 128
+#endif /* MTARCH_STACKSIZE */
 
 struct mtarch_thread {
   unsigned short stack[MTARCH_STACKSIZE];
@@ -46,6 +48,4 @@ struct mt_thread;
 
 int mtarch_stack_usage(struct mt_thread *t);
 
-
 #endif /* __MTARCH_H__ */
-

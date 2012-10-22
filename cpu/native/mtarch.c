@@ -33,6 +33,12 @@
  * $Id: mtarch.c,v 1.2 2007/04/03 18:37:15 oliverschmidt Exp $
  */
 
+#include "sys/mt.h"
+
+#ifndef MTARCH_STACKSIZE
+#define MTARCH_STACKSIZE 4096
+#endif /* MTARCH_STACKSIZE */
+
 #if defined(_WIN32) || defined(__CYGWIN__)
 
 #define WIN32_LEAN_AND_MEAN
@@ -52,7 +58,7 @@ static void *main_fiber;
 #include <ucontext.h>
 
 struct mtarch_t {
-  char stack[4096];
+  char stack[MTARCH_STACKSIZE];
   ucontext_t context;
 };
 
@@ -60,8 +66,6 @@ static ucontext_t main_context;
 static ucontext_t *running_context;
 
 #endif /* _WIN32 || __CYGWIN__ || __linux */
-
-#include "mtarch.h"
 
 /*--------------------------------------------------------------------------*/
 void
