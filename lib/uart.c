@@ -50,18 +50,14 @@ void uart_setbaud(volatile struct UART_struct * uart, uint32_t baud) {
 	inc = (inc + 5) / 10;
 
         /* UART must be disabled to set the baudrate */
-	uart->CONbits = (struct UART_CON) {
-		.TXE = 0,
-		.RXE = 0,
-	};
+	uart->CONbits.TXE = 0;
+	uart->CONbits.RXE = 0;
 
 	uart->BR = ( (uint16_t)inc << 16 ) | MOD;
 
-	uart->CONbits = (struct UART_CON) {
-		.XTIM = 0,
-		.TXE = 1,
-		.RXE = 1,
-	};
+	uart->CONbits.XTIM = 0;
+	uart->CONbits.TXE = 1;
+	uart->CONbits.RXE = 1;
 }
 
 void uart_flowctl(volatile struct UART_struct * uart, uint8_t on) {
@@ -117,6 +113,7 @@ void uart_init(volatile struct UART_struct * uart, uint32_t baud) {
 		.TXE = 1,
 		.RXE = 1,
 	};
+
 	/* interrupt when there are this number or more bytes free in the TX buffer*/
 	uart->TXCON = 16;
 
@@ -129,7 +126,19 @@ void uart_init(volatile struct UART_struct * uart, uint32_t baud) {
 		GPIO->FUNC_SEL.U1TX = 1;
 		GPIO->FUNC_SEL.U1RX = 1;
 
-		u1_head = 0; u1_tail = 0;
+#if UART1_RX_BUFFERSIZE > 32
+		*UART1_UCON = (1 << 0) | (1 << 1) ;	/* enable receive, transmit, and both interrupts */
+		*UART1_URXCON = 30;					/* interrupt when fifo is nearly full */
+		u1_rx_head = 0; u1_rx_tail = 0;
+#elif UART1_RX_BUFFERSIZE < 32			/* enable receive, transmit, flow control, disable rx interrupt */
+		*UART1_UCON = (1 << 0) | (1 << 1) | (1 << 12) | (1 << 14); 
+		*UART1_UCTS = UART1_RX_BUFFERSIZE;  /* drop cts when tx buffer at trigger level */
+		*GPIO_FUNC_SEL1 = ( (0x01 << (0*2)) | (0x01 << (1*2)) ); /* set GPIO17-16 to UART1 CTS and RTS */
+#else 
+		*UART1_UCON = (1 << 0) | (1 << 1) | (1 << 14); /* enable receive, transmit, disable rx interrupt */
+#endif
+
+		u1_tx_head = 0; u1_tx_tail = 0;
 
 		/* tx and rx interrupts are enabled in the UART by default */
 		/* see status register bits 13 and 14 */
@@ -146,7 +155,19 @@ void uart_init(volatile struct UART_struct * uart, uint32_t baud) {
 		GPIO->FUNC_SEL.U2TX = 1;
 		GPIO->FUNC_SEL.U2RX = 1;
 
-		u2_head = 0; u2_tail = 0;
+#if UART2_RX_BUFFERSIZE > 32
+		*UART2_UCON = (1 << 0) | (1 << 1) ;	/* enable receive, transmit, and both interrupts */
+		*UART2_URXCON = 30;					/* interrupt when fifo is nearly full */
+		u2_rx_head = 0; u2_rx_tail = 0;
+#elif UART2_RX_BUFFERSIZE < 32			/* enable receive, transmit, disable flow control, disable rx interrupt */
+		*UART2_UCON = (1 << 0) | (1 << 1) | (0 << 12) | (1 << 14);
+		*UART2_UCTS = UART2_RX_BUFFERSIZE;  /* drop cts when tx buffer at trigger level */
+		*GPIO_FUNC_SEL1 = ( (0x01 << (0*2)) | (0x01 << (1*2)) ); /* set GPIO17-16 to UART2 CTS and RTS */
+#else 
+		*UART2_UCON = (1 << 0) | (1 << 1) | (1 << 14); /* enable receive, transmit, disable rx interrupt */
+#endif
+
+		u2_tx_head = 0; u2_tx_tail = 0;
 
 		enable_irq(UART2);
 	}
