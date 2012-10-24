@@ -45,7 +45,6 @@ int main(void)
 	uint8_t c;
 
 	trim_xtal();
-	uart_init(UART1);
 	uart_init(UART1, 115200);
 	adc_init();
 

@@ -46,7 +46,6 @@ void main(void) {
 	uint32_t buf[WRITE_NBYTES/4];
 	uint32_t i;
 
-	uart_init(UART1);
 	uart_init(UART1, 115200);
 
 	print_welcome("nvm-write");

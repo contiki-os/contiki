@@ -65,7 +65,7 @@ void uart_setbaud(volatile struct UART_struct * uart, uint32_t baud) {
 	};
 }
 
-void uart_init(volatile struct UART_struct * uart) {
+void uart_init(volatile struct UART_struct * uart, uint32_t baud) {
 	/* enable the uart so we can set the gpio mode */
 	/* see Section 11.5.1.2 Alternate Modes */
 	/* you must enable the peripheral first BEFORE setting the function in GPIO_FUNC_SEL */
@@ -113,5 +113,8 @@ void uart_init(volatile struct UART_struct * uart) {
 
 		enable_irq(UART2);
 	}
+
+	uart_setbaud(uart, baud);
+
 }
 

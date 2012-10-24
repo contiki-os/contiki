@@ -76,8 +76,7 @@ int main(void)
 	int mi;
 //	char buf[80];
 
-	uart_init(UART1);
-	uart_setbaud(UART1, 115200);
+	uart_init(UART1, 115200);
 
 	print_size(int8_t);
 	print_size(uint8_t);

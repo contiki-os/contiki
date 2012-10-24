@@ -84,7 +84,6 @@ void main(void) {
 	volatile uint32_t state = SCAN_X;
 	volatile uint32_t addr,data;
 
-	uart_init(UART1);
 	uart_init(UART1, 115200);
 
 	disable_irq(UART1);

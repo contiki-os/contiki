@@ -46,12 +46,18 @@ void main(void) {
 	uint32_t buf[READ_NBYTES/4];
 	uint32_t i;
 
-	uart_init(UART1);
 	uart_init(UART1, 115200);
 
 	print_welcome("nvm-read");
 
 	vreg_init();
+//	buck_init();
+	while(CRM->STATUSbits.VREG_1P5V_RDY == 0) { continue; }
+	while(CRM->STATUSbits.VREG_1P8V_RDY == 0) { continue; }
+
+	printf("Sys cntl %08x\n\r",  (unsigned int)CRM->SYS_CNTL);
+	printf("vreg cntl %08x\n\r", (unsigned int)CRM->VREG_CNTL);
+	printf("crm status %08x\n\r", (unsigned int)CRM->STATUS);
 
 	if(NVM_INTERFACE == gNvmInternalInterface_c)
 	{
@@ -75,7 +81,7 @@ void main(void) {
 	err = nvm_read(NVM_INTERFACE, type, (uint8_t *)buf, READ_ADDR, READ_NBYTES);
 	printf("nvm_read returned: 0x%02x\r\n", err);
 
-	for(i=0; i<READ_NBYTES/4; i++) {
+	for(i=0; i<16/4; i++) {
 		printf("0x%08x\r\n", (unsigned int)buf[i]);
 	}
 		

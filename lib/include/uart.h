@@ -152,6 +152,7 @@ static volatile struct UART_struct * const UART2 = (void *) (UART2_BASE);
 
 #endif /* REG_NO_COMPAT */
 
+void uart_init(volatile struct UART_struct * uart, uint32_t baud);
 void uart_setbaud(volatile struct UART_struct * uart, uint32_t baud);
 
 extern volatile uint32_t  u1_head, u1_tail;

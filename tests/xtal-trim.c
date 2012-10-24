@@ -48,7 +48,6 @@ int main(void)
 	ctune = 0;
 	ftune = 0;
 	
-	uart_init(UART1);
 	uart_init(UART1, 115200);
 	
 	print_welcome("pwm test\r\n");

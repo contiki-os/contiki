@@ -41,7 +41,6 @@
 
 void main(void) {
 
-	uart_init(UART1);
 	uart_init(UART1, 115200);
 
 	*mem32(0x00401ffc) = 0x01234567;
