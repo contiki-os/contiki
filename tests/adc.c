@@ -45,7 +45,8 @@ int main(void)
 	uint8_t c;
 
 	trim_xtal();
-	uart1_init(INC,MOD,SAMP);
+	uart_init(UART1);
+	uart_init(UART1, 115200);
 	adc_init();
 
 	printf("adc test\r\n");
