@@ -154,6 +154,7 @@ static volatile struct UART_struct * const UART2 = (void *) (UART2_BASE);
 
 void uart_init(volatile struct UART_struct * uart, uint32_t baud);
 void uart_setbaud(volatile struct UART_struct * uart, uint32_t baud);
+void uart_flowctl(volatile struct UART_struct * uart, uint8_t on);
 
 extern volatile uint32_t  u1_head, u1_tail;
 void uart1_putc(char c);

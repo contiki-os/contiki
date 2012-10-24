@@ -40,7 +40,6 @@
 #define CLK 24000000
 #define DIV 16 /* uart->CON.XTIM = 0 is 16x oversample (datasheet is incorrect) */
 
-#include <stdio.h>
 void uart_setbaud(volatile struct UART_struct * uart, uint32_t baud) {
 	uint64_t inc;
 
@@ -65,6 +64,49 @@ void uart_setbaud(volatile struct UART_struct * uart, uint32_t baud) {
 	};
 }
 
+void uart_flowctl(volatile struct UART_struct * uart, uint8_t on) {
+	if (on) {
+		if( uart == UART1 ) {
+			/* CTS and RTS directions */
+			GPIO->PAD_DIR_SET.U1CTS = 1;
+			GPIO->PAD_DIR_RESET.U1RTS = 1;
+			/* function select to uart */
+			GPIO->FUNC_SEL.U1CTS = 1;
+			GPIO->FUNC_SEL.U1RTS = 1;
+		} else { 
+			/* UART 2 */
+			/* CTS and RTS directions */
+			GPIO->PAD_DIR_SET.U2CTS = 1;
+			GPIO->PAD_DIR_RESET.U2RTS = 1;
+			/* function select to uart */
+			GPIO->FUNC_SEL.U2CTS = 1;
+			GPIO->FUNC_SEL.U2RTS = 1;
+		}
+		/* enable flow control */
+		uart->CONbits.FCE = 1;
+	} else {
+		/* off */
+		/* disable flow control */
+		uart->CONbits.FCE = 0;
+		if( uart == UART1 ) {
+			/* CTS and RTS to inputs */
+			GPIO->PAD_DIR_RESET.U1CTS = 1;
+			GPIO->PAD_DIR_RESET.U1RTS = 1;
+			/* function select to gpio */
+			GPIO->FUNC_SEL.U1CTS = 3;
+			GPIO->FUNC_SEL.U1RTS = 3;
+		} else { 
+			/* UART 2 */
+			/* CTS and RTS to inputs */
+			GPIO->PAD_DIR_RESET.U2CTS = 1;
+			GPIO->PAD_DIR_RESET.U2RTS = 1;
+			/* function select to gpio */
+			GPIO->FUNC_SEL.U2CTS = 3;
+			GPIO->FUNC_SEL.U2RTS = 3;
+		}
+	}
+}
+
 void uart_init(volatile struct UART_struct * uart, uint32_t baud) {
 	/* enable the uart so we can set the gpio mode */
 	/* see Section 11.5.1.2 Alternate Modes */
@@ -79,17 +121,13 @@ void uart_init(volatile struct UART_struct * uart, uint32_t baud) {
 	uart->TXCON = 16;
 
 	if( uart == UART1 ) {
-		/* TX and CTS as outputs */
-		GPIO->PAD_DIR_SET.GPIO_14 = 1;
-		GPIO->PAD_DIR_SET.GPIO_16 = 1;
+		/* TX and RX directions */
+		GPIO->PAD_DIR_SET.U1TX = 1;
+		GPIO->PAD_DIR_RESET.U1RX = 1;
 		
-		/* RX and RTS as inputs */
-		GPIO->PAD_DIR_RESET.GPIO_15 = 1;
-		GPIO->PAD_DIR_RESET.GPIO_17 = 1;
-
-		/* set GPIO15-14 to UART (UART1 TX and RX)*/
-		GPIO->FUNC_SEL.GPIO_14 = 1;
-		GPIO->FUNC_SEL.GPIO_15 = 1;
+		/* set func sel to UART */
+		GPIO->FUNC_SEL.U1TX = 1;
+		GPIO->FUNC_SEL.U1RX = 1;
 
 		u1_head = 0; u1_tail = 0;
 
@@ -99,15 +137,14 @@ void uart_init(volatile struct UART_struct * uart, uint32_t baud) {
 		enable_irq(UART1);
 
 	} else {
-		/* do the same as above but for UART2 */
-		GPIO->PAD_DIR_SET.GPIO_18 = 1;
-		GPIO->PAD_DIR_SET.GPIO_19 = 1;
-
-		GPIO->PAD_DIR_RESET.GPIO_20 = 1;
-		GPIO->PAD_DIR_RESET.GPIO_21 = 1;
-
-		GPIO->FUNC_SEL.GPIO_18 = 1;
-		GPIO->FUNC_SEL.GPIO_19 = 1;
+		/* UART2 */
+		/* TX and RX directions */
+		GPIO->PAD_DIR_SET.U2TX = 1;
+		GPIO->PAD_DIR_RESET.U1RX = 1;
+		
+		/* set func sel to UART */
+		GPIO->FUNC_SEL.U2TX = 1;
+		GPIO->FUNC_SEL.U2RX = 1;
 
 		u2_head = 0; u2_tail = 0;
 
