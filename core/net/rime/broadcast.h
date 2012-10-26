@@ -53,7 +53,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast.h,v 1.5 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**

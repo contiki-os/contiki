@@ -29,7 +29,6 @@
  * This file is part of the Configurable Sensor Network Application
  * Architecture for sensor nodes running the Contiki operating system.
  *
- * $Id: dummy-sensors.c,v 1.2 2010/01/14 20:15:55 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *

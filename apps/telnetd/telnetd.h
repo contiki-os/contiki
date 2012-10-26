@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: telnetd.h,v 1.4 2008/02/09 17:15:58 oliverschmidt Exp $
  *
  */
 #ifndef __TELNETD_H__

@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: netconf.c,v 1.9 2010/05/31 15:22:08 nifi Exp $
  *
  */
 

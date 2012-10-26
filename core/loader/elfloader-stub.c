@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-stub.c,v 1.3 2007/11/17 10:46:41 adamdunkels Exp $
  */
 #include "elfloader-arch.h"
 

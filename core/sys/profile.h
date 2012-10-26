@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: profile.h,v 1.3 2008/01/17 12:19:26 adamdunkels Exp $
  */
 
 /**

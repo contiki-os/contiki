@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: process-list-dsc.h,v 1.1 2006/06/17 22:41:12 adamdunkels Exp $
  *
  */
 #ifndef __PROCESSES_DSC_H__

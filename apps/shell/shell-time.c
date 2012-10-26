@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-time.c,v 1.9 2010/10/20 15:18:49 adamdunkels Exp $
  */
 
 /**

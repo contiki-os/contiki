@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteTimeEvent.java,v 1.1 2010/02/03 19:10:36 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;

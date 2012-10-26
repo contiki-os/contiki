@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: irc-client.c,v 1.1 2010/01/31 18:28:43 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"

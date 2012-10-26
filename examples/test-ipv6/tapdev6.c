@@ -31,7 +31,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tapdev6.c,v 1.2 2006/08/10 19:22:23 bg- Exp $
  */
 
 

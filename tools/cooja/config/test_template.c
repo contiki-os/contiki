@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: test_template.c,v 1.1 2009/02/20 16:59:52 fros4943 Exp $
  */
 
 #include <jni.h>

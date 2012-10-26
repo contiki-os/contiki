@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.10 2010/02/03 20:30:07 nifi Exp $
  *
  * -----------------------------------------------------------------
  *

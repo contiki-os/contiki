@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.32 2010/03/09 08:11:05 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;

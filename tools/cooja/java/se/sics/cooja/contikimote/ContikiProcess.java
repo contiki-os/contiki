@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiProcess.java,v 1.1 2008/10/03 13:02:43 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;

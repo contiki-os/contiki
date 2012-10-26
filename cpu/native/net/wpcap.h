@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.h,v 1.3 2009/08/08 19:51:25 dak664 Exp $
  */
 
 #ifndef __WPCAP_H__

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: BreakpointsUI.java,v 1.5 2009/06/16 12:15:15 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;

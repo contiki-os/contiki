@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceViewer.java,v 1.10 2010/05/09 22:50:34 nifi Exp $
  */
 
 package se.sics.cooja.plugins;

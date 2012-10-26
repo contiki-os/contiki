@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: uip-driver.h,v 1.1 2010/03/02 22:40:39 nifi Exp $
  */
 
 /**

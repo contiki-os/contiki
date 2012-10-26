@@ -64,7 +64,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  *
- * $Id: stimer.h,v 1.4 2010/03/15 15:53:57 joxe Exp $
  */
 #ifndef __STIMER_H__
 #define __STIMER_H__

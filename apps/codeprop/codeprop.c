@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop.c,v 1.2 2010/10/19 18:29:03 adamdunkels Exp $
  */
 
 /** \addtogroup esb

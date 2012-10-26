@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timetable.h,v 1.2 2008/02/28 22:11:30 oliverschmidt Exp $
  */
 
 /**

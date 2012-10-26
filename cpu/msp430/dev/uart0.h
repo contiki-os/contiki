@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uart0.h,v 1.1 2010/08/24 16:23:20 joxe Exp $
  */
 
 /**

@@ -29,7 +29,6 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-vncserver.h,v 1.2 2007/03/21 23:18:49 adamdunkels Exp $
  *
  */
 #ifndef __CTK_VNCSERVER_H__

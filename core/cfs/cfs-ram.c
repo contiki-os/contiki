@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-ram.c,v 1.10 2009/02/27 14:25:38 nvt-se Exp $
  */
 
 #include <string.h>

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-coffee.h,v 1.1 2008/07/03 17:56:17 adamdunkels Exp $
  */
 
 /**

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testcfs.c,v 1.3 2009/03/02 09:44:07 fros4943 Exp $
  */
 
 #include "contiki.h"

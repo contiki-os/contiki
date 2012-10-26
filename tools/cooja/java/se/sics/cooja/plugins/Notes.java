@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Notes.java,v 1.1 2010/03/11 22:11:10 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;

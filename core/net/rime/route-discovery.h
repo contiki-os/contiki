@@ -45,7 +45,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.h,v 1.11 2010/06/18 08:28:56 nifi Exp $
  */
 
 /**

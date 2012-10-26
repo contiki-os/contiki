@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.36 2010/11/10 13:03:49 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;

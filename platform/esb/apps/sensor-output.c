@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensor-output.c,v 1.4 2010/01/15 10:37:04 nifi Exp $
  */
 #include "contiki-esb.h"
 

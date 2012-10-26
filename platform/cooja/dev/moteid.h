@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: moteid.h,v 1.1 2006/08/21 12:11:19 fros4943 Exp $
  */
 
 #ifndef __MOTEID_H__

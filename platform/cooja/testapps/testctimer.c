@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testctimer.c,v 1.3 2010/06/14 18:58:45 adamdunkels Exp $
  */
 
 #include "contiki.h"

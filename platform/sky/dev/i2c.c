@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: i2c.c,v 1.2 2007/01/12 13:41:57 bg- Exp $
  */
 
 /*

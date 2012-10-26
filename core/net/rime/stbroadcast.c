@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stbroadcast.c,v 1.3 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TableColumnAdjuster.java,v 1.1 2009/06/12 14:12:59 nifi Exp $
  *
  * -----------------------------------------------------------------
  *

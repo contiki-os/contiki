@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.19 2010/09/09 19:56:59 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;

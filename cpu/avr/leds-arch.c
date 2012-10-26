@@ -31,7 +31,6 @@
  *
  * This is a dummy non-functional dummy implementation.
  *
- * $Id: leds-arch.c,v 1.1 2006/12/22 17:05:31 barner Exp $
  *
  * -----------------------------------------------------------------
  *

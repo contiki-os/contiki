@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ieee-15-4-manager.h,v 1.2 2008/10/14 18:38:09 c_oflynn Exp $
  */
 /**
  *  \addtogroup rf230mac

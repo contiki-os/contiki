@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DGRMVisualizerSkin.java,v 1.1 2010/09/24 12:49:14 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;

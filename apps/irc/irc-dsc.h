@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: irc-dsc.h,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
  *
  */
 #ifndef __IRC_DSC_H__

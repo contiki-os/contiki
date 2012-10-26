@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: webserver-nogui.c,v 1.1 2007/11/28 09:40:13 matsutsuka Exp $
  *
  */
 

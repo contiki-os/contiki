@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyTemperature.java,v 1.1 2010/03/14 19:45:04 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;

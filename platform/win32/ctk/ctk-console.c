@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.c,v 1.10 2007/12/15 20:12:28 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN

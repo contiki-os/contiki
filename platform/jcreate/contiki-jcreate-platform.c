@@ -30,7 +30,6 @@
  *
  * Author: Niclas Finne <nfi@sics.se>, Joakim Eriksson <joakime@sics.se>
  *
- * $Id: contiki-jcreate-platform.c,v 1.1 2010/05/03 21:57:35 nifi Exp $
  */
 
 #include "dev/battery-sensor.h"

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-multihop.c,v 1.7 2010/01/15 10:24:36 nifi Exp $
  */
 
 /**

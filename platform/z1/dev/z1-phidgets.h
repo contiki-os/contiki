@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: z1-phidgets.h,v 1.2 2010/08/27 12:58:57 joxe Exp $
  *
  * -----------------------------------------------------------------
  *

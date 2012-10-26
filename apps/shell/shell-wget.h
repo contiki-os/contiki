@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-wget.h,v 1.1 2008/11/09 12:36:23 adamdunkels Exp $
  */
 
 /**

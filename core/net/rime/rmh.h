@@ -53,7 +53,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.h,v 1.8 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**

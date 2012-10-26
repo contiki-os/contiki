@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: node-id.h,v 1.3 2007/09/14 19:24:45 nvt-se Exp $
  */
 
 #ifndef NODE_ID_H

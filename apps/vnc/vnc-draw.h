@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki VNC client.
  *
- * $Id: vnc-draw.h,v 1.1 2006/06/17 23:08:35 adamdunkels Exp $
  *
  */
 

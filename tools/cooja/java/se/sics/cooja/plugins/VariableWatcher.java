@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VariableWatcher.java,v 1.10 2010/01/15 10:54:42 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;

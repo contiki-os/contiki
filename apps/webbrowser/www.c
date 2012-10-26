@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www.c,v 1.14 2010/07/21 21:03:06 oliverschmidt Exp $
  *
  */
 

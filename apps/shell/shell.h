@@ -48,7 +48,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.h,v 1.24 2010/10/20 15:21:43 adamdunkels Exp $
  */
 
 /**

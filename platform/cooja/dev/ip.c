@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ip.c,v 1.2 2009/04/01 18:11:48 fros4943 Exp $
  */
 
 #include "dev/ip.h"

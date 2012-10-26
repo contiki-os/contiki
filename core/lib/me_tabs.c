@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: me_tabs.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
  */
 const unsigned short me_encode_tab[256] = {
 0x5555, 0x5556, 0x5559, 0x555a, 0x5565, 0x5566, 0x5569, 0x556a, 0x5595, 

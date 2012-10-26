@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: websense-remote.c,v 1.2 2010/06/14 14:12:43 nifi Exp $
  */
 
 /**

@@ -41,7 +41,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.h,v 1.4 2009/03/15 20:29:04 nvt-se Exp $
  */
 #ifndef __UIP_FW_H__
 #define __UIP_FW_H__

@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: error.h,v 1.1 2007/11/27 18:17:47 oliverschmidt Exp $
  */
 
 #ifndef __ERROR_H__

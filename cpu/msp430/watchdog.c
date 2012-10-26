@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.12 2010/11/12 15:54:41 nifi Exp $
  */
 
 #include "contiki.h"

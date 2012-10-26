@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.18 2010/12/07 11:59:55 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;

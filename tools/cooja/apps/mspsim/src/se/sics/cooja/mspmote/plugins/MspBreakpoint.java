@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspBreakpoint.java,v 1.4 2010/08/13 10:19:20 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;

@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: webserver.c,v 1.5 2008/02/08 22:53:32 oliverschmidt Exp $
  *
  */
 

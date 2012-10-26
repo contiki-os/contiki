@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: eeprom.c,v 1.1 2006/06/17 22:41:31 adamdunkels Exp $
  */
 #include "dev/eeprom.h"
 #include "node.h"

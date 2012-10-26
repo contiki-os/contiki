@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: simpletelnet.c,v 1.7 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 

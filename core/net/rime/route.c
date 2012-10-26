@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.18 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**

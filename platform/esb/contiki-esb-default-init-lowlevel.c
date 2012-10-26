@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-default-init-lowlevel.c,v 1.2 2006/10/06 07:49:31 adamdunkels Exp $
  */
 #include "contiki-esb.h"
 #include "dev/esb-sensors.h"

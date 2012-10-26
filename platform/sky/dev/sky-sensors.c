@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-sensors.c,v 1.3 2010/08/25 19:30:53 nifi Exp $
  *
  * -----------------------------------------------------------------
  *

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer.h,v 1.2 2010/03/01 13:30:23 nifi Exp $
  */
 
 /**

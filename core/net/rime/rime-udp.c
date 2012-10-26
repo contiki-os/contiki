@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime-udp.c,v 1.7 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /**
