@@ -49,6 +49,7 @@
 #define FTUNE 3
 
 #define vreg_init buck_init
+#define board_init m12_init
 #include <std_conf.h>
 
 #endif

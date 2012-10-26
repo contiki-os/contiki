@@ -58,3 +58,14 @@ void buck_init(void) {
 	while(CRM->STATUSbits.VREG_1P8V_RDY == 0) { continue; }
 }
 
+void m12_init(void) {
+	/* configure pullups for low power */
+	GPIO->FUNC_SEL.GPIO_63 = 3;
+	GPIO->PAD_PU_SEL.GPIO_63 = 0;
+	GPIO->FUNC_SEL.SS = 3;
+	GPIO->PAD_PU_SEL.SS = 1;
+	GPIO->FUNC_SEL.VREF2H = 3;
+	GPIO->PAD_PU_SEL.VREF2H = 1;
+	GPIO->FUNC_SEL.U1RTS = 3;
+	GPIO->PAD_PU_SEL.U1RTS = 1;
+}
