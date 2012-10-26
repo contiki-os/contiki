@@ -43,7 +43,6 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: program-handler.c,v 1.10 2008/02/15 17:31:44 oliverschmidt Exp $
  *
  */
 

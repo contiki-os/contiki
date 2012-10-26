@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SerialSocketServer.java,v 1.3 2010/03/25 08:00:15 fros4943 Exp $
  */
 
 import java.awt.BorderLayout;

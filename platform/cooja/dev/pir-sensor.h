@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: pir-sensor.h,v 1.2 2010/01/14 19:12:31 nifi Exp $
  */
 
 #ifndef __PIR_H__

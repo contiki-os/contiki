@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: crc16.c,v 1.4 2009/05/14 12:05:04 nvt-se Exp $
  */
 
 /** \addtogroup crc16

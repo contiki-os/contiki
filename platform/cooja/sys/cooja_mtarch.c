@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cooja_mtarch.c,v 1.7 2009/03/13 14:42:06 fros4943 Exp $
  */
 
 #include <stddef.h>

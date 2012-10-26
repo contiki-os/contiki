@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: log.c,v 1.4 2007/12/16 13:11:01 oliverschmidt Exp $
  */
 
 #include <unistd.h>

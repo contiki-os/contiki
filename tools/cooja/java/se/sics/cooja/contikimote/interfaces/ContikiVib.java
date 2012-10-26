@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiVib.java,v 1.10 2010/02/05 08:49:42 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;

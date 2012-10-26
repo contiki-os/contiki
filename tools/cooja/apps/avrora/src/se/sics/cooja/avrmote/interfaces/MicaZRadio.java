@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZRadio.java,v 1.7 2010/02/05 08:24:57 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;

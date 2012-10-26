@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: esb-sensors.h,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
  */
 
 /**

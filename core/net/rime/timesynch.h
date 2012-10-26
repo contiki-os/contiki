@@ -55,7 +55,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.h,v 1.4 2008/07/01 21:02:51 adamdunkels Exp $
  */
 
 /**

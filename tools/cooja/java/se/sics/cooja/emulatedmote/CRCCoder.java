@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CRCCoder.java,v 1.1 2009/11/10 12:54:39 joxe Exp $
  */
 
 package se.sics.cooja.emulatedmote;

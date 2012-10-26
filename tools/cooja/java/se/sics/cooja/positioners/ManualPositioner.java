@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ManualPositioner.java,v 1.1 2009/02/18 13:55:51 fros4943 Exp $
  */
 
 package se.sics.cooja.positioners;

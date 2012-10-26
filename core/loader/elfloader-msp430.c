@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-msp430.c,v 1.5 2009/03/26 12:25:05 fros4943 Exp $
  */
 #include "elfloader-arch.h"
 

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.30 2010/10/19 20:31:02 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;

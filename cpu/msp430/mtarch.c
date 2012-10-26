@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: mtarch.c,v 1.6 2008/11/21 10:28:32 fros4943 Exp $
  */
 
 #include <stdio.h>

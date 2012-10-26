@@ -47,7 +47,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.h,v 1.2 2010/03/19 13:17:31 adamdunkels Exp $
  */
 
 /**

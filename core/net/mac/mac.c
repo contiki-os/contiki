@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.c,v 1.2 2010/02/23 18:49:58 adamdunkels Exp $
  */
 
 #include "net/mac/mac.h"

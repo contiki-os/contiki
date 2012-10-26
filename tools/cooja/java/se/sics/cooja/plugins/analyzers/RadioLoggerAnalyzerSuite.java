@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLoggerAnalyzerSuite.java,v 1.1 2010/03/12 16:02:47 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.analyzers;

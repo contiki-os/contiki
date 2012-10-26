@@ -27,7 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: mb851-websense.c,v 1.1 2011/01/17 10:58:04 salvopitru Exp $
  */
 
 /**

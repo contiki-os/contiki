@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: spix.c,v 1.1 2010/08/24 16:23:20 joxe Exp $
  */
 
 #include "contiki-conf.h"

@@ -28,7 +28,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.13 2010/12/23 19:41:07 dak664 Exp $
  *
  */
 /* Line endings in git repository are LF instead of CR-LF ? */

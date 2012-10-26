@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: button.c,v 1.2 2006/08/17 15:41:13 bg- Exp $
  */
 
 #include "contiki.h"

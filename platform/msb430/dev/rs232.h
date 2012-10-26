@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.h,v 1.6 2009/06/29 12:46:50 nvt-se Exp $
  */
 
 /** \addtogroup esb

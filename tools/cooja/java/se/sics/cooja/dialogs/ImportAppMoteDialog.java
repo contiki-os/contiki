@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ImportAppMoteDialog.java,v 1.1 2010/01/24 20:06:16 nifi Exp $
  */
 
 package se.sics.cooja.dialogs;

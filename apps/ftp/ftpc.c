@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftpc.c,v 1.6 2010/10/19 22:30:13 oliverschmidt Exp $
  */
 #include "contiki.h"
 #include "ftpc.h"

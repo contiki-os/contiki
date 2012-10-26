@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: simpletelnet.h,v 1.3 2007/11/17 22:27:09 oliverschmidt Exp $
  *
  */
 #ifndef __SIMPLETELNET_H__

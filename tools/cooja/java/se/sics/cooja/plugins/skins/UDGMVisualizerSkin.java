@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGMVisualizerSkin.java,v 1.11 2010/09/06 12:00:46 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;

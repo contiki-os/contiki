@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.27 2010/11/12 13:17:45 nifi Exp $
  */
 
 /**

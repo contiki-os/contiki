@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-announcement.c,v 1.3 2011/01/07 23:23:31 nvt-se Exp $
  */
 
 /**

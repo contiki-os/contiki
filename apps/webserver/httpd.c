@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.20 2010/12/14 22:45:22 dak664 Exp $
  */
  
 #include <stdio.h>

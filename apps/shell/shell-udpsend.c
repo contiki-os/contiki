@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-udpsend.c,v 1.7 2010/10/19 18:29:03 adamdunkels Exp $
  */
 
 #include <string.h>

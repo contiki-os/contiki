@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: profile-aggregates.c,v 1.4 2007/11/18 12:27:45 ksb Exp $
  */
 
 /**

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-bitopt.h,v 1.2 2008/07/03 07:38:52 adamdunkels Exp $
  */
 
 /**

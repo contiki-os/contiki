@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: clock.c,v 1.3 2008/07/12 14:46:03 oliverschmidt Exp $
  */
 
 #include <apple2.h>

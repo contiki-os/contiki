@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: uip-driver.c,v 1.2 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**

@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: email.h,v 1.2 2008/11/06 08:30:23 adamdunkels Exp $
  *
  */
 #ifndef __EMAIL_H__

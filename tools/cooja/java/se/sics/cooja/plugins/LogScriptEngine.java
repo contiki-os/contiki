@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.25 2010/11/10 13:05:18 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;

@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-tcpsend.c,v 1.5 2010/05/31 15:22:08 nifi Exp $
  */
 
 #include <string.h>

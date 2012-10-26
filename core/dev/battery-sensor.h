@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.h,v 1.1 2007/11/13 20:36:40 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *

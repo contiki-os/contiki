@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: temperature-sensor.c,v 1.3 2010/02/08 00:00:45 nifi Exp $
  *
  * -----------------------------------------------------------------
  *

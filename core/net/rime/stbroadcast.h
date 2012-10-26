@@ -48,7 +48,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stbroadcast.h,v 1.4 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**

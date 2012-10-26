@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-httpd.c,v 1.1 2008/11/09 12:37:26 adamdunkels Exp $
  */
 
 /**

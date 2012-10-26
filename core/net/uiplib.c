@@ -29,7 +29,6 @@
  *
  * This file is part of the uIP TCP/IP stack and the Contiki operating system.
  *
- * $Id: uiplib.c,v 1.3 2010/12/14 22:45:22 dak664 Exp $
  *
  */
 

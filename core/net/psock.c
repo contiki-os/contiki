@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.c,v 1.12 2010/06/15 14:19:22 nifi Exp $
  */
 
 #include <string.h>

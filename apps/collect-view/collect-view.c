@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-view.c,v 1.4 2010/10/24 21:03:52 adamdunkels Exp $
  */
 
 /**

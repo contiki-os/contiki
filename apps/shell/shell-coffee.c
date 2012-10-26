@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-coffee.c,v 1.3 2008/11/24 15:18:27 nvt-se Exp $
  */
 
 /**

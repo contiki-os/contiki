@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: core.c,v 1.1 2006/06/17 22:41:27 adamdunkels Exp $
  */
 #include "contiki-esb.h"
 #include "codeprop-tmp.h"

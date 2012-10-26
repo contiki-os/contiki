@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-upload.c,v 1.2 2008/07/03 23:32:19 adamdunkels Exp $
  */
 
 /**

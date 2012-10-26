@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: fader.h,v 1.1 2006/06/18 07:48:48 adamdunkels Exp $
  */
 #ifndef __FADER_H__
 #define __FADER_H__

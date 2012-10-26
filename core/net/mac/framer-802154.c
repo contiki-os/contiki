@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer-802154.c,v 1.12 2010/06/14 19:19:16 adamdunkels Exp $
  */
 
 /**

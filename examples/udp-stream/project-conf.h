@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: project-conf.h,v 1.1 2010/10/28 13:11:08 simonduq Exp $
  */
 
 #ifndef __PROJECT_H__

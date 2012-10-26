@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: rs232.c,v 1.4 2009/04/23 09:02:06 fros4943 Exp $
  */
 
 #include "lib/sensors.h"

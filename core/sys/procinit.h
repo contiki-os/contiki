@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: procinit.h,v 1.2 2007/08/22 10:49:48 ksb Exp $
  */
 #ifndef __PROCINIT_H__
 #define __PROCINIT_H__

@@ -28,7 +28,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: ajax-cgi.c,v 1.1 2010/10/25 13:34:29 salvopitru Exp $
  *
  */
 

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001RadioPacketConverter.java,v 1.6 2010/02/03 13:47:33 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;

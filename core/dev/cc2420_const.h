@@ -28,7 +28,6 @@
  *
  */
 
-/* @(#)$Id: cc2420_const.h,v 1.4 2010/06/24 09:28:12 nifi Exp $ */
 
 #ifndef CC2420_CONST_H
 #define CC2420_CONST_H

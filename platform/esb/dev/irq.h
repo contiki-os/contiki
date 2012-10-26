@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: irq.h,v 1.3 2010/01/14 17:39:35 nifi Exp $
  */
 #ifndef __IRQ_H__
 #define __IRQ_H__

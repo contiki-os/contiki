@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-unicast.c,v 1.5 2010/02/02 16:36:46 adamdunkels Exp $
  */
 
 /**

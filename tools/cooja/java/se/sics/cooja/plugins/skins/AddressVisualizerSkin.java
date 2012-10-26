@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddressVisualizerSkin.java,v 1.4 2009/11/05 11:54:59 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;

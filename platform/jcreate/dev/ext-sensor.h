@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ext-sensor.h,v 1.1 2010/05/03 21:57:35 nifi Exp $
  *
  * -----------------------------------------------------------------
  *

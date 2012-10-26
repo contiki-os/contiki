@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-netperf.c,v 1.6 2010/02/18 20:56:12 adamdunkels Exp $
  */
 
 /**

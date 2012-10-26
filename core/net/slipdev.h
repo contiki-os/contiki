@@ -39,7 +39,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: slipdev.h,v 1.2 2009/03/17 20:28:44 nvt-se Exp $
  *
  */
 
