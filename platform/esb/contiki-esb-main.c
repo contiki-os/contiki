@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.19 2010/06/21 15:15:12 nifi Exp $
  */
 
 #include <stdio.h>

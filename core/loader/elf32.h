@@ -26,10 +26,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: elf32.h,v 1.1 2006/12/01 15:12:27 bg- Exp $
  */
 
-/* @(#)$Id: elf32.h,v 1.1 2006/12/01 15:12:27 bg- Exp $ */
 
 #ifndef ELF32_H
 #define ELF32_H

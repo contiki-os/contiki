@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: burn-nodeid.c,v 1.3 2007/11/28 19:53:09 nifi Exp $
  */
 
 /**

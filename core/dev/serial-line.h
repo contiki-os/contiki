@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: serial-line.h,v 1.1 2009/03/17 15:56:33 adamdunkels Exp $
  */
 /**
  * \file

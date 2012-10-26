@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRS232.java,v 1.13 2010/02/03 15:49:25 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptParser.java,v 1.8 2010/08/17 15:04:15 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;

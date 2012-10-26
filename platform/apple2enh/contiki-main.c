@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.23 2010/10/27 22:17:39 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"

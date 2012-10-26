@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.h,v 1.4 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 /**

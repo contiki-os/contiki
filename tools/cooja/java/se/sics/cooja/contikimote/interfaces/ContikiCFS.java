@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.12 2010/11/15 21:44:38 adamdunkels Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;

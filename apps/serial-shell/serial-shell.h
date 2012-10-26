@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: serial-shell.h,v 1.1 2008/07/09 20:53:30 adamdunkels Exp $
  */
 
 /**

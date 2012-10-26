@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.26 2011/01/25 20:13:41 oliverschmidt Exp $
  */
 
 #include <stdio.h>

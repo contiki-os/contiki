@@ -54,7 +54,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.18 2009/03/01 12:28:39 oliverschmidt Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__

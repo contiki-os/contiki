@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: mtarch.c,v 1.1 2007/05/19 14:47:17 fros4943 Exp $
  */
 
 #include "mtarch.h"

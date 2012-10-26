@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: platform-conf.h,v 1.1 2010/08/24 16:26:38 joxe Exp $
  */
 
 /**

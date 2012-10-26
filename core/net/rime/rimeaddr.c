@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.c,v 1.9 2008/11/30 18:26:57 adamdunkels Exp $
  */
 
 /**

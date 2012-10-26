@@ -29,7 +29,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tapslip6.c,v 1.3 2009/11/03 14:00:28 nvt-se Exp $
  *
  */
 

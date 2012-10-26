@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: mtarch.c,v 1.2 2007/04/03 18:37:15 oliverschmidt Exp $
  */
 
 #include "sys/mt.h"

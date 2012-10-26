@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: temperature-sensor.h,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *

@@ -41,7 +41,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ringbuf.h,v 1.1 2009/03/01 20:23:56 adamdunkels Exp $
  */
 
 /**

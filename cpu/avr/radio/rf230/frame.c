@@ -39,7 +39,6 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: frame.c,v 1.4 2008/12/10 21:26:05 c_oflynn Exp $
 */
 /*
  *  \brief This file is where the main functions that relate to frame

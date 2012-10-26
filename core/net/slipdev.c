@@ -53,7 +53,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: slipdev.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
  *
  */
 

@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: tinysample.c,v 1.2 2007/11/28 09:37:11 matsutsuka Exp $
  */
 
 /**

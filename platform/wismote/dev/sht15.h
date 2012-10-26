@@ -27,7 +27,6 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 /*
-  $Id: v 0.1 2011/02/15 tchapelle Exp $
 */
 
 

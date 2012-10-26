@@ -29,7 +29,6 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: flash.c,v 1.3 2010/11/15 21:52:54 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *

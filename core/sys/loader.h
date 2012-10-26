@@ -49,7 +49,6 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: loader.h,v 1.2 2008/10/14 12:46:39 nvt-se Exp $
  *
  */
 #ifndef __LOADER_H__

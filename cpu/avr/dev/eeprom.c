@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: eeprom.c,v 1.2 2006/12/22 17:02:24 barner Exp $
  */
 
 #include "dev/eeprom.h"

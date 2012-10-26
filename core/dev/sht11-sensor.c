@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sht11-sensor.c,v 1.2 2010/01/15 08:51:21 adamdunkels Exp $
  */
 
 #include <stdlib.h>

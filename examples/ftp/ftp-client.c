@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ftp-client.c,v 1.1 2010/10/16 10:36:20 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"

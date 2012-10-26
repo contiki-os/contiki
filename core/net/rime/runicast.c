@@ -34,7 +34,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.12 2010/03/26 12:29:29 nifi Exp $
  */
 
 /**

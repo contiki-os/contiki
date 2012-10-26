@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: autostart.h,v 1.5 2008/02/10 11:17:33 oliverschmidt Exp $
  */
 
 /**

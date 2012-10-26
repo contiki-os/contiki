@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: www.h,v 1.4 2008/11/09 10:58:06 adamdunkels Exp $
  *
  */
 #ifndef __WWW_H__

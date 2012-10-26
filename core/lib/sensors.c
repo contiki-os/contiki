@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.c,v 1.5 2010/01/14 20:04:38 nifi Exp $
  */
 /* exeperimental code, will be renamed to sensors.c when done */
 

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rssi-scanner.c,v 1.3 2011/01/12 20:00:48 joxe Exp $
  */
 
 /**

@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-xmem.c,v 1.11 2009/02/27 14:25:38 nvt-se Exp $
  */
 
 #include "cfs/cfs.h"

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteID.java,v 1.8 2010/05/02 09:42:52 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;

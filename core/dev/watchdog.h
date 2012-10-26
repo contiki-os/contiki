@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.h,v 1.3 2008/01/07 14:42:35 adamdunkels Exp $
  */
 #ifndef __WATCHDOG_H__
 #define __WATCHDOG_H__

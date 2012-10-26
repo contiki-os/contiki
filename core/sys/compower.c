@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: compower.c,v 1.5 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**

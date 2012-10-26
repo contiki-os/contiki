@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.15 2009/11/13 14:27:46 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *

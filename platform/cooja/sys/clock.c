@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: clock.c,v 1.4 2009/09/04 13:59:37 nvt-se Exp $
  */
 
 #include "contiki-conf.h"

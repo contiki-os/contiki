@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: libconio.c,v 1.2 2007/09/09 12:24:44 matsutsuka Exp $
  *
  */
 

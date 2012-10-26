@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: email.c,v 1.8 2010/05/31 15:22:08 nifi Exp $
  *
  */
 

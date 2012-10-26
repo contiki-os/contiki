@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-neighbors.c,v 1.1 2010/12/14 10:07:28 adamdunkels Exp $
  */
 
 /**

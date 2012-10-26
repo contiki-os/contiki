@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: webserver6.c,v 1.1 2008/10/14 10:01:53 julienabeille Exp $
  */
 
 #include "webserver-nogui.h"

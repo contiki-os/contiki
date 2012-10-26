@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: acc-example.c,v 1.1 2010/10/25 13:34:28 salvopitru Exp $
  */
 
 /**

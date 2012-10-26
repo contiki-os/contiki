@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: project-conf.h,v 1.1 2010/10/21 18:23:44 joxe Exp $
  */
 
 #ifndef __PROJECT_ROUTER_CONF_H__

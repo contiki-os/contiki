@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: channel.c,v 1.3 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**

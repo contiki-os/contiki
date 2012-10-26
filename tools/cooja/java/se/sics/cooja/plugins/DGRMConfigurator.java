@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DGRMConfigurator.java,v 1.4 2010/02/03 09:30:38 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;

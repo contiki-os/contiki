@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.2 2011/01/09 21:06:10 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *

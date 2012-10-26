@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: rom.c,v 1.2 2006/12/01 15:06:42 bg- Exp $
  */
 
 #include "contiki.h"

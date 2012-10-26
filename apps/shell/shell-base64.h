@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-base64.h,v 1.1 2010/02/03 20:37:29 adamdunkels Exp $
  */
 
 /**

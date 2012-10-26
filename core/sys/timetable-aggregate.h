@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timetable-aggregate.h,v 1.2 2008/03/13 14:27:34 fros4943 Exp $
  */
 
 /**

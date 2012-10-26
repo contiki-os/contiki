@@ -29,7 +29,6 @@
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.h,v 1.2 2010/06/14 14:08:17 nifi Exp $
  *
  */
 #ifndef __WEBCLIENT_H__

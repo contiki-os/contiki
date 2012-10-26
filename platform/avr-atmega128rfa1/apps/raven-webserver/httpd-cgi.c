@@ -28,7 +28,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.13 2010/12/23 19:41:07 dak664 Exp $
  *
  */
 #include <util/delay.h>

@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-eeprom.c,v 1.11 2009/07/23 16:13:48 dak664 Exp $
  */
 
 #include "cfs/cfs.h"

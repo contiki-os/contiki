@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: wget.c,v 1.4 2010/10/31 22:43:06 oliverschmidt Exp $
  *
  */
 

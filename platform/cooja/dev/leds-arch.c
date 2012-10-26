@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: leds-arch.c,v 1.1 2006/08/21 12:11:20 fros4943 Exp $
  */
 
 #include "dev/leds.h"

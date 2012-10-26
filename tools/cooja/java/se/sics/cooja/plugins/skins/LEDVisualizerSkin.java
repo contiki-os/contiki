@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LEDVisualizerSkin.java,v 1.5 2009/10/28 15:16:21 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;

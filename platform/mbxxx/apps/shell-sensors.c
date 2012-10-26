@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sensors.c,v 1.1 2010/10/25 09:03:39 salvopitru Exp $
  */
  
  /**

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: print-stats.c,v 1.5 2010/03/09 14:14:36 nvt-se Exp $
  */
 
 /**

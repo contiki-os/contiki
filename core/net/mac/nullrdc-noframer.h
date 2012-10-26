@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullrdc-noframer.h,v 1.1 2010/11/23 18:11:00 nifi Exp $
  */
 
 /**

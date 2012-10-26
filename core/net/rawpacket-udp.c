@@ -28,7 +28,6 @@ c/*
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rawpacket-udp.c,v 1.4 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /**

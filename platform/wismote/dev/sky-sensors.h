@@ -27,7 +27,6 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- * $Id: sky-sensors.h,v 1.1 2010/02/02 20:59:45 joxe Exp $
  *
  * -----------------------------------------------------------------
  *

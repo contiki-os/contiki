@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop.h,v 1.2 2007/03/18 13:15:01 ksb Exp $
  */
 #ifndef __CODEPROP_H__
 #define __CODEPROP_H__

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-powertrace.h,v 1.1 2010/10/12 11:34:49 adamdunkels Exp $
  */
 
 /**
