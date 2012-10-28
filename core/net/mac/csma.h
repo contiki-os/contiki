@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.h,v 1.1 2010/01/25 11:46:44 adamdunkels Exp $
  */
 
 /**

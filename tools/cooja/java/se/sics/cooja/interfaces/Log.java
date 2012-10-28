@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Log.java,v 1.2 2008/10/03 10:39:49 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;

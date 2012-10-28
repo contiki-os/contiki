@@ -42,7 +42,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-link-estimate.h,v 1.4 2011/01/09 21:14:22 adamdunkels Exp $
  */
 
 /**

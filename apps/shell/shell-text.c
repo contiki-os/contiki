@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-text.c,v 1.7 2010/09/13 13:29:47 adamdunkels Exp $
  */
 
 /**

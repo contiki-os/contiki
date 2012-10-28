@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uart1.h,v 1.2 2011/01/17 09:22:24 salvopitru Exp $
  */
 
 /**

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rawpacket.h,v 1.1 2006/10/22 12:31:46 adamdunkels Exp $
  */
 
 /**

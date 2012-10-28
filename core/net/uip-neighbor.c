@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-neighbor.c,v 1.3 2008/11/09 12:16:05 adamdunkels Exp $
  */
 
 /**

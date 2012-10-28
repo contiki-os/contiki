@@ -29,7 +29,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: rtl8019-drv.c,v 1.3 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
 

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-cfs.c,v 1.5 2009/09/21 14:14:46 nifi Exp $
  */
 
 /**

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.40 2010/11/15 12:00:54 joxe Exp $
  */
 
 package se.sics.cooja.plugins;

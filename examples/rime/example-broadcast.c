@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-broadcast.c,v 1.3 2010/11/06 15:03:48 adamdunkels Exp $
  */
 
 /**

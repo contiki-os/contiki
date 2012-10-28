@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyButton.java,v 1.4 2010/03/29 10:18:14 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;

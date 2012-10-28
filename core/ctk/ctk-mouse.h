@@ -29,7 +29,6 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-mouse.h,v 1.2 2009/02/27 08:18:54 oliverschmidt Exp $
  *
  */
 #ifndef __CTK_MOUSE_H__

@@ -34,7 +34,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: resolv.h,v 1.4 2010/05/31 15:22:08 nifi Exp $
  *
  */
 #ifndef __RESOLV_H__

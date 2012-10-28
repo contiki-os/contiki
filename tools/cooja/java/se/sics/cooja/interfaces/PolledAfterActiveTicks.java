@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PolledAfterActiveTicks.java,v 1.3 2009/03/21 15:41:42 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;

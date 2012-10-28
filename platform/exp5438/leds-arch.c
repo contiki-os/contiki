@@ -29,7 +29,6 @@
  * This file is part of the Configurable Sensor Network Application
  * Architecture for sensor nodes running the Contiki operating system.
  *
- * $Id: leds-arch.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *

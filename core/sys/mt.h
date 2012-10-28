@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.h,v 1.6 2008/10/14 12:46:39 nvt-se Exp $
  */
 
 /** \addtogroup sys

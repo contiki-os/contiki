@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-udp-packet.h,v 1.3 2009/10/18 22:02:01 adamdunkels Exp $
  */
 
 /**

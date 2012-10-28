@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: button-sensor.c,v 1.6 2010/01/14 19:12:31 nifi Exp $
  */
 
 #include "lib/sensors.h"

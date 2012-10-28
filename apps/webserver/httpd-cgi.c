@@ -28,7 +28,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.16 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 

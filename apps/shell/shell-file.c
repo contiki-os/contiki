@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.14 2010/04/12 13:21:58 nvt-se Exp $
  */
 
 /**

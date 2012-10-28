@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: xmem.c,v 1.2 2008/07/09 09:37:50 adamdunkels Exp $
  */
 
 #include "contiki-conf.h"

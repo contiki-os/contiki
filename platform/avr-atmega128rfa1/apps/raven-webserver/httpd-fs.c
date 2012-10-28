@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.c,v 1.4 2009/07/24 15:41:52 dak664 Exp $
  */
 
 #include "contiki-net.h"

@@ -31,7 +31,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: rtl8019-drv.h,v 1.2 2007/05/26 23:05:36 oliverschmidt Exp $
  *
  */
 #ifndef __RTL8019_DRV_H__

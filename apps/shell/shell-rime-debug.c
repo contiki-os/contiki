@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-debug.c,v 1.5 2010/03/19 13:24:26 adamdunkels Exp $
  */
 
 /**

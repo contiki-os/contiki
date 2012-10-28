@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contiki-sentilla-usb-platform.c,v 1.1 2010/08/25 19:57:33 nifi Exp $
  */
 
 /**

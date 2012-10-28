@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-test.c,v 1.3 2010/10/19 18:29:05 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *

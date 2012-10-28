@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: twitter.h,v 1.1 2009/05/11 16:57:49 adamdunkels Exp $
  */
 
 #ifndef __TWITTER_H__

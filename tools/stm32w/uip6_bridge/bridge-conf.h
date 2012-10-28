@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: bridge-conf.h,v 1.1 2010/10/25 10:42:41 salvopitru Exp $
  */
 
 /**

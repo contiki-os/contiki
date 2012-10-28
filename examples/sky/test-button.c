@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-button.c,v 1.6 2010/02/03 09:54:38 joxe Exp $
  */
 
 /**

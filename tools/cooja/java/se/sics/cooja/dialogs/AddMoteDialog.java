@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddMoteDialog.java,v 1.10 2009/09/17 13:20:03 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;

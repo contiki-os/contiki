@@ -45,7 +45,6 @@
  *  \file
  *  \brief This file contains radio driver code.
  *
- *   $Id: radio.h,v 1.2 2008/10/14 18:37:28 c_oflynn Exp $
  */
 
 #ifndef RADIO_H

@@ -34,7 +34,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.11 2010/12/16 22:47:38 adamdunkels Exp $
  */
 
 /**

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-conf.h,v 1.10 2010/03/18 20:11:54 dak664 Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__

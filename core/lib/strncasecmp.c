@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: strncasecmp.c,v 1.2 2008/10/15 14:17:28 nvt-se Exp $
  *
  */
 

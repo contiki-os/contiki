@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: symtab.c,v 1.7 2007/01/24 16:13:50 adamdunkels Exp $
  */
 
 #include "symtab.h"

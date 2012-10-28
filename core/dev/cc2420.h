@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420.h,v 1.14 2010/12/16 22:39:50 adamdunkels Exp $
  */
 
 /**

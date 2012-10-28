@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix-dir.c,v 1.2 2008/03/29 13:54:56 oliverschmidt Exp $
  */
 
 #include <stdio.h>

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimestats.h,v 1.1 2007/05/22 20:48:41 adamdunkels Exp $
  */
 
 /**

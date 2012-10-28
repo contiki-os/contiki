@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: vib-sensor.h,v 1.3 2010/01/14 20:02:55 nifi Exp $
  */
 
 #ifndef __VIB_H__

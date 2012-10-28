@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: coffee-test.c,v 1.1 2010/11/10 11:20:44 salvopitru Exp $
  */
 
 /**

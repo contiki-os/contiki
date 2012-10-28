@@ -30,7 +30,6 @@
  * Author: Enric M. Calvo <ecalvo@zolertia.com> based on previous work by
  *         Niclas Finne <nfi@sics.se>, Joakim Eriksson <joakime@sics.se>
  *
- * $Id: contiki-sky-platform.c,v 1.1 2010/05/03 13:51:11 nifi Exp $
  */
 
 #include "dev/button-sensor.h"

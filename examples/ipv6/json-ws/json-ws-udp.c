@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: dmacro.dm,v 1.11 2006/03/18 19:43:52 nfi Exp $
  */
 
 /**

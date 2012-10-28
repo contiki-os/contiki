@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: unload.h,v 1.1 2010/10/12 11:03:53 oliverschmidt Exp $
  */
 
 #ifndef __UNLOAD_H__

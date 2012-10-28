@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-exec.c,v 1.4 2009/03/26 12:22:52 fros4943 Exp $
  */
 
 /**

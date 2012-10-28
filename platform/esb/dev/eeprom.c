@@ -29,7 +29,6 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: eeprom.c,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *

@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki VNC server
  *
- * $Id: ctk-vncfont.h,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
  *
  */
 #ifndef __CTK_VNCFONT_H__

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-deluge.c,v 1.3 2009/04/07 15:14:17 nvt-se Exp $
  */
 
 /**

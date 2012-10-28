@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.7 2010/08/25 19:30:53 nifi Exp $
  */
 
 #include "lib/sensors.h"

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.10 2010/12/16 22:49:33 adamdunkels Exp $
  */
 
 #include "contiki.h"

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: assert.c,v 1.1 2006/08/11 13:37:21 bg- Exp $
  */
 
 #include <stdio.h>

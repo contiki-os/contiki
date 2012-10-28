@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: lpm.h,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
  */
 #ifndef __LPM_H__
 #define __LPM_H__

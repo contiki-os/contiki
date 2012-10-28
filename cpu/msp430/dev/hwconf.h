@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: hwconf.h,v 1.3 2010/01/14 20:05:58 nifi Exp $
  */
 #ifndef __HWCONF_H__
 #define __HWCONF_H__

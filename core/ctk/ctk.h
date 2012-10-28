@@ -43,7 +43,6 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: ctk.h,v 1.9 2009/02/28 10:43:30 oliverschmidt Exp $
  *
  */
 

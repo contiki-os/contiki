@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: dma.h,v 1.6 2007/12/17 15:26:47 nvt-se Exp $
  */
 
 #ifndef DMA_H

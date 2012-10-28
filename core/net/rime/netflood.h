@@ -62,7 +62,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netflood.h,v 1.7 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**

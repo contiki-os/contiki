@@ -28,7 +28,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arch.c,v 1.2 2010/05/30 10:12:30 oliverschmidt Exp $
  *
  */
 

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MyDummyPlugin.java,v 1.4 2010/02/03 09:54:54 fros4943 Exp $
  */
 
 import java.awt.BorderLayout;

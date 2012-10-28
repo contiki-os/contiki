@@ -28,7 +28,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: smtp.h,v 1.3 2010/05/31 15:22:08 nifi Exp $
  *
  */
 #ifndef __SMTP_H__

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspDebugOutput.java,v 1.2 2010/01/21 18:02:54 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
