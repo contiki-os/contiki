@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announce-blink.c,v 1.3 2010/05/03 22:02:59 nifi Exp $
  */
 
 /**

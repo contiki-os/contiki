@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.16 2010/03/08 14:26:12 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;

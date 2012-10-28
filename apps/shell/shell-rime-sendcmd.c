@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-sendcmd.c,v 1.2 2009/11/08 19:43:00 adamdunkels Exp $
  */
 
 #include "contiki.h"

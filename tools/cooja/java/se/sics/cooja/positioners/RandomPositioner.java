@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RandomPositioner.java,v 1.2 2009/02/18 12:07:19 fros4943 Exp $
  */
 
 package se.sics.cooja.positioners;

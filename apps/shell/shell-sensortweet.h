@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sensortweet.h,v 1.1 2009/05/11 17:11:37 adamdunkels Exp $
  */
 
 /**

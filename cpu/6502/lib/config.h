@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: config.h,v 1.2 2007/12/21 01:04:29 oliverschmidt Exp $
  */
 
 #ifndef __CONFIG_H__

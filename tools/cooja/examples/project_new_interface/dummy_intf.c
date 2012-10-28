@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: dummy_intf.c,v 1.2 2008/10/28 16:09:52 fros4943 Exp $
  */
 
 #include "dummy_intf.h"

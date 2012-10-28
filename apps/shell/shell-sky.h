@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.h,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
  */
 
 /**

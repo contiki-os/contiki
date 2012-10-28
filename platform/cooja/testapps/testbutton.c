@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testbutton.c,v 1.3 2010/01/14 19:19:50 nifi Exp $
  */
 
 #include "contiki.h"

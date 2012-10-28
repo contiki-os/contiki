@@ -58,7 +58,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.h,v 1.6 2009/03/24 07:15:04 adamdunkels Exp $
  */
 
 /**

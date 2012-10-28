@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-sht11.c,v 1.3 2011/02/27 07:39:55 enricmcalvo $
  */
 
 /**

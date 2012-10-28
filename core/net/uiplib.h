@@ -37,7 +37,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: uiplib.h,v 1.3 2010/05/31 15:22:08 nifi Exp $
  *
  */
 #ifndef __UIPLIB_H__

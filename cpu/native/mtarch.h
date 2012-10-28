@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: mtarch.h,v 1.1 2007/04/03 00:40:51 oliverschmidt Exp $
  */
 
 #ifndef __MTARCH_H__

@@ -44,7 +44,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.26 2010/09/09 20:21:26 oliverschmidt Exp $
  *
  */
 

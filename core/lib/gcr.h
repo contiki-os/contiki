@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: gcr.h,v 1.1 2006/10/05 09:23:41 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *

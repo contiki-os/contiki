@@ -69,7 +69,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: timer.h,v 1.2 2008/09/21 08:58:05 adamdunkels Exp $
  */
 #ifndef __TIMER_H__
 #define __TIMER_H__

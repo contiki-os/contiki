@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.c,v 1.10 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 #include "contiki.h"

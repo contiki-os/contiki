@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: dll-loader.h,v 1.5 2008/02/08 12:14:52 oliverschmidt Exp $
  */
 #ifndef __DLL_LOADER_H__
 #define __DLL_LOADER_H__

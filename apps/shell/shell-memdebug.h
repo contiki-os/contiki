@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-memdebug.h,v 1.1 2010/02/02 15:28:53 adamdunkels Exp $
  */
 
 /**

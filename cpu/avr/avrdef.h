@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: avrdef.h,v 1.2 2007/12/11 17:21:14 joxe Exp $
  */
 
 #ifndef AVRDEF_H

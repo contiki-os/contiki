@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-powertrace.c,v 1.1 2010/02/20 14:15:45 adamdunkels Exp $
  */
 
 /**

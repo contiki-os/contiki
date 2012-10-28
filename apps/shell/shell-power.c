@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-power.c,v 1.1 2009/03/05 21:12:03 adamdunkels Exp $
  */
 
 /**

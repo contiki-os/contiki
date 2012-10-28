@@ -30,7 +30,6 @@
 *
 * This file is part of the uIP TCP/IP stack.
 *
-* $Id: wpcapslip6.c,v 1.3 2011/01/19 09:22:23 salvopitru Exp $
 */
 
  /**

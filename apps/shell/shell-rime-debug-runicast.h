@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-debug-runicast.h,v 1.1 2010/01/31 19:35:12 adamdunkels Exp $
  */
 
 /**

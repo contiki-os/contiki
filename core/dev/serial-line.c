@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: serial-line.c,v 1.4 2010/02/23 18:26:26 adamdunkels Exp $
  */
 #include "dev/serial-line.h"
 #include <string.h> /* for memcpy() */

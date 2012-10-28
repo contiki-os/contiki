@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tdma_mac.c,v 1.8 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 #include "contiki.h"

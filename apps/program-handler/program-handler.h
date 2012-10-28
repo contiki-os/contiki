@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: program-handler.h,v 1.3 2007/11/30 11:15:03 oliverschmidt Exp $
  *
  */
 #ifndef __PROGRAM_HANDLER_H__

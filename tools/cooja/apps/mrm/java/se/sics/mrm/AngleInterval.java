@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AngleInterval.java,v 1.2 2007/03/23 21:13:43 fros4943 Exp $
  */
 
 package se.sics.mrm;

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcpdump.h,v 1.3 2007/08/06 13:14:09 nifi Exp $
  */
 #ifndef __TCPDUMP_H__
 #define __TCPDUMP_H__

@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.11 2010/05/31 15:22:08 nifi Exp $
  */
 
 #include <string.h>

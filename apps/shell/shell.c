@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.c,v 1.13 2009/03/02 20:44:15 adamdunkels Exp $
  */
 
 /**

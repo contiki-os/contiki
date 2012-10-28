@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-checkpoint.c,v 1.2 2009/10/27 10:46:24 fros4943 Exp $
  */
 
 #include "contiki.h"

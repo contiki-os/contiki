@@ -47,7 +47,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.26 2011/01/09 23:48:33 adamdunkels Exp $
  */
 
 /**

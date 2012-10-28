@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: cfs-cbm-dir.c,v 1.2 2010/10/26 18:56:39 oliverschmidt Exp $
  */
 
 #include <string.h>

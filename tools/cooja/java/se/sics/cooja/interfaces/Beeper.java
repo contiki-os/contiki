@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Beeper.java,v 1.1 2006/08/21 12:12:58 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;

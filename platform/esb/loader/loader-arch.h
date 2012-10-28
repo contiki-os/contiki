@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: loader-arch.h,v 1.1 2006/06/21 13:39:11 nifi Exp $
  */
 #ifndef __LOADER_ARCH_H__
 #define __LOADER_ARCH_H__

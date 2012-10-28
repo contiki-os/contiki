@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-phidgets.c,v 1.1 2010/08/27 12:51:41 joxe Exp $
  */
 
 /**

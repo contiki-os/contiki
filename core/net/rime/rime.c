@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.31 2010/10/03 20:10:22 adamdunkels Exp $
  */
 
 /**

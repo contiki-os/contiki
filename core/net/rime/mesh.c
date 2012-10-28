@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.20 2009/12/18 14:57:15 nvt-se Exp $
  */
 
 /**

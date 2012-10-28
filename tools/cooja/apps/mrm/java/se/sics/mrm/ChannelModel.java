@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ChannelModel.java,v 1.4 2009/02/18 12:08:10 fros4943 Exp $
  */
 
 package se.sics.mrm;

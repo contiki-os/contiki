@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: jcreate-shell.c,v 1.6 2010/05/03 22:02:59 nifi Exp $
  */
 
 /**

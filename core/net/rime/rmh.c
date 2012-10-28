@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.c,v 1.10 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**

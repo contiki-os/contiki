@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.h,v 1.9 2010/03/02 22:40:39 nifi Exp $
  */
 #ifndef __TR1001_H__
 #define __TR1001_H__

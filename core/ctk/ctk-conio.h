@@ -29,7 +29,6 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.h,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
  *
  */
 

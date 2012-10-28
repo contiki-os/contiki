@@ -47,7 +47,6 @@
  *  \file
  *  \brief This file contains low-level radio driver code.
  *
- *   $Id: hal.h,v 1.5 2010/02/26 21:15:28 dak664 Exp $
 */
 
 #ifndef HAL_AVR_H

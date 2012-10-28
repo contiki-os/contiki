@@ -28,7 +28,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: telnet.c,v 1.3 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 

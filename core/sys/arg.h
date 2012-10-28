@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: arg.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
  *
  */
 #ifndef __ARG_H__

@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: pt-sem.h,v 1.2 2008/10/14 12:46:39 nvt-se Exp $
  */
 
 /**

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-view-shell.c,v 1.1 2010/11/12 17:46:56 nifi Exp $
  */
 
 /**

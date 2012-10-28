@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.19 2010/03/31 09:38:42 fros4943 Exp $
  */
 
 /**

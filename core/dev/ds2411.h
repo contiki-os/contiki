@@ -28,10 +28,8 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ds2411.h,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
  */
 /* -*- C -*- */
-/* @(#)$Id: ds2411.h,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $ */
 
 #ifndef DS2411_H
 #define DS2411_H

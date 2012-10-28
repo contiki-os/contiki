@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: light.h,v 1.1 2006/08/02 14:44:46 bg- Exp $
  */
 #ifndef __LIGHT_H__
 #define __LIGHT_H__

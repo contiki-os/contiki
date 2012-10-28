@@ -29,7 +29,6 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-vncarch.h,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
  *
  */
 #ifndef __CTK_VNCARCH_H__

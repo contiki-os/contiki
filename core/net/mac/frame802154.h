@@ -54,7 +54,6 @@
  *  This file converts to and from a structure to a packed 802.15.4
  *  frame.
  *
- *    $Id: frame802154.h,v 1.3 2010/02/18 21:00:28 adamdunkels Exp $
 */
 
 

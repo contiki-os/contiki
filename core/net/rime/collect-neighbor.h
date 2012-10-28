@@ -39,7 +39,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.h,v 1.6 2010/10/11 23:38:46 adamdunkels Exp $
  */
 
 /**

@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.h,v 1.1 2007/11/28 09:40:13 matsutsuka Exp $
  */
 #ifndef __HTTPD_FS_H__
 #define __HTTPD_FS_H__

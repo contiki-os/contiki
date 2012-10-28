@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: rom.h,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
  */
 
 #ifndef ROM_H
