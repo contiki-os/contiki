@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki operating system
  *
- * $Id: webserver.h,v 1.2 2007/04/23 21:19:55 oliverschmidt Exp $
  *
  */
 #ifndef __WEBSERVER_H__

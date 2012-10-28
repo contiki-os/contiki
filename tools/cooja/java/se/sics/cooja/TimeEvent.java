@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeEvent.java,v 1.5 2010/10/04 10:11:55 nifi Exp $
  */
 
 package se.sics.cooja;

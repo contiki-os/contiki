@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: httpd-simple.c,v 1.5 2010/10/19 18:29:04 adamdunkels Exp $
  */
 
 /**

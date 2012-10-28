@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cmod.h,v 1.3 2007/04/26 12:54:13 bg- Exp $
  */
 
 #ifndef CMOD_H

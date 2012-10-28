@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: isprint_arch.h,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
  */
 
 /*

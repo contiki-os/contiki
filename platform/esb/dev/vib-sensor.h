@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: vib-sensor.h,v 1.3 2010/01/14 17:39:35 nifi Exp $
  */
 #ifndef __VIB_SENSOR_H__
 #define __VIB_SENSOR_H__

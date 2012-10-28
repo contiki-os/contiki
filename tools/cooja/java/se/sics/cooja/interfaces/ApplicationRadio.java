@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.14 2010/08/31 07:35:22 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;

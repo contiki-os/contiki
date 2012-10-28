@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-ext-sensor.c,v 1.2 2010/05/03 22:02:59 nifi Exp $
  */
 
 /**

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.15 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 #include <stdio.h>

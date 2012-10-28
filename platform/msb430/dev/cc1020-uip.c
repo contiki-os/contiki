@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc1020-uip.c,v 1.1 2007/12/17 13:33:09 nvt-se Exp $
  */
 
 /**

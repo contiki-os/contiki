@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: fader.c,v 1.1 2006/06/18 07:48:48 adamdunkels Exp $
  */
 
 #include "contiki-esb.h"

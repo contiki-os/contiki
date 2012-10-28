@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.h,v 1.3 2010/02/23 20:09:11 nifi Exp $
  */
 
 /**

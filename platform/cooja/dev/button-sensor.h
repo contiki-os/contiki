@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: button-sensor.h,v 1.2 2007/03/20 20:09:17 adamdunkels Exp $
  */
 
 #ifndef __BUTTON_SENSOR_H__

@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ethernet.h,v 1.2 2007/12/21 01:13:44 oliverschmidt Exp $
  */
 
 #ifndef __ETHERNET_H__

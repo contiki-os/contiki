@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.16 2010/06/16 10:10:10 nifi Exp $
  */
 
 /**

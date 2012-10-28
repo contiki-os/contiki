@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-telnet-server.c,v 1.2 2009/06/26 09:51:18 fros4943 Exp $
  */
 
 /**

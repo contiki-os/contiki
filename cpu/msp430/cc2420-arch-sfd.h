@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch-sfd.h,v 1.3 2010/01/26 10:20:16 adamdunkels Exp $
  */
 #ifndef CC2420_ARCH_SFD_H
 #define CC2420_ARCH_SFD_H

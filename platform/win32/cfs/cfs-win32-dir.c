@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: cfs-win32-dir.c,v 1.1 2008/07/06 10:24:38 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN

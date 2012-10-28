@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-ping.c,v 1.6 2011/01/12 22:58:34 nifi Exp $
  */
 
 #include <string.h>

@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: error.c,v 1.1 2010/09/29 21:11:21 oliverschmidt Exp $
  */
 
 #include <stdlib.h>

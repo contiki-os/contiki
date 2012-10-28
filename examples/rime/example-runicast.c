@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-runicast.c,v 1.7 2009/12/18 15:26:35 nifi Exp $
  */
 
 /**

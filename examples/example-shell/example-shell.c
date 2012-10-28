@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-shell.c,v 1.3 2010/02/03 20:37:52 adamdunkels Exp $
  */
 
 /**

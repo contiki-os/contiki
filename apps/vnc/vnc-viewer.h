@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki VNC client.
  *
- * $Id: vnc-viewer.h,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
  *
  */
 

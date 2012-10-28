@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-abc.c,v 1.7 2009/06/09 19:31:55 fros4943 Exp $
  */
 
 /**

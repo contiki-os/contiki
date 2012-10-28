@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctdma_mac.h,v 1.2 2009/06/22 11:14:11 nifi Exp $
  */
 
 #ifndef __CTDMA_MAC_H__

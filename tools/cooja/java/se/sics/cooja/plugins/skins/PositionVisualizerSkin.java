@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PositionVisualizerSkin.java,v 1.2 2009/09/17 12:38:04 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.c,v 1.10 2010/06/14 18:58:45 adamdunkels Exp $
  */
 
 /**

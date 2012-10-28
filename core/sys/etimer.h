@@ -58,7 +58,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: etimer.h,v 1.3 2008/02/07 23:04:35 oliverschmidt Exp $
  */
 #ifndef __ETIMER_H__
 #define __ETIMER_H__

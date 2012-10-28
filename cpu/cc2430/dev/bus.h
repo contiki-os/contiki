@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: bus.h,v 1.3 2010/01/25 23:13:04 anthony-a Exp $
  */
 
 /**

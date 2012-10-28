@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: email-client.c,v 1.1 2010/01/31 21:46:39 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"

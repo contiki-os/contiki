@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-default-init-apps.c,v 1.1 2006/06/17 22:41:27 adamdunkels Exp $
  */
 void
 init_apps(void)

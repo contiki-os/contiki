@@ -39,7 +39,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.c,v 1.7 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: clock.c,v 1.3 2009/09/09 21:11:24 adamdunkels Exp $
  */
 
 /**

@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: unload.c,v 1.2 2010/10/12 19:57:44 oliverschmidt Exp $
  */
 
 #include <stdlib.h>

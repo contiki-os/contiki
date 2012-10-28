@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.19 2010/03/19 13:21:48 adamdunkels Exp $
  */
 
 /**

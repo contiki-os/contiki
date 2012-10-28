@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-split.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
  */
 /**
  * \addtogroup uip

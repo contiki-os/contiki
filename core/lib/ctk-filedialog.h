@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ctk-filedialog.h,v 1.2 2007/08/30 14:39:18 matsutsuka Exp $
  */
 #ifndef __CTK_FILEDIALOG_H__
 #define __CTK_FILEDIALOG_H__

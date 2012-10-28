@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CRCCoder.java,v 1.2 2008/03/18 16:55:44 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;

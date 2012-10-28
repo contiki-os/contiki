@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: petsciiconv.c,v 1.2 2010/01/31 23:46:19 oliverschmidt Exp $
  *
  */
 

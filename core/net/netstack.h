@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netstack.h,v 1.6 2010/10/03 20:37:32 adamdunkels Exp $
  */
 
 /**

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: light.c,v 1.1 2006/08/02 14:44:46 bg- Exp $
  */
 
 #include "contiki.h"

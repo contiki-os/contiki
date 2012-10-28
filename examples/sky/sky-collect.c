@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.13 2010/09/14 06:47:08 adamdunkels Exp $
  */
 
 /**

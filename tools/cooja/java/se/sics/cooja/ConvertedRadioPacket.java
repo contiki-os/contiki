@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ConvertedRadioPacket.java,v 1.1 2009/04/01 23:34:45 fros4943 Exp $
  */
 
 package se.sics.cooja;

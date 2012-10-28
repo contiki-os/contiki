@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.h,v 1.5 2007/04/15 13:30:17 oliverschmidt Exp $
  */
 #ifndef __CTK_CONSOLE_H__
 #define __CTK_CONSOLE_H__

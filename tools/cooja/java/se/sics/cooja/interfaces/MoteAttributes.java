@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteAttributes.java,v 1.3 2010/05/17 14:21:51 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;

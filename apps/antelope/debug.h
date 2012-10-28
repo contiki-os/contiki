@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-debug.h,v 1.1 2010/04/30 13:20:57 joxe Exp $
  */
 /**
  * \file

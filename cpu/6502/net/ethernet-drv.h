@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * $Id: ethernet-drv.h,v 1.1 2007/11/20 21:10:20 oliverschmidt Exp $
  */
 
 #ifndef __ETHERNET_DRV_H__

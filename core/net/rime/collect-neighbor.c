@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect-neighbor.c,v 1.10 2011/01/10 15:08:52 adamdunkels Exp $
  */
 
 /**

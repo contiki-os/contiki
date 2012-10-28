@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testsensors.c,v 1.4 2010/03/10 07:35:09 fros4943 Exp $
  */
 
 #include "contiki.h"

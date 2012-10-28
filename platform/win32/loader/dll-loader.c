@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: dll-loader.c,v 1.4 2008/02/07 15:54:50 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN

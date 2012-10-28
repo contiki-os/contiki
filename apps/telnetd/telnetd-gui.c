@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd-gui.c,v 1.6 2008/11/10 22:10:33 oliverschmidt Exp $
  *
  */
 

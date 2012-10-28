@@ -60,7 +60,6 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: arg.c,v 1.2 2006/08/14 23:39:23 oliverschmidt Exp $
  *
  */
 

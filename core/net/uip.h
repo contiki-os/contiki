@@ -47,7 +47,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.35 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
 

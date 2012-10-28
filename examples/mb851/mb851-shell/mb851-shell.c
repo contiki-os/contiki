@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mb851-shell.c,v 1.3 2010/12/15 14:50:29 salvopitru Exp $
  */
 
 /**

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: slip_uart1.c,v 1.8 2008/02/03 20:59:35 adamdunkels Exp $
  */
 
 /*

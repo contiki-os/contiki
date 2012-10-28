@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: smtp-socket.c,v 1.5 2010/10/19 18:29:03 adamdunkels Exp $
  */
 #include "smtp.h"
 

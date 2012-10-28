@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.c,v 1.7 2009/09/03 12:57:58 nvt-se Exp $
  */
 
 /**

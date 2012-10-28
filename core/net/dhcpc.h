@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcpc.h,v 1.4 2007/03/16 12:16:16 bg- Exp $
  */
 #ifndef __DHCPC_H__
 #define __DHCPC_H__

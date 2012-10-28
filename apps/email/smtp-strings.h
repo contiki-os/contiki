@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: smtp-strings.h,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
  */
 extern const char smtp_220[4];
 extern const char smtp_helo[6];

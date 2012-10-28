@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyRadioMedium.java,v 1.3 2008/10/28 16:36:48 fros4943 Exp $
  */
 
 import java.util.Collection;

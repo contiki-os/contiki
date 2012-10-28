@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki-cooja-main.c,v 1.9 2010/09/24 12:59:06 fros4943 Exp $
  */
 
 /**

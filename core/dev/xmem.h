@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.h,v 1.2 2008/07/03 23:12:10 adamdunkels Exp $
  */
 
 #ifndef XMEM_H

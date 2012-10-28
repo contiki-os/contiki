@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: minileds.c,v 1.1 2006/12/22 17:05:31 barner Exp $
  *
  /**
  * \file

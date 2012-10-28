@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.c,v 1.6 2010/04/30 07:29:31 adamdunkels Exp $
  */
 
 /**

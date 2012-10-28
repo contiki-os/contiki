@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle_avr.c,v 1.3 2007/06/04 17:50:25 bg- Exp $
  */
 
 /*

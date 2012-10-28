@@ -31,7 +31,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tapdev.c,v 1.2 2007/05/20 21:32:24 oliverschmidt Exp $
  */
 
 #include <fcntl.h>

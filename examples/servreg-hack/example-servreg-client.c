@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-servreg-client.c,v 1.1 2010/06/15 19:00:28 adamdunkels Exp $
  */
 
 /**

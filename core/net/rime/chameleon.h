@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon.h,v 1.4 2010/05/28 06:18:39 nifi Exp $
  */
 
 /**

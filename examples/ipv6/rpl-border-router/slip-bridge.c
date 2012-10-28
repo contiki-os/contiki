@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: slip-bridge.c,v 1.6 2011/01/17 20:05:51 joxe Exp $
  */
 
 /**

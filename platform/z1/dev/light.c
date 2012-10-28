@@ -35,7 +35,6 @@
  * \author
  *      Enric M. Calvo <ecalvo@zolertia.com>, adapted from previous work 
  *
- * @(#)$Id: light.c,v 1.0 2011/02/27 ecalvo $
  */
 
 #include <stdlib.h>
