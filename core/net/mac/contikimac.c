@@ -736,7 +736,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
 
     len = 0;
 
-    
+
     {
       rtimer_clock_t wt;
       rtimer_clock_t txtime;

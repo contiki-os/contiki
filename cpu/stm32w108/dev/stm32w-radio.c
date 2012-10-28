@@ -111,7 +111,7 @@
 #define LED_RX_ON()
 #define LED_RX_OFF()
 #define LED_RDC_ON()
-#define LED_RDC_OFF() 
+#define LED_RDC_OFF()
 #endif
 
 #if RDC_CONF_HARDWARE_CSMA
@@ -278,10 +278,10 @@ static int stm32w_radio_init(void)
   // Initialize radio (analog section, digital baseband and MAC).
   // Leave radio powered up in non-promiscuous rx mode.
   ST_RadioInit(ST_RADIO_POWER_MODE_OFF);
-  
+
   onoroff = OFF;
   ST_RadioSetPanId(IEEE802154_PANID);
-  
+
   CLEAN_RXBUFS();
   CLEAN_TXBUF();
 
@@ -293,7 +293,7 @@ static int stm32w_radio_init(void)
 
   locked = 0;
   process_start(&stm32w_radio_process, NULL);
-  
+
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -306,9 +306,9 @@ int stm32w_radio_set_channel(uint8_t channel)
 }
 /*---------------------------------------------------------------------------*/
 static int wait_for_tx(void){
-  
+
   struct timer t;
-  
+
   timer_set(&t, CLOCK_SECOND/10);
   while(!TXBUF_EMPTY()){
     if(timer_expired(&t)){
@@ -318,7 +318,7 @@ static int wait_for_tx(void){
     /* Put CPU in sleep mode. */
     halSleepWithOptions(SLEEPMODE_IDLE,0);
   }
-  return 0;  
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int stm32w_radio_prepare(const void *payload, unsigned short payload_len)
@@ -327,7 +327,7 @@ static int stm32w_radio_prepare(const void *payload, unsigned short payload_len)
         PRINTF("stm32w: payload length=%d is too long.\r\n", payload_len);
         return RADIO_TX_ERR;
     }
-    
+
 #if !RADIO_WAIT_FOR_PACKET_SENT
     /* Check if the txbuf is empty.
      *  Wait for a finite time.
@@ -338,23 +338,23 @@ static int stm32w_radio_prepare(const void *payload, unsigned short payload_len)
       return RADIO_TX_ERR;
     }
 #endif /* RADIO_WAIT_FOR_PACKET_SENT */
-    
-    /* Copy to the txbuf. 
+
+    /* Copy to the txbuf.
      * The first byte must be the packet length.
      */
-    CLEAN_TXBUF();    
+    CLEAN_TXBUF();
     memcpy(stm32w_txbuf + 1, payload, payload_len);
-    
+
     return RADIO_TX_OK;
-    
+
 }
 /*---------------------------------------------------------------------------*/
 static int stm32w_radio_transmit(unsigned short payload_len)
-{    
+{
     stm32w_txbuf[0] = payload_len + CHECKSUM_LEN;
-    
+
     INIT_RETRY_CNT();
-    
+
     if(onoroff == OFF){
       PRINTF("stm32w: Radio is off, turning it on.\r\n");
       ST_RadioWake();
@@ -363,25 +363,25 @@ static int stm32w_radio_transmit(unsigned short payload_len)
 
 #if RADIO_WAIT_FOR_PACKET_SENT
     GET_LOCK();
-#endif /* RADIO_WAIT_FOR_PACKET_SENT */ 
+#endif /* RADIO_WAIT_FOR_PACKET_SENT */
     last_tx_status = -1;
     LED_TX_ON();
     if(ST_RadioTransmit(stm32w_txbuf)==ST_SUCCESS){
-        
+
       ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
       ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-        
+
       PRINTF("stm32w: sending %d bytes\r\n", payload_len);
-        
+
 #if DEBUG > 1
       for(uint8_t c=1; c <= stm32w_txbuf[0]-2; c++){
         PRINTF("%x:",stm32w_txbuf[c]);
       }
       PRINTF("\r\n");
-#endif   
-      
+#endif
+
 #if RADIO_WAIT_FOR_PACKET_SENT
-      
+
       if(wait_for_tx()){
         PRINTF("stm32w: unknown tx error.\r\n");
         TO_PREV_STATE();
@@ -394,46 +394,46 @@ static int stm32w_radio_transmit(unsigned short payload_len)
         RELEASE_LOCK();
         if(last_tx_status == ST_PHY_ACK_RECEIVED){
           return RADIO_TX_OK; /* ACK status */
-        } 
+        }
         else if (last_tx_status == ST_MAC_NO_ACK_RECEIVED || last_tx_status == ST_SUCCESS){
-          return RADIO_TX_NOACK; 
+          return RADIO_TX_NOACK;
         }
       }
-      LED_TX_OFF(); 
-      RELEASE_LOCK();	 
+      LED_TX_OFF();
+      RELEASE_LOCK();
       return RADIO_TX_ERR;
-          
-#else /* RADIO_WAIT_FOR_PACKET_SENT */      
-      
+
+#else /* RADIO_WAIT_FOR_PACKET_SENT */
+
       TO_PREV_STATE();
       LED_TX_OFF();
-      return RADIO_TX_OK;    
-      
+      return RADIO_TX_OK;
+
 #endif /* RADIO_WAIT_FOR_PACKET_SENT */
-      
+
     }
 
 #if RADIO_WAIT_FOR_PACKET_SENT
     RELEASE_LOCK();
-#endif /* RADIO_WAIT_FOR_PACKET_SENT */     
+#endif /* RADIO_WAIT_FOR_PACKET_SENT */
     TO_PREV_STATE();
-    
+
     PRINTF("stm32w: transmission never started.\r\n");
     /* TODO: Do we have to retransmit? */
-  
+
     CLEAN_TXBUF();
-    LED_TX_OFF();  
+    LED_TX_OFF();
     return RADIO_TX_ERR;
-    
+
 }
 /*---------------------------------------------------------------------------*/
 static int stm32w_radio_send(const void *payload, unsigned short payload_len)
 {
   if(stm32w_radio_prepare(payload, payload_len) == RADIO_TX_ERR)
     return RADIO_TX_ERR;
-  
+
   return stm32w_radio_transmit(payload_len);
-  
+
 }
 /*---------------------------------------------------------------------------*/
 static int stm32w_radio_channel_clear(void)
@@ -452,7 +452,7 @@ static int stm32w_radio_pending_packet(void)
 }
 /*---------------------------------------------------------------------------*/
 static int stm32w_radio_off(void)
-{  
+{
   /* Any transmit or receive packets in progress are aborted.
    * Waiting for end of transmission or reception have to be done.
    */
@@ -467,11 +467,11 @@ static int stm32w_radio_off(void)
     ST_RadioSleep();
     onoroff = OFF;
     CLEAN_TXBUF();
-    CLEAN_RXBUFS();  
-  
+    CLEAN_RXBUFS();
+
     ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   }
-  
+
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -482,10 +482,10 @@ static int stm32w_radio_on(void)
     LED_RDC_ON();
     ST_RadioWake();
     onoroff = ON;
-  
+
     ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   }
-  
+
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -516,14 +516,14 @@ void ST_RadioReceiveIsrCallback(u8 *packet,
   /* Wait for sending ACK */
   BUSYWAIT_UNTIL(!is_transmit_ack, RTIMER_SECOND / 1500);
   RELEASE_LOCK();
-  
+
 }
 
 void ST_RadioTxAckIsrCallback (void)
-{ 
-  /* This callback is for simplemac 1.1.0. 
-     Till now we block (RTIMER_SECOND / 1500) 
-     to prevent radio off during ACK transmission */	
+{
+  /* This callback is for simplemac 1.1.0.
+     Till now we block (RTIMER_SECOND / 1500)
+     to prevent radio off during ACK transmission */
   is_transmit_ack = 0;
   //RELEASE_LOCK();
 }
@@ -534,12 +534,12 @@ void ST_RadioTransmitCompleteIsrCallback(StStatus status,
                                            boolean framePending)
 {
 
-  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT); 
+  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   LED_TX_OFF();
-  
+
   last_tx_status = status;
-  
+
   if(status == ST_SUCCESS || status == ST_PHY_ACK_RECEIVED){
       CLEAN_TXBUF();
   }
@@ -549,12 +549,12 @@ void ST_RadioTransmitCompleteIsrCallback(StStatus status,
           // Retransmission
           LED_TX_ON();
           if(ST_RadioTransmit(stm32w_txbuf)==ST_SUCCESS){
-              
+
               ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
               ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-               
+
               PRINTF("stm32w: retransmission.\r\n");
-              
+
               DEC_RETRY_CNT();
           }
           else {
@@ -565,9 +565,9 @@ void ST_RadioTransmitCompleteIsrCallback(StStatus status,
       }
       else {
           CLEAN_TXBUF();
-      }      
+      }
   }
-  
+
   /* Debug outputs. */
   if(status == ST_SUCCESS || status == ST_PHY_ACK_RECEIVED){
       PRINTF("stm32w: return status TX_END\r\n");
@@ -600,28 +600,28 @@ boolean ST_RadioDataPendingLongIdIsrCallback(int8u* longId) {
 PROCESS_THREAD(stm32w_radio_process, ev, data)
 {
   int len;
-  
+
   PROCESS_BEGIN();
 
   PRINTF("stm32w_radio_process: started\r\n");
-  
+
   while(1) {
-    
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);    
-    
+
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+
     PRINTF("stm32w_radio_process: calling receiver callback\r\n");
-    
+
 #if DEBUG > 1
     for(uint8_t c=1; c <= RCVD_PACKET_LEN; c++){
       PRINTF("%x",stm32w_rxbuf[c]);
     }
     PRINTF("\r\n");
 #endif
-    
+
     packetbuf_clear();
     len = stm32w_radio_read(packetbuf_dataptr(), PACKETBUF_SIZE);
     if(len > 0) {
-      packetbuf_set_datalen(len);   
+      packetbuf_set_datalen(len);
       NETSTACK_RDC.input();
     }
     if(!RXBUFS_EMPTY()){
@@ -635,8 +635,8 @@ PROCESS_THREAD(stm32w_radio_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 static int stm32w_radio_read(void *buf, unsigned short bufsize)
-{  
-  return read_from_rxbuf(buf,bufsize);  
+{
+  return read_from_rxbuf(buf,bufsize);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -657,36 +657,36 @@ static int add_to_rxbuf(uint8_t * src)
 {
     if(RXBUFS_FULL()){
         return 0;
-    } 
-    
+    }
+
     memcpy(stm32w_rxbufs[last], src, src[0] + 1);
 #if RADIO_RXBUFS > 1
-    last = (last + 1) % RADIO_RXBUFS; 
+    last = (last + 1) % RADIO_RXBUFS;
     if(first == -1){
         first = 0;
     }
 #endif
-    
+
     return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int read_from_rxbuf(void * dest, unsigned short len)
 {
-    
+
     if(RXBUFS_EMPTY()){ // Buffers are all empty
         return 0;
-    }        
-    
+    }
+
     if(stm32w_rxbufs[first][0] > len){  // Too large packet for dest.
         len = 0;
     }
-    else {        
-        len = stm32w_rxbufs[first][0];            
+    else {
+        len = stm32w_rxbufs[first][0];
         memcpy(dest,stm32w_rxbufs[first]+1,len);
         packetbuf_set_attr(PACKETBUF_ATTR_RSSI, last_rssi);
     }
-    
-#if RADIO_RXBUFS > 1    
+
+#if RADIO_RXBUFS > 1
     ATOMIC(
            first = (first + 1) % RADIO_RXBUFS;
            int first_tmp = first;
@@ -697,7 +697,7 @@ static int read_from_rxbuf(void * dest, unsigned short len)
 #else
     CLEAN_RXBUFS();
 #endif
-    
+
     return len;
 }
 /*---------------------------------------------------------------------------*/
