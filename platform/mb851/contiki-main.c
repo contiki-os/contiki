@@ -105,7 +105,7 @@ set_rime_addr(void)
   union {
     uint8_t u8[8];
   } eui64;
-  
+
   int8u *stm32w_eui64 = ST_RadioGetEui64();
   {
     int8u c;
@@ -136,30 +136,30 @@ set_rime_addr(void)
 int
 main(void)
 {
-  
+
   /*
    * Initalize hardware.
    */
   halInit();
   clock_init();
-  
+
   uart1_init(115200);
-  
+
   /* Led initialization */
   leds_init();
-    
-  INTERRUPTS_ON(); 
+
+  INTERRUPTS_ON();
 
   PRINTF("\r\nStarting ");
   PRINTF(CONTIKI_VERSION_STRING);
-  PRINTF(" on MB851\r\n"); 
+  PRINTF(" on MB851\r\n");
 
   /*
    * Initialize Contiki and our processes.
    */
-  
+
   process_init();
-  
+
 #if WITH_SERIAL_LINE_INPUT
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
@@ -168,7 +168,7 @@ main(void)
      layers */
   rtimer_init();
   /* etimer_process should be initialized before ctimer */
-  process_start(&etimer_process, NULL);  
+  process_start(&etimer_process, NULL);
   ctimer_init();
 
   netstack_init();
@@ -197,7 +197,7 @@ main(void)
      and no packets will be sent. DEFAULT_RADIO_CCA_THRESHOLD is
      defined in this file. */
   ST_RadioSetEdCcaThreshold(DEFAULT_RADIO_CCA_THRESHOLD);
-  
+
   autostart_start(autostart_processes);
 #if UIP_CONF_IPV6
   printf("Tentative link-local IPv6 address ");
@@ -228,21 +228,21 @@ main(void)
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
 #endif /* UIP_CONF_IPV6 */
-  
+
   watchdog_start();
-  
+
   while(1) {
-    
-    int r;    
-    
+
+    int r;
+
     do {
       /* Reset watchdog. */
       watchdog_periodic();
       r = process_run();
     } while(r > 0);
-    
-    
-    
+
+
+
     ENERGEST_OFF(ENERGEST_TYPE_CPU);
     /* watchdog_stop(); */
     ENERGEST_ON(ENERGEST_TYPE_LPM);
@@ -251,10 +251,10 @@ main(void)
     /* We are awake. */
     /* watchdog_start(); */
     ENERGEST_OFF(ENERGEST_TYPE_LPM);
-    ENERGEST_ON(ENERGEST_TYPE_CPU);  
-    
+    ENERGEST_ON(ENERGEST_TYPE_CPU);
+
   }
-  
+
 }
 
 
@@ -262,53 +262,53 @@ main(void)
 /*int8u errcode __attribute__(( section(".noinit") ));
 
 void halBaseBandIsr(){
-  
+
   errcode = 1;
   leds_on(LEDS_RED);
 }
 
 void BusFault_Handler(){
-  
-  errcode = 2; 
+
+  errcode = 2;
   leds_on(LEDS_RED);
 }
 
 void halDebugIsr(){
-  
+
   errcode = 3;
-  leds_on(LEDS_RED);  
+  leds_on(LEDS_RED);
 }
 
 void DebugMon_Handler(){
-  
+
   errcode = 4;
-  //leds_on(LEDS_RED);  
+  //leds_on(LEDS_RED);
 }
 
 void HardFault_Handler(){
-  
-  errcode = 5; 
+
+  errcode = 5;
   //leds_on(LEDS_RED);
   //halReboot();
 }
 
 void MemManage_Handler(){
-  
-  errcode = 6; 
+
+  errcode = 6;
   //leds_on(LEDS_RED);
   //halReboot();
 }
 
 void UsageFault_Handler(){
-  
-  errcode = 7; 
+
+  errcode = 7;
   //leds_on(LEDS_RED);
   //halReboot();
 }
 
-void Default_Handler() 
-{ 
-  //errcode = 8; 
+void Default_Handler()
+{
+  //errcode = 8;
   leds_on(LEDS_RED);
   halReboot();
 }*/

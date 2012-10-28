@@ -96,9 +96,9 @@ set_rime_addr(void)
   union {
     uint8_t u8[8];
   }eui64;
-  
+
   //rimeaddr_t lladdr;
-  
+
   int8u *stm32w_eui64 = ST_RadioGetEui64();
   {
           int8u c;
@@ -106,14 +106,14 @@ set_rime_addr(void)
                   eui64.u8[c] = stm32w_eui64[7 - c];
           }
   }
-  
+
 #if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &eui64, sizeof(uip_lladdr.addr));
 #endif
 
 #if UIP_CONF_IPV6
   rimeaddr_set_node_addr((rimeaddr_t *)&eui64);
-#else  
+#else
   rimeaddr_set_node_addr((rimeaddr_t *)&eui64.u8[8-RIMEADDR_SIZE]);
 #endif
 
@@ -122,25 +122,25 @@ set_rime_addr(void)
     printf("%d.", rimeaddr_node_addr.u8[i]);
   }
   printf("%d\n", rimeaddr_node_addr.u8[i]);
-  
+
 }
 /*---------------------------------------------------------------------------*/
 int
 main(void)
 {
-  
+
   /*
    * Initialize hardware.
    */
   halInit();
   clock_init();
-  
+
   uart1_init(115200);
-  
+
   // Led initialization
   leds_init();
-    
-  INTERRUPTS_ON(); 
+
+  INTERRUPTS_ON();
 
   PRINTF("\r\nStarting ");
   PRINTF(CONTIKI_VERSION_STRING);
@@ -149,9 +149,9 @@ main(void)
   /*
    * Initialize Contiki and our processes.
    */
-  
+
   process_init();
-  
+
 #if WITH_SERIAL_LINE_INPUT
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
@@ -159,9 +159,9 @@ main(void)
   /* rtimer and ctimer should be initialized before radio duty cycling layers*/
   rtimer_init();
   /* etimer_process should be initialized before ctimer */
-  process_start(&etimer_process, NULL);   
+  process_start(&etimer_process, NULL);
   ctimer_init();
-  
+
   rtimer_init();
   netstack_init();
   set_rime_addr();
@@ -175,39 +175,39 @@ main(void)
   uip_debug_lladdr_print(&rimeaddr_node_addr);
   printf(", radio channel %u\n", RF_CHANNEL);
 
-  procinit_init();    
+  procinit_init();
 
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
-  
+
   autostart_start(autostart_processes);
-   
+
   watchdog_start();
-  
+
   while(1){
-    
-    int r;    
-    
+
+    int r;
+
     do {
       /* Reset watchdog. */
       watchdog_periodic();
       r = process_run();
     } while(r > 0);
-    
-    
-    
+
+
+
     ENERGEST_OFF(ENERGEST_TYPE_CPU);
-    //watchdog_stop();    
+    //watchdog_stop();
     ENERGEST_ON(ENERGEST_TYPE_LPM);
     /* Go to idle mode. */
     halSleepWithOptions(SLEEPMODE_IDLE,0);
     /* We are awake. */
     //watchdog_start();
     ENERGEST_OFF(ENERGEST_TYPE_LPM);
-    ENERGEST_ON(ENERGEST_TYPE_CPU);  
-    
+    ENERGEST_ON(ENERGEST_TYPE_CPU);
+
   }
-  
+
 }
 
 
@@ -215,53 +215,53 @@ main(void)
 /*int8u errcode __attribute__(( section(".noinit") ));
 
 void halBaseBandIsr(){
-  
+
   errcode = 1;
   leds_on(LEDS_RED);
 }
 
 void BusFault_Handler(){
-  
-  errcode = 2; 
+
+  errcode = 2;
   leds_on(LEDS_RED);
 }
 
 void halDebugIsr(){
-  
+
   errcode = 3;
-  leds_on(LEDS_RED);  
+  leds_on(LEDS_RED);
 }
 
 void DebugMon_Handler(){
-  
+
   errcode = 4;
-  //leds_on(LEDS_RED);  
+  //leds_on(LEDS_RED);
 }
 
 void HardFault_Handler(){
-  
-  errcode = 5; 
+
+  errcode = 5;
   //leds_on(LEDS_RED);
   //halReboot();
 }
 
 void MemManage_Handler(){
-  
-  errcode = 6; 
+
+  errcode = 6;
   //leds_on(LEDS_RED);
   //halReboot();
 }
 
 void UsageFault_Handler(){
-  
-  errcode = 7; 
+
+  errcode = 7;
   //leds_on(LEDS_RED);
   //halReboot();
 }*/
 
-void Default_Handler() 
-{ 
-  //errcode = 8; 
+void Default_Handler()
+{
+  //errcode = 8;
   leds_on(LEDS_RED);
   halReboot();
 }
