@@ -1,0 +1,8 @@
+#!/bin/sh
+mkdir /tmp/$$
+cp $1 /tmp/$$/
+cp $1 /tmp/$$/$1.orig
+export INDENT_PROFILE=`dirname $0`/indent.pro
+indent /tmp/$$/$1
+diff /tmp/$$/$1.orig /tmp/$$/$1
+rm -rf /tmp/$$
