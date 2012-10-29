@@ -1,0 +1,12 @@
+language: java
+
+before_script:
+    - chmod 744 tools/cooja/contiki_tests/RUN_ALL
+    - ant -f tools/cooja/build.xml
+
+script:
+    - cd tools/cooja/contiki_tests/
+    - source RUN_ALL
+
+notifications:
+    email: false
