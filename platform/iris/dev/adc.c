@@ -34,23 +34,23 @@
 #include "dev/adc.h"
 
 /*---------------------------------------------------------------------------*/
-void 
+void
 adc_init()
 {
   ADMUX = 0;
   /* AVCC with external capacitor at AREF pin. */
   ADMUX |= _BV(REFS0);
-  /* Disable ADC interrupts. */   
+  /* Disable ADC interrupts. */
   ADCSRA &= ~( _BV(ADIE) | _BV(ADIF) );
   /* Set ADC prescaler to 64 and clear interrupt flag. */
   ADCSRA |= _BV(ADPS2) | _BV(ADPS1) | _BV(ADIE);
-  
+
 }
 /*---------------------------------------------------------------------------*/
 /* Poll based approach. The interrupt based adc is currently not used.
    The ADC result is right adjusted. First 8 bits(from left) are in ADCL and
    other two bits are in ADCH. See Atmega128 datasheet page 228. */
-uint16_t 
+uint16_t
 get_adc(int channel)
 {
   uint16_t reading;

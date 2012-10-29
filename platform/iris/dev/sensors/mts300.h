@@ -48,7 +48,7 @@
 #define SOUNDER_MASK _BV(2)
 #define SOUNDER_DDR DDRC
 
-/* MTS300CA and MTS310CA, the light sensor power is controlled 
+/* MTS300CA and MTS310CA, the light sensor power is controlled
  * by setting signal INT1(PORTE pin 5).
  * Both light and thermistor use the same ADC channel.
  */
@@ -57,7 +57,7 @@
 #define LIGHT_PIN_MASK _BV(5)
 #define LIGHT_ADC_CHANNEL 1
 
-/* MTS300CA and MTS310CA, the thermistor power is controlled 
+/* MTS300CA and MTS310CA, the thermistor power is controlled
  * by setting signal INT2(PORTE pin 6).
  * Both light and thermistor use the same ADC channel.
  */

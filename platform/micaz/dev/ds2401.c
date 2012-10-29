@@ -65,7 +65,7 @@ unsigned char ds2401_id[8];
 #define SET_PIN_OUTPUT() (SERIAL_ID_PxDIR |= SERIAL_ID_PIN_MASK)
 
 #define OUTP_0() (SERIAL_ID_PxOUT &= ~SERIAL_ID_PIN_MASK)
-#define OUTP_1() (SERIAL_ID_PxOUT |= SERIAL_ID_PIN_MASK) 
+#define OUTP_1() (SERIAL_ID_PxOUT |= SERIAL_ID_PIN_MASK)
 
 #define PIN_INIT() do{  \
                      SET_PIN_INPUT();    \
@@ -91,9 +91,9 @@ unsigned char ds2401_id[8];
 /*
  * Delay times in us.
  */
-#define tA 6          /* min-5, recommended-6, max-15 */              
+#define tA 6          /* min-5, recommended-6, max-15 */
 #define tB 64         /* min-59, recommended-64, max-N/A */
-#define tC 60         /* min-60, recommended-60, max-120 */			
+#define tC 60         /* min-60, recommended-60, max-120 */
 #define tD 10         /* min-5.3, recommended-10, max-N/A */
 #define tE 9          /* min-0.3, recommended-9, max-9.3 */
 #define tF 55         /* min-50, recommended-55, max-N/A */
@@ -106,7 +106,7 @@ unsigned char ds2401_id[8];
  * The delay caused by calling the delay_loop is given by the following
  * formula.
  *           delay(us) = (4n + 1)/XTAL
- * where n is the number of iterations and XTAL is the clock frequency(in MHz). 
+ * where n is the number of iterations and XTAL is the clock frequency(in MHz).
  * TODO: Moving the delay_loop to dev/clock.c
  */
 static void
@@ -210,7 +210,7 @@ ds2401_init()
   cli();    /* Disable interrupts. */
 
   if (reset() == 0) {
-    write_byte(0x33);    /* Read ROM command. */   
+    write_byte(0x33);    /* Read ROM command. */
     family = read_byte();
     for (i = 7; i >= 2; i--) {
       ds2401_id[i] = read_byte();
