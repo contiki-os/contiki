@@ -1,8 +1,19 @@
+## This is for use on [Travis CI](http://travis-ci.org), which is
+## a free distributed continuous integration service with unique
+## set of features:
+## * uses clean VMs for every build
+## * integrates with GitHub
+## * features great UI (hence colours and unicode characters)
+## * it is open source and free for open source
+
 language: java
 
 before_script:
     - chmod 744 tools/cooja/contiki_tests/RUN_ALL
-    - ant -f tools/cooja/build.xml
+    - ant -f tools/cooja/build.xml jar
+    - "curl -s \
+       https://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
+         | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version"
 
 script:
     - cd tools/cooja/contiki_tests/
