@@ -1,0 +1,5 @@
+language: java
+
+test:
+    chmod 744 tools/cooja/contiki_tests/RUN_ALL
+    source tools/cooja/contiki_tests/RUN_ALL
