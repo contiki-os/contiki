@@ -155,6 +155,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   private Position zoomingPosition = null; /* Zooming center position */
   private Point zoomingPixel = null; /* Zooming center pixel */
   private boolean moving = false;
+  private Point mouseDownPixel = null; /* Records position of mouse down to differentiate a click from a move */
   private Mote movedMote = null;
   public Mote clickedMote = null;
   private long moveStartTime = -1;
@@ -813,6 +814,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     if (motes != null && motes.length > 0) {
       /* One of the clicked motes should be moved */
+      mouseDownPixel = new Point(x, y);
       clickedMote = motes[0];
       beginMoveRequest(motes[0], false, false);
     }
@@ -902,43 +904,45 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     /* Moving */
     if (moving) {
-      Position newPos = transformPixelToPosition(x, y);
+      if(x != mouseDownPixel.x || y != mouseDownPixel.y) {
+        Position newPos = transformPixelToPosition(x, y);
 
-      if (!stop) {
-        canvas.setCursor(moveCursor);
-        movedMote.getInterfaces().getPosition().setCoordinates(
-            newPos.getXCoordinate(),
-            newPos.getYCoordinate(),
-            movedMote.getInterfaces().getPosition().getZCoordinate()
-        );
-        repaint();
-        return;
-      }
-      /* Restore cursor */
-      canvas.setCursor(Cursor.getDefaultCursor());
-
-
-      /* Move mote */
-      if (moveStartTime < 0 || System.currentTimeMillis() - moveStartTime > 300) {
-        if (moveConfirm) {
-          String options[] = {"Yes", "Cancel"};
-          int returnValue = JOptionPane.showOptionDialog(Visualizer.this,
-              "Move mote to" +
-              "\nX=" + newPos.getXCoordinate() +
-              "\nY=" + newPos.getYCoordinate() +
-              "\nZ=" + movedMote.getInterfaces().getPosition().getZCoordinate(),
-              "Move mote?",
-              JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
-              null, options, options[0]);
-          moving = returnValue == JOptionPane.YES_OPTION;
-        }
-        if (moving) {
+        if (!stop) {
+          canvas.setCursor(moveCursor);
           movedMote.getInterfaces().getPosition().setCoordinates(
               newPos.getXCoordinate(),
               newPos.getYCoordinate(),
               movedMote.getInterfaces().getPosition().getZCoordinate()
           );
           repaint();
+          return;
+        }
+        /* Restore cursor */
+        canvas.setCursor(Cursor.getDefaultCursor());
+
+
+        /* Move mote */
+        if (moveStartTime < 0 || System.currentTimeMillis() - moveStartTime > 300) {
+          if (moveConfirm) {
+            String options[] = {"Yes", "Cancel"};
+            int returnValue = JOptionPane.showOptionDialog(Visualizer.this,
+                "Move mote to" +
+                "\nX=" + newPos.getXCoordinate() +
+                "\nY=" + newPos.getYCoordinate() +
+                "\nZ=" + movedMote.getInterfaces().getPosition().getZCoordinate(),
+                "Move mote?",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                null, options, options[0]);
+            moving = returnValue == JOptionPane.YES_OPTION;
+          }
+          if (moving) {
+            movedMote.getInterfaces().getPosition().setCoordinates(
+                newPos.getXCoordinate(),
+                newPos.getYCoordinate(),
+                movedMote.getInterfaces().getPosition().getZCoordinate()
+            );
+            repaint();
+          }
         }
       }
 
