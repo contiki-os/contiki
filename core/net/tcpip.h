@@ -62,7 +62,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.17 2010/10/19 18:29:04 adamdunkels Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__

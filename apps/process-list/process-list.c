@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: process-list.c,v 1.8 2008/02/08 22:51:27 oliverschmidt Exp $
  *
  */
 

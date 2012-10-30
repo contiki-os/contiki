@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-webserver.c,v 1.1 2008/05/29 20:17:48 adamdunkels Exp $
  */
 
 /**

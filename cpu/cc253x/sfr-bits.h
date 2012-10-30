@@ -148,6 +148,28 @@
 #define PICTL_P1ICONH 0x04
 #define PICTL_P1ICONL 0x02
 #define PICTL_P0ICON  0x01
+
+/* DMAARM */
+#define DMAARM_ABORT   0x80
+#define DMAARM_DMAARM4 0x10
+#define DMAARM_DMAARM3 0x08
+#define DMAARM_DMAARM2 0x04
+#define DMAARM_DMAARM1 0x02
+#define DMAARM_DMAARM0 0x01
+
+/* DMAREQ */
+#define DMAREQ_DMAREQ4 0x10
+#define DMAREQ_DMAREQ3 0x08
+#define DMAREQ_DMAREQ2 0x04
+#define DMAREQ_DMAREQ1 0x02
+#define DMAREQ_DMAREQ0 0x01
+
+/* DMAIRQ */
+#define DMAIRQ_DMAIF4  0x10
+#define DMAIRQ_DMAIF3  0x08
+#define DMAIRQ_DMAIF2  0x04
+#define DMAIRQ_DMAIF1  0x02
+#define DMAIRQ_DMAIF0  0x01
 /*---------------------------------------------------------------------------
  * XREG bits, excluding RF and USB
  *---------------------------------------------------------------------------*/

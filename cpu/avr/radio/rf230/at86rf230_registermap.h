@@ -1,7 +1,6 @@
 /**
  * @file
  * @brief This file contains the register definitions for the AT86RF230.
- * $Id: at86rf230_registermap.h,v 1.2 2008/10/14 18:37:28 c_oflynn Exp $
  */
 /*   Copyright (c) 2008, Swedish Institute of Computer Science
   All rights reserved. 

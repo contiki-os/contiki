@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: fader.c,v 1.1 2010/08/24 16:26:38 joxe Exp $
  */
 
 #include "contiki.h"

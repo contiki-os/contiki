@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dlloader.c,v 1.2 2008/02/07 15:53:43 oliverschmidt Exp $
  */
 #include <dlfcn.h>
 #include <stddef.h>

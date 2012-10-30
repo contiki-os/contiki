@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.25 2010/04/04 12:29:50 adamdunkels Exp $
  */
 
 #include "contiki-conf.h"

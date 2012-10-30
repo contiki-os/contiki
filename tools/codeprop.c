@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop.c,v 1.5 2010/10/19 18:29:05 adamdunkels Exp $
  */
 #include <stdlib.h>
 #include <stdio.h>

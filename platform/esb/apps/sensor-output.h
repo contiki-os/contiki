@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensor-output.h,v 1.1 2006/06/18 07:48:48 adamdunkels Exp $
  */
 #ifndef __SENSOR_OUTPUT_H__
 #define __SENSOR_OUTPUT_H__

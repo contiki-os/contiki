@@ -47,7 +47,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast-announcement.h,v 1.2 2010/10/11 23:44:24 adamdunkels Exp $
  */
 
 /**

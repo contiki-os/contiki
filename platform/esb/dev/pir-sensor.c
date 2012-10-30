@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: pir-sensor.c,v 1.4 2010/02/08 00:00:45 nifi Exp $
  */
 
 #include "dev/pir-sensor.h"

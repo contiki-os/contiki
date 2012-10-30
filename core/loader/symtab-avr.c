@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: symtab-avr.c,v 1.3 2007/01/24 16:13:50 adamdunkels Exp $
  */
 
 #include <stdio.h>

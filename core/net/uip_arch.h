@@ -54,7 +54,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arch.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
  *
  */
 

@@ -42,7 +42,7 @@
 #if BUTTON_SENSOR_ON
 static uint8_t p0ien;
 static uint8_t p2ien;
-static __data struct timer debouncetimer[2];
+static CC_AT_DATA struct timer debouncetimer[2];
 
 #ifdef MODEL_N740
 HWCONF_PIN(BUTTON_1, 1, 0)
@@ -143,6 +143,10 @@ int configure_b2(int type, int value)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+#pragma save
+#if CC_CONF_OPTIMIZE_STACK_SIZE
+#pragma exclude bits
+#endif
 void
 port_0_ISR(void) __interrupt (P0INT_VECTOR)
 {
@@ -194,6 +198,7 @@ port_1_ISR(void) __interrupt (P1INT_VECTOR)
   EA = 1;
 }
 #endif /* MODEL_N740 */
+#pragma restore
 
 SENSORS_SENSOR(button_1_sensor, BUTTON_1_SENSOR, value_b1, configure_b1, status_b1);
 SENSORS_SENSOR(button_2_sensor, BUTTON_2_SENSOR, value_b2, configure_b2, status_b2);

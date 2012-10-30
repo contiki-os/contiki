@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowmac.c,v 1.8 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 

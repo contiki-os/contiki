@@ -29,7 +29,6 @@
  * This file is part of the Configurable Sensor Network Application
  * Architecture for sensor nodes running the Contiki operating system.
  *
- * $Id: vib-sensor.h,v 1.1 2006/06/17 22:41:31 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: collect-common.h,v 1.1 2010/11/03 15:36:38 adamdunkels Exp $
  */
 
 /**

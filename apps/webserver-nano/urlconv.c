@@ -30,7 +30,6 @@
  *
  * Author: Kajtar Zsolt <soci@c64.rulez.org>
  *
- * $Id: urlconv.c,v 1.4 2010/09/29 09:35:56 oliverschmidt Exp $
  */
 
 #include <string.h>

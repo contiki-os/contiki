@@ -24,7 +24,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: UpdateAggregator.java,v 1.2 2010/03/26 10:11:50 nifi Exp $
  */
 
 package se.sics.cooja.dialogs;

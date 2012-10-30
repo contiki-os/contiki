@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullrdc.c,v 1.4 2010/11/23 18:11:00 nifi Exp $
  */
 
 /**

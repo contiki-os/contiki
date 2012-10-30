@@ -29,7 +29,6 @@
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.c,v 1.11 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 

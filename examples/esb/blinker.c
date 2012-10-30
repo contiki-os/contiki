@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: blinker.c,v 1.3 2010/01/14 18:18:51 nifi Exp $
  *
  * -----------------------------------------------------------------
  *

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-uip-uaodv.c,v 1.10 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 #include "radio-uip-uaodv.h"

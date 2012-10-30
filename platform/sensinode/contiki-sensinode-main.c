@@ -16,6 +16,7 @@
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
 #include "debug.h"
+#include "stack.h"
 #include "dev/watchdog-cc2430.h"
 #include "dev/sensinode-sensors.h"
 #include "disco.h"
@@ -33,7 +34,7 @@ PROCESS_NAME(batmon_process);
 #endif
 
 #if NETSTACK_CONF_SHORTCUTS
-static __data int len;
+static CC_AT_DATA uint16_t len;
 #endif
 
 #ifdef STARTUP_CONF_VERBOSE
@@ -55,11 +56,10 @@ static __data int len;
 #endif
 
 #if CLOCK_CONF_STACK_FRIENDLY
-extern volatile __bit sleep_flag;
+extern volatile uint8_t sleep_flag;
 #endif
 
 extern rimeaddr_t rimeaddr_node_addr;
-static __data int r;
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
 #define ENERGEST_IRQ_SAVE(a) do { \
@@ -164,6 +164,8 @@ main(void)
   /* Hardware initialization */
   bus_init();
   rtimer_init();
+
+  stack_poison();
 
   /* model-specific h/w init. */
   model_init();
@@ -287,6 +289,7 @@ main(void)
   watchdog_start();
 
   while(1) {
+    uint8_t r;
     do {
       /* Reset watchdog and handle polls and events */
       watchdog_periodic();

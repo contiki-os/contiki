@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki VNC client
  *
- * $Id: vnc.c,v 1.2 2010/05/31 15:22:08 nifi Exp $
  *
  */
 

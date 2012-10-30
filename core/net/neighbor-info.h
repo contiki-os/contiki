@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-info.h,v 1.4 2010/10/22 13:50:13 nvt-se Exp $
  */
 /**
  * \file

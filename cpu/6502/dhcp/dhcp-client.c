@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: dhcp-client.c,v 1.5 2010/10/31 22:51:17 oliverschmidt Exp $
  *
  */
 

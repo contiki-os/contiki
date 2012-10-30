@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-irc.h,v 1.1 2008/11/28 00:16:15 adamdunkels Exp $
  */
 
 /**

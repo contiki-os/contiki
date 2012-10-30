@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-checkpoint.c,v 1.5 2010/03/29 09:50:44 fros4943 Exp $
  */
 
 /**

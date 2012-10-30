@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: subprocess.h,v 1.1 2006/09/26 20:53:27 adamdunkels Exp $
  */
 
 /**

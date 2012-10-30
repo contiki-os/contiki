@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ringbuf.c,v 1.2 2010/06/15 13:31:22 nifi Exp $
  */
 
 /**

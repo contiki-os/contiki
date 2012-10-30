@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.h,v 1.1 2007/03/15 21:27:09 adamdunkels Exp $
  */
 #ifndef __RADIO_SENSOR_H__
 #define __RADIO_SENSOR_H__

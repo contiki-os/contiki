@@ -19,7 +19,6 @@
  * $Revision: 1.1 $
  * $RCSfile: pll_drv.h,v $
  * $Date: 2008/10/14 20:16:36 $  \n
- * $Id: pll_drv.h,v 1.1 2008/10/14 20:16:36 c_oflynn Exp $
  ******************************************************************************/
 /* Copyright (c) 2008  ATMEL Corporation
    All rights reserved.

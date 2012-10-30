@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: me_tabs.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
  */
 #ifndef __ME_TABS_H__
 #define __ME_TABS_H__

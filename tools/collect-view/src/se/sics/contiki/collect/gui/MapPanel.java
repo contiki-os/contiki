@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MapPanel.java,v 1.4 2010/11/23 16:21:48 nifi Exp $
  *
  * -----------------------------------------------------------------
  *

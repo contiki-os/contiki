@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.15 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -63,6 +62,7 @@ int simSignalStrength = -100;
 int simLastSignalStrength = -100;
 char simPower = 100;
 int simRadioChannel = 26;
+int simLQI = 105;
 
 static const void *pending_data;
 
@@ -92,6 +92,12 @@ int
 radio_signal_strength_current(void)
 {
   return simSignalStrength;
+}
+/*---------------------------------------------------------------------------*/
+int
+radio_LQI(void)
+{
+	return simLQI;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -146,6 +152,9 @@ radio_read(void *buf, unsigned short bufsize)
 
   memcpy(buf, simInDataBuffer, simInSize);
   simInSize = 0;
+  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, simSignalStrength);
+  packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, simLQI);
+
   return tmp;
 }
 /*---------------------------------------------------------------------------*/

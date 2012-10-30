@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: moteid.c,v 1.3 2010/05/02 09:42:15 fros4943 Exp $
  */
 
 #include "dev/moteid.h"

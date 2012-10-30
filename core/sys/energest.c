@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.c,v 1.2 2008/09/29 11:44:37 joxe Exp $
  */
 
 /**

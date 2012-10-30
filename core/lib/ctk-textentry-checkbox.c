@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk-textentry-checkbox.c,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
  *
  */
 

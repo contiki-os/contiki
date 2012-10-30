@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: beep.c,v 1.1 2006/06/17 22:41:31 adamdunkels Exp $
  */
 #include <stdio.h>
 #include "dev/beep.h"

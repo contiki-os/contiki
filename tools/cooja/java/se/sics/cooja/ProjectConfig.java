@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectConfig.java,v 1.5 2010/12/02 15:28:06 fros4943 Exp $
  */
 
 package se.sics.cooja;

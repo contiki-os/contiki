@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: memb.h,v 1.6 2009/04/06 21:18:04 adamdunkels Exp $
  */
 
 /**

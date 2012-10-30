@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.31 2010/09/06 12:00:46 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;

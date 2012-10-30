@@ -50,7 +50,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: unicast.h,v 1.6 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**

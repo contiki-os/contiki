@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: blink.c,v 1.1 2010/08/24 16:26:38 joxe Exp $
  */
 
 /**

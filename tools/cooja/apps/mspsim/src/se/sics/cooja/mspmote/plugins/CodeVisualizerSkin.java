@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CodeVisualizerSkin.java,v 1.2 2010/03/26 12:29:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;

@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: node-id.c,v 1.1 2006/10/06 07:47:02 adamdunkels Exp $
  */
 
 /**

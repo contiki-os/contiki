@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sound-sensor.c,v 1.5 2010/02/08 00:00:45 nifi Exp $
  */
 #include "contiki.h"
 #include "dev/sound-sensor.h"

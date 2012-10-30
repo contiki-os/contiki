@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Clock.java,v 1.6 2009/05/26 14:24:21 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;

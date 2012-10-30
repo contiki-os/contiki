@@ -203,11 +203,15 @@ main(int argc, char **argv)
 
   leds_on(LEDS_RED);
 
+  clock_wait(2);
+
   uart1_init(115200); /* Must come before first printf */
 
 #if WITH_UIP
   slip_arch_init(115200);
 #endif /* WITH_UIP */
+
+  clock_wait(1);
 
   leds_on(LEDS_GREEN);
   //ds2411_init();

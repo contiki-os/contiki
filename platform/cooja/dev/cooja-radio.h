@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cooja-radio.h,v 1.6 2010/03/09 08:11:05 fros4943 Exp $
  */
 
 #ifndef __COOJA_RADIO_H__
@@ -64,5 +63,12 @@ radio_signal_strength_last(void);
  */
 int
 radio_signal_strength_current(void);
+
+/**
+ * Link quality indicator of last received packet.
+ */
+int
+radio_LQI(void);
+
 
 #endif /* __COOJA_RADIO_H__ */

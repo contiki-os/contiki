@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.18 2010/01/15 14:00:43 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;

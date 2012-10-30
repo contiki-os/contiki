@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: sht11.c,v 1.3 2008/11/10 21:10:36 adamdunkels Exp $
  */
 
 /*
@@ -250,7 +249,7 @@ sht11_off(void)
 static unsigned int
 scmd(unsigned cmd)
 {
-  unsigned long n;
+  unsigned int n;
 
   if(cmd != MEASURE_HUMI && cmd != MEASURE_TEMP) {
     PRINTF("Illegal command: %d\n", cmd);
@@ -263,7 +262,7 @@ scmd(unsigned cmd)
     goto fail;
   }
 
-  for(n = 0; n < 250000; n++) {
+  for(n = 0; n < 20000; n++) {
     if(!SDA_IS_1) {
       unsigned t0, t1, rcrc;
       t0 = sread(1);
@@ -285,8 +284,9 @@ scmd(unsigned cmd)
 #endif
       return (t0 << 8) | t1;
     }
+    /* short wait before next loop */
+    clock_wait(1);
   }
-
  fail:
   sreset();
   return -1;

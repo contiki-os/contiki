@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: shell-dsc.c,v 1.3 2007/09/06 01:36:10 matsutsuka Exp $
  *
  */
 

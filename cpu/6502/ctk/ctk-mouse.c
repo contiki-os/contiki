@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-mouse.c,v 1.3 2009/10/18 09:33:08 oliverschmidt Exp $
  */
 
 #include <mouse.h>

@@ -36,7 +36,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.20 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**

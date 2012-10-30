@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.12 2010/12/23 22:38:47 dak664 Exp $
  */
 
 

@@ -50,7 +50,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: crc16.h,v 1.4 2008/10/15 14:17:28 nvt-se Exp $
  */
 #ifndef __CRC16_H__
 #define __CRC16_H__

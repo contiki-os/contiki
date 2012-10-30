@@ -42,7 +42,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.h,v 1.6 2009/05/26 13:58:53 nvt-se Exp $
  */
 
 /**

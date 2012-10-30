@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.17 2010/02/23 18:38:05 adamdunkels Exp $
  */
 
 /**

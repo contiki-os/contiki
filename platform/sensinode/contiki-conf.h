@@ -24,6 +24,10 @@
 /* Logging.. */
 #define LOG_CONF_ENABLED		0
 
+#ifndef STACK_CONF_DEBUGGING
+#define STACK_CONF_DEBUGGING  0
+#endif
+
 /* Energest Module */
 #ifndef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON      0

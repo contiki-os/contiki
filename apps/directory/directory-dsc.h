@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: directory-dsc.h,v 1.1 2006/06/17 22:41:10 adamdunkels Exp $
  *
  */
 #ifndef __DIRECTORY_DSC_H__

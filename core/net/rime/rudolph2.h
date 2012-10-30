@@ -47,7 +47,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.h,v 1.5 2010/06/18 08:28:56 nifi Exp $
  */
 
 /**

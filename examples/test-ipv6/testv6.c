@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: testv6.c,v 1.4 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 #include "contiki-net.h"

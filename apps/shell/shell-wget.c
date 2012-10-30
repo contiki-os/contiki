@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-wget.c,v 1.3 2010/06/09 08:36:43 nifi Exp $
  */
 
 /**

@@ -7,6 +7,16 @@
  * belong to the same module. Typically, the \defgroup is placed in
  * the .h file and \addtogroup in the .c file.
  *
+ * The Contiki source code contains a GNU Indent script that can
+ * automatically format a C code file to match the Contiki code
+ * style. The Indent configuration is in contiki/tools/indent.pro and
+ * a small helper script is in contiki/tools/contiki-indent. Note that
+ * this is not a silver bullet - for example, the script does not add
+ * separators between functions, nor does it format comments
+ * correctly. The script should be treated as an aid in formatting
+ * code: first run the formatter on the source code, then manually
+ * edit the file.
+ *
  * @{
  */
 
@@ -14,8 +24,8 @@
  * \file
  *         A brief description of what this file is.
  * \author
- *         Adam Dunkels <adam@sics.se>
- * 
+ *         Adam Dunkels <adam@dunkels.com>
+ *
  *         Every file that is part of a documented module has to have
  *         a \file block, else it will not show up in the Doxygen
  *         "Modules" * section.
@@ -42,7 +52,7 @@ static int flag;
  * to know where to look for function and variable definitions.
  *
  * Put dividers (a single-line comment consisting only of dashes)
- * between functions. 
+ * between functions.
  */
 /*---------------------------------------------------------------------------*/
 /**
@@ -101,12 +111,12 @@ code_style_example_function(void)
 /*
  * Static (non-global) functions do not need Doxygen comments. The
  * name should not be prepended with the module name - doing so would
- * create confusion. 
+ * create confusion.
  */
 static void
 an_example_function(void)
 {
-  
+
 }
 /*---------------------------------------------------------------------------*/
 

@@ -29,7 +29,6 @@
  * This file is part of the Configurable Sensor Network Application
  * Architecture for sensor nodes running the Contiki operating system.
  *
- * $Id: helloworld.c,v 1.1 2006/06/18 07:48:48 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *

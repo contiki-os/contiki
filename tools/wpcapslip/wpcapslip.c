@@ -30,7 +30,6 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcapslip.c,v 1.4 2010/10/19 18:29:05 adamdunkels Exp $
  */
 
 

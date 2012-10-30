@@ -33,7 +33,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast-announcement.c,v 1.7 2010/10/11 23:43:01 adamdunkels Exp $
  */
 
 /**

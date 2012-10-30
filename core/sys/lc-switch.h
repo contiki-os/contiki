@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: lc-switch.h,v 1.3 2008/10/14 12:46:39 nvt-se Exp $
  */
 
 /**

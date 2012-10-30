@@ -30,7 +30,6 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: button-sensor.c,v 1.1 2010/06/09 14:46:30 maralvira Exp $
  */
 
 #include "lib/sensors.h"

@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment 
  *
- * $Id: htmlparser.c,v 1.8 2007/11/30 21:53:50 oliverschmidt Exp $
  *
  */
 

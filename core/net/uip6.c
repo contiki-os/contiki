@@ -41,7 +41,6 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.25 2011/01/04 22:11:37 joxe Exp $
  *
  */
 
@@ -508,7 +507,7 @@ remove_ext_hdr(void)
   if(uip_ext_len > 0) {
     PRINTF("Cutting ext-header before processing (extlen: %d, uiplen: %d)\n",
 	   uip_ext_len, uip_len);
-    if(uip_len - UIP_IPH_LEN - uip_ext_len < 0) {
+    if(uip_len < UIP_IPH_LEN + uip_ext_len) {
       PRINTF("ERROR: uip_len too short compared to ext len\n");
       uip_ext_len = 0;
       uip_len = 0;

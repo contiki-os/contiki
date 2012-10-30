@@ -65,12 +65,13 @@
 
 #include "dev/n740.h"
 #include "dev/uart1.h"
+#include "8051def.h"
 
 /*
  * This variable stores the most recent instruction sent to the ser-par chip.
  * We declare it as static and return its value through n740_ser_par_get().
  */
-static __data uint8_t ser_par_status;
+static CC_AT_DATA uint8_t ser_par_status;
 
 /*---------------------------------------------------------------------------*/
 /* Init the serial-parallel chip:

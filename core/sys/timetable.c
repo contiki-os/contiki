@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timetable.c,v 1.4 2010/04/06 19:10:21 anthony-a Exp $
  */
 
 /**

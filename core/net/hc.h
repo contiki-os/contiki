@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: hc.h,v 1.3 2009/03/17 20:28:44 nvt-se Exp $
  */
 /**
  * \file

@@ -30,7 +30,6 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mtarch.c,v 1.1 2007/12/15 00:14:19 oliverschmidt Exp $
  */
 
 #include <string.h>

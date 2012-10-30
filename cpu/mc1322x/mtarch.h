@@ -41,7 +41,6 @@
  * \author
  *         Simon Barner <barner@in.tum.de>
  *
- * @(#)$Id: mtarch.h,v 1.1 2010/06/09 14:43:22 maralvira Exp $
  */
 
 #ifndef __MTARCH_H__

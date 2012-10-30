@@ -49,7 +49,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.16 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**

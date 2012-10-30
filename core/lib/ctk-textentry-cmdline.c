@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk-textentry-cmdline.c,v 1.3 2009/02/24 21:30:02 adamdunkels Exp $
  *
  */
 

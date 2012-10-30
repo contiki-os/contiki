@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: button-sensor.c,v 1.4 2010/01/14 20:01:19 nifi Exp $
  */
 #include "contiki.h"
 #include "lib/sensors.h"

@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AttributeVisualizerSkin.java,v 1.2 2010/05/17 14:32:30 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;

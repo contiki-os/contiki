@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-raw.h,v 1.3 2008/07/03 07:37:51 adamdunkels Exp $
  */
 
 /**
