@@ -247,7 +247,8 @@ public class GUI extends Observable {
   public static Properties currentExternalToolsSettings;
 
   private static final String externalToolsSettingNames[] = new String[] {
-    "PATH_CONTIKI", "PATH_COOJA_CORE_RELATIVE", "PATH_COOJA", "PATH_APPS",
+    "PATH_CONTIKI", "PATH_COOJA_CORE_RELATIVE","PATH_COOJA","PATH_APPS",
+    "PATH_APPSEARCH",
 
     "PATH_MAKE",
     "PATH_SHELL",
@@ -424,6 +425,20 @@ public class GUI extends Observable {
       for (String p : arr) {
         File projectDir = restorePortablePath(new File(p));
         currentProjects.add(new COOJAProject(projectDir));
+      }
+    }
+    
+    //Scan for projects
+    String searchProjectDirs = getExternalToolsSetting("PATH_APPSEARCH", null);
+    if (searchProjectDirs != null && searchProjectDirs.length() > 0) {
+      String[] arr = searchProjectDirs.split(";");
+      for (String d : arr) {
+    	  File searchDir = restorePortablePath(new File(d));
+    	  File[] projects = COOJAProject.sarchProjects(searchDir, 3);
+    	  if(projects == null) continue;
+    	  for(File p : projects){
+    		  currentProjects.add(new COOJAProject(p));
+    	  }
       }
     }
 
