@@ -60,13 +60,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessControlException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Observable;
@@ -244,7 +247,7 @@ public class GUI extends Observable {
   public static Properties currentExternalToolsSettings;
 
   private static final String externalToolsSettingNames[] = new String[] {
-    "PATH_CONTIKI", "PATH_COOJA_CORE_RELATIVE",
+    "PATH_CONTIKI", "PATH_COOJA_CORE_RELATIVE", "PATH_COOJA", "PATH_APPS",
 
     "PATH_MAKE",
     "PATH_SHELL",
@@ -4122,52 +4125,99 @@ public class GUI extends Observable {
     return file;
   }
 
-  private final static String PATH_CONTIKI_IDENTIFIER = "[CONTIKI_DIR]";
+  private final static String[][] PATH_IDENTIFIER = {
+	  {"[CONTIKI_DIR]","PATH_CONTIKI",""},
+	  {"[COOJA_DIR]","PATH_COOJA","/tools/cooja"},
+	  {"[APPS_DIR]","PATH_APPS","/tools/cooja/apps"}
+  };
+  
   private File createContikiRelativePath(File file) {
     try {
-      File contikiPath = new File(GUI.getExternalToolsSetting("PATH_CONTIKI", null));
-      String contikiCanonical = contikiPath.getCanonicalPath();
+    	int elem = PATH_IDENTIFIER.length;
+    	File path[] = new File [elem];
+    	String canonicals[] = new String[elem];
+    	int match = -1;
+    	int mlength = 0;
+    	String fileCanonical = file.getCanonicalPath();
+      
+    	//No so nice, but goes along with GUI.getExternalToolsSetting
+    	String defp = GUI.getExternalToolsSetting("PATH_CONTIKI", null);
+    	
+    	
+		for(int i = 0; i < elem; i++){
+			path[i] = new File(GUI.getExternalToolsSetting(PATH_IDENTIFIER[i][1], defp + PATH_IDENTIFIER[i][2]));			
+			canonicals[i] = path[i].getCanonicalPath();
+			if (fileCanonical.startsWith(canonicals[i])){
+				if(mlength < canonicals[i].length()){
+					mlength = canonicals[i].length();
+					match = i;
+				}
+ 
+	    	}
+		}
+      
+	    if(match == -1) return null;
 
-      String fileCanonical = file.getCanonicalPath();
-      if (!fileCanonical.startsWith(contikiCanonical)) {
-        /* File is not in a Contiki subdirectory */
-        /*logger.info("File is not in a Contiki subdirectory: " + file.getAbsolutePath());*/
-        return null;
-      }
 
-      /* Replace Contiki's canonical path with Contiki identifier */
-      String portablePath = fileCanonical.replaceFirst(
-          java.util.regex.Matcher.quoteReplacement(contikiCanonical),
-          java.util.regex.Matcher.quoteReplacement(PATH_CONTIKI_IDENTIFIER));
-      File portable = new File(portablePath);
+	    /* Replace Contiki's canonical path with Contiki identifier */
+        String portablePath = fileCanonical.replaceFirst(
+          java.util.regex.Matcher.quoteReplacement(canonicals[match]), 
+          java.util.regex.Matcher.quoteReplacement(PATH_IDENTIFIER[match][0]));
+        File portable = new File(portablePath);
+      
+        /* Verify conversion */
+        File verify = restoreContikiRelativePath(portable);
+        if (verify == null || !verify.exists()) {
+        	/* Error: did file even exist pre-conversion? */
+        	return null;
+        }
 
-      /* Verify conversion */
-      File verify = restoreContikiRelativePath(portable);
-      if (verify == null || !verify.exists()) {
-        /* Error: did file even exist pre-conversion? */
-        return null;
-      }
-
-      return portable;
+        return portable;
     } catch (IOException e1) {
       /*logger.warn("Error when converting to Contiki relative path: " + e1.getMessage());*/
       return null;
     }
   }
+  
+  
   private File restoreContikiRelativePath(File portable) {
+  	int elem = PATH_IDENTIFIER.length;
+  	File path = null;
+	String canonical = null;
+	
     try {
-      File contikiPath = new File(GUI.getExternalToolsSetting("PATH_CONTIKI", null));
-      String contikiCanonical = contikiPath.getCanonicalPath();
-
-      String portablePath = portable.getPath();
-      if (!portablePath.startsWith(PATH_CONTIKI_IDENTIFIER)) {
-        return null;
-      }
-
-      File absolute = new File(portablePath.replace(PATH_CONTIKI_IDENTIFIER, contikiCanonical));
-      return absolute;
+    	    	
+    	String portablePath = portable.getPath();
+    	
+        int i = 0;
+        //logger.info("PPATH: " + portablePath);
+        
+    	for(; i < elem; i++){
+    		if (portablePath.startsWith(PATH_IDENTIFIER[i][0])) break;
+    		
+    	}
+    	
+    	
+    	if(i == elem) return null;
+    	//logger.info("Found: " + PATH_IDENTIFIER[i][0]);
+    	
+    	//No so nice, but goes along with GUI.getExternalToolsSetting
+    	String defp = GUI.getExternalToolsSetting("PATH_CONTIKI", null);
+    	path = new File(GUI.getExternalToolsSetting(PATH_IDENTIFIER[i][1], defp + PATH_IDENTIFIER[i][2]));
+    	
+    	//logger.info("Config: " + PATH_IDENTIFIER[i][1] + ", " + defp + PATH_IDENTIFIER[i][2] + " = " + path.toString());
+		canonical = path.getCanonicalPath();
+    	
+		
+    	File absolute = new File(portablePath.replace(PATH_IDENTIFIER[i][0], canonical));
+		if(!absolute.exists()){
+			logger.warn("Replaced " + portable  + " with " + absolute.toString() + " (default: "+ defp + PATH_IDENTIFIER[i][2] +"), but could not find it. This does not have to be an error, as the file might be created later.");
+		}
+    	     
+      
+    	return absolute;
     } catch (IOException e) {
-      return null;
+    	return null;
     }
   }
 
@@ -4623,3 +4673,4 @@ public class GUI extends Observable {
   };
 
 }
+
