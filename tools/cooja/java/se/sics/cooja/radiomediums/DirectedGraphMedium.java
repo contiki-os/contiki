@@ -173,13 +173,19 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
         conn.getSource().setCurrentSignalStrength(SS_STRONG);
       }
       //Maximum reception signal of all possible radios received
-      DGRMDestinationRadio dstRadios[] =  edgesTable.get(conn.getSource());
+      DGRMDestinationRadio dstRadios[] =  getPotentialDestinations(conn.getSource());
       if (dstRadios == null) continue; 
       for (DGRMDestinationRadio dstRadio : dstRadios) {
         if (dstRadio.radio.getCurrentSignalStrength() < dstRadio.signal) {
           dstRadio.radio.setCurrentSignalStrength(dstRadio.signal);
         }
+        /* We can set this without further checks, as it will only be read
+         * if a packet is actually received. In that case it is set to the
+         * correct value */
+        dstRadio.radio.setLQI(dstRadio.lqi);
       }
+    
+      
     } 
   }
 
