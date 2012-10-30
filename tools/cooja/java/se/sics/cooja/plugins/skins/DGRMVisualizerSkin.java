@@ -118,6 +118,11 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 		g.drawString(msg, x - msgWidth/2, y + 2*Visualizer.MOTE_RADIUS + 3);
 		for (DestinationRadio r: dests) {
 			double prob = ((DGRMDestinationRadio)r).ratio;
+			double rssi = ((DGRMDestinationRadio)r).signal;
+			double pos_rssi = rssi + 100;
+			int lqi = ((DGRMDestinationRadio)r).lqi;
+			float red = (float)(1 - prob*pos_rssi/90*lqi/100);
+			float green = (float)(prob*pos_rssi/90*lqi/100);
 			if (prob == 0.0d) {
 				continue;
 			}
@@ -125,7 +130,8 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 			Position pos = r.radio.getPosition();
 			Point pixel = visualizer.transformPositionToPixel(pos);
 			msgWidth = fm.stringWidth(msg);
-			g.setColor(new Color(1-(float)prob, (float)prob, 0.0f));
+			g.setColor(new Color(red, green, 0.0f));
+			g.drawString("LQI: " + lqi + "  RSSI: " + rssi,(x + pixel.x)/2,(y + pixel.y)/2);
 			g.drawLine(x, y, pixel.x, pixel.y);
 			g.setColor(Color.BLACK);
 			g.drawString(msg, pixel.x - msgWidth/2, pixel.y + 2*Visualizer.MOTE_RADIUS + 3);
