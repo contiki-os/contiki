@@ -3227,14 +3227,14 @@ public class GUI extends Observable {
             logger.fatal("Error: " + e.getMessage(), e);
             System.exit(1);
           }
-          sim.setSpeedLimit(null);
-          sim.startSimulation();
         } else {
           logger.fatal("No test editor controlling simulation, aborting");
           System.exit(1);
         }
       }
-
+      sim.setSpeedLimit(null);
+      sim.startSimulation();
+      
     } else if (args.length > 0 && args[0].startsWith("-applet")) {
 
       String tmpWebPath=null, tmpBuildPath=null, tmpEsbFirmware=null, tmpSkyFirmware=null;
