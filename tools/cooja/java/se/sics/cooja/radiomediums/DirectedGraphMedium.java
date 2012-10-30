@@ -72,7 +72,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
   private boolean edgesDirty = true;
 
   /* Used for optimizing lookup time */
-  private Hashtable<Radio,DestinationRadio[]> edgesTable = new Hashtable<Radio,DestinationRadio[]>();
+  private Hashtable<Radio,DGRMDestinationRadio[]> edgesTable = new Hashtable<Radio,DGRMDestinationRadio[]>();
 
   public DirectedGraphMedium() {
     /* Do not initialize radio medium: use only for hash table */
@@ -165,29 +165,23 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     /* Set signal strengths */
     RadioConnection[] conns = getActiveConnections();
     for (RadioConnection conn : conns) {
+      /* When sending RSSI is Strong!
+      * TODO: is this reasonable
+      */
       if (conn.getSource().getCurrentSignalStrength() < SS_STRONG) {
         conn.getSource().setCurrentSignalStrength(SS_STRONG);
       }
-      for (Radio dstRadio : conn.getDestinations()) {
-        if (dstRadio.getCurrentSignalStrength() < SS_STRONG) {
-          dstRadio.setCurrentSignalStrength(SS_STRONG);
+      //Maximum reception signal of all possible radios received
+      DGRMDestinationRadio dstRadios[] =  edgesTable.get(conn.getSource());
+      if (dstRadios == null) continue; 
+      for (DGRMDestinationRadio dstRadio : dstRadios) {
+        if (dstRadio.radio.getCurrentSignalStrength() < dstRadio.signal) {
+          dstRadio.radio.setCurrentSignalStrength(dstRadio.signal);
         }
       }
     }
 
-    /* Set signal strength to weak on interfered */
-    for (RadioConnection conn : conns) {
-      for (Radio intfRadio : conn.getInterfered()) {
-        if (intfRadio.getCurrentSignalStrength() < SS_STRONG) {
-          intfRadio.setCurrentSignalStrength(SS_STRONG);
-        }
-
-        if (!intfRadio.isInterfered()) {
-          /*logger.warn("Radio was not interfered");*/
-          intfRadio.interfereAnyReception();
-        }
-      }
-    }
+  
   }
 
 
@@ -196,14 +190,14 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
    * Generates hash table using current edges for efficient lookup.
    */
   protected void analyzeEdges() {
-    Hashtable<Radio,ArrayList<DestinationRadio>> listTable =
-      new Hashtable<Radio,ArrayList<DestinationRadio>>();
+    Hashtable<Radio,ArrayList<DGRMDestinationRadio>> listTable =
+      new Hashtable<Radio,ArrayList<DGRMDestinationRadio>>();
 
     /* Fill edge hash table with all edges */
     for (Edge edge: getEdges()) {
-      ArrayList<DestinationRadio> destRadios;
+      ArrayList<DGRMDestinationRadio> destRadios;
       if (!listTable.containsKey(edge.source)) {
-        destRadios = new ArrayList<DestinationRadio>();
+        destRadios = new ArrayList<DGRMDestinationRadio>();
       } else {
         destRadios = listTable.get(edge.source);
       }
@@ -213,11 +207,11 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     }
 
     /* Convert to arrays */
-    Hashtable<Radio,DestinationRadio[]> arrTable =  new Hashtable<Radio,DestinationRadio[]>();
+    Hashtable<Radio,DGRMDestinationRadio[]> arrTable =  new Hashtable<Radio,DGRMDestinationRadio[]>();
     Enumeration<Radio> sources = listTable.keys();
     while (sources.hasMoreElements()) {
       Radio source = sources.nextElement();
-      DestinationRadio[] arr = listTable.get(source).toArray(new DestinationRadio[0]);
+      DGRMDestinationRadio[] arr = listTable.get(source).toArray(new DGRMDestinationRadio[0]);
       arrTable.put(source, arr);
     }
 
@@ -232,7 +226,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
    * @param source Source radio
    * @return All potential destination radios
    */
-  public DestinationRadio[] getPotentialDestinations(Radio source) {
+  public DGRMDestinationRadio[] getPotentialDestinations(Radio source) {
     if (edgesDirty) {
       analyzeEdges();
     }
@@ -250,7 +244,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
 
     /* Create new radio connection using edge hash table */
     RadioConnection newConn = new RadioConnection(source);
-    DestinationRadio[] destinations = getPotentialDestinations(source);
+    DGRMDestinationRadio[] destinations = getPotentialDestinations(source);
     if (destinations == null || destinations.length == 0) {
       /* No destinations */
       /*logger.info(sendingRadio + ": No dest");*/
@@ -258,8 +252,8 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     }
 
     /*logger.info(source + ": " + destinations.length + " potential destinations");*/
-    for (DestinationRadio d: destinations) {
-      DGRMDestinationRadio dest = (DGRMDestinationRadio) d;
+    for (DGRMDestinationRadio dest: destinations) {
+      
       if (dest.radio == source) {
         /* Fail: cannot receive our own transmission */
         /*logger.info(source + ": Fail, receiver is sender");*/
@@ -369,7 +363,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
       if (element.getName().equals("edge")) {
         Collection<Element> edgeConfig = element.getChildren();
         Radio source = null;
-        DestinationRadio dest = null;
+        DGRMDestinationRadio dest = null;
         for (Element edgeElement : edgeConfig) {
           if (edgeElement.getName().equals("src")) {
             oldConfig = true;
@@ -388,7 +382,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
           } else if (oldConfig && edgeElement.getName().equals("ratio")) {
             /* Old config: parse link ratio */
             double ratio = Double.parseDouble(edgeElement.getText());
-            ((DGRMDestinationRadio)dest).ratio = ratio;
+            dest.ratio = ratio;
           } else if (edgeElement.getName().equals("dest")) {
             if (oldConfig) {
               /* Old config: create simple destination link */
@@ -406,8 +400,8 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
               if (destClassName == null || destClassName.isEmpty()) {
                 continue;
               }
-              Class<? extends DestinationRadio> destClass =
-                simulation.getGUI().tryLoadClass(this, DestinationRadio.class, destClassName);
+              Class<? extends DGRMDestinationRadio> destClass =
+                simulation.getGUI().tryLoadClass(this, DGRMDestinationRadio.class, destClassName);
               if (destClass == null) {
                 throw new RuntimeException("Could not load class: " + destClassName);
               }
@@ -435,9 +429,9 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
 
   public static class Edge {
     public Radio source = null;
-    public DestinationRadio superDest = null;
+    public DGRMDestinationRadio superDest = null;
 
-    public Edge(Radio source, DestinationRadio dest) {
+    public Edge(Radio source, DGRMDestinationRadio dest) {
       this.source = source;
       this.superDest = dest;
     }
