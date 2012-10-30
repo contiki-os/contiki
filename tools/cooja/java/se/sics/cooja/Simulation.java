@@ -59,7 +59,8 @@ public class Simulation extends Observable implements Runnable {
   /*private static long EVENT_COUNTER = 0;*/
 
   private Vector<Mote> motes = new Vector<Mote>();
-
+  private Vector<Mote> motesUninit = new Vector<Mote>();
+  
   private Vector<MoteType> moteTypes = new Vector<MoteType>();
 
   /* If true, run simulation at full speed */
@@ -819,6 +820,7 @@ public class Simulation extends Observable implements Runnable {
         }
 
         motes.add(mote);
+        motesUninit.remove(mote);
         currentRadioMedium.registerMote(mote, Simulation.this);
 
         /* Notify mote interfaces that node was added */
@@ -838,6 +840,9 @@ public class Simulation extends Observable implements Runnable {
       /* Add mote from simulation thread */
       invokeSimulationThread(addMote);
     }
+    //Add to list of uninitialized motes
+    motesUninit.add(mote);
+    
   }
 
   /**
@@ -869,6 +874,24 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
+   * Returns uninitialised simulation mote with with given ID.
+   * 
+   * @param id ID
+   * @return Mote or null
+   * @see Mote#getID()
+   */
+  public Mote getMoteWithIDUninit(int id) {
+    for (Mote m: motesUninit) {
+      if (m.getID() == id) {
+        return m;
+      }
+    }
+    return null;
+  }
+
+
+
+  /**
    * Returns number of motes in this simulation.
    *
    * @return Number of motes
@@ -887,6 +910,16 @@ public class Simulation extends Observable implements Runnable {
     motes.toArray(arr);
     return arr;
   }
+
+  /**
+   * Returns uninitialised motes
+   *
+   * @return Motes
+   */
+  public Mote[] getMotesUninit() {
+    return motesUninit.toArray(new Mote[motesUninit.size()]);
+  }
+
 
   /**
    * Returns all mote types in simulation.
