@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Random;
 
 import org.apache.log4j.Logger;
@@ -166,8 +167,8 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     RadioConnection[] conns = getActiveConnections();
     for (RadioConnection conn : conns) {
       /* When sending RSSI is Strong!
-      * TODO: is this reasonable
-      */
+       * TODO: is this reasonable
+       */
       if (conn.getSource().getCurrentSignalStrength() < SS_STRONG) {
         conn.getSource().setCurrentSignalStrength(SS_STRONG);
       }
@@ -179,11 +180,8 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
           dstRadio.radio.setCurrentSignalStrength(dstRadio.signal);
         }
       }
-    }
-
-  
+    } 
   }
-
 
 
   /**
@@ -260,12 +258,6 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
         continue;
       }
 
-      /* Fail if radios are on different (but configured) channels */ 
-      if (source.getChannel() >= 0 &&
-          dest.radio.getChannel() >= 0 &&
-          source.getChannel() != dest.radio.getChannel()) {
-        continue;
-      }
 
       if (!dest.radio.isRadioOn()) {
         /* Fail: radio is off */
@@ -273,53 +265,45 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
         newConn.addInterfered(dest.radio);
         continue;
       }
-
-      if (dest.ratio < 1.0 && random.nextDouble() > dest.ratio) {
-        /*logger.info(source + ": Fail, randomly");*/
-        /* TODO Interfere now? */
-        newConn.addInterfered(dest.radio);
-
-        dest.radio.interfereAnyReception();
-        RadioConnection otherConnection = null;
-        for (RadioConnection conn : getActiveConnections()) {
-          for (Radio dstRadio : conn.getDestinations()) {
-            if (dstRadio == dest.radio) {
-              otherConnection = conn;
-              break;
-            }
-          }
-        }
-        if (otherConnection != null) {
-          otherConnection.addInterfered(dest.radio);
-        }
-        continue;
-      }
-
-      if (dest.radio.isReceiving()) {
-        /* Fail: radio is already actively receiving */
-        /*logger.info(source + ": Fail, receiving");*/
-        newConn.addInterfered(dest.radio);
-
-        /* We will also interfere with the other connection */
-        dest.radio.interfereAnyReception();
-        RadioConnection otherConnection = null;
-        for (RadioConnection conn : getActiveConnections()) {
-          for (Radio dstRadio : conn.getDestinations()) {
-            if (dstRadio == dest.radio) {
-              otherConnection = conn;
-              break;
-            }
-          }
-        }
-        if (otherConnection != null) {
-          otherConnection.addInterfered(dest.radio);
-        }
-        continue;
-      }
-
+      
       if (dest.radio.isInterfered()) {
         /* Fail: radio is interfered in another connection */
         /*logger.info(source + ": Fail, interfered");*/
+        newConn.addInterfered(dest.radio);
+        continue;
+      }
+
+      int srcc = source.getChannel();
+      int dstc = dest.radio.getChannel(); 
+      if ( srcc >= 0 && dstc >= 0 && srcc != dstc) {
+    	/* Fail: radios are on different (but configured) channels */
+        continue;
+      }
+      
+      if (dest.radio.isReceiving()) {
+         /* Fail: radio is already actively receiving */
+         /*logger.info(source + ": Fail, receiving");*/
+         newConn.addInterfered(dest.radio);
+
+         /* We will also interfere with the other connection */
+         dest.radio.interfereAnyReception();
+         
+         // Find connection, that is sending to that radio
+         // and mark the destination as interfered
+         for (RadioConnection conn : getActiveConnections()) {
+           for (Radio dstRadio : conn.getDestinations()) {
+             if (dstRadio == dest.radio) {
+               conn.addInterfered(dest.radio);;
+               break;
+             }
+           }
+         }        
+         continue;
+      }
+            
+      if (dest.ratio < 1.0 && random.nextDouble() > dest.ratio) {
+    	/* Fail: Reception ratio */
+        /*logger.info(source + ": Fail, randomly");*/
         newConn.addInterfered(dest.radio);
         continue;
       }
@@ -353,7 +337,8 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     delayedConfiguration = configXML;
     return true;
   }
-  public void simulationFinishedLoading() {
+  
+public void simulationFinishedLoading() {
     if (delayedConfiguration == null) {
       return;
     }
@@ -361,7 +346,8 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     boolean oldConfig = false;
     for (Element element : delayedConfiguration) {
       if (element.getName().equals("edge")) {
-        Collection<Element> edgeConfig = element.getChildren();
+        @SuppressWarnings("unchecked")
+		Collection<Element> edgeConfig = element.getChildren();
         Radio source = null;
         DGRMDestinationRadio dest = null;
         for (Element edgeElement : edgeConfig) {
@@ -407,7 +393,9 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
               }
               try {
                 dest = destClass.newInstance();
-                dest.setConfigXML(edgeElement.getChildren(), simulation);
+                @SuppressWarnings("unchecked")
+				List<Element> children = edgeElement.getChildren();
+				dest.setConfigXML(children, simulation);
               } catch (Exception e) {
                 throw (RuntimeException) 
                 new RuntimeException("Unknown class: " + destClassName).initCause(e);
