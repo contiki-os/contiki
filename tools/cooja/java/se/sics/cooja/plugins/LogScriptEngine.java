@@ -41,6 +41,7 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
@@ -311,14 +312,39 @@ public class LogScriptEngine {
               logger.fatal("Script error:", e);
               System.exit(1);
             }
+            
 
-            logger.fatal("Script error:", e);
+            
+            //Give message
+            throwable = e;
+            while ((throwable != null) && !(throwable instanceof ScriptException)) {
+                throwable = throwable.getCause();
+            }          
+
+            if(throwable != null){ //Give decent message
+              	ScriptException se = (ScriptException) throwable;
+            	//Clean up information.
+            	String msg =  se.getMessage();
+            	msg = msg.split(":",2)[1]; //Get rid of the class
+            	msg = msg.split("\\(<Unknown source>",2)[0];
+            	msg += " ( Line " + se.getLineNumber() + " )"; //Re-add information.
+            	
+                logger.fatal("Test script error: " +  msg);
+                
+                if (GUI.isVisualized()) {
+                	JOptionPane.showMessageDialog(GUI.getTopParentContainer(),  msg, "Javascript error in Line " + se.getLineNumber(), JOptionPane.WARNING_MESSAGE);
+                }
+            } else {
+	            logger.fatal("Script error:", e);
+	            
+	            if (GUI.isVisualized()) {
+	              GUI.showErrorDialog(GUI.getTopParentContainer(),
+	                  "Script error", e, false);
+	            }
+            }
+            // Clean up
             deactivateScript();
             simulation.stopSimulation();
-            if (GUI.isVisualized()) {
-              GUI.showErrorDialog(GUI.getTopParentContainer(),
-                  "Script error", e, false);
-            }
           }
         }
         /*logger.info("test script thread exits");*/
