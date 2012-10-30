@@ -92,9 +92,11 @@ public class DGRMConfigurator extends VisPlugin {
   private final static int IDX_DST = 1;
   private final static int IDX_RATIO = 2;
   private final static int IDX_SIGNAL = 3;
-  private final static int IDX_DELAY = 4;
+  private final static int IDX_LQI = 4;
+  private final static int IDX_DELAY = 5;
+
   private final static String[] COLUMN_NAMES = new String[] {
-    "Source", "Destination", "RX Ratio", "RSSI", "Delay"
+    "Source", "Destination", "RX Ratio", "RSSI","LQI", "Delay"
   };
 
   private GUI gui = null;
@@ -129,6 +131,10 @@ public class DGRMConfigurator extends VisPlugin {
           for (double d=AbstractRadioMedium.SS_STRONG; d >= AbstractRadioMedium.SS_WEAK; d -= 1) {
             combo.addItem((int) d);
           }
+        } else if (column == IDX_LQI) {
+            for (int d = 110; d > 50; d -= 5) {
+              combo.addItem((int) d);
+            }
         } else if (column == IDX_DELAY) {
           for (double d=0; d <= 5; d++) {
             combo.addItem(d);
@@ -162,6 +168,17 @@ public class DGRMConfigurator extends VisPlugin {
         setText(String.format("%1.1f dBm", v));
       }
     });
+    graphTable.getColumnModel().getColumn(IDX_LQI).setCellRenderer(new DefaultTableCellRenderer() {
+		private static final long serialVersionUID = -4669897764928372246L;
+		public void setValue(Object value) {
+	    if (!(value instanceof Long)) {
+	      setText(value.toString());
+	      return;
+	    }
+    	long v = ((Long) value).longValue();
+    	setText(String.valueOf(v));
+		}
+    });
     graphTable.getColumnModel().getColumn(IDX_DELAY).setCellRenderer(new DefaultTableCellRenderer() {
 			private static final long serialVersionUID = -4669897764928372246L;
 			public void setValue(Object value) {
@@ -175,6 +192,7 @@ public class DGRMConfigurator extends VisPlugin {
     });
     graphTable.getColumnModel().getColumn(IDX_RATIO).setCellEditor(new DefaultCellEditor(combo));
     graphTable.getColumnModel().getColumn(IDX_SIGNAL).setCellEditor(new DefaultCellEditor(combo));
+    graphTable.getColumnModel().getColumn(IDX_LQI).setCellEditor(new DefaultCellEditor(combo));
     graphTable.getColumnModel().getColumn(IDX_DELAY).setCellEditor(new DefaultCellEditor(combo));
 
     graphTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
@@ -412,6 +430,9 @@ public class DGRMConfigurator extends VisPlugin {
       if (column == IDX_SIGNAL) {
         return ((DGRMDestinationRadio)edge.superDest).signal;
       }
+      if (column == IDX_LQI) {
+          return ((DGRMDestinationRadio)edge.superDest).lqi;
+        }
       if (column == IDX_DELAY) {
         return ((DGRMDestinationRadio)edge.superDest).delay / Simulation.MILLISECOND;
       }
@@ -434,7 +455,10 @@ public class DGRMConfigurator extends VisPlugin {
       	} else if (column == IDX_DELAY) {
       		((DGRMDestinationRadio)edge.superDest).delay =
       			((Number)value).longValue() * Simulation.MILLISECOND;
-      	} else {
+      	} else if (column == IDX_LQI) {
+  			((DGRMDestinationRadio)edge.superDest).lqi = ((Number)value).intValue();
+      	} 
+      	else {
           super.setValueAt(value, row, column);
       	}
       	radioMedium.requestEdgeAnalysis();
@@ -460,6 +484,9 @@ public class DGRMConfigurator extends VisPlugin {
         return true;
       }
       if (column == IDX_SIGNAL) {
+        return true;
+      }
+      if (column == IDX_LQI) {
         return true;
       }
       if (column == IDX_DELAY) {
