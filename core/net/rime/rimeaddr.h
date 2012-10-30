@@ -62,45 +62,22 @@
 #define RIMEADDR_SIZE 2
 #endif /* RIMEADDR_SIZE */
 
+#ifndef RIMEADDR_MEM_FUNC
+// 0 is the default from the original contiki
+// 1 uses string-functions. This is useful if the compiler supports optimizing these functions.
+// 2 uses inline-functions. This is noramlly faster and smaller than the original solution. 
+#define RIMEADDR_MEM_FUNC 0
+#endif
+
+#if RIMEADDR_MEM_FUNC
+#include <string.h>
+#endif
+
+
 typedef union {
   unsigned char u8[RIMEADDR_SIZE];
 } rimeaddr_t;
 
-
-/**
- * \brief      Copy a Rime address
- * \param dest The destination
- * \param from The source
- *
- *             This function copies a Rime address from one location
- *             to another.
- *
- */
-void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
-
-/**
- * \brief      Compare two Rime addresses
- * \param addr1 The first address
- * \param addr2 The second address
- * \return     Non-zero if the addresses are the same, zero if they are different
- *
- *             This function compares two Rime addresses and returns
- *             the result of the comparison. The function acts like
- *             the '==' operator and returns non-zero if the addresses
- *             are the same, and zero if the addresses are different.
- *
- */
-int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
-
-
-/**
- * \brief      Set the address of the current node
- * \param addr The address
- *
- *             This function sets the Rime address of the node.
- *
- */
-void rimeaddr_set_node_addr(rimeaddr_t *addr);
 
 /**
  * \brief      The Rime address of the node
@@ -125,6 +102,89 @@ extern rimeaddr_t rimeaddr_node_addr;
  *
  */
 extern const rimeaddr_t rimeaddr_null;
+
+
+
+/**
+ * \brief      Copy a Rime address
+ * \param dest The destination
+ * \param from The source
+ *
+ *             This function copies a Rime address from one location
+ *             to another.
+ *
+ */
+#if ! RIMEADDR_MEM_FUNC
+void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
+#elif RIMEADDR_MEM_FUNC == 1
+extern inline void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from)
+{
+	memcpy((char *)dest, (char *)from, RIMEADDR_SIZE);
+}
+#else
+extern inline void
+rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
+{
+  u8_t i;
+  for(i = 0; i < RIMEADDR_SIZE; i++) {
+    dest->u8[i] = src->u8[i];
+  }
+}
+#endif
+
+/**
+ * \brief      Compare two Rime addresses
+ * \param addr1 The first address
+ * \param addr2 The second address
+ * \return     Non-zero if the addresses are the same, zero if they are different
+ *
+ *             This function compares two Rime addresses and returns
+ *             the result of the comparison. The function acts like
+ *             the '==' operator and returns non-zero if the addresses
+ *             are the same, and zero if the addresses are different.
+ *
+ */
+
+#if ! RIMEADDR_MEM_FUNC
+int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
+#elif RIMEADDR_MEM_FUNC == 1
+extern inline int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
+{
+	return !memcmp((char *)addr1, (char *)addr2, RIMEADDR_SIZE);
+}
+#else
+extern inline int
+rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
+{
+  u8_t i;
+  for(i = 0; i < RIMEADDR_SIZE; i++) {
+    if(addr1->u8[i] != addr2->u8[i]) {
+      return 0;
+    }
+  }
+  return 1;
+}
+#endif
+
+
+/**
+ * \brief      Set the address of the current node
+ * \param addr The address
+ *
+ *             This function sets the Rime address of the node.
+ *
+ */
+#if ! RIMEADDR_MEM_FUNC
+void rimeaddr_set_node_addr(rimeaddr_t *addr);
+#else
+extern inline void rimeaddr_set_node_addr(rimeaddr_t *t)
+{
+  rimeaddr_copy(&rimeaddr_node_addr, t);
+}
+#endif
+
+
+
 
 #endif /* __RIMEADDR_H__ */
 /** @} */
