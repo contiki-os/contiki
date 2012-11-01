@@ -57,6 +57,11 @@
 #define UART0_CONF_HIGH_SPEED 0
 #endif
 
+/* USB output buffering enabled by default (relevant to cc2531 builds only) */
+#ifndef USB_SERIAL_CONF_BUFFERED
+#define USB_SERIAL_CONF_BUFFERED 1
+#endif
+
 /* Are we a SLIP bridge? */
 #if SLIP_ARCH_CONF_ENABLE
 /* Make sure the UART is enabled, with interrupts */
@@ -96,6 +101,14 @@
  */
 #ifndef CC2530_CONF_MAC_FROM_PRIMARY
 #define CC2530_CONF_MAC_FROM_PRIMARY 1
+#endif
+
+/* Interrupt Number 6: Shared between P2 Inputs, I2C and USB
+ * A single ISR handles all of the above. Leave this as is if you are not
+ * interested in any of the above. Define as 1 (e.g. in project-conf.h) if
+ * at least one of those interrupt sources will need handled */
+#ifndef PORT_2_ISR_ENABLED
+#define PORT_2_ISR_ENABLED 0
 #endif
 
 /*

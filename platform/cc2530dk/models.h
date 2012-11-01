@@ -65,6 +65,21 @@
  *  2: P1_1 (Green - active: low)
  */
 #if MODEL_CC2531
+#define USB_CONF_ENABLE 1
+
+/* Enabled the ISR for Interrupt Num 6 */
+#define PORT_2_ISR_ENABLED 1
+
+#ifndef USB_CONF_CLASS
+#define DMA_CONF_ON	1
+#define DMA_USB_CHANNEL	0
+#define CTRL_EP_SIZE	8
+#define USB_EP1_SIZE	32
+#define USB_EP2_SIZE	64
+#define USB_EP3_SIZE	64
+#define USB_CONF_CLASS	1 /* CDC-ACM */
+#endif
+
 #undef LEDS_CONF_ALL
 #define LEDS_CONF_ALL 3
 #define LEDS_RED      1
