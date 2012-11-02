@@ -143,7 +143,7 @@ ifndef CC_MCU
 endif
 
 ifndef CFLAGSNO
-CFLAGSNO = -Wall -mmcu=$(CC_MCU) -g $(CFLAGSWERROR)
+CFLAGSNO = -Wall -mmcu=$(CC_MCU) $(CFLAGSWERROR)
 endif
 CFLAGS  += -Os -fno-strict-aliasing
 LDFLAGS += -mmcu=$(CC_MCU) -Wl,-Map=contiki-$(TARGET).map

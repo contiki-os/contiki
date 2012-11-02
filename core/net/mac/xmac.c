@@ -663,7 +663,7 @@ send_packet(void)
 	  while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + WAIT_TIME_BEFORE_STROBE_ACK));
 #endif /* 0 */
 #if RDC_CONF_HARDWARE_ACK
- 	  if(ret == RADIO_TX_OK) {
+          if(ret == RADIO_TX_OK) {
             got_strobe_ack = 1;
           } else {
             off();

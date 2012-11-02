@@ -69,9 +69,20 @@
 #define RIMEADDR_MEM_FUNC 0
 #endif
 
-#if RIMEADDR_MEM_FUNC
+#if RIMEADDR_MEM_FUNC == 1
 #include <string.h>
 #endif
+
+#if RIMEADDR_MEM_FUNC != 0
+# ifndef RIMEADDR_INLINE
+#  if __GNUC__ && !__GNUC_STDC_INLINE__
+#   define RIMEADDR_INLINE extern inline
+#  else
+#   define RIMEADDR_INLINE inline
+#  endif
+# endif
+#endif
+
 
 
 typedef union {
@@ -117,13 +128,12 @@ extern const rimeaddr_t rimeaddr_null;
 #if ! RIMEADDR_MEM_FUNC
 void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
 #elif RIMEADDR_MEM_FUNC == 1
-extern inline void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from)
+RIMEADDR_INLINE void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from)
 {
 	memcpy((char *)dest, (char *)from, RIMEADDR_SIZE);
 }
 #else
-extern inline void
-rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
+RIMEADDR_INLINE void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
 {
   u8_t i;
   for(i = 0; i < RIMEADDR_SIZE; i++) {
@@ -148,13 +158,12 @@ rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
 #if ! RIMEADDR_MEM_FUNC
 int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
 #elif RIMEADDR_MEM_FUNC == 1
-extern inline int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
+RIMEADDR_INLINE int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
 {
 	return !memcmp((char *)addr1, (char *)addr2, RIMEADDR_SIZE);
 }
 #else
-extern inline int
-rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
+RIMEADDR_INLINE int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
 {
   u8_t i;
   for(i = 0; i < RIMEADDR_SIZE; i++) {
@@ -177,7 +186,7 @@ rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
 #if ! RIMEADDR_MEM_FUNC
 void rimeaddr_set_node_addr(rimeaddr_t *addr);
 #else
-extern inline void rimeaddr_set_node_addr(rimeaddr_t *t)
+RIMEADDR_INLINE void rimeaddr_set_node_addr(rimeaddr_t *t)
 {
   rimeaddr_copy(&rimeaddr_node_addr, t);
 }

@@ -12,6 +12,7 @@
 #ifndef __DMA_H
 #define __DMA_H
 #include "cc253x.h"
+#include "sfr-bits.h"
 
 /* DMA triggers */
 #define DMA_T_NONE       0 /* None, DMAREQ.DMAREQx bits start transfer */
@@ -133,12 +134,13 @@ extern dma_config_t dma_conf[DMA_CHANNEL_COUNT];
  */
 #define DMA_STATUS(c)   (DMAIRQ &(1 << c))
 /* Abort Ongoing DMA Transfers on Channel C */
-#define DMA_ABORT(c)    (DMAARM = ABORT | (1 << c))
+#define DMA_ABORT(c)    (DMAARM = DMAARM_ABORT | (1 << c))
 #define DMA_ABORT_ALL() (DMAARM = 0x9F) /* Abort ALL Ongoing DMA Transfers */
 
 /* Functions Declarations */
 void dma_init(void);
 void dma_associate_process (struct process * p, uint8_t c);
+void dma_reset(uint8_t c);
 
 /* Only link the ISR when DMA_ON is .... on */
 #if DMA_ON

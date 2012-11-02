@@ -905,7 +905,6 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     /* Moving */
     if (moving) {
       if(x != mouseDownPixel.x || y != mouseDownPixel.y) {
-
         Position newPos = transformPixelToPosition(x, y);
 
         if (!stop) {
@@ -946,6 +945,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
           }
         }
       }
+
       moving = false;
       movedMote = null;
       repaint();
