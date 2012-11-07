@@ -8,10 +8,6 @@ import java.io.IOException;
 
 public class PcapExporter {
 
-    private static final byte[] ETH_DATA = {(byte)0xaf, (byte)0xab, (byte)0xac, (byte)0xad,
-        (byte)0xae, (byte)0xaf, 0x42, (byte)0xfb, (byte)0x9f, (byte)0x81, 0x5a,
-        (byte)0x81, (byte)0x80, (byte)0x9a};
-
     DataOutputStream out;
     
     public PcapExporter() throws IOException {
@@ -26,7 +22,7 @@ public class PcapExporter {
         out.writeInt(0);
         out.writeInt(0);
         out.writeInt(4096);
-        out.writeInt(1); /* 1 for ethernet ? */
+        out.writeInt(195); /* 195 for LINKTYPE_IEEE802_15_4 */
         out.flush();
         System.out.println("Opened pcap file!");
     }
@@ -42,9 +38,8 @@ public class PcapExporter {
             /* pcap packet header */
             out.writeInt((int) System.currentTimeMillis() / 1000);
             out.writeInt((int) ((System.currentTimeMillis() % 1000) * 1000));
-            out.writeInt(data.length + 14);
-            out.writeInt(data.length + 14);
-            out.write(ETH_DATA);
+            out.writeInt(data.length);
+            out.writeInt(data.length);
             /* and the data */
             out.write(data);
             out.flush();
