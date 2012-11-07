@@ -261,6 +261,7 @@ struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 /** single possible icmpv6 "connection" */
 struct uip_icmp6_conn uip_icmp6_conns;
 #endif /*UIP_CONF_ICMP6*/
+/** @} */
 
 /*---------------------------------------------------------------------------*/
 /* Functions                                                                 */

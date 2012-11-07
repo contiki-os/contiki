@@ -179,7 +179,7 @@ SEARCH_INCLUDES        = YES
 INCLUDE_PATH           = 
 INCLUDE_FILE_PATTERNS  = 
 PREDEFINED             = CC_FUNCTION_POINTER_ARGS \
-                         UIP_UDP \
+                         WITH_UIP6 UIP_CONF_IPV6 UIP_CONF_IPV6_RPL \
                          WITH_LOADER_ARCH \
                          DOXYGEN \
 						 "ASCCMD(name, flags, args)=void CMD_ASCII(name)"
