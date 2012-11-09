@@ -168,7 +168,7 @@ endif
 
 
 
-FLASHER = sudo $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher
+FLASHER = sudo $(CONTIKI)/tools/stm32w/stm32w_flasher/py_files/stm32w_flasher.py
 
 # Check if we are running under Windows
 ifeq ($(HOST_OS),Windows)
