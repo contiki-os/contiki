@@ -24,7 +24,9 @@ my %Opt = (
   usb => 0,
   method => "auto",
   kernel => "auto",
-  dev_prefix => [ "/dev/usb/tts/", "/dev/ttyUSB", "/dev/tts/USB" ],
+  usb_dev_prefix => [ "/dev/usb/tts/", "/dev/ttyUSB", "/dev/tts/USB" ],
+  acm_dev_prefix => [ "/dev/ttyACM" ],
+  dev_prefix => undef,
   usbserial => "sudo cat /proc/tty/driver/usbserial |",
 );
 
@@ -61,7 +63,8 @@ sub scan_sysfs {
 
   #  Scan /sys/bus/usb/drivers/usb for FTDI devices
   my @ftdidevs =
-    grep { ($_->{UsbVendor}||"") eq "0403" && ($_->{UsbProduct}||"") eq "6001" && ($_->{UsbBcdDevice}||"") eq "0600"}
+    grep { (($_->{UsbVendor}||"") eq "0403" && ($_->{UsbProduct}||"") eq "6001" && ($_->{UsbBcdDevice}||"") eq "0600") ||
+    	   (($_->{UsbVendor}||"") eq "0483" && ($_->{UsbProduct}||"") eq "5741")}
     map { {
       SysPath => $_,
       UsbVendor => snarf("$_/idVendor",1),
@@ -90,9 +93,19 @@ sub scan_sysfs {
 
     my $port = "$syspath/$f->{SysDev}:1.0";
     ($f->{DriverName} = readlink("$port/driver")) =~ s{^.*/}{} if -l "$port/driver";
-    ($f->{SerialDevName} = (glob("$port/tty*"),undef)[0]) =~ s{^.*/}{};
+    ($f->{SerialDevName} = (glob("$port/tty/tty* $port/tty*"),undef)[0]) =~ s{^.*/}{};
     $f->{SerialDevNum} = $1 if $f->{SerialDevName} =~ /(\d+)/;
-    $f->{SerialDevName} = getSerialDevName( $f->{SerialDevNum} ) || "  (none)";
+    my $dev_prefix = $Opt{dev_prefix};
+    if (not defined $dev_prefix)
+    {
+	    if ( $f->{SerialDevName} =~ ".*ACM.*" ) {
+		    $dev_prefix = $Opt{acm_dev_prefix}
+	    }
+	    else {
+		    $dev_prefix = $Opt{usb_dev_prefix}
+	    }
+    }
+    $f->{SerialDevName} = getSerialDevName($dev_prefix, $f->{SerialDevNum} ) || "  (none)";
   }
 
   return @ftdidevs;
@@ -115,6 +128,12 @@ sub scan_procfs {
     $usbtree{usbkey($tts->{path})}{usbserial} = $tts if defined $tts->{path};
   }
 
+  my $dev_prefix = $Opt{dev_prefix};
+  if (not defined $dev_prefix)
+  {
+    $dev_prefix = $Opt{usb_dev_prefix}
+  }
+
   my @ftdidevs = map { {
       UsbVendor => $_->{Vendor},
       UsbProduct => $_->{ProdID},
@@ -127,7 +146,7 @@ sub scan_procfs {
       UsbPath => (($Opt{kernel} eq "2.4") ? $_->{usbserial}{path} : $_->{usbpath}),
       DriverName => $_->{driver},
       SerialDevNum => $_->{usbserial}{tts},
-      SerialDevName => getSerialDevName($_->{usbserial}{tts}) || "  (none)",
+      SerialDevName => getSerialDevName($dev_prefix, $_->{usbserial}{tts}) || "  (none)",
     } }
     grep { ($_->{Vendor}||"") eq "0403" && ($_->{ProdID}||"") eq "6001" && ($_->{BcdDevice}||"") eq "0600"}
     values %usbtree;
@@ -194,17 +213,18 @@ sub usbkey {
 #  first one that actually exists.
 #
 sub getSerialDevName {
+  my $dev_prefix = shift;
   my $devnum = shift;
   my $devname = undef;
   if( defined $devnum ) {
-    if( ref($Opt{dev_prefix}) eq "ARRAY" ) {
+    if( ref($dev_prefix) eq "ARRAY" ) {
       $devname = $devnum;
-      for my $prefix (@{$Opt{dev_prefix}}) {
+      for my $prefix (@{$dev_prefix}) {
         my $file = $prefix . $devnum;
         if( -e $file ) { $devname = $file; last; }
       }
     } else {
-      $devname = $Opt{dev_prefix} . $devnum;
+      $devname = $dev_prefix . $devnum;
     }
   }
   return $devname;

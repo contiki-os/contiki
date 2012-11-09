@@ -257,9 +257,7 @@ endif #IAR
 
 MOTELIST = $(CONTIKI)/tools/stm32w/motelist-linux
 
-MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
-     cut -f 4 -d \  | \
-     perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+MOTES = $(shell $(MOTELIST) 2>&- | awk '{print $$2}' | grep '\/')
 
 motelist: stm-motelist
 
