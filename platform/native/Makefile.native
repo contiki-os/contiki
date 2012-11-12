@@ -18,12 +18,6 @@ CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c leds.c leds-arch.c \
                 sensors.c irq.c cfs-posix.c cfs-posix-dir.c ctk-curses.c
 
 
-ifdef PLATFORM_BUILD
-  CONTIKI_TARGET_SOURCEFILES += dl-loader.c
-else
-  CONTIKI_TARGET_SOURCEFILES += unload.c
-endif
-
 ifeq ($(HOST_OS),Windows)
 CONTIKI_TARGET_SOURCEFILES += wpcap-drv.c wpcap.c
 TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
@@ -52,4 +46,60 @@ endif
 CURSES_LIBS ?= -lncurses
 
 TARGET_LIBFILES += $(CURSES_LIBS)
+
+ifdef PLATFORM_BUILD
+  CONTIKI_TARGET_SOURCEFILES += dl-loader.c
+  UNDEFINED_SYMS = cfs_open cfs_opendir \
+                   uiplib_ip4addrconv uiplib_ip6addrconv \
+                   resolv_lookup
+
+  ifeq ($(HOST_OS),Darwin)
+    LDFLAGS_WHOLE_ARCHIVE = -all_load -flat_namespace -undefined warning
+    LD_UNDEFINES = $(addprefix -u _,$(UNDEFINED_SYMS))
+    PRG_LDFLAGS += -flat_namespace -undefined warning
+
+    # OSX hack:
+    CUSTOM_RULE_ALLOBJS_TO_TARGETLIB = 1
+    contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES)
+	$(AR) $(AROPTS) $@ $^
+	ranlib -c $@
+
+  else
+    LDFLAGS_WHOLE_ARCHIVE = --whole-archive
+    LD_UNDEFINES = $(addprefix -u ,$(UNDEFINED_SYMS))
+  endif
+  ifeq ($(HOST_OS),Linux)
+    # necessary on Linux 64bit
+    PRG_CFLAGS += -fPIC
+  endif
+
+  CFLAGS += -DPLATFORM_BUILD -DWITH_GUI -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
+  LDFLAGS +=  \
+	$(LD_UNDEFINES)
+# XXX: does not seem necessary
+#$(LDFLAGS_WHOLE_ARCHIVE)
+#-Wl,--out-implib=contiki-main.$(TARGET).a \
+#
+else
+  CONTIKI_TARGET_SOURCEFILES += unload.c
+endif
+
+### Set a target-specific variable value
+${foreach PRG,$(PRGS),${addprefix $(OBJECTDIR)/, \
+                      $(${call appname,$(PRG)_src:.c=.o})}}: \
+                      CFLAGS += $(PRG_CFLAGS)
+
+### Generate the module-link prerequisites
+define prg_template
+$(1).prg: $${addprefix $$(OBJECTDIR)/,$$($(2)_src:.c=.o)}
+endef
+define dsc_template
+$(1).dsc: $${addprefix $$(OBJECTDIR)/,$$($(2)_dsc:.c=.o)}
+endef
+${foreach PRG,$(PRGS),${eval ${call prg_template,$(PRG),${call appname,$(PRG)}}}}
+${foreach DSC,$(DSCS),${eval ${call dsc_template,$(DSC),${call appname,$(DSC)}}}}
+
+### Generic module-link rules, no prerequisites here
+$(PRGS:=.prg) $(DSCS:=.dsc):
+	$(LD) -shared $(PRG_LDFLAGS) $^ -o $@
 
