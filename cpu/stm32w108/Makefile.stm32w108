@@ -168,7 +168,7 @@ endif
 
 
 
-FLASHER = sudo $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher
+FLASHER = sudo $(CONTIKI)/tools/stm32w/stm32w_flasher/py_files/stm32w_flasher.py
 
 # Check if we are running under Windows
 ifeq ($(HOST_OS),Windows)
@@ -257,9 +257,7 @@ endif #IAR
 
 MOTELIST = $(CONTIKI)/tools/stm32w/motelist-linux
 
-MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
-     cut -f 4 -d \  | \
-     perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+MOTES = $(shell $(MOTELIST) 2>&- | awk '{print $$2}' | grep '\/')
 
 motelist: stm-motelist
 
