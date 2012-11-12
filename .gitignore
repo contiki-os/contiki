@@ -5,6 +5,7 @@
 *.log
 *.elf
 *.ihex
+*.pyc
 obj_*
 symbols.*
 Makefile.target
