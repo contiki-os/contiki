@@ -235,6 +235,33 @@ typedef unsigned long clock_time_t;
 
 #define LOG_CONF_ENABLED 1
 
+#define PROGRAM_HANDLER_CONF_MAX_NUMDSCS 10
+#define PROGRAM_HANDLER_CONF_QUIT_MENU   1
+
+#define EMAIL_CONF_WIDTH  78
+#define EMAIL_CONF_HEIGHT 17
+#ifndef PLATFORM_BUILD
+#define EMAIL_CONF_ERASE   0
+#endif
+
+#define IRC_CONF_WIDTH         78
+#define IRC_CONF_HEIGHT        17
+#define IRC_CONF_SYSTEM_STRING "*nix"
+
+#define SHELL_CONF_WITH_PROGRAM_HANDLER 1
+
+#define SHELL_GUI_CONF_XSIZE 78
+#define SHELL_GUI_CONF_YSIZE 17
+
+#ifdef PLATFORM_BUILD
+#define TELNETD_CONF_GUI 1
+#endif /* PLATFORM_BUILD */
+
+#ifdef PLATFORM_BUILD
+#define WWW_CONF_WEBPAGE_WIDTH  78
+#define WWW_CONF_WEBPAGE_HEIGHT 17
+#endif /* PLATFORM_BUILD */
+
 /* Not part of C99 but actually present */
 int strcasecmp(const char*, const char*);
 
