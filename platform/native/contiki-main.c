@@ -271,12 +271,12 @@ main(int argc, char **argv)
 void
 log_message(char *m1, char *m2)
 {
-  printf("%s%s\n", m1, m2);
+  fprintf(stderr, "%s%s\n", m1, m2);
 }
 /*---------------------------------------------------------------------------*/
 void
 uip_log(char *m)
 {
-  printf("%s\n", m);
+  fprintf(stderr, "%s\n", m);
 }
 /*---------------------------------------------------------------------------*/
