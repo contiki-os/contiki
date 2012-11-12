@@ -226,6 +226,12 @@ typedef unsigned short uip_stats_t;
 #define OPENMENUCOLOR       COLOR_WHITE  | COLOR_BLUE * 0x10
 #define ACTIVEMENUITEMCOLOR COLOR_YELLOW | COLOR_BLUE * 0x10
 
+#ifdef PLATFORM_BUILD
+#define LOADER_CONF_ARCH "loader/dl-loader.h"
+#else /* PLATFORM_BUILD */
+#define LOADER_CONF_ARCH "loader/unload.h"
+#endif /* PLATFORM_BUILD */
+
 
 typedef unsigned long clock_time_t;
 
