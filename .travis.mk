@@ -27,6 +27,8 @@ EXAMPLES_most_non_native = \
 
 EXAMPLES_redbee_econotag = $(EXAMPLES_most_non_native)
 
+EXAMPLES_sky = $(EXAMPLES_most_non_native) sky-shell
+
 CT := \033[0;0m
 
 ifdef BOXED_SIGNS
