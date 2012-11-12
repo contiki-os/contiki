@@ -114,6 +114,7 @@ init_connection(void)
   s.getrequestleft = sizeof(http_get) - 1 + 1 +
     sizeof(http_10) - 1 +
     sizeof(http_crnl) - 1 +
+    sizeof(http_accept_charset) - 1 +
     sizeof(http_host) - 1 +
     sizeof(http_crnl) - 1 +
     (uint16_t)strlen(http_user_agent_fields) +
@@ -227,6 +228,7 @@ senddata(void)
     curptr = window_copy(curptr, http_10, sizeof(http_10) - 1);
 
     curptr = window_copy(curptr, http_crnl, sizeof(http_crnl) - 1);
+    curptr = window_copy(curptr, http_accept_charset, sizeof(http_accept_charset) - 1);
     
     curptr = window_copy(curptr, http_host, sizeof(http_host) - 1);
     curptr = window_copy(curptr, s.host, (unsigned char)strlen(s.host));
