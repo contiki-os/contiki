@@ -16,6 +16,17 @@ EXAMPLES_ALL = hello-world
 
 EXAMPLES_native = ipv6/native-border-router
 
+EXAMPLES_most_non_native = \
+	er-rest-example \
+	ipv6/rpl-border-router \
+	ipv6/rpl-collect \
+	ipv6/rpl-udp \
+	ipv6/simple-udp-rpl \
+	ipv6/slip-radio \
+	webserver-ipv6
+
+EXAMPLES_redbee_econotag = $(EXAMPLES_most_non_native)
+
 CT := \033[0;0m
 
 ifdef BOXED_SIGNS

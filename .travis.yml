@@ -2,6 +2,10 @@ language: c #NOTE: this will set CC=gcc which might cause trouble
 before_script:
   ## Install mainline msp430 toolchain for all build types
   - "sudo apt-get -qq update && sudo apt-get -qq install gcc-msp430 || true"
+  ## Install toolchain for mc1233x in care-free way
+  - "[ $BUILD_TYPE = multi ] && curl -s \
+       https://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
+         | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version || true"
 
 script:
   ## The makefile called `.travis.mk` handles most of generic logic
@@ -17,4 +21,4 @@ after_script:
 env:
   ## This magically kick-off parallel jobs for each of the for the sets
   ## of environment variable defined below
-  - BUILD_TYPE='multi' MAKE_TARGETS='native minimal-net'
+  - BUILD_TYPE='multi' MAKE_TARGETS='native minimal-net redbee-econotag'
