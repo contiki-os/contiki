@@ -31,6 +31,7 @@
  *
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -238,6 +239,11 @@ main(int argc, char **argv)
 #endif
 
   serial_line_init();
+
+  /* try to chroot so directory.prg will find interesting things */
+  if(chroot(".") < 0) {
+    fprintf(stderr, "Could not chroot: %s\n", strerror(errno));
+  }
 
 #ifdef PLATFORM_BUILD
   program_handler_add(&about_dsc,     "About...",    1);
