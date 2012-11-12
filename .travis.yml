@@ -21,4 +21,4 @@ after_script:
 env:
   ## This magically kick-off parallel jobs for each of the for the sets
   ## of environment variable defined below
-  - BUILD_TYPE='multi' MAKE_TARGETS='native minimal-net redbee-econotag'
+  - BUILD_TYPE='multi' MAKE_TARGETS='native minimal-net redbee-econotag sky'
