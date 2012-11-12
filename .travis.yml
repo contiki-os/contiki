@@ -1,0 +1,20 @@
+language: c #NOTE: this will set CC=gcc which might cause trouble
+before_script:
+  ## Install mainline msp430 toolchain for all build types
+  - "sudo apt-get -qq update && sudo apt-get -qq install gcc-msp430 || true"
+
+script:
+  ## The makefile called `.travis.mk` handles most of generic logic
+  - "make -f .travis.mk $MAKE_TARGETS"
+
+after_script:
+  ## Print a basic summary in unix style
+  - "echo 'Summary:'; cat results | sort | uniq -c"
+  ## This will detect whether the build should pass or fail
+  - "grep -v -q 'fail' results"
+
+
+env:
+  ## This magically kick-off parallel jobs for each of the for the sets
+  ## of environment variable defined below
+  - BUILD_TYPE='multi' MAKE_TARGETS='native minimal-net'
