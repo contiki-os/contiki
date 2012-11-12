@@ -186,7 +186,7 @@ typedef unsigned short uip_stats_t;
 #define CTK_CONF_WIDGETUP_KEY     -7  /* Shift-Tab */
 #define CTK_CONF_WIDGETDOWN_KEY   '\t'
 #define CTK_CONF_WIDGET_FLAGS     0
-#define CTK_CONF_SCREENSAVER      0
+#define CTK_CONF_SCREENSAVER      1
 
 #ifdef PLATFORM_BUILD
 #define CTK_CONF_MOUSE_SUPPORT    1
