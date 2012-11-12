@@ -46,9 +46,20 @@
 #include "ctk/ctk.h"
 #include "ctk/ctk-curses.h"
 
+#ifdef PLATFORM_BUILD
+#include "../../apps/about/about-dsc.h"
+#include "../../apps/calc/calc-dsc.h"
+#include "../../apps/directory/directory-dsc.h"
+#include "../../apps/shell/shell-dsc.h"
+#include "../../apps/netconf/netconf-dsc.h"
+#include "../../apps/webbrowser/www-dsc.h"
+#include "program-handler.h"
+#endif  /* PLATFORM_BUILD */
+
 #include "dev/serial-line.h"
 
 #include "net/uip.h"
+#include "net/tapdev-drv.h"
 
 #include "dev/button-sensor.h"
 #include "dev/pir-sensor.h"
@@ -229,6 +240,15 @@ main(int argc, char **argv)
 
   serial_line_init();
   
+#ifdef PLATFORM_BUILD
+  program_handler_add(&about_dsc,     "About...",    1);
+  program_handler_add(&calc_dsc,      "Calc",        1);
+  program_handler_add(&directory_dsc, "Directory",   1);
+  program_handler_add(&shell_dsc,     "Shell",       1);
+  program_handler_add(&netconf_dsc,   "Net Config",  1);
+  program_handler_add(&www_dsc,       "Web browser", 1);
+#endif /* PLATFORM_BUILD */
+
   autostart_start(autostart_processes);
   
   /* Make standard output unbuffered. */

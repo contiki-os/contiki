@@ -42,9 +42,55 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
 .SUFFIXES:
 
+ifeq ($(HOST_OS),Darwin)
+CUSTOM_RULE_ALLOBJS_TO_TARGETLIB = 1
+LDFLAGS_WHOLE_ARCHIVE = -all_load -flat_namespace -undefined warning
+LD_UNDEFINES = -u _cfs_open -u _cfs_opendir -u _uiplib_ipaddrconv
+PRG_LDFLAGS += -flat_namespace -undefined warning
+else
+LDFLAGS_WHOLE_ARCHIVE = --whole-archive
+LD_UNDEFINES = -u cfs_open -u cfs_opendir -u uiplib_ipaddrconv -u resolv_lookup
+endif
+# necessary on Linux 64bit
+PRG_CFLAGS += -fPIC
+
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
 
+ifeq ($(HOST_OS),Darwin)
+# OSX hack:
+contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES)
+	$(AR) $(AROPTS) $@ $^
+	ranlib -c $@
+endif
+
 LDFLAGS += -lncurses
+
+ifdef PLATFORM_BUILD
+  CFLAGS += -DPLATFORM_BUILD -DWITH_GUI -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
+  LDFLAGS +=  \
+	$(LD_UNDEFINES)
+#$(LDFLAGS_WHOLE_ARCHIVE)
+#-Wl,--out-implib=contiki-main.$(TARGET).a \
+#
+endif
+
+### Set a target-specific variable value
+${foreach PRG,$(PRGS),${addprefix $(OBJECTDIR)/, \
+                      $(${call appname,$(PRG)_src:.c=.o})}}: CFLAGS += $(PRG_CFLAGS)
+
+### Generate the module-link prerequisites
+define prg_template
+$(1).prg: $${addprefix $$(OBJECTDIR)/,$$($(2)_src:.c=.o)}
+endef
+define dsc_template
+$(1).dsc: $${addprefix $$(OBJECTDIR)/,$$($(2)_dsc:.c=.o)}
+endef
+${foreach PRG,$(PRGS),${eval ${call prg_template,$(PRG),${call appname,$(PRG)}}}}
+${foreach DSC,$(DSCS),${eval ${call dsc_template,$(DSC),${call appname,$(DSC)}}}}
+
+### Generic module-link rules, no prerequisites here
+$(PRGS:=.prg) $(DSCS:=.dsc):
+	$(LD) -shared $(PRG_LDFLAGS) $^ -o $@
 
