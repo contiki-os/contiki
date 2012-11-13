@@ -27,6 +27,10 @@ EXAMPLES_most_non_native = \
 
 EXAMPLES_redbee_econotag = $(EXAMPLES_most_non_native)
 
+EXAMPLES_most_avr  = $(EXAMPLES_most_non_native)
+EXAMPLES_micaz     = $(EXAMPLES_most_avr)
+EXAMPLES_avr_raven = $(EXAMPLES_most_avr)
+
 EXAMPLES_sky = $(EXAMPLES_most_non_native) sky-shell
 
 COOJA_TESTS  = tools/cooja/contiki_tests/*.csc
