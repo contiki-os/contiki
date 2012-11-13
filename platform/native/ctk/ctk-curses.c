@@ -184,6 +184,7 @@ wherex(void)
 {
   int x, y;
   getyx(stdscr, y, x);
+  (void)y;
   return (unsigned char)x;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -192,6 +193,7 @@ wherey(void)
 {
   int x, y;
   getyx(stdscr, y, x);
+  (void)x;
   return (unsigned char)y;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -204,7 +206,7 @@ clrscr(void)
 void
 bgcolor(unsigned char c)
 {
-  color = (c << 4 | color & 0xF0);
+  color = ((c << 4) | (color & 0xF0));
 
   /* Presume this to be one of the first calls. */
   console_init();
