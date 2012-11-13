@@ -102,7 +102,7 @@ shell_prompt(char *str)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-shell_exit(char *str)
+shell_exit(void)
 {
   ctk_window_close(&window);
 }

@@ -4,6 +4,8 @@
 *.png
 *.log
 *.elf
+*.prg
+*.dsc
 *.ihex
 *.pyc
 obj_*

@@ -31,6 +31,7 @@
  *
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -41,11 +42,26 @@
 #endif /* __CYGWIN__ */
 
 #include "contiki.h"
+#include "contiki-net.h"
 #include "net/netstack.h"
+
+#include "ctk/ctk.h"
+#include "ctk/ctk-curses.h"
+
+#ifdef PLATFORM_BUILD
+#include "../../apps/about/about-dsc.h"
+#include "../../apps/calc/calc-dsc.h"
+#include "../../apps/directory/directory-dsc.h"
+#include "../../apps/shell/shell-dsc.h"
+#include "../../apps/netconf/netconf-dsc.h"
+#include "../../apps/webbrowser/www-dsc.h"
+#include "program-handler.h"
+#endif  /* PLATFORM_BUILD */
 
 #include "dev/serial-line.h"
 
 #include "net/uip.h"
+#include "net/tapdev-drv.h"
 
 #include "dev/button-sensor.h"
 #include "dev/pir-sensor.h"
@@ -188,6 +204,10 @@ main(int argc, char **argv)
   process_start(&etimer_process, NULL);
   ctimer_init();
 
+#if WITH_GUI
+  process_start(&ctk_process, NULL);
+#endif
+
   set_rime_addr();
 
   queuebuf_init();
@@ -222,8 +242,70 @@ main(int argc, char **argv)
 
   serial_line_init();
   
+  /* try to chroot so directory.prg will find interesting things */
+  if (chroot(".") < 0) {
+    fprintf(stderr, "Could not chroot: %s\n", strerror(errno));
+  }
+
+#ifdef PLATFORM_BUILD
+  program_handler_add(&about_dsc,     "About...",    1);
+  program_handler_add(&calc_dsc,      "Calc",        1);
+  program_handler_add(&directory_dsc, "Directory",   1);
+  program_handler_add(&shell_dsc,     "Shell",       1);
+  program_handler_add(&netconf_dsc,   "Net Config",  1);
+  program_handler_add(&www_dsc,       "Web browser", 1);
+#endif /* PLATFORM_BUILD */
+
   autostart_start(autostart_processes);
   
+  /* Set default IP addresses if not specified */
+#if !UIP_CONF_IPV6
+  uip_ipaddr_t addr;
+  
+  uip_gethostaddr(&addr);
+  if (addr.u8[0]==0) {
+    uip_ipaddr(&addr, 10,1,1,1);
+  }
+  fprintf(stderr, "IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+  uip_sethostaddr(&addr);
+
+  uip_getnetmask(&addr);
+  if (addr.u8[0]==0) {
+    uip_ipaddr(&addr, 255,0,0,0);
+    uip_setnetmask(&addr);
+  }
+  fprintf(stderr, "Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+
+  uip_getdraddr(&addr);
+  if (addr.u8[0]==0) {
+    uip_ipaddr(&addr, 10,1,1,100);
+    uip_setdraddr(&addr);
+  }
+  fprintf(stderr, "Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+
+  uip_ipaddr(&addr, 8,8,8,8);
+  resolv_conf(&addr);
+  fprintf(stderr, "DNS Server: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+
+#else /* !UIP_CONF_IPV6 */
+  uint8_t i;
+  uip_ipaddr_t ipaddr;
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);   
+#if UIP_CONF_ROUTER
+  uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
+#else /* UIP_CONF_ROUTER */
+  uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0);
+#endif /* UIP_CONF_ROUTER */
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+ // printf("IP6 Address: ");sprint_ip6(ipaddr);printf("\n");
+  for (i=0;i<UIP_DS6_ADDR_NB;i++) {
+	if (uip_ds6_if.addr_list[i].isused) {	  
+	  fprintf(stderr, "IPV6 Address: ");sprint_ip6(uip_ds6_if.addr_list[i].ipaddr);printf("\n");
+	}
+  }
+#endif /* !UIP_CONF_IPV6 */
+
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
 
@@ -263,6 +345,12 @@ main(int argc, char **argv)
     }
 
     etimer_request_poll();
+
+#if WITH_GUI
+    if(console_resize()) {
+       ctk_restore();
+    }
+#endif /* WITH_GUI */
   }
 
   return 0;
@@ -271,12 +359,12 @@ main(int argc, char **argv)
 void
 log_message(char *m1, char *m2)
 {
-  printf("%s%s\n", m1, m2);
+  fprintf(stderr, "%s%s\n", m1, m2);
 }
 /*---------------------------------------------------------------------------*/
 void
 uip_log(char *m)
 {
-  printf("%s\n", m);
+  fprintf(stderr, "%s\n", m);
 }
 /*---------------------------------------------------------------------------*/
