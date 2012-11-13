@@ -1,7 +1,9 @@
 language: c #NOTE: this will set CC=gcc which might cause trouble
 before_script:
-  ## Install mainline msp430 toolchain for all build types
-  - "sudo apt-get -qq update && sudo apt-get -qq install gcc-msp430 || true"
+  - "sudo apt-get -qq update"
+  ## Install these mainline toolchains for all build types
+  - "sudo apt-get -qq install gcc-msp430 || true"
+  - "sudo apt-get -qq install gcc-avr avr-libc || true"
   ## Install toolchain for mc1233x in care-free way
   - "[ $BUILD_TYPE = multi ] && curl -s \
        https://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
