@@ -339,6 +339,7 @@ public class LogScriptEngine {
     engine.put("global", hash);
     engine.put("sim", simulation);
     engine.put("gui", simulation.getGUI());
+    engine.put("msg", new String(""));
 
     scriptMote = new ScriptMote();
     engine.put("node", scriptMote);
