@@ -1,0 +1,2 @@
+blanker_src = blanker.c
+blanker_dsc = blanker-dsc.c
