@@ -22,7 +22,7 @@ after_script:
   ## Print a basic summary in unix style
   - "echo 'Summary:'; cat results | sort | uniq -c"
   ## This will detect whether the build should pass or fail
-  - "grep -v -q 'fail' results"
+  - "test `grep -c 'fail' results` -eq 0"
 
 
 env:
