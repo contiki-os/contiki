@@ -672,8 +672,6 @@ public class ScriptRunner extends VisPlugin {
       } catch (Exception e) {
         logger.fatal("Error: " + e.getMessage(), e);
       }
-      simulation.setSpeedLimit(null);
-      simulation.startSimulation();
     }
     return true;
   }
