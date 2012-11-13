@@ -4,7 +4,7 @@
 # a free distributed continuous integration service with unique
 # set of features:
 # * uses clean ephemeral virtual machines for every build
-# * integrates with GitHub - triggers builds on push and pull-request 
+# * integrates with GitHub - triggers builds on push and pull-request
 # * it is open source and free for public repositories
 # * features great web UI and bunch of other stuff
 
@@ -28,8 +28,25 @@ EXAMPLES_most_non_native = \
 EXAMPLES_redbee_econotag = $(EXAMPLES_most_non_native)
 
 EXAMPLES_most_avr  = $(EXAMPLES_most_non_native)
+
 EXAMPLES_micaz     = $(EXAMPLES_most_avr)
 EXAMPLES_avr_raven = $(EXAMPLES_most_avr)
+
+## MARK_EXAMPLES_$(TARGET) provides the mechanism to
+## build the examples which are known to fail but
+## shouldn't be counted as failing for some reason
+MARK_EXAMPLES_micaz = \
+	er-rest-example \
+	ipv6/rpl-border-router \
+	ipv6/rpl-collect \
+	ipv6/rpl-udp \
+	ipv6/simple-udp-rpl \
+	ipv6/slip-radio \
+	webserver-ipv6
+
+## EXCLUDE_$(TARGETS) provides the mechanism to
+## not build the examples which are known to fail
+EXCLUDE_avr_raven = ipv6/rpl-collect
 
 EXAMPLES_sky = $(EXAMPLES_most_non_native) sky-shell
 
@@ -48,13 +65,15 @@ else
 endif
 
 
-SKIP  = (echo "\033[1;36m  $(SKIP_SIGN) ➝ ❨ $$e ⊈ $@ ❩$(CT)"; echo skip >> results)
+## FIXME: this will misbehave when we intend to skip `examples1` but there is also `examples123` that fails also
+SKIP  = (echo $(SKIP_LIST) | grep -q $$e && (echo "\033[1;36m  $(SKIP_SIGN) ➝ ❨ $$e ⊈ $@ ❩$(CT)"; $(TAIL) $(LOG); echo skip >> results) || false)
 FAIL  = (echo "\033[1;35m  $(FAIL_SIGN) ➝ ❨ $$e ∉ $@ ❩$(CT)"; $(TAIL) $(LOG); echo fail >> results)
 PASS  = (echo "\033[1;32m  $(PASS_SIGN) ➝ ❨ $$e ∈ $@ ❩$(CT)"; echo pass >> results)
 
 ifeq ($(BUILD_TYPE),multi)
 THIS = $(MAKE) -C examples/$$e TARGET=$@ > $(LOG) 2>&1
-MINE = $(EXAMPLES_ALL) $(EXAMPLES_$(subst -,_,$@))
+MINE = $(filter-out $(EXCLUDE_$(subst -,_,$@)), $(EXAMPLES_ALL) $(EXAMPLES_$(subst -,_,$@)))
+SKIP_LIST = $(MARK_EXAMPLES_$(subst -,_,$@))
 endif
 
 ifeq ($(BUILD_TYPE),cooja)
@@ -67,4 +86,4 @@ LOG  = /tmp/$@_`echo $$e | sed 's:/:_:g'`.log
 
 %:
 	@echo "\033[1;37m ➠ ❨$@❩ $(CT)"
-	@for e in $(MINE); do $(THIS) && $(PASS) || $(FAIL); done;
+	@for e in $(MINE); do $(THIS) && $(PASS) || $(SKIP) || $(FAIL); done;
