@@ -32,9 +32,9 @@
 
 /**
  * \file
- *         A very simple Contiki application showing how Contiki programs look
+ *         A very simple Contiki toggle the LEDs application
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Who Knows who@kth.se
  */
 
 #include "contiki.h"
@@ -62,6 +62,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
   LPC_SC ->PCONP |= (1 << 15); // power up GPIO
   LPC_GPIO1 ->FIODIR |= (1 << 18) | (1 << 29); // puts P1.18(LED2) and P1.29(LED3) into output mode
   LPC_GPIO1 ->FIOCLR |= (1 << 18) | (1 << 29); // Turn off LED2 and LED3
+
   while (1)
     {
       LPC_GPIO1 ->FIOPIN ^= (1 << 18) | (1 << 29); // Toggle LED2 and LED3
