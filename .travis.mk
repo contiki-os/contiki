@@ -50,7 +50,12 @@ EXCLUDE_avr_raven = ipv6/rpl-collect
 
 EXAMPLES_sky = $(EXAMPLES_most_non_native) sky-shell
 
-COOJA_TESTS  = tools/cooja/contiki_tests/*.csc
+COOJA_TESTS_DIR     = tools/cooja/contiki_tests
+COOJA_TESTS_ALL     = $(COOJA_TESTS_DIR)/*.csc
+## Some Cooja tests can also be excluded:
+EXCLUDE_COOJA_TESTS = servreg-hack.csc sky_coffee.csc rime_collect.csc rime_trickle.csc 
+## And some can also be marked:
+MARK_COOJA_TESTS    = crosslevel.csc ip_sky_telnet_ping.csc
 
 CT := \033[0;0m
 
@@ -78,8 +83,9 @@ endif
 
 ifeq ($(BUILD_TYPE),cooja)
 JAVA = java -mx512m
-THIS = $(SHELL) -c "cd `dirname $$e` && $(JAVA) -jar ../dist/cooja.jar -nogui=`basename $$e`" > $(LOG) 2>&1
-MINE = $(COOJA_TESTS)
+THIS = $(SHELL) -x -c "cd `dirname $$e` && $(JAVA) -jar ../dist/cooja.jar -nogui=`basename $$e`" > $(LOG) #2>&1
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), $(wildcard $(COOJA_TESTS_ALL)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
 endif
 
 LOG  = /tmp/$@_`echo $$e | sed 's:/:_:g'`.log
