@@ -43,11 +43,12 @@
 #include "LPC17xx.h"
 
 volatile uint32_t temp;
-void _delay(uint32_t del)
+void
+_delay(uint32_t del)
 {
-	uint32_t i;
-	for(i=0;i<del;i++)
-		temp = i;
+  uint32_t i;
+  for (i = 0; i < del; i++)
+    temp = i;
 }
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
@@ -55,20 +56,19 @@ AUTOSTART_PROCESSES(&hello_world_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(hello_world_process, ev, data)
 {
-  PROCESS_BEGIN();
+  PROCESS_BEGIN()
+  ;
 
-  LPC_SC->PCONP |= ( 1 << 15 ); // power up GPIO
-  LPC_GPIO1->FIODIR |= 1 << 29; // puts P1.29 into output
-  while (1) {
-    LPC_GPIO1->FIOPIN |= 1 << 29; // make P1.29 high
-    _delay( 1 << 24 );
-    LPC_GPIO1->FIOPIN &= ~( 1 << 29 ); // make P1.29 low
-    _delay( 1 << 24 );
-
-
-  }
+  LPC_SC ->PCONP |= (1 << 15); // power up GPIO
+  LPC_GPIO1 ->FIODIR |= (1 << 18) | (1 << 29); // puts P1.18(LED2) and P1.29(LED3) into output mode
+  LPC_GPIO1 ->FIOCLR |= (1 << 18) | (1 << 29); // Turn off LED2 and LED3
+  while (1)
+    {
+      LPC_GPIO1 ->FIOPIN ^= (1 << 18) | (1 << 29); // Toggle LED2 and LED3
+      _delay(1 << 24); //Delay loop, the poor man's timer
+    }
 //  printf("Hello, world\n");
-  
-  PROCESS_END();
+
+PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
