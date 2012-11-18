@@ -42,6 +42,28 @@
 #define vreg_init() default_vreg_init()
 #endif
 
+
+#ifndef GPIO_LED_RED
+#define GPIO_LED_RED   GPIO_40
+#endif
+#ifndef GPIO_LED_GREEN
+#define GPIO_LED_GREEN GPIO_41
+#endif
+#ifndef GPIO_LED_BLUE
+#define GPIO_LED_BLUE  GPIO_42
+#endif
+
+#ifndef LED_RED
+#define LED_RED   40
+#endif
+#ifndef LED_GREEN
+#define LED_GREEN 41
+#endif
+#ifndef LED_BLUE
+#define LED_BLUE  42
+#endif
+
+
 /* XTAL TUNE parameters */
 /* recommended defaults from the datasheet */
 

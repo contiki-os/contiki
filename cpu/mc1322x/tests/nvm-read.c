@@ -35,6 +35,7 @@
 
 #include <mc1322x.h>
 #include <board.h>
+#include <stdio.h>
 
 #include "tests.h"
 #include "config.h"
@@ -45,33 +46,43 @@ void main(void) {
 	uint32_t buf[READ_NBYTES/4];
 	uint32_t i;
 
-	uart_init(INC, MOD, SAMP);
+	uart_init(UART1, 115200);
 
 	print_welcome("nvm-read");
 
 	vreg_init();
+//	buck_init();
+	while(CRM->STATUSbits.VREG_1P5V_RDY == 0) { continue; }
+	while(CRM->STATUSbits.VREG_1P8V_RDY == 0) { continue; }
 
-	putstr("Detecting internal nvm\n\r");
+	printf("Sys cntl %08x\n\r",  (unsigned int)CRM->SYS_CNTL);
+	printf("vreg cntl %08x\n\r", (unsigned int)CRM->VREG_CNTL);
+	printf("crm status %08x\n\r", (unsigned int)CRM->STATUS);
 
-	err = nvm_detect(gNvmInternalInterface_c, &type);
+	if(NVM_INTERFACE == gNvmInternalInterface_c)
+	{
+		printf("Detecting internal nvm\n\r");
+	} else {
+		printf("Setting up gpio\r\n");
+		/* set SPI func */
+		GPIO->FUNC_SEL.GPIO_04 = 1;
+		GPIO->FUNC_SEL.GPIO_05 = 1;
+		GPIO->FUNC_SEL.GPIO_06 = 1;
+		GPIO->FUNC_SEL.GPIO_07 = 1;
+		printf("Detecting external nvm\n\r");
+	}
+
+	err = nvm_detect(NVM_INTERFACE, &type);
 		
-	putstr("nvm_detect returned: 0x");
-	put_hex(err);
-	putstr(" type is: 0x");
-	put_hex32(type);
-	putstr("\n\r");
+	printf("nvm_detect returned: 0x%02x type is: 0x%08x\r\n", err, (unsigned int)type);
 
 	nvm_setsvar(0);
 
-	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, READ_ADDR, READ_NBYTES);
-	putstr("nvm_read returned: 0x");
-	put_hex(err);
-	putstr("\n\r");
+	err = nvm_read(NVM_INTERFACE, type, (uint8_t *)buf, READ_ADDR, READ_NBYTES);
+	printf("nvm_read returned: 0x%02x\r\n", err);
 
-	for(i=0; i<READ_NBYTES/4; i++) {
-		putstr("0x");
-		put_hex32(buf[i]);
-		putstr("\n\r");
+	for(i=0; i<16/4; i++) {
+		printf("0x%08x\r\n", (unsigned int)buf[i]);
 	}
 		
 

@@ -36,18 +36,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-/* Baud rate */
-#define MOD 9999
-/*  230400 bps, INC=767, MOD=9999, 24Mhz 16x samp */
-/*  115200 bps, INC=767, MOD=9999, 24Mhz 8x samp */
-#define INC 767  
-/*  921600 bps, MOD=9999, 24Mhz 16x samp */
-//#define INC 3071 
-#define SAMP UCON_SAMP_8X
-//#define SAMP UCON_SAMP_16X
-
-/* use uart1 for console */
-#define uart_init uart1_init
+/* nvm interface */
+#define NVM_INTERFACE gNvmInternalInterface_c
+/*#define NVM_INTERFACE gNvmExternalInterface_c */
 
 /* nvm-read */
 #define READ_ADDR 0x1f000
