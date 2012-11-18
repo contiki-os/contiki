@@ -51,22 +51,23 @@ dlloader_load(char *path, char *arg)
   if(path == NULL || *path == '\0') {
     fprintf(stderr, "dlloader_load: bad name: %s\n", path);
     return LOADER_ERR_OPEN;
-  } 
+  }
 
   /* Load and link the program. */
   handle = dlopen(path, RTLD_NOW);
 
   fprintf(stderr, "Loading '%s'\n", path);
-  
+
   if(handle == NULL) {
     fprintf(stderr, "dlloader_load: loading failed: %s\n", dlerror());
     return LOADER_ERR_FMT;
-  } 
+  }
 
   /* Find the processes to be started from the loaded program. */
   p = dlsym(handle, "autostart_processes");
   if(p == NULL) {
-    fprintf(stderr, "dlloader_load: could not find symbol 'autostart_processes'\n");
+    fprintf(stderr,
+            "dlloader_load: could not find symbol 'autostart_processes'\n");
     return LOADER_ERR_FMT;
   }
 
@@ -80,7 +81,7 @@ dlloader_load(char *path, char *arg)
 void
 dlloader_unload(void *addr)
 {
-  /*XXX: cache handles ?*/
+  /*XXX: cache handles ? */
 }
 /*---------------------------------------------------------------------------*/
 struct dsc *
@@ -93,15 +94,17 @@ dlloader_load_dsc(char *name)
   if(name == NULL || *name == '\0') {
     fprintf(stderr, "dlloader_load_dsc: bad name: %s\n", name);
     return NULL;
-  } 
+  }
 
   /* Load and link the program. */
   handle = dlopen(name, RTLD_NOW);
   if(handle == NULL) {
-    char path[PATH_MAX+1];
-	if(getwd(path)) {
+    char path[PATH_MAX + 1];
+
+    if(getwd(path)) {
       size_t l = strlen(path);
-	  //strlcat(path, "/", PATH_MAX);
+
+      //strlcat(path, "/", PATH_MAX);
       //strlcat(path, name, PATH_MAX);
       snprintf(path + l, PATH_MAX - l, "/%s", name);
       handle = dlopen(path, RTLD_NOW);
@@ -109,19 +112,20 @@ dlloader_load_dsc(char *name)
   }
 
   fprintf(stderr, "Loading '%s'\n", name);
-  
+
   if(handle == NULL) {
     fprintf(stderr, "dll_loader_load_dsc: loading failed: %s\n", dlerror());
     return NULL;
-  } 
+  }
 
   strcpy(symbol, name);
-  if (*strchr(symbol, '.'))
+  if(*strchr(symbol, '.'))
     *strchr(symbol, '.') = '_';
 
   d = dlsym(handle, symbol);
   if(d == NULL) {
-    fprintf(stderr, "dll_loader_load_dsc: could not find symbol '%s'\n", symbol);
+    fprintf(stderr, "dll_loader_load_dsc: could not find symbol '%s'\n",
+            symbol);
     return NULL;
   }
 
@@ -134,8 +138,8 @@ dlloader_unload_dsc(void *addr)
   /* TODO: we can't use dladdr() for this, use a linked list */
   Dl_info info;
 
-  if (dladdr(addr, &info) != 0) {
-    ;/*dlclose(info.);*/
+  if(dladdr(addr, &info) != 0) {
+    ;                           /*dlclose(info.); */
   }
 }
 /*---------------------------------------------------------------------------*/
