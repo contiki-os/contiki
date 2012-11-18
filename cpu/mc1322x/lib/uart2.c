@@ -28,7 +28,7 @@
  * SUCH DAMAGE.
  *
  * This file is part of libmc1322x: see http://mc1322x.devl.org
- * for details.
+ * for details. 
  *
  *
  */
@@ -57,7 +57,7 @@ void uart2_isr(void) {
 				u2_rx_buf[u2_rx_tail]= *UART2_UDATA;
 				u2_rx_tail =  u2_rx_tail_next;
 			} else {  //buffer is full, flush the fifo
-				while (*UART2_URXCON !=0) if (*UART2_UDATA);
+				while (*UART2_URXCON !=0) { if (*UART2_UDATA) { } }
 			}
 		}
 		return;
@@ -73,12 +73,12 @@ void uart2_isr(void) {
 #endif
 			return;
 		}
-
 		*UART2_UDATA = u2_tx_buf[u2_tx_tail];
 		u2_tx_tail++;
 		if (u2_tx_tail >= sizeof(u2_tx_buf))
 			u2_tx_tail = 0;
 	}
+
 }
 
 void uart2_putc(char c) {
