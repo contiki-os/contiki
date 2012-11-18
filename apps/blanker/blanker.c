@@ -40,15 +40,6 @@
 
 #define SAVER_TIMER CLOCK_SECOND / 2
 
-/*
-static struct ctk_window blankerdialog;
-static struct ctk_label blankerlabel1 =
-  {CTK_LABEL(2, 0, 28, 1, "Save the planet!")};
-
-static struct ctk_button blankerclose =
-  {CTK_BUTTON(12, 8, 5, "Close")};
-*/
-
 static char menu_names[][6] = { " Text", "", " 30s", " 1m", " 2m", " 5m" };
 static struct ctk_menu menu;
 unsigned char menuitem_setup, menuitem_quit;
@@ -70,8 +61,6 @@ blanker_stop(void)
 {
   etimer_stop(&periodic);
   ctk_restore();
-  //ctk_desktop_redraw(NULL);
-  //ctk_dialog_close();
 }
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -115,7 +104,6 @@ PROCESS_THREAD(blanker_process, ev, data)
   height -= 1;
   x = width / 2;
   y = height / 2;
-  ctk_screensaver_timeout = 10; /* XXX: for testing */
 
   ctk_menu_new(&menu, "Blanker");
   for (i = 0; i < 6; i++)
@@ -125,23 +113,18 @@ PROCESS_THREAD(blanker_process, ev, data)
 
   while(1) {
     PROCESS_WAIT_EVENT();
-fprintf(stderr, "mode: %d\n", ctk_mode_get());
     if(ev == PROCESS_EVENT_TIMER) {
       if(ctk_mode_get() == CTK_MODE_SCREENSAVER) {
-        fprintf(stderr, "saver timer\n");
         blanker_update();
         etimer_reset(&periodic);
       }
     } else if(ev == ctk_signal_screensaver_start) {
-	  fprintf(stderr, "saver start\n");
       /* XXX: shouldn't CTK set the mode itself? */
       ctk_mode_set(CTK_MODE_SCREENSAVER);
       etimer_set(&periodic, SAVER_TIMER);
     } else if(ev == ctk_signal_screensaver_stop) {
-	  fprintf(stderr, "saver stop\n");
       blanker_stop();
     } else if(ev == PROCESS_EVENT_EXIT) {
-	  fprintf(stderr, "saver quit\n");
       blanker_quit();
       PROCESS_EXIT();
     }
