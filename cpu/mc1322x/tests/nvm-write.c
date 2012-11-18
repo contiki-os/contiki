@@ -35,6 +35,7 @@
 
 #include <mc1322x.h>
 #include <board.h>
+#include <stdio.h>
 
 #include "tests.h"
 #include "config.h"
@@ -45,52 +46,50 @@ void main(void) {
 	uint32_t buf[WRITE_NBYTES/4];
 	uint32_t i;
 
-	uart_init(INC, MOD, SAMP);
+	uart_init(UART1, 115200);
 
 	print_welcome("nvm-write");
 
 	vreg_init();
 
-	putstr("Detecting internal nvm\n\r");
+	if(NVM_INTERFACE == gNvmInternalInterface_c)
+	{
+		printf("Detecting internal nvm\n\r");
+	} else {
+		printf("Setting up gpio\r\n");
+		/* set SPI func */
+		GPIO->FUNC_SEL.GPIO_04 = 1;
+		GPIO->FUNC_SEL.GPIO_05 = 1;
+		GPIO->FUNC_SEL.GPIO_06 = 1;
+		GPIO->FUNC_SEL.GPIO_07 = 1;
+		printf("Detecting external nvm\n\r");
+	}
 
-	err = nvm_detect(gNvmInternalInterface_c, &type);
+	err = nvm_detect(NVM_INTERFACE, &type);
 		
-	putstr("nvm_detect returned: 0x");
-	put_hex(err);
-	putstr(" type is: 0x");
-	put_hex32(type);
-	putstr("\n\r");
-
+	printf("nvm_detect returned: 0x%02x type is: 0x%08x\r\n", err, (unsigned int)type);
 
 	buf[0] = WRITEVAL0;
 	buf[1] = WRITEVAL1;
 
-	err = nvm_erase(gNvmInternalInterface_c, type, 0x40000000); /* erase sector 30 --- sector 31 is the 'secret zone' */
-	putstr("nvm_erase returned: 0x");
-	put_hex(err);
-	putstr("\n\r");
+	err = nvm_erase(NVM_INTERFACE, type, 1 << WRITE_ADDR/4096);
+	printf("nvm_erase returned: 0x%02x\r\n", err);
 
-	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)buf, WRITE_ADDR, WRITE_NBYTES);
-	putstr("nvm_write returned: 0x");
-	put_hex(err);
-	putstr("\n\r");
-	putstr("writing\n\r");
+	err = nvm_write(NVM_INTERFACE, type, (uint8_t *)buf, WRITE_ADDR, WRITE_NBYTES);
+	printf("nvm_write returned: 0x%02x\r\n", err);
+
+	printf("writing\n\r");
 	for(i=0; i<WRITE_NBYTES/4; i++) {
-		putstr("0x");
-		put_hex32(buf[i]);
-		putstr("\n\r");
+		printf("0x%08x\r\n", (unsigned int)buf[i]);
 		buf[i] = 0x00000000; /* clear buf for the read */
 	}
 
-	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, WRITE_ADDR, WRITE_NBYTES);
-	putstr("nvm_read returned: 0x");
-	put_hex(err);
-	putstr("\n\r");
-	putstr("reading\n\r");
+	err = nvm_read(NVM_INTERFACE, type, (uint8_t *)buf, WRITE_ADDR, WRITE_NBYTES);
+	printf("nvm_read returned: 0x%02x\r\n", err);
+
+	printf("reading\r\n");
 	for(i=0; i<WRITE_NBYTES/4; i++) {
-		putstr("0x");
-		put_hex32(buf[i]);
-		putstr("\n\r");
+		printf("0x%08x\r\n", (unsigned int)buf[i]);
 	}
 		
 
