@@ -12,3 +12,16 @@ Makefile.target
 doc/html
 patches-*
 tools/tunslip6
+build
+tools/coffee-manager/build/
+tools/cooja/dist/
+tools/collect-view/build/
+tools/collect-view/dist/
+COOJA.testlog
+tools/cooja/apps/mrm/lib/
+tools/cooja/apps/mspsim/lib/
+tools/cooja/apps/powertracker/lib/
+tools/cooja/apps/serial_socket/lib/
+tools/coffee-manager/coffee.jar
+tools/cooja/apps/avrora/lib/cooja_avrora.jar
+tools/cooja/apps/collect-view/cooja-collect-view.jar
