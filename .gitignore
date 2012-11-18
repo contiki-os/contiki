@@ -6,6 +6,10 @@
 *.elf
 *.ihex
 *.pyc
+*.sky 
+*.redbee-econotag
+*.econotag 
+*.native
 obj_*
 symbols.*
 Makefile.target
