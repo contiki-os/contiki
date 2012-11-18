@@ -45,96 +45,27 @@ void default_vreg_init(void) {
 	*CRM_VREG_CNTL = 0x00000ff8; /* start the regulators */
 }
 
-void uart1_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t samp) {
-
-        /* UART must be disabled to set the baudrate */
-	UART1->CON = 0;
-	
-	UART1->BR = ( inc << 16 ) | mod;
-
-	/* TX and CTS as outputs */
-	GPIO->PAD_DIR_SET.GPIO_14 = 1;
-	GPIO->PAD_DIR_SET.GPIO_16 = 1;
-		
-	/* RX and RTS as inputs */
-	GPIO->PAD_DIR_RESET.GPIO_15 = 1;
-	GPIO->PAD_DIR_RESET.GPIO_17 = 1;
-
-	/* see Section 11.5.1.2 Alternate Modes */
-	/* you must enable the peripheral first BEFORE setting the function in GPIO_FUNC_SEL */
-	/* From the datasheet: "The peripheral function will control operation of the pad IF */
-	/* THE PERIPHERAL IS ENABLED. */
-
-#if UART1_RX_BUFFERSIZE > 32
-	*UART1_UCON = (1 << 0) | (1 << 1) ;	/* enable receive, transmit, and both interrupts */
-	*UART1_URXCON = 30;					/* interrupt when fifo is nearly full */
-	u1_rx_head = 0; u1_rx_tail = 0;
-#elif UART1_RX_BUFFERSIZE < 32			/* enable receive, transmit, flow control, disable rx interrupt */
-	*UART1_UCON = (1 << 0) | (1 << 1) | (1 << 12) | (1 << 14); 
-	*UART1_UCTS = UART1_RX_BUFFERSIZE;  /* drop cts when tx buffer at trigger level */
-	*GPIO_FUNC_SEL1 = ( (0x01 << (0*2)) | (0x01 << (1*2)) ); /* set GPIO17-16 to UART1 CTS and RTS */
-#else 
-	*UART1_UCON = (1 << 0) | (1 << 1) | (1 << 14); /* enable receive, transmit, disable rx interrupt */
-#endif
-
-	if(samp == UCON_SAMP_16X) 
-		set_bit(*UART1_UCON,UCON_SAMP);
-
-	/* set GPIO15-14 to UART (UART1 TX and RX)*/
-	GPIO->FUNC_SEL.GPIO_14 = 1;
-	GPIO->FUNC_SEL.GPIO_15 = 1;
-       
-	/* interrupt when there are this number or more bytes free in the TX buffer*/
-	UART1->TXCON = 16;
-	u1_tx_head = 0; u1_tx_tail = 0;
-
-	/* enable UART1 interrupts in the interrupt controller */
-	enable_irq(UART1);
+void buck_init(void) {
+	CRM->SYS_CNTLbits.PWR_SOURCE = 1;
+	CRM->VREG_CNTLbits.BUCK_SYNC_REC_EN = 1;
+	CRM->VREG_CNTLbits.BUCK_BYPASS_EN = 0;
+	CRM->VREG_CNTLbits.BUCK_EN = 1;
+	while(CRM->STATUSbits.VREG_BUCK_RDY == 0) { continue; }
+	CRM->VREG_CNTLbits.VREG_1P5V_SEL = 3;
+	CRM->VREG_CNTLbits.VREG_1P5V_EN = 3;
+	CRM->VREG_CNTLbits.VREG_1P8V_EN = 1;
+	while(CRM->STATUSbits.VREG_1P5V_RDY == 0) { continue; }
+	while(CRM->STATUSbits.VREG_1P8V_RDY == 0) { continue; }
 }
 
-void uart2_init(volatile uint16_t inc, volatile uint16_t mod, volatile uint8_t samp) {
-
-        /* UART must be disabled to set the baudrate */
-	UART2->CON = 0;
-	
-	UART2->BR = ( inc << 16 ) | mod;
-
-	/* TX and CTS as outputs */
-	GPIO->PAD_DIR_SET.GPIO_18 = 1;
-	GPIO->PAD_DIR_SET.GPIO_20 = 1;
-		
-	/* RX and RTS as inputs */
-	GPIO->PAD_DIR_RESET.GPIO_19 = 1;
-	GPIO->PAD_DIR_RESET.GPIO_21 = 1;
-
-	/* see Section 11.5.1.2 Alternate Modes */
-	/* you must enable the peripheral first BEFORE setting the function in GPIO_FUNC_SEL */
-	/* From the datasheet: "The peripheral function will control operation of the pad IF */
-	/* THE PERIPHERAL IS ENABLED. */
-
-#if UART2_RX_BUFFERSIZE > 32
-	*UART2_UCON = (1 << 0) | (1 << 1) ;	/* enable receive, transmit, and both interrupts */
-	*UART2_URXCON = 30;					/* interrupt when fifo is nearly full */
-	u2_rx_head = 0; u2_rx_tail = 0;
-#elif UART2_RX_BUFFERSIZE < 32			/* enable receive, transmit, disable flow control, disable rx interrupt */
-	*UART2_UCON = (1 << 0) | (1 << 1) | (0 << 12) | (1 << 14);
-	*UART2_UCTS = UART2_RX_BUFFERSIZE;  /* drop cts when tx buffer at trigger level */
-	*GPIO_FUNC_SEL1 = ( (0x01 << (0*2)) | (0x01 << (1*2)) ); /* set GPIO17-16 to UART2 CTS and RTS */
-#else 
-	*UART2_UCON = (1 << 0) | (1 << 1) | (1 << 14); /* enable receive, transmit, disable rx interrupt */
-#endif
-
-	if(samp == UCON_SAMP_16X) 
-		set_bit(*UART2_UCON,UCON_SAMP);
-
-	/* set GPIO15-14 to UART (UART2 TX and RX)*/
-	GPIO->FUNC_SEL.GPIO_18 = 1;
-	GPIO->FUNC_SEL.GPIO_19 = 1;
-
-	/* interrupt when there are this number or more bytes free in the TX buffer*/
-	UART2->TXCON = 16;
-	u2_tx_head = 0; u2_tx_tail = 0;
-
-	/* enable UART2 interrupts in the interrupt controller */
-	enable_irq(UART2);
+void m12_init(void) {
+	/* configure pullups for low power */
+	GPIO->FUNC_SEL.GPIO_63 = 3;
+	GPIO->PAD_PU_SEL.GPIO_63 = 0;
+	GPIO->FUNC_SEL.SS = 3;
+	GPIO->PAD_PU_SEL.SS = 1;
+	GPIO->FUNC_SEL.VREF2H = 3;
+	GPIO->PAD_PU_SEL.VREF2H = 1;
+	GPIO->FUNC_SEL.U1RTS = 3;
+	GPIO->PAD_PU_SEL.U1RTS = 1;
 }

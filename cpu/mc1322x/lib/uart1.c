@@ -57,7 +57,7 @@ void uart1_isr(void) {
 				u1_rx_buf[u1_rx_tail]= *UART1_UDATA;
 				u1_rx_tail =  u1_rx_tail_next;
 			} else { //buffer is full, flush the fifo
-				while (*UART1_URXCON !=0) if (*UART1_UDATA);
+				while (*UART1_URXCON !=0) { if (*UART1_UDATA) { } }
 			}
 		}
 		return;

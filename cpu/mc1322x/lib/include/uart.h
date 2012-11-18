@@ -46,71 +46,71 @@ struct UART_struct {
 	union {
 		uint32_t CON;
 		struct UART_CON {
-           		uint32_t :16;
-			uint32_t TST:1;
-			uint32_t MRXR:1;
-			uint32_t MTXR:1;
-			uint32_t FCE:1;
-			uint32_t FCP:1;
-			uint32_t XTIM:1;
-			uint32_t :2;
-			uint32_t TXOENB:1;
-			uint32_t CONTX:1;
-			uint32_t SB:1;
-			uint32_t ST2:1;
-			uint32_t EP:1;
-			uint32_t PEN:1;
-			uint32_t RXE:1;
 			uint32_t TXE:1;
+			uint32_t RXE:1;
+			uint32_t PEN:1;
+			uint32_t EP:1;
+			uint32_t ST2:1;
+			uint32_t SB:1;
+			uint32_t CONTX:1;
+			uint32_t TXOENB:1;
+			uint32_t :2;
+			uint32_t XTIM:1;
+			uint32_t FCP:1;
+			uint32_t FCE:1;
+			uint32_t MTXR:1;
+			uint32_t MRXR:1;
+			uint32_t TST:1;
+			uint32_t :16;
 		} CONbits;
 	};
 	union {
 		uint32_t STAT;
 		struct UART_STAT {
-           		uint32_t :24;
-			uint32_t TXRDY:1;
-			uint32_t RXRDY:1;
-			uint32_t RUE:1;
-			uint32_t ROE:1;
-			uint32_t TOE:1;
-			uint32_t FE:1;
-			uint32_t PE:1;
 			uint32_t SE:1;
+			uint32_t PE:1;
+			uint32_t FE:1;
+			uint32_t TOE:1;
+			uint32_t ROE:1;
+			uint32_t RUE:1;
+			uint32_t RXRDY:1;
+			uint32_t TXRDY:1;
+			uint32_t :24;
 		} USTATbits;
 	};
 	union {
 		uint32_t DATA;
 		struct UART_DATA {
-           		uint32_t :24;
 			uint32_t DATA:8;
+			uint32_t :24;
 		} DATAbits;
 	};
 	union {
 		uint32_t RXCON;
 		struct UART_URXCON {
-                        uint32_t :26;
                         uint32_t LVL:6;
+			uint32_t :26;
 		} RXCONbits;
 	};
 	union {
 		uint32_t TXCON;
 		struct UART_TXCON {
-                        uint32_t :26;
 			uint32_t LVL:6;
+			uint32_t :26;
 		} TXCONbits;
 	};
 	union {
 		uint32_t CTS;
 		struct UART_CTS {
-           		uint32_t :27;
 			uint32_t LVL:5;
+			uint32_t :27;
 		} CTSbits;
 	};
 	union {
 		uint32_t BR;
 		struct UART_BR {
-           		uint32_t INC:16;
 			uint32_t MOD:16;
+			uint32_t INC:16;
 		} BRbits;
 	};
 };
@@ -152,6 +152,11 @@ static volatile struct UART_struct * const UART2 = (void *) (UART2_BASE);
 
 #endif /* REG_NO_COMPAT */
 
+void uart_init(volatile struct UART_struct * uart, uint32_t baud);
+void uart_setbaud(volatile struct UART_struct * uart, uint32_t baud);
+void uart_flowctl(volatile struct UART_struct * uart, uint8_t on);
+
+
 /* The mc1322x has a 32 byte hardware FIFO for transmitted characters.
  * Currently it is always filled from a larger RAM buffer. It would be
  * possible to eliminate that overhead by filling directly from a chain
@@ -192,3 +197,4 @@ extern volatile uint32_t  u2_rx_head, u2_rx_tail;
 uint8_t uart2_getc(void);
 
 #endif
+
