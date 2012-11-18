@@ -43,8 +43,6 @@
 void default_vreg_init(void);
 void buck_init(void);
 void m12_init(void);
-void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp);
-void uart2_init(uint16_t inc, uint16_t mod, uint8_t samp);
 
 void irq_register_timer_handler(int timer, void (*isr)(void));
 
