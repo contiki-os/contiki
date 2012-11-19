@@ -39,7 +39,8 @@
 #include "contiki.h"
 #include "ctk/ctk.h"
 
-/* XXX:unfinished */
+/* TODO: Fix wrong calculation: the seconds dot disappears sometimes */
+/* TODO: Add hours and minutes dots (and remove seconds?) */
 /*#define ANALOG*/
 
 static struct ctk_window window;
