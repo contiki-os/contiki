@@ -29,9 +29,9 @@
 
 /**
  * \file
- *	An binary maximum heap for data indexing over flash memory.
+ *     MaxHeap - A binary maximum heap index for flash memory.
  *
- *     The idea behind this method is to write entries sequentially 
+ *     The idea behind the MaxHeap index is to write entries sequentially 
  *     into small buckets, which are indexed in a binary maximum heap. 
  *     Although sequential writes make the entries unsorted within a 
  *     bucket, the time to load and scan a single bucket is small. The 
@@ -114,6 +114,7 @@ struct bucket_cache {
   bucket_t bucket;
 };
 
+/* Keep a cache of buckets read from storage. */
 static struct bucket_cache bucket_cache[DB_HEAP_CACHE_LIMIT];
 MEMB(heaps, heap_t, DB_HEAP_INDEX_LIMIT);
 
@@ -504,7 +505,7 @@ create(index_t *index)
   bucket_filename[0] = '\0';
 
   /* Generate the heap file, which is the main index file that is
-     inserted into the metadata of the relation. */
+     referenced from the metadata of the relation. */
   filename = storage_generate_file("heap",
 				   (unsigned long)NODE_LIMIT * sizeof(heap_node_t));
   if(filename == NULL) {
@@ -693,7 +694,8 @@ get_next(index_iterator_t *iterator)
     cache.found_items = cache.start = 0;
     cache.index_iterator = iterator;
 
-    /* Find a path of heap nodes which can contain the key. */
+    /* Find the downward path through the heap consisting of all nodes
+       that could possibly contain the key. */
     for(i = tmp_heap_iterator = 0; i < NODE_DEPTH; i++) {
       cache.visited_buckets[i] = heap_find(heap, key, &tmp_heap_iterator);
       if(cache.visited_buckets[i] < 0) {
@@ -706,7 +708,8 @@ get_next(index_iterator_t *iterator)
 
   /*
    * Search for the key in each heap node, starting from the bottom
-   * of the heap. There is a much higher chance that the key will be
+   * of the heap. Because the bottom nodes contain are very narrow 
+   * range of keys, there is a much higher chance that the key will be
    * there rather than at the top.
    */
   for(; cache.heap_iterator >= 0; cache.heap_iterator--) {
@@ -719,8 +722,8 @@ get_next(index_iterator_t *iterator)
       return INVALID_TUPLE;
     }
 
-    /* Compare the key against the bucket_ids in the bucket sequentially because
-       they are placed in arbitrary order. */
+    /* Because keys are stored in an unsorted order in the bucket, we
+     * need to search the bucket sequentially. */
     next_free_slot = heap->next_free_slot[bucket_id];
     for(i = cache.start; i < next_free_slot; i++) {
       if(bcache->bucket.pairs[i].key == key) {
