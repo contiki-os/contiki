@@ -555,7 +555,7 @@ PARSER(remove_from)
 
   /* Use a temporary persistent relation to assign the query result to. */
   AQL_SET_FLAG(adt, AQL_FLAG_ASSIGN);
-  AQL_ADD_RELATION(adt, TEMP_RELATION);
+  AQL_ADD_RELATION(adt, REMOVE_RELATION);
 
   CONSUME(IDENTIFIER);
   AQL_ADD_RELATION(adt, VALUE);

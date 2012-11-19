@@ -130,7 +130,7 @@ db_print_tuple(db_handle_t *handle)
       output("Unable to get the value for row %lu, column %u: %s\n",
              (unsigned long)handle->current_row, column,
              db_get_result_message(result));
-      break;
+      return result;
     }
 
     switch(value.domain) {
