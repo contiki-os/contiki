@@ -25,7 +25,7 @@ EXAMPLES_most_non_native = \
 	ipv6/slip-radio \
 	webserver-ipv6
 
-EXAMPLES_redbee_econotag = $(EXAMPLES_most_non_native)
+EXAMPLES_econotag = $(EXAMPLES_most_non_native)
 
 EXAMPLES_most_avr  = $(EXAMPLES_most_non_native)
 
