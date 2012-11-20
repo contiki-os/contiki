@@ -39,7 +39,7 @@
 #include "lib/memb.h"
 #include "lib/list.h"
 #include "dev/leds.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 
 #include <string.h>
 #include <stdio.h>
