@@ -7,8 +7,10 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 # for static routing, if enabled
 ifneq ($(TARGET), minimal-net)
 ifneq ($(TARGET), native)
+ifneq ($(TARGET), econotag)
 ifneq ($(findstring avr,$(TARGET)), avr)
 PROJECT_SOURCEFILES += static-routing.c
+endif
 endif
 endif
 endif
