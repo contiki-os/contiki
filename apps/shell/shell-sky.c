@@ -52,7 +52,7 @@
 #include "dev/sht11-sensor.h"
 #include "net/rime/timesynch.h"
 
-#include "node-id.h"
+#include "sys/node-id.h"
 
 #include <stdio.h>
 #include <string.h>

@@ -21,7 +21,7 @@
 #endif
 
 #include "contiki-net.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 
 int node_rank;
 
