@@ -41,7 +41,7 @@
 #include "contiki-net.h"
 #include "uip.h"
 #include "net/rpl/rpl.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "servreg-hack.h"
 
 #include "cfs/cfs.h"

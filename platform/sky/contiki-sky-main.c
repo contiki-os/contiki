@@ -49,7 +49,7 @@
 
 #include "net/rime.h"
 
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "cfs-coffee-arch.h"
 #include "cfs/cfs-coffee.h"
 #include "sys/autostart.h"
