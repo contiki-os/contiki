@@ -174,14 +174,14 @@ void rtc_calibrate(void)
 
 #define TIMEOUT 100  /* 50 msec per attempt */
 
-	for (i = 0; i < 9; i++)
+	for (i = 0; i < 16; i++)
 	{
 		mid = (low + high) / 2;
 		count = __rtc_try(mid, TIMEOUT);
 		// careful about overflow
 		rtc_freq = REF_OSC / ((count + TIMEOUT/2) / TIMEOUT);
 
-		if (rtc_freq > 2000)
+		if (rtc_freq > 2048)
 			low = mid;  // increase loading
 		else
 			high = mid; // decrease loading
