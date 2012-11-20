@@ -46,7 +46,7 @@
 #include "dev/serial-line.h"
 #include "dev/slip.h"
 
-#include "node-id.h"
+#include "sys/node-id.h"
 
 #include "dev/vib-sensor.h"
 #include "dev/pir-sensor.h"
@@ -63,7 +63,7 @@
 
 #include "dev/leds.h"
 
-#include "node-id.h"
+#include "sys/node-id.h"
 
 void msp430_cpu_init(void);
 void init_lowlevel(void);

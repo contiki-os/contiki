@@ -30,7 +30,7 @@
  *
  */
 
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "dev/infomem.h"
 
 uint16_t node_id = 0;

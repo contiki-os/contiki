@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "net/rime.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 
 #include <stdio.h>
 

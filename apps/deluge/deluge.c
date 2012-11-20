@@ -46,7 +46,7 @@
 #include "loader/elfloader.h"
 #include "lib/crc16.h"
 #include "lib/random.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "deluge.h"
 
 #if NETSIM

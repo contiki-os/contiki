@@ -58,7 +58,7 @@
 #include "dev/pir-sensor.h"
 #include "dev/vib-sensor.h"
 
-#include "node-id.h"
+#include "sys/node-id.h"
 
 
 /* JNI-defined functions, depends on the environment variable CLASSNAME */
