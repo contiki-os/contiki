@@ -37,8 +37,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class CoffeeFS {
-	private CoffeeImage image;
-	private CoffeeConfiguration conf;
+	private final CoffeeImage image;
+	private final CoffeeConfiguration conf;
 	private int currentPage;
 	private Map<String, CoffeeFile> files;
 	private static final int INVALID_PAGE = -1;
@@ -129,27 +129,24 @@ public class CoffeeFS {
         }
         
 	public CoffeeFile insertFile(File file) throws IOException {
-		CoffeeFile coffeeFile;
-		try {
-			FileInputStream input = new FileInputStream(file);
-			int allocatePages = pageCount(file.length());
-			int start = findFreeExtent(allocatePages);
+	    CoffeeFile coffeeFile;
+	    FileInputStream input = new FileInputStream(file);
+	    int allocatePages = pageCount(file.length());
+	    int start = findFreeExtent(allocatePages);
 
-			if (start == INVALID_PAGE) {
-				return null;
-			}
-			CoffeeHeader header = new CoffeeHeader(this, start);
-			header.setName(file.getName());
-			header.setReservedSize(allocatePages);
-			header.allocate();
-			coffeeFile = new CoffeeFile(this, header);
-			writeHeader(header);
-			coffeeFile.insertContents(input);
-			input.close();
-			return coffeeFile;
-		} catch (FileNotFoundException e) {
-		}
-		return null;
+	    if (start == INVALID_PAGE) {
+	        input.close();
+	        return null;
+	    }
+	    CoffeeHeader header = new CoffeeHeader(this, start);
+	    header.setName(file.getName());
+	    header.setReservedSize(allocatePages);
+	    header.allocate();
+	    coffeeFile = new CoffeeFile(this, header);
+	    writeHeader(header);
+	    coffeeFile.insertContents(input);
+	    input.close();
+	    return coffeeFile;
 	}
 
 	public void removeFile(String filename)
