@@ -10,7 +10,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/mc1322x
 
 CONTIKI_CPU_DIRS = . lib src board dev ../arm/common/dbg-io
 
-MC1322X = debug-uart.c rtimer-arch.c watchdog.c contiki-crm.c contiki-maca.c contiki-misc.c leds-arch.c leds.c contiki-uart.c slip-uart1.c
+MC1322X = debug-uart.c rtimer-arch.c watchdog.c contiki-crm.c contiki-maca.c contiki-misc.c leds-arch.c leds.c contiki-uart.c slip-uart1.c init.c config.c
 
 DBG_IO = dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 

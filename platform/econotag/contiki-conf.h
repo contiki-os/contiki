@@ -36,12 +36,11 @@
 
 /**
  * \file
- *         Configuration for MC1322x hobby board based on 
- *         Configuration for sample STK 501 Contiki kernel
+ *         Configuration for Econotag
  *
  * \author
- *         Originial by:
- *         Simon Barner <barner@in.tum.de
+ *         Original by:
+ *         Simon Barner <barner@in.tum.de>
  *         This version by:
  *         Mariano Alvira <mar@devl.org>
  */
@@ -51,46 +50,45 @@
 
 #include <stdint.h>
 
-#define PLATFORM_NAME  "Econotag"
-#define PLATFORM_TYPE  MC1322X
 /* mc1322x files */
 #include "contiki-mc1322x-conf.h"
-/* this is from cpu/mc1322x/board */
-#include "redbee-econotag.h"
+
+/* Econotag I tune parameters */
+#define ECONOTAG_CTUNE_4PF 1
+/* Coarse tune: add 0-15 pf (CTUNE is 4 bits) */
+#define ECONOTAG_CTUNE 11
+/* Fine tune: add FTUNE * 156fF (FTUNE is 5bits) */
+#define ECONOTAG_FTUNE 7
+
+/* M12 tune parameters */
+#define M12_CTUNE_4PF 1
+#define M12_CTUNE 3
+#define M12_FTUNE 3
+
+/* the econotag platform will correctly detect an Econotag I (no M12) vs. Econotag II (w/M12) */
+/* and trim the main crystal accordingly */
+/* this detection will be incorrect if you populate the 32.768kHz crystal on the Econotag I */
+/* In that case, you should FORCE_ECONOTAG_I below */
+#define FORCE_ECONOTAG_I 0
+
+/* if you define a serial number then it will be used to comput the mac address */
+/* otherwise, a random mac address in the Redwire development IAB will be used */
+/* #define M12_CONF_SERIAL 0x000000 */
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 100
-/* set to 1 to toggle the green led ever second */
-/* FIXME setting this will break the sensor button (and other gpio) */
-/* since leds_arch hits the entire gpio_data */
-#define BLINK_SECONDS 0
-/* Set to 1 to sample an ADC channel every second, 9 second refresh */
-/* Set >1 to sample an ADC channel every tick, 90 msec refresh  */
-#define CLOCK_CONF_SAMPLEADC 1
 
 #define CCIF
 #define CLIF
 
-/* Baud rate */
-#define BRMOD 9999
-/*  230400 bps, INC=767, MOD=9999, 24Mhz 16x samp */
-/*  115200 bps, INC=767, MOD=9999, 24Mhz 8x samp */
-#define BRINC 767  
-/*  921600 bps, MOD=9999, 24Mhz 16x samp */
-//#define BRINC 3071 
-#define SAMP UCON_SAMP_8X
-//#define SAMP UCON_SAMP_16X
-
 #define CONSOLE_UART UART1
 #define CONSOLE_BAUD 115200
 
-//#define uart_init uart1_init
 #define dbg_putchar(x) uart1_putc(x)
 
 #define USE_FORMATTED_STDIO         1
 #define MACA_DEBUG                  0
 #define CONTIKI_MACA_RAW_MODE       0
-#define USE_32KHZ_XTAL              0
 
 #define BLOCKING_TX 1
 #define MACA_AUTOACK 1
@@ -114,21 +112,10 @@ typedef unsigned long rtimer_clock_t;
 
 #define RIMEADDR_CONF_SIZE              8
 
-/* EUI64 generation */
-/* Organizationally Unique Identifier */
-#define OUI 0xacde48     /* if IAB is defined then OUI = 0x0050C2 */
-#define IAB 0xA8C        /* IAB 0xA8C for use on Redwire products only */
-//#undef IAB               /* do not define an IAB if you are using a full OUI */
-//#define EXT_ID 0xdef123  /* lower 12-bits used if IAB is defined */ 
-#undef  EXT_ID           /* if an extention id is not defined then one will be generated randomly */
-
-#define FLASH_BLANK_ADDR /* if defined then the generated rime address will flashed */
-
 #if WITH_UIP6
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #define NETSTACK_CONF_MAC     nullmac_driver 
-/*#define NETSTACK_CONF_RDC     contikimac_driver*/ /* contikimac for redbee hasn't been well tested */
 #define NETSTACK_CONF_RDC     nullrdc_driver
 #define NETSTACK_CONF_RADIO   contiki_maca_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
@@ -235,7 +222,7 @@ typedef unsigned long rtimer_clock_t;
 
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0
-#define UIP_CONF_RECEIVE_WINDOW  300
+#define UIP_CONF_RECEIVE_WINDOW  48
 #define UIP_CONF_TCP_MSS         48
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 8
