@@ -50,7 +50,7 @@
 #include "sys/autostart.h"
 #include "sys/profile.h"
 
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "lcd.h"
 #include "duty-cycle-scroller.h"
 

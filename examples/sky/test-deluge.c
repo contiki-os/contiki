@@ -40,7 +40,7 @@
 #include "contiki.h"
 #include "cfs/cfs.h"
 #include "deluge.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 
 #include <stdio.h>
 #include <string.h>

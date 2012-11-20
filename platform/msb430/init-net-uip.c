@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "dev/slip.h"
 #include "dev/cc1020-uip.h"
 #include "contiki-msb430.h"
