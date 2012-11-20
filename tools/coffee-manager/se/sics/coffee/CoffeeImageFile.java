@@ -44,7 +44,7 @@ public class CoffeeImageFile implements CoffeeImage {
 		imageFile = new RandomAccessFile(filename, "rw");
 		if (imageFile.length() == 0) {
 			// Allocate a full file system image.
-			imageFile.setLength(conf.fsSize);
+			imageFile.setLength(conf.startOffset + conf.fsSize);
 		}
 	}
 
@@ -59,13 +59,13 @@ public class CoffeeImageFile implements CoffeeImage {
 		imageFile.read(bytes, 0, size);
 	}
 
-        @Override
+	@Override
 	public void write(byte[] bytes, int size, int offset) throws IOException {
 		imageFile.seek(conf.startOffset + offset);
 		imageFile.write(bytes, 0, size);
 	}
 
-        @Override
+	@Override
 	public void erase(int size, int offset) throws IOException {
 		byte[] bytes = new byte[256];
 		int chunkSize;
