@@ -67,6 +67,8 @@
 #define PRINTF(...)
 #endif
 
+extern unsigned char node_mac[8];
+
 //SENSORS(&button_sensor);
 /*---------------------------------------------------------------------------*/
 #ifndef RF_CHANNEL
