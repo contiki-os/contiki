@@ -29,8 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: clock.c,v 1.4 2008/02/08 22:48:28 oliverschmidt Exp $
- *
  */
 
 #include <string.h>

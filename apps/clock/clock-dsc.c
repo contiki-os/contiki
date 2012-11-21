@@ -29,8 +29,6 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: clock-dsc.c,v 1.3 2007/09/06 01:36:12 matsutsuka Exp $
- *
  */
 
 #include "sys/dsc.h"
