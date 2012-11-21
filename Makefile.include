@@ -228,10 +228,10 @@ ifndef CUSTOM_RULE_LINK
 endif
 
 %.ramprof: %.$(TARGET)
-	nm -S -td --size-sort $< | grep -i " [abdrw] " | cut -d' ' -f2,4
+	$(NM) -S -td --size-sort $< | grep -i " [abdrw] " | cut -d' ' -f2,4
 
 %.flashprof: %.$(TARGET)
-	nm -S -td --size-sort $< | grep -i " [t] " | cut -d' ' -f2,4
+	$(NM) -S -td --size-sort $< | grep -i " [t] " | cut -d' ' -f2,4
 
 # Don't treat %.$(TARGET) as an intermediate file because it is
 # in fact the primary target.
