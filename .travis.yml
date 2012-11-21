@@ -5,11 +5,11 @@ before_script:
   - "sudo apt-get -qq install gcc-msp430 || true"
   - "sudo apt-get -qq install gcc-avr avr-libc || true"
   ## Install toolchain for mc1233x in care-free way
-  - "[ $BUILD_TYPE = multi ] && curl -s \
+  - "[ $BUILD_TYPE = compile ] && curl -s \
        https://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
          | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version || true"
   ## Compile cooja.jar only when it's going to be needed
-  - "[ $BUILD_TYPE = cooja ] && java -version && ant -q -f tools/cooja/build.xml jar || true"
+  - "[ $MAKE_TARGETS = cooja ] && java -version && ant -q -f tools/cooja/build.xml jar || true"
 
   ## IMPORTANT: The commands here have to end with `|| true`,
   ## because it would make the test fail if BUILD_TYPE test fails
@@ -28,5 +28,15 @@ after_script:
 env:
   ## This magically kick-off parallel jobs for each of the for the sets
   ## of environment variable defined below
-  - BUILD_TYPE='multi' MAKE_TARGETS='native minimal-net econotag sky micaz avr-raven'
-  - BUILD_TYPE='cooja' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='compile' MAKE_TARGETS='native minimal-net econotag sky micaz avr-raven'
+  - BUILD_TYPE='ipv6' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='collect-lossy' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='collect-sky' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='collect' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='helloworld' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='base' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='rime' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='sky-shell' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='elfloader' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='ipv6-apps' MAKE_TARGETS='cooja' TAIL=cat

@@ -50,8 +50,42 @@ EXCLUDE_avr_raven = ipv6/rpl-collect
 
 EXAMPLES_sky = $(EXAMPLES_most_non_native) sky-shell
 
-COOJA_TESTS_DIR     = tools/cooja/contiki_tests
-COOJA_TESTS_ALL     = $(COOJA_TESTS_DIR)/*_helloworld.csc
+COOJA_TESTS_DIR             = tools/cooja/contiki_tests
+COOJA_TESTS_HELLO_WORLD     = $(COOJA_TESTS_DIR)/*_helloworld.csc
+COOJA_TESTS_BASE            = $(COOJA_TESTS_DIR)/multithreading.csc \
+                              $(COOJA_TESTS_DIR)/sky_coffee.csc
+#                              $(COOJA_TESTS_DIR)/crosslevel.csc
+# The crosslevel test is unstable and therefore not included yet
+COOJA_TESTS_RIME            = $(COOJA_TESTS_DIR)/rime_abc.csc \
+                              $(COOJA_TESTS_DIR)/rime_rucb.csc \
+                              $(COOJA_TESTS_DIR)/rime_runicast.csc \
+                              $(COOJA_TESTS_DIR)/sky_deluge.csc \
+                              $(COOJA_TESTS_DIR)/sky_collect.csc
+#                              $(COOJA_TESTS_DIR)/rime_trickle.csc
+# The rime_trickle test sometimes fails so it isn't included here
+COOJA_TESTS_NETPERF         = $(COOJA_TESTS_DIR)/netperf-*.csc
+COOJA_TESTS_SKY_SHELL       = $(COOJA_TESTS_DIR)/sky_shell_basic_commands.csc \
+                              $(COOJA_TESTS_DIR)/sky_shell_compliation_test.csc \
+                              $(COOJA_TESTS_DIR)/sky_shell_download.csc \
+                              $(COOJA_TESTS_DIR)/sky_checkpointing.csc \
+                              $(COOJA_TESTS_DIR)/sky_shell_sendcmd.csc
+COOJA_TESTS_ELFLOADER       = $(COOJA_TESTS_DIR)/sky_shell_exec_serial.csc
+COOJA_TESTS_COLLECT         = $(COOJA_TESTS_DIR)/rime_collect.csc \
+                              $(COOJA_TESTS_DIR)/rime_collect_sky.csc
+COOJA_TESTS_COLLECT_SKY     = $(COOJA_TESTS_DIR)/sky_shell_collect.csc
+COOJA_TESTS_COLLECT_LOSSY   = $(COOJA_TESTS_DIR)/sky_shell_collect_lossy.csc
+COOJA_TESTS_IPV6            = $(COOJA_TESTS_DIR)/sky-ipv6-rpl-collect.csc \
+                              $(COOJA_TESTS_DIR)/sky_ipv6_udp.csc \
+                              $(COOJA_TESTS_DIR)/sky_ipv6_udp_fragmentation.csc \
+                              $(COOJA_TESTS_DIR)/cooja_ipv6_udp.csc
+COOJA_TESTS_IPV6_APPS       = $(COOJA_TESTS_DIR)/servreg-hack.csc \
+                              $(COOJA_TESTS_DIR)/rest_rpl_coap.csc
+
+# The IPv4 test are not stable yet:
+#COOJA_TESTS_IPV4            = $(COOJA_TESTS_DIR)/ip_cooja_telnet_ping.csc \
+#                              $(COOJA_TESTS_DIR)/ip_sky_telnet_ping.csc \
+#                              $(COOJA_TESTS_DIR)/ip_sky_webserver_wget.csc
+
 ## Some Cooja tests can also be excluded:
 #EXCLUDE_COOJA_TESTS = servreg-hack.csc sky_coffee.csc rime_collect.csc rime_trickle.csc 
 ## And some can also be marked:
@@ -75,16 +109,93 @@ SKIP  = (echo $(SKIP_LIST) | grep -q $$e && (echo "\033[1;36m  $(SKIP_SIGN) ➝ 
 FAIL  = (echo "\033[1;35m  $(FAIL_SIGN) ➝ ❨ $$e ∉ $@ ❩$(CT)"; $(TAIL) $(LOG); echo fail >> results)
 PASS  = (echo "\033[1;32m  $(PASS_SIGN) ➝ ❨ $$e ∈ $@ ❩$(CT)"; echo pass >> results)
 
-ifeq ($(BUILD_TYPE),multi)
+
+# This is the definition of the basic compilation test
+ifeq ($(BUILD_TYPE),compile)
 THIS = $(MAKE) -C examples/$$e TARGET=$@ > $(LOG) 2>&1
 MINE = $(filter-out $(EXCLUDE_$(subst -,_,$@)), $(EXAMPLES_ALL) $(EXAMPLES_$(subst -,_,$@)))
 SKIP_LIST = $(MARK_EXAMPLES_$(subst -,_,$@))
 endif
 
-ifeq ($(BUILD_TYPE),cooja)
+# Below are the Contiki functional tests, which all use Cooja so we
+# need to define JAVA and the COOJA_COMMAND
 JAVA = java -mx512m
-THIS = $(SHELL) -x -c "cd `dirname $$e` && $(JAVA) -jar ../dist/cooja.jar -nogui=`basename $$e`" > $(LOG) #2>&1
-MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), $(wildcard $(COOJA_TESTS_ALL)))
+COOJA_COMMAND = $(SHELL) -x -c "cd `dirname $$e` && $(JAVA) -jar ../dist/cooja.jar -nogui=`basename $$e`" > $(LOG) #2>&1
+
+ifeq ($(BUILD_TYPE),helloworld)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_HELLO_WORLD)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),base)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_BASE)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),rime)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_RIME)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),netperf)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_NETPERF)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),sky-shell)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_SKY_SHELL)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),elfloader)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_ELFLOADER)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),collect)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_COLLECT)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),collect-sky)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_COLLECT_SKY)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),collect-lossy)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_COLLECT_LOSSY)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),ipv6)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_IPV6)))
+SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
+endif
+
+ifeq ($(BUILD_TYPE),ipv6-apps)
+THIS = $(COOJA_COMMAND)
+MINE = $(filter-out $(addprefix $(COOJA_TESTS_DIR)/, $(EXCLUDE_COOJA_TESTS)), \
+       $(wildcard $(COOJA_TESTS_IPV6_APPS)))
 SKIP_LIST = $(addprefix $(COOJA_TESTS_DIR)/, $(MARK_COOJA_TESTS))
 endif
 
