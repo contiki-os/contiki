@@ -174,7 +174,7 @@ PROCESS_THREAD(clock_process, ev, data)
       clock_quit();
       PROCESS_EXIT();
     } else if(ev == ctk_signal_window_close &&
-              data == (process_data_t) & window) {
+              data == (process_data_t)&window) {
       clock_quit();
     }
   }
