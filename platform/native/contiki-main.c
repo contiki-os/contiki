@@ -241,7 +241,7 @@ main(int argc, char **argv)
 #endif
 
   serial_line_init();
-  
+
   /* try to chroot so directory.prg will find interesting things */
   if (chroot(".") < 0) {
     fprintf(stderr, "Could not chroot: %s\n", strerror(errno));
@@ -257,11 +257,11 @@ main(int argc, char **argv)
 #endif /* PLATFORM_BUILD */
 
   autostart_start(autostart_processes);
-  
+
   /* Set default IP addresses if not specified */
 #if !UIP_CONF_IPV6
   uip_ipaddr_t addr;
-  
+
   uip_gethostaddr(&addr);
   if (addr.u8[0]==0) {
     uip_ipaddr(&addr, 10,1,1,1);
@@ -290,7 +290,7 @@ main(int argc, char **argv)
 #else /* !UIP_CONF_IPV6 */
   uint8_t i;
   uip_ipaddr_t ipaddr;
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);   
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
 #if UIP_CONF_ROUTER
   uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
 #else /* UIP_CONF_ROUTER */
@@ -300,7 +300,7 @@ main(int argc, char **argv)
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
   /* printf("IP6 Address: ");sprint_ip6(ipaddr);printf("\n"); */
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
-	if (uip_ds6_if.addr_list[i].isused) {	  
+	if (uip_ds6_if.addr_list[i].isused) {
 	  fprintf(stderr, "IPV6 Address: ");sprint_ip6(uip_ds6_if.addr_list[i].ipaddr);printf("\n");
 	}
   }
