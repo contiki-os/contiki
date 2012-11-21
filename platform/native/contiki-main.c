@@ -298,7 +298,7 @@ main(int argc, char **argv)
 #endif /* UIP_CONF_ROUTER */
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
- // printf("IP6 Address: ");sprint_ip6(ipaddr);printf("\n");
+  /* printf("IP6 Address: ");sprint_ip6(ipaddr);printf("\n"); */
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
 	if (uip_ds6_if.addr_list[i].isused) {	  
 	  fprintf(stderr, "IPV6 Address: ");sprint_ip6(uip_ds6_if.addr_list[i].ipaddr);printf("\n");

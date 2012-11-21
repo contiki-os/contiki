@@ -104,8 +104,8 @@ dlloader_load_dsc(char *name)
     if(getwd(path)) {
       size_t l = strlen(path);
 
-      //strlcat(path, "/", PATH_MAX);
-      //strlcat(path, name, PATH_MAX);
+      /* strlcat(path, "/", PATH_MAX); */
+      /* strlcat(path, name, PATH_MAX); */
       snprintf(path + l, PATH_MAX - l, "/%s", name);
       handle = dlopen(path, RTLD_NOW);
     }
