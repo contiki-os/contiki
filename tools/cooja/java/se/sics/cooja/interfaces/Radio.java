@@ -168,6 +168,25 @@ public abstract class Radio extends MoteInterface {
    * @return Maximum output power indicator
    */
   public abstract int getOutputPowerIndicatorMax();
+  
+  /** 
+   * Returns the current LQI-value. This might differ from platform to platform 
+   * @return Current LQI value.
+   *  
+   * 
+   */
+  public int getLQI() throws UnsupportedOperationException {
+	  throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Sets the LQI. This in not supported by all platforms. Also results may differ
+   * from platform to platform. 
+   *
+   * @param lqi The current LQI
+   */
+  public void setLQI(int lqi){
+  }
 
   /**
    * @return Current surrounding signal strength
