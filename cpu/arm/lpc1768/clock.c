@@ -22,6 +22,7 @@ SysTick_handler(void)
     /* printf("%d,%d\n", clock_time(),etimer_next_expiration_time  	()); */
 
   }
+
   if (--second_countdown == 0) {
     current_seconds++;
     second_countdown = CLOCK_SECOND;

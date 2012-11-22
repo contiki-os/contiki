@@ -62,14 +62,15 @@ PROCESS_THREAD(hello_world_process, ev, data)
   ;
   static struct etimer et; // Define the timer
 
-  //leds_init();
-  //etimer_set(&et, CLOCK_SECOND*1);
+  leds_init();
+  etimer_set(&et, CLOCK_SECOND*1);
 
   while (1)
     {
       PROCESS_WAIT_EVENT();
       if(etimer_expired(&et)){
-          leds_toggle(LEDS_ALL);
+          //leds_toggle(LEDS_ALL);
+          LPC_GPIO1 ->FIOPIN ^= (1 << 18) | (1 << 29); // Toggle LED2 and LED3
           etimer_reset(&et);
       }
     }

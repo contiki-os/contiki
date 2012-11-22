@@ -49,7 +49,8 @@ CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
            -Wall $(ARCH_FLAGS) -g -D SUBTARGET=$(SUBTARGET)
 
 CFLAGS  += $(CFLAGSNO) -O -DRUN_AS_SYSTEM -DROM_RUN
-LDFLAGS += -L $(CONTIKI_CPU) -T $(LINKERSCRIPT) -nostartfiles
+LDFLAGS += -L $(CONTIKI_CPU) -T $(LINKERSCRIPT) -nostartfiles \
+			-Wl,-Map -Xlinker contiki-$(TARGET).map
 
 CDEPFLAGS = $(CFLAGS) -D __MAKING_DEPS__
 

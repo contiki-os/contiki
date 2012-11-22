@@ -13,4 +13,5 @@ run: $(CONTIKI_PROJECT).$(TARGET)
 
 nuke: clean
 	rm -f -R $(CONTIKI_PROJECT).$(TARGET)
+	rm -f -R $(CONTIKI_PROJECT)-nosyms.$(TARGET)
 	rm -f -R src_$(TARGET)

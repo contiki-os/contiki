@@ -6,23 +6,16 @@ define \n
 
 endef
 
-
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/arm/lpc1768
 
 ### Define the source files we have in the STM32W port
 
-CONTIKI_CPU_DIRS = . #dev hal simplemac hal/micro/cortexm3 hal/micro/cortexm3/stm32w108
+CONTIKI_CPU_DIRS = . 
 
 STM32W_C = clock.c core_cm3.c lpc17xx_gpio.c lpc17xx_systick.c \
 			lpc17xx_libcfg_default.c lpc17xx_timer.c lpc17xx_uart.c \
 			 system_LPC17xx.c startup-LPC1768.c
-
-#STM32W_S = spmr.s79 context-switch.s79 
-
-ifdef ELF_LOADER
-ELFLOADER  = elfloader-arch.c symtab.c
-endif
 
 
 # .s and .s79 not specified here because in Makefile.include only .c and .S suffixes are replaced with .o.
@@ -32,44 +25,7 @@ CONTIKI_TARGET_SOURCEFILES += $(STM32W_C) \
 
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
-#ifdef IAR
-#TARGET_LIBFILES = $(CONTIKI_CPU)/simplemac/library/simplemac-library.a
-#else
-# ifdef PRINTF_FLOAT
-# TARGET_LIBFILES = $(CONTIKI_CPU)/simplemac/library/simplemac-library-gnu.a $(CONTIKI_CPU)/hal/micro/cortexm3/e_stdio_thumb2.a 
- #else
-#TARGET_LIBFILES = $(CONTIKI_CPU)/simplemac/library/simplemac-library-gnu.a $(CONTIKI_CPU)/lib/e_stdio_intonly_thumb2.a
-# endif
-#endif
-#									`$(CC) -print-file-name=thumb2/libc.a` `$(CC) -print-file-name=thumb2/libgcc.a`
 
-### Compiler definitions
-ifdef IAR
-CC       = iccarm
-LD       = ilinkarm
-AS       = iasmarm
-AR       = iarchive
-OBJCOPY  = ielftool
-STRIP    = strip
-ifndef DEBUG
-OPTI = -Ohz --no_unroll
-endif
-CFLAGSNO = --endian=little --cpu=Cortex-M3 -e --diag_suppress Pa050 -D BOARD_HEADER=\"board.h\" \
-			-D BOARD_MB851 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/iar.h\""  -D CORTEXM3 \
-			-D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
-			-D __SOURCEFILE__=\"$*.c\" -lC $(OBJECTDIR) \
-			-I $(IAR_PATH)/arm/inc --dlib_config=DLib_Config_Normal.h
-
-CFLAGS  += $(CFLAGSNO) $(OPTI)
-AROPTS  = --create
-ASFLAGS = -s+ -w+ --cpu Cortex-M3 -L$(OBJECTDIR)
-LDFLAGS += --redirect _Printf=_PrintfSmall --redirect _Scanf=_ScanfSmall --map=contiki-$(TARGET).map
- ifndef COFFEE
-  LDFLAGS+= --config $(CONTIKI_CPU)/iar-cfg.icf
- endif
-OBJOPTS = --bin
-
-else
 # GCC
 CC	 = arm-none-eabi-gcc
 LD       = arm-none-eabi-gcc
@@ -79,13 +35,12 @@ AR       = arm-none-eabi-ar
 OBJCOPY  = arm-none-eabi-objcopy
 STRIP    = arm-none-eabi-strip
 SIZE     = arm-none-eabi-size
-ifndef DEBUG
-OPTI = -Os -ffunction-sections 
-endif
 
-CFLAGSNO = -mthumb -mcpu=cortex-m3 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/gnu.h\"" \
-			-D BOARD_HEADER=\"board.h\" -g -Wall -Wno-strict-aliasing -mlittle-endian \
-			-D BOARD_MB851   -D CORTEXM3 -D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
+OPTI = -Os -ffunction-sections 
+
+CFLAGSNO = -mthumb -mcpu=cortex-m3  \
+			-g -Wall -Wno-strict-aliasing -mlittle-endian \
+			-D CORTEXM3 -D DISABLE_WATCHDOG
 			-D __SOURCEFILE__=\"$*.c\"
 CFLAGS  += $(CFLAGSNO) $(OPTI)
 ASFLAGS = -mthumb -mcpu=cortex-m3 -c -g -Wall -Os -ffunction-sections \
@@ -98,37 +53,11 @@ LDFLAGS += -mcpu=cortex-m3 \
 	    -nostartfiles \
 	    -Wl,-Map -Xlinker contiki-$(TARGET).map
 	    
-ifndef ELF_LOADER
  # Do not use garbage collection when the elfloader is used.
  LDFLAGS += -Wl,--gc-sections
-endif 
  
 SIZEFLAGS = -A
 OBJOPTS = -O binary
-
-endif
-
-
-
-FLASHER = sudo $(CONTIKI)/tools/stm32w/stm32w_flasher/py_files/stm32w_flasher.py
-
-# Check if we are running under Windows
-ifeq ($(HOST_OS),Windows)
-  FLASHER = $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher.exe
-endif
-
-
-ifndef PORT
-# Flash with jlink
-FLASHEROPTS = -f -r
-else
-# Flash on serial port with on-board bootloader
-FLASHEROPTS = -f -i rs232 -p $(PORT) -r
- ifdef BTM
-#if already in bootloader mode
-  FLASHEROPTS += -b
- endif 
-endif
 			
 
 ### Custom rules
@@ -139,75 +68,6 @@ ssubst = ${patsubst %.s,%.o,${patsubst %.s79,%.o,$(1)}}
 
 CONTIKI_OBJECTFILES += ${addprefix $(OBJECTDIR)/,${call ssubst, $(STM32W_S)}}
 
-vpath %.s79 $(CONTIKI_CPU)/hal/micro/cortexm3
-vpath %.s $(CONTIKI_CPU)/hal/micro/cortexm3
-
-
-ifdef IAR
-# Check if we are in cygwin environment, so we must have paths like /cygdrive/c/... (checking TERM doesn't always work.)
-ifneq (,$(findstring cygdrive,$(shell pwd)))
- ${info Cygwin detected.}
- SEDCOMMAND = sed -e '1s,\($(OBJECTDIR)\\$*\)\.o: \(.\):,\1.o : /cygdrive/\l\2,g' -e '1!s,\($(OBJECTDIR)\\$*\)\.o: \(.\):, /cygdrive/\l\2,g' -e 's,\\\([^ ]\),/\1,g' -e 's,$$, \\,' -e '$$s, \\$$,,' < $(@:.o=.P) > $(@:.o=.d)
-else
- SEDCOMMAND = sed -e '1s,\($(OBJECTDIR)\\$*\)\.o:,\1.o : ,g' -e '1!s,\($(OBJECTDIR)\\$*\)\.o:, ,g' -e 's,\\\([^ ]\),/\1,g' -e 's,$$, \\,' -e '$$s, \\$$,,' < $(@:.o=.P) > $(@:.o=.d)
-endif
-
-
-CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
-$(OBJECTDIR)/%.o: %.c
-	$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
-	@$(SEDCOMMAND); rm -f $(@:.o=.P)
-	@$(FINALIZE_DEPENDENCY)
-	
-CUSTOM_RULE_C_TO_CO = 1
-%.co: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
-else #IAR
-
-CUSTOM_RULE_C_TO_CE = 1
-%.ce: %.c
-	$(CC) $(CFLAGS) -fno-merge-constants -fno-function-sections -DAUTOSTART_ENABLE -c $< -o $@
-	$(STRIP) --strip-unneeded -g -x $@
-
-CUSTOM_RULE_LINK = 1
-
-ifdef CORE
-ifeq ($(wildcard $(CORE)),)
- ${error $(CORE) doesn't exist}
-endif
-.PHONY: symbols.c symbols.h
-symbols.c:
-	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c	
-else
-symbols.c symbols.h:
-	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
-	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
-endif
-
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(OBJECTDIR)/symbols.o
-	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} -Wl,-\( ${filter %.a,$^} $(TARGET_LIBFILES) -Wl,-\) -o $@
-	@echo >> contiki-$(TARGET).map
-	@$(SIZE) $(SIZEFLAGS) $@ >> contiki-$(TARGET).map
-
-#%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) $(CONTIKI_OBJECTFILES)
-#	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
-#	@echo "\n" >> contiki-$(TARGET).map
-#	@$(SIZE) $(SIZEFLAGS) $@ >> contiki-$(TARGET).map
-
-
-endif #IAR
-
-MOTELIST = $(CONTIKI)/tools/stm32w/motelist-linux
-
-MOTES = $(shell $(MOTELIST) 2>&- | awk '{print $$2}' | grep '\/')
-
-motelist: stm-motelist
-
-stm-motelist:
-	$(MOTELIST)
-stm-motes:
-	@echo $(MOTES)
-
 $(OBJECTDIR)/%.o: %.s79
 	$(AS) $(ASFLAGS) -o $@ $<
 	
@@ -216,27 +76,6 @@ $(OBJECTDIR)/%.o: %.s
 	
 %.bin: %.$(TARGET)
 	$(OBJCOPY) $(OBJOPTS) $< $@ 
-
-# reset all stm32w devices sequentially, as stm32w_flasher cannot access different ports in parallel
-stm-reset:
-	$(foreach PORT, $(MOTES), $(FLASHER) -r -p $(PORT);$(\n))
-	@echo Done
-		
-ifdef MOTE
-%.upload: %.bin
-	$(FLASHER) $(FLASHEROPTS) $< -p $(word $(MOTE), $(MOTES))
-else # MOTE
-%.upload: %.bin
-	$(foreach PORT, $(MOTES), $(FLASHER) $(FLASHEROPTS) $< -p $(PORT);$(\n))
-endif # MOTE
-
-ifdef MOTE
-login:
-	$(SERIALDUMP) -b115200 -d10000 $(USBDEVPREFIX)$(word $(MOTE), $(MOTES))
-else
-login:
-	$(SERIALDUMP) -b115200 -d10000 $(USBDEVPREFIX)$(firstword $(MOTES))
-endif
 
 # a target that gives a user-friendly memory profile, taking into account the RAM
 # that is statically occupied by the stack as defined in cpu/stm32w108/gnu.ld

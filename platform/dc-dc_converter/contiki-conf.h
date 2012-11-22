@@ -9,7 +9,7 @@
 #define WITH_UIP 1
 #define WITH_ASCII 1
 
-#define CLOCK_CONF_SECOND 10
+#define CLOCK_CONF_SECOND 100
 
 /* These names are deprecated, use C99 names. */
 typedef uint8_t u8_t;
