@@ -69,8 +69,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
     {
       PROCESS_WAIT_EVENT();
       if(etimer_expired(&et)){
-          //leds_toggle(LEDS_ALL);
-          LPC_GPIO1 ->FIOPIN ^= (1 << 18) | (1 << 29); // Toggle LED2 and LED3
+          leds_toggle(LEDS_ALL);
           etimer_reset(&et);
       }
     }

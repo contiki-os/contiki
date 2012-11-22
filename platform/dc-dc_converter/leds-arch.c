@@ -26,11 +26,18 @@ unsigned char leds_arch_get(){
 
 void toggleLeds(){
   uint32_t ledValue = GPIO_ReadValue(PIN_LED2)&LED2;
-  ledValue ^= LED2;
-  GPIO_SetValue(PIN_LED2, ledValue);
+
+  if(ledValue)
+    GPIO_ClearValue(PIN_LED2, LED2);
+  else
+    GPIO_SetValue(PIN_LED2, LED2);
+
   ledValue = GPIO_ReadValue(PIN_LED3)&LED3;
-  ledValue ^= LED3;
-  GPIO_SetValue(PIN_LED3, ledValue);
+
+  if(ledValue)
+    GPIO_ClearValue(PIN_LED3, LED3);
+  else
+    GPIO_SetValue(PIN_LED3, LED3);
 }
 
 
