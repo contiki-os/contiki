@@ -5,7 +5,6 @@
 #include <sys/etimer.h>
 #include <sys/autostart.h>
 #include <sys/clock.h>
-#include "LPC17xx.h"
 
 unsigned int idle_count = 0;
 

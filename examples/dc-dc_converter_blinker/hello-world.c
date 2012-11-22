@@ -41,9 +41,6 @@
 #include <stdio.h> /* For printf() */
 #include "dev/leds.h"
 
-//TODO: Delete this include, debugging only
-#include "LPC17xx.h"
-
 volatile uint32_t temp;
 void
 _delay(uint32_t del)
