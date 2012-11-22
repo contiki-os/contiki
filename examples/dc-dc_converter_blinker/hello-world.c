@@ -51,7 +51,7 @@ _delay(uint32_t del)
 }
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
+//AUTOSTART_PROCESSES(&hello_world_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(hello_world_process, ev, data)
 {
@@ -60,13 +60,13 @@ PROCESS_THREAD(hello_world_process, ev, data)
   static struct etimer et; // Define the timer
 
   leds_init();
-  etimer_set(&et, CLOCK_SECOND*1);
+  etimer_set(&et, CLOCK_SECOND/2);
 
   while (1)
     {
       PROCESS_WAIT_EVENT();
       if(etimer_expired(&et)){
-          leds_toggle(LEDS_ALL);
+          leds_toggle(LEDS_GREEN);
           etimer_reset(&et);
       }
     }
@@ -74,3 +74,30 @@ PROCESS_THREAD(hello_world_process, ev, data)
 PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+PROCESS(hello_world_process2, "Hello world process");
+AUTOSTART_PROCESSES(&hello_world_process, &hello_world_process2);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(hello_world_process2, ev, data)
+{
+  PROCESS_BEGIN()
+  ;
+  static struct etimer et; // Define the timer
+
+  leds_init();
+  etimer_set(&et, CLOCK_SECOND);
+
+  while (1)
+    {
+      PROCESS_WAIT_EVENT();
+      if(etimer_expired(&et)){
+          leds_toggle(LEDS_YELLOW);
+          etimer_reset(&et);
+      }
+    }
+
+PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+
