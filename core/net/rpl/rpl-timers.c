@@ -47,7 +47,7 @@
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static struct ctimer periodic_timer;
 
 static void handle_periodic_timer(void *ptr);
@@ -59,7 +59,7 @@ static uint16_t next_dis;
 /* dio_send_ok is true if the node is ready to send DIOs */
 static uint8_t dio_send_ok;
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 handle_periodic_timer(void *ptr)
 {
@@ -76,7 +76,7 @@ handle_periodic_timer(void *ptr)
 #endif
   ctimer_reset(&periodic_timer);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 new_dio_interval(rpl_instance_t *instance)
 {
@@ -122,7 +122,7 @@ new_dio_interval(rpl_instance_t *instance)
   PRINTF("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", time);
   ctimer_set(&instance->dio_timer, time, &handle_dio_timer, instance);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 handle_dio_timer(void *ptr)
 {
@@ -165,14 +165,14 @@ handle_dio_timer(void *ptr)
     new_dio_interval(instance);
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_reset_periodic_timer(void)
 {
   next_dis = RPL_DIS_INTERVAL - RPL_DIS_START_DELAY;
   ctimer_set(&periodic_timer, CLOCK_SECOND, handle_periodic_timer, NULL);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 /* Resets the DIO timer in the instance to its minimal interval. */
 void
 rpl_reset_dio_timer(rpl_instance_t *instance)
@@ -190,7 +190,7 @@ rpl_reset_dio_timer(rpl_instance_t *instance)
 #endif /* RPL_CONF_STATS */
 #endif /* RPL_LEAF_ONLY */
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 handle_dao_timer(void *ptr)
 {
@@ -214,7 +214,7 @@ handle_dao_timer(void *ptr)
   }
   ctimer_stop(&instance->dao_timer);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_schedule_dao(rpl_instance_t *instance)
 {
@@ -233,4 +233,4 @@ rpl_schedule_dao(rpl_instance_t *instance)
                handle_dao_timer, instance);
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/

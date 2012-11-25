@@ -74,7 +74,7 @@ rpl_purge_routes(void)
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_remove_routes(rpl_dag_t *dag)
 {
@@ -86,7 +86,7 @@ rpl_remove_routes(rpl_dag_t *dag)
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
 {
@@ -103,7 +103,7 @@ rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
   }
   ANNOTATE("#L %u 0\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
 rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
               uip_ipaddr_t *next_hop)
@@ -136,7 +136,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 
   return rep;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
 {
@@ -179,7 +179,7 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
     uip_ds6_route_rm_by_nexthop(&ipaddr);
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
 {
@@ -203,7 +203,7 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_init(void)
 {
@@ -222,4 +222,4 @@ rpl_init(void)
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
