@@ -13,13 +13,13 @@ int
 main()
 {
   setup_debug_uart();
-  printf("Initializing\r\n");
+  printf("\rInitializing\r\n");
   clock_init();
   process_init();
   process_start(&etimer_process, NULL );
   autostart_start(autostart_processes);
 
-  printf("Processes running\r\n");
+  printf("\rProcesses running\r\n");
   while (1)
     {
       do
