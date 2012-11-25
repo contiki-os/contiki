@@ -5,31 +5,32 @@
 #include <sys/etimer.h>
 #include <sys/autostart.h>
 #include <sys/clock.h>
+#include "debug-uart.h"
 
 unsigned int idle_count = 0;
 
 int
 main()
 {
-  //dbg_setup_uart();
-  //printf("Initialising\n");
+  setup_debug_uart();
+  printf("Initializing\r\n");
   clock_init();
   process_init();
-  process_start(&etimer_process, NULL);
+  process_start(&etimer_process, NULL );
   autostart_start(autostart_processes);
 
-  //printf("Processes running\n");
-  while(1) {
-    do {
-    } while(process_run() > 0);
-    idle_count++;
-    /* Idle! */
-    /* Stop processor clock */
-    /* asm("wfi"::); */ 
-  }
+  printf("Processes running\r\n");
+  while (1)
+    {
+      do
+        {
+        }
+      while (process_run() > 0);
+      idle_count++;
+      /* Idle! */
+      /* Stop processor clock */
+      /* asm("wfi"::); */
+    }
   return 0;
 }
-
-
-
 

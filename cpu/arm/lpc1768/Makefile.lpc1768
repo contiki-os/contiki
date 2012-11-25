@@ -16,7 +16,9 @@ CONTIKI_CPU_DIRS = .
 
 LPC1768     = clock.c core_cm3.c lpc17xx_gpio.c lpc17xx_systick.c \
 			lpc17xx_libcfg_default.c lpc17xx_timer.c lpc17xx_uart.c \
-			 system_LPC17xx.c startup-LPC1768.c
+			 lpc17xx_clkpwr.c system_LPC17xx.c startup-LPC1768.c \
+			 dbg-printf.c dbg-putchar.c dbg-puts.c dbg-snprintf.c \
+			 dbg-printf.c strformat.c debug-uart.c lpc17xx_pinsel.c
 
 CONTIKI_TARGET_SOURCEFILES += $(LPC1768) $(UIPDRIVERS) leds.c
 

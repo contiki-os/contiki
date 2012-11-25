@@ -11,6 +11,10 @@
 
 #define CLOCK_CONF_SECOND 100
 
+//UART used for sending printf messages
+//Defined as 0 for UART0 and 1 for UART1
+#define DEBUG_UART      0
+
 /* These names are deprecated, use C99 names. */
 typedef uint8_t u8_t;
 typedef uint16_t u16_t;

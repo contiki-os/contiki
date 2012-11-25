@@ -66,6 +66,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
     {
       PROCESS_WAIT_EVENT();
       if(etimer_expired(&et)){
+          printf("Toggling LED2\r\n");
           leds_toggle(LEDS_GREEN);
           etimer_reset(&et);
       }
@@ -92,6 +93,7 @@ PROCESS_THREAD(hello_world_process2, ev, data)
     {
       PROCESS_WAIT_EVENT();
       if(etimer_expired(&et)){
+          printf("Toggling LED3\r\n");
           leds_toggle(LEDS_YELLOW);
           etimer_reset(&et);
       }
