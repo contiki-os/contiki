@@ -34,7 +34,7 @@
 #define LPC17XX_CLKPWR_H_
 
 /* Includes ------------------------------------------------------------------- */
-#include "LPC17xx.h"
+#include "lpc17xx.h"
 #include "lpc_types.h"
 
 #ifdef __cplusplus
@@ -106,9 +106,9 @@ extern "C"
 #define	CLKPWR_PCLKSEL_MC  			((uint32_t)(62))
 
 /** Macro for Peripheral Clock Selection register bit values
- * Note: When CCLK_DIV_8, Peripheralï¿½s clock is selected to
+ * Note: When CCLK_DIV_8, Peripheral’s clock is selected to
  * PCLK_xyz = CCLK/8 except for CAN1, CAN2, and CAN filtering
- * when ï¿½11ï¿½selects PCLK_xyz = CCLK/6 */
+ * when ’11’selects PCLK_xyz = CCLK/6 */
 /* Peripheral clock divider is set to 4 from CCLK */
 #define	CLKPWR_PCLKSEL_CCLK_DIV_4  ((uint32_t)(0))
 /** Peripheral clock divider is the same with CCLK */

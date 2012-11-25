@@ -44,6 +44,8 @@
 #endif /* __BUILD_WITH_EXAMPLE__ */
 
 
+#ifdef _SYSTICK
+
 /* Public Functions ----------------------------------------------------------- */
 /** @addtogroup SYSTICK_Public_Functions
  * @{
@@ -144,10 +146,9 @@ void SYSTICK_IntCmd(FunctionalState NewState)
 {
 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
 
-	if(NewState == ENABLE){
-	      //Enable System Tick counter
+	if(NewState == ENABLE)
+		//Enable System Tick counter
 		SysTick->CTRL |= ST_CTRL_TICKINT;
-	}
 	else
 		//Disable System Tick counter
 		SysTick->CTRL &= ~ST_CTRL_TICKINT;
@@ -175,6 +176,8 @@ void SYSTICK_ClearCounterFlag(void)
 /**
  * @}
  */
+
+#endif /* _SYSTICK */
 
 /**
  * @}

@@ -15,6 +15,15 @@
 //Defined as 0 for UART0 and 1 for UART1
 #define DEBUG_UART      0
 
+/* Define the MAC address of the device */
+/* 0C 1D 12 E0 1F 10*/
+#define EMAC_ADDR0              0x10
+#define EMAC_ADDR1              0x1F
+#define EMAC_ADDR2              0xE0
+#define EMAC_ADDR3              0x12
+#define EMAC_ADDR4              0x1D
+#define EMAC_ADDR5              0x0C
+
 /* These names are deprecated, use C99 names. */
 typedef uint8_t u8_t;
 typedef uint16_t u16_t;

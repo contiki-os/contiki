@@ -34,7 +34,7 @@
 #define __LPC17XX_UART_H
 
 /* Includes ------------------------------------------------------------------- */
-#include "LPC17xx.h"
+#include "lpc17xx.h"
 #include "lpc_types.h"
 
 

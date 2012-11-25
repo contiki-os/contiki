@@ -34,7 +34,7 @@
 #define __LPC17XX_TIMER_H_
 
 /* Includes ------------------------------------------------------------------- */
-#include "LPC17xx.h"
+#include "lpc17xx.h"
 #include "lpc_types.h"
 
 #ifdef __cplusplus

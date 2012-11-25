@@ -10,17 +10,29 @@ CONTIKI_CPU=$(CONTIKI_CPU_ARM)/lpc1768
 
 ### Define the source files we have in the LPC1768 port
 
-CONTIKI_CPU_DIRS = .
+CONTIKI_CPU_DIRS = . cmsis_lpc17xx dbg_io
+
+#List of source files that interface between Contiki and the LPC17xx drivers
+LPC1768     = clock.c emac.c emac-driver.c startup-LPC1768.c
+
+#List of source files of the CMSIS driver library for the LPC17xx family			 
+CMSIS_LPC17xx = core_cm3.c debug_frmwrk.c lpc17xx_adc.c lpc17xx_can.c \
+				lpc17xx_clkpwr.c lpc17xx_dac.c lpc17xx_emac.c \
+				lpc17xx_exti.c lpc17xx_gpdma.c lpc17xx_gpio.c \
+				lpc17xx_i2c.c lpc17xx_i2s.c lpc17xx_libcfg_default.c \
+				lpc17xx_mcpwm.c lpc17xx_nvic.c lpc17xx_pinsel.c \
+				lpc17xx_pwm.c lpc17xx_qei.c lpc17xx_rit.c \
+				lpc17xx_rtc.c lpc17xx_spi.c lpc17xx_ssp.c \
+				lpc17xx_systick.c lpc17xx_timer.c lpc17xx_uart.c \
+				lpc17xx_wdt.c system_LPC17xx.c
+				
+#List of source files that retarget the stdio.h functions to the UART
+DBG_IO = dbg-printf.c dbg-putchar.c dbg-puts.c dbg-snprintf.c \
+		dbg-sprintf.c debug-uart.c strformat.c
+				
 
 
-
-LPC1768     = clock.c core_cm3.c lpc17xx_gpio.c lpc17xx_systick.c \
-			lpc17xx_libcfg_default.c lpc17xx_timer.c lpc17xx_uart.c \
-			 lpc17xx_clkpwr.c system_LPC17xx.c startup-LPC1768.c \
-			 dbg-printf.c dbg-putchar.c dbg-puts.c dbg-snprintf.c \
-			 dbg-printf.c strformat.c debug-uart.c lpc17xx_pinsel.c
-
-CONTIKI_TARGET_SOURCEFILES += $(LPC1768) $(UIPDRIVERS) leds.c
+CONTIKI_TARGET_SOURCEFILES += $(LPC1768) $(CMSIS_LPC17xx) $(DBG_IO) $(UIPDRIVERS)
 
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 

@@ -24,7 +24,7 @@
 
 
 #include <stdint.h>
-#include "LPC17xx.h"
+#include "lpc17xx.h"
 
 
 /** @addtogroup LPC17xx_System
@@ -561,9 +561,6 @@ void SystemInit (void)
 #else
   SCB->VTOR  = 0x00000000 & 0x3FFFFF80;
 #endif
-
-  //TODO: This shouldn't be here
-  LPC_SC ->PCONP |= (1 << 15); // power up GPIO
 }
 
 /**

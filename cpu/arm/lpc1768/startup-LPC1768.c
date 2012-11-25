@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "system_LPC17xx.h"
-#include "LPC17xx.h"
+#include "lpc17xx.h"
 
 extern int
 main(void);
