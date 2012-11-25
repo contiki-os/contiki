@@ -57,18 +57,18 @@
 
 #include "net/neighbor-info.h"
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 extern rpl_of_t RPL_OF;
 static rpl_of_t * const objective_functions[] = {&RPL_OF};
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 #ifndef RPL_CONF_MAX_PARENTS_PER_DAG
 #define RPL_MAX_PARENTS_PER_DAG       8
 #else
 #define RPL_MAX_PARENTS_PER_DAG       RPL_CONF_MAX_PARENTS_PER_DAG
 #endif /* !RPL_CONF_MAX_PARENTS_PER_DAG */
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 /* RPL definitions. */
 
 #ifndef RPL_CONF_GROUNDED
@@ -77,17 +77,17 @@ static rpl_of_t * const objective_functions[] = {&RPL_OF};
 #define RPL_GROUNDED                    RPL_CONF_GROUNDED
 #endif /* !RPL_CONF_GROUNDED */
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 /* Allocate parents from the same static MEMB chunk to reduce memory waste. */
 MEMB(parent_memb, struct rpl_parent,
      RPL_MAX_PARENTS_PER_DAG * RPL_MAX_INSTANCES * RPL_MAX_DAG_PER_INSTANCE);
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 /* Allocate instance table. */
 rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 rpl_instance_t *default_instance;
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 /* Greater-than function for the lollipop counter.                      */
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static int
 lollipop_greater_than(int a, int b)
 {
@@ -101,7 +101,7 @@ lollipop_greater_than(int a, int b)
     (a < b && (b - a) > (RPL_LOLLIPOP_CIRCULAR_REGION + 1-
 			 RPL_LOLLIPOP_SEQUENCE_WINDOWS));
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 /* Remove DAG parents with a rank that is at least the same as minimum_rank. */
 static void
 remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
@@ -118,7 +118,7 @@ remove_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 nullify_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 {
@@ -134,7 +134,7 @@ nullify_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 remove_worst_parent(rpl_dag_t *dag, rpl_rank_t min_worst_rank)
 {
@@ -155,7 +155,7 @@ remove_worst_parent(rpl_dag_t *dag, rpl_rank_t min_worst_rank)
     rpl_remove_parent(dag, worst);
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static int
 should_send_dao(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
 {
@@ -167,7 +167,7 @@ should_send_dao(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
   return p == instance->current_dag->preferred_parent &&
     (lollipop_greater_than(dio->dtsn, p->dtsn));
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static int
 acceptable_rank(rpl_dag_t *dag, rpl_rank_t rank)
 {
@@ -175,7 +175,7 @@ acceptable_rank(rpl_dag_t *dag, rpl_rank_t rank)
     ((dag->instance->max_rankinc == 0) ||
      DAG_RANK(rank, dag->instance) <= DAG_RANK(dag->min_rank + dag->instance->max_rankinc, dag->instance));
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static rpl_dag_t *
 get_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
 {
@@ -197,7 +197,7 @@ get_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
 
   return NULL;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_dag_t *
 rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
 {
@@ -270,7 +270,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
 
   return dag;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 int
 rpl_repair_root(uint8_t instance_id)
 {
@@ -287,7 +287,7 @@ rpl_repair_root(uint8_t instance_id)
   rpl_reset_dio_timer(instance);
   return 1;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 set_ip_from_prefix(uip_ipaddr_t *ipaddr, rpl_prefix_t *prefix)
 {
@@ -295,7 +295,7 @@ set_ip_from_prefix(uip_ipaddr_t *ipaddr, rpl_prefix_t *prefix)
   memcpy(ipaddr, &prefix->prefix, (prefix->length + 7) / 8);
   uip_ds6_set_addr_iid(ipaddr, &uip_lladdr);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 check_prefix(rpl_prefix_t *last_prefix, rpl_prefix_t *new_prefix)
 {
@@ -331,7 +331,7 @@ check_prefix(rpl_prefix_t *last_prefix, rpl_prefix_t *new_prefix)
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 int
 rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len)
 {
@@ -349,7 +349,7 @@ rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len)
   check_prefix(NULL, &dag->prefix_info);
   return 1;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 int
 rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
 {
@@ -376,13 +376,14 @@ rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
   }
   return 1;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_instance_t *
 rpl_alloc_instance(uint8_t instance_id)
 {
   rpl_instance_t *instance, *end;
 
-  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
     if(instance->used == 0) {
       memset(instance, 0, sizeof(*instance));
       instance->instance_id = instance_id;
@@ -393,7 +394,7 @@ rpl_alloc_instance(uint8_t instance_id)
   }
   return NULL;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_dag_t *
 rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
 {
@@ -425,13 +426,13 @@ rpl_alloc_dag(uint8_t instance_id, uip_ipaddr_t *dag_id)
   rpl_free_instance(instance);
   return NULL;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_set_default_instance(rpl_instance_t *instance)
 {
   default_instance = instance;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_free_instance(rpl_instance_t *instance)
 {
@@ -458,7 +459,7 @@ rpl_free_instance(rpl_instance_t *instance)
 
   instance->used = 0;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_free_dag(rpl_dag_t *dag)
 {
@@ -480,7 +481,7 @@ rpl_free_dag(rpl_dag_t *dag)
   }
   dag->used = 0;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_parent_t *
 rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
 {
@@ -504,7 +505,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   list_add(dag->parents, p);
   return p;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_parent_t *
 rpl_find_parent(rpl_dag_t *dag, uip_ipaddr_t *addr)
 {
@@ -518,7 +519,7 @@ rpl_find_parent(rpl_dag_t *dag, uip_ipaddr_t *addr)
   return NULL;
 }
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static rpl_dag_t *
 find_parent_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
 {
@@ -536,7 +537,7 @@ find_parent_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
   }
   return NULL;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_parent_t *
 rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
 {
@@ -554,7 +555,7 @@ rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
   }
   return NULL;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_dag_t *
 rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
 {
@@ -645,7 +646,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   }
   return best_dag;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_parent_t *
 rpl_select_parent(rpl_dag_t *dag)
 {
@@ -668,7 +669,7 @@ rpl_select_parent(rpl_dag_t *dag)
 
   return best;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_remove_parent(rpl_dag_t *dag, rpl_parent_t *parent)
 {
@@ -681,7 +682,7 @@ rpl_remove_parent(rpl_dag_t *dag, rpl_parent_t *parent)
   list_remove(dag->parents, parent);
   memb_free(&parent_memb, parent);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_nullify_parent(rpl_dag_t *dag, rpl_parent_t *parent)
 {
@@ -706,7 +707,7 @@ rpl_nullify_parent(rpl_dag_t *dag, rpl_parent_t *parent)
   PRINT6ADDR(&parent->addr);
   PRINTF("\n");
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
 {
@@ -735,7 +736,7 @@ rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
   parent->dag = dag_dst;
   list_add(dag_dst->parents, parent);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_dag_t *
 rpl_get_any_dag(void)
 {
@@ -748,7 +749,7 @@ rpl_get_any_dag(void)
   }
   return NULL;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_instance_t *
 rpl_get_instance(uint8_t instance_id)
 {
@@ -761,7 +762,7 @@ rpl_get_instance(uint8_t instance_id)
   }
   return NULL;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 rpl_of_t *
 rpl_find_of(rpl_ocp_t ocp)
 {
@@ -777,7 +778,7 @@ rpl_find_of(rpl_ocp_t ocp)
 
   return NULL;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
@@ -874,7 +875,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 }
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
@@ -954,7 +955,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   p->dtsn = dio->dtsn;
 }
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 {
@@ -981,7 +982,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   RPL_STAT(rpl_stats.global_repairs++);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_local_repair(rpl_instance_t *instance)
 {
@@ -999,7 +1000,7 @@ rpl_local_repair(rpl_instance_t *instance)
 
   RPL_STAT(rpl_stats.local_repairs++);
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_recalculate_ranks(void)
 {
@@ -1035,7 +1036,7 @@ rpl_recalculate_ranks(void)
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 int
 rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 {
@@ -1082,7 +1083,7 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 
   return return_value;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
@@ -1219,4 +1220,4 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
   p->dtsn = dio->dtsn;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
