@@ -114,6 +114,34 @@ simple_udp_sendto(struct simple_udp_connection *c,
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * \brief      Send a UDP packet to a specified IP address and UDP port
+ * \param c    A pointer to a struct simple_udp_connection
+ * \param data A pointer to the data to be sent
+ * \param datalen The length of the data
+ * \param to   The IP address of the receiver
+ * \param port   The UDP port of the receiver, in host byte order
+ *
+ *             This function sends a UDP packet to a specified IP
+ *             address and UDP port. The packet will be sent with the
+ *             UDP ports that were specified when the connection wa
+ *             registered with simple_udp_register().
+ *
+ * \sa simple_udp_sendto()
+ */
+int
+simple_udp_sendto_port(struct simple_udp_connection *c,
+		       const void *data, uint16_t datalen,
+		       const uip_ipaddr_t *to,
+		       uint16_t port)
+{
+  if(c->udp_conn != NULL) {
+    uip_udp_packet_sendto(c->udp_conn, data, datalen,
+                          to, UIP_HTONS(port));
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+/**
  * \brief      Register a UDP connection
  * \param c    A pointer to a struct simple_udp_connection
  * \param local_port The local UDP port in host byte order
