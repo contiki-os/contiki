@@ -57,7 +57,6 @@
 uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
-extern uip_ds6_route_t uip_ds6_routing_table[];
 
 static uip_ipaddr_t prefix;
 static uint8_t prefix_set;
@@ -149,6 +148,7 @@ static
 PT_THREAD(generate_routes(struct httpd_state *s))
 {
   static int i;
+  static uip_ds6_route_t *r;
 #if BUF_USES_STACK
   char buf[256];
 #endif
@@ -220,45 +220,45 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 #else
   blen = 0;
 #endif
-  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].isused) {
+
+  for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r)) {
+
 #if BUF_USES_STACK
 #if WEBSERVER_CONF_ROUTE_LINKS
-      ADD("<a href=http://[");
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      ADD("]/status.shtml>");
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      ADD("</a>");
+    ADD("<a href=http://[");
+    ipaddr_add(&r->ipaddr);
+    ADD("]/status.shtml>");
+    ipaddr_add(&r->ipaddr);
+    ADD("</a>");
 #else
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
+    ipaddr_add(&r->ipaddr);
 #endif
 #else
 #if WEBSERVER_CONF_ROUTE_LINKS
-      ADD("<a href=http://[");
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      ADD("]/status.shtml>");
-      SEND_STRING(&s->sout, buf); //TODO: why tunslip6 needs an output here, wpcapslip does not
-      blen = 0;
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      ADD("</a>");
+    ADD("<a href=http://[");
+    ipaddr_add(&r->ipaddr);
+    ADD("]/status.shtml>");
+    SEND_STRING(&s->sout, buf); //TODO: why tunslip6 needs an output here, wpcapslip does not
+    blen = 0;
+    ipaddr_add(&r->ipaddr);
+    ADD("</a>");
 #else
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
+    ipaddr_add(&r->ipaddr);
 #endif
 #endif
-      ADD("/%u (via ", uip_ds6_routing_table[i].length);
-      ipaddr_add(&uip_ds6_routing_table[i].nexthop);
-      if(1 || (uip_ds6_routing_table[i].state.lifetime < 600)) {
-        ADD(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
-      } else {
-        ADD(")\n");
-      }
-      SEND_STRING(&s->sout, buf);
-#if BUF_USES_STACK
-      bufptr = buf; bufend = bufptr + sizeof(buf);
-#else
-      blen = 0;
-#endif
+    ADD("/%u (via ", r->length);
+    ipaddr_add(&r->nexthop);
+    if(1 || (r->state.lifetime < 600)) {
+      ADD(") %lus\n", r->state.lifetime);
+    } else {
+      ADD(")\n");
     }
+    SEND_STRING(&s->sout, buf);
+#if BUF_USES_STACK
+    bufptr = buf; bufend = bufptr + sizeof(buf);
+#else
+    blen = 0;
+#endif
   }
   ADD("</pre>");
 
