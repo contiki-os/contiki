@@ -75,9 +75,9 @@ static uint8_t rscount;                                         /** \brief numbe
 /** @{ */
 uip_ds6_netif_t uip_ds6_if;                                       /** \brief The single interface */
 uip_ds6_nbr_t uip_ds6_nbr_cache[UIP_DS6_NBR_NB];                  /** \brief Neighor cache */
-uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_DEFRT_NB];             /** \brief Default rt list */
+//uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_DEFRT_NB];             /** \brief Default rt list */
 uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
-uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];          /** \brief Routing table */
+//uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];          /** \brief Routing table */
 
 /* Used by Cooja to enable extraction of addresses from memory.*/
 uint8_t uip_ds6_addr_size;
@@ -89,28 +89,29 @@ uint8_t uip_ds6_netif_addr_list_offset;
 static uip_ipaddr_t loc_fipaddr;
 
 /* Pointers used in this file */
-static uip_ipaddr_t *locipaddr;
 static uip_ds6_addr_t *locaddr;
 static uip_ds6_maddr_t *locmaddr;
 static uip_ds6_aaddr_t *locaaddr;
 static uip_ds6_prefix_t *locprefix;
 static uip_ds6_nbr_t *locnbr;
 static uip_ds6_defrt_t *locdefrt;
-static uip_ds6_route_t *locroute;
 
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_init(void)
 {
+
+  uip_ds6_route_init();
+
   PRINTF("Init of IPv6 data structures\n");
   PRINTF("%u neighbors\n%u default routers\n%u prefixes\n%u routes\n%u unicast addresses\n%u multicast addresses\n%u anycast addresses\n",
      UIP_DS6_NBR_NB, UIP_DS6_DEFRT_NB, UIP_DS6_PREFIX_NB, UIP_DS6_ROUTE_NB,
      UIP_DS6_ADDR_NB, UIP_DS6_MADDR_NB, UIP_DS6_AADDR_NB);
   memset(uip_ds6_nbr_cache, 0, sizeof(uip_ds6_nbr_cache));
-  memset(uip_ds6_defrt_list, 0, sizeof(uip_ds6_defrt_list));
+  //  memset(uip_ds6_defrt_list, 0, sizeof(uip_ds6_defrt_list));
   memset(uip_ds6_prefix_list, 0, sizeof(uip_ds6_prefix_list));
   memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
-  memset(uip_ds6_routing_table, 0, sizeof(uip_ds6_routing_table));
+  //  memset(uip_ds6_routing_table, 0, sizeof(uip_ds6_routing_table));
   uip_ds6_addr_size = sizeof(struct uip_ds6_addr);
   uip_ds6_netif_addr_list_offset = offsetof(struct uip_ds6_netif, addr_list);
 
@@ -174,13 +175,14 @@ uip_ds6_periodic(void)
   }
 
   /* Periodic processing on default routers */
-  for(locdefrt = uip_ds6_defrt_list;
+  uip_ds6_defrt_periodic();
+  /*  for(locdefrt = uip_ds6_defrt_list;
       locdefrt < uip_ds6_defrt_list + UIP_DS6_DEFRT_NB; locdefrt++) {
     if((locdefrt->isused) && (!locdefrt->isinfinite) &&
        (stimer_expired(&(locdefrt->lifetime)))) {
       uip_ds6_defrt_rm(locdefrt);
     }
-  }
+    }*/
 
 #if !UIP_CONF_ROUTER
   /* Periodic processing on prefixes */
@@ -398,6 +400,7 @@ uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr)
 }
 
 /*---------------------------------------------------------------------------*/
+#if 0
 uip_ds6_defrt_t *
 uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
 {
@@ -477,7 +480,7 @@ uip_ds6_defrt_choose(void)
   }
   return locipaddr;
 }
-
+#endif /* 0 */
 #if UIP_CONF_ROUTER
 /*---------------------------------------------------------------------------*/
 uip_ds6_prefix_t *
@@ -745,6 +748,7 @@ uip_ds6_aaddr_lookup(uip_ipaddr_t *ipaddr)
 }
 
 /*---------------------------------------------------------------------------*/
+#if 0
 uip_ds6_route_t *
 uip_ds6_route_lookup(uip_ipaddr_t *destipaddr)
 {
@@ -825,7 +829,7 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
       return;
     }
   }
-  ANNOTATE("#L %u 0\n",route->nexthop.u8[sizeof(uip_ipaddr_t) - 1]);
+  ANNOTATE("#L %u 0\n", route->nexthop.u8[sizeof(uip_ipaddr_t) - 1]);
 #endif
 }
 /*---------------------------------------------------------------------------*/
@@ -842,6 +846,9 @@ uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
   ANNOTATE("#L %u 0\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
 }
 
+  ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+}
+#endif /* 0 */
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)

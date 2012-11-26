@@ -56,21 +56,21 @@
 rpl_stats_t rpl_stats;
 #endif
 
-/************************************************************************/
-extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_purge_routes(void)
 {
-  int i;
+  uip_ds6_route_t *r;
 
-  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].isused) {
-      if(uip_ds6_routing_table[i].state.lifetime <= 1) {
-        uip_ds6_route_rm(&uip_ds6_routing_table[i]);
-      } else {
-        uip_ds6_routing_table[i].state.lifetime--;
-      }
+  r = uip_ds6_route_list_head();
+
+  while(r != NULL) {
+    if(r->state.lifetime <= 1) {
+      uip_ds6_route_rm(r);
+      r = uip_ds6_route_list_head();
+    } else {
+      r->state.lifetime--;
+      r = list_item_next(r);
     }
   }
 }
@@ -78,11 +78,16 @@ rpl_purge_routes(void)
 void
 rpl_remove_routes(rpl_dag_t *dag)
 {
-  int i;
+  uip_ds6_route_t *r;
 
-  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].state.dag == dag) {
-      uip_ds6_route_rm(&uip_ds6_routing_table[i]);
+  r = uip_ds6_route_list_head();
+
+  while(r != NULL) {
+    if(r->state.dag == dag) {
+      uip_ds6_route_rm(r);
+      r = uip_ds6_route_list_head();
+    } else {
+      r = list_item_next(r);
     }
   }
 }
@@ -90,6 +95,22 @@ rpl_remove_routes(rpl_dag_t *dag)
 void
 rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
 {
+  uip_ds6_route_t *r;
+
+  r = uip_ds6_route_list_head();
+
+  while(r != NULL) {
+    if(uip_ipaddr_cmp(&r->nexthop, nexthop) &&
+       r->state.dag == dag) {
+      uip_ds6_route_rm(r);
+      r = uip_ds6_route_list_head();
+    } else {
+      r = list_item_next(r);
+    }
+  }
+  ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+
+#if 0
   uip_ds6_route_t *locroute;
 
   for(locroute = uip_ds6_routing_table;
@@ -102,6 +123,7 @@ rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
     }
   }
   ANNOTATE("#L %u 0\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+#endif /* 0 */
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
