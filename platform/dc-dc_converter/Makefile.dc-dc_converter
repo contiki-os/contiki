@@ -14,7 +14,7 @@ endif
 CONTIKI_TARGET_SOURCEFILES += leds-arch.c leds.c \
  							$(CODEPROP_SOURCES) $(CONTIKI_TARGET_MAIN)
 
-# include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
+#include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
 
 include $(CONTIKI)/cpu/arm/lpc1768/Makefile.lpc1768
 

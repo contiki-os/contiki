@@ -21,6 +21,7 @@
  */
 #include "contiki-net.h"
 #include "emac-driver.h"
+#include "emac.h"
 
 /*---------------------------------------------------------------------------*/
 /*
@@ -28,6 +29,9 @@
  * check for incoming packets.
  */
 PROCESS(emac_lpc1768, "LPC1768 EMAC Service Process");
+
+static struct etimer timer;  // for periodic ARP processing
+
 /*---------------------------------------------------------------------------*/
 /*
  * This is the poll handler function in the process below. This poll
@@ -52,9 +56,10 @@ pollhandler(void)
    * The function tcpip_input() delivers the packet in the uip_buf[]
    * buffer to the TCP/IP stack.
    */
-  if(uip_len > 0) {
-    tcpip_input();
-  }
+  if (uip_len > 0)
+    {
+      tcpip_input();
+    }
 
   /*
    * Now we'll make sure that the poll handler is executed
@@ -81,6 +86,12 @@ send_packet(void)
   tapdev_send(uip_buf, uip_len);
 }
 
+//This is just a wrapper for the Ethernet module interrupt
+//to call a contiki process_poll function
+void poll_eth_driver(void){
+  process_poll(&emac_lpc1768);
+}
+
 /*---------------------------------------------------------------------------*/
 /*
  * Now we declare the service. We call the service
@@ -93,12 +104,10 @@ send_packet(void)
  * We'll register this service with the Contiki system in the process
  * defined below.
  */
-//SERVICE(emac_lpc1768_service, packet_service, { send_packet });
 /*---------------------------------------------------------------------------*/
 /*
  * Finally, we define the process that does the work.
- */
-PROCESS_THREAD(emac_lpc1768, ev, data)
+ */PROCESS_THREAD(emac_lpc1768, ev, data)
 {
   /*
    * This process has a poll handler, so we declare it here. Note that
@@ -109,36 +118,36 @@ PROCESS_THREAD(emac_lpc1768, ev, data)
 
   /*
    * The process begins here.
-   */
-  PROCESS_BEGIN();
+   */PROCESS_BEGIN()
+  ;
 
   /*
    * We start with initializing the hardware.
    */
   tapdev_init();
 
-  /*
-   * Register the service. This will cause any other instances of the
-   * same service to be removed.
-   */
-  //SERVICE_REGISTER(emac_lpc1768_service);
+  tcpip_set_outputfunc(send_packet);
 
-  /*
-   * And we wait for either the process to exit, or for the service to
-   * be removed (by someone else).
-   */
-  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_EXIT ||
-                           ev == PROCESS_EVENT_SERVICE_REMOVED);
+  // 10 second ARP timer
+  etimer_set(&timer, 10 * CLOCK_SECOND);
+  process_poll(&emac_lpc1768);
 
-  /*
-   * And we always end with explicitly removing the service.
-   */
-  //SERVICE_REMOVE(emac_lpc1768_service);
+  while (ev != PROCESS_EVENT_EXIT)
+    {
+      PROCESS_WAIT_EVENT()
+      ;
+
+      if (ev == PROCESS_EVENT_TIMER)
+        {
+          etimer_set(&timer, 10 * CLOCK_SECOND);
+          uip_arp_timer();
+        }
+    }
 
   /*
    * Here endeth the process.
    */
-  PROCESS_END();
+PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 

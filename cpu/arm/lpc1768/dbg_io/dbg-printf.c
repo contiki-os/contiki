@@ -1,7 +1,9 @@
 #include <stdio.h>
-#include <debug-uart.h>
+#include "debug-uart.h"
 #include <string.h>
 #include <strformat.h>
+
+#include "lpc17xx.h"
 
 static StrFormatResult
 write_str(void *user_data, const char *data, unsigned int len)

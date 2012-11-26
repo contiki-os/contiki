@@ -8,11 +8,12 @@
 #ifndef EMAC_DRIVER_H_
 #define EMAC_DRIVER_H_
 
-#include "lpc_types.h"
 #include "contiki-conf.h"
-#include "lpc17xx_emac.h"
-#include "emac.h"
 
 PROCESS_NAME(emac_lpc1768);
+
+//This is just a wrapper for the Ethernet module interrupt
+//to call a contiki poll_process
+void poll_eth_driver(void);
 
 #endif /* EMAC_DRIVER_H_ */
