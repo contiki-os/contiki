@@ -97,9 +97,14 @@ rpl_verify_header(int uip_ext_opt_offset)
     down = 1;
   }
 
-  PRINTF("RPL: Packet going %s\n", down == 1 ? "down" : "up");
-
   sender_closer = UIP_EXT_HDR_OPT_RPL_BUF->senderrank < instance->current_dag->rank;
+
+  PRINTF("RPL: Packet going %s, sender closer %d (%d < %d)\n", down == 1 ? "down" : "up",
+	 sender_closer,
+	 UIP_EXT_HDR_OPT_RPL_BUF->senderrank,
+	 instance->current_dag->rank
+	 );
+
   if((down && !sender_closer) || (!down && sender_closer)) {
     PRINTF("RPL: Loop detected - senderrank: %d my-rank: %d sender_closer: %d\n",
 	   UIP_EXT_HDR_OPT_RPL_BUF->senderrank, instance->current_dag->rank,
@@ -183,7 +188,22 @@ rpl_update_header_empty(void)
   switch(UIP_EXT_HDR_OPT_BUF->type) {
   case UIP_EXT_HDR_OPT_RPL:
     PRINTF("RPL: Updating RPL option\n");
-    UIP_EXT_HDR_OPT_RPL_BUF->senderrank=instance->current_dag->rank;
+    UIP_EXT_HDR_OPT_RPL_BUF->senderrank = instance->current_dag->rank;
+
+
+    /* Set the down extension flag correctly as described in Section
+       11.2 of RFC6550. If the packet progresses along a DAO route,
+       the down flag should be set. */
+
+    if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr) == NULL) {
+      /* No route was found, so this packet will go towards the RPL
+	 root. If so, we should not set the down flag. */
+      UIP_EXT_HDR_OPT_RPL_BUF->flags &= ~RPL_HDR_OPT_DOWN;
+    } else {
+      /* A DAO route was found so we set the down flag. */
+      UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_DOWN;
+    }
+
     uip_ext_len = last_uip_ext_len;
     return;
   default:
