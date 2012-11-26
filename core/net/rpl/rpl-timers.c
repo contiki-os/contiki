@@ -81,25 +81,24 @@ static void
 new_dio_interval(rpl_instance_t *instance)
 {
   uint32_t time;
+  clock_time_t ticks;
 
   /* TODO: too small timer intervals for many cases */
   time = 1UL << instance->dio_intcurrent;
 
   /* Convert from milliseconds to CLOCK_TICKS. */
-  time = (time * CLOCK_SECOND) / 1000;
-
-  instance->dio_next_delay = time;
+  ticks = (time * CLOCK_SECOND) / 1000;
+  instance->dio_next_delay = ticks;
 
   /* random number between I/2 and I */
-  time = time >> 1;
-  time += (time * random_rand()) / RANDOM_RAND_MAX;
+  ticks = ticks / 2 + (ticks / 2 * (uint32_t)random_rand()) / RANDOM_RAND_MAX;
 
   /*
    * The intervals must be equally long among the nodes for Trickle to
    * operate efficiently. Therefore we need to calculate the delay between
    * the randomized time and the start time of the next interval.
    */
-  instance->dio_next_delay -= time;
+  instance->dio_next_delay -= ticks;
   instance->dio_send = 1;
 
 #if RPL_CONF_STATS
@@ -119,8 +118,8 @@ new_dio_interval(rpl_instance_t *instance)
   instance->dio_counter = 0;
 
   /* schedule the timer */
-  PRINTF("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", time);
-  ctimer_set(&instance->dio_timer, time, &handle_dio_timer, instance);
+  PRINTF("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", ticks);
+  ctimer_set(&instance->dio_timer, ticks, &handle_dio_timer, instance);
 }
 /*---------------------------------------------------------------------------*/
 static void
