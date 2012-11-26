@@ -354,12 +354,10 @@ int
 rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
 {
   if(instance->def_route != NULL) {
-    if(instance->def_route->isused) {
-      PRINTF("RPL: Removing default route through ");
-      PRINT6ADDR(&instance->def_route->ipaddr);
-      PRINTF("\n");
-      uip_ds6_defrt_rm(instance->def_route);
-    }
+    PRINTF("RPL: Removing default route through ");
+    PRINT6ADDR(&instance->def_route->ipaddr);
+    PRINTF("\n");
+    uip_ds6_defrt_rm(instance->def_route);
     instance->def_route = NULL;
   }
 
@@ -372,6 +370,13 @@ rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
                                                          instance->default_lifetime));
     if(instance->def_route == NULL) {
       return 0;
+    }
+  } else {
+    PRINTF("RPL: Removing default route\n");
+    if(instance->def_route != NULL) {
+      uip_ds6_defrt_rm(instance->def_route);
+    } else {
+      PRINTF("RPL: Not actually removing default route, since instance had no default route\n");
     }
   }
   return 1;
@@ -691,12 +696,10 @@ rpl_nullify_parent(rpl_dag_t *dag, rpl_parent_t *parent)
     dag->rank = INFINITE_RANK;
     if(dag->joined) {
       if(dag->instance->def_route != NULL) {
-        if(dag->instance->def_route->isused) {
-          PRINTF("RPL: Removing default route ");
-          PRINT6ADDR(&parent->addr);
-          PRINTF("\n");
-          uip_ds6_defrt_rm(dag->instance->def_route);
-        }
+	PRINTF("RPL: Removing default route ");
+	PRINT6ADDR(&parent->addr);
+	PRINTF("\n");
+	uip_ds6_defrt_rm(dag->instance->def_route);
         dag->instance->def_route = NULL;
       }
       dao_output(parent, RPL_ZERO_LIFETIME);
@@ -715,12 +718,11 @@ rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
       dag_src->preferred_parent = NULL;
       dag_src->rank = INFINITE_RANK;
     if(dag_src->joined && dag_src->instance->def_route != NULL) {
-      if(dag_src->instance->def_route->isused) {
-        PRINTF("RPL: Removing default route ");
-        PRINT6ADDR(&parent->addr);
-        PRINTF("\n");
-        uip_ds6_defrt_rm(dag_src->instance->def_route);
-      }
+      PRINTF("RPL: Removing default route ");
+      PRINT6ADDR(&parent->addr);
+      PRINTF("\n");
+      printf("rpl_move_parent\n");
+      uip_ds6_defrt_rm(dag_src->instance->def_route);
       dag_src->instance->def_route = NULL;
     }
   } else if(dag_src->joined) {
