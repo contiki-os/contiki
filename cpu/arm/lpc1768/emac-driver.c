@@ -23,6 +23,9 @@
 #include "emac-driver.h"
 #include "emac.h"
 
+#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+
 /*---------------------------------------------------------------------------*/
 /*
  * We declare the process that we use to register the service, and to
@@ -58,7 +61,35 @@ pollhandler(void)
    */
   if (uip_len > 0)
     {
-      tcpip_input();
+      printf("Received packet of %u bytes\n", uip_len);
+      if (BUF ->type == UIP_HTONS(UIP_ETHTYPE_IP))
+        {
+          printf("Habemus IP packet\n");
+          printf("IP type is %x\n", IPBUF->vhl);
+          uip_arp_ipin();
+          uip_input();
+          /* If the above function invocation resulted in data that
+           should be sent out on the network, the global variable
+           uip_len is set to a value > 0. */
+
+          if (uip_len > 0)
+            {
+              uip_arp_out();
+              tapdev_send(uip_buf, uip_len);
+            }
+        }
+      else if (BUF ->type == UIP_HTONS(UIP_ETHTYPE_ARP))
+        {
+          printf("Habemus ARP packet\n");
+          uip_arp_arpin();
+          /* If the above function invocation resulted in data that
+           should be sent out on the network, the global variable
+           uip_len is set to a value > 0. */
+          if (uip_len > 0)
+            {
+              tapdev_send(uip_buf, uip_len);
+            }
+        }
     }
 
   /*
@@ -88,7 +119,9 @@ send_packet(void)
 
 //This is just a wrapper for the Ethernet module interrupt
 //to call a contiki process_poll function
-void poll_eth_driver(void){
+void
+poll_eth_driver(void)
+{
   process_poll(&emac_lpc1768);
 }
 
@@ -119,35 +152,35 @@ void poll_eth_driver(void){
   /*
    * The process begins here.
    */PROCESS_BEGIN()
-  ;
+    ;
 
-  /*
-   * We start with initializing the hardware.
-   */
-  tapdev_init();
+    /*
+     * We start with initializing the hardware.
+     */
+    tapdev_init();
 
-  tcpip_set_outputfunc(send_packet);
+    tcpip_set_outputfunc(send_packet);
 
-  // 10 second ARP timer
-  etimer_set(&timer, 10 * CLOCK_SECOND);
-  process_poll(&emac_lpc1768);
+    // 10 second ARP timer
+    etimer_set(&timer, 10 * CLOCK_SECOND);
+    process_poll(&emac_lpc1768);
 
-  while (ev != PROCESS_EVENT_EXIT)
-    {
-      PROCESS_WAIT_EVENT()
-      ;
+    while (ev != PROCESS_EVENT_EXIT)
+      {
+        PROCESS_WAIT_EVENT()
+        ;
 
-      if (ev == PROCESS_EVENT_TIMER)
-        {
-          etimer_set(&timer, 10 * CLOCK_SECOND);
-          uip_arp_timer();
-        }
-    }
+        if (ev == PROCESS_EVENT_TIMER)
+          {
+            etimer_set(&timer, 10 * CLOCK_SECOND);
+            uip_arp_timer();
+          }
+      }
 
-  /*
-   * Here endeth the process.
-   */
-PROCESS_END();
+    /*
+     * Here endeth the process.
+     */
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 

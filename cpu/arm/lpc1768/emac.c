@@ -167,6 +167,8 @@ tapdev_send(void *pPacket, UNS_32 size)
 void
 ENET_IRQHandler(void)
 {
+
+  printf("EMAC interrupt handler invoked, could be a new packet...\n");
   //Check which interrupt source brought us here and clear the flag
   //If a packet arrived, we inform the Ethernet driver
 

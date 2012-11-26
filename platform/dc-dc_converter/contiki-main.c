@@ -9,6 +9,7 @@
 #include <net/dhcpc.h>
 #include "debug-uart.h"
 #include "emac-driver.h"
+#include "contiki-conf.h"
 
 unsigned int idle_count = 0;
 
@@ -23,11 +24,20 @@ main()
   printf("Initializing processes\n");
   process_init();
   printf("Starting etimers\n");
-  process_start(&etimer_process, NULL );
+  process_start(&etimer_process, NULL);
   printf("Starting EMAC service\n");
-  process_start(&emac_lpc1768, NULL );
+  process_start(&emac_lpc1768, NULL);
   printf("Starting TCP/IP service\n");
-  process_start(&tcpip_process, NULL );          // invokes uip_init();
+  process_start(&tcpip_process, NULL);          // invokes uip_init();
+
+  // init MAC address
+  uip_ethaddr.addr[0] = EMAC_ADDR0;
+  uip_ethaddr.addr[1] = EMAC_ADDR1;
+  uip_ethaddr.addr[2] = EMAC_ADDR2;
+  uip_ethaddr.addr[3] = EMAC_ADDR3;
+  uip_ethaddr.addr[4] = EMAC_ADDR4;
+  uip_ethaddr.addr[5] = EMAC_ADDR5;
+  uip_setethaddr(uip_ethaddr);
 
   uip_ipaddr(&addr, 192, 168, 1, 5);
   printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
