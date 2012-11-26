@@ -1096,6 +1096,32 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
+  dag = get_dag(dio->instance_id, &dio->dag_id);
+  instance = rpl_get_instance(dio->instance_id);
+
+  if(dag != NULL && instance != NULL) {
+    if(lollipop_greater_than(dio->version, dag->version)) {
+      if(dag->rank == ROOT_RANK(instance)) {
+	PRINTF("RPL: Root received inconsistent DIO version number\n");
+	dag->version = dio->version;
+	RPL_LOLLIPOP_INCREMENT(dag->version);
+	rpl_reset_dio_timer(instance);
+      } else {
+	global_repair(from, dag, dio);
+      }
+      return;
+    }
+
+    if(lollipop_greater_than(dag->version, dio->version)) {
+      /* The DIO sender is on an older version of the DAG. */
+      PRINTF("RPL: old version received => inconsistency detected\n");
+      if(dag->joined) {
+	rpl_reset_dio_timer(instance);
+	return;
+      }
+    }
+  }
+
   if(dio->rank == INFINITE_RANK) {
     PRINTF("RPL: Ignoring DIO from node with infinite rank: ");
     PRINT6ADDR(from);
@@ -1103,40 +1129,18 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
-  instance = rpl_get_instance(dio->instance_id);
   if(instance == NULL) {
     PRINTF("RPL: New instance detected: Joining...\n");
     rpl_join_instance(from, dio);
     return;
   }
 
-  dag = get_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Adding new DAG to known instance.\n");
     rpl_add_dag(from, dio);
     return;
   }
 
-  if(lollipop_greater_than(dio->version, dag->version)) {
-    if(dag->rank == ROOT_RANK(instance)) {
-      PRINTF("RPL: Root received inconsistent DIO version number\n");
-      dag->version = dio->version;
-      RPL_LOLLIPOP_INCREMENT(dag->version);
-      rpl_reset_dio_timer(instance);
-    } else {
-      global_repair(from, dag, dio);
-    }
-    return;
-  }
-
-  if(lollipop_greater_than(dag->version, dio->version)) {
-    /* The DIO sender is on an older version of the DAG. */
-    PRINTF("RPL: old version received => inconsistency detected\n");
-    if(dag->joined) {
-      rpl_reset_dio_timer(instance);
-      return;
-    }
-  }
 
   if(dio->rank < ROOT_RANK(instance)) {
     PRINTF("RPL: Ignoring DIO with too low rank: %u\n",
