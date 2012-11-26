@@ -423,6 +423,8 @@ uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
 
     ANNOTATE("#L %u 1\n", ipaddr->u8[sizeof(uip_ipaddr_t) - 1]);
 
+    call_route_callback(UIP_DS6_NOTIFICATION_DEFRT_ADD, ipaddr, ipaddr);
+
     return locdefrt;
   }
   return NULL;
@@ -435,6 +437,8 @@ uip_ds6_defrt_rm(uip_ds6_defrt_t *defrt)
   if(defrt != NULL) {
     defrt->isused = 0;
     ANNOTATE("#L %u 0\n", defrt->ipaddr.u8[sizeof(uip_ipaddr_t) - 1]);
+    call_route_callback(UIP_DS6_NOTIFICATION_DEFRT_RM,
+			&defrt->ipaddr, &defrt->ipaddr);
   }
   return;
 }
@@ -808,6 +812,8 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length, uip_ipaddr_t *nexthop,
     PRINT6ADDR(nexthop);
     PRINTF("\n");
     ANNOTATE("#L %u 1;blue\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+
+    call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_ADD, ipaddr, nexthop);
   }
 
   return locroute;
@@ -818,6 +824,8 @@ void
 uip_ds6_route_rm(uip_ds6_route_t *route)
 {
   route->isused = 0;
+  call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
+		      &route->ipaddr, &route->nexthop);
 #if (DEBUG & DEBUG_ANNOTATE) == DEBUG_ANNOTATE
   /* we need to check if this was the last route towards "nexthop" */
   /* if so - remove that link (annotation) */
@@ -843,8 +851,8 @@ uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
       locroute->isused = 0;
     }
   }
-  ANNOTATE("#L %u 0\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
-}
+  call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
+		      &locroute->ipaddr, &locroute->nexthop);
 
   ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
 }
