@@ -586,6 +586,11 @@ tcpip_ipv6_output(void)
       } else {
 	nexthop = &locrt->nexthop;
       }
+#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+      if(nexthop != NULL) {
+	printf("#L %u 1; red\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+      }
+#endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
     }
     /* End of next hop determination */
 #if UIP_CONF_IPV6_RPL
