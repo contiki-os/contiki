@@ -626,6 +626,12 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
 
   packetbuf_compact();
 
+#ifdef NETSTACK_ENCRYPT
+  NETSTACK_ENCRYPT();
+#endif /* NETSTACK_ENCRYPT */
+
+  transmit_len = packetbuf_totlen();
+
   NETSTACK_RADIO.prepare(packetbuf_hdrptr(), transmit_len);
 
   /* Remove the MAC-layer header since it will be recreated next time around. */
@@ -915,7 +921,11 @@ input_packet(void)
   }
 
   /*  printf("cycle_start 0x%02x 0x%02x\n", cycle_start, cycle_start % CYCLE_TIME);*/
-  
+
+#ifdef NETSTACK_DECRYPT
+  NETSTACK_DECRYPT();
+#endif /* NETSTACK_DECRYPT */
+
   if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse() >= 0) {
 
 #if WITH_CONTIKIMAC_HEADER
