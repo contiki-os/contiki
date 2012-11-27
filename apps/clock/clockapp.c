@@ -117,6 +117,8 @@ update_clock(void)
    * cf. http://git.uclibc.org/uClibc/tree/libc/misc/time/time.c _time_t2tm
    */
   struct tm *t = localtime(&secs);
+  if(t == NULL)
+    return;
 
 #ifdef ANALOG
   memcpy(text_clock, text_clock_tmpl, sizeof(text_clock_tmpl));
