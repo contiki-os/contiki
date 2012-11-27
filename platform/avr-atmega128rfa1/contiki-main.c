@@ -536,17 +536,22 @@ extern uip_ds6_netif_t uip_ds6_if;
   }
   if (j) PRINTF("  <none>");
   PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
-  for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].isused) {
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      PRINTF("/%u (via ", uip_ds6_routing_table[i].length);
-      ipaddr_add(&uip_ds6_routing_table[i].nexthop);
+  {
+    uip_ds6_route_t *r;
+    PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
+    j = 1;
+    for(r = uip_ds6_route_list_head();
+        r != NULL;
+        r = list_item_next(r)) {
+      ipaddr_add(&r->ipaddr);
+      PRINTF("/%u (via ", r->length);
+      ipaddr_add(&r->nexthop);
  //     if(uip_ds6_routing_table[i].state.lifetime < 600) {
-        PRINTF(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
- //     } else {
- //       PRINTF(")\n");
- //     }
-      j=0;
+      PRINTF(") %lus\n", r->state.lifetime);
+      //     } else {
+      //       PRINTF(")\n");
+      //     }
+      j = 0;
     }
   }
   if (j) PRINTF("  <none>");

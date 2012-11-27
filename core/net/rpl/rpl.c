@@ -56,40 +56,61 @@
 rpl_stats_t rpl_stats;
 #endif
 
-/************************************************************************/
-extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_purge_routes(void)
 {
-  int i;
+  uip_ds6_route_t *r;
 
-  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].isused) {
-      if(uip_ds6_routing_table[i].state.lifetime <= 1) {
-        uip_ds6_route_rm(&uip_ds6_routing_table[i]);
-      } else {
-        uip_ds6_routing_table[i].state.lifetime--;
-      }
+  r = uip_ds6_route_list_head();
+
+  while(r != NULL) {
+    if(r->state.lifetime <= 1) {
+      uip_ds6_route_rm(r);
+      r = uip_ds6_route_list_head();
+    } else {
+      r->state.lifetime--;
+      r = list_item_next(r);
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_remove_routes(rpl_dag_t *dag)
 {
-  int i;
+  uip_ds6_route_t *r;
 
-  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].state.dag == dag) {
-      uip_ds6_route_rm(&uip_ds6_routing_table[i]);
+  r = uip_ds6_route_list_head();
+
+  while(r != NULL) {
+    if(r->state.dag == dag) {
+      uip_ds6_route_rm(r);
+      r = uip_ds6_route_list_head();
+    } else {
+      r = list_item_next(r);
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
 {
+  uip_ds6_route_t *r;
+
+  r = uip_ds6_route_list_head();
+
+  while(r != NULL) {
+    if(uip_ipaddr_cmp(&r->nexthop, nexthop) &&
+       r->state.dag == dag) {
+      uip_ds6_route_rm(r);
+      r = uip_ds6_route_list_head();
+    } else {
+      r = list_item_next(r);
+    }
+  }
+  ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+
+#if 0
   uip_ds6_route_t *locroute;
 
   for(locroute = uip_ds6_routing_table;
@@ -102,8 +123,9 @@ rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
     }
   }
   ANNOTATE("#L %u 0\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+#endif /* 0 */
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
 rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
               uip_ipaddr_t *next_hop)
@@ -136,7 +158,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 
   return rep;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
 {
@@ -179,7 +201,7 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
     uip_ds6_route_rm_by_nexthop(&ipaddr);
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
 {
@@ -203,7 +225,7 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
     }
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_init(void)
 {
@@ -222,4 +244,4 @@ rpl_init(void)
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
