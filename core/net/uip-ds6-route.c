@@ -172,7 +172,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
     }
     list_add(routelist, r);
 
-    //    printf("uip_ds6_route_add num %d\n", list_length(routelist));
+    PRINTF("uip_ds6_route_add num %d\n", list_length(routelist));
   }
 
   uip_ipaddr_copy(&(r->ipaddr), ipaddr);
@@ -209,7 +209,7 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
       list_remove(routelist, route);
       memb_free(&routememb, route);
 
-      //      printf("uip_ds6_route_rm num %d\n", list_length(routelist));
+      PRINTF("uip_ds6_route_rm num %d\n", list_length(routelist));
 
       call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
 			  &route->ipaddr, &route->nexthop);
@@ -358,7 +358,7 @@ uip_ds6_defrt_periodic(void)
   while(d != NULL) {
     if(!d->isinfinite &&
        stimer_expired(&d->lifetime)) {
-      printf("defrt lifetime expired\n");
+      PRINTF("uip_ds6_defrt_periodic: defrt lifetime expired\n");
       uip_ds6_defrt_rm(d);
       d = list_head(defaultrouterlist);
     } else {
