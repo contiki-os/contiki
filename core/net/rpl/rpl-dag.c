@@ -721,7 +721,7 @@ rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
       PRINTF("RPL: Removing default route ");
       PRINT6ADDR(&parent->addr);
       PRINTF("\n");
-      printf("rpl_move_parent\n");
+      PRINTF("rpl_move_parent\n");
       uip_ds6_defrt_rm(dag_src->instance->def_route);
       dag_src->instance->def_route = NULL;
     }
