@@ -60,7 +60,7 @@
  * \param addrstr A pointer to a string containing the IP address in
  * textual form.
  *
- * \param addr A pointer to a uip_ipaddr_t that will be filled in with
+ * \param addr A pointer to a uip_ip4addr_t that will be filled in with
  * the numerical representation of the address.
  *
  * \retval 0 If the IP address could not be parsed.
@@ -68,6 +68,8 @@
  */
 CCIF int uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *addr);
 
+CCIF int uiplib_ip4addrconv(const char *addrstr, uip_ip4addr_t *addr);
+CCIF int uiplib_ip6addrconv(const char *addrstr, uip_ip6addr_t *addr);
 /** @} */
 
 #endif /* __UIPLIB_H__ */
