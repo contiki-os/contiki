@@ -79,15 +79,19 @@ blanker_update(void)
   textcolor(COLOR_WHITE);
   clrscr();
   cputsxy(x, y, text);
-  if(x == 0 && dx < 0)
+  if(x == 0 && dx < 0) {
     dx = -dx;
-  if(x == width && dx > 0)
+  }
+  if(x == width && dx > 0) {
     dx = -dx;
+  }
   x += dx;
-  if(y == 0 && dy < 0)
+  if(y == 0 && dy < 0) {
     dy = -dy;
-  if(y == height && dy > 0)
+  }
+  if(y == height && dy > 0) {
     dy = -dy;
+  }
   y += dy;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -105,8 +109,9 @@ PROCESS_THREAD(blanker_process, ev, data)
   y = height / 2;
 
   ctk_menu_new(&menu, "Blanker");
-  for(i = 0; i < 6; i++)
+  for(i = 0; i < 6; i++) {
     ctk_menuitem_add(&menu, menu_names[i]);
+  }
   ctk_menu_add(&menu);
   menu_names[0][0] = '>';
 
