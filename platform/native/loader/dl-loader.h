@@ -27,8 +27,6 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * @(#)$Id: dlloader.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
  */
 #ifndef __DLLOADER_H__
 #define __DLLOADER_H__

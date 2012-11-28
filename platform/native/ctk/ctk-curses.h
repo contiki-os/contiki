@@ -29,8 +29,6 @@
  * This file is part of the Contiki operating system.
  * 
  * Author: François Revol <revol@free.fr>
- *
- * $Id: ctk-curses.h,v 1.5 2007/04/15 13:30:17 oliverschmidt Exp $
  */
 #ifndef __CTK_CONSOLE_H__
 #define __CTK_CONSOLE_H__

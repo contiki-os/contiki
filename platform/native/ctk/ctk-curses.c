@@ -29,8 +29,6 @@
  * This file is part of the Contiki operating system.
  * 
  * Author: François Revol <revol@free.fr>
- *
- * $Id: ctk-curses.c,v 1.10 2007/12/15 20:12:28 oliverschmidt Exp $
  */
 
 #include <curses.h>
