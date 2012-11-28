@@ -1,2 +1,2 @@
-clock_src = clockapp.c
+clock_src = clock-app.c
 clock_dsc = clock-dsc.c
