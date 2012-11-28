@@ -103,7 +103,11 @@
 /* Default values for RPL constants and variables. */
 
 /* The default value for the DAO timer. */
+#ifdef RPL_CONF_DAO_LATENCY
+#define RPL_DAO_LATENCY                 RPL_CONF_DAO_LATENCY
+#else /* RPL_CONF_DAO_LATENCY */
 #define RPL_DAO_LATENCY                 (CLOCK_SECOND * 4)
+#endif /* RPL_DAO_LATENCY */
 
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0

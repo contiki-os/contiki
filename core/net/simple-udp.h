@@ -86,6 +86,10 @@ int simple_udp_sendto(struct simple_udp_connection *c,
                       const void *data, uint16_t datalen,
                       const uip_ipaddr_t *to);
 
+int simple_udp_sendto_port(struct simple_udp_connection *c,
+			   const void *data, uint16_t datalen,
+			   const uip_ipaddr_t *to, uint16_t to_port);
+
 void simple_udp_init(void);
 
 #endif /* SIMPLE_UDP_H */

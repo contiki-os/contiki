@@ -42,9 +42,8 @@
 
 /*-----------------------------------------------------------------------------------*/
 int
-uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
+uiplib_ip6addrconv(const char *addrstr, uip_ip6addr_t *ipaddr)
 {
-#if UIP_CONF_IPV6
   uint16_t value;
   int tmp, zero;
   unsigned int len;
@@ -54,7 +53,7 @@ uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
   zero = -1;
   if(*addrstr == '[') addrstr++;
 
-  for(len = 0; len < sizeof(uip_ipaddr_t) - 1; addrstr++) {
+  for(len = 0; len < sizeof(uip_ip6addr_t) - 1; addrstr++) {
     c = *addrstr;
     if(c == ':' || c == '\0' || c == ']' || c == '/') {
       ipaddr->u8[len] = (value >> 8) & 0xff;
@@ -91,45 +90,63 @@ uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
     PRINTF("uiplib: too large address\n");
     return 0;
   }
-  if(len < sizeof(uip_ipaddr_t)) {
+  if(len < sizeof(uip_ip6addr_t)) {
     if(zero < 0) {
       PRINTF("uiplib: too short address\n");
       return 0;
     }
-    memmove(&ipaddr->u8[zero + sizeof(uip_ipaddr_t) - len],
+    memmove(&ipaddr->u8[zero + sizeof(uip_ip6addr_t) - len],
             &ipaddr->u8[zero], len - zero);
-    memset(&ipaddr->u8[zero], 0, sizeof(uip_ipaddr_t) - len);
+    memset(&ipaddr->u8[zero], 0, sizeof(uip_ip6addr_t) - len);
   }
 
-#else /* UIP_CONF_IPV6 */
-
+  return 1;
+}
+/*-----------------------------------------------------------------------------------*/
+/* Parse a IPv4-address from a string. Returns the number of characters read 
+ * for the address. */
+int
+uiplib_ip4addrconv(const char *addrstr, uip_ip4addr_t *ipaddr)
+{
   unsigned char tmp;
   char c;
   unsigned char i, j;
+  uint8_t charsread = 0;
 
   tmp = 0;
-  
+
   for(i = 0; i < 4; ++i) {
     j = 0;
     do {
       c = *addrstr;
       ++j;
       if(j > 4) {
-	return 0;
+        return 0;
       }
-      if(c == '.' || c == 0) {
-	ipaddr->u8[i] = tmp;
-	tmp = 0;
+      if(c == '.' || c == 0 || c == ' ') {
+        ipaddr->u8[i] = tmp;
+        tmp = 0;
       } else if(c >= '0' && c <= '9') {
-	tmp = (tmp * 10) + (c - '0');
+      	tmp = (tmp * 10) + (c - '0');
       } else {
-	return 0;
+        return 0;
       }
       ++addrstr;
-    } while(c != '.' && c != 0);
+      ++charsread;
+    } while(c != '.' && c != 0 && c != ' ');
+
   }
+  return charsread-1;
+}
+/*-----------------------------------------------------------------------------------*/
+int
+uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
+{
+#if UIP_CONF_IPV6
+  return uiplib_ip6addrconv(addrstr, ipaddr);
+#else /* UIP_CONF_IPV6 */
+  return uiplib_ip4addrconv(addrstr, ipaddr);
 #endif /* UIP_CONF_IPV6 */
-  return 1;
 }
 
 /*-----------------------------------------------------------------------------------*/
