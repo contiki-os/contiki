@@ -27,9 +27,7 @@ CMSIS_LPC17xx = core_cm3.c debug_frmwrk.c lpc17xx_adc.c lpc17xx_can.c \
 				lpc17xx_wdt.c system_LPC17xx.c
 				
 #List of source files that retarget the stdio.h functions to the UART
-DBG_IO = dbg-printf.c dbg-putchar.c dbg-puts.c dbg-snprintf.c \
-		dbg-sprintf.c debug-uart.c strformat.c				
-
+DBG_IO = debug-uart.c syscalls.c			
 
 CONTIKI_TARGET_SOURCEFILES += $(LPC1768) $(CMSIS_LPC17xx) $(DBG_IO) $(UIPDRIVERS)
 

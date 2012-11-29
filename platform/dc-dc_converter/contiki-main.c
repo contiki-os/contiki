@@ -30,6 +30,40 @@ main()
   printf("Starting TCP/IP service\n");
   process_start(&tcpip_process, NULL);          // invokes uip_init();
 
+#if UIP_CONF_IPV6
+  // init MAC address
+  uip_lladdr.addr[0] = EMAC_ADDR0;
+  uip_lladdr.addr[1] = EMAC_ADDR1;
+  uip_lladdr.addr[2] = EMAC_ADDR2;
+  uip_lladdr.addr[3] = EMAC_ADDR3;
+  uip_lladdr.addr[4] = EMAC_ADDR4;
+  uip_lladdr.addr[5] = EMAC_ADDR5;
+
+  printf("Tentative link-local IPv6 address ");
+    {
+      uip_ds6_addr_t *lladdr;
+      int i;
+      lladdr = uip_ds6_get_link_local(-1);
+      for (i = 0; i < 7; ++i)
+        {
+          printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
+              lladdr->ipaddr.u8[i * 2 + 1]);
+        }
+      printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
+    }
+
+  uip_ipaddr_t ipaddr;
+  int i;
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
+  printf("Tentative global IPv6 address ");
+  for (i = 0; i < 7; ++i)
+    {
+      printf("%02x%02x:", ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
+    }
+  printf("%02x%02x\n", ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
+#else
   // init MAC address
   uip_ethaddr.addr[0] = EMAC_ADDR0;
   uip_ethaddr.addr[1] = EMAC_ADDR1;
@@ -50,9 +84,7 @@ main()
   uip_ipaddr(&addr, 192, 168, 1, 1);
   printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_setdraddr(&addr);
-
-  //  printf("Starting DHCP service\n");
-//  process_start(&dhcp_process, NULL);
+#endif
 
   autostart_start(autostart_processes);
 

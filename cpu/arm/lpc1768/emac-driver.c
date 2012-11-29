@@ -15,13 +15,9 @@
  * interface.
  */
 
-/*
- * We include the "contiki-net.h" file to get all the network
- * functions.
- */
-#include "contiki-net.h"
 #include "emac-driver.h"
 #include "emac.h"
+#include <stdio.h>
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 #define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -62,10 +58,26 @@ pollhandler(void)
   if (uip_len > 0)
     {
       printf("Received packet of %u bytes\n", uip_len);
+#if UIP_CONF_IPV6
+      if (BUF ->type == uip_htons(UIP_ETHTYPE_IPV6))
+        {
+          printf("Habemus IPv6 packet!\n");
+          //uip_neighbor_add(&IPBUF ->srcipaddr, &BUF ->src);
+          uip_input();
+
+          /* If the above function invocation resulted in data that
+           should be sent out on the network, the global variable
+           uip_len is set to a value > 0. */
+          if (uip_len > 0)
+            {
+              send_packet(NULL);
+            }
+        }
+#else
       if (BUF ->type == UIP_HTONS(UIP_ETHTYPE_IP))
         {
           printf("Habemus IP packet\n");
-          printf("IP type is %x\n", IPBUF->vhl);
+          printf("IP type is %x\n", IPBUF ->vhl);
           uip_arp_ipin();
           uip_input();
           /* If the above function invocation resulted in data that
@@ -90,6 +102,7 @@ pollhandler(void)
               tapdev_send(uip_buf, uip_len);
             }
         }
+#endif
     }
 
   /*
@@ -111,9 +124,43 @@ pollhandler(void)
  * transmitted. The packet is located in the uip_buf[] buffer, and the
  * length of the packet is in the uip_len variable.
  */
-static void
+#if UIP_CONF_IPV6
+uint8_t
+send_packet(uip_lladdr_t * lladdr)
+#else
+uint8_t
 send_packet(void)
+#endif
 {
+#if UIP_CONF_IPV6
+  /*
+   * If L3 dest is multicast, build L2 multicast address
+   * as per RFC 2464 section 7
+   * else fill with th eaddrsess in argument
+   */
+  if (lladdr == NULL )
+    {
+      /* the dest must be multicast */
+      (&BUF ->dest)->addr[0] = 0x33;
+      (&BUF ->dest)->addr[1] = 0x33;
+      (&BUF ->dest)->addr[2] = IPBUF ->destipaddr.u8[12];
+      (&BUF ->dest)->addr[3] = IPBUF ->destipaddr.u8[13];
+      (&BUF ->dest)->addr[4] = IPBUF ->destipaddr.u8[14];
+      (&BUF ->dest)->addr[5] = IPBUF ->destipaddr.u8[15];
+    }
+  else
+    {
+      memcpy(&BUF ->dest, lladdr, UIP_LLADDR_LEN);
+    }
+  memcpy(&BUF ->src, &uip_lladdr, UIP_LLADDR_LEN);
+  BUF ->type = UIP_HTONS(UIP_ETHTYPE_IPV6); //math tmp
+
+  uip_len += sizeof(struct uip_eth_hdr);
+
+#else
+  uip_arp_out();
+#endif
+
   tapdev_send(uip_buf, uip_len);
 }
 
@@ -161,9 +208,14 @@ poll_eth_driver(void)
 
     tcpip_set_outputfunc(send_packet);
 
+    process_poll(&emac_lpc1768);
+
+#if UIP_CONF_IPV6
+    PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
+
+#else
     // 10 second ARP timer
     etimer_set(&timer, 10 * CLOCK_SECOND);
-    process_poll(&emac_lpc1768);
 
     while (ev != PROCESS_EVENT_EXIT)
       {
@@ -176,7 +228,7 @@ poll_eth_driver(void)
             uip_arp_timer();
           }
       }
-
+#endif
     /*
      * Here endeth the process.
      */

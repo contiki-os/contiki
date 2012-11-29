@@ -1,0 +1,86 @@
+A Quick Introduction to the Erbium (Er) REST Engine
+===================================================
+
+EXAMPLE FILES
+-------------
+er-example-server.c: A RESTful server example showing how to use the REST layer to develop server-side applications (at the moment only CoAP is implemented for the REST Engine).
+er-example-client.c: A CoAP client that polls the /actuators/toggle resource every 10 seconds and cycles through 4 resources on button press (target address is hard-coded).
+er-plugtest-server.c: The server used for draft compliance testing at ETSI IoT CoAP Plugtest in Paris, France, March 2012 (configured for minimal-net).
+
+PRELIMINARIES
+-------------
+-  Make sure rpl-border-router has the same stack and fits into mote memory:
+   You can disable RDC in border-router project-conf.h (not really required as BR keeps radio turned on).
+   #undef NETSTACK_CONF_RDC
+   #define NETSTACK_CONF_RDC     nullrdc_driver
+-  For convenience, define the Cooja addresses in /etc/hosts
+   aaaa::0212:7401:0001:0101	cooja1
+   aaaa::0212:7402:0002:0202	cooja2
+   ...
+-  Get the Copper (Cu) CoAP user-agent from https://addons.mozilla.org/en-US/firefox/addon/copper-270430/
+-  Optional: Save your target as default target
+   $ make TARGET=sky savetarget
+
+COOJA HOWTO
+-----------
+Server only:
+1) $ make TARGET=cooja server-only.csc
+2) Open new terminal
+3) $ make connect-router-cooja
+4) Start Copper and discover resources at coap://cooja2:5683/
+-  Choose "Click button on Sky 2" from the context menu of mote 2 (server) after requesting /test/separate
+-  Do the same when observing /test/event
+
+With client:
+1) $ make TARGET=cooja server-client.csc
+2) Open new terminal
+3) $ make connect-router-cooja
+4) Wait until red LED toggles on mote 2 (server)
+5) Choose "Click button on Sky 3" from the context menu of mote 3 (client) and watch serial output
+
+TMOTES HOWTO
+------------
+Server:
+1) Connect two Tmote Skys (check with $ make TARGET=sky sky-motelist)
+2) $ make TARGET=sky er-example-server.upload MOTE=2
+3) $ make TARGET=sky login MOTE=2
+4) Press reset button, get address, abort with Ctrl+C:
+   Line: "Tentative link-local IPv6 address fe80:0000:0000:0000:____:____:____:____"
+5) $ cd ../ipv6/rpl-border-router/
+6) $ make TARGET=sky border-router.upload MOTE=1
+7) $ make connect-router
+   For a BR tty other than USB0: $ make connect-router-port PORT=X
+8) Start Copper and discover resources at coap://[aaaa::____:____:____:____]:5683/
+
+Add a client:
+1) Change the hard-coded server address in er-example-client.c to aaaa::____:____:____:____
+2) Connect a third Tmote Sky
+3) $ make TARGET=sky er-example-client.upload MOTE=3
+
+DETAILS
+-------
+Erbium currently implements draft 08 (name "er-coap-07" stems from last technical draft changes).
+Central features are commented in er-example-server.c.
+In general, apps/er-coap-07 supports:
+* All draft 08 header options
+* CON Retransmissions (note COAP_MAX_OPEN_TRANSACTIONS)
+* Blockwise Transfers (note REST_MAX_CHUNK_SIZE, see er-plugtest-server.c for Block1 uploads)
+* Separate Responses (no rest_set_pre_handler() required anymore, note coap_separate_accept(), _reject(), and _resume())
+* Resource Discovery
+* Observing Resources (see EVENT_ and PRERIODIC_RESOURCE, note COAP_MAX_OBSERVERS)
+
+REST IMPLEMENTATIONS
+--------------------
+The Makefile uses WITH_COAP to configure different implementations for the Erbium (Er) REST Engine.
+* WITH_COAP=7 uses Erbium CoAP 08 apps/er-coap-07/.
+  The default port for coap-07/-08 is 5683.
+* WITH_COAP=3 uses Erbium CoAP 03 apps/er-coap-03/.
+  The default port for coap-03 is 61616.
+  er-coap-03 produces some warnings, as it not fully maintained anymore.
+* WITH_COAP=0 is a stub to link an Erbium HTTP engine that uses the same resource abstraction (REST.x() functions and RESOURCE macros. 
+
+TODOs
+-----
+* Observe client
+* Multiple If-Match ETags
+* (Message deduplication)
