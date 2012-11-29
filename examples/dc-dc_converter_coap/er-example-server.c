@@ -48,28 +48,24 @@
 #define REST_RES_MIRROR 0 /* causes largest code size */
 #define REST_RES_CHUNKS 0
 #define REST_RES_SEPARATE 0
-#define REST_RES_PUSHING 0
-#define REST_RES_EVENT 0
-#define REST_RES_SUB 0
-#define REST_RES_LEDS 0
-#define REST_RES_TOGGLE 0
+#define REST_RES_PUSHING 1
+#define REST_RES_EVENT 1
+#define REST_RES_SUB 1
+#define REST_RES_LEDS 1
+#define REST_RES_TOGGLE 1
 #define REST_RES_LIGHT 0
 #define REST_RES_BATTERY 0
 #define REST_RES_RADIO 0
 
-
 #include "erbium.h"
-
-#undef PLATFORM_HAS_BUTTON
-#define PLATFORM_HAS_LEDS 1
 
 
 #if defined (PLATFORM_HAS_BUTTON)
 #include "dev/button-sensor.h"
 #endif
-#if defined (PLATFORM_HAS_LEDS)
+//#if defined (PLATFORM_HAS_LEDS)
 #include "dev/leds.h"
-#endif
+//#endif
 #if defined (PLATFORM_HAS_LIGHT)
 #include "dev/light-sensor.h"
 #endif
@@ -620,7 +616,7 @@ RESOURCE(toggle, METHOD_GET | METHOD_PUT | METHOD_POST, "actuators/toggle", "tit
 void
 toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  leds_toggle(LEDS_RED);
+  leds_toggle(LEDS_ALL);
 }
 #endif
 #endif /* PLATFORM_HAS_LEDS */
@@ -767,7 +763,7 @@ radio_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
 
 
 PROCESS(rest_server_example, "Erbium Example Server");
-//AUTOSTART_PROCESSES(&rest_server_example);
+AUTOSTART_PROCESSES(&rest_server_example);
 
 PROCESS_THREAD(rest_server_example, ev, data)
 {
@@ -775,23 +771,10 @@ PROCESS_THREAD(rest_server_example, ev, data)
 
   PRINTF("Starting Erbium Example Server\n");
 
-#ifdef RF_CHANNEL
-  PRINTF("RF channel: %u\n", RF_CHANNEL);
-#endif
-#ifdef IEEE802154_PANID
-  PRINTF("PAN ID: 0x%04X\n", IEEE802154_PANID);
-#endif
-
   PRINTF("uIP buffer: %u\n", UIP_BUFSIZE);
   PRINTF("LL header: %u\n", UIP_LLH_LEN);
   PRINTF("IP+UDP header: %u\n", UIP_IPUDPH_LEN);
   PRINTF("REST max chunk: %u\n", REST_MAX_CHUNK_SIZE);
-
-/* if static routes are used rather than RPL */
-#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET) && !defined (CONTIKI_TARGET_NATIVE)
-  set_global_address();
-  configure_routing();
-#endif
 
   /* Initialize the REST engine. */
   rest_init_engine();
@@ -863,59 +846,3 @@ PROCESS_THREAD(rest_server_example, ev, data)
 
   PROCESS_END();
 }
-
-/*---------------------------------------------------------------------------*/
-PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(hello_world_process, ev, data)
-{
-  PROCESS_BEGIN()
-  ;
-  static struct etimer et; // Define the timer
-
-  leds_init();
-  etimer_set(&et, CLOCK_SECOND/2);
-
-  while (1)
-    {
-      PROCESS_WAIT_EVENT();
-      if(etimer_expired(&et)){
-          printf("Toggling LED2\n");
-          leds_toggle(LEDS_GREEN);
-          etimer_reset(&et);
-      }
-    }
-
-PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-
-///*---------------------------------------------------------------------------*/
-PROCESS(hello_world_process2, "Hello world process");
-////TODO:->NOTE TO SELF: This macro only supports 2 processes MAX, otherwise Contiki crashes...
-//AUTOSTART_PROCESSES(&hello_world_process2);
-///*---------------------------------------------------------------------------*/
-PROCESS_THREAD(hello_world_process2, ev, data)
-{
-  PROCESS_BEGIN()
-  ;
-  static struct etimer et; // Define the timer
-
-  leds_init();
-  etimer_set(&et, CLOCK_SECOND);
-
-  while (1)
-    {
-      PROCESS_WAIT_EVENT();
-      if(etimer_expired(&et)){
-          printf("Toggling LED3\n");
-          leds_toggle(LEDS_YELLOW);
-          etimer_reset(&et);
-      }
-    }
-
-PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-
