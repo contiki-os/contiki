@@ -76,6 +76,7 @@ void adc_service(void) {
             ADC->SEQ_1bits.CH##x = 1; \
             GPIO->FUNC_SEL.ADC##x = 1; \
 	    GPIO->PAD_DIR.ADC##x = 0; \
+	    GPIO->PAD_KEEP.ADC##x = 0; \
             GPIO->PAD_PU_EN.ADC##x = 0; \
 }} while (0)
 
