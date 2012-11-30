@@ -63,15 +63,8 @@ pollhandler(void)
         {
           printf("Habemus IPv6 packet!\n");
           //uip_neighbor_add(&IPBUF ->srcipaddr, &BUF ->src);
-          uip_input();
-
-          /* If the above function invocation resulted in data that
-           should be sent out on the network, the global variable
-           uip_len is set to a value > 0. */
-          if (uip_len > 0)
-            {
-              send_packet(NULL);
-            }
+          tcpip_input();
+          //uip_input();
         }
 #else
       if (BUF ->type == UIP_HTONS(UIP_ETHTYPE_IP))
@@ -103,6 +96,10 @@ pollhandler(void)
             }
         }
 #endif
+      //If we don't know how to process it, just discard the packet
+      else{
+          uip_len=0;
+      }
     }
 
   /*
