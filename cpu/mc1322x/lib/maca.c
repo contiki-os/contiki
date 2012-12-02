@@ -559,7 +559,8 @@ void insert_at_rx_head(volatile packet_t *p) {
 	} else {
 		rx_head->right = p;
 		p->left = rx_head;
-		rx_head = p; rx_head->left = 0;
+		p->right = 0;
+		rx_head = p;
 	}
 
 //	print_packets("insert at rx head");
