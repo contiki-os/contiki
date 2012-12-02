@@ -63,9 +63,9 @@
 #if defined (PLATFORM_HAS_BUTTON)
 #include "dev/button-sensor.h"
 #endif
-//#if defined (PLATFORM_HAS_LEDS)
+#if defined (PLATFORM_HAS_LEDS)
 #include "dev/leds.h"
-//#endif
+#endif
 #if defined (PLATFORM_HAS_LIGHT)
 #include "dev/light-sensor.h"
 #endif
