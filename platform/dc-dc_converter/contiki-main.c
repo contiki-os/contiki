@@ -23,6 +23,12 @@ main()
   clock_init();
   printf("Initializing processes\n");
   process_init();
+
+  #if defined (PLATFORM_HAS_LEDS)
+  printf("Initializing leds\n");
+  leds_init();
+  #endif
+
   printf("Starting etimers\n");
   process_start(&etimer_process, NULL);
   printf("Starting EMAC service\n");
@@ -56,7 +62,7 @@ main()
   int i;
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_PREFERRED);
   printf("Tentative global IPv6 address ");
   for (i = 0; i < 7; ++i)
     {

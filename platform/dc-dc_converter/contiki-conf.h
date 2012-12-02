@@ -2,6 +2,7 @@
 #define __CONTIKI_CONF_H__CDBB4VIH3I__
 
 #include <stdint.h>
+#include "platform-conf.h"
 
 #define CCIF
 #define CLIF
