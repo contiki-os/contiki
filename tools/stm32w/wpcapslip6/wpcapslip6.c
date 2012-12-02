@@ -1321,7 +1321,7 @@ main(int argc, char **argv)
 			tv.tv_usec = 10;
 			ret = select(maxfd + 1, &rset, &wset, NULL, &tv);
 		}
-		if(ret == -1 && errno != EINTR) {
+		if(ret == -1 && errno != EINTR && errno != EAGAIN) {
 			err(1, "select");
 		}
 		else if(ret > 0) {
