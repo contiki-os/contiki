@@ -26,7 +26,7 @@ void leds_arch_init(){
 //Set the LEDs indicated by the variable leds
 //The mapping between Contiki leds and the board is the f
 //LEDS_GREEN=LED1
-//LEDS_YELLOW=LED2
+//LEDS_RED=LED2
 //LEDS_ALL=LED1 + LED2
 void leds_arch_set(unsigned char leds){
   if(leds&LEDS_GREEN){
@@ -38,7 +38,7 @@ void leds_arch_set(unsigned char leds){
     isLed2_On=1;
   }
 
-  if(leds&LEDS_YELLOW){
+  if(leds&LEDS_RED){
     GPIO_SetValue(PIN_LED3, LED3);
     isLed3_On=1;
   }
@@ -54,7 +54,7 @@ unsigned char leds_arch_get(){
   if(isLed2_On)
     ledStatus|=LEDS_GREEN;
   if(isLed3_On)
-    ledStatus|=LEDS_YELLOW;
+    ledStatus|=LEDS_RED;
 
   return ledStatus;
 }
