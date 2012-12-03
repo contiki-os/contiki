@@ -295,7 +295,7 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
  	PROCESS_BEGIN();
 
 	while (1) {
-		PROCESS_YIELD();
+		PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 
 		/* check if there is a request to turn the radio on or off */
 		if(contiki_maca_request_on == 1) {
