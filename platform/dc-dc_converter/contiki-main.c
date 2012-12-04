@@ -10,14 +10,14 @@
 #include "debug-uart.h"
 #include "emac-driver.h"
 #include "contiki-conf.h"
+#include <net/uip-debug.h>
+#include "leds-arch.h"
 
 unsigned int idle_count = 0;
 
 int
 main()
 {
-  uip_ipaddr_t addr;
-
   setup_debug_uart();
   printf("Initializing clocks\n");
   clock_init();
@@ -45,31 +45,28 @@ main()
   uip_lladdr.addr[4] = EMAC_ADDR4;
   uip_lladdr.addr[5] = EMAC_ADDR5;
 
-  printf("Tentative link-local IPv6 address ");
-    {
-      uip_ds6_addr_t *lladdr;
-      int i;
-      lladdr = uip_ds6_get_link_local(-1);
-      for (i = 0; i < 7; ++i)
-        {
-          printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
-              lladdr->ipaddr.u8[i * 2 + 1]);
-        }
-      printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
-    }
+  uip_ds6_addr_t *lladdr;
+  lladdr = uip_ds6_get_link_local(-1);
 
+  printf("Tentative link-local IPv6 address:");
+  uip_debug_ipaddr_print(&(lladdr->ipaddr));
+  printf("\n");
+
+  // Configure global IPv6 address
   uip_ipaddr_t ipaddr;
   int i;
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, 0x2000, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_PREFERRED);
-  printf("Tentative global IPv6 address ");
-  for (i = 0; i < 7; ++i)
-    {
-      printf("%02x%02x:", ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
-    }
-  printf("%02x%02x\n", ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+  printf("Manual global IPv6 address: ");
+  uip_debug_ipaddr_print(&ipaddr);
+  printf("\n");
+
+  // Add prefix of manually set global address to prefix list
+  uip_ds6_prefix_add(&ipaddr, 64, 0);
+
 #else
+  uip_ipaddr_t addr;
   // init MAC address
   uip_ethaddr.addr[0] = EMAC_ADDR0;
   uip_ethaddr.addr[1] = EMAC_ADDR1;
