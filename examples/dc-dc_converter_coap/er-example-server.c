@@ -58,7 +58,7 @@
 #define REST_RES_RADIO 0
 
 #include "erbium.h"
-
+#include "er-coap-07-engine.h"
 
 #if defined (PLATFORM_HAS_BUTTON)
 #include "dev/button-sensor.h"
@@ -100,6 +100,71 @@
 #define PRINTLLADDR(addr)
 #endif
 
+#define SERVER_NODE(ipaddr)   uip_ip6addr(ipaddr, 0x2000, 0, 0, 0, 0, 0, 0, 0x0001)
+#define LOCAL_PORT      UIP_HTONS(COAP_DEFAULT_PORT+1)
+#define REMOTE_PORT     UIP_HTONS(COAP_DEFAULT_PORT)
+#define TOGGLE_INTERVAL 10      // Client beacon period
+uip_ipaddr_t server_ipaddr;     // microgrid server ip address
+static struct etimer et;        // timer struct for client toggling
+char* service_urls[2] = {"mgserver/hello","mgserver/requestResource"};
+
+/* This function is will be passed to COAP_BLOCKING_REQUEST() to handle responses. */
+void
+client_chunk_handler(void *response)
+{
+  uint8_t *chunk;
+
+  int len = coap_get_payload(response, &chunk);
+  printf("|%.*s", len, (char *)chunk);
+}
+
+PROCESS(dcdc_client, "DCDC client");
+PROCESS_THREAD(dcdc_client, ev, data)
+{
+  PROCESS_BEGIN();
+
+  static coap_packet_t request[1]; /* This way the packet can be treated as pointer as usual. */
+  SERVER_NODE(&server_ipaddr);
+
+  /* receives all CoAP messages */
+  printf("--Initializing coap receover--");
+  coap_receiver_init();
+
+  etimer_set(&et, TOGGLE_INTERVAL * CLOCK_SECOND);
+
+  while(1) {
+    PROCESS_YIELD();
+
+    if (etimer_expired(&et)) {
+      printf("--Sending beacon to mgserver--\n");
+
+      /* prepare request, TID is set by COAP_BLOCKING_REQUEST() */
+      coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0 );
+      coap_set_header_uri_path(request, service_urls[0]);
+
+      /* Set Proxy URI*/
+      coap_set_header_proxy_uri(request, "http://zzzz/mgserver");
+
+      /* Set Content type to JSON*/
+      coap_set_header_content_type(request, REST.type.APPLICATION_JSON);
+
+      /* Set Payload content as a JSON string*/
+      const char msg[] = "{\"sernum\":\"dcdcnode1\"}";
+      coap_set_payload(request, (uint8_t *)msg, sizeof(msg)-1);
+
+      PRINT6ADDR(&server_ipaddr);
+      PRINTF(" : %u\n", UIP_HTONS(REMOTE_PORT));
+
+      COAP_BLOCKING_REQUEST(&server_ipaddr, REMOTE_PORT, request, client_chunk_handler);
+
+      printf("\n--Done--\n");
+
+      etimer_reset(&et);
+    }
+  }
+
+  PROCESS_END();
+}
 /******************************************************************************/
 #if REST_RES_HELLO
 /*
@@ -763,7 +828,7 @@ radio_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
 
 
 PROCESS(rest_server_example, "Erbium Example Server");
-AUTOSTART_PROCESSES(&rest_server_example);
+AUTOSTART_PROCESSES(&rest_server_example, &dcdc_client);
 
 PROCESS_THREAD(rest_server_example, ev, data)
 {
