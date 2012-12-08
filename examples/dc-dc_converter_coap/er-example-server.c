@@ -143,7 +143,7 @@ PROCESS_THREAD(dcdc_client, ev, data)
       coap_set_header_uri_path(request, service_urls[0]);
 
       /* Set Proxy URI*/
-      coap_set_header_proxy_uri(request, "http://zzzz/mgserver");
+      coap_set_header_proxy_uri(request, "http://mgserver/hello");
 
       /* Set Content type to JSON*/
       coap_set_header_content_type(request, REST.type.APPLICATION_JSON);
