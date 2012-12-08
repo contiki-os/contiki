@@ -20,7 +20,7 @@
       se.sics.cooja.contikimote.ContikiMoteType
       <identifier>mtype296</identifier>
       <description>Contiki Mote #1</description>
-      <contikiapp>../../../examples/rime/example-rucb.c</contikiapp>
+      <contikiapp>[CONTIKI_DIR]/examples/rime/example-rucb.c</contikiapp>
       <commands>make example-rucb.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>

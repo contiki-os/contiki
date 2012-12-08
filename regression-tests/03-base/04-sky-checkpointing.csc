@@ -20,10 +20,10 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>../../../examples/sky-shell/sky-checkpoint.c</source>
+      <source>../../examples/sky-shell/sky-checkpoint.c</source>
       <commands>make clean TARGET=sky
 make sky-checkpoint.sky TARGET=sky</commands>
-      <firmware>../../../examples/sky-shell/sky-checkpoint.sky</firmware>
+      <firmware>../../examples/sky-shell/sky-checkpoint.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>

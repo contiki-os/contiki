@@ -21,7 +21,7 @@ sim.setSpeedLimit(1.0);
 /* create tunnel interface */
 log.log("create tunnel interface\n");
 launcher = new java.lang.ProcessBuilder["(java.lang.String[])"](['sh','-c',CMD_TUNNEL]);
-launcher.directory(new java.io.File("../../../examples/er-rest-example"));
+launcher.directory(new java.io.File("../../examples/er-rest-example"));
 launcher.redirectErrorStream(true);
 tunProcess = launcher.start();
 tunRunnable = new Object();
