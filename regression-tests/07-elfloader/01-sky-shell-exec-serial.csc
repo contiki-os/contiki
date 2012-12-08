@@ -94,7 +94,7 @@ make hello-world.ce TARGET=sky SMALL=0</commands>
     <plugin_config>
       <script>TIMEOUT(50000, log.log("last msg: " + msg + "\n")); /* print last msg at timeout */
 
-helloworld = new java.io.File("../../../examples/sky-shell-exec/hello-world.ce");
+helloworld = new java.io.File("../../examples/sky-shell-exec/hello-world.ce");
 log.log("Running test on:  " + helloworld.getAbsolutePath() + "\n");
 if (!helloworld.exists()) {
   log.log("hello-world.ce does not exist\n");

@@ -1,1 +1,0 @@
-Tests shell command 'sendcmd' (source examples/sky-shell/sky-checkpoint.c): A single node sends echo commands to three other nodes. X-MAC + UDGM radio medium 100% 

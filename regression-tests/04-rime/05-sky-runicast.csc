@@ -20,10 +20,10 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>../../../examples/rime/example-runicast.c</source>
+      <source>[CONTIKI_DIR]/examples/rime/example-runicast.c</source>
       <commands>make clean TARGET=sky
 make example-runicast.sky TARGET=sky</commands>
-      <firmware>../../../examples/rime/example-runicast.sky</firmware>
+      <firmware>[CONTIKI_DIR]/examples/rime/example-runicast.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
