@@ -20,7 +20,6 @@ netperf/sky \
 powertrace/sky \
 rime/sky \
 rime/z1 \
-rime/wismote \
 rest-example/sky \
 servreg-hack/sky \
 sky/sky \
