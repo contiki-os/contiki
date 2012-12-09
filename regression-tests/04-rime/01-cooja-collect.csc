@@ -12,7 +12,7 @@
   <simulation>
     <title>Rime collect test</title>
     <delaytime>0</delaytime>
-    <randomseed>generated</randomseed>
+    <randomseed>1</randomseed>
     <motedelay_us>10000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
