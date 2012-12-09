@@ -3,7 +3,7 @@
   <simulation>
     <title>My simulation</title>
     <delaytime>-2147483648</delaytime>
-    <randomseed>generated</randomseed>
+    <randomseed>1</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
