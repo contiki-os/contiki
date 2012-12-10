@@ -53,6 +53,7 @@
 #define REST_RES_SUB 1
 #define REST_RES_LEDS 1
 #define REST_RES_TOGGLE 1
+#define REST_RES_SVECTOR 1
 #define REST_RES_LIGHT 0
 #define REST_RES_BATTERY 0
 #define REST_RES_RADIO 0
@@ -60,6 +61,9 @@
 #include "erbium.h"
 #include "er-coap-07-engine.h"
 
+#if defined (PLATFORM_HAS_ADC)
+#include "adc-sensors.h"
+#endif
 #if defined (PLATFORM_HAS_BUTTON)
 #include "dev/button-sensor.h"
 #endif
@@ -127,7 +131,7 @@ PROCESS_THREAD(dcdc_client, ev, data)
   SERVER_NODE(&server_ipaddr);
 
   /* receives all CoAP messages */
-  printf("--Initializing coap receover--");
+  printf("--Initializing coap receiver--\n");
   coap_receiver_init();
 
   etimer_set(&et, TOGGLE_INTERVAL * CLOCK_SECOND);
@@ -825,6 +829,55 @@ radio_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
 }
 #endif
 
+/******************************************************************************/
+#if defined (PLATFORM_HAS_ADC)
+
+#if REST_RES_SVECTOR
+//State vector of the DC-DC converter
+RESOURCE(svector, METHOD_GET, "sensors/svector", "title=\"State vector of the DC-DC converter [Vout(0x000-0xFFF=0-30.8V),Vout(0x000-0xFFF=0-30.8V),Il()], supports JSON\";rt=\"StateVector\"");
+void
+svector_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  uint16_t vout_value= vout_sensor.value(0);
+  uint16_t vin_value= vin_sensor.value(0);
+  uint16_t il_value= il_sensor.value(0);
+  const uint16_t *accept = NULL;
+  int num = REST.get_header_accept(request, &accept);
+
+  if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
+  {
+    REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u;%u;%u", vout_value, vin_value, il_value);
+
+    REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
+  }
+  else if (num && (accept[0]==REST.type.APPLICATION_XML))
+  {
+    REST.set_header_content_type(response, REST.type.APPLICATION_XML);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<vout=\"%u\" vin=\"%u\" il=\"%u\"/>", vout_value, vin_value, il_value);
+
+    REST.set_response_payload(response, buffer, strlen((char *)buffer));
+  }
+  else if (num && (accept[0]==REST.type.APPLICATION_JSON))
+  {
+    REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'svector':{'vout':%u,'vin':%u, 'il':%u}}", vout_value, vin_value, il_value);
+
+    REST.set_response_payload(response, buffer, strlen((char *)buffer));
+  }
+  else
+  {
+    REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
+    const char *msg = "Supporting content-types text/plain, application/xml, and application/json";
+    REST.set_response_payload(response, msg, strlen(msg));
+  }
+}
+
+
+#endif /* REST_RES_SVECTOR */
+
+#endif /* PLATFOR_HAS_ADC */
+
 
 
 PROCESS(rest_server_example, "Erbium Example Server");
@@ -889,6 +942,9 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #if defined (PLATFORM_HAS_RADIO) && REST_RES_RADIO
   SENSORS_ACTIVATE(radio_sensor);
   rest_activate_resource(&resource_radio);
+#endif
+#if defined (PLATFORM_HAS_ADC) && REST_RES_SVECTOR
+  rest_activate_resource(&resource_svector);
 #endif
 
   /* Define application-specific events here. */

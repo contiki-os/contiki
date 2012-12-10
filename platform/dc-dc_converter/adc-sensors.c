@@ -7,7 +7,6 @@
 
 #include "adc-sensors.h"
 #include "lpc17xx_adc.h"
-#include <stdio.h>
 
 //Data structures for the Contiki sensor API
 //TODO: Maybe put these in a separate file
@@ -31,8 +30,6 @@ static void initAdcModule();
 //Variables for the ADC interruption
 static uint32_t adgr;
 static uint8_t channel;
-static int channelCounter[4]={0,0,0,0};
-static uint8_t adcFlags=0;
 
 //Interrupt handler, stores the channel values into the adcChannels array
 void ADC_IRQHandler(void){
@@ -44,13 +41,6 @@ void ADC_IRQHandler(void){
       adgr=ADC_GlobalGetData(LPC_ADC);
       channel=ADC_GDR_CH(adgr);
       adcChannels[channel]=ADC_GDR_RESULT(adgr);
-
-      if(channelCounter[channel]==10000){
-          printf("The value of channel %d is %d\n", channel, adcChannels[channel]);
-          channelCounter[channel]=0;
-      }
-      else
-        channelCounter[channel]++;
   }
 }
 
@@ -64,7 +54,6 @@ static void initAdcModule(){
       //Only the global DONE flag of the ADDR
       //will generate an interrupt
       ADC_IntConfig(LPC_ADC,ADC_ADGINTEN,SET);
-      printf("ADC module properly initialized\n");
   }
 }
 
@@ -137,9 +126,6 @@ configure_vout(int type, int value)
     PinCfg.Pinnum = VOUT_PIN;
     PinCfg.Portnum = VOUT_PORT;
     PINSEL_ConfigPin(&PinCfg);
-
-    printf("Vout sensor properly initialized\n");
-
     break;
 
   case SENSORS_ACTIVE:
@@ -181,8 +167,6 @@ configure_vin(int type, int value)
     PinCfg.Pinnum = VIN_PIN;
     PinCfg.Portnum = VIN_PORT;
     PINSEL_ConfigPin(&PinCfg);
-
-    printf("Vin sensor properly initialized\n");
     break;
 
   case SENSORS_ACTIVE:
@@ -235,9 +219,6 @@ configure_il(int type, int value)
     PinCfg.Pinnum = VIOUT_PIN;
     PinCfg.Portnum = VIOUT_PORT;
     PINSEL_ConfigPin(&PinCfg);
-
-    printf("Current sensor properly initialized\n");
-
     break;
 
   case SENSORS_ACTIVE:
