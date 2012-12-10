@@ -508,7 +508,7 @@ print()
   }
 }
 
-TIMEOUT(800000);
+TIMEOUT(400000);
 
 
 /* Conf. */
@@ -521,7 +521,7 @@ nrNodes = 25;
 nodes_starting = true;
 for(i = 1; i &lt;= nrNodes; i++) {
   booted[i] = false;
-  received[i] = "__________";
+  received[i] = "_____";
   hops[i] = received[i];
 }
 
