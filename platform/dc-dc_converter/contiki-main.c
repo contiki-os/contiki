@@ -12,6 +12,7 @@
 #include "contiki-conf.h"
 #include <net/uip-debug.h>
 #include "leds-arch.h"
+#include "adc-sensors.h"
 
 unsigned int idle_count = 0;
 
@@ -88,6 +89,17 @@ main()
   printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_setdraddr(&addr);
 #endif
+
+  //Start the ADC sensors
+  printf("Starting the sensor process\n");
+  process_start(&sensors_process, NULL);
+  printf("Activating the sensors\n");
+  VOUT_SENSOR_ACTIVATE();
+  printf("Vout activated\n");
+  VIN_SENSOR_ACTIVATE();
+  printf("Vin activated\n");
+  IL_SENSOR_ACTIVATE();
+  printf("Il activated");
 
   autostart_start(autostart_processes);
 

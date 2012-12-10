@@ -12,6 +12,7 @@ CONTIKI_TARGET_MAIN = contiki-main.c
 endif
 
 CONTIKI_TARGET_SOURCEFILES += leds-arch.c leds.c \
+							adc-sensors.c sensors.c \
  							$(CODEPROP_SOURCES) $(CONTIKI_TARGET_MAIN)
 
 #include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
