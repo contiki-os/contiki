@@ -16,27 +16,27 @@ before_script:
 
 script:
   ## The makefile called `.travis.mk` handles most of generic logic
-  - "make -f .travis.mk $MAKE_TARGETS"
+  - "make -C regression-tests/??-$BUILD_TYPE RUNALL=true summary"
 
 after_script:
   ## Print a basic summary in unix style
-  - "echo 'Summary:'; cat results | sort | uniq -c"
+  - "echo 'Summary:'; cat regression-tests/??-$BUILD_TYPE/summary"
   ## This will detect whether the build should pass or fail
-  - "test `grep -c 'fail' results` -eq 0"
+  - "test `grep -c -i 'fail' regression-tests/??-$BUILD_TYPE/summary` -eq 0"
 
 
 env:
   ## This magically kick-off parallel jobs for each of the for the sets
   ## of environment variable defined below
-  - BUILD_TYPE='compile' MAKE_TARGETS='native minimal-net econotag sky micaz avr-raven'
-  - BUILD_TYPE='ipv6' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='collect-lossy' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='collect-sky' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='collect' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='helloworld' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='base' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='rime' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='sky-shell' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='elfloader' MAKE_TARGETS='cooja' TAIL=cat
-  - BUILD_TYPE='ipv6-apps' MAKE_TARGETS='cooja' TAIL=cat
+  - BUILD_TYPE='compile'
+  - BUILD_TYPE='collect' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='rpl' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='rime' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='ipv6' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='hello-world' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='base' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='shell' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='elfloader' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='ipv4' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='ipv6-apps' MAKE_TARGETS='cooja'
