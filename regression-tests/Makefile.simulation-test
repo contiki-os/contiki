@@ -1,0 +1,76 @@
+# Copyright (c) 2012, Thingsquare, www.thingsquare.com.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of the Institute nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+
+
+TESTS=$(wildcard ??-*.csc)
+TESTLOGS=$(patsubst %.csc,%.testlog,$(TESTS))
+LOGS=$(patsubst %.csc,%.log,$(TESTS))
+FAILLOGS=$(patsubst %.csc,%.faillog,$(TESTS))
+
+CONTIKI=../..
+
+tests: $(TESTLOGS)
+
+report: clean tests
+	@echo | grep -s -e '' - $(LOGS) $(TESTLOGS) $(FAILLOGS) > $@ || true
+
+summary: report
+ifeq ($(TESTS),)
+	@echo No tests > $@
+else
+	@egrep -e ' OK| FAIL' $< > $@
+	@ls -1 ??-*.faillog > /dev/null 2>&1; [ $$? = 0 ] && tail -v ??-*.log ??-*.faillog >> $@ || true
+endif
+
+all: cooja clean tests
+
+ifdef RUNALL
+RUNALL=true
+else
+RUNALL=false
+endif
+
+%.testlog: %.csc cooja
+	@echo -n Running test $(basename $<) ... ""
+	@(java -jar $(CONTIKI)/tools/cooja/dist/cooja.jar \
+              -nogui=$< -contiki=$(CONTIKI) > $(basename $@).log || \
+         (echo " FAIL ಠ_ಠ" | tee -a COOJA.testlog; \
+          mv COOJA.testlog $(basename $<).faillog; \
+          $(RUNALL))) && \
+         (touch COOJA.testlog; \
+	  mv COOJA.testlog $@; \
+	  echo " OK")
+
+clean:
+	@rm -f $(TESTLOGS) $(LOGS) $(FAILLOGS) COOJA.log COOJA.testlog \
+               report summary
+
+
+cooja: $(CONTIKI)/tools/cooja/dist/cooja.jar
+$(CONTIKI)/tools/cooja/dist/cooja.jar:
+	(cd $(CONTIKI)/tools/cooja; ant jar)
+

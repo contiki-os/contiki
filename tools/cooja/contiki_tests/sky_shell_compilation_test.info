@@ -1,1 +1,0 @@
-This test tries to compile and run the Contiki shell on the Tmote Sky. The test succeeds when contiki-sky-main.c prints out the word "Contiki".
