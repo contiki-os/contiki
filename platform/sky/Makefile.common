@@ -24,7 +24,9 @@ CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
 MCU=msp430f1611
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
+ifdef CORE
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+endif
 #	$(AR) rcf $@ $^
 
 
