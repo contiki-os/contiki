@@ -9,23 +9,16 @@
 #include "lpc17xx_adc.h"
 
 //Data structures for the Contiki sensor API
-//TODO: Maybe put these in a separate file
 const struct sensors_sensor *sensors[] = {
-  &vout_sensor,
-  &vin_sensor,
-  &il_sensor,
+  &svector_sensor,
   NULL
 };
 unsigned char sensors_flags[(sizeof(sensors) / sizeof(struct sensors_sensor *))];
-
-//Variable to avoid intializing the ADC twice
-static Bool isAdcInitialized = FALSE;
 
 //Current status of the ADC channels
 static int adcChannels[4];
 
 void ADC_IRQHandler(void) __attribute__ ((interrupt));
-static void initAdcModule();
 
 //Variables for the ADC interruption
 static uint32_t adgr;
@@ -44,81 +37,72 @@ void ADC_IRQHandler(void){
   }
 }
 
-static void initAdcModule(){
-  if(!isAdcInitialized){
-      ADC_Init(LPC_ADC, ADC_CONV_RATE);
-      isAdcInitialized = TRUE;
-      NVIC_DisableIRQ(ADC_IRQn);
-      /* Set ADC interruption priority: preemption = 1, sub-priority = 1 */
-      NVIC_SetPriority(ADC_IRQn, ((0x01<<3)|0x01));
-      //Only the global DONE flag of the ADDR
-      //will generate an interrupt
-      ADC_IntConfig(LPC_ADC,ADC_ADGINTEN,SET);
+/*---------------------------------------------------------------------------*/
+static int value_svector(int type){
+  int reading;
+  NVIC_DisableIRQ(ADC_IRQn);
+  switch(type){
+  case SVECTOR_SENSOR_VOUT:
+    reading=adcChannels[VOUT_ADC_CHANNEL];
+    break;
+
+  case SVECTOR_SENSOR_VIN:
+    reading=adcChannels[VIN_ADC_CHANNEL];
+    break;
+
+  case SVECTOR_SENSOR_IL:
+    reading=adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
+    break;
+
+  default:
+    reading=0;
+    break;
   }
-}
-
-/*---------------------------------------------------------------------------*/
-static int
-value_vout(int type)
-{
-  uint16_t reading;
-  NVIC_DisableIRQ(ADC_IRQn);
-  reading=adcChannels[VOUT_ADC_CHANNEL];
-  NVIC_EnableIRQ(ADC_IRQn);
-  return reading;
-}
-
-static int
-value_vin(int type)
-{
-  uint16_t reading;
-  NVIC_DisableIRQ(ADC_IRQn);
-  reading=adcChannels[VIN_ADC_CHANNEL];
-  NVIC_EnableIRQ(ADC_IRQn);
-  return reading;
-}
-
-static int
-value_il(int type)
-{
-  uint16_t reading;
-  NVIC_DisableIRQ(ADC_IRQn);
-  reading=adcChannels[VIOUT_ADC_CHANNEL]-adcChannels[VZCR_ADC_CHANNEL];
   NVIC_EnableIRQ(ADC_IRQn);
   return reading;
 }
 /*---------------------------------------------------------------------------*/
 static int
-status_vout(int type)
+status_svector(int type)
 {
-  return ADC_ChannelGetStatus(LPC_ADC, VOUT_ADC_CHANNEL, ADC_DATA_DONE);
-}
+  int16_t status;
 
-static int
-status_vin(int type)
-{
-  return ADC_ChannelGetStatus(LPC_ADC, VIN_ADC_CHANNEL, ADC_DATA_DONE);
-}
+  switch(type){
+  case SVECTOR_SENSOR_VOUT:
+    status=ADC_ChannelGetStatus(LPC_ADC, VOUT_ADC_CHANNEL, ADC_DATA_DONE);
+    break;
 
-static int
-status_il(int type)
-{
-  return ADC_ChannelGetStatus(LPC_ADC, VZCR_ADC_CHANNEL, ADC_DATA_DONE)
+  case SVECTOR_SENSOR_VIN:
+    status=ADC_ChannelGetStatus(LPC_ADC, VIN_ADC_CHANNEL, ADC_DATA_DONE);
+    break;
+
+  case SVECTOR_SENSOR_IL:
+    status=ADC_ChannelGetStatus(LPC_ADC, VZCR_ADC_CHANNEL, ADC_DATA_DONE)
       & ADC_ChannelGetStatus(LPC_ADC, VIOUT_ADC_CHANNEL, ADC_DATA_DONE);
+    break;
+
+  default:
+    status=0;
+    break;
+  }
+  return status;
 }
 
 /*---------------------------------------------------------------------------*/
-static int
-configure_vout(int type, int value)
-{
-  switch (type)
-    {
-  //Initialize the ADC used to get the output voltage
-  //values from the voltage divider
+static int configure_svector(int type, int value){
+  switch(type){
   case SENSORS_HW_INIT:
-    /* Initialize ADC module */
-    initAdcModule();
-    /* Initialize ADC pin */
+    //Initialize the ADC module
+    ADC_Init(LPC_ADC, ADC_CONV_RATE);
+    NVIC_DisableIRQ(ADC_IRQn);
+    /* Set ADC interruption to the highest priority */
+    NVIC_SetPriority(ADC_IRQn, 0);
+    //Only the global DONE flag of the ADDR
+    //will generate an interrupt
+    ADC_IntConfig(LPC_ADC,ADC_ADGINTEN,SET);
+
+    //Initialize the ADC pins
+    //VOUT ADC pin
     PINSEL_CFG_Type PinCfg;
     PinCfg.Funcnum = PINSEL_FUNC_0;
     PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
@@ -126,93 +110,21 @@ configure_vout(int type, int value)
     PinCfg.Pinnum = VOUT_PIN;
     PinCfg.Portnum = VOUT_PORT;
     PINSEL_ConfigPin(&PinCfg);
-    break;
-
-  case SENSORS_ACTIVE:
-    //Enable or disable the ADC channel depending
-    //on the value variable
-    if (value)
-      {
-        //Enable the ADC channel
-        ADC_ChannelCmd(LPC_ADC, VOUT_ADC_CHANNEL, ENABLE);
-        //Start burst conversion
-        ADC_BurstCmd(LPC_ADC,ENABLE);
-        /* Enable ADC in NVIC */
-        NVIC_EnableIRQ(ADC_IRQn);
-      }
-    else{
-        ADC_ChannelCmd(LPC_ADC, VOUT_ADC_CHANNEL, DISABLE);
-        ADC_IntConfig(LPC_ADC,VOUT_ADC_CHANNEL,DISABLE);
-    }
-    break;
-    }
-  return 1;
-}
-
-static int
-configure_vin(int type, int value)
-{
-  switch (type)
-    {
-  //Initialize the ADC used to get the input voltage
-  //values from the voltage divider
-  case SENSORS_HW_INIT:
-    /* Initialize ADC module */
-    initAdcModule();
-    /* Initialize ADC pin */
-    PINSEL_CFG_Type PinCfg;
+    //VIN ADC pin
     PinCfg.Funcnum = PINSEL_FUNC_0;
     PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
     PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
     PinCfg.Pinnum = VIN_PIN;
     PinCfg.Portnum = VIN_PORT;
     PINSEL_ConfigPin(&PinCfg);
-    break;
-
-  case SENSORS_ACTIVE:
-    //Enable or disable the ADC channel depending
-    //on the value variable
-    if (value)
-      {
-        //Enable the ADC channel
-        ADC_ChannelCmd(LPC_ADC, VIN_ADC_CHANNEL, ENABLE);
-        //Start burst conversion
-        ADC_BurstCmd(LPC_ADC,ENABLE);
-        /* Enable ADC in NVIC */
-        NVIC_EnableIRQ(ADC_IRQn);
-      }
-    else{
-        ADC_ChannelCmd(LPC_ADC, VIN_ADC_CHANNEL, DISABLE);
-        ADC_IntConfig(LPC_ADC, VIN_ADC_CHANNEL,DISABLE);
-    }
-    break;
-    }
-  return 1;
-}
-
-static int
-configure_il(int type, int value)
-{
-  switch (type)
-    {
-  //Initialize the two ADCs used to get the inductor current
-  //values from the ACS710, derived from Vzcr and Viout
-  case SENSORS_HW_INIT:
-    /* Initialize ADC module */
-    initAdcModule();
-
-    PINSEL_CFG_Type PinCfg;
-    //CURRENT SENSOR VZCR
-    /* Initialize ADC pin */
+    //VZCR ADC pin
     PinCfg.Funcnum = PINSEL_FUNC_0;
     PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
     PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
     PinCfg.Pinnum = VZCR_PIN;
     PinCfg.Portnum = VZCR_PORT;
     PINSEL_ConfigPin(&PinCfg);
-
-    //CURRENT SENSOR VIOUT
-    /* Initialize ADC pin */
+    //VIOUT ADC pin
     PinCfg.Funcnum = PINSEL_FUNC_0;
     PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
     PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
@@ -222,30 +134,34 @@ configure_il(int type, int value)
     break;
 
   case SENSORS_ACTIVE:
-    //Enable or disable the ADC channel depending
+    //Enable or disable the ADC channels depending
     //on the value variable
-    if (value)
-      {
-        //Enable the ADC channels
+    if(value){
+        //Enable the different ADC channels
+        ADC_ChannelCmd(LPC_ADC, VOUT_ADC_CHANNEL, ENABLE);
+        ADC_ChannelCmd(LPC_ADC, VIN_ADC_CHANNEL, ENABLE);
         ADC_ChannelCmd(LPC_ADC, VZCR_ADC_CHANNEL, ENABLE);
         ADC_ChannelCmd(LPC_ADC, VIOUT_ADC_CHANNEL, ENABLE);
         //Start burst conversion
         ADC_BurstCmd(LPC_ADC,ENABLE);
-        /* Enable ADC in NVIC */
+        //Enable ADC interruptions
         NVIC_EnableIRQ(ADC_IRQn);
-      }
+    }
     else{
+        //Disable the ADC interruptions
+        NVIC_DisableIRQ(ADC_IRQn);
+        //Stop burst conversion
+        ADC_BurstCmd(LPC_ADC,DISABLE);
+        //Disable the ADC channels
+        ADC_ChannelCmd(LPC_ADC, VOUT_ADC_CHANNEL, DISABLE);
+        ADC_ChannelCmd(LPC_ADC, VIN_ADC_CHANNEL, DISABLE);
         ADC_ChannelCmd(LPC_ADC, VZCR_ADC_CHANNEL, DISABLE);
         ADC_ChannelCmd(LPC_ADC, VIOUT_ADC_CHANNEL, DISABLE);
-        ADC_IntConfig(LPC_ADC,VZCR_ADC_CHANNEL,DISABLE);
-        ADC_IntConfig(LPC_ADC,VIOUT_ADC_CHANNEL,DISABLE);
     }
     break;
-    }
+
+  }
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(vout_sensor, VOUT_SENSOR, value_vout, configure_vout,
-    status_vout);
-SENSORS_SENSOR(vin_sensor, VIN_SENSOR, value_vin, configure_vin, status_vin);
-SENSORS_SENSOR(il_sensor, IL_SENSOR, value_il, configure_il, status_il);
+SENSORS_SENSOR(svector_sensor, SVECTOR_SENSOR, value_svector, configure_svector, status_svector);

@@ -17,7 +17,6 @@
 
 #include "emac-driver.h"
 #include "emac.h"
-#include <stdio.h>
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 #define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -57,11 +56,9 @@ pollhandler(void)
    */
   if (uip_len > 0)
     {
-      printf("Received packet of %u bytes\n", uip_len);
 #if UIP_CONF_IPV6
       if (BUF ->type == uip_htons(UIP_ETHTYPE_IPV6))
         {
-          printf("Habemus IPv6 packet!\n");
           //uip_neighbor_add(&IPBUF ->srcipaddr, &BUF ->src);
           tcpip_input();
           //uip_input();
@@ -69,8 +66,6 @@ pollhandler(void)
 #else
       if (BUF ->type == UIP_HTONS(UIP_ETHTYPE_IP))
         {
-          printf("Habemus IP packet\n");
-          printf("IP type is %x\n", IPBUF ->vhl);
           uip_arp_ipin();
           uip_input();
           /* If the above function invocation resulted in data that
@@ -85,7 +80,6 @@ pollhandler(void)
         }
       else if (BUF ->type == UIP_HTONS(UIP_ETHTYPE_ARP))
         {
-          printf("Habemus ARP packet\n");
           uip_arp_arpin();
           /* If the above function invocation resulted in data that
            should be sent out on the network, the global variable
@@ -101,18 +95,6 @@ pollhandler(void)
           uip_len=0;
       }
     }
-
-  /*
-   * Now we'll make sure that the poll handler is executed
-   * repeatedly. We do this by calling process_poll() with this
-   * process as its argument.
-   *
-   * In many cases, the hardware will cause an interrupt to be
-   * executed when a new packet arrives. For such hardware devices,
-   * the interrupt handler calls process_poll() (which is safe to use
-   * in an interrupt context) instead.
-   */
-  process_poll(&emac_lpc1768);
 }
 /*---------------------------------------------------------------------------*/
 /*

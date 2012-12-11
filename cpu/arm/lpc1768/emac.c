@@ -99,6 +99,12 @@ tapdev_init(void)
     {
       return (FALSE);
     }
+  //Disable the TX_DONE interrupt enabled by EMAC_Init
+  EMAC_IntCmd(EMAC_INT_TX_DONE, DISABLE);
+  //Set interrupt priority to 1, the second-highest
+  NVIC_SetPriority(ENET_IRQn, 1);
+  //Enable the ENET interruption
+  NVIC_EnableIRQ(ENET_IRQn);
 
   printf("Init EMAC complete\n");
 
@@ -164,72 +170,17 @@ tapdev_send(void *pPacket, UNS_32 size)
 }
 
 //Interrupt function for the Ethernet module
+//We only enable the RX_DONE interrupt
 void
 ENET_IRQHandler(void)
 {
-
-  printf("EMAC interrupt handler invoked, could be a new packet...\n");
   //Check which interrupt source brought us here and clear the flag
   //If a packet arrived, we inform the Ethernet driver
-
-  //Receive buffer overrun
-  if (EMAC_IntGetStatus(EMAC_INT_RX_OVERRUN))
-    {
-
-    }
-
-  //Receive error
-  if (EMAC_IntGetStatus(EMAC_INT_RX_ERR))
-    {
-
-    }
-
-  //Receive Descriptor Finish
-  if (EMAC_IntGetStatus(EMAC_INT_RX_FIN))
-    {
-
-    }
 
   //Receive Done
   if (EMAC_IntGetStatus(EMAC_INT_RX_DONE))
     {
       poll_eth_driver();
-    }
-
-  //Transmit Under-run
-  if (EMAC_IntGetStatus(EMAC_INT_TX_UNDERRUN))
-    {
-
-    }
-
-  //Transmit Error
-  if (EMAC_IntGetStatus(EMAC_INT_TX_ERR))
-    {
-
-    }
-
-  //Transmit Descriptor Finish
-  if (EMAC_IntGetStatus(EMAC_INT_TX_FIN))
-    {
-
-    }
-
-  //Transmit Done
-  if (EMAC_IntGetStatus(EMAC_INT_TX_FIN))
-    {
-      poll_eth_driver();
-    }
-
-  //Software Interrupt
-  if (EMAC_IntGetStatus(EMAC_INT_SOFT_INT))
-    {
-
-    }
-
-  //Wakeup interrupt
-  if (EMAC_IntGetStatus(EMAC_INT_WAKEUP))
-    {
-
     }
 }
 

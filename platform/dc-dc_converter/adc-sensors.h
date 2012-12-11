@@ -35,17 +35,18 @@
 #define VIOUT_PIN               PINSEL_PIN_26
 
 
-#define VOUT_SENSOR "Output voltage"
-#define VIN_SENSOR "Input voltage"
-#define IL_SENSOR "Inductor current"
+#define SVECTOR_SENSOR "State vector"
 
-extern const struct sensors_sensor vout_sensor;
-extern const struct sensors_sensor vin_sensor;
-extern const struct sensors_sensor il_sensor;
+extern const struct sensors_sensor svector_sensor;
 
-#define VOUT_SENSOR_ACTIVATE() vout_sensor.configure(SENSORS_ACTIVE, 1)
-#define VIN_SENSOR_ACTIVATE() vin_sensor.configure(SENSORS_ACTIVE, 1)
-#define IL_SENSOR_ACTIVATE() il_sensor.configure(SENSORS_ACTIVE, 1)
+#define SVECTOR_SENSOR_ACTIVATE() svector_sensor.configure(SENSORS_ACTIVE, 1)
+
+//Type values for the sensor.value() function
+typedef enum{
+  SVECTOR_SENSOR_VOUT,
+  SVECTOR_SENSOR_VIN,
+  SVECTOR_SENSOR_IL
+}SVECTOR_SENSOR_TYPES;
 
 
 #endif /* ADC_SENSOR_H_ */

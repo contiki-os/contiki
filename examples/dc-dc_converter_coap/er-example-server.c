@@ -838,30 +838,30 @@ RESOURCE(svector, METHOD_GET, "sensors/svector", "title=\"State vector of the DC
 void
 svector_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  uint16_t vout_value= vout_sensor.value(0);
-  uint16_t vin_value= vin_sensor.value(0);
-  uint16_t il_value= il_sensor.value(0);
+  int16_t vout_value= svector_sensor.value(SVECTOR_SENSOR_VOUT);
+  int16_t vin_value= svector_sensor.value(SVECTOR_SENSOR_VIN);
+  int16_t il_value= svector_sensor.value(SVECTOR_SENSOR_IL);
   const uint16_t *accept = NULL;
   int num = REST.get_header_accept(request, &accept);
 
   if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
   {
     REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%u;%u;%u", vout_value, vin_value, il_value);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d;%d;%d", vout_value, vin_value, il_value);
 
     REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
   }
   else if (num && (accept[0]==REST.type.APPLICATION_XML))
   {
     REST.set_header_content_type(response, REST.type.APPLICATION_XML);
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<vout=\"%u\" vin=\"%u\" il=\"%u\"/>", vout_value, vin_value, il_value);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<vout=\"%d\" vin=\"%d\" il=\"%d\"/>", vout_value, vin_value, il_value);
 
     REST.set_response_payload(response, buffer, strlen((char *)buffer));
   }
   else if (num && (accept[0]==REST.type.APPLICATION_JSON))
   {
     REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'svector':{'vout':%u,'vin':%u, 'il':%u}}", vout_value, vin_value, il_value);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'svector':{'vout':%d,'vin':%d, 'il':%d}}", vout_value, vin_value, il_value);
 
     REST.set_response_payload(response, buffer, strlen((char *)buffer));
   }

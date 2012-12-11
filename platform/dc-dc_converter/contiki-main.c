@@ -94,9 +94,7 @@ main()
   printf("Starting the Contiki sensor process\n");
   process_start(&sensors_process, NULL);
   printf("Activating the sensors\n");
-  VOUT_SENSOR_ACTIVATE();
-  VIN_SENSOR_ACTIVATE();
-  IL_SENSOR_ACTIVATE();
+  SVECTOR_SENSOR_ACTIVATE();
 
   autostart_start(autostart_processes);
 
