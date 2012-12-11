@@ -29,9 +29,6 @@ all: summary
 
 build: examples tools
 
-dirnam = $(word 1, $(subst /, ,${1}))
-target = $(word 2, $(subst /, ,${1}))
-
 # The stuff below is some GNU make magic to automatically make make
 # give each compile test a number, prefixed with a 0 if the number is
 # < 10, to match the way the simulation tests output works.
@@ -41,18 +38,18 @@ gt = $(filter-out $(words ${1}),$(words $(call max,${1},${2})))
 addzero = $(if $(call gt,${nine},$(1)),$(words ${1}),0$(words ${1}))
 
 define dooneexample
-@echo Buildling example $(3): $(1) for target $(2)
+@echo Building example $(3): $(1) for target $(2)
 @((cd $(EXAMPLESDIR)/$(1); \
  make TARGET=$(2) clean && make TARGET=$(2)) > \
-      $(3)-$(1)-$(2).report 2>&1 && \
- (echo $(1) $(2): OK | tee $(3)-$(1)-$(2).summary) || \
- (echo $(1) $(2): FAIL ಠ.ಠ | tee $(3)-$(1)-$(2).summary ; \
-  tail -10 $(3)-$(1)-$(2).report > $(3)-$(1)-$(2).faillog))
+      $(3)-$(subst /,-,$(1))$(2).report 2>&1 && \
+ (echo $(1) $(2): OK | tee $(3)-$(subst /,-,$(1))$(2).summary) || \
+ (echo $(1) $(2): FAIL ಠ.ಠ | tee $(3)-$(subst /,-,$(1))$(2).summary ; \
+  tail -10 $(3)-$(subst /,-,$(1))$(2).report > $(3)-$(subst /,-,$(1))$(2).faillog))
 endef
 
 define doexample
 $(eval i+=x)
-$(call dooneexample,$(call dirnam,${1}),$(call target,${1}),$(call addzero,${i}))
+$(call dooneexample,$(dir ${1}),$(notdir ${1}),$(call addzero,${i}))
 endef
 #end of GNU make magic
 
