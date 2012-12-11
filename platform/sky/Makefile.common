@@ -34,7 +34,6 @@ LDFLAGS += $(LDFLAGSNO) -Felf -yn
 endif # IAR
 
 NUMPAR=20
-IHEXFILE=tmpimage.ihex
 
 # Check if we are running under Windows
 ifeq ($(HOST_OS),Windows)
@@ -95,9 +94,15 @@ else
       BSL = $(CONTIKI)/tools/sky/msp430-bsl-linux --telosb
       BSL_FILETYPE = -I
     endif
-    MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
-       cut -f 4 -d \  | \
-       perl -ne 'print $$1 . " " if(m-(/dev/[\w+\.\-]+)-);')
+    ifdef MOTEIDS
+  	  MOTES = $(foreach MOTEID, $(MOTEIDS), $(shell $(MOTELIST)  2>&- | grep $(MOTEID) | \
+          cut -f 4 -d \  | \
+          perl -ne 'print $$1 . " " if(m-(/dev/[\w+\.\-]+)-);') 
+    else
+      MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
+         cut -f 4 -d \  | \
+         perl -ne 'print $$1 . " " if(m-(/dev/[\w+\.\-]+)-);')
+    endif
     CMOTES=$(MOTES)
   endif
 endif
@@ -112,20 +117,17 @@ sky-motes:
 
 ifdef MOTE
 %.upload: %.ihex
-	cp $< $(IHEXFILE)
-	$(MAKE) sky-u.$(subst /,_,$(word $(MOTE), $(MOTES)))
+	$(MAKE) IHEXFILE=$< sky-u.$(subst /,_,$(word $(MOTE), $(MOTES)))
 else # MOTE
 %.upload: %.ihex
-	cp $< $(IHEXFILE)
-	$(MAKE) sky-reset sky-upload
+	$(MAKE) IHEXFILE=$< sky-reset sky-upload
 endif # MOTE
 
 upload-ihex:
 ifdef FILE
 	@echo Uploading $(FILE)
-	cp $(FILE) $(IHEXFILE)
 ifdef MOTE
-	$(MAKE) sky-u.$(subst /,_,$(word $(MOTE), $(MOTES)))
+	$(MAKE) IHEXFILE=$(FILE) sky-u.$(subst /,_,$(word $(MOTE), $(MOTES)))
 else # MOTE
 	$(MAKE) sky-reset sky-upload
 endif # MOTE
