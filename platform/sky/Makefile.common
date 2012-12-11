@@ -34,7 +34,6 @@ LDFLAGS += $(LDFLAGSNO) -Felf -yn
 endif # IAR
 
 NUMPAR=20
-IHEXFILE=tmpimage.ihex
 
 # Check if we are running under Windows
 ifeq ($(HOST_OS),Windows)
@@ -118,20 +117,17 @@ sky-motes:
 
 ifdef MOTE
 %.upload: %.ihex
-	cp $< $(IHEXFILE)
-	$(MAKE) sky-u.$(subst /,_,$(word $(MOTE), $(MOTES)))
+	$(MAKE) IHEXFILE=$< sky-u.$(subst /,_,$(word $(MOTE), $(MOTES)))
 else # MOTE
 %.upload: %.ihex
-	cp $< $(IHEXFILE)
-	$(MAKE) sky-reset sky-upload
+	$(MAKE) IHEXFILE=$< sky-reset sky-upload
 endif # MOTE
 
 upload-ihex:
 ifdef FILE
 	@echo Uploading $(FILE)
-	cp $(FILE) $(IHEXFILE)
 ifdef MOTE
-	$(MAKE) sky-u.$(subst /,_,$(word $(MOTE), $(MOTES)))
+	$(MAKE) IHEXFILE=$(FILE) sky-u.$(subst /,_,$(word $(MOTE), $(MOTES)))
 else # MOTE
 	$(MAKE) sky-reset sky-upload
 endif # MOTE
