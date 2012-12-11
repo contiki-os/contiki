@@ -13,8 +13,10 @@ hello-world/native \
 hello-world/sky \
 hello-world/wismote \
 hello-world/z1 \
+ipv6/rpl-border-router/econotag \
 collect/sky \
 er-rest-example/sky \
+er-rest-example/econotag \
 example-shell/native \
 netperf/sky \
 powertrace/sky \
@@ -30,6 +32,7 @@ sky-shell-webserver/sky \
 telnet-server/minimal-net \
 webserver/minimal-net \
 webserver-ipv6/sky \
+webserver-ipv6/econotag \
 wget/minimal-net \
 z1/z1
 
