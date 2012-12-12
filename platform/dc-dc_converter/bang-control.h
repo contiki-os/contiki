@@ -16,7 +16,7 @@ PROCESS_NAME(bang_process);
 //Identifiers of all the possible states
 //of the control algorithm
 typedef enum _converterState{
-  CONV_BUCK_OFF,
+  CONV_BUCK_OFF=0,
   CONV_BUCK_SOFT,
   CONV_BUCK_ON,
   CONV_BOOST_OFF,
@@ -28,32 +28,42 @@ typedef enum _converterState{
 
 //Identifiers of the algorithm parameters
 typedef enum _converterParameter{
-  CONV_VREF,
+  CONV_VREF=0,
   CONV_IMAX,
   CONV_VMAX
 }CONV_PARAM;
 
 //Acceptable range of values of the algorithm parameters
-//TODO: Check Jorge's code and thesis for the right values
-#define VREF_MIN        0
-#define VREF_DEFAULT    0
-#define VREF_MAX        0
-#define IMAX_MIN        0
-#define IMAX_DEFAULT    0
-#define IMAX_MAX        0
-#define VMAX_MIN        0
-#define VMAX_DEFAULT    0
-#define VMAX_MAX        0
+#define VREF_FLOAT_MIN        0.0
+#define VREF_FLOAT_DEFAULT    3.0
+#define VMAX_FLOAT_MIN        0.0
+#define VMAX_FLOAT_DEFAULT    5.0
+#define VMAX_FLOAT_MAX        30.0
+#define IMAX_FLOAT_MIN        0.0
+#define IMAX_FLOAT_DEFAULT    0.1
+#define IMAX_FLOAT_MAX        6.0
+
 
 //Function to set the parameters used by the DC-DC converter
 //control algorithm:
 //      -Vref:Desired output voltage
 //      -Imax:Maximum inductor current allowed
 //      -Vmax:Maximum output voltage allowed
-void setConverterParameter(int paramId, int paramValue);
+void setConverterParameter(int paramId, float paramValue);
 
 //Return the value of the selected parameter
-int getConverterParameter(int paramId);
+float getConverterParameter(int paramId);
+
+//Change the state of the algorithm
+//and modify the switches accordingly
+  void setConverterState(int newConvState);
+
+//Return the state of the control algorithm as an integer
+int getConverterState();
+
+//Return the state of the control algorithm as a string
+//(defined as a static char array inside function)
+char *getConverterStateString();
 
 
 

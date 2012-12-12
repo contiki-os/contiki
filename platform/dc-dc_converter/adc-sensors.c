@@ -44,6 +44,33 @@ void ADC_IRQHandler(void){
   }
 }
 
+//Function to convert the ADC 12-bit values to floating numbers in SI units(V,A)
+float getFloatParameter(int paramType){
+  float floatValue=0.0;
+  switch(paramType){
+  case SVECTOR_SENSOR_VOUT:
+    floatValue=VOUT_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_VOUT));
+    break;
+
+  case SVECTOR_SENSOR_VIN:
+    floatValue=VIN_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_VIN));
+    break;
+
+  case SVECTOR_SENSOR_IL:
+    floatValue=IL_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_IL));
+    break;
+
+  case SVECTOR_SENSOR_IIN:
+    floatValue=IIN_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_IIN));
+    break;
+
+  case SVECTOR_SENSOR_IOUT:
+    floatValue=IOUT_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_IOUT));
+    break;
+  }
+  return floatValue;
+}
+
 /*---------------------------------------------------------------------------*/
 static int value_svector(int type){
   int reading;
@@ -58,6 +85,14 @@ static int value_svector(int type){
     break;
 
   case SVECTOR_SENSOR_IL:
+    reading=adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
+    break;
+
+  case SVECTOR_SENSOR_IIN:
+    reading=adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
+    break;
+
+  case SVECTOR_SENSOR_IOUT:
     reading=adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
     break;
 

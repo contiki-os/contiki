@@ -44,27 +44,28 @@
 
 
 /* Define which resources to include to meet memory constraints. */
-#define REST_RES_HELLO 1
+#define REST_RES_HELLO 0
 #define REST_RES_MIRROR 0 /* causes largest code size */
 #define REST_RES_CHUNKS 0
 #define REST_RES_SEPARATE 0
-#define REST_RES_PUSHING 1
-#define REST_RES_EVENT 1
-#define REST_RES_SUB 1
-#define REST_RES_LEDS 1
+#define REST_RES_PUSHING 0
+#define REST_RES_EVENT 0
+#define REST_RES_SUB 0
+#define REST_RES_LEDS 0
 #define REST_RES_TOGGLE 1
-#define REST_RES_SVECTOR 1
-#define REST_RES_DCMODE 1
 #define REST_RES_LIGHT 0
 #define REST_RES_BATTERY 0
 #define REST_RES_RADIO 0
+//DC-DC converter specific resources
+#define REST_RES_SVECTOR 1
+#define REST_RES_CTRLPARAM 1
 
 #include "erbium.h"
 #include "er-coap-07-engine.h"
 
 #if defined (PLATFORM_HAS_ADC)
 #include "adc-sensors.h"
-int dcdcmode = 0; // variable for holding current dcdcmode
+#include "bang-control.h"
 #endif
 #if defined (PLATFORM_HAS_BUTTON)
 #include "dev/button-sensor.h"
@@ -836,35 +837,37 @@ radio_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
 
 #if REST_RES_SVECTOR
 //State vector of the DC-DC converter
-RESOURCE(svector, METHOD_GET, "sensors/svector", "title=\"State vector of the DC-DC converter [Vout(0x000-0xFFF=0-30.8V),Vout(0x000-0xFFF=0-30.8V),Il()], supports JSON\";rt=\"StateVector\"");
+RESOURCE(svector, METHOD_GET, "dc-dc/stateVector", "title=\"State vector of the DC-DC converter(Vout, Iout, Vin, In, bangAlgorithmState), supports JSON\";rt=\"StateVector\"");
 void
 svector_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  int16_t vout_value= svector_sensor.value(SVECTOR_SENSOR_VOUT);
-  int16_t vin_value= svector_sensor.value(SVECTOR_SENSOR_VIN);
-  int16_t il_value= svector_sensor.value(SVECTOR_SENSOR_IL);
+  float vout_value= getFloatParameter(SVECTOR_SENSOR_VOUT);
+  float iout_value= getFloatParameter(SVECTOR_SENSOR_IOUT);
+  float vin_value= getFloatParameter(SVECTOR_SENSOR_VIN);
+  float iin_value= iout_value;
+  char * stateStringPtr=getConverterStateString();
+
   const uint16_t *accept = NULL;
   int num = REST.get_header_accept(request, &accept);
 
   if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
   {
     REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d;%d;%d", vout_value, vin_value, il_value);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "Vout:\t%fV\nIout:\t%fA\nVin:\t%fV\nIin:\t%fA\nAlgorithm state:\t%s", vout_value, iout_value, vin_value, iin_value, stateStringPtr);
 
     REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
   }
   else if (num && (accept[0]==REST.type.APPLICATION_XML))
   {
     REST.set_header_content_type(response, REST.type.APPLICATION_XML);
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<vout=\"%d\" vin=\"%d\" il=\"%d\"/>", vout_value, vin_value, il_value);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "<vout=\"%f\" iout=\"%f\" vin=\"%f\" iin=\"%f\" bangState=\"%s\"/>", vout_value, iout_value, vin_value, iin_value, stateStringPtr);
 
     REST.set_response_payload(response, buffer, strlen((char *)buffer));
   }
   else if (num && (accept[0]==REST.type.APPLICATION_JSON))
   {
     REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'svector':{'vout':%d,'vin':%d, 'il':%d}}", vout_value, vin_value, il_value);
-
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'svector':{'vout':%f, 'iout':%f, 'vin':%f, 'iin':%f 'bangState':%s}}", vout_value, iout_value, vin_value, iin_value, stateStringPtr);
     REST.set_response_payload(response, buffer, strlen((char *)buffer));
   }
   else
@@ -878,57 +881,70 @@ svector_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
 
 #endif /* REST_RES_SVECTOR */
 
-#if REST_RES_DCMODE
-// DDDC converter mode resource
-RESOURCE(dcdcmode, METHOD_GET | METHOD_POST, "dcdccontrol/mode", "title=\"DCDC Mode\";rt=\"Control\"");
+#if REST_RES_CTRLPARAM
+// DCDC converter control parameters
+RESOURCE(ctrlparam, METHOD_GET | METHOD_POST, "dc-dc/controlParameters", "title=\"DCDC control parameters\";rt=\"Control\"");
 void
-dcdcmode_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+ctrlparam_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  const char *mode = NULL;
+  const char *variable = NULL;
   int coapMethod = coap_get_rest_method(request);
-  PRINTF("Received dcdccontrol/mode request code:%d", coapMethod);
+  PRINTF("Received dc-dc/ctrlParameters request:%d\n", coapMethod);
   if (coapMethod == METHOD_POST)
   {
-      if (REST.get_post_variable(request, "mode", &mode) > 0)
+      if (REST.get_post_variable(request, "Vref", &variable) > 0)
       {
-          PRINTF("Received request to switch dcdc mode to: %s\n", mode);
-
-          int modeInt = atoi(mode);
-
-          PRINTF("Parsed mode: %d\n", modeInt);
-
-          dcdcmode = modeInt;
-
+          float vRef=atoff(variable);
+          PRINTF("Received POST request for Vref, new value will be set to %f\n", vRef);
+          setConverterParameter(CONV_VREF, vRef);
+      }
+      if (REST.get_post_variable(request, "Vmax", &variable) > 0)
+      {
+          float vMax=atoff(variable);
+          PRINTF("Received POST request for Vmax, new value will be set to %f\n", vMax);
+          setConverterParameter(CONV_VMAX, vMax);
+      }
+      if (REST.get_post_variable(request, "Imax", &variable) > 0)
+      {
+          float iMax=atoff(variable);
+          PRINTF("Received POST request for Imax, new value will be set to %f\n", vRef);
+          setConverterParameter(CONV_IMAX, iMax);
       }
   }
   else
   {
-     PRINTF("Received GET request for dcdcmode");
+     PRINTF("Received GET request for the control parameters of the DC-DC converter\n");
      const uint16_t *accept = NULL;
      int num = REST.get_header_accept(request, &accept);
 
+     //Variables to send with the response
+     float vRef, vMax, iMax;
+
      if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
      {
-         PRINTF("Responding with mode: %d", dcdcmode);
+         PRINTF("Sending CoAP Text/Plain response\n");
          REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-         snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", dcdcmode);
+         vRef=getConverterParameter(CONV_VREF);
+         vMax=getConverterParameter(CONV_VMAX);
+         iMax=getConverterParameter(CONV_IMAX);
+         snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "Vref:\t%fV\nVmax:\t%fV\nImax:\t%fA", vRef, vMax, iMax);
          REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
      }
      else if (num && (accept[0]==REST.type.APPLICATION_JSON))
      {
-          PRINTF("Responding with mode: %d", dcdcmode);
+          PRINTF("Sending JSON response\n");
           REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
-          snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'mode':%d}", dcdcmode);
+          snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{ctrlParam':{'vref':%f, 'vmax':%f, 'imax':%f}}", vRef, vMax, iMax);
           REST.set_response_payload(response, buffer, strlen((char *)buffer));
      }
      else
      {
-         PRINTF("REquested dcdcmode but doesn't accept JSON or TEXT/PLAIN!");
+         PRINTF("Request received, but the server doesn't accept anything other than JSON or TEXT/PLAIN!\n");
      }
   }
 }
 
-#endif  /* REST_RES_DCMODE */
+#endif  /* REST_RES_CTRLPARAM */
 
 #endif /* PLATFOR_HAS_ADC */
 
@@ -1000,8 +1016,8 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #if defined (PLATFORM_HAS_ADC) && REST_RES_SVECTOR
   rest_activate_resource(&resource_svector);
 #endif
-#if defined (PLATFORM_HAS_ADC) && REST_RES_DCMODE
-  rest_activate_resource(&resource_dcdcmode);
+#if defined (PLATFORM_HAS_ADC) && REST_RES_CTRLPARAM
+  rest_activate_resource(&resource_ctrlparam);
 #endif
 
   /* Define application-specific events here. */
