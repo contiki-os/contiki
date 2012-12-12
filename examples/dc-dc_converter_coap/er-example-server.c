@@ -853,7 +853,7 @@ svector_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
   if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
   {
     REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "Vout:\t%fV\nIout:\t%fA\nVin:\t%fV\nIin:\t%fA\nAlgorithm state:\t%s", vout_value, iout_value, vin_value, iin_value, stateStringPtr);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "State:\t%s\nVout:\t%fV\nIout:\t%fA\nVin:\t%fV\nIin:\t%fA", stateStringPtr, vout_value, iout_value, vin_value, iin_value);
 
     REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
   }
@@ -892,23 +892,45 @@ ctrlparam_handler(void* request, void* response, uint8_t *buffer, uint16_t prefe
   PRINTF("Received dc-dc/ctrlParameters request:%d\n", coapMethod);
   if (coapMethod == METHOD_POST)
   {
+      if (REST.get_post_variable(request, "userAllowed", &variable) > 0)
+      {
+          PRINTF("Received POST request for userAllowed\n");
+          //printf("Received the following for userAllowed: %s\n", variable);
+          char stryes1[]="YES";
+          char stryes2[]="yes";
+          if(strncmp(variable,stryes1,sizeof(stryes1)-1) && strncmp(variable,stryes2,sizeof(stryes2)-1)){
+              forbidUser();
+              //printf("Kicking out user\n");
+          }
+          else{
+              allowUser();
+              //printf("Allowing user\n");
+          }
+      }
+
       if (REST.get_post_variable(request, "Vref", &variable) > 0)
       {
           float vRef=atoff(variable);
           PRINTF("Received POST request for Vref, new value will be set to %f\n", vRef);
+          //printf("CoAP setting Vref to %f\n", vRef);
           setConverterParameter(CONV_VREF, vRef);
+          //printf("The new value of Vref is %f\n", getConverterParameter(CONV_VREF));
       }
       if (REST.get_post_variable(request, "Vmax", &variable) > 0)
       {
           float vMax=atoff(variable);
           PRINTF("Received POST request for Vmax, new value will be set to %f\n", vMax);
+          //printf("CoAP setting Vref to %f\n", vMax);
           setConverterParameter(CONV_VMAX, vMax);
+          //printf("The new value of Vmax is %f\n", getConverterParameter(CONV_VMAX));
       }
       if (REST.get_post_variable(request, "Imax", &variable) > 0)
       {
           float iMax=atoff(variable);
           PRINTF("Received POST request for Imax, new value will be set to %f\n", vRef);
+          //printf("CoAP setting Imax to %f\n", iMax);
           setConverterParameter(CONV_IMAX, iMax);
+          //printf("The new value of Imax is %f\n", getConverterParameter(CONV_IMAX));
       }
   }
   else
@@ -917,24 +939,29 @@ ctrlparam_handler(void* request, void* response, uint8_t *buffer, uint16_t prefe
      const uint16_t *accept = NULL;
      int num = REST.get_header_accept(request, &accept);
 
-     //Variables to send with the response
-     float vRef, vMax, iMax;
+     char userAllowedStr[4];
+      if(isUserAllowed()){
+          strcpy(userAllowedStr, "yes");
+      }
+      else{
+          strcpy(userAllowedStr, "no");
+      }
+      float vRef=getConverterParameter(CONV_VREF);
+      float vMax=getConverterParameter(CONV_VMAX);
+      float iMax=getConverterParameter(CONV_IMAX);
 
      if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
      {
          PRINTF("Sending CoAP Text/Plain response\n");
          REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-         vRef=getConverterParameter(CONV_VREF);
-         vMax=getConverterParameter(CONV_VMAX);
-         iMax=getConverterParameter(CONV_IMAX);
-         snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "Vref:\t%fV\nVmax:\t%fV\nImax:\t%fA", vRef, vMax, iMax);
+         snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "userAllowed:\t%s\nVref:\t\t%fV\nVmax:\t\t%fV\nImax:\t\t%fA", userAllowedStr, vRef, vMax, iMax);
          REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
      }
      else if (num && (accept[0]==REST.type.APPLICATION_JSON))
      {
           PRINTF("Sending JSON response\n");
           REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
-          snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{ctrlParam':{'vref':%f, 'vmax':%f, 'imax':%f}}", vRef, vMax, iMax);
+          snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{ctrlParam':{'userAllowed':%s, 'vref':%f, 'vmax':%f, 'imax':%f}}", userAllowedStr, vRef, vMax, iMax);
           REST.set_response_payload(response, buffer, strlen((char *)buffer));
      }
      else

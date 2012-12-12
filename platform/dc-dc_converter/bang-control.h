@@ -65,6 +65,16 @@ int getConverterState();
 //(defined as a static char array inside function)
 char *getConverterStateString();
 
+//Enable the voltage output for this user
+void allowUser();
+
+//Cut the user off from the grid
+void forbidUser();
+
+//Returns 0 if the user does not have access
+//to the power grid
+int isUserAllowed();
+
 
 
 #endif /* BANG_CONTROL_H_ */

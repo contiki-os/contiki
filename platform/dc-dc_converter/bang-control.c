@@ -25,6 +25,22 @@ int vRef = 0;
 int vMax = 0;
 int iMax = 0;
 
+//Enable the voltage output for this user
+void allowUser(){
+  userAllowed=TRUE;
+}
+
+//Cut the user off from the grid
+void forbidUser(){
+  userAllowed=FALSE;
+}
+
+//Returns 0 if the user does not have access
+//to the power grid
+int isUserAllowed(){
+  return (int)userAllowed;
+}
+
 //Function to set the parameters used by the DC-DC converter
 //control algorithm:
 //      -Vref:Desired output voltage
@@ -43,7 +59,7 @@ setConverterParameter(int paramId, float paramValue)
     if (paramAdcValue >= VREF_FLOAT_TO_ADC(VREF_FLOAT_MIN)
         && paramAdcValue <= vMax)
       {
-        vRef = paramValue;
+        vRef = paramAdcValue;
         process_poll(&bang_process);
       }
     break;
@@ -53,7 +69,7 @@ setConverterParameter(int paramId, float paramValue)
     if (paramAdcValue >= IMAX_FLOAT_TO_ADC(IMAX_FLOAT_MIN)
         && paramAdcValue <= IMAX_FLOAT_TO_ADC(IMAX_FLOAT_MAX))
       {
-        iMax = paramValue;
+        iMax = paramAdcValue;
         process_poll(&bang_process);
       }
     break;
@@ -63,7 +79,7 @@ setConverterParameter(int paramId, float paramValue)
     if (paramAdcValue >= VMAX_FLOAT_TO_ADC(VMAX_FLOAT_MIN)
         && paramAdcValue <= VMAX_FLOAT_TO_ADC(VMAX_FLOAT_MAX))
       {
-        vMax = paramValue;
+        vMax = paramAdcValue;
         process_poll(&bang_process);
       }
     break;
