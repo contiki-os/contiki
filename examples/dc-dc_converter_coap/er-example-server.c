@@ -54,6 +54,7 @@
 #define REST_RES_LEDS 1
 #define REST_RES_TOGGLE 1
 #define REST_RES_SVECTOR 1
+#define REST_RES_DCMODE 1
 #define REST_RES_LIGHT 0
 #define REST_RES_BATTERY 0
 #define REST_RES_RADIO 0
@@ -63,6 +64,7 @@
 
 #if defined (PLATFORM_HAS_ADC)
 #include "adc-sensors.h"
+int dcdcmode = 0; // variable for holding current dcdcmode
 #endif
 #if defined (PLATFORM_HAS_BUTTON)
 #include "dev/button-sensor.h"
@@ -876,6 +878,58 @@ svector_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
 
 #endif /* REST_RES_SVECTOR */
 
+#if REST_RES_DCMODE
+// DDDC converter mode resource
+RESOURCE(dcdcmode, METHOD_GET | METHOD_POST, "dcdccontrol/mode", "title=\"DCDC Mode\";rt=\"Control\"");
+void
+dcdcmode_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  const char *mode = NULL;
+  int coapMethod = coap_get_rest_method(request);
+  PRINTF("Received dcdccontrol/mode request code:%d", coapMethod);
+  if (coapMethod == METHOD_POST)
+  {
+      if (REST.get_post_variable(request, "mode", &mode) > 0)
+      {
+          PRINTF("Received request to switch dcdc mode to: %s\n", mode);
+
+          int modeInt = atoi(mode);
+
+          PRINTF("Parsed mode: %d\n", modeInt);
+
+          dcdcmode = modeInt;
+
+      }
+  }
+  else
+  {
+     PRINTF("Received GET request for dcdcmode");
+     const uint16_t *accept = NULL;
+     int num = REST.get_header_accept(request, &accept);
+
+     if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
+     {
+         PRINTF("Responding with mode: %d", dcdcmode);
+         REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+         snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%d", dcdcmode);
+         REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
+     }
+     else if (num && (accept[0]==REST.type.APPLICATION_JSON))
+     {
+          PRINTF("Responding with mode: %d", dcdcmode);
+          REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
+          snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{'mode':%d}", dcdcmode);
+          REST.set_response_payload(response, buffer, strlen((char *)buffer));
+     }
+     else
+     {
+         PRINTF("REquested dcdcmode but doesn't accept JSON or TEXT/PLAIN!");
+     }
+  }
+}
+
+#endif  /* REST_RES_DCMODE */
+
 #endif /* PLATFOR_HAS_ADC */
 
 
@@ -945,6 +999,9 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #endif
 #if defined (PLATFORM_HAS_ADC) && REST_RES_SVECTOR
   rest_activate_resource(&resource_svector);
+#endif
+#if defined (PLATFORM_HAS_ADC) && REST_RES_DCMODE
+  rest_activate_resource(&resource_dcdcmode);
 #endif
 
   /* Define application-specific events here. */
