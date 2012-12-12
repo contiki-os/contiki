@@ -13,6 +13,7 @@ endif
 
 CONTIKI_TARGET_SOURCEFILES += leds-arch.c leds.c \
 							adc-sensors.c sensors.c \
+							bang-control.c switches-actuators.c \
  							$(CODEPROP_SOURCES) $(CONTIKI_TARGET_MAIN)
 
 #include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps

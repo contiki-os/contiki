@@ -12,7 +12,8 @@
 #include "contiki-conf.h"
 #include <net/uip-debug.h>
 #include "leds-arch.h"
-#include "adc-sensors.h"
+#include "dev/leds.h"
+#include "bang-control.h"
 
 unsigned int idle_count = 0;
 
@@ -90,17 +91,15 @@ main()
   uip_setdraddr(&addr);
 #endif
 
-  //Start the ADC sensors
-  printf("Starting the Contiki sensor process\n");
-  process_start(&sensors_process, NULL);
-  printf("Activating the sensors\n");
-  SVECTOR_SENSOR_ACTIVATE();
+  //Start the dc-dc converter control process
+  printf("Starting the Bang-Bang control process\n");
+  process_start(&bang_process, NULL);
 
   autostart_start(autostart_processes);
 
   printf("Processes running\n");
-  while (1)
-    {
+  while (1){
+
       do
         {
         }

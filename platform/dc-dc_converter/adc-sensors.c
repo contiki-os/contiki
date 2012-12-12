@@ -5,8 +5,12 @@
  *      Author: cazulu
  */
 
+#include "contiki.h"
 #include "adc-sensors.h"
+#include "bang-control.h"
 #include "lpc17xx_adc.h"
+
+//TODO: Implement a glitch filter for the ADC values
 
 //Data structures for the Contiki sensor API
 const struct sensors_sensor *sensors[] = {
@@ -34,6 +38,9 @@ void ADC_IRQHandler(void){
       adgr=ADC_GlobalGetData(LPC_ADC);
       channel=ADC_GDR_CH(adgr);
       adcChannels[channel]=ADC_GDR_RESULT(adgr);
+      //Poll the control algorithm to inform of the new value
+      if(channel==VIOUT_ADC_CHANNEL)
+        process_poll(&bang_process);
   }
 }
 
