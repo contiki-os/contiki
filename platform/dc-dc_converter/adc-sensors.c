@@ -184,7 +184,7 @@ configure_svector(int type, int value)
   switch (type)
     {
   case SENSORS_HW_INIT:
-    /*
+
      //Initialize the ADC module
      ADC_Init(LPC_ADC, ADC_CONV_RATE);
      NVIC_DisableIRQ(ADC_IRQn);
@@ -225,21 +225,16 @@ configure_svector(int type, int value)
      PinCfg.Portnum = VIOUT_PORT;
      PINSEL_ConfigPin(&PinCfg);
 
-     */
+    /*
     LPC_PINCON ->PINSEL1 |= 0x00154000; // Select ADC function for pins (ADC0-3)
     LPC_PINCON ->PINSEL3 |= 0xF0000000; // Select ADC function for pins (ADC4-5)
     LPC_PINCON ->PINMODE1 |= 0x0002A8000; // Neither pull-up nor pull-down resistor
     LPC_PINCON ->PINMODE3 |= 0xA00000000; // Neither pull-up nor pull-down resistor
     LPC_SC ->PCONP |= (1 << 12);                             // Set up bit PCADC
     LPC_SC ->PCLKSEL0 |= (01 << 24);                 // PCLK = CCLK (102 MHz)
-    /* 7-0 SEL
-     * 15-8 CLKDIV = 7 (12.25 MHz)
-     * 15-8 CLKDIV = 3 (25.5 MHz)
-     * 16 BURST software
-     * 21 PDN on (ADC on)
-     */
     LPC_ADC ->ADCR |= 0x00200300;
     LPC_ADC ->ADINTEN = 0x00000100;                  // ADC Interrupt Enabled
+    */
 
     break;
 

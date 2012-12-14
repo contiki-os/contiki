@@ -357,6 +357,10 @@ setConverterParameter(int paramId, float paramValue)
       //Start the ADC sensors and the sensor controlling process
       printf("Starting the Contiki sensor process\n");
       process_start(&sensors_process, NULL );
+      //Wait for the ADC to settle before starting to sample
+      static struct etimer et;
+      etimer_set(&et, 5*CLOCK_SECOND);
+      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
       printf("Activating the sensors\n");
       SVECTOR_SENSOR_ACTIVATE();
 
