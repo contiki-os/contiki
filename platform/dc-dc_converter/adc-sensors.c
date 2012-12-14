@@ -13,93 +13,139 @@
 //TODO: Implement a glitch filter for the ADC values
 
 //Data structures for the Contiki sensor API
-const struct sensors_sensor *sensors[] = {
-  &svector_sensor,
-  NULL
-};
+const struct sensors_sensor *sensors[] =
+  { &svector_sensor, NULL };
 unsigned char sensors_flags[(sizeof(sensors) / sizeof(struct sensors_sensor *))];
 
 //Current status of the ADC channels
-static int adcChannels[4];
+static uint16_t adcChannels[4];
 
-void ADC_IRQHandler(void) __attribute__ ((interrupt));
+void
+ADCRead(unsigned char ADC)
+{
+  LPC_ADC ->ADCR &= ~(0x000000FF);                 // Remove ADC selected
+  LPC_ADC ->ADCR |= (1 << ADC);                    // Select ADC
+  LPC_ADC ->ADCR |= (1 << 24);                             // Start conversion
+}
+
+void
+ADC_IRQHandler(void) __attribute__ ((interrupt));
 
 //Variables for the ADC interruption
 static uint32_t adgr;
 static uint8_t channel;
 
+int channelCounter = 0;
+
+uint8_t chan = 0;
+
 //Interrupt handler, stores the channel values into the adcChannels array
-void ADC_IRQHandler(void){
-  if(ADC_GlobalGetStatus(LPC_ADC, ADC_DATA_DONE)
-      || ADC_GlobalGetStatus(LPC_ADC, ADC_DATA_BURST)){
-      //Get and store the value of the latest channel converted
-      //NOTE: There is an error in the ADC_GlobalGetData function,
-      //it returns the whole ADGR register and not just the RESULT field
-      adgr=ADC_GlobalGetData(LPC_ADC);
-      channel=ADC_GDR_CH(adgr);
-      adcChannels[channel]=ADC_GDR_RESULT(adgr);
+void
+ADC_IRQHandler(void)
+{
+  if (ADC_GlobalGetStatus(LPC_ADC, ADC_DATA_DONE)
+      || ADC_GlobalGetStatus(LPC_ADC, ADC_DATA_BURST))
+    {
+
+      /*
+       //Get and store the value of the latest channel converted
+       //NOTE: There is an error in the ADC_GlobalGetData function,
+       //it returns the whole ADGR register and not just the RESULT field
+       adgr = ADC_GlobalGetData(LPC_ADC );
+       channel = ADC_GDR_CH(adgr);
+       adcChannels[channel] = ADC_GDR_RESULT(adgr);
+
+       */
+
+      int Channel;
+      Channel = (LPC_ADC ->ADGDR >> 24) & 0x00000007;
+      adcChannels[Channel] = (LPC_ADC ->ADGDR >> 4) & 0x00000FFF;
+      Channel++;
+      if (Channel < 4)
+        ADCRead((channel + 1) % 4);
+
+      channelCounter++;
+      if (channelCounter == 50000)
+        {
+          channelCounter=0;
+          printf("***Printing current ADC0 values***\n");
+          printf("\t->AD0GDR=%x\n", adgr);
+          printf("\t->ADC0[0]=%u\n", adcChannels[0]);
+          printf("\t->ADC0[1]=%u\n", adcChannels[1]);
+          printf("\t->ADC0[2]=%u\n", adcChannels[2]);
+          printf("\t->ADC0[3]=%u\n", adcChannels[3]);
+        }
+
       //Poll the control algorithm to inform of the new value
-      if(channel==VIOUT_ADC_CHANNEL)
-        process_poll(&bang_process);
-  }
+      if (channel == VIOUT_ADC_CHANNEL)
+        {
+          //process_poll(&bang_process);
+        }
+    }
 }
 
 //Function to convert the ADC 12-bit values to floating numbers in SI units(V,A)
-float getFloatParameter(int paramType){
-  float floatValue=0.0;
-  switch(paramType){
+float
+getFloatParameter(int paramType)
+{
+  float floatValue = 0.0;
+  switch (paramType)
+    {
   case SVECTOR_SENSOR_VOUT:
-    floatValue=VOUT_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_VOUT));
+    floatValue = VOUT_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_VOUT));
     break;
 
   case SVECTOR_SENSOR_VIN:
-    floatValue=VIN_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_VIN));
+    floatValue = VIN_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_VIN));
     break;
 
   case SVECTOR_SENSOR_IL:
-    floatValue=IL_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_IL));
+    floatValue = IL_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_IL));
     break;
 
   case SVECTOR_SENSOR_IIN:
-    floatValue=IIN_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_IIN));
+    floatValue = IIN_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_IIN));
     break;
 
   case SVECTOR_SENSOR_IOUT:
-    floatValue=IOUT_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_IOUT));
+    floatValue = IOUT_ADC_TO_FLOAT(svector_sensor.value(SVECTOR_SENSOR_IOUT));
     break;
-  }
+    }
   return floatValue;
 }
 
 /*---------------------------------------------------------------------------*/
-static int value_svector(int type){
+static int
+value_svector(int type)
+{
   int reading;
   NVIC_DisableIRQ(ADC_IRQn);
-  switch(type){
+  switch (type)
+    {
   case SVECTOR_SENSOR_VOUT:
-    reading=adcChannels[VOUT_ADC_CHANNEL];
+    reading = adcChannels[VOUT_ADC_CHANNEL];
     break;
 
   case SVECTOR_SENSOR_VIN:
-    reading=adcChannels[VIN_ADC_CHANNEL];
+    reading = adcChannels[VIN_ADC_CHANNEL];
     break;
 
   case SVECTOR_SENSOR_IL:
-    reading=adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
+    reading = adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
     break;
 
   case SVECTOR_SENSOR_IIN:
-    reading=adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
+    reading = adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
     break;
 
   case SVECTOR_SENSOR_IOUT:
-    reading=adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
+    reading = adcChannels[VIOUT_ADC_CHANNEL] - adcChannels[VZCR_ADC_CHANNEL];
     break;
 
   default:
-    reading=0;
+    reading = 0;
     break;
-  }
+    }
   NVIC_EnableIRQ(ADC_IRQn);
   return reading;
 }
@@ -109,101 +155,132 @@ status_svector(int type)
 {
   int16_t status;
 
-  switch(type){
+  switch (type)
+    {
   case SVECTOR_SENSOR_VOUT:
-    status=ADC_ChannelGetStatus(LPC_ADC, VOUT_ADC_CHANNEL, ADC_DATA_DONE);
+    status = ADC_ChannelGetStatus(LPC_ADC, VOUT_ADC_CHANNEL, ADC_DATA_DONE);
     break;
 
   case SVECTOR_SENSOR_VIN:
-    status=ADC_ChannelGetStatus(LPC_ADC, VIN_ADC_CHANNEL, ADC_DATA_DONE);
+    status = ADC_ChannelGetStatus(LPC_ADC, VIN_ADC_CHANNEL, ADC_DATA_DONE);
     break;
 
   case SVECTOR_SENSOR_IL:
-    status=ADC_ChannelGetStatus(LPC_ADC, VZCR_ADC_CHANNEL, ADC_DATA_DONE)
-      & ADC_ChannelGetStatus(LPC_ADC, VIOUT_ADC_CHANNEL, ADC_DATA_DONE);
+    status = ADC_ChannelGetStatus(LPC_ADC, VZCR_ADC_CHANNEL, ADC_DATA_DONE)
+        & ADC_ChannelGetStatus(LPC_ADC, VIOUT_ADC_CHANNEL, ADC_DATA_DONE);
     break;
 
   default:
-    status=0;
+    status = 0;
     break;
-  }
+    }
   return status;
 }
 
 /*---------------------------------------------------------------------------*/
-static int configure_svector(int type, int value){
-  switch(type){
+static int
+configure_svector(int type, int value)
+{
+  switch (type)
+    {
   case SENSORS_HW_INIT:
-    //Initialize the ADC module
-    ADC_Init(LPC_ADC, ADC_CONV_RATE);
-    NVIC_DisableIRQ(ADC_IRQn);
-    /* Set ADC interruption to the highest priority */
-    NVIC_SetPriority(ADC_IRQn, 0);
-    //Only the global DONE flag of the ADDR
-    //will generate an interrupt
-    ADC_IntConfig(LPC_ADC,ADC_ADGINTEN,SET);
+    /*
+     //Initialize the ADC module
+     ADC_Init(LPC_ADC, ADC_CONV_RATE);
+     NVIC_DisableIRQ(ADC_IRQn);
+     //Set ADC interruption to the highest priority
+     NVIC_SetPriority(ADC_IRQn, 0);
+     //Only the global DONE flag of the ADDR
+     //will generate an interrupt
+     //ADC_IntConfig(LPC_ADC,ADC_ADGINTEN,SET);
 
-    //Initialize the ADC pins
-    //VOUT ADC pin
-    PINSEL_CFG_Type PinCfg;
-    PinCfg.Funcnum = PINSEL_FUNC_0;
-    PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-    PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-    PinCfg.Pinnum = VOUT_PIN;
-    PinCfg.Portnum = VOUT_PORT;
-    PINSEL_ConfigPin(&PinCfg);
-    //VIN ADC pin
-    PinCfg.Funcnum = PINSEL_FUNC_0;
-    PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-    PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-    PinCfg.Pinnum = VIN_PIN;
-    PinCfg.Portnum = VIN_PORT;
-    PINSEL_ConfigPin(&PinCfg);
-    //VZCR ADC pin
-    PinCfg.Funcnum = PINSEL_FUNC_0;
-    PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-    PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-    PinCfg.Pinnum = VZCR_PIN;
-    PinCfg.Portnum = VZCR_PORT;
-    PINSEL_ConfigPin(&PinCfg);
-    //VIOUT ADC pin
-    PinCfg.Funcnum = PINSEL_FUNC_0;
-    PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-    PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-    PinCfg.Pinnum = VIOUT_PIN;
-    PinCfg.Portnum = VIOUT_PORT;
-    PINSEL_ConfigPin(&PinCfg);
+     //Initialize the ADC pins
+     //VOUT ADC pin
+     PINSEL_CFG_Type PinCfg;
+     PinCfg.Funcnum = VOUT_PINFUNC;
+     PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+     PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+     PinCfg.Pinnum = VOUT_PIN;
+     PinCfg.Portnum = VOUT_PORT;
+     PINSEL_ConfigPin(&PinCfg);
+     //VIN ADC pin
+     PinCfg.Funcnum = VIN_PINFUNC;
+     PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+     PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+     PinCfg.Pinnum = VIN_PIN;
+     PinCfg.Portnum = VIN_PORT;
+     PINSEL_ConfigPin(&PinCfg);
+     //VZCR ADC pin
+     PinCfg.Funcnum = VZCR_PINFUNC;
+     PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+     PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+     PinCfg.Pinnum = VZCR_PIN;
+     PinCfg.Portnum = VZCR_PORT;
+     PINSEL_ConfigPin(&PinCfg);
+     //VIOUT ADC pin
+     PinCfg.Funcnum = VIOUT_PINFUNC;
+     PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+     PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+     PinCfg.Pinnum = VIOUT_PIN;
+     PinCfg.Portnum = VIOUT_PORT;
+     PINSEL_ConfigPin(&PinCfg);
+
+     */
+    LPC_PINCON ->PINSEL1 |= 0x00154000; // Select ADC function for pins (ADC0-3)
+    LPC_PINCON ->PINSEL3 |= 0xF0000000; // Select ADC function for pins (ADC4-5)
+    LPC_PINCON ->PINMODE1 |= 0x0002A8000; // Neither pull-up nor pull-down resistor
+    LPC_PINCON ->PINMODE3 |= 0xA00000000; // Neither pull-up nor pull-down resistor
+    LPC_SC ->PCONP |= (1 << 12);                             // Set up bit PCADC
+    LPC_SC ->PCLKSEL0 |= (01 << 24);                 // PCLK = CCLK (102 MHz)
+    /* 7-0 SEL
+     * 15-8 CLKDIV = 7 (12.25 MHz)
+     * 15-8 CLKDIV = 3 (25.5 MHz)
+     * 16 BURST software
+     * 21 PDN on (ADC on)
+     */
+    LPC_ADC ->ADCR |= 0x00200300;
+    LPC_ADC ->ADINTEN = 0x00000100;                  // ADC Interrupt Enabled
+
     break;
 
   case SENSORS_ACTIVE:
     //Enable or disable the ADC channels depending
     //on the value variable
-    if(value){
-        //Enable the different ADC channels
-        ADC_ChannelCmd(LPC_ADC, VOUT_ADC_CHANNEL, ENABLE);
-        ADC_ChannelCmd(LPC_ADC, VIN_ADC_CHANNEL, ENABLE);
-        ADC_ChannelCmd(LPC_ADC, VZCR_ADC_CHANNEL, ENABLE);
-        ADC_ChannelCmd(LPC_ADC, VIOUT_ADC_CHANNEL, ENABLE);
-        //Start burst conversion
-        ADC_BurstCmd(LPC_ADC,ENABLE);
-        //Enable ADC interruptions
+    if (value)
+      {
+        /*
+         //Enable the different ADC channels
+         ADC_ChannelCmd(LPC_ADC, VOUT_ADC_CHANNEL, ENABLE);
+         ADC_ChannelCmd(LPC_ADC, VIN_ADC_CHANNEL, ENABLE);
+         ADC_ChannelCmd(LPC_ADC, VZCR_ADC_CHANNEL, ENABLE);
+         ADC_ChannelCmd(LPC_ADC, VIOUT_ADC_CHANNEL, ENABLE);
+         //Start burst conversion
+         ADC_BurstCmd(LPC_ADC,ENABLE);
+
+         //Enable ADC interruptions
+         NVIC_EnableIRQ(ADC_IRQn);
+         */
         NVIC_EnableIRQ(ADC_IRQn);
-    }
-    else{
+        NVIC_SetPriority(ADC_IRQn, 2);
+        ADCRead(0);
+      }
+    else
+      {
         //Disable the ADC interruptions
         NVIC_DisableIRQ(ADC_IRQn);
         //Stop burst conversion
-        ADC_BurstCmd(LPC_ADC,DISABLE);
+        ADC_BurstCmd(LPC_ADC, DISABLE);
         //Disable the ADC channels
         ADC_ChannelCmd(LPC_ADC, VOUT_ADC_CHANNEL, DISABLE);
         ADC_ChannelCmd(LPC_ADC, VIN_ADC_CHANNEL, DISABLE);
         ADC_ChannelCmd(LPC_ADC, VZCR_ADC_CHANNEL, DISABLE);
         ADC_ChannelCmd(LPC_ADC, VIOUT_ADC_CHANNEL, DISABLE);
-    }
+      }
     break;
 
-  }
+    }
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(svector_sensor, SVECTOR_SENSOR, value_svector, configure_svector, status_svector);
+SENSORS_SENSOR(svector_sensor, SVECTOR_SENSOR, value_svector, configure_svector,
+    status_svector);

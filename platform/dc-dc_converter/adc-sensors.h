@@ -47,19 +47,22 @@
 #define VOUT_ADC_CHANNEL        ADC_CHANNEL_0
 #define VOUT_PORT               PINSEL_PORT_0
 #define VOUT_PIN                PINSEL_PIN_23
+#define VOUT_PINFUNC            PINSEL_FUNC_1
 //P0.24=ADC1 --> INPUT VOLTAGE
 #define VIN_ADC_CHANNEL         ADC_CHANNEL_1
 #define VIN_PORT                PINSEL_PORT_0
 #define VIN_PIN                 PINSEL_PIN_24
+#define VIN_PINFUNC             PINSEL_FUNC_1
 //P0.25=ADC2 --> CURRENT SENSOR VZCR
 #define VZCR_ADC_CHANNEL        ADC_CHANNEL_2
 #define VZCR_PORT               PINSEL_PORT_0
 #define VZCR_PIN                PINSEL_PIN_25
+#define VZCR_PINFUNC             PINSEL_FUNC_1
 //P0.26=ADC3 --> CURRENT SENSOR VIOUT
 #define VIOUT_ADC_CHANNEL       ADC_CHANNEL_3
 #define VIOUT_PORT              PINSEL_PORT_0
 #define VIOUT_PIN               PINSEL_PIN_26
-
+#define VIOUT_PINFUNC            PINSEL_FUNC_1
 
 #define SVECTOR_SENSOR "State vector"
 
