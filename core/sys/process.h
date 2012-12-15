@@ -302,12 +302,12 @@ static PT_THREAD(process_thread_##name(struct pt *process_pt,	\
 #define PROCESS(name, strname)				\
   PROCESS_THREAD(name, ev, data);			\
   struct process name = { NULL,		        \
-                          process_thread_##name }
+                          process_thread_##name, { 0, }, 0, 0 }
 #else
 #define PROCESS(name, strname)				\
   PROCESS_THREAD(name, ev, data);			\
   struct process name = { NULL, strname,		\
-                          process_thread_##name }
+                          process_thread_##name, { 0, }, 0, 0 }
 #endif
 
 /** @} */

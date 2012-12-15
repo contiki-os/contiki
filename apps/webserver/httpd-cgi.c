@@ -113,7 +113,7 @@ static const char *states[] = {
 
 /*---------------------------------------------------------------------------*/
 static
-PT_THREAD(nullfunction(struct httpd_state *s, char *ptr))
+PT_THREAD(nullfunction(struct httpd_state *s, char *ptr __attribute__((unused)) ))
 {
   PSOCK_BEGIN(&s->sout);
   PSOCK_END(&s->sout);
@@ -188,7 +188,7 @@ make_tcp_stats(void *arg)
 }
 /*---------------------------------------------------------------------------*/
 static
-PT_THREAD(tcp_stats(struct httpd_state *s, char *ptr))
+PT_THREAD(tcp_stats(struct httpd_state *s, char *ptr __attribute__((unused)) ))
 {
   
   PSOCK_BEGIN(&s->sout);
@@ -215,10 +215,11 @@ make_processes(void *p)
 		 p, name,
 		 *((char **)&(((struct process *)p)->thread)),
 		 states[9 + ((struct process *)p)->state]);
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static
-PT_THREAD(processes(struct httpd_state *s, char *ptr))
+PT_THREAD(processes(struct httpd_state *s, char *ptr __attribute__((unused)) ))
 {
   PSOCK_BEGIN(&s->sout);
   for(s->u.ptr = PROCESS_LIST(); s->u.ptr != NULL; s->u.ptr = ((struct process *)s->u.ptr)->next) {
