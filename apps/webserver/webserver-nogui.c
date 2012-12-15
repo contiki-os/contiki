@@ -61,10 +61,10 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+#if LOG_CONF_ENABLED
 void
 webserver_log_file(uip_ipaddr_t *requester, char *file)
 {
-#if LOG_CONF_ENABLED
   /* Print out IP address of requesting host. */
 
 #if UIP_CONF_IPV6
@@ -79,7 +79,6 @@ webserver_log_file(uip_ipaddr_t *requester, char *file)
 #endif /* UIP_CONF_IPV6 */
 
   log_message(buf, file);
-#endif /* LOG_CONF_ENABLED */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -87,4 +86,5 @@ webserver_log(char *msg)
 {
   log_message(msg, "");
 }
+#endif /* LOG_CONF_ENABLED */
 /*---------------------------------------------------------------------------*/

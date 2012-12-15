@@ -76,7 +76,7 @@ buf_setup(struct psock_buf *buf,
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
-buf_bufdata(struct psock_buf *buf, uint16_t len,
+buf_bufdata(struct psock_buf *buf, uint16_t len __attribute__((unused)),
 	    uint8_t **dataptr, uint16_t *datalen)
 {
   if(*datalen < buf->left) {

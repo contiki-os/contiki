@@ -38,7 +38,12 @@
 
 PROCESS_NAME(webserver_process);
 
+#if LOG_CONF_ENABLED
 void webserver_log(char *msg);
 void webserver_log_file(uip_ipaddr_t *requester, char *file);
+#else
+#define webserver_log(msg)
+#define webserver_log_file(requester, file)
+#endif /* LOG_CONF_ENABLED */
 
 #endif /* __WEBSERVER_H__ */
