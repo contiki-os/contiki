@@ -73,7 +73,7 @@ struct arp_hdr {
   uip_ipaddr_t sipaddr;
   struct uip_eth_addr dhwaddr;
   uip_ipaddr_t dipaddr;
-};
+} __attribute__((may_alias));
 
 struct ethip_hdr {
   struct uip_eth_hdr ethhdr;
@@ -87,7 +87,7 @@ struct ethip_hdr {
     proto;
   uint16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
-};
+} __attribute__((may_alias));
 
 #define ARP_REQUEST 1
 #define ARP_REPLY   2

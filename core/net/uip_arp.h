@@ -63,7 +63,7 @@ struct uip_eth_hdr {
   struct uip_eth_addr dest;
   struct uip_eth_addr src;
   uint16_t type;
-};
+} __attribute__((may_alias));
 
 #define UIP_ETHTYPE_ARP  0x0806
 #define UIP_ETHTYPE_IP   0x0800

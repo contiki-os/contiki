@@ -62,12 +62,12 @@
 typedef union uip_ip4addr_t {
   uint8_t  u8[4];			/* Initializer, must come first. */
   uint16_t u16[2];
-} uip_ip4addr_t;
+} __attribute__((may_alias)) uip_ip4addr_t;
 
 typedef union uip_ip6addr_t {
   uint8_t  u8[16];			/* Initializer, must come first. */
   uint16_t u16[8];
-} uip_ip6addr_t;
+} __attribute__((may_alias)) uip_ip6addr_t;
 
 #if UIP_CONF_IPV6
 typedef uip_ip6addr_t uip_ipaddr_t;
@@ -1049,10 +1049,10 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
  */
 
 #define uip_ipaddr_maskcmp(addr1, addr2, mask)          \
-  (((((uint16_t *)addr1)[0] & ((uint16_t *)mask)[0]) ==       \
-    (((uint16_t *)addr2)[0] & ((uint16_t *)mask)[0])) &&      \
-   ((((uint16_t *)addr1)[1] & ((uint16_t *)mask)[1]) ==       \
-    (((uint16_t *)addr2)[1] & ((uint16_t *)mask)[1])))
+  ((((addr1)->u16[0] & (mask)->u16[0]) ==       \
+    ((addr2)->u16[0] & (mask)->u16[0])) &&      \
+   (((addr1)->u16[1] & (mask)->u16[1]) ==       \
+    ((addr2)->u16[1] & (mask)->u16[1])))
 
 #define uip_ipaddr_prefixcmp(addr1, addr2, length) (memcmp(addr1, addr2, length>>3) == 0)
 
@@ -1603,7 +1603,7 @@ struct uip_tcpip_hdr {
   uint16_t tcpchksum;
   uint8_t urgp[2];
   uint8_t optdata[4];
-};
+} __attribute__((may_alias));
 
 /* The ICMP and IP headers. */
 struct uip_icmpip_hdr {
@@ -1635,7 +1635,7 @@ struct uip_icmpip_hdr {
   uint16_t id, seqno;
   uint8_t payload[1];
 #endif /* !UIP_CONF_IPV6 */
-};
+} __attribute__((may_alias));
 
 
 /* The UDP and IP headers. */
@@ -1666,7 +1666,7 @@ struct uip_udpip_hdr {
     destport;
   uint16_t udplen;
   uint16_t udpchksum;
-};
+} __attribute__((may_alias));
 
 /*
  * In IPv6 the length of the L3 headers before the transport header is
