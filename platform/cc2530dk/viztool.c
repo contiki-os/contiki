@@ -168,7 +168,7 @@ process_request() CC_NON_BANKED
         }
       }
     }
-  } else if (buf[0] == REQUEST_TYPE_DRT) {
+  } else if(buf[0] == REQUEST_TYPE_DRT) {
     uint32_t flip = 0;
     PRINTF("Default Routes\n");
     for(i = buf[1]; i < UIP_DS6_DEFRT_NB; i++) {
@@ -195,7 +195,7 @@ process_request() CC_NON_BANKED
         }
       }
     }
-  } else if (buf[0] == REQUEST_TYPE_ADDR) {
+  } else if(buf[0] == REQUEST_TYPE_ADDR) {
     PRINTF("Unicast Addresses\n");
     for(i = buf[1]; i < UIP_DS6_ADDR_NB; i++) {
       if(uip_ds6_if.addr_list[i].isused) {
@@ -217,7 +217,7 @@ process_request() CC_NON_BANKED
         }
       }
     }
-  } else if (buf[0] == REQUEST_TYPE_TOTALS) {
+  } else if(buf[0] == REQUEST_TYPE_TOTALS) {
     memset(&buf[2], 0, 4);
     for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
       if(uip_ds6_if.addr_list[i].isused) {

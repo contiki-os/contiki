@@ -104,20 +104,20 @@ static uint8_t buffered_data = 0;
 #endif
 
 /* Callback to the input handler */
-static int (*input_handler)(unsigned char c);
+static int (* input_handler)(unsigned char c);
 /*---------------------------------------------------------------------------*/
 uint8_t *
 usb_class_get_string_descriptor(uint16_t lang, uint8_t string)
 {
   switch (string) {
   case 0:
-    return (uint8_t *) &lang_id;
+    return (uint8_t *)&lang_id;
   case 1:
-    return (uint8_t *) &string_manufacturer;
+    return (uint8_t *)&string_manufacturer;
   case 2:
-    return (uint8_t *) &string_product;
+    return (uint8_t *)&string_product;
   case 3:
-    return (uint8_t *) &string_serial_nr;
+    return (uint8_t *)&string_serial_nr;
   default:
     return NULL;
   }
@@ -271,7 +271,7 @@ PROCESS_THREAD(usb_serial_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 void
-usb_serial_set_input(int (*input)(unsigned char c))
+usb_serial_set_input(int (* input)(unsigned char c))
 {
   input_handler = input;
 }
