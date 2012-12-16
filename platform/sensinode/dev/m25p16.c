@@ -146,7 +146,7 @@ m25p16_wrdi()
 }
 /*---------------------------------------------------------------------------*/
 void
-m25p16_rdid(struct m25p16_rdid * rdid)
+m25p16_rdid(struct m25p16_rdid *rdid)
 {
   uint8_t i;
 
@@ -237,7 +237,7 @@ m25p16_pp(uint8_t * addr, uint8_t * buff, uint8_t buff_len)
   }
 
   /* Write the bytes */
-  for(i=0; i<buff_len; i++) {
+  for(i = 0; i < buff_len; i++) {
     bit_bang_write(~buff[i]);
   }
   ENERGEST_OFF(ENERGEST_TYPE_FLASH_WRITE);
@@ -281,7 +281,8 @@ m25p16_dp()
  * Release Deep Power Down. We do NOT read the Electronic Signature
  */
 void
-m25p16_res() {
+m25p16_res()
+{
   select();
   bit_bang_write(M25P16_I_RES);
   deselect();
@@ -296,7 +297,8 @@ m25p16_res() {
  * \return The old style Electronic Signature. This must be 0x14
  */
 uint8_t
-m25p16_res_res() {
+m25p16_res_res()
+{
   uint8_t rv;
 
   select();
