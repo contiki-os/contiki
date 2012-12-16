@@ -14,6 +14,7 @@
 #include "leds-arch.h"
 #include "dev/leds.h"
 #include "bang-control.h"
+#include "system_LPC17xx.h"
 
 unsigned int idle_count = 0;
 
@@ -23,6 +24,7 @@ main()
   setup_debug_uart();
   printf("Initializing clocks\n");
   clock_init();
+  printf("The system main CPU clock speed is %dHz\n",SystemCoreClock);
   printf("Initializing processes\n");
   process_init();
 

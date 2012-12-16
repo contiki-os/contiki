@@ -359,7 +359,7 @@ setConverterParameter(int paramId, float paramValue)
       process_start(&sensors_process, NULL );
       //Wait for the ADC to settle before starting to sample
       static struct etimer et;
-      etimer_set(&et, 5*CLOCK_SECOND);
+      etimer_set(&et, CLOCK_SECOND);
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
       printf("Activating the sensors\n");
       SVECTOR_SENSOR_ACTIVATE();

@@ -32,37 +32,65 @@ void
 ADC_IRQHandler(void) __attribute__ ((interrupt));
 
 //Variables for the ADC interruption
-static uint32_t adgr;
-static uint8_t channel;
-
-int channelCounter = 0;
-
-uint8_t chan = 0;
+static uint8_t currentChannel=0;
 
 //Interrupt handler, stores the channel values into the adcChannels array
 void
 ADC_IRQHandler(void)
 {
+  switch(currentChannel){
+  case VOUT_ADC_CHANNEL:
+    if(ADC_ChannelGetStatus(LPC_ADC, VOUT_ADC_CHANNEL,ADC_DATA_DONE)){
+        adcChannels[VOUT_ADC_CHANNEL]=ADC_ChannelGetData(LPC_ADC, VOUT_ADC_CHANNEL);
+        currentChannel=VIN_ADC_CHANNEL;
+    }
+    break;
+
+  case VIN_ADC_CHANNEL:
+    if(ADC_ChannelGetStatus(LPC_ADC, VIN_ADC_CHANNEL,ADC_DATA_DONE)){
+        adcChannels[VIN_ADC_CHANNEL]=ADC_ChannelGetData(LPC_ADC, VIN_ADC_CHANNEL);
+        currentChannel=VZCR_ADC_CHANNEL;
+    }
+    break;
+
+  case VZCR_ADC_CHANNEL:
+    if(ADC_ChannelGetStatus(LPC_ADC, VZCR_ADC_CHANNEL,ADC_DATA_DONE)){
+        adcChannels[VZCR_ADC_CHANNEL]=ADC_ChannelGetData(LPC_ADC, VZCR_ADC_CHANNEL);
+        currentChannel=VIOUT_ADC_CHANNEL;
+    }
+    break;
+
+  case VIOUT_ADC_CHANNEL:
+    if(ADC_ChannelGetStatus(LPC_ADC, VIOUT_ADC_CHANNEL,ADC_DATA_DONE)){
+        adcChannels[VIOUT_ADC_CHANNEL]=ADC_ChannelGetData(LPC_ADC, VIOUT_ADC_CHANNEL);
+        currentChannel=VOUT_ADC_CHANNEL;
+        //Poll the control algorithm to inform of the new values
+        process_poll(&bang_process);
+    }
+    break;
+  }
+
+  /*
   if (ADC_GlobalGetStatus(LPC_ADC, ADC_DATA_DONE)
       || ADC_GlobalGetStatus(LPC_ADC, ADC_DATA_BURST))
     {
 
-      /*
-       //Get and store the value of the latest channel converted
-       //NOTE: There is an error in the ADC_GlobalGetData function,
-       //it returns the whole ADGR register and not just the RESULT field
-       adgr = ADC_GlobalGetData(LPC_ADC );
-       channel = ADC_GDR_CH(adgr);
-       adcChannels[channel] = ADC_GDR_RESULT(adgr);
 
-       */
+//       //Get and store the value of the latest channel converted
+//       //NOTE: There is an error in the ADC_GlobalGetData function,
+//       //it returns the whole ADGR register and not just the RESULT field
+//       adgr = ADC_GlobalGetData(LPC_ADC );
+//       channel = ADC_GDR_CH(adgr);
+//       adcChannels[channel] = ADC_GDR_RESULT(adgr);
 
-      int Channel;
-      Channel = (LPC_ADC ->ADGDR >> 24) & 0x00000007;
-      adcChannels[Channel] = (LPC_ADC ->ADGDR >> 4) & 0x00000FFF;
-      Channel++;
-      if (Channel < 4)
-        ADCRead((channel + 1) % 4);
+
+
+//      int Channel;
+//      Channel = (LPC_ADC ->ADGDR >> 24) & 0x00000007;
+//      adcChannels[Channel] = (LPC_ADC ->ADGDR >> 4) & 0x00000FFF;
+//      Channel++;
+//      if (Channel < 4)
+//        ADCRead((channel + 1) % 4);
 
       channelCounter++;
       if (channelCounter == 50000)
@@ -82,6 +110,7 @@ ADC_IRQHandler(void)
           //process_poll(&bang_process);
         }
     }
+    */
 }
 
 //Function to convert the ADC 12-bit values to floating numbers in SI units(V,A)
@@ -190,9 +219,6 @@ configure_svector(int type, int value)
      NVIC_DisableIRQ(ADC_IRQn);
      //Set ADC interruption to the highest priority
      NVIC_SetPriority(ADC_IRQn, 0);
-     //Only the global DONE flag of the ADDR
-     //will generate an interrupt
-     //ADC_IntConfig(LPC_ADC,ADC_ADGINTEN,SET);
 
      //Initialize the ADC pins
      //VOUT ADC pin
@@ -225,17 +251,6 @@ configure_svector(int type, int value)
      PinCfg.Portnum = VIOUT_PORT;
      PINSEL_ConfigPin(&PinCfg);
 
-    /*
-    LPC_PINCON ->PINSEL1 |= 0x00154000; // Select ADC function for pins (ADC0-3)
-    LPC_PINCON ->PINSEL3 |= 0xF0000000; // Select ADC function for pins (ADC4-5)
-    LPC_PINCON ->PINMODE1 |= 0x0002A8000; // Neither pull-up nor pull-down resistor
-    LPC_PINCON ->PINMODE3 |= 0xA00000000; // Neither pull-up nor pull-down resistor
-    LPC_SC ->PCONP |= (1 << 12);                             // Set up bit PCADC
-    LPC_SC ->PCLKSEL0 |= (01 << 24);                 // PCLK = CCLK (102 MHz)
-    LPC_ADC ->ADCR |= 0x00200300;
-    LPC_ADC ->ADINTEN = 0x00000100;                  // ADC Interrupt Enabled
-    */
-
     break;
 
   case SENSORS_ACTIVE:
@@ -243,21 +258,29 @@ configure_svector(int type, int value)
     //on the value variable
     if (value)
       {
-        /*
-         //Enable the different ADC channels
+        //Disable the interrupt for the global ADC data register
+        ADC_IntConfig(LPC_ADC, ADC_ADGINTEN, DISABLE);
+         //Enable the different ADC channels and their interrupts
          ADC_ChannelCmd(LPC_ADC, VOUT_ADC_CHANNEL, ENABLE);
+         ADC_IntConfig(LPC_ADC, VOUT_ADC_CHANNEL, ENABLE);
          ADC_ChannelCmd(LPC_ADC, VIN_ADC_CHANNEL, ENABLE);
+         ADC_IntConfig(LPC_ADC, VIN_ADC_CHANNEL, ENABLE);
          ADC_ChannelCmd(LPC_ADC, VZCR_ADC_CHANNEL, ENABLE);
+         ADC_IntConfig(LPC_ADC, VZCR_ADC_CHANNEL, ENABLE);
          ADC_ChannelCmd(LPC_ADC, VIOUT_ADC_CHANNEL, ENABLE);
+         ADC_IntConfig(LPC_ADC, VIOUT_ADC_CHANNEL, ENABLE);
          //Start burst conversion
          ADC_BurstCmd(LPC_ADC,ENABLE);
 
          //Enable ADC interruptions
          NVIC_EnableIRQ(ADC_IRQn);
-         */
+
+
+        /*
         NVIC_EnableIRQ(ADC_IRQn);
         NVIC_SetPriority(ADC_IRQn, 2);
         ADCRead(0);
+        */
       }
     else
       {

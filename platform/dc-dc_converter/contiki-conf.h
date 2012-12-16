@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "platform-conf.h"
+#include "lpc1768.h"
 
 #define CCIF
 #define CLIF
