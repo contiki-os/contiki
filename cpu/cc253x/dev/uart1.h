@@ -20,9 +20,9 @@
 void uart1_init();
 void uart1_writeb(uint8_t byte);
 
-void uart1_set_input(int (*input)(unsigned char c));
+void uart1_set_input(int (* input)(unsigned char c));
 #if UART1_CONF_WITH_INPUT
-void uart1_rx_isr( void ) __interrupt (URX1_VECTOR);
+void uart1_rx_isr(void) __interrupt(URX1_VECTOR);
 /* Macro to turn on / off UART RX Interrupt */
 #define UART1_RX_INT(v) do { URX1IE = v; } while(0)
 #else

@@ -87,8 +87,8 @@ rtimer_arch_schedule(rtimer_clock_t t)
   /* Switch to capture mode before writing T1CC1x and
    * set the compare mode values so we can get an interrupt after t */
   RT_MODE_CAPTURE();
-  T1CC1L = (unsigned char) t;
-  T1CC1H = (unsigned char) (t >> 8);
+  T1CC1L = (unsigned char)t;
+  T1CC1H = (unsigned char)(t >> 8);
   RT_MODE_COMPARE();
 
   /* Turn on compare mode interrupt */

@@ -67,9 +67,9 @@
 #define RF_TX_LED_OFF()		leds_off(LEDS_GREEN);
 #else
 #define RF_RX_LED_ON()
-#define RF_RX_LED_OFF()		
+#define RF_RX_LED_OFF()
 #define RF_TX_LED_ON()
-#define RF_TX_LED_OFF()		
+#define RF_TX_LED_OFF()
 #endif
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
@@ -240,8 +240,8 @@ prepare(const void *payload, unsigned short payload_len)
   /* Send the phy length byte first */
   RFD = payload_len + CHECKSUM_LEN; /* Payload plus FCS */
   for(i = 0; i < payload_len; i++) {
-    RFD = ((unsigned char*) (payload))[i];
-    PUTHEX(((unsigned char*)(payload))[i]);
+    RFD = ((unsigned char *)(payload))[i];
+    PUTHEX(((unsigned char *)(payload))[i]);
   }
   PUTSTRING("\n");
 
@@ -264,7 +264,7 @@ transmit(unsigned short transmit_len)
     t0 = RTIMER_NOW();
     on();
     rf_flags |= WAS_OFF;
-    while (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
+    while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
   }
 
   if(channel_clear() == CC2530_RF_CCA_BUSY) {
@@ -305,7 +305,7 @@ transmit(unsigned short transmit_len)
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
-  if(rf_flags & WAS_OFF){
+  if(rf_flags & WAS_OFF) {
     off();
   }
 
@@ -379,11 +379,11 @@ read(void *buf, unsigned short bufsize)
   PUTSTRING(" bytes) = ");
   len -= CHECKSUM_LEN;
   for(i = 0; i < len; ++i) {
-    ((unsigned char*)(buf))[i] = RFD;
+    ((unsigned char *)(buf))[i] = RFD;
 #if CC2530_RF_CONF_HEXDUMP
-    io_arch_writeb(((unsigned char*)(buf))[i]);
+    io_arch_writeb(((unsigned char *)(buf))[i]);
 #endif
-    PUTHEX(((unsigned char*)(buf))[i]);
+    PUTHEX(((unsigned char *)(buf))[i]);
   }
   PUTSTRING("\n");
 
@@ -483,17 +483,16 @@ off(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-const struct radio_driver cc2530_rf_driver =
-{
-    init,
-    prepare,
-    transmit,
-    send,
-    read,
-    channel_clear,
-    receiving_packet,
-    pending_packet,
-    on,
-    off,
+const struct radio_driver cc2530_rf_driver = {
+  init,
+  prepare,
+  transmit,
+  send,
+  read,
+  channel_clear,
+  receiving_packet,
+  pending_packet,
+  on,
+  off,
 };
 /*---------------------------------------------------------------------------*/
