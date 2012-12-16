@@ -38,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 struct cc253x_p2_handler {
   struct cc253x_p2_handler *next;
-  uint8_t (*cb) (void);
+  uint8_t (* cb)(void);
 };
 
 void cc253x_p2_register_handler(struct cc253x_p2_handler *h);
