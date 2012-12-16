@@ -10,11 +10,11 @@
 #define EVENT_POST_H_
 
 struct event_struct {
-  short      s_val;
-  int        i_val;
-  long       l_val;
+  short s_val;
+  int i_val;
+  long l_val;
   long long ll_val;
-  uint8_t   u8_val;
+  uint8_t u8_val;
   uint16_t u16_val;
   uint32_t u32_val;
 };

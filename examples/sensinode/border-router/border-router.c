@@ -71,11 +71,11 @@ print_local_addresses(void) CC_NON_BANKED
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused && (state == ADDR_TENTATIVE || state
-        == ADDR_PREFERRED)) {
+                                          == ADDR_PREFERRED)) {
       PUTSTRING("  ");
       PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
       PUTCHAR('\n');
-      if (state == ADDR_TENTATIVE) {
+      if(state == ADDR_TENTATIVE) {
         uip_ds6_if.addr_list[i].state = ADDR_PREFERRED;
       }
     }
