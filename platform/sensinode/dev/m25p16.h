@@ -91,11 +91,11 @@
  * CFD bytes programmed to 0x00.
  */
 struct m25p16_rdid {
-  uint8_t  man_id;   /** Manufacturer ID */
-  uint8_t  mem_type; /** Memory Type */
-  uint8_t  mem_size; /** Memory Size */
-  uint8_t  uid_len;  /** Unique ID length */
-  uint8_t  uid[16];  /** Unique ID */
+  uint8_t man_id;    /** Manufacturer ID */
+  uint8_t mem_type;  /** Memory Type */
+  uint8_t mem_size;  /** Memory Size */
+  uint8_t uid_len;   /** Unique ID length */
+  uint8_t uid[16];   /** Unique ID */
 };
 /*---------------------------------------------------------------------------*/
 /**
@@ -144,7 +144,7 @@ void m25p16_wrdi();
  * \param rdid Pointer to a struct which will hold the information returned
  *             by the RDID instruction
  */
-void m25p16_rdid(struct m25p16_rdid * rdid);
+void m25p16_rdid(struct m25p16_rdid *rdid);
 
 /**
  * \brief Read Status Register (RDSR) instruction
