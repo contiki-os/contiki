@@ -88,7 +88,7 @@ static void
 timeout_handler(void)
 {
   static int seq_id;
-  struct uip_udp_conn * this_conn;
+  struct uip_udp_conn *this_conn;
 
   leds_on(LEDS_RED);
   memset(buf, 0, MAX_PAYLOAD_LEN);
@@ -131,9 +131,9 @@ print_local_addresses(void)
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused && (state == ADDR_TENTATIVE || state
-        == ADDR_PREFERRED)) {
+                                          == ADDR_PREFERRED)) {
       PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
-      if (state == ADDR_TENTATIVE) {
+      if(state == ADDR_TENTATIVE) {
         uip_ds6_if.addr_list[i].state = ADDR_PREFERRED;
       }
       PRINTF(" state: %u.\n", uip_ds6_if.addr_list[i].state);
@@ -168,7 +168,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
   print_local_addresses();
 
-  uip_ip6addr(&ipaddr,0xfe80,0,0,0,0x0215,0x2000,0x0002,0x0302);
+  uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0x0215, 0x2000, 0x0002, 0x0302);
   /* new connection with remote host */
   l_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);
   if(!l_conn) {
@@ -179,10 +179,11 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PRINTF("Link-Local connection with ");
   PRINT6ADDR(&l_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
-  UIP_HTONS(l_conn->lport), UIP_HTONS(l_conn->rport));
+         UIP_HTONS(l_conn->lport), UIP_HTONS(l_conn->rport));
 
 #if UIP_CONF_ROUTER
-  uip_ip6addr(&ipaddr,0x2001,0x630,0x301,0x6453,0x0215,0x2000,0x0002,0x0302);
+  uip_ip6addr(&ipaddr, 0x2001, 0x630, 0x301, 0x6453, 0x0215, 0x2000, 0x0002,
+              0x0302);
   g_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);
   if(!g_conn) {
     PRINTF("udp_new g_conn error.\n");
@@ -192,7 +193,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PRINTF("Global connection with ");
   PRINT6ADDR(&g_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
-  UIP_HTONS(g_conn->lport), UIP_HTONS(g_conn->rport));
+         UIP_HTONS(g_conn->lport), UIP_HTONS(g_conn->rport));
 #endif
 
   etimer_set(&et, SEND_INTERVAL);
