@@ -34,6 +34,7 @@ webserver-ipv6/eval-adf7xxxmb4z \
 wget/minimal-net \
 z1/z1 \
 settings-example/avr-raven \
+ipv6/multicast/sky \
 
 TOOLS=
 
