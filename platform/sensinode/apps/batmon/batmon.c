@@ -91,7 +91,7 @@ struct flash_address {
 static struct flash_address f;
 
 static struct record r;
-static struct sensors_sensor * s;
+static struct sensors_sensor *s;
 static struct etimer et;
 #define FLASH_START_ADDR 0x1E0000
 #define FLASH_END_ADDR   0x1FFFFF
@@ -201,7 +201,7 @@ PROCESS_THREAD(batmon_process, ev, data)
   PRINTF("BatMon\n", sizeof(r));
 
   s = sensors_find(ADC_SENSOR);
-  if (!s) {
+  if(!s) {
     PRINTF("BatMon: ADC not found\n");
     PROCESS_EXIT();
   }
