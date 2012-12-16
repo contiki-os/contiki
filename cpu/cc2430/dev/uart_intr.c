@@ -21,16 +21,16 @@
 #include "sys/energest.h"
 
 #if UART_ZERO_ENABLE
-static int (*uart0_input_handler)(unsigned char c);
+static int (* uart0_input_handler)(unsigned char c);
 #endif
 #if UART_ONE_ENABLE
-static int (*uart1_input_handler)(unsigned char c);
+static int (* uart1_input_handler)(unsigned char c);
 #endif
 
 #if UART_ZERO_ENABLE
 /*---------------------------------------------------------------------------*/
 void
-uart0_set_input(int (*input)(unsigned char c))
+uart0_set_input(int (* input)(unsigned char c))
 {
   uart0_input_handler = input;
 }
@@ -41,7 +41,7 @@ uart0_set_input(int (*input)(unsigned char c))
 #pragma exclude bits
 #endif
 void
-uart0_rx_ISR(void) __interrupt (URX0_VECTOR)
+uart0_rx_ISR(void) __interrupt(URX0_VECTOR)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   TCON_URX0IF = 0;
@@ -52,7 +52,7 @@ uart0_rx_ISR(void) __interrupt (URX0_VECTOR)
 }
 /*---------------------------------------------------------------------------*/
 void
-uart0_tx_ISR( void ) __interrupt (UTX0_VECTOR)
+uart0_tx_ISR(void) __interrupt(UTX0_VECTOR)
 {
 }
 #pragma restore
@@ -60,7 +60,7 @@ uart0_tx_ISR( void ) __interrupt (UTX0_VECTOR)
 #if UART_ONE_ENABLE
 /*---------------------------------------------------------------------------*/
 void
-uart1_set_input(int (*input)(unsigned char c))
+uart1_set_input(int (* input)(unsigned char c))
 {
   uart1_input_handler = input;
 }
@@ -71,7 +71,7 @@ uart1_set_input(int (*input)(unsigned char c))
 #pragma exclude bits
 #endif
 void
-uart1_rx_ISR(void) __interrupt (URX1_VECTOR)
+uart1_rx_ISR(void) __interrupt(URX1_VECTOR)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   TCON_URX1IF = 0;
@@ -82,7 +82,7 @@ uart1_rx_ISR(void) __interrupt (URX1_VECTOR)
 }
 /*---------------------------------------------------------------------------*/
 void
-uart1_tx_ISR( void ) __interrupt (UTX1_VECTOR)
+uart1_tx_ISR(void) __interrupt(UTX1_VECTOR)
 {
 }
 #pragma restore
