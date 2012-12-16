@@ -121,13 +121,13 @@ clock_init(void)
 
   /* Initialize tick value */
   timer_value = ST0;
-  timer_value += ((unsigned long int) ST1) << 8;
-  timer_value += ((unsigned long int) ST2) << 16;
+  timer_value += ((unsigned long int)ST1) << 8;
+  timer_value += ((unsigned long int)ST2) << 16;
   timer_value += TICK_VAL;
-  ST2 = (unsigned char) (timer_value >> 16);
-  ST1 = (unsigned char) (timer_value >> 8);
-  ST0 = (unsigned char) timer_value;
-  
+  ST2 = (unsigned char)(timer_value >> 16);
+  ST1 = (unsigned char)(timer_value >> 8);
+  ST0 = (unsigned char)timer_value;
+
   STIE = 1; /* IEN0.STIE interrupt enable */
 }
 /*---------------------------------------------------------------------------*/
@@ -147,15 +147,15 @@ clock_isr(void) __interrupt(ST_VECTOR)
    * Next interrupt occurs after the current time + TICK_VAL
    */
   timer_value = ST0;
-  timer_value += ((unsigned long int) ST1) << 8;
-  timer_value += ((unsigned long int) ST2) << 16;
+  timer_value += ((unsigned long int)ST1) << 8;
+  timer_value += ((unsigned long int)ST2) << 16;
   timer_value += TICK_VAL;
-  ST2 = (unsigned char) (timer_value >> 16);
-  ST1 = (unsigned char) (timer_value >> 8);
-  ST0 = (unsigned char) timer_value;
-  
+  ST2 = (unsigned char)(timer_value >> 16);
+  ST1 = (unsigned char)(timer_value >> 8);
+  ST0 = (unsigned char)timer_value;
+
   ++count;
-  
+
   /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
      that the modulo operation below becomes a logical and and not
      an expensive divide. Algorithm from Wikipedia:
@@ -167,7 +167,7 @@ clock_isr(void) __interrupt(ST_VECTOR)
   if(count % CLOCK_CONF_SECOND == 0) {
     ++seconds;
   }
-  
+
 #if CLOCK_CONF_STACK_FRIENDLY
   sleep_flag = 1;
 #else
@@ -176,7 +176,7 @@ clock_isr(void) __interrupt(ST_VECTOR)
     etimer_request_poll();
   }
 #endif
-  
+
   STIF = 0; /* IRCON.STIF */
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
   ENABLE_INTERRUPTS();
