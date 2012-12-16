@@ -52,7 +52,7 @@
 #pragma exclude bits
 #endif
 void
-cc4230_watchdog_ISR(void) __interrupt (WDT_VECTOR)
+cc4230_watchdog_ISR(void) __interrupt(WDT_VECTOR)
 {
   EA = 0;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
