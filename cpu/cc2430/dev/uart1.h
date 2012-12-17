@@ -22,10 +22,10 @@ void uart1_writeb(uint8_t byte);
 
 void uart1_set_input(int (*input)(unsigned char c));
 #if UART_ONE_CONF_WITH_INPUT
-void uart1_rx_ISR( void ) __interrupt (URX1_VECTOR);
-void uart1_tx_ISR( void ) __interrupt (UTX1_VECTOR);
+void uart1_rx_ISR(void) __interrupt(URX1_VECTOR);
+void uart1_tx_ISR(void) __interrupt(UTX1_VECTOR);
 /* Macro to turn on / off UART RX Interrupt */
-#define UART1_RX_INT(v) IEN0_URX1IE = v
+#define UART1_RX_INT(v) do { IEN0_URX1IE = v; } while(0)
 #else
 #define UART1_RX_INT(v)
 #endif /* UART_ONE_CONF_WITH_INPUT */

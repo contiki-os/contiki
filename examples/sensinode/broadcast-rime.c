@@ -58,21 +58,25 @@
 PROCESS(example_broadcast_process, "BROADCAST example");
 AUTOSTART_PROCESSES(&example_broadcast_process);
 /*---------------------------------------------------------------------------*/
-static void broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
+static void
+broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
 {
   leds_toggle(LEDS_RED);
-  PRINTF("broadcast message received from %02x.%02x\n", from->u8[0], from->u8[1]);
-  PRINTF("Size=0x%02x: '0x%04x'\n", packetbuf_datalen(), *(uint16_t *) packetbuf_dataptr());
+  PRINTF("broadcast message received from %02x.%02x\n", from->u8[0],
+         from->u8[1]);
+  PRINTF("Size=0x%02x: '0x%04x'\n", packetbuf_datalen(),
+         *(uint16_t *)packetbuf_dataptr());
 }
-
-static void print_rime_stats()
+/*---------------------------------------------------------------------------*/
+static void
+print_rime_stats()
 {
   PRINTF("\nNetwork Stats\n");
   PRINTF("   TX=%lu ,      RX=%lu\n", rimestats.tx, rimestats.rx);
   PRINTF("LL-TX=%lu ,   LL-RX=%lu\n", rimestats.lltx, rimestats.llrx);
   PRINTF(" Long=%lu ,   Short=%lu\n", rimestats.toolong, rimestats.tooshort);
   PRINTF("T/Out=%lu , CCA-Err=%lu\n", rimestats.timedout,
-      rimestats.contentiondrop);
+         rimestats.contentiondrop);
 }
 
 static const struct broadcast_callbacks bc_rx = { broadcast_recv };
@@ -90,7 +94,7 @@ PROCESS_THREAD(example_broadcast_process, ev, data)
   PRINTF("Start\n");
   broadcast_open(&broadcast, BROADCAST_CHANNEL, &bc_rx);
   PRINTF("Open Broadcast Connection, channel %u\n", BROADCAST_CHANNEL);
-  //    leds_off(LEDS_ALL);
+
   while(1) {
 
     /* Delay 2-4 seconds */
@@ -98,8 +102,9 @@ PROCESS_THREAD(example_broadcast_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     leds_on(LEDS_GREEN);
     packetbuf_copyfrom(&counter, sizeof(counter));
-    PRINTF("Sending %u bytes: 0x%04x\n", packetbuf_datalen(), *(uint16_t *) packetbuf_dataptr());
-    if (broadcast_send(&broadcast) == 0) {
+    PRINTF("Sending %u bytes: 0x%04x\n", packetbuf_datalen(),
+           *(uint16_t *)packetbuf_dataptr());
+    if(broadcast_send(&broadcast) == 0) {
       PRINTF("Error Sending\n");
     }
 

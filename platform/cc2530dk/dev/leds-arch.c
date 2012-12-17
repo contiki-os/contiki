@@ -59,9 +59,9 @@ unsigned char
 leds_arch_get(void)
 {
 #if MODEL_CC2531
-  return (unsigned char) (LED1_PIN | ((LED2_PIN ^ 0x01) << 1));
+  return (unsigned char)(LED1_PIN | ((LED2_PIN ^ 0x01) << 1));
 #else
-  return (unsigned char) (LED1_PIN | (LED2_PIN << 1) | (LED3_PIN << 2));
+  return (unsigned char)(LED1_PIN | (LED2_PIN << 1) | (LED3_PIN << 2));
 #endif
 }
 /*---------------------------------------------------------------------------*/

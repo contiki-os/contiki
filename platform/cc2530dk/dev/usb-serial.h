@@ -46,7 +46,7 @@
 
 void usb_serial_init(void);
 void usb_serial_writeb(uint8_t);
-void usb_serial_set_input(int (*input)(unsigned char c));
+void usb_serial_set_input(int (* input)(unsigned char c));
 
 #if USB_SERIAL_CONF_BUFFERED
 void usb_serial_flush(void);

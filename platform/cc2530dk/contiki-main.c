@@ -65,7 +65,7 @@ fade(int l) CC_NON_BANKED
   volatile int i, a;
   int k, j;
   for(k = 0; k < 400; ++k) {
-    j = k > 200? 400 - k: k;
+    j = k > 200 ? 400 - k : k;
 
     leds_on(l);
     for(i = 0; i < j; ++i) {
@@ -84,9 +84,9 @@ set_rime_addr(void) CC_NON_BANKED
   char i;
 
 #if CC2530_CONF_MAC_FROM_PRIMARY
-  __xdata unsigned char * macp = &X_IEEE_ADDR;
+  __xdata unsigned char *macp = &X_IEEE_ADDR;
 #else
-  __code unsigned char * macp = (__code unsigned char *) 0xFFE8;
+  __code unsigned char *macp = (__code unsigned char *)0xFFE8;
 #endif
 
   PUTSTRING("Rime is 0x");

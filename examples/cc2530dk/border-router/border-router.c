@@ -75,7 +75,7 @@ print_local_addresses(void) CC_NON_BANKED
       PUTSTRING("  ");
       PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
       PUTCHAR('\n');
-      if (state == ADDR_TENTATIVE) {
+      if(state == ADDR_TENTATIVE) {
         uip_ds6_if.addr_list[i].state = ADDR_PREFERRED;
       }
     }
