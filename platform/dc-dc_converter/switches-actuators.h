@@ -41,15 +41,15 @@ typedef enum{
 
 //Initialize the GPIO for the switches
 void
-initSwitches();
+switches_init();
 
 //Change the state of a switch to SW_ON or SW_OFF
 void
-setSwitchState(int swId, int swState);
+switches_set_gate_state(int swId, int swState);
 
 //Get the current state of a particular switch
 int
-getSwitchState(int swId);
+switches_get_gate_state(int swId);
 
 
 #endif /* SWITCHES_ACTUATORS_H_ */

@@ -11,8 +11,8 @@
 #include "lpc17xx_gpio.h"
 
 //Variables to store the status of the LEDs
-unsigned char isLed2_On;
-unsigned char isLed3_On;
+static unsigned char led2_state;
+static unsigned char led3_state;
 
 void leds_arch_init(){
   //Set the LED pins as output
@@ -31,45 +31,45 @@ void leds_arch_init(){
 void leds_arch_set(unsigned char leds){
   if(leds&LEDS_GREEN){
     GPIO_SetValue(PIN_LED2, LED2);
-    isLed2_On=1;
+    led2_state=1;
   }
   else{
     GPIO_ClearValue(PIN_LED2, LED2);
-    isLed2_On=1;
+    led2_state=1;
   }
 
   if(leds&LEDS_RED){
     GPIO_SetValue(PIN_LED3, LED3);
-    isLed3_On=1;
+    led3_state=1;
   }
   else{
     GPIO_ClearValue(PIN_LED3, LED3);
-    isLed3_On=0;
+    led3_state=0;
   }
 }
 
 //Returns the leds that are on right now
 unsigned char leds_arch_get(){
-  unsigned char ledStatus=0;
-  if(isLed2_On)
-    ledStatus|=LEDS_GREEN;
-  if(isLed3_On)
-    ledStatus|=LEDS_RED;
+  unsigned char led_state=0;
+  if(led2_state)
+    led_state|=LEDS_GREEN;
+  if(led3_state)
+    led_state|=LEDS_RED;
 
-  return ledStatus;
+  return led_state;
 }
 
 void toggleLeds(){
-  uint32_t ledValue = GPIO_ReadValue(PIN_LED2)&LED2;
+  uint32_t led_value = GPIO_ReadValue(PIN_LED2)&LED2;
 
-  if(ledValue)
+  if(led_value)
     GPIO_ClearValue(PIN_LED2, LED2);
   else
     GPIO_SetValue(PIN_LED2, LED2);
 
-  ledValue = GPIO_ReadValue(PIN_LED3)&LED3;
+  led_value = GPIO_ReadValue(PIN_LED3)&LED3;
 
-  if(ledValue)
+  if(led_value)
     GPIO_ClearValue(PIN_LED3, LED3);
   else
     GPIO_SetValue(PIN_LED3, LED3);

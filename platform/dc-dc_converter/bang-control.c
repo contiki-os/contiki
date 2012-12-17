@@ -14,31 +14,31 @@
 //TODO: Implement a shoot-through minimizing technique to increase converter efficiency
 //Indicates if we have finished configuring the
 //starting parameters and can begin the algorithm
-Bool isConfigured = FALSE;
+static Bool algorithm_configured = FALSE;
 //Indicates if the microgrid server has allowed
 //the new user access to the grid
-Bool userAllowed = FALSE;
+static Bool user_allowed = FALSE;
 //Current state of the control algorithm
-CONV_STATE convState = CONV_ALL_OFF;
+static CONV_STATE converter_state = CONV_ALL_OFF;
 //Current value of the algorithm parameters
-int vRef = 0;
-int vMax = 0;
-int iMax = 0;
+static int v_ref = 0;
+static int v_max = 0;
+static int i_max = 0;
 
 //Enable the voltage output for this user
-void allowUser(){
-  userAllowed=TRUE;
+void dc_converter_allow_user(){
+  user_allowed=TRUE;
 }
 
 //Cut the user off from the grid
-void forbidUser(){
-  userAllowed=FALSE;
+void dc_converter_forbid_user(){
+  user_allowed=FALSE;
 }
 
 //Returns 0 if the user does not have access
 //to the power grid
-int isUserAllowed(){
-  return (int)userAllowed;
+int dc_converter_get_user_status(){
+  return (int)user_allowed;
 }
 
 //Function to set the parameters used by the DC-DC converter
@@ -47,39 +47,39 @@ int isUserAllowed(){
 //      -Imax:Maximum inductor current allowed
 //      -Vmax:Maximum output voltage allowed
 void
-setConverterParameter(int paramId, float paramValue)
+dc_converter_set_control_parameter(int param_id, float param_float_value)
 {
-  int paramAdcValue = 0;
+  int param_adc_value = 0;
   //Change the parameter values if the are within the accepted
   //ranges and inform the controller process
-  switch (paramId)
+  switch (param_id)
     {
   case CONV_VREF:
-    paramAdcValue = VREF_FLOAT_TO_ADC(paramValue);
-    if (paramAdcValue >= VREF_FLOAT_TO_ADC(VREF_FLOAT_MIN)
-        && paramAdcValue <= vMax)
+    param_adc_value = VREF_FLOAT_TO_ADC(param_float_value);
+    if (param_adc_value >= VREF_FLOAT_TO_ADC(VREF_FLOAT_MIN)
+        && param_adc_value <= v_max)
       {
-        vRef = paramAdcValue;
+        v_ref = param_adc_value;
         process_poll(&bang_process);
       }
     break;
 
   case CONV_IMAX:
-    paramAdcValue = IMAX_FLOAT_TO_ADC(paramValue);
-    if (paramAdcValue >= IMAX_FLOAT_TO_ADC(IMAX_FLOAT_MIN)
-        && paramAdcValue <= IMAX_FLOAT_TO_ADC(IMAX_FLOAT_MAX))
+    param_adc_value = IMAX_FLOAT_TO_ADC(param_float_value);
+    if (param_adc_value >= IMAX_FLOAT_TO_ADC(IMAX_FLOAT_MIN)
+        && param_adc_value <= IMAX_FLOAT_TO_ADC(IMAX_FLOAT_MAX))
       {
-        iMax = paramAdcValue;
+        i_max = param_adc_value;
         process_poll(&bang_process);
       }
     break;
 
   case CONV_VMAX:
-    paramAdcValue = VMAX_FLOAT_TO_ADC(paramValue);
-    if (paramAdcValue >= VMAX_FLOAT_TO_ADC(VMAX_FLOAT_MIN)
-        && paramAdcValue <= VMAX_FLOAT_TO_ADC(VMAX_FLOAT_MAX))
+    param_adc_value = VMAX_FLOAT_TO_ADC(param_float_value);
+    if (param_adc_value >= VMAX_FLOAT_TO_ADC(VMAX_FLOAT_MIN)
+        && param_adc_value <= VMAX_FLOAT_TO_ADC(VMAX_FLOAT_MAX))
       {
-        vMax = paramAdcValue;
+        v_max = param_adc_value;
         process_poll(&bang_process);
       }
     break;
@@ -89,27 +89,27 @@ setConverterParameter(int paramId, float paramValue)
 
 //Return the value of the selected parameter
   float
-  getConverterParameter(int paramId)
+  dc_converter_get_control_parameter(int param_id)
   {
-    float paramValue = 0.0;
-    switch (paramId)
+    float param_float_value = 0.0;
+    switch (param_id)
       {
     case CONV_VREF:
-      paramValue = VREF_ADC_TO_FLOAT(vRef);
+      param_float_value = VREF_ADC_TO_FLOAT(v_ref);
       break;
 
     case CONV_IMAX:
-      paramValue = IMAX_ADC_TO_FLOAT(iMax);
+      param_float_value = IMAX_ADC_TO_FLOAT(i_max);
       break;
 
     case CONV_VMAX:
-      paramValue = VMAX_ADC_TO_FLOAT(vMax);
+      param_float_value = VMAX_ADC_TO_FLOAT(v_max);
       break;
       }
-    return paramValue;
+    return param_float_value;
   }
 
-  /* Matrix of converter state vs state of the switches
+  /* Matrix of converter state VS state of the switches
    *      STATE           |       N-CHANNEL1      |       P-CHANNEL1      |       N-CHANNEL2      |       P-CHANNEL2      |
    *----------------------|-----------------------|-----------------------|-----------------------|-----------------------|
    *      BUCK_OFF        |       ON              |       OFF             |       OFF             |       ON              |
@@ -132,73 +132,73 @@ setConverterParameter(int paramId, float paramValue)
 //Change the state of the algorithm
 //and modify the switches accordingly
   void
-  setConverterState(int newConvState)
+  dc_converter_set_algorithm_state(int new_conv_state)
   {
-    switch ((CONV_STATE)newConvState)
+    switch ((CONV_STATE)new_conv_state)
       {
 
     case CONV_BUCK_OFF:
-      setSwitchState(SW_NGATE1, SW_ON);
-      setSwitchState(SW_PGATE1, SW_OFF);
-      setSwitchState(SW_NGATE2, SW_OFF);
-      setSwitchState(SW_PGATE2, SW_ON);
-      convState = (CONV_STATE)newConvState;
+      switches_set_gate_state(SW_NGATE1, SW_ON);
+      switches_set_gate_state(SW_PGATE1, SW_OFF);
+      switches_set_gate_state(SW_NGATE2, SW_OFF);
+      switches_set_gate_state(SW_PGATE2, SW_ON);
+      converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BUCK_SOFT:
-      setSwitchState(SW_NGATE1, SW_OFF);
-      setSwitchState(SW_PGATE1, SW_OFF);
-      setSwitchState(SW_NGATE2, SW_OFF);
-      setSwitchState(SW_PGATE2, SW_ON);
-      convState = (CONV_STATE)newConvState;
+      switches_set_gate_state(SW_NGATE1, SW_OFF);
+      switches_set_gate_state(SW_PGATE1, SW_OFF);
+      switches_set_gate_state(SW_NGATE2, SW_OFF);
+      switches_set_gate_state(SW_PGATE2, SW_ON);
+      converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BUCK_ON:
-      setSwitchState(SW_NGATE1, SW_OFF);
-      setSwitchState(SW_PGATE1, SW_ON);
-      setSwitchState(SW_NGATE2, SW_OFF);
-      setSwitchState(SW_PGATE2, SW_ON);
-      convState = (CONV_STATE)newConvState;
+      switches_set_gate_state(SW_NGATE1, SW_OFF);
+      switches_set_gate_state(SW_PGATE1, SW_ON);
+      switches_set_gate_state(SW_NGATE2, SW_OFF);
+      switches_set_gate_state(SW_PGATE2, SW_ON);
+      converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BOOST_OFF:
-      setSwitchState(SW_NGATE1, SW_OFF);
-      setSwitchState(SW_PGATE1, SW_ON);
-      setSwitchState(SW_NGATE2, SW_OFF);
-      setSwitchState(SW_PGATE2, SW_ON);
-      convState = (CONV_STATE)newConvState;
+      switches_set_gate_state(SW_NGATE1, SW_OFF);
+      switches_set_gate_state(SW_PGATE1, SW_ON);
+      switches_set_gate_state(SW_NGATE2, SW_OFF);
+      switches_set_gate_state(SW_PGATE2, SW_ON);
+      converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BOOST_SOFT:
-      setSwitchState(SW_NGATE1, SW_OFF);
-      setSwitchState(SW_PGATE1, SW_ON);
-      setSwitchState(SW_NGATE2, SW_OFF);
-      setSwitchState(SW_PGATE2, SW_OFF);
-      convState = (CONV_STATE)newConvState;
+      switches_set_gate_state(SW_NGATE1, SW_OFF);
+      switches_set_gate_state(SW_PGATE1, SW_ON);
+      switches_set_gate_state(SW_NGATE2, SW_OFF);
+      switches_set_gate_state(SW_PGATE2, SW_OFF);
+      converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BOOST_ON:
-      setSwitchState(SW_NGATE1, SW_OFF);
-      setSwitchState(SW_PGATE1, SW_ON);
-      setSwitchState(SW_NGATE2, SW_ON);
-      setSwitchState(SW_PGATE2, SW_OFF);
-      convState = (CONV_STATE)newConvState;
+      switches_set_gate_state(SW_NGATE1, SW_OFF);
+      switches_set_gate_state(SW_PGATE1, SW_ON);
+      switches_set_gate_state(SW_NGATE2, SW_ON);
+      switches_set_gate_state(SW_PGATE2, SW_OFF);
+      converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_DISCHARGE:
-      setSwitchState(SW_NGATE1, SW_ON);
-      setSwitchState(SW_PGATE1, SW_OFF);
-      setSwitchState(SW_NGATE2, SW_ON);
-      setSwitchState(SW_PGATE2, SW_OFF);
-      convState = (CONV_STATE)newConvState;
+      switches_set_gate_state(SW_NGATE1, SW_ON);
+      switches_set_gate_state(SW_PGATE1, SW_OFF);
+      switches_set_gate_state(SW_NGATE2, SW_ON);
+      switches_set_gate_state(SW_PGATE2, SW_OFF);
+      converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_ALL_OFF:
-      setSwitchState(SW_NGATE1, SW_OFF);
-      setSwitchState(SW_PGATE1, SW_OFF);
-      setSwitchState(SW_NGATE2, SW_OFF);
-      setSwitchState(SW_PGATE2, SW_OFF);
-      convState = (CONV_STATE)newConvState;
+      switches_set_gate_state(SW_NGATE1, SW_OFF);
+      switches_set_gate_state(SW_PGATE1, SW_OFF);
+      switches_set_gate_state(SW_NGATE2, SW_OFF);
+      switches_set_gate_state(SW_PGATE2, SW_OFF);
+      converter_state = (CONV_STATE)new_conv_state;
       break;
       }
 
@@ -206,78 +206,78 @@ setConverterParameter(int paramId, float paramValue)
 
 //Return the state of the control algorithm
   int
-  getConverterState()
+  dc_converter_get_algorithm_state()
   {
-    return (int) convState;
+    return (int) converter_state;
   }
 
 //Return the state of the control algorithm as a string
 //(defined as a static char array inside function)
   char *
-  getConverterStateString()
+  dc_converter_get_algorithm_state_string()
   {
-    char * strPtr = NULL;
-    switch (convState)
+    char * str_ptr = NULL;
+    switch (converter_state)
       {
 
     case CONV_BUCK_OFF:
       {
-        static char buckOffString[] = "BUCK_OFF";
-        strPtr = buckOffString;
+        static char buck_off_string[] = "BUCK_OFF";
+        str_ptr = buck_off_string;
         break;
       }
 
     case CONV_BUCK_SOFT:
       {
-        static char buckSoftString[] = "BUCK_SOFT";
-        strPtr = buckSoftString;
+        static char buck_soft_string[] = "BUCK_SOFT";
+        str_ptr = buck_soft_string;
         break;
       }
 
     case CONV_BUCK_ON:
       {
-        static char buckOnString[] = "BUCK_ON";
-        strPtr = buckOnString;
+        static char buck_on_string[] = "BUCK_ON";
+        str_ptr = buck_on_string;
         break;
       }
 
     case CONV_BOOST_OFF:
       {
-        static char boostOffString[] = "BOOST_OFF";
-        strPtr = boostOffString;
+        static char boost_off_string[] = "BOOST_OFF";
+        str_ptr = boost_off_string;
         break;
       }
 
     case CONV_BOOST_SOFT:
       {
-        static char boostSoftString[] = "BOOST_SOFT";
-        strPtr = boostSoftString;
+        static char boost_soft_string[] = "BOOST_SOFT";
+        str_ptr = boost_soft_string;
         break;
       }
 
     case CONV_BOOST_ON:
       {
-        static char boostOnString[] = "BOOST_ON";
-        strPtr = boostOnString;
+        static char boost_on_string[] = "BOOST_ON";
+        str_ptr = boost_on_string;
         break;
       }
 
     case CONV_DISCHARGE:
       {
-        static char dischargeString[] = "DISCHARGE";
-        strPtr = dischargeString;
+        static char discharge_string[] = "DISCHARGE";
+        str_ptr = discharge_string;
         break;
       }
 
     case CONV_ALL_OFF:
       {
-        static char allOffString[] = "ALL_OFF";
-        strPtr = allOffString;
+        static char all_off_string[] = "ALL_OFF";
+        str_ptr = all_off_string;
         break;
       }
       }
 
-    return strPtr;
+    return str_ptr;
 
   }
 
@@ -286,48 +286,48 @@ setConverterParameter(int paramId, float paramValue)
   static void pollhandler()
   {
     //Parameters used to store the value of the state vector variables
-    int vOut, vIn, iL;
+    int v_out, v_in, i_l;
 
     //Get the current value of the ADC parameters
-    vOut = svector_sensor.value(SVECTOR_SENSOR_VOUT);
-    vIn = svector_sensor.value(SVECTOR_SENSOR_VIN);
-    iL = svector_sensor.value(SVECTOR_SENSOR_IL);
+    v_out = svector_sensor.value(SVECTOR_SENSOR_VOUT);
+    v_in = svector_sensor.value(SVECTOR_SENSOR_VIN);
+    i_l = svector_sensor.value(SVECTOR_SENSOR_IL);
 
-    if (!isConfigured || !userAllowed || vRef <= 0)
+    if (!algorithm_configured || !user_allowed || v_ref <= 0)
       {
-        setConverterState(CONV_ALL_OFF);
+        dc_converter_set_algorithm_state(CONV_ALL_OFF);
       }
-    else if (vOut <= vMax)
+    else if (v_out <= v_max)
       {
-        setConverterState(CONV_DISCHARGE);
+        dc_converter_set_algorithm_state(CONV_DISCHARGE);
       }
-    else if (iL > iMax)
+    else if (i_l > i_max)
       {
-        if (vOut > vIn)
-          setConverterState(CONV_BOOST_OFF);
+        if (v_out > v_in)
+          dc_converter_set_algorithm_state(CONV_BOOST_OFF);
         else
-          setConverterState(CONV_BUCK_OFF);
+          dc_converter_set_algorithm_state(CONV_BUCK_OFF);
       }
-    else if (vRef <= vIn)
+    else if (v_ref <= v_in)
       {
-        if (vOut <= vRef)
-          setConverterState(CONV_BOOST_ON);
-        else if (iL <= 0)
-          setConverterState(CONV_BOOST_SOFT);
+        if (v_out <= v_ref)
+          dc_converter_set_algorithm_state(CONV_BOOST_ON);
+        else if (i_l <= 0)
+          dc_converter_set_algorithm_state(CONV_BOOST_SOFT);
         else
-          setConverterState(CONV_BOOST_OFF);
+          dc_converter_set_algorithm_state(CONV_BOOST_OFF);
       }
-    else if (vOut <= vRef)
+    else if (v_out <= v_ref)
       {
-        setConverterState(CONV_BUCK_ON);
+        dc_converter_set_algorithm_state(CONV_BUCK_ON);
       }
-    else if (iL <= 0)
+    else if (i_l <= 0)
       {
-        setConverterState(CONV_BUCK_SOFT);
+        dc_converter_set_algorithm_state(CONV_BUCK_SOFT);
       }
     else
       {
-        setConverterState(CONV_BUCK_OFF);
+        dc_converter_set_algorithm_state(CONV_BUCK_OFF);
       }
 
   }
@@ -345,14 +345,14 @@ setConverterParameter(int paramId, float paramValue)
     PROCESS_BEGIN();
 
       //Initialize the switches
-      initSwitches();
+      switches_init();
       //Set the starting state of the algorithm
-      setConverterState(CONV_ALL_OFF);
+      dc_converter_set_algorithm_state(CONV_ALL_OFF);
       //Set the parameters to their default values
-      vMax = VMAX_FLOAT_TO_ADC(VMAX_FLOAT_DEFAULT);
-      iMax = IMAX_FLOAT_TO_ADC(IMAX_FLOAT_DEFAULT);
-      vRef = VREF_FLOAT_TO_ADC(VREF_FLOAT_DEFAULT);
-      isConfigured = TRUE;
+      v_max = VMAX_FLOAT_TO_ADC(VMAX_FLOAT_DEFAULT);
+      i_max = IMAX_FLOAT_TO_ADC(IMAX_FLOAT_DEFAULT);
+      v_ref = VREF_FLOAT_TO_ADC(VREF_FLOAT_DEFAULT);
+      algorithm_configured = TRUE;
 
       //Start the ADC sensors and the sensor controlling process
       printf("Starting the Contiki sensor process\n");

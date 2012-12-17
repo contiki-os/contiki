@@ -10,8 +10,6 @@
 
 //Configures the UART defined in
 //contiki-conf.h as DEBUG_UART
-void setup_debug_uart();
-void dbg_putchar(char c);
-unsigned int dbg_send_bytes(const unsigned char *seq, unsigned int len);
+void debug_uart_setup();
 
 #endif /* DEBUG_UART_H_ */

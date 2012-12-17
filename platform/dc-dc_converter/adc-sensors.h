@@ -79,7 +79,7 @@ typedef enum{
   SVECTOR_SENSOR_IOUT
 }SVECTOR_SENSOR_TYPES;
 
-float getFloatParameter(int paramType);
+float dc_converter_get_svector_parameter(int paramType);
 
 
 #endif /* ADC_SENSOR_H_ */

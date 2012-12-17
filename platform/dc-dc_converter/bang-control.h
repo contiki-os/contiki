@@ -49,31 +49,31 @@ typedef enum _converterParameter{
 //      -Vref:Desired output voltage
 //      -Imax:Maximum inductor current allowed
 //      -Vmax:Maximum output voltage allowed
-void setConverterParameter(int paramId, float paramValue);
+void dc_converter_set_control_parameter(int paramId, float paramValue);
 
 //Return the value of the selected parameter
-float getConverterParameter(int paramId);
+float dc_converter_get_control_parameter(int paramId);
 
 //Change the state of the algorithm
 //and modify the switches accordingly
-  void setConverterState(int newConvState);
+  void dc_converter_set_algorithm_state(int newConvState);
 
 //Return the state of the control algorithm as an integer
-int getConverterState();
+int dc_converter_get_algorithm_state();
 
 //Return the state of the control algorithm as a string
 //(defined as a static char array inside function)
-char *getConverterStateString();
+char *dc_converter_get_algorithm_state_string();
 
 //Enable the voltage output for this user
-void allowUser();
+void dc_converter_allow_user();
 
 //Cut the user off from the grid
-void forbidUser();
+void dc_converter_forbid_user();
 
 //Returns 0 if the user does not have access
 //to the power grid
-int isUserAllowed();
+int dc_converter_get_user_status();
 
 
 

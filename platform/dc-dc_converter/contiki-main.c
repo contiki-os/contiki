@@ -21,7 +21,7 @@ unsigned int idle_count = 0;
 int
 main()
 {
-  setup_debug_uart();
+  debug_uart_setup();
   printf("Initializing clocks\n");
   clock_init();
   printf("The system main CPU clock speed is %dHz\n",SystemCoreClock);

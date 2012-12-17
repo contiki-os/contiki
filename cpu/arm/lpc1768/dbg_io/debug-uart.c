@@ -14,34 +14,7 @@
 #define CR     0x0D
 
 void
-setup_debug_uart(void)
+debug_uart_setup(void)
 { /* Initialize Serial Interface       */
   debug_frmwrk_init();
 }
-
-///* Implementation of putchar (also used by printf function to output data)    */
-//void
-//dbg_putchar(char ch)
-//{ /* Write character to Serial Port    */
-//#if 1
-//  if (ch == '\n')
-//    {
-//      /* output CR */
-//      _DBC(CR);
-//    }
-//#endif
-//  _DBC(ch);
-//}
-//
-//unsigned int
-//dbg_send_bytes(const unsigned char *seq, unsigned int len)
-//{
-//  unsigned int bytesSent = 0;
-//  unsigned char * str = seq;
-//  while(len--){
-//      dbg_putchar(*str++);
-//      bytesSent++;
-//  }
-//
-//  return bytesSent;
-//}
