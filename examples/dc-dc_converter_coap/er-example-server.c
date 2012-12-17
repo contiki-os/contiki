@@ -833,7 +833,7 @@ radio_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
 #endif
 
 /******************************************************************************/
-#if 1 //defined (PLATFORM_HAS_ADC)
+#if defined (PLATFORM_HAS_ADC)
 
 #if REST_RES_SVECTOR
 //State vector of the DC-DC converter
