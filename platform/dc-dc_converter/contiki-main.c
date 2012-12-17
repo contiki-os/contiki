@@ -57,17 +57,16 @@ main()
   printf("\n");
 
   // Configure global IPv6 address
-  uip_ipaddr_t ipaddr;
-  int i;
-  uip_ip6addr(&ipaddr, 0x2000, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
-  printf("Manual global IPv6 address: ");
-  uip_debug_ipaddr_print(&ipaddr);
-  printf("\n");
+  //uip_ipaddr_t ipaddr;
+  //uip_ip6addr(&ipaddr, 0x2000, 0, 0, 0, 0, 0, 0, 0);
+  //uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  //uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+  //printf("Manual global IPv6 address: ");
+  //uip_debug_ipaddr_print(&ipaddr);
+  //printf("\n");
 
   // Add prefix of manually set global address to prefix list
-  uip_ds6_prefix_add(&ipaddr, 64, 0);
+  //uip_ds6_prefix_add(&ipaddr, 64, 0);
 
 #else
   uip_ipaddr_t addr;
