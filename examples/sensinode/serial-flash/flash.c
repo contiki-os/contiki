@@ -256,7 +256,7 @@ PROCESS_THREAD(serial_flash_process, ev, data)
         while(M25P16_WIP());
         /* Drop to Deep Power Down */
         m25p16_dp();
-        counter ++;
+        counter++;
       }
       n740_analog_activate();
     }

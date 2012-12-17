@@ -206,7 +206,7 @@
 
 /* ND and Routing */
 #ifndef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER                      1 
+#define UIP_CONF_ROUTER                      1
 #endif
 
 /* Prevent SDCC compile error when UIP_CONF_ROUTER == 0 */

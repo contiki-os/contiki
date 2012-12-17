@@ -76,7 +76,7 @@ void batmon_log(uint8_t trigger);
 #endif
 /*---------------------------------------------------------------------------*/
 static struct uip_udp_conn *server_conn;
-static struct disco_request_pdu * req;
+static struct disco_request_pdu *req;
 static struct disco_response_pdu resp;
 static struct disco_seed seed;
 static uint8_t state;
@@ -92,7 +92,7 @@ extern void *uip_appdata;
 
 __xdata __at(BOOTTY_CMD_LOCATION) static uint8_t bd;
 /*---------------------------------------------------------------------------*/
-static void timer_handler(void * p);
+static void timer_handler(void *p);
 /*---------------------------------------------------------------------------*/
 static void
 abort() CC_NON_BANKED
@@ -116,9 +116,9 @@ restart_timer(uint16_t t) CC_NON_BANKED
 }
 /*---------------------------------------------------------------------------*/
 static void
-timer_handler(void * p)
+timer_handler(void *p)
 {
-  uint8_t * s = p;
+  uint8_t *s = p;
   uint8_t wip;
 
   PRINTF("Disco: @ %lu, s: %u\n", clock_seconds(), *s);
@@ -213,7 +213,8 @@ cmd_init() CC_NON_BANKED
 static uint8_t
 cmd_write() CC_NON_BANKED
 {
-  PRINTF("Disco: Write 0x%02x%02x%02x\n", req->addr[0], req->addr[1], req->addr[2]);
+  PRINTF("Disco: Write 0x%02x%02x%02x\n", req->addr[0], req->addr[1],
+         req->addr[2]);
   if(uip_datalen() != DISCO_LEN_WRITE) {
     resp.status = DISCO_ERR_BAD_LEN;
     return DISCO_RESP_LEN_ERR;
