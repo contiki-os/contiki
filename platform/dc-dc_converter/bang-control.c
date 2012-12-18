@@ -134,70 +134,141 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
   void
   dc_converter_set_algorithm_state(int new_conv_state)
   {
+
+//    if(new_conv_state==converter_state)
+//      return;
+
+    //printf("Changing converter state from %d to %d\n", converter_state, new_conv_state);
     switch ((CONV_STATE)new_conv_state)
       {
 
     case CONV_BUCK_OFF:
-      switches_set_gate_state(SW_NGATE1, SW_ON);
-      switches_set_gate_state(SW_PGATE1, SW_OFF);
-      switches_set_gate_state(SW_NGATE2, SW_OFF);
-      switches_set_gate_state(SW_PGATE2, SW_ON);
+      if(LPC_GPIO2->FIOPINL & 0x0002)
+                    LPC_GPIO2->FIOCLRL = 0x0002;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0001;
+
+            if(LPC_GPIO2->FIOPINL & 0x0004)
+                    LPC_GPIO2->FIOCLRL = 0x0004;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0008;
+//      switches_set_gate_state(SW_NGATE1, SW_ON);
+//      switches_set_gate_state(SW_PGATE1, SW_OFF);
+//      switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      switches_set_gate_state(SW_PGATE2, SW_ON);
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BUCK_SOFT:
-      switches_set_gate_state(SW_NGATE1, SW_OFF);
-      switches_set_gate_state(SW_PGATE1, SW_OFF);
-      switches_set_gate_state(SW_NGATE2, SW_OFF);
-      switches_set_gate_state(SW_PGATE2, SW_ON);
+      if(LPC_GPIO2->FIOPINL & 0x0001)
+                    LPC_GPIO2->FIOCLRL = 0x0001;
+
+            if(LPC_GPIO2->FIOPINL & 0x0002)
+                    LPC_GPIO2->FIOCLRL = 0x0002;
+
+            if(LPC_GPIO2->FIOPINL & 0x0004)
+                    LPC_GPIO2->FIOCLRL = 0x0004;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0008;
+//      switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      switches_set_gate_state(SW_PGATE1, SW_OFF);
+//      switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      switches_set_gate_state(SW_PGATE2, SW_ON);
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BUCK_ON:
-      switches_set_gate_state(SW_NGATE1, SW_OFF);
-      switches_set_gate_state(SW_PGATE1, SW_ON);
-      switches_set_gate_state(SW_NGATE2, SW_OFF);
-      switches_set_gate_state(SW_PGATE2, SW_ON);
+      if(LPC_GPIO2->FIOPINL & 0x0001)
+                    LPC_GPIO2->FIOCLRL = 0x0001;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0002;
+
+            if(LPC_GPIO2->FIOPINL & 0x00004)
+                    LPC_GPIO2->FIOCLRL = 0x0004;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0008;
+//      switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      switches_set_gate_state(SW_PGATE1, SW_ON);
+//      switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      switches_set_gate_state(SW_PGATE2, SW_ON);
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BOOST_OFF:
-      switches_set_gate_state(SW_NGATE1, SW_OFF);
-      switches_set_gate_state(SW_PGATE1, SW_ON);
-      switches_set_gate_state(SW_NGATE2, SW_OFF);
-      switches_set_gate_state(SW_PGATE2, SW_ON);
+      if(LPC_GPIO2->FIOPINL & 0x0001)
+                    LPC_GPIO2->FIOCLRL = 0x0001;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0002;
+
+            if(LPC_GPIO2->FIOPINL & 0x00004)
+                    LPC_GPIO2->FIOCLRL = 0x0004;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0008;
+//      switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      switches_set_gate_state(SW_PGATE1, SW_ON);
+//      switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      switches_set_gate_state(SW_PGATE2, SW_ON);
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BOOST_SOFT:
-      switches_set_gate_state(SW_NGATE1, SW_OFF);
-      switches_set_gate_state(SW_PGATE1, SW_ON);
-      switches_set_gate_state(SW_NGATE2, SW_OFF);
-      switches_set_gate_state(SW_PGATE2, SW_OFF);
+      if(LPC_GPIO2->FIOPINL & 0x0001)
+                    LPC_GPIO2->FIOCLRL = 0x0001;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0002;
+
+            if(LPC_GPIO2->FIOPINL & 0x0004)
+                    LPC_GPIO2->FIOCLRL = 0x0004;
+
+            if(LPC_GPIO2->FIOPINL & 0x0008)
+                    LPC_GPIO2->FIOCLRL = 0x0008;
+//      switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      switches_set_gate_state(SW_PGATE1, SW_ON);
+//      switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      switches_set_gate_state(SW_PGATE2, SW_OFF);
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BOOST_ON:
-      switches_set_gate_state(SW_NGATE1, SW_OFF);
-      switches_set_gate_state(SW_PGATE1, SW_ON);
-      switches_set_gate_state(SW_NGATE2, SW_ON);
-      switches_set_gate_state(SW_PGATE2, SW_OFF);
+      if(LPC_GPIO2->FIOPINL & 0x0001)
+                    LPC_GPIO2->FIOCLRL = 0x0001;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0002;
+
+            if(LPC_GPIO2->FIOPINL & 0x0008)
+                    LPC_GPIO2->FIOCLRL = 0x0008;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0004;
+//      switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      switches_set_gate_state(SW_PGATE1, SW_ON);
+//      switches_set_gate_state(SW_NGATE2, SW_ON);
+//      switches_set_gate_state(SW_PGATE2, SW_OFF);
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_DISCHARGE:
-      switches_set_gate_state(SW_NGATE1, SW_ON);
-      switches_set_gate_state(SW_PGATE1, SW_OFF);
-      switches_set_gate_state(SW_NGATE2, SW_ON);
-      switches_set_gate_state(SW_PGATE2, SW_OFF);
+      if(LPC_GPIO2->FIOPINL & 0x0002)
+                    LPC_GPIO2->FIOCLRL = 0x0002;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0001;
+
+            if(LPC_GPIO2->FIOPINL & 0x0008)
+                    LPC_GPIO2->FIOCLRL = 0x0008;
+            else
+                    LPC_GPIO2->FIOSETL = 0x0004;
+//      switches_set_gate_state(SW_NGATE1, SW_ON);
+//      switches_set_gate_state(SW_PGATE1, SW_OFF);
+//      switches_set_gate_state(SW_NGATE2, SW_ON);
+//      switches_set_gate_state(SW_PGATE2, SW_OFF);
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_ALL_OFF:
-      switches_set_gate_state(SW_NGATE1, SW_OFF);
-      switches_set_gate_state(SW_PGATE1, SW_OFF);
-      switches_set_gate_state(SW_NGATE2, SW_OFF);
-      switches_set_gate_state(SW_PGATE2, SW_OFF);
+      LPC_GPIO2->FIOCLRL = 0x000F;
+//      switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      switches_set_gate_state(SW_PGATE1, SW_OFF);
+//      switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      switches_set_gate_state(SW_PGATE2, SW_OFF);
       converter_state = (CONV_STATE)new_conv_state;
       break;
       }
@@ -297,7 +368,7 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
       {
         dc_converter_set_algorithm_state(CONV_ALL_OFF);
       }
-    else if (v_out <= v_max)
+    else if (v_out > v_max)
       {
         dc_converter_set_algorithm_state(CONV_DISCHARGE);
       }
@@ -308,7 +379,7 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
         else
           dc_converter_set_algorithm_state(CONV_BUCK_OFF);
       }
-    else if (v_ref <= v_in)
+    else if (v_ref > v_in)
       {
         if (v_out <= v_ref)
           dc_converter_set_algorithm_state(CONV_BOOST_ON);

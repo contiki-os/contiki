@@ -40,7 +40,7 @@ typedef enum _converterParameter{
 #define VMAX_FLOAT_DEFAULT    5.0
 #define VMAX_FLOAT_MAX        30.0
 #define IMAX_FLOAT_MIN        0.0
-#define IMAX_FLOAT_DEFAULT    0.1
+#define IMAX_FLOAT_DEFAULT    1.1
 #define IMAX_FLOAT_MAX        6.0
 
 
