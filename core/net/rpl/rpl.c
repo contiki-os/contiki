@@ -62,14 +62,31 @@ rpl_purge_routes(void)
 {
   uip_ds6_route_t *r;
 
+  /* First pass, decrement lifetime */
   r = uip_ds6_route_list_head();
 
   while(r != NULL) {
-    if(r->state.lifetime <= 1) {
+    if(r->state.lifetime >= 1) {
+      /*
+       * If a route is at lifetime == 1, set it to 0, scheduling it for
+       * immediate removal below. This achieves the same as the original code,
+       * which would delete lifetime <= 1
+       */
+      r->state.lifetime--;
+    }
+    r = list_item_next(r);
+  }
+
+  /* Second pass, remove dead routes */
+  r = uip_ds6_route_list_head();
+
+  while(r != NULL) {
+    if(r->state.lifetime < 1) {
+      /* Routes with lifetime == 1 have only just been decremented from 2 to 1,
+       * thus we want to keep them. Hence < and not <= */
       uip_ds6_route_rm(r);
       r = uip_ds6_route_list_head();
     } else {
-      r->state.lifetime--;
       r = list_item_next(r);
     }
   }
