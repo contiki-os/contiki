@@ -29,8 +29,8 @@
  * This file is part of the Contiki operating system.
  *
  * This is work by the CSD master project. Fall 2012. Microgrid team.
- * Author: Saulius Alisauskas  <saulius@kth.se>
- *         Javier Lara Peinado <javierlp@kth.se>
+ * Author: Saulius Alisauskas   <saulius@kth.se>
+ *         Javier Lara Peinado  <javierlp@kth.se>
  *
  */
 
