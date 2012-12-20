@@ -1,2 +1,0 @@
-CONTIKI_CPU_DIRS           += radio/ieee-manager
-CONTIKI_TARGET_SOURCEFILES += ieee-15-4-manager.c

@@ -1,5 +1,0 @@
-/**
-\defgroup sys Contiki system
-@{
-*/
-/** @} */

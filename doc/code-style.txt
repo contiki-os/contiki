@@ -1,3 +1,0 @@
-/**
-   \example code-style.c
- */

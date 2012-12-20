@@ -1,9 +1,0 @@
-*.o
-*.d
-*.s
-*.a
-*.elf
-*.bin
-*.map
-tests/obj_*
-
