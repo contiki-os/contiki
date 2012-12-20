@@ -1,9 +1,38 @@
 /*
- * bang-control.c
+ * Copyright (c) 2012, KTH, Royal Institute of Technology(Stockholm, Sweden)
+ * All rights reserved.
  *
- *  Created on: Dec 11, 2012
- *      Author: cazulu
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
+ * This is work by the CSD master project. Fall 2012. Microgrid team.
+ * Author: Javier Lara Peinado <javierlp@kth.se>
+ *
  */
+
 #include <stdio.h>
 #include "lib/sensors.h"
 #include "switches-actuators.h"
@@ -134,15 +163,27 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
   void
   dc_converter_set_algorithm_state(int new_conv_state)
   {
-
-//    if(new_conv_state==converter_state)
-//      return;
-
     //printf("Changing converter state from %d to %d\n", converter_state, new_conv_state);
     switch ((CONV_STATE)new_conv_state)
       {
 
     case CONV_BUCK_OFF:
+
+//      if(switches_get_gate_state(SW_PGATE1)==SW_ON){
+//          switches_set_gate_state(SW_PGATE1, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_NGATE1, SW_ON);
+//      }
+//
+//      if(switches_get_gate_state(SW_NGATE2)==SW_ON){
+//          switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_PGATE2, SW_ON);
+//      }
+
+
       if(LPC_GPIO2->FIOPINL & 0x0002)
                     LPC_GPIO2->FIOCLRL = 0x0002;
             else
@@ -152,14 +193,28 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
                     LPC_GPIO2->FIOCLRL = 0x0004;
             else
                     LPC_GPIO2->FIOSETL = 0x0008;
-//      switches_set_gate_state(SW_NGATE1, SW_ON);
-//      switches_set_gate_state(SW_PGATE1, SW_OFF);
-//      switches_set_gate_state(SW_NGATE2, SW_OFF);
-//      switches_set_gate_state(SW_PGATE2, SW_ON);
+
+
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BUCK_SOFT:
+//      if(switches_get_gate_state(SW_NGATE1)==SW_ON){
+//          switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      }
+//
+//      if(switches_get_gate_state(SW_PGATE1)==SW_ON){
+//          switches_set_gate_state(SW_PGATE1, SW_OFF);
+//      }
+//
+//      if(switches_get_gate_state(SW_NGATE2)==SW_ON){
+//          switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_PGATE2, SW_ON);
+//      }
+
+
       if(LPC_GPIO2->FIOPINL & 0x0001)
                     LPC_GPIO2->FIOCLRL = 0x0001;
 
@@ -170,14 +225,28 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
                     LPC_GPIO2->FIOCLRL = 0x0004;
             else
                     LPC_GPIO2->FIOSETL = 0x0008;
-//      switches_set_gate_state(SW_NGATE1, SW_OFF);
-//      switches_set_gate_state(SW_PGATE1, SW_OFF);
-//      switches_set_gate_state(SW_NGATE2, SW_OFF);
-//      switches_set_gate_state(SW_PGATE2, SW_ON);
+
+
+
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BUCK_ON:
+//      if(switches_get_gate_state(SW_NGATE1)==SW_ON){
+//          switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_PGATE1, SW_ON);
+//      }
+//
+//      if(switches_get_gate_state(SW_NGATE2)==SW_ON){
+//          switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_PGATE2, SW_ON);
+//      }
+
+
       if(LPC_GPIO2->FIOPINL & 0x0001)
                     LPC_GPIO2->FIOCLRL = 0x0001;
             else
@@ -187,14 +256,28 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
                     LPC_GPIO2->FIOCLRL = 0x0004;
             else
                     LPC_GPIO2->FIOSETL = 0x0008;
-//      switches_set_gate_state(SW_NGATE1, SW_OFF);
-//      switches_set_gate_state(SW_PGATE1, SW_ON);
-//      switches_set_gate_state(SW_NGATE2, SW_OFF);
-//      switches_set_gate_state(SW_PGATE2, SW_ON);
+
+
+
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BOOST_OFF:
+//      if(switches_get_gate_state(SW_NGATE1)==SW_ON){
+//          switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_PGATE1, SW_ON);
+//      }
+//
+//      if(switches_get_gate_state(SW_NGATE2)==SW_ON){
+//          switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_PGATE2, SW_ON);
+//      }
+
+
       if(LPC_GPIO2->FIOPINL & 0x0001)
                     LPC_GPIO2->FIOCLRL = 0x0001;
             else
@@ -204,14 +287,27 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
                     LPC_GPIO2->FIOCLRL = 0x0004;
             else
                     LPC_GPIO2->FIOSETL = 0x0008;
-//      switches_set_gate_state(SW_NGATE1, SW_OFF);
-//      switches_set_gate_state(SW_PGATE1, SW_ON);
-//      switches_set_gate_state(SW_NGATE2, SW_OFF);
-//      switches_set_gate_state(SW_PGATE2, SW_ON);
+
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BOOST_SOFT:
+//      if(switches_get_gate_state(SW_NGATE1)==SW_ON){
+//          switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_PGATE1, SW_ON);
+//      }
+//
+//      if(switches_get_gate_state(SW_NGATE2)==SW_ON){
+//          switches_set_gate_state(SW_NGATE2, SW_OFF);
+//      }
+//
+//      if(switches_get_gate_state(SW_PGATE2)==SW_ON){
+//          switches_set_gate_state(SW_PGATE2, SW_OFF);
+//      }
+
+
       if(LPC_GPIO2->FIOPINL & 0x0001)
                     LPC_GPIO2->FIOCLRL = 0x0001;
             else
@@ -222,14 +318,26 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
 
             if(LPC_GPIO2->FIOPINL & 0x0008)
                     LPC_GPIO2->FIOCLRL = 0x0008;
-//      switches_set_gate_state(SW_NGATE1, SW_OFF);
-//      switches_set_gate_state(SW_PGATE1, SW_ON);
-//      switches_set_gate_state(SW_NGATE2, SW_OFF);
-//      switches_set_gate_state(SW_PGATE2, SW_OFF);
+
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_BOOST_ON:
+//      if(switches_get_gate_state(SW_NGATE1)==SW_ON){
+//          switches_set_gate_state(SW_NGATE1, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_PGATE1, SW_ON);
+//      }
+//
+//      if(switches_get_gate_state(SW_PGATE2)==SW_ON){
+//          switches_set_gate_state(SW_PGATE2, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_NGATE2, SW_ON);
+//      }
+
+
       if(LPC_GPIO2->FIOPINL & 0x0001)
                     LPC_GPIO2->FIOCLRL = 0x0001;
             else
@@ -239,14 +347,26 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
                     LPC_GPIO2->FIOCLRL = 0x0008;
             else
                     LPC_GPIO2->FIOSETL = 0x0004;
-//      switches_set_gate_state(SW_NGATE1, SW_OFF);
-//      switches_set_gate_state(SW_PGATE1, SW_ON);
-//      switches_set_gate_state(SW_NGATE2, SW_ON);
-//      switches_set_gate_state(SW_PGATE2, SW_OFF);
+
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_DISCHARGE:
+//      if(switches_get_gate_state(SW_PGATE1)==SW_ON){
+//          switches_set_gate_state(SW_PGATE1, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_NGATE1, SW_ON);
+//      }
+//
+//      if(switches_get_gate_state(SW_PGATE2)==SW_ON){
+//          switches_set_gate_state(SW_PGATE2, SW_OFF);
+//      }
+//      else{
+//          switches_set_gate_state(SW_NGATE2, SW_ON);
+//      }
+
+
       if(LPC_GPIO2->FIOPINL & 0x0002)
                     LPC_GPIO2->FIOCLRL = 0x0002;
             else
@@ -256,15 +376,13 @@ dc_converter_set_control_parameter(int param_id, float param_float_value)
                     LPC_GPIO2->FIOCLRL = 0x0008;
             else
                     LPC_GPIO2->FIOSETL = 0x0004;
-//      switches_set_gate_state(SW_NGATE1, SW_ON);
-//      switches_set_gate_state(SW_PGATE1, SW_OFF);
-//      switches_set_gate_state(SW_NGATE2, SW_ON);
-//      switches_set_gate_state(SW_PGATE2, SW_OFF);
+
       converter_state = (CONV_STATE)new_conv_state;
       break;
 
     case CONV_ALL_OFF:
       LPC_GPIO2->FIOCLRL = 0x000F;
+
 //      switches_set_gate_state(SW_NGATE1, SW_OFF);
 //      switches_set_gate_state(SW_PGATE1, SW_OFF);
 //      switches_set_gate_state(SW_NGATE2, SW_OFF);
