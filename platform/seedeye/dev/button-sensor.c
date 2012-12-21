@@ -96,7 +96,7 @@ configure(int type, int value)
 {
   switch (type) {
   case SENSORS_ACTIVE:
-    if (value) {
+    if(value) {
       if(!status(SENSORS_ACTIVE)) {
         timer_set(&debouncetimer, 0);
         
