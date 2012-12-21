@@ -106,8 +106,8 @@ set_long_add_mem(uint16_t addr, uint8_t val)
   const uint8_t tmp = MRF24J40_INTERRUPT_ENABLE_STAT();
   uint8_t msg[3];
 
-  msg[0] = (((uint8_t) (addr >> 3)) & 0x7F) | 0x80;
-  msg[1] = (((uint8_t) (addr << 5)) & 0xE0) | 0x10;
+  msg[0] = (((uint8_t)(addr >> 3)) & 0x7F) | 0x80;
+  msg[1] = (((uint8_t)(addr << 5)) & 0xE0) | 0x10;
   msg[2] = val;
 
   if(tmp) {
@@ -154,8 +154,8 @@ get_long_add_mem(uint16_t addr)
   uint8_t ret_val;
   uint8_t msg[2];
 
-  msg[0] = (((uint8_t) (addr >> 3)) & 0x7F) | 0x80;
-  msg[1] = ((uint8_t) (addr << 5)) & 0xE0;
+  msg[0] = (((uint8_t)(addr >> 3)) & 0x7F) | 0x80;
+  msg[1] = ((uint8_t)(addr << 5)) & 0xE0;
 
   if(tmp) {
     MRF24J40_INTERRUPT_ENABLE_CLR();
@@ -215,8 +215,8 @@ mrf24j40_set_channel(uint16_t ch)
 void
 mrf24j40_set_panid(uint16_t id)
 {
-  set_short_add_mem(MRF24J40_PANIDL, (uint8_t) id);
-  set_short_add_mem(MRF24J40_PANIDH, (uint8_t) (id >> 8));
+  set_short_add_mem(MRF24J40_PANIDL, (uint8_t)id);
+  set_short_add_mem(MRF24J40_PANIDH, (uint8_t)(id >> 8));
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -227,8 +227,8 @@ mrf24j40_set_panid(uint16_t id)
 void
 mrf24j40_set_short_mac_addr(uint16_t addr)
 {
-  set_short_add_mem(MRF24J40_SADRL, (uint8_t) addr);
-  set_short_add_mem(MRF24J40_SADRH, (uint8_t) (addr >> 8));
+  set_short_add_mem(MRF24J40_SADRL, (uint8_t)addr);
+  set_short_add_mem(MRF24J40_SADRH, (uint8_t)(addr >> 8));
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -239,14 +239,14 @@ mrf24j40_set_short_mac_addr(uint16_t addr)
 void
 mrf24j40_set_extended_mac_addr(uint64_t addr)
 {
-  set_short_add_mem(MRF24J40_EADR7, (uint8_t) addr);
-  set_short_add_mem(MRF24J40_EADR6, (uint8_t) (addr >> 8));
-  set_short_add_mem(MRF24J40_EADR5, (uint8_t) (addr >> 16));
-  set_short_add_mem(MRF24J40_EADR4, (uint8_t) (addr >> 24));
-  set_short_add_mem(MRF24J40_EADR3, (uint8_t) (addr >> 32));
-  set_short_add_mem(MRF24J40_EADR2, (uint8_t) (addr >> 40));
-  set_short_add_mem(MRF24J40_EADR1, (uint8_t) (addr >> 48));
-  set_short_add_mem(MRF24J40_EADR0, (uint8_t) (addr >> 56));
+  set_short_add_mem(MRF24J40_EADR7, (uint8_t)addr);
+  set_short_add_mem(MRF24J40_EADR6, (uint8_t)(addr >> 8));
+  set_short_add_mem(MRF24J40_EADR5, (uint8_t)(addr >> 16));
+  set_short_add_mem(MRF24J40_EADR4, (uint8_t)(addr >> 24));
+  set_short_add_mem(MRF24J40_EADR3, (uint8_t)(addr >> 32));
+  set_short_add_mem(MRF24J40_EADR2, (uint8_t)(addr >> 40));
+  set_short_add_mem(MRF24J40_EADR1, (uint8_t)(addr >> 48));
+  set_short_add_mem(MRF24J40_EADR0, (uint8_t)(addr >> 56));
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -257,8 +257,8 @@ mrf24j40_set_extended_mac_addr(uint64_t addr)
 void
 mrf24j40_get_short_mac_addr(uint16_t *addr)
 {
-  *(((uint8_t *) & addr)) = get_short_add_mem(MRF24J40_SADRH);
-  *(((uint8_t *) & addr) + 1) = get_short_add_mem(MRF24J40_SADRL);
+  *(((uint8_t *)& addr)) = get_short_add_mem(MRF24J40_SADRH);
+  *(((uint8_t *)& addr) + 1) = get_short_add_mem(MRF24J40_SADRL);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -269,14 +269,14 @@ mrf24j40_get_short_mac_addr(uint16_t *addr)
 void
 mrf24j40_get_extended_mac_addr(uint64_t *addr)
 {
-  *(((uint8_t *) & addr)) = get_short_add_mem(MRF24J40_EADR7);
-  *(((uint8_t *) & addr) + 1) = get_short_add_mem(MRF24J40_EADR6);
-  *(((uint8_t *) & addr) + 2) = get_short_add_mem(MRF24J40_EADR5);
-  *(((uint8_t *) & addr) + 3) = get_short_add_mem(MRF24J40_EADR4);
-  *(((uint8_t *) & addr) + 4) = get_short_add_mem(MRF24J40_EADR3);
-  *(((uint8_t *) & addr) + 5) = get_short_add_mem(MRF24J40_EADR2);
-  *(((uint8_t *) & addr) + 6) = get_short_add_mem(MRF24J40_EADR1);
-  *(((uint8_t *) & addr) + 7) = get_short_add_mem(MRF24J40_EADR0);
+  *(((uint8_t *)& addr)) = get_short_add_mem(MRF24J40_EADR7);
+  *(((uint8_t *)& addr) + 1) = get_short_add_mem(MRF24J40_EADR6);
+  *(((uint8_t *)& addr) + 2) = get_short_add_mem(MRF24J40_EADR5);
+  *(((uint8_t *)& addr) + 3) = get_short_add_mem(MRF24J40_EADR4);
+  *(((uint8_t *)& addr) + 4) = get_short_add_mem(MRF24J40_EADR3);
+  *(((uint8_t *)& addr) + 5) = get_short_add_mem(MRF24J40_EADR2);
+  *(((uint8_t *)& addr) + 6) = get_short_add_mem(MRF24J40_EADR1);
+  *(((uint8_t *)& addr) + 7) = get_short_add_mem(MRF24J40_EADR0);
 }
 /*---------------------------------------------------------------------------*/
 /**
