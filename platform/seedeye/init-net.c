@@ -82,10 +82,10 @@ init_net(uint8_t node_id)
 
   memset(&shortaddr, 0, sizeof(shortaddr));
   memset(&longaddr, 0, sizeof(longaddr));
-  *((uint8_t *) & shortaddr) = node_id >> 8;
-  *((uint8_t *) & shortaddr + 1) = node_id;
-  *((uint8_t *) & longaddr) = node_id >> 8;
-  *((uint8_t *) & longaddr + 1) = node_id;
+  *((uint8_t *)&shortaddr) = node_id >> 8;
+  *((uint8_t *)&shortaddr + 1) = node_id;
+  *((uint8_t *)&longaddr) = node_id >> 8;
+  *((uint8_t *)&longaddr + 1) = node_id;
   for(i = 2; i < sizeof(longaddr); ++i) {
     ((uint8_t *)&longaddr)[i] = random_rand();
   }
@@ -94,14 +94,14 @@ init_net(uint8_t node_id)
          *((uint8_t *) & shortaddr), *((uint8_t *) & shortaddr + 1));
 
   PRINTF("EXTENDED MAC ADDRESS %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
-         *((uint8_t *) & longaddr),
-         *((uint8_t *) & longaddr + 1),
-         *((uint8_t *) & longaddr + 2),
-         *((uint8_t *) & longaddr + 3),
-         *((uint8_t *) & longaddr + 4),
-         *((uint8_t *) & longaddr + 5),
-         *((uint8_t *) & longaddr + 6),
-         *((uint8_t *) & longaddr + 7));
+         *((uint8_t *)&longaddr),
+         *((uint8_t *)&longaddr + 1),
+         *((uint8_t *)&longaddr + 2),
+         *((uint8_t *)&longaddr + 3),
+         *((uint8_t *)&longaddr + 4),
+         *((uint8_t *)&longaddr + 5),
+         *((uint8_t *)&longaddr + 6),
+         *((uint8_t *)&longaddr + 7));
 
   memset(&addr, 0, sizeof(rimeaddr_t));
 
