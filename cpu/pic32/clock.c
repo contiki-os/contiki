@@ -120,9 +120,9 @@ clock_delay_usec(uint16_t dt)
 
   stop = now + dt * ((pic32_clock_get_system_clock() / 1000000) / 2);
 
-  for (;;) {
+  for(;;) {
     asm volatile("mfc0   %0, $9" : "=r"(now));
-    if ((int32_t) (now - stop) >= 0) {
+    if((int32_t)(now - stop) >= 0) {
       break;
     }
   }
