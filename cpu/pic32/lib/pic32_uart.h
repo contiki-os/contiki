@@ -81,15 +81,15 @@
   ISR(_UART_##XX##_VECTOR)                                            \
   {                                                                   \
     volatile uint8_t byte;                                            \
-    if (IFS##Y##bits.U##XX##RXIF) {                                   \
-      if ((U##XX##STAbits.PERR == 0) && (U##XX##STAbits.FERR == 0)) { \
+    if(IFS##Y##bits.U##XX##RXIF) {                                    \
+      if((U##XX##STAbits.PERR == 0) && (U##XX##STAbits.FERR == 0)) {  \
         CALLBACK(U##XX##RXREG);                                       \
       } else {                                                        \
         byte = U##XX##RXREG; /* NULL READ */                          \
       }                                                               \
       IFS##Y##CLR = _IFS##Y##_U##XX##RXIF_MASK;                       \
     }                                                                 \
-      if (U##XX##STAbits.OERR) {                                      \
+      if(U##XX##STAbits.OERR) {                                       \
           U##XX##STACLR = _U##XX##STA_OERR_MASK;                      \
       }                                                               \
   }
