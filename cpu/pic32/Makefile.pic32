@@ -1,0 +1,51 @@
+#
+# Makefile for PIC32MX795F512L
+# @author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
+#
+# $Id: Makefile.pic32,v 1.0 2012/12/03 09:00:00 evilaliv3 Exp $
+#
+
+PIC32_MODEL=32MX795F512L
+CFLAGS += -O1 -fno-strict-aliasing -G7 -Wall -I /opt/microchip/xc32/v1.11/pic32mx/include/ $(CONTIKI_PLAT_DEFS)
+CFLAGS += -ffunction-sections
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/pic32
+
+### Define the cpu dirs and source files
+CONTIKI_CPU_DIRS = . lib
+
+CPU_LIBS = $(notdir $(wildcard $(CONTIKI_CPU)/lib/*.c))
+
+CONTIKI_SOURCEFILES += pic32.c clock.c watchdog.c rtimer-arch.c $(CPU_LIBS) debug-uart.c slip-uart.c
+
+### Compiler definitions
+CC       = xc32-gcc
+LD       = xc32-gcc
+AS       = xc32-as
+AR       = xc32-ar
+OBJCOPY  = xc32-objcopy
+STRIP    = xc32-strip
+
+ifneq ($(PIC32_MODEL),)
+CFLAGS += -mprocessor=$(PIC32_MODEL)
+LDFLAGS += -mprocessor=$(PIC32_MODEL) -Wl,-Map=contiki-$(TARGET).map -s
+LDFLAGS += -Wl,--defsym,_min_stack_size=4096 -Wl,--gc-sections
+endif
+
+### Compilation rules
+
+%.so: $(OBJECTDIR)/%.o
+	$(LD) -shared -o $@ $^
+
+ifdef CORE
+.PHONY: symbols.c symbols.h
+symbols.c symbols.h:
+	$(NM) -C $(CORE) | grep -v @ | grep -v dll_crt0 | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
+else
+symbols.c symbols.h:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+endif
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
