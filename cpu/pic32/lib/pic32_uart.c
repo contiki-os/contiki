@@ -150,9 +150,9 @@
   int8_t                                         \
   pic32_uart##XX##_write(uint8_t data)           \
   {                                              \
-    while (U##XX##STAbits.UTXBF);                \
+    while(U##XX##STAbits.UTXBF);                 \
     U##XX##TXREG = data;                         \
-    while (!U##XX##STAbits.TRMT);                \
+    while(!U##XX##STAbits.TRMT);                 \
                                                  \
     return UART_NO_ERROR;                        \
   }

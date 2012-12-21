@@ -127,7 +127,7 @@ PROCESS_THREAD(battery_process, ev, data)
     // start converting
     AD1CON1SET = 0b0000000000000010;
 
-    while (!(AD1CON1 & 0b0000000000000001)) {
+    while(!(AD1CON1 & 0b0000000000000001)) {
       ; // wait conversion finish
     }
     
