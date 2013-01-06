@@ -1,3 +1,45 @@
+#ifndef SYS_CONF_STACK_SIZE
+#define SYS_STACK_SIZE 2048
+#else 
+#define SYS_STACK_SIZE SYS_CONF_STACK_SIZE
+#endif
+
+#ifndef IRQ_CONF_STACK_SIZE
+#define IRQ_STACK_SIZE 128
+#else 
+#define IRQ_STACK_SIZE IRQ_CONF_STACK_SIZE
+#endif
+
+#ifndef FIQ_CONF_STACK_SIZE
+#define FIQ_STACK_SIZE 128
+#else 
+#define FIQ_STACK_SIZE FIQ_CONF_STACK_SIZE
+#endif
+
+#ifndef SVC_CONF_STACK_SIZE
+#define SVC_STACK_SIZE 16
+#else 
+#define SVC_STACK_SIZE SVC_CONF_STACK_SIZE
+#endif
+
+#ifndef ABT_CONF_STACK_SIZE
+#define ABT_STACK_SIZE 16
+#else 
+#define ABT_STACK_SIZE ABT_CONF_STACK_SIZE
+#endif
+
+#ifndef UND_CONF_STACK_SIZE
+#define UND_STACK_SIZE 16
+#else 
+#define UND_STACK_SIZE UND_CONF_STACK_SIZE
+#endif
+
+#ifndef HEAP_CONF_SIZE
+#define HEAP_SIZE 16
+#else 
+#define HEAP_SIZE HEAP_CONF_SIZE
+#endif
+
 /* Script for -z combreloc: combine and sort reloc sections */
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm",
 	      "elf32-littlearm")
@@ -11,14 +53,6 @@ MEMORY
 
 SECTIONS
 {
-
-SYS_STACK_SIZE = 1024;
-IRQ_STACK_SIZE = 256;
-FIQ_STACK_SIZE = 256;
-SVC_STACK_SIZE = 256;
-ABT_STACK_SIZE = 16;
-UND_STACK_SIZE = 16;
-HEAP_SIZE = 4096;
 
   /* Read-only sections, merged into text segment: */
   PROVIDE (__executable_start = 0x00400000); . = 0x00400000;
@@ -169,26 +203,32 @@ HEAP_SIZE = 4096;
 	.stack : {
 		__stack_start__ = . ;
 
+		/* IRQ_STACK */
 		. += IRQ_STACK_SIZE;
 		. = ALIGN (4);
 		__irq_stack_top__ = . ;
 
+		/* FIQ_STACK */
 		. += FIQ_STACK_SIZE;
 		. = ALIGN (4);
 		__fiq_stack_top__ = . ;
 
+		/* SVC_STACK */
 		. += SVC_STACK_SIZE;
 		. = ALIGN (4);
 		__svc_stack_top__ = . ;
 
+		/* ABT_STACK */
 		. += ABT_STACK_SIZE;
 		. = ALIGN (4);
 		__abt_stack_top__ = . ;
 
+		/* UND_STACK */
 		. += UND_STACK_SIZE;
 		. = ALIGN (4);
 		__und_stack_top__ = . ;
 
+		/* SYS_STACK */
 		. += SYS_STACK_SIZE;
 		. = ALIGN (4);
 		__sys_stack_top__ = . ;
