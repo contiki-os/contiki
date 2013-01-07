@@ -49,7 +49,7 @@
 
 #include "lib/sensors.h"
 #include "net/rime.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 
 #if WITH_SD
 #include "dev/sd.h"

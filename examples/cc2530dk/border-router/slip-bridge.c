@@ -57,7 +57,7 @@ static void
 slip_input_callback(void)
 {
   PRINTF("SIN: %u\n", uip_len);
-  if((char) uip_buf[0] == '!') {
+  if((char)uip_buf[0] == '!') {
     PRINTF("Got configuration message of type %c\n", uip_buf[1]);
     uip_len = 0;
     if((char)uip_buf[1] == 'P') {
@@ -75,8 +75,6 @@ slip_input_callback(void)
      packet back if no route is found */
   uip_ipaddr_copy(&last_sender, &UIP_IP_BUF->srcipaddr);
 }
-#include "debug.h"
-
 /*---------------------------------------------------------------------------*/
 static void
 init(void)

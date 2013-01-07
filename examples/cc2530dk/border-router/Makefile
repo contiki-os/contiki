@@ -1,3 +1,6 @@
+# To build for the cc2531 USB stick:
+DEFINES+=MODEL_CC2531=1,
+
 DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 
 # We need uIPv6, therefore we also need banking

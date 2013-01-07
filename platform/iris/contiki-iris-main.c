@@ -53,7 +53,7 @@
 
 #include "init-net.h"
 #include "dev/ds2401.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 
 /*---------------------------------------------------------------------------*/
 void

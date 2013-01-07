@@ -373,7 +373,7 @@ eventhandler(process_event_t ev, process_data_t data)
   register struct listenport *l;
 #endif /*UIP_TCP*/
   struct process *p;
-   
+
   switch(ev) {
     case PROCESS_EVENT_EXITED:
       /* This is the event we get if a process has exited. We go through
@@ -471,13 +471,13 @@ eventhandler(process_event_t ev, process_data_t data)
         }*/
 #if !UIP_CONF_ROUTER
         if(data == &uip_ds6_timer_rs &&
-           etimer_expired(&uip_ds6_timer_rs)){
+           etimer_expired(&uip_ds6_timer_rs)) {
           uip_ds6_send_rs();
           tcpip_ipv6_output();
         }
 #endif /* !UIP_CONF_ROUTER */
         if(data == &uip_ds6_timer_periodic &&
-           etimer_expired(&uip_ds6_timer_periodic)){
+           etimer_expired(&uip_ds6_timer_periodic)) {
           uip_ds6_periodic();
           tcpip_ipv6_output();
         }
@@ -586,6 +586,11 @@ tcpip_ipv6_output(void)
       } else {
 	nexthop = &locrt->nexthop;
       }
+#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+      if(nexthop != NULL) {
+	printf("#L %u 1; red\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+      }
+#endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
     }
     /* End of next hop determination */
 #if UIP_CONF_IPV6_RPL

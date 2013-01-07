@@ -149,6 +149,7 @@ static
 PT_THREAD(generate_routes(struct httpd_state *s))
 {
   static int i;
+  static uip_ds6_route_t *r;
   PSOCK_BEGIN(&s->sout);
 
   SEND_STRING(&s->sout, TOP);
@@ -169,19 +170,19 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   ADD("</pre>Routes<pre>");
   SEND_STRING(&s->sout, buf);
   blen = 0;
-  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].isused) {
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      ADD("/%u (via ", uip_ds6_routing_table[i].length);
-      ipaddr_add(&uip_ds6_routing_table[i].nexthop);
-      if(uip_ds6_routing_table[i].state.lifetime < 600) {
-        ADD(") %lus\n", (unsigned long)uip_ds6_routing_table[i].state.lifetime);
-      } else {
-        ADD(")\n");
-      }
-      SEND_STRING(&s->sout, buf);
-      blen = 0;
+  for(r = uip_ds6_route_list_head();
+      r != NULL;
+      r = list_item_next(r)) {
+    ipaddr_add(&r->ipaddr);
+    ADD("/%u (via ", r->length);
+    ipaddr_add(&r->nexthop);
+    if(r->state.lifetime < 600) {
+      ADD(") %lus\n", (unsigned long)r->state.lifetime);
+    } else {
+      ADD(")\n");
     }
+    SEND_STRING(&s->sout, buf);
+    blen = 0;
   }
   ADD("</pre>");
 //if(blen > 0) {

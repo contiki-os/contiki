@@ -42,7 +42,13 @@
 #define PROJECT_CONF_H_
 
 #define VIZTOOL_MAX_PAYLOAD_LEN 120
-#define SLIP_ARCH_CONF_ENABLE 1
 #define LPM_CONF_MODE 0
+
+/* Needed when building for the Smart RF. No effect in cc2531 USB builds */
+#define SLIP_ARCH_CONF_ENABLE 1
+
+/* Leave this alone when building for the cc2531 USB dongle.
+ * Has no effect when building for the SmartRF. */
+#define USB_SERIAL_CONF_BUFFERED 1
 
 #endif /* PROJECT_CONF_H_ */

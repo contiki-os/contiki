@@ -261,6 +261,7 @@ struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 /** single possible icmpv6 "connection" */
 struct uip_icmp6_conn uip_icmp6_conns;
 #endif /*UIP_CONF_ICMP6*/
+/** @} */
 
 /*---------------------------------------------------------------------------*/
 /* Functions                                                                 */
@@ -854,7 +855,7 @@ ext_hdr_options_process(void)
       case UIP_EXT_HDR_OPT_RPL:
         PRINTF("Processing RPL option\n");
         if(rpl_verify_header(uip_ext_opt_offset)) {
-          PRINTF("RPL Option Error : Dropping Packet");
+          PRINTF("RPL Option Error: Dropping Packet\n");
           return 1;
         }
         uip_ext_opt_offset += (UIP_EXT_HDR_OPT_RPL_BUF->opt_len) + 2;
@@ -1122,17 +1123,19 @@ uip_process(uint8_t flag)
   if(*uip_next_hdr == UIP_PROTO_HBHO) {
 #if UIP_CONF_IPV6_CHECKS
     uip_ext_bitmap |= UIP_EXT_HDR_BITMAP_HBHO;
-#endif /*UIP_CONF_IPV6_CHECKS*/
+#endif /* UIP_CONF_IPV6_CHECKS */
     switch(ext_hdr_options_process()) {
       case 0:
-        /*continue*/
+        /* continue */
         uip_next_hdr = &UIP_EXT_BUF->next;
         uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
         break;
       case 1:
-        /*silently discard*/
+	PRINTF("Dropping packet after extension header processing\n");
+        /* silently discard */
         goto drop;
       case 2:
+	PRINTF("Sending error message after extension header processing\n");
         /* send icmp error message (created in ext_hdr_options_process)
          * and discard*/
         goto send;
@@ -1447,6 +1450,11 @@ uip_process(uint8_t flag)
 #if UIP_UDP_CHECKSUMS
   uip_len = uip_len - UIP_IPUDPH_LEN;
   uip_appdata = &uip_buf[UIP_IPUDPH_LEN + UIP_LLH_LEN];
+  /* XXX hack: UDP/IPv6 receivers should drop packets with UDP
+     checksum 0. Here, we explicitly receive UDP packets with checksum
+     0. This is to be able to debug code that for one reason or
+     another miscomputes UDP checksums. The reception of zero UDP
+     checksums should be turned into a configration option. */
   if(UIP_UDP_BUF->udpchksum != 0 && uip_udpchksum() != 0xffff) {
     UIP_STAT(++uip_stat.udp.drop);
     UIP_STAT(++uip_stat.udp.chkerr);
@@ -2210,19 +2218,18 @@ uip_process(uint8_t flag)
   UIP_TCP_BUF->seqno[3] = uip_connr->snd_nxt[3];
 
   UIP_IP_BUF->proto = UIP_PROTO_TCP;
-  
+
   UIP_TCP_BUF->srcport  = uip_connr->lport;
   UIP_TCP_BUF->destport = uip_connr->rport;
 
-
   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &uip_connr->ripaddr);
-  uip_ds6_select_src(&UIP_IP_BUF->srcipaddr,&UIP_IP_BUF->destipaddr);
-  PRINTF("Sending TCP packet to");
+  uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+  PRINTF("Sending TCP packet to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("from");
+  PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
-      
+
   if(uip_connr->tcpstateflags & UIP_STOPPED) {
     /* If the connection has issued uip_stop(), we advertise a zero
        window so that the remote host will stop sending data. */

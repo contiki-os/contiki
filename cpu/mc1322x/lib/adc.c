@@ -34,9 +34,7 @@
  */
 
 #include <stdint.h>
-#include "crm.h"
-#include "adc.h"
-#include "gpio-util.h"
+#include "mc1322x.h"
 
 //#define ADC_CHANS_ENABLED 0x3F // channels 0-5 enabled
 //#define ADC_CHANS_ENABLED 0x7E // channels 1-6 enabled
@@ -73,9 +71,27 @@ void adc_service(void) {
 	}
 }
 
-void adc_init(void) {
-	uint8_t n;
+#define _adc_setup_chan(x) do { \
+	if ( channel == x ) { \
+            ADC->SEQ_1bits.CH##x = 1; \
+            GPIO->FUNC_SEL.ADC##x = 1; \
+	    GPIO->PAD_DIR.ADC##x = 0; \
+	    GPIO->PAD_KEEP.ADC##x = 0; \
+            GPIO->PAD_PU_EN.ADC##x = 0; \
+}} while (0)
 
+void adc_setup_chan(uint8_t channel) {
+	_adc_setup_chan(0);
+	_adc_setup_chan(1);
+	_adc_setup_chan(2);
+	_adc_setup_chan(3);
+	_adc_setup_chan(4);
+	_adc_setup_chan(5);
+	_adc_setup_chan(6);
+	_adc_setup_chan(7);
+}
+
+void adc_init(void) {
 	ADC->CLOCK_DIVIDER = 80;       // 300 KHz
 	ADC->PRESCALE      = ADC_PRESCALE_VALUE - 1;       // divide by 24 for 1MHz.
 
@@ -114,13 +130,13 @@ void adc_init(void) {
 	ADC->SR_1_LOW        = (REF_OSC / ADC_PRESCALE_VALUE) / (115200 / 8) + 1;
 #endif
 
-	ADC->SEQ_1         = 0
+	ADC->SEQ_1         = 0;
 #if ADC_USE_TIMER
-		| (1 << 15) // sequence based on Timer 1.
+		ADC->SEQ_1bits.SEQ_MODE = 1; // sequence based on Timer 1
 #else
-		| (0 << 15) // sequence based on convert time.
+		ADC->SEQ_1bits.SEQ_MODE = 0; // sequence based on convert time.
 #endif
-		| ADC_CHANS_ENABLED;
+	ADC->SEQ_1bits.BATT = 1;
 
 	ADC->CONTROL       = 0xF001
 //#if ADC_USE_TIMER
@@ -129,10 +145,4 @@ void adc_init(void) {
 	;
 	ADC->OVERRIDE     = (1 << 8);
 
-	for (n=0; n<=8; n++) {
-		if ((ADC_CHANS_ENABLED >> n) & 1) {
-			gpio_select_function(30 + n, 1); // Function 1 = ADC
-			gpio_set_pad_dir(30 + n, PAD_DIR_INPUT);
-		}
-	}
 }

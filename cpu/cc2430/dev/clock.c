@@ -98,14 +98,14 @@ clock_init(void)
   CLKCON = OSC32K | TICKSPD2 | TICKSPD1; /* tickspeed 500 kHz for timers[1-4] */
 
   /* Initialize tick value */
-  timer_value = ST0;                              /* ST low bits [7:0] */
-  timer_value += ((unsigned long int) ST1) << 8;  /* middle bits [15:8] */
-  timer_value += ((unsigned long int) ST2) << 16; /*   high bits [23:16] */
-  timer_value += TICK_VAL;                        /* Init value 256 */
-  ST2 = (unsigned char) (timer_value >> 16);
-  ST1 = (unsigned char) (timer_value >> 8);
-  ST0 = (unsigned char) timer_value;
-  
+  timer_value = ST0;                             /* ST low bits [7:0] */
+  timer_value += ((unsigned long int)ST1) << 8;  /* middle bits [15:8] */
+  timer_value += ((unsigned long int)ST2) << 16; /*   high bits [23:16] */
+  timer_value += TICK_VAL;                       /* Init value 256 */
+  ST2 = (unsigned char)(timer_value >> 16);
+  ST1 = (unsigned char)(timer_value >> 8);
+  ST0 = (unsigned char)timer_value;
+
   IEN0_STIE = 1; /* IEN0.STIE acknowledge Sleep Timer Interrupt */
 }
 /*---------------------------------------------------------------------------*/
@@ -131,15 +131,15 @@ clock_ISR(void) __interrupt(ST_VECTOR)
    * Next interrupt occurs after the current time + TICK_VAL
    */
   timer_value = ST0;
-  timer_value += ((unsigned long int) ST1) << 8;
-  timer_value += ((unsigned long int) ST2) << 16;
+  timer_value += ((unsigned long int)ST1) << 8;
+  timer_value += ((unsigned long int)ST2) << 16;
   timer_value += TICK_VAL;
-  ST2 = (unsigned char) (timer_value >> 16);
-  ST1 = (unsigned char) (timer_value >> 8);
-  ST0 = (unsigned char) timer_value;
-  
+  ST2 = (unsigned char)(timer_value >> 16);
+  ST1 = (unsigned char)(timer_value >> 8);
+  ST0 = (unsigned char)timer_value;
+
   ++count;
-  
+
   /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
      that the modulo operation below becomes a logical and and not
      an expensive divide. Algorithm from Wikipedia:
@@ -160,7 +160,7 @@ clock_ISR(void) __interrupt(ST_VECTOR)
     etimer_request_poll();
   }
 #endif
-  
+
   IRCON_STIF = 0;
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
   ENABLE_INTERRUPTS();

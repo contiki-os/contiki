@@ -46,7 +46,7 @@
 void main(void) {	
 	volatile uint32_t i;
 
-	uart1_init(INC,MOD,SAMP);
+	uart_init(UART1, 115200);
 
 	printf("reset\n\r");
 

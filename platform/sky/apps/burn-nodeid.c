@@ -39,7 +39,7 @@
 
 #include "dev/leds.h"
 #include "dev/watchdog.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "contiki.h"
 #include "sys/etimer.h"
 

@@ -3,21 +3,25 @@ CONTIKI_CPU_DIRS = . net
 CONTIKI_SOURCEFILES += mtarch.c rtimer-arch.c elfloader-stub.c watchdog.c
 
 ### Compiler definitions
-CC       = gcc
-LD       = gcc
-AS       = as
-NM       = nm
-OBJCOPY  = objcopy
-STRIP    = strip
+CC       ?= gcc
+ifdef LD_OVERRIDE
+  LD     = $(LD_OVERRIDE)
+else
+  LD     = gcc
+endif
+AS       ?= as
+NM       ?= nm
+OBJCOPY  ?= objcopy
+STRIP    ?= strip
 ifdef WERROR
 CFLAGSWERROR=-Werror -pedantic -std=c99 -Werror
 endif
 CFLAGSNO = -Wall -g -I/usr/local/include $(CFLAGSWERROR)
 CFLAGS  += $(CFLAGSNO) -O
 ifeq ($(HOST_OS),Linux)
-  LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
+  LDFLAGS  += -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 else
-  LDFLAGS  = -Wl
+  LDFLAGS  += -Wl
 endif
 
 ### Compilation rules

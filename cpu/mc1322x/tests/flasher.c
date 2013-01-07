@@ -84,8 +84,8 @@ void main(void) {
 	volatile uint32_t state = SCAN_X;
 	volatile uint32_t addr,data;
 
+	uart_init(UART1, 115200);
 
-	uart_init(INC, MOD, SAMP);
 	disable_irq(UART1);
 
 	vreg_init();

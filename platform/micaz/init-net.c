@@ -51,7 +51,7 @@
 #include "net/mac/frame802154.h"
 
 #include "dev/ds2401.h"
-#include "node-id.h"
+#include "sys/node-id.h"
 
 #if WITH_UIP6
 #include "net/uip-ds6.h"

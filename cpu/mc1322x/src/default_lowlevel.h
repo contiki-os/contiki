@@ -41,8 +41,8 @@
 #define trim_xtal() pack_XTAL_CNTL(CTUNE_4PF, CTUNE, FTUNE, IBIAS)
 
 void default_vreg_init(void);
-void uart1_init(uint16_t inc, uint16_t mod, uint8_t samp);
-void uart2_init(uint16_t inc, uint16_t mod, uint8_t samp);
+void buck_init(void);
+void m12_init(void);
 
 void irq_register_timer_handler(int timer, void (*isr)(void));
 

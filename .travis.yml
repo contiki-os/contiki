@@ -1,0 +1,49 @@
+language: c #NOTE: this will set CC=gcc which might cause trouble
+before_script:
+  - "sudo apt-get -qq update"
+  ## Install these mainline toolchains for all build types
+  - "sudo apt-get -qq install gcc-msp430 || true"
+  - "sudo apt-get -qq install gcc-avr avr-libc || true"
+  - "sudo apt-get -qq install srecord || true"
+  ## Install toolchain for mc1233x in care-free way
+  - "[ $BUILD_TYPE = compile ] && curl -s \
+       https://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
+         | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version || true"
+  ## Install SDCC from a purpose-built bundle
+  - "[ $BUILD_TYPE = compile ] && curl -s \
+       https://raw.github.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc-r7100.tar.gz \
+         | tar xzf - -C /tmp/ && sudo cp -f -r /tmp/sdcc-r7100/* /usr/local/ && rm -rf /tmp/sdcc-r7100 && sdcc --version || true"
+
+  ## Compile cooja.jar only when it's going to be needed
+  - "[ $MAKE_TARGETS = cooja ] && java -version && ant -q -f tools/cooja/build.xml jar || true"
+
+  ## IMPORTANT: The commands here have to end with `|| true`,
+  ## because it would make the test fail if BUILD_TYPE test fails
+
+script:
+  ## The makefile called `.travis.mk` handles most of generic logic
+  - "make -C regression-tests/??-$BUILD_TYPE RUNALL=true summary"
+
+after_script:
+  ## Print a basic summary 
+  - "echo 'Summary:'; cat regression-tests/??-$BUILD_TYPE/summary"
+  - "FAILS=`grep -c -i 'fail' regression-tests/??-$BUILD_TYPE/summary`"
+  ## This will detect whether the build should pass or fail
+  - "test $FAILS -eq 0; exit $?"
+
+
+env:
+  ## This magically kick-off parallel jobs for each of the for the sets
+  ## of environment variable defined below
+  - BUILD_TYPE='compile'
+  - BUILD_TYPE='collect' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='rpl' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='rime' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='ipv6' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='hello-world' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='base' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='shell' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='elfloader' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='ipv4' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='ipv6-apps' MAKE_TARGETS='cooja'

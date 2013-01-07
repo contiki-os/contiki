@@ -88,13 +88,13 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver stub_rdc_driver = {
-    "stub-rdc",
-    init,
-    send,
-    send_list,
-    input,
-    on,
-    off,
-    cca,
+  "stub-rdc",
+  init,
+  send,
+  send_list,
+  input,
+  on,
+  off,
+  cca,
 };
 /*---------------------------------------------------------------------------*/

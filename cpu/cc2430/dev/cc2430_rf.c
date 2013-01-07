@@ -263,7 +263,7 @@ cc2430_rf_set_addr(unsigned pan, unsigned addr, const uint8_t *ieee_addr)
   if(ieee_addr != NULL) {
     ptr = &IEEE_ADDR7;
       /* LSB first, MSB last for 802.15.4 addresses in CC2420 */
-    for (f = 0; f < 8; f++) {
+    for(f = 0; f < 8; f++) {
       *ptr-- = ieee_addr[f];
     }
   }
@@ -396,10 +396,10 @@ prepare(const void *payload, unsigned short payload_len)
   PRINTF("cc2430_rf: data = ");
   /* Send the phy length byte first */
   RFD = payload_len + CHECKSUM_LEN; /* Payload plus FCS */
-  PRINTF("(%d)", payload_len+CHECKSUM_LEN);
+  PRINTF("(%d)", payload_len + CHECKSUM_LEN);
   for(i = 0; i < payload_len; i++) {
-    RFD = ((unsigned char*) (payload))[i];
-    PRINTF("%02X", ((unsigned char*)(payload))[i]);
+    RFD = ((unsigned char *)(payload))[i];
+    PRINTF("%02X", ((unsigned char *)(payload))[i]);
   }
   PRINTF("\n");
 
@@ -460,7 +460,7 @@ transmit(unsigned short transmit_len)
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
-  if(rf_flags & WAS_OFF){
+  if(rf_flags & WAS_OFF) {
     off();
   }
 
@@ -510,7 +510,7 @@ read(void *buf, unsigned short bufsize)
   }
 
   if(len <= CC2430_MIN_PACKET_LEN) {
-  PRINTF("error: too short\n");
+    PRINTF("error: too short\n");
 
     RIMESTATS_ADD(tooshort);
     flush_rx();
@@ -518,7 +518,7 @@ read(void *buf, unsigned short bufsize)
   }
 
   if(len - CHECKSUM_LEN > bufsize) {
-  PRINTF("error: too long\n");
+    PRINTF("error: too long\n");
 
     RIMESTATS_ADD(toolong);
     flush_rx();
@@ -538,11 +538,11 @@ read(void *buf, unsigned short bufsize)
   PRINTF("(%d)", len);
   len -= CHECKSUM_LEN;
   for(i = 0; i < len; ++i) {
-      ((unsigned char*)(buf))[i] = RFD;
+    ((unsigned char *)(buf))[i] = RFD;
 #if CC2430_RF_CONF_HEXDUMP
-      uart1_writeb(((unsigned char*)(buf))[i]);
+    uart1_writeb(((unsigned char *)(buf))[i]);
 #endif
-      PRINTF("%02X", ((unsigned char*)(buf))[i]);
+    PRINTF("%02X", ((unsigned char *)(buf))[i]);
   }
   PRINTF("\n");
 
@@ -570,17 +570,17 @@ read(void *buf, unsigned short bufsize)
     RIMESTATS_ADD(badcrc);
     flush_rx();
     return 0;
-}
+  }
 
   /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
   if((RFSTATUS & (FIFO | FIFOP)) == FIFOP) {
     /*
      * If we reach here means that there might be more intact packets in the
      * FIFO despite the overflow. This can happen with bursts of small packets.
- *
+     *
      * Only flush if the FIFO is actually empty. If not, then next pass we will
      * pick up one more packet or flush due to an error.
- */
+     */
     if(!RXFIFOCNT) {
       flush_rx();
     }
@@ -646,14 +646,14 @@ on(void)
     RSSIH = 0xd2; /* -84dbm = 0xd2 default, 0xe0 -70 dbm */
 
     RFPWR &= ~RREG_RADIO_PD; /* make sure it's powered */
-    while ((RFIF & IRQ_RREG_ON) == 0); /* wait for power up */
+    while((RFIF & IRQ_RREG_ON) == 0);   /* wait for power up */
 
     /* Make sure the RREG On Interrupt Flag is 0 next time we get called */
     RFIF &= ~IRQ_RREG_ON;
 
     cc2430_rf_command(ISRXON);
     cc2430_rf_command(ISFLUSHRX);
-    while (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
+    while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
 
   }
   PRINTF("cc2430_rf_rx_enable done\n");
@@ -686,18 +686,17 @@ off(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-const struct radio_driver cc2430_rf_driver =
-{
-    init,
-    prepare,
-    transmit,
-    send,
-    read,
-    channel_clear,
-    receiving_packet,
-    pending_packet,
-    on,
-    off,
+const struct radio_driver cc2430_rf_driver = {
+  init,
+  prepare,
+  transmit,
+  send,
+  read,
+  channel_clear,
+  receiving_packet,
+  pending_packet,
+  on,
+  off,
 };
 /*---------------------------------------------------------------------------*/
 #if !NETSTACK_CONF_SHORTCUTS

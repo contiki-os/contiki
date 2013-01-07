@@ -65,6 +65,7 @@
  *  2: P1_1 (Green - active: low)
  */
 #if MODEL_CC2531
+#define MODEL_STRING "TI cc2531 USB Dongle\n"
 #define USB_CONF_ENABLE 1
 
 /* Enabled the ISR for Interrupt Num 6 */
@@ -93,6 +94,7 @@
 #define LED2_MASK  0x01
 #define LED1_MASK  0x02
 #else
+#define MODEL_STRING "TI SmartRF05 EB\n"
 #define LEDS_GREEN    1
 #define LEDS_RED      2
 

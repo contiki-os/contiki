@@ -57,6 +57,6 @@
 
 #define rtimer_arch_now() ((rtimer_clock_t)(T1CNTL + (T1CNTH << 8)))
 
-void cc2430_timer_1_ISR(void) __interrupt (T1_VECTOR);
+void cc2430_timer_1_ISR(void) __interrupt(T1_VECTOR);
 
 #endif /* __RTIMER_ARCH_H__ */

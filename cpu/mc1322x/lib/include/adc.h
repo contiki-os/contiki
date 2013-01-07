@@ -39,6 +39,21 @@
 #include <stdint.h>
 #include "utils.h"
 
+/* the Vbatt measurment reads about 200mV low --- trim by ADC_VBATT_TRIM */
+/* correction tracks well --- within 50mV over 2.1V to 3.6V */
+/* offset from correct for tags running from 3.29 vreg */
+/* trim = 146 */
+/* tag 1: -90mV */
+/* tag 2: -30mV */
+/* tag 3: -30mV */
+/* tag 4: -40mV */
+/* tag 5: +10mV */
+/* tag 6: -40mV */
+/* new trim 183 */
+
+/* without per unit calibration, vbatt is probably +/- 75mV */
+#define ADC_VBATT_TRIM 183
+
 /* ADC registers are all 16-bit wide with 16-bit access only */
 #define ADC_BASE        (0x8000D000)
 
@@ -98,7 +113,7 @@ struct ADC_struct {
 			uint16_t TIMER1_ON:1;
 			uint16_t TIMER2_ON:1;
 			uint16_t SOFT_RESET:1;
-			uint16_t AD1_FREFHL_EN:1;
+			uint16_t AD1_VREFHL_EN:1;
 			uint16_t AD2_VREFHL_EN:1;
 			uint16_t :6;
 			uint16_t COMPARE_IRQ_MASK:1;
@@ -153,8 +168,14 @@ static volatile struct ADC_struct * const ADC = (void *) (ADC_BASE);
 #define adc_enable()  (ADC->CONTROLbits.ON = 1)
 #define adc_disable() (ADC->CONTROLbits.ON = 0)
 #define adc_select_channels(chans) (ADC->SEQ_1 = (ADC->SEQ_1 & 0xFE00) | chans)
+void adc_setup_chan(uint8_t channel);
 
 extern uint16_t adc_reading[NUM_ADC_CHAN];
+/* use the internal reference to return adc_readings in mV */
+#define adc_voltage(x) (adc_reading[x] * 1200/adc_reading[8]) 
+/* return vbatt voltage in mV */
+#define adc_vbatt 4095 * 1200/adc_reading[8] + ADC_VBATT_TRIM
+
 void ADC_flush(void);
 uint16_t ADC_READ(void);
 void read_scanners(void);

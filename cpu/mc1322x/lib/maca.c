@@ -96,6 +96,7 @@ volatile packet_t *rx_head, *tx_head;
 /* used for ack recpetion if the packet_pool goes empty */
 /* doesn't go back into the pool when freed */
 static volatile packet_t dummy_ack;
+static volatile packet_t dummy_rx;
 
 /* incremented on every maca entry */
 /* you can use this to detect that the receive loop is still running */
@@ -359,6 +360,7 @@ void post_receive(void) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0) {
 			PRINTF("trying to fill MACA_DMARX in post_receieve but out of packet buffers\n\r");		
+			dma_rx = &dummy_rx;
 			/* set the sftclock so that we return to the maca_isr */
 			*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
 			*MACA_TMREN = (1 << maca_tmren_sft);
@@ -559,7 +561,8 @@ void insert_at_rx_head(volatile packet_t *p) {
 	} else {
 		rx_head->right = p;
 		p->left = rx_head;
-		rx_head = p; rx_head->left = 0;
+		p->right = 0;
+		rx_head = p;
 	}
 
 //	print_packets("insert at rx head");
@@ -651,21 +654,25 @@ void maca_isr(void) {
 
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
-		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
-		dma_rx->lqi = get_lqi();
-		dma_rx->rx_time = *MACA_TIMESTAMP;
 
-		/* check if received packet needs an ack */
-		if(prm_mode == AUTOACK && (dma_rx->data[1] & MAC_ACK_REQUEST_FLAG)) {
-			/* this wait is necessary to auto-ack */
-			volatile uint32_t wait_clk;
-			wait_clk = *MACA_CLK + 200;
-			while(*MACA_CLK < wait_clk) { continue; }
+		if (dma_rx != &dummy_ack && dma_rx != &dummy_rx)
+		{
+			dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
+			dma_rx->lqi = get_lqi();
+			dma_rx->rx_time = *MACA_TIMESTAMP;
+
+			/* check if received packet needs an ack */
+			if(prm_mode == AUTOACK && (dma_rx->data[1] & 0x20)) {
+				/* this wait is necessary to auto-ack */
+				volatile uint32_t wait_clk;
+				wait_clk = *MACA_CLK + 200;
+				while(*MACA_CLK < wait_clk) { continue; }
+			}
+
+			if(maca_rx_callback != 0) { maca_rx_callback(dma_rx); }
+
+			add_to_rx(dma_rx);
 		}
-
-		if(maca_rx_callback != 0) { maca_rx_callback(dma_rx); }
-
-		add_to_rx(dma_rx);
 		dma_rx = 0;
 	}
 	if (filter_failed_irq()) {
@@ -932,7 +939,9 @@ void radio_init(void) {
 	volatile uint32_t i;
 	/* sequence 1 */
 	for(i=0; i<MAX_SEQ1; i++) {
-		*(volatile uint32_t *)(addr_seq1[i]) = data_seq1[i];
+		if((unsigned int)addr_seq1[i] != (unsigned int)CRM_VREG_CNTL) {
+			*(volatile uint32_t *)(addr_seq1[i]) = data_seq1[i];
+		}
 	}
 	/* seq 1 delay */
 	for(i=0; i<0x161a8; i++) { continue; }
@@ -960,7 +969,9 @@ void radio_init(void) {
 	}
 	/* cal 5 */
 	for(i=0; i<MAX_CAL5; i++) {
-		*(volatile uint32_t *)(addr_cal5[i]) = data_cal5[i];
+		if((unsigned int)addr_cal5[i] != (unsigned int)CRM_VREG_CNTL) {
+			*(volatile uint32_t *)(addr_cal5[i]) = data_cal5[i];
+		}
 	}
 	/*reg replacment */
 	for(i=0; i<MAX_DATA; i++) {
@@ -968,12 +979,6 @@ void radio_init(void) {
 	}
 	
 	PRINTF("initfromflash\n\r");
-
-	*(volatile uint32_t *)(0x80003048) = 0x00000f04; /* bypass the buck */
-	for(i=0; i<0x161a8; i++) { continue; } /* wait for the bypass to take */
-//	while((((*(volatile uint32_t *)(0x80003018))>>17) & 1) !=1) { continue; } /* wait for the bypass to take */
-	*(volatile uint32_t *)(0x80003048) = 0x00000fa4; /* start the regulators */
-	for(i=0; i<0x161a8; i++) { continue; } /* wait for the bypass to take */
 
 	init_from_flash(0x1F000);
 
@@ -1203,7 +1208,11 @@ uint32_t exec_init_entry(volatile uint32_t *entries, uint8_t *valbuf)
 		PRINTF("init_entry: address value pair - *0x%08x = 0x%08x\n\r",
 		       (unsigned int)entries[0],
 		       (unsigned int)entries[1]);
-		reg(entries[0]) = entries[1];
+		if ((unsigned int)entries[0] !=  (unsigned int)CRM_VREG_CNTL) {
+			reg(entries[0]) = entries[1];
+		} else {
+			PRINTF("skipping VREG_CNTL\n\r");
+		}
 		return 2;
 	}
 }

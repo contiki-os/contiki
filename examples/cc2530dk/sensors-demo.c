@@ -91,7 +91,7 @@ PROCESS_THREAD(buttons_test_process, ev, data)
 
   PROCESS_BEGIN();
 
-  while (1) {
+  while(1) {
 
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
 
@@ -113,7 +113,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
 
   /* Sensor Values */
   static int rv;
-  static struct sensors_sensor * sensor;
+  static struct sensors_sensor *sensor;
   static float sane = 0;
   static int dec;
   static float frac;
@@ -127,7 +127,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
   /* Set an etimer. We take sensor readings when it expires and reset it. */
   etimer_set(&et, CLOCK_SECOND * 2);
 
-  while (1) {
+  while(1) {
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
@@ -136,7 +136,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
      * Return value -1 means sensor not available or turned off in conf
      */
     sensor = sensors_find(ADC_SENSOR);
-    if (sensor) {
+    if(sensor) {
       PRINTF("------------------\n");
       leds_on(LEDS_RED);
       /*
@@ -189,5 +189,5 @@ PROCESS_THREAD(sensors_test_process, ev, data)
     etimer_reset(&et);
   }
   PROCESS_END();
- }
+}
 /*---------------------------------------------------------------------------*/

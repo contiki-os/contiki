@@ -31,9 +31,10 @@
  * @(#)$$
  */
 
-#include "node-id.h"
+#include "contiki-conf.h"
+#include "sys/node-id.h"
 
-uint16_t node_id = 0;
+unsigned short node_id = 0;
 
 /*---------------------------------------------------------------------------*/
 void
@@ -50,7 +51,7 @@ node_id_restore(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-node_id_burn(uint16_t id)
+node_id_burn(unsigned short id)
 {
   uint16_t buffer[2] = { 0xdead, id };
   uint8_t volatile sreg;
