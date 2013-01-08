@@ -29,6 +29,7 @@
  *
  * This file is part of the Contiki desktop environment 
  *
+ * $Id: htmlparser.c,v 1.8 2007/11/30 21:53:50 oliverschmidt Exp $
  *
  */
 
@@ -225,7 +226,12 @@ static const char *tags[] = {
   html_style,
 #define TAG_TR         24   
   html_tr,
-#define TAG_LAST       25
+/* more tags added on 26 Dec 12 by D. Finnigan */
+#define TAG_DT         25
+  html_dt,
+#define TAG_DD         26
+  html_dd,
+#define TAG_LAST       27
   last,
 };
 
@@ -371,6 +377,8 @@ parse_tag(void)
   case TAG_H2:
   case TAG_H3:
   case TAG_H4:
+  case TAG_DT:
+  case TAG_DD:
     /*    parse_char(ISO_nl);*/
     newline();
     /* FALLTHROUGH */

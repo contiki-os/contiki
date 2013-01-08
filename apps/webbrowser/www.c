@@ -29,10 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
+ * $Id: www.c,v 1.14 2010/07/21 21:03:06 oliverschmidt Exp $
  *
  */
 
 #include <string.h>
+#include <stdlib.h> /*for atoi*/
 
 #include "ctk/ctk.h"
 #include "lib/ctk-textentry-cmdline.h"
@@ -73,13 +75,13 @@ static struct ctk_window mainwindow;
 static struct ctk_button backbutton =
   {CTK_BUTTON(0, 0, 4, "Back")};
 static struct ctk_button downbutton =
-  {CTK_BUTTON(10, 0, 4, "Down")};
+  {CTK_BUTTON(8, 0, 4, "Down")};
 #else /* WWW_CONF_HISTORY_SIZE > 0 */
 static struct ctk_button downbutton =
   {CTK_BUTTON(0, 0, 4, "Down")};
 #endif /* WWW_CONF_HISTORY_SIZE > 0 */
 static struct ctk_button stopbutton =
-  {CTK_BUTTON(WWW_CONF_WEBPAGE_WIDTH - 16, 0, 4, "Stop")};
+  {CTK_BUTTON(WWW_CONF_WEBPAGE_WIDTH - 12, 0, 4, "Stop")};
 static struct ctk_button gobutton =
   {CTK_BUTTON(WWW_CONF_WEBPAGE_WIDTH - 4, 0, 2, "Go")};
 
@@ -94,13 +96,10 @@ static struct ctk_label webpagelabel =
   {CTK_LABEL(0, 3, WWW_CONF_WEBPAGE_WIDTH,
 	     WWW_CONF_WEBPAGE_HEIGHT, webpage)};
 
-static char statustexturl[WWW_CONF_WEBPAGE_WIDTH];
+static char statustexturl[WWW_CONF_STATUSBAR_WIDTH];
 static struct ctk_label statustext =
-  {CTK_LABEL(0, WWW_CONF_WEBPAGE_HEIGHT + 4,
-	     WWW_CONF_WEBPAGE_WIDTH, 1, "")};
-static struct ctk_separator sep2 =
-  {CTK_SEPARATOR(0, WWW_CONF_WEBPAGE_HEIGHT + 3,
-		 WWW_CONF_WEBPAGE_WIDTH)};
+  {CTK_LABEL(16, 0,
+	     WWW_CONF_STATUSBAR_WIDTH, 1, "")};
 
 #if WWW_CONF_WITH_WGET
 static struct ctk_window wgetdialog;
@@ -192,7 +191,6 @@ make_window(void)
   CTK_WIDGET_ADD(&mainwindow, &sep1);
   CTK_WIDGET_ADD(&mainwindow, &webpagelabel);
   CTK_WIDGET_SET_FLAG(&webpagelabel, CTK_WIDGET_FLAG_MONOSPACE);
-  CTK_WIDGET_ADD(&mainwindow, &sep2);
   CTK_WIDGET_ADD(&mainwindow, &statustext);
 
   pagewidgetptr = 0;
@@ -255,6 +253,7 @@ open_url(void)
 {
   unsigned char i;
   static char host[32];
+  static u16_t port;
   char *file;
   register char *urlptr;
   static uip_ipaddr_t addr;
@@ -294,9 +293,27 @@ open_url(void)
     ++urlptr;
   }
 
-  /* XXX: Here we should find the port part of the URL, but this isn't
-     currently done because of laziness from the programmer's side
-     :-) */
+  /* Find the port part of the URL.
+     http://example.com:9999
+     Written by D. Finnigan on 26 Dec 12 */
+	
+  if(*urlptr == ':') { /* Was a port given? */
+    static char portstr[5]; /* allow 5 digit port plus null char */
+    ++urlptr; /* move past colon */
+		
+    for(i = 0; i < 5; ++i) {
+      if(*urlptr == 0 ||
+         *urlptr == '/' ||
+         *urlptr == ' ') {
+        break;
+      }
+      portstr[i] = *urlptr;
+      ++urlptr;
+    }	
+    port = atoi(portstr);
+  } else {
+    port = 80; /* No, so default to port 80 */
+  }
   
   /* Find file part of the URL. */
   while(*urlptr != '/' && *urlptr != 0) {
@@ -325,9 +342,11 @@ open_url(void)
   /* The hostname we present in the hostname table, so we send out the
      initial GET request. */
   if(webclient_get(host, 80, file) == 0) {
-    show_statustext("Out of memory error.");
+    show_statustext("Could not send GET request; out of memory error.");
   } else {
-    show_statustext("Connecting...");
+    static char connect_port[30];
+    sprintf(connect_port, "Connecting to port %d...", port);
+    show_statustext(connect_port);
   }
   redraw_window();
 }
@@ -476,7 +495,7 @@ PROCESS_THREAD(www_process, ev, data)
 	CTK_WIDGET_FOCUS(&mainwindow, &backbutton);
 #endif /* WWW_CONF_HISTORY_SIZE > 0 */
       } else if(w == (struct ctk_widget *)&downbutton) {
-	firsty = pagey + WWW_CONF_WEBPAGE_HEIGHT - 4;
+	firsty = pagey + WWW_CONF_WEBPAGE_HEIGHT - 3;
 	start_loading();
 	open_url();
 	CTK_WIDGET_FOCUS(&mainwindow, &downbutton);
@@ -565,6 +584,12 @@ set_url(char *host, uint16_t port, char *file)
     urlptr = url + 7;
     strcpy(urlptr, host);
     urlptr += strlen(host);
+    if(port != 80) { /* add on port */
+      static char portstr[6];
+      sprintf(portstr, ":%d", port);
+      strcpy(urlptr, portstr);
+      urlptr += strlen(portstr);
+    }
     strcpy(urlptr, file);
   }
 

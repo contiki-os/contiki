@@ -106,3 +106,9 @@ const char html_size[6] =
 const char html_image[7] = 
 /* "image\0" */
 {0x69, 0x6d, 0x61, 0x67, 0x65, 00, };
+const char html_dt[4] = 
+/* "dt\0" */
+{0x64, 0x74, 00, };
+const char html_dd[4] = 
+/* "dd\0" */
+{0x64, 0x64, 00, };
