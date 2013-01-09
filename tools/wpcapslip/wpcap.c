@@ -150,7 +150,7 @@ struct arp_entry {
   struct uip_eth_addr ethaddr;
   uint8_t time;
 };
-static struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
+static struct uip_eth_addr uip_lladdr = {{0,0,0,0,0,0}};
 static const uip_ipaddr_t all_zeroes_addr = { { 0x0, /* rest is 0 */ } };
 static const struct uip_eth_addr broadcast_ethaddr =
   {{0xff,0xff,0xff,0xff,0xff,0xff}};
@@ -224,7 +224,7 @@ init_pcap(struct in_addr addr)
 static void
 setethaddr(struct uip_eth_addr *a)
 {
-  memcpy(&uip_ethaddr, a, sizeof(struct uip_eth_addr));
+  memcpy(&uip_lladdr, a, sizeof(struct uip_eth_addr));
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -439,8 +439,8 @@ arp_out(struct ethip_hdr *iphdr, int len)
 
       memset(arphdr->ethhdr.dest.addr, 0xff, 6);
       memset(arphdr->dhwaddr.addr, 0x00, 6);
-      memcpy(arphdr->ethhdr.src.addr, uip_ethaddr.addr, 6);
-      memcpy(arphdr->shwaddr.addr, uip_ethaddr.addr, 6);
+      memcpy(arphdr->ethhdr.src.addr, uip_lladdr.addr, 6);
+      memcpy(arphdr->shwaddr.addr, uip_lladdr.addr, 6);
     
       uip_ipaddr_copy(&arphdr->dipaddr, &ipaddr);
       uip_ipaddr_copy(&arphdr->sipaddr, &netaddr);
@@ -460,7 +460,7 @@ arp_out(struct ethip_hdr *iphdr, int len)
     memcpy(iphdr->ethhdr.dest.addr, tabptr->ethaddr.addr, 6);
     }
 #endif /* 0 */
-  memcpy(iphdr->ethhdr.src.addr, uip_ethaddr.addr, 6);
+  memcpy(iphdr->ethhdr.src.addr, uip_lladdr.addr, 6);
 
   iphdr->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_IP);
 
@@ -489,8 +489,8 @@ do_arp(void *buf, int len)
 	hdr->opcode = UIP_HTONS(ARP_REPLY);
 	
 	memcpy(&hdr->dhwaddr.addr, &hdr->shwaddr.addr, 6);
-	memcpy(&hdr->shwaddr.addr, &uip_ethaddr.addr, 6);
-	memcpy(&hdr->ethhdr.src.addr, &uip_ethaddr.addr, 6);
+	memcpy(&hdr->shwaddr.addr, &uip_lladdr.addr, 6);
+	memcpy(&hdr->ethhdr.src.addr, &uip_lladdr.addr, 6);
 	memcpy(&hdr->ethhdr.dest.addr, &hdr->dhwaddr.addr, 6);
 	
 	uip_ipaddr_copy(&tmpaddr, &hdr->dipaddr);
