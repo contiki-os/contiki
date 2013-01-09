@@ -202,7 +202,7 @@ PROCESS_THREAD(ipconfig_process, ev, data)
   /* Allow resolver to set DNS server address. */
   PROCESS_PAUSE();
 
-  dhcpc_init(uip_ethaddr.addr, sizeof(uip_ethaddr.addr));
+  dhcpc_init(uip_lladdr.addr, sizeof(uip_lladdr.addr));
 
   while(1) {
     PROCESS_WAIT_EVENT();
