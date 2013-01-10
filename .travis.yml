@@ -1,3 +1,5 @@
+notifications:
+  email: false
 language: c #NOTE: this will set CC=gcc which might cause trouble
 before_script:
   - "sudo apt-get -qq update"
