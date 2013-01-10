@@ -60,7 +60,7 @@ SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c \
           timetable.c timetable-aggregate.c compower.c serial-line.c
 THREADS = mt.c
 LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c \
-          print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c
+          print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c settings.c
 DEV     = nullradio.c
 NET     = netstack.c uip-debug.c packetbuf.c queuebuf.c packetqueue.c
 

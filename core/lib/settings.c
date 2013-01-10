@@ -67,7 +67,6 @@
 */
 
 #include <stdbool.h>
-#include <avr/io.h>
 #include "settings.h"
 
 #include "contiki.h"
@@ -75,31 +74,25 @@
 
 #include <stdio.h>
 
-#if __AVR__
-#include <avr/pgmspace.h>
-#include <avr/eeprom.h>
-#include <avr/wdt.h>
-#endif
+#if CONTIKI_CONF_SETTINGS_MANAGER
 
 #ifndef MIN
+#ifdef __SDCC
+#define MIN(a,b) ((a)<(b)?a:b)
+#else
 #define MIN(a,b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
+#endif
 #endif
 
 #ifndef SETTINGS_TOP_ADDR
 //! Defaults to end of EEPROM, minus 4 bytes for avrdude erase count
-#define SETTINGS_TOP_ADDR	(settings_iter_t)(E2END-4)
+#define SETTINGS_TOP_ADDR	(settings_iter_t)(EEPROM_END_ADDR-4)
 #endif
 
 #ifndef SETTINGS_MAX_SIZE
 #define SETTINGS_MAX_SIZE	(1024)	//!< Defaults to 1KB
 #endif
 
-/** This macro will protect the following code from interrupts.*/
-#define AVR_ENTER_CRITICAL_REGION( ) {uint8_t volatile saved_sreg = SREG; cli( )
-
-/** This macro must always be used in conjunction with AVR_ENTER_CRITICAL_REGION
-    so that interrupts are enabled again.*/
-#define AVR_LEAVE_CRITICAL_REGION( ) SREG = saved_sreg;}
 
 typedef struct {
 	uint8_t size_extra;
@@ -130,7 +123,7 @@ settings_iter_next(settings_iter_t ret) {
 
 bool
 settings_iter_is_valid(settings_iter_t iter) {
-	item_header_t header = {};
+	item_header_t header = {0};
 
 	if(iter==EEPROM_NULL)
 		return false;
@@ -415,10 +408,21 @@ settings_delete(settings_key_t key,uint8_t index) {
     return ret;
 }
 
+#if __AVR__
+#include <avr/io.h>
+#include <avr/pgmspace.h>
+#include <avr/eeprom.h>
+#include <avr/wdt.h>
+
+/** This macro will protect the following code from interrupts.*/
+#define AVR_ENTER_CRITICAL_REGION( ) {uint8_t volatile saved_sreg = SREG; cli( )
+
+/** This macro must always be used in conjunction with AVR_ENTER_CRITICAL_REGION
+    so that interrupts are enabled again.*/
+#define AVR_LEAVE_CRITICAL_REGION( ) SREG = saved_sreg;}
 
 void
 settings_wipe(void) {
-#if __AVR__
 	settings_length_t i = SETTINGS_TOP_ADDR-SETTINGS_MAX_SIZE;
 	AVR_ENTER_CRITICAL_REGION();
 	for(;i<=SETTINGS_TOP_ADDR;i++) {
@@ -426,9 +430,10 @@ settings_wipe(void) {
 		wdt_reset();
 	}
 	AVR_LEAVE_CRITICAL_REGION();
-#endif
 }
+#endif // __AVR__
 
+#ifndef __SDCC
 void
 settings_debug_dump(FILE* file) {
 	settings_iter_t iter;
@@ -466,3 +471,6 @@ settings_debug_dump(FILE* file) {
     }
     fputs("}\n",file);
 }
+#endif
+
+#endif // defined(EEPROM_END_ADDR)
