@@ -53,7 +53,7 @@ static uint16_t len;
 #define SERVER_REPLY          1
 
 /* Should we act as RPL root? */
-#define SERVER_RPL_ROOT       1
+#define SERVER_RPL_ROOT       0
 
 #if SERVER_RPL_ROOT
 static uip_ipaddr_t ipaddr;
