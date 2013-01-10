@@ -187,6 +187,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   ctimer_init();
+  eeprom_init();
 
   set_rime_addr();
 

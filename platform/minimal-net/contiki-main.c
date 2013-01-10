@@ -215,6 +215,7 @@ main(void)
 /* We must start etimers and ctimers,before calling it */
   process_start(&etimer_process, NULL);
   ctimer_init();
+  eeprom_init();
 
 #if RPL_BORDER_ROUTER
   process_start(&border_router_process, NULL);

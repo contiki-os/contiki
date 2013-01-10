@@ -55,7 +55,11 @@
 #define __EEPROM_H__
 
 typedef unsigned short eeprom_addr_t;
-#define EEPROM_NULL 0
+#define EEPROM_NULL			(0)
+
+#ifndef EEPROM_END_ADDR
+#define EEPROM_END_ADDR		(1023)
+#endif
 
 /**
  * Write a buffer into EEPROM.
