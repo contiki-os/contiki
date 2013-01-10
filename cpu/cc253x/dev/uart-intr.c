@@ -15,7 +15,6 @@
 #include "dev/uart0.h"
 #include "dev/uart1.h"
 #include "sys/energest.h"
-#include  "dev/leds.h"
 
 #if UART0_ENABLE
 static int (* uart0_input_handler)(unsigned char c);
@@ -42,7 +41,6 @@ void
 uart0_rx_isr(void) __interrupt(URX0_VECTOR)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  leds_toggle(LEDS_YELLOW);
   URX0IF = 0;
   if(uart0_input_handler != NULL) {
     uart0_input_handler(U0DBUF);
