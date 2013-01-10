@@ -118,6 +118,7 @@ output(void)
 }
 
 /*---------------------------------------------------------------------------*/
+#if !SLIP_BRIDGE_CONF_NO_PUTCHAR
 #undef putchar
 int
 putchar(int c)
@@ -145,6 +146,7 @@ putchar(int c)
   }
   return c;
 }
+#endif
 /*---------------------------------------------------------------------------*/
 const struct uip_fallback_interface rpl_interface = {
   init, output
