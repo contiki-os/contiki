@@ -1,6 +1,6 @@
-CONTIKI_CPU_DIRS = . net
+CONTIKI_CPU_DIRS = . net dev
 
-CONTIKI_SOURCEFILES += mtarch.c rtimer-arch.c elfloader-stub.c watchdog.c
+CONTIKI_SOURCEFILES += mtarch.c rtimer-arch.c elfloader-stub.c watchdog.c eeprom.c
 
 ### Compiler definitions
 CC       ?= gcc
