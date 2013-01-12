@@ -1,0 +1,32 @@
+# cc2538dk platform makefile
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+CONTIKI_TARGET_DIRS = . dev
+
+CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c
+CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c button-sensor.c
+
+TARGET_START_SOURCEFILES += startup-gcc.c
+TARGET_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(TARGET_START_SOURCEFILES)}}
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.cc2538dk
+
+### Unless the example dictates otherwise, build with code size optimisations
+ifndef SMALL
+  SMALL = 1
+endif
+
+### If the prject's Makefile specified IPv6, the pre-processor needs to know
+ifeq ($(UIP_CONF_IPV6),1)
+  CFLAGS += -DUIP_CONF_IPV6=1
+endif
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
+include $(CONTIKI_CPU)/Makefile.cc2538
