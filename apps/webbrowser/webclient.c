@@ -29,6 +29,7 @@
  *
  * This file is part of the "contiki" web browser.
  *
+ * $Id: webclient.c,v 1.11 2010/10/19 18:29:03 adamdunkels Exp $
  *
  */
 
@@ -39,7 +40,7 @@
 
 #include "webclient.h"
 
-#define WEBCLIENT_TIMEOUT 100
+#define WEBCLIENT_TIMEOUT 90
 
 #define WEBCLIENT_STATE_STATUSLINE 0
 #define WEBCLIENT_STATE_HEADERS    1

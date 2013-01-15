@@ -34,3 +34,6 @@ extern const char html_name[6];
 extern const char html_text[6];
 extern const char html_size[6];
 extern const char html_image[7];
+/* more tags on 26 Dec 12 by D. Finnigan */
+extern const char html_dt[4];
+extern const char html_dd[4];
