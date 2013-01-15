@@ -176,6 +176,35 @@ clock_wait(clock_time_t t)
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * Sleep the CPU for no more than the given number of ticks.
+ * If an interrupt occurs, the function will return once the
+ * interrupt has been handled. Useful for automatically
+ * sleeping the microcontroller to save power while remaining
+ * responsive to events.
+ * \param t   The maximum number of ticks to sleep
+ */
+void
+clock_sleep_with_max_duration(clock_time_t t) {
+  /* This needs to be breakable by any interrupt, but stop before
+   * the expiration of the given duration. This is doable, but not
+   * trivial, so I will have to implement this later. */
+
+  /* In other words, this method needs to set up one of the
+   * hardware timers to generate an interrupt at around
+   * the time given by 't' and then go to sleep. Once we
+   * wake up (from either our timer interrupt or some other
+   * interrupt), we clean up and return. */
+
+  /* Note that if you don't have an implementation for this method
+   * which will properly return once an interrupt has been handled,
+   * then you must always return immediately. Waiting until the max
+   * duration would make the microcontroller very sluggish and
+   * practically unusable. */
+
+  /* TODO: Writeme! */
+}
+/*---------------------------------------------------------------------------*/
+/**
  * Delay the CPU for up to 65535*(4000000/F_CPU) microseconds.
  * Copied from _delay_loop_2 in AVR library delay_basic.h, 4 clocks per loop.
  * For accurate short delays, inline _delay_loop_2 in the caller, use a constant
@@ -421,6 +450,7 @@ ISR(BADISR_vect) {
 //static volatile uint8_t x;while (1) x++;
 }
 #endif
+
 #ifdef HANG_ON_UNKNOWN_INTERRUPT
 /* Hang on any unsupported interrupt */
 /* Useful for diagnosing unknown interrupts that reset the mcu.
