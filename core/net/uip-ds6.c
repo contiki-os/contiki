@@ -592,11 +592,11 @@ uip_ds6_get_global(int8_t state)
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_maddr_t *
-uip_ds6_maddr_add(uip_ipaddr_t *ipaddr)
+uip_ds6_maddr_add(const uip_ipaddr_t *ipaddr)
 {
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *)uip_ds6_if.maddr_list, UIP_DS6_MADDR_NB,
-      sizeof(uip_ds6_maddr_t), ipaddr, 128,
+      sizeof(uip_ds6_maddr_t), (void*)ipaddr, 128,
       (uip_ds6_element_t **)&locmaddr) == FREESPACE) {
     locmaddr->isused = 1;
     uip_ipaddr_copy(&locmaddr->ipaddr, ipaddr);
@@ -617,11 +617,11 @@ uip_ds6_maddr_rm(uip_ds6_maddr_t *maddr)
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_maddr_t *
-uip_ds6_maddr_lookup(uip_ipaddr_t *ipaddr)
+uip_ds6_maddr_lookup(const uip_ipaddr_t *ipaddr)
 {
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *)uip_ds6_if.maddr_list, UIP_DS6_MADDR_NB,
-      sizeof(uip_ds6_maddr_t), ipaddr, 128,
+      sizeof(uip_ds6_maddr_t), (void*)ipaddr, 128,
       (uip_ds6_element_t **)&locmaddr) == FOUND) {
     return locmaddr;
   }
