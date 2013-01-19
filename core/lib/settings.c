@@ -98,15 +98,13 @@
  *
  */
 
-#if CONTIKI_CONF_SETTINGS_MANAGER
-
 #include <stdbool.h>
 #include "settings.h"
-
 #include "contiki.h"
 #include "dev/eeprom.h"
-
 #include <stdio.h>
+
+#if CONTIKI_CONF_SETTINGS_MANAGER
 
 #ifndef MIN
 #ifdef __SDCC
@@ -124,7 +122,7 @@
 #endif
 
 #ifndef SETTINGS_MAX_SIZE
-#define SETTINGS_MAX_SIZE	(1024)  / *< Defaults to 1KB */
+#define SETTINGS_MAX_SIZE	(1024)  /*< Defaults to 1KB */
 #endif
 
 
