@@ -28,39 +28,59 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Adam Dunkels <adam@sics.se>
+ * Author: Robert Quattlebaum <darco@deepdarc.com>
  *
  */
+
 #include "dev/eeprom.h"
-#include "node.h"
+
 #include <stdio.h>
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
+static FILE *eeprom_file;
 
-static unsigned char eeprom[65536];
+char *eeprom_filename = "contiki-eeprom.raw";
 
+/*---------------------------------------------------------------------------*/
 void
 eeprom_write(eeprom_addr_t addr, unsigned char *buf, int size)
 {
-  int f;
-  char name[400];
-
-  snprintf(name, sizeof(name), "eeprom.%d.%d", node_x(), node_y());
-  f = open(name, O_WRONLY | O_APPEND | O_CREAT, 0644);
-  lseek(f, addr, SEEK_SET);
-  write(f, buf, size);
-  close(f);
-  
-  printf("eeprom_write(addr 0x%02x, buf %p, size %d);\n", addr, buf, size);
-  
-  memcpy(&eeprom[addr], buf, size);
+  if(eeprom_file) {
+    fseek(eeprom_file, addr, SEEK_SET);
+    fwrite(buf, size, 1, eeprom_file);
+    fsync(eeprom_file);
+  }
 }
+/*---------------------------------------------------------------------------*/
 void
 eeprom_read(eeprom_addr_t addr, unsigned char *buf, int size)
 {
-  /*  printf("eeprom_read(addr 0x%02x, buf %p, size %d);\n", addr, buf, size);*/
-  memcpy(buf, &eeprom[addr], size);
+  if(eeprom_file) {
+    fseek(eeprom_file, addr, SEEK_SET);
+    fread(buf, size, 1, eeprom_file);
+    fsync(eeprom_file);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+eeprom_fill(eeprom_addr_t addr, unsigned char value, int size)
+{
+  if(eeprom_file) {
+    fseek(eeprom_file, addr, SEEK_SET);
+    while(size--)
+      fputc(value, eeprom_file);
+    fsync(eeprom_file);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+eeprom_init()
+{
+  eeprom_file = fopen(eeprom_filename, "r+");
+  if(!eeprom_file) {
+    // File does exist yet, so let's create it.
+    eeprom_file = fopen(eeprom_filename, "w+");
+
+    // Fill with 0xFF
+    eeprom_fill(EEPROM_NULL, 0xFF, EEPROM_END_ADDR + 1);
+  }
 }

@@ -50,6 +50,9 @@
 #define F_CPU          8000000UL
 #endif
 
+#include <avr/eeprom.h>
+#define EEPROM_END_ADDR		E2END
+
 /* MCU_CONF_LOW_WEAR will remove the signature and eeprom from the .elf file */
 /* This reduces reprogramming wear during development */
 //#define MCU_CONF_LOW_WEAR 1
