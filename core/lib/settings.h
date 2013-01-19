@@ -252,11 +252,4 @@ settings_set_uint64(settings_key_t key, uint64_t value)
 }
 #endif
 
-#pragma mark - Other
-
-#ifndef __SDCC
-extern void settings_debug_dump(FILE * file);
-#endif
-
-
 #endif
