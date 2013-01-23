@@ -1,4 +1,4 @@
-# $Id: Makefile.z1,v 1.5 2011/02/26 enricmcalvo Exp $
+# $Id: Makefile.z1,v 1.6 2013/01/23 enricmcalvo,JelmerTiete Exp $
 
 ifdef GCC
 CFLAGS+=-Os -g
@@ -53,18 +53,33 @@ contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 NUMPAR=20
 IHEXFILE=tmpimage.ihex
 
-# If we are not running under Windows, we assume Linux
-ifndef MOTELIST
-  USBDEVPREFIX=
-  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
-  MOTELIST = $(CONTIKI)/tools/z1/motelist-z1
-  BSL = $(CONTIKI)/tools/z1/z1-bsl-nopic --z1
-  BSL_FILETYPE = -I
-  MOTES = $(shell $(MOTELIST) -c 2>&- | \
-     cut -f 2 -d , | \
-     perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
-  CMOTES=$(MOTES)
+ifeq ($(HOST_OS),Darwin)
+  ifndef MOTELIST
+      USBDEVPREFIX=
+      SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+      MOTELIST = $(CONTIKI)/tools/z1/motelist-z1-macos
+      BSL = $(CONTIKI)/tools/z1/z1-bsl-nopic --z1
+      BSL_FILETYPE = -I
+      MOTES = $(shell $(MOTELIST) -c 2>&- | \
+         cut -f 2 -d ,)
+      CMOTES=$(MOTES) 
+  endif
+else
+  # If we are not running under Mac, we assume Linux
+    ifndef MOTELIST
+      USBDEVPREFIX=
+      SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+      MOTELIST = $(CONTIKI)/tools/z1/motelist-z1
+      BSL = $(CONTIKI)/tools/z1/z1-bsl-nopic --z1
+      BSL_FILETYPE = -I
+      MOTES = $(shell $(MOTELIST) -c 2>&- | \
+         cut -f 2 -d , | \
+         perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+      CMOTES=$(MOTES)
+    endif
 endif
+
+
 
 motelist: z1-motelist
 
