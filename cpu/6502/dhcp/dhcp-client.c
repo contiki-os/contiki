@@ -214,21 +214,21 @@ PROCESS_THREAD(dhcp_process, ev, data)
       dhcpc_appcall(ev, data);
     } else if(ev == ctk_signal_button_activate) {   
       if(data == (process_data_t)&requestbutton) {
-	dhcpc_request();
-	set_statustext("Requesting...");
+        dhcpc_request();
+        set_statustext("Requesting...");
       }
       if(data == (process_data_t)&savebutton) {
-	apply_tcpipconfig();
-	app_quit();
+        apply_tcpipconfig();
+        app_quit();
       }
       if(data == (process_data_t)&cancelbutton) {
-	app_quit();
+        app_quit();
       }
     } else if(
 #if CTK_CONF_WINDOWCLOSE
-	      ev == ctk_signal_window_close ||
+              ev == ctk_signal_window_close ||
 #endif
-	      ev == PROCESS_EVENT_EXIT) {
+              ev == PROCESS_EVENT_EXIT) {
       app_quit();
     }
   }
