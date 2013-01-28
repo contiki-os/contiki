@@ -57,12 +57,12 @@ mtarch_remove(void)
 /*--------------------------------------------------------------------------*/
 void
 mtarch_start(struct mtarch_thread *thread,
-	     void (* function)(void *data),
-	     void *data)
+             void (* function)(void *data),
+             void *data)
 {
   memset(thread->cpustack, 0, sizeof(thread->cpustack));
   memset(thread->cstack,   0, sizeof(thread->cstack));
-  
+
   /* Copy current zero page content as template. */
   mtarch_asm_threadzp = thread->zp;
   mtarch_asm_start();
@@ -79,7 +79,7 @@ mtarch_start(struct mtarch_thread *thread,
   /* Setup the C stack with the data pointer. */
   thread->cstack[MTARCH_CSTACKSIZE - 2] = ((unsigned short)data) / 0x100; /* high byte of data pointer */
   thread->cstack[MTARCH_CSTACKSIZE - 3] = ((unsigned short)data) % 0x100; /* low  byte of data pointer */
-  
+
   /* Setup the C stack pointer. */
   thread->zp[1] = ((size_t)&thread->cstack[MTARCH_CSTACKSIZE - 3]) / 0x100; /* high byte of C stack pointer */
   thread->zp[0] = ((size_t)&thread->cstack[MTARCH_CSTACKSIZE - 3]) % 0x100; /* low  byte of C stack pointer */
@@ -100,7 +100,7 @@ mtarch_exec(struct mtarch_thread *thread)
 
   mtarch_asm_threadstack = thread->cpustack;  
   mtarch_asm_threadzp    = thread->zp;
-  
+
   mtarch_asm_exec();
 
   thread->spreg = mtarch_asm_threadspreg;  
