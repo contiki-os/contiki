@@ -78,7 +78,7 @@ config_read(char *filename)
   }
 
   if(cfs_read(file, &config, sizeof(config)) < sizeof(config)
-					     - sizeof(config.ethernetcfg.name)) {
+                                             - sizeof(config.ethernetcfg.name)) {
     log_message(filename, ": No config file");
     error_exit();
   }

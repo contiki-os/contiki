@@ -53,9 +53,9 @@
 #endif /* WITH_DNS */
 
 PROCINIT(&etimer_process,
-	 CTK_PROCESS
-	 RESOLV_PROCESS
-	 &tcpip_process);
+         CTK_PROCESS
+         RESOLV_PROCESS
+         &tcpip_process);
 
 /*-----------------------------------------------------------------------------------*/
 void
@@ -115,7 +115,7 @@ main(void)
   autostart_start(autostart_processes);
 
   log_message("Contiki up and running ...", "");
-  
+
   while(1) {
 
     process_run();
