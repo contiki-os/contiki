@@ -67,6 +67,8 @@ G * (<br>, <p>, <h>), the <li> tag (but does not even try to
 #include "www.h"
 
 #include "htmlparser.h"
+#include "latin1map.h"
+#include "latin1-strings.h"
 
 #if 1
 #define PRINTF(x)
@@ -279,8 +281,45 @@ switch_majorstate(unsigned char newstate)
 }
 /*-----------------------------------------------------------------------------------*/
 static void CC_FASTCALL
+add_char(unsigned char c);
+static void CC_FASTCALL
+add_l1_char(unsigned char c)
+{
+  unsigned char i;
+  /* XXX: should be doable by binary search
+  unsigned char div = sizeof(latin1map);
+  i = div >> 1;
+  do {
+    div = div >> 1;
+    if (c == latin1map[i])
+	  break;
+    if (c < latin1map[i]) {
+	  i -= div;
+	} else {
+      i += div;
+	}
+  } while (i && div);*/
+  i = 0;
+  while(i < sizeof(latin1map) && c > latin1map[i])
+    i++;
+/*
+  i = sizeof(latin1map) - 1;
+  while (i > 1 && c > latin1map[i - 1] && c <= latin1map[i])
+    i--;
+*/
+  fprintf(stderr, "i=%d\n", i);
+  do {
+    add_char(latin1ascii[i]);
+	i++;
+  } while(i < sizeof(latin1map) && latin1map[i] == latin1map[i - 1]);
+}
+/*-----------------------------------------------------------------------------------*/
+static void CC_FASTCALL
 add_char(unsigned char c)
 {
+  if(c > 0xa0) {
+    add_l1_char(c);
+  }
   if(s.wordlen < WWW_CONF_WEBPAGE_WIDTH - 1 && c < 0x80) {
     s.word[s.wordlen] = c;
     ++s.wordlen;
@@ -574,6 +613,7 @@ parse_word(char *data, uint8_t dlen)
 	break;
       } else if(c == ISO_ampersand) {
 	s.minorstate = MINORSTATE_EXTCHAR;
+	s.tagptr = 0;
 	break;
       } else {
 	add_char(c);
@@ -585,7 +625,10 @@ parse_word(char *data, uint8_t dlen)
       c = data[i];
       if(c == ISO_semicolon) {	
 	s.minorstate = MINORSTATE_TEXT;
-	add_char(' ');
+	if (s.tagptr > 0 && s.tag[0] != 'n')
+	  add_char(s.tag[0]);
+	else
+	  add_char(' ');
 	break;
       } else if(iswhitespace(c)) {	
 	s.minorstate = MINORSTATE_TEXT;
@@ -593,6 +636,10 @@ parse_word(char *data, uint8_t dlen)
 	add_char(' ');
 	break;
       }
+      s.tag[s.tagptr] = lowercase(c);
+      ++s.tagptr;
+      if(s.tagptr == sizeof(s.tag))
+        --s.tagptr;
     }
     break;
   case MINORSTATE_TAG:
