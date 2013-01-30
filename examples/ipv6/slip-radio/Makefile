@@ -2,6 +2,10 @@ CONTIKI_PROJECT=slip-radio
 all: $(CONTIKI_PROJECT)
 APPS = slip-cmd
 
+ifeq ($(TARGET),)
+  -include Makefile.target
+endif
+
 CONTIKI=../../..
 
 WITH_UIP6=1
