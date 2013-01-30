@@ -214,7 +214,6 @@ ISR(USCIAB1TX, i2c_tx_interrupt)
 {
   // TX Part
   if (UC1IFG & UCB1TXIFG) {        // TX int. condition
-    PRINTFDEBUG("!!! TX int\n");
     if (tx_byte_ctr == 0) {
       UCB1CTL1 |= UCTXSTP;	   // I2C stop condition
       UC1IFG &= ~UCB1TXIFG;	   // Clear USCI_B1 TX int flag
