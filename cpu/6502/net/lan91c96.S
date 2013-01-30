@@ -40,7 +40,7 @@
 	; Driver signature
 	.byte	$65, $74, $68	; "eth"
 	.byte	$01		; Ethernet driver API version number
-	
+
 	; Ethernet address
 mac:	.byte	$00, $80, $0F	; OUI of Standard Microsystems
 	.byte	$11, $11, $11
@@ -67,13 +67,13 @@ len:	.res	2		; Frame length
 ;---------------------------------------------------------------------
 
 	.segment	"EXTZP": zeropage
-	
+
 	; Empty segment to avoid linker warnings
 
 ;---------------------------------------------------------------------
 
 	.rodata
-	
+
 fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup05-fixup04, fixup06-fixup05, fixup07-fixup06
 	.byte	fixup08-fixup07, fixup09-fixup08, fixup10-fixup09
@@ -153,7 +153,7 @@ init:
 	lda reg+1
 	sta (ptr),y
 	dey
-	
+
 	; Advance to next fixup location
 	inx
 	cpx #fixups
@@ -169,7 +169,7 @@ init:
 	; Reset ETH card
 :	lda #$00		; Bank 0
 fixup00:sta ethbsr
-	
+
 	lda #%10000000		; Software reset
 fixup01:sta ethrcr+1
 
@@ -192,14 +192,14 @@ fixup05:stx ethrcr+1
 
 	lda #$01		; Bank 1
 fixup06:sta ethbsr
-	
+
 fixup07:lda ethcr+1
 	ora #%00010000		; No wait (IOCHRDY)
 fixup08:sta ethcr+1
 
 	lda #%00001001		; Auto release
 fixup09:sta ethctr+1
-  
+
 	; Set MAC address
 	lda mac
 	ldx mac+1
@@ -217,11 +217,11 @@ fixup15:stx ethiar+5
 	; Set interrupt mask
 	lda #$02		; Bank 2
 fixup16:sta ethbsr
-	
+
 	lda #%00000000		; No interrupts
 fixup17:sta ethmsk
 	rts
-	
+
 ;---------------------------------------------------------------------
 
 poll:
@@ -253,7 +253,7 @@ fixup22:lda ethdata		; Need high byte only
 	lsr
 	lsr
 	lsr
-	
+
 	; The packet contains 3 extra words
 fixup23:lda ethdata		; Total number of bytes
 	sbc #$05		; Actually 5 or 6 depending on carry
@@ -262,13 +262,13 @@ fixup24:lda ethdata
 	sbc #$00
 	sta len+1
 
-	; Is len > bufsize ?
+	; Is bufsize < len ?
 	sec
-	lda len
-	sbc bufsize
-	lda len+1
-	sbc bufsize+1
-	bcc :+
+	lda bufsize
+	sbc len
+	lda bufsize+1
+	sbc len+1
+	bcs :+
 
 	; Yes, skip packet
 	; Remove and release RX packet from the FIFO
@@ -285,8 +285,8 @@ fixup25:sta ethmmucr
 	ldx bufaddr+1
 	sta ptr
 	stx ptr+1
-  	ldx len+1
-  	ldy #$00
+	ldx len+1
+	ldy #$00
 read:
 fixup26:lda ethdata
 	sta (ptr),y
@@ -297,7 +297,7 @@ fixup26:lda ethdata
 	bne read
 	dex
 	bpl read
-  
+
 	; Remove and release RX packet from the FIFO
 	lda #%10000000
 fixup27:sta ethmmucr
@@ -395,8 +395,8 @@ fixup39:sta ethdata
 	bcc :+
 
 	; Yes
-       	lda #%00100000		; ODD
-       	bne :++			; Always
+	lda #%00100000		; ODD
+	bne :++			; Always
 
 	; No
 :	lda #$00
@@ -413,5 +413,5 @@ fixup42:sta ethmmucr
 
 exit:
 	rts
-	
+
 ;---------------------------------------------------------------------
