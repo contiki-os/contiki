@@ -39,7 +39,7 @@
 	; Driver signature
 	.byte	$65, $74, $68	; "eth"
 	.byte	$01		; Ethernet driver API version number
-	
+
 	; Ethernet address
 mac:	.byte	$00, $0E, $3A	; OUI of Cirrus Logic
 	.byte	$11, $11, $11
@@ -67,13 +67,13 @@ cnt:	.res	2		; Frame length counter
 ;---------------------------------------------------------------------
 
 	.segment	"EXTZP": zeropage
-	
+
 	; Empty segment to avoid linker warnings
 
 ;---------------------------------------------------------------------
 
 	.rodata
-	
+
 fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup05-fixup04, fixup06-fixup05, fixup07-fixup06
 	.byte	fixup08-fixup07, fixup09-fixup08, fixup10-fixup09
@@ -243,16 +243,16 @@ fixup29:lda rxtxreg
 	bne :+
 	inc cnt+1
 
-	; Is cnt > bufsize ?
+	; Is bufsize < cnt ?
 :	sec
-	lda cnt
-	sbc bufsize
-	lda cnt+1
-	sbc bufsize+1
-	bcc :+
-	
+	lda bufsize
+	sbc cnt
+	lda bufsize+1
+	sbc cnt+1
+	bcs :+
+
 	; Yes, skip frame
- 	; PACKETPP = $0102, PPDATA = PPDATA | $0040
+	; PACKETPP = $0102, PPDATA = PPDATA | $0040
 	lda #$02
 	ldx #$01
 fixup30:sta packetpp
@@ -260,7 +260,7 @@ fixup31:stx packetpp+1
 fixup32:lda ppdata
 	ora #$40
 fixup33:sta ppdata
-	
+
 	; No frame ready
 	lda #$00
 	tax
@@ -272,7 +272,7 @@ fixup33:sta ppdata
 	sta ptr
 	stx ptr+1
 	ldx cnt+1
-  	ldy #$00
+	ldy #$00
 read:
 fixup34:lda rxtxreg
 	sta (ptr),y
@@ -298,7 +298,7 @@ send:
 	; Save frame length
 	sta cnt
 	stx cnt+1
-	
+
 	; Transmit command
 	lda #$C0
 	ldx #$00
@@ -318,7 +318,7 @@ fixup39:stx txlen+1
 
 	; 8 retries
 :	ldy #$08
-	
+
 	; Check for avaliable buffer space
 	; PACKETPP = $0138, PPDATA & $0100 ?
 :	lda #$38
@@ -330,7 +330,7 @@ fixup42:lda ppdata+1
 	bne :+
 
 	; No space avaliable, skip a received frame
- 	; PACKETPP = $0102, PPDATA = PPDATA | $0040
+	; PACKETPP = $0102, PPDATA = PPDATA | $0040
 	lda #$02
 	ldx #$01
 fixup43:sta packetpp
@@ -372,5 +372,5 @@ fixup48:sta rxtxreg+1
 
 exit:
 	rts
-	
+
 ;---------------------------------------------------------------------
