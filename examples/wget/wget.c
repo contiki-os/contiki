@@ -80,7 +80,7 @@ start_get(void)
       --urlptr;
     }
     strncpy(url, http_http, 7);
-  } 
+  }
 
   /* Find host part of the URL. */
   urlptr = &url[7];  
@@ -149,10 +149,14 @@ app_quit(void)
 PROCESS_THREAD(wget_process, ev, data)
 {
   static char name[32];
+  static unsigned char i;
 
   PROCESS_BEGIN();
 
-  PROCESS_PAUSE();
+  /* Allow other processes to initialize properly. */
+  for(i = 0; i < 10; ++i) {
+    PROCESS_PAUSE();
+  }
 
   fputs("\nGet url:", stdout);
   gets(url);
@@ -178,10 +182,10 @@ PROCESS_THREAD(wget_process, ev, data)
     } else if(ev == resolv_event_found) {
       /* Either found a hostname, or not. */
       if((char *)data != NULL &&
-	 resolv_lookup((char *)data) != NULL) {
-	start_get();
+        resolv_lookup((char *)data) != NULL) {
+        start_get();
       } else {
-	puts("Host not found");
+        puts("Host not found");
         app_quit();
       }
 #endif /* UIP_UDP */
@@ -246,7 +250,7 @@ webclient_datahandler(char *data, uint16_t len)
     if(file != -1) {
       ret = cfs_write(file, data, len);
       if(ret != len) {
-	printf("Wrote only %d bytes\n", ret);
+        printf("Wrote only %d bytes\n", ret);
       }
     }
   }
