@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = dhcp-client
+CONTIKI_PROJECT = ipconfig
 all: $(CONTIKI_PROJECT)
 
 CONTIKI = ../../..

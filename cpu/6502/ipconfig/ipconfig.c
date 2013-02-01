@@ -70,7 +70,7 @@ static struct ctk_button savebutton =
 static struct ctk_button cancelbutton =
   {CTK_BUTTON(20, 13, 6, "Cancel")};
 
-PROCESS(dhcp_process, "DHCP client");
+PROCESS(dhcp_process, "IP Config");
 
 AUTOSTART_PROCESSES(&dhcp_process);
 
@@ -178,7 +178,7 @@ PROCESS_THREAD(dhcp_process, ev, data)
 {
   PROCESS_BEGIN();
   
-  ctk_window_new(&window, 29, 14, "DHCP client");
+  ctk_window_new(&window, 29, 14, "IP Config");
   
   CTK_WIDGET_ADD(&window, &requestbutton);
   CTK_WIDGET_ADD(&window, &statuslabel);  
