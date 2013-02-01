@@ -74,7 +74,7 @@ $(eval $(call makes,apple2enh))
 
 apple2enh-1-disk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk contiki-1.dsk
-	java -jar $(AC) -p    contiki-1.dsk contiki.cfg     bin 0 < dummy.cfg
+	java -jar $(AC) -p    contiki-1.dsk contiki.cfg     bin 0 < ../apple2enh/default.cfg
 	java -jar $(AC) -p    contiki-1.dsk menu.system     sys 0 < ../apple2enh/menu.system
 	java -jar $(AC) -p    contiki-1.dsk ipconfig.system sys 0 < ../apple2enh/loader.system
 	java -jar $(AC) -cc65 contiki-1.dsk ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
@@ -92,7 +92,7 @@ apple2enh-1-disk: apple2enh-makes
 
 apple2enh-2-disk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk contiki-2.dsk
-	java -jar $(AC) -p    contiki-2.dsk contiki.cfg     bin 0 < dummy.cfg
+	java -jar $(AC) -p    contiki-2.dsk contiki.cfg     bin 0 < ../apple2enh/default.cfg
 	java -jar $(AC) -p    contiki-2.dsk menu.system     sys 0 < ../apple2enh/menu.system
 	java -jar $(AC) -p    contiki-2.dsk ipconfig.system sys 0 < ../apple2enh/loader.system
 	java -jar $(AC) -cc65 contiki-2.dsk ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
@@ -106,7 +106,7 @@ apple2enh-2-disk: apple2enh-makes
 
 apple2enh-3-disk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk contiki-3.dsk
-	java -jar $(AC) -p    contiki-3.dsk contiki.cfg     bin 0 < dummy.cfg
+	java -jar $(AC) -p    contiki-3.dsk contiki.cfg     bin 0 < ../apple2enh/default.cfg
 	java -jar $(AC) -p    contiki-3.dsk menu.system     sys 0 < ../apple2enh/menu.system
 	java -jar $(AC) -p    contiki-3.dsk ipconfig.system sys 0 < ../apple2enh/loader.system
 	java -jar $(AC) -cc65 contiki-3.dsk ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
@@ -120,7 +120,7 @@ apple2enh-3-disk: apple2enh-makes
 
 apple2enh-4-disk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk contiki-4.dsk
-	java -jar $(AC) -p    contiki-4.dsk contiki.cfg     bin 0 < dummy.cfg
+	java -jar $(AC) -p    contiki-4.dsk contiki.cfg     bin 0 < ../apple2enh/default.cfg
 	java -jar $(AC) -p    contiki-4.dsk menu.system     sys 0 < ../apple2enh/menu.system
 	java -jar $(AC) -p    contiki-4.dsk ipconfig.system sys 0 < ../apple2enh/loader.system
 	java -jar $(AC) -cc65 contiki-4.dsk ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
@@ -134,7 +134,7 @@ $(eval $(call makes,c64))
 
 c64-1-disk: c64-makes
 	$(C1541) -format contiki,00 d64 contiki-1.d64
-	$(C1541) -attach contiki-1.d64 -write dummy.cfg                                       contiki.cfg,u
+	$(C1541) -attach contiki-1.d64 -write ../c64/default.cfg                              contiki.cfg,u
 	$(C1541) -attach contiki-1.d64 -write ../../cpu/6502/ipconfig/ipconfig.c64            ipconfig,p
 	$(C1541) -attach contiki-1.d64 -write ../../examples/webserver/webserver-example.c64  webserver,p
 	$(C1541) -attach contiki-1.d64 -write ../../examples/webbrowser/webbrowser.c64        webbrowser,p
@@ -150,7 +150,7 @@ c64-1-disk: c64-makes
 
 c64-2-disk: c64-makes
 	$(C1541) -format contiki,00 d64 contiki-2.d64
-	$(C1541) -attach contiki-2.d64 -write dummy.cfg                                                                     contiki.cfg,u
+	$(C1541) -attach contiki-2.d64 -write ../c64/default.cfg                                                            contiki.cfg,u
 	$(C1541) -attach contiki-2.d64 -write ../../cpu/6502/ipconfig/ipconfig.c64                                          ipconfig,p
 	$(C1541) -attach contiki-2.d64 -write ../../examples/email/email-client.c64                                         email,p
 	$(C1541) -attach contiki-2.d64 -write ../../examples/ftp/ftp-client.c64                                             ftp,p
@@ -163,7 +163,7 @@ $(eval $(call makes,c128))
 
 c128-1-disk: c128-makes
 	$(C1541) -format contiki,00 d71 contiki-1.d71
-	$(C1541) -attach contiki-1.d71 -write dummy.cfg                                                                       contiki.cfg,u
+	$(C1541) -attach contiki-1.d71 -write ../c128/default.cfg                                                             contiki.cfg,u
 	$(C1541) -attach contiki-1.d71 -write ../../cpu/6502/ipconfig/ipconfig.c128                                           ipconfig,p
 	$(C1541) -attach contiki-1.d71 -write ../../examples/webserver/webserver-example.c128                                 webserver,p
 	$(C1541) -attach contiki-1.d71 -write ../../examples/webbrowser/webbrowser.c128                                       webbrowser,p
@@ -186,7 +186,7 @@ atari-1-disk: atari-makes
 	mkdir -p atr
 	cp ../atari/dos.sys                                 atr/dos.sys
 	cp ../atari/dup.sys                                 atr/dup.sys
-	cp dummy.cfg                                        atr/contiki.cfg
+	cp ../atari/default.cfg                             atr/contiki.cfg
 	cp ../../cpu/6502/ipconfig/ipconfig.atari           atr/ipconfig.com
 	cp ../../examples/webserver/webserver-example.atari atr/webserve.com
 	cp ../../examples/webbrowser/webbrowser.atari       atr/webbrows.com
@@ -201,7 +201,7 @@ atari-2-disk: atari-makes
 	mkdir -p atr
 	cp ../atari/dos.sys                       atr/dos.sys
 	cp ../atari/dup.sys                       atr/dup.sys
-	cp dummy.cfg                              atr/contiki.cfg
+	cp ../atari/default.cfg                   atr/contiki.cfg
 	cp ../../cpu/6502/ipconfig/ipconfig.atari atr/ipconfig.com
 	cp ../../examples/wget/wget.atari         atr/wget.com
 	cp ../../examples/irc/irc-client.atari    atr/irc.com
@@ -212,7 +212,7 @@ atari-3-disk: atari-makes
 	mkdir -p atr
 	cp ../atari/dos.sys                        atr/dos.sys
 	cp ../atari/dup.sys                        atr/dup.sys
-	cp dummy.cfg                               atr/contiki.cfg
+	cp ../atari/default.cfg                    atr/contiki.cfg
 	cp ../../cpu/6502/ipconfig/ipconfig.atari  atr/ipconfig.com
 	cp ../../examples/email/email-client.atari atr/email.com
 	cp ../../examples/ftp/ftp-client.atari     atr/ftp.com
@@ -223,7 +223,7 @@ atari-4-disk: atari-makes
 	mkdir -p atr
 	cp ../atari/dos.sys                                                                  atr/dos.sys
 	cp ../atari/dup.sys                                                                  atr/dup.sys
-	cp dummy.cfg                                                                         atr/contiki.cfg
+	cp ../atari/default.cfg                                                              atr/contiki.cfg
 	cp ../../cpu/6502/ipconfig/ipconfig.atari                                            atr/ipconfig.com
 	cp ../../../contikiprojects/vandenbrande.com/twitter/platform/atari/breadbox64.atari atr/breadbox.com
 	$(DIR2ATR) -b Dos25 1040 contiki-4.atr atr
