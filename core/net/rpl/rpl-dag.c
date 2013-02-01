@@ -505,7 +505,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   p->dag = dag;
   p->rank = dio->rank;
   p->dtsn = dio->dtsn;
-  p->link_metric = INITIAL_LINK_METRIC;
+  p->link_metric = RPL_INIT_LINK_METRIC;
   memcpy(&p->mc, &dio->mc, sizeof(p->mc));
   list_add(dag->parents, p);
   return p;

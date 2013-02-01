@@ -154,4 +154,13 @@
 #define RPL_DIO_REDUNDANCY          10
 #endif
 
+/*
+ * Initial metric attributed to a link when the ETX is unknown
+ */
+#ifndef RPL_CONF_INIT_LINK_METRIC
+#define RPL_INIT_LINK_METRIC        NEIGHBOR_INFO_ETX2FIX(5)
+#else
+#define RPL_INIT_LINK_METRIC        NEIGHBOR_INFO_ETX2FIX(RPL_CONF_INIT_LINK_METRIC)
+#endif
+
 #endif /* RPL_CONF_H */
