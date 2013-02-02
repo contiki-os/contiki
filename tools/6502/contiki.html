@@ -1,31 +1,21 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
  <head>
-  <title>Contiki Download</title>
+  <title>Contiki Configuration Download</title>
   <style type="text/css">
    tr.p  { padding: 15px 0px    }
    tr.pt { padding-top: 15px    }
    tr.pb { padding-bottom: 15px }
    tr.bg { background-color: black; height: 1px }
   </style>
-  <script type="text/javascript">
-   function disks(disks) {
-    for (var i = 4; i; i--) {
-     document.forms[0].disk[i].disabled = i > disks;
-     if (document.forms[0].disk[i].checked &&
-         document.forms[0].disk[i].disabled)
-      document.forms[0].disk[i-1].checked = true;
-    }
-   }
-  </script>
  </head>
  <body>
   <form action="download.php">
-   <h4 align="center">Download your custom generated Contiki</h4>
+   <h4 align="center">Download your custom generated Contiki configuration</h4>
    <table align="center" cellpadding="0" cellspacing="0">
     <tr class="p">
      <td>
-      <input type="radio" name="machine" id="apple2" value="apple2" onclick="disks(4)" checked="checked" />
+      <input type="radio" name="machine" id="apple2" value="apple2" checked="checked" />
       <label for="apple2">Apple //e</label>
      </td><td>
       <label for="apple2-drv">Ethernet Card:</label>
@@ -49,40 +39,40 @@
      <td colspan="3" />
     </tr><tr class="p">
      <td>
-      <input type="radio" name="machine" id="c64" value="c64" onclick="disks(2)" />
+      <input type="radio" name="machine" id="c64" value="c64" />
       <label for="c64">C64</label>
      </td><td colspan="2">
       <label for="c64-drv">Ethernet Card:</label>
       <select name="c64-addr-drv" id="c64-drv" size="1">
-       <option value="DE08-CS8900A.ETH" >RR+RR-Net</option>
-       <option value="DE00-CS8900A.ETH" >TFE      </option>
-       <option value="DE00-LAN91C96.ETH">ETH64    </option>
+       <option value="DE08-CS8900A.ETH" >RR-Net</option>
+       <option value="DE00-CS8900A.ETH" >TFE   </option>
+       <option value="DE00-LAN91C96.ETH">ETH64 </option>
       </select>
      </td>
     </tr><tr class="bg">
      <td colspan="3" />
     </tr><tr class="p">
      <td>
-      <input type="radio" name="machine" id="c128" value="c128" onclick="disks(1)" />
+      <input type="radio" name="machine" id="c128" value="c128" />
       <label for="c128">C128</label>
      </td><td colspan="2">
       <label for="c128-drv">Ethernet Card:</label>
       <select name="c128-addr-drv" id="c128-drv" size="1">
-       <option value="DE08-CS8900A.ETH" >RR+RR-Net</option>
-       <option value="DE00-CS8900A.ETH" >TFE      </option>
-       <option value="DE00-LAN91C96.ETH">ETH64    </option>
+       <option value="DE08-CS8900A.ETH" >RR-Net</option>
+       <option value="DE00-CS8900A.ETH" >TFE   </option>
+       <option value="DE00-LAN91C96.ETH">ETH64 </option>
       </select>
      </td>
     </tr><tr class="bg">
      <td colspan="3" />
     </tr><tr class="p">
      <td>
-      <input type="radio" name="machine" id="atari" value="atari" onclick="disks(4)" />
+      <input type="radio" name="machine" id="atari" value="atari" />
       <label for="atari">Atari 8-bit</label>
      </td><td colspan="2">
       <label for="atari-drv">Ethernet Card:</label>
       <select name="atari-addr-drv" id="atari-drv" size="1">
-       <option value="D500-CS8900A.ETH" >Atari 8-bit Ethernet</option>
+       <option value="D500-cs8900a.eth" >Atari 8-bit Ethernet</option>
       </select>
      </td>
     </tr><tr class="bg">
@@ -122,21 +112,6 @@
       <input type="text" name="dns-b" id="dns-b" size="3" maxlength="3" value="168" />.
       <input type="text" name="dns-c" id="dns-c" size="3" maxlength="3" value="0"   />.
       <input type="text" name="dns-d" id="dns-d" size="3" maxlength="3" value="1"   />
-     </td>
-    </tr><tr class="bg">
-     <td colspan="3" />
-    </tr><tr class="p">
-     <td colspan="3">
-      <input type="radio" name="disk" id="conf"   value="0" />
-      <label for="conf">Configuration File Only</label><br />
-      <input type="radio" name="disk" id="disk-1" value="1" checked="checked" />
-      <label for="disk-1">Complete Image Of Disk 1</label><br />
-      <input type="radio" name="disk" id="disk-2" value="2" />
-      <label for="disk-2">Complete Image Of Disk 2</label><br />
-      <input type="radio" name="disk" id="disk-3" value="3" />
-      <label for="disk-3">Complete Image Of Disk 3</label><br />
-      <input type="radio" name="disk" id="disk-4" value="4" />
-      <label for="disk-4">Complete Image Of Disk 4</label>
      </td>
     </tr><tr class="bg">
      <td colspan="3" />
