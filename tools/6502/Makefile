@@ -261,7 +261,7 @@ c128-d81: c128-makes
 $(eval $(call makes,atari))
 
 atari-atr-1: atari-makes
-	mkdir -p atr
+	mkdir atr
 	cp ../atari/dos.sys                                 atr/dos.sys
 	cp ../atari/dup.sys                                 atr/dup.sys
 	cp ../atari/default.cfg                             atr/contiki.cfg
@@ -276,7 +276,7 @@ atari-atr-1: atari-makes
 	rm -r atr
 
 atari-atr-2: atari-makes
-	mkdir -p atr
+	mkdir atr
 	cp ../atari/dos.sys                       atr/dos.sys
 	cp ../atari/dup.sys                       atr/dup.sys
 	cp ../atari/default.cfg                   atr/contiki.cfg
@@ -287,7 +287,7 @@ atari-atr-2: atari-makes
 	rm -r atr
 
 atari-atr-3: atari-makes
-	mkdir -p atr
+	mkdir atr
 	cp ../atari/dos.sys                        atr/dos.sys
 	cp ../atari/dup.sys                        atr/dup.sys
 	cp ../atari/default.cfg                    atr/contiki.cfg
@@ -298,7 +298,7 @@ atari-atr-3: atari-makes
 	rm -r atr
 
 atari-atr-4: atari-makes
-	mkdir -p atr
+	mkdir atr
 	cp ../atari/dos.sys                                                                  atr/dos.sys
 	cp ../atari/dup.sys                                                                  atr/dup.sys
 	cp ../atari/default.cfg                                                              atr/contiki.cfg
