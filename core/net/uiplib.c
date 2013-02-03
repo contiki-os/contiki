@@ -41,6 +41,7 @@
 #include "net/uip-debug.h"
 
 /*-----------------------------------------------------------------------------------*/
+#if UIP_CONF_IPV6
 int
 uiplib_ip6addrconv(const char *addrstr, uip_ip6addr_t *ipaddr)
 {
@@ -102,6 +103,7 @@ uiplib_ip6addrconv(const char *addrstr, uip_ip6addr_t *ipaddr)
 
   return 1;
 }
+#endif /* UIP_CONF_IPV6 */
 /*-----------------------------------------------------------------------------------*/
 /* Parse a IPv4-address from a string. Returns the number of characters read 
  * for the address. */
@@ -138,15 +140,4 @@ uiplib_ip4addrconv(const char *addrstr, uip_ip4addr_t *ipaddr)
   }
   return charsread-1;
 }
-/*-----------------------------------------------------------------------------------*/
-int
-uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
-{
-#if UIP_CONF_IPV6
-  return uiplib_ip6addrconv(addrstr, ipaddr);
-#else /* UIP_CONF_IPV6 */
-  return uiplib_ip4addrconv(addrstr, ipaddr);
-#endif /* UIP_CONF_IPV6 */
-}
-
 /*-----------------------------------------------------------------------------------*/
