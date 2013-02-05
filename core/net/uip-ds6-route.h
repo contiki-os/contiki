@@ -113,6 +113,9 @@ uip_ds6_defrt_t *uip_ds6_defrt_lookup(uip_ipaddr_t *ipaddr);
 uip_ipaddr_t *uip_ds6_defrt_choose(void);
 
 void uip_ds6_defrt_periodic(void);
+
+uip_ds6_defrt_t *uip_ds6_defrt_list_head(void);
+
 /** @} */
 
 
