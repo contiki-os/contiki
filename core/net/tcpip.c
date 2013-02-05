@@ -47,6 +47,9 @@
 #include "net/uip-ds6.h"
 #endif
 
+#if CETIC_6LBR
+#include "cetic_bridge.h"
+#endif
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
@@ -601,6 +604,21 @@ tcpip_ipv6_output(void)
       uip_ds6_route_t* locrt;
       locrt = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
       if(locrt == NULL) {
+#if CETIC_6LBR_SMARTBRIDGE
+        if (uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {
+          /* In smart-bridge mode, there is no route towards hosts on the Ethernet side
+          Therefore we have to check the destination and assume the host is on-link */
+          nexthop = &UIP_IP_BUF->destipaddr;
+        } else
+#endif
+#if CETIC_6LBR_ROUTER
+        if (uip_ipaddr_prefixcmp(&wsn_net_prefix, &UIP_IP_BUF->destipaddr, 64)) {
+          //In router mode, we drop packets towards unknown mote
+          PRINTF("Dropping wsn packet with no route\n");
+          uip_len = 0;
+          return;
+        } else
+#endif
         if((nexthop = uip_ds6_defrt_choose()) == NULL) {
 #ifdef UIP_FALLBACK_INTERFACE
 	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
