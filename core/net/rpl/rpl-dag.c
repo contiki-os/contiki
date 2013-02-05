@@ -361,6 +361,7 @@ rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len)
   PRINTF("RPL: Prefix set - will announce this in DIOs\n");
   /* Autoconfigure an address if this node does not already have an address
      with this prefix. */
+  //LDER: TODO : should be moved before and should use dag->prefix as last prefix
   check_prefix(NULL, &dag->prefix_info);
   return 1;
 }
@@ -1158,6 +1159,19 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   } else if(dio->rank == INFINITE_RANK && dag->joined) {
     rpl_reset_dio_timer(instance);
+  }
+  
+    //Prefix Information Option treated to add new prefix
+  if(dio->prefix_info.length != 0){
+    PRINTF("RPL : Prefix announced in DIO !\n");
+    if(dag->prefix_info.length == 0) {
+      PRINTF("RPL : No prefix yet, prefix getting added\n");
+      check_prefix(NULL, &dio->prefix_info);
+      dag->prefix_info = dio->prefix_info;
+    } else {
+      PRINTF("RPL : Prefix already set\n");
+      check_prefix(&dag->prefix_info, &dio->prefix_info);
+    }
   }
 
   if(dag->rank == ROOT_RANK(instance)) {

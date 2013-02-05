@@ -387,6 +387,34 @@ dio_input(void)
       /* 32-bit reserved at i + 12 */
       PRINTF("RPL: Copying prefix information\n");
       memcpy(&dio.prefix_info.prefix, &buffer[i + 16], 16);
+      //TODO prefix lifetime
+      if(dio.prefix_info.flags & UIP_ND6_RA_FLAG_ONLINK) {
+          uip_ds6_prefix_t *prefix = uip_ds6_prefix_lookup(&dio.prefix_info.prefix, 
+                  dio.prefix_info.length);
+          if(prefix == NULL) {
+#if UIP_CONF_ROUTER
+               uip_ds6_prefix_add(&dio.prefix_info.prefix, dio.prefix_info.length,
+                       0, 0, dio.prefix_info.lifetime, dio.prefix_info.lifetime);
+#else
+               uip_ds6_prefix_add(&dio.prefix_info.prefix, dio.prefix_info.length, 0);
+#endif
+
+          }
+       else {
+            PRINTF("RPL: DIO prefix known, lifetime:%d\n", prefix->vlifetime);
+            /*switch (dio.prefix_info.lifetime) {
+            case 0:
+              uip_ds6_prefix_rm(prefix);
+              break;
+            default:
+              PRINTF("Updating timer of prefix");
+              PRINT6ADDR(&prefix->ipaddr);
+              PRINTF("new value %lu\n", uip_ntohl(dio.prefix_info.lifetime));
+              break;
+            }*/
+
+          }
+      }
       break;
     default:
       PRINTF("RPL: Unsupported suboption type in DIO: %u\n",
