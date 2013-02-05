@@ -1,45 +1,6 @@
-/*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
- * $Id: hello-world.c,v 1.1 2006/10/02 21:46:46 adamdunkels Exp $
- */
-
-/**
- * \file
- *         A very simple Contiki application showing how Contiki programs look
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
-
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
+#include "net/uip-ds6-route.h"
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
@@ -68,9 +29,7 @@
 #include "net/uip-debug.h"
 
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
-extern uip_ds6_defrt_t uip_ds6_defrt_list[];
 extern uip_ds6_prefix_t uip_ds6_prefix_list[];
-extern uip_ds6_route_t uip_ds6_routing_table[];
 
 extern rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 
@@ -306,6 +265,7 @@ static
 PT_THREAD(generate_sensors(struct httpd_state *s))
 {
 	static int i;
+	static uip_ds6_route_t *r;
 	static node_info_t *node;
 #if BUF_USES_STACK
 	char buf[BUF_SIZE];
@@ -326,41 +286,39 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
 
-	for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-		if(uip_ds6_routing_table[i].isused) {
-			add("<tr><td><a href=http://[");
-			ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-			add("]/>");
-			SEND_STRING(&s->sout, buf); //TODO: why tunslip6 needs an output here, wpcapslip does not
-			reset_buf();
-			ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-			add("</a></td>");
+	for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r)) {
+		add("<tr><td><a href=http://[");
+		ipaddr_add(&r->ipaddr);
+		add("]/>");
+		SEND_STRING(&s->sout, buf); //TODO: why tunslip6 needs an output here, wpcapslip does not
+		reset_buf();
+		ipaddr_add(&r->ipaddr);
+		add("</a></td>");
 
-			if ( uip_ds6_routing_table[i].ipaddr.u8[8] == 0x02 && uip_ds6_routing_table[i].ipaddr.u8[9] == 0x12 &&
-					uip_ds6_routing_table[i].ipaddr.u8[10] == 0x74 ) {
-				add("<td><a href=http://[");
-				ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-				add("]/status.shtml>Crossbow</a></td>");
-			} else if ( uip_ds6_routing_table[i].ipaddr.u8[8] == 0x02 && uip_ds6_routing_table[i].ipaddr.u8[9] == 0x50 &&
-					uip_ds6_routing_table[i].ipaddr.u8[10] == 0xC2 && uip_ds6_routing_table[i].ipaddr.u8[11] == 0xA8 &&
-					(uip_ds6_routing_table[i].ipaddr.u8[12] & 0XF0) == 0xC0 ) {
-				add("<td>Redwire</td>");
-			} else if ( (uip_ds6_routing_table[i].ipaddr.u8[8] & 0x02 ) == 0 ) {
-				//add("<td>User defined</td>");
-			} else {
-				add("<td></td>");
-			}
-			node = node_info_lookup(&uip_ds6_routing_table[i].ipaddr);
-			if ( node ) {
-				add("<td>%s</td>", node->my_info);
-				add("<td>%d</td>", (clock_time() - node->last_lookup)/CLOCK_SECOND);
-			} else {
-				add("<td></td><td></td>");
-			}
-			add("</tr>");
-			SEND_STRING(&s->sout, buf);
-			reset_buf();
+		if ( r->ipaddr.u8[8] == 0x02 && r->ipaddr.u8[9] == 0x12 &&
+				r->ipaddr.u8[10] == 0x74 ) {
+			add("<td><a href=http://[");
+			ipaddr_add(&r->ipaddr);
+			add("]/status.shtml>Crossbow</a></td>");
+		} else if ( r->ipaddr.u8[8] == 0x02 && r->ipaddr.u8[9] == 0x50 &&
+				r->ipaddr.u8[10] == 0xC2 && r->ipaddr.u8[11] == 0xA8 &&
+				(r->ipaddr.u8[12] & 0XF0) == 0xC0 ) {
+			add("<td>Redwire</td>");
+		} else if ( (r->ipaddr.u8[8] & 0x02 ) == 0 ) {
+			//add("<td>User defined</td>");
+		} else {
+			add("<td></td>");
 		}
+		node = node_info_lookup(&r->ipaddr);
+		if ( node ) {
+			add("<td>%s</td>", node->my_info);
+			add("<td>%d</td>", (clock_time() - node->last_lookup)/CLOCK_SECOND);
+		} else {
+			add("<td></td><td></td>");
+		}
+		add("</tr>");
+		SEND_STRING(&s->sout, buf);
+		reset_buf();
 	}
 	add("</tbody></table><br />");
 	SEND_STRING(&s->sout, buf);
@@ -469,6 +427,8 @@ static
 PT_THREAD(generate_network(struct httpd_state *s))
 {
 	static int i;
+	static uip_ds6_route_t *r;
+	static uip_ds6_defrt_t *dr;
 
 #if BUF_USES_STACK
 	char buf[BUF_SIZE];
@@ -545,34 +505,30 @@ PT_THREAD(generate_network(struct httpd_state *s))
 	add("</pre><h2>Routes</h2><pre>");
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
-	for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-		if(uip_ds6_routing_table[i].isused) {
-			add("[<a href=\"route_rm?%d\">X</a>] ", i);
-			ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-			add("/%u (via ", uip_ds6_routing_table[i].length);
-			ipaddr_add(&uip_ds6_routing_table[i].nexthop);
-			if(1 || (uip_ds6_routing_table[i].state.lifetime < 600)) {
-				add(") %lu s\n", uip_ds6_routing_table[i].state.lifetime);
-			} else {
-				add(")\n");
-			}
-			SEND_STRING(&s->sout, buf);
-			reset_buf();
+	for(r = uip_ds6_route_list_head(), i=0; r != NULL; r = list_item_next(r), ++i) {
+		add("[<a href=\"route_rm?%d\">X</a>] ", i);
+		ipaddr_add(&r->ipaddr);
+		add("/%u (via ", r->length);
+		ipaddr_add(&r->nexthop);
+		if(1 || (r->state.lifetime < 600)) {
+			add(") %lu s\n", r->state.lifetime);
+		} else {
+			add(")\n");
 		}
+		SEND_STRING(&s->sout, buf);
+		reset_buf();
 	}
 
 	add("</pre><h2>Default Routers</h2><pre>");
 
-	for (i=0;i<UIP_DS6_DEFRT_NB;i++) {
-		if (uip_ds6_defrt_list[i].isused) {
-			ipaddr_add(&uip_ds6_defrt_list[i].ipaddr);
-            if ( ! uip_ds6_defrt_list[i].isinfinite ) {
-            	add(" %u s", stimer_remaining(&uip_ds6_defrt_list[i].lifetime));
-            }
-			add("\n");
-			SEND_STRING(&s->sout, buf);
-			reset_buf();
+	for(dr = uip_ds6_defrt_list_head(); dr != NULL; dr = list_item_next(r)) {
+		ipaddr_add(&dr->ipaddr);
+		if ( ! dr->isinfinite ) {
+			add(" %u s", stimer_remaining(&dr->lifetime));
 		}
+		add("\n");
+		SEND_STRING(&s->sout, buf);
+		reset_buf();
 	}
 
 #if UIP_CONF_DS6_ROUTE_INFORMATION
@@ -1046,6 +1002,8 @@ update_config(const char * name)
 httpd_simple_script_t
 httpd_simple_get_script(const char *name)
 {
+	static uip_ds6_route_t *r;
+	static int i;
 
 	if (strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
 		return generate_index;
@@ -1063,7 +1021,13 @@ httpd_simple_get_script(const char *name)
 		rpl_repair_root(RPL_DEFAULT_INSTANCE);
 		return generate_rpl;
 	} else if (memcmp(name, "route_rm?", 9) == 0) {
-		uip_ds6_routing_table[atoi(name+9)].isused = 0;
+		i = atoi(name+9);
+		for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
+			if ( i == 0 ) {
+				uip_ds6_route_rm(r);
+				break;
+			}
+		}
 		return generate_network;
 	} else if (memcmp(name, "nbr_rm?", 7) == 0) {
 		uip_ds6_nbr_cache[atoi(name+7)].isused = 0;
