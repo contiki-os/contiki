@@ -183,6 +183,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 	add_div_home();
 	add("<div id=\"left_home\">");
 	add("<h2>Info</h2>");
+	add("Version : " CONTIKI_VERSION_STRING "<br />");
 	add("Mode : ");
 #if CETIC_6LBR_SMARTBRIDGE
 	add("SMART BRIGDE");
