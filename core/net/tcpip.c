@@ -128,6 +128,36 @@ tcpip_set_outputfunc(uint8_t (*f)(uip_lladdr_t *))
 {
   outputfunc = f;
 }
+
+outputfunc_t
+tcpip_get_outputfunc(void)
+{
+  return outputfunc;
+}
+
+static inputfunc_t inputfunc;
+
+void
+tcpip_input(void)
+{
+  if(inputfunc != NULL) {
+    inputfunc();
+  }
+  UIP_LOG("tcpip_input: Use tcpip_set_inputfunc() to set an input function");
+}
+
+void
+tcpip_set_inputfunc(inputfunc_t f)
+{
+  inputfunc = f;
+}
+
+inputfunc_t
+tcpip_get_inputfunc(void)
+{
+  return inputfunc;
+}
+
 #else
 
 static uint8_t (* outputfunc)(void);
@@ -524,7 +554,7 @@ eventhandler(process_event_t ev, process_data_t data)
 }
 /*---------------------------------------------------------------------------*/
 void
-tcpip_input(void)
+tcpip_inputfunc(void)
 {
   process_post_synch(&tcpip_process, PACKET_INPUT, NULL);
   uip_len = 0;
@@ -543,6 +573,12 @@ tcpip_ipv6_output(void)
   if(uip_len == 0) {
     return;
   }
+
+  PRINTF("IPv6 packet send from ");
+  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINTF(" to ");
+  PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+  PRINTF("\n");
 
   if(uip_len > UIP_LINK_MTU) {
     UIP_LOG("tcpip_ipv6_output: Packet to big");
@@ -738,6 +774,8 @@ PROCESS_THREAD(tcpip_process, ev, data)
 {
   PROCESS_BEGIN();
   
+  tcpip_set_inputfunc(tcpip_inputfunc);
+
 #if UIP_TCP
  {
    static unsigned char i;
