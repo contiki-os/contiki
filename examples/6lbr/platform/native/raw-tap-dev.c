@@ -130,7 +130,7 @@ void
 sigcleanup(int signo)
 {
   printf("signal %d\n", signo);
-  exit(0);			/* exit(0) will call cleanup() */
+  exit(1);			/* exit(0) will call cleanup() */
 }
 
 /*---------------------------------------------------------------------------*/
