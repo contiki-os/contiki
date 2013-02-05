@@ -1,4 +1,4 @@
-CFLAGS=-I..
+CFLAGS=-I../6lbr -I../platform/native
 
 all: nvm_tool
 
