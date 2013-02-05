@@ -77,6 +77,12 @@ extern int msp430_dco_required;
 #define WITH_UIP 0
 #endif
 
+#ifndef SKY_CONF_MAX_TX_POWER
+#define SKY_MAX_TX_POWER 31
+#else
+#define SKY_MAX_TX_POWER SKY_CONF_MAX_TX_POWER
+#endif
+
 #if WITH_UIP
 #include "net/uip.h"
 #include "net/uip-fw.h"
@@ -273,6 +279,7 @@ main(int argc, char **argv)
     cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
   }
   cc2420_set_channel(RF_CHANNEL);
+  cc2420_set_txpower(SKY_MAX_TX_POWER);
 
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
