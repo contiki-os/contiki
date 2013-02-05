@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+if [ -x "/etc/init.d/6lbr" ]; then
+	invoke-rc.d 6lbr stop || exit $?
+fi
+
+

@@ -1,0 +1,49 @@
+#!/bin/sh
+
+trap 'kill $(jobs -p)' EXIT
+
+if [ -n "$1" ]; then
+	CFG=$1
+	shift
+else
+	CFG=/etc/6lbr/6lbr.conf
+fi
+
+if [ -e $CFG ]; then
+	source $CFG
+else
+	echo Configuration file $CFG not found
+	exit 1
+fi
+
+if [ "$RAW_ETH" = "1" ]; then
+	PARAM_ETH="-r"
+	ETH_IF=$DEV_ETH
+else
+	PARAM_ETH="-R"
+	ETH_IF=$DEV_TAP
+fi
+
+if [ "$BAUDRATE" != "" ]; then
+	BAUDRATE="-B $BAUDRATE"
+fi
+
+PARAMS="-c $NVM -s $DEV_RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $EXTRA_PARAMS $*"
+
+if [ "$LIB_6LBR" == "" ]; then
+	LIB_6LBR=`dirname $0`/../lib/6lbr
+fi
+
+while ((1)); do
+	if [ "$MODE" = 'ROUTER' ]; then
+		$LIB_6LBR/bin/cetic_6lbr_router $PARAMS
+	elif [ "$MODE" = 'SMART-BRIDGE' ]; then
+		$LIB_6LBR/bin/cetic_6lbr_smart_bridge $PARAMS
+	elif [ "$MODE" = 'TRANSPARENT-BRIDGE' ]; then
+		$LIB_6LBR/bin/cetic_6lbr_transparent_bridge $PARAMS
+	else
+		echo "Mode '$MODE' unknown, starting as router"
+		$LIB_6LBR/bin/cetic_6lbr_router $PARAMS
+	fi
+done
+

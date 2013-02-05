@@ -1,0 +1,11 @@
+#!/bin/sh
+if test "x$D" != "x"; then
+	OPT="-r $D"
+else
+	OPT=""
+fi
+if test "$1" = "remove" -o "$1" = "purge"; then
+	if ! test -e "/etc/init.d/6lbr"; then
+		update-rc.d $OPT 6lbr remove
+	fi
+fi

@@ -1,0 +1,6 @@
+#!/bin/sh
+if test "x$D" = "x"; then
+	if test "$1" = "upgrade" -o "$1" = "remove"; then
+		/etc/init.d/6lbr stop
+	fi
+fi

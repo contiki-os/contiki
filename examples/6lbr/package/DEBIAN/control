@@ -1,0 +1,8 @@
+Package:6lbr
+Version: 0.0.1
+Architecture: i386
+Maintainer: CETIC
+Section: network
+Priority: optional
+Installed-Size: 1
+Description: 6LoWPAN Border Router

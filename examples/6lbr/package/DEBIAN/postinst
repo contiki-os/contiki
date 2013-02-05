@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+action="$1"
+
+if [ "$action" != configure ]; then
+    exit 0
+fi
+
+if [ -x "/etc/init.d/6lbr" ]; then
+	update-rc.d 6lbr defaults >/dev/null
+fi
