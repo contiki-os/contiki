@@ -57,6 +57,10 @@
 
 #include "net/neighbor-info.h"
 
+#if CETIC_6LBR
+#include "nvm_config.h"
+#endif
+
 /************************************************************************/
 extern rpl_of_t RPL_OF;
 static rpl_of_t * const objective_functions[] = {&RPL_OF};
@@ -205,7 +209,18 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   rpl_instance_t *instance;
   uint8_t version;
 
+#if CETIC_6LBR
+  if(nvm_data.rpl_version_id == 0xff)
+    version = 240;
+  else
+    version = nvm_data.rpl_version_id;
+  uint8_t new_version = version;
+  RPL_LOLLIPOP_INCREMENT(new_version);
+  nvm_data.rpl_version_id = new_version;
+  store_nvm_config();
+#else
   version = RPL_LOLLIPOP_INIT;
+#endif
   dag = get_dag(instance_id, dag_id);
   if(dag != NULL) {
     version = dag->version;
