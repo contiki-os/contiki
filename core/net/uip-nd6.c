@@ -127,11 +127,11 @@ static uint8_t *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
 #if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
 static uip_ipaddr_t ipaddr;
-static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #endif
 static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
 static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
+static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 
 #if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
 #define UIP_ND6_OPT_ROUTE_BUF ((uip_nd6_opt_route_info *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
@@ -614,7 +614,7 @@ uip_nd6_rs_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
     switch (UIP_ND6_OPT_HDR_BUF->type) {
     case UIP_ND6_OPT_SLLAO:
-      nd6_opt_llao = UIP_ND6_OPT_HDR_BUF;
+      nd6_opt_llao = (uint8_t *) UIP_ND6_OPT_HDR_BUF;
       break;
     default:
       PRINTF("ND option not supported in RS\n");
@@ -632,8 +632,8 @@ uip_nd6_rs_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
         /* we need to add the neighbor */
-        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                        &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, 
+                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
       } else {
         /* If LL address changed, set neighbor state to stale */
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
