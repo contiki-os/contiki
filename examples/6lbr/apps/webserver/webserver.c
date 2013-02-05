@@ -8,9 +8,9 @@
 #include "net/netstack.h"
 #include "net/rpl/rpl.h"
 
-#include "sicslow_ethernet.h"
-#include "cetic_bridge.h"
-#include "nvm_config.h"
+#include "sicslow-ethernet.h"
+#include "cetic-bridge.h"
+#include "nvm-config.h"
 #include "rio.h"
 #include "node-info.h"
 

@@ -45,8 +45,8 @@
 #include "string.h"
 #include "sicslow_ethernet.h"
 
-#include "cetic_bridge.h"
-#include "nvm_config.h"
+#include "cetic-bridge.h"
+#include "nvm-config.h"
 #include "packet-filter.h"
 
 #include "isr.h"

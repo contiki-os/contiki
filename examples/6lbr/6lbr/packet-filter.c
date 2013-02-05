@@ -3,10 +3,10 @@
 #include "net/uip-ds6.h"
 #include "net/uip-nd6.h"
 #include "string.h"
-#include "sicslow_ethernet.h"
+#include "sicslow-ethernet.h"
 
-#include "cetic_bridge.h"
-#include "nvm_config.h"
+#include "cetic-bridge.h"
+#include "nvm-config.h"
 
 #include "eth-drv.h"
 

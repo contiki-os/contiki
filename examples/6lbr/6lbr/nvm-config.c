@@ -15,13 +15,13 @@
 #include <ctype.h>
 
 #if CONTIKI_TARGET_NATIVE
-#include "native_nvm.h"
+#include "native-nvm.h"
 #else
 #include "mc1322x.h"
 #endif
 
-#include "cetic_bridge.h"
-#include "nvm_config.h"
+#include "cetic-bridge.h"
+#include "nvm-config.h"
 
 
 nvm_data_t nvm_data;

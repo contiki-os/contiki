@@ -6,8 +6,8 @@
 #include <string.h>
 #include <fcntl.h>
 
-#include "nvm_config.h"
-#include "native_nvm.h"
+#include "nvm-config.h"
+#include "native-nvm.h"
 
 #define NVM_SIZE 4096
 static uint8_t nvm_mem[NVM_SIZE];

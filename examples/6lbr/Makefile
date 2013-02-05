@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = cetic_bridge
+CONTIKI_PROJECT = cetic-bridge
 
 all: $(CONTIKI_PROJECT)
 
@@ -39,10 +39,10 @@ CFLAGS += -DCETIC_NODE_INFO=1
 PROJECT_SOURCEFILES += node-info.c 
 endif
 
-PROJECT_SOURCEFILES += rio.c packet-filter.c sicslow_ethernet.c nvm_config.c node-info.c
+PROJECT_SOURCEFILES += rio.c packet-filter.c sicslow-ethernet.c nvm-config.c node-info.c
 ifeq ($(TARGET),native)
 APPS = slip-cmd
-PROJECT_SOURCEFILES += native_nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c
+PROJECT_SOURCEFILES += native-nvm.c raw-tap-eth-drv.c raw-tap-dev.c native-rdc.c slip-cmds.c slip-config.c slip-dev.c
 else
 PROJECT_SOURCEFILES += enc28j60.c enc28j60-drv.c
 endif
@@ -51,13 +51,13 @@ all_native:
 	mkdir -p bin
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) CETIC_NODE_INFO=$(CETIC_NODE_INFO)
-	mv cetic_bridge.native bin/cetic_6lbr_smart_bridge 
+	mv cetic-bridge.native bin/cetic_6lbr_smart_bridge 
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) CETIC_NODE_INFO=$(CETIC_NODE_INFO)
-	mv cetic_bridge.native bin/cetic_6lbr_transparent_bridge 
+	mv cetic-bridge.native bin/cetic_6lbr_transparent_bridge 
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) CETIC_NODE_INFO=$(CETIC_NODE_INFO)
-	mv cetic_bridge.native bin/cetic_6lbr_router 
+	mv cetic-bridge.native bin/cetic_6lbr_router 
 
 VERSION=$(word 2,$(shell awk '/Version:/' package/DEBIAN/control))
 PKG=6lbr-$(VERSION)

@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <fcntl.h>
-#include <native_nvm.h>
+#include <native-nvm.h>
 
 #define NVM_BASE 0x1E000
 #define NVM_SIZE 4096

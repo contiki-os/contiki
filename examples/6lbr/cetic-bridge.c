@@ -51,10 +51,10 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "cetic_bridge.h"
+#include "cetic-bridge.h"
 #include "packet-filter.h"
 #include "eth-drv.h"
-#include "nvm_config.h"
+#include "nvm-config.h"
 #include "rio.h"
 
 #if CONTIKI_TARGET_REDBEE_ECONOTAG

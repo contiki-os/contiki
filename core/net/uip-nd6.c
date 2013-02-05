@@ -74,7 +74,7 @@
 #include "net/uip-ds6.h"
 #include "lib/random.h"
 #if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_SMARTBRIDGE
-#include "nvm_config.h"
+#include "nvm-config.h"
 extern void cetic_bridge_set_prefix( uip_ipaddr_t *prefix, unsigned len, uip_ipaddr_t *ipaddr);
 #endif
 #if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR

@@ -2,12 +2,12 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "net/uip.h"
-#include "cetic_bridge.h"
 #include "string.h"
 
+#include "cetic-bridge.h"
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
-#include "nvm_config.h"
+#include "nvm-config.h"
 //Temporary, should be removed
 #include "native-rdc.h"
 

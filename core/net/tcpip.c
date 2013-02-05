@@ -48,7 +48,7 @@
 #endif
 
 #if CETIC_6LBR
-#include "cetic_bridge.h"
+#include "cetic-bridge.h"
 #endif
 #include <string.h>
 

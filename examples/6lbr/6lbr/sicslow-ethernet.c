@@ -61,7 +61,7 @@
 
 #include "net/rime.h"
 #include "sicslowpan.h"
-#include "sicslow_ethernet.h"
+#include "sicslow-ethernet.h"
 
 #include "enc28j60-drv.h"
 #include "net/uip-ds6.h"

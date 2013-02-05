@@ -58,7 +58,7 @@
 #include "net/neighbor-info.h"
 
 #if CETIC_6LBR
-#include "nvm_config.h"
+#include "nvm-config.h"
 #endif
 
 /*---------------------------------------------------------------------------*/

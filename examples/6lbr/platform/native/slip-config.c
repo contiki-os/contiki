@@ -46,7 +46,7 @@
 #include <sys/ioctl.h>
 #include <err.h>
 #include "contiki.h"
-#include "native_nvm.h"
+#include "native-nvm.h"
 
 int slip_config_verbose = 0;
 int slip_config_flowcontrol = 0;
