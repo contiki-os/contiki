@@ -1252,6 +1252,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
       rpl_schedule_dao(instance);
     }
+    /* We received a new DIO from our preferred parent.
+     * Call uip_ds6_defrt_add to set a fresh value for the lifetime counter */
+    uip_ds6_defrt_add(from, RPL_LIFETIME(instance, instance->default_lifetime));
   }
   p->dtsn = dio->dtsn;
 }
