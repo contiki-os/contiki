@@ -113,10 +113,18 @@
 #define RPL_ZERO_LIFETIME               0
 
 /* Default route lifetime unit. */
+#ifndef RPL_CONF_DEFAULT_LIFETIME_UNIT
 #define RPL_DEFAULT_LIFETIME_UNIT       0xffff
+#else
+#define RPL_DEFAULT_LIFETIME_UNIT	RPL_CONF_DEFAULT_LIFETIME_UNIT
+#endif
 
 /* Default route lifetime as a multiple of the lifetime unit. */
+#ifndef RPL_CONF_DEFAULT_LIFETIME
 #define RPL_DEFAULT_LIFETIME            0xff
+#else
+#define RPL_DEFAULT_LIFETIME		RPL_CONF_DEFAULT_LIFETIME
+#endif
 
 #define RPL_LIFETIME(instance, lifetime) \
           ((unsigned long)(instance)->lifetime_unit * (lifetime))
