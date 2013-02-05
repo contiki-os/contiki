@@ -105,6 +105,12 @@ void rtimercycle(void) {rtimerflag=1;}
 #define RIMEADDR_NBYTES 8
 #endif
 
+#ifndef REDBEE_CONF_MAX_POWER
+#define REDBEE_MAX_POWER 0x12
+#else
+#define REDBEE_MAX_POWER REDBEE_CONF_MAX_POWER
+#endif
+
 #if UIP_CONF_ROUTER
 
 #ifndef UIP_ROUTER_MODULE
