@@ -1,0 +1,93 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:		6lbr
+# Required-Start:	$network
+# Required-Stop:	
+# Default-Start:	2 3 4 5
+# Default-Stop:		
+# Short-Description:	6LoWPAN Border Router
+### END INIT INFO
+
+set -e
+
+# /etc/init.d/6lbr: start and stop the 6LoWPAN Border Router
+
+umask 022
+
+if [ -f /lib/lsb/init-functions ]; then
+	. /lib/lsb/init-functions
+elif [ -f /etc/init.d/functions ]; then
+	. /etc/init.d/functions
+else
+	log_daemon_msg () {
+	    if [ -z "${1:-}" ]; then
+	        return 1
+	    fi
+	    echo "$@"
+	}
+
+	log_end_msg () {
+	    if [ -z "${1:-}" ]; then 
+		return 1
+	    fi
+	    if [ $1 -eq 0 ]; then
+		echo "... done"
+	    else
+		echo "... failed"
+	    fi
+    	}
+
+	log_action_msg () {
+	    if [ -z "${1:-}" ]; then
+	        return 1
+	    fi
+	    echo "$@"
+	}
+
+fi
+
+NAME=6lbr_run.sh
+DAEMON=/usr/lib/6lbr/$NAME
+PIDFILE=/var/run/6lbr.pid
+
+test -x $DAEMON || exit 0
+
+case "$1" in
+  start)
+	log_daemon_msg "Starting 6LoWPAN Border Router" "6lbr"
+	if start-stop-daemon -S --quiet --oknodo --pidfile $PIDFILE --name $NAME --startas $DAEMON; then
+	    log_end_msg 0
+	else
+	    log_end_msg 1
+	fi
+	;;
+  stop)
+	log_daemon_msg "Stopping 6LoWPAN Border Router" "6lbr"
+	if start-stop-daemon -K --quiet --oknodo --pidfile $PIDFILE; then
+	    log_end_msg 0
+	else
+	    log_end_msg 1
+	fi
+	;;
+
+  reload|force-reload|restart)
+	log_daemon_msg "Restarting 6LoWPAN Border Router" "6lbr"
+	start-stop-daemon -K --quiet --oknodo --retry 30 --pidfile $PIDFILE
+	if start-stop-daemon -S --quiet --oknodo --pidfile $PIDFILE --name $NAME --startas$DAEMON; then
+	    log_end_msg 0
+	else
+	    log_end_msg 1
+	fi
+	;;
+
+  status)
+	status_of_proc -p $PIDFILE $DAEMON 6lbr && exit 0 || exit $?
+	;;
+
+  *)
+	log_action_msg "Usage: /etc/init.d/6lbr {start|stop|reload|force-reload|restart|status}"
+	exit 1
+esac
+
+exit 0
