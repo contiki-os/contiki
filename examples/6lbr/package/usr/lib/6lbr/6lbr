@@ -19,6 +19,9 @@ fi
 if [ "$RAW_ETH" = "1" ]; then
 	PARAM_ETH="-r"
 	ETH_IF=$DEV_ETH
+	if [ "$RAW_ETH_FCS" == "1" ]; then
+		PARAM_ETH="$PARAM_ETH -f"
+	fi
 else
 	PARAM_ETH="-R"
 	ETH_IF=$DEV_TAP

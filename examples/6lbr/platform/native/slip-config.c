@@ -58,6 +58,7 @@ char slip_config_tundev[32] = { "" };
 uint16_t slip_config_basedelay = 0;
 char const * default_nvm_file = "nvm.dat";
 uint8_t use_raw_ethernet = 1;
+uint8_t ethernet_has_fcs = 0;
 
 #ifndef BAUDRATE
 #define BAUDRATE B115200
@@ -75,7 +76,7 @@ slip_config_handle_arguments(int argc, char **argv)
   slip_config_verbose = 0;
 
   prog = argv[0];
-  while((c = getopt(argc, argv, "c:B:H:D:Lhs:t:v::d::a:p:rRT")) != -1) {
+  while((c = getopt(argc, argv, "c:B:H:D:Lhs:t:v::d::a:p:rRf")) != -1) {
     switch(c) {
     case 'c':
       nvm_file = optarg;
@@ -130,6 +131,10 @@ slip_config_handle_arguments(int argc, char **argv)
       use_raw_ethernet = 0;
       break;
 
+    case 'f':
+      ethernet_has_fcs = 1;
+      break;
+
     case 'v':
       slip_config_verbose = 2;
       if(optarg) slip_config_verbose = atoi(optarg);
@@ -152,8 +157,9 @@ fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
 fprintf(stderr," -a host        Connect via TCP to server at <host>\n");
 fprintf(stderr," -p port        Connect via TCP to server at <host>:<port>\n");
 fprintf(stderr," -t tundev      Name of interface (default eth0)\n");
-fprintf(stderr," -r	            Use Raw Ethernet interface\n");
+fprintf(stderr," -r	        Use Raw Ethernet interface\n");
 fprintf(stderr," -R             Use Tap Ethernet interface\n");
+fprintf(stderr," -f             Raw Ethernet frames contains FCS\n");
 fprintf(stderr," -v[level]      Verbosity level\n");
 fprintf(stderr,"    -v0         No messages\n");
 fprintf(stderr,"    -v1         Encapsulated SLIP debug messages (default)\n");
