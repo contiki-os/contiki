@@ -164,12 +164,12 @@ contiki-apple2.2mg: apple2enh-makes
 
 $(eval $(call makes,atari))
 
-atari: contiki-atari-1.atr contiki-atari-2.atr contiki-atari-3.atr contiki-atari-4.atr
+atari: contiki-atari-1.atr contiki-atari-2.atr contiki-atari-3.atr contiki-atari-4.atr contiki-atari.atr
 
 contiki-atari-1.atr: atari-makes
 	mkdir atr
-	cp ../atari/dos.sys                           atr/dos.sys
-	cp ../atari/dup.sys                           atr/dup.sys
+	cp ../atari/dos25/dos.sys                     atr/dos.sys
+	cp ../atari/dos25/dup.sys                     atr/dup.sys
 	cp ../atari/default.cfg                       atr/contiki.cfg
 	cp ../../cpu/6502/ipconfig/ipconfig.atari     atr/ipconfig.com
 	cp ../../examples/webbrowser/webbrowser.atari atr/webbrows.com
@@ -179,8 +179,8 @@ contiki-atari-1.atr: atari-makes
 
 contiki-atari-2.atr: atari-makes
 	mkdir atr
-	cp ../atari/dos.sys                                                                  atr/dos.sys
-	cp ../atari/dup.sys                                                                  atr/dup.sys
+	cp ../atari/dos25/dos.sys                                                            atr/dos.sys
+	cp ../atari/dos25/dup.sys                                                            atr/dup.sys
 	cp ../atari/default.cfg                                                              atr/contiki.cfg
 	cp ../../cpu/6502/ipconfig/ipconfig.atari                                            atr/ipconfig.com
 	cp ../../examples/irc/irc-client.atari                                               atr/irc.com
@@ -190,8 +190,8 @@ contiki-atari-2.atr: atari-makes
 
 contiki-atari-3.atr: atari-makes
 	mkdir atr
-	cp ../atari/dos.sys                        atr/dos.sys
-	cp ../atari/dup.sys                        atr/dup.sys
+	cp ../atari/dos25/dos.sys                  atr/dos.sys
+	cp ../atari/dos25/dup.sys                  atr/dup.sys
 	cp ../atari/default.cfg                    atr/contiki.cfg
 	cp ../../cpu/6502/ipconfig/ipconfig.atari  atr/ipconfig.com
 	cp ../../examples/email/email-client.atari atr/email.com
@@ -201,8 +201,8 @@ contiki-atari-3.atr: atari-makes
 
 contiki-atari-4.atr: atari-makes
 	mkdir atr
-	cp ../atari/dos.sys                                 atr/dos.sys
-	cp ../atari/dup.sys                                 atr/dup.sys
+	cp ../atari/dos25/dos.sys                           atr/dos.sys
+	cp ../atari/dos25/dup.sys                           atr/dup.sys
 	cp ../atari/default.cfg                             atr/contiki.cfg
 	cp ../../cpu/6502/ipconfig/ipconfig.atari           atr/ipconfig.com
 	cp ../../examples/webserver/webserver-example.atari atr/webserv.com
@@ -212,6 +212,27 @@ contiki-atari-4.atr: atari-makes
 	cp ../../examples/webserver/httpd-cfs/contiki.gif   atr/contiki.gif
 	cp ../../examples/webserver/httpd-cfs/notfound.htm  atr/notfound.htm
 	$(DIR2ATR) -b Dos25 1040 $@ atr
+	rm -r atr
+
+contiki-atari.atr: atari-makes
+	mkdir atr
+	cp ../atari/mydos4534/dos.sys                                                        atr/dos.sys
+	cp ../atari/mydos4534/dup.sys                                                        atr/dup.sys
+	cp ../atari/default.cfg                                                              atr/contiki.cfg
+	cp ../../cpu/6502/ipconfig/ipconfig.atari                                            atr/ipconfig.com
+	cp ../../examples/webbrowser/webbrowser.atari                                        atr/webbrows.com
+	cp ../../examples/wget/wget.atari                                                    atr/wget.com
+	cp ../../examples/irc/irc-client.atari                                               atr/irc.com
+	cp ../../../contikiprojects/vandenbrande.com/twitter/platform/atari/breadbox64.atari atr/breadbox.com
+	cp ../../examples/email/email-client.atari                                           atr/email.com
+	cp ../../examples/ftp/ftp-client.atari                                               atr/ftp.com
+	cp ../../examples/webserver/webserver-example.atari                                  atr/webserv.com
+	cp ../../examples/telnet-server/telnet-server.atari                                  atr/telnetd.com
+	cp ../../examples/webserver/httpd-cfs/index.htm                                      atr/index.htm
+	cp ../../examples/webserver/httpd-cfs/backgrnd.gif                                   atr/backgrnd.gif
+	cp ../../examples/webserver/httpd-cfs/contiki.gif                                    atr/contiki.gif
+	cp ../../examples/webserver/httpd-cfs/notfound.htm                                   atr/notfound.htm
+	$(DIR2ATR) -d -b MyDos4534 3200 $@ atr
 	rm -r atr
 
 $(eval $(call makes,c64))
