@@ -227,7 +227,9 @@ main(int argc, char **argv)
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
 
+#if ! CETIC_6LBR
   select_set_callback(STDIN_FILENO, &stdin_fd);
+#endif
   while(1) {
     fd_set fdr;
     fd_set fdw;
