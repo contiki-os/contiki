@@ -141,7 +141,7 @@ void cetic_bridge_init(void)
   uip_ipaddr_t loc_fipaddr;
 
 #if CETIC_NODE_INFO
-  memset(node_info_table, 0, sizeof(node_info_table));
+  node_info_init();
 #endif
 
   //DODAGID = link-local address used !

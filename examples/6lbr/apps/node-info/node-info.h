@@ -14,8 +14,14 @@ typedef struct node_info {
 
 extern node_info_t node_info_table[UIP_DS6_ROUTE_NB];          /** \brief Node info table */
 
+void
+node_info_init(void);
+
 node_info_t *
 node_info_add(uip_ipaddr_t *ipaddr);
+
+void
+node_info_rm(uip_ipaddr_t *ipaddr);
 
 node_info_t *
 node_info_lookup(uip_ipaddr_t *ipaddr);
