@@ -1111,7 +1111,7 @@ uip_process(uint8_t flag)
     goto drop;
   }
 
-#if UIP_CONF_ROUTER
+#if UIP_CONF_ROUTER || CETIC_6LBR_SMARTBRIDGE
   /*
    * Next header field processing. In IPv6, we can have extension headers,
    * if present, the Hop-by-Hop Option must be processed before forwarding
