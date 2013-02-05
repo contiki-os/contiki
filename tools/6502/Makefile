@@ -34,7 +34,7 @@
 #
 
 ifndef CONTIKI
-  ${error CONTIKI not defined! You must specify where CONTIKI resides}
+  ${error CONTIKI not defined! You must specify where Contiki resides}
 endif
 
 ifndef CC65_HOME
@@ -53,10 +53,7 @@ ifndef DIR2ATR
   ${error DIR2ATR not defined! You must specify where dir2atr resides}
 endif
 
-disks: contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.dsk contiki-apple2-4.dsk \
-        contiki-atari-1.atr  contiki-atari-2.atr  contiki-atari-3.atr  contiki-atari-4.atr \
-          contiki-c64-1.d64    contiki-c64-2.d64      contiki-c64.d71      contiki-c64.d81 \
-         contiki-c128-1.d64   contiki-c128-2.d64     contiki-c128.d71     contiki-c128.d81
+all: apple2 atari c64 c128
 
 define makes
 $1-makes:
@@ -72,6 +69,8 @@ $1-makes:
 endef
 
 $(eval $(call makes,apple2enh))
+
+apple2: contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.dsk contiki-apple2-4.dsk contiki-apple2.2mg
 
 contiki-apple2-1.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
@@ -133,7 +132,39 @@ contiki-apple2-4.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ contiki.gif     bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
 	java -jar $(AC) -p    $@ notfound.htm    bin 0 < ../../examples/webserver/httpd-cfs/notfound.htm
 
+contiki-apple2.2mg: apple2enh-makes
+	cp ../apple2enh/prodos.2mg $@
+	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
+	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
+	java -jar $(AC) -p    $@ ipconfig.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
+	java -jar $(AC) -p    $@ webbrows.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 $@ webbrows        bin   < ../../examples/webbrowser/webbrowser.apple2enh
+	java -jar $(AC) -p    $@ wget.system     sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 $@ wget            bin   < ../../examples/wget/wget.apple2enh
+	java -jar $(AC) -p    $@ irc.system      sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 $@ irc             bin   < ../../examples/irc/irc-client.apple2enh
+	java -jar $(AC) -p    $@ breadbox.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 $@ breadbox        bin   < ../../../contikiprojects/vandenbrande.com/twitter/platform/apple2enh/breadbox64.apple2enh
+	java -jar $(AC) -p    $@ email.system    sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 $@ email           bin   < ../../examples/email/email-client.apple2enh
+	java -jar $(AC) -p    $@ ftp.system      sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 $@ ftp             bin   < ../../examples/ftp/ftp-client.apple2enh
+	java -jar $(AC) -p    $@ webserv.system  sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 $@ webserv         bin   < ../../examples/webserver/webserver-example.apple2enh
+	java -jar $(AC) -p    $@ telnetd.system  sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 $@ telnetd         bin   < ../../examples/telnet-server/telnet-server.apple2enh
+	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
+	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+	java -jar $(AC) -p    $@ index.htm       bin 0 < ../../examples/webserver/httpd-cfs/index.htm
+	java -jar $(AC) -p    $@ backgrnd.gif    bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
+	java -jar $(AC) -p    $@ contiki.gif     bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
+	java -jar $(AC) -p    $@ notfound.htm    bin 0 < ../../examples/webserver/httpd-cfs/notfound.htm
+
 $(eval $(call makes,atari))
+
+atari: contiki-atari-1.atr contiki-atari-2.atr contiki-atari-3.atr contiki-atari-4.atr
 
 contiki-atari-1.atr: atari-makes
 	mkdir atr
@@ -184,6 +215,8 @@ contiki-atari-4.atr: atari-makes
 	rm -r atr
 
 $(eval $(call makes,c64))
+
+c64: contiki-c64-1.d64 contiki-c64-2.d64 contiki-c64.d71 contiki-c64.d81
 
 contiki-c64-1.d64: c64-makes
 	$(C1541) -format contiki-1,00 d64 $@
@@ -254,6 +287,8 @@ contiki-c64.d81: c64-makes
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/notfound.htm                               notfound.htm,u
 
 $(eval $(call makes,c128))
+
+c128: contiki-c128-1.d64 contiki-c128-2.d64 contiki-c128.d71 contiki-c128.d81
 
 contiki-c128-1.d64: c128-makes
 	$(C1541) -format contiki-1,00 d64 $@
