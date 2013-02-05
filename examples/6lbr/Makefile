@@ -6,6 +6,8 @@ UIP_CONF_IPV6=1
 
 CONTIKI = ../..
 
+PROJECTDIRS += 6lbr platform/econotag platform/native apps/webserver apps/udp-server apps/node-info
+
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 LDFLAGS += -Wl,--gc-sections
 
