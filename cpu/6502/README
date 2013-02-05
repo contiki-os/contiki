@@ -15,7 +15,7 @@ configuration file (by default named contiki.cfg). It has the following format:
 An online Contiki configuration file generator is available at two sites:
 
 - http://www.a2retrosystems.com/contiki.html
-- http://www.cbm8bit.com/contiki/
+- http://contiki.cbm8bit.com/
 
 
 The build for 6502-based machines includes the 'disk' make goal which creates a

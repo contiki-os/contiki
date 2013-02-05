@@ -71,7 +71,6 @@
 
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC     csma_driver
-#define NETSTACK_CONF_MAC     nullmac_driver
 #define NETSTACK_CONF_RDC     cxmac_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
@@ -116,7 +115,7 @@
 #define UIP_CONF_LLH_LEN                0
 
 #define UIP_CONF_ROUTER                 0
-#define UIP_CONF_IPV6_RPL               0
+#define UIP_CONF_IPV6_RPL               1
 
 /* configure number of neighbors and routes */
 #define UIP_CONF_DS6_NBR_NBU     5

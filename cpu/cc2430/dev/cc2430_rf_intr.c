@@ -61,7 +61,7 @@ PROCESS_NAME(cc2430_rf_process);
 #pragma exclude bits
 #endif
 void
-cc2430_rf_ISR( void ) __interrupt (RF_VECTOR)
+cc2430_rf_ISR(void) __interrupt(RF_VECTOR)
 {
   EA = 0;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
@@ -70,9 +70,9 @@ cc2430_rf_ISR( void ) __interrupt (RF_VECTOR)
    * Just double check the flag.
    */
   if(RFIF & IRQ_FIFOP) {
-      RF_RX_LED_ON();
-      /* Poll the RF process which calls cc2430_rf_read() */
-      process_poll(&cc2430_rf_process);
+    RF_RX_LED_ON();
+    /* Poll the RF process which calls cc2430_rf_read() */
+    process_poll(&cc2430_rf_process);
   }
   S1CON &= ~(RFIF_0 | RFIF_1);
 
@@ -92,7 +92,7 @@ cc2430_rf_ISR( void ) __interrupt (RF_VECTOR)
 #pragma exclude bits
 #endif
 void
-cc2430_rf_error_ISR( void ) __interrupt (RFERR_VECTOR)
+cc2430_rf_error_ISR(void) __interrupt(RFERR_VECTOR)
 {
   EA = 0;
   TCON_RFERRIF = 0;

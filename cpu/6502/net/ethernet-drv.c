@@ -71,10 +71,10 @@ pollhandler(void)
     } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
       uip_arp_arpin();
       /* If the above function invocation resulted in data that
-	 should be sent out on the network, the global variable
-	 uip_len is set to a value > 0. */
+         should be sent out on the network, the global variable
+         uip_len is set to a value > 0. */
       if(uip_len > 0) {
-	ethernet_send();
+        ethernet_send();
       }
     }
   }

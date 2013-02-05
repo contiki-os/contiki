@@ -58,7 +58,7 @@
 #include "dev/pir-sensor.h"
 #include "dev/vib-sensor.h"
 
-#include "node-id.h"
+#include "sys/node-id.h"
 
 
 /* JNI-defined functions, depends on the environment variable CLASSNAME */
@@ -101,8 +101,6 @@ static uint8_t is_gateway;
 #include "net/uip-ds6.h"
 #define PRINT6ADDR(addr) printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #endif /* WITH_UIP6 */
-
-PROCINIT(&etimer_process,&sensors_process);
 
 /* Simulation mote interfaces */
 SIM_INTERFACE_NAME(moteid_interface);
@@ -179,6 +177,30 @@ rtimer_thread_loop(void *data)
   }
 }
 /*---------------------------------------------------------------------------*/
+static void
+set_rime_addr(void)
+{
+  rimeaddr_t addr;
+  int i;
+
+  memset(&addr, 0, sizeof(rimeaddr_t));
+#if WITH_UIP6
+  for(i = 0; i < sizeof(uip_lladdr.addr); i += 2) {
+    addr.u8[i + 1] = node_id & 0xff;
+    addr.u8[i + 0] = node_id >> 8;
+  }
+#else /* WITH_UIP6 */
+  addr.u8[0] = node_id & 0xff;
+  addr.u8[1] = node_id >> 8;
+#endif /* WITH_UIP6 */
+  rimeaddr_set_node_addr(&addr);
+  printf("Rime started with address ");
+  for(i = 0; i < sizeof(addr.u8) - 1; i++) {
+    printf("%d.", addr.u8[i]);
+  }
+  printf("%d\n", addr.u8[i]);
+}
+/*---------------------------------------------------------------------------*/
 void
 contiki_init()
 {
@@ -187,8 +209,12 @@ contiki_init()
   /* Start process handler */
   process_init();
 
+
   /* Start Contiki processes */
-  procinit_init();
+
+  process_start(&etimer_process, NULL);
+  process_start(&sensors_process, NULL);
+  ctimer_init();
 
   /* Print startup information */
   printf(CONTIKI_VERSION_STRING " started. ");
@@ -198,28 +224,28 @@ contiki_init()
     printf("Node id is not set.\n");
   }
 
-  /* RIME CONFIGURATION */
+  set_rime_addr();
   {
-    int i;
-    rimeaddr_t rimeaddr;
-
-    /* Init Rime */
-    ctimer_init();
-    rimeaddr.u8[0] = node_id & 0xff;
-    rimeaddr.u8[1] = node_id >> 8;
-    rimeaddr_set_node_addr(&rimeaddr);
-    printf("Rime address: ");
-    for(i = 0; i < sizeof(rimeaddr_node_addr.u8) - 1; i++) {
-      printf("%d.", rimeaddr_node_addr.u8[i]);
-    }
-    printf("%d\n", rimeaddr_node_addr.u8[i]);
+    uint8_t longaddr[8];
+    uint16_t shortaddr;
+    
+    shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
+      rimeaddr_node_addr.u8[1];
+    memset(longaddr, 0, sizeof(longaddr));
+    rimeaddr_copy((rimeaddr_t *)&longaddr, &rimeaddr_node_addr);
+    printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
+           longaddr[0], longaddr[1], longaddr[2], longaddr[3],
+           longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
   }
 
   queuebuf_init();
 
   /* Initialize communication stack */
   netstack_init();
-  printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
+  printf("%s/%s/%s, channel check rate %lu Hz\n",
+	 NETSTACK_NETWORK.name, NETSTACK_MAC.name, NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+                         NETSTACK_RDC.channel_check_interval()));
 
 #if WITH_UIP
   /* IPv4 CONFIGURATION */
@@ -255,27 +281,26 @@ contiki_init()
   {
     int i;
     uint8_t addr[sizeof(uip_lladdr.addr)];
-    for (i=0; i < sizeof(uip_lladdr.addr); i++) {
-      addr[i] = node_id & 0xff;
+    for(i = 0; i < sizeof(uip_lladdr.addr); i += 2) {
+      addr[i + 1] = node_id & 0xff;
+      addr[i + 0] = node_id >> 8;
     }
+    rimeaddr_copy(addr, &rimeaddr_node_addr);
     memcpy(&uip_lladdr.addr, addr, sizeof(uip_lladdr.addr));
+
     process_start(&tcpip_process, NULL);
 
     printf("Tentative link-local IPv6 address ");
     {
-      int i, a;
-      for(a = 0; a < UIP_DS6_ADDR_NB; a++) {
-        if (uip_ds6_if.addr_list[a].isused) {
+      uip_ds6_addr_t *lladdr;
+      int i;
+      lladdr = uip_ds6_get_link_local(-1);
       for(i = 0; i < 7; ++i) {
-        printf("%02x%02x:",
-           uip_ds6_if.addr_list[a].ipaddr.u8[i * 2],
-           uip_ds6_if.addr_list[a].ipaddr.u8[i * 2 + 1]);
+	printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
+	       lladdr->ipaddr.u8[i * 2 + 1]);
       }
-      printf("%02x%02x\n",
-             uip_ds6_if.addr_list[a].ipaddr.u8[14],
-             uip_ds6_if.addr_list[a].ipaddr.u8[15]);
-        }
-      }
+      printf("%02x%02x\n", lladdr->ipaddr.u8[14],
+	     lladdr->ipaddr.u8[15]);
     }
 
     if(1) {

@@ -50,7 +50,7 @@
 
 #include "net/rime.h"
 
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "sys/autostart.h"
 #include "sys/profile.h"
 

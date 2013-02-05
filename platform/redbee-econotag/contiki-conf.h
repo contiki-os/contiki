@@ -81,6 +81,9 @@
 #define SAMP UCON_SAMP_8X
 //#define SAMP UCON_SAMP_16X
 
+#define CONSOLE_UART UART1
+#define CONSOLE_BAUD 115200
+
 //#define uart_init uart1_init
 #define dbg_putchar(x) uart1_putc(x)
 

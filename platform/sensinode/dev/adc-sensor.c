@@ -134,8 +134,8 @@ value(int type)
 static int
 status(int type)
 {
-    return ready;
-  }
+  return ready;
+}
 /*---------------------------------------------------------------------------*/
 /*
  * On N740 we can control Ill and Acc individually:
@@ -203,9 +203,9 @@ configure(int type, int value)
       ready |= ADC_VAL_LIGHT_ON;
     }
 #endif /* LIGHT_SENSOR_ON */
-      n740_ser_par_set(ser_par_val);
+    n740_ser_par_set(ser_par_val);
 #endif /* MODEL_N740 */
-    }
+  }
   return ready;
 }
 

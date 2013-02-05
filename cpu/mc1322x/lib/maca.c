@@ -96,6 +96,7 @@ volatile packet_t *rx_head, *tx_head;
 /* used for ack recpetion if the packet_pool goes empty */
 /* doesn't go back into the pool when freed */
 static volatile packet_t dummy_ack;
+static volatile packet_t dummy_rx;
 
 /* incremented on every maca entry */
 /* you can use this to detect that the receive loop is still running */
@@ -359,6 +360,7 @@ void post_receive(void) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0) {
 			PRINTF("trying to fill MACA_DMARX in post_receieve but out of packet buffers\n\r");		
+			dma_rx = &dummy_rx;
 			/* set the sftclock so that we return to the maca_isr */
 			*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
 			*MACA_TMREN = (1 << maca_tmren_sft);
@@ -559,7 +561,8 @@ void insert_at_rx_head(volatile packet_t *p) {
 	} else {
 		rx_head->right = p;
 		p->left = rx_head;
-		rx_head = p; rx_head->left = 0;
+		p->right = 0;
+		rx_head = p;
 	}
 
 //	print_packets("insert at rx head");
@@ -651,21 +654,25 @@ void maca_isr(void) {
 
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
-		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
-		dma_rx->lqi = get_lqi();
-		dma_rx->rx_time = *MACA_TIMESTAMP;
 
-		/* check if received packet needs an ack */
-		if(prm_mode == AUTOACK && (dma_rx->data[1] & MAC_ACK_REQUEST_FLAG)) {
-			/* this wait is necessary to auto-ack */
-			volatile uint32_t wait_clk;
-			wait_clk = *MACA_CLK + 200;
-			while(*MACA_CLK < wait_clk) { continue; }
+		if (dma_rx != &dummy_ack && dma_rx != &dummy_rx)
+		{
+			dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
+			dma_rx->lqi = get_lqi();
+			dma_rx->rx_time = *MACA_TIMESTAMP;
+
+			/* check if received packet needs an ack */
+			if(prm_mode == AUTOACK && (dma_rx->data[1] & 0x20)) {
+				/* this wait is necessary to auto-ack */
+				volatile uint32_t wait_clk;
+				wait_clk = *MACA_CLK + 200;
+				while(*MACA_CLK < wait_clk) { continue; }
+			}
+
+			if(maca_rx_callback != 0) { maca_rx_callback(dma_rx); }
+
+			add_to_rx(dma_rx);
 		}
-
-		if(maca_rx_callback != 0) { maca_rx_callback(dma_rx); }
-
-		add_to_rx(dma_rx);
 		dma_rx = 0;
 	}
 	if (filter_failed_irq()) {

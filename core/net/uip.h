@@ -59,21 +59,19 @@
  * Representation of an IP address.
  *
  */
-#if UIP_CONF_IPV6
+typedef union uip_ip4addr_t {
+  uint8_t  u8[4];			/* Initializer, must come first. */
+  uint16_t u16[2];
+} uip_ip4addr_t;
+
 typedef union uip_ip6addr_t {
-  uint8_t  u8[16];			/* Initializer, must come first!!! */
+  uint8_t  u8[16];			/* Initializer, must come first. */
   uint16_t u16[8];
 } uip_ip6addr_t;
 
+#if UIP_CONF_IPV6
 typedef uip_ip6addr_t uip_ipaddr_t;
 #else /* UIP_CONF_IPV6 */
-typedef union uip_ip4addr_t {
-  uint8_t  u8[4];			/* Initializer, must come first!!! */
-  uint16_t u16[2];
-#if 0
-  uint32_t u32;
-#endif
-} uip_ip4addr_t;
 typedef uip_ip4addr_t uip_ipaddr_t;
 #endif /* UIP_CONF_IPV6 */
 
@@ -988,6 +986,12 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
 #ifndef uip_ipaddr_copy
 #define uip_ipaddr_copy(dest, src) (*(dest) = *(src))
 #endif
+#ifndef uip_ip4addr_copy
+#define uip_ip4addr_copy(dest, src) (*(dest) = *(src))
+#endif
+#ifndef uip_ip6addr_copy
+#define uip_ip6addr_copy(dest, src) (*(dest) = *(src))
+#endif
 
 /**
  * Compare two IP addresses
@@ -1009,11 +1013,14 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
  *
  * \hideinitializer
  */
-#if !UIP_CONF_IPV6
-#define uip_ipaddr_cmp(addr1, addr2) ((addr1)->u16[0] == (addr2)->u16[0] && \
+#define uip_ip4addr_cmp(addr1, addr2) ((addr1)->u16[0] == (addr2)->u16[0] && \
 				      (addr1)->u16[1] == (addr2)->u16[1])
+#define uip_ip6addr_cmp(addr1, addr2) (memcmp(addr1, addr2, sizeof(uip_ip6addr_t)) == 0)
+
+#if !UIP_CONF_IPV6
+#define uip_ipaddr_cmp(addr1, addr2) uip_ip4addr_cmp(addr1, addr2)
 #else /* !UIP_CONF_IPV6 */
-#define uip_ipaddr_cmp(addr1, addr2) (memcmp(addr1, addr2, sizeof(uip_ip6addr_t)) == 0)
+#define uip_ipaddr_cmp(addr1, addr2) uip_ip6addr_cmp(addr1, addr2)
 #endif /* !UIP_CONF_IPV6 */
 
 /**
@@ -1040,15 +1047,15 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
  *
  * \hideinitializer
  */
-#if !UIP_CONF_IPV6
+
 #define uip_ipaddr_maskcmp(addr1, addr2, mask)          \
   (((((uint16_t *)addr1)[0] & ((uint16_t *)mask)[0]) ==       \
     (((uint16_t *)addr2)[0] & ((uint16_t *)mask)[0])) &&      \
    ((((uint16_t *)addr1)[1] & ((uint16_t *)mask)[1]) ==       \
     (((uint16_t *)addr2)[1] & ((uint16_t *)mask)[1])))
-#else
+
 #define uip_ipaddr_prefixcmp(addr1, addr2, length) (memcmp(addr1, addr2, length>>3) == 0)
-#endif
+
 
 
 /**
@@ -1769,7 +1776,6 @@ typedef struct uip_ext_hdr_opt_padn {
   uint8_t opt_len;
 } uip_ext_hdr_opt_padn;
 
-#if UIP_CONF_IPV6_RPL
 /* RPL option */
 typedef struct uip_ext_hdr_opt_rpl {
   uint8_t opt_type;
@@ -1778,7 +1784,6 @@ typedef struct uip_ext_hdr_opt_rpl {
   uint8_t instance;
   uint16_t senderrank;
 } uip_ext_hdr_opt_rpl;
-#endif /* UIP_CONF_IPV6_RPL */
 
 /* TCP header */
 struct uip_tcp_hdr {
@@ -1850,9 +1855,7 @@ struct uip_udp_hdr {
 /** \brief  Destination and Hop By Hop extension headers option types */
 #define UIP_EXT_HDR_OPT_PAD1  0
 #define UIP_EXT_HDR_OPT_PADN  1
-#if UIP_CONF_IPV6_RPL
 #define UIP_EXT_HDR_OPT_RPL   0x63
-#endif /* UIP_CONF_IPV6_RPL */
 
 /** @} */
 

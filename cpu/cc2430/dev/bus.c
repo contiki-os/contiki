@@ -44,7 +44,7 @@
 
 /*---------------------------------------------------------------------------*/
 void
-bus_init (void)
+bus_init(void)
 {
   CLKCON = (0x00 | OSC32K); 			/* 32k internal */
   while(CLKCON != (0x00 | OSC32K));

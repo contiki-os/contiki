@@ -140,6 +140,8 @@ index_create(index_type_t index_type, relation_t *rel, attribute_t *attr)
     index->flags = INDEX_LOAD_NEEDED;
     process_post(&db_indexer, load_request_event, NULL);
   } else {
+    /* Inline indexes (i.e., those using the existing storage of the relation)
+       do not need to be reloaded after restarting the system. */
     PRINTF("DB: Index created for attribute %s\n", attr->name);
     index->flags |= INDEX_READY;
   }
@@ -266,7 +268,7 @@ index_get_iterator(index_iterator_t *iterator, index_t *index,
      * value in the search range. If the search range is sparse, this 
      * iteration will incur a considerable overhead per found key.
      *
-     * Hence, The emulation is preferable when an external module wants 
+     * Hence, the emulation is preferable when an external module wants 
      * to iterate over a narrow range of keys, for which the total 
      * search cost is smaller than that of an iteration over all tuples
      * in the relation.
@@ -373,6 +375,8 @@ PROCESS_THREAD(db_indexer, ev, data)
     PRINTF("DB: Loading the index for %s.%s...\n",
 	index->rel->name, index->attr->name);
 
+    /* Project the values of the indexed attribute from all tuples in 
+       the relation, and insert them into the index again. */
     if(DB_ERROR(db_query(&handle, "SELECT %s FROM %s;", index->attr->name, index->rel->name))) {
       index->flags |= INDEX_LOAD_ERROR;
       index->flags &= ~INDEX_LOAD_NEEDED;

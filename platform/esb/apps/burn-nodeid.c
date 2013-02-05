@@ -37,7 +37,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "contiki.h"
 #include "dev/esb-sensors.h"
 #include "dev/rs232.h"
