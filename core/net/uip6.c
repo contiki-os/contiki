@@ -1142,14 +1142,19 @@ uip_process(uint8_t flag)
 
 
   /* TBD Some Parameter problem messages */
+#if! CETIC_ND_PROXY
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
      !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr)) {
+#else
+	  if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
+	     !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr) &&
+		 (*uip_next_hdr != UIP_PROTO_ICMP6 || UIP_ICMP_BUF->type != ICMP6_NS)) {
+#endif
     if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) &&
        !uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) &&
        !uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) &&
        !uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr) &&
        !uip_is_addr_loopback(&UIP_IP_BUF->destipaddr)) {
-
 
       /* Check MTU */
       if(uip_len > UIP_LINK_MTU) {

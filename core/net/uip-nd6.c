@@ -146,6 +146,10 @@ void
 uip_nd6_ns_input(void)
 {
   uint8_t flags;
+#if CETIC_ND_PROXY
+  uip_ds6_route_t * route;
+#endif
+
   PRINTF("Received NS from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF(" to ");
@@ -213,6 +217,21 @@ uip_nd6_ns_input(void)
   }
 
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
+#if CETIC_ND_PROXY
+  if ( addr == NULL ) {
+	  if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+	    /* DAD CASE */
+	    goto discard;
+	  }
+	  if ( (route = uip_ds6_route_lookup(&UIP_ND6_NS_BUF->tgtipaddr)) != NULL ) {
+		  printf("ND proxy : route\n");
+		  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
+		  uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+		  flags = UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE;
+		  goto create_na;
+	  }
+  }
+#endif
   if(addr != NULL) {
 #if UIP_ND6_DEF_MAXDADNS > 0
     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
@@ -295,7 +314,7 @@ create_na:
   UIP_ICMP_BUF->icode = 0;
 
   UIP_ND6_NA_BUF->flagsreserved = flags;
-  memcpy(&UIP_ND6_NA_BUF->tgtipaddr, &addr->ipaddr, sizeof(uip_ipaddr_t));
+  memcpy(&UIP_ND6_NA_BUF->tgtipaddr, &UIP_ND6_NS_BUF->tgtipaddr, sizeof(uip_ipaddr_t));
 
   create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN],
               UIP_ND6_OPT_TLLAO);
