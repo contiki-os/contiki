@@ -428,6 +428,7 @@ uint32_t p=(uint32_t)&__heap_end__-4;
                          NETSTACK_RDC.channel_check_interval()),
          RF_CHANNEL);
 
+#if ! CETIC_6LBR
   process_start(&tcpip_process, NULL);
 
   printf("Tentative link-local IPv6 address ");
@@ -461,7 +462,7 @@ uint32_t p=(uint32_t)&__heap_end__-4;
     printf("%02x%02x\n",
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
-
+#endif
   
 #else /* WITH_UIP6 */
 

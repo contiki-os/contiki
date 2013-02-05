@@ -195,6 +195,7 @@ main(int argc, char **argv)
   netstack_init();
   printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
+#if ! CETIC_6LBR
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
 
@@ -218,6 +219,7 @@ main(int argc, char **argv)
   }
 #else
   process_start(&tcpip_process, NULL);
+#endif
 #endif
 
   serial_line_init();
