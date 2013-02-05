@@ -86,7 +86,11 @@
 #define UIP_ND6_MIN_RA_INTERVAL             (UIP_ND6_MAX_RA_INTERVAL / 3)
 #define UIP_ND6_M_FLAG                      0
 #define UIP_ND6_O_FLAG                      0
+#ifndef UIP_CONF_ROUTER_LIFETIME
 #define UIP_ND6_ROUTER_LIFETIME             3 * UIP_ND6_MAX_RA_INTERVAL
+#else
+#define UIP_ND6_ROUTER_LIFETIME             UIP_CONF_ROUTER_LIFETIME
+#endif
 
 #define UIP_ND6_MAX_INITIAL_RA_INTERVAL     16  /*seconds*/
 #define UIP_ND6_MAX_INITIAL_RAS             3   /*transmissions*/
