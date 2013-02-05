@@ -73,6 +73,10 @@
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 #include "lib/random.h"
+#if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_SMARTBRIDGE
+#include "nvm_config.h"
+extern void cetic_bridge_set_prefix( uip_ipaddr_t *prefix, unsigned len, uip_ipaddr_t *ipaddr);
+#endif
 #if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
 #include "rio.h"
 #endif
@@ -809,6 +813,12 @@ uip_nd6_ra_input(void)
   PRINTF("\n");
   UIP_STAT(++uip_stat.nd6.recv);
 
+#if CETIC_6LBR
+  if ((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0 ) {
+    goto discard;
+  }
+#endif
+
 #if UIP_CONF_IPV6_CHECKS
   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
      (!uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) ||
@@ -942,6 +952,11 @@ uip_nd6_ra_input(void)
               addr->isinfinite = 1;
             }
           } else {
+#if CETIC_6LBR
+        	printf("Tentative global IPv6 address ");
+			uip_debug_ipaddr_print(&ipaddr);
+			printf("\n");
+#endif
             if(uip_ntohl(nd6_opt_prefix_info->validlt) ==
                UIP_ND6_INFINITE_LIFETIME) {
               uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
@@ -950,6 +965,9 @@ uip_nd6_ra_input(void)
                                ADDR_AUTOCONF);
             }
           }
+#if CETIC_6LBR
+          cetic_bridge_set_prefix(&nd6_opt_prefix_info->prefix, 64, &ipaddr);
+#endif
         }
         /* End of autonomous flag related processing */
       }
@@ -963,7 +981,7 @@ uip_nd6_ra_input(void)
       break;
 #endif
     default:
-      PRINTF("ND option not supported in RA");
+      PRINTF("ND option not supported in RA\n");
       break;
     }
     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
