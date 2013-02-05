@@ -73,6 +73,9 @@
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 #include "lib/random.h"
+#if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
+#include "rio.h"
+#endif
 
 /*------------------------------------------------------------------*/
 #define DEBUG 0
@@ -126,6 +129,12 @@ static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
 static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
 
+#if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
+#define UIP_ND6_OPT_ROUTE_BUF ((uip_nd6_opt_route_info *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
+#if CETIC_6LBR_ROUTER
+static uip_ds6_route_info_t *rtinfo; /**  Pointer to a route information list entry */
+#endif
+#endif
 
 /*------------------------------------------------------------------*/
 /* create a llao */ 
@@ -713,6 +722,23 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
 
   uip_len += UIP_ND6_OPT_MTU_LEN;
   nd6_opt_offset += UIP_ND6_OPT_MTU_LEN;
+
+#if UIP_CONF_DS6_ROUTE_INFORMATION
+  for(rtinfo = uip_ds6_route_info_list;
+		  rtinfo < uip_ds6_route_info_list + UIP_DS6_ROUTE_INFO_NB; rtinfo++) {
+	  if((rtinfo->isused)) {
+		  UIP_ND6_OPT_ROUTE_BUF->type = UIP_ND6_OPT_ROUTE_INFO;
+		  UIP_ND6_OPT_ROUTE_BUF->len =(rtinfo->length >> 6) + 1 ;
+		  UIP_ND6_OPT_ROUTE_BUF->preflen = rtinfo->length;
+		  UIP_ND6_OPT_ROUTE_BUF->flagsreserved = rtinfo->flags;
+		  UIP_ND6_OPT_ROUTE_BUF->rlifetime = uip_htonl(rtinfo->lifetime);
+		  uip_ipaddr_copy(&(UIP_ND6_OPT_ROUTE_BUF->prefix), &(rtinfo->ipaddr));
+		  nd6_opt_offset += ((rtinfo->length >> 6) + 1)<<3;
+		  uip_len += ((rtinfo->length >> 6) + 1)<<3;
+	  }
+  }
+#endif /* UIP_CONF_DS6_ROUTE_INFORMATION */
+
   UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
 
@@ -928,6 +954,14 @@ uip_nd6_ra_input(void)
         /* End of autonomous flag related processing */
       }
       break;
+#if CETIC_6LBR
+    // bridge handling RIO to update routes
+    case UIP_ND6_OPT_ROUTE_INFO:
+      PRINTF("RIO option in RA\n");
+      uip_nd6_opt_route_info *rio = (uip_nd6_opt_route_info *) UIP_ND6_OPT_ROUTE_BUF;
+      uip_ds6_route_info_callback(rio, &UIP_IP_BUF->srcipaddr);
+      break;
+#endif
     default:
       PRINTF("ND option not supported in RA");
       break;
