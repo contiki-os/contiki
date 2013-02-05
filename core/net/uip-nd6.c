@@ -885,6 +885,7 @@ uip_nd6_ra_input(void)
           uip_ntohl(nd6_opt_prefix_info->preferredlt))
          && (!uip_is_addr_link_local(&nd6_opt_prefix_info->prefix))) {
         /* on-link flag related processing */
+#if !CETIC_6LBR_SMARTBRIDGE
         if(nd6_opt_prefix_info->flagsreserved1 & UIP_ND6_RA_FLAG_ONLINK) {
           prefix =
             uip_ds6_prefix_lookup(&nd6_opt_prefix_info->prefix,
@@ -920,6 +921,7 @@ uip_nd6_ra_input(void)
             }
           }
         }
+#endif
         /* End of on-link flag related processing */
         /* autonomous flag related processing */
         if((nd6_opt_prefix_info->flagsreserved1 & UIP_ND6_RA_FLAG_AUTONOMOUS)
