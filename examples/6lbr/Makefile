@@ -9,7 +9,9 @@ CONTIKI = ../..
 PROJECTDIRS += 6lbr platform/econotag platform/native apps/webserver apps/udp-server apps/node-info
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+ifeq ($(TARGET),redbee-econotag)
 LDFLAGS += -Wl,--gc-sections
+endif
 
 CETIC_6LBR_SMARTBRIDGE=0
 CETIC_6LBR_TRANSPARENTBRIDGE=0

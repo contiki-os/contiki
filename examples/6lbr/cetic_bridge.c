@@ -124,17 +124,16 @@ void cetic_bridge_set_prefix( uip_ipaddr_t *prefix, unsigned len, uip_ipaddr_t *
   }
   
   if(cetic_dag != NULL) {
-		  PRINTF("created a new RPL dag\n");
-			PRINTF("Setting DAG prefix : ");
-			PRINT6ADDR(&prefix->u8);
-			PRINTF("\n");
-	#if CETIC_6LBR_TRANSPARENTBRIDGE
-		rpl_set_prefix_onlink(cetic_dag, prefix, len);
-	#else
-			rpl_set_prefix(cetic_dag, prefix, len);
-	#endif
-			uip_ipaddr_copy(&wsn_net_prefix, prefix);
-		}
+      PRINTF("created a new RPL dag\n");
+      PRINTF("Setting DAG prefix : ");
+      PRINT6ADDR(&prefix->u8);
+      PRINTF("\n");
+      rpl_set_prefix(cetic_dag, prefix, len);
+#if CETIC_6LBR_TRANSPARENTBRIDGE
+      cetic_dag->prefix_info.flags |= UIP_ND6_RA_FLAG_ONLINK;
+#endif
+	  uip_ipaddr_copy(&wsn_net_prefix, prefix);
+  }
 }
 
 void cetic_bridge_init(void)
@@ -180,10 +179,9 @@ void cetic_bridge_init(void)
     PRINTF("\n");
 	memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router, sizeof(nvm_data.eth_dft_router));
 	uip_ds6_defrt_add(&eth_dft_router, 0);
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-	rpl_set_prefix_onlink(cetic_dag, &wsn_net_prefix, 64);
-#else
 	rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
+#if CETIC_6LBR_TRANSPARENTBRIDGE
+    cetic_dag->prefix_info.flags |= UIP_ND6_RA_FLAG_ONLINK;
 #endif
   } //End manual configuration
   
