@@ -45,5 +45,7 @@ while ((1)); do
 		echo "Mode '$MODE' unknown, starting as router"
 		$LIB_6LBR/bin/cetic_6lbr_router $PARAMS
 	fi
+	if [ $? != 0 ]; then
+		break
+	fi
 done
-

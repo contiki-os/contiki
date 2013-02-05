@@ -265,7 +265,6 @@ static
 PT_THREAD(generate_sensors(struct httpd_state *s))
 {
 	static int i;
-	static uip_ds6_route_t *r;
 	static node_info_t *node;
 #if BUF_USES_STACK
 	char buf[BUF_SIZE];
@@ -286,39 +285,36 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
 
-	for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r)) {
-		add("<tr><td><a href=http://[");
-		ipaddr_add(&r->ipaddr);
-		add("]/>");
-		SEND_STRING(&s->sout, buf); //TODO: why tunslip6 needs an output here, wpcapslip does not
-		reset_buf();
-		ipaddr_add(&r->ipaddr);
-		add("</a></td>");
+	for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+		if(node_info_table[i].isused) {
+			add("<tr><td><a href=http://[");
+			ipaddr_add(&node_info_table[i].ipaddr);
+			add("]/>");
+			SEND_STRING(&s->sout, buf); //TODO: why tunslip6 needs an output here, wpcapslip does not
+			reset_buf();
+			ipaddr_add(&node_info_table[i].ipaddr);
+			add("</a></td>");
 
-		if ( r->ipaddr.u8[8] == 0x02 && r->ipaddr.u8[9] == 0x12 &&
-				r->ipaddr.u8[10] == 0x74 ) {
-			add("<td><a href=http://[");
-			ipaddr_add(&r->ipaddr);
-			add("]/status.shtml>Crossbow</a></td>");
-		} else if ( r->ipaddr.u8[8] == 0x02 && r->ipaddr.u8[9] == 0x50 &&
-				r->ipaddr.u8[10] == 0xC2 && r->ipaddr.u8[11] == 0xA8 &&
-				(r->ipaddr.u8[12] & 0XF0) == 0xC0 ) {
-			add("<td>Redwire</td>");
-		} else if ( (r->ipaddr.u8[8] & 0x02 ) == 0 ) {
-			//add("<td>User defined</td>");
-		} else {
-			add("<td></td>");
+			if ( node_info_table[i].ipaddr.u8[8] == 0x02 && node_info_table[i].ipaddr.u8[9] == 0x12 &&
+					node_info_table[i].ipaddr.u8[10] == 0x74 ) {
+				add("<td><a href=http://[");
+				ipaddr_add(&node_info_table[i].ipaddr);
+				add("]/status.shtml>Crossbow</a></td>");
+			} else if ( node_info_table[i].ipaddr.u8[8] == 0x02 && node_info_table[i].ipaddr.u8[9] == 0x50 &&
+					node_info_table[i].ipaddr.u8[10] == 0xC2 && node_info_table[i].ipaddr.u8[11] == 0xA8 &&
+					(node_info_table[i].ipaddr.u8[12] & 0XF0) == 0xC0 ) {
+				add("<td>Redwire</td>");
+			} else if ( (node_info_table[i].ipaddr.u8[8] & 0x02 ) == 0 ) {
+				add("<td>User defined</td>");
+			} else {
+				add("<td></td>");
+			}
+			add("<td>%s</td>", node_info_table[i].my_info);
+			add("<td>%d</td>", (clock_time() - node_info_table[i].last_lookup)/CLOCK_SECOND);
+			add("</tr>");
+			SEND_STRING(&s->sout, buf);
+			reset_buf();
 		}
-		node = node_info_lookup(&r->ipaddr);
-		if ( node ) {
-			add("<td>%s</td>", node->my_info);
-			add("<td>%d</td>", (clock_time() - node->last_lookup)/CLOCK_SECOND);
-		} else {
-			add("<td></td><td></td>");
-		}
-		add("</tr>");
-		SEND_STRING(&s->sout, buf);
-		reset_buf();
 	}
 	add("</tbody></table><br />");
 	SEND_STRING(&s->sout, buf);
