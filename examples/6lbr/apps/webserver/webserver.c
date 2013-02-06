@@ -376,6 +376,13 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
 	add("<div id=\"left_home\">");
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
+	add("<h2>Configuration</h2>");
+	add("Lifetime : %d (%d x %d s)<br />",
+		RPL_CONF_DEFAULT_LIFETIME * RPL_CONF_DEFAULT_LIFETIME_UNIT,
+		RPL_CONF_DEFAULT_LIFETIME, RPL_CONF_DEFAULT_LIFETIME_UNIT);
+	add("<br />");
+	SEND_STRING(&s->sout, buf);
+	reset_buf();
 	for(i = 0; i < RPL_MAX_INSTANCES; ++i) {
 		if ( instance_table[i].used ) {
 			add("<h2>Instance %d</h2>", instance_table[i].instance_id);
