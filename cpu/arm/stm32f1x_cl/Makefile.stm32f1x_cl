@@ -1,0 +1,169 @@
+# Adapted from Makefile.stm32f103
+
+# Default to STM32F107VCT7
+ifndef SUBTARGET
+$(warning SUBTARGET not defined, defaulting to STM32F107VCT)
+SUBTARGET = 7VCT
+endif
+
+### libopencm3 specifics
+OPENCM3_BASE=
+OPENCM3_FAMILY=STM32F1
+OPENCM3_LIB=opencm3_stm32f1
+
+ifndef OPENCM3_BASE
+$(error OPENCM3_BASE not defined. Please set definition to root of libopencm3)
+endif
+### Code common for all ARM CPUs
+
+CONTIKI_CPU_ARM=$(CONTIKI)/cpu/arm
+CONTIKI_CPU_ARM_COMMON=$(CONTIKI_CPU_ARM)/common
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI_CPU_ARM)/stm32f1x_cl
+
+### Define the source files we have in the STM32F1x_cl port
+
+CONTIKI_CPU_DIRS = .
+
+STM32F1x = clock.c util.c uip-log.c symbols.c
+
+#Using the opencm3 usb library for now
+#include $(CONTIKI_CPU_ARM_COMMON)/usb/Makefile.usb
+
+#No SD support for now...This is a TODO
+#include $(CONTIKI_CPU_ARM_COMMON)/SD-card/Makefile.sdcard
+
+TARGETLIBS = random.c
+
+CONTIKI_TARGET_SOURCEFILES += $(STM32F1x) $(TARGETLIBS)
+
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+PREFIX = arm-none-eabi
+
+### Compiler definitions
+CC       = $(PREFIX)-gcc
+LD       = $(PREFIX)-ld
+AS       = $(PREFIX)-as
+AR       = $(PREFIX)-ar
+NM       = $(PREFIX)-nm
+OBJCOPY  = $(PREFIX)-objcopy
+STRIP    = $(PREFIX)-strip
+
+XSLTPROC=xsltproc
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
+LINKERSCRIPT = $(CONTIKI_CPU)/STM32F10$(SUBTARGET).ld
+
+# DFU-UTIL program upload
+DFU_UTIL=dfu-util
+DFU_UTIL_OFFSET=0x08000000
+
+# Use dfu-util by default
+PROG=dfuutil
+
+ARCH_FLAGS= -mcpu=cortex-m3 -mthumb
+
+#CONTIKI_CFLAGS = -DWITH_UIP -DWITH_ASCII
+
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+	   -I$(OPENCM3_BASE)/include \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+           -DMCK=$(MCK) -DSUBTARGET=$(SUBTARGET) \
+           -Wall $(ARCH_FLAGS) -g -DSTM32F1 -MD
+
+CFLAGS  += $(CONTIKI_CFLAGS) $(CFLAGSNO) -Os
+
+LDFLAGS += -L $(CONTIKI_CPU) -T $(LINKERSCRIPT) \
+	   -Wl,--start-group -lc -lgcc -Wl,--end-group\
+	   -nostartfiles -Wl,--gc-sections $(ARCH_FLAGS)
+
+EXTERN_LIBS += -L $(OPENCM3_BASE)/lib -l$(OPENCM3_LIB)
+
+CDEPFLAGS = $(CFLAGS) -D __MAKING_DEPS__
+
+### Setup directory search path for source files
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O=yes
+CUSTOM_RULE_C_TO_O=yes
+
+%.o: %.c
+	$(CC) $(CFLAGS) $< -c
+
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
+CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
+%.o: %.S
+	$(CC) $(CFLAGS) $< -c
+
+$(OBJECTDIR)/%.o: %.S
+	$(CC) $(CFLAGS) $< -c  -o $@
+
+
+CUSTOM_RULE_C_TO_CO=yes
+
+%.co: %.c
+	$(CC) $(CFLAGS) $< -c -o $@
+
+CUSTOM_RULE_C_TO_CE=yes
+
+%.ce: %.o
+	$(LD) $(LDFLAGS) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@
+	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
+
+CUSTOM_RULE_LINK=yes
+
+%-stripped.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+%-stripped.o: %.o
+	$(STRIP) --strip-unneeded -g -x -o $@ $<
+
+%.o: ${CONTIKI_TARGET}/loader/%.S
+	$(AS) -o $(notdir $(<:.S=.o)) $<
+
+%-nosyms.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a # $(OBJECTDIR)/empty-symbols.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^) $(EXTERN_LIBS)
+
+
+%.ihex: %.$(TARGET)
+	$(OBJCOPY) $^ -O ihex $@
+
+%.bin: %.$(TARGET)
+	$(OBJCOPY) -O binary $< $@
+ 
+.PHONY: symbols.c
+ifdef CORE
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/symbols.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
+
+symbols.c: $(CORE)
+	$(NM) $< | awk -f $(CONTIKI_CPU)/builtins.awk -f ../../tools/mknmlist > symbols.c
+
+else
+%.$(TARGET): %-nosyms.$(TARGET)
+	ln -sf $< $@
+endif
+
+empty-symbols.c:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+
+# Don't use core/loader/elfloader.c, use elfloader-otf.c instead
+$(OBJECTDIR)/elfloader.o:
+	echo -n >$@
+
+clean: clean_cpu
+
+.PHONY: stm32test_clean
+
+clean_cpu:
+	-rm -rf $(BUILTSRCDIR)
+
+.PRECIOUS: %-nosyms.$(TARGET)
