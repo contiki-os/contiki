@@ -292,7 +292,19 @@ main(int argc, char **argv)
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);*/
 
-#if WITH_UIP6
+#if SLIP_RADIO
+  queuebuf_init();
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
+  printf("%s %s, channel check rate %lu Hz, radio channel %u\n",
+         NETSTACK_MAC.name, NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+                         NETSTACK_RDC.channel_check_interval()),
+         RF_CHANNEL);
+#else
+#if	WITH_UIP6
   memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
 /*   sicslowpan_init(sicslowmac_init(&cc2420_driver)); */
@@ -351,6 +363,7 @@ main(int argc, char **argv)
                          NETSTACK_RDC.channel_check_interval()),
          RF_CHANNEL);
 #endif /* WITH_UIP6 */
+#endif /* SLIP_RADIO */
 
 #if !WITH_UIP && !WITH_UIP6
   uart1_set_input(serial_line_input_byte);

@@ -73,4 +73,5 @@
 #undef UART1_CONF_RX_WITH_DMA
 #define UART1_CONF_RX_WITH_DMA           1
 
+#define SLIP_CONF_TCPIP_INPUT()
 #endif /* __PROJECT_CONF_H__ */
