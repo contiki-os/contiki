@@ -213,9 +213,11 @@ serial_input(FILE *inslip)
       } else if(inbuf[0] == '?') {
 #define DEBUG_LINE_MARKER '\r'
       } else if(inbuf[0] == DEBUG_LINE_MARKER) {
+   	printf("SLIP-DBG: ");
 	fwrite(inbuf + 1, inbufptr - 1, 1, stdout);
       } else if(is_sensible_string(inbuf, inbufptr)) {
         if(slip_config_verbose == 1) {   /* strings already echoed below for verbose>1 */
+          printf("SLIP-OUT: ");
           fwrite(inbuf, inbufptr, 1, stdout);
         }
       } else {
@@ -270,6 +272,7 @@ serial_input(FILE *inslip)
       }
     } else if(slip_config_verbose >= 2) {
       if(c == '\n' && is_sensible_string(inbuf, inbufptr)) {
+    	printf("SLIP-FB:");
         fwrite(inbuf, inbufptr, 1, stdout);
         inbufptr = 0;
       }
