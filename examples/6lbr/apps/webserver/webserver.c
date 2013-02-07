@@ -673,7 +673,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 	add("RPL filtering : <br />");
 	add( "<input type=\"radio\" name=\"rpl_filter\" value=\"1\" %s>enabled ",
 			(nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) != 0 ? "checked" : "");
-	add( "<input type=\"radio\" name=\"rpl_filter\" value=\"1\" %s>disabled ",
+	add( "<input type=\"radio\" name=\"rpl_filter\" value=\"0\" %s>disabled ",
 			(nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) == 0 ? "checked" : "");
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
@@ -687,7 +687,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 	add("Address rewrite : ");
 	add( "<input type=\"radio\" name=\"rewrite\" value=\"1\" %s>enabled ",
 		(nvm_data.mode & CETIC_MODE_REWRITE_ADDR_MASK) != 0 ? "checked" : "");
-	add( "<input type=\"radio\" name=\"rewrite\" value=\"1\" %s>disabled ",
+	add( "<input type=\"radio\" name=\"rewrite\" value=\"0\" %s>disabled ",
 		(nvm_data.mode & CETIC_MODE_REWRITE_ADDR_MASK) == 0 ? "checked" : "");
 #endif
 	add("<br /><input type=\"submit\" value=\"Submit\"/></form>");
