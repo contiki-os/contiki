@@ -213,7 +213,11 @@ static int eth_output(uip_lladdr_t *  src, uip_lladdr_t *  dest)
 {
 	uip_ds6_nbr_t *nbr = NULL;
     PRINTF("eth_output: ");
-    PRINTLLADDR(dest);
+    if ( IS_BROADCAST_ADDR(dest) ) {
+    	PRINTF("Broadcast");
+    } else {
+    	PRINTLLADDR(dest);
+    }
     PRINTF("\n");
 	//Packet filtering
 	//----------------
@@ -334,9 +338,7 @@ static int eth_output(uip_lladdr_t *  src, uip_lladdr_t *  dest)
 
 	//Sending packet
 	//--------------
-	PRINTF("eth_output: Sending packet to ethernet");
-    PRINTLLADDR(dest);
-    PRINTF("\n");
+	PRINTF("eth_output: Sending packet to ethernet\n");
 	eth_drv_send();
 
 	return 1;
