@@ -547,6 +547,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
 	reset_buf();
 #endif
 
+#if CETIC_6LBR_TRANSPARENTBRIDGE
 	add("</pre><h2>HW Prefixes cache</h2><pre>");
 	for (i=0;i<prefixCounter;i++) {
 		add("%02x:%02x:%02x\n", prefixBuffer[i][0], prefixBuffer[i][1], prefixBuffer[i][2]);
@@ -554,6 +555,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
 	add("</pre><br />");
+#endif
 
 #if WEBSERVER_CONF_FILESTATS
 	static uint16_t numtimes;
