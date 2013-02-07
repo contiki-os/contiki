@@ -673,6 +673,13 @@ PT_THREAD(generate_config(struct httpd_state *s))
 			(nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) != 0 ? "checked" : "");
 	add( "<input type=\"radio\" name=\"rpl_filter\" value=\"1\" %s>disabled ",
 			(nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) == 0 ? "checked" : "");
+	SEND_STRING(&s->sout, buf);
+	reset_buf();
+	add("<br />NDP filtering : <br />");
+	add( "<input type=\"radio\" name=\"ndp_filter\" value=\"1\" %s>enabled ",
+			(nvm_data.mode & CETIC_MODE_FILTER_NDP_MASK) != 0 ? "checked" : "");
+	add( "<input type=\"radio\" name=\"ndp_filter\" value=\"0\" %s>disabled ",
+			(nvm_data.mode & CETIC_MODE_FILTER_NDP_MASK) == 0 ? "checked" : "");
 #else
 	add("<br /><h3>Packet filtering</h3>");
 	add("Address rewrite : ");
@@ -982,6 +989,14 @@ update_config(const char * name)
 				nvm_data.mode &= ~CETIC_MODE_FILTER_RPL_MASK;
 			} else if (strcmp(value, "1") == 0) {
 				nvm_data.mode |= CETIC_MODE_FILTER_RPL_MASK;
+		    } else {
+		    	do_update = 0;
+		    }
+		} else if ( strcmp(param, "ndp_filter") == 0) {
+			if (strcmp(value, "0") == 0) {
+				nvm_data.mode &= ~CETIC_MODE_FILTER_NDP_MASK;
+			} else if (strcmp(value, "1") == 0) {
+				nvm_data.mode |= CETIC_MODE_FILTER_NDP_MASK;
 		    } else {
 		    	do_update = 0;
 		    }

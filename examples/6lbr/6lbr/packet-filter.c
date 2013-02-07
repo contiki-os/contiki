@@ -102,7 +102,9 @@ uint8_t wireless_output(uip_lladdr_t *  src, uip_lladdr_t *  dest) {
 		return 0;
 	}
 	//Filter out RA/RS towards WSN
-	if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && (UIP_ICMP_BUF->type == ICMP6_RS || UIP_ICMP_BUF->type == ICMP6_RA) ) {
+	if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6 &&
+	    (UIP_ICMP_BUF->type == ICMP6_RS || UIP_ICMP_BUF->type == ICMP6_RA) &&
+		(nvm_data.mode & CETIC_MODE_FILTER_NDP_MASK) != 0) {
 		return 0;
 	}
 

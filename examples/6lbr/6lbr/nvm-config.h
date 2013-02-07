@@ -20,6 +20,7 @@ typedef struct {
 #define CETIC_MODE_ROUTER_SEND_CONFIG	0x08
 #define CETIC_MODE_WSN_AUTOCONF         0x10
 #define CETIC_MODE_ETH_MANUAL           0x20
+#define CETIC_MODE_FILTER_NDP_MASK		0x40
 
 extern nvm_data_t nvm_data;
 
