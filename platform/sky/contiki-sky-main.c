@@ -293,6 +293,7 @@ main(int argc, char **argv)
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);*/
 
 #if SLIP_RADIO
+  memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
   queuebuf_init();
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
