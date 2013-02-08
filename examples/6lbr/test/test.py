@@ -7,32 +7,25 @@ from subprocess import Popen
 from time import sleep
 import config
 from support import *
+from tcpdump import TcpDump
 
 class TestSupport:
     br=config.br
     mote=config.mote
     platform=config.platform
-    mode=None
+    tcpdump=TcpDump()
+    ip_6lbr=None
+    ip_mote="aaaa::" + config.lladdr_mote
 
-    def setUp(self, mode):
-        self.mode=mode
-        self.mode.support=self
+    def setUp(self):
         self.platform.setUp()
         self.br.setUp()
         self.mote.setUp()
-        self.mode.setUp()
 
     def tearDown(self):
-        self.mode.tearDown()
         self.mote.tearDown()
         self.br.tearDown()
         self.platform.tearDown()
-
-    def set_up_network(self):
-        return self.mode.set_up_network()
-
-    def tear_down_network(self):
-        return self.mode.tear_down_network()
 
     def set_mode(self, mode, nvm_file):
         return self.br.set_mode(mode, nvm_file)
@@ -68,16 +61,16 @@ class TestSupport:
         return False
 
     def ping_6lbr(self):
-        return self.ping( self.mode.ip_6lbr )
+        return self.ping( self.ip_6lbr )
 
     def wait_ping_6lbr(self, count):
-        return self.wait_ping( count, self.mode.ip_6lbr )
+        return self.wait_ping( count, self.ip_6lbr )
 
     def ping_mote(self):
-        return self.ping( self.mode.ip_mote )
+        return self.ping( self.ip_mote )
 
     def wait_ping_mote(self, count):
-        return self.wait_ping( count, self.mode.ip_mote )
+        return self.wait_ping( count, self.ip_mote )
 
 class TestScenarios:
     support=TestSupport()
@@ -87,12 +80,12 @@ class TestScenarios:
         Check 6LBR start-up anbd connectivity
         """
         self.assertTrue(self.support.start_6lbr('test_S0.log'), "Could not start 6LBR")
-        self.assertTrue(self.support.set_up_network(), "Could not set up network")
+        self.set_up_network()
         self.assertTrue(self.support.wait_ping_6lbr(40), "6LBR is not responding")
-        self.assertTrue(self.support.tear_down_network(), "Could not tear down network")
+        self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    #@unittest.skip("test")
+    @unittest.skip("test")
     def test_S1(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -194,32 +187,85 @@ class TestScenarios:
         """
         pass
 
-#@unittest.skip("test")
+@unittest.skip("test")
 class SmartBridgeManual(unittest.TestCase,TestScenarios):
     def setUp(self):
-        self.support.setUp(SmartBridgeManualMode())
+        self.support=TestSupport()
+        self.support.ip_6lbr='aaaa::' + config.lladdr_6lbr
+        self.support.setUp()
+        self.support.set_mode('SMART-BRIDGE', 'manual.dat')
+
     def tearDown(self):
+        self.tear_down_network()
         self.support.tearDown()
 
-#@unittest.skip("test")
+    def set_up_network(self):
+        self.assertTrue( self.support.platform.configure_if(self.support.br.itf, "aaaa::200"), "")
+
+    def tear_down_network(self):
+        self.assertTrue( self.support.platform.unconfigure_if(self.support.br.itf), "")
+
+@unittest.skip("test")
 class SmartBridgeAuto(unittest.TestCase,TestScenarios):
     def setUp(self):
-        self.support.setUp(SmartBridgeAutoMode())
+        self.support=TestSupport()
+        self.support.ip_6lbr='aaaa::' + config.lladdr_6lbr
+        self.support.setUp()
+        self.support.set_mode('SMART-BRIDGE', 'auto.dat')
+
     def tearDown(self):
         self.support.tearDown()
 
-class Router(unittest.TestCase,TestScenarios):
-    def setUp(self):
-        self.support.setUp(RouterMode())
-    def tearDown(self):
-        self.support.tearDown()
+    def set_up_network(self):
+        #self.support.platform.accept_ra(self.support.br.itf)
+        self.assertTrue( self.support.platform.configure_if(self.support.br.itf, "aaaa::200"), "")
+        self.assertTrue( self.support.start_ra(self.support.br.itf), "")
+
+    def tear_down_network(self):
+        self.assertTrue( self.support.stop_ra(), "")
 
 #@unittest.skip("test")
-class RouterNoRa(unittest.TestCase,TestScenarios):
+class Router(unittest.TestCase,TestScenarios):
     def setUp(self):
-        self.support.setUp(RouterNoRaMode())
+        self.support=TestSupport()
+        self.support.ip_6lbr='bbbb::100'
+        self.support.setUp()
+        self.support.set_mode('ROUTER', 'router.dat')
+
     def tearDown(self):
         self.support.tearDown()
+        
+    def set_up_network(self):
+        self.assertTrue(self.support.platform.accept_ra(self.support.br.itf), "Could not enable RA configuration support")
+        if self.support.platform.support_rio():
+            self.assertTrue(self.support.platform.accept_rio(self.support.br.itf), "Could not enable RIO support")
+        self.assertTrue(self.support.tcpdump.expect_ra(self.support.br.itf, 30), "")
+        self.assertTrue(self.support.platform.check_prefix(self.support.br.itf, 'bbbb::'), "Interface not configured")
+        if not self.support.platform.support_rio():
+            self.assertTrue(self.support.platform.add_route("aaaa::", gw=self.support.ip_6lbr), "Could not add route")
+
+    def tear_down_network(self):
+        if not self.support.platform.support_rio():
+            self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "Could not remove route")
+
+@unittest.skip("test")
+class RouterNoRa(unittest.TestCase,TestScenarios):
+    def setUp(self):
+        self.support=TestSupport()
+        self.support.ip_6lbr='bbbb::100'
+        self.support.setUp()
+        self.support.set_mode('ROUTER', 'router_no_ra.dat')
+
+    def tearDown(self):
+        self.support.tearDown()
+
+    def set_up_network(self):
+        self.assertTrue( self.support.platform.configure_if(self.support.br.itf, "bbbb::200"), "")
+        self.assertTrue( self.support.platform.add_route("aaaa::", gw=self.support.ip_6lbr), "")
+
+    def tear_down_network(self):
+        self.assertTrue( self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "")
+        self.assertTrue( self.support.platform.unconfigure_if(self.support.br.itf), "")
 
 if __name__ == '__main__':
     unittest.main()

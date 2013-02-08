@@ -147,12 +147,12 @@ class Platform:
     def check_prefix(self, itf, prefix):
         pass
 
-    def wait_ra(self, itf, prefix, count):
-        for n in range(count):
-            if (self.check_prefix(itf, prefix)):
-                return True
-            sleep(1)
-        return False
+#    def check_prefix(self, itf, prefix, count):
+#        for n in range(count):
+#            if (self.check_prefix(itf, prefix)):
+#                return True
+#            sleep(1)
+#        return False
 
     def accept_ra(self, itf):
         pass
@@ -170,7 +170,9 @@ class MacOSX(Platform):
 
     def unconfigure_if(self, itf):
         if itf:
-            return system("ifconfig %s down" % itf) == 0
+            #return system("ifconfig %s down" % itf) == 0
+            system("ifconfig %s down" % itf)
+            return True
         else:
             return True
 
@@ -199,7 +201,6 @@ class MacOSX(Platform):
         return True
 
     def check_prefix(self, itf, prefix):
-        print >> sys.stderr, "Waiting RA..."
         result = system("ifconfig %s | grep '%s'" % (itf, prefix))
         return result == 0
 
@@ -277,87 +278,3 @@ class Linux(Platform):
         if result >> 8 == 2:
             sleep(1)
         return result == 0
-
-class Mode:
-    support=None
-    ip_6lbr=None
-    ip_mote="aaaa::" + config.lladdr_mote
-    def setUp(self):
-        pass
-    def tearDown(self):
-        pass
-    def set_up_network(self):
-        pass
-
-    def tear_down_network(self):
-        pass
-
-class SmartBridgeManualMode(Mode):
-    def setUp(self):
-        self.support.set_mode('SMART-BRIDGE', 'manual.dat')
-        self.ip_6lbr='aaaa::' + config.lladdr_6lbr
-
-    def tearDown(self):
-        self.tear_down_network()
-
-    def set_up_network(self):
-        return self.support.platform.configure_if(self.support.br.itf, "aaaa::200")
-
-    def tear_down_network(self):
-        return self.support.platform.unconfigure_if(self.support.br.itf)
-
-class SmartBridgeAutoMode(Mode):
-    def setUp(self):
-        self.support.set_mode('SMART-BRIDGE', 'auto.dat')
-        self.ip_6lbr='aaaa::' + config.lladdr_6lbr
-
-    def set_up_network(self):
-        #self.support.platform.accept_ra(self.support.br.itf)
-        if not self.support.platform.configure_if(self.support.br.itf, "aaaa::200"):
-            return False
-        if not self.support.start_ra(self.support.br.itf):
-            return False
-        return True
-
-    def tear_down_network(self):
-        return self.support.stop_ra()
-
-class RouterMode(Mode):
-    def setUp(self):
-        self.support.set_mode('ROUTER', 'router.dat')
-        self.ip_6lbr='bbbb::100'
-
-    def set_up_network(self):
-        self.support.platform.accept_ra(self.support.br.itf)
-        if self.support.platform.support_rio():
-            self.support.platform.accept_rio(self.support.br.itf)
-        self.support.platform.wait_ra(self.support.br.itf, 'bbbb::', 30)
-        if not self.support.platform.support_rio():
-            if not self.support.platform.add_route("aaaa::", gw=self.ip_6lbr):
-                return False
-        return True
-
-    def tear_down_network(self):
-        if not self.support.platform.support_rio():
-            if not self.support.platform.rm_route("aaaa::", gw=self.ip_6lbr):
-                return False
-        return True
-
-class RouterNoRaMode(Mode):
-    def setUp(self):
-        self.support.set_mode('ROUTER', 'router_no_ra.dat')
-        self.ip_6lbr='bbbb::100'
-
-    def set_up_network(self):
-        if not self.support.platform.configure_if(self.support.br.itf, "bbbb::200"):
-            return False
-        if not self.support.platform.add_route("aaaa::", gw=self.ip_6lbr):
-            return False
-        return True
-
-    def tear_down_network(self):
-        if not self.support.platform.rm_route("aaaa::", gw=self.ip_6lbr):
-            return False
-        if not self.support.platform.unconfigure_if(self.support.br.itf):
-            return False
-        return True
