@@ -89,6 +89,10 @@ void ResumeMACASync(void);
 void radio_init(void);
 uint32_t init_from_flash(uint32_t addr);
 
+/* maca_pwr indicates whether the radio is on or off */
+/* Test it before accessing any radio function or the CPU may hang */
+extern volatile uint8_t maca_pwr;
+
 #define MAX_PACKET_SIZE (MAX_PAYLOAD_SIZE + 2) /* packet includes 2 bytes of checksum */
 
 /* maca register and field defines */
