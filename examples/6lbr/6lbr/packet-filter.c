@@ -77,7 +77,6 @@ static void wireless_input(void) {
 		if (eth_output((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER), 
             (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {
 			//Restore packet as eth_output might have converted its content
-			PRINTF("wireless_input: conversion of MAC\n");
 			mac_translateIPLinkLayer(ll_802154_type);
 		}
 	}
@@ -89,6 +88,9 @@ static void wireless_input(void) {
 	if (processFrame ) {
 		PRINTF("wireless_input: processing frame\n");
 		send_to_uip();
+	} else {
+		//Drop packet
+		uip_len = 0;
 	}
 }
 
@@ -204,9 +206,10 @@ void eth_input(void)
 	if ( processFrame) {
 		PRINTF("eth_input: Processing frame\n");
 		send_to_uip();
+	} else {
+		//Drop packet
+		uip_len = 0;
 	}
-
-	uip_len = 0;
 }
 
 static int eth_output(uip_lladdr_t *  src, uip_lladdr_t *  dest)
@@ -317,7 +320,7 @@ static int eth_output(uip_lladdr_t *  src, uip_lladdr_t *  dest)
 
 	//Source address
 #if CETIC_6LBR_TRANSPARENTBRIDGE
-	memcpy(BUF->src.addr, src, 6);
+	mac_createEthernetAddr(BUF->src.addr, src);
 #endif
 #if CETIC_6LBR_SMARTBRIDGE
 #if CETIC_ND_PROXY
