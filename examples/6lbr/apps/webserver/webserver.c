@@ -396,7 +396,9 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
 					add("<br />Version : %d", instance_table[i].dag_table[j].version);
 					add("<br />Grounded : %s", instance_table[i].dag_table[j].grounded ? "Yes" : "No");
 					add("<br />Preference : %d", instance_table[i].dag_table[j].preference);
-					add("<br />");
+					add("<br />Mode of Operation : %u", instance_table[i].mop);
+					add("<br />Current DIO Interval [%u-%u] : %u", instance_table[i].dio_intmin, instance_table[i].dio_intmin + instance_table[i].dio_intdoubl, instance_table[i].dio_intcurrent);
+					add("<br />Objective Function Code Point : %u", instance_table[i].of->ocp);
 					add("<br />Joined : %s", instance_table[i].dag_table[j].joined ? "Yes" : "No");
 					add("<br />Rank : %d", instance_table[i].dag_table[j].rank);
 					add("<br />");
