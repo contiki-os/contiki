@@ -347,6 +347,9 @@ void print_nvm(void)
      printf( "Filter RPL : " );
      print_bool( nvm_params->mode, CETIC_MODE_FILTER_RPL_MASK );
      printf("\n");
+     printf( "Filter NDP : " );
+     print_bool( nvm_params->mode, CETIC_MODE_FILTER_NDP_MASK );
+     printf("\n");
      printf("\n");
      printf( "RPL version_id : " );
      print_int( nvm_params->rpl_version_id );
@@ -374,6 +377,7 @@ void print_nvm(void)
 
 #define local_addr_rewrite_option 4000
 #define rpl_filter_option 4001
+#define ndp_filter_option 4002
 
 #define rpl_version_option 5000
 
@@ -401,6 +405,7 @@ static struct option long_options[] = {
 
      { "addr-rewrite", required_argument, 0, local_addr_rewrite_option },
      { "filter-rpl", required_argument, 0, rpl_filter_option },
+     { "filter-ndp", required_argument, 0, ndp_filter_option },
 
      { "rpl-version", required_argument, 0, rpl_version_option },
 
@@ -442,6 +447,7 @@ void help(char const * name)
 
      printf("\t--addr-rewrite <0|1>\t\t Rewrite outgoing local addresses\n");
      printf("\t--filter-rpl <0|1>\t\t Filter out RPL messages\n");
+     printf("\t--filter-NDP <0|1>\t\t Filter out NDP RA/RS messages\n");
      printf("\n");
 
      printf("\t--rpl-version <version>\t\t Current RPL DODAG version ID\n");
@@ -480,6 +486,7 @@ int main(int argc, char * argv[])
 
      char *  local_addr_rewrite = NULL;
      char *  rpl_filter = NULL;
+     char *  ndp_filter = NULL;
 
      char *  rpl_version = NULL;
 
@@ -640,6 +647,9 @@ int main(int argc, char * argv[])
 	  }
 	  if ( rpl_filter ) {
 	       mode_update( CETIC_MODE_FILTER_RPL_MASK, boolconv( "filter-rpl", rpl_filter) );
+	  }
+	  if ( ndp_filter ) {
+	       mode_update( CETIC_MODE_FILTER_NDP_MASK, boolconv( "filter-ndp", ndp_filter) );
 	  }
 
 	  if( rpl_version ) {
