@@ -129,9 +129,6 @@ void cetic_bridge_set_prefix( uip_ipaddr_t *prefix, unsigned len, uip_ipaddr_t *
       PRINT6ADDR(&prefix->u8);
       PRINTF("\n");
       rpl_set_prefix(cetic_dag, prefix, len);
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-      cetic_dag->prefix_info.flags |= UIP_ND6_RA_FLAG_ONLINK;
-#endif
 	  uip_ipaddr_copy(&wsn_net_prefix, prefix);
   }
 }
@@ -144,10 +141,12 @@ void cetic_bridge_init(void)
   node_info_init();
 #endif
 
+#if !CETIC_6LBR_TRANSPARENTBRIDGE
   //DODAGID = link-local address used !
   uip_create_linklocal_prefix(&loc_fipaddr);
   uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
   cetic_dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &loc_fipaddr);
+#endif
 
   uip_ds6_addr_t *  local = uip_ds6_get_link_local(-1);
   uip_ipaddr_copy(&wsn_ip_local_addr, &local->ipaddr);
@@ -179,9 +178,8 @@ void cetic_bridge_init(void)
     PRINTF("\n");
 	memcpy(eth_dft_router.u8, &nvm_data.eth_dft_router, sizeof(nvm_data.eth_dft_router));
 	uip_ds6_defrt_add(&eth_dft_router, 0);
+#if CETIC_6LBR_SMARTBRIDGE
 	rpl_set_prefix(cetic_dag, &wsn_net_prefix, 64);
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-    cetic_dag->prefix_info.flags |= UIP_ND6_RA_FLAG_ONLINK;
 #endif
   } //End manual configuration
   
