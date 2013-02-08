@@ -967,7 +967,7 @@ uip_nd6_ra_input(void)
                                ADDR_AUTOCONF);
             }
           }
-#if CETIC_6LBR
+#if CETIC_6LBR_SMARTBRIDGE
           cetic_bridge_set_prefix(&nd6_opt_prefix_info->prefix, 64, &ipaddr);
 #endif
         }
