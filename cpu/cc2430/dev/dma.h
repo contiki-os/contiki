@@ -138,11 +138,11 @@ extern dma_config_t dma_conf[DMA_CHANNEL_COUNT];
 
 /* Functions Declarations */
 void dma_init(void);
-void dma_associate_process (struct process * p, uint8_t c);
+void dma_associate_process(struct process *p, uint8_t c);
 
 /* Only link the ISR when DMA_ON is .... on */
 #if DMA_ON
-void dma_ISR( void ) __interrupt (DMA_VECTOR);
+void dma_ISR(void) __interrupt(DMA_VECTOR);
 #endif
 
 #endif /*__DMA_H*/

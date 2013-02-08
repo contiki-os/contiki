@@ -95,8 +95,8 @@ rtimer_arch_schedule(rtimer_clock_t t)
   PRINTF("rtimer_arch_schedule(%u)\n", t);
 
   /* set the compare mode values so we can get an interrupt after t */
-  T1CC1L = (unsigned char) t;
-  T1CC1H = (unsigned char) (t >> 8);
+  T1CC1L = (unsigned char)t;
+  T1CC1H = (unsigned char)(t >> 8);
   PRINTF("T1CC1=%u, t=%u\n", (T1CC1L + (T1CC1H << 8)), t);
 
   /* Turn on compare mode interrupt */
@@ -109,7 +109,7 @@ rtimer_arch_schedule(rtimer_clock_t t)
 #pragma exclude bits
 #endif
 void
-cc2430_timer_1_ISR(void) __interrupt (T1_VECTOR)
+cc2430_timer_1_ISR(void) __interrupt(T1_VECTOR)
 {
   IEN1_T1IE = 0; /* Ignore Timer 1 Interrupts */
   ENERGEST_ON(ENERGEST_TYPE_IRQ);

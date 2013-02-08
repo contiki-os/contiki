@@ -70,6 +70,17 @@ int main(void) {
 		PRINTF("trim xtal for M12\n\r");
 		CRM->XTAL_CNTLbits.XTAL_CTUNE = (M12_CTUNE_4PF << 4) | M12_CTUNE;
 		CRM->XTAL_CNTLbits.XTAL_FTUNE = M12_FTUNE;
+
+		/* configure pullups for low power */
+		GPIO->FUNC_SEL.GPIO_63 = 3;
+		GPIO->PAD_PU_SEL.GPIO_63 = 0;
+		GPIO->FUNC_SEL.SS = 3;
+		GPIO->PAD_PU_SEL.SS = 1;
+		GPIO->FUNC_SEL.VREF2H = 3;
+		GPIO->PAD_PU_SEL.VREF2H = 1;
+		GPIO->FUNC_SEL.U1RTS = 3;
+		GPIO->PAD_PU_SEL.U1RTS = 1;
+
 	} else {
 		/* econotag I */
 		PRINTF("trim xtal for Econotag I\n\r");

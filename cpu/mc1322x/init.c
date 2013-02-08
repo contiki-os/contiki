@@ -102,6 +102,7 @@ void buck_setup(void) {
 		CRM->VREG_CNTLbits.VREG_1P5V_SEL = 3;
 		CRM->VREG_CNTLbits.VREG_1P5V_EN = 3;
 		CRM->VREG_CNTLbits.VREG_1P8V_EN = 1;
+
 		while(CRM->STATUSbits.VREG_1P5V_RDY == 0) { continue; }
 		while(CRM->STATUSbits.VREG_1P8V_RDY == 0) { continue; }
 
@@ -149,6 +150,7 @@ void rtc_setup(void) {
 		PRINTF("RTC calibrated to %d Hz\r\n", rtc_freq);
 	} else {
 		PRINTF("32kHz xtal started\n\r");
+		rtc_freq = 32768;
 	}
 }
 
@@ -167,13 +169,11 @@ void mc1322x_init(void) {
 	PRINTF("mc1322x init\n\r");
 
 	adc_init();
-	clock_init();
 	ctimer_init();
 	process_init();
 	process_start(&etimer_process, NULL);
 	process_start(&contiki_maca_process, NULL);
 	buck_setup();
-	rtc_setup();
 
 	/* start with a default config */
 
@@ -196,6 +196,11 @@ void mc1322x_init(void) {
 	set_demodulator_type(mc1322x_config.flags.demod);
 	set_prm_mode(mc1322x_config.flags.autoack);
 
+	/* must be done AFTER maca_init */
+	/* the radio calibration appears to clobber the RTC trim caps */
+	rtc_setup();
+	rtimer_init();
+	clock_init();
 
 }
 

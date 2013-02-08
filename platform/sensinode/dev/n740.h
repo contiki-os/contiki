@@ -64,7 +64,7 @@
 
 /* Serial/Parallel Shift Register (74HC595D) Functions */
 void n740_ser_par_init(void);
-void n740_ser_par_set(uint8_t data) ;
+void n740_ser_par_set(uint8_t data);
 uint8_t n740_ser_par_get(void);
 
 /* Analog Switch (U5 - 74HC4053D) Functions */

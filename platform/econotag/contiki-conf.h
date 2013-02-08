@@ -106,10 +106,6 @@
 #define PLATFORM_HAS_LEDS 1
 #define PLATFORM_HAS_BUTTON 1
 
-/* Core rtimer.h defaults to 16 bit timer unless RTIMER_CLOCK_LT is defined */
-typedef unsigned long rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((signed long)((a)-(b)) < 0)
-
 #define RIMEADDR_CONF_SIZE              8
 
 #if WITH_UIP6

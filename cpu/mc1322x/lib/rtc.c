@@ -72,7 +72,7 @@ void rtc_init_osc(int use_32khz)
 			continue;
 
                 /* RTC has started up */
-		rtc_freq = 32000;
+		rtc_freq = 32768;
 	}
 	else
 	{
@@ -168,7 +168,7 @@ void rtc_calibrate(void)
 	uint32_t count;
 
 	if (__use_32khz) {
-		rtc_freq = 32000;
+		rtc_freq = 32768;
 		return;
 	}
 

@@ -54,7 +54,7 @@ putdec(uint8_t c)
     c %= div;
     if((disp != 0) || (hassent) || (div == 1)) {
       hassent = 1;
-      putchar('0'+disp);
+      putchar('0' + disp);
     }
   }
 }
