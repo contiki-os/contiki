@@ -57,18 +57,41 @@
 #define PRINTF(...)
 #endif
 
-void rtc_isr(void) {
-	PRINTF("rtc_wu_irq\n\r");
-	PRINTF("now is %u\n", rtimer_arch_now());
-	disable_rtc_wu();
-	disable_rtc_wu_irq();
+static uint32_t last_rtc;
+
+void
+rtc_isr(void)
+{
+	/* see note in table 5-13 of the reference manual: it takes at least two RTC clocks for the EVT bit to clear */
+	if ((CRM->RTC_COUNT - last_rtc) <= 2) {
+		CRM->STATUS = ~0; /* Clear all events */
+
+//		CRM->STATUSbits.RTC_WU_EVT = 1;
+		return;
+	}
+
+	last_rtc = CRM->RTC_COUNT;
+
+  /* Clear all events (for paranoia) */
+	/* clear RTC event flag (for paranoia)*/
+//	CRM->STATUSbits.RTC_WU_EVT = 1;
+	CRM->STATUS = ~0; 
+
 	rtimer_run_next();
-	clear_rtc_wu_evt();
+
 }
 
 void
 rtimer_arch_init(void)
 {
+	last_rtc = CRM->RTC_COUNT;
+	/* enable timeout interrupts */
+	/* RTC WU is the periodic RTC timer */
+	/* TIMER WU is the wakeup timers (clocked from the RTC source) */
+	/* it does not appear you can have both enabled at the same time */
+	CRM->WU_CNTLbits.RTC_WU_EN = 1;
+	CRM->WU_CNTLbits.RTC_WU_IEN = 1;
+	enable_irq(CRM);
 }
 
 void
@@ -76,23 +99,52 @@ rtimer_arch_schedule(rtimer_clock_t t)
 {
 	volatile uint32_t now;
 	now = rtimer_arch_now();
-	PRINTF("rtimer_arch_schedule time %u; now is %u\n", t,now);
+	PRINTF("rtimer_arch_schedule time %u; now is %u\n", t, now);
 
-#if 1
-/* If specified time is always in the future, counter can wrap without harm */
-	*CRM_RTC_TIMEOUT = t - now;
-#else
 /* Immediate interrupt if specified time is before current time. This may also
    happen on counter overflow. */
-	if(now>t) {
-		*CRM_RTC_TIMEOUT = 1;
+	if(now > t) {
+		CRM->RTC_TIMEOUT = 1;
 	} else {
-		*CRM_RTC_TIMEOUT = t - now;
+		CRM->RTC_TIMEOUT = t - now;
 	}
-#endif
-
-	clear_rtc_wu_evt();
-	enable_rtc_wu();
-	enable_rtc_wu_irq();
-	PRINTF("rtimer_arch_schedule CRM_RTC_TIMEOUT is %u\n", *CRM_RTC_TIMEOUT);
 }
+
+void 
+rtimer_arch_sleep(rtimer_clock_t howlong)
+{
+	CRM->WU_CNTLbits.TIMER_WU_EN = 1;
+	CRM->WU_CNTLbits.RTC_WU_EN = 0;
+	CRM->WU_TIMEOUT = howlong;
+
+	/* the maca must be off before going to sleep */
+	/* otherwise the mcu will reboot on wakeup */
+	maca_off();
+
+	CRM->SLEEP_CNTLbits.DOZE = 0;
+	CRM->SLEEP_CNTLbits.RAM_RET = 3;
+	CRM->SLEEP_CNTLbits.MCU_RET = 1;
+	CRM->SLEEP_CNTLbits.DIG_PAD_EN = 1;
+	CRM->SLEEP_CNTLbits.HIB = 1;
+
+  /* wait for the sleep cycle to complete */
+  while((*CRM_STATUS & 0x1) == 0) { continue; }
+  /* write 1 to sleep_sync --- this clears the bit (it's a r1wc bit) and powers down */
+  *CRM_STATUS = 1;
+
+  /* asleep */
+
+  /* wait for the awake cycle to complete */
+  while((*CRM_STATUS & 0x1) == 0) { continue; }
+  /* write 1 to sleep_sync --- this clears the bit (it's a r1wc bit) and finishes wakeup */
+  *CRM_STATUS = 1;
+
+	CRM->WU_CNTLbits.TIMER_WU_EN = 0;
+	CRM->WU_CNTLbits.RTC_WU_EN = 1;
+
+	/* reschedule clock ticks */
+	clock_init();
+	clock_adjust_ticks((CRM->WU_COUNT*CLOCK_CONF_SECOND)/rtc_freq);
+}
+
+
