@@ -28,7 +28,7 @@
     <mkdir dir="lib"/>
     <jar destfile="lib/dbus.jar" basedir="build">
       <manifest>
-        <attribute name="Class-Path" value=". /usr/share/java/dbus.jar"/>
+        <attribute name="Class-Path" value=". ${dbus_jar}"/>
       </manifest>
     </jar>
   </target>
