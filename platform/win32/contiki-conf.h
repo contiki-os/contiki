@@ -50,11 +50,11 @@ typedef unsigned short uip_stats_t;
 
 #define UIP_CONF_MAX_CONNECTIONS 40
 #define UIP_CONF_MAX_LISTENPORTS 40
-#define UIP_CONF_BUFFER_SIZE     420
+#define UIP_CONF_BUFFER_SIZE     1514
 #define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 #define UIP_CONF_TCP_SPLIT       1
 #if UIP_CONF_IPV6
-#define UIP_CONF_IP_FORWARD 0
+#define UIP_CONF_IP_FORWARD      0
 #define UIP_CONF_DS6_NBR_NBU     100
 #define UIP_CONF_DS6_DEFRT_NBU   2
 #define UIP_CONF_DS6_PREFIX_NBU  5
@@ -74,16 +74,16 @@ typedef unsigned short uip_stats_t;
 
 #include "ctk/ctk-console.h"
 
-#define CH_ULCORNER	          0xDA
-#define CH_URCORNER	          0xBF
-#define CH_LLCORNER	          0xC0
-#define CH_LRCORNER	          0xD9
-#define CH_ENTER	          '\r'
-#define CH_DEL		          '\b'
-#define CH_CURS_UP  	          -1
-#define CH_CURS_LEFT	          -2
-#define CH_CURS_RIGHT	          -3
-#define CH_CURS_DOWN	          -4
+#define CH_ULCORNER               '+'
+#define CH_URCORNER               '+'
+#define CH_LLCORNER               '+'
+#define CH_LRCORNER               '+'
+#define CH_ENTER                  '\r'
+#define CH_DEL                    '\b'
+#define CH_CURS_UP                -1
+#define CH_CURS_LEFT              -2
+#define CH_CURS_RIGHT             -3
+#define CH_CURS_DOWN              -4
 
 #define CTK_CONF_MENU_KEY         -5  /* F10 */
 #define CTK_CONF_WINDOWSWITCH_KEY -6  /* Ctrl-Tab */
