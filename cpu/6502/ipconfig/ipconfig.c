@@ -70,9 +70,9 @@ static struct ctk_button savebutton =
 static struct ctk_button cancelbutton =
   {CTK_BUTTON(20, 13, 6, "Cancel")};
 
-PROCESS(dhcp_process, "IP Config");
+PROCESS(ipconfig_process, "IP config");
 
-AUTOSTART_PROCESSES(&dhcp_process);
+AUTOSTART_PROCESSES(&ipconfig_process);
 
 /*-----------------------------------------------------------------------------------*/
 static char *
@@ -170,15 +170,15 @@ static void
 app_quit(void)
 {
   ctk_window_close(&window);
-  process_exit(&dhcp_process);
+  process_exit(&ipconfig_process);
   LOADER_UNLOAD();
 }
 /*-----------------------------------------------------------------------------------*/
-PROCESS_THREAD(dhcp_process, ev, data)
+PROCESS_THREAD(ipconfig_process, ev, data)
 {
   PROCESS_BEGIN();
   
-  ctk_window_new(&window, 29, 14, "IP Config");
+  ctk_window_new(&window, 29, 14, "IP config");
   
   CTK_WIDGET_ADD(&window, &requestbutton);
   CTK_WIDGET_ADD(&window, &statuslabel);  
@@ -200,7 +200,7 @@ PROCESS_THREAD(dhcp_process, ev, data)
   ctk_window_open(&window);
 
   /* Allow resolver to set DNS server address. */
-  process_post(PROCESS_CURRENT(), PROCESS_EVENT_MSG, NULL);
+  PROCESS_PAUSE();
 
   dhcpc_init(uip_ethaddr.addr, sizeof(uip_ethaddr.addr));
 
