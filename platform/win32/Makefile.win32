@@ -51,9 +51,9 @@ ifdef PLATFORM_BUILD
   CONTIKI_TARGET_SOURCEFILES += dll-loader.c
   CFLAGS += -DPLATFORM_BUILD -DWITH_GUI -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
   LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
-             -u _cfs_open -u _cfs_opendir -u _uiplib_ipaddrconv
+             -u _cfs_open -u _cfs_opendir -u _uiplib_ip4addrconv
   LINKFLAGS = -implib:contiki-main.$(TARGET).a $(OBJECTDIR)/program-handler.o \
-              -include:_cfs_open -include:_cfs_opendir -include:_uiplib_ipaddrconv
+              -include:_cfs_open -include:_cfs_opendir -include:_uiplib_ip4addrconv
 else
   CONTIKI_TARGET_SOURCEFILES += unload.c
 endif

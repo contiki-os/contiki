@@ -112,8 +112,8 @@ console_init(void)
   SetConsoleCtrlHandler(ctrlhandler, TRUE);
   atexit(console_exit);
 
-  memset(blank, ' ',  sizeof(blank));
-  memset(hline, 0xC4, sizeof(hline));
+  memset(blank, ' ', sizeof(blank));
+  memset(hline, '-', sizeof(hline));
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -159,8 +159,8 @@ static void
 setcolor(void)
 {
   SetConsoleTextAttribute(stdouthandle, (WORD)(reversed? (color & 0x0F) << 4 |
-							 (color & 0xF0) >> 4
-						       : color));
+                                                         (color & 0xF0) >> 4
+                                                       : color));
 }
 /*-----------------------------------------------------------------------------------*/
 unsigned char
@@ -264,7 +264,7 @@ cvline(unsigned char length)
   y = wherey();
 
   for(i = 0; i < length; ++i) {
-    cputcxy(x, (unsigned char)(y + i), (char)0xB3);
+    cputcxy(x, (unsigned char)(y + i), '|');
   }
 }
 /*-----------------------------------------------------------------------------------*/
@@ -338,25 +338,25 @@ console_readkey(KEY_EVENT_RECORD keyrecord)
   if(key == 0) {
     switch(keyrecord.wVirtualKeyCode) {
     case VK_TAB:
-	if(keyrecord.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) {
-	  key = CTK_CONF_WINDOWSWITCH_KEY;
-	}
-	break;
+        if(keyrecord.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) {
+          key = CTK_CONF_WINDOWSWITCH_KEY;
+        }
+        break;
     case VK_LEFT:
-	key = CH_CURS_LEFT;
-	break;
+        key = CH_CURS_LEFT;
+        break;
     case VK_UP:
-	key = CH_CURS_UP;
-	break;
+        key = CH_CURS_UP;
+        break;
     case VK_RIGHT:
-	key = CH_CURS_RIGHT;
-	break;
+        key = CH_CURS_RIGHT;
+        break;
     case VK_DOWN:
-	key = CH_CURS_DOWN;
-	break;
+        key = CH_CURS_DOWN;
+        break;
     case VK_F10:
-	key = CTK_CONF_MENU_KEY;
-	break;
+        key = CTK_CONF_MENU_KEY;
+        break;
     }
   }
 
