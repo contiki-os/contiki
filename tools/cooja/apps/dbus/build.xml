@@ -3,6 +3,7 @@
 <project name="COOJA: DBus" default="jar" basedir=".">
   <property name="cooja" location="../.."/>
   <property name="cooja_jar" value="../../dist/cooja.jar"/>
+  <property name="dbus_jar" value="/usr/share/java/dbus.jar"/>
 
   <target name="init">
     <tstamp/>
@@ -14,6 +15,7 @@
       <classpath>
         <pathelement path="."/>
         <pathelement location="${cooja_jar}"/>
+      	<pathelement location="${dbus_jar}"/>
       </classpath>
     </javac>
   </target>
@@ -26,7 +28,7 @@
     <mkdir dir="lib"/>
     <jar destfile="lib/dbus.jar" basedir="build">
       <manifest>
-        <attribute name="Class-Path" value="."/>
+        <attribute name="Class-Path" value=". /usr/share/java/dbus.jar"/>
       </manifest>
     </jar>
   </target>
