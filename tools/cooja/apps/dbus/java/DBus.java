@@ -5,8 +5,6 @@ import se.sics.cooja.VisPlugin;
 import se.sics.cooja.ClassDescription;
 
 import org.cooja.dbus.simulation.CDbus;
-import org.freedesktop.dbus.*;
-import org.freedesktop.dbus.exceptions.DBusException;
 
 /**
  * Creates dbus functions to control externally
@@ -19,7 +17,9 @@ import org.freedesktop.dbus.exceptions.DBusException;
 public class DBus extends VisPlugin {
 	public DBus(Simulation simulation, final GUI gui) {
 	    super("DBus", gui, false);
-	    CDbus connection = new CDbus(simulation);
 
-	    	}
+	    @SuppressWarnings("unused")
+        CDbus connection = new CDbus(simulation);
+
+	}
 }
