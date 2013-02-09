@@ -6,15 +6,12 @@ import org.freedesktop.dbus.exceptions.DBusException;
 import se.sics.cooja.Simulation;
 
 public class CDbus {
-
-	public static void main(String[] args) {
-		new CDbus(null);
-	}
+    DBusConnection conn = null;
 
 	public CDbus(Simulation simulation) {
 		Debug.debug("Creating DBus Connection");
 
-	    DBusConnection conn = null;
+
 	    try {
 	         conn = DBusConnection.getConnection(DBusConnection.SESSION);
 
@@ -35,6 +32,10 @@ public class CDbus {
 	        return;
 	    }
 
+	}
+
+	public void disconnect() {
+	    conn.disconnect();
 	}
 
 }
