@@ -5,6 +5,15 @@ import org.freedesktop.dbus.exceptions.DBusException;
 
 import se.sics.cooja.Simulation;
 
+/**
+ * The class creates the session dbus connection
+ * and then listens to the calls to manipulate the
+ * simulation.
+ *
+ *
+ * @author Salvo 'LtWorf' Tomaselli
+ *
+ */
 public class CDbus {
     DBusConnection conn = null;
 
