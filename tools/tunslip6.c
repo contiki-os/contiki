@@ -56,6 +56,11 @@
 
 #include <err.h>
 
+#if defined(__FreeBSD__)
+#include <sys/time.h>
+#include <net/if_tun.h>
+#endif
+
 int verbose = 1;
 const char *ipaddr;
 const char *netmask;
@@ -157,7 +162,10 @@ is_sensible_string(const unsigned char *s, int len)
 void
 serial_to_tun(FILE *inslip, int outfd)
 {
-  static union {
+  static struct {
+#if defined(__FreeBSD__)
+    int af;
+#endif
     unsigned char inbuf[2000];
   } uip;
   static int inbufptr = 0;
@@ -266,7 +274,12 @@ serial_to_tun(FILE *inslip, int outfd)
             printf("\n");
           }
         }
+#if defined(__FreeBSD__)
+	uip.af=htonl(AF_INET6);
+	if(write(outfd, &uip, inbufptr+sizeof(int)) != inbufptr+sizeof(int)) {
+#else
 	if(write(outfd, uip.inbuf, inbufptr) != inbufptr) {
+#endif
 	  err(1, "serial_to_tun: write");
 	}
       }
@@ -437,10 +450,13 @@ tun_to_serial(int infd, int outfd)
     unsigned char inbuf[2000];
   } uip;
   int size;
-
   if((size = read(infd, uip.inbuf, 2000)) == -1) err(1, "tun_to_serial: read");
 
+#if defined(__FreeBSD__)
+  write_to_serial(outfd, uip.inbuf + sizeof(int), size-sizeof(int));
+#else
   write_to_serial(outfd, uip.inbuf, size);
+#endif
   return size;
 }
 
@@ -539,7 +555,15 @@ tun_alloc(char *dev, int tap)
 int
 tun_alloc(char *dev, int tap)
 {
-  return devopen(dev, O_RDWR);
+  int fd = devopen(dev, O_RDWR);
+#if defined(__FreeBSD__)
+  int err;
+  if((err = ioctl(fd, TUNSIFHEAD, &(int) {1})) < 0 ) {
+    close(fd);
+    return err;
+  }
+#endif
+  return fd;
 }
 #endif
 
@@ -676,7 +700,7 @@ ifconf(const char *tundev, const char *ipaddr)
   }
 #else
   if (timestamp) stamptime();
-  ssystem("ifconfig %s inet `hostname` %s up", tundev, ipaddr);
+  ssystem("ifconfig %s inet6 %s up", tundev, ipaddr);
   if (timestamp) stamptime();
   ssystem("sysctl -w net.inet.ip.forwarding=1");
 #endif /* !linux */
