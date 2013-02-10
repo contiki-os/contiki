@@ -28,7 +28,7 @@ SECTIONS
   .data :
   {
     _data = . ;
-    *(.data)
+    *(.data*)
     . = ALIGN(4);
     _edata = . ;
     PROVIDE (_edata = .);
@@ -41,7 +41,7 @@ SECTIONS
   {
     __bss_start = . ;
     __bss_start__ = . ;
-    *(.bss)
+    *(.bss*)
     *(COMMON)
     . = ALIGN(4);
     _ebss = . ;
