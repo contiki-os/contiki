@@ -319,7 +319,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
 	add("</pre><h2>Neighbors</h2><pre>");
 	for(i = 0; i < UIP_DS6_NBR_NB; i++) {
 		if(uip_ds6_nbr_cache[i].isused) {
-			add("[<a href=\"nbr_rm?%d\">X</a>] ", i);
 			ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
 			add(" ");
 			lladdr_add(&uip_ds6_nbr_cache[i].lladdr);
@@ -334,7 +333,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
 	for(r = uip_ds6_route_list_head(), i=0; r != NULL; r = list_item_next(r), ++i) {
-		add("[<a href=\"route_rm?%d\">X</a>] ", i);
 		ipaddr_add(&r->ipaddr);
 		add("/%u (via ", r->length);
 		ipaddr_add(&r->nexthop);
@@ -378,8 +376,8 @@ PT_THREAD(generate_index(struct httpd_state *s))
 	}
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
-	add("</pre><br />");
 #endif
+	add("</pre><br />");
 #endif
 
 #if WEBSERVER_CONF_CONFIG
