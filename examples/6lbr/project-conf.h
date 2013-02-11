@@ -48,12 +48,6 @@
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     140
-
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   140
-
 /*------------------------------------------------------------------*/
 #endif
 
@@ -76,12 +70,6 @@
 #define CETIC_ND_PROXY				0
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
-
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     140
-
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   140
 
 /*------------------------------------------------------------------*/
 #endif
@@ -107,12 +95,6 @@
 #define UIP_CONF_DS6_ADDR_NBU 3
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
-
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     140
-
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   140
 
 #define CETIC_ND_PROXY				0
 
@@ -166,8 +148,23 @@
 
 #define REDBEE_CONF_MAX_POWER 0x12
 
-#define WEBSERVER_EDITABLE_CONFIG 0
+#if WEBSERVER
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     40
 
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   40
+#else
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     100
+
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   100
+#endif
+
+#define WEBSERVER_CONF_CFS_URLCONV	0
+
+#define WEBSERVER_CONF_CFS_CONNS	1
 #endif
 
 #endif /* __PROJECT_6LBR_CONF_H__ */
