@@ -52,8 +52,6 @@
 //Local link address is already reserved
 #define UIP_CONF_DS6_ADDR_NBU 1
 
-#define CETIC_ND_PROXY				1
-
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
 /*------------------------------------------------------------------*/
@@ -74,8 +72,6 @@
 #define NULLRDC_CONF_ADDRESS_FILTER	0
 #undef MACA_AUTOACK
 #define MACA_AUTOACK				0
-
-#define CETIC_ND_PROXY				0
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	0
 
@@ -103,8 +99,6 @@
 #define UIP_CONF_DS6_ADDR_NBU 3
 
 #define UIP_CONF_DS6_ROUTE_INFORMATION	1
-
-#define CETIC_ND_PROXY				0
 
 /*------------------------------------------------------------------*/
 #endif
@@ -181,6 +175,9 @@
 //Sanity checks
 #if ( (CETIC_6LBR_SMARTBRIDGE && (CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ROUTER)) || ( CETIC_6LBR_TRANSPARENTBRIDGE && CETIC_6LBR_ROUTER ) )
 #error Only one mode can be selected at a time
+#endif
+#if !CETIC_6LBR_SMARTBRIDGE && !CETIC_6LBR_TRANSPARENTBRIDGE && !CETIC_6LBR_ROUTER
+#error A mode must be selected
 #endif
 
 #endif /* __PROJECT_6LBR_CONF_H__ */
