@@ -133,7 +133,9 @@ uint8_t wireless_output(uip_lladdr_t *  src, uip_lladdr_t *  dest) {
 
 void eth_input(void)
 {
+#if CETIC_6LBR_TRANSPARENTBRIDGE
 	uip_lladdr_t srcAddr;
+#endif
 	uip_lladdr_t destAddr;
 	int processFrame = 0;
 	int forwardFrame = 0;
@@ -214,7 +216,6 @@ void eth_input(void)
 
 static int eth_output(uip_lladdr_t *  src, uip_lladdr_t *  dest)
 {
-	uip_ds6_nbr_t *nbr = NULL;
     PRINTF("eth_output: ");
     if ( IS_BROADCAST_ADDR(dest) ) {
     	PRINTF("Broadcast");
@@ -287,25 +288,6 @@ static int eth_output(uip_lladdr_t *  src, uip_lladdr_t *  dest)
 	BUF->type = uip_htons(UIP_ETHTYPE_IPV6);
 
 	//Destination address
-#if CETIC_6LBR_SMARTBRIDGE
-	//Check for broadcast message or unknown destination
-	//TODO: Is this still needed after #4467 ?
-	if( IS_BROADCAST_ADDR(dest) || (nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->destipaddr)) == NULL) {
-		PRINTF("eth_output: Creating dest broadcast addr\n");
-		if ( ! IS_BROADCAST_ADDR(dest) ) {
-			PRINTF("eth_output: Dest addr not in nbr\n");
-		}
-		BUF->dest.addr[0] = 0x33;
-		BUF->dest.addr[1] = 0x33;
-		BUF->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
-		BUF->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
-		BUF->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
-		BUF->dest.addr[5] = UIP_IP_BUF->destipaddr.u8[15];
-	} else {
-		PRINTF("eth_output: Creating dest addr from nbr\n");
-		mac_createEthernetAddr(BUF->dest.addr, &nbr->lladdr);
-	}
-#else
 	if(IS_BROADCAST_ADDR(dest)) {
 		BUF->dest.addr[0] = 0x33;
 		BUF->dest.addr[1] = 0x33;
@@ -316,24 +298,13 @@ static int eth_output(uip_lladdr_t *  src, uip_lladdr_t *  dest)
 	} else {
 		mac_createEthernetAddr(BUF->dest.addr, dest);
 	}
-#endif
 
 	//Source address
 #if CETIC_6LBR_TRANSPARENTBRIDGE
 	mac_createEthernetAddr(BUF->src.addr, src);
 #endif
 #if CETIC_6LBR_SMARTBRIDGE
-#if CETIC_ND_PROXY
 	memcpy(BUF->src.addr, eth_mac_addr, 6);
-#else
-	if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
-		PRINTF("eth_output: Creating default src addr\n");
-		memcpy(BUF->src.addr, eth_mac_addr, 6);
-	} else {
-		PRINTF("eth_output: Creating src addr from nbr\n");
-		mac_createEthernetAddr(BUF->src.addr, &nbr->lladdr);
-	}
-#endif
 #endif
 #if CETIC_6LBR_ROUTER
 	memcpy(BUF->src.addr, eth_mac_addr, 6);

@@ -2,8 +2,8 @@
 #define NVM_CONFIG_H_
 
 typedef struct {
-	uint8_t  rime_addr[8];
-	uint8_t  eth_mac_addr[6];
+	uint16_t magic;
+	uint16_t version;
 	uint8_t  eth_ip_addr[16];
 	uint8_t  mode;
     uint8_t  rpl_version_id;
@@ -19,7 +19,7 @@ typedef struct {
 #define CETIC_MODE_WAIT_RA_MASK			0x04
 #define CETIC_MODE_ROUTER_SEND_CONFIG	0x08
 #define CETIC_MODE_WSN_AUTOCONF         0x10
-#define CETIC_MODE_ETH_MANUAL           0x20
+#define CETIC_MODE_ETH_AUTOCONF         0x20
 #define CETIC_MODE_FILTER_NDP_MASK		0x40
 
 extern nvm_data_t nvm_data;

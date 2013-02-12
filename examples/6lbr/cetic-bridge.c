@@ -1,43 +1,3 @@
-/*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
- * $Id: hello-world.c,v 1.1 2006/10/02 21:46:46 adamdunkels Exp $
- */
-
-/**
- * \file
- *         A very simple Contiki application showing how Contiki programs look
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
-
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
@@ -47,31 +7,29 @@
 #include "net/netstack.h"
 #include "net/rpl/rpl.h"
 
-#include <stdio.h> /* For printf() */
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #include "cetic-bridge.h"
+#include "platform-init.h"
 #include "packet-filter.h"
 #include "eth-drv.h"
 #include "nvm-config.h"
 #include "rio.h"
 
-#if CONTIKI_TARGET_REDBEE_ECONOTAG
-#include "mc1322x.h"
-#endif
-
 #include "node-info.h"
 
 #if CONTIKI_TARGET_NATIVE
-#include "slip-cmds.h"
-
 extern int contiki_argc;
 extern char **contiki_argv;
 extern int slip_config_handle_arguments(int argc, char **argv);
 #endif
 
+//Initialisation flags
 int ethernet_ready = 0;
+int eth_mac_addr_ready = 0;
 
 //WSN
 
@@ -108,11 +66,8 @@ PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_server_process);
 PROCESS(cetic_bridge_process, "CETIC Bridge process");
 
-#if CONTIKI_TARGET_NATIVE
-AUTOSTART_PROCESSES(&cetic_bridge_process, &border_router_cmd_process);
-#else
 AUTOSTART_PROCESSES(&cetic_bridge_process);
-#endif
+
 /*---------------------------------------------------------------------------*/
 
 void cetic_bridge_set_prefix( uip_ipaddr_t *prefix, unsigned len, uip_ipaddr_t *ipaddr)
@@ -136,10 +91,6 @@ void cetic_bridge_set_prefix( uip_ipaddr_t *prefix, unsigned len, uip_ipaddr_t *
 void cetic_bridge_init(void)
 {
   uip_ipaddr_t loc_fipaddr;
-
-#if CETIC_NODE_INFO
-  node_info_init();
-#endif
 
 #if !CETIC_6LBR_TRANSPARENTBRIDGE
   //DODAGID = link-local address used !
@@ -228,7 +179,7 @@ void cetic_bridge_init(void)
 	eth_mac64_addr.addr[6] = eth_mac_addr[4];
 	eth_mac64_addr.addr[7] = eth_mac_addr[5];
 
-    if ((nvm_data.mode & CETIC_MODE_ETH_MANUAL) == 0 ) //Address auto configuration
+    if ((nvm_data.mode & CETIC_MODE_ETH_AUTOCONF) != 0 ) //Address auto configuration
     {
     	uip_ipaddr_copy(&eth_ip_addr, &eth_net_prefix);
     	uip_ds6_set_addr_iid(&eth_ip_addr, &eth_mac64_addr);
@@ -273,10 +224,7 @@ PROCESS_THREAD(cetic_bridge_process, ev, data)
 
   load_nvm_config();
 
-#if CONTIKI_TARGET_REDBEE_ECONOTAG
-  //TODO: Should be moved to platform dep file
-  set_channel(nvm_data.channel - 11);
-#endif
+  platform_init();
 
   process_start(&eth_drv_process, NULL);
 
@@ -288,6 +236,10 @@ PROCESS_THREAD(cetic_bridge_process, ev, data)
 
   PROCESS_PAUSE();
 
+#if CETIC_NODE_INFO
+  node_info_init();
+#endif
+
   packet_filter_init();
   cetic_bridge_init();
 
@@ -297,7 +249,8 @@ PROCESS_THREAD(cetic_bridge_process, ev, data)
 #if UDPSERVER
   process_start(&udp_server_process, NULL);
 #endif
-  printf ("RPL Border Router Started\n");
+
+  printf ("CETIC 6LBR Started\n");
 
 #if CONTIKI_TARGET_NATIVE
   PROCESS_WAIT_EVENT();

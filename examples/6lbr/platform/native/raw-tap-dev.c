@@ -68,20 +68,27 @@
 struct ifreq if_idx;
 #endif
 
+#ifdef __APPLE__
+#include <net/if_dl.h>
+#include <ifaddrs.h>
+#endif
+
 #include <err.h>
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "packet-filter.h"
-
+#include "cetic-bridge.h"
+#include "slip-config.h"
 //Temporary, should be removed
 #include "native-slip.h"
 
-extern char slip_config_tundev[32];
-extern uint16_t slip_config_basedelay;
-extern uint8_t use_raw_ethernet;
-extern uint8_t ethernet_has_fcs;
+#if 1//DEBUG
+#define PRINTETHADDR(addr) printf(" %02x:%02x:%02x:%02x:%02x:%02x ",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5])
+#else
+#define PRINTETHADDR(addr)
+#endif
 
 #ifndef __CYGWIN__
 static int tunfd;
@@ -212,11 +219,51 @@ tun_alloc(char *dev)
   strcpy(dev, ifr.ifr_name);
   return fd;
 }
+
+void
+fetch_mac(int fd, char *dev, ethaddr_t *eth_mac_addr )
+{
+	struct ifreq buffer;
+	memset(&buffer, 0x00, sizeof(buffer));
+	strcpy(buffer.ifr_name, dev);
+	ioctl(fd, SIOCGIFHWADDR, &buffer);
+	memcpy(eth_mac_addr, buffer.ifr_hwaddr.sa_data, 6);
+}
 #else
+int
+eth_alloc(const char *tundev)
+{
+  fprintf(stderr, "RAW Ethernet mode not supported\n");
+  exit(1);
+}
 int
 tun_alloc(char *dev)
 {
   return devopen(dev, O_RDWR);
+}
+void
+fetch_mac(int fd, char *dev, ethaddr_t *eth_mac_addr )
+{
+    struct ifaddrs *ifap, *ifaptr;
+    unsigned char *ptr;
+    int found = 0;
+
+    if (getifaddrs(&ifap) == 0) {
+        for(ifaptr = ifap; ifaptr != NULL; ifaptr = (ifaptr)->ifa_next) {
+            if (!strcmp((ifaptr)->ifa_name, dev) && (((ifaptr)->ifa_addr)->sa_family == AF_LINK)) {
+                ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)(ifaptr)->ifa_addr);
+            	memcpy(eth_mac_addr, ptr, 6);
+            	(*eth_mac_addr)[5] = 7;
+            	found = 1;
+                break;
+            }
+        }
+        freeifaddrs(ifap);
+    }
+    if ( ! found ) {
+    	fprintf(stderr, "Could not find mac address for %s\n", dev);
+    	exit(1);
+    }
 }
 #endif
 
@@ -236,6 +283,7 @@ static uint16_t delaymsec=0;
 static uint32_t delaystartsec,delaystartmsec;
 
 /*---------------------------------------------------------------------------*/
+
 void
 tun_init()
 {
@@ -243,15 +291,11 @@ tun_init()
 
   slip_init();
 
-#ifdef linux
   if ( use_raw_ethernet ) {
     tunfd = eth_alloc(slip_config_tundev);
   } else {
     tunfd = tun_alloc(slip_config_tundev);
   }
-#else
-  tunfd = tun_alloc(slip_config_tundev);
-#endif
   if(tunfd == -1) err(1, "main: open");
 
   select_set_callback(tunfd, &tun_select_callback);
@@ -263,6 +307,13 @@ tun_init()
   signal(SIGTERM, sigcleanup);
   signal(SIGINT, sigcleanup);
   ifconf(slip_config_tundev);
+  if ( use_raw_ethernet ) {
+    fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
+    PRINTF("Eth MAC address : ");
+    PRINTETHADDR(&eth_mac_addr);
+    PRINTF("\n");
+    eth_mac_addr_ready = 1;
+  }
 }
 
 /*---------------------------------------------------------------------------*/

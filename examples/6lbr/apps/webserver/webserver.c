@@ -306,11 +306,18 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 			} else if ( node_info_table[i].ipaddr.u8[8] == 0x02 && node_info_table[i].ipaddr.u8[9] == 0x50 &&
 					node_info_table[i].ipaddr.u8[10] == 0xC2 && node_info_table[i].ipaddr.u8[11] == 0xA8 &&
 					(node_info_table[i].ipaddr.u8[12] & 0XF0) == 0xC0 ) {
-				add("<td>Redwire</td>");
+				add("<td>Redwire Econotag I</td>");
+			} else if ( node_info_table[i].ipaddr.u8[8] == 0xEE && node_info_table[i].ipaddr.u8[9] == 0x47 &&
+						node_info_table[i].ipaddr.u8[10] == 0x3C ) {
+				if ( node_info_table[i].ipaddr.u8[11] == 0x4D && node_info_table[i].ipaddr.u8[12] == 0x12 ) {
+					add("<td>Redwire M12</td>");
+				} else {
+					add("<td>Redwire Unknown</td>");
+				}
 			} else if ( (node_info_table[i].ipaddr.u8[8] & 0x02 ) == 0 ) {
 				add("<td>User defined</td>");
 			} else {
-				add("<td></td>");
+				add("<td>Unknown</td>");
 			}
 			add("<td>%s</td>", node_info_table[i].my_info);
 			add("<td>%d</td>", (clock_time() - node_info_table[i].last_lookup)/CLOCK_SECOND);
@@ -393,6 +400,8 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
 					add("<h3>DODAG %d</h3>", j);
 					add("DODAG ID : ");
 					ipaddr_add(&instance_table[i].dag_table[j].dag_id);
+					SEND_STRING(&s->sout, buf);
+					reset_buf();
 					add("<br />Version : %d", instance_table[i].dag_table[j].version);
 					add("<br />Grounded : %s", instance_table[i].dag_table[j].grounded ? "Yes" : "No");
 					add("<br />Preference : %d", instance_table[i].dag_table[j].preference);
@@ -647,10 +656,10 @@ PT_THREAD(generate_config(struct httpd_state *s))
 	reset_buf();
 
 	add("Address : <br />");
-	add("<input type=\"radio\" name=\"eth_manual\" value=\"0\" %s>autoconfiguration<br />",
-			(nvm_data.mode & CETIC_MODE_ETH_MANUAL) == 0 ? "checked" : "");
-	add("<input type=\"radio\" name=\"eth_manual\" value=\"1\" %s>manual ",
-			(nvm_data.mode & CETIC_MODE_ETH_MANUAL) != 0 ? "checked" : "");
+	add("<input type=\"radio\" name=\"eth_auto\" value=\"1\" %s>autoconfiguration<br />",
+			(nvm_data.mode & CETIC_MODE_ETH_AUTOCONF) != 0 ? "checked" : "");
+	add("<input type=\"radio\" name=\"eth_auto\" value=\"0\" %s>manual ",
+			(nvm_data.mode & CETIC_MODE_ETH_AUTOCONF) == 0 ? "checked" : "");
 	add("<input type=\"text\" name=\"eth_addr\" value=\"");
 	ipaddr_add_u8(&nvm_data.eth_ip_addr);
 	add("\" /><br />");
@@ -956,12 +965,12 @@ update_config(const char * name)
 		    } else {
 		    	do_update = 0;
 		    }
-		} else if ( strcmp(param, "eth_manual") == 0) {
+		} else if ( strcmp(param, "eth_auto") == 0) {
 			if (strcmp(value, "0") == 0) {
-				nvm_data.mode &= ~CETIC_MODE_ETH_MANUAL;
+				nvm_data.mode &= ~CETIC_MODE_ETH_AUTOCONF;
 				reboot_needed = 1;
 			} else if (strcmp(value, "1") == 0) {
-				nvm_data.mode |= CETIC_MODE_ETH_MANUAL;
+				nvm_data.mode |= CETIC_MODE_ETH_AUTOCONF;
 				reboot_needed = 1;
 		    } else {
 		    	do_update = 0;

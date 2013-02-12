@@ -159,7 +159,7 @@ void
 uip_nd6_ns_input(void)
 {
   uint8_t flags;
-#if CETIC_ND_PROXY
+#if CETIC_6LBR_SMARTBRIDGE
   uip_ds6_route_t * route;
 #endif
 
@@ -230,19 +230,23 @@ uip_nd6_ns_input(void)
   }
 
   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
-#if CETIC_ND_PROXY
+#if CETIC_6LBR_SMARTBRIDGE
+  //ND Proxy implementation
   if ( addr == NULL ) {
-	  if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
-	    /* DAD CASE */
-	    goto discard;
-	  }
-	  if ( (route = uip_ds6_route_lookup(&UIP_ND6_NS_BUF->tgtipaddr)) != NULL ) {
-		  printf("ND proxy : route\n");
-		  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
-		  uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
-		  flags = UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE;
-		  goto create_na;
-	  }
+    if ( (route = uip_ds6_route_lookup(&UIP_ND6_NS_BUF->tgtipaddr)) != NULL ) {
+      if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+        /* DAD CASE */
+        uip_create_linklocal_allnodes_mcast(&UIP_ND6_NS_BUF->tgtipaddr);
+        uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+        flags = UIP_ND6_NA_FLAG_OVERRIDE;
+        goto create_na;
+      } else {
+        uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
+        uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+        flags = UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE;
+        goto create_na;
+      }
+    }
   }
 #endif
   if(addr != NULL) {

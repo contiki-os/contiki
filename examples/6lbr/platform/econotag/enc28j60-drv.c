@@ -56,9 +56,6 @@
 
 PROCESS(eth_drv_process, "ENC28J60 driver");
 
-extern uint8_t prefixCounter;
-extern ethernet_ready;
-
 #if UIP_CONF_LLH_LEN == 0
 uint8_t ll_header[ETHERNET_LLH_LEN];
 #endif
@@ -102,8 +99,6 @@ void eth_drv_init()
 {
 	PRINTF("ENC28J60 init\n");
 	enc28j60Init(eth_mac_addr);
-
-	prefixCounter = 0;
 }
 
 /*---------------------------------------------------------------------------*/

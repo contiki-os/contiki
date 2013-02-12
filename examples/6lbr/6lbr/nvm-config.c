@@ -1,28 +1,15 @@
-
-#include "contiki.h"
-
 #include "contiki.h"
 #include "contiki-lib.h"
-#include "contiki-net.h"
-#include "net/uip.h"
-#include "net/uip-nd6.h"
-#include "net/rpl/rpl.h"
-#include "net/netstack.h"
-#include "net/rpl/rpl.h"
 
 #include <stdio.h> /* For printf() */
 #include <string.h>
 #include <ctype.h>
 
-#if CONTIKI_TARGET_NATIVE
-#include "native-nvm.h"
-#else
-#include "mc1322x.h"
-#endif
+#include "rpl-private.h"
 
 #include "cetic-bridge.h"
 #include "nvm-config.h"
-
+#include "nvm-itf.h"
 
 nvm_data_t nvm_data;
 
@@ -42,143 +29,55 @@ nvm_data_t nvm_data;
 
 /*---------------------------------------------------------------------------*/
 
-#define RIMEADDR_NVM 0x1E000
-#define RIMEADDR_NBYTES 8
-
-extern const rimeaddr_t addr_ff;
-extern const rimeaddr_t rimeaddr_null;
-
-void iab_to_eui48(ethaddr_t *eui48, uint32_t oui, uint16_t iab, uint16_t ext) {
-	/* OUI for IABs */
-	(*eui48)[0] =  0x00;
-	(*eui48)[1] =  0x50;
-	(*eui48)[2] =  0xc2;
-
-	/* IAB */
-	(*eui48)[3] = (iab >> 4)  & 0xff;
-	(*eui48)[4] = (iab << 4)  & 0xf0;
-
-	/* EXT */
-
-	(*eui48)[4] |= (ext >> 8)  & 0xf;
-	(*eui48)[5] =   ext        & 0xff;
-}
-
-void oui_to_eui48(ethaddr_t *eui48, uint32_t oui, uint32_t ext) {
-	/* OUI */
-	*eui48[0] = (oui >> 16) & 0xff;
-	*eui48[1] = (oui >>  8) & 0xff;
-	*eui48[2] =  oui        & 0xff;
-
-	/* EXT */
-	*eui48[3] = (ext >> 16) & 0xff;
-	*eui48[4] = (ext >>  8) & 0xff;
-	*eui48[5] =  ext        & 0xff;
-}
-
-void set_eth_addr( volatile nvm_data_t *nvm_data )
+void check_nvm( volatile nvm_data_t *nvm_data )
 {
-	  nvmType_t type=0;
-	  nvmErr_t err;
-
-	if (memcmp(&nvm_data->eth_mac_addr, &addr_ff, 6)==0) {
-
-		//set addr to EUI48
-#ifdef IAB
-   #ifdef ETH_EXT_ID
-		PRINTF("eth address in flash blank, setting to defined IAB and extension.\n\r");
-	  	iab_to_eui48(&eth_mac_addr, OUI, IAB, ETH_EXT_ID);
-   #else  /* ifdef EXT_ID */
-		PRINTF("eth address in flash blank, setting to defined IAB with a random extension.\n\r");
-		iab_to_eui48(&eth_mac_addr, OUI, IAB, *MACA_RANDOM);
-   #endif /* ifdef EXT_ID */
-
-#else  /* ifdef IAB */
-
-   #ifdef ETH_EXT_ID
-		PRINTF("eth address in flash blank, setting to defined OUI and extension.\n\r");
-		oui_to_eui48(&eth_mac_addr, OUI, ETH_EXT_ID);
-   #else  /*ifdef EXT_ID */
-		PRINTF("eth address in flash blank, setting to defined OUI with a random extension.\n\r");
-		oui_to_eui48(&eth_mac_addr, OUI, *MACA_RANDOM);
-   #endif /*endif EXTID */
-
-#endif /* ifdef IAB */
-		PRINTF("New MAC address");
-		PRINTETHADDR(&eth_mac_addr);
-		PRINTF("\n");
-#ifdef FLASH_BLANK_ADDR
-		PRINTF("flashing blank eth address\n\r");
-		memcpy(&nvm_data->eth_mac_addr, &eth_mac_addr, 6);
-		err = nvm_detect(gNvmInternalInterface_c, &type);
-		err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)nvm_data, RIMEADDR_NVM, sizeof(nvm_data_t));
-		PRINTF("err : %d\n", err);
-#endif /* ifdef FLASH_BLANK_ADDR */
-	} else {
-		PRINTF("loading eth address from flash.\n\r");
-		memcpy(eth_mac_addr, &nvm_data->eth_mac_addr, 6);
-	}
-}
-
-void set_eth_ip_addr( volatile nvm_data_t *nvm_data )
-{
-	nvmType_t type=0;
-	nvmErr_t err;
 	uint8_t flash = 0;
 	uip_ipaddr_t loc_fipaddr;
 
-	//TODO: addr_ff and sizeof are wrong of ipv6 addr, should be corrected !
-	if (memcmp(&nvm_data->eth_net_prefix, &addr_ff, sizeof(addr_ff))==0) {
+	if ( nvm_data->magic != CETIC_6LBR_NVM_MAGIC || nvm_data->version > CETIC_6LBR_NVM_VERSION ) {
+		//NVM is invalid or we are rollbacking from another version
+		//Set all data to default values
+		printf("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
+		nvm_data->magic = CETIC_6LBR_NVM_MAGIC;
+		nvm_data->version = CETIC_6LBR_NVM_VERSION;
+
 		uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x0);
 		memcpy(&nvm_data->eth_net_prefix, &loc_fipaddr.u8, 16);
-		flash = 1;
-	}
-	if (memcmp(&nvm_data->eth_ip_addr, &addr_ff, sizeof(addr_ff))==0) {
+
 	    uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x100);
 		memcpy(&nvm_data->eth_ip_addr, &loc_fipaddr.u8, 16);
-	    flash = 1;
-	}
-	if (memcmp(&nvm_data->wsn_net_prefix, &addr_ff, sizeof(addr_ff))==0) {
-	    uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x0);
+
+		uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x0);
 		memcpy(&nvm_data->wsn_net_prefix, &loc_fipaddr.u8, 16);
-	    flash = 1;
-	}
-	if (memcmp(&nvm_data->wsn_ip_addr, &addr_ff, sizeof(addr_ff))==0) {
-	    uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x100);
+
+		uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x100);
 		memcpy(&nvm_data->wsn_ip_addr, &loc_fipaddr.u8, 16);
-	    flash = 1;
-	}
-	if (memcmp(&nvm_data->eth_dft_router, &addr_ff, sizeof(addr_ff))==0) {
+
 		uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1);
 		memcpy(&nvm_data->eth_dft_router, &loc_fipaddr.u8, 16);
-		flash = 1;
-	}
-	if (nvm_data->channel == 0xff) {
-		nvm_data->channel = 26;
-		flash = 1;
-	}
 
-#ifdef FLASH_BLANK_ADDR
-	if ( flash ) {
-		PRINTF("flashing blank eth ip address\n\r");
-		err = nvm_detect(gNvmInternalInterface_c, &type);
-		err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)nvm_data, RIMEADDR_NVM, sizeof(nvm_data_t));
-		PRINTF("err : %d\n", err);
+		nvm_data->rpl_version_id = RPL_LOLLIPOP_INIT;
+
+		nvm_data->mode = CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK | CETIC_MODE_ROUTER_SEND_CONFIG |
+				CETIC_MODE_REWRITE_ADDR_MASK | CETIC_MODE_FILTER_RPL_MASK | CETIC_MODE_FILTER_NDP_MASK;
+
+		nvm_data->channel = 26;
+
+		flash = 1;
 	}
-#endif /* ifdef FLASH_BLANK_ADDR */
+	//Migration paths should be done here
+
+	if ( flash ) {
+		nvm_data_write();
+	}
 }
 
 void load_nvm_config(void)
 {
-	nvmType_t type=0;
-	nvmErr_t err;
+	nvm_data_read();
 
-	err = nvm_detect(gNvmInternalInterface_c, &type);
-	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)&nvm_data, RIMEADDR_NVM, sizeof(nvm_data_t));
-
-	PRINTF( "WSN MAC address :");
-	PRINTLLADDR(&nvm_data.rime_addr);
-	PRINTF("\n");
+	PRINTF( "NVM Magic : %x\n", nvm_data.magic );
+	PRINTF( "NVM Version : %x\n", nvm_data.version );
 
 	PRINTF( "WSN Prefix :");
 	PRINT6ADDR(&nvm_data.wsn_net_prefix);
@@ -186,10 +85,6 @@ void load_nvm_config(void)
 
 	PRINTF( "WSN IP address :");
 	PRINT6ADDR(&nvm_data.wsn_ip_addr);
-	PRINTF("\n");
-
-	PRINTF( "Eth MAC address :");
-	PRINTETHADDR(&nvm_data.eth_mac_addr);
 	PRINTF("\n");
 
 	PRINTF( "Eth Prefix :");
@@ -204,21 +99,10 @@ void load_nvm_config(void)
 
 	PRINTF("Channel : %d\n", nvm_data.channel);
 
-	rimeaddr_copy( (rimeaddr_t *)&wsn_mac_addr, &rimeaddr_node_addr);
-	set_eth_addr(&nvm_data);
-	set_eth_ip_addr(&nvm_data);
+	check_nvm(&nvm_data);
 }
 
 void store_nvm_config(void)
 {
-	nvmType_t type=0;
-	nvmErr_t err;
-	volatile uint32_t buf[8];
-
-	err = nvm_detect(gNvmInternalInterface_c, &type);
-
-	err = nvm_erase(gNvmInternalInterface_c, type, 0x40000000);
-	PRINTF("nvm_erase err : %d\n", err);
-	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)&nvm_data, RIMEADDR_NVM, sizeof(nvm_data_t));
-	PRINTF("nvm_write err : %d\n", err);
+	nvm_data_write();
 }

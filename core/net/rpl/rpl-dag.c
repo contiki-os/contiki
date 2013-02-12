@@ -210,10 +210,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   uint8_t version;
 
 #if CETIC_6LBR
-  if(nvm_data.rpl_version_id == 0xff)
-    version = 240;
-  else
-    version = nvm_data.rpl_version_id;
+  version = nvm_data.rpl_version_id;
   uint8_t new_version = version;
   RPL_LOLLIPOP_INCREMENT(new_version);
   nvm_data.rpl_version_id = new_version;

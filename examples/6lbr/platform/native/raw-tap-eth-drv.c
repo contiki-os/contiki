@@ -8,21 +8,26 @@
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "nvm-config.h"
+#include "slip-config.h"
+#include "sicslow-ethernet.h"
 //Temporary, should be removed
 #include "native-rdc.h"
 
 #define DEBUG 1
 #include "net/uip-debug.h"
 
+#if DEBUG
+#define PRINTETHADDR(addr) printf(" %02x:%02x:%02x:%02x:%02x:%02x ",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5])
+#else
+#define PRINTETHADDR(addr)
+#endif
+
+
 PROCESS(eth_drv_process, "RAW/TAP Ethernet Driver");
 
 #if UIP_CONF_LLH_LEN == 0
 uint8_t ll_header[ETHERNET_LLH_LEN];
 #endif
-
-extern int ethernet_ready;
-
-uint8_t ll_header[ETHERNET_LLH_LEN];
 
 /*---------------------------------------------------------------------------*/
 
@@ -59,7 +64,7 @@ void eth_drv_init()
 
 PROCESS_THREAD(eth_drv_process, ev, data)
 {
-	  static struct etimer et;
+	static struct etimer et;
 	PROCESS_BEGIN();
 
 	eth_drv_init();
@@ -70,6 +75,14 @@ PROCESS_THREAD(eth_drv_process, ev, data)
 	    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 	  }
 
+	  if ( ! use_raw_ethernet ) {
+		  //We must create our own Ethernet MAC address
+		  mac_createEthernetAddr( (uint8_t *)eth_mac_addr, &wsn_mac_addr);
+		  PRINTF("Eth MAC address : ");
+		  PRINTETHADDR(&eth_mac_addr);
+		  PRINTF("\n");
+		  eth_mac_addr_ready = 1;
+	  }
 	  ethernet_ready = 1;
 
 	PROCESS_END();

@@ -45,8 +45,10 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <err.h>
+
 #include "contiki.h"
 #include "native-nvm.h"
+#include "slip-config.h"
 
 int slip_config_verbose = 0;
 int slip_config_flowcontrol = 0;

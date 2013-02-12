@@ -1,6 +1,10 @@
 #ifndef __PROJECT_6LBR_CONF_H__
 #define __PROJECT_6LBR_CONF_H__
 
+/*------------------------------------------------------------------*/
+/* Mode selection                                                   */
+/*------------------------------------------------------------------*/
+
 #define CETIC_6LBR							1
 
 #ifndef CETIC_6LBR_SMARTBRIDGE
@@ -19,14 +23,18 @@
 #define CETIC_NODE_INFO						0
 #endif
 
+/*------------------------------------------------------------------*/
+/* Common configuration                                             */
+/*------------------------------------------------------------------*/
+
 #undef NEIGHBOR_CONF_ATTR_MAX_NEIGHBORS
-#define NEIGHBOR_CONF_ATTR_MAX_NEIGHBORS 8
+#define NEIGHBOR_CONF_ATTR_MAX_NEIGHBORS	8
 
 #undef UIP_CONF_DS6_DEFRT_NB
-#define UIP_CONF_DS6_DEFRT_NB    2
+#define UIP_CONF_DS6_DEFRT_NB				2
 
 #undef RPL_CONF_INIT_LINK_METRIC
-#define RPL_CONF_INIT_LINK_METRIC 3
+#define RPL_CONF_INIT_LINK_METRIC			3
 
 #define RPL_CONF_DEFAULT_LIFETIME_UNIT  0x0100
 #define RPL_CONF_DEFAULT_LIFETIME       0x1E
@@ -101,6 +109,10 @@
 /*------------------------------------------------------------------*/
 #endif
 
+/*------------------------------------------------------------------*/
+/* Platform related configuration                                   */
+/*------------------------------------------------------------------*/
+
 #if CONTIKI_TARGET_NATIVE
 /*------------------------------------------------------------------*/
 /* NATIVE 6LBR                                                      */
@@ -109,6 +121,19 @@
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM         4
 
+#undef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     200
+
+#undef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   200
+
+#define WEBSERVER_EDITABLE_CONFIG 1
+
+#define WEBSERVER_CONF_CFS_PATHLEN 1000
+
+#define WEBSERVER_CONF_CFS_URLCONV 1
+
+/* Do not change lines below */
 #define SLIP_DEV_CONF_SEND_DELAY (CLOCK_SECOND / 32)
 
 #define SERIALIZE_ATTRIBUTES 1
@@ -120,40 +145,19 @@
 
 #define SELECT_CALLBACK 1
 
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     200
-
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   200
-
-#define WEBSERVER_CONF_CFS_PATHLEN 1000
-
-#define WEBSERVER_CONF_CFS_URLCONV 1
-
-/* EUI64 generation */
-#define FLASH_BLANK_ADDR /* if defined then the generated rime address will flashed */
-
-#define OUI 0xacde48     /* if IAB is defined then OUI = 0x0050C2 */
-#define IAB 0xA8C        /* IAB 0xA8C for use on Redwire products only */
-#define ETH_EXT_ID 0xdef123  /* lower 12-bits used if IAB is defined */
-
-#define WEBSERVER_EDITABLE_CONFIG 1
-
 #endif
 
-#if CONTIKI_TARGET_REDBEE_ECONOTAG
+#if CONTIKI_TARGET_ECONOTAG
 /*------------------------------------------------------------------*/
 /* ECONOTAG 6LBR                                                    */
 /*------------------------------------------------------------------*/
 
-#define REDBEE_CONF_MAX_POWER 0x12
-
 #if WEBSERVER
 #undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     40
+#define UIP_CONF_DS6_NBR_NBU     35
 
 #undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   40
+#define UIP_CONF_DS6_ROUTE_NBU   35
 #else
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     100
@@ -165,6 +169,18 @@
 #define WEBSERVER_CONF_CFS_URLCONV	0
 
 #define WEBSERVER_CONF_CFS_CONNS	1
+
+/* Do not change lines below */
+
+#endif
+
+/* Do not change lines below */
+#define CETIC_6LBR_NVM_MAGIC	0x2009
+#define CETIC_6LBR_NVM_VERSION	0
+
+//Sanity checks
+#if ( (CETIC_6LBR_SMARTBRIDGE && (CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_ROUTER)) || ( CETIC_6LBR_TRANSPARENTBRIDGE && CETIC_6LBR_ROUTER ) )
+#error Only one mode can be selected at a time
 #endif
 
 #endif /* __PROJECT_6LBR_CONF_H__ */

@@ -51,10 +51,8 @@
    @{
 */
 
-#ifndef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
-#define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	1
-#endif // ifndef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
-
+#include "contiki.h"
+#include "contiki-lib.h"
 
 #include "uip.h"
 #include "uip_arp.h" //For ethernet header structure
@@ -63,15 +61,20 @@
 #include "sicslowpan.h"
 #include "sicslow-ethernet.h"
 
-#include "enc28j60-drv.h"
 #include "net/uip-ds6.h"
 
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "cetic-bridge.h"
+
 #define DEBUG 0
 #include "uip-debug.h"
+
+#ifndef UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
+#define UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR	1
+#endif
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define ETHBUF(x) ((struct uip_eth_hdr *)x)
@@ -81,8 +84,6 @@
 #define LSB(u16)     (((uint8_t  *)&(u16))[0])  //!< Least significant byte of \a u16.
 #define MSB(u16)     (((uint8_t  *)&(u16))[1])  //!< Most significant byte of \a u16.
 #endif
-
-extern uint8_t eth_mac_addr[6];
 
 uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
 uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
@@ -97,7 +98,7 @@ uint8_t mac_createDefaultEthernetAddr(uint8_t * ethernet);
 
 #define PREFIX_BUFFER_SIZE 32
 
-uint8_t prefixCounter;
+uint8_t prefixCounter = 0;
 uint8_t prefixBuffer[PREFIX_BUFFER_SIZE][3];
 
 /* 6lowpan max size + ethernet header size + 1 */
@@ -348,7 +349,7 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 #if UIP_CONF_AUTO_SUBSTITUTE_LOCAL_MAC_ADDR
 	//Special case - if the address is our address, we just copy over what we know to be
 	//our 802.3 address
-	if (memcmp((uint8_t *)&uip_lladdr, (uint8_t *)lowpan, UIP_LLADDR_LEN) == 0) {
+	if (eth_mac_addr_ready && memcmp((uint8_t *)&uip_lladdr, (uint8_t *)lowpan, UIP_LLADDR_LEN) == 0) {
 		memcpy(ethernet, eth_mac_addr, 6);
 		return 1;
 	} 
@@ -424,10 +425,10 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 			ethernet[4] = lowpan->addr[6];
 			ethernet[5] = lowpan->addr[7];
       
-      printf("Low2Eth Lowpan addr : %d:%d:%d:%d:%d:%d:%d:%d\n", lowpan->addr[0], 
+      PRINTF("Low2Eth Lowpan addr : %d:%d:%d:%d:%d:%d:%d:%d\n", lowpan->addr[0],
               lowpan->addr[1], lowpan->addr[2], lowpan->addr[3], lowpan->addr[4], 
               lowpan->addr[5], lowpan->addr[6], lowpan->addr[7]);
-      printf("Low2Eth Ethernet addr : %d:%d:%d:%d:%d:%d\n", ethernet[0], 
+      PRINTF("Low2Eth Ethernet addr : %d:%d:%d:%d:%d:%d\n", ethernet[0],
               ethernet[1], ethernet[2], ethernet[3], ethernet[4], ethernet[5]);
 		}
 	}

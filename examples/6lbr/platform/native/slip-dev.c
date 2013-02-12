@@ -55,14 +55,7 @@
 #include "net/packetbuf.h"
 #include "cmd.h"
 #include "slip-cmds.h"
-
-extern int slip_config_verbose;
-extern int slip_config_flowcontrol;
-extern const char *slip_config_siodev;
-extern const char *slip_config_host;
-extern const char *slip_config_port;
-extern uint16_t slip_config_basedelay;
-extern speed_t slip_config_b_rate;
+#include "slip-config.h"
 
 #ifdef SLIP_DEV_CONF_SEND_DELAY
 #define SEND_DELAY SLIP_DEV_CONF_SEND_DELAY
