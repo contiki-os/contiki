@@ -90,51 +90,47 @@ urlconv_tofilename(char *dest, char *source, unsigned char maxlen)
   static unsigned char *from, *to;
 
   len = 0;
-  from = source; to = dest;
+  from = source;
+  to = dest;
   maxlen -= 2;
   do {
     c = *(from++);
-    switch(c) {
+    switch (c) {
     case ISO_number:
       c = 0;
       break;
     case ISO_percent:
       c = 0;
-      hex1 = (*(from++) | 0x20) ^ 0x30;  // ascii only!
+      hex1 = (*(from++) | 0x20) ^ 0x30; // ascii only!
       if(hex1 > 0x50 && hex1 < 0x57)
         hex1 -= 0x47;
-      else
-        if(hex1 > 9)
-          break;  // invalid hex
-      c = (*(from++) | 0x20) ^ 0x30;  // ascii only!
+      else if(hex1 > 9)
+        break;                  // invalid hex
+      c = (*(from++) | 0x20) ^ 0x30;    // ascii only!
       if(c > 0x50 && c < 0x57)
         c -= 0x47;
-      else
-        if(c > 9)
-          break;  // invalid hex
+      else if(c > 9)
+        break;                  // invalid hex
       c |= hex1 << 4;
     }
 
     if(c < 0x20 || c > 0x7e)
-      c = 0;  // non ascii?!
+      c = 0;                    // non ascii?!
     if(len >= maxlen)
-      c = 0;  // too long?
+      c = 0;                    // too long?
 
     if(c) {
       *to = c;
-      ++to; ++len;
-   }
+      ++to;
+      ++len;
+    }
   } while(c);
   *to = 0;
 }
 #endif
 /*---------------------------------------------------------------------------*/
 static const char *NOT_FOUND = "<html><body bgcolor=\"white\">"
-"<center>"
-"<h1>404 - file not found</h1>"
-"</center>"
-"</body>"
-"</html>";
+  "<center>" "<h1>404 - file not found</h1>" "</center>" "</body>" "</html>";
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(send_string(struct httpd_state *s, const char *str))
@@ -177,8 +173,10 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
-const char http_header_200[] = "HTTP/1.0 200 OK\r\nServer: Contiki/2.4 http://www.sics.se/contiki/\r\nConnection: close\r\n";
-const char http_header_404[] = "HTTP/1.0 404 Not found\r\nServer: Contiki/2.4 http://www.sics.se/contiki/\r\nConnection: close\r\n";
+const char http_header_200[] =
+  "HTTP/1.0 200 OK\r\nServer: Contiki/2.4 http://www.sics.se/contiki/\r\nConnection: close\r\n";
+const char http_header_404[] =
+  "HTTP/1.0 404 Not found\r\nServer: Contiki/2.4 http://www.sics.se/contiki/\r\nConnection: close\r\n";
 static
 PT_THREAD(handle_output(struct httpd_state *s))
 {
@@ -189,16 +187,13 @@ PT_THREAD(handle_output(struct httpd_state *s))
   s->script = httpd_simple_get_script(&s->filename[1]);
   if(s->script == NULL) {
     strncpy(s->filename, "/notfound.html", sizeof(s->filename));
-    PT_WAIT_THREAD(&s->outputpt,
-                   send_headers(s, http_header_404));
-    PT_WAIT_THREAD(&s->outputpt,
-                   send_string(s, NOT_FOUND));
+    PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_404));
+    PT_WAIT_THREAD(&s->outputpt, send_string(s, NOT_FOUND));
     uip_close();
     webserver_log_file(&uip_conn->ripaddr, "404 - not found");
     PT_EXIT(&s->outputpt);
   } else {
-    PT_WAIT_THREAD(&s->outputpt,
-                   send_headers(s, http_header_200));
+    PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_200));
     PT_WAIT_THREAD(&s->outputpt, s->script(s));
   }
   s->script = NULL;
@@ -208,6 +203,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
 /*---------------------------------------------------------------------------*/
 const char http_get[] = "GET ";
 const char http_index_html[] = "/index.html";
+
 //const char http_referer[] = "Referer:"
 static
 PT_THREAD(handle_input(struct httpd_state *s))
@@ -224,7 +220,6 @@ PT_THREAD(handle_input(struct httpd_state *s))
   if(s->inputbuf[0] != ISO_slash) {
     PSOCK_CLOSE_EXIT(&s->sin);
   }
-
 #if URLCONV
   s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
   urlconv_tofilename(s->filename, s->inputbuf, sizeof(s->filename));
@@ -282,8 +277,8 @@ httpd_appcall(void *state)
       return;
     }
     tcp_markconn(uip_conn, s);
-    PSOCK_INIT(&s->sin, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
-    PSOCK_INIT(&s->sout, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
+    PSOCK_INIT(&s->sin, (uint8_t *) s->inputbuf, sizeof(s->inputbuf) - 1);
+    PSOCK_INIT(&s->sout, (uint8_t *) s->inputbuf, sizeof(s->inputbuf) - 1);
     PT_INIT(&s->outputpt);
     s->script = NULL;
     s->state = STATE_WAITING;

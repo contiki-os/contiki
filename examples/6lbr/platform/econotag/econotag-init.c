@@ -7,7 +7,7 @@
 #include "nvm-config.h"
 #include "mc1322x.h"
 
-#define DEBUG 1//DEBUG_NONE
+#define DEBUG 1                 //DEBUG_NONE
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -22,9 +22,10 @@
 #endif
 
 void
-platform_init(void) {
-  rimeaddr_copy( (rimeaddr_t *)&wsn_mac_addr, &rimeaddr_node_addr);
-  mac_createEthernetAddr( (uint8_t *)eth_mac_addr, &wsn_mac_addr);
+platform_init(void)
+{
+  rimeaddr_copy((rimeaddr_t *) & wsn_mac_addr, &rimeaddr_node_addr);
+  mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
   PRINTF("Eth MAC address : ");
   PRINTETHADDR(&eth_mac_addr);
   PRINTF("\n");

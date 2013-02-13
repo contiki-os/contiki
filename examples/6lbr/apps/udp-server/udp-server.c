@@ -58,13 +58,14 @@ tcpip_handler(void)
     PRINTF("\n");
 
 #if CETIC_NODE_INFO
-    node_info_t *  node = node_info_lookup(&UIP_IP_BUF->srcipaddr);
-    if (node == NULL) {
-    	node = node_info_add(&UIP_IP_BUF->srcipaddr);
+    node_info_t *node = node_info_lookup(&UIP_IP_BUF->srcipaddr);
+
+    if(node == NULL) {
+      node = node_info_add(&UIP_IP_BUF->srcipaddr);
     }
-    if ( node != NULL) {
-  	  node->last_lookup = clock_time();
-  	  strncpy( node->my_info, (char *)uip_appdata, sizeof(node->my_info) - 1 );
+    if(node != NULL) {
+      node->last_lookup = clock_time();
+      strncpy(node->my_info, (char *)uip_appdata, sizeof(node->my_info) - 1);
     }
 #endif
 

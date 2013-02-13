@@ -1,7 +1,7 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 
-#include <stdio.h> /* For printf() */
+#include <stdio.h>              /* For printf() */
 #include <string.h>
 #include <ctype.h>
 
@@ -29,80 +29,87 @@ nvm_data_t nvm_data;
 
 /*---------------------------------------------------------------------------*/
 
-void check_nvm( volatile nvm_data_t *nvm_data )
+void
+check_nvm(volatile nvm_data_t * nvm_data)
 {
-	uint8_t flash = 0;
-	uip_ipaddr_t loc_fipaddr;
+  uint8_t flash = 0;
+  uip_ipaddr_t loc_fipaddr;
 
-	if ( nvm_data->magic != CETIC_6LBR_NVM_MAGIC || nvm_data->version > CETIC_6LBR_NVM_VERSION ) {
-		//NVM is invalid or we are rollbacking from another version
-		//Set all data to default values
-		printf("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
-		nvm_data->magic = CETIC_6LBR_NVM_MAGIC;
-		nvm_data->version = CETIC_6LBR_NVM_VERSION;
+  if(nvm_data->magic != CETIC_6LBR_NVM_MAGIC
+     || nvm_data->version > CETIC_6LBR_NVM_VERSION) {
+    //NVM is invalid or we are rollbacking from another version
+    //Set all data to default values
+    printf
+      ("Invalid NVM magic number or unsupported NVM version, reseting it...\n");
+    nvm_data->magic = CETIC_6LBR_NVM_MAGIC;
+    nvm_data->version = CETIC_6LBR_NVM_VERSION;
 
-		uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x0);
-		memcpy(&nvm_data->eth_net_prefix, &loc_fipaddr.u8, 16);
+    uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x0);
+    memcpy(&nvm_data->eth_net_prefix, &loc_fipaddr.u8, 16);
 
-	    uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x100);
-		memcpy(&nvm_data->eth_ip_addr, &loc_fipaddr.u8, 16);
+    uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x100);
+    memcpy(&nvm_data->eth_ip_addr, &loc_fipaddr.u8, 16);
 
-		uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x0);
-		memcpy(&nvm_data->wsn_net_prefix, &loc_fipaddr.u8, 16);
+    uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x0);
+    memcpy(&nvm_data->wsn_net_prefix, &loc_fipaddr.u8, 16);
 
-		uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x100);
-		memcpy(&nvm_data->wsn_ip_addr, &loc_fipaddr.u8, 16);
+    uip_ip6addr(&loc_fipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0x100);
+    memcpy(&nvm_data->wsn_ip_addr, &loc_fipaddr.u8, 16);
 
-		uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1);
-		memcpy(&nvm_data->eth_dft_router, &loc_fipaddr.u8, 16);
+    uip_ip6addr(&loc_fipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1);
+    memcpy(&nvm_data->eth_dft_router, &loc_fipaddr.u8, 16);
 
-		nvm_data->rpl_version_id = RPL_LOLLIPOP_INIT;
+    nvm_data->rpl_version_id = RPL_LOLLIPOP_INIT;
 
-		nvm_data->mode = CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK | CETIC_MODE_ROUTER_SEND_CONFIG |
-				CETIC_MODE_REWRITE_ADDR_MASK | CETIC_MODE_FILTER_RPL_MASK | CETIC_MODE_FILTER_NDP_MASK;
+    nvm_data->mode =
+      CETIC_MODE_WSN_AUTOCONF | CETIC_MODE_WAIT_RA_MASK |
+      CETIC_MODE_ROUTER_SEND_CONFIG | CETIC_MODE_REWRITE_ADDR_MASK |
+      CETIC_MODE_FILTER_RPL_MASK | CETIC_MODE_FILTER_NDP_MASK;
 
-		nvm_data->channel = 26;
+    nvm_data->channel = 26;
 
-		flash = 1;
-	}
-	//Migration paths should be done here
+    flash = 1;
+  }
+  //Migration paths should be done here
 
-	if ( flash ) {
-		nvm_data_write();
-	}
+  if(flash) {
+    nvm_data_write();
+  }
 }
 
-void load_nvm_config(void)
+void
+load_nvm_config(void)
 {
-	nvm_data_read();
+  nvm_data_read();
 
-	PRINTF( "NVM Magic : %x\n", nvm_data.magic );
-	PRINTF( "NVM Version : %x\n", nvm_data.version );
+  PRINTF("NVM Magic : %x\n", nvm_data.magic);
+  PRINTF("NVM Version : %x\n", nvm_data.version);
 
-	PRINTF( "WSN Prefix :");
-	PRINT6ADDR(&nvm_data.wsn_net_prefix);
-	PRINTF("\n");
+  PRINTF("WSN Prefix :");
+  PRINT6ADDR(&nvm_data.wsn_net_prefix);
+  PRINTF("\n");
 
-	PRINTF( "WSN IP address :");
-	PRINT6ADDR(&nvm_data.wsn_ip_addr);
-	PRINTF("\n");
+  PRINTF("WSN IP address :");
+  PRINT6ADDR(&nvm_data.wsn_ip_addr);
+  PRINTF("\n");
 
-	PRINTF( "Eth Prefix :");
-	PRINT6ADDR(&nvm_data.eth_net_prefix);
-	PRINTF("\n");
+  PRINTF("Eth Prefix :");
+  PRINT6ADDR(&nvm_data.eth_net_prefix);
+  PRINTF("\n");
 
-	PRINTF( "Eth IP address :");
-	PRINT6ADDR(&nvm_data.eth_ip_addr);
-	PRINTF("\n");
+  PRINTF("Eth IP address :");
+  PRINT6ADDR(&nvm_data.eth_ip_addr);
+  PRINTF("\n");
 
-	PRINTF("Mode : %x\n", nvm_data.mode);
+  PRINTF("Mode : %x\n", nvm_data.mode);
 
-	PRINTF("Channel : %d\n", nvm_data.channel);
+  PRINTF("Channel : %d\n", nvm_data.channel);
 
-	check_nvm(&nvm_data);
+  check_nvm(&nvm_data);
 }
 
-void store_nvm_config(void)
+void
+store_nvm_config(void)
 {
-	nvm_data_write();
+  nvm_data_write();
 }

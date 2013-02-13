@@ -22,7 +22,7 @@ extern rpl_dag_t *cetic_dag;
 
 // Ethernet side
 extern ethaddr_t eth_mac_addr;
-extern uip_lladdr_t eth_mac64_addr; //Created from eth_mac_addr
+extern uip_lladdr_t eth_mac64_addr;     //Created from eth_mac_addr
 
 extern uip_ipaddr_t eth_ip_addr;
 extern uip_ipaddr_t eth_ip_local_addr;  //Created from eth_mac_addr

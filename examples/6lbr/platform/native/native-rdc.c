@@ -71,11 +71,14 @@ struct tx_callback {
 };
 
 static struct tx_callback callbacks[MAX_CALLBACKS];
+
 /*---------------------------------------------------------------------------*/
-void packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
+void
+packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx)
 {
   if(sessionid < MAX_CALLBACKS) {
     struct tx_callback *callback;
+
     callback = &callbacks[sessionid];
     packetbuf_clear();
     packetbuf_attr_copyfrom(callback->attrs, callback->addrs);
@@ -90,6 +93,7 @@ setup_callback(mac_callback_t sent, void *ptr)
 {
   struct tx_callback *callback;
   int tmp = callback_pos;
+
   callback = &callbacks[callback_pos];
   callback->cback = sent;
   callback->ptr = ptr;
@@ -107,6 +111,7 @@ static void
 send_packet(mac_callback_t sent, void *ptr)
 {
   int size;
+
   /* 3 bytes per packet attribute is required for serialization */
   uint8_t buf[PACKETBUF_NUM_ATTRS * 3 + PACKETBUF_SIZE + 3];
   uint8_t sid;
@@ -136,7 +141,7 @@ send_packet(mac_callback_t sent, void *ptr)
 
       buf[0] = '!';
       buf[1] = 'S';
-      buf[2] = sid; /* sequence or session number for this packet */
+      buf[2] = sid;             /* sequence or session number for this packet */
 
       /* Copy packet data */
       memcpy(&buf[3 + size], packetbuf_hdrptr(), packetbuf_totlen());
@@ -201,27 +206,28 @@ slip_request_mac(void)
 {
   printf("Fetching MAC address\n");
   mac_set = 0;
-  write_to_slip((uint8_t *)"?M", 2);
+  write_to_slip((uint8_t *) "?M", 2);
 }
 
 void
-slip_set_mac(const uint8_t *data)
+slip_set_mac(const uint8_t * data)
 {
   printf("Got MAC\n");
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
-  rimeaddr_set_node_addr((rimeaddr_t *)uip_lladdr.addr);
-  rimeaddr_copy( (rimeaddr_t *)&wsn_mac_addr, &rimeaddr_node_addr);
+  rimeaddr_set_node_addr((rimeaddr_t *) uip_lladdr.addr);
+  rimeaddr_copy((rimeaddr_t *) & wsn_mac_addr, &rimeaddr_node_addr);
   mac_set = 1;
 }
 /*---------------------------------------------------------------------------*/
 void
 slip_set_rf_channel(uint8_t channel)
 {
-	static uint8_t  msg[3];
-	msg[0] = '!';
-	msg[1] = 'C';
-	msg[2] = channel;
-	write_to_slip(msg, 3);
+  static uint8_t msg[3];
+
+  msg[0] = '!';
+  msg[1] = 'C';
+  msg[2] = channel;
+  write_to_slip(msg, 3);
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver border_router_rdc_driver = {

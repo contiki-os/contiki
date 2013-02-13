@@ -53,8 +53,8 @@
 #endif
 
 typedef enum {
-    ll_802154_type,
-	ll_8023_type
+  ll_802154_type,
+  ll_8023_type
 } lltype_t;
 
 #define PREFIX_BUFFER_SIZE 32
@@ -71,9 +71,9 @@ void mac_LowpanToEthernet(uip_lladdr_t * lowpan, uint8_t * ethHeader);
 void mac_ethernetToLowpan(uint8_t * ethHeader);
 void mac_ethernetSetup(void);
 
-uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
+uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet,
+                                     uip_lladdr_t * lowpan);
 uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
 uint8_t mac_createDefaultEthernetAddr(uint8_t * ethernet);
 
 #endif
-

@@ -2,6 +2,6 @@
 #define PLATFORM_INIT_H_
 
 void
-platform_init(void);
+  platform_init(void);
 
 #endif

@@ -51,7 +51,7 @@
 #endif /* WEBSERVER_CONF_CFS_CONNS */
 
 struct httpd_state;
-typedef char (* httpd_simple_script_t)(struct httpd_state *s);
+typedef char (*httpd_simple_script_t) (struct httpd_state * s);
 
 struct httpd_state {
   struct timer timer;

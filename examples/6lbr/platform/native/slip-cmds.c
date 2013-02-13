@@ -51,7 +51,7 @@
 
 uint8_t command_context;
 
-static int border_router_cmd_handler(/*const*/ uint8_t *data, int len);
+static int border_router_cmd_handler( /*const */ uint8_t * data, int len);
 
 CMD_HANDLERS(border_router_cmd_handler);
 
@@ -62,7 +62,7 @@ PROCESS(border_router_cmd_process, "Border router cmd process");
 /* comes. In this case it can be from stdin or from SLIP.                    */
 /*---------------------------------------------------------------------------*/
 static int
-border_router_cmd_handler(/*const*/ uint8_t *data, int len)
+border_router_cmd_handler( /*const */ uint8_t * data, int len)
 {
   /* handle global repair, etc here */
   if(data[0] == '!') {
@@ -83,14 +83,15 @@ border_router_cmd_handler(/*const*/ uint8_t *data, int len)
       return 1;
     } else if(data[1] == 'C' && command_context == CMD_CONTEXT_STDIO) {
       /* send on! */
-      char channel = atoi(data+2);
+      char channel = atoi(data + 2);
+
       data[2] = channel;
       write_to_slip(data, len);
       return 1;
     } else if(data[1] == 'R' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */
       PRINTF("Packet data report for sid:%d st:%d tx:%d\n",
-	     data[2], data[3], data[4]);
+             data[2], data[3], data[4]);
       packet_sent(data[2], data[3], data[4]);
       return 1;
     } else if(data[1] == 'D' && command_context == CMD_CONTEXT_RADIO) {
@@ -103,8 +104,9 @@ border_router_cmd_handler(/*const*/ uint8_t *data, int len)
     PRINTF("Got request message of type %c\n", data[1]);
     if(data[1] == 'M' && command_context == CMD_CONTEXT_STDIO) {
       uint8_t buf[20];
-      char* hexchar = "0123456789abcdef";
+      char *hexchar = "0123456789abcdef";
       int j;
+
       /* this is just a test so far... just to see if it works */
       buf[0] = '!';
       buf[1] = 'M';
@@ -127,9 +129,10 @@ border_router_cmd_handler(/*const*/ uint8_t *data, int len)
 }
 /*---------------------------------------------------------------------------*/
 void
-border_router_cmd_output(const uint8_t *data, int data_len)
+border_router_cmd_output(const uint8_t * data, int data_len)
 {
   int i;
+
   printf("CMD output: ");
   for(i = 0; i < data_len; i++) {
     printf("%c", data[i]);
@@ -145,7 +148,7 @@ PROCESS_THREAD(border_router_cmd_process, ev, data)
     PROCESS_YIELD();
     if(ev == serial_line_event_message && data != NULL) {
       PRINTF("Got serial data!!! %s of len: %d\n",
-	     (char *)data, strlen((char *)data));
+             (char *)data, strlen((char *)data));
       command_context = CMD_CONTEXT_STDIO;
       cmd_input(data, strlen((char *)data));
     }

@@ -31,61 +31,65 @@ uint8_t ll_header[ETHERNET_LLH_LEN];
 
 /*---------------------------------------------------------------------------*/
 
-static unsigned char tmp_tap_buf[ETHERNET_LLH_LEN+UIP_BUFSIZE];
+static unsigned char tmp_tap_buf[ETHERNET_LLH_LEN + UIP_BUFSIZE];
 void
 eth_drv_send(void)
 {
-	PRINTF("ETH send: %d bytes : %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x  %x:%x %x %x %x %x %x %x\n",
-			uip_len,
-			ll_header[0], ll_header[1],ll_header[2],ll_header[3],ll_header[4],ll_header[5],
-			ll_header[6], ll_header[7],ll_header[8],ll_header[9],ll_header[10],ll_header[11],
-			ll_header[12], ll_header[13],
-			uip_buf[0], uip_buf[1], uip_buf[2], uip_buf[3], uip_buf[4], uip_buf[5] );
-	//Should remove ll_header
-	memcpy(tmp_tap_buf, ll_header, ETHERNET_LLH_LEN);
-	memcpy(tmp_tap_buf+ETHERNET_LLH_LEN, uip_buf, uip_len);
-	tun_output(tmp_tap_buf, uip_len+ETHERNET_LLH_LEN);
+  PRINTF
+    ("ETH send: %d bytes : %x:%x:%x:%x:%x:%x %x:%x:%x:%x:%x:%x  %x:%x %x %x %x %x %x %x\n",
+     uip_len, ll_header[0], ll_header[1], ll_header[2], ll_header[3],
+     ll_header[4], ll_header[5], ll_header[6], ll_header[7], ll_header[8],
+     ll_header[9], ll_header[10], ll_header[11], ll_header[12], ll_header[13],
+     uip_buf[0], uip_buf[1], uip_buf[2], uip_buf[3], uip_buf[4], uip_buf[5]);
+  //Should remove ll_header
+  memcpy(tmp_tap_buf, ll_header, ETHERNET_LLH_LEN);
+  memcpy(tmp_tap_buf + ETHERNET_LLH_LEN, uip_buf, uip_len);
+  tun_output(tmp_tap_buf, uip_len + ETHERNET_LLH_LEN);
 }
-void eth_drv_exit(void)
-{}
-
-void eth_drv_init()
+void
+eth_drv_exit(void)
 {
-	PRINTF("RAW/TAP init\n");
+}
 
-	/* tun init is also responsible for setting up the SLIP connection */
-	tun_init();
+void
+eth_drv_init()
+{
+  PRINTF("RAW/TAP init\n");
 
-	//Set radio channel
-	slip_set_rf_channel(nvm_data.channel);
+  /* tun init is also responsible for setting up the SLIP connection */
+  tun_init();
+
+  //Set radio channel
+  slip_set_rf_channel(nvm_data.channel);
 }
 
 /*---------------------------------------------------------------------------*/
 
 PROCESS_THREAD(eth_drv_process, ev, data)
 {
-	static struct etimer et;
-	PROCESS_BEGIN();
+  static struct etimer et;
 
-	eth_drv_init();
+  PROCESS_BEGIN();
 
-	  while(!mac_set) {
-	    etimer_set(&et, CLOCK_SECOND);
-	    slip_request_mac();
-	    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-	  }
+  eth_drv_init();
 
-	  if ( ! use_raw_ethernet ) {
-		  //We must create our own Ethernet MAC address
-		  mac_createEthernetAddr( (uint8_t *)eth_mac_addr, &wsn_mac_addr);
-		  PRINTF("Eth MAC address : ");
-		  PRINTETHADDR(&eth_mac_addr);
-		  PRINTF("\n");
-		  eth_mac_addr_ready = 1;
-	  }
-	  ethernet_ready = 1;
+  while(!mac_set) {
+    etimer_set(&et, CLOCK_SECOND);
+    slip_request_mac();
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+  }
 
-	PROCESS_END();
+  if(!use_raw_ethernet) {
+    //We must create our own Ethernet MAC address
+    mac_createEthernetAddr((uint8_t *) eth_mac_addr, &wsn_mac_addr);
+    PRINTF("Eth MAC address : ");
+    PRINTETHADDR(&eth_mac_addr);
+    PRINTF("\n");
+    eth_mac_addr_ready = 1;
+  }
+  ethernet_ready = 1;
+
+  PROCESS_END();
 }
 
 /*---------------------------------------------------------------------------*/

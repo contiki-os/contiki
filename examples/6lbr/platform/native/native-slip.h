@@ -42,10 +42,10 @@
 #include <stdio.h>
 
 int slip_config_handle_arguments(int argc, char **argv);
-void write_to_slip(const uint8_t *buf, int len);
+void write_to_slip(const uint8_t * buf, int len);
 
 int slip_init(void);
-int slip_set_fd(int maxfd, fd_set *rset, fd_set *wset);
-void slip_handle_fd(fd_set *rset, fd_set *wset);
+int slip_set_fd(int maxfd, fd_set * rset, fd_set * wset);
+void slip_handle_fd(fd_set * rset, fd_set * wset);
 
 #endif /* NATIVE_SLIP_H_ */

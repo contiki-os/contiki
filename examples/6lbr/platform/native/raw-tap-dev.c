@@ -84,7 +84,7 @@ struct ifreq if_idx;
 //Temporary, should be removed
 #include "native-slip.h"
 
-#if 1//DEBUG
+#if 1                           //DEBUG
 #define PRINTETHADDR(addr) printf(" %02x:%02x:%02x:%02x:%02x:%02x ",(*addr)[0], (*addr)[1], (*addr)[2], (*addr)[3], (*addr)[4], (*addr)[5])
 #else
 #define PRINTETHADDR(addr)
@@ -93,8 +93,8 @@ struct ifreq if_idx;
 #ifndef __CYGWIN__
 static int tunfd;
 
-static int set_fd(fd_set *rset, fd_set *wset);
-static void handle_fd(fd_set *rset, fd_set *wset);
+static int set_fd(fd_set * rset, fd_set * wset);
+static void handle_fd(fd_set * rset, fd_set * wset);
 static const struct select_callback tun_select_callback = {
   set_fd,
   handle_fd
@@ -102,15 +102,16 @@ static const struct select_callback tun_select_callback = {
 #endif /* __CYGWIN__ */
 
 int ssystem(const char *fmt, ...)
-     __attribute__((__format__ (__printf__, 1, 2)));
+  __attribute__ ((__format__(__printf__, 1, 2)));
 int
-ssystem(const char *fmt, ...) __attribute__((__format__ (__printf__, 1, 2)));
+  ssystem(const char *fmt, ...) __attribute__ ((__format__(__printf__, 1, 2)));
 
 int
 ssystem(const char *fmt, ...)
 {
   char cmd[128];
   va_list ap;
+
   va_start(ap, fmt);
   vsnprintf(cmd, sizeof(cmd), fmt, ap);
   va_end(ap);
@@ -128,9 +129,8 @@ cleanup(void)
   ssystem("sysctl -w net.ipv6.conf.all.forwarding=1");
 #endif
   ssystem("netstat -nr"
-	  " | awk '{ if ($2 == \"%s\") print \"route delete -net \"$1; }'"
-	  " | sh",
-	  slip_config_tundev);
+          " | awk '{ if ($2 == \"%s\") print \"route delete -net \"$1; }'"
+          " | sh", slip_config_tundev);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -138,7 +138,7 @@ void
 sigcleanup(int signo)
 {
   printf("signal %d\n", signo);
-  exit(1);			/* exit(0) will call cleanup() */
+  exit(1);                      /* exit(0) will call cleanup() */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -146,9 +146,11 @@ void
 ifconf(const char *tundev)
 {
 #if defined(__APPLE__)
-  ssystem("ifconfig %s link 02:a:b:c:d:e; ip6 -d %s; ip6 -u %s; ifconfig %s inet6 up ", tundev, tundev, tundev, tundev);
+  ssystem
+    ("ifconfig %s link 02:a:b:c:d:e; ip6 -d %s; ip6 -u %s; ifconfig %s inet6 up ",
+     tundev, tundev, tundev, tundev);
 #else
-  ssystem("ifconfig %s up", tundev );
+  ssystem("ifconfig %s up", tundev);
 #endif
 
   /* Print the configuration to the console. */
@@ -159,6 +161,7 @@ int
 devopen(const char *dev, int flags)
 {
   char t[32];
+
   strcpy(t, "/dev/");
   strncat(t, dev, sizeof(t) - 5);
   return open(t, flags);
@@ -169,28 +172,32 @@ devopen(const char *dev, int flags)
 int
 eth_alloc(const char *tundev)
 {
-	int sockfd;
-	if ((sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1) {
-		    perror("socket");
-	}
-	memset(&if_idx, 0, sizeof(struct ifreq));
-	strncpy(if_idx.ifr_name, tundev, IFNAMSIZ-1);
-	if (ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0)
-		    perror("SIOCGIFINDEX");
-	struct sockaddr_ll sll;
-	sll.sll_family = AF_PACKET;
-	sll.sll_ifindex = if_idx.ifr_ifindex;
-	sll.sll_protocol = htons (ETH_P_ALL);
-	if (bind ( sockfd, (struct sockaddr *) &sll, sizeof (sll)) < 0)
-			perror("bind");
-	struct packet_mreq      mr;
-	memset (&mr, 0, sizeof (mr));
-	mr.mr_ifindex = if_idx.ifr_ifindex;
-	mr.mr_type = PACKET_MR_PROMISC;
-	if (setsockopt (sockfd, SOL_PACKET,PACKET_ADD_MEMBERSHIP, &mr, sizeof (mr)) < 0)
-		perror("setsockopt");
+  int sockfd;
 
-	return sockfd;
+  if((sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1) {
+    perror("socket");
+  }
+  memset(&if_idx, 0, sizeof(struct ifreq));
+  strncpy(if_idx.ifr_name, tundev, IFNAMSIZ - 1);
+  if(ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0)
+    perror("SIOCGIFINDEX");
+  struct sockaddr_ll sll;
+
+  sll.sll_family = AF_PACKET;
+  sll.sll_ifindex = if_idx.ifr_ifindex;
+  sll.sll_protocol = htons(ETH_P_ALL);
+  if(bind(sockfd, (struct sockaddr *)&sll, sizeof(sll)) < 0)
+    perror("bind");
+  struct packet_mreq mr;
+
+  memset(&mr, 0, sizeof(mr));
+  mr.mr_ifindex = if_idx.ifr_ifindex;
+  mr.mr_type = PACKET_MR_PROMISC;
+  if(setsockopt(sockfd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mr, sizeof(mr)) <
+     0)
+    perror("setsockopt");
+
+  return sockfd;
 }
 
 int
@@ -199,7 +206,7 @@ tun_alloc(char *dev)
   struct ifreq ifr;
   int fd, err;
 
-  if( (fd = open("/dev/net/tun", O_RDWR)) < 0 ) {
+  if((fd = open("/dev/net/tun", O_RDWR)) < 0) {
     return -1;
   }
 
@@ -212,7 +219,7 @@ tun_alloc(char *dev)
   if(*dev != 0)
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
-  if((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
+  if((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0) {
     close(fd);
     return err;
   }
@@ -221,13 +228,14 @@ tun_alloc(char *dev)
 }
 
 void
-fetch_mac(int fd, char *dev, ethaddr_t *eth_mac_addr )
+fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
 {
-	struct ifreq buffer;
-	memset(&buffer, 0x00, sizeof(buffer));
-	strcpy(buffer.ifr_name, dev);
-	ioctl(fd, SIOCGIFHWADDR, &buffer);
-	memcpy(eth_mac_addr, buffer.ifr_hwaddr.sa_data, 6);
+  struct ifreq buffer;
+
+  memset(&buffer, 0x00, sizeof(buffer));
+  strcpy(buffer.ifr_name, dev);
+  ioctl(fd, SIOCGIFHWADDR, &buffer);
+  memcpy(eth_mac_addr, buffer.ifr_hwaddr.sa_data, 6);
 }
 #else
 int
@@ -242,28 +250,30 @@ tun_alloc(char *dev)
   return devopen(dev, O_RDWR);
 }
 void
-fetch_mac(int fd, char *dev, ethaddr_t *eth_mac_addr )
+fetch_mac(int fd, char *dev, ethaddr_t * eth_mac_addr)
 {
-    struct ifaddrs *ifap, *ifaptr;
-    unsigned char *ptr;
-    int found = 0;
+  struct ifaddrs *ifap, *ifaptr;
+  unsigned char *ptr;
+  int found = 0;
 
-    if (getifaddrs(&ifap) == 0) {
-        for(ifaptr = ifap; ifaptr != NULL; ifaptr = (ifaptr)->ifa_next) {
-            if (!strcmp((ifaptr)->ifa_name, dev) && (((ifaptr)->ifa_addr)->sa_family == AF_LINK)) {
-                ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)(ifaptr)->ifa_addr);
-            	memcpy(eth_mac_addr, ptr, 6);
-            	(*eth_mac_addr)[5] = 7;
-            	found = 1;
-                break;
-            }
-        }
-        freeifaddrs(ifap);
+  if(getifaddrs(&ifap) == 0) {
+    for(ifaptr = ifap; ifaptr != NULL; ifaptr = (ifaptr)->ifa_next) {
+      if(!strcmp((ifaptr)->ifa_name, dev)
+         && (((ifaptr)->ifa_addr)->sa_family == AF_LINK)) {
+        ptr =
+          (unsigned char *)LLADDR((struct sockaddr_dl *)(ifaptr)->ifa_addr);
+        memcpy(eth_mac_addr, ptr, 6);
+        (*eth_mac_addr)[5] = 7;
+        found = 1;
+        break;
+      }
     }
-    if ( ! found ) {
-    	fprintf(stderr, "Could not find mac address for %s\n", dev);
-    	exit(1);
-    }
+    freeifaddrs(ifap);
+  }
+  if(!found) {
+    fprintf(stderr, "Could not find mac address for %s\n", dev);
+    exit(1);
+  }
 }
 #endif
 
@@ -272,31 +282,32 @@ fetch_mac(int fd, char *dev, ethaddr_t *eth_mac_addr )
 void
 tun_init()
 {
-  setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
+  setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
   slip_init();
 }
 
 #else
 
-static uint16_t delaymsec=0;
-static uint32_t delaystartsec,delaystartmsec;
+static uint16_t delaymsec = 0;
+static uint32_t delaystartsec, delaystartmsec;
 
 /*---------------------------------------------------------------------------*/
 
 void
 tun_init()
 {
-  setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
+  setvbuf(stdout, NULL, _IOLBF, 0);     /* Line buffered output. */
 
   slip_init();
 
-  if ( use_raw_ethernet ) {
+  if(use_raw_ethernet) {
     tunfd = eth_alloc(slip_config_tundev);
   } else {
     tunfd = tun_alloc(slip_config_tundev);
   }
-  if(tunfd == -1) err(1, "main: open");
+  if(tunfd == -1)
+    err(1, "main: open");
 
   select_set_callback(tunfd, &tun_select_callback);
 
@@ -307,7 +318,7 @@ tun_init()
   signal(SIGTERM, sigcleanup);
   signal(SIGINT, sigcleanup);
   ifconf(slip_config_tundev);
-  if ( use_raw_ethernet ) {
+  if(use_raw_ethernet) {
     fetch_mac(tunfd, slip_config_tundev, &eth_mac_addr);
     PRINTF("Eth MAC address : ");
     PRINTETHADDR(&eth_mac_addr);
@@ -318,7 +329,7 @@ tun_init()
 
 /*---------------------------------------------------------------------------*/
 void
-tun_output(uint8_t *data, int len)
+tun_output(uint8_t * data, int len)
 {
   /* printf("*** Writing to tun...%d\n", len); */
   if(write(tunfd, data, len) != len) {
@@ -330,6 +341,7 @@ int
 tun_input(unsigned char *data, int maxlen)
 {
   int size;
+
   if((size = read(tunfd, data, maxlen)) == -1)
     err(1, "tun_input: read");
   return size;
@@ -339,7 +351,7 @@ tun_input(unsigned char *data, int maxlen)
 /* tun and slip select callback                                              */
 /*---------------------------------------------------------------------------*/
 static int
-set_fd(fd_set *rset, fd_set *wset)
+set_fd(fd_set * rset, fd_set * wset)
 {
   FD_SET(tunfd, rset);
   return 1;
@@ -347,10 +359,10 @@ set_fd(fd_set *rset, fd_set *wset)
 
 /*---------------------------------------------------------------------------*/
 
-static unsigned char tmp_tap_buf[ETHERNET_LLH_LEN+UIP_BUFSIZE];
+static unsigned char tmp_tap_buf[ETHERNET_LLH_LEN + UIP_BUFSIZE];
 
 static void
-handle_fd(fd_set *rset, fd_set *wset)
+handle_fd(fd_set * rset, fd_set * wset)
 {
   /* Optional delay between outgoing packets */
   /* Base delay times number of 6lowpan fragments to be sent */
@@ -358,34 +370,39 @@ handle_fd(fd_set *rset, fd_set *wset)
   if(delaymsec) {
     struct timeval tv;
     int dmsec;
+
     gettimeofday(&tv, NULL);
-    dmsec=(tv.tv_sec-delaystartsec)*1000+tv.tv_usec/1000-delaystartmsec;
-    if(dmsec<0) delaymsec=0;
-    if(dmsec>delaymsec) delaymsec=0;
+    dmsec =
+      (tv.tv_sec - delaystartsec) * 1000 + tv.tv_usec / 1000 - delaystartmsec;
+    if(dmsec < 0)
+      delaymsec = 0;
+    if(dmsec > delaymsec)
+      delaymsec = 0;
   }
 
-  if(delaymsec==0) {
+  if(delaymsec == 0) {
     int size;
 
     if(FD_ISSET(tunfd, rset)) {
       size = tun_input(tmp_tap_buf, sizeof(tmp_tap_buf));
       printf("TUN data incoming read:%d\n", size);
-      if ( ethernet_has_fcs ) {
-      	//Remove extra data from packet capture
-      	uip_len = size - ETHERNET_LLH_LEN - 4;
+      if(ethernet_has_fcs) {
+        //Remove extra data from packet capture
+        uip_len = size - ETHERNET_LLH_LEN - 4;
       } else {
         uip_len = size - ETHERNET_LLH_LEN;
       }
       memcpy(ll_header, tmp_tap_buf, ETHERNET_LLH_LEN);
-      memcpy(uip_buf, tmp_tap_buf+ETHERNET_LLH_LEN, uip_len);
+      memcpy(uip_buf, tmp_tap_buf + ETHERNET_LLH_LEN, uip_len);
       eth_input();
 
       if(slip_config_basedelay) {
         struct timeval tv;
-      	gettimeofday(&tv, NULL) ;
-      	delaymsec=slip_config_basedelay;
-      	delaystartsec =tv.tv_sec;
-      	delaystartmsec=tv.tv_usec/1000;
+
+        gettimeofday(&tv, NULL);
+        delaymsec = slip_config_basedelay;
+        delaystartsec = tv.tv_sec;
+        delaystartmsec = tv.tv_usec / 1000;
       }
     }
   }

@@ -40,12 +40,12 @@ typedef struct uip_nd6_opt_route_info {
 
 extern uip_ds6_route_info_t uip_ds6_route_info_list[UIP_DS6_ROUTE_INFO_NB];
 
-uip_ds6_route_info_t *
-uip_ds6_route_info_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
-                   uint8_t flags, unsigned long rlifetime);
+uip_ds6_route_info_t *uip_ds6_route_info_add(uip_ipaddr_t * ipaddr,
+                                             uint8_t ipaddrlen, uint8_t flags,
+                                             unsigned long rlifetime);
 void uip_ds6_route_info_rm(uip_ds6_route_info_t * rtinfo);
-uip_ds6_route_info_t *
-uip_ds6_route_info_lookup(uip_ipaddr_t * ipaddr, uint8_t ipaddrlen);
+uip_ds6_route_info_t *uip_ds6_route_info_lookup(uip_ipaddr_t * ipaddr,
+                                                uint8_t ipaddrlen);
 /** \brief Callback called in RA input to deal with RIO */
 void uip_ds6_route_info_callback(uip_nd6_opt_route_info *, uip_ip6addr_t *);
 
