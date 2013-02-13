@@ -125,7 +125,8 @@ cleanup(void)
 {
   if(slip_config_ifdown_script != NULL) {
     if(access(slip_config_ifdown_script, R_OK | X_OK) == 0) {
-      ssystem("%s %s", slip_config_ifdown_script, slip_config_tundev);
+      ssystem("%s %s %s", slip_config_ifdown_script,
+              use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
     } else {
       fprintf(stderr, "Could not access %s : %s\n", slip_config_ifdown_script,
               strerror(errno));
@@ -147,7 +148,8 @@ ifconf(const char *tundev)
 {
   if(slip_config_ifup_script != NULL) {
     if(access(slip_config_ifup_script, R_OK | X_OK) == 0) {
-      ssystem("%s %s", slip_config_ifup_script, slip_config_tundev);
+      ssystem("%s %s %s", slip_config_ifup_script,
+              use_raw_ethernet ? "raw" : "tap", slip_config_tundev);
     } else {
       fprintf(stderr, "Could not access %s : %s\n", slip_config_ifup_script,
               strerror(errno));
