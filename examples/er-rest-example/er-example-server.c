@@ -440,7 +440,7 @@ separate_finalize_handler()
       coap_packet_t response[1]; /* This way the packet can be treated as pointer as usual. */
 
       /* Restore the request information for the response. */
-      coap_separate_resume(response, &separate_store->request_metadata, CONTENT_2_05);
+      coap_separate_resume(response, &separate_store->request_metadata, REST.status.OK);
 
       coap_set_payload(response, separate_store->buffer, strlen(separate_store->buffer));
 
@@ -505,7 +505,7 @@ pushing_periodic_handler(resource_t *r)
 
   /* Build notification. */
   coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
-  coap_init_message(notification, COAP_TYPE_NON, CONTENT_2_05, 0 );
+  coap_init_message(notification, COAP_TYPE_NON, REST.status.OK, 0 );
   coap_set_payload(notification, content, snprintf(content, sizeof(content), "TICK %u", obs_counter));
 
   /* Notify the registered observers with the given message type, observe option, and payload. */
@@ -547,7 +547,7 @@ event_event_handler(resource_t *r)
 
   /* Build notification. */
   coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
-  coap_init_message(notification, COAP_TYPE_CON, CONTENT_2_05, 0 );
+  coap_init_message(notification, COAP_TYPE_CON, REST.status.OK, 0 );
   coap_set_payload(notification, content, snprintf(content, sizeof(content), "EVENT %u", event_counter));
 
   /* Notify the registered observers with the given message type, observe option, and payload. */

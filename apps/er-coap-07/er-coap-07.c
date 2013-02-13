@@ -1177,7 +1177,7 @@ coap_set_header_block1(void *packet, uint32_t num, uint8_t more, uint16_t size)
 /*- PAYLOAD -------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 int
-coap_get_payload(void *packet, uint8_t **payload)
+coap_get_payload(void *packet, const uint8_t **payload)
 {
   coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
 

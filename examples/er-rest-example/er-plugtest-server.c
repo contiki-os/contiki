@@ -627,7 +627,10 @@ path_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_
 
 #if REST_RES_SEPARATE
 /* Required to manually (=not by the engine) handle the response transaction. */
-#if WITH_COAP == 12
+#if WITH_COAP == 7
+#include "er-coap-07-separate.h"
+#include "er-coap-07-transactions.h"
+#elif WITH_COAP == 12
 #include "er-coap-12-separate.h"
 #include "er-coap-12-transactions.h"
 #elif WITH_COAP == 13
