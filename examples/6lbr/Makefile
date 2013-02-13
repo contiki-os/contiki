@@ -89,26 +89,28 @@ all_econotag:
 	$(MAKE) TARGET=econotag CETIC_6LBR_ROUTER=1 $(ECONOTAG_CONF)
 	mv cetic-bridge_econotag.bin bin_econotag/cetic_6lbr_router 
 
-VERSION=$(word 2,$(shell awk '/Version:/' package/DEBIAN/control))
-PKG=6lbr-$(VERSION)
+VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
+
+DEB=6lbr-$(VERSION)-deb
 IPK=6lbr-$(VERSION)-ipk
 
-dist:
-	rm -rf $(PKG)
-	cp -R package $(PKG)
-	mkdir -p $(PKG)/usr/lib/6lbr/bin
-	cp bin/* $(PKG)/usr/lib/6lbr/bin
+deb:
+	rm -rf $(DEB)
+	cp -R package $(DEB)
+	cp -R control-deb $(DEB)/DEBIAN
+	mkdir -p $(DEB)/usr/lib/6lbr/bin
+	cp bin/* $(DEB)/usr/lib/6lbr/bin
+	dpkg --build $(DEB) .
 
-deb: dist
-	dpkg --build $(PKG) .
-
-ipk: dist
+ipk:
 	rm -rf $(IPK)
 	rm -f $(IPK).ipk
-	mkdir $(IPK)
-	cd $(PKG) && tar zcvf ../$(IPK)/data.tar.gz --exclude=DEBIAN --exclude='*~' *
+	cp -R package $(IPK)
+	mkdir -p $(IPK)/usr/lib/6lbr/bin
+	cp bin/* $(IPK)/usr/lib/6lbr/bin
+	cd $(IPK) && tar zcvf ../$(IPK)/data.tar.gz --exclude='*~' *
 	cd control-ipk && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
 	echo 2.0 > $(IPK)/debian-binary
-	cd $(IPK) && ar rc ../$(IPK).ipk debian-binary data.tar.gz control.tar.gz
+	cd $(IPK) && ar rc ../6lbr_$(VERSION)_beaglebone.ipk debian-binary data.tar.gz control.tar.gz
 
 include $(CONTIKI)/Makefile.include

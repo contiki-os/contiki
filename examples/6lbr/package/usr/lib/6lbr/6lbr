@@ -16,6 +16,10 @@ else
 	exit 1
 fi
 
+if [ "$NVM" = "" ]; then
+	NVM=/etc/6lbr/nvm.dat
+fi
+
 if [ "$RAW_ETH" = "1" ]; then
 	PARAM_ETH="-r"
 	ETH_IF=$DEV_ETH
