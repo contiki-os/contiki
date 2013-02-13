@@ -434,7 +434,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 	add("Address : ");
 	ipaddr_add(&eth_ip_addr);
 	add("<br />");
-	add("Default router : ");
+	add("Peer router : ");
 	ipaddr_add(&eth_dft_router);
 	add("<br />");
 	add("RA Daemon : ");

@@ -33,7 +33,8 @@ extern uip_ds6_prefix_t uip_ds6_prefix_list[];
 
 extern rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 
-int count = 0;
+static int redirect;
+
 /*---------------------------------------------------------------------------*/
 /* Use simple webserver with only one page for minimum footprint.
  * Multiple connections can result in interleaved tcp segments since
@@ -64,8 +65,8 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 #define BUF_SIZE 256
-static const char *TOP = "<html><head><title>CETIC WSN</title><link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.cetic.be/squelettes/css/cetic_layout.css\" /><link rel=\"stylesheet\" href=\"http://www.cetic.be/prive/spip_style.css\" type=\"text/css\" /></head>";
-static const char *BODY = "<body class=\"page_rubrique\"><div id=\"container\"><div id=\"banner\"><img src=\"http://www.cetic.be/squelettes/css/img/logo.jpg\" style=\"position: absolute; top: 0; left: 0;\"><div id=\"banner_fx\"><div id=\"img_bandeau\"><img src=\"http://www.cetic.be/squelettes/img/banner_home.jpg\"></div><div id=\"barre_nav\"><div class=\"menu-general\"><a href=\"/\">Info</a></div><div class=\"menu-general\"><a href=\"/sensors.html\">Sensors</a></div><div class=\"menu-general\"><a href=\"/rpl.html\">RPL</a></div><div class=\"menu-general\"><a href=\"/network.html\">Network</a></div><div class=\"menu-general\"><a href=\"/config.html\">Config</a></div></div></div></div>\n";
+static const char *TOP = "<html><head><title>CETIC WSN</title><link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.cetic.be/squelettes/css/cetic_layout.css\" /><link rel=\"stylesheet\" href=\"http://www.cetic.be/prive/spip_style.css\" type=\"text/css\" />";
+static const char *BODY = "</head><body class=\"page_rubrique\"><div id=\"container\"><div id=\"banner\"><img src=\"http://www.cetic.be/squelettes/css/img/logo.jpg\" style=\"position: absolute; top: 0; left: 0;\"><div id=\"banner_fx\"><div id=\"img_bandeau\"><img src=\"http://www.cetic.be/squelettes/img/banner_home.jpg\"></div><div id=\"barre_nav\"><div class=\"menu-general\"><a href=\"/\">Info</a></div><div class=\"menu-general\"><a href=\"/sensors.html\">Sensors</a></div><div class=\"menu-general\"><a href=\"/rpl.html\">RPL</a></div><div class=\"menu-general\"><a href=\"/network.html\">Network</a></div><div class=\"menu-general\"><a href=\"/config.html\">Config</a></div></div></div></div>\n";
 static const char *BOTTOM = "</div></body></html>\n";
 #if BUF_USES_STACK
 static char *bufptr, *bufend;
@@ -458,6 +459,10 @@ PT_THREAD(generate_network(struct httpd_state *s))
 	PSOCK_BEGIN(&s->sout);
 
 	SEND_STRING(&s->sout, TOP);
+	if (redirect ) {
+		//Quick hack to rewrite url after route or neighbour removal
+		SEND_STRING(&s->sout, "<meta http-equiv=\"refresh\" content=\"0; url=/network.html\" />");
+	}
 	SEND_STRING(&s->sout, BODY);
 	reset_buf();
 
@@ -665,7 +670,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 	add("\" /><br />");
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
-	add("Default router : <input type=\"text\" name=\"eth_dft\" value=\"");
+	add("Peer router : <input type=\"text\" name=\"eth_dft\" value=\"");
 	ipaddr_add_u8(&nvm_data.eth_dft_router);
 	add("\" /><br />");
 	SEND_STRING(&s->sout, buf);
@@ -732,11 +737,13 @@ PT_THREAD(generate_reboot(struct httpd_state *s))
 	PSOCK_BEGIN(&s->sout);
 
 	SEND_STRING(&s->sout, TOP);
+	SEND_STRING(&s->sout, "<meta http-equiv=\"refresh\" content=\"2; url=/config.html\" />");
 	SEND_STRING(&s->sout, BODY);
 	reset_buf();
 	add_div_home();
 	add("<div id=\"left_home\">");
 	add("Restarting BR...<br />");
+	add("<a href=\"/config.html\">Click here if the page is not refreshing</a><br /><br />");
 	add("</div>");
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
@@ -820,7 +827,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
 	add("Address : ");
 	ipaddr_add(&eth_ip_addr);
 	add("<br />");
-	add("Default router : ");
+	add("Peer router : ");
 	ipaddr_add(&eth_dft_router);
 	add("<br />");
 	add("RA Daemon : ");
@@ -1039,6 +1046,8 @@ httpd_simple_get_script(const char *name)
 	static uip_ds6_route_t *r;
 	static int i;
 
+	redirect = 0;
+
 	if (strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
 		return generate_index;
 #if CETIC_NODE_INFO
@@ -1055,7 +1064,8 @@ httpd_simple_get_script(const char *name)
 		rpl_repair_root(RPL_DEFAULT_INSTANCE);
 		return generate_rpl;
 	} else if (memcmp(name, "route_rm?", 9) == 0) {
-		i = atoi(name+9);
+		redirect = 1;
+ 		i = atoi(name+9);
 		for(r = uip_ds6_route_list_head(); r != NULL; r = list_item_next(r), --i) {
 			if ( i == 0 ) {
 				uip_ds6_route_rm(r);
@@ -1064,7 +1074,8 @@ httpd_simple_get_script(const char *name)
 		}
 		return generate_network;
 	} else if (memcmp(name, "nbr_rm?", 7) == 0) {
-		uip_ds6_nbr_cache[atoi(name+7)].isused = 0;
+		redirect = 1;
+		uip_ds6_nbr_rm( &uip_ds6_nbr_cache[atoi(name+7)] );
 		return generate_network;
 #if !WEBSERVER_EDITABLE_CONFIG
 	} else if (strcmp(name, "rewrite") == 0) {
