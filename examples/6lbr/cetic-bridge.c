@@ -114,10 +114,6 @@ cetic_bridge_init(void)
   {
     memcpy(wsn_net_prefix.u8, &nvm_data.wsn_net_prefix,
            sizeof(nvm_data.wsn_net_prefix));
-#if CETIC_6LBR_TRANSPARENTBRIDGE
-    //Set wsn prefix as on-link
-    uip_ds6_prefix_add(&wsn_net_prefix, 64, 0);
-#endif
     if((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0)  //Address auto configuration
     {
       uip_ipaddr_copy(&wsn_ip_addr, &wsn_net_prefix);
