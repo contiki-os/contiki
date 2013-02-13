@@ -42,7 +42,7 @@
 #include "net/netstack.h"
 #include "packetutils.h"
 #include "native-slip.h"
-#include "cetic-bridge.h"
+#include "cetic-6lbr.h"
 #include <string.h>
 
 #define DEBUG 1

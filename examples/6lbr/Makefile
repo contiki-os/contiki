@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = cetic-bridge
+CONTIKI_PROJECT = cetic-6lbr
 
 # Default mode selection
 
@@ -69,25 +69,25 @@ all_native:
 	mkdir -p bin
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(NATIVE_CONF)
-	mv cetic-bridge.native bin/cetic_6lbr_smart_bridge 
+	mv cetic-6lbr.native bin/cetic_6lbr_smart_bridge 
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 $(NATIVE_CONF)
-	mv cetic-bridge.native bin/cetic_6lbr_transparent_bridge 
+	mv cetic-6lbr.native bin/cetic_6lbr_transparent_bridge 
 	$(MAKE) TARGET=native clean
 	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(NATIVE_CONF)
-	mv cetic-bridge.native bin/cetic_6lbr_router 
+	mv cetic-6lbr.native bin/cetic_6lbr_router 
 
 all_econotag:
 	mkdir -p bin_econotag
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag CETIC_6LBR_SMARTBRIDGE=1 $(ECONOTAG_CONF)
-	mv cetic-bridge_econotag.bin bin_econotag/cetic_6lbr_smart_bridge 
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_smart_bridge 
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag CETIC_6LBR_TRANSPARENTBRIDGE=1 $(ECONOTAG_CONF)
-	mv cetic-bridge_econotag.bin bin_econotag/cetic_6lbr_transparent_bridge 
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_transparent_bridge 
 	$(MAKE) TARGET=econotag clean
 	$(MAKE) TARGET=econotag CETIC_6LBR_ROUTER=1 $(ECONOTAG_CONF)
-	mv cetic-bridge_econotag.bin bin_econotag/cetic_6lbr_router 
+	mv cetic-6lbr_econotag.bin bin_econotag/cetic_6lbr_router 
 
 VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)))
 

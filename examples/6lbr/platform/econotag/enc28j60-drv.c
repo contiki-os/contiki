@@ -45,7 +45,7 @@
 #include "string.h"
 #include "sicslow-ethernet.h"
 
-#include "cetic-bridge.h"
+#include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "packet-filter.h"
 

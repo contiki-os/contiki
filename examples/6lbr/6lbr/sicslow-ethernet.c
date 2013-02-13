@@ -67,7 +67,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cetic-bridge.h"
+#include "cetic-6lbr.h"
 
 #define DEBUG 0
 #include "uip-debug.h"

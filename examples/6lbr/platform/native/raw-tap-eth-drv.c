@@ -4,7 +4,7 @@
 #include "net/uip.h"
 #include "string.h"
 
-#include "cetic-bridge.h"
+#include "cetic-6lbr.h"
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "nvm-config.h"

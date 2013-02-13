@@ -1,9 +1,12 @@
-#ifndef CETIC_BRIDGE_H_
-#define CETIC_BRIDGE_H_
+#ifndef CETIC_6LBR_H_
+#define CETIC_6LBR_H_
 
 #include "net/rpl/rpl.h"
 
-PROCESS_NAME(cetic_bridge_process);
+PROCESS_NAME(cetic_6lbr_process);
+
+extern void cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
+                                  uip_ipaddr_t * ipaddr);
 
 typedef uint8_t ethaddr_t[6];
 
@@ -32,6 +35,6 @@ extern uip_ipaddr_t eth_net_prefix;
 extern uip_ipaddr_t eth_dft_router;
 
 // Misc
-extern unsigned long cetic_bridge_startup;
+extern unsigned long cetic_6lbr_startup;
 
 #endif

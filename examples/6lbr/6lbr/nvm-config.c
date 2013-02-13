@@ -7,7 +7,7 @@
 
 #include "rpl-private.h"
 
-#include "cetic-bridge.h"
+#include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "nvm-itf.h"
 

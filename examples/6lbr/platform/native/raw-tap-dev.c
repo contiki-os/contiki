@@ -79,7 +79,7 @@ struct ifreq if_idx;
 #include "eth-drv.h"
 #include "raw-tap-dev.h"
 #include "packet-filter.h"
-#include "cetic-bridge.h"
+#include "cetic-6lbr.h"
 #include "slip-config.h"
 //Temporary, should be removed
 #include "native-slip.h"

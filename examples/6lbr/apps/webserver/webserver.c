@@ -9,7 +9,7 @@
 #include "net/rpl/rpl.h"
 
 #include "sicslow-ethernet.h"
-#include "cetic-bridge.h"
+#include "cetic-6lbr.h"
 #include "nvm-config.h"
 #include "rio.h"
 #include "node-info.h"
@@ -212,7 +212,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("ROUTER");
 #endif
   add("<br />\n");
-  i = clock_seconds() - cetic_bridge_startup;
+  i = clock_seconds() - cetic_6lbr_startup;
   add("Uptime : %dh %dm %ds<br />", i / 3600, (i / 60) % 60, i % 60);
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -835,7 +835,7 @@ PT_THREAD(generate_reboot(struct httpd_state *s))
 
   SEND_STRING(&s->sout, BOTTOM);
 
-  process_post(&cetic_bridge_process, 0, NULL);
+  process_post(&cetic_6lbr_process, 0, NULL);
 
   PSOCK_END(&s->sout);
 }

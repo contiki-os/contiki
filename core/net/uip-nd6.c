@@ -74,8 +74,8 @@
 #include "net/uip-ds6.h"
 #include "lib/random.h"
 #if CETIC_6LBR_TRANSPARENTBRIDGE || CETIC_6LBR_SMARTBRIDGE
+#include "cetic-6lbr.h"
 #include "nvm-config.h"
-extern void cetic_bridge_set_prefix( uip_ipaddr_t *prefix, unsigned len, uip_ipaddr_t *ipaddr);
 #endif
 #if UIP_CONF_DS6_ROUTE_INFORMATION || CETIC_6LBR
 #include "rio.h"
@@ -972,7 +972,7 @@ uip_nd6_ra_input(void)
             }
           }
 #if CETIC_6LBR_SMARTBRIDGE
-          cetic_bridge_set_prefix(&nd6_opt_prefix_info->prefix, 64, &ipaddr);
+          cetic_6lbr_set_prefix(&nd6_opt_prefix_info->prefix, 64, &ipaddr);
 #endif
         }
         /* End of autonomous flag related processing */

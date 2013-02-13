@@ -2,7 +2,7 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 
-#include "cetic-bridge.h"
+#include "cetic-6lbr.h"
 #include "sicslow-ethernet.h"
 #include "nvm-config.h"
 #include "mc1322x.h"

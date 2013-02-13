@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "cetic-bridge.h"
+#include "cetic-6lbr.h"
 #include "platform-init.h"
 #include "packet-filter.h"
 #include "eth-drv.h"
@@ -47,7 +47,7 @@ uip_ipaddr_t eth_ip_local_addr;
 uip_ipaddr_t eth_dft_router;
 
 //Misc
-unsigned long cetic_bridge_startup;
+unsigned long cetic_6lbr_startup;
 
 #define DEBUG 1                 //DEBUG_NONE
 #if DEBUG
@@ -66,15 +66,15 @@ unsigned long cetic_bridge_startup;
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(webserver_nogui_process);
 PROCESS_NAME(udp_server_process);
-PROCESS(cetic_bridge_process, "CETIC Bridge process");
+PROCESS(cetic_6lbr_process, "CETIC Bridge process");
 
-AUTOSTART_PROCESSES(&cetic_bridge_process);
+AUTOSTART_PROCESSES(&cetic_6lbr_process);
 
 /*---------------------------------------------------------------------------*/
 
 void
-cetic_bridge_set_prefix(uip_ipaddr_t * prefix, unsigned len,
-                        uip_ipaddr_t * ipaddr)
+cetic_6lbr_set_prefix(uip_ipaddr_t * prefix, unsigned len,
+                      uip_ipaddr_t * ipaddr)
 {
   PRINTF("CETIC_BRIDGE : set_prefix\n");
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) == 0) {
@@ -92,7 +92,7 @@ cetic_bridge_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 }
 
 void
-cetic_bridge_init(void)
+cetic_6lbr_init(void)
 {
 #if !CETIC_6LBR_TRANSPARENTBRIDGE
   uip_ipaddr_t loc_fipaddr;
@@ -223,11 +223,11 @@ cetic_bridge_init(void)
 
 static struct etimer reboot_timer;
 
-PROCESS_THREAD(cetic_bridge_process, ev, data)
+PROCESS_THREAD(cetic_6lbr_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  cetic_bridge_startup = clock_seconds();
+  cetic_6lbr_startup = clock_seconds();
 
 #if CONTIKI_TARGET_NATIVE
   slip_config_handle_arguments(contiki_argc, contiki_argv);
@@ -252,7 +252,7 @@ PROCESS_THREAD(cetic_bridge_process, ev, data)
 #endif
 
   packet_filter_init();
-  cetic_bridge_init();
+  cetic_6lbr_init();
 
 #if WEBSERVER
   process_start(&webserver_nogui_process, NULL);
