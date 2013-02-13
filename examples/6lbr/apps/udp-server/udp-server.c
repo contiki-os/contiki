@@ -82,8 +82,6 @@ tcpip_handler(void)
 
 PROCESS_THREAD(udp_server_process, ev, data)
 {
-  uip_ipaddr_t ipaddr;
-
   PROCESS_BEGIN();
   PRINTF("UDP server started\n");
 

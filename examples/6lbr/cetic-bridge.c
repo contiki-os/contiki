@@ -94,9 +94,9 @@ cetic_bridge_set_prefix(uip_ipaddr_t * prefix, unsigned len,
 void
 cetic_bridge_init(void)
 {
+#if !CETIC_6LBR_TRANSPARENTBRIDGE
   uip_ipaddr_t loc_fipaddr;
 
-#if !CETIC_6LBR_TRANSPARENTBRIDGE
   //DODAGID = link-local address used !
   uip_create_linklocal_prefix(&loc_fipaddr);
   uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);

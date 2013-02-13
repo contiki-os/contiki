@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
 #include "nvm-itf.h"
 #include "nvm-config.h"

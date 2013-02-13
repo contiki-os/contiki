@@ -335,8 +335,6 @@ eth_output(uip_lladdr_t * src, uip_lladdr_t * dest)
 static uint8_t
 bridge_output(uip_lladdr_t * a)
 {
-  uip_lladdr_t src;
-
   PRINTF("bridge_output: Sending packet to ");
   if(!IS_BROADCAST_ADDR(a)) {
     PRINTLLADDR(a);

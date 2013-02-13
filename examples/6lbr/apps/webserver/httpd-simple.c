@@ -83,11 +83,11 @@ urlconv_init(void)
 }
 
 static void
-urlconv_tofilename(char *dest, char *source, unsigned char maxlen)
+urlconv_tofilename(char *dest, char *source, int maxlen)
 {
-  static unsigned char len;
-  static unsigned char c, hex1;
-  static unsigned char *from, *to;
+  int len;
+  char c, hex1;
+  char *from, *to;
 
   len = 0;
   from = source;

@@ -288,7 +288,6 @@ static
 PT_THREAD(generate_sensors(struct httpd_state *s))
 {
   static int i;
-  static node_info_t *node;
 
 #if BUF_USES_STACK
   char buf[BUF_SIZE];
@@ -702,16 +701,16 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add("Prefix : <input type=\"text\" name=\"wsn_pre\" value=\"");
-  ipaddr_add_u8(&nvm_data.wsn_net_prefix);
+  ipaddr_add_u8(nvm_data.wsn_net_prefix);
   add("\" /><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add("Default router : <input type=\"text\" name=\"eth_dft\" value=\"");
-  ipaddr_add_u8(&nvm_data.eth_dft_router);
+  ipaddr_add_u8(nvm_data.eth_dft_router);
   add("\" /><br />");
 #else
   add("Prefix : <input type=\"text\" name=\"wsn_pre\" value=\"");
-  ipaddr_add_u8(&nvm_data.wsn_net_prefix);
+  ipaddr_add_u8(nvm_data.wsn_net_prefix);
   add("\" /><br />");
 #endif
   SEND_STRING(&s->sout, buf);
@@ -724,7 +723,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<input type=\"radio\" name=\"wsn_auto\" value=\"0\" %s>manual ",
       (nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) == 0 ? "checked" : "");
   add("<input type=\"text\" name=\"wsn_addr\" value=\"");
-  ipaddr_add_u8(&nvm_data.wsn_ip_addr);
+  ipaddr_add_u8(nvm_data.wsn_ip_addr);
   add("\" /><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -733,7 +732,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<br /><h2>Eth Network</h2>");
   add("<h3>IP configuration</h3>");
   add("Prefix : <input type=\"text\" name=\"eth_pre\" value=\"");
-  ipaddr_add_u8(&nvm_data.eth_net_prefix);
+  ipaddr_add_u8(nvm_data.eth_net_prefix);
   add("\" /><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -746,12 +745,12 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add("<input type=\"radio\" name=\"eth_auto\" value=\"0\" %s>manual ",
       (nvm_data.mode & CETIC_MODE_ETH_AUTOCONF) == 0 ? "checked" : "");
   add("<input type=\"text\" name=\"eth_addr\" value=\"");
-  ipaddr_add_u8(&nvm_data.eth_ip_addr);
+  ipaddr_add_u8(nvm_data.eth_ip_addr);
   add("\" /><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   add("Peer router : <input type=\"text\" name=\"eth_dft\" value=\"");
-  ipaddr_add_u8(&nvm_data.eth_dft_router);
+  ipaddr_add_u8(nvm_data.eth_dft_router);
   add("\" /><br />");
   SEND_STRING(&s->sout, buf);
   reset_buf();

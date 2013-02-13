@@ -370,8 +370,9 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   uint8_t i;
 
   //Check if we need to do anything:
-  if((lowpan->addr[3] == CETIC_6LBR_ETH_EXT_A) && (lowpan->addr[4] == CETIC_6LBR_ETH_EXT_B)) {
-	/** Nope: just copy over 6 bytes **/
+  if((lowpan->addr[3] == CETIC_6LBR_ETH_EXT_A)
+     && (lowpan->addr[4] == CETIC_6LBR_ETH_EXT_B)) {
+        /** Nope: just copy over 6 bytes **/
     PRINTF("Low2Eth direct : ");
     PRINTLLADDR(lowpan);
     PRINTF("\n");
@@ -390,7 +391,7 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 
 
   } else {
-	/** Yes: need to store prefix **/
+        /** Yes: need to store prefix **/
     PRINTF("Low2Eth translate : ");
     PRINTLLADDR(lowpan);
     PRINTF("\n");
