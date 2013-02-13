@@ -5,7 +5,7 @@ OS=`uname`
 
 if [ "$OS" = "Linux" ]; then
 	ifconfig $DEV down
-	netstat -nr | awk '{ if (\$2 == "'$DEV'") print "route delete -net "\$1; }' | sh
+	netstat -nr | awk '{ if ($2 == "'$DEV'") print "route delete -net "$1; }' | sh
 elif [ "$OS" = "Darwin" ]; then
 	#No action
 	:
