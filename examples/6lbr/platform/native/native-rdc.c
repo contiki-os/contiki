@@ -131,7 +131,7 @@ send_packet(mac_callback_t sent, void *ptr)
       PRINTF("br-rdc: send failed, too large header\n");
       mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
     } else {
-    	PRINTF("SLIP: Sending %d\n", size);
+      PRINTF("SLIP: Sending %d\n", packetbuf_totlen());
       sid = setup_callback(sent, ptr);
 
       buf[0] = '!';
