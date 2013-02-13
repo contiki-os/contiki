@@ -129,9 +129,10 @@ typedef enum {
   FORBIDDEN_4_03 = 131,                 /* FORBIDDEN */
   NOT_FOUND_4_04 = 132,                 /* NOT_FOUND */
   METHOD_NOT_ALLOWED_4_05 = 133,        /* METHOD_NOT_ALLOWED */
+  NOT_ACCEPTABLE_4_06 = 134,            /* NOT_ACCEPTABLE */
   PRECONDITION_FAILED_4_12 = 140,       /* BAD_REQUEST */
   REQUEST_ENTITY_TOO_LARGE_4_13 = 141,  /* REQUEST_ENTITY_TOO_LARGE */
-  UNSUPPORTED_MADIA_TYPE_4_15 = 143,    /* UNSUPPORTED_MADIA_TYPE */
+  UNSUPPORTED_MEDIA_TYPE_4_15 = 143,    /* UNSUPPORTED_MEDIA_TYPE */
 
   INTERNAL_SERVER_ERROR_5_00 = 160,     /* INTERNAL_SERVER_ERROR */
   NOT_IMPLEMENTED_5_01 = 161,           /* NOT_IMPLEMENTED */
@@ -315,7 +316,7 @@ int coap_set_header_block2(void *packet, uint32_t num, uint8_t more, uint16_t si
 int coap_get_header_block1(void *packet, uint32_t *num, uint8_t *more, uint16_t *size, uint32_t *offset);
 int coap_set_header_block1(void *packet, uint32_t num, uint8_t more, uint16_t size);
 
-int coap_get_payload(void *packet, uint8_t **payload);
+int coap_get_payload(void *packet, const uint8_t **payload);
 int coap_set_payload(void *packet, const void *payload, size_t length);
 
 #endif /* COAP_07_H_ */
