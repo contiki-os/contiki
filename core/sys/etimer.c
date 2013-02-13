@@ -155,17 +155,17 @@ add_timer(struct etimer *timer)
   etimer_request_poll();
 
   if(timer->p != PROCESS_NONE) {
-    /* Timer not on list. */
-    
     for(t = timerlist; t != NULL; t = t->next) {
       if(t == timer) {
 	/* Timer already on list, bail out. */
+         timer->p = PROCESS_CURRENT();
 	update_time();
 	return;
       }
     }
   }
 
+  /* Timer not on list. */
   timer->p = PROCESS_CURRENT();
   timer->next = timerlist;
   timerlist = timer;
