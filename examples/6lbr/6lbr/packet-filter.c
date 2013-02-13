@@ -30,7 +30,7 @@ static inputfunc_t tcpip_inputfunc;
 #define UIP_ND6_NS_BUF            ((uip_nd6_ns *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 #define UIP_ND6_NA_BUF            ((uip_nd6_na *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 
-#define IS_EUI48_ADDR(a) ((a) != NULL && (a)->addr[3] == 0xFF && (a)->addr[4] == 0xFE)
+#define IS_EUI48_ADDR(a) ((a) != NULL && (a)->addr[3] == CETIC_6LBR_ETH_EXT_A && (a)->addr[4] ==CETIC_6LBR_ETH_EXT_B )
 #define IS_BROADCAST_ADDR(a) ((a)==NULL || rimeaddr_cmp((rimeaddr_t *)(a), &rimeaddr_null) != 0)
 
 /*---------------------------------------------------------------------------*/

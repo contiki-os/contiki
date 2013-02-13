@@ -32,6 +32,6 @@ extern uip_ipaddr_t eth_net_prefix;
 extern uip_ipaddr_t eth_dft_router;
 
 // Misc
-unsigned long cetic_bridge_startup;
+extern unsigned long cetic_bridge_startup;
 
 #endif

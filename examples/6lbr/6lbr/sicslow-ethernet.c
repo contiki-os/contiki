@@ -336,8 +336,8 @@ mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
     lowpan->addr[0] = ethernet[0];
     lowpan->addr[1] = ethernet[1];
     lowpan->addr[2] = ethernet[2];
-    lowpan->addr[3] = 0xff;
-    lowpan->addr[4] = 0xfe;
+    lowpan->addr[3] = CETIC_6LBR_ETH_EXT_A;
+    lowpan->addr[4] = CETIC_6LBR_ETH_EXT_B;
   }
 
   lowpan->addr[5] = ethernet[3];
@@ -370,12 +370,8 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   uint8_t i;
 
   //Check if we need to do anything:
-  if((lowpan->addr[3] == 0xff) && (lowpan->addr[4] == 0xfe)) {
-    //((lowpan->addr[0] & TRANSLATE_BIT_MASK) == 0) &&
-    //((lowpan->addr[0] & MULTICAST_BIT_MASK) == 0) &&
-    //(lowpan->addr[0] & LOCAL_BIT_MASK)) {
-            /** Nope: just copy over 6 bytes **/
-
+  if((lowpan->addr[3] == CETIC_6LBR_ETH_EXT_A) && (lowpan->addr[4] == CETIC_6LBR_ETH_EXT_B)) {
+	/** Nope: just copy over 6 bytes **/
     PRINTF("Low2Eth direct : ");
     PRINTLLADDR(lowpan);
     PRINTF("\n");
@@ -394,11 +390,11 @@ mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 
 
   } else {
+	/** Yes: need to store prefix **/
     PRINTF("Low2Eth translate : ");
     PRINTLLADDR(lowpan);
     PRINTF("\n");
 
-    /** Yes: need to store prefix **/
     for(i = 0; i < prefixCounter; i++) {
       //Check the current prefix - if it fails, check next one
       if((lowpan->addr[0] == prefixBuffer[i][0]) &&

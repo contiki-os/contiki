@@ -46,6 +46,9 @@ uip_ipaddr_t eth_net_prefix;
 uip_ipaddr_t eth_ip_local_addr;
 uip_ipaddr_t eth_dft_router;
 
+//Misc
+unsigned long cetic_bridge_startup;
+
 #define DEBUG 1                 //DEBUG_NONE
 #if DEBUG
 #include <stdio.h>
@@ -178,8 +181,8 @@ cetic_bridge_init(void)
   eth_mac64_addr.addr[0] = eth_mac_addr[0];
   eth_mac64_addr.addr[1] = eth_mac_addr[1];
   eth_mac64_addr.addr[2] = eth_mac_addr[2];
-  eth_mac64_addr.addr[3] = 0xFF;
-  eth_mac64_addr.addr[4] = 0xFE;
+  eth_mac64_addr.addr[3] = CETIC_6LBR_ETH_EXT_A;
+  eth_mac64_addr.addr[4] = CETIC_6LBR_ETH_EXT_B;
   eth_mac64_addr.addr[5] = eth_mac_addr[3];
   eth_mac64_addr.addr[6] = eth_mac_addr[4];
   eth_mac64_addr.addr[7] = eth_mac_addr[5];
