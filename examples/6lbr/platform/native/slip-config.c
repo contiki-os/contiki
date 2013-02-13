@@ -61,6 +61,8 @@ uint16_t slip_config_basedelay = 0;
 char const *default_nvm_file = "nvm.dat";
 uint8_t use_raw_ethernet = 1;
 uint8_t ethernet_has_fcs = 0;
+const char *slip_config_ifup_script = NULL;
+const char *slip_config_ifdown_script = NULL;
 
 #ifndef BAUDRATE
 #define BAUDRATE B115200
@@ -78,7 +80,7 @@ slip_config_handle_arguments(int argc, char **argv)
   slip_config_verbose = 0;
 
   prog = argv[0];
-  while((c = getopt(argc, argv, "c:B:H:D:Lhs:t:v::d::a:p:rRf")) != -1) {
+  while((c = getopt(argc, argv, "c:B:H:D:Lhs:t:v::d::a:p:rRfU:D:")) != -1) {
     switch (c) {
     case 'c':
       nvm_file = optarg;
@@ -138,6 +140,14 @@ slip_config_handle_arguments(int argc, char **argv)
       ethernet_has_fcs = 1;
       break;
 
+    case 'U':
+      slip_config_ifup_script = optarg;
+      break;
+
+    case 'D':
+      slip_config_ifdown_script = optarg;
+      break;
+
     case 'v':
       slip_config_verbose = 2;
       if(optarg)
@@ -148,7 +158,7 @@ slip_config_handle_arguments(int argc, char **argv)
     case 'h':
     default:
       fprintf(stderr, "usage:  %s [options] ipaddress\n", prog);
-      fprintf(stderr, "example: border-router.native -L -v2 -s ttyUSB1\n");
+      fprintf(stderr, "example: %s -L -v2 -s ttyUSB1\n", prog);
       fprintf(stderr, "Options are:\n");
 #ifdef linux
       fprintf(stderr,
@@ -167,7 +177,7 @@ slip_config_handle_arguments(int argc, char **argv)
               " -a host        Connect via TCP to server at <host>\n");
       fprintf(stderr,
               " -p port        Connect via TCP to server at <host>:<port>\n");
-      fprintf(stderr, " -t tundev      Name of interface (default eth0)\n");
+      fprintf(stderr, " -t dev         Name of interface (default eth0)\n");
       fprintf(stderr, " -r	        Use Raw Ethernet interface\n");
       fprintf(stderr, " -R             Use Tap Ethernet interface\n");
       fprintf(stderr, " -f             Raw Ethernet frames contains FCS\n");
@@ -189,6 +199,9 @@ slip_config_handle_arguments(int argc, char **argv)
               "                Actual delay is basedelay*(#6LowPAN fragments) milliseconds.\n");
       fprintf(stderr, "                -d is equivalent to -d10.\n");
       fprintf(stderr, " -c conf        Configuration file (nvm file)\n");
+      fprintf(stderr, " -U script      Interface up configuration script\n");
+      fprintf(stderr,
+              " -D script      Interface down configuration script\n");
       exit(1);
       break;
     }
@@ -198,7 +211,7 @@ slip_config_handle_arguments(int argc, char **argv)
 
   if(argc > 1) {
     err(1,
-        "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport]",
+        "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t dev] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] [-c conf] [-U ifup] [-D ifdown]",
         prog);
   }
 

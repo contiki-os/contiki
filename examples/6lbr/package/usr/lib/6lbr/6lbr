@@ -31,11 +31,25 @@ if [ "$BAUDRATE" != "" ]; then
 	BAUDRATE="-B $BAUDRATE"
 fi
 
-PARAMS="-c $NVM -s $DEV_RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $EXTRA_PARAMS $*"
-
 if [ "$LIB_6LBR" == "" ]; then
 	LIB_6LBR=`dirname $0`/../lib/6lbr
 fi
+
+if [ "$IFUP" == "" ]; then
+	IFUP=$LIB_6LBR/6lbr-ifup
+fi
+
+IFUP="-U $IFUP"
+
+if [ "$IFDOWN" == "" ]; then
+	IFDOWN=$LIB_6LBR/6lbr-ifdown
+fi
+
+IFDOWN="-D $IFDOWN"
+
+PARAMS="-c $NVM -s $DEV_RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN $EXTRA_PARAMS $*"
+
+echo $PARAMS
 
 while ((1)); do
 	if [ "$MODE" = 'ROUTER' ]; then

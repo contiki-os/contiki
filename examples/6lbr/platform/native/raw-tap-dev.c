@@ -115,7 +115,6 @@ ssystem(const char *fmt, ...)
   va_start(ap, fmt);
   vsnprintf(cmd, sizeof(cmd), fmt, ap);
   va_end(ap);
-  printf("%s\n", cmd);
   fflush(stdout);
   return system(cmd);
 }
@@ -124,13 +123,14 @@ ssystem(const char *fmt, ...)
 void
 cleanup(void)
 {
-  //ssystem("ifconfig %s down", slip_config_tundev);
-#ifndef linux
-  ssystem("sysctl -w net.ipv6.conf.all.forwarding=1");
-#endif
-  ssystem("netstat -nr"
-          " | awk '{ if ($2 == \"%s\") print \"route delete -net \"$1; }'"
-          " | sh", slip_config_tundev);
+  if(slip_config_ifdown_script != NULL) {
+    if(access(slip_config_ifdown_script, R_OK | X_OK) == 0) {
+      ssystem("%s %s", slip_config_ifdown_script, slip_config_tundev);
+    } else {
+      fprintf(stderr, "Could not access %s : %s\n", slip_config_ifdown_script,
+              strerror(errno));
+    }
+  }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -145,16 +145,14 @@ sigcleanup(int signo)
 void
 ifconf(const char *tundev)
 {
-#if defined(__APPLE__)
-  ssystem
-    ("ifconfig %s link 02:a:b:c:d:e; ip6 -d %s; ip6 -u %s; ifconfig %s inet6 up ",
-     tundev, tundev, tundev, tundev);
-#else
-  ssystem("ifconfig %s up", tundev);
-#endif
-
-  /* Print the configuration to the console. */
-  ssystem("ifconfig %s\n", tundev);
+  if(slip_config_ifup_script != NULL) {
+    if(access(slip_config_ifup_script, R_OK | X_OK) == 0) {
+      ssystem("%s %s", slip_config_ifup_script, slip_config_tundev);
+    } else {
+      fprintf(stderr, "Could not access %s : %s\n", slip_config_ifup_script,
+              strerror(errno));
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
 int

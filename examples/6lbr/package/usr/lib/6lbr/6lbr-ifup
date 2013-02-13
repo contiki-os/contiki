@@ -1,0 +1,20 @@
+#!/bin/sh
+
+DEV=$1
+OS=`uname`
+
+if [ "$OS" = "Linux" ]; then
+	ifconfig $DEV up
+elif [ "$OS" = "Darwin" ]; then
+	#Sometimes the generated mac address has the translate bit set to 1
+	#this conflict with packet filter and sicslow-ethernet
+	ifconfig $DEV link 02:a:b:c:d:e
+	#IPv6 stack is not always correctly started on tap device
+	ip6 -d $DEV
+	ip6 -u $DEV
+	ifconfig $DEV inet6 up
+else
+	echo Unknown OS
+fi
+
+ifconfig $DEV

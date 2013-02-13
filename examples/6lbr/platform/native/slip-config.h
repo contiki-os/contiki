@@ -16,5 +16,7 @@ extern char const *default_nvm_file;
 extern uint8_t use_raw_ethernet;
 extern uint8_t ethernet_has_fcs;
 extern speed_t slip_config_b_rate;
+extern char const *slip_config_ifup_script;
+extern char const *slip_config_ifdown_script;
 
 #endif
