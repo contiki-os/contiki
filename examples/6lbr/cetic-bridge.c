@@ -224,6 +224,8 @@ PROCESS_THREAD(cetic_bridge_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  cetic_bridge_startup = clock_seconds();
+
 #if CONTIKI_TARGET_NATIVE
   slip_config_handle_arguments(contiki_argc, contiki_argv);
 #endif

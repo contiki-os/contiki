@@ -200,7 +200,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add_div_home();
   add("<div id=\"left_home\">");
   add("<h2>Info</h2>");
-  add("Version : " CONTIKI_VERSION_STRING "<br />");
+  add("Version : " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")<br />");
   add("Mode : ");
 #if CETIC_6LBR_SMARTBRIDGE
   add("SMART BRIGDE");
@@ -212,7 +212,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("ROUTER");
 #endif
   add("<br />\n");
-  i = clock_time() / CLOCK_SECOND;
+  i = clock_seconds() - cetic_bridge_startup;
   add("Uptime : %dh %dm %ds<br />", i / 3600, (i / 60) % 60, i % 60);
   SEND_STRING(&s->sout, buf);
   reset_buf();
