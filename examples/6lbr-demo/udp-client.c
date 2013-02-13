@@ -35,11 +35,11 @@
 
 #include <string.h>
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_FULL
 #include "net/uip-debug.h"
 
-#define SEND_INTERVAL		15 * CLOCK_SECOND
-#define MAX_PAYLOAD_LEN		40
+#define SEND_INTERVAL    15 * CLOCK_SECOND
+#define MAX_PAYLOAD_LEN    40
 
 static struct uip_udp_conn *client_conn = NULL;
 extern uip_ds6_prefix_t uip_ds6_prefix_list[];
@@ -109,47 +109,43 @@ timeout_handler(void)
   char buf[MAX_PAYLOAD_LEN];
   int i;
   rpl_dag_t *dag = rpl_get_any_dag();
-  uip_ip6addr_t prefix;
-  uip_ip6addr_t lladdr;
+  uip_ipaddr_t *globaladdr = NULL;
+  uip_ipaddr_t newdest_addr;
+
+  if((globaladdr = &uip_ds6_get_global(-1)->ipaddr) != NULL) {
+    uip_ipaddr_copy(&newdest_addr, globaladdr);
+    memcpy(&newdest_addr.u8[8], &dag->dag_id.u8[8], sizeof(uip_ipaddr_t) / 2);
+  }
 
   if (client_conn == NULL) {
-	  if (dag != NULL) {
-		  /* new connection with remote host */
-      
+    if (dag != NULL) {
+      /* new connection with remote host */
       /* Determine the correct IP to send packets */
       if(dag->prefix_info.length == 0) { //No prefix announced : link-local address used
         PRINTF("UDP-CLIENT : no prefix announced yet, DODAGID used as destination\n");
         client_conn = udp_new(&dag->dag_id, UIP_HTONS(3000), NULL);
-      } else { // At least one prefix announced : building of the global address to reach using prefixes
-        prefix = dag->prefix_info.prefix;
-        lladdr = dag->dag_id;
-        uip_ip6addr_u8(dest_addr, prefix.u8[0],prefix.u8[1], prefix.u8[2], prefix.u8[3], 
-                prefix.u8[4],prefix.u8[5], prefix.u8[6], prefix.u8[7],
-                lladdr.u8[8], lladdr.u8[9], lladdr.u8[10], lladdr.u8[11],
-                lladdr.u8[12], lladdr.u8[13], lladdr.u8[14], lladdr.u8[15]);
-        PRINTF("UDP-CLIENT: address destination : ");
-        uip_debug_ipaddr_print(dest_addr);
+      } else {
+        /* At least one prefix announced : building of the global address to reach using prefixes */
+        memcpy(dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
+        PRINTF("UDP-CLIENT: address destination: ");
+        PRINT6ADDR(dest_addr);
         PRINTF("\n");
         client_conn = udp_new(dest_addr, UIP_HTONS(3000), NULL);
       }
-		  udp_bind(client_conn, UIP_HTONS(3001));
-
-		  PRINTF("Created a connection with the server ");
-		  PRINT6ADDR(&client_conn->ripaddr);
-		  PRINTF(" local/remote port %u/%u\n",
-			UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
-		  print_local_addresses();
-	  } else {
-		  PRINTF("No dag configured yet\n");
-	  }
-  } else { //TODO tests to see if new prefix added
-    if(client_conn->ripaddr.u16[0] == 0x80fe) {
-      PRINTF("UDP-CLIENT : DODAGID used as dest\n");
-      //TODO check new prefixes
+      udp_bind(client_conn, UIP_HTONS(3001));
+      PRINTF("Created a connection with the server ");
+      PRINT6ADDR(&client_conn->ripaddr);
+      PRINTF(" local/remote port %u/%u\n",
+      UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
+      print_local_addresses();
+    } else {
+      PRINTF("No dag configured yet\n");
+    }
+  } else {
+    if(memcmp(&client_conn->ripaddr, &newdest_addr, sizeof(uip_ipaddr_t)) != 0) {
       if(dag->prefix_info.length != 0) {
         PRINTF("UPD-CLIENT : new prefix announced, connection changed\n");
-        uip_ipaddr_cmp(dest_addr, &dag->prefix_info.prefix);
-        uip_ipaddr_prefixcmp(dest_addr, &dag->dag_id, 64);
+        memcpy(dest_addr, &newdest_addr, sizeof(uip_ipaddr_t));
         client_conn = udp_new(dest_addr, UIP_HTONS(3000), NULL);
         udp_bind(client_conn, UIP_HTONS(3001));
         PRINTF("Created a connection with the server ");
@@ -159,16 +155,16 @@ timeout_handler(void)
         print_local_addresses();
       }
     }
-	  PRINTF("Client sending to: ");
-	  PRINT6ADDR(&client_conn->ripaddr);
-	  i = sprintf(buf, "%d | ", ++seq_id);
-	  add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
-	  PRINTF(" (msg: %s)\n", buf);
-	  #if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
-	  uip_udp_packet_send(client_conn, buf, UIP_APPDATA_SIZE);
-	  #else /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
-	  uip_udp_packet_send(client_conn, buf, strlen(buf));
-	  #endif /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
+    PRINTF("Client sending to: ");
+    PRINT6ADDR(&client_conn->ripaddr);
+    i = sprintf(buf, "%d | ", ++seq_id);
+    add_ipaddr(buf + i, &dag->instance->def_route->ipaddr);
+    PRINTF(" (msg: %s)\n", buf);
+    #if SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION
+    uip_udp_packet_send(client_conn, buf, UIP_APPDATA_SIZE);
+    #else /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
+    uip_udp_packet_send(client_conn, buf, strlen(buf));
+    #endif /* SEND_TOO_LARGE_PACKET_TO_TEST_FRAGMENTATION */
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -178,8 +174,8 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
   PROCESS_BEGIN();
   PRINTF("UDP client process started\n");
-  dest_addr = malloc(sizeof(uip_ip6addr_t));
-  memset(dest_addr, 0, sizeof(uip_ip6addr_t));
+  dest_addr = malloc(sizeof(uip_ipaddr_t));
+  memset(dest_addr, 0, sizeof(uip_ipaddr_t));
   etimer_set(&et, SEND_INTERVAL);
   while(1) {
     PROCESS_YIELD();
