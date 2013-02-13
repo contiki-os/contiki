@@ -1,5 +1,20 @@
 CONTIKI_PROJECT = cetic-bridge
 
+# Default mode selection
+
+CETIC_6LBR_SMARTBRIDGE=0
+CETIC_6LBR_TRANSPARENTBRIDGE=0
+CETIC_6LBR_ROUTER=0
+
+WITH_WEBSERVER=1
+WITH_WEBSERVER_LITE=0
+
+ECONOTAG_NODE_INFO=0
+ECONOTAG_UDPSERVER=0
+ECONOTAG_WEBSERVER_LITE=1
+
+# End of user configurable section
+
 all: $(CONTIKI_PROJECT)
 
 UIP_CONF_IPV6=1
@@ -9,20 +24,8 @@ CONTIKI = ../..
 PROJECTDIRS += 6lbr platform/econotag platform/native apps/webserver apps/udp-server apps/node-info
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-ifeq ($(TARGET),redbee-econotag)
-LDFLAGS += -Wl,--gc-sections
-endif
-
-CETIC_6LBR_SMARTBRIDGE=0
-CETIC_6LBR_TRANSPARENTBRIDGE=0
-CETIC_6LBR_ROUTER=0
-
-#TODO: add check on flags
 
 CFLAGS +=-DCETIC_6LBR_SMARTBRIDGE=$(CETIC_6LBR_SMARTBRIDGE) -DCETIC_6LBR_TRANSPARENTBRIDGE=$(CETIC_6LBR_TRANSPARENTBRIDGE) -DCETIC_6LBR_ROUTER=$(CETIC_6LBR_ROUTER)
-
-WITH_WEBSERVER=1
-WITH_WEBSERVER_LITE=0
 
 ifneq ($(WITH_WEBSERVER_LITE),0)
 WITH_WEBSERVER=0
@@ -44,8 +47,8 @@ CFLAGS += -DUDPSERVER=1
 PROJECT_SOURCEFILES += udp-server.c 
 endif
 
-CETIC_NODE_INFO=1
-ifneq ($(CETIC_NODE_INFO),0)
+WITH_NODE_INFO=1
+ifneq ($(WITH_NODE_INFO),0)
 CFLAGS += -DCETIC_NODE_INFO=1
 PROJECT_SOURCEFILES += node-info.c 
 endif
@@ -60,17 +63,31 @@ PROJECT_SOURCEFILES += econotag-init.c econotag-nvm.c enc28j60.c enc28j60-drv.c
 endif
 endif
 
+NATIVE_CONF=WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) WITH_NODE_INFO=$(WITH_NODE_INFO)
+ECONOTAG_CONF=WITH_WEBSERVER=0 WITH_WEBSERVER_LITE=$(ECONOTAG_WEBSERVER_LITE) WITH_UDPSERVER=$(ECONOTAG_UDPSERVER) WITH_NODE_INFO=$(ECONOTAG_NODE_INFO)
 all_native:
 	mkdir -p bin
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) CETIC_NODE_INFO=$(CETIC_NODE_INFO)
+	$(MAKE) TARGET=native CETIC_6LBR_SMARTBRIDGE=1 $(NATIVE_CONF)
 	mv cetic-bridge.native bin/cetic_6lbr_smart_bridge 
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) CETIC_NODE_INFO=$(CETIC_NODE_INFO)
+	$(MAKE) TARGET=native CETIC_6LBR_TRANSPARENTBRIDGE=1 $(NATIVE_CONF)
 	mv cetic-bridge.native bin/cetic_6lbr_transparent_bridge 
 	$(MAKE) TARGET=native clean
-	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 WITH_WEBSERVER=$(WITH_WEBSERVER) WITH_UDPSERVER=$(WITH_UDPSERVER) CETIC_NODE_INFO=$(CETIC_NODE_INFO)
+	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(NATIVE_CONF)
 	mv cetic-bridge.native bin/cetic_6lbr_router 
+
+all_econotag:
+	mkdir -p bin_econotag
+	$(MAKE) TARGET=econotag clean
+	$(MAKE) TARGET=econotag CETIC_6LBR_SMARTBRIDGE=1 $(ECONOTAG_CONF)
+	mv cetic-bridge_econotag.bin bin_econotag/cetic_6lbr_smart_bridge 
+	$(MAKE) TARGET=econotag clean
+	$(MAKE) TARGET=econotag CETIC_6LBR_TRANSPARENTBRIDGE=1 $(ECONOTAG_CONF)
+	mv cetic-bridge_econotag.bin bin_econotag/cetic_6lbr_transparent_bridge 
+	$(MAKE) TARGET=econotag clean
+	$(MAKE) TARGET=econotag CETIC_6LBR_ROUTER=1 $(ECONOTAG_CONF)
+	mv cetic-bridge_econotag.bin bin_econotag/cetic_6lbr_router 
 
 VERSION=$(word 2,$(shell awk '/Version:/' package/DEBIAN/control))
 PKG=6lbr-$(VERSION)

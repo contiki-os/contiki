@@ -14,7 +14,7 @@
 #include "rio.h"
 #include "node-info.h"
 
-#if CONTIKI_TARGET_REDBEE_ECONOTAG
+#if CONTIKI_TARGET_ECONOTAG
 #include "mc1322x.h"
 #include "contiki-maca.h"
 #endif
@@ -130,7 +130,7 @@ ethaddr_add(ethaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 
-#if CONTIKI_TARGET_REDBEE_ECONOTAG
+#if CONTIKI_TARGET_ECONOTAG
 extern void _start;
 //Code
 extern void _etext;
@@ -221,7 +221,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 	SEND_STRING(&s->sout, buf);
 	reset_buf();
 
-#if CONTIKI_TARGET_REDBEE_ECONOTAG
+#if CONTIKI_TARGET_ECONOTAG
 	add("<br /><h2>Memory</h2>");
 
 	add("Global : %d (%d %%)<br /><br />", &_end - &_start, (100 * (&_end - &_start)) / (96*1024) );
@@ -384,7 +384,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
 	add("<h2>WSN Network</h2>");
 	add("<h3>WSN configuration</h3>");
 	add("Channel : %d<br />", nvm_data.channel);
-#if CONTIKI_TARGET_REDBEE_ECONOTAG
+#if CONTIKI_TARGET_ECONOTAG
 	add("PanID : 0x%x<br />", *MACA_MACPANID);
 #endif
 	add("<br />");
