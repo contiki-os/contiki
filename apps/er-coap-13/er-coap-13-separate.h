@@ -26,63 +26,41 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *
+ * This file is part of the Contiki operating system.
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+/**
+ * \file
+ *      CoAP module for separate responses
+ * \author
+ *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ */
 
-/* Some platforms have weird includes. */
-#undef IEEE802154_CONF_PANID
+#ifndef COAP_SEPARATE_H_
+#define COAP_SEPARATE_H_
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
+#include "er-coap-13.h"
 
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE    64
+typedef struct coap_separate {
 
-/* Estimate your header size, especially when using Proxy-Uri. */
-/*
-#undef COAP_MAX_HEADER_SIZE
-#define COAP_MAX_HEADER_SIZE    70
-*/
+  uip_ipaddr_t addr;
+  uint16_t port;
 
-/* The IP buffer size must fit all other hops, in particular the border router. */
-/*
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    1280
-*/
+  coap_message_type_t type;
+  uint16_t mid;
 
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS   4
+  uint8_t token_len;
+  uint8_t token[COAP_TOKEN_LEN];
 
-/* Must be <= open transaction number, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
-/*
-#undef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS      2
-*/
+  /* separate + blockwise is untested! */
+  uint32_t block2_num;
+  uint16_t block2_size;
 
-/* Filtering can be disabled to save space. */
-/*
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING      0
-*/
+} coap_separate_t;
 
-/* Save some memory for the sky platform. */
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     10
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   10
+int coap_separate_handler(resource_t *resource, void *request, void *response);
+void coap_separate_reject();
+int coap_separate_accept(void *request, coap_separate_t *separate_store);
+void coap_separate_resume(void *response, coap_separate_t *separate_store, uint8_t code);
 
-/* Reduce 802.15.4 frame queue to save RAM. */
-#undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM       4
-
-#undef SICSLOWPAN_CONF_FRAG
-#define SICSLOWPAN_CONF_FRAG	1
-
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+#endif /* COAP_SEPARATE_H_ */
