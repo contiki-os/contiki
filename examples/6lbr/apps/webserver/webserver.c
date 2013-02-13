@@ -221,8 +221,8 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add("MAC: %s<br />RDC: %s (%d Hz)<br />",
       NETSTACK_MAC.name,
       NETSTACK_RDC.name,
-      CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1 :
-                      NETSTACK_RDC.channel_check_interval()));
+      (NETSTACK_RDC.channel_check_interval() ==
+       0) ? 0 : CLOCK_SECOND / NETSTACK_RDC.channel_check_interval());
 #if !CETIC_6LBR_TRANSPARENTBRIDGE
   add("Prefix : ");
   ipaddr_add(&cetic_dag->prefix_info.prefix);
