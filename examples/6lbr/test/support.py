@@ -53,6 +53,7 @@ class LocalNativeBR(BRProxy):
         print >>conf, "NVM=%s" % self.nvm_file
         print >>conf, "LIB_6LBR=.."
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
+        print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
         self.log=open(log_file, "w")
         self.process = Popen(args=["../package/usr/bin/6lbr",  "test.conf"], stdout=self.log)
@@ -270,6 +271,7 @@ class MacOSX(Platform):
         return result == 0
 
     def accept_ra(self, itf):
+        system("sysctl -w net.inet6.ip6.forwarding=0")
         system("sysctl -w net.inet6.ip6.accept_rtadv=1")
         return True
 
@@ -328,6 +330,7 @@ class Linux(Platform):
         return result == 0
 
     def accept_ra(self, itf):
+        system("sysctl -w net.ipv6.conf.%s.forwarding=0" % itf)
         system("sysctl -w net.ipv6.conf.%s.accept_ra=1" % itf)
         return True
 
