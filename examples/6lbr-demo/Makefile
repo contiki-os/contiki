@@ -1,4 +1,4 @@
-all: sky-websense
+all: 6lbr-demo
 
 CONTIKI=../..
 
@@ -6,20 +6,33 @@ WITH_UIP6=1
 UIP_CONF_IPV6=1
 CFLAGS+= -DUIP_CONF_IPV6_RPL
 
-PING_SERVER ?= 0
-
-ifeq ($(PING_SERVER),1)
-APPS += ping6
+WITH_SHELL=0
+ifneq ($(WITH_SHELL),0)
+CFLAGS += -DSHELL=1
+APPS += serial-shell
+PROJECT_SOURCEFILES += shell-6lbr.c 
 endif
-CFLAGS += -DPING_SERVER=$(PING_SERVER)
+
+WITH_DELAY_IP=0
+ifneq ($(WITH_DELAY_IP), 0)
+CFLAGS += -DSLIP_RADIO=1
+endif
+
+WITH_UDPCLIENT=1
+ifneq ($(WITH_UDPCLIENT),0)
+CFLAGS += -DUDPCLIENT=1
+PROJECT_SOURCEFILES += udp-client.c 
+endif
+
+WITH_WEBSERVER=1
+ifneq ($(WITH_WEBSERVER),0)
+CFLAGS += -DWEBSERVER=1
+PROJECT_SOURCEFILES += sky-websense.c httpd-simple.c
+endif
 
 CETIC_6LBR_DISABLE_ACK=0
-
 CFLAGS +=-DCETIC_6LBR_DISABLE_ACK=$(CETIC_6LBR_DISABLE_ACK)
 
-APPS += webbrowser
-SMALL=1
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-CONTIKI_SOURCEFILES += udp-client.c wget.c httpd-simple.c
 
 include $(CONTIKI)/Makefile.include

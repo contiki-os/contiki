@@ -45,32 +45,8 @@
 #include "dev/leds.h"
 #include <stdio.h>
 
-#if PING_SERVER
-#include "ping6.h"
-#endif
-
 PROCESS(web_sense_process, "Sense Web Demo");
 PROCESS(webserver_nogui_process, "Web server");
-PROCESS_NAME(udp_client_process);
-PROCESS_THREAD(webserver_nogui_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  httpd_init();
-
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
-    httpd_appcall(data);
-  }
-
-  PROCESS_END();
-}
-
-#if PING_SERVER
-AUTOSTART_PROCESSES(&web_sense_process,&webserver_nogui_process,&udp_client_process,&ping6_process);
-#else
-AUTOSTART_PROCESSES(&web_sense_process,&webserver_nogui_process,&udp_client_process);
-#endif
 
 #define HISTORY 16
 static int temperature[HISTORY];
@@ -182,6 +158,20 @@ PROCESS_THREAD(web_sense_process, ev, data)
     light1[sensors_pos] = get_light();;
     temperature[sensors_pos] = get_temp();
     sensors_pos = (sensors_pos + 1) % HISTORY;
+  }
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(webserver_nogui_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  httpd_init();
+
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
+    httpd_appcall(data);
   }
 
   PROCESS_END();
