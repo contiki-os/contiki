@@ -48,6 +48,8 @@ class LocalNativeBR(BRProxy):
         print >>conf, "DEV_RADIO=%s" % config.radio_dev
         print >>conf, "NVM=%s" % self.nvm_file
         print >>conf, "LIB_6LBR=.."
+        print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
+        print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
         self.log=open(log_file, "w")
         self.process = Popen(args=["../package/usr/bin/6lbr",  "test.conf"], stdout=self.log)
