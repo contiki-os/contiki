@@ -5,6 +5,7 @@ lladdr_mote='0212:7400:146e:f407'
 radio_dev='/dev/tty.usbserial-XBTOKIQP'
 mote_dev='/dev/tty.usbserial-XBTO3BTS'
 mote_baudrate=115200
+channel=24
 
 from support import *
 

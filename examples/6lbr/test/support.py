@@ -2,7 +2,7 @@
 
 import sys
 from os import system
-from subprocess import Popen
+import subprocess
 import signal
 from time import sleep
 import config
@@ -12,17 +12,14 @@ sys.path.append('../../../tools/sky')
 import serial
 
 class BRProxy:
-    mode=None
-    nvm_file=None
     itf=None
     def setUp(self):
         pass
     def tearDown(self):
         pass
 
-    def set_mode(self, mode, nvm_file):
-        self.mode=mode
-        self.nvm_file = nvm_file
+    def set_mode(self, mode, channel, ra_daemon=False, accept_ra=False):
+        pass
 
     def start_6lbr(self, log):
         pass
@@ -41,22 +38,26 @@ class LocalNativeBR(BRProxy):
         if ( self.process ):
             self.stop_6lbr()
 
-    def start_6lbr(self, log_file):
-        print >> sys.stderr, "Starting 6LBR..."
-        #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
+    def set_mode(self, mode, channel, ra_daemon=False, accept_ra=False):
+        self.mode=mode
         conf=open("test.conf", 'w')
-        print >>conf, "MODE=%s" % self.mode
+        print >>conf, "MODE=%s" % mode
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
         print >>conf, "RAW_ETH=0"
         print >>conf, "DEV_RADIO=%s" % config.radio_dev
-        print >>conf, "NVM=%s" % self.nvm_file
+        print >>conf, "NVM=test.dat"
         print >>conf, "LIB_6LBR=.."
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         print >>conf, "IFDOWN=../package/usr/lib/6lbr/6lbr-ifdown"
         conf.close()
-        self.log=open(log_file, "w")
-        self.process = Popen(args=["../package/usr/bin/6lbr",  "test.conf"], stdout=self.log)
+        subprocess.check_output("../tools/nvm_tool --new --channel=%d --wsn-accept-ra=%d --eth-ra-daemon=%d test.dat" % (channel, accept_ra, ra_daemon), shell=True)
+
+    def start_6lbr(self, log_file):
+        print >> sys.stderr, "Starting 6LBR..."
+        #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
+        self.log=open("%s_%s.log" % (log_file, self.mode), "w")
+        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "test.conf"], stdout=self.log)
         sleep(1)
         return self.process != None
 
@@ -75,6 +76,9 @@ class RemoteNativeBR(BRProxy):
     def tearDown(self):
         if ( self.process ):
             self.stop_6lbr()
+
+    def set_mode(self, mode, channel, ra_daemon=False, accept_ra=False):
+        pass
 
     def start_6lbr(self, log):
         print >> sys.stderr, "Starting 6LBR..."
@@ -113,7 +117,7 @@ class TelosMote(MoteProxy):
             port=config.mote_dev,
             baudrate=config.mote_baudrate,
             parity = serial.PARITY_NONE,
-            timeout = 2
+            timeout = 1
         )
         self.serialport.flushInput()
         self.serialport.flushOutput()
@@ -123,46 +127,42 @@ class TelosMote(MoteProxy):
         MoteProxy.tearDown(self)
         self.serialport.close()
 
+    def wait_until(self, text, count):
+        for n in range(count):
+            lines = self.serialport.readlines()
+            #print >> sys.stderr, lines
+            if text in lines:
+                return True
+        return False
+
     def reset_mote(self):
         print >> sys.stderr, "Reseting mote..."
         self.serialport.flushInput()
         self.serialport.flushOutput()
         self.serialport.write("\r\nreboot\r\n")
-        lines = self.serialport.readlines()
-        #print >> sys.stderr, lines
-        if "Starting '6LBR Demo'\n" not in lines:
-            return False
-        return True
+        return self.wait_until("Starting '6LBR Demo'\n", 5)
 
     def start_mote(self):
         print >> sys.stderr, "Starting mote..."
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
         self.serialport.write("\r\nstart6lbr\r\n")
-        lines = self.serialport.readlines()
-        if "done\r\n" not in lines:
-            return False
-        #print >> sys.stderr, lines
-        return True
+        return self.wait_until("done\r\n", 5)
 
     def stop_mote(self):
         print >> sys.stderr, "Stopping mote..."
         self.serialport.flushInput()
         self.serialport.flushOutput()
         self.serialport.write("\r\nreboot\r\n")
-        lines = self.serialport.readlines()
-        #print >> sys.stderr, lines
-        if "Starting '6LBR Demo'\n" not in lines:
-            return False
-        return True
+        return self.wait_until("Starting '6LBR Demo'\n", 5)
 
     def ping(self, address, expect_reply=False, count=0):
         print >> sys.stderr, "Ping %s..." % address
         self.serialport.write("\r\nping %s\r\n" % address)
         if expect_reply:
-            lines = self.serialport.readlines()
-            if "Received an icmp6 echo reply\n" not in lines:
-                return False
-            #print >> sys.stderr, lines
-        return True
+            return self.wait_until("Received an icmp6 echo reply\n", 10)
+        else:
+            return True
 
 class InteractiveMote(MoteProxy):
     mote_started=False
@@ -195,7 +195,7 @@ class Platform:
     def configure_if(self, itf, address):
         pass
 
-    def unconfigure_if(self, itf):
+    def unconfigure_if(self, itf, address):
         pass
 
     def add_route(self, dest, gw=None, itf=None):
@@ -213,6 +213,8 @@ class Platform:
     def check_prefix(self, itf, prefix):
         pass
 
+    def get_address_with_prefix(self, itf, prefix):
+        pass
 #    def check_prefix(self, itf, prefix, count):
 #        for n in range(count):
 #            if (self.check_prefix(itf, prefix)):
@@ -230,13 +232,20 @@ class Platform:
         pass
 
 class MacOSX(Platform):
+    rtadvd=None
+
+    def tearDown(self):
+        if self.rtadvd:
+            self.stop_ra()
+
     def configure_if(self, itf, address):
         result = system("ifconfig %s inet6 %s/64 add" % (itf, address))
         return result == 0
 
-    def unconfigure_if(self, itf):
+    def unconfigure_if(self, itf, address):
         if itf:
             #return system("ifconfig %s down" % itf) == 0
+            system("ifconfig %s inet6 %s/64 delete" % (itf, address))
             system("ifconfig %s down" % itf)
             return True
         else:
@@ -257,11 +266,14 @@ class MacOSX(Platform):
         return result == 0
 
     def start_ra(self, itf):
+        print >> sys.stderr, "Start RA daemon..."
         system("sysctl -w net.inet6.ip6.forwarding=1")
-        self.rtadvd = Popen(args="rtadvd  -f -c rtadvd.%s.conf %s" % (itf, itf), shell=True)
+        system("sysctl -w net.inet6.ip6.accept_rtadv=0")
+        self.rtadvd = subprocess.Popen(args="rtadvd  -f -c rtadvd.%s.conf %s" % (itf, itf), shell=True)
         return self.rtadvd != None
 
     def stop_ra(self):
+        print >> sys.stderr, "Stop RA daemon..."
         self.rtadvd.send_signal(signal.SIGTERM)
         self.rtadvd = None
         return True
@@ -269,6 +281,9 @@ class MacOSX(Platform):
     def check_prefix(self, itf, prefix):
         result = system("ifconfig %s | grep '%s'" % (itf, prefix))
         return result == 0
+
+    def get_address_with_prefix(self, itf, prefix):
+        return subprocess.check_output("ifconfig %s | egrep -o '(%s[:0-9a-f]+)'" % (itf, prefix), shell=True)
 
     def accept_ra(self, itf):
         system("sysctl -w net.inet6.ip6.forwarding=0")
@@ -290,12 +305,16 @@ class MacOSX(Platform):
 
 class Linux(Platform):
     radvd = None
+
+    def tearDown(self):
+        if self.radvd:
+            self.stop_ra()
     
     def configure_if(self, itf, address):
         result = system("ip addr add %s/64 dev %s" % (address, itf))
         return result == 0
 
-    def unconfigure_if(self, itf):
+    def unconfigure_if(self, itf, address):
         if itf:
             return system("ifconfig %s down" % itf) == 0
         else:
@@ -316,11 +335,13 @@ class Linux(Platform):
         return result == 0
 
     def start_ra(self, itf):
+        print >> sys.stderr, "Start RA daemon..."
         system("sysctl -w net.ipv6.conf.%s.forwarding=1" % itf)
-        self.radvd = Popen(args="radvd -m stderr -d 5 -n -C radvd.%s.conf" % itf, shell=True)
+        self.radvd = subprocess.Popen(args="radvd -m stderr -d 5 -n -C radvd.%s.conf" % itf, shell=True)
         return self.radvd != None
 
     def stop_ra(self):
+        print >> sys.stderr, "Stop RA daemon..."
         self.radvd.send_signal(signal.SIGTERM)
         self.radvd = None
         return True
@@ -328,6 +349,9 @@ class Linux(Platform):
     def check_prefix(self, itf, prefix):
         result = system("ifconfig %s | grep '%s'" % (itf, prefix))
         return result == 0
+
+    def get_address_with_prefix(self, itf, prefix):
+        return subprocess.check_output("ifconfig %s | egrep -o '(%s[:0-9a-f]+)'" % (itf, prefix), shell=True)
 
     def accept_ra(self, itf):
         system("sysctl -w net.ipv6.conf.%s.forwarding=0" % itf)
