@@ -11,7 +11,7 @@ case $MODE in
 	tap)
 	case $OS in
 		Linux)
-			ifconfig $DEV up
+			ifconfig $DEV hw ether 02:a:b:c:d:e up
 			;;
 		Darwin)
 			#Sometimes the generated mac address has the translate bit set to 1
