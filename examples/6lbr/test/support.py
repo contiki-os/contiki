@@ -207,6 +207,7 @@ class MacOSX(Platform):
         return result == 0
 
     def accept_ra(self, itf):
+        system("sysctl -w net.inet6.ip6.forwarding=0")
         system("sysctl -w net.inet6.ip6.accept_rtadv=1")
         return True
 
@@ -265,6 +266,7 @@ class Linux(Platform):
         return result == 0
 
     def accept_ra(self, itf):
+        system("sysctl -w net.ipv6.conf.%s.forwarding=0" % itf)
         system("sysctl -w net.ipv6.conf.%s.accept_ra=1" % itf)
         return True
 
