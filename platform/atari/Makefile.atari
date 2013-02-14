@@ -35,13 +35,10 @@
 
 ETHERNET = cs8900a
 
-CONTIKI_SOURCEFILES        += cfs-posix-dir.c
-CONTIKI_TARGET_SOURCEFILES += posixdirent.S
-
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
-LDFLAGS += -C $(CONTIKI)/platform/$(TARGET)/$(TARGET).cfg -S 0x2000
+STARTADDR_FLAG = -S 0x2000
 
 ifeq ($(MAKECMDGOALS),disk)
   ifndef DIR2ATR
@@ -51,15 +48,15 @@ endif
 
 disk: all
 	mkdir atr
-	cp $(CONTIKI)/tools/$(TARGET)/dos.sys    atr/dos.sys
-	cp $(CONTIKI)/tools/$(TARGET)/dup.sys    atr/dup.sys
-	cp $(CONTIKI_PROJECT).$(TARGET)          atr/autorun.sys
-	cp $(CONTIKI)/tools/$(TARGET)/sample.cfg atr/contiki.cfg
+	cp $(CONTIKI)/tools/$(TARGET)/dos25/dos.sys atr/dos.sys
+	cp $(CONTIKI)/tools/$(TARGET)/dos25/dup.sys atr/dup.sys
+	cp $(CONTIKI_PROJECT).$(TARGET)             atr/autorun.sys
+	cp $(CONTIKI)/tools/$(TARGET)/sample.cfg    atr/contiki.cfg
 ifeq ($(HTTPD-CFS),1)
-	cp httpd-cfs/index.htm                   atr/index.htm
-	cp httpd-cfs/backgrnd.gif                atr/backgrnd.gif
-	cp httpd-cfs/contiki.gif                 atr/contiki.gif
-	cp httpd-cfs/notfound.htm                atr/notfound.htm
+	cp httpd-cfs/index.htm                      atr/index.htm
+	cp httpd-cfs/backgrnd.gif                   atr/backgrnd.gif
+	cp httpd-cfs/contiki.gif                    atr/contiki.gif
+	cp httpd-cfs/notfound.htm                   atr/notfound.htm
 endif
 	$(DIR2ATR) -b Dos25 1040 contiki.atr atr
 	rm -r atr

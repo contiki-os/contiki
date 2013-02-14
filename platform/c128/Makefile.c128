@@ -33,13 +33,12 @@
 # $Id: Makefile.c128,v 1.15 2010/10/23 13:48:06 oliverschmidt Exp $
 #
 
-CONTIKI_TARGET_SOURCEFILES += cfs-cbm-dir.c pfs.S pfs_write.S
+CONTIKI_TARGET_SOURCEFILES += pfs.S pfs_write.S
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
-CFLAGS  += -DWITH_PETSCII
-LDFLAGS += -t $(TARGET)
+CFLAGS += -DWITH_PETSCII
 
 ifeq ($(MAKECMDGOALS),disk)
   ifndef C1541
