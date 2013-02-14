@@ -7,6 +7,10 @@ import signal
 from time import sleep
 import config
 
+sys.path.append('../../../tools/sky')
+
+import serial
+
 class BRProxy:
     mode=None
     nvm_file=None
@@ -48,6 +52,7 @@ class LocalNativeBR(BRProxy):
         print >>conf, "DEV_RADIO=%s" % config.radio_dev
         print >>conf, "NVM=%s" % self.nvm_file
         print >>conf, "LIB_6LBR=.."
+        print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
         conf.close()
         self.log=open(log_file, "w")
         self.process = Popen(args=["../package/usr/bin/6lbr",  "test.conf"], stdout=self.log)
@@ -86,26 +91,82 @@ class MoteProxy:
         if self.is_mote_started():
             self.stop_mote()
     
-    def start_mote(self, load):
+    def reset_mote(self):
+        pass
+
+    def start_mote(self):
         pass
 
     def stop_mote(self):
+        pass
+
+    def ping(self, address, expect_reply=False, count=0):
         pass
 
     def is_mote_started(self):
         return False
 
 class TelosMote(MoteProxy):
-    def start_mote(self, load):
+    def setUp(self):
+        self.serialport = serial.Serial(
+            port=config.mote_dev,
+            baudrate=config.mote_baudrate,
+            parity = serial.PARITY_NONE,
+            timeout = 2
+        )
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
+        self.reset_mote()
+
+    def tearDown(self):
+        MoteProxy.tearDown(self)
+        self.serialport.close()
+
+    def reset_mote(self):
+        print >> sys.stderr, "Reseting mote..."
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
+        self.serialport.write("\r\nreboot\r\n")
+        lines = self.serialport.readlines()
+        #print >> sys.stderr, lines
+        if "Starting '6LBR Demo'\n" not in lines:
+            return False
+        return True
+
+    def start_mote(self):
+        print >> sys.stderr, "Starting mote..."
+        self.serialport.write("\r\nstart6lbr\r\n")
+        lines = self.serialport.readlines()
+        if "done\r\n" not in lines:
+            return False
+        #print >> sys.stderr, lines
         return True
 
     def stop_mote(self):
+        print >> sys.stderr, "Stopping mote..."
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
+        self.serialport.write("\r\nreboot\r\n")
+        lines = self.serialport.readlines()
+        #print >> sys.stderr, lines
+        if "Starting '6LBR Demo'\n" not in lines:
+            return False
+        return True
+
+    def ping(self, address, expect_reply=False, count=0):
+        print >> sys.stderr, "Ping %s..." % address
+        self.serialport.write("\r\nping %s\r\n" % address)
+        if expect_reply:
+            lines = self.serialport.readlines()
+            if "Received an icmp6 echo reply\n" not in lines:
+                return False
+            #print >> sys.stderr, lines
         return True
 
 class InteractiveMote(MoteProxy):
     mote_started=False
-    def start_mote(self, load):
-        print >> sys.stderr, "*** Press enter when mote is flashed with %s and powered on" % load
+    def start_mote(self,):
+        print >> sys.stderr, "*** Press enter when mote is powered on"
         dummy = raw_input()
         self.mote_started=True
         return True
@@ -115,6 +176,10 @@ class InteractiveMote(MoteProxy):
         dummy = raw_input()
         self.mote_started=False
         return True
+
+    def ping(self, address, expect_reply=False, count=0):
+        print >> sys.stderr, "*** Ping from mote not implemented"
+        return False
 
     def is_mote_started(self):
         return self.mote_started
@@ -278,3 +343,8 @@ class Linux(Platform):
         if result >> 8 == 2:
             sleep(1)
         return result == 0
+
+if __name__ == '__main__':
+    mote=TelosMote()
+    mote.setUp()
+    mote.start_mote()

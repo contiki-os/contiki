@@ -15,6 +15,7 @@ class TestSupport:
     platform=config.platform
     tcpdump=TcpDump()
     ip_6lbr=None
+    ip_host=None
     ip_mote="aaaa::" + config.lladdr_mote
 
     def setUp(self):
@@ -42,8 +43,8 @@ class TestSupport:
     def stop_6lbr(self):
         return self.br.stop_6lbr()
 
-    def start_mote(self, load):
-        return self.mote.start_mote(load)
+    def start_mote(self):
+        return self.mote.start_mote()
 
     def stop_mote(self):
         return self.mote.stop_mote()
@@ -72,9 +73,13 @@ class TestSupport:
     def wait_ping_mote(self, count):
         return self.wait_ping( count, self.ip_mote )
 
+    def wait_ping_from_mote(self, address, expect_reply, count):
+        return self.mote.ping( address, expect_reply, count )
+
 class TestScenarios:
     support=TestSupport()
 
+    @unittest.skip("test")
     def test_S0(self):
         """
         Check 6LBR start-up anbd connectivity
@@ -92,12 +97,12 @@ class TestScenarios:
         mote.
         """
         self.assertTrue(self.support.start_6lbr('test_S1.log'), "Could not start 6LBR")
-        self.assertTrue(self.support.set_up_network(), "Could not set up network")
-        self.assertTrue(self.support.start_mote('default'), "Could not start up mote")
+        self.set_up_network()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
-        self.assertTrue(self.support.tear_down_network(), "Could not tear down network")
+        self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
     @unittest.skip("test")
@@ -107,12 +112,12 @@ class TestScenarios:
         the mote.
         """
         self.assertTrue(self.support.start_6lbr('test_S2.log'), "Could not start 6LBR")
-        self.assertTrue(self.support.start_mote('default'), "Could not start up mote")
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
-        self.assertTrue(self.support.set_up_network(), "Could not set up network")
+        self.set_up_network()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
-        self.assertTrue(self.support.tear_down_network(), "Could not tear down network")
+        self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
     @unittest.skip("test")
@@ -121,13 +126,13 @@ class TestScenarios:
         Ping from the computer to the mote when everyone is known but the mote has been disconnected.
         """
         self.assertTrue(self.support.start_6lbr('test_S3.log'), "Could not start 6LBR")
-        self.assertTrue(self.support.start_mote('default'), "Could not start up mote")
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
-        self.assertTrue(self.support.set_up_network(), "Could not set up network")
+        self.set_up_network()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.assertFalse(self.support.wait_ping_mote(10), "Mote is still responding")
-        self.assertTrue(self.support.tear_down_network(), "Could not tear down network")
+        self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
     @unittest.skip("test")
@@ -137,17 +142,17 @@ class TestScenarios:
         to the RPL DODAG.
         """
         self.assertTrue(self.support.start_6lbr('test_S4_a.log'), "Could not start 6LBR")
-        self.assertTrue(self.support.start_mote('default'), "Could not start up mote")
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
-        self.assertTrue(self.support.set_up_network(), "Could not set up network")
+        self.set_up_network()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
-        self.assertTrue(self.support.tear_down_network(), "Could not tear down network")
+        self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
         self.assertTrue(self.support.start_6lbr('test_S4_b.log'), "Could not start 6LBR")
-        self.assertTrue(self.support.set_up_network(), "Could not set up network")
+        self.set_up_network()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
-        self.assertTrue(self.support.tear_down_network(), "Could not tear down network")
+        self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
     @unittest.skip("test")
@@ -187,6 +192,23 @@ class TestScenarios:
         """
         pass
 
+    #@unittest.skip("test")
+    def test_S11(self):
+        """
+        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
+        mote.
+        """
+        self.assertTrue(self.support.start_6lbr('test_S1.log'), "Could not start 6LBR")
+        self.set_up_network()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        self.assertTrue(self.support.wait_ping_from_mote(self.support.ip_host, True, 60), "Host is not responding")
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        self.tear_down_network()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
+
+
 @unittest.skip("test")
 class SmartBridgeManual(unittest.TestCase,TestScenarios):
     def setUp(self):
@@ -224,7 +246,7 @@ class SmartBridgeAuto(unittest.TestCase,TestScenarios):
     def tear_down_network(self):
         self.assertTrue( self.support.stop_ra(), "")
 
-#@unittest.skip("test")
+@unittest.skip("test")
 class Router(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
@@ -248,11 +270,12 @@ class Router(unittest.TestCase,TestScenarios):
         if not self.support.platform.support_rio():
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "Could not remove route")
 
-@unittest.skip("test")
+#@unittest.skip("test")
 class RouterNoRa(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
         self.support.ip_6lbr='bbbb::100'
+        self.support.ip_host='bbbb::200'
         self.support.setUp()
         self.support.set_mode('ROUTER', 'router_no_ra.dat')
 
@@ -260,7 +283,8 @@ class RouterNoRa(unittest.TestCase,TestScenarios):
         self.support.tearDown()
 
     def set_up_network(self):
-        self.assertTrue( self.support.platform.configure_if(self.support.br.itf, "bbbb::200"), "")
+        sleep(2)
+        self.assertTrue( self.support.platform.configure_if(self.support.br.itf, self.support.ip_host), "")
         self.assertTrue( self.support.platform.add_route("aaaa::", gw=self.support.ip_6lbr), "")
 
     def tear_down_network(self):
