@@ -14,6 +14,9 @@ typedef struct {
   uint8_t channel;
 } nvm_data_t;
 
+#define CETIC_6LBR_NVM_MAGIC	0x2009
+#define CETIC_6LBR_NVM_VERSION	0
+
 #define CETIC_MODE_REWRITE_ADDR_MASK	0x01
 #define CETIC_MODE_FILTER_RPL_MASK		0x02
 #define CETIC_MODE_WAIT_RA_MASK			0x04

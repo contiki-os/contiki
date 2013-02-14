@@ -169,9 +169,6 @@
 #endif
 
 /* Do not change lines below */
-#define CETIC_6LBR_NVM_MAGIC	0x2009
-#define CETIC_6LBR_NVM_VERSION	0
-
 #define CETIC_6LBR_VERSION		"1.0.0"
 
 #define CETIC_6LBR_ETH_EXT_A	0xFF

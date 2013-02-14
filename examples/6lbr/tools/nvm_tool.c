@@ -211,6 +211,8 @@ create_empty_nvm(void)
 {
   memset(nvm_mem, 0xff, NVM_SIZE);
 
+  nvm_params->magic = CETIC_6LBR_NVM_MAGIC;
+  nvm_params->version = CETIC_6LBR_NVM_VERSION;
   ipaddrconv("default", "bbbb::", nvm_params->eth_net_prefix);
   ipaddrconv("default", "bbbb::100", nvm_params->eth_ip_addr);
   ipaddrconv("default", "aaaa::", nvm_params->wsn_net_prefix);

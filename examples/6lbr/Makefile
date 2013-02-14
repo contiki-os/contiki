@@ -115,4 +115,9 @@ ipk:
 	echo 2.0 > $(IPK)/debian-binary
 	cd $(IPK) && ar rc ../6lbr_$(VERSION)_beaglebone.ipk debian-binary data.tar.gz control.tar.gz
 
+tools:
+	cd tools && $(MAKE)
+
 include $(CONTIKI)/Makefile.include
+
+.PHONY: all_native all_econotag deb ipk tools
