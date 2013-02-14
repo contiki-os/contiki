@@ -4,7 +4,7 @@ DEV=$1
 OS=`uname`
 
 if [ "$OS" = "Linux" ]; then
-	ifconfig $DEV up
+	ifconfig $DEV hw ether 02:a:b:c:d:e up
 elif [ "$OS" = "Darwin" ]; then
 	#Sometimes the generated mac address has the translate bit set to 1
 	#this conflict with packet filter and sicslow-ethernet
