@@ -1,7 +1,7 @@
 # -*- makefile -*-
 
 ifndef CONTIKI
-  ${error CONTIKI not defined! You must specify where CONTIKI resides}
+  ${error CONTIKI not defined! You must specify where Contiki resides}
 endif
 
 ifeq ($(TARGET),)
@@ -105,8 +105,8 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFI
 
 ifdef APPS
   APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
-	     ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
-	     $(APPS)}
+             ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
+             $(APPS)}
   APPINCLUDES = ${foreach APP, $(APPS), ${wildcard ${foreach DIR, $(APPDIRS), $(DIR)/Makefile.$(APP)}}}
   -include $(APPINCLUDES)
   APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
@@ -163,7 +163,7 @@ endif
 
 ifneq ($(MAKECMDGOALS),clean)
 -include ${addprefix $(OBJECTDIR)/,$(CONTIKI_SOURCEFILES:.c=.d) \
-				   $(PROJECT_SOURCEFILES:.c=.d)}
+                                   $(PROJECT_SOURCEFILES:.c=.d)}
 endif
 
 ### See http://make.paulandlesley.org/autodep.html#advanced
@@ -178,8 +178,8 @@ endef
  clean:
 	rm -f *~ *core core *.srec \
 	*.lst *.map \
-        *.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
-        *.ce *.co $(CLEAN)
+	*.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
+	*.ce *.co $(CLEAN)
 	-rm -rf $(OBJECTDIR)
 
 ifndef CUSTOM_RULE_C_TO_CE

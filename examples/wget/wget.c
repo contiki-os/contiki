@@ -142,6 +142,8 @@ app_quit(void)
   if(file != -1) {
     cfs_close(file);
   }
+  puts("Press any key to continue...");
+  getchar();
   process_exit(&wget_process);
   LOADER_UNLOAD();
 }
