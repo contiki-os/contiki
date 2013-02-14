@@ -236,6 +236,7 @@ class Router(unittest.TestCase,TestScenarios):
         self.support.tearDown()
         
     def set_up_network(self):
+        sleep(4)
         self.assertTrue(self.support.platform.accept_ra(self.support.br.itf), "Could not enable RA configuration support")
         if self.support.platform.support_rio():
             self.assertTrue(self.support.platform.accept_rio(self.support.br.itf), "Could not enable RIO support")
