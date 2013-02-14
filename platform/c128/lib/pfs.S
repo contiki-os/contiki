@@ -36,7 +36,7 @@
 	.constructor init_pfs
         .destructor  done_pfs
 	.importzp    ptr1, ptr2, ptr3, sp
-	.import	     __curunit, __filetype, popax, addysp, subysp
+	.import	     curunit, __filetype, popax, addysp, subysp
 	.export	     pfs_rwcommon, pfs_rwsetflags, pfs_rwcommonend
 	.if	F_IDE64
 	.export      ide64_rwprepare, ide64_rwfinish
@@ -178,7 +178,7 @@ next:	inc	ptr2	;next file number
 	stx	ptr2+1
 nextsa:	inc	ptr2+1	;next channel
 retr:	lda	ptr2	;file number
-	ldx	__curunit
+	ldx	curunit
 	ldy	ptr2+1	;secondary address
 	jsr	SETLFS
 	jsr	OPEN	;open
