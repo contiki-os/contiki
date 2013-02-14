@@ -1420,6 +1420,9 @@ uip_process(uint8_t flag)
     case ICMP6_ECHO_REPLY:
       /** \note We don't implement any application callback for now */
       PRINTF("Received an icmp6 echo reply\n");
+#if CETIC_6LBR_TRACE_PING
+      printf("Received an icmp6 echo reply\n");
+#endif
       UIP_STAT(++uip_stat.icmp.recv);
       uip_len = 0;
       break;
