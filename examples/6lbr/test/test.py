@@ -77,12 +77,14 @@ class TestSupport:
         return self.mote.ping( address, expect_reply, count )
 
 class TestScenarios:
-    @unittest.skip("test")
+    def log_file(self, log_name):
+        return "%s_%s.log" % (log_name, self.__class__.__name__)
+    #@unittest.skip("test")
     def test_S0(self):
         """
         Check 6LBR start-up anbd connectivity
         """
-        self.assertTrue(self.support.start_6lbr('test_S0'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.wait_ping_6lbr(40), "6LBR is not responding")
         self.tear_down_network()
@@ -94,7 +96,7 @@ class TestScenarios:
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.assertTrue(self.support.start_6lbr('test_S1'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S1')), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
@@ -103,13 +105,13 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    @unittest.skip("test")
+    #@unittest.skip("test")
     def test_S2(self):
         """
         Ping from the computer to the mote when the PC does not know the BR and the BR knows
         the mote.
         """
-        self.assertTrue(self.support.start_6lbr('test_S2'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S2')), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.set_up_network()
@@ -118,12 +120,12 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    @unittest.skip("test")
+    #@unittest.skip("test")
     def test_S3(self):
         """
         Ping from the computer to the mote when everyone is known but the mote has been disconnected.
         """
-        self.assertTrue(self.support.start_6lbr('test_S3'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S3')), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.set_up_network()
@@ -133,20 +135,20 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    @unittest.skip("test")
+    #@unittest.skip("test")
     def test_S4(self):
         """
         Starting from a stable RPL topology, restart the border router and observe how it attaches
         to the RPL DODAG.
         """
-        self.assertTrue(self.support.start_6lbr('test_S4_a'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S4_a')), "Could not start 6LBR")
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.set_up_network()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
-        self.assertTrue(self.support.start_6lbr('test_S4_b'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S4_b')), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
@@ -190,13 +192,13 @@ class TestScenarios:
         """
         pass
 
-    @unittest.skip("test")
+    #@unittest.skip("test")
     def test_S11(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
         mote.
         """
-        self.assertTrue(self.support.start_6lbr('test_S11'), "Could not start 6LBR")
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S11')), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
