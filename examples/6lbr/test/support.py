@@ -99,7 +99,7 @@ class MoteProxy:
     def reset_mote(self):
         pass
 
-    def start_mote(self):
+    def start_mote(self, channel):
         pass
 
     def stop_mote(self):
@@ -142,10 +142,11 @@ class TelosMote(MoteProxy):
         self.serialport.write("\r\nreboot\r\n")
         return self.wait_until("Starting '6LBR Demo'\n", 5)
 
-    def start_mote(self):
+    def start_mote(self, channel):
         print >> sys.stderr, "Starting mote..."
         self.serialport.flushInput()
         self.serialport.flushOutput()
+        self.serialport.write("\r\nrfchannel %d\r\n" % channel)
         self.serialport.write("\r\nstart6lbr\r\n")
         return self.wait_until("done\r\n", 5)
 
@@ -166,7 +167,7 @@ class TelosMote(MoteProxy):
 
 class InteractiveMote(MoteProxy):
     mote_started=False
-    def start_mote(self,):
+    def start_mote(self,channel):
         print >> sys.stderr, "*** Press enter when mote is powered on"
         dummy = raw_input()
         self.mote_started=True

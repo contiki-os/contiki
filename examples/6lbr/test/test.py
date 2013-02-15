@@ -44,7 +44,7 @@ class TestSupport:
         return self.br.stop_6lbr()
 
     def start_mote(self):
-        return self.mote.start_mote()
+        return self.mote.start_mote(config.channel)
 
     def stop_mote(self):
         return self.mote.stop_mote()
@@ -77,8 +77,6 @@ class TestSupport:
         return self.mote.ping( address, expect_reply, count )
 
 class TestScenarios:
-    support=TestSupport()
-
     @unittest.skip("test")
     def test_S0(self):
         """
