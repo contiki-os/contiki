@@ -1,8 +1,8 @@
-Package:6lbr
-Version: 1.0.0
+Package: cetic-6lbr
+Version: 1.0-0
 Architecture: beaglebone
-Maintainer: CETIC
+Maintainer: CETIC <6lbr@cetic.be>
 Section: network
 Priority: optional
-Installed-Size: 1
-Description: 6LoWPAN Border Router
+Installed-Size: 350000
+Description: CETIC 6LoWPAN Border Router

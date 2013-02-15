@@ -113,7 +113,7 @@ ipk:
 	cd $(IPK) && tar zcvf ../$(IPK)/data.tar.gz --exclude='*~' *
 	cd control-ipk && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
 	echo 2.0 > $(IPK)/debian-binary
-	cd $(IPK) && ar rc ../6lbr_$(VERSION)_beaglebone.ipk debian-binary data.tar.gz control.tar.gz
+	cd $(IPK) && ar rc ../cetic-6lbr_$(VERSION)_beaglebone.ipk debian-binary data.tar.gz control.tar.gz
 
 tools:
 	cd tools && $(MAKE)

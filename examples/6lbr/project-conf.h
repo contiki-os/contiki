@@ -169,7 +169,7 @@
 #endif
 
 /* Do not change lines below */
-#define CETIC_6LBR_VERSION		"1.0.0"
+#define CETIC_6LBR_VERSION		"1.0-0"
 
 #define CETIC_6LBR_ETH_EXT_A	0xFF
 #define CETIC_6LBR_ETH_EXT_B	0xFF
