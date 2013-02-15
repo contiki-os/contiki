@@ -56,7 +56,7 @@ class LocalNativeBR(BRProxy):
     def start_6lbr(self, log_file):
         print >> sys.stderr, "Starting 6LBR..."
         #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
-        self.log=open("%s_%s.log" % (log_file, self.mode), "w")
+        self.log=open(log_file, "w")
         self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "test.conf"], stdout=self.log)
         sleep(1)
         return self.process != None
@@ -113,6 +113,7 @@ class MoteProxy:
 
 class TelosMote(MoteProxy):
     def setUp(self):
+        self.reset_mote()
         self.serialport = serial.Serial(
             port=config.mote_dev,
             baudrate=config.mote_baudrate,
@@ -121,7 +122,6 @@ class TelosMote(MoteProxy):
         )
         self.serialport.flushInput()
         self.serialport.flushOutput()
-        self.reset_mote()
 
     def tearDown(self):
         MoteProxy.tearDown(self)
@@ -137,10 +137,8 @@ class TelosMote(MoteProxy):
 
     def reset_mote(self):
         print >> sys.stderr, "Reseting mote..."
-        self.serialport.flushInput()
-        self.serialport.flushOutput()
-        self.serialport.write("\r\nreboot\r\n")
-        return self.wait_until("Starting '6LBR Demo'\n", 5)
+        system("../../../tools/sky/msp430-bsl-linux --telosb -c %s -r" % config.mote_dev)
+        sleep(2)
 
     def start_mote(self, channel):
         print >> sys.stderr, "Starting mote..."
