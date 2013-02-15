@@ -73,7 +73,7 @@ class TestSupport:
     def wait_ping_mote(self, count):
         return self.wait_ping( count, self.ip_mote )
 
-    def wait_ping_from_mote(self, address, expect_reply, count):
+    def ping_from_mote(self, address, expect_reply=False, count=0):
         return self.mote.ping( address, expect_reply, count )
 
 class TestScenarios:
@@ -192,22 +192,48 @@ class TestScenarios:
         """
         pass
 
+    @unittest.skip("test")
+    def test_S10(self):
+        """
+        Ping from the sensor to the computer when the sensor does not know the CBR.
+        """
+        pass
+
     #@unittest.skip("test")
     def test_S11(self):
         """
-        Ping from the computer to the mote when the PC knows the BR but the BR does not know the
-        mote.
+        Ping from the sensor to the computer when the CBR does not know the computer.
         """
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S11')), "Could not start 6LBR")
         self.set_up_network()
         self.assertTrue(self.support.start_mote(), "Could not start up mote")
         self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
         self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
-        self.assertTrue(self.support.wait_ping_from_mote(self.support.ip_host, True, 60), "Host is not responding")
+        self.assertTrue(self.support.ping_from_mote(self.support.ip_host, True, 60), "Host is not responding")
         self.assertTrue(self.support.stop_mote(), "Could not stop mote")
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
+    #@unittest.skip("test")
+    def test_S12(self):
+        """
+        Ping from the sensor to an external domain (as the inet address of google.com) and
+        observe all the sending process.
+        """
+        self.assertTrue(self.support.start_6lbr(self.log_file('test_S11')), "Could not start 6LBR")
+        self.set_up_network()
+        self.assertTrue(self.support.start_mote(), "Could not start up mote")
+        self.assertTrue(self.support.wait_mote_in_6lbr(30), "Mote not detected")
+        self.assertTrue(self.support.wait_ping_mote(60), "Mote is not responding")
+        if self.__class__.__name__ == 'SmartBridgeAuto':
+            self.assertTrue(self.support.tcpdump.expect_ping_request(self.support.br.itf, "cccc::1", 30, bg=True), "")
+        else:
+            self.assertTrue(self.support.tcpdump.expect_ns(self.support.br.itf, [0xbbbb, 0, 0, 0, 0, 0, 0, 1], 30, bg=True), "")
+        self.assertTrue(self.support.ping_from_mote("cccc::1"), "")
+        self.assertTrue(self.support.tcpdump.check_result(), "")
+        self.assertTrue(self.support.stop_mote(), "Could not stop mote")
+        self.tear_down_network()
+        self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
 #@unittest.skip("test")
 class SmartBridgeManual(unittest.TestCase,TestScenarios):
