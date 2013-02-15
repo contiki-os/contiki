@@ -11,7 +11,7 @@ UIP_CONF_RPL=0
 #linker optimizations
 SMALL=1
 
-CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\" -DSLIP_RADIO=1
 PROJECT_SOURCEFILES += slip-net.c no-framer.c
 ifeq ($(TARGET),sky)
   PROJECT_SOURCEFILES += slip-radio-cc2420.c slip-radio-sky-sensors.c
