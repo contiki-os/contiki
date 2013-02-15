@@ -56,6 +56,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
@@ -188,6 +190,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   private final static Color MOVE_COLOR = Color.WHITE;
   private Observer moteRelationsObserver = null;
 
+  private Action zoomInAction;
+  private Action zoomOutAction;
+
   /* Popup menu */
   public static interface SimulationMenuAction {
     public boolean isEnabled(Visualizer visualizer, Simulation simulation);
@@ -243,7 +248,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     this.setJMenuBar(menuBar);
 
-    Action zoomInAction = new AbstractAction("Zoom in") {
+    zoomInAction = new AbstractAction("Zoom in") {
       public void actionPerformed(ActionEvent e) {
         zoomToFactor(zoomFactor() * 1.2);
       }
@@ -255,7 +260,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     JMenuItem zoomInItem = new JMenuItem(zoomInAction);
     zoomMenu.add(zoomInItem);
 
-    Action zoomOutAction = new AbstractAction("Zoom out") {
+    zoomOutAction = new AbstractAction("Zoom out") {
       public void actionPerformed(ActionEvent e) {
         zoomToFactor(zoomFactor() / 1.2);
       }
@@ -384,6 +389,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       public void mouseDragged(MouseEvent e) {
         handleMouseMove(e, false);
       }
+    });
+    canvas.addMouseWheelListener(new MouseWheelListener() {
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            handleMouseWheel(e);
+        }
     });
     canvas.addMouseListener(new MouseAdapter() {
       public void mousePressed(MouseEvent e) {
@@ -787,6 +797,15 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       return false;
     }
     return true;
+  }
+
+  private void handleMouseWheel(MouseWheelEvent e) {
+    if (! e.isControlDown()) return;
+
+    if (e.getWheelRotation()<0)
+      zoomInAction.actionPerformed(null);
+    else
+      zoomOutAction.actionPerformed(null);
   }
 
   private void handleMousePress(MouseEvent mouseEvent) {

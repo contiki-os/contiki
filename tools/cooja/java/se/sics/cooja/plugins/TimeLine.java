@@ -43,6 +43,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -1471,6 +1472,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
 
       addMouseListener(mouseAdapter);
       addMouseMotionListener(mouseAdapter);
+      addMouseWheelListener(mouseAdapter);
 
       /* Popup menu */
       final JPopupMenu popupMenu = new JPopupMenu();
@@ -1564,6 +1566,16 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       private int zoomInitialMouseY;
       private long zoomCenterTime = -1;
       private double zoomCenter = -1;
+
+      public void mouseWheelMoved(MouseWheelEvent e) {
+        if (! e.isControlDown()) return;
+
+        if (e.getWheelRotation()<0)
+          zoomInAction.actionPerformed(null);
+        else
+          zoomOutAction.actionPerformed(null);
+      }
+
       public void mouseDragged(MouseEvent e) {
         super.mouseDragged(e);
         if (e.isControlDown()) {
