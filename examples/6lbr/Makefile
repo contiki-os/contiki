@@ -108,7 +108,7 @@ install:
 	install tools/nvm_tools /usr/lib/6lbr/bin
 	update-rc.d 6lbr defaults
 
-deb:
+rpi_deb:
 	rm -rf $(DEB)
 	cp -R package $(DEB)
 	cp -R control-deb $(DEB)/DEBIAN
