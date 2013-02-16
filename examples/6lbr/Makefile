@@ -109,7 +109,7 @@ ipk:
 	cp -R package $(IPK)
 	mkdir -p $(IPK)/usr/lib/6lbr/bin
 	cp bin/* $(IPK)/usr/lib/6lbr/bin
-	cp tools/nvm_tool $(DEB)/usr/lib/6lbr/bin
+	cp tools/nvm_tool $(IPK)/usr/lib/6lbr/bin
 	cd $(IPK) && tar zcvf ../$(IPK)/data.tar.gz --exclude='*~' *
 	cd control-ipk && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
 	echo 2.0 > $(IPK)/debian-binary
