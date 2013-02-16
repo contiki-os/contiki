@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, NooliTIC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,10 @@
 
 /**
  * \file
- *         Leds arch specific file for the WiSMote platform
+ *         Leds arch specific file for the NooliBerry platform
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+ *         Ludovic Wiart <ludovic.wiart@noolitic.biz>
+ *         Olivier Debreu <olivier.debreu@noolitic.biz>
  */
 
 #include "contiki.h"
