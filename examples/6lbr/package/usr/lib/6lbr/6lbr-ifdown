@@ -1,21 +1,28 @@
 #!/bin/sh
 
-MODE=$1
+. $CETIC_6LBR_CONF
+
+MODE_6LBR=$1
 DEV=$2
 OS=`uname`
 
-case $MODE in
+case $MODE_6LBR in
 	raw)
 	;;
 	
 	tap)
 	case $OS in
 		Linux)
+			if [ "$BRIDGE" = "1" ]; then
+				brctl delbr $DEV_BRIDGE
+			fi
 			ifconfig $DEV down
 			netstat -nr | awk '{ if ($2 == "'$DEV'") print "route delete -net "$1; }' | sh
 			;;
 		Darwin)
-			#No action
+			if [ "$BRIDGE" = "1" ]; then
+				ifconfig $DEV_BRIDGE destroy
+			fi
 			;;
 		*)
 			echo Unknown OS

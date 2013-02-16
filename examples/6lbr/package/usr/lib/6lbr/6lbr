@@ -16,6 +16,8 @@ else
 	exit 1
 fi
 
+export CETIC_6LBR_CONF=$CFG
+
 if [ "$NVM" = "" ]; then
 	NVM=/etc/6lbr/nvm.dat
 fi

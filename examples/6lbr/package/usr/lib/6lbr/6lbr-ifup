@@ -1,27 +1,46 @@
 #!/bin/sh
 
-MODE=$1
+. $CETIC_6LBR_CONF
+
+MODE_6LBR=$1
 DEV=$2
 OS=`uname`
 
-case $MODE in
+case $MODE_6LBR in
 	raw)
 	;;
 	
 	tap)
 	case $OS in
 		Linux)
+			#Sometimes the generated mac address has the translate bit set to 1
+			#this conflict with packet filter and sicslow-ethernet
 			ifconfig $DEV hw ether 02:a:b:c:d:e up
+
+			if [ "$BRIDGE" = "1" ]; then
+				brctl addbr $DEV_BRIDGE
+				brctl setfd $DEV_BRIDGE 0
+				brctl addif $DEV_BRIDGE $DEV_TAP $DEV_ETH
+			fi
 			;;
+
 		Darwin)
 			#Sometimes the generated mac address has the translate bit set to 1
 			#this conflict with packet filter and sicslow-ethernet
 			ifconfig $DEV link 02:a:b:c:d:e
-			#IPv6 stack is not always correctly started on tap device
+			
+			#On MacOS 10.6, IPv6 stack is not always correctly started on tap device
 			ip6 -d $DEV
 			ip6 -u $DEV
+			
 			ifconfig $DEV inet6 up
+			
+			if [ "$BRIDGE" = "1" ]; then
+				ifconfig $DEV_BRIDGE create
+				ifconfig $DEV_BRIDGE up addm $DEV_TAP addm $DEV_ETH
+			fi
 			;;
+
 		*)
 			echo Unknown OS
 			;;
@@ -34,3 +53,7 @@ case $MODE in
 esac
 
 ifconfig $DEV
+
+if [ "$BRIDGE" = "1" ]; then
+	ifconfig $DEV_BRIDGE
+fi

@@ -1,38 +1,54 @@
-
+################################################################################
 #MODE Selection
 
 #MODE=ROUTER
 #MODE=SMART-BRIDGE
 #MODE=TRANSPARENT-BRIDGE
 
-# Raw Ethernet / TAP selection
-#RAW_ETH=0
-#RAW_ETH=1
-
+################################################################################
 #RAW Ethernet mode
+
+#RAW_ETH=1
 #DEV_ETH=eth0
 #RAW_ETH_FCS=0
 #RAW_ETH_FCS=1
 
+################################################################################
 #TAP mode
+
+#RAW_ETH=0
 #DEV_TAP=tap0
 
+################################################################################
+#Bridge creation
+
+#BRIDGE=1
+#DEV_BRIDGE=br0
+
+################################################################################
 #SLIP Radio configuration
 
 #Serial over USB
 #DEV_RADIO=/dev/ttyUSB0
+
 #ARM platform serial port
 #DEV_RADIO=/dev/ttyAMA0
 
 #SLIP Radio baudrate
-BAUDRATE=115200
+#BAUDRATE=115200
 
+################################################################################
 #NVM File
+
 #NVM=/etc/6lbr/nvm.dat
 
+################################################################################
 #Startup/shutdown
+
 #IFUP=/usr/lib/6lbr/6lbr-ifup
 #IFDOWN=/usr/lib/6lbr/6lbr-ifdown
 
+################################################################################
 #Extra parameters
-EXTRA_PARAMS=
+
+#EXTRA_PARAMS=
