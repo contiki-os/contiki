@@ -1,6 +1,6 @@
 Package: cetic-6lbr
 Version: 1.0-0
-Architecture: i386
+Architecture: armhf
 Maintainer: CETIC <6lbr@cetic.be>
 Section: network
 Priority: optional
