@@ -105,7 +105,7 @@ install:
 	install package/usr/lib/6lbr/* /usr/lib/6lbr
 	install -d /usr/lib/6lbr/bin
 	install bin/* /usr/lib/6lbr/bin
-	install tools/nvm_tools /usr/lib/6lbr/bin
+	install tools/nvm_tool /usr/lib/6lbr/bin
 	update-rc.d 6lbr defaults
 
 rpi_deb:
