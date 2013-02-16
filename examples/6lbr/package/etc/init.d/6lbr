@@ -2,10 +2,10 @@
 
 ### BEGIN INIT INFO
 # Provides:		6lbr
-# Required-Start:	$network
+# Required-Start:	$network $remote_fs
 # Required-Stop:	
 # Default-Start:	2 3 4 5
-# Default-Stop:		
+# Default-Stop:		0 1 6
 # Short-Description:	6LoWPAN Border Router
 ### END INIT INFO
 
