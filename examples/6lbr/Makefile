@@ -94,6 +94,20 @@ VERSION=$(shell echo $(word 3,$(shell awk '/CETIC_6LBR_VERSION/' project-conf.h)
 DEB=6lbr-$(VERSION)-deb
 IPK=6lbr-$(VERSION)-ipk
 
+install:
+	install -d /etc/6lbr
+	install package/etc/6lbr/* /etc/6lbr
+	install -d /etc/init.d
+	install package/etc/init.d/* /etc/init.d
+	install -d /usr/bin
+	install package/usr/bin/* /usr/bin
+	install -d /usr/lib/6lbr
+	install package/usr/lib/6lbr/* /usr/lib/6lbr
+	install -d /usr/lib/6lbr/bin
+	install bin/* /usr/lib/6lbr/bin
+	install tools/nvm_tools /usr/lib/6lbr/bin
+	update-rc.d 6lbr defaults
+
 deb:
 	rm -rf $(DEB)
 	cp -R package $(DEB)
@@ -113,7 +127,7 @@ ipk:
 	cd $(IPK) && tar zcvf ../$(IPK)/data.tar.gz --exclude='*~' *
 	cd control-ipk && tar zcvfh ../$(IPK)/control.tar.gz --exclude='*~' *
 	echo 2.0 > $(IPK)/debian-binary
-	cd $(IPK) && ar rc ../cetic-6lbr_$(VERSION)_beaglebone.ipk debian-binary data.tar.gz control.tar.gz
+	cd $(IPK) && ar rc ../cetic-6lbr_$(VERSION)_armv7a.ipk debian-binary data.tar.gz control.tar.gz
 
 tools:
 	cd tools && $(MAKE)
