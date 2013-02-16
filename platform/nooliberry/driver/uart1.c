@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science
+ * Copyright (c) 2013, NooliTIC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: slip_uart1.c,v 1.8 2008/02/03 20:59:35 adamdunkels Exp $
+ * This file is part of the Contiki operating system.
+ *
+ */
+
+/**
+ * \file uart1.c
+ *         UART adaptation for the NooliBerry platform
+ * \author
+ *         Ludovic Wiart <ludovic.wiart@noolitic.biz>
+ *         Olivier Debreu <olivier.debreu@noolitic.biz>
  */
 
 #include "dev/rs232.h"

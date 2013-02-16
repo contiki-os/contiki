@@ -35,9 +35,11 @@
  *
  * \author
  *  Ludovic WIART <ludovic.wiart@noolitic.biz>
+ *	Olivier DEBREU <olivier.debreu@noolitic.biz>
  *
  *  History:
  *     16/03/2012 L. Wiart - Created
+ *	   01/2013    O. Debreu - Modified
  *     08/02/2013 S. Dawans - Code Style & Integration in Contiki fork
  */
 
