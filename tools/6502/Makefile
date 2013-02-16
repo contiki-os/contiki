@@ -76,11 +76,11 @@ contiki-apple2-1.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
-	java -jar $(AC) -p    $@ ipconfig.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
-	java -jar $(AC) -p    $@ webbrows.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ webbrows.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ webbrows        bin   < ../../examples/webbrowser/webbrowser.apple2enh
-	java -jar $(AC) -p    $@ wget.system     sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ wget.system     sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ wget            bin   < ../../examples/wget/wget.apple2enh
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
@@ -90,11 +90,11 @@ contiki-apple2-2.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
-	java -jar $(AC) -p    $@ ipconfig.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
-	java -jar $(AC) -p    $@ irc.system      sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ irc.system      sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ irc             bin   < ../../examples/irc/irc-client.apple2enh
-	java -jar $(AC) -p    $@ breadbox.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ breadbox.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ breadbox        bin   < ../../../contikiprojects/vandenbrande.com/twitter/platform/apple2enh/breadbox64.apple2enh
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
@@ -104,11 +104,11 @@ contiki-apple2-3.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
-	java -jar $(AC) -p    $@ ipconfig.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
-	java -jar $(AC) -p    $@ email.system    sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ email.system    sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ email           bin   < ../../examples/email/email-client.apple2enh
-	java -jar $(AC) -p    $@ ftp.system      sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ ftp.system      sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ftp             bin   < ../../examples/ftp/ftp-client.apple2enh
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
@@ -118,11 +118,11 @@ contiki-apple2-4.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
-	java -jar $(AC) -p    $@ ipconfig.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
-	java -jar $(AC) -p    $@ webserv.system  sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ webserv.system  sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ webserv         bin   < ../../examples/webserver/webserver-example.apple2enh
-	java -jar $(AC) -p    $@ telnetd.system  sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ telnetd.system  sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ telnetd         bin   < ../../examples/telnet-server/telnet-server.apple2enh
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
@@ -136,23 +136,23 @@ contiki-apple2.2mg: apple2enh-makes
 	cp ../apple2enh/prodos.2mg $@
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
-	java -jar $(AC) -p    $@ ipconfig.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
-	java -jar $(AC) -p    $@ webbrows.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ webbrows.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ webbrows        bin   < ../../examples/webbrowser/webbrowser.apple2enh
-	java -jar $(AC) -p    $@ wget.system     sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ wget.system     sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ wget            bin   < ../../examples/wget/wget.apple2enh
-	java -jar $(AC) -p    $@ irc.system      sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ irc.system      sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ irc             bin   < ../../examples/irc/irc-client.apple2enh
-	java -jar $(AC) -p    $@ breadbox.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ breadbox.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ breadbox        bin   < ../../../contikiprojects/vandenbrande.com/twitter/platform/apple2enh/breadbox64.apple2enh
-	java -jar $(AC) -p    $@ email.system    sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ email.system    sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ email           bin   < ../../examples/email/email-client.apple2enh
-	java -jar $(AC) -p    $@ ftp.system      sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ ftp.system      sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ftp             bin   < ../../examples/ftp/ftp-client.apple2enh
-	java -jar $(AC) -p    $@ webserv.system  sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ webserv.system  sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ webserv         bin   < ../../examples/webserver/webserver-example.apple2enh
-	java -jar $(AC) -p    $@ telnetd.system  sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -p    $@ telnetd.system  sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ telnetd         bin   < ../../examples/telnet-server/telnet-server.apple2enh
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
