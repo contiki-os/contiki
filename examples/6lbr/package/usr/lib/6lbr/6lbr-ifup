@@ -21,6 +21,7 @@ case $MODE_6LBR in
 				brctl addbr $DEV_BRIDGE
 				brctl setfd $DEV_BRIDGE 0
 				brctl addif $DEV_BRIDGE $DEV_TAP $DEV_ETH
+				ifconfig $DEV_BRIDGE up
 			fi
 			;;
 
