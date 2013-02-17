@@ -1,0 +1,75 @@
+#!/usr/bin/perl -w
+use strict;
+
+my $help = <<'EOF';
+usage: motelist [options]
+
+options:
+  -h  display this help
+  -c  compact format, not pretty but easier for parsing
+EOF
+
+my %Opt = (
+  compact => 0,
+  dev_prefix => [ "/dev/tty.SLAB" ],
+);
+
+while (@ARGV) {
+  last unless $ARGV[0] =~ /^-/;
+  my $opt = shift @ARGV;
+  if( $opt eq "-h" ) { print "$help\n"; exit 0; }
+  elsif( $opt eq "-c" ) { $Opt{compact} = 1; }
+  else { print STDERR "$help\nerror, unknown command line option $opt\n"; exit 1; }
+}
+
+print_motelist( scan_dev() );
+
+#
+#  Scan /dev for tty.SLAB*
+#
+sub  scan_dev {
+  my @devs;
+  foreach (`ls /dev/tty.SLAB* 2>&1`) {
+    my($dev, $serial) = /(\/dev\/tty.SLAB(\S+))/;
+    if ($serial ne "*:") {
+      my $d;
+      $d->{"InfoSerial"} = $serial;
+      $d->{"SerialDevName"} = $dev;
+      push(@devs, $d);
+    }
+  }
+  return @devs;
+}
+
+
+#
+#  Print motelist
+#
+sub print_motelist {
+  my @devs = @_;
+
+  #  If none were found, quit
+  if( @devs == 0 ) {
+    #print "No devices found.\n";
+    return;
+  }
+
+  #  Print a header
+  if( !$Opt{compact} ) {
+    print << "EOF" unless $Opt{compact};
+Reference  Device                      Description
+---------- --------------------------- ---------------------------------------
+EOF
+  }
+
+  #  Print the usb information
+  for my $dev (@devs) {
+    my $desc = "(none)";
+    my @output = ( $dev->{"InfoSerial"}, $dev->{"SerialDevName"}, $desc );
+    if( $Opt{compact} ) {
+      print join(",",@output) . "\n";
+    } else {
+      printf( "%-10s %-27s %s\n", @output );
+    }
+  }
+}
