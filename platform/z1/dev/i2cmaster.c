@@ -226,16 +226,13 @@ ISR(USCIAB1TX, i2c_tx_interrupt)
   // RX Part
 #if I2C_RX_WITH_INTERRUPT
   else if (UC1IFG & UCB1RXIFG){    // RX int. condition
-    if (rx_byte_ctr == 0){
+    rx_buf_ptr[rx_byte_tot - rx_byte_ctr] = UCB1RXBUF;
+    rx_byte_ctr--;
+    if (rx_byte_ctr == 1){ //stop condition should be set before receiving last byte
       // Only for 1-byte transmissions, STOP is handled in receive_n_int
       if (rx_byte_tot != 1) 
         UCB1CTL1 |= UCTXSTP;       // I2C stop condition
-
-      UC1IFG &= ~UCB1RXIFG;        // Clear USCI_B1 RX int flag. XXX Just in case, check if necessary
-    }
-    else {
-      rx_buf_ptr[rx_byte_tot - rx_byte_ctr] = UCB1RXBUF;
-      rx_byte_ctr--;
+        UC1IFG &= ~UCB1RXIFG;        // Clear USCI_B1 RX int flag. XXX Just in case, check if necessary
     }
   }
 #endif
