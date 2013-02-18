@@ -59,7 +59,13 @@ uint8_t packet_ids[16];
 int packet_pos;
 
 static int slip_radio_cmd_handler(const uint8_t *data, int len);
+
+#ifdef CONTIKI_TARGET_SKY
 int cmd_handler_cc2420(const uint8_t *data, int len);
+#elif CONTIKI_TARGET_NOOLIBERRY
+int cmd_handler_rf230(const uint8_t *data, int len);
+#endif /* CONTIKI_TARGET */
+
 /*---------------------------------------------------------------------------*/
 #ifdef CMD_CONF_HANDLERS
 CMD_HANDLERS(CMD_CONF_HANDLERS);
