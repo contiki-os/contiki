@@ -103,6 +103,8 @@ install:
 	install package/usr/bin/* /usr/bin
 	install -d /usr/lib/6lbr
 	install package/usr/lib/6lbr/* /usr/lib/6lbr
+	install -d /usr/lib/6lbr/www
+	install package/usr/lib/6lbr/www/* /usr/lib/6lbr/www
 	install -d /usr/lib/6lbr/bin
 	install bin/* /usr/lib/6lbr/bin
 	install tools/nvm_tool /usr/lib/6lbr/bin
