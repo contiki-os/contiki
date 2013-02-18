@@ -362,7 +362,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
 
   add
     ("<center>"
-     "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{_%x;",
+     "<img src=\"http://chart.googleapis.com/chart?cht=gv&chls=1&chl=digraph{_%04x;",
      (uip_lladdr.addr[6] << 8) + uip_lladdr.addr[7]);
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(node_info_table[i].isused) {
