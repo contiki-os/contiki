@@ -327,7 +327,7 @@ find_tag(char *tag)
   do {
     tagc = tag[i];
 
-    if(tagc == 0 &&
+    if((tagc == 0 || tagc == ISO_slash) &&
        tags[first][i] == 0) {
       return first;
     }
