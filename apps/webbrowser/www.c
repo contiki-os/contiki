@@ -638,7 +638,7 @@ void
 webclient_datahandler(char *data, uint16_t len)
 {
   if(len > 0) {
-    if(strcmp(webclient_mimetype(), http_texthtml) == 0) {
+    if(strstr(webclient_mimetype(), http_html + 1) != 0) {
       count = (count + 1) & 3;
       show_statustext(receivingmsgs[count]);
       htmlparser_parse(data, len);
