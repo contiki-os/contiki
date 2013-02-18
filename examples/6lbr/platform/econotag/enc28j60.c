@@ -255,11 +255,11 @@ enc28j60Init(uint8_t * macaddr)
   clock_delay(50);
   enc28j60WriteOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
   clock_delay(50);
-  while((i = enc28j60getrev()) != 6) {
-    printf("Invalid rev : %u\n", i);
-    clock_delay(50);
-    enc28j60WriteOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
-  }
+  //  while((i = enc28j60getrev()) != 6) {
+  //    printf("Invalid rev : %u\n", i);
+  //    clock_delay(50);
+  //    enc28j60WriteOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
+  //  }
 
   // check CLKRDY bit to see if reset is complete
   // The CLKRDY does not work. See Rev. B4 Silicon Errata point. Just wait.
