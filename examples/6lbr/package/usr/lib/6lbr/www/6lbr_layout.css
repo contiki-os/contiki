@@ -6,9 +6,6 @@ body {
 	color:#333333;
 	padding:0;
 	margin:0;
-	background-image: url(img/bg.jpg);
-	background-repeat: no-repeat;
-	background-position: left top;
 	max-width:1360px;
 	width:expression(this.scrollWidth < 1360 ? "auto":"1360px"); 
 }
@@ -93,6 +90,7 @@ div#content {min-height:300px; height:expression(this.scrollHeight > 300 ? "auto
 #footer {
 	clear: both;
 	border-top:1px solid black;
+    margin-top: 1em;
 	padding: 5px 0;
 	background-color: #ffffff;
 	text-align: left;
@@ -102,7 +100,7 @@ div#content {min-height:300px; height:expression(this.scrollHeight > 300 ? "auto
 }
 #footer p {margin:0; padding:0;}
 #footer p.cetic, #footer p.mention {line-height: 25px;}
-#footer a, #footer a:link, #footer a:active {color: #FFFFFF; text-decoration: none;}
+#footer a, #footer a:link, #footer a:active {color: #669934; text-decoration: none;}
 #footer a:hover {text-decoration: underline;}
 
 #intro_home {
@@ -121,4 +119,21 @@ div#content {min-height:300px; height:expression(this.scrollHeight > 300 ? "auto
 	margin: 0px; 
 	padding: 0 30px 0 30px;
 	margin-bottom: 20px;
+}
+
+#left_home table,
+#left_home tr,
+#left_home td
+{
+    border-collapse:collapse;
+    border: 1px solid #333;
+}
+tr.row_first
+{
+    background: #FFC;
+    font-weight: bold;
+}
+#left_home td
+{
+    padding: 5px;
 }
