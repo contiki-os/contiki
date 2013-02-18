@@ -18,5 +18,6 @@ extern uint8_t ethernet_has_fcs;
 extern speed_t slip_config_b_rate;
 extern char const *slip_config_ifup_script;
 extern char const *slip_config_ifdown_script;
+extern char const *slip_config_www_root;
 
 #endif

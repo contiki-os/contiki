@@ -71,10 +71,19 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
 /*---------------------------------------------------------------------------*/
 #define BUF_SIZE 256
 static const char *TOP =
-  "<html><head><title>CETIC WSN</title><link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.cetic.be/squelettes/css/cetic_layout.css\" /><link rel=\"stylesheet\" href=\"http://www.cetic.be/prive/spip_style.css\" type=\"text/css\" /></head>";
-static const char *BODY =
-  "<body class=\"page_rubrique\"><div id=\"container\"><div id=\"banner\"><img src=\"http://www.cetic.be/squelettes/css/img/logo.jpg\" style=\"position: absolute; top: 0; left: 0;\"><div id=\"banner_fx\"><div id=\"img_bandeau\"><img src=\"http://www.cetic.be/squelettes/img/banner_home.jpg\"></div><div id=\"barre_nav\"><div class=\"menu-general\"><a href=\"/\">Info</a></div></div></div></div>\n";
-static const char *BOTTOM = "</div></body></html>\n";
+  "<html><head><title>6LBR lite</title><style type=\"text/css\">"
+  "body{font-family:Verdana;color:#333333;padding:20px;}"
+  "h1,h2{margin:40px 0 0;padding:0;font-weight:bold;}"
+  "h1{font-size:16px;line-height:18px;}"
+  "h2{font-size:14px;color:#669934;line-height:16px;}"
+  "h3{font-size:12px;font-weight:bold;line-height:14px;}"
+  "#h{margin:0;}"
+  "</style></head>";
+static const char *BODY = "<body>";
+static const char *BOTTOM =
+  "<hr/>"
+  "<small>6LBR By CETIC (<a href=\"http://cetic.github.com/6lbr\">doc</a>)</small>"
+  "</body></html>";
 
 #if BUF_USES_STACK
 static char *bufptr, *bufend;
@@ -85,7 +94,6 @@ static int blen;
 /*---------------------------------------------------------------------------*/
 /*OPTIMIZATIONS to gain space : prototypes*/
 static void add(char *str, ...);
-void add_div_home();
 void add_network_cases(const uint8_t state);
 static void reset_buf();
 
@@ -184,11 +192,11 @@ PT_THREAD(generate_index(struct httpd_state *s))
   SEND_STRING(&s->sout, TOP);
   SEND_STRING(&s->sout, BODY);
   reset_buf();
-  add("<div id=\"intro_home\"><h1>CETIC Wireless Sensor Network</h1></div>");
-  add("<div id=\"left_home\">");
+  add("<h1 id=\"h\">6LBR <i>lite</i></h1><h2 id=\"h\">Border Router Status</h2><hr>");
 #if WEBSERVER_CONF_INFO
-  add("<h2>Info</h2>");
-  add("Version : " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")<br />");
+  add("<h1>Info</h1>");
+  add("<h2>6LBR</h2>");
+  add("Version : " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")<br>");
   add("Mode : ");
 #if CETIC_6LBR_SMARTBRIDGE
   add("SMART BRIGDE");
@@ -199,14 +207,14 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #if CETIC_6LBR_ROUTER
   add("ROUTER");
 #endif
-  add("<br />\n");
+  add("<br>");
   i = clock_seconds() - cetic_6lbr_startup;
-  add("Uptime : %dh %dm %ds<br />", i / 3600, (i / 60) % 60, i % 60);
+  add("Uptime : %dh %dm %ds<br>", i / 3600, (i / 60) % 60, i % 60);
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
-  add("<br /><h2>WSN</h2>");
-  add("MAC: %s<br />RDC: %s (%d Hz)<br />",
+  add("<h2>WSN</h2>");
+  add("MAC: %s<br>RDC: %s (%d Hz)<br>",
       NETSTACK_MAC.name,
       NETSTACK_RDC.name,
       (NETSTACK_RDC.channel_check_interval() ==
@@ -216,50 +224,51 @@ PT_THREAD(generate_index(struct httpd_state *s))
   ipaddr_add(&cetic_dag->prefix_info.prefix);
   add("/%d", cetic_dag->prefix_info.length);
 #endif
-  add("<br />");
+  add("<br>");
   add("HW address : ");
   lladdr_add(&uip_lladdr);
-  add("<br />");
+  add("<br>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
-  add("<br /><h2>Ethernet</h2>");
+  add("<h2>Ethernet</h2>");
 #if CETIC_6LBR_ROUTER
   add("Address : ");
   ipaddr_add(&eth_ip_addr);
-  add("<br />");
+  add("<br>");
   add("Local address : ");
   ipaddr_add(&eth_ip_local_addr);
-  add("<br />");
+  add("<br>");
 #endif
   add("HW address : ");
   ethaddr_add(&eth_mac_addr);
-  add("<br />");
+  add("<br>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
 #if CONTIKI_TARGET_ECONOTAG
-  add("<br /><h2>Memory</h2>");
+  add("<h2>Memory</h2>");
 
-  add("Global : %d (%d %%)<br /><br />", &_end - &_start,
+  add("Global : %d (%d %%)<br><br>", &_end - &_start,
       (100 * (&_end - &_start)) / (96 * 1024));
 
-  add("Code : %d<br />", &_etext - &_start);
-  add("Initialised data : %d<br /><br />", &_edata - &_etext);
-  add("Data : %d<br />", &_bss_end__ - &__bss_start);
-  add("Stack : %d<br />", &__bss_start - &_edata);
-  add("Heap : %d<br />", &_end - &_bss_end__);
+  add("Code : %d<br>", &_etext - &_start);
+  add("Initialised data : %d<br><br>", &_edata - &_etext);
+  add("Data : %d<br>", &_bss_end__ - &__bss_start);
+  add("Stack : %d<br>", &__bss_start - &_edata);
+  add("Heap : %d<br>", &_end - &_bss_end__);
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
 #endif
 
 #if WEBSERVER_CONF_RPL
+  add("<h1>RPL</h1>");
   add("<h2>Configuration</h2>");
-  add("Lifetime : %d (%d x %d s)<br />",
+  add("Lifetime : %d (%d x %d s)<br>",
       RPL_CONF_DEFAULT_LIFETIME * RPL_CONF_DEFAULT_LIFETIME_UNIT,
       RPL_CONF_DEFAULT_LIFETIME, RPL_CONF_DEFAULT_LIFETIME_UNIT);
-  add("<br />");
+  add("<br>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
   for(i = 0; i < RPL_MAX_INSTANCES; ++i) {
@@ -270,36 +279,37 @@ PT_THREAD(generate_index(struct httpd_state *s))
           add("<h3>DODAG %d</h3>", j);
           add("DODAG ID : ");
           ipaddr_add(&instance_table[i].dag_table[j].dag_id);
-          add("<br />Version : %d", instance_table[i].dag_table[j].version);
-          add("<br />Grounded : %s",
+          add("<br>Version : %d", instance_table[i].dag_table[j].version);
+          add("<br>Grounded : %s",
               instance_table[i].dag_table[j].grounded ? "Yes" : "No");
-          add("<br />Preference : %d",
+          add("<br>Preference : %d",
               instance_table[i].dag_table[j].preference);
-          add("<br />Mode of Operation : %u", instance_table[i].mop);
-          add("<br />Current DIO Interval [%u-%u] : %u",
+          add("<br>Mode of Operation : %u", instance_table[i].mop);
+          add("<br>Current DIO Interval [%u-%u] : %u",
               instance_table[i].dio_intmin,
               instance_table[i].dio_intmin + instance_table[i].dio_intdoubl,
               instance_table[i].dio_intcurrent);
-          add("<br />Objective Function Code Point : %u",
+          add("<br>Objective Function Code Point : %u",
               instance_table[i].of->ocp);
-          add("<br />Joined : %s",
+          add("<br>Joined : %s",
               instance_table[i].dag_table[j].joined ? "Yes" : "No");
-          add("<br />Rank : %d", instance_table[i].dag_table[j].rank);
-          add("<br />");
+          add("<br>Rank : %d", instance_table[i].dag_table[j].rank);
+          add("<br>");
           SEND_STRING(&s->sout, buf);
           reset_buf();
         }
       }
     }
   }
-  add("<br /><h3>Actions</h3>");
-  add("<a href=\"rpl-gr\">Trigger global repair</a><br />");
+  add("<h3>Actions</h3>");
+  add("<a href=\"rpl-gr\">Trigger global repair</a><br>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
 
 #if WEBSERVER_CONF_NETWORK
-  add("<br /><h2>Addresses</h2><pre>");
+  add("<h1>Network</h1>");
+  add("<h2>Addresses</h2><pre>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -416,17 +426,18 @@ PT_THREAD(generate_index(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
-  add("</pre><br />");
+  add("</pre><br>");
 #endif
 
 #if WEBSERVER_CONF_CONFIG
+  add("<h1>Config</h1>");
   add("<h2>WSN Network</h2>");
   add("<h3>WSN configuration</h3>");
-  add("Channel : %d<br />", nvm_data.channel);
+  add("Channel : %d<br>", nvm_data.channel);
 #if CONTIKI_TARGET_ECONOTAG
-  add("PanID : 0x%x<br />", *MACA_MACPANID);
+  add("PanID : 0x%x<br>", *MACA_MACPANID);
 #endif
-  add("<br />");
+  add("<br>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -434,17 +445,17 @@ PT_THREAD(generate_index(struct httpd_state *s))
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
   add("Network configuration : ");
   if((nvm_data.mode & CETIC_MODE_WAIT_RA_MASK) != 0) {
-    add(" autoconfiguration<br />");
+    add(" autoconfiguration<br>");
   } else {
-    add(" static<br />");
+    add(" static<br>");
     add("Prefix : ");
     ipaddr_add(&wsn_net_prefix);
-    add("<br />");
+    add("<br>");
   }
 #else
   add("Prefix : ");
   ipaddr_add(&wsn_net_prefix);
-  add("<br />");
+  add("<br>");
 #endif
   add("Address : ");
   if((nvm_data.mode & CETIC_MODE_WSN_AUTOCONF) != 0) {
@@ -452,59 +463,59 @@ PT_THREAD(generate_index(struct httpd_state *s))
   } else {
     ipaddr_add(&wsn_ip_addr);
   }
-  add("<br />");
+  add("<br>");
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
   add("Default router : ");
   ipaddr_add(&eth_dft_router);
-  add("<br />");
+  add("<br>");
 #endif
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
 #if CETIC_6LBR_ROUTER
-  add("<br /><h2>Eth Network</h2>");
+  add("<h2>Eth Network</h2>");
   add("<h3>IP configuration</h3>");
   add("Prefix : ");
   ipaddr_add(&eth_net_prefix);
-  add("<br />");
+  add("<br>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
   add("Address : ");
   ipaddr_add(&eth_ip_addr);
-  add("<br />");
+  add("<br>");
   add("Peer router : ");
   ipaddr_add(&eth_dft_router);
-  add("<br />");
+  add("<br>");
   add("RA Daemon : ");
   if((nvm_data.mode & CETIC_MODE_ROUTER_SEND_CONFIG) != 0) {
     add("active (Lifetime : %d)", UIP_CONF_ROUTER_LIFETIME);
   } else {
     add("inactive");
   }
-  add("<br />");
+  add("<br>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
 #if CETIC_6LBR_SMARTBRIDGE || CETIC_6LBR_TRANSPARENTBRIDGE
-  add("<br /><h3>Packet filtering</h3>");
+  add("<h3>Packet filtering</h3>");
   add("RPL filtering : ");
   if((nvm_data.mode & CETIC_MODE_FILTER_RPL_MASK) != 0) {
-    add("enabled<br />");
+    add("enabled<br>");
   } else {
-    add("disabled<br />");
+    add("disabled<br>");
   }
 #endif
 #if CETIC_6LBR_ROUTER
-  add("<br /><h3>Packet filtering</h3>");
+  add("<h3>Packet filtering</h3>");
   add("Address rewrite : ");
   if((nvm_data.mode & CETIC_MODE_REWRITE_ADDR_MASK) != 0) {
-    add("enabled<br />");
+    add("enabled<br>");
   } else {
-    add("disabled<br />");
+    add("disabled<br>");
   }
 #endif
-  add("<br />\n");
+  add("<br>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 #endif
@@ -520,7 +531,6 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add(" <i>(%u.%02u sec)</i>", numticks / CLOCK_SECOND,
       (100 * (numticks % CLOCK_SECOND) / CLOCK_SECOND));
 #endif
-  add("</div>");
   SEND_STRING(&s->sout, buf);
   SEND_STRING(&s->sout, BOTTOM);
 

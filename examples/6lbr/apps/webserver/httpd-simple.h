@@ -58,7 +58,11 @@ struct httpd_state {
   struct psock sin, sout;
   struct pt outputpt;
   char inputbuf[HTTPD_PATHLEN + 24];
-/*char outputbuf[UIP_TCP_MSS]; */
+#if CONTIKI_TARGET_NATIVE
+  char outputbuf[UIP_TCP_MSS];
+  int fd;
+  int len;
+#endif
   char filename[HTTPD_PATHLEN];
   httpd_simple_script_t script;
   char state;

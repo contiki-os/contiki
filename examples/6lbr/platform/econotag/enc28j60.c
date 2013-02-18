@@ -11,6 +11,11 @@
  * Title: Microchip ENC28J60 Ethernet Interface Driver
  * Chip type           : ATMEGA88 with ENC28J60
  *********************************************/
+
+/* Adapted to Contiki by Maciej Wasilak (wasilak@gmail.com)
+ * Ported to mc1322x platform by Laurent Deru (laurent.deru@cetic.be)
+ */
+
 #include "spi.h"
 
 #include "enc28j60.h"

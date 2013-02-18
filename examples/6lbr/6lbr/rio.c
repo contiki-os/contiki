@@ -1,3 +1,5 @@
+/* RIO support in RA by Maciej Wasilak (wasilak@gmail.com) and Maxime Denis (maxime.dn@gmail.com) */
+
 #include <string.h>
 #include <stdlib.h>
 #include "lib/random.h"

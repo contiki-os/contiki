@@ -19,11 +19,17 @@
 #include "contiki-maca.h"
 #endif
 
+#if CONTIKI_TARGET_NATIVE
+#include "slip-config.h"
+#endif
+
 #include <stdio.h>              /* For printf() */
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -66,10 +72,20 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
 /*---------------------------------------------------------------------------*/
 #define BUF_SIZE 256
 static const char *TOP =
-  "<html><head><title>CETIC WSN</title><link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.cetic.be/squelettes/css/cetic_layout.css\" /><link rel=\"stylesheet\" href=\"http://www.cetic.be/prive/spip_style.css\" type=\"text/css\" />";
+  "<html><head><title>6LBR</title><link rel=\"stylesheet\" type=\"text/css\" href=\"6lbr_layout.css\" />";
 static const char *BODY =
-  "</head><body class=\"page_rubrique\"><div id=\"container\"><div id=\"banner\"><img src=\"http://www.cetic.be/squelettes/css/img/logo.jpg\" style=\"position: absolute; top: 0; left: 0;\"><div id=\"banner_fx\"><div id=\"img_bandeau\"><img src=\"http://www.cetic.be/squelettes/img/banner_home.jpg\"></div><div id=\"barre_nav\"><div class=\"menu-general\"><a href=\"/\">Info</a></div><div class=\"menu-general\"><a href=\"/sensors.html\">Sensors</a></div><div class=\"menu-general\"><a href=\"/rpl.html\">RPL</a></div><div class=\"menu-general\"><a href=\"/network.html\">Network</a></div><div class=\"menu-general\"><a href=\"/config.html\">Config</a></div></div></div></div>\n";
-static const char *BOTTOM = "</div></body></html>\n";
+  "</head><body class=\"page_rubrique\"><div id=\"container\">"
+  "<div id=\"banner\">"
+  "<h1>6LBR</h1>"
+  "<h2>6Lowpan Border Router</h2>"
+  "<div id=\"barre_nav\">"
+  "<div class=\"menu-general\"><a href=\"/\">Info</a></div>"
+  "<div class=\"menu-general\"><a href=\"/sensors.html\">Sensors</a></div>"
+  "<div class=\"menu-general\"><a href=\"/rpl.html\">RPL</a></div>"
+  "<div class=\"menu-general\"><a href=\"/network.html\">Network</a></div>"
+  "<div class=\"menu-general\"><a href=\"/config.html\">Config</a></div>"
+  "</div></div>\n";
+static const char *BOTTOM = "</div></body></html>";
 
 #if BUF_USES_STACK
 static char *bufptr, *bufend;
@@ -80,8 +96,9 @@ static int blen;
 /*---------------------------------------------------------------------------*/
 /*OPTIMIZATIONS to gain space : prototypes*/
 static void add(char *str, ...);
-void add_div_home();
-void add_network_cases(const uint8_t state);
+static void add_div_home(char const *title);
+static void add_div_footer();
+static void add_network_cases(const uint8_t state);
 static void reset_buf();
 
 /*End optimizations*/
@@ -178,6 +195,35 @@ extern void _bss_end__;
 extern void _end;
 #endif
 /*---------------------------------------------------------------------------*/
+#if CONTIKI_TARGET_NATIVE
+static
+PT_THREAD(send_file(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  char filename[HTTPD_PATHLEN];
+  strcpy(filename, slip_config_www_root);
+  strcat(filename, s->filename);
+  strcpy(s->filename, filename);
+
+  s->fd = open(s->filename, O_RDONLY);
+  if (s-> fd > 0) {
+    do {
+      /* Read data from file system into buffer */
+      s->len = read(s->fd, s->outputbuf, sizeof(s->outputbuf));
+
+      /* If there is data in the buffer, send it */
+      if(s->len > 0) {
+        PSOCK_SEND(&s->sout, (uint8_t *)s->outputbuf, s->len);
+      } else {
+        break;
+      }
+    } while(s->len > 0);
+  }
+  close(s->fd);
+  PSOCK_END(&s->sout);
+}
+#endif
+/*---------------------------------------------------------------------------*/
 static
 PT_THREAD(generate_index(struct httpd_state *s))
 {
@@ -197,7 +243,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   SEND_STRING(&s->sout, TOP);
   SEND_STRING(&s->sout, BODY);
   reset_buf();
-  add_div_home();
+  add_div_home("Info");
   add("<div id=\"left_home\">");
   add("<h2>Info</h2>");
   add("Version : " CETIC_6LBR_VERSION " (" CONTIKI_VERSION_STRING ")<br />");
@@ -265,6 +311,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   reset_buf();
 #endif
 
+  add_div_footer();
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
@@ -276,7 +323,7 @@ PT_THREAD(generate_index(struct httpd_state *s))
   add(" <i>(%u.%02u sec)</i>", numticks / CLOCK_SECOND,
       (100 * (numticks % CLOCK_SECOND) / CLOCK_SECOND));
 #endif
-  add("</div>");
+  add("</div></div>");
   SEND_STRING(&s->sout, buf);
   SEND_STRING(&s->sout, BOTTOM);
 
@@ -303,10 +350,10 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   SEND_STRING(&s->sout, TOP);
   SEND_STRING(&s->sout, BODY);
   reset_buf();
-  add_div_home();
+  add_div_home("Sensors");
   add("<div id=\"left_home\">");
   add
-    ("<table class=\"spip\">"
+    ("<table>"
      "<theader><tr class=\"row_first\"><td>Node</td><td>Type</td><td>Status</td><td>Last seen</td></tr></theader>"
      "<tbody>");
   SEND_STRING(&s->sout, buf);
@@ -380,6 +427,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+  add_div_footer();
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
@@ -391,7 +439,7 @@ PT_THREAD(generate_sensors(struct httpd_state *s))
   add(" <i>(%u.%02u sec)</i>", numticks / CLOCK_SECOND,
       (100 * (numticks % CLOCK_SECOND) / CLOCK_SECOND));
 #endif
-  add("</div>");
+  add("</div></div>");
   SEND_STRING(&s->sout, buf);
   SEND_STRING(&s->sout, BOTTOM);
 
@@ -421,7 +469,7 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   SEND_STRING(&s->sout, BODY);
   reset_buf();
 
-  add_div_home();
+  add_div_home("RPL");
   add("<div id=\"left_home\">");
   SEND_STRING(&s->sout, buf);
   reset_buf();
@@ -469,6 +517,7 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+  add_div_footer();
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
@@ -480,7 +529,7 @@ PT_THREAD(generate_rpl(struct httpd_state *s))
   add(" <i>(%u.%02u sec)</i>", numticks / CLOCK_SECOND,
       (100 * (numticks % CLOCK_SECOND) / CLOCK_SECOND));
 #endif
-  add("</div>");
+  add("</div></div>");
   SEND_STRING(&s->sout, buf);
   SEND_STRING(&s->sout, BOTTOM);
 
@@ -516,7 +565,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   SEND_STRING(&s->sout, BODY);
   reset_buf();
 
-  add_div_home();
+  add_div_home("Network");
   add("<div id=\"left_home\">");
   add("<br /><h2>Addresses</h2><pre>");
   SEND_STRING(&s->sout, buf);
@@ -643,6 +692,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   add("</pre><br />");
 #endif
 
+  add_div_footer();
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
@@ -654,7 +704,7 @@ PT_THREAD(generate_network(struct httpd_state *s))
   add(" <i>(%u.%02u sec)</i>", numticks / CLOCK_SECOND,
       (100 * (numticks % CLOCK_SECOND) / CLOCK_SECOND));
 #endif
-  add("</div>");
+  add("</div></div>");
   SEND_STRING(&s->sout, buf);
   SEND_STRING(&s->sout, BOTTOM);
 
@@ -679,7 +729,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, TOP);
   SEND_STRING(&s->sout, BODY);
   reset_buf();
-  add_div_home();
+  add_div_home("Configuration");
   add("<div id=\"left_home\"><form action=\"config\" method=\"get\">");
   add("<h2>WSN Network</h2>");
   add("<h3>WSN configuration</h3>");
@@ -793,6 +843,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+  add_div_footer();
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
@@ -804,7 +855,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add(" <i>(%u.%02u sec)</i>", numticks / CLOCK_SECOND,
       (100 * (numticks % CLOCK_SECOND) / CLOCK_SECOND));
 #endif
-  add("</div>");
+  add("</div></div>");
   SEND_STRING(&s->sout, buf);
   SEND_STRING(&s->sout, BOTTOM);
 
@@ -824,7 +875,7 @@ PT_THREAD(generate_reboot(struct httpd_state *s))
               "<meta http-equiv=\"refresh\" content=\"2; url=/config.html\" />");
   SEND_STRING(&s->sout, BODY);
   reset_buf();
-  add_div_home();
+  add_div_home("Reboot");
   add("<div id=\"left_home\">");
   add("Restarting BR...<br />");
   add
@@ -859,7 +910,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, TOP);
   SEND_STRING(&s->sout, BODY);
   reset_buf();
-  add_div_home();
+  add_div_home("Configuration");
   add("<div id=\"left_home\">");
   add("<h2>WSN Network</h2>");
   add("<h3>WSN configuration</h3>");
@@ -949,6 +1000,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
+  add_div_footer();
 #if WEBSERVER_CONF_FILESTATS
   static uint16_t numtimes;
 
@@ -960,7 +1012,7 @@ PT_THREAD(generate_config(struct httpd_state *s))
   add(" <i>(%u.%02u sec)</i>", numticks / CLOCK_SECOND,
       (100 * (numticks % CLOCK_SECOND) / CLOCK_SECOND));
 #endif
-  add("</div>");
+  add("</div></div>");
   SEND_STRING(&s->sout, buf);
   SEND_STRING(&s->sout, BOTTOM);
 
@@ -979,10 +1031,11 @@ PT_THREAD(generate_404(struct httpd_state *s))
   SEND_STRING(&s->sout, TOP);
   SEND_STRING(&s->sout, BODY);
   reset_buf();
-  add_div_home();
+  add_div_home("404");
   add("<div id=\"left_home\">");
   add("404 : Page not found<br />");
-  add("</div>");
+  add_div_footer();
+  add("</div></div>");
   SEND_STRING(&s->sout, buf);
   reset_buf();
 
@@ -1141,12 +1194,21 @@ httpd_simple_script_t
 httpd_simple_get_script(const char *name)
 {
   static uip_ds6_route_t *r;
+  static char filename[HTTPD_PATHLEN];
   static int i;
+
+  strcpy(filename, slip_config_www_root);
+  strcat(filename, "/");
+  strcat(filename, name);
 
   redirect = 0;
 
   if(strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
     return generate_index;
+#if CONTIKI_TARGET_NATIVE
+  } else if (access(filename, R_OK) == 0) {
+      return send_file;
+#endif
 #if CETIC_NODE_INFO
   } else if(strcmp(name, "sensors.html") == 0) {
     return generate_sensors;
@@ -1218,12 +1280,18 @@ httpd_simple_get_script(const char *name)
 }
 /*---------------------------------------------------------------------------*/
 void
-add_div_home()
+add_div_home(char const *title)
 {
-  add("<div id=\"intro_home\"><h1>CETIC Wireless Sensor Network</h1></div>");
+  add("<div id=\"intro_home\"><h1>%s</h1></div>", title);
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
+add_div_footer()
+{
+  add("<div id=\"footer\">6LBR By CETIC (<a href=\"http://cetic.github.com/6lbr\">documentation</a>)");
+}
+/*---------------------------------------------------------------------------*/
+static void
 add_network_cases(const uint8_t state)
 {
   switch (state) {

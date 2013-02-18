@@ -63,6 +63,7 @@ uint8_t use_raw_ethernet = 1;
 uint8_t ethernet_has_fcs = 0;
 const char *slip_config_ifup_script = NULL;
 const char *slip_config_ifdown_script = NULL;
+char const *slip_config_www_root = "../www";
 
 #ifndef BAUDRATE
 #define BAUDRATE B115200
@@ -80,7 +81,7 @@ slip_config_handle_arguments(int argc, char **argv)
   slip_config_verbose = 0;
 
   prog = argv[0];
-  while((c = getopt(argc, argv, "c:B:H:D:Lhs:t:v::d::a:p:rRfU:D:")) != -1) {
+  while((c = getopt(argc, argv, "c:B:H:D:Lhs:t:v::d::a:p:rRfU:D:w:")) != -1) {
     switch (c) {
     case 'c':
       nvm_file = optarg;
@@ -146,6 +147,10 @@ slip_config_handle_arguments(int argc, char **argv)
 
     case 'D':
       slip_config_ifdown_script = optarg;
+      break;
+
+    case 'w':
+      slip_config_www_root = optarg;
       break;
 
     case 'v':
