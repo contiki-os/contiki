@@ -179,53 +179,55 @@ static const char *tags[] = {
   html_slasha,
 #define TAG_SLASHCENTER 1
   html_slashcenter,
-#define TAG_SLASHFORM   2
+#define TAG_SLASHDIV    2
+  html_slashdiv,
+#define TAG_SLASHFORM   3
   html_slashform,
-#define TAG_SLASHH      3
+#define TAG_SLASHH      4
   html_slashh,
-#define TAG_SLASHSCRIPT 4
+#define TAG_SLASHSCRIPT 5
   html_slashscript,
-#define TAG_SLASHSELECT 5
+#define TAG_SLASHSELECT 6
   html_slashselect,
-#define TAG_SLASHSTYLE  6
+#define TAG_SLASHSTYLE  7
   html_slashstyle,
-#define TAG_A           7
+#define TAG_A           8
   html_a,
-#define TAG_BODY        8
+#define TAG_BODY        9
   html_body,
-#define TAG_BR          9
+#define TAG_BR         10
   html_br,
-#define TAG_CENTER     10 
+#define TAG_CENTER     11 
   html_center,
-#define TAG_FORM       11
+#define TAG_FORM       12
   html_form,
-#define TAG_FRAME      12    
+#define TAG_FRAME      13    
   html_frame,
-#define TAG_H1         13  
+#define TAG_H1         14  
   html_h1,
-#define TAG_H2         14
+#define TAG_H2         15
   html_h2,
-#define TAG_H3         15  
+#define TAG_H3         16  
   html_h3,
-#define TAG_H4         16  
+#define TAG_H4         17  
   html_h4,
-#define TAG_IMG        17  
+#define TAG_IMG        18  
   html_img,
-#define TAG_INPUT      18  
+#define TAG_INPUT      19  
   html_input,
-#define TAG_LI         19
+#define TAG_LI         20
   html_li,
-#define TAG_P          20
+#define TAG_P          21
   html_p,
-#define TAG_SCRIPT     21
+#define TAG_SCRIPT     22
   html_script, 
-#define TAG_SELECT     22
+#define TAG_SELECT     23
   html_select,
-#define TAG_STYLE      23
+#define TAG_STYLE      24
   html_style,
-#define TAG_TR         24   
+#define TAG_TR         25   
   html_tr,
-#define TAG_LAST       25
+#define TAG_LAST       26
   last,
 };
 
@@ -376,6 +378,7 @@ parse_tag(void)
     /* FALLTHROUGH */
   case TAG_BR:
   case TAG_TR:
+  case TAG_SLASHDIV:
   case TAG_SLASHH:
     /*    parse_char(ISO_nl);*/
     dummy = 0;
