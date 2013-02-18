@@ -1,5 +1,7 @@
 ################################################################################
 #MODE Selection
+# This parameter is used to select the running mode of the CETIC 6LBR
+# This parameter is mandatory
 
 #MODE=ROUTER
 #MODE=SMART-BRIDGE
@@ -7,6 +9,8 @@
 
 ################################################################################
 #RAW Ethernet mode
+# In this mode, the CETIC 6LBR directly send and receive Ethernet frames from
+# the Ethernet controller
 
 #RAW_ETH=1
 #DEV_ETH=eth0
@@ -15,18 +19,25 @@
 
 ################################################################################
 #TAP mode
+# In this mode, the CETIC 6LBR creates a virtual TAP interface, ti can be then
+# bridged or tunneled to the Ethernet network
 
 #RAW_ETH=0
 #DEV_TAP=tap0
 
 ################################################################################
 #Bridge creation
+# If activated, the CETIC 6LBR will create an Ethernet Bridge and connect DEV_TAP
+# and DEV_ETH to it, effectively connecting the CETIC 6LBR to the Ethernet network
 
 #BRIDGE=1
 #DEV_BRIDGE=br0
 
 ################################################################################
 #SLIP Radio configuration
+# These parameters define the SLIP Radio device and the Baudrate to be used to
+# connect to the slip radio
+# Additional parameters can be added in the EXTRA_PARAMS parameter below.
 
 #Serial over USB
 #DEV_RADIO=/dev/ttyUSB0
@@ -39,16 +50,21 @@
 
 ################################################################################
 #NVM File
+# The NVM file contains the user configuration, like the network prefixes, the
+# autofconfiguration flags, ...
 
 #NVM=/etc/6lbr/nvm.dat
 
 ################################################################################
 #Startup/shutdown
+# At startup and shutdown, the CETIC 6LBR will invoke these scripts to set up
+# and tear down the interface
 
 #IFUP=/usr/lib/6lbr/6lbr-ifup
 #IFDOWN=/usr/lib/6lbr/6lbr-ifdown
 
 ################################################################################
 #Extra parameters
+# This parameter can be used to specify additional parameters to the CETIC 6LBR
 
 #EXTRA_PARAMS=

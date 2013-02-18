@@ -1,3 +1,7 @@
+#This file contains a default configuration for Raspberry PI platform using
+#a Nooliberry SLIP Radio
+#The full list of parameters and their meaning can be found in 6lbr.conf.example
+
 MODE=ROUTER
 #MODE=SMART-BRIDGE
 #MODE=TRANSPARENT-BRIDGE
