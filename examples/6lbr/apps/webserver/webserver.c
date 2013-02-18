@@ -19,11 +19,17 @@
 #include "contiki-maca.h"
 #endif
 
+#if CONTIKI_TARGET_NATIVE
+#include "slip-config.h"
+#endif
+
 #include <stdio.h>              /* For printf() */
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -176,6 +182,35 @@ extern void _bss_end__;
 
 //Heap
 extern void _end;
+#endif
+/*---------------------------------------------------------------------------*/
+#if CONTIKI_TARGET_NATIVE
+static
+PT_THREAD(send_file(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  char filename[HTTPD_PATHLEN];
+  strcpy(filename, slip_config_www_root);
+  strcat(filename, s->filename);
+  strcpy(s->filename, filename);
+
+  s->fd = open(s->filename, O_RDONLY);
+  if (s-> fd > 0) {
+    do {
+      /* Read data from file system into buffer */
+      s->len = read(s->fd, s->outputbuf, sizeof(s->outputbuf));
+
+      /* If there is data in the buffer, send it */
+      if(s->len > 0) {
+        PSOCK_SEND(&s->sout, (uint8_t *)s->outputbuf, s->len);
+      } else {
+        break;
+      }
+    } while(s->len > 0);
+  }
+  close(s->fd);
+  PSOCK_END(&s->sout);
+}
 #endif
 /*---------------------------------------------------------------------------*/
 static
@@ -1141,12 +1176,21 @@ httpd_simple_script_t
 httpd_simple_get_script(const char *name)
 {
   static uip_ds6_route_t *r;
+  static char filename[HTTPD_PATHLEN];
   static int i;
+
+  strcpy(filename, slip_config_www_root);
+  strcat(filename, "/");
+  strcat(filename, name);
 
   redirect = 0;
 
   if(strcmp(name, "index.html") == 0 || strcmp(name, "") == 0) {
     return generate_index;
+#if CONTIKI_TARGET_NATIVE
+  } else if (access(filename, R_OK) == 0) {
+      return send_file;
+#endif
 #if CETIC_NODE_INFO
   } else if(strcmp(name, "sensors.html") == 0) {
     return generate_sensors;

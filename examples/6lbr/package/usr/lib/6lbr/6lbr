@@ -41,6 +41,10 @@ if [ "$LIB_6LBR" == "" ]; then
 	LIB_6LBR=`dirname $0`/../lib/6lbr
 fi
 
+if [ "$LIB_6LBR_WWW" == "" ]; then
+	LIB_6LBR_WWW=`dirname $0`/../lib/6lbr/www
+fi
+
 if [ "$IFUP" == "" ]; then
 	IFUP=$LIB_6LBR/6lbr-ifup
 fi
@@ -53,7 +57,7 @@ fi
 
 IFDOWN="-D $IFDOWN"
 
-PARAMS="-c $NVM -s $DEV_RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN $EXTRA_PARAMS $*"
+PARAMS="-c $NVM -s $DEV_RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN $EXTRA_PARAMS -w $LIB_6LBR_WWW $*"
 
 echo $PARAMS
 
