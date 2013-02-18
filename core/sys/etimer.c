@@ -158,7 +158,7 @@ add_timer(struct etimer *timer)
     for(t = timerlist; t != NULL; t = t->next) {
       if(t == timer) {
 	/* Timer already on list, bail out. */
-         timer->p = PROCESS_CURRENT();
+        timer->p = PROCESS_CURRENT();
 	update_time();
 	return;
       }
