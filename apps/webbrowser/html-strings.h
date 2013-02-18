@@ -1,5 +1,6 @@
 extern const char html_slasha[4];
 extern const char html_slashcenter[9];
+extern const char html_slashdiv[6];
 extern const char html_slashform[7];
 extern const char html_slashh[4];
 extern const char html_slashscript[9];
