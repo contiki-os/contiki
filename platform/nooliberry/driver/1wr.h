@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, NooliTIC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,56 +25,56 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
  */
 
-#ifndef __PROJECT_CONF_H__
-#define __PROJECT_CONF_H__
+/**
+ * \file 1WR.h
+ *  Provides the functionality of 1 wire.
+ *
+ * \author
+ *  Ludovic WIART <ludovic.wiart@noolitic.biz>
+ *
+ *  History:
+ *     16/03/2012 L. Wiart - Created
+ *     08/02/2013 S. Dawans - Code Style & Integration in Contiki fork
+ */
 
-#undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM          4
+/*----------------------------------------------------------------------------*
+ *   WARNING: CHANGING THIS FILE MAY AFFECT CORE FUNCTIONALITY OF THE STACK.  *
+ *   EXPERT USERS SHOULD PROCEED WITH CAUTION.                                *
+ *----------------------------------------------------------------------------*/
 
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    140
+#ifndef __1WR_H__
+#define __1WR_H__
 
-#undef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER                 0
+/*----------------------------------------------------------------------------*
+                   Define(s) section
+ *----------------------------------------------------------------------------*/
 
-#undef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL               0
+/* standard speed */
+#define tSLOT	65	
+#define tRSTL	500
+#define tMSP	60
+#define tW1L	10			
+#define tW0L	65
+#define tRL		5
+#define tMSR	12
+#define tREC	5
 
-#define CMD_CONF_OUTPUT slip_radio_cmd_output
+/* overdrive speed */
+#define tOSLOT	8
+#define tORSTL	60
+#define tOMSP	6
+#define tOW1L	1			
+#define tOW0L	6
+#define tORL	1
+#define tOMSR	2
 
-/* add the cmd_handler_cc2420 + some sensors if TARGET_SKY */
-#ifdef CONTIKI_TARGET_SKY
-#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_cc2420
-#define SLIP_RADIO_CONF_SENSORS slip_radio_sky_sensors
-/* add the cmd_handler_rf230 if TARGET_NOOLIBERRY. Other RF230 platforms can be added */
-#elif CONTIKI_TARGET_NOOLIBERRY
-#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_rf230
-#else
-#define CMD_CONF_HANDLERS slip_radio_cmd_handler
-#endif
+void owr_writeb(unsigned byte);
+unsigned owr_readb(void);
+int owr_reset (void);
 
-
-/* configuration for the slipradio/network driver */
-#undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     nullmac_driver
-
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_noframer_driver
-//#define NETSTACK_CONF_RDC     contikimac_driver
-
-#undef NETSTACK_CONF_NETWORK
-#define NETSTACK_CONF_NETWORK slipnet_driver
-
-#undef NETSTACK_CONF_FRAMER
-#define NETSTACK_CONF_FRAMER no_framer
-
-#undef CC2420_CONF_AUTOACK
-#define CC2420_CONF_AUTOACK              1
-
-#undef UART1_CONF_RX_WITH_DMA
-#define UART1_CONF_RX_WITH_DMA           1
-
-#define SLIP_CONF_TCPIP_INPUT()
-#endif /* __PROJECT_CONF_H__ */
+#endif /* __1WR_H__ */
+/* eof 1WR.h */
