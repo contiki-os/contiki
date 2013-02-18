@@ -1,3 +1,5 @@
+/* RIO support in RA by Maciej Wasilak (wasilak@gmail.com) and Maxime Denis (maxime.dn@gmail.com) */
+
 #ifndef UIP_DS6_RIO_H_
 #define UIP_DS6_RIO_H_
 
