@@ -1,16 +1,18 @@
 6LBR is a 6LoWPAN Border Router based on The Contiki Operating System
 
-* Home: http://cetic.guthub.com/6lbr
-* Documentation: http://github.com/cetic/6lbr/wiki
-* Contiki: http://www.contiki-os.org
-
 This 6LBR repository is a fork of Contiki with additions:
 
 * The Border Router: in examples/6lbr
 * A modified sky-websense: in examples/6lbr-demo
 * Modifications in core/net related to 6LBR
-* Platform definitions for the [Nooliberry](http://Noolitic.github.com/Nooliberry/wiki: platform/nooliberry
+* Platform definitions for the Nooliberry in platform/nooliberry
 
-This repository is continuously updated with new commits in Contiki. The master branch
-will never be more than a few commits behind the standard Contiki. To track changes, see
-the 6lbr branch of our official Contiki fork on GitHub: http://github.com/cetic/contiki
+This repository is continuously updated with new commits in Contiki. The master 
+branch will never be more than a few commits behind the standard Contiki. 
+To track changes, see the 6lbr branch of our main Contiki fork on GitHub.
+
+* Home: http://cetic.guthub.com/6lbr
+* Documentation: http://github.com/cetic/6lbr/wiki
+* Contiki: http://www.contiki-os.org
+* Nooliberry: http://Noolitic.github.com/Nooliberry/wiki
+* Contiki fork with a 6lbr branch: http://github.com/cetic/contiki
