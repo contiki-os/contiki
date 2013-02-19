@@ -1,6 +1,6 @@
 #!/bin/sh
 
-MC1322X_LOAD=../../../../cpu/mc1322x/tools/mc1322x-load.pl
+MC1322X_LOAD=`dirname $0`/../../../../cpu/mc1322x/tools/mc1322x-load.pl
 
 NVM_FILE=$1
 shift
@@ -22,4 +22,6 @@ if [ ! -x $MC1322X_LOAD ]; then
 	exit 1
 fi
 
-$MC1322X_LOAD -t $DEV -f 6lbr_nvm_flasher_redbee-econotag.bin -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`
+FLASHER=`dirname $0`
+
+$MC1322X_LOAD -t $DEV -f $FLASHER/6lbr_nvm_flasher_redbee-econotag.bin -z $* 0x100,`hexdump -v -e '"0x" 1/4 "%08x" ","' $NVM_FILE`
