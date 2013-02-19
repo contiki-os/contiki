@@ -11,8 +11,8 @@ This repository is continuously updated with new commits in Contiki. The master
 branch will never be more than a few commits behind the standard Contiki. 
 To track changes, see the 6lbr branch of our main Contiki fork on GitHub.
 
-* Home: http://cetic.guthub.com/6lbr
+* Home: http://cetic.github.com/6lbr
 * Documentation: http://github.com/cetic/6lbr/wiki
 * Contiki: http://www.contiki-os.org
-* Nooliberry: http://Noolitic.github.com/Nooliberry/wiki
+* Nooliberry: https://github.com/Noolitic/Nooliberry/wiki
 * Contiki fork with a 6lbr branch: http://github.com/cetic/contiki
