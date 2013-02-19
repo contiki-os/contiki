@@ -241,12 +241,25 @@ iswhitespace(char c)
 	  c == ISO_ht);
 }
 /*-----------------------------------------------------------------------------------*/
+#if WWW_CONF_FORMS
+static void
+init_input(void)
+{
+  s.inputtype = HTMLPARSER_INPUTTYPE_NONE;
+  s.inputname[0] = s.inputvalue[0] = 0;
+  s.inputvaluesize = 20; /* De facto default size */
+}
+#endif /* WWW_CONF_FORMS */
+/*-----------------------------------------------------------------------------------*/
 void
 htmlparser_init(void)
 {
   s.majorstate = s.lastmajorstate = MAJORSTATE_DISCARD;
   s.minorstate = MINORSTATE_TEXT;
   s.lastchar = 0;
+#if WWW_CONF_FORMS
+  s.formaction[0] = s.formname[0] = 0;
+#endif /* WWW_CONF_FORMS */
 }
 /*-----------------------------------------------------------------------------------*/
 static char CC_FASTCALL
@@ -460,7 +473,7 @@ parse_tag(void)
       PRINTF(("Form name '%s'\n", s.tagattrparam));
       strncpy(s.formname, s.tagattrparam, WWW_CONF_MAX_FORMNAMELEN - 1);
     }
-    s.inputname[0] = s.inputvalue[0] = 0;
+    init_input();
     break;
   case TAG_SLASHFORM:
     switch_majorstate(MAJORSTATE_BODY);
@@ -486,7 +499,7 @@ parse_tag(void)
 				  s.formname, s.formaction);
 	  break;
 	}
-	s.inputtype = HTMLPARSER_INPUTTYPE_NONE;
+	init_input();
       } else {
 	PRINTF(("Input '%s' '%s'\n", s.tagattr, s.tagattrparam));
 	if(strncmp(s.tagattr, html_type, sizeof(html_type)) == 0) {
