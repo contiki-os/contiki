@@ -64,6 +64,8 @@ static int slip_radio_cmd_handler(const uint8_t *data, int len);
 int cmd_handler_cc2420(const uint8_t *data, int len);
 #elif CONTIKI_TARGET_NOOLIBERRY
 int cmd_handler_rf230(const uint8_t *data, int len);
+#elif CONTIKI_TARGET_ECONOTAG
+int cmd_handler_mc1322x(const uint8_t *data, int len);
 #endif /* CONTIKI_TARGET */
 
 /*---------------------------------------------------------------------------*/
