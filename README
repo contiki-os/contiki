@@ -1,4 +1,4 @@
-6LBR is a 6LoWPAN Border Router based on The Contiki Operating System
+6LBR is a 6LoWPAN Border Router based on The Contiki Operating System.
 
 This 6LBR repository is a fork of Contiki with additions:
 
@@ -8,8 +8,10 @@ This 6LBR repository is a fork of Contiki with additions:
 * Platform definitions for the Nooliberry in platform/nooliberry
 
 This repository is continuously updated with new commits in Contiki. The master 
-branch will never be more than a few commits behind the standard Contiki. 
+branch will never be more than a few commits behind the master Contiki. 
 To track changes, see the 6lbr branch of our main Contiki fork on GitHub.
+Likewise, useful commits for Contiki are submitted back into the official
+Contiki repository through pull requests.
 
 * Home: http://cetic.github.com/6lbr
 * Documentation: http://github.com/cetic/6lbr/wiki
