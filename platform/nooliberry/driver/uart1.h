@@ -43,6 +43,6 @@
 
 uart1_init(unsigned long ubr);
 
-uart1_set_input(int (*input)(unsigned char c));
+uart1_set_input(int (*input) (unsigned char c));
 
 #endif

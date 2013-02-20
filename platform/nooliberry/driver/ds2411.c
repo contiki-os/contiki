@@ -62,10 +62,11 @@ Parameters:
 Returns:
   crc update
  *----------------------------------------------------------------------------*/
-static unsigned 
+static unsigned
 crc8_add(unsigned a_crc, unsigned byte)
 {
   int i;
+
   a_crc ^= byte;
   for(i = 0; i < 8; i++) {
     if(a_crc & 1) {
@@ -85,43 +86,40 @@ Returns:
   0 if error or 1 if ok
   and value in ds2411_id
  *----------------------------------------------------------------------------*/
-int 
+int
 ds2411_read(unsigned char *ds2411_id)
 {
   int retry;
   int i;
   unsigned family, crc, read_crc;
-  retry=4;
+
+  retry = 4;
   do {
-    crc=0;
-    if(owr_reset()) {  /* Reset ds2411  */
-      owr_writeb(0x33);  /* Read ds2411 command */
+    crc = 0;
+    if(owr_reset()) {           /* Reset ds2411  */
+      owr_writeb(0x33);         /* Read ds2411 command */
       family = owr_readb();
-      crc=crc8_add (crc,family);
-      if(family==1) {
+      crc = crc8_add(crc, family);
+      if(family == 1) {
         for(i = 5; i >= 0; i--) {
           ds2411_id[i] = owr_readb();
-          crc=crc8_add (crc,ds2411_id[i]);
+          crc = crc8_add(crc, ds2411_id[i]);
         }
-      } else{
-        crc=99; /* retry */
+      } else {
+        crc = 99;               /* retry */
       }
-    } else{
-      crc=99; /* retry */
-    }	 
+    } else {
+      crc = 99;                 /* retry */
+    }
     retry--;
-    read_crc=owr_readb();
+    read_crc = owr_readb();
   }
-  while((crc!=read_crc)&(retry>0));
-  if (retry){
+  while((crc != read_crc) & (retry > 0));
+  if(retry) {
     return 1;
-  }
-  else{
+  } else {
     return 0;
   }
 }
 
 /*---------------------------------------------------------------------------*/
-
-
-
