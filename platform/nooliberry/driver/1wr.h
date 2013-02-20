@@ -54,10 +54,10 @@
  *----------------------------------------------------------------------------*/
 
 /* standard speed */
-#define tSLOT	65	
+#define tSLOT	65
 #define tRSTL	500
 #define tMSP	60
-#define tW1L	10			
+#define tW1L	10
 #define tW0L	65
 #define tRL		5
 #define tMSR	12
@@ -67,14 +67,14 @@
 #define tOSLOT	8
 #define tORSTL	60
 #define tOMSP	6
-#define tOW1L	1			
+#define tOW1L	1
 #define tOW0L	6
 #define tORL	1
 #define tOMSR	2
 
 void owr_writeb(unsigned byte);
 unsigned owr_readb(void);
-int owr_reset (void);
+int owr_reset(void);
 
 #endif /* __1WR_H__ */
 /* eof 1WR.h */

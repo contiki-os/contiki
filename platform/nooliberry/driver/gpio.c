@@ -50,149 +50,148 @@
 void
 gpio_set_output(int gpio)
 {
-  switch(gpio) {
-    case 0:
-      sbi (GPIO_0_DDR,GPIO_0_BIT);  //GPIO_0_DDR |= GPIO_0_BIT;
-      break;
-    case 1:
-      sbi (GPIO_1_DDR,GPIO_1_BIT);  //GPIO_1_DDR |= GPIO_1_BIT;
-      break;
-    case 2:
-      sbi (GPIO_2_DDR,GPIO_2_BIT);  //GPIO_2_DDR |= GPIO_2_BIT;
-      break;
-    case 3:
-      sbi (GPIO_3_DDR,GPIO_3_BIT);  //GPIO_3_DDR |= GPIO_3_BIT;
-      break;
-    case 4:
-      sbi (GPIO_4_DDR,GPIO_4_BIT);  //GPIO_4_DDR |= GPIO_4_BIT;
-      break;
-    case 5:
-      sbi (GPIO_5_DDR,GPIO_5_BIT);  //GPIO_5_DDR |= GPIO_5_BIT;
-      break;
-    case 6:
-      sbi (GPIO_6_DDR,GPIO_6_BIT);  //GPIO_6_DDR |= GPIO_6_BIT;
-      break;
-    case 7:
-      sbi (GPIO_7_DDR,GPIO_7_BIT);  //GPIO_7_DDR |= GPIO_7_BIT;
-      break;
-    case 8:
-      sbi (GPIO_8_DDR,GPIO_8_BIT);  //GPIO_8_DDR |= GPIO_8_BIT;
-      break;
-    case 9:
-      sbi (GPIO_1WR_DDR,GPIO_1WR_BIT);  //GPIO_8_DDR |= GPIO_8_BIT;
-      break;
+  switch (gpio) {
+  case 0:
+    sbi(GPIO_0_DDR, GPIO_0_BIT);        //GPIO_0_DDR |= GPIO_0_BIT;
+    break;
+  case 1:
+    sbi(GPIO_1_DDR, GPIO_1_BIT);        //GPIO_1_DDR |= GPIO_1_BIT;
+    break;
+  case 2:
+    sbi(GPIO_2_DDR, GPIO_2_BIT);        //GPIO_2_DDR |= GPIO_2_BIT;
+    break;
+  case 3:
+    sbi(GPIO_3_DDR, GPIO_3_BIT);        //GPIO_3_DDR |= GPIO_3_BIT;
+    break;
+  case 4:
+    sbi(GPIO_4_DDR, GPIO_4_BIT);        //GPIO_4_DDR |= GPIO_4_BIT;
+    break;
+  case 5:
+    sbi(GPIO_5_DDR, GPIO_5_BIT);        //GPIO_5_DDR |= GPIO_5_BIT;
+    break;
+  case 6:
+    sbi(GPIO_6_DDR, GPIO_6_BIT);        //GPIO_6_DDR |= GPIO_6_BIT;
+    break;
+  case 7:
+    sbi(GPIO_7_DDR, GPIO_7_BIT);        //GPIO_7_DDR |= GPIO_7_BIT;
+    break;
+  case 8:
+    sbi(GPIO_8_DDR, GPIO_8_BIT);        //GPIO_8_DDR |= GPIO_8_BIT;
+    break;
+  case 9:
+    sbi(GPIO_1WR_DDR, GPIO_1WR_BIT);    //GPIO_8_DDR |= GPIO_8_BIT;
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
 void
 gpio_set_input(int gpio)
 {
-  switch(gpio)
-  {
-    case 0:
-      cbi (GPIO_0_DDR,GPIO_0_BIT);  //GPIO_0_DDR += ~GPIO_0_BIT;
-      break;
-    case 1:
-      cbi (GPIO_1_DDR,GPIO_1_BIT);  //GPIO_1_DDR += ~GPIO_1_BIT;
-      break;
-    case 2:
-      cbi (GPIO_2_DDR,GPIO_2_BIT);  //GPIO_2_DDR += ~GPIO_2_BIT;
-      break;
-    case 3:
-      cbi (GPIO_3_DDR,GPIO_3_BIT);  //GPIO_3_DDR &= ~GPIO_3_BIT;
-      break;
-    case 4:
-      cbi (GPIO_4_DDR,GPIO_4_BIT);  //GPIO_4_DDR += ~GPIO_4_BIT;
-      break;
-    case 5:
-      cbi (GPIO_5_DDR,GPIO_5_BIT);  //GPIO_5_DDR += ~GPIO_5_BIT;
-      break;
-    case 6:
-      cbi (GPIO_6_DDR,GPIO_6_BIT);  //GPIO_6_DDR += ~GPIO_6_BIT;
-      break;
-    case 7:
-      cbi (GPIO_7_DDR,GPIO_7_BIT);  //GPIO_7_DDR += ~GPIO_7_BIT;
-      break;
-    case 8:
-      cbi (GPIO_8_DDR,GPIO_8_BIT);  //GPIO_8_DDR += ~GPIO_8_BIT;
-      break;
-    case 9:
-      cbi (GPIO_1WR_DDR,GPIO_1WR_BIT);  //GPIO_8_DDR += ~GPIO_8_BIT;
-      break;
+  switch (gpio) {
+  case 0:
+    cbi(GPIO_0_DDR, GPIO_0_BIT);        //GPIO_0_DDR += ~GPIO_0_BIT;
+    break;
+  case 1:
+    cbi(GPIO_1_DDR, GPIO_1_BIT);        //GPIO_1_DDR += ~GPIO_1_BIT;
+    break;
+  case 2:
+    cbi(GPIO_2_DDR, GPIO_2_BIT);        //GPIO_2_DDR += ~GPIO_2_BIT;
+    break;
+  case 3:
+    cbi(GPIO_3_DDR, GPIO_3_BIT);        //GPIO_3_DDR &= ~GPIO_3_BIT;
+    break;
+  case 4:
+    cbi(GPIO_4_DDR, GPIO_4_BIT);        //GPIO_4_DDR += ~GPIO_4_BIT;
+    break;
+  case 5:
+    cbi(GPIO_5_DDR, GPIO_5_BIT);        //GPIO_5_DDR += ~GPIO_5_BIT;
+    break;
+  case 6:
+    cbi(GPIO_6_DDR, GPIO_6_BIT);        //GPIO_6_DDR += ~GPIO_6_BIT;
+    break;
+  case 7:
+    cbi(GPIO_7_DDR, GPIO_7_BIT);        //GPIO_7_DDR += ~GPIO_7_BIT;
+    break;
+  case 8:
+    cbi(GPIO_8_DDR, GPIO_8_BIT);        //GPIO_8_DDR += ~GPIO_8_BIT;
+    break;
+  case 9:
+    cbi(GPIO_1WR_DDR, GPIO_1WR_BIT);    //GPIO_8_DDR += ~GPIO_8_BIT;
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
 int
 gpio_get(int gpio)
 {
-  switch(gpio) {
-    case 0:
-      return  bit_is_set ( GPIO_0_PIN, GPIO_0_BIT ); //!((GPIO_0_PIN & GPIO_0_BIT)==0);
-      break;
-    case 1:
-      return  bit_is_set ( GPIO_1_PIN, GPIO_1_BIT ); // !((GPIO_1_PIN & GPIO_1_BIT)==0);
-      break;
-    case 2:
-      return  bit_is_set ( GPIO_2_PIN, GPIO_2_BIT ); // !((GPIO_2_PIN & GPIO_2_BIT)==0);
-      break;
-    case 3:
-      return  bit_is_set ( GPIO_3_PIN, GPIO_3_BIT ); // !((GPIO_3_PIN & GPIO_3_BIT)==0);
-      break;
-    case 4:
-      return  bit_is_set ( GPIO_4_PIN, GPIO_4_BIT ); // !((GPIO_4_PIN & GPIO_4_BIT)==0);
-      break;
-    case 5:
-      return  bit_is_set ( GPIO_5_PIN, GPIO_5_BIT ); // !((GPIO_5_PIN & GPIO_5_BIT)==0);
-      break;
-    case 6:
-      return  bit_is_set ( GPIO_6_PIN, GPIO_6_BIT ); // !((GPIO_6_PIN & GPIO_6_BIT)==0);
-      break;
-    case 7:
-      return  bit_is_set ( GPIO_7_PIN, GPIO_7_BIT ); // !((GPIO_7_PIN & GPIO_7_BIT)==0);
-      break;
-    case 8:
-      return  bit_is_set ( GPIO_8_PIN, GPIO_8_BIT ); //  !((GPIO_8_PIN & GPIO_8_BIT)==0);
-     break;
-    case 9:
-      return  bit_is_set ( GPIO_1WR_PIN, GPIO_1WR_BIT ); 
-      break;
+  switch (gpio) {
+  case 0:
+    return bit_is_set(GPIO_0_PIN, GPIO_0_BIT);  //!((GPIO_0_PIN & GPIO_0_BIT)==0);
+    break;
+  case 1:
+    return bit_is_set(GPIO_1_PIN, GPIO_1_BIT);  // !((GPIO_1_PIN & GPIO_1_BIT)==0);
+    break;
+  case 2:
+    return bit_is_set(GPIO_2_PIN, GPIO_2_BIT);  // !((GPIO_2_PIN & GPIO_2_BIT)==0);
+    break;
+  case 3:
+    return bit_is_set(GPIO_3_PIN, GPIO_3_BIT);  // !((GPIO_3_PIN & GPIO_3_BIT)==0);
+    break;
+  case 4:
+    return bit_is_set(GPIO_4_PIN, GPIO_4_BIT);  // !((GPIO_4_PIN & GPIO_4_BIT)==0);
+    break;
+  case 5:
+    return bit_is_set(GPIO_5_PIN, GPIO_5_BIT);  // !((GPIO_5_PIN & GPIO_5_BIT)==0);
+    break;
+  case 6:
+    return bit_is_set(GPIO_6_PIN, GPIO_6_BIT);  // !((GPIO_6_PIN & GPIO_6_BIT)==0);
+    break;
+  case 7:
+    return bit_is_set(GPIO_7_PIN, GPIO_7_BIT);  // !((GPIO_7_PIN & GPIO_7_BIT)==0);
+    break;
+  case 8:
+    return bit_is_set(GPIO_8_PIN, GPIO_8_BIT);  //  !((GPIO_8_PIN & GPIO_8_BIT)==0);
+    break;
+  case 9:
+    return bit_is_set(GPIO_1WR_PIN, GPIO_1WR_BIT);
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
 void
 gpio_set_on(int gpio)
 {
-  switch(gpio) {
-    case 0:
-      sbi (GPIO_0_PORT,GPIO_0_BIT);  //GPIO_0_PORT |= GPIO_0_BIT;
-      break;
-    case 1:
-      sbi (GPIO_1_PORT,GPIO_1_BIT);  //GPIO_1_PORT |= GPIO_1_BIT;
-      break;
-    case 2:
-      sbi (GPIO_2_PORT,GPIO_2_BIT);  //GPIO_2_PORT |= GPIO_2_BIT;
-      break;
-    case 3:
-      sbi (GPIO_3_PORT,GPIO_3_BIT);  //GPIO_3_PORT |= GPIO_3_BIT;
-      break;
-    case 4:
-      sbi (GPIO_4_PORT,GPIO_4_BIT);  //GPIO_4_PORT |= GPIO_4_BIT;
-      break;
-    case 5:
-      sbi (GPIO_5_PORT,GPIO_5_BIT);  //GPIO_5_PORT |= GPIO_5_BIT;
-      break;
-    case 6:
-      sbi (GPIO_6_PORT,GPIO_6_BIT);  //GPIO_6_PORT |= GPIO_6_BIT;
-      break;
-    case 7:
-      sbi (GPIO_7_PORT,GPIO_7_BIT);  //GPIO_7_PORT |= GPIO_7_BIT;
-      break;
-    case 8:
-      sbi (GPIO_8_PORT,GPIO_8_BIT);  //GPIO_8_PORT |= GPIO_8_BIT;
-      break;
-    case 9:
-      sbi (GPIO_1WR_PORT,GPIO_1WR_BIT);  
-      break;
+  switch (gpio) {
+  case 0:
+    sbi(GPIO_0_PORT, GPIO_0_BIT);       //GPIO_0_PORT |= GPIO_0_BIT;
+    break;
+  case 1:
+    sbi(GPIO_1_PORT, GPIO_1_BIT);       //GPIO_1_PORT |= GPIO_1_BIT;
+    break;
+  case 2:
+    sbi(GPIO_2_PORT, GPIO_2_BIT);       //GPIO_2_PORT |= GPIO_2_BIT;
+    break;
+  case 3:
+    sbi(GPIO_3_PORT, GPIO_3_BIT);       //GPIO_3_PORT |= GPIO_3_BIT;
+    break;
+  case 4:
+    sbi(GPIO_4_PORT, GPIO_4_BIT);       //GPIO_4_PORT |= GPIO_4_BIT;
+    break;
+  case 5:
+    sbi(GPIO_5_PORT, GPIO_5_BIT);       //GPIO_5_PORT |= GPIO_5_BIT;
+    break;
+  case 6:
+    sbi(GPIO_6_PORT, GPIO_6_BIT);       //GPIO_6_PORT |= GPIO_6_BIT;
+    break;
+  case 7:
+    sbi(GPIO_7_PORT, GPIO_7_BIT);       //GPIO_7_PORT |= GPIO_7_BIT;
+    break;
+  case 8:
+    sbi(GPIO_8_PORT, GPIO_8_BIT);       //GPIO_8_PORT |= GPIO_8_BIT;
+    break;
+  case 9:
+    sbi(GPIO_1WR_PORT, GPIO_1WR_BIT);
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -200,36 +199,36 @@ void
 gpio_set_off(int gpio)
 {
   switch (gpio) {
-    case 0:
-      cbi (GPIO_0_PORT,GPIO_0_BIT);  //GPIO_0_PORT ^= GPIO_0_BIT;
-      break;
-    case 1:
-      cbi (GPIO_1_PORT,GPIO_1_BIT);  //GPIO_1_PORT ^= GPIO_1_BIT;
-      break;
-    case 2:
-      cbi (GPIO_2_PORT,GPIO_2_BIT);  //GPIO_2_PORT ^= GPIO_2_BIT;
-      break;
-    case 3:
-      cbi (GPIO_3_PORT,GPIO_3_BIT);  //GPIO_3_PORT ^= GPIO_3_BIT;
-      break;
-    case 4:
-      cbi (GPIO_4_PORT,GPIO_4_BIT);  //GPIO_4_PORT ^= GPIO_4_BIT;
-      break;
-    case 5:
-      cbi (GPIO_5_PORT,GPIO_5_BIT);  //GPIO_5_PORT ^= GPIO_5_BIT;
-      break;
-    case 6:
-      cbi (GPIO_6_PORT,GPIO_6_BIT);  //GPIO_6_PORT ^= GPIO_6_BIT;
-      break;
-    case 7:
-      cbi (GPIO_7_PORT,GPIO_7_BIT);  //GPIO_7_PORT ^= GPIO_7_BIT;
-      break;
-    case 8:
-      cbi (GPIO_8_PORT,GPIO_8_BIT);  //GPIO_8_PORT ^= GPIO_8_BIT;
-      break;
-    case 9:
-      cbi (GPIO_1WR_PORT,GPIO_1WR_BIT);  
-      break;
+  case 0:
+    cbi(GPIO_0_PORT, GPIO_0_BIT);       //GPIO_0_PORT ^= GPIO_0_BIT;
+    break;
+  case 1:
+    cbi(GPIO_1_PORT, GPIO_1_BIT);       //GPIO_1_PORT ^= GPIO_1_BIT;
+    break;
+  case 2:
+    cbi(GPIO_2_PORT, GPIO_2_BIT);       //GPIO_2_PORT ^= GPIO_2_BIT;
+    break;
+  case 3:
+    cbi(GPIO_3_PORT, GPIO_3_BIT);       //GPIO_3_PORT ^= GPIO_3_BIT;
+    break;
+  case 4:
+    cbi(GPIO_4_PORT, GPIO_4_BIT);       //GPIO_4_PORT ^= GPIO_4_BIT;
+    break;
+  case 5:
+    cbi(GPIO_5_PORT, GPIO_5_BIT);       //GPIO_5_PORT ^= GPIO_5_BIT;
+    break;
+  case 6:
+    cbi(GPIO_6_PORT, GPIO_6_BIT);       //GPIO_6_PORT ^= GPIO_6_BIT;
+    break;
+  case 7:
+    cbi(GPIO_7_PORT, GPIO_7_BIT);       //GPIO_7_PORT ^= GPIO_7_BIT;
+    break;
+  case 8:
+    cbi(GPIO_8_PORT, GPIO_8_BIT);       //GPIO_8_PORT ^= GPIO_8_BIT;
+    break;
+  case 9:
+    cbi(GPIO_1WR_PORT, GPIO_1WR_BIT);
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -237,40 +236,41 @@ void
 gpio_toggle(int gpio)
 {
   switch (gpio) {
-    case 0:
-      sbi (GPIO_0_PIN,GPIO_0_BIT);  //GPIO_0_PIN |= GPIO_0_BIT;
-      break;
-    case 1:
-      sbi (GPIO_1_PIN,GPIO_1_BIT);  //GPIO_1_PIN |= GPIO_1_BIT;
-      break;
-    case 2:
-      sbi (GPIO_2_PIN,GPIO_2_BIT);  //GPIO_2_PIN |= GPIO_2_BIT;
-      break;
-    case 3:
-      sbi (GPIO_3_PIN,GPIO_3_BIT);  //GPIO_3_PIN |= GPIO_3_BIT;
-      break;
-    case 4:
-      sbi (GPIO_4_PIN,GPIO_4_BIT);  //GPIO_4_PIN |= GPIO_4_BIT;
-      break;
-    case 5:
-      sbi (GPIO_5_PIN,GPIO_5_BIT);  //GPIO_5_PIN |= GPIO_5_BIT;
-      break;
-    case 6:
-      sbi (GPIO_6_PIN,GPIO_6_BIT);  //GPIO_6_PIN |= GPIO_6_BIT;
-      break;
-    case 7:
-      sbi (GPIO_7_PIN,GPIO_7_BIT);  //GPIO_7_PIN |= GPIO_7_BIT;
-      break;
-    case 8:
-      sbi (GPIO_8_PIN,GPIO_8_BIT);  //GPIO_8_PIN |= GPIO_8_BIT;
-      break;
-    case 9:
-      sbi (GPIO_1WR_PIN,GPIO_1WR_BIT);  //GPIO_8_PIN |= GPIO_8_BIT;
-      break;
+  case 0:
+    sbi(GPIO_0_PIN, GPIO_0_BIT);        //GPIO_0_PIN |= GPIO_0_BIT;
+    break;
+  case 1:
+    sbi(GPIO_1_PIN, GPIO_1_BIT);        //GPIO_1_PIN |= GPIO_1_BIT;
+    break;
+  case 2:
+    sbi(GPIO_2_PIN, GPIO_2_BIT);        //GPIO_2_PIN |= GPIO_2_BIT;
+    break;
+  case 3:
+    sbi(GPIO_3_PIN, GPIO_3_BIT);        //GPIO_3_PIN |= GPIO_3_BIT;
+    break;
+  case 4:
+    sbi(GPIO_4_PIN, GPIO_4_BIT);        //GPIO_4_PIN |= GPIO_4_BIT;
+    break;
+  case 5:
+    sbi(GPIO_5_PIN, GPIO_5_BIT);        //GPIO_5_PIN |= GPIO_5_BIT;
+    break;
+  case 6:
+    sbi(GPIO_6_PIN, GPIO_6_BIT);        //GPIO_6_PIN |= GPIO_6_BIT;
+    break;
+  case 7:
+    sbi(GPIO_7_PIN, GPIO_7_BIT);        //GPIO_7_PIN |= GPIO_7_BIT;
+    break;
+  case 8:
+    sbi(GPIO_8_PIN, GPIO_8_BIT);        //GPIO_8_PIN |= GPIO_8_BIT;
+    break;
+  case 9:
+    sbi(GPIO_1WR_PIN, GPIO_1WR_BIT);    //GPIO_8_PIN |= GPIO_8_BIT;
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
-void ngpio_init(void)
+void
+ngpio_init(void)
 {
 
 }

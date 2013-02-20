@@ -49,8 +49,8 @@
 void
 leds_arch_init(void)
 {
-	DIRECTION_REG |= LED_RED_BIT;
-	ACTIVE_GPIO_REG &= ~LED_RED_BIT;
+  DIRECTION_REG |= LED_RED_BIT;
+  ACTIVE_GPIO_REG &= ~LED_RED_BIT;
 }
 /*---------------------------------------------------------------------------*/
 unsigned char

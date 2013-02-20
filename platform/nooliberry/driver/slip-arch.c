@@ -44,6 +44,6 @@
 void
 slip_arch_init(unsigned long ubr)
 {
-	uart1_set_input(slip_input_byte);
+  uart1_set_input(slip_input_byte);
 }
 /*---------------------------------------------------------------------------*/

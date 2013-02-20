@@ -65,7 +65,7 @@
 #define GPIO_3_DDR DDRG
 #define GPIO_3_PORT PORTG
 #define GPIO_3_PIN PING
-#define GPIO_3_BIT 0 
+#define GPIO_3_BIT 0
 #define GPIO_3 3
 #define GPIO_4_DDR DDRG
 #define GPIO_4_PORT PORTG
@@ -82,7 +82,7 @@
 #define GPIO_6_PORT PORTD
 #define GPIO_6_PIN PIND
 #define GPIO_6_BIT 6
-#define GPIO_6 6 
+#define GPIO_6 6
 #define GPIO_7_DDR DDRD
 #define GPIO_7_PORT PORTD
 #define GPIO_7_PIN PIND
@@ -101,8 +101,8 @@
 #define GPIO_1WR_BIT 5
 #define GPIO_1WR 9
 
-#define  sbi(port, bit)   (port) |= (1 << (bit)) 
-#define  cbi(port, bit)   (port) &= ~(1 << (bit)) 
+#define  sbi(port, bit)   (port) |= (1 << (bit))
+#define  cbi(port, bit)   (port) &= ~(1 << (bit))
 
 void ngpio_init(void);
 void gpio_set_on(int gpio);

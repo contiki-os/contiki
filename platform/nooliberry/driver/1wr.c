@@ -64,12 +64,12 @@
 void
 micro_delay(unsigned int i)
 {
-  if(i>3) {
-    i-=3;
-  }  
-  for(; i > 0; i--) {	
-    asm volatile("nop");
-    asm volatile("nop");
+  if(i > 3) {
+    i -= 3;
+  }
+  for(; i > 0; i--) {
+    asm volatile ("nop");
+    asm volatile ("nop");
   }
 }
 
@@ -83,18 +83,20 @@ Parameters:
 Returns:
   1 if presence detect.
  *----------------------------------------------------------------------------*/
-int owr_reset(void)
+int
+owr_reset(void)
 {
   int result;
+
   cli();
   gpio_set_output(GPIO_1WR);
   gpio_set_off(GPIO_1WR);
-  micro_delay (tRSTL);
-  gpio_set_input(GPIO_1WR); 
+  micro_delay(tRSTL);
+  gpio_set_input(GPIO_1WR);
   micro_delay(tMSP);
   result = gpio_get(GPIO_1WR);
-  micro_delay (tRSTL);
-  sei ();
+  micro_delay(tRSTL);
+  sei();
   return !result;
 }
 
@@ -104,21 +106,22 @@ Parameters:
 Returns:
   value.
  *----------------------------------------------------------------------------*/
-unsigned owr_readb(void)
+unsigned
+owr_readb(void)
 {
   unsigned result = 0;
   int i;
-  for(i=0;i<8;i++)
-  {
+
+  for(i = 0; i < 8; i++) {
     result >>= 1;
     gpio_set_output(GPIO_1WR);
-    micro_delay (tRL);
-    gpio_set_input(GPIO_1WR);			
+    micro_delay(tRL);
+    gpio_set_input(GPIO_1WR);
     micro_delay(tMSR);
     if(gpio_get(GPIO_1WR)) {
-      result |= 0x80;		
+      result |= 0x80;
     }
-    micro_delay(tSLOT-tRL); 
+    micro_delay(tSLOT - tRL);
   }
   return result;
 }
@@ -129,25 +132,25 @@ Parameters:
    bytes to write.
 Returns:
  *----------------------------------------------------------------------------*/
-void owr_writeb(unsigned byte)
+void
+owr_writeb(unsigned byte)
 {
   int i;
-  for(i=0;i<8;i++)
-  {
+
+  for(i = 0; i < 8; i++) {
     if(byte & 0x01) {
       gpio_set_output(GPIO_1WR);
-      micro_delay (tW1L);
-      gpio_set_input(GPIO_1WR);			
-      micro_delay(tSLOT-tW1L);
+      micro_delay(tW1L);
+      gpio_set_input(GPIO_1WR);
+      micro_delay(tSLOT - tW1L);
     } else {
       gpio_set_output(GPIO_1WR);
-      micro_delay (tW0L);
-      gpio_set_input(GPIO_1WR);			
-      micro_delay(tSLOT-tW0L);
+      micro_delay(tW0L);
+      gpio_set_input(GPIO_1WR);
+      micro_delay(tSLOT - tW0L);
     }
     byte >>= 1;
   }
 }
 
 /* eof 1WR.c */
-

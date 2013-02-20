@@ -53,7 +53,7 @@
 #include "loader/symtab.h"
 #include "dev/button-sensor.h"
 
-#define ANNOUNCE_BOOT 0    //adds about 600 bytes to program size
+#define ANNOUNCE_BOOT 0         //adds about 600 bytes to program size
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
@@ -63,15 +63,15 @@
 #define PRINTSHORT(...)
 #endif
 
-#if RF230BB           //radio driver using contiki core mac
+#if RF230BB                     //radio driver using contiki core mac
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
-#else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
+#else //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
 #include "mac.h"
 #include "ieee-15-4-manager.h"
-#endif /*RF230BB*/
+#endif /*RF230BB */
 
 #if UIP_CONF_IPV6
 #include "sicslowmac.h"
@@ -88,87 +88,87 @@
 #include "ds2411.h"
 #include "leds.h"
 
-FUSES =
-	{
-		.low = (FUSE_CKSEL0 & FUSE_CKSEL2 & FUSE_CKSEL3 & FUSE_SUT0), // 0xe2,
-		.high = (FUSE_BOOTSZ0 /*& FUSE_BOOTSZ1*/ & FUSE_SPIEN & FUSE_JTAGEN), //0x9D,
-		.extended = 0xff,
-	};
+FUSES = {
+  .low = (FUSE_CKSEL0 & FUSE_CKSEL2 & FUSE_CKSEL3 & FUSE_SUT0), // 0xe2,
+    .high = (FUSE_BOOTSZ0 /*& FUSE_BOOTSZ1 */  & FUSE_SPIEN & FUSE_JTAGEN),     //0x9D,
+.extended = 0xff,};
 
 SENSORS(&button_sensor);
-	
+
 #if RF230BB
 //PROCINIT(&etimer_process, &tcpip_process );
 #else
-PROCINIT(&etimer_process, &mac_process, &tcpip_process );
+PROCINIT(&etimer_process, &mac_process, &tcpip_process);
 #endif
 /* Put default MAC address in EEPROM */
-uint8_t mac_address[8] = {2, 0, 0, 0, 0, 0, 0xaa, 0xaa};
+uint8_t mac_address[8] = { 2, 0, 0, 0, 0, 0, 0xaa, 0xaa };
 
 void
 init_lowlevel(void)
 {
   uint8_t i;
   unsigned char ds2411_id[6];
-  
+
   /* Second rs232 port for debugging */
   rs232_init(RS232_PORT_1, USART_BAUD_38400,
              USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 
   /* Redirect stdout to second port */
   rs232_redirect_stdout(RS232_PORT_1);
-  
+
   /* Clock */
   clock_init();
- 
- /* rtimers needed for radio cycling */
+
+  /* rtimers needed for radio cycling */
   rtimer_init();
 
- /* Initialize process subsystem */
+  /* Initialize process subsystem */
   process_init();
 
- /* etimers must be started before ctimer_init */
+  /* etimers must be started before ctimer_init */
   process_start(&etimer_process, NULL);
-  
+
 #if RF230BB
   ctimer_init();
   /* Start radio and radio receive process */
   NETSTACK_RADIO.init();
-  
-  if(ds2411_read (ds2411_id))  /* if serial available, modify adress in EPROM */
-  {
-    mac_address[0]=0x02;
-    mac_address[1]=0;
-    mac_address[2]=ds2411_id[0];
-    mac_address[3]=ds2411_id[1];
-    mac_address[4]=ds2411_id[2];
-    mac_address[5]=ds2411_id[3];
-    mac_address[6]=ds2411_id[4];
-    mac_address[7]=ds2411_id[5];
+
+  if(ds2411_read(ds2411_id)) {  /* if serial available, modify adress in EPROM */
+    mac_address[0] = 0x02;
+    mac_address[1] = 0;
+    mac_address[2] = ds2411_id[0];
+    mac_address[3] = ds2411_id[1];
+    mac_address[4] = ds2411_id[2];
+    mac_address[5] = ds2411_id[3];
+    mac_address[6] = ds2411_id[4];
+    mac_address[7] = ds2411_id[5];
   }
-  
-  /* Set addresses BEFORE starting tcpip process */ 
+
+  /* Set addresses BEFORE starting tcpip process */
   rimeaddr_t addr;
+
   memset(&addr, 0, sizeof(rimeaddr_t));
-  memcpy((void *)&addr.u8,  &mac_address, 8);
-  
+  memcpy((void *)&addr.u8, &mac_address, 8);
+
 #if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &addr.u8, 8);
 #endif /* UIP_CONF_IPV6 */
-  
-  rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
-  
+
+  rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *) & addr.u8);
+
 #ifdef CHANNEL_802_15_4
   rf230_set_channel(CHANNEL_802_15_4);
 #else /* CHANNEL_802_15_4 */
   rf230_set_channel(26);
 #endif /* CHANNEL_802_15_4 */
-  rimeaddr_set_node_addr(&addr); 
-    
+  rimeaddr_set_node_addr(&addr);
+
   //calibrate_rc_osc_32k(); //CO: Had to comment this out
 
   /* Initialize hardware */
-  PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+  PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n", addr.u8[0], addr.u8[1],
+         addr.u8[2], addr.u8[3], addr.u8[4], addr.u8[5], addr.u8[6],
+         addr.u8[7]);
 
   /* Initialize stack protocols */
   queuebuf_init();
@@ -177,32 +177,35 @@ init_lowlevel(void)
   NETSTACK_NETWORK.init();
 
 #if ANNOUNCE_BOOT
-  printf_P(PSTR("%s %s, channel %u"),NETSTACK_MAC.name, NETSTACK_RDC.name,rf230_get_channel());
-  if (NETSTACK_RDC.channel_check_interval) {//function pointer is zero for sicslowmac
+  printf_P(PSTR("%s %s, channel %u"), NETSTACK_MAC.name, NETSTACK_RDC.name,
+           rf230_get_channel());
+  if(NETSTACK_RDC.channel_check_interval) {     //function pointer is zero for sicslowmac
     unsigned short tmp;
-    tmp=CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1:\
-                                   NETSTACK_RDC.channel_check_interval());
-    if (tmp<65535) printf_P(PSTR(", check rate %u Hz"),tmp);
+
+    tmp = CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval == 0 ? 1 :
+                          NETSTACK_RDC.channel_check_interval());
+    if(tmp < 65535)
+      printf_P(PSTR(", check rate %u Hz"), tmp);
   }
   printf_P(PSTR("\n"));
 #endif /* ANNOUNCE_BOOT */
 
 #if UIP_CONF_ROUTER
-  #if ANNOUNCE_BOOT
-    printf_P(PSTR("Routing Enabled\n"));
-  #endif /* ANNOUNCE_BOOT */
+#if ANNOUNCE_BOOT
+  printf_P(PSTR("Routing Enabled\n"));
+#endif /* ANNOUNCE_BOOT */
   rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
 #endif /* UIP_CONF_ROUTER */
-  #if UIP_CONF_IPV6
-    process_start(&tcpip_process, NULL);
-  #endif /* UIP_CONF_IPV6 */
-#else /*RF230BB*/
-  #if UIP_CONF_IPV6
-    /* mac process must be started before tcpip process! */
-    process_start(&mac_process, NULL);
-    process_start(&tcpip_process, NULL);
-  #endif /* UIP_CONF_IPV6 */
+#if UIP_CONF_IPV6
+  process_start(&tcpip_process, NULL);
+#endif /* UIP_CONF_IPV6 */
+#else /*RF230BB */
+#if UIP_CONF_IPV6
+  /* mac process must be started before tcpip process! */
+  process_start(&mac_process, NULL);
+  process_start(&tcpip_process, NULL);
+#endif /* UIP_CONF_IPV6 */
 #endif /* RF230BB */
 }
 
@@ -211,7 +214,7 @@ init_lowlevel(void)
 
 int
 main(void)
-{    
+{
   //calibrate_rc_osc_32k(); //CO: Had to comment this out
 
   /* Initialize hardware */

@@ -43,10 +43,11 @@
 /*---------------------------------------------------------------------------*/
 uart1_init(unsigned long ubr)
 {
-	rs232_init(RS232_PORT_1, ubr,	USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
+  rs232_init(RS232_PORT_1, ubr,
+             USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 }
 
-uart1_set_input(int (*input)(unsigned char c))
+uart1_set_input(int (*input) (unsigned char c))
 {
-	rs232_set_input(RS232_PORT_1, input);
+  rs232_set_input(RS232_PORT_1, input);
 }
