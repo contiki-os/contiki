@@ -97,7 +97,7 @@ else
     ifdef MOTEIDS
   	  MOTES = $(foreach MOTEID, $(MOTEIDS), $(shell $(MOTELIST)  2>&- | grep $(MOTEID) | \
           cut -f 4 -d \  | \
-          perl -ne 'print $$1 . " " if(m-(/dev/[\w+\.\-]+)-);') 
+          perl -ne 'print $$1 . " " if(m-(/dev/[\w+\.\-]+)-);')) 
     else
       MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
          cut -f 4 -d \  | \
