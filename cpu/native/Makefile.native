@@ -19,7 +19,7 @@ endif
 CFLAGSNO = -Wall -g -I/usr/local/include $(CFLAGSWERROR)
 CFLAGS  += $(CFLAGSNO) -O
 
-ifeq ($(shell uname),Darwin)
+ifeq ($(HOST_OS),Darwin)
 AROPTS = -r
 LDFLAGS += -Wl,-flat_namespace
 CFLAGS += -DHAVE_SNPRINTF=1 -U__ASSERT_USE_STDERR
