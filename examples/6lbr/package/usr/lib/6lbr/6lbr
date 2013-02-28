@@ -55,9 +55,21 @@ if [ "$IFDOWN" == "" ]; then
 	IFDOWN=$LIB_6LBR/6lbr-ifdown
 fi
 
+if [[ "$DEV_RADIO" != "" && "$SOCK_RADIO" != "" ]]; then
+	echo WARNING: $CFG declares both DEV_RADIO or SOCK_RADIO. Using SOCK_RADIO=$SOCK_RADIO
+fi
+
+if [ "$DEV_RADIO" != "" ]; then
+	RADIO="-s $DEV_RADIO"
+fi
+
+if [ "$SOCK_RADIO" != "" ]; then
+	RADIO="-a $SOCK_RADIO"
+fi
+
 IFDOWN="-D $IFDOWN"
 
-PARAMS="-c $NVM -s $DEV_RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN $EXTRA_PARAMS -w $LIB_6LBR_WWW $*"
+PARAMS="-c $NVM $RADIO -t $ETH_IF $PARAM_ETH $BAUDRATE $IFUP $IFDOWN $EXTRA_PARAMS -w $LIB_6LBR_WWW $*"
 
 echo $PARAMS
 
