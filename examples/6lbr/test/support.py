@@ -45,7 +45,10 @@ class LocalNativeBR(BRProxy):
         print >>conf, "DEV_ETH=eth0"
         print >>conf, "DEV_TAP=%s" % self.itf
         print >>conf, "RAW_ETH=0"
-        print >>conf, "DEV_RADIO=%s" % config.radio_dev
+        if hasattr(config, 'radio_dev'):
+            print >>conf, "DEV_RADIO=%s" % config.radio_dev
+        if hasattr(config, 'radio_sock'):
+	    print >>conf, "SOCK_RADIO=%s" % config.radio_sock
         print >>conf, "NVM=test.dat"
         print >>conf, "LIB_6LBR=.."
         print >>conf, "IFUP=../package/usr/lib/6lbr/6lbr-ifup"
@@ -162,6 +165,12 @@ class TelosMote(MoteProxy):
             return self.wait_until("Received an icmp6 echo reply\n", 10)
         else:
             return True
+
+class VirtualTelosMote(TelosMote):
+    def reset_mote(self):
+        print >> sys.stderr, "Reseting mote..."
+        self.serialport.write("\r\nreboot\r\n")
+        return self.wait_until("Starting '6LBR Demo'\n", 5)
 
 class InteractiveMote(MoteProxy):
     mote_started=False
