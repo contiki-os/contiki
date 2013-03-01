@@ -60,7 +60,7 @@ class LocalNativeBR(BRProxy):
         print >> sys.stderr, "Starting 6LBR..."
         #self.process = Popen(args="./start_br %s -s %s -R -t %s -c %s" % (self.mode, config.radio_dev, self.itf, self.nvm_file), shell=True)
         self.log=open(log_file, "w")
-        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "test.conf"], stdout=self.log)
+        self.process = subprocess.Popen(args=["../package/usr/bin/6lbr",  "./test.conf"], stdout=self.log)
         sleep(1)
         return self.process != None
 
@@ -116,13 +116,13 @@ class MoteProxy:
 
 class TelosMote(MoteProxy):
     def setUp(self):
-        self.reset_mote()
         self.serialport = serial.Serial(
             port=config.mote_dev,
             baudrate=config.mote_baudrate,
             parity = serial.PARITY_NONE,
             timeout = 1
         )
+        self.reset_mote()
         self.serialport.flushInput()
         self.serialport.flushOutput()
 

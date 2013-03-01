@@ -82,7 +82,7 @@ class TestScenarios:
     #@unittest.skip("test")
     def test_S0(self):
         """
-        Check 6LBR start-up anbd connectivity
+        Check 6LBR start-up and connectivity
         """
         self.assertTrue(self.support.start_6lbr(self.log_file('test_S0')), "Could not start 6LBR")
         self.set_up_network()
