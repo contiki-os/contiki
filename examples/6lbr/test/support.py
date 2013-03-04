@@ -6,6 +6,9 @@ import subprocess
 import signal
 from time import sleep
 import config
+import re
+import pty
+import os
 
 sys.path.append('../../../tools/sky')
 
@@ -166,11 +169,87 @@ class TelosMote(MoteProxy):
         else:
             return True
 
-class VirtualTelosMote(TelosMote):
+class VirtualTelosMote(MoteProxy):
+    def setUp(self):
+        print("Setting up Cooja, compiling node firmwares...")
+        self.cooja = subprocess.Popen(['java', '-jar', '../../../tools/cooja/dist/cooja.jar', 
+                                       '-nogui=./cooja-small-nogui.csc'], stdout=subprocess.PIPE)
+        line = self.cooja.stdout.readline()
+        while 'Simulation main loop started' not in line: # Wait for simulation to start      
+            line = self.cooja.stdout.readline()
+        print("Cooja simulation started")
+        sleep(2)
+
+        master, slave = pty.openpty()
+        self.socat = subprocess.Popen(['socat', '-d', '-d', 'TCP:localhost:60002', 'PTY'], shell=False, stdout=slave, stderr=slave, close_fds=True)
+        socat_output = os.fdopen(master)
+
+        line = socat_output.readline()
+        while 'N PTY is' not in line: # TODO: Generalize and make Mac-friendly
+            line = socat_output.readline()
+        print >> sys.stderr, line
+
+        re_socat_ok = re.compile(".+(/dev/pts/[0-9]+).+") # TODO: Generalize and make Mac-friendly
+        re_socat_res = re_socat_ok.match(line)
+        if re_socat_res:
+            mote_dev = re_socat_res.group(1).rstrip()
+            print >> sys.stderr, mote_dev
+            self.serialport = serial.Serial(
+                port=mote_dev,
+                baudrate=config.mote_baudrate,
+                parity = serial.PARITY_NONE,
+                timeout = 1
+            )
+            self.reset_mote()
+            self.serialport.flushInput()
+            self.serialport.flushOutput()
+    
+    def tearDown(self):
+        MoteProxy.tearDown(self)
+        self.serialport.close()
+        print("Killing Cooja")
+        self.socat.terminate()
+        self.cooja.terminate()
+
+
+    def wait_until(self, text, count):
+        for n in range(count):
+            lines = self.serialport.readlines()
+            #print >> sys.stderr, lines
+            if text in lines:
+                return True
+        return False
+
     def reset_mote(self):
-        print >> sys.stderr, "Reseting mote..."
+        print >> sys.stderr, "Resetting mote..."
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
         self.serialport.write("\r\nreboot\r\n")
         return self.wait_until("Starting '6LBR Demo'\n", 5)
+
+    def start_mote(self, channel):
+        print >> sys.stderr, "Starting mote..."
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
+        self.serialport.write("\r\nrfchannel %d\r\n" % channel)
+        self.serialport.write("\r\nstart6lbr\r\n")
+        return self.wait_until("done\r\n", 5)
+
+    def stop_mote(self):
+        print >> sys.stderr, "Stopping mote..."
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
+        self.serialport.write("\r\nreboot\r\n")
+        return self.wait_until("Starting '6LBR Demo'\n", 5)
+
+    def ping(self, address, expect_reply=False, count=0):
+        print >> sys.stderr, "Ping %s..." % address
+        self.serialport.write("\r\nping %s\r\n" % address)
+        if expect_reply:
+            return self.wait_until("Received an icmp6 echo reply\n", 10)
+        else:
+            return True
+    
 
 class InteractiveMote(MoteProxy):
     mote_started=False

@@ -8,7 +8,7 @@
   <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>6lbr small</title>
-    <speedlimit>10.0</speedlimit>
+    <speedlimit>1.0</speedlimit>
     <randomseed>123456</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -163,8 +163,7 @@ more information: https://github.com/cetic/6lbr/wiki/6LBR-Test-Environment</note
       <script>TIMEOUT(999999999999);&#xD;
 &#xD;
 while (true) {&#xD;
-  WAIT_UNTIL(msg.equals('6LBR-TEST-END'));&#xD;
-  log.testOK();&#xD;
+  log.log(time + ":" + id + ":" + msg + "\n");&#xD;
   YIELD();&#xD;
 }</script>
       <active>false</active>
