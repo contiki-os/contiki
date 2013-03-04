@@ -34,4 +34,30 @@ platform=Linux() #MacOSX()
 
 """
 
+"""
+scenarios
+define 1 to run the scenario, 0 to skip
+"""
+S0=1
+S1=0
+S2=0
+S3=0
+S4=0
+S5=0
+S6=0
+S7=0
+S8=0
+S9=0
+S10=0
+S11=0
+S12=0
+
+"""
+modes
+define 1 to run each selected scenario in that mode, 0 to skip the mode
+"""
+mode_SmartBridgeManual=0
+mode_SmartBridgeAuto=0
+mode_Router=1
+mode_RouterNoRa=0
 

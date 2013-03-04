@@ -9,6 +9,14 @@ import config
 from support import *
 from tcpdump import TcpDump
 
+def skipUnlessTrue(descriptor):
+    if not hasattr(config, descriptor):
+        return unittest.skip("%s not defined in config.py, skipping" % descriptor)
+    if getattr(config, descriptor) == 0:
+        return unittest.skip("%s set to False in config.py, skipping" % descriptor)
+    else:
+        return lambda func: func
+
 class TestSupport:
     br=config.br
     mote=config.mote
@@ -79,7 +87,8 @@ class TestSupport:
 class TestScenarios:
     def log_file(self, log_name):
         return "%s_%s.log" % (log_name, self.__class__.__name__)
-    #@unittest.skip("test")
+
+    @skipUnlessTrue("S0")
     def test_S0(self):
         """
         Check 6LBR start-up and connectivity
@@ -90,7 +99,7 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    #@unittest.skip("test")
+    @skipUnlessTrue("S1")
     def test_S1(self):
         """
         Ping from the computer to the mote when the PC knows the BR but the BR does not know the
@@ -105,7 +114,7 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    #@unittest.skip("test")
+    @skipUnlessTrue("S2")
     def test_S2(self):
         """
         Ping from the computer to the mote when the PC does not know the BR and the BR knows
@@ -120,7 +129,7 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    #@unittest.skip("test")
+    @skipUnlessTrue("S3")
     def test_S3(self):
         """
         Ping from the computer to the mote when everyone is known but the mote has been disconnected.
@@ -135,7 +144,7 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    #@unittest.skip("test")
+    @skipUnlessTrue("S4")
     def test_S4(self):
         """
         Starting from a stable RPL topology, restart the border router and observe how it attaches
@@ -155,7 +164,7 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    @unittest.skip("test")
+    @skipUnlessTrue("S5")
     def test_S5(self):
         """
         Wait for a DAD between the computer and the BR, then disconnect and reconnect the com-
@@ -163,14 +172,14 @@ class TestScenarios:
         """
         pass
 
-    @unittest.skip("test")
+    @skipUnlessTrue("S6")
     def test_S6(self):
         """
         Observe the NUDs between the computer and the BR.
         """
         pass
 
-    @unittest.skip("test")
+    @skipUnlessTrue("S7")
     def test_S7(self):
         """
         Test the Auconfiguration process of the BR in bridge mode and observe its ability to take a
@@ -178,28 +187,28 @@ class TestScenarios:
         """
         pass
 
-    @unittest.skip("test")
+    @skipUnlessTrue("S8")
     def test_S8(self):
         """
         Observe the propagation of the RIO in the WSN side (when supported in the WPAN).
         """
         pass
 
-    @unittest.skip("test")
+    @skipUnlessTrue("S9")
     def test_S9(self):
         """
         Test the using of the default router.
         """
         pass
 
-    @unittest.skip("test")
+    @skipUnlessTrue("S10")
     def test_S10(self):
         """
         Ping from the sensor to the computer when the sensor does not know the CBR.
         """
         pass
 
-    #@unittest.skip("test")
+    @skipUnlessTrue("S11")
     def test_S11(self):
         """
         Ping from the sensor to the computer when the CBR does not know the computer.
@@ -214,7 +223,7 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-    #@unittest.skip("test")
+    @skipUnlessTrue("S12")
     def test_S12(self):
         """
         Ping from the sensor to an external domain (as the inet address of google.com) and
@@ -235,7 +244,7 @@ class TestScenarios:
         self.tear_down_network()
         self.assertTrue(self.support.stop_6lbr(), "Could not stop 6LBR")
 
-#@unittest.skip("test")
+@skipUnlessTrue("mode_SmartBridgeManual")
 class SmartBridgeManual(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
@@ -255,7 +264,7 @@ class SmartBridgeManual(unittest.TestCase,TestScenarios):
     def tear_down_network(self):
         self.assertTrue( self.support.platform.unconfigure_if(self.support.br.itf, self.support.ip_host), "")
 
-#@unittest.skip("test")
+@skipUnlessTrue("mode_SmartBridgeAuto")
 class SmartBridgeAuto(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
@@ -276,7 +285,7 @@ class SmartBridgeAuto(unittest.TestCase,TestScenarios):
     def tear_down_network(self):
         self.assertTrue( self.support.stop_ra(), "")
 
-#@unittest.skip("test")
+@skipUnlessTrue("mode_Router")
 class Router(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
@@ -302,7 +311,7 @@ class Router(unittest.TestCase,TestScenarios):
         if not self.support.platform.support_rio():
             self.assertTrue(self.support.platform.rm_route("aaaa::", gw=self.support.ip_6lbr), "Could not remove route")
 
-#@unittest.skip("test")
+@skipUnlessTrue("mode_RouterNoRa")
 class RouterNoRa(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
