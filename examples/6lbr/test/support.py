@@ -143,8 +143,13 @@ class TelosMote(MoteProxy):
 
     def reset_mote(self):
         print >> sys.stderr, "Reseting mote..."
+        if(self.serialport.isOpen()):
+            self.serialport.close()
         system("../../../tools/sky/msp430-bsl-linux --telosb -c %s -r" % config.mote_dev)
-        sleep(2)
+        self.serialport.open()
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
+        return self.wait_until("Starting '6LBR Demo'\n", 5)
 
     def start_mote(self, channel):
         print >> sys.stderr, "Starting mote..."
