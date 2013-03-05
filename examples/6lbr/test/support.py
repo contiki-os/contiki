@@ -5,6 +5,7 @@ from os import system
 import subprocess
 import signal
 from time import sleep
+import time
 import config
 import re
 import pty
@@ -134,9 +135,12 @@ class TelosMote(MoteProxy):
         self.serialport.close()
 
     def wait_until(self, text, count):
-        for n in range(count):
+        start_time = time.time()
+        elapsed = 0
+        while elapsed < count :
+            elapsed = time.time() - start_time
             lines = self.serialport.readlines()
-            #print >> sys.stderr, lines
+            #print >> sys.stderr, line
             if text in lines:
                 return True
         return False
@@ -215,13 +219,17 @@ class VirtualTelosMote(MoteProxy):
         print("Killing Cooja")
         self.socat.terminate()
         self.cooja.terminate()
+        #self.nul_output.close()
 
 
     def wait_until(self, text, count):
-        for n in range(count):
-            lines = self.serialport.readlines()
-            #print >> sys.stderr, lines
-            if text in lines:
+        start_time = time.time()
+        elapsed = 0
+        while elapsed < count :
+            elapsed = time.time() - start_time
+            line = self.serialport.readline()
+            #print >> sys.stderr, line
+            if text in line:
                 return True
         return False
 
