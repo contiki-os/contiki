@@ -24,7 +24,7 @@ class TestSupport:
     tcpdump=TcpDump()
     ip_6lbr=None
     ip_host=None
-    ip_mote="aaaa::" + config.lladdr_mote
+    ip_mote="aaaa::" + config.iid_mote
 
     def setUp(self):
         self.platform.setUp()
@@ -248,7 +248,7 @@ class TestScenarios:
 class SmartBridgeManual(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='aaaa::' + config.lladdr_6lbr
+        self.support.ip_6lbr='aaaa::' + config.iid_6lbr
         self.support.ip_host='aaaa::200'
         self.support.setUp()
         self.support.set_mode('SMART-BRIDGE', accept_ra=False)
@@ -268,7 +268,7 @@ class SmartBridgeManual(unittest.TestCase,TestScenarios):
 class SmartBridgeAuto(unittest.TestCase,TestScenarios):
     def setUp(self):
         self.support=TestSupport()
-        self.support.ip_6lbr='aaaa::' + config.lladdr_6lbr
+        self.support.ip_6lbr='aaaa::' + config.iid_6lbr
         self.support.ip_host='aaaa::200'
         self.support.setUp()
         self.support.set_mode('SMART-BRIDGE', accept_ra=True)
