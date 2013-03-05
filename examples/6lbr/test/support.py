@@ -146,14 +146,14 @@ class TelosMote(MoteProxy):
         return False
 
     def reset_mote(self):
-        print >> sys.stderr, "Reseting mote..."
+        print >> sys.stderr, "Resetting mote..."
         if(self.serialport.isOpen()):
             self.serialport.close()
         system("../../../tools/sky/msp430-bsl-linux --telosb -c %s -r" % config.mote_dev)
         self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
-        return self.wait_until("Starting '6LBR Demo'\n", 5)
+        return self.wait_until("Starting '6LBR Demo'\n", 8)
 
     def start_mote(self, channel):
         print >> sys.stderr, "Starting mote..."
@@ -165,10 +165,13 @@ class TelosMote(MoteProxy):
 
     def stop_mote(self):
         print >> sys.stderr, "Stopping mote..."
+        if(self.serialport.isOpen()):
+            self.serialport.close()
+        system("../../../tools/sky/msp430-bsl-linux --telosb -c %s -r" % config.mote_dev)
+        self.serialport.open()
         self.serialport.flushInput()
         self.serialport.flushOutput()
-        self.serialport.write("\r\nreboot\r\n")
-        return self.wait_until("Starting '6LBR Demo'\n", 5)
+        return self.wait_until("Starting '6LBR Demo'\n", 8)
 
     def ping(self, address, expect_reply=False, count=0):
         print >> sys.stderr, "Ping %s..." % address
