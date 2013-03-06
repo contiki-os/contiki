@@ -39,12 +39,11 @@ CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
 LDFLAGS += -D __HIMEM__=0xBF00
+LC_SOURCEFILES = process.c tcpip.c
 
 ifeq ($(findstring WITH_REBOOT,$(DEFINES)),WITH_REBOOT)
-  LC_SOURCEFILES = process.c etimer.c uip_arp.c
   LDFLAGS += -D __LCADDR__=0xD000 -D __LCSIZE__=0x1000
-else
-  LC_SOURCEFILES = process.c etimer.c ethernet.c
+  LC_SOURCEFILES += etimer.c
 endif
 
 # Set a target-specific variable value
