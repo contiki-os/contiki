@@ -160,7 +160,6 @@ struct htmlparser_state {
 
 #if WWW_CONF_FORMS
   char formaction[WWW_CONF_MAX_FORMACTIONLEN];
-  char formname[WWW_CONF_MAX_FORMNAMELEN];
   unsigned char inputtype;
   char inputname[WWW_CONF_MAX_INPUTNAMELEN];
   char inputvalue[WWW_CONF_MAX_INPUTVALUELEN];
@@ -177,57 +176,53 @@ static const char *tags[] = {
 #define TAG_FIRST       0
 #define TAG_SLASHA      0
   html_slasha,
-#define TAG_SLASHCENTER 1
-  html_slashcenter,
-#define TAG_SLASHDIV    2
+#define TAG_SLASHDIV    1
   html_slashdiv,
-#define TAG_SLASHFORM   3
+#define TAG_SLASHFORM   2
   html_slashform,
-#define TAG_SLASHH      4
+#define TAG_SLASHH      3
   html_slashh,
-#define TAG_SLASHSCRIPT 5
+#define TAG_SLASHSCRIPT 4
   html_slashscript,
-#define TAG_SLASHSELECT 6
+#define TAG_SLASHSELECT 5
   html_slashselect,
-#define TAG_SLASHSTYLE  7
+#define TAG_SLASHSTYLE  6
   html_slashstyle,
-#define TAG_A           8
+#define TAG_A           7
   html_a,
-#define TAG_BODY        9
+#define TAG_BODY        8
   html_body,
-#define TAG_BR         10
+#define TAG_BR          9
   html_br,
-#define TAG_CENTER     11 
-  html_center,
-#define TAG_FORM       12
+#define TAG_FORM       10
   html_form,
-#define TAG_FRAME      13    
+#define TAG_FRAME      11
   html_frame,
-#define TAG_H1         14  
+#define TAG_H1         12
   html_h1,
-#define TAG_H2         15
+#define TAG_H2         13
   html_h2,
-#define TAG_H3         16  
+#define TAG_H3         14
   html_h3,
-#define TAG_H4         17  
+#define TAG_H4         15
   html_h4,
-#define TAG_IMG        18  
+#define TAG_IMG        16
   html_img,
-#define TAG_INPUT      19  
+#define TAG_INPUT      17
   html_input,
-#define TAG_LI         20
+#define TAG_LI         18
   html_li,
-#define TAG_P          21
+#define TAG_P          19
   html_p,
-#define TAG_SCRIPT     22
+#define TAG_SCRIPT     20
   html_script, 
-#define TAG_SELECT     23
+#define TAG_SELECT     21
   html_select,
-#define TAG_STYLE      24
+#define TAG_STYLE      22
   html_style,
-#define TAG_TR         25   
+#define TAG_TR         23
   html_tr,
-#define TAG_LAST       26
+#define TAG_LAST       24
   last,
 };
 
@@ -258,7 +253,7 @@ htmlparser_init(void)
   s.minorstate = MINORSTATE_TEXT;
   s.lastchar = 0;
 #if WWW_CONF_FORMS
-  s.formaction[0] = s.formname[0] = 0;
+  s.formaction[0] = 0;
 #endif /* WWW_CONF_FORMS */
 }
 /*-----------------------------------------------------------------------------------*/
@@ -336,31 +331,28 @@ find_tag(char *tag)
   first = TAG_FIRST;
   last = TAG_LAST;
   i = 0;
-  
+
   do {
     tagc = tag[i];
 
-    if((tagc == 0 || tagc == ISO_slash) &&
-       tags[first][i] == 0) {
+    if((tagc == 0 || tagc == ISO_slash) && tags[first][i] == 0) {
       return first;
     }
 
     tabi = first;
-    
+
     /* First, find first matching tag from table. */
-    while(tagc > (tags[tabi])[i] &&
-	  tabi < last) {
+    while(tagc > (tags[tabi])[i] && tabi < last) {
       ++tabi;
     }
     first = tabi;
-    
+
     /* Second, find last matching tag from table. */
-    while(tagc == (tags[tabi])[i] &&
-	  tabi < last) {
+    while(tagc == (tags[tabi])[i] && tabi < last) {
       ++tabi;
     }
     last = tabi;
-    
+
     /* If first and last matching tags are equal, we have a non-match
        and return. Else we continue with the next character. */
     ++i;
@@ -377,8 +369,7 @@ parse_tag(void)
 
   static char dummy;
   
-  PRINTF(("Parsing tag '%s' '%s' '%s'\n",
-	  s.tag, s.tagattr, s.tagattrparam));
+  PRINTF(("Parsing tag '%s' '%s' '%s'\n", s.tag, s.tagattr, s.tagattrparam));
 
   switch(find_tag(s.tag)) {
   case TAG_P:
@@ -386,14 +377,12 @@ parse_tag(void)
   case TAG_H2:
   case TAG_H3:
   case TAG_H4:
-    /*    parse_char(ISO_nl);*/
     newline();
     /* FALLTHROUGH */
   case TAG_BR:
   case TAG_TR:
   case TAG_SLASHDIV:
   case TAG_SLASHH:
-    /*    parse_char(ISO_nl);*/
     dummy = 0;
     newline();
     break;
@@ -417,8 +406,7 @@ parse_tag(void)
     s.majorstate = s.lastmajorstate = MAJORSTATE_BODY;
     break;
   case TAG_FRAME:
-    if(strncmp(s.tagattr, html_src, sizeof(html_src)) == 0 &&
-       s.tagattrparam[0] != 0) {
+    if(strncmp(s.tagattr, html_src, sizeof(html_src)) == 0 && s.tagattrparam[0] != 0) {
       switch_majorstate(MAJORSTATE_BODY);
       newline();
       add_char(ISO_rbrack);
@@ -430,25 +418,20 @@ parse_tag(void)
     }
     break;
   case TAG_IMG:
-    if(strncmp(s.tagattr, html_alt, sizeof(html_alt)) == 0 &&
-       s.tagattrparam[0] != 0) {
-      /*      parse_char(ISO_lt);*/
+    if(strncmp(s.tagattr, html_alt, sizeof(html_alt)) == 0 && s.tagattrparam[0] != 0) {
       add_char(ISO_lt);
       tagattrparam = &s.tagattrparam[0];
       while(*tagattrparam) {
-	/*	parse_char(*tagattrparam);*/
 	add_char(*tagattrparam);
 	++tagattrparam;
       }
-      /*      parse_char(ISO_gt);*/
       add_char(ISO_gt);
       do_word();
     }
     break;
   case TAG_A:
     PRINTF(("A %s %s\n", s.tagattr, s.tagattrparam));
-    if(strncmp(s.tagattr, html_href, sizeof(html_href)) == 0 &&
-       s.tagattrparam[0] != 0) {
+    if(strncmp(s.tagattr, html_href, sizeof(html_href)) == 0 && s.tagattrparam[0] != 0) {
       strcpy(s.linkurl, s.tagattrparam);
       do_word();
       switch_majorstate(MAJORSTATE_LINK);
@@ -464,72 +447,62 @@ parse_tag(void)
     break;
 #if WWW_CONF_FORMS
   case TAG_FORM:
-    PRINTF(("Form tag\n"));
-    switch_majorstate(MAJORSTATE_FORM);
-    if(strncmp(s.tagattr, html_action, sizeof(html_action)) == 0) {
-      PRINTF(("Form action '%s'\n", s.tagattrparam));
-      strncpy(s.formaction, s.tagattrparam, WWW_CONF_MAX_FORMACTIONLEN - 1);
-    } else if(strncmp(s.tagattr, html_name, sizeof(html_name)) == 0) {
-      PRINTF(("Form name '%s'\n", s.tagattrparam));
-      strncpy(s.formname, s.tagattrparam, WWW_CONF_MAX_FORMNAMELEN - 1);
+    /* First check if we are called at the end of a form tag. If
+       so, we should propagate the form action. */
+    if(s.tagattr[0] == 0 && s.formaction[0] != 0) {
+      htmlparser_form(s.formaction);
+      init_input();
+    } else {
+      PRINTF(("Form tag\n"));
+      switch_majorstate(MAJORSTATE_FORM);
+      if(strncmp(s.tagattr, html_action, sizeof(html_action)) == 0) {
+        PRINTF(("Form action '%s'\n", s.tagattrparam));
+        strncpy(s.formaction, s.tagattrparam, WWW_CONF_MAX_FORMACTIONLEN - 1);
+      }
     }
-    init_input();
     break;
   case TAG_SLASHFORM:
     switch_majorstate(MAJORSTATE_BODY);
-    s.formaction[0] = s.formname[0] = 0;
+    s.formaction[0] = 0;
     break;
   case TAG_INPUT:
     if(s.majorstate == MAJORSTATE_FORM) {
       /* First check if we are called at the end of an input tag. If
 	 so, we should render the input widget. */
-      if(s.tagattr[0] == 0 &&
-	 s.inputname[0] != 0) {
+      if(s.tagattr[0] == 0 && s.inputname[0] != 0) {
 	PRINTF(("Render input type %d\n", s.inputtype));
 	switch(s.inputtype) {
 	case HTMLPARSER_INPUTTYPE_NONE:
 	case HTMLPARSER_INPUTTYPE_TEXT:
 	  s.inputvalue[s.inputvaluesize] = 0;
-	  htmlparser_inputfield(s.inputvaluesize, s.inputvalue, s.inputname,
-				s.formname, s.formaction);
+	  htmlparser_inputfield(s.inputvaluesize, s.inputvalue, s.inputname);
 	  break;
 	case HTMLPARSER_INPUTTYPE_SUBMIT:
 	case HTMLPARSER_INPUTTYPE_IMAGE:
-	  htmlparser_submitbutton(s.inputvalue, s.inputname,
-				  s.formname, s.formaction);
+	  htmlparser_submitbutton(s.inputvalue, s.inputname);
 	  break;
 	}
 	init_input();
       } else {
 	PRINTF(("Input '%s' '%s'\n", s.tagattr, s.tagattrparam));
 	if(strncmp(s.tagattr, html_type, sizeof(html_type)) == 0) {
-	  if(strncmp(s.tagattrparam, html_submit,
-		     sizeof(html_submit)) == 0) {
+	  if(strncmp(s.tagattrparam, html_submit, sizeof(html_submit)) == 0) {
 	    s.inputtype = HTMLPARSER_INPUTTYPE_SUBMIT;
-	  } else if(strncmp(s.tagattrparam, html_image,
-			    sizeof(html_image)) == 0) {
+	  } else if(strncmp(s.tagattrparam, html_image, sizeof(html_image)) == 0) {
 	    s.inputtype = HTMLPARSER_INPUTTYPE_IMAGE;
-	  } else if(strncmp(s.tagattrparam, html_text,
-			    sizeof(html_text)) == 0) {
+	  } else if(strncmp(s.tagattrparam, html_text, sizeof(html_text)) == 0) {
 	    s.inputtype = HTMLPARSER_INPUTTYPE_TEXT;
 	  } else {
 	    s.inputtype = HTMLPARSER_INPUTTYPE_OTHER;
 	  }
-	} else if(strncmp(s.tagattr, html_name,
-			  sizeof(html_name)) == 0) {
-	  strncpy(s.inputname, s.tagattrparam,
-		  WWW_CONF_MAX_INPUTNAMELEN);
-	} else if(strncmp(s.tagattr, html_alt,
-			  sizeof(html_alt)) == 0 &&
+	} else if(strncmp(s.tagattr, html_name, sizeof(html_name)) == 0) {
+	  strncpy(s.inputname, s.tagattrparam, WWW_CONF_MAX_INPUTNAMELEN);
+	} else if(strncmp(s.tagattr, html_alt, sizeof(html_alt)) == 0 &&
 		  s.inputtype == HTMLPARSER_INPUTTYPE_IMAGE) {	  
-	  strncpy(s.inputvalue, s.tagattrparam,
-		  WWW_CONF_MAX_INPUTVALUELEN);	  
-	} else if(strncmp(s.tagattr, html_value,
-			  sizeof(html_value)) == 0) {
-	  strncpy(s.inputvalue, s.tagattrparam,
-		  WWW_CONF_MAX_INPUTVALUELEN);
-	} else if(strncmp(s.tagattr, html_size,
-			  sizeof(html_size)) == 0) {
+	  strncpy(s.inputvalue, s.tagattrparam, WWW_CONF_MAX_INPUTVALUELEN);	  
+	} else if(strncmp(s.tagattr, html_value, sizeof(html_value)) == 0) {
+	  strncpy(s.inputvalue, s.tagattrparam, WWW_CONF_MAX_INPUTVALUELEN);
+	} else if(strncmp(s.tagattr, html_size, sizeof(html_size)) == 0) {
 	  size = 0;
 	  if(s.tagattrparam[0] >= '0' &&
 	     s.tagattrparam[0] <= '9') {
@@ -543,32 +516,15 @@ parse_tag(void)
 	    size = WWW_CONF_MAX_INPUTVALUELEN - 1;
 	  }
 	  s.inputvaluesize = size;
-	  /*	  strncpy(s.inputvalue, s.tagattrparam,
-		  WWW_CONF_MAX_INPUTVALUELEN);*/
 	}
       }
-      
     }
     break;
-#endif /* WWW_CONF_FORMS */    
-#if WWW_CONF_RENDERSTATE
-  case TAG_CENTER:
-    /*    parse_char(ISO_nl);    */
-    newline();
-    htmlparser_renderstate(HTMLPARSER_RENDERSTATE_BEGIN |
-			   HTMLPARSER_RENDERSTATE_CENTER);
-    break;
-  case TAG_SLASHCENTER:
-    /*    parse_char(ISO_nl);*/
-    newline();
-    htmlparser_renderstate(HTMLPARSER_RENDERSTATE_END |
-			   HTMLPARSER_RENDERSTATE_CENTER);
-    break;
-#endif /* WWW_CONF_RENDERSTATE */
+#endif /* WWW_CONF_FORMS */
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static uint16_t
+static uint16_t CC_FASTCALL
 parse_word(char *data, uint8_t dlen)
 {
   static uint8_t i;
@@ -586,7 +542,6 @@ parse_word(char *data, uint8_t dlen)
       } else if(c == ISO_lt) {
 	s.minorstate = MINORSTATE_TAG;
 	s.tagptr = 0;
-	/*	do_word();*/
 	break;
       } else if(c == ISO_ampersand) {
 	s.minorstate = MINORSTATE_EXTCHAR;
@@ -599,11 +554,11 @@ parse_word(char *data, uint8_t dlen)
   case MINORSTATE_EXTCHAR:
     for(i = 0; i < len; ++i) {
       c = data[i];
-      if(c == ISO_semicolon) {	
+      if(c == ISO_semicolon) {
 	s.minorstate = MINORSTATE_TEXT;
 	add_char(' ');
 	break;
-      } else if(iswhitespace(c)) {	
+      } else if(iswhitespace(c)) {
 	s.minorstate = MINORSTATE_TEXT;
 	add_char('&');
 	add_char(' ');
@@ -622,7 +577,7 @@ parse_word(char *data, uint8_t dlen)
 	/* Full tag found. We continue parsing regular text. */
 	s.minorstate = MINORSTATE_TEXT;
 	s.tagattrptr = s.tagattrparamptr = 0;
-	endtagfound();	  
+	endtagfound();
 	parse_tag();
 	break;
       } else if(iswhitespace(c)) {
@@ -635,7 +590,6 @@ parse_word(char *data, uint8_t dlen)
       } else {
 	/* Keep track of the name of the tag, but convert it to
 	   lower case. */
-	  
 	s.tag[s.tagptr] = lowercase(c);
 	++s.tagptr;
 	/* Check if the ->tag field is full. If so, we just eat up
@@ -645,7 +599,7 @@ parse_word(char *data, uint8_t dlen)
 	  break;
 	}
       }
-	
+
       /* Check for HTML comment, indicated by <!-- */
       if(s.tagptr == 3 &&
 	 s.tag[0] == ISO_bang &&
@@ -684,8 +638,6 @@ parse_word(char *data, uint8_t dlen)
 	  parse_tag();
 	  s.minorstate = MINORSTATE_TAGATTRSPACE;
 	  break;
-	  /*	    s.tagattrptr = 0;
-		    endtagfound();*/
 	}
       } else if(c == ISO_eq) {	
 	s.minorstate = MINORSTATE_TAGATTRPARAMNQ;
@@ -733,29 +685,26 @@ parse_word(char *data, uint8_t dlen)
 	endtagfound();
 	parse_tag();
 	s.minorstate = MINORSTATE_TEXT;
-	s.tagattrptr = 0;       
+	s.tagattrptr = 0;
 	endtagfound();
 	parse_tag();
-	s.tagptr = 0;       
+	s.tagptr = 0;
 	endtagfound();
 	break;
-      } else if(iswhitespace(c) &&
-		s.tagattrparamptr == 0) {
-	/* Discard leading spaces. */	  
+      } else if(iswhitespace(c) && s.tagattrparamptr == 0) {
+	/* Discard leading spaces. */
       } else if((c == ISO_citation ||
-		 c == ISO_citation2) &&
-		s.tagattrparamptr == 0) {
+		 c == ISO_citation2) && s.tagattrparamptr == 0) {
 	s.minorstate = MINORSTATE_TAGATTRPARAM;
 	s.quotechar = c;
 	PRINTF(("tag attr param q found\n"));
 	break;
       } else if(iswhitespace(c)) {
-	PRINTF(("Non-leading space found at %d\n",
-		s.tagattrparamptr));
+	PRINTF(("Non-leading space found at %d\n", s.tagattrparamptr));
 	/* Stop parsing if a non-leading space was found */
 	endtagfound();
 	parse_tag();
-	  
+
 	s.minorstate = MINORSTATE_TAGATTR;
 	s.tagattrptr = 0;
 	endtagfound();
@@ -781,7 +730,7 @@ parse_word(char *data, uint8_t dlen)
 	/* Found end of tag attr parameter. */
 	endtagfound();
 	parse_tag();
-	  
+
 	s.minorstate = MINORSTATE_TAGATTR;
 	s.tagattrptr = 0;
 	endtagfound();
@@ -792,7 +741,7 @@ parse_word(char *data, uint8_t dlen)
 	} else {
 	  s.tagattrparam[s.tagattrparamptr] = c;
 	}
-	  
+
 	++s.tagattrparamptr;
 	/* Check if the "tagattr" field is full. If so, we just eat
 	   up any data left in the tag. */
@@ -852,6 +801,6 @@ htmlparser_parse(char *data, uint16_t datalen)
     }
     datalen -= plen;
     data += plen;
-  }  
+  }
 }
 /*-----------------------------------------------------------------------------------*/
