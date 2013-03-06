@@ -325,7 +325,7 @@ open_url(void)
   /* The hostname we present in the hostname table, so we send out the
      initial GET request. */
   if(webclient_get(host, 80, file) == 0) {
-    show_statustext("Out of memory error.");
+    show_statustext("Out of memory error");
   } else {
     show_statustext("Connecting...");
   }
@@ -534,7 +534,7 @@ PROCESS_THREAD(www_process, ev, data)
 	 resolv_lookup((char *)data) != NULL) {
 	open_url();
       } else {
-	show_statustext("Host not found.");
+	show_statustext("Host not found");
       }
 #endif /* UIP_UDP */
     } else if(ev == ctk_signal_window_close ||
@@ -602,7 +602,7 @@ webclient_timedout(void)
 void
 webclient_closed(void)
 {
-  show_statustext("Stopped.");
+  show_statustext("Stopped");
   petsciiconv_topetscii(webpageptr - x, x);
   CTK_WIDGET_FOCUS(&mainwindow, &downbutton);
   redraw_window();
@@ -638,12 +638,13 @@ void
 webclient_datahandler(char *data, uint16_t len)
 {
   if(len > 0) {
-    if(strcmp(webclient_mimetype(), http_texthtml) == 0) {
+    if(strstr(webclient_mimetype(), http_html + 1) != 0) {
       count = (count + 1) & 3;
       show_statustext(receivingmsgs[count]);
       htmlparser_parse(data, len);
       redraw_window();
     } else {
+      show_statustext("Cannot display web page");
       uip_abort();
 #if WWW_CONF_WITH_WGET
       ctk_dialog_open(&wgetdialog);
@@ -656,7 +657,7 @@ webclient_datahandler(char *data, uint16_t len)
   
   if(data == NULL) {
     loading = 0;
-    show_statustext("Done.");
+    show_statustext("Done");
     petsciiconv_topetscii(webpageptr - x, x);
     CTK_WIDGET_FOCUS(&mainwindow, &urlentry);
     redraw_window();
