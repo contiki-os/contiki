@@ -1,5 +1,6 @@
 html_slasha "/a\0"
 html_slashcenter "/center\0"
+html_slashdiv "/div\0"
 html_slashform "/form\0"
 html_slashh "/h\0"
 html_slashscript "/script\0"
