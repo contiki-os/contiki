@@ -106,6 +106,15 @@ endif
 LDFLAGS  += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
            -Wl,--section-start=.bootloader=$(BOOTLOADER_START)
 
+SMALL ?= 1
+
+### These flags help significantly reduce the code size
+ifeq ($(SMALL),1)
+CFLAGS += -ffunction-sections
+CFLAGS += -fdata-sections
+LDFLAGS += -Wl,--gc-sections
+endif # SMALL
+
 ### Setup directory search path for source files
 
 CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
