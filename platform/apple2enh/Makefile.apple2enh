@@ -33,22 +33,21 @@
 # $Id: Makefile.apple2enh,v 1.19 2010/10/23 08:17:45 oliverschmidt Exp $
 #
 
-CONTIKI_SOURCEFILES        += cfs-posix-dir.c
 CONTIKI_TARGET_SOURCEFILES += pfs.S
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
+LDFLAGS += -D __HIMEM__=0xBF00
+LC_SOURCEFILES = process.c tcpip.c
+
 ifeq ($(findstring WITH_REBOOT,$(DEFINES)),WITH_REBOOT)
-  HIGHCODE_SOURCEFILES = process.c etimer.c uip_arp.c
-  LDFLAGS += -C apple2enh-reboot.cfg
-else
-  HIGHCODE_SOURCEFILES = process.c etimer.c ethernet.c
-  LDFLAGS += -C apple2enh-loader.cfg
+  LDFLAGS += -D __LCADDR__=0xD000 -D __LCSIZE__=0x1000
+  LC_SOURCEFILES += etimer.c
 endif
 
 # Set a target-specific variable value
-${addprefix $(OBJECTDIR)/,${call oname, $(HIGHCODE_SOURCEFILES)}}: CFLAGS += --code-name HIGHCODE
+${addprefix $(OBJECTDIR)/,${call oname, $(LC_SOURCEFILES)}}: CFLAGS += --code-name LC
 
 ifeq ($(MAKECMDGOALS),disk)
   ifndef AC
@@ -58,7 +57,7 @@ endif
 
 disk: all
 	cp $(CONTIKI)/tools/$(TARGET)/prodos.dsk contiki.dsk
-	java -jar $(AC) -p    contiki.dsk contiki.system sys 0 < $(CONTIKI)/tools/$(TARGET)/loader.system
+	java -jar $(AC) -p    contiki.dsk contiki.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 contiki.dsk contiki        bin   < $(CONTIKI_PROJECT).$(TARGET)
 	java -jar $(AC) -p    contiki.dsk contiki.cfg    bin 0 < $(CONTIKI)/tools/$(TARGET)/sample.cfg
 	java -jar $(AC) -p    contiki.dsk cs8900a.eth    rel 0 < cs8900a.eth

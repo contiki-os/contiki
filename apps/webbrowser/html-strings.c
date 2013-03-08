@@ -1,9 +1,9 @@
 const char html_slasha[4] = 
 /* "/a\0" */
 {0x2f, 0x61, 00, };
-const char html_slashcenter[9] = 
-/* "/center\0" */
-{0x2f, 0x63, 0x65, 0x6e, 0x74, 0x65, 0x72, 00, };
+const char html_slashdiv[6] = 
+/* "/div\0" */
+{0x2f, 0x64, 0x69, 0x76, 00, };
 const char html_slashform[7] = 
 /* "/form\0" */
 {0x2f, 0x66, 0x6f, 0x72, 0x6d, 00, };
@@ -28,9 +28,6 @@ const char html_body[6] =
 const char html_br[4] = 
 /* "br\0" */
 {0x62, 0x72, 00, };
-const char html_center[8] = 
-/* "center\0" */
-{0x63, 0x65, 0x6e, 0x74, 0x65, 0x72, 00, };
 const char html_form[6] = 
 /* "form\0" */
 {0x66, 0x6f, 0x72, 0x6d, 00, };

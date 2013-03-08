@@ -39,7 +39,7 @@ endif
 
 all: cs8900a.eth lan91c96.eth
 
-CONTIKI_TARGET_DIRS = . lib sys cfs
+CONTIKI_TARGET_DIRS = . lib sys
 CONTIKI_CPU_DIRS    = . lib sys ctk net
 
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
@@ -47,10 +47,8 @@ CONTIKI_CPU_SOURCEFILES    += log.c error.c unload.c config.c ctk-mouse.c \
                               clock.c mtarch.c mtarch-asm.S lc-asm.S \
                               uip_arch.c ethernet-drv.c ethernet.c
 
-CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c petsciiconv.c \
+CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c petsciiconv.c cfs-posix-dir.c \
                        $(CONTIKI_TARGET_SOURCEFILES) $(CONTIKI_CPU_SOURCEFILES)
-                       
-TARGET_LIBFILES = $(TARGET).lib
 
 ifdef ETHERNET
   CONTIKI_SOURCEFILES += $(ETHERNET)-eth.S
@@ -60,7 +58,7 @@ endif
 ### Compiler definitions
 
 AS = ca65
-CC = cc65
+CC = cl65
 LD = ld65
 AR = ar65
 
@@ -69,35 +67,29 @@ AR = ar65
 
 ASFLAGS = -t $(TARGET)
 CFLAGS += -t $(TARGET) -Or
-LDFLAGS = -D __STACKSIZE__=0x200 -u _main -m contiki-$(TARGET).map
+LDFLAGS = $(STARTADDR_FLAG) -t $(TARGET) -m contiki-$(TARGET).map -D __STACKSIZE__=0x200
 AROPTS  = a
 
 ### Compilation rules
 
 .SUFFIXES:
 
-CMD.EXE := $(shell echo)
-
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c
-	$(CC) $(CFLAGS) --create-dep $< -o $(@:.o=.s)
-	@$(AS) $(ASFLAGS) $(@:.o=.s) -o $@
-	@sed -e "s!.s:!.o:!" -e "s!\t! !" < $(@:.o=.u) > $(@:.o=.d)
-	@rm -f $(@:.o=.s) $(@:.o=.u)
-ifndef CMD.EXE
-	@$(FINALIZE_DEPENDENCY)
-endif
+	$(CC) -c -o $@ $(CFLAGS) --create-dep $(@:.o=.d) $<
 
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $(@:.co=.s)
-	@$(AS) $(ASFLAGS) $(@:.co=.s) -o $@
-	@rm -f $(@:.co=.s)
+	$(CC) -c -o $@ $(CFLAGS) -DAUTOSTART_ENABLE --create-dep $(@:.o=.d) $<
+
+CUSTOM_RULE_LINK = 1
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(LD) -o $@ $(LDFLAGS) -u _main $^ $(TARGET).lib
 
 %.eth: $(OBJECTDIR)/%.o
-	$(LD) -t module -m $@.map $< -o $@
+	$(LD) -o $@ -t module -m $@.map $<
 
 ifdef ETHERNET
 $(ETHERNET)-eth.S: $(ETHERNET).eth
-	co65 --code-label _$(ETHERNET) -o $@ $<
+	co65 -o $@ --code-label _$(ETHERNET) $<
 endif

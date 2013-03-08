@@ -124,16 +124,6 @@ buf_bufto(CC_REGISTER_ARG struct psock_buf *buf, uint8_t endmarker,
     return BUF_NOT_FOUND;
   }
 
-  while(*datalen > 0) {
-    c = **dataptr;
-    --*datalen;
-    ++*dataptr;
-    
-    if(c == endmarker) {
-      return BUF_FOUND | BUF_FULL;
-    }
-  }
-  
   return BUF_FULL;
 }
 /*---------------------------------------------------------------------------*/
@@ -274,9 +264,9 @@ PT_THREAD(psock_readto(CC_REGISTER_ARG struct psock *psock, unsigned char c))
       psock->readptr = (uint8_t *)uip_appdata;
       psock->readlen = uip_datalen();
     }
-  } while((buf_bufto(&psock->buf, c,
-		     &psock->readptr,
-		     &psock->readlen) & BUF_FOUND) == 0);
+  } while(buf_bufto(&psock->buf, c,
+		    &psock->readptr,
+		    &psock->readlen) == BUF_NOT_FOUND);
   
   if(psock_datalen(psock) == 0) {
     psock->state = STATE_NONE;
