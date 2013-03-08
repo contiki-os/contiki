@@ -292,7 +292,7 @@
 #else
 #define RADIO_VECT TIMER1_CAPT_vect
 // Raven and Jackdaw
-#define HAL_ENABLE_RADIO_INTERRUPT( ) ( TIMSK1 |= ( 1 << ICIE1 ) )
+#define HAL_ENABLE_RADIO_INTERRUPT( ) { TCCR1B = ( 1 << ICES1 ) | ( 1 << CS10 ); TIFR1 |= (1 << ICF1); TIMSK1 |= ( 1 << ICIE1 ) ; }
 #define HAL_DISABLE_RADIO_INTERRUPT( ) ( TIMSK1 &= ~( 1 << ICIE1 ) )
 #endif
 
