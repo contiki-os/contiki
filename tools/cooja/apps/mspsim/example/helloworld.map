@@ -685,7 +685,7 @@ LOAD /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a
  .data          0x000002d8        0x2 contiki-esb.a(service.o)
  .data          0x000002da        0x0 contiki-esb.a(timer.o)
  .data          0x000002da        0x6 contiki-esb.a(uip.o)
-                0x000002da                uip_ethaddr
+                0x000002da                uip_lladdr
  .data          0x000002e0        0xa contiki-esb.a(tr1001-drv.o)
                 0x000002e0                tr1001_drv_process
  .data          0x000002ea        0x0 contiki-esb.a(esb-sensors.o)

@@ -115,14 +115,14 @@ const uip_ipaddr_t uip_broadcast_addr =
 const uip_ipaddr_t uip_all_zeroes_addr = { { 0x0, /* rest is 0 */ } };
 
 #if UIP_FIXEDETHADDR
-const struct uip_eth_addr uip_ethaddr = {{UIP_ETHADDR0,
+const uip_lladdr_t uip_lladdr = {{UIP_ETHADDR0,
 					  UIP_ETHADDR1,
 					  UIP_ETHADDR2,
 					  UIP_ETHADDR3,
 					  UIP_ETHADDR4,
 					  UIP_ETHADDR5}};
 #else
-struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
+uip_lladdr_t uip_lladdr = {{0,0,0,0,0,0}};
 #endif
 
 /* The packet buffer that contains incoming packets. */
@@ -1050,7 +1050,7 @@ uip_process(uint8_t flag)
       uip_ipaddr_copy(&ICMPBUF->srcipaddr, &uip_hostaddr);
       ICMPBUF->options[0] = ICMP6_OPTION_TARGET_LINK_ADDRESS;
       ICMPBUF->options[1] = 1;  /* Options length, 1 = 8 bytes. */
-      memcpy(&(ICMPBUF->options[2]), &uip_ethaddr, sizeof(uip_ethaddr));
+      memcpy(&(ICMPBUF->options[2]), &uip_lladdr, sizeof(uip_lladdr));
       ICMPBUF->icmpchksum = 0;
       ICMPBUF->icmpchksum = ~uip_icmp6chksum();
       

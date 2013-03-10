@@ -49,7 +49,7 @@ make udp-server.cooja TARGET=cooja</commands>
       <identifier>mtype512</identifier>
       <description>Sender</description>
       <contikiapp>[CONTIKI_DIR]/examples/udp-ipv6/udp-client.c</contikiapp>
-      <commands>make udp-client.cooja TARGET=cooja DEFINES=UDP_CONNECTION_ADDR=fe80::201:1:1:1</commands>
+      <commands>make udp-client.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>

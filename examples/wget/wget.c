@@ -113,15 +113,16 @@ start_get(void)
 #if UIP_UDP
   /* First check if the host is an IP address. */
   if(uiplib_ipaddrconv(host, &addr) == 0) {    
-    
+    uip_ipaddr_t *addrptr;
     /* Try to lookup the hostname. If it fails, we initiate a hostname
        lookup and print out an informative message on the
        statusbar. */
-    if(resolv_lookup(host) == NULL) {
+    if(resolv_lookup(host, &addrptr) != RESOLV_STATUS_CACHED) {
       resolv_query(host);
       puts("Resolving host...");
       return;
     }
+    uip_ipaddr_copy(&addr, addrptr);
   }
 #else /* UIP_UDP */
   uiplib_ipaddrconv(host, &addr);
@@ -184,7 +185,7 @@ PROCESS_THREAD(wget_process, ev, data)
     } else if(ev == resolv_event_found) {
       /* Either found a hostname, or not. */
       if((char *)data != NULL &&
-        resolv_lookup((char *)data) != NULL) {
+        resolv_lookup((char *)data, NULL) == RESOLV_STATUS_CACHED) {
         start_get();
       } else {
         puts("Host not found");

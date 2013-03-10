@@ -191,8 +191,7 @@ applyconfig(void)
   addrptr = &addr;
 #if UIP_UDP
   if(uiplib_ipaddrconv(smtpserver, &addr) == 0) {
-    addrptr = resolv_lookup(smtpserver);
-    if(addrptr == NULL) {
+    if(resolv_lookup(smtpserver, &addrptr) != RESOLV_STATUS_CACHED) {
       resolv_query(smtpserver);
       ctk_label_set_text(&statuslabel, "Resolving host...");
       return;
@@ -334,7 +333,7 @@ PROCESS_THREAD(email_process, ev, data)
 #if UIP_UDP
     } else if(ev == resolv_event_found) {
       if(strcmp(data, smtpserver) == 0) {
-	if(resolv_lookup(smtpserver) != NULL) {
+    if(resolv_lookup(smtpserver, NULL) == RESOLV_STATUS_CACHED) {
 	  applyconfig();
 	  ctk_label_set_text(&statuslabel, "");
 	} else {

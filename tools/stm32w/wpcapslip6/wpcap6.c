@@ -123,7 +123,7 @@ static int (* pcap_sendpacket)(struct pcap *, unsigned char *, int);
 #include "net/uip_arp.h"
 
 
-struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
+struct uip_eth_addr uip_lladdr = {{0,0,0,0,0,0}};
 
 static char interface_name[256] = "";
 
@@ -147,7 +147,7 @@ error_exit(char *msg1)
 static void
 setethaddr(struct uip_eth_addr *a)
 {
-  memcpy(&uip_ethaddr, a, sizeof(struct uip_eth_addr));
+  memcpy(&uip_lladdr, a, sizeof(struct uip_eth_addr));
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -271,7 +271,7 @@ wpcap_poll(char * buf)
 
   eth_hdr = (struct uip_eth_hdr *)packet;
 
-  if(memcmp(&uip_ethaddr,&eth_hdr->src,sizeof(struct uip_eth_addr))!=0){
+  if(memcmp(&uip_lladdr,&eth_hdr->src,sizeof(struct uip_eth_addr))!=0){
 	  // It's not a packet originated from the interface itself.
 	  return 0;
   }

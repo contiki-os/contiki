@@ -298,7 +298,7 @@ create_msg(CC_REGISTER_ARG struct dhcp_msg *m)
   m->op = DHCP_REPLY;
   /* m->htype = DHCP_HTYPE_ETHERNET; */
 /*   m->hlen = DHCP_HLEN_ETHERNET; */
-/*   memcpy(m->chaddr, &uip_ethaddr,DHCP_HLEN_ETHERNET); */
+/*   memcpy(m->chaddr, &uip_lladdr,DHCP_HLEN_ETHERNET); */
   m->hops = 0;
   m->secs = 0;
   memcpy(m->siaddr, &uip_hostaddr, 4);
