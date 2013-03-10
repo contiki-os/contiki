@@ -26,63 +26,53 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *
+ * This file is part of the Contiki operating system.
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+/**
+ * \file
+ *      CoAP module for reliable transport
+ * \author
+ *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ */
 
-/* Some platforms have weird includes. */
-#undef IEEE802154_CONF_PANID
+#ifndef COAP_TRANSACTIONS_H_
+#define COAP_TRANSACTIONS_H_
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
+#include "er-coap-13.h"
 
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE    64
-
-/* Estimate your header size, especially when using Proxy-Uri. */
 /*
-#undef COAP_MAX_HEADER_SIZE
-#define COAP_MAX_HEADER_SIZE    70
-*/
+ * The number of concurrent messages that can be stored for retransmission in the transaction layer.
+ */
+#ifndef COAP_MAX_OPEN_TRANSACTIONS
+#define COAP_MAX_OPEN_TRANSACTIONS 4 
+#endif /* COAP_MAX_OPEN_TRANSACTIONS */
 
-/* The IP buffer size must fit all other hops, in particular the border router. */
-/*
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    1280
-*/
+/* container for transactions with message buffer and retransmission info */
+typedef struct coap_transaction {
+  struct coap_transaction *next; /* for LIST */
 
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS   4
+  uint16_t mid;
+  struct etimer retrans_timer;
+  uint8_t retrans_counter;
 
-/* Must be <= open transaction number, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
-/*
-#undef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS      2
-*/
+  uip_ipaddr_t addr;
+  uint16_t port;
 
-/* Filtering can be disabled to save space. */
-/*
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING      0
-*/
+  restful_response_handler callback;
+  void *callback_data;
 
-/* Save some memory for the sky platform. */
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     10
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   10
+  uint16_t packet_len;
+  uint8_t packet[COAP_MAX_PACKET_SIZE+1]; /* +1 for the terminating '\0' to simply and savely use snprintf(buf, len+1, "", ...) in the resource handler. */
+} coap_transaction_t;
 
-/* Reduce 802.15.4 frame queue to save RAM. */
-#undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM       4
+void coap_register_as_transaction_handler();
 
-#undef SICSLOWPAN_CONF_FRAG
-#define SICSLOWPAN_CONF_FRAG	1
+coap_transaction_t *coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port);
+void coap_send_transaction(coap_transaction_t *t);
+void coap_clear_transaction(coap_transaction_t *t);
+coap_transaction_t *coap_get_transaction_by_mid(uint16_t mid);
 
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+void coap_check_transactions();
+
+#endif /* COAP_TRANSACTIONS_H_ */

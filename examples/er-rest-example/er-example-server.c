@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Matthias Kovatsch and other contributors.
+ * Copyright (c) 2012, Matthias Kovatsch and other contributors.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,18 +44,18 @@
 
 
 /* Define which resources to include to meet memory constraints. */
-#define REST_RES_HELLO 1
+#define REST_RES_HELLO 0
 #define REST_RES_MIRROR 0 /* causes largest code size */
-#define REST_RES_CHUNKS 1
+#define REST_RES_CHUNKS 0
 #define REST_RES_SEPARATE 1
 #define REST_RES_PUSHING 1
 #define REST_RES_EVENT 1
 #define REST_RES_SUB 1
-#define REST_RES_LEDS 1
+#define REST_RES_LEDS 0
 #define REST_RES_TOGGLE 1
 #define REST_RES_LIGHT 0
 #define REST_RES_BATTERY 0
-#define REST_RES_RADIO 1
+#define REST_RES_RADIO 0
 
 
 
@@ -92,6 +92,10 @@
 #include "er-coap-03.h"
 #elif WITH_COAP == 7
 #include "er-coap-07.h"
+#elif WITH_COAP == 12
+#include "er-coap-12.h"
+#elif WITH_COAP == 13
+#include "er-coap-13.h"
 #else
 #warning "Erbium example without CoAP-specifc functionality"
 #endif /* CoAP-specific example */
@@ -163,7 +167,7 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
   unsigned int content_type = REST.get_header_content_type(request);
 
   /* The other getters copy the value (or string/array pointer) to the given pointers and return 1 for success or the length of strings/arrays. */
-  uint32_t max_age = 0;
+  uint32_t max_age_and_size = 0;
   const char *str = NULL;
   uint32_t observe = 0;
   const uint8_t *bytes = NULL;
@@ -178,14 +182,22 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
   int strpos = 0;
   /* snprintf() counts the terminating '\0' to the size parameter.
    * The additional byte is taken care of by allocating REST_MAX_CHUNK_SIZE+1 bytes in the REST framework.
-   * Add +1 to fill the complete buffer. */
-  strpos += snprintf((char *)buffer, REST_MAX_CHUNK_SIZE+1, "CT %u\n", content_type);
-
+   * Add +1 to fill the complete buffer, as the payload does not need a terminating '\0'. */
+  if (content_type!=-1)
+  {
+    strpos += snprintf((char *)buffer, REST_MAX_CHUNK_SIZE+1, "CT %u\n", content_type);
+  }
+  
   /* Some getters such as for ETag or Location are omitted, as these options should not appear in a request.
    * Max-Age might appear in HTTP requests or used for special purposes in CoAP. */
-  if (strpos<=REST_MAX_CHUNK_SIZE && REST.get_header_max_age(request, &max_age))
+  if (strpos<=REST_MAX_CHUNK_SIZE && REST.get_header_max_age(request, &max_age_and_size))
   {
-    strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "MA %lu\n", max_age);
+    strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "MA %lu\n", max_age_and_size);
+  }
+  /* For HTTP this is the Length option, for CoAP it is the Size option. */
+  if (strpos<=REST_MAX_CHUNK_SIZE && REST.get_header_length(request, &max_age_and_size))
+  {
+    strpos += snprintf((char *)buffer+strpos, REST_MAX_CHUNK_SIZE-strpos+1, "SZ %lu\n", max_age_and_size);
   }
 
   if (strpos<=REST_MAX_CHUNK_SIZE && (len = REST.get_header_host(request, &str)))
@@ -275,9 +287,10 @@ mirror_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 
   /* Set dummy header options for response. Like getters, some setters are not implemented for HTTP and have no effect. */
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  REST.set_header_max_age(response, 10); /* For HTTP, browsers will not re-request the page for 10 seconds. CoAP action depends on the client. */
+  REST.set_header_max_age(response, 17); /* For HTTP, browsers will not re-request the page for 17 seconds. */
   REST.set_header_etag(response, opaque, 2);
   REST.set_header_location(response, location); /* Initial slash is omitted by framework */
+  REST.set_header_length(response, strpos); /* For HTTP, browsers will not re-request the page for 10 seconds. CoAP action depends on the client. */
 
 /* CoAP-specific example: actions not required for normal RESTful Web service. */
 #if WITH_COAP > 1
@@ -359,8 +372,16 @@ chunks_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
 /******************************************************************************/
 #if REST_RES_SEPARATE && defined (PLATFORM_HAS_BUTTON) && WITH_COAP > 3
 /* Required to manually (=not by the engine) handle the response transaction. */
+#if WITH_COAP == 7
 #include "er-coap-07-separate.h"
 #include "er-coap-07-transactions.h"
+#elif WITH_COAP == 12
+#include "er-coap-12-separate.h"
+#include "er-coap-12-transactions.h"
+#elif WITH_COAP == 13
+#include "er-coap-13-separate.h"
+#include "er-coap-13-transactions.h"
+#endif
 /*
  * CoAP-specific example for separate responses.
  * Note the call "rest_set_pre_handler(&resource_separate, coap_separate_handler);" in the main process.
@@ -419,7 +440,7 @@ separate_finalize_handler()
       coap_packet_t response[1]; /* This way the packet can be treated as pointer as usual. */
 
       /* Restore the request information for the response. */
-      coap_separate_resume(response, &separate_store->request_metadata, CONTENT_2_05);
+      coap_separate_resume(response, &separate_store->request_metadata, REST.status.OK);
 
       coap_set_payload(response, separate_store->buffer, strlen(separate_store->buffer));
 
@@ -484,7 +505,7 @@ pushing_periodic_handler(resource_t *r)
 
   /* Build notification. */
   coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
-  coap_init_message(notification, COAP_TYPE_NON, CONTENT_2_05, 0 );
+  coap_init_message(notification, COAP_TYPE_NON, REST.status.OK, 0 );
   coap_set_payload(notification, content, snprintf(content, sizeof(content), "TICK %u", obs_counter));
 
   /* Notify the registered observers with the given message type, observe option, and payload. */
@@ -526,7 +547,7 @@ event_event_handler(resource_t *r)
 
   /* Build notification. */
   coap_packet_t notification[1]; /* This way the packet can be treated as pointer as usual. */
-  coap_init_message(notification, COAP_TYPE_CON, CONTENT_2_05, 0 );
+  coap_init_message(notification, COAP_TYPE_CON, REST.status.OK, 0 );
   coap_set_payload(notification, content, snprintf(content, sizeof(content), "EVENT %u", event_counter));
 
   /* Notify the registered observers with the given message type, observe option, and payload. */
@@ -557,7 +578,7 @@ sub_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_s
   }
   else
   {
-    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, ".%s", uri_path+base_len);
+    snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, ".%.*s", len-base_len, uri_path+base_len);
   }
 
   REST.set_response_payload(response, buffer, strlen((char *)buffer));
@@ -619,7 +640,7 @@ leds_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_
 /******************************************************************************/
 #if REST_RES_TOGGLE
 /* A simple actuator example. Toggles the red led */
-RESOURCE(toggle, METHOD_GET | METHOD_PUT | METHOD_POST, "actuators/toggle", "title=\"Red LED\";rt=\"Control\"");
+RESOURCE(toggle, METHOD_POST, "actuators/toggle", "title=\"Red LED\";rt=\"Control\"");
 void
 toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
@@ -664,7 +685,7 @@ light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
   }
   else
   {
-    REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
+    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
     const char *msg = "Supporting content-types text/plain, application/xml, and application/json";
     REST.set_response_payload(response, msg, strlen(msg));
   }
@@ -699,7 +720,7 @@ battery_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
   }
   else
   {
-    REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
+    REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
     const char *msg = "Supporting content-types text/plain and application/json";
     REST.set_response_payload(response, msg, strlen(msg));
   }
@@ -757,7 +778,7 @@ radio_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
     }
     else
     {
-      REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
+      REST.set_response_status(response, REST.status.NOT_ACCEPTABLE);
       const char *msg = "Supporting content-types text/plain and application/json";
       REST.set_response_payload(response, msg, strlen(msg));
     }
