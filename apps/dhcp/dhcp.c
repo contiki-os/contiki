@@ -114,7 +114,7 @@ PROCESS_THREAD(dhcp_process, ev, data)
   CTK_WIDGET_FOCUS(&window, &getbutton);
 
   ctk_window_open(&window);
-  dhcpc_init(uip_ethaddr.addr, sizeof(uip_ethaddr.addr));
+  dhcpc_init(uip_lladdr.addr, sizeof(uip_lladdr.addr));
 
 
   while(1) {
