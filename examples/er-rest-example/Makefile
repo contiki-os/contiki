@@ -5,14 +5,8 @@ CONTIKI=../..
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 # for static routing, if enabled
-ifneq ($(TARGET), minimal-net)
-ifneq ($(TARGET), native)
-ifneq ($(TARGET), econotag)
-ifneq ($(findstring avr,$(TARGET)), avr)
+ifeq ($(TARGET),$(filter $(TARGET),sky cooja))
 PROJECT_SOURCEFILES += static-routing.c
-endif
-endif
-endif
 endif
 
 # variable for root Makefile.include
@@ -20,9 +14,13 @@ WITH_UIP6=1
 # for some platforms
 UIP_CONF_IPV6=1
 
+# radio configuration
+#CFLAGS += -DRF_CHANNEL=20
+#CFLAGS += -DIEEE802154_CONF_PANID=0xCAFE
+
 # variable for this Makefile
-# configure CoAP implementation (3|7) (er-coap-07 also supports CoAP draft 08)
-WITH_COAP=7
+# configure CoAP implementation (3|7|12|13) (er-coap-07 also supports CoAP draft 08)
+WITH_COAP=13
 
 # new variable since slip-radio
 ifneq ($(TARGET), minimal-net)
@@ -33,14 +31,29 @@ ${info INFO: compiling without RPL}
 UIP_CONF_RPL=0
 CFLAGS += -DUIP_CONF_ND6_DEF_MAXDADNS=0
 CFLAGS += -DHARD_CODED_ADDRESS=\"fdfd::10\"
-CFLAGS += -DUIP_CONF_BUFFER_SIZE=1280
+${info INFO: compiling with large buffers}
+CFLAGS += -DUIP_CONF_BUFFER_SIZE=2048
+CFLAGS += -DREST_MAX_CHUNK_SIZE=1024
+CFLAGS += -DCOAP_MAX_HEADER_SIZE=640
 endif
 
 # linker optimizations
 SMALL=1
 
 # REST framework, requires WITH_COAP
-ifeq ($(WITH_COAP), 7)
+ifeq ($(WITH_COAP), 13)
+${info INFO: compiling with CoAP-13}
+CFLAGS += -DWITH_COAP=13
+CFLAGS += -DREST=coap_rest_implementation
+CFLAGS += -DUIP_CONF_TCP=0
+APPS += er-coap-13
+else ifeq ($(WITH_COAP), 12)
+${info INFO: compiling with CoAP-12}
+CFLAGS += -DWITH_COAP=12
+CFLAGS += -DREST=coap_rest_implementation
+CFLAGS += -DUIP_CONF_TCP=0
+APPS += er-coap-12
+else ifeq ($(WITH_COAP), 7)
 ${info INFO: compiling with CoAP-08}
 CFLAGS += -DWITH_COAP=7
 CFLAGS += -DREST=coap_rest_implementation
@@ -86,5 +99,5 @@ connect-router:	$(CONTIKI)/tools/tunslip6
 connect-router-cooja:	$(CONTIKI)/tools/tunslip6
 	sudo $(CONTIKI)/tools/tunslip6 -a 127.0.0.1 aaaa::1/64
 
-tap0up:
+connect-minimal:
 	sudo ip address add fdfd::1/64 dev tap0

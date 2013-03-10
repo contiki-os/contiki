@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2012, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
 
 /**
  * \file
- *      An implementation of the Constrained Application Protocol (draft 07)
+ *      An implementation of the Constrained Application Protocol (draft 12)
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
@@ -41,8 +41,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "er-coap-07.h"
-#include "er-coap-07-transactions.h"
+#include "er-coap-13.h"
+#include "er-coap-13-transactions.h"
 
 
 #define DEBUG 0
@@ -83,7 +83,7 @@ coap_log_2(uint16_t value)
 /*-----------------------------------------------------------------------------------*/
 static
 uint32_t
-coap_parse_int_option(uint8_t *bytes, uint16_t length)
+coap_parse_int_option(uint8_t *bytes, size_t length)
 {
   uint32_t var = 0;
   int i = 0;
@@ -94,80 +94,84 @@ coap_parse_int_option(uint8_t *bytes, uint16_t length)
   }
   return var;
 }
+/*-----------------------------------------------------------------------------------*/
 static
-size_t
-coap_set_option_header(int delta, size_t length, uint8_t *buffer)
+uint8_t
+coap_option_nibble(unsigned int value)
 {
-  if (length<15)
+  if (value<13)
   {
-    buffer[0] = (0x0F & length) | (0xF0 & delta<<4);
-    return 1;
+    return value;
+  }
+  else if (value<=0xFF+13)
+  {
+    return 13;
   }
   else
   {
-    buffer[0] = 0x0F | (0xF0 & delta<<4);
-    buffer[1] = 0xFF & (length - 15);
-    return 2;
+    return 14;
   }
 }
 /*-----------------------------------------------------------------------------------*/
 static
 size_t
-coap_insert_option_fence_posts(int number, int *current_number, uint8_t *buffer)
+coap_set_option_header(unsigned int delta, size_t length, uint8_t *buffer)
+{
+  size_t written = 1;
+
+  buffer[0] = coap_option_nibble(delta)<<4 | coap_option_nibble(length);
+
+  /* avoids code duplication without function overhead */
+  unsigned int *x = &delta;
+  do
+  {
+    if (*x>268)
+    {
+      buffer[written++] = (*x-269)>>8;
+      buffer[written++] = (*x-269);
+    }
+    else if (delta>12)
+    {
+      buffer[written++] = (*x-13);
+    }
+  }
+  while (x!=&length && (x=&length));
+
+  PRINTF("WRITTEN %u B opt header\n", written);
+
+  return written;
+}
+/*-----------------------------------------------------------------------------------*/
+static
+size_t
+coap_serialize_int_option(unsigned int number, unsigned int current_number, uint8_t *buffer, uint32_t value)
 {
   size_t i = 0;
-  while (number-*current_number > 15)
-  {
-    uint8_t delta = COAP_OPTION_FENCE_POST - (*current_number%COAP_OPTION_FENCE_POST);
-    coap_set_option_header(delta, 0, &buffer[i++]);
-    *current_number += delta;
-
-    PRINTF("OPTION FENCE POST delta %u\n", delta);
-  }
-  return i;
-}
-/*-----------------------------------------------------------------------------------*/
-static
-size_t
-coap_serialize_int_option(int number, int current_number, uint8_t *buffer, uint32_t value)
-{
-  /* Insert fence-posts for large deltas */
-  size_t i = coap_insert_option_fence_posts(number, &current_number, buffer);
-  size_t start_i = i;
-
-  uint8_t *option = &buffer[i];
 
   if (0xFF000000 & value) buffer[++i] = (uint8_t) (0xFF & value>>24);
   if (0xFFFF0000 & value) buffer[++i] = (uint8_t) (0xFF & value>>16);
   if (0xFFFFFF00 & value) buffer[++i] = (uint8_t) (0xFF & value>>8);
   if (0xFFFFFFFF & value) buffer[++i] = (uint8_t) (0xFF & value);
 
-  i += coap_set_option_header(number - current_number, i-start_i, option);
+  PRINTF("OPTION %u (delta %u, len %u)\n", number, number - current_number, i);
 
-  PRINTF("OPTION type %u, delta %u, len %u\n", number, number - current_number, i-start_i);
+  i += coap_set_option_header(number - current_number, i, buffer);
 
   return i;
 }
 /*-----------------------------------------------------------------------------------*/
-/*
- * Pass the char to split the string at in split_option and receive the number of options in split_option on return.
- */
 static
 size_t
-coap_serialize_array_option(int number, int current_number, uint8_t *buffer, uint8_t *array, size_t length, uint8_t *split_option)
+coap_serialize_array_option(unsigned int number, unsigned int current_number, uint8_t *buffer, uint8_t *array, size_t length, char split_char)
 {
-  /* Insert fence-posts for large deltas */
-  size_t i = coap_insert_option_fence_posts(number, &current_number, buffer);
+  size_t i = 0;
 
-  if (split_option!=NULL)
+  if (split_char!='\0')
   {
     int j;
     uint8_t *part_start = array;
     uint8_t *part_end = NULL;
     size_t temp_length;
-
-    char split_char = *split_option;
-    *split_option = 0; /* Ensure reflecting the created option count */
 
     for (j = 0; j<=length; ++j)
     {
@@ -182,10 +186,8 @@ coap_serialize_array_option(int number, int current_number, uint8_t *buffer, uin
 
         PRINTF("OPTION type %u, delta %u, len %u, part [%.*s]\n", number, number - current_number, i, temp_length, part_start);
 
-        ++(*split_option);
-        ++j; /* skip the slash */
+        ++j; /* skip the splitter */
         current_number = number;
-        while( array[j]=='/') ++j;
         part_start = array + j;
       }
     } /* for */
@@ -196,7 +198,7 @@ coap_serialize_array_option(int number, int current_number, uint8_t *buffer, uin
     memcpy(&buffer[i], array, length);
     i += length;
 
-    PRINTF("OPTION type %u, delta %u, len %u\n", number, number - current_number, i);
+    PRINTF("OPTION type %u, delta %u, len %u\n", number, number - current_number, length);
   }
 
   return i;
@@ -302,196 +304,71 @@ size_t
 coap_serialize_message(void *packet, uint8_t *buffer)
 {
   coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
+  uint8_t *option;
+  unsigned int current_number = 0;
 
   /* Initialize */
   coap_pkt->buffer = buffer;
   coap_pkt->version = 1;
-  coap_pkt->option_count = 0;
 
-  /* serialize options */
-  uint8_t *option = coap_pkt->buffer + COAP_HEADER_LEN;
-  int current_number = 0;
+  PRINTF("-Serializing MID %u to %p, ", coap_pkt->mid, coap_pkt->buffer);
 
-  PRINTF("-Serializing options-\n");
+  /* set header fields */
+  coap_pkt->buffer[0]  = 0x00;
+  coap_pkt->buffer[0] |= COAP_HEADER_VERSION_MASK & (coap_pkt->version)<<COAP_HEADER_VERSION_POSITION;
+  coap_pkt->buffer[0] |= COAP_HEADER_TYPE_MASK & (coap_pkt->type)<<COAP_HEADER_TYPE_POSITION;
+  coap_pkt->buffer[0] |= COAP_HEADER_TOKEN_LEN_MASK & (coap_pkt->token_len)<<COAP_HEADER_TOKEN_LEN_POSITION;
+  coap_pkt->buffer[1] = coap_pkt->code;
+  coap_pkt->buffer[2] = 0xFF & (coap_pkt->mid)>>8;
+  coap_pkt->buffer[3] = 0xFF & coap_pkt->mid;
 
-  if (IS_OPTION(coap_pkt, COAP_OPTION_CONTENT_TYPE)) {
-    PRINTF("Content-Type [%u]\n", coap_pkt->content_type);
-
-    option += coap_serialize_int_option(COAP_OPTION_CONTENT_TYPE, current_number, option, coap_pkt->content_type);
-    coap_pkt->option_count += 1;
-    current_number = COAP_OPTION_CONTENT_TYPE;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_MAX_AGE)) {
-    PRINTF("Max-Age [%lu]\n", coap_pkt->max_age);
-
-    option += coap_serialize_int_option(COAP_OPTION_MAX_AGE, current_number, option, coap_pkt->max_age);
-    coap_pkt->option_count += 1;
-    current_number = COAP_OPTION_MAX_AGE;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_PROXY_URI)) {
-    PRINTF("Proxy-Uri [%.*s]\n", coap_pkt->proxy_uri_len, coap_pkt->proxy_uri);
-
-    int length = coap_pkt->proxy_uri_len;
-    int j = 0;
-    while (length>0)
-    {
-        option += coap_serialize_array_option(COAP_OPTION_PROXY_URI, current_number, option, (uint8_t *) coap_pkt->proxy_uri + j*270, MIN(270, length), NULL);
-        coap_pkt->option_count += 1;
-        current_number = COAP_OPTION_PROXY_URI;
-
-        ++j;
-        length -= 270;
-    }
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_ETAG)) {
-    PRINTF("ETag %u [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n", coap_pkt->etag_len,
-      coap_pkt->etag[0],
-      coap_pkt->etag[1],
-      coap_pkt->etag[2],
-      coap_pkt->etag[3],
-      coap_pkt->etag[4],
-      coap_pkt->etag[5],
-      coap_pkt->etag[6],
-      coap_pkt->etag[7]
-    ); /*FIXME always prints 8 bytes */
-
-    option += coap_serialize_array_option(COAP_OPTION_ETAG, current_number, option, coap_pkt->etag, coap_pkt->etag_len, NULL);
-    coap_pkt->option_count += 1;
-    current_number = COAP_OPTION_ETAG;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_URI_HOST)) {
-    PRINTF("Uri-Host [%.*s]\n", coap_pkt->uri_host_len, coap_pkt->uri_host);
-
-    option += coap_serialize_array_option(COAP_OPTION_URI_HOST, current_number, option, (uint8_t *) coap_pkt->uri_host, coap_pkt->uri_host_len, NULL);
-    coap_pkt->option_count += 1;
-    current_number = COAP_OPTION_URI_HOST;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_LOCATION_PATH)) {
-    PRINTF("Location [%.*s]\n", coap_pkt->location_path_len, coap_pkt->location_path);
-
-    uint8_t split_options = '/';
-
-    option += coap_serialize_array_option(COAP_OPTION_LOCATION_PATH, current_number, option, (uint8_t *) coap_pkt->location_path, coap_pkt->location_path_len, &split_options);
-    coap_pkt->option_count += split_options;
-    current_number = COAP_OPTION_LOCATION_PATH;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_URI_PORT)) {
-    PRINTF("Uri-Port [%u]\n", coap_pkt->uri_port);
-
-    option += coap_serialize_int_option(COAP_OPTION_URI_PORT, current_number, option, coap_pkt->uri_port);
-    coap_pkt->option_count += 1;
-    current_number = COAP_OPTION_URI_PORT;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_LOCATION_QUERY)) {
-    PRINTF("Location-Query [%.*s]\n", coap_pkt->location_query_len, coap_pkt->location_query);
-
-    uint8_t split_options = '&';
-
-    option += coap_serialize_array_option(COAP_OPTION_LOCATION_QUERY, current_number, option, (uint8_t *) coap_pkt->location_query, coap_pkt->location_query_len, &split_options);
-    coap_pkt->option_count += split_options;
-    current_number = COAP_OPTION_LOCATION_QUERY;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_URI_PATH)) {
-    PRINTF("Uri-Path [%.*s]\n", coap_pkt->uri_path_len, coap_pkt->uri_path);
-
-    uint8_t split_options = '/';
-
-    option += coap_serialize_array_option(COAP_OPTION_URI_PATH, current_number, option, (uint8_t *) coap_pkt->uri_path, coap_pkt->uri_path_len, &split_options);
-    coap_pkt->option_count += split_options;
-    current_number = COAP_OPTION_URI_PATH;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_OBSERVE)) {
-    PRINTF("Observe [%u]\n", coap_pkt->observe);
-
-    option += coap_serialize_int_option(COAP_OPTION_OBSERVE, current_number, option, coap_pkt->observe);
-    coap_pkt->option_count += 1;
-    current_number = COAP_OPTION_OBSERVE;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_TOKEN)) {
-    PRINTF("Token %u [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n", coap_pkt->token_len,
-      coap_pkt->token[0],
-      coap_pkt->token[1],
-      coap_pkt->token[2],
-      coap_pkt->token[3],
-      coap_pkt->token[4],
-      coap_pkt->token[5],
-      coap_pkt->token[6],
-      coap_pkt->token[7]
-    ); /*FIXME always prints 8 bytes */
-
-    option += coap_serialize_array_option(COAP_OPTION_TOKEN, current_number, option, coap_pkt->token, coap_pkt->token_len, NULL);
-    coap_pkt->option_count += 1;
-    current_number = COAP_OPTION_TOKEN;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_ACCEPT)) {
-    int i;
-    for (i=0; i<coap_pkt->accept_num; ++i)
-    {
-      PRINTF("Accept [%u]\n", coap_pkt->accept[i]);
-
-      option += coap_serialize_int_option(COAP_OPTION_ACCEPT, current_number, option, (uint32_t)coap_pkt->accept[i]);
-      coap_pkt->option_count += 1;
-      current_number = COAP_OPTION_ACCEPT;
-    }
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_IF_MATCH)) {
-    PRINTF("If-Match [FIXME]\n");
-
-    option += coap_serialize_array_option(COAP_OPTION_IF_MATCH, current_number, option, coap_pkt->if_match, coap_pkt->if_match_len, NULL);
-    coap_pkt->option_count += 1;
-    current_number = COAP_OPTION_IF_MATCH;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_URI_QUERY)) {
-    PRINTF("Uri-Query [%.*s]\n", coap_pkt->uri_query_len, coap_pkt->uri_query);
-
-    uint8_t split_options = '&';
-
-    option += coap_serialize_array_option(COAP_OPTION_URI_QUERY, current_number, option, (uint8_t *) coap_pkt->uri_query, coap_pkt->uri_query_len, &split_options);
-    coap_pkt->option_count += split_options + (COAP_OPTION_URI_QUERY-current_number)/COAP_OPTION_FENCE_POST;
-    current_number = COAP_OPTION_URI_QUERY;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_BLOCK2))
+  /* set Token */
+  PRINTF("Token (len %u)", coap_pkt->token_len);
+  option = coap_pkt->buffer + COAP_HEADER_LEN;
+  for (current_number=0; current_number<coap_pkt->token_len; ++current_number)
   {
-    PRINTF("Block2 [%lu%s (%u B/blk)]\n", coap_pkt->block2_num, coap_pkt->block2_more ? "+" : "", coap_pkt->block2_size);
-
-    uint32_t block = coap_pkt->block2_num << 4;
-    if (coap_pkt->block2_more) block |= 0x8;
-    block |= 0xF & coap_log_2(coap_pkt->block2_size/16);
-
-    PRINTF("Block2 encoded: 0x%lX\n", block);
-
-    option += coap_serialize_int_option(COAP_OPTION_BLOCK2, current_number, option, block);
-
-    coap_pkt->option_count += 1 + (COAP_OPTION_BLOCK2-current_number)/COAP_OPTION_FENCE_POST;
-    current_number = COAP_OPTION_BLOCK2;
+    PRINTF(" %02X", coap_pkt->token[current_number]);
+    *option = coap_pkt->token[current_number];
+    ++option;
   }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_BLOCK1))
-  {
-    PRINTF("Block1 [%lu%s (%u B/blk)]\n", coap_pkt->block1_num, coap_pkt->block1_more ? "+" : "", coap_pkt->block1_size);
+  PRINTF("-\n");
 
-    uint32_t block = coap_pkt->block1_num << 4;
-    if (coap_pkt->block1_more) block |= 0x8;
-    block |= 0xF & coap_log_2(coap_pkt->block1_size/16);
+  /* Serialize options */
+  current_number = 0;
 
-    PRINTF("Block1 encoded: 0x%lX\n", block);
+  PRINTF("-Serializing options at %p-\n", option);
 
-    option += coap_serialize_int_option(COAP_OPTION_BLOCK1, current_number, option, block);
+  /* The options must be serialized in the order of their number */
+  COAP_SERIALIZE_BYTE_OPTION(   COAP_OPTION_IF_MATCH,       if_match, "If-Match")
+  COAP_SERIALIZE_STRING_OPTION( COAP_OPTION_URI_HOST,       uri_host, '\0', "Uri-Host")
+  COAP_SERIALIZE_BYTE_OPTION(   COAP_OPTION_ETAG,           etag, "ETag")
+  COAP_SERIALIZE_INT_OPTION(    COAP_OPTION_IF_NONE_MATCH,  content_type-coap_pkt->content_type, "If-None-Match") /* hack to get a zero field */
+  COAP_SERIALIZE_INT_OPTION(    COAP_OPTION_OBSERVE,        observe, "Observe")
+  COAP_SERIALIZE_INT_OPTION(    COAP_OPTION_URI_PORT,       uri_port, "Uri-Port")
+  COAP_SERIALIZE_STRING_OPTION( COAP_OPTION_LOCATION_PATH,  location_path, '/', "Location-Path")
+  COAP_SERIALIZE_STRING_OPTION( COAP_OPTION_URI_PATH,       uri_path, '/', "Uri-Path")
+  COAP_SERIALIZE_INT_OPTION(    COAP_OPTION_CONTENT_TYPE,   content_type, "Content-Format")
+  COAP_SERIALIZE_INT_OPTION(    COAP_OPTION_MAX_AGE,        max_age, "Max-Age")
+  COAP_SERIALIZE_STRING_OPTION( COAP_OPTION_URI_QUERY,      uri_query, '&', "Uri-Query")
+  COAP_SERIALIZE_ACCEPT_OPTION( COAP_OPTION_ACCEPT,         accept, "Accept")
+  COAP_SERIALIZE_STRING_OPTION( COAP_OPTION_LOCATION_QUERY, location_query, '&', "Location-Query")
+  COAP_SERIALIZE_BLOCK_OPTION(  COAP_OPTION_BLOCK2,         block2, "Block2")
+  COAP_SERIALIZE_BLOCK_OPTION(  COAP_OPTION_BLOCK1,         block1, "Block1")
+  COAP_SERIALIZE_INT_OPTION(    COAP_OPTION_SIZE,           size, "Size")
+  COAP_SERIALIZE_STRING_OPTION( COAP_OPTION_PROXY_URI,      proxy_uri, '\0', "Proxy-Uri")
 
-    coap_pkt->option_count += 1 + (COAP_OPTION_BLOCK1-current_number)/COAP_OPTION_FENCE_POST;
-    current_number = COAP_OPTION_BLOCK1;
-  }
-  if (IS_OPTION(coap_pkt, COAP_OPTION_IF_NONE_MATCH)) {
-    PRINTF("If-None-Match\n");
+  PRINTF("-Done serializing at %p----\n", option);
 
-    option += coap_serialize_int_option(COAP_OPTION_IF_NONE_MATCH, current_number, option, 0);
-
-    coap_pkt->option_count += 1 + (COAP_OPTION_IF_NONE_MATCH-current_number)/COAP_OPTION_FENCE_POST;
-    current_number = COAP_OPTION_IF_NONE_MATCH;
-  }
-
-  /* pack payload */
+  /* Pack payload */
   if ((option - coap_pkt->buffer)<=COAP_MAX_HEADER_SIZE)
   {
+    /* Payload marker */
+    if (coap_pkt->payload_len)
+    {
+      *option = 0xFF;
+      ++option;
+    }
+
     memmove(option, coap_pkt->payload, coap_pkt->payload_len);
   }
   else
@@ -502,16 +379,18 @@ coap_serialize_message(void *packet, uint8_t *buffer)
     return 0;
   }
 
-  /* set header fields */
-  coap_pkt->buffer[0]  = 0x00;
-  coap_pkt->buffer[0] |= COAP_HEADER_VERSION_MASK & (coap_pkt->version)<<COAP_HEADER_VERSION_POSITION;
-  coap_pkt->buffer[0] |= COAP_HEADER_TYPE_MASK & (coap_pkt->type)<<COAP_HEADER_TYPE_POSITION;
-  coap_pkt->buffer[0] |= COAP_HEADER_OPTION_COUNT_MASK & (coap_pkt->option_count)<<COAP_HEADER_OPTION_COUNT_POSITION;
-  coap_pkt->buffer[1] = coap_pkt->code;
-  coap_pkt->buffer[2] = 0xFF & (coap_pkt->mid)>>8;
-  coap_pkt->buffer[3] = 0xFF & coap_pkt->mid;
+  PRINTF("-Done %u B (header len %u, payload len %u)-\n", coap_pkt->payload_len + option - buffer, option - buffer, coap_pkt->payload_len);
 
-  PRINTF("-Done %u options, header len %u, payload len %u-\n", coap_pkt->option_count, option - buffer, coap_pkt->payload_len);
+  PRINTF("Dump [0x%02X %02X %02X %02X  %02X %02X %02X %02X]\n",
+      coap_pkt->buffer[0],
+      coap_pkt->buffer[1],
+      coap_pkt->buffer[2],
+      coap_pkt->buffer[3],
+      coap_pkt->buffer[4],
+      coap_pkt->buffer[5],
+      coap_pkt->buffer[6],
+      coap_pkt->buffer[7]
+    );
 
   return (option - buffer) + coap_pkt->payload_len; /* packet length */
 }
@@ -545,7 +424,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
   /* parse header fields */
   coap_pkt->version = (COAP_HEADER_VERSION_MASK & coap_pkt->buffer[0])>>COAP_HEADER_VERSION_POSITION;
   coap_pkt->type = (COAP_HEADER_TYPE_MASK & coap_pkt->buffer[0])>>COAP_HEADER_TYPE_POSITION;
-  coap_pkt->option_count = (COAP_HEADER_OPTION_COUNT_MASK & coap_pkt->buffer[0])>>COAP_HEADER_OPTION_COUNT_POSITION;
+  coap_pkt->token_len = MIN(COAP_TOKEN_LEN, (COAP_HEADER_TOKEN_LEN_MASK & coap_pkt->buffer[0])>>COAP_HEADER_TOKEN_LEN_POSITION);
   coap_pkt->code = coap_pkt->buffer[1];
   coap_pkt->mid = coap_pkt->buffer[2]<<8 | coap_pkt->buffer[3];
 
@@ -555,185 +434,211 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
     return BAD_REQUEST_4_00;
   }
 
-  /* parse options */
-  coap_pkt->options = 0x0000;
   uint8_t *current_option = data + COAP_HEADER_LEN;
 
-  if (coap_pkt->option_count)
+  memcpy(coap_pkt->token, current_option, coap_pkt->token_len);
+  PRINTF("Token (len %u) [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n", coap_pkt->token_len,
+    coap_pkt->token[0],
+    coap_pkt->token[1],
+    coap_pkt->token[2],
+    coap_pkt->token[3],
+    coap_pkt->token[4],
+    coap_pkt->token[5],
+    coap_pkt->token[6],
+    coap_pkt->token[7]
+  ); /*FIXME always prints 8 bytes */
+
+
+  /* parse options */
+  memset(coap_pkt->options, 0, sizeof(coap_pkt->options));
+  current_option += coap_pkt->token_len;
+
+  unsigned int option_number = 0;
+  unsigned int option_delta = 0;
+  size_t option_length = 0;
+
+  while (current_option < data+data_len)
   {
-    uint8_t option_index = 0;
+    /* Payload marker 0xFF, currently only checking for 0xF* because rest is reserved */
+    if ((current_option[0] & 0xF0)==0xF0)
+    {
+      coap_pkt->payload = ++current_option;
+      coap_pkt->payload_len = data_len - (coap_pkt->payload - data);
 
-    uint8_t current_number = 0;
-    size_t option_len = 0;
-
-    PRINTF("-Parsing %u options-\n", coap_pkt->option_count);
-    for (option_index=0; option_index < coap_pkt->option_count; ++option_index) {
-
-      current_number += current_option[0]>>4;
-
-      PRINTF("OPTION %u (type %u, delta %u, len %u): ", option_index, current_number, current_option[0]>>4, (0x0F & current_option[0]) < 15 ? (0x0F & current_option[0]) : current_option[1] + 15);
-
-      if ((0x0F & current_option[0]) < 15) {
-        option_len = 0x0F & current_option[0];
-        current_option += 1;
-      } else {
-        option_len = current_option[1] + 15;
-        current_option += 2;
+      /* also for receiving, the Erbium upper bound is REST_MAX_CHUNK_SIZE */
+      if (coap_pkt->payload_len > REST_MAX_CHUNK_SIZE)
+      {
+        coap_pkt->payload_len = REST_MAX_CHUNK_SIZE;
       }
 
-      SET_OPTION(coap_pkt, current_number);
+      /* Null-terminate payload */
+      coap_pkt->payload[coap_pkt->payload_len] = '\0';
 
-      switch (current_number) {
-        case COAP_OPTION_CONTENT_TYPE:
-          coap_pkt->content_type = coap_parse_int_option(current_option, option_len);
-          PRINTF("Content-Type [%u]\n", coap_pkt->content_type);
-          break;
-        case COAP_OPTION_MAX_AGE:
-          coap_pkt->max_age = coap_parse_int_option(current_option, option_len);
-          PRINTF("Max-Age [%lu]\n", coap_pkt->max_age);
-          break;
-        case COAP_OPTION_PROXY_URI:
-          /*FIXME check for own end-point */
-          coap_pkt->proxy_uri = (char *) current_option;
-          coap_pkt->proxy_uri_len = option_len;
-          /*TODO length > 270 not implemented (actually not required) */
-          PRINTF("Proxy-Uri NOT IMPLEMENTED [%.*s]\n", coap_pkt->proxy_uri_len, coap_pkt->proxy_uri);
-          coap_error_message = "This is a constrained server (Contiki)";
-          return PROXYING_NOT_SUPPORTED_5_05;
-          break;
-        case COAP_OPTION_ETAG:
-          coap_pkt->etag_len = MIN(COAP_ETAG_LEN, option_len);
-          memcpy(coap_pkt->etag, current_option, coap_pkt->etag_len);
-          PRINTF("ETag %u [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n", coap_pkt->etag_len,
-            coap_pkt->etag[0],
-            coap_pkt->etag[1],
-            coap_pkt->etag[2],
-            coap_pkt->etag[3],
-            coap_pkt->etag[4],
-            coap_pkt->etag[5],
-            coap_pkt->etag[6],
-            coap_pkt->etag[7]
-          ); /*FIXME always prints 8 bytes */
-          break;
-        case COAP_OPTION_URI_HOST:
-          coap_pkt->uri_host = (char *) current_option;
-          coap_pkt->uri_host_len = option_len;
-          PRINTF("Uri-Host [%.*s]\n", coap_pkt->uri_host_len, coap_pkt->uri_host);
-          break;
-        case COAP_OPTION_LOCATION_PATH:
-          /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
-          coap_merge_multi_option( (char **) &(coap_pkt->location_path), &(coap_pkt->location_path_len), current_option, option_len, '/');
-          PRINTF("Location-Path [%.*s]\n", coap_pkt->location_path_len, coap_pkt->location_path);
-          break;
-        case COAP_OPTION_URI_PORT:
-          coap_pkt->uri_port = coap_parse_int_option(current_option, option_len);
-          PRINTF("Uri-Port [%u]\n", coap_pkt->uri_port);
-          break;
-        case COAP_OPTION_LOCATION_QUERY:
-          /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
-          coap_merge_multi_option( (char **) &(coap_pkt->location_query), &(coap_pkt->location_query_len), current_option, option_len, '&');
-          PRINTF("Location-Query [%.*s]\n", coap_pkt->location_query_len, coap_pkt->location_query);
-          break;
-        case COAP_OPTION_URI_PATH:
-          /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
-          coap_merge_multi_option( (char **) &(coap_pkt->uri_path), &(coap_pkt->uri_path_len), current_option, option_len, '/');
-          PRINTF("Uri-Path [%.*s]\n", coap_pkt->uri_path_len, coap_pkt->uri_path);
-          break;
-        case COAP_OPTION_OBSERVE:
-          coap_pkt->observe = coap_parse_int_option(current_option, option_len);
-          PRINTF("Observe [%u]\n", coap_pkt->observe);
-          break;
-        case COAP_OPTION_TOKEN:
-          coap_pkt->token_len = MIN(COAP_TOKEN_LEN, option_len);
-          memcpy(coap_pkt->token, current_option, coap_pkt->token_len);
-          PRINTF("Token %u [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n", coap_pkt->token_len,
-            coap_pkt->token[0],
-            coap_pkt->token[1],
-            coap_pkt->token[2],
-            coap_pkt->token[3],
-            coap_pkt->token[4],
-            coap_pkt->token[5],
-            coap_pkt->token[6],
-            coap_pkt->token[7]
-          ); /*FIXME always prints 8 bytes */
-          break;
-        case COAP_OPTION_ACCEPT:
-          if (coap_pkt->accept_num < COAP_MAX_ACCEPT_NUM)
-          {
-            coap_pkt->accept[coap_pkt->accept_num] = coap_parse_int_option(current_option, option_len);
-            coap_pkt->accept_num += 1;
-            PRINTF("Accept [%u]\n", coap_pkt->content_type);
-          }
-          break;
-        case COAP_OPTION_IF_MATCH:
-          /*FIXME support multiple ETags */
-          coap_pkt->if_match_len = MIN(COAP_ETAG_LEN, option_len);
-          memcpy(coap_pkt->if_match, current_option, coap_pkt->if_match_len);
-          PRINTF("If-Match %u [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n", coap_pkt->if_match_len,
-            coap_pkt->if_match[0],
-            coap_pkt->if_match[1],
-            coap_pkt->if_match[2],
-            coap_pkt->if_match[3],
-            coap_pkt->if_match[4],
-            coap_pkt->if_match[5],
-            coap_pkt->if_match[6],
-            coap_pkt->if_match[7]
-          ); /*FIXME always prints 8 bytes */
-          break;
-        case COAP_OPTION_FENCE_POST:
-          PRINTF("Fence-Post\n");
-          break;
-        case COAP_OPTION_URI_QUERY:
-          /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
-          coap_merge_multi_option( (char **) &(coap_pkt->uri_query), &(coap_pkt->uri_query_len), current_option, option_len, '&');
-          PRINTF("Uri-Query [%.*s]\n", coap_pkt->uri_query_len, coap_pkt->uri_query);
-          break;
-        case COAP_OPTION_BLOCK2:
-          coap_pkt->block2_num = coap_parse_int_option(current_option, option_len);
-          coap_pkt->block2_more = (coap_pkt->block2_num & 0x08)>>3;
-          coap_pkt->block2_size = 16 << (coap_pkt->block2_num & 0x07);
-          coap_pkt->block2_offset = (coap_pkt->block2_num & ~0x0000000F)<<(coap_pkt->block2_num & 0x07);
-          coap_pkt->block2_num >>= 4;
-          PRINTF("Block2 [%lu%s (%u B/blk)]\n", coap_pkt->block2_num, coap_pkt->block2_more ? "+" : "", coap_pkt->block2_size);
-          break;
-        case COAP_OPTION_BLOCK1:
-          coap_pkt->block1_num = coap_parse_int_option(current_option, option_len);
-          coap_pkt->block1_more = (coap_pkt->block1_num & 0x08)>>3;
-          coap_pkt->block1_size = 16 << (coap_pkt->block1_num & 0x07);
-          coap_pkt->block1_offset = (coap_pkt->block1_num & ~0x0000000F)<<(coap_pkt->block1_num & 0x07);
-          coap_pkt->block1_num >>= 4;
-          PRINTF("Block1 [%lu%s (%u B/blk)]\n", coap_pkt->block1_num, coap_pkt->block1_more ? "+" : "", coap_pkt->block1_size);
-          break;
-        case COAP_OPTION_IF_NONE_MATCH:
-          coap_pkt->if_none_match = 1;
-          PRINTF("If-None-Match\n");
-          break;
-        default:
-          PRINTF("unknown (%u)\n", current_number);
-          /* Check if critical (odd) */
-          if (current_number & 1)
-          {
-            coap_error_message = "Unsupported critical option";
-            return BAD_OPTION_4_02;
-          }
+      break;
+    }
+
+    option_delta = current_option[0]>>4;
+    option_length = current_option[0] & 0x0F;
+    ++current_option;
+
+    /* avoids code duplication without function overhead */
+    unsigned int *x = &option_delta;
+    do
+    {
+      if (*x==13)
+      {
+        *x += current_option[0];
+        ++current_option;
       }
+      else if (*x==14)
+      {
+        *x += 255;
+        *x += current_option[0]<<8;
+        ++current_option;
+        *x += current_option[0];
+        ++current_option;
+      }
+    }
+    while (x!=&option_length && (x=&option_length));
 
-      current_option += option_len;
-    } /* for */
-    PRINTF("-Done parsing-------\n");
-  } /* if (oc) */
+    option_number += option_delta;
 
-  coap_pkt->payload = current_option;
-  coap_pkt->payload_len = data_len - (coap_pkt->payload - data);
+    PRINTF("OPTION %u (delta %u, len %u): ", option_number, option_delta, option_length);
 
-  /* also for receiving, the Erbium upper bound is REST_MAX_CHUNK_SIZE */
-  if (coap_pkt->payload_len > REST_MAX_CHUNK_SIZE)
-  {
-    coap_pkt->payload_len = REST_MAX_CHUNK_SIZE;
-  }
+    SET_OPTION(coap_pkt, option_number);
 
-  /* Null-terminate payload */
-  coap_pkt->payload[coap_pkt->payload_len] = '\0';
+    switch (option_number)
+    {
+      case COAP_OPTION_CONTENT_TYPE:
+        coap_pkt->content_type = coap_parse_int_option(current_option, option_length);
+        PRINTF("Content-Format [%u]\n", coap_pkt->content_type);
+        break;
+      case COAP_OPTION_MAX_AGE:
+        coap_pkt->max_age = coap_parse_int_option(current_option, option_length);
+        PRINTF("Max-Age [%lu]\n", coap_pkt->max_age);
+        break;
+      case COAP_OPTION_ETAG:
+        coap_pkt->etag_len = MIN(COAP_ETAG_LEN, option_length);
+        memcpy(coap_pkt->etag, current_option, coap_pkt->etag_len);
+        PRINTF("ETag %u [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n", coap_pkt->etag_len,
+          coap_pkt->etag[0],
+          coap_pkt->etag[1],
+          coap_pkt->etag[2],
+          coap_pkt->etag[3],
+          coap_pkt->etag[4],
+          coap_pkt->etag[5],
+          coap_pkt->etag[6],
+          coap_pkt->etag[7]
+        ); /*FIXME always prints 8 bytes */
+        break;
+      case COAP_OPTION_ACCEPT:
+        if (coap_pkt->accept_num < COAP_MAX_ACCEPT_NUM)
+        {
+          coap_pkt->accept[coap_pkt->accept_num] = coap_parse_int_option(current_option, option_length);
+          coap_pkt->accept_num += 1;
+          PRINTF("Accept [%u]\n", coap_pkt->content_type);
+        }
+        break;
+      case COAP_OPTION_IF_MATCH:
+        /*FIXME support multiple ETags */
+        coap_pkt->if_match_len = MIN(COAP_ETAG_LEN, option_length);
+        memcpy(coap_pkt->if_match, current_option, coap_pkt->if_match_len);
+        PRINTF("If-Match %u [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n", coap_pkt->if_match_len,
+          coap_pkt->if_match[0],
+          coap_pkt->if_match[1],
+          coap_pkt->if_match[2],
+          coap_pkt->if_match[3],
+          coap_pkt->if_match[4],
+          coap_pkt->if_match[5],
+          coap_pkt->if_match[6],
+          coap_pkt->if_match[7]
+        ); /*FIXME always prints 8 bytes */
+        break;
+      case COAP_OPTION_IF_NONE_MATCH:
+        coap_pkt->if_none_match = 1;
+        PRINTF("If-None-Match\n");
+        break;
+
+      case COAP_OPTION_URI_HOST:
+        coap_pkt->uri_host = (char *) current_option;
+        coap_pkt->uri_host_len = option_length;
+        PRINTF("Uri-Host [%.*s]\n", coap_pkt->uri_host_len, coap_pkt->uri_host);
+        break;
+      case COAP_OPTION_URI_PORT:
+        coap_pkt->uri_port = coap_parse_int_option(current_option, option_length);
+        PRINTF("Uri-Port [%u]\n", coap_pkt->uri_port);
+        break;
+      case COAP_OPTION_URI_PATH:
+        /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
+        coap_merge_multi_option( (char **) &(coap_pkt->uri_path), &(coap_pkt->uri_path_len), current_option, option_length, '/');
+        PRINTF("Uri-Path [%.*s]\n", coap_pkt->uri_path_len, coap_pkt->uri_path);
+        break;
+      case COAP_OPTION_URI_QUERY:
+        /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
+        coap_merge_multi_option( (char **) &(coap_pkt->uri_query), &(coap_pkt->uri_query_len), current_option, option_length, '&');
+        PRINTF("Uri-Query [%.*s]\n", coap_pkt->uri_query_len, coap_pkt->uri_query);
+        break;
+
+      case COAP_OPTION_LOCATION_PATH:
+        /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
+        coap_merge_multi_option( (char **) &(coap_pkt->location_path), &(coap_pkt->location_path_len), current_option, option_length, '/');
+        PRINTF("Location-Path [%.*s]\n", coap_pkt->location_path_len, coap_pkt->location_path);
+        break;
+      case COAP_OPTION_LOCATION_QUERY:
+        /* coap_merge_multi_option() operates in-place on the IPBUF, but final packet field should be const string -> cast to string */
+        coap_merge_multi_option( (char **) &(coap_pkt->location_query), &(coap_pkt->location_query_len), current_option, option_length, '&');
+        PRINTF("Location-Query [%.*s]\n", coap_pkt->location_query_len, coap_pkt->location_query);
+        break;
+
+      case COAP_OPTION_PROXY_URI:
+        /*FIXME check for own end-point */
+        coap_pkt->proxy_uri = (char *) current_option;
+        coap_pkt->proxy_uri_len = option_length;
+        /*TODO length > 270 not implemented (actually not required) */
+        PRINTF("Proxy-Uri NOT IMPLEMENTED [%.*s]\n", coap_pkt->proxy_uri_len, coap_pkt->proxy_uri);
+        coap_error_message = "This is a constrained server (Contiki)";
+        return PROXYING_NOT_SUPPORTED_5_05;
+        break;
+
+      case COAP_OPTION_OBSERVE:
+        coap_pkt->observe = coap_parse_int_option(current_option, option_length);
+        PRINTF("Observe [%lu]\n", coap_pkt->observe);
+        break;
+      case COAP_OPTION_BLOCK2:
+        coap_pkt->block2_num = coap_parse_int_option(current_option, option_length);
+        coap_pkt->block2_more = (coap_pkt->block2_num & 0x08)>>3;
+        coap_pkt->block2_size = 16 << (coap_pkt->block2_num & 0x07);
+        coap_pkt->block2_offset = (coap_pkt->block2_num & ~0x0000000F)<<(coap_pkt->block2_num & 0x07);
+        coap_pkt->block2_num >>= 4;
+        PRINTF("Block2 [%lu%s (%u B/blk)]\n", coap_pkt->block2_num, coap_pkt->block2_more ? "+" : "", coap_pkt->block2_size);
+        break;
+      case COAP_OPTION_BLOCK1:
+        coap_pkt->block1_num = coap_parse_int_option(current_option, option_length);
+        coap_pkt->block1_more = (coap_pkt->block1_num & 0x08)>>3;
+        coap_pkt->block1_size = 16 << (coap_pkt->block1_num & 0x07);
+        coap_pkt->block1_offset = (coap_pkt->block1_num & ~0x0000000F)<<(coap_pkt->block1_num & 0x07);
+        coap_pkt->block1_num >>= 4;
+        PRINTF("Block1 [%lu%s (%u B/blk)]\n", coap_pkt->block1_num, coap_pkt->block1_more ? "+" : "", coap_pkt->block1_size);
+        break;
+      case COAP_OPTION_SIZE:
+        coap_pkt->size = coap_parse_int_option(current_option, option_length);
+        PRINTF("Size [%lu]\n", coap_pkt->size);
+        break;
+      default:
+        PRINTF("unknown (%u)\n", option_number);
+        /* Check if critical (odd) */
+        if (option_number & 1)
+        {
+          coap_error_message = "Unsupported critical option";
+          return BAD_OPTION_4_02;
+        }
+    }
+
+    current_option += option_length;
+  } /* for */
+  PRINTF("-Done parsing-------\n");
+
+
 
   return NO_ERROR;
 }
@@ -1174,6 +1079,27 @@ coap_set_header_block1(void *packet, uint32_t num, uint8_t more, uint16_t size)
   return 1;
 }
 /*-----------------------------------------------------------------------------------*/
+int
+coap_get_header_size(void *packet, uint32_t *size)
+{
+  coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
+
+  if (!IS_OPTION(coap_pkt, COAP_OPTION_SIZE)) return 0;
+  
+  *size = coap_pkt->size;
+  return 1;
+}
+
+int
+coap_set_header_size(void *packet, uint32_t size)
+{
+  coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
+
+  coap_pkt->size = size;
+  SET_OPTION(coap_pkt, COAP_OPTION_SIZE);
+  return 1;
+}
+/*-----------------------------------------------------------------------------------*/
 /*- PAYLOAD -------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 int
@@ -1195,7 +1121,7 @@ coap_set_payload(void *packet, const void *payload, size_t length)
 {
   coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
 
-  PRINTF("setting payload (%u/%u)\n", length, REST_MAX_CHUNK_SIZE);
+  //PRINTF("setting payload (%u/%u)\n", length, REST_MAX_CHUNK_SIZE);
 
   coap_pkt->payload = (uint8_t *) payload;
   coap_pkt->payload_len = MIN(REST_MAX_CHUNK_SIZE, length);

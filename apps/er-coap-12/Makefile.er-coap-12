@@ -1,0 +1,1 @@
+er-coap-12_src = er-coap-12-engine.c er-coap-12.c er-coap-12-transactions.c er-coap-12-observing.c er-coap-12-separate.c

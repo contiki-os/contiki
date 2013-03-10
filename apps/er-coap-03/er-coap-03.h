@@ -120,7 +120,7 @@ typedef enum {
   BAD_REQUEST_400 = 160,
   NOT_FOUND_404 = 164,
   METHOD_NOT_ALLOWED_405 = 165,
-  UNSUPPORTED_MADIA_TYPE_415 = 175,
+  UNSUPPORTED_MEDIA_TYPE_415 = 175,
   INTERNAL_SERVER_ERROR_500 = 200,
   BAD_GATEWAY_502 = 202,
   SERVICE_UNAVAILABLE_503 = 203,
@@ -278,7 +278,7 @@ int coap_set_header_block(void *packet, uint32_t num, uint8_t more, uint16_t siz
 int coap_get_header_uri_query(void *packet, const char **query); /*CAUTION in-place string might not be 0-terminated */
 int coap_set_header_uri_query(void *packet, const char *query);
 
-int coap_get_payload(void *packet, uint8_t **payload);
+int coap_get_payload(void *packet, const uint8_t **payload);
 int coap_set_payload(void *packet, const void *payload, size_t length);
 
 #endif /* COAP_03_H_ */

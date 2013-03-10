@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2012, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,9 +42,9 @@
 #include "contiki.h"
 #include "contiki-net.h"
 
-#include "er-coap-07-engine.h"
+#include "er-coap-12-engine.h"
 
-#define DEBUG 0 
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
@@ -311,20 +311,89 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
     size_t tmplen = 0;
     resource_t* resource = NULL;
 
+#if COAP_LINK_FORMAT_FILTERING
     /* For filtering. */
     const char *filter = NULL;
-    int len = coap_get_query_variable(request, "rt", &filter);
-    char *rt = NULL;
+    const char *attrib = NULL;
+    const char *found = NULL;
+    const char *end = NULL;
+    char *value = NULL;
+    char lastchar;
+	int len = coap_get_header_uri_query(request, &filter);
+	if (len)
+	{
+	  value = strchr(filter, '=');
+	  value[0] = '\0';
+	  ++value;
+	  len -= strlen(filter)+1;
+	  
+	  PRINTF("Filter %s = %.*s\n", filter, len, value);
+	  
+	  if (strcmp(filter,"href")==0 && value[0]=='/')
+	  {
+	    ++value;
+	    --len;
+	  }
+	  
+	  lastchar = value[len-1];
+	  value[len-1] = '\0';
+	}
+#endif
 
     for (resource = (resource_t*)list_head(rest_get_resources()); resource; resource = resource->next)
     {
+#if COAP_LINK_FORMAT_FILTERING
       /* Filtering */
-      if (len && ((rt=strstr(resource->attributes, "rt=\""))==NULL || memcmp(rt+4, filter, len-1)!=0 || (filter[len-1]!='*' && (filter[len-1]!=rt[3+len] || rt[4+len]!='"'))))
+      if (len)
       {
-        continue;
+        if (strcmp(filter,"href")==0)
+        {
+          attrib=strstr(resource->url, value);
+          if (attrib==NULL || (value[-1]=='/' && attrib!=resource->url)) continue;
+          end = attrib + strlen(attrib);
+        }
+        else
+        {
+          attrib=strstr(resource->attributes, filter);
+          if (attrib==NULL || (attrib[strlen(filter)]!='=' && attrib[strlen(filter)]!='"')) continue;
+          attrib += strlen(filter)+2;
+          end = strchr(attrib, '"');
+        }
+
+        PRINTF("Filter: res has attrib %s (%s)\n", attrib, value);
+        found = attrib;
+        while ((found=strstr(found, value))!=NULL) {
+            if (found > end)
+            {
+              found = NULL;
+              break;
+            }
+            if (lastchar==found[len-1] || lastchar=='*')
+            {
+              break;
+            }
+            ++found;
+        }
+        if (found==NULL)
+        {
+          continue;
+        }
+        PRINTF("Filter: res has prefix %s\n", found);
+        if (lastchar!='*' && (found[len]!='"' && found[len]!=' ' && found[len]!='\0')) continue;
+        PRINTF("Filter: res has match\n");
       }
+#endif
 
       PRINTF("res: /%s (%p)\npos: s%d, o%d, b%d\n", resource->url, resource, strpos, *offset, bufpos);
+
+      if (strpos>0)
+      {
+        if (strpos >= *offset && bufpos < preferred_size)
+        {
+          buffer[bufpos++] = ',';
+        }
+        ++strpos;
+      }
 
       if (strpos >= *offset && bufpos < preferred_size)
       {
@@ -378,15 +447,6 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
         strpos += tmplen;
       }
 
-      if (resource->next)
-      {
-        if (strpos >= *offset && bufpos < preferred_size)
-        {
-          buffer[bufpos++] = ',';
-        }
-        ++strpos;
-      }
-
       /* buffer full, but resource not completed yet; or: do not break if resource exactly fills buffer. */
       if (bufpos >= preferred_size && strpos-bufpos > *offset)
       {
@@ -423,13 +483,12 @@ well_known_core_handler(void* request, void* response, uint8_t *buffer, uint16_t
 PROCESS_THREAD(coap_receiver, ev, data)
 {
   PROCESS_BEGIN();
-  PRINTF("Starting CoAP-07 receiver...\n");
+  PRINTF("Starting CoAP-12 receiver...\n");
 
   rest_activate_resource(&resource_well_known_core);
 
   coap_register_as_transaction_handler();
   coap_init_connection(SERVER_LISTEN_PORT);
-  PRINTF("Listening on port %u\n", UIP_HTONS(SERVER_LISTEN_PORT));
 
   while(1) {
     PROCESS_YIELD();
@@ -524,7 +583,7 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
 /*- Engine Interface ---------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
 const struct rest_implementation coap_rest_implementation = {
-  "CoAP-07",
+  "CoAP-12",
 
   coap_receiver_init,
   coap_set_service_callback,
@@ -537,8 +596,8 @@ const struct rest_implementation coap_rest_implementation = {
   coap_get_header_content_type,
   coap_set_header_content_type,
   coap_get_header_accept,
-  NULL,
-  NULL,
+  coap_get_header_size,
+  coap_set_header_size,
   coap_get_header_max_age,
   coap_set_header_max_age,
   coap_set_header_etag,
@@ -566,7 +625,6 @@ const struct rest_implementation coap_rest_implementation = {
     CHANGED_2_04,
     DELETED_2_02,
     VALID_2_03,
-    
     BAD_REQUEST_4_00,
     UNAUTHORIZED_4_01,
     BAD_OPTION_4_02,
@@ -576,7 +634,6 @@ const struct rest_implementation coap_rest_implementation = {
     NOT_ACCEPTABLE_4_06,
     REQUEST_ENTITY_TOO_LARGE_4_13,
     UNSUPPORTED_MEDIA_TYPE_4_15,
-    
     INTERNAL_SERVER_ERROR_5_00,
     NOT_IMPLEMENTED_5_01,
     BAD_GATEWAY_5_02,

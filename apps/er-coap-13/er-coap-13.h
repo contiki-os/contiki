@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2012, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,17 +31,19 @@
 
 /**
  * \file
- *      An implementation of the Constrained Application Protocol (draft 07)
+ *      An implementation of the Constrained Application Protocol (draft 12)
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#ifndef COAP_07_H_
-#define COAP_07_H_
+#ifndef COAP_12_H_
+#define COAP_12_H_
 
 #include <stddef.h> /* for size_t */
 #include "contiki-net.h"
 #include "erbium.h"
+
+#define COAP_LINK_FORMAT_FILTERING           1
 
 #define COAP_DEFAULT_PORT                    5683
 
@@ -54,7 +56,7 @@
 #define COAP_RESPONSE_RANDOM_FACTOR          1.5
 #define COAP_MAX_RETRANSMIT                  4
 
-#define COAP_HEADER_LEN                      4 /* | oc:0xF0 type:0x0C version:0x03 | code | mid:0x00FF | mid:0xFF00 | */
+#define COAP_HEADER_LEN                      4 /* | version:0x03 type:0x0C tkl:0xF0 | code | mid:0x00FF | mid:0xFF00 | */
 #define COAP_ETAG_LEN                        8 /* The maximum number of bytes for the ETag */
 #define COAP_TOKEN_LEN                       8 /* The maximum number of bytes for the Token */
 #define COAP_MAX_ACCEPT_NUM                  2 /* The maximum number of accept preferences to parse/store */
@@ -63,8 +65,8 @@
 #define COAP_HEADER_VERSION_POSITION         6
 #define COAP_HEADER_TYPE_MASK                0x30
 #define COAP_HEADER_TYPE_POSITION            4
-#define COAP_HEADER_OPTION_COUNT_MASK        0x0F
-#define COAP_HEADER_OPTION_COUNT_POSITION    0
+#define COAP_HEADER_TOKEN_LEN_MASK           0x0F
+#define COAP_HEADER_TOKEN_LEN_POSITION       0
 
 #define COAP_HEADER_OPTION_DELTA_MASK        0xF0
 #define COAP_HEADER_OPTION_SHORT_LENGTH_MASK 0x0F
@@ -72,8 +74,11 @@
 /*
  * Conservative size limit, as not all options have to be set at the same time.
  */
+#ifndef COAP_MAX_HEADER_SIZE
 /*                            Hdr CoT Age  Tag              Obs  Tok               Blo strings */
-#define COAP_MAX_HEADER_SIZE  (4 + 3 + 5 + 1+COAP_ETAG_LEN + 3 + 1+COAP_TOKEN_LEN + 4 + 10) /* 50 */
+#define COAP_MAX_HEADER_SIZE  (4 + 3 + 5 + 1+COAP_ETAG_LEN + 3 + 1+COAP_TOKEN_LEN + 4 + 30) /* 70 */
+#endif /* COAP_MAX_HEADER_SIZE */
+
 #define COAP_MAX_PACKET_SIZE  (COAP_MAX_HEADER_SIZE + REST_MAX_CHUNK_SIZE)
 /*                                        0/14          48 for IPv6 (28 for IPv4) */
 #if COAP_MAX_PACKET_SIZE > (UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN)
@@ -90,8 +95,10 @@
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 
-#define SET_OPTION(packet, opt) ((packet)->options |= 1L<<opt)
-#define IS_OPTION(packet, opt) ((packet)->options & 1L<<opt)
+/* Bitmap for set options */
+enum { OPTION_MAP_SIZE = sizeof(uint8_t) * 8 };
+#define SET_OPTION(packet, opt) ((packet)->options[opt / OPTION_MAP_SIZE] |= 1 << (opt % OPTION_MAP_SIZE))
+#define IS_OPTION(packet, opt) ((packet)->options[opt / OPTION_MAP_SIZE] & (1 << (opt % OPTION_MAP_SIZE)))
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b)? (a) : (b))
@@ -152,30 +159,30 @@ typedef enum {
 
 /* CoAP header options */
 typedef enum {
-  COAP_OPTION_CONTENT_TYPE = 1,   /* 0-2 B */
-  COAP_OPTION_MAX_AGE = 2,        /* 0-4 B */
-  COAP_OPTION_PROXY_URI = 3,      /* 1-270 B */
+  COAP_OPTION_IF_MATCH = 1,       /* 0-8 B */
+  COAP_OPTION_URI_HOST = 3,       /* 1-255 B */
   COAP_OPTION_ETAG = 4,           /* 1-8 B */
-  COAP_OPTION_URI_HOST = 5,       /* 1-270 B */
-  COAP_OPTION_LOCATION_PATH = 6,  /* 1-270 B */
+  COAP_OPTION_IF_NONE_MATCH = 5,  /* 0 B */
+  COAP_OPTION_OBSERVE = 6,        /* 0-3 B */
   COAP_OPTION_URI_PORT = 7,       /* 0-2 B */
-  COAP_OPTION_LOCATION_QUERY = 8, /* 1-270 B */
-  COAP_OPTION_URI_PATH = 9,       /* 1-270 B */
-    COAP_OPTION_OBSERVE = 10,       /* 0-2 B */
-  COAP_OPTION_TOKEN = 11,         /* 1-8 B */
-  COAP_OPTION_ACCEPT = 12,        /* 0-2 B */
-  COAP_OPTION_IF_MATCH = 13,      /* 0-8 B */
-  COAP_OPTION_FENCE_POST = 14,    /* 0 B */
-  COAP_OPTION_URI_QUERY = 15,     /* 1-270 B */
-    COAP_OPTION_BLOCK2 = 17,        /* 1-3 B */
-    COAP_OPTION_BLOCK1 = 19,        /* 1-3 B */
-  COAP_OPTION_IF_NONE_MATCH = 21  /* 0 B */
+  COAP_OPTION_LOCATION_PATH = 8,  /* 0-255 B */
+  COAP_OPTION_URI_PATH = 11,      /* 0-255 B */
+  COAP_OPTION_CONTENT_TYPE = 12,  /* 0-2 B */
+  COAP_OPTION_MAX_AGE = 14,       /* 0-4 B */
+  COAP_OPTION_URI_QUERY = 15,     /* 0-270 B */
+  COAP_OPTION_ACCEPT = 16,        /* 0-2 B */
+  COAP_OPTION_TOKEN = 19,         /* 1-8 B */
+  COAP_OPTION_LOCATION_QUERY = 20, /* 1-270 B */
+  COAP_OPTION_BLOCK2 = 23,        /* 1-3 B */
+  COAP_OPTION_BLOCK1 = 27,        /* 1-3 B */
+  COAP_OPTION_SIZE = 28,          /* 0-4 B */
+  COAP_OPTION_PROXY_URI = 35,     /* 1-270 B */
 } coap_option_t;
 
-/* CoAP content-types */
+/* CoAP Content-Types */
 typedef enum {
   TEXT_PLAIN = 0,
-    TEXT_XML = 1, /* Intented types are not in the initial registry. */
+    TEXT_XML = 1, /* Indented types are not in the initial registry. */
     TEXT_CSV = 2,
     TEXT_HTML = 3,
     IMAGE_GIF = 21,
@@ -184,7 +191,7 @@ typedef enum {
     IMAGE_TIFF = 24,
     AUDIO_RAW = 25,
     VIDEO_RAW = 26,
-  APPLICATION_LINK_FORMAT = 40, /* Actually not in registry!? */
+  APPLICATION_LINK_FORMAT = 40,
   APPLICATION_XML = 41,
   APPLICATION_OCTET_STREAM = 42,
     APPLICATION_RDF_XML = 43,
@@ -198,16 +205,16 @@ typedef enum {
     APPLICATION_X_OBIX_BINARY = 51
 } coap_content_type_t;
 
+/* Parsed message struct */
 typedef struct {
   uint8_t *buffer; /* pointer to CoAP header / incoming packet buffer / memory to serialize packet */
 
   uint8_t version;
   coap_message_type_t type;
-  uint8_t option_count;
   uint8_t code;
   uint16_t mid;
 
-  uint32_t options;  /* Bitmap to check if option is set */
+  uint8_t options[COAP_OPTION_PROXY_URI / OPTION_MAP_SIZE + 1]; /* Bitmap to check if option is set */
 
   coap_content_type_t content_type; /* Parse options once and store; allows setting options in random order  */
   uint32_t max_age;
@@ -239,6 +246,7 @@ typedef struct {
   uint8_t block1_more;
   uint16_t block1_size;
   uint32_t block1_offset;
+  uint32_t size;
   size_t uri_query_len;
   const char *uri_query;
   uint8_t if_none_match;
@@ -248,6 +256,55 @@ typedef struct {
 
 } coap_packet_t;
 
+/* Option format serialization*/
+#define COAP_SERIALIZE_INT_OPTION(number, field, text)  \
+    if (IS_OPTION(coap_pkt, number)) { \
+      PRINTF(text" [%u]\n", coap_pkt->field); \
+      option += coap_serialize_int_option(number, current_number, option, coap_pkt->field); \
+      current_number = number; \
+    }
+#define COAP_SERIALIZE_BYTE_OPTION(number, field, text)      \
+    if (IS_OPTION(coap_pkt, number)) { \
+      PRINTF(text" %u [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n", coap_pkt->field##_len, \
+        coap_pkt->field[0], \
+        coap_pkt->field[1], \
+        coap_pkt->field[2], \
+        coap_pkt->field[3], \
+        coap_pkt->field[4], \
+        coap_pkt->field[5], \
+        coap_pkt->field[6], \
+        coap_pkt->field[7] \
+      ); /*FIXME always prints 8 bytes */ \
+      option += coap_serialize_array_option(number, current_number, option, coap_pkt->field, coap_pkt->field##_len, '\0'); \
+      current_number = number; \
+    }
+#define COAP_SERIALIZE_STRING_OPTION(number, field, splitter, text)      \
+    if (IS_OPTION(coap_pkt, number)) { \
+      PRINTF(text" [%.*s]\n", coap_pkt->field##_len, coap_pkt->field); \
+      option += coap_serialize_array_option(number, current_number, option, (uint8_t *) coap_pkt->field, coap_pkt->field##_len, splitter); \
+      current_number = number; \
+    }
+#define COAP_SERIALIZE_ACCEPT_OPTION(number, field, text)  \
+    if (IS_OPTION(coap_pkt, number)) { \
+      int i; \
+      for (i=0; i<coap_pkt->field##_num; ++i) \
+      { \
+        PRINTF(text" [%u]\n", coap_pkt->field[i]); \
+        option += coap_serialize_int_option(number, current_number, option, coap_pkt->field[i]); \
+        current_number = number; \
+      } \
+    }
+#define COAP_SERIALIZE_BLOCK_OPTION(number, field, text)      \
+    if (IS_OPTION(coap_pkt, number)) \
+    { \
+      PRINTF(text" [%lu%s (%u B/blk)]\n", coap_pkt->field##_num, coap_pkt->field##_more ? "+" : "", coap_pkt->field##_size); \
+      uint32_t block = coap_pkt->field##_num << 4; \
+      if (coap_pkt->field##_more) block |= 0x8; \
+      block |= 0xF & coap_log_2(coap_pkt->field##_size/16); \
+      PRINTF(text" encoded: 0x%lX\n", block); \
+      option += coap_serialize_int_option(number, current_number, option, block); \
+      current_number = number; \
+    }
 
 /* To store error code and human-readable payload */
 extern coap_status_t coap_error_code;
@@ -316,7 +373,10 @@ int coap_set_header_block2(void *packet, uint32_t num, uint8_t more, uint16_t si
 int coap_get_header_block1(void *packet, uint32_t *num, uint8_t *more, uint16_t *size, uint32_t *offset);
 int coap_set_header_block1(void *packet, uint32_t num, uint8_t more, uint16_t size);
 
+int coap_get_header_size(void *packet, uint32_t *size);
+int coap_set_header_size(void *packet, uint32_t size);
+
 int coap_get_payload(void *packet, const uint8_t **payload);
 int coap_set_payload(void *packet, const void *payload, size_t length);
 
-#endif /* COAP_07_H_ */
+#endif /* COAP_12_H_ */
