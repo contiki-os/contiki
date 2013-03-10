@@ -70,11 +70,18 @@ static unsigned long lasttime;
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
 /*---------------------------------------------------------------------------*/
+int
+tapdev_fd(void)
+{
+  return fd;
+}
+
+/*---------------------------------------------------------------------------*/
 static void
 remove_route(void)
 {
   char buf[1024];
-  snprintf(buf, sizeof(buf), "route delete -net 172.16.0.0");
+  snprintf(buf, sizeof(buf), "route delete -net 172.18.0.0");
   system(buf);
   printf("%s\n", buf);
 
@@ -103,15 +110,15 @@ tapdev_init(void)
   }
 #endif /* Linux */
 
-  snprintf(buf, sizeof(buf), "ifconfig tap0 inet 192.168.1.1");
+  snprintf(buf, sizeof(buf), "ifconfig tap0 inet 172.18.0.1/16");
   system(buf);
   printf("%s\n", buf);
 #ifdef linux
   /* route add for linux */
-  snprintf(buf, sizeof(buf), "route add -net 172.16.0.0/16 gw 192.168.1.2");
+  snprintf(buf, sizeof(buf), "route add -net 172.18.0.0/16 dev tap0");
 #else /* linux */
   /* route add for freebsd */
-  snprintf(buf, sizeof(buf), "route add -net 172.16.0.0/16 192.168.1.2");
+  snprintf(buf, sizeof(buf), "route add -net 172.18.0.0/16 -iface tap0");
 #endif /* linux */
   
   system(buf);
