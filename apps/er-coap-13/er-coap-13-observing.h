@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2012, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,11 +39,11 @@
 #ifndef COAP_OBSERVING_H_
 #define COAP_OBSERVING_H_
 
-#include "er-coap-03.h"
-#include "er-coap-03-transactions.h"
+#include "er-coap-13.h"
+#include "er-coap-13-transactions.h"
 
 #ifndef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS      4
+#define COAP_MAX_OBSERVERS    COAP_MAX_OPEN_TRANSACTIONS-1
 #endif /* COAP_MAX_OBSERVERS */
 
 /* Interval in seconds in which NON notifies are changed to CON notifies to check client. */
@@ -61,15 +61,21 @@ typedef struct coap_observer {
   uint16_t port;
   uint8_t token_len;
   uint8_t token[COAP_TOKEN_LEN];
+  uint16_t last_mid;
   struct stimer refresh_timer;
 } coap_observer_t;
 
 list_t coap_get_observers(void);
+
 coap_observer_t *coap_add_observer(uip_ipaddr_t *addr, uint16_t port, const uint8_t *token, size_t token_len, const char *url);
+
 void coap_remove_observer(coap_observer_t *o);
 int coap_remove_observer_by_client(uip_ipaddr_t *addr, uint16_t port);
 int coap_remove_observer_by_token(uip_ipaddr_t *addr, uint16_t port, uint8_t *token, size_t token_len);
-void coap_notify_observers(resource_t *resource, uint16_t obs_counter, void *notification);
+int coap_remove_observer_by_url(uip_ipaddr_t *addr, uint16_t port, const char *url);
+int coap_remove_observer_by_mid(uip_ipaddr_t *addr, uint16_t port, uint16_t mid);
+
+void coap_notify_observers(resource_t *resource, int32_t obs_counter, void *notification);
 
 void coap_observe_handler(resource_t *resource, void *request, void *response);
 

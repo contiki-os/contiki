@@ -1,0 +1,10 @@
+21,23c21
+< #ifdef __INSIDE_CYGWIN__
+<     uint32_t __s6_addr32[4];
+< #endif
+---
+>     u_int __s6_addr32[4];
+36d33
+< #ifdef __INSIDE_CYGWIN__
+39d35
+< #endif

@@ -98,8 +98,9 @@ struct rest_implementation_status
   const unsigned int FORBIDDEN;                 /* FORBIDDEN_4_03,                FORBIDDEN_403 */
   const unsigned int NOT_FOUND;                 /* NOT_FOUND_4_04,                NOT_FOUND_404 */
   const unsigned int METHOD_NOT_ALLOWED;        /* METHOD_NOT_ALLOWED_4_05,       METHOD_NOT_ALLOWED_405 */
+  const unsigned int NOT_ACCEPTABLE;            /* NOT_ACCEPTABLE_4_06,           NOT_ACCEPTABLE_406 */
   const unsigned int REQUEST_ENTITY_TOO_LARGE;  /* REQUEST_ENTITY_TOO_LARGE_4_13, REQUEST_ENTITY_TOO_LARGE_413 */
-  const unsigned int UNSUPPORTED_MADIA_TYPE;    /* UNSUPPORTED_MADIA_TYPE_4_15,   UNSUPPORTED_MADIA_TYPE_415 */
+  const unsigned int UNSUPPORTED_MEDIA_TYPE;    /* UNSUPPORTED_MEDIA_TYPE_4_15,   UNSUPPORTED_MEDIA_TYPE_415 */
 
   const unsigned int INTERNAL_SERVER_ERROR;     /* INTERNAL_SERVER_ERROR_5_00,    INTERNAL_SERVER_ERROR_500 */
   const unsigned int NOT_IMPLEMENTED;           /* NOT_IMPLEMENTED_5_01,          NOT_IMPLEMENTED_501 */
@@ -182,10 +183,17 @@ struct rest_implementation {
   /** Get the content-type of a request. */
   unsigned int (* get_header_content_type)(void *request);
 
-  /** Set the content-type of a response. */
+  /** Set the Content-Type of a response. */
   int (* set_header_content_type)(void *response, unsigned int content_type);
 
+  /** Get the Accept types of a request. */
   int (* get_header_accept)(void *request, const uint16_t **accept);
+
+  /** Get the Length option of a request. */
+  int (* get_header_length)(void *request, uint32_t *size);
+
+  /** Set the Length option of a response. */
+  int (* set_header_length)(void *response, uint32_t size);
 
   /** Get the Max-Age option of a request. */
   int (* get_header_max_age)(void *request, uint32_t *age);
@@ -209,7 +217,7 @@ struct rest_implementation {
   int (* set_header_location)(void *response, const char *location);
 
   /** Get the payload option of a request. */
-  int (* get_request_payload)(void *request, uint8_t **payload);
+  int (* get_request_payload)(void *request, const uint8_t **payload);
 
   /** Set the payload option of a response. */
   int (* set_response_payload)(void *response, const void *payload, size_t length);
@@ -224,7 +232,7 @@ struct rest_implementation {
   int (* get_post_variable)(void *request, const char *name, const char **value);
 
   /** Send the payload to all subscribers of the resource at url. */
-  void (* notify_subscribers)(resource_t *resource, uint16_t counter, void *notification);
+  void (* notify_subscribers)(resource_t *resource, int32_t counter, void *notification);
 
   /** The handler for resource subscriptions. */
   restful_post_handler subscription_handler;

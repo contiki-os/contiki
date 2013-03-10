@@ -57,12 +57,36 @@ Add a client:
 2) Connect a third Tmote Sky
 3) $ make TARGET=sky er-example-client.upload MOTE=3
 
+MINIMAL-NET HOWTO
+-----------------
+With the target minimal-net you can test your CoAP applications without constraints, i.e., with large buffers, debug output, memory protection, etc.
+The er-plugtest-server is thought for the minimal-net platform, as it requires an 1280-byte IP buffer and 1024-byte blocks.
+1) $ make TARGET=minimal-net er-plugtest-server
+2) $ sudo ./er-plugtest-server.minimal-net
+3) Open new terminal
+4) $ make connect-minimal
+5) Start Copper and discover resources at coap://[fdfd::ff:fe00:10]:5683/
+-  You can enable the ETSI Plugtest menu in Copper's preferences
+
+Under Windows/Cygwin, WPCAP might need a patch in <cygwin>\usr\include\w32api\in6addr.h:
+
+21,23c21
+< #ifdef __INSIDE_CYGWIN__
+<     uint32_t __s6_addr32[4];
+< #endif
+---
+>     u_int __s6_addr32[4];
+36d33
+< #ifdef __INSIDE_CYGWIN__
+39d35
+< #endif
+
 DETAILS
 -------
-Erbium currently implements draft 08 (name "er-coap-07" stems from last technical draft changes).
+Erbium currently implements draft 13.
 Central features are commented in er-example-server.c.
-In general, apps/er-coap-07 supports:
-* All draft 08 header options
+In general, apps/er-coap-13 supports:
+* All draft 13 header options
 * CON Retransmissions (note COAP_MAX_OPEN_TRANSACTIONS)
 * Blockwise Transfers (note REST_MAX_CHUNK_SIZE, see er-plugtest-server.c for Block1 uploads)
 * Separate Responses (no rest_set_pre_handler() required anymore, note coap_separate_accept(), _reject(), and _resume())
@@ -72,6 +96,10 @@ In general, apps/er-coap-07 supports:
 REST IMPLEMENTATIONS
 --------------------
 The Makefile uses WITH_COAP to configure different implementations for the Erbium (Er) REST Engine.
+* WITH_COAP=13 uses Erbium CoAP 13 apps/er-coap-13/.
+  The default port for coap-13 is 5683.
+* WITH_COAP=12 uses Erbium CoAP 12 apps/er-coap-12/.
+  The default port for coap-12 is 5683.
 * WITH_COAP=7 uses Erbium CoAP 08 apps/er-coap-07/.
   The default port for coap-07/-08 is 5683.
 * WITH_COAP=3 uses Erbium CoAP 03 apps/er-coap-03/.
@@ -81,6 +109,8 @@ The Makefile uses WITH_COAP to configure different implementations for the Erbiu
 
 TODOs
 -----
+* Dedicated Observe buffers
+* Optimize message struct variable access (directly access struct without copying)
 * Observe client
 * Multiple If-Match ETags
 * (Message deduplication)
