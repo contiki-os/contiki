@@ -51,7 +51,7 @@ ifneq ($(strip $(HAVE_PRGBOARD_FILE)), )
 endif 
 
 include $(CONTIKIAVR)/radio/Makefile.radio
-ifdef UIP_CONF_IPV6
+ifeq ($(UIP_CONF_IPV6),1)
 CFLAGS += -DWITH_UIP6=1
 endif
 
