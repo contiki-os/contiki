@@ -1,4 +1,4 @@
-ifdef UIP_CONF_IPV6
+ifeq ($(UIP_CONF_IPV6),1)
 #RIME_UIP6      = rime-udp.c
 RIME_BASE      = rimeaddr.c timesynch.c rimestats.c
 else

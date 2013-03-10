@@ -6,7 +6,7 @@ ifeq ($(HOST_OS),Darwin)
   AROPTS = rc
 endif
 
-ifdef UIP_CONF_IPV6
+ifeq ($(UIP_CONF_IPV6),1)
 CFLAGS += -DWITH_UIP6=1
 endif
 
@@ -23,7 +23,7 @@ TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 else
 CONTIKI_TARGET_SOURCEFILES += tapdev-drv.c
 #math
-ifndef UIP_CONF_IPV6
+ifneq ($(UIP_CONF_IPV6),1)
 CONTIKI_TARGET_SOURCEFILES += tapdev.c
 else
 CONTIKI_TARGET_SOURCEFILES += tapdev6.c
