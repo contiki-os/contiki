@@ -112,12 +112,6 @@
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0
 
-/* Default route lifetime unit. */
-#define RPL_DEFAULT_LIFETIME_UNIT       0xffff
-
-/* Default route lifetime as a multiple of the lifetime unit. */
-#define RPL_DEFAULT_LIFETIME            0xff
-
 #define RPL_LIFETIME(instance, lifetime) \
           ((unsigned long)(instance)->lifetime_unit * (lifetime))
 

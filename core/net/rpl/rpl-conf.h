@@ -165,4 +165,23 @@
 #define RPL_INIT_LINK_METRIC        NEIGHBOR_INFO_ETX2FIX(RPL_CONF_INIT_LINK_METRIC)
 #endif
 
+/*
+ * Default route lifetime unit. This is the granularity of time
+ * used in RPL lifetime values, in seconds.
+ */
+#ifndef RPL_CONF_DEFAULT_LIFETIME_UNIT
+#define RPL_DEFAULT_LIFETIME_UNIT       0xffff
+#else
+#define RPL_DEFAULT_LIFETIME_UNIT       RPL_CONF_DEFAULT_LIFETIME_UNIT
+#endif
+
+/*
+ * Default route lifetime as a multiple of the lifetime unit.
+ */
+#ifndef RPL_CONF_DEFAULT_LIFETIME
+#define RPL_DEFAULT_LIFETIME            0xff
+#else
+#define RPL_DEFAULT_LIFETIME            RPL_CONF_DEFAULT_LIFETIME
+#endif
+
 #endif /* RPL_CONF_H */
