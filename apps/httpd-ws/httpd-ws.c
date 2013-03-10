@@ -378,9 +378,7 @@ httpd_ws_request(char request_type, const char *host_ip, const char *host_hdr,
   ipaddr = &addr;
   if(uiplib_ipaddrconv(host_ip, &addr) == 0) {
 #if 0 && UIP_UDP
-    ipaddr = resolv_lookup(host_ip);
-
-    if(ipaddr == NULL) {
+    if(resolv_lookup(host, &ipaddr) != RESOLV_STATUS_CACHED) {
       return NULL;
     }
 #else /* UIP_UDP */
