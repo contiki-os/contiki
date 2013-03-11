@@ -75,7 +75,7 @@ int coap_remove_observer_by_token(uip_ipaddr_t *addr, uint16_t port, uint8_t *to
 int coap_remove_observer_by_url(uip_ipaddr_t *addr, uint16_t port, const char *url);
 int coap_remove_observer_by_mid(uip_ipaddr_t *addr, uint16_t port, uint16_t mid);
 
-void coap_notify_observers(resource_t *resource, uint16_t obs_counter, void *notification);
+void coap_notify_observers(resource_t *resource, int32_t obs_counter, void *notification);
 
 void coap_observe_handler(resource_t *resource, void *request, void *response);
 
