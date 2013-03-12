@@ -87,7 +87,7 @@ dma_reset(uint8_t c)
   dma_conf[c].len_h = 0;
   dma_conf[c].len_l = 1;
   dma_conf[c].wtt = DMA_BLOCK;
-  dma_conf[c].inc_prio = DMA_PRIO_GUARANTEED;
+  dma_conf[c].inc_prio = DMA_PRIO_ASSURED;
   DMA_TRIGGER(c); /** The operation order is important */
   DMA_ARM(c);
   while(DMAARM & (1 << c));
