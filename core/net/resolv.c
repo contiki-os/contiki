@@ -807,7 +807,7 @@ newdata(void)
       struct dns_question *question =
         (struct dns_question *)skip_name(queryptr);
 
-#if __ARM__
+#if !ARCH_DOESNT_NEED_ALIGNED_STRUCTS
       static struct dns_question aligned;
 
       memcpy(&aligned, question, sizeof(aligned));
@@ -916,7 +916,7 @@ newdata(void)
   /* Discard all remaining questions */
   for(; nquestions > 0; queryptr += 4, nquestions--) {
     if(namemapptr
-       && 0 != dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
+       && !dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
       DEBUG_PRINTF("resolver: Question name doesn't look familiar...!\n");
       return;
     }
@@ -927,7 +927,7 @@ newdata(void)
   while(nanswers > 0) {
     ans = (struct dns_answer *)skip_name(queryptr);
 
-#if __ARM__
+#if !ARCH_DOESNT_NEED_ALIGNED_STRUCTS
     static struct dns_answer aligned;
 
     memcpy(&aligned, ans, sizeof(aligned));
