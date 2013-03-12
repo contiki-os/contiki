@@ -95,9 +95,8 @@
 /* Descriptor Byte 7, Bits[3:0] */
 #define DMA_IRQ_MASK_ENABLE  0x08
 #define DMA_MODE_7_BIT       0x04
-#define DMA_PRIO_HIGHEST     0x03
 #define DMA_PRIO_HIGH        0x02
-#define DMA_PRIO_GUARANTEED  0x01
+#define DMA_PRIO_ASSURED     0x01
 #define DMA_PRIO_LOW         0x00
 
 /** DMA configuration structure */
