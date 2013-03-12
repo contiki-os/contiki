@@ -272,7 +272,7 @@ struct namemap {
   uip_ipaddr_t ipaddr;
   uint8_t err;
 #if RESOLV_CONF_SUPPORTS_MDNS
-  uint8_t is_mdns:1, is_probe:1;
+  int is_mdns:1, is_probe:1;
 #endif
   char name[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
 };
@@ -931,9 +931,11 @@ newdata(void)
     ans = (struct dns_answer *)skip_name(queryptr);
 
 #if !ARCH_DOESNT_NEED_ALIGNED_STRUCTS
-    static struct dns_answer aligned;
-    memcpy(&aligned, ans, sizeof(aligned));
-    ans = &aligned;
+    {
+      static struct dns_answer aligned;
+      memcpy(&aligned, ans, sizeof(aligned));
+      ans = &aligned;
+    }
 #endif /* !ARCH_DOESNT_NEED_ALIGNED_STRUCTS */
 
 #if VERBOSE_DEBUG
