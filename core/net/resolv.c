@@ -75,7 +75,6 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <ctype.h>
 
 #ifndef NULL
@@ -206,18 +205,13 @@ struct dns_hdr {
 /** These default values for the DNS server are Google's public DNS:
  *  <https://developers.google.com/speed/public-dns/docs/using>
  */
+static uip_ipaddr_t resolv_default_dns_server =
 #if UIP_CONF_IPV6
-static uip_ipaddr_t resolv_default_dns_server = {
-  .u8 = {
-         0x20, 0x01, 0x48, 0x60,
-         0x48, 0x60, 0x00, 0x00,
-         0x00, 0x00, 0x00, 0x00,
-         0x00, 0x00, 0x88, 0x88,
-         }
-};
-#else
-static uip_ipaddr_t resolv_default_dns_server = {.u8 = {8, 8, 8, 8} };
-#endif
+  { { 0x20, 0x01, 0x48, 0x60, 0x48, 0x60, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x88 } };
+#else /* UIP_CONF_IPV6 */
+  { { 8, 8, 8, 8 } };
+#endif /* UIP_CONF_IPV6 */
 
 /** \internal The DNS answer message structure. */
 struct dns_answer {
@@ -294,22 +288,15 @@ enum {
 
 static uint8_t mdns_state;
 
+static const uip_ipaddr_t resolv_mdns_addr =
 #if UIP_CONF_IPV6
+  { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfb } };
 #include "net/uip-ds6.h"
-static const uip_ipaddr_t resolv_mdns_addr = {
-  .u8 = {
-         0xff, 0x02, 0x00, 0x00,
-         0x00, 0x00, 0x00, 0x00,
-         0x00, 0x00, 0x00, 0x00,
-         0x00, 0x00, 0x00, 0xfb,
-         }
-};
 #else  /* UIP_CONF_IPV6 */
-static const uip_ipaddr_t resolv_mdns_addr = {
-  .u8 = {224, 0, 0, 251}
-};
-#endif /* !UIP_CONF_IPV6 */
-static bool mdns_needs_host_announce;
+  { { 224, 0, 0, 251 } };
+#endif /* UIP_CONF_IPV6 */
+static int mdns_needs_host_announce;
 
 PROCESS(mdns_probe_process, "mDNS probe");
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
@@ -317,12 +304,12 @@ PROCESS(mdns_probe_process, "mDNS probe");
 /*---------------------------------------------------------------------------*/
 /** \internal
  * \brief Decodes a DNS name from the DNS format into the given string.
- * \return True upon success, False if the size of the name would be too large.
+ * \return 1 upon success, 0 if the size of the name would be too large.
  *
  * \note `dest` must point to a buffer with at least
  *       `RESOLV_CONF_MAX_DOMAIN_NAME_SIZE+1` bytes large.
  */
-static bool
+static int
 decode_name(const unsigned char *query, char *dest,
             const unsigned char *packet)
 {
@@ -351,7 +338,7 @@ decode_name(const unsigned char *query, char *dest,
 
       if(!--len) {
         *dest = 0;
-        return false;
+        return 0;
       }
     }
 
@@ -372,14 +359,14 @@ decode_name(const unsigned char *query, char *dest,
 /*---------------------------------------------------------------------------*/
 /** \internal
  */
-static bool
+static int
 dns_name_isequal(const unsigned char *queryptr, const char *name,
                  const unsigned char *packet)
 {
   unsigned char n = *queryptr++;
 
   if(*name == 0)
-    return false;
+    return 0;
 
   while(n) {
     if(n & 0xc0) {
@@ -389,18 +376,18 @@ dns_name_isequal(const unsigned char *queryptr, const char *name,
 
     for(; n; n--) {
       if(!*name) {
-        return false;
+        return 0;
       }
 
       if(tolower(*name++) != tolower(*queryptr++)) {
-        return false;
+        return 0;
       }
     }
 
     n = *queryptr++;
 
     if((n != 0) && (*name++ != '.')) {
-      return false;
+      return 0;
     }
   }
 
@@ -479,7 +466,7 @@ encode_name(unsigned char *query, const char *nameptr)
 static void
 mdns_announce_requested(void)
 {
-  mdns_needs_host_announce = true;
+  mdns_needs_host_announce = 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -689,7 +676,7 @@ check_entries(void)
       hdr->flags1 = DNS_FLAG1_RD;
 #endif
       hdr->numquestions = UIP_HTONS(1);
-      query = uip_appdata + sizeof(*hdr);
+      query = (char *)uip_appdata + sizeof(*hdr);
       query = encode_name(query, namemapptr->name);
 #if RESOLV_CONF_SUPPORTS_MDNS
       if(namemapptr->is_probe) {
@@ -726,8 +713,7 @@ check_entries(void)
         uip_udp_packet_sendto(resolv_conn,
                               uip_appdata,
                               (query - (uint8_t *) uip_appdata),
-                              &resolv_mdns_addr, UIP_HTONS(MDNS_PORT)
-          );
+                              &resolv_mdns_addr, UIP_HTONS(MDNS_PORT));
 
         PRINTF("resolver: (i=%d) Sent MDNS request for \"%s\".\n", i,
                namemapptr->name);
@@ -735,8 +721,7 @@ check_entries(void)
         uip_udp_packet_sendto(resolv_conn,
                               uip_appdata,
                               (query - (uint8_t *) uip_appdata),
-                              &resolv_default_dns_server, UIP_HTONS(DNS_PORT)
-          );
+                              &resolv_default_dns_server, UIP_HTONS(DNS_PORT));
 
         PRINTF("resolver: (i=%d) Sent DNS request for \"%s\".\n", i,
                namemapptr->name);
@@ -745,8 +730,7 @@ check_entries(void)
       uip_udp_packet_sendto(resolv_conn,
                             uip_appdata,
                             (query - (uint8_t *) uip_appdata),
-                            &resolv_default_dns_server, UIP_HTONS(DNS_PORT)
-        );
+                            &resolv_default_dns_server, UIP_HTONS(DNS_PORT));
       PRINTF("resolver: (i=%d) Sent DNS request for \"%s\".\n", i,
              namemapptr->name);
 #endif
@@ -942,8 +926,7 @@ newdata(void)
                  debug_name, uip_ntohs(ans->type),
                  uip_ntohs(ans->class) & 0x7FFF,
                  (int)((uint32_t) uip_ntohs(ans->ttl[0]) << 16) | (uint32_t)
-                 uip_ntohs(ans->ttl[1]), uip_ntohs(ans->len)
-      );
+                 uip_ntohs(ans->ttl[1]), uip_ntohs(ans->len));
 #endif
 
     /* Check the class and length of the answer to make sure
@@ -1175,8 +1158,7 @@ PROCESS_THREAD(resolv_process, ev, data)
 
             uip_udp_packet_sendto(resolv_conn,
                                   uip_appdata,
-                                  len, &resolv_mdns_addr, UIP_HTONS(MDNS_PORT)
-              );
+                                  len, &resolv_mdns_addr, UIP_HTONS(MDNS_PORT));
 
             mdns_needs_host_announce = 0;
 
@@ -1324,20 +1306,13 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
 
 #if UIP_CONF_LOOPBACK_INTERFACE
   if(strcmp(name, "localhost")) {
+    static uip_ipaddr_t loopback =
 #if UIP_CONF_IPV6
-    static uip_ipaddr_t loopback = {
-      .u8 = {
-             0x00, 0x00, 0x00, 0x00,
-             0x00, 0x00, 0x00, 0x00,
-             0x00, 0x00, 0x00, 0x00,
-             0x00, 0x00, 0x00, 0x01,
-             }
-    };
-#else
-    static uip_ipaddr_t loopback = {
-      .u8 = {127, 0, 0, 1}
-    };
-#endif
+  { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+#else /* UIP_CONF_IPV6 */
+  { { 127, 0, 0, 1 } };
+#endif /* UIP_CONF_IPV6 */
     if(ipaddr) {
       *ipaddr = &loopback;
     }
