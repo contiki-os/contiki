@@ -15,12 +15,14 @@
 
 #ifdef __CYGWIN__
 int strcasecmp(const char*, const char*);
+int strncasecmp(const char*, const char*, size_t);
 char* strdup(const char*);
 #else /* __CYGWIN__ */
 #define HAVE_SNPRINTF
-#define snprintf   _snprintf
-#define strcasecmp _stricmp
-#define strdup     _strdup
+#define snprintf    _snprintf
+#define strcasecmp  _stricmp
+#define strncasecmp _strnicmp
+#define strdup      _strdup
 #endif /* __CYGWIN__ */
 
 
