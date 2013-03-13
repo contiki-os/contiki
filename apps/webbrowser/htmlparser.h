@@ -41,19 +41,20 @@ void htmlparser_link(char *text, unsigned char textlen, char *url);
 void htmlparser_form(char *action);
 void htmlparser_submitbutton(char *value,
 			     char *name);
-void htmlparser_inputfield(unsigned char size,
+void htmlparser_inputfield(unsigned char type,
+			   unsigned char size,
 			   char *value,
 			   char *name);
 void htmlparser_newline(void);
 void htmlparser_word(char *word, unsigned char wordlen);
 
 
-#define HTMLPARSER_INPUTTYPE_NONE     0
-#define HTMLPARSER_INPUTTYPE_TEXT     1
-#define HTMLPARSER_INPUTTYPE_PASSWORD 2
-#define HTMLPARSER_INPUTTYPE_SUBMIT   3
-#define HTMLPARSER_INPUTTYPE_IMAGE    4
-#define HTMLPARSER_INPUTTYPE_OTHER    5
+#define HTMLPARSER_INPUTTYPE_NONE   0
+#define HTMLPARSER_INPUTTYPE_TEXT   1
+#define HTMLPARSER_INPUTTYPE_HIDDEN 2
+#define HTMLPARSER_INPUTTYPE_SUBMIT 3
+#define HTMLPARSER_INPUTTYPE_IMAGE  4
+#define HTMLPARSER_INPUTTYPE_OTHER  5
 
 
 /* Functions. */
