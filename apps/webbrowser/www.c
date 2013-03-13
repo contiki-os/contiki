@@ -687,7 +687,7 @@ webclient_datahandler(char *data, uint16_t len)
 }
 /*-----------------------------------------------------------------------------------*/
 static void CC_FASTCALL
-add_pagewidget(char *text, unsigned char textlen, char *attrib, unsigned char type,
+add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
 	       unsigned char border)
 {
   char *wptr;
@@ -697,16 +697,13 @@ add_pagewidget(char *text, unsigned char textlen, char *attrib, unsigned char ty
     return;
   }
 
-  if(textlen + border == 0) {
-    return;
-  }
-
-  maxwidth = WWW_CONF_WEBPAGE_WIDTH - (1 + 2 * border);
+  maxwidth = size ? WWW_CONF_WEBPAGE_WIDTH - (1 + 2 * border)
+                  : WWW_CONF_WEBPAGE_WIDTH;
 
   /* If the text of the link is too long so that it does not fit into
      the width of the current window, counting from the current x
      coordinate, we first try to jump to the next line. */
-  if(textlen + x > maxwidth) {
+  if(size + x > maxwidth) {
     htmlparser_newline();
     if(!loading) {
       return;
@@ -717,9 +714,9 @@ add_pagewidget(char *text, unsigned char textlen, char *attrib, unsigned char ty
      XXX: this is not really the right thing to do, we should probably
      either make a link into a multiline link, or add multiple
      buttons. But this will do for now. */
-  if(textlen > maxwidth) {
+  if(size > maxwidth) {
     text[maxwidth] = 0;
-    textlen = maxwidth;
+    size = maxwidth;
   }
 
   if(firsty == pagey) {
@@ -730,17 +727,16 @@ add_pagewidget(char *text, unsigned char textlen, char *attrib, unsigned char ty
        drawing area and reference it from there. */
     wptr[0] = 0;
     wptr += border;
-    memcpy(wptr, text, textlen);
-    wptr[textlen] = 0;
-    wptr[textlen + border] = ' ';
+    memcpy(wptr, text, size);
+    wptr[size] = 0;
+    wptr[size + border] = ' ';
 
     switch(type) {
       case CTK_WIDGET_HYPERLINK: {
-	struct linkattrib *linkptr;
-
-	linkptr = (struct linkattrib *)add_pageattrib(sizeof(struct linkattrib) /* incl 1 attrib char */ + attriblen);
+	struct linkattrib *linkptr =
+          (struct linkattrib *)add_pageattrib(sizeof(struct linkattrib) /* incl 1 attrib char */ + attriblen);
 	if(linkptr != NULL) {
-	  CTK_HYPERLINK_NEW(&linkptr->hyperlink, x, y + 3, textlen, wptr, linkptr->url);
+	  CTK_HYPERLINK_NEW(&linkptr->hyperlink, x, y + 3, size, wptr, linkptr->url);
 	  strcpy(linkptr->url, attrib);
 	  CTK_WIDGET_SET_FLAG(&linkptr->hyperlink, CTK_WIDGET_FLAG_MONOSPACE);
 	  CTK_WIDGET_ADD(&mainwindow, &linkptr->hyperlink);
@@ -749,11 +745,10 @@ add_pagewidget(char *text, unsigned char textlen, char *attrib, unsigned char ty
       }
 #if WWW_CONF_FORMS
       case CTK_WIDGET_BUTTON: {
-	struct submitattrib *submitptr;
-
-	submitptr = (struct submitattrib *)add_pageattrib(sizeof(struct submitattrib) /* incl 1 attrib char */ + attriblen);
+	struct submitattrib *submitptr =
+          (struct submitattrib *)add_pageattrib(sizeof(struct submitattrib) /* incl 1 attrib char */ + attriblen);
 	if(submitptr != NULL) {
-	  CTK_BUTTON_NEW((struct ctk_button *)&submitptr->button, x, y + 3, textlen, wptr);
+	  CTK_BUTTON_NEW((struct ctk_button *)&submitptr->button, x, y + 3, size, wptr);
 	  add_forminput((struct inputattrib *)submitptr);
 	  submitptr->formptr = formptr;
 	  strcpy(submitptr->name, attrib);
@@ -763,18 +758,20 @@ add_pagewidget(char *text, unsigned char textlen, char *attrib, unsigned char ty
 	break;
       }
       case CTK_WIDGET_TEXTENTRY: {
-	struct textattrib *textptr;
-
-	textptr = (struct textattrib *)add_pageattrib(sizeof(struct textattrib) /* incl 1 attrib char */ + attriblen + WWW_CONF_MAX_INPUTVALUELEN);
+	struct textattrib *textptr =
+          (struct textattrib *)add_pageattrib(sizeof(struct textattrib) /* incl 1 attrib char */ + attriblen
+                                              + (size ? WWW_CONF_MAX_INPUTVALUELEN : strlen(text)) + 1);
 	if(textptr != NULL) {
-	  CTK_TEXTENTRY_NEW((struct ctk_textentry *)&textptr->textentry, x, y + 3, textlen, 1,
+	  CTK_TEXTENTRY_NEW((struct ctk_textentry *)&textptr->textentry, x, y + 3, size, 1,
 	    textptr->name + attriblen + 1, WWW_CONF_MAX_INPUTVALUELEN);
 	  add_forminput((struct inputattrib *)textptr);
 	  textptr->formptr = formptr;
 	  strcpy(textptr->textentry.text, text);
 	  strcpy(textptr->name, attrib);
-	  CTK_WIDGET_SET_FLAG(&textptr->textentry, CTK_WIDGET_FLAG_MONOSPACE);
-	  CTK_WIDGET_ADD(&mainwindow, &textptr->textentry);
+          if(size) {
+	    CTK_WIDGET_SET_FLAG(&textptr->textentry, CTK_WIDGET_FLAG_MONOSPACE);
+	    CTK_WIDGET_ADD(&mainwindow, &textptr->textentry);
+          }
 	}
 	break;
       }
@@ -783,11 +780,13 @@ add_pagewidget(char *text, unsigned char textlen, char *attrib, unsigned char ty
   }
   /* Increase the x coordinate with the length of the link text plus
      the extra space behind it and the CTK button markers. */
-  textlen = textlen + 1 + 2 * border;
-  x += textlen;
+  if(size) {
+    size += 1 + 2 * border;
+  }
+  x += size;
 
   if(firsty == pagey) {
-    webpageptr += textlen;
+    webpageptr += size;
   }
 
   if(x == WWW_CONF_WEBPAGE_WIDTH) {
@@ -871,9 +870,13 @@ htmlparser_submitbutton(char *text, char *name)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-htmlparser_inputfield(unsigned char size, char *text, char *name)
+htmlparser_inputfield(unsigned char type, unsigned char size, char *text, char *name)
 {
-  add_pagewidget(text, size, name, CTK_WIDGET_TEXTENTRY, 1);
+  if(type == HTMLPARSER_INPUTTYPE_HIDDEN) {
+    add_pagewidget(text,    0, name, CTK_WIDGET_TEXTENTRY, 0);
+  } else {
+    add_pagewidget(text, size, name, CTK_WIDGET_TEXTENTRY, 1);
+  }
 }
 /*-----------------------------------------------------------------------------------*/
 static void CC_FASTCALL

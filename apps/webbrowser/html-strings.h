@@ -33,3 +33,4 @@ extern const char html_name[6];
 extern const char html_text[6];
 extern const char html_size[6];
 extern const char html_image[7];
+extern const char html_hidden[8];
