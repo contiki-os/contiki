@@ -149,20 +149,20 @@ struct htmlparser_state {
   unsigned char tagptr;
   char tagattr[20];
   unsigned char tagattrptr;
-  char tagattrparam[WWW_CONF_MAX_URLLEN];
+  char tagattrparam[WWW_CONF_MAX_URLLEN + 1];
   unsigned char tagattrparamptr;
   unsigned char lastchar, quotechar;
   unsigned char majorstate, lastmajorstate;
-  char linkurl[WWW_CONF_MAX_URLLEN];
+  char linkurl[WWW_CONF_MAX_URLLEN + 1];
 
   char word[WWW_CONF_WEBPAGE_WIDTH];
   unsigned char wordlen;
 
 #if WWW_CONF_FORMS
-  char formaction[WWW_CONF_MAX_FORMACTIONLEN];
+  char formaction[WWW_CONF_MAX_FORMACTIONLEN + 1];
   unsigned char inputtype;
-  char inputname[WWW_CONF_MAX_INPUTNAMELEN];
-  char inputvalue[WWW_CONF_MAX_INPUTVALUELEN];
+  char inputname[WWW_CONF_MAX_INPUTNAMELEN + 1];
+  char inputvalue[WWW_CONF_MAX_INPUTVALUELEN + 1];
   unsigned char inputvaluesize;
 #endif /* WWW_CONF_FORMS */
 };
@@ -241,7 +241,10 @@ static void
 init_input(void)
 {
   s.inputtype = HTMLPARSER_INPUTTYPE_NONE;
-  s.inputname[0] = s.inputvalue[0] = 0;
+  s.inputname[0] = s.inputvalue[0] =
+  s.formaction[WWW_CONF_MAX_FORMACTIONLEN] =
+  s.inputname[WWW_CONF_MAX_INPUTNAMELEN] =
+  s.inputvalue[WWW_CONF_MAX_INPUTVALUELEN] = 0;
   s.inputvaluesize = 20; /* De facto default size */
 }
 #endif /* WWW_CONF_FORMS */
@@ -474,8 +477,8 @@ parse_tag(void)
 	switch(s.inputtype) {
 	case HTMLPARSER_INPUTTYPE_NONE:
 	case HTMLPARSER_INPUTTYPE_TEXT:
-	  s.inputvalue[s.inputvaluesize] = 0;
-	  htmlparser_inputfield(s.inputvaluesize, s.inputvalue, s.inputname);
+	case HTMLPARSER_INPUTTYPE_HIDDEN:
+	  htmlparser_inputfield(s.inputtype, s.inputvaluesize, s.inputvalue, s.inputname);
 	  break;
 	case HTMLPARSER_INPUTTYPE_SUBMIT:
 	case HTMLPARSER_INPUTTYPE_IMAGE:
@@ -492,14 +495,16 @@ parse_tag(void)
 	    s.inputtype = HTMLPARSER_INPUTTYPE_IMAGE;
 	  } else if(strncmp(s.tagattrparam, html_text, sizeof(html_text)) == 0) {
 	    s.inputtype = HTMLPARSER_INPUTTYPE_TEXT;
+	  } else if(strncmp(s.tagattrparam, html_hidden, sizeof(html_hidden)) == 0) {
+	    s.inputtype = HTMLPARSER_INPUTTYPE_HIDDEN;
 	  } else {
 	    s.inputtype = HTMLPARSER_INPUTTYPE_OTHER;
 	  }
 	} else if(strncmp(s.tagattr, html_name, sizeof(html_name)) == 0) {
 	  strncpy(s.inputname, s.tagattrparam, WWW_CONF_MAX_INPUTNAMELEN);
 	} else if(strncmp(s.tagattr, html_alt, sizeof(html_alt)) == 0 &&
-		  s.inputtype == HTMLPARSER_INPUTTYPE_IMAGE) {	  
-	  strncpy(s.inputvalue, s.tagattrparam, WWW_CONF_MAX_INPUTVALUELEN);	  
+		  s.inputtype == HTMLPARSER_INPUTTYPE_IMAGE) {
+	  strncpy(s.inputvalue, s.tagattrparam, WWW_CONF_MAX_INPUTVALUELEN);
 	} else if(strncmp(s.tagattr, html_value, sizeof(html_value)) == 0) {
 	  strncpy(s.inputvalue, s.tagattrparam, WWW_CONF_MAX_INPUTVALUELEN);
 	} else if(strncmp(s.tagattr, html_size, sizeof(html_size)) == 0) {

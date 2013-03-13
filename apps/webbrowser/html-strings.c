@@ -103,3 +103,6 @@ const char html_size[6] =
 const char html_image[7] = 
 /* "image\0" */
 {0x69, 0x6d, 0x61, 0x67, 0x65, 00, };
+const char html_hidden[8] = 
+/* "hidden\0" */
+{0x68, 0x69, 0x64, 0x64, 0x65, 0x6e, 00, };
