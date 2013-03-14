@@ -5,6 +5,8 @@
 #define CC_CONF_FASTCALL __fastcall
 #define CC_CONF_INLINE   __inline
 
+#define ARCH_DOESNT_NEED_ALIGNED_STRUCTS 1
+
 
 #if _USRDLL
 #define CCIF __declspec(dllimport)
