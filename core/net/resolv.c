@@ -272,7 +272,7 @@ struct namemap {
   uip_ipaddr_t ipaddr;
   uint8_t err;
 #if RESOLV_CONF_SUPPORTS_MDNS
-  uint8_t is_mdns:1, is_probe:1;
+  int is_mdns:1, is_probe:1;
 #endif
   char name[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
 };
@@ -330,11 +330,6 @@ static int mdns_needs_host_announce;
 
 PROCESS(mdns_probe_process, "mDNS probe");
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
-
-#if RESOLV_AUTO_REMOVE_TRAILING_DOTS
-/* For removing trailing dots in resolv_query() and resolve_lookup2(). */
-static char dns_name_without_dots[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
-#endif /* RESOLV_AUTO_REMOVE_TRAILING_DOTS */
 
 /*---------------------------------------------------------------------------*/
 #if RESOLV_VERIFY_ANSWER_NAMES || VERBOSE_DEBUG
@@ -806,7 +801,7 @@ newdata(void)
       queryptr = skip_name(queryptr) + sizeof(struct dns_question),
       --nquestions
   ) {
-
+#if RESOLV_CONF_SUPPORTS_MDNS
     if(!is_request) {
       /* If this isn't a request, we don't need to bother
        * looking at the individual questions. For the most
@@ -815,7 +810,6 @@ newdata(void)
       continue;
     }
 
-#if RESOLV_CONF_SUPPORTS_MDNS
     {
       struct dns_question *question = (struct dns_question *)skip_name(queryptr);
 
@@ -931,9 +925,11 @@ newdata(void)
     ans = (struct dns_answer *)skip_name(queryptr);
 
 #if !ARCH_DOESNT_NEED_ALIGNED_STRUCTS
-    static struct dns_answer aligned;
-    memcpy(&aligned, ans, sizeof(aligned));
-    ans = &aligned;
+    {
+      static struct dns_answer aligned;
+      memcpy(&aligned, ans, sizeof(aligned));
+      ans = &aligned;
+    }
 #endif /* !ARCH_DOESNT_NEED_ALIGNED_STRUCTS */
 
 #if VERBOSE_DEBUG
@@ -1011,16 +1007,16 @@ newdata(void)
       nanswers = 1;
     }
 
+/*  This is disabled for now, so that we don't fail on CNAME records.
 #if RESOLV_VERIFY_ANSWER_NAMES
-    if(namemapptr &&
-       !dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
+    if(namemapptr && !dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
       DEBUG_PRINTF("resolver: Answer name doesn't match question...!\n");
       goto skip_to_next_answer;
     }
 #endif
+*/
 
-    DEBUG_PRINTF("resolver: Answer for \"%s\" is usable.\n",
-                 namemapptr->name);
+    DEBUG_PRINTF("resolver: Answer for \"%s\" is usable.\n", namemapptr->name);
 
     namemapptr->state = STATE_DONE;
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
@@ -1193,6 +1189,7 @@ PROCESS_THREAD(resolv_process, ev, data)
 #if RESOLV_AUTO_REMOVE_TRAILING_DOTS
 static const char *
 remove_trailing_dots(const char *name) {
+  static char dns_name_without_dots[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
   size_t len = strlen(name);
 
   if(name[len - 1] == '.') {
