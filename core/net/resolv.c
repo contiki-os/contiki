@@ -331,11 +331,6 @@ static int mdns_needs_host_announce;
 PROCESS(mdns_probe_process, "mDNS probe");
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 
-#if RESOLV_AUTO_REMOVE_TRAILING_DOTS
-/* For removing trailing dots in resolv_query() and resolve_lookup2(). */
-static char dns_name_without_dots[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
-#endif /* RESOLV_AUTO_REMOVE_TRAILING_DOTS */
-
 /*---------------------------------------------------------------------------*/
 #if RESOLV_VERIFY_ANSWER_NAMES || VERBOSE_DEBUG
 /** \internal
@@ -806,7 +801,7 @@ newdata(void)
       queryptr = skip_name(queryptr) + sizeof(struct dns_question),
       --nquestions
   ) {
-
+#if RESOLV_CONF_SUPPORTS_MDNS
     if(!is_request) {
       /* If this isn't a request, we don't need to bother
        * looking at the individual questions. For the most
@@ -815,7 +810,6 @@ newdata(void)
       continue;
     }
 
-#if RESOLV_CONF_SUPPORTS_MDNS
     {
       struct dns_question *question = (struct dns_question *)skip_name(queryptr);
 
@@ -1022,8 +1016,7 @@ newdata(void)
 #endif
 */
 
-    DEBUG_PRINTF("resolver: Answer for \"%s\" is usable.\n",
-                 namemapptr->name);
+    DEBUG_PRINTF("resolver: Answer for \"%s\" is usable.\n", namemapptr->name);
 
     namemapptr->state = STATE_DONE;
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
@@ -1196,6 +1189,7 @@ PROCESS_THREAD(resolv_process, ev, data)
 #if RESOLV_AUTO_REMOVE_TRAILING_DOTS
 static const char *
 remove_trailing_dots(const char *name) {
+  static char dns_name_without_dots[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
   size_t len = strlen(name);
 
   if(name[len - 1] == '.') {
