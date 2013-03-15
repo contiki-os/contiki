@@ -1013,13 +1013,14 @@ newdata(void)
       nanswers = 1;
     }
 
+/*  This is disabled for now, so that we don't fail on CNAME records.
 #if RESOLV_VERIFY_ANSWER_NAMES
-    if(namemapptr &&
-       !dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
+    if(namemapptr && !dns_name_isequal(queryptr, namemapptr->name, uip_appdata)) {
       DEBUG_PRINTF("resolver: Answer name doesn't match question...!\n");
       goto skip_to_next_answer;
     }
 #endif
+*/
 
     DEBUG_PRINTF("resolver: Answer for \"%s\" is usable.\n",
                  namemapptr->name);
