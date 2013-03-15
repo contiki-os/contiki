@@ -131,6 +131,8 @@ set_connection_address(uip_ipaddr_t *ipaddr)
       status = RESOLV_STATUS_RESOLVING;
     } else if(status == RESOLV_STATUS_CACHED && resolved_addr != NULL) {
       PRINTF("Lookup of \"%s\" succeded!\n",QUOTEME(UDP_CONNECTION_ADDR));
+    } else if(status == RESOLV_STATUS_RESOLVING) {
+      PRINTF("Still looking up \"%s\"...\n",QUOTEME(UDP_CONNECTION_ADDR));
     } else {
       PRINTF("Lookup of \"%s\" failed. status = %d\n",QUOTEME(UDP_CONNECTION_ADDR),status);
     }
