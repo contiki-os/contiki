@@ -12,7 +12,7 @@
 
 void halInitButton(void)
 {
-  int8u i;
+  uint8_t i;
   /* Configure GPIO for BUTTONSs */
   ButtonResourceType *buttons = (ButtonResourceType *) boardDescription->io->buttons;
   for (i = 0; i < boardDescription->buttons; i++) {
@@ -22,10 +22,10 @@ void halInitButton(void)
 }/* end halInitButton() */
 
 
-int8u halGetButtonStatus(HalBoardButton button)
+uint8_t halGetButtonStatus(HalBoardButton button)
 {
-  int8u port = (button >> 3) & 0xf;
-  int8u pin = button & 0x7;
+  uint8_t port = (button >> 3) & 0xf;
+  uint8_t pin = button & 0x7;
 
   if (button != DUMMY_BUTTON)
   {

@@ -59,10 +59,10 @@
 #define CLK1K_NUMERATOR 384000000
 void halInternalCalibrateSlowRc( void )
 {
-  int8u i;
-  int32u average=0;
-  int16s delta;
-  int32u period;
+  uint8_t i;
+  uint32_t average=0;
+  int16_t delta;
+  uint32_t period;
   
   CALDBG(
     stSerialPrintf(ST_ASSERT_SERIAL_PORT, "halInternalCalibrateSlowRc:\r\n");
@@ -85,7 +85,7 @@ void halInternalCalibrateSlowRc( void )
       stSerialPrintf(ST_ASSERT_SERIAL_PORT,
       "period: %u, ", CLK_PERIOD);
       stSerialPrintf(ST_ASSERT_SERIAL_PORT, "%u Hz\r\n", 
-                       ((int16u)(((int32u)192000000)/((int32u)CLK_PERIOD))));
+                       ((uint16_t)(((uint32_t)192000000)/((uint32_t)CLK_PERIOD))));
     )
     //For 10kHz, the ideal CLK_PERIOD is 19200.  Calculate the PERIOD delta.
     //It's possible for a chip's 10kHz source RC to be too far out of range
@@ -120,7 +120,7 @@ void halInternalCalibrateSlowRc( void )
       stSerialPrintf(ST_ASSERT_SERIAL_PORT,
       "period: %u, ", CLK_PERIOD);
       stSerialPrintf(ST_ASSERT_SERIAL_PORT, "%u Hz\r\n", 
-                       ((int16u)(((int32u)192000000)/((int32u)CLK_PERIOD))));
+                       ((uint16_t)(((uint32_t)192000000)/((uint32_t)CLK_PERIOD))));
     )
     //The analog section should now be producing an output of ~10kHz
     
@@ -138,11 +138,11 @@ void halInternalCalibrateSlowRc( void )
     average = (average+(SLOWRC_PERIOD_SAMPLES/2))/SLOWRC_PERIOD_SAMPLES;
     CALDBG(
       stSerialPrintf(ST_ASSERT_SERIAL_PORT, "average: %u, %u Hz\r\n",
-        ((int16u)average), ((int16u)(((int32u)192000000)/((int32u)average))));
+        ((uint16_t)average), ((uint16_t)(((uint32_t)192000000)/((uint32_t)average))));
     )
     
     //using an average period sample, calculate the clk1k divisor
-    CLK1K_CAL = (int16u)(CLK1K_NUMERATOR/average);
+    CLK1K_CAL = (uint16_t)(CLK1K_NUMERATOR/average);
     CALDBG(
       stSerialPrintf(ST_ASSERT_SERIAL_PORT,"CLK1K_CAL=%2X\r\n",CLK1K_CAL);
     )
@@ -167,7 +167,7 @@ void halInternalCalibrateSlowRc( void )
 //      CLK_PERIOD
 void halInternalCalibrateFastRc(void)
 {
-  int32s newTune = -16;
+  int32_t newTune = -16;
   
   CALDBG(
     stSerialPrintf(ST_ASSERT_SERIAL_PORT, "halInternalCalibrateFastRc:\r\n");
@@ -188,7 +188,7 @@ void halInternalCalibrateFastRc(void)
       stSerialPrintf(ST_ASSERT_SERIAL_PORT,
       "period: %u, ", CLK_PERIOD);
       stSerialPrintf(ST_ASSERT_SERIAL_PORT, "%u kHz\r\n", 
-                       ((int16u)((((int32u)3072000000)/((int32u)CLK_PERIOD))/1000)));
+                       ((uint16_t)((((uint32_t)3072000000)/((uint32_t)CLK_PERIOD))/1000)));
     )
     //For 12MHz, the ideal CLK_PERIOD is 256.  Tune the frequency down until
     //the period is <= 256, which says the frequency is as close to 12MHz as
@@ -211,7 +211,7 @@ void halInternalCalibrateFastRc(void)
       stSerialPrintf(ST_ASSERT_SERIAL_PORT,
       "period: %u, ", CLK_PERIOD);
       stSerialPrintf(ST_ASSERT_SERIAL_PORT, "%u kHz\r\n", 
-                       ((int16u)((((int32u)3072000000)/((int32u)CLK_PERIOD))/1000)));
+                       ((uint16_t)((((uint32_t)3072000000)/((uint32_t)CLK_PERIOD))/1000)));
     )
     
     //The analog section should now be producing an output of 11.5MHz - 12.0MHz
@@ -337,7 +337,7 @@ static boolean setBiasCheckLow(void)
 
 void halInternalSearchForBiasTrim(void)
 {
-  int8u bit;
+  uint8_t bit;
   
   //Enable the XTAL so we can search for the proper bias trim (NOTE: This
   //will also forcefully ensure we're on the OSCHF so that we don't

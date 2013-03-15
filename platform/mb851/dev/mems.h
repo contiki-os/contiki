@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mb851-platform
+ *
+ * @{
+ */
 /******************** (C) COPYRIGHT 2009 STMicroelectronics ********************
 * File Name          : mems.h
 * Author             : MCD Application Team
@@ -15,45 +20,42 @@
 
 #ifndef _MEMS_H_
 #define _MEMS_H_
+#include "mems-regs.h"
+#include <stdint.h>
 
-/* Define --------------------------------------------------------------------*/
-#include "mems_regs.h"
+/* Sensitivity values in mg/digit */
+#define HIGH_RANGE_SENSITIVITY      72
+#define LOW_RANGE_SENSITIVITY       18
 
-/* Define --------------------------------------------------------------------*/
-// Sensitivity values in mg/digit
-#define HIGH_RANGE_SENSITIVITY  72
-#define LOW_RANGE_SENSITIVITY  18
+#define MEMS_LOW_RANGE              0
+#define MEMS_HIGH_RANGE             1
 
-#define MEMS_LOW_RANGE   0
-#define MEMS_HIGH_RANGE  1
+/*
+ * Mems data type: three acceleration values each related to a specific
+ * direction.
+ * Watch out: only lower data values (e.g. those terminated by the _l) are 
+ * currently used by the device.
+ */
+typedef struct mems_data_s {
+  int8_t outx_l;
+  int8_t outx_h;
+  int8_t outy_l;
+  int8_t outy_h;
+  int8_t outz_l;
+  int8_t outz_h;
+} mems_data_t;
 
-/* Typedef -------------------------------------------------------------------*/
-/* Mems data type: three acceleration values each related to a specific direction
-   Watch out: only lower data values (e.g. those terminated by the _l) are 
-   currently used by the device */
+uint8_t mems_init(void);
 
-typedef struct {
-  int8s outx_l;
-  int8s outx_h;
-  int8s outy_l;
-  int8s outy_h;
-  int8s outz_l;
-  int8s outz_h;
-} t_mems_data;
+uint8_t mems_on(void);
 
-/* Functions -----------------------------------------------------------------*/
+uint8_t mems_off(void);
 
-/* Mems Initialization function */
-int8u Mems_Init(void);
+uint8_t mems_set_fullscale(boolean range);
 
-int8u MEMS_On(void);
-int8u MEMS_Off(void);
-int8u MEMS_SetFullScale(boolean range);
-boolean MEMS_GetFullScale(void);
+boolean mems_get_fullscale(void);
 
-/* Get mems acceleration values */
-int8u Mems_GetValue(t_mems_data *mems_data);
+uint8_t mems_get_value(mems_data_t * mems_data);
 
 #endif /* _MEMS_H_ */
-
-/******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/
+/** @} */

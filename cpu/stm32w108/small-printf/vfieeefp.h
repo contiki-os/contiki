@@ -1,3 +1,9 @@
+/**
+ * \addtogroup stm32w-cpu
+ *
+ * @{
+ */
+
 /****************************************************************
  *
  * The author of this software is David M. Gay.
@@ -26,8 +32,13 @@
 	dmg@research.att.com or research!dmg
  */
 
-/* This header file is a modification of mprec.h that only contains floating
-   point union code. */
+#ifndef __VFIEEEFP_H__
+#define __VFIEEEFP_H__
+
+/* 
+ * This header file is a modification of mprec.h that only contains floating
+ * point union code.
+ */
 
 #include <ieeefp.h>
 #include <math.h>
@@ -58,11 +69,12 @@ Exactly one of IEEE_8087, IEEE_MC68k, VAX, or IBM should be defined.
 #endif
 
 #ifdef WANT_IO_LONG_DBL
-/* If we are going to examine or modify specific bits in a long double using
-   the lword0 or lwordx macros, then we must wrap the long double inside
-   a union.  This is necessary to avoid undefined behavior according to
-   the ANSI C spec.  */
-
+/*
+ * If we are going to examine or modify specific bits in a long double using
+ * the lword0 or lwordx macros, then we must wrap the long double inside
+ * a union.  This is necessary to avoid undefined behavior according to
+ * the ANSI C spec.
+ */
 #ifdef IEEE_8087
 #if LDBL_MANT_DIG == 24
 struct ldieee
@@ -136,10 +148,12 @@ struct ldieee
 #endif /* !IEEE_8087 */
 #endif /* WANT_IO_LONG_DBL */
 
-/* If we are going to examine or modify specific bits in a double using
-   the word0 and/or word1 macros, then we must wrap the double inside
-   a union.  This is necessary to avoid undefined behavior according to
-   the ANSI C spec.  */
+/*
+ * If we are going to examine or modify specific bits in a double using
+ * the word0 and/or word1 macros, then we must wrap the double inside
+ * a union.  This is necessary to avoid undefined behavior according to
+ * the ANSI C spec.
+ */
 union double_union
 {
   double d;
@@ -281,4 +295,5 @@ union double_union
 #endif
 #endif
 
-
+#endif /* __VFIEEEFP_H__ */
+/** @} */

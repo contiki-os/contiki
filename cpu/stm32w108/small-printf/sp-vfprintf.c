@@ -1,3 +1,9 @@
+/**
+ * \addtogroup stm32w-cpu
+ *
+ * @{
+ */
+
 /*
 FUNCTION
 <<vprintf>>, <<vfprintf>>, <<vsprintf>>---format argument list
@@ -1765,10 +1771,14 @@ get_arg (struct _reent *data, int n, char *fmt, va_list *ap,
 	}
     }
 
-  /* alter the global numargs value and keep a reference to the last bit of the fmt
-     string we processed here because the caller will continue processing where we started */
+  /*
+   * alter the global numargs value and keep a reference to the last bit of the
+   * fmt string we processed here because the caller will continue processing
+   * where we started
+   */
   *numargs_p = numargs;
   *last_fmt = fmt;
   return &args[n];
 }
 #endif /* !_NO_POS_ARGS */
+/** @} */

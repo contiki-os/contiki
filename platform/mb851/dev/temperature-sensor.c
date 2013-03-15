@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mb851-platform
+ *
+ * @{
+ */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -27,25 +32,13 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * This file is part of the Contiki OS
- *
  */
-/*---------------------------------------------------------------------------*/
 /**
 * \file
 *			Temperature sensor.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
-/*---------------------------------------------------------------------------*/
-
-/**
- *  NOTE: 
- *  For the temperature measurement, the ADC extended range mode is needed;
- *  but this is inaccurate due to the high voltage mode bug of the general purpose ADC 
- *  (see STM32W108 errata).
- */
-
 
 #include PLATFORM_HEADER
 #include BOARD_HEADER
@@ -58,12 +51,11 @@
 #undef  TEMPERATURE_SENSOR_GPIO
 #define TEMPERATURE_SENSOR_GPIO  PORTB_PIN(7)
 
-
 /*---------------------------------------------------------------------------*/
 static void
 init(void)
 {
-  halGpioConfig(TEMPERATURE_SENSOR_GPIO,GPIOCFG_ANALOG);
+  halGpioConfig(TEMPERATURE_SENSOR_GPIO, GPIOCFG_ANALOG);
   halInternalInitAdc();
   halAdcSetRange(TRUE);
 }
@@ -71,46 +63,48 @@ init(void)
 static int
 value(int type)
 {
-  static int16u ADCvalue;
-  static int16s volts;
-  
-  halStartAdcConversion(ADC_USER_APP, ADC_REF_INT, ADC_SOURCE_ADC2_VREF2, ADC_CONVERSION_TIME_US_4096);
-  
-  halReadAdcBlocking(ADC_USER_APP, &ADCvalue); // This blocks for a while, about 4ms.
-  
-  // 100 uVolts
+  static uint16_t ADCvalue;
+  static int16_t volts;
+  halStartAdcConversion(ADC_USER_APP, ADC_REF_INT, ADC_SOURCE_ADC2_VREF2,
+                        ADC_CONVERSION_TIME_US_4096);
+
+  /* This blocks for a while, about 4ms. */
+  halReadAdcBlocking(ADC_USER_APP, &ADCvalue);
+
+  /* 100 uVolts */
   volts = halConvertValueToVolts(ADCvalue);
-  
-  //return ((18641 - (int32s)volts)*100)/1171;  // +- 0.23 degC in the range (-10;65) degC
-  return ((18663 - (int32s)volts)*100)/1169;   // +- 0.004 degC in the range (20;30) degC
-  
+
+  /* +- 0.23 degC in the range (-10;65) degC */
+  /*  return ((18641 - (int32_t)volts)*100)/1171;*/
+
+  /* +- 0.004 degC in the range (20;30) degC */
+  return ((18663 - (int32_t) volts) * 100) / 1169;
 }
 /*---------------------------------------------------------------------------*/
 static int
 configure(int type, int value)
 {
-  switch(type){
-    case SENSORS_HW_INIT:
-      init();
-      return 1;
-    case SENSORS_ACTIVE:
-      return 1;
+  switch (type) {
+  case SENSORS_HW_INIT:
+    init();
+    return 1;
+  case SENSORS_ACTIVE:
+    return 1;
   }
-       
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
 status(int type)
 {
-  switch(type) {
-    
-    case SENSORS_READY:
-      return 1;
+  switch (type) {
+  case SENSORS_READY:
+    return 1;
   }
-  
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);
+               value, configure, status);
+/*--------------------------------------------------------------------------*/
+/** @} */

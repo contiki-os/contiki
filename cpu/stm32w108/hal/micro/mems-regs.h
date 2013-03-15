@@ -1,24 +1,11 @@
-/******************** (C) COPYRIGHT 2009 STMicroelectronics ********************
-* File Name          : mems_regs.h
-* Author             : MCD Application Team
-* Version            : V1.0
-* Date               : January 2010
-* Description        : stm32w108 mems registers 
-********************************************************************************
-* THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-* WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME.
-* AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY DIRECT,
-* INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING FROM THE
-* CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE CODING
-* INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
-*******************************************************************************/
+/** @file hal/micro/mems-regs.h
+ *  @brief stm32w108 mems registers 
+ *  
+ * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
+ */
 
 #ifndef _MEMS_REGS_H_
 #define _MEMS_REGS_H_
-
-/* Private include ------------------------------------------------------------*/
-
-/* Private define ------------------------------------------------------------*/
 
 //---Size of MEMs data---
 #define MEMS_DATA_SIZE 6
@@ -125,15 +112,14 @@
 //-reg_addr is the address of the register to be written--//
 //-pBuffer is the storage destination for the read data---//
 //-NoOfBytes is the amount of data to read----------------//
-int8u i2c_read_reg (int8u slave_addr, int8u reg_addr, int8u *pBuffer, int8u NoOfBytes);
+uint8_t i2c_read_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t *pBuffer, uint8_t NoOfBytes);
 
 //*********************i2c_write_reg**********************//
 //----------Writes a register on the I2C target-----------//
 //------slave addr is the is the I2C target device--------//
 //-reg_addr is the address of the register to be written--//
 //-reg_value is the value of the register to be written---//
-int8u i2c_write_reg (int8u slave_addr, int8u reg_addr, int8u reg_value);
+uint8_t i2c_write_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t reg_value);
 
 #endif /* _MEMS_REGS_H_ */
 
-/******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/

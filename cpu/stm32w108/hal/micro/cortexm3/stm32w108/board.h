@@ -84,9 +84,9 @@ typedef struct LedResourceStruct {
   /** Name of the LED as printed in the board */
   char *name;
   /** GPIO port associated with the LED */
-  int8u    gpioPort;
+  uint8_t    gpioPort;
   /** GPIO pin associated with the LED */
-  int8u    gpioPin;
+  uint8_t    gpioPin;
 } LedResourceType;
 
 typedef LedResourceType InfraRedLedResourceType;
@@ -98,9 +98,9 @@ typedef struct ButtonResourceStruct {
   /** Name of the button as printed in the board */
   char *name;
   /** GPIO port associated with the button */
-  int8u    gpioPort;
+  uint8_t    gpioPort;
   /** GPIO pin associated with the button */
-  int8u    gpioPin;
+  uint8_t    gpioPin;
 } ButtonResourceType;
 
 /**
@@ -110,7 +110,7 @@ typedef struct MemsResourceStruct {
   /** Name of the MEMS device */
   char *name;
   /** Serial communication port associated with the MEMS */
-  int8u    scPort;
+  uint8_t    scPort;
 } MemsResourceType;
 
 /**
@@ -120,9 +120,9 @@ typedef struct TempSensorResourceStruct {
   /** Name of the temperature sensor device */
   char *name;
   /** GPIO port associated with the sensor */
-  int8u    gpioPort;
+  uint8_t    gpioPort;
   /** GPIO pin associated with the sensor */
-  int8u    gpioPin;
+  uint8_t    gpioPin;
   /** Flag to indicate whether the ADC range extension bug fix is implemented */
   boolean  adcFix;
 } TempSensorResourceType;
@@ -167,11 +167,11 @@ typedef struct BoardIOStruct {
  */
 typedef struct BoardResourcesStruct {
   const char *name;
-  const int32u flags;
+  const uint32_t flags;
   /** Number of buttons */
-  int8u    buttons;
+  uint8_t    buttons;
   /** Number of leds */
-  int8u    leds;
+  uint8_t    leds;
   /** Board I/O description */
   const BoardIOType *io;
   /** Board infrared led description */
@@ -202,7 +202,7 @@ extern BoardResourcesType const *boardDescription;
 /** Description buttons definition */
 #define BUTTON_Sn(n) (PORTx_PIN(boardDescription->io->buttons[n].gpioPort, boardDescription->io->buttons[n].gpioPin))
 #define BUTTON_Sn_WAKE_SOURCE(n) (1 << ((boardDescription->io->buttons[n].gpioPin) + (8 * (boardDescription->io->buttons[n].gpioPort >> 3))))
-#define BUTTON_INPUT_GPIO(port) *((volatile int32u *) (GPIO_PxIN_BASE + GPIO_Px_OFFSET * port))
+#define BUTTON_INPUT_GPIO(port) *((volatile uint32_t *) (GPIO_PxIN_BASE + GPIO_Px_OFFSET * port))
 #define DUMMY_BUTTON 0xff
 
 #define BUTTON_S1 (boardDescription->buttons>0 ? BUTTON_Sn(0): DUMMY_BUTTON)

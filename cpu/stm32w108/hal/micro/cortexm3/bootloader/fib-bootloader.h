@@ -22,7 +22,7 @@
 //------------------------------------------------------------------------------
 // Status values.
 
-typedef int32u FibStatus;
+typedef uint32_t FibStatus;
 
 #define FIB_SUCCESS             0
 #define FIB_ERR_UNALIGNED       1
@@ -36,7 +36,7 @@ typedef int32u FibStatus;
 //------------------------------------------------------------------------------
 // Erase types.
 
-typedef int32u FibEraseType;
+typedef uint32_t FibEraseType;
 
 #define MFB_MASS_ERASE 0x01
 #define MFB_PAGE_ERASE 0x02
@@ -48,9 +48,9 @@ typedef int32u FibEraseType;
 //------------------------------------------------------------------------------
 // Shared flash functions.
 
-FibStatus fibFlashWrite(int32u address, int8u *data,
-                        int32u writeLength, int32u verifyLength);
+FibStatus fibFlashWrite(uint32_t address, uint8_t *data,
+                        uint32_t writeLength, uint32_t verifyLength);
 
-FibStatus fibFlashErase(FibEraseType eraseType, int32u address);
+FibStatus fibFlashErase(FibEraseType eraseType, uint32_t address);
 
 #endif //__FIB_BOOTLOADER_H__
