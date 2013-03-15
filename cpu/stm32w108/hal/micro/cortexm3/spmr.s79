@@ -35,7 +35,7 @@
         __EXPORT__ _executeBarrierInstructions
 
 //------------------------------------------------------------------------------
-//   int8u _readBasePri(void)
+//   uint8_t _readBasePri(void)
 //
 // Read and return the BASEPRI value.
 //
@@ -50,7 +50,7 @@ _readBasePri:
         __CFI__(EndBlock cfiBlock0)
 
 //------------------------------------------------------------------------------
-//    void _writeBasePri(int8u priority)
+//    void _writeBasePri(uint8_t priority)
 //
 // Write BASEPRI with the passed value to obtain the proper preemptive priority
 // group masking. Note that the value passed must have been left shifted by 3
@@ -68,7 +68,7 @@ _writeBasePri:
         __CFI__(EndBlock cfiBlock1)
 
 //------------------------------------------------------------------------------
-//   int8u _disableBasePri(void)
+//   uint8_t _disableBasePri(void)
 //
 // Set BASEPRI to mask out interrupts but allow faults. It returns the value
 // BASEPRI had when it was called.

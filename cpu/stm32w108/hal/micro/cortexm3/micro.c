@@ -70,22 +70,22 @@ void halPowerUp(void)
   halBoardPowerUp();
 }
 
-static int16u seed0 = 0xbeef;
-static int16u seed1 = 0xface;
+static uint16_t seed0 = 0xbeef;
+static uint16_t seed1 = 0xface;
 
-void halCommonSeedRandom(int32u seed)
+void halCommonSeedRandom(uint32_t seed)
 {
-  seed0 = (int16u) seed;
+  seed0 = (uint16_t) seed;
   if (seed0 == 0)
     seed0 = 0xbeef;
-  seed1 = (int16u) (seed >> 16);
+  seed1 = (uint16_t) (seed >> 16);
   if (seed1 == 0)
     seed1 = 0xface;
 }
 
-static int16u shift(int16u *val, int16u taps)
+static uint16_t shift(uint16_t *val, uint16_t taps)
 {
-  int16u newVal = *val;
+  uint16_t newVal = *val;
 
   if (newVal & 0x8000)
     newVal ^= taps;
@@ -93,44 +93,44 @@ static int16u shift(int16u *val, int16u taps)
   return newVal;
 }
 
-int16u halCommonGetRandom(void)
+uint16_t halCommonGetRandom(void)
 {
   return (shift(&seed0, 0x0062)
           ^ shift(&seed1, 0x100B));
 }
 
-void halCommonMemCopy(void *dest, const void *source, int8u bytes)
+void halCommonMemCopy(void *dest, const void *source, uint8_t bytes)
 {
   memcpy(dest, source, bytes);
 }
 
-int8s halCommonMemCompare(const void *source0, const void *source1, int8u bytes)
+int8_t halCommonMemCompare(const void *source0, const void *source1, uint8_t bytes)
 {
   return memcmp(source0, source1, bytes);
 }
 
-void halCommonMemSet(void *dest, int8u val, int16u bytes)
+void halCommonMemSet(void *dest, uint8_t val, uint16_t bytes)
 {
   memset(dest, val, bytes);
 }
 
 #pragma pack(1)
 typedef struct appSwitchStruct {
-  int32u signature;
-  int8u mode;
-  int8u channel;
+  uint32_t signature;
+  uint8_t mode;
+  uint8_t channel;
   union {
-    int16u panID;
-    int16u offset;
+    uint16_t panID;
+    uint16_t offset;
   } param;
 } appSwitchStructType;
 #pragma pack()
 static appSwitchStructType *appSwitch = (appSwitchStructType *) RAM_BOTTOM;
 
-StStatus halBootloaderStart(int8u mode, int8u channel, int16u panID)
+StStatus halBootloaderStart(uint8_t mode, uint8_t channel, uint16_t panID)
 {
     if (mode ==  IAP_BOOTLOADER_MODE_UART) {
-      int8u cut = *(volatile int8u *) 0x08040798;
+      uint8_t cut = *(volatile uint8_t *) 0x08040798;
       if (!( (halFixedAddressTable.baseTable.type == FIXED_ADDRESS_TABLE_TYPE) &&
            ( ( (halFixedAddressTable.baseTable.version & FAT_MAJOR_VERSION_MASK) 
                == 0x0000 ) &&
@@ -140,7 +140,7 @@ StStatus halBootloaderStart(int8u mode, int8u channel, int16u panID)
 	return ST_ERR_FATAL;
     } else {
       /* Check that OTA bootloader is at the base of the flash */
-      if (*((int32u *) (MFB_BOTTOM + 28)) == IAP_BOOTLOADER_APP_SWITCH_SIGNATURE) {
+      if (*((uint32_t *) (MFB_BOTTOM + 28)) == IAP_BOOTLOADER_APP_SWITCH_SIGNATURE) {
          appSwitch->channel = ((channel >= 11) && (channel <= 26)) ? channel :IAP_BOOTLOADER_DEFAULT_CHANNEL;
          appSwitch->param.panID = panID;
       } else {

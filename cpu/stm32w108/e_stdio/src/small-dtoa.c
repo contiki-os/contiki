@@ -56,7 +56,7 @@
 #endif
 
 #include <string.h>
-#include "small_mprec.h"
+#include "small-mprec.h"
 
 static int
 _DEFUN (quorem,
@@ -203,8 +203,8 @@ _DEFUN (quorem,
  */
  
  
- /* Scanf and printf call both the small_mprec.c file if small_printf 
-  * has not been specfied optimizations concerning small_mprec.c and
+ /* Scanf and printf call both the small-mprec.c file if small_printf 
+  * has not been specfied optimizations concerning small-mprec.c and
   * call of balloc will be performed anyway for printf. 
   */
  
@@ -292,8 +292,8 @@ _DEFUN (_dtoa_r,
   	*  provided by Balloc variables are initialized to the beginning of the array.
   	*	- For some variables many buffers have been declared, in fact for each call of small_lshift we used a 
   	*  buffer that has not been used at the moment 
-   *  - This buffers are used in the call of function declared in small_mprec.h 
-   *  To have more informations look at small_mprec.c 
+   *  - This buffers are used in the call of function declared in small-mprec.h 
+   *  To have more informations look at small-mprec.c 
    */
   
 _Bigint tab_b[BUF_LSHIFT_SIZE],tab_b1[BUF_SIZE],tab_delta[BUF_SIZE],tab_mlo[BUF_SIZE],tab_mhi[BUF_LSHIFT_SIZE],tab_S[BUF_LSHIFT_SIZE];

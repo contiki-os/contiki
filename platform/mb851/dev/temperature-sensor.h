@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mb851-platform
+ *
+ * @{
+ */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -27,35 +32,35 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * This file is part of the Contiki OS
- *
  */
-/*---------------------------------------------------------------------------*/
 /**
 * \file
 *			Temperature sensor.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
-/*---------------------------------------------------------------------------*/
-
-/*
- * Value returned by temperature_sensor.value() is expressed in units of 0.1 °C.
- */
-/**
- *  NOTE: 
- *  For the temperature measurement, the ADC extended range mode is needed;
- *  but this is inaccurate due to the high voltage mode bug of the general purpose ADC 
- *  (see STM32W108 errata).
- */
 
 #ifndef __TEMPERATURE_SENSOR_H__
 #define __TEMPERATURE_SENSOR_H__
 
 #include "lib/sensors.h"
 
+/*
+ * Value returned by temperature_sensor.value() is expressed in units of 0.1 degC.
+ *  
+ *  NOTES: 
+ *  
+ *  For the temperature measurement, the ADC extended range mode is needed;
+ *  but this is inaccurate due to the high voltage mode bug of the general purpose ADC 
+ *  (see STM32W108 errata).
+ *  
+ *  For the temperature measurement, the ADC extended range mode is needed;
+ *  but this is inaccurate due to the high voltage mode bug of the general purpose ADC 
+ *  (see STM32W108 errata).
+ */
 extern const struct sensors_sensor temperature_sensor;
 
 #define TEMPERATURE_SENSOR "Temperature"
 
 #endif /* __TEMPERATURE_SENSOR_H__ */
+/** @} */

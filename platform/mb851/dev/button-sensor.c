@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mb851-platform
+ *
+ * @{
+ */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -27,28 +32,23 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * This file is part of the Contiki OS
- *
  */
-/*---------------------------------------------------------------------------*/
 /**
 * \file
 *			Button sensor.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
-/*---------------------------------------------------------------------------*/
 
 #include "dev/button-sensor.h"
 #include "hal/micro/micro-common.h"
 #include "hal/micro/cortexm3/micro-common.h"
 
 #include BOARD_HEADER
-
 #define DEBOUNCE 1
 
 /**
- * @brief Port and pin for BUTTON0.
+ * \brief Port and pin for BUTTON0.
  */
 #undef  BUTTON_S1
 #define BUTTON_S1             PORTA_PIN(7)
@@ -57,27 +57,27 @@
 #define BUTTON_S1_OUTPUT_GPIO GPIO_PAOUT
 
 /**
- * @brief Point the proper IRQ at the desired pin for BUTTON0.
+ * \brief Point the proper IRQ at the desired pin for BUTTON0.
  */
 #define BUTTON_S1_SEL()       do { GPIO_IRQCSEL = BUTTON_S1; } while(0)
 /**
- * @brief The interrupt service routine for BUTTON_S1.
+ * \brief The interrupt service routine for BUTTON_S1.
  */
 #define BUTTON_S1_ISR         halIrqCIsr
 /**
- * @brief The interrupt configuration register for BUTTON_S1.
+ * \brief The interrupt configuration register for BUTTON_S1.
  */
 #define BUTTON_S1_INTCFG      GPIO_INTCFGC
 /**
- * @brief The interrupt bit for BUTTON_S1.
+ * \brief The interrupt bit for BUTTON_S1.
  */
 #define BUTTON_S1_INT_EN_BIT  INT_IRQC
 /**
- * @brief The interrupt bit for BUTTON_S1.
+ * \brief The interrupt bit for BUTTON_S1.
  */
 #define BUTTON_S1_FLAG_BIT    INT_IRQCFLAG
 /**
- * @brief The missed interrupt bit for BUTTON_S1.
+ * \brief The missed interrupt bit for BUTTON_S1.
  */
 #define BUTTON_S1_MISS_BIT    INT_MISSIRQC
 
@@ -92,20 +92,16 @@ static struct timer debouncetimer;
 static void
 init(void)
 {
-  #if DEBOUNCE
+#if DEBOUNCE
   timer_set(&debouncetimer, 0);
-  #endif
-  
-  /* Configure GPIO for BUTTONSs */
-  
-  //Input, pulled up or down (selected by GPIO_PxOUT: 0 = pull-down, 1 = pull-up).  
-  halGpioConfig(BUTTON_S1,GPIOCFG_IN_PUD);
+#endif
+
+  /* Configure GPIO */
+  /* Input, pulled up or down (selected by GPIO_PxOUT: 0 = pull-down). */
+  halGpioConfig(BUTTON_S1, GPIOCFG_IN_PUD);
   BUTTON_S1_OUTPUT_GPIO |= GPIOOUT_PULLUP << BUTTON_S1_GPIO_PIN;
-  
-  
   BUTTON_S1_SEL();
-  BUTTON_S1_INTCFG = 0x40;  // Falling edge triggered.  
-  
+  BUTTON_S1_INTCFG = 0x40;      /* Falling edge triggered. */
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -123,58 +119,55 @@ deactivate(void)
 static int
 active(void)
 {
-  return (INT_CFGSET & BUTTON_S1_INT_EN_BIT) ? TRUE : FALSE ;
+  return (INT_CFGSET & BUTTON_S1_INT_EN_BIT) ? TRUE : FALSE;
 }
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
 #if DEBOUNCE
-  return (BUTTON_S1_INPUT_GPIO & (1<<BUTTON_S1_GPIO_PIN)) || !timer_expired(&debouncetimer);
+  return (BUTTON_S1_INPUT_GPIO & (1 << BUTTON_S1_GPIO_PIN)) ||
+    !timer_expired(&debouncetimer);
 #else
-  return BUTTON_S1_INPUT_GPIO & (1<<BUTTON_S1_GPIO_PIN);
+  return BUTTON_S1_INPUT_GPIO & (1 << BUTTON_S1_GPIO_PIN);
 #endif
 }
 /*---------------------------------------------------------------------------*/
 static int
 configure(int type, int value)
 {
-  switch(type){
-    case SENSORS_HW_INIT:
-      init();
-      return 1;
-    case SENSORS_ACTIVE:
-      if(value)        
-        activate();
-      else
-        deactivate();
-      return 1;
+  switch (type) {
+  case SENSORS_HW_INIT:
+    init();
+    return 1;
+  case SENSORS_ACTIVE:
+    if(value) {
+      activate();
+    } else {
+      deactivate();
+    }
+    return 1;
   }
-       
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
 status(int type)
 {
-  switch(type) {
-    
-    case SENSORS_READY:
-      return active();
+  switch (type) {
+  case SENSORS_READY:
+    return active();
   }
-  
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-void BUTTON_S1_ISR(void)
+void
+BUTTON_S1_ISR(void)
 {
-  
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  
-  //sensors_handle_irq(IRQ_BUTTON);
-  
-   if(INT_GPIOFLAG & BUTTON_S1_FLAG_BIT) {
-    
+  /* sensors_handle_irq(IRQ_BUTTON); */
+
+  if(INT_GPIOFLAG & BUTTON_S1_FLAG_BIT) {
 #if DEBOUNCE
     if(timer_expired(&debouncetimer)) {
       timer_set(&debouncetimer, CLOCK_SECOND / 5);
@@ -183,14 +176,11 @@ void BUTTON_S1_ISR(void)
 #else
     sensors_changed(&button_sensor);
 #endif
-    
   }
-  
-  INT_GPIOFLAG = BUTTON_S1_FLAG_BIT;  
-  
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);  
+
+  INT_GPIOFLAG = BUTTON_S1_FLAG_BIT;
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
-	       value, configure, status);
-
+SENSORS_SENSOR(button_sensor, BUTTON_SENSOR, value, configure, status);
+/** @} */

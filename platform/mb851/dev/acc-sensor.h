@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mb851-platform
+ *
+ * @{
+ */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -27,17 +32,13 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * This file is part of the Contiki OS
- *
  */
-/*---------------------------------------------------------------------------*/
 /**
 * \file
 *			Accelerometer header file.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
-/*---------------------------------------------------------------------------*/
 
 #ifndef __ACC_SENSOR_H__
 #define __ACC_SENSOR_H__
@@ -49,29 +50,28 @@ extern const struct sensors_sensor acc_sensor;
 
 #define ACC_SENSOR "Acc"
 
-/* The type values used in the configure() function.
-*/
-
-/* Full-scale*/
-#define ACC_RANGE   1                     // type
-
-#define ACC_LOW_RANGE   MEMS_LOW_RANGE    // Values
+/* The type values used in the configure() function. */
+/* Full-scale */
+#define ACC_RANGE       1
+#define ACC_LOW_RANGE   MEMS_LOW_RANGE
 #define ACC_HIGH_RANGE  MEMS_HIGH_RANGE
 
-/* High pass filter and cut-off frequencies*/
-#define ACC_HPF 2                       // type
+/* High pass filter and cut-off frequencies */
+#define ACC_HPF         2
 
-#define ACC_HPF_DISABLE 4                   // Values
+#define ACC_HPF_DISABLE 4
 #define ACC_1HZ         3
 #define ACC_2HZ         2
 #define ACC_4HZ         1
 #define ACC_8HZ         0
 
-/* The type values used in the value() function.
+/* 
+ * The type values used in the value() function.
  * The returned value is expressed in mg units and can be negative. 
-*/
+ */
 #define ACC_X_AXIS    1
 #define ACC_Y_AXIS    2
 #define ACC_Z_AXIS    3
 
 #endif /* __ACC_SENSOR_H__ */
+/** @} */

@@ -86,7 +86,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <reent.h>
-#include "small_mprec.h"
+#include "small-mprec.h"
 
 /* reent.c knows this value */
 #define _Kmax 15

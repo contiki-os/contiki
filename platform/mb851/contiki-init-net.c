@@ -1,3 +1,9 @@
+/**
+ * \addtogroup mb851-platform
+ *
+ * @{
+ */
+
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -27,17 +33,14 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * This file is part of the Contiki OS
- *
  */
-/*---------------------------------------------------------------------------*/
+
 /**
 * \file
 *			Functions for net initialization.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
-/*---------------------------------------------------------------------------*/
 
 #include "contiki-net.h"
 
@@ -54,82 +57,80 @@
 #define PRINT6ADDR(addr)
 #define PRINTLLADDR(addr)
 #endif
-
-void print_address(uip_ds6_addr_t *lladdr)
+/*--------------------------------------------------------------------------*/
+void
+print_address(uip_ds6_addr_t * lladdr)
 {
   int i;
-  
+
   for(i = 0; i < 7; ++i) {
-    printf("%02x%02x:", lladdr->ipaddr.u8[i * 2], lladdr->ipaddr.u8[i * 2 + 1]);
+    printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
+           lladdr->ipaddr.u8[i * 2 + 1]);
   }
   printf("%02x%02x", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
 }
-
 /*---------------------------------------------------------------------------*/
-void print_addresses(void)
+void
+print_addresses(void)
 {
   uip_ds6_addr_t *lladdr;
-
-
   printf("link-local IPv6 address: ");
-  
+
   lladdr = uip_ds6_get_link_local(-1);
-  if(lladdr != NULL){
-    print_address(lladdr);  
+  if(lladdr != NULL) {
+    print_address(lladdr);
     printf("\r\n");
-  }
-  else
+  } else {
     printf("None\r\n");
-  
+  }
+
   printf("global IPv6 address: ");
-  
+
   lladdr = uip_ds6_get_global(-1);
-  if(lladdr != NULL){
-    print_address(lladdr);  
+  if(lladdr != NULL) {
+    print_address(lladdr);
     printf("\r\n");
-  }
-  else
+  } else {
     printf("None\r\n");
-
+  }
 }
-
+/*--------------------------------------------------------------------------*/
 #if FIXED_NET_ADDRESS
-
 #include "net/rpl/rpl.h"
-
-
-void set_net_address(void)
+void
+set_net_address(void)
 {
   uip_ipaddr_t ipaddr;
+
 #if RPL_BORDER_ROUTER
   rpl_dag_t *dag;
 #endif
 
-  uip_ip6addr(&ipaddr, NET_ADDR_A, NET_ADDR_B, NET_ADDR_C, NET_ADDR_D, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, NET_ADDR_A, NET_ADDR_B, NET_ADDR_C, NET_ADDR_D, 0, 0,
+              0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);  
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
 
- 
-//#if !UIP_CONF_ROUTER
-//  uip_ds6_prefix_add(&ipaddr, 64, 0); // For on-link determination.
-//#else
-//  uip_ds6_prefix_add(&ipaddr, 64, 0, 0, 600, 600);
-//#endif
-  
+
+ /* #if !UIP_CONF_ROUTER */
+ /* uip_ds6_prefix_add(&ipaddr, 64, 0);  For on-link determination. */
+ /* #else */
+ /* uip_ds6_prefix_add(&ipaddr, 64, 0, 0, 600, 600); */
+ /* #endif */
+
   print_addresses();
-  
+
 #if RPL_BORDER_ROUTER
-  dag = rpl_set_root(RPL_DEFAULT_INSTANCE,&ipaddr);
+  dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &ipaddr);
   if(dag != NULL) {
     PRINTF("This node is setted as root of a DAG.\r\n");
-  }
-  else {
+  } else {
     PRINTF("Error while setting this node as root of a DAG.\r\n");
   }
 #endif
-  
+
 }
 #endif /* FIXED_GLOBAL_ADDRESS */
-
-
+/*--------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */
+/** @} */

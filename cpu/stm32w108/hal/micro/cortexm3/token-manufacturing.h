@@ -83,72 +83,72 @@
 #ifndef __MFG_TYPES_DEFINED__
 #define __MFG_TYPES_DEFINED__
 //--- Fixed Information Block ---
-typedef int8u tokTypeMfgChipData[24];
-typedef int8u tokTypeMfgPartData[6];
-typedef int8u tokTypeMfgTesterData[6];
-typedef int8u tokTypeMfgStEui64[8];
+typedef uint8_t tokTypeMfgChipData[24];
+typedef uint8_t tokTypeMfgPartData[6];
+typedef uint8_t tokTypeMfgTesterData[6];
+typedef uint8_t tokTypeMfgStEui64[8];
 typedef struct {
-  int16u iffilterL;
-  int16u lna;
-  int16u ifamp;
-  int16u rxadcH;
-  int16u prescalar;
-  int16u phdet;
-  int16u vco;
-  int16u loopfilter;
-  int16u pa;
-  int16u iqmixer;
+  uint16_t iffilterL;
+  uint16_t lna;
+  uint16_t ifamp;
+  uint16_t rxadcH;
+  uint16_t prescalar;
+  uint16_t phdet;
+  uint16_t vco;
+  uint16_t loopfilter;
+  uint16_t pa;
+  uint16_t iqmixer;
 } tokTypeMfgAnalogueTrim;
 typedef struct {
-  int16u iffilterH;
-  int16u biasmaster;
-  int16u moddac;
-  int16u auxadc;
-  int16u caladc;
+  uint16_t iffilterH;
+  uint16_t biasmaster;
+  uint16_t moddac;
+  uint16_t auxadc;
+  uint16_t caladc;
 } tokTypeMfgAnalogueTrimBoth;
 typedef struct {
-  int8u regTrim1V2;
-  int8u regTrim1V8;
+  uint8_t regTrim1V2;
+  uint8_t regTrim1V8;
 } tokTypeMfgRegTrim;
-typedef int16u tokTypeMfgRegVoltage1V8;
-typedef int16u tokTypeMfgAdcVrefVoltage;
-typedef int16u tokTypeMfgTempCal;
-typedef int16u tokTypeMfgFibVersion;
-typedef int16u tokTypeMfgFibChecksum;
+typedef uint16_t tokTypeMfgRegVoltage1V8;
+typedef uint16_t tokTypeMfgAdcVrefVoltage;
+typedef uint16_t tokTypeMfgTempCal;
+typedef uint16_t tokTypeMfgFibVersion;
+typedef uint16_t tokTypeMfgFibChecksum;
 typedef struct {
-  int16u ob2;
-  int16u ob3;
-  int16u ob0;
-  int16u ob1;
+  uint16_t ob2;
+  uint16_t ob3;
+  uint16_t ob0;
+  uint16_t ob1;
 } tokTypeMfgFibObs;
 //--- Customer Information Block ---
 typedef struct {
-  int16u ob0;
-  int16u ob1;
-  int16u ob2;
-  int16u ob3;
-  int16u ob4;
-  int16u ob5;
-  int16u ob6;
-  int16u ob7;
+  uint16_t ob0;
+  uint16_t ob1;
+  uint16_t ob2;
+  uint16_t ob3;
+  uint16_t ob4;
+  uint16_t ob5;
+  uint16_t ob6;
+  uint16_t ob7;
 } tokTypeMfgCibObs;
-typedef int16u tokTypeMfgCustomVersion;
-typedef int8u tokTypeMfgCustomEui64[8];
-typedef int8u tokTypeMfgString[16];
-typedef int8u tokTypeMfgBoardName[16];
-typedef int16u tokTypeMfgManufId;
-typedef int16u tokTypeMfgPhyConfig;
-typedef int8u tokTypeMfgBootloadAesKey[16];
-typedef int8u tokTypeMfgEui64[8];
-typedef int8u tokTypeMfgEzspStorage[8];
-typedef int16u tokTypeMfgAshConfig;
+typedef uint16_t tokTypeMfgCustomVersion;
+typedef uint8_t tokTypeMfgCustomEui64[8];
+typedef uint8_t tokTypeMfgString[16];
+typedef uint8_t tokTypeMfgBoardName[16];
+typedef uint16_t tokTypeMfgManufId;
+typedef uint16_t tokTypeMfgPhyConfig;
+typedef uint8_t tokTypeMfgBootloadAesKey[16];
+typedef uint8_t tokTypeMfgEui64[8];
+typedef uint8_t tokTypeMfgEzspStorage[8];
+typedef uint16_t tokTypeMfgAshConfig;
 typedef struct {
-  int8u certificate[48];
-  int8u caPublicKey[22];
-  int8u privateKey[21];
+  uint8_t certificate[48];
+  uint8_t caPublicKey[22];
+  uint8_t privateKey[21];
   // The bottom flag bit is 1 for uninitialized, 0 for initialized.
   // The other flag bits should be set to 0 at initialization.
-  int8u flags;
+  uint8_t flags;
 } tokTypeMfgCbkeData;
 typedef struct {
   // The bottom flag bit is 1 for uninitialized, 0 for initialized.
@@ -158,11 +158,11 @@ typedef struct {
   // Special flags support.  Due to a bug in the way some customers
   // had programmed the flags field, we will also examine the upper
   // bits 9 and 10 for the size field.  Those bits are also reserved.
-  int16u flags;
-  int8u value[16];
-  int16u crc;
+  uint16_t flags;
+  uint8_t value[16];
+  uint16_t crc;
 } tokTypeMfgInstallationCode;
-typedef int16u tokTypeMfgOsc24mBiasTrim;
+typedef uint16_t tokTypeMfgOsc24mBiasTrim;
 #endif //__MFG_TYPES_DEFINED__
 
 

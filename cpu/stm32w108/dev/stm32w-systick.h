@@ -1,3 +1,9 @@
+/**
+ * \addtogroup stm32w-cpu
+ *
+ * @{
+ */
+
 /******************** (C) COPYRIGHT 2008 STMicroelectronics ********************
 * File Name          : stm32f10x_systick.h
 * Author             : MCD Application Team
@@ -14,19 +20,17 @@
 * INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
 *******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32W_SYSTICK_H
 #define __STM32W_SYSTICK_H
 
-#include "stm32w108_type.h"
-#include "stm32w_conf.h"
+#include "stm32w108-type.h"
+#include "stm32w-conf.h"
 
 #ifndef EXT
-  #define EXT extern
+#define EXT extern
 #endif /* EXT */
 
-typedef struct
-{
+typedef struct {
   vu32 CTRL;
   vu32 LOAD;
   vu32 VAL;
@@ -41,39 +45,47 @@ typedef struct
 #define SCB_BASE              (SCS_BASE + 0x0D00)
 
 #ifdef _SysTick
-  #define SysTick             ((SysTick_TypeDef *) SysTick_BASE)
+#define SysTick             ((SysTick_TypeDef *) SysTick_BASE)
 #endif /*_SysTick */
 
 
 /*****************  Bit definition for SysTick_CTRL register  *****************/
-#define  SysTick_CTRL_ENABLE                 ((u32)0x00000001)        /* Counter enable */
-#define  SysTick_CTRL_TICKINT                ((u32)0x00000002)        /* Counting down to 0 pends the SysTick handler */
-#define  SysTick_CTRL_CLKSOURCE              ((u32)0x00000004)        /* Clock source */
-#define  SysTick_CTRL_COUNTFLAG              ((u32)0x00010000)        /* Count Flag */
+/* Counter enable */
+#define  SysTick_CTRL_ENABLE                 ((u32)0x00000001)  
+/* Counting down to 0 pends the SysTick handler */
+#define  SysTick_CTRL_TICKINT                ((u32)0x00000002)  
+/* Clock source */
+#define  SysTick_CTRL_CLKSOURCE              ((u32)0x00000004)  
+/* Count Flag */
+#define  SysTick_CTRL_COUNTFLAG              ((u32)0x00010000)  
 
 
 /*****************  Bit definition for SysTick_LOAD register  *****************/
-#define  SysTick_LOAD_RELOAD                 ((u32)0x00FFFFFF)        /* Value to load into the SysTick Current Value Register when the counter reaches 0 */
+/* 
+ * Value to load into the SysTick Current Value Register when the
+ * counter reaches 0
+ */
+#define  SysTick_LOAD_RELOAD                 ((u32)0x00FFFFFF)  
 
 
 /*****************  Bit definition for SysTick_VAL register  ******************/
-#define  SysTick_VAL_CURRENT                 ((u32)0x00FFFFFF)        /* Current value at the time the register is accessed */
+/* Current value at the time the register is accessed */
+#define  SysTick_VAL_CURRENT                 ((u32)0x00FFFFFF)  
 
 
 /*****************  Bit definition for SysTick_CALIB register  ****************/
-#define  SysTick_CALIB_TENMS                 ((u32)0x00FFFFFF)        /* Reload value to use for 10ms timing */
-#define  SysTick_CALIB_SKEW                  ((u32)0x40000000)        /* Calibration value is not exactly 10 ms */
-#define  SysTick_CALIB_NOREF                 ((u32)0x80000000)        /* The reference clock is not provided */
+/* Reload value to use for 10ms timing */
+#define  SysTick_CALIB_TENMS                 ((u32)0x00FFFFFF)  
+/* Calibration value is not exactly 10 ms */
+#define  SysTick_CALIB_SKEW                  ((u32)0x40000000)  
+/* The reference clock is not provided */
+#define  SysTick_CALIB_NOREF                 ((u32)0x80000000)  
 
 
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* SysTick clock source */
 #define SysTick_CLKSource_HCLK_Div8    ((u32)0xFFFFFFFB)
 #define SysTick_CLKSource_HCLK         ((u32)0x00000004)
-
 #define IS_SYSTICK_CLK_SOURCE(SOURCE) (((SOURCE) == SysTick_CLKSource_HCLK) || \
-                                       ((SOURCE) == SysTick_CLKSource_HCLK_Div8))
+                                      ((SOURCE) == SysTick_CLKSource_HCLK_Div8))
 
 /* SysTick counter state */
 #define SysTick_Counter_Disable        ((u32)0xFFFFFFFE)
@@ -95,15 +107,18 @@ typedef struct
 
 #define IS_SYSTICK_RELOAD(RELOAD) (((RELOAD) > 0) && ((RELOAD) <= 0xFFFFFF))
 
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
 void SysTick_CLKSourceConfig(u32 SysTick_CLKSource);
+
 void SysTick_SetReload(u32 Reload);
+
 void SysTick_CounterCmd(u32 SysTick_Counter);
+
 void SysTick_ITConfig(FunctionalState NewState);
+
 u32 SysTick_GetCounter(void);
+
 FlagStatus SysTick_GetFlagStatus(u8 SysTick_FLAG);
 
 #endif /* __STM32F10x_SYSTICK_H */
-
 /******************* (C) COPYRIGHT 2008 STMicroelectronics *****END OF FILE****/
+/** @} */

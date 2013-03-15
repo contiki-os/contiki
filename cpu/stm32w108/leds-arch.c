@@ -1,3 +1,9 @@
+/**
+ * \addtogroup mb851-platform
+ *
+ * @{
+ */
+
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -27,17 +33,14 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * This file is part of the Contiki OS
- *
  */
-/*---------------------------------------------------------------------------*/
+ 
 /**
 * \file
 *			Leds.
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
-/*---------------------------------------------------------------------------*/
 
 #include PLATFORM_HEADER
 #include BOARD_HEADER
@@ -46,32 +49,30 @@
 #include "hal/micro/micro-common.h"
 #include "hal/micro/cortexm3/micro-common.h"
 
-#define LEDS_PORT *((volatile int32u *)(GPIO_PxOUT_BASE+(GPIO_Px_OFFSET*(LEDS_CONF_PORT/8))))
+#define LEDS_PORT *((volatile uint32_t *)(GPIO_PxOUT_BASE+(GPIO_Px_OFFSET*(LEDS_CONF_PORT/8))))
 
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_init(void)
-{   
-  halGpioConfig(PORTx_PIN(LEDS_CONF_PORT,LEDS_CONF_RED_PIN),GPIOCFG_OUT);
-  halGpioConfig(PORTx_PIN(LEDS_CONF_PORT,LEDS_CONF_GREEN_PIN),GPIOCFG_OUT);
-  
+{
+  halGpioConfig(PORTx_PIN(LEDS_CONF_PORT, LEDS_CONF_RED_PIN), GPIOCFG_OUT);
+  halGpioConfig(PORTx_PIN(LEDS_CONF_PORT, LEDS_CONF_GREEN_PIN), GPIOCFG_OUT);
   LEDS_PORT |= (LEDS_CONF_RED | LEDS_CONF_GREEN);
 }
 /*---------------------------------------------------------------------------*/
 unsigned char
 leds_arch_get(void)
 {
-    return ((LEDS_PORT & LEDS_CONF_RED) ? 0 : LEDS_RED)
-    | ((LEDS_PORT & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
+  return ((LEDS_PORT & LEDS_CONF_RED) ? 0 : LEDS_RED) |
+      ((LEDS_PORT & LEDS_CONF_GREEN) ? 0 : LEDS_GREEN);
 }
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_set(unsigned char leds)
 {
-    
-  LEDS_PORT = (LEDS_PORT & ~(LEDS_CONF_RED|LEDS_CONF_GREEN))
-    | ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED)
-    | ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
- 
+  LEDS_PORT = (LEDS_PORT & ~(LEDS_CONF_RED | LEDS_CONF_GREEN)) |
+      ((leds & LEDS_RED) ? 0 : LEDS_CONF_RED) |
+      ((leds & LEDS_GREEN) ? 0 : LEDS_CONF_GREEN);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

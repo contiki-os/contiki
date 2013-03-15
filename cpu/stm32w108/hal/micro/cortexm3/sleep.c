@@ -117,9 +117,9 @@
 //place in the halInternalWakeEvent variable
 #define INTERNAL_WAKE_EVENT_BIT_SHIFT         20
 
-static int32u halInternalWakeEvent=0;
+static uint32_t halInternalWakeEvent=0;
 
-int32u halGetWakeInfo(void)
+uint32_t halGetWakeInfo(void)
 {
   return halInternalWakeEvent;
 }
@@ -129,7 +129,7 @@ void halInternalSleep(SleepModes sleepMode)
   //Timer restoring always takes place during the wakeup sequence.  We save
   //the state here in case SLEEPMODE_NOTIMER is invoked, which would disable
   //the clocks.
-  int32u SLEEPTMR_CLKEN_SAVED = SLEEPTMR_CLKEN;
+  uint32_t SLEEPTMR_CLKEN_SAVED = SLEEPTMR_CLKEN;
   
   //This code assumes all wake source registers are properly configured.
   //As such, it should be called from halSleepWithOptions() or from
@@ -138,7 +138,7 @@ void halInternalSleep(SleepModes sleepMode)
   //The parameter gpioWakeSel is a bitfield composite of the GPIO wake
   //sources derived from the 3 ports, indicating which of the 24 GPIO
   //are configured as a wake source.
-  int32u gpioWakeSel  = (GPIO_PAWAKE<<0);
+  uint32_t gpioWakeSel  = (GPIO_PAWAKE<<0);
          gpioWakeSel |= (GPIO_PBWAKE<<8);
          gpioWakeSel |= (GPIO_PCWAKE<<16);
   
@@ -248,38 +248,38 @@ deepSleepCore:
         //MAC_TIMER_INT_MASK - reinitialized by stStackPowerUp()
         //BB_INT_MASK - reinitialized by stStackPowerUp()
         //SEC_INT_MASK - reinitialized by stStackPowerUp()
-        int32u INT_SLEEPTMRCFG_SAVED = INT_SLEEPTMRCFG_REG;
-        int32u INT_MGMTCFG_SAVED = INT_MGMTCFG_REG;
+        uint32_t INT_SLEEPTMRCFG_SAVED = INT_SLEEPTMRCFG_REG;
+        uint32_t INT_MGMTCFG_SAVED = INT_MGMTCFG_REG;
         //INT_TIM1CFG - reinitialized by halPowerUp() or similar
         //INT_TIM2CFG - reinitialized by halPowerUp() or similar
         //INT_SC1CFG - reinitialized by halPowerUp() or similar
         //INT_SC2CFG - reinitialized by halPowerUp() or similar
         //INT_ADCCFG - reinitialized by halPowerUp() or similar
-        int32u GPIO_INTCFGA_SAVED = GPIO_INTCFGA_REG;
-        int32u GPIO_INTCFGB_SAVED = GPIO_INTCFGB_REG;
-        int32u GPIO_INTCFGC_SAVED = GPIO_INTCFGC_REG;
-        int32u GPIO_INTCFGD_SAVED = GPIO_INTCFGD_REG;
+        uint32_t GPIO_INTCFGA_SAVED = GPIO_INTCFGA_REG;
+        uint32_t GPIO_INTCFGB_SAVED = GPIO_INTCFGB_REG;
+        uint32_t GPIO_INTCFGC_SAVED = GPIO_INTCFGC_REG;
+        uint32_t GPIO_INTCFGD_SAVED = GPIO_INTCFGD_REG;
         //SC1_INTMODE - reinitialized by halPowerUp() or similar
         //SC2_INTMODE - reinitialized by halPowerUp() or similar
         //----CM_LV
-        int32u OSC24M_BIASTRIM_SAVED = OSC24M_BIASTRIM_REG;
-        int32u OSCHF_TUNE_SAVED = OSCHF_TUNE_REG;
-        int32u DITHER_DIS_SAVED = DITHER_DIS_REG;
+        uint32_t OSC24M_BIASTRIM_SAVED = OSC24M_BIASTRIM_REG;
+        uint32_t OSCHF_TUNE_SAVED = OSCHF_TUNE_REG;
+        uint32_t DITHER_DIS_SAVED = DITHER_DIS_REG;
         //OSC24M_CTRL - reinitialized by halPowerUp() or similar
         //CPU_CLKSEL  - reinitialized by halPowerUp() or similar
         //TMR1_CLK_SEL - reinitialized by halPowerUp() or similar
         //TMR2_CLK_SEL - reinitialized by halPowerUp() or similar
-        int32u PCTRACE_SEL_SAVED = PCTRACE_SEL_REG;
+        uint32_t PCTRACE_SEL_SAVED = PCTRACE_SEL_REG;
         //----RAM_CTRL
-        int32u MEM_PROT_0_SAVED = MEM_PROT_0_REG;
-        int32u MEM_PROT_1_SAVED = MEM_PROT_1_REG;
-        int32u MEM_PROT_2_SAVED = MEM_PROT_2_REG;
-        int32u MEM_PROT_3_SAVED = MEM_PROT_3_REG;
-        int32u MEM_PROT_4_SAVED = MEM_PROT_4_REG;
-        int32u MEM_PROT_5_SAVED = MEM_PROT_5_REG;
-        int32u MEM_PROT_6_SAVED = MEM_PROT_6_REG;
-        int32u MEM_PROT_7_SAVED = MEM_PROT_7_REG;
-        int32u MEM_PROT_EN_SAVED = MEM_PROT_EN_REG;
+        uint32_t MEM_PROT_0_SAVED = MEM_PROT_0_REG;
+        uint32_t MEM_PROT_1_SAVED = MEM_PROT_1_REG;
+        uint32_t MEM_PROT_2_SAVED = MEM_PROT_2_REG;
+        uint32_t MEM_PROT_3_SAVED = MEM_PROT_3_REG;
+        uint32_t MEM_PROT_4_SAVED = MEM_PROT_4_REG;
+        uint32_t MEM_PROT_5_SAVED = MEM_PROT_5_REG;
+        uint32_t MEM_PROT_6_SAVED = MEM_PROT_6_REG;
+        uint32_t MEM_PROT_7_SAVED = MEM_PROT_7_REG;
+        uint32_t MEM_PROT_EN_SAVED = MEM_PROT_EN_REG;
         //----AUX_ADC
         //        reinitialized by halPowerUp() or similar
         //----CAL_ADC
@@ -295,14 +295,14 @@ deepSleepCore:
         //----NVIC
         //ST_CSR - fixed, restored by cstartup when exiting deep sleep
         //ST_RVR - fixed, restored by cstartup when exiting deep sleep
-        int32u INT_CFGSET_SAVED = INT_CFGSET_REG; //mask against wake sources
+        uint32_t INT_CFGSET_SAVED = INT_CFGSET_REG; //mask against wake sources
         //INT_PENDSET - used below when overlapping interrupts and wake sources
         //NVIC_IPR_3to0 - fixed, restored by cstartup when exiting deep sleep
         //NVIC_IPR_7to4 - fixed, restored by cstartup when exiting deep sleep
         //NVIC_IPR_11to8 - fixed, restored by cstartup when exiting deep sleep
         //NVIC_IPR_15to12 - fixed, restored by cstartup when exiting deep sleep
         //NVIC_IPR_19to16 - fixed, restored by cstartup when exiting deep sleep
-        int32u SCS_VTOR_SAVED = SCS_VTOR_REG;
+        uint32_t SCS_VTOR_SAVED = SCS_VTOR_REG;
         //SCS_CCR - fixed, restored by cstartup when exiting deep sleep
         //SCS_SHPR_7to4 - fixed, restored by cstartup when exiting deep sleep
         //SCS_SHPR_11to8 - fixed, restored by cstartup when exiting deep sleep
@@ -320,7 +320,7 @@ deepSleepCore:
         //up exactly which GPIO could have woken us up.
         //Reading the three IN registers is done separately to avoid warnings
         //about undefined order of volatile access.
-        int32u GPIO_IN_SAVED =   GPIO_PAIN;
+        uint32_t GPIO_IN_SAVED =   GPIO_PAIN;
                GPIO_IN_SAVED |= (GPIO_PBIN<<8);
                GPIO_IN_SAVED |= (GPIO_PCIN<<16);
         //reset the power up events by writing 1 to all bits.
@@ -425,7 +425,7 @@ deepSleepCore:
         //only propagate across deep sleep the interrupts that are both
         //enabled and possible wake sources
         {
-          int32u wakeSourceInterruptMask = 0;
+          uint32_t wakeSourceInterruptMask = 0;
           
           if(GPIO_PBWAKE&PB0) {
             wakeSourceInterruptMask |= INT_IRQA;
@@ -513,7 +513,7 @@ deepSleepCore:
         {
           //Use a local copy of WAKE_SEL to avoid warnings from the compiler
           //about order of volatile accesses
-          int32u wakeSel = WAKE_SEL;
+          uint32_t wakeSel = WAKE_SEL;
           //stall until a wake event or CSYSPWRUPREQ/ACK clears
           while( (CSYSPWRUPACK_STATUS) && (!(PWRUP_EVENT&wakeSel)) ) {}
           //if there was a wake event, allow CSYSPWRUPACK and skip sleep
@@ -630,14 +630,14 @@ deepSleepCore:
         //Now that we're awake, normal interrupts are operational again
         //Take a snapshot of the new GPIO state and the EVENT register to
         //record our wake event
-        int32u GPIO_IN_NEW =   GPIO_PAIN;
+        uint32_t GPIO_IN_NEW =   GPIO_PAIN;
                GPIO_IN_NEW |= (GPIO_PBIN<<8);
                GPIO_IN_NEW |= (GPIO_PCIN<<16);
         //Only operate on power up events that are also wake events.  Power
         //up events will always trigger like an interrupt flag, so we have
         //to check them against events that are enabled for waking. (This is
         //a two step process because we're accessing two volatile values.)
-        int32u powerUpEvents = PWRUP_EVENT;
+        uint32_t powerUpEvents = PWRUP_EVENT;
                powerUpEvents &= WAKE_SEL;
         halInternalWakeEvent |= ((GPIO_IN_SAVED^GPIO_IN_NEW)&gpioWakeSel);
         //PWRUP_SC1 is PB2 which is bit 10
@@ -845,7 +845,7 @@ deepSleepCore:
 }
 
 
-void halSleepWithOptions(SleepModes sleepMode, int32u gpioWakeBitMask)
+void halSleepWithOptions(SleepModes sleepMode, uint32_t gpioWakeBitMask)
 {
   //configure all GPIO wake sources
   GPIO_PAWAKE = (gpioWakeBitMask>>0)&0xFF;
