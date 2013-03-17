@@ -157,7 +157,11 @@ MEMB(send_queue_memb, struct packetqueue_item, MAX_SENDING_QUEUE);
    queue, the system periodically sends a dummy packet to potential
    parents, i.e., neighbors with a lower rtmetric than we have but for
    which we do not yet have a link quality estimate. */
+#ifdef COLLECT_CONF_PROACTIVE_PROBING_INTERVAL
+#define PROACTIVE_PROBING_INTERVAL (random_rand() % (2 * COLLECT_CONF_PROACTIVE_PROBING_INTERVAL))
+#else /* COLLECT_CONF_PROACTIVE_PROBING_INTERVAL */
 #define PROACTIVE_PROBING_INTERVAL (random_rand() % CLOCK_SECOND * 60)
+#endif /* COLLECT_CONF_PROACTIVE_PROBING_INTERVAL */
 #define PROACTIVE_PROBING_REXMITS  15
 
 /* The ANNOUNCEMENT_SCAN_TIME defines for how long the Collect
