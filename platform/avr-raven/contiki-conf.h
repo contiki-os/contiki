@@ -235,7 +235,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_DS6_NBR_NBU      20
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   3
-#define UIP_CONF_DS6_ROUTE_NBU    20
+#define UIP_CONF_MAX_ROUTES    20
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
@@ -278,7 +278,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_DS6_NBR_NBU     10
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   2
-#define UIP_CONF_DS6_ROUTE_NBU    4
+#define UIP_CONF_MAX_ROUTES    4
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
@@ -311,7 +311,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_DS6_NBR_NBU      4
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   3
-#define UIP_CONF_DS6_ROUTE_NBU    4
+#define UIP_CONF_MAX_ROUTES    4
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0

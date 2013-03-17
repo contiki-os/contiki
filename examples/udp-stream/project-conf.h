@@ -35,8 +35,8 @@
 #define UIP_CONF_TCP                    0
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU            8
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU          8
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES          8
 
 /* The total number of queuebuf */
 #undef QUEUEBUF_CONF_NUM

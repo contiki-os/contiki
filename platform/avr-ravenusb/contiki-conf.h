@@ -229,7 +229,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_DS6_NBR_NBU     2
 #define UIP_CONF_DS6_DEFRT_NBU   2
 #define UIP_CONF_DS6_PREFIX_NBU  3
-#define UIP_CONF_DS6_ROUTE_NBU   2
+#define UIP_CONF_MAX_ROUTES   2
 #define UIP_CONF_DS6_ADDR_NBU    3
 #define UIP_CONF_DS6_MADDR_NBU   0
 #define UIP_CONF_DS6_AADDR_NBU   0
@@ -356,8 +356,8 @@ typedef unsigned short uip_stats_t;
 #define QUEUEBUF_CONF_NUM        8
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU       5
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU     5
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES     5
 
 #else
 #error Network configuration not specified!
@@ -404,7 +404,7 @@ typedef unsigned short uip_stats_t;
 #define RPL_CONF_STATS              0
 #define UIP_CONF_BUFFER_SIZE	 1300
 //#define UIP_CONF_DS6_NBR_NBU       12
-//#define UIP_CONF_DS6_ROUTE_NBU     12
+//#define UIP_CONF_MAX_ROUTES     12
 
 #ifdef RPL_BORDER_ROUTER
 #undef UIP_FALLBACK_INTERFACE
@@ -442,8 +442,8 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_RECEIVE_WINDOW    48
 #undef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU        5
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU      5
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES      5
 #undef UIP_CONF_MAX_CONNECTIONS
 #define UIP_CONF_MAX_CONNECTIONS    2
 #endif
