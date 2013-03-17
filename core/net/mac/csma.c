@@ -110,8 +110,9 @@ static void packet_sent(void *ptr, int status, int num_transmissions);
 static void transmit_packet_list(void *ptr);
 
 /*---------------------------------------------------------------------------*/
-static struct
-neighbor_queue *neighbor_queue_from_addr(const rimeaddr_t *addr) {
+static struct neighbor_queue *
+neighbor_queue_from_addr(const rimeaddr_t *addr)
+{
   struct neighbor_queue *n = list_head(neighbor_list);
   while(n != NULL) {
     if(rimeaddr_cmp(&n->addr, addr)) {
