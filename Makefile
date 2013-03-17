@@ -3,7 +3,10 @@ PROJECT_MOT=$(PROJECT_ELF:.elf=.mot)
 PROJECT_MAP=$(PROJECT_ELF:.elf=.map)
 PROJECT_LST=$(PROJECT_ELF:.elf=.lst)
 
-PREFIX=rl78-elf
+# Find latest installed GNURL78 toolchain. If your toolchain is already in PATH, just comment next line.
+TOOL_PATH:=$(shell find /usr/share -maxdepth 1 -type d -iname "gnurl78*" | sort | tail -n 1)/bin
+
+PREFIX:=$(TOOL_PATH)/rl78-elf
 
 LD = $(PREFIX)-gcc
 CC = $(PREFIX)-gcc
