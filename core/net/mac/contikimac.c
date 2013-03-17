@@ -116,8 +116,6 @@ struct hdr {
 
 /* Are we currently receiving a burst? */
 static int we_are_receiving_burst = 0;
-/* Has the receiver been awoken by a burst we're sending? */
-static int is_receiver_awake = 0;
 
 /* BURST_RECV_TIME is the maximum time a receiver waits for the
    next packet of a burst when FRAME_PENDING is set. */
@@ -854,7 +852,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 static void
 qsend_packet(mac_callback_t sent, void *ptr)
 {
-  int ret = send_packet(sent, ptr, NULL);
+  int ret = send_packet(sent, ptr, NULL, 0);
   if(ret != MAC_TX_DEFERRED) {
     mac_call_sent_callback(sent, ptr, ret, 1);
   }
@@ -866,6 +864,8 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   struct rdc_buf_list *curr = buf_list;
   struct rdc_buf_list *next;
   int ret;
+  int is_receiver_awake;
+  
   if(curr == NULL) {
     return;
   }
@@ -889,7 +889,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
     }
 
     /* Send the current packet */
-    ret = send_packet(sent, ptr, curr);
+    ret = send_packet(sent, ptr, curr, is_receiver_awake);
     if(ret != MAC_TX_DEFERRED) {
       mac_call_sent_callback(sent, ptr, ret, 1);
     }
@@ -905,7 +905,6 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
       next = NULL;
     }
   } while(next != NULL);
-  is_receiver_awake = 0;
 }
 /*---------------------------------------------------------------------------*/
 /* Timer callback triggered when receiving a burst, after having
