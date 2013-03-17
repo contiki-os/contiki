@@ -53,7 +53,7 @@ erase:
 	rl78flash -m2 -b500000 -vveri /dev/ttyUSB0
 
 terminal:
-	rl78flash -t9600 /dev/ttyUSB0
+	rl78flash -rt9600 /dev/ttyUSB0
 
 clean:
 	-rm -f $(OBJS) $(PROJECT_ELF) $(PROJECT_MOT) $(PROJECT_MAP) $(PROJECT_LST)
