@@ -24,7 +24,7 @@
       se.sics.cooja.contikimote.ContikiMoteType
       <identifier>mtype748</identifier>
       <description>Sender</description>
-      <source>[CONTIKI_DIR]/regression-tests/11-rpl/code/sender-node.c</source>
+      <source>[CONFIG_DIR]/code/sender-node.c</source>
       <commands>make TARGET=cooja clean
 make sender-node.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
@@ -49,7 +49,7 @@ make sender-node.cooja TARGET=cooja</commands>
       se.sics.cooja.contikimote.ContikiMoteType
       <identifier>mtype442</identifier>
       <description>RPL root</description>
-      <source>[CONTIKI_DIR]/regression-tests/11-rpl/code/root-node.c</source>
+      <source>[CONFIG_DIR]/code/root-node.c</source>
       <commands>make TARGET=cooja clean
 make root-node.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
@@ -74,7 +74,7 @@ make root-node.cooja TARGET=cooja</commands>
       se.sics.cooja.contikimote.ContikiMoteType
       <identifier>mtype236</identifier>
       <description>Receiver</description>
-      <source>[CONTIKI_DIR]/regression-tests/11-rpl/code/receiver-node.c</source>
+      <source>[CONFIG_DIR]/code/receiver-node.c</source>
       <commands>make TARGET=cooja clean
 make receiver-node.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
