@@ -45,6 +45,7 @@
 #include <string.h>
 #include "net/uip-ds6.h"
 #include "net/uip-icmp6.h"
+#include "contiki-default-conf.h"
 
 #define DEBUG 0
 #if DEBUG
