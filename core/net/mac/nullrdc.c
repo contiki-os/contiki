@@ -42,6 +42,7 @@
 #include "net/packetbuf.h"
 #include "net/queuebuf.h"
 #include "net/netstack.h"
+#include "net/rime/rimestats.h"
 #include <string.h>
 
 #define DEBUG 0
@@ -78,10 +79,29 @@
 #include "sys/rtimer.h"
 #include "dev/watchdog.h"
 
+#ifdef NULLRDC_CONF_ACK_WAIT_TIME
+#define ACK_WAIT_TIME NULLRDC_CONF_ACK_WAIT_TIME
+#else /* NULLRDC_CONF_ACK_WAIT_TIME */
 #define ACK_WAIT_TIME                      RTIMER_SECOND / 2500
+#endif /* NULLRDC_CONF_ACK_WAIT_TIME */
+#ifdef NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME
+#define AFTER_ACK_DETECTED_WAIT_TIME NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME
+#else /* NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME */
 #define AFTER_ACK_DETECTED_WAIT_TIME       RTIMER_SECOND / 1500
-#define ACK_LEN 3
+#endif /* NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME */
 #endif /* NULLRDC_802154_AUTOACK */
+
+#ifdef NULLRDC_CONF_SEND_802154_ACK
+#define NULLRDC_SEND_802154_ACK NULLRDC_CONF_SEND_802154_ACK
+#else /* NULLRDC_CONF_SEND_802154_ACK */
+#define NULLRDC_SEND_802154_ACK 0
+#endif /* NULLRDC_CONF_SEND_802154_ACK */
+
+#if NULLRDC_SEND_802154_ACK
+#include "net/mac/frame802154.h"
+#endif /* NULLRDC_SEND_802154_ACK */
+
+#define ACK_LEN 3
 
 #if NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW
 struct seqno {
@@ -92,7 +112,7 @@ struct seqno {
 #ifdef NETSTACK_CONF_MAC_SEQNO_HISTORY
 #define MAX_SEQNOS NETSTACK_CONF_MAC_SEQNO_HISTORY
 #else /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
-#define MAX_SEQNOS 16
+#define MAX_SEQNOS 8
 #endif /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
 
 static struct seqno received_seqnos[MAX_SEQNOS];
@@ -135,8 +155,11 @@ send_packet(mac_callback_t sent, void *ptr)
          already received a packet that needs to be read before
          sending with auto ack. */
       ret = MAC_TX_COLLISION;
-
     } else {
+      if(!is_broadcast) {
+        RIMESTATS_ADD(reliabletx);
+      }
+
       switch(NETSTACK_RADIO.transmit(packetbuf_totlen())) {
       case RADIO_TX_OK:
         if(is_broadcast) {
@@ -165,13 +188,16 @@ send_packet(mac_callback_t sent, void *ptr)
               len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
               if(len == ACK_LEN && ackbuf[2] == dsn) {
                 /* Ack received */
+                RIMESTATS_ADD(ackrx);
                 ret = MAC_TX_OK;
               } else {
                 /* Not an ack or ack not for us: collision */
                 ret = MAC_TX_COLLISION;
               }
             }
-          }
+          } else {
+	    PRINTF("nullrdc tx noack\n");
+	  }
         }
         break;
       case RADIO_TX_COLLISION:
@@ -224,7 +250,7 @@ packet_input(void)
 #if NULLRDC_802154_AUTOACK
   if(packetbuf_datalen() == ACK_LEN) {
     /* Ignore ack packets */
-    /* PRINTF("nullrdc: ignored ack\n"); */
+    PRINTF("nullrdc: ignored ack\n"); 
   } else
 #endif /* NULLRDC_802154_AUTOACK */
   if(NETSTACK_FRAMER.parse() < 0) {
@@ -259,6 +285,24 @@ packet_input(void)
     rimeaddr_copy(&received_seqnos[0].sender,
                   packetbuf_addr(PACKETBUF_ADDR_SENDER));
 #endif /* NULLRDC_802154_AUTOACK */
+
+#if NULLRDC_SEND_802154_ACK
+    {
+      frame802154_t info154;
+      frame802154_parse(original_dataptr, original_datalen, &info154);
+      if(info154.fcf.frame_type == FRAME802154_DATAFRAME &&
+         info154.fcf.ack_required != 0 &&
+         rimeaddr_cmp((rimeaddr_t *)&info154.dest_addr,
+                      &rimeaddr_node_addr)) {
+        uint8_t ackdata[ACK_LEN] = {0, 0, 0};
+
+        ackdata[0] = FRAME802154_ACKFRAME;
+        ackdata[1] = 0;
+        ackdata[2] = info154.seq;
+        NETSTACK_RADIO.send(ackdata, ACK_LEN);
+      }
+    }
+#endif /* NULLRDC_SEND_ACK */
     NETSTACK_MAC.input();
   }
 }
