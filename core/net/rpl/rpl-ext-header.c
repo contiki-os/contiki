@@ -62,6 +62,7 @@
 #define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 #define UIP_EXT_HDR_OPT_RPL_BUF   ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 /*---------------------------------------------------------------------------*/
+#if UIP_CONF_IPV6
 int
 rpl_verify_header(int uip_ext_opt_offset)
 {
@@ -313,3 +314,4 @@ rpl_invert_header(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+#endif /* UIP_CONF_IPV6 */

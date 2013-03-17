@@ -70,6 +70,7 @@ static uip_ipaddr_t tmp_ipaddr;
 #include "rpl/rpl.h"
 #endif /* UIP_CONF_IPV6_RPL */
 
+#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 void
 uip_icmp6_echo_request_input(void)
@@ -272,3 +273,4 @@ uip_icmp6_send(uip_ipaddr_t *dest, int type, int code, int payload_len)
 /*---------------------------------------------------------------------------*/
 
 /** @} */
+#endif /* UIP_CONF_IPV6 */

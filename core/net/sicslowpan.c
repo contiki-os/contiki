@@ -68,6 +68,10 @@
 #include "net/neighbor-info.h"
 #include "net/netstack.h"
 
+#if UIP_CONF_IPV6
+
+#include <stdio.h>
+
 #define DEBUG 0
 #if DEBUG
 /* PRINTFI and PRINTFO are defined for input and output to debug one without changing the timing of the other */
@@ -1843,3 +1847,4 @@ const struct network_driver sicslowpan_driver = {
 };
 /*--------------------------------------------------------------------*/
 /** @} */
+#endif /* UIP_CONF_IPV6 */
