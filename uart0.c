@@ -72,7 +72,7 @@ void uart0_init(void)
     STIF0 = 1;                                              /* Set buffer empty interrupt request flag */
 }
 
-int uart0_puts(const char * s)
+int uart0_puts(const char __far * s)
 {
     int len = 0;
     SMR00.smr00 |= 0x0001U;                                 /* Set buffer empty interrupt */

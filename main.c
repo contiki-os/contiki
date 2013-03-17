@@ -53,8 +53,7 @@ int main(void)
         {
             LED2 = 0;
             flag_1hz = 0;
-            const char msg[] = "Hello, RL78! [:";
-            uart0_puts(msg);
+            uart0_puts("Hello, RL78! [:");
             LED2 = 1;
         }
         asm("halt");
