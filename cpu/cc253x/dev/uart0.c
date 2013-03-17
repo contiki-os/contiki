@@ -27,7 +27,7 @@ uart0_init()
 #endif
 
 #ifdef UART0_ALTERNATIVE_2
-  PERCFG |= PERCFG_U0CFG;  / *alternative port 2 = P1.5-2 */
+  PERCFG |= PERCFG_U0CFG;  /* alternative port 2 = P1.5-2 */
 #ifdef UART0_RTSCTS
   P1SEL |= 0x3C;    /* peripheral select for TX and RX, RTS, CTS */
 #else
