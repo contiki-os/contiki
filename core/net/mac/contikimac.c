@@ -549,7 +549,10 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr, struct rdc_buf_
     return MAC_TX_ERR_FATAL;
   }
 
+#if !NETSTACK_CONF_BRIDGE_MODE
+  /* If NETSTACK_CONF_BRIDGE_MODE is set, assume PACKETBUF_ADDR_SENDER is already set. */
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+#endif
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
     is_broadcast = 1;
     PRINTDEBUG("contikimac: send broadcast\n");
