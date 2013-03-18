@@ -146,7 +146,11 @@ send_packet(mac_callback_t sent, void *ptr)
    * Set up the source address using only the long address mode for
    * phase 1.
    */
+#if NETSTACK_CONF_BRIDGE_MODE
+  rimeaddr_copy((rimeaddr_t *)&params.src_addr,packetbuf_addr(PACKETBUF_ADDR_SENDER));
+#else
   rimeaddr_copy((rimeaddr_t *)&params.src_addr, &rimeaddr_node_addr);
+#endif
 
   params.payload = packetbuf_dataptr();
   params.payload_len = packetbuf_datalen();
@@ -203,12 +207,14 @@ input_packet(void)
       }
       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
         packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (rimeaddr_t *)&frame.dest_addr);
+#if !NETSTACK_CONF_BRIDGE_MODE
         if(!rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                          &rimeaddr_node_addr)) {
           /* Not for this node */
           PRINTF("6MAC: not for us\n");
           return;
         }
+#endif
       }
     }
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (rimeaddr_t *)&frame.src_addr);
