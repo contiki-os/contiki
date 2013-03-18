@@ -208,9 +208,10 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 {
-  if(buf_list != NULL) {
+  while(buf_list != NULL) {
     queuebuf_to_packetbuf(buf_list->buf);
     send_packet(sent, ptr);
+    buf_list = buf_list->next;
   }
 }
 /*---------------------------------------------------------------------------*/
