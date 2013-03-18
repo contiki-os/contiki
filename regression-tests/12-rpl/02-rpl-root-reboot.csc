@@ -22,9 +22,9 @@
     </events>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype391</identifier>
+      <identifier>mtype748</identifier>
       <description>Sender</description>
-      <source>[CONTIKI_DIR]/regression-tests/11-rpl/code/sender-node.c</source>
+      <source>[CONFIG_DIR]/code/sender-node.c</source>
       <commands>make TARGET=cooja clean
 make sender-node.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
@@ -47,9 +47,9 @@ make sender-node.cooja TARGET=cooja</commands>
     </motetype>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype250</identifier>
+      <identifier>mtype442</identifier>
       <description>RPL root</description>
-      <source>[CONTIKI_DIR]/regression-tests/11-rpl/code/root-node.c</source>
+      <source>[CONFIG_DIR]/code/root-node.c</source>
       <commands>make TARGET=cooja clean
 make root-node.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
@@ -72,9 +72,9 @@ make root-node.cooja TARGET=cooja</commands>
     </motetype>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype822</identifier>
+      <identifier>mtype236</identifier>
       <description>Receiver</description>
-      <source>[CONTIKI_DIR]/regression-tests/11-rpl/code/receiver-node.c</source>
+      <source>[CONFIG_DIR]/code/receiver-node.c</source>
       <commands>make TARGET=cooja clean
 make receiver-node.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
@@ -98,8 +98,8 @@ make receiver-node.cooja TARGET=cooja</commands>
     <mote>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>7.772906112657773</x>
-        <y>86.396910401861</y>
+        <x>-22.5728586847096</x>
+        <y>123.9358664968653</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -110,13 +110,13 @@ make receiver-node.cooja TARGET=cooja</commands>
         se.sics.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype822</motetype_identifier>
+      <motetype_identifier>mtype236</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>75.54361692539452</x>
-        <y>14.292026223193414</y>
+        <x>116.13379149678028</x>
+        <y>88.36698920455684</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -127,13 +127,47 @@ make receiver-node.cooja TARGET=cooja</commands>
         se.sics.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype391</motetype_identifier>
+      <motetype_identifier>mtype748</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>47.962513687652844</x>
-        <y>7.199742533488408</y>
+        <x>-1.39303771455413</x>
+        <y>100.21446701029119</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.contikimote.interfaces.ContikiMoteID
+        <id>4</id>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype236</motetype_identifier>
+    </mote>
+    <mote>
+      <interface_config>
+        se.sics.cooja.interfaces.Position
+        <x>95.25095618820441</x>
+        <y>63.14998053005015</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.contikimote.interfaces.ContikiMoteID
+        <id>5</id>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype236</motetype_identifier>
+    </mote>
+    <mote>
+      <interface_config>
+        se.sics.cooja.interfaces.Position
+        <x>66.09378990830604</x>
+        <y>38.32698761608261</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -144,13 +178,30 @@ make receiver-node.cooja TARGET=cooja</commands>
         se.sics.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype822</motetype_identifier>
+      <motetype_identifier>mtype236</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>1.8626697045702818</x>
-        <y>47.783365869022624</y>
+        <x>29.05630841762433</x>
+        <y>30.840688165838436</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.contikimote.interfaces.ContikiMoteID
+        <id>7</id>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype236</motetype_identifier>
+    </mote>
+    <mote>
+      <interface_config>
+        se.sics.cooja.interfaces.Position
+        <x>10.931583432822638</x>
+        <y>69.848248459216</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -161,7 +212,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         se.sics.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype822</motetype_identifier>
+      <motetype_identifier>mtype236</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -178,7 +229,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         se.sics.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype250</motetype_identifier>
+      <motetype_identifier>mtype442</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -196,7 +247,7 @@ make receiver-node.cooja TARGET=cooja</commands>
       <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>se.sics.cooja.plugins.skins.MoteTypeVisualizerSkin</skin>
-      <viewport>2.5379695437350276 0.0 0.0 2.5379695437350276 78.27260101976275 40.72727272727276</viewport>
+      <viewport>2.5379695437350276 0.0 0.0 2.5379695437350276 75.2726010197627 15.727272727272757</viewport>
     </plugin_config>
     <width>400</width>
     <z>2</z>
@@ -232,12 +283,12 @@ make receiver-node.cooja TARGET=cooja</commands>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
       <script>GENERATE_MSG(0000000, "add-sink");&#xD;
-//GENERATE_MSG(1000000, "remove-sink");&#xD;
-//GENERATE_MSG(2000000, "add-sink");&#xD;
+GENERATE_MSG(1000000, "remove-sink");&#xD;
+GENERATE_MSG(1000000, "add-sink");&#xD;
 &#xD;
 lostMsgs = 0;&#xD;
 &#xD;
-TIMEOUT(100000000, if(lastMsg != -1 &amp;&amp; lostMsgs == 0) { log.testOK(); } );&#xD;
+TIMEOUT(10000000, if(lastMsg != -1 &amp;&amp; lostMsgs == 0) { log.testOK(); } );&#xD;
 &#xD;
 lastMsg = -1;&#xD;
 packets = "_________";&#xD;

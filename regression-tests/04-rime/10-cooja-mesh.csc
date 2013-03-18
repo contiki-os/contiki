@@ -24,7 +24,7 @@
       se.sics.cooja.contikimote.ContikiMoteType
       <identifier>mtype140</identifier>
       <description>Cooja Mote Type #1</description>
-      <source>[CONTIKI_DIR]/regression-tests/04-rime/code/mesh-node.c</source>
+      <source>[CONFIG_DIR]/code/mesh-node.c</source>
       <commands>make mesh-node.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>

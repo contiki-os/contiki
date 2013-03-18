@@ -24,7 +24,7 @@
       se.sics.cooja.contikimote.ContikiMoteType
       <identifier>mtype346</identifier>
       <description>Cooja Mote Type #1</description>
-      <source>[CONTIKI_DIR]/regression-tests/04-rime/code/trickle-node.c</source>
+      <source>[CONFIG_DIR]/code/trickle-node.c</source>
       <commands>make trickle-node.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
