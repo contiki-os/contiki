@@ -133,6 +133,14 @@ void mesh_close(struct mesh_conn *c);
  */
 int mesh_send(struct mesh_conn *c, const rimeaddr_t *dest);
 
+/**
+ * \brief      Test if mesh is ready to send a packet (or packet is queued)
+ * \param c    The mesh connection on which is to be tested
+ * \retval 0   Packet queued
+ * \retval !0  Ready
+ */
+int mesh_ready(struct mesh_conn *c);
+
 #endif /* __MESH_H__ */
 /** @} */
 /** @} */
