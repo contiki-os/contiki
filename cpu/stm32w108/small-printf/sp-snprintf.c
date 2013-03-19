@@ -1,3 +1,9 @@
+/**
+ * \addtogroup stm32w-cpu
+ *
+ * @{
+ */
+
 /*
  * Copyright (c) 1990 The Regents of the University of California.
  * All rights reserved.
@@ -14,8 +20,9 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
-/* doc in _SP_sprintf.c */
-/* This code created by modifying _SP_sprintf.c so copyright inherited. */
+
+/* doc in sp-sprintf.c */
+/* This code created by modifying sp-sprintf.c so copyright inherited. */
 
 #include <stdio.h>
 #ifdef _HAVE_STDC
@@ -121,4 +128,4 @@ snprintf (str, size, fmt, va_alist)
 }
 #endif
 
-
+/** @} */

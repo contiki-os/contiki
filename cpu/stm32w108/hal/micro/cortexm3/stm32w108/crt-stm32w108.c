@@ -139,8 +139,8 @@ void (* const g_pfnVectors[])(void) =
   halDebugIsr,               // 32
 };
 
-static  void setStackPointer(int32u address) __attribute__((noinline));
-static void setStackPointer(int32u address)
+static  void setStackPointer(uint32_t address) __attribute__((noinline));
+static void setStackPointer(uint32_t address)
 {
   // This code is needed to generate the instruction below
   // that GNU ASM is refusing to add
@@ -148,7 +148,7 @@ static void setStackPointer(int32u address)
   asm(".short 0x4685");
 }
 
-static const int16u blOffset[] = {
+static const uint16_t blOffset[] = {
   0x0715 - 0x03ad - 0x68,
   0x0719 - 0x03ad - 0x6C
 };
@@ -277,17 +277,17 @@ void Reset_Handler(void)
   }
 
   //USART bootloader software activation check
-  if ((*((int32u *)RAM_BOTTOM) == IAP_BOOTLOADER_APP_SWITCH_SIGNATURE) && (*((int8u *)(RAM_BOTTOM+4)) == IAP_BOOTLOADER_MODE_UART)){
-    int8u cut = *(volatile int8u *) 0x08040798;
-    int16u offset = 0;
+  if ((*((uint32_t *)RAM_BOTTOM) == IAP_BOOTLOADER_APP_SWITCH_SIGNATURE) && (*((uint8_t *)(RAM_BOTTOM+4)) == IAP_BOOTLOADER_MODE_UART)){
+    uint8_t cut = *(volatile uint8_t *) 0x08040798;
+    uint16_t offset = 0;
     typedef void (*EntryPoint)(void);     
     offset = (halFixedAddressTable.baseTable.version == 3) ? blOffset[cut - 2] : 0;
-    *((int32u *)RAM_BOTTOM) = 0;
+    *((uint32_t *)RAM_BOTTOM) = 0;
     if (offset) {
       halInternalSwitchToXtal();
     }
-    EntryPoint entryPoint = (EntryPoint)(*(int32u *)(FIB_BOTTOM+4) - offset);
-    setStackPointer(*(int32u *)FIB_BOTTOM);
+    EntryPoint entryPoint = (EntryPoint)(*(uint32_t *)(FIB_BOTTOM+4) - offset);
+    setStackPointer(*(uint32_t *)FIB_BOTTOM);
     entryPoint();
   }
 

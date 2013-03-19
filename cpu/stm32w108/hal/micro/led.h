@@ -22,7 +22,7 @@ void halInitLed(void);
 /** @brief Ensures that the definitions from the BOARD_HEADER
  *  are always used as parameters to the LED functions.
  */
-  typedef int8u HalBoardLed;
+  typedef uint8_t HalBoardLed;
 // Note: Even though many compilers will use 16 bits for an enum instead of 8, 
 //  we choose to use an enum here.  The possible compiler inefficiency does not 
 //  affect stack-based parameters and local variables, which is the

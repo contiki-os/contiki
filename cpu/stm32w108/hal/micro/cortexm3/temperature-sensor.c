@@ -1,4 +1,4 @@
-/**@file temperature_sensor.c
+/**@file temperature-sensor.c
  * @brief MB851 temperature sensor APIS 
  *
  *
@@ -8,7 +8,7 @@
 #include BOARD_HEADER
 #include "hal/hal.h"
 #include "hal/error.h"
-#include "hal/micro/temperature_sensor.h"
+#include "hal/micro/temperature-sensor.h"
 #include "hal/micro/adc.h"
 
 void temperatureSensor_Init(void)
@@ -29,10 +29,10 @@ void temperatureSensor_Init(void)
 #endif /* ENABLE_ADC_EXTENDED_RANGE_BROKEN */
 }/* end temperatureSensor_Init() */
 
-int32u temperatureSensor_GetValue(void)
+uint32_t temperatureSensor_GetValue(void)
 {
-   static int16u ADCvalue;
-   static int16s volts;
+   static uint16_t ADCvalue;
+   static int16_t volts;
 
     /*
      NOTE: 
@@ -47,6 +47,6 @@ int32u temperatureSensor_GetValue(void)
     // 100 uVolts
     volts = halConvertValueToVolts(ADCvalue);
   
-    return ((18641 - (int32s)volts)*100)/1171;  
+    return ((18641 - (int32_t)volts)*100)/1171;  
 }/* end temperatureSensor_GetValue() */
 

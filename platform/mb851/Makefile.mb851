@@ -1,6 +1,3 @@
-# $Id: Makefile.mb851,v 1.2 2010/12/15 11:18:09 salvopitru Exp $
-
-
 ARCH= irq.c sensors.c acc-sensor.c button-sensor.c temperature-sensor.c mems.c
 
 CONTIKI_TARGET_DIRS = . dev

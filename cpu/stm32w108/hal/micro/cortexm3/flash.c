@@ -85,10 +85,10 @@ static void disableFlitf(void)
   FLASH_CTRL = FLASH_CTRL_LOCK; //lock the flash from further accesses
 }
 
-static FibStatus fibFlashWrite(int32u address, int8u *data, int32u length, int32u dummy)
+static FibStatus fibFlashWrite(uint32_t address, uint8_t *data, uint32_t length, uint32_t dummy)
 {
-  int32u i;
-  int16u *ptr;
+  uint32_t i;
+  uint16_t *ptr;
   FibStatus status = FIB_SUCCESS;
   // Address and length must be half-word aligned.
   if ((address & 1) || (length & 1)) {
@@ -100,10 +100,10 @@ static FibStatus fibFlashWrite(int32u address, int8u *data, int32u length, int32
     return FIB_ERR_INVALID_ADDRESS;
   }
   enableFlitf();
-  ptr = (int16u *)address;
+  ptr = (uint16_t *)address;
   for (i = 0; i < length; i += 2) {
-    int16u currentData = *ptr;
-    int16u newData = HIGH_LOW_TO_INT(data[i + 1], data[i]);
+    uint16_t currentData = *ptr;
+    uint16_t newData = HIGH_LOW_TO_INT(data[i + 1], data[i]);
     // Only program the data if it makes sense to do so.
     if (currentData == newData) {
       // If the new data matches the flash, don't bother doing anything.
@@ -111,7 +111,7 @@ static FibStatus fibFlashWrite(int32u address, int8u *data, int32u length, int32
       // If the flash is 0xFFFF we're allowed to write anything.
       // If the new data is 0x0000 it doesn't matter what the flash is.
       // OPTWREN must stay set to keep CIB unlocked.
-      if ((CIB_OB_BOTTOM <= (int32u)ptr) && ((int32u)ptr <= CIB_OB_TOP)) {
+      if ((CIB_OB_BOTTOM <= (uint32_t)ptr) && ((uint32_t)ptr <= CIB_OB_TOP)) {
         FLASH_CTRL = (FLASH_CTRL_OPTWREN | FLASH_CTRL_OPTPROG);
       } else {
         FLASH_CTRL = (FLASH_CTRL_OPTWREN | FLASH_CTRL_PROG);
@@ -144,10 +144,10 @@ static FibStatus fibFlashWrite(int32u address, int8u *data, int32u length, int32
   return status;
 }
 
-static FibStatus fibFlashWriteVerify(int32u address, int8u *data, int32u length)
+static FibStatus fibFlashWriteVerify(uint32_t address, uint8_t *data, uint32_t length)
 {
-  int32u i;
-  int8u *ptr = (int8u *)address;
+  uint32_t i;
+  uint8_t *ptr = (uint8_t *)address;
   for (i = 0; i < length; i++) {
     if (*ptr != data[i]) {
       return FIB_ERR_VERIFY_FAILED;
@@ -157,26 +157,26 @@ static FibStatus fibFlashWriteVerify(int32u address, int8u *data, int32u length)
   return FIB_SUCCESS;
 }
 
-static FibStatus fibFlashErase(FibEraseType eraseType, int32u address)
+static FibStatus fibFlashErase(FibEraseType eraseType, uint32_t address)
 {
-  int32u eraseOp;
-  int32u *ptr;
-  int32u length;
+  uint32_t eraseOp;
+  uint32_t *ptr;
+  uint32_t length;
   FibStatus status = FIB_SUCCESS;
   if (BYTE_0(eraseType) == MFB_MASS_ERASE) {
     eraseOp = FLASH_CTRL_MASSERASE;
-    ptr = (int32u *)MFB_BOTTOM;
+    ptr = (uint32_t *)MFB_BOTTOM;
     length = MFB_SIZE_W;
   } else if (BYTE_0(eraseType) == MFB_PAGE_ERASE) {
     if (address < MFB_BOTTOM || address > MFB_TOP) {
       return FIB_ERR_INVALID_ADDRESS;
     }
     eraseOp = FLASH_CTRL_PAGEERASE;
-    ptr = (int32u *)(address & MFB_PAGE_MASK_B);
+    ptr = (uint32_t *)(address & MFB_PAGE_MASK_B);
     length = MFB_PAGE_SIZE_W;
   } else if (BYTE_0(eraseType) == CIB_ERASE) {
     eraseOp = FLASH_CTRL_OPTWREN | FLASH_CTRL_OPTERASE;
-    ptr = (int32u *)CIB_BOTTOM;
+    ptr = (uint32_t *)CIB_BOTTOM;
     length = CIB_SIZE_W;
   } else {
     return FIB_ERR_INVALID_TYPE;
@@ -203,7 +203,7 @@ static FibStatus fibFlashErase(FibEraseType eraseType, int32u address)
   }
   if (status == FIB_SUCCESS
       && (eraseType & DO_VERIFY) != 0) {
-    int32u i;
+    uint32_t i;
     for (i = 0; i < length; i++) {
       if (*ptr != 0xFFFFFFFF) {
         return FIB_ERR_VERIFY_FAILED;
@@ -228,7 +228,7 @@ static boolean verifyFib(void)
 
 //The parameter 'eraseType' chooses which erasure will be performed while
 //the 'address' parameter chooses the page to be erased during MFB page erase.
-StStatus halInternalFlashErase(int8u eraseType, int32u address)
+StStatus halInternalFlashErase(uint8_t eraseType, uint32_t address)
 {
   FibStatus status;
   
@@ -239,10 +239,10 @@ StStatus halInternalFlashErase(int8u eraseType, int32u address)
         // Always try to use the FIB bootloader if its present
         if(verifyFib()) {
           status = halFixedAddressTable.fibFlashErase(
-                                             (((int32u)eraseType) | DO_ERASE), 
+                                             (((uint32_t)eraseType) | DO_ERASE), 
                                              address);
         } else {
-          status = fibFlashErase((((int32u)eraseType) | DO_ERASE), address);
+          status = fibFlashErase((((uint32_t)eraseType) | DO_ERASE), address);
         }
       #else
 
@@ -250,7 +250,7 @@ StStatus halInternalFlashErase(int8u eraseType, int32u address)
 
         assert(verifyFib());
         status = halFixedAddressTable.fibFlashErase(
-                                           (((int32u)eraseType) | DO_ERASE), 
+                                           (((uint32_t)eraseType) | DO_ERASE), 
                                            address);
       #endif
     )
@@ -270,14 +270,14 @@ StStatus halInternalFlashErase(int8u eraseType, int32u address)
     // Always try to use the FIB bootloader if its present
     if(verifyFib()) {
       status = halFixedAddressTable.fibFlashErase(
-                                          (((int32u)eraseType) | DO_VERIFY), 
+                                          (((uint32_t)eraseType) | DO_VERIFY), 
                                           address);
     } else {
-      status = fibFlashErase((((int32u)eraseType) | DO_VERIFY), address);
+      status = fibFlashErase((((uint32_t)eraseType) | DO_VERIFY), address);
     }
   #else
     status = halFixedAddressTable.fibFlashErase(
-                                        (((int32u)eraseType) | DO_VERIFY), 
+                                        (((uint32_t)eraseType) | DO_VERIFY), 
                                         address);
   #endif
   return fibToStStatus[status];
@@ -291,7 +291,7 @@ StStatus halInternalFlashErase(int8u eraseType, int32u address)
 //half-words contained in 'data' to be written to flash.
 //NOTE: This function can NOT write the option bytes and will throw an error
 //if that is attempted.
-StStatus halInternalFlashWrite(int32u address, int16u * data, int32u length)
+StStatus halInternalFlashWrite(uint32_t address, uint16_t * data, uint32_t length)
 {
   FibStatus status;
     
@@ -303,11 +303,11 @@ StStatus halInternalFlashWrite(int32u address, int16u * data, int32u length)
         // Always try to use the FIB bootloader if its present
         if(verifyFib()) {
           status = halFixedAddressTable.fibFlashWrite(address, 
-                                                      (int8u *)data, 
+                                                      (uint8_t *)data, 
                                                       length,
                                                       0);
         } else {
-          status = fibFlashWrite(address, (int8u *)data, length, 0);
+          status = fibFlashWrite(address, (uint8_t *)data, length, 0);
         }
       #else
 
@@ -316,7 +316,7 @@ StStatus halInternalFlashWrite(int32u address, int16u * data, int32u length)
         // Ensure that a programmed FIB of a proper version is present
         assert(verifyFib());
         status = halFixedAddressTable.fibFlashWrite(address, 
-                                                    (int8u *)data, 
+                                                    (uint8_t *)data, 
                                                     length,
                                                     0);
       #endif
@@ -331,15 +331,15 @@ StStatus halInternalFlashWrite(int32u address, int16u * data, int32u length)
     // Always try to use the FIB bootloader if its present
     if(verifyFib()) {
       status = halFixedAddressTable.fibFlashWrite(address,
-                                                  (int8u *)data,
+                                                  (uint8_t *)data,
                                                   0,
                                                   length);
     } else {
-      status = fibFlashWriteVerify(address, (int8u *)data, length);
+      status = fibFlashWriteVerify(address, (uint8_t *)data, length);
     }
   #else
     status = halFixedAddressTable.fibFlashWrite(address,
-                                                (int8u *)data,
+                                                (uint8_t *)data,
                                                 0,
                                                 length);
   #endif
@@ -352,9 +352,9 @@ StStatus halInternalFlashWrite(int32u address, int16u * data, int32u length)
 //parameter can have a value of 0 through 7.  'data' is the 8bit value to be
 //programmed into the option byte since the hardware will calculate the
 //compliment and program the full 16bit option byte.
-StStatus halInternalCibOptionByteWrite(int8u byte, int8u data)
+StStatus halInternalCibOptionByteWrite(uint8_t byte, uint8_t data)
 {
-  int16u dataAndInverse = HIGH_LOW_TO_INT(~data, data);
+  uint16_t dataAndInverse = HIGH_LOW_TO_INT(~data, data);
   // There are only 8 option bytes, don't try to program more than that.
   if (byte > 7) {
     return ST_ERR_FLASH_PROG_FAIL;

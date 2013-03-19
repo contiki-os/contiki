@@ -9,10 +9,10 @@ CFLAGS 	= -mthumb -mcpu=cortex-m3 -I "." -I "C:/Program\ Files/Raisonance/Ride/L
 AROPTS 	= cq
 
 SOURCE_DIR	 =	src
-SOURCE_FILES = 	small_mprec.c syscalls.c \
-				_SP_printf.c _SP_vfprintf.c _SP_puts.c _SP_sprintf.c _SP_snprintf.c\
-				small_dtoa.c small_wcsrtombs.c small_wcrtomb.c small_wctomb_r.c \
-				scanf.c small_vfsscanf.c sscanf.c small_strtod.c
+SOURCE_FILES = 	small-mprec.c syscalls.c \
+				sp-printf.c sp-vfprintf.c sp-puts.c sp-sprintf.c sp-snprintf.c\
+				small-dtoa.c small-wcsrtombs.c small-wcrtomb.c small-wctomb-r.c \
+				scanf.c small-vfsscanf.c sscanf.c small-strtod.c
 				
 
 vpath %.c $(SOURCE_DIR)

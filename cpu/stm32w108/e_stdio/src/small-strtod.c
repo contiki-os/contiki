@@ -98,8 +98,8 @@ Supporting OS subroutines required: <<close>>, <<fstat>>, <<isatty>>,
  */
 
 
-/* Scanf and printf call both the small_mprec.c file if small_scanf 
-  * has not been specfied optimizations concerning small_mprec.c and
+/* Scanf and printf call both the small-mprec.c file if small_scanf 
+  * has not been specfied optimizations concerning small-mprec.c and
   * call of balloc will be performed anyway for scanf. 
   */
  
@@ -113,7 +113,7 @@ Supporting OS subroutines required: <<close>>, <<fstat>>, <<isatty>>,
 #include <_ansi.h>
 #include <reent.h>
 #include <string.h>
-#include "small_mprec.h"
+#include "small-mprec.h"
 
 double
 _DEFUN (_strtod_r, (ptr, s00, se),
@@ -141,8 +141,8 @@ _DEFUN (_strtod_r, (ptr, s00, se),
   	*  provided by Balloc variables are initialized to the beginning of the array.
   	*	- For some variables many buffers have been declared, in fact for each call of small_lshift we used a 
   	*  buffer that has not been used at the moment 
-   *  - This buffers are used in the call of function declared in small_mprec.h 
-   *  To have more informations look at small_mprec.c 
+   *  - This buffers are used in the call of function declared in small-mprec.h 
+   *  To have more informations look at small-mprec.c 
    */
   
   

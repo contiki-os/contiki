@@ -53,7 +53,7 @@ halPendSvSaveContext:
 
 
 //------------------------------------------------------------------------------
-//   int32u savedMSP
+//   uint32_t savedMSP
 //
 // Private storage to hold the saved stack pointer.  This variable is only used
 // in this file and should not be extern'ed.  In our current design we
