@@ -53,9 +53,9 @@ eeprom_write(eeprom_addr_t addr, unsigned char *buf, int size)
   lseek(f, addr, SEEK_SET);
   write(f, buf, size);
   close(f);
-  
+
   printf("eeprom_write(addr 0x%02x, buf %p, size %d);\n", addr, buf, size);
-  
+
   memcpy(&eeprom[addr], buf, size);
 }
 void
