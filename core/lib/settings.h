@@ -228,6 +228,12 @@ extern settings_status_t settings_iter_delete(settings_iter_t item);
 /*****************************************************************************/
 // MARK: - inline convenience functions
 
+/* Unfortunately, some platforms don't properly drop unreferenced functions,
+ * so on these broken platforms we can save a significant amount
+ * of space by skipping the definition of the convenience functions.
+ */
+#if !SETTINGS_CONF_SKIP_CONVENIENCE_FUNCS
+
 static CC_INLINE const char *
 settings_get_cstr(settings_key_t key, uint8_t index, char *c_str,
                   settings_length_t c_str_size)
@@ -356,5 +362,7 @@ settings_set_uint64(settings_key_t key, uint64_t value)
   return settings_set(key, (const uint8_t *)&value, sizeof(uint64_t));
 }
 #endif /* __int64_t_defined */
+
+#endif /* !SETTINGS_CONF_SKIP_CONVENIENCE_FUNCS */
 
 #endif /* !defined(__CONTIKI_SETTINGS_H__) */

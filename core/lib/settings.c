@@ -30,6 +30,12 @@
  *
  */
 
+#ifdef SETTINGS_CONF_SKIP_CONVENIENCE_FUNCS
+#undef SETTINGS_CONF_SKIP_CONVENIENCE_FUNCS
+#endif
+
+#define SETTINGS_CONF_SKIP_CONVENIENCE_FUNCS 1
+
 #include "contiki.h"
 #include "settings.h"
 #include "dev/eeprom.h"
