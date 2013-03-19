@@ -1,3 +1,9 @@
+/**
+ * \addtogroup mb851-platform
+ *
+ * @{
+ */
+
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -27,35 +33,34 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * This file is part of the Contiki OS
- *
  */
-/*---------------------------------------------------------------------------*/
+
 /**
 * \file
-*			Machine dependent STM32W SLIP routines for UART1.
+*			uip-arch.c
 * \author
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
-/*---------------------------------------------------------------------------*/
 
-#include <stdio.h>
+#include "net/uip.h"
+#include "net/uip_arch.h"
 
-
-#include "contiki.h"
-
-#include "dev/slip.h"
-#include "dev/uart1.h"
-
+#if UIP_TCP
 void
-slip_arch_init(unsigned long ubr)
-{  
-  uart1_set_input(slip_input_byte);  
-}
-
-void
-slip_arch_writeb(unsigned char c)
+uip_add32(uint8_t * op32, uint16_t op16)
 {
-  uart1_writeb(c);
-}
+  uint32_t op32_align, uip_acc32_align;
+  
+  op32_align =
+      ((uint32_t) op32[0]) << 24 | ((uint32_t) op32[1]) << 16 |
+      ((uint16_t) op32[2]) << 8 | op32[3];
 
+  uip_acc32_align = op32_align + op16;
+  uip_acc32[3] = uip_acc32_align;
+  uip_acc32[2] = uip_acc32_align >> 8;
+  uip_acc32[1] = uip_acc32_align >> 16;
+  uip_acc32[0] = uip_acc32_align >> 24;
+}
+#endif
+/*-----------------------------------------------------------------------------------*/
+/** @} */

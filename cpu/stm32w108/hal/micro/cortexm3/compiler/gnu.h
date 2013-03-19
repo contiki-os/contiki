@@ -18,6 +18,9 @@
 #ifndef __GNU_H__
 #define __GNU_H__
 
+#include <stdint.h>
+
+
 #ifndef __GNUC__
   #error Improper PLATFORM_HEADER
 #endif
@@ -40,7 +43,7 @@
   #include <stdarg.h>
   #if defined (CORTEXM3_STM32W108)
     #include "micro/cortexm3/stm32w108/regs.h"
-    #include "micro/cortexm3/stm32w108/stm32w108_type.h"
+    #include "micro/cortexm3/stm32w108/stm32w108-type.h"
   #else
     #error Unknown CORTEXM3 micro
   #endif
@@ -90,12 +93,12 @@
  * @brief A typedef to make the size of the variable explicitly known.
  */
 typedef unsigned char  boolean;
-typedef unsigned char  int8u;
-typedef signed   char  int8s;
-typedef unsigned short int16u;
-typedef signed   short int16s;
-typedef unsigned int   int32u;
-typedef signed   int   int32s;
+//typedef unsigned char  uint8_t;
+//typedef signed   char  int8_t;
+//typedef unsigned short uint16_t;
+//typedef signed   short int16_t;
+//typedef unsigned int   uint32_t;
+//typedef signed   int   int32_t;
 typedef unsigned int   PointerType;
 //@} \\END MASTER VARIABLE TYPES
 
@@ -363,7 +366,7 @@ void _executeBarrierInstructions(void);
        * declarations section of any function which calls DISABLE_INTERRUPTS()
        * or RESTORE_INTERRUPTS().
        */
-      #define DECLARE_INTERRUPT_STATE int8u _emIsrState
+      #define DECLARE_INTERRUPT_STATE uint8_t _emIsrState
     
     // Prototypes for the BASEPRI and PRIMASK access functions.  They are very
     // basic and instantiated in assembly code in the file spmr.s37 (since
@@ -372,13 +375,13 @@ void _executeBarrierInstructions(void);
     // with a priority equal to or less than the BASEPRI value.
     // Note that the priority values used by these functions are 5 bits and 
     // right-aligned
-    extern int8u _readBasePri(void);
-    extern void _writeBasePri(int8u priority);
+    extern uint8_t _readBasePri(void);
+    extern void _writeBasePri(uint8_t priority);
 
     // Prototypes for BASEPRI functions used to disable and enable interrupts
     // while still allowing enabled faults to trigger.
     extern void _enableBasePri(void);
-    extern int8u _disableBasePri(void);
+    extern uint8_t _disableBasePri(void);
     extern boolean _basePriIsDisabled(void);
     
     // Prototypes for setting and clearing PRIMASK for global interrupt

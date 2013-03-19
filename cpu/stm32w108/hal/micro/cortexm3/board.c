@@ -250,7 +250,7 @@ BoardResourcesType const *boardDescription = NULL;
 void halBoardInit(void)
 {
   char boardName[16];
-  int8s i;
+  int8_t i;
   boardDescription = NULL;
 #ifdef EMBERZNET_HAL
   halCommonGetToken(boardName, TOKEN_MFG_BOARD_NAME);
@@ -318,7 +318,7 @@ void halBoardPowerDown(void)
   /* Configure GPIO for BUTTONSs */
   {
     ButtonResourceType *buttons = (ButtonResourceType *) boardDescription->io->buttons;
-    int8u i;
+    uint8_t i;
     for (i = 0; i < boardDescription->buttons; i++) {
         halGpioConfig(PORTx_PIN(buttons[i].gpioPort, buttons[i].gpioPin), GPIOCFG_IN_PUD);
         halGpioSet(PORTx_PIN(buttons[i].gpioPort, buttons[i].gpioPin), GPIOOUT_PULLUP);
@@ -328,7 +328,7 @@ void halBoardPowerDown(void)
   /* Configure GPIO for LEDs */
   {
     LedResourceType *leds = (LedResourceType *) boardDescription->io->leds;
-    int8u i;
+    uint8_t i;
     for (i = 0; i < boardDescription->leds; i++) {
           /* LED default off */
       halGpioConfig(PORTx_PIN(leds[i].gpioPort, leds[i].gpioPin), GPIOCFG_OUT);
@@ -394,7 +394,7 @@ void halBoardPowerUp(void)
   /* Configure GPIO for LEDs */
   {
     LedResourceType *leds = (LedResourceType *) boardDescription->io->leds;
-    int8u i;
+    uint8_t i;
     for (i = 0; i < boardDescription->leds; i++) {
           /* LED default off */
       halGpioConfig(PORTx_PIN(leds[i].gpioPort, leds[i].gpioPin), GPIOCFG_OUT);
@@ -404,7 +404,7 @@ void halBoardPowerUp(void)
   /* Configure GPIO for BUTTONSs */
   {
     ButtonResourceType *buttons = (ButtonResourceType *) boardDescription->io->buttons;
-    int8u i;
+    uint8_t i;
     for (i = 0; i < boardDescription->buttons; i++) {
         halGpioConfig(PORTx_PIN(buttons[i].gpioPort, buttons[i].gpioPin), GPIOCFG_IN_PUD);
         halGpioSet(PORTx_PIN(buttons[i].gpioPort, buttons[i].gpioPin), GPIOOUT_PULLUP);
@@ -448,7 +448,7 @@ void printButtons (ButtonResourceType *buttons)
 
 void boardPrintStringDescription(void)
 {
-  int8u i = 0;
+  uint8_t i = 0;
 
   while (boardList[i] != NULL) {
     if ((boardDescription == boardList[i]) || (boardDescription == NULL)) {

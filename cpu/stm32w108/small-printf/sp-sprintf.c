@@ -1,3 +1,9 @@
+/**
+ * \addtogroup stm32w-cpu
+ *
+ * @{
+ */
+
 /*
  * Copyright (c) 1990 The Regents of the University of California.
  * All rights reserved.
@@ -386,4 +392,4 @@ sprintf (str, fmt, va_alist)
 }
 #endif
 
-
+/** @} */

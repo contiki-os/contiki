@@ -54,8 +54,8 @@ void stCalibrateVref(void)
     assert(FALSE);
   } else {
     //The bias trim token is set, so use the trim directly
-    int16u temp_value;
-    int16u mask = 0xFFFF;
+    uint16_t temp_value;
+    uint16_t mask = 0xFFFF;
 
     // halClearLed(BOARDLED3);
 
@@ -95,11 +95,11 @@ void calDisableAdc(void) {
 // These routines maintain the same signature as their hal- counterparts to
 // facilitate simple support between phys.
 // It is assumed (hoped?) that the compiler will optimize out unused arguments.
-StStatus calStartAdcConversion(int8u dummy1, // Not used.
-                                  int8u dummy2, // Not used.
-                                  int8u channel,
-                                  int8u rate,
-                                  int8u clock) {
+StStatus calStartAdcConversion(uint8_t dummy1, // Not used.
+                                  uint8_t dummy2, // Not used.
+                                  uint8_t channel,
+                                  uint8_t rate,
+                                  uint8_t clock) {
   // Disable the Calibration ADC interrupt so that we can poll it.
   INT_MGMTCFG &= ~INT_MGMTCALADC;
 
@@ -118,14 +118,14 @@ StStatus calStartAdcConversion(int8u dummy1, // Not used.
 }
 
 
-StStatus calReadAdcBlocking(int8u  dummy,
-                               int16u *value) {
+StStatus calReadAdcBlocking(uint8_t  dummy,
+                               uint16_t *value) {
   // Wait for conversion to complete.
   while ( ! (INT_MGMTFLAG & INT_MGMTCALADC) );
   // Clear the interrupt for this conversion.
   INT_MGMTFLAG = INT_MGMTCALADC;
   // Get the result.
-  *value = (int16u)CAL_ADC_DATA;
+  *value = (uint16_t)CAL_ADC_DATA;
   return ST_SUCCESS;
 }
 
@@ -137,12 +137,12 @@ StStatus calReadAdcBlocking(int8u  dummy,
 //the fastest conversions with the greatest reasonable accuracy.  Variation
 //across successive conversions appears to be +/-20mv of the average
 //conversion.  Overall function time is <150us.
-int16u stMeasureVddFast(void)
+uint16_t stMeasureVddFast(void)
 {
-  int16u value;
-  int32u Ngnd;
-  int32u Nreg;
-  int32u Nvdd;
+  uint16_t value;
+  uint32_t Ngnd;
+  uint32_t Nreg;
+  uint32_t Nvdd;
   tokTypeMfgRegVoltage1V8 vregOutTok;
   halCommonGetMfgToken(&vregOutTok, TOKEN_MFG_1V8_REG_VOLTAGE);
   
@@ -153,7 +153,7 @@ int16u stMeasureVddFast(void)
                         ADC_SAMPLE_CLOCKS_128,
                         ADC_6MHZ_CLOCK);
   calReadAdcBlocking(DUMMY, &value);
-  Ngnd = (int32u)value;
+  Ngnd = (uint32_t)value;
   
   //Measure VREG_OUT/2
   calStartAdcConversion(DUMMY,
@@ -162,7 +162,7 @@ int16u stMeasureVddFast(void)
                         ADC_SAMPLE_CLOCKS_128,
                         ADC_6MHZ_CLOCK);
   calReadAdcBlocking(DUMMY, &value);
-  Nreg = (int32u)value;
+  Nreg = (uint32_t)value;
   
   //Measure VDD_PADS/4
   calStartAdcConversion(DUMMY,
@@ -171,7 +171,7 @@ int16u stMeasureVddFast(void)
                         ADC_SAMPLE_CLOCKS_128,
                         ADC_6MHZ_CLOCK);
   calReadAdcBlocking(DUMMY, &value);
-  Nvdd = (int32u)value;
+  Nvdd = (uint32_t)value;
   
   calDisableAdc();
   
@@ -202,8 +202,8 @@ void halCommonCalibratePads(void)
 void halInternalSetRegTrim(boolean boostMode)
 {
   tokTypeMfgRegTrim regTrim;
-  int8u trim1V2;
-  int8u trim1V8;
+  uint8_t trim1V2;
+  uint8_t trim1V8;
   
   halCommonGetMfgToken(&regTrim, TOKEN_MFG_REG_TRIM);
   // The compiler can optimize this function a bit more and keep the 
@@ -247,9 +247,9 @@ void halInternalSetRegTrim(boolean boostMode)
 //       OSCHF, though, the clock speed is cut in half, so the input parameter
 //       is divided by two.  With respect to accuracy, we're now limited by
 //       the accuracy of OSCHF (much lower than XTAL).
-void halCommonDelayMicroseconds(int16u us)
+void halCommonDelayMicroseconds(uint16_t us)
 {
-  int32u beginTime = ReadRegister(MAC_TIMER);
+  uint32_t beginTime = ReadRegister(MAC_TIMER);
   
   //If we're not using the XTAL, the MAC Timer is running off OSCHF,
   //that means the clock is half speed, 6MHz.  We need to halve our delay
@@ -281,7 +281,7 @@ void halCommonDelayMicroseconds(int16u us)
 //necessary in some situations.  If you have to burn more than 65ms of time,
 //the halCommonDelayMicroseconds function becomes cumbersome, so this
 //function gives you millisecond granularity.
-void halCommonDelayMilliseconds(int16u ms)
+void halCommonDelayMilliseconds(uint16_t ms)
 {
   if(ms==0) {
     return;

@@ -18,10 +18,10 @@
 
 #ifdef DEFINETYPES
 typedef struct {
-  int8u vcoAtLna; // the VCO tune value at the time LNA value was calculated.
-  int8u modDac;   // msb : cal needed , bit 0-5 : value
-  int8u filter;   // msb : cal needed , bit 0-4 : value
-  int8u lna;      // msb : cal needed , bit 0-5 : value
+  uint8_t vcoAtLna; // the VCO tune value at the time LNA value was calculated.
+  uint8_t modDac;   // msb : cal needed , bit 0-5 : value
+  uint8_t filter;   // msb : cal needed , bit 0-4 : value
+  uint8_t lna;      // msb : cal needed , bit 0-5 : value
 } tokTypeStackCalData;
 #endif 
 

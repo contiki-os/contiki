@@ -40,8 +40,8 @@
 #define DATA_CM_HV_END                                       (0x40000044u)
 #define DATA_CM_HV_SIZE                                      (DATA_CM_HV_END - DATA_CM_HV_BASE + 1)
 
-#define HV_SPARE                                             *((volatile int32u *)0x40000000u)
-#define HV_SPARE_REG                                         *((volatile int32u *)0x40000000u)
+#define HV_SPARE                                             *((volatile uint32_t *)0x40000000u)
+#define HV_SPARE_REG                                         *((volatile uint32_t *)0x40000000u)
 #define HV_SPARE_ADDR                                        (0x40000000u)
 #define HV_SPARE_RESET                                       (0x00000000u)
         /* HV_SPARE field */
@@ -50,8 +50,8 @@
         #define HV_SPARE_HV_SPARE_BIT                        (0)
         #define HV_SPARE_HV_SPARE_BITS                       (8)
 
-#define EVENT_CTRL                                           *((volatile int32u *)0x40000004u)
-#define EVENT_CTRL_REG                                       *((volatile int32u *)0x40000004u)
+#define EVENT_CTRL                                           *((volatile uint32_t *)0x40000004u)
+#define EVENT_CTRL_REG                                       *((volatile uint32_t *)0x40000004u)
 #define EVENT_CTRL_ADDR                                      (0x40000004u)
 #define EVENT_CTRL_RESET                                     (0x00000000u)
         /* LV_FREEZE field */
@@ -60,8 +60,8 @@
         #define LV_FREEZE_BIT                                (1)
         #define LV_FREEZE_BITS                               (1)
 
-#define SLEEPTMR_CLKEN                                       *((volatile int32u *)0x40000008u)
-#define SLEEPTMR_CLKEN_REG                                   *((volatile int32u *)0x40000008u)
+#define SLEEPTMR_CLKEN                                       *((volatile uint32_t *)0x40000008u)
+#define SLEEPTMR_CLKEN_REG                                   *((volatile uint32_t *)0x40000008u)
 #define SLEEPTMR_CLKEN_ADDR                                  (0x40000008u)
 #define SLEEPTMR_CLKEN_RESET                                 (0x00000002u)
         /* SLEEPTMR_CLK10KEN field */
@@ -75,8 +75,8 @@
         #define SLEEPTMR_CLK32KEN_BIT                        (0)
         #define SLEEPTMR_CLK32KEN_BITS                       (1)
 
-#define CLKRC_TUNE                                           *((volatile int32u *)0x4000000Cu)
-#define CLKRC_TUNE_REG                                       *((volatile int32u *)0x4000000Cu)
+#define CLKRC_TUNE                                           *((volatile uint32_t *)0x4000000Cu)
+#define CLKRC_TUNE_REG                                       *((volatile uint32_t *)0x4000000Cu)
 #define CLKRC_TUNE_ADDR                                      (0x4000000Cu)
 #define CLKRC_TUNE_RESET                                     (0x00000000u)
         /* CLKRC_TUNE_FIELD field */
@@ -85,8 +85,8 @@
         #define CLKRC_TUNE_FIELD_BIT                         (0)
         #define CLKRC_TUNE_FIELD_BITS                        (4)
 
-#define CLK1K_CAL                                            *((volatile int32u *)0x40000010u)
-#define CLK1K_CAL_REG                                        *((volatile int32u *)0x40000010u)
+#define CLK1K_CAL                                            *((volatile uint32_t *)0x40000010u)
+#define CLK1K_CAL_REG                                        *((volatile uint32_t *)0x40000010u)
 #define CLK1K_CAL_ADDR                                       (0x40000010u)
 #define CLK1K_CAL_RESET                                      (0x00005000u)
         /* CLK1K_INTEGER field */
@@ -100,8 +100,8 @@
         #define CLK1K_FRACTIONAL_BIT                         (0)
         #define CLK1K_FRACTIONAL_BITS                        (11)
 
-#define REGEN_DSLEEP                                         *((volatile int32u *)0x40000014u)
-#define REGEN_DSLEEP_REG                                     *((volatile int32u *)0x40000014u)
+#define REGEN_DSLEEP                                         *((volatile uint32_t *)0x40000014u)
+#define REGEN_DSLEEP_REG                                     *((volatile uint32_t *)0x40000014u)
 #define REGEN_DSLEEP_ADDR                                    (0x40000014u)
 #define REGEN_DSLEEP_RESET                                   (0x00000001u)
         /* REGEN_DSLEEP_FIELD field */
@@ -110,8 +110,8 @@
         #define REGEN_DSLEEP_FIELD_BIT                       (0)
         #define REGEN_DSLEEP_FIELD_BITS                      (1)
 
-#define VREG                                                 *((volatile int32u *)0x40000018u)
-#define VREG_REG                                             *((volatile int32u *)0x40000018u)
+#define VREG                                                 *((volatile uint32_t *)0x40000018u)
+#define VREG_REG                                             *((volatile uint32_t *)0x40000018u)
 #define VREG_ADDR                                            (0x40000018u)
 #define VREG_RESET                                           (0x00000207u)
         /* VREF_EN field */
@@ -155,8 +155,8 @@
         #define VREG_VREG_1V2_TRIM_BIT                       (0)
         #define VREG_VREG_1V2_TRIM_BITS                      (3)
 
-#define WAKE_SEL                                             *((volatile int32u *)0x40000020u)
-#define WAKE_SEL_REG                                         *((volatile int32u *)0x40000020u)
+#define WAKE_SEL                                             *((volatile uint32_t *)0x40000020u)
+#define WAKE_SEL_REG                                         *((volatile uint32_t *)0x40000020u)
 #define WAKE_SEL_ADDR                                        (0x40000020u)
 #define WAKE_SEL_RESET                                       (0x00000200u)
         /* WAKE_CSYSPWRUPREQ field */
@@ -210,8 +210,8 @@
         #define GPIO_WAKE_BIT                                (0)
         #define GPIO_WAKE_BITS                               (1)
 
-#define WAKE_CORE                                            *((volatile int32u *)0x40000024u)
-#define WAKE_CORE_REG                                        *((volatile int32u *)0x40000024u)
+#define WAKE_CORE                                            *((volatile uint32_t *)0x40000024u)
+#define WAKE_CORE_REG                                        *((volatile uint32_t *)0x40000024u)
 #define WAKE_CORE_ADDR                                       (0x40000024u)
 #define WAKE_CORE_RESET                                      (0x00000000u)
         /* WAKE_CORE_FIELD field */
@@ -220,8 +220,8 @@
         #define WAKE_CORE_FIELD_BIT                          (5)
         #define WAKE_CORE_FIELD_BITS                         (1)
 
-#define PWRUP_EVENT                                          *((volatile int32u *)0x40000028u)
-#define PWRUP_EVENT_REG                                      *((volatile int32u *)0x40000028u)
+#define PWRUP_EVENT                                          *((volatile uint32_t *)0x40000028u)
+#define PWRUP_EVENT_REG                                      *((volatile uint32_t *)0x40000028u)
 #define PWRUP_EVENT_ADDR                                     (0x40000028u)
 #define PWRUP_EVENT_RESET                                    (0x00000000u)
         /* PWRUP_CSYSPWRUPREQ field */
@@ -275,8 +275,8 @@
         #define PWRUP_GPIO_BIT                               (0)
         #define PWRUP_GPIO_BITS                              (1)
 
-#define RESET_EVENT                                          *((volatile int32u *)0x4000002Cu)
-#define RESET_EVENT_REG                                      *((volatile int32u *)0x4000002Cu)
+#define RESET_EVENT                                          *((volatile uint32_t *)0x4000002Cu)
+#define RESET_EVENT_REG                                      *((volatile uint32_t *)0x4000002Cu)
 #define RESET_EVENT_ADDR                                     (0x4000002Cu)
 #define RESET_EVENT_RESET                                    (0x00000001u)
         /* RESET_CPULOCKUP field */
@@ -320,8 +320,8 @@
         #define RESET_PWRHV_BIT                              (0)
         #define RESET_PWRHV_BITS                             (1)
 
-#define DBG_MBOX                                             *((volatile int32u *)0x40000030u)
-#define DBG_MBOX_REG                                         *((volatile int32u *)0x40000030u)
+#define DBG_MBOX                                             *((volatile uint32_t *)0x40000030u)
+#define DBG_MBOX_REG                                         *((volatile uint32_t *)0x40000030u)
 #define DBG_MBOX_ADDR                                        (0x40000030u)
 #define DBG_MBOX_RESET                                       (0x00000000u)
         /* DBG_MBOX field */
@@ -330,8 +330,8 @@
         #define DBG_MBOX_DBG_MBOX_BIT                        (0)
         #define DBG_MBOX_DBG_MBOX_BITS                       (16)
 
-#define CPWRUPREQ_STATUS                                     *((volatile int32u *)0x40000034u)
-#define CPWRUPREQ_STATUS_REG                                 *((volatile int32u *)0x40000034u)
+#define CPWRUPREQ_STATUS                                     *((volatile uint32_t *)0x40000034u)
+#define CPWRUPREQ_STATUS_REG                                 *((volatile uint32_t *)0x40000034u)
 #define CPWRUPREQ_STATUS_ADDR                                (0x40000034u)
 #define CPWRUPREQ_STATUS_RESET                               (0x00000000u)
         /* CPWRUPREQ field */
@@ -340,8 +340,8 @@
         #define CPWRUPREQ_STATUS_CPWRUPREQ_BIT               (0)
         #define CPWRUPREQ_STATUS_CPWRUPREQ_BITS              (1)
 
-#define CSYSPWRUPREQ_STATUS                                  *((volatile int32u *)0x40000038u)
-#define CSYSPWRUPREQ_STATUS_REG                              *((volatile int32u *)0x40000038u)
+#define CSYSPWRUPREQ_STATUS                                  *((volatile uint32_t *)0x40000038u)
+#define CSYSPWRUPREQ_STATUS_REG                              *((volatile uint32_t *)0x40000038u)
 #define CSYSPWRUPREQ_STATUS_ADDR                             (0x40000038u)
 #define CSYSPWRUPREQ_STATUS_RESET                            (0x00000000u)
         /* CSYSPWRUPREQ field */
@@ -350,8 +350,8 @@
         #define CSYSPWRUPREQ_STATUS_CSYSPWRUPREQ_BIT         (0)
         #define CSYSPWRUPREQ_STATUS_CSYSPWRUPREQ_BITS        (1)
 
-#define CSYSPWRUPACK_STATUS                                  *((volatile int32u *)0x4000003Cu)
-#define CSYSPWRUPACK_STATUS_REG                              *((volatile int32u *)0x4000003Cu)
+#define CSYSPWRUPACK_STATUS                                  *((volatile uint32_t *)0x4000003Cu)
+#define CSYSPWRUPACK_STATUS_REG                              *((volatile uint32_t *)0x4000003Cu)
 #define CSYSPWRUPACK_STATUS_ADDR                             (0x4000003Cu)
 #define CSYSPWRUPACK_STATUS_RESET                            (0x00000000u)
         /* CSYSPWRUPACK field */
@@ -360,8 +360,8 @@
         #define CSYSPWRUPACK_STATUS_CSYSPWRUPACK_BIT         (0)
         #define CSYSPWRUPACK_STATUS_CSYSPWRUPACK_BITS        (1)
 
-#define CSYSPWRUPACK_INHIBIT                                 *((volatile int32u *)0x40000040u)
-#define CSYSPWRUPACK_INHIBIT_REG                             *((volatile int32u *)0x40000040u)
+#define CSYSPWRUPACK_INHIBIT                                 *((volatile uint32_t *)0x40000040u)
+#define CSYSPWRUPACK_INHIBIT_REG                             *((volatile uint32_t *)0x40000040u)
 #define CSYSPWRUPACK_INHIBIT_ADDR                            (0x40000040u)
 #define CSYSPWRUPACK_INHIBIT_RESET                           (0x00000000u)
         /* CSYSPWRUPACK_INHIBIT field */
@@ -370,8 +370,8 @@
         #define CSYSPWRUPACK_INHIBIT_CSYSPWRUPACK_INHIBIT_BIT (0)
         #define CSYSPWRUPACK_INHIBIT_CSYSPWRUPACK_INHIBIT_BITS (1)
 
-#define OPT_ERR_MAINTAIN_WAKE                                *((volatile int32u *)0x40000044u)
-#define OPT_ERR_MAINTAIN_WAKE_REG                            *((volatile int32u *)0x40000044u)
+#define OPT_ERR_MAINTAIN_WAKE                                *((volatile uint32_t *)0x40000044u)
+#define OPT_ERR_MAINTAIN_WAKE_REG                            *((volatile uint32_t *)0x40000044u)
 #define OPT_ERR_MAINTAIN_WAKE_ADDR                           (0x40000044u)
 #define OPT_ERR_MAINTAIN_WAKE_RESET                          (0x00000000u)
         /* OPT_ERR_MAINTAIN_WAKE field */
@@ -385,8 +385,8 @@
 #define DATA_BASEBAND_END                                    (0x40001114u)
 #define DATA_BASEBAND_SIZE                                   (DATA_BASEBAND_END - DATA_BASEBAND_BASE + 1)
 
-#define MOD_CAL_CTRL                                         *((volatile int32u *)0x40001000u)
-#define MOD_CAL_CTRL_REG                                     *((volatile int32u *)0x40001000u)
+#define MOD_CAL_CTRL                                         *((volatile uint32_t *)0x40001000u)
+#define MOD_CAL_CTRL_REG                                     *((volatile uint32_t *)0x40001000u)
 #define MOD_CAL_CTRL_ADDR                                    (0x40001000u)
 #define MOD_CAL_CTRL_RESET                                   (0x00000000u)
         /* MOD_CAL_GO field */
@@ -405,8 +405,8 @@
         #define MOD_CAL_CTRL_MOD_CAL_CYCLES_BIT              (0)
         #define MOD_CAL_CTRL_MOD_CAL_CYCLES_BITS             (2)
 
-#define MOD_CAL_COUNT_H                                      *((volatile int32u *)0x40001004u)
-#define MOD_CAL_COUNT_H_REG                                  *((volatile int32u *)0x40001004u)
+#define MOD_CAL_COUNT_H                                      *((volatile uint32_t *)0x40001004u)
+#define MOD_CAL_COUNT_H_REG                                  *((volatile uint32_t *)0x40001004u)
 #define MOD_CAL_COUNT_H_ADDR                                 (0x40001004u)
 #define MOD_CAL_COUNT_H_RESET                                (0x00000000u)
         /* MOD_CAL_COUNT_H field */
@@ -415,8 +415,8 @@
         #define MOD_CAL_COUNT_H_MOD_CAL_COUNT_H_BIT          (0)
         #define MOD_CAL_COUNT_H_MOD_CAL_COUNT_H_BITS         (8)
 
-#define MOD_CAL_COUNT_L                                      *((volatile int32u *)0x40001008u)
-#define MOD_CAL_COUNT_L_REG                                  *((volatile int32u *)0x40001008u)
+#define MOD_CAL_COUNT_L                                      *((volatile uint32_t *)0x40001008u)
+#define MOD_CAL_COUNT_L_REG                                  *((volatile uint32_t *)0x40001008u)
 #define MOD_CAL_COUNT_L_ADDR                                 (0x40001008u)
 #define MOD_CAL_COUNT_L_RESET                                (0x00000000u)
         /* MOD_CAL_COUNT_L field */
@@ -425,8 +425,8 @@
         #define MOD_CAL_COUNT_L_MOD_CAL_COUNT_L_BIT          (0)
         #define MOD_CAL_COUNT_L_MOD_CAL_COUNT_L_BITS         (16)
 
-#define RSSI_ROLLING                                         *((volatile int32u *)0x4000100Cu)
-#define RSSI_ROLLING_REG                                     *((volatile int32u *)0x4000100Cu)
+#define RSSI_ROLLING                                         *((volatile uint32_t *)0x4000100Cu)
+#define RSSI_ROLLING_REG                                     *((volatile uint32_t *)0x4000100Cu)
 #define RSSI_ROLLING_ADDR                                    (0x4000100Cu)
 #define RSSI_ROLLING_RESET                                   (0x00000000u)
         /* RSSI_ROLLING field */
@@ -435,8 +435,8 @@
         #define RSSI_ROLLING_RSSI_ROLLING_BIT                (0)
         #define RSSI_ROLLING_RSSI_ROLLING_BITS               (14)
 
-#define RSSI_PKT                                             *((volatile int32u *)0x40001010u)
-#define RSSI_PKT_REG                                         *((volatile int32u *)0x40001010u)
+#define RSSI_PKT                                             *((volatile uint32_t *)0x40001010u)
+#define RSSI_PKT_REG                                         *((volatile uint32_t *)0x40001010u)
 #define RSSI_PKT_ADDR                                        (0x40001010u)
 #define RSSI_PKT_RESET                                       (0x00000000u)
         /* RSSI_PKT field */
@@ -445,8 +445,8 @@
         #define RSSI_PKT_RSSI_PKT_BIT                        (0)
         #define RSSI_PKT_RSSI_PKT_BITS                       (8)
 
-#define RX_ADC                                               *((volatile int32u *)0x40001014u)
-#define RX_ADC_REG                                           *((volatile int32u *)0x40001014u)
+#define RX_ADC                                               *((volatile uint32_t *)0x40001014u)
+#define RX_ADC_REG                                           *((volatile uint32_t *)0x40001014u)
 #define RX_ADC_ADDR                                          (0x40001014u)
 #define RX_ADC_RESET                                         (0x00000024u)
         /* RX_ADC field */
@@ -455,8 +455,8 @@
         #define RX_ADC_RX_ADC_BIT                            (0)
         #define RX_ADC_RX_ADC_BITS                           (7)
 
-#define DEBUG_BB_MODE                                        *((volatile int32u *)0x40001018u)
-#define DEBUG_BB_MODE_REG                                    *((volatile int32u *)0x40001018u)
+#define DEBUG_BB_MODE                                        *((volatile uint32_t *)0x40001018u)
+#define DEBUG_BB_MODE_REG                                    *((volatile uint32_t *)0x40001018u)
 #define DEBUG_BB_MODE_ADDR                                   (0x40001018u)
 #define DEBUG_BB_MODE_RESET                                  (0x00000000u)
         /* DEBUG_BB_MODE_EN field */
@@ -470,8 +470,8 @@
         #define DEBUG_BB_MODE_DEBUG_BB_MODE_BIT              (0)
         #define DEBUG_BB_MODE_DEBUG_BB_MODE_BITS             (2)
 
-#define BB_DEBUG                                             *((volatile int32u *)0x4000101Cu)
-#define BB_DEBUG_REG                                         *((volatile int32u *)0x4000101Cu)
+#define BB_DEBUG                                             *((volatile uint32_t *)0x4000101Cu)
+#define BB_DEBUG_REG                                         *((volatile uint32_t *)0x4000101Cu)
 #define BB_DEBUG_ADDR                                        (0x4000101Cu)
 #define BB_DEBUG_RESET                                       (0x00000002u)
         /* SYNC_REG_EN field */
@@ -490,8 +490,8 @@
         #define BB_DEBUG_BB_DEBUG_SEL_BIT                    (0)
         #define BB_DEBUG_BB_DEBUG_SEL_BITS                   (2)
 
-#define BB_DEBUG_VIEW                                        *((volatile int32u *)0x40001020u)
-#define BB_DEBUG_VIEW_REG                                    *((volatile int32u *)0x40001020u)
+#define BB_DEBUG_VIEW                                        *((volatile uint32_t *)0x40001020u)
+#define BB_DEBUG_VIEW_REG                                    *((volatile uint32_t *)0x40001020u)
 #define BB_DEBUG_VIEW_ADDR                                   (0x40001020u)
 #define BB_DEBUG_VIEW_RESET                                  (0x00000000u)
         /* BB_DEBUG_VIEW field */
@@ -500,8 +500,8 @@
         #define BB_DEBUG_VIEW_BB_DEBUG_VIEW_BIT              (0)
         #define BB_DEBUG_VIEW_BB_DEBUG_VIEW_BITS             (16)
 
-#define IF_FREQ                                              *((volatile int32u *)0x40001024u)
-#define IF_FREQ_REG                                          *((volatile int32u *)0x40001024u)
+#define IF_FREQ                                              *((volatile uint32_t *)0x40001024u)
+#define IF_FREQ_REG                                          *((volatile uint32_t *)0x40001024u)
 #define IF_FREQ_ADDR                                         (0x40001024u)
 #define IF_FREQ_RESET                                        (0x00000155u)
         /* TIMING_CORR_EN field */
@@ -515,8 +515,8 @@
         #define IF_FREQ_IF_FREQ_BIT                          (0)
         #define IF_FREQ_IF_FREQ_BITS                         (9)
 
-#define MOD_EN                                               *((volatile int32u *)0x40001028u)
-#define MOD_EN_REG                                           *((volatile int32u *)0x40001028u)
+#define MOD_EN                                               *((volatile uint32_t *)0x40001028u)
+#define MOD_EN_REG                                           *((volatile uint32_t *)0x40001028u)
 #define MOD_EN_ADDR                                          (0x40001028u)
 #define MOD_EN_RESET                                         (0x00000001u)
         /* MOD_EN field */
@@ -525,8 +525,8 @@
         #define MOD_EN_MOD_EN_BIT                            (0)
         #define MOD_EN_MOD_EN_BITS                           (1)
 
-#define PRESCALE_CTRL                                        *((volatile int32u *)0x4000102Cu)
-#define PRESCALE_CTRL_REG                                    *((volatile int32u *)0x4000102Cu)
+#define PRESCALE_CTRL                                        *((volatile uint32_t *)0x4000102Cu)
+#define PRESCALE_CTRL_REG                                    *((volatile uint32_t *)0x4000102Cu)
 #define PRESCALE_CTRL_ADDR                                   (0x4000102Cu)
 #define PRESCALE_CTRL_RESET                                  (0x00000000u)
         /* PRESCALE_SET field */
@@ -540,8 +540,8 @@
         #define PRESCALE_CTRL_PRESCALE_VAL_BIT               (0)
         #define PRESCALE_CTRL_PRESCALE_VAL_BITS              (3)
 
-#define ADC_BYPASS_EN                                        *((volatile int32u *)0x40001030u)
-#define ADC_BYPASS_EN_REG                                    *((volatile int32u *)0x40001030u)
+#define ADC_BYPASS_EN                                        *((volatile uint32_t *)0x40001030u)
+#define ADC_BYPASS_EN_REG                                    *((volatile uint32_t *)0x40001030u)
 #define ADC_BYPASS_EN_ADDR                                   (0x40001030u)
 #define ADC_BYPASS_EN_RESET                                  (0x00000000u)
         /* ADC_BYPASS_EN field */
@@ -550,8 +550,8 @@
         #define ADC_BYPASS_EN_ADC_BYPASS_EN_BIT              (0)
         #define ADC_BYPASS_EN_ADC_BYPASS_EN_BITS             (1)
 
-#define FIXED_CODE_EN                                        *((volatile int32u *)0x40001034u)
-#define FIXED_CODE_EN_REG                                    *((volatile int32u *)0x40001034u)
+#define FIXED_CODE_EN                                        *((volatile uint32_t *)0x40001034u)
+#define FIXED_CODE_EN_REG                                    *((volatile uint32_t *)0x40001034u)
 #define FIXED_CODE_EN_ADDR                                   (0x40001034u)
 #define FIXED_CODE_EN_RESET                                  (0x00000000u)
         /* FIXED_CODE_EN field */
@@ -560,8 +560,8 @@
         #define FIXED_CODE_EN_FIXED_CODE_EN_BIT              (0)
         #define FIXED_CODE_EN_FIXED_CODE_EN_BITS             (1)
 
-#define FIXED_CODE_H                                         *((volatile int32u *)0x40001038u)
-#define FIXED_CODE_H_REG                                     *((volatile int32u *)0x40001038u)
+#define FIXED_CODE_H                                         *((volatile uint32_t *)0x40001038u)
+#define FIXED_CODE_H_REG                                     *((volatile uint32_t *)0x40001038u)
 #define FIXED_CODE_H_ADDR                                    (0x40001038u)
 #define FIXED_CODE_H_RESET                                   (0x00000000u)
         /* FIXED_CODE_H field */
@@ -570,8 +570,8 @@
         #define FIXED_CODE_H_FIXED_CODE_H_BIT                (0)
         #define FIXED_CODE_H_FIXED_CODE_H_BITS               (16)
 
-#define FIXED_CODE_L                                         *((volatile int32u *)0x4000103Cu)
-#define FIXED_CODE_L_REG                                     *((volatile int32u *)0x4000103Cu)
+#define FIXED_CODE_L                                         *((volatile uint32_t *)0x4000103Cu)
+#define FIXED_CODE_L_REG                                     *((volatile uint32_t *)0x4000103Cu)
 #define FIXED_CODE_L_ADDR                                    (0x4000103Cu)
 #define FIXED_CODE_L_RESET                                   (0x00000000u)
         /* FIXED_CODE_L field */
@@ -580,8 +580,8 @@
         #define FIXED_CODE_L_FIXED_CODE_L_BIT                (0)
         #define FIXED_CODE_L_FIXED_CODE_L_BITS               (16)
 
-#define FIXED_CODE_L_SHADOW                                  *((volatile int32u *)0x40001040u)
-#define FIXED_CODE_L_SHADOW_REG                              *((volatile int32u *)0x40001040u)
+#define FIXED_CODE_L_SHADOW                                  *((volatile uint32_t *)0x40001040u)
+#define FIXED_CODE_L_SHADOW_REG                              *((volatile uint32_t *)0x40001040u)
 #define FIXED_CODE_L_SHADOW_ADDR                             (0x40001040u)
 #define FIXED_CODE_L_SHADOW_RESET                            (0x00000000u)
         /* FIXED_CODE_L_SHADOW field */
@@ -590,8 +590,8 @@
         #define FIXED_CODE_L_SHADOW_FIXED_CODE_L_SHADOW_BIT  (0)
         #define FIXED_CODE_L_SHADOW_FIXED_CODE_L_SHADOW_BITS (16)
 
-#define RX_GAIN_CTRL                                         *((volatile int32u *)0x40001044u)
-#define RX_GAIN_CTRL_REG                                     *((volatile int32u *)0x40001044u)
+#define RX_GAIN_CTRL                                         *((volatile uint32_t *)0x40001044u)
+#define RX_GAIN_CTRL_REG                                     *((volatile uint32_t *)0x40001044u)
 #define RX_GAIN_CTRL_ADDR                                    (0x40001044u)
 #define RX_GAIN_CTRL_RESET                                   (0x00000000u)
         /* RX_GAIN_MUX field */
@@ -620,8 +620,8 @@
         #define RX_GAIN_CTRL_RX_IF_GAIN_TEST_BIT             (0)
         #define RX_GAIN_CTRL_RX_IF_GAIN_TEST_BITS            (4)
 
-#define PD_DITHER_EN                                         *((volatile int32u *)0x40001048u)
-#define PD_DITHER_EN_REG                                     *((volatile int32u *)0x40001048u)
+#define PD_DITHER_EN                                         *((volatile uint32_t *)0x40001048u)
+#define PD_DITHER_EN_REG                                     *((volatile uint32_t *)0x40001048u)
 #define PD_DITHER_EN_ADDR                                    (0x40001048u)
 #define PD_DITHER_EN_RESET                                   (0x00000001u)
         /* PD_DITHER_EN field */
@@ -630,8 +630,8 @@
         #define PD_DITHER_EN_PD_DITHER_EN_BIT                (0)
         #define PD_DITHER_EN_PD_DITHER_EN_BITS               (1)
 
-#define RX_ERR_THRESH                                        *((volatile int32u *)0x4000104Cu)
-#define RX_ERR_THRESH_REG                                    *((volatile int32u *)0x4000104Cu)
+#define RX_ERR_THRESH                                        *((volatile uint32_t *)0x4000104Cu)
+#define RX_ERR_THRESH_REG                                    *((volatile uint32_t *)0x4000104Cu)
 #define RX_ERR_THRESH_ADDR                                   (0x4000104Cu)
 #define RX_ERR_THRESH_RESET                                  (0x00004608u)
         /* LPF_RX_ERR_COEFF field */
@@ -650,8 +650,8 @@
         #define RX_ERR_THRESH_RX_ERR_THRESH_BIT              (0)
         #define RX_ERR_THRESH_RX_ERR_THRESH_BITS             (5)
 
-#define CARRIER_THRESH                                       *((volatile int32u *)0x40001050u)
-#define CARRIER_THRESH_REG                                   *((volatile int32u *)0x40001050u)
+#define CARRIER_THRESH                                       *((volatile uint32_t *)0x40001050u)
+#define CARRIER_THRESH_REG                                   *((volatile uint32_t *)0x40001050u)
 #define CARRIER_THRESH_ADDR                                  (0x40001050u)
 #define CARRIER_THRESH_RESET                                 (0x00002332u)
         /* CARRIER_SPIKE_THRESH field */
@@ -665,8 +665,8 @@
         #define CARRIER_THRESH_CARRIER_THRESH_BIT            (0)
         #define CARRIER_THRESH_CARRIER_THRESH_BITS           (8)
 
-#define RSSI_THRESH                                          *((volatile int32u *)0x40001054u)
-#define RSSI_THRESH_REG                                      *((volatile int32u *)0x40001054u)
+#define RSSI_THRESH                                          *((volatile uint32_t *)0x40001054u)
+#define RSSI_THRESH_REG                                      *((volatile uint32_t *)0x40001054u)
 #define RSSI_THRESH_ADDR                                     (0x40001054u)
 #define RSSI_THRESH_RESET                                    (0x00000100u)
         /* RSSI_THRESH field */
@@ -675,8 +675,8 @@
         #define RSSI_THRESH_RSSI_THRESH_BIT                  (0)
         #define RSSI_THRESH_RSSI_THRESH_BITS                 (16)
 
-#define SYNTH_START                                          *((volatile int32u *)0x40001058u)
-#define SYNTH_START_REG                                      *((volatile int32u *)0x40001058u)
+#define SYNTH_START                                          *((volatile uint32_t *)0x40001058u)
+#define SYNTH_START_REG                                      *((volatile uint32_t *)0x40001058u)
 #define SYNTH_START_ADDR                                     (0x40001058u)
 #define SYNTH_START_RESET                                    (0x00006464u)
         /* SYNTH_WARM_START field */
@@ -690,8 +690,8 @@
         #define SYNTH_START_SYNTH_COLD_START_BIT             (0)
         #define SYNTH_START_SYNTH_COLD_START_BITS            (8)
 
-#define IN_LOCK_EN                                           *((volatile int32u *)0x4000105Cu)
-#define IN_LOCK_EN_REG                                       *((volatile int32u *)0x4000105Cu)
+#define IN_LOCK_EN                                           *((volatile uint32_t *)0x4000105Cu)
+#define IN_LOCK_EN_REG                                       *((volatile uint32_t *)0x4000105Cu)
 #define IN_LOCK_EN_ADDR                                      (0x4000105Cu)
 #define IN_LOCK_EN_RESET                                     (0x00000001u)
         /* IN_LOCK_EN field */
@@ -700,8 +700,8 @@
         #define IN_LOCK_EN_IN_LOCK_EN_BIT                    (0)
         #define IN_LOCK_EN_IN_LOCK_EN_BITS                   (1)
 
-#define DITHER_AMPLITUDE                                     *((volatile int32u *)0x40001060u)
-#define DITHER_AMPLITUDE_REG                                 *((volatile int32u *)0x40001060u)
+#define DITHER_AMPLITUDE                                     *((volatile uint32_t *)0x40001060u)
+#define DITHER_AMPLITUDE_REG                                 *((volatile uint32_t *)0x40001060u)
 #define DITHER_AMPLITUDE_ADDR                                (0x40001060u)
 #define DITHER_AMPLITUDE_RESET                               (0x0000003Fu)
         /* DITHER_AMP field */
@@ -710,8 +710,8 @@
         #define DITHER_AMPLITUDE_DITHER_AMP_BIT              (0)
         #define DITHER_AMPLITUDE_DITHER_AMP_BITS             (6)
 
-#define TX_STEP_TIME                                         *((volatile int32u *)0x40001064u)
-#define TX_STEP_TIME_REG                                     *((volatile int32u *)0x40001064u)
+#define TX_STEP_TIME                                         *((volatile uint32_t *)0x40001064u)
+#define TX_STEP_TIME_REG                                     *((volatile uint32_t *)0x40001064u)
 #define TX_STEP_TIME_ADDR                                    (0x40001064u)
 #define TX_STEP_TIME_RESET                                   (0x00000000u)
         /* TX_STEP_TIME field */
@@ -720,8 +720,8 @@
         #define TX_STEP_TIME_TX_STEP_TIME_BIT                (0)
         #define TX_STEP_TIME_TX_STEP_TIME_BITS               (8)
 
-#define GAIN_THRESH_MAX                                      *((volatile int32u *)0x40001068u)
-#define GAIN_THRESH_MAX_REG                                  *((volatile int32u *)0x40001068u)
+#define GAIN_THRESH_MAX                                      *((volatile uint32_t *)0x40001068u)
+#define GAIN_THRESH_MAX_REG                                  *((volatile uint32_t *)0x40001068u)
 #define GAIN_THRESH_MAX_ADDR                                 (0x40001068u)
 #define GAIN_THRESH_MAX_RESET                                (0x00000060u)
         /* GAIN_THRESH_MAX field */
@@ -730,8 +730,8 @@
         #define GAIN_THRESH_MAX_GAIN_THRESH_MAX_BIT          (0)
         #define GAIN_THRESH_MAX_GAIN_THRESH_MAX_BITS         (8)
 
-#define GAIN_THRESH_MID                                      *((volatile int32u *)0x4000106Cu)
-#define GAIN_THRESH_MID_REG                                  *((volatile int32u *)0x4000106Cu)
+#define GAIN_THRESH_MID                                      *((volatile uint32_t *)0x4000106Cu)
+#define GAIN_THRESH_MID_REG                                  *((volatile uint32_t *)0x4000106Cu)
 #define GAIN_THRESH_MID_ADDR                                 (0x4000106Cu)
 #define GAIN_THRESH_MID_RESET                                (0x00000030u)
         /* GAIN_THRESH_MID field */
@@ -740,8 +740,8 @@
         #define GAIN_THRESH_MID_GAIN_THRESH_MID_BIT          (0)
         #define GAIN_THRESH_MID_GAIN_THRESH_MID_BITS         (8)
 
-#define GAIN_THRESH_MIN                                      *((volatile int32u *)0x40001070u)
-#define GAIN_THRESH_MIN_REG                                  *((volatile int32u *)0x40001070u)
+#define GAIN_THRESH_MIN                                      *((volatile uint32_t *)0x40001070u)
+#define GAIN_THRESH_MIN_REG                                  *((volatile uint32_t *)0x40001070u)
 #define GAIN_THRESH_MIN_ADDR                                 (0x40001070u)
 #define GAIN_THRESH_MIN_RESET                                (0x00000018u)
         /* GAIN_THRESH_MIN field */
@@ -750,8 +750,8 @@
         #define GAIN_THRESH_MIN_GAIN_THRESH_MIN_BIT          (0)
         #define GAIN_THRESH_MIN_GAIN_THRESH_MIN_BITS         (8)
 
-#define GAIN_SETTING_0                                       *((volatile int32u *)0x40001074u)
-#define GAIN_SETTING_0_REG                                   *((volatile int32u *)0x40001074u)
+#define GAIN_SETTING_0                                       *((volatile uint32_t *)0x40001074u)
+#define GAIN_SETTING_0_REG                                   *((volatile uint32_t *)0x40001074u)
 #define GAIN_SETTING_0_ADDR                                  (0x40001074u)
 #define GAIN_SETTING_0_RESET                                 (0x00000000u)
         /* RX_MIXER_GAIN_0 field */
@@ -770,8 +770,8 @@
         #define GAIN_SETTING_0_RX_IF_GAIN_0_BIT              (0)
         #define GAIN_SETTING_0_RX_IF_GAIN_0_BITS             (4)
 
-#define GAIN_SETTING_1                                       *((volatile int32u *)0x40001078u)
-#define GAIN_SETTING_1_REG                                   *((volatile int32u *)0x40001078u)
+#define GAIN_SETTING_1                                       *((volatile uint32_t *)0x40001078u)
+#define GAIN_SETTING_1_REG                                   *((volatile uint32_t *)0x40001078u)
 #define GAIN_SETTING_1_ADDR                                  (0x40001078u)
 #define GAIN_SETTING_1_RESET                                 (0x00000010u)
         /* RX_MIXER_GAIN_1 field */
@@ -790,8 +790,8 @@
         #define GAIN_SETTING_1_RX_IF_GAIN_1_BIT              (0)
         #define GAIN_SETTING_1_RX_IF_GAIN_1_BITS             (4)
 
-#define GAIN_SETTING_2                                       *((volatile int32u *)0x4000107Cu)
-#define GAIN_SETTING_2_REG                                   *((volatile int32u *)0x4000107Cu)
+#define GAIN_SETTING_2                                       *((volatile uint32_t *)0x4000107Cu)
+#define GAIN_SETTING_2_REG                                   *((volatile uint32_t *)0x4000107Cu)
 #define GAIN_SETTING_2_ADDR                                  (0x4000107Cu)
 #define GAIN_SETTING_2_RESET                                 (0x00000030u)
         /* RX_MIXER_GAIN_2 field */
@@ -810,8 +810,8 @@
         #define GAIN_SETTING_2_RX_IF_GAIN_2_BIT              (0)
         #define GAIN_SETTING_2_RX_IF_GAIN_2_BITS             (4)
 
-#define GAIN_SETTING_3                                       *((volatile int32u *)0x40001080u)
-#define GAIN_SETTING_3_REG                                   *((volatile int32u *)0x40001080u)
+#define GAIN_SETTING_3                                       *((volatile uint32_t *)0x40001080u)
+#define GAIN_SETTING_3_REG                                   *((volatile uint32_t *)0x40001080u)
 #define GAIN_SETTING_3_ADDR                                  (0x40001080u)
 #define GAIN_SETTING_3_RESET                                 (0x00000031u)
         /* RX_MIXER_GAIN_3 field */
@@ -830,8 +830,8 @@
         #define GAIN_SETTING_3_RX_IF_GAIN_3_BIT              (0)
         #define GAIN_SETTING_3_RX_IF_GAIN_3_BITS             (4)
 
-#define GAIN_SETTING_4                                       *((volatile int32u *)0x40001084u)
-#define GAIN_SETTING_4_REG                                   *((volatile int32u *)0x40001084u)
+#define GAIN_SETTING_4                                       *((volatile uint32_t *)0x40001084u)
+#define GAIN_SETTING_4_REG                                   *((volatile uint32_t *)0x40001084u)
 #define GAIN_SETTING_4_ADDR                                  (0x40001084u)
 #define GAIN_SETTING_4_RESET                                 (0x00000032u)
         /* RX_MIXER_GAIN_4 field */
@@ -850,8 +850,8 @@
         #define GAIN_SETTING_4_RX_IF_GAIN_4_BIT              (0)
         #define GAIN_SETTING_4_RX_IF_GAIN_4_BITS             (4)
 
-#define GAIN_SETTING_5                                       *((volatile int32u *)0x40001088u)
-#define GAIN_SETTING_5_REG                                   *((volatile int32u *)0x40001088u)
+#define GAIN_SETTING_5                                       *((volatile uint32_t *)0x40001088u)
+#define GAIN_SETTING_5_REG                                   *((volatile uint32_t *)0x40001088u)
 #define GAIN_SETTING_5_ADDR                                  (0x40001088u)
 #define GAIN_SETTING_5_RESET                                 (0x00000033u)
         /* RX_MIXER_GAIN_5 field */
@@ -870,8 +870,8 @@
         #define GAIN_SETTING_5_RX_IF_GAIN_5_BIT              (0)
         #define GAIN_SETTING_5_RX_IF_GAIN_5_BITS             (4)
 
-#define GAIN_SETTING_6                                       *((volatile int32u *)0x4000108Cu)
-#define GAIN_SETTING_6_REG                                   *((volatile int32u *)0x4000108Cu)
+#define GAIN_SETTING_6                                       *((volatile uint32_t *)0x4000108Cu)
+#define GAIN_SETTING_6_REG                                   *((volatile uint32_t *)0x4000108Cu)
 #define GAIN_SETTING_6_ADDR                                  (0x4000108Cu)
 #define GAIN_SETTING_6_RESET                                 (0x00000034u)
         /* RX_MIXER_GAIN_6 field */
@@ -890,8 +890,8 @@
         #define GAIN_SETTING_6_RX_IF_GAIN_6_BIT              (0)
         #define GAIN_SETTING_6_RX_IF_GAIN_6_BITS             (4)
 
-#define GAIN_SETTING_7                                       *((volatile int32u *)0x40001090u)
-#define GAIN_SETTING_7_REG                                   *((volatile int32u *)0x40001090u)
+#define GAIN_SETTING_7                                       *((volatile uint32_t *)0x40001090u)
+#define GAIN_SETTING_7_REG                                   *((volatile uint32_t *)0x40001090u)
 #define GAIN_SETTING_7_ADDR                                  (0x40001090u)
 #define GAIN_SETTING_7_RESET                                 (0x00000035u)
         /* RX_MIXER_GAIN_7 field */
@@ -910,8 +910,8 @@
         #define GAIN_SETTING_7_RX_IF_GAIN_7_BIT              (0)
         #define GAIN_SETTING_7_RX_IF_GAIN_7_BITS             (4)
 
-#define GAIN_SETTING_8                                       *((volatile int32u *)0x40001094u)
-#define GAIN_SETTING_8_REG                                   *((volatile int32u *)0x40001094u)
+#define GAIN_SETTING_8                                       *((volatile uint32_t *)0x40001094u)
+#define GAIN_SETTING_8_REG                                   *((volatile uint32_t *)0x40001094u)
 #define GAIN_SETTING_8_ADDR                                  (0x40001094u)
 #define GAIN_SETTING_8_RESET                                 (0x00000036u)
         /* RX_MIXER_GAIN_8 field */
@@ -930,8 +930,8 @@
         #define GAIN_SETTING_8_RX_IF_GAIN_8_BIT              (0)
         #define GAIN_SETTING_8_RX_IF_GAIN_8_BITS             (4)
 
-#define GAIN_SETTING_9                                       *((volatile int32u *)0x40001098u)
-#define GAIN_SETTING_9_REG                                   *((volatile int32u *)0x40001098u)
+#define GAIN_SETTING_9                                       *((volatile uint32_t *)0x40001098u)
+#define GAIN_SETTING_9_REG                                   *((volatile uint32_t *)0x40001098u)
 #define GAIN_SETTING_9_ADDR                                  (0x40001098u)
 #define GAIN_SETTING_9_RESET                                 (0x00000076u)
         /* RX_MIXER_GAIN_9 field */
@@ -950,8 +950,8 @@
         #define GAIN_SETTING_9_RX_IF_GAIN_9_BIT              (0)
         #define GAIN_SETTING_9_RX_IF_GAIN_9_BITS             (4)
 
-#define GAIN_SETTING_10                                      *((volatile int32u *)0x4000109Cu)
-#define GAIN_SETTING_10_REG                                  *((volatile int32u *)0x4000109Cu)
+#define GAIN_SETTING_10                                      *((volatile uint32_t *)0x4000109Cu)
+#define GAIN_SETTING_10_REG                                  *((volatile uint32_t *)0x4000109Cu)
 #define GAIN_SETTING_10_ADDR                                 (0x4000109Cu)
 #define GAIN_SETTING_10_RESET                                (0x00000077u)
         /* RX_MIXER_GAIN_10 field */
@@ -970,8 +970,8 @@
         #define GAIN_SETTING_10_RX_IF_GAIN_10_BIT            (0)
         #define GAIN_SETTING_10_RX_IF_GAIN_10_BITS           (4)
 
-#define GAIN_SETTING_11                                      *((volatile int32u *)0x400010A0u)
-#define GAIN_SETTING_11_REG                                  *((volatile int32u *)0x400010A0u)
+#define GAIN_SETTING_11                                      *((volatile uint32_t *)0x400010A0u)
+#define GAIN_SETTING_11_REG                                  *((volatile uint32_t *)0x400010A0u)
 #define GAIN_SETTING_11_ADDR                                 (0x400010A0u)
 #define GAIN_SETTING_11_RESET                                (0x00000078u)
         /* RX_MIXER_GAIN_11 field */
@@ -990,8 +990,8 @@
         #define GAIN_SETTING_11_RX_IF_GAIN_11_BIT            (0)
         #define GAIN_SETTING_11_RX_IF_GAIN_11_BITS           (4)
 
-#define GAIN_CTRL_MIN_RF                                     *((volatile int32u *)0x400010A4u)
-#define GAIN_CTRL_MIN_RF_REG                                 *((volatile int32u *)0x400010A4u)
+#define GAIN_CTRL_MIN_RF                                     *((volatile uint32_t *)0x400010A4u)
+#define GAIN_CTRL_MIN_RF_REG                                 *((volatile uint32_t *)0x400010A4u)
 #define GAIN_CTRL_MIN_RF_ADDR                                (0x400010A4u)
 #define GAIN_CTRL_MIN_RF_RESET                               (0x000000F0u)
         /* GAIN_CTRL_MIN_RF field */
@@ -1000,8 +1000,8 @@
         #define GAIN_CTRL_MIN_RF_GAIN_CTRL_MIN_RF_BIT        (0)
         #define GAIN_CTRL_MIN_RF_GAIN_CTRL_MIN_RF_BITS       (9)
 
-#define GAIN_CTRL_MAX_RF                                     *((volatile int32u *)0x400010A8u)
-#define GAIN_CTRL_MAX_RF_REG                                 *((volatile int32u *)0x400010A8u)
+#define GAIN_CTRL_MAX_RF                                     *((volatile uint32_t *)0x400010A8u)
+#define GAIN_CTRL_MAX_RF_REG                                 *((volatile uint32_t *)0x400010A8u)
 #define GAIN_CTRL_MAX_RF_ADDR                                (0x400010A8u)
 #define GAIN_CTRL_MAX_RF_RESET                               (0x000000FCu)
         /* GAIN_CTRL_MAX_RF field */
@@ -1010,8 +1010,8 @@
         #define GAIN_CTRL_MAX_RF_GAIN_CTRL_MAX_RF_BIT        (0)
         #define GAIN_CTRL_MAX_RF_GAIN_CTRL_MAX_RF_BITS       (9)
 
-#define MIXER_GAIN_STEP                                      *((volatile int32u *)0x400010ACu)
-#define MIXER_GAIN_STEP_REG                                  *((volatile int32u *)0x400010ACu)
+#define MIXER_GAIN_STEP                                      *((volatile uint32_t *)0x400010ACu)
+#define MIXER_GAIN_STEP_REG                                  *((volatile uint32_t *)0x400010ACu)
 #define MIXER_GAIN_STEP_ADDR                                 (0x400010ACu)
 #define MIXER_GAIN_STEP_RESET                                (0x0000000Cu)
         /* MIXER_GAIN_STEP field */
@@ -1020,8 +1020,8 @@
         #define MIXER_GAIN_STEP_MIXER_GAIN_STEP_BIT          (0)
         #define MIXER_GAIN_STEP_MIXER_GAIN_STEP_BITS         (4)
 
-#define PREAMBLE_EVENT                                       *((volatile int32u *)0x400010B0u)
-#define PREAMBLE_EVENT_REG                                   *((volatile int32u *)0x400010B0u)
+#define PREAMBLE_EVENT                                       *((volatile uint32_t *)0x400010B0u)
+#define PREAMBLE_EVENT_REG                                   *((volatile uint32_t *)0x400010B0u)
 #define PREAMBLE_EVENT_ADDR                                  (0x400010B0u)
 #define PREAMBLE_EVENT_RESET                                 (0x00005877u)
         /* PREAMBLE_CONFIRM_THRESH field */
@@ -1035,8 +1035,8 @@
         #define PREAMBLE_EVENT_PREAMBLE_EVENT_THRESH_BIT     (0)
         #define PREAMBLE_EVENT_PREAMBLE_EVENT_THRESH_BITS    (8)
 
-#define PREAMBLE_ABORT_THRESH                                *((volatile int32u *)0x400010B4u)
-#define PREAMBLE_ABORT_THRESH_REG                            *((volatile int32u *)0x400010B4u)
+#define PREAMBLE_ABORT_THRESH                                *((volatile uint32_t *)0x400010B4u)
+#define PREAMBLE_ABORT_THRESH_REG                            *((volatile uint32_t *)0x400010B4u)
 #define PREAMBLE_ABORT_THRESH_ADDR                           (0x400010B4u)
 #define PREAMBLE_ABORT_THRESH_RESET                          (0x00000071u)
         /* PREAMBLE_ABORT_THRESH field */
@@ -1045,8 +1045,8 @@
         #define PREAMBLE_ABORT_THRESH_PREAMBLE_ABORT_THRESH_BIT (0)
         #define PREAMBLE_ABORT_THRESH_PREAMBLE_ABORT_THRESH_BITS (8)
 
-#define PREAMBLE_ACCEPT_WINDOW                               *((volatile int32u *)0x400010B8u)
-#define PREAMBLE_ACCEPT_WINDOW_REG                           *((volatile int32u *)0x400010B8u)
+#define PREAMBLE_ACCEPT_WINDOW                               *((volatile uint32_t *)0x400010B8u)
+#define PREAMBLE_ACCEPT_WINDOW_REG                           *((volatile uint32_t *)0x400010B8u)
 #define PREAMBLE_ACCEPT_WINDOW_ADDR                          (0x400010B8u)
 #define PREAMBLE_ACCEPT_WINDOW_RESET                         (0x00000003u)
         /* PREAMBLE_ACCEPT_WINDOW field */
@@ -1055,8 +1055,8 @@
         #define PREAMBLE_ACCEPT_WINDOW_PREAMBLE_ACCEPT_WINDOW_BIT (0)
         #define PREAMBLE_ACCEPT_WINDOW_PREAMBLE_ACCEPT_WINDOW_BITS (7)
 
-#define CCA_MODE                                             *((volatile int32u *)0x400010BCu)
-#define CCA_MODE_REG                                         *((volatile int32u *)0x400010BCu)
+#define CCA_MODE                                             *((volatile uint32_t *)0x400010BCu)
+#define CCA_MODE_REG                                         *((volatile uint32_t *)0x400010BCu)
 #define CCA_MODE_ADDR                                        (0x400010BCu)
 #define CCA_MODE_RESET                                       (0x00000000u)
         /* CCA_MODE field */
@@ -1065,8 +1065,8 @@
         #define CCA_MODE_CCA_MODE_BIT                        (0)
         #define CCA_MODE_CCA_MODE_BITS                       (2)
 
-#define TX_POWER_MAX                                         *((volatile int32u *)0x400010C0u)
-#define TX_POWER_MAX_REG                                     *((volatile int32u *)0x400010C0u)
+#define TX_POWER_MAX                                         *((volatile uint32_t *)0x400010C0u)
+#define TX_POWER_MAX_REG                                     *((volatile uint32_t *)0x400010C0u)
 #define TX_POWER_MAX_ADDR                                    (0x400010C0u)
 #define TX_POWER_MAX_RESET                                   (0x00000000u)
         /* MANUAL_POWER field */
@@ -1080,8 +1080,8 @@
         #define TX_POWER_MAX_TX_POWER_MAX_BIT                (0)
         #define TX_POWER_MAX_TX_POWER_MAX_BITS               (5)
 
-#define SYNTH_FREQ_H                                         *((volatile int32u *)0x400010C4u)
-#define SYNTH_FREQ_H_REG                                     *((volatile int32u *)0x400010C4u)
+#define SYNTH_FREQ_H                                         *((volatile uint32_t *)0x400010C4u)
+#define SYNTH_FREQ_H_REG                                     *((volatile uint32_t *)0x400010C4u)
 #define SYNTH_FREQ_H_ADDR                                    (0x400010C4u)
 #define SYNTH_FREQ_H_RESET                                   (0x00000003u)
         /* SYNTH_FREQ_H field */
@@ -1090,8 +1090,8 @@
         #define SYNTH_FREQ_H_SYNTH_FREQ_H_BIT                (0)
         #define SYNTH_FREQ_H_SYNTH_FREQ_H_BITS               (2)
 
-#define SYNTH_FREQ_L                                         *((volatile int32u *)0x400010C8u)
-#define SYNTH_FREQ_L_REG                                     *((volatile int32u *)0x400010C8u)
+#define SYNTH_FREQ_L                                         *((volatile uint32_t *)0x400010C8u)
+#define SYNTH_FREQ_L_REG                                     *((volatile uint32_t *)0x400010C8u)
 #define SYNTH_FREQ_L_ADDR                                    (0x400010C8u)
 #define SYNTH_FREQ_L_RESET                                   (0x00003800u)
         /* SYNTH_FREQ_L field */
@@ -1100,8 +1100,8 @@
         #define SYNTH_FREQ_L_SYNTH_FREQ_L_BIT                (0)
         #define SYNTH_FREQ_L_SYNTH_FREQ_L_BITS               (16)
 
-#define RSSI_INST                                            *((volatile int32u *)0x400010CCu)
-#define RSSI_INST_REG                                        *((volatile int32u *)0x400010CCu)
+#define RSSI_INST                                            *((volatile uint32_t *)0x400010CCu)
+#define RSSI_INST_REG                                        *((volatile uint32_t *)0x400010CCu)
 #define RSSI_INST_ADDR                                       (0x400010CCu)
 #define RSSI_INST_RESET                                      (0x00000000u)
         /* NEW_RSSI_INST field */
@@ -1115,8 +1115,8 @@
         #define RSSI_INST_RSSI_INST_BIT                      (0)
         #define RSSI_INST_RSSI_INST_BITS                     (9)
 
-#define FREQ_MEAS_CTRL1                                      *((volatile int32u *)0x400010D0u)
-#define FREQ_MEAS_CTRL1_REG                                  *((volatile int32u *)0x400010D0u)
+#define FREQ_MEAS_CTRL1                                      *((volatile uint32_t *)0x400010D0u)
+#define FREQ_MEAS_CTRL1_REG                                  *((volatile uint32_t *)0x400010D0u)
 #define FREQ_MEAS_CTRL1_ADDR                                 (0x400010D0u)
 #define FREQ_MEAS_CTRL1_RESET                                (0x00000160u)
         /* AUTO_TUNE_EN field */
@@ -1160,8 +1160,8 @@
         #define FREQ_MEAS_CTRL1_TUNE_VCO_INIT_BIT            (0)
         #define FREQ_MEAS_CTRL1_TUNE_VCO_INIT_BITS           (6)
 
-#define FREQ_MEAS_CTRL2                                      *((volatile int32u *)0x400010D4u)
-#define FREQ_MEAS_CTRL2_REG                                  *((volatile int32u *)0x400010D4u)
+#define FREQ_MEAS_CTRL2                                      *((volatile uint32_t *)0x400010D4u)
+#define FREQ_MEAS_CTRL2_REG                                  *((volatile uint32_t *)0x400010D4u)
 #define FREQ_MEAS_CTRL2_ADDR                                 (0x400010D4u)
 #define FREQ_MEAS_CTRL2_RESET                                (0x0000201Eu)
         /* FREQ_MEAS_TIMER field */
@@ -1175,8 +1175,8 @@
         #define FREQ_MEAS_CTRL2_TARGET_PERIOD_BIT            (0)
         #define FREQ_MEAS_CTRL2_TARGET_PERIOD_BITS           (8)
 
-#define FREQ_MEAS_SHIFT                                      *((volatile int32u *)0x400010D8u)
-#define FREQ_MEAS_SHIFT_REG                                  *((volatile int32u *)0x400010D8u)
+#define FREQ_MEAS_SHIFT                                      *((volatile uint32_t *)0x400010D8u)
+#define FREQ_MEAS_SHIFT_REG                                  *((volatile uint32_t *)0x400010D8u)
 #define FREQ_MEAS_SHIFT_ADDR                                 (0x400010D8u)
 #define FREQ_MEAS_SHIFT_RESET                                (0x00000035u)
         /* FREQ_MEAS_SHIFT field */
@@ -1185,8 +1185,8 @@
         #define FREQ_MEAS_SHIFT_FREQ_MEAS_SHIFT_BIT          (0)
         #define FREQ_MEAS_SHIFT_FREQ_MEAS_SHIFT_BITS         (8)
 
-#define FREQ_MEAS_STATUS1                                    *((volatile int32u *)0x400010DCu)
-#define FREQ_MEAS_STATUS1_REG                                *((volatile int32u *)0x400010DCu)
+#define FREQ_MEAS_STATUS1                                    *((volatile uint32_t *)0x400010DCu)
+#define FREQ_MEAS_STATUS1_REG                                *((volatile uint32_t *)0x400010DCu)
 #define FREQ_MEAS_STATUS1_ADDR                               (0x400010DCu)
 #define FREQ_MEAS_STATUS1_RESET                              (0x00000000u)
         /* INVALID_EDGE field */
@@ -1215,8 +1215,8 @@
         #define FREQ_MEAS_STATUS1_NEAREST_DIFF_BIT           (0)
         #define FREQ_MEAS_STATUS1_NEAREST_DIFF_BITS          (10)
 
-#define FREQ_MEAS_STATUS2                                    *((volatile int32u *)0x400010E0u)
-#define FREQ_MEAS_STATUS2_REG                                *((volatile int32u *)0x400010E0u)
+#define FREQ_MEAS_STATUS2                                    *((volatile uint32_t *)0x400010E0u)
+#define FREQ_MEAS_STATUS2_REG                                *((volatile uint32_t *)0x400010E0u)
 #define FREQ_MEAS_STATUS2_ADDR                               (0x400010E0u)
 #define FREQ_MEAS_STATUS2_RESET                              (0x00000000u)
         /* BEAT_TIMER field */
@@ -1230,8 +1230,8 @@
         #define FREQ_MEAS_STATUS2_BEATS_BIT                  (0)
         #define FREQ_MEAS_STATUS2_BEATS_BITS                 (6)
 
-#define FREQ_MEAS_STATUS3                                    *((volatile int32u *)0x400010E4u)
-#define FREQ_MEAS_STATUS3_REG                                *((volatile int32u *)0x400010E4u)
+#define FREQ_MEAS_STATUS3                                    *((volatile uint32_t *)0x400010E4u)
+#define FREQ_MEAS_STATUS3_REG                                *((volatile uint32_t *)0x400010E4u)
 #define FREQ_MEAS_STATUS3_ADDR                               (0x400010E4u)
 #define FREQ_MEAS_STATUS3_RESET                              (0x00000020u)
         /* TUNE_VCO field */
@@ -1240,8 +1240,8 @@
         #define FREQ_MEAS_STATUS3_TUNE_VCO_BIT               (0)
         #define FREQ_MEAS_STATUS3_TUNE_VCO_BITS              (6)
 
-#define SCR_CTRL                                             *((volatile int32u *)0x400010E8u)
-#define SCR_CTRL_REG                                         *((volatile int32u *)0x400010E8u)
+#define SCR_CTRL                                             *((volatile uint32_t *)0x400010E8u)
+#define SCR_CTRL_REG                                         *((volatile uint32_t *)0x400010E8u)
 #define SCR_CTRL_ADDR                                        (0x400010E8u)
 #define SCR_CTRL_RESET                                       (0x00000004u)
         /* SCR_RESET field */
@@ -1260,8 +1260,8 @@
         #define SCR_CTRL_SCR_READ_BIT                        (0)
         #define SCR_CTRL_SCR_READ_BITS                       (1)
 
-#define SCR_BUSY                                             *((volatile int32u *)0x400010ECu)
-#define SCR_BUSY_REG                                         *((volatile int32u *)0x400010ECu)
+#define SCR_BUSY                                             *((volatile uint32_t *)0x400010ECu)
+#define SCR_BUSY_REG                                         *((volatile uint32_t *)0x400010ECu)
 #define SCR_BUSY_ADDR                                        (0x400010ECu)
 #define SCR_BUSY_RESET                                       (0x00000000u)
         /* SCR_BUSY field */
@@ -1270,8 +1270,8 @@
         #define SCR_BUSY_SCR_BUSY_BIT                        (0)
         #define SCR_BUSY_SCR_BUSY_BITS                       (1)
 
-#define SCR_ADDR                                             *((volatile int32u *)0x400010F0u)
-#define SCR_ADDR_REG                                         *((volatile int32u *)0x400010F0u)
+#define SCR_ADDR                                             *((volatile uint32_t *)0x400010F0u)
+#define SCR_ADDR_REG                                         *((volatile uint32_t *)0x400010F0u)
 #define SCR_ADDR_ADDR                                        (0x400010F0u)
 #define SCR_ADDR_RESET                                       (0x00000000u)
         /* SCR_ADDR field */
@@ -1280,8 +1280,8 @@
         #define SCR_ADDR_SCR_ADDR_BIT                        (0)
         #define SCR_ADDR_SCR_ADDR_BITS                       (8)
 
-#define SCR_WRITE                                            *((volatile int32u *)0x400010F4u)
-#define SCR_WRITE_REG                                        *((volatile int32u *)0x400010F4u)
+#define SCR_WRITE                                            *((volatile uint32_t *)0x400010F4u)
+#define SCR_WRITE_REG                                        *((volatile uint32_t *)0x400010F4u)
 #define SCR_WRITE_ADDR                                       (0x400010F4u)
 #define SCR_WRITE_RESET                                      (0x00000000u)
         /* SCR_WRITE field */
@@ -1290,8 +1290,8 @@
         #define SCR_WRITE_SCR_WRITE_BIT                      (0)
         #define SCR_WRITE_SCR_WRITE_BITS                     (16)
 
-#define SCR_READ                                             *((volatile int32u *)0x400010F8u)
-#define SCR_READ_REG                                         *((volatile int32u *)0x400010F8u)
+#define SCR_READ                                             *((volatile uint32_t *)0x400010F8u)
+#define SCR_READ_REG                                         *((volatile uint32_t *)0x400010F8u)
 #define SCR_READ_ADDR                                        (0x400010F8u)
 #define SCR_READ_RESET                                       (0x00000000u)
         /* SCR_READ field */
@@ -1300,8 +1300,8 @@
         #define SCR_READ_SCR_READ_BIT                        (0)
         #define SCR_READ_SCR_READ_BITS                       (16)
 
-#define SYNTH_LOCK                                           *((volatile int32u *)0x400010FCu)
-#define SYNTH_LOCK_REG                                       *((volatile int32u *)0x400010FCu)
+#define SYNTH_LOCK                                           *((volatile uint32_t *)0x400010FCu)
+#define SYNTH_LOCK_REG                                       *((volatile uint32_t *)0x400010FCu)
 #define SYNTH_LOCK_ADDR                                      (0x400010FCu)
 #define SYNTH_LOCK_RESET                                     (0x00000000u)
         /* IN_LOCK field */
@@ -1310,8 +1310,8 @@
         #define SYNTH_LOCK_IN_LOCK_BIT                       (0)
         #define SYNTH_LOCK_IN_LOCK_BITS                      (1)
 
-#define AN_CAL_STATUS                                        *((volatile int32u *)0x40001100u)
-#define AN_CAL_STATUS_REG                                    *((volatile int32u *)0x40001100u)
+#define AN_CAL_STATUS                                        *((volatile uint32_t *)0x40001100u)
+#define AN_CAL_STATUS_REG                                    *((volatile uint32_t *)0x40001100u)
 #define AN_CAL_STATUS_ADDR                                   (0x40001100u)
 #define AN_CAL_STATUS_RESET                                  (0x00000000u)
         /* VCO_CTRL field */
@@ -1320,8 +1320,8 @@
         #define AN_CAL_STATUS_VCO_CTRL_BIT                   (2)
         #define AN_CAL_STATUS_VCO_CTRL_BITS                  (2)
 
-#define BIAS_CAL_STATUS                                      *((volatile int32u *)0x40001104u)
-#define BIAS_CAL_STATUS_REG                                  *((volatile int32u *)0x40001104u)
+#define BIAS_CAL_STATUS                                      *((volatile uint32_t *)0x40001104u)
+#define BIAS_CAL_STATUS_REG                                  *((volatile uint32_t *)0x40001104u)
 #define BIAS_CAL_STATUS_ADDR                                 (0x40001104u)
 #define BIAS_CAL_STATUS_RESET                                (0x00000000u)
         /* VCOMP field */
@@ -1335,8 +1335,8 @@
         #define BIAS_CAL_STATUS_ICOMP_BIT                    (0)
         #define BIAS_CAL_STATUS_ICOMP_BITS                   (1)
 
-#define ATEST_SEL                                            *((volatile int32u *)0x40001108u)
-#define ATEST_SEL_REG                                        *((volatile int32u *)0x40001108u)
+#define ATEST_SEL                                            *((volatile uint32_t *)0x40001108u)
+#define ATEST_SEL_REG                                        *((volatile uint32_t *)0x40001108u)
 #define ATEST_SEL_ADDR                                       (0x40001108u)
 #define ATEST_SEL_RESET                                      (0x00000000u)
         /* ATEST_CTRL field */
@@ -1350,8 +1350,8 @@
         #define ATEST_SEL_ATEST_SEL_BIT                      (0)
         #define ATEST_SEL_ATEST_SEL_BITS                     (5)
 
-#define AN_EN_TEST                                           *((volatile int32u *)0x4000110Cu)
-#define AN_EN_TEST_REG                                       *((volatile int32u *)0x4000110Cu)
+#define AN_EN_TEST                                           *((volatile uint32_t *)0x4000110Cu)
+#define AN_EN_TEST_REG                                       *((volatile uint32_t *)0x4000110Cu)
 #define AN_EN_TEST_ADDR                                      (0x4000110Cu)
 #define AN_EN_TEST_RESET                                     (0x00000000u)
         /* AN_TEST_MODE field */
@@ -1425,8 +1425,8 @@
         #define AN_EN_TEST_BIAS_EN_BIT                       (0)
         #define AN_EN_TEST_BIAS_EN_BITS                      (1)
 
-#define TUNE_FILTER_CTRL                                     *((volatile int32u *)0x40001110u)
-#define TUNE_FILTER_CTRL_REG                                 *((volatile int32u *)0x40001110u)
+#define TUNE_FILTER_CTRL                                     *((volatile uint32_t *)0x40001110u)
+#define TUNE_FILTER_CTRL_REG                                 *((volatile uint32_t *)0x40001110u)
 #define TUNE_FILTER_CTRL_ADDR                                (0x40001110u)
 #define TUNE_FILTER_CTRL_RESET                               (0x00000000u)
         /* TUNE_FILTER_EN field */
@@ -1440,8 +1440,8 @@
         #define TUNE_FILTER_CTRL_TUNE_FILTER_RESET_BIT       (0)
         #define TUNE_FILTER_CTRL_TUNE_FILTER_RESET_BITS      (1)
 
-#define NOISE_EN                                             *((volatile int32u *)0x40001114u)
-#define NOISE_EN_REG                                         *((volatile int32u *)0x40001114u)
+#define NOISE_EN                                             *((volatile uint32_t *)0x40001114u)
+#define NOISE_EN_REG                                         *((volatile uint32_t *)0x40001114u)
 #define NOISE_EN_ADDR                                        (0x40001114u)
 #define NOISE_EN_RESET                                       (0x00000000u)
         /* NOISE_EN field */
@@ -1455,8 +1455,8 @@
 #define DATA_MAC_END                                         (0x400020C8u)
 #define DATA_MAC_SIZE                                        (DATA_MAC_END - DATA_MAC_BASE + 1)
 
-#define MAC_RX_ST_ADDR_A                                     *((volatile int32u *)0x40002000u)
-#define MAC_RX_ST_ADDR_A_REG                                 *((volatile int32u *)0x40002000u)
+#define MAC_RX_ST_ADDR_A                                     *((volatile uint32_t *)0x40002000u)
+#define MAC_RX_ST_ADDR_A_REG                                 *((volatile uint32_t *)0x40002000u)
 #define MAC_RX_ST_ADDR_A_ADDR                                (0x40002000u)
 #define MAC_RX_ST_ADDR_A_RESET                               (0x20000000u)
         /* MAC_RAM_OFFS field */
@@ -1470,8 +1470,8 @@
         #define MAC_RX_ST_ADDR_A_MAC_RX_ST_ADDR_A_BIT        (1)
         #define MAC_RX_ST_ADDR_A_MAC_RX_ST_ADDR_A_BITS       (12)
 
-#define MAC_RX_END_ADDR_A                                    *((volatile int32u *)0x40002004u)
-#define MAC_RX_END_ADDR_A_REG                                *((volatile int32u *)0x40002004u)
+#define MAC_RX_END_ADDR_A                                    *((volatile uint32_t *)0x40002004u)
+#define MAC_RX_END_ADDR_A_REG                                *((volatile uint32_t *)0x40002004u)
 #define MAC_RX_END_ADDR_A_ADDR                               (0x40002004u)
 #define MAC_RX_END_ADDR_A_RESET                              (0x20000088u)
         /* MAC_RAM_OFFS field */
@@ -1485,8 +1485,8 @@
         #define MAC_RX_END_ADDR_A_MAC_RX_END_ADDR_A_BIT      (1)
         #define MAC_RX_END_ADDR_A_MAC_RX_END_ADDR_A_BITS     (12)
 
-#define MAC_RX_ST_ADDR_B                                     *((volatile int32u *)0x40002008u)
-#define MAC_RX_ST_ADDR_B_REG                                 *((volatile int32u *)0x40002008u)
+#define MAC_RX_ST_ADDR_B                                     *((volatile uint32_t *)0x40002008u)
+#define MAC_RX_ST_ADDR_B_REG                                 *((volatile uint32_t *)0x40002008u)
 #define MAC_RX_ST_ADDR_B_ADDR                                (0x40002008u)
 #define MAC_RX_ST_ADDR_B_RESET                               (0x20000000u)
         /* MAC_RAM_OFFS field */
@@ -1500,8 +1500,8 @@
         #define MAC_RX_ST_ADDR_B_MAC_RX_ST_ADDR_B_BIT        (1)
         #define MAC_RX_ST_ADDR_B_MAC_RX_ST_ADDR_B_BITS       (12)
 
-#define MAC_RX_END_ADDR_B                                    *((volatile int32u *)0x4000200Cu)
-#define MAC_RX_END_ADDR_B_REG                                *((volatile int32u *)0x4000200Cu)
+#define MAC_RX_END_ADDR_B                                    *((volatile uint32_t *)0x4000200Cu)
+#define MAC_RX_END_ADDR_B_REG                                *((volatile uint32_t *)0x4000200Cu)
 #define MAC_RX_END_ADDR_B_ADDR                               (0x4000200Cu)
 #define MAC_RX_END_ADDR_B_RESET                              (0x20000088u)
         /* MAC_RAM_OFFS field */
@@ -1515,8 +1515,8 @@
         #define MAC_RX_END_ADDR_B_MAC_RX_END_ADDR_B_BIT      (1)
         #define MAC_RX_END_ADDR_B_MAC_RX_END_ADDR_B_BITS     (12)
 
-#define MAC_TX_ST_ADDR_A                                     *((volatile int32u *)0x40002010u)
-#define MAC_TX_ST_ADDR_A_REG                                 *((volatile int32u *)0x40002010u)
+#define MAC_TX_ST_ADDR_A                                     *((volatile uint32_t *)0x40002010u)
+#define MAC_TX_ST_ADDR_A_REG                                 *((volatile uint32_t *)0x40002010u)
 #define MAC_TX_ST_ADDR_A_ADDR                                (0x40002010u)
 #define MAC_TX_ST_ADDR_A_RESET                               (0x20000000u)
         /* MAC_RAM_OFFS field */
@@ -1530,8 +1530,8 @@
         #define MAC_TX_ST_ADDR_A_MAC_TX_ST_ADDR_A_BIT        (1)
         #define MAC_TX_ST_ADDR_A_MAC_TX_ST_ADDR_A_BITS       (12)
 
-#define MAC_TX_END_ADDR_A                                    *((volatile int32u *)0x40002014u)
-#define MAC_TX_END_ADDR_A_REG                                *((volatile int32u *)0x40002014u)
+#define MAC_TX_END_ADDR_A                                    *((volatile uint32_t *)0x40002014u)
+#define MAC_TX_END_ADDR_A_REG                                *((volatile uint32_t *)0x40002014u)
 #define MAC_TX_END_ADDR_A_ADDR                               (0x40002014u)
 #define MAC_TX_END_ADDR_A_RESET                              (0x20000000u)
         /* MAC_RAM_OFFS field */
@@ -1545,8 +1545,8 @@
         #define MAC_TX_END_ADDR_A_MAC_TX_END_ADDR_A_BIT      (1)
         #define MAC_TX_END_ADDR_A_MAC_TX_END_ADDR_A_BITS     (12)
 
-#define MAC_TX_ST_ADDR_B                                     *((volatile int32u *)0x40002018u)
-#define MAC_TX_ST_ADDR_B_REG                                 *((volatile int32u *)0x40002018u)
+#define MAC_TX_ST_ADDR_B                                     *((volatile uint32_t *)0x40002018u)
+#define MAC_TX_ST_ADDR_B_REG                                 *((volatile uint32_t *)0x40002018u)
 #define MAC_TX_ST_ADDR_B_ADDR                                (0x40002018u)
 #define MAC_TX_ST_ADDR_B_RESET                               (0x20000000u)
         /* MAC_RAM_OFFS field */
@@ -1560,8 +1560,8 @@
         #define MAC_TX_ST_ADDR_B_MAC_TX_ST_ADDR_B_BIT        (1)
         #define MAC_TX_ST_ADDR_B_MAC_TX_ST_ADDR_B_BITS       (12)
 
-#define MAC_TX_END_ADDR_B                                    *((volatile int32u *)0x4000201Cu)
-#define MAC_TX_END_ADDR_B_REG                                *((volatile int32u *)0x4000201Cu)
+#define MAC_TX_END_ADDR_B                                    *((volatile uint32_t *)0x4000201Cu)
+#define MAC_TX_END_ADDR_B_REG                                *((volatile uint32_t *)0x4000201Cu)
 #define MAC_TX_END_ADDR_B_ADDR                               (0x4000201Cu)
 #define MAC_TX_END_ADDR_B_RESET                              (0x20000000u)
         /* MAC_RAM_OFFS field */
@@ -1575,8 +1575,8 @@
         #define MAC_TX_END_ADDR_B_MAC_TX_END_ADDR_B_BIT      (1)
         #define MAC_TX_END_ADDR_B_MAC_TX_END_ADDR_B_BITS     (12)
 
-#define RX_A_COUNT                                           *((volatile int32u *)0x40002020u)
-#define RX_A_COUNT_REG                                       *((volatile int32u *)0x40002020u)
+#define RX_A_COUNT                                           *((volatile uint32_t *)0x40002020u)
+#define RX_A_COUNT_REG                                       *((volatile uint32_t *)0x40002020u)
 #define RX_A_COUNT_ADDR                                      (0x40002020u)
 #define RX_A_COUNT_RESET                                     (0x00000000u)
         /* RX_A_COUNT field */
@@ -1585,8 +1585,8 @@
         #define RX_A_COUNT_RX_A_COUNT_BIT                    (0)
         #define RX_A_COUNT_RX_A_COUNT_BITS                   (11)
 
-#define RX_B_COUNT                                           *((volatile int32u *)0x40002024u)
-#define RX_B_COUNT_REG                                       *((volatile int32u *)0x40002024u)
+#define RX_B_COUNT                                           *((volatile uint32_t *)0x40002024u)
+#define RX_B_COUNT_REG                                       *((volatile uint32_t *)0x40002024u)
 #define RX_B_COUNT_ADDR                                      (0x40002024u)
 #define RX_B_COUNT_RESET                                     (0x00000000u)
         /* RX_B_COUNT field */
@@ -1595,8 +1595,8 @@
         #define RX_B_COUNT_RX_B_COUNT_BIT                    (0)
         #define RX_B_COUNT_RX_B_COUNT_BITS                   (11)
 
-#define TX_COUNT                                             *((volatile int32u *)0x40002028u)
-#define TX_COUNT_REG                                         *((volatile int32u *)0x40002028u)
+#define TX_COUNT                                             *((volatile uint32_t *)0x40002028u)
+#define TX_COUNT_REG                                         *((volatile uint32_t *)0x40002028u)
 #define TX_COUNT_ADDR                                        (0x40002028u)
 #define TX_COUNT_RESET                                       (0x00000000u)
         /* TX_COUNT field */
@@ -1605,8 +1605,8 @@
         #define TX_COUNT_TX_COUNT_BIT                        (0)
         #define TX_COUNT_TX_COUNT_BITS                       (11)
 
-#define MAC_DMA_STATUS                                       *((volatile int32u *)0x4000202Cu)
-#define MAC_DMA_STATUS_REG                                   *((volatile int32u *)0x4000202Cu)
+#define MAC_DMA_STATUS                                       *((volatile uint32_t *)0x4000202Cu)
+#define MAC_DMA_STATUS_REG                                   *((volatile uint32_t *)0x4000202Cu)
 #define MAC_DMA_STATUS_ADDR                                  (0x4000202Cu)
 #define MAC_DMA_STATUS_RESET                                 (0x00000000u)
         /* TX_ACTIVE_B field */
@@ -1630,8 +1630,8 @@
         #define MAC_DMA_STATUS_RX_ACTIVE_A_BIT               (0)
         #define MAC_DMA_STATUS_RX_ACTIVE_A_BITS              (1)
 
-#define MAC_DMA_CONFIG                                       *((volatile int32u *)0x40002030u)
-#define MAC_DMA_CONFIG_REG                                   *((volatile int32u *)0x40002030u)
+#define MAC_DMA_CONFIG                                       *((volatile uint32_t *)0x40002030u)
+#define MAC_DMA_CONFIG_REG                                   *((volatile uint32_t *)0x40002030u)
 #define MAC_DMA_CONFIG_ADDR                                  (0x40002030u)
 #define MAC_DMA_CONFIG_RESET                                 (0x00000000u)
         /* TX_DMA_RESET field */
@@ -1665,8 +1665,8 @@
         #define MAC_DMA_CONFIG_RX_LOAD_A_BIT                 (0)
         #define MAC_DMA_CONFIG_RX_LOAD_A_BITS                (1)
 
-#define MAC_TIMER                                            *((volatile int32u *)0x40002038u)
-#define MAC_TIMER_REG                                        *((volatile int32u *)0x40002038u)
+#define MAC_TIMER                                            *((volatile uint32_t *)0x40002038u)
+#define MAC_TIMER_REG                                        *((volatile uint32_t *)0x40002038u)
 #define MAC_TIMER_ADDR                                       (0x40002038u)
 #define MAC_TIMER_RESET                                      (0x00000000u)
         /* MAC_TIMER field */
@@ -1675,8 +1675,8 @@
         #define MAC_TIMER_MAC_TIMER_BIT                      (0)
         #define MAC_TIMER_MAC_TIMER_BITS                     (20)
 
-#define MAC_TIMER_COMPARE_A_H                                *((volatile int32u *)0x40002040u)
-#define MAC_TIMER_COMPARE_A_H_REG                            *((volatile int32u *)0x40002040u)
+#define MAC_TIMER_COMPARE_A_H                                *((volatile uint32_t *)0x40002040u)
+#define MAC_TIMER_COMPARE_A_H_REG                            *((volatile uint32_t *)0x40002040u)
 #define MAC_TIMER_COMPARE_A_H_ADDR                           (0x40002040u)
 #define MAC_TIMER_COMPARE_A_H_RESET                          (0x00000000u)
         /* MAC_COMPARE_A_H field */
@@ -1685,8 +1685,8 @@
         #define MAC_TIMER_COMPARE_A_H_MAC_COMPARE_A_H_BIT    (0)
         #define MAC_TIMER_COMPARE_A_H_MAC_COMPARE_A_H_BITS   (4)
 
-#define MAC_TIMER_COMPARE_A_L                                *((volatile int32u *)0x40002044u)
-#define MAC_TIMER_COMPARE_A_L_REG                            *((volatile int32u *)0x40002044u)
+#define MAC_TIMER_COMPARE_A_L                                *((volatile uint32_t *)0x40002044u)
+#define MAC_TIMER_COMPARE_A_L_REG                            *((volatile uint32_t *)0x40002044u)
 #define MAC_TIMER_COMPARE_A_L_ADDR                           (0x40002044u)
 #define MAC_TIMER_COMPARE_A_L_RESET                          (0x00000000u)
         /* MAC_COMPARE_A_L field */
@@ -1695,8 +1695,8 @@
         #define MAC_TIMER_COMPARE_A_L_MAC_COMPARE_A_L_BIT    (0)
         #define MAC_TIMER_COMPARE_A_L_MAC_COMPARE_A_L_BITS   (16)
 
-#define MAC_TIMER_COMPARE_B_H                                *((volatile int32u *)0x40002048u)
-#define MAC_TIMER_COMPARE_B_H_REG                            *((volatile int32u *)0x40002048u)
+#define MAC_TIMER_COMPARE_B_H                                *((volatile uint32_t *)0x40002048u)
+#define MAC_TIMER_COMPARE_B_H_REG                            *((volatile uint32_t *)0x40002048u)
 #define MAC_TIMER_COMPARE_B_H_ADDR                           (0x40002048u)
 #define MAC_TIMER_COMPARE_B_H_RESET                          (0x00000000u)
         /* MAC_COMPARE_B_H field */
@@ -1705,8 +1705,8 @@
         #define MAC_TIMER_COMPARE_B_H_MAC_COMPARE_B_H_BIT    (0)
         #define MAC_TIMER_COMPARE_B_H_MAC_COMPARE_B_H_BITS   (4)
 
-#define MAC_TIMER_COMPARE_B_L                                *((volatile int32u *)0x4000204Cu)
-#define MAC_TIMER_COMPARE_B_L_REG                            *((volatile int32u *)0x4000204Cu)
+#define MAC_TIMER_COMPARE_B_L                                *((volatile uint32_t *)0x4000204Cu)
+#define MAC_TIMER_COMPARE_B_L_REG                            *((volatile uint32_t *)0x4000204Cu)
 #define MAC_TIMER_COMPARE_B_L_ADDR                           (0x4000204Cu)
 #define MAC_TIMER_COMPARE_B_L_RESET                          (0x00000000u)
         /* MAC_COMPARE_B_L field */
@@ -1715,8 +1715,8 @@
         #define MAC_TIMER_COMPARE_B_L_MAC_COMPARE_B_L_BIT    (0)
         #define MAC_TIMER_COMPARE_B_L_MAC_COMPARE_B_L_BITS   (16)
 
-#define MAC_TIMER_CAPTURE_H                                  *((volatile int32u *)0x40002050u)
-#define MAC_TIMER_CAPTURE_H_REG                              *((volatile int32u *)0x40002050u)
+#define MAC_TIMER_CAPTURE_H                                  *((volatile uint32_t *)0x40002050u)
+#define MAC_TIMER_CAPTURE_H_REG                              *((volatile uint32_t *)0x40002050u)
 #define MAC_TIMER_CAPTURE_H_ADDR                             (0x40002050u)
 #define MAC_TIMER_CAPTURE_H_RESET                            (0x00000000u)
         /* MAC_SFD_CAPTURE_HIGH field */
@@ -1725,8 +1725,8 @@
         #define MAC_TIMER_CAPTURE_H_MAC_SFD_CAPTURE_HIGH_BIT (0)
         #define MAC_TIMER_CAPTURE_H_MAC_SFD_CAPTURE_HIGH_BITS (4)
 
-#define MAC_TIMER_CAPTURE_L                                  *((volatile int32u *)0x40002054u)
-#define MAC_TIMER_CAPTURE_L_REG                              *((volatile int32u *)0x40002054u)
+#define MAC_TIMER_CAPTURE_L                                  *((volatile uint32_t *)0x40002054u)
+#define MAC_TIMER_CAPTURE_L_REG                              *((volatile uint32_t *)0x40002054u)
 #define MAC_TIMER_CAPTURE_L_ADDR                             (0x40002054u)
 #define MAC_TIMER_CAPTURE_L_RESET                            (0x00000000u)
         /* MAC_SFD_CAPTURE_LOW field */
@@ -1735,8 +1735,8 @@
         #define MAC_TIMER_CAPTURE_L_MAC_SFD_CAPTURE_LOW_BIT  (0)
         #define MAC_TIMER_CAPTURE_L_MAC_SFD_CAPTURE_LOW_BITS (16)
 
-#define MAC_BO_TIMER                                         *((volatile int32u *)0x40002058u)
-#define MAC_BO_TIMER_REG                                     *((volatile int32u *)0x40002058u)
+#define MAC_BO_TIMER                                         *((volatile uint32_t *)0x40002058u)
+#define MAC_BO_TIMER_REG                                     *((volatile uint32_t *)0x40002058u)
 #define MAC_BO_TIMER_ADDR                                    (0x40002058u)
 #define MAC_BO_TIMER_RESET                                   (0x00000000u)
         /* MAC_BO_TIMER field */
@@ -1745,8 +1745,8 @@
         #define MAC_BO_TIMER_MAC_BO_TIMER_BIT                (0)
         #define MAC_BO_TIMER_MAC_BO_TIMER_BITS               (12)
 
-#define MAC_BOP_TIMER                                        *((volatile int32u *)0x4000205Cu)
-#define MAC_BOP_TIMER_REG                                    *((volatile int32u *)0x4000205Cu)
+#define MAC_BOP_TIMER                                        *((volatile uint32_t *)0x4000205Cu)
+#define MAC_BOP_TIMER_REG                                    *((volatile uint32_t *)0x4000205Cu)
 #define MAC_BOP_TIMER_ADDR                                   (0x4000205Cu)
 #define MAC_BOP_TIMER_RESET                                  (0x00000000u)
         /* MAC_BOP_TIMER field */
@@ -1755,8 +1755,8 @@
         #define MAC_BOP_TIMER_MAC_BOP_TIMER_BIT              (0)
         #define MAC_BOP_TIMER_MAC_BOP_TIMER_BITS             (7)
 
-#define MAC_TX_STROBE                                        *((volatile int32u *)0x40002060u)
-#define MAC_TX_STROBE_REG                                    *((volatile int32u *)0x40002060u)
+#define MAC_TX_STROBE                                        *((volatile uint32_t *)0x40002060u)
+#define MAC_TX_STROBE_REG                                    *((volatile uint32_t *)0x40002060u)
 #define MAC_TX_STROBE_ADDR                                   (0x40002060u)
 #define MAC_TX_STROBE_RESET                                  (0x00000000u)
         /* AUTO_CRC_TX field */
@@ -1780,8 +1780,8 @@
         #define MAC_TX_STROBE_START_TX_BIT                   (0)
         #define MAC_TX_STROBE_START_TX_BITS                  (1)
 
-#define MAC_ACK_STROBE                                       *((volatile int32u *)0x40002064u)
-#define MAC_ACK_STROBE_REG                                   *((volatile int32u *)0x40002064u)
+#define MAC_ACK_STROBE                                       *((volatile uint32_t *)0x40002064u)
+#define MAC_ACK_STROBE_REG                                   *((volatile uint32_t *)0x40002064u)
 #define MAC_ACK_STROBE_ADDR                                  (0x40002064u)
 #define MAC_ACK_STROBE_RESET                                 (0x00000000u)
         /* MANUAL_ACK field */
@@ -1795,8 +1795,8 @@
         #define MAC_ACK_STROBE_FRAME_PENDING_BIT             (0)
         #define MAC_ACK_STROBE_FRAME_PENDING_BITS            (1)
 
-#define MAC_STATUS                                           *((volatile int32u *)0x40002068u)
-#define MAC_STATUS_REG                                       *((volatile int32u *)0x40002068u)
+#define MAC_STATUS                                           *((volatile uint32_t *)0x40002068u)
+#define MAC_STATUS_REG                                       *((volatile uint32_t *)0x40002068u)
 #define MAC_STATUS_ADDR                                      (0x40002068u)
 #define MAC_STATUS_RESET                                     (0x00000000u)
         /* RX_B_PEND_TX_ACK field */
@@ -1860,8 +1860,8 @@
         #define MAC_STATUS_RX_CRC_PASS_BIT                   (0)
         #define MAC_STATUS_RX_CRC_PASS_BITS                  (1)
 
-#define TX_CRC                                               *((volatile int32u *)0x4000206Cu)
-#define TX_CRC_REG                                           *((volatile int32u *)0x4000206Cu)
+#define TX_CRC                                               *((volatile uint32_t *)0x4000206Cu)
+#define TX_CRC_REG                                           *((volatile uint32_t *)0x4000206Cu)
 #define TX_CRC_ADDR                                          (0x4000206Cu)
 #define TX_CRC_RESET                                         (0x00000000u)
         /* TX_CRC field */
@@ -1870,8 +1870,8 @@
         #define TX_CRC_TX_CRC_BIT                            (0)
         #define TX_CRC_TX_CRC_BITS                           (16)
 
-#define RX_CRC                                               *((volatile int32u *)0x40002070u)
-#define RX_CRC_REG                                           *((volatile int32u *)0x40002070u)
+#define RX_CRC                                               *((volatile uint32_t *)0x40002070u)
+#define RX_CRC_REG                                           *((volatile uint32_t *)0x40002070u)
 #define RX_CRC_ADDR                                          (0x40002070u)
 #define RX_CRC_RESET                                         (0x00000000u)
         /* RX_CRC field */
@@ -1880,8 +1880,8 @@
         #define RX_CRC_RX_CRC_BIT                            (0)
         #define RX_CRC_RX_CRC_BITS                           (16)
 
-#define MAC_ACK_TO                                           *((volatile int32u *)0x40002074u)
-#define MAC_ACK_TO_REG                                       *((volatile int32u *)0x40002074u)
+#define MAC_ACK_TO                                           *((volatile uint32_t *)0x40002074u)
+#define MAC_ACK_TO_REG                                       *((volatile uint32_t *)0x40002074u)
 #define MAC_ACK_TO_ADDR                                      (0x40002074u)
 #define MAC_ACK_TO_RESET                                     (0x00000300u)
         /* ACK_TO field */
@@ -1890,8 +1890,8 @@
         #define MAC_ACK_TO_ACK_TO_BIT                        (0)
         #define MAC_ACK_TO_ACK_TO_BITS                       (14)
 
-#define MAC_BOP_COMPARE                                      *((volatile int32u *)0x40002078u)
-#define MAC_BOP_COMPARE_REG                                  *((volatile int32u *)0x40002078u)
+#define MAC_BOP_COMPARE                                      *((volatile uint32_t *)0x40002078u)
+#define MAC_BOP_COMPARE_REG                                  *((volatile uint32_t *)0x40002078u)
 #define MAC_BOP_COMPARE_ADDR                                 (0x40002078u)
 #define MAC_BOP_COMPARE_RESET                                (0x00000014u)
         /* MAC_BOP_COMPARE field */
@@ -1900,8 +1900,8 @@
         #define MAC_BOP_COMPARE_MAC_BOP_COMPARE_BIT          (0)
         #define MAC_BOP_COMPARE_MAC_BOP_COMPARE_BITS         (7)
 
-#define MAC_TX_ACK_FRAME                                     *((volatile int32u *)0x4000207Cu)
-#define MAC_TX_ACK_FRAME_REG                                 *((volatile int32u *)0x4000207Cu)
+#define MAC_TX_ACK_FRAME                                     *((volatile uint32_t *)0x4000207Cu)
+#define MAC_TX_ACK_FRAME_REG                                 *((volatile uint32_t *)0x4000207Cu)
 #define MAC_TX_ACK_FRAME_ADDR                                (0x4000207Cu)
 #define MAC_TX_ACK_FRAME_RESET                               (0x00000002u)
         /* ACK_SRC_AM field */
@@ -1950,8 +1950,8 @@
         #define MAC_TX_ACK_FRAME_ACK_FRAME_T_BIT             (0)
         #define MAC_TX_ACK_FRAME_ACK_FRAME_T_BITS            (3)
 
-#define MAC_CONFIG                                           *((volatile int32u *)0x40002080u)
-#define MAC_CONFIG_REG                                       *((volatile int32u *)0x40002080u)
+#define MAC_CONFIG                                           *((volatile uint32_t *)0x40002080u)
+#define MAC_CONFIG_REG                                       *((volatile uint32_t *)0x40002080u)
 #define MAC_CONFIG_ADDR                                      (0x40002080u)
 #define MAC_CONFIG_RESET                                     (0x00000000u)
         /* RSSI_INST_EN field */
@@ -1970,8 +1970,8 @@
         #define MAC_CONFIG_MAC_MODE_BIT                      (0)
         #define MAC_CONFIG_MAC_MODE_BITS                     (1)
 
-#define MAC_RX_CONFIG                                        *((volatile int32u *)0x40002084u)
-#define MAC_RX_CONFIG_REG                                    *((volatile int32u *)0x40002084u)
+#define MAC_RX_CONFIG                                        *((volatile uint32_t *)0x40002084u)
+#define MAC_RX_CONFIG_REG                                    *((volatile uint32_t *)0x40002084u)
 #define MAC_RX_CONFIG_ADDR                                   (0x40002084u)
 #define MAC_RX_CONFIG_RESET                                  (0x00000000u)
         /* AUTO_ACK field */
@@ -2015,8 +2015,8 @@
         #define MAC_RX_CONFIG_MAC_RX_RST_BIT                 (0)
         #define MAC_RX_CONFIG_MAC_RX_RST_BITS                (1)
 
-#define MAC_TX_CONFIG                                        *((volatile int32u *)0x40002088u)
-#define MAC_TX_CONFIG_REG                                    *((volatile int32u *)0x40002088u)
+#define MAC_TX_CONFIG                                        *((volatile uint32_t *)0x40002088u)
+#define MAC_TX_CONFIG_REG                                    *((volatile uint32_t *)0x40002088u)
 #define MAC_TX_CONFIG_ADDR                                   (0x40002088u)
 #define MAC_TX_CONFIG_RESET                                  (0x00000008u)
         /* SLOTTED field */
@@ -2045,8 +2045,8 @@
         #define MAC_TX_CONFIG_WAIT_ACK_BIT                   (0)
         #define MAC_TX_CONFIG_WAIT_ACK_BITS                  (1)
 
-#define MAC_TIMER_CTRL                                       *((volatile int32u *)0x4000208Cu)
-#define MAC_TIMER_CTRL_REG                                   *((volatile int32u *)0x4000208Cu)
+#define MAC_TIMER_CTRL                                       *((volatile uint32_t *)0x4000208Cu)
+#define MAC_TIMER_CTRL_REG                                   *((volatile uint32_t *)0x4000208Cu)
 #define MAC_TIMER_CTRL_ADDR                                  (0x4000208Cu)
 #define MAC_TIMER_CTRL_RESET                                 (0x00000000u)
         /* COMP_A_SYNC field */
@@ -2085,8 +2085,8 @@
         #define MAC_TIMER_CTRL_MAC_TIMER_EN_BIT              (0)
         #define MAC_TIMER_CTRL_MAC_TIMER_EN_BITS             (1)
 
-#define PAN_ID                                               *((volatile int32u *)0x40002090u)
-#define PAN_ID_REG                                           *((volatile int32u *)0x40002090u)
+#define PAN_ID                                               *((volatile uint32_t *)0x40002090u)
+#define PAN_ID_REG                                           *((volatile uint32_t *)0x40002090u)
 #define PAN_ID_ADDR                                          (0x40002090u)
 #define PAN_ID_RESET                                         (0x00000000u)
         /* PAN_ID field */
@@ -2095,8 +2095,8 @@
         #define PAN_ID_PAN_ID_BIT                            (0)
         #define PAN_ID_PAN_ID_BITS                           (16)
 
-#define SHORT_ADDR                                           *((volatile int32u *)0x40002094u)
-#define SHORT_ADDR_REG                                       *((volatile int32u *)0x40002094u)
+#define SHORT_ADDR                                           *((volatile uint32_t *)0x40002094u)
+#define SHORT_ADDR_REG                                       *((volatile uint32_t *)0x40002094u)
 #define SHORT_ADDR_ADDR                                      (0x40002094u)
 #define SHORT_ADDR_RESET                                     (0x00000000u)
         /* SHORT_ADDR field */
@@ -2105,8 +2105,8 @@
         #define SHORT_ADDR_SHORT_ADDR_BIT                    (0)
         #define SHORT_ADDR_SHORT_ADDR_BITS                   (16)
 
-#define EXT_ADDR_0                                           *((volatile int32u *)0x40002098u)
-#define EXT_ADDR_0_REG                                       *((volatile int32u *)0x40002098u)
+#define EXT_ADDR_0                                           *((volatile uint32_t *)0x40002098u)
+#define EXT_ADDR_0_REG                                       *((volatile uint32_t *)0x40002098u)
 #define EXT_ADDR_0_ADDR                                      (0x40002098u)
 #define EXT_ADDR_0_RESET                                     (0x00000000u)
         /* EXT_ADDR_0 field */
@@ -2115,8 +2115,8 @@
         #define EXT_ADDR_0_EXT_ADDR_0_BIT                    (0)
         #define EXT_ADDR_0_EXT_ADDR_0_BITS                   (16)
 
-#define EXT_ADDR_1                                           *((volatile int32u *)0x4000209Cu)
-#define EXT_ADDR_1_REG                                       *((volatile int32u *)0x4000209Cu)
+#define EXT_ADDR_1                                           *((volatile uint32_t *)0x4000209Cu)
+#define EXT_ADDR_1_REG                                       *((volatile uint32_t *)0x4000209Cu)
 #define EXT_ADDR_1_ADDR                                      (0x4000209Cu)
 #define EXT_ADDR_1_RESET                                     (0x00000000u)
         /* EXT_ADDR_1 field */
@@ -2125,8 +2125,8 @@
         #define EXT_ADDR_1_EXT_ADDR_1_BIT                    (0)
         #define EXT_ADDR_1_EXT_ADDR_1_BITS                   (16)
 
-#define EXT_ADDR_2                                           *((volatile int32u *)0x400020A0u)
-#define EXT_ADDR_2_REG                                       *((volatile int32u *)0x400020A0u)
+#define EXT_ADDR_2                                           *((volatile uint32_t *)0x400020A0u)
+#define EXT_ADDR_2_REG                                       *((volatile uint32_t *)0x400020A0u)
 #define EXT_ADDR_2_ADDR                                      (0x400020A0u)
 #define EXT_ADDR_2_RESET                                     (0x00000000u)
         /* EXT_ADDR_2 field */
@@ -2135,8 +2135,8 @@
         #define EXT_ADDR_2_EXT_ADDR_2_BIT                    (0)
         #define EXT_ADDR_2_EXT_ADDR_2_BITS                   (16)
 
-#define EXT_ADDR_3                                           *((volatile int32u *)0x400020A4u)
-#define EXT_ADDR_3_REG                                       *((volatile int32u *)0x400020A4u)
+#define EXT_ADDR_3                                           *((volatile uint32_t *)0x400020A4u)
+#define EXT_ADDR_3_REG                                       *((volatile uint32_t *)0x400020A4u)
 #define EXT_ADDR_3_ADDR                                      (0x400020A4u)
 #define EXT_ADDR_3_RESET                                     (0x00000000u)
         /* EXT_ADDR_3 field */
@@ -2145,8 +2145,8 @@
         #define EXT_ADDR_3_EXT_ADDR_3_BIT                    (0)
         #define EXT_ADDR_3_EXT_ADDR_3_BITS                   (16)
 
-#define MAC_STATE                                            *((volatile int32u *)0x400020A8u)
-#define MAC_STATE_REG                                        *((volatile int32u *)0x400020A8u)
+#define MAC_STATE                                            *((volatile uint32_t *)0x400020A8u)
+#define MAC_STATE_REG                                        *((volatile uint32_t *)0x400020A8u)
 #define MAC_STATE_ADDR                                       (0x400020A8u)
 #define MAC_STATE_RESET                                      (0x00000000u)
         /* SPY_STATE field */
@@ -2170,8 +2170,8 @@
         #define MAC_STATE_TOP_STATE_BIT                      (0)
         #define MAC_STATE_TOP_STATE_BITS                     (2)
 
-#define RX_STATE                                             *((volatile int32u *)0x400020ACu)
-#define RX_STATE_REG                                         *((volatile int32u *)0x400020ACu)
+#define RX_STATE                                             *((volatile uint32_t *)0x400020ACu)
+#define RX_STATE_REG                                         *((volatile uint32_t *)0x400020ACu)
 #define RX_STATE_ADDR                                        (0x400020ACu)
 #define RX_STATE_RESET                                       (0x00000000u)
         /* RX_BUFFER_STATE field */
@@ -2185,8 +2185,8 @@
         #define RX_STATE_RX_TOP_STATE_BIT                    (0)
         #define RX_STATE_RX_TOP_STATE_BITS                   (5)
 
-#define TX_STATE                                             *((volatile int32u *)0x400020B0u)
-#define TX_STATE_REG                                         *((volatile int32u *)0x400020B0u)
+#define TX_STATE                                             *((volatile uint32_t *)0x400020B0u)
+#define TX_STATE_REG                                         *((volatile uint32_t *)0x400020B0u)
 #define TX_STATE_ADDR                                        (0x400020B0u)
 #define TX_STATE_RESET                                       (0x00000000u)
         /* TX_BUFFER_STATE field */
@@ -2200,8 +2200,8 @@
         #define TX_STATE_TX_TOP_STATE_BIT                    (0)
         #define TX_STATE_TX_TOP_STATE_BITS                   (4)
 
-#define DMA_STATE                                            *((volatile int32u *)0x400020B4u)
-#define DMA_STATE_REG                                        *((volatile int32u *)0x400020B4u)
+#define DMA_STATE                                            *((volatile uint32_t *)0x400020B4u)
+#define DMA_STATE_REG                                        *((volatile uint32_t *)0x400020B4u)
 #define DMA_STATE_ADDR                                       (0x400020B4u)
 #define DMA_STATE_RESET                                      (0x00000000u)
         /* DMA_RX_STATE field */
@@ -2215,8 +2215,8 @@
         #define DMA_STATE_DMA_TX_STATE_BIT                   (0)
         #define DMA_STATE_DMA_TX_STATE_BITS                  (3)
 
-#define MAC_DEBUG                                            *((volatile int32u *)0x400020B8u)
-#define MAC_DEBUG_REG                                        *((volatile int32u *)0x400020B8u)
+#define MAC_DEBUG                                            *((volatile uint32_t *)0x400020B8u)
+#define MAC_DEBUG_REG                                        *((volatile uint32_t *)0x400020B8u)
 #define MAC_DEBUG_ADDR                                       (0x400020B8u)
 #define MAC_DEBUG_RESET                                      (0x00000000u)
         /* SW_DEBUG_OUT field */
@@ -2230,8 +2230,8 @@
         #define MAC_DEBUG_MAC_DEBUG_MUX_BIT                  (0)
         #define MAC_DEBUG_MAC_DEBUG_MUX_BITS                 (5)
 
-#define MAC_DEBUG_VIEW                                       *((volatile int32u *)0x400020BCu)
-#define MAC_DEBUG_VIEW_REG                                   *((volatile int32u *)0x400020BCu)
+#define MAC_DEBUG_VIEW                                       *((volatile uint32_t *)0x400020BCu)
+#define MAC_DEBUG_VIEW_REG                                   *((volatile uint32_t *)0x400020BCu)
 #define MAC_DEBUG_VIEW_ADDR                                  (0x400020BCu)
 #define MAC_DEBUG_VIEW_RESET                                 (0x00000010u)
         /* MAC_DEBUG_VIEW field */
@@ -2240,8 +2240,8 @@
         #define MAC_DEBUG_VIEW_MAC_DEBUG_VIEW_BIT            (0)
         #define MAC_DEBUG_VIEW_MAC_DEBUG_VIEW_BITS           (16)
 
-#define MAC_RSSI_DELAY                                       *((volatile int32u *)0x400020C0u)
-#define MAC_RSSI_DELAY_REG                                   *((volatile int32u *)0x400020C0u)
+#define MAC_RSSI_DELAY                                       *((volatile uint32_t *)0x400020C0u)
+#define MAC_RSSI_DELAY_REG                                   *((volatile uint32_t *)0x400020C0u)
 #define MAC_RSSI_DELAY_ADDR                                  (0x400020C0u)
 #define MAC_RSSI_DELAY_RESET                                 (0x00000000u)
         /* RSSI_INST_DELAY_OK field */
@@ -2255,8 +2255,8 @@
         #define MAC_RSSI_DELAY_RSSI_INST_DELAY_BIT           (0)
         #define MAC_RSSI_DELAY_RSSI_INST_DELAY_BITS          (6)
 
-#define PANID_COUNT                                          *((volatile int32u *)0x400020C4u)
-#define PANID_COUNT_REG                                      *((volatile int32u *)0x400020C4u)
+#define PANID_COUNT                                          *((volatile uint32_t *)0x400020C4u)
+#define PANID_COUNT_REG                                      *((volatile uint32_t *)0x400020C4u)
 #define PANID_COUNT_ADDR                                     (0x400020C4u)
 #define PANID_COUNT_RESET                                    (0x00000000u)
         /* PANID_COUNT field */
@@ -2265,8 +2265,8 @@
         #define PANID_COUNT_PANID_COUNT_BIT                  (0)
         #define PANID_COUNT_PANID_COUNT_BITS                 (16)
 
-#define NONPAN_COUNT                                         *((volatile int32u *)0x400020C8u)
-#define NONPAN_COUNT_REG                                     *((volatile int32u *)0x400020C8u)
+#define NONPAN_COUNT                                         *((volatile uint32_t *)0x400020C8u)
+#define NONPAN_COUNT_REG                                     *((volatile uint32_t *)0x400020C8u)
 #define NONPAN_COUNT_ADDR                                    (0x400020C8u)
 #define NONPAN_COUNT_RESET                                   (0x00000000u)
         /* NONPAN_COUNT field */
@@ -2280,8 +2280,8 @@
 #define DATA_SECURITY_END                                    (0x40003044u)
 #define DATA_SECURITY_SIZE                                   (DATA_SECURITY_END - DATA_SECURITY_BASE + 1)
 
-#define SECURITY_CONFIG                                      *((volatile int32u *)0x40003000u)
-#define SECURITY_CONFIG_REG                                  *((volatile int32u *)0x40003000u)
+#define SECURITY_CONFIG                                      *((volatile uint32_t *)0x40003000u)
+#define SECURITY_CONFIG_REG                                  *((volatile uint32_t *)0x40003000u)
 #define SECURITY_CONFIG_ADDR                                 (0x40003000u)
 #define SECURITY_CONFIG_RESET                                (0x00000000u)
         /* SEC_RST field */
@@ -2325,8 +2325,8 @@
         #define SECURITY_CONFIG_START_AES_BIT                (0)
         #define SECURITY_CONFIG_START_AES_BITS               (1)
 
-#define SECURITY_STATUS                                      *((volatile int32u *)0x40003004u)
-#define SECURITY_STATUS_REG                                  *((volatile int32u *)0x40003004u)
+#define SECURITY_STATUS                                      *((volatile uint32_t *)0x40003004u)
+#define SECURITY_STATUS_REG                                  *((volatile uint32_t *)0x40003004u)
 #define SECURITY_STATUS_ADDR                                 (0x40003004u)
 #define SECURITY_STATUS_RESET                                (0x00000000u)
         /* SEC_BUSY field */
@@ -2335,8 +2335,8 @@
         #define SECURITY_STATUS_SEC_BUSY_BIT                 (0)
         #define SECURITY_STATUS_SEC_BUSY_BITS                (1)
 
-#define CBC_STATE_0                                          *((volatile int32u *)0x40003008u)
-#define CBC_STATE_0_REG                                      *((volatile int32u *)0x40003008u)
+#define CBC_STATE_0                                          *((volatile uint32_t *)0x40003008u)
+#define CBC_STATE_0_REG                                      *((volatile uint32_t *)0x40003008u)
 #define CBC_STATE_0_ADDR                                     (0x40003008u)
 #define CBC_STATE_0_RESET                                    (0x00000000u)
         /* CBC_STATE field */
@@ -2345,8 +2345,8 @@
         #define CBC_STATE_0_CBC_STATE_BIT                    (0)
         #define CBC_STATE_0_CBC_STATE_BITS                   (32)
 
-#define CBC_STATE_1                                          *((volatile int32u *)0x4000300Cu)
-#define CBC_STATE_1_REG                                      *((volatile int32u *)0x4000300Cu)
+#define CBC_STATE_1                                          *((volatile uint32_t *)0x4000300Cu)
+#define CBC_STATE_1_REG                                      *((volatile uint32_t *)0x4000300Cu)
 #define CBC_STATE_1_ADDR                                     (0x4000300Cu)
 #define CBC_STATE_1_RESET                                    (0x00000000u)
         /* CBC_STATE_1 field */
@@ -2355,8 +2355,8 @@
         #define CBC_STATE_1_CBC_STATE_1_BIT                  (0)
         #define CBC_STATE_1_CBC_STATE_1_BITS                 (32)
 
-#define CBC_STATE_2                                          *((volatile int32u *)0x40003010u)
-#define CBC_STATE_2_REG                                      *((volatile int32u *)0x40003010u)
+#define CBC_STATE_2                                          *((volatile uint32_t *)0x40003010u)
+#define CBC_STATE_2_REG                                      *((volatile uint32_t *)0x40003010u)
 #define CBC_STATE_2_ADDR                                     (0x40003010u)
 #define CBC_STATE_2_RESET                                    (0x00000000u)
         /* CBC_STATE_2 field */
@@ -2365,8 +2365,8 @@
         #define CBC_STATE_2_CBC_STATE_2_BIT                  (0)
         #define CBC_STATE_2_CBC_STATE_2_BITS                 (32)
 
-#define CBC_STATE_3                                          *((volatile int32u *)0x40003014u)
-#define CBC_STATE_3_REG                                      *((volatile int32u *)0x40003014u)
+#define CBC_STATE_3                                          *((volatile uint32_t *)0x40003014u)
+#define CBC_STATE_3_REG                                      *((volatile uint32_t *)0x40003014u)
 #define CBC_STATE_3_ADDR                                     (0x40003014u)
 #define CBC_STATE_3_RESET                                    (0x00000000u)
         /* CBC_STATE_3 field */
@@ -2375,8 +2375,8 @@
         #define CBC_STATE_3_CBC_STATE_3_BIT                  (0)
         #define CBC_STATE_3_CBC_STATE_3_BITS                 (32)
 
-#define PT                                                   *((volatile int32u *)0x40003028u)
-#define PT_REG                                               *((volatile int32u *)0x40003028u)
+#define PT                                                   *((volatile uint32_t *)0x40003028u)
+#define PT_REG                                               *((volatile uint32_t *)0x40003028u)
 #define PT_ADDR                                              (0x40003028u)
 #define PT_RESET                                             (0x00000000u)
         /* PT field */
@@ -2385,8 +2385,8 @@
         #define PT_PT_BIT                                    (0)
         #define PT_PT_BITS                                   (32)
 
-#define CT                                                   *((volatile int32u *)0x40003030u)
-#define CT_REG                                               *((volatile int32u *)0x40003030u)
+#define CT                                                   *((volatile uint32_t *)0x40003030u)
+#define CT_REG                                               *((volatile uint32_t *)0x40003030u)
 #define CT_ADDR                                              (0x40003030u)
 #define CT_RESET                                             (0x00000000u)
         /* CT field */
@@ -2395,8 +2395,8 @@
         #define CT_CT_BIT                                    (0)
         #define CT_CT_BITS                                   (32)
 
-#define KEY_0                                                *((volatile int32u *)0x40003038u)
-#define KEY_0_REG                                            *((volatile int32u *)0x40003038u)
+#define KEY_0                                                *((volatile uint32_t *)0x40003038u)
+#define KEY_0_REG                                            *((volatile uint32_t *)0x40003038u)
 #define KEY_0_ADDR                                           (0x40003038u)
 #define KEY_0_RESET                                          (0x00000000u)
         /* KEY_O field */
@@ -2405,8 +2405,8 @@
         #define KEY_0_KEY_O_BIT                              (0)
         #define KEY_0_KEY_O_BITS                             (32)
 
-#define KEY_1                                                *((volatile int32u *)0x4000303Cu)
-#define KEY_1_REG                                            *((volatile int32u *)0x4000303Cu)
+#define KEY_1                                                *((volatile uint32_t *)0x4000303Cu)
+#define KEY_1_REG                                            *((volatile uint32_t *)0x4000303Cu)
 #define KEY_1_ADDR                                           (0x4000303Cu)
 #define KEY_1_RESET                                          (0x00000000u)
         /* KEY_1 field */
@@ -2415,8 +2415,8 @@
         #define KEY_1_KEY_1_BIT                              (0)
         #define KEY_1_KEY_1_BITS                             (32)
 
-#define KEY_2                                                *((volatile int32u *)0x40003040u)
-#define KEY_2_REG                                            *((volatile int32u *)0x40003040u)
+#define KEY_2                                                *((volatile uint32_t *)0x40003040u)
+#define KEY_2_REG                                            *((volatile uint32_t *)0x40003040u)
 #define KEY_2_ADDR                                           (0x40003040u)
 #define KEY_2_RESET                                          (0x00000000u)
         /* KEY_2 field */
@@ -2425,8 +2425,8 @@
         #define KEY_2_KEY_2_BIT                              (0)
         #define KEY_2_KEY_2_BITS                             (32)
 
-#define KEY_3                                                *((volatile int32u *)0x40003044u)
-#define KEY_3_REG                                            *((volatile int32u *)0x40003044u)
+#define KEY_3                                                *((volatile uint32_t *)0x40003044u)
+#define KEY_3_REG                                            *((volatile uint32_t *)0x40003044u)
 #define KEY_3_ADDR                                           (0x40003044u)
 #define KEY_3_RESET                                          (0x00000000u)
         /* KEY_3 field */
@@ -2440,8 +2440,8 @@
 #define BLOCK_CM_LV_END                                      (0x40004034u)
 #define BLOCK_CM_LV_SIZE                                     (BLOCK_CM_LV_END - BLOCK_CM_LV_BASE + 1)
 
-#define SILICON_ID                                           *((volatile int32u *)0x40004000u)
-#define SILICON_ID_REG                                       *((volatile int32u *)0x40004000u)
+#define SILICON_ID                                           *((volatile uint32_t *)0x40004000u)
+#define SILICON_ID_REG                                       *((volatile uint32_t *)0x40004000u)
 #define SILICON_ID_ADDR                                      (0x40004000u)
 #define SILICON_ID_RESET                                     (0x069A862Bu)
         /* HW_VERSION field */
@@ -2475,8 +2475,8 @@
         #define SILICON_ID_ONE_BIT                           (0)
         #define SILICON_ID_ONE_BITS                          (1)
 
-#define OSC24M_BIASTRIM                                      *((volatile int32u *)0x40004004u)
-#define OSC24M_BIASTRIM_REG                                  *((volatile int32u *)0x40004004u)
+#define OSC24M_BIASTRIM                                      *((volatile uint32_t *)0x40004004u)
+#define OSC24M_BIASTRIM_REG                                  *((volatile uint32_t *)0x40004004u)
 #define OSC24M_BIASTRIM_ADDR                                 (0x40004004u)
 #define OSC24M_BIASTRIM_RESET                                (0x0000000Fu)
         /* OSC24M_BIAS_TRIM field */
@@ -2485,8 +2485,8 @@
         #define OSC24M_BIASTRIM_OSC24M_BIAS_TRIM_BIT         (0)
         #define OSC24M_BIASTRIM_OSC24M_BIAS_TRIM_BITS        (4)
 
-#define OSCHF_TUNE                                           *((volatile int32u *)0x40004008u)
-#define OSCHF_TUNE_REG                                       *((volatile int32u *)0x40004008u)
+#define OSCHF_TUNE                                           *((volatile uint32_t *)0x40004008u)
+#define OSCHF_TUNE_REG                                       *((volatile uint32_t *)0x40004008u)
 #define OSCHF_TUNE_ADDR                                      (0x40004008u)
 #define OSCHF_TUNE_RESET                                     (0x00000017u)
         /* OSCHF_TUNE_FIELD field */
@@ -2495,8 +2495,8 @@
         #define OSCHF_TUNE_FIELD_BIT                         (0)
         #define OSCHF_TUNE_FIELD_BITS                        (5)
 
-#define OSC24M_COMP                                          *((volatile int32u *)0x4000400Cu)
-#define OSC24M_COMP_REG                                      *((volatile int32u *)0x4000400Cu)
+#define OSC24M_COMP                                          *((volatile uint32_t *)0x4000400Cu)
+#define OSC24M_COMP_REG                                      *((volatile uint32_t *)0x4000400Cu)
 #define OSC24M_COMP_ADDR                                     (0x4000400Cu)
 #define OSC24M_COMP_RESET                                    (0x00000000u)
         /* OSC24M_HI field */
@@ -2510,8 +2510,8 @@
         #define OSC24M_LO_BIT                                (0)
         #define OSC24M_LO_BITS                               (1)
 
-#define CLK_PERIODMODE                                       *((volatile int32u *)0x40004010u)
-#define CLK_PERIODMODE_REG                                   *((volatile int32u *)0x40004010u)
+#define CLK_PERIODMODE                                       *((volatile uint32_t *)0x40004010u)
+#define CLK_PERIODMODE_REG                                   *((volatile uint32_t *)0x40004010u)
 #define CLK_PERIODMODE_ADDR                                  (0x40004010u)
 #define CLK_PERIODMODE_RESET                                 (0x00000000u)
         /* CLK_PERIODMODE_FIELD field */
@@ -2520,8 +2520,8 @@
         #define CLK_PERIODMODE_FIELD_BIT                     (0)
         #define CLK_PERIODMODE_FIELD_BITS                    (2)
 
-#define CLK_PERIOD                                           *((volatile int32u *)0x40004014u)
-#define CLK_PERIOD_REG                                       *((volatile int32u *)0x40004014u)
+#define CLK_PERIOD                                           *((volatile uint32_t *)0x40004014u)
+#define CLK_PERIOD_REG                                       *((volatile uint32_t *)0x40004014u)
 #define CLK_PERIOD_ADDR                                      (0x40004014u)
 #define CLK_PERIOD_RESET                                     (0x00000000u)
         /* CLK_PERIOD_FIELD field */
@@ -2530,8 +2530,8 @@
         #define CLK_PERIOD_FIELD_BIT                         (0)
         #define CLK_PERIOD_FIELD_BITS                        (16)
 
-#define DITHER_DIS                                           *((volatile int32u *)0x40004018u)
-#define DITHER_DIS_REG                                       *((volatile int32u *)0x40004018u)
+#define DITHER_DIS                                           *((volatile uint32_t *)0x40004018u)
+#define DITHER_DIS_REG                                       *((volatile uint32_t *)0x40004018u)
 #define DITHER_DIS_ADDR                                      (0x40004018u)
 #define DITHER_DIS_RESET                                     (0x00000000u)
         /* DITHER_DIS field */
@@ -2540,8 +2540,8 @@
         #define DITHER_DIS_DITHER_DIS_BIT                    (0)
         #define DITHER_DIS_DITHER_DIS_BITS                   (1)
 
-#define OSC24M_CTRL                                          *((volatile int32u *)0x4000401Cu)
-#define OSC24M_CTRL_REG                                      *((volatile int32u *)0x4000401Cu)
+#define OSC24M_CTRL                                          *((volatile uint32_t *)0x4000401Cu)
+#define OSC24M_CTRL_REG                                      *((volatile uint32_t *)0x4000401Cu)
 #define OSC24M_CTRL_ADDR                                     (0x4000401Cu)
 #define OSC24M_CTRL_RESET                                    (0x00000000u)
         /* OSC24M_EN field */
@@ -2555,8 +2555,8 @@
         #define OSC24M_CTRL_OSC24M_SEL_BIT                   (0)
         #define OSC24M_CTRL_OSC24M_SEL_BITS                  (1)
 
-#define CPU_CLKSEL                                           *((volatile int32u *)0x40004020u)
-#define CPU_CLKSEL_REG                                       *((volatile int32u *)0x40004020u)
+#define CPU_CLKSEL                                           *((volatile uint32_t *)0x40004020u)
+#define CPU_CLKSEL_REG                                       *((volatile uint32_t *)0x40004020u)
 #define CPU_CLKSEL_ADDR                                      (0x40004020u)
 #define CPU_CLKSEL_RESET                                     (0x00000000u)
         /* CPU_CLKSEL_FIELD field */
@@ -2565,8 +2565,8 @@
         #define CPU_CLKSEL_FIELD_BIT                         (0)
         #define CPU_CLKSEL_FIELD_BITS                        (1)
 
-#define BUS_FAULT                                            *((volatile int32u *)0x40004024u)
-#define BUS_FAULT_REG                                        *((volatile int32u *)0x40004024u)
+#define BUS_FAULT                                            *((volatile uint32_t *)0x40004024u)
+#define BUS_FAULT_REG                                        *((volatile uint32_t *)0x40004024u)
 #define BUS_FAULT_ADDR                                       (0x40004024u)
 #define BUS_FAULT_RESET                                      (0x00000000u)
         /* WRONGSIZE field */
@@ -2590,8 +2590,8 @@
         #define BUS_FAULT_MISSED_BIT                         (0)
         #define BUS_FAULT_MISSED_BITS                        (1)
 
-#define PCTRACE_SEL                                          *((volatile int32u *)0x40004028u)
-#define PCTRACE_SEL_REG                                      *((volatile int32u *)0x40004028u)
+#define PCTRACE_SEL                                          *((volatile uint32_t *)0x40004028u)
+#define PCTRACE_SEL_REG                                      *((volatile uint32_t *)0x40004028u)
 #define PCTRACE_SEL_ADDR                                     (0x40004028u)
 #define PCTRACE_SEL_RESET                                    (0x00000000u)
         /* PCTRACE_SEL_FIELD field */
@@ -2600,8 +2600,8 @@
         #define PCTRACE_SEL_FIELD_BIT                        (0)
         #define PCTRACE_SEL_FIELD_BITS                       (1)
 
-#define FPEC_CLKREQ                                          *((volatile int32u *)0x4000402Cu)
-#define FPEC_CLKREQ_REG                                      *((volatile int32u *)0x4000402Cu)
+#define FPEC_CLKREQ                                          *((volatile uint32_t *)0x4000402Cu)
+#define FPEC_CLKREQ_REG                                      *((volatile uint32_t *)0x4000402Cu)
 #define FPEC_CLKREQ_ADDR                                     (0x4000402Cu)
 #define FPEC_CLKREQ_RESET                                    (0x00000000u)
         /* FPEC_CLKREQ_FIELD field */
@@ -2610,8 +2610,8 @@
         #define FPEC_CLKREQ_FIELD_BIT                        (0)
         #define FPEC_CLKREQ_FIELD_BITS                       (1)
 
-#define FPEC_CLKSTAT                                         *((volatile int32u *)0x40004030u)
-#define FPEC_CLKSTAT_REG                                     *((volatile int32u *)0x40004030u)
+#define FPEC_CLKSTAT                                         *((volatile uint32_t *)0x40004030u)
+#define FPEC_CLKSTAT_REG                                     *((volatile uint32_t *)0x40004030u)
 #define FPEC_CLKSTAT_ADDR                                    (0x40004030u)
 #define FPEC_CLKSTAT_RESET                                   (0x00000000u)
         /* FPEC_CLKBSY field */
@@ -2625,8 +2625,8 @@
         #define FPEC_CLKACK_BIT                              (0)
         #define FPEC_CLKACK_BITS                             (1)
 
-#define LV_SPARE                                             *((volatile int32u *)0x40004034u)
-#define LV_SPARE_REG                                         *((volatile int32u *)0x40004034u)
+#define LV_SPARE                                             *((volatile uint32_t *)0x40004034u)
+#define LV_SPARE_REG                                         *((volatile uint32_t *)0x40004034u)
 #define LV_SPARE_ADDR                                        (0x40004034u)
 #define LV_SPARE_RESET                                       (0x00000000u)
         /* LV_SPARE field */
@@ -2640,8 +2640,8 @@
 #define DATA_RAM_CTRL_END                                    (0x40005028u)
 #define DATA_RAM_CTRL_SIZE                                   (DATA_RAM_CTRL_END - DATA_RAM_CTRL_BASE + 1)
 
-#define MEM_PROT_0                                           *((volatile int32u *)0x40005000u)
-#define MEM_PROT_0_REG                                       *((volatile int32u *)0x40005000u)
+#define MEM_PROT_0                                           *((volatile uint32_t *)0x40005000u)
+#define MEM_PROT_0_REG                                       *((volatile uint32_t *)0x40005000u)
 #define MEM_PROT_0_ADDR                                      (0x40005000u)
 #define MEM_PROT_0_RESET                                     (0x00000000u)
         /* MEM_PROT_0 field */
@@ -2650,8 +2650,8 @@
         #define MEM_PROT_0_MEM_PROT_0_BIT                    (0)
         #define MEM_PROT_0_MEM_PROT_0_BITS                   (32)
 
-#define MEM_PROT_1                                           *((volatile int32u *)0x40005004u)
-#define MEM_PROT_1_REG                                       *((volatile int32u *)0x40005004u)
+#define MEM_PROT_1                                           *((volatile uint32_t *)0x40005004u)
+#define MEM_PROT_1_REG                                       *((volatile uint32_t *)0x40005004u)
 #define MEM_PROT_1_ADDR                                      (0x40005004u)
 #define MEM_PROT_1_RESET                                     (0x00000000u)
         /* MEM_PROT_1 field */
@@ -2660,8 +2660,8 @@
         #define MEM_PROT_1_MEM_PROT_1_BIT                    (0)
         #define MEM_PROT_1_MEM_PROT_1_BITS                   (32)
 
-#define MEM_PROT_2                                           *((volatile int32u *)0x40005008u)
-#define MEM_PROT_2_REG                                       *((volatile int32u *)0x40005008u)
+#define MEM_PROT_2                                           *((volatile uint32_t *)0x40005008u)
+#define MEM_PROT_2_REG                                       *((volatile uint32_t *)0x40005008u)
 #define MEM_PROT_2_ADDR                                      (0x40005008u)
 #define MEM_PROT_2_RESET                                     (0x00000000u)
         /* MEM_PROT_2 field */
@@ -2670,8 +2670,8 @@
         #define MEM_PROT_2_MEM_PROT_2_BIT                    (0)
         #define MEM_PROT_2_MEM_PROT_2_BITS                   (32)
 
-#define MEM_PROT_3                                           *((volatile int32u *)0x4000500Cu)
-#define MEM_PROT_3_REG                                       *((volatile int32u *)0x4000500Cu)
+#define MEM_PROT_3                                           *((volatile uint32_t *)0x4000500Cu)
+#define MEM_PROT_3_REG                                       *((volatile uint32_t *)0x4000500Cu)
 #define MEM_PROT_3_ADDR                                      (0x4000500Cu)
 #define MEM_PROT_3_RESET                                     (0x00000000u)
         /* MEM_PROT_3 field */
@@ -2680,8 +2680,8 @@
         #define MEM_PROT_3_MEM_PROT_3_BIT                    (0)
         #define MEM_PROT_3_MEM_PROT_3_BITS                   (32)
 
-#define MEM_PROT_4                                           *((volatile int32u *)0x40005010u)
-#define MEM_PROT_4_REG                                       *((volatile int32u *)0x40005010u)
+#define MEM_PROT_4                                           *((volatile uint32_t *)0x40005010u)
+#define MEM_PROT_4_REG                                       *((volatile uint32_t *)0x40005010u)
 #define MEM_PROT_4_ADDR                                      (0x40005010u)
 #define MEM_PROT_4_RESET                                     (0x00000000u)
         /* MEM_PROT_4 field */
@@ -2690,8 +2690,8 @@
         #define MEM_PROT_4_MEM_PROT_4_BIT                    (0)
         #define MEM_PROT_4_MEM_PROT_4_BITS                   (32)
 
-#define MEM_PROT_5                                           *((volatile int32u *)0x40005014u)
-#define MEM_PROT_5_REG                                       *((volatile int32u *)0x40005014u)
+#define MEM_PROT_5                                           *((volatile uint32_t *)0x40005014u)
+#define MEM_PROT_5_REG                                       *((volatile uint32_t *)0x40005014u)
 #define MEM_PROT_5_ADDR                                      (0x40005014u)
 #define MEM_PROT_5_RESET                                     (0x00000000u)
         /* MEM_PROT_5 field */
@@ -2700,8 +2700,8 @@
         #define MEM_PROT_5_MEM_PROT_5_BIT                    (0)
         #define MEM_PROT_5_MEM_PROT_5_BITS                   (32)
 
-#define MEM_PROT_6                                           *((volatile int32u *)0x40005018u)
-#define MEM_PROT_6_REG                                       *((volatile int32u *)0x40005018u)
+#define MEM_PROT_6                                           *((volatile uint32_t *)0x40005018u)
+#define MEM_PROT_6_REG                                       *((volatile uint32_t *)0x40005018u)
 #define MEM_PROT_6_ADDR                                      (0x40005018u)
 #define MEM_PROT_6_RESET                                     (0x00000000u)
         /* MEM_PROT_6 field */
@@ -2710,8 +2710,8 @@
         #define MEM_PROT_6_MEM_PROT_6_BIT                    (0)
         #define MEM_PROT_6_MEM_PROT_6_BITS                   (32)
 
-#define MEM_PROT_7                                           *((volatile int32u *)0x4000501Cu)
-#define MEM_PROT_7_REG                                       *((volatile int32u *)0x4000501Cu)
+#define MEM_PROT_7                                           *((volatile uint32_t *)0x4000501Cu)
+#define MEM_PROT_7_REG                                       *((volatile uint32_t *)0x4000501Cu)
 #define MEM_PROT_7_ADDR                                      (0x4000501Cu)
 #define MEM_PROT_7_RESET                                     (0x00000000u)
         /* MEM_PROT_7 field */
@@ -2720,8 +2720,8 @@
         #define MEM_PROT_7_MEM_PROT_7_BIT                    (0)
         #define MEM_PROT_7_MEM_PROT_7_BITS                   (32)
 
-#define DMA_PROT_ADDR                                        *((volatile int32u *)0x40005020u)
-#define DMA_PROT_ADDR_REG                                    *((volatile int32u *)0x40005020u)
+#define DMA_PROT_ADDR                                        *((volatile uint32_t *)0x40005020u)
+#define DMA_PROT_ADDR_REG                                    *((volatile uint32_t *)0x40005020u)
 #define DMA_PROT_ADDR_ADDR                                   (0x40005020u)
 #define DMA_PROT_ADDR_RESET                                  (0x20000000u)
         /* DMA_PROT_OFFS field */
@@ -2735,8 +2735,8 @@
         #define DMA_PROT_ADDR_DMA_PROT_ADDR_BIT              (0)
         #define DMA_PROT_ADDR_DMA_PROT_ADDR_BITS             (13)
 
-#define DMA_PROT_CH                                          *((volatile int32u *)0x40005024u)
-#define DMA_PROT_CH_REG                                      *((volatile int32u *)0x40005024u)
+#define DMA_PROT_CH                                          *((volatile uint32_t *)0x40005024u)
+#define DMA_PROT_CH_REG                                      *((volatile uint32_t *)0x40005024u)
 #define DMA_PROT_CH_ADDR                                     (0x40005024u)
 #define DMA_PROT_CH_RESET                                    (0x00000000u)
         /* DMA_PROT_CH field */
@@ -2745,8 +2745,8 @@
         #define DMA_PROT_CH_DMA_PROT_CH_BIT                  (0)
         #define DMA_PROT_CH_DMA_PROT_CH_BITS                 (3)
 
-#define MEM_PROT_EN                                          *((volatile int32u *)0x40005028u)
-#define MEM_PROT_EN_REG                                      *((volatile int32u *)0x40005028u)
+#define MEM_PROT_EN                                          *((volatile uint32_t *)0x40005028u)
+#define MEM_PROT_EN_REG                                      *((volatile uint32_t *)0x40005028u)
 #define MEM_PROT_EN_ADDR                                     (0x40005028u)
 #define MEM_PROT_EN_RESET                                    (0x00000000u)
         /* FORCE_PROT field */
@@ -2770,8 +2770,8 @@
 #define DATA_SLOW_TIMERS_END                                 (0x40006024u)
 #define DATA_SLOW_TIMERS_SIZE                                (DATA_SLOW_TIMERS_END - DATA_SLOW_TIMERS_BASE + 1)
 
-#define WDOG_CFG                                             *((volatile int32u *)0x40006000u)
-#define WDOG_CFG_REG                                         *((volatile int32u *)0x40006000u)
+#define WDOG_CFG                                             *((volatile uint32_t *)0x40006000u)
+#define WDOG_CFG_REG                                         *((volatile uint32_t *)0x40006000u)
 #define WDOG_CFG_ADDR                                        (0x40006000u)
 #define WDOG_CFG_RESET                                       (0x00000002u)
         /* WDOG_DISABLE field */
@@ -2785,8 +2785,8 @@
         #define WDOG_ENABLE_BIT                              (0)
         #define WDOG_ENABLE_BITS                             (1)
 
-#define WDOG_KEY                                             *((volatile int32u *)0x40006004u)
-#define WDOG_KEY_REG                                         *((volatile int32u *)0x40006004u)
+#define WDOG_KEY                                             *((volatile uint32_t *)0x40006004u)
+#define WDOG_KEY_REG                                         *((volatile uint32_t *)0x40006004u)
 #define WDOG_KEY_ADDR                                        (0x40006004u)
 #define WDOG_KEY_RESET                                       (0x00000000u)
         /* WDOG_KEY_FIELD field */
@@ -2795,13 +2795,13 @@
         #define WDOG_KEY_FIELD_BIT                           (0)
         #define WDOG_KEY_FIELD_BITS                          (16)
 
-#define WDOG_RESET                                           *((volatile int32u *)0x40006008u)
-#define WDOG_RESET_REG                                       *((volatile int32u *)0x40006008u)
+#define WDOG_RESET                                           *((volatile uint32_t *)0x40006008u)
+#define WDOG_RESET_REG                                       *((volatile uint32_t *)0x40006008u)
 #define WDOG_RESET_ADDR                                      (0x40006008u)
 #define WDOG_RESET_RESET                                     (0x00000000u)
 
-#define SLEEPTMR_CFG                                         *((volatile int32u *)0x4000600Cu)
-#define SLEEPTMR_CFG_REG                                     *((volatile int32u *)0x4000600Cu)
+#define SLEEPTMR_CFG                                         *((volatile uint32_t *)0x4000600Cu)
+#define SLEEPTMR_CFG_REG                                     *((volatile uint32_t *)0x4000600Cu)
 #define SLEEPTMR_CFG_ADDR                                    (0x4000600Cu)
 #define SLEEPTMR_CFG_RESET                                   (0x00000400u)
         /* SLEEPTMR_REVERSE field */
@@ -2830,8 +2830,8 @@
         #define SLEEPTMR_CLKSEL_BIT                          (0)
         #define SLEEPTMR_CLKSEL_BITS                         (1)
 
-#define SLEEPTMR_CNTH                                        *((volatile int32u *)0x40006010u)
-#define SLEEPTMR_CNTH_REG                                    *((volatile int32u *)0x40006010u)
+#define SLEEPTMR_CNTH                                        *((volatile uint32_t *)0x40006010u)
+#define SLEEPTMR_CNTH_REG                                    *((volatile uint32_t *)0x40006010u)
 #define SLEEPTMR_CNTH_ADDR                                   (0x40006010u)
 #define SLEEPTMR_CNTH_RESET                                  (0x00000000u)
         /* SLEEPTMR_CNTH_FIELD field */
@@ -2840,8 +2840,8 @@
         #define SLEEPTMR_CNTH_FIELD_BIT                      (0)
         #define SLEEPTMR_CNTH_FIELD_BITS                     (16)
 
-#define SLEEPTMR_CNTL                                        *((volatile int32u *)0x40006014u)
-#define SLEEPTMR_CNTL_REG                                    *((volatile int32u *)0x40006014u)
+#define SLEEPTMR_CNTL                                        *((volatile uint32_t *)0x40006014u)
+#define SLEEPTMR_CNTL_REG                                    *((volatile uint32_t *)0x40006014u)
 #define SLEEPTMR_CNTL_ADDR                                   (0x40006014u)
 #define SLEEPTMR_CNTL_RESET                                  (0x00000000u)
         /* SLEEPTMR_CNTL_FIELD field */
@@ -2850,8 +2850,8 @@
         #define SLEEPTMR_CNTL_FIELD_BIT                      (0)
         #define SLEEPTMR_CNTL_FIELD_BITS                     (16)
 
-#define SLEEPTMR_CMPAH                                       *((volatile int32u *)0x40006018u)
-#define SLEEPTMR_CMPAH_REG                                   *((volatile int32u *)0x40006018u)
+#define SLEEPTMR_CMPAH                                       *((volatile uint32_t *)0x40006018u)
+#define SLEEPTMR_CMPAH_REG                                   *((volatile uint32_t *)0x40006018u)
 #define SLEEPTMR_CMPAH_ADDR                                  (0x40006018u)
 #define SLEEPTMR_CMPAH_RESET                                 (0x0000FFFFu)
         /* SLEEPTMR_CMPAH_FIELD field */
@@ -2860,8 +2860,8 @@
         #define SLEEPTMR_CMPAH_FIELD_BIT                     (0)
         #define SLEEPTMR_CMPAH_FIELD_BITS                    (16)
 
-#define SLEEPTMR_CMPAL                                       *((volatile int32u *)0x4000601Cu)
-#define SLEEPTMR_CMPAL_REG                                   *((volatile int32u *)0x4000601Cu)
+#define SLEEPTMR_CMPAL                                       *((volatile uint32_t *)0x4000601Cu)
+#define SLEEPTMR_CMPAL_REG                                   *((volatile uint32_t *)0x4000601Cu)
 #define SLEEPTMR_CMPAL_ADDR                                  (0x4000601Cu)
 #define SLEEPTMR_CMPAL_RESET                                 (0x0000FFFFu)
         /* SLEEPTMR_CMPAL_FIELD field */
@@ -2870,8 +2870,8 @@
         #define SLEEPTMR_CMPAL_FIELD_BIT                     (0)
         #define SLEEPTMR_CMPAL_FIELD_BITS                    (16)
 
-#define SLEEPTMR_CMPBH                                       *((volatile int32u *)0x40006020u)
-#define SLEEPTMR_CMPBH_REG                                   *((volatile int32u *)0x40006020u)
+#define SLEEPTMR_CMPBH                                       *((volatile uint32_t *)0x40006020u)
+#define SLEEPTMR_CMPBH_REG                                   *((volatile uint32_t *)0x40006020u)
 #define SLEEPTMR_CMPBH_ADDR                                  (0x40006020u)
 #define SLEEPTMR_CMPBH_RESET                                 (0x0000FFFFu)
         /* SLEEPTMR_CMPBH_FIELD field */
@@ -2880,8 +2880,8 @@
         #define SLEEPTMR_CMPBH_FIELD_BIT                     (0)
         #define SLEEPTMR_CMPBH_FIELD_BITS                    (16)
 
-#define SLEEPTMR_CMPBL                                       *((volatile int32u *)0x40006024u)
-#define SLEEPTMR_CMPBL_REG                                   *((volatile int32u *)0x40006024u)
+#define SLEEPTMR_CMPBL                                       *((volatile uint32_t *)0x40006024u)
+#define SLEEPTMR_CMPBL_REG                                   *((volatile uint32_t *)0x40006024u)
 #define SLEEPTMR_CMPBL_ADDR                                  (0x40006024u)
 #define SLEEPTMR_CMPBL_RESET                                 (0x0000FFFFu)
         /* SLEEPTMR_CMPBL_FIELD field */
@@ -2895,8 +2895,8 @@
 #define DATA_CAL_ADC_END                                     (0x40007004u)
 #define DATA_CAL_ADC_SIZE                                    (DATA_CAL_ADC_END - DATA_CAL_ADC_BASE + 1)
 
-#define CAL_ADC_DATA                                         *((volatile int32u *)0x40007000u)
-#define CAL_ADC_DATA_REG                                     *((volatile int32u *)0x40007000u)
+#define CAL_ADC_DATA                                         *((volatile uint32_t *)0x40007000u)
+#define CAL_ADC_DATA_REG                                     *((volatile uint32_t *)0x40007000u)
 #define CAL_ADC_DATA_ADDR                                    (0x40007000u)
 #define CAL_ADC_DATA_RESET                                   (0x00000000u)
         /* CAL_ADC_DATA field */
@@ -2905,8 +2905,8 @@
         #define CAL_ADC_DATA_CAL_ADC_DATA_BIT                (0)
         #define CAL_ADC_DATA_CAL_ADC_DATA_BITS               (16)
 
-#define CAL_ADC_CONFIG                                       *((volatile int32u *)0x40007004u)
-#define CAL_ADC_CONFIG_REG                                   *((volatile int32u *)0x40007004u)
+#define CAL_ADC_CONFIG                                       *((volatile uint32_t *)0x40007004u)
+#define CAL_ADC_CONFIG_REG                                   *((volatile uint32_t *)0x40007004u)
 #define CAL_ADC_CONFIG_ADDR                                  (0x40007004u)
 #define CAL_ADC_CONFIG_RESET                                 (0x00000000u)
         /* CAL_ADC_RATE field */
@@ -2940,8 +2940,8 @@
 #define DATA_FLASH_CONTROL_END                               (0x40008084u)
 #define DATA_FLASH_CONTROL_SIZE                              (DATA_FLASH_CONTROL_END - DATA_FLASH_CONTROL_BASE + 1)
 
-#define FLASH_ACCESS                                         *((volatile int32u *)0x40008000u)
-#define FLASH_ACCESS_REG                                     *((volatile int32u *)0x40008000u)
+#define FLASH_ACCESS                                         *((volatile uint32_t *)0x40008000u)
+#define FLASH_ACCESS_REG                                     *((volatile uint32_t *)0x40008000u)
 #define FLASH_ACCESS_ADDR                                    (0x40008000u)
 #define FLASH_ACCESS_RESET                                   (0x00000031u)
         /* PREFETCH_STATUS field */
@@ -2965,8 +2965,8 @@
         #define FLASH_ACCESS_CODE_LATENCY_BIT                (0)
         #define FLASH_ACCESS_CODE_LATENCY_BITS               (3)
 
-#define FPEC_KEY                                             *((volatile int32u *)0x40008004u)
-#define FPEC_KEY_REG                                         *((volatile int32u *)0x40008004u)
+#define FPEC_KEY                                             *((volatile uint32_t *)0x40008004u)
+#define FPEC_KEY_REG                                         *((volatile uint32_t *)0x40008004u)
 #define FPEC_KEY_ADDR                                        (0x40008004u)
 #define FPEC_KEY_RESET                                       (0x00000000u)
         /* FKEYR field */
@@ -2975,8 +2975,8 @@
         #define FPEC_KEY_FKEYR_BIT                           (0)
         #define FPEC_KEY_FKEYR_BITS                          (32)
 
-#define OPT_KEY                                              *((volatile int32u *)0x40008008u)
-#define OPT_KEY_REG                                          *((volatile int32u *)0x40008008u)
+#define OPT_KEY                                              *((volatile uint32_t *)0x40008008u)
+#define OPT_KEY_REG                                          *((volatile uint32_t *)0x40008008u)
 #define OPT_KEY_ADDR                                         (0x40008008u)
 #define OPT_KEY_RESET                                        (0x00000000u)
         /* OPTKEYR field */
@@ -2985,8 +2985,8 @@
         #define OPT_KEY_OPTKEYR_BIT                          (0)
         #define OPT_KEY_OPTKEYR_BITS                         (32)
 
-#define FLASH_STATUS                                         *((volatile int32u *)0x4000800Cu)
-#define FLASH_STATUS_REG                                     *((volatile int32u *)0x4000800Cu)
+#define FLASH_STATUS                                         *((volatile uint32_t *)0x4000800Cu)
+#define FLASH_STATUS_REG                                     *((volatile uint32_t *)0x4000800Cu)
 #define FLASH_STATUS_ADDR                                    (0x4000800Cu)
 #define FLASH_STATUS_RESET                                   (0x00000000u)
         /* EOP field */
@@ -3020,8 +3020,8 @@
         #define FLASH_STATUS_FLA_BSY_BIT                     (0)
         #define FLASH_STATUS_FLA_BSY_BITS                    (1)
 
-#define FLASH_CTRL                                           *((volatile int32u *)0x40008010u)
-#define FLASH_CTRL_REG                                       *((volatile int32u *)0x40008010u)
+#define FLASH_CTRL                                           *((volatile uint32_t *)0x40008010u)
+#define FLASH_CTRL_REG                                       *((volatile uint32_t *)0x40008010u)
 #define FLASH_CTRL_ADDR                                      (0x40008010u)
 #define FLASH_CTRL_RESET                                     (0x00000080u)
         /* EOPIE field */
@@ -3090,8 +3090,8 @@
         #define FLASH_CTRL_PROG_BIT                          (0)
         #define FLASH_CTRL_PROG_BITS                         (1)
 
-#define FLASH_ADDR                                           *((volatile int32u *)0x40008014u)
-#define FLASH_ADDR_REG                                       *((volatile int32u *)0x40008014u)
+#define FLASH_ADDR                                           *((volatile uint32_t *)0x40008014u)
+#define FLASH_ADDR_REG                                       *((volatile uint32_t *)0x40008014u)
 #define FLASH_ADDR_ADDR                                      (0x40008014u)
 #define FLASH_ADDR_RESET                                     (0x00000000u)
         /* FAR field */
@@ -3100,8 +3100,8 @@
         #define FLASH_ADDR_FAR_BIT                           (0)
         #define FLASH_ADDR_FAR_BITS                          (32)
 
-#define OPT_BYTE                                             *((volatile int32u *)0x4000801Cu)
-#define OPT_BYTE_REG                                         *((volatile int32u *)0x4000801Cu)
+#define OPT_BYTE                                             *((volatile uint32_t *)0x4000801Cu)
+#define OPT_BYTE_REG                                         *((volatile uint32_t *)0x4000801Cu)
 #define OPT_BYTE_ADDR                                        (0x4000801Cu)
 #define OPT_BYTE_RESET                                       (0xFBFFFFFEu)
         /* RSVD field */
@@ -3125,8 +3125,8 @@
         #define OPT_BYTE_OPT_ERR_BIT                         (0)
         #define OPT_BYTE_OPT_ERR_BITS                        (1)
 
-#define WRPROT                                               *((volatile int32u *)0x40008020u)
-#define WRPROT_REG                                           *((volatile int32u *)0x40008020u)
+#define WRPROT                                               *((volatile uint32_t *)0x40008020u)
+#define WRPROT_REG                                           *((volatile uint32_t *)0x40008020u)
 #define WRPROT_ADDR                                          (0x40008020u)
 #define WRPROT_RESET                                         (0xFFFFFFFFu)
         /* WRP field */
@@ -3135,8 +3135,8 @@
         #define WRPROT_WRP_BIT                               (0)
         #define WRPROT_WRP_BITS                              (32)
 
-#define FLASH_TEST_CTRL                                      *((volatile int32u *)0x40008080u)
-#define FLASH_TEST_CTRL_REG                                  *((volatile int32u *)0x40008080u)
+#define FLASH_TEST_CTRL                                      *((volatile uint32_t *)0x40008080u)
+#define FLASH_TEST_CTRL_REG                                  *((volatile uint32_t *)0x40008080u)
 #define FLASH_TEST_CTRL_ADDR                                 (0x40008080u)
 #define FLASH_TEST_CTRL_RESET                                (0x00000000u)
         /* TMR field */
@@ -3200,8 +3200,8 @@
         #define FLASH_TEST_CTRL_SW_EN_BIT                    (0)
         #define FLASH_TEST_CTRL_SW_EN_BITS                   (1)
 
-#define FLASH_DATA0                                          *((volatile int32u *)0x40008084u)
-#define FLASH_DATA0_REG                                      *((volatile int32u *)0x40008084u)
+#define FLASH_DATA0                                          *((volatile uint32_t *)0x40008084u)
+#define FLASH_DATA0_REG                                      *((volatile uint32_t *)0x40008084u)
 #define FLASH_DATA0_ADDR                                     (0x40008084u)
 #define FLASH_DATA0_RESET                                    (0xFFFFFFFFu)
         /* FDR0 field */
@@ -3215,8 +3215,8 @@
 #define DATA_EMU_REGS_END                                    (0x40009000u)
 #define DATA_EMU_REGS_SIZE                                   (DATA_EMU_REGS_END - DATA_EMU_REGS_BASE + 1)
 
-#define I_AM_AN_EMULATOR                                     *((volatile int32u *)0x40009000u)
-#define I_AM_AN_EMULATOR_REG                                 *((volatile int32u *)0x40009000u)
+#define I_AM_AN_EMULATOR                                     *((volatile uint32_t *)0x40009000u)
+#define I_AM_AN_EMULATOR_REG                                 *((volatile uint32_t *)0x40009000u)
 #define I_AM_AN_EMULATOR_ADDR                                (0x40009000u)
 #define I_AM_AN_EMULATOR_RESET                               (0x00000000u)
         /* I_AM_AN_EMULATOR field */
@@ -3230,8 +3230,8 @@
 #define BLOCK_INTERRUPTS_END                                 (0x4000A86Cu)
 #define BLOCK_INTERRUPTS_SIZE                                (BLOCK_INTERRUPTS_END - BLOCK_INTERRUPTS_BASE + 1)
 
-#define MAC_RX_INT_SRC                                       *((volatile int32u *)0x4000A000u)
-#define MAC_RX_INT_SRC_REG                                   *((volatile int32u *)0x4000A000u)
+#define MAC_RX_INT_SRC                                       *((volatile uint32_t *)0x4000A000u)
+#define MAC_RX_INT_SRC_REG                                   *((volatile uint32_t *)0x4000A000u)
 #define MAC_RX_INT_SRC_ADDR                                  (0x4000A000u)
 #define MAC_RX_INT_SRC_RESET                                 (0x00000000u)
         /* TX_B_ACK_ERR_SRC field */
@@ -3315,8 +3315,8 @@
         #define MAC_RX_INT_SRC_RX_FRAME_SRC_BIT              (0)
         #define MAC_RX_INT_SRC_RX_FRAME_SRC_BITS             (1)
 
-#define MAC_TX_INT_SRC                                       *((volatile int32u *)0x4000A004u)
-#define MAC_TX_INT_SRC_REG                                   *((volatile int32u *)0x4000A004u)
+#define MAC_TX_INT_SRC                                       *((volatile uint32_t *)0x4000A004u)
+#define MAC_TX_INT_SRC_REG                                   *((volatile uint32_t *)0x4000A004u)
 #define MAC_TX_INT_SRC_ADDR                                  (0x4000A004u)
 #define MAC_TX_INT_SRC_RESET                                 (0x00000000u)
         /* RX_B_ACK_SRC field */
@@ -3380,8 +3380,8 @@
         #define MAC_TX_INT_SRC_TX_COMPLETE_SRC_BIT           (0)
         #define MAC_TX_INT_SRC_TX_COMPLETE_SRC_BITS          (1)
 
-#define MAC_TIMER_INT_SRC                                    *((volatile int32u *)0x4000A008u)
-#define MAC_TIMER_INT_SRC_REG                                *((volatile int32u *)0x4000A008u)
+#define MAC_TIMER_INT_SRC                                    *((volatile uint32_t *)0x4000A008u)
+#define MAC_TIMER_INT_SRC_REG                                *((volatile uint32_t *)0x4000A008u)
 #define MAC_TIMER_INT_SRC_ADDR                               (0x4000A008u)
 #define MAC_TIMER_INT_SRC_RESET                              (0x00000000u)
         /* TIMER_COMP_B_SRC field */
@@ -3400,8 +3400,8 @@
         #define MAC_TIMER_INT_SRC_TIMER_WRAP_SRC_BIT         (0)
         #define MAC_TIMER_INT_SRC_TIMER_WRAP_SRC_BITS        (1)
 
-#define BB_INT_SRC                                           *((volatile int32u *)0x4000A00Cu)
-#define BB_INT_SRC_REG                                       *((volatile int32u *)0x4000A00Cu)
+#define BB_INT_SRC                                           *((volatile uint32_t *)0x4000A00Cu)
+#define BB_INT_SRC_REG                                       *((volatile uint32_t *)0x4000A00Cu)
 #define BB_INT_SRC_ADDR                                      (0x4000A00Cu)
 #define BB_INT_SRC_RESET                                     (0x00000000u)
         /* RSSI_INT_SRC field */
@@ -3415,8 +3415,8 @@
         #define BB_INT_SRC_BASEBAND_INT_SRC_BIT              (0)
         #define BB_INT_SRC_BASEBAND_INT_SRC_BITS             (1)
 
-#define SEC_INT_SRC                                          *((volatile int32u *)0x4000A010u)
-#define SEC_INT_SRC_REG                                      *((volatile int32u *)0x4000A010u)
+#define SEC_INT_SRC                                          *((volatile uint32_t *)0x4000A010u)
+#define SEC_INT_SRC_REG                                      *((volatile uint32_t *)0x4000A010u)
 #define SEC_INT_SRC_ADDR                                     (0x4000A010u)
 #define SEC_INT_SRC_RESET                                    (0x00000000u)
         /* CT_WORD_VALID_SRC field */
@@ -3435,8 +3435,8 @@
         #define SEC_INT_SRC_ENC_COMPLETE_SRC_BIT             (0)
         #define SEC_INT_SRC_ENC_COMPLETE_SRC_BITS            (1)
 
-#define INT_SLEEPTMRFLAG                                     *((volatile int32u *)0x4000A014u)
-#define INT_SLEEPTMRFLAG_REG                                 *((volatile int32u *)0x4000A014u)
+#define INT_SLEEPTMRFLAG                                     *((volatile uint32_t *)0x4000A014u)
+#define INT_SLEEPTMRFLAG_REG                                 *((volatile uint32_t *)0x4000A014u)
 #define INT_SLEEPTMRFLAG_ADDR                                (0x4000A014u)
 #define INT_SLEEPTMRFLAG_RESET                               (0x00000000u)
         /* INT_SLEEPTMRCMPB field */
@@ -3455,8 +3455,8 @@
         #define INT_SLEEPTMRWRAP_BIT                         (0)
         #define INT_SLEEPTMRWRAP_BITS                        (1)
 
-#define INT_MGMTFLAG                                         *((volatile int32u *)0x4000A018u)
-#define INT_MGMTFLAG_REG                                     *((volatile int32u *)0x4000A018u)
+#define INT_MGMTFLAG                                         *((volatile uint32_t *)0x4000A018u)
+#define INT_MGMTFLAG_REG                                     *((volatile uint32_t *)0x4000A018u)
 #define INT_MGMTFLAG_ADDR                                    (0x4000A018u)
 #define INT_MGMTFLAG_RESET                                   (0x00000000u)
         /* INT_MGMTDMAPROT field */
@@ -3485,8 +3485,8 @@
         #define INT_MGMTOSC24MLO_BIT                         (0)
         #define INT_MGMTOSC24MLO_BITS                        (1)
 
-#define INT_NMIFLAG                                          *((volatile int32u *)0x4000A01Cu)
-#define INT_NMIFLAG_REG                                      *((volatile int32u *)0x4000A01Cu)
+#define INT_NMIFLAG                                          *((volatile uint32_t *)0x4000A01Cu)
+#define INT_NMIFLAG_REG                                      *((volatile uint32_t *)0x4000A01Cu)
 #define INT_NMIFLAG_ADDR                                     (0x4000A01Cu)
 #define INT_NMIFLAG_RESET                                    (0x00000000u)
         /* INT_NMICLK24M field */
@@ -3500,8 +3500,8 @@
         #define INT_NMIWDOG_BIT                              (0)
         #define INT_NMIWDOG_BITS                             (1)
 
-#define INT_SLEEPTMRFORCE                                    *((volatile int32u *)0x4000A020u)
-#define INT_SLEEPTMRFORCE_REG                                *((volatile int32u *)0x4000A020u)
+#define INT_SLEEPTMRFORCE                                    *((volatile uint32_t *)0x4000A020u)
+#define INT_SLEEPTMRFORCE_REG                                *((volatile uint32_t *)0x4000A020u)
 #define INT_SLEEPTMRFORCE_ADDR                               (0x4000A020u)
 #define INT_SLEEPTMRFORCE_RESET                              (0x00000000u)
         /* INT_SLEEPTMRCMPB field */
@@ -3520,8 +3520,8 @@
         #define INT_SLEEPTMRWRAP_BIT                         (0)
         #define INT_SLEEPTMRWRAP_BITS                        (1)
 
-#define TEST_FORCE_ALL_INT                                   *((volatile int32u *)0x4000A024u)
-#define TEST_FORCE_ALL_INT_REG                               *((volatile int32u *)0x4000A024u)
+#define TEST_FORCE_ALL_INT                                   *((volatile uint32_t *)0x4000A024u)
+#define TEST_FORCE_ALL_INT_REG                               *((volatile uint32_t *)0x4000A024u)
 #define TEST_FORCE_ALL_INT_ADDR                              (0x4000A024u)
 #define TEST_FORCE_ALL_INT_RESET                             (0x00000000u)
         /* FORCE_ALL_INT field */
@@ -3530,8 +3530,8 @@
         #define TEST_FORCE_ALL_INT_FORCE_ALL_INT_BIT         (0)
         #define TEST_FORCE_ALL_INT_FORCE_ALL_INT_BITS        (1)
 
-#define MAC_RX_INT_MASK                                      *((volatile int32u *)0x4000A040u)
-#define MAC_RX_INT_MASK_REG                                  *((volatile int32u *)0x4000A040u)
+#define MAC_RX_INT_MASK                                      *((volatile uint32_t *)0x4000A040u)
+#define MAC_RX_INT_MASK_REG                                  *((volatile uint32_t *)0x4000A040u)
 #define MAC_RX_INT_MASK_ADDR                                 (0x4000A040u)
 #define MAC_RX_INT_MASK_RESET                                (0x00000000u)
         /* TX_B_ACK_ERR_MSK field */
@@ -3615,8 +3615,8 @@
         #define MAC_RX_INT_MASK_RX_FRAME_MSK_BIT             (0)
         #define MAC_RX_INT_MASK_RX_FRAME_MSK_BITS            (1)
 
-#define MAC_TX_INT_MASK                                      *((volatile int32u *)0x4000A044u)
-#define MAC_TX_INT_MASK_REG                                  *((volatile int32u *)0x4000A044u)
+#define MAC_TX_INT_MASK                                      *((volatile uint32_t *)0x4000A044u)
+#define MAC_TX_INT_MASK_REG                                  *((volatile uint32_t *)0x4000A044u)
 #define MAC_TX_INT_MASK_ADDR                                 (0x4000A044u)
 #define MAC_TX_INT_MASK_RESET                                (0x00000000u)
         /* RX_B_ACK_MSK field */
@@ -3680,8 +3680,8 @@
         #define MAC_TX_INT_MASK_TX_COMPLETE_MSK_BIT          (0)
         #define MAC_TX_INT_MASK_TX_COMPLETE_MSK_BITS         (1)
 
-#define MAC_TIMER_INT_MASK                                   *((volatile int32u *)0x4000A048u)
-#define MAC_TIMER_INT_MASK_REG                               *((volatile int32u *)0x4000A048u)
+#define MAC_TIMER_INT_MASK                                   *((volatile uint32_t *)0x4000A048u)
+#define MAC_TIMER_INT_MASK_REG                               *((volatile uint32_t *)0x4000A048u)
 #define MAC_TIMER_INT_MASK_ADDR                              (0x4000A048u)
 #define MAC_TIMER_INT_MASK_RESET                             (0x00000000u)
         /* TIMER_COMP_B_MSK field */
@@ -3700,8 +3700,8 @@
         #define MAC_TIMER_INT_MASK_TIMER_WRAP_MSK_BIT        (0)
         #define MAC_TIMER_INT_MASK_TIMER_WRAP_MSK_BITS       (1)
 
-#define BB_INT_MASK                                          *((volatile int32u *)0x4000A04Cu)
-#define BB_INT_MASK_REG                                      *((volatile int32u *)0x4000A04Cu)
+#define BB_INT_MASK                                          *((volatile uint32_t *)0x4000A04Cu)
+#define BB_INT_MASK_REG                                      *((volatile uint32_t *)0x4000A04Cu)
 #define BB_INT_MASK_ADDR                                     (0x4000A04Cu)
 #define BB_INT_MASK_RESET                                    (0x00000000u)
         /* RSSI_INT_MSK field */
@@ -3715,8 +3715,8 @@
         #define BB_INT_MASK_BASEBAND_INT_MSK_BIT             (0)
         #define BB_INT_MASK_BASEBAND_INT_MSK_BITS            (1)
 
-#define SEC_INT_MASK                                         *((volatile int32u *)0x4000A050u)
-#define SEC_INT_MASK_REG                                     *((volatile int32u *)0x4000A050u)
+#define SEC_INT_MASK                                         *((volatile uint32_t *)0x4000A050u)
+#define SEC_INT_MASK_REG                                     *((volatile uint32_t *)0x4000A050u)
 #define SEC_INT_MASK_ADDR                                    (0x4000A050u)
 #define SEC_INT_MASK_RESET                                   (0x00000000u)
         /* CT_WORD_VALID_MSK field */
@@ -3735,8 +3735,8 @@
         #define SEC_INT_MASK_ENC_COMPLETE_MSK_BIT            (0)
         #define SEC_INT_MASK_ENC_COMPLETE_MSK_BITS           (1)
 
-#define INT_SLEEPTMRCFG                                      *((volatile int32u *)0x4000A054u)
-#define INT_SLEEPTMRCFG_REG                                  *((volatile int32u *)0x4000A054u)
+#define INT_SLEEPTMRCFG                                      *((volatile uint32_t *)0x4000A054u)
+#define INT_SLEEPTMRCFG_REG                                  *((volatile uint32_t *)0x4000A054u)
 #define INT_SLEEPTMRCFG_ADDR                                 (0x4000A054u)
 #define INT_SLEEPTMRCFG_RESET                                (0x00000000u)
         /* INT_SLEEPTMRCMPB field */
@@ -3755,8 +3755,8 @@
         #define INT_SLEEPTMRWRAP_BIT                         (0)
         #define INT_SLEEPTMRWRAP_BITS                        (1)
 
-#define INT_MGMTCFG                                          *((volatile int32u *)0x4000A058u)
-#define INT_MGMTCFG_REG                                      *((volatile int32u *)0x4000A058u)
+#define INT_MGMTCFG                                          *((volatile uint32_t *)0x4000A058u)
+#define INT_MGMTCFG_REG                                      *((volatile uint32_t *)0x4000A058u)
 #define INT_MGMTCFG_ADDR                                     (0x4000A058u)
 #define INT_MGMTCFG_RESET                                    (0x00000000u)
         /* INT_MGMTDMAPROT field */
@@ -3785,8 +3785,8 @@
         #define INT_MGMTOSC24MLO_BIT                         (0)
         #define INT_MGMTOSC24MLO_BITS                        (1)
 
-#define INT_TIM1FLAG                                         *((volatile int32u *)0x4000A800u)
-#define INT_TIM1FLAG_REG                                     *((volatile int32u *)0x4000A800u)
+#define INT_TIM1FLAG                                         *((volatile uint32_t *)0x4000A800u)
+#define INT_TIM1FLAG_REG                                     *((volatile uint32_t *)0x4000A800u)
 #define INT_TIM1FLAG_ADDR                                    (0x4000A800u)
 #define INT_TIM1FLAG_RESET                                   (0x00000000u)
         /* INT_TIMRSVD field */
@@ -3825,8 +3825,8 @@
         #define INT_TIMUIF_BIT                               (0)
         #define INT_TIMUIF_BITS                              (1)
 
-#define INT_TIM2FLAG                                         *((volatile int32u *)0x4000A804u)
-#define INT_TIM2FLAG_REG                                     *((volatile int32u *)0x4000A804u)
+#define INT_TIM2FLAG                                         *((volatile uint32_t *)0x4000A804u)
+#define INT_TIM2FLAG_REG                                     *((volatile uint32_t *)0x4000A804u)
 #define INT_TIM2FLAG_ADDR                                    (0x4000A804u)
 #define INT_TIM2FLAG_RESET                                   (0x00000000u)
         /* INT_TIMRSVD field */
@@ -3865,8 +3865,8 @@
         #define INT_TIMUIF_BIT                               (0)
         #define INT_TIMUIF_BITS                              (1)
 
-#define INT_SC1FLAG                                          *((volatile int32u *)0x4000A808u)
-#define INT_SC1FLAG_REG                                      *((volatile int32u *)0x4000A808u)
+#define INT_SC1FLAG                                          *((volatile uint32_t *)0x4000A808u)
+#define INT_SC1FLAG_REG                                      *((volatile uint32_t *)0x4000A808u)
 #define INT_SC1FLAG_ADDR                                     (0x4000A808u)
 #define INT_SC1FLAG_RESET                                    (0x00000000u)
         /* INT_SC1PARERR field */
@@ -3945,8 +3945,8 @@
         #define INT_SCRXVAL_BIT                              (0)
         #define INT_SCRXVAL_BITS                             (1)
 
-#define INT_SC2FLAG                                          *((volatile int32u *)0x4000A80Cu)
-#define INT_SC2FLAG_REG                                      *((volatile int32u *)0x4000A80Cu)
+#define INT_SC2FLAG                                          *((volatile uint32_t *)0x4000A80Cu)
+#define INT_SC2FLAG_REG                                      *((volatile uint32_t *)0x4000A80Cu)
 #define INT_SC2FLAG_ADDR                                     (0x4000A80Cu)
 #define INT_SC2FLAG_RESET                                    (0x00000000u)
         /* INT_SCTXULDB field */
@@ -4015,8 +4015,8 @@
         #define INT_SCRXVAL_BIT                              (0)
         #define INT_SCRXVAL_BITS                             (1)
 
-#define INT_ADCFLAG                                          *((volatile int32u *)0x4000A810u)
-#define INT_ADCFLAG_REG                                      *((volatile int32u *)0x4000A810u)
+#define INT_ADCFLAG                                          *((volatile uint32_t *)0x4000A810u)
+#define INT_ADCFLAG_REG                                      *((volatile uint32_t *)0x4000A810u)
 #define INT_ADCFLAG_ADDR                                     (0x4000A810u)
 #define INT_ADCFLAG_RESET                                    (0x00000000u)
         /* INT_ADCOVF field */
@@ -4045,8 +4045,8 @@
         #define INT_ADCFLAGRSVD_BIT                          (0)
         #define INT_ADCFLAGRSVD_BITS                         (1)
 
-#define INT_GPIOFLAG                                         *((volatile int32u *)0x4000A814u)
-#define INT_GPIOFLAG_REG                                     *((volatile int32u *)0x4000A814u)
+#define INT_GPIOFLAG                                         *((volatile uint32_t *)0x4000A814u)
+#define INT_GPIOFLAG_REG                                     *((volatile uint32_t *)0x4000A814u)
 #define INT_GPIOFLAG_ADDR                                    (0x4000A814u)
 #define INT_GPIOFLAG_RESET                                   (0x00000000u)
         /* INT_IRQDFLAG field */
@@ -4070,8 +4070,8 @@
         #define INT_IRQAFLAG_BIT                             (0)
         #define INT_IRQAFLAG_BITS                            (1)
 
-#define INT_TIM1MISS                                         *((volatile int32u *)0x4000A818u)
-#define INT_TIM1MISS_REG                                     *((volatile int32u *)0x4000A818u)
+#define INT_TIM1MISS                                         *((volatile uint32_t *)0x4000A818u)
+#define INT_TIM1MISS_REG                                     *((volatile uint32_t *)0x4000A818u)
 #define INT_TIM1MISS_ADDR                                    (0x4000A818u)
 #define INT_TIM1MISS_RESET                                   (0x00000000u)
         /* INT_TIMMISSCC4IF field */
@@ -4100,8 +4100,8 @@
         #define INT_TIMMISSRSVD_BIT                          (0)
         #define INT_TIMMISSRSVD_BITS                         (7)
 
-#define INT_TIM2MISS                                         *((volatile int32u *)0x4000A81Cu)
-#define INT_TIM2MISS_REG                                     *((volatile int32u *)0x4000A81Cu)
+#define INT_TIM2MISS                                         *((volatile uint32_t *)0x4000A81Cu)
+#define INT_TIM2MISS_REG                                     *((volatile uint32_t *)0x4000A81Cu)
 #define INT_TIM2MISS_ADDR                                    (0x4000A81Cu)
 #define INT_TIM2MISS_RESET                                   (0x00000000u)
         /* INT_TIMMISSCC4IF field */
@@ -4130,8 +4130,8 @@
         #define INT_TIMMISSRSVD_BIT                          (0)
         #define INT_TIMMISSRSVD_BITS                         (7)
 
-#define INT_MISS                                             *((volatile int32u *)0x4000A820u)
-#define INT_MISS_REG                                         *((volatile int32u *)0x4000A820u)
+#define INT_MISS                                             *((volatile uint32_t *)0x4000A820u)
+#define INT_MISS_REG                                         *((volatile uint32_t *)0x4000A820u)
 #define INT_MISS_ADDR                                        (0x4000A820u)
 #define INT_MISS_RESET                                       (0x00000000u)
         /* INT_MISSIRQD field */
@@ -4205,8 +4205,8 @@
         #define INT_MISSMGMT_BIT                             (2)
         #define INT_MISSMGMT_BITS                            (1)
 
-#define INT_TIM1CFG                                          *((volatile int32u *)0x4000A840u)
-#define INT_TIM1CFG_REG                                      *((volatile int32u *)0x4000A840u)
+#define INT_TIM1CFG                                          *((volatile uint32_t *)0x4000A840u)
+#define INT_TIM1CFG_REG                                      *((volatile uint32_t *)0x4000A840u)
 #define INT_TIM1CFG_ADDR                                     (0x4000A840u)
 #define INT_TIM1CFG_RESET                                    (0x00000000u)
         /* INT_TIMTIF field */
@@ -4240,8 +4240,8 @@
         #define INT_TIMUIF_BIT                               (0)
         #define INT_TIMUIF_BITS                              (1)
 
-#define INT_TIM2CFG                                          *((volatile int32u *)0x4000A844u)
-#define INT_TIM2CFG_REG                                      *((volatile int32u *)0x4000A844u)
+#define INT_TIM2CFG                                          *((volatile uint32_t *)0x4000A844u)
+#define INT_TIM2CFG_REG                                      *((volatile uint32_t *)0x4000A844u)
 #define INT_TIM2CFG_ADDR                                     (0x4000A844u)
 #define INT_TIM2CFG_RESET                                    (0x00000000u)
         /* INT_TIMTIF field */
@@ -4275,8 +4275,8 @@
         #define INT_TIMUIF_BIT                               (0)
         #define INT_TIMUIF_BITS                              (1)
 
-#define INT_SC1CFG                                           *((volatile int32u *)0x4000A848u)
-#define INT_SC1CFG_REG                                       *((volatile int32u *)0x4000A848u)
+#define INT_SC1CFG                                           *((volatile uint32_t *)0x4000A848u)
+#define INT_SC1CFG_REG                                       *((volatile uint32_t *)0x4000A848u)
 #define INT_SC1CFG_ADDR                                      (0x4000A848u)
 #define INT_SC1CFG_RESET                                     (0x00000000u)
         /* INT_SC1PARERR field */
@@ -4355,8 +4355,8 @@
         #define INT_SCRXVAL_BIT                              (0)
         #define INT_SCRXVAL_BITS                             (1)
 
-#define INT_SC2CFG                                           *((volatile int32u *)0x4000A84Cu)
-#define INT_SC2CFG_REG                                       *((volatile int32u *)0x4000A84Cu)
+#define INT_SC2CFG                                           *((volatile uint32_t *)0x4000A84Cu)
+#define INT_SC2CFG_REG                                       *((volatile uint32_t *)0x4000A84Cu)
 #define INT_SC2CFG_ADDR                                      (0x4000A84Cu)
 #define INT_SC2CFG_RESET                                     (0x00000000u)
         /* INT_SCTXULDB field */
@@ -4425,8 +4425,8 @@
         #define INT_SCRXVAL_BIT                              (0)
         #define INT_SCRXVAL_BITS                             (1)
 
-#define INT_ADCCFG                                           *((volatile int32u *)0x4000A850u)
-#define INT_ADCCFG_REG                                       *((volatile int32u *)0x4000A850u)
+#define INT_ADCCFG                                           *((volatile uint32_t *)0x4000A850u)
+#define INT_ADCCFG_REG                                       *((volatile uint32_t *)0x4000A850u)
 #define INT_ADCCFG_ADDR                                      (0x4000A850u)
 #define INT_ADCCFG_RESET                                     (0x00000000u)
         /* INT_ADCOVF field */
@@ -4455,8 +4455,8 @@
         #define INT_ADCCFGRSVD_BIT                           (0)
         #define INT_ADCCFGRSVD_BITS                          (1)
 
-#define SC1_INTMODE                                          *((volatile int32u *)0x4000A854u)
-#define SC1_INTMODE_REG                                      *((volatile int32u *)0x4000A854u)
+#define SC1_INTMODE                                          *((volatile uint32_t *)0x4000A854u)
+#define SC1_INTMODE_REG                                      *((volatile uint32_t *)0x4000A854u)
 #define SC1_INTMODE_ADDR                                     (0x4000A854u)
 #define SC1_INTMODE_RESET                                    (0x00000000u)
         /* SC_TXIDLELEVEL field */
@@ -4475,8 +4475,8 @@
         #define SC_RXVALLEVEL_BIT                            (0)
         #define SC_RXVALLEVEL_BITS                           (1)
 
-#define SC2_INTMODE                                          *((volatile int32u *)0x4000A858u)
-#define SC2_INTMODE_REG                                      *((volatile int32u *)0x4000A858u)
+#define SC2_INTMODE                                          *((volatile uint32_t *)0x4000A858u)
+#define SC2_INTMODE_REG                                      *((volatile uint32_t *)0x4000A858u)
 #define SC2_INTMODE_ADDR                                     (0x4000A858u)
 #define SC2_INTMODE_RESET                                    (0x00000000u)
         /* SC_TXIDLELEVEL field */
@@ -4495,8 +4495,8 @@
         #define SC_RXVALLEVEL_BIT                            (0)
         #define SC_RXVALLEVEL_BITS                           (1)
 
-#define GPIO_INTCFGA                                         *((volatile int32u *)0x4000A860u)
-#define GPIO_INTCFGA_REG                                     *((volatile int32u *)0x4000A860u)
+#define GPIO_INTCFGA                                         *((volatile uint32_t *)0x4000A860u)
+#define GPIO_INTCFGA_REG                                     *((volatile uint32_t *)0x4000A860u)
 #define GPIO_INTCFGA_ADDR                                    (0x4000A860u)
 #define GPIO_INTCFGA_RESET                                   (0x00000000u)
         /* GPIO_INTFILT field */
@@ -4510,8 +4510,8 @@
         #define GPIO_INTMOD_BIT                              (5)
         #define GPIO_INTMOD_BITS                             (3)
 
-#define GPIO_INTCFGB                                         *((volatile int32u *)0x4000A864u)
-#define GPIO_INTCFGB_REG                                     *((volatile int32u *)0x4000A864u)
+#define GPIO_INTCFGB                                         *((volatile uint32_t *)0x4000A864u)
+#define GPIO_INTCFGB_REG                                     *((volatile uint32_t *)0x4000A864u)
 #define GPIO_INTCFGB_ADDR                                    (0x4000A864u)
 #define GPIO_INTCFGB_RESET                                   (0x00000000u)
         /* GPIO_INTFILT field */
@@ -4525,8 +4525,8 @@
         #define GPIO_INTMOD_BIT                              (5)
         #define GPIO_INTMOD_BITS                             (3)
 
-#define GPIO_INTCFGC                                         *((volatile int32u *)0x4000A868u)
-#define GPIO_INTCFGC_REG                                     *((volatile int32u *)0x4000A868u)
+#define GPIO_INTCFGC                                         *((volatile uint32_t *)0x4000A868u)
+#define GPIO_INTCFGC_REG                                     *((volatile uint32_t *)0x4000A868u)
 #define GPIO_INTCFGC_ADDR                                    (0x4000A868u)
 #define GPIO_INTCFGC_RESET                                   (0x00000000u)
         /* GPIO_INTFILT field */
@@ -4540,8 +4540,8 @@
         #define GPIO_INTMOD_BIT                              (5)
         #define GPIO_INTMOD_BITS                             (3)
 
-#define GPIO_INTCFGD                                         *((volatile int32u *)0x4000A86Cu)
-#define GPIO_INTCFGD_REG                                     *((volatile int32u *)0x4000A86Cu)
+#define GPIO_INTCFGD                                         *((volatile uint32_t *)0x4000A86Cu)
+#define GPIO_INTCFGD_REG                                     *((volatile uint32_t *)0x4000A86Cu)
 #define GPIO_INTCFGD_ADDR                                    (0x4000A86Cu)
 #define GPIO_INTCFGD_RESET                                   (0x00000000u)
         /* GPIO_INTFILT field */
@@ -4560,8 +4560,8 @@
 #define BLOCK_GPIO_END                                       (0x4000BC1Cu)
 #define BLOCK_GPIO_SIZE                                      (BLOCK_GPIO_END - BLOCK_GPIO_BASE + 1)
 
-#define GPIO_PACFGL                                          *((volatile int32u *)0x4000B000u)
-#define GPIO_PACFGL_REG                                      *((volatile int32u *)0x4000B000u)
+#define GPIO_PACFGL                                          *((volatile uint32_t *)0x4000B000u)
+#define GPIO_PACFGL_REG                                      *((volatile uint32_t *)0x4000B000u)
 #define GPIO_PACFGL_ADDR                                     (0x4000B000u)
 #define GPIO_PACFGL_RESET                                    (0x00004444u)
         /* PA3_CFG field */
@@ -4593,8 +4593,8 @@
                 #define GPIOCFG_IN                           (0x4u)
                 #define GPIOCFG_IN_PUD                       (0x8u)
 
-#define GPIO_PACFGH                                          *((volatile int32u *)0x4000B004u)
-#define GPIO_PACFGH_REG                                      *((volatile int32u *)0x4000B004u)
+#define GPIO_PACFGH                                          *((volatile uint32_t *)0x4000B004u)
+#define GPIO_PACFGH_REG                                      *((volatile uint32_t *)0x4000B004u)
 #define GPIO_PACFGH_ADDR                                     (0x4000B004u)
 #define GPIO_PACFGH_RESET                                    (0x00004444u)
         /* PA7_CFG field */
@@ -4618,8 +4618,8 @@
         #define PA4_CFG_BIT                                  (0)
         #define PA4_CFG_BITS                                 (4)
 
-#define GPIO_PAIN                                            *((volatile int32u *)0x4000B008u)
-#define GPIO_PAIN_REG                                        *((volatile int32u *)0x4000B008u)
+#define GPIO_PAIN                                            *((volatile uint32_t *)0x4000B008u)
+#define GPIO_PAIN_REG                                        *((volatile uint32_t *)0x4000B008u)
 #define GPIO_PAIN_ADDR                                       (0x4000B008u)
 #define GPIO_PAIN_RESET                                      (0x00000000u)
         /* PA7 field */
@@ -4663,8 +4663,8 @@
         #define PA0_BIT                                      (0)
         #define PA0_BITS                                     (1)
 
-#define GPIO_PAOUT                                           *((volatile int32u *)0x4000B00Cu)
-#define GPIO_PAOUT_REG                                       *((volatile int32u *)0x4000B00Cu)
+#define GPIO_PAOUT                                           *((volatile uint32_t *)0x4000B00Cu)
+#define GPIO_PAOUT_REG                                       *((volatile uint32_t *)0x4000B00Cu)
 #define GPIO_PAOUT_ADDR                                      (0x4000B00Cu)
 #define GPIO_PAOUT_RESET                                     (0x00000000u)
         /* PA7 field */
@@ -4711,8 +4711,8 @@
                 #define GPIOOUT_PULLUP                       (0x1u)
                 #define GPIOOUT_PULLDOWN                     (0x0u)
 
-#define GPIO_PASET                                           *((volatile int32u *)0x4000B010u)
-#define GPIO_PASET_REG                                       *((volatile int32u *)0x4000B010u)
+#define GPIO_PASET                                           *((volatile uint32_t *)0x4000B010u)
+#define GPIO_PASET_REG                                       *((volatile uint32_t *)0x4000B010u)
 #define GPIO_PASET_ADDR                                      (0x4000B010u)
 #define GPIO_PASET_RESET                                     (0x00000000u)
         /* GPIO_PXSETRSVD field */
@@ -4761,8 +4761,8 @@
         #define PA0_BIT                                      (0)
         #define PA0_BITS                                     (1)
 
-#define GPIO_PACLR                                           *((volatile int32u *)0x4000B014u)
-#define GPIO_PACLR_REG                                       *((volatile int32u *)0x4000B014u)
+#define GPIO_PACLR                                           *((volatile uint32_t *)0x4000B014u)
+#define GPIO_PACLR_REG                                       *((volatile uint32_t *)0x4000B014u)
 #define GPIO_PACLR_ADDR                                      (0x4000B014u)
 #define GPIO_PACLR_RESET                                     (0x00000000u)
         /* PA7 field */
@@ -4806,8 +4806,8 @@
         #define PA0_BIT                                      (0)
         #define PA0_BITS                                     (1)
 
-#define GPIO_PBCFGL                                          *((volatile int32u *)0x4000B400u)
-#define GPIO_PBCFGL_REG                                      *((volatile int32u *)0x4000B400u)
+#define GPIO_PBCFGL                                          *((volatile uint32_t *)0x4000B400u)
+#define GPIO_PBCFGL_REG                                      *((volatile uint32_t *)0x4000B400u)
 #define GPIO_PBCFGL_ADDR                                     (0x4000B400u)
 #define GPIO_PBCFGL_RESET                                    (0x00004444u)
         /* PB3_CFG field */
@@ -4831,8 +4831,8 @@
         #define PB0_CFG_BIT                                  (0)
         #define PB0_CFG_BITS                                 (4)
 
-#define GPIO_PBCFGH                                          *((volatile int32u *)0x4000B404u)
-#define GPIO_PBCFGH_REG                                      *((volatile int32u *)0x4000B404u)
+#define GPIO_PBCFGH                                          *((volatile uint32_t *)0x4000B404u)
+#define GPIO_PBCFGH_REG                                      *((volatile uint32_t *)0x4000B404u)
 #define GPIO_PBCFGH_ADDR                                     (0x4000B404u)
 #define GPIO_PBCFGH_RESET                                    (0x00004444u)
         /* PB7_CFG field */
@@ -4856,8 +4856,8 @@
         #define PB4_CFG_BIT                                  (0)
         #define PB4_CFG_BITS                                 (4)
 
-#define GPIO_PBIN                                            *((volatile int32u *)0x4000B408u)
-#define GPIO_PBIN_REG                                        *((volatile int32u *)0x4000B408u)
+#define GPIO_PBIN                                            *((volatile uint32_t *)0x4000B408u)
+#define GPIO_PBIN_REG                                        *((volatile uint32_t *)0x4000B408u)
 #define GPIO_PBIN_ADDR                                       (0x4000B408u)
 #define GPIO_PBIN_RESET                                      (0x00000000u)
         /* PB7 field */
@@ -4901,8 +4901,8 @@
         #define PB0_BIT                                      (0)
         #define PB0_BITS                                     (1)
 
-#define GPIO_PBOUT                                           *((volatile int32u *)0x4000B40Cu)
-#define GPIO_PBOUT_REG                                       *((volatile int32u *)0x4000B40Cu)
+#define GPIO_PBOUT                                           *((volatile uint32_t *)0x4000B40Cu)
+#define GPIO_PBOUT_REG                                       *((volatile uint32_t *)0x4000B40Cu)
 #define GPIO_PBOUT_ADDR                                      (0x4000B40Cu)
 #define GPIO_PBOUT_RESET                                     (0x00000000u)
         /* PB7 field */
@@ -4946,8 +4946,8 @@
         #define PB0_BIT                                      (0)
         #define PB0_BITS                                     (1)
 
-#define GPIO_PBSET                                           *((volatile int32u *)0x4000B410u)
-#define GPIO_PBSET_REG                                       *((volatile int32u *)0x4000B410u)
+#define GPIO_PBSET                                           *((volatile uint32_t *)0x4000B410u)
+#define GPIO_PBSET_REG                                       *((volatile uint32_t *)0x4000B410u)
 #define GPIO_PBSET_ADDR                                      (0x4000B410u)
 #define GPIO_PBSET_RESET                                     (0x00000000u)
         /* GPIO_PXSETRSVD field */
@@ -4996,8 +4996,8 @@
         #define PB0_BIT                                      (0)
         #define PB0_BITS                                     (1)
 
-#define GPIO_PBCLR                                           *((volatile int32u *)0x4000B414u)
-#define GPIO_PBCLR_REG                                       *((volatile int32u *)0x4000B414u)
+#define GPIO_PBCLR                                           *((volatile uint32_t *)0x4000B414u)
+#define GPIO_PBCLR_REG                                       *((volatile uint32_t *)0x4000B414u)
 #define GPIO_PBCLR_ADDR                                      (0x4000B414u)
 #define GPIO_PBCLR_RESET                                     (0x00000000u)
         /* PB7 field */
@@ -5041,8 +5041,8 @@
         #define PB0_BIT                                      (0)
         #define PB0_BITS                                     (1)
 
-#define GPIO_PCCFGL                                          *((volatile int32u *)0x4000B800u)
-#define GPIO_PCCFGL_REG                                      *((volatile int32u *)0x4000B800u)
+#define GPIO_PCCFGL                                          *((volatile uint32_t *)0x4000B800u)
+#define GPIO_PCCFGL_REG                                      *((volatile uint32_t *)0x4000B800u)
 #define GPIO_PCCFGL_ADDR                                     (0x4000B800u)
 #define GPIO_PCCFGL_RESET                                    (0x00004444u)
         /* PC3_CFG field */
@@ -5066,8 +5066,8 @@
         #define PC0_CFG_BIT                                  (0)
         #define PC0_CFG_BITS                                 (4)
 
-#define GPIO_PCCFGH                                          *((volatile int32u *)0x4000B804u)
-#define GPIO_PCCFGH_REG                                      *((volatile int32u *)0x4000B804u)
+#define GPIO_PCCFGH                                          *((volatile uint32_t *)0x4000B804u)
+#define GPIO_PCCFGH_REG                                      *((volatile uint32_t *)0x4000B804u)
 #define GPIO_PCCFGH_ADDR                                     (0x4000B804u)
 #define GPIO_PCCFGH_RESET                                    (0x00004444u)
         /* PC7_CFG field */
@@ -5091,8 +5091,8 @@
         #define PC4_CFG_BIT                                  (0)
         #define PC4_CFG_BITS                                 (4)
 
-#define GPIO_PCIN                                            *((volatile int32u *)0x4000B808u)
-#define GPIO_PCIN_REG                                        *((volatile int32u *)0x4000B808u)
+#define GPIO_PCIN                                            *((volatile uint32_t *)0x4000B808u)
+#define GPIO_PCIN_REG                                        *((volatile uint32_t *)0x4000B808u)
 #define GPIO_PCIN_ADDR                                       (0x4000B808u)
 #define GPIO_PCIN_RESET                                      (0x00000000u)
         /* PC7 field */
@@ -5136,8 +5136,8 @@
         #define PC0_BIT                                      (0)
         #define PC0_BITS                                     (1)
 
-#define GPIO_PCOUT                                           *((volatile int32u *)0x4000B80Cu)
-#define GPIO_PCOUT_REG                                       *((volatile int32u *)0x4000B80Cu)
+#define GPIO_PCOUT                                           *((volatile uint32_t *)0x4000B80Cu)
+#define GPIO_PCOUT_REG                                       *((volatile uint32_t *)0x4000B80Cu)
 #define GPIO_PCOUT_ADDR                                      (0x4000B80Cu)
 #define GPIO_PCOUT_RESET                                     (0x00000000u)
         /* PC7 field */
@@ -5181,8 +5181,8 @@
         #define PC0_BIT                                      (0)
         #define PC0_BITS                                     (1)
 
-#define GPIO_PCSET                                           *((volatile int32u *)0x4000B810u)
-#define GPIO_PCSET_REG                                       *((volatile int32u *)0x4000B810u)
+#define GPIO_PCSET                                           *((volatile uint32_t *)0x4000B810u)
+#define GPIO_PCSET_REG                                       *((volatile uint32_t *)0x4000B810u)
 #define GPIO_PCSET_ADDR                                      (0x4000B810u)
 #define GPIO_PCSET_RESET                                     (0x00000000u)
         /* GPIO_PXSETRSVD field */
@@ -5231,8 +5231,8 @@
         #define PC0_BIT                                      (0)
         #define PC0_BITS                                     (1)
 
-#define GPIO_PCCLR                                           *((volatile int32u *)0x4000B814u)
-#define GPIO_PCCLR_REG                                       *((volatile int32u *)0x4000B814u)
+#define GPIO_PCCLR                                           *((volatile uint32_t *)0x4000B814u)
+#define GPIO_PCCLR_REG                                       *((volatile uint32_t *)0x4000B814u)
 #define GPIO_PCCLR_ADDR                                      (0x4000B814u)
 #define GPIO_PCCLR_RESET                                     (0x00000000u)
         /* PC7 field */
@@ -5276,8 +5276,8 @@
         #define PC0_BIT                                      (0)
         #define PC0_BITS                                     (1)
 
-#define GPIO_DBGCFG                                          *((volatile int32u *)0x4000BC00u)
-#define GPIO_DBGCFG_REG                                      *((volatile int32u *)0x4000BC00u)
+#define GPIO_DBGCFG                                          *((volatile uint32_t *)0x4000BC00u)
+#define GPIO_DBGCFG_REG                                      *((volatile uint32_t *)0x4000BC00u)
 #define GPIO_DBGCFG_ADDR                                     (0x4000BC00u)
 #define GPIO_DBGCFG_RESET                                    (0x00000010u)
         /* GPIO_DEBUGDIS field */
@@ -5296,8 +5296,8 @@
         #define GPIO_DBGCFGRSVD_BIT                          (3)
         #define GPIO_DBGCFGRSVD_BITS                         (1)
 
-#define GPIO_DBGSTAT                                         *((volatile int32u *)0x4000BC04u)
-#define GPIO_DBGSTAT_REG                                     *((volatile int32u *)0x4000BC04u)
+#define GPIO_DBGSTAT                                         *((volatile uint32_t *)0x4000BC04u)
+#define GPIO_DBGSTAT_REG                                     *((volatile uint32_t *)0x4000BC04u)
 #define GPIO_DBGSTAT_ADDR                                    (0x4000BC04u)
 #define GPIO_DBGSTAT_RESET                                   (0x00000000u)
         /* GPIO_BOOTMODE field */
@@ -5316,8 +5316,8 @@
         #define GPIO_SWEN_BIT                                (0)
         #define GPIO_SWEN_BITS                               (1)
 
-#define GPIO_PAWAKE                                          *((volatile int32u *)0x4000BC08u)
-#define GPIO_PAWAKE_REG                                      *((volatile int32u *)0x4000BC08u)
+#define GPIO_PAWAKE                                          *((volatile uint32_t *)0x4000BC08u)
+#define GPIO_PAWAKE_REG                                      *((volatile uint32_t *)0x4000BC08u)
 #define GPIO_PAWAKE_ADDR                                     (0x4000BC08u)
 #define GPIO_PAWAKE_RESET                                    (0x00000000u)
         /* PA7 field */
@@ -5361,8 +5361,8 @@
         #define PA0_BIT                                      (0)
         #define PA0_BITS                                     (1)
 
-#define GPIO_PBWAKE                                          *((volatile int32u *)0x4000BC0Cu)
-#define GPIO_PBWAKE_REG                                      *((volatile int32u *)0x4000BC0Cu)
+#define GPIO_PBWAKE                                          *((volatile uint32_t *)0x4000BC0Cu)
+#define GPIO_PBWAKE_REG                                      *((volatile uint32_t *)0x4000BC0Cu)
 #define GPIO_PBWAKE_ADDR                                     (0x4000BC0Cu)
 #define GPIO_PBWAKE_RESET                                    (0x00000000u)
         /* PB7 field */
@@ -5406,8 +5406,8 @@
         #define PB0_BIT                                      (0)
         #define PB0_BITS                                     (1)
 
-#define GPIO_PCWAKE                                          *((volatile int32u *)0x4000BC10u)
-#define GPIO_PCWAKE_REG                                      *((volatile int32u *)0x4000BC10u)
+#define GPIO_PCWAKE                                          *((volatile uint32_t *)0x4000BC10u)
+#define GPIO_PCWAKE_REG                                      *((volatile uint32_t *)0x4000BC10u)
 #define GPIO_PCWAKE_ADDR                                     (0x4000BC10u)
 #define GPIO_PCWAKE_RESET                                    (0x00000000u)
         /* PC7 field */
@@ -5451,8 +5451,8 @@
         #define PC0_BIT                                      (0)
         #define PC0_BITS                                     (1)
 
-#define GPIO_IRQCSEL                                         *((volatile int32u *)0x4000BC14u)
-#define GPIO_IRQCSEL_REG                                     *((volatile int32u *)0x4000BC14u)
+#define GPIO_IRQCSEL                                         *((volatile uint32_t *)0x4000BC14u)
+#define GPIO_IRQCSEL_REG                                     *((volatile uint32_t *)0x4000BC14u)
 #define GPIO_IRQCSEL_ADDR                                    (0x4000BC14u)
 #define GPIO_IRQCSEL_RESET                                   (0x0000000Fu)
         /* SEL_GPIO field */
@@ -5461,8 +5461,8 @@
         #define SEL_GPIO_BIT                                 (0)
         #define SEL_GPIO_BITS                                (5)
 
-#define GPIO_IRQDSEL                                         *((volatile int32u *)0x4000BC18u)
-#define GPIO_IRQDSEL_REG                                     *((volatile int32u *)0x4000BC18u)
+#define GPIO_IRQDSEL                                         *((volatile uint32_t *)0x4000BC18u)
+#define GPIO_IRQDSEL_REG                                     *((volatile uint32_t *)0x4000BC18u)
 #define GPIO_IRQDSEL_ADDR                                    (0x4000BC18u)
 #define GPIO_IRQDSEL_RESET                                   (0x00000010u)
         /* SEL_GPIO field */
@@ -5471,8 +5471,8 @@
         #define SEL_GPIO_BIT                                 (0)
         #define SEL_GPIO_BITS                                (5)
 
-#define GPIO_WAKEFILT                                        *((volatile int32u *)0x4000BC1Cu)
-#define GPIO_WAKEFILT_REG                                    *((volatile int32u *)0x4000BC1Cu)
+#define GPIO_WAKEFILT                                        *((volatile uint32_t *)0x4000BC1Cu)
+#define GPIO_WAKEFILT_REG                                    *((volatile uint32_t *)0x4000BC1Cu)
 #define GPIO_WAKEFILT_ADDR                                   (0x4000BC1Cu)
 #define GPIO_WAKEFILT_RESET                                  (0x00000000u)
         /* IRQD_WAKE_FILTER field */
@@ -5501,8 +5501,8 @@
 #define BLOCK_SERIAL_END                                     (0x4000C870u)
 #define BLOCK_SERIAL_SIZE                                    (BLOCK_SERIAL_END - BLOCK_SERIAL_BASE + 1)
 
-#define SC2_RXBEGA                                           *((volatile int32u *)0x4000C000u)
-#define SC2_RXBEGA_REG                                       *((volatile int32u *)0x4000C000u)
+#define SC2_RXBEGA                                           *((volatile uint32_t *)0x4000C000u)
+#define SC2_RXBEGA_REG                                       *((volatile uint32_t *)0x4000C000u)
 #define SC2_RXBEGA_ADDR                                      (0x4000C000u)
 #define SC2_RXBEGA_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5516,8 +5516,8 @@
         #define SC_RXBEGA_BIT                                (0)
         #define SC_RXBEGA_BITS                               (13)
 
-#define SC2_RXENDA                                           *((volatile int32u *)0x4000C004u)
-#define SC2_RXENDA_REG                                       *((volatile int32u *)0x4000C004u)
+#define SC2_RXENDA                                           *((volatile uint32_t *)0x4000C004u)
+#define SC2_RXENDA_REG                                       *((volatile uint32_t *)0x4000C004u)
 #define SC2_RXENDA_ADDR                                      (0x4000C004u)
 #define SC2_RXENDA_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5531,8 +5531,8 @@
         #define SC_RXENDA_BIT                                (0)
         #define SC_RXENDA_BITS                               (13)
 
-#define SC2_RXBEGB                                           *((volatile int32u *)0x4000C008u)
-#define SC2_RXBEGB_REG                                       *((volatile int32u *)0x4000C008u)
+#define SC2_RXBEGB                                           *((volatile uint32_t *)0x4000C008u)
+#define SC2_RXBEGB_REG                                       *((volatile uint32_t *)0x4000C008u)
 #define SC2_RXBEGB_ADDR                                      (0x4000C008u)
 #define SC2_RXBEGB_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5546,8 +5546,8 @@
         #define SC_RXBEGB_BIT                                (0)
         #define SC_RXBEGB_BITS                               (13)
 
-#define SC2_RXENDB                                           *((volatile int32u *)0x4000C00Cu)
-#define SC2_RXENDB_REG                                       *((volatile int32u *)0x4000C00Cu)
+#define SC2_RXENDB                                           *((volatile uint32_t *)0x4000C00Cu)
+#define SC2_RXENDB_REG                                       *((volatile uint32_t *)0x4000C00Cu)
 #define SC2_RXENDB_ADDR                                      (0x4000C00Cu)
 #define SC2_RXENDB_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5561,8 +5561,8 @@
         #define SC_RXENDB_BIT                                (0)
         #define SC_RXENDB_BITS                               (13)
 
-#define SC2_TXBEGA                                           *((volatile int32u *)0x4000C010u)
-#define SC2_TXBEGA_REG                                       *((volatile int32u *)0x4000C010u)
+#define SC2_TXBEGA                                           *((volatile uint32_t *)0x4000C010u)
+#define SC2_TXBEGA_REG                                       *((volatile uint32_t *)0x4000C010u)
 #define SC2_TXBEGA_ADDR                                      (0x4000C010u)
 #define SC2_TXBEGA_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5576,8 +5576,8 @@
         #define SC_TXBEGA_BIT                                (0)
         #define SC_TXBEGA_BITS                               (13)
 
-#define SC2_TXENDA                                           *((volatile int32u *)0x4000C014u)
-#define SC2_TXENDA_REG                                       *((volatile int32u *)0x4000C014u)
+#define SC2_TXENDA                                           *((volatile uint32_t *)0x4000C014u)
+#define SC2_TXENDA_REG                                       *((volatile uint32_t *)0x4000C014u)
 #define SC2_TXENDA_ADDR                                      (0x4000C014u)
 #define SC2_TXENDA_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5591,8 +5591,8 @@
         #define SC_TXENDA_BIT                                (0)
         #define SC_TXENDA_BITS                               (13)
 
-#define SC2_TXBEGB                                           *((volatile int32u *)0x4000C018u)
-#define SC2_TXBEGB_REG                                       *((volatile int32u *)0x4000C018u)
+#define SC2_TXBEGB                                           *((volatile uint32_t *)0x4000C018u)
+#define SC2_TXBEGB_REG                                       *((volatile uint32_t *)0x4000C018u)
 #define SC2_TXBEGB_ADDR                                      (0x4000C018u)
 #define SC2_TXBEGB_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5606,8 +5606,8 @@
         #define SC_TXBEGB_BIT                                (0)
         #define SC_TXBEGB_BITS                               (13)
 
-#define SC2_TXENDB                                           *((volatile int32u *)0x4000C01Cu)
-#define SC2_TXENDB_REG                                       *((volatile int32u *)0x4000C01Cu)
+#define SC2_TXENDB                                           *((volatile uint32_t *)0x4000C01Cu)
+#define SC2_TXENDB_REG                                       *((volatile uint32_t *)0x4000C01Cu)
 #define SC2_TXENDB_ADDR                                      (0x4000C01Cu)
 #define SC2_TXENDB_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5621,8 +5621,8 @@
         #define SC_TXENDB_BIT                                (0)
         #define SC_TXENDB_BITS                               (13)
 
-#define SC2_RXCNTA                                           *((volatile int32u *)0x4000C020u)
-#define SC2_RXCNTA_REG                                       *((volatile int32u *)0x4000C020u)
+#define SC2_RXCNTA                                           *((volatile uint32_t *)0x4000C020u)
+#define SC2_RXCNTA_REG                                       *((volatile uint32_t *)0x4000C020u)
 #define SC2_RXCNTA_ADDR                                      (0x4000C020u)
 #define SC2_RXCNTA_RESET                                     (0x00000000u)
         /* SC_RXCNTA field */
@@ -5631,8 +5631,8 @@
         #define SC_RXCNTA_BIT                                (0)
         #define SC_RXCNTA_BITS                               (13)
 
-#define SC2_RXCNTB                                           *((volatile int32u *)0x4000C024u)
-#define SC2_RXCNTB_REG                                       *((volatile int32u *)0x4000C024u)
+#define SC2_RXCNTB                                           *((volatile uint32_t *)0x4000C024u)
+#define SC2_RXCNTB_REG                                       *((volatile uint32_t *)0x4000C024u)
 #define SC2_RXCNTB_ADDR                                      (0x4000C024u)
 #define SC2_RXCNTB_RESET                                     (0x00000000u)
         /* SC_RXCNTB field */
@@ -5641,8 +5641,8 @@
         #define SC_RXCNTB_BIT                                (0)
         #define SC_RXCNTB_BITS                               (13)
 
-#define SC2_TXCNT                                            *((volatile int32u *)0x4000C028u)
-#define SC2_TXCNT_REG                                        *((volatile int32u *)0x4000C028u)
+#define SC2_TXCNT                                            *((volatile uint32_t *)0x4000C028u)
+#define SC2_TXCNT_REG                                        *((volatile uint32_t *)0x4000C028u)
 #define SC2_TXCNT_ADDR                                       (0x4000C028u)
 #define SC2_TXCNT_RESET                                      (0x00000000u)
         /* SC_TXCNT field */
@@ -5651,8 +5651,8 @@
         #define SC_TXCNT_BIT                                 (0)
         #define SC_TXCNT_BITS                                (13)
 
-#define SC2_DMASTAT                                          *((volatile int32u *)0x4000C02Cu)
-#define SC2_DMASTAT_REG                                      *((volatile int32u *)0x4000C02Cu)
+#define SC2_DMASTAT                                          *((volatile uint32_t *)0x4000C02Cu)
+#define SC2_DMASTAT_REG                                      *((volatile uint32_t *)0x4000C02Cu)
 #define SC2_DMASTAT_ADDR                                     (0x4000C02Cu)
 #define SC2_DMASTAT_RESET                                    (0x00000000u)
         /* SC_RXSSEL field */
@@ -5691,8 +5691,8 @@
         #define SC_RXACTA_BIT                                (0)
         #define SC_RXACTA_BITS                               (1)
 
-#define SC2_DMACTRL                                          *((volatile int32u *)0x4000C030u)
-#define SC2_DMACTRL_REG                                      *((volatile int32u *)0x4000C030u)
+#define SC2_DMACTRL                                          *((volatile uint32_t *)0x4000C030u)
+#define SC2_DMACTRL_REG                                      *((volatile uint32_t *)0x4000C030u)
 #define SC2_DMACTRL_ADDR                                     (0x4000C030u)
 #define SC2_DMACTRL_RESET                                    (0x00000000u)
         /* SC_TXDMARST field */
@@ -5726,8 +5726,8 @@
         #define SC_RXLODA_BIT                                (0)
         #define SC_RXLODA_BITS                               (1)
 
-#define SC2_RXERRA                                           *((volatile int32u *)0x4000C034u)
-#define SC2_RXERRA_REG                                       *((volatile int32u *)0x4000C034u)
+#define SC2_RXERRA                                           *((volatile uint32_t *)0x4000C034u)
+#define SC2_RXERRA_REG                                       *((volatile uint32_t *)0x4000C034u)
 #define SC2_RXERRA_ADDR                                      (0x4000C034u)
 #define SC2_RXERRA_RESET                                     (0x00000000u)
         /* SC_RXERRA field */
@@ -5736,8 +5736,8 @@
         #define SC_RXERRA_BIT                                (0)
         #define SC_RXERRA_BITS                               (13)
 
-#define SC2_RXERRB                                           *((volatile int32u *)0x4000C038u)
-#define SC2_RXERRB_REG                                       *((volatile int32u *)0x4000C038u)
+#define SC2_RXERRB                                           *((volatile uint32_t *)0x4000C038u)
+#define SC2_RXERRB_REG                                       *((volatile uint32_t *)0x4000C038u)
 #define SC2_RXERRB_ADDR                                      (0x4000C038u)
 #define SC2_RXERRB_RESET                                     (0x00000000u)
         /* SC_RXERRB field */
@@ -5746,8 +5746,8 @@
         #define SC_RXERRB_BIT                                (0)
         #define SC_RXERRB_BITS                               (13)
 
-#define SC2_DATA                                             *((volatile int32u *)0x4000C03Cu)
-#define SC2_DATA_REG                                         *((volatile int32u *)0x4000C03Cu)
+#define SC2_DATA                                             *((volatile uint32_t *)0x4000C03Cu)
+#define SC2_DATA_REG                                         *((volatile uint32_t *)0x4000C03Cu)
 #define SC2_DATA_ADDR                                        (0x4000C03Cu)
 #define SC2_DATA_RESET                                       (0x00000000u)
         /* SC_DATA field */
@@ -5756,8 +5756,8 @@
         #define SC_DATA_BIT                                  (0)
         #define SC_DATA_BITS                                 (8)
 
-#define SC2_SPISTAT                                          *((volatile int32u *)0x4000C040u)
-#define SC2_SPISTAT_REG                                      *((volatile int32u *)0x4000C040u)
+#define SC2_SPISTAT                                          *((volatile uint32_t *)0x4000C040u)
+#define SC2_SPISTAT_REG                                      *((volatile uint32_t *)0x4000C040u)
 #define SC2_SPISTAT_ADDR                                     (0x4000C040u)
 #define SC2_SPISTAT_RESET                                    (0x00000000u)
         /* SC_SPITXIDLE field */
@@ -5781,8 +5781,8 @@
         #define SC_SPIRXOVF_BIT                              (0)
         #define SC_SPIRXOVF_BITS                             (1)
 
-#define SC2_TWISTAT                                          *((volatile int32u *)0x4000C044u)
-#define SC2_TWISTAT_REG                                      *((volatile int32u *)0x4000C044u)
+#define SC2_TWISTAT                                          *((volatile uint32_t *)0x4000C044u)
+#define SC2_TWISTAT_REG                                      *((volatile uint32_t *)0x4000C044u)
 #define SC2_TWISTAT_ADDR                                     (0x4000C044u)
 #define SC2_TWISTAT_RESET                                    (0x00000000u)
         /* SC_TWICMDFIN field */
@@ -5806,8 +5806,8 @@
         #define SC_TWIRXNAK_BIT                              (0)
         #define SC_TWIRXNAK_BITS                             (1)
 
-#define SC2_TWICTRL1                                         *((volatile int32u *)0x4000C04Cu)
-#define SC2_TWICTRL1_REG                                     *((volatile int32u *)0x4000C04Cu)
+#define SC2_TWICTRL1                                         *((volatile uint32_t *)0x4000C04Cu)
+#define SC2_TWICTRL1_REG                                     *((volatile uint32_t *)0x4000C04Cu)
 #define SC2_TWICTRL1_ADDR                                    (0x4000C04Cu)
 #define SC2_TWICTRL1_RESET                                   (0x00000000u)
         /* SC_TWISTOP field */
@@ -5831,8 +5831,8 @@
         #define SC_TWIRECV_BIT                               (0)
         #define SC_TWIRECV_BITS                              (1)
 
-#define SC2_TWICTRL2                                         *((volatile int32u *)0x4000C050u)
-#define SC2_TWICTRL2_REG                                     *((volatile int32u *)0x4000C050u)
+#define SC2_TWICTRL2                                         *((volatile uint32_t *)0x4000C050u)
+#define SC2_TWICTRL2_REG                                     *((volatile uint32_t *)0x4000C050u)
 #define SC2_TWICTRL2_ADDR                                    (0x4000C050u)
 #define SC2_TWICTRL2_RESET                                   (0x00000000u)
         /* SC_TWIACK field */
@@ -5841,8 +5841,8 @@
         #define SC_TWIACK_BIT                                (0)
         #define SC_TWIACK_BITS                               (1)
 
-#define SC2_MODE                                             *((volatile int32u *)0x4000C054u)
-#define SC2_MODE_REG                                         *((volatile int32u *)0x4000C054u)
+#define SC2_MODE                                             *((volatile uint32_t *)0x4000C054u)
+#define SC2_MODE_REG                                         *((volatile uint32_t *)0x4000C054u)
 #define SC2_MODE_ADDR                                        (0x4000C054u)
 #define SC2_MODE_RESET                                       (0x00000000u)
         /* SC_MODE field */
@@ -5855,8 +5855,8 @@
                 #define SC2_MODE_SPI                         (2)
                 #define SC2_MODE_I2C                         (3)
 
-#define SC2_SPICFG                                           *((volatile int32u *)0x4000C058u)
-#define SC2_SPICFG_REG                                       *((volatile int32u *)0x4000C058u)
+#define SC2_SPICFG                                           *((volatile uint32_t *)0x4000C058u)
+#define SC2_SPICFG_REG                                       *((volatile uint32_t *)0x4000C058u)
 #define SC2_SPICFG_ADDR                                      (0x4000C058u)
 #define SC2_SPICFG_RESET                                     (0x00000000u)
         /* SC_SPIRXDRV field */
@@ -5890,8 +5890,8 @@
         #define SC_SPIPOL_BIT                                (0)
         #define SC_SPIPOL_BITS                               (1)
 
-#define SC2_RATELIN                                          *((volatile int32u *)0x4000C060u)
-#define SC2_RATELIN_REG                                      *((volatile int32u *)0x4000C060u)
+#define SC2_RATELIN                                          *((volatile uint32_t *)0x4000C060u)
+#define SC2_RATELIN_REG                                      *((volatile uint32_t *)0x4000C060u)
 #define SC2_RATELIN_ADDR                                     (0x4000C060u)
 #define SC2_RATELIN_RESET                                    (0x00000000u)
         /* SC_RATELIN field */
@@ -5900,8 +5900,8 @@
         #define SC_RATELIN_BIT                               (0)
         #define SC_RATELIN_BITS                              (4)
 
-#define SC2_RATEEXP                                          *((volatile int32u *)0x4000C064u)
-#define SC2_RATEEXP_REG                                      *((volatile int32u *)0x4000C064u)
+#define SC2_RATEEXP                                          *((volatile uint32_t *)0x4000C064u)
+#define SC2_RATEEXP_REG                                      *((volatile uint32_t *)0x4000C064u)
 #define SC2_RATEEXP_ADDR                                     (0x4000C064u)
 #define SC2_RATEEXP_RESET                                    (0x00000000u)
         /* SC_RATEEXP field */
@@ -5910,8 +5910,8 @@
         #define SC_RATEEXP_BIT                               (0)
         #define SC_RATEEXP_BITS                              (4)
 
-#define SC2_RXCNTSAVED                                       *((volatile int32u *)0x4000C070u)
-#define SC2_RXCNTSAVED_REG                                   *((volatile int32u *)0x4000C070u)
+#define SC2_RXCNTSAVED                                       *((volatile uint32_t *)0x4000C070u)
+#define SC2_RXCNTSAVED_REG                                   *((volatile uint32_t *)0x4000C070u)
 #define SC2_RXCNTSAVED_ADDR                                  (0x4000C070u)
 #define SC2_RXCNTSAVED_RESET                                 (0x00000000u)
         /* SC_RXCNTSAVED field */
@@ -5920,8 +5920,8 @@
         #define SC_RXCNTSAVED_BIT                            (0)
         #define SC_RXCNTSAVED_BITS                           (13)
 
-#define SC1_RXBEGA                                           *((volatile int32u *)0x4000C800u)
-#define SC1_RXBEGA_REG                                       *((volatile int32u *)0x4000C800u)
+#define SC1_RXBEGA                                           *((volatile uint32_t *)0x4000C800u)
+#define SC1_RXBEGA_REG                                       *((volatile uint32_t *)0x4000C800u)
 #define SC1_RXBEGA_ADDR                                      (0x4000C800u)
 #define SC1_RXBEGA_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5935,8 +5935,8 @@
         #define SC_RXBEGA_BIT                                (0)
         #define SC_RXBEGA_BITS                               (13)
 
-#define SC1_RXENDA                                           *((volatile int32u *)0x4000C804u)
-#define SC1_RXENDA_REG                                       *((volatile int32u *)0x4000C804u)
+#define SC1_RXENDA                                           *((volatile uint32_t *)0x4000C804u)
+#define SC1_RXENDA_REG                                       *((volatile uint32_t *)0x4000C804u)
 #define SC1_RXENDA_ADDR                                      (0x4000C804u)
 #define SC1_RXENDA_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5950,8 +5950,8 @@
         #define SC_RXENDA_BIT                                (0)
         #define SC_RXENDA_BITS                               (13)
 
-#define SC1_RXBEGB                                           *((volatile int32u *)0x4000C808u)
-#define SC1_RXBEGB_REG                                       *((volatile int32u *)0x4000C808u)
+#define SC1_RXBEGB                                           *((volatile uint32_t *)0x4000C808u)
+#define SC1_RXBEGB_REG                                       *((volatile uint32_t *)0x4000C808u)
 #define SC1_RXBEGB_ADDR                                      (0x4000C808u)
 #define SC1_RXBEGB_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5965,8 +5965,8 @@
         #define SC_RXBEGB_BIT                                (0)
         #define SC_RXBEGB_BITS                               (13)
 
-#define SC1_RXENDB                                           *((volatile int32u *)0x4000C80Cu)
-#define SC1_RXENDB_REG                                       *((volatile int32u *)0x4000C80Cu)
+#define SC1_RXENDB                                           *((volatile uint32_t *)0x4000C80Cu)
+#define SC1_RXENDB_REG                                       *((volatile uint32_t *)0x4000C80Cu)
 #define SC1_RXENDB_ADDR                                      (0x4000C80Cu)
 #define SC1_RXENDB_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5980,8 +5980,8 @@
         #define SC_RXENDB_BIT                                (0)
         #define SC_RXENDB_BITS                               (13)
 
-#define SC1_TXBEGA                                           *((volatile int32u *)0x4000C810u)
-#define SC1_TXBEGA_REG                                       *((volatile int32u *)0x4000C810u)
+#define SC1_TXBEGA                                           *((volatile uint32_t *)0x4000C810u)
+#define SC1_TXBEGA_REG                                       *((volatile uint32_t *)0x4000C810u)
 #define SC1_TXBEGA_ADDR                                      (0x4000C810u)
 #define SC1_TXBEGA_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -5995,8 +5995,8 @@
         #define SC_TXBEGA_BIT                                (0)
         #define SC_TXBEGA_BITS                               (13)
 
-#define SC1_TXENDA                                           *((volatile int32u *)0x4000C814u)
-#define SC1_TXENDA_REG                                       *((volatile int32u *)0x4000C814u)
+#define SC1_TXENDA                                           *((volatile uint32_t *)0x4000C814u)
+#define SC1_TXENDA_REG                                       *((volatile uint32_t *)0x4000C814u)
 #define SC1_TXENDA_ADDR                                      (0x4000C814u)
 #define SC1_TXENDA_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -6010,8 +6010,8 @@
         #define SC_TXENDA_BIT                                (0)
         #define SC_TXENDA_BITS                               (13)
 
-#define SC1_TXBEGB                                           *((volatile int32u *)0x4000C818u)
-#define SC1_TXBEGB_REG                                       *((volatile int32u *)0x4000C818u)
+#define SC1_TXBEGB                                           *((volatile uint32_t *)0x4000C818u)
+#define SC1_TXBEGB_REG                                       *((volatile uint32_t *)0x4000C818u)
 #define SC1_TXBEGB_ADDR                                      (0x4000C818u)
 #define SC1_TXBEGB_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -6025,8 +6025,8 @@
         #define SC_TXBEGB_BIT                                (0)
         #define SC_TXBEGB_BITS                               (13)
 
-#define SC1_TXENDB                                           *((volatile int32u *)0x4000C81Cu)
-#define SC1_TXENDB_REG                                       *((volatile int32u *)0x4000C81Cu)
+#define SC1_TXENDB                                           *((volatile uint32_t *)0x4000C81Cu)
+#define SC1_TXENDB_REG                                       *((volatile uint32_t *)0x4000C81Cu)
 #define SC1_TXENDB_ADDR                                      (0x4000C81Cu)
 #define SC1_TXENDB_RESET                                     (0x20000000u)
         /* FIXED field */
@@ -6040,8 +6040,8 @@
         #define SC_TXENDB_BIT                                (0)
         #define SC_TXENDB_BITS                               (13)
 
-#define SC1_RXCNTA                                           *((volatile int32u *)0x4000C820u)
-#define SC1_RXCNTA_REG                                       *((volatile int32u *)0x4000C820u)
+#define SC1_RXCNTA                                           *((volatile uint32_t *)0x4000C820u)
+#define SC1_RXCNTA_REG                                       *((volatile uint32_t *)0x4000C820u)
 #define SC1_RXCNTA_ADDR                                      (0x4000C820u)
 #define SC1_RXCNTA_RESET                                     (0x00000000u)
         /* SC_RXCNTA field */
@@ -6050,8 +6050,8 @@
         #define SC_RXCNTA_BIT                                (0)
         #define SC_RXCNTA_BITS                               (13)
 
-#define SC1_RXCNTB                                           *((volatile int32u *)0x4000C824u)
-#define SC1_RXCNTB_REG                                       *((volatile int32u *)0x4000C824u)
+#define SC1_RXCNTB                                           *((volatile uint32_t *)0x4000C824u)
+#define SC1_RXCNTB_REG                                       *((volatile uint32_t *)0x4000C824u)
 #define SC1_RXCNTB_ADDR                                      (0x4000C824u)
 #define SC1_RXCNTB_RESET                                     (0x00000000u)
         /* SC_RXCNTB field */
@@ -6060,8 +6060,8 @@
         #define SC_RXCNTB_BIT                                (0)
         #define SC_RXCNTB_BITS                               (13)
 
-#define SC1_TXCNT                                            *((volatile int32u *)0x4000C828u)
-#define SC1_TXCNT_REG                                        *((volatile int32u *)0x4000C828u)
+#define SC1_TXCNT                                            *((volatile uint32_t *)0x4000C828u)
+#define SC1_TXCNT_REG                                        *((volatile uint32_t *)0x4000C828u)
 #define SC1_TXCNT_ADDR                                       (0x4000C828u)
 #define SC1_TXCNT_RESET                                      (0x00000000u)
         /* SC_TXCNT field */
@@ -6070,8 +6070,8 @@
         #define SC_TXCNT_BIT                                 (0)
         #define SC_TXCNT_BITS                                (13)
 
-#define SC1_DMASTAT                                          *((volatile int32u *)0x4000C82Cu)
-#define SC1_DMASTAT_REG                                      *((volatile int32u *)0x4000C82Cu)
+#define SC1_DMASTAT                                          *((volatile uint32_t *)0x4000C82Cu)
+#define SC1_DMASTAT_REG                                      *((volatile uint32_t *)0x4000C82Cu)
 #define SC1_DMASTAT_ADDR                                     (0x4000C82Cu)
 #define SC1_DMASTAT_RESET                                    (0x00000000u)
         /* SC_RXSSEL field */
@@ -6130,8 +6130,8 @@
         #define SC_RXACTA_BIT                                (0)
         #define SC_RXACTA_BITS                               (1)
 
-#define SC1_DMACTRL                                          *((volatile int32u *)0x4000C830u)
-#define SC1_DMACTRL_REG                                      *((volatile int32u *)0x4000C830u)
+#define SC1_DMACTRL                                          *((volatile uint32_t *)0x4000C830u)
+#define SC1_DMACTRL_REG                                      *((volatile uint32_t *)0x4000C830u)
 #define SC1_DMACTRL_ADDR                                     (0x4000C830u)
 #define SC1_DMACTRL_RESET                                    (0x00000000u)
         /* SC_TXDMARST field */
@@ -6165,8 +6165,8 @@
         #define SC_RXLODA_BIT                                (0)
         #define SC_RXLODA_BITS                               (1)
 
-#define SC1_RXERRA                                           *((volatile int32u *)0x4000C834u)
-#define SC1_RXERRA_REG                                       *((volatile int32u *)0x4000C834u)
+#define SC1_RXERRA                                           *((volatile uint32_t *)0x4000C834u)
+#define SC1_RXERRA_REG                                       *((volatile uint32_t *)0x4000C834u)
 #define SC1_RXERRA_ADDR                                      (0x4000C834u)
 #define SC1_RXERRA_RESET                                     (0x00000000u)
         /* SC_RXERRA field */
@@ -6175,8 +6175,8 @@
         #define SC_RXERRA_BIT                                (0)
         #define SC_RXERRA_BITS                               (13)
 
-#define SC1_RXERRB                                           *((volatile int32u *)0x4000C838u)
-#define SC1_RXERRB_REG                                       *((volatile int32u *)0x4000C838u)
+#define SC1_RXERRB                                           *((volatile uint32_t *)0x4000C838u)
+#define SC1_RXERRB_REG                                       *((volatile uint32_t *)0x4000C838u)
 #define SC1_RXERRB_ADDR                                      (0x4000C838u)
 #define SC1_RXERRB_RESET                                     (0x00000000u)
         /* SC_RXERRB field */
@@ -6185,8 +6185,8 @@
         #define SC_RXERRB_BIT                                (0)
         #define SC_RXERRB_BITS                               (13)
 
-#define SC1_DATA                                             *((volatile int32u *)0x4000C83Cu)
-#define SC1_DATA_REG                                         *((volatile int32u *)0x4000C83Cu)
+#define SC1_DATA                                             *((volatile uint32_t *)0x4000C83Cu)
+#define SC1_DATA_REG                                         *((volatile uint32_t *)0x4000C83Cu)
 #define SC1_DATA_ADDR                                        (0x4000C83Cu)
 #define SC1_DATA_RESET                                       (0x00000000u)
         /* SC_DATA field */
@@ -6195,8 +6195,8 @@
         #define SC_DATA_BIT                                  (0)
         #define SC_DATA_BITS                                 (8)
 
-#define SC1_SPISTAT                                          *((volatile int32u *)0x4000C840u)
-#define SC1_SPISTAT_REG                                      *((volatile int32u *)0x4000C840u)
+#define SC1_SPISTAT                                          *((volatile uint32_t *)0x4000C840u)
+#define SC1_SPISTAT_REG                                      *((volatile uint32_t *)0x4000C840u)
 #define SC1_SPISTAT_ADDR                                     (0x4000C840u)
 #define SC1_SPISTAT_RESET                                    (0x00000000u)
         /* SC_SPITXIDLE field */
@@ -6220,8 +6220,8 @@
         #define SC_SPIRXOVF_BIT                              (0)
         #define SC_SPIRXOVF_BITS                             (1)
 
-#define SC1_TWISTAT                                          *((volatile int32u *)0x4000C844u)
-#define SC1_TWISTAT_REG                                      *((volatile int32u *)0x4000C844u)
+#define SC1_TWISTAT                                          *((volatile uint32_t *)0x4000C844u)
+#define SC1_TWISTAT_REG                                      *((volatile uint32_t *)0x4000C844u)
 #define SC1_TWISTAT_ADDR                                     (0x4000C844u)
 #define SC1_TWISTAT_RESET                                    (0x00000000u)
         /* SC_TWICMDFIN field */
@@ -6245,8 +6245,8 @@
         #define SC_TWIRXNAK_BIT                              (0)
         #define SC_TWIRXNAK_BITS                             (1)
 
-#define SC1_UARTSTAT                                         *((volatile int32u *)0x4000C848u)
-#define SC1_UARTSTAT_REG                                     *((volatile int32u *)0x4000C848u)
+#define SC1_UARTSTAT                                         *((volatile uint32_t *)0x4000C848u)
+#define SC1_UARTSTAT_REG                                     *((volatile uint32_t *)0x4000C848u)
 #define SC1_UARTSTAT_ADDR                                    (0x4000C848u)
 #define SC1_UARTSTAT_RESET                                   (0x00000040u)
         /* SC_UARTTXIDLE field */
@@ -6285,8 +6285,8 @@
         #define SC_UARTCTS_BIT                               (0)
         #define SC_UARTCTS_BITS                              (1)
 
-#define SC1_TWICTRL1                                         *((volatile int32u *)0x4000C84Cu)
-#define SC1_TWICTRL1_REG                                     *((volatile int32u *)0x4000C84Cu)
+#define SC1_TWICTRL1                                         *((volatile uint32_t *)0x4000C84Cu)
+#define SC1_TWICTRL1_REG                                     *((volatile uint32_t *)0x4000C84Cu)
 #define SC1_TWICTRL1_ADDR                                    (0x4000C84Cu)
 #define SC1_TWICTRL1_RESET                                   (0x00000000u)
         /* SC_TWISTOP field */
@@ -6310,8 +6310,8 @@
         #define SC_TWIRECV_BIT                               (0)
         #define SC_TWIRECV_BITS                              (1)
 
-#define SC1_TWICTRL2                                         *((volatile int32u *)0x4000C850u)
-#define SC1_TWICTRL2_REG                                     *((volatile int32u *)0x4000C850u)
+#define SC1_TWICTRL2                                         *((volatile uint32_t *)0x4000C850u)
+#define SC1_TWICTRL2_REG                                     *((volatile uint32_t *)0x4000C850u)
 #define SC1_TWICTRL2_ADDR                                    (0x4000C850u)
 #define SC1_TWICTRL2_RESET                                   (0x00000000u)
         /* SC_TWIACK field */
@@ -6320,8 +6320,8 @@
         #define SC_TWIACK_BIT                                (0)
         #define SC_TWIACK_BITS                               (1)
 
-#define SC1_MODE                                             *((volatile int32u *)0x4000C854u)
-#define SC1_MODE_REG                                         *((volatile int32u *)0x4000C854u)
+#define SC1_MODE                                             *((volatile uint32_t *)0x4000C854u)
+#define SC1_MODE_REG                                         *((volatile uint32_t *)0x4000C854u)
 #define SC1_MODE_ADDR                                        (0x4000C854u)
 #define SC1_MODE_RESET                                       (0x00000000u)
         /* SC_MODE field */
@@ -6335,8 +6335,8 @@
                 #define SC1_MODE_SPI                         (2)
                 #define SC1_MODE_I2C                         (3)
 
-#define SC1_SPICFG                                           *((volatile int32u *)0x4000C858u)
-#define SC1_SPICFG_REG                                       *((volatile int32u *)0x4000C858u)
+#define SC1_SPICFG                                           *((volatile uint32_t *)0x4000C858u)
+#define SC1_SPICFG_REG                                       *((volatile uint32_t *)0x4000C858u)
 #define SC1_SPICFG_ADDR                                      (0x4000C858u)
 #define SC1_SPICFG_RESET                                     (0x00000000u)
         /* SC_SPIRXDRV field */
@@ -6370,8 +6370,8 @@
         #define SC_SPIPOL_BIT                                (0)
         #define SC_SPIPOL_BITS                               (1)
 
-#define SC1_UARTCFG                                          *((volatile int32u *)0x4000C85Cu)
-#define SC1_UARTCFG_REG                                      *((volatile int32u *)0x4000C85Cu)
+#define SC1_UARTCFG                                          *((volatile uint32_t *)0x4000C85Cu)
+#define SC1_UARTCFG_REG                                      *((volatile uint32_t *)0x4000C85Cu)
 #define SC1_UARTCFG_ADDR                                     (0x4000C85Cu)
 #define SC1_UARTCFG_RESET                                    (0x00000000u)
         /* SC_UARTAUTO field */
@@ -6410,8 +6410,8 @@
         #define SC_UARTRTS_BIT                               (0)
         #define SC_UARTRTS_BITS                              (1)
 
-#define SC1_RATELIN                                          *((volatile int32u *)0x4000C860u)
-#define SC1_RATELIN_REG                                      *((volatile int32u *)0x4000C860u)
+#define SC1_RATELIN                                          *((volatile uint32_t *)0x4000C860u)
+#define SC1_RATELIN_REG                                      *((volatile uint32_t *)0x4000C860u)
 #define SC1_RATELIN_ADDR                                     (0x4000C860u)
 #define SC1_RATELIN_RESET                                    (0x00000000u)
         /* SC_RATELIN field */
@@ -6420,8 +6420,8 @@
         #define SC_RATELIN_BIT                               (0)
         #define SC_RATELIN_BITS                              (4)
 
-#define SC1_RATEEXP                                          *((volatile int32u *)0x4000C864u)
-#define SC1_RATEEXP_REG                                      *((volatile int32u *)0x4000C864u)
+#define SC1_RATEEXP                                          *((volatile uint32_t *)0x4000C864u)
+#define SC1_RATEEXP_REG                                      *((volatile uint32_t *)0x4000C864u)
 #define SC1_RATEEXP_ADDR                                     (0x4000C864u)
 #define SC1_RATEEXP_RESET                                    (0x00000000u)
         /* SC_RATEEXP field */
@@ -6430,8 +6430,8 @@
         #define SC_RATEEXP_BIT                               (0)
         #define SC_RATEEXP_BITS                              (4)
 
-#define SC1_UARTPER                                          *((volatile int32u *)0x4000C868u)
-#define SC1_UARTPER_REG                                      *((volatile int32u *)0x4000C868u)
+#define SC1_UARTPER                                          *((volatile uint32_t *)0x4000C868u)
+#define SC1_UARTPER_REG                                      *((volatile uint32_t *)0x4000C868u)
 #define SC1_UARTPER_ADDR                                     (0x4000C868u)
 #define SC1_UARTPER_RESET                                    (0x00000000u)
         /* SC_UARTPER field */
@@ -6440,8 +6440,8 @@
         #define SC_UARTPER_BIT                               (0)
         #define SC_UARTPER_BITS                              (16)
 
-#define SC1_UARTFRAC                                         *((volatile int32u *)0x4000C86Cu)
-#define SC1_UARTFRAC_REG                                     *((volatile int32u *)0x4000C86Cu)
+#define SC1_UARTFRAC                                         *((volatile uint32_t *)0x4000C86Cu)
+#define SC1_UARTFRAC_REG                                     *((volatile uint32_t *)0x4000C86Cu)
 #define SC1_UARTFRAC_ADDR                                    (0x4000C86Cu)
 #define SC1_UARTFRAC_RESET                                   (0x00000000u)
         /* SC_UARTFRAC field */
@@ -6450,8 +6450,8 @@
         #define SC_UARTFRAC_BIT                              (0)
         #define SC_UARTFRAC_BITS                             (1)
 
-#define SC1_RXCNTSAVED                                       *((volatile int32u *)0x4000C870u)
-#define SC1_RXCNTSAVED_REG                                   *((volatile int32u *)0x4000C870u)
+#define SC1_RXCNTSAVED                                       *((volatile uint32_t *)0x4000C870u)
+#define SC1_RXCNTSAVED_REG                                   *((volatile uint32_t *)0x4000C870u)
 #define SC1_RXCNTSAVED_ADDR                                  (0x4000C870u)
 #define SC1_RXCNTSAVED_RESET                                 (0x00000000u)
         /* SC_RXCNTSAVED field */
@@ -6465,8 +6465,8 @@
 #define BLOCK_ADC_END                                        (0x4000D024u)
 #define BLOCK_ADC_SIZE                                       (BLOCK_ADC_END - BLOCK_ADC_BASE + 1)
 
-#define ADC_DATA                                             *((volatile int32u *)0x4000D000u)
-#define ADC_DATA_REG                                         *((volatile int32u *)0x4000D000u)
+#define ADC_DATA                                             *((volatile uint32_t *)0x4000D000u)
+#define ADC_DATA_REG                                         *((volatile uint32_t *)0x4000D000u)
 #define ADC_DATA_ADDR                                        (0x4000D000u)
 #define ADC_DATA_RESET                                       (0x00000000u)
         /* ADC_DATA_FIELD field */
@@ -6475,8 +6475,8 @@
         #define ADC_DATA_FIELD_BIT                           (0)
         #define ADC_DATA_FIELD_BITS                          (16)
 
-#define ADC_CFG                                              *((volatile int32u *)0x4000D004u)
-#define ADC_CFG_REG                                          *((volatile int32u *)0x4000D004u)
+#define ADC_CFG                                              *((volatile uint32_t *)0x4000D004u)
+#define ADC_CFG_REG                                          *((volatile uint32_t *)0x4000D004u)
 #define ADC_CFG_ADDR                                         (0x4000D004u)
 #define ADC_CFG_RESET                                        (0x00001800u)
         /* ADC_PERIOD field */
@@ -6520,8 +6520,8 @@
         #define ADC_ENABLE_BIT                               (0)
         #define ADC_ENABLE_BITS                              (1)
 
-#define ADC_OFFSET                                           *((volatile int32u *)0x4000D008u)
-#define ADC_OFFSET_REG                                       *((volatile int32u *)0x4000D008u)
+#define ADC_OFFSET                                           *((volatile uint32_t *)0x4000D008u)
+#define ADC_OFFSET_REG                                       *((volatile uint32_t *)0x4000D008u)
 #define ADC_OFFSET_ADDR                                      (0x4000D008u)
 #define ADC_OFFSET_RESET                                     (0x00000000u)
         /* ADC_OFFSET_FIELD field */
@@ -6530,8 +6530,8 @@
         #define ADC_OFFSET_FIELD_BIT                         (0)
         #define ADC_OFFSET_FIELD_BITS                        (16)
 
-#define ADC_GAIN                                             *((volatile int32u *)0x4000D00Cu)
-#define ADC_GAIN_REG                                         *((volatile int32u *)0x4000D00Cu)
+#define ADC_GAIN                                             *((volatile uint32_t *)0x4000D00Cu)
+#define ADC_GAIN_REG                                         *((volatile uint32_t *)0x4000D00Cu)
 #define ADC_GAIN_ADDR                                        (0x4000D00Cu)
 #define ADC_GAIN_RESET                                       (0x00008000u)
         /* ADC_GAIN_FIELD field */
@@ -6540,8 +6540,8 @@
         #define ADC_GAIN_FIELD_BIT                           (0)
         #define ADC_GAIN_FIELD_BITS                          (16)
 
-#define ADC_DMACFG                                           *((volatile int32u *)0x4000D010u)
-#define ADC_DMACFG_REG                                       *((volatile int32u *)0x4000D010u)
+#define ADC_DMACFG                                           *((volatile uint32_t *)0x4000D010u)
+#define ADC_DMACFG_REG                                       *((volatile uint32_t *)0x4000D010u)
 #define ADC_DMACFG_ADDR                                      (0x4000D010u)
 #define ADC_DMACFG_RESET                                     (0x00000000u)
         /* ADC_DMARST field */
@@ -6560,8 +6560,8 @@
         #define ADC_DMALOAD_BIT                              (0)
         #define ADC_DMALOAD_BITS                             (1)
 
-#define ADC_DMASTAT                                          *((volatile int32u *)0x4000D014u)
-#define ADC_DMASTAT_REG                                      *((volatile int32u *)0x4000D014u)
+#define ADC_DMASTAT                                          *((volatile uint32_t *)0x4000D014u)
+#define ADC_DMASTAT_REG                                      *((volatile uint32_t *)0x4000D014u)
 #define ADC_DMASTAT_ADDR                                     (0x4000D014u)
 #define ADC_DMASTAT_RESET                                    (0x00000000u)
         /* ADC_DMAOVF field */
@@ -6575,8 +6575,8 @@
         #define ADC_DMAACT_BIT                               (0)
         #define ADC_DMAACT_BITS                              (1)
 
-#define ADC_DMABEG                                           *((volatile int32u *)0x4000D018u)
-#define ADC_DMABEG_REG                                       *((volatile int32u *)0x4000D018u)
+#define ADC_DMABEG                                           *((volatile uint32_t *)0x4000D018u)
+#define ADC_DMABEG_REG                                       *((volatile uint32_t *)0x4000D018u)
 #define ADC_DMABEG_ADDR                                      (0x4000D018u)
 #define ADC_DMABEG_RESET                                     (0x20000000u)
         /* ADC_DMABEG_FIXED field */
@@ -6590,8 +6590,8 @@
         #define ADC_DMABEG_FIELD_BIT                         (0)
         #define ADC_DMABEG_FIELD_BITS                        (13)
 
-#define ADC_DMASIZE                                          *((volatile int32u *)0x4000D01Cu)
-#define ADC_DMASIZE_REG                                      *((volatile int32u *)0x4000D01Cu)
+#define ADC_DMASIZE                                          *((volatile uint32_t *)0x4000D01Cu)
+#define ADC_DMASIZE_REG                                      *((volatile uint32_t *)0x4000D01Cu)
 #define ADC_DMASIZE_ADDR                                     (0x4000D01Cu)
 #define ADC_DMASIZE_RESET                                    (0x00000000u)
         /* ADC_DMASIZE_FIELD field */
@@ -6600,8 +6600,8 @@
         #define ADC_DMASIZE_FIELD_BIT                        (0)
         #define ADC_DMASIZE_FIELD_BITS                       (12)
 
-#define ADC_DMACUR                                           *((volatile int32u *)0x4000D020u)
-#define ADC_DMACUR_REG                                       *((volatile int32u *)0x4000D020u)
+#define ADC_DMACUR                                           *((volatile uint32_t *)0x4000D020u)
+#define ADC_DMACUR_REG                                       *((volatile uint32_t *)0x4000D020u)
 #define ADC_DMACUR_ADDR                                      (0x4000D020u)
 #define ADC_DMACUR_RESET                                     (0x20000000u)
         /* ADC_DMACUR_FIXED field */
@@ -6615,8 +6615,8 @@
         #define ADC_DMACUR_FIELD_BIT                         (0)
         #define ADC_DMACUR_FIELD_BITS                        (13)
 
-#define ADC_DMACNT                                           *((volatile int32u *)0x4000D024u)
-#define ADC_DMACNT_REG                                       *((volatile int32u *)0x4000D024u)
+#define ADC_DMACNT                                           *((volatile uint32_t *)0x4000D024u)
+#define ADC_DMACNT_REG                                       *((volatile uint32_t *)0x4000D024u)
 #define ADC_DMACNT_ADDR                                      (0x4000D024u)
 #define ADC_DMACNT_RESET                                     (0x00000000u)
         /* ADC_DMACNT_FIELD field */
@@ -6630,8 +6630,8 @@
 #define BLOCK_TIM1_END                                       (0x4000E050u)
 #define BLOCK_TIM1_SIZE                                      (BLOCK_TIM1_END - BLOCK_TIM1_BASE + 1)
 
-#define TIM1_CR1                                             *((volatile int32u *)0x4000E000u)
-#define TIM1_CR1_REG                                         *((volatile int32u *)0x4000E000u)
+#define TIM1_CR1                                             *((volatile uint32_t *)0x4000E000u)
+#define TIM1_CR1_REG                                         *((volatile uint32_t *)0x4000E000u)
 #define TIM1_CR1_ADDR                                        (0x4000E000u)
 #define TIM1_CR1_RESET                                       (0x00000000u)
         /* TIM_ARBE field */
@@ -6670,8 +6670,8 @@
         #define TIM_CEN_BIT                                  (0)
         #define TIM_CEN_BITS                                 (1)
 
-#define TIM1_CR2                                             *((volatile int32u *)0x4000E004u)
-#define TIM1_CR2_REG                                         *((volatile int32u *)0x4000E004u)
+#define TIM1_CR2                                             *((volatile uint32_t *)0x4000E004u)
+#define TIM1_CR2_REG                                         *((volatile uint32_t *)0x4000E004u)
 #define TIM1_CR2_ADDR                                        (0x4000E004u)
 #define TIM1_CR2_RESET                                       (0x00000000u)
         /* TIM_TI1S field */
@@ -6685,8 +6685,8 @@
         #define TIM_MMS_BIT                                  (4)
         #define TIM_MMS_BITS                                 (3)
 
-#define TIM1_SMCR                                            *((volatile int32u *)0x4000E008u)
-#define TIM1_SMCR_REG                                        *((volatile int32u *)0x4000E008u)
+#define TIM1_SMCR                                            *((volatile uint32_t *)0x4000E008u)
+#define TIM1_SMCR_REG                                        *((volatile uint32_t *)0x4000E008u)
 #define TIM1_SMCR_ADDR                                       (0x4000E008u)
 #define TIM1_SMCR_RESET                                      (0x00000000u)
         /* TIM_ETP field */
@@ -6725,8 +6725,8 @@
         #define TIM_SMS_BIT                                  (0)
         #define TIM_SMS_BITS                                 (3)
 
-#define TMR1_DIER                                            *((volatile int32u *)0x4000E00Cu)
-#define TMR1_DIER_REG                                        *((volatile int32u *)0x4000E00Cu)
+#define TMR1_DIER                                            *((volatile uint32_t *)0x4000E00Cu)
+#define TMR1_DIER_REG                                        *((volatile uint32_t *)0x4000E00Cu)
 #define TMR1_DIER_ADDR                                       (0x4000E00Cu)
 #define TMR1_DIER_RESET                                      (0x00000000u)
         /* TIE field */
@@ -6760,8 +6760,8 @@
         #define TMR1_DIER_UIE_BIT                            (0)
         #define TMR1_DIER_UIE_BITS                           (1)
 
-#define TMR1_SR                                              *((volatile int32u *)0x4000E010u)
-#define TMR1_SR_REG                                          *((volatile int32u *)0x4000E010u)
+#define TMR1_SR                                              *((volatile uint32_t *)0x4000E010u)
+#define TMR1_SR_REG                                          *((volatile uint32_t *)0x4000E010u)
 #define TMR1_SR_ADDR                                         (0x4000E010u)
 #define TMR1_SR_RESET                                        (0x00000000u)
         /* CC4OF field */
@@ -6815,8 +6815,8 @@
         #define TMR1_SR_UIF_BIT                              (0)
         #define TMR1_SR_UIF_BITS                             (1)
 
-#define TIM1_EGR                                             *((volatile int32u *)0x4000E014u)
-#define TIM1_EGR_REG                                         *((volatile int32u *)0x4000E014u)
+#define TIM1_EGR                                             *((volatile uint32_t *)0x4000E014u)
+#define TIM1_EGR_REG                                         *((volatile uint32_t *)0x4000E014u)
 #define TIM1_EGR_ADDR                                        (0x4000E014u)
 #define TIM1_EGR_RESET                                       (0x00000000u)
         /* TIM_TG field */
@@ -6850,8 +6850,8 @@
         #define TIM_UG_BIT                                   (0)
         #define TIM_UG_BITS                                  (1)
 
-#define TIM1_CCMR1                                           *((volatile int32u *)0x4000E018u)
-#define TIM1_CCMR1_REG                                       *((volatile int32u *)0x4000E018u)
+#define TIM1_CCMR1                                           *((volatile uint32_t *)0x4000E018u)
+#define TIM1_CCMR1_REG                                       *((volatile uint32_t *)0x4000E018u)
 #define TIM1_CCMR1_ADDR                                      (0x4000E018u)
 #define TIM1_CCMR1_RESET                                     (0x00000000u)
         /* TIM_IC2F field */
@@ -6925,8 +6925,8 @@
         #define TIM_CC1S_BIT                                 (0)
         #define TIM_CC1S_BITS                                (2)
 
-#define TIM1_CCMR2                                           *((volatile int32u *)0x4000E01Cu)
-#define TIM1_CCMR2_REG                                       *((volatile int32u *)0x4000E01Cu)
+#define TIM1_CCMR2                                           *((volatile uint32_t *)0x4000E01Cu)
+#define TIM1_CCMR2_REG                                       *((volatile uint32_t *)0x4000E01Cu)
 #define TIM1_CCMR2_ADDR                                      (0x4000E01Cu)
 #define TIM1_CCMR2_RESET                                     (0x00000000u)
         /* TIM_IC4F field */
@@ -7000,8 +7000,8 @@
         #define TIM_CC3S_BIT                                 (0)
         #define TIM_CC3S_BITS                                (2)
 
-#define TIM1_CCER                                            *((volatile int32u *)0x4000E020u)
-#define TIM1_CCER_REG                                        *((volatile int32u *)0x4000E020u)
+#define TIM1_CCER                                            *((volatile uint32_t *)0x4000E020u)
+#define TIM1_CCER_REG                                        *((volatile uint32_t *)0x4000E020u)
 #define TIM1_CCER_ADDR                                       (0x4000E020u)
 #define TIM1_CCER_RESET                                      (0x00000000u)
         /* TIM_CC4P field */
@@ -7045,8 +7045,8 @@
         #define TIM_CC1E_BIT                                 (0)
         #define TIM_CC1E_BITS                                (1)
 
-#define TIM1_CNT                                             *((volatile int32u *)0x4000E024u)
-#define TIM1_CNT_REG                                         *((volatile int32u *)0x4000E024u)
+#define TIM1_CNT                                             *((volatile uint32_t *)0x4000E024u)
+#define TIM1_CNT_REG                                         *((volatile uint32_t *)0x4000E024u)
 #define TIM1_CNT_ADDR                                        (0x4000E024u)
 #define TIM1_CNT_RESET                                       (0x00000000u)
         /* TIM_CNT field */
@@ -7055,8 +7055,8 @@
         #define TIM_CNT_BIT                                  (0)
         #define TIM_CNT_BITS                                 (16)
 
-#define TIM1_PSC                                             *((volatile int32u *)0x4000E028u)
-#define TIM1_PSC_REG                                         *((volatile int32u *)0x4000E028u)
+#define TIM1_PSC                                             *((volatile uint32_t *)0x4000E028u)
+#define TIM1_PSC_REG                                         *((volatile uint32_t *)0x4000E028u)
 #define TIM1_PSC_ADDR                                        (0x4000E028u)
 #define TIM1_PSC_RESET                                       (0x00000000u)
         /* TIM_PSC field */
@@ -7065,8 +7065,8 @@
         #define TIM_PSC_BIT                                  (0)
         #define TIM_PSC_BITS                                 (4)
 
-#define TIM1_ARR                                             *((volatile int32u *)0x4000E02Cu)
-#define TIM1_ARR_REG                                         *((volatile int32u *)0x4000E02Cu)
+#define TIM1_ARR                                             *((volatile uint32_t *)0x4000E02Cu)
+#define TIM1_ARR_REG                                         *((volatile uint32_t *)0x4000E02Cu)
 #define TIM1_ARR_ADDR                                        (0x4000E02Cu)
 #define TIM1_ARR_RESET                                       (0x0000FFFFu)
         /* TIM_ARR field */
@@ -7075,8 +7075,8 @@
         #define TIM_ARR_BIT                                  (0)
         #define TIM_ARR_BITS                                 (16)
 
-#define TIM1_CCR1                                            *((volatile int32u *)0x4000E034u)
-#define TIM1_CCR1_REG                                        *((volatile int32u *)0x4000E034u)
+#define TIM1_CCR1                                            *((volatile uint32_t *)0x4000E034u)
+#define TIM1_CCR1_REG                                        *((volatile uint32_t *)0x4000E034u)
 #define TIM1_CCR1_ADDR                                       (0x4000E034u)
 #define TIM1_CCR1_RESET                                      (0x00000000u)
         /* TIM_CCR field */
@@ -7085,8 +7085,8 @@
         #define TIM_CCR_BIT                                  (0)
         #define TIM_CCR_BITS                                 (16)
 
-#define TIM1_CCR2                                            *((volatile int32u *)0x4000E038u)
-#define TIM1_CCR2_REG                                        *((volatile int32u *)0x4000E038u)
+#define TIM1_CCR2                                            *((volatile uint32_t *)0x4000E038u)
+#define TIM1_CCR2_REG                                        *((volatile uint32_t *)0x4000E038u)
 #define TIM1_CCR2_ADDR                                       (0x4000E038u)
 #define TIM1_CCR2_RESET                                      (0x00000000u)
         /* TIM_CCR field */
@@ -7095,8 +7095,8 @@
         #define TIM_CCR_BIT                                  (0)
         #define TIM_CCR_BITS                                 (16)
 
-#define TIM1_CCR3                                            *((volatile int32u *)0x4000E03Cu)
-#define TIM1_CCR3_REG                                        *((volatile int32u *)0x4000E03Cu)
+#define TIM1_CCR3                                            *((volatile uint32_t *)0x4000E03Cu)
+#define TIM1_CCR3_REG                                        *((volatile uint32_t *)0x4000E03Cu)
 #define TIM1_CCR3_ADDR                                       (0x4000E03Cu)
 #define TIM1_CCR3_RESET                                      (0x00000000u)
         /* TIM_CCR field */
@@ -7105,8 +7105,8 @@
         #define TIM_CCR_BIT                                  (0)
         #define TIM_CCR_BITS                                 (16)
 
-#define TIM1_CCR4                                            *((volatile int32u *)0x4000E040u)
-#define TIM1_CCR4_REG                                        *((volatile int32u *)0x4000E040u)
+#define TIM1_CCR4                                            *((volatile uint32_t *)0x4000E040u)
+#define TIM1_CCR4_REG                                        *((volatile uint32_t *)0x4000E040u)
 #define TIM1_CCR4_ADDR                                       (0x4000E040u)
 #define TIM1_CCR4_RESET                                      (0x00000000u)
         /* TIM_CCR field */
@@ -7115,8 +7115,8 @@
         #define TIM_CCR_BIT                                  (0)
         #define TIM_CCR_BITS                                 (16)
 
-#define TIM1_OR                                              *((volatile int32u *)0x4000E050u)
-#define TIM1_OR_REG                                          *((volatile int32u *)0x4000E050u)
+#define TIM1_OR                                              *((volatile uint32_t *)0x4000E050u)
+#define TIM1_OR_REG                                          *((volatile uint32_t *)0x4000E050u)
 #define TIM1_OR_ADDR                                         (0x4000E050u)
 #define TIM1_OR_RESET                                        (0x00000000u)
         /* TIM_ORRSVD field */
@@ -7140,8 +7140,8 @@
 #define BLOCK_TIM2_END                                       (0x4000F050u)
 #define BLOCK_TIM2_SIZE                                      (BLOCK_TIM2_END - BLOCK_TIM2_BASE + 1)
 
-#define TIM2_CR1                                             *((volatile int32u *)0x4000F000u)
-#define TIM2_CR1_REG                                         *((volatile int32u *)0x4000F000u)
+#define TIM2_CR1                                             *((volatile uint32_t *)0x4000F000u)
+#define TIM2_CR1_REG                                         *((volatile uint32_t *)0x4000F000u)
 #define TIM2_CR1_ADDR                                        (0x4000F000u)
 #define TIM2_CR1_RESET                                       (0x00000000u)
         /* TIM_ARBE field */
@@ -7180,8 +7180,8 @@
         #define TIM_CEN_BIT                                  (0)
         #define TIM_CEN_BITS                                 (1)
 
-#define TIM2_CR2                                             *((volatile int32u *)0x4000F004u)
-#define TIM2_CR2_REG                                         *((volatile int32u *)0x4000F004u)
+#define TIM2_CR2                                             *((volatile uint32_t *)0x4000F004u)
+#define TIM2_CR2_REG                                         *((volatile uint32_t *)0x4000F004u)
 #define TIM2_CR2_ADDR                                        (0x4000F004u)
 #define TIM2_CR2_RESET                                       (0x00000000u)
         /* TIM_TI1S field */
@@ -7195,8 +7195,8 @@
         #define TIM_MMS_BIT                                  (4)
         #define TIM_MMS_BITS                                 (3)
 
-#define TIM2_SMCR                                            *((volatile int32u *)0x4000F008u)
-#define TIM2_SMCR_REG                                        *((volatile int32u *)0x4000F008u)
+#define TIM2_SMCR                                            *((volatile uint32_t *)0x4000F008u)
+#define TIM2_SMCR_REG                                        *((volatile uint32_t *)0x4000F008u)
 #define TIM2_SMCR_ADDR                                       (0x4000F008u)
 #define TIM2_SMCR_RESET                                      (0x00000000u)
         /* TIM_ETP field */
@@ -7235,8 +7235,8 @@
         #define TIM_SMS_BIT                                  (0)
         #define TIM_SMS_BITS                                 (3)
 
-#define TMR2_DIER                                            *((volatile int32u *)0x4000F00Cu)
-#define TMR2_DIER_REG                                        *((volatile int32u *)0x4000F00Cu)
+#define TMR2_DIER                                            *((volatile uint32_t *)0x4000F00Cu)
+#define TMR2_DIER_REG                                        *((volatile uint32_t *)0x4000F00Cu)
 #define TMR2_DIER_ADDR                                       (0x4000F00Cu)
 #define TMR2_DIER_RESET                                      (0x00000000u)
         /* TIE field */
@@ -7270,8 +7270,8 @@
         #define TMR2_DIER_UIE_BIT                            (0)
         #define TMR2_DIER_UIE_BITS                           (1)
 
-#define TMR2_SR                                              *((volatile int32u *)0x4000F010u)
-#define TMR2_SR_REG                                          *((volatile int32u *)0x4000F010u)
+#define TMR2_SR                                              *((volatile uint32_t *)0x4000F010u)
+#define TMR2_SR_REG                                          *((volatile uint32_t *)0x4000F010u)
 #define TMR2_SR_ADDR                                         (0x4000F010u)
 #define TMR2_SR_RESET                                        (0x00000000u)
         /* CC4OF field */
@@ -7325,8 +7325,8 @@
         #define TMR2_SR_UIF_BIT                              (0)
         #define TMR2_SR_UIF_BITS                             (1)
 
-#define TIM2_EGR                                             *((volatile int32u *)0x4000F014u)
-#define TIM2_EGR_REG                                         *((volatile int32u *)0x4000F014u)
+#define TIM2_EGR                                             *((volatile uint32_t *)0x4000F014u)
+#define TIM2_EGR_REG                                         *((volatile uint32_t *)0x4000F014u)
 #define TIM2_EGR_ADDR                                        (0x4000F014u)
 #define TIM2_EGR_RESET                                       (0x00000000u)
         /* TIM_TG field */
@@ -7360,8 +7360,8 @@
         #define TIM_UG_BIT                                   (0)
         #define TIM_UG_BITS                                  (1)
 
-#define TIM2_CCMR1                                           *((volatile int32u *)0x4000F018u)
-#define TIM2_CCMR1_REG                                       *((volatile int32u *)0x4000F018u)
+#define TIM2_CCMR1                                           *((volatile uint32_t *)0x4000F018u)
+#define TIM2_CCMR1_REG                                       *((volatile uint32_t *)0x4000F018u)
 #define TIM2_CCMR1_ADDR                                      (0x4000F018u)
 #define TIM2_CCMR1_RESET                                     (0x00000000u)
         /* TIM_IC2F field */
@@ -7435,8 +7435,8 @@
         #define TIM_CC1S_BIT                                 (0)
         #define TIM_CC1S_BITS                                (2)
 
-#define TIM2_CCMR2                                           *((volatile int32u *)0x4000F01Cu)
-#define TIM2_CCMR2_REG                                       *((volatile int32u *)0x4000F01Cu)
+#define TIM2_CCMR2                                           *((volatile uint32_t *)0x4000F01Cu)
+#define TIM2_CCMR2_REG                                       *((volatile uint32_t *)0x4000F01Cu)
 #define TIM2_CCMR2_ADDR                                      (0x4000F01Cu)
 #define TIM2_CCMR2_RESET                                     (0x00000000u)
         /* TIM_IC4F field */
@@ -7510,8 +7510,8 @@
         #define TIM_CC3S_BIT                                 (0)
         #define TIM_CC3S_BITS                                (2)
 
-#define TIM2_CCER                                            *((volatile int32u *)0x4000F020u)
-#define TIM2_CCER_REG                                        *((volatile int32u *)0x4000F020u)
+#define TIM2_CCER                                            *((volatile uint32_t *)0x4000F020u)
+#define TIM2_CCER_REG                                        *((volatile uint32_t *)0x4000F020u)
 #define TIM2_CCER_ADDR                                       (0x4000F020u)
 #define TIM2_CCER_RESET                                      (0x00000000u)
         /* TIM_CC4P field */
@@ -7555,8 +7555,8 @@
         #define TIM_CC1E_BIT                                 (0)
         #define TIM_CC1E_BITS                                (1)
 
-#define TIM2_CNT                                             *((volatile int32u *)0x4000F024u)
-#define TIM2_CNT_REG                                         *((volatile int32u *)0x4000F024u)
+#define TIM2_CNT                                             *((volatile uint32_t *)0x4000F024u)
+#define TIM2_CNT_REG                                         *((volatile uint32_t *)0x4000F024u)
 #define TIM2_CNT_ADDR                                        (0x4000F024u)
 #define TIM2_CNT_RESET                                       (0x00000000u)
         /* TIM_CNT field */
@@ -7565,8 +7565,8 @@
         #define TIM_CNT_BIT                                  (0)
         #define TIM_CNT_BITS                                 (16)
 
-#define TIM2_PSC                                             *((volatile int32u *)0x4000F028u)
-#define TIM2_PSC_REG                                         *((volatile int32u *)0x4000F028u)
+#define TIM2_PSC                                             *((volatile uint32_t *)0x4000F028u)
+#define TIM2_PSC_REG                                         *((volatile uint32_t *)0x4000F028u)
 #define TIM2_PSC_ADDR                                        (0x4000F028u)
 #define TIM2_PSC_RESET                                       (0x00000000u)
         /* TIM_PSC field */
@@ -7575,8 +7575,8 @@
         #define TIM_PSC_BIT                                  (0)
         #define TIM_PSC_BITS                                 (4)
 
-#define TIM2_ARR                                             *((volatile int32u *)0x4000F02Cu)
-#define TIM2_ARR_REG                                         *((volatile int32u *)0x4000F02Cu)
+#define TIM2_ARR                                             *((volatile uint32_t *)0x4000F02Cu)
+#define TIM2_ARR_REG                                         *((volatile uint32_t *)0x4000F02Cu)
 #define TIM2_ARR_ADDR                                        (0x4000F02Cu)
 #define TIM2_ARR_RESET                                       (0x0000FFFFu)
         /* TIM_ARR field */
@@ -7585,8 +7585,8 @@
         #define TIM_ARR_BIT                                  (0)
         #define TIM_ARR_BITS                                 (16)
 
-#define TIM2_CCR1                                            *((volatile int32u *)0x4000F034u)
-#define TIM2_CCR1_REG                                        *((volatile int32u *)0x4000F034u)
+#define TIM2_CCR1                                            *((volatile uint32_t *)0x4000F034u)
+#define TIM2_CCR1_REG                                        *((volatile uint32_t *)0x4000F034u)
 #define TIM2_CCR1_ADDR                                       (0x4000F034u)
 #define TIM2_CCR1_RESET                                      (0x00000000u)
         /* TIM_CCR field */
@@ -7595,8 +7595,8 @@
         #define TIM_CCR_BIT                                  (0)
         #define TIM_CCR_BITS                                 (16)
 
-#define TIM2_CCR2                                            *((volatile int32u *)0x4000F038u)
-#define TIM2_CCR2_REG                                        *((volatile int32u *)0x4000F038u)
+#define TIM2_CCR2                                            *((volatile uint32_t *)0x4000F038u)
+#define TIM2_CCR2_REG                                        *((volatile uint32_t *)0x4000F038u)
 #define TIM2_CCR2_ADDR                                       (0x4000F038u)
 #define TIM2_CCR2_RESET                                      (0x00000000u)
         /* TIM_CCR field */
@@ -7605,8 +7605,8 @@
         #define TIM_CCR_BIT                                  (0)
         #define TIM_CCR_BITS                                 (16)
 
-#define TIM2_CCR3                                            *((volatile int32u *)0x4000F03Cu)
-#define TIM2_CCR3_REG                                        *((volatile int32u *)0x4000F03Cu)
+#define TIM2_CCR3                                            *((volatile uint32_t *)0x4000F03Cu)
+#define TIM2_CCR3_REG                                        *((volatile uint32_t *)0x4000F03Cu)
 #define TIM2_CCR3_ADDR                                       (0x4000F03Cu)
 #define TIM2_CCR3_RESET                                      (0x00000000u)
         /* TIM_CCR field */
@@ -7615,8 +7615,8 @@
         #define TIM_CCR_BIT                                  (0)
         #define TIM_CCR_BITS                                 (16)
 
-#define TIM2_CCR4                                            *((volatile int32u *)0x4000F040u)
-#define TIM2_CCR4_REG                                        *((volatile int32u *)0x4000F040u)
+#define TIM2_CCR4                                            *((volatile uint32_t *)0x4000F040u)
+#define TIM2_CCR4_REG                                        *((volatile uint32_t *)0x4000F040u)
 #define TIM2_CCR4_ADDR                                       (0x4000F040u)
 #define TIM2_CCR4_RESET                                      (0x00000000u)
         /* TIM_CCR field */
@@ -7625,8 +7625,8 @@
         #define TIM_CCR_BIT                                  (0)
         #define TIM_CCR_BITS                                 (16)
 
-#define TIM2_OR                                              *((volatile int32u *)0x4000F050u)
-#define TIM2_OR_REG                                          *((volatile int32u *)0x4000F050u)
+#define TIM2_OR                                              *((volatile uint32_t *)0x4000F050u)
+#define TIM2_OR_REG                                          *((volatile uint32_t *)0x4000F050u)
 #define TIM2_OR_ADDR                                         (0x4000F050u)
 #define TIM2_OR_RESET                                        (0x00000000u)
         /* TIM_REMAPC4 field */
@@ -7680,8 +7680,8 @@
 #define DATA_ITM_END                                         (0xE0000FFFu)
 #define DATA_ITM_SIZE                                        (DATA_ITM_END - DATA_ITM_BASE + 1)
 
-#define ITM_SP0                                              *((volatile int32u *)0xE0000000u)
-#define ITM_SP0_REG                                          *((volatile int32u *)0xE0000000u)
+#define ITM_SP0                                              *((volatile uint32_t *)0xE0000000u)
+#define ITM_SP0_REG                                          *((volatile uint32_t *)0xE0000000u)
 #define ITM_SP0_ADDR                                         (0xE0000000u)
 #define ITM_SP0_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7695,8 +7695,8 @@
         #define ITM_SP0_STIMULUS_BIT                         (0)
         #define ITM_SP0_STIMULUS_BITS                        (32)
 
-#define ITM_SP1                                              *((volatile int32u *)0xE0000004u)
-#define ITM_SP1_REG                                          *((volatile int32u *)0xE0000004u)
+#define ITM_SP1                                              *((volatile uint32_t *)0xE0000004u)
+#define ITM_SP1_REG                                          *((volatile uint32_t *)0xE0000004u)
 #define ITM_SP1_ADDR                                         (0xE0000004u)
 #define ITM_SP1_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7710,8 +7710,8 @@
         #define ITM_SP1_STIMULUS_BIT                         (0)
         #define ITM_SP1_STIMULUS_BITS                        (32)
 
-#define ITM_SP2                                              *((volatile int32u *)0xE0000008u)
-#define ITM_SP2_REG                                          *((volatile int32u *)0xE0000008u)
+#define ITM_SP2                                              *((volatile uint32_t *)0xE0000008u)
+#define ITM_SP2_REG                                          *((volatile uint32_t *)0xE0000008u)
 #define ITM_SP2_ADDR                                         (0xE0000008u)
 #define ITM_SP2_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7725,8 +7725,8 @@
         #define ITM_SP2_STIMULUS_BIT                         (0)
         #define ITM_SP2_STIMULUS_BITS                        (32)
 
-#define ITM_SP3                                              *((volatile int32u *)0xE000000Cu)
-#define ITM_SP3_REG                                          *((volatile int32u *)0xE000000Cu)
+#define ITM_SP3                                              *((volatile uint32_t *)0xE000000Cu)
+#define ITM_SP3_REG                                          *((volatile uint32_t *)0xE000000Cu)
 #define ITM_SP3_ADDR                                         (0xE000000Cu)
 #define ITM_SP3_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7740,8 +7740,8 @@
         #define ITM_SP3_STIMULUS_BIT                         (0)
         #define ITM_SP3_STIMULUS_BITS                        (32)
 
-#define ITM_SP4                                              *((volatile int32u *)0xE0000010u)
-#define ITM_SP4_REG                                          *((volatile int32u *)0xE0000010u)
+#define ITM_SP4                                              *((volatile uint32_t *)0xE0000010u)
+#define ITM_SP4_REG                                          *((volatile uint32_t *)0xE0000010u)
 #define ITM_SP4_ADDR                                         (0xE0000010u)
 #define ITM_SP4_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7755,8 +7755,8 @@
         #define ITM_SP4_STIMULUS_BIT                         (0)
         #define ITM_SP4_STIMULUS_BITS                        (32)
 
-#define ITM_SP5                                              *((volatile int32u *)0xE0000014u)
-#define ITM_SP5_REG                                          *((volatile int32u *)0xE0000014u)
+#define ITM_SP5                                              *((volatile uint32_t *)0xE0000014u)
+#define ITM_SP5_REG                                          *((volatile uint32_t *)0xE0000014u)
 #define ITM_SP5_ADDR                                         (0xE0000014u)
 #define ITM_SP5_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7770,8 +7770,8 @@
         #define ITM_SP5_STIMULUS_BIT                         (0)
         #define ITM_SP5_STIMULUS_BITS                        (32)
 
-#define ITM_SP6                                              *((volatile int32u *)0xE0000018u)
-#define ITM_SP6_REG                                          *((volatile int32u *)0xE0000018u)
+#define ITM_SP6                                              *((volatile uint32_t *)0xE0000018u)
+#define ITM_SP6_REG                                          *((volatile uint32_t *)0xE0000018u)
 #define ITM_SP6_ADDR                                         (0xE0000018u)
 #define ITM_SP6_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7785,8 +7785,8 @@
         #define ITM_SP6_STIMULUS_BIT                         (0)
         #define ITM_SP6_STIMULUS_BITS                        (32)
 
-#define ITM_SP7                                              *((volatile int32u *)0xE000001Cu)
-#define ITM_SP7_REG                                          *((volatile int32u *)0xE000001Cu)
+#define ITM_SP7                                              *((volatile uint32_t *)0xE000001Cu)
+#define ITM_SP7_REG                                          *((volatile uint32_t *)0xE000001Cu)
 #define ITM_SP7_ADDR                                         (0xE000001Cu)
 #define ITM_SP7_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7800,8 +7800,8 @@
         #define ITM_SP7_STIMULUS_BIT                         (0)
         #define ITM_SP7_STIMULUS_BITS                        (32)
 
-#define ITM_SP8                                              *((volatile int32u *)0xE0000020u)
-#define ITM_SP8_REG                                          *((volatile int32u *)0xE0000020u)
+#define ITM_SP8                                              *((volatile uint32_t *)0xE0000020u)
+#define ITM_SP8_REG                                          *((volatile uint32_t *)0xE0000020u)
 #define ITM_SP8_ADDR                                         (0xE0000020u)
 #define ITM_SP8_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7815,8 +7815,8 @@
         #define ITM_SP8_STIMULUS_BIT                         (0)
         #define ITM_SP8_STIMULUS_BITS                        (32)
 
-#define ITM_SP9                                              *((volatile int32u *)0xE0000024u)
-#define ITM_SP9_REG                                          *((volatile int32u *)0xE0000024u)
+#define ITM_SP9                                              *((volatile uint32_t *)0xE0000024u)
+#define ITM_SP9_REG                                          *((volatile uint32_t *)0xE0000024u)
 #define ITM_SP9_ADDR                                         (0xE0000024u)
 #define ITM_SP9_RESET                                        (0x00000000u)
         /* FIFOREADY field */
@@ -7830,8 +7830,8 @@
         #define ITM_SP9_STIMULUS_BIT                         (0)
         #define ITM_SP9_STIMULUS_BITS                        (32)
 
-#define ITM_SP10                                             *((volatile int32u *)0xE0000028u)
-#define ITM_SP10_REG                                         *((volatile int32u *)0xE0000028u)
+#define ITM_SP10                                             *((volatile uint32_t *)0xE0000028u)
+#define ITM_SP10_REG                                         *((volatile uint32_t *)0xE0000028u)
 #define ITM_SP10_ADDR                                        (0xE0000028u)
 #define ITM_SP10_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7845,8 +7845,8 @@
         #define ITM_SP10_STIMULUS_BIT                        (0)
         #define ITM_SP10_STIMULUS_BITS                       (32)
 
-#define ITM_SP11                                             *((volatile int32u *)0xE000002Cu)
-#define ITM_SP11_REG                                         *((volatile int32u *)0xE000002Cu)
+#define ITM_SP11                                             *((volatile uint32_t *)0xE000002Cu)
+#define ITM_SP11_REG                                         *((volatile uint32_t *)0xE000002Cu)
 #define ITM_SP11_ADDR                                        (0xE000002Cu)
 #define ITM_SP11_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7860,8 +7860,8 @@
         #define ITM_SP11_STIMULUS_BIT                        (0)
         #define ITM_SP11_STIMULUS_BITS                       (32)
 
-#define ITM_SP12                                             *((volatile int32u *)0xE0000030u)
-#define ITM_SP12_REG                                         *((volatile int32u *)0xE0000030u)
+#define ITM_SP12                                             *((volatile uint32_t *)0xE0000030u)
+#define ITM_SP12_REG                                         *((volatile uint32_t *)0xE0000030u)
 #define ITM_SP12_ADDR                                        (0xE0000030u)
 #define ITM_SP12_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7875,8 +7875,8 @@
         #define ITM_SP12_STIMULUS_BIT                        (0)
         #define ITM_SP12_STIMULUS_BITS                       (32)
 
-#define ITM_SP13                                             *((volatile int32u *)0xE0000034u)
-#define ITM_SP13_REG                                         *((volatile int32u *)0xE0000034u)
+#define ITM_SP13                                             *((volatile uint32_t *)0xE0000034u)
+#define ITM_SP13_REG                                         *((volatile uint32_t *)0xE0000034u)
 #define ITM_SP13_ADDR                                        (0xE0000034u)
 #define ITM_SP13_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7890,8 +7890,8 @@
         #define ITM_SP13_STIMULUS_BIT                        (0)
         #define ITM_SP13_STIMULUS_BITS                       (32)
 
-#define ITM_SP14                                             *((volatile int32u *)0xE0000038u)
-#define ITM_SP14_REG                                         *((volatile int32u *)0xE0000038u)
+#define ITM_SP14                                             *((volatile uint32_t *)0xE0000038u)
+#define ITM_SP14_REG                                         *((volatile uint32_t *)0xE0000038u)
 #define ITM_SP14_ADDR                                        (0xE0000038u)
 #define ITM_SP14_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7905,8 +7905,8 @@
         #define ITM_SP14_STIMULUS_BIT                        (0)
         #define ITM_SP14_STIMULUS_BITS                       (32)
 
-#define ITM_SP15                                             *((volatile int32u *)0xE000003Cu)
-#define ITM_SP15_REG                                         *((volatile int32u *)0xE000003Cu)
+#define ITM_SP15                                             *((volatile uint32_t *)0xE000003Cu)
+#define ITM_SP15_REG                                         *((volatile uint32_t *)0xE000003Cu)
 #define ITM_SP15_ADDR                                        (0xE000003Cu)
 #define ITM_SP15_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7920,8 +7920,8 @@
         #define ITM_SP15_STIMULUS_BIT                        (0)
         #define ITM_SP15_STIMULUS_BITS                       (32)
 
-#define ITM_SP16                                             *((volatile int32u *)0xE0000040u)
-#define ITM_SP16_REG                                         *((volatile int32u *)0xE0000040u)
+#define ITM_SP16                                             *((volatile uint32_t *)0xE0000040u)
+#define ITM_SP16_REG                                         *((volatile uint32_t *)0xE0000040u)
 #define ITM_SP16_ADDR                                        (0xE0000040u)
 #define ITM_SP16_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7935,8 +7935,8 @@
         #define ITM_SP16_STIMULUS_BIT                        (0)
         #define ITM_SP16_STIMULUS_BITS                       (32)
 
-#define ITM_SP17                                             *((volatile int32u *)0xE0000044u)
-#define ITM_SP17_REG                                         *((volatile int32u *)0xE0000044u)
+#define ITM_SP17                                             *((volatile uint32_t *)0xE0000044u)
+#define ITM_SP17_REG                                         *((volatile uint32_t *)0xE0000044u)
 #define ITM_SP17_ADDR                                        (0xE0000044u)
 #define ITM_SP17_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7950,8 +7950,8 @@
         #define ITM_SP17_STIMULUS_BIT                        (0)
         #define ITM_SP17_STIMULUS_BITS                       (32)
 
-#define ITM_SP18                                             *((volatile int32u *)0xE0000048u)
-#define ITM_SP18_REG                                         *((volatile int32u *)0xE0000048u)
+#define ITM_SP18                                             *((volatile uint32_t *)0xE0000048u)
+#define ITM_SP18_REG                                         *((volatile uint32_t *)0xE0000048u)
 #define ITM_SP18_ADDR                                        (0xE0000048u)
 #define ITM_SP18_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7965,8 +7965,8 @@
         #define ITM_SP18_STIMULUS_BIT                        (0)
         #define ITM_SP18_STIMULUS_BITS                       (32)
 
-#define ITM_SP19                                             *((volatile int32u *)0xE000004Cu)
-#define ITM_SP19_REG                                         *((volatile int32u *)0xE000004Cu)
+#define ITM_SP19                                             *((volatile uint32_t *)0xE000004Cu)
+#define ITM_SP19_REG                                         *((volatile uint32_t *)0xE000004Cu)
 #define ITM_SP19_ADDR                                        (0xE000004Cu)
 #define ITM_SP19_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7980,8 +7980,8 @@
         #define ITM_SP19_STIMULUS_BIT                        (0)
         #define ITM_SP19_STIMULUS_BITS                       (32)
 
-#define ITM_SP20                                             *((volatile int32u *)0xE0000050u)
-#define ITM_SP20_REG                                         *((volatile int32u *)0xE0000050u)
+#define ITM_SP20                                             *((volatile uint32_t *)0xE0000050u)
+#define ITM_SP20_REG                                         *((volatile uint32_t *)0xE0000050u)
 #define ITM_SP20_ADDR                                        (0xE0000050u)
 #define ITM_SP20_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -7995,8 +7995,8 @@
         #define ITM_SP20_STIMULUS_BIT                        (0)
         #define ITM_SP20_STIMULUS_BITS                       (32)
 
-#define ITM_SP21                                             *((volatile int32u *)0xE0000054u)
-#define ITM_SP21_REG                                         *((volatile int32u *)0xE0000054u)
+#define ITM_SP21                                             *((volatile uint32_t *)0xE0000054u)
+#define ITM_SP21_REG                                         *((volatile uint32_t *)0xE0000054u)
 #define ITM_SP21_ADDR                                        (0xE0000054u)
 #define ITM_SP21_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8010,8 +8010,8 @@
         #define ITM_SP21_STIMULUS_BIT                        (0)
         #define ITM_SP21_STIMULUS_BITS                       (32)
 
-#define ITM_SP22                                             *((volatile int32u *)0xE0000058u)
-#define ITM_SP22_REG                                         *((volatile int32u *)0xE0000058u)
+#define ITM_SP22                                             *((volatile uint32_t *)0xE0000058u)
+#define ITM_SP22_REG                                         *((volatile uint32_t *)0xE0000058u)
 #define ITM_SP22_ADDR                                        (0xE0000058u)
 #define ITM_SP22_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8025,8 +8025,8 @@
         #define ITM_SP22_STIMULUS_BIT                        (0)
         #define ITM_SP22_STIMULUS_BITS                       (32)
 
-#define ITM_SP23                                             *((volatile int32u *)0xE000005Cu)
-#define ITM_SP23_REG                                         *((volatile int32u *)0xE000005Cu)
+#define ITM_SP23                                             *((volatile uint32_t *)0xE000005Cu)
+#define ITM_SP23_REG                                         *((volatile uint32_t *)0xE000005Cu)
 #define ITM_SP23_ADDR                                        (0xE000005Cu)
 #define ITM_SP23_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8040,8 +8040,8 @@
         #define ITM_SP23_STIMULUS_BIT                        (0)
         #define ITM_SP23_STIMULUS_BITS                       (32)
 
-#define ITM_SP24                                             *((volatile int32u *)0xE0000060u)
-#define ITM_SP24_REG                                         *((volatile int32u *)0xE0000060u)
+#define ITM_SP24                                             *((volatile uint32_t *)0xE0000060u)
+#define ITM_SP24_REG                                         *((volatile uint32_t *)0xE0000060u)
 #define ITM_SP24_ADDR                                        (0xE0000060u)
 #define ITM_SP24_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8055,8 +8055,8 @@
         #define ITM_SP24_STIMULUS_BIT                        (0)
         #define ITM_SP24_STIMULUS_BITS                       (32)
 
-#define ITM_SP25                                             *((volatile int32u *)0xE0000064u)
-#define ITM_SP25_REG                                         *((volatile int32u *)0xE0000064u)
+#define ITM_SP25                                             *((volatile uint32_t *)0xE0000064u)
+#define ITM_SP25_REG                                         *((volatile uint32_t *)0xE0000064u)
 #define ITM_SP25_ADDR                                        (0xE0000064u)
 #define ITM_SP25_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8070,8 +8070,8 @@
         #define ITM_SP25_STIMULUS_BIT                        (0)
         #define ITM_SP25_STIMULUS_BITS                       (32)
 
-#define ITM_SP26                                             *((volatile int32u *)0xE0000068u)
-#define ITM_SP26_REG                                         *((volatile int32u *)0xE0000068u)
+#define ITM_SP26                                             *((volatile uint32_t *)0xE0000068u)
+#define ITM_SP26_REG                                         *((volatile uint32_t *)0xE0000068u)
 #define ITM_SP26_ADDR                                        (0xE0000068u)
 #define ITM_SP26_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8085,8 +8085,8 @@
         #define ITM_SP26_STIMULUS_BIT                        (0)
         #define ITM_SP26_STIMULUS_BITS                       (32)
 
-#define ITM_SP27                                             *((volatile int32u *)0xE000006Cu)
-#define ITM_SP27_REG                                         *((volatile int32u *)0xE000006Cu)
+#define ITM_SP27                                             *((volatile uint32_t *)0xE000006Cu)
+#define ITM_SP27_REG                                         *((volatile uint32_t *)0xE000006Cu)
 #define ITM_SP27_ADDR                                        (0xE000006Cu)
 #define ITM_SP27_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8100,8 +8100,8 @@
         #define ITM_SP27_STIMULUS_BIT                        (0)
         #define ITM_SP27_STIMULUS_BITS                       (32)
 
-#define ITM_SP28                                             *((volatile int32u *)0xE0000070u)
-#define ITM_SP28_REG                                         *((volatile int32u *)0xE0000070u)
+#define ITM_SP28                                             *((volatile uint32_t *)0xE0000070u)
+#define ITM_SP28_REG                                         *((volatile uint32_t *)0xE0000070u)
 #define ITM_SP28_ADDR                                        (0xE0000070u)
 #define ITM_SP28_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8115,8 +8115,8 @@
         #define ITM_SP28_STIMULUS_BIT                        (0)
         #define ITM_SP28_STIMULUS_BITS                       (32)
 
-#define ITM_SP29                                             *((volatile int32u *)0xE0000074u)
-#define ITM_SP29_REG                                         *((volatile int32u *)0xE0000074u)
+#define ITM_SP29                                             *((volatile uint32_t *)0xE0000074u)
+#define ITM_SP29_REG                                         *((volatile uint32_t *)0xE0000074u)
 #define ITM_SP29_ADDR                                        (0xE0000074u)
 #define ITM_SP29_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8130,8 +8130,8 @@
         #define ITM_SP29_STIMULUS_BIT                        (0)
         #define ITM_SP29_STIMULUS_BITS                       (32)
 
-#define ITM_SP30                                             *((volatile int32u *)0xE0000078u)
-#define ITM_SP30_REG                                         *((volatile int32u *)0xE0000078u)
+#define ITM_SP30                                             *((volatile uint32_t *)0xE0000078u)
+#define ITM_SP30_REG                                         *((volatile uint32_t *)0xE0000078u)
 #define ITM_SP30_ADDR                                        (0xE0000078u)
 #define ITM_SP30_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8145,8 +8145,8 @@
         #define ITM_SP30_STIMULUS_BIT                        (0)
         #define ITM_SP30_STIMULUS_BITS                       (32)
 
-#define ITM_SP31                                             *((volatile int32u *)0xE000007Cu)
-#define ITM_SP31_REG                                         *((volatile int32u *)0xE000007Cu)
+#define ITM_SP31                                             *((volatile uint32_t *)0xE000007Cu)
+#define ITM_SP31_REG                                         *((volatile uint32_t *)0xE000007Cu)
 #define ITM_SP31_ADDR                                        (0xE000007Cu)
 #define ITM_SP31_RESET                                       (0x00000000u)
         /* FIFOREADY field */
@@ -8160,8 +8160,8 @@
         #define ITM_SP31_STIMULUS_BIT                        (0)
         #define ITM_SP31_STIMULUS_BITS                       (32)
 
-#define ITM_TER                                              *((volatile int32u *)0xE0000E00u)
-#define ITM_TER_REG                                          *((volatile int32u *)0xE0000E00u)
+#define ITM_TER                                              *((volatile uint32_t *)0xE0000E00u)
+#define ITM_TER_REG                                          *((volatile uint32_t *)0xE0000E00u)
 #define ITM_TER_ADDR                                         (0xE0000E00u)
 #define ITM_TER_RESET                                        (0x00000000u)
         /* STIMENA field */
@@ -8170,8 +8170,8 @@
         #define ITM_TER_STIMENA_BIT                          (0)
         #define ITM_TER_STIMENA_BITS                         (32)
 
-#define ITM_TPR                                              *((volatile int32u *)0xE0000E40u)
-#define ITM_TPR_REG                                          *((volatile int32u *)0xE0000E40u)
+#define ITM_TPR                                              *((volatile uint32_t *)0xE0000E40u)
+#define ITM_TPR_REG                                          *((volatile uint32_t *)0xE0000E40u)
 #define ITM_TPR_ADDR                                         (0xE0000E40u)
 #define ITM_TPR_RESET                                        (0x00000000u)
         /* PRIVMASK field */
@@ -8180,8 +8180,8 @@
         #define ITM_TPR_PRIVMASK_BIT                         (0)
         #define ITM_TPR_PRIVMASK_BITS                        (4)
 
-#define ITM_TCR                                              *((volatile int32u *)0xE0000E80u)
-#define ITM_TCR_REG                                          *((volatile int32u *)0xE0000E80u)
+#define ITM_TCR                                              *((volatile uint32_t *)0xE0000E80u)
+#define ITM_TCR_REG                                          *((volatile uint32_t *)0xE0000E80u)
 #define ITM_TCR_ADDR                                         (0xE0000E80u)
 #define ITM_TCR_RESET                                        (0x00000000u)
         /* BUSY field */
@@ -8225,8 +8225,8 @@
         #define ITM_TCR_ITMEN_BIT                            (0)
         #define ITM_TCR_ITMEN_BITS                           (1)
 
-#define ITM_IW                                               *((volatile int32u *)0xE0000EF8u)
-#define ITM_IW_REG                                           *((volatile int32u *)0xE0000EF8u)
+#define ITM_IW                                               *((volatile uint32_t *)0xE0000EF8u)
+#define ITM_IW_REG                                           *((volatile uint32_t *)0xE0000EF8u)
 #define ITM_IW_ADDR                                          (0xE0000EF8u)
 #define ITM_IW_RESET                                         (0x00000000u)
         /* ATVALIDM field */
@@ -8235,8 +8235,8 @@
         #define ITM_IW_ATVALIDM_BIT                          (0)
         #define ITM_IW_ATVALIDM_BITS                         (1)
 
-#define ITM_IR                                               *((volatile int32u *)0xE0000EFCu)
-#define ITM_IR_REG                                           *((volatile int32u *)0xE0000EFCu)
+#define ITM_IR                                               *((volatile uint32_t *)0xE0000EFCu)
+#define ITM_IR_REG                                           *((volatile uint32_t *)0xE0000EFCu)
 #define ITM_IR_ADDR                                          (0xE0000EFCu)
 #define ITM_IR_RESET                                         (0x00000000u)
         /* ATREADYM field */
@@ -8245,8 +8245,8 @@
         #define ITM_IR_ATREADYM_BIT                          (0)
         #define ITM_IR_ATREADYM_BITS                         (1)
 
-#define ITM_IMC                                              *((volatile int32u *)0xE0000F00u)
-#define ITM_IMC_REG                                          *((volatile int32u *)0xE0000F00u)
+#define ITM_IMC                                              *((volatile uint32_t *)0xE0000F00u)
+#define ITM_IMC_REG                                          *((volatile uint32_t *)0xE0000F00u)
 #define ITM_IMC_ADDR                                         (0xE0000F00u)
 #define ITM_IMC_RESET                                        (0x00000000u)
         /* INTEGRATION field */
@@ -8255,8 +8255,8 @@
         #define ITM_IMC_INTEGRATION_BIT                      (0)
         #define ITM_IMC_INTEGRATION_BITS                     (1)
 
-#define ITM_LA                                               *((volatile int32u *)0xE0000FB0u)
-#define ITM_LA_REG                                           *((volatile int32u *)0xE0000FB0u)
+#define ITM_LA                                               *((volatile uint32_t *)0xE0000FB0u)
+#define ITM_LA_REG                                           *((volatile uint32_t *)0xE0000FB0u)
 #define ITM_LA_ADDR                                          (0xE0000FB0u)
 #define ITM_LA_RESET                                         (0x00000000u)
         /* LOCKACC field */
@@ -8265,8 +8265,8 @@
         #define ITM_LA_LOCKACC_BIT                           (0)
         #define ITM_LA_LOCKACC_BITS                          (32)
 
-#define ITM_LS                                               *((volatile int32u *)0xE0000FB4u)
-#define ITM_LS_REG                                           *((volatile int32u *)0xE0000FB4u)
+#define ITM_LS                                               *((volatile uint32_t *)0xE0000FB4u)
+#define ITM_LS_REG                                           *((volatile uint32_t *)0xE0000FB4u)
 #define ITM_LS_ADDR                                          (0xE0000FB4u)
 #define ITM_LS_RESET                                         (0x00000000u)
         /* BYTEACC field */
@@ -8285,8 +8285,8 @@
         #define ITM_LS_PRESENT_BIT                           (0)
         #define ITM_LS_PRESENT_BITS                          (1)
 
-#define ITM_PERIPHID4                                        *((volatile int32u *)0xE0000FD0u)
-#define ITM_PERIPHID4_REG                                    *((volatile int32u *)0xE0000FD0u)
+#define ITM_PERIPHID4                                        *((volatile uint32_t *)0xE0000FD0u)
+#define ITM_PERIPHID4_REG                                    *((volatile uint32_t *)0xE0000FD0u)
 #define ITM_PERIPHID4_ADDR                                   (0xE0000FD0u)
 #define ITM_PERIPHID4_RESET                                  (0x00000004u)
         /* PERIPHID field */
@@ -8295,8 +8295,8 @@
         #define ITM_PERIPHID4_PERIPHID_BIT                   (0)
         #define ITM_PERIPHID4_PERIPHID_BITS                  (32)
 
-#define ITM_PERIPHID5                                        *((volatile int32u *)0xE0000FD4u)
-#define ITM_PERIPHID5_REG                                    *((volatile int32u *)0xE0000FD4u)
+#define ITM_PERIPHID5                                        *((volatile uint32_t *)0xE0000FD4u)
+#define ITM_PERIPHID5_REG                                    *((volatile uint32_t *)0xE0000FD4u)
 #define ITM_PERIPHID5_ADDR                                   (0xE0000FD4u)
 #define ITM_PERIPHID5_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -8305,8 +8305,8 @@
         #define ITM_PERIPHID5_PERIPHID_BIT                   (0)
         #define ITM_PERIPHID5_PERIPHID_BITS                  (32)
 
-#define ITM_PERIPHID6                                        *((volatile int32u *)0xE0000FD8u)
-#define ITM_PERIPHID6_REG                                    *((volatile int32u *)0xE0000FD8u)
+#define ITM_PERIPHID6                                        *((volatile uint32_t *)0xE0000FD8u)
+#define ITM_PERIPHID6_REG                                    *((volatile uint32_t *)0xE0000FD8u)
 #define ITM_PERIPHID6_ADDR                                   (0xE0000FD8u)
 #define ITM_PERIPHID6_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -8315,8 +8315,8 @@
         #define ITM_PERIPHID6_PERIPHID_BIT                   (0)
         #define ITM_PERIPHID6_PERIPHID_BITS                  (32)
 
-#define ITM_PERIPHID7                                        *((volatile int32u *)0xE0000FDCu)
-#define ITM_PERIPHID7_REG                                    *((volatile int32u *)0xE0000FDCu)
+#define ITM_PERIPHID7                                        *((volatile uint32_t *)0xE0000FDCu)
+#define ITM_PERIPHID7_REG                                    *((volatile uint32_t *)0xE0000FDCu)
 #define ITM_PERIPHID7_ADDR                                   (0xE0000FDCu)
 #define ITM_PERIPHID7_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -8325,8 +8325,8 @@
         #define ITM_PERIPHID7_PERIPHID_BIT                   (0)
         #define ITM_PERIPHID7_PERIPHID_BITS                  (32)
 
-#define ITM_PERIPHID0                                        *((volatile int32u *)0xE0000FE0u)
-#define ITM_PERIPHID0_REG                                    *((volatile int32u *)0xE0000FE0u)
+#define ITM_PERIPHID0                                        *((volatile uint32_t *)0xE0000FE0u)
+#define ITM_PERIPHID0_REG                                    *((volatile uint32_t *)0xE0000FE0u)
 #define ITM_PERIPHID0_ADDR                                   (0xE0000FE0u)
 #define ITM_PERIPHID0_RESET                                  (0x00000001u)
         /* PERIPHID field */
@@ -8335,8 +8335,8 @@
         #define ITM_PERIPHID0_PERIPHID_BIT                   (0)
         #define ITM_PERIPHID0_PERIPHID_BITS                  (32)
 
-#define ITM_PERIPHID1                                        *((volatile int32u *)0xE0000FE4u)
-#define ITM_PERIPHID1_REG                                    *((volatile int32u *)0xE0000FE4u)
+#define ITM_PERIPHID1                                        *((volatile uint32_t *)0xE0000FE4u)
+#define ITM_PERIPHID1_REG                                    *((volatile uint32_t *)0xE0000FE4u)
 #define ITM_PERIPHID1_ADDR                                   (0xE0000FE4u)
 #define ITM_PERIPHID1_RESET                                  (0x000000B0u)
         /* PERIPHID field */
@@ -8345,8 +8345,8 @@
         #define ITM_PERIPHID1_PERIPHID_BIT                   (0)
         #define ITM_PERIPHID1_PERIPHID_BITS                  (32)
 
-#define ITM_PERIPHID2                                        *((volatile int32u *)0xE0000FE8u)
-#define ITM_PERIPHID2_REG                                    *((volatile int32u *)0xE0000FE8u)
+#define ITM_PERIPHID2                                        *((volatile uint32_t *)0xE0000FE8u)
+#define ITM_PERIPHID2_REG                                    *((volatile uint32_t *)0xE0000FE8u)
 #define ITM_PERIPHID2_ADDR                                   (0xE0000FE8u)
 #define ITM_PERIPHID2_RESET                                  (0x0000001Bu)
         /* PERIPHID field */
@@ -8355,8 +8355,8 @@
         #define ITM_PERIPHID2_PERIPHID_BIT                   (0)
         #define ITM_PERIPHID2_PERIPHID_BITS                  (32)
 
-#define ITM_PERIPHID3                                        *((volatile int32u *)0xE0000FECu)
-#define ITM_PERIPHID3_REG                                    *((volatile int32u *)0xE0000FECu)
+#define ITM_PERIPHID3                                        *((volatile uint32_t *)0xE0000FECu)
+#define ITM_PERIPHID3_REG                                    *((volatile uint32_t *)0xE0000FECu)
 #define ITM_PERIPHID3_ADDR                                   (0xE0000FECu)
 #define ITM_PERIPHID3_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -8365,8 +8365,8 @@
         #define ITM_PERIPHID3_PERIPHID_BIT                   (0)
         #define ITM_PERIPHID3_PERIPHID_BITS                  (32)
 
-#define ITM_CELLID0                                          *((volatile int32u *)0xE0000FF0u)
-#define ITM_CELLID0_REG                                      *((volatile int32u *)0xE0000FF0u)
+#define ITM_CELLID0                                          *((volatile uint32_t *)0xE0000FF0u)
+#define ITM_CELLID0_REG                                      *((volatile uint32_t *)0xE0000FF0u)
 #define ITM_CELLID0_ADDR                                     (0xE0000FF0u)
 #define ITM_CELLID0_RESET                                    (0x0000000Du)
         /* PERIPHID field */
@@ -8375,8 +8375,8 @@
         #define ITM_CELLID0_PERIPHID_BIT                     (0)
         #define ITM_CELLID0_PERIPHID_BITS                    (32)
 
-#define ITM_CELLID1                                          *((volatile int32u *)0xE0000FF4u)
-#define ITM_CELLID1_REG                                      *((volatile int32u *)0xE0000FF4u)
+#define ITM_CELLID1                                          *((volatile uint32_t *)0xE0000FF4u)
+#define ITM_CELLID1_REG                                      *((volatile uint32_t *)0xE0000FF4u)
 #define ITM_CELLID1_ADDR                                     (0xE0000FF4u)
 #define ITM_CELLID1_RESET                                    (0x000000E0u)
         /* PERIPHID field */
@@ -8385,8 +8385,8 @@
         #define ITM_CELLID1_PERIPHID_BIT                     (0)
         #define ITM_CELLID1_PERIPHID_BITS                    (32)
 
-#define ITM_CELLID2                                          *((volatile int32u *)0xE0000FF8u)
-#define ITM_CELLID2_REG                                      *((volatile int32u *)0xE0000FF8u)
+#define ITM_CELLID2                                          *((volatile uint32_t *)0xE0000FF8u)
+#define ITM_CELLID2_REG                                      *((volatile uint32_t *)0xE0000FF8u)
 #define ITM_CELLID2_ADDR                                     (0xE0000FF8u)
 #define ITM_CELLID2_RESET                                    (0x00000005u)
         /* PERIPHID field */
@@ -8395,8 +8395,8 @@
         #define ITM_CELLID2_PERIPHID_BIT                     (0)
         #define ITM_CELLID2_PERIPHID_BITS                    (32)
 
-#define ITM_CELLID3                                          *((volatile int32u *)0xE0000FFCu)
-#define ITM_CELLID3_REG                                      *((volatile int32u *)0xE0000FFCu)
+#define ITM_CELLID3                                          *((volatile uint32_t *)0xE0000FFCu)
+#define ITM_CELLID3_REG                                      *((volatile uint32_t *)0xE0000FFCu)
 #define ITM_CELLID3_ADDR                                     (0xE0000FFCu)
 #define ITM_CELLID3_RESET                                    (0x000000B1u)
         /* PERIPHID field */
@@ -8410,8 +8410,8 @@
 #define DATA_DWT_END                                         (0xE0001FFFu)
 #define DATA_DWT_SIZE                                        (DATA_DWT_END - DATA_DWT_BASE + 1)
 
-#define DWT_CTRL                                             *((volatile int32u *)0xE0001000u)
-#define DWT_CTRL_REG                                         *((volatile int32u *)0xE0001000u)
+#define DWT_CTRL                                             *((volatile uint32_t *)0xE0001000u)
+#define DWT_CTRL_REG                                         *((volatile uint32_t *)0xE0001000u)
 #define DWT_CTRL_ADDR                                        (0xE0001000u)
 #define DWT_CTRL_RESET                                       (0x40000000u)
         /* NUMCOMP field */
@@ -8485,8 +8485,8 @@
         #define DWT_CTRL_CYCCNTENA_BIT                       (0)
         #define DWT_CTRL_CYCCNTENA_BITS                      (1)
 
-#define DWT_CYCCNT                                           *((volatile int32u *)0xE0001004u)
-#define DWT_CYCCNT_REG                                       *((volatile int32u *)0xE0001004u)
+#define DWT_CYCCNT                                           *((volatile uint32_t *)0xE0001004u)
+#define DWT_CYCCNT_REG                                       *((volatile uint32_t *)0xE0001004u)
 #define DWT_CYCCNT_ADDR                                      (0xE0001004u)
 #define DWT_CYCCNT_RESET                                     (0x00000000u)
         /* CYCCNT field */
@@ -8495,8 +8495,8 @@
         #define DWT_CYCCNT_CYCCNT_BIT                        (0)
         #define DWT_CYCCNT_CYCCNT_BITS                       (32)
 
-#define DWT_CPICNT                                           *((volatile int32u *)0xE0001008u)
-#define DWT_CPICNT_REG                                       *((volatile int32u *)0xE0001008u)
+#define DWT_CPICNT                                           *((volatile uint32_t *)0xE0001008u)
+#define DWT_CPICNT_REG                                       *((volatile uint32_t *)0xE0001008u)
 #define DWT_CPICNT_ADDR                                      (0xE0001008u)
 #define DWT_CPICNT_RESET                                     (0x00000000u)
         /* CPICNT field */
@@ -8505,8 +8505,8 @@
         #define DWT_CPICNT_CPICNT_BIT                        (0)
         #define DWT_CPICNT_CPICNT_BITS                       (8)
 
-#define DWT_EXCCNT                                           *((volatile int32u *)0xE000100Cu)
-#define DWT_EXCCNT_REG                                       *((volatile int32u *)0xE000100Cu)
+#define DWT_EXCCNT                                           *((volatile uint32_t *)0xE000100Cu)
+#define DWT_EXCCNT_REG                                       *((volatile uint32_t *)0xE000100Cu)
 #define DWT_EXCCNT_ADDR                                      (0xE000100Cu)
 #define DWT_EXCCNT_RESET                                     (0x00000000u)
         /* EXCCNT field */
@@ -8515,8 +8515,8 @@
         #define DWT_EXCCNT_EXCCNT_BIT                        (0)
         #define DWT_EXCCNT_EXCCNT_BITS                       (8)
 
-#define DWT_SLEEPCNT                                         *((volatile int32u *)0xE0001010u)
-#define DWT_SLEEPCNT_REG                                     *((volatile int32u *)0xE0001010u)
+#define DWT_SLEEPCNT                                         *((volatile uint32_t *)0xE0001010u)
+#define DWT_SLEEPCNT_REG                                     *((volatile uint32_t *)0xE0001010u)
 #define DWT_SLEEPCNT_ADDR                                    (0xE0001010u)
 #define DWT_SLEEPCNT_RESET                                   (0x00000000u)
         /* SLEEPCNT field */
@@ -8525,8 +8525,8 @@
         #define DWT_SLEEPCNT_SLEEPCNT_BIT                    (0)
         #define DWT_SLEEPCNT_SLEEPCNT_BITS                   (8)
 
-#define DWT_LSUCNT                                           *((volatile int32u *)0xE0001014u)
-#define DWT_LSUCNT_REG                                       *((volatile int32u *)0xE0001014u)
+#define DWT_LSUCNT                                           *((volatile uint32_t *)0xE0001014u)
+#define DWT_LSUCNT_REG                                       *((volatile uint32_t *)0xE0001014u)
 #define DWT_LSUCNT_ADDR                                      (0xE0001014u)
 #define DWT_LSUCNT_RESET                                     (0x00000000u)
         /* CPICNT field */
@@ -8535,8 +8535,8 @@
         #define DWT_LSUCNT_CPICNT_BIT                        (0)
         #define DWT_LSUCNT_CPICNT_BITS                       (8)
 
-#define DWT_FOLDCNT                                          *((volatile int32u *)0xE0001018u)
-#define DWT_FOLDCNT_REG                                      *((volatile int32u *)0xE0001018u)
+#define DWT_FOLDCNT                                          *((volatile uint32_t *)0xE0001018u)
+#define DWT_FOLDCNT_REG                                      *((volatile uint32_t *)0xE0001018u)
 #define DWT_FOLDCNT_ADDR                                     (0xE0001018u)
 #define DWT_FOLDCNT_RESET                                    (0x00000000u)
         /* CPICNT field */
@@ -8545,8 +8545,8 @@
         #define DWT_FOLDCNT_CPICNT_BIT                       (0)
         #define DWT_FOLDCNT_CPICNT_BITS                      (8)
 
-#define DWT_PCSR                                             *((volatile int32u *)0xE000101Cu)
-#define DWT_PCSR_REG                                         *((volatile int32u *)0xE000101Cu)
+#define DWT_PCSR                                             *((volatile uint32_t *)0xE000101Cu)
+#define DWT_PCSR_REG                                         *((volatile uint32_t *)0xE000101Cu)
 #define DWT_PCSR_ADDR                                        (0xE000101Cu)
 #define DWT_PCSR_RESET                                       (0x00000000u)
         /* EIASAMPLE field */
@@ -8555,8 +8555,8 @@
         #define DWT_PCSR_EIASAMPLE_BIT                       (0)
         #define DWT_PCSR_EIASAMPLE_BITS                      (32)
 
-#define DWT_COMP0                                            *((volatile int32u *)0xE0001020u)
-#define DWT_COMP0_REG                                        *((volatile int32u *)0xE0001020u)
+#define DWT_COMP0                                            *((volatile uint32_t *)0xE0001020u)
+#define DWT_COMP0_REG                                        *((volatile uint32_t *)0xE0001020u)
 #define DWT_COMP0_ADDR                                       (0xE0001020u)
 #define DWT_COMP0_RESET                                      (0x00000000u)
         /* COMP0 field */
@@ -8565,8 +8565,8 @@
         #define DWT_COMP0_COMP0_BIT                          (0)
         #define DWT_COMP0_COMP0_BITS                         (32)
 
-#define DWT_MASK0                                            *((volatile int32u *)0xE0001024u)
-#define DWT_MASK0_REG                                        *((volatile int32u *)0xE0001024u)
+#define DWT_MASK0                                            *((volatile uint32_t *)0xE0001024u)
+#define DWT_MASK0_REG                                        *((volatile uint32_t *)0xE0001024u)
 #define DWT_MASK0_ADDR                                       (0xE0001024u)
 #define DWT_MASK0_RESET                                      (0x00000000u)
         /* MASK0 field */
@@ -8575,8 +8575,8 @@
         #define DWT_MASK0_MASK0_BIT                          (0)
         #define DWT_MASK0_MASK0_BITS                         (5)
 
-#define DWT_FUNCTION0                                        *((volatile int32u *)0xE0001028u)
-#define DWT_FUNCTION0_REG                                    *((volatile int32u *)0xE0001028u)
+#define DWT_FUNCTION0                                        *((volatile uint32_t *)0xE0001028u)
+#define DWT_FUNCTION0_REG                                    *((volatile uint32_t *)0xE0001028u)
 #define DWT_FUNCTION0_ADDR                                   (0xE0001028u)
 #define DWT_FUNCTION0_RESET                                  (0x00000000u)
         /* MATCHED field */
@@ -8600,8 +8600,8 @@
         #define DWT_FUNCTION0_FUNCTION_BIT                   (0)
         #define DWT_FUNCTION0_FUNCTION_BITS                  (4)
 
-#define DWT_COMP1                                            *((volatile int32u *)0xE0001030u)
-#define DWT_COMP1_REG                                        *((volatile int32u *)0xE0001030u)
+#define DWT_COMP1                                            *((volatile uint32_t *)0xE0001030u)
+#define DWT_COMP1_REG                                        *((volatile uint32_t *)0xE0001030u)
 #define DWT_COMP1_ADDR                                       (0xE0001030u)
 #define DWT_COMP1_RESET                                      (0x00000000u)
         /* COMP1 field */
@@ -8610,8 +8610,8 @@
         #define DWT_COMP1_COMP1_BIT                          (0)
         #define DWT_COMP1_COMP1_BITS                         (32)
 
-#define DWT_MASK1                                            *((volatile int32u *)0xE0001034u)
-#define DWT_MASK1_REG                                        *((volatile int32u *)0xE0001034u)
+#define DWT_MASK1                                            *((volatile uint32_t *)0xE0001034u)
+#define DWT_MASK1_REG                                        *((volatile uint32_t *)0xE0001034u)
 #define DWT_MASK1_ADDR                                       (0xE0001034u)
 #define DWT_MASK1_RESET                                      (0x00000000u)
         /* MASK1 field */
@@ -8620,8 +8620,8 @@
         #define DWT_MASK1_MASK1_BIT                          (0)
         #define DWT_MASK1_MASK1_BITS                         (5)
 
-#define DWT_FUNCTION1                                        *((volatile int32u *)0xE0001038u)
-#define DWT_FUNCTION1_REG                                    *((volatile int32u *)0xE0001038u)
+#define DWT_FUNCTION1                                        *((volatile uint32_t *)0xE0001038u)
+#define DWT_FUNCTION1_REG                                    *((volatile uint32_t *)0xE0001038u)
 #define DWT_FUNCTION1_ADDR                                   (0xE0001038u)
 #define DWT_FUNCTION1_RESET                                  (0x00000200u)
         /* MATCHED field */
@@ -8665,8 +8665,8 @@
         #define DWT_FUNCTION1_FUNCTION_BIT                   (0)
         #define DWT_FUNCTION1_FUNCTION_BITS                  (4)
 
-#define DWT_COMP2                                            *((volatile int32u *)0xE0001040u)
-#define DWT_COMP2_REG                                        *((volatile int32u *)0xE0001040u)
+#define DWT_COMP2                                            *((volatile uint32_t *)0xE0001040u)
+#define DWT_COMP2_REG                                        *((volatile uint32_t *)0xE0001040u)
 #define DWT_COMP2_ADDR                                       (0xE0001040u)
 #define DWT_COMP2_RESET                                      (0x00000000u)
         /* COMP2 field */
@@ -8675,8 +8675,8 @@
         #define DWT_COMP2_COMP2_BIT                          (0)
         #define DWT_COMP2_COMP2_BITS                         (32)
 
-#define DWT_MASK2                                            *((volatile int32u *)0xE0001044u)
-#define DWT_MASK2_REG                                        *((volatile int32u *)0xE0001044u)
+#define DWT_MASK2                                            *((volatile uint32_t *)0xE0001044u)
+#define DWT_MASK2_REG                                        *((volatile uint32_t *)0xE0001044u)
 #define DWT_MASK2_ADDR                                       (0xE0001044u)
 #define DWT_MASK2_RESET                                      (0x00000000u)
         /* MASK2 field */
@@ -8685,8 +8685,8 @@
         #define DWT_MASK2_MASK2_BIT                          (0)
         #define DWT_MASK2_MASK2_BITS                         (5)
 
-#define DWT_FUNCTION2                                        *((volatile int32u *)0xE0001048u)
-#define DWT_FUNCTION2_REG                                    *((volatile int32u *)0xE0001048u)
+#define DWT_FUNCTION2                                        *((volatile uint32_t *)0xE0001048u)
+#define DWT_FUNCTION2_REG                                    *((volatile uint32_t *)0xE0001048u)
 #define DWT_FUNCTION2_ADDR                                   (0xE0001048u)
 #define DWT_FUNCTION2_RESET                                  (0x00000000u)
         /* MATCHED field */
@@ -8705,8 +8705,8 @@
         #define DWT_FUNCTION2_FUNCTION_BIT                   (0)
         #define DWT_FUNCTION2_FUNCTION_BITS                  (4)
 
-#define DWT_COMP3                                            *((volatile int32u *)0xE0001050u)
-#define DWT_COMP3_REG                                        *((volatile int32u *)0xE0001050u)
+#define DWT_COMP3                                            *((volatile uint32_t *)0xE0001050u)
+#define DWT_COMP3_REG                                        *((volatile uint32_t *)0xE0001050u)
 #define DWT_COMP3_ADDR                                       (0xE0001050u)
 #define DWT_COMP3_RESET                                      (0x00000000u)
         /* COMP3 field */
@@ -8715,8 +8715,8 @@
         #define DWT_COMP3_COMP3_BIT                          (0)
         #define DWT_COMP3_COMP3_BITS                         (32)
 
-#define DWT_MASK3                                            *((volatile int32u *)0xE0001054u)
-#define DWT_MASK3_REG                                        *((volatile int32u *)0xE0001054u)
+#define DWT_MASK3                                            *((volatile uint32_t *)0xE0001054u)
+#define DWT_MASK3_REG                                        *((volatile uint32_t *)0xE0001054u)
 #define DWT_MASK3_ADDR                                       (0xE0001054u)
 #define DWT_MASK3_RESET                                      (0x00000000u)
         /* MASK3 field */
@@ -8725,8 +8725,8 @@
         #define DWT_MASK3_MASK3_BIT                          (0)
         #define DWT_MASK3_MASK3_BITS                         (5)
 
-#define DWT_FUNCTION3                                        *((volatile int32u *)0xE0001058u)
-#define DWT_FUNCTION3_REG                                    *((volatile int32u *)0xE0001058u)
+#define DWT_FUNCTION3                                        *((volatile uint32_t *)0xE0001058u)
+#define DWT_FUNCTION3_REG                                    *((volatile uint32_t *)0xE0001058u)
 #define DWT_FUNCTION3_ADDR                                   (0xE0001058u)
 #define DWT_FUNCTION3_RESET                                  (0x00000000u)
         /* MATCHED field */
@@ -8745,8 +8745,8 @@
         #define DWT_FUNCTION3_FUNCTION_BIT                   (0)
         #define DWT_FUNCTION3_FUNCTION_BITS                  (4)
 
-#define DWT_PERIPHID4                                        *((volatile int32u *)0xE0001FD0u)
-#define DWT_PERIPHID4_REG                                    *((volatile int32u *)0xE0001FD0u)
+#define DWT_PERIPHID4                                        *((volatile uint32_t *)0xE0001FD0u)
+#define DWT_PERIPHID4_REG                                    *((volatile uint32_t *)0xE0001FD0u)
 #define DWT_PERIPHID4_ADDR                                   (0xE0001FD0u)
 #define DWT_PERIPHID4_RESET                                  (0x00000004u)
         /* PERIPHID field */
@@ -8755,8 +8755,8 @@
         #define DWT_PERIPHID4_PERIPHID_BIT                   (0)
         #define DWT_PERIPHID4_PERIPHID_BITS                  (32)
 
-#define DWT_PERIPHID5                                        *((volatile int32u *)0xE0001FD4u)
-#define DWT_PERIPHID5_REG                                    *((volatile int32u *)0xE0001FD4u)
+#define DWT_PERIPHID5                                        *((volatile uint32_t *)0xE0001FD4u)
+#define DWT_PERIPHID5_REG                                    *((volatile uint32_t *)0xE0001FD4u)
 #define DWT_PERIPHID5_ADDR                                   (0xE0001FD4u)
 #define DWT_PERIPHID5_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -8765,8 +8765,8 @@
         #define DWT_PERIPHID5_PERIPHID_BIT                   (0)
         #define DWT_PERIPHID5_PERIPHID_BITS                  (32)
 
-#define DWT_PERIPHID6                                        *((volatile int32u *)0xE0001FD8u)
-#define DWT_PERIPHID6_REG                                    *((volatile int32u *)0xE0001FD8u)
+#define DWT_PERIPHID6                                        *((volatile uint32_t *)0xE0001FD8u)
+#define DWT_PERIPHID6_REG                                    *((volatile uint32_t *)0xE0001FD8u)
 #define DWT_PERIPHID6_ADDR                                   (0xE0001FD8u)
 #define DWT_PERIPHID6_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -8775,8 +8775,8 @@
         #define DWT_PERIPHID6_PERIPHID_BIT                   (0)
         #define DWT_PERIPHID6_PERIPHID_BITS                  (32)
 
-#define DWT_PERIPHID7                                        *((volatile int32u *)0xE0001FDCu)
-#define DWT_PERIPHID7_REG                                    *((volatile int32u *)0xE0001FDCu)
+#define DWT_PERIPHID7                                        *((volatile uint32_t *)0xE0001FDCu)
+#define DWT_PERIPHID7_REG                                    *((volatile uint32_t *)0xE0001FDCu)
 #define DWT_PERIPHID7_ADDR                                   (0xE0001FDCu)
 #define DWT_PERIPHID7_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -8785,8 +8785,8 @@
         #define DWT_PERIPHID7_PERIPHID_BIT                   (0)
         #define DWT_PERIPHID7_PERIPHID_BITS                  (32)
 
-#define DWT_PERIPHID0                                        *((volatile int32u *)0xE0001FE0u)
-#define DWT_PERIPHID0_REG                                    *((volatile int32u *)0xE0001FE0u)
+#define DWT_PERIPHID0                                        *((volatile uint32_t *)0xE0001FE0u)
+#define DWT_PERIPHID0_REG                                    *((volatile uint32_t *)0xE0001FE0u)
 #define DWT_PERIPHID0_ADDR                                   (0xE0001FE0u)
 #define DWT_PERIPHID0_RESET                                  (0x00000002u)
         /* PERIPHID field */
@@ -8795,8 +8795,8 @@
         #define DWT_PERIPHID0_PERIPHID_BIT                   (0)
         #define DWT_PERIPHID0_PERIPHID_BITS                  (32)
 
-#define DWT_PERIPHID1                                        *((volatile int32u *)0xE0001FE4u)
-#define DWT_PERIPHID1_REG                                    *((volatile int32u *)0xE0001FE4u)
+#define DWT_PERIPHID1                                        *((volatile uint32_t *)0xE0001FE4u)
+#define DWT_PERIPHID1_REG                                    *((volatile uint32_t *)0xE0001FE4u)
 #define DWT_PERIPHID1_ADDR                                   (0xE0001FE4u)
 #define DWT_PERIPHID1_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -8805,8 +8805,8 @@
         #define DWT_PERIPHID1_PERIPHID_BIT                   (0)
         #define DWT_PERIPHID1_PERIPHID_BITS                  (32)
 
-#define DWT_PERIPHID2                                        *((volatile int32u *)0xE0001FE8u)
-#define DWT_PERIPHID2_REG                                    *((volatile int32u *)0xE0001FE8u)
+#define DWT_PERIPHID2                                        *((volatile uint32_t *)0xE0001FE8u)
+#define DWT_PERIPHID2_REG                                    *((volatile uint32_t *)0xE0001FE8u)
 #define DWT_PERIPHID2_ADDR                                   (0xE0001FE8u)
 #define DWT_PERIPHID2_RESET                                  (0x0000001Bu)
         /* PERIPHID field */
@@ -8815,8 +8815,8 @@
         #define DWT_PERIPHID2_PERIPHID_BIT                   (0)
         #define DWT_PERIPHID2_PERIPHID_BITS                  (32)
 
-#define DWT_PERIPHID3                                        *((volatile int32u *)0xE0001FECu)
-#define DWT_PERIPHID3_REG                                    *((volatile int32u *)0xE0001FECu)
+#define DWT_PERIPHID3                                        *((volatile uint32_t *)0xE0001FECu)
+#define DWT_PERIPHID3_REG                                    *((volatile uint32_t *)0xE0001FECu)
 #define DWT_PERIPHID3_ADDR                                   (0xE0001FECu)
 #define DWT_PERIPHID3_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -8825,8 +8825,8 @@
         #define DWT_PERIPHID3_PERIPHID_BIT                   (0)
         #define DWT_PERIPHID3_PERIPHID_BITS                  (32)
 
-#define DWT_CELLID0                                          *((volatile int32u *)0xE0001FF0u)
-#define DWT_CELLID0_REG                                      *((volatile int32u *)0xE0001FF0u)
+#define DWT_CELLID0                                          *((volatile uint32_t *)0xE0001FF0u)
+#define DWT_CELLID0_REG                                      *((volatile uint32_t *)0xE0001FF0u)
 #define DWT_CELLID0_ADDR                                     (0xE0001FF0u)
 #define DWT_CELLID0_RESET                                    (0x0000000Du)
         /* CELLID field */
@@ -8835,8 +8835,8 @@
         #define DWT_CELLID0_CELLID_BIT                       (0)
         #define DWT_CELLID0_CELLID_BITS                      (32)
 
-#define DWT_CELLID1                                          *((volatile int32u *)0xE0001FF4u)
-#define DWT_CELLID1_REG                                      *((volatile int32u *)0xE0001FF4u)
+#define DWT_CELLID1                                          *((volatile uint32_t *)0xE0001FF4u)
+#define DWT_CELLID1_REG                                      *((volatile uint32_t *)0xE0001FF4u)
 #define DWT_CELLID1_ADDR                                     (0xE0001FF4u)
 #define DWT_CELLID1_RESET                                    (0x000000E0u)
         /* CELLID field */
@@ -8845,8 +8845,8 @@
         #define DWT_CELLID1_CELLID_BIT                       (0)
         #define DWT_CELLID1_CELLID_BITS                      (32)
 
-#define DWT_CELLID2                                          *((volatile int32u *)0xE0001FF8u)
-#define DWT_CELLID2_REG                                      *((volatile int32u *)0xE0001FF8u)
+#define DWT_CELLID2                                          *((volatile uint32_t *)0xE0001FF8u)
+#define DWT_CELLID2_REG                                      *((volatile uint32_t *)0xE0001FF8u)
 #define DWT_CELLID2_ADDR                                     (0xE0001FF8u)
 #define DWT_CELLID2_RESET                                    (0x00000005u)
         /* CELLID field */
@@ -8855,8 +8855,8 @@
         #define DWT_CELLID2_CELLID_BIT                       (0)
         #define DWT_CELLID2_CELLID_BITS                      (32)
 
-#define DWT_CELLID3                                          *((volatile int32u *)0xE0001FFCu)
-#define DWT_CELLID3_REG                                      *((volatile int32u *)0xE0001FFCu)
+#define DWT_CELLID3                                          *((volatile uint32_t *)0xE0001FFCu)
+#define DWT_CELLID3_REG                                      *((volatile uint32_t *)0xE0001FFCu)
 #define DWT_CELLID3_ADDR                                     (0xE0001FFCu)
 #define DWT_CELLID3_RESET                                    (0x000000B1u)
         /* CELLID field */
@@ -8870,8 +8870,8 @@
 #define DATA_FPB_END                                         (0xE0002FFFu)
 #define DATA_FPB_SIZE                                        (DATA_FPB_END - DATA_FPB_BASE + 1)
 
-#define FPB_CTRL                                             *((volatile int32u *)0xE0002000u)
-#define FPB_CTRL_REG                                         *((volatile int32u *)0xE0002000u)
+#define FPB_CTRL                                             *((volatile uint32_t *)0xE0002000u)
+#define FPB_CTRL_REG                                         *((volatile uint32_t *)0xE0002000u)
 #define FPB_CTRL_ADDR                                        (0xE0002000u)
 #define FPB_CTRL_RESET                                       (0x00000000u)
         /* NUM_LIT field */
@@ -8895,8 +8895,8 @@
         #define FPB_CTRL_enable_BIT                          (0)
         #define FPB_CTRL_enable_BITS                         (1)
 
-#define FPB_REMAP                                            *((volatile int32u *)0xE0002004u)
-#define FPB_REMAP_REG                                        *((volatile int32u *)0xE0002004u)
+#define FPB_REMAP                                            *((volatile uint32_t *)0xE0002004u)
+#define FPB_REMAP_REG                                        *((volatile uint32_t *)0xE0002004u)
 #define FPB_REMAP_ADDR                                       (0xE0002004u)
 #define FPB_REMAP_RESET                                      (0x20000000u)
         /* REMAP field */
@@ -8905,8 +8905,8 @@
         #define FPB_REMAP_REMAP_BIT                          (5)
         #define FPB_REMAP_REMAP_BITS                         (24)
 
-#define FPB_COMP0                                            *((volatile int32u *)0xE0002008u)
-#define FPB_COMP0_REG                                        *((volatile int32u *)0xE0002008u)
+#define FPB_COMP0                                            *((volatile uint32_t *)0xE0002008u)
+#define FPB_COMP0_REG                                        *((volatile uint32_t *)0xE0002008u)
 #define FPB_COMP0_ADDR                                       (0xE0002008u)
 #define FPB_COMP0_RESET                                      (0x00000000u)
         /* REPLACE field */
@@ -8925,8 +8925,8 @@
         #define FPB_COMP0_enable_BIT                         (0)
         #define FPB_COMP0_enable_BITS                        (1)
 
-#define FPB_COMP1                                            *((volatile int32u *)0xE000200Cu)
-#define FPB_COMP1_REG                                        *((volatile int32u *)0xE000200Cu)
+#define FPB_COMP1                                            *((volatile uint32_t *)0xE000200Cu)
+#define FPB_COMP1_REG                                        *((volatile uint32_t *)0xE000200Cu)
 #define FPB_COMP1_ADDR                                       (0xE000200Cu)
 #define FPB_COMP1_RESET                                      (0x00000000u)
         /* REPLACE field */
@@ -8945,8 +8945,8 @@
         #define FPB_COMP1_enable_BIT                         (0)
         #define FPB_COMP1_enable_BITS                        (1)
 
-#define FPB_COMP2                                            *((volatile int32u *)0xE0002010u)
-#define FPB_COMP2_REG                                        *((volatile int32u *)0xE0002010u)
+#define FPB_COMP2                                            *((volatile uint32_t *)0xE0002010u)
+#define FPB_COMP2_REG                                        *((volatile uint32_t *)0xE0002010u)
 #define FPB_COMP2_ADDR                                       (0xE0002010u)
 #define FPB_COMP2_RESET                                      (0x00000000u)
         /* REPLACE field */
@@ -8965,8 +8965,8 @@
         #define FPB_COMP2_enable_BIT                         (0)
         #define FPB_COMP2_enable_BITS                        (1)
 
-#define FPB_COMP3                                            *((volatile int32u *)0xE0002014u)
-#define FPB_COMP3_REG                                        *((volatile int32u *)0xE0002014u)
+#define FPB_COMP3                                            *((volatile uint32_t *)0xE0002014u)
+#define FPB_COMP3_REG                                        *((volatile uint32_t *)0xE0002014u)
 #define FPB_COMP3_ADDR                                       (0xE0002014u)
 #define FPB_COMP3_RESET                                      (0x00000000u)
         /* REPLACE field */
@@ -8985,8 +8985,8 @@
         #define FPB_COMP3_enable_BIT                         (0)
         #define FPB_COMP3_enable_BITS                        (1)
 
-#define FPB_COMP4                                            *((volatile int32u *)0xE0002018u)
-#define FPB_COMP4_REG                                        *((volatile int32u *)0xE0002018u)
+#define FPB_COMP4                                            *((volatile uint32_t *)0xE0002018u)
+#define FPB_COMP4_REG                                        *((volatile uint32_t *)0xE0002018u)
 #define FPB_COMP4_ADDR                                       (0xE0002018u)
 #define FPB_COMP4_RESET                                      (0x00000000u)
         /* REPLACE field */
@@ -9005,8 +9005,8 @@
         #define FPB_COMP4_enable_BIT                         (0)
         #define FPB_COMP4_enable_BITS                        (1)
 
-#define FPB_COMP5                                            *((volatile int32u *)0xE000201Cu)
-#define FPB_COMP5_REG                                        *((volatile int32u *)0xE000201Cu)
+#define FPB_COMP5                                            *((volatile uint32_t *)0xE000201Cu)
+#define FPB_COMP5_REG                                        *((volatile uint32_t *)0xE000201Cu)
 #define FPB_COMP5_ADDR                                       (0xE000201Cu)
 #define FPB_COMP5_RESET                                      (0x00000000u)
         /* REPLACE field */
@@ -9025,8 +9025,8 @@
         #define FPB_COMP5_enable_BIT                         (0)
         #define FPB_COMP5_enable_BITS                        (1)
 
-#define FPB_COMP6                                            *((volatile int32u *)0xE0002020u)
-#define FPB_COMP6_REG                                        *((volatile int32u *)0xE0002020u)
+#define FPB_COMP6                                            *((volatile uint32_t *)0xE0002020u)
+#define FPB_COMP6_REG                                        *((volatile uint32_t *)0xE0002020u)
 #define FPB_COMP6_ADDR                                       (0xE0002020u)
 #define FPB_COMP6_RESET                                      (0x00000000u)
         /* REPLACE field */
@@ -9045,8 +9045,8 @@
         #define FPB_COMP6_enable_BIT                         (0)
         #define FPB_COMP6_enable_BITS                        (1)
 
-#define FPB_COMP7                                            *((volatile int32u *)0xE0002024u)
-#define FPB_COMP7_REG                                        *((volatile int32u *)0xE0002024u)
+#define FPB_COMP7                                            *((volatile uint32_t *)0xE0002024u)
+#define FPB_COMP7_REG                                        *((volatile uint32_t *)0xE0002024u)
 #define FPB_COMP7_ADDR                                       (0xE0002024u)
 #define FPB_COMP7_RESET                                      (0x00000000u)
         /* REPLACE field */
@@ -9065,8 +9065,8 @@
         #define FPB_COMP7_enable_BIT                         (0)
         #define FPB_COMP7_enable_BITS                        (1)
 
-#define FPB_PERIPHID4                                        *((volatile int32u *)0xE0002FD0u)
-#define FPB_PERIPHID4_REG                                    *((volatile int32u *)0xE0002FD0u)
+#define FPB_PERIPHID4                                        *((volatile uint32_t *)0xE0002FD0u)
+#define FPB_PERIPHID4_REG                                    *((volatile uint32_t *)0xE0002FD0u)
 #define FPB_PERIPHID4_ADDR                                   (0xE0002FD0u)
 #define FPB_PERIPHID4_RESET                                  (0x00000004u)
         /* PERIPHID field */
@@ -9075,8 +9075,8 @@
         #define FPB_PERIPHID4_PERIPHID_BIT                   (0)
         #define FPB_PERIPHID4_PERIPHID_BITS                  (32)
 
-#define FPB_PERIPHID5                                        *((volatile int32u *)0xE0002FD4u)
-#define FPB_PERIPHID5_REG                                    *((volatile int32u *)0xE0002FD4u)
+#define FPB_PERIPHID5                                        *((volatile uint32_t *)0xE0002FD4u)
+#define FPB_PERIPHID5_REG                                    *((volatile uint32_t *)0xE0002FD4u)
 #define FPB_PERIPHID5_ADDR                                   (0xE0002FD4u)
 #define FPB_PERIPHID5_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -9085,8 +9085,8 @@
         #define FPB_PERIPHID5_PERIPHID_BIT                   (0)
         #define FPB_PERIPHID5_PERIPHID_BITS                  (32)
 
-#define FPB_PERIPHID6                                        *((volatile int32u *)0xE0002FD8u)
-#define FPB_PERIPHID6_REG                                    *((volatile int32u *)0xE0002FD8u)
+#define FPB_PERIPHID6                                        *((volatile uint32_t *)0xE0002FD8u)
+#define FPB_PERIPHID6_REG                                    *((volatile uint32_t *)0xE0002FD8u)
 #define FPB_PERIPHID6_ADDR                                   (0xE0002FD8u)
 #define FPB_PERIPHID6_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -9095,8 +9095,8 @@
         #define FPB_PERIPHID6_PERIPHID_BIT                   (0)
         #define FPB_PERIPHID6_PERIPHID_BITS                  (32)
 
-#define FPB_PERIPHID7                                        *((volatile int32u *)0xE0002FDCu)
-#define FPB_PERIPHID7_REG                                    *((volatile int32u *)0xE0002FDCu)
+#define FPB_PERIPHID7                                        *((volatile uint32_t *)0xE0002FDCu)
+#define FPB_PERIPHID7_REG                                    *((volatile uint32_t *)0xE0002FDCu)
 #define FPB_PERIPHID7_ADDR                                   (0xE0002FDCu)
 #define FPB_PERIPHID7_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -9105,8 +9105,8 @@
         #define FPB_PERIPHID7_PERIPHID_BIT                   (0)
         #define FPB_PERIPHID7_PERIPHID_BITS                  (32)
 
-#define FPB_PERIPHID0                                        *((volatile int32u *)0xE0002FE0u)
-#define FPB_PERIPHID0_REG                                    *((volatile int32u *)0xE0002FE0u)
+#define FPB_PERIPHID0                                        *((volatile uint32_t *)0xE0002FE0u)
+#define FPB_PERIPHID0_REG                                    *((volatile uint32_t *)0xE0002FE0u)
 #define FPB_PERIPHID0_ADDR                                   (0xE0002FE0u)
 #define FPB_PERIPHID0_RESET                                  (0x00000003u)
         /* PERIPHID field */
@@ -9115,8 +9115,8 @@
         #define FPB_PERIPHID0_PERIPHID_BIT                   (0)
         #define FPB_PERIPHID0_PERIPHID_BITS                  (32)
 
-#define FPB_PERIPHID1                                        *((volatile int32u *)0xE0002FE4u)
-#define FPB_PERIPHID1_REG                                    *((volatile int32u *)0xE0002FE4u)
+#define FPB_PERIPHID1                                        *((volatile uint32_t *)0xE0002FE4u)
+#define FPB_PERIPHID1_REG                                    *((volatile uint32_t *)0xE0002FE4u)
 #define FPB_PERIPHID1_ADDR                                   (0xE0002FE4u)
 #define FPB_PERIPHID1_RESET                                  (0x000000B0u)
         /* PERIPHID field */
@@ -9125,8 +9125,8 @@
         #define FPB_PERIPHID1_PERIPHID_BIT                   (0)
         #define FPB_PERIPHID1_PERIPHID_BITS                  (32)
 
-#define FPB_PERIPHID2                                        *((volatile int32u *)0xE0002FE8u)
-#define FPB_PERIPHID2_REG                                    *((volatile int32u *)0xE0002FE8u)
+#define FPB_PERIPHID2                                        *((volatile uint32_t *)0xE0002FE8u)
+#define FPB_PERIPHID2_REG                                    *((volatile uint32_t *)0xE0002FE8u)
 #define FPB_PERIPHID2_ADDR                                   (0xE0002FE8u)
 #define FPB_PERIPHID2_RESET                                  (0x0000000Bu)
         /* PERIPHID field */
@@ -9135,8 +9135,8 @@
         #define FPB_PERIPHID2_PERIPHID_BIT                   (0)
         #define FPB_PERIPHID2_PERIPHID_BITS                  (32)
 
-#define FPB_PERIPHID3                                        *((volatile int32u *)0xE0002FECu)
-#define FPB_PERIPHID3_REG                                    *((volatile int32u *)0xE0002FECu)
+#define FPB_PERIPHID3                                        *((volatile uint32_t *)0xE0002FECu)
+#define FPB_PERIPHID3_REG                                    *((volatile uint32_t *)0xE0002FECu)
 #define FPB_PERIPHID3_ADDR                                   (0xE0002FECu)
 #define FPB_PERIPHID3_RESET                                  (0x00000000u)
         /* PERIPHID field */
@@ -9145,8 +9145,8 @@
         #define FPB_PERIPHID3_PERIPHID_BIT                   (0)
         #define FPB_PERIPHID3_PERIPHID_BITS                  (32)
 
-#define FPB_CELLID0                                          *((volatile int32u *)0xE0002FF0u)
-#define FPB_CELLID0_REG                                      *((volatile int32u *)0xE0002FF0u)
+#define FPB_CELLID0                                          *((volatile uint32_t *)0xE0002FF0u)
+#define FPB_CELLID0_REG                                      *((volatile uint32_t *)0xE0002FF0u)
 #define FPB_CELLID0_ADDR                                     (0xE0002FF0u)
 #define FPB_CELLID0_RESET                                    (0x0000000Du)
         /* CELLID field */
@@ -9155,8 +9155,8 @@
         #define FPB_CELLID0_CELLID_BIT                       (0)
         #define FPB_CELLID0_CELLID_BITS                      (32)
 
-#define FPB_CELLID1                                          *((volatile int32u *)0xE0002FF4u)
-#define FPB_CELLID1_REG                                      *((volatile int32u *)0xE0002FF4u)
+#define FPB_CELLID1                                          *((volatile uint32_t *)0xE0002FF4u)
+#define FPB_CELLID1_REG                                      *((volatile uint32_t *)0xE0002FF4u)
 #define FPB_CELLID1_ADDR                                     (0xE0002FF4u)
 #define FPB_CELLID1_RESET                                    (0x000000E0u)
         /* CELLID field */
@@ -9165,8 +9165,8 @@
         #define FPB_CELLID1_CELLID_BIT                       (0)
         #define FPB_CELLID1_CELLID_BITS                      (32)
 
-#define FPB_CELLID2                                          *((volatile int32u *)0xE0002FF8u)
-#define FPB_CELLID2_REG                                      *((volatile int32u *)0xE0002FF8u)
+#define FPB_CELLID2                                          *((volatile uint32_t *)0xE0002FF8u)
+#define FPB_CELLID2_REG                                      *((volatile uint32_t *)0xE0002FF8u)
 #define FPB_CELLID2_ADDR                                     (0xE0002FF8u)
 #define FPB_CELLID2_RESET                                    (0x00000005u)
         /* CELLID field */
@@ -9175,8 +9175,8 @@
         #define FPB_CELLID2_CELLID_BIT                       (0)
         #define FPB_CELLID2_CELLID_BITS                      (32)
 
-#define FPB_CELLID3                                          *((volatile int32u *)0xE0002FFCu)
-#define FPB_CELLID3_REG                                      *((volatile int32u *)0xE0002FFCu)
+#define FPB_CELLID3                                          *((volatile uint32_t *)0xE0002FFCu)
+#define FPB_CELLID3_REG                                      *((volatile uint32_t *)0xE0002FFCu)
 #define FPB_CELLID3_ADDR                                     (0xE0002FFCu)
 #define FPB_CELLID3_RESET                                    (0x000000B1u)
         /* CELLID field */
@@ -9190,13 +9190,13 @@
 #define BLOCK_NVIC_END                                       (0xE000EFFFu)
 #define BLOCK_NVIC_SIZE                                      (BLOCK_NVIC_END - BLOCK_NVIC_BASE + 1)
 
-#define NVIC_MCR                                             *((volatile int32u *)0xE000E000u)
-#define NVIC_MCR_REG                                         *((volatile int32u *)0xE000E000u)
+#define NVIC_MCR                                             *((volatile uint32_t *)0xE000E000u)
+#define NVIC_MCR_REG                                         *((volatile uint32_t *)0xE000E000u)
 #define NVIC_MCR_ADDR                                        (0xE000E000u)
 #define NVIC_MCR_RESET                                       (0x00000000u)
 
-#define NVIC_ICTR                                            *((volatile int32u *)0xE000E004u)
-#define NVIC_ICTR_REG                                        *((volatile int32u *)0xE000E004u)
+#define NVIC_ICTR                                            *((volatile uint32_t *)0xE000E004u)
+#define NVIC_ICTR_REG                                        *((volatile uint32_t *)0xE000E004u)
 #define NVIC_ICTR_ADDR                                       (0xE000E004u)
 #define NVIC_ICTR_RESET                                      (0x00000000u)
         /* INTLINESNUM field */
@@ -9205,8 +9205,8 @@
         #define NVIC_ICTR_INTLINESNUM_BIT                    (0)
         #define NVIC_ICTR_INTLINESNUM_BITS                   (5)
 
-#define ST_CSR                                               *((volatile int32u *)0xE000E010u)
-#define ST_CSR_REG                                           *((volatile int32u *)0xE000E010u)
+#define ST_CSR                                               *((volatile uint32_t *)0xE000E010u)
+#define ST_CSR_REG                                           *((volatile uint32_t *)0xE000E010u)
 #define ST_CSR_ADDR                                          (0xE000E010u)
 #define ST_CSR_RESET                                         (0x00000000u)
         /* COUNTFLAG field */
@@ -9230,8 +9230,8 @@
         #define ST_CSR_ENABLE_BIT                            (0)
         #define ST_CSR_ENABLE_BITS                           (1)
 
-#define ST_RVR                                               *((volatile int32u *)0xE000E014u)
-#define ST_RVR_REG                                           *((volatile int32u *)0xE000E014u)
+#define ST_RVR                                               *((volatile uint32_t *)0xE000E014u)
+#define ST_RVR_REG                                           *((volatile uint32_t *)0xE000E014u)
 #define ST_RVR_ADDR                                          (0xE000E014u)
 #define ST_RVR_RESET                                         (0x00000000u)
         /* RELOAD field */
@@ -9240,8 +9240,8 @@
         #define ST_RVR_RELOAD_BIT                            (0)
         #define ST_RVR_RELOAD_BITS                           (24)
 
-#define ST_CVR                                               *((volatile int32u *)0xE000E018u)
-#define ST_CVR_REG                                           *((volatile int32u *)0xE000E018u)
+#define ST_CVR                                               *((volatile uint32_t *)0xE000E018u)
+#define ST_CVR_REG                                           *((volatile uint32_t *)0xE000E018u)
 #define ST_CVR_ADDR                                          (0xE000E018u)
 #define ST_CVR_RESET                                         (0x00000000u)
         /* CURRENT field */
@@ -9250,8 +9250,8 @@
         #define ST_CVR_CURRENT_BIT                           (0)
         #define ST_CVR_CURRENT_BITS                          (32)
 
-#define ST_CALVR                                             *((volatile int32u *)0xE000E01Cu)
-#define ST_CALVR_REG                                         *((volatile int32u *)0xE000E01Cu)
+#define ST_CALVR                                             *((volatile uint32_t *)0xE000E01Cu)
+#define ST_CALVR_REG                                         *((volatile uint32_t *)0xE000E01Cu)
 #define ST_CALVR_ADDR                                        (0xE000E01Cu)
 #define ST_CALVR_RESET                                       (0x00000000u)
         /* NOREF field */
@@ -9270,8 +9270,8 @@
         #define ST_CALVR_TENMS_BIT                           (0)
         #define ST_CALVR_TENMS_BITS                          (24)
 
-#define INT_CFGSET                                           *((volatile int32u *)0xE000E100u)
-#define INT_CFGSET_REG                                       *((volatile int32u *)0xE000E100u)
+#define INT_CFGSET                                           *((volatile uint32_t *)0xE000E100u)
+#define INT_CFGSET_REG                                       *((volatile uint32_t *)0xE000E100u)
 #define INT_CFGSET_ADDR                                      (0xE000E100u)
 #define INT_CFGSET_RESET                                     (0x00000000u)
         /* INT_DEBUG field */
@@ -9360,8 +9360,8 @@
         #define INT_TIM1_BIT                                 (0)
         #define INT_TIM1_BITS                                (1)
 
-#define INT_CFGCLR                                           *((volatile int32u *)0xE000E180u)
-#define INT_CFGCLR_REG                                       *((volatile int32u *)0xE000E180u)
+#define INT_CFGCLR                                           *((volatile uint32_t *)0xE000E180u)
+#define INT_CFGCLR_REG                                       *((volatile uint32_t *)0xE000E180u)
 #define INT_CFGCLR_ADDR                                      (0xE000E180u)
 #define INT_CFGCLR_RESET                                     (0x00000000u)
         /* INT_DEBUG field */
@@ -9450,8 +9450,8 @@
         #define INT_TIM1_BIT                                 (0)
         #define INT_TIM1_BITS                                (1)
 
-#define INT_PENDSET                                          *((volatile int32u *)0xE000E200u)
-#define INT_PENDSET_REG                                      *((volatile int32u *)0xE000E200u)
+#define INT_PENDSET                                          *((volatile uint32_t *)0xE000E200u)
+#define INT_PENDSET_REG                                      *((volatile uint32_t *)0xE000E200u)
 #define INT_PENDSET_ADDR                                     (0xE000E200u)
 #define INT_PENDSET_RESET                                    (0x00000000u)
         /* INT_DEBUG field */
@@ -9540,8 +9540,8 @@
         #define INT_TIM1_BIT                                 (0)
         #define INT_TIM1_BITS                                (1)
 
-#define INT_PENDCLR                                          *((volatile int32u *)0xE000E280u)
-#define INT_PENDCLR_REG                                      *((volatile int32u *)0xE000E280u)
+#define INT_PENDCLR                                          *((volatile uint32_t *)0xE000E280u)
+#define INT_PENDCLR_REG                                      *((volatile uint32_t *)0xE000E280u)
 #define INT_PENDCLR_ADDR                                     (0xE000E280u)
 #define INT_PENDCLR_RESET                                    (0x00000000u)
         /* INT_DEBUG field */
@@ -9630,8 +9630,8 @@
         #define INT_TIM1_BIT                                 (0)
         #define INT_TIM1_BITS                                (1)
 
-#define INT_ACTIVE                                           *((volatile int32u *)0xE000E300u)
-#define INT_ACTIVE_REG                                       *((volatile int32u *)0xE000E300u)
+#define INT_ACTIVE                                           *((volatile uint32_t *)0xE000E300u)
+#define INT_ACTIVE_REG                                       *((volatile uint32_t *)0xE000E300u)
 #define INT_ACTIVE_ADDR                                      (0xE000E300u)
 #define INT_ACTIVE_RESET                                     (0x00000000u)
         /* INT_DEBUG field */
@@ -9720,8 +9720,8 @@
         #define INT_TIM1_BIT                                 (0)
         #define INT_TIM1_BITS                                (1)
 
-#define NVIC_IPR_3to0                                        *((volatile int32u *)0xE000E400u)
-#define NVIC_IPR_3to0_REG                                    *((volatile int32u *)0xE000E400u)
+#define NVIC_IPR_3to0                                        *((volatile uint32_t *)0xE000E400u)
+#define NVIC_IPR_3to0_REG                                    *((volatile uint32_t *)0xE000E400u)
 #define NVIC_IPR_3to0_ADDR                                   (0xE000E400u)
 #define NVIC_IPR_3to0_RESET                                  (0x00000000u)
         /* PRI_3 field */
@@ -9745,8 +9745,8 @@
         #define NVIC_IPR_3to0_PRI_0_BIT                      (0)
         #define NVIC_IPR_3to0_PRI_0_BITS                     (8)
 
-#define NVIC_IPR_7to4                                        *((volatile int32u *)0xE000E404u)
-#define NVIC_IPR_7to4_REG                                    *((volatile int32u *)0xE000E404u)
+#define NVIC_IPR_7to4                                        *((volatile uint32_t *)0xE000E404u)
+#define NVIC_IPR_7to4_REG                                    *((volatile uint32_t *)0xE000E404u)
 #define NVIC_IPR_7to4_ADDR                                   (0xE000E404u)
 #define NVIC_IPR_7to4_RESET                                  (0x00000000u)
         /* PRI_7 field */
@@ -9770,8 +9770,8 @@
         #define NVIC_IPR_7to4_PRI_4_BIT                      (0)
         #define NVIC_IPR_7to4_PRI_4_BITS                     (8)
 
-#define NVIC_IPR_11to8                                       *((volatile int32u *)0xE000E408u)
-#define NVIC_IPR_11to8_REG                                   *((volatile int32u *)0xE000E408u)
+#define NVIC_IPR_11to8                                       *((volatile uint32_t *)0xE000E408u)
+#define NVIC_IPR_11to8_REG                                   *((volatile uint32_t *)0xE000E408u)
 #define NVIC_IPR_11to8_ADDR                                  (0xE000E408u)
 #define NVIC_IPR_11to8_RESET                                 (0x00000000u)
         /* PRI_11 field */
@@ -9795,8 +9795,8 @@
         #define NVIC_IPR_11to8_PRI_8_BIT                     (0)
         #define NVIC_IPR_11to8_PRI_8_BITS                    (8)
 
-#define NVIC_IPR_15to12                                      *((volatile int32u *)0xE000E40Cu)
-#define NVIC_IPR_15to12_REG                                  *((volatile int32u *)0xE000E40Cu)
+#define NVIC_IPR_15to12                                      *((volatile uint32_t *)0xE000E40Cu)
+#define NVIC_IPR_15to12_REG                                  *((volatile uint32_t *)0xE000E40Cu)
 #define NVIC_IPR_15to12_ADDR                                 (0xE000E40Cu)
 #define NVIC_IPR_15to12_RESET                                (0x00000000u)
         /* PRI_15 field */
@@ -9820,8 +9820,8 @@
         #define NVIC_IPR_15to12_PRI_12_BIT                   (0)
         #define NVIC_IPR_15to12_PRI_12_BITS                  (8)
 
-#define NVIC_IPR_19to16                                      *((volatile int32u *)0xE000E410u)
-#define NVIC_IPR_19to16_REG                                  *((volatile int32u *)0xE000E410u)
+#define NVIC_IPR_19to16                                      *((volatile uint32_t *)0xE000E410u)
+#define NVIC_IPR_19to16_REG                                  *((volatile uint32_t *)0xE000E410u)
 #define NVIC_IPR_19to16_ADDR                                 (0xE000E410u)
 #define NVIC_IPR_19to16_RESET                                (0x00000000u)
         /* PRI_19 field */
@@ -9845,8 +9845,8 @@
         #define NVIC_IPR_19to16_PRI_16_BIT                   (0)
         #define NVIC_IPR_19to16_PRI_16_BITS                  (8)
 
-#define SCS_CPUID                                            *((volatile int32u *)0xE000ED00u)
-#define SCS_CPUID_REG                                        *((volatile int32u *)0xE000ED00u)
+#define SCS_CPUID                                            *((volatile uint32_t *)0xE000ED00u)
+#define SCS_CPUID_REG                                        *((volatile uint32_t *)0xE000ED00u)
 #define SCS_CPUID_ADDR                                       (0xE000ED00u)
 #define SCS_CPUID_RESET                                      (0x411FC231u)
         /* IMPLEMENTER field */
@@ -9875,8 +9875,8 @@
         #define SCS_CPUID_REVISION_BIT                       (0)
         #define SCS_CPUID_REVISION_BITS                      (4)
 
-#define SCS_ICSR                                             *((volatile int32u *)0xE000ED04u)
-#define SCS_ICSR_REG                                         *((volatile int32u *)0xE000ED04u)
+#define SCS_ICSR                                             *((volatile uint32_t *)0xE000ED04u)
+#define SCS_ICSR_REG                                         *((volatile uint32_t *)0xE000ED04u)
 #define SCS_ICSR_ADDR                                        (0xE000ED04u)
 #define SCS_ICSR_RESET                                       (0x00000000u)
         /* NMIPENDSET field */
@@ -9930,8 +9930,8 @@
         #define SCS_ICSR_VECACTIVE_BIT                       (0)
         #define SCS_ICSR_VECACTIVE_BITS                      (9)
 
-#define SCS_VTOR                                             *((volatile int32u *)0xE000ED08u)
-#define SCS_VTOR_REG                                         *((volatile int32u *)0xE000ED08u)
+#define SCS_VTOR                                             *((volatile uint32_t *)0xE000ED08u)
+#define SCS_VTOR_REG                                         *((volatile uint32_t *)0xE000ED08u)
 #define SCS_VTOR_ADDR                                        (0xE000ED08u)
 #define SCS_VTOR_RESET                                       (0x00000000u)
         /* TBLBASE field */
@@ -9945,8 +9945,8 @@
         #define SCS_VTOR_TBLOFF_BIT                          (8)
         #define SCS_VTOR_TBLOFF_BITS                         (21)
 
-#define SCS_AIRCR                                            *((volatile int32u *)0xE000ED0Cu)
-#define SCS_AIRCR_REG                                        *((volatile int32u *)0xE000ED0Cu)
+#define SCS_AIRCR                                            *((volatile uint32_t *)0xE000ED0Cu)
+#define SCS_AIRCR_REG                                        *((volatile uint32_t *)0xE000ED0Cu)
 #define SCS_AIRCR_ADDR                                       (0xE000ED0Cu)
 #define SCS_AIRCR_RESET                                      (0x00000000u)
         /* VECTKEYSTAT field */
@@ -9985,8 +9985,8 @@
         #define SCS_AIRCR_VECTRESET_BIT                      (0)
         #define SCS_AIRCR_VECTRESET_BITS                     (1)
 
-#define SCS_SCR                                              *((volatile int32u *)0xE000ED10u)
-#define SCS_SCR_REG                                          *((volatile int32u *)0xE000ED10u)
+#define SCS_SCR                                              *((volatile uint32_t *)0xE000ED10u)
+#define SCS_SCR_REG                                          *((volatile uint32_t *)0xE000ED10u)
 #define SCS_SCR_ADDR                                         (0xE000ED10u)
 #define SCS_SCR_RESET                                        (0x00000000u)
         /* SEVONPEND field */
@@ -10005,8 +10005,8 @@
         #define SCS_SCR_SLEEPONEXIT_BIT                      (1)
         #define SCS_SCR_SLEEPONEXIT_BITS                     (1)
 
-#define SCS_CCR                                              *((volatile int32u *)0xE000ED14u)
-#define SCS_CCR_REG                                          *((volatile int32u *)0xE000ED14u)
+#define SCS_CCR                                              *((volatile uint32_t *)0xE000ED14u)
+#define SCS_CCR_REG                                          *((volatile uint32_t *)0xE000ED14u)
 #define SCS_CCR_ADDR                                         (0xE000ED14u)
 #define SCS_CCR_RESET                                        (0x00000000u)
         /* STKALIGN field */
@@ -10040,8 +10040,8 @@
         #define SCS_CCR_NONBASETHRDENA_BIT                   (0)
         #define SCS_CCR_NONBASETHRDENA_BITS                  (1)
 
-#define SCS_SHPR_7to4                                        *((volatile int32u *)0xE000ED18u)
-#define SCS_SHPR_7to4_REG                                    *((volatile int32u *)0xE000ED18u)
+#define SCS_SHPR_7to4                                        *((volatile uint32_t *)0xE000ED18u)
+#define SCS_SHPR_7to4_REG                                    *((volatile uint32_t *)0xE000ED18u)
 #define SCS_SHPR_7to4_ADDR                                   (0xE000ED18u)
 #define SCS_SHPR_7to4_RESET                                  (0x00000000u)
         /* PRI_7 field */
@@ -10065,8 +10065,8 @@
         #define SCS_SHPR_7to4_PRI_4_BIT                      (0)
         #define SCS_SHPR_7to4_PRI_4_BITS                     (8)
 
-#define SCS_SHPR_11to8                                       *((volatile int32u *)0xE000ED1Cu)
-#define SCS_SHPR_11to8_REG                                   *((volatile int32u *)0xE000ED1Cu)
+#define SCS_SHPR_11to8                                       *((volatile uint32_t *)0xE000ED1Cu)
+#define SCS_SHPR_11to8_REG                                   *((volatile uint32_t *)0xE000ED1Cu)
 #define SCS_SHPR_11to8_ADDR                                  (0xE000ED1Cu)
 #define SCS_SHPR_11to8_RESET                                 (0x00000000u)
         /* PRI_11 field */
@@ -10090,8 +10090,8 @@
         #define SCS_SHPR_11to8_PRI_8_BIT                     (0)
         #define SCS_SHPR_11to8_PRI_8_BITS                    (8)
 
-#define SCS_SHPR_15to12                                      *((volatile int32u *)0xE000ED20u)
-#define SCS_SHPR_15to12_REG                                  *((volatile int32u *)0xE000ED20u)
+#define SCS_SHPR_15to12                                      *((volatile uint32_t *)0xE000ED20u)
+#define SCS_SHPR_15to12_REG                                  *((volatile uint32_t *)0xE000ED20u)
 #define SCS_SHPR_15to12_ADDR                                 (0xE000ED20u)
 #define SCS_SHPR_15to12_RESET                                (0x00000000u)
         /* PRI_15 field */
@@ -10115,8 +10115,8 @@
         #define SCS_SHPR_15to12_PRI_12_BIT                   (0)
         #define SCS_SHPR_15to12_PRI_12_BITS                  (8)
 
-#define SCS_SHCSR                                            *((volatile int32u *)0xE000ED24u)
-#define SCS_SHCSR_REG                                        *((volatile int32u *)0xE000ED24u)
+#define SCS_SHCSR                                            *((volatile uint32_t *)0xE000ED24u)
+#define SCS_SHCSR_REG                                        *((volatile uint32_t *)0xE000ED24u)
 #define SCS_SHCSR_ADDR                                       (0xE000ED24u)
 #define SCS_SHCSR_RESET                                      (0x00000000u)
         /* USGFAULTENA field */
@@ -10190,8 +10190,8 @@
         #define SCS_SHCSR_MEMFAULTACT_BIT                    (0)
         #define SCS_SHCSR_MEMFAULTACT_BITS                   (1)
 
-#define SCS_CFSR                                             *((volatile int32u *)0xE000ED28u)
-#define SCS_CFSR_REG                                         *((volatile int32u *)0xE000ED28u)
+#define SCS_CFSR                                             *((volatile uint32_t *)0xE000ED28u)
+#define SCS_CFSR_REG                                         *((volatile uint32_t *)0xE000ED28u)
 #define SCS_CFSR_ADDR                                        (0xE000ED28u)
 #define SCS_CFSR_RESET                                       (0x00000000u)
         /* DIVBYZERO field */
@@ -10280,8 +10280,8 @@
         #define SCS_CFSR_IACCVIOL_BIT                        (0)
         #define SCS_CFSR_IACCVIOL_BITS                       (1)
 
-#define SCS_HFSR                                             *((volatile int32u *)0xE000ED2Cu)
-#define SCS_HFSR_REG                                         *((volatile int32u *)0xE000ED2Cu)
+#define SCS_HFSR                                             *((volatile uint32_t *)0xE000ED2Cu)
+#define SCS_HFSR_REG                                         *((volatile uint32_t *)0xE000ED2Cu)
 #define SCS_HFSR_ADDR                                        (0xE000ED2Cu)
 #define SCS_HFSR_RESET                                       (0x00000000u)
         /* DEBUGEVT field */
@@ -10300,8 +10300,8 @@
         #define SCS_HFSR_VECTTBL_BIT                         (1)
         #define SCS_HFSR_VECTTBL_BITS                        (1)
 
-#define SCS_DFSR                                             *((volatile int32u *)0xE000ED30u)
-#define SCS_DFSR_REG                                         *((volatile int32u *)0xE000ED30u)
+#define SCS_DFSR                                             *((volatile uint32_t *)0xE000ED30u)
+#define SCS_DFSR_REG                                         *((volatile uint32_t *)0xE000ED30u)
 #define SCS_DFSR_ADDR                                        (0xE000ED30u)
 #define SCS_DFSR_RESET                                       (0x00000000u)
         /* EXTERNAL field */
@@ -10330,8 +10330,8 @@
         #define SCS_DFSR_HALTED_BIT                          (0)
         #define SCS_DFSR_HALTED_BITS                         (1)
 
-#define SCS_MMAR                                             *((volatile int32u *)0xE000ED34u)
-#define SCS_MMAR_REG                                         *((volatile int32u *)0xE000ED34u)
+#define SCS_MMAR                                             *((volatile uint32_t *)0xE000ED34u)
+#define SCS_MMAR_REG                                         *((volatile uint32_t *)0xE000ED34u)
 #define SCS_MMAR_ADDR                                        (0xE000ED34u)
 #define SCS_MMAR_RESET                                       (0x00000000u)
         /* ADDRESS field */
@@ -10340,8 +10340,8 @@
         #define SCS_MMAR_ADDRESS_BIT                         (0)
         #define SCS_MMAR_ADDRESS_BITS                        (32)
 
-#define SCS_BFAR                                             *((volatile int32u *)0xE000ED38u)
-#define SCS_BFAR_REG                                         *((volatile int32u *)0xE000ED38u)
+#define SCS_BFAR                                             *((volatile uint32_t *)0xE000ED38u)
+#define SCS_BFAR_REG                                         *((volatile uint32_t *)0xE000ED38u)
 #define SCS_BFAR_ADDR                                        (0xE000ED38u)
 #define SCS_BFAR_RESET                                       (0x00000000u)
         /* ADDRESS field */
@@ -10350,8 +10350,8 @@
         #define SCS_BFAR_ADDRESS_BIT                         (0)
         #define SCS_BFAR_ADDRESS_BITS                        (32)
 
-#define SCS_AFSR                                             *((volatile int32u *)0xE000ED3Cu)
-#define SCS_AFSR_REG                                         *((volatile int32u *)0xE000ED3Cu)
+#define SCS_AFSR                                             *((volatile uint32_t *)0xE000ED3Cu)
+#define SCS_AFSR_REG                                         *((volatile uint32_t *)0xE000ED3Cu)
 #define SCS_AFSR_ADDR                                        (0xE000ED3Cu)
 #define SCS_AFSR_RESET                                       (0x00000000u)
         /* WRONGSIZE field */
@@ -10375,8 +10375,8 @@
         #define SCS_AFSR_MISSED_BIT                          (0)
         #define SCS_AFSR_MISSED_BITS                         (1)
 
-#define SCS_PFR0                                             *((volatile int32u *)0xE000ED40u)
-#define SCS_PFR0_REG                                         *((volatile int32u *)0xE000ED40u)
+#define SCS_PFR0                                             *((volatile uint32_t *)0xE000ED40u)
+#define SCS_PFR0_REG                                         *((volatile uint32_t *)0xE000ED40u)
 #define SCS_PFR0_ADDR                                        (0xE000ED40u)
 #define SCS_PFR0_RESET                                       (0x00000030u)
         /* FEATURE field */
@@ -10385,8 +10385,8 @@
         #define SCS_PFR0_FEATURE_BIT                         (0)
         #define SCS_PFR0_FEATURE_BITS                        (32)
 
-#define SCS_PFR1                                             *((volatile int32u *)0xE000ED44u)
-#define SCS_PFR1_REG                                         *((volatile int32u *)0xE000ED44u)
+#define SCS_PFR1                                             *((volatile uint32_t *)0xE000ED44u)
+#define SCS_PFR1_REG                                         *((volatile uint32_t *)0xE000ED44u)
 #define SCS_PFR1_ADDR                                        (0xE000ED44u)
 #define SCS_PFR1_RESET                                       (0x00000200u)
         /* FEATURE field */
@@ -10395,8 +10395,8 @@
         #define SCS_PFR1_FEATURE_BIT                         (0)
         #define SCS_PFR1_FEATURE_BITS                        (32)
 
-#define SCS_DFR0                                             *((volatile int32u *)0xE000ED48u)
-#define SCS_DFR0_REG                                         *((volatile int32u *)0xE000ED48u)
+#define SCS_DFR0                                             *((volatile uint32_t *)0xE000ED48u)
+#define SCS_DFR0_REG                                         *((volatile uint32_t *)0xE000ED48u)
 #define SCS_DFR0_ADDR                                        (0xE000ED48u)
 #define SCS_DFR0_RESET                                       (0x00100000u)
         /* FEATURE field */
@@ -10405,8 +10405,8 @@
         #define SCS_DFR0_FEATURE_BIT                         (0)
         #define SCS_DFR0_FEATURE_BITS                        (32)
 
-#define SCS_AFR0                                             *((volatile int32u *)0xE000ED4Cu)
-#define SCS_AFR0_REG                                         *((volatile int32u *)0xE000ED4Cu)
+#define SCS_AFR0                                             *((volatile uint32_t *)0xE000ED4Cu)
+#define SCS_AFR0_REG                                         *((volatile uint32_t *)0xE000ED4Cu)
 #define SCS_AFR0_ADDR                                        (0xE000ED4Cu)
 #define SCS_AFR0_RESET                                       (0x00000000u)
         /* FEATURE field */
@@ -10415,8 +10415,8 @@
         #define SCS_AFR0_FEATURE_BIT                         (0)
         #define SCS_AFR0_FEATURE_BITS                        (32)
 
-#define SCS_MMFR0                                            *((volatile int32u *)0xE000ED50u)
-#define SCS_MMFR0_REG                                        *((volatile int32u *)0xE000ED50u)
+#define SCS_MMFR0                                            *((volatile uint32_t *)0xE000ED50u)
+#define SCS_MMFR0_REG                                        *((volatile uint32_t *)0xE000ED50u)
 #define SCS_MMFR0_ADDR                                       (0xE000ED50u)
 #define SCS_MMFR0_RESET                                      (0x00000030u)
         /* FEATURE field */
@@ -10425,8 +10425,8 @@
         #define SCS_MMFR0_FEATURE_BIT                        (0)
         #define SCS_MMFR0_FEATURE_BITS                       (32)
 
-#define SCS_MMFR1                                            *((volatile int32u *)0xE000ED54u)
-#define SCS_MMFR1_REG                                        *((volatile int32u *)0xE000ED54u)
+#define SCS_MMFR1                                            *((volatile uint32_t *)0xE000ED54u)
+#define SCS_MMFR1_REG                                        *((volatile uint32_t *)0xE000ED54u)
 #define SCS_MMFR1_ADDR                                       (0xE000ED54u)
 #define SCS_MMFR1_RESET                                      (0x00000000u)
         /* FEATURE field */
@@ -10435,8 +10435,8 @@
         #define SCS_MMFR1_FEATURE_BIT                        (0)
         #define SCS_MMFR1_FEATURE_BITS                       (32)
 
-#define SCS_MMFR2                                            *((volatile int32u *)0xE000ED58u)
-#define SCS_MMFR2_REG                                        *((volatile int32u *)0xE000ED58u)
+#define SCS_MMFR2                                            *((volatile uint32_t *)0xE000ED58u)
+#define SCS_MMFR2_REG                                        *((volatile uint32_t *)0xE000ED58u)
 #define SCS_MMFR2_ADDR                                       (0xE000ED58u)
 #define SCS_MMFR2_RESET                                      (0x00000000u)
         /* FEATURE field */
@@ -10445,8 +10445,8 @@
         #define SCS_MMFR2_FEATURE_BIT                        (0)
         #define SCS_MMFR2_FEATURE_BITS                       (32)
 
-#define SCS_MMFR3                                            *((volatile int32u *)0xE000ED5Cu)
-#define SCS_MMFR3_REG                                        *((volatile int32u *)0xE000ED5Cu)
+#define SCS_MMFR3                                            *((volatile uint32_t *)0xE000ED5Cu)
+#define SCS_MMFR3_REG                                        *((volatile uint32_t *)0xE000ED5Cu)
 #define SCS_MMFR3_ADDR                                       (0xE000ED5Cu)
 #define SCS_MMFR3_RESET                                      (0x00000000u)
         /* FEATURE field */
@@ -10455,8 +10455,8 @@
         #define SCS_MMFR3_FEATURE_BIT                        (0)
         #define SCS_MMFR3_FEATURE_BITS                       (32)
 
-#define SCS_ISAFR0                                           *((volatile int32u *)0xE000ED60u)
-#define SCS_ISAFR0_REG                                       *((volatile int32u *)0xE000ED60u)
+#define SCS_ISAFR0                                           *((volatile uint32_t *)0xE000ED60u)
+#define SCS_ISAFR0_REG                                       *((volatile uint32_t *)0xE000ED60u)
 #define SCS_ISAFR0_ADDR                                      (0xE000ED60u)
 #define SCS_ISAFR0_RESET                                     (0x01141110u)
         /* FEATURE field */
@@ -10465,8 +10465,8 @@
         #define SCS_ISAFR0_FEATURE_BIT                       (0)
         #define SCS_ISAFR0_FEATURE_BITS                      (32)
 
-#define SCS_ISAFR1                                           *((volatile int32u *)0xE000ED64u)
-#define SCS_ISAFR1_REG                                       *((volatile int32u *)0xE000ED64u)
+#define SCS_ISAFR1                                           *((volatile uint32_t *)0xE000ED64u)
+#define SCS_ISAFR1_REG                                       *((volatile uint32_t *)0xE000ED64u)
 #define SCS_ISAFR1_ADDR                                      (0xE000ED64u)
 #define SCS_ISAFR1_RESET                                     (0x02111000u)
         /* FEATURE field */
@@ -10475,8 +10475,8 @@
         #define SCS_ISAFR1_FEATURE_BIT                       (0)
         #define SCS_ISAFR1_FEATURE_BITS                      (32)
 
-#define SCS_ISAFR2                                           *((volatile int32u *)0xE000ED68u)
-#define SCS_ISAFR2_REG                                       *((volatile int32u *)0xE000ED68u)
+#define SCS_ISAFR2                                           *((volatile uint32_t *)0xE000ED68u)
+#define SCS_ISAFR2_REG                                       *((volatile uint32_t *)0xE000ED68u)
 #define SCS_ISAFR2_ADDR                                      (0xE000ED68u)
 #define SCS_ISAFR2_RESET                                     (0x21112231u)
         /* FEATURE field */
@@ -10485,8 +10485,8 @@
         #define SCS_ISAFR2_FEATURE_BIT                       (0)
         #define SCS_ISAFR2_FEATURE_BITS                      (32)
 
-#define SCS_ISAFR3                                           *((volatile int32u *)0xE000ED6Cu)
-#define SCS_ISAFR3_REG                                       *((volatile int32u *)0xE000ED6Cu)
+#define SCS_ISAFR3                                           *((volatile uint32_t *)0xE000ED6Cu)
+#define SCS_ISAFR3_REG                                       *((volatile uint32_t *)0xE000ED6Cu)
 #define SCS_ISAFR3_ADDR                                      (0xE000ED6Cu)
 #define SCS_ISAFR3_RESET                                     (0x11111110u)
         /* FEATURE field */
@@ -10495,8 +10495,8 @@
         #define SCS_ISAFR3_FEATURE_BIT                       (0)
         #define SCS_ISAFR3_FEATURE_BITS                      (32)
 
-#define SCS_ISAFR4                                           *((volatile int32u *)0xE000ED70u)
-#define SCS_ISAFR4_REG                                       *((volatile int32u *)0xE000ED70u)
+#define SCS_ISAFR4                                           *((volatile uint32_t *)0xE000ED70u)
+#define SCS_ISAFR4_REG                                       *((volatile uint32_t *)0xE000ED70u)
 #define SCS_ISAFR4_ADDR                                      (0xE000ED70u)
 #define SCS_ISAFR4_RESET                                     (0x01310102u)
         /* FEATURE field */
@@ -10505,8 +10505,8 @@
         #define SCS_ISAFR4_FEATURE_BIT                       (0)
         #define SCS_ISAFR4_FEATURE_BITS                      (32)
 
-#define MPU_TYPE                                             *((volatile int32u *)0xE000ED90u)
-#define MPU_TYPE_REG                                         *((volatile int32u *)0xE000ED90u)
+#define MPU_TYPE                                             *((volatile uint32_t *)0xE000ED90u)
+#define MPU_TYPE_REG                                         *((volatile uint32_t *)0xE000ED90u)
 #define MPU_TYPE_ADDR                                        (0xE000ED90u)
 #define MPU_TYPE_RESET                                       (0x00000800u)
         /* IREGION field */
@@ -10520,8 +10520,8 @@
         #define MPU_TYPE_DREGION_BIT                         (8)
         #define MPU_TYPE_DREGION_BITS                        (8)
 
-#define MPU_CTRL                                             *((volatile int32u *)0xE000ED94u)
-#define MPU_CTRL_REG                                         *((volatile int32u *)0xE000ED94u)
+#define MPU_CTRL                                             *((volatile uint32_t *)0xE000ED94u)
+#define MPU_CTRL_REG                                         *((volatile uint32_t *)0xE000ED94u)
 #define MPU_CTRL_ADDR                                        (0xE000ED94u)
 #define MPU_CTRL_RESET                                       (0x00000000u)
         /* PRIVDEFENA field */
@@ -10540,8 +10540,8 @@
         #define MPU_CTRL_ENABLE_BIT                          (0)
         #define MPU_CTRL_ENABLE_BITS                         (1)
 
-#define MPU_REGION                                           *((volatile int32u *)0xE000ED98u)
-#define MPU_REGION_REG                                       *((volatile int32u *)0xE000ED98u)
+#define MPU_REGION                                           *((volatile uint32_t *)0xE000ED98u)
+#define MPU_REGION_REG                                       *((volatile uint32_t *)0xE000ED98u)
 #define MPU_REGION_ADDR                                      (0xE000ED98u)
 #define MPU_REGION_RESET                                     (0x00000000u)
         /* REGION field */
@@ -10550,8 +10550,8 @@
         #define MPU_REGION_REGION_BIT                        (0)
         #define MPU_REGION_REGION_BITS                       (8)
 
-#define MPU_BASE                                             *((volatile int32u *)0xE000ED9Cu)
-#define MPU_BASE_REG                                         *((volatile int32u *)0xE000ED9Cu)
+#define MPU_BASE                                             *((volatile uint32_t *)0xE000ED9Cu)
+#define MPU_BASE_REG                                         *((volatile uint32_t *)0xE000ED9Cu)
 #define MPU_BASE_ADDR                                        (0xE000ED9Cu)
 #define MPU_BASE_RESET                                       (0x00000000u)
         /* ADDRESS field */
@@ -10570,8 +10570,8 @@
         #define MPU_BASE_REGION_BIT                          (0)
         #define MPU_BASE_REGION_BITS                         (4)
 
-#define MPU_ATTR                                             *((volatile int32u *)0xE000EDA0u)
-#define MPU_ATTR_REG                                         *((volatile int32u *)0xE000EDA0u)
+#define MPU_ATTR                                             *((volatile uint32_t *)0xE000EDA0u)
+#define MPU_ATTR_REG                                         *((volatile uint32_t *)0xE000EDA0u)
 #define MPU_ATTR_ADDR                                        (0xE000EDA0u)
 #define MPU_ATTR_RESET                                       (0x00000000u)
         /* XN field */
@@ -10620,8 +10620,8 @@
         #define MPU_ATTR_ENABLE_BIT                          (0)
         #define MPU_ATTR_ENABLE_BITS                         (1)
 
-#define MPU_BASE1                                            *((volatile int32u *)0xE000EDA4u)
-#define MPU_BASE1_REG                                        *((volatile int32u *)0xE000EDA4u)
+#define MPU_BASE1                                            *((volatile uint32_t *)0xE000EDA4u)
+#define MPU_BASE1_REG                                        *((volatile uint32_t *)0xE000EDA4u)
 #define MPU_BASE1_ADDR                                       (0xE000EDA4u)
 #define MPU_BASE1_RESET                                      (0x00000000u)
         /* ADDRESS field */
@@ -10640,8 +10640,8 @@
         #define MPU_BASE1_REGION_BIT                         (0)
         #define MPU_BASE1_REGION_BITS                        (4)
 
-#define MPU_ATTR1                                            *((volatile int32u *)0xE000EDA8u)
-#define MPU_ATTR1_REG                                        *((volatile int32u *)0xE000EDA8u)
+#define MPU_ATTR1                                            *((volatile uint32_t *)0xE000EDA8u)
+#define MPU_ATTR1_REG                                        *((volatile uint32_t *)0xE000EDA8u)
 #define MPU_ATTR1_ADDR                                       (0xE000EDA8u)
 #define MPU_ATTR1_RESET                                      (0x00000000u)
         /* XN field */
@@ -10690,8 +10690,8 @@
         #define MPU_ATTR1_ENABLE_BIT                         (0)
         #define MPU_ATTR1_ENABLE_BITS                        (1)
 
-#define MPU_BASE2                                            *((volatile int32u *)0xE000EDACu)
-#define MPU_BASE2_REG                                        *((volatile int32u *)0xE000EDACu)
+#define MPU_BASE2                                            *((volatile uint32_t *)0xE000EDACu)
+#define MPU_BASE2_REG                                        *((volatile uint32_t *)0xE000EDACu)
 #define MPU_BASE2_ADDR                                       (0xE000EDACu)
 #define MPU_BASE2_RESET                                      (0x00000000u)
         /* ADDRESS field */
@@ -10710,8 +10710,8 @@
         #define MPU_BASE2_REGION_BIT                         (0)
         #define MPU_BASE2_REGION_BITS                        (4)
 
-#define MPU_ATTR2                                            *((volatile int32u *)0xE000EDB0u)
-#define MPU_ATTR2_REG                                        *((volatile int32u *)0xE000EDB0u)
+#define MPU_ATTR2                                            *((volatile uint32_t *)0xE000EDB0u)
+#define MPU_ATTR2_REG                                        *((volatile uint32_t *)0xE000EDB0u)
 #define MPU_ATTR2_ADDR                                       (0xE000EDB0u)
 #define MPU_ATTR2_RESET                                      (0x00000000u)
         /* XN field */
@@ -10760,8 +10760,8 @@
         #define MPU_ATTR2_ENABLE_BIT                         (0)
         #define MPU_ATTR2_ENABLE_BITS                        (2)
 
-#define MPU_BASE3                                            *((volatile int32u *)0xE000EDB4u)
-#define MPU_BASE3_REG                                        *((volatile int32u *)0xE000EDB4u)
+#define MPU_BASE3                                            *((volatile uint32_t *)0xE000EDB4u)
+#define MPU_BASE3_REG                                        *((volatile uint32_t *)0xE000EDB4u)
 #define MPU_BASE3_ADDR                                       (0xE000EDB4u)
 #define MPU_BASE3_RESET                                      (0x00000000u)
         /* ADDRESS field */
@@ -10780,8 +10780,8 @@
         #define MPU_BASE3_REGION_BIT                         (0)
         #define MPU_BASE3_REGION_BITS                        (4)
 
-#define MPU_ATTR3                                            *((volatile int32u *)0xE000EDBCu)
-#define MPU_ATTR3_REG                                        *((volatile int32u *)0xE000EDBCu)
+#define MPU_ATTR3                                            *((volatile uint32_t *)0xE000EDBCu)
+#define MPU_ATTR3_REG                                        *((volatile uint32_t *)0xE000EDBCu)
 #define MPU_ATTR3_ADDR                                       (0xE000EDBCu)
 #define MPU_ATTR3_RESET                                      (0x00000000u)
         /* XN field */
@@ -10830,8 +10830,8 @@
         #define MPU_ATTR3_ENABLE_BIT                         (0)
         #define MPU_ATTR3_ENABLE_BITS                        (2)
 
-#define DEBUG_HCSR                                           *((volatile int32u *)0xE000EDF0u)
-#define DEBUG_HCSR_REG                                       *((volatile int32u *)0xE000EDF0u)
+#define DEBUG_HCSR                                           *((volatile uint32_t *)0xE000EDF0u)
+#define DEBUG_HCSR_REG                                       *((volatile uint32_t *)0xE000EDF0u)
 #define DEBUG_HCSR_ADDR                                      (0xE000EDF0u)
 #define DEBUG_HCSR_RESET                                     (0x00000000u)
         /* S_RESET_ST field */
@@ -10895,8 +10895,8 @@
         #define DEBUG_HCSR_C_DEBUGEN_BIT                     (0)
         #define DEBUG_HCSR_C_DEBUGEN_BITS                    (1)
 
-#define DEBUG_CRSR                                           *((volatile int32u *)0xE000EDF4u)
-#define DEBUG_CRSR_REG                                       *((volatile int32u *)0xE000EDF4u)
+#define DEBUG_CRSR                                           *((volatile uint32_t *)0xE000EDF4u)
+#define DEBUG_CRSR_REG                                       *((volatile uint32_t *)0xE000EDF4u)
 #define DEBUG_CRSR_ADDR                                      (0xE000EDF4u)
 #define DEBUG_CRSR_RESET                                     (0x00000000u)
         /* REGWnR field */
@@ -10910,8 +10910,8 @@
         #define DEBUG_CRSR_REGSEL_BIT                        (0)
         #define DEBUG_CRSR_REGSEL_BITS                       (5)
 
-#define DEBUG_CRDR                                           *((volatile int32u *)0xE000EDF8u)
-#define DEBUG_CRDR_REG                                       *((volatile int32u *)0xE000EDF8u)
+#define DEBUG_CRDR                                           *((volatile uint32_t *)0xE000EDF8u)
+#define DEBUG_CRDR_REG                                       *((volatile uint32_t *)0xE000EDF8u)
 #define DEBUG_CRDR_ADDR                                      (0xE000EDF8u)
 #define DEBUG_CRDR_RESET                                     (0x00000000u)
         /* DBGTMP field */
@@ -10920,8 +10920,8 @@
         #define DEBUG_CRDR_DBGTMP_BIT                        (0)
         #define DEBUG_CRDR_DBGTMP_BITS                       (32)
 
-#define DEBUG_EMCR                                           *((volatile int32u *)0xE000EDFCu)
-#define DEBUG_EMCR_REG                                       *((volatile int32u *)0xE000EDFCu)
+#define DEBUG_EMCR                                           *((volatile uint32_t *)0xE000EDFCu)
+#define DEBUG_EMCR_REG                                       *((volatile uint32_t *)0xE000EDFCu)
 #define DEBUG_EMCR_ADDR                                      (0xE000EDFCu)
 #define DEBUG_EMCR_RESET                                     (0x00000000u)
         /* TRCENA field */
@@ -10990,8 +10990,8 @@
         #define DEBUG_EMCR_VC_CORERESET_BIT                  (0)
         #define DEBUG_EMCR_VC_CORERESET_BITS                 (1)
 
-#define NVIC_STIR                                            *((volatile int32u *)0xE000EF00u)
-#define NVIC_STIR_REG                                        *((volatile int32u *)0xE000EF00u)
+#define NVIC_STIR                                            *((volatile uint32_t *)0xE000EF00u)
+#define NVIC_STIR_REG                                        *((volatile uint32_t *)0xE000EF00u)
 #define NVIC_STIR_ADDR                                       (0xE000EF00u)
 #define NVIC_STIR_RESET                                      (0x00000000u)
         /* INTID field */
@@ -11000,8 +11000,8 @@
         #define NVIC_STIR_INTID_BIT                          (0)
         #define NVIC_STIR_INTID_BITS                         (10)
 
-#define NVIC_PERIPHID4                                       *((volatile int32u *)0xE000EFD0u)
-#define NVIC_PERIPHID4_REG                                   *((volatile int32u *)0xE000EFD0u)
+#define NVIC_PERIPHID4                                       *((volatile uint32_t *)0xE000EFD0u)
+#define NVIC_PERIPHID4_REG                                   *((volatile uint32_t *)0xE000EFD0u)
 #define NVIC_PERIPHID4_ADDR                                  (0xE000EFD0u)
 #define NVIC_PERIPHID4_RESET                                 (0x00000004u)
         /* PERIPHID field */
@@ -11010,8 +11010,8 @@
         #define NVIC_PERIPHID4_PERIPHID_BIT                  (0)
         #define NVIC_PERIPHID4_PERIPHID_BITS                 (32)
 
-#define NVIC_PERIPHID5                                       *((volatile int32u *)0xE000EFD4u)
-#define NVIC_PERIPHID5_REG                                   *((volatile int32u *)0xE000EFD4u)
+#define NVIC_PERIPHID5                                       *((volatile uint32_t *)0xE000EFD4u)
+#define NVIC_PERIPHID5_REG                                   *((volatile uint32_t *)0xE000EFD4u)
 #define NVIC_PERIPHID5_ADDR                                  (0xE000EFD4u)
 #define NVIC_PERIPHID5_RESET                                 (0x00000000u)
         /* PERIPHID field */
@@ -11020,8 +11020,8 @@
         #define NVIC_PERIPHID5_PERIPHID_BIT                  (0)
         #define NVIC_PERIPHID5_PERIPHID_BITS                 (32)
 
-#define NVIC_PERIPHID6                                       *((volatile int32u *)0xE000EFD8u)
-#define NVIC_PERIPHID6_REG                                   *((volatile int32u *)0xE000EFD8u)
+#define NVIC_PERIPHID6                                       *((volatile uint32_t *)0xE000EFD8u)
+#define NVIC_PERIPHID6_REG                                   *((volatile uint32_t *)0xE000EFD8u)
 #define NVIC_PERIPHID6_ADDR                                  (0xE000EFD8u)
 #define NVIC_PERIPHID6_RESET                                 (0x00000000u)
         /* PERIPHID field */
@@ -11030,8 +11030,8 @@
         #define NVIC_PERIPHID6_PERIPHID_BIT                  (0)
         #define NVIC_PERIPHID6_PERIPHID_BITS                 (32)
 
-#define NVIC_PERIPHID7                                       *((volatile int32u *)0xE000EFDCu)
-#define NVIC_PERIPHID7_REG                                   *((volatile int32u *)0xE000EFDCu)
+#define NVIC_PERIPHID7                                       *((volatile uint32_t *)0xE000EFDCu)
+#define NVIC_PERIPHID7_REG                                   *((volatile uint32_t *)0xE000EFDCu)
 #define NVIC_PERIPHID7_ADDR                                  (0xE000EFDCu)
 #define NVIC_PERIPHID7_RESET                                 (0x00000000u)
         /* PERIPHID field */
@@ -11040,8 +11040,8 @@
         #define NVIC_PERIPHID7_PERIPHID_BIT                  (0)
         #define NVIC_PERIPHID7_PERIPHID_BITS                 (32)
 
-#define NVIC_PERIPHID0                                       *((volatile int32u *)0xE000EFE0u)
-#define NVIC_PERIPHID0_REG                                   *((volatile int32u *)0xE000EFE0u)
+#define NVIC_PERIPHID0                                       *((volatile uint32_t *)0xE000EFE0u)
+#define NVIC_PERIPHID0_REG                                   *((volatile uint32_t *)0xE000EFE0u)
 #define NVIC_PERIPHID0_ADDR                                  (0xE000EFE0u)
 #define NVIC_PERIPHID0_RESET                                 (0x00000000u)
         /* PERIPHID field */
@@ -11050,8 +11050,8 @@
         #define NVIC_PERIPHID0_PERIPHID_BIT                  (0)
         #define NVIC_PERIPHID0_PERIPHID_BITS                 (32)
 
-#define NVIC_PERIPHID1                                       *((volatile int32u *)0xE000EFE4u)
-#define NVIC_PERIPHID1_REG                                   *((volatile int32u *)0xE000EFE4u)
+#define NVIC_PERIPHID1                                       *((volatile uint32_t *)0xE000EFE4u)
+#define NVIC_PERIPHID1_REG                                   *((volatile uint32_t *)0xE000EFE4u)
 #define NVIC_PERIPHID1_ADDR                                  (0xE000EFE4u)
 #define NVIC_PERIPHID1_RESET                                 (0x000000B0u)
         /* PERIPHID field */
@@ -11060,8 +11060,8 @@
         #define NVIC_PERIPHID1_PERIPHID_BIT                  (0)
         #define NVIC_PERIPHID1_PERIPHID_BITS                 (32)
 
-#define NVIC_PERIPHID2                                       *((volatile int32u *)0xE000EFE8u)
-#define NVIC_PERIPHID2_REG                                   *((volatile int32u *)0xE000EFE8u)
+#define NVIC_PERIPHID2                                       *((volatile uint32_t *)0xE000EFE8u)
+#define NVIC_PERIPHID2_REG                                   *((volatile uint32_t *)0xE000EFE8u)
 #define NVIC_PERIPHID2_ADDR                                  (0xE000EFE8u)
 #define NVIC_PERIPHID2_RESET                                 (0x0000001Bu)
         /* PERIPHID field */
@@ -11070,8 +11070,8 @@
         #define NVIC_PERIPHID2_PERIPHID_BIT                  (0)
         #define NVIC_PERIPHID2_PERIPHID_BITS                 (32)
 
-#define NVIC_PERIPHID3                                       *((volatile int32u *)0xE000EFECu)
-#define NVIC_PERIPHID3_REG                                   *((volatile int32u *)0xE000EFECu)
+#define NVIC_PERIPHID3                                       *((volatile uint32_t *)0xE000EFECu)
+#define NVIC_PERIPHID3_REG                                   *((volatile uint32_t *)0xE000EFECu)
 #define NVIC_PERIPHID3_ADDR                                  (0xE000EFECu)
 #define NVIC_PERIPHID3_RESET                                 (0x00000000u)
         /* PERIPHID field */
@@ -11080,8 +11080,8 @@
         #define NVIC_PERIPHID3_PERIPHID_BIT                  (0)
         #define NVIC_PERIPHID3_PERIPHID_BITS                 (32)
 
-#define NVIC_PCELLID0                                        *((volatile int32u *)0xE000EFF0u)
-#define NVIC_PCELLID0_REG                                    *((volatile int32u *)0xE000EFF0u)
+#define NVIC_PCELLID0                                        *((volatile uint32_t *)0xE000EFF0u)
+#define NVIC_PCELLID0_REG                                    *((volatile uint32_t *)0xE000EFF0u)
 #define NVIC_PCELLID0_ADDR                                   (0xE000EFF0u)
 #define NVIC_PCELLID0_RESET                                  (0x0000000Du)
         /* PCELLID field */
@@ -11090,8 +11090,8 @@
         #define NVIC_PCELLID0_PCELLID_BIT                    (0)
         #define NVIC_PCELLID0_PCELLID_BITS                   (32)
 
-#define NVIC_PCELLID1                                        *((volatile int32u *)0xE000EFF4u)
-#define NVIC_PCELLID1_REG                                    *((volatile int32u *)0xE000EFF4u)
+#define NVIC_PCELLID1                                        *((volatile uint32_t *)0xE000EFF4u)
+#define NVIC_PCELLID1_REG                                    *((volatile uint32_t *)0xE000EFF4u)
 #define NVIC_PCELLID1_ADDR                                   (0xE000EFF4u)
 #define NVIC_PCELLID1_RESET                                  (0x000000E0u)
         /* PCELLID field */
@@ -11100,8 +11100,8 @@
         #define NVIC_PCELLID1_PCELLID_BIT                    (0)
         #define NVIC_PCELLID1_PCELLID_BITS                   (32)
 
-#define NVIC_PCELLID2                                        *((volatile int32u *)0xE000EFF8u)
-#define NVIC_PCELLID2_REG                                    *((volatile int32u *)0xE000EFF8u)
+#define NVIC_PCELLID2                                        *((volatile uint32_t *)0xE000EFF8u)
+#define NVIC_PCELLID2_REG                                    *((volatile uint32_t *)0xE000EFF8u)
 #define NVIC_PCELLID2_ADDR                                   (0xE000EFF8u)
 #define NVIC_PCELLID2_RESET                                  (0x00000005u)
         /* PCELLID field */
@@ -11110,8 +11110,8 @@
         #define NVIC_PCELLID2_PCELLID_BIT                    (0)
         #define NVIC_PCELLID2_PCELLID_BITS                   (32)
 
-#define NVIC_PCELLID3                                        *((volatile int32u *)0xE000EFFCu)
-#define NVIC_PCELLID3_REG                                    *((volatile int32u *)0xE000EFFCu)
+#define NVIC_PCELLID3                                        *((volatile uint32_t *)0xE000EFFCu)
+#define NVIC_PCELLID3_REG                                    *((volatile uint32_t *)0xE000EFFCu)
 #define NVIC_PCELLID3_ADDR                                   (0xE000EFFCu)
 #define NVIC_PCELLID3_RESET                                  (0x000000B1u)
         /* PCELLID field */
@@ -11125,8 +11125,8 @@
 #define DATA_TPIU_END                                        (0xE0040EF8u)
 #define DATA_TPIU_SIZE                                       (DATA_TPIU_END - DATA_TPIU_BASE + 1)
 
-#define TPIU_SPS                                             *((volatile int32u *)0xE0040000u)
-#define TPIU_SPS_REG                                         *((volatile int32u *)0xE0040000u)
+#define TPIU_SPS                                             *((volatile uint32_t *)0xE0040000u)
+#define TPIU_SPS_REG                                         *((volatile uint32_t *)0xE0040000u)
 #define TPIU_SPS_ADDR                                        (0xE0040000u)
 #define TPIU_SPS_RESET                                       (0x00000000u)
         /* SPS_04 field */
@@ -11150,8 +11150,8 @@
         #define TPIU_SPS_SPS_01_BIT                          (0)
         #define TPIU_SPS_SPS_01_BITS                         (1)
 
-#define TPIU_CPS                                             *((volatile int32u *)0xE0040004u)
-#define TPIU_CPS_REG                                         *((volatile int32u *)0xE0040004u)
+#define TPIU_CPS                                             *((volatile uint32_t *)0xE0040004u)
+#define TPIU_CPS_REG                                         *((volatile uint32_t *)0xE0040004u)
 #define TPIU_CPS_ADDR                                        (0xE0040004u)
 #define TPIU_CPS_RESET                                       (0x00000001u)
         /* CPS_04 field */
@@ -11175,8 +11175,8 @@
         #define TPIU_CPS_CPS_01_BIT                          (0)
         #define TPIU_CPS_CPS_01_BITS                         (1)
 
-#define TPIU_COSD                                            *((volatile int32u *)0xE0040010u)
-#define TPIU_COSD_REG                                        *((volatile int32u *)0xE0040010u)
+#define TPIU_COSD                                            *((volatile uint32_t *)0xE0040010u)
+#define TPIU_COSD_REG                                        *((volatile uint32_t *)0xE0040010u)
 #define TPIU_COSD_ADDR                                       (0xE0040010u)
 #define TPIU_COSD_RESET                                      (0x00000000u)
         /* PRESCALER field */
@@ -11185,8 +11185,8 @@
         #define TPIU_COSD_PRESCALER_BIT                      (0)
         #define TPIU_COSD_PRESCALER_BITS                     (13)
 
-#define TPIU_SPP                                             *((volatile int32u *)0xE00400F0u)
-#define TPIU_SPP_REG                                         *((volatile int32u *)0xE00400F0u)
+#define TPIU_SPP                                             *((volatile uint32_t *)0xE00400F0u)
+#define TPIU_SPP_REG                                         *((volatile uint32_t *)0xE00400F0u)
 #define TPIU_SPP_ADDR                                        (0xE00400F0u)
 #define TPIU_SPP_RESET                                       (0x00000001u)
         /* PROTOCOL field */
@@ -11195,8 +11195,8 @@
         #define TPIU_SPP_PROTOCOL_BIT                        (0)
         #define TPIU_SPP_PROTOCOL_BITS                       (2)
 
-#define TPIU_FFS                                             *((volatile int32u *)0xE0040300u)
-#define TPIU_FFS_REG                                         *((volatile int32u *)0xE0040300u)
+#define TPIU_FFS                                             *((volatile uint32_t *)0xE0040300u)
+#define TPIU_FFS_REG                                         *((volatile uint32_t *)0xE0040300u)
 #define TPIU_FFS_ADDR                                        (0xE0040300u)
 #define TPIU_FFS_RESET                                       (0x00000008u)
         /* FTNONSTOP field */
@@ -11220,8 +11220,8 @@
         #define TPIU_FFS_FLINPROG_BIT                        (0)
         #define TPIU_FFS_FLINPROG_BITS                       (1)
 
-#define TPIU_FFC                                             *((volatile int32u *)0xE0040304u)
-#define TPIU_FFC_REG                                         *((volatile int32u *)0xE0040304u)
+#define TPIU_FFC                                             *((volatile uint32_t *)0xE0040304u)
+#define TPIU_FFC_REG                                         *((volatile uint32_t *)0xE0040304u)
 #define TPIU_FFC_ADDR                                        (0xE0040304u)
 #define TPIU_FFC_RESET                                       (0x00000102u)
         /* TRIGIN field */
@@ -11235,8 +11235,8 @@
         #define TPIU_FFC_ENFCONT_BIT                         (1)
         #define TPIU_FFC_ENFCONT_BITS                        (1)
 
-#define TPIU_FSC                                             *((volatile int32u *)0xE0040308u)
-#define TPIU_FSC_REG                                         *((volatile int32u *)0xE0040308u)
+#define TPIU_FSC                                             *((volatile uint32_t *)0xE0040308u)
+#define TPIU_FSC_REG                                         *((volatile uint32_t *)0xE0040308u)
 #define TPIU_FSC_ADDR                                        (0xE0040308u)
 #define TPIU_FSC_RESET                                       (0x00000000u)
         /* FSC field */
@@ -11245,8 +11245,8 @@
         #define TPIU_FSC_FSC_BIT                             (0)
         #define TPIU_FSC_FSC_BITS                            (32)
 
-#define TPIU_ITATBCTR2                                       *((volatile int32u *)0xE0040EF0u)
-#define TPIU_ITATBCTR2_REG                                   *((volatile int32u *)0xE0040EF0u)
+#define TPIU_ITATBCTR2                                       *((volatile uint32_t *)0xE0040EF0u)
+#define TPIU_ITATBCTR2_REG                                   *((volatile uint32_t *)0xE0040EF0u)
 #define TPIU_ITATBCTR2_ADDR                                  (0xE0040EF0u)
 #define TPIU_ITATBCTR2_RESET                                 (0x00000000u)
         /* ATREADY1 field */
@@ -11255,8 +11255,8 @@
         #define TPIU_ITATBCTR2_ATREADY1_BIT                  (0)
         #define TPIU_ITATBCTR2_ATREADY1_BITS                 (1)
 
-#define TPIU_ITATBCTR0                                       *((volatile int32u *)0xE0040EF8u)
-#define TPIU_ITATBCTR0_REG                                   *((volatile int32u *)0xE0040EF8u)
+#define TPIU_ITATBCTR0                                       *((volatile uint32_t *)0xE0040EF8u)
+#define TPIU_ITATBCTR0_REG                                   *((volatile uint32_t *)0xE0040EF8u)
 #define TPIU_ITATBCTR0_ADDR                                  (0xE0040EF8u)
 #define TPIU_ITATBCTR0_RESET                                 (0x00000000u)
         /* ATREADY1 field */
@@ -11275,8 +11275,8 @@
 #define DATA_ROM_TAB_END                                     (0xE00FFFFFu)
 #define DATA_ROM_TAB_SIZE                                    (DATA_ROM_TAB_END - DATA_ROM_TAB_BASE + 1)
 
-#define ROM_SCS                                              *((volatile int32u *)0xE00FF000u)
-#define ROM_SCS_REG                                          *((volatile int32u *)0xE00FF000u)
+#define ROM_SCS                                              *((volatile uint32_t *)0xE00FF000u)
+#define ROM_SCS_REG                                          *((volatile uint32_t *)0xE00FF000u)
 #define ROM_SCS_ADDR                                         (0xE00FF000u)
 #define ROM_SCS_RESET                                        (0xFFF0F003u)
         /* ADDR_OFF field */
@@ -11295,8 +11295,8 @@
         #define ROM_SCS_ENTRY_PRES_BIT                       (0)
         #define ROM_SCS_ENTRY_PRES_BITS                      (1)
 
-#define ROM_DWT                                              *((volatile int32u *)0xE00FF004u)
-#define ROM_DWT_REG                                          *((volatile int32u *)0xE00FF004u)
+#define ROM_DWT                                              *((volatile uint32_t *)0xE00FF004u)
+#define ROM_DWT_REG                                          *((volatile uint32_t *)0xE00FF004u)
 #define ROM_DWT_ADDR                                         (0xE00FF004u)
 #define ROM_DWT_RESET                                        (0xFFF02003u)
         /* ADDR_OFF field */
@@ -11315,8 +11315,8 @@
         #define ROM_DWT_ENTRY_PRES_BIT                       (0)
         #define ROM_DWT_ENTRY_PRES_BITS                      (1)
 
-#define ROM_FPB                                              *((volatile int32u *)0xE00FF008u)
-#define ROM_FPB_REG                                          *((volatile int32u *)0xE00FF008u)
+#define ROM_FPB                                              *((volatile uint32_t *)0xE00FF008u)
+#define ROM_FPB_REG                                          *((volatile uint32_t *)0xE00FF008u)
 #define ROM_FPB_ADDR                                         (0xE00FF008u)
 #define ROM_FPB_RESET                                        (0xFFF03003u)
         /* ADDR_OFF field */
@@ -11335,8 +11335,8 @@
         #define ROM_FPB_ENTRY_PRES_BIT                       (0)
         #define ROM_FPB_ENTRY_PRES_BITS                      (1)
 
-#define ROM_ITM                                              *((volatile int32u *)0xE00FF00Cu)
-#define ROM_ITM_REG                                          *((volatile int32u *)0xE00FF00Cu)
+#define ROM_ITM                                              *((volatile uint32_t *)0xE00FF00Cu)
+#define ROM_ITM_REG                                          *((volatile uint32_t *)0xE00FF00Cu)
 #define ROM_ITM_ADDR                                         (0xE00FF00Cu)
 #define ROM_ITM_RESET                                        (0xFFF01003u)
         /* ADDR_OFF field */
@@ -11355,8 +11355,8 @@
         #define ROM_ITM_ENTRY_PRES_BIT                       (0)
         #define ROM_ITM_ENTRY_PRES_BITS                      (1)
 
-#define ROM_TPIU                                             *((volatile int32u *)0xE00FF010u)
-#define ROM_TPIU_REG                                         *((volatile int32u *)0xE00FF010u)
+#define ROM_TPIU                                             *((volatile uint32_t *)0xE00FF010u)
+#define ROM_TPIU_REG                                         *((volatile uint32_t *)0xE00FF010u)
 #define ROM_TPIU_ADDR                                        (0xE00FF010u)
 #define ROM_TPIU_RESET                                       (0xFFF0F003u)
         /* ADDR_OFF field */
@@ -11375,8 +11375,8 @@
         #define ROM_TPIU_ENTRY_PRES_BIT                      (0)
         #define ROM_TPIU_ENTRY_PRES_BITS                     (1)
 
-#define ROM_ETM                                              *((volatile int32u *)0xE00FF014u)
-#define ROM_ETM_REG                                          *((volatile int32u *)0xE00FF014u)
+#define ROM_ETM                                              *((volatile uint32_t *)0xE00FF014u)
+#define ROM_ETM_REG                                          *((volatile uint32_t *)0xE00FF014u)
 #define ROM_ETM_ADDR                                         (0xE00FF014u)
 #define ROM_ETM_RESET                                        (0xFFF0F002u)
         /* ADDR_OFF field */
@@ -11395,8 +11395,8 @@
         #define ROM_ETM_ENTRY_PRES_BIT                       (0)
         #define ROM_ETM_ENTRY_PRES_BITS                      (1)
 
-#define ROM_END                                              *((volatile int32u *)0xE00FF018u)
-#define ROM_END_REG                                          *((volatile int32u *)0xE00FF018u)
+#define ROM_END                                              *((volatile uint32_t *)0xE00FF018u)
+#define ROM_END_REG                                          *((volatile uint32_t *)0xE00FF018u)
 #define ROM_END_ADDR                                         (0xE00FF018u)
 #define ROM_END_RESET                                        (0x00000000u)
         /* END field */
@@ -11405,8 +11405,8 @@
         #define ROM_END_END_BIT                              (0)
         #define ROM_END_END_BITS                             (32)
 
-#define ROM_MEMTYPE                                          *((volatile int32u *)0xE00FFFCCu)
-#define ROM_MEMTYPE_REG                                      *((volatile int32u *)0xE00FFFCCu)
+#define ROM_MEMTYPE                                          *((volatile uint32_t *)0xE00FFFCCu)
+#define ROM_MEMTYPE_REG                                      *((volatile uint32_t *)0xE00FFFCCu)
 #define ROM_MEMTYPE_ADDR                                     (0xE00FFFCCu)
 #define ROM_MEMTYPE_RESET                                    (0x00000001u)
         /* MEMTYPE field */
@@ -11415,8 +11415,8 @@
         #define ROM_MEMTYPE_MEMTYPE_BIT                      (0)
         #define ROM_MEMTYPE_MEMTYPE_BITS                     (1)
 
-#define ROM_PID4                                             *((volatile int32u *)0xE00FFFD0u)
-#define ROM_PID4_REG                                         *((volatile int32u *)0xE00FFFD0u)
+#define ROM_PID4                                             *((volatile uint32_t *)0xE00FFFD0u)
+#define ROM_PID4_REG                                         *((volatile uint32_t *)0xE00FFFD0u)
 #define ROM_PID4_ADDR                                        (0xE00FFFD0u)
 #define ROM_PID4_RESET                                       (0x00000000u)
         /* PID field */
@@ -11425,8 +11425,8 @@
         #define ROM_PID4_PID_BIT                             (0)
         #define ROM_PID4_PID_BITS                            (4)
 
-#define ROM_PID5                                             *((volatile int32u *)0xE00FFFD4u)
-#define ROM_PID5_REG                                         *((volatile int32u *)0xE00FFFD4u)
+#define ROM_PID5                                             *((volatile uint32_t *)0xE00FFFD4u)
+#define ROM_PID5_REG                                         *((volatile uint32_t *)0xE00FFFD4u)
 #define ROM_PID5_ADDR                                        (0xE00FFFD4u)
 #define ROM_PID5_RESET                                       (0x00000000u)
         /* PID field */
@@ -11435,8 +11435,8 @@
         #define ROM_PID5_PID_BIT                             (0)
         #define ROM_PID5_PID_BITS                            (4)
 
-#define ROM_PID6                                             *((volatile int32u *)0xE00FFFD8u)
-#define ROM_PID6_REG                                         *((volatile int32u *)0xE00FFFD8u)
+#define ROM_PID6                                             *((volatile uint32_t *)0xE00FFFD8u)
+#define ROM_PID6_REG                                         *((volatile uint32_t *)0xE00FFFD8u)
 #define ROM_PID6_ADDR                                        (0xE00FFFD8u)
 #define ROM_PID6_RESET                                       (0x00000000u)
         /* PID field */
@@ -11445,8 +11445,8 @@
         #define ROM_PID6_PID_BIT                             (0)
         #define ROM_PID6_PID_BITS                            (4)
 
-#define ROM_PID7                                             *((volatile int32u *)0xE00FFFDCu)
-#define ROM_PID7_REG                                         *((volatile int32u *)0xE00FFFDCu)
+#define ROM_PID7                                             *((volatile uint32_t *)0xE00FFFDCu)
+#define ROM_PID7_REG                                         *((volatile uint32_t *)0xE00FFFDCu)
 #define ROM_PID7_ADDR                                        (0xE00FFFDCu)
 #define ROM_PID7_RESET                                       (0x00000000u)
         /* PID field */
@@ -11455,8 +11455,8 @@
         #define ROM_PID7_PID_BIT                             (0)
         #define ROM_PID7_PID_BITS                            (4)
 
-#define ROM_PID0                                             *((volatile int32u *)0xE00FFFE0u)
-#define ROM_PID0_REG                                         *((volatile int32u *)0xE00FFFE0u)
+#define ROM_PID0                                             *((volatile uint32_t *)0xE00FFFE0u)
+#define ROM_PID0_REG                                         *((volatile uint32_t *)0xE00FFFE0u)
 #define ROM_PID0_ADDR                                        (0xE00FFFE0u)
 #define ROM_PID0_RESET                                       (0x00000000u)
         /* PID field */
@@ -11465,8 +11465,8 @@
         #define ROM_PID0_PID_BIT                             (0)
         #define ROM_PID0_PID_BITS                            (4)
 
-#define ROM_PID1                                             *((volatile int32u *)0xE00FFFE4u)
-#define ROM_PID1_REG                                         *((volatile int32u *)0xE00FFFE4u)
+#define ROM_PID1                                             *((volatile uint32_t *)0xE00FFFE4u)
+#define ROM_PID1_REG                                         *((volatile uint32_t *)0xE00FFFE4u)
 #define ROM_PID1_ADDR                                        (0xE00FFFE4u)
 #define ROM_PID1_RESET                                       (0x00000000u)
         /* PID field */
@@ -11475,8 +11475,8 @@
         #define ROM_PID1_PID_BIT                             (0)
         #define ROM_PID1_PID_BITS                            (4)
 
-#define ROM_PID2                                             *((volatile int32u *)0xE00FFFE8u)
-#define ROM_PID2_REG                                         *((volatile int32u *)0xE00FFFE8u)
+#define ROM_PID2                                             *((volatile uint32_t *)0xE00FFFE8u)
+#define ROM_PID2_REG                                         *((volatile uint32_t *)0xE00FFFE8u)
 #define ROM_PID2_ADDR                                        (0xE00FFFE8u)
 #define ROM_PID2_RESET                                       (0x00000000u)
         /* PID field */
@@ -11485,8 +11485,8 @@
         #define ROM_PID2_PID_BIT                             (0)
         #define ROM_PID2_PID_BITS                            (4)
 
-#define ROM_PID3                                             *((volatile int32u *)0xE00FFFECu)
-#define ROM_PID3_REG                                         *((volatile int32u *)0xE00FFFECu)
+#define ROM_PID3                                             *((volatile uint32_t *)0xE00FFFECu)
+#define ROM_PID3_REG                                         *((volatile uint32_t *)0xE00FFFECu)
 #define ROM_PID3_ADDR                                        (0xE00FFFECu)
 #define ROM_PID3_RESET                                       (0x00000000u)
         /* PID field */
@@ -11495,8 +11495,8 @@
         #define ROM_PID3_PID_BIT                             (0)
         #define ROM_PID3_PID_BITS                            (4)
 
-#define ROM_CID0                                             *((volatile int32u *)0xE00FFFF0u)
-#define ROM_CID0_REG                                         *((volatile int32u *)0xE00FFFF0u)
+#define ROM_CID0                                             *((volatile uint32_t *)0xE00FFFF0u)
+#define ROM_CID0_REG                                         *((volatile uint32_t *)0xE00FFFF0u)
 #define ROM_CID0_ADDR                                        (0xE00FFFF0u)
 #define ROM_CID0_RESET                                       (0x0000000Du)
         /* CID field */
@@ -11505,8 +11505,8 @@
         #define ROM_CID0_CID_BIT                             (0)
         #define ROM_CID0_CID_BITS                            (8)
 
-#define ROM_CID1                                             *((volatile int32u *)0xE00FFFF4u)
-#define ROM_CID1_REG                                         *((volatile int32u *)0xE00FFFF4u)
+#define ROM_CID1                                             *((volatile uint32_t *)0xE00FFFF4u)
+#define ROM_CID1_REG                                         *((volatile uint32_t *)0xE00FFFF4u)
 #define ROM_CID1_ADDR                                        (0xE00FFFF4u)
 #define ROM_CID1_RESET                                       (0x00000010u)
         /* CID field */
@@ -11515,8 +11515,8 @@
         #define ROM_CID1_CID_BIT                             (0)
         #define ROM_CID1_CID_BITS                            (8)
 
-#define ROM_CID2                                             *((volatile int32u *)0xE00FFFF8u)
-#define ROM_CID2_REG                                         *((volatile int32u *)0xE00FFFF8u)
+#define ROM_CID2                                             *((volatile uint32_t *)0xE00FFFF8u)
+#define ROM_CID2_REG                                         *((volatile uint32_t *)0xE00FFFF8u)
 #define ROM_CID2_ADDR                                        (0xE00FFFF8u)
 #define ROM_CID2_RESET                                       (0x00000005u)
         /* CID field */
@@ -11525,8 +11525,8 @@
         #define ROM_CID2_CID_BIT                             (0)
         #define ROM_CID2_CID_BITS                            (8)
 
-#define ROM_CID3                                             *((volatile int32u *)0xE00FFFFCu)
-#define ROM_CID3_REG                                         *((volatile int32u *)0xE00FFFFCu)
+#define ROM_CID3                                             *((volatile uint32_t *)0xE00FFFFCu)
+#define ROM_CID3_REG                                         *((volatile uint32_t *)0xE00FFFFCu)
 #define ROM_CID3_ADDR                                        (0xE00FFFFCu)
 #define ROM_CID3_RESET                                       (0x000000B1u)
         /* CID field */

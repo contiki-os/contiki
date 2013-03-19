@@ -53,8 +53,8 @@ typedef struct {
   void (*resetVector)(void);
   void (*nmiHandler)(void);
   void (*hardFaultHandler)(void);
-  int16u type;
-  int16u version;
+  uint16_t type;
+  uint16_t version;
   const HalVectorTableType *vectorTable;
   // Followed by more fields depending on the specific address table type
 } HalBaseAddressTableType;
