@@ -34,6 +34,8 @@
 
 #include "net/uip-fw.h"
 
+#if !UIP_CONF_IPV6
+
 PROCESS(uip_fw_process, "IP forwarding");
 
 /*---------------------------------------------------------------------------*/
@@ -48,3 +50,5 @@ PROCESS_THREAD(uip_fw_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+
+#endif /* UIP_CONF_IPV6 */

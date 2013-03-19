@@ -1017,11 +1017,11 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
 				      (addr1)->u16[1] == (addr2)->u16[1])
 #define uip_ip6addr_cmp(addr1, addr2) (memcmp(addr1, addr2, sizeof(uip_ip6addr_t)) == 0)
 
-#if !UIP_CONF_IPV6
-#define uip_ipaddr_cmp(addr1, addr2) uip_ip4addr_cmp(addr1, addr2)
-#else /* !UIP_CONF_IPV6 */
+#if UIP_CONF_IPV6
 #define uip_ipaddr_cmp(addr1, addr2) uip_ip6addr_cmp(addr1, addr2)
-#endif /* !UIP_CONF_IPV6 */
+#else /* UIP_CONF_IPV6 */
+#define uip_ipaddr_cmp(addr1, addr2) uip_ip4addr_cmp(addr1, addr2)
+#endif /* UIP_CONF_IPV6 */
 
 /**
  * Compare two IP addresses with netmasks
@@ -1936,7 +1936,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
 
 
 
-#ifdef UIP_CONF_IPV6
+#if UIP_CONF_IPV6
 /** Length of the link local prefix */
 #define UIP_LLPREF_LEN     10
 
