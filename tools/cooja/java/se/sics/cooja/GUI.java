@@ -3246,7 +3246,6 @@ public class GUI extends Observable {
           System.exit(1);
         }
       }
-      sim.setSpeedLimit(null);
       sim.startSimulation();
       
     } else if (args.length > 0 && args[0].startsWith("-applet")) {
