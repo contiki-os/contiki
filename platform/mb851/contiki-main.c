@@ -1,3 +1,9 @@
+/**
+ * \addtogroup mb851-platform
+ *
+ * @{
+ */
+
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -27,10 +33,8 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * This file is part of the Contiki OS
- *
  */
-/*---------------------------------------------------------------------------*/
+
 /**
 * \file
 *			Contiki main file.
@@ -38,20 +42,14 @@
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 *			Chi-Anh La <la@imag.fr>
 */
-/*---------------------------------------------------------------------------*/
-
 
 #include PLATFORM_HEADER
 #include "hal/error.h"
 #include "hal/hal.h"
 #include BOARD_HEADER
 #include "micro/adc.h"
-
 #include <stdio.h>
-
-
 #include "contiki.h"
-
 #include "dev/watchdog.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
@@ -95,8 +93,22 @@ SENSORS(&button_sensor, &temperature_sensor, &acc_sensor);
 
 /* The default CCA threshold is set to -77, which is the same as the
    default setting on the TI CC2420. */
-#define DEFAULT_RADIO_CCA_THRESHOLD -77
+#define DEFAULT_RADIO_CCA_THRESHOLD       (-77)
 
+/*---------------------------------------------------------------------------*/
+static void
+print_processes(struct process * const processes[])
+{
+#if !PROCESS_CONF_NO_PROCESS_NAMES
+  /*  const struct process * const * p = processes;*/
+  printf("Starting");
+  while(*processes != NULL) {
+    printf(" '%s'", (*processes)->name);
+    processes++;
+  }
+  printf("\n");
+#endif /* !PROCESS_CONF_NO_PROCESS_NAMES */
+}
 /*---------------------------------------------------------------------------*/
 static void
 set_rime_addr(void)
@@ -106,9 +118,9 @@ set_rime_addr(void)
     uint8_t u8[8];
   } eui64;
 
-  int8u *stm32w_eui64 = ST_RadioGetEui64();
+  uint8_t *stm32w_eui64 = ST_RadioGetEui64();
   {
-    int8u c;
+    uint8_t c;
     /* Copy the EUI-64 to lladdr converting from Little-Endian to
        Big-Endian. */
     for(c = 0; c < 8; c++) {
@@ -121,9 +133,9 @@ set_rime_addr(void)
 #endif
 
 #if UIP_CONF_IPV6
-  rimeaddr_set_node_addr((rimeaddr_t *)&eui64);
+  rimeaddr_set_node_addr((rimeaddr_t *) &eui64);
 #else
-  rimeaddr_set_node_addr((rimeaddr_t *)&eui64.u8[8 - RIMEADDR_SIZE]);
+  rimeaddr_set_node_addr((rimeaddr_t *) &eui64.u8[8 - RIMEADDR_SIZE]);
 #endif
 
   printf("Rime started with address ");
@@ -136,16 +148,14 @@ set_rime_addr(void)
 int
 main(void)
 {
-
   /*
    * Initalize hardware.
    */
   halInit();
   clock_init();
-
   uart1_init(115200);
 
-  /* Led initialization */
+  /* LED initialization */
   leds_init();
 
   INTERRUPTS_ON();
@@ -157,7 +167,6 @@ main(void)
   /*
    * Initialize Contiki and our processes.
    */
-
   process_init();
 
 #if WITH_SERIAL_LINE_INPUT
@@ -177,10 +186,10 @@ main(void)
 
   printf("%s %s, channel check rate %lu Hz\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
-         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
-                                  NETSTACK_RDC.channel_check_interval()));
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1 :
+                         NETSTACK_RDC.channel_check_interval()));
   printf("802.15.4 PAN ID 0x%x, EUI-%d:",
-      IEEE802154_CONF_PANID, UIP_CONF_LL_802154?64:16);
+         IEEE802154_CONF_PANID, UIP_CONF_LL_802154 ? 64 : 16);
   uip_debug_lladdr_print(&rimeaddr_node_addr);
   printf(", radio channel %u\n", RF_CHANNEL);
 
@@ -198,12 +207,15 @@ main(void)
      defined in this file. */
   ST_RadioSetEdCcaThreshold(DEFAULT_RADIO_CCA_THRESHOLD);
 
+  print_processes(autostart_processes);
   autostart_start(autostart_processes);
 #if UIP_CONF_IPV6
   printf("Tentative link-local IPv6 address ");
   {
     uip_ds6_addr_t *lladdr;
+
     int i;
+
     lladdr = uip_ds6_get_link_local(-1);
     for(i = 0; i < 7; ++i) {
       printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
@@ -215,24 +227,23 @@ main(void)
 
   if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
+
     int i;
+
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
     printf("Tentative global IPv6 address ");
     for(i = 0; i < 7; ++i) {
-      printf("%02x%02x:",
-             ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
+      printf("%02x%02x:", ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
     }
-    printf("%02x%02x\n",
-           ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
+    printf("%02x%02x\n", ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
 #endif /* UIP_CONF_IPV6 */
 
   watchdog_start();
 
   while(1) {
-
     int r;
 
     do {
@@ -241,74 +252,81 @@ main(void)
       r = process_run();
     } while(r > 0);
 
-
-
     ENERGEST_OFF(ENERGEST_TYPE_CPU);
     /* watchdog_stop(); */
     ENERGEST_ON(ENERGEST_TYPE_LPM);
     /* Go to idle mode. */
-    halSleepWithOptions(SLEEPMODE_IDLE,0);
+    halSleepWithOptions(SLEEPMODE_IDLE, 0);
     /* We are awake. */
     /* watchdog_start(); */
     ENERGEST_OFF(ENERGEST_TYPE_LPM);
     ENERGEST_ON(ENERGEST_TYPE_CPU);
-
   }
-
 }
+/*---------------------------------------------------------------------------*/
 
-
-
-/*int8u errcode __attribute__(( section(".noinit") ));
-
-void halBaseBandIsr(){
-
+#if 0
+uint8_t errcode __attribute__(( section(".noinit") ));
+/*--------------------------------------------------------------------------*/
+void
+halBaseBandIsr(void)
+{
   errcode = 1;
   leds_on(LEDS_RED);
 }
-
-void BusFault_Handler(){
-
-  errcode = 2;
-  leds_on(LEDS_RED);
-}
-
-void halDebugIsr(){
-
-  errcode = 3;
-  leds_on(LEDS_RED);
-}
-
-void DebugMon_Handler(){
-
-  errcode = 4;
-  //leds_on(LEDS_RED);
-}
-
-void HardFault_Handler(){
-
-  errcode = 5;
-  //leds_on(LEDS_RED);
-  //halReboot();
-}
-
-void MemManage_Handler(){
-
-  errcode = 6;
-  //leds_on(LEDS_RED);
-  //halReboot();
-}
-
-void UsageFault_Handler(){
-
-  errcode = 7;
-  //leds_on(LEDS_RED);
-  //halReboot();
-}
-
-void Default_Handler()
+/*--------------------------------------------------------------------------*/
+void
+BusFault_Handler(void)
 {
-  //errcode = 8;
+  errcode = 2; 
+  leds_on(LEDS_RED);
+}
+/*--------------------------------------------------------------------------*/
+void
+halDebugIsr(void)
+{
+  errcode = 3;
+  leds_on(LEDS_RED);  
+}
+/*--------------------------------------------------------------------------*/
+void
+DebugMon_Handler(void)
+{
+  errcode = 4;
+  /* leds_on(LEDS_RED); */
+}
+/*--------------------------------------------------------------------------*/
+void
+HardFault_Handler(void)
+{
+  errcode = 5; 
+  /* leds_on(LEDS_RED); */
+  /* halReboot(); */
+}
+/*--------------------------------------------------------------------------*/
+void
+MemManage_Handler(void)
+{
+  errcode = 6; 
+  /* leds_on(LEDS_RED); */
+  /* halReboot(); */
+}
+/*--------------------------------------------------------------------------*/
+void
+UsageFault_Handler(void)
+{
+  errcode = 7; 
+  /* leds_on(LEDS_RED); */
+  /* halReboot(); */
+}
+/*--------------------------------------------------------------------------*/
+void
+Default_Handler() 
+{ 
+  /* errcode = 8; */
   leds_on(LEDS_RED);
   halReboot();
-}*/
+}
+/*--------------------------------------------------------------------------*/
+#endif
+/** @} */

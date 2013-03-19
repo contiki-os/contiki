@@ -21,17 +21,17 @@ CONTIKI_CPU=$(CONTIKI)/cpu/stm32w108
 
 CONTIKI_CPU_DIRS = . dev hal simplemac hal/micro/cortexm3 hal/micro/cortexm3/stm32w108
 
-STM32W_C = leds-arch.c leds.c clock.c watchdog.c uart1.c uart1-putchar.c slip_uart1.c slip.c\
-		stm32w-radio.c stm32w_systick.c uip_arch.c rtimer-arch.c adc.c micro.c sleep.c \
+STM32W_C = leds-arch.c leds.c clock.c watchdog.c uart1.c uart1-putchar.c slip-uart1.c slip.c\
+		stm32w-radio.c stm32w-systick.c uip-arch.c rtimer-arch.c adc.c micro.c sleep.c \
 		micro-common.c micro-common-internal.c clocks.c mfg-token.c nvm.c flash.c rand.c system-timer.c
 
 STM32W_S = spmr.s79 context-switch.s79 
 
 ifdef IAR
-STM32W_C += low_level_init.c
-STM32W_S += cstartup_M.s
+STM32W_C += low-level-init.c
+STM32W_S += cstartup-m.s
 else
-STM32W_C += crt_stm32w108.c
+STM32W_C += crt-stm32w108.c
 endif
 
 ifdef ELF_LOADER
@@ -104,9 +104,14 @@ CFLAGSNO = -mthumb -mcpu=cortex-m3 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/comp
 CFLAGS  += $(CFLAGSNO) $(OPTI)
 ASFLAGS = -mthumb -mcpu=cortex-m3 -c -g -Wall -Os -ffunction-sections \
 	    -mlittle-endian -fshort-enums -x assembler-with-cpp -Wa,-EL
+
+ifndef CPU_LD_CONFIG
+CPU_LD_CONFIG=$(CONTIKI_CPU)/gnu.ld
+endif # CPU_LD_CONFIG
+
 LDFLAGS += -mcpu=cortex-m3 \
 	    -mthumb  \
-	    -Wl,-T -Xlinker $(CONTIKI_CPU)/gnu.ld \
+	    -Wl,-T -Xlinker $(CPU_LD_CONFIG) \
 	    -Wl,-static \
 			-u Default_Handler \
 	    -nostartfiles \
@@ -185,9 +190,8 @@ FLASHEROPTS = -f -i rs232 -p $(PORT) -r
  ifdef BTM
 #if already in bootloader mode
   FLASHEROPTS += -b
- endif 
+ endif
 endif
-			
 
 ### Custom rules
 
@@ -216,7 +220,7 @@ $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
 	@$(SEDCOMMAND); rm -f $(@:.o=.P)
 	@$(FINALIZE_DEPENDENCY)
-	
+
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
@@ -231,11 +235,11 @@ CUSTOM_RULE_LINK = 1
 
 ifdef CORE
 ifeq ($(wildcard $(CORE)),)
- ${error $(CORE) doesn't exist}
+ ${error $(CORE) doesn\'t exist}
 endif
 .PHONY: symbols.c symbols.h
 symbols.c:
-	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c	
+	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
 else
 symbols.c symbols.h:
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
@@ -268,18 +272,18 @@ stm-motes:
 
 $(OBJECTDIR)/%.o: %.s79
 	$(AS) $(ASFLAGS) -o $@ $<
-	
+
 $(OBJECTDIR)/%.o: %.s
-	$(AS) $(ASFLAGS) -o $@ $<	
-	
+	$(AS) $(ASFLAGS) -o $@ $<
+
 %.bin: %.$(TARGET)
-	$(OBJCOPY) $(OBJOPTS) $< $@ 
+	$(OBJCOPY) $(OBJOPTS) $< $@
 
 # reset all stm32w devices sequentially, as stm32w_flasher cannot access different ports in parallel
 stm-reset:
 	$(foreach PORT, $(MOTES), $(FLASHER) -r -p $(PORT);$(\n))
 	@echo Done
-		
+
 ifdef MOTE
 %.upload: %.bin
 	$(FLASHER) $(FLASHEROPTS) $< -p $(word $(MOTE), $(MOTES))

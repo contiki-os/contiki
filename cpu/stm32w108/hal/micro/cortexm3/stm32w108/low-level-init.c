@@ -38,12 +38,12 @@ extern void  halInternalSwitchToXtal(void);
 
 __interwork int __low_level_init(void);
 
-static void setStackPointer(int32u address)
+static void setStackPointer(uint32_t address)
 {
   asm("MOVS SP, r0");
 }
 
-static const int16u blOffset[] = {
+static const uint16_t blOffset[] = {
   0x0715 - 0x03ad - 0x68,
   0x0719 - 0x03ad - 0x6C
 };
@@ -79,7 +79,7 @@ __interwork int __low_level_init(void)
   ////---- Always remap the vector table ----////
   // We might be coming from a bootloader at the base of flash, or even in the
   //  NULL_BTL case, the BAT/AAT will be at the beginning of the image
-  SCS_VTOR = (int32u)__vector_table;
+  SCS_VTOR = (uint32_t)__vector_table;
 
   ////---- Always Configure Interrupt Priorities ----////
   //The STM32W support 5 bits of priority configuration.
@@ -169,17 +169,17 @@ __interwork int __low_level_init(void)
   }
 
   //USART bootloader software activation check
-  if ((*((int32u *)RAM_BOTTOM) == IAP_BOOTLOADER_APP_SWITCH_SIGNATURE) && (*((int8u *)(RAM_BOTTOM+4)) == IAP_BOOTLOADER_MODE_UART)){
-       int8u cut = *(volatile int8u *) 0x08040798;
-       int16u offset = 0;
+  if ((*((uint32_t *)RAM_BOTTOM) == IAP_BOOTLOADER_APP_SWITCH_SIGNATURE) && (*((uint8_t *)(RAM_BOTTOM+4)) == IAP_BOOTLOADER_MODE_UART)){
+       uint8_t cut = *(volatile uint8_t *) 0x08040798;
+       uint16_t offset = 0;
        typedef void (*EntryPoint)(void);     
        offset = (halFixedAddressTable.baseTable.version == 3) ? blOffset[cut - 2] : 0;
-       *((int32u *)RAM_BOTTOM) = 0;
+       *((uint32_t *)RAM_BOTTOM) = 0;
        if (offset) {
          halInternalSwitchToXtal();
        }
-       EntryPoint entryPoint = (EntryPoint)(*(int32u *)(FIB_BOTTOM+4) - offset);
-       setStackPointer(*(int32u *)FIB_BOTTOM);
+       EntryPoint entryPoint = (EntryPoint)(*(uint32_t *)(FIB_BOTTOM+4) - offset);
+       setStackPointer(*(uint32_t *)FIB_BOTTOM);
        entryPoint();
   }
 

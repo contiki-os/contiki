@@ -13,7 +13,7 @@
 
 #define DEFINETOKENS
 #define TOKEN_MFG(name,creator,iscnt,isidx,type,arraysize,...) \
-  const int16u TOKEN_##name = TOKEN_##name##_ADDRESS;
+  const uint16_t TOKEN_##name = TOKEN_##name##_ADDRESS;
   #include "hal/micro/cortexm3/token-manufacturing.h"
 #undef TOKEN_DEF
 #undef TOKEN_MFG
@@ -26,12 +26,12 @@
 
 
 
-static const int8u nullEui[] = { 0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF };
+static const uint8_t nullEui[] = { 0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF };
 
 
-void halInternalGetMfgTokenData(void *data, int16u ID, int8u index, int8u len)
+void halInternalGetMfgTokenData(void *data, uint16_t ID, uint8_t index, uint8_t len)
 {
-  int8u *ram = (int8u*)data;
+  uint8_t *ram = (uint8_t*)data;
   
   //0x7F is a non-indexed token.  Remap to 0 for the address calculation
   index = (index==0x7F) ? 0 : index;
@@ -53,8 +53,8 @@ void halInternalGetMfgTokenData(void *data, int16u ID, int8u index, int8u len)
     //bottom 16bits of the token's actual address.  Since the info blocks
     //exist in the range DATA_BIG_INFO_BASE-DATA_BIG_INFO_END, we need
     //to OR the ID with DATA_BIG_INFO_BASE to get the real address.
-    int32u realAddress = (DATA_BIG_INFO_BASE|ID) + (len*index);
-    int8u *flash = (int8u *)realAddress;
+    uint32_t realAddress = (DATA_BIG_INFO_BASE|ID) + (len*index);
+    uint8_t *flash = (uint8_t *)realAddress;
 
 
 
@@ -74,12 +74,12 @@ void halInternalGetMfgTokenData(void *data, int16u ID, int8u index, int8u len)
 }
 
 
-void halInternalSetMfgTokenData(int16u token, void *data, int8u len)
+void halInternalSetMfgTokenData(uint16_t token, void *data, uint8_t len)
 {
   StStatus flashStatus;
-  int32u realAddress = (DATA_BIG_INFO_BASE|token);
-  int8u * flash = (int8u *)realAddress;
-  int32u i;
+  uint32_t realAddress = (DATA_BIG_INFO_BASE|token);
+  uint8_t * flash = (uint8_t *)realAddress;
+  uint32_t i;
   
   //The flash library (and hardware) requires the address and length to both
   //be multiples of 16bits.  Since this API is only valid for writing to

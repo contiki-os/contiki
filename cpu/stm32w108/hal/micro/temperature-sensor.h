@@ -1,4 +1,4 @@
-/** @file temperature_sensor.h
+/** @file temperature-sensor.h
  * @brief Header for temperature sensor driver 
  *
  *
@@ -21,7 +21,7 @@ void temperatureSensor_Init(void);
 
 /** @brief  Get temperature sensor value 
 */
-int32u temperatureSensor_GetValue(void);
+uint32_t temperatureSensor_GetValue(void);
 
 #endif /* _TEMP_SENSOR_H_ */
 

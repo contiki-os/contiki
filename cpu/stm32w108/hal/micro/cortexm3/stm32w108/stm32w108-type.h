@@ -1,5 +1,5 @@
 /******************** (C) COPYRIGHT 2007 STMicroelectronics ********************
-* File Name          : stm32w108_type.h
+* File Name          : stm32w108-type.h
 * Author             : MCD Application Team
 * Version            : V1.0
 * Date               : 10/08/2009
