@@ -41,24 +41,24 @@ import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.mspmote.SkyMote;
 
-@ClassDescription("Temperature")
-public class SkyTemperature extends MoteInterface {
+@ClassDescription("Humidity")
+public class SkyHumidity extends MoteInterface {
 
   private SkyMote skyMote;
 
-  public SkyTemperature(Mote mote) {
+  public SkyHumidity(Mote mote) {
     skyMote = (SkyMote) mote;
   }
 
   /**
-   * @param temp Temperature in Celsius
+   * @param temp Humidity
    */
-  public void setTemperature(double temp) {
-    skyMote.skyNode.sht11.setTemperature((int) ((temp+39.6)*100));
+  public void setHumidity(int hum) {
+    skyMote.skyNode.sht11.setHumidity(hum);
   }
 
-  public int getTemperature() {
-    return skyMote.skyNode.sht11.getTemperature();
+  public int getHumidity() {
+    return skyMote.skyNode.sht11.getHumidity();
   }
 
   public JPanel getInterfaceVisualizer() {

@@ -77,3 +77,6 @@ contiki-cc2530dk.lib
 *.d64
 *.d71
 *.d81
+
+#OSX
+*.DS_Store
