@@ -69,6 +69,13 @@ static unsigned long lasttime;
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 int
 tapdev_fd(void)
@@ -83,7 +90,7 @@ remove_route(void)
   char buf[1024];
   snprintf(buf, sizeof(buf), "route delete -net 172.18.0.0");
   system(buf);
-  printf("%s\n", buf);
+  fprintf(stderr, "%s\n", buf);
 
 }
 /*---------------------------------------------------------------------------*/
@@ -112,7 +119,7 @@ tapdev_init(void)
 
   snprintf(buf, sizeof(buf), "ifconfig tap0 inet 172.18.0.1/16");
   system(buf);
-  printf("%s\n", buf);
+  fprintf(stderr, "%s\n", buf);
 #ifdef linux
   /* route add for linux */
   snprintf(buf, sizeof(buf), "route add -net 172.18.0.0/16 dev tap0");
@@ -122,7 +129,7 @@ tapdev_init(void)
 #endif /* linux */
   
   system(buf);
-  printf("%s\n", buf);
+  fprintf(stderr, "%s\n", buf);
   atexit(remove_route);
 
   lasttime = 0;
@@ -149,6 +156,7 @@ tapdev_poll(void)
     return 0;
   }
   ret = read(fd, uip_buf, UIP_BUFSIZE);
+  PRINTF("tapdev_poll: read %d bytes\n", ret);
 
   if(ret == -1) {
     perror("tapdev_poll: read");
@@ -171,11 +179,12 @@ tapdev_send(void)
 #if DROP
   drop++;
   if(drop % 8 == 7) {
-    printf("Dropped an output packet!\n");
+    fprintf(stderr, "Dropped an output packet!\n");
     return;
   }
 #endif /* DROP */
 
+  PRINTF("tapdev_send: sending %d bytes\n", uip_len);
   ret = write(fd, uip_buf, uip_len);
 
   if(ret == -1) {
