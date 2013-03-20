@@ -129,6 +129,7 @@ neighbor_attr_add_neighbor(const rimeaddr_t *addr)
   }
 
   item = memb_alloc(&neighbor_addr_mem);
+  oldest = NULL;
   oldest_time = clock_time();
   /* no space available for new entry, look for oldest entry and take its place */
   if(item == NULL) {
