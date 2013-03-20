@@ -860,7 +860,7 @@ generate_stats(void *arg)
 #include "net/rime/rimestats.h"
   static const char httpd_cgi_sensor21[] HTTPD_STRING_ATTR = "<em>Packets   (RIMESTATS):</em> Tx=%5lu  Rx=%5lu   TxL=%4lu  RxL=%4lu\n";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor21,
-		rimestats.tx,rimestats.rx,rimestats.lltx-rimestats.tx,rimestats.llrx-rimestats.rx);
+		RIMESTATS_GET(tx),RIMESTATS_GET(rx),RIMESTATS_GET(lltx)-RIMESTATS_GET(tx),RIMESTATS_GET(llrx)-RIMESTATS_GET(rx));
 #endif
 
 #if RADIOSTATS
@@ -1300,7 +1300,7 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
 #include "net/rime/rimestats.h"
     static const char httpd_cgi_ajaxr1[] HTTPD_STRING_ATTR ="rime(%lu,%lu,%lu,%lu);";
     numprinted += httpd_snprintf(buf+numprinted, sizeof(buf)-numprinted,httpd_cgi_ajaxr1,
-		rimestats.tx,rimestats.rx,rimestats.lltx-rimestats.tx,rimestats.llrx-rimestats.rx);
+        RIMESTATS_GET(tx),RIMESTATS_GET(rx),RIMESTATS_GET(lltx)-RIMESTATS_GET(tx),RIMESTATS_GET(llrx)-RIMESTATS_GET(rx));
 #endif
 
 #if ENERGEST_CONF_ON
