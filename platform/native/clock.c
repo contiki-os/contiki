@@ -46,9 +46,9 @@ clock_time_t
 clock_time(void)
 {
   struct timeval tv;
-   
+
   gettimeofday(&tv, NULL);
- 
+
   return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 /*---------------------------------------------------------------------------*/
@@ -56,9 +56,9 @@ unsigned long
 clock_seconds(void)
 {
   struct timeval tv;
-   
+
   gettimeofday(&tv, NULL);
- 
+
   return tv.tv_sec;
 }
 /*---------------------------------------------------------------------------*/
