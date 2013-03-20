@@ -856,7 +856,7 @@ generate_stats(void *arg)
 }
 #endif
 
-#if RIMESTATS_CONF_ON
+#if RIMESTATS_CONF_ENABLED
 #include "net/rime/rimestats.h"
   static const char httpd_cgi_sensor21[] HTTPD_STRING_ATTR = "<em>Packets   (RIMESTATS):</em> Tx=%5lu  Rx=%5lu   TxL=%4lu  RxL=%4lu\n";
   numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor21,
@@ -1295,7 +1295,7 @@ static uint16_t c0=0x3ff,c1=0x3ff,c2=0x3ff,c3=0x3ff,c4=0x3ff,c5=0x3ff,c6=0x3ff,c
 }
 #endif
 
-#if RIMESTATS_CONF_ON
+#if RIMESTATS_CONF_ENABLED
 
 #include "net/rime/rimestats.h"
     static const char httpd_cgi_ajaxr1[] HTTPD_STRING_ATTR ="rime(%lu,%lu,%lu,%lu);";
