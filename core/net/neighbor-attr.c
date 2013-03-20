@@ -120,7 +120,6 @@ neighbor_attr_add_neighbor(const rimeaddr_t *addr)
 {
   struct neighbor_attr *def;
   struct neighbor_addr *item;
-  struct neighbor_addr *ptr;
   struct neighbor_addr *oldest;
   clock_time_t oldest_time;
   uint16_t i;
@@ -155,9 +154,8 @@ neighbor_attr_add_neighbor(const rimeaddr_t *addr)
   rimeaddr_copy(&item->addr, addr);
 
   /* look up index and set default values */
-  ptr = neighbor_addr_mem.mem;
   for(i = 0; i < neighbor_addr_mem.num; ++i) {
-    if(&ptr[i] == item) {
+    if(&((struct neighbor_addr *)neighbor_addr_mem.mem)[i] == item) {
       break;
     }
   }
