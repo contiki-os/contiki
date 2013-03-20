@@ -57,6 +57,10 @@ public class SkyTemperature extends MoteInterface {
     skyMote.skyNode.sht11.setTemperature((int) ((temp+39.6)*100));
   }
 
+  public int getTemperature() {
+    return skyMote.skyNode.sht11.getTemperature();
+  }
+
   public JPanel getInterfaceVisualizer() {
     return null;
   }
