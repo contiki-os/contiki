@@ -244,7 +244,7 @@ typedef unsigned short uip_stats_t;
 /* Not tested much yet */
 #define WITH_PHASE_OPTIMIZATION                0
 #define CONTIKIMAC_CONF_COMPOWER               1
-#define RIMESTATS_CONF_ON                      1
+#define RIMESTATS_CONF_ENABLED                 1
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
