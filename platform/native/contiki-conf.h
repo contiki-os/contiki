@@ -208,20 +208,18 @@ typedef unsigned short uip_stats_t;
 #define CTK_CONF_MENUS            0
 #endif /* PLATFORM_BUILD */
 
-/* curses doesn't define this one */
-#define COLOR_GRAY COLOR_CYAN
-
+/* base background color for widgets */
 #define COLOR_BG COLOR_BLUE
 
 #define BORDERCOLOR         COLOR_BLACK
 #define SCREENCOLOR         COLOR_BLACK
 #define BACKGROUNDCOLOR     COLOR_BLACK
 #define WINDOWCOLOR_FOCUS   COLOR_WHITE  | COLOR_BG * 0x10
-#define WINDOWCOLOR         COLOR_GRAY   | COLOR_BG * 0x10
+#define WINDOWCOLOR         COLOR_CYAN   | COLOR_BG * 0x10
 #define DIALOGCOLOR         COLOR_WHITE  | COLOR_BG * 0x10
 #define WIDGETCOLOR_HLINK   COLOR_CYAN   | COLOR_BG * 0x10
 #define WIDGETCOLOR_FWIN    COLOR_WHITE  | COLOR_BG * 0x10
-#define WIDGETCOLOR         COLOR_GRAY   | COLOR_BG * 0x10
+#define WIDGETCOLOR         COLOR_CYAN   | COLOR_BG * 0x10
 #define WIDGETCOLOR_DIALOG  COLOR_WHITE  | COLOR_BG * 0x10
 #define WIDGETCOLOR_FOCUS   COLOR_YELLOW | COLOR_BG * 0x10
 #define MENUCOLOR           COLOR_WHITE  | COLOR_BG * 0x10
