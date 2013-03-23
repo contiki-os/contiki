@@ -170,6 +170,16 @@ do_work(void)
     enabled = 0;
   }
 
+  events = usb_cdc_acm_get_events();
+  if(events & USB_CDC_ACM_LINE_STATE) {
+    uint8_t line_state = usb_cdc_acm_get_line_state();
+    if(line_state & USB_CDC_ACM_DTE) {
+      enabled = 1;
+    } else {
+      enabled = 0;
+    }
+  }
+
   if(!enabled) {
     return;
   }
@@ -254,6 +264,7 @@ PROCESS_THREAD(usb_serial_process, ev, data)
   usb_setup();
   usb_cdc_acm_setup();
   usb_set_global_event_process(&usb_serial_process);
+  usb_cdc_acm_set_event_process(&usb_serial_process);
   usb_set_ep_event_process(EPIN, &usb_serial_process);
   usb_set_ep_event_process(EPOUT, &usb_serial_process);
 
