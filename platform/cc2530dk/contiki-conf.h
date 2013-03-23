@@ -62,6 +62,8 @@
 #define USB_SERIAL_CONF_BUFFERED 1
 #endif
 
+#define SLIP_RADIO_CONF_NO_PUTCHAR 1
+
 #if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLE      1
 #endif
