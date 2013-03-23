@@ -51,4 +51,6 @@
  * Has no effect when building for the SmartRF. */
 #define USB_SERIAL_CONF_BUFFERED 1
 
+#define UIP_FALLBACK_INTERFACE slip_interface
+
 #endif /* PROJECT_CONF_H_ */
