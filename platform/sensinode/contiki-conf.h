@@ -158,11 +158,13 @@
 #endif
 
 /* Network Stack */
+#ifndef NETSTACK_CONF_NETWORK
 #if UIP_CONF_IPV6
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #else
 #define NETSTACK_CONF_NETWORK rime_driver
-#endif
+#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_NETWORK */
 
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
@@ -178,7 +180,10 @@
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #endif
 
+#ifndef NETSTACK_CONF_FRAMER
 #define NETSTACK_CONF_FRAMER  framer_802154
+#endif
+
 #define NETSTACK_CONF_RADIO   cc2430_rf_driver
 
 /* RF Config */
@@ -233,7 +238,9 @@
 #endif
 
 /* uIP */
+#ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE               240
+#endif
 #define UIP_CONF_IPV6_QUEUE_PKT              0
 #define UIP_CONF_IPV6_CHECKS                 1
 #define UIP_CONF_IPV6_REASSEMBLY             0
