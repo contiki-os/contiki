@@ -62,6 +62,10 @@
 #define UART_ONE_CONF_HIGH_SPEED 0
 #endif
 
+#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
+#define SLIP_ARCH_CONF_ENABLE      1
+#endif
+
 /* Are we a SLIP bridge? */
 #if SLIP_ARCH_CONF_ENABLE
 /* Make sure UART1 is enabled, with interrupts */

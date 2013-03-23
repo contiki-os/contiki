@@ -62,6 +62,10 @@
 #define USB_SERIAL_CONF_BUFFERED 1
 #endif
 
+#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
+#define SLIP_ARCH_CONF_ENABLE      1
+#endif
+
 /* Are we a SLIP bridge? */
 #if SLIP_ARCH_CONF_ENABLE
 /* Make sure the UART is enabled, with interrupts */
