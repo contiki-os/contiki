@@ -43,12 +43,6 @@ FORCE:
 	@egrep '(^BANK[1-9][^=])' $(<:.hex=.map) | uniq | sort
 	@egrep -A 5 'Other memory' $(<:.hex=.mem)
 
-%.upload: %.hex
-	$(PROG) -P $<
-
-sensinode.serialdump:
-	$(SERIALDUMP)
-
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/cc253x
 include $(CONTIKI_CPU)/Makefile.cc253x
