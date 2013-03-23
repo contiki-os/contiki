@@ -14,8 +14,8 @@ const struct usb_st_device_descriptor device_descriptor =
     0,
     0,
     CTRL_EP_SIZE,
-    0x0617, /* EPFL usb ID */
-    0x000B, /* Don't mess with it please */
+    CDC_ACM_CONF_VID,
+    CDC_ACM_CONF_PID,
     0x0000,
     1,
     2,
