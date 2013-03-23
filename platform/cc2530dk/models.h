@@ -81,6 +81,9 @@
 #define USB_CONF_CLASS	1 /* CDC-ACM */
 #endif
 
+#define CDC_ACM_CONF_VID 0x0451 /* Vendor: TI */
+#define CDC_ACM_CONF_PID 0x16A8 /* cc2531 CDC */
+
 #undef LEDS_CONF_ALL
 #define LEDS_CONF_ALL 3
 #define LEDS_RED      1
