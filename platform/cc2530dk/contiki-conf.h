@@ -73,7 +73,6 @@
 #undef UART0_CONF_WITH_INPUT
 #define UART0_CONF_ENABLE  1
 #define UART0_CONF_WITH_INPUT 1
-#define UIP_FALLBACK_INTERFACE slip_interface
 #endif
 
 /* Output all captured frames over the UART in hexdump format */
