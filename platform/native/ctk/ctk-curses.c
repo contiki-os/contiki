@@ -432,8 +432,9 @@ console_read(void)
 char
 ctk_arch_getkey(void)
 {
+  char k;
   console_read();
-  char k = keys[keys_out++];
+  k = keys[keys_out++];
 
   available--;
   return k;
