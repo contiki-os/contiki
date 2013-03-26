@@ -66,6 +66,26 @@ static unsigned short xpos;
 static unsigned short ypos;
 static unsigned char button;
 
+/* map CTK colors to curses colors */
+static unsigned char ctk_color_map[8] = {
+  COLOR_BLACK,
+  COLOR_RED,
+  COLOR_GREEN,
+  COLOR_YELLOW,
+  COLOR_BLUE,
+  COLOR_MAGENTA,
+  COLOR_CYAN,
+  COLOR_WHITE
+};
+
+static unsigned char map_color(unsigned char color)
+{
+  unsigned char c;
+  c = ctk_color_map[color & 0x0f];
+  c |= ctk_color_map[(color >> 4) & 0x07] << 4;
+  return c;
+}
+
 /*-----------------------------------------------------------------------------------*/
 static void
 ctrlhandler(int sig)
@@ -212,8 +232,8 @@ clrscr(void)
 void
 bgcolor(unsigned char c)
 {
+  c = map_color(c);
   color = ((c << 4) | (color & 0xF0));
-
   /* Presume this to be one of the first calls. */
   console_init();
 }
@@ -339,7 +359,7 @@ cputcxy(unsigned char x, unsigned char y, char c)
 void
 textcolor(unsigned char c)
 {
-  color = c;
+  color = map_color(c);
   setcolor();
 }
 /*-----------------------------------------------------------------------------------*/
