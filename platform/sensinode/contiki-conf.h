@@ -228,8 +228,8 @@
 #ifndef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU                 4 /* Handle n Neighbors */
 #endif
-#ifndef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU               4 /* Handle n Routes */
+#ifndef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES               4 /* Handle n Routes */
 #endif
 
 /* uIP */

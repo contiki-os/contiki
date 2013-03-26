@@ -180,7 +180,7 @@
 #define UIP_CONF_IPV6_RPL               1
 
 #define UIP_CONF_DS6_NBR_NBU     30
-#define UIP_CONF_DS6_ROUTE_NBU   30
+#define UIP_CONF_MAX_ROUTES   30
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000

@@ -36,6 +36,7 @@
 
 #include "contiki-version.h"
 #include "contiki-conf.h"
+#include "contiki-default-conf.h"
 
 #include "sys/process.h"
 #include "sys/autostart.h"
