@@ -33,8 +33,6 @@
 #ifndef __CTK_CONSOLE_H__
 #define __CTK_CONSOLE_H__
 
-#include <curses.h>
-
 #define cputc console_cputc
 #define cputs console_cputs
 
