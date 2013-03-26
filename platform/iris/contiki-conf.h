@@ -114,7 +114,7 @@
 
 /* configure number of neighbors and routes */
 #define UIP_CONF_DS6_NBR_NBU     5
-#define UIP_CONF_DS6_ROUTE_NBU   5
+#define UIP_CONF_MAX_ROUTES   5
 
 #define RPL_CONF_MAX_PARENTS         4
 #define NEIGHBOR_CONF_MAX_NEIGHBORS  8
