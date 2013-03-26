@@ -76,7 +76,9 @@ ctrlhandler(int sig)
 void
 console_init(void)
 {
+#ifdef NCURSES_MOUSE_VERSION
   mmask_t oldmask;
+#endif
   static unsigned char done;
 
   if(done) {
@@ -104,8 +106,10 @@ console_init(void)
   intrflush(stdscr, FALSE);
   keypad(stdscr, TRUE);
 
+#ifdef NCURSES_MOUSE_VERSION
   /* done here because ctk_mouse_init() is called before anyway */
   mousemask(ALL_MOUSE_EVENTS, &oldmask);
+#endif
 
   screensize(&width, &height);
 
@@ -347,6 +351,7 @@ console_readkey(int k)
   key = (ctk_arch_key_t) k;
   /*fprintf(stderr, "key: %d\n", k); */
   switch (k) {
+#ifdef NCURSES_MOUSE_VERSION
   case KEY_MOUSE:
     {
       MEVENT event;
@@ -362,6 +367,7 @@ console_readkey(int k)
       }
       return;
     }
+#endif
   case KEY_LEFT:
     key = CH_CURS_LEFT;
     break;
