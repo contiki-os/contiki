@@ -182,7 +182,7 @@ simple_udp_register(struct simple_udp_connection *c,
   if(c->udp_conn != NULL) {
     udp_bind(c->udp_conn, UIP_HTONS(local_port));
   }
-  PROCESS_CONTEXT_END();
+  PROCESS_CONTEXT_END(&simple_udp_process);
 
   if(c->udp_conn == NULL) {
     return 0;
@@ -229,7 +229,7 @@ PROCESS_THREAD(simple_udp_process, ev, data)
                                 &(UIP_IP_BUF->destipaddr),
                                 UIP_HTONS(UIP_IP_BUF->destport),
                                 databuffer, uip_datalen());
-            PROCESS_CONTEXT_END();
+            PROCESS_CONTEXT_END(c->client_process);
           }
         }
       }
