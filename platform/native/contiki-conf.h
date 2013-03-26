@@ -49,7 +49,9 @@ int select_set_callback(int fd, const struct select_callback *callback);
 #define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
 /*#define CC_CONF_INLINE                 inline*/
-
+#if defined(__GNUC__) && __GNUC__ < 3
+#define CC_CONF_STRUCT_VARRAY_LEN 0
+#endif
 
 #define CCIF
 #define CLIF
