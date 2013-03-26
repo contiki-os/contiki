@@ -360,10 +360,6 @@ console_readkey(int k)
         /*fprintf(stderr, "mevent: %d: %d, %d, %d, %lx ; %d\n",
            event.id, event.x, event.y, event.z, event.bstate, button); */
       }
-      /* just in case */
-      while(getmouse(&event) == OK) {
-        /*fprintf(stderr, "pumped mevent\n"); */
-      }
       return;
     }
   case KEY_LEFT:
