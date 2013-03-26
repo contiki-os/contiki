@@ -1013,7 +1013,7 @@ coap_set_header_observe(void *packet, uint32_t observe)
 {
   coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
 
-  coap_pkt->observe = observe;
+  coap_pkt->observe = 0x00FFFFFF & observe;
   SET_OPTION(coap_pkt, COAP_OPTION_OBSERVE);
   return 1;
 }
