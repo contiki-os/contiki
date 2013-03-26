@@ -48,7 +48,7 @@
 #define PRINTF(...)
 #endif
 
-static uint16_t neighbor_timeout = 0;
+static uint16_t timeout = 0;
 
 MEMB(neighbor_addr_mem, struct neighbor_addr, NEIGHBOR_ATTR_MAX_NEIGHBORS);
 
@@ -209,7 +209,7 @@ neighbor_attr_tick(const rimeaddr_t * addr)
 uint16_t
 neighbor_attr_get_timeout(void)
 {
-  return neighbor_timeout;
+  return timeout;
 }
 /*---------------------------------------------------------------------------*/
 static struct ctimer ct;
@@ -218,12 +218,12 @@ static struct ctimer ct;
 static void
 timeout_check(void *ptr)
 {
-  if(neighbor_timeout > 0) {
+  if(timeout > 0) {
     struct neighbor_addr *item = neighbor_attr_list_neighbors();
 
     while(item != NULL) {
       item->time += TIMEOUT_SECONDS;
-      if(item->time >= neighbor_timeout) {
+      if(item->time >= timeout) {
         struct neighbor_addr *next_item = item->next;
 
         list_remove(neighbor_addrs, item);
@@ -240,11 +240,11 @@ timeout_check(void *ptr)
 void
 neighbor_attr_set_timeout(uint16_t time)
 {
-  if(neighbor_timeout == 0 && time > 0) {
+  if(timeout == 0 && time > 0) {
     ctimer_set(&ct, TIMEOUT_SECONDS * CLOCK_SECOND, timeout_check, NULL);
-  } else if(neighbor_timeout > 0 && time == 0) {
+  } else if(timeout > 0 && time == 0) {
     ctimer_stop(&ct);
   }
-  neighbor_timeout = time;
+  timeout = time;
 }
 /*---------------------------------------------------------------------------*/
