@@ -40,5 +40,5 @@ include $(CONTIKI)/cpu/native/Makefile.native
 
 CURSES_LIBS ?= -lncurses
 
-LDFLAGS += $(CURSES_LIBS)
+TARGET_LIBFILES += $(CURSES_LIBS)
 
