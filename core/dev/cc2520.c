@@ -115,6 +115,13 @@ static int cc2520_cca(void);
 signed char cc2520_last_rssi;
 uint8_t cc2520_last_correlation;
 
+#if RADIO_CONF_EXTENDED_API
+
+static radio_conf_result_t cc2520_get_config_const(radio_const_t cst_id, void *value);
+static radio_conf_result_t cc2520_set_param(radio_param_t param_id, void *value);
+static radio_conf_result_t cc2520_get_param(radio_param_t param_id, void *value);
+
+#endif /* RADIO_CONF_EXTENDED_API */
 
 const struct radio_driver cc2520_driver =
   {
@@ -128,6 +135,11 @@ const struct radio_driver cc2520_driver =
     pending_packet,
     cc2520_on,
     cc2520_off,
+#if RADIO_CONF_EXTENDED_API
+    cc2520_get_config_const,
+    cc2520_set_param,
+    cc2520_get_param,
+#endif /* RADIO_CONF_EXTENDED_API */
   };
 
 static uint8_t receive_on;
@@ -904,4 +916,98 @@ cc2520_set_cca_threshold(int value)
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
+#if RADIO_CONF_EXTENDED_API
+/*---------------------------------------------------------------------------*/
+static radio_conf_result_t
+cc2520_get_config_const(radio_const_t cst_id, void *value)
+{
+  /* avoid the use of switch, since we may be in a Contiki protothread */
+  if(cst_id == RADIO_MIN_CHANNEL) {
+    *(int *)(value) = MIN_CHANNEL;
+    return RADIO_CONF_OK;
+
+  } else if(cst_id == RADIO_MAX_CHANNEL) {
+    *(int *)(value) = MAX_CHANNEL;
+    return RADIO_CONF_OK;
+
+  } else if(cst_id == RADIO_MIN_TX_POWER) {
+    *(int *)(value) = CC2520_TXPOWER_MIN;
+    return RADIO_CONF_OK;
+
+  } else if(cst_id == RADIO_MAX_TX_POWER) {
+    *(int *)(value) = CC2520_TXPOWER_MAX;
+    return RADIO_CONF_OK;
+
+  } else {
+    return RADIO_CONF_UNKNOWN_CONST;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static radio_conf_result_t
+cc2520_set_param(radio_param_t param_id, void *value)
+{
+  /* avoid the use of switch, since we may be in a Contiki protothread */
+  if (param_id == RADIO_CHANNEL) {
+    cc2520_set_channel(*(int *)(value));
+
+  } else if(param_id == RADIO_SHORT_ADDRESS) {
+    cc2520_set_short_addr(*(uint16_t *)(value));
+
+  } else if(param_id == RADIO_PAN_ID) {
+    cc2520_set_pan_id(*(uint16_t *)(value));
+
+  } else if(param_id == RADIO_IEEE_ADDRESS) {
+    cc2520_set_ieee_addr((const uint8_t *)value);
+
+  } else if(param_id == RADIO_TX_POWER) {
+    cc2520_set_txpower(*(uint8_t *)(value));
+
+  } else if(param_id == RADIO_CCA_THRESHOLD) {
+    cc2520_set_cca_threshold(*(int *)(value));
+
+  } else if(param_id == RADIO_PROMISCUOUS_MODE) {
+    return RADIO_CONF_UNAVAILABLE_PARAM;
+
+  } else {
+    return RADIO_CONF_UNKNOWN_PARAM;
+  }
+  return RADIO_CONF_OK;
+}
+/*---------------------------------------------------------------------------*/
+static radio_conf_result_t
+cc2520_get_param(radio_param_t param_id, void *value)
+{
+  /* avoid the use of switch, since we may be in a Contiki protothread */
+  if (param_id == RADIO_CHANNEL) {
+    *(int *)(value) = cc2520_get_channel();
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_SHORT_ADDRESS) {
+    *(uint16_t *)(value) = cc2520_get_short_addr();
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_PAN_ID) {
+    *(uint16_t *)(value) = cc2520_get_pan_id();
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_IEEE_ADDRESS) {
+    cc2520_get_ieee_addr((uint8_t *)value);
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_TX_POWER) {
+    *(int *)(value) = cc2520_get_txpower();
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_CCA_THRESHOLD) {
+    return RADIO_CONF_WRITE_ONLY_PARAM;
+
+  } else if(param_id == RADIO_PROMISCUOUS_MODE) {
+    return RADIO_CONF_UNAVAILABLE_PARAM;
+
+  } else {
+    return RADIO_CONF_UNKNOWN_PARAM;
+  }
+}
+/*---------------------------------------------------------------------------*/
+#endif /* RADIO_CONF_EXTENDED_API */
 
