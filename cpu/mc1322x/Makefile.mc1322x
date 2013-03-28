@@ -114,6 +114,6 @@ CUSTOM_RULE_C_TO_CO=yes
 	@
 
 %.elf: $(OBJECTDIR)/board.h  %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/mc1322x.lds
-	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a %.lds,$^) $(filter %.a,$^) $(filter %.a,$^)
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a %.lds,$^) $(filter %.a,$^)
 
 
