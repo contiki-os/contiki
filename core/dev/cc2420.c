@@ -332,7 +332,7 @@ cc2420_init(void)
   reg &= ~(1 << 13);
   setreg(CC2420_TXCTRL, reg);*/
 
-  
+
   /* Change default values as recomended in the data sheet, */
   /* correlation threshold = 20, RX bandpass filter = 1.3uA. */
   setreg(CC2420_MDMCTRL1, CORR_THR(20));
@@ -378,7 +378,7 @@ cc2420_transmit(unsigned short payload_len)
   }
 
   total_len = payload_len + AUX_LEN;
-  
+
   /* The TX FIFO can only hold one packet. Make sure to not overrun
    * FIFO by waiting for transmission to start here and synchronizing
    * with the CC2420_TX_ACTIVE check in cc2420_send.
