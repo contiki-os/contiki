@@ -148,17 +148,44 @@ struct radio_driver {
 
 #if RADIO_CONF_EXTENDED_API
 
-  /** Get configuration constant(s) of the radio transceiver;
-      ATTENTION: caller has to allocate the ad-hoc "placeholder"
-      in memory on which 'value' shall be a pointer. */
+  /**
+   * Get configuration constant(s) of the radio transceiver;
+   *
+   * ATTENTION: caller has to allocate the ad-hoc "placeholder"
+   * in memory on which 'value' shall be a pointer.
+   */
   radio_conf_result_t (* get_config_const)(radio_const_t cst_id, void *value);
 
-  /** Set a config parameter of the radio transceiver */
+  /**
+   * Set a config parameter of the radio transceiver
+   *
+   * The value argument's semantics depend on the value of param_id:
+   * - RADIO_CHANNEL: value must be a pointer to an int and may
+   *   take values as defined in the relevant standard. i.e. for .15.4 in the
+   *   2.4 GHz band, valid values are in [11, 26], for the sub GHz band, values
+   *   are in [0, 10]
+   * - RADIO_SHORT_ADDRESS and RADIO_PAN_ID: value must be a uint16_t in
+   *   machine byte order
+   * - RADIO_IEEE_ADDRESS: value is a pointer to a buffer holding the IEEE
+   *   address. value[0] will hold the MSB and value[7] the LSB
+   * - RADIO_PROMISCUOUS_MODE and RADIO_AUTOACK: 0: disable the feature, any
+   *   other non-zero value: enable
+   * - RADIO_TX_POWER: value is a pointer to an int representing dBm. When used
+   *   to set TX power, this will represent max allowable value, i.e. set the
+   *   max power you can that's not greater than this value. Valid values are
+   *   in [-128 , 127]
+   * - RADIO_CCA_THRESHOLD: value is a pointer to an int representing dBm
+   */
   radio_conf_result_t (* set_param)(radio_param_t param_id, void *value);
 
-  /** Get a config parameter of the radio transceiver;
-      ATTENTION: caller has to allocate the ad-hoc "placeholder"
-      in memory on which 'value' shall be a pointer. */
+  /**
+   * Get a config parameter of the radio transceiver;
+   *
+   * ATTENTION: caller has to allocate the ad-hoc "placeholder"
+   * in memory on which 'value' shall be a pointer.
+   *
+   * The semantics of 'value' are the same as in set_param
+   */
   radio_conf_result_t (* get_param)(radio_param_t param_id, void *value);
 
 #endif /* RADIO_CONF_EXTENDED_API */
