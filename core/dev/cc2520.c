@@ -115,6 +115,7 @@ static int cc2520_cca(void);
 signed char cc2520_last_rssi;
 uint8_t cc2520_last_correlation;
 
+<<<<<<< HEAD
 #if RADIO_CONF_EXTENDED_API
 
 static radio_conf_result_t cc2520_get_config_const(radio_const_t cst_id, void *value);
@@ -122,6 +123,8 @@ static radio_conf_result_t cc2520_set_param(radio_param_t param_id, void *value)
 static radio_conf_result_t cc2520_get_param(radio_param_t param_id, void *value);
 
 #endif /* RADIO_CONF_EXTENDED_API */
+=======
+>>>>>>> Refactor CC2x20 radio drivers.
 
 const struct radio_driver cc2520_driver =
   {
