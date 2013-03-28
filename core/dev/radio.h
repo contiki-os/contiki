@@ -167,13 +167,69 @@ typedef enum radio_conf_result_e {
 
 } radio_conf_result_t ;
 
+#include "contiki-conf.h"
+
+#ifndef RADIO_CONF_EXTENDED_API
+#define RADIO_CONF_EXTENDED_API 0
+#endif
+
+/** configuration constants (for capabilities) of radio transceivers */
+typedef enum radio_const_e {
+
+  /** minimal value for working channel -- usually 11 for 802.15.4 */
+  RADIO_MIN_CHANNEL,
+  /** maximal value for working channel -- usually 26 for 802.15.4 */
+  RADIO_MAX_CHANNEL,
+  /** minimal value for emitting power */
+  RADIO_MIN_TX_POWER,
+  /** maximal value for emitting power */
+  RADIO_MAX_TX_POWER,
+
+} radio_const_t;
+
+/** configuration parameters (for capabilities) of radio transceivers */
+typedef enum radio_param_e {
+
+  /** working channel (= frequency) used by the radio transceiver */
+  RADIO_CHANNEL,
+  /** current short (16-bit) address used by the radio transceiver */
+  RADIO_SHORT_ADDRESS,
+  /** current PAN ID (16-bit) used by the radio transceiver */
+  RADIO_PAN_ID,
+  /** current IEEE (64-bit) address used by the radio transceiver */
+  RADIO_IEEE_ADDRESS,
+  /** transmission power */
+  RADIO_TX_POWER,
+  /** Clear-Channel Assessment threshold */
+  RADIO_CCA_THRESHOLD,
+  /** set/unset promiscuous mode */
+  RADIO_PROMISCUOUS_MODE,
+  /** enable_disable automatic ACK on reception */
+  RADIO_AUTOACK,
+
+} radio_param_t;
+
+
+/* Return values of configuration functions */
+typedef enum radio_conf_result_e {
+
+  RADIO_CONF_OK                = 0,
+  RADIO_CONF_UNKNOWN_CONST     = -100,
+  RADIO_CONF_UNKNOWN_PARAM     = -101,
+  RADIO_CONF_UNAVAILABLE_CONST = -102,
+  RADIO_CONF_UNAVAILABLE_PARAM = -103,
+  RADIO_CONF_READ_ONLY_PARAM   = -104,
+  RADIO_CONF_WRITE_ONLY_PARAM  = -105,
+
+} radio_conf_result_t ;
+
 /**
  * The structure of a device driver for a radio in Contiki.
  */
 struct radio_driver {
 
   int (* init)(void);
-  
+
   /** Prepare the radio with a packet to be sent. */
   int (* prepare)(const void *payload, unsigned short payload_len);
 
