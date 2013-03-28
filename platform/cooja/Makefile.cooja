@@ -94,7 +94,7 @@ REDEF_PRINTF=1 # Redefine functions to enable printf()s inside Cooja
 $(ARCHIVE): ${addprefix $(OBJECTDIR)/, $(CONTIKI_SOURCEFILES:.c=.o)}
 	$(AR_COMMAND_1) $^ $(AR_COMMAND_2)
 
-$(JNILIB): $(CONTIKI_APP_OBJ) $(MAIN_OBJ) $(PROJECT_OBJECTFILES) $(ARCHIVE)
+$(JNILIB): $(CONTIKI_APP_OBJ) $(MAIN_OBJ) $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) $(ARCHIVE)
 ifdef SYMBOLS
 	@echo Generating symbols
 	# Recreate symbols file and relink with final memory layout (twice)
