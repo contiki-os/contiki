@@ -148,6 +148,7 @@ static int cc2420_cca(void);
 signed char cc2420_last_rssi;
 uint8_t cc2420_last_correlation;
 
+
 const struct radio_driver cc2420_driver =
   {
     cc2420_init,
@@ -155,8 +156,6 @@ const struct radio_driver cc2420_driver =
     cc2420_transmit,
     cc2420_send,
     cc2420_read,
-    /* cc2420_set_channel, */
-    /* detected_energy, */
     cc2420_cca,
     cc2420_receiving_packet,
     pending_packet,
@@ -577,30 +576,104 @@ cc2420_set_channel(int c)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-void
-cc2420_set_pan_addr(unsigned pan,
-                    unsigned addr,
-                    const uint8_t *ieee_addr)
+static void
+cc2420_wait_for_stable_osc(void)
 {
-  uint16_t f = 0;
+  /* Accessing RAM requires crystal oscillator to be stable. */
+  BUSYWAIT_UNTIL(status() & (BV(CC2420_XOSC16M_STABLE)), RTIMER_SECOND / 10);
+}
+/*---------------------------------------------------------------------------*/
+static uint16_t
+cc2420_get_short_addr(void)
+{
+  uint8_t tmp[2];
+  uint16_t addr;
+
+  GET_LOCK();
+  cc2420_wait_for_stable_osc();
+
+  CC2420_READ_RAM(&tmp, CC2420RAM_SHORTADDR, 2);
+  addr = ((uint16_t)tmp[1]) << 8;
+  addr |= tmp[0];
+
+  RELEASE_LOCK();
+  return addr;
+}
+/*---------------------------------------------------------------------------*/
+static uint16_t
+cc2420_get_pan_id(void)
+{
+  uint8_t tmp[2];
+  uint16_t pan;
+
+  GET_LOCK();
+  cc2420_wait_for_stable_osc();
+
+  CC2420_READ_RAM(&tmp, CC2420RAM_PANID, 2);
+  pan = ((uint16_t)tmp[1]) << 8;
+  pan |= tmp[0];
+
+  RELEASE_LOCK();
+  return pan;
+}
+/*---------------------------------------------------------------------------*/
+static void
+cc2420_get_ieee_addr(uint8_t *ieee_addr)
+{
+  GET_LOCK();
+  cc2420_wait_for_stable_osc();
+
+  if(ieee_addr != NULL) {
+    uint8_t tmp_addr[8];
+    int f;
+    CC2420_READ_RAM(tmp_addr, CC2420RAM_IEEEADDR, 8);
+    /* LSB first, MSB last for 802.15.4 addresses in CC2420 */
+    for (f = 0; f < 8; f++) {
+      ieee_addr[f] = tmp_addr[7 - f];
+    }
+  }
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+static void
+cc2420_set_short_addr(uint16_t addr)
+{
   uint8_t tmp[2];
 
   GET_LOCK();
-  
-  /*
-   * Writing RAM requires crystal oscillator to be stable.
-   */
-  BUSYWAIT_UNTIL(status() & (BV(CC2420_XOSC16M_STABLE)), RTIMER_SECOND / 10);
+  cc2420_wait_for_stable_osc();
+
+  tmp[0] = addr & 0xff;
+  tmp[1] = addr >> 8;
+  CC2420_WRITE_RAM(&tmp, CC2420RAM_SHORTADDR, 2);
+
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+static void
+cc2420_set_pan_id(uint16_t pan)
+{
+  uint8_t tmp[2];
+
+  GET_LOCK();
+  cc2420_wait_for_stable_osc();
 
   tmp[0] = pan & 0xff;
   tmp[1] = pan >> 8;
   CC2420_WRITE_RAM(&tmp, CC2420RAM_PANID, 2);
 
-  tmp[0] = addr & 0xff;
-  tmp[1] = addr >> 8;
-  CC2420_WRITE_RAM(&tmp, CC2420RAM_SHORTADDR, 2);
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+static void
+cc2420_set_ieee_addr(const uint8_t *ieee_addr)
+{
+  GET_LOCK();
+  cc2420_wait_for_stable_osc();
+
   if(ieee_addr != NULL) {
     uint8_t tmp_addr[8];
+    int f;
     /* LSB first, MSB last for 802.15.4 addresses in CC2420 */
     for (f = 0; f < 8; f++) {
       tmp_addr[7 - f] = ieee_addr[f];
@@ -608,6 +681,16 @@ cc2420_set_pan_addr(unsigned pan,
     CC2420_WRITE_RAM(tmp_addr, CC2420RAM_IEEEADDR, 8);
   }
   RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+void
+cc2420_set_pan_addr(unsigned pan,
+                    unsigned addr,
+                    const uint8_t *ieee_addr)
+{
+  cc2420_set_short_addr(addr);
+  cc2420_set_pan_id(pan);
+  cc2420_set_ieee_addr(ieee_addr);
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -792,14 +875,6 @@ cc2420_rssi(void)
   return rssi;
 }
 /*---------------------------------------------------------------------------*/
-/*
-static int
-detected_energy(void)
-{
-  return cc2420_rssi();
-}
-*/
-/*---------------------------------------------------------------------------*/
 int
 cc2420_cca_valid(void)
 {
@@ -874,3 +949,4 @@ cc2420_set_cca_threshold(int value)
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
+
