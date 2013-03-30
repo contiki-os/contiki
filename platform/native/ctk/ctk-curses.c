@@ -78,6 +78,7 @@ static unsigned char ctk_color_map[8] = {
   COLOR_WHITE
 };
 
+/*-----------------------------------------------------------------------------------*/
 static unsigned char map_color(unsigned char color)
 {
   unsigned char c;
@@ -85,17 +86,18 @@ static unsigned char map_color(unsigned char color)
   c |= ctk_color_map[(color >> 4) & 0x07] << 4;
   return c;
 }
-
 /*-----------------------------------------------------------------------------------*/
 static void
 ctrlhandler(int sig)
 {
+  /* make sure we call console_exit() to leave the terminal in a clean state */
   exit(EXIT_SUCCESS);
 }
 /*-----------------------------------------------------------------------------------*/
 void
 console_init(void)
 {
+  /* mouse support is ncurses-specific */
 #ifdef NCURSES_MOUSE_VERSION
   mmask_t oldmask;
 #endif
@@ -112,6 +114,10 @@ console_init(void)
   /* will display an error and exit if the term can't be initialized */
   /*setupterm((char *)0, STDOUT_FILENO, (int *)0); */
 
+  /* references:
+   * http://linux.die.net/man/3/ncurses
+   * http://linux.die.net/HOWTO/NCURSES-Programming-HOWTO/index.html
+   */
   initscr();
   start_color();
   cbreak();
@@ -148,6 +154,7 @@ console_init(void)
   /* don't block on read, just timeout 1ms */
   timeout(1);
 
+  /* make sure we return the terminal in a clean state */
   signal(SIGINT, ctrlhandler);
   atexit(console_exit);
 
