@@ -124,7 +124,8 @@ console_init(void)
 
   /* don't echo typed characters */
   noecho();
-  /*nonl(); */
+  /* disable return -> newline translation */
+  nonl();
 
   /* hide text cursor, CTK draws its own */
   curs_set(0);
@@ -411,6 +412,7 @@ console_readkey(int k)
   case KEY_F(10):
     key = CTK_CONF_MENU_KEY;
     break;
+  case '\r':
   case KEY_ENTER:
     key = CH_ENTER;
     break;
