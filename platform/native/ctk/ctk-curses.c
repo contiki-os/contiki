@@ -45,6 +45,8 @@
 
 /* references:
  * http://math.hws.edu/orr/s04/cpsc225/curses.html
+ * http://linux.die.net/man/3/ncurses
+ * http://linux.die.net/HOWTO/NCURSES-Programming-HOWTO/index.html
  */
 
 #define MKPAIR(bg, fg) (bg << 3 | fg)
@@ -114,10 +116,6 @@ console_init(void)
   /* will display an error and exit if the term can't be initialized */
   /*setupterm((char *)0, STDOUT_FILENO, (int *)0); */
 
-  /* references:
-   * http://linux.die.net/man/3/ncurses
-   * http://linux.die.net/HOWTO/NCURSES-Programming-HOWTO/index.html
-   */
   initscr();
   start_color();
   cbreak();
