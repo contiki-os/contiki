@@ -146,7 +146,6 @@ console_init(void)
   /* make sure we return the terminal in a clean state */
   signal(SIGINT, ctrlhandler);
   atexit(console_exit);
-
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -162,7 +161,6 @@ console_exit(void)
   revers(0);
   clrscr();
   gotoxy(0, 0);
-
 
   endwin();
 }
