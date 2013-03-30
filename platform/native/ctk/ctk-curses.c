@@ -101,6 +101,7 @@ console_init(void)
   mmask_t oldmask;
 #endif
   static unsigned char done;
+  int bg, fg;
 
   if(done) {
     return;
@@ -129,13 +130,11 @@ console_init(void)
 
   screensize(&width, &height);
 
-  /* curses color handling is weird... */
-  {
-    int bg, fg;
-
-    for(fg = 0; fg < 8; fg++)
-      for(bg = 0; bg < 8; bg++)
-        init_pair(MKPAIR(bg, fg), fg, bg);
+  /* we must declare all possible color pairs */
+  for(fg = 0; fg < 8; fg++) {
+    for(bg = 0; bg < 8; bg++) {
+      init_pair(MKPAIR(bg, fg), fg, bg);
+    }
   }
 
   /* set window title */
@@ -195,8 +194,9 @@ setcolor(void)
   bg = (color & 0xF0) >> 4;
 
   attrs = COLOR_PAIR(MKPAIR(bg, fg));
-  if(reversed)
+  if(reversed) {
     attrs |= WA_REVERSE;
+  }
   attrset(attrs);
 }
 /*-----------------------------------------------------------------------------------*/
@@ -443,8 +443,9 @@ console_read(void)
   int k;
 
   k = getch();
-  if(k != ERR)
+  if(k != ERR) {
     console_readkey(k);
+  }
 }
 /*-----------------------------------------------------------------------------------*/
 char
