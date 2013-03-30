@@ -38,6 +38,10 @@ CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c $(CONTIKI_TARGET_SOURCEFILES)
 CONTIKI_CPU=$(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
 
+ifeq ($(HOST_OS),Windows)
+CFLAGS += -I/usr/include/ncurses
+endif
+
 CURSES_LIBS ?= -lncurses
 
 TARGET_LIBFILES += $(CURSES_LIBS)
