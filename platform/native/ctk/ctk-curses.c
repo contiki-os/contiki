@@ -51,9 +51,6 @@
 
 #define MKPAIR(bg, fg) (bg << 3 | fg)
 
-static int stdinhandle;
-static int stdouthandle;
-
 static unsigned char width;
 static unsigned char height;
 
@@ -109,12 +106,6 @@ console_init(void)
     return;
   }
   done = 1;
-
-  stdinhandle = STDIN_FILENO;
-  stdouthandle = STDOUT_FILENO;
-
-  /* will display an error and exit if the term can't be initialized */
-  /*setupterm((char *)0, STDOUT_FILENO, (int *)0); */
 
   initscr();
   start_color();
