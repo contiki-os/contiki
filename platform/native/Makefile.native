@@ -10,12 +10,12 @@ ifeq ($(UIP_CONF_IPV6),1)
 CFLAGS += -DWITH_UIP6=1
 endif
 
-CONTIKI_TARGET_DIRS = . dev
+CONTIKI_TARGET_DIRS = . dev ctk
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
 CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c leds.c leds-arch.c \
                 button-sensor.c pir-sensor.c vib-sensor.c xmem.c \
-                sensors.c irq.c cfs-posix.c cfs-posix-dir.c
+                sensors.c irq.c cfs-posix.c cfs-posix-dir.c ctk-curses.c
 
 ifeq ($(HOST_OS),Windows)
 CONTIKI_TARGET_SOURCEFILES += wpcap-drv.c wpcap.c
@@ -30,10 +30,19 @@ CONTIKI_TARGET_SOURCEFILES += tapdev6.c
 endif
 endif
 
-CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c $(CONTIKI_TARGET_SOURCEFILES)
 
 .SUFFIXES:
 
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
+
+ifeq ($(HOST_OS),Windows)
+CFLAGS += -I/usr/include/ncurses
+endif
+
+CURSES_LIBS ?= -lncurses
+
+TARGET_LIBFILES += $(CURSES_LIBS)
+
