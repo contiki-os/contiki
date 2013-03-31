@@ -78,9 +78,11 @@ static unsigned char ctk_color_map[8] = {
 };
 
 /*-----------------------------------------------------------------------------------*/
-static unsigned char map_color(unsigned char color)
+static unsigned char
+map_color(unsigned char color)
 {
   unsigned char c;
+
   c = ctk_color_map[color & 0x0f];
   c |= ctk_color_map[(color >> 4) & 0x07] << 4;
   return c;
@@ -450,6 +452,7 @@ char
 ctk_arch_getkey(void)
 {
   char k;
+
   console_read();
   k = keys[keys_out++];
 
