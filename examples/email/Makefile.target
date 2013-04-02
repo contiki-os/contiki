@@ -1,1 +1,1 @@
-TARGET = win32
+TARGET = native
