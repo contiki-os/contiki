@@ -3,7 +3,7 @@ Commodore 128
 
 The platform/c128/ directory is used for targeting a Commodore 128 computer.
 Most things are shared between the 6502-based targets so please consult
-cpu/6502/README.markdown for further details.
+cpu/6502/README.md for further details.
 
 The following C64 Ethernet cards are supported:
 
