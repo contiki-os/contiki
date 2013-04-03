@@ -10,6 +10,14 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
+/*
+ * Build for SmartRF05EB+CC2530EM by default.
+ * This define needs to have its final value before inclusion of models.h
+ */
+#ifndef MODELS_CONF_CC2531_USB_STICK
+#define MODELS_CONF_CC2531_USB_STICK 0
+#endif
+
 #include "models.h"
 
 /*

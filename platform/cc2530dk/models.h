@@ -64,7 +64,7 @@
  *  1: P0_0 (Red)
  *  2: P1_1 (Green - active: low)
  */
-#if MODEL_CC2531
+#if MODELS_CONF_CC2531_USB_STICK
 #define MODEL_STRING "TI cc2531 USB Dongle\n"
 #define USB_CONF_ENABLE 1
 
