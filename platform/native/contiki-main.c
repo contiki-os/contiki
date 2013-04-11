@@ -146,11 +146,11 @@ set_rime_addr(void)
   }
 #endif
   rimeaddr_set_node_addr(&addr);
-  printf("Rime started with address ");
+  fprintf(stderr, "Rime started with address ");
   for(i = 0; i < sizeof(addr.u8) - 1; i++) {
-    printf("%d.", addr.u8[i]);
+    fprintf(stderr, "%d.", addr.u8[i]);
   }
-  printf("%d\n", addr.u8[i]);
+  fprintf(stderr, "%d\n", addr.u8[i]);
 }
 
 
@@ -163,12 +163,12 @@ main(int argc, char **argv)
 {
 #if UIP_CONF_IPV6
 #if UIP_CONF_IPV6_RPL
-  printf(CONTIKI_VERSION_STRING " started with IPV6, RPL\n");
+  fprintf(stderr, CONTIKI_VERSION_STRING " started with IPV6, RPL\n");
 #else
-  printf(CONTIKI_VERSION_STRING " started with IPV6\n");
+  fprintf(stderr, CONTIKI_VERSION_STRING " started with IPV6\n");
 #endif
 #else
-  printf(CONTIKI_VERSION_STRING " started\n");
+  fprintf(stderr, CONTIKI_VERSION_STRING " started\n");
 #endif
 
   /* crappy way of remembering and accessing argc/v */
@@ -200,7 +200,7 @@ main(int argc, char **argv)
   queuebuf_init();
 
   netstack_init();
-  printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
+  fprintf(stderr, "MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
@@ -209,19 +209,19 @@ main(int argc, char **argv)
 #ifdef __CYGWIN__
   process_start(&wpcap_process, NULL);
 #endif
-  printf("Tentative link-local IPv6 address ");
+  fprintf(stderr, "Tentative link-local IPv6 address ");
   {
     uip_ds6_addr_t *lladdr;
     int i;
     lladdr = uip_ds6_get_link_local(-1);
     for(i = 0; i < 7; ++i) {
-      printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
+      fprintf(stderr, "%02x%02x:", lladdr->ipaddr.u8[i * 2],
              lladdr->ipaddr.u8[i * 2 + 1]);
     }
     /* make it hardcoded... */
     lladdr->state = ADDR_AUTOCONF;
 
-    printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
+    fprintf(stderr, "%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
 #else
   process_start(&tcpip_process, NULL);
