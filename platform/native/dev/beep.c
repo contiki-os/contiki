@@ -37,19 +37,19 @@
 void
 beep_down(int n)
 {
-  printf("beep_down(%d)\n", n);
+  fprintf(stderr, "beep_down(%d)\n", n);
 }
 
 void
 beep_beep(int n)
 {
-  printf("beep_beep(%d)\n", n);
+  fprintf(stderr, "beep_beep(%d)\n", n);
 }
 
 void
 beep_alarm(int alarmmode, int len)
 {
-  printf("beep_alarm(%d,%d)\n", alarmmode, len);
+  fprintf(stderr, "beep_alarm(%d,%d)\n", alarmmode, len);
 }
 
 void
@@ -60,7 +60,7 @@ beep_spinup(void)
 
 void beep(void)
 {
-  printf("%cbeep\n", 7); /*fflush(NULL);*/
+  fprintf(stderr, "%cbeep\n", 7); /*fflush(NULL);*/
 }
 
 
