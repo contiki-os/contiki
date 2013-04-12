@@ -79,7 +79,7 @@ leds_blink(void)
   inv = ~(leds ^ invert);
   leds_invert(inv);
 
-  clock_delay(400);
+  clock_wait(50);
 
   leds_invert(inv);
 }
