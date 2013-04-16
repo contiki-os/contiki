@@ -33,31 +33,86 @@
 #define _GNU_SOURCE
 #include <dlfcn.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "contiki.h"
+#include "lib/list.h"
 
+struct dl_object {
+  struct dl_object *next;
+  void *handle;
+  void *sym;
+};
+
+LIST(dl_objects);
+
+PROCESS(dlcloser_process, "dlcloser");
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(dlcloser_process, ev, data)
+{
+  PROCESS_EXITHANDLER(goto exit);
+
+  PROCESS_BEGIN();
+  fprintf(stderr, "dlcloser_process starting\n");
+
+  while(1) {
+    PROCESS_WAIT_EVENT();
+
+    if(ev == PROCESS_EVENT_MSG) {
+      fprintf(stderr, "doing defered dlclose(%p)\n", data);
+      dlclose((void *)data);
+    }
+  }
+
+exit:
+  fprintf(stderr, "dlcloser_process exiting\n");
+  PROCESS_END();
+}
 /*---------------------------------------------------------------------------*/
 int
 dlloader_load(char *path, char *arg)
 {
   void *handle;
   struct process **p;
+  struct dl_object *o;
+  static bool initialized = false;
+  int flags = RTLD_NOW;
+
+#ifdef RTLD_DEEPBIND
+  /* work around autostart_processes being imported from main */
+  flags |= RTLD_DEEPBIND;
+#endif
+
+  if(!initialized) {
+    process_start(&dlcloser_process, NULL);
+    initialized = true;
+  }
 
   if(path == NULL || *path == '\0') {
     fprintf(stderr, "dlloader_load: bad name: %s\n", path);
     return LOADER_ERR_OPEN;
   }
 
+  o = malloc(sizeof(struct dl_object));
+  if(o == NULL) {
+    fprintf(stderr, "dlloader_load: bad name: No memory\n");
+    return LOADER_ERR_MEM;
+  }
+
   /* Load and link the program. */
-  handle = dlopen(path, RTLD_NOW);
+  handle = dlopen(path, flags);
 
   fprintf(stderr, "Loading '%s'\n", path);
 
   if(handle == NULL) {
     fprintf(stderr, "dlloader_load: loading failed: %s\n", dlerror());
+    free(o);
     return LOADER_ERR_FMT;
   }
 
@@ -66,8 +121,13 @@ dlloader_load(char *path, char *arg)
   if(p == NULL) {
     fprintf(stderr,
             "dlloader_load: could not find symbol 'autostart_processes'\n");
+    free(o);
     return LOADER_ERR_FMT;
   }
+
+  o->handle = handle;
+  o->sym = p;
+  list_add(dl_objects, o);
 
   /* Start the process. */
   fprintf(stderr, "Starting '%s'\n", (*p)->name);
@@ -79,7 +139,17 @@ dlloader_load(char *path, char *arg)
 void
 dlloader_unload(void *addr)
 {
-  /*XXX: cache handles ? */
+  struct dl_object *o;
+
+  for(o = list_head(dl_objects); o != NULL; o = o->next) {
+    if(o->sym == addr) {
+      /* can't dlclose() yet, we're called from it */
+      process_post(&dlcloser_process, PROCESS_EVENT_MSG, o->handle);
+      list_remove(dl_objects, o);
+      free(o);
+      break;
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
 struct dsc *
@@ -88,22 +158,29 @@ dlloader_load_dsc(char *name)
   void *handle;
   char symbol[24];
   void *d;
+  struct dl_object *o;
 
   if(name == NULL || *name == '\0') {
     fprintf(stderr, "dlloader_load_dsc: bad name: %s\n", name);
     return NULL;
   }
 
+  o = malloc(sizeof(struct dl_object));
+  if(o == NULL) {
+    fprintf(stderr, "dlloader_load: bad name: No memory\n");
+    return NULL;
+  }
+
   /* Load and link the program. */
   handle = dlopen(name, RTLD_NOW);
   if(handle == NULL) {
-    char path[PATH_MAX + 1];
+    char path[PATH_MAX];
 
-    if(getwd(path)) {
+    if(getcwd(path, sizeof(path))) {
       size_t l = strlen(path);
 
-      //strlcat(path, "/", PATH_MAX);
-      //strlcat(path, name, PATH_MAX);
+      /* strlcat(path, "/", PATH_MAX); */
+      /* strlcat(path, name, PATH_MAX); */
       snprintf(path + l, PATH_MAX - l, "/%s", name);
       handle = dlopen(path, RTLD_NOW);
     }
@@ -113,6 +190,7 @@ dlloader_load_dsc(char *name)
 
   if(handle == NULL) {
     fprintf(stderr, "dll_loader_load_dsc: loading failed: %s\n", dlerror());
+    free(o);
     return NULL;
   }
 
@@ -124,8 +202,13 @@ dlloader_load_dsc(char *name)
   if(d == NULL) {
     fprintf(stderr, "dll_loader_load_dsc: could not find symbol '%s'\n",
             symbol);
+    free(o);
     return NULL;
   }
+
+  o->handle = handle;
+  o->sym = d;
+  list_add(dl_objects, o);
 
   return *(struct dsc **)&d;
 }
@@ -133,11 +216,15 @@ dlloader_load_dsc(char *name)
 void
 dlloader_unload_dsc(void *addr)
 {
-  /* TODO: we can't use dladdr() for this, use a linked list */
-  Dl_info info;
+  struct dl_object *o;
 
-  if(dladdr(addr, &info) != 0) {
-    ;                           /*dlclose(info.); */
+  for(o = list_head(dl_objects); o != NULL; o = o->next) {
+    if(o->sym == addr) {
+      dlclose(o->handle);
+      list_remove(dl_objects, o);
+      free(o);
+      break;
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
