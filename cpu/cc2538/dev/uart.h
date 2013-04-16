@@ -66,8 +66,8 @@
 #define UART_FBRD_115200             44 /**< FBRD value for baud rate 115200 */
 #define UART_IBRD_230400              4 /**< IBRD value for baud rate 230400 */
 #define UART_FBRD_230400             22 /**< FBRD value for baud rate 230400 */
-#define UART_IBRD_460800              2 /**< IBRD value for baud rate 230400 */
-#define UART_FBRD_460800             11 /**< FBRD value for baud rate 230400 */
+#define UART_IBRD_460800              2 /**< IBRD value for baud rate 460800 */
+#define UART_FBRD_460800             11 /**< FBRD value for baud rate 460800 */
 
 #if UART_CONF_BAUD_RATE==115200
 #define UART_CONF_IBRD UART_IBRD_115200

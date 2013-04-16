@@ -257,12 +257,12 @@ Note: Some early production devices do not have am IEEE address written on the I
 
 ### Scripted multi-image builds
 
-You can build multiple nodes with different `NODEID`s sequentially. The only platform file relying on the value of `NODEID` (or more accurately `IEEE_ADDR_NODE_ID`) is `ieee-addr.c`, which will get recompiled at each build invocation. As a result, the build system can be scripted to build you multiple firmware images, each one with a different MAC address. Bear in mind that, if you choose to do such scripting, you will need to make a copy of each firmware before invoking the next build, since each new image will overwrite the previous one. Thus, for example, you could do something like this:
+You can build multiple nodes with different `NODEID`s sequentially. The only platform file relying on the value of `NODEID` (or more accurately `IEEE_ADDR_NODE_ID`) is `ieee-addr.c`, which will get recompiled at each build invocation. As a result, the build system can be scripted to build multiple firmware images, each one with a different MAC address. Bear in mind that, if you choose to do such scripting, you will need to make a copy of each firmware before invoking the next build, since each new image will overwrite the previous one. Thus, for example, you could do something like this:
 
     for image in 1 2 3 4; do make cc2538-demo NODEID=$image && \
     cp cc2538-demo.cc2538dk cc2538-demo-$image.cc2538dk; done
 
-Which would build you `cc2538-demo-1.cc2538dk`, `cc2538-demo-2.cc2538dk` etc
+Which would build `cc2538-demo-1.cc2538dk`, `cc2538-demo-2.cc2538dk` etc
 
 As discussed above, only `ieee-addr.c` will get recompiled for every build. Thus, if you start relying on the value of `IEEE_ADDR_NODE_ID` in other code modules, this trick will not work off-the-shelf. In a scenario like that, you would have to modify your script to touch those code modules between every build. For instance, if you are using an imaginary `foo.c` which needs to see changes to `NODEID`, the script above could be modified like so:
 
