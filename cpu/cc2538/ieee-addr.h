@@ -52,7 +52,7 @@
  * \name IEEE address locations
  * @{
  */
-#define IEEE_ADDR_LOCATION_PRIMARY   0x00280020 /**< IEEE address location */
+#define IEEE_ADDR_LOCATION_PRIMARY   0x00280028 /**< IEEE address location */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /*
