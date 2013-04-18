@@ -11,97 +11,123 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote
- *    products derived from this software without specific prior
- *    written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \file
- *         Platform process which implements a UART-like functionality over
- *         the cc2531 dongle's USB hardware.
+ * \addtogroup cc2538-usb
+ * @{
  *
- *         With it in place, putchar can be redirected to the USB and USB
- *         incoming traffic can be handled as input
+ * \file
+ * Platform process which implements a UART-like functionality over the
+ * cc2538's USB hardware.
+ *
+ * This has been ported over from platform/cc2530dk
  *
  * \author
- *         Philippe Retornaz (EPFL) - Original code
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
- *           Turned this to a 'serial over USB' platform process
+ *  - Philippe Retornaz (EPFL) - Original code
+ *  - George Oikonomou - <oikonomou@users.sourceforge.net>
+ *    Turned this to a 'serial over USB' platform process, ported for cc2538
  */
 #include "contiki.h"
 #include "sys/process.h"
-#include "usb/common/usb-api.h"
-#include "usb/common/cdc-acm/cdc-acm.h"
-#include "usb/common/usb.h"
-#include "usb/common/usb-arch.h"
+#include "net/rime/rimeaddr.h"
+#include "usb-api.h"
+#include "usb.h"
+#include "usb-arch.h"
+#include "cdc-acm/cdc-acm.h"
+#include "ieee-addr.h"
+
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
-static const struct {
+#define DEBUG 0
+
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+/*---------------------------------------------------------------------------*/
+struct lang_id {
   uint8_t size;
   uint8_t type;
   uint16_t langid;
-} lang_id = { sizeof(lang_id), 3, 0x0409 };
-
-static struct {
+};
+static const struct lang_id lang_id = { sizeof(lang_id), 3, 0x0409 };
+/*---------------------------------------------------------------------------*/
+struct serial_nr {
   uint8_t size;
   uint8_t type;
   uint16_t string[16];
-} string_serial_nr = {
-  sizeof(string_serial_nr),
+};
+static struct serial_nr serial_nr = {
+  sizeof(serial_nr),
   3, {
     'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A',
     'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'
   }
 };
-
-static const struct {
+/*---------------------------------------------------------------------------*/
+struct manufacturer {
   uint8_t size;
   uint8_t type;
-  uint16_t string[10];
-} string_manufacturer = {
-  sizeof(string_manufacturer),
-  3,
-  { 'E', 'P', 'F', 'L', '-', 'L', 'S', 'R', 'O', '1' }
+  uint16_t string[17];
 };
-
-static const struct {
+static const struct manufacturer manufacturer = {
+  sizeof(manufacturer),
+  3,
+  {
+    'T', 'e', 'x', 'a', 's', ' ',
+    'I', 'n', 's', 't', 'r', 'u', 'm', 'e', 'n', 't', 's'
+  }
+};
+/*---------------------------------------------------------------------------*/
+struct product {
   uint8_t size;
   uint8_t type;
-  uint16_t string[18];
-} string_product = {
-  sizeof(string_product),
-  3, {
-    'C', 'C', '2', '5', '3', '1', ' ',
-    'D', 'e', 'v', 'e', 'l', '-', 'B', 'o', 'a', 'r', 'd'
+  uint16_t string[21];
+};
+static const struct product product = {
+  sizeof(product),
+  3,
+  {
+    'c', 'c', '2', '5', '3', '8', ' ',
+    'S', 'y', 's', 't', 'e', 'm', '-', 'o', 'n', '-', 'C', 'h', 'i', 'p'
   }
 };
 /*---------------------------------------------------------------------------*/
 #define EPIN  0x82
 #define EPOUT 0x03
 
-#define BUFFER_SIZE USB_EP2_SIZE
+#define RX_BUFFER_SIZE USB_EP3_SIZE
+#define TX_BUFFER_SIZE (USB_EP2_SIZE - 1)
 
-static USBBuffer data_rx_urb;
-static USBBuffer data_tx_urb;
-static uint8_t usb_rx_data[BUFFER_SIZE];
+typedef struct _USBBuffer usb_buffer;
+
+static usb_buffer data_rx_urb;
+static usb_buffer data_tx_urb;
+static uint8_t usb_rx_data[RX_BUFFER_SIZE];
 static uint8_t enabled = 0;
 
-#if USB_SERIAL_CONF_BUFFERED
 #define SLIP_END 0300
-static uint8_t usb_tx_data[BUFFER_SIZE];
+static uint8_t usb_tx_data[TX_BUFFER_SIZE];
 static uint8_t buffered_data = 0;
-#endif
 
 /* Callback to the input handler */
 static int (* input_handler)(unsigned char c);
@@ -113,11 +139,11 @@ usb_class_get_string_descriptor(uint16_t lang, uint8_t string)
   case 0:
     return (uint8_t *)&lang_id;
   case 1:
-    return (uint8_t *)&string_manufacturer;
+    return (uint8_t *)&manufacturer;
   case 2:
-    return (uint8_t *)&string_product;
+    return (uint8_t *)&product;
   case 3:
-    return (uint8_t *)&string_serial_nr;
+    return (uint8_t *)&serial_nr;
   default:
     return NULL;
   }
@@ -127,27 +153,29 @@ static void
 set_serial_number(void)
 {
   uint8_t i;
-  uint8_t *ieee = &X_IEEE_ADDR;
+  uint8_t ieee[8];
   uint8_t lown, highn;
   uint8_t c;
+
+  ieee_addr_cpy_to(ieee, 8);
 
   for(i = 0; i < 8; i++) {
     lown = ieee[i] & 0x0F;
     highn = ieee[i] >> 4;
     c = lown > 9 ? 'A' + lown - 0xA : lown + '0';
-    string_serial_nr.string[14 - i * 2 + 1] = c;
+    serial_nr.string[i * 2 + 1] = c;
     c = highn > 9 ? 'A' + highn - 0xA : highn + '0';
-    string_serial_nr.string[14 - i * 2] = c;
+    serial_nr.string[i * 2] = c;
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
 queue_rx_urb(void)
 {
-  data_rx_urb.flags = USB_BUFFER_PACKET_END;    /* Make sure we are getting immediately the packet. */
+  data_rx_urb.flags = USB_BUFFER_PACKET_END;
   data_rx_urb.flags |= USB_BUFFER_NOTIFY;
   data_rx_urb.data = usb_rx_data;
-  data_rx_urb.left = BUFFER_SIZE;
+  data_rx_urb.left = RX_BUFFER_SIZE;
   data_rx_urb.next = NULL;
   usb_submit_recv_buffer(EPOUT, &data_rx_urb);
 }
@@ -159,8 +187,7 @@ do_work(void)
 
   events = usb_get_global_events();
   if(events & USB_EVENT_CONFIG) {
-    /* Enable endpoints */
-    enabled = 1;
+    /* Configure EPs. Don't enable them yet, until the CDC line is up */
     usb_setup_bulk_endpoint(EPIN);
     usb_setup_bulk_endpoint(EPOUT);
 
@@ -173,6 +200,7 @@ do_work(void)
   events = usb_cdc_acm_get_events();
   if(events & USB_CDC_ACM_LINE_STATE) {
     uint8_t line_state = usb_cdc_acm_get_line_state();
+    PRINTF("CDC-ACM event 0x%04x, Line State = %u\n", events, line_state);
     if(line_state & USB_CDC_ACM_DTE) {
       enabled = 1;
     } else {
@@ -192,7 +220,7 @@ do_work(void)
         uint8_t len;
         uint8_t i;
 
-        len = BUFFER_SIZE - data_rx_urb.left;
+        len = RX_BUFFER_SIZE - data_rx_urb.left;
         for(i = 0; i < len; i++) {
           input_handler(usb_rx_data[i]);
         }
@@ -202,15 +230,14 @@ do_work(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-#if USB_SERIAL_CONF_BUFFERED
 void
 usb_serial_flush()
 {
-  if(buffered_data == BUFFER_SIZE) {
-    data_tx_urb.flags = 0;
-  } else {
-    data_tx_urb.flags = USB_BUFFER_SHORT_END;
+  if(buffered_data == 0) {
+    return;
   }
+
+  data_tx_urb.flags = USB_BUFFER_SHORT_END;
   data_tx_urb.flags |= USB_BUFFER_NOTIFY;
   data_tx_urb.next = NULL;
   data_tx_urb.data = usb_tx_data;
@@ -230,27 +257,10 @@ usb_serial_writeb(uint8_t b)
   usb_tx_data[buffered_data] = b;
   buffered_data++;
 
-  if(buffered_data == BUFFER_SIZE || b == SLIP_END || b == '\n') {
+  if(buffered_data == TX_BUFFER_SIZE) {
     usb_serial_flush();
   }
 }
-/*---------------------------------------------------------------------------*/
-#else
-void
-usb_serial_writeb(uint8_t b)
-{
-  if(!enabled) {
-    return;
-  }
-
-  data_tx_urb.flags = USB_BUFFER_SHORT_END;
-  data_tx_urb.flags |= USB_BUFFER_NOTIFY;
-  data_tx_urb.next = NULL;
-  data_tx_urb.data = &b;
-  data_tx_urb.left = 1;
-  usb_submit_xmit_buffer(EPIN, &data_tx_urb);
-}
-#endif
 /*---------------------------------------------------------------------------*/
 PROCESS(usb_serial_process, "USB-Serial process");
 /*---------------------------------------------------------------------------*/
@@ -292,3 +302,6 @@ usb_serial_init()
 {
   process_start(&usb_serial_process, NULL);
 }
+/*---------------------------------------------------------------------------*/
+
+/** @} */
