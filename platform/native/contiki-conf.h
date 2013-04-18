@@ -51,8 +51,17 @@ int select_set_callback(int fd, const struct select_callback *callback);
 /*#define CC_CONF_INLINE                 inline*/
 
 
+#ifdef __CYGWIN__
+#if _USRDLL
+#define CCIF __declspec(dllimport)
+#else /* _USRDLL */
+#define CCIF __declspec(dllexport)
+#endif /* _USRDLL */
+#define CLIF __declspec(dllexport)
+#else
 #define CCIF
 #define CLIF
+#endif
 
 /* These names are deprecated, use C99 names. */
 typedef uint8_t   u8_t;

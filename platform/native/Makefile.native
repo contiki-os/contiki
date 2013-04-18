@@ -65,8 +65,14 @@ ifdef PLATFORM_BUILD
 	ranlib -c $@
 
   else
-    LDFLAGS_WHOLE_ARCHIVE = --whole-archive
-    LD_UNDEFINES = $(addprefix -u ,$(UNDEFINED_SYMS))
+    ifeq ($(HOST_OS),Windows)
+      LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a
+      LD_UNDEFINES = $(addprefix -u _,$(UNDEFINED_SYMS))
+      PRG_LIBFILES += contiki-main.$(TARGET).a
+      PRG_CFLAGS += -D_USRDLL
+    else
+      LD_UNDEFINES = $(addprefix -u ,$(UNDEFINED_SYMS))
+    endif
   endif
   ifeq ($(HOST_OS),Linux)
     # necessary on Linux 64bit
@@ -74,12 +80,7 @@ ifdef PLATFORM_BUILD
   endif
 
   CFLAGS += -DPLATFORM_BUILD -DWITH_GUI -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
-  LDFLAGS +=  \
-	$(LD_UNDEFINES)
-# XXX: does not seem necessary
-#$(LDFLAGS_WHOLE_ARCHIVE)
-#-Wl,--out-implib=contiki-main.$(TARGET).a \
-#
+  LDFLAGS += $(LD_UNDEFINES)
 else
   CONTIKI_TARGET_SOURCEFILES += unload.c
 endif
@@ -101,5 +102,5 @@ ${foreach DSC,$(DSCS),${eval ${call dsc_template,$(DSC),${call appname,$(DSC)}}}
 
 ### Generic module-link rules, no prerequisites here
 $(PRGS:=.prg) $(DSCS:=.dsc):
-	$(LD) -shared $(PRG_LDFLAGS) $^ -o $@
+	$(LD) -shared $(PRG_LDFLAGS) $^ $(PRG_LIBFILES) -o $@
 
