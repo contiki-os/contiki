@@ -57,6 +57,9 @@ override telnetd_src = telnetd.c telnetd-gui.c memb.c \
 override webserver_src = webserver.c httpd.c http-strings.c psock.c \
 			 memb.c httpd-fs.c httpd-cgi.c
 
+# Use use psock.c locally
+override twitter_src = twitter.c psock.c
+
 PLATFORM_BUILD = 1
 
 CONTIKI = ../..
