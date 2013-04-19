@@ -51,7 +51,7 @@ struct dl_object {
 
 LIST(dl_objects);
 
-PROCESS(dlcloser_process, "dlcloser");
+PROCESS(dlcloser_process, "Async Prog Ripper");
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(dlcloser_process, ev, data)
