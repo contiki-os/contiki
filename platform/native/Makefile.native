@@ -50,7 +50,7 @@ TARGET_LIBFILES += $(CURSES_LIBS)
 ifdef PLATFORM_BUILD
   CONTIKI_TARGET_SOURCEFILES += dl-loader.c
   UNDEFINED_SYMS = cfs_open cfs_opendir \
-                   uiplib_ip4addrconv uiplib_ip6addrconv \
+                   uiplib_ip4addrconv \
                    resolv_lookup
 
   ifeq ($(HOST_OS),Darwin)
