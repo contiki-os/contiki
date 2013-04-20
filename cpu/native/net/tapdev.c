@@ -111,7 +111,7 @@ tapdev_init(void)
     memset(&ifr, 0, sizeof(ifr));
     ifr.ifr_flags = IFF_TAP|IFF_NO_PI;
     if (ioctl(fd, TUNSETIFF, (void *) &ifr) < 0) {
-      perror(buf);
+      perror("ioctl(TUNSETIFF)");
       exit(1);
     }
   }
