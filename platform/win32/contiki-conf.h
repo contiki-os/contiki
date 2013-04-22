@@ -1,6 +1,10 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#ifdef __CYGWIN__
+#include <sys/types.h>
+#endif
+
 #define CC_CONF_REGISTER_ARGS 1
 #define CC_CONF_FASTCALL __fastcall
 #define CC_CONF_INLINE   __inline
