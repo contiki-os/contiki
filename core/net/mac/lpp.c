@@ -117,7 +117,7 @@ struct announcement_data {
 #define ANNOUNCEMENT_MSG_HEADERLEN 2
 struct announcement_msg {
   uint16_t num;
-  struct announcement_data data[];
+  struct announcement_data data[CC_STRUCT_VARRAY_LEN];
 };
 
 #define LPP_PROBE_HEADERLEN 2

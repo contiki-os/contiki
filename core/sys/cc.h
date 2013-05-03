@@ -136,4 +136,14 @@
  */
 #define CC_CONCAT(s1, s2) CC_CONCAT2(s1, s2)
 
+/**
+ * Configure if the C compiler requires a length when declaring a
+ * variable-size array at the end of struct.
+ */
+#ifdef CC_CONF_STRUCT_VARRAY_LEN
+#define CC_STRUCT_VARRAY_LEN	CC_CONF_STRUCT_VARRAY_LEN
+#else /* CC_CONF_STRUCT_VARRAY_LEN */
+#define CC_STRUCT_VARRAY_LEN
+#endif /* CC_CONF_STRUCT_VARRAY_LEN */
+
 #endif /* __CC_H__ */
