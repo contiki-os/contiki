@@ -30,9 +30,13 @@
  *
  */
 
-#ifndef __TWITTER_H__
-#define __TWITTER_H__
+#ifndef __HTTP_POST_AUTH_H__
+#define __HTTP_POST_AUTH_H__
 
-int twitter_post(const uint8_t *username_password, const char *message);
+#include "contiki-net.h"
 
-#endif /* __TWITTER_H__ */
+PROCESS_NAME(http_post_auth_process);
+
+int http_post_auth(const uint8_t *username_password, const char *message);
+
+#endif /* __HTTP_POST_AUTH_H__ */
