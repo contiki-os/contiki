@@ -32,16 +32,15 @@
 
 /**
  * \file
- *         Contiki interface to posting Twitter messages
+ *         Contiki interface to post to http basic auth services
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
 #include "contiki-net.h"
-#include "shell.h"
 
-#include "twitter.h"
+#include "http-post-auth.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -50,7 +49,9 @@
 #define MAX_MESSAGE           160
 #define MAX_LENGTH             10
 
-struct twitter_state {
+#define HOST_NAME	"api.example.org"
+
+struct http_post_auth_state {
   unsigned char timer;
   struct psock sin, sout;
   char lengthstr[MAX_LENGTH];
@@ -60,9 +61,11 @@ struct twitter_state {
   uip_ipaddr_t addr;
 };
 
-struct twitter_state conn;
+struct http_post_auth_state conn;
 
+#ifndef DEBUG
 #define DEBUG 0
+#endif
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -70,7 +73,7 @@ struct twitter_state conn;
 #define PRINTF(...)
 #endif
 
-PROCESS(twitter_process, "Twitter client");
+PROCESS(http_post_auth_process, "HTTP POST auth client");
 /*---------------------------------------------------------------------------*/
 static uint8_t
 base64_encode_6bits(uint8_t c)
@@ -123,15 +126,15 @@ base64_encode_24bits(const uint8_t inputdata[], char outputdata[], int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-twitter_post(const uint8_t *username_password, const char *msg)
+http_post_auth(const uint8_t *username_password, const char *msg)
 {
   int len;
   int i, j;
-  struct twitter_state *s;
+  struct http_post_auth_state *s;
 
-  process_exit(&twitter_process);
+  process_exit(&http_post_auth_process);
   
-  /*  s = (struct twitter_state *)memb_alloc(&conns);*/
+  /*  s = (struct http_post_auth_state *)memb_alloc(&conns);*/
   s = &conn;
   if(s == NULL) {
     PRINTF("Could not allocate memory for the tweet\n");
@@ -159,12 +162,12 @@ twitter_post(const uint8_t *username_password, const char *msg)
       PRINTF("message '%s'\n", s->message);*/
 
   /* Spawn process to deal with TCP connection */
-  process_start(&twitter_process, (char *)s);
+  process_start(&http_post_auth_process, (char *)s);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
-handle_output(struct twitter_state *s)
+handle_output(struct http_post_auth_state *s)
 {
   PSOCK_BEGIN(&s->sout);
   /* Send POST header */
@@ -178,7 +181,7 @@ handle_output(struct twitter_state *s)
   
   /* Send Agent header */
   PSOCK_SEND_STR(&s->sout, "User-Agent: Contiki 2.x\r\n");
-  PSOCK_SEND_STR(&s->sout, "Host: twitter.com\r\n");
+  PSOCK_SEND_STR(&s->sout, "Host: " HOST_NAME "\r\n");
   PSOCK_SEND_STR(&s->sout, "Accept: */*\r\n");
   
   /* Send Content length header */
@@ -202,7 +205,7 @@ handle_output(struct twitter_state *s)
 }
 /*---------------------------------------------------------------------------*/
 static int
-handle_input(struct twitter_state *s)
+handle_input(struct http_post_auth_state *s)
 {
   PSOCK_BEGIN(&s->sin);
 
@@ -212,26 +215,26 @@ handle_input(struct twitter_state *s)
 }
 /*---------------------------------------------------------------------------*/
 static void
-handle_connection(struct twitter_state *s)
+handle_connection(struct http_post_auth_state *s)
 {
   handle_input(s);
   handle_output(s);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(twitter_process, ev, data)
+PROCESS_THREAD(http_post_auth_process, ev, data)
 {
-  struct twitter_state *s = data;
+  struct http_post_auth_state *s = data;
   struct uip_conn *conn;
   
   PROCESS_BEGIN();
 
-  /* Lookup host "twitter.com" */
+  /* Lookup host */
   
   /* XXX for now, just use 128.121.146.228 */
   uip_ipaddr(&s->addr, 128,121,146,228);
 
   
-  /* Open a TCP connection to port 80 on twitter.com */
+  /* Open a TCP connection to port 80 */
   conn = tcp_connect(&s->addr, uip_htons(80), s);
   if(conn == NULL) {
     PRINTF("Could not open TCP connection\n");
@@ -243,7 +246,7 @@ PROCESS_THREAD(twitter_process, ev, data)
     PROCESS_WAIT_EVENT();
 
     if(ev == tcpip_event) {
-      struct twitter_state *s = (struct twitter_state *)data;
+      struct http_post_auth_state *s = (struct http_post_auth_state *)data;
       
       if(uip_closed() || uip_aborted() || uip_timedout()) {
 	if(uip_closed()) {
