@@ -45,12 +45,16 @@ MEMB(routememb, uip_ds6_route_t, UIP_DS6_ROUTE_NB);
 LIST(defaultrouterlist);
 MEMB(defaultroutermemb, uip_ds6_defrt_t, UIP_DS6_DEFRT_NB);
 
+#if UIP_DS6_NOTIFICATIONS
 LIST(notificationlist);
+#endif
 
+#undef DEBUG
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
+#if UIP_DS6_NOTIFICATIONS
 static void
 call_route_callback(int event, uip_ipaddr_t *route,
 		    uip_ipaddr_t *nexthop)
@@ -85,6 +89,7 @@ uip_ds6_notification_rm(struct uip_ds6_notification *n)
 {
   list_remove(notificationlist, n);
 }
+#endif
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_route_init(void)
@@ -95,7 +100,9 @@ uip_ds6_route_init(void)
   memb_init(&defaultroutermemb);
   list_init(defaultrouterlist);
 
+#if UIP_DS6_NOTIFICATIONS
   list_init(notificationlist);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
@@ -192,7 +199,9 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
   PRINTF("\n");
   ANNOTATE("#L %u 1;blue\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
 
+#if UIP_DS6_NOTIFICATIONS
   call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_ADD, ipaddr, nexthop);
+#endif
 
   return r;
 }
@@ -212,8 +221,10 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
 
       PRINTF("uip_ds6_route_rm num %d\n", list_length(routelist));
 
+#if UIP_DS6_NOTIFICATIONS
       call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
 			  &route->ipaddr, &route->nexthop);
+#endif
 #if (DEBUG & DEBUG_ANNOTATE) == DEBUG_ANNOTATE
       /* we need to check if this was the last route towards "nexthop" */
       /* if so - remove that link (annotation) */
@@ -241,8 +252,10 @@ uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
   while(r != NULL) {
     if(uip_ipaddr_cmp(&r->nexthop, nexthop)) {
       list_remove(routelist, r);
+#if UIP_DS6_NOTIFICATIONS
       call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
 			  &r->ipaddr, &r->nexthop);
+#endif
       r = list_head(routelist);
     } else {
       r = list_item_next(r);
@@ -282,7 +295,9 @@ uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
 
   ANNOTATE("#L %u 1\n", ipaddr->u8[sizeof(uip_ipaddr_t) - 1]);
 
+#if UIP_DS6_NOTIFICATIONS
   call_route_callback(UIP_DS6_NOTIFICATION_DEFRT_ADD, ipaddr, ipaddr);
+#endif
 
   return d;
 }
@@ -300,8 +315,10 @@ uip_ds6_defrt_rm(uip_ds6_defrt_t *defrt)
       list_remove(defaultrouterlist, defrt);
       memb_free(&defaultroutermemb, defrt);
       ANNOTATE("#L %u 0\n", defrt->ipaddr.u8[sizeof(uip_ipaddr_t) - 1]);
+#if UIP_DS6_NOTIFICATIONS
       call_route_callback(UIP_DS6_NOTIFICATION_DEFRT_RM,
 			  &defrt->ipaddr, &defrt->ipaddr);
+#endif
       return;
     }
   }
