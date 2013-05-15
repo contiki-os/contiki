@@ -1429,7 +1429,13 @@ extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 
 struct uip_fallback_interface {
   void (*init)(void);
-  void (*output)(void);
+  /**
+   * \retval >=0
+   * 	in case of success
+   * \retval <0
+   *	in case of failure
+   */
+  int (*output)(void);
 };
 
 #if UIP_CONF_ICMP6
