@@ -105,7 +105,9 @@
  * The structure of a network driver in Contiki.
  */
 struct network_driver {
+#ifndef DRIVER_CONF_NO_DRIVER_NAMES
   char *name;
+#endif
 
   /** Initialize the network driver */
   void (* init)(void);

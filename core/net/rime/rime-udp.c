@@ -164,7 +164,9 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver rime_udp_driver = {
+#ifndef DRIVER_CONF_NO_DRIVER_NAMES
   "rime-udp",
+#endif
   init,
   send_packet,
   input_packet,

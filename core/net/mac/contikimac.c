@@ -1065,7 +1065,9 @@ duty_cycle(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver contikimac_driver = {
+#ifndef DRIVER_CONF_NO_DRIVER_NAMES
   "ContikiMAC",
+#endif
   init,
   qsend_packet,
   qsend_list,

@@ -1019,7 +1019,9 @@ channel_check_interval(void)
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver xmac_driver =
   {
+#ifndef DRIVER_CONF_NO_DRIVER_NAMES
     "X-MAC",
+#endif
     init,
     qsend_packet,
     qsend_list,
