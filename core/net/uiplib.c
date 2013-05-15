@@ -37,6 +37,7 @@
 #include "net/uiplib.h"
 #include <string.h>
 
+#undef DEBUG
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
