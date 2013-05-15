@@ -690,7 +690,7 @@ uip_process(uint8_t flag)
 	uip_flags = UIP_POLL;
 	UIP_APPCALL();
 	goto appsend;
-#if UIP_ACTIVE_OPEN
+#if UIP_ACTIVE_OPEN && UIP_TCP
     } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
       /* In the SYN_SENT state, we retransmit out SYN. */
       BUF->flags = 0;
@@ -719,6 +719,7 @@ uip_process(uint8_t flag)
     uip_len = 0;
     uip_slen = 0;
 
+#if UIP_TCP
     /* Check if the connection is in a state in which we simply wait
        for the connection to time out. If so, we increase the
        connection's timer and remove the connection if it times
@@ -804,6 +805,7 @@ uip_process(uint8_t flag)
 	goto appsend;
       }
     }
+#endif
     goto drop;
   }
 #if UIP_UDP
@@ -951,11 +953,13 @@ uip_process(uint8_t flag)
   }
 #endif /* UIP_CONF_IPV6 */
 
+#if UIP_TCP
   if(BUF->proto == UIP_PROTO_TCP) { /* Check for TCP packet. If so,
 				       proceed with TCP input
 				       processing. */
     goto tcp_input;
   }
+#endif
 
 #if UIP_UDP
   if(BUF->proto == UIP_PROTO_UDP) {
@@ -1213,6 +1217,7 @@ uip_process(uint8_t flag)
 #endif /* UIP_UDP */
   
   /* TCP input processing. */
+#if UIP_TCP
  tcp_input:
   UIP_STAT(++uip_stat.tcp.recv);
 
@@ -1901,6 +1906,7 @@ uip_process(uint8_t flag)
   /* Calculate TCP checksum. */
   BUF->tcpchksum = 0;
   BUF->tcpchksum = ~(uip_tcpchksum());
+#endif
 
  ip_send_nolen:
 #if UIP_CONF_IPV6
