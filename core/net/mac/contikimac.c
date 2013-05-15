@@ -194,7 +194,7 @@ static int we_are_receiving_burst = 0;
 #ifdef CONTIKIMAC_CONF_INTER_PACKET_INTERVAL
 #define INTER_PACKET_INTERVAL              CONTIKIMAC_CONF_INTER_PACKET_INTERVAL
 #else
-#define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
+#define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 2500
 #endif
 
 /* AFTER_ACK_DETECTECT_WAIT_TIME is the time to wait after a potential
