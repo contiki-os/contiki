@@ -1,13 +1,13 @@
 /*
- * Contiki SeedEye Platform project
- *
- * Copyright (c) 2012,
- *  Scuola Superiore Sant'Anna (http://www.sssup.it) and
- *  Consorzio Nazionale Interuniversitario per le Telecomunicazioni
- *  (http://www.cnit.it).
+ * Remote Power Switch Example for the Seed-Eye Board
+ * Copyright (c) 2013, Giovanni Pellerano
+ * 
+ * Ownership: Scuola Superiore Sant'Anna (http://www.sssup.it) and
+ * Consorzio Nazionale Interuniversitario per le Telecomunicazioni
+ * (http://www.cnit.it).
  *
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -33,32 +33,63 @@
  * SUCH DAMAGE.
  *
  */
+ 
 /**
- * \file  platform-conf.h
- * \brief Platform configuration file for the SEEDEYE port.
- * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
- * \date   2012-06-06
+ * \addtogroup Remote Power Switch Example for the Seed-Eye Board
+ *
+ * @{
  */
 
-#ifndef __PLATFORM_CONF_H__
-#define __PLATFORM_CONF_H__
+/**
+ * \file   remotepowerswitch.c
+ * \brief  Remote Power Switch Example for the Seed-Eye Board
+ * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
+ * \date   2013-01-24
+ */
 
-#ifndef SEEDEYE_ID
-#define SEEDEYE_ID 1
-#endif /* SEEDEYE_ID */
 
-#if SEEDEYE_ID == 1
-#define MRF24J40_PAN_COORDINATOR
-#endif /* SEEDEYE_ID == 1 */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define UART_DEBUG_BAUDRATE                     115200
-#define UART_SLIP_BAUDRATE                      115200
+#include "contiki.h"
+#include "contiki-net.h"
 
-#define PLATFORM_HAS_BATTERY                    1
-#define PLATFORM_HAS_BUTTON                     1
-#define PLATFORM_HAS_LEDS                       1
-#define PLATFORM_HAS_RADIO                      1
+#include "erbium.h"
 
-#define CLOCK_CONF_SECOND                       1024
+#include "dev/leds.h"
 
-#endif /* __PLATFORM_CONF_H__ */
+#include <p32xxxx.h>
+
+RESOURCE(toggle, METHOD_GET | METHOD_PUT | METHOD_POST, "actuators/powerswitch", "title=\"Red LED\";rt=\"Control\"");
+void
+toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  leds_toggle(LEDS_RED);
+  
+  PORTEbits.RE0 = !PORTEbits.RE0;
+}
+
+PROCESS(remote_power_switch, "Remote Power Switch");
+
+AUTOSTART_PROCESSES(&remote_power_switch);
+
+PROCESS_THREAD(remote_power_switch, ev, data)
+{
+  PROCESS_BEGIN();
+
+  rest_init_engine();
+  
+  TRISEbits.TRISE0 = 0;
+  PORTEbits.RE0 = 0;
+
+  rest_activate_resource(&resource_toggle);
+
+  while(1) {
+    PROCESS_WAIT_EVENT();
+  }
+
+  PROCESS_END();
+}
+
+/** @} */
