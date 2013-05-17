@@ -7,7 +7,7 @@
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -51,8 +51,8 @@
 #define MRF24J40_PAN_COORDINATOR
 #endif /* SEEDEYE_ID == 1 */
 
-#define UART_DEBUG_BAUDRATE                     230400
-#define UART_SLIP_BAUDRATE                      230400
+#define UART_DEBUG_BAUDRATE                     115200
+#define UART_SLIP_BAUDRATE                      115200
 
 #define PLATFORM_HAS_BATTERY                    1
 #define PLATFORM_HAS_BUTTON                     1
