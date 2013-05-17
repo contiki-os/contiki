@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,43 @@
 
 /**
  * \file
- *         Header file for Contik shell command tweet
+ *         Multi-hop telnetd for the Tmote Sky
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_TWEET_H__
-#define __SHELL_TWEET_H__
-
+#include "telnetd.h"
 #include "shell.h"
 
-void shell_tweet_init(void);
+#include "contiki.h"
+#include "contiki-net.h"
+#include "net/rime.h"
+#include <stdio.h>
 
-#endif /* __SHELL_TWEET_H__ */
+/*---------------------------------------------------------------------------*/
+PROCESS(sky_telnetd_process, "Sky telnet process");
+AUTOSTART_PROCESSES(&telnetd_process, &sky_telnetd_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(sky_telnetd_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  PROCESS_PAUSE();
+
+  shell_blink_init();
+  shell_ps_init();
+  shell_ping_init();
+  shell_reboot_init();
+  shell_power_init();
+  shell_sky_init();
+  shell_text_init();
+  shell_time_init();
+  
+  while(1) {
+    PROCESS_WAIT_EVENT();
+  }
+  
+  PROCESS_END();
+    
+}
+/*---------------------------------------------------------------------------*/

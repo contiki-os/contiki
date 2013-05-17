@@ -9,7 +9,7 @@ shell_src = shell.c shell-reboot.c \
             shell-tcpsend.c shell-udpsend.c shell-ping.c shell-netstat.c \
             shell-rime-sendcmd.c shell-download.c shell-rime-neighbors.c \
             shell-rime-unicast.c \
-            shell-tweet.c shell-base64.c \
+            shell-base64.c \
             shell-netperf.c shell-memdebug.c \
 	    shell-powertrace.c shell-collect-view.c shell-crc.c
 shell_dsc = shell-dsc.c
@@ -38,9 +38,6 @@ ifndef PLATFORM_BUILD
   override telnet_src = telnet.c
 endif
 
-APPS += twitter
-include $(CONTIKI)/apps/twitter/Makefile.twitter
-
 APPS += powertrace
 include $(CONTIKI)/apps/powertrace/Makefile.powertrace
 
@@ -49,9 +46,9 @@ APPS += collect-view
 include $(CONTIKI)/apps/collect-view/Makefile.collect-view
 
 ifeq ($(TARGET),sky)
-  shell_src += shell-sky.c shell-exec.c shell-sensortweet.c
+  shell_src += shell-sky.c shell-exec.c
 endif
 
 ifeq ($(TARGET),z1)
-  shell_src += shell-sky.c shell-exec.c shell-sensortweet.c
+  shell_src += shell-sky.c shell-exec.c
 endif
