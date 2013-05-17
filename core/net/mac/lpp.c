@@ -1042,7 +1042,7 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver lpp_driver = {
-#ifndef DRIVER_CONF_NO_DRIVER_NAMES
+#ifndef RDC_CONF_NO_DRIVER_NAMES
   "LPP",
 #endif
   init,

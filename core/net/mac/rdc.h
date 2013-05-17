@@ -55,7 +55,7 @@ struct rdc_buf_list {
  * The structure of a RDC (radio duty cycling) driver in Contiki.
  */
 struct rdc_driver {
-#ifndef DRIVER_CONF_NO_DRIVER_NAMES
+#ifndef RDC_CONF_NO_DRIVER_NAMES
   char *name;
 #endif
 

@@ -260,7 +260,7 @@ channel_check_interval(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver sicslowmac_driver = {
-#ifndef DRIVER_CONF_NO_DRIVER_NAMES
+#ifndef RDC_CONF_NO_DRIVER_NAMES
   "sicslowmac",
 #endif
   init,

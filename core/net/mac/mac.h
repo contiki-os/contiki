@@ -52,7 +52,7 @@ void mac_call_sent_callback(mac_callback_t sent, void *ptr, int status, int num_
  * The structure of a MAC protocol driver in Contiki.
  */
 struct mac_driver {
-#ifndef DRIVER_CONF_NO_DRIVER_NAMES
+#ifndef MAC_CONF_NO_DRIVER_NAMES
   char *name;
 #endif
 

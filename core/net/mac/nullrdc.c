@@ -337,7 +337,7 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver nullrdc_driver = {
-#ifndef DRIVER_CONF_NO_DRIVER_NAMES
+#ifndef RDC_CONF_NO_DRIVER_NAMES
   "nullrdc",
 #endif
   init,

@@ -396,7 +396,7 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver csma_driver = {
-#ifndef DRIVER_CONF_NO_DRIVER_NAMES
+#ifndef MAC_CONF_NO_DRIVER_NAMES
   "CSMA",
 #endif
   init,
