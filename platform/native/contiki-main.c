@@ -31,6 +31,7 @@
  *
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -45,6 +46,16 @@
 
 #include "ctk/ctk.h"
 #include "ctk/ctk-curses.h"
+
+#ifdef PLATFORM_BUILD
+#include "../../apps/about/about-dsc.h"
+#include "../../apps/calc/calc-dsc.h"
+#include "../../apps/directory/directory-dsc.h"
+#include "../../apps/shell/shell-dsc.h"
+#include "../../apps/netconf/netconf-dsc.h"
+#include "../../apps/webbrowser/www-dsc.h"
+#include "program-handler.h"
+#endif /* PLATFORM_BUILD */
 
 #include "dev/serial-line.h"
 
@@ -146,11 +157,11 @@ set_rime_addr(void)
   }
 #endif
   rimeaddr_set_node_addr(&addr);
-  printf("Rime started with address ");
+  fprintf(stderr, "Rime started with address ");
   for(i = 0; i < sizeof(addr.u8) - 1; i++) {
-    printf("%d.", addr.u8[i]);
+    fprintf(stderr, "%d.", addr.u8[i]);
   }
-  printf("%d\n", addr.u8[i]);
+  fprintf(stderr, "%d\n", addr.u8[i]);
 }
 
 
@@ -163,12 +174,12 @@ main(int argc, char **argv)
 {
 #if UIP_CONF_IPV6
 #if UIP_CONF_IPV6_RPL
-  printf(CONTIKI_VERSION_STRING " started with IPV6, RPL\n");
+  fprintf(stderr, CONTIKI_VERSION_STRING " started with IPV6, RPL\n");
 #else
-  printf(CONTIKI_VERSION_STRING " started with IPV6\n");
+  fprintf(stderr, CONTIKI_VERSION_STRING " started with IPV6\n");
 #endif
 #else
-  printf(CONTIKI_VERSION_STRING " started\n");
+  fprintf(stderr, CONTIKI_VERSION_STRING " started\n");
 #endif
 
   /* crappy way of remembering and accessing argc/v */
@@ -200,7 +211,7 @@ main(int argc, char **argv)
   queuebuf_init();
 
   netstack_init();
-  printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
+  fprintf(stderr, "MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
@@ -209,25 +220,39 @@ main(int argc, char **argv)
 #ifdef __CYGWIN__
   process_start(&wpcap_process, NULL);
 #endif
-  printf("Tentative link-local IPv6 address ");
+  fprintf(stderr, "Tentative link-local IPv6 address ");
   {
     uip_ds6_addr_t *lladdr;
     int i;
     lladdr = uip_ds6_get_link_local(-1);
     for(i = 0; i < 7; ++i) {
-      printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
+      fprintf(stderr, "%02x%02x:", lladdr->ipaddr.u8[i * 2],
              lladdr->ipaddr.u8[i * 2 + 1]);
     }
     /* make it hardcoded... */
     lladdr->state = ADDR_AUTOCONF;
 
-    printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
+    fprintf(stderr, "%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
 #else
   process_start(&tcpip_process, NULL);
 #endif
 
   serial_line_init();
+
+  /* try to chroot so directory.prg will find interesting things */
+  if(chroot(".") < 0) {
+    fprintf(stderr, "Could not chroot: %s\n", strerror(errno));
+  }
+
+#ifdef PLATFORM_BUILD
+  program_handler_add(&about_dsc,     "About...",    1);
+  program_handler_add(&calc_dsc,      "Calc",        1);
+  program_handler_add(&directory_dsc, "Directory",   1);
+  program_handler_add(&shell_dsc,     "Shell",       1);
+  program_handler_add(&netconf_dsc,   "Net Config",  1);
+  program_handler_add(&www_dsc,       "Web browser", 1);
+#endif /* PLATFORM_BUILD */
 
   autostart_start(autostart_processes);
 

@@ -51,8 +51,17 @@ int select_set_callback(int fd, const struct select_callback *callback);
 /*#define CC_CONF_INLINE                 inline*/
 
 
+#ifdef __CYGWIN__
+#if _USRDLL
+#define CCIF __declspec(dllimport)
+#else /* _USRDLL */
+#define CCIF __declspec(dllexport)
+#endif /* _USRDLL */
+#define CLIF __declspec(dllexport)
+#else
 #define CCIF
 #define CLIF
+#endif
 
 /* These names are deprecated, use C99 names. */
 typedef uint8_t   u8_t;
@@ -235,6 +244,12 @@ typedef unsigned short uip_stats_t;
 #define MENUCOLOR           CTK_COLOR_WHITE  | COLOR_BG * 0x10
 #define OPENMENUCOLOR       CTK_COLOR_WHITE  | COLOR_BG * 0x10
 #define ACTIVEMENUITEMCOLOR CTK_COLOR_YELLOW | COLOR_BG * 0x10
+
+#ifdef PLATFORM_BUILD
+#define LOADER_CONF_ARCH "loader/dl-loader.h"
+#else /* PLATFORM_BUILD */
+#define LOADER_CONF_ARCH "loader/unload.h"
+#endif /* PLATFORM_BUILD */
 
 
 typedef unsigned long clock_time_t;

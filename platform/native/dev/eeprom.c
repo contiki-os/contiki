@@ -54,13 +54,13 @@ eeprom_write(eeprom_addr_t addr, unsigned char *buf, int size)
   write(f, buf, size);
   close(f);
 
-  printf("eeprom_write(addr 0x%02x, buf %p, size %d);\n", addr, buf, size);
+  fprintf(stderr, "eeprom_write(addr 0x%02x, buf %p, size %d);\n", addr, buf, size);
 
   memcpy(&eeprom[addr], buf, size);
 }
 void
 eeprom_read(eeprom_addr_t addr, unsigned char *buf, int size)
 {
-  /*  printf("eeprom_read(addr 0x%02x, buf %p, size %d);\n", addr, buf, size);*/
+  /*  fprintf(stderr, "eeprom_read(addr 0x%02x, buf %p, size %d);\n", addr, buf, size);*/
   memcpy(buf, &eeprom[addr], size);
 }

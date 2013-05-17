@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -28,60 +28,16 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * Author: Adam Dunkels <adam@sics.se>
+ * Author: Oliver Schmidt <ol.sc@web.de>
  *
+ * $Id: unload.h,v 1.1 2010/10/12 11:03:53 oliverschmidt Exp $
  */
-#include <stdio.h>
-#include "dev/beep.h"
 
-void
-beep_down(int n)
-{
-  fprintf(stderr, "beep_down(%d)\n", n);
-}
+#ifndef __UNLOAD_H__
+#define __UNLOAD_H__
 
-void
-beep_beep(int n)
-{
-  fprintf(stderr, "beep_beep(%d)\n", n);
-}
+#define LOADER_UNLOAD unload
 
-void
-beep_alarm(int alarmmode, int len)
-{
-  fprintf(stderr, "beep_alarm(%d,%d)\n", alarmmode, len);
-}
+void unload(void);
 
-void
-beep_spinup(void)
-{
-
-}
-
-void beep(void)
-{
-  fprintf(stderr, "%cbeep\n", 7); /*fflush(NULL);*/
-}
-
-
-void
-beep_off(void)
-{
-
-}
-void
-beep_on(void)
-{
-
-}
-
-void
-beep_long(clock_time_t len)
-{
-}
-
-void
-beep_quick(int n)
-{
-
-}
+#endif /* __UNLOAD_H__ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Swedish Institute of Computer Science.
+ * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,61 +27,18 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
- * Author: Adam Dunkels <adam@sics.se>
- *
  */
+#ifndef __DLLOADER_H__
+#define __DLLOADER_H__
 
-#include "contiki-conf.h"
-#include "dev/xmem.h"
+#define LOADER_LOAD(name, arg) dlloader_load(name, arg)
+#define LOADER_UNLOAD()        dlloader_unload((void *)autostart_processes)
+#define LOADER_LOAD_DSC(name)  dlloader_load_dsc(name)
+#define LOADER_UNLOAD_DSC(dsc) dlloader_unload_dsc(dsc)
 
-#include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
+CCIF int dlloader_load(char *name, char *arg);
+CCIF void dlloader_unload(void *addr);
+CCIF struct dsc *dlloader_load_dsc(char *name);
+CCIF void dlloader_unload_dsc(void *addr);
 
-#define XMEM_SIZE 1024 * 1024
-
-static unsigned char xmem[XMEM_SIZE];
-/*---------------------------------------------------------------------------*/
-int
-xmem_pwrite(const void *buf, int size, unsigned long offset)
-{
-  /*  int f;
-  char name[400];
-
-  snprintf(name, sizeof(name), "xmem.%d.%d", node_x(), node_y());
-  f = open(name, O_WRONLY | O_APPEND | O_CREAT, 0644);
-  lseek(f, addr, SEEK_SET);
-  write(f, buf, size);
-  close(f);*/
-
-  /*  fprintf(stderr, "xmem_write(offset 0x%02x, buf %p, size %l);\n", offset, buf, size);*/
-
-  memcpy(&xmem[offset], buf, size);
-  return size;
-}
-/*---------------------------------------------------------------------------*/
-int
-xmem_pread(void *buf, int size, unsigned long offset)
-{
-  /*  fprintf(stderr, "xmem_read(addr 0x%02x, buf %p, size %d);\n", addr, buf, size);*/
-  memcpy(buf, &xmem[offset], size);
-  return size;
-}
-/*---------------------------------------------------------------------------*/
-int
-xmem_erase(long nbytes, unsigned long offset)
-{
-  /*  fprintf(stderr, "xmem_read(addr 0x%02x, buf %p, size %d);\n", addr, buf, size);*/
-  memset(&xmem[offset], 0, nbytes);
-  return nbytes;
-}
-/*---------------------------------------------------------------------------*/
-void
-xmem_init(void)
-{
-
-}
-/*---------------------------------------------------------------------------*/
+#endif /* __SOLOADR_H__ */
