@@ -120,7 +120,7 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202<
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(100000, log.log("last msg: " + msg + "\n")); /* print last msg at timeout */
+      <script>TIMEOUT(500000, log.log("last msg: " + msg + "\n")); /* print last msg at timeout */
 count = 0;
 while (count++ &lt; 5) {
   /* Message from sender process to receiver process */
