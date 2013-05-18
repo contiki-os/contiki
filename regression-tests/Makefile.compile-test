@@ -44,7 +44,7 @@ define dooneexample
       $(3)-$(subst /,-,$(1))$(2).report 2>&1 && \
  (echo $(1) $(2): OK | tee $(3)-$(subst /,-,$(1))$(2).summary) || \
  (echo $(1) $(2): FAIL ಠ.ಠ | tee $(3)-$(subst /,-,$(1))$(2).summary ; \
-  tail -10 $(3)-$(subst /,-,$(1))$(2).report > $(3)-$(subst /,-,$(1))$(2).faillog))
+  tail -10 $(3)-$(subst /,-,$(1))$(2).report | tee $(3)-$(subst /,-,$(1))$(2).faillog))
 endef
 
 define doexample

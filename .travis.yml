@@ -28,6 +28,8 @@ script:
   - "make -C regression-tests/??-$BUILD_TYPE RUNALL=true summary"
 
 after_script:
+  ## Print cooja test logs
+  - "tail regression-tests/??-$BUILD_TYPE/*.testlog"
   ## Print a basic summary 
   - "echo 'Summary:'; cat regression-tests/??-$BUILD_TYPE/summary"
   - "FAILS=`grep -c -i 'fail' regression-tests/??-$BUILD_TYPE/summary`"
