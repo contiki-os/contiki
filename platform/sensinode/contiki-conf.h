@@ -209,11 +209,6 @@
 #define UIP_CONF_ROUTER                      1
 #endif
 
-/* Prevent SDCC compile error when UIP_CONF_ROUTER == 0 */
-#if !UIP_CONF_ROUTER
-#define UIP_CONF_DS6_AADDR_NBU               1
-#endif
-
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
@@ -280,5 +275,10 @@
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS     0
 #define QUEUEBUF_CONF_NUM                    8
 #endif /* UIP_CONF_IPV6 */
+
+/* Prevent SDCC compile error when UIP_CONF_ROUTER == 0 */
+#if !UIP_CONF_ROUTER
+#define UIP_CONF_DS6_AADDR_NBU               1
+#endif
 
 #endif /* __CONTIKI_CONF_H__ */
