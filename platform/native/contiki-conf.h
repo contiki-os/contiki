@@ -50,6 +50,9 @@ int select_set_callback(int fd, const struct select_callback *callback);
 #define CC_CONF_VA_ARGS                1
 /*#define CC_CONF_INLINE                 inline*/
 
+#ifndef EEPROM_CONF_SIZE
+#define EEPROM_CONF_SIZE				1024
+#endif
 
 #define CCIF
 #define CLIF

@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2013, Robert Quattlebaum
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
+ */
+
+/**
+ * \file
+ *         A very simple Contiki application showing how to read and write
+ *         data using Contiki's EEPROM API.
+ * \author
+ *         Robert Quattlebaum <darco@deepdarc.com>
+ */
+
+#include "contiki.h"
+#include "dev/eeprom.h"
+
+#include <stdio.h>              /* For printf() */
+
+/*---------------------------------------------------------------------------*/
+PROCESS(eeprom_test_process, "EEPROM Test Process");
+AUTOSTART_PROCESSES(&eeprom_test_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(eeprom_test_process, ev, data)
+{
+  static uint8_t counter = 0;
+
+  static eeprom_addr_t addr = 0;
+
+  PROCESS_BEGIN();
+
+  printf("eeprom-test: Size = %d bytes\n", EEPROM_SIZE);
+
+  /* Check to see if the EEPROM is empty */
+  for(addr = 0; addr < EEPROM_SIZE; ++addr) {
+    uint8_t byte;
+
+    eeprom_read(addr, &byte, 1);
+    if(byte != 0xFF) {
+      break;
+    }
+  }
+
+  if(addr == EEPROM_SIZE) {
+    printf("eeprom-test: EEPROM is empty. Proceding with write test...\n");
+
+    counter = 0;
+    for(addr = 0; addr < EEPROM_SIZE; ++addr) {
+      eeprom_write(addr, &counter, 1);
+      counter += 1;
+    }
+
+    counter = 0;
+    for(addr = 0; addr < EEPROM_SIZE; ++addr) {
+      uint8_t byte;
+
+      eeprom_read(addr, &byte, 1);
+      if(byte != counter) {
+        printf("eeprom-test: EEPROM write failure!\n");
+        break;
+      }
+      counter += 1;
+    }
+
+    printf("eeprom-test: EEPROM write test success!\n");
+  } else {
+    printf("eeprom-test: EEPROM is NOT empty! Skipping write test.\n");
+  }
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
