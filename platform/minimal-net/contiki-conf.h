@@ -44,6 +44,10 @@
 #define CCIF
 #define CLIF
 
+#ifndef EEPROM_CONF_SIZE
+#define EEPROM_CONF_SIZE				1024
+#endif
+
 /* These names are deprecated, use C99 names. */
 typedef uint8_t   u8_t;
 typedef uint16_t u16_t;
