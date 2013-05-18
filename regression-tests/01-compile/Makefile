@@ -15,6 +15,7 @@ hello-world/wismote \
 hello-world/z1 \
 hello-world/sensinode \
 hello-world/cc2530dk \
+eeprom-test/native \
 ipv6/rpl-border-router/econotag \
 collect/sky \
 er-rest-example/sky \
