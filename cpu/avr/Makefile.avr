@@ -131,7 +131,7 @@ $(OBJECTDIR)/%.o: %.c
 %.ko: %.o
 	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $< -o $@
 
-%.elf:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a symbols.o
+%.elf:	%.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a symbols.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
 #Allow top-level makefile to always show size even when build is up to date
 ifndef NOAVRSIZE
@@ -145,7 +145,7 @@ endif
 	$(OBJCOPY) $^ -O ihex $@
 
 # Add a namelist to the kernel
-%.out: %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+%.out: %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
 	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c

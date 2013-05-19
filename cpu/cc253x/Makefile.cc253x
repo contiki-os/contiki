@@ -156,7 +156,7 @@ $(OBJECTDIR)/%.rel: %.cS
 	$(AS) $(ASFLAGS) -o $@ $(OBJECTDIR)/$*.S
 	rm -f $(OBJECTDIR)/tmp
 
-contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) \
+contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) \
 	$(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
 	rm -f $@
 	for target in $^; do echo $$target >> $@; done
