@@ -36,7 +36,6 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
-
 #include "contiki.h"
 #include "net/rime.h"
 #include "lib/random.h"
@@ -72,11 +71,12 @@ static void
 print_rime_stats()
 {
   PRINTF("\nNetwork Stats\n");
-  PRINTF("   TX=%lu ,      RX=%lu\n", rimestats.tx, rimestats.rx);
-  PRINTF("LL-TX=%lu ,   LL-RX=%lu\n", rimestats.lltx, rimestats.llrx);
-  PRINTF(" Long=%lu ,   Short=%lu\n", rimestats.toolong, rimestats.tooshort);
-  PRINTF("T/Out=%lu , CCA-Err=%lu\n", rimestats.timedout,
-         rimestats.contentiondrop);
+  PRINTF("   TX=%lu ,      RX=%lu\n", RIMESTATS_GET(tx), RIMESTATS_GET(rx));
+  PRINTF("LL-TX=%lu ,   LL-RX=%lu\n", RIMESTATS_GET(lltx), RIMESTATS_GET(llrx));
+  PRINTF(" Long=%lu ,   Short=%lu\n", RIMESTATS_GET(toolong),
+         RIMESTATS_GET(tooshort));
+  PRINTF("T/Out=%lu , CCA-Err=%lu\n", RIMESTATS_GET(timedout),
+         RIMESTATS_GET(contentiondrop));
 }
 
 static const struct broadcast_callbacks bc_rx = { broadcast_recv };
