@@ -99,13 +99,13 @@
   void pic32_timer##XY##_stop(void);                 \
   uint32_t pic32_timer##XY##_get_val(void);
 
-#define TIMER_INTERRUPT(XX, CALLBACK)   \
-  TIMER_ISR(_TIMER_##XX##_VECTOR)       \
-  {                                     \
-    ENERGEST_ON(ENERGEST_TYPE_IRQ);     \
-    CALLBACK();                         \
-    ENERGEST_OFF(ENERGEST_TYPE_IRQ);    \
-    IFS0CLR = _IFS0_T##XX##IF_MASK;     \
+#define TIMER_INTERRUPT(XX, CALLBACK)                \
+  TIMER_ISR(_TIMER_##XX##_VECTOR)                    \
+  {                                                  \
+    ENERGEST_ON(ENERGEST_TYPE_IRQ);                  \
+    CALLBACK();                                      \
+    ENERGEST_OFF(ENERGEST_TYPE_IRQ);                 \
+    IFS0CLR = _IFS0_T##XX##IF_MASK;                  \
   }
 
 #ifdef __USE_TIMER_1__
