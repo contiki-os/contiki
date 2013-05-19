@@ -246,24 +246,24 @@ PROCESS_THREAD(test_collect_process, ev, data)
 	msg->best_neighbor_rtmetric = n->rtmetric;
       }
 
-      msg->tx = rimestats.tx;
-      msg->rx = rimestats.rx;
-      msg->reliabletx = rimestats.reliabletx;
-      msg->reliablerx = rimestats.reliablerx;
-      msg->rexmit = rimestats.rexmit;
-      msg->acktx = rimestats.acktx;
-      msg->noacktx = rimestats.noacktx;
-      msg->ackrx = rimestats.ackrx;
-      msg->timedout = rimestats.timedout;
-      msg->badackrx = rimestats.badackrx;
-      msg->toolong = rimestats.toolong;
-      msg->tooshort = rimestats.tooshort;
-      msg->badsynch = rimestats.badsynch;
-      msg->badcrc = rimestats.badcrc;
-      msg->contentiondrop = rimestats.contentiondrop;
-      msg->sendingdrop = rimestats.sendingdrop;
-      msg->lltx = rimestats.lltx;
-      msg->llrx = rimestats.llrx;
+      msg->tx = RIMESTATS_GET(tx);
+      msg->rx = RIMESTATS_GET(rx);
+      msg->reliabletx = RIMESTATS_GET(reliabletx);
+      msg->reliablerx = RIMESTATS_GET(reliablerx);
+      msg->rexmit = RIMESTATS_GET(rexmit);
+      msg->acktx = RIMESTATS_GET(acktx);
+      msg->noacktx = RIMESTATS_GET(noacktx);
+      msg->ackrx = RIMESTATS_GET(ackrx);
+      msg->timedout = RIMESTATS_GET(timedout);
+      msg->badackrx = RIMESTATS_GET(badackrx);
+      msg->toolong = RIMESTATS_GET(toolong);
+      msg->tooshort = RIMESTATS_GET(tooshort);
+      msg->badsynch = RIMESTATS_GET(badsynch);
+      msg->badcrc = RIMESTATS_GET(badcrc);
+      msg->contentiondrop = RIMESTATS_GET(contentiondrop);
+      msg->sendingdrop = RIMESTATS_GET(sendingdrop);
+      msg->lltx = RIMESTATS_GET(lltx);
+      msg->llrx = RIMESTATS_GET(llrx);
 #if TIMESYNCH_CONF_ENABLED
       msg->timestamp = timesynch_time();
 #else
