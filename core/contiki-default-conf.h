@@ -183,6 +183,23 @@
  * on the target platform, and are therefore platform-specific.
  */
 
+/**
+ * Timeout for packet reassembly at the 6lowpan layer
+ * (should be < 60s)
+ */
+#ifdef SICSLOWPAN_CONF_MAXAGE
+#define SICSLOWPAN_REASS_MAXAGE (SICSLOWPAN_CONF_MAXAGE)
+#else
+#define SICSLOWPAN_REASS_MAXAGE 20
+#endif
+
+/**
+ * If we use IPHC compression, how many address contexts do we support
+ */
+#ifndef SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
+#endif
+
 /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS specifies how many times the
    MAC layer should resend packets if no link-layer ACK was
    received. This only makes sense with the csma_driver
