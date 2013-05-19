@@ -176,8 +176,13 @@
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
 
+#ifndef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 1  
+#endif
+
+#ifndef UIP_CONF_IPV6_RPL
 #define UIP_CONF_IPV6_RPL               1
+#endif
 
 #define UIP_CONF_DS6_NBR_NBU     30
 #define UIP_CONF_MAX_ROUTES   30
