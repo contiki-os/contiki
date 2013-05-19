@@ -222,6 +222,19 @@
 /** Minimum number of default routers */
 #define UIP_CONF_DS6_DEFRT_NBU       2
 #endif
+
+/* UIP_CONF_MAX_ROUTES specifies the maximum number of routes that each
+   node will be able to handle. */
+#ifndef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES 20
+#endif /* UIP_CONF_MAX_ROUTES */
+
+/* UIP_CONF_IPV6_RPL specifies if RPL is to be used for IPv6
+   routing. */
+#ifndef UIP_CONF_IPV6_RPL
+#define UIP_CONF_IPV6_RPL 1
+#endif /* UIP_CONF_IPV6_RPL */
+
 /** @} */
 
 /*------------------------------------------------------------------------------*/
@@ -413,6 +426,13 @@
 #else
 #define UIP_TIME_WAIT_TIMEOUT UIP_CONF_WAIT_TIMEOUT
 #endif
+
+/* UIP_CONF_TCP_SPLIT enables a performance optimization hack, where
+   each maximum-sized TCP segment is split into two, to avoid the
+   performance degradation that is caused by delayed ACKs. */
+#ifndef UIP_CONF_TCP_SPLIT
+#define UIP_CONF_TCP_SPLIT 0
+#endif /* UIP_CONF_TCP_SPLIT */
 
 /** @} */
 /*------------------------------------------------------------------------------*/

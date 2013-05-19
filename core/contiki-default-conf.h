@@ -105,18 +105,6 @@
 #define QUEUEBUF_CONF_NUM 8
 #endif /* QUEUEBUF_CONF_NUM */
 /*---------------------------------------------------------------------------*/
-/* uIPv6 configuration options.
- *
- * Many of the uIPv6 configuration options can be overriden by a
- * project-specific configuration to save memory.
- */
-
-/* UIP_CONF_IPV6 specifies whether or not IPv6 should be used. If IPv6
-   is not used, IPv4 is used instead. */
-#ifndef UIP_CONF_IPV6
-#define UIP_CONF_IPV6 0
-#endif /* UIP_CONF_IPV6 */
-
 /* UIP_CONF_BUFFER_SIZE specifies how much memory should be reserved
    for the uIP packet buffer. This sets an upper bound on the largest
    IP packet that can be received by the system. */
@@ -129,51 +117,6 @@
 #ifndef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER 1
 #endif /* UIP_CONF_ROUTER */
-
-/* UIP_CONF_IPV6_RPL specifies if RPL is to be used for IPv6
-   routing. */
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL 1
-#endif /* UIP_CONF_IPV6_RPL */
-
-/* UIP_CONF_MAX_ROUTES specifies the maximum number of routes that each
-   node will be able to handle. */
-#ifndef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES 20
-#endif /* UIP_CONF_MAX_ROUTES */
-
-/* UIP_CONF_UDP specifies if UDP support should be included or
-   not. Disabling UDP saves memory but breaks a lot of stuff. */
-#ifndef UIP_CONF_UDP
-#define UIP_CONF_UDP 1
-#endif /* UIP_CONF_UDP */
-
-/* UIP_CONF_MAX_CONNECTIONS specifies the maximum number of
-   simultaneous TCP connections. */
-#ifndef UIP_CONF_MAX_CONNECTIONS
-#define UIP_CONF_MAX_CONNECTIONS 8
-#endif /* UIP_CONF_MAX_CONNECTIONS */
-
-/* UIP_CONF_TCP specifies if TCP support should be included or
-   not. Disabling TCP saves memory. */
-#ifndef UIP_CONF_TCP
-#define UIP_CONF_TCP 1
-#endif /* UIP_CONF_TCP */
-
-/* UIP_CONF_MAX_CONNECTIONS specifies the maximum number of
-   simultaneous TCP connections. */
-#ifndef UIP_CONF_MAX_CONNECTIONS
-#define UIP_CONF_MAX_CONNECTIONS 8
-#endif /* UIP_CONF_MAX_CONNECTIONS */
-
-
-/* UIP_CONF_TCP_SPLIT enables a performance optimization hack, where
-   each maximum-sized TCP segment is split into two, to avoid the
-   performance degradation that is caused by delayed ACKs. */
-#ifndef UIP_CONF_TCP_SPLIT
-#define UIP_CONF_TCP_SPLIT 0
-#endif /* UIP_CONF_TCP_SPLIT */
-
 
 /*---------------------------------------------------------------------------*/
 /* 6lowpan configuration options.
