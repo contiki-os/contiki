@@ -635,6 +635,8 @@ mdns_prep_host_announce_packet(void)
 
   memcpy((void *)queryptr, (void *)&nsec_record, sizeof(nsec_record));
 
+  queryptr += sizeof(nsec_record);
+
   /* This platform might be picky about alignment. To avoid the possibility
    * of doing an unaligned write, we are going to do this manually. */
   ((uint8_t*)&hdr->numanswers)[1] = total_answers;
