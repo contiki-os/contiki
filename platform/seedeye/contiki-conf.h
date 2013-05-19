@@ -104,6 +104,8 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_RETRANS_TIMER              10000
 
 
+#define UIP_CONF_BUFFER_SIZE                    240
+
 #ifndef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM                       16
 #endif /* QUEUEBUF_CONF_NUM */
