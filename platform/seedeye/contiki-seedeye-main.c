@@ -115,10 +115,10 @@ main(int argc, char **argv)
   dbg_setup_uart(UART_DEBUG_BAUDRATE);
   
   PRINTF("Initialising Node: %d\n", SEEDEYE_ID);
-  
-  printf("CPU Clock: %uMhz\n", pic32_clock_get_system_clock() / 1000000);
-  printf("Peripheral Clock: %uMhz\n", pic32_clock_get_peripheral_clock() / 1000000);
-  
+
+  PRINTF("CPU Clock: %uMhz\n", pic32_clock_get_system_clock() / 1000000);
+  PRINTF("Peripheral Clock: %uMhz\n", pic32_clock_get_peripheral_clock() / 1000000);
+ 
   random_init(SEEDEYE_ID);
 
   process_init();
