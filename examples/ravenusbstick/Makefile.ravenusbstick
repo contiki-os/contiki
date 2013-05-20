@@ -6,6 +6,8 @@ all: ravenusbstick
 CONTIKI_NO_NET=1
 #UIP_CONF_IPV6=1
 
+CFLAGS=-DUIP_CONF_IPV6=0 -DUIP_CONF_IPV6_RPL=0
+
 CONTIKI = ../..
 
 include $(CONTIKI)/Makefile.include
