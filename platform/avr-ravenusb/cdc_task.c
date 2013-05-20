@@ -601,18 +601,17 @@ extern uip_ds6_netif_t uip_ds6_if;
 				}
 				if (j) PRINTF_P(PSTR("  <none>"));
 				PRINTF_P(PSTR("\n\rRoutes [%u max]\n\r"),UIP_DS6_ROUTE_NB);
-				for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
-					if(uip_ds6_routing_table[i].isused) {
-						ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-						PRINTF_P(PSTR("/%u (via "), uip_ds6_routing_table[i].length);
-						ipaddr_add(&uip_ds6_routing_table[i].nexthop);
-						if(uip_ds6_routing_table[i].state.lifetime < 600) {
-							PRINTF_P(PSTR(") %lus\n\r"), uip_ds6_routing_table[i].state.lifetime);
-						} else {
-							PRINTF_P(PSTR(")\n\r"));
-						}
-						j=0;
+				uip_ds6_route_t *route;
+				for(route = uip_ds6_route_list_head(),j=1; route != NULL; route = list_item_next(route)) {
+					ipaddr_add(&route->ipaddr);
+					PRINTF_P(PSTR("/%u (via "), route->length);
+					ipaddr_add(&route->nexthop);
+					if(route->state.lifetime < 600) {
+						PRINTF_P(PSTR(") %lus\n\r"), route->state.lifetime);
+					 } else {
+						PRINTF_P(PSTR(")\n\r"));
 					}
+					j=0;
 				}
 				if (j) PRINTF_P(PSTR("  <none>"));
 				PRINTF_P(PSTR("\n\r---------\n\r"));
@@ -629,13 +628,8 @@ extern uip_ds6_netif_t uip_ds6_if;
                  break;
  
             case 'Z':     //zap the routing table           
-            {   uint8_t i; 
-				for (i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-					uip_ds6_routing_table[i].isused=0;
-                }
-                PRINTF_P(PSTR("Routing table cleared!\n\r")); 
+                PRINTF_P(PSTR("Not implemented.\n\r"));
                 break;
-            }
 #endif				
 			
 			case 'm':
