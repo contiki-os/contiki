@@ -33,6 +33,11 @@
  *
  */
 
+#include "net/uip.h"
+#include "net/uipopt.h"
+
+#if !UIP_CONF_IPV6
+
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -198,3 +203,5 @@ tapdev_exit(void)
 {
 }
 /*---------------------------------------------------------------------------*/
+
+#endif /* !UIP_CONF_IPV6 */
