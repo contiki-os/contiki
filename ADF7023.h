@@ -398,4 +398,13 @@ void ADF7023_ReceivePacket(unsigned char* packet, unsigned char* length);
 /* Transmits one packet. */
 void ADF7023_TransmitPacket(unsigned char* packet, unsigned char length);
 
+/* Sets the channel frequency. */
+void ADF7023_SetChannelFrequency(unsigned long chFreq);
+
+/* Sets the data rate. */
+void ADF7023_SetDataRate(unsigned long dataRate);
+
+/* Sets the frequency deviation. */
+void ADF7023_SetFrequencyDeviation(unsigned long freqDev);
+
 #endif // __ADF7023_H__

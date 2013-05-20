@@ -72,18 +72,18 @@ struct ADF7023_BBRAM ADF7023_BBRAMDefault =
     /* swmRssiThresh - 0x108 */
     0x31,
     /* channelFreq0 - 0x109 */
-    0x3B,
+    0x51, // Channel Frequency: 433 MHz
     /* channelFreq1 - 0x10A */
-    0x31,
+    0xA7, // Channel Frequency: 433 MHz
     /* channelFreq2 - 0x10B */
-    0x23,
+    0x10, // Channel Frequency: 433 MHz
     /* radioCfg0 - 0x10C */
-    BBRAM_RADIO_CFG_0_DATA_RATE_7_0(0xF4),
+    BBRAM_RADIO_CFG_0_DATA_RATE_7_0(0xE8),        // Data rate: 100 kbps
     /* radioCfg1 - 0x10D */
-    BBRAM_RADIO_CFG_1_FREQ_DEVIATION_11_8(1) |
-    BBRAM_RADIO_CFG_1_DATA_RATE_11_8(1),
+    BBRAM_RADIO_CFG_1_FREQ_DEVIATION_11_8(0x00) | // Frequency deviation: 25 Hz
+    BBRAM_RADIO_CFG_1_DATA_RATE_11_8(0x03),       // Data rate: 100 kbps
     /* radioCfg2 - 0x10E */
-    BBRAM_RADIO_CFG_2_FREQ_DEVIATION_7_0(0xF4),
+    BBRAM_RADIO_CFG_2_FREQ_DEVIATION_7_0(0xFA),  // Frequency deviation: 25 Hz
     /* radioCfg3 - 0x10F */
     0x31,
     /* radioCfg4 - 0x110 */
