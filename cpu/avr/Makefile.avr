@@ -192,17 +192,23 @@ endif
 
 ### Upload image
 #Let avrdude use defaults if port or programmer not defined
+AVRDUDE ?= avrdude
 ifdef AVRDUDE_PORT
  AVRDUDE_PORT:=-P $(AVRDUDE_PORT)
 endif
 ifdef AVRDUDE_PROGRAMMER
  AVRDUDE_PROGRAMMER:=-c $(AVRDUDE_PROGRAMMER)
 endif
+ifdef AVRDUDE_MCU
+ AVRDUDE_MCU:=-p $(AVRDUDE_MCU)
+else
+ AVRDUDE_MCU:=-p $(MCU)
+endif
 %.u: %.hex
-	avrdude $(AVRDUDE_OPTIONS) $(AVRDUDE_PORT) $(AVRDUDE_PROGRAMMER) -p $(MCU) -U flash:w:$<
+	$(AVRDUDE) $(AVRDUDE_MCU) $(AVRDUDE_OPTIONS) $(AVRDUDE_PORT) $(AVRDUDE_PROGRAMMER) -U flash:w:$<
 
 %.eu: %.eep
-	avrdude ${AVRDUDE_OPTIONS} -P ${AVRDUDE_PORT} -c ${AVRDUDE_PROGRAMMER} -p ${MCU} -U eeprom:w:$<
+	$(AVRDUDE) $(AVRDUDE_MCU) ${AVRDUDE_OPTIONS} ${AVRDUDE_PORT} ${AVRDUDE_PROGRAMMER} -U eeprom:w:$<
 
 symbols.c:
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
