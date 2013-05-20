@@ -2,6 +2,8 @@ CONTIKI_TARGET_DIRS = . apps net loader dev/usb dev/serial
 CONTIKI_CORE=contiki-raven-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
+BOOTLOADER_START = 0x1F000
+
 #USB Ethernet Interface + USB Serial Port TX Only
 USB       = uart_usb_lib.c   \
             cdc_task.c       \
