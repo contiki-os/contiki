@@ -96,6 +96,12 @@
 #endif /* NETSTACK_CONF_FRAMER */
 #endif /* NETSTACK_FRAMER */
 
+#ifdef NETSTACK_CONF_DRIVER_NAMES
+#define NETSTACK_DRIVER_NAMES NETSTACK_CONF_DRIVER_NAMES
+#else
+#define NETSTACK_DRIVER_NAMES 1
+#endif
+
 #include "net/mac/mac.h"
 #include "net/mac/rdc.h"
 #include "net/mac/framer.h"
@@ -105,7 +111,7 @@
  * The structure of a network driver in Contiki.
  */
 struct network_driver {
-#ifndef NETSTACK_CONF_NO_DRIVER_NAMES
+#if NETSTACK_DRIVER_NAMES
   char *name;
 #endif
 

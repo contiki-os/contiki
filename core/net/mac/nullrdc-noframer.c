@@ -100,7 +100,7 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver nullrdc_noframer_driver = {
-#ifndef RDC_CONF_NO_DRIVER_NAMES
+#if RDC_DRIVER_NAMES
   "nullrdc-noframer",
 #endif
   init,

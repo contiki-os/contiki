@@ -1879,7 +1879,7 @@ sicslowpan_init(void)
 }
 /*--------------------------------------------------------------------*/
 const struct network_driver sicslowpan_driver = {
-#ifndef NETSTACK_CONF_NO_DRIVER_NAMES
+#if NETSTACK_DRIVER_NAMES
   "sicslowpan",
 #endif
   sicslowpan_init,

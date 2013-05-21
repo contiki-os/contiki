@@ -78,7 +78,7 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver nullmac_driver = {
-#ifndef MAC_CONF_NO_DRIVER_NAMES
+#if MAC_DRIVER_NAMES
   "nullmac",
 #endif
   init,

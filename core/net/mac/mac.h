@@ -43,6 +43,11 @@
 #include "contiki-conf.h"
 #include "dev/radio.h"
 
+#ifdef MAC_CONF_DRIVER_NAMES
+#define MAC_DRIVER_NAMES MAC_CONF_DRIVER_NAMES
+#else
+#define MAC_DRIVER_NAMES 1
+#endif
 
 typedef void (* mac_callback_t)(void *ptr, int status, int transmissions);
 
@@ -52,7 +57,7 @@ void mac_call_sent_callback(mac_callback_t sent, void *ptr, int status, int num_
  * The structure of a MAC protocol driver in Contiki.
  */
 struct mac_driver {
-#ifndef MAC_CONF_NO_DRIVER_NAMES
+#if MAC_DRIVER_NAMES
   char *name;
 #endif
 

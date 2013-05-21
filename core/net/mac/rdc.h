@@ -44,6 +44,12 @@
 #include "contiki-conf.h"
 #include "net/mac/mac.h"
 
+#ifdef RDC_CONF_DRIVER_NAMES
+#define RDC_DRIVER_NAMES RDC_CONF_DRIVER_NAMES
+#else
+#define RDC_DRIVER_NAMES 1
+#endif
+
 /* List of packets to be sent by RDC layer */
 struct rdc_buf_list {
   struct rdc_buf_list *next;
@@ -55,7 +61,7 @@ struct rdc_buf_list {
  * The structure of a RDC (radio duty cycling) driver in Contiki.
  */
 struct rdc_driver {
-#ifndef RDC_CONF_NO_DRIVER_NAMES
+#if RDC_DRIVER_NAMES
   char *name;
 #endif
 
