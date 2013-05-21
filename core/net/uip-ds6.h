@@ -380,6 +380,6 @@ uint32_t uip_ds6_compute_reachable_time(void); /** \brief compute random reachab
  *     A reference to the neighbor about to expire the next or NULL if
  *     table is empty.
  */
-uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor();
+uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
 
 #endif /* __UIP_DS6_H__ */

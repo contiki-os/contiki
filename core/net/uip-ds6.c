@@ -876,8 +876,8 @@ uip_ds6_compute_reachable_time(void)
                 UIP_ND6_MIN_RANDOM_FACTOR(uip_ds6_if.base_reachable_time));
 }
 /*---------------------------------------------------------------------------*/
-uip_ds6_nbr_t*
-uip_ds6_get_least_lifetime_neighbor()
+uip_ds6_nbr_t *
+uip_ds6_get_least_lifetime_neighbor(void)
 {
   uip_ds6_nbr_t *nbr_expiring = NULL;
   uint8_t i;
