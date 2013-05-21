@@ -34,7 +34,13 @@
 
 void uip_ds6_route_init(void);
 
+#ifndef UIP_CONF_UIP_DS6_NOTIFICATIONS
+#define UIP_DS6_NOTIFICATIONS 1
+#else
+#define UIP_DS6_NOTIFICATIONS UIP_CONF_UIP_DS6_NOTIFICATIONS
+#endif
 
+#if UIP_DS6_NOTIFICATIONS
 /* Event constants for the uip-ds6 route notification interface. The
    notification interface allows for a user program to be notified via
    a callback when a route has been added or removed and when the
@@ -55,8 +61,10 @@ struct uip_ds6_notification {
 
 void uip_ds6_notification_add(struct uip_ds6_notification *n,
 			      uip_ds6_notification_callback c);
-/*--------------------------------------------------*/
 
+void uip_ds6_notification_rm(struct uip_ds6_notification *n);
+/*--------------------------------------------------*/
+#endif
 
 /* Routing table */
 #ifndef UIP_CONF_MAX_ROUTES
