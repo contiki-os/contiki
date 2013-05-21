@@ -95,35 +95,35 @@
  *
  *	- darco (11-15-2010)
  */
-#define LedRX_on()          Led1_on()
-#define LedRX_off()         Led1_off()
+#define jackdaw_led_RX_on()          Led1_on()
+#define jackdaw_led_RX_off()         Led1_off()
 
-#define LedTX_on()          Led2_on()
-#define LedTX_off()         Led2_off()
+#define jackdaw_led_TX_on()          Led2_on()
+#define jackdaw_led_TX_off()         Led2_off()
 
-#define LedSTAT_on()        Led3_on()
-#define LedSTAT_off()       Led3_off()
-#define LedSTAT_toggle()    Led3_toggle()
+#define jackdaw_led_STAT_on()        Led3_on()
+#define jackdaw_led_STAT_off()       Led3_off()
+#define jackdaw_led_STAT_toggle()    Led3_toggle()
 
-#define LedVCP_on()         Led0_on()
-#define LedVCP_off()        Led0_off()
-#define LedVCP_toggle()     Led0_toggle()
+#define jackdaw_led_VCP_on()         Led0_on()
+#define jackdaw_led_VCP_off()        Led0_off()
+#define jackdaw_led_VCP_toggle()     Led0_toggle()
 
 #else /* !(I_HATE_BLUE_LEDS || JACKDAW_CONF_ALT_LED_SCHEME) */
 
-#define LedRX_on()          Led1_on()
-#define LedRX_off()         Led1_off()
+#define jackdaw_led_RX_on()          Led1_on()
+#define jackdaw_led_RX_off()         Led1_off()
 
-#define LedTX_on()          Led2_on()
-#define LedTX_off()         Led2_off()
+#define jackdaw_led_TX_on()          Led2_on()
+#define jackdaw_led_TX_off()         Led2_off()
 
-#define LedSTAT_on()        Led0_on()
-#define LedSTAT_off()       Led0_off()
-#define LedSTAT_toggle()    Led0_toggle()
+#define jackdaw_led_STAT_on()        Led0_on()
+#define jackdaw_led_STAT_off()       Led0_off()
+#define jackdaw_led_STAT_toggle()    Led0_toggle()
 
-#define LedVCP_on()         Led3_on()
-#define LedVCP_off()        Led3_off()
-#define LedVCP_toggle()     Led3_toggle()
+#define jackdaw_led_VCP_on()         Led3_on()
+#define jackdaw_led_VCP_off()        Led3_off()
+#define jackdaw_led_VCP_toggle()     Led3_toggle()
 
 #endif /* !(I_HATE_BLUE_LEDS || JACKDAW_CONF_ALT_LED_SCHEME) */
 

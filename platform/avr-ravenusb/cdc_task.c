@@ -747,14 +747,14 @@ uint16_t p=(uint16_t)&__bss_end;
 							accRSSI[i-11]+=RSSI;
 						}
 						if(j&(1<<7)) {
-							LedVCP_on();
+							jackdaw_led_VCP_on();
 							if(!(j&((1<<7)-1))) {
 								PRINTF_P(PSTR("."));
 								uart_usb_flush();
 							}
 						}
 						else
-							LedVCP_off();
+							jackdaw_led_VCP_off();
 						watchdog_periodic();
 					}
 #if RF230BB
