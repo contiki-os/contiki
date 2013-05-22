@@ -33,7 +33,7 @@ CFLAGS += -DMACID=$(nodemac)
 endif
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
-CONTIKI_TARGET_SOURCEFILES += i2cmaster.c adxl345.c
+CONTIKI_TARGET_SOURCEFILES += i2cmaster.c adxl345.c tlc59116.c
 
 MCU=msp430f2617
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
