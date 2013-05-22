@@ -1,7 +1,6 @@
 /** \example example-program.c */
 /** \example example-pollhandler.c */
 /** \example example-list.c */
-/** \example example-packet-drv.c */
 /** \example example-psock-server.c */
 
 /** \example multi-threading.c */
