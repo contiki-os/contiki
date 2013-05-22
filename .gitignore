@@ -27,6 +27,9 @@
 summary
 *.summary
 *.faillog
+*.orig
+*~
+.DS_Store
 obj_*
 symbols.*
 Makefile.target
