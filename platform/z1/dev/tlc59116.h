@@ -33,6 +33,7 @@
 /**
  * \file
  *         Device drivers header file for TLC59116 i2c led driver on Zolertia Z1.
+ *         See http://www.ti.com/product/tlc59116 for datasheet.
  * \author
  *         Jelmer Tiete, VUB <jelmer@tiete.be>
  */
