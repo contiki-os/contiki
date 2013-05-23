@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         Device drivers for tlc5916 led driver in Zolertia Z1.
+ *         Device drivers for tlc5916 i2c led driver on Zolertia Z1.
  * \author
  *         Jelmer Tiete, VUB <jelmer@tiete.be>
  */
@@ -42,14 +42,6 @@
 #include "contiki.h"
 #include "tlc59116.h"
 #include "i2cmaster.h"
-
-
-#if 0
-#include <stdio.h>
-#define PRINTFDEBUG(...) printf(__VA_ARGS__)
-#else
-#define PRINTFDEBUG(...)
-#endif
 
 
 /*---------------------------------------------------------------------------*/
@@ -74,8 +66,8 @@ tlc59116_write_reg(uint8_t reg, uint8_t val) {
 /*---------------------------------------------------------------------------*/
 /* Write several registers from a stream.
     args:
-      len       number of bytes to read
-      data      pointer to where the data is read from
+      len       number of bytes to write
+      data      pointer to where the data is written from
 
   First byte in stream must be the register address to begin writing to.
   The data is then written from second byte and increasing. */
@@ -86,7 +78,7 @@ tlc59116_write_stream(uint8_t len, uint8_t *data) {
   while (i2c_busy());
   PRINTFDEBUG("I2C Ready to TX(stream)\n");
 
-  i2c_transmit_n(len, data);	// start tx and send conf reg 
+  i2c_transmit_n(len, data);	// start tx and send conf reg
   while (i2c_busy());
   PRINTFDEBUG("WRITE_STR %u B to 0x%02X\n", len, data[0]);
 }
@@ -146,21 +138,22 @@ tlc59116_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto) {
 }
 
 /*---------------------------------------------------------------------------*/
-/* Set pwm value for individual led
-    */
+/* Set pwm value for individual led. Make sure PWM mode is enabled.
+*/
 
 void
 tlc59116_led(uint8_t led, uint8_t pwm) {
   if (led<0 | led>15) {
     PRINTFDEBUG("TLC59116: wrong led value.");
-  }//else{
+  }else{
   tlc59116_write_reg(led+TLC59116_PWM0, pwm);
-//  }
+  }
 }
 
 /*---------------------------------------------------------------------------*/
 /* Init the led driver: ports, pins, registers, interrupts (none enabled), I2C,
-    default threshold values etc. */
+    default threshold values etc.
+*/
 
 void
 tlc59116_init(void) {
@@ -171,10 +164,14 @@ tlc59116_init(void) {
   tlc59116_write_reg(TLC59116_MODE1, TLC59116_MODE1_DEFAULT);
   tlc59116_write_reg(TLC59116_MODE2, TLC59116_MODE2_DEFAULT);
 
+  /*Set all PWM values to 0x00 (off)*/
+  //This would maybe be better with a SWRST
+  uint8_t tx_buf[] = {TLC59116_PWM0_AUTOINCR,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  tlc59116_write_stream(17,&tx_buf);
+
   /* set all leds to PWM control */
   tlc59116_write_reg(TLC59116_LEDOUT0,TLC59116_LEDOUT_PWM);
   tlc59116_write_reg(TLC59116_LEDOUT1,TLC59116_LEDOUT_PWM);
   tlc59116_write_reg(TLC59116_LEDOUT2,TLC59116_LEDOUT_PWM);
   tlc59116_write_reg(TLC59116_LEDOUT3,TLC59116_LEDOUT_PWM);
 }
-

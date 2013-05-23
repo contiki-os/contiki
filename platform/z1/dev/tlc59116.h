@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         Device drivers header file for TLC59116 led driver in Zolertia Z1.
+ *         Device drivers header file for TLC59116 i2c led driver on Zolertia Z1.
  * \author
  *         Jelmer Tiete, VUB <jelmer@tiete.be>
  */
@@ -41,6 +41,14 @@
 #define __TLC59116_H__
 #include <stdio.h>
 #include "dev/i2cmaster.h"
+
+#if 0
+#include <stdio.h>
+#define PRINTFDEBUG(...) printf(__VA_ARGS__)
+#else
+#define PRINTFDEBUG(...)
+#endif
+
 
 /* -------------------------------------------------------------------------- */
 /* Init the led driver: ports, pins, registers, I2C*/
@@ -59,7 +67,8 @@ void    tlc59116_write_reg(uint8_t reg, uint8_t val);
       data      pointer to where the data is read from
   First byte in stream must be the register address to begin writing to.
   The data is then written from the second byte and increasing. The address byte
-  is not included in length len. */
+  is not included in length len.
+*/
 void    tlc59116_write_stream(uint8_t len, uint8_t *data);
 
 /* Read one register.
@@ -77,12 +86,11 @@ uint8_t    tlc59116_read_reg(uint8_t reg);
 */
 void    tlc59116_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto);
 
-/* Set pwm value for individual led 
+/* Set pwm value for individual led
     args:
-      led       led output -> 1 till 16
+      led       led output -> 0 till 15
       pwm       led pwm value
 */
-
 void    tlc59116_led(uint8_t led, uint8_t pwm);
 
 
@@ -90,19 +98,20 @@ void    tlc59116_led(uint8_t led, uint8_t pwm);
 /* Application definitions, change if required by application. */
 
 /* Suggested defaults according to the data sheet etc */
-#define TLC59116_MODE1_DEFAULT      0x80    //
-#define TLC59116_MODE2_DEFAULT      0x00    //
+#define TLC59116_MODE1_DEFAULT   0x80    //
+#define TLC59116_MODE2_DEFAULT   0x00    //
+
+#define TLC59116_LEDOUT_PWM      0xAA // LDRx = 01 -> PWM, 4 leds per reg: 01010101 -> 0xAA
 
 /* -------------------------------------------------------------------------- */
 /* Reference definitions, should not be changed */
 /* TLC59116 slave address */
-#define TLC59116_ADDR            0x60 //7bit adress  0xC0 8bit adress; adress with all adress pins pulled to ground
-//#define TLC59116_ALLCALL	 0xD0
-#define TLC59116_LEDOUT_PWM	 0xAA // LDRx = 01 -> PWM, 4 leds per reg: 01010101 -> 0xAA
-
+#define TLC59116_ADDR            0x60 //7bit adress, 8bit write adress: 0xC0
+                                      //address with all address pins pulled to ground
 /* TLC59116 registers */
 #define TLC59116_MODE1           0x00
 #define TLC59116_MODE2           0x01
+#define TLC59116_PWM0_AUTOINCR   0xA2 //
 #define TLC59116_PWM0            0x02
 #define TLC59116_PWM1            0x03
 #define TLC59116_PWM2            0x04
@@ -126,7 +135,7 @@ void    tlc59116_led(uint8_t led, uint8_t pwm);
 #define TLC59116_LEDOUT2         0x16
 #define TLC59116_LEDOUT3         0x17
 
-/* More registers, but not used in this implementation */
+/* More registers follow, but not used in this implementation */
 
 /* -------------------------------------------------------------------------- */
 #endif /* ifndef __ADXL345_H__ */

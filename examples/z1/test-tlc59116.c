@@ -33,6 +33,7 @@
 /**
  * \file
  *         A simple program for testing the TLC59116 I2C led driver.
+ *         All 16 outputs will sequencially light up.
  * \author
  *         Jelmer Tiete, VUB <jelmer@tiete.be>
  */
@@ -57,7 +58,7 @@ PROCESS_THREAD(tlc59116_process, ev, data) {
   PROCESS_BEGIN();
   {
 
-    /* Start and setup the led driver with default values, eg outputs on and pwm enabled. */
+    /* Start and setup the led driver with default values, eg outputs on and pwm enabled and 0. */
     tlc59116_init();
 
     while (1) {
@@ -78,4 +79,3 @@ PROCESS_THREAD(tlc59116_process, ev, data) {
 }
 
 /*---------------------------------------------------------------------------*/
-
