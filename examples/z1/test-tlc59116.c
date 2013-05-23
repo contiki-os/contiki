@@ -41,7 +41,7 @@
 #include "contiki.h"
 #include "dev/tlc59116.h"
 
-#define BLINK_INTERVAL        CLOCK_SECOND/2
+#define BLINK_INTERVAL        CLOCK_SECOND/25
 
 /*---------------------------------------------------------------------------*/
 PROCESS(tlc59116_process, "Test tlc59116 process");
@@ -51,6 +51,7 @@ AUTOSTART_PROCESSES(&tlc59116_process);
 /* Main process, setups  */
 
 static struct etimer et;
+static uint8_t count = 0;
 
 PROCESS_THREAD(tlc59116_process, ev, data) {
   PROCESS_BEGIN();
@@ -61,8 +62,14 @@ PROCESS_THREAD(tlc59116_process, ev, data) {
 
     while (1) {
 
-      tlc59116_led(0x02,0xFF);
-printf("Ping.\n");
+      tlc59116_led(count,0x00);
+      tlc59116_led((count+1)%16,0x20);
+      tlc59116_led((count+2)%16,0x40);
+      tlc59116_led((count+3)%16,0xFF);
+
+      count++;
+      if(count>15) count=0;
+
       etimer_set(&et, BLINK_INTERVAL);
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     }

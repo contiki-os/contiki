@@ -43,6 +43,15 @@
 #include "tlc59116.h"
 #include "i2cmaster.h"
 
+
+#if 0
+#include <stdio.h>
+#define PRINTFDEBUG(...) printf(__VA_ARGS__)
+#else
+#define PRINTFDEBUG(...)
+#endif
+
+
 /*---------------------------------------------------------------------------*/
 /* Write to a register.
     args:
@@ -142,11 +151,11 @@ tlc59116_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto) {
 
 void
 tlc59116_led(uint8_t led, uint8_t pwm) {
-  if (led<1 | led>16) {
+  if (led<0 | led>15) {
     PRINTFDEBUG("TLC59116: wrong led value.");
-  }
-
-  tlc59116_write_reg(led, pwm);
+  }//else{
+  tlc59116_write_reg(led+TLC59116_PWM0, pwm);
+//  }
 }
 
 /*---------------------------------------------------------------------------*/
