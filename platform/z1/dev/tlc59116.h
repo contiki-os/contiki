@@ -96,8 +96,8 @@ void    tlc59116_led(uint8_t led, uint8_t pwm);
 /* -------------------------------------------------------------------------- */
 /* Reference definitions, should not be changed */
 /* TLC59116 slave address */
-#define TLC59116_ADDR            0xC0 //adress with all adress pins pulled to ground
-#define TLC59116_ALLCALL	 0xD0
+#define TLC59116_ADDR            0x60 //7bit adress  0xC0 8bit adress; adress with all adress pins pulled to ground
+//#define TLC59116_ALLCALL	 0xD0
 #define TLC59116_LEDOUT_PWM	 0xAA // LDRx = 01 -> PWM, 4 leds per reg: 01010101 -> 0xAA
 
 /* TLC59116 registers */
