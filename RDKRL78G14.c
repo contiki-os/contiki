@@ -37,7 +37,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
 ********************************************************************************
- *   SVN Revision: 831
+ *   SVN Revision: $WCREV$
 *******************************************************************************/
 
 /******************************************************************************/
@@ -71,7 +71,7 @@ void RDKRL78G14_Reset(void)
  *
  * @return status - Result of the initialization procedure.
  *                  Example: 0 - if initialization was successful;
- *                           -1 - if initialization was unsuccessful.
+ *                          -1 - if initialization was unsuccessful.
 *******************************************************************************/
 char RDKRL78G14_Init(void)
 {

@@ -215,19 +215,19 @@ void ST7579_Clear(void)
  * @brief Initializes the ST7579 controller.
  *
  * @return status - Result of the initialization procedure.
- *                  Example: 1 - if initialization was successful;
- *                           0 - if initialization was unsuccessful.
+ *                  Example: 0 - if initialization was successful;
+ *                          -1 - if initialization was unsuccessful.
 *******************************************************************************/
-unsigned char ST7579_Init(void)
+char ST7579_Init(void)
 {
-    unsigned char  status = 0;
+    char           status = -1;
     unsigned short delay  = 0;
 
     status = SPI_Init(0,        // Transfer format.
                       1000000,  // SPI clock frequency.
                       0,        // SPI clock polarity.
                       1);       // SPI clock edge.
-    if(status != 1)
+    if(status != 0)
     {
         return status;
     }
@@ -269,7 +269,7 @@ unsigned char ST7579_Init(void)
  * @param yPosition - Y address of RAM.
  * @param xPosition - X address of RAM.
  * @param character - The character.
- * @param bigFont - Big font selection.
+ * @param bigFont   - Big font selection.
  *
  * @return None.
 *******************************************************************************/
@@ -337,8 +337,8 @@ void ST7579_Char(unsigned char yPosition,
  *
  * @param yPosition - Y address of RAM.
  * @param xPosition - X address of RAM.
- * @param string - The string.
- * @param bigFont - Big font selection.
+ * @param string    - The string.
+ * @param bigFont   - Big font selection.
  *
  * @return None.
 *******************************************************************************/
@@ -360,8 +360,8 @@ void ST7579_String(unsigned char yPosition,
  *
  * @param yPosition - Y address of RAM.
  * @param xPosition - X address of RAM.
- * @param number - The number.
- * @param bigFont - Big font selection.
+ * @param number    - The number.
+ * @param bigFont   - Big font selection.
  *
  * @return None.
 *******************************************************************************/
@@ -374,7 +374,6 @@ void ST7579_Number(unsigned char yPosition,
     unsigned char chNumber = 10;
     unsigned char chIndex  = 0;
 
-    //bigFont = 0;
     if(number < 0)
     {
         ST7579_Char(yPosition, xPosition, '-', bigFont);
@@ -409,11 +408,11 @@ void ST7579_Number(unsigned char yPosition,
 /***************************************************************************//**
  * @brief Sends a float number to ST7579 controller.
  *
- * @param yPosition - Y address of RAM.
- * @param xPosition - X address of RAM.
- * @param number - The number.
+ * @param yPosition  - Y address of RAM.
+ * @param xPosition  - X address of RAM.
+ * @param number     - The number.
  * @param resolution - Float resolution.
- * @param bigFont - Big font selection.
+ * @param bigFont    - Big font selection.
  *
  * @return None.
 *******************************************************************************/
@@ -439,7 +438,7 @@ void ST7579_FloatNumber(unsigned char yPosition,
     {
         ST7579_Char(yPosition, xPosition, '-', bigFont);
         xPosition += 6 + (bigFont * 12);
-        number *= -1;
+        display *= -1;
     }
     else
     {
@@ -458,6 +457,7 @@ void ST7579_FloatNumber(unsigned char yPosition,
                 ST7579_Char(yPosition, xPosition, '0', bigFont);
                 xPosition += 6 + (bigFont * 12);
             }
+            return;
         }
         else
         {
@@ -465,7 +465,7 @@ void ST7579_FloatNumber(unsigned char yPosition,
             xPosition += 6 + (bigFont * 12);
         }
     }
-    while(mask > display)
+    while((mask > display) && (chNumber > resolution))
     {
         mask /= 10;
         chNumber--;
@@ -493,8 +493,8 @@ void ST7579_FloatNumber(unsigned char yPosition,
  *
  * @param yPosition - Y address of RAM.
  * @param xPosition - X address of RAM.
- * @param number - The number.
- * @param bigFont - Big font selection.
+ * @param number    - The number.
+ * @param bigFont   - Big font selection.
  *
  * @return None.
 *******************************************************************************/
@@ -541,9 +541,9 @@ void ST7579_HexNumber(unsigned char yPosition,
  *
  * @param yPosition - Y address of RAM.
  * @param xPosition - X address of RAM.
- * @param image - The image array.
- * @param width - The width of the image (pixels).
- * @param height - The height of the image (pixels).
+ * @param image     - The image array.
+ * @param width     - The width of the image (pixels).
+ * @param height    - The height of the image (pixels).
  *
  * @return None.
 *******************************************************************************/

@@ -57,7 +57,7 @@ void ST7579_GoTo(unsigned char yPosition,
 void ST7579_Clear(void);
 
 /*! Initializes the ST7579 controller. */
-unsigned char ST7579_Init(void);
+char ST7579_Init(void);
 
 /*! Sends a character to ST7579 controller. */
 void ST7579_Char(unsigned char yPosition,

@@ -1,7 +1,7 @@
 /***************************************************************************//**
- *   @file   Communication.h
- *   @brief  Header file of the Communication Driver for RL78G14 processor.
- *   @author DBogdan (dragos.bogdan@analog.com)
+ *   @file   TIME.h
+ *   @brief  Header file of TIME Driver for RENESAS RL78G14 Processor.
+ *   @author Dan Nechita
 ********************************************************************************
  * Copyright 2012(c) Analog Devices, Inc.
  *
@@ -39,71 +39,27 @@
 ********************************************************************************
  *   SVN Revision: $WCREV$
 *******************************************************************************/
-#ifndef __COMMUNICATION_H__
-#define __COMMUNICATION_H__
-
-/******************************************************************************/
-/***************************** Include Files **********************************/
-/******************************************************************************/
-#include "RDKRL78G14.h"
-
-/******************************************************************************/
-/*************************** Macros Definitions *******************************/
-/******************************************************************************/
-#define SPI_CS_PIN_OUT  PMOD1_CS_OUT
-#define SPI_CS_LOW      PMOD1_CS_LOW
-#define SPI_CS_HIGH     PMOD1_CS_HIGH
-#define SPI_MISO        PMOD1_MISO
-
-#define GPIO1_PIN_OUT   PMOD1_GPIO1_PIN_OUT
-#define GPIO1_LOW       PMOD1_GPIO1_LOW
-#define GPIO1_HIGH      PMOD1_GPIO1_HIGH
-
-#define GPIO2_PIN_OUT   PMOD1_GPIO2_PIN_OUT
-#define GPIO2_LOW       PMOD1_GPIO2_LOW
-#define GPIO2_HIGH      PMOD1_GPIO2_HIGH
-
-#define GPIO3_PIN_OUT   PMOD1_GPIO3_PIN_OUT
-#define GPIO3_LOW       PMOD1_GPIO3_LOW
-#define GPIO3_HIGH      PMOD1_GPIO3_HIGH
-
-#define GPIO4_PIN_OUT   PMOD1_GPIO4_PIN_OUT
-#define GPIO4_LOW       PMOD1_GPIO4_LOW
-#define GPIO4_HIGH      PMOD1_GPIO4_HIGH
+#ifndef __TIME_H__
+#define __TIME_H__
 
 /******************************************************************************/
 /************************ Functions Declarations ******************************/
 /******************************************************************************/
 
-/*! Initializes the SPI communication peripheral. */
-char SPI_Init(char lsbFirst,
-              long clockFreq,
-              char clockPol,
-              char clockEdg);
+/*! Initializes the timer used in this driver. */
+char TIME_Init(void);
 
-/*! Writes data to SPI. */
-char SPI_Write(char slaveDeviceId,
-               unsigned char* data,
-               char bytesNumber);
+/*! The timer begins to count in steps of microseconds(us) until the user calls 
+    a stop measurement function. */
+void TIME_StartMeasure(void);
 
-/*! Reads data from SPI. */
-char SPI_Read(char slaveDeviceId,
-              unsigned char* data,
-              char bytesNumber);
+/*! Stops the measurement process when the functions is called. */
+unsigned long TIME_StopMeasure(void);
 
-/*! Initializes the I2C communication peripheral. */
-char I2C_Init(long clockFreq);
+/*! Creates a delay of microseconds. */
+void TIME_DelayUs(unsigned short usUnits);
 
-/*! Writes data to a slave device. */
-char I2C_Write(char slaveAddress,
-               unsigned char* dataBuffer,
-               char bytesNumber,
-               char stopBit);
+/*! Creates a delay of milliseconds. */
+void TIME_DelayMs(unsigned short msUnits);
 
-/*! Reads data from a slave device. */
-char I2C_Read(char slaveAddress,
-              unsigned char* dataBuffer,
-              char bytesNumber,
-              char stopBit);
-
-#endif // __COMMUNICATION_H__
+#endif /* __TIME_H__ */

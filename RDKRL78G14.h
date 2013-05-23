@@ -37,7 +37,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
 ********************************************************************************
- *   SVN Revision: 831
+ *   SVN Revision: $WCREV$
 *******************************************************************************/
 
 #ifndef __RDKRL78G14_H__
@@ -88,31 +88,37 @@
 
 /* PMOD1 MISO Pin */
 #define PMOD1_MISO_PIN	(1 << 1)
-#define PMOD1_MISO		((P7 & PMOD1_MISO_PIN) >> 1)
+#define PMOD1_MISO      ((P7 & PMOD1_MISO_PIN) >> 1)
+
+/* PMOD1 GPIO1 Pin - P47 */
+#define PMOD1_GPIO1_PIN       (1 << 7)
+#define PMOD1_GPIO1_PIN_OUT   PM4 &= ~PMOD1_GPIO1_PIN;
+#define PMOD1_GPIO1_LOW       P4  &= ~PMOD1_GPIO1_PIN;
+#define PMOD1_GPIO1_HIGH      P4  |=  PMOD1_GPIO1_PIN;
+
+/* PMOD1 GPIO2 Pin - P46 */
+#define PMOD1_GPIO2_PIN       (1 << 6)
+#define PMOD1_GPIO2_PIN_OUT   PM4 &= ~PMOD1_GPIO2_PIN;
+#define PMOD1_GPIO2_LOW       P4  &= ~PMOD1_GPIO2_PIN;
+#define PMOD1_GPIO2_HIGH      P4  |=  PMOD1_GPIO2_PIN;
+
+/* PMOD1 GPIO3 Pin - P110 */
+#define PMOD1_GPIO3_PIN       (1 << 0)
+#define PMOD1_GPIO3_PIN_OUT   PM11 &= ~PMOD1_GPIO3_PIN;
+#define PMOD1_GPIO3_LOW       P11  &= ~PMOD1_GPIO3_PIN;
+#define PMOD1_GPIO3_HIGH      P11  |=  PMOD1_GPIO3_PIN;
+
+/* PMOD1 GPIO4 Pin - P111 */
+#define PMOD1_GPIO4_PIN       (1 << 1)
+#define PMOD1_GPIO4_PIN_OUT   PM11 &= ~PMOD1_GPIO4_PIN;
+#define PMOD1_GPIO4_LOW       P11  &= ~PMOD1_GPIO4_PIN;
+#define PMOD1_GPIO4_HIGH      P11  |=  PMOD1_GPIO4_PIN;
 
 /* PMOD2 CS Pin - P82 */
 #define PMOD2_CS_PIN	(1 << 2)
 #define PMOD2_CS_OUT	PM8 &= ~PMOD2_CS_PIN
 #define PMOD2_CS_LOW	P8 &= ~PMOD2_CS_PIN
 #define PMOD2_CS_HIGH	P8 |=  PMOD2_CS_PIN
-
-/* GPIO1 Pin - P46 */
-#define GPIO1_PIN              (1 << 6)
-#define GPIO1_PIN_OUT          PM4 &= ~GPIO1_PIN;
-#define GPIO1_PIN_LOW          P4  &= ~GPIO1_PIN;
-#define GPIO1_PIN_HIGH         P4  |=  GPIO1_PIN;
-
-/* GPIO2 Pin - P110 */
-#define GPIO2_PIN              (1 << 0)
-#define GPIO2_PIN_OUT          PM11 &= ~GPIO2_PIN;
-#define GPIO2_PIN_LOW          P11  &= ~GPIO2_PIN;
-#define GPIO2_PIN_HIGH         P11  |=  GPIO2_PIN;
-
-/* GPIO3 Pin - P111 */
-#define GPIO3_PIN              (1 << 1)
-#define GPIO3_PIN_OUT          PM11 &= ~GPIO3_PIN;
-#define GPIO3_PIN_LOW          P11  &= ~GPIO3_PIN;
-#define GPIO3_PIN_HIGH         P11  |=  GPIO3_PIN;
 
 /******************************************************************************/
 /************************ Functions Declarations ******************************/
