@@ -140,10 +140,16 @@ typedef struct {
   uint8_t  reserved;       /**< 3 bit. Reserved bits       */
 } frame802154_scf_t;
 
+typedef union {
+  uint32_t u32;
+  uint16_t u16[2];
+  uint8_t u8[4];
+} frame802154_frame_counter_t;
+
 /** \brief 802.15.4 Aux security header */
 typedef struct {
   frame802154_scf_t security_control;  /**< Security control bitfield */
-  uint32_t frame_counter;   /**< Frame counter, used for security */
+  frame802154_frame_counter_t frame_counter;   /**< Frame counter, used for security */
   uint8_t  key[9];          /**< The key itself, or an index to the key */
 } frame802154_aux_hdr_t;
 

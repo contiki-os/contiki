@@ -102,7 +102,9 @@ create_frame(int type, int do_create)
 
   /* Build the FCF. */
   params.fcf.frame_type = FRAME802154_DATAFRAME;
-  params.fcf.security_enabled = 0;
+  if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
+    params.fcf.security_enabled = 1;
+  }
   params.fcf.frame_pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
   if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
     params.fcf.ack_required = 0;
@@ -111,8 +113,13 @@ create_frame(int type, int do_create)
   }
   params.fcf.panid_compression = 0;
 
-  /* Insert IEEE 802.15.4 (2003) version bit. */
-  params.fcf.frame_version = FRAME802154_IEEE802154_2003;
+  /* Insert IEEE 802.15.4 (2006) version bits. */
+  params.fcf.frame_version = FRAME802154_IEEE802154_2006;
+  
+  /* Setting security-related attributes */
+  params.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
+  params.aux_hdr.frame_counter.u16[0] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1);
+  params.aux_hdr.frame_counter.u16[1] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3);
 
   /* Increment and set the data sequence number. */
   if(!do_create) {
@@ -227,6 +234,11 @@ parse(void)
     packetbuf_set_attr(PACKETBUF_ATTR_PENDING, frame.fcf.frame_pending);
     /*    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, frame.fcf.ack_required);*/
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
+    
+    /* Setting security-related attributes */
+    packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, frame.aux_hdr.security_control.security_level);
+    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, frame.aux_hdr.frame_counter.u16[0]);
+    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, frame.aux_hdr.frame_counter.u16[1]);
 
     PRINTF("15.4-IN: %2X", frame.fcf.frame_type);
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));
