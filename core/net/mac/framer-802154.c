@@ -101,7 +101,7 @@ create_frame(int type, int do_create)
   }
 
   /* Build the FCF. */
-  params.fcf.frame_type = FRAME802154_DATAFRAME;
+  params.fcf.frame_type = packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE);
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
     params.fcf.security_enabled = 1;
   }
@@ -219,6 +219,8 @@ parse(void)
   hdr_len = frame802154_parse(packetbuf_dataptr(), packetbuf_datalen(), &frame);
   
   if(hdr_len && packetbuf_hdrreduce(hdr_len)) {
+    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, frame.fcf.frame_type);
+    
     if(frame.fcf.dest_addr_mode) {
       if(frame.dest_pid != mac_src_pan_id &&
           frame.dest_pid != FRAME802154_BROADCASTPANDID) {
