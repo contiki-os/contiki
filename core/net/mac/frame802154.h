@@ -66,9 +66,9 @@
 
 #ifdef IEEE802154_CONF_PANID
 #define IEEE802154_PANID           IEEE802154_CONF_PANID
-#else
+#else /* IEEE802154_CONF_PANID */
 #define IEEE802154_PANID           0xABCD
-#endif
+#endif /* IEEE802154_CONF_PANID */
 
 /* Macros & Defines */
 
@@ -152,15 +152,15 @@ typedef struct {
  *  specification for details.
  */
 typedef struct {
-  frame802154_fcf_t fcf;            /**< Frame control field  */
-  uint8_t seq;          /**< Sequence number */
-  uint16_t dest_pid;    /**< Destination PAN ID */
-  uint8_t dest_addr[8];     /**< Destination address */
-  uint16_t src_pid;     /**< Source PAN ID */
-  uint8_t src_addr[8];      /**< Source address */
-  frame802154_aux_hdr_t aux_hdr;    /**< Aux security header */
-  uint8_t *payload;     /**< Pointer to 802.15.4 frame payload */
-  int payload_len;  /**< Length of payload field */
+  frame802154_fcf_t fcf;          /**< Frame control field  */
+  uint8_t seq;                    /**< Sequence number */
+  uint16_t dest_pid;              /**< Destination PAN ID */
+  uint8_t dest_addr[8];           /**< Destination address */
+  uint16_t src_pid;               /**< Source PAN ID */
+  uint8_t src_addr[8];            /**< Source address */
+  frame802154_aux_hdr_t aux_hdr;  /**< Aux security header */
+  uint8_t *payload;               /**< Pointer to 802.15.4 payload */
+  int payload_len;                /**< Length of payload field */
 } frame802154_t;
 
 /* Prototypes */
