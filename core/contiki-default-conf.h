@@ -73,6 +73,11 @@
 /* #define NETSTACK_CONF_MAC   csma_driver */
 #endif /* NETSTACK_CONF_MAC */
 
+/* NETSTACK_CONF_LLSEC specifies the link layer security driver. */
+#ifndef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC nullsec_driver
+#endif /* NETSTACK_CONF_LLSEC */
+
 /* NETSTACK_CONF_NETWORK specifies the network layer and can be either
    sicslowpan_driver, for IPv6 networking, or rime_driver, for the
    custom Rime network stack. */
