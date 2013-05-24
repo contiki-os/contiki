@@ -36,6 +36,7 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
 #ifndef CC2420_H_
@@ -45,6 +46,7 @@
 #include "dev/spi.h"
 #include "dev/radio.h"
 #include "cc2420_const.h"
+#include "lib/aes-128.h"
 
 int cc2420_init(void);
 
@@ -87,6 +89,8 @@ int cc2420_on(void);
 int cc2420_off(void);
 
 void cc2420_set_cca_threshold(int value);
+
+extern const struct aes_128_driver cc2420_aes_128_driver;
 
 /************************************************************************/
 /* Additional SPI Macros for the CC2420 */
