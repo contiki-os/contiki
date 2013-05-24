@@ -352,6 +352,39 @@ wait_for_transmission(void)
       && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (RTIMER_SECOND / 10)));
 }
 /*---------------------------------------------------------------------------*/
+static void
+init_security(void)
+{
+  /* only use key 0 */
+  setreg(CC2420_SECCTRL0, 0);
+  setreg(CC2420_SECCTRL1, 0);
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_key(uint8_t *key)
+{
+  write_ram(key, CC2420RAM_KEY0, 16, CC2420_WRITE_RAM_REVERSE);
+}
+/*---------------------------------------------------------------------------*/
+static void
+encrypt(uint8_t *plaintext_and_result)
+{
+  write_ram(plaintext_and_result,
+      CC2420RAM_SABUF,
+      16,
+      CC2420_WRITE_RAM_IN_ORDER);
+  
+  strobe(CC2420_SAES);
+  while(get_status() & BV(CC2420_ENC_BUSY));
+  
+  read_ram(plaintext_and_result, CC2420RAM_SABUF, 16);
+}
+/*---------------------------------------------------------------------------*/
+const struct aes_128_driver cc2420_aes_128_driver = {
+  set_key,
+  encrypt
+};
+/*---------------------------------------------------------------------------*/
 static uint8_t locked, lock_on, lock_off;
 
 static void
@@ -473,10 +506,7 @@ cc2420_init(void)
   /* Set the FIFOP threshold to maximum. */
   setreg(CC2420_IOCFG0, FIFOP_THR(127));
 
-  /* Turn off "Security enable" (page 32). */
-  reg = getreg(CC2420_SECCTRL0);
-  reg &= ~RXFIFO_PROTECTION;
-  setreg(CC2420_SECCTRL0, reg);
+  init_security();
 
   cc2420_set_pan_addr(0xffff, 0x0000, NULL);
   cc2420_set_channel(CC2420_CONF_CHANNEL);
@@ -590,7 +620,7 @@ static int
 cc2420_prepare(const void *payload, unsigned short payload_len)
 {
   uint8_t total_len;
-
+  
   GET_LOCK();
 
   PRINTF("cc2420: sending %d bytes\n", payload_len);
