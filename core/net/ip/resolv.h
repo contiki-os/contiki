@@ -43,6 +43,13 @@
 #include "contiki.h"
 #include "uip.h"
 
+/* If RESOLV_CONF_SUPPORTS_DNS_SD is set, then queries
+ * for services in the local TLD will use DNS-SD.
+ */
+#ifndef RESOLV_CONF_SUPPORTS_DNS_SD
+#define RESOLV_CONF_SUPPORTS_DNS_SD   (1)
+#endif
+
 /** If RESOLV_CONF_SUPPORTS_MDNS is set, then queries
  *  for domain names in the `local` TLD will use MDNS and
  *  will respond to MDNS queries for this device's hostname,
@@ -99,6 +106,13 @@ CCIF void resolv_query(const char *name);
 CCIF void resolv_set_hostname(const char *hostname);
 
 CCIF const char *resolv_get_hostname(void);
+
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+CCIF resolv_status_t resolv_service_lookup(const char *servicename, uip_ipaddr_t ** ipaddr, int *ipport);
+
+CCIF void resolv_add_service(const char *name, const char *txt, int port);
+#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
+
 #endif
 
 PROCESS_NAME(resolv_process);
