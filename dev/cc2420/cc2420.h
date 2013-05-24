@@ -133,7 +133,7 @@ void cc2420_set_cca_threshold(int value);
     CC2420_SPI_ENABLE();                                \
     SPI_WRITE(CC2420_RXFIFO | 0x40);                    \
     (void)SPI_RXBUF;                                    \
-    SPI_READ(data);                                     \
+    SPI_READ(*data);                                     \
     clock_delay(1);                                     \
     CC2420_SPI_DISABLE();                               \
   } while(0)
