@@ -102,6 +102,13 @@ CCIF void resolv_query(const char *name);
 CCIF void resolv_set_hostname(const char *hostname);
 
 CCIF const char *resolv_get_hostname(void);
+
+#if RESOLV_CONF_SUPPORTS_DNS_SD
+CCIF resolv_status_t resolv_service_lookup(const char *servicename, uip_ipaddr_t ** ipaddr, int *ipport);
+
+CCIF void resolv_add_service(const char *name, const char *txt, int port);
+#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
+
 #endif
 
 PROCESS_NAME(resolv_process);
