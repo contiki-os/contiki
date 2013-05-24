@@ -122,7 +122,8 @@ field_len(frame802154_t *p, field_length_t *flen)
 
   /* Aux security header */
   if(p->fcf.security_enabled & 1) {
-    /* TODO Aux security header not yet implemented */
+    flen->aux_sec_len = 5;
+    /* TODO Support key identifier mode !=0 */
 #if 0
     switch(p->aux_hdr.security_control.key_id_mode) {
     case 0:
@@ -232,8 +233,10 @@ frame802154_create(frame802154_t *p, uint8_t *buf, int buf_len)
 
   /* Aux header */
   if(flen.aux_sec_len) {
-    /* TODO Aux security header not yet implemented */
-/*     pos += flen.aux_sec_len; */
+    /* TODO Support key identifier mode !=0 */
+    tx_frame_buffer[pos++] = p->aux_hdr.security_control.security_level;
+    memcpy(tx_frame_buffer + pos, p->aux_hdr.frame_counter.u8, 4);
+    pos += 4;
   }
 
   return (int)pos;
@@ -338,8 +341,17 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
   }
 
   if(fcf.security_enabled) {
-    /* TODO aux security header, not yet implemented */
-/*     return 0; */
+    pf->aux_hdr.security_control.security_level = p[0] & 7;
+    pf->aux_hdr.security_control.key_id_mode = (p[0] >> 3) & 3;
+    p += 1;
+    
+    memcpy(pf->aux_hdr.frame_counter.u8, p, 4);
+    p += 4;
+        
+    if(pf->aux_hdr.security_control.key_id_mode) {
+      /* TODO Support key identifier mode !=0 */
+      return 0;
+    }
   }
 
   /* header length */
