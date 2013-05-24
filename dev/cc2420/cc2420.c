@@ -52,12 +52,6 @@
 
 #define WITH_SEND_CCA 1
 
-#define FOOTER_LEN 2
-
-#ifndef CC2420_CONF_CHECKSUM
-#define CC2420_CONF_CHECKSUM 0
-#endif /* CC2420_CONF_CHECKSUM */
-
 #ifndef CC2420_CONF_CHANNEL
 #define CC2420_CONF_CHANNEL 26
 #endif /* CC2420_CONF_CHANNEL */
@@ -66,21 +60,12 @@
 #define CC2420_CONF_CCA_THRESH -45
 #endif /* CC2420_CONF_CCA_THRESH */
 
-
 #ifndef CC2420_CONF_AUTOACK
 #define CC2420_CONF_AUTOACK 0
 #endif /* CC2420_CONF_AUTOACK */
 
-#if CC2420_CONF_CHECKSUM
-#include "lib/crc16.h"
-#define CHECKSUM_LEN 2
-#else
-#define CHECKSUM_LEN 0
-#endif /* CC2420_CONF_CHECKSUM */
-
-#define AUX_LEN (CHECKSUM_LEN + FOOTER_LEN)
-
-
+#define CHECKSUM_LEN        2
+#define FOOTER_LEN          2
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
 
@@ -422,6 +407,7 @@ set_txpower(uint8_t power)
 }
 /*---------------------------------------------------------------------------*/
 #define AUTOACK (1 << 4)
+#define AUTOCRC (1 << 5)
 #define ADR_DECODE (1 << 11)
 #define RXFIFO_PROTECTION (1 << 9)
 #define CORR_THR(n) (((n) & 0x1f) << 6)
@@ -460,6 +446,12 @@ cc2420_init(void)
 #else
   reg &= ~(AUTOACK | ADR_DECODE);
 #endif /* CC2420_CONF_AUTOACK */
+  
+  /* Enabling CRC in hardware; this is required by AUTOACK anyway
+     and provides us with RSSI and link quality indication (LQI)
+     information. */
+  reg |= AUTOCRC;
+
   setreg(CC2420_MDMCTRL0, reg);
 
   /* Set transmission turnaround time to the lower setting (8 symbols
@@ -498,10 +490,7 @@ static int
 cc2420_transmit(unsigned short payload_len)
 {
   int i, txpower;
-#if CC2420_CONF_CHECKSUM
-  uint16_t checksum;
-#endif /* CC2420_CONF_CHECKSUM */
-
+  
   GET_LOCK();
 
   txpower = 0;
@@ -599,9 +588,7 @@ static int
 cc2420_prepare(const void *payload, unsigned short payload_len)
 {
   uint8_t total_len;
-#if CC2420_CONF_CHECKSUM
-  uint16_t checksum;
-#endif /* CC2420_CONF_CHECKSUM */
+
   GET_LOCK();
 
   PRINTF("cc2420: sending %d bytes\n", payload_len);
@@ -614,16 +601,10 @@ cc2420_prepare(const void *payload, unsigned short payload_len)
   /* Write packet to TX FIFO. */
   strobe(CC2420_SFLUSHTX);
 
-#if CC2420_CONF_CHECKSUM
-  checksum = crc16_data(payload, payload_len, 0);
-#endif /* CC2420_CONF_CHECKSUM */
-  total_len = payload_len + AUX_LEN;
+  total_len = payload_len + CHECKSUM_LEN;
   CC2420_WRITE_FIFO_BUF(&total_len, 1);
   CC2420_WRITE_FIFO_BUF(payload, payload_len);
-#if CC2420_CONF_CHECKSUM
-  CC2420_WRITE_FIFO_BUF(&checksum, CHECKSUM_LEN);
-#endif /* CC2420_CONF_CHECKSUM */
-
+  
   RELEASE_LOCK();
   return 0;
 }
@@ -796,11 +777,8 @@ PROCESS_THREAD(cc2420_process, ev, data)
 static int
 cc2420_read(void *buf, unsigned short bufsize)
 {
-  uint8_t footer[2];
+  uint8_t footer[FOOTER_LEN];
   uint8_t len;
-#if CC2420_CONF_CHECKSUM
-  uint16_t checksum;
-#endif /* CC2420_CONF_CHECKSUM */
 
   if(!CC2420_FIFOP_IS_1) {
     return 0;
@@ -825,49 +803,34 @@ cc2420_read(void *buf, unsigned short bufsize)
     return 0;
   }
 
-  if(len <= AUX_LEN) {
+  if(len <= FOOTER_LEN) {
     flushrx();
     RIMESTATS_ADD(tooshort);
     RELEASE_LOCK();
     return 0;
   }
 
-  if(len - AUX_LEN > bufsize) {
+  if(len - FOOTER_LEN > bufsize) {
     flushrx();
     RIMESTATS_ADD(toolong);
     RELEASE_LOCK();
     return 0;
   }
-
-  getrxdata(buf, len - AUX_LEN);
-#if CC2420_CONF_CHECKSUM
-  getrxdata(&checksum, CHECKSUM_LEN);
-#endif /* CC2420_CONF_CHECKSUM */
+  
+  getrxdata(buf, len - FOOTER_LEN);
   getrxdata(footer, FOOTER_LEN);
-
-#if CC2420_CONF_CHECKSUM
-  if(checksum != crc16_data(buf, len - AUX_LEN, 0)) {
-    PRINTF("checksum failed 0x%04x != 0x%04x\n",
-	   checksum, crc16_data(buf, len - AUX_LEN, 0));
-  }
-
-  if(footer[1] & FOOTER1_CRC_OK &&
-     checksum == crc16_data(buf, len - AUX_LEN, 0)) {
-#else
+  
   if(footer[1] & FOOTER1_CRC_OK) {
-#endif /* CC2420_CONF_CHECKSUM */
     cc2420_last_rssi = footer[0];
     cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
-
-
+    
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
 
     RIMESTATS_ADD(llrx);
-
   } else {
     RIMESTATS_ADD(badcrc);
-    len = AUX_LEN;
+    len = FOOTER_LEN;
   }
 
   if(CC2420_FIFOP_IS_1) {
@@ -884,11 +847,11 @@ cc2420_read(void *buf, unsigned short bufsize)
 
   RELEASE_LOCK();
 
-  if(len < AUX_LEN) {
+  if(len < FOOTER_LEN) {
     return 0;
   }
 
-  return len - AUX_LEN;
+  return len - FOOTER_LEN;
 }
 /*---------------------------------------------------------------------------*/
 void
