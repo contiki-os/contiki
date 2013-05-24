@@ -1,5 +1,10 @@
+/**
+ * \addtogroup nullsec
+ * @{
+ */
+
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,59 +31,52 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
 
 /**
  * \file
- *         A brief description of what this file is
+ *         Insecure link layer security driver.
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
+#include "net/llsec/nullsec.h"
 #include "net/netstack.h"
-#include "net/ip/uip.h"
-#include "net/ip/tcpip.h"
-#include "net/packetbuf.h"
-#include "net/uip-driver.h"
-#include <string.h>
 
-/*--------------------------------------------------------------------*/
-uint8_t
-uip_driver_send(void)
+/*---------------------------------------------------------------------------*/
+static void
+bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
 {
-  packetbuf_copyfrom(&uip_buf[UIP_LLH_LEN], uip_len);
-
-  /* XXX we should provide a callback function that is called when the
-     packet is sent. For now, we just supply a NULL pointer. */
-  NETSTACK_LLSEC.send(NULL, NULL);
+  on_bootstrapped();
+}
+/*---------------------------------------------------------------------------*/
+static void
+send(mac_callback_t sent, void *ptr)
+{
+  NETSTACK_MAC.send(sent, ptr);
+}
+/*---------------------------------------------------------------------------*/
+static int
+on_frame_created(void)
+{
   return 1;
 }
-/*--------------------------------------------------------------------*/
-static void
-init(void)
-{
-  /*
-   * Set out output function as the function to be called from uIP to
-   * send a packet.
-   */
-  tcpip_set_outputfunc(uip_driver_send);
-}
-/*--------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 static void
 input(void)
 {
-  if(packetbuf_datalen() > 0 &&
-     packetbuf_datalen() <= UIP_BUFSIZE - UIP_LLH_LEN) {
-    memcpy(&uip_buf[UIP_LLH_LEN], packetbuf_dataptr(), packetbuf_datalen());
-    uip_len = packetbuf_datalen();
-    tcpip_input();
-  }
+  NETSTACK_NETWORK.input();
 }
-/*--------------------------------------------------------------------*/
-const struct network_driver uip_driver = {
-  "uip",
-  init,
+/*---------------------------------------------------------------------------*/
+const struct llsec_driver nullsec_driver = {
+  "nullsec",
+  bootstrap,
+  send,
+  on_frame_created,
   input
 };
-/*--------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+/** @} */

@@ -1,5 +1,22 @@
+/**
+ * \defgroup llsec Link Layer Security
+ * 
+ * Layer for implementing link layer security.
+ *         
+ * NETSTACK_LLSEC sits in between NETSTACK_MAC and NETSTACK_NETWORK
+ * protocols. All NETSTACK_MAC protocols invoke NETSTACK_LLSEC.input()
+ * for incoming packets. Likewise, all NETSTACK_NETWORK protocols
+ * invoke NETSTACK_LLSEC.send(...) for outgoing packets.
+ * 
+ * The bootstrap function of llsec_drivers can be used to defer the start
+ * of upper layers so as to bootstrap pairwise keys. Only contiki-sky-main.c
+ * supports this at the moment.
+ * 
+ * @{
+ */
+
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,61 +49,44 @@
 
 /**
  * \file
- *         A MAC protocol that does not do anything.
+ *         Link layer security header file.
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#include "net/mac/nullmac.h"
-#include "net/netstack.h"
-#include "net/ip/uip.h"
-#include "net/ip/tcpip.h"
-#include "net/packetbuf.h"
-#include "net/netstack.h"
+#ifndef LLSEC_H_
+#define LLSEC_H_
 
-/*---------------------------------------------------------------------------*/
-static void
-send_packet(mac_callback_t sent, void *ptr)
-{
-  NETSTACK_RDC.send(sent, ptr);
-}
-/*---------------------------------------------------------------------------*/
-static void
-packet_input(void)
-{
-  NETSTACK_LLSEC.input();
-}
-/*---------------------------------------------------------------------------*/
-static int
-on(void)
-{
-  return NETSTACK_RDC.on();
-}
-/*---------------------------------------------------------------------------*/
-static int
-off(int keep_radio_on)
-{
-  return NETSTACK_RDC.off(keep_radio_on);
-}
-/*---------------------------------------------------------------------------*/
-static unsigned short
-channel_check_interval(void)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-const struct mac_driver nullmac_driver = {
-  "nullmac",
-  init,
-  send_packet,
-  packet_input,
-  on,
-  off,
-  channel_check_interval,
+#include "net/mac/mac.h"
+
+typedef void (* llsec_on_bootstrapped_t)(void);
+
+/**
+ * The structure of a link layer security driver.
+ */
+struct llsec_driver {
+  char *name;
+  
+  /** Bootstraps link layer security and thereafter starts upper layers. */
+  void (* bootstrap)(llsec_on_bootstrapped_t on_bootstrapped);
+  
+  /** Secures outgoing frames before passing them to NETSTACK_MAC. */
+  void (* send)(mac_callback_t sent_callback, void *ptr);
+  
+  /**
+   * Once the NETSTACK_FRAMER wrote the headers, the LLSEC driver
+   * can generate a MIC over the entire frame.
+   * \return Returns != 0 <-> success
+   */
+  int (* on_frame_created)(void);
+  
+  /**
+   * Decrypts incoming frames;
+   * filters out injected or replayed frames.
+   */
+  void (* input)(void);
 };
-/*---------------------------------------------------------------------------*/
+
+#endif /* LLSEC_H_ */
+
+/** @} */

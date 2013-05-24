@@ -21,4 +21,5 @@ endif
 include $(CONTIKIMC1322X)/Makefile.mc1322x
 
 MODULES+=core/net/ip core/net/ipv4 core/net core/net/rpl \
-         core/net/ipv6 core/net/rime core/net/mac
+         core/net/ipv6 core/net/rime core/net/mac \
+         core/net/llsec

@@ -47,4 +47,4 @@ CURSES_LIBS ?= -lncurses
 TARGET_LIBFILES += $(CURSES_LIBS)
 
 MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 core/net/rime \
-         core/net/mac core/net/rpl core/ctk
+         core/net/mac core/net/rpl core/ctk core/net/llsec
