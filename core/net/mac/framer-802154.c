@@ -213,7 +213,7 @@ parse(void)
      packetbuf_hdrreduce(len - frame.payload_len)) {
     if(frame.fcf.dest_addr_mode) {
       if(frame.dest_pid != mac_src_pan_id &&
-         frame.dest_pid != FRAME802154_BROADCASTPANDID) {
+          frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         PRINTF("15.4: for another pan %u\n", frame.dest_pid);
         return FRAMER_FAILED;
