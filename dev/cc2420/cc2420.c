@@ -373,8 +373,6 @@ on(void)
   CC2420_ENABLE_FIFOP_INT();
   strobe(CC2420_SRXON);
 
-  wait_for_status(BV(CC2420_XOSC16M_STABLE));
-
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   receive_on = 1;
 }
@@ -452,6 +450,8 @@ cc2420_init(void)
 
   /* Turn on the crystal oscillator. */
   strobe(CC2420_SXOSCON);
+  /* And wait until it stabilizes */
+  wait_for_status(BV(CC2420_XOSC16M_STABLE));
 
   /* Turn on/off automatic packet acknowledgment and address decoding. */
   reg = getreg(CC2420_MDMCTRL0);
@@ -697,11 +697,7 @@ cc2420_set_channel(int c)
   channel = c;
 
   f = 5 * (c - 11) + 357 + 0x4000;
-  /*
-   * Writing RAM requires crystal oscillator to be stable.
-   */
-  wait_for_status(BV(CC2420_XOSC16M_STABLE));
-
+  
   /* Wait for any transmission to end. */
   wait_for_transmission();
 
@@ -724,11 +720,6 @@ cc2420_set_pan_addr(unsigned pan,
 {
   GET_LOCK();
   
-  /*
-   * Writing RAM requires crystal oscillator to be stable.
-   */
-  wait_for_status(BV(CC2420_XOSC16M_STABLE));
-
   write_ram((uint8_t *) &pan, CC2420RAM_PANID, 2, CC2420_WRITE_RAM_IN_ORDER);
   write_ram((uint8_t *) &addr, CC2420RAM_SHORTADDR, 2, CC2420_WRITE_RAM_IN_ORDER);
   
