@@ -163,15 +163,28 @@ void cc2420_set_cca_threshold(int value);
     CC2420_SPI_DISABLE();                                               \
   } while(0)
 
+enum cc2420_write_ram_order {
+  /* Begin with writing the first given byte */
+  CC2420_WRITE_RAM_IN_ORDER,
+  /* Begin with writing the last given byte */
+  CC2420_WRITE_RAM_REVERSE
+};
+
 /* Write to RAM in the CC2420 */
-#define CC2420_WRITE_RAM(buffer,adr,count)                 \
+#define CC2420_WRITE_RAM(buffer,adr,count,order)             \
   do {                                                       \
     uint8_t i;                                               \
     CC2420_SPI_ENABLE();                                     \
     SPI_WRITE_FAST(0x80 | ((adr) & 0x7f));                   \
     SPI_WRITE_FAST(((adr) >> 1) & 0xc0);                     \
-    for(i = 0; i < (count); i++) {                           \
-      SPI_WRITE_FAST(((uint8_t*)(buffer))[i]);               \
+    if(order == CC2420_WRITE_RAM_IN_ORDER) {                 \
+      for(i = 0; i < (count); i++) {                         \
+        SPI_WRITE_FAST(((uint8_t*)(buffer))[i]);             \
+      }                                                      \
+    } else {                                                 \
+      for(i = (count); i > 0; i--) {                         \
+        SPI_WRITE_FAST(((uint8_t*)(buffer))[i - 1]);         \
+      }                                                      \
     }                                                        \
     SPI_WAITFORTx_ENDED();                                   \
     CC2420_SPI_DISABLE();                                    \
