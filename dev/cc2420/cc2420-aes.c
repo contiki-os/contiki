@@ -44,20 +44,6 @@
 
 #define KEYLEN 16
 #define MAX_DATALEN 16
-
-#define CC2420_WRITE_RAM_REV(buffer,adr,count)               \
-  do {                                                       \
-    uint8_t i;                                               \
-    CC2420_SPI_ENABLE();                                     \
-    SPI_WRITE_FAST(0x80 | (adr & 0x7f));                     \
-    SPI_WRITE_FAST((adr >> 1) & 0xc0);                       \
-    for(i = (count); i > 0; i--) {                           \
-      SPI_WRITE_FAST(((uint8_t*)(buffer))[i - 1]);           \
-    }                                                        \
-    SPI_WAITFORTx_ENDED();                                   \
-    CC2420_SPI_DISABLE();                                    \
-  } while(0)
-
 #define MIN(a,b) ((a) < (b)? (a): (b))
 
 /*---------------------------------------------------------------------------*/
@@ -66,10 +52,10 @@ cc2420_aes_set_key(const uint8_t *key, int index)
 {
   switch(index) {
   case 0:
-    CC2420_WRITE_RAM_REV(key, CC2420RAM_KEY0, KEYLEN);
+    CC2420_WRITE_RAM(key, CC2420RAM_KEY0, KEYLEN, CC2420_WRITE_RAM_REVERSE);
     break;
   case 1:
-    CC2420_WRITE_RAM_REV(key, CC2420RAM_KEY1, KEYLEN);
+    CC2420_WRITE_RAM(key, CC2420RAM_KEY1, KEYLEN, CC2420_WRITE_RAM_REVERSE);
     break;
   }
 }
@@ -82,7 +68,7 @@ cipher16(uint8_t *data, int len)
 
   len = MIN(len, MAX_DATALEN);
 
-  CC2420_WRITE_RAM(data, CC2420RAM_SABUF, len);
+  CC2420_WRITE_RAM(data, CC2420RAM_SABUF, len, CC2420_WRITE_RAM_IN_ORDER);
   CC2420_STROBE(CC2420_SAES);
   /* Wait for the encryption to finish */
   do {

@@ -300,9 +300,12 @@ read_ram(uint8_t *buffer, uint16_t adr, uint16_t count)
 }
 /*---------------------------------------------------------------------------*/
 static void
-write_ram(uint8_t *buffer, uint16_t adr, uint16_t count)
+write_ram(const uint8_t *buffer,
+    uint16_t adr,
+    uint16_t count,
+    enum cc2420_write_ram_order order)
 {
-  CC2420_WRITE_RAM(buffer, adr, count);
+  CC2420_WRITE_RAM(buffer, adr, count, order);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -541,7 +544,7 @@ cc2420_transmit(unsigned short payload_len)
         if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
            PACKETBUF_ATTR_PACKET_TYPE_TIMESTAMP) {
           /* Write timestamp to last two bytes of packet in TXFIFO. */
-          write_ram((uint8_t *) &sfd_timestamp, CC2420RAM_TXFIFO + payload_len - 1, 2);
+          write_ram((uint8_t *) &sfd_timestamp, CC2420RAM_TXFIFO + payload_len - 1, 2, CC2420_WRITE_RAM_IN_ORDER);
         }
       }
 
@@ -719,9 +722,6 @@ cc2420_set_pan_addr(unsigned pan,
                     unsigned addr,
                     const uint8_t *ieee_addr)
 {
-  uint16_t f = 0;
-  uint8_t tmp[2];
-
   GET_LOCK();
   
   /*
@@ -729,20 +729,11 @@ cc2420_set_pan_addr(unsigned pan,
    */
   wait_for_status(BV(CC2420_XOSC16M_STABLE));
 
-  tmp[0] = pan & 0xff;
-  tmp[1] = pan >> 8;
-  write_ram((uint8_t *) &tmp, CC2420RAM_PANID, 2);
-
-  tmp[0] = addr & 0xff;
-  tmp[1] = addr >> 8;
-  write_ram((uint8_t *) &tmp, CC2420RAM_SHORTADDR, 2);
+  write_ram((uint8_t *) &pan, CC2420RAM_PANID, 2, CC2420_WRITE_RAM_IN_ORDER);
+  write_ram((uint8_t *) &addr, CC2420RAM_SHORTADDR, 2, CC2420_WRITE_RAM_IN_ORDER);
+  
   if(ieee_addr != NULL) {
-    uint8_t tmp_addr[8];
-    /* LSB first, MSB last for 802.15.4 addresses in CC2420 */
-    for (f = 0; f < 8; f++) {
-      tmp_addr[7 - f] = ieee_addr[f];
-    }
-    write_ram(tmp_addr, CC2420RAM_IEEEADDR, 8);
+    write_ram(ieee_addr, CC2420RAM_IEEEADDR, 8, CC2420_WRITE_RAM_REVERSE);
   }
   RELEASE_LOCK();
 }
