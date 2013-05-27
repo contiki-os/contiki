@@ -635,8 +635,6 @@ mdns_prep_host_announce_packet(void)
 
   uint8_t total_answers = 0;
 
-  struct dns_answer *ans;
-
   /* Be aware that, unless `ARCH_DOESNT_NEED_ALIGNED_STRUCTS` is set,
    * writing directly to the uint16_t members of this struct is an error. */
   struct dns_hdr *hdr = (struct dns_hdr *)uip_appdata;
@@ -681,7 +679,7 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
 {
   struct dns_answer *ans;
 
-  if (record_type == DNS_TYPE_SRV || record_type == DNS_TYPE_TXT) {
+  if(record_type == DNS_TYPE_SRV || record_type == DNS_TYPE_TXT) {
 
     queryptr = encode_name(queryptr, resolv_ownername);
     *queryptr-- = 0;
@@ -689,7 +687,7 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
     *queryptr-- = 0;
     queryptr = encode_name(queryptr, "local");
 
-  } else if (record_type == DNS_TYPE_PTR) {
+  } else if(record_type == DNS_TYPE_PTR) {
 
     queryptr = encode_name(queryptr, serviceptr->name);
     *queryptr-- = 0;
@@ -699,7 +697,7 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
 
   ans = (struct dns_answer *)queryptr;
     
-  /* type, class and ttl: 8 bytes
+  /* Type, class and TTL: 8 bytes
    */
   *queryptr++ = 0x00;
   *queryptr++ = (uint8_t) ((record_type));
@@ -712,26 +710,27 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
   *queryptr++ = 0;
   *queryptr++ = 120;
 
-  if (record_type == DNS_TYPE_SRV) {
+  if(record_type == DNS_TYPE_SRV) {
 
-    /* resource length: 2 bytes
+    /* Resource length: 2 bytes
      */
     *queryptr++ = 0;
-    *queryptr++ = strlen((char*)resolv_hostname) - 1; // port + hostname - ".local" + ptr
+    /* Port + hostname - ".local" + ptr */
+    *queryptr++ = strlen((char*)resolv_hostname) - 1;
 
-    /* priority and weight: 4 bytes
+    /* Priority and weight: 4 bytes
      */
     *queryptr++ = 0;
     *queryptr++ = 0;
     *queryptr++ = 0;
     *queryptr++ = 0;
    
-    /* port: 2 bytes
+    /* Port: 2 bytes
      */
     *queryptr++ = (uint8_t) ((serviceptr->port) >> 8);;
     *queryptr++ = (uint8_t) serviceptr->port;
 
-    /* data
+    /* Data
      */
     queryptr = encode_name(queryptr, resolv_hostname);
     queryptr -= 7;
@@ -739,14 +738,15 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
     *queryptr++ = 0xc0;
     *queryptr++ = sizeof(struct dns_hdr) + 2 + strlen((char*)resolv_ownername) + strlen((char*)serviceptr->name);
 
-  } else if (record_type == DNS_TYPE_PTR) {
+  } else if(record_type == DNS_TYPE_PTR) {
 
-    /* resource length: 2 bytes
+    /* Resource length: 2 bytes
      */
     *queryptr++ = 0;
-    *queryptr++ = 2 + strlen((char*)resolv_ownername); // owner name + ptr
+    /* Size of ptr + owner name */
+    *queryptr++ = 2 + strlen((char*)resolv_ownername);
 
-    /* data
+    /* Data
      */
     queryptr = encode_name(queryptr, resolv_ownername);
     *queryptr-- = 0;
@@ -754,21 +754,18 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
     *queryptr++ = 0xc0;
     *queryptr++ = sizeof(struct dns_hdr);    
 
-  } else if (record_type == DNS_TYPE_TXT) {
+  } else if(record_type == DNS_TYPE_TXT) {
 
-    if (strlen(serviceptr->txt) > 0) {
-
-      /* resource length: 2 bytes
+    if(strlen(serviceptr->txt) > 0) {
+      /* Resource length: 2 bytes
        */
       *queryptr++ = 0;
-      *queryptr++ = strlen(serviceptr->txt) + 1; // +1 for string end
+      *queryptr++ = strlen(serviceptr->txt) + 1;
 
-      /* data
+      /* Data
        */
       queryptr = encode_name(queryptr, serviceptr->txt);
-
     } else {
-  
       *queryptr++ = 0x00;
       *queryptr++ = 0x01;
       *queryptr++ = 0x00;
@@ -788,8 +785,6 @@ static size_t
 mdns_prep_service_announce_packet(uint8_t record_type, struct servicemap *serviceptr)
 {
   unsigned char *queryptr;
-
-  struct dns_answer *ans; // not used here
 
   uint8_t total_answers = 0;
 
@@ -1238,7 +1233,7 @@ newdata(void)
 
   skip_to_next_answer:
 #if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD
-    if (ans->type == UIP_HTONS(DNS_TYPE_SRV)) {
+    if(ans->type == UIP_HTONS(DNS_TYPE_SRV)) {
 
       for(i = 0; i < RESOLV_ENTRIES; ++i) {
         namemapptr = &names[i];
@@ -1348,6 +1343,11 @@ PROCESS_THREAD(resolv_process, ev, data)
   PROCESS_BEGIN();
 
   memset(names, 0, sizeof(names));
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD
+  memset(services, 0, sizeof(services));
+  static uint8_t i;
+  struct servicemap *serviceptr;
+#endif
 
   resolv_event_found = process_alloc_event();
 
@@ -1367,10 +1367,6 @@ PROCESS_THREAD(resolv_process, ev, data)
 #endif
 
   resolv_set_hostname(CONTIKI_CONF_DEFAULT_HOSTNAME);
-
-#if RESOLV_CONF_SUPPORTS_DNS_SD
-  memset(services, 0, sizeof(services));
-#endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 
   while(1) {
@@ -1394,10 +1390,6 @@ PROCESS_THREAD(resolv_process, ev, data)
             memset(uip_appdata, 0, sizeof(struct dns_hdr));
 
 #if RESOLV_CONF_SUPPORTS_DNS_SD
-            static uint8_t i;
-
-            struct servicemap *serviceptr;
-
             for(i = 0; i < RESOLV_ENTRIES; ++i) {
               serviceptr = &services[i];
               if(serviceptr->state == STATE_NEW) {
@@ -1784,19 +1776,22 @@ resolv_service_lookup(const char *servicename, uip_ipaddr_t ** ipaddr, int *ippo
         }
 
 #if VERBOSE_DEBUG
-        const uip_ipaddr_t *addr = *ipaddr;
-
-        printf
-        ("resolver: %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x \n",
-         ((uint8_t *) addr)[0], ((uint8_t *) addr)[1], ((uint8_t *) addr)[2],
-         ((uint8_t *) addr)[3], ((uint8_t *) addr)[4], ((uint8_t *) addr)[5],
-         ((uint8_t *) addr)[6], ((uint8_t *) addr)[7], ((uint8_t *) addr)[8],
-         ((uint8_t *) addr)[9], ((uint8_t *) addr)[10],
-         ((uint8_t *) addr)[11], ((uint8_t *) addr)[12],
-         ((uint8_t *) addr)[13], ((uint8_t *) addr)[14],
-         ((uint8_t *) addr)[15]);
+        if(ipaddr) {
+          PRINTF("resolver: Found address for \"%s\".\n", name);
+          PRINTF
+            ("resolver: %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x \n",
+             ((uint8_t *) ipaddr)[0], ((uint8_t *) ipaddr)[1],
+             ((uint8_t *) ipaddr)[2], ((uint8_t *) ipaddr)[3],
+             ((uint8_t *) ipaddr)[4], ((uint8_t *) ipaddr)[5],
+             ((uint8_t *) ipaddr)[6], ((uint8_t *) ipaddr)[7],
+             ((uint8_t *) ipaddr)[8], ((uint8_t *) ipaddr)[9],
+             ((uint8_t *) ipaddr)[10], ((uint8_t *) ipaddr)[11],
+             ((uint8_t *) ipaddr)[12], ((uint8_t *) ipaddr)[13],
+             ((uint8_t *) ipaddr)[14], ((uint8_t *) ipaddr)[15]);
+        } else {
+          PRINTF("resolver: Unable to retrieve address for \"%s\".\n", name);
+        }
 #endif /* VERBOSE_DEBUG */
-
       }
     }
   }

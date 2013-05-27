@@ -98,8 +98,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
   resolv_set_hostname("con-serv");
 
 #if RESOLV_CONF_SUPPORTS_DNS_SD
-  int serviceport = 12345;
-  resolv_add_service("_server._udp", "status=avail", serviceport);
+  resolv_add_service("_server._udp", "status=avail", 3000);
 #endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
 #endif
 
@@ -111,13 +110,8 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
   print_local_addresses();
 
-#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD
-  server_conn = udp_new(NULL, UIP_HTONS(serviceport + 1), NULL);
-  udp_bind(server_conn, UIP_HTONS(serviceport));
-#else
   server_conn = udp_new(NULL, UIP_HTONS(3001), NULL);
   udp_bind(server_conn, UIP_HTONS(3000));
-#endif
 
   while(1) {
     PROCESS_YIELD();

@@ -42,6 +42,13 @@
 #include "contiki.h"
 #include "uip.h"
 
+/* If RESOLV_CONF_SUPPORTS_DNS_SD is set, then queries
+ * for services in the local TLD will use DNS-SD.
+ */
+#ifndef RESOLV_CONF_SUPPORTS_DNS_SD
+#define RESOLV_CONF_SUPPORTS_DNS_SD   (1)
+#endif
+
 /** If RESOLV_CONF_SUPPORTS_MDNS is set, then queries
  *  for domain names in the `local` TLD will use MDNS and
  *  will respond to MDNS queries for this device's hostname,
