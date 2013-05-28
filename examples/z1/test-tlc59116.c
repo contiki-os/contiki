@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,22 +54,25 @@ AUTOSTART_PROCESSES(&tlc59116_process);
 static struct etimer et;
 static uint8_t count = 0;
 
-PROCESS_THREAD(tlc59116_process, ev, data) {
+PROCESS_THREAD(tlc59116_process, ev, data)
+{
   PROCESS_BEGIN();
   {
 
     /* Start and setup the led driver with default values, eg outputs on and pwm enabled and 0. */
     tlc59116_init();
 
-    while (1) {
+    while(1) {
 
-      tlc59116_led(count,0x00);
-      tlc59116_led((count+1)%16,0x20);
-      tlc59116_led((count+2)%16,0x40);
-      tlc59116_led((count+3)%16,0xFF);
+      tlc59116_led(count, 0x00);
+      tlc59116_led((count + 1) % 16, 0x20);
+      tlc59116_led((count + 2) % 16, 0x40);
+      tlc59116_led((count + 3) % 16, 0xFF);
 
       count++;
-      if(count>15) count=0;
+      if(count > 15) {
+        count = 0;
+      }
 
       etimer_set(&et, BLINK_INTERVAL);
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
