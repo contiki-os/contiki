@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,66 +53,66 @@
 
 /* -------------------------------------------------------------------------- */
 /* Init the led driver: ports, pins, registers, I2C*/
-void    tlc59116_init(void);
+void tlc59116_init(void);
 
 /* Write to a register.
-    args:
-      reg       register to write to
-      val       value to write
-*/
-void    tlc59116_write_reg(uint8_t reg, uint8_t val);
+ *  args:
+ *    reg       register to write to
+ *    val       value to write
+ */
+void tlc59116_write_reg(uint8_t reg, uint8_t val);
 
 /* Write several registers from a stream.
-    args:
-      len       number of bytes to read
-      data      pointer to where the data is read from
-  First byte in stream must be the register address to begin writing to.
-  The data is then written from the second byte and increasing. The address byte
-  is not included in length len.
-*/
-void    tlc59116_write_stream(uint8_t len, uint8_t *data);
+ *  args:
+ *    len       number of bytes to read
+ *    data      pointer to where the data is read from
+ * First byte in stream must be the register address to begin writing to.
+ * The data is then written from the second byte and increasing. The address byte
+ * is not included in length len.
+ */
+void tlc59116_write_stream(uint8_t len, uint8_t * data);
 
 /* Read one register.
-    args:
-      reg       what register to read
-    returns the value of the read register
-*/
-uint8_t    tlc59116_read_reg(uint8_t reg);
+ *  args:
+ *    reg       what register to read
+ *  returns the value of the read register
+ */
+uint8_t tlc59116_read_reg(uint8_t reg);
 
 /* Read several registers in a stream.
-    args:
-      reg       what register to start reading from
-      len       number of bytes to read
-      whereto   pointer to where the data is saved
-*/
-void    tlc59116_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto);
+ *  args:
+ *    reg       what register to start reading from
+ *    len       number of bytes to read
+ *    whereto   pointer to where the data is saved
+ */
+void tlc59116_read_stream(uint8_t reg, uint8_t len, uint8_t * whereto);
 
 /* Set pwm value for individual led
-    args:
-      led       led output -> 0 till 15
-      pwm       led pwm value
-*/
-void    tlc59116_led(uint8_t led, uint8_t pwm);
+ *  args:
+ *    led       led output -> 0 till 15
+ *    pwm       led pwm value
+ */
+void tlc59116_led(uint8_t led, uint8_t pwm);
 
 
 /* -------------------------------------------------------------------------- */
 /* Application definitions, change if required by application. */
 
 /* Suggested defaults according to the data sheet etc */
-#define TLC59116_MODE1_DEFAULT   0x80    //
-#define TLC59116_MODE2_DEFAULT   0x00    //
+#define TLC59116_MODE1_DEFAULT   0x00   // Default (no sub or all call) + OSC on
+#define TLC59116_MODE2_DEFAULT   0x00   // Default (output change on stop)
 
-#define TLC59116_LEDOUT_PWM      0xAA // LDRx = 01 -> PWM, 4 leds per reg: 01010101 -> 0xAA
+#define TLC59116_LEDOUT_PWM      0xAA   // LDRx = 01 -> PWM; 4 leds per reg: 01010101b -> 0xAA
 
 /* -------------------------------------------------------------------------- */
 /* Reference definitions, should not be changed */
 /* TLC59116 slave address */
-#define TLC59116_ADDR            0x60 //7bit adress, 8bit write adress: 0xC0
-                                      //address with all address pins pulled to ground
+#define TLC59116_ADDR            0x60   //7bit adress, 8bit write adress: 0xC0
+                                        //address with all address pins pulled to ground
 /* TLC59116 registers */
 #define TLC59116_MODE1           0x00
 #define TLC59116_MODE2           0x01
-#define TLC59116_PWM0_AUTOINCR   0xA2 //
+#define TLC59116_PWM0_AUTOINCR   0xA2   //auto increment address for first pwm register
 #define TLC59116_PWM0            0x02
 #define TLC59116_PWM1            0x03
 #define TLC59116_PWM2            0x04
@@ -139,4 +139,4 @@ void    tlc59116_led(uint8_t led, uint8_t pwm);
 /* More registers follow, but not used in this implementation */
 
 /* -------------------------------------------------------------------------- */
-#endif /* ifndef __ADXL345_H__ */
+#endif /* ifndef __TLC59116_H__ */
