@@ -200,4 +200,34 @@ void cc2420_set_cca_threshold(int value);
     CC2420_SPI_DISABLE();                       \
   } while (0)
 
+/**
+ * \brief      Setup an AES key
+ * \param key  A pointer to a 16-byte AES key
+ * \param index The key index: either 0 or 1.
+ *
+ *             This function sets up an AES key with the CC2420
+ *             chip. The AES key can later be used with the
+ *             cc2420_aes_cipher() function to encrypt or decrypt
+ *             data.
+ *
+ *             The CC2420 can store two separate keys in its
+ *             memory. The keys are indexed as 0 or 1 and the key
+ *             index is given by the 'index' parameter.
+ *
+ */
+int cc2420_aes_set_key(const uint8_t *key, int index);
+
+/**
+ * \brief      Encrypt/decrypt data with AES
+ * \param data A pointer to the data to be encrypted/decrypted
+ * \param len  The length of the data to be encrypted/decrypted
+ * \param key_index The key to use. The key must have previously been set up with cc2420_aes_set_key().
+ *
+ *             This function encrypts/decrypts data with AES. A
+ *             pointer to the data is passed as a parameter, and the
+ *             function overwrites the data with the encrypted data.
+ *
+ */
+int cc2420_aes_cipher(uint8_t *data, int len, int key_index);
+
 #endif /* __CC2420_H__ */
