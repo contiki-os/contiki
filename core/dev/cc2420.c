@@ -920,7 +920,7 @@ cipher16(uint8_t *data, int len)
   len = MIN(len, MAX_DATALEN);
 
   CC2420_WRITE_RAM(data, CC2420RAM_SABUF, len);
-  CC2420_STROBE(CC2420_SAES);
+  strobe(CC2420_SAES);
   /* Wait for the encryption to finish */
   do {
     CC2420_GET_STATUS(status);
@@ -939,7 +939,7 @@ cc2420_aes_cipher(uint8_t *data, int len, int key_index)
   }
 
   GET_LOCK();
-  CC2420_READ_REG(CC2420_SECCTRL0, secctrl0);
+  secctrl0 = getreg(CC2420_SECCTRL0);
 
   secctrl0 &= ~(CC2420_SECCTRL0_SAKEYSEL0 | CC2420_SECCTRL0_SAKEYSEL1);
 
@@ -951,7 +951,7 @@ cc2420_aes_cipher(uint8_t *data, int len, int key_index)
     secctrl0 |= CC2420_SECCTRL0_SAKEYSEL1;
     break;
   }
-  CC2420_WRITE_REG(CC2420_SECCTRL0, secctrl0);
+  setreg(CC2420_SECCTRL0, secctrl0);
 
   for(i = 0; i < len; i = i + MAX_DATALEN) {
     cipher16(data + i, MIN(len - i, MAX_DATALEN));
