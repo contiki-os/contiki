@@ -177,6 +177,20 @@ void cc2420_set_cca_threshold(int value);
     CC2420_SPI_DISABLE();                                    \
   } while(0)
 
+/* Write reverse to RAM in the CC2420 */
+#define CC2420_WRITE_RAM_REV(buffer,adr,count)               \
+  do {                                                       \
+    uint8_t i;                                               \
+    CC2420_SPI_ENABLE();                                     \
+    SPI_WRITE_FAST(0x80 | (adr & 0x7f));                     \
+    SPI_WRITE_FAST((adr >> 1) & 0xc0);                       \
+    for(i = (count); i > 0; i--) {                           \
+      SPI_WRITE_FAST(((uint8_t*)(buffer))[i - 1]);           \
+    }                                                        \
+    SPI_WAITFORTx_ENDED();                                   \
+    CC2420_SPI_DISABLE();                                    \
+  } while(0)
+
 /* Read from RAM in the CC2420 */
 #define CC2420_READ_RAM(buffer,adr,count)                    \
   do {                                                       \
