@@ -915,16 +915,12 @@ cc2420_aes_set_key(const uint8_t *key, int index)
 static void
 cipher16(uint8_t *data, int len)
 {
-  uint8_t status;
-
   len = MIN(len, MAX_DATALEN);
 
   CC2420_WRITE_RAM(data, CC2420RAM_SABUF, len);
   strobe(CC2420_SAES);
   /* Wait for the encryption to finish */
-  do {
-    CC2420_GET_STATUS(status);
-  } while(status & BV(CC2420_ENC_BUSY));
+  BUSYWAIT_UNTIL(!(status() & BV(CC2420_ENC_BUSY)), RTIMER_SECOND / 100);
   CC2420_READ_RAM(data, CC2420RAM_SABUF, len);
 }
 /*---------------------------------------------------------------------------*/
