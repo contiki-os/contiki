@@ -122,8 +122,6 @@ int cc2420_authority_level_of_sender;
 
 int cc2420_packets_seen, cc2420_packets_read;
 
-/* static uint8_t volatile pending; */
-
 volatile uint8_t cc2420_sfd_counter;
 volatile uint16_t cc2420_sfd_start_time;
 volatile uint16_t cc2420_sfd_end_time;
@@ -146,7 +144,6 @@ static int cc2420_send(const void *data, unsigned short len);
 static int cc2420_receiving_packet(void);
 static int pending_packet(void);
 static int cc2420_cca(void);
-/*static int detected_energy(void);*/
 
 signed char cc2420_last_rssi;
 uint8_t cc2420_last_correlation;
@@ -259,8 +256,6 @@ const struct radio_driver cc2420_driver =
     cc2420_transmit,
     cc2420_send,
     cc2420_read,
-    /* cc2420_set_channel, */
-    /* detected_energy, */
     cc2420_cca,
     cc2420_receiving_packet,
     pending_packet,
@@ -739,7 +734,6 @@ cc2420_interrupt(void)
   process_poll(&cc2420_process);
 
   last_packet_timestamp = cc2420_sfd_start_time;
-  /* pending++; */
   cc2420_packets_seen++;
   return 1;
 }
@@ -777,11 +771,6 @@ cc2420_read(void *buf, unsigned short bufsize)
   if(!CC2420_FIFOP_IS_1) {
     return 0;
   }
-  /*  if(!pending) {
-    return 0;
-    }*/
-  
-  /* pending = 0; */
   
   GET_LOCK();
 
@@ -892,14 +881,6 @@ cc2420_rssi(void)
   RELEASE_LOCK();
   return rssi;
 }
-/*---------------------------------------------------------------------------*/
-/*
-static int
-detected_energy(void)
-{
-  return cc2420_rssi();
-}
-*/
 /*---------------------------------------------------------------------------*/
 static int
 cc2420_cca(void)
