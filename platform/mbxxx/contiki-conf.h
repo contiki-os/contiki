@@ -100,7 +100,7 @@
 #define QUEUEBUF_CONF_NUM                       2
 #define QUEUEBUF_CONF_REF_NUM                   0
 #define UIP_CONF_DS6_NBR_NBU                    4
-#define UIP_CONF_DS6_ROUTE_NBU                  4
+#define UIP_CONF_MAX_ROUTES                  4
 #define RPL_CONF_MAX_PARENTS_PER_DAG            4
 #define RPL_CONF_MAX_INSTANCES                  1
 #define RPL_CONF_MAX_DAG_PER_INSTANCE           1

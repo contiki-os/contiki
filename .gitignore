@@ -27,6 +27,9 @@
 summary
 *.summary
 *.faillog
+*.orig
+*~
+.DS_Store
 obj_*
 symbols.*
 Makefile.target
@@ -77,3 +80,6 @@ contiki-cc2530dk.lib
 *.d64
 *.d71
 *.d81
+
+#regression tests artifacts
+*.testlog

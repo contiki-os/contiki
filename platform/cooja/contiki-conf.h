@@ -39,6 +39,10 @@
 
 #define COOJA 1
 
+#ifndef EEPROM_CONF_SIZE
+#define EEPROM_CONF_SIZE				1024
+#endif
+
 #define w_memcpy memcpy
 
 #if WITH_UIP
@@ -126,9 +130,9 @@
 #ifndef UIP_CONF_DS6_NBR_NBU
 #define UIP_CONF_DS6_NBR_NBU     300
 #endif /* UIP_CONF_DS6_NBR_NBU */
-#ifndef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU   300
-#endif /* UIP_CONF_DS6_ROUTE_NBU */
+#ifndef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES   300
+#endif /* UIP_CONF_MAX_ROUTES */
 
 #define TCPIP_CONF_ANNOTATE_TRANSMISSIONS 1
 

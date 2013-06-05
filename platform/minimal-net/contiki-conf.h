@@ -44,6 +44,10 @@
 #define CCIF
 #define CLIF
 
+#ifndef EEPROM_CONF_SIZE
+#define EEPROM_CONF_SIZE				1024
+#endif
+
 /* These names are deprecated, use C99 names. */
 typedef uint8_t   u8_t;
 typedef uint16_t u16_t;
@@ -161,7 +165,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_DS6_NBR_NBU     100
 #define UIP_CONF_DS6_DEFRT_NBU   2
 #define UIP_CONF_DS6_PREFIX_NBU  5
-#define UIP_CONF_DS6_ROUTE_NBU   100
+#define UIP_CONF_MAX_ROUTES   100
 #define UIP_CONF_DS6_ADDR_NBU    10
 #define UIP_CONF_DS6_MADDR_NBU   0
 #define UIP_CONF_DS6_AADDR_NBU   0

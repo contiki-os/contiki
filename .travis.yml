@@ -10,7 +10,7 @@ before_script:
   - "sudo apt-get -qq install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386 || true"
   ## Install toolchain for mc1233x in care-free way
   - "[ $BUILD_TYPE = compile ] && curl -s \
-       http://adamdunkels.github.com/contiki-fork/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
+       https://raw.github.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
          | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version || true"
   ## Install SDCC from a purpose-built bundle
   - "[ $BUILD_TYPE = compile ] && curl -s \
@@ -28,6 +28,8 @@ script:
   - "make -C regression-tests/??-$BUILD_TYPE RUNALL=true summary"
 
 after_script:
+  ## Print cooja test logs
+  - "tail regression-tests/??-$BUILD_TYPE/*.testlog"
   ## Print a basic summary 
   - "echo 'Summary:'; cat regression-tests/??-$BUILD_TYPE/summary"
   - "FAILS=`grep -c -i 'fail' regression-tests/??-$BUILD_TYPE/summary`"
@@ -46,7 +48,8 @@ env:
   - BUILD_TYPE='ipv6' MAKE_TARGETS='cooja'
   - BUILD_TYPE='hello-world' MAKE_TARGETS='cooja'
   - BUILD_TYPE='base' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja'
+# XXX: netperf disabled b/c it's flaky
+#  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja'
   - BUILD_TYPE='shell' MAKE_TARGETS='cooja'
   - BUILD_TYPE='elfloader' MAKE_TARGETS='cooja'
   - BUILD_TYPE='ipv4' MAKE_TARGETS='cooja'

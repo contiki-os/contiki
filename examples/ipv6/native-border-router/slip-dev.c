@@ -176,7 +176,7 @@ slip_packet_input(unsigned char *data, int len)
 void
 serial_input(FILE *inslip)
 {
-  unsigned char inbuf[2048];
+  static unsigned char inbuf[2048];
   static int inbufptr = 0;
   int ret,i;
   unsigned char c;
