@@ -775,61 +775,47 @@ cc2420_read(void *buf, unsigned short bufsize)
 
   if(len > CC2420_MAX_PACKET_LEN) {
     /* Oops, we must be out of sync. */
-    flushrx();
     RIMESTATS_ADD(badsynch);
-    RELEASE_LOCK();
-    return 0;
-  }
-
-  if(len <= FOOTER_LEN) {
-    flushrx();
+  } else if(len <= FOOTER_LEN) {
     RIMESTATS_ADD(tooshort);
-    RELEASE_LOCK();
-    return 0;
-  }
-
-  if(len - FOOTER_LEN > bufsize) {
-    flushrx();
+  } else if(len - FOOTER_LEN > bufsize) {
     RIMESTATS_ADD(toolong);
-    RELEASE_LOCK();
-    return 0;
-  }
-  
-  getrxdata(buf, len - FOOTER_LEN);
-  getrxdata(footer, FOOTER_LEN);
-  
-  if(footer[1] & FOOTER1_CRC_OK) {
-    cc2420_last_rssi = footer[0];
-    cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
-    
-    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
-    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
-
-    RIMESTATS_ADD(llrx);
   } else {
-    RIMESTATS_ADD(badcrc);
-    len = FOOTER_LEN;
-  }
-
-  if(CC2420_FIFOP_IS_1) {
-    if(!CC2420_FIFO_IS_1) {
-      /* Clean up in case of FIFO overflow!  This happens for every
-       * full length frame and is signaled by FIFOP = 1 and FIFO =
-       * 0. */
-      flushrx();
+    getrxdata(buf, len - FOOTER_LEN);
+    getrxdata(footer, FOOTER_LEN);
+    
+    if(footer[1] & FOOTER1_CRC_OK) {
+      cc2420_last_rssi = footer[0];
+      cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
+      
+      packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
+      packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
+  
+      RIMESTATS_ADD(llrx);
     } else {
-      /* Another packet has been received and needs attention. */
-      process_poll(&cc2420_process);
+      RIMESTATS_ADD(badcrc);
+      len = FOOTER_LEN;
     }
+  
+    if(CC2420_FIFOP_IS_1) {
+      if(!CC2420_FIFO_IS_1) {
+        /* Clean up in case of FIFO overflow!  This happens for every
+         * full length frame and is signaled by FIFOP = 1 and FIFO =
+         * 0. */
+        flushrx();
+      } else {
+        /* Another packet has been received and needs attention. */
+        process_poll(&cc2420_process);
+      }
+    }
+    
+    RELEASE_LOCK();
+    return len - FOOTER_LEN;
   }
-
+  
+  flushrx();
   RELEASE_LOCK();
-
-  if(len < FOOTER_LEN) {
-    return 0;
-  }
-
-  return len - FOOTER_LEN;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 void
