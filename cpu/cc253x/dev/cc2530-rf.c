@@ -114,8 +114,8 @@ static int on(void); /* prepare() needs our prototype */
 static int off(void); /* transmit() needs our prototype */
 static int channel_clear(void); /* transmit() needs our prototype */
 /*---------------------------------------------------------------------------*/
-int8_t
-cc2530_rf_channel_set(uint8_t channel)
+int
+cc2530_rf_channel_set(int channel)
 {
   PUTSTRING("RF: Set Chan\n");
 
@@ -129,7 +129,13 @@ cc2530_rf_channel_set(uint8_t channel)
       + (channel - CC2530_RF_CHANNEL_MIN) * CC2530_RF_CHANNEL_SPACING);
   on();
 
-  return (int8_t) channel;
+  return channel;
+}
+/*---------------------------------------------------------------------------*/
+int
+cc2530_rf_channel_get(void)
+{
+  return (FREQCTRL + 44) / 5;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -489,6 +495,8 @@ const struct radio_driver cc2530_rf_driver = {
   transmit,
   send,
   read,
+  cc2530_rf_channel_set,
+  cc2530_rf_channel_get,
   channel_clear,
   receiving_packet,
   pending_packet,

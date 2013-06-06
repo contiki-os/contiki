@@ -64,7 +64,7 @@ extern const struct radio_driver mrf24j40_driver;
 #define MRF24J40_TX_WAIT                4
 
 /* Functions prototypes */
-void mrf24j40_set_channel(uint16_t ch);
+int mrf24j40_set_channel(int ch);
 void mrf24j40_set_panid(uint16_t id);
 void mrf24j40_set_short_mac_addr(uint16_t addr);
 void mrf24j40_set_extended_mac_addr(uint64_t addr);
