@@ -66,6 +66,8 @@ unsigned short node_id = 0;
 static volatile uint8_t tx_complete;
 static volatile uint8_t tx_status;
 
+static int rf_channel;
+
 /* contiki mac driver */
 
 int contiki_maca_init(void);
@@ -78,6 +80,10 @@ int contiki_maca_send(const void *payload, unsigned short payload_len);
 int contiki_maca_channel_clear(void);
 int contiki_maca_receiving_packet(void);
 int contiki_maca_pending_packet(void);
+int contiki_maca_set_channel(int channel);
+int contiki_maca_get_channel(void);
+
+extern void set_channel(uint8_t);
 
 const struct radio_driver contiki_maca_driver =
 {
@@ -86,6 +92,8 @@ const struct radio_driver contiki_maca_driver =
 	.transmit = contiki_maca_transmit,
 	.send = contiki_maca_send,
 	.read = contiki_maca_read,
+	.set_channel = contiki_maca_set_channel,
+	.get_channel = contiki_maca_get_channel,
 	.receiving_packet = contiki_maca_receiving_packet,
 	.pending_packet = contiki_maca_pending_packet,
 	.channel_clear = contiki_maca_channel_clear,
@@ -284,6 +292,21 @@ int contiki_maca_send(const void *payload, unsigned short payload_len) {
 		PRINTF("TXERR\n\r");
 		return RADIO_TX_ERR;
 	}
+}
+
+int
+contiki_maca_set_channel(int channel)
+{
+  rf_channel = channel;
+  set_channel((uint8_t) (rf_channel - 11));
+
+  return rf_channel;
+}
+
+int
+contiki_maca_get_channel(void)
+{
+  return rf_channel;
 }
 
 PROCESS(contiki_maca_process, "maca process");

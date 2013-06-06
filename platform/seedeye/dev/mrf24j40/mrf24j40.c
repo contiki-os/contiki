@@ -77,6 +77,8 @@ static volatile uint8_t status_tx;
 static volatile uint8_t pending;
 static volatile uint8_t receive_on;
 
+static int rf_channel;
+
 /*---------------------------------------------------------------------------*/
 static void
 set_short_add_mem(uint8_t addr, uint8_t val)
@@ -199,12 +201,27 @@ flush_rx_fifo(void)
  *
  *        This routine sets the rx/tx channel
  */
-void
-mrf24j40_set_channel(uint16_t ch)
+int
+mrf24j40_set_channel(int ch)
 {
-  set_long_add_mem(MRF24J40_RFCON0, ((ch - 11) << 4) | 0b00000011);
+  rf_channel = ch;
+
+  set_long_add_mem(MRF24J40_RFCON0, ((rf_channel - 11) << 4) | 0b00000011);
 
   reset_rf_state_machine();
+
+  return rf_channel;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Get the channel
+ *
+ *        This routine gets the rx/tx channel
+ */
+int
+mrf24j40_get_channel(int ch)
+{
+  return rf_channel;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -934,6 +951,8 @@ const struct radio_driver mrf24j40_driver = {
   mrf24j40_transmit,
   mrf24j40_write,
   mrf24j40_read,
+  mrf24j40_set_channel,
+  mrf24j40_get_channel,
   mrf24j40_cca,
   mrf24j40_receiving_packet,
   mrf24j40_pending_packet,

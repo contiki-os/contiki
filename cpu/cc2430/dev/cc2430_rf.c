@@ -106,7 +106,7 @@ PROCESS(cc2430_rf_process, "CC2430 RF driver");
 #endif
 /*---------------------------------------------------------------------------*/
 static uint8_t CC_AT_DATA rf_flags;
-static uint8_t rf_channel;
+static int rf_channel;
 
 static int on(void); /* prepare() needs our prototype */
 static int off(void); /* transmit() needs our prototype */
@@ -176,8 +176,8 @@ flush_rx()
  /* channel freqdiv = (2048 + FSCTRL(9:0)) / 4
             freq = (2048 + FSCTRL(9:0)) MHz */
 
-int8_t
-cc2430_rf_channel_set(uint8_t channel)
+int
+cc2430_rf_channel_set(int channel)
 {
   uint16_t freq;
 
@@ -199,11 +199,11 @@ cc2430_rf_channel_set(uint8_t channel)
 
   rf_channel = channel;
 
-  return (int8_t) channel;
+  return rf_channel;
 }
 /*---------------------------------------------------------------------------*/
-uint8_t
-cc2430_rf_channel_get()
+int
+cc2430_rf_channel_get(void)
 {
   return rf_channel;
 }
@@ -692,6 +692,8 @@ const struct radio_driver cc2430_rf_driver = {
   transmit,
   send,
   read,
+  cc2430_rf_channel_set,
+  cc2430_rf_channel_get,
   channel_clear,
   receiving_packet,
   pending_packet,
