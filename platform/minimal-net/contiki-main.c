@@ -358,7 +358,11 @@ main(void)
 	serial_line_input_byte(c);
       }
     }
+#ifdef __CYGWIN__
+    process_poll(&wpcap_process);
+#else
     process_poll(&tapdev_process);
+#endif
     etimer_request_poll();
   }
   
