@@ -40,9 +40,11 @@
 
 #include "net/uip.h"
 #include "net/uip-ds6.h"
+#include "net/netstack.h"
 #include "dev/slip.h"
 #include "dev/uart1.h"
 #include <string.h>
+#include <stdlib.h>
 
 #define UIP_IP_BUF        ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
@@ -51,6 +53,7 @@
 
 void set_prefix_64(uip_ipaddr_t *);
 
+static uint8_t radio_channel;
 static uip_ipaddr_t last_sender;
 /*---------------------------------------------------------------------------*/
 static void
@@ -69,6 +72,13 @@ slip_input_callback(void)
       PRINT6ADDR(&prefix);
       PRINTF("\n");
       set_prefix_64(&prefix);
+    } else if(uip_buf[1] == 'C') {
+      int channel = atoi((char *)uip_buf+2);
+      if (channel>=11 && channel<=26) {
+        PRINTF("Setting channel %s\n", uip_buf+2);
+        radio_channel = channel;
+        NETSTACK_CONF_RADIO.set_channel(radio_channel);
+      }
     }
   } else if (uip_buf[0] == '?') {
     PRINTF("Got request message of type %c\n", uip_buf[1]);

@@ -75,6 +75,7 @@ void slip_send_char(int fd, unsigned char c);
 #define PROGRESS(s) do { } while (0)
 
 char tundev[32] = { "" };
+char channel_str[3] = { "26" };
 
 int
 ssystem(const char *fmt, ...) __attribute__((__format__ (__printf__, 1, 2)));
@@ -150,6 +151,45 @@ is_sensible_string(const unsigned char *s, int len)
   return 1;
 }
 
+static
+void
+send_prefix()
+{
+  struct in6_addr addr;
+  int i;
+  char *s = strchr(ipaddr, '/');
+  if(s != NULL) {
+    *s = '\0';
+  }
+  inet_pton(AF_INET6, ipaddr, &addr);
+  if(timestamp) stamptime();
+  fprintf(stderr,"*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+         ipaddr,
+         addr.s6_addr[0], addr.s6_addr[1],
+         addr.s6_addr[2], addr.s6_addr[3],
+         addr.s6_addr[4], addr.s6_addr[5],
+         addr.s6_addr[6], addr.s6_addr[7]);
+  slip_send(slipfd, '!');
+  slip_send(slipfd, 'P');
+  for(i = 0; i < 8; i++) {
+    /* need to call the slip_send_char for stuffing */
+    slip_send_char(slipfd, addr.s6_addr[i]);
+  }
+  slip_send(slipfd, SLIP_END);
+}
+
+static
+void
+send_channel()
+{
+  slip_send(slipfd, '!');
+  slip_send(slipfd, 'C');
+  slip_send(slipfd, channel_str[0]);
+  slip_send(slipfd, channel_str[1]);
+  slip_send(slipfd, channel_str[2]);
+  slip_send(slipfd, SLIP_END);
+}
+
 /*
  * Read from serial, when we have a packet write it to tun. No output
  * buffering, input buffered by stdio.
@@ -216,28 +256,8 @@ serial_to_tun(FILE *inslip, int outfd)
       } else if(uip.inbuf[0] == '?') {
 	if(uip.inbuf[1] == 'P') {
           /* Prefix info requested */
-          struct in6_addr addr;
-	  int i;
-	  char *s = strchr(ipaddr, '/');
-	  if(s != NULL) {
-	    *s = '\0';
-	  }
-          inet_pton(AF_INET6, ipaddr, &addr);
-          if(timestamp) stamptime();
-          fprintf(stderr,"*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
- //         printf("*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
-		 ipaddr, 
-		 addr.s6_addr[0], addr.s6_addr[1],
-		 addr.s6_addr[2], addr.s6_addr[3],
-		 addr.s6_addr[4], addr.s6_addr[5],
-		 addr.s6_addr[6], addr.s6_addr[7]);
-	  slip_send(slipfd, '!');
-	  slip_send(slipfd, 'P');
-	  for(i = 0; i < 8; i++) {
-	    /* need to call the slip_send_char for stuffing */
-	    slip_send_char(slipfd, addr.s6_addr[i]);
-	  }
-	  slip_send(slipfd, SLIP_END);
+          send_prefix();
+          send_channel();
         }
 #define DEBUG_LINE_MARKER '\r'
       } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {    
@@ -700,11 +720,12 @@ main(int argc, char **argv)
   int baudrate = -2;
   int tap = 0;
   slipfd = 0;
+  int ch = 0;
 
   prog = argv[0];
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:HLhs:t:v::d::a:p:T")) != -1) {
+  while((c = getopt(argc, argv, "c:B:HLhs:t:v::d::a:p:T")) != -1) {
     switch(c) {
     case 'B':
       baudrate = atoi(optarg);
@@ -744,17 +765,24 @@ main(int argc, char **argv)
 
     case 'd':
       basedelay = 10;
-      if (optarg) basedelay = atoi(optarg);
+      if(optarg) basedelay = atoi(optarg);
       break;
 
     case 'v':
       verbose = 2;
-      if (optarg) verbose = atoi(optarg);
+      if(optarg) verbose = atoi(optarg);
       break;
 
     case 'T':
       tap = 1;
       break;
+
+    case 'c':
+      ch = atoi(optarg);
+      if(ch >= 11 && ch <= 26) {
+        strncpy(channel_str, optarg, sizeof(channel_str));
+        break;
+      }
  
     case '?':
     case 'h':
@@ -772,6 +800,7 @@ fprintf(stderr," -L             Log output format (adds time stamps)\n");
 fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
 fprintf(stderr," -T             Make tap interface (default is tun interface)\n");
 fprintf(stderr," -t tundev      Name of interface (default tap0 or tun0)\n");
+fprintf(stderr," -c channel     IEEE 802.15.4 channel for the border-router\n");
 fprintf(stderr," -v[level]      Verbosity level\n");
 fprintf(stderr,"    -v0         No messages\n");
 fprintf(stderr,"    -v1         Encapsulated SLIP debug messages (default)\n");
@@ -793,7 +822,7 @@ exit(1);
   argv += (optind - 1);
 
   if(argc != 2 && argc != 3) {
-    err(1, "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] ipaddress", prog);
+    err(1, "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-T] [-t tundev] [-c channel] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] ipaddress", prog);
   }
   ipaddr = argv[1];
 
