@@ -322,17 +322,11 @@ getrxdata(void *buf, int len)
 }
 /*---------------------------------------------------------------------------*/
 static void
-getrxbyte(uint8_t *byte)
-{
-  CC2420_READ_FIFO_BYTE(byte);
-}
-/*---------------------------------------------------------------------------*/
-static void
 flushrx(void)
 {
   uint8_t dummy;
 
-  getrxbyte(&dummy);
+  getrxdata(&dummy, 1);
   strobe(CC2420_SFLUSHRX);
   strobe(CC2420_SFLUSHRX);
   if(dummy) {
@@ -771,7 +765,7 @@ cc2420_read(void *buf, unsigned short bufsize)
   
   GET_LOCK();
 
-  getrxbyte(&len);
+  getrxdata(&len, 1);
 
   if(len > CC2420_MAX_PACKET_LEN) {
     /* Oops, we must be out of sync. */
