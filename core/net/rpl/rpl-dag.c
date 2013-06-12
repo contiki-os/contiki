@@ -336,18 +336,29 @@ check_prefix(rpl_prefix_t *last_prefix, rpl_prefix_t *new_prefix)
 int
 rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len)
 {
+  rpl_prefix_t last_prefix;
+  uint8_t last_len = dag->prefix_info.length;
+  
   if(len > 128) {
     return 0;
   }
-
+  if(dag->prefix_info.length != 0) {
+    memcpy(&last_prefix, &dag->prefix_info, sizeof(rpl_prefix_t));
+  }
   memset(&dag->prefix_info.prefix, 0, sizeof(dag->prefix_info.prefix));
   memcpy(&dag->prefix_info.prefix, prefix, (len + 7) / 8);
   dag->prefix_info.length = len;
   dag->prefix_info.flags = UIP_ND6_RA_FLAG_AUTONOMOUS;
   PRINTF("RPL: Prefix set - will announce this in DIOs\n");
   /* Autoconfigure an address if this node does not already have an address
-     with this prefix. */
-  check_prefix(NULL, &dag->prefix_info);
+     with this prefix. Otherwise, update the prefix */
+  if(last_len == 0) {
+    PRINTF("rpl_set_prefix - prefix NULL\n");
+    check_prefix(NULL, &dag->prefix_info);
+  } else { 
+    PRINTF("rpl_set_prefix - prefix NON-NULL\n");
+    check_prefix(&last_prefix, &dag->prefix_info);
+  }
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -1110,6 +1121,13 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 	RPL_LOLLIPOP_INCREMENT(dag->version);
 	rpl_reset_dio_timer(instance);
       } else {
+        PRINTF("RPL: Global Repair\n");
+        if(dio->prefix_info.length != 0) {
+          if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
+            PRINTF("RPL : Prefix announced in DIO\n");
+            rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
+          }
+        }
 	global_repair(from, dag, dio);
       }
       return;
@@ -1151,6 +1169,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   } else if(dio->rank == INFINITE_RANK && dag->joined) {
     rpl_reset_dio_timer(instance);
+  }
+  
+  /* Prefix Information Option treated to add new prefix */
+  if(dio->prefix_info.length != 0) {
+    if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
+      PRINTF("RPL : Prefix announced in DIO\n");
+      rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
+    }
   }
 
   if(dag->rank == ROOT_RANK(instance)) {

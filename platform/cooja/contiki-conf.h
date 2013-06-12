@@ -39,6 +39,10 @@
 
 #define COOJA 1
 
+#ifndef EEPROM_CONF_SIZE
+#define EEPROM_CONF_SIZE				1024
+#endif
+
 #define w_memcpy memcpy
 
 #if WITH_UIP

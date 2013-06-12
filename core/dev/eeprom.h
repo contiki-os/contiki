@@ -55,7 +55,20 @@
 #define __EEPROM_H__
 
 typedef unsigned short eeprom_addr_t;
-#define EEPROM_NULL 0
+
+#define EEPROM_NULL			0
+
+#ifdef EEPROM_CONF_SIZE
+#define EEPROM_SIZE			(EEPROM_CONF_SIZE)
+#else
+#define EEPROM_SIZE			0 /* Default to no EEPROM */
+#endif
+
+#ifdef EEPROM_CONF_END_ADDR
+#define EEPROM_END_ADDR		(EEPROM_CONF_END_ADDR)
+#else
+#define EEPROM_END_ADDR		(EEPROM_SIZE - 1)
+#endif
 
 /**
  * Write a buffer into EEPROM.

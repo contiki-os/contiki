@@ -76,7 +76,8 @@
 #include <p32xxxx.h>
 
 #include "contiki.h"
-#include "lib/ringbuf.h"
+
+#include "dev/leds.h"
 
 /*---------------------------------------------------------------------------*/
 #define UART_PORT_INIT_XA(XX, YY, ZZ)                                                                           \
@@ -84,7 +85,7 @@
   pic32_uart##XX##A_init(uint32_t baudrate, uint16_t byte_format)                                               \
   {                                                                                                             \
     /* Disable Interrupts: RX, TX, ERR */                                                                       \
-    IEC##ZZ##CLR = _IEC##ZZ##_U##XX##ARXIE_MASK;                                                                \
+    IEC##ZZ##CLR = _IEC##ZZ##_U##XX##AEIE_MASK | _IEC##ZZ##_U##XX##ATXIE_MASK | _IEC##ZZ##_U##XX##ARXIE_MASK;   \
     IFS##ZZ##CLR = _IFS##ZZ##_U##XX##AEIF_MASK | _IFS##ZZ##_U##XX##ATXIF_MASK | _IFS##ZZ##_U##XX##ARXIF_MASK;   \
                                                                                                                 \
     /* Clear thant Set Pri and Sub priority */                                                                  \
@@ -101,8 +102,8 @@
     U##XX##AMODESET = byte_format & 0x07; /* Number of bit, Parity and Stop bits */                             \
                                                                                                                 \
     /* Status bits */                                                                                           \
-    U##XX##ASTA = 0; /* TX & RX interrupt modes */                                                              \
-    U##XX##ASTASET = _U##XX##ASTA_UTXEN_MASK | _U##XX##ASTA_URXEN_MASK; /* Enable TX, RX */                                          \
+    U##XX##ASTA = 0;                                                                                            \
+    U##XX##ASTASET = _U##XX##ASTA_URXEN_MASK | _U##XX##ASTA_UTXEN_MASK; /* Enable RX and TX */                  \
                                                                                                                 \
     IEC##ZZ##SET = _IEC##ZZ##_U##XX##ARXIE_MASK;                                                                \
                                                                                                                 \
@@ -117,7 +118,7 @@
   pic32_uart##XX##B_init(uint32_t baudrate, uint16_t byte_format)                                               \
   {                                                                                                             \
     /* Disable Interrupts: RX, TX, ERR */                                                                       \
-    IEC##ZZ##CLR = _IEC##ZZ##_U##XX##BRXIE_MASK;                                                                \
+    IEC##ZZ##CLR = _IEC##ZZ##_U##XX##BEIE_MASK | _IEC##ZZ##_U##XX##BTXIE_MASK | _IEC##ZZ##_U##XX##BRXIE_MASK;   \
     IFS##ZZ##CLR = _IFS##ZZ##_U##XX##BEIF_MASK | _IFS##ZZ##_U##XX##BTXIF_MASK | _IFS##ZZ##_U##XX##BRXIF_MASK;   \
                                                                                                                 \
     /* Clear thant Set Pri and Sub priority */                                                                  \
@@ -134,8 +135,8 @@
     U##XX##BMODESET = byte_format & 0x07; /* Number of bit, Parity and Stop bits */                             \
                                                                                                                 \
     /* Status bits */                                                                                           \
-    U##XX##BSTA = 0; /* TX & RX interrupt modes */                                                              \
-    U##XX##BSTASET = _U##XX##BSTA_UTXEN_MASK | _U##XX##BSTA_URXEN_MASK; /* Enable TX, RX */                                               \
+    U##XX##BSTA = 0;                                                                                            \
+    U##XX##BSTASET = _U##XX##BSTA_URXEN_MASK | _U##XX##BSTA_UTXEN_MASK; /* Enable RX and TX */                  \
                                                                                                                 \
     IEC##ZZ##SET = _IEC##ZZ##_U##XX##BRXIE_MASK;                                                                \
                                                                                                                 \
@@ -150,9 +151,13 @@
   int8_t                                         \
   pic32_uart##XX##_write(uint8_t data)           \
   {                                              \
-    while(U##XX##STAbits.UTXBF);                 \
+    volatile uint8_t wait;                       \
+                                                 \
+    do {                                         \
+      wait = U##XX##STAbits.UTXBF;               \
+    } while(wait);                               \
+                                                 \
     U##XX##TXREG = data;                         \
-    while(!U##XX##STAbits.TRMT);                 \
                                                  \
     return UART_NO_ERROR;                        \
   }

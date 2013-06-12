@@ -50,6 +50,12 @@
 #define F_CPU          8000000UL
 #endif
 
+#include <avr/eeprom.h>
+
+/* Skip the last four bytes of the EEPROM, to leave room for things
+ * like the avrdude erase count and bootloader signaling. */
+#define EEPROM_CONF_SIZE		((E2END + 1) - 4)
+
 /* MCU_CONF_LOW_WEAR will remove the signature and eeprom from the .elf file */
 /* This reduces reprogramming wear during development */
 //#define MCU_CONF_LOW_WEAR 1
@@ -254,7 +260,7 @@ typedef unsigned short uip_stats_t;
 /* Not tested much yet */
 #define WITH_PHASE_OPTIMIZATION                0
 #define CONTIKIMAC_CONF_COMPOWER               1
-#define RIMESTATS_CONF_ON                      1
+#define RIMESTATS_CONF_ENABLED                 1
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26

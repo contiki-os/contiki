@@ -501,7 +501,7 @@ print()
   for(i = 1; i &lt;= nrNodes; i++) {
       log.log("Node " + i + " ");
       if(i == sink) {
-          log.log("sink\n");
+          log.log("sink. Got " + total + " non-dups from " + num_reported + " nodes.\n");
       } else {
           log.log("received: " + received[i] + " hops: " + hops[i] + "\n");
       }
@@ -517,12 +517,15 @@ booted = new Array();
 received = new Array();
 hops = new Array();
 nrNodes = 25;
+total = 0; /* number of non-dups the sink received */
+reported = new Array(); /* nodes that have reported at least once */
 
 nodes_starting = true;
 for(i = 1; i &lt;= nrNodes; i++) {
   booted[i] = false;
   received[i] = "_____";
   hops[i] = received[i];
+  reported[i] = 0;
 }
 
 /* Wait until all nodes have started */
@@ -579,9 +582,11 @@ while(true) {
     source = node_id &amp; 0xff;
     seqno = seqno - 1;
     dups = received[source].substr(seqno, 1);
+    reported[source]++;
 
     if(dups == "_") {
         dups = 1;
+	total++;
     } else if(dups &lt; 9) {
         dups++;
     }
@@ -598,12 +603,12 @@ while(true) {
   /* Signal OK if all nodes have reported 10 messages. */
   num_reported = 0;
   for(i = 1; i &lt;= nrNodes; i++) {
-       if(!isNaN(received[i])) {
+       if(reported[i] &gt; 0) {
            num_reported++;
        }
   }
 
-  if(num_reported == nrNodes - 1) {
+  if((num_reported == nrNodes - 1) &amp;&amp; (total &gt;= 75)) {
       print();
       log.testOK();
   }

@@ -66,6 +66,8 @@
 
 #include <stdint.h>
 
+#include "dev/leds.h"
+
 #define BAUD2UBR(x)                x
 
 /* Returned Messages */
@@ -77,21 +79,21 @@
   int8_t pic32_uart##XX##_init(uint32_t baudrate, uint16_t byte_format); \
   int8_t pic32_uart##XX##_write(uint8_t data);
 
-#define UART_INTERRUPT(XX, Y, CALLBACK)                               \
-  ISR(_UART_##XX##_VECTOR)                                            \
-  {                                                                   \
-    volatile uint8_t byte;                                            \
-    if(IFS##Y##bits.U##XX##RXIF) {                                    \
-      if((U##XX##STAbits.PERR == 0) && (U##XX##STAbits.FERR == 0)) {  \
-        CALLBACK(U##XX##RXREG);                                       \
-      } else {                                                        \
-        byte = U##XX##RXREG; /* NULL READ */                          \
-      }                                                               \
-      IFS##Y##CLR = _IFS##Y##_U##XX##RXIF_MASK;                       \
-    }                                                                 \
-      if(U##XX##STAbits.OERR) {                                       \
-          U##XX##STACLR = _U##XX##STA_OERR_MASK;                      \
-      }                                                               \
+#define UART_INTERRUPT(XX, YY, CALLBACK)                                 \
+  ISR(_UART_##XX##_VECTOR)                                               \
+  {                                                                      \
+    volatile uint8_t byte;                                               \
+    if(IFS##YY##bits.U##XX##RXIF) {                                      \
+      if((U##XX##STAbits.PERR == 0) && (U##XX##STAbits.FERR == 0)) {     \
+        CALLBACK(U##XX##RXREG);                                          \
+      } else {                                                           \
+        byte = U##XX##RXREG; /* NULL READ */                             \
+      }                                                                  \
+      IFS##YY##CLR = _IFS##YY##_U##XX##RXIF_MASK;                        \
+    }                                                                    \
+    if(U##XX##STAbits.OERR) {                                            \
+      U##XX##STACLR = _U##XX##STA_OERR_MASK;                             \
+    }                                                                    \
   }
 
 #ifdef __USE_UART_PORT1A__
