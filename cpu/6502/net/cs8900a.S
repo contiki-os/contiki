@@ -30,8 +30,6 @@
 ; 
 ; Author: Adam Dunkels <adam@sics.se>, Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: cs8900a.S,v 1.5 2007/12/08 21:19:06 oliverschmidt Exp $
-;
 ;---------------------------------------------------------------------
 
 	.segment	"JUMPTABLE"
