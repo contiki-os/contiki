@@ -30,8 +30,6 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.35 2011/01/23 16:30:30 oliverschmidt Exp $
-#
 
 ifndef CC65_HOME
   ${error CC65_HOME not defined! You must specify where cc65 resides}
