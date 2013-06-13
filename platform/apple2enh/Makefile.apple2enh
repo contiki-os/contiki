@@ -30,8 +30,6 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.apple2enh,v 1.19 2010/10/23 08:17:45 oliverschmidt Exp $
-#
 
 CONTIKI_TARGET_SOURCEFILES += pfs.S
 
