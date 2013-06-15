@@ -562,6 +562,64 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
     });
   }
 
+  private int zoomGetLevel (final double zoomDivisor) {
+    int zoomLevel = 0;
+    while (zoomLevel < ZOOM_LEVELS.length) {
+      if (zoomDivisor <= ZOOM_LEVELS[zoomLevel]) break;
+      zoomLevel++;
+    }
+    return zoomLevel;
+  }
+  private int zoomGetLevel () {
+    return zoomGetLevel(currentPixelDivisor);
+  }
+
+  private double zoomLevelToDivisor (int zoomLevel) {
+    if (0 > zoomLevel) {
+      zoomLevel = 0;
+    } else if (ZOOM_LEVELS.length <= zoomLevel) {
+      zoomLevel = ZOOM_LEVELS.length - 1;
+    }
+    return ZOOM_LEVELS[zoomLevel];
+  }
+
+  private void zoomFinish (final double zoomDivisor,
+                           final long focusTime,
+                           final double focusCenter) {
+    currentPixelDivisor = zoomDivisor;
+    String note = "";
+    if (ZOOM_LEVELS[0] >= zoomDivisor) {
+      currentPixelDivisor = ZOOM_LEVELS[0];
+      note = " (MIN)";
+    } else if (ZOOM_LEVELS[ZOOM_LEVELS.length-1] <= zoomDivisor) {
+      currentPixelDivisor = ZOOM_LEVELS[ZOOM_LEVELS.length-1];
+      note = " (MAX)";
+    }
+    if (zoomDivisor != currentPixelDivisor) {
+      logger.info("Zoom level: adjusted out-of-range " + zoomDivisor + " us/pixel");
+    }
+    logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + note);
+
+    forceRepaintAndFocus(focusTime, focusCenter);
+  }
+
+  private void zoomFinishLevel (final int zoomLevel,
+                                final long focusTime,
+                                final double focusCenter) {
+    final double cpd = zoomLevelToDivisor(zoomLevel);
+    zoomFinish(cpd, focusTime, focusCenter);
+  }
+
+  private void zoomIn (final long focusTime,
+                       final double focusCenter) {
+    zoomFinishLevel(zoomGetLevel()-1, focusTime, focusCenter);
+  }
+
+  private void zoomOut (final long focusTime,
+                        final double focusCenter) {
+    zoomFinishLevel(zoomGetLevel()+1, focusTime, focusCenter);
+  }
+
   private Action zoomInAction = new AbstractAction("Zoom in (Ctrl+)") {
     private static final long serialVersionUID = -2592452356547803615L;
     public void actionPerformed(ActionEvent e) {
@@ -575,20 +633,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         pixelX = mousePixelPositionX;
       }
       final long centerTime = (long) (pixelX*currentPixelDivisor);
-
-      int zoomLevel = 0;
-      while (zoomLevel < ZOOM_LEVELS.length) {
-        if (currentPixelDivisor <= ZOOM_LEVELS[zoomLevel]) break;
-        zoomLevel++;
-      }
-
-      if (zoomLevel > 0) {
-        zoomLevel--; /* zoom in */
-      }
-      currentPixelDivisor = ZOOM_LEVELS[zoomLevel];
-      logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + ((zoomLevel==0)?"(MIN)":""));
-
-      forceRepaintAndFocus(centerTime, 0.5);
+      zoomIn(centerTime, 0.5);
     }
   };
 
@@ -601,36 +646,18 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         pixelX = popupLocation.x;
         popupLocation = null;
       }
-      final long centerTime = (long) (pixelX*currentPixelDivisor);
       if (mousePixelPositionX > 0) {
         pixelX = mousePixelPositionX;
       }
-
-      int zoomLevel = 0;
-      while (zoomLevel < ZOOM_LEVELS.length) {
-        if (currentPixelDivisor <= ZOOM_LEVELS[zoomLevel]) break;
-        zoomLevel++;
-      }
-
-      if (zoomLevel < ZOOM_LEVELS.length-1) {
-        zoomLevel++; /* zoom out */
-      }
-      currentPixelDivisor = ZOOM_LEVELS[zoomLevel];
-      logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + ((zoomLevel==ZOOM_LEVELS.length-1)?"(MAX)":""));
-
-      forceRepaintAndFocus(centerTime, 0.5);
+      final long centerTime = (long) (pixelX*currentPixelDivisor);
+      zoomOut(centerTime, 0.5);
     }
   };
 
   private Action zoomSliderAction = new AbstractAction("Zoom slider (Ctrl+Mouse)") {
     private static final long serialVersionUID = -4288046377707363837L;
     public void actionPerformed(ActionEvent e) {
-      int zoomLevel = 0;
-      while (zoomLevel < ZOOM_LEVELS.length) {
-        if (currentPixelDivisor <= ZOOM_LEVELS[zoomLevel]) break;
-        zoomLevel++;
-      }
-
+      final int zoomLevel = zoomGetLevel();
       final JSlider zoomSlider = new JSlider(JSlider.VERTICAL, 0, ZOOM_LEVELS.length-1, zoomLevel);
       zoomSlider.setInverted(true);
       zoomSlider.setPaintTicks(true);
@@ -640,12 +667,8 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
 
       zoomSlider.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
-          int zoomLevel = zoomSlider.getValue();
-
-          currentPixelDivisor = ZOOM_LEVELS[zoomLevel];
-          logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + ((zoomLevel==ZOOM_LEVELS.length-1)?"(MAX)":""));
-
-          forceRepaintAndFocus(centerTime, 0.5);
+          final int zoomLevel = zoomSlider.getValue();
+          zoomFinishLevel(zoomLevel, centerTime, 0.5);
         }
       });
 
@@ -1429,11 +1452,13 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       } else if ("split".equals(name)) {
         splitPane.setDividerLocation(Integer.parseInt(element.getText()));
       } else if ("zoom".equals(name)) {
-        currentPixelDivisor = ZOOM_LEVELS[Integer.parseInt(element.getText())-1];
-        forceRepaintAndFocus(0, 0);
+        /* NB: Historically this is a one-based not zero-based index */
+        final int zl = Integer.parseInt(element.getText())-1;
+        zoomFinishLevel(zl, 0, 0);
       } else if ("zoomfactor".equals(name)) {
-        currentPixelDivisor = Double.parseDouble(element.getText());
-        forceRepaintAndFocus(0, 0);
+        /* NB: Historically no validation on this option */
+        final double cpd = Double.parseDouble(element.getText());
+        zoomFinish(cpd, 0, 0);
       }
     }
 
@@ -1575,14 +1600,8 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
           double factor = 0.01*(e.getY() - zoomInitialMouseY);
           factor = Math.exp(factor);
 
-          currentPixelDivisor = zoomInitialPixelDivisor * factor;
-          if (currentPixelDivisor < ZOOM_LEVELS[0]) {
-            currentPixelDivisor = ZOOM_LEVELS[0];
-          }
-          if (currentPixelDivisor > ZOOM_LEVELS[ZOOM_LEVELS.length-1]) {
-            currentPixelDivisor = ZOOM_LEVELS[ZOOM_LEVELS.length-1];
-          }
-          forceRepaintAndFocus(zoomCenterTime, zoomCenter);
+          final double cpd = zoomInitialPixelDivisor * factor;
+          zoomFinish(cpd, zoomCenterTime, zoomCenter);
           return;
         }
         if (e.isAltDown()) {
