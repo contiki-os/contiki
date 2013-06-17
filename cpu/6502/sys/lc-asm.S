@@ -30,8 +30,6 @@
 ; 
 ; Author: Adam Dunkels <adam@sics.se>, Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: lc-asm.S,v 1.2 2007/04/14 15:48:42 oliverschmidt Exp $
-;
 ;---------------------------------------------------------------------
 	.importzp ptr1
 	.export _lc_set

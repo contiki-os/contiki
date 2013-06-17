@@ -31,8 +31,6 @@
 ; Author: Adam Dunkels <adam@sics.se>, Josef Soucek <josef.soucek@ide64.org>,
 ;         Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: lan91c96.S,v 1.2 2007/12/01 20:23:11 oliverschmidt Exp $
-;
 ;---------------------------------------------------------------------
 
 	.segment	"JUMPTABLE"
