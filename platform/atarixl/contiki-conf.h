@@ -59,9 +59,12 @@
 
 #define WWW_CONF_WEBPAGE_WIDTH      40
 #define WWW_CONF_WEBPAGE_HEIGHT     19
-#define WWW_CONF_HISTORY_SIZE        0
+#define WWW_CONF_HISTORY_SIZE        4
 #define WWW_CONF_MAX_URLLEN         80
 #define WWW_CONF_MAX_NUMPAGEWIDGETS 20
-#define WWW_CONF_FORMS               0
+#define WWW_CONF_FORMS               1
+#define WWW_CONF_MAX_FORMACTIONLEN  20
+#define WWW_CONF_MAX_INPUTNAMELEN   20
+#define WWW_CONF_MAX_INPUTVALUELEN  20
 
 #endif /* __CONTIKI_CONF_H__ */

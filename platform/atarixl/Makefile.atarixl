@@ -37,6 +37,10 @@ CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
 STARTADDR_FLAG = -S 0x2300
+SHADOW_RAM_SOURCEFILES = tcpip.c uip.c uip_arp.c
+
+# Set a target-specific variable value
+${addprefix $(OBJECTDIR)/,${call oname, $(SHADOW_RAM_SOURCEFILES)}}: CFLAGS += --code-name SHADOW_RAM
 
 ifeq ($(MAKECMDGOALS),disk)
   ifndef DIR2ATR
