@@ -60,6 +60,7 @@ CONTIKI_SOURCEFILES += $(USB_CORE_SOURCEFILES) $(USB_ARCH_SOURCEFILES)
 FORCE:
 
 $(OBJECTDIR)/ieee-addr.o: ieee-addr.c FORCE
+	@mkdir -p $(OBJECTDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ### Compilation rules
@@ -83,4 +84,5 @@ LDGENFLAGS += -imacros "contiki-conf.h"
 LDGENFLAGS += -P -E
 
 $(LDSCRIPT): $(CONTIKI_CPU)/cc2538.lds FORCE
+	@mkdir -p $(dir $(LDSCRIPT))
 	$(CPP) $(LDGENFLAGS) $< -o $@

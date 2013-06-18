@@ -107,9 +107,6 @@ target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET) $
 ifeq ($(strip $(target_makefile)),)
   ${error The target platform "$(TARGET)" does not exist (maybe it was misspelled?)}
 else
-  ifeq (${wildcard $(OBJECTDIR)},)
-    DUMMY := ${shell mkdir $(OBJECTDIR)}
-  endif
   ifneq (1, ${words $(target_makefile)})
     ${error More than one TARGET Makefile found: $(target_makefile)}
   endif
@@ -175,12 +172,14 @@ endif
 
 ifndef CUSTOM_RULE_C_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.c
+	@mkdir -p $(OBJECTDIR)
 	$(CC) $(CFLAGS) -MMD -c $< -o $@
 	@$(FINALIZE_DEPENDENCY)
 endif
 
 ifndef CUSTOM_RULE_S_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.S
+	@mkdir -p $(OBJECTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 endif
 

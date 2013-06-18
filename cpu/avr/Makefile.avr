@@ -123,6 +123,7 @@ CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
 ### Compilation rules
 
 $(OBJECTDIR)/%.o: %.c
+	@mkdir -p $(OBJECTDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o: %.c
