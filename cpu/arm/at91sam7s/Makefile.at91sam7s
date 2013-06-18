@@ -96,21 +96,25 @@ CUSTOM_RULE_C_TO_O=yes
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
 $(OBJECTDIR)/%-interrupt.o: %-interrupt.c
+	@mkdir -p $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) -c $< -o $@
 
 %-arm.o: %-arm.c
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
 $(OBJECTDIR)/%-arm.o: %-arm.c
+	@mkdir -p $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) -c $< -o $@
 
 $(OBJECTDIR)/interrupt-utils.o: interrupt-utils.c
+	@mkdir -p $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c
 
 $(OBJECTDIR)/%.o: %.c
+	@mkdir -p $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c $< -o $@
 
 CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
@@ -118,6 +122,7 @@ CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
 $(OBJECTDIR)/%.o: %.S
+	@mkdir -p $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c  -o $@
 
 
@@ -189,6 +194,7 @@ ocd_reset:
 
 # Don't use core/loader/elfloader.c, use elfloader-otf.c instead
 $(OBJECTDIR)/elfloader.o: 
+	@mkdir -p $(OBJECTDIR)
 	echo -n >$@
 
 clean: clean_cpu

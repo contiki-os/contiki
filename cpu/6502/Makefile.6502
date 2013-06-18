@@ -74,6 +74,7 @@ AROPTS  = a
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c
+	@mkdir -p $(OBJECTDIR)
 	$(CC) -c -o $@ $(CFLAGS) --create-dep $(@:.o=.d) $<
 
 CUSTOM_RULE_C_TO_CO = 1
