@@ -30,8 +30,6 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.11 2010/10/23 20:39:47 oliverschmidt Exp $
-#
 
 ifndef CONTIKI
   ${error CONTIKI not defined! You must specify where Contiki resides}
