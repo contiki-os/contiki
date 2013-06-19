@@ -11,7 +11,8 @@ EXAMPLE FILES
   every 10 seconds and cycles through 4 resources on button press (target
   address is hard-coded).
 - er-plugtest-server.c: The server used for draft compliance testing at ETSI
-  IoT CoAP Plugtest in Paris, France, March 2012 (configured for minimal-net).
+  IoT CoAP Plugtests. Erbium (Er) participated in Paris, France, March 2012 and
+  Sophia-Antipolis, France, November 2012 (configured for minimal-net).
 
 PRELIMINARIES
 -------------
