@@ -11,20 +11,17 @@ WITH_COAP=13
 WITH_UIP6=1
 # for some platforms
 UIP_CONF_IPV6=1
-# temporary bugfix for Makefile.include / Makefile.uip
-CFLAGS += -DUIP_CONF_IPV6=1 
 
 CONTIKI=../..
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 # variable for Makefile.include
 ifneq ($(TARGET), minimal-net)
-UIP_CONF_RPL=1
+CFLAGS += -DUIP_CONF_IPV6_RPL=1
 else
 # minimal-net does not support RPL under Linux and is mostly used to test CoAP only
 ${info INFO: compiling without RPL}
-UIP_CONF_RPL=0
-CFLAGS += -DUIP_CONF_ND6_DEF_MAXDADNS=0
+CFLAGS += -DUIP_CONF_IPV6_RPL=0
 CFLAGS += -DHARD_CODED_ADDRESS=\"fdfd::10\"
 ${info INFO: compiling with large buffers}
 CFLAGS += -DUIP_CONF_BUFFER_SIZE=2048
