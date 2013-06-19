@@ -11,6 +11,8 @@ WITH_COAP=13
 WITH_UIP6=1
 # for some platforms
 UIP_CONF_IPV6=1
+# IPv6 make config disappeared completely
+CFLAGS += -DUIP_CONF_IPV6=1
 
 CONTIKI=../..
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
