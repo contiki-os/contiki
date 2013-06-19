@@ -70,7 +70,7 @@ static uip_ipaddr_t ipaddr;     /* destination: link-local all-nodes multicast *
  * with probability 1/NEW_TOKEN_PROB. This is controlled by etimer et.
  */
 #define NEW_TOKEN_INTERVAL  10 * CLOCK_SECOND
-#define NEW_TOKEN_PROB      0x80
+#define NEW_TOKEN_PROB      2
 static uint8_t token;
 static struct etimer et; /* Used to periodically generate inconsistencies */
 /*---------------------------------------------------------------------------*/
@@ -180,7 +180,7 @@ PROCESS_THREAD(trickle_protocol_process, ev, data)
     } else if(etimer_expired(&et)) {
       /* Periodically (and randomly) generate a new token. This will trigger
        * a trickle inconsistency */
-      if((random_rand() & NEW_TOKEN_PROB) == 0) {
+      if((random_rand() % NEW_TOKEN_PROB) == 0) {
         token++;
         PRINTF("At %lu: Generating a new token 0x%02x\n",
                (unsigned long)clock_time(), token);
