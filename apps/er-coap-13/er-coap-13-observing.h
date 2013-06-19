@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 #ifndef COAP_OBSERVING_H_
 #define COAP_OBSERVING_H_
 
+#include "sys/stimer.h"
 #include "er-coap-13.h"
 #include "er-coap-13-transactions.h"
 

@@ -138,13 +138,13 @@ extern const struct radio_driver cc2538_rf_driver;
  * \return Returns a value in [11,26] representing the current channel
  *         or a negative value if \e channel was out of bounds
  */
-int8_t cc2538_rf_channel_set(uint8_t channel);
+int cc2538_rf_channel_set(int channel);
 
 /**
  * \brief Get the current operating channel
  * \return Returns a value in [11,26] representing the current channel
  */
-uint8_t cc2538_rf_channel_get();
+int cc2538_rf_channel_get(void);
 
 /**
  * \brief Sets RF TX power

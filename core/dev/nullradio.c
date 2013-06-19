@@ -63,6 +63,18 @@ off(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static int
+set(int channel)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+get(void)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 const struct radio_driver nullradio_driver =
   {
     init,
@@ -70,6 +82,8 @@ const struct radio_driver nullradio_driver =
     transmit,
     send,
     read,
+    set,
+    get,
     channel_clear,
     receiving_packet,
     pending_packet,

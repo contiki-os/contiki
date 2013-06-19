@@ -41,8 +41,10 @@ extern const struct radio_driver cooja_radio_driver;
 /**
  * Set radio channel.
  */
-void
+int
 radio_set_channel(int channel);
+int
+radio_get_channel(void);
 
 /**
  * Set transmission power of transceiver.

@@ -53,7 +53,8 @@
 
 extern const struct radio_driver stm32w_radio_driver;
 
-int stm32w_radio_set_channel(uint8_t channel);
+int stm32w_radio_set_channel(int channel);
+int stm32w_radio_get_channel(void);
 
 short last_packet_rssi();
 

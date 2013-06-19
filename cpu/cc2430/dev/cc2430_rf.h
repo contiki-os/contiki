@@ -72,8 +72,8 @@ typedef enum rf_address_mode_t {
 extern const struct radio_driver cc2430_rf_driver;
 
 void cc2430_rf_command(uint8_t command);
-int8_t cc2430_rf_channel_set(uint8_t channel);
-uint8_t cc2430_rf_channel_get();
+int cc2430_rf_channel_set(int channel);
+int cc2430_rf_channel_get(void);
 uint8_t cc2430_rf_power_set(uint8_t new_power);
 void cc2430_rf_set_addr(unsigned pan, unsigned addr, const uint8_t *ieee_addr);
 
