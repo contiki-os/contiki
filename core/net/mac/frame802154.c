@@ -172,70 +172,59 @@ frame802154_hdrlen(frame802154_t *p)
  *
  *   \param buf Pointer to the buffer to use for the frame.
  *
- *   \param buf_len The length of the buffer to use for the frame.
- *
- *   \return The length of the frame header or 0 if there was
- *   insufficient space in the buffer for the frame headers.
+ *   \return The length of the frame header
 */
 int
-frame802154_create(frame802154_t *p, uint8_t *buf, int buf_len)
+frame802154_create(frame802154_t *p, uint8_t *buf)
 {
   int c;
   field_length_t flen;
-  uint8_t *tx_frame_buffer;
   uint8_t pos;
 
   field_len(p, &flen);
-
-  if(3 + flen.dest_pid_len + flen.dest_addr_len +
-     flen.src_pid_len + flen.src_addr_len + flen.aux_sec_len > buf_len) {
-    /* Too little space for headers. */
-    return 0;
-  }
-
+  
   /* OK, now we have field lengths.  Time to actually construct */
-  /* the outgoing frame, and store it in tx_frame_buffer */
-  tx_frame_buffer = buf;
-  tx_frame_buffer[0] = (p->fcf.frame_type & 7) |
+  /* the outgoing frame, and store it in buf */
+  buf[0] = (p->fcf.frame_type & 7) |
     ((p->fcf.security_enabled & 1) << 3) |
     ((p->fcf.frame_pending & 1) << 4) |
     ((p->fcf.ack_required & 1) << 5) |
     ((p->fcf.panid_compression & 1) << 6);
-  tx_frame_buffer[1] = ((p->fcf.dest_addr_mode & 3) << 2) |
+  buf[1] = ((p->fcf.dest_addr_mode & 3) << 2) |
     ((p->fcf.frame_version & 3) << 4) |
     ((p->fcf.src_addr_mode & 3) << 6);
 
   /* sequence number */
-  tx_frame_buffer[2] = p->seq;
+  buf[2] = p->seq;
   pos = 3;
 
   /* Destination PAN ID */
   if(flen.dest_pid_len == 2) {
-    tx_frame_buffer[pos++] = p->dest_pid & 0xff;
-    tx_frame_buffer[pos++] = (p->dest_pid >> 8) & 0xff;
+    buf[pos++] = p->dest_pid & 0xff;
+    buf[pos++] = (p->dest_pid >> 8) & 0xff;
   }
 
   /* Destination address */
   for(c = flen.dest_addr_len; c > 0; c--) {
-    tx_frame_buffer[pos++] = p->dest_addr[c - 1];
+    buf[pos++] = p->dest_addr[c - 1];
   }
 
   /* Source PAN ID */
   if(flen.src_pid_len == 2) {
-    tx_frame_buffer[pos++] = p->src_pid & 0xff;
-    tx_frame_buffer[pos++] = (p->src_pid >> 8) & 0xff;
+    buf[pos++] = p->src_pid & 0xff;
+    buf[pos++] = (p->src_pid >> 8) & 0xff;
   }
 
   /* Source address */
   for(c = flen.src_addr_len; c > 0; c--) {
-    tx_frame_buffer[pos++] = p->src_addr[c - 1];
+    buf[pos++] = p->src_addr[c - 1];
   }
 
   /* Aux header */
   if(flen.aux_sec_len) {
     /* TODO Support key identifier mode !=0 */
-    tx_frame_buffer[pos++] = p->aux_hdr.security_control.security_level;
-    memcpy(tx_frame_buffer + pos, p->aux_hdr.frame_counter.u8, 4);
+    buf[pos++] = p->aux_hdr.security_control.security_level;
+    memcpy(buf + pos, p->aux_hdr.frame_counter.u8, 4);
     pos += 4;
   }
 

@@ -189,7 +189,7 @@ create_frame(int type, int do_create)
     return hdr_len;
 
   } else if(packetbuf_hdralloc(hdr_len)) {
-    frame802154_create(&params, packetbuf_hdrptr(), hdr_len);
+    frame802154_create(&params, packetbuf_hdrptr());
 
     PRINTF("15.4-OUT: %2X", params.fcf.frame_type);
     PRINTADDR(params.dest_addr);
