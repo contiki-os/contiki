@@ -90,7 +90,7 @@ static int
 create_frame(int type, int do_create)
 {
   frame802154_t params;
-  int len;
+  int hdr_len;
 
   /* init to zeros */
   memset(&params, 0, sizeof(params));
@@ -183,21 +183,21 @@ create_frame(int type, int do_create)
 
   params.payload = packetbuf_dataptr();
   params.payload_len = packetbuf_datalen();
-  len = frame802154_hdrlen(&params);
+  hdr_len = frame802154_hdrlen(&params);
   if(!do_create) {
     /* Only calculate header length */
-    return len;
+    return hdr_len;
 
-  } else if(packetbuf_hdralloc(len)) {
-    frame802154_create(&params, packetbuf_hdrptr(), len);
+  } else if(packetbuf_hdralloc(hdr_len)) {
+    frame802154_create(&params, packetbuf_hdrptr(), hdr_len);
 
     PRINTF("15.4-OUT: %2X", params.fcf.frame_type);
     PRINTADDR(params.dest_addr);
-    PRINTF("%d %u (%u)\n", len, packetbuf_datalen(), packetbuf_totlen());
+    PRINTF("%d %u (%u)\n", hdr_len, packetbuf_datalen(), packetbuf_totlen());
 
-    return len;
+    return hdr_len;
   } else {
-    PRINTF("15.4-OUT: too large header: %u\n", len);
+    PRINTF("15.4-OUT: too large header: %u\n", hdr_len);
     return FRAMER_FAILED;
   }
 }
