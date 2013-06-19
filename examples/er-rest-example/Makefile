@@ -1,28 +1,23 @@
 all: er-example-server er-example-client
-# Use this target explicitly if requried: er-plugtest-server
+# use this target explicitly if requried: er-plugtest-server
 
-CONTIKI=../..
-CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-
-# for static routing, if enabled
-ifeq ($(TARGET),$(filter $(TARGET),sky cooja))
-PROJECT_SOURCEFILES += static-routing.c
-endif
-
-# variable for root Makefile.include
-WITH_UIP6=1
-# for some platforms
-UIP_CONF_IPV6=1
-
-# radio configuration
-#CFLAGS += -DRF_CHANNEL=20
-#CFLAGS += -DIEEE802154_CONF_PANID=0xCAFE
 
 # variable for this Makefile
 # configure CoAP implementation (3|7|12|13) (er-coap-07 also supports CoAP draft 08)
 WITH_COAP=13
 
-# new variable since slip-radio
+
+# variable for Makefile.include
+WITH_UIP6=1
+# for some platforms
+UIP_CONF_IPV6=1
+# temporary bugfix for Makefile.include / Makefile.uip
+CFLAGS += -DUIP_CONF_IPV6=1 
+
+CONTIKI=../..
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+
+# variable for Makefile.include
 ifneq ($(TARGET), minimal-net)
 UIP_CONF_RPL=1
 else
