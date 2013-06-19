@@ -153,7 +153,8 @@ typedef enum {
   PACKET_SERIALIZATION_ERROR,
 
   /* Erbium hooks */
-  MANUAL_RESPONSE
+  MANUAL_RESPONSE,
+  PING_RESPONSE
 
 } coap_status_t;
 
