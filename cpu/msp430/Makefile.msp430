@@ -97,7 +97,7 @@ rm -f $(@:.o=.P)
 endef
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
-$(OBJECTDIR)/%.o: %.c
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
 ifeq ($(HOST_OS),Windows)
 	@$(FINALIZE_CYGWIN_DEPENDENCY)

@@ -91,10 +91,13 @@ endif # UIP_CONF_IPV6
 REDEF_PRINTF=1 # Redefine functions to enable printf()s inside Cooja
 
 ### Define custom targets
-$(ARCHIVE): ${addprefix $(OBJECTDIR)/, $(CONTIKI_SOURCEFILES:.c=.o)}
+
+# NB: Assumes ARCHIVE was not overridden and is in $(OBJECTDIR)
+$(ARCHIVE): ${addprefix $(OBJECTDIR)/, $(CONTIKI_SOURCEFILES:.c=.o)} | $(OBJECTDIR)
 	$(AR_COMMAND_1) $^ $(AR_COMMAND_2)
 
-$(JNILIB): $(CONTIKI_APP_OBJ) $(MAIN_OBJ) $(PROJECT_OBJECTFILES) $(ARCHIVE)
+# NB: Assumes JNILIB was not overridden and is in $(OBJECTDIR)
+$(JNILIB): $(CONTIKI_APP_OBJ) $(MAIN_OBJ) $(PROJECT_OBJECTFILES) $(ARCHIVE) | $(OBJECTDIR)
 ifdef SYMBOLS
 	@echo Generating symbols
 	# Recreate symbols file and relink with final memory layout (twice)
@@ -117,7 +120,9 @@ $(CONTIKI_APP).cooja: $(JNILIB)
 	cp $(JNILIB) $@
 	rm $(CONTIKI_APP_OBJ)
 
-mtype%.o: contiki-cooja-main.o
+# Trickiness: GNU make matches this against the file base name.
+# Assume that the directory part is the standard location.
+mtype%.o: contiki-cooja-main.o | $(OBJECTDIR)
 	mv contiki-cooja-main.o $@
 
 symbols.c:
