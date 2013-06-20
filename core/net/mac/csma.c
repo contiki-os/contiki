@@ -156,24 +156,25 @@ transmit_packet_list(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-free_first_packet(struct neighbor_queue *n)
+free_packet(struct neighbor_queue *n, struct rdc_buf_list *p)
 {
-  struct rdc_buf_list *q = list_head(n->queued_packet_list);
-  if(q != NULL) {
-    /* Remove first packet from list and deallocate */
-    queuebuf_free(q->buf);
-    list_pop(n->queued_packet_list);
-    memb_free(&metadata_memb, q->ptr);
-    memb_free(&packet_memb, q);
+  if(p != NULL) {
+    /* Remove packet from list and deallocate */
+    list_remove(n->queued_packet_list, p);
+
+    queuebuf_free(p->buf);
+    memb_free(&metadata_memb, p->ptr);
+    memb_free(&packet_memb, p);
     PRINTF("csma: free_queued_packet, queue length %d\n",
         list_length(n->queued_packet_list));
-    if(list_head(n->queued_packet_list)) {
+    if(list_head(n->queued_packet_list) != NULL) {
       /* There is a next packet. We reset current tx information */
       n->transmissions = 0;
       n->collisions = 0;
       n->deferrals = 0;
       /* Set a timer for next transmissions */
-      ctimer_set(&n->transmit_timer, default_timebase(), transmit_packet_list, n);
+      ctimer_set(&n->transmit_timer, default_timebase(),
+                 transmit_packet_list, n);
     } else {
       /* This was the last packet in the queue, we free the neighbor */
       ctimer_stop(&n->transmit_timer);
@@ -212,7 +213,14 @@ packet_sent(void *ptr, int status, int num_transmissions)
     break;
   }
 
-  q = list_head(n->queued_packet_list);
+  for(q = list_head(n->queued_packet_list);
+      q != NULL; q = list_item_next(q)) {
+    if(queuebuf_attr(q->buf, PACKETBUF_ATTR_MAC_SEQNO) ==
+       packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO)) {
+      break;
+    }
+  }
+
   if(q != NULL) {
     metadata = (struct qbuf_metadata *)q->ptr;
 
@@ -245,16 +253,16 @@ packet_sent(void *ptr, int status, int num_transmissions)
            interval between the transmissions increase with each
            retransmit. */
         backoff_transmissions = n->transmissions + 1;
-        
+
         /* Clamp the number of backoffs so that we don't get a too long
            timeout here, since that will delay all packets in the
            queue. */
         if(backoff_transmissions > 3) {
           backoff_transmissions = 3;
         }
-        
+
         time = time + (random_rand() % (backoff_transmissions * time));
-        
+
         if(n->transmissions < metadata->max_transmissions) {
           PRINTF("csma: retransmitting with time %lu %p\n", time, q);
           ctimer_set(&n->transmit_timer, time,
@@ -265,7 +273,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
         } else {
           PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
                  status, n->transmissions, n->collisions);
-          free_first_packet(n);
+          free_packet(n, q);
           mac_call_sent_callback(sent, cptr, status, num_tx);
         }
       } else {
@@ -274,7 +282,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
         } else {
           PRINTF("csma: rexmit failed %d: %d\n", n->transmissions, status);
         }
-        free_first_packet(n);
+        free_packet(n, q);
         mac_call_sent_callback(sent, cptr, status, num_tx);
       }
     }
@@ -289,6 +297,11 @@ send_packet(mac_callback_t sent, void *ptr)
   static uint16_t seqno;
   const rimeaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
+  if(seqno == 0) {
+    /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
+       in framer-802154.c. */
+    seqno++;
+  }
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, seqno++);
 
   /* Look for the neighbor entry */
