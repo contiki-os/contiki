@@ -89,10 +89,11 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFI
 ### Include application makefiles
 
 ifdef APPS
-  APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
-             ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
-             $(APPS)}
-  APPINCLUDES = ${foreach APP, $(APPS), ${wildcard ${foreach DIR, $(APPDIRS), $(DIR)/Makefile.$(APP)}}}
+  APPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(APPS)}}} \
+	     ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
+	     ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
+	     $(APPS)}
+  APPINCLUDES = ${foreach APP, $(APPS), ${wildcard ${foreach DIR, $(APPDS), $(DIR)/Makefile.$(APP)}}}
   -include $(APPINCLUDES)
   APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
   DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}
@@ -116,6 +117,20 @@ else
   include $(target_makefile)
 endif
 
+ifdef PLATFORMAPPS
+  PLATFORMAPPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(PLATFORMAPPS)}}} \
+	     ${wildcard ${addprefix $(CONTIKI)/apps/, $(PLATFORMAPPS)} \
+	     ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(PLATFORMAPPS)} \
+	     $(PLATFORMAPPS)}
+  PLATFORMAPPINCLUDES = ${foreach APP, $(PLATFORMAPPS), \
+      ${wildcard ${foreach DIR, $(PLATFORMAPPDS), $(DIR)/Makefile.$(APP)}}}
+  -include $(PLATFORMAPPINCLUDES)
+  PLATFORMAPP_SOURCES = ${foreach APP, $(PLATFORMAPPS), $($(APP)_src)}
+  CONTIKI_SOURCEFILES += $(PLATFORMAPP_SOURCES)
+  APPDS += $(PLATFORMAPPDS)
+endif
+
+
 ### Forward comma-separated list of arbitrary defines to the compiler
 
 COMMA := ,
@@ -129,7 +144,7 @@ CONTIKI_CPU_DIRS_CONCAT    = ${addprefix $(CONTIKI_CPU)/, \
                                $(CONTIKI_CPU_DIRS)}
 
 SOURCEDIRS = . $(PROJECTDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-             $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDIRS) ${dir $(target_makefile)}
+             $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDS) ${dir $(target_makefile)}
 
 vpath %.c $(SOURCEDIRS)
 vpath %.S $(SOURCEDIRS)
