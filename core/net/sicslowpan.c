@@ -70,26 +70,8 @@
 
 #if UIP_CONF_IPV6
 
-#include <stdio.h>
-
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
-#if DEBUG
-/* PRINTFI and PRINTFO are defined for input and output to debug one without changing the timing of the other */
-uint8_t p;
-#include <stdio.h>
-#define PRINTFI(...) PRINTF(__VA_ARGS__)
-#define PRINTFO(...) PRINTF(__VA_ARGS__)
-#define PRINTPACKETBUF() PRINTF("RIME buffer: "); for(p = 0; p < packetbuf_datalen(); p++){PRINTF("%.2X", *(rime_ptr + p));} PRINTF("\n")
-#define PRINTUIPBUF() PRINTF("UIP buffer: "); for(p = 0; p < uip_len; p++){PRINTF("%.2X", uip_buf[p]);}PRINTF("\n")
-#define PRINTSICSLOWPANBUF() PRINTF("SICSLOWPAN buffer: "); for(p = 0; p < sicslowpan_len; p++){PRINTF("%.2X", sicslowpan_buf[p]);}PRINTF("\n")
-#else
-#define PRINTFI(...)
-#define PRINTFO(...)
-#define PRINTPACKETBUF()
-#define PRINTUIPBUF()
-#define PRINTSICSLOWPANBUF()
-#endif /* DEBUG == 1*/
 
 #if UIP_LOGGING
 #include <stdio.h>
@@ -124,29 +106,29 @@ void uip_log(char *msg);
   (ptr)[index + 1] = (value) & 0xff;    \
 } while(0)
 
-/** \name Pointers in the rime buffer
+/** \name Pointers in the lowpan buffer
  *  @{
  */
-#define RIME_FRAG_PTR           (rime_ptr)
-#define RIME_FRAG_DISPATCH_SIZE 0   /* 16 bit */
-#define RIME_FRAG_TAG           2   /* 16 bit */
-#define RIME_FRAG_OFFSET        4   /* 8 bit */
+#define LOWPAN_FRAG_PTR           (lowpan_ptr)
+#define LOWPAN_FRAG_DISPATCH_SIZE 0   /* 16 bit */
+#define LOWPAN_FRAG_TAG           2   /* 16 bit */
+#define LOWPAN_FRAG_OFFSET        4   /* 8 bit */
 
 /* define the buffer as a byte array */
-#define RIME_IPHC_BUF              ((uint8_t *)(rime_ptr + rime_hdr_len))
+#define LOWPAN_IPHC_BUF              ((uint8_t *)(lowpan_ptr + lowpan_hdr_len))
 
-#define RIME_HC1_PTR            (rime_ptr + rime_hdr_len)
-#define RIME_HC1_DISPATCH       0 /* 8 bit */
-#define RIME_HC1_ENCODING       1 /* 8 bit */
-#define RIME_HC1_TTL            2 /* 8 bit */
+#define LOWPAN_HC1_PTR            (lowpan_ptr + lowpan_hdr_len)
+#define LOWPAN_HC1_DISPATCH       0 /* 8 bit */
+#define LOWPAN_HC1_ENCODING       1 /* 8 bit */
+#define LOWPAN_HC1_TTL            2 /* 8 bit */
 
-#define RIME_HC1_HC_UDP_PTR           (rime_ptr + rime_hdr_len)
-#define RIME_HC1_HC_UDP_DISPATCH      0 /* 8 bit */
-#define RIME_HC1_HC_UDP_HC1_ENCODING  1 /* 8 bit */
-#define RIME_HC1_HC_UDP_UDP_ENCODING  2 /* 8 bit */
-#define RIME_HC1_HC_UDP_TTL           3 /* 8 bit */
-#define RIME_HC1_HC_UDP_PORTS         4 /* 8 bit */
-#define RIME_HC1_HC_UDP_CHKSUM        5 /* 16 bit */
+#define LOWPAN_HC1_HC_UDP_PTR           (lowpan_ptr + lowpan_hdr_len)
+#define LOWPAN_HC1_HC_UDP_DISPATCH      0 /* 8 bit */
+#define LOWPAN_HC1_HC_UDP_HC1_ENCODING  1 /* 8 bit */
+#define LOWPAN_HC1_HC_UDP_UDP_ENCODING  2 /* 8 bit */
+#define LOWPAN_HC1_HC_UDP_TTL           3 /* 8 bit */
+#define LOWPAN_HC1_HC_UDP_PORTS         4 /* 8 bit */
+#define LOWPAN_HC1_HC_UDP_CHKSUM        5 /* 16 bit */
 
 /** \name Pointers in the sicslowpan and uip buffer
  *  @{
@@ -187,26 +169,26 @@ extern struct sicslowpan_nh_compressor SICSLOWPAN_NH_COMPRESSOR;
 #endif
 
 /**
- * A pointer to the rime buffer.
- * We initialize it to the beginning of the rime buffer, then
- * access different fields by updating the offset rime_hdr_len.
+ * A pointer to the lowpan buffer.
+ * We initialize it to the beginning of the lowpan buffer, then
+ * access different fields by updating the offset lowpan_hdr_len.
  */
-static uint8_t *rime_ptr;
+static uint8_t *lowpan_ptr;
 
 /**
- * rime_hdr_len is the total length of (the processed) 6lowpan headers
+ * lowpan_hdr_len is the total length of (the processed) 6lowpan headers
  * (fragment headers, IPV6 or HC1, HC2, and HC1 and HC2 non compressed
  * fields).
  */
-static uint8_t rime_hdr_len;
+static uint8_t lowpan_hdr_len;
 
 /**
- * The length of the payload in the Rime buffer.
+ * The length of the payload in the lowpan buffer.
  * The payload is what comes after the compressed or uncompressed
  * headers (can be the IP payload if the IP header only is compressed
  * or the UDP payload if the UDP header is also compressed)
  */
-static uint8_t rime_payload_len;
+static uint8_t lowpan_payload_len;
 
 /**
  * uncomp_hdr_len is the length of the headers before compression (if HC2
@@ -488,11 +470,11 @@ uncompress_addr(uip_ipaddr_t *ipaddr, uint8_t const prefix[],
  * \note The context number 00 is reserved for the link local prefix.
  * For unicast addresses, if we cannot compress the prefix, we neither
  * compress the IID.
- * \param rime_destaddr L2 destination address, needed to compress IP
+ * \param lowpan_destaddr L2 destination address, needed to compress IP
  * dest
  */
 static void
-compress_hdr_hc06(rimeaddr_t *rime_destaddr)
+compress_hdr_hc06(rimeaddr_t *lowpan_destaddr)
 {
   uint8_t tmp, iphc0, iphc1;
 #if DEBUG
@@ -506,7 +488,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
   }
 #endif
 
-  hc06_ptr = rime_ptr + 2;
+  hc06_ptr = lowpan_ptr + 2;
   /*
    * As we copy some bit-length fields, in the IPHC encoding bytes,
    * we sometimes use |=
@@ -516,7 +498,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
 
   iphc0 = SICSLOWPAN_DISPATCH_IPHC;
   iphc1 = 0;
-  RIME_IPHC_BUF[2] = 0; /* might not be used - but needs to be cleared */
+  LOWPAN_IPHC_BUF[2] = 0; /* might not be used - but needs to be cleared */
 
   /*
    * Address handling needs to be made first since it might
@@ -631,7 +613,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
     PRINTF("IPHC: compressing src with context - setting CID & SAC ctx: %d\n",
 	   context->number);
     iphc1 |= SICSLOWPAN_IPHC_CID | SICSLOWPAN_IPHC_SAC;
-    RIME_IPHC_BUF[2] |= context->number << 4;
+    LOWPAN_IPHC_BUF[2] |= context->number << 4;
     /* compession compare with this nodes address (source) */
 
     iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_SAM_BIT,
@@ -682,18 +664,18 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
     if((context = addr_context_lookup_by_prefix(&UIP_IP_BUF->destipaddr)) != NULL) {
       /* elide the prefix */
       iphc1 |= SICSLOWPAN_IPHC_DAC;
-      RIME_IPHC_BUF[2] |= context->number;
+      LOWPAN_IPHC_BUF[2] |= context->number;
       /* compession compare with link adress (destination) */
 
       iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_DAM_BIT,
-	       &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)rime_destaddr);
+	       &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)lowpan_destaddr);
       /* No context found for this address */
     } else if(uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) &&
 	      UIP_IP_BUF->destipaddr.u16[1] == 0 &&
 	      UIP_IP_BUF->destipaddr.u16[2] == 0 &&
 	      UIP_IP_BUF->destipaddr.u16[3] == 0) {
       iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_DAM_BIT,
-               &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)rime_destaddr);
+               &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)lowpan_destaddr);
     } else {
       /* send the full address */
       iphc1 |= SICSLOWPAN_IPHC_DAM_00; /* 128-bits */
@@ -760,11 +742,11 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
   hc06_ptr += SICSLOWPAN_NH_COMPRESSOR.compress(hc06_ptr, &uncomp_hdr_len);
 #endif
 
-  /* before the rime_hdr_len operation */
-  RIME_IPHC_BUF[0] = iphc0;
-  RIME_IPHC_BUF[1] = iphc1;
+  /* before the lowpan_hdr_len operation */
+  LOWPAN_IPHC_BUF[0] = iphc0;
+  LOWPAN_IPHC_BUF[1] = iphc1;
 
-  rime_hdr_len = hc06_ptr - rime_ptr;
+  lowpan_hdr_len = hc06_ptr - lowpan_ptr;
   return;
 }
 
@@ -777,7 +759,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
  * HC06.
  * We %process the packet in the rime buffer, uncompress the header
  * fields, and copy the result in the sicslowpan buffer.
- * At the end of the decompression, rime_hdr_len and uncompressed_hdr_len
+ * At the end of the decompression, lowpan_hdr_len and uncompressed_hdr_len
  * are set to the appropriate values
  *
  * \param ip_len Equal to 0 if the packet is not a fragment (IP length
@@ -789,10 +771,10 @@ uncompress_hdr_hc06(uint16_t ip_len)
 {
   uint8_t tmp, iphc0, iphc1;
   /* at least two byte will be used for the encoding */
-  hc06_ptr = rime_ptr + rime_hdr_len + 2;
+  hc06_ptr = lowpan_ptr + lowpan_hdr_len + 2;
 
-  iphc0 = RIME_IPHC_BUF[0];
-  iphc1 = RIME_IPHC_BUF[1];
+  iphc0 = LOWPAN_IPHC_BUF[0];
+  iphc1 = LOWPAN_IPHC_BUF[1];
 
   /* another if the CID flag is set */
   if(iphc1 & SICSLOWPAN_IPHC_CID) {
@@ -862,7 +844,7 @@ uncompress_hdr_hc06(uint16_t ip_len)
   /* context based compression */
   if(iphc1 & SICSLOWPAN_IPHC_SAC) {
     uint8_t sci = (iphc1 & SICSLOWPAN_IPHC_CID) ?
-      RIME_IPHC_BUF[2] >> 4 : 0;
+      LOWPAN_IPHC_BUF[2] >> 4 : 0;
 
     /* Source address - check context != NULL only if SAM bits are != 0*/
     if (tmp != 0) {
@@ -911,7 +893,7 @@ uncompress_hdr_hc06(uint16_t ip_len)
     /* Context based */
     if(iphc1 & SICSLOWPAN_IPHC_DAC) {
       uint8_t dci = (iphc1 & SICSLOWPAN_IPHC_CID) ?
-	RIME_IPHC_BUF[2] & 0x0f : 0;
+	LOWPAN_IPHC_BUF[2] & 0x0f : 0;
       context = addr_context_lookup_by_number(dci);
 
       /* all valid cases below need the context! */
@@ -1001,13 +983,13 @@ uncompress_hdr_hc06(uint16_t ip_len)
 #endif
   }
 
-  rime_hdr_len = hc06_ptr - rime_ptr;
+  lowpan_hdr_len = hc06_ptr - lowpan_ptr;
   
   /* IP length field. */
   if(ip_len == 0) {
     /* This is not a fragmented packet */
     SICSLOWPAN_IP_BUF->len[0] = 0;
-    SICSLOWPAN_IP_BUF->len[1] = packetbuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
+    SICSLOWPAN_IP_BUF->len[1] = packetbuf_datalen() - lowpan_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
   } else {
     /* This is a 1st fragment */
     SICSLOWPAN_IP_BUF->len[0] = (ip_len - UIP_IPH_LEN) >> 8;
@@ -1075,11 +1057,11 @@ uncompress_hdr_hc06(uint16_t ip_len)
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * \endverbatim
  *
- * \param rime_destaddr L2 destination address, needed to compress the
+ * \param lowpan_destaddr L2 destination address, needed to compress the
  * IP destination field
  */
 static void
-compress_hdr_hc1(rimeaddr_t *rime_destaddr)
+compress_hdr_hc1(rimeaddr_t *lowpan_destaddr)
 {
   /*
    * Check if all the assumptions for full compression
@@ -1092,7 +1074,7 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
      !uip_is_addr_mac_addr_based(&UIP_IP_BUF->srcipaddr, &uip_lladdr) ||
      !uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) ||
      !uip_is_addr_mac_addr_based(&UIP_IP_BUF->destipaddr,
-                                 (uip_lladdr_t *)rime_destaddr) ||
+                                 (uip_lladdr_t *)lowpan_destaddr) ||
      (UIP_IP_BUF->proto != UIP_PROTO_ICMP6 &&
       UIP_IP_BUF->proto != UIP_PROTO_UDP &&
       UIP_IP_BUF->proto != UIP_PROTO_TCP))
@@ -1100,12 +1082,12 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
     /*
      * IPV6 DISPATCH
      * Something cannot be compressed, use IPV6 DISPATCH,
-     * compress nothing, copy IPv6 header in rime buffer
+     * compress nothing, copy IPv6 header in lowpan buffer
      */
-    *rime_ptr = SICSLOWPAN_DISPATCH_IPV6;
-    rime_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
-    memcpy(rime_ptr + rime_hdr_len, UIP_IP_BUF, UIP_IPH_LEN);
-    rime_hdr_len += UIP_IPH_LEN;
+    *lowpan_ptr = SICSLOWPAN_DISPATCH_IPV6;
+    lowpan_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
+    memcpy(lowpan_ptr + lowpan_hdr_len, UIP_IP_BUF, UIP_IPH_LEN);
+    lowpan_hdr_len += UIP_IPH_LEN;
     uncomp_hdr_len += UIP_IPH_LEN;
   } else {
     /*
@@ -1114,21 +1096,21 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
      * All fields in the IP header but Hop Limit are elided
      * If next header is UDP, we compress UDP header using HC2
      */
-    RIME_HC1_PTR[RIME_HC1_DISPATCH] = SICSLOWPAN_DISPATCH_HC1;
+    LOWPAN_HC1_PTR[LOWPAN_HC1_DISPATCH] = SICSLOWPAN_DISPATCH_HC1;
     uncomp_hdr_len += UIP_IPH_LEN;
     switch(UIP_IP_BUF->proto) {
       case UIP_PROTO_ICMP6:
         /* HC1 encoding and ttl */
-        RIME_HC1_PTR[RIME_HC1_ENCODING] = 0xFC;
-        RIME_HC1_PTR[RIME_HC1_TTL] = UIP_IP_BUF->ttl;
-        rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
+        LOWPAN_HC1_PTR[LOWPAN_HC1_ENCODING] = 0xFC;
+        LOWPAN_HC1_PTR[LOWPAN_HC1_TTL] = UIP_IP_BUF->ttl;
+        lowpan_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
         break;
 #if UIP_CONF_TCP
       case UIP_PROTO_TCP:
         /* HC1 encoding and ttl */
-        RIME_HC1_PTR[RIME_HC1_ENCODING] = 0xFE;
-        RIME_HC1_PTR[RIME_HC1_TTL] = UIP_IP_BUF->ttl;
-        rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
+        LOWPAN_HC1_PTR[LOWPAN_HC1_ENCODING] = 0xFE;
+        LOWPAN_HC1_PTR[LOWPAN_HC1_TTL] = UIP_IP_BUF->ttl;
+        lowpan_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
         break;
 #endif /* UIP_CONF_TCP */
 #if UIP_CONF_UDP
@@ -1144,24 +1126,24 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
            UIP_HTONS(UIP_UDP_BUF->destport) >= SICSLOWPAN_UDP_PORT_MIN &&
            UIP_HTONS(UIP_UDP_BUF->destport) <  SICSLOWPAN_UDP_PORT_MAX) {
           /* HC1 encoding */
-          RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_HC1_ENCODING] = 0xFB;
+          LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_HC1_ENCODING] = 0xFB;
         
           /* HC_UDP encoding, ttl, src and dest ports, checksum */
-          RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_UDP_ENCODING] = 0xE0;
-          RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_TTL] = UIP_IP_BUF->ttl;
+          LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_UDP_ENCODING] = 0xE0;
+          LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_TTL] = UIP_IP_BUF->ttl;
 
-          RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_PORTS] =
+          LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_PORTS] =
                (uint8_t)((UIP_HTONS(UIP_UDP_BUF->srcport) -
                        SICSLOWPAN_UDP_PORT_MIN) << 4) +
                (uint8_t)((UIP_HTONS(UIP_UDP_BUF->destport) - SICSLOWPAN_UDP_PORT_MIN));
-          memcpy(&RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_CHKSUM], &UIP_UDP_BUF->udpchksum, 2);
-          rime_hdr_len += SICSLOWPAN_HC1_HC_UDP_HDR_LEN;
+          memcpy(&LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_CHKSUM], &UIP_UDP_BUF->udpchksum, 2);
+          lowpan_hdr_len += SICSLOWPAN_HC1_HC_UDP_HDR_LEN;
           uncomp_hdr_len += UIP_UDPH_LEN;
         } else {
           /* HC1 encoding and ttl */
-          RIME_HC1_PTR[RIME_HC1_ENCODING] = 0xFA;
-          RIME_HC1_PTR[RIME_HC1_TTL] = UIP_IP_BUF->ttl;
-          rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
+          LOWPAN_HC1_PTR[LOWPAN_HC1_ENCODING] = 0xFA;
+          LOWPAN_HC1_PTR[LOWPAN_HC1_TTL] = UIP_IP_BUF->ttl;
+          lowpan_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
         }
         break;
 #endif /*UIP_CONF_UDP*/
@@ -1177,9 +1159,9 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
  *
  * This function is called by the input function when the dispatch is
  * HC1.
- * We %process the packet in the rime buffer, uncompress the header
+ * We %process the packet in the lowpan buffer, uncompress the header
  * fields, and copy the result in the sicslowpan buffer.
- * At the end of the decompression, rime_hdr_len and uncompressed_hdr_len
+ * At the end of the decompression, lowpan_hdr_len and uncompressed_hdr_len
  * are set to the appropriate values
  *
  * \param ip_len Equal to 0 if the packet is not a fragment (IP length
@@ -1205,43 +1187,43 @@ uncompress_hdr_hc1(uint16_t ip_len)
   uncomp_hdr_len += UIP_IPH_LEN;
   
   /* Next header field */
-  switch(RIME_HC1_PTR[RIME_HC1_ENCODING] & 0x06) {
+  switch(LOWPAN_HC1_PTR[LOWPAN_HC1_ENCODING] & 0x06) {
     case SICSLOWPAN_HC1_NH_ICMP6:
       SICSLOWPAN_IP_BUF->proto = UIP_PROTO_ICMP6;
-      SICSLOWPAN_IP_BUF->ttl = RIME_HC1_PTR[RIME_HC1_TTL];
-      rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
+      SICSLOWPAN_IP_BUF->ttl = LOWPAN_HC1_PTR[LOWPAN_HC1_TTL];
+      lowpan_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
       break;
 #if UIP_CONF_TCP
     case SICSLOWPAN_HC1_NH_TCP:
       SICSLOWPAN_IP_BUF->proto = UIP_PROTO_TCP;
-      SICSLOWPAN_IP_BUF->ttl = RIME_HC1_PTR[RIME_HC1_TTL];
-      rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
+      SICSLOWPAN_IP_BUF->ttl = LOWPAN_HC1_PTR[LOWPAN_HC1_TTL];
+      lowpan_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
       break;
 #endif/* UIP_CONF_TCP */
 #if UIP_CONF_UDP
     case SICSLOWPAN_HC1_NH_UDP:
       SICSLOWPAN_IP_BUF->proto = UIP_PROTO_UDP;
-      if(RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_HC1_ENCODING] & 0x01) {
+      if(LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_HC1_ENCODING] & 0x01) {
         /* UDP header is compressed with HC_UDP */
-        if(RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_UDP_ENCODING] !=
+        if(LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_UDP_ENCODING] !=
            SICSLOWPAN_HC_UDP_ALL_C) {
           PRINTF("sicslowpan (uncompress_hdr), packet not supported");
           return;
         }
         /* IP TTL */
-        SICSLOWPAN_IP_BUF->ttl = RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_TTL];
+        SICSLOWPAN_IP_BUF->ttl = LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_TTL];
         /* UDP ports, len, checksum */
         SICSLOWPAN_UDP_BUF->srcport =
           UIP_HTONS(SICSLOWPAN_UDP_PORT_MIN +
-                (RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_PORTS] >> 4));
+                (LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_PORTS] >> 4));
         SICSLOWPAN_UDP_BUF->destport =
           UIP_HTONS(SICSLOWPAN_UDP_PORT_MIN +
-                (RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_PORTS] & 0x0F));
-        memcpy(&SICSLOWPAN_UDP_BUF->udpchksum, &RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_CHKSUM], 2);
+                (LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_PORTS] & 0x0F));
+        memcpy(&SICSLOWPAN_UDP_BUF->udpchksum, &LOWPAN_HC1_HC_UDP_PTR[LOWPAN_HC1_HC_UDP_CHKSUM], 2);
         uncomp_hdr_len += UIP_UDPH_LEN;
-        rime_hdr_len += SICSLOWPAN_HC1_HC_UDP_HDR_LEN;
+        lowpan_hdr_len += SICSLOWPAN_HC1_HC_UDP_HDR_LEN;
       } else {
-        rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
+        lowpan_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
       }
       break;
 #endif/* UIP_CONF_UDP */
@@ -1254,7 +1236,7 @@ uncompress_hdr_hc1(uint16_t ip_len)
   if(ip_len == 0) {
     /* This is not a fragmented packet */
     SICSLOWPAN_IP_BUF->len[0] = 0;
-    SICSLOWPAN_IP_BUF->len[1] = packetbuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
+    SICSLOWPAN_IP_BUF->len[1] = packetbuf_datalen() - lowpan_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
   } else {
     /* This is a 1st fragment */
     SICSLOWPAN_IP_BUF->len[0] = (ip_len - UIP_IPH_LEN) >> 8;
@@ -1288,12 +1270,12 @@ uncompress_hdr_hc1(uint16_t ip_len)
  * \endverbatim
  */
 static void
-compress_hdr_ipv6(rimeaddr_t *rime_destaddr)
+compress_hdr_ipv6(rimeaddr_t *lowpan_destaddr)
 {
-  *rime_ptr = SICSLOWPAN_DISPATCH_IPV6;
-  rime_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
-  memcpy(rime_ptr + rime_hdr_len, UIP_IP_BUF, UIP_IPH_LEN);
-  rime_hdr_len += UIP_IPH_LEN;
+  *lowpan_ptr = SICSLOWPAN_DISPATCH_IPV6;
+  lowpan_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
+  memcpy(lowpan_ptr + lowpan_hdr_len, UIP_IP_BUF, UIP_IPH_LEN);
+  lowpan_hdr_len += UIP_IPH_LEN;
   uncomp_hdr_len += UIP_IPH_LEN;
   return;
 }
@@ -1373,11 +1355,11 @@ output(uip_lladdr_t *localdest)
 
   /* init */
   uncomp_hdr_len = 0;
-  rime_hdr_len = 0;
+  lowpan_hdr_len = 0;
 
-  /* reset rime buffer */
+  /* reset packet buffer */
   packetbuf_clear();
-  rime_ptr = packetbuf_dataptr();
+  lowpan_ptr = packetbuf_dataptr();
 
   packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
                      SICSLOWPAN_MAX_MAC_TRANSMISSIONS);
@@ -1414,7 +1396,7 @@ output(uip_lladdr_t *localdest)
     rimeaddr_copy(&dest, (const rimeaddr_t *)localdest);
   }
   
-  PRINTFO("sicslowpan output: sending packet len %d\n", uip_len);
+  PRINTF("sicslowpan output: sending packet len %d\n", uip_len);
 
   if(uip_len >= COMPRESSION_THRESHOLD) {
     /* Try to compress the headers */
@@ -1430,7 +1412,7 @@ output(uip_lladdr_t *localdest)
   } else {
     compress_hdr_ipv6(&dest);
   }
-  PRINTFO("sicslowpan output: header of len %d\n", rime_hdr_len);
+  PRINTF("sicslowpan output: header of len %d\n", lowpan_hdr_len);
 
   /* Calculate NETSTACK_FRAMER's header length, that will be added in the NETSTACK_RDC.
    * We calculate it here only to make a better decision of whether the outgoing packet
@@ -1449,7 +1431,7 @@ output(uip_lladdr_t *localdest)
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
 
-  if((int)uip_len - (int)uncomp_hdr_len > (int)MAC_MAX_PAYLOAD - framer_hdrlen - (int)rime_hdr_len) {
+  if((int)uip_len - (int)uncomp_hdr_len > (int)MAC_MAX_PAYLOAD - framer_hdrlen - (int)lowpan_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
     struct queuebuf *q;
     /*
@@ -1460,36 +1442,36 @@ output(uip_lladdr_t *localdest)
      * The following fragments contain only the fragn dispatch.
      */
 
-    PRINTFO("Fragmentation sending packet len %d\n", uip_len);
+    PRINTF("Fragmentation sending packet len %d\n", uip_len);
 
     /* Create 1st Fragment */
-    PRINTFO("sicslowpan output: 1rst fragment ");
+    PRINTF("sicslowpan output: 1rst fragment ");
 
     /* move HC1/HC06/IPv6 header */
-    memmove(rime_ptr + SICSLOWPAN_FRAG1_HDR_LEN, rime_ptr, rime_hdr_len);
+    memmove(lowpan_ptr + SICSLOWPAN_FRAG1_HDR_LEN, lowpan_ptr, lowpan_hdr_len);
 
     /*
      * FRAG1 dispatch + header
      * Note that the length is in units of 8 bytes
      */
-/*     RIME_FRAG_BUF->dispatch_size = */
+/*     LOWPAN_FRAG_BUF->dispatch_size = */
 /*       uip_htons((SICSLOWPAN_DISPATCH_FRAG1 << 8) | uip_len); */
-    SET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE,
+    SET16(LOWPAN_FRAG_PTR, LOWPAN_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAG1 << 8) | uip_len));
-/*     RIME_FRAG_BUF->tag = uip_htons(my_tag); */
-    SET16(RIME_FRAG_PTR, RIME_FRAG_TAG, my_tag);
+/*     LOWPAN_FRAG_BUF->tag = uip_htons(my_tag); */
+    SET16(LOWPAN_FRAG_PTR, LOWPAN_FRAG_TAG, my_tag);
     my_tag++;
 
     /* Copy payload and send */
-    rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
-    rime_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - rime_hdr_len) & 0xf8;
-    PRINTFO("(len %d, tag %d)\n", rime_payload_len, my_tag);
-    memcpy(rime_ptr + rime_hdr_len,
-           (uint8_t *)UIP_IP_BUF + uncomp_hdr_len, rime_payload_len);
-    packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
+    lowpan_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
+    lowpan_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - lowpan_hdr_len) & 0xf8;
+    PRINTF("(len %d, tag %d)\n", lowpan_payload_len, my_tag);
+    memcpy(lowpan_ptr + lowpan_hdr_len,
+           (uint8_t *)UIP_IP_BUF + uncomp_hdr_len, lowpan_payload_len);
+    packetbuf_set_datalen(lowpan_payload_len + lowpan_hdr_len);
     q = queuebuf_new_from_packetbuf();
     if(q == NULL) {
-      PRINTFO("could not allocate queuebuf for first fragment, dropping packet\n");
+      PRINTF("could not allocate queuebuf for first fragment, dropping packet\n");
       return 0;
     }
     send_packet(&dest);
@@ -1501,59 +1483,59 @@ output(uip_lladdr_t *localdest)
     if((last_tx_status == MAC_TX_COLLISION) ||
        (last_tx_status == MAC_TX_ERR) ||
        (last_tx_status == MAC_TX_ERR_FATAL)) {
-      PRINTFO("error in fragment tx, dropping subsequent fragments.\n");
+      PRINTF("error in fragment tx, dropping subsequent fragments.\n");
       return 0;
     }
 
     /* set processed_ip_out_len to what we already sent from the IP payload*/
-    processed_ip_out_len = rime_payload_len + uncomp_hdr_len;
+    processed_ip_out_len = lowpan_payload_len + uncomp_hdr_len;
     
     /*
      * Create following fragments
      * Datagram tag is already in the buffer, we need to set the
      * FRAGN dispatch and for each fragment, the offset
      */
-    rime_hdr_len = SICSLOWPAN_FRAGN_HDR_LEN;
-/*     RIME_FRAG_BUF->dispatch_size = */
+    lowpan_hdr_len = SICSLOWPAN_FRAGN_HDR_LEN;
+/*     LOWPAN_FRAG_BUF->dispatch_size = */
 /*       uip_htons((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len); */
-    SET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE,
+    SET16(LOWPAN_FRAG_PTR, LOWPAN_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len));
-    rime_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - rime_hdr_len) & 0xf8;
+    lowpan_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - lowpan_hdr_len) & 0xf8;
     while(processed_ip_out_len < uip_len) {
-      PRINTFO("sicslowpan output: fragment ");
-      RIME_FRAG_PTR[RIME_FRAG_OFFSET] = processed_ip_out_len >> 3;
+      PRINTF("sicslowpan output: fragment ");
+      LOWPAN_FRAG_PTR[LOWPAN_FRAG_OFFSET] = processed_ip_out_len >> 3;
       
       /* Copy payload and send */
-      if(uip_len - processed_ip_out_len < rime_payload_len) {
+      if(uip_len - processed_ip_out_len < lowpan_payload_len) {
         /* last fragment */
-        rime_payload_len = uip_len - processed_ip_out_len;
+        lowpan_payload_len = uip_len - processed_ip_out_len;
       }
-      PRINTFO("(offset %d, len %d, tag %d)\n",
-             processed_ip_out_len >> 3, rime_payload_len, my_tag);
-      memcpy(rime_ptr + rime_hdr_len,
-             (uint8_t *)UIP_IP_BUF + processed_ip_out_len, rime_payload_len);
-      packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
+      PRINTF("(offset %d, len %d, tag %d)\n",
+             processed_ip_out_len >> 3, lowpan_payload_len, my_tag);
+      memcpy(lowpan_ptr + lowpan_hdr_len,
+             (uint8_t *)UIP_IP_BUF + processed_ip_out_len, lowpan_payload_len);
+      packetbuf_set_datalen(lowpan_payload_len + lowpan_hdr_len);
       q = queuebuf_new_from_packetbuf();
       if(q == NULL) {
-        PRINTFO("could not allocate queuebuf, dropping fragment\n");
+        PRINTF("could not allocate queuebuf, dropping fragment\n");
         return 0;
       }
       send_packet(&dest);
       queuebuf_to_packetbuf(q);
       queuebuf_free(q);
       q = NULL;
-      processed_ip_out_len += rime_payload_len;
+      processed_ip_out_len += lowpan_payload_len;
 
       /* Check tx result. */
       if((last_tx_status == MAC_TX_COLLISION) ||
          (last_tx_status == MAC_TX_ERR) ||
          (last_tx_status == MAC_TX_ERR_FATAL)) {
-        PRINTFO("error in fragment tx, dropping subsequent fragments.\n");
+        PRINTF("error in fragment tx, dropping subsequent fragments.\n");
         return 0;
       }
     }
 #else /* SICSLOWPAN_CONF_FRAG */
-    PRINTFO("sicslowpan output: Packet too large to be sent without fragmentation support; dropping packet\n");
+    PRINTF("sicslowpan output: Packet too large to be sent without fragmentation support; dropping packet\n");
     return 0;
 #endif /* SICSLOWPAN_CONF_FRAG */
   } else {
@@ -1562,9 +1544,9 @@ output(uip_lladdr_t *localdest)
      * The packet does not need to be fragmented
      * copy "payload" and send
      */
-    memcpy(rime_ptr + rime_hdr_len, (uint8_t *)UIP_IP_BUF + uncomp_hdr_len,
+    memcpy(lowpan_ptr + lowpan_hdr_len, (uint8_t *)UIP_IP_BUF + uncomp_hdr_len,
            uip_len - uncomp_hdr_len);
-    packetbuf_set_datalen(uip_len - uncomp_hdr_len + rime_hdr_len);
+    packetbuf_set_datalen(uip_len - uncomp_hdr_len + lowpan_hdr_len);
     send_packet(&dest);
   }
   return 1;
@@ -1598,10 +1580,10 @@ input(void)
 
   /* init */
   uncomp_hdr_len = 0;
-  rime_hdr_len = 0;
+  lowpan_hdr_len = 0;
 
-  /* The MAC puts the 15.4 payload inside the RIME data buffer */
-  rime_ptr = packetbuf_dataptr();
+  /* The MAC puts the 15.4 payload inside the packet buffer */
+  lowpan_ptr = packetbuf_dataptr();
 
 #if SICSLOWPAN_CONF_FRAG
   /* if reassembly timed out, cancel it */
@@ -1613,17 +1595,17 @@ input(void)
    * Since we don't support the mesh and broadcast header, the first header
    * we look for is the fragmentation header
    */
-  switch((GET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE) & 0xf800) >> 8) {
+  switch((GET16(LOWPAN_FRAG_PTR, LOWPAN_FRAG_DISPATCH_SIZE) & 0xf800) >> 8) {
     case SICSLOWPAN_DISPATCH_FRAG1:
-      PRINTFI("sicslowpan input: FRAG1 ");
+      PRINTF("sicslowpan input: FRAG1 ");
       frag_offset = 0;
-/*       frag_size = (uip_ntohs(RIME_FRAG_BUF->dispatch_size) & 0x07ff); */
-      frag_size = GET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE) & 0x07ff;
-/*       frag_tag = uip_ntohs(RIME_FRAG_BUF->tag); */
-      frag_tag = GET16(RIME_FRAG_PTR, RIME_FRAG_TAG);
-      PRINTFI("size %d, tag %d, offset %d)\n",
+/*       frag_size = (uip_ntohs(LOWPAN_FRAG_BUF->dispatch_size) & 0x07ff); */
+      frag_size = GET16(LOWPAN_FRAG_PTR, LOWPAN_FRAG_DISPATCH_SIZE) & 0x07ff;
+/*       frag_tag = uip_ntohs(LOWPAN_FRAG_BUF->tag); */
+      frag_tag = GET16(LOWPAN_FRAG_PTR, LOWPAN_FRAG_TAG);
+      PRINTF("size %d, tag %d, offset %d)\n",
              frag_size, frag_tag, frag_offset);
-      rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
+      lowpan_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
       /*      printf("frag1 %d %d\n", reass_tag, frag_tag);*/
       first_fragment = 1;
       break;
@@ -1632,20 +1614,20 @@ input(void)
        * set offset, tag, size
        * Offset is in units of 8 bytes
        */
-      PRINTFI("sicslowpan input: FRAGN ");
-      frag_offset = RIME_FRAG_PTR[RIME_FRAG_OFFSET];
-      frag_tag = GET16(RIME_FRAG_PTR, RIME_FRAG_TAG);
-      frag_size = GET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE) & 0x07ff;
-      PRINTFI("size %d, tag %d, offset %d)\n",
+      PRINTF("sicslowpan input: FRAGN ");
+      frag_offset = LOWPAN_FRAG_PTR[LOWPAN_FRAG_OFFSET];
+      frag_tag = GET16(LOWPAN_FRAG_PTR, LOWPAN_FRAG_TAG);
+      frag_size = GET16(LOWPAN_FRAG_PTR, LOWPAN_FRAG_DISPATCH_SIZE) & 0x07ff;
+      PRINTF("size %d, tag %d, offset %d)\n",
              frag_size, frag_tag, frag_offset);
-      rime_hdr_len += SICSLOWPAN_FRAGN_HDR_LEN;
+      lowpan_hdr_len += SICSLOWPAN_FRAGN_HDR_LEN;
 
       /* If this is the last fragment, we may shave off any extrenous
          bytes at the end. We must be liberal in what we accept. */
-      PRINTFI("last_fragment?: processed_ip_in_len %d rime_payload_len %d frag_size %d\n",
-              processed_ip_in_len, packetbuf_datalen() - rime_hdr_len, frag_size);
+      PRINTF("last_fragment?: processed_ip_in_len %d lowpan_payload_len %d frag_size %d\n",
+              processed_ip_in_len, packetbuf_datalen() - lowpan_hdr_len, frag_size);
 
-      if(processed_ip_in_len + packetbuf_datalen() - rime_hdr_len >= frag_size) {
+      if(processed_ip_in_len + packetbuf_datalen() - lowpan_hdr_len >= frag_size) {
         last_fragment = 1;
       }
       break;
@@ -1665,7 +1647,7 @@ input(void)
        * the packet is a fragment that does not belong to the packet
        * being reassembled or the packet is not a fragment.
        */
-      PRINTFI("sicslowpan input: Dropping 6lowpan packet that is not a fragment of the packet currently being reassembled\n");
+      PRINTF("sicslowpan input: Dropping 6lowpan packet that is not a fragment of the packet currently being reassembled\n");
       return;
     }
   } else {
@@ -1677,13 +1659,13 @@ input(void)
       sicslowpan_len = frag_size;
       reass_tag = frag_tag;
       timer_set(&reass_timer, SICSLOWPAN_REASS_MAXAGE * CLOCK_SECOND / 16);
-      PRINTFI("sicslowpan input: INIT FRAGMENTATION (len %d, tag %d)\n",
+      PRINTF("sicslowpan input: INIT FRAGMENTATION (len %d, tag %d)\n",
              sicslowpan_len, reass_tag);
       rimeaddr_copy(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER));
     }
   }
 
-  if(rime_hdr_len == SICSLOWPAN_FRAGN_HDR_LEN) {
+  if(lowpan_hdr_len == SICSLOWPAN_FRAGN_HDR_LEN) {
     /* this is a FRAGN, skip the header compression dispatch section */
     goto copypayload;
   }
@@ -1691,33 +1673,33 @@ input(void)
 
   /* Process next dispatch and headers */
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
-  if((RIME_HC1_PTR[RIME_HC1_DISPATCH] & 0xe0) == SICSLOWPAN_DISPATCH_IPHC) {
-    PRINTFI("sicslowpan input: IPHC\n");
+  if((LOWPAN_HC1_PTR[LOWPAN_HC1_DISPATCH] & 0xe0) == SICSLOWPAN_DISPATCH_IPHC) {
+    PRINTF("sicslowpan input: IPHC\n");
     uncompress_hdr_hc06(frag_size);
   } else
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06 */
-    switch(RIME_HC1_PTR[RIME_HC1_DISPATCH]) {
+    switch(LOWPAN_HC1_PTR[LOWPAN_HC1_DISPATCH]) {
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1
     case SICSLOWPAN_DISPATCH_HC1:
-      PRINTFI("sicslowpan input: HC1\n");
+      PRINTF("sicslowpan input: HC1\n");
       uncompress_hdr_hc1(frag_size);
       break;
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1 */
     case SICSLOWPAN_DISPATCH_IPV6:
-      PRINTFI("sicslowpan input: IPV6\n");
-      rime_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
+      PRINTF("sicslowpan input: IPV6\n");
+      lowpan_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
 
       /* Put uncompressed IP header in sicslowpan_buf. */
-      memcpy(SICSLOWPAN_IP_BUF, rime_ptr + rime_hdr_len, UIP_IPH_LEN);
+      memcpy(SICSLOWPAN_IP_BUF, lowpan_ptr + lowpan_hdr_len, UIP_IPH_LEN);
 
-      /* Update uncomp_hdr_len and rime_hdr_len. */
-      rime_hdr_len += UIP_IPH_LEN;
+      /* Update uncomp_hdr_len and lowpan_hdr_len. */
+      lowpan_hdr_len += UIP_IPH_LEN;
       uncomp_hdr_len += UIP_IPH_LEN;
       break;
     default:
       /* unknown header */
-      PRINTFI("sicslowpan input: unknown dispatch: %u\n",
-             RIME_HC1_PTR[RIME_HC1_DISPATCH]);
+      PRINTF("sicslowpan input: unknown dispatch: %u\n",
+             LOWPAN_HC1_PTR[LOWPAN_HC1_DISPATCH]);
       return;
   }
    
@@ -1726,32 +1708,32 @@ input(void)
  copypayload:
 #endif /*SICSLOWPAN_CONF_FRAG*/
   /*
-   * copy "payload" from the rime buffer to the sicslowpan_buf
+   * copy "payload" from the packet buffer to the sicslowpan_buf
    * if this is a first fragment or not fragmented packet,
    * we have already copied the compressed headers, uncomp_hdr_len
-   * and rime_hdr_len are non 0, frag_offset is.
+   * and lowpan_hdr_len are non 0, frag_offset is.
    * If this is a subsequent fragment, this is the contrary.
    */
-  if(packetbuf_datalen() < rime_hdr_len) {
+  if(packetbuf_datalen() < lowpan_hdr_len) {
     PRINTF("SICSLOWPAN: packet dropped due to header > total packet\n");
     return;
   }
-  rime_payload_len = packetbuf_datalen() - rime_hdr_len;
+  lowpan_payload_len = packetbuf_datalen() - lowpan_hdr_len;
 
   /* Sanity-check size of incoming packet to avoid buffer overflow */
   {
     int req_size = UIP_LLH_LEN + uncomp_hdr_len + (uint16_t)(frag_offset << 3)
-        + rime_payload_len;
+        + lowpan_payload_len;
     if(req_size > sizeof(sicslowpan_buf)) {
       PRINTF(
           "SICSLOWPAN: packet dropped, minimum required SICSLOWPAN_IP_BUF size: %d+%d+%d+%d=%d (current size: %d)\n",
           UIP_LLH_LEN, uncomp_hdr_len, (uint16_t)(frag_offset << 3),
-          rime_payload_len, req_size, sizeof(sicslowpan_buf));
+          lowpan_payload_len, req_size, sizeof(sicslowpan_buf));
       return;
     }
   }
 
-  memcpy((uint8_t *)SICSLOWPAN_IP_BUF + uncomp_hdr_len + (uint16_t)(frag_offset << 3), rime_ptr + rime_hdr_len, rime_payload_len);
+  memcpy((uint8_t *)SICSLOWPAN_IP_BUF + uncomp_hdr_len + (uint16_t)(frag_offset << 3), lowpan_ptr + lowpan_hdr_len, lowpan_payload_len);
   
   /* update processed_ip_in_len if fragment, sicslowpan_len otherwise */
 
@@ -1766,13 +1748,13 @@ input(void)
     if(last_fragment != 0) {
       processed_ip_in_len = frag_size;
     } else {
-      processed_ip_in_len += rime_payload_len;
+      processed_ip_in_len += lowpan_payload_len;
     }
-    PRINTF("processed_ip_in_len %d, rime_payload_len %d\n", processed_ip_in_len, rime_payload_len);
+    PRINTF("processed_ip_in_len %d, lowpan_payload_len %d\n", processed_ip_in_len, lowpan_payload_len);
 
   } else {
 #endif /* SICSLOWPAN_CONF_FRAG */
-    sicslowpan_len = rime_payload_len + uncomp_hdr_len;
+    sicslowpan_len = lowpan_payload_len + uncomp_hdr_len;
 #if SICSLOWPAN_CONF_FRAG
   }
 
@@ -1783,7 +1765,7 @@ input(void)
   PRINTF("sicslowpan_init processed_ip_in_len %d, sicslowpan_len %d\n",
          processed_ip_in_len, sicslowpan_len);
   if(processed_ip_in_len == 0 || (processed_ip_in_len == sicslowpan_len)) {
-    PRINTFI("sicslowpan input: IP packet ready (length %d)\n",
+    PRINTF("sicslowpan input: IP packet ready (length %d)\n",
            sicslowpan_len);
     memcpy((uint8_t *)UIP_IP_BUF, (uint8_t *)SICSLOWPAN_IP_BUF, sicslowpan_len);
     uip_len = sicslowpan_len;
