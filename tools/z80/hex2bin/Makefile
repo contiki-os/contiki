@@ -14,10 +14,6 @@ OBJECTS		= ${addprefix $(OBJECTDIR)/,$(SOURCES:.c=.o)}
 
 vpath %.c $(SOURCEDIR)
 
-ifeq (${wildcard $(OBJECTDIR)},)
-  DUMMY := ${shell mkdir $(OBJECTDIR)}
-endif
-
 hexameter: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS)
 
@@ -26,6 +22,9 @@ clean:
 	rm -f *~ *.stackdump
 	rm -f *~ hexameter hexameter.exe
 
-$(OBJECTDIR)/%.o: %.c
+$(OBJECTDIR):
+	mkdir $@
+
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 

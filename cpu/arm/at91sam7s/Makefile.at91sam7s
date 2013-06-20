@@ -95,29 +95,29 @@ CUSTOM_RULE_C_TO_O=yes
 %-interrupt.o: %-interrupt.c
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
-$(OBJECTDIR)/%-interrupt.o: %-interrupt.c
+$(OBJECTDIR)/%-interrupt.o: %-interrupt.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) -c $< -o $@
 
 %-arm.o: %-arm.c
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
-$(OBJECTDIR)/%-arm.o: %-arm.c
+$(OBJECTDIR)/%-arm.o: %-arm.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) -c $< -o $@
 
-$(OBJECTDIR)/interrupt-utils.o: interrupt-utils.c
+$(OBJECTDIR)/interrupt-utils.o: interrupt-utils.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c
 
-$(OBJECTDIR)/%.o: %.c
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c $< -o $@
 
 CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
 %.o: %.S
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
-$(OBJECTDIR)/%.o: %.S
+$(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c  -o $@
 
 
@@ -188,7 +188,7 @@ ocd_reset:
 	cd $(CONTIKI_CPU)/openocd;$(OPENOCD) -f $(OPENOCD_CFG) -c init -c reset -c exit
 
 # Don't use core/loader/elfloader.c, use elfloader-otf.c instead
-$(OBJECTDIR)/elfloader.o: 
+$(OBJECTDIR)/elfloader.o: | $(OBJECTDIR)
 	echo -n >$@
 
 clean: clean_cpu

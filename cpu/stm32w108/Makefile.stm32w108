@@ -216,7 +216,7 @@ endif
 
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
-$(OBJECTDIR)/%.o: %.c
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
 	@$(SEDCOMMAND); rm -f $(@:.o=.P)
 	@$(FINALIZE_DEPENDENCY)
@@ -270,10 +270,10 @@ stm-motelist:
 stm-motes:
 	@echo $(MOTES)
 
-$(OBJECTDIR)/%.o: %.s79
+$(OBJECTDIR)/%.o: %.s79 | $(OBJECTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OBJECTDIR)/%.o: %.s
+$(OBJECTDIR)/%.o: %.s | $(OBJECTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 %.bin: %.$(TARGET)
