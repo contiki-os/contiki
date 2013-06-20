@@ -175,11 +175,12 @@ sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 rm -f $(@:.o=.$$$$)
 endef
 
- clean:
+clean:
 	rm -f *~ *core core *.srec \
 	*.lst *.map \
 	*.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
-	*.ce *.co $(CLEAN)
+	*.ce *.co
+	rm -rf $(CLEAN)
 	-rm -rf $(OBJECTDIR)
 
 ifndef CUSTOM_RULE_C_TO_CE
