@@ -18,7 +18,7 @@ before_script:
          | tar xzf - -C /tmp/ && sudo cp -f -r /tmp/sdcc-r7100/* /usr/local/ && rm -rf /tmp/sdcc-r7100 && sdcc --version || true"
 
   ## Compile cooja.jar only when it's going to be needed
-  - "[ $MAKE_TARGETS = cooja ] && java -version && ant -q -f tools/cooja/build.xml jar || true"
+  - "[ ! $BUILD_TYPE = compile ] && java -version && ant -q -f tools/cooja/build.xml jar || true"
 
   ## IMPORTANT: The commands here have to end with `|| true`,
   ## because it would make the test fail if BUILD_TYPE test fails
@@ -41,16 +41,16 @@ env:
   ## This magically kick-off parallel jobs for each of the for the sets
   ## of environment variable defined below
   - BUILD_TYPE='compile'
-  - BUILD_TYPE='collect' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='collect-lossy' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='rpl' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='rime' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='ipv6' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='hello-world' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='base' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='collect'
+  - BUILD_TYPE='collect-lossy'
+  - BUILD_TYPE='rpl'
+  - BUILD_TYPE='rime'
+  - BUILD_TYPE='ipv6'
+  - BUILD_TYPE='hello-world'
+  - BUILD_TYPE='base'
 # XXX: netperf disabled b/c it's flaky
 #  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='shell' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='elfloader' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='ipv4' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='ipv6-apps' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='shell'
+  - BUILD_TYPE='elfloader'
+  - BUILD_TYPE='ipv4'
+  - BUILD_TYPE='ipv6-apps'
