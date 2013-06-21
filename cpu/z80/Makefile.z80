@@ -56,11 +56,11 @@ CONTIKI_PLATFORM_DIRS = $(PLATFORM_APPDIRS) \
 vpath %.cS $(CONTIKI_PLATFORM_DIRS)
 
 #option -MMD doesn't work well on SDCC as of 2.9.0
-$(OBJECTDIR)/%.o: %.c
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ifndef CUSTOM_RULE_CS_TO_OBJECTDIR_O
-$(OBJECTDIR)/%.o: %.cS
+$(OBJECTDIR)/%.o: %.cS | $(OBJECTDIR)
 	cp $< $(OBJECTDIR)/$*.c
 	$(CC) $(CFLAGS) -E $(OBJECTDIR)/$*.c > $(OBJECTDIR)/tmp
 	perl -pe "s/^#(.*)/;$$1/" $(OBJECTDIR)/tmp > $(OBJECTDIR)/$*.S
