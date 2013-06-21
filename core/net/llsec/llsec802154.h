@@ -54,6 +54,7 @@
 #define LLSEC802154_H_
 
 #include "net/mac/frame802154.h"
+#include "net/ip/uip.h"
 
 #ifdef LLSEC802154_CONF_SECURITY_LEVEL
 #define LLSEC802154_SECURITY_LEVEL     LLSEC802154_CONF_SECURITY_LEVEL
@@ -74,6 +75,14 @@
 #else /* LLSEC802154_CONF_USES_EXPLICIT_KEYS */
 #define LLSEC802154_USES_EXPLICIT_KEYS 0
 #endif /* LLSEC802154_CONF_USES_EXPLICIT_KEYS */
+
+#if UIP_BYTE_ORDER == UIP_LITTLE_ENDIAN
+#define LLSEC802154_HTONS(n) (n)
+#define LLSEC802154_HTONL(n) (n)
+#else /* UIP_CONF_BYTE_ORDER == UIP_LITTLE_ENDIAN */
+#define LLSEC802154_HTONS(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
+#define LLSEC802154_HTONL(n) (((uint32_t)UIP_HTONS(n) << 16) | UIP_HTONS((uint32_t)(n) >> 16))
+#endif /* UIP_CONF_BYTE_ORDER == UIP_LITTLE_ENDIAN */
 
 #endif /* LLSEC802154_H_ */
 
