@@ -116,7 +116,8 @@ PROJECT_OBJECTFILES = $(addprefix $(OBJECTDIR)/, \
 SEGMENT_RULE_FILES = $(foreach dir, . $(CONTIKI_PLATFORM_DIRS) \
 	$(CONTIKI_CPU_DIRS_LIST), $(wildcard $(dir)/segment.rules) )
 
-$(SEGMENT_RULES): $(SEGMENT_RULE_FILES)
+# NB: Assumes SEGMENT_RULES was not overridden and is in $(OBJECTDIR)
+$(SEGMENT_RULES): $(SEGMENT_RULE_FILES) | $(OBJECTDIR)
 	cat $(SEGMENT_RULE_FILES) | \
 	   sed -e 's/#.*$$//' -e 's/^\s*//' -e '/^$$/d' > $@
 
@@ -124,11 +125,11 @@ CUSTOM_RULE_LINK=1
 CUSTOM_RULE_C_TO_OBJECTDIR_O=1
 CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
 
-$(OBJECTDIR)/%.rel: %.c $(SEGMENT_RULES)
+$(OBJECTDIR)/%.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
 	$(CC) $(call c_seg,$<,$@) $(CFLAGS) -c $< -o $@ -Wp,-MMD,$(@:.rel=.d),-MQ,$@
 	@$(FINALIZE_SDCC_DEPENDENCY)
 
-$(OBJECTDIR)/%.rel: %.cS
+$(OBJECTDIR)/%.rel: %.cS | $(OBJECTDIR)
 	cp $< $(OBJECTDIR)/$*.c
 	$(CC) $(CFLAGS) -E $(OBJECTDIR)/$*.c > $(OBJECTDIR)/tmp
 	perl -pe "s/^#(.*)/;$$1/" $(OBJECTDIR)/tmp > $(OBJECTDIR)/$*.S
@@ -144,7 +145,7 @@ contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) \
 
 # build app/example local object files. We need a separate rule so that we can
 # pass -DAUTOSTART_ENABLE for those files only
-$(OBJECTDIR)/%.app.rel: %.c $(SEGMENT_RULES)
+$(OBJECTDIR)/%.app.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
 	$(CC) $(call c_seg,$<,$@) -DAUTOSTART_ENABLE $(CFLAGS) -c $< -o $@
 
 # .ihx is the sdcc binary output file
