@@ -120,7 +120,7 @@ send_one_packet(mac_callback_t sent, void *ptr)
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 #endif /* NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW */
 
-  if(NETSTACK_FRAMER.create() < 0) {
+  if((NETSTACK_FRAMER.create() < 0) || !NETSTACK_LLSEC.on_frame_created()) {
     /* Failed to allocate space for headers */
     PRINTF("nullrdc: send failed, too large header\n");
     ret = MAC_TX_ERR_FATAL;

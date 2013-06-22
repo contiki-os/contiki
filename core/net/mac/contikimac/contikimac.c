@@ -614,7 +614,12 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
     return MAC_TX_ERR_FATAL;
   }
 #endif
-
+  packetbuf_compact();
+  
+  if(!NETSTACK_LLSEC.on_frame_created()) {
+    return MAC_TX_ERR_FATAL;
+  }
+  
   /* Make sure that the packet is longer or equal to the shortest
      packet length. */
   transmit_len = packetbuf_totlen();
@@ -627,9 +632,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
     PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
     transmit_len = SHORTEST_PACKET_SIZE;
   }
-
-
-  packetbuf_compact();
 
 #ifdef NETSTACK_ENCRYPT
   NETSTACK_ENCRYPT();
