@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -220,9 +220,14 @@ coap_receive(void)
       else
       {
         /* Responses */
-
-        if (message->type==COAP_TYPE_ACK)
+        if (message->type==COAP_TYPE_CON && message->code==0)
         {
+          PRINTF("Received Ping\n");
+          coap_error_code = PING_RESPONSE;
+        }
+        else if (message->type==COAP_TYPE_ACK)
+        {
+          /* Transactions are closed through lookup below */
           PRINTF("Received ACK\n");
         }
         else if (message->type==COAP_TYPE_RST)
@@ -261,6 +266,8 @@ coap_receive(void)
     }
     else
     {
+      coap_message_type_t reply_type = COAP_TYPE_ACK;
+
       PRINTF("ERROR %u: %s\n", coap_error_code, coap_error_message);
       coap_clear_transaction(transaction);
 
@@ -269,8 +276,13 @@ coap_receive(void)
       {
         coap_error_code = INTERNAL_SERVER_ERROR_5_00;
       }
+      if (coap_error_code == PING_RESPONSE)
+      {
+        coap_error_code = 0;
+        reply_type = COAP_TYPE_RST;
+      }
       /* Reuse input buffer for error message. */
-      coap_init_message(message, COAP_TYPE_ACK, coap_error_code, message->mid);
+      coap_init_message(message, reply_type, coap_error_code, message->mid);
       coap_set_payload(message, coap_error_message, strlen(coap_error_message));
       coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, uip_appdata, coap_serialize_message(message, uip_appdata));
     }
