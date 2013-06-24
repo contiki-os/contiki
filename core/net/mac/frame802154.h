@@ -105,6 +105,11 @@
 #define FRAME802154_SECURITY_LEVEL_ENC_MIC_64  (6)
 #define FRAME802154_SECURITY_LEVEL_ENC_MIC_128 (7)
 
+#define FRAME802154_IMPLICIT_KEY               (0)
+#define FRAME802154_1_BYTE_KEY_ID_MODE         (1)
+#define FRAME802154_5_BYTE_KEY_ID_MODE         (2)
+#define FRAME802154_9_BYTE_KEY_ID_MODE         (3)
+
 /**
  *    @brief  The IEEE 802.15.4 frame has a number of constant/fixed fields that
  *            can be counted to make frame construction and max payload
@@ -146,11 +151,17 @@ typedef union {
   uint8_t u8[4];
 } frame802154_frame_counter_t;
 
+typedef union {
+  uint16_t u16[4];
+  uint8_t u8[8];
+} frame802154_key_source_t;
+
 /** \brief 802.15.4 Aux security header */
 typedef struct {
-  frame802154_scf_t security_control;  /**< Security control bitfield */
-  frame802154_frame_counter_t frame_counter;   /**< Frame counter, used for security */
-  uint8_t  key[9];          /**< The key itself, or an index to the key */
+  frame802154_scf_t security_control;        /**< Security control bitfield */
+  frame802154_frame_counter_t frame_counter; /**< Frame counter, used for security */
+  frame802154_key_source_t key_source;       /**< Key Source subfield */
+  uint8_t key_index;                         /**< Key Index subfield */
 } frame802154_aux_hdr_t;
 
 /** \brief Parameters used by the frame802154_create() function.  These
