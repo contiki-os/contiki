@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Matthias Kovatsch and other contributors.
+ * Copyright (c) 2013, Matthias Kovatsch
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,10 +69,6 @@
 #endif
 
 
-#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET) && !defined (CONTIKI_TARGET_NATIVE)
-#warning "Compiling with static routing!"
-#include "static-routing.h"
-#endif
 
 #include "erbium.h"
 
@@ -1239,12 +1235,6 @@ PROCESS_THREAD(plugtest_server, ev, data)
   PRINTF("LL header: %u\n", UIP_LLH_LEN);
   PRINTF("IP+UDP header: %u\n", UIP_IPUDPH_LEN);
   PRINTF("REST max chunk: %u\n", REST_MAX_CHUNK_SIZE);
-
-/* if static routes are used rather than RPL */
-#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET)
-  set_global_address();
-  configure_routing();
-#endif
 
   /* Initialize the REST engine. */
   rest_init_engine();

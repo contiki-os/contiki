@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Matthias Kovatsch and other contributors.
+ * Copyright (c) 2013, Matthias Kovatsch
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,11 +42,6 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
-
-#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET) && !defined (CONTIKI_TARGET_NATIVE)
-#warning "Compiling with static routing!"
-#include "static-routing.h"
-#endif
 
 #include "dev/button-sensor.h"
 
