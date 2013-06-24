@@ -34,7 +34,17 @@
 #include <stdarg.h>
 
 #include "dev/button-sensor.h"
+#if (EXP5438_RFEM_CC2520EMK - 0)
+#include "dev/cc2520.h"
+#define RFEM_INIT() do { cc2520_init(); } while(0)
+#define RFEM_SET_PAN_ADDR(pid,sa,la) do { cc2520_set_pan_addr(pid, sa, la); } while(0)
+#define RFEM_SET_CHANNEL(ch) do { cc2520_set_channel(ch); } while(0)
+#else  /* RF selection */
 #include "dev/cc2420.h"
+#define RFEM_INIT() do { cc2420_init(); } while(0)
+#define RFEM_SET_PAN_ADDR(pid,sa,la) do { cc2420_set_pan_addr(pid, sa, la); } while(0)
+#define RFEM_SET_CHANNEL(ch) do { cc2420_set_channel(ch); } while(0)
+#endif /* RF selection */
 #include "dev/flash.h"
 #include "dev/leds.h"
 #include "dev/serial-line.h"
@@ -183,7 +193,7 @@ main(int argc, char **argv)
 
   set_rime_addr();
 
-  cc2420_init();
+  RFEM_INIT();
 
   {
     uint8_t longaddr[8];
@@ -197,10 +207,10 @@ main(int argc, char **argv)
            longaddr[0], longaddr[1], longaddr[2], longaddr[3],
            longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
 
-    cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
+    RFEM_SET_PAN_ADDR(IEEE802154_PANID, shortaddr, longaddr);
   }
 
-  cc2420_set_channel(RF_CHANNEL);
+  RFEM_SET_CHANNEL(RF_CHANNEL);
 
   leds_off(LEDS_ALL);
 

@@ -22,7 +22,11 @@
 #endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
 
 #ifndef NETSTACK_CONF_RADIO
+#if (EXP5438_RFEM_CC2520EMK - 0)
+#define NETSTACK_CONF_RADIO   cc2520_driver
+#else /* use default RF module */
 #define NETSTACK_CONF_RADIO   cc2420_driver
+#endif /* RF module selection */
 #endif /* NETSTACK_CONF_RADIO */
 
 #ifndef NETSTACK_CONF_FRAMER
