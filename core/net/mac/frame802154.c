@@ -92,6 +92,23 @@ addr_len(uint8_t mode)
   }
 }
 /*----------------------------------------------------------------------------*/
+#if LLSEC802154_USES_EXPLICIT_KEYS
+static uint8_t
+get_key_id_len(uint8_t key_id_mode)
+{
+  switch(key_id_mode) {
+  case FRAME802154_1_BYTE_KEY_ID_MODE:
+    return 1;
+  case FRAME802154_5_BYTE_KEY_ID_MODE:
+    return 5;
+  case FRAME802154_9_BYTE_KEY_ID_MODE:
+    return 9;
+  default:
+    return 0;
+  }
+}
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+/*----------------------------------------------------------------------------*/
 static void
 field_len(frame802154_t *p, field_length_t *flen)
 {
@@ -124,26 +141,11 @@ field_len(frame802154_t *p, field_length_t *flen)
 #if LLSEC802154_SECURITY_LEVEL
   /* Aux security header */
   if(p->fcf.security_enabled & 1) {
-    flen->aux_sec_len = 5;
-    /* TODO Support key identifier mode !=0 */
-#if 0
-    switch(p->aux_hdr.security_control.key_id_mode) {
-    case 0:
-      flen->aux_sec_len = 5; /* minimum value */
-      break;
-    case 1:
-      flen->aux_sec_len = 6;
-      break;
-    case 2:
-      flen->aux_sec_len = 10;
-      break;
-    case 3:
-      flen->aux_sec_len = 14;
-      break;
-    default:
-      break;
-    }
-#endif
+    flen->aux_sec_len = 5
+#if LLSEC802154_USES_EXPLICIT_KEYS
+        + get_key_id_len(p->aux_hdr.security_control.key_id_mode);
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+    ;
   }
 #endif /* LLSEC802154_SECURITY_LEVEL */
 }
@@ -183,6 +185,9 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
   int c;
   field_length_t flen;
   uint8_t pos;
+#if LLSEC802154_USES_EXPLICIT_KEYS
+  uint8_t key_id_mode;
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 
   field_len(p, &flen);
   
@@ -226,10 +231,23 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
 #if LLSEC802154_SECURITY_LEVEL
   /* Aux header */
   if(flen.aux_sec_len) {
-    /* TODO Support key identifier mode !=0 */
-    buf[pos++] = p->aux_hdr.security_control.security_level;
+    buf[pos++] = p->aux_hdr.security_control.security_level
+#if LLSEC802154_USES_EXPLICIT_KEYS
+        | (p->aux_hdr.security_control.key_id_mode << 3)
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+    ;
     memcpy(buf + pos, p->aux_hdr.frame_counter.u8, 4);
     pos += 4;
+
+#if LLSEC802154_USES_EXPLICIT_KEYS
+    key_id_mode = p->aux_hdr.security_control.key_id_mode;
+    if(key_id_mode) {
+      c = (key_id_mode - 1) * 4;
+      memcpy(buf + pos, p->aux_hdr.key_source.u8, c);
+      pos += c;
+      buf[pos++] = p->aux_hdr.key_index;
+    }
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
   }
 #endif /* LLSEC802154_SECURITY_LEVEL */
 
@@ -251,6 +269,9 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
   uint8_t *p;
   frame802154_fcf_t fcf;
   int c;
+#if LLSEC802154_USES_EXPLICIT_KEYS
+  uint8_t key_id_mode;
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 
   if(len < 3) {
     return 0;
@@ -333,20 +354,28 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
     linkaddr_copy((linkaddr_t *)&(pf->src_addr), &linkaddr_null);
     pf->src_pid = 0;
   }
-
+  
 #if LLSEC802154_SECURITY_LEVEL
   if(fcf.security_enabled) {
     pf->aux_hdr.security_control.security_level = p[0] & 7;
+#if LLSEC802154_USES_EXPLICIT_KEYS
     pf->aux_hdr.security_control.key_id_mode = (p[0] >> 3) & 3;
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
     p += 1;
     
     memcpy(pf->aux_hdr.frame_counter.u8, p, 4);
     p += 4;
-        
-    if(pf->aux_hdr.security_control.key_id_mode) {
-      /* TODO Support key identifier mode !=0 */
-      return 0;
+    
+#if LLSEC802154_USES_EXPLICIT_KEYS
+    key_id_mode = pf->aux_hdr.security_control.key_id_mode;
+    if(key_id_mode) {
+      c = (key_id_mode - 1) * 4;
+      memcpy(pf->aux_hdr.key_source.u8, p, c);
+      p += c;
+      pf->aux_hdr.key_index = p[0];
+      p += 1;
     }
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
   }
 #endif /* LLSEC802154_SECURITY_LEVEL */
 
