@@ -64,12 +64,6 @@ cnt:	.res	2		; Frame length counter
 
 ;---------------------------------------------------------------------
 
-	.segment	"EXTZP": zeropage
-
-	; Empty segment to avoid linker warnings
-
-;---------------------------------------------------------------------
-
 	.rodata
 
 fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
