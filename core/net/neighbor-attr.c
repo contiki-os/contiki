@@ -69,6 +69,7 @@ neighbor_addr_get(const rimeaddr_t *addr)
   item = list_head(neighbor_addrs);
   while(item != NULL) {
     if(rimeaddr_cmp(addr, &item->addr)) {
+      item->last_lookup = clock_time();
       return item;
     }
     item = item->next;
@@ -119,7 +120,8 @@ neighbor_attr_add_neighbor(const rimeaddr_t *addr)
 {
   struct neighbor_attr *def;
   struct neighbor_addr *item;
-  struct neighbor_addr *ptr;
+  struct neighbor_addr *oldest;
+  clock_time_t oldest_time;
   uint16_t i;
 
   if(neighbor_attr_has_neighbor(addr)) {
@@ -127,19 +129,34 @@ neighbor_attr_add_neighbor(const rimeaddr_t *addr)
   }
 
   item = memb_alloc(&neighbor_addr_mem);
+  oldest = NULL;
+  oldest_time = clock_time();
+  /* no space available for new entry, look for oldest entry and take its place */
   if(item == NULL) {
-    return -1;
+    item = list_head(neighbor_addrs);
+    while(item != NULL) {
+      if(item->last_lookup < oldest_time) {
+        oldest = item;
+        oldest_time = item->last_lookup;
+      }
+      item = item->next;
+    }
+    if(oldest != NULL) {
+      item = oldest;
+    } else {
+      return -1;
+    }
+  } else {
+    list_push(neighbor_addrs, item);
   }
 
-  list_push(neighbor_addrs, item);
-
   item->time = 0;
+  item->last_lookup = clock_time();
   rimeaddr_copy(&item->addr, addr);
 
   /* look up index and set default values */
-  ptr = neighbor_addr_mem.mem;
   for(i = 0; i < neighbor_addr_mem.num; ++i) {
-    if(&ptr[i] == item) {
+    if(&((struct neighbor_addr *)neighbor_addr_mem.mem)[i] == item) {
       break;
     }
   }

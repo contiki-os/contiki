@@ -52,6 +52,7 @@ struct neighbor_addr {
   rimeaddr_t addr;
   uint16_t time;
   uint16_t index;
+  clock_time_t last_lookup;
 };
 
 /**

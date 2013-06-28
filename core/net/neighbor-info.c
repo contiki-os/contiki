@@ -142,6 +142,7 @@ neighbor_info_packet_sent(int status, int numtx)
 #endif /* UIP_DS6_LL_NUD */
     break;
   case MAC_TX_NOACK:
+    add_neighbor(dest);
     packet_metric = ETX_NOACK_PENALTY;
     break;
   default:
