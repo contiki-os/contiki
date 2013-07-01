@@ -311,7 +311,9 @@ dio_input(void)
       dio.mc.prec = buffer[i + 4] & 0xf;
       dio.mc.length = buffer[i + 5];
 
-      if(dio.mc.type == RPL_DAG_MC_ETX) {
+      if(dio.mc.type == RPL_DAG_MC_NONE) {
+        /* No metric container: do nothing */
+      } else if(dio.mc.type == RPL_DAG_MC_ETX) {
         dio.mc.obj.etx = get16(buffer, i + 6);
 
         PRINTF("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, ETX %u\n",
