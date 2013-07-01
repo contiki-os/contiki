@@ -83,7 +83,7 @@ init(void)
   slip_set_input_callback(slip_input_callback);
 }
 /*---------------------------------------------------------------------------*/
-static void
+static int
 output(void)
 {
   if(uip_ipaddr_cmp(&last_sender, &UIP_IP_BUF->srcipaddr)) {
@@ -94,6 +94,7 @@ output(void)
     PRINTF("SUT: %u\n", uip_len);
     slip_send();
   }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 struct uip_fallback_interface slip_interface = {
