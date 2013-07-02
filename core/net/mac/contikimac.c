@@ -55,9 +55,11 @@
 #include <string.h>
 
 /* TX/RX cycles are synchronized with neighbor wake periods */
-#ifndef WITH_PHASE_OPTIMIZATION
+#ifdef CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION
+#define WITH_PHASE_OPTIMIZATION      CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION
+#else /* CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION */
 #define WITH_PHASE_OPTIMIZATION      1
-#endif
+#endif /* CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION */
 /* Two byte header added to allow recovery of padded short packets */
 /* Wireshark will not understand such packets at present */
 #ifdef CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
@@ -117,7 +119,7 @@ struct hdr {
 /* Are we currently receiving a burst? */
 static int we_are_receiving_burst = 0;
 
-/* BURST_RECV_TIME is the maximum time a receiver waits for the
+/* INTER_PACKET_DEADLINE is the maximum time a receiver waits for the
    next packet of a burst when FRAME_PENDING is set. */
 #define INTER_PACKET_DEADLINE               CLOCK_SECOND / 32
 
@@ -125,15 +127,27 @@ static int we_are_receiving_burst = 0;
    consists of two or more CCA checks. CCA_COUNT_MAX is the number of
    CCAs to be done for each periodic channel check. The default is
    two.*/
+#ifdef CONTIKIMAC_CONF_CCA_COUNT_MAX
+#define CCA_COUNT_MAX                      (CONTIKIMAC_CONF_CCA_COUNT_MAX)
+#else
 #define CCA_COUNT_MAX                      2
+#endif
 
 /* Before starting a transmission, Contikimac checks the availability
    of the channel with CCA_COUNT_MAX_TX consecutive CCAs */
+#ifdef CONTIKIMAC_CONF_CCA_COUNT_MAX_TX
+#define CCA_COUNT_MAX_TX                   (CONTIKIMAC_CONF_CCA_COUNT_MAX_TX)
+#else
 #define CCA_COUNT_MAX_TX                   6
+#endif
 
 /* CCA_CHECK_TIME is the time it takes to perform a CCA check. */
 /* Note this may be zero. AVRs have 7612 ticks/sec, but block until cca is done */
+#ifdef CONTIKIMAC_CONF_CCA_CHECK_TIME
+#define CCA_CHECK_TIME                     (CONTIKIMAC_CONF_CCA_CHECK_TIME)
+#else
 #define CCA_CHECK_TIME                     RTIMER_ARCH_SECOND / 8192
+#endif
 
 /* CCA_SLEEP_TIME is the time between two successive CCA checks. */
 /* Add 1 when rtimer ticks are coarse */
@@ -177,12 +191,20 @@ static int we_are_receiving_burst = 0;
 #define GUARD_TIME                         10 * CHECK_TIME + CHECK_TIME_TX
 
 /* INTER_PACKET_INTERVAL is the interval between two successive packet transmissions */
-#define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 5000
+#ifdef CONTIKIMAC_CONF_INTER_PACKET_INTERVAL
+#define INTER_PACKET_INTERVAL              CONTIKIMAC_CONF_INTER_PACKET_INTERVAL
+#else
+#define INTER_PACKET_INTERVAL              RTIMER_ARCH_SECOND / 2500
+#endif
 
 /* AFTER_ACK_DETECTECT_WAIT_TIME is the time to wait after a potential
    ACK packet has been detected until we can read it out from the
    radio. */
+#ifdef CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME
+#define AFTER_ACK_DETECTECT_WAIT_TIME      CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME
+#else
 #define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
+#endif
 
 /* MAX_PHASE_STROBE_TIME is the time that we transmit repeated packets
    to a neighbor for which we have a phase lock. */

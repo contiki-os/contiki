@@ -39,6 +39,7 @@
 #ifndef COAP_OBSERVING_H_
 #define COAP_OBSERVING_H_
 
+#include "sys/stimer.h"
 #include "er-coap-07.h"
 #include "er-coap-07-transactions.h"
 
