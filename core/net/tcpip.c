@@ -602,6 +602,7 @@ tcpip_ipv6_output(void)
     }
 #endif /* UIP_CONF_IPV6_RPL */
     if((nbr = uip_ds6_nbr_lookup(nexthop)) == NULL) {
+#if UIP_ND6_SEND_NA
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
         uip_len = 0;
         return;
@@ -628,7 +629,9 @@ tcpip_ipv6_output(void)
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         nbr->nscount = 1;
       }
+#endif /* UIP_ND6_SEND_NA */
     } else {
+#if UIP_ND6_SEND_NA
       if(nbr->state == NBR_INCOMPLETE) {
         PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -650,6 +653,7 @@ tcpip_ipv6_output(void)
         nbr->nscount = 0;
         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
       }
+#endif /* UIP_ND6_SEND_NA */
 
       tcpip_output(&nbr->lladdr);
 
