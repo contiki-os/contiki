@@ -1391,10 +1391,20 @@ uip_process(uint8_t flag)
 
   switch(UIP_ICMP_BUF->type) {
     case ICMP6_NS:
+#if UIP_ND6_SEND_NA
       uip_nd6_ns_input();
+#else /* UIP_ND6_SEND_NA */
+      UIP_STAT(++uip_stat.icmp.drop);
+      uip_len = 0;
+#endif /* UIP_ND6_SEND_NA */
       break;
     case ICMP6_NA:
+#if UIP_ND6_SEND_NA
       uip_nd6_na_input();
+#else /* UIP_ND6_SEND_NA */
+      UIP_STAT(++uip_stat.icmp.drop);
+      uip_len = 0;
+#endif /* UIP_ND6_SEND_NA */
       break;
     case ICMP6_RS:
 #if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
