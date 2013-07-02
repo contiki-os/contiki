@@ -270,6 +270,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   dag->version = version;
   dag->joined = 1;
   dag->grounded = RPL_GROUNDED;
+  dag->preference = RPL_PREFERENCE;
   instance->mop = RPL_MOP_DEFAULT;
   instance->of = &RPL_OF;
   rpl_set_preferred_parent(dag, NULL);
