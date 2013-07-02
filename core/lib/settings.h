@@ -108,6 +108,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "dev/eeprom.h"
+#include "sys/cc.h"
 
 /*****************************************************************************/
 // MARK: - Types
