@@ -356,6 +356,9 @@ typedef unsigned short uip_stats_t;
 
 #define CCIF
 #define CLIF
+#ifndef CC_CONF_INLINE
+#define CC_CONF_INLINE inline
+#endif
 
 /* include the project config */
 /* PROJECT_CONF_H might be defined in the project Makefile */
