@@ -204,6 +204,15 @@ uip_ds6_periodic(void)
       locnbr++) {
     if(locnbr->isused) {
       switch(locnbr->state) {
+      case NBR_REACHABLE:
+        if(stimer_expired(&locnbr->reachable)) {
+          PRINTF("REACHABLE: moving to STALE (");
+          PRINT6ADDR(&locnbr->ipaddr);
+          PRINTF(")\n");
+          locnbr->state = NBR_STALE;
+        }
+        break;
+#if UIP_ND6_SEND_NA
       case NBR_INCOMPLETE:
         if(locnbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
           uip_ds6_nbr_rm(locnbr);
@@ -212,14 +221,6 @@ uip_ds6_periodic(void)
           PRINTF("NBR_INCOMPLETE: NS %u\n", locnbr->nscount);
           uip_nd6_ns_output(NULL, NULL, &locnbr->ipaddr);
           stimer_set(&locnbr->sendns, uip_ds6_if.retrans_timer / 1000);
-        }
-        break;
-      case NBR_REACHABLE:
-        if(stimer_expired(&locnbr->reachable)) {
-          PRINTF("REACHABLE: moving to STALE (");
-          PRINT6ADDR(&locnbr->ipaddr);
-          PRINTF(")\n");
-          locnbr->state = NBR_STALE;
         }
         break;
       case NBR_DELAY:
@@ -246,6 +247,7 @@ uip_ds6_periodic(void)
           stimer_set(&locnbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
         break;
+#endif /* UIP_ND6_SEND_NA */
       default:
         break;
       }
