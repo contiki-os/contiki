@@ -142,21 +142,6 @@ rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
     }
   }
   ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
-
-#if 0
-  uip_ds6_route_t *locroute;
-
-  for(locroute = uip_ds6_routing_table;
-      locroute < uip_ds6_routing_table + UIP_DS6_ROUTE_NB;
-      locroute++) {
-    if(locroute->isused
-        && uip_ipaddr_cmp(&locroute->nexthop, nexthop)
-        && locroute->state.dag == dag) {
-      locroute->isused = 0;
-    }
-  }
-  ANNOTATE("#L %u 0\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
-#endif /* 0 */
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
@@ -242,18 +227,16 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
   rpl_instance_t *instance;
   rpl_instance_t *end;
 
-  if(!nbr->isused) {
-    PRINTF("RPL: Removing neighbor ");
-    PRINT6ADDR(&nbr->ipaddr);
-    PRINTF("\n");
-    for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
-      if(instance->used == 1 ) {
-        p = rpl_find_parent_any_dag(instance, &nbr->ipaddr);
-        if(p != NULL) {
-          p->rank = INFINITE_RANK;
-          /* Trigger DAG rank recalculation. */
-          p->updated = 1;
-        }
+  PRINTF("RPL: Removing neighbor ");
+  PRINT6ADDR(&nbr->ipaddr);
+  PRINTF("\n");
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
+    if(instance->used == 1 ) {
+      p = rpl_find_parent_any_dag(instance, &nbr->ipaddr);
+      if(p != NULL) {
+        p->rank = INFINITE_RANK;
+        /* Trigger DAG rank recalculation. */
+        p->updated = 1;
       }
     }
   }

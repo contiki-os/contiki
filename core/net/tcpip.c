@@ -567,6 +567,7 @@ tcpip_ipv6_output(void)
       uip_ds6_route_t* locrt;
       locrt = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
       if(locrt == NULL) {
+        PRINTF("tcpip_ipv6_output: no route found, using default route\n");
         if((nexthop = uip_ds6_defrt_choose()) == NULL) {
 #ifdef UIP_FALLBACK_INTERFACE
 	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
@@ -588,11 +589,14 @@ tcpip_ipv6_output(void)
       } else {
 	nexthop = &locrt->nexthop;
       }
-#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
       if(nexthop != NULL) {
+        PRINTF("tcpip_ipv6_output: next hop ");
+        PRINT6ADDR(nexthop);
+        PRINTF("\n");
+#if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
 	printf("#L %u 1; red\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
-      }
 #endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+      }
     }
     /* End of next hop determination */
 #if UIP_CONF_IPV6_RPL
@@ -655,7 +659,7 @@ tcpip_ipv6_output(void)
       }
 #endif /* UIP_ND6_SEND_NA */
 
-      tcpip_output(&nbr->lladdr);
+      tcpip_output(uip_ds6_nbr_get_ll(nbr));
 
 #if UIP_CONF_IPV6_QUEUE_PKT
       /*
@@ -668,7 +672,7 @@ tcpip_ipv6_output(void)
         uip_len = uip_packetqueue_buflen(&nbr->packethandle);
         memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
         uip_packetqueue_free(&nbr->packethandle);
-        tcpip_output(&nbr->lladdr);
+        tcpip_output(uip_ds6_nbr_get_ll(nbr));
       }
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
 
