@@ -240,6 +240,7 @@ rpl_init(void)
   PRINTF("RPL started\n");
   default_instance = NULL;
 
+  rpl_dag_init();
   rpl_reset_periodic_timer();
   neighbor_info_subscribe(rpl_link_neighbor_callback);
 
