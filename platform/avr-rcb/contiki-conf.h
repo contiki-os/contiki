@@ -123,7 +123,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define UIP_CONF_IPV6_REASSEMBLY 0
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
 #define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_NEIGHBORS    4  
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
 #if UIP_CONF_IPV6                       //tcpip.c error on ipv4 build if UIP_CONF_ICMP6 defined
 #define UIP_CONF_ICMP6           1

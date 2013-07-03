@@ -174,6 +174,11 @@
 #define UIP_CONF_TCP_SPLIT 0
 #endif /* UIP_CONF_TCP_SPLIT */
 
+/* NEIGHBOR_CONF_MAX_NEIGHBORS specifies the maximum number of neighbors
+   that each node will be able to handle. */
+#ifndef NEIGHBOR_CONF_MAX_NEIGHBORS
+#define NEIGHBOR_CONF_MAX_NEIGHBORS 8
+#endif /* NEIGHBOR_CONF_MAX_NEIGHBORS */
 
 /*---------------------------------------------------------------------------*/
 /* 6lowpan configuration options.

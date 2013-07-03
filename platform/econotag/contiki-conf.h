@@ -184,7 +184,7 @@
 #define UIP_CONF_IPV6_RPL               1
 #endif
 
-#define UIP_CONF_DS6_NBR_NBU     30
+#define NEIGHBOR_CONF_MAX_NEIGHBORS     30
 #define UIP_CONF_MAX_ROUTES   30
 
 #define UIP_CONF_ND6_SEND_RA		0
@@ -197,7 +197,6 @@
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_ND6_MAX_PREFIXES       3
-#define UIP_CONF_ND6_MAX_NEIGHBORS      4
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
 #define UIP_CONF_BUFFER_SIZE		1300
