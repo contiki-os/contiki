@@ -34,12 +34,15 @@
 
 #include "lib/list.h"
 #include "lib/memb.h"
+#include "net/neighbor-table.h"
 
 #if UIP_CONF_IPV6
 
 #include <string.h>
 
-LIST(routelist);
+void uip_ds6_route_rm_routelist(list_t nbr_table_get_from_lladdr);
+
+NEIGHBOR_TABLE(uip_ds6_route_t *, nbr_routes);
 MEMB(routememb, uip_ds6_route_t, UIP_DS6_ROUTE_NB);
 
 LIST(defaultrouterlist);
@@ -48,6 +51,8 @@ MEMB(defaultroutermemb, uip_ds6_defrt_t, UIP_DS6_DEFRT_NB);
 #if UIP_DS6_NOTIFICATIONS
 LIST(notificationlist);
 #endif
+
+static int num_routes = 0;
 
 #undef DEBUG
 #define DEBUG DEBUG_NONE
@@ -68,7 +73,7 @@ call_route_callback(int event, uip_ipaddr_t *route,
        event == UIP_DS6_NOTIFICATION_DEFRT_RM) {
       num = list_length(defaultrouterlist);
     } else {
-      num = list_length(routelist);
+      num = num_routes;
     }
     n->callback(event, route, nexthop, num);
   }
@@ -95,7 +100,7 @@ void
 uip_ds6_route_init(void)
 {
   memb_init(&routememb);
-  list_init(routelist);
+  nbr_table_register(nbr_routes, (remove_callback_func *)uip_ds6_route_rm_routelist);
 
   memb_init(&defaultroutermemb);
   list_init(defaultrouterlist);
@@ -105,16 +110,59 @@ uip_ds6_route_init(void)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-uip_ds6_route_t *
-uip_ds6_route_list_head(void)
+static uip_lladdr_t *
+uip_ds6_route_nexthop_lladdr(uip_ds6_route_t *route)
 {
-  return list_head(routelist);
+  if(route != NULL) {
+    return (uip_lladdr_t *)nbr_table_get_lladdr(nbr_routes, route->route_list);
+  } else {
+    return NULL;
+  }
+}
+/*---------------------------------------------------------------------------*/
+uip_ipaddr_t *
+uip_ds6_route_nexthop(uip_ds6_route_t *route)
+{
+  if(route != NULL) {
+    return uip_ds6_nbr_ipaddr_from_lladdr(uip_ds6_route_nexthop_lladdr(route));
+  } else {
+    return NULL;
+  }
+}
+/*---------------------------------------------------------------------------*/
+uip_ds6_route_t *
+uip_ds6_route_head(void)
+{
+  list_t nbr_route_list = nbr_table_head(nbr_routes);
+  if(nbr_route_list != NULL) {
+    return list_head((list_t)nbr_route_list);
+  } else {
+    return NULL;
+  }
+}
+/*---------------------------------------------------------------------------*/
+uip_ds6_route_t *
+uip_ds6_route_next(uip_ds6_route_t *r)
+{
+  if(r != NULL) {
+    uip_ds6_route_t *n = list_item_next(r);
+    if(n != NULL) {
+      return n;
+    } else {
+      list_t nbr_route_list = nbr_table_next(nbr_routes, r->route_list);
+      if(nbr_route_list != NULL) {
+        return list_head((list_t)nbr_route_list);
+      }
+    }
+  }
+
+  return NULL;
 }
 /*---------------------------------------------------------------------------*/
 int
 uip_ds6_route_num_routes(void)
 {
-  return list_length(routelist);
+  return num_routes;
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
@@ -131,22 +179,21 @@ uip_ds6_route_lookup(uip_ipaddr_t *addr)
 
   found_route = NULL;
   longestmatch = 0;
-  for(r = list_head(routelist);
+  for(r = uip_ds6_route_head();
       r != NULL;
-      r = list_item_next(r)) {
+      r = uip_ds6_route_next(r)) {
     if(r->length >= longestmatch &&
        uip_ipaddr_prefixcmp(addr, &r->ipaddr, r->length)) {
       longestmatch = r->length;
       found_route = r;
     }
-
   }
 
   if(found_route != NULL) {
-    PRINTF("uip-ds6-route: Found route:");
+    PRINTF("uip-ds6-route: Found route: ");
     PRINT6ADDR(addr);
     PRINTF(" via ");
-    PRINT6ADDR(&found_route->nexthop);
+    PRINT6ADDR(uip_ds6_route_nexthop(found_route));
     PRINTF("\n");
   } else {
     PRINTF("uip-ds6-route: No route found\n");
@@ -157,9 +204,22 @@ uip_ds6_route_lookup(uip_ipaddr_t *addr)
 /*---------------------------------------------------------------------------*/
 uip_ds6_route_t *
 uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
-		  uip_ipaddr_t *nexthop, uint8_t metric)
+		  uip_ipaddr_t *nexthop)
 {
   uip_ds6_route_t *r;
+  list_t nbr_route_list;
+
+  /* Get link-layer address of next hop, make sure it is in neighbor table */
+  uip_lladdr_t *nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);
+  if(nexthop_lladdr == NULL) {
+    PRINTF("uip_ds6_route_add: neighbor link-local address unknown ");
+    PRINT6ADDR(ipaddr);
+    PRINTF("\n");
+    return NULL;
+  }
+
+  /* Get routing entry list of this neighbor */
+  nbr_route_list = nbr_table_get_from_lladdr(nbr_routes, (rimeaddr_t *)nexthop_lladdr);
 
   /* First make sure that we don't add a route twice. If we find an
      existing route for our destination, we'll just update the old
@@ -170,6 +230,18 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
     PRINT6ADDR(ipaddr);
     PRINTF("\n");
   } else {
+    /* If there is no routing entry, create one */
+    if(nbr_route_list == NULL) {
+      nbr_route_list = nbr_table_add_lladdr(nbr_routes, (rimeaddr_t *)nexthop_lladdr);
+      if(nbr_route_list == NULL) {
+        PRINTF("uip_ds6_route_add: could not allocate memory (route list) for new route to ");
+        PRINT6ADDR(ipaddr);
+        PRINTF(", dropping it\n");
+        return NULL;
+      }
+      list_init((list_t)nbr_route_list);
+    }
+
     /* Allocate a routing entry and add the route to the list */
     r = memb_alloc(&routememb);
     if(r == NULL) {
@@ -178,15 +250,16 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
       PRINTF(", dropping it\n");
       return NULL;
     }
-    list_add(routelist, r);
+    /* Add the route to this neighbor */
+    list_add((list_t)nbr_route_list, r);
+    num_routes++;
 
-    PRINTF("uip_ds6_route_add num %d\n", list_length(routelist));
+    PRINTF("uip_ds6_route_add num %d\n", num_routes);
   }
 
+  r->route_list = nbr_route_list;
   uip_ipaddr_copy(&(r->ipaddr), ipaddr);
   r->length = length;
-  uip_ipaddr_copy(&(r->nexthop), nexthop);
-  r->metric = metric;
 
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
   memset(&r->state, 0, sizeof(UIP_DS6_ROUTE_STATE_TYPE));
@@ -210,57 +283,61 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
 void
 uip_ds6_route_rm(uip_ds6_route_t *route)
 {
-  uip_ds6_route_t *r;
-  /* Make sure that the route is in the list before removing it. */
-  for(r = list_head(routelist);
-      r != NULL;
-      r = list_item_next(r)) {
-    if(r == route) {
-      list_remove(routelist, route);
-      memb_free(&routememb, route);
+  if(route != NULL && route->route_list != NULL) {
 
-      PRINTF("uip_ds6_route_rm num %d\n", list_length(routelist));
+    if(list_head((list_t)route->route_list) == NULL) {
+      /* If this was the only route using this neighbor, remove the neibhor from the table */
+      nbr_table_remove(nbr_routes, route->route_list);
+    }
+    list_remove((list_t)route->route_list, route);
+    memb_free(&routememb, route);
+
+    num_routes--;
+
+    PRINTF("uip_ds6_route_rm num %d\n", num_routes);
 
 #if UIP_DS6_NOTIFICATIONS
-      call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
-			  &route->ipaddr, &route->nexthop);
+    call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
+        &route->ipaddr, uip_ds6_route_nexthop(route));
 #endif
 #if (DEBUG & DEBUG_ANNOTATE) == DEBUG_ANNOTATE
-      /* we need to check if this was the last route towards "nexthop" */
-      /* if so - remove that link (annotation) */
-      for(r = list_head(routelist);
-	  r != NULL;
-	  r = list_item_next(r)) {
-	if(uip_ipaddr_cmp(&r->nexthop, &route->nexthop)) {
-	  /* we found another link using the specific nexthop, so keep the #L */
-	  return;
-	}
+    /* we need to check if this was the last route towards "nexthop" */
+    /* if so - remove that link (annotation) */
+    for(r = uip_ds6_route_head();
+        r != NULL;
+        r = uip_ds6_route_next(r)) {
+      if(uip_ipaddr_cmp(uip_ds6_route_nexthop(r), uip_ds6_route_nexthop(route))) {
+        /* we found another link using the specific nexthop, so keep the #L */
+        return;
       }
-      ANNOTATE("#L %u 0\n", route->nexthop.u8[sizeof(uip_ipaddr_t) - 1]);
-#endif
-      return;
     }
+    ANNOTATE("#L %u 0\n", uip_ds6_route_nexthop(route)->u8[sizeof(uip_ipaddr_t) - 1]);
+#endif
+  }
+  return;
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_ds6_route_rm_routelist(list_t nbr_route_list)
+{
+  if(nbr_route_list != NULL) {
+    uip_ds6_route_t *r;
+    r = list_head((list_t)nbr_route_list);
+    while(r != NULL) {
+      uip_ds6_route_rm(r);
+      r = list_head((list_t)nbr_route_list);
+    }
+    nbr_table_remove(nbr_routes, nbr_route_list);
   }
 }
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
 {
-  uip_ds6_route_t *r;
-
-  r = list_head(routelist);
-  while(r != NULL) {
-    if(uip_ipaddr_cmp(&r->nexthop, nexthop)) {
-      list_remove(routelist, r);
-#if UIP_DS6_NOTIFICATIONS
-      call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
-			  &r->ipaddr, &r->nexthop);
-#endif
-      r = list_head(routelist);
-    } else {
-      r = list_item_next(r);
-    }
-  }
+  /* Get routing entry list of this neighbor */
+  uip_lladdr_t *nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);
+  list_t nbr_route_list = nbr_table_get_from_lladdr(nbr_routes, (rimeaddr_t *)nexthop_lladdr);
+  uip_ds6_route_rm_routelist(nbr_route_list);
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_defrt_t *

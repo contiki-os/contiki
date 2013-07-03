@@ -67,7 +67,7 @@ rpl_purge_routes(void)
   rpl_dag_t *dag;
 
   /* First pass, decrement lifetime */
-  r = uip_ds6_route_list_head();
+  r = uip_ds6_route_head();
 
   while(r != NULL) {
     if(r->state.lifetime >= 1) {
@@ -78,11 +78,11 @@ rpl_purge_routes(void)
        */
       r->state.lifetime--;
     }
-    r = list_item_next(r);
+    r = uip_ds6_route_next(r);
   }
 
   /* Second pass, remove dead routes */
-  r = uip_ds6_route_list_head();
+  r = uip_ds6_route_head();
 
   while(r != NULL) {
     if(r->state.lifetime < 1) {
@@ -90,7 +90,7 @@ rpl_purge_routes(void)
        * thus we want to keep them. Hence < and not <= */
       uip_ipaddr_copy(&prefix, &r->ipaddr);
       uip_ds6_route_rm(r);
-      r = uip_ds6_route_list_head();
+      r = uip_ds6_route_head();
       PRINTF("No more routes to ");
       PRINT6ADDR(&prefix);
       dag = default_instance->current_dag;
@@ -103,7 +103,7 @@ rpl_purge_routes(void)
       }
       PRINTF("\n");
     } else {
-      r = list_item_next(r);
+      r = uip_ds6_route_next(r);
     }
   }
 }
@@ -113,14 +113,14 @@ rpl_remove_routes(rpl_dag_t *dag)
 {
   uip_ds6_route_t *r;
 
-  r = uip_ds6_route_list_head();
+  r = uip_ds6_route_head();
 
   while(r != NULL) {
     if(r->state.dag == dag) {
       uip_ds6_route_rm(r);
-      r = uip_ds6_route_list_head();
+      r = uip_ds6_route_head();
     } else {
-      r = list_item_next(r);
+      r = uip_ds6_route_next(r);
     }
   }
 }
@@ -130,15 +130,15 @@ rpl_remove_routes_by_nexthop(uip_ipaddr_t *nexthop, rpl_dag_t *dag)
 {
   uip_ds6_route_t *r;
 
-  r = uip_ds6_route_list_head();
+  r = uip_ds6_route_head();
 
   while(r != NULL) {
-    if(uip_ipaddr_cmp(&r->nexthop, nexthop) &&
+    if(uip_ipaddr_cmp(uip_ds6_route_nexthop(r), nexthop) &&
        r->state.dag == dag) {
       uip_ds6_route_rm(r);
-      r = uip_ds6_route_list_head();
+      r = uip_ds6_route_head();
     } else {
-      r = list_item_next(r);
+      r = uip_ds6_route_next(r);
     }
   }
   ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
@@ -150,20 +150,11 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 {
   uip_ds6_route_t *rep;
 
-  rep = uip_ds6_route_lookup(prefix);
-  if(rep == NULL) {
-    if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop, 0)) == NULL) {
-      PRINTF("RPL: No space for more route entries\n");
-      return NULL;
-    }
-  } else {
-    PRINTF("RPL: Updated the next hop for prefix ");
-    PRINT6ADDR(prefix);
-    PRINTF(" to ");
-    PRINT6ADDR(next_hop);
-    PRINTF("\n");
-    uip_ipaddr_copy(&rep->nexthop, next_hop);
+  if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop)) == NULL) {
+    PRINTF("RPL: No space for more route entries\n");
+    return NULL;
   }
+
   rep->state.dag = dag;
   rep->state.lifetime = RPL_LIFETIME(dag->instance, dag->instance->default_lifetime);
   rep->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
