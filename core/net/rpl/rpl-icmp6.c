@@ -664,7 +664,7 @@ dao_input(void)
 
   if(lifetime == RPL_ZERO_LIFETIME) {
     /* No-Path DAO received; invoke the route purging routine. */
-    if(rep != NULL && rep->state.nopath_received == 0 && rep->length == prefixlen && uip_ipaddr_cmp(&rep->nexthop, &dao_sender_addr)) {
+    if(rep != NULL && rep->state.nopath_received == 0 && rep->length == prefixlen && uip_ipaddr_cmp(uip_ds6_route_nexthop(rep), &dao_sender_addr)) {
       PRINTF("RPL: Setting expiration timer for prefix ");
       PRINT6ADDR(&prefix);
       PRINTF("\n");
@@ -706,7 +706,7 @@ dao_input(void)
       PRINTF("RPL: Forwarding DAO to parent ");
       PRINT6ADDR(&dag->preferred_parent->addr);
       PRINTF("\n");
-      uip_icmp6_send(&dag->preferred_parent->addr,
+      uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
                      ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     }
     if(flags & RPL_DAO_K_FLAG) {
@@ -792,7 +792,7 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
   PRINT6ADDR(&parent->addr);
   PRINTF("\n");
 
-  uip_icmp6_send(&parent->addr, ICMP6_RPL, RPL_CODE_DAO, pos);
+  uip_icmp6_send(rpl_get_parent_ipaddr(parent), ICMP6_RPL, RPL_CODE_DAO, pos);
 }
 /*---------------------------------------------------------------------------*/
 static void
