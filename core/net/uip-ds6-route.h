@@ -32,6 +32,8 @@
 #ifndef UIP_DS6_ROUTE_H
 #define UIP_DS6_ROUTE_H
 
+#include "lib/list.h"
+
 void uip_ds6_route_init(void);
 
 #ifndef UIP_CONF_UIP_DS6_NOTIFICATIONS
@@ -84,9 +86,9 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 /* Needed for the extended route entry state when using ContikiRPL */
 typedef struct rpl_route_entry {
   uint32_t lifetime;
-  uint32_t saved_lifetime;
   void *dag;
   uint8_t learned_from;
+  uint8_t nopath_received;
 } rpl_route_entry_t;
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
 
@@ -95,13 +97,12 @@ typedef struct rpl_route_entry {
 /** \brief An entry in the routing table */
 typedef struct uip_ds6_route {
   struct uip_ds6_route *next;
+  list_t route_list; /* The list the routing entry belongs to. */
   uip_ipaddr_t ipaddr;
-  uip_ipaddr_t nexthop;
-  uint8_t length;
-  uint8_t metric;
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
   UIP_DS6_ROUTE_STATE_TYPE state;
 #endif
+  uint8_t length;
 } uip_ds6_route_t;
 
 
@@ -130,12 +131,14 @@ void uip_ds6_defrt_periodic(void);
 /** @{ */
 uip_ds6_route_t *uip_ds6_route_lookup(uip_ipaddr_t *destipaddr);
 uip_ds6_route_t *uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
-                                   uip_ipaddr_t *next_hop, uint8_t metric);
+                                   uip_ipaddr_t *next_hop);
 void uip_ds6_route_rm(uip_ds6_route_t *route);
 void uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop);
 
+uip_ipaddr_t *uip_ds6_route_nexthop(uip_ds6_route_t *);
 int uip_ds6_route_num_routes(void);
-uip_ds6_route_t *uip_ds6_route_list_head(void);
+uip_ds6_route_t *uip_ds6_route_head(void);
+uip_ds6_route_t *uip_ds6_route_next(uip_ds6_route_t *);
 
 /** @} */
 

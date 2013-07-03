@@ -587,7 +587,7 @@ tcpip_ipv6_output(void)
           return;
         }
       } else {
-	nexthop = &locrt->nexthop;
+        nexthop = uip_ds6_route_nexthop(locrt);
       }
       if(nexthop != NULL) {
         PRINTF("tcpip_ipv6_output: next hop ");
