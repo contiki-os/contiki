@@ -3,6 +3,7 @@ dhcpc.c						\
 hc.c						\
 neighbor-attr.c					\
 neighbor-info.c					\
+neighbor-table.c			\
 netstack.c					\
 packetbuf.c					\
 packetqueue.c					\
