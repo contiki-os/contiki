@@ -18,6 +18,7 @@ uaodv-rt.c					\
 uaodv.c						\
 uip-debug.c					\
 uip-ds6-route.c					\
+uip-ds6-neighbor.c				\
 uip-ds6.c					\
 uip-fw-drv.c					\
 uip-fw.c					\
