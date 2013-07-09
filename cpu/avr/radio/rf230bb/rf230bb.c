@@ -965,7 +965,7 @@ rf230_transmit(unsigned short payload_len)
   HAL_ENTER_CRITICAL_REGION();
 
   /* Toggle the SLP_TR pin to initiate the frame transmission, then transfer
-   * the frame (we have about 16 us + 20 bit times before the transceiver sends
+   * the frame (we have about 16 us + 40 bit times before the transceiver sends
    * the PHR.) */
   hal_set_slptr_high();
   hal_set_slptr_low();
