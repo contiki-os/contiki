@@ -38,58 +38,80 @@
 /*---------------------------------------------------------------------------*/
 /**
 * \file
-*			Temperature sensor.
+*			Contact sensor.
 * \author
-*			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+*			Stefano Pascali <stefano.pascali@st.com>
 */
 /*---------------------------------------------------------------------------*/
 
-/**
- *  NOTE: 
- *  For the temperature measurement, the ADC extended range mode is needed;
- *  but this is inaccurate due to the high voltage mode bug of the general purpose ADC 
- *  (see STM32W108 errata).
- */
-
-
 #include PLATFORM_HEADER
 #include BOARD_HEADER
+
 #include "hal/error.h"
 #include "hal/hal.h"
-#include "micro/adc.h"
+#include "dev/leds.h"
 
-#include "dev/temperature-sensor.h"
+#include "dev/contact-sensor.h"
+void halIrqAIsr(void);
 
-#define SUPPLY_OFFSET 500
-/*---------------------------------------------------------------------------*/
 static void
 init(void)
-{
-  //halGpioConfig(TEMPERATURE_SENSOR_GPIO,GPIOCFG_ANALOG);
-  halInternalInitAdc();
-  halAdcSetRange(TRUE);
+{  
+ 
+  //PC0 configuration: push-pull output
+  halGpioConfig(PORTC_PIN(0), GPIOCFG_OUT);
+  GPIO_PCSET |= PC0;
+   
+  //PB0 (IRQA)configuration: input Pull Down. 
+  //halGpioConfig(PORTB_PIN(0), GPIOCFG_IN_PUD);
+  //GPIO_PBOUT &= ~PB0;
 
+  //PB0 (IRQA)configuration: input Pull Down. 
+  halGpioConfig(PORTB_PIN(0), GPIOCFG_IN);
+    
+  //configure IRQA mode: Rising and Falling edge triggered, digital filter enabled
+  //  GPIO_INTCFGA =0x00000160;
+  
+  GPIO_INTCFGA = GPIO_INTCFGA_RESET;
+  GPIO_INTCFGA|=GPIO_INTFILT;
+  GPIO_INTCFGA|=(0x03 <<GPIO_INTMOD_BIT);     
+    
+  halIrqAIsr();
+  //Enable IRQA interrupt
+  INT_CFGSET = INT_IRQA;
+
+
+ // printf("\r\n[Contact Sensor] Initialization Done\r\n");
+  
+}/* end switch_init */
+
+
+/* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+/* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+void halIrqAIsr(void)
+{
+  //Clear Interrupt Pending Bit
+
+  INT_GPIOFLAG = INT_IRQAFLAG;
+ 
+  if ((GPIO_PBIN & (1)) == 0){
+    leds_on(LEDS_RED);
+    leds_off(LEDS_GREEN);
+  }else{
+    leds_on(LEDS_GREEN);
+    leds_off(LEDS_RED);
+   // switch_closed=TRUE;
+  }
 }
+
+
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-  static uint16_t ADCvalue;
-  static int16_t volts;
-  uint16_t scale=1;
+ //printf("[Contact Sensor] Value=%d\r\n", GPIO_PBIN & (1));
+  return (GPIO_PBIN & (1));
   
-  halStartAdcConversion(ADC_USER_APP, ADC_REF_INT, ADC_SOURCE(halGetADCChannelFromGPIO(TEMPERATURE_SENSOR_GPIO),ADC_MUX_VREF2), ADC_CONVERSION_TIME_US_4096);
-  
-  halReadAdcBlocking(ADC_USER_APP, &ADCvalue); // This blocks for a while, about 4ms.
-
-
-  // 100 uVolts
-  volts = boardDescription->temperatureSensor->div*halConvertValueToVolts(ADCvalue) + SUPPLY_OFFSET;
-
-  
-  //return ((18641 - (int32_t)volts)*100)/1171;  // +- 0.23 degC in the range (-10;65) degC
-  return ((18663 - (int32_t)volts)*100)/1169;   // +- 0.004 degC in the range (20;30) degC
- 
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -102,7 +124,7 @@ configure(int type, int value)
     case SENSORS_ACTIVE:
       return 1;
   }
-
+       
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -118,6 +140,9 @@ status(int type)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
-	       value, configure, status);
+SENSORS_SENSOR(contact_sensor, CONTACT_SENSOR,
+         value, configure, status);
+
+
+
 /** @} */

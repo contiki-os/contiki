@@ -1,8 +1,3 @@
-/**
- * \addtogroup mbxxx-platform
- *
- * @{
- */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -34,69 +29,53 @@
  * This file is part of the Contiki operating system.
  *
  */
- 
- /**
+
+/**
  * \file
- *          Shell function for temp and acc sensors.
+ *         Example showing use of the accelerometer.
  * \author
- *          Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+ *         Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+ *
  */
 
-#include <string.h>
-#include <stdio.h>
-
 #include "contiki.h"
-#include "shell.h"
-#include "contiki-net.h"
-#include "dev/temperature-sensor.h"
-#include "dev/acc-sensor.h"
 
+#include "dev/acc-sensor.h"
+#include "board.h"
+
+#include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
-PROCESS(shell_sensors_process, "sensors");
-SHELL_COMMAND(sensors_command,
-	      "sensors",
-	      "sensors {temp|acc}: get sensor value",
-	      &shell_sensors_process);
+PROCESS(acc_process, "Accelerometer process");
+AUTOSTART_PROCESSES(&acc_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_sensors_process, ev, data)
+PROCESS_THREAD(acc_process, ev, data)
 {
-  
-  char str_buf[22];
+  static struct etimer etimer;
   
   PROCESS_BEGIN();
+  
+  printf("Starting measuring acceleration\r\n");
+  boardPrintStringDescription();
+  SENSORS_ACTIVATE(acc_sensor);
+  
+  // Enable High Range.
+  //acc_sensor.configure(ACC_RANGE, ACC_HIGH_RANGE);
+  
+  // Enable High Pass Filter.
+  //acc_sensor.configure(ACC_HPF, ACC_1HZ);
 
-  if(data == NULL) {
-    shell_output_str(&sensors_command,
-		     "sensors {temp|acc}: a sensor must be specified", "");
-    PROCESS_EXIT();
+
+  while(1) {
+    etimer_set(&etimer, CLOCK_SECOND/2);
+    
+    PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
+    
+    printf("(X,Y,Z): (%d,%d,%d) mg      \r",acc_sensor.value(ACC_X_AXIS),acc_sensor.value(ACC_Y_AXIS),acc_sensor.value(ACC_Z_AXIS));
+    
   }
   
-  if(strcmp(data,"temp")==0) {
-    
-    unsigned int temp = temperature_sensor.value(0);
-    
-    snprintf(str_buf,sizeof(str_buf),"%d.%d degC",temp/10,temp-(temp/10)*10);
-
-    shell_output_str(&sensors_command, "Temp: ", str_buf);
-    
-  }
-  else if (strcmp(data,"acc")==0) {
-    
-    snprintf(str_buf,sizeof(str_buf),"%d,%d,%d) mg",acc_sensor.value(ACC_X_AXIS),acc_sensor.value(ACC_Y_AXIS),acc_sensor.value(ACC_Z_AXIS));
-    
-    shell_output_str(&sensors_command, "(X,Y,Z): (", str_buf);
-    
-  }  
-
+  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-void
-shell_sensors_init(void)
-{
-  SENSORS_ACTIVATE(acc_sensor);
-  
-  shell_register_command(&sensors_command);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */
+

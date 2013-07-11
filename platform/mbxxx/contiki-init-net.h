@@ -38,30 +38,16 @@
 /*---------------------------------------------------------------------------*/
 /**
 * \file
-*			Temperature sensor.
+*          Functions for net initialization.
 * \author
-*			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+*          Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
 /*---------------------------------------------------------------------------*/
 
-/*
- * Value returned by temperature_sensor.value() is expressed in units of 0.1 °C.
- */
-/**
- *  NOTE: 
- *  For the temperature measurement, the ADC extended range mode is needed;
- *  but this is inaccurate due to the high voltage mode bug of the general purpose ADC 
- *  (see STM32W108 errata).
- */
+#ifndef __CONTIKI_INIT_NET_H__
+#define __CONTIKI_INIT_NET_H__
 
-#ifndef __TEMPERATURE_SENSOR_H__
-#define __TEMPERATURE_SENSOR_H__
+void print_address(uip_ds6_addr_t *lladdr);
 
-#include "lib/sensors.h"
-
-extern const struct sensors_sensor temperature_sensor;
-
-#define TEMPERATURE_SENSOR "Temperature"
-
-#endif /* __TEMPERATURE_SENSOR_H__ */
+#endif /* __CONTIKI_INIT_NET_H__ */
 /** @} */

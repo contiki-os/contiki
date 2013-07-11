@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mbxxx-platform
+ *
+ * @{
+ */
 /******************** (C) COPYRIGHT 2009 STMicroelectronics ********************
 * File Name          : mems_regs.h
 * Author             : MCD Application Team
@@ -125,15 +130,16 @@
 //-reg_addr is the address of the register to be written--//
 //-pBuffer is the storage destination for the read data---//
 //-NoOfBytes is the amount of data to read----------------//
-int8u i2c_read_reg (int8u slave_addr, int8u reg_addr, int8u *pBuffer, int8u NoOfBytes);
+uint8_t i2c_read_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t *pBuffer, uint8_t NoOfBytes);
 
 //*********************i2c_write_reg**********************//
 //----------Writes a register on the I2C target-----------//
 //------slave addr is the is the I2C target device--------//
 //-reg_addr is the address of the register to be written--//
 //-reg_value is the value of the register to be written---//
-int8u i2c_write_reg (int8u slave_addr, int8u reg_addr, int8u reg_value);
+uint8_t i2c_write_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t reg_value);
 
 #endif /* _MEMS_REGS_H_ */
 
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/
+/** @} */

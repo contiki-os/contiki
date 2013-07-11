@@ -1,13 +1,3 @@
-/*SEARCH_DIR("C:\Program Files\Raisonance\Ride\Lib\ARM")
-EXTERN( __io_putchar )
-EXTERN( _write )
-GROUP(
-"std_sbrk_thumb.lib"
-"smallprintf_thumb.a"
-"libc.a"
-"libm.a"
-)
-*/
 /* default stack sizes. 
 
 These are used by the startup in order to allocate stacks for the different modes.
@@ -23,22 +13,6 @@ _estack = __Stack_Init + __Stack_Size;
 
 /*"PROVIDE" allows to easily override these values from an object file or the commmand line.*/
 PROVIDE ( _Stack_Init = __Stack_Init ) ;
-
-
-/******************************************************************************/
-/*                       Peripheral memory map                                */
-/******************************************************************************/
-/*this allows to compile the ST lib in "non-debug" mode*/
-_BOOTLOADER_SIZE = 0x3000 ;
-_ROM_base = DEFINED(ST_BTL) ? (0x08000000 + _BOOTLOADER_SIZE) : 0x08000000 ;
-/* include the memory spaces definitions sub-script */
-MEMORY
-{
-  RAM_region (xrw) :            ORIGIN = 0x20000000,            LENGTH = 8K
-  ROM_region (rx) :           ORIGIN = 0x08000000,            LENGTH = 128K-2K
-  NVM_region (rx) :           ORIGIN = 0x0801F800,            LENGTH = 2K
-  FIB_region (ra) :            ORIGIN = 0x08040000,            LENGTH = 2K
-}
 
 
 /* Sections management for FLASH mode */
@@ -78,34 +52,25 @@ SECTIONS
         *(.rodata*)
         *(.glue_7)
         *(.glue_7t)
-        . = (DEFINED(ELF_LOADER) ? ALIGN(1024) : .);
-    	*(.elf_text)
-    	. = (DEFINED(ELF_LOADER) ? ALIGN(1024) : .);
 
 	    . = ALIGN(4);
    	 _etext = .;
 	    /* This is used by the startup in order to initialize the .data section */
    	 _sidata = _etext;
     } >ROM_region
-    
-    /* Section start can be overridden via command line. */
-    .coffee 0x08010c0 :
-    {
-    	_coffee_start = ABSOLUTE(.);
-    	. = ALIGN(1024);
-    	*(.coffeefiles)
-    	. = ORIGIN(NVM_region) - _coffee_start;
-    } > ROM_region = 0x00
-    
-    
+    /*
     NVM (NOLOAD):
     {
       . = ALIGN(1024);
-      KEEP(*(NVM))
+      *(NVM)
       . = ALIGN(4);
     } > NVM_region
-   
- 
+    */
+    /* This is to emulate place at end of IAR linker */
+    NVM (ORIGIN(ROM_region) + LENGTH(ROM_region) - _NVM_size) (NOLOAD):
+    {
+     *(NVM)
+    } > ROM_region
     FAT (NOLOAD) :
     {
       . = ALIGN(4);
@@ -113,6 +78,12 @@ SECTIONS
       . = ALIGN(4);
     } > FIB_region
 
+/*
+    .FAT (NOLOAD):
+    {
+      KEEP(*(.FAT))
+    } > FIB_region
+*/
     /* after that it's only debugging information. */
     
 
@@ -130,9 +101,8 @@ SECTIONS
         *(.data.*)
 
 	    . = ALIGN(4);
-	    /* This is used by the startup in order to initialize the .data secion */
+	    /* This is used by the startup in order to initialize the .data section */
    	 _edata = . ;
-   	 ASSERT(_sidata + SIZEOF(.data) < LOADADDR(.coffee), ".data section overflow in ROM");
     } >RAM_region
     
 
@@ -140,7 +110,7 @@ SECTIONS
     .bss :
     {
 	    . = ALIGN(4);
-        /* This is used by the startup in order to initialize the .bss secion */
+        /* This is used by the startup in order to initialize the .bss section */
         _sbss = .;
         
         *(.bss)
@@ -148,7 +118,7 @@ SECTIONS
         *(COMMON)
         
 	    . = ALIGN(4);
-	    /* This is used by the startup in order to initialize the .bss secion */
+	    /* This is used by the startup in order to initialize the .bss section */
    	 _ebss = . ;
     } >RAM_region
     
@@ -202,3 +172,6 @@ SECTIONS
 }
 
 __ApplicationFlashEnd = _sidata + (_edata - _sdata);
+__RAMStart = __Stack_Init;
+__RAMEnd = _ebss;
+

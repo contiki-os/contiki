@@ -1,8 +1,3 @@
-/**
- * \addtogroup mbxxx-platform
- *
- * @{
- */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -34,69 +29,41 @@
  * This file is part of the Contiki operating system.
  *
  */
- 
- /**
+
+/**
  * \file
- *          Shell function for temp and acc sensors.
+ *         mbxxx-specific Contiki shell
  * \author
- *          Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+ *         Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+ *
  */
 
-#include <string.h>
-#include <stdio.h>
-
 #include "contiki.h"
-#include "shell.h"
-#include "contiki-net.h"
-#include "dev/temperature-sensor.h"
-#include "dev/acc-sensor.h"
+#include "serial-shell.h"
+
+#include "shell-sensors.h"
 
 /*---------------------------------------------------------------------------*/
-PROCESS(shell_sensors_process, "sensors");
-SHELL_COMMAND(sensors_command,
-	      "sensors",
-	      "sensors {temp|acc}: get sensor value",
-	      &shell_sensors_process);
+PROCESS(mbxxx_shell_process, "MBXXX Contiki shell");
+AUTOSTART_PROCESSES(&mbxxx_shell_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_sensors_process, ev, data)
+PROCESS_THREAD(mbxxx_shell_process, ev, data)
 {
-  
-  char str_buf[22];
-  
   PROCESS_BEGIN();
 
-  if(data == NULL) {
-    shell_output_str(&sensors_command,
-		     "sensors {temp|acc}: a sensor must be specified", "");
-    PROCESS_EXIT();
-  }
+  serial_shell_init();
+  shell_blink_init();
+  shell_ps_init();
+  shell_reboot_init();
+  shell_text_init();
+  shell_time_init();
+  shell_sensors_init();
   
-  if(strcmp(data,"temp")==0) {
-    
-    unsigned int temp = temperature_sensor.value(0);
-    
-    snprintf(str_buf,sizeof(str_buf),"%d.%d degC",temp/10,temp-(temp/10)*10);
-
-    shell_output_str(&sensors_command, "Temp: ", str_buf);
-    
-  }
-  else if (strcmp(data,"acc")==0) {
-    
-    snprintf(str_buf,sizeof(str_buf),"%d,%d,%d) mg",acc_sensor.value(ACC_X_AXIS),acc_sensor.value(ACC_Y_AXIS),acc_sensor.value(ACC_Z_AXIS));
-    
-    shell_output_str(&sensors_command, "(X,Y,Z): (", str_buf);
-    
-  }  
-
+#if COFFEE
+  shell_coffee_init();
+  shell_file_init();
+#endif
+  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-void
-shell_sensors_init(void)
-{
-  SENSORS_ACTIVATE(acc_sensor);
-  
-  shell_register_command(&sensors_command);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */
