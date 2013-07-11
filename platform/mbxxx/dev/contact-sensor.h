@@ -38,30 +38,20 @@
 /*---------------------------------------------------------------------------*/
 /**
 * \file
-*			Temperature sensor.
+*			Contact magnetic sensor header file.
 * \author
-*			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+*			Stefano Pascali <stefano.pascali@st.com>
 */
 /*---------------------------------------------------------------------------*/
 
-/*
- * Value returned by temperature_sensor.value() is expressed in units of 0.1 °C.
- */
-/**
- *  NOTE: 
- *  For the temperature measurement, the ADC extended range mode is needed;
- *  but this is inaccurate due to the high voltage mode bug of the general purpose ADC 
- *  (see STM32W108 errata).
- */
-
-#ifndef __TEMPERATURE_SENSOR_H__
-#define __TEMPERATURE_SENSOR_H__
+#ifndef __CONTACT_SENSOR_H__
+#define __CONTACT_SENSOR_H__
 
 #include "lib/sensors.h"
 
-extern const struct sensors_sensor temperature_sensor;
+extern const struct sensors_sensor contact_sensor;
 
-#define TEMPERATURE_SENSOR "Temperature"
+#define CONTACT_SENSOR "Contact"
 
-#endif /* __TEMPERATURE_SENSOR_H__ */
+#endif /* __CONTACT_SENSOR_H__ */
 /** @} */

@@ -1,8 +1,3 @@
-/**
- * \addtogroup mbxxx-platform
- *
- * @{
- */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -34,69 +29,40 @@
  * This file is part of the Contiki operating system.
  *
  */
- 
- /**
+
+/**
  * \file
- *          Shell function for temp and acc sensors.
+ *         Example showing use of the button on board.
  * \author
- *          Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+ *         Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+ *
  */
 
-#include <string.h>
-#include <stdio.h>
-
 #include "contiki.h"
-#include "shell.h"
-#include "contiki-net.h"
-#include "dev/temperature-sensor.h"
-#include "dev/acc-sensor.h"
+#include "dev/button-sensor.h"
+#include "dev/leds.h"
+#include <stdio.h>
+#include "board.h"
+
 
 /*---------------------------------------------------------------------------*/
-PROCESS(shell_sensors_process, "sensors");
-SHELL_COMMAND(sensors_command,
-	      "sensors",
-	      "sensors {temp|acc}: get sensor value",
-	      &shell_sensors_process);
+PROCESS(test_button_process, "Test button");
+AUTOSTART_PROCESSES(&test_button_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_sensors_process, ev, data)
+PROCESS_THREAD(test_button_process, ev, data)
 {
-  
-  char str_buf[22];
-  
   PROCESS_BEGIN();
 
-  if(data == NULL) {
-    shell_output_str(&sensors_command,
-		     "sensors {temp|acc}: a sensor must be specified", "");
-    PROCESS_EXIT();
+  SENSORS_ACTIVATE(button_sensor);
+  boardPrintStringDescription();
+  printf("Press the button to toggle the leds.");
+  
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
+			     data == &button_sensor);
+    leds_toggle(LEDS_ALL);
   }
   
-  if(strcmp(data,"temp")==0) {
-    
-    unsigned int temp = temperature_sensor.value(0);
-    
-    snprintf(str_buf,sizeof(str_buf),"%d.%d degC",temp/10,temp-(temp/10)*10);
-
-    shell_output_str(&sensors_command, "Temp: ", str_buf);
-    
-  }
-  else if (strcmp(data,"acc")==0) {
-    
-    snprintf(str_buf,sizeof(str_buf),"%d,%d,%d) mg",acc_sensor.value(ACC_X_AXIS),acc_sensor.value(ACC_Y_AXIS),acc_sensor.value(ACC_Z_AXIS));
-    
-    shell_output_str(&sensors_command, "(X,Y,Z): (", str_buf);
-    
-  }  
-
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-void
-shell_sensors_init(void)
-{
-  SENSORS_ACTIVATE(acc_sensor);
-  
-  shell_register_command(&sensors_command);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */

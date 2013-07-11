@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mbxxx-platform
+ *
+ * @{
+ */
 /******************** (C) COPYRIGHT 2009 STMicroelectronics ********************
 * File Name          : mems.h
 * Author             : MCD Application Team
@@ -33,27 +38,28 @@
    currently used by the device */
 
 typedef struct {
-  int8s outx_l;
-  int8s outx_h;
-  int8s outy_l;
-  int8s outy_h;
-  int8s outz_l;
-  int8s outz_h;
+  int8_t outx_l;
+  int8_t outx_h;
+  int8_t outy_l;
+  int8_t outy_h;
+  int8_t outz_l;
+  int8_t outz_h;
 } t_mems_data;
 
 /* Functions -----------------------------------------------------------------*/
 
 /* Mems Initialization function */
-int8u Mems_Init(void);
+uint8_t Mems_Init(void);
 
-int8u MEMS_On(void);
-int8u MEMS_Off(void);
-int8u MEMS_SetFullScale(boolean range);
+uint8_t MEMS_On(void);
+uint8_t MEMS_Off(void);
+uint8_t MEMS_SetFullScale(boolean range);
 boolean MEMS_GetFullScale(void);
 
 /* Get mems acceleration values */
-int8u Mems_GetValue(t_mems_data *mems_data);
+uint8_t Mems_GetValue(t_mems_data *mems_data);
 
 #endif /* _MEMS_H_ */
 
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/
+/** @} */
