@@ -656,8 +656,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
   NETSTACK_ENCRYPT();
 #endif /* NETSTACK_ENCRYPT */
 
-  transmit_len = packetbuf_totlen();
-
   NETSTACK_RADIO.prepare(packetbuf_hdrptr(), transmit_len);
 
   /* Remove the MAC-layer header since it will be recreated next time around. */
