@@ -8,7 +8,7 @@
 * Author             : MCD Application Team
 * Version            : V1.0
 * Date               : September 2009
-* Description        : Driver for leds management on STM32W108 MB851 board
+* Description        : Driver for leds management on STM32W108 MBXXX boards
 ********************************************************************************
 * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
 * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME.
