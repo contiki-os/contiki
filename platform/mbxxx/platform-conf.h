@@ -44,6 +44,7 @@
 *          Platform-conf.h for MBXXX.
 * \author
 *          Stefano Pascali <stefano.pascali@st.com>
+*          Marco Grella    <marco.grella@st.com>
 */
 /*---------------------------------------------------------------------------*/
 

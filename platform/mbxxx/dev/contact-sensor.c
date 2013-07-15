@@ -41,6 +41,7 @@
 *			Contact sensor.
 * \author
 *			Stefano Pascali <stefano.pascali@st.com>
+*			Marco Grella    <marco.grella@st.com>
 */
 /*---------------------------------------------------------------------------*/
 

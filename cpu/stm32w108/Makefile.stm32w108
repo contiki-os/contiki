@@ -98,14 +98,14 @@ ifndef DEBUG
 OPTI = -Os -ffunction-sections 
 endif
 
-ifeq ($(CPUREV), CC)
+ifeq ($(STM32W_CPUREV), CC)
   LD-EXT=-stm32w108CC
  ${warning "using stm32w108CC specific ld file"}
-else ifeq ($(CPUREV), xB)
+else ifeq ($(STM32W_CPUREV), xB)
   LD-EXT=-stm32w108xB
  ${warning "using stm32w108xB specific ld file"}
 else
- ${error "No CPUREV specified. Cpu revision should be specified. Please read cpu/stm32w108/README.txt for more details."}
+ ${error "No STM32W_CPUREV specified. Cpu revision should be specified. Please read cpu/stm32w108/README.txt for more details."}
 endif
 
 CFLAGSNO = -mthumb -mcpu=cortex-m3 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/gnu.h\"" \
