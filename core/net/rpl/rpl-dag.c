@@ -703,7 +703,9 @@ rpl_remove_parent(rpl_dag_t *dag, rpl_parent_t *parent)
 void
 rpl_nullify_parent(rpl_dag_t *dag, rpl_parent_t *parent)
 {
-  if(parent == dag->preferred_parent) {
+  // local repair calls nullification because the preferred parent is NULL!
+  // So check if parent is NULL to trigger uip_ds6_defrt_rm.
+  if(parent == dag->preferred_parent || dag->preferred_parent == NULL) {
     dag->preferred_parent = NULL;
     dag->rank = INFINITE_RANK;
     if(dag->joined) {
