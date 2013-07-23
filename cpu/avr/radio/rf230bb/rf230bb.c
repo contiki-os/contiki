@@ -965,9 +965,9 @@ rf230_transmit(unsigned short payload_len)
   HAL_ENTER_CRITICAL_REGION();
 
   /* Toggle the SLP_TR pin to initiate the frame transmission */
+  hal_frame_write(buffer, total_len);
   hal_set_slptr_high();
   hal_set_slptr_low();
-  hal_frame_write(buffer, total_len);
 
   HAL_LEAVE_CRITICAL_REGION();
   PRINTF("rf230_transmit: %d\n", (int)total_len);
