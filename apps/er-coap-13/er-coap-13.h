@@ -172,7 +172,6 @@ typedef enum {
   COAP_OPTION_MAX_AGE = 14,       /* 0-4 B */
   COAP_OPTION_URI_QUERY = 15,     /* 0-270 B */
   COAP_OPTION_ACCEPT = 16,        /* 0-2 B */
-  COAP_OPTION_TOKEN = 19,         /* 1-8 B */
   COAP_OPTION_LOCATION_QUERY = 20, /* 1-270 B */
   COAP_OPTION_BLOCK2 = 23,        /* 1-3 B */
   COAP_OPTION_BLOCK1 = 27,        /* 1-3 B */

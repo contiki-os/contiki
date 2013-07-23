@@ -822,8 +822,6 @@ coap_get_header_token(void *packet, const uint8_t **token)
 {
   coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
 
-  if (!IS_OPTION(coap_pkt, COAP_OPTION_TOKEN)) return 0;
-
   *token = coap_pkt->token;
   return coap_pkt->token_len;
 }
@@ -836,7 +834,6 @@ coap_set_header_token(void *packet, const uint8_t *token, size_t token_len)
   coap_pkt->token_len = MIN(COAP_TOKEN_LEN, token_len);
   memcpy(coap_pkt->token, token, coap_pkt->token_len);
 
-  SET_OPTION(coap_pkt, COAP_OPTION_TOKEN);
   return coap_pkt->token_len;
 }
 /*-----------------------------------------------------------------------------------*/
