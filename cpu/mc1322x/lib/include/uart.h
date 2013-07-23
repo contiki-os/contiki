@@ -36,6 +36,7 @@
 #ifndef UART_H
 #define UART_H
 
+#include "contiki-conf.h"
 #include <stdint.h>
 
 /* Timer registers are all 16-bit wide with 16-bit access only */
@@ -162,7 +163,12 @@ void uart_flowctl(volatile struct UART_struct * uart, uint8_t on);
  * possible to eliminate that overhead by filling directly from a chain
  * of data buffer pointers, but printf's would be not so easy.
  */
+#ifndef UART1_CONF_TX_BUFFERSIZE
 #define UART1_TX_BUFFERSIZE 1024
+#else
+#define UART1_TX_BUFFERSIZE UART1_CONF_TX_BUFFERSIZE
+#endif
+
 extern volatile uint32_t  u1_tx_head, u1_tx_tail;
 void uart1_putc(char c);
 
@@ -173,7 +179,13 @@ void uart1_putc(char c);
  * initiated at that FIFO level.
  * Set to 32 for no flow control or RAM buffer.
  */
+
+#ifndef UART1_CONF_RX_BUFFERSIZE 
 #define UART1_RX_BUFFERSIZE 128
+#else
+#define UART1_RX_BUFFERSIZE UART1_CONF_RX_BUFFERSIZE 
+#endif
+
 #if UART1_RX_BUFFERSIZE > 32
 extern volatile uint32_t  u1_rx_head, u1_rx_tail;
 #define uart1_can_get() ((u1_rx_head!=u1_rx_tail) || (*UART1_URXCON > 0))
@@ -182,12 +194,20 @@ extern volatile uint32_t  u1_rx_head, u1_rx_tail;
 #endif
 uint8_t uart1_getc(void);
 
-
+#ifndef UART2_CONF_TX_BUFFERSIZE
 #define UART2_TX_BUFFERSIZE 1024
+#else
+#define UART2_TX_BUFFERSIZE UART1_CONF_TX_BUFFERSIZE
+#endif
+
 extern volatile uint32_t  u2_tx_head, u2_tx_tail;
 void uart2_putc(char c);
 
+#ifndef UART2_CONF_RX_BUFFERSIZE 
 #define UART2_RX_BUFFERSIZE 128
+#else
+#define UART2_RX_BUFFERSIZE UART1_CONF_RX_BUFFERSIZE 
+#endif
 #if UART2_RX_BUFFERSIZE > 32
 extern volatile uint32_t  u2_rx_head, u2_rx_tail;
 #define uart2_can_get() ((u2_rx_head!=u2_rx_tail) || (*UART2_URXCON > 0))
