@@ -655,7 +655,7 @@ dao_input(void)
 
   if(lifetime == RPL_ZERO_LIFETIME) {
     /* No-Path DAO received; invoke the route purging routine. */
-    if(rep != NULL && rep->state.saved_lifetime == 0 && rep->length == prefixlen) {
+    if(rep != NULL && rep->state.saved_lifetime == 0 && rep->length == prefixlen && uip_ipaddr_cmp(&rep->nexthop, &dao_sender_addr)) {
       PRINTF("RPL: Setting expiration timer for prefix ");
       PRINT6ADDR(&prefix);
       PRINTF("\n");
