@@ -63,6 +63,8 @@ void
 rpl_purge_routes(void)
 {
   uip_ds6_route_t *r;
+  uip_ipaddr_t prefix;
+  rpl_dag_t *dag;
 
   /* First pass, decrement lifetime */
   r = uip_ds6_route_list_head();
@@ -86,8 +88,20 @@ rpl_purge_routes(void)
     if(r->state.lifetime < 1) {
       /* Routes with lifetime == 1 have only just been decremented from 2 to 1,
        * thus we want to keep them. Hence < and not <= */
+      uip_ipaddr_copy(&prefix, &r->ipaddr);
       uip_ds6_route_rm(r);
       r = uip_ds6_route_list_head();
+      PRINTF("No more routes to ");
+      PRINT6ADDR(&prefix);
+      dag = default_instance->current_dag;
+      /* Propagate this information with a No-Path DAO to preferred parent if we are not a RPL Root */
+      if(dag->rank != ROOT_RANK(default_instance)) {
+        PRINTF(" -> generate No-Path DAO\n");
+        dao_output_target(dag->preferred_parent, &prefix, RPL_ZERO_LIFETIME);
+        /* Don't schedule more than 1 No-Path DAO, let next iteration handle that */
+        return;
+      }
+      PRINTF("\n");
     } else {
       r = list_item_next(r);
     }

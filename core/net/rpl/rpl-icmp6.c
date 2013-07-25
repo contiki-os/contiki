@@ -709,19 +709,27 @@ dao_input(void)
 void
 dao_output(rpl_parent_t *n, uint8_t lifetime)
 {
-  rpl_dag_t *dag;
-  rpl_instance_t *instance;
-  unsigned char *buffer;
-  uint8_t prefixlen;
-  uip_ipaddr_t prefix;
-  int pos;
-
   /* Destination Advertisement Object */
+  uip_ipaddr_t prefix;
 
   if(get_global_addr(&prefix) == 0) {
     PRINTF("RPL: No global address set for this node - suppressing DAO\n");
     return;
   }
+
+  dao_output_target(n, &prefix, lifetime);
+}
+/*---------------------------------------------------------------------------*/
+void
+dao_output_target(rpl_parent_t *n, uip_ipaddr_t *prefix, uint8_t lifetime)
+{
+  rpl_dag_t *dag;
+  rpl_instance_t *instance;
+  unsigned char *buffer;
+  uint8_t prefixlen;
+  int pos;
+
+  /* Destination Advertisement Object */
 
   dag = n->dag;
   instance = dag->instance;
@@ -752,12 +760,12 @@ dao_output(rpl_parent_t *n, uint8_t lifetime)
 #endif /* RPL_DAO_SPECIFY_DAG */
 
   /* create target subopt */
-  prefixlen = sizeof(prefix) * CHAR_BIT;
+  prefixlen = sizeof(*prefix) * CHAR_BIT;
   buffer[pos++] = RPL_OPTION_TARGET;
   buffer[pos++] = 2 + ((prefixlen + 7) / CHAR_BIT);
   buffer[pos++] = 0; /* reserved */
   buffer[pos++] = prefixlen;
-  memcpy(buffer + pos, &prefix, (prefixlen + 7) / CHAR_BIT);
+  memcpy(buffer + pos, prefix, (prefixlen + 7) / CHAR_BIT);
   pos += ((prefixlen + 7) / CHAR_BIT);
 
   /* Create a transit information sub-option. */
@@ -769,7 +777,7 @@ dao_output(rpl_parent_t *n, uint8_t lifetime)
   buffer[pos++] = lifetime;
 
   PRINTF("RPL: Sending DAO with prefix ");
-  PRINT6ADDR(&prefix);
+  PRINT6ADDR(prefix);
   PRINTF(" to ");
   PRINT6ADDR(&n->addr);
   PRINTF("\n");
