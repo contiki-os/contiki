@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mbxxx-platform
+ *
+ * @{
+ */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -32,9 +37,9 @@
  
  /**
  * \file
- *         Shell function for temp and acc sensors.
+ *          Shell function for temp and acc sensors.
  * \author
- *         Salvatore Pitrulli <salvopitru@users.sourceforge.net>
+ *          Salvatore Pitrulli <salvopitru@users.sourceforge.net>
  */
 
 #include <string.h>
@@ -94,3 +99,4 @@ shell_sensors_init(void)
   shell_register_command(&sensors_command);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

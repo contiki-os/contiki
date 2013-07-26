@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mbxxx-platform
+ *
+ * @{
+ */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -75,3 +80,4 @@ extern const struct sensors_sensor acc_sensor;
 #define ACC_Z_AXIS    3
 
 #endif /* __ACC_SENSOR_H__ */
+/** @} */
