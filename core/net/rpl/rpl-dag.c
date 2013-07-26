@@ -1027,11 +1027,13 @@ rpl_recalculate_ranks(void)
    * than RPL protocol messages. This periodical recalculation is called
    * from a timer in order to keep the stack depth reasonably low.
    */
-  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
     if(instance->used) {
       for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; i++) {
         if(instance->dag_table[i].used) {
-          for(p = list_head(instance->dag_table[i].parents); p != NULL; p = p->next) {
+          for(p = list_head(instance->dag_table[i].parents);
+              p != NULL; p = p->next) {
             if(p->updated) {
               p->updated = 0;
               if(!rpl_process_parent_event(instance, p)) {
