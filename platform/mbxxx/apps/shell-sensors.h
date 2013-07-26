@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mbxxx-platform
+ *
+ * @{
+ */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -45,3 +50,4 @@
 void shell_sensors_init(void);
 
 #endif /* __SHELL_SENSORS_H__ */
+/** @} */

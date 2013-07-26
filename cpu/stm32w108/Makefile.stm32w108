@@ -68,16 +68,17 @@ STRIP    = strip
 ifndef DEBUG
 OPTI = -Ohz --no_unroll
 endif
-CFLAGSNO = --endian=little --cpu=Cortex-M3 -e --diag_suppress Pa050 -D BOARD_HEADER=\"board.h\" \
+CFLAGSNO = --debug --endian=little --cpu=Cortex-M3 -e --diag_suppress Pa050 -D BOARD_HEADER=\"board.h\" \
 			-D BOARD_MB851 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/iar.h\""  -D CORTEXM3 \
 			-D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
 			-D __SOURCEFILE__=\"$*.c\" -lC $(OBJECTDIR) \
+			-I $(CONTIKI)/../iar-files \
 			-I $(IAR_PATH)/arm/inc --dlib_config=DLib_Config_Normal.h
 
-CFLAGS  += $(CFLAGSNO) $(OPTI)
+CFLAGS  += $(CFLAGSNO) $(OPTI) -D__ICCARM__ 
 AROPTS  = --create
 ASFLAGS = -s+ -w+ --cpu Cortex-M3 -L$(OBJECTDIR)
-LDFLAGS += --redirect _Printf=_PrintfSmall --redirect _Scanf=_ScanfSmall --map=contiki-$(TARGET).map
+LDFLAGS += --semihosting --redirect _Printf=_PrintfSmall --redirect _Scanf=_ScanfSmall --map=contiki-$(TARGET).map
  ifndef COFFEE
   LDFLAGS+= --config $(CONTIKI_CPU)/iar-cfg.icf
  endif
@@ -97,19 +98,30 @@ ifndef DEBUG
 OPTI = -Os -ffunction-sections 
 endif
 
+ifeq ($(STM32W_CPUREV), CC)
+  LD-EXT=-stm32w108CC
+ ${warning "using stm32w108CC specific ld file"}
+else ifeq ($(STM32W_CPUREV), xB)
+  LD-EXT=-stm32w108xB
+ ${warning "using stm32w108xB specific ld file"}
+else
+ ${error "No STM32W_CPUREV specified. Cpu revision should be specified. Please read cpu/stm32w108/README.txt for more details."}
+endif
+
 CFLAGSNO = -mthumb -mcpu=cortex-m3 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/gnu.h\"" \
 			-D BOARD_HEADER=\"board.h\" -g -Wall -Wno-strict-aliasing -mlittle-endian \
-			-D BOARD_MB851   -D CORTEXM3 -D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
+			-D CORTEXM3 -D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
 			-D __SOURCEFILE__=\"$*.c\"
 CFLAGS  += $(CFLAGSNO) $(OPTI)
 ASFLAGS = -mthumb -mcpu=cortex-m3 -c -g -Wall -Os -ffunction-sections \
 	    -mlittle-endian -fshort-enums -x assembler-with-cpp -Wa,-EL
 
 ifndef CPU_LD_CONFIG
-CPU_LD_CONFIG=$(CONTIKI_CPU)/gnu.ld
+CPU_LD_CONFIG=$(CONTIKI_CPU)/gnu$(LD-EXT).ld
 endif # CPU_LD_CONFIG
 
-LDFLAGS += -mcpu=cortex-m3 \
+LDFLAGS +=  -L$(CONTIKI_CPU)\
+	    -mcpu=cortex-m3 \
 	    -mthumb  \
 	    -Wl,-T -Xlinker $(CPU_LD_CONFIG) \
 	    -Wl,-static \
@@ -302,8 +314,8 @@ endif
 
 # a target that gives a user-friendly memory profile, taking into account the RAM
 # that is statically occupied by the stack as defined in cpu/stm32w108/gnu.ld
-RAM_SIZE = 8192
-FLASH_SIZE = 128*1024
+RAM_SIZE = 2*8192
+FLASH_SIZE = 2*128*1024
 STACK_SIZE = 1280
 %.size: %.$(TARGET)
 	@size -A $< | egrep "data|bss" | awk '{s+=$$2} END {s=s+$(STACK_SIZE); f=$(RAM_SIZE)-s; printf "[RAM]   used %6d, free %6d\n",s,f;}'
