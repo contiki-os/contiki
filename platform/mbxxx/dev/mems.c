@@ -1,9 +1,14 @@
+/**
+ * \addtogroup mbxxx-platform
+ *
+ * @{
+ */
 /******************** (C) COPYRIGHT 2009 STMicroelectronics ********************
 * File Name          : hal_led.c
 * Author             : MCD Application Team
 * Version            : V1.0
 * Date               : September 2009
-* Description        : Driver for leds management on STM32W108 MB851 board
+* Description        : Driver for leds management on STM32W108 MBXXX boards
 ********************************************************************************
 * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
 * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME.
@@ -61,11 +66,11 @@
 static boolean fullscale_state;
 
 /* Private functions ---------------------------------------------------------*/
-static int8u I2C_MEMS_Init (void);
+static uint8_t I2C_MEMS_Init (void);
 //extern void halInternalResetWatchDog(void);
-static int8u I2C_Send_Frame (int8u DeviceAddress, int8u *pBuffer, int8u NoOfBytes);
-int8u i2c_write_reg (int8u slave_addr, int8u reg_addr, int8u reg_value);
-//static int8u I2C_MEMS_Read (t_mems_data *mems_data);
+static uint8_t I2C_Send_Frame (uint8_t DeviceAddress, uint8_t *pBuffer, uint8_t NoOfBytes);
+uint8_t i2c_write_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t reg_value);
+//static uint8_t I2C_MEMS_Read (t_mems_data *mems_data);
 
 /* Functions -----------------------------------------------------------------*/
 
@@ -76,9 +81,9 @@ int8u i2c_write_reg (int8u slave_addr, int8u reg_addr, int8u reg_value);
 * Output         : status
 * Return         : None
 *******************************************************************************/
-int8u Mems_Init(void)
+uint8_t Mems_Init(void)
 {  
-  int8u ret = 0;
+  uint8_t ret = 0;
   
   // GPIO assignments
   // PA1: SC2SDA (Serial Data)
@@ -117,9 +122,9 @@ int8u Mems_Init(void)
 * Output         : status
 * Return         : None
 *******************************************************************************/
-//int8u Mems_GetValue(t_mems_data *mems_data)
+//uint8_t Mems_GetValue(t_mems_data *mems_data)
 //{
-//  int8u i; 
+//  uint8_t i; 
 //  i = I2C_MEMS_Read(mems_data);   
 //  return i;
 //}
@@ -136,9 +141,9 @@ int8u Mems_Init(void)
 * Output         : None
 * Return         : 1 if the frame has been successfully sent, 0 otherwise.
 *******************************************************************************/
-static int8u I2C_Send_Frame (int8u DeviceAddress, int8u *pBuffer, int8u NoOfBytes)
+static uint8_t I2C_Send_Frame (uint8_t DeviceAddress, uint8_t *pBuffer, uint8_t NoOfBytes)
 {
-  int8u i, data;
+  uint8_t i, data;
 
   SC2_TWICTRL1 |= SC_TWISTART;   // send start
   WAIT_CMD_FIN();
@@ -172,9 +177,9 @@ static int8u I2C_Send_Frame (int8u DeviceAddress, int8u *pBuffer, int8u NoOfByte
 * Output         : I2C frame in pBUffer
 * Return         : 1 if the frame has been successfully received, 0 otherwise.
 *******************************************************************************/
-static int8u I2C_Receive_Frame (int8u slave_addr, int8u reg_addr, int8u *pBuffer, int8u NoOfBytes)
+static uint8_t I2C_Receive_Frame (uint8_t slave_addr, uint8_t reg_addr, uint8_t *pBuffer, uint8_t NoOfBytes)
 {
-  int8u i, addr = reg_addr;
+  uint8_t i, addr = reg_addr;
   
   if (NoOfBytes > 1)
     addr += REPETIR;
@@ -224,9 +229,9 @@ static int8u I2C_Receive_Frame (int8u slave_addr, int8u reg_addr, int8u *pBuffer
 * Output         : None
 * Return         : 1 if the register has been successfully written, 0 otherwise.
 *******************************************************************************/
-int8u i2c_write_reg (int8u slave_addr, int8u reg_addr, int8u reg_value)
+uint8_t i2c_write_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t reg_value)
 {
-  int8u i2c_buffer[2];
+  uint8_t i2c_buffer[2];
   
   i2c_buffer[0] = reg_addr;
   i2c_buffer[1] = reg_value;
@@ -244,7 +249,7 @@ int8u i2c_write_reg (int8u slave_addr, int8u reg_addr, int8u reg_value)
 * Output         : I2C frame
 * Return         : 1 if the register has been successfully read, 0 otherwise.
 *******************************************************************************/
-int8u i2c_read_reg (int8u slave_addr, int8u reg_addr, int8u *pBuffer, int8u NoOfBytes)
+uint8_t i2c_read_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t *pBuffer, uint8_t NoOfBytes)
 {
   return I2C_Receive_Frame (slave_addr, reg_addr, pBuffer, NoOfBytes);
 }/* end i2c_read_reg() */
@@ -257,9 +262,9 @@ int8u i2c_read_reg (int8u slave_addr, int8u reg_addr, int8u *pBuffer, int8u NoOf
 * Output         : None
 * Return         : 1 if the device has been successfully initialized, 0 otherwise.
 *******************************************************************************/
-static int8u I2C_MEMS_Init (void)
+static uint8_t I2C_MEMS_Init (void)
 {
-  int8u i = 0;
+  uint8_t i = 0;
 
   i += i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, STATUS_REG, 0x00);    //no flag
   i += i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, FF_WU_CFG, 0x00);     // all off
@@ -283,7 +288,7 @@ static int8u I2C_MEMS_Init (void)
 * Output         : None
 * Return         : 1 if the device has been successfully set to normal mode, 0 otherwise.
 *******************************************************************************/
-int8u MEMS_On (void)
+uint8_t MEMS_On (void)
 {
   return i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, CTRL_REG1, 0xC7);  
 }
@@ -295,7 +300,7 @@ int8u MEMS_On (void)
 * Output         : None
 * Return         : 1 if the device has been successfully set to power-down mode, 0 otherwise.
 *******************************************************************************/
-int8u MEMS_Off (void)
+uint8_t MEMS_Off (void)
 {
   return i2c_write_reg (kLIS3L02DQ_SLAVE_ADDR, CTRL_REG1, 0x87);  
 }
@@ -307,9 +312,9 @@ int8u MEMS_Off (void)
 * Output         : None
 * Return         : 1 if the device has been successfully set to full scale mode, 0 otherwise.
 *******************************************************************************/
-int8u MEMS_SetFullScale (boolean range)
+uint8_t MEMS_SetFullScale (boolean range)
 {
-  int8u i2c_buffer;
+  uint8_t i2c_buffer;
   
   if(!i2c_read_reg(kLIS3L02DQ_SLAVE_ADDR, CTRL_REG1, &i2c_buffer, 1))
     return 0;
@@ -349,9 +354,9 @@ boolean MEMS_GetFullScale (void)
 * Output         : mems_data
 * Return         : 1 if acceleration data has been successfully read, 0 otherwise
 *******************************************************************************/
-//static int8u I2C_MEMS_Read (t_mems_data *mems_data)
+//static uint8_t I2C_MEMS_Read (t_mems_data *mems_data)
 //{
-//  int8u i, i2c_buffer[8];
+//  uint8_t i, i2c_buffer[8];
 //
 //  i = i2c_read_reg (kLIS3L02DQ_SLAVE_ADDR, OUTX_L, i2c_buffer, 8);  
 //
@@ -366,3 +371,4 @@ boolean MEMS_GetFullScale (void)
 //}/* end I2C_MEMS_Read() */
 
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/
+/** @} */

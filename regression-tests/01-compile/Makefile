@@ -6,7 +6,7 @@ hello-world/avr-raven \
 hello-world/econotag \
 hello-world/esb \
 hello-world/exp5438 \
-hello-world/mb851 \
+hello-world/mbxxx \
 hello-world/micaz \
 hello-world/minimal-net \
 hello-world/native \
