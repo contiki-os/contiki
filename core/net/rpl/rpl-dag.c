@@ -630,7 +630,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   instance->of->update_metric_container(instance);
   /* Update the DAG rank. */
   best_dag->rank = instance->of->calculate_rank(best_dag->preferred_parent, 0);
-  if(best_dag->rank < best_dag->min_rank) {
+  if(last_parent == NULL || best_dag->rank < best_dag->min_rank) {
     best_dag->min_rank = best_dag->rank;
   } else if(!acceptable_rank(best_dag, best_dag->rank)) {
     PRINTF("RPL: New rank unacceptable!\n");
@@ -1141,13 +1141,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 	return;
       }
     }
-  }
-
-  if(dio->rank == INFINITE_RANK) {
-    PRINTF("RPL: Ignoring DIO from node with infinite rank: ");
-    PRINT6ADDR(from);
-    PRINTF("\n");
-    return;
   }
 
   if(instance == NULL) {
