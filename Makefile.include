@@ -184,6 +184,9 @@ clean:
 	rm -rf $(CLEAN)
 	-rm -rf $(OBJECTDIR)
 
+distclean: clean
+	-rm -rf $(CONTIKI_PROJECT).$(TARGET)
+
 ifndef CUSTOM_RULE_C_TO_CE
 %.ce: %.c
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
