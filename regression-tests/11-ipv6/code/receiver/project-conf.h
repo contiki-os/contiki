@@ -1,0 +1,6 @@
+
+
+#ifdef BUFSIZE
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE BUFSIZE
+#endif /* BUFSIZE */
