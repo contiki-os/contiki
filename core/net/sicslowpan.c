@@ -1445,6 +1445,11 @@ output(uip_lladdr_t *localdest)
     framer_hdrlen = 21;
   }
   packetbuf_clear();
+
+  /* We must set the max transmissions attribute again after clearing
+     the buffer. */
+  packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
+                     SICSLOWPAN_MAX_MAC_TRANSMISSIONS);
 #else /* USE_FRAMER_HDRLEN */
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
