@@ -877,7 +877,26 @@ uip_ds6_compute_reachable_time(void)
     (uint32_t) (UIP_ND6_MAX_RANDOM_FACTOR(uip_ds6_if.base_reachable_time) -
                 UIP_ND6_MIN_RANDOM_FACTOR(uip_ds6_if.base_reachable_time));
 }
-
-
+/*---------------------------------------------------------------------------*/
+uip_ds6_nbr_t *
+uip_ds6_get_least_lifetime_neighbor(void)
+{
+  uip_ds6_nbr_t *nbr_expiring = NULL;
+  uint8_t i;
+  for(i = 0; i < UIP_DS6_NBR_NB; i++) {
+    if(uip_ds6_nbr_cache[i].isused) {
+      if(nbr_expiring != NULL) {
+        clock_time_t curr = stimer_remaining(&uip_ds6_nbr_cache[i].reachable);
+        if(curr < stimer_remaining(&nbr_expiring->reachable)) {
+          nbr_expiring = &uip_ds6_nbr_cache[i];
+        }
+      } else {
+        nbr_expiring = &uip_ds6_nbr_cache[i];
+      }
+    }
+  }
+  return nbr_expiring;
+}
+/*---------------------------------------------------------------------------*/
 /** @} */
 #endif /* UIP_CONF_IPV6 */

@@ -371,4 +371,15 @@ uint32_t uip_ds6_compute_reachable_time(void); /** \brief compute random reachab
 /** @} */
 /** @} */
 
+/**
+ * \brief
+ *     This searches inside the neighbor table for the neighbor that is about to
+ *     expire the next.
+ *
+ * \return
+ *     A reference to the neighbor about to expire the next or NULL if
+ *     table is empty.
+ */
+uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
+
 #endif /* __UIP_DS6_H__ */
