@@ -2673,6 +2673,10 @@ public class GUI extends Observable {
    * @param askForConfirmation Should we ask for confirmation before quitting?
    */
   public void doQuit(boolean askForConfirmation) {
+    doQuit(askForConfirmation, 0);
+  }
+  
+  public void doQuit(boolean askForConfirmation, int exitCode) {
     if (isVisualizedInApplet()) {
       return;
     }
@@ -2726,7 +2730,7 @@ public class GUI extends Observable {
     }
     saveExternalToolsUserSettings();
 
-    System.exit(0);
+    System.exit(exitCode);
   }
 
   // // EXTERNAL TOOLS SETTINGS METHODS ////
