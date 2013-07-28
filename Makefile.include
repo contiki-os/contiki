@@ -131,6 +131,21 @@ ifdef PLATFORMAPPS
   APPDS += $(PLATFORMAPPDS)
 endif
 
+### Verbosity control. Use  make V=1  to get verbose builds.
+
+CC_normal	:= $(CC)
+AR_normal	:= $(AR)
+
+CC_quiet	= @echo "  CC       " $< && $(CC_normal)
+AR_quiet	= @echo "  AR       " $@ && $(AR_normal)
+
+ifeq ($(V),1)
+  CC		= $(CC_normal)
+  AR		= $(AR_normal)
+else
+  CC		= $(CC_quiet)
+  AR		= $(AR_quiet)
+endif
 
 ### Forward comma-separated list of arbitrary defines to the compiler
 
