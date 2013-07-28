@@ -34,7 +34,7 @@
 #include "lcd.h"
 #include "hal_lcd.h"
 
-#define WITH_LCD 1
+#define WITH_LCD 0
 
 #define Y_MAX 9
 #define X_MAX 15
