@@ -45,7 +45,7 @@
 #include "net/rpl/rpl-private.h"
 #include "net/uip.h"
 #include "net/uip-nd6.h"
-#include "net/neighbor-table.h"
+#include "net/nbr-table.h"
 #include "lib/list.h"
 #include "lib/memb.h"
 #include "sys/ctimer.h"
@@ -72,7 +72,7 @@ static rpl_of_t * const objective_functions[] = {&RPL_OF};
 
 /*---------------------------------------------------------------------------*/
 /* Per-parent RPL information */
-NEIGHBOR_TABLE(rpl_parent_t, rpl_parents);
+NBR_TABLE(rpl_parent_t, rpl_parents);
 /*---------------------------------------------------------------------------*/
 /* Allocate instance table. */
 rpl_instance_t instance_table[RPL_MAX_INSTANCES];
@@ -81,7 +81,7 @@ rpl_instance_t *default_instance;
 void
 rpl_dag_init()
 {
-  nbr_table_register(rpl_parents, (remove_callback_func *)rpl_remove_parent);
+  nbr_table_register(rpl_parents, (nbr_table_callback *)rpl_remove_parent);
 }
 /*---------------------------------------------------------------------------*/
 rpl_rank_t

@@ -665,7 +665,7 @@ extern uip_ds6_netif_t uip_ds6_if;
       PRINTA("\n");
     }
   }
-  PRINTA("\nNeighbors [%u max]\n",NEIGHBOR_TABLE_MAX_NEIGHBORS);
+  PRINTA("\nNeighbors [%u max]\n",NBR_TABLE_MAX_NEIGHBORS);
 
   for(nbr = nbr_table_head(ds6_neighbors);
       nbr != NULL;

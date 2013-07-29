@@ -34,7 +34,7 @@
 
 #include "lib/list.h"
 #include "lib/memb.h"
-#include "net/neighbor-table.h"
+#include "net/nbr-table.h"
 
 #if UIP_CONF_IPV6
 
@@ -42,7 +42,7 @@
 
 void uip_ds6_route_rm_routelist(list_t nbr_table_get_from_lladdr);
 
-NEIGHBOR_TABLE(uip_ds6_route_t *, nbr_routes);
+NBR_TABLE(uip_ds6_route_t *, nbr_routes);
 MEMB(routememb, uip_ds6_route_t, UIP_DS6_ROUTE_NB);
 
 LIST(defaultrouterlist);
@@ -100,7 +100,7 @@ void
 uip_ds6_route_init(void)
 {
   memb_init(&routememb);
-  nbr_table_register(nbr_routes, (remove_callback_func *)uip_ds6_route_rm_routelist);
+  nbr_table_register(nbr_routes, (nbr_table_callback *)uip_ds6_route_rm_routelist);
 
   memb_init(&defaultroutermemb);
   list_init(defaultrouterlist);

@@ -129,9 +129,9 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_ICMP6           1
 
 /* configure number of neighbors and routes */
-#ifndef NEIGHBOR_CONF_MAX_NEIGHBORS
-#define NEIGHBOR_CONF_MAX_NEIGHBORS     30
-#endif /* NEIGHBOR_CONF_MAX_NEIGHBORS */
+#ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     30
+#endif /* NBR_TABLE_CONF_MAX_NEIGHBORS */
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   30
 #endif /* UIP_CONF_MAX_ROUTES */

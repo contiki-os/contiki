@@ -45,7 +45,7 @@
  */
 
 #include "net/rpl/rpl-private.h"
-#include "net/neighbor-table.h"
+#include "net/nbr-table.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"

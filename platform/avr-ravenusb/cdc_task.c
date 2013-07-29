@@ -590,7 +590,7 @@ extern uip_ds6_netif_t uip_ds6_if;
 						PRINTF_P(PSTR("\n\r"));
 					}
 				}
-				PRINTF_P(PSTR("\n\rNeighbors [%u max]\n\r"),NEIGHBOR_TABLE_MAX_NEIGHBORS);
+				PRINTF_P(PSTR("\n\rNeighbors [%u max]\n\r"),NBR_TABLE_MAX_NEIGHBORS);
 
 				for(nbr = nbr_table_head(ds6_neighbors);
 				    nbr != NULL;

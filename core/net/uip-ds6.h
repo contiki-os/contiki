@@ -47,7 +47,7 @@
 /* The size of uip_ds6_addr_t depends on UIP_ND6_DEF_MAXDADNS. Include uip-nd6.h to define it. */
 #include "net/uip-nd6.h"
 #include "net/uip-ds6-route.h"
-#include "net/uip-ds6-neighbor.h"
+#include "net/uip-ds6-nbr.h"
 
 /*--------------------------------------------------*/
 /** Configuration. For all tables (Neighbor cache, Prefix List, Routing Table,
@@ -118,14 +118,6 @@
 #else
 #define UIP_DS6_LL_NUD UIP_CONF_DS6_LL_NUD
 #endif
-
-/*--------------------------------------------------*/
-/** \brief Possible states for the nbr cache entries */
-#define  NBR_INCOMPLETE 0
-#define  NBR_REACHABLE 1
-#define  NBR_STALE 2
-#define  NBR_DELAY 3
-#define  NBR_PROBE 4
 
 /** \brief Possible states for the an address  (RFC 4862) */
 #define ADDR_TENTATIVE 0

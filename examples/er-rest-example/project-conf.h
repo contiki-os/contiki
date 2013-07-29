@@ -73,8 +73,8 @@
 */
 
 /* Save some memory for the sky platform. */
-#undef NEIGHBOR_CONF_MAX_NEIGHBORS
-#define NEIGHBOR_CONF_MAX_NEIGHBORS     10
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     10
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   10
 

@@ -42,7 +42,7 @@
 #include "sys/clock.h"
 #include "sys/ctimer.h"
 #include "net/queuebuf.h"
-#include "net/neighbor-table.h"
+#include "net/nbr-table.h"
 
 #if PHASE_CONF_DRIFT_CORRECT
 #define PHASE_DRIFT_CORRECT PHASE_CONF_DRIFT_CORRECT
@@ -75,7 +75,7 @@ struct phase_queueitem {
 #define MAX_NOACKS_TIME       CLOCK_SECOND * 30
 
 MEMB(queued_packets_memb, struct phase_queueitem, PHASE_QUEUESIZE);
-NEIGHBOR_TABLE(struct phase, nbr_phase);
+NBR_TABLE(struct phase, nbr_phase);
 
 #define DEBUG 0
 #if DEBUG

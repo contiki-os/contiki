@@ -335,7 +335,7 @@ uint16_t numprinted;
     numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb);
   }
 //if (j==0) numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrn);
-  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,NEIGHBOR_TABLE_MAX_NEIGHBORS-j);
+  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,NBR_TABLE_MAX_NEIGHBORS-j);
   return numprinted;
 }
 /*---------------------------------------------------------------------------*/

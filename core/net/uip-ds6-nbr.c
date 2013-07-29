@@ -49,7 +49,7 @@
 #include "lib/list.h"
 #include "net/rime/rimeaddr.h"
 #include "net/packetbuf.h"
-#include "net/uip-ds6-neighbor.h"
+#include "net/uip-ds6-nbr.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -68,13 +68,13 @@ void LINK_NEIGHBOR_CALLBACK(const rimeaddr_t *addr, int status, int numtx);
 #define LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
 #endif /* UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK */
 
-NEIGHBOR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
+NBR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
 
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_neighbors_init(void)
 {
-  nbr_table_register(ds6_neighbors, (remove_callback_func *)uip_ds6_nbr_rm);
+  nbr_table_register(ds6_neighbors, (nbr_table_callback *)uip_ds6_nbr_rm);
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *

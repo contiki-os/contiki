@@ -96,7 +96,7 @@ uip_ds6_init(void)
 
   PRINTF("Init of IPv6 data structures\n");
   PRINTF("%u neighbors\n%u default routers\n%u prefixes\n%u routes\n%u unicast addresses\n%u multicast addresses\n%u anycast addresses\n",
-     NEIGHBOR_TABLE_MAX_NEIGHBORS, UIP_DS6_DEFRT_NB, UIP_DS6_PREFIX_NB, UIP_DS6_ROUTE_NB,
+     NBR_TABLE_MAX_NEIGHBORS, UIP_DS6_DEFRT_NB, UIP_DS6_PREFIX_NB, UIP_DS6_ROUTE_NB,
      UIP_DS6_ADDR_NB, UIP_DS6_MADDR_NB, UIP_DS6_AADDR_NB);
   memset(uip_ds6_prefix_list, 0, sizeof(uip_ds6_prefix_list));
   memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));

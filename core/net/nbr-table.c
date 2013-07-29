@@ -38,7 +38,7 @@
 #include <string.h>
 #include "lib/memb.h"
 #include "lib/list.h"
-#include "net/neighbor-table.h"
+#include "net/nbr-table.h"
 
 /* List of link-layer addresses of the neighbors, used as key in the tables */
 typedef struct nbr_table_key {
@@ -48,9 +48,9 @@ typedef struct nbr_table_key {
 
 /* For each neighbor, a map of the tables that use the neighbor.
  * As we are using uint8_t, we have a maximum of 8 tables in the system */
-static uint8_t used_map[NEIGHBOR_TABLE_MAX_NEIGHBORS];
+static uint8_t used_map[NBR_TABLE_MAX_NEIGHBORS];
 /* For each neighbor, a map of the tables that lock the neighbor */
-static uint8_t locked_map[NEIGHBOR_TABLE_MAX_NEIGHBORS];
+static uint8_t locked_map[NBR_TABLE_MAX_NEIGHBORS];
 /* The maximum number of tables */
 #define MAX_NUM_TABLES 8
 /* A list of pointers to tables in use */
@@ -59,7 +59,7 @@ static struct nbr_table *all_tables[MAX_NUM_TABLES];
 static unsigned num_tables;
 
 /* The neighbor address table */
-MEMB(neighbor_addr_mem, nbr_table_key_t, NEIGHBOR_TABLE_MAX_NEIGHBORS);
+MEMB(neighbor_addr_mem, nbr_table_key_t, NBR_TABLE_MAX_NEIGHBORS);
 LIST(nbr_table_keys);
 
 /*---------------------------------------------------------------------------*/
@@ -71,7 +71,7 @@ key_from_index(int index)
 }
 /*---------------------------------------------------------------------------*/
 /* Get an item from its neighbor index */
-static item_t *
+static nbr_table_item_t *
 item_from_index(nbr_table_t *table, int index)
 {
   return table != NULL && index != -1 ? (char *)table->data + index * table->item_size : NULL;
@@ -86,13 +86,13 @@ index_from_key(nbr_table_key_t *key)
 /*---------------------------------------------------------------------------*/
 /* Get the neighbor index of an item */
 static int
-index_from_item(nbr_table_t *table, item_t *item)
+index_from_item(nbr_table_t *table, nbr_table_item_t *item)
 {
   return table != NULL && item != NULL ? ((int)((char *)item - (char *)table->data)) / table->item_size : -1;
 }
 /*---------------------------------------------------------------------------*/
 /* Get an item from its key */
-static item_t *
+static nbr_table_item_t *
 item_from_key(nbr_table_t *table, nbr_table_key_t *key)
 {
   return item_from_index(table, index_from_key(key));
@@ -100,7 +100,7 @@ item_from_key(nbr_table_t *table, nbr_table_key_t *key)
 /*---------------------------------------------------------------------------*/
 /* Get the key af an item */
 static nbr_table_key_t *
-key_from_item(nbr_table_t *table, item_t *item)
+key_from_item(nbr_table_t *table, nbr_table_item_t *item)
 {
   return key_from_index(index_from_item(table, item));
 }
@@ -127,7 +127,7 @@ index_from_lladdr(const rimeaddr_t *lladdr)
 /*---------------------------------------------------------------------------*/
 /* Get bit from "used" or "locked" bitmap */
 static int
-nbr_get_bit(uint8_t *bitmap, nbr_table_t *table, item_t *item)
+nbr_get_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item)
 {
   int item_index = index_from_item(table, item);
   if(table != NULL && item_index != -1) {
@@ -140,7 +140,7 @@ nbr_get_bit(uint8_t *bitmap, nbr_table_t *table, item_t *item)
 /*---------------------------------------------------------------------------*/
 /* Set bit in "used" or "locked" bitmap */
 static int
-nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, item_t *item, int value)
+nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item, int value)
 {
   int item_index = index_from_item(table, item);
   if(table != NULL && item_index != -1) {
@@ -208,7 +208,7 @@ nbr_table_allocate()
       for(i = 0; i<MAX_NUM_TABLES; i++) {
         if(all_tables[i] != NULL && all_tables[i]->callback != NULL) {
           /* Call table callback for each table that uses this item */
-          item_t *removed_item = item_from_key(all_tables[i], least_used_key);
+          nbr_table_item_t *removed_item = item_from_key(all_tables[i], least_used_key);
           if(nbr_get_bit(used_map, all_tables[i], removed_item) == 1) {
             all_tables[i]->callback(removed_item);
           }
@@ -227,7 +227,7 @@ nbr_table_allocate()
 /* Register a new neighbor table. To be used at initialization by modules
  * using a neighbor table */
 int
-nbr_table_register(nbr_table_t *table, remove_callback_func *callback)
+nbr_table_register(nbr_table_t *table, nbr_table_callback *callback)
 {
   if(num_tables < MAX_NUM_TABLES) {
     table->index = num_tables++;
@@ -241,11 +241,11 @@ nbr_table_register(nbr_table_t *table, remove_callback_func *callback)
 }
 /*---------------------------------------------------------------------------*/
 /* Returns the first item of the current table */
-item_t *
+nbr_table_item_t *
 nbr_table_head(nbr_table_t *table)
 {
   /* Get item from first key */
-  item_t *item = item_from_key(table, list_head(nbr_table_keys));
+  nbr_table_item_t *item = item_from_key(table, list_head(nbr_table_keys));
   /* Item is the first neighbor, now check is it is in the current table */
   if(nbr_get_bit(used_map, table, item)) {
     return item;
@@ -255,8 +255,8 @@ nbr_table_head(nbr_table_t *table)
 }
 /*---------------------------------------------------------------------------*/
 /* Iterates over the current table */
-item_t *
-nbr_table_next(nbr_table_t *table, item_t *item)
+nbr_table_item_t *
+nbr_table_next(nbr_table_t *table, nbr_table_item_t *item)
 {
   do {
     void *key = key_from_item(table, item);
@@ -268,11 +268,11 @@ nbr_table_next(nbr_table_t *table, item_t *item)
 }
 /*---------------------------------------------------------------------------*/
 /* Add a neighbor indexed with its link-layer address */
-item_t *
+nbr_table_item_t *
 nbr_table_add_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
 {
   int index;
-  item_t *item;
+  nbr_table_item_t *item;
   nbr_table_key_t *key;
 
   /* Allow lladdr-free insertion, useful e.g. for IPv6 ND.
