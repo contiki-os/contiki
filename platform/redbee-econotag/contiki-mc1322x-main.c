@@ -603,7 +603,7 @@ extern uip_ds6_netif_t uip_ds6_if;
       printf("\n");
     }
   }
-  printf("\nNeighbors [%u max]\n",NEIGHBOR_TABLE_MAX_NEIGHBORS);
+  printf("\nNeighbors [%u max]\n",NBR_TABLE_MAX_NEIGHBORS);
   uip_ds6_nbr_t *nbr;
   for(nbr = nbr_table_head(ds6_neighbors);
       nbr != NULL;

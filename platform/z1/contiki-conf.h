@@ -84,7 +84,7 @@
 #define XMAC_CONF_COMPOWER               1
 #define CXMAC_CONF_COMPOWER              1
 
-#define COLLECT_NEIGHBOR_CONF_MAX_NEIGHBORS      32
+#define COLLECT_NBR_TABLE_CONF_MAX_NEIGHBORS      32
 
 #define QUEUEBUF_CONF_NUM          8
 
@@ -134,7 +134,7 @@
 #define UIP_CONF_IPV6_RPL               1
 
 /* Handle 10 neighbors */
-#define NEIGHBOR_CONF_MAX_NEIGHBORS     15
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     15
 /* Handle 10 routes    */
 #define UIP_CONF_MAX_ROUTES   15
 

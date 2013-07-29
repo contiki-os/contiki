@@ -255,7 +255,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 
 #if UIP_CONF_IPV6     //allow ip4 builds
   blen = 0;
-  ADD("<h2>Neighbors [%u max]</h2>",NEIGHBOR_CONF_MAX_NEIGHBORS);
+  ADD("<h2>Neighbors [%u max]</h2>",NBR_TABLE_CONF_MAX_NEIGHBORS);
   PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
   blen = 0;
   uip_ds6_nbr_t *nbr;

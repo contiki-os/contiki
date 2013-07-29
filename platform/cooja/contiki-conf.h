@@ -129,9 +129,9 @@
 #endif /* UIP_CONF_IPV6_RPL */
 
 /* configure number of neighbors and routes */
-#ifndef NEIGHBOR_CONF_MAX_NEIGHBORS
-#define NEIGHBOR_CONF_MAX_NEIGHBORS     300
-#endif /* NEIGHBOR_CONF_MAX_NEIGHBORS */
+#ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     300
+#endif /* NBR_TABLE_CONF_MAX_NEIGHBORS */
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   300
 #endif /* UIP_CONF_MAX_ROUTES */

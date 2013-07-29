@@ -523,7 +523,7 @@ extern uip_ds6_netif_t uip_ds6_if;
       PRINTF("\n");
     }
   }
-  PRINTF("\nNeighbors [%u max]\n",NEIGHBOR_TABLE_MAX_NEIGHBORS);
+  PRINTF("\nNeighbors [%u max]\n",NBR_TABLE_MAX_NEIGHBORS);
   for(nbr = nbr_table_head(ds6_neighbors);
       nbr != NULL;
       nbr = nbr_table_next(ds6_neighbors, nbr)) {

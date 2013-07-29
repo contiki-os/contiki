@@ -46,14 +46,25 @@
 #ifndef __UIP_DS6_NEIGHBOR_H__
 #define __UIP_DS6_NEIGHBOR_H__
 
+#include "net/uip.h"
+#include "net/nbr-table.h"
+#include "sys/stimer.h"
 #include "net/uip-ds6.h"
-#include "net/neighbor-table.h"
+#include "net/nbr-table.h"
 
 #if UIP_CONF_IPV6_QUEUE_PKT
 #include "net/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
 
-NEIGHBOR_TABLE_DECLARE(ds6_neighbors);
+/*--------------------------------------------------*/
+/** \brief Possible states for the nbr cache entries */
+#define  NBR_INCOMPLETE 0
+#define  NBR_REACHABLE 1
+#define  NBR_STALE 2
+#define  NBR_DELAY 3
+#define  NBR_PROBE 4
+
+NBR_TABLE_DECLARE(ds6_neighbors);
 
 /** \brief An entry in the nbr cache */
 typedef struct uip_ds6_nbr {

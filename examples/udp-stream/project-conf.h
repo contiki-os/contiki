@@ -33,8 +33,8 @@
 
 /* Free some code and RAM space */
 #define UIP_CONF_TCP                    0
-#undef NEIGHBOR_CONF_MAX_NEIGHBORS
-#define NEIGHBOR_CONF_MAX_NEIGHBORS            8
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS            8
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES          8
 
