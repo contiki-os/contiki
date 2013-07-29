@@ -156,7 +156,7 @@ typedef struct rpl_instance rpl_instance_t;
  *  Resets the objective function state for a specific DAG. This function is
  *  called when doing a global repair on the DAG.
  *
- * parent_state_callback(parent, known, etx)
+ * neighbor_link_callback(parent, known, etx)
  *
  *  Receives link-layer neighbor information. The parameter "known" is set
  *  either to 0 or 1. The "etx" parameter specifies the current
@@ -185,7 +185,7 @@ typedef struct rpl_instance rpl_instance_t;
  */
 struct rpl_of {
   void (*reset)(struct rpl_dag *);
-  void (*parent_state_callback)(rpl_parent_t *, int, int);
+  void (*neighbor_link_callback)(rpl_parent_t *, int, int);
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
   rpl_dag_t *(*best_dag)(rpl_dag_t *, rpl_dag_t *);
   rpl_rank_t (*calculate_rank)(rpl_parent_t *, rpl_rank_t);

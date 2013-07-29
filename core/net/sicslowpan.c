@@ -65,7 +65,6 @@
 #include "net/uip-ds6.h"
 #include "net/rime.h"
 #include "net/sicslowpan.h"
-#include "net/neighbor-info.h"
 #include "net/netstack.h"
 
 #if UIP_CONF_IPV6
@@ -112,11 +111,6 @@ void uip_log(char *msg);
 #define SICSLOWPAN_COMPRESSION SICSLOWPAN_COMPRESSION_IPV6
 #endif /* SICSLOWPAN_CONF_COMPRESSION */
 #endif /* SICSLOWPAN_COMPRESSION */
-
-#ifndef SICSLOWPAN_CONF_NEIGHBOR_INFO
-/* Default is to use neighbor info updates if using RPL */
-#define SICSLOWPAN_CONF_NEIGHBOR_INFO UIP_CONF_IPV6_RPL
-#endif /* SICSLOWPAN_CONF_NEIGHBOR_INFO */
 
 #define GET16(ptr,index) (((uint16_t)((ptr)[index] << 8)) | ((ptr)[(index) + 1]))
 #define SET16(ptr,index,value) do {     \
@@ -1309,9 +1303,8 @@ compress_hdr_ipv6(rimeaddr_t *rime_destaddr)
 static void
 packet_sent(void *ptr, int status, int transmissions)
 {
-#if SICSLOWPAN_CONF_NEIGHBOR_INFO
-  neighbor_info_packet_sent(status, transmissions);
-#endif /* SICSLOWPAN_CONF_NEIGHBOR_INFO */
+  uip_ds6_link_neighbor_callback(status, transmissions);
+
   if(callback != NULL) {
     callback->output_callback(status);
   }
@@ -1833,10 +1826,6 @@ input(void)
       PRINTF("\n");
     }
 #endif
-
-#if SICSLOWPAN_CONF_NEIGHBOR_INFO
-    neighbor_info_packet_received();
-#endif /* SICSLOWPAN_CONF_NEIGHBOR_INFO */
 
     /* if callback is set then set attributes and call */
     if(callback) {
