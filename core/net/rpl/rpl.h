@@ -110,7 +110,9 @@ struct rpl_dag;
 struct rpl_parent {
   struct rpl_parent *next;
   struct rpl_dag *dag;
+#if RPL_DAG_MC != RPL_DAG_MC_NONE
   rpl_metric_container_t mc;
+#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   uip_ipaddr_t addr;
   rpl_rank_t rank;
   uint8_t link_metric;
