@@ -518,7 +518,9 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   p->rank = dio->rank;
   p->dtsn = dio->dtsn;
   p->link_metric = RPL_INIT_LINK_METRIC;
+#if RPL_DAG_MC != RPL_DAG_MC_NONE
   memcpy(&p->mc, &dio->mc, sizeof(p->mc));
+#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   list_add(dag->parents, p);
   return p;
 }
@@ -1235,7 +1237,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   /* We have allocated a candidate parent; process the DIO further. */
 
+#if RPL_DAG_MC != RPL_DAG_MC_NONE
   memcpy(&p->mc, &dio->mc, sizeof(p->mc));
+#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   if(rpl_process_parent_event(instance, p) == 0) {
     PRINTF("RPL: The candidate parent is rejected\n");
     return;

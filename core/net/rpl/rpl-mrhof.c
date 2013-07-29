@@ -35,10 +35,11 @@
  */
 /**
  * \file
- *         The minrank-hysteresis objective function (OCP 1).
+ *         The Minimum Rank with Hysteresis Objective Function (MRHOF)
  *
  *         This implementation uses the estimated number of 
- *         transmissions (ETX) as the additive routing metric.
+ *         transmissions (ETX) as the additive routing metric,
+ *         and also provides stubs for the energy metric.
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
@@ -56,7 +57,7 @@ static rpl_dag_t *best_dag(rpl_dag_t *, rpl_dag_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
 static void update_metric_container(rpl_instance_t *);
 
-rpl_of_t rpl_of_etx = {
+rpl_of_t rpl_mrhof = {
   reset,
   parent_state_callback,
   best_parent,
@@ -83,12 +84,18 @@ typedef uint16_t rpl_path_metric_t;
 static rpl_path_metric_t
 calculate_path_metric(rpl_parent_t *p)
 {
-  if(p == NULL || (p->mc.obj.etx == 0 && p->rank > ROOT_RANK(p->dag->instance))) {
+  if(p == NULL) {
     return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
   } else {
-    long etx = p->link_metric;
-    etx = (etx * RPL_DAG_MC_ETX_DIVISOR) / NEIGHBOR_INFO_ETX_DIVISOR;
-    return p->mc.obj.etx + (uint16_t) etx;
+    long link_metric = p->link_metric;
+    link_metric = (link_metric * RPL_DAG_MC_ETX_DIVISOR) / NEIGHBOR_INFO_ETX_DIVISOR;
+#if RPL_DAG_MC == RPL_DAG_MC_NONE
+    return p->rank + (uint16_t)link_metric;
+#elif RPL_DAG_MC == RPL_DAG_MC_ETX
+    return p->mc.obj.etx + (uint16_t)link_metric;
+#elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
+    return p->mc.obj.energy.energy_test + (uint16_t)link_metric;
+#endif /* RPL_DAG_MC */
   }
 }
 
@@ -181,12 +188,17 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 static void
 update_metric_container(rpl_instance_t *instance)
 {
+  instance->mc.type = RPL_DAG_MC;
+
+#if RPL_DAG_MC != RPL_DAG_MC_NONE
+
   rpl_path_metric_t path_metric;
   rpl_dag_t *dag;
 #if RPL_DAG_MC == RPL_DAG_MC_ENERGY
   uint8_t type;
 #endif
 
+  instance->mc.type = RPL_DAG_MC;
   instance->mc.flags = RPL_DAG_MC_FLAG_P;
   instance->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
   instance->mc.prec = 0;
@@ -204,9 +216,12 @@ update_metric_container(rpl_instance_t *instance)
     path_metric = calculate_path_metric(dag->preferred_parent);
   }
 
-#if RPL_DAG_MC == RPL_DAG_MC_ETX
+#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
 
-  instance->mc.type = RPL_DAG_MC_ETX;
+#if RPL_DAG_MC == RPL_DAG_MC_NONE
+  /* Do nothing more */
+#elif RPL_DAG_MC == RPL_DAG_MC_ETX
+
   instance->mc.length = sizeof(instance->mc.obj.etx);
   instance->mc.obj.etx = path_metric;
 
@@ -216,7 +231,6 @@ update_metric_container(rpl_instance_t *instance)
 
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
 
-  instance->mc.type = RPL_DAG_MC_ENERGY;
   instance->mc.length = sizeof(instance->mc.obj.energy);
 
   if(dag->rank == ROOT_RANK(instance)) {
