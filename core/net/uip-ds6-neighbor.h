@@ -81,6 +81,7 @@ uip_ds6_nbr_t *uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr);
 uip_ds6_nbr_t *uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr);
 uip_ipaddr_t *uip_ds6_nbr_ipaddr_from_lladdr(uip_lladdr_t *lladdr);
 uip_lladdr_t *uip_ds6_nbr_lladdr_from_ipaddr(uip_ipaddr_t *ipaddr);
+void uip_ds6_link_neighbor_callback(int status, int numtx);
 void uip_ds6_neighbor_periodic();
 
 /**

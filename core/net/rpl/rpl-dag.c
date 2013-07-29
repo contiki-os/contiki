@@ -56,8 +56,6 @@
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
-#include "net/neighbor-info.h"
-
 #if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 extern rpl_of_t RPL_OF;

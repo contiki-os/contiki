@@ -203,6 +203,13 @@ typedef struct uip_ds6_maddr {
 #endif /* UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED */
 #endif /* UIP_CONF_IPV6_RPL */
 
+#if UIP_CONF_IPV6_RPL
+#ifndef UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK
+#define UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK rpl_link_neighbor_callback
+#endif /* UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED */
+#endif /* UIP_CONF_IPV6_RPL */
+
+
 /** \brief  Interface structure (contains all the interface variables) */
 typedef struct uip_ds6_netif {
   uint32_t link_mtu;

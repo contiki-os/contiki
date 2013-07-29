@@ -162,9 +162,9 @@
  * Initial metric attributed to a link when the ETX is unknown
  */
 #ifndef RPL_CONF_INIT_LINK_METRIC
-#define RPL_INIT_LINK_METRIC        NEIGHBOR_INFO_ETX2FIX(5)
+#define RPL_INIT_LINK_METRIC        5 * RPL_MIN_HOPRANKINC
 #else
-#define RPL_INIT_LINK_METRIC        NEIGHBOR_INFO_ETX2FIX(RPL_CONF_INIT_LINK_METRIC)
+#define RPL_INIT_LINK_METRIC        RPL_CONF_INIT_LINK_METRIC
 #endif
 
 /*

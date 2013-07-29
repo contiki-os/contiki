@@ -61,6 +61,13 @@ void NEIGHBOR_STATE_CHANGED(uip_ds6_nbr_t *n);
 #define NEIGHBOR_STATE_CHANGED(n)
 #endif /* UIP_DS6_CONF_NEIGHBOR_STATE_CHANGED */
 
+#ifdef UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK
+#define LINK_NEIGHBOR_CALLBACK(addr, status, numtx) UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
+void LINK_NEIGHBOR_CALLBACK(const rimeaddr_t *addr, int status, int numtx);
+#else
+#define LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
+#endif /* UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK */
+
 NEIGHBOR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
 
 /*---------------------------------------------------------------------------*/
@@ -165,6 +172,33 @@ uip_ds6_nbr_lladdr_from_ipaddr(uip_ipaddr_t *ipaddr)
 {
   uip_ds6_nbr_t *nbr = uip_ds6_nbr_lookup(ipaddr);
   return nbr ? uip_ds6_nbr_get_ll(nbr) : NULL;
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_ds6_link_neighbor_callback(int status, int numtx)
+{
+  const rimeaddr_t *dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+  if(rimeaddr_cmp(dest, &rimeaddr_null)) {
+    return;
+  }
+
+  LINK_NEIGHBOR_CALLBACK(dest, status, numtx);
+
+#if UIP_DS6_LL_NUD
+  if(status == MAC_TX_OK) {
+    uip_ds6_nbr_t *nbr;
+    nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)dest);
+    if(nbr != NULL &&
+        (nbr->state == STALE || nbr->state == DELAY || nbr->state == PROBE)) {
+      nbr->state = REACHABLE;
+      stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+      PRINTF("uip-ds6-neighbor : received a link layer ACK : ");
+      PRINTLLADDR((uip_lladdr_t *)dest);
+      PRINTF(" is reachable.\n");
+    }
+  }
+#endif /* UIP_DS6_LL_NUD */
+
 }
 
 /*---------------------------------------------------------------------------*/
