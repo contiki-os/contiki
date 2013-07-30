@@ -3,7 +3,7 @@ Apple II
 
 The platform/apple2enh/ directory is used for targeting an Enhanced Apple //e
 (or compatible) computer. Most things are shared between the 6502-based targets
-so please consult cpu/6502/README for further details.
+so please consult cpu/6502/README.md for further details.
 
 The following Apple II Ethernet cards are supported:
 
