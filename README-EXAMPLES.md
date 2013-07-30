@@ -31,7 +31,7 @@ target by typing the following commands:
 Most likely you'll have to adjust the TCP/IP values set in main() in
 platform/win32/contiki-main.c to match your needs.
 
-Please consult cpu/native/net/README-WPCAP as well.
+Please consult cpu/native/net/README-WPCAP.md as well.
 
 esb/
 ----
@@ -51,7 +51,7 @@ target by typing the following commands:
 Most likely you'll have to adjust the TCP/IP values set in main() in
 platform/win32/contiki-main.c to match your needs.
 
-Please consult cpu/native/net/README-WPCAP as well.
+Please consult cpu/native/net/README-WPCAP.md as well.
 
 hello-world/
 ------------
@@ -92,7 +92,7 @@ typing the following commands:
 Most likely you'll have to adjust the TCP/IP values set in main() in
 platform/win32/contiki-main.c to match your needs.
 
-Please consult cpu/native/net/README-WPCAP as well.
+Please consult cpu/native/net/README-WPCAP.md as well.
 
 multi-threading/
 ----------------
@@ -159,7 +159,7 @@ commands:
 Most likely you'll have to adjust the TCP/IP values set in main() in
 platform/minimal-net/contiki-main.c to match your needs.
 
-Please consult cpu/native/net/README-WPCAP as well if you are running
+Please consult cpu/native/net/README-WPCAP.md as well if you are running
 Microsoft Windows.
 
 webbrowser/
@@ -175,7 +175,7 @@ and run in the 'win32' target by typing the following commands:
 Most likely you'll have to adjust the TCP/IP values set in main() in
 platform/win32/contiki-main.c to match your needs.
 
-Please consult cpu/native/net/README-WPCAP as well.
+Please consult cpu/native/net/README-WPCAP.md as well.
 
 webserver/
 ----------
@@ -199,7 +199,7 @@ use the following command:
 Most likely you'll have to adjust the TCP/IP values set in main() in
 platform/minimal-net/contiki-main.c to match your needs.
 
-Please consult cpu/native/net/README-WPCAP.markdown as well if you are running
+Please consult cpu/native/net/README-WPCAP.md as well if you are running
 Microsoft Windows.
 
 wget/
@@ -216,5 +216,5 @@ using the 'Contiki File System' (CFS). It can be compiled and run in the
 Most likely you'll have to adjust the TCP/IP values set in main() in
 platform/minimal-net/contiki-main.c to match your needs.
 
-Please consult cpu/native/net/README-WPCAP as well if you are running
+Please consult cpu/native/net/README-WPCAP.md as well if you are running
 Microsoft Windows.
