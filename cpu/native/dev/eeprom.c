@@ -37,7 +37,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 static FILE *eeprom_file;
 
