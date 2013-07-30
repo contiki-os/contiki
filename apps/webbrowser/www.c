@@ -698,7 +698,7 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
   }
 
   maxwidth = size ? WWW_CONF_WEBPAGE_WIDTH - (1 + 2 * border)
-                  : WWW_CONF_WEBPAGE_WIDTH;
+		  : WWW_CONF_WEBPAGE_WIDTH;
 
   /* If the text of the link is too long so that it does not fit into
      the width of the current window, counting from the current x
@@ -734,7 +734,7 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
     switch(type) {
       case CTK_WIDGET_HYPERLINK: {
 	struct linkattrib *linkptr =
-          (struct linkattrib *)add_pageattrib(sizeof(struct linkattrib) /* incl 1 attrib char */ + attriblen);
+	  (struct linkattrib *)add_pageattrib(sizeof(struct linkattrib) /* incl 1 attrib char */ + attriblen);
 	if(linkptr != NULL) {
 	  CTK_HYPERLINK_NEW(&linkptr->hyperlink, x, y + 3, size, wptr, linkptr->url);
 	  strcpy(linkptr->url, attrib);
@@ -746,7 +746,7 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
 #if WWW_CONF_FORMS
       case CTK_WIDGET_BUTTON: {
 	struct submitattrib *submitptr =
-          (struct submitattrib *)add_pageattrib(sizeof(struct submitattrib) /* incl 1 attrib char */ + attriblen);
+	  (struct submitattrib *)add_pageattrib(sizeof(struct submitattrib) /* incl 1 attrib char */ + attriblen);
 	if(submitptr != NULL) {
 	  CTK_BUTTON_NEW((struct ctk_button *)&submitptr->button, x, y + 3, size, wptr);
 	  add_forminput((struct inputattrib *)submitptr);
@@ -759,8 +759,8 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
       }
       case CTK_WIDGET_TEXTENTRY: {
 	struct textattrib *textptr =
-          (struct textattrib *)add_pageattrib(sizeof(struct textattrib) /* incl 1 attrib char */ + attriblen
-                                              + (size ? WWW_CONF_MAX_INPUTVALUELEN : strlen(text)) + 1);
+	  (struct textattrib *)add_pageattrib(sizeof(struct textattrib) /* incl 1 attrib char */ + attriblen
+					      + (size ? WWW_CONF_MAX_INPUTVALUELEN : strlen(text)) + 1);
 	if(textptr != NULL) {
 	  CTK_TEXTENTRY_NEW((struct ctk_textentry *)&textptr->textentry, x, y + 3, size, 1,
 	    textptr->name + attriblen + 1, WWW_CONF_MAX_INPUTVALUELEN);
@@ -768,10 +768,10 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
 	  textptr->formptr = formptr;
 	  strcpy(textptr->textentry.text, text);
 	  strcpy(textptr->name, attrib);
-          if(size) {
+	  if(size) {
 	    CTK_WIDGET_SET_FLAG(&textptr->textentry, CTK_WIDGET_FLAG_MONOSPACE);
 	    CTK_WIDGET_ADD(&mainwindow, &textptr->textentry);
-          }
+	  }
 	}
 	break;
       }
