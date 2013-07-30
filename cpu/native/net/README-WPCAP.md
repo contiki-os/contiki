@@ -47,4 +47,4 @@ This results in generally deactivating both the network identification process
 and the firewall for the loopback interface. The details are available in the
 Microsoft TechNet Forums thread 'Vista Network Identification for Loopback
 Adpater' that is currently available at
-[link](http://social.technet.microsoft.com/forums/en-US/itprovistanetworking/thread/66b42761-1b8e-4302-9134-0bb685139f4e)
+[link](http://social.technet.microsoft.com/Forums/windows/en-US/66b42761-1b8e-4302-9134-0bb685139f4e/vista-network-identification-for-loopback-adpater)
