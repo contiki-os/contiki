@@ -131,6 +131,21 @@ ifdef PLATFORMAPPS
   APPDS += $(PLATFORMAPPDS)
 endif
 
+### Verbosity control. Use  make V=1  to get verbose builds.
+
+ifeq ($(V),1)
+  TRACE_CC =
+  TRACE_LD =
+  TRACE_AR =
+  TRACE_AS =
+  Q=
+else
+  TRACE_CC = @echo "  CC       " $<
+  TRACE_LD = @echo "  LD       " $@
+  TRACE_AR = @echo "  AR       " $@
+  TRACE_AS = @echo "  AS       " $<
+  Q=@
+endif
 
 ### Forward comma-separated list of arbitrary defines to the compiler
 
@@ -189,29 +204,35 @@ distclean: clean
 
 ifndef CUSTOM_RULE_C_TO_CE
 %.ce: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 	$(STRIP) --strip-unneeded -g -x $@
 endif
 
 ifndef CUSTOM_RULE_C_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
-	$(CC) $(CFLAGS) -MMD -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -MMD -c $< -o $@
 	@$(FINALIZE_DEPENDENCY)
 endif
 
 ifndef CUSTOM_RULE_S_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
-	$(AS) $(ASFLAGS) -o $@ $<
+	$(TRACE_AS)
+	$(Q)$(AS) $(ASFLAGS) -o $@ $<
 endif
 
 ifndef CUSTOM_RULE_C_TO_O
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -c $< -o $@
 endif
+
 
 ifndef CUSTOM_RULE_C_TO_CO
 %.co: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 endif
 
 ifndef AROPTS
@@ -220,7 +241,8 @@ endif
 
 ifndef CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
 contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES)
-	$(AR) $(AROPTS) $@ $^
+	$(TRACE_AR)
+	$(Q)$(AR) $(AROPTS) $@ $^
 endif
 
 ifndef LD
@@ -229,7 +251,9 @@ endif
 
 ifndef CUSTOM_RULE_LINK
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
-	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 endif
 
 %.ramprof: %.$(TARGET)
