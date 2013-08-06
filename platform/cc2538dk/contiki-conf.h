@@ -207,7 +207,7 @@ typedef uint32_t rtimer_clock_t;
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
-#define WITH_PHASE_OPTIMIZATION                 0
+#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #define WITH_FAST_SLEEP                         1
 
 #ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
