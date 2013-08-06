@@ -126,7 +126,8 @@ CUSTOM_RULE_C_TO_OBJECTDIR_O=1
 CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
 
 $(OBJECTDIR)/%.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
-	$(CC) $(call c_seg,$<,$@) $(CFLAGS) -c $< -o $@ -Wp,-MMD,$(@:.rel=.d),-MQ,$@
+	$(TRACE_CC)
+	$(Q)$(CC) $(call c_seg,$<,$@) $(CFLAGS) -c $< -o $@ -Wp,-MMD,$(@:.rel=.d),-MQ,$@
 	@$(FINALIZE_SDCC_DEPENDENCY)
 
 contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) \
@@ -139,7 +140,8 @@ contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) \
 # build app/example local object files. We need a separate rule so that we can
 # pass -DAUTOSTART_ENABLE for those files only
 $(OBJECTDIR)/%.app.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
-	$(CC) $(call c_seg,$<,$@) -DAUTOSTART_ENABLE $(CFLAGS) -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(call c_seg,$<,$@) -DAUTOSTART_ENABLE $(CFLAGS) -c $< -o $@
 
 # .ihx is the sdcc binary output file
 %.ihx: $(OBJECTDIR)/%.app.rel $(CONTIKI_TARGET_MAIN) contiki-$(TARGET).lib
@@ -147,14 +149,16 @@ $(OBJECTDIR)/%.app.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
 ifeq ($(HAVE_BANKING),1)
 	@echo "\nFirst Link"
 	@echo "==============="
-	$(CC) $(LDFLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
 	@echo "\nBank Allocation"
 	@echo "==============="
 	python $(BANK_ALLOC) $(basename $(@F)) $(SEGMENT_RULES) $(OFFSET_FIRMWARE)
 	@echo "\nFinal Link"
 	@echo "==============="
 endif
-	$(CC) $(LDFLAGS) $(LD_POST_FLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(LD_POST_FLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
 
 # Pack the hex file for programmers which dislike SDCC output hex format
 %.hex: %.ihx
