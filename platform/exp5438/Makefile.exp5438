@@ -44,6 +44,15 @@ ifeq ($(UIP_CONF_IPV6),1)
 CFLAGS += -DWITH_UIP6=1
 endif
 
+ifndef IAR
+ifneq (,$(findstring 4.7.,$(shell msp430-gcc -dumpversion)))
+TARGET_MEMORY_MODEL ?= medium
+CFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL)
+CFLAGS += -ffunction-sections -fdata-sections -mcode-region=far
+LDFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL) -Wl,-gc-sections
+endif
+endif
+
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
 
 ifdef IAR
