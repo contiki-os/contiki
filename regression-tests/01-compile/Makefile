@@ -15,8 +15,10 @@ hello-world/wismote \
 hello-world/z1 \
 hello-world/sensinode \
 hello-world/cc2530dk \
+hello-world/cc2538dk \
 eeprom-test/native \
 ipv6/rpl-border-router/econotag \
+ipv6/rpl-border-router/cc2538dk \
 collect/sky \
 er-rest-example/sky \
 er-rest-example/econotag \
@@ -47,7 +49,10 @@ sensinode/sniffer/sensinode \
 cc2530dk/cc2530dk \
 cc2530dk/border-router/cc2530dk \
 cc2530dk/udp-ipv6/cc2530dk \
-cc2530dk/sniffer/cc2530dk
+cc2530dk/sniffer/cc2530dk \
+cc2538dk/cc2538dk \
+cc2538dk/udp-ipv6-echo-server/cc2538dk \
+cc2538dk/sniffer/cc2530dk \
 
 TOOLS=
 
