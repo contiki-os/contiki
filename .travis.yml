@@ -14,8 +14,8 @@ before_script:
          | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version || true"
   ## Install SDCC from a purpose-built bundle
   - "[ $BUILD_TYPE = compile ] && curl -s \
-       https://raw.github.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc-r7100.tar.gz \
-         | tar xzf - -C /tmp/ && sudo cp -f -r /tmp/sdcc-r7100/* /usr/local/ && rm -rf /tmp/sdcc-r7100 && sdcc --version || true"
+       https://raw.github.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc.tar.gz \
+         | tar xzf - -C /tmp/ && sudo cp -f -r /tmp/sdcc/* /usr/local/ && rm -rf /tmp/sdcc && sdcc --version || true"
 
   ## Compile cooja.jar only when it's going to be needed
   - "[ ! $BUILD_TYPE = compile ] && java -version && ant -q -f tools/cooja/build.xml jar || true"
