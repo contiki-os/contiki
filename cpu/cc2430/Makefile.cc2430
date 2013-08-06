@@ -147,14 +147,14 @@ $(OBJECTDIR)/%.app.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
 ifeq ($(HAVE_BANKING),1)
 	@echo "\nFirst Link"
 	@echo "==============="
-	$(CC) $(LDFLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib > /dev/null
+	$(CC) $(LDFLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
 	@echo "\nBank Allocation"
 	@echo "==============="
 	python $(BANK_ALLOC) $(basename $(@F)) $(SEGMENT_RULES) $(OFFSET_FIRMWARE)
 	@echo "\nFinal Link"
 	@echo "==============="
 endif
-	$(CC) $(LDFLAGS) $(LD_POST_FLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib > /dev/null
+	$(CC) $(LDFLAGS) $(LD_POST_FLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
 
 # Pack the hex file for programmers which dislike SDCC output hex format
 %.hex: %.ihx
