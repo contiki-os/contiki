@@ -2,7 +2,7 @@
 CC       = sdcc
 LD       = sdcc
 AS       = sdcc
-AR       = sdcclib
+AR       = sdar
 OBJCOPY  = objcopy
 STRIP    = strip
 PACKIHX  = packihx
@@ -18,7 +18,7 @@ LDFLAGS += --code-loc $(START_ADDR) --code-size $(CODE_SIZE)
 
 ASFLAGS += -plosgff
 
-AROPTS   = -a
+AROPTS   = -rc
 
 ### Our object files are .rel, so we can't use the default finalize dependency
 ### generation. Override here.
