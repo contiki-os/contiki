@@ -14,6 +14,10 @@ ifeq ($(TARGET),)
   endif
 endif
 
+ifeq ($(UIP_CONF_IPV6),1)
+  CFLAGS += -DUIP_CONF_IPV6=1
+endif
+
 ifeq ($(DEFINES),)
   -include Makefile.$(TARGET).defines
   ifneq ($(DEFINES),)
