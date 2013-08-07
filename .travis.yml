@@ -34,7 +34,7 @@ script:
 
 after_script:
   ## Print cooja test logs
-  - "tail regression-tests/??-$BUILD_TYPE/*.testlog"
+  - "[ ${BUILD_CATEGORY:-sim} = sim ] && tail regression-tests/??-$BUILD_TYPE/*.testlog"
   ## Print a basic summary 
   - "echo 'Summary:'; cat regression-tests/??-$BUILD_TYPE/summary"
   - "FAILS=`grep -c -i 'fail' regression-tests/??-$BUILD_TYPE/summary`"
