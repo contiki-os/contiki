@@ -91,6 +91,11 @@ index_create(index_type_t index_type, relation_t *rel, attribute_t *attr)
     return DB_STORAGE_ERROR;
   }
 
+  if(attr->domain != DOMAIN_INT && attr->domain != DOMAIN_LONG) {
+    PRINTF("DB: Cannot create an index for a non-number attribute!\n");
+    return DB_INDEX_ERROR;
+  }
+
   api = find_index_api(index_type);
   if(api == NULL) {
     PRINTF("DB: No API for index type %d\n", (int)index_type);
