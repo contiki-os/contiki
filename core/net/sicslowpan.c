@@ -582,11 +582,11 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
   /* Note that the payload length is always compressed */
 
   /* Next header. We compress it if UDP */
-#if UIP_CONF_UDP || UIP_CONF_ROUTER
+#if UIP_UDP || UIP_CONF_ROUTER
   if(UIP_IP_BUF->proto == UIP_PROTO_UDP) {
     iphc0 |= SICSLOWPAN_IPHC_NH_C;
   }
-#endif /*UIP_CONF_UDP*/
+#endif /* UIP_UDP */
 #ifdef SICSLOWPAN_NH_COMPRESSOR 
   if(SICSLOWPAN_NH_COMPRESSOR.is_compressable(UIP_IP_BUF->proto)) {
     iphc0 |= SICSLOWPAN_IPHC_NH_C;
@@ -704,7 +704,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
 
   uncomp_hdr_len = UIP_IPH_LEN;
 
-#if UIP_CONF_UDP || UIP_CONF_ROUTER
+#if UIP_UDP || UIP_CONF_ROUTER
   /* UDP header compression */
   if(UIP_IP_BUF->proto == UIP_PROTO_UDP) {
     PRINTF("IPHC: Uncompressed UDP ports on send side: %x, %x\n",
@@ -753,7 +753,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
     }
     uncomp_hdr_len += UIP_UDPH_LEN;
   }
-#endif /*UIP_CONF_UDP*/
+#endif /* UIP_UDP */
 
 #ifdef SICSLOWPAN_NH_COMPRESSOR
   /* if nothing to compress just return zero  */
@@ -1123,15 +1123,15 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
         RIME_HC1_PTR[RIME_HC1_TTL] = UIP_IP_BUF->ttl;
         rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
         break;
-#if UIP_CONF_TCP
+#if UIP_TCP
       case UIP_PROTO_TCP:
         /* HC1 encoding and ttl */
         RIME_HC1_PTR[RIME_HC1_ENCODING] = 0xFE;
         RIME_HC1_PTR[RIME_HC1_TTL] = UIP_IP_BUF->ttl;
         rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
         break;
-#endif /* UIP_CONF_TCP */
-#if UIP_CONF_UDP
+#endif /* UIP_TCP */
+#if UIP_UDP
       case UIP_PROTO_UDP:
         /*
          * try to compress UDP header (we do only full compression).
@@ -1164,7 +1164,7 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
           rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
         }
         break;
-#endif /*UIP_CONF_UDP*/
+#endif /* UIP_UDP */
     }
   }
   return;
@@ -1211,14 +1211,14 @@ uncompress_hdr_hc1(uint16_t ip_len)
       SICSLOWPAN_IP_BUF->ttl = RIME_HC1_PTR[RIME_HC1_TTL];
       rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
       break;
-#if UIP_CONF_TCP
+#if UIP_TCP
     case SICSLOWPAN_HC1_NH_TCP:
       SICSLOWPAN_IP_BUF->proto = UIP_PROTO_TCP;
       SICSLOWPAN_IP_BUF->ttl = RIME_HC1_PTR[RIME_HC1_TTL];
       rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
       break;
-#endif/* UIP_CONF_TCP */
-#if UIP_CONF_UDP
+#endif/* UIP_TCP */
+#if UIP_UDP
     case SICSLOWPAN_HC1_NH_UDP:
       SICSLOWPAN_IP_BUF->proto = UIP_PROTO_UDP;
       if(RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_HC1_ENCODING] & 0x01) {
@@ -1244,7 +1244,7 @@ uncompress_hdr_hc1(uint16_t ip_len)
         rime_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
       }
       break;
-#endif/* UIP_CONF_UDP */
+#endif/* UIP_UDP */
     default:
       /* this shouldn't happen, drop */
       return;

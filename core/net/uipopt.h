@@ -222,6 +222,19 @@
 /** Minimum number of default routers */
 #define UIP_CONF_DS6_DEFRT_NBU       2
 #endif
+
+/* UIP_CONF_MAX_ROUTES specifies the maximum number of routes that each
+   node will be able to handle. */
+#ifndef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES 20
+#endif /* UIP_CONF_MAX_ROUTES */
+
+/* UIP_CONF_IPV6_RPL specifies if RPL is to be used for IPv6
+   routing. */
+#ifndef UIP_CONF_IPV6_RPL
+#define UIP_CONF_IPV6_RPL 1
+#endif /* UIP_CONF_IPV6_RPL */
+
 /** @} */
 
 /*------------------------------------------------------------------------------*/
@@ -414,6 +427,13 @@
 #define UIP_TIME_WAIT_TIMEOUT UIP_CONF_WAIT_TIMEOUT
 #endif
 
+/* UIP_CONF_TCP_SPLIT enables a performance optimization hack, where
+   each maximum-sized TCP segment is split into two, to avoid the
+   performance degradation that is caused by delayed ACKs. */
+#ifndef UIP_CONF_TCP_SPLIT
+#define UIP_CONF_TCP_SPLIT 0
+#endif /* UIP_CONF_TCP_SPLIT */
+
 /** @} */
 /*------------------------------------------------------------------------------*/
 /**
@@ -454,45 +474,6 @@
  */
 
 #define UIP_DEFAULT_PREFIX_LEN 64
-
-/** @} */
-
-/*------------------------------------------------------------------------------*/
-
-/**
- * \defgroup uipoptsics 6lowpan options (for ipv6)
- * @{
- */
-/**
- * Timeout for packet reassembly at the 6lowpan layer
- * (should be < 60s)
- */
-#ifdef SICSLOWPAN_CONF_MAXAGE
-#define SICSLOWPAN_REASS_MAXAGE (SICSLOWPAN_CONF_MAXAGE)
-#else
-#define SICSLOWPAN_REASS_MAXAGE 20
-#endif
-
-/**
- * Do we compress the IP header or not (default: no)
- */
-#ifndef SICSLOWPAN_CONF_COMPRESSION
-#define SICSLOWPAN_CONF_COMPRESSION 0
-#endif
-
-/**
- * If we use IPHC compression, how many address contexts do we support
- */
-#ifndef SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 
-#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
-#endif
-
-/**
- * Do we support 6lowpan fragmentation
- */
-#ifndef SICSLOWPAN_CONF_FRAG  
-#define SICSLOWPAN_CONF_FRAG  0
-#endif
 
 /** @} */
 
