@@ -111,8 +111,11 @@
  * - CTS: PB0 (Can only be used with UART1)
  * - RTS: PD3 (Can only be used with UART1)
  *
+ * We configure the port to use UART0. To use UART1, change UART_CONF_BASE
  * @{
  */
+#define UART_CONF_BASE           UART_0_BASE
+
 #define UART_RX_PORT             GPIO_A_NUM
 #define UART_RX_PIN              0
 
