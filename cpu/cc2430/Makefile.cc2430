@@ -2,7 +2,7 @@
 CC       = sdcc
 LD       = sdcc
 AS       = sdcc
-AR       = sdcclib
+AR       = sdar
 OBJCOPY  = objcopy
 STRIP    = strip
 PACKIHX  = packihx
@@ -12,13 +12,16 @@ SEGMENT_RULES = $(OBJECTDIR)/segment.rules
 CFLAGS  += --model-$(MEMORY_MODEL) --stack-auto -DSDCC_CC2430 --std-c99
 CFLAGS  += --fomit-frame-pointer
 
+### Disable warning 110 (EVELYN the modified dog) and 126 (unreachable code)
+CFLAGS += --disable-warning 110 --disable-warning 126
+
 LDFLAGS += --model-$(MEMORY_MODEL) --stack-auto -DSDCC_CC2430 --out-fmt-ihx
 LDFLAGS += --xram-loc 0xE000 --xram-size 0x1F00
 LDFLAGS += --code-loc $(START_ADDR) --code-size $(CODE_SIZE)
 
 ASFLAGS += -plosgff
 
-AROPTS   = -a
+AROPTS   = -rc
 
 ### Our object files are .rel, so we can't use the default finalize dependency
 ### generation. Override here.
@@ -126,15 +129,9 @@ CUSTOM_RULE_C_TO_OBJECTDIR_O=1
 CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
 
 $(OBJECTDIR)/%.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
-	$(CC) $(call c_seg,$<,$@) $(CFLAGS) -c $< -o $@ -Wp,-MMD,$(@:.rel=.d),-MQ,$@
+	$(TRACE_CC)
+	$(Q)$(CC) $(call c_seg,$<,$@) $(CFLAGS) -c $< -o $@ -Wp,-MMD,$(@:.rel=.d),-MQ,$@
 	@$(FINALIZE_SDCC_DEPENDENCY)
-
-$(OBJECTDIR)/%.rel: %.cS | $(OBJECTDIR)
-	cp $< $(OBJECTDIR)/$*.c
-	$(CC) $(CFLAGS) -E $(OBJECTDIR)/$*.c > $(OBJECTDIR)/tmp
-	perl -pe "s/^#(.*)/;$$1/" $(OBJECTDIR)/tmp > $(OBJECTDIR)/$*.S
-	$(AS) $(ASFLAGS) -o $@ $(OBJECTDIR)/$*.S
-	rm -f $(OBJECTDIR)/tmp
 
 contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) \
 	$(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
@@ -146,7 +143,8 @@ contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) \
 # build app/example local object files. We need a separate rule so that we can
 # pass -DAUTOSTART_ENABLE for those files only
 $(OBJECTDIR)/%.app.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
-	$(CC) $(call c_seg,$<,$@) -DAUTOSTART_ENABLE $(CFLAGS) -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(call c_seg,$<,$@) -DAUTOSTART_ENABLE $(CFLAGS) -c $< -o $@
 
 # .ihx is the sdcc binary output file
 %.ihx: $(OBJECTDIR)/%.app.rel $(CONTIKI_TARGET_MAIN) contiki-$(TARGET).lib
@@ -154,14 +152,16 @@ $(OBJECTDIR)/%.app.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
 ifeq ($(HAVE_BANKING),1)
 	@echo "\nFirst Link"
 	@echo "==============="
-	$(CC) $(LDFLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib > /dev/null
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
 	@echo "\nBank Allocation"
 	@echo "==============="
 	python $(BANK_ALLOC) $(basename $(@F)) $(SEGMENT_RULES) $(OFFSET_FIRMWARE)
 	@echo "\nFinal Link"
 	@echo "==============="
 endif
-	$(CC) $(LDFLAGS) $(LD_POST_FLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib > /dev/null
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(LD_POST_FLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
 
 # Pack the hex file for programmers which dislike SDCC output hex format
 %.hex: %.ihx
