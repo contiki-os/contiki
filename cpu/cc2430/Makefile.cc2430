@@ -12,6 +12,9 @@ SEGMENT_RULES = $(OBJECTDIR)/segment.rules
 CFLAGS  += --model-$(MEMORY_MODEL) --stack-auto -DSDCC_CC2430 --std-c99
 CFLAGS  += --fomit-frame-pointer
 
+### Disable warning 110 (EVELYN the modified dog) and 126 (unreachable code)
+CFLAGS += --disable-warning 110 --disable-warning 126
+
 LDFLAGS += --model-$(MEMORY_MODEL) --stack-auto -DSDCC_CC2430 --out-fmt-ihx
 LDFLAGS += --xram-loc 0xE000 --xram-size 0x1F00
 LDFLAGS += --code-loc $(START_ADDR) --code-size $(CODE_SIZE)
