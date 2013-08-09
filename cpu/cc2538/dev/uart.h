@@ -52,6 +52,13 @@
  */
 #define UART_0_BASE           0x4000C000
 #define UART_1_BASE           0x4000D000
+
+/* Default to UART 0 unless the configuration tells us otherwise */
+#ifdef UART_CONF_BASE
+#define UART_BASE             UART_CONF_BASE
+#else
+#define UART_BASE             UART_0_BASE
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
