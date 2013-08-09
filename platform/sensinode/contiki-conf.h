@@ -253,7 +253,7 @@
 #define SICSLOWPAN_CONF_MAXAGE               8
 
 /* Define our IPv6 prefixes/contexts here */
-#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    2
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
   addr_contexts[0].prefix[0] = 0x20; \
   addr_contexts[0].prefix[1] = 0x01; \
@@ -263,16 +263,6 @@
   addr_contexts[0].prefix[5] = 0x01; \
   addr_contexts[0].prefix[6] = 0x64; \
   addr_contexts[0].prefix[7] = 0x53; \
-}
-#define SICSLOWPAN_CONF_ADDR_CONTEXT_1 { \
-  addr_contexts[1].prefix[0] = 0x20; \
-  addr_contexts[1].prefix[1] = 0x01; \
-  addr_contexts[1].prefix[2] = 0x06; \
-  addr_contexts[1].prefix[3] = 0x30; \
-  addr_contexts[1].prefix[4] = 0x03; \
-  addr_contexts[1].prefix[5] = 0x01; \
-  addr_contexts[1].prefix[6] = 0x11; \
-  addr_contexts[1].prefix[7] = 0x00; \
 }
 
 #define MAC_CONF_CHANNEL_CHECK_RATE          8
