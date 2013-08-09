@@ -47,6 +47,9 @@
 #define LPM_CONF_MODE          0
 #define UART0_CONF_HIGH_SPEED  1
 
+/* Change to 0 to build for the SmartRF + cc2530 EM */
+#define MODELS_CONF_CC2531_USB_STICK 1
+
 /* Used by cc2531 USB dongle builds, has no effect on SmartRF builds */
 #define USB_SERIAL_CONF_BUFFERED 1
 

@@ -53,7 +53,6 @@ ifeq ($(UIP_CONF_IPV6),1)
     CONTIKI_TARGET_SOURCEFILES += disco.c
   endif
   CONTIKI_TARGET_SOURCEFILES += viztool.c
-  CONTIKI_SOURCEFILES += rpl-of0.c
 endif
 
 FORCE:
