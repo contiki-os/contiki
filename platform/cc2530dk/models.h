@@ -64,7 +64,7 @@
  *  1: P0_0 (Red)
  *  2: P1_1 (Green - active: low)
  */
-#if MODEL_CC2531
+#if MODELS_CONF_CC2531_USB_STICK
 #define MODEL_STRING "TI cc2531 USB Dongle\n"
 #define USB_CONF_ENABLE 1
 
@@ -80,6 +80,9 @@
 #define USB_EP3_SIZE	64
 #define USB_CONF_CLASS	1 /* CDC-ACM */
 #endif
+
+#define CDC_ACM_CONF_VID 0x0451 /* Vendor: TI */
+#define CDC_ACM_CONF_PID 0x16A8 /* cc2531 CDC */
 
 #undef LEDS_CONF_ALL
 #define LEDS_CONF_ALL 3
