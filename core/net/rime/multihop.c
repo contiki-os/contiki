@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimemh
+ * \addtogroup rime
  * @{
  */
 

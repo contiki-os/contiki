@@ -1,4 +1,7 @@
 /**
+ * \addtogroup platform
+ * @{ */
+/**
  * \defgroup mbxxx-platform The STM32W MBXXX platform.
  *
  * The STM32W MBXXX platform.
@@ -101,4 +104,5 @@ typedef unsigned long rtimer_clock_t;
 #define EEPROM_CONF_SIZE	8000
 
 #endif /* PLATFORM_CONF_H_ */
+/** @} */
 /** @} */

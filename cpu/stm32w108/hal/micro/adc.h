@@ -3,7 +3,12 @@
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
-/** @addtogroup adc
+
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/** @defgroup adc
  * Sample A/D converter driver.
  *
  * See adc.h for source code.
@@ -318,5 +323,5 @@ boolean halAdcGetRange(void);
 
 /** @} // END addtogroup
  */
-
+/** @} */
 
