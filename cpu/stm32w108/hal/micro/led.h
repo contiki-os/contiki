@@ -4,7 +4,11 @@
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
 
-/** @addtogroup led 
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/** @defgroup led 
  *  @brief  Sample API funtions for controlling LEDs.
  *
  * When specifying an LED to use, always use the BOARDLEDx definitions that
@@ -55,4 +59,4 @@ void halClearLed(HalBoardLed led);
 
 /** @} // END addtogroup 
  */
-
+/** @} */

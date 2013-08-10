@@ -7,7 +7,11 @@
 */
 
 /**
- * @addtogroup status_codes
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/**
+ * @defgroup status_codes
  *
  * Many StZNet API functions return an ::StStatus value to indicate
  * the success or failure of the call.

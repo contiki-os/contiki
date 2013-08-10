@@ -35,6 +35,10 @@
  */
 
 /**
+ * \addtogroup cpu
+ * @{ */
+
+/**
  * \defgroup pic32 PIC32 Contiki Port
  *
  * @{
