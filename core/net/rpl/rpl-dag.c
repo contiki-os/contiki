@@ -95,6 +95,17 @@ rpl_get_parent_rank(uip_lladdr_t *addr)
   }
 }
 /*---------------------------------------------------------------------------*/
+uint16_t
+rpl_get_parent_link_metric(uip_lladdr_t *addr)
+{
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (rimeaddr_t *)addr);
+  if(p != NULL) {
+    return p->link_metric;
+  } else {
+    return 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
 uip_ipaddr_t *
 rpl_get_parent_ipaddr(rpl_parent_t *p)
 {
