@@ -92,12 +92,21 @@ typedef struct rpl_route_entry {
 } rpl_route_entry_t;
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
 
-
+/** \brief The neighbor routes hold a list of routing table entries
+    that are attached to a specific neihbor. */
+struct uip_ds6_route_neighbor_routes {
+  LIST_STRUCT(route_list);
+};
 
 /** \brief An entry in the routing table */
 typedef struct uip_ds6_route {
   struct uip_ds6_route *next;
-  list_t route_list; /* The list the routing entry belongs to. */
+  /* Each route entry belongs to a specific neighbor. That neighbor
+     holds a list of all routing entries that go through it. The
+     routes field point to the uip_ds6_route_neighbor_routes that
+     belong to the neighbor table entry that this routing table entry
+     uses. */
+  struct uip_ds6_route_neighbor_routes *routes;
   uip_ipaddr_t ipaddr;
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
   UIP_DS6_ROUTE_STATE_TYPE state;
