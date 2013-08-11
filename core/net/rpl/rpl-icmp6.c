@@ -575,8 +575,10 @@ dao_input(void)
   uint8_t prefixlen;
   uint8_t flags;
   uint8_t subopt_type;
+  /*
   uint8_t pathcontrol;
   uint8_t pathsequence;
+  */
   uip_ipaddr_t prefix;
   uip_ds6_route_t *rep;
   uint8_t buffer_length;
@@ -628,8 +630,7 @@ dao_input(void)
   }
 
   /* Check if there are any RPL options present. */
-  i = pos;
-  for(; i < buffer_length; i += len) {
+  for(i = pos; i < buffer_length; i += len) {
     subopt_type = buffer[i];
     if(subopt_type == RPL_OPTION_PAD1) {
       len = 1;
@@ -647,8 +648,8 @@ dao_input(void)
       break;
     case RPL_OPTION_TRANSIT:
       /* The path sequence and control are ignored. */
-      pathcontrol = buffer[i + 3];
-      pathsequence = buffer[i + 4];
+      /*      pathcontrol = buffer[i + 3];
+              pathsequence = buffer[i + 4];*/
       lifetime = buffer[i + 5];
       /* The parent address is also ignored. */
       break;
@@ -825,6 +826,7 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
 static void
 dao_ack_input(void)
 {
+#if DEBUG
   unsigned char *buffer;
   uint8_t buffer_length;
   uint8_t instance_id;
@@ -842,6 +844,7 @@ dao_ack_input(void)
     sequence, status);
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
+#endif /* DEBUG */
 }
 /*---------------------------------------------------------------------------*/
 void

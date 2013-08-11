@@ -1076,10 +1076,13 @@ rpl_recalculate_ranks(void)
 int
 rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 {
-  rpl_rank_t old_rank;
   int return_value;
 
+#if DEBUG
+  rpl_rank_t old_rank;
   old_rank = instance->current_dag->rank;
+#endif /* DEBUG */
+
   return_value = 1;
 
   if(!acceptable_rank(p->dag, p->rank)) {
