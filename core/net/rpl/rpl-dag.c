@@ -79,7 +79,7 @@ rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 rpl_instance_t *default_instance;
 /*---------------------------------------------------------------------------*/
 void
-rpl_dag_init()
+rpl_dag_init(void)
 {
   nbr_table_register(rpl_parents, (nbr_table_callback *)rpl_remove_parent);
 }
