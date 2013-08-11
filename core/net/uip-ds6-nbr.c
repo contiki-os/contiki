@@ -143,11 +143,13 @@ uip_ds6_nbr_t *
 uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr)
 {
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
-  while(nbr != NULL) {
-    if(uip_ipaddr_cmp(&nbr->ipaddr, ipaddr)) {
-      return nbr;
+  if(ipaddr != NULL) {
+    while(nbr != NULL) {
+      if(uip_ipaddr_cmp(&nbr->ipaddr, ipaddr)) {
+        return nbr;
+      }
+      nbr = nbr_table_next(ds6_neighbors, nbr);
     }
-    nbr = nbr_table_next(ds6_neighbors, nbr);
   }
   return NULL;
 }

@@ -1022,6 +1022,10 @@ rpl_local_repair(rpl_instance_t *instance)
 {
   int i;
 
+  if(instance == NULL) {
+    PRINTF("RPL: local repair requested for instance NULL\n");
+    return;
+  }
   PRINTF("RPL: Starting a local instance repair\n");
   for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; i++) {
     if(instance->dag_table[i].used) {
