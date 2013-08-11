@@ -132,7 +132,9 @@ rpl_verify_header(int uip_ext_opt_offset)
     if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
       PRINTF("RPL: Rank error signalled in RPL option!\n");
       /* We should try to repair it, not implemented for the moment */
-      return 3;
+      rpl_reset_dio_timer(instance);
+      /* Forward the packet anyway. */
+      return 0;
     }
     PRINTF("RPL: Single error tolerated\n");
     UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_RANK_ERR;
