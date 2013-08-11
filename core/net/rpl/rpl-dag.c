@@ -135,8 +135,8 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
      * neighbor table. */
     nbr_table_unlock(rpl_parents, dag->preferred_parent);
     nbr_table_lock(rpl_parents, p);
+    dag->preferred_parent = p;
   }
-  dag->preferred_parent = p;
 }
 /*---------------------------------------------------------------------------*/
 /* Greater-than function for the lollipop counter.                      */
