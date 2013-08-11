@@ -1445,6 +1445,11 @@ output(uip_lladdr_t *localdest)
     framer_hdrlen = 21;
   }
   packetbuf_clear();
+
+  /* We must set the max transmissions attribute again after clearing
+     the buffer. */
+  packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
+                     SICSLOWPAN_MAX_MAC_TRANSMISSIONS);
 #else /* USE_FRAMER_HDRLEN */
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
@@ -1590,6 +1595,7 @@ input(void)
   uint16_t frag_size = 0;
   /* offset of the fragment in the IP packet */
   uint8_t frag_offset = 0;
+  uint8_t is_fragment = 0;
 #if SICSLOWPAN_CONF_FRAG
   /* tag of the fragment */
   uint16_t frag_tag = 0;
@@ -1626,6 +1632,7 @@ input(void)
       rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
       /*      printf("frag1 %d %d\n", reass_tag, frag_tag);*/
       first_fragment = 1;
+      is_fragment = 1;
       break;
     case SICSLOWPAN_DISPATCH_FRAGN:
       /*
@@ -1648,10 +1655,28 @@ input(void)
       if(processed_ip_in_len + packetbuf_datalen() - rime_hdr_len >= frag_size) {
         last_fragment = 1;
       }
+      is_fragment = 1;
       break;
     default:
       break;
   }
+
+  /* We are currently reassembling a packet, but have just received the first
+   * fragment of another packet. We can either ignore it and hope to receive
+   * the rest of the under-reassembly packet fragments, or we can discard the
+   * previous packet altogether, and start reassembling the new packet.
+   *
+   * We discard the previous packet, and start reassembling the new packet.
+   * This lessens the negative impacts of too high SICSLOWPAN_REASS_MAXAGE.
+   */
+#define PRIORITIZE_NEW_PACKETS 1
+#if PRIORITIZE_NEW_PACKETS
+  if(processed_ip_in_len > 0 && first_fragment
+      && !rimeaddr_cmp(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER))) {
+    sicslowpan_len = 0;
+    processed_ip_in_len = 0;
+  }
+#endif /* PRIORITIZE_NEW_PACKETS */
 
   if(processed_ip_in_len > 0) {
     /* reassembly is ongoing */
@@ -1674,6 +1699,12 @@ input(void)
      * start it if we received a fragment
      */
     if((frag_size > 0) && (frag_size <= UIP_BUFSIZE)) {
+      /* We are currently not reassembling a packet, but have received a packet fragment
+       * that is not the first one. */
+      if(is_fragment && !first_fragment) {
+        return;
+      }
+
       sicslowpan_len = frag_size;
       reass_tag = frag_tag;
       timer_set(&reass_timer, SICSLOWPAN_REASS_MAXAGE * CLOCK_SECOND / 16);
