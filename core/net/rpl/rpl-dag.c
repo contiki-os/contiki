@@ -106,6 +106,20 @@ static void
 rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
 {
   if(dag != NULL && dag->preferred_parent != p) {
+    PRINTF("RPL: rpl_set_preferred_parent ");
+    if(p != NULL) {
+      PRINT6ADDR(rpl_get_parent_ipaddr(p));
+    } else {
+      PRINTF("NULL");
+    }
+    PRINTF(" used to be ");
+    if(dag->preferred_parent != NULL) {
+      PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
+    } else {
+      PRINTF("NULL");
+    }
+    PRINTF("\n");
+
     /* Always keep the preferred parent locked, so it remains in the
      * neighbor table. */
     nbr_table_unlock(rpl_parents, dag->preferred_parent);
@@ -288,11 +302,13 @@ rpl_repair_root(uint8_t instance_id)
   instance = rpl_get_instance(instance_id);
   if(instance == NULL ||
      instance->current_dag->rank != ROOT_RANK(instance)) {
+    PRINTF("RPL: rpl_repair_root triggered but not root\n");
     return 0;
   }
 
   RPL_LOLLIPOP_INCREMENT(instance->current_dag->version);
   RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
+  PRINTF("RPL: rpl_repair_root initiating global repair with version %d\n", instance->current_dag->version);
   rpl_reset_dio_timer(instance);
   return 1;
 }
@@ -514,6 +530,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
    * Typically, the parent is added upon receiving a DIO. */
   uip_lladdr_t *lladdr = uip_ds6_nbr_lladdr_from_ipaddr(addr);
 
+  PRINTF("RPL: rpl_add_parent lladdr %p\n", lladdr);
   if(lladdr != NULL) {
     /* Add parent in rpl_parents */
     p = nbr_table_add_lladdr(rpl_parents, (rimeaddr_t *)lladdr);
@@ -990,6 +1007,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
   } else {
     dag->rank = dag->instance->of->calculate_rank(p, 0);
     dag->min_rank = dag->rank;
+    PRINTF("RPL: rpl_process_parent_event global repair\n");
     rpl_process_parent_event(dag->instance, p);
   }
 
@@ -1031,6 +1049,7 @@ rpl_recalculate_ranks(void)
   while(p != NULL) {
     if(p->dag != NULL && p->dag->instance && p->updated) {
       p->updated = 0;
+      PRINTF("RPL: rpl_process_parent_event recalculate_ranks\n");
       if(!rpl_process_parent_event(p->dag->instance, p)) {
         PRINTF("RPL: A parent was dropped\n");
       }
@@ -1210,7 +1229,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINTF(", rank %u, min_rank %u, ",
 	 instance->current_dag->rank, instance->current_dag->min_rank);
   PRINTF("parent rank %u, parent etx %u, link metric %u, instance etx %u\n",
-	 p->rank, p->mc.obj.etx, p->link_metric, instance->mc.obj.etx);
+	 p->rank, -1/*p->mc.obj.etx*/, p->link_metric, instance->mc.obj.etx);
 
   /* We have allocated a candidate parent; process the DIO further. */
 
