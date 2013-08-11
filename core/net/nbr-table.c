@@ -157,7 +157,7 @@ nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item, int val
 }
 /*---------------------------------------------------------------------------*/
 static nbr_table_key_t *
-nbr_table_allocate()
+nbr_table_allocate(void)
 {
   nbr_table_key_t *key;
   int least_used_count = 0;
