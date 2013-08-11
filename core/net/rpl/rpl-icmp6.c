@@ -698,6 +698,14 @@ dao_input(void)
       p->updated = 1;
       return;
     }
+
+    /* If we get the DAO from our parent, we also have a loop. */
+    if(p != NULL && p == dag->preferred_parent) {
+      PRINTF("RPL: Loop detected when receiving a unicast DAO from our parent\n");
+      p->rank = INFINITE_RANK;
+      p->updated = 1;
+      return;
+    }
   }
 
   PRINTF("RPL: adding DAO route\n");
