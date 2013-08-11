@@ -113,11 +113,11 @@ neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
   /* Do not penalize the ETX when collisions or transmission errors occur. */
   if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
     int recorded_etx = p->link_metric;
-    int packet_etx = numtx;
+    int packet_etx = numtx * RPL_DAG_MC_ETX_DIVISOR;
     int new_etx;
 
     if(status == MAC_TX_NOACK) {
-      packet_etx = MAX_LINK_METRIC;
+      packet_etx = MAX_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
     }
 
     new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
