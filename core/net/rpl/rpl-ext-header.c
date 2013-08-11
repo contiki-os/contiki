@@ -255,10 +255,8 @@ rpl_update_header_final(uip_ipaddr_t *addr)
 void
 rpl_remove_header(void)
 {
-  int last_uip_ext_len;
   uint8_t temp_len;
 
-  last_uip_ext_len = uip_ext_len;
   uip_ext_len = 0;
 
   PRINTF("RPL: Verifying the presence of the RPL header option\n");
