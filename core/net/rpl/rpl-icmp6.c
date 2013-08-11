@@ -750,9 +750,27 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
 
   /* Destination Advertisement Object */
 
+  if(parent == NULL) {
+    PRINTF("RPL dao_output_target error parent NULL\n");
+    return;
+  }
+
   dag = parent->dag;
+  if(dag == NULL) {
+    PRINTF("RPL dao_output_target error dag NULL\n");
+    return;
+  }
+
   instance = dag->instance;
 
+  if(instance == NULL) {
+    PRINTF("RPL dao_output_target error instance NULL\n");
+    return;
+  }
+  if(prefix == NULL) {
+    PRINTF("RPL dao_output_target error prefix NULL\n");
+    return;
+  }
 #ifdef RPL_DEBUG_DAO_OUTPUT
   RPL_DEBUG_DAO_OUTPUT(parent);
 #endif
