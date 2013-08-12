@@ -680,19 +680,15 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
   struct dns_answer *ans;
 
   if(record_type == DNS_TYPE_SRV || record_type == DNS_TYPE_TXT) {
-
     queryptr = encode_name(queryptr, resolv_ownername);
     *queryptr-- = 0;
     queryptr = encode_name(queryptr, serviceptr->name);
     *queryptr-- = 0;
     queryptr = encode_name(queryptr, "local");
-
   } else if(record_type == DNS_TYPE_PTR) {
-
     queryptr = encode_name(queryptr, serviceptr->name);
     *queryptr-- = 0;
     queryptr = encode_name(queryptr, "local");
-
   }
 
   ans = (struct dns_answer *)queryptr;
@@ -711,12 +707,11 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
   *queryptr++ = 120;
 
   if(record_type == DNS_TYPE_SRV) {
-
     /* Resource length: 2 bytes
      */
     *queryptr++ = 0;
     /* Port + hostname - ".local" + ptr */
-    *queryptr++ = strlen((char*)resolv_hostname) - 1;
+    *queryptr++ = strlen((char *)resolv_hostname) - 1;
 
     /* Priority and weight: 4 bytes
      */
@@ -736,15 +731,13 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
     queryptr -= 7;
     /* Use name compression to refer back to the first .local */
     *queryptr++ = 0xc0;
-    *queryptr++ = sizeof(struct dns_hdr) + 2 + strlen((char*)resolv_ownername) + strlen((char*)serviceptr->name);
-
+    *queryptr++ = sizeof(struct dns_hdr) + 2 + strlen((char *)resolv_ownername) + strlen((char *)serviceptr->name);
   } else if(record_type == DNS_TYPE_PTR) {
-
     /* Resource length: 2 bytes
      */
     *queryptr++ = 0;
     /* Size of ptr + owner name */
-    *queryptr++ = 2 + strlen((char*)resolv_ownername);
+    *queryptr++ = 2 + strlen((char *)resolv_ownername);
 
     /* Data
      */
@@ -753,9 +746,7 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
     /* Use name compression to refer back to the first name */
     *queryptr++ = 0xc0;
     *queryptr++ = sizeof(struct dns_hdr);    
-
   } else if(record_type == DNS_TYPE_TXT) {
-
     if(strlen(serviceptr->txt) > 0) {
       /* Resource length: 2 bytes
        */
@@ -770,7 +761,6 @@ mdns_write_announce_service_record(unsigned char *queryptr, uint8_t *count, uint
       *queryptr++ = 0x01;
       *queryptr++ = 0x00;
     }
-
   }
 
   ++(*count);
@@ -1234,7 +1224,6 @@ newdata(void)
   skip_to_next_answer:
 #if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_SUPPORTS_DNS_SD
     if(ans->type == UIP_HTONS(DNS_TYPE_SRV)) {
-
       for(i = 0; i < RESOLV_ENTRIES; ++i) {
         namemapptr = &names[i];
         /* Find service name in SRV record, skip ownername */
@@ -1396,7 +1385,6 @@ PROCESS_THREAD(resolv_process, ev, data)
             for(i = 0; i < RESOLV_ENTRIES; ++i) {
               serviceptr = &services[i];
               if(serviceptr->state == STATE_NEW) {
-
                 len = mdns_prep_service_announce_packet(DNS_TYPE_SRV, serviceptr);
 
                 uip_udp_packet_sendto(resolv_conn, uip_appdata,
@@ -1411,7 +1399,6 @@ PROCESS_THREAD(resolv_process, ev, data)
 
                 uip_udp_packet_sendto(resolv_conn, uip_appdata,
                                   len, &resolv_mdns_addr, UIP_HTONS(MDNS_PORT));
-
               }
             }
 #endif /* RESOLV_CONF_SUPPORTS_DNS_SD */
@@ -1829,8 +1816,8 @@ resolv_add_service(const char *name, const char *txt, int port)
     serviceptr = &services[i];
     if(serviceptr->state == STATE_UNUSED) {
       memset(serviceptr, 0, sizeof(*serviceptr));
-      strncpy(serviceptr->name, name, sizeof(serviceptr->name));
-      strncpy(serviceptr->txt, txt, sizeof(serviceptr->txt));
+      strncpy(serviceptr->name, name, sizeof(serviceptr->name) - 1);
+      strncpy(serviceptr->txt, txt, sizeof(serviceptr->txt) - 1);
       serviceptr->state = STATE_NEW;
       serviceptr->port = port;
       break;
