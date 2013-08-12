@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,7 @@ coap_parse_int_option(uint8_t *bytes, size_t length)
   while (i<length)
   {
     var <<= 8;
-    var |= 0xFF & bytes[i++];
+    var |= bytes[i++];
   }
   return var;
 }
@@ -117,7 +117,7 @@ static
 size_t
 coap_set_option_header(unsigned int delta, size_t length, uint8_t *buffer)
 {
-  size_t written = 1;
+  size_t written = 0;
 
   buffer[0] = coap_option_nibble(delta)<<4 | coap_option_nibble(length);
 
@@ -127,19 +127,19 @@ coap_set_option_header(unsigned int delta, size_t length, uint8_t *buffer)
   {
     if (*x>268)
     {
-      buffer[written++] = (*x-269)>>8;
-      buffer[written++] = (*x-269);
+      buffer[++written] = (*x-269)>>8;
+      buffer[++written] = (*x-269);
     }
-    else if (delta>12)
+    else if (*x>12)
     {
-      buffer[written++] = (*x-13);
+      buffer[++written] = (*x-13);
     }
   }
   while (x!=&length && (x=&length));
 
   PRINTF("WRITTEN %u B opt header\n", written);
 
-  return written;
+  return ++written;
 }
 /*-----------------------------------------------------------------------------------*/
 static
@@ -148,14 +148,19 @@ coap_serialize_int_option(unsigned int number, unsigned int current_number, uint
 {
   size_t i = 0;
 
-  if (0xFF000000 & value) buffer[++i] = (uint8_t) (0xFF & value>>24);
-  if (0xFFFF0000 & value) buffer[++i] = (uint8_t) (0xFF & value>>16);
-  if (0xFFFFFF00 & value) buffer[++i] = (uint8_t) (0xFF & value>>8);
-  if (0xFFFFFFFF & value) buffer[++i] = (uint8_t) (0xFF & value);
+  if (0xFF000000 & value) ++i;
+  if (0xFFFF0000 & value) ++i;
+  if (0xFFFFFF00 & value) ++i;
+  if (0xFFFFFFFF & value) ++i;
 
   PRINTF("OPTION %u (delta %u, len %u)\n", number, number - current_number, i);
 
-  i += coap_set_option_header(number - current_number, i, buffer);
+  i = coap_set_option_header(number - current_number, i, buffer);
+
+  if (0xFF000000 & value) buffer[i++] = (uint8_t) (value>>24);
+  if (0xFFFF0000 & value) buffer[i++] = (uint8_t) (value>>16);
+  if (0xFFFFFF00 & value) buffer[i++] = (uint8_t) (value>>8);
+  if (0xFFFFFFFF & value) buffer[i++] = (uint8_t) (value);
 
   return i;
 }
@@ -319,8 +324,8 @@ coap_serialize_message(void *packet, uint8_t *buffer)
   coap_pkt->buffer[0] |= COAP_HEADER_TYPE_MASK & (coap_pkt->type)<<COAP_HEADER_TYPE_POSITION;
   coap_pkt->buffer[0] |= COAP_HEADER_TOKEN_LEN_MASK & (coap_pkt->token_len)<<COAP_HEADER_TOKEN_LEN_POSITION;
   coap_pkt->buffer[1] = coap_pkt->code;
-  coap_pkt->buffer[2] = 0xFF & (coap_pkt->mid)>>8;
-  coap_pkt->buffer[3] = 0xFF & coap_pkt->mid;
+  coap_pkt->buffer[2] = (uint8_t) ((coap_pkt->mid)>>8);
+  coap_pkt->buffer[3] = (uint8_t) (coap_pkt->mid);
 
   /* set Token */
   PRINTF("Token (len %u)", coap_pkt->token_len);
@@ -817,8 +822,6 @@ coap_get_header_token(void *packet, const uint8_t **token)
 {
   coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
 
-  if (!IS_OPTION(coap_pkt, COAP_OPTION_TOKEN)) return 0;
-
   *token = coap_pkt->token;
   return coap_pkt->token_len;
 }
@@ -831,7 +834,6 @@ coap_set_header_token(void *packet, const uint8_t *token, size_t token_len)
   coap_pkt->token_len = MIN(COAP_TOKEN_LEN, token_len);
   memcpy(coap_pkt->token, token, coap_pkt->token_len);
 
-  SET_OPTION(coap_pkt, COAP_OPTION_TOKEN);
   return coap_pkt->token_len;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -1008,7 +1010,7 @@ coap_set_header_observe(void *packet, uint32_t observe)
 {
   coap_packet_t *const coap_pkt = (coap_packet_t *) packet;
 
-  coap_pkt->observe = observe;
+  coap_pkt->observe = 0x00FFFFFF & observe;
   SET_OPTION(coap_pkt, COAP_OPTION_OBSERVE);
   return 1;
 }

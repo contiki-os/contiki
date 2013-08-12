@@ -57,17 +57,6 @@
 #define UIP_ND6_INFINITE_LIFETIME       0xFFFFFFFF
 /** @} */
 
-#ifndef UIP_CONF_ND6_DEF_MAXDADNS
-/** \brief Do not try DAD when using EUI-64 as allowed by draft-ietf-6lowpan-nd-15 section 8.2 */
-#if UIP_CONF_LL_802154
-#define UIP_ND6_DEF_MAXDADNS 0
-#else /* UIP_CONF_LL_802154 */
-#define UIP_ND6_DEF_MAXDADNS 1
-#endif /* UIP_CONF_LL_802154 */
-#else /* UIP_CONF_ND6_DEF_MAXDADNS */
-#define UIP_ND6_DEF_MAXDADNS UIP_CONF_ND6_DEF_MAXDADNS
-#endif /* UIP_CONF_ND6_DEF_MAXDADNS */
-
 /** \name RFC 4861 Host constant */
 /** @{ */
 #define UIP_ND6_MAX_RTR_SOLICITATION_DELAY 1
@@ -82,6 +71,11 @@
 #else
 #define UIP_ND6_SEND_RA UIP_CONF_ND6_SEND_RA
 #endif
+#ifndef UIP_CONF_ND6_SEND_NA
+#define UIP_ND6_SEND_NA                     1   /* enable/disable NA sending */
+#else
+#define UIP_ND6_SEND_NA UIP_CONF_ND6_SEND_NA
+#endif
 #define UIP_ND6_MAX_RA_INTERVAL             600
 #define UIP_ND6_MIN_RA_INTERVAL             (UIP_ND6_MAX_RA_INTERVAL / 3)
 #define UIP_ND6_M_FLAG                      0
@@ -95,6 +89,16 @@
 #define UIP_ND6_MAX_RA_DELAY_TIME_MS        500 /*milli seconds*/
 /** @} */
 
+#ifndef UIP_CONF_ND6_DEF_MAXDADNS
+/** \brief Do not try DAD when using EUI-64 as allowed by draft-ietf-6lowpan-nd-15 section 8.2 */
+#if UIP_CONF_LL_802154
+#define UIP_ND6_DEF_MAXDADNS 0
+#else /* UIP_CONF_LL_802154 */
+#define UIP_ND6_DEF_MAXDADNS UIP_ND6_SEND_NA
+#endif /* UIP_CONF_LL_802154 */
+#else /* UIP_CONF_ND6_DEF_MAXDADNS */
+#define UIP_ND6_DEF_MAXDADNS UIP_CONF_ND6_DEF_MAXDADNS
+#endif /* UIP_CONF_ND6_DEF_MAXDADNS */
 
 /** \name RFC 4861 Node constant */
 #define UIP_ND6_MAX_MULTICAST_SOLICIT  3

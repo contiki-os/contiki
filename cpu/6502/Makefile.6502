@@ -30,8 +30,6 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.35 2011/01/23 16:30:30 oliverschmidt Exp $
-#
 
 ifndef CC65_HOME
   ${error CC65_HOME not defined! You must specify where cc65 resides}
@@ -66,7 +64,7 @@ AR = ar65
 # The apps coming with Contiki run even on a 0x100 byte stack.
 
 ASFLAGS = -t $(TARGET)
-CFLAGS += -t $(TARGET) -Or
+CFLAGS += -t $(TARGET) -Or -W -unused-param,-unused-var,-const-comparison
 LDFLAGS = $(STARTADDR_FLAG) -t $(TARGET) -m contiki-$(TARGET).map -D __STACKSIZE__=0x200
 AROPTS  = a
 
@@ -75,19 +73,23 @@ AROPTS  = a
 .SUFFIXES:
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
-$(OBJECTDIR)/%.o: %.c
-	$(CC) -c -o $@ $(CFLAGS) --create-dep $(@:.o=.d) $<
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) -c -o $@ $(CFLAGS) --create-dep $(@:.o=.d) $<
 
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
-	$(CC) -c -o $@ $(CFLAGS) -DAUTOSTART_ENABLE --create-dep $(@:.o=.d) $<
+	$(TRACE_CC)
+	$(Q)$(CC) -c -o $@ $(CFLAGS) -DAUTOSTART_ENABLE --create-dep $(@:.o=.d) $<
 
 CUSTOM_RULE_LINK = 1
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
-	$(LD) -o $@ $(LDFLAGS) -u _main $^ $(TARGET).lib
+	$(TRACE_LD)
+	$(Q)$(LD) -o $@ $(LDFLAGS) -u _main $^ $(TARGET).lib
 
 %.eth: $(OBJECTDIR)/%.o
-	$(LD) -o $@ -t module -m $@.map $<
+	$(TRACE_LD)
+	$(Q)$(LD) -o $@ -t module -m $@.map $<
 
 ifdef ETHERNET
 $(ETHERNET)-eth.S: $(ETHERNET).eth

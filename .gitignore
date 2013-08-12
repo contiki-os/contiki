@@ -17,12 +17,13 @@
 *.esb
 *.avr-raven
 *.exp5438
-*.mb851
+*.mbxxx
 *.win32
 *.apple2enh
 *.atari
 *.c128
 *.c64
+*.cc2538dk
 *.report
 summary
 *.summary

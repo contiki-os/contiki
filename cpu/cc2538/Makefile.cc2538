@@ -59,14 +59,16 @@ CONTIKI_SOURCEFILES += $(USB_CORE_SOURCEFILES) $(USB_ARCH_SOURCEFILES)
 ### Always re-build ieee-addr.o in case the command line passes a new NODEID
 FORCE:
 
-$(OBJECTDIR)/ieee-addr.o: ieee-addr.c FORCE
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJECTDIR)/ieee-addr.o: ieee-addr.c FORCE | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -c $< -o $@
 
 ### Compilation rules
 CUSTOM_RULE_LINK=1
 
 %.elf: $(TARGET_STARTFILES) %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
-	$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} -o $@
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} -o $@
 
 %.bin: %.elf
 	$(OBJCOPY) $(OBJCOPY_FLAGS) $< $@
@@ -80,7 +82,9 @@ CUSTOM_RULE_LINK=1
 LDGENFLAGS += $(addprefix -D,$(subst $(COMMA), ,$(DEFINES)))
 LDGENFLAGS += $(addprefix -I,$(SOURCEDIRS))
 LDGENFLAGS += -imacros "contiki-conf.h"
-LDGENFLAGS += -P -E
+LDGENFLAGS += -x c -P -E
 
-$(LDSCRIPT): $(CONTIKI_CPU)/cc2538.lds FORCE
-	$(CPP) $(LDGENFLAGS) $< -o $@
+# NB: Assumes LDSCRIPT was not overridden and is in $(OBJECTDIR)
+$(LDSCRIPT): $(CONTIKI_CPU)/cc2538.lds FORCE | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(LDGENFLAGS) $< -o $@

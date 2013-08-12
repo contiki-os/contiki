@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2013, Matthias Kovatsch
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@
 #define COAP_MAX_OBSERVERS      2
 */
 
-/* Filtering can be disabled to save space. */
+/* Filtering .well-known/core per query can be disabled to save space. */
 /*
 #undef COAP_LINK_FORMAT_FILTERING
 #define COAP_LINK_FORMAT_FILTERING      0

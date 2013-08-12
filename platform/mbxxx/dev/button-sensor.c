@@ -1,3 +1,8 @@
+/**
+ * \addtogroup mbxxx-platform
+ *
+ * @{
+ */
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -40,7 +45,6 @@
 /*---------------------------------------------------------------------------*/
 
 #include "dev/button-sensor.h"
-#include "hal.h"
 #include "hal/micro/micro-common.h"
 #include "hal/micro/cortexm3/micro-common.h"
 
@@ -48,22 +52,55 @@
 
 #define DEBOUNCE 1
 
+/**
+ * \brief Port and pin for BUTTON0.
+ */
+
+/*
+#undef  BUTTON_S1
+#define BUTTON_S1             PORTA_PIN(7)
+#define BUTTON_S1_INPUT_GPIO  BUTTON_INPUT_GPIO(PORTA)
+#define BUTTON_S1_GPIO_PIN    7
+#define BUTTON_S1_OUTPUT_GPIO GPIO_PAOUT
+*/
+
+#undef  BUTTON_S1
+#define BUTTON_S1             PORTx_PIN(boardDescription->io->buttons[0].gpioPort, boardDescription->io->buttons[0].gpioPin)
+#define BUTTON_S1_INPUT_GPIO  BUTTON_INPUT_GPIO(boardDescription->io->buttons[0].gpioPort)
+#define BUTTON_S1_GPIO_PIN    boardDescription->io->buttons[0].gpioPin
+#define BUTTON_S1_OUTPUT_GPIO GPIO_PAOUT
+
+/**
+ * \brief Point the proper IRQ at the desired pin for BUTTON0.
+ */
+#define BUTTON_S1_SEL()       do { GPIO_IRQCSEL = BUTTON_S1; } while(0)
+/**
+ * \brief The interrupt service routine for BUTTON_S1.
+ */
+#define BUTTON_S1_ISR         halIrqCIsr
+/**
+ * \brief The interrupt configuration register for BUTTON_S1.
+ */
+#define BUTTON_S1_INTCFG      GPIO_INTCFGC
+/**
+ * \brief The interrupt bit for BUTTON_S1.
+ */
+#define BUTTON_S1_INT_EN_BIT  INT_IRQC
+/**
+ * \brief The interrupt bit for BUTTON_S1.
+ */
+#define BUTTON_S1_FLAG_BIT    INT_IRQCFLAG
+/**
+ * \brief The missed interrupt bit for BUTTON_S1.
+ */
+#define BUTTON_S1_MISS_BIT    INT_MISSIRQC
+
 #if DEBOUNCE
 static struct timer debouncetimer;
 #endif
 
 #define FALSE 0
 #define TRUE  1
-
-uint8_t button_flags = 0;
-
-#define BUTTON_ACTIVE_FLG 0x01
-#define BUTTON_PRESSED_FLG 0x02
-
-#define BUTTON_HAS_BEEN_PRESSED() (button_flags & BUTTON_PRESSED_FLG)
-#define BUTTON_HAS_BEEN_RELEASED() (!(button_flags & BUTTON_PRESSED_FLG))
-#define BUTTON_SET_PRESSED() (button_flags |= BUTTON_PRESSED_FLG)
-#define BUTTON_SET_RELEASED() (button_flags &= ~BUTTON_PRESSED_FLG)
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -74,67 +111,43 @@ init(void)
   #endif
   
   /* Configure GPIO for BUTTONSs */
-  halInitButton();
+  
+  //Input, pulled up or down (selected by GPIO_PxOUT: 0 = pull-down, 1 = pull-up).  
+  halGpioConfig(BUTTON_S1,GPIOCFG_IN_PUD);
+  BUTTON_S1_OUTPUT_GPIO |= GPIOOUT_PULLUP << BUTTON_S1_GPIO_PIN;
+  
+  
+  BUTTON_S1_SEL();
+  BUTTON_S1_INTCFG = 0x40;  // Falling edge triggered.  
   
 }
 /*---------------------------------------------------------------------------*/
 static void
 activate(void)
 {
-  button_flags |= BUTTON_ACTIVE_FLG;
+  INT_CFGSET = BUTTON_S1_INT_EN_BIT;
 }
 /*---------------------------------------------------------------------------*/
 static void
 deactivate(void)
 {
-  button_flags &= ~BUTTON_ACTIVE_FLG;
+  INT_CFGCLR = BUTTON_S1_INT_EN_BIT;
 }
 /*---------------------------------------------------------------------------*/
 static int
 active(void)
 {
-  return (button_flags & BUTTON_ACTIVE_FLG)? 1 : 0;
+  return (INT_CFGSET & BUTTON_S1_INT_EN_BIT) ? TRUE : FALSE ;
 }
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-  if(!active()){
-    return 0;
-  }
-
-
 #if DEBOUNCE
-  if(timer_expired(&debouncetimer)) {
-
-    if(halGetButtonStatus(BUTTON_S1) == BUTTON_PRESSED){
-
-      timer_set(&debouncetimer, CLOCK_SECOND / 10);
-      if(BUTTON_HAS_BEEN_RELEASED()){ // Button has been previously released.
-        sensors_changed(&button_sensor);
-      }
-      BUTTON_SET_PRESSED();
-
-      return 1;
-    }
-    else {
-      BUTTON_SET_RELEASED();
-      return 0;
-    }
-  }
-  else {
-    return 0;
-  }
+  return (BUTTON_S1_INPUT_GPIO & (1<<BUTTON_S1_GPIO_PIN)) || !timer_expired(&debouncetimer);
 #else
-  if(halGetButtonStatus(BUTTON_S1) == BUTTON_PRESSED){
-    sensors_changed(&button_sensor);
-    return 1;
-  }
-  else {
-    return 0;
-  }
+  return BUTTON_S1_INPUT_GPIO & (1<<BUTTON_S1_GPIO_PIN);
 #endif
-
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -167,7 +180,6 @@ status(int type)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-#if 0
 void BUTTON_S1_ISR(void)
 {
   
@@ -192,8 +204,8 @@ void BUTTON_S1_ISR(void)
   
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);  
 }
-#endif
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
 	       value, configure, status);
 
+/** @} */

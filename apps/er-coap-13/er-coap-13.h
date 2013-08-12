@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,8 @@
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#ifndef COAP_12_H_
-#define COAP_12_H_
+#ifndef COAP_13_H_
+#define COAP_13_H_
 
 #include <stddef.h> /* for size_t */
 #include "contiki-net.h"
@@ -92,8 +92,8 @@
 #define COAP_MAX_ATTEMPTS             4
 #endif /* COAP_MAX_ATTEMPTS */
 
-#define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+#define UIP_IP_BUF    ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define UIP_UDP_BUF   ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
 
 /* Bitmap for set options */
 enum { OPTION_MAP_SIZE = sizeof(uint8_t) * 8 };
@@ -153,7 +153,8 @@ typedef enum {
   PACKET_SERIALIZATION_ERROR,
 
   /* Erbium hooks */
-  MANUAL_RESPONSE
+  MANUAL_RESPONSE,
+  PING_RESPONSE
 
 } coap_status_t;
 
@@ -171,7 +172,6 @@ typedef enum {
   COAP_OPTION_MAX_AGE = 14,       /* 0-4 B */
   COAP_OPTION_URI_QUERY = 15,     /* 0-270 B */
   COAP_OPTION_ACCEPT = 16,        /* 0-2 B */
-  COAP_OPTION_TOKEN = 19,         /* 1-8 B */
   COAP_OPTION_LOCATION_QUERY = 20, /* 1-270 B */
   COAP_OPTION_BLOCK2 = 23,        /* 1-3 B */
   COAP_OPTION_BLOCK1 = 27,        /* 1-3 B */
@@ -379,4 +379,4 @@ int coap_set_header_size(void *packet, uint32_t size);
 int coap_get_payload(void *packet, const uint8_t **payload);
 int coap_set_payload(void *packet, const void *payload, size_t length);
 
-#endif /* COAP_12_H_ */
+#endif /* COAP_13_H_ */

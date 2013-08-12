@@ -311,7 +311,9 @@ dio_input(void)
       dio.mc.prec = buffer[i + 4] & 0xf;
       dio.mc.length = buffer[i + 5];
 
-      if(dio.mc.type == RPL_DAG_MC_ETX) {
+      if(dio.mc.type == RPL_DAG_MC_NONE) {
+        /* No metric container: do nothing */
+      } else if(dio.mc.type == RPL_DAG_MC_ETX) {
         dio.mc.obj.etx = get16(buffer, i + 6);
 
         PRINTF("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, ETX %u\n",
@@ -655,7 +657,7 @@ dao_input(void)
 
   if(lifetime == RPL_ZERO_LIFETIME) {
     /* No-Path DAO received; invoke the route purging routine. */
-    if(rep != NULL && rep->state.saved_lifetime == 0 && rep->length == prefixlen) {
+    if(rep != NULL && rep->state.saved_lifetime == 0 && rep->length == prefixlen && uip_ipaddr_cmp(&rep->nexthop, &dao_sender_addr)) {
       PRINTF("RPL: Setting expiration timer for prefix ");
       PRINT6ADDR(&prefix);
       PRINTF("\n");
@@ -707,27 +709,36 @@ dao_input(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-dao_output(rpl_parent_t *n, uint8_t lifetime)
+dao_output(rpl_parent_t *parent, uint8_t lifetime)
 {
-  rpl_dag_t *dag;
-  rpl_instance_t *instance;
-  unsigned char *buffer;
-  uint8_t prefixlen;
-  uip_ipaddr_t prefix;
-  int pos;
-
   /* Destination Advertisement Object */
+  uip_ipaddr_t prefix;
 
   if(get_global_addr(&prefix) == 0) {
     PRINTF("RPL: No global address set for this node - suppressing DAO\n");
     return;
   }
 
-  dag = n->dag;
+  /* Sending a DAO with own prefix as target */
+  dao_output_target(parent, &prefix, lifetime);
+}
+/*---------------------------------------------------------------------------*/
+void
+dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
+{
+  rpl_dag_t *dag;
+  rpl_instance_t *instance;
+  unsigned char *buffer;
+  uint8_t prefixlen;
+  int pos;
+
+  /* Destination Advertisement Object */
+
+  dag = parent->dag;
   instance = dag->instance;
 
 #ifdef RPL_DEBUG_DAO_OUTPUT
-  RPL_DEBUG_DAO_OUTPUT(n);
+  RPL_DEBUG_DAO_OUTPUT(parent);
 #endif
 
   buffer = UIP_ICMP_PAYLOAD;
@@ -752,12 +763,12 @@ dao_output(rpl_parent_t *n, uint8_t lifetime)
 #endif /* RPL_DAO_SPECIFY_DAG */
 
   /* create target subopt */
-  prefixlen = sizeof(prefix) * CHAR_BIT;
+  prefixlen = sizeof(*prefix) * CHAR_BIT;
   buffer[pos++] = RPL_OPTION_TARGET;
   buffer[pos++] = 2 + ((prefixlen + 7) / CHAR_BIT);
   buffer[pos++] = 0; /* reserved */
   buffer[pos++] = prefixlen;
-  memcpy(buffer + pos, &prefix, (prefixlen + 7) / CHAR_BIT);
+  memcpy(buffer + pos, prefix, (prefixlen + 7) / CHAR_BIT);
   pos += ((prefixlen + 7) / CHAR_BIT);
 
   /* Create a transit information sub-option. */
@@ -769,12 +780,12 @@ dao_output(rpl_parent_t *n, uint8_t lifetime)
   buffer[pos++] = lifetime;
 
   PRINTF("RPL: Sending DAO with prefix ");
-  PRINT6ADDR(&prefix);
+  PRINT6ADDR(prefix);
   PRINTF(" to ");
-  PRINT6ADDR(&n->addr);
+  PRINT6ADDR(&parent->addr);
   PRINTF("\n");
 
-  uip_icmp6_send(&n->addr, ICMP6_RPL, RPL_CODE_DAO, pos);
+  uip_icmp6_send(&parent->addr, ICMP6_RPL, RPL_CODE_DAO, pos);
 }
 /*---------------------------------------------------------------------------*/
 static void

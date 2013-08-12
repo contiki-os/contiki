@@ -92,8 +92,8 @@
 #define COAP_MAX_ATTEMPTS             4
 #endif /* COAP_MAX_ATTEMPTS */
 
-#define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+#define UIP_IP_BUF    ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define UIP_UDP_BUF   ((struct uip_udp_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPH_LEN])
 
 /* Bitmap for set options */
 enum { OPTION_MAP_SIZE = sizeof(uint8_t) * 8 };

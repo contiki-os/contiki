@@ -73,28 +73,28 @@ CFLAGS += -I$(OBJECTDIR) -I$(CONTIKI_CPU)/board -DBOARD=$(TARGET)
 CPPFLAGS += -P -C ${addprefix -D,${subst $(COMMA), ,$(DEFINES)}}
 
 
-$(OBJECTDIR)/board.h: $(OBJECTDIR) 
+$(OBJECTDIR)/board.h: $(CONTIKI_CPU)/board/board.h | $(OBJECTDIR)
 ifeq ($(HOST_OS),Windows)
-	ln -f $(CONTIKI_CPU)/board/board.h $(OBJECTDIR)/board.h
+	ln -f $< $@
 else
-	ln -sf ../$(CONTIKI_CPU)/board/board.h $(OBJECTDIR)/board.h
+	ln -sf ../$< $@
 endif
 
-$(OBJECTDIR)/%.lds: $(CONTIKI_CPU)/%.lds.S
+$(OBJECTDIR)/%.lds: $(CONTIKI_CPU)/%.lds.S | $(OBJECTDIR)
 	$(CPP) $(CPPFLAGS) $< > $@
 
-$(OBJECTDIR)/isr.o: $(CONTIKI_CPU)/src/isr.c
+$(OBJECTDIR)/isr.o: $(CONTIKI_CPU)/src/isr.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c
 
-$(OBJECTDIR)/%.o: %.c
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c $< -o $@
 
 CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
 
-$(OBJECTDIR)/%.o: %.S
+$(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(AFLAGS) $(ARM_FLAGS) $< -c  -o $@
 
 CUSTOM_RULE_C_TO_CO=yes

@@ -1,35 +1,29 @@
 all: er-example-server er-example-client
-# Use this target explicitly if requried: er-plugtest-server
+# use this target explicitly if requried: er-plugtest-server
 
-CONTIKI=../..
-CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-
-# for static routing, if enabled
-ifeq ($(TARGET),$(filter $(TARGET),sky cooja))
-PROJECT_SOURCEFILES += static-routing.c
-endif
-
-# variable for root Makefile.include
-WITH_UIP6=1
-# for some platforms
-UIP_CONF_IPV6=1
-
-# radio configuration
-#CFLAGS += -DRF_CHANNEL=20
-#CFLAGS += -DIEEE802154_CONF_PANID=0xCAFE
 
 # variable for this Makefile
 # configure CoAP implementation (3|7|12|13) (er-coap-07 also supports CoAP draft 08)
 WITH_COAP=13
 
-# new variable since slip-radio
+
+# variable for Makefile.include
+WITH_UIP6=1
+# for some platforms
+UIP_CONF_IPV6=1
+# IPv6 make config disappeared completely
+CFLAGS += -DUIP_CONF_IPV6=1
+
+CONTIKI=../..
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+
+# variable for Makefile.include
 ifneq ($(TARGET), minimal-net)
-UIP_CONF_RPL=1
+CFLAGS += -DUIP_CONF_IPV6_RPL=1
 else
 # minimal-net does not support RPL under Linux and is mostly used to test CoAP only
 ${info INFO: compiling without RPL}
-UIP_CONF_RPL=0
-CFLAGS += -DUIP_CONF_ND6_DEF_MAXDADNS=0
+CFLAGS += -DUIP_CONF_IPV6_RPL=0
 CFLAGS += -DHARD_CODED_ADDRESS=\"fdfd::10\"
 ${info INFO: compiling with large buffers}
 CFLAGS += -DUIP_CONF_BUFFER_SIZE=2048

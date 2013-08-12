@@ -62,6 +62,12 @@
 #define UART_ONE_CONF_HIGH_SPEED 0
 #endif
 
+#define SLIP_RADIO_CONF_NO_PUTCHAR 1
+
+#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
+#define SLIP_ARCH_CONF_ENABLE      1
+#endif
+
 /* Are we a SLIP bridge? */
 #if SLIP_ARCH_CONF_ENABLE
 /* Make sure UART1 is enabled, with interrupts */
@@ -69,7 +75,6 @@
 #undef UART_ONE_CONF_WITH_INPUT
 #define UART_ONE_CONF_ENABLE  1
 #define UART_ONE_CONF_WITH_INPUT 1
-#define UIP_FALLBACK_INTERFACE slip_interface
 #endif
 
 /* Output all captured frames over the UART in hexdump format */
@@ -153,11 +158,13 @@
 #endif
 
 /* Network Stack */
+#ifndef NETSTACK_CONF_NETWORK
 #if UIP_CONF_IPV6
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #else
 #define NETSTACK_CONF_NETWORK rime_driver
-#endif
+#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_NETWORK */
 
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
@@ -173,7 +180,10 @@
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #endif
 
+#ifndef NETSTACK_CONF_FRAMER
 #define NETSTACK_CONF_FRAMER  framer_802154
+#endif
+
 #define NETSTACK_CONF_RADIO   cc2430_rf_driver
 
 /* RF Config */
@@ -214,7 +224,7 @@
 #define RPL_CONF_STATS                       0
 #define RPL_CONF_MAX_DAG_ENTRIES             1
 #ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_of_etx
+#define RPL_CONF_OF rpl_mrhof
 #endif
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
@@ -228,7 +238,9 @@
 #endif
 
 /* uIP */
+#ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE               240
+#endif
 #define UIP_CONF_IPV6_QUEUE_PKT              0
 #define UIP_CONF_IPV6_CHECKS                 1
 #define UIP_CONF_IPV6_REASSEMBLY             0
@@ -241,7 +253,7 @@
 #define SICSLOWPAN_CONF_MAXAGE               8
 
 /* Define our IPv6 prefixes/contexts here */
-#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    2
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
   addr_contexts[0].prefix[0] = 0x20; \
   addr_contexts[0].prefix[1] = 0x01; \
@@ -251,16 +263,6 @@
   addr_contexts[0].prefix[5] = 0x01; \
   addr_contexts[0].prefix[6] = 0x64; \
   addr_contexts[0].prefix[7] = 0x53; \
-}
-#define SICSLOWPAN_CONF_ADDR_CONTEXT_1 { \
-  addr_contexts[1].prefix[0] = 0x20; \
-  addr_contexts[1].prefix[1] = 0x01; \
-  addr_contexts[1].prefix[2] = 0x06; \
-  addr_contexts[1].prefix[3] = 0x30; \
-  addr_contexts[1].prefix[4] = 0x03; \
-  addr_contexts[1].prefix[5] = 0x01; \
-  addr_contexts[1].prefix[6] = 0x11; \
-  addr_contexts[1].prefix[7] = 0x00; \
 }
 
 #define MAC_CONF_CHANNEL_CHECK_RATE          8

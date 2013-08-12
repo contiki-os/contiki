@@ -30,8 +30,6 @@
 ; 
 ; Author: Adam Dunkels <adam@sics.se>, Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: cs8900a.S,v 1.5 2007/12/08 21:19:06 oliverschmidt Exp $
-;
 ;---------------------------------------------------------------------
 
 	.segment	"JUMPTABLE"
@@ -63,12 +61,6 @@ reg:	.res	2		; Address of rxtxreg
 ptr:	.res	2		; Indirect addressing pointer
 len:	.res	2		; Frame length
 cnt:	.res	2		; Frame length counter
-
-;---------------------------------------------------------------------
-
-	.segment	"EXTZP": zeropage
-
-	; Empty segment to avoid linker warnings
 
 ;---------------------------------------------------------------------
 

@@ -55,7 +55,7 @@ uart1_init()
 #endif
 
   U1CSR = UCSR_MODE; /* UART mode */
-  U1UCR = 0x80; /* Flush */
+  U1UCR |= 0x80; /* Flush */
 
   UART1_RX_INT(1);
   U0DBUF = 0;

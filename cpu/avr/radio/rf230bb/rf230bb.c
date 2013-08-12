@@ -964,7 +964,9 @@ rf230_transmit(unsigned short payload_len)
 /* No interrupts across frame download! */
   HAL_ENTER_CRITICAL_REGION();
 
-  /* Toggle the SLP_TR pin to initiate the frame transmission */
+  /* Toggle the SLP_TR pin to initiate the frame transmission, then transfer
+   * the frame. We have about 16 us + the on-air transmission time of 40 bits
+   * (for the synchronization header) before the transceiver sends the PHR. */
   hal_set_slptr_high();
   hal_set_slptr_low();
   hal_frame_write(buffer, total_len);

@@ -91,6 +91,9 @@ void clock_adjust_ticks(clock_time_t howmany);
 
 #define CCIF
 #define CLIF
+#ifndef CC_CONF_INLINE
+#define CC_CONF_INLINE inline
+#endif
 
 #define RIMEADDR_CONF_SIZE       8
 #define PACKETBUF_CONF_HDR_SIZE    0

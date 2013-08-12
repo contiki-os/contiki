@@ -30,7 +30,7 @@ maximum extend two makefiles are necessary:
 
 As platform/win32/Makefile.win32 includes cpu/native/Makefile.native the
 WinPcap library is used for network I/O. Please consult
-cpu/native/net/README-WPCAP for further details.
+cpu/native/net/README-WPCAP.md for further details.
 
 Both a Cygwin Bash Shell and an ordinary Windows Command Prompt are fine for
 runtime. But in order to experience the CTK mouse support it is necessary to

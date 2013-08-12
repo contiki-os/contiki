@@ -518,7 +518,9 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   p->rank = dio->rank;
   p->dtsn = dio->dtsn;
   p->link_metric = RPL_INIT_LINK_METRIC;
+#if RPL_DAG_MC != RPL_DAG_MC_NONE
   memcpy(&p->mc, &dio->mc, sizeof(p->mc));
+#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   list_add(dag->parents, p);
   return p;
 }
@@ -630,7 +632,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   instance->of->update_metric_container(instance);
   /* Update the DAG rank. */
   best_dag->rank = instance->of->calculate_rank(best_dag->preferred_parent, 0);
-  if(best_dag->rank < best_dag->min_rank) {
+  if(last_parent == NULL || best_dag->rank < best_dag->min_rank) {
     best_dag->min_rank = best_dag->rank;
   } else if(!acceptable_rank(best_dag, best_dag->rank)) {
     PRINTF("RPL: New rank unacceptable!\n");
@@ -703,7 +705,9 @@ rpl_remove_parent(rpl_dag_t *dag, rpl_parent_t *parent)
 void
 rpl_nullify_parent(rpl_dag_t *dag, rpl_parent_t *parent)
 {
-  if(parent == dag->preferred_parent) {
+  /* This function can be called when the preferred parent is NULL, so we
+     need to handle this condition in order to trigger uip_ds6_defrt_rm. */
+  if(parent == dag->preferred_parent || dag->preferred_parent == NULL) {
     dag->preferred_parent = NULL;
     dag->rank = INFINITE_RANK;
     if(dag->joined) {
@@ -1027,11 +1031,13 @@ rpl_recalculate_ranks(void)
    * than RPL protocol messages. This periodical recalculation is called
    * from a timer in order to keep the stack depth reasonably low.
    */
-  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
     if(instance->used) {
       for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; i++) {
         if(instance->dag_table[i].used) {
-          for(p = list_head(instance->dag_table[i].parents); p != NULL; p = p->next) {
+          for(p = list_head(instance->dag_table[i].parents);
+              p != NULL; p = p->next) {
             if(p->updated) {
               p->updated = 0;
               if(!rpl_process_parent_event(instance, p)) {
@@ -1143,13 +1149,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
   }
 
-  if(dio->rank == INFINITE_RANK) {
-    PRINTF("RPL: Ignoring DIO from node with infinite rank: ");
-    PRINT6ADDR(from);
-    PRINTF("\n");
-    return;
-  }
-
   if(instance == NULL) {
     PRINTF("RPL: New instance detected: Joining...\n");
     rpl_join_instance(from, dio);
@@ -1238,7 +1237,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   /* We have allocated a candidate parent; process the DIO further. */
 
+#if RPL_DAG_MC != RPL_DAG_MC_NONE
   memcpy(&p->mc, &dio->mc, sizeof(p->mc));
+#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   if(rpl_process_parent_event(instance, p) == 0) {
     PRINTF("RPL: The candidate parent is rejected\n");
     return;

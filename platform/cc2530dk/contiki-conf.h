@@ -10,6 +10,14 @@
 #include "project-conf.h"
 #endif /* PROJECT_CONF_H */
 
+/*
+ * Build for SmartRF05EB+CC2530EM by default.
+ * This define needs to have its final value before inclusion of models.h
+ */
+#ifndef MODELS_CONF_CC2531_USB_STICK
+#define MODELS_CONF_CC2531_USB_STICK 0
+#endif
+
 #include "models.h"
 
 /*
@@ -62,6 +70,12 @@
 #define USB_SERIAL_CONF_BUFFERED 1
 #endif
 
+#define SLIP_RADIO_CONF_NO_PUTCHAR 1
+
+#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
+#define SLIP_ARCH_CONF_ENABLE      1
+#endif
+
 /* Are we a SLIP bridge? */
 #if SLIP_ARCH_CONF_ENABLE
 /* Make sure the UART is enabled, with interrupts */
@@ -69,7 +83,6 @@
 #undef UART0_CONF_WITH_INPUT
 #define UART0_CONF_ENABLE  1
 #define UART0_CONF_WITH_INPUT 1
-#define UIP_FALLBACK_INTERFACE slip_interface
 #endif
 
 /* Output all captured frames over the UART in hexdump format */
@@ -151,11 +164,13 @@
 #endif /* UIP_CONF_IPV6 */
 
 /* Network Stack */
+#ifndef NETSTACK_CONF_NETWORK
 #if UIP_CONF_IPV6
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #else
 #define NETSTACK_CONF_NETWORK rime_driver
-#endif
+#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_NETWORK */
 
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
@@ -171,7 +186,10 @@
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #endif
 
+#ifndef NETSTACK_CONF_FRAMER
 #define NETSTACK_CONF_FRAMER  framer_802154
+#endif
+
 #define NETSTACK_CONF_RADIO   cc2530_rf_driver
 
 /* RF Config */
@@ -208,7 +226,7 @@
 #define RPL_CONF_STATS                       0
 #define RPL_CONF_MAX_DAG_ENTRIES             1
 #ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_of_etx
+#define RPL_CONF_OF rpl_mrhof
 #endif
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
@@ -222,7 +240,9 @@
 #endif
 
 /* uIP */
+#ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE               240
+#endif
 #define UIP_CONF_IPV6_QUEUE_PKT              0
 #define UIP_CONF_IPV6_CHECKS                 1
 #define UIP_CONF_IPV6_REASSEMBLY             0
@@ -242,7 +262,10 @@
 }
 
 #define MAC_CONF_CHANNEL_CHECK_RATE          8
+
+#ifndef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM                    6
+#endif
 
 #else /* UIP_CONF_IPV6 */
 /* Network setup for non-IPv6 (rime). */
