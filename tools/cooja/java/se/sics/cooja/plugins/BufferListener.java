@@ -130,7 +130,7 @@ public class BufferListener extends VisPlugin {
   private static final long TIME_MINUTE = 60*TIME_SECOND;
   private static final long TIME_HOUR = 60*TIME_MINUTE;
 
-  final static int MAX_BUFFER_SIZE = 128;
+  final static int MAX_BUFFER_SIZE = 2048;
 
   private static ArrayList<Class<? extends Parser>> bufferParsers =
     new ArrayList<Class<? extends Parser>>();
