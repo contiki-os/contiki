@@ -67,7 +67,7 @@ public class ViewRSSI extends JPanel {
 					String[] parts = line.substring(5).split(" ");
 					for (int i = 0, n = parts.length; i < n; i++) {
 						rssi[i] = 3 * Integer.parseInt(parts[i]);
-						if (rssi[i] > rssiMax[i])
+						if (rssi[i] >= rssiMax[i])
 							rssiMax[i] = rssi[i];
 						else if (rssiMax[i] > 0)
 							rssiMax[i]--;
