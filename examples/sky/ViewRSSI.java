@@ -3,8 +3,11 @@
  * ---------------------------------------------------
  * Note: run the rssi-scanner on a Sky or sentilla node connected to USB
  * then start with
+ * make ViewRSSI.class
  * make login | java ViewRSSI
- *
+ * or
+ * make viewrssi
+ * 
  * Created: Fri Apr 24 00:40:01 2009, Joakim Eriksson
  *
  * @author Joakim Eriksson, SICS
