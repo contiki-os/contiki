@@ -1,0 +1,93 @@
+# Copyright (c) 2012, Thingsquare, www.thingsquare.com.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of the Institute nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+
+all: summary
+
+build: examples tools
+
+# The stuff below is some GNU make magic to automatically make make
+# give each compile test a number, prefixed with a 0 if the number is
+# < 10, to match the way the simulation tests output works.
+nine := x x x x x x x x x
+max = $(subst xx,x,$(join ${1},${2}))
+gt = $(filter-out $(words ${1}),$(words $(call max,${1},${2})))
+addzero = $(if $(call gt,${nine},$(1)),$(words ${1}),0$(words ${1}))
+
+define dooneexample
+@echo Building example $(3): $(1) for target $(2)
+@((cd $(EXAMPLESDIR)/$(1); \
+ export STM32W_CPUREV=CC; \
+ make TARGET=$(2) clean && make TARGET=$(2)) > \
+      $(3)-$(subst /,-,$(1))$(2).report 2>&1 && \
+ (echo $(1) $(2): OK | tee $(3)-$(subst /,-,$(1))$(2).summary) || \
+ (echo $(1) $(2): FAIL ಠ.ಠ | tee $(3)-$(subst /,-,$(1))$(2).summary ; \
+  tail -10 $(3)-$(subst /,-,$(1))$(2).report | tee $(3)-$(subst /,-,$(1))$(2).faillog))
+endef
+
+define doexample
+$(eval i+=x)
+$(call dooneexample,$(dir ${1}),$(notdir ${1}),$(call addzero,${i}))
+endef
+#end of GNU make magic
+
+
+examples:
+	$(foreach ex, $(EXAMPLES), $(call doexample, ${ex}))
+
+report: build
+	@echo Examples | cat - ??-*.report > report
+	@echo Tools | cat - $(foreach tool, $(TOOLS), $(tool).report) >> report
+
+examples-summary: build
+	@echo Example summary | cat - $(foreach example, $(EXAMPLES), \
+             $(foreach target, $(EXAMPLESTARGETS), $(example)-$(target).summary)) > \
+               $@
+	@echo Tools summary | cat - $(foreach tool, $(TOOLS), $(tool).summary) >> $@
+
+faillog-summary: build
+	@rm -f $@; touch $@
+	@$(foreach log, $(wildcard *.faillog), grep -H '' $(log) >> $@;)
+
+summary: examples-summary faillog-summary
+	@cat *.summary > $@
+	@ls -1 ??-*.faillog > /dev/null 2>&1; [ $$? = 0 ] && tail -v ??-*.faillog >> $@ || true
+	@rm -f $^
+
+tools:
+	@$(foreach tool, $(TOOLS), \
+           (((cd $(TOOLSDIR)/$(tool); make) > $(tool).report 2>&1) && \
+             (echo $(tool): OK | tee $(tool).summary) || \
+             (echo $(tool): FAIL ಠ_ಠ | tee $(tool).summary ; \
+                tail -10 $(tool).report > $(tool).faillog)) ; )
+
+clean:
+	@rm -f *.summary *.report *.faillog summary report
+	@$(foreach example, $(EXAMPLES), \
+           $(foreach target, $(EXAMPLESTARGETS), \
+             (cd $(EXAMPLESDIR)/$(example); make TARGET=$(target) clean);))
+	@$(foreach tool, $(TOOLS), \
+           (cd $(TOOLSDIR)/$(tool); make clean);)

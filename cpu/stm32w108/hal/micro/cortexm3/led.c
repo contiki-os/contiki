@@ -36,7 +36,7 @@ void halToggleLed(HalBoardLed led)
   //purposes, we disable interrupts since this is a read-modify-write
   ATOMIC(
     if(led/8 < 3) {
-      *((volatile int32u *)(GPIO_PxOUT_BASE+(GPIO_Px_OFFSET*(led/8)))) ^= BIT(led&7);
+      *((volatile uint32_t *)(GPIO_PxOUT_BASE+(GPIO_Px_OFFSET*(led/8)))) ^= BIT(led&7);
     }
   )
 }

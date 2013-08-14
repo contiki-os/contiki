@@ -43,7 +43,7 @@
 static struct uip_udp_conn *server_conn;
 
 PROCESS(udp_server_process, "UDP server process");
-AUTOSTART_PROCESSES(&udp_server_process);
+AUTOSTART_PROCESSES(&resolv_process,&udp_server_process);
 /*---------------------------------------------------------------------------*/
 static void
 tcpip_handler(void)
@@ -93,6 +93,10 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
   PROCESS_BEGIN();
   PRINTF("UDP server started\n");
+
+#if RESOLV_CONF_SUPPORTS_MDNS
+  resolv_set_hostname("contiki-udp-server");
+#endif
 
 #if UIP_CONF_ROUTER
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);

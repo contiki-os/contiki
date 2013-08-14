@@ -354,23 +354,25 @@ PT_THREAD(neighbors(struct httpd_state *s, char *ptr))
 static unsigned short
 make_routes(void *p)
 {
-static const char httpd_cgi_rtes1[] HTTPD_STRING_ATTR = "(%u (via ";
-static const char httpd_cgi_rtes2[] HTTPD_STRING_ATTR = ") %lus<br>";
-static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")<br>";
-uint8_t i,j=0;
-uint16_t numprinted;
+  static const char httpd_cgi_rtes1[] HTTPD_STRING_ATTR = "(%u (via ";
+  static const char httpd_cgi_rtes2[] HTTPD_STRING_ATTR = ") %lus<br>";
+  static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")<br>";
+  uint8_t i,j=0;
+  uint16_t numprinted;
+  uip_ds6_route_t *r;
+
   numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
-  for (i=0; i<UIP_DS6_ROUTE_NB;i++) {
-    if (uip_ds6_routing_table[i].isused) {
-      j++;
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
-      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, uip_ds6_routing_table[i].length);
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].nexthop, uip_appdata + numprinted);
-      if(uip_ds6_routing_table[i].state.lifetime < 3600) {
-         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, uip_ds6_routing_table[i].state.lifetime);
-      } else {
-         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
-      }
+  for(r = uip_ds6_route_list_head();
+      r != NULL;
+      r = list_item_next(r)) {
+    j++;
+    numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
+    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, r->length);
+    numprinted += httpd_cgi_sprint_ip6(r->nexthop, uip_appdata + numprinted);
+    if(r->state.lifetime < 3600) {
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, r->state.lifetime);
+    } else {
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
     }
   }
   if (j==0) numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrn);

@@ -77,11 +77,11 @@
 
 /*---------------------------------------------------------------------------*/
 int8_t
-read_sensor(char * rs)
+read_sensor(char *rs)
 {
   /* Sensor Values */
   static int rv;
-  static struct sensors_sensor * sensor;
+  static struct sensors_sensor *sensor;
 
   /* Those 3 variables are only used for debugging */
 #if DEBUG
@@ -93,7 +93,7 @@ read_sensor(char * rs)
   uint8_t len = 0;
 
   sensor = sensors_find(ADC_SENSOR);
-  if (!sensor) {
+  if(!sensor) {
     PRINTF("ADC not found\n");
     return (SENSOR_ADC_OFF);
   }
@@ -103,13 +103,13 @@ read_sensor(char * rs)
   r = uip_ntohs(r);
   PRINTF("R=%u\n", r);
 
-  if (r & REQUEST_BIT_CHIPID) {
+  if(r & REQUEST_BIT_CHIPID) {
     uint8_t chipid = CHIPID;
     memcpy(rs + len, &chipid, sizeof(chipid));
     len += sizeof(chipid);
     PRINTF("ChipID=0x%02x\n", chipid);
   }
-  if (r & REQUEST_BIT_UPTIME) {
+  if(r & REQUEST_BIT_UPTIME) {
     /* Uptime */
     unsigned long l;
 
@@ -118,33 +118,33 @@ read_sensor(char * rs)
     len += sizeof(l);
     PRINTF("Uptime=%lu secs\n", uip_ntohl(l));
   }
-  if (r & REQUEST_BIT_LIGHT) {
+  if(r & REQUEST_BIT_LIGHT) {
     rv = sensor->value(ADC_SENSOR_TYPE_LIGHT);
     if(rv != -1) {
 #if DEBUG
       sane = (float)(rv * 0.4071);
       dec = sane;
       frac = sane - dec;
-      PRINTF(" Light=%d.%02ulux (%d)\n", dec, (unsigned int)(frac*100), rv);
+      PRINTF(" Light=%d.%02ulux (%d)\n", dec, (unsigned int)(frac * 100), rv);
 #endif
       memcpy(rs + len, &rv, sizeof(rv));
       len += sizeof(rv);
     }
   }
-  if (r & REQUEST_BIT_TEMP) {
+  if(r & REQUEST_BIT_TEMP) {
     rv = sensor->value(ADC_SENSOR_TYPE_TEMP);
     if(rv != -1) {
 #if DEBUG
       sane = ((rv * 0.61065 - 773) / 2.45);
       dec = sane;
       frac = sane - dec;
-      PRINTF("  Temp=%d.%02u C (%d)\n", dec, (unsigned int)(frac*100), rv);
+      PRINTF("  Temp=%d.%02u C (%d)\n", dec, (unsigned int)(frac * 100), rv);
 #endif
       memcpy(rs + len, &rv, sizeof(rv));
       len += sizeof(rv);
     }
   }
-  if (r & (REQUEST_BIT_VDD | REQUEST_BIT_BAT)) {
+  if(r & (REQUEST_BIT_VDD | REQUEST_BIT_BAT)) {
     /* We want VDD for both cases */
     rv = sensor->value(ADC_SENSOR_TYPE_VDD);
     if(rv != -1) {
@@ -152,7 +152,7 @@ read_sensor(char * rs)
       sane = rv * 3.75 / 2047;
       dec = sane;
       frac = sane - dec;
-      PRINTF("Supply=%d.%02uV (%d)\n", dec, (unsigned int)(frac*100), rv);
+      PRINTF("Supply=%d.%02uV (%d)\n", dec, (unsigned int)(frac * 100), rv);
       /* Store rv temporarily in dec so we can use it for the battery */
       dec = rv;
 #endif
@@ -160,21 +160,21 @@ read_sensor(char * rs)
       len += sizeof(rv);
     }
     /* And then carry on with battery if needed */
-    if (r & REQUEST_BIT_BAT) {
+    if(r & REQUEST_BIT_BAT) {
       rv = sensor->value(ADC_SENSOR_TYPE_BATTERY);
       if(rv != -1) {
 #if DEBUG
         sane = (11.25 * rv * dec) / (0x7FE002);
         dec = sane;
         frac = sane - dec;
-        PRINTF(" Batt.=%d.%02uV (%d)\n", dec, (unsigned int)(frac*100), rv);
+        PRINTF(" Batt.=%d.%02uV (%d)\n", dec, (unsigned int)(frac * 100), rv);
 #endif
         memcpy(rs + len, &rv, sizeof(rv));
         len += sizeof(rv);
       }
     }
   }
-  if (r & REQUEST_BIT_ACC) {
+  if(r & REQUEST_BIT_ACC) {
     rv = sensor->value(ADC_SENSOR_TYPE_ACC_X);
     if(rv != -1) {
 #if DEBUG
@@ -187,7 +187,7 @@ read_sensor(char * rs)
       if(sane < 0 && dec == 0) {
         PRINTF('-');
       }
-      PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac*100), rv);
+      PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac * 100), rv);
 #endif
       memcpy(rs + len, &rv, sizeof(rv));
       len += sizeof(rv);
@@ -203,7 +203,7 @@ read_sensor(char * rs)
       if(sane < 0 && dec == 0) {
         PRINTF('-');
       }
-      PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac*100), rv);
+      PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac * 100), rv);
 #endif
       memcpy(rs + len, &rv, sizeof(rv));
       len += sizeof(rv);
@@ -219,25 +219,25 @@ read_sensor(char * rs)
       if(sane < 0 && dec == 0) {
         PRINTF('-');
       }
-      PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac*100), rv);
+      PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac * 100), rv);
 #endif
       memcpy(rs + len, &rv, sizeof(rv));
       len += sizeof(rv);
     }
   }
-  if (r & REQUEST_BIT_L1_SET) {
+  if(r & REQUEST_BIT_L1_SET) {
     leds_toggle(LEDS_GREEN);
   }
-  if (r & REQUEST_BIT_L2_SET) {
+  if(r & REQUEST_BIT_L2_SET) {
     leds_toggle(LEDS_RED);
   }
-  if (r & REQUEST_BIT_LED_GET) {
+  if(r & REQUEST_BIT_LED_GET) {
     uint8_t leds = leds_get();
     memcpy(rs + len, &leds, sizeof(leds));
     len += sizeof(leds);
     PRINTF(" LED 2=%u\n", leds);
   }
-  if (r & REQUEST_BIT_P0_GET) {
+  if(r & REQUEST_BIT_P0_GET) {
     uint8_t p0 = P0_3;
     memcpy(rs + len, &p0, sizeof(p0));
     len += sizeof(p0);

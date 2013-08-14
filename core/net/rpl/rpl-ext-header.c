@@ -53,7 +53,7 @@
 #include <limits.h>
 #include <string.h>
 
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 #define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_EXT_BUF               ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_HBHO_BUF              ((struct uip_hbho_hdr *)&uip_buf[uip_l2_l3_hdr_len])
@@ -61,7 +61,8 @@
 #define UIP_EXT_HDR_OPT_BUF       ((struct uip_ext_hdr_opt *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 #define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 #define UIP_EXT_HDR_OPT_RPL_BUF   ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_IPV6
 int
 rpl_verify_header(int uip_ext_opt_offset)
 {
@@ -97,9 +98,14 @@ rpl_verify_header(int uip_ext_opt_offset)
     down = 1;
   }
 
-  PRINTF("RPL: Packet going %s\n", down == 1 ? "down" : "up");
-
   sender_closer = UIP_EXT_HDR_OPT_RPL_BUF->senderrank < instance->current_dag->rank;
+
+  PRINTF("RPL: Packet going %s, sender closer %d (%d < %d)\n", down == 1 ? "down" : "up",
+	 sender_closer,
+	 UIP_EXT_HDR_OPT_RPL_BUF->senderrank,
+	 instance->current_dag->rank
+	 );
+
   if((down && !sender_closer) || (!down && sender_closer)) {
     PRINTF("RPL: Loop detected - senderrank: %d my-rank: %d sender_closer: %d\n",
 	   UIP_EXT_HDR_OPT_RPL_BUF->senderrank, instance->current_dag->rank,
@@ -118,7 +124,7 @@ rpl_verify_header(int uip_ext_opt_offset)
 
   return 0;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 static void
 set_rpl_opt(unsigned uip_ext_opt_offset)
 {
@@ -141,7 +147,7 @@ set_rpl_opt(unsigned uip_ext_opt_offset)
     UIP_IP_BUF->len[0]++;
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_update_header_empty(void)
 {
@@ -183,7 +189,22 @@ rpl_update_header_empty(void)
   switch(UIP_EXT_HDR_OPT_BUF->type) {
   case UIP_EXT_HDR_OPT_RPL:
     PRINTF("RPL: Updating RPL option\n");
-    UIP_EXT_HDR_OPT_RPL_BUF->senderrank=instance->current_dag->rank;
+    UIP_EXT_HDR_OPT_RPL_BUF->senderrank = instance->current_dag->rank;
+
+
+    /* Set the down extension flag correctly as described in Section
+       11.2 of RFC6550. If the packet progresses along a DAO route,
+       the down flag should be set. */
+
+    if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr) == NULL) {
+      /* No route was found, so this packet will go towards the RPL
+	 root. If so, we should not set the down flag. */
+      UIP_EXT_HDR_OPT_RPL_BUF->flags &= ~RPL_HDR_OPT_DOWN;
+    } else {
+      /* A DAO route was found so we set the down flag. */
+      UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_DOWN;
+    }
+
     uip_ext_len = last_uip_ext_len;
     return;
   default:
@@ -192,7 +213,7 @@ rpl_update_header_empty(void)
     return;
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 int
 rpl_update_header_final(uip_ipaddr_t *addr)
 {
@@ -230,7 +251,7 @@ rpl_update_header_final(uip_ipaddr_t *addr)
   }
   return 0;
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 void
 rpl_remove_header(void)
 {
@@ -257,7 +278,7 @@ rpl_remove_header(void)
     PRINTF("RPL: No hop-by-hop Option found\n");
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
 uint8_t
 rpl_invert_header(void)
 {
@@ -292,4 +313,5 @@ rpl_invert_header(void)
     return 0;
   }
 }
-/************************************************************************/
+/*---------------------------------------------------------------------------*/
+#endif /* UIP_CONF_IPV6 */

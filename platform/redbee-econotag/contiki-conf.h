@@ -81,7 +81,10 @@
 #define SAMP UCON_SAMP_8X
 //#define SAMP UCON_SAMP_16X
 
-#define uart_init uart1_init
+#define CONSOLE_UART UART1
+#define CONSOLE_BAUD 115200
+
+//#define uart_init uart1_init
 #define dbg_putchar(x) uart1_putc(x)
 
 #define USE_FORMATTED_STDIO         1
@@ -194,7 +197,7 @@ typedef unsigned long rtimer_clock_t;
 #define UIP_CONF_IPV6_RPL               1
 
 #define UIP_CONF_DS6_NBR_NBU     30
-#define UIP_CONF_DS6_ROUTE_NBU   30
+#define UIP_CONF_MAX_ROUTES   30
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000

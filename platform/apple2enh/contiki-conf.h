@@ -38,9 +38,9 @@
 #include "6502def.h"
 
 #define CTK_CONF_MENU_KEY         CH_ESC
-#define CTK_CONF_WINDOWSWITCH_KEY 0x17	/* Ctrl-W */
-#define CTK_CONF_WIDGETUP_KEY     0x01	/* Ctrl-A */
-#define CTK_CONF_WIDGETDOWN_KEY   '\t'	/* Tab or Ctrl-I */
+#define CTK_CONF_WINDOWSWITCH_KEY 0x17  /* Ctrl-W */
+#define CTK_CONF_WIDGETUP_KEY     0x01  /* Ctrl-A */
+#define CTK_CONF_WIDGETDOWN_KEY   '\t'  /* Tab or Ctrl-I */
 
 #define MOUSE_CONF_XTOC(x) ((x) * 2 / 7)
 #define MOUSE_CONF_YTOC(y) ((y) / 8)
@@ -60,10 +60,8 @@
 #define WWW_CONF_HISTORY_SIZE        4
 #define WWW_CONF_MAX_URLLEN         78
 #define WWW_CONF_MAX_NUMPAGEWIDGETS 20
-#define WWW_CONF_RENDERSTATE         1
 #define WWW_CONF_FORMS               1
 #define WWW_CONF_MAX_FORMACTIONLEN  20
-#define WWW_CONF_MAX_FORMNAMELEN    20
 #define WWW_CONF_MAX_INPUTNAMELEN   20
 #define WWW_CONF_MAX_INPUTVALUELEN  20
 

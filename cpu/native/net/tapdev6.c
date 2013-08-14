@@ -33,6 +33,10 @@
  *
  */
 
+#include "net/uip.h"
+#include "net/uipopt.h"
+
+#if UIP_CONF_IPV6
 
 #include <fcntl.h>
 #include <stdlib.h>
@@ -56,6 +60,17 @@
 #define DEVTAP "/dev/tap0"
 #endif /* linux */
 
+#ifdef __APPLE__
+#include <net/if.h>
+#include <netinet/in.h>
+#include <netinet6/in6_var.h>
+#include <netinet6/nd6.h> // ND6_INFINITE_LIFETIME
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/errno.h>
+#include <net/if_dl.h> // struct sockaddr_dl
+#include <net/route.h> // AF_ROUTE things
+#endif
 
 #include "tapdev6.h"
 #include "contiki-net.h"
@@ -66,7 +81,7 @@
 static int drop = 0;
 #endif
 
-static int fd;
+static int fd = -1;
 
 static unsigned long lasttime;
 
@@ -84,6 +99,13 @@ static unsigned long lasttime;
 
 static void do_send(void);
 uint8_t tapdev_send(uip_lladdr_t *lladdr);
+
+/*---------------------------------------------------------------------------*/
+int
+tapdev_fd(void)
+{
+  return fd;
+}
 
 
 uint16_t
@@ -116,6 +138,159 @@ tapdev_poll(void)
   return ret;
 }
 /*---------------------------------------------------------------------------*/
+#if defined(__APPLE__)
+static int reqfd = -1, sfd = -1, interface_index;
+
+static void
+tapdev_init_darwin_routes(void)
+{
+  struct stat st;
+
+  if(-1 == fstat(fd, &st)) {
+    perror("tapdev: fstat failed.");
+    exit(EXIT_FAILURE);
+  }
+
+  /************* Add address *************/
+
+  struct in6_aliasreq addreq6 = { };
+  reqfd = socket(AF_INET6, SOCK_DGRAM, 0);
+
+  if(-1 == fcntl(reqfd, F_SETFD, FD_CLOEXEC)) {
+    perror("tapdev: fcntl failed.");
+    exit(EXIT_FAILURE);
+  }
+
+  devname_r(st.st_rdev, S_IFCHR, addreq6.ifra_name,
+            sizeof(addreq6.ifra_name));
+
+  addreq6.ifra_addr.sin6_family = AF_INET6;
+  addreq6.ifra_addr.sin6_len = sizeof(addreq6.ifra_addr);
+  addreq6.ifra_addr.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xAAAA);
+  addreq6.ifra_addr.sin6_addr.__u6_addr.__u6_addr16[7] = UIP_HTONS(0x0001);
+
+  addreq6.ifra_prefixmask.sin6_family = AF_INET6;
+  addreq6.ifra_prefixmask.sin6_len = sizeof(addreq6.ifra_prefixmask);
+  addreq6.ifra_prefixmask.sin6_addr.__u6_addr.__u6_addr16[0] =
+    UIP_HTONS(0xFFFF);
+  addreq6.ifra_prefixmask.sin6_addr.__u6_addr.__u6_addr16[1] =
+    UIP_HTONS(0xFFFF);
+  addreq6.ifra_prefixmask.sin6_addr.__u6_addr.__u6_addr16[2] =
+    UIP_HTONS(0xFFFF);
+  addreq6.ifra_prefixmask.sin6_addr.__u6_addr.__u6_addr16[3] =
+    UIP_HTONS(0xFFFF);
+
+  addreq6.ifra_lifetime.ia6t_vltime = ND6_INFINITE_LIFETIME;
+  addreq6.ifra_lifetime.ia6t_pltime = ND6_INFINITE_LIFETIME;
+  addreq6.ifra_lifetime.ia6t_expire = ND6_INFINITE_LIFETIME;
+  addreq6.ifra_lifetime.ia6t_preferred = ND6_INFINITE_LIFETIME;
+
+  if(-1 == ioctl(reqfd, SIOCAIFADDR_IN6, &addreq6)) {
+    perror("tapdev: Uable to add address, call to ioctl failed.");
+    exit(EXIT_FAILURE);
+  }
+
+  /************* Add route *************/
+
+  int s = socket(AF_ROUTE, SOCK_RAW, AF_INET6);
+
+  if(s == -1) {
+    perror("tapdev: Unable to add route, call to socket() failed.");
+
+    // Failing to add the route is not fatal, so just return.
+    return;
+  }
+
+  sfd = s;
+  interface_index = if_nametoindex(devname(st.st_rdev, S_IFCHR));
+
+  PRINTF("tapdev: if_nametoindex(devname(st.st_rdev, S_IFCHR)) = %d\n",
+         interface_index);
+  PRINTF("tapdev: devname(st.st_rdev, S_IFCHR) = %s\n",
+         devname(st.st_rdev, S_IFCHR));
+
+  struct {
+    struct rt_msghdr hdr;
+    struct sockaddr_in6 dst;
+    struct sockaddr_dl gw;
+    struct sockaddr_in6 mask;
+  } msg = {};
+
+  msg.hdr.rtm_msglen = sizeof(msg);
+  msg.hdr.rtm_version = RTM_VERSION;
+  msg.hdr.rtm_type = RTM_ADD;
+  msg.hdr.rtm_index = interface_index;
+  msg.hdr.rtm_flags = RTF_UP | RTF_STATIC;
+  msg.hdr.rtm_addrs = RTA_DST | RTA_GATEWAY | RTA_NETMASK;
+  msg.hdr.rtm_pid = getpid();
+  msg.hdr.rtm_seq = 0;
+
+  msg.dst.sin6_family = AF_INET6;
+  msg.dst.sin6_len = sizeof(msg.dst);
+  msg.dst.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xAAAA);
+
+  msg.gw.sdl_family = AF_LINK;
+  msg.gw.sdl_len = sizeof(msg.gw);
+  msg.gw.sdl_index = interface_index;
+
+  msg.mask.sin6_family = AF_INET6;
+  msg.mask.sin6_len = sizeof(msg.mask);
+  msg.mask.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xFFFF);
+  msg.mask.sin6_addr.__u6_addr.__u6_addr16[1] = UIP_HTONS(0xFFFF);
+  msg.mask.sin6_addr.__u6_addr.__u6_addr16[2] = UIP_HTONS(0xFFFF);
+  msg.mask.sin6_addr.__u6_addr.__u6_addr16[3] = UIP_HTONS(0xFFFF);
+
+  if(-1 == write(s, &msg, sizeof(msg))) {
+    perror("tapdev: Unable to add route, call to write() failed.");
+
+    // Failing to add the route is not fatal, so just return.
+    return;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+tapdev_cleanup_darwin_routes(void)
+{
+  struct {
+    struct rt_msghdr hdr;
+    struct sockaddr_in6 dst;
+    struct sockaddr_dl gw;
+    struct sockaddr_in6 mask;
+  } msg = {};
+
+  msg.hdr.rtm_msglen = sizeof(msg);
+  msg.hdr.rtm_version = RTM_VERSION;
+  msg.hdr.rtm_type = RTM_DELETE;
+  msg.hdr.rtm_index = interface_index;
+  msg.hdr.rtm_flags = RTF_UP | RTF_STATIC;
+  msg.hdr.rtm_addrs = RTA_DST | RTA_GATEWAY | RTA_NETMASK;
+  msg.hdr.rtm_pid = getpid();
+  msg.hdr.rtm_seq = 0;
+
+  msg.dst.sin6_family = AF_INET6;
+  msg.dst.sin6_len = sizeof(msg.dst);
+  msg.dst.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xAAAA);
+
+  msg.gw.sdl_family = AF_LINK;
+  msg.gw.sdl_len = sizeof(msg.gw);
+  msg.gw.sdl_index = interface_index;
+
+  msg.mask.sin6_family = AF_INET6;
+  msg.mask.sin6_len = sizeof(msg.mask);
+  msg.mask.sin6_addr.__u6_addr.__u6_addr16[0] = UIP_HTONS(0xFFFF);
+  msg.mask.sin6_addr.__u6_addr.__u6_addr16[1] = UIP_HTONS(0xFFFF);
+  msg.mask.sin6_addr.__u6_addr.__u6_addr16[2] = UIP_HTONS(0xFFFF);
+  msg.mask.sin6_addr.__u6_addr.__u6_addr16[3] = UIP_HTONS(0xFFFF);
+  if(-1 == write(sfd, &msg, sizeof(msg))) {
+    perror("tapdev: Unable to delete route");
+    exit(EXIT_FAILURE);
+  }
+
+  close(reqfd);
+  close(sfd);
+}
+#endif // defined(__APPLE__)
+/*---------------------------------------------------------------------------*/
 void
 tapdev_init(void)
 {
@@ -139,6 +314,10 @@ tapdev_init(void)
   }
 #endif /* Linux */
 
+#ifdef __APPLE__
+  tapdev_init_darwin_routes();
+#endif
+
   /* Linux (ubuntu)
      snprintf(buf, sizeof(buf), "ip link set tap0 up");
      system(buf);
@@ -161,6 +340,7 @@ tapdev_init(void)
   /*  gdk_input_add(fd, GDK_INPUT_READ,
       read_callback, NULL);*/
 
+  atexit(&tapdev_exit);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -228,5 +408,14 @@ tapdev_do_send(void)
 void
 tapdev_exit(void)
 {
+  PRINTF("tapdev: Closing...\n");
+
+#ifdef __APPLE__
+  tapdev_cleanup_darwin_routes();
+#endif
+
+  close(fd);
 }
 /*---------------------------------------------------------------------------*/
+
+#endif /* UIP_CONF_IPV6 */

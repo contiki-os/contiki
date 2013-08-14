@@ -104,7 +104,7 @@ const static struct rucb_callbacks rucb_call = {write_chunk, read_chunk,
 						NULL};
 static struct rucb_conn rucb;
 /*---------------------------------------------------------------------------*/
-#include "node-id.h"
+#include "sys/node-id.h"
 
 PROCESS_THREAD(example_rucb_process, ev, data)
 {

@@ -276,23 +276,22 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   ADD("<h2>Routes [%u max]</h2>",UIP_DS6_ROUTE_NB);
   PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
   blen = 0;
-  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].isused) {
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      ADD("/%u (via ", uip_ds6_routing_table[i].length);
- 	  PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);
+  uip_ds6_route_t *route;
+  for(route = uip_ds6_route_list_head(); route != NULL; route = list_item_next(route)) {
+    ipaddr_add(&route->ipaddr);
+    ADD("/%u (via ", route->length);
+    PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);
+    blen=0;
+    ipaddr_add(&route->nexthop);
+    if(route->state.lifetime < 600) {
+      PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);
       blen=0;
-      ipaddr_add(&uip_ds6_routing_table[i].nexthop);
-      if(uip_ds6_routing_table[i].state.lifetime < 600) {
-        PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);
-        blen=0;
-        ADD(") %lus<br>", uip_ds6_routing_table[i].state.lifetime);
-      } else {
-        ADD(")<br>");
-      }
-	  PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
-      blen = 0;
+      ADD(") %lus<br>", route->state.lifetime);
+    } else {
+      ADD(")<br>");
     }
+    PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);
+    blen = 0;
   }
   if(blen > 0) {
 	PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  

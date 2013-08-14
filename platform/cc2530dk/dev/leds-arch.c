@@ -44,7 +44,7 @@
 void
 leds_arch_init(void)
 {
-#if MODEL_CC2531
+#if MODELS_CONF_CC2531_USB_STICK
   P1SEL &= ~LED1_MASK;
   P1DIR |= LED1_MASK;
   P0SEL &= ~LED2_MASK;
@@ -58,10 +58,10 @@ leds_arch_init(void)
 unsigned char
 leds_arch_get(void)
 {
-#if MODEL_CC2531
-  return (unsigned char) (LED1_PIN | ((LED2_PIN ^ 0x01) << 1));
+#if MODELS_CONF_CC2531_USB_STICK
+  return (unsigned char)(LED1_PIN | ((LED2_PIN ^ 0x01) << 1));
 #else
-  return (unsigned char) (LED1_PIN | (LED2_PIN << 1) | (LED3_PIN << 2));
+  return (unsigned char)(LED1_PIN | (LED2_PIN << 1) | (LED3_PIN << 2));
 #endif
 }
 /*---------------------------------------------------------------------------*/
@@ -69,7 +69,7 @@ void
 leds_arch_set(unsigned char leds)
 {
   LED1_PIN = leds & 0x01;
-#if MODEL_CC2531
+#if MODELS_CONF_CC2531_USB_STICK
   LED2_PIN = ((leds & 0x02) >> 1) ^ 0x01;
 #else
   LED2_PIN = (leds & 0x02) >> 1;

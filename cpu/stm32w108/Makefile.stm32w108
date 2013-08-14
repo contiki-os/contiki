@@ -21,17 +21,17 @@ CONTIKI_CPU=$(CONTIKI)/cpu/stm32w108
 
 CONTIKI_CPU_DIRS = . dev hal simplemac hal/micro/cortexm3 hal/micro/cortexm3/stm32w108
 
-STM32W_C = leds-arch.c leds.c clock.c watchdog.c uart1.c uart1-putchar.c slip_uart1.c slip.c\
-		stm32w-radio.c stm32w_systick.c uip_arch.c rtimer-arch.c adc.c micro.c sleep.c \
+STM32W_C = leds-arch.c leds.c clock.c watchdog.c uart1.c uart1-putchar.c slip-uart1.c slip.c\
+		stm32w-radio.c stm32w-systick.c uip-arch.c rtimer-arch.c adc.c micro.c sleep.c \
 		micro-common.c micro-common-internal.c clocks.c mfg-token.c nvm.c flash.c rand.c system-timer.c
 
 STM32W_S = spmr.s79 context-switch.s79 
 
 ifdef IAR
-STM32W_C += low_level_init.c
-STM32W_S += cstartup_M.s
+STM32W_C += low-level-init.c
+STM32W_S += cstartup-m.s
 else
-STM32W_C += crt_stm32w108.c
+STM32W_C += crt-stm32w108.c
 endif
 
 ifdef ELF_LOADER
@@ -68,16 +68,17 @@ STRIP    = strip
 ifndef DEBUG
 OPTI = -Ohz --no_unroll
 endif
-CFLAGSNO = --endian=little --cpu=Cortex-M3 -e --diag_suppress Pa050 -D BOARD_HEADER=\"board.h\" \
+CFLAGSNO = --debug --endian=little --cpu=Cortex-M3 -e --diag_suppress Pa050 -D BOARD_HEADER=\"board.h\" \
 			-D BOARD_MB851 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/iar.h\""  -D CORTEXM3 \
 			-D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
 			-D __SOURCEFILE__=\"$*.c\" -lC $(OBJECTDIR) \
+			-I $(CONTIKI)/../iar-files \
 			-I $(IAR_PATH)/arm/inc --dlib_config=DLib_Config_Normal.h
 
-CFLAGS  += $(CFLAGSNO) $(OPTI)
+CFLAGS  += $(CFLAGSNO) $(OPTI) -D__ICCARM__ 
 AROPTS  = --create
 ASFLAGS = -s+ -w+ --cpu Cortex-M3 -L$(OBJECTDIR)
-LDFLAGS += --redirect _Printf=_PrintfSmall --redirect _Scanf=_ScanfSmall --map=contiki-$(TARGET).map
+LDFLAGS += --semihosting --redirect _Printf=_PrintfSmall --redirect _Scanf=_ScanfSmall --map=contiki-$(TARGET).map
  ifndef COFFEE
   LDFLAGS+= --config $(CONTIKI_CPU)/iar-cfg.icf
  endif
@@ -97,16 +98,32 @@ ifndef DEBUG
 OPTI = -Os -ffunction-sections 
 endif
 
+ifeq ($(STM32W_CPUREV), CC)
+  LD-EXT=-stm32w108CC
+ ${warning "using stm32w108CC specific ld file"}
+else ifeq ($(STM32W_CPUREV), xB)
+  LD-EXT=-stm32w108xB
+ ${warning "using stm32w108xB specific ld file"}
+else
+ ${error "No STM32W_CPUREV specified. Cpu revision should be specified. Please read cpu/stm32w108/README.txt for more details."}
+endif
+
 CFLAGSNO = -mthumb -mcpu=cortex-m3 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/gnu.h\"" \
 			-D BOARD_HEADER=\"board.h\" -g -Wall -Wno-strict-aliasing -mlittle-endian \
-			-D BOARD_MB851   -D CORTEXM3 -D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
+			-D CORTEXM3 -D CORTEXM3_STM32W108 -D PHY_STM32W108XX -D DISABLE_WATCHDOG -D ENABLE_ADC_EXTENDED_RANGE_BROKEN \
 			-D __SOURCEFILE__=\"$*.c\"
 CFLAGS  += $(CFLAGSNO) $(OPTI)
 ASFLAGS = -mthumb -mcpu=cortex-m3 -c -g -Wall -Os -ffunction-sections \
 	    -mlittle-endian -fshort-enums -x assembler-with-cpp -Wa,-EL
-LDFLAGS += -mcpu=cortex-m3 \
+
+ifndef CPU_LD_CONFIG
+CPU_LD_CONFIG=$(CONTIKI_CPU)/gnu$(LD-EXT).ld
+endif # CPU_LD_CONFIG
+
+LDFLAGS +=  -L$(CONTIKI_CPU)\
+	    -mcpu=cortex-m3 \
 	    -mthumb  \
-	    -Wl,-T -Xlinker $(CONTIKI_CPU)/gnu.ld \
+	    -Wl,-T -Xlinker $(CPU_LD_CONFIG) \
 	    -Wl,-static \
 			-u Default_Handler \
 	    -nostartfiles \
@@ -168,7 +185,7 @@ endif
 
 
 
-FLASHER = sudo $(CONTIKI)/tools/stm32w/stm32w_flasher/stm32w_flasher
+FLASHER = sudo $(CONTIKI)/tools/stm32w/stm32w_flasher/py_files/stm32w_flasher.py
 
 # Check if we are running under Windows
 ifeq ($(HOST_OS),Windows)
@@ -185,9 +202,8 @@ FLASHEROPTS = -f -i rs232 -p $(PORT) -r
  ifdef BTM
 #if already in bootloader mode
   FLASHEROPTS += -b
- endif 
+ endif
 endif
-			
 
 ### Custom rules
 
@@ -212,11 +228,11 @@ endif
 
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
-$(OBJECTDIR)/%.o: %.c
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
 	@$(SEDCOMMAND); rm -f $(@:.o=.P)
 	@$(FINALIZE_DEPENDENCY)
-	
+
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
@@ -231,11 +247,11 @@ CUSTOM_RULE_LINK = 1
 
 ifdef CORE
 ifeq ($(wildcard $(CORE)),)
- ${error $(CORE) doesn't exist}
+ ${error $(CORE) doesn\'t exist}
 endif
 .PHONY: symbols.c symbols.h
 symbols.c:
-	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c	
+	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
 else
 symbols.c symbols.h:
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
@@ -257,9 +273,7 @@ endif #IAR
 
 MOTELIST = $(CONTIKI)/tools/stm32w/motelist-linux
 
-MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
-     cut -f 4 -d \  | \
-     perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+MOTES = $(shell $(MOTELIST) 2>&- | awk '{print $$2}' | grep '\/')
 
 motelist: stm-motelist
 
@@ -268,20 +282,20 @@ stm-motelist:
 stm-motes:
 	@echo $(MOTES)
 
-$(OBJECTDIR)/%.o: %.s79
+$(OBJECTDIR)/%.o: %.s79 | $(OBJECTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
-	
-$(OBJECTDIR)/%.o: %.s
-	$(AS) $(ASFLAGS) -o $@ $<	
-	
+
+$(OBJECTDIR)/%.o: %.s | $(OBJECTDIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
 %.bin: %.$(TARGET)
-	$(OBJCOPY) $(OBJOPTS) $< $@ 
+	$(OBJCOPY) $(OBJOPTS) $< $@
 
 # reset all stm32w devices sequentially, as stm32w_flasher cannot access different ports in parallel
 stm-reset:
 	$(foreach PORT, $(MOTES), $(FLASHER) -r -p $(PORT);$(\n))
 	@echo Done
-		
+
 ifdef MOTE
 %.upload: %.bin
 	$(FLASHER) $(FLASHEROPTS) $< -p $(word $(MOTE), $(MOTES))
@@ -300,8 +314,8 @@ endif
 
 # a target that gives a user-friendly memory profile, taking into account the RAM
 # that is statically occupied by the stack as defined in cpu/stm32w108/gnu.ld
-RAM_SIZE = 8192
-FLASH_SIZE = 128*1024
+RAM_SIZE = 2*8192
+FLASH_SIZE = 2*128*1024
 STACK_SIZE = 1280
 %.size: %.$(TARGET)
 	@size -A $< | egrep "data|bss" | awk '{s+=$$2} END {s=s+$(STACK_SIZE); f=$(RAM_SIZE)-s; printf "[RAM]   used %6d, free %6d\n",s,f;}'

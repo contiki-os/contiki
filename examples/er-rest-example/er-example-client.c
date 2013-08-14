@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Matthias Kovatsch and other contributors.
+ * Copyright (c) 2013, Matthias Kovatsch
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,11 +43,6 @@
 #include "contiki.h"
 #include "contiki-net.h"
 
-#if !UIP_CONF_IPV6_RPL && !defined (CONTIKI_TARGET_MINIMAL_NET) && !defined (CONTIKI_TARGET_NATIVE)
-#warning "Compiling with static routing!"
-#include "static-routing.h"
-#endif
-
 #include "dev/button-sensor.h"
 
 #if WITH_COAP == 3
@@ -56,6 +51,10 @@
 #include "er-coap-06-engine.h"
 #elif WITH_COAP == 7
 #include "er-coap-07-engine.h"
+#elif WITH_COAP == 12
+#include "er-coap-12-engine.h"
+#elif WITH_COAP == 13
+#include "er-coap-13-engine.h"
 #else
 #error "CoAP version defined by WITH_COAP not implemented"
 #endif
@@ -99,7 +98,7 @@ static int uri_switch = 0;
 void
 client_chunk_handler(void *response)
 {
-  uint8_t *chunk;
+  const uint8_t *chunk;
 
   int len = coap_get_payload(response, &chunk);
   printf("|%.*s", len, (char *)chunk);

@@ -29,9 +29,9 @@ typedef struct {
   HalBootloaderAddressTableType *bootloaderAddressTable;
   void *startOfUnusedRam;
   // ** pointers to shared functions **
-  FibStatus (* fibFlashWrite)(int32u address, int8u *data,
-                              int32u writeLength, int32u verifyLength);
-  FibStatus (* fibFlashErase)(FibEraseType eraseType, int32u address);
+  FibStatus (* fibFlashWrite)(uint32_t address, uint8_t *data,
+                              uint32_t writeLength, uint32_t verifyLength);
+  FibStatus (* fibFlashErase)(FibEraseType eraseType, uint32_t address);
 } HalFixedAddressTableType;
 
 extern const HalFixedAddressTableType halFixedAddressTable; 

@@ -10,7 +10,7 @@ ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-sky-main.c
 endif
 
-ifdef UIP_CONF_IPV6
+ifeq ($(UIP_CONF_IPV6),1)
 CFLAGS += -DWITH_UIP6=1
 endif
 
@@ -24,9 +24,7 @@ CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
 MCU=msp430f1611
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
-ifdef CORE
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
-endif
 #	$(AR) rcf $@ $^
 
 
@@ -99,7 +97,7 @@ else
     ifdef MOTEIDS
   	  MOTES = $(foreach MOTEID, $(MOTEIDS), $(shell $(MOTELIST)  2>&- | grep $(MOTEID) | \
           cut -f 4 -d \  | \
-          perl -ne 'print $$1 . " " if(m-(/dev/[\w+\.\-]+)-);') 
+          perl -ne 'print $$1 . " " if(m-(/dev/[\w+\.\-]+)-);')) 
     else
       MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
          cut -f 4 -d \  | \

@@ -64,7 +64,26 @@
  *  1: P0_0 (Red)
  *  2: P1_1 (Green - active: low)
  */
-#if MODEL_CC2531
+#if MODELS_CONF_CC2531_USB_STICK
+#define MODEL_STRING "TI cc2531 USB Dongle\n"
+#define USB_CONF_ENABLE 1
+
+/* Enabled the ISR for Interrupt Num 6 */
+#define PORT_2_ISR_ENABLED 1
+
+#ifndef USB_CONF_CLASS
+#define DMA_CONF_ON	1
+#define DMA_USB_CHANNEL	0
+#define CTRL_EP_SIZE	8
+#define USB_EP1_SIZE	32
+#define USB_EP2_SIZE	64
+#define USB_EP3_SIZE	64
+#define USB_CONF_CLASS	1 /* CDC-ACM */
+#endif
+
+#define CDC_ACM_CONF_VID 0x0451 /* Vendor: TI */
+#define CDC_ACM_CONF_PID 0x16A8 /* cc2531 CDC */
+
 #undef LEDS_CONF_ALL
 #define LEDS_CONF_ALL 3
 #define LEDS_RED      1
@@ -78,6 +97,7 @@
 #define LED2_MASK  0x01
 #define LED1_MASK  0x02
 #else
+#define MODEL_STRING "TI SmartRF05 EB\n"
 #define LEDS_GREEN    1
 #define LEDS_RED      2
 

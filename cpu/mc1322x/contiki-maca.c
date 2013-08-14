@@ -37,21 +37,21 @@
 #include <stdio.h>
 #include <string.h>
 
+/* debug */
+#define DEBUG DEBUG_ANNOTATE
+#include "net/uip-debug.h"
+
 /* contiki */
 #include "radio.h"
 #include "sys/process.h"
 #include "net/packetbuf.h"
 #include "net/netstack.h"
 
-#include "mc1322x.h"
 #include "contiki-conf.h"
 
-#define CONTIKI_MACA_DEBUG 0
-#if CONTIKI_MACA_DEBUG
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+/* mc1322x */
+#include "mc1322x.h"
+#include "config.h"
 
 #ifndef CONTIKI_MACA_PREPEND_BYTE
 #define CONTIKI_MACA_PREPEND_BYTE 0xff
@@ -60,6 +60,8 @@
 #ifndef BLOCKING_TX
 #define BLOCKING_TX 1
 #endif
+
+unsigned short node_id = 0;
 
 static volatile uint8_t tx_complete;
 static volatile uint8_t tx_status;
@@ -97,6 +99,40 @@ static volatile uint8_t contiki_maca_request_off = 0;
 static process_event_t event_data_ready;
 
 static volatile packet_t prepped_p;
+
+void contiki_maca_set_mac_address(uint64_t eui) {
+	rimeaddr_t addr;
+	uint8_t i;
+
+	/* setup mac address registers in maca hardware */
+	*MACA_MACPANID = 0xcdab; /* this is the hardcoded contiki pan, register is PACKET order */
+	*MACA_MAC16ADDR = 0xffff; /* short addressing isn't used, set this to 0xffff for now */
+
+	*MACA_MAC64HI = (uint32_t) (eui >> 32);
+	*MACA_MAC64LO = (uint32_t)  eui;
+
+	ANNOTATE("setting panid 0x%04x\n\r", *MACA_MACPANID);
+	ANNOTATE("setting short mac 0x%04x\n\r", *MACA_MAC16ADDR);
+	ANNOTATE("setting long mac 0x%08x_%08x\n\r", *MACA_MAC64HI, *MACA_MAC64LO);
+
+	/* setup mac addresses in Contiki (RIME) */
+	rimeaddr_copy(&addr, &rimeaddr_null);
+
+	for(i=0; i < RIMEADDR_CONF_SIZE; i++) {
+		addr.u8[RIMEADDR_CONF_SIZE - 1 - i] = (mc1322x_config.eui >> (i * 8)) & 0xff;
+	}
+
+	node_id = (addr.u8[6] << 8 | addr.u8[7]);
+	rimeaddr_set_node_addr(&addr);
+
+#if DEBUG_ANNOTATE
+	ANNOTATE("Rime configured with address ");
+	for(i = 0; i < sizeof(addr.u8) - 1; i++) {
+		ANNOTATE("%02X:", addr.u8[i]);
+	}
+	ANNOTATE("%02X\n", addr.u8[i]);
+#endif
+}
 
 int contiki_maca_init(void) {
 //	trim_xtal();
@@ -143,7 +179,7 @@ int contiki_maca_off_request(void) {
 int contiki_maca_read(void *buf, unsigned short bufsize) {
 	volatile uint32_t i;
 	volatile packet_t *p;
-	
+
 	if((p = rx_packet())) {
 		PRINTF("maca read");
 #if CONTIKI_MACA_RAW_MODE
@@ -162,7 +198,7 @@ int contiki_maca_read(void *buf, unsigned short bufsize) {
 		for( i = p->offset ; i < (bufsize + p->offset) ; i++) {
 			PRINTF(" %02x",p->data[i]);
 		}
-#endif 
+#endif
 		PRINTF("\n\r");
 		free_packet(p);
 		return bufsize;
@@ -177,12 +213,12 @@ int contiki_maca_read(void *buf, unsigned short bufsize) {
 /* the same packet repeatedly */
 int contiki_maca_prepare(const void *payload, unsigned short payload_len) {
 	volatile int i;
-		
+
 	PRINTF("contiki maca prepare");
 #if CONTIKI_MACA_RAW_MODE
 	prepped_p.offset = 1;
 	prepped_p.length = payload_len + 1;
-#else 
+#else
 	prepped_p.offset = 0;
 	prepped_p.length = payload_len;
 #endif
@@ -200,7 +236,7 @@ int contiki_maca_prepare(const void *payload, unsigned short payload_len) {
 	}
 	PRINTF("\n\r");
 #endif
-	
+
 	return RADIO_TX_OK;
 
 }
@@ -216,10 +252,10 @@ int contiki_maca_transmit(unsigned short transmit_len) {
 	tx_complete = 0;
 #endif
 	if(p = get_free_packet()) {
-		p->offset = prepped_p.offset; 
-		p->length = prepped_p.length; 
-		memcpy((uint8_t *)(p->data + p->offset), 
-		       (const uint8_t *)(prepped_p.data + prepped_p.offset), 
+		p->offset = prepped_p.offset;
+		p->length = prepped_p.length;
+		memcpy((uint8_t *)(p->data + p->offset),
+		       (const uint8_t *)(prepped_p.data + prepped_p.offset),
 		       prepped_p.length);
 		tx_packet(p);
 	} else {
@@ -229,8 +265,8 @@ int contiki_maca_transmit(unsigned short transmit_len) {
 
 #if BLOCKING_TX
 	/* block until tx_complete, set by contiki_maca_tx_callback */
- 	while(!tx_complete && (tx_head != 0));
-#endif	
+	while((maca_pwr == 1) && !tx_complete && (tx_head != 0)) { continue; }
+#endif
 }
 
 int contiki_maca_send(const void *payload, unsigned short payload_len) {
@@ -255,11 +291,11 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
 {
  	volatile uint32_t i;
 	int len;
-	
+
  	PROCESS_BEGIN();
 
 	while (1) {
-		PROCESS_YIELD();
+		PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 
 		/* check if there is a request to turn the radio on or off */
 		if(contiki_maca_request_on == 1) {
@@ -276,7 +312,7 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
 			packetbuf_clear();
 			len = contiki_maca_read(packetbuf_dataptr(), PACKETBUF_SIZE);
 			if(len > 0) {
-				packetbuf_set_datalen(len);				
+				packetbuf_set_datalen(len);
 				NETSTACK_RDC.input();
 			}
 		}
@@ -284,9 +320,9 @@ PROCESS_THREAD(contiki_maca_process, ev, data)
 		if (rx_head != NULL) {
 			process_poll(&contiki_maca_process);
 		}
-		
+
  	};
-	
+
  	PROCESS_END();
 }
 

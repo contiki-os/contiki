@@ -62,7 +62,6 @@ int simSignalStrength = -100;
 int simLastSignalStrength = -100;
 char simPower = 100;
 int simRadioChannel = 26;
-int simLQI = 105;
 
 static const void *pending_data;
 
@@ -92,12 +91,6 @@ int
 radio_signal_strength_current(void)
 {
   return simSignalStrength;
-}
-/*---------------------------------------------------------------------------*/
-int
-radio_LQI(void)
-{
-	return simLQI;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -152,9 +145,6 @@ radio_read(void *buf, unsigned short bufsize)
 
   memcpy(buf, simInDataBuffer, simInSize);
   simInSize = 0;
-  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, simSignalStrength);
-  packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, simLQI);
-
   return tmp;
 }
 /*---------------------------------------------------------------------------*/

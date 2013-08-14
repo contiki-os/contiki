@@ -1,0 +1,63 @@
+notifications:
+  email: false
+language: c #NOTE: this will set CC=gcc which might cause trouble
+before_script:
+  - "sudo apt-get -qq update"
+  ## Install these mainline toolchains for all build types
+  - "sudo apt-get -qq install lib32z1 || true"
+  - "curl -s \
+       http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 \
+         | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/msp430/* /usr/local/ && rm -rf /tmp/msp430 && msp430-gcc --version || true"
+  - "sudo apt-get -qq install gcc-avr avr-libc || true"
+  - "sudo apt-get -qq install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386 || true"
+
+  ## Install toolchain for mc1233x, cc2538 and mbxxx in care-free way
+  - "[ ${BUILD_ARCH:-0} = arm ] && curl -s \
+       https://raw.github.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
+         | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version || true"
+
+  ## Install SDCC from a purpose-built bundle
+  - "[ ${BUILD_ARCH:-0} = 8051 ] && curl -s \
+       https://raw.github.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc.tar.gz \
+         | tar xzf - -C /tmp/ && sudo cp -f -r /tmp/sdcc/* /usr/local/ && rm -rf /tmp/sdcc && sdcc --version || true"
+  - "[ ${BUILD_ARCH:-0} = 8051 ] && sudo apt-get -qq install srecord || true"
+
+  ## Compile cooja.jar only when it's going to be needed
+  - "[ ${BUILD_CATEGORY:-sim} = sim ] && java -version && ant -q -f tools/cooja/build.xml jar || true"
+
+  ## IMPORTANT: The commands here have to end with `|| true`,
+  ## because it would make the test fail if BUILD_TYPE test fails
+
+script:
+  ## regression-tests/Makefile handles most of generic logic
+  - "make -C regression-tests/??-$BUILD_TYPE RUNALL=true summary"
+
+after_script:
+  ## Print cooja test logs
+  - "[ ${BUILD_CATEGORY:-sim} = sim ] && tail regression-tests/??-$BUILD_TYPE/*.testlog"
+  ## Print a basic summary 
+  - "echo 'Summary:'; cat regression-tests/??-$BUILD_TYPE/summary"
+  - "FAILS=`grep -c -i 'fail' regression-tests/??-$BUILD_TYPE/summary`"
+  ## This will detect whether the build should pass or fail
+  - "test $FAILS -eq 0; exit $?"
+
+
+env:
+  ## This magically kick-off parallel jobs for each of the for the sets
+  ## of environment variable defined below
+  - BUILD_TYPE='compile-base' BUILD_CATEGORY='compile'
+  - BUILD_TYPE='collect'
+  - BUILD_TYPE='collect-lossy'
+  - BUILD_TYPE='rpl'
+  - BUILD_TYPE='rime'
+  - BUILD_TYPE='ipv6'
+  - BUILD_TYPE='hello-world'
+  - BUILD_TYPE='base'
+# XXX: netperf disabled b/c it's flaky
+#  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='shell'
+  - BUILD_TYPE='elfloader'
+  - BUILD_TYPE='ipv4'
+  - BUILD_TYPE='ipv6-apps'
+  - BUILD_TYPE='compile-8051-ports' BUILD_CATEGORY='compile' BUILD_ARCH='8051'
+  - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm'

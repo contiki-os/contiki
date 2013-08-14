@@ -38,9 +38,9 @@
 #include "6502def.h"
 
 #define CTK_CONF_MENU_KEY         CH_ESC
-#define CTK_CONF_WINDOWSWITCH_KEY 0x17	/* Ctrl-W */
-#define CTK_CONF_WIDGETUP_KEY     0x01	/* Ctrl-A */
-#define CTK_CONF_WIDGETDOWN_KEY   '\t'	/* Tab or Ctrl-I */
+#define CTK_CONF_WINDOWSWITCH_KEY 0x17  /* Ctrl-W */
+#define CTK_CONF_WIDGETUP_KEY     0x01  /* Ctrl-A */
+#define CTK_CONF_WIDGETDOWN_KEY   '\t'  /* Tab or Ctrl-I */
 
 #define textcolor(color) COLOR_WHITE
 
@@ -62,11 +62,6 @@
 #define WWW_CONF_HISTORY_SIZE        0
 #define WWW_CONF_MAX_URLLEN         80
 #define WWW_CONF_MAX_NUMPAGEWIDGETS 20
-#define WWW_CONF_RENDERSTATE         0
 #define WWW_CONF_FORMS               0
-#define WWW_CONF_MAX_FORMACTIONLEN  20
-#define WWW_CONF_MAX_FORMNAMELEN    20
-#define WWW_CONF_MAX_INPUTNAMELEN   20
-#define WWW_CONF_MAX_INPUTVALUELEN  20
 
 #endif /* __CONTIKI_CONF_H__ */

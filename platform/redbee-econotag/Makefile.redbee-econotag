@@ -1,5 +1,16 @@
 # -*- makefile -*-
 
+define nl
+
+
+endef
+
+ifndef ALLOW_OLD_PLATFORMS
+${error $(nl)$(nl)**** This platform is old and will soon be removed **** $(nl)$(nl)\
+please use TARGET=econotag instead.$(nl)$(nl) \
+	(or set ALLOW_OLD_PLATFORMS=1 to proceed)$(nl)$(nl) }
+endif
+
 CONTIKI_TARGET_DIRS = . dev apps net 
 CONTIKI_CORE=contiki-mc1322x-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
@@ -13,7 +24,7 @@ CONTIKI_PLAT_DEFS =
 
 MCU=arm7tdmi-s
 
-ifdef UIP_CONF_IPV6
+ifeq ($(UIP_CONF_IPV6),1)
 CFLAGS += -DWITH_UIP6=1
 endif
 

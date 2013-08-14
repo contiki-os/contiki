@@ -96,6 +96,7 @@ volatile packet_t *rx_head, *tx_head;
 /* used for ack recpetion if the packet_pool goes empty */
 /* doesn't go back into the pool when freed */
 static volatile packet_t dummy_ack;
+static volatile packet_t dummy_rx;
 
 /* incremented on every maca entry */
 /* you can use this to detect that the receive loop is still running */
@@ -108,6 +109,10 @@ enum posts {
 	MAX_POST,
 };
 static volatile uint8_t last_post = NO_POST;
+
+/* maca_pwr indicates whether the radio is on or off */
+/* Test it before accessing any radio function or the CPU may hang */
+volatile uint8_t maca_pwr = 0;
 
 volatile uint8_t fcs_mode = USE_FCS; 
 volatile uint8_t prm_mode = PROMISC;
@@ -181,6 +186,7 @@ void maca_init(void) {
 	radio_init();
 	flyback_init();
 	init_phy();
+	maca_pwr = 1;
 	set_channel(0); /* things get weird if you never set a channel */
 	set_power(0);   /* set the power too --- who knows what happens if you don't */
 	free_head = 0; tx_head = 0; rx_head = 0; rx_end = 0; tx_end = 0; dma_tx = 0; dma_rx = 0;
@@ -359,6 +365,7 @@ void post_receive(void) {
 		dma_rx = get_free_packet();
 		if (dma_rx == 0) {
 			PRINTF("trying to fill MACA_DMARX in post_receieve but out of packet buffers\n\r");		
+			dma_rx = &dummy_rx;
 			/* set the sftclock so that we return to the maca_isr */
 			*MACA_SFTCLK = *MACA_CLK + RECV_SOFTIMEOUT; /* soft timeout */ 
 			*MACA_TMREN = (1 << maca_tmren_sft);
@@ -559,7 +566,8 @@ void insert_at_rx_head(volatile packet_t *p) {
 	} else {
 		rx_head->right = p;
 		p->left = rx_head;
-		rx_head = p; rx_head->left = 0;
+		p->right = 0;
+		rx_head = p;
 	}
 
 //	print_packets("insert at rx head");
@@ -651,21 +659,25 @@ void maca_isr(void) {
 
 	if (data_indication_irq()) {
 		*MACA_CLRIRQ = (1 << maca_irq_di);
-		dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
-		dma_rx->lqi = get_lqi();
-		dma_rx->rx_time = *MACA_TIMESTAMP;
 
-		/* check if received packet needs an ack */
-		if(prm_mode == AUTOACK && (dma_rx->data[1] & MAC_ACK_REQUEST_FLAG)) {
-			/* this wait is necessary to auto-ack */
-			volatile uint32_t wait_clk;
-			wait_clk = *MACA_CLK + 200;
-			while(*MACA_CLK < wait_clk) { continue; }
+		if (dma_rx != &dummy_ack && dma_rx != &dummy_rx)
+		{
+			dma_rx->length = *MACA_GETRXLVL - 2; /* packet length does not include FCS */
+			dma_rx->lqi = get_lqi();
+			dma_rx->rx_time = *MACA_TIMESTAMP;
+
+			/* check if received packet needs an ack */
+			if(prm_mode == AUTOACK && (dma_rx->data[1] & 0x20)) {
+				/* this wait is necessary to auto-ack */
+				volatile uint32_t wait_clk;
+				wait_clk = *MACA_CLK + 200;
+				while(*MACA_CLK < wait_clk) { continue; }
+			}
+
+			if(maca_rx_callback != 0) { maca_rx_callback(dma_rx); }
+
+			add_to_rx(dma_rx);
 		}
-
-		if(maca_rx_callback != 0) { maca_rx_callback(dma_rx); }
-
-		add_to_rx(dma_rx);
 		dma_rx = 0;
 	}
 	if (filter_failed_irq()) {
@@ -872,21 +884,70 @@ const uint32_t addr_reg_rep[MAX_DATA] = { 0x80004118,0x80009204,0x80009208,0x800
 const uint32_t data_reg_rep[MAX_DATA] = { 0x00180012,0x00000605,0x00000504,0x00001111,0x0fc40000,0x20046000,0x4005580c,0x40075801,0x4005d801,0x5a45d800,0x4a45d800,0x40044000,0x00106000,0x00083806,0x00093807,0x0009b804,0x000db800,0x00093802,0x00000015,0x00000002,0x0000000f,0x0000aaa0,0x01002020,0x016800fe,0x8e578248,0x000000dd,0x00000946,0x0000035a,0x00100010,0x00000515,0x00397feb,0x00180358,0x00000455,0x00000001,0x00020003,0x00040014,0x00240034,0x00440144,0x02440344,0x04440544,0x0ee7fc00,0x00000082,0x0000002a };
 
 void maca_off(void) {
+	/* Do nothing if already off */
+	if (maca_pwr == 0) return;
+
+	/* wait here till complete and then go off */
+	while (last_post == TX_POST) {
+		return;
+	}
+
 	disable_irq(MACA);
-	/* turn off the radio regulators */
-	reg(0x80003048) =  0x00000f00;
-	/* hold the maca in reset */
-	maca_reset = maca_reset_rst;  
+	maca_pwr = 0;
+
+	/* Disable clocks, cancel possible delayed RX post */
+	/* Note mcu will hang if radio is off when a startclk post comes through */
+	*MACA_TMRDIS = (1 << maca_tmren_sft) | ( 1<< maca_tmren_cpl) | ( 1 << maca_tmren_strt);
+
+	/* Turn off the radio regulators */
+	CRM->VREG_CNTLbits.VREG_1P8V_EN = 0;
+	CRM->VREG_CNTLbits.VREG_1P5V_EN = 0;
+
+	/* Hold the maca in reset */
+	maca_reset = maca_reset_rst;
 }
 
 void maca_on(void) {
-	/* turn the radio regulators back on */
-	reg(0x80003048) =  0x00000f78; 
-	/* reinitialize the phy */
-	reset_maca();
-	init_phy();
+
+	if (maca_pwr != 0) {
+		return;
+	}
+	maca_pwr = 1;
+
+	/* Turn the radio regulators back on */
+	CRM->VREG_CNTLbits.VREG_1P8V_EN = 1;
+	CRM->VREG_CNTLbits.VREG_1P5V_EN = 3;
+	while(CRM->STATUSbits.VREG_1P8V_RDY == 0) { continue; }
+	while(CRM->STATUSbits.VREG_1P5V_RDY == 0) { continue; }
 	
+	/* Take out of reset */
+	*MACA_RESET = (1 << maca_reset_clkon);
+
+	/* Wait for VREG_1P5V_RDY indication */
+	while (!((*(volatile uint32_t *)0x80003018) & (1<< 19))) {}
+
+	/* If last turnoff had a pending RX post we will get an action complete/PLL unlock interrupt.
+	 * If an abort is now issued we will get an action complete/abort interrupt.
+	 * This action complete is delayed by some unknown amount, just clearing MACA_IRQ below will not stop it.
+	 * However a NOP does the job!
+	 */
+	*MACA_CONTROL = maca_ctrl_seq_nop | (1 << maca_ctrl_asap);
+
+/* Something is allowing reserved interrupt 13 on restart? */
+
+	*MACA_MASKIRQ = ((1 << maca_irq_rst)    |
+			 (1 << maca_irq_acpl)   |
+			 (1 << maca_irq_cm)     |
+			 (1 << maca_irq_flt)    |
+			 (1 << maca_irq_crc)    |
+			 (1 << maca_irq_di)     |
+			 (1 << maca_irq_sftclk)
+		);
+
+	last_post = NO_POST;
+	*MACA_CLRIRQ = 0xffff;
 	enable_irq(MACA);
+
 	*INTFRC = (1 << INT_NUM_MACA);
 }
 
@@ -932,7 +993,9 @@ void radio_init(void) {
 	volatile uint32_t i;
 	/* sequence 1 */
 	for(i=0; i<MAX_SEQ1; i++) {
-		*(volatile uint32_t *)(addr_seq1[i]) = data_seq1[i];
+		if((unsigned int)addr_seq1[i] != (unsigned int)CRM_VREG_CNTL) {
+			*(volatile uint32_t *)(addr_seq1[i]) = data_seq1[i];
+		}
 	}
 	/* seq 1 delay */
 	for(i=0; i<0x161a8; i++) { continue; }
@@ -960,7 +1023,9 @@ void radio_init(void) {
 	}
 	/* cal 5 */
 	for(i=0; i<MAX_CAL5; i++) {
-		*(volatile uint32_t *)(addr_cal5[i]) = data_cal5[i];
+		if((unsigned int)addr_cal5[i] != (unsigned int)CRM_VREG_CNTL) {
+			*(volatile uint32_t *)(addr_cal5[i]) = data_cal5[i];
+		}
 	}
 	/*reg replacment */
 	for(i=0; i<MAX_DATA; i++) {
@@ -968,12 +1033,6 @@ void radio_init(void) {
 	}
 	
 	PRINTF("initfromflash\n\r");
-
-	*(volatile uint32_t *)(0x80003048) = 0x00000f04; /* bypass the buck */
-	for(i=0; i<0x161a8; i++) { continue; } /* wait for the bypass to take */
-//	while((((*(volatile uint32_t *)(0x80003018))>>17) & 1) !=1) { continue; } /* wait for the bypass to take */
-	*(volatile uint32_t *)(0x80003048) = 0x00000fa4; /* start the regulators */
-	for(i=0; i<0x161a8; i++) { continue; } /* wait for the bypass to take */
 
 	init_from_flash(0x1F000);
 
@@ -1203,7 +1262,11 @@ uint32_t exec_init_entry(volatile uint32_t *entries, uint8_t *valbuf)
 		PRINTF("init_entry: address value pair - *0x%08x = 0x%08x\n\r",
 		       (unsigned int)entries[0],
 		       (unsigned int)entries[1]);
-		reg(entries[0]) = entries[1];
+		if ((unsigned int)entries[0] !=  (unsigned int)CRM_VREG_CNTL) {
+			reg(entries[0]) = entries[1];
+		} else {
+			PRINTF("skipping VREG_CNTL\n\r");
+		}
 		return 2;
 	}
 }

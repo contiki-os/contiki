@@ -38,36 +38,23 @@
 
 /* Callbacks. */
 void htmlparser_link(char *text, unsigned char textlen, char *url);
+void htmlparser_form(char *action);
 void htmlparser_submitbutton(char *value,
-			     char *name,
-			     char *formname,
-			     char *formaction);
-void htmlparser_inputfield(unsigned char size,
+			     char *name);
+void htmlparser_inputfield(unsigned char type,
+			   unsigned char size,
 			   char *value,
-			   char *name,
-			   char *formname,
-			   char *formaction);
+			   char *name);
 void htmlparser_newline(void);
 void htmlparser_word(char *word, unsigned char wordlen);
 
-void htmlparser_renderstate(unsigned char state);
-#define HTMLPARSER_RENDERSTATE_STATUSMASK 0x80
-#define HTMLPARSER_RENDERSTATE_BEGIN      0x00
-#define HTMLPARSER_RENDERSTATE_END        0x80
 
-#define HTMLPARSER_RENDERSTATE_NONE       0x00
-#define HTMLPARSER_RENDERSTATE_CENTER     0x01
-#define HTMLPARSER_RENDERSTATE_TABLE      0x02
-#define HTMLPARSER_RENDERSTATE_TR         0x04
-#define HTMLPARSER_RENDERSTATE_TD         0x08
-
-
-#define HTMLPARSER_INPUTTYPE_NONE     0
-#define HTMLPARSER_INPUTTYPE_TEXT     1
-#define HTMLPARSER_INPUTTYPE_PASSWORD 2
-#define HTMLPARSER_INPUTTYPE_SUBMIT   3
-#define HTMLPARSER_INPUTTYPE_IMAGE    4
-#define HTMLPARSER_INPUTTYPE_OTHER    5
+#define HTMLPARSER_INPUTTYPE_NONE   0
+#define HTMLPARSER_INPUTTYPE_TEXT   1
+#define HTMLPARSER_INPUTTYPE_HIDDEN 2
+#define HTMLPARSER_INPUTTYPE_SUBMIT 3
+#define HTMLPARSER_INPUTTYPE_IMAGE  4
+#define HTMLPARSER_INPUTTYPE_OTHER  5
 
 
 /* Functions. */

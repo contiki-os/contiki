@@ -26,7 +26,7 @@
  * will be stored.  This parameter is generated with a macro above.
  */
 #define TOKEN_MFG(name,creator,iscnt,isidx,type,arraysize,...) \
-  extern const int16u TOKEN_##name;
+  extern const uint16_t TOKEN_##name;
   #include "hal/micro/cortexm3/token-manufacturing.h"
 #undef TOKEN_MFG
 
@@ -125,7 +125,7 @@ enum {
  * @param len: The length of the token being worked on.  This value is
  * automatically set by the API to be the size of the token.
  */
-void halInternalGetMfgTokenData(void *data, int16u token, int8u index, int8u len);
+void halInternalGetMfgTokenData(void *data, uint16_t token, uint8_t index, uint8_t len);
 
 /**
  * @description Sets the value of a token in non-volatile storage.  This is
@@ -147,7 +147,7 @@ void halInternalGetMfgTokenData(void *data, int16u token, int8u index, int8u len
  * @param len: The length of the token being worked on.  This value is
  * automatically set by the API to be the size of the token.
  */
-void halInternalSetMfgTokenData(int16u token, void *data, int8u len);
+void halInternalSetMfgTokenData(uint16_t token, void *data, uint8_t len);
 
 #define halCommonGetMfgToken( data, token )                    \
   halInternalGetMfgTokenData(data, token, 0x7F, token##_SIZE)

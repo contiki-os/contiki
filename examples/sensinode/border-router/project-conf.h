@@ -46,5 +46,6 @@
 #define VIZTOOL_MAX_PAYLOAD_LEN 120
 #define SLIP_ARCH_CONF_ENABLE 1
 #define LPM_CONF_MODE 0
+#define UIP_FALLBACK_INTERFACE slip_interface
 
 #endif /* PROJECT_CONF_H_ */

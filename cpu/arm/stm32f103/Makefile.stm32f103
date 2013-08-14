@@ -6,7 +6,7 @@ SUBTARGET = CB
 
 ### Code common for all ARM CPUs
 
-CONTIKI_CPU_ARM=$(CONTIKI)/cpu/arm/
+CONTIKI_CPU_ARM=$(CONTIKI)/cpu/arm
 CONTIKI_CPU_ARM_COMMON=$(CONTIKI_CPU_ARM)/common
 
 ### Define the CPU directory
@@ -94,7 +94,7 @@ CUSTOM_RULE_C_TO_O=yes
 %.o: %.c
 	$(CC) $(CFLAGS) $< -c
 
-$(OBJECTDIR)/%.o: %.c
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
@@ -102,7 +102,7 @@ CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
 %.o: %.S
 	$(CC) $(CFLAGS) $< -c
 
-$(OBJECTDIR)/%.o: %.S
+$(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $< -c  -o $@
 
 
@@ -175,7 +175,7 @@ ocd_reset:
 	$(OPENOCD) -s $(OPENOCD_DIR) -f $(OPENOCD_CFG) -c init -c "reset halt;resume" -c exit
 
 # Don't use core/loader/elfloader.c, use elfloader-otf.c instead
-$(OBJECTDIR)/elfloader.o: 
+$(OBJECTDIR)/elfloader.o: | $(OBJECTDIR)
 	echo -n >$@
 
 clean: clean_cpu

@@ -60,7 +60,7 @@ poison_loop:
 uint8_t
 stack_get_max(void)
 {
-  __data uint8_t * sp = (__data uint8_t *) 0xff;
+  __data uint8_t *sp = (__data uint8_t *)0xff;
   uint8_t free = 0;
 
   while(*sp-- == STACK_POISON) {

@@ -70,7 +70,9 @@ recv_from_abc(struct abc_conn *bc)
   PRINTF("%d.%d: broadcast: from %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 sender.u8[0], sender.u8[1]);
-  c->u->recv(c, &sender);
+  if(c->u->recv) {
+    c->u->recv(c, &sender);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void

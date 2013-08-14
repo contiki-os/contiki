@@ -53,7 +53,7 @@ static uint16_t len;
 #define SERVER_REPLY          1
 
 /* Should we act as RPL root? */
-#define SERVER_RPL_ROOT       1
+#define SERVER_RPL_ROOT       0
 
 #if SERVER_RPL_ROOT
 static uip_ipaddr_t ipaddr;
@@ -92,9 +92,10 @@ static void
 print_stats()
 {
   PRINTF("tl=%lu, ts=%lu, bs=%lu, bc=%lu\n",
-      rimestats.toolong, rimestats.tooshort, rimestats.badsynch, rimestats.badcrc);
-  PRINTF("llrx=%lu, lltx=%lu, rx=%lu, tx=%lu\n",
-      rimestats.llrx, rimestats.lltx, rimestats.rx, rimestats.tx);
+         RIMESTATS_GET(toolong), RIMESTATS_GET(tooshort),
+         RIMESTATS_GET(badsynch), RIMESTATS_GET(badcrc));
+  PRINTF("llrx=%lu, lltx=%lu, rx=%lu, tx=%lu\n", RIMESTATS_GET(llrx),
+         RIMESTATS_GET(lltx), RIMESTATS_GET(rx), RIMESTATS_GET(tx));
 }
 #endif
 /*---------------------------------------------------------------------------*/
@@ -112,7 +113,7 @@ print_local_addresses(void)
       PRINTF("  ");
       PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
       PRINTF("\n");
-      if (state == ADDR_TENTATIVE) {
+      if(state == ADDR_TENTATIVE) {
         uip_ds6_if.addr_list[i].state = ADDR_PREFERRED;
       }
     }
@@ -131,7 +132,8 @@ create_dag()
 
   print_local_addresses();
 
-  dag = rpl_set_root(RPL_DEFAULT_INSTANCE, &uip_ds6_get_global(ADDR_PREFERRED)->ipaddr);
+  dag = rpl_set_root(RPL_DEFAULT_INSTANCE,
+                     &uip_ds6_get_global(ADDR_PREFERRED)->ipaddr);
   if(dag != NULL) {
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
     rpl_set_prefix(dag, &ipaddr, 64);
@@ -167,7 +169,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
       tcpip_handler();
 #if (BUTTON_SENSOR_ON && (DEBUG==DEBUG_PRINT))
     } else if(ev == sensors_event && data == &button_sensor) {
-        print_stats();
+      print_stats();
 #endif /* BUTTON_SENSOR_ON */
     }
   }

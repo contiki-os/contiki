@@ -1,7 +1,7 @@
 # -*- makefile -*-
 
 ifndef CONTIKI
-  ${error CONTIKI not defined! You must specify where CONTIKI resides}
+  ${error CONTIKI not defined! You must specify where Contiki resides}
 endif
 
 ifeq ($(TARGET),)
@@ -59,27 +59,12 @@ include $(CONTIKI)/core/net/mac/Makefile.mac
 SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c \
           timetable.c timetable-aggregate.c compower.c serial-line.c
 THREADS = mt.c
-LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c \
-          print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c
+LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c trickle-timer.c \
+          print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c settings.c
 DEV     = nullradio.c
-NET     = netstack.c uip-debug.c packetbuf.c queuebuf.c packetqueue.c
 
-ifdef UIP_CONF_IPV6
-  CFLAGS += -DUIP_CONF_IPV6=1
-  UIP   = uip6.c tcpip.c psock.c uip-udp-packet.c uip-split.c \
-          resolv.c tcpdump.c uiplib.c simple-udp.c
-  NET   += $(UIP) uip-icmp6.c uip-nd6.c uip-packetqueue.c \
-          sicslowpan.c neighbor-attr.c neighbor-info.c uip-ds6.c
-  ifneq ($(UIP_CONF_RPL),0)
-    CFLAGS += -DUIP_CONF_IPV6_RPL=1
-    include $(CONTIKI)/core/net/rpl/Makefile.rpl
-  endif # UIP_CONF_RPL
-else # UIP_CONF_IPV6
-  UIP   = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
-          uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
-          uip-over-mesh.c dhcpc.c simple-udp.c
-  NET   += $(UIP) uaodv.c uaodv-rt.c
-endif # UIP_CONF_IPV6
+include $(CONTIKI)/core/net/Makefile.uip
+include $(CONTIKI)/core/net/rpl/Makefile.rpl
 
 CTK     = ctk.c
 CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c ctk-vncfont.c
@@ -101,13 +86,18 @@ CONTIKI_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CONTIKI_SOURCEFI
 
 PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFILES)}}
 
+# Provide way to create $(OBJECTDIR) if it has been removed by make clean
+$(OBJECTDIR):
+	mkdir $@
+
 ### Include application makefiles
 
 ifdef APPS
-  APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
-	     ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
-	     $(APPS)}
-  APPINCLUDES = ${foreach APP, $(APPS), ${wildcard ${foreach DIR, $(APPDIRS), $(DIR)/Makefile.$(APP)}}}
+  APPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(APPS)}}} \
+             ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
+             ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
+             $(APPS)}
+  APPINCLUDES = ${foreach APP, $(APPS), ${wildcard ${foreach DIR, $(APPDS), $(DIR)/Makefile.$(APP)}}}
   -include $(APPINCLUDES)
   APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
   DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}
@@ -122,13 +112,39 @@ target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET) $
 ifeq ($(strip $(target_makefile)),)
   ${error The target platform "$(TARGET)" does not exist (maybe it was misspelled?)}
 else
-  ifeq (${wildcard $(OBJECTDIR)},)
-    DUMMY := ${shell mkdir $(OBJECTDIR)}
-  endif
   ifneq (1, ${words $(target_makefile)})
     ${error More than one TARGET Makefile found: $(target_makefile)}
   endif
   include $(target_makefile)
+endif
+
+ifdef PLATFORMAPPS
+  PLATFORMAPPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(PLATFORMAPPS)}}} \
+             ${wildcard ${addprefix $(CONTIKI)/apps/, $(PLATFORMAPPS)} \
+             ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(PLATFORMAPPS)} \
+             $(PLATFORMAPPS)}
+  PLATFORMAPPINCLUDES = ${foreach APP, $(PLATFORMAPPS), \
+      ${wildcard ${foreach DIR, $(PLATFORMAPPDS), $(DIR)/Makefile.$(APP)}}}
+  -include $(PLATFORMAPPINCLUDES)
+  PLATFORMAPP_SOURCES = ${foreach APP, $(PLATFORMAPPS), $($(APP)_src)}
+  CONTIKI_SOURCEFILES += $(PLATFORMAPP_SOURCES)
+  APPDS += $(PLATFORMAPPDS)
+endif
+
+### Verbosity control. Use  make V=1  to get verbose builds.
+
+ifeq ($(V),1)
+  TRACE_CC =
+  TRACE_LD =
+  TRACE_AR =
+  TRACE_AS =
+  Q=
+else
+  TRACE_CC = @echo "  CC       " $<
+  TRACE_LD = @echo "  LD       " $@
+  TRACE_AR = @echo "  AR       " $@
+  TRACE_AS = @echo "  AS       " $<
+  Q=@
 endif
 
 ### Forward comma-separated list of arbitrary defines to the compiler
@@ -144,7 +160,7 @@ CONTIKI_CPU_DIRS_CONCAT    = ${addprefix $(CONTIKI_CPU)/, \
                                $(CONTIKI_CPU_DIRS)}
 
 SOURCEDIRS = . $(PROJECTDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-             $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDIRS) ${dir $(target_makefile)}
+             $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDS) ${dir $(target_makefile)}
 
 vpath %.c $(SOURCEDIRS)
 vpath %.S $(SOURCEDIRS)
@@ -163,7 +179,7 @@ endif
 
 ifneq ($(MAKECMDGOALS),clean)
 -include ${addprefix $(OBJECTDIR)/,$(CONTIKI_SOURCEFILES:.c=.d) \
-				   $(PROJECT_SOURCEFILES:.c=.d)}
+                                   $(PROJECT_SOURCEFILES:.c=.d)}
 endif
 
 ### See http://make.paulandlesley.org/autodep.html#advanced
@@ -175,38 +191,48 @@ sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 rm -f $(@:.o=.$$$$)
 endef
 
- clean:
+clean:
 	rm -f *~ *core core *.srec \
 	*.lst *.map \
-        *.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
-        *.ce *.co $(CLEAN)
+	*.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
+	*.ce *.co
+	rm -rf $(CLEAN)
 	-rm -rf $(OBJECTDIR)
+
+distclean: clean
+	-rm -rf $(CONTIKI_PROJECT).$(TARGET)
 
 ifndef CUSTOM_RULE_C_TO_CE
 %.ce: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 	$(STRIP) --strip-unneeded -g -x $@
 endif
 
 ifndef CUSTOM_RULE_C_TO_OBJECTDIR_O
-$(OBJECTDIR)/%.o: %.c
-	$(CC) $(CFLAGS) -MMD -c $< -o $@
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -MMD -c $< -o $@
 	@$(FINALIZE_DEPENDENCY)
 endif
 
 ifndef CUSTOM_RULE_S_TO_OBJECTDIR_O
-$(OBJECTDIR)/%.o: %.S
-	$(AS) $(ASFLAGS) -o $@ $<
+$(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
+	$(TRACE_AS)
+	$(Q)$(AS) $(ASFLAGS) -o $@ $<
 endif
 
 ifndef CUSTOM_RULE_C_TO_O
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -c $< -o $@
 endif
+
 
 ifndef CUSTOM_RULE_C_TO_CO
 %.co: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 endif
 
 ifndef AROPTS
@@ -215,7 +241,8 @@ endif
 
 ifndef CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
 contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES)
-	$(AR) $(AROPTS) $@ $^
+	$(TRACE_AR)
+	$(Q)$(AR) $(AROPTS) $@ $^
 endif
 
 ifndef LD
@@ -224,14 +251,16 @@ endif
 
 ifndef CUSTOM_RULE_LINK
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
-	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 endif
 
 %.ramprof: %.$(TARGET)
-	nm -S -td --size-sort $< | grep -i " [abdrw] " | cut -d' ' -f2,4
+	$(NM) -S -td --size-sort $< | grep -i " [abdrw] " | cut -d' ' -f2,4
 
 %.flashprof: %.$(TARGET)
-	nm -S -td --size-sort $< | grep -i " [t] " | cut -d' ' -f2,4
+	$(NM) -S -td --size-sort $< | grep -i " [t] " | cut -d' ' -f2,4
 
 # Don't treat %.$(TARGET) as an intermediate file because it is
 # in fact the primary target.

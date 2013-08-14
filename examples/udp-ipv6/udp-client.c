@@ -30,8 +30,10 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
+#include "net/resolv.h"
 
 #include <string.h>
+#include <stdbool.h>
 
 #define DEBUG DEBUG_PRINT
 #include "net/uip-debug.h"
@@ -42,7 +44,7 @@
 static struct uip_udp_conn *client_conn;
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client process");
-AUTOSTART_PROCESSES(&udp_client_process);
+AUTOSTART_PROCESSES(&resolv_process,&udp_client_process);
 /*---------------------------------------------------------------------------*/
 static void
 tcpip_handler(void)
@@ -102,20 +104,45 @@ set_global_address(void)
 }
 #endif /* UIP_CONF_ROUTER */
 /*---------------------------------------------------------------------------*/
-static void
+static resolv_status_t
 set_connection_address(uip_ipaddr_t *ipaddr)
 {
+#ifndef UDP_CONNECTION_ADDR
+#if RESOLV_CONF_SUPPORTS_MDNS
+#define UDP_CONNECTION_ADDR       contiki-udp-server.local
+#elif UIP_CONF_ROUTER
+#define UDP_CONNECTION_ADDR       aaaa:0:0:0:0212:7404:0004:0404
+#else
+#define UDP_CONNECTION_ADDR       fe80:0:0:0:6466:6666:6666:6666
+#endif
+#endif /* !UDP_CONNECTION_ADDR */
+
 #define _QUOTEME(x) #x
 #define QUOTEME(x) _QUOTEME(x)
-#ifdef UDP_CONNECTION_ADDR
+
+  resolv_status_t status = RESOLV_STATUS_ERROR;
+
   if(uiplib_ipaddrconv(QUOTEME(UDP_CONNECTION_ADDR), ipaddr) == 0) {
-    PRINTF("UDP client failed to parse address '%s'\n", QUOTEME(UDP_CONNECTION_ADDR));
+    uip_ipaddr_t *resolved_addr = NULL;
+    status = resolv_lookup(QUOTEME(UDP_CONNECTION_ADDR),&resolved_addr);
+    if(status == RESOLV_STATUS_UNCACHED || status == RESOLV_STATUS_EXPIRED) {
+      PRINTF("Attempting to look up %s\n",QUOTEME(UDP_CONNECTION_ADDR));
+      resolv_query(QUOTEME(UDP_CONNECTION_ADDR));
+      status = RESOLV_STATUS_RESOLVING;
+    } else if(status == RESOLV_STATUS_CACHED && resolved_addr != NULL) {
+      PRINTF("Lookup of \"%s\" succeded!\n",QUOTEME(UDP_CONNECTION_ADDR));
+    } else if(status == RESOLV_STATUS_RESOLVING) {
+      PRINTF("Still looking up \"%s\"...\n",QUOTEME(UDP_CONNECTION_ADDR));
+    } else {
+      PRINTF("Lookup of \"%s\" failed. status = %d\n",QUOTEME(UDP_CONNECTION_ADDR),status);
+    }
+    if(resolved_addr)
+      uip_ipaddr_copy(ipaddr, resolved_addr);
+  } else {
+    status = RESOLV_STATUS_CACHED;
   }
-#elif UIP_CONF_ROUTER
-  uip_ip6addr(ipaddr,0xaaaa,0,0,0,0x0212,0x7404,0x0004,0x0404);
-#else
-  uip_ip6addr(ipaddr,0xfe80,0,0,0,0x6466,0x6666,0x6666,0x6666);
-#endif /* UDP_CONNECTION_ADDR */
+
+  return status;
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(udp_client_process, ev, data)
@@ -132,7 +159,17 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
   print_local_addresses();
 
-  set_connection_address(&ipaddr);
+  static resolv_status_t status = RESOLV_STATUS_UNCACHED;
+  while(status != RESOLV_STATUS_CACHED) {
+    status = set_connection_address(&ipaddr);
+
+    if(status == RESOLV_STATUS_RESOLVING) {
+      PROCESS_WAIT_EVENT_UNTIL(ev == resolv_event_found);
+    } else if(status != RESOLV_STATUS_CACHED) {
+      PRINTF("Can't get connection address.\n");
+      PROCESS_YIELD();
+    }
+  }
 
   /* new connection with remote host */
   client_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);

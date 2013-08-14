@@ -29,21 +29,21 @@
  */
 
 /*
- * Machine dependent cc2530eb SLIP routines for UART1.
+ * Machine dependent cc253x SLIP routines.
  */
 
 #include "dev/slip.h"
-#include "dev/uart0.h"
+#include "dev/io-arch.h"
 /*---------------------------------------------------------------------------*/
 void
 slip_arch_writeb(unsigned char c)
 {
-  uart0_writeb(c);
+  io_arch_writeb(c);
 }
 /*---------------------------------------------------------------------------*/
 void
 slip_arch_init(unsigned long ubr)
 {
-  uart0_set_input(slip_input_byte);
+  io_arch_set_input(slip_input_byte);
 }
 /*---------------------------------------------------------------------------*/

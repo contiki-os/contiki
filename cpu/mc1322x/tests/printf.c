@@ -65,6 +65,8 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb,
 }
 #endif
 
+
+
 int main(void)
 {
 	char *ptr = "Hello world!";
@@ -74,7 +76,7 @@ int main(void)
 	int mi;
 //	char buf[80];
 
-	uart_init(INC, MOD, SAMP);
+	uart_init(UART1, 115200);
 
 	print_size(int8_t);
 	print_size(uint8_t);

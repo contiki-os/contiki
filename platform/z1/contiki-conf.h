@@ -136,7 +136,7 @@
 /* Handle 10 neighbors */
 #define UIP_CONF_DS6_NBR_NBU     15
 /* Handle 10 routes    */
-#define UIP_CONF_DS6_ROUTE_NBU   15
+#define UIP_CONF_MAX_ROUTES   15
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000

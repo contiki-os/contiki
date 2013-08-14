@@ -10,7 +10,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/mc1322x
 
 CONTIKI_CPU_DIRS = . lib src board dev ../arm/common/dbg-io
 
-MC1322X = debug-uart.c rtimer-arch.c watchdog.c contiki-crm.c contiki-maca.c contiki-misc.c leds-arch.c leds.c contiki-uart.c slip-uart1.c
+MC1322X = debug-uart.c rtimer-arch.c watchdog.c contiki-maca.c contiki-misc.c leds-arch.c leds.c contiki-uart.c slip-uart1.c init.c config.c
 
 DBG_IO = dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 
@@ -40,7 +40,7 @@ PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 
 TEXT_BASE = 0x00400000
 export TEXT_BASE
-LINKERSCRIPT = $(CONTIKI_CPU)/mc1322x.lds
+LINKERSCRIPT = $(OBJECTDIR)/mc1322x.lds
 
 STARTUP=$(OBJECTDIR)/start.o
 
@@ -70,27 +70,31 @@ CUSTOM_RULE_C_TO_OBJECTDIR_O=yes
 CUSTOM_RULE_C_TO_O=yes
 
 CFLAGS += -I$(OBJECTDIR) -I$(CONTIKI_CPU)/board -DBOARD=$(TARGET)
+CPPFLAGS += -P -C ${addprefix -D,${subst $(COMMA), ,$(DEFINES)}}
 
-$(OBJECTDIR)/board.h: $(OBJECTDIR) 
+
+$(OBJECTDIR)/board.h: $(CONTIKI_CPU)/board/board.h | $(OBJECTDIR)
 ifeq ($(HOST_OS),Windows)
-	ln -f $(CONTIKI_CPU)/board/board.h $(OBJECTDIR)/board.h
+	ln -f $< $@
 else
-	ln -sf ../$(CONTIKI_CPU)/board/board.h $(OBJECTDIR)/board.h
+	ln -sf ../$< $@
 endif
 
+$(OBJECTDIR)/%.lds: $(CONTIKI_CPU)/%.lds.S | $(OBJECTDIR)
+	$(CPP) $(CPPFLAGS) $< > $@
 
-$(OBJECTDIR)/isr.o: $(CONTIKI_CPU)/src/isr.c
+$(OBJECTDIR)/isr.o: $(CONTIKI_CPU)/src/isr.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c
 
-$(OBJECTDIR)/%.o: %.c
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c $< -o $@
 
 CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
 
-$(OBJECTDIR)/%.o: %.S
+$(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
 	$(CC) $(CFLAGS) $(AFLAGS) $(ARM_FLAGS) $< -c  -o $@
 
 CUSTOM_RULE_C_TO_CO=yes
@@ -109,7 +113,7 @@ CUSTOM_RULE_C_TO_CO=yes
 %.$(TARGET): %_$(TARGET).bin
 	@
 
-%.elf: $(OBJECTDIR)/board.h  %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) 
-	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(filter %.a,$^)
+%.elf: $(OBJECTDIR)/board.h  %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/mc1322x.lds
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a %.lds,$^) $(filter %.a,$^) $(filter %.a,$^)
 
 

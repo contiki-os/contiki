@@ -20,7 +20,7 @@
   //This is necessary here because halSleepForQsWithOptions returns an
   //StStatus and not adding this typedef to this file breaks a
   //whole lot of builds.
-  typedef int8u StStatus;
+  typedef uint8_t StStatus;
 #endif //__STSTATUS_TYPE__
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -71,7 +71,7 @@ void halInternalResetWatchDog( void );
  * @param config   The configuration mode to use.
  *
  */
-void halGpioConfig(int32u io, int32u config);
+void halGpioConfig(uint32_t io, uint32_t config);
 
 /**
  * @brief Set/Clear single GPIO bit
@@ -81,7 +81,7 @@ void halGpioConfig(int32u io, int32u config);
  * @param value   A flag indicating whether to set or clear the io.
  *
  */
-void halGpioSet(int32u io, boolean value);
+void halGpioSet(uint32_t io, boolean value);
 
 
 /**
@@ -111,7 +111,7 @@ void halInternalSetRegTrim(boolean boostMode);
  *
  * @return A slow measurement of VDD_PADS in millivolts.
  */
-int16u stMeasureVddSlow(void);
+uint16_t stMeasureVddSlow(void);
 
 
 /** @brief Takes a fast ADC measurement of VDD_PADS in millivolts.
@@ -121,7 +121,7 @@ int16u stMeasureVddSlow(void);
  *
  * @return A fast measurement of VDD_PADS in millivolts.
  */
-int16u stMeasureVddFast(void);
+uint16_t stMeasureVddFast(void);
 
 
 /**
@@ -164,7 +164,7 @@ void halInternalSearchForBiasTrim(void);
  *
  * @param ms  The specified time, in milliseconds. 
  */
-void halCommonDelayMilliseconds(int16u ms);
+void halCommonDelayMilliseconds(uint16_t ms);
 
 
 /** @brief Puts the microcontroller to sleep in a specified mode, allows
@@ -183,7 +183,7 @@ void halCommonDelayMilliseconds(int16u ms);
  * 
  * @sa ::SleepModes
  */
-void halSleepWithOptions(SleepModes sleepMode, int32u gpioWakeBitMask);
+void halSleepWithOptions(SleepModes sleepMode, uint32_t gpioWakeBitMask);
 
 
 /**
@@ -218,7 +218,7 @@ void halSleepWithOptions(SleepModes sleepMode, int32u gpioWakeBitMask);
  * @return An StStatus value indicating the success or
  *  failure of the command.
  */
-StStatus halSleepForQsWithOptions(int32u *duration, int32u gpioWakeBitMask);
+StStatus halSleepForQsWithOptions(uint32_t *duration, uint32_t gpioWakeBitMask);
 
 /**
  * @brief Provides access to assembly code which triggers idle sleep.
@@ -262,7 +262,7 @@ void halInternalSleep(SleepModes sleepMode);
  *
  * @return The events that caused the last wake from sleep. 
  */
-int32u halGetWakeInfo(void);
+uint32_t halGetWakeInfo(void);
 
 
 /** @brief Seeds the ::halCommonGetRandom() pseudorandom number
@@ -273,7 +273,7 @@ int32u halGetWakeInfo(void);
  *
  * @param seed  A seed for the pseudorandom number generator.
  */
-void halCommonSeedRandom(int32u seed);
+void halCommonSeedRandom(uint32_t seed);
 
 /** @brief Runs a standard LFSR to generate pseudorandom numbers.
  *
@@ -283,7 +283,7 @@ void halCommonSeedRandom(int32u seed);
  * ability to avoid collisions in large networks, but it is \b critical to
  * implement this function to return quickly.
  */
-int16u halCommonGetRandom(void);
+uint16_t halCommonGetRandom(void);
 
 #endif //__STM32W108XX_MICRO_COMMON_H__
 

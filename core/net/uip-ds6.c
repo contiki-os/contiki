@@ -48,6 +48,8 @@
 #include "net/uip-ds6.h"
 #include "net/uip-packetqueue.h"
 
+#if UIP_CONF_IPV6
+
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
@@ -75,9 +77,9 @@ static uint8_t rscount;                                         /** \brief numbe
 /** @{ */
 uip_ds6_netif_t uip_ds6_if;                                       /** \brief The single interface */
 uip_ds6_nbr_t uip_ds6_nbr_cache[UIP_DS6_NBR_NB];                  /** \brief Neighor cache */
-uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_DEFRT_NB];             /** \brief Default rt list */
+//uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_DEFRT_NB];             /** \brief Default rt list */
 uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
-uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];          /** \brief Routing table */
+//uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];          /** \brief Routing table */
 
 /* Used by Cooja to enable extraction of addresses from memory.*/
 uint8_t uip_ds6_addr_size;
@@ -89,28 +91,29 @@ uint8_t uip_ds6_netif_addr_list_offset;
 static uip_ipaddr_t loc_fipaddr;
 
 /* Pointers used in this file */
-static uip_ipaddr_t *locipaddr;
 static uip_ds6_addr_t *locaddr;
 static uip_ds6_maddr_t *locmaddr;
 static uip_ds6_aaddr_t *locaaddr;
 static uip_ds6_prefix_t *locprefix;
 static uip_ds6_nbr_t *locnbr;
 static uip_ds6_defrt_t *locdefrt;
-static uip_ds6_route_t *locroute;
 
 /*---------------------------------------------------------------------------*/
 void
 uip_ds6_init(void)
 {
+
+  uip_ds6_route_init();
+
   PRINTF("Init of IPv6 data structures\n");
   PRINTF("%u neighbors\n%u default routers\n%u prefixes\n%u routes\n%u unicast addresses\n%u multicast addresses\n%u anycast addresses\n",
      UIP_DS6_NBR_NB, UIP_DS6_DEFRT_NB, UIP_DS6_PREFIX_NB, UIP_DS6_ROUTE_NB,
      UIP_DS6_ADDR_NB, UIP_DS6_MADDR_NB, UIP_DS6_AADDR_NB);
   memset(uip_ds6_nbr_cache, 0, sizeof(uip_ds6_nbr_cache));
-  memset(uip_ds6_defrt_list, 0, sizeof(uip_ds6_defrt_list));
+  //  memset(uip_ds6_defrt_list, 0, sizeof(uip_ds6_defrt_list));
   memset(uip_ds6_prefix_list, 0, sizeof(uip_ds6_prefix_list));
   memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
-  memset(uip_ds6_routing_table, 0, sizeof(uip_ds6_routing_table));
+  //  memset(uip_ds6_routing_table, 0, sizeof(uip_ds6_routing_table));
   uip_ds6_addr_size = sizeof(struct uip_ds6_addr);
   uip_ds6_netif_addr_list_offset = offsetof(struct uip_ds6_netif, addr_list);
 
@@ -174,13 +177,14 @@ uip_ds6_periodic(void)
   }
 
   /* Periodic processing on default routers */
-  for(locdefrt = uip_ds6_defrt_list;
+  uip_ds6_defrt_periodic();
+  /*  for(locdefrt = uip_ds6_defrt_list;
       locdefrt < uip_ds6_defrt_list + UIP_DS6_DEFRT_NB; locdefrt++) {
     if((locdefrt->isused) && (!locdefrt->isinfinite) &&
        (stimer_expired(&(locdefrt->lifetime)))) {
       uip_ds6_defrt_rm(locdefrt);
     }
-  }
+    }*/
 
 #if !UIP_CONF_ROUTER
   /* Periodic processing on prefixes */
@@ -200,6 +204,15 @@ uip_ds6_periodic(void)
       locnbr++) {
     if(locnbr->isused) {
       switch(locnbr->state) {
+      case NBR_REACHABLE:
+        if(stimer_expired(&locnbr->reachable)) {
+          PRINTF("REACHABLE: moving to STALE (");
+          PRINT6ADDR(&locnbr->ipaddr);
+          PRINTF(")\n");
+          locnbr->state = NBR_STALE;
+        }
+        break;
+#if UIP_ND6_SEND_NA
       case NBR_INCOMPLETE:
         if(locnbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
           uip_ds6_nbr_rm(locnbr);
@@ -208,14 +221,6 @@ uip_ds6_periodic(void)
           PRINTF("NBR_INCOMPLETE: NS %u\n", locnbr->nscount);
           uip_nd6_ns_output(NULL, NULL, &locnbr->ipaddr);
           stimer_set(&locnbr->sendns, uip_ds6_if.retrans_timer / 1000);
-        }
-        break;
-      case NBR_REACHABLE:
-        if(stimer_expired(&locnbr->reachable)) {
-          PRINTF("REACHABLE: moving to STALE (");
-          PRINT6ADDR(&locnbr->ipaddr);
-          PRINTF(")\n");
-          locnbr->state = NBR_STALE;
         }
         break;
       case NBR_DELAY:
@@ -242,6 +247,7 @@ uip_ds6_periodic(void)
           stimer_set(&locnbr->sendns, uip_ds6_if.retrans_timer / 1000);
         }
         break;
+#endif /* UIP_ND6_SEND_NA */
       default:
         break;
       }
@@ -398,86 +404,6 @@ uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr)
 }
 
 /*---------------------------------------------------------------------------*/
-uip_ds6_defrt_t *
-uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
-{
-  if(uip_ds6_list_loop
-     ((uip_ds6_element_t *)uip_ds6_defrt_list, UIP_DS6_DEFRT_NB,
-      sizeof(uip_ds6_defrt_t), ipaddr, 128,
-      (uip_ds6_element_t **)&locdefrt) == FREESPACE) {
-    locdefrt->isused = 1;
-    uip_ipaddr_copy(&locdefrt->ipaddr, ipaddr);
-    if(interval != 0) {
-      stimer_set(&locdefrt->lifetime, interval);
-      locdefrt->isinfinite = 0;
-    } else {
-      locdefrt->isinfinite = 1;
-    }
-
-    PRINTF("Adding defrouter with ip addr ");
-    PRINT6ADDR(&locdefrt->ipaddr);
-    PRINTF("\n");
-
-    ANNOTATE("#L %u 1\n", ipaddr->u8[sizeof(uip_ipaddr_t) - 1]);
-
-    return locdefrt;
-  }
-  return NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-void
-uip_ds6_defrt_rm(uip_ds6_defrt_t *defrt)
-{
-  if(defrt != NULL) {
-    defrt->isused = 0;
-    ANNOTATE("#L %u 0\n", defrt->ipaddr.u8[sizeof(uip_ipaddr_t) - 1]);
-  }
-  return;
-}
-
-/*---------------------------------------------------------------------------*/
-uip_ds6_defrt_t *
-uip_ds6_defrt_lookup(uip_ipaddr_t *ipaddr)
-{
-  if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_defrt_list,
-		       UIP_DS6_DEFRT_NB, sizeof(uip_ds6_defrt_t), ipaddr, 128,
-		       (uip_ds6_element_t **)&locdefrt) == FOUND) {
-    return locdefrt;
-  }
-  return NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-uip_ipaddr_t *
-uip_ds6_defrt_choose(void)
-{
-  uip_ds6_nbr_t *bestnbr;
-
-  locipaddr = NULL;
-  for(locdefrt = uip_ds6_defrt_list;
-      locdefrt < uip_ds6_defrt_list + UIP_DS6_DEFRT_NB; locdefrt++) {
-    if(locdefrt->isused) {
-      PRINTF("Defrt, IP address ");
-      PRINT6ADDR(&locdefrt->ipaddr);
-      PRINTF("\n");
-      bestnbr = uip_ds6_nbr_lookup(&locdefrt->ipaddr);
-      if(bestnbr != NULL && bestnbr->state != NBR_INCOMPLETE) {
-        PRINTF("Defrt found, IP address ");
-        PRINT6ADDR(&locdefrt->ipaddr);
-        PRINTF("\n");
-        return &locdefrt->ipaddr;
-      } else {
-        locipaddr = &locdefrt->ipaddr;
-        PRINTF("Defrt INCOMPLETE found, IP address ");
-        PRINT6ADDR(&locdefrt->ipaddr);
-        PRINTF("\n");
-      }
-    }
-  }
-  return locipaddr;
-}
-
 #if UIP_CONF_ROUTER
 /*---------------------------------------------------------------------------*/
 uip_ds6_prefix_t *
@@ -670,11 +596,11 @@ uip_ds6_get_global(int8_t state)
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_maddr_t *
-uip_ds6_maddr_add(uip_ipaddr_t *ipaddr)
+uip_ds6_maddr_add(const uip_ipaddr_t *ipaddr)
 {
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *)uip_ds6_if.maddr_list, UIP_DS6_MADDR_NB,
-      sizeof(uip_ds6_maddr_t), ipaddr, 128,
+      sizeof(uip_ds6_maddr_t), (void*)ipaddr, 128,
       (uip_ds6_element_t **)&locmaddr) == FREESPACE) {
     locmaddr->isused = 1;
     uip_ipaddr_copy(&locmaddr->ipaddr, ipaddr);
@@ -695,11 +621,11 @@ uip_ds6_maddr_rm(uip_ds6_maddr_t *maddr)
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_maddr_t *
-uip_ds6_maddr_lookup(uip_ipaddr_t *ipaddr)
+uip_ds6_maddr_lookup(const uip_ipaddr_t *ipaddr)
 {
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *)uip_ds6_if.maddr_list, UIP_DS6_MADDR_NB,
-      sizeof(uip_ds6_maddr_t), ipaddr, 128,
+      sizeof(uip_ds6_maddr_t), (void*)ipaddr, 128,
       (uip_ds6_element_t **)&locmaddr) == FOUND) {
     return locmaddr;
   }
@@ -742,104 +668,6 @@ uip_ds6_aaddr_lookup(uip_ipaddr_t *ipaddr)
     return locaaddr;
   }
   return NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-uip_ds6_route_t *
-uip_ds6_route_lookup(uip_ipaddr_t *destipaddr)
-{
-  uip_ds6_route_t *locrt = NULL;
-  uint8_t longestmatch = 0;
-
-  PRINTF("DS6: Looking up route for ");
-  PRINT6ADDR(destipaddr);
-  PRINTF("\n");
-
-  for(locroute = uip_ds6_routing_table;
-      locroute < uip_ds6_routing_table + UIP_DS6_ROUTE_NB; locroute++) {
-    if((locroute->isused) && (locroute->length >= longestmatch)
-       &&
-       (uip_ipaddr_prefixcmp
-        (destipaddr, &locroute->ipaddr, locroute->length))) {
-      longestmatch = locroute->length;
-      locrt = locroute;
-    }
-  }
-
-  if(locrt != NULL) {
-    PRINTF("DS6: Found route:");
-    PRINT6ADDR(destipaddr);
-    PRINTF(" via ");
-    PRINT6ADDR(&locrt->nexthop);
-    PRINTF("\n");
-  } else {
-    PRINTF("DS6: No route found\n");
-  }
-
-  return locrt;
-}
-
-/*---------------------------------------------------------------------------*/
-uip_ds6_route_t *
-uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length, uip_ipaddr_t *nexthop,
-                  uint8_t metric)
-{
-  if(uip_ds6_list_loop
-     ((uip_ds6_element_t *)uip_ds6_routing_table, UIP_DS6_ROUTE_NB,
-      sizeof(uip_ds6_route_t), ipaddr, length,
-      (uip_ds6_element_t **)&locroute) == FREESPACE) {
-    locroute->isused = 1;
-    uip_ipaddr_copy(&(locroute->ipaddr), ipaddr);
-    locroute->length = length;
-    uip_ipaddr_copy(&(locroute->nexthop), nexthop);
-    locroute->metric = metric;
-
-#ifdef UIP_DS6_ROUTE_STATE_TYPE
-    memset(&locroute->state, 0, sizeof(UIP_DS6_ROUTE_STATE_TYPE));
-#endif
-
-    PRINTF("DS6: adding route: ");
-    PRINT6ADDR(ipaddr);
-    PRINTF(" via ");
-    PRINT6ADDR(nexthop);
-    PRINTF("\n");
-    ANNOTATE("#L %u 1;blue\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
-  }
-
-  return locroute;
-}
-
-/*---------------------------------------------------------------------------*/
-void
-uip_ds6_route_rm(uip_ds6_route_t *route)
-{
-  route->isused = 0;
-#if (DEBUG & DEBUG_ANNOTATE) == DEBUG_ANNOTATE
-  /* we need to check if this was the last route towards "nexthop" */
-  /* if so - remove that link (annotation) */
-  for(locroute = uip_ds6_routing_table;
-      locroute < uip_ds6_routing_table + UIP_DS6_ROUTE_NB;
-      locroute++) {
-    if(locroute->isused && uip_ipaddr_cmp(&locroute->nexthop, &route->nexthop))      {
-      /* we found another link using the specific nexthop, so keep the #L */
-      return;
-    }
-  }
-  ANNOTATE("#L %u 0\n",route->nexthop.u8[sizeof(uip_ipaddr_t) - 1]);
-#endif
-}
-/*---------------------------------------------------------------------------*/
-void
-uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
-{
-  for(locroute = uip_ds6_routing_table;
-      locroute < uip_ds6_routing_table + UIP_DS6_ROUTE_NB;
-      locroute++) {
-    if(locroute->isused && uip_ipaddr_cmp(&locroute->nexthop, nexthop)) {
-      locroute->isused = 0;
-    }
-  }
-  ANNOTATE("#L %u 0\n",nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1049,6 +877,26 @@ uip_ds6_compute_reachable_time(void)
     (uint32_t) (UIP_ND6_MAX_RANDOM_FACTOR(uip_ds6_if.base_reachable_time) -
                 UIP_ND6_MIN_RANDOM_FACTOR(uip_ds6_if.base_reachable_time));
 }
-
-
+/*---------------------------------------------------------------------------*/
+uip_ds6_nbr_t *
+uip_ds6_get_least_lifetime_neighbor(void)
+{
+  uip_ds6_nbr_t *nbr_expiring = NULL;
+  uint8_t i;
+  for(i = 0; i < UIP_DS6_NBR_NB; i++) {
+    if(uip_ds6_nbr_cache[i].isused) {
+      if(nbr_expiring != NULL) {
+        clock_time_t curr = stimer_remaining(&uip_ds6_nbr_cache[i].reachable);
+        if(curr < stimer_remaining(&nbr_expiring->reachable)) {
+          nbr_expiring = &uip_ds6_nbr_cache[i];
+        }
+      } else {
+        nbr_expiring = &uip_ds6_nbr_cache[i];
+      }
+    }
+  }
+  return nbr_expiring;
+}
+/*---------------------------------------------------------------------------*/
 /** @} */
+#endif /* UIP_CONF_IPV6 */

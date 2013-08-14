@@ -43,6 +43,9 @@
 #include "contiki.h"
 #include "net/netstack.h"
 
+#include "ctk/ctk.h"
+#include "ctk/ctk-curses.h"
+
 #include "dev/serial-line.h"
 
 #include "net/uip.h"
@@ -188,6 +191,10 @@ main(int argc, char **argv)
   process_start(&etimer_process, NULL);
   ctimer_init();
 
+#if WITH_GUI
+  process_start(&ctk_process, NULL);
+#endif
+
   set_rime_addr();
 
   queuebuf_init();
@@ -221,9 +228,9 @@ main(int argc, char **argv)
 #endif
 
   serial_line_init();
-  
+
   autostart_start(autostart_processes);
-  
+
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
 
@@ -263,6 +270,12 @@ main(int argc, char **argv)
     }
 
     etimer_request_poll();
+
+#if WITH_GUI
+    if(console_resize()) {
+       ctk_restore();
+    }
+#endif /* WITH_GUI */
   }
 
   return 0;
@@ -271,12 +284,12 @@ main(int argc, char **argv)
 void
 log_message(char *m1, char *m2)
 {
-  printf("%s%s\n", m1, m2);
+  fprintf(stderr, "%s%s\n", m1, m2);
 }
 /*---------------------------------------------------------------------------*/
 void
 uip_log(char *m)
 {
-  printf("%s\n", m);
+  fprintf(stderr, "%s\n", m);
 }
 /*---------------------------------------------------------------------------*/

@@ -41,7 +41,6 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
@@ -102,6 +101,8 @@ public class LogScriptEngine {
   private long startRealTime;
   private long nextProgress;
 
+  private int exitCode = 0;
+  
   public LogScriptEngine(Simulation simulation) {
     this.simulation = simulation;
   }
@@ -312,39 +313,14 @@ public class LogScriptEngine {
               logger.fatal("Script error:", e);
               System.exit(1);
             }
-            
 
-            
-            //Give message
-            throwable = e;
-            while ((throwable != null) && !(throwable instanceof ScriptException)) {
-                throwable = throwable.getCause();
-            }          
-
-            if(throwable != null){ //Give decent message
-              	ScriptException se = (ScriptException) throwable;
-            	//Clean up information.
-            	String msg =  se.getMessage();
-            	msg = msg.split(":",2)[1]; //Get rid of the class
-            	msg = msg.split("\\(<Unknown source>",2)[0];
-            	msg += " ( Line " + se.getLineNumber() + " )"; //Re-add information.
-            	
-                logger.fatal("Test script error: " +  msg);
-                
-                if (GUI.isVisualized()) {
-                	JOptionPane.showMessageDialog(GUI.getTopParentContainer(),  msg, "Javascript error in Line " + se.getLineNumber(), JOptionPane.WARNING_MESSAGE);
-                }
-            } else {
-	            logger.fatal("Script error:", e);
-	            
-	            if (GUI.isVisualized()) {
-	              GUI.showErrorDialog(GUI.getTopParentContainer(),
-	                  "Script error", e, false);
-	            }
-            }
-            // Clean up
+            logger.fatal("Script error:", e);
             deactivateScript();
             simulation.stopSimulation();
+            if (GUI.isVisualized()) {
+              GUI.showErrorDialog(GUI.getTopParentContainer(),
+                  "Script error", e, false);
+            }
           }
         }
         /*logger.info("test script thread exits");*/
@@ -395,6 +371,7 @@ public class LogScriptEngine {
       if (!scriptActive) {
         return;
       }
+      exitCode = 2;
       logger.info("Timeout event @ " + t);
       engine.put("TIMEOUT", true);
       stepScript();
@@ -424,14 +401,14 @@ public class LogScriptEngine {
       new Thread() {
         public void run() {
           try { Thread.sleep(500); } catch (InterruptedException e) { }
-          simulation.getGUI().doQuit(false);
+          simulation.getGUI().doQuit(false, exitCode);
         };
       }.start();
       new Thread() {
         public void run() {
           try { Thread.sleep(2000); } catch (InterruptedException e) { }
           logger.warn("Killing Cooja");
-          System.exit(1);
+          System.exit(exitCode);
         };
       }.start();
     }
@@ -465,10 +442,12 @@ public class LogScriptEngine {
     }
 
     public void testOK() {
+      exitCode = 0;
       log("TEST OK\n");
       deactive();
     }
     public void testFailed() {
+      exitCode = 1;
       log("TEST FAILED\n");
       deactive();
     }

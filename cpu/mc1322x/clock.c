@@ -36,12 +36,10 @@
 #include <sys/clock.h>
 #include <sys/cc.h>
 #include <sys/etimer.h>
-#include "dev/leds.h"
+#include <sys/rtimer.h>
 
 #include "contiki-conf.h"
 #include "mc1322x.h"
-
-#include "contiki-conf.h"
 
 #define MAX_TICKS (~((clock_time_t)0) / 2)
 
@@ -49,80 +47,41 @@ static volatile clock_time_t current_clock = 0;
 
 volatile unsigned long seconds = 0;
 
-#define TCF  15
-#define TCF1 4
-#define TCF2 5
+static struct rtimer rt_clock;
 
+/* the typical clock things like incrementing current_clock and etimer checks */
+/* are performed as a periodically scheduled rtimer */
 void
-clock_init()
+rt_do_clock(struct rtimer *t, void *ptr)
 {
-	/* timer setup */
-	/* CTRL */
-#define COUNT_MODE 1      /* use rising edge of primary source */
-#define PRIME_SRC  0xf    /* Perip. clock with 128 prescale (for 24Mhz = 187500Hz)*/
-#define SEC_SRC    0      /* don't need this */
-#define ONCE       0      /* keep counting */
-#define LEN        1      /* count until compare then reload with value in LOAD */
-#define DIR        0      /* count up */
-#define CO_INIT    0      /* other counters cannot force a re-initialization of this counter */
-#define OUT_MODE   0      /* OFLAG is asserted while counter is active */
+	rtimer_set(t, RTIMER_TIME(t) + (rtc_freq/CLOCK_CONF_SECOND) , 1,
+						 (rtimer_callback_t)rt_do_clock, ptr);
 
-	*TMR_ENBL = 0;                     /* tmrs reset to enabled */
-	*TMR0_SCTRL = 0;
-	*TMR0_CSCTRL =0x0040;
-	*TMR0_LOAD = 0;                    /* reload to zero */
-	*TMR0_COMP_UP = 1875;             /* trigger a reload at the end */
-	*TMR0_CMPLD1 = 1875;              /* compare 1 triggered reload level, 10HZ maybe? */
-	*TMR0_CNTR = 0;                    /* reset count register */
-	*TMR0_CTRL = (COUNT_MODE<<13) | (PRIME_SRC<<9) | (SEC_SRC<<7) | (ONCE<<6) | (LEN<<5) | (DIR<<4) | (CO_INIT<<3) | (OUT_MODE);
-	*TMR_ENBL = 0xf;                   /* enable all the timers --- why not? */
+	current_clock++;
 
-	enable_irq(TMR);
-/* Do startup scan of the ADC */
-#if CLOCK_CONF_SAMPLEADC
-	adc_reading[8]=0;
-	adc_init();
-	while (adc_reading[8]==0) adc_service();
-#endif
+	if((current_clock % CLOCK_CONF_SECOND) == 0) {
+		seconds++;
+	}
+
+	if(etimer_pending() &&
+		 (etimer_next_expiration_time() - current_clock - 1) > MAX_TICKS) {
+		etimer_request_poll();
+	}
+
 }
 
-void tmr0_isr(void) {
-	if(bit_is_set(*TMR(0,CSCTRL),TCF1)) {
-		current_clock++;
-		if((current_clock % CLOCK_CONF_SECOND) == 0) {
-			seconds++;
-#if BLINK_SECONDS
-			leds_toggle(LEDS_GREEN);
-#endif
-/* ADC can be serviced every tick or every second */
-#if CLOCK_CONF_SAMPLEADC > 1
-			adc_service();
-#endif
-		}
-#if CLOCK_CONF_SAMPLEADC == 1
-		adc_service();
-#endif
-		if(etimer_pending() &&
-		   (etimer_next_expiration_time() - current_clock - 1) > MAX_TICKS) {
- 			etimer_request_poll();
- 		}
 
-
-		/* clear the compare flags */
-		clear_bit(*TMR(0,SCTRL),TCF);
-		clear_bit(*TMR(0,CSCTRL),TCF1);
-		clear_bit(*TMR(0,CSCTRL),TCF2);
-		return;
-	} else {
-		/* this timer didn't create an interrupt condition */
-		return;
-	}
+/* RTC MUST have been already setup by mc1322x init */
+void
+clock_init(void)
+{
+	rtimer_set(&rt_clock, RTIMER_NOW() + rtc_freq/CLOCK_CONF_SECOND, 1, (rtimer_callback_t)rt_do_clock, NULL);
 }
 
 clock_time_t
 clock_time(void)
 {
-  return current_clock;
+	return current_clock;
 }
 
 unsigned long
@@ -134,8 +93,8 @@ clock_seconds(void)
 void
 clock_wait(clock_time_t t)
 {
-  clock_time_t endticks = current_clock + t;
-  while ((signed long)(current_clock - endticks) < 0) {;}
+	clock_time_t endticks = current_clock + t;
+	while ((signed long)(current_clock - endticks) < 0) {;}
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -146,17 +105,17 @@ clock_wait(clock_time_t t)
 void
 clock_delay_usec(uint16_t howlong)
 {
-  if(howlong<2) return;
+	if(howlong<2) return;
 #if 0
-  if(howlong>400) {
-    volatile register uint32_t i=*MACA_CLK+howlong/4;
-    while (i > *MACA_CLK) ;
-    return;
-  }
+	if(howlong>400) {
+		volatile register uint32_t i=*MACA_CLK+howlong/4;
+		while (i > *MACA_CLK) ;
+		return;
+	}
 #endif
-   /* These numbers at 25MHz, gcc -Os */
-    volatile register uint32_t i=4000*howlong/2301;
-    while(--i);
+	 /* These numbers at 25MHz, gcc -Os */
+		volatile register uint32_t i=4000*howlong/2301;
+		while(--i);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -165,7 +124,7 @@ clock_delay_usec(uint16_t howlong)
 void
 clock_delay_msec(uint16_t howlong)
 {
-  while(howlong--) clock_delay_usec(1000);
+	while(howlong--) clock_delay_usec(1000);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -176,8 +135,8 @@ clock_delay_msec(uint16_t howlong)
 void
 clock_delay(unsigned int howlong)
 {
-  if(howlong--) return;
-  clock_delay_usec((283*howlong)/100);
+	if(howlong--) return;
+	clock_delay_usec((283*howlong)/100);
 }
 /*---------------------------------------------------------------------------*/
 /**

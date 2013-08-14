@@ -378,17 +378,11 @@ public class ScriptRunner extends VisPlugin {
         logger.info("Test script activated");
 
       } catch (ScriptException e) {
-      	
-    	//Clean up information.
-    	String msg =  e.getMessage();
-    	msg = msg.split(":",2)[1]; //Get rid of the class
-    	msg = msg.split("\\(<Unknown source>",2)[0];
-    	msg += " ( Line " + e.getLineNumber() + " )"; //Re-add information.
-    	
-        logger.fatal("Test script error: " +  msg);
+        logger.fatal("Test script error: ", e);
         setScriptActive(false);
         if (GUI.isVisualized()) {
-        	JOptionPane.showMessageDialog(GUI.getTopParentContainer(),  msg, "Javascript error in Line " + e.getLineNumber(), JOptionPane.WARNING_MESSAGE);
+          GUI.showErrorDialog(GUI.getTopParentContainer(),
+              "Script error", e, false);
         }
       } catch (RuntimeException e) {
         logger.fatal("Test script error: ", e);

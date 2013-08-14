@@ -45,7 +45,7 @@
 
 void CMD_OUTPUT(const uint8_t *data, int data_len);
 
-extern cmd_handler_t cmd_handlers[];
+extern const cmd_handler_t cmd_handlers[];
 
 /*---------------------------------------------------------------------------*/
 void

@@ -114,7 +114,7 @@ uart0_init(unsigned long ubr)
   UCA0CTL1 |= UCSWRST;            /* Hold peripheral in reset state */
   UCA0CTL1 |= UCSSEL_2;           /* CLK = SMCLK */
 
-  UCA0BR0 = 0x45;                 /* 8MHz/115200 = 69 = 0x45 */
+  UCA0BR0 = ubr;                 /* 8MHz/115200 = 69 = 0x45 */
   UCA0BR1 = 0x00;
   UCA0MCTL = UCBRS_3;             /* Modulation UCBRSx = 3 */
 

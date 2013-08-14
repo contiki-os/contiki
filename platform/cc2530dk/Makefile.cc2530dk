@@ -13,12 +13,14 @@ CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c
 CONTIKI_TARGET_SOURCEFILES += button-sensor.c adc-sensor.c
 CONTIKI_TARGET_SOURCEFILES += serial-line.c slip-arch.c slip.c
 CONTIKI_TARGET_SOURCEFILES += putchar.c debug.c
+CONTIKI_TARGET_SOURCEFILES += usb-serial.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
 CLEAN += *.cc2530dk
 
-ifdef UIP_CONF_IPV6
+ifeq ($(UIP_CONF_IPV6),1)
+  CFLAGS += -DUIP_CONF_IPV6=1
   CONTIKI_TARGET_SOURCEFILES += viztool.c
 endif
 
@@ -40,12 +42,6 @@ FORCE:
 	@echo '. bytes (REL,CON,CODE)'
 	@egrep '(^BANK[1-9][^=])' $(<:.hex=.map) | uniq | sort
 	@egrep -A 5 'Other memory' $(<:.hex=.mem)
-
-%.upload: %.hex
-	$(PROG) -P $<
-
-sensinode.serialdump:
-	$(SERIALDUMP)
 
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/cc253x

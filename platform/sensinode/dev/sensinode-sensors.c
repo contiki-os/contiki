@@ -44,13 +44,13 @@
 
 const struct sensors_sensor *sensors[] = {
 #if ADC_SENSOR_ON
-    &adc_sensor,
+  &adc_sensor,
 #endif
 #if BUTTON_SENSOR_ON
-    &button_1_sensor,
-    &button_2_sensor,
+  &button_1_sensor,
+  &button_2_sensor,
 #endif
-    0
+  0
 };
 
 unsigned char sensors_flags[(sizeof(sensors) / sizeof(struct sensors_sensor *))];
@@ -61,7 +61,7 @@ sensinode_sensors_activate()
 {
   struct sensors_sensor *sensor;
   sensor = sensors_first();
-  while (sensor) {
+  while(sensor) {
     sensor->configure(SENSORS_ACTIVE, 1);
     sensor = sensors_next(sensor);
   }
@@ -73,7 +73,7 @@ sensinode_sensors_deactivate()
 {
   struct sensors_sensor *sensor;
   sensor = sensors_first();
-  while (sensor) {
+  while(sensor) {
     sensor->configure(SENSORS_ACTIVE, 0);
     sensor = sensors_next(sensor);
   }

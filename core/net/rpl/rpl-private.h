@@ -103,16 +103,14 @@
 /* Default values for RPL constants and variables. */
 
 /* The default value for the DAO timer. */
+#ifdef RPL_CONF_DAO_LATENCY
+#define RPL_DAO_LATENCY                 RPL_CONF_DAO_LATENCY
+#else /* RPL_CONF_DAO_LATENCY */
 #define RPL_DAO_LATENCY                 (CLOCK_SECOND * 4)
+#endif /* RPL_DAO_LATENCY */
 
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0
-
-/* Default route lifetime unit. */
-#define RPL_DEFAULT_LIFETIME_UNIT       0xffff
-
-/* Default route lifetime as a multiple of the lifetime unit. */
-#define RPL_DEFAULT_LIFETIME            0xff
 
 #define RPL_LIFETIME(instance, lifetime) \
           ((unsigned long)(instance)->lifetime_unit * (lifetime))
@@ -134,8 +132,6 @@
 #define ROOT_RANK(instance)             (instance)->min_hoprankinc
 
 #define INFINITE_RANK                   0xffff
-
-#define INITIAL_LINK_METRIC		NEIGHBOR_INFO_ETX2FIX(5)
 
 /* Represents 2^n ms. */
 /* Default value according to the specification is 3 which
@@ -207,10 +203,14 @@
 #define RPL_LOLLIPOP_CIRCULAR_REGION     127
 #define RPL_LOLLIPOP_SEQUENCE_WINDOWS    16
 #define RPL_LOLLIPOP_INIT                (RPL_LOLLIPOP_MAX_VALUE - RPL_LOLLIPOP_SEQUENCE_WINDOWS + 1)
-#define RPL_LOLLIPOP_INCREMENT(counter)					\
-  ((counter) > RPL_LOLLIPOP_CIRCULAR_REGION ?				\
-   ++(counter) & RPL_LOLLIPOP_MAX_VALUE :				\
-   ++(counter) & RPL_LOLLIPOP_CIRCULAR_REGION)
+#define RPL_LOLLIPOP_INCREMENT(counter)                                 \
+  do {                                                                  \
+    if((counter) > RPL_LOLLIPOP_CIRCULAR_REGION) {                      \
+      (counter) = ((counter) + 1) & RPL_LOLLIPOP_MAX_VALUE;             \
+    } else {                                                            \
+      (counter) = ((counter) + 1) & RPL_LOLLIPOP_CIRCULAR_REGION;       \
+    }                                                                   \
+  } while(0)
 
 #define RPL_LOLLIPOP_IS_INIT(counter)		\
   ((counter) > RPL_LOLLIPOP_CIRCULAR_REGION)
@@ -270,6 +270,7 @@ extern rpl_instance_t *default_instance;
 void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint8_t lifetime);
+void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
 void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t);
 
 /* RPL logic functions. */

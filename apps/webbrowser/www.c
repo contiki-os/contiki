@@ -33,6 +33,7 @@
  */
 
 #include <string.h>
+#include <stddef.h>
 
 #include "ctk/ctk.h"
 #include "lib/ctk-textentry-cmdline.h"
@@ -59,12 +60,10 @@
 
 /* The array that holds the current URL. */
 static char url[WWW_CONF_MAX_URLLEN + 1];
-static char tmpurl[WWW_CONF_MAX_URLLEN + 1];
 
 /* The array that holds the web page text. */
 static char webpage[WWW_CONF_WEBPAGE_WIDTH *
 		    WWW_CONF_WEBPAGE_HEIGHT + 1];
-
 
 /* The CTK widgets for the main window. */
 static struct ctk_window mainwindow;
@@ -120,31 +119,45 @@ static char history[WWW_CONF_HISTORY_SIZE][WWW_CONF_MAX_URLLEN];
 static char history_last;
 #endif /* WWW_CONF_HISTORY_SIZE > 0 */
 
-/* The CTK widget definitions for the hyperlinks and the char arrays
-   that hold the link URLs. */
-struct formattribs {
-  char formaction[WWW_CONF_MAX_FORMACTIONLEN];
-  char formname[WWW_CONF_MAX_FORMNAMELEN];
-#define FORMINPUTTYPE_SUBMITBUTTON 1
-#define FORMINPUTTYPE_INPUTFIELD   2
-  unsigned char inputtype;
-  char inputname[WWW_CONF_MAX_INPUTNAMELEN];
-  char *inputvalue;
+struct linkattrib {
+  struct ctk_hyperlink hyperlink;
+  char url[1];
 };
 
-union pagewidgetattrib {
-  char url[WWW_CONF_MAX_URLLEN];
+struct inputattrib;
+
+struct formattrib {
+  struct inputattrib *nextptr;
+  char action[1];
+};
+
+struct inputattrib {
+  struct inputattrib *nextptr;
+  struct formattrib *formptr;
+  struct ctk_widget widget;
+};
+
+struct textattrib {
+  struct inputattrib *nextptr;
+  struct formattrib *formptr;
+  struct ctk_textentry textentry;
+  char name[1];
+};
+
+struct submitattrib {
+  struct inputattrib *nextptr;
+  struct formattrib *formptr;
+  struct ctk_button button;
+  char name[1];
+};
+
+static char pageattribs[WWW_CONF_PAGEATTRIB_SIZE];
+static char *pageattribptr;
+
 #if WWW_CONF_FORMS
-  struct formattribs form;
+static struct formattrib *formptr;
+static struct inputattrib *currptr;
 #endif /* WWW_CONF_FORMS */
-};
-static struct ctk_widget pagewidgets[WWW_CONF_MAX_NUMPAGEWIDGETS];
-static union pagewidgetattrib pagewidgetattribs[WWW_CONF_MAX_NUMPAGEWIDGETS];
-static unsigned char pagewidgetptr;
-
-#if WWW_CONF_RENDERSTATE
-static unsigned char renderstate;
-#endif /* WWW_CONF_RENDERSTATE */
 
 #define ISO_nl    0x0a
 #define ISO_space 0x20
@@ -172,7 +185,7 @@ PROCESS(www_process, "Web browser");
 
 AUTOSTART_PROCESSES(&www_process);
 
-static void formsubmit(struct formattribs *attribs);
+static void CC_FASTCALL formsubmit(struct formattrib *form);
 
 /*-----------------------------------------------------------------------------------*/
 /* make_window()
@@ -195,7 +208,7 @@ make_window(void)
   CTK_WIDGET_ADD(&mainwindow, &sep2);
   CTK_WIDGET_ADD(&mainwindow, &statustext);
 
-  pagewidgetptr = 0;
+  pageattribptr = pageattribs;
 }
 /*-----------------------------------------------------------------------------------*/
 /* redraw_window():
@@ -207,6 +220,29 @@ redraw_window(void)
 {
   ctk_window_redraw(&mainwindow);
 }
+/*-----------------------------------------------------------------------------------*/
+static char * CC_FASTCALL
+add_pageattrib(unsigned size)
+{
+  char *ptr;
+
+  if(pageattribptr + size > pageattribs + sizeof(pageattribs)) {
+    return NULL;
+  }
+  ptr = pageattribptr;
+  pageattribptr += size;
+  return ptr;
+}
+/*-----------------------------------------------------------------------------------*/
+#if WWW_CONF_FORMS
+static void CC_FASTCALL
+add_forminput(struct inputattrib *inputptr)
+{
+  inputptr->nextptr = NULL;
+  currptr->nextptr = inputptr;
+  currptr = inputptr;
+}
+#endif /* WWW_CONF_FORMS */
 /*-----------------------------------------------------------------------------------*/
 static void
 clear_page(void)
@@ -237,7 +273,7 @@ start_loading(void)
   clear_page();
 }
 /*-----------------------------------------------------------------------------------*/
-static void
+static void CC_FASTCALL
 show_statustext(char *text)
 {
   ctk_label_set_text(&statustext, text);
@@ -307,16 +343,18 @@ open_url(void)
   } else {
     file = "/";
   }
-  
+
 #if UIP_UDP
   /* Try to lookup the hostname. If it fails, we initiate a hostname
      lookup and print out an informative message on the statusbar. */
   if(uiplib_ipaddrconv(host, &addr) == 0) {
-    if(resolv_lookup(host) == NULL) {
+    uip_ipaddr_t *addrptr;
+    if(resolv_lookup(host, &addrptr) != RESOLV_STATUS_CACHED) {
       resolv_query(host);
       show_statustext("Resolving host...");
       return;
     }
+    uip_ipaddr_copy(&addr, addrptr);
   }
 #else /* UIP_UDP */
   uiplib_ipaddrconv(host, &addr);
@@ -325,23 +363,23 @@ open_url(void)
   /* The hostname we present in the hostname table, so we send out the
      initial GET request. */
   if(webclient_get(host, 80, file) == 0) {
-    show_statustext("Out of memory error.");
+    show_statustext("Out of memory error");
   } else {
     show_statustext("Connecting...");
   }
   redraw_window();
 }
 /*-----------------------------------------------------------------------------------*/
-/* open_link(link):
+/* set_link(link):
  *
  * Will format a link from the current web pages so that it suits the
- * open_url() function and finally call it to open the requested URL.
+ * open_url() function.
  */
-static void
-open_link(char *link)
+static void CC_FASTCALL
+set_link(char *link)
 {
-  char *urlptr;
-    
+  register char *urlptr;
+
   if(strncmp(link, http_http, 7) == 0) {
     /* The link starts with http://. We just copy the contents of the
        link into the url string and jump away. */
@@ -365,7 +403,7 @@ open_link(char *link)
   } else {
     /* A fully relative link is found. We find the last slash in the
        current URL and paste the link there. */
-    
+
     /* XXX: we should really parse any ../ in the link as well. */
     for(urlptr = url + strlen(url);
 	urlptr != url && *urlptr != ISO_slash;
@@ -373,12 +411,6 @@ open_link(char *link)
     ++urlptr;
     strncpy(urlptr, link, WWW_CONF_MAX_URLLEN - (urlptr - url));
   }
-
-  /* Open the URL. */
-  show_url();
-  open_url();
-
-  start_loading();
 }
 /*-----------------------------------------------------------------------------------*/
 #if WWW_CONF_HISTORY_SIZE > 0
@@ -423,7 +455,7 @@ PROCESS_THREAD(www_process, ev, data)
   w = (struct ctk_widget *)data;
 
   PROCESS_BEGIN();
-  
+
   /* Create the main window. */
   memset(webpage, 0, sizeof(webpage));
   ctk_window_new(&mainwindow, WWW_CONF_WEBPAGE_WIDTH,
@@ -433,7 +465,7 @@ PROCESS_THREAD(www_process, ev, data)
   strncpy(editurl, WWW_CONF_HOMEPAGE, sizeof(editurl));
 #endif /* WWW_CONF_HOMEPAGE */
   CTK_WIDGET_FOCUS(&mainwindow, &urlentry);
-  
+
 #if WWW_CONF_WITH_WGET
   /* Create download dialog.*/
   ctk_dialog_new(&wgetdialog, 38, 7);
@@ -444,11 +476,11 @@ PROCESS_THREAD(www_process, ev, data)
 #endif /* WWW_CONF_WITH_WGET */
 
   ctk_window_open(&mainwindow);
-  
+
   while(1) {
 
     PROCESS_WAIT_EVENT();
-    
+
     if(ev == tcpip_event) {
       webclient_appcall(data);
     } else if(ev == ctk_signal_widget_activate) {
@@ -456,7 +488,7 @@ PROCESS_THREAD(www_process, ev, data)
 	 w == (struct ctk_widget *)&urlentry) {
 	start_loading();
 	firsty = 0;
-#if WWW_CONF_HISTORY_SIZE > 0	
+#if WWW_CONF_HISTORY_SIZE > 0
 	log_back();
 #endif /* WWW_CONF_HISTORY_SIZE > 0 */
 	memcpy(url, editurl, WWW_CONF_MAX_URLLEN);
@@ -497,18 +529,10 @@ PROCESS_THREAD(www_process, ev, data)
 #endif /* WWW_CONF_WITH_WGET */
 #if WWW_CONF_FORMS
       } else {
-	/* Check form buttons */
-	for(i = 0; i < pagewidgetptr; ++i) {
-	  if(&pagewidgets[i] == w) {
-	    formsubmit(&pagewidgetattribs[i].form);
-	    /*	  show_statustext(pagewidgetattribs[i].form.formaction);*/
-	    /*	  PRINTF(("Formaction %s formname %s inputname %s\n",
-		  pagewidgetattribs[i].form.formaction,
-		  pagewidgetattribs[i].form.formname,
-		  pagewidgetattribs[i].form.inputname));*/
-	    break;
-	  }
-	}
+	/* Assume form widget. */
+	struct inputattrib *input = (struct inputattrib *)
+				      (((char *)w) - offsetof(struct inputattrib, widget));
+	formsubmit(input->formptr);
 #endif /* WWW_CONF_FORMS */
       }
     } else if(ev == ctk_signal_hyperlink_activate) {
@@ -516,12 +540,13 @@ PROCESS_THREAD(www_process, ev, data)
 #if WWW_CONF_HISTORY_SIZE > 0
       log_back();
 #endif /* WWW_CONF_HISTORY_SIZE > 0 */
-      open_link(w->widget.hyperlink.url);
+      set_link(w->widget.hyperlink.url);
+      show_url();
+      open_url();
+      start_loading();
       CTK_WIDGET_FOCUS(&mainwindow, &stopbutton);
-      /*    ctk_window_open(&mainwindow);*/
     } else if(ev == ctk_signal_hyperlink_hover) {
-      if(CTK_WIDGET_TYPE((struct ctk_widget *)data) ==
-	 CTK_WIDGET_HYPERLINK) {
+      if(CTK_WIDGET_TYPE((struct ctk_widget *)data) == CTK_WIDGET_HYPERLINK) {
 	strncpy(statustexturl, w->widget.hyperlink.url,
 		sizeof(statustexturl));
 	petsciiconv_topetscii(statustexturl, sizeof(statustexturl));
@@ -531,10 +556,10 @@ PROCESS_THREAD(www_process, ev, data)
     } else if(ev == resolv_event_found) {
       /* Either found a hostname, or not. */
       if((char *)data != NULL &&
-	 resolv_lookup((char *)data) != NULL) {
+	 resolv_lookup((char *)data, NULL) == RESOLV_STATUS_CACHED) {
 	open_url();
       } else {
-	show_statustext("Host not found.");
+	show_statustext("Host not found");
       }
 #endif /* UIP_UDP */
     } else if(ev == ctk_signal_window_close ||
@@ -551,7 +576,7 @@ PROCESS_THREAD(www_process, ev, data)
  * "url" variable and the visible "editurl" (which is shown in the URL
  * text entry widget in the browser window).
  */
-static void
+static void CC_FASTCALL
 set_url(char *host, uint16_t port, char *file)
 {
   char *urlptr;
@@ -602,7 +627,7 @@ webclient_timedout(void)
 void
 webclient_closed(void)
 {
-  show_statustext("Stopped.");
+  show_statustext("Stopped");
   petsciiconv_topetscii(webpageptr - x, x);
   CTK_WIDGET_FOCUS(&mainwindow, &downbutton);
   redraw_window();
@@ -617,15 +642,12 @@ void
 webclient_connected(void)
 {
   start_loading();
-    
+
   clear_page();
-  
+
   show_statustext("Request sent...");
   set_url(webclient_hostname(), webclient_port(), webclient_filename());
 
-#if WWW_CONF_RENDERSTATE
-  renderstate = HTMLPARSER_RENDERSTATE_NONE;
-#endif /* WWW_CONF_RENDERSTATE */
   htmlparser_init();
 }
 /*-----------------------------------------------------------------------------------*/
@@ -638,12 +660,13 @@ void
 webclient_datahandler(char *data, uint16_t len)
 {
   if(len > 0) {
-    if(strcmp(webclient_mimetype(), http_texthtml) == 0) {
+    if(strstr(webclient_mimetype(), http_html + 1) != 0) {
       count = (count + 1) & 3;
       show_statustext(receivingmsgs[count]);
       htmlparser_parse(data, len);
       redraw_window();
     } else {
+      show_statustext("Cannot display web page");
       uip_abort();
 #if WWW_CONF_WITH_WGET
       ctk_dialog_open(&wgetdialog);
@@ -653,42 +676,37 @@ webclient_datahandler(char *data, uint16_t len)
     /* Clear remaining parts of page. */
     loading = 0;
   }
-  
+
   if(data == NULL) {
     loading = 0;
-    show_statustext("Done.");
+    show_statustext("Done");
     petsciiconv_topetscii(webpageptr - x, x);
     CTK_WIDGET_FOCUS(&mainwindow, &urlentry);
     redraw_window();
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static void *
-add_pagewidget(char *text, unsigned char len, unsigned char type,
-		unsigned char border)
+static void CC_FASTCALL
+add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
+	       unsigned char border)
 {
-  register struct ctk_widget *lptr;
-  register char *wptr;
+  char *wptr;
   static unsigned char maxwidth;
-  static void *dataptr;
 
   if(!loading) {
-    return NULL;
+    return;
   }
-  
-  if(len + border == 0) {
-    return NULL;
-  }
-  
-  maxwidth = WWW_CONF_WEBPAGE_WIDTH - (1 + 2 * border);
-  
+
+  maxwidth = size ? WWW_CONF_WEBPAGE_WIDTH - (1 + 2 * border)
+		  : WWW_CONF_WEBPAGE_WIDTH;
+
   /* If the text of the link is too long so that it does not fit into
      the width of the current window, counting from the current x
      coordinate, we first try to jump to the next line. */
-  if(len + x > maxwidth) {
+  if(size + x > maxwidth) {
     htmlparser_newline();
     if(!loading) {
-      return NULL;
+      return;
     }
   }
 
@@ -696,114 +714,97 @@ add_pagewidget(char *text, unsigned char len, unsigned char type,
      XXX: this is not really the right thing to do, we should probably
      either make a link into a multiline link, or add multiple
      buttons. But this will do for now. */
-  if(len > maxwidth) {
+  if(size > maxwidth) {
     text[maxwidth] = 0;
-    len = maxwidth;
+    size = maxwidth;
   }
 
-  dataptr = NULL;
-  
   if(firsty == pagey) {
+    unsigned char attriblen = strlen(attrib);
+
     wptr = webpageptr;
     /* To save memory, we'll copy the widget text to the web page
        drawing area and reference it from there. */
     wptr[0] = 0;
     wptr += border;
-    memcpy(wptr, text, len);
-    wptr[len] = 0;
-    wptr[len + border] = ' ';
-    if(pagewidgetptr < WWW_CONF_MAX_NUMPAGEWIDGETS) {
-      dataptr = &pagewidgetattribs[pagewidgetptr];
-      lptr = &pagewidgets[pagewidgetptr];
-      
-      switch(type) {
-      case CTK_WIDGET_HYPERLINK:
-	CTK_HYPERLINK_NEW((struct ctk_hyperlink *)lptr, x,
-			  y + 3, len,
-			  wptr, dataptr);
-	break;
-      case CTK_WIDGET_BUTTON:
-	CTK_BUTTON_NEW((struct ctk_button *)lptr, x,
-		       y + 3, len,
-		       wptr);
-	((struct formattribs *)dataptr)->inputvalue = wptr;
-	break;
-      case CTK_WIDGET_TEXTENTRY:
-	CTK_TEXTENTRY_NEW((struct ctk_textentry *)lptr, x,
-			  y + 3, len, 1,
-			  wptr, len);
-	((struct formattribs *)dataptr)->inputvalue = wptr;
+    memcpy(wptr, text, size);
+    wptr[size] = 0;
+    wptr[size + border] = ' ';
+
+    switch(type) {
+      case CTK_WIDGET_HYPERLINK: {
+	struct linkattrib *linkptr =
+	  (struct linkattrib *)add_pageattrib(sizeof(struct linkattrib) /* incl 1 attrib char */ + attriblen);
+	if(linkptr != NULL) {
+	  CTK_HYPERLINK_NEW(&linkptr->hyperlink, x, y + 3, size, wptr, linkptr->url);
+	  strcpy(linkptr->url, attrib);
+	  CTK_WIDGET_SET_FLAG(&linkptr->hyperlink, CTK_WIDGET_FLAG_MONOSPACE);
+	  CTK_WIDGET_ADD(&mainwindow, &linkptr->hyperlink);
+	}
 	break;
       }
-      CTK_WIDGET_SET_FLAG(lptr, CTK_WIDGET_FLAG_MONOSPACE);
-      CTK_WIDGET_ADD(&mainwindow, lptr);
-
-      ++pagewidgetptr;
+#if WWW_CONF_FORMS
+      case CTK_WIDGET_BUTTON: {
+	struct submitattrib *submitptr =
+	  (struct submitattrib *)add_pageattrib(sizeof(struct submitattrib) /* incl 1 attrib char */ + attriblen);
+	if(submitptr != NULL) {
+	  CTK_BUTTON_NEW((struct ctk_button *)&submitptr->button, x, y + 3, size, wptr);
+	  add_forminput((struct inputattrib *)submitptr);
+	  submitptr->formptr = formptr;
+	  strcpy(submitptr->name, attrib);
+	  CTK_WIDGET_SET_FLAG(&submitptr->button, CTK_WIDGET_FLAG_MONOSPACE);
+	  CTK_WIDGET_ADD(&mainwindow, &submitptr->button);
+	}
+	break;
+      }
+      case CTK_WIDGET_TEXTENTRY: {
+	struct textattrib *textptr =
+	  (struct textattrib *)add_pageattrib(sizeof(struct textattrib) /* incl 1 attrib char */ + attriblen
+					      + (size ? WWW_CONF_MAX_INPUTVALUELEN : strlen(text)) + 1);
+	if(textptr != NULL) {
+	  CTK_TEXTENTRY_NEW((struct ctk_textentry *)&textptr->textentry, x, y + 3, size, 1,
+	    textptr->name + attriblen + 1, WWW_CONF_MAX_INPUTVALUELEN);
+	  add_forminput((struct inputattrib *)textptr);
+	  textptr->formptr = formptr;
+	  strcpy(textptr->textentry.text, text);
+	  strcpy(textptr->name, attrib);
+	  if(size) {
+	    CTK_WIDGET_SET_FLAG(&textptr->textentry, CTK_WIDGET_FLAG_MONOSPACE);
+	    CTK_WIDGET_ADD(&mainwindow, &textptr->textentry);
+	  }
+	}
+	break;
+      }
+#endif /* WWW_CONF_FORMS */
     }
   }
   /* Increase the x coordinate with the length of the link text plus
      the extra space behind it and the CTK button markers. */
-  len = len + 1 + 2 * border;
-  x += len;
+  if(size) {
+    size += 1 + 2 * border;
+  }
+  x += size;
 
   if(firsty == pagey) {
-    webpageptr += len;
+    webpageptr += size;
   }
-  
+
   if(x == WWW_CONF_WEBPAGE_WIDTH) {
     htmlparser_newline();
   }
-
-  return dataptr;
 }
-/*-----------------------------------------------------------------------------------*/
-#if WWW_CONF_RENDERSTATE
-static void
-centerline(char *wptr)
-{
-  unsigned char spaces, i;
-  char *cptr;
-  register struct ctk_widget *linksptr;
-  
-  cptr = wptr + WWW_CONF_WEBPAGE_WIDTH;
-  for(spaces = 0; spaces < WWW_CONF_WEBPAGE_WIDTH; ++spaces) {
-    if(*--cptr != 0) {
-      break;
-    }
-  }
-  
-  spaces /= 2;
-
-  while(cptr >= wptr) {
-    *(cptr + spaces) = *cptr;
-    --cptr;
-  }
-
-  memset(wptr, ' ', spaces);
-  
-  linksptr = pagewidgets;
-  
-  for(i = 0; i < pagewidgetptr; ++i) {
-    if(CTK_WIDGET_YPOS(linksptr) == y + 2) {
-      linksptr->x += spaces;
-      linksptr->widget.hyperlink.text += spaces;
-    }
-    ++linksptr;
-  }
-}
-#endif /* WWW_CONF_RENDERSTATE */
 /*-----------------------------------------------------------------------------------*/
 void
 htmlparser_newline(void)
 {
   char *wptr;
-  
+
   if(pagey < firsty) {
     ++pagey;
     x = 0;
     return;
   }
-  
+
   if(!loading) {
     return;
   }
@@ -811,16 +812,10 @@ htmlparser_newline(void)
   webpageptr += (WWW_CONF_WEBPAGE_WIDTH - x);
   ++y;
   x = 0;
-  
+
   wptr = webpageptr - WWW_CONF_WEBPAGE_WIDTH;
-  petsciiconv_topetscii(wptr,
-			WWW_CONF_WEBPAGE_WIDTH);
-#if WWW_CONF_RENDERSTATE
-  if(renderstate & HTMLPARSER_RENDERSTATE_CENTER) {
-    centerline(wptr);
-  }
-#endif /* WWW_CONF_RENDERSTATE */
-  
+  petsciiconv_topetscii(wptr, WWW_CONF_WEBPAGE_WIDTH);
+
   if(y == WWW_CONF_WEBPAGE_HEIGHT) {
     loading = 0;
     webclient_close();
@@ -830,7 +825,6 @@ htmlparser_newline(void)
 void
 htmlparser_word(char *word, unsigned char wordlen)
 {
-
   if(loading) {
     if(wordlen + 1 > WWW_CONF_WEBPAGE_WIDTH - x) {
       htmlparser_newline();
@@ -854,127 +848,97 @@ htmlparser_word(char *word, unsigned char wordlen)
 void
 htmlparser_link(char *text, unsigned char textlen, char *url)
 {
-  static char *linkurlptr;
-
-  linkurlptr = add_pagewidget(text, textlen, CTK_WIDGET_HYPERLINK, 0);
-  if(linkurlptr != NULL &&
-     strlen(url) < WWW_CONF_MAX_URLLEN) {
-    strcpy(linkurlptr, url);
-  }
+  add_pagewidget(text, textlen, url, CTK_WIDGET_HYPERLINK, 0);
 }
-/*-----------------------------------------------------------------------------------*/
-#if WWW_CONF_RENDERSTATE
-void
-htmlparser_renderstate(unsigned char s)
-{
-  if((s & HTMLPARSER_RENDERSTATE_STATUSMASK) ==
-     HTMLPARSER_RENDERSTATE_BEGIN) {
-    renderstate |= s & ~HTMLPARSER_RENDERSTATE_STATUSMASK;
-  } else {
-    renderstate &= ~(s & ~HTMLPARSER_RENDERSTATE_STATUSMASK);
-  }
-}
-#endif /* WWW_CONF_RENDERSTATE */
-
 /*-----------------------------------------------------------------------------------*/
 #if WWW_CONF_FORMS
 void
-htmlparser_submitbutton(char *text, char *name,
-			char *formname, char *formaction)
+htmlparser_form(char *action)
 {
-  register struct formattribs *form;
-  
-  form = add_pagewidget(text, (unsigned char)strlen(text), CTK_WIDGET_BUTTON, 1);
-  if(form != NULL) {
-    strncpy(form->formaction, formaction, WWW_CONF_MAX_FORMACTIONLEN);
-    strncpy(form->formname, formname, WWW_CONF_MAX_FORMNAMELEN);
-    strncpy(form->inputname, name, WWW_CONF_MAX_INPUTNAMELEN);
-    form->inputtype = FORMINPUTTYPE_SUBMITBUTTON;
+  formptr = (struct formattrib *)add_pageattrib(sizeof(struct formattrib) + strlen(action));
+  if(formptr != NULL) {
+    formptr->nextptr = NULL;
+    currptr = (struct inputattrib *)formptr;
+    strcpy(formptr->action, action);
   }
 }
 /*-----------------------------------------------------------------------------------*/
 void
-htmlparser_inputfield(unsigned char size, char *text, char *name,
-		      char *formname, char *formaction)
+htmlparser_submitbutton(char *text, char *name)
 {
-  register struct formattribs *form;
-
-  form = add_pagewidget(text, size, CTK_WIDGET_TEXTENTRY, 1);
-  if(form != NULL) {
-    strncpy(form->formaction, formaction, WWW_CONF_MAX_FORMACTIONLEN);
-    strncpy(form->formname, formname, WWW_CONF_MAX_FORMNAMELEN);
-    strncpy(form->inputname, name, WWW_CONF_MAX_INPUTNAMELEN);
-    form->inputtype = FORMINPUTTYPE_INPUTFIELD;
+  add_pagewidget(text, (unsigned char)strlen(text), name, CTK_WIDGET_BUTTON, 1);
+}
+/*-----------------------------------------------------------------------------------*/
+void
+htmlparser_inputfield(unsigned char type, unsigned char size, char *text, char *name)
+{
+  if(type == HTMLPARSER_INPUTTYPE_HIDDEN) {
+    add_pagewidget(text,    0, name, CTK_WIDGET_TEXTENTRY, 0);
+  } else {
+    add_pagewidget(text, size, name, CTK_WIDGET_TEXTENTRY, 1);
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static void
-formsubmit(struct formattribs *attribs)
+static void CC_FASTCALL
+add_query(char delimiter, char *string)
 {
-  unsigned char i, j;
-  register char *urlptr, *valueptr;
-  register struct formattribs *faptr;
+  static char *query;
+  unsigned char length;
 
-  urlptr = &tmpurl[0];
+  if(delimiter == ISO_questionmark) {
+    query = url + strlen(url);
+  }
 
-  strncpy(urlptr, attribs->formaction, WWW_CONF_MAX_URLLEN);
-  tmpurl[WWW_CONF_MAX_URLLEN] = 0;
-  urlptr += strlen(urlptr);
-  *urlptr = ISO_questionmark;
-  ++urlptr;
-  
-  /* Construct an URL by finding all input field forms with the same
-     formname as the current submit button, and add the submit button
-     URL stuff as well. */
-  for(i = 0; i < pagewidgetptr; ++i) {
-    if(urlptr - &tmpurl[0] >= WWW_CONF_MAX_URLLEN) {
-      break;
-    }
+  length = strlen(string);
+  if(query - url + WWW_CONF_MAX_URLLEN - 1 /* delimiter */ < length) {
+    return;
+  }
 
-    faptr = &pagewidgetattribs[i].form;
-    
-    if(strcmp(attribs->formaction, faptr->formaction) == 0 &&
-       strcmp(attribs->formname, faptr->formname) == 0 &&
-       (faptr->inputtype == FORMINPUTTYPE_INPUTFIELD ||
-	faptr == attribs)) {
+  *query++ = delimiter;
+  strcpy(query, string);
+  if(delimiter == ISO_eq) {
+    char *space = query;
 
-      /* Copy the name of the input field into the URL and append a
-	 questionmark. */
-      strncpy(urlptr, faptr->inputname, WWW_CONF_MAX_URLLEN - strlen(tmpurl));
-      tmpurl[WWW_CONF_MAX_URLLEN] = 0;
-      urlptr += strlen(urlptr);
-      *urlptr = ISO_eq;
-      ++urlptr;
-
-      /* Convert and copy the contents of the input field to the URL
-	 and append an ampersand. */
-      valueptr = pagewidgets[i].widget.textentry.text;
-      petsciiconv_toascii(valueptr, WWW_CONF_MAX_INPUTVALUELEN);
-      for(j = 0; j < WWW_CONF_MAX_INPUTVALUELEN; ++j) {
-	if(urlptr - &tmpurl[0] >= WWW_CONF_MAX_URLLEN) {
-	  break;
-	}
-	*urlptr = *valueptr;
-	if(*urlptr == ISO_space) {
-	  *urlptr = ISO_plus;
-	}
-	if(*urlptr == 0) {
-	  break;
-	}
-	++urlptr;
-	++valueptr;
-      }
-      
-      *urlptr = ISO_ampersand;
-      ++urlptr;
+    petsciiconv_toascii(query, length);
+    while((space = strchr(space, ISO_space)) != NULL) {
+      *space = ISO_plus;
     }
   }
-  --urlptr;
-  *urlptr = 0;
+  query += length;
+}
+/*-----------------------------------------------------------------------------------*/
+static void CC_FASTCALL
+formsubmit(struct formattrib *form)
+{
+  struct inputattrib *inputptr;
+  char delimiter = ISO_questionmark;
+
+  set_link(form->action);
+
+  for(inputptr = form->nextptr; inputptr != NULL; inputptr = inputptr->nextptr) {
+    char *name;
+    char *value;
+
+    if(inputptr->widget.type == CTK_WIDGET_BUTTON) {
+      name  = ((struct submitattrib *)inputptr)->name;
+      value = ((struct submitattrib *)inputptr)->button.text;
+    } else {
+      name  = ((struct textattrib *)inputptr)->name;
+      value = ((struct textattrib *)inputptr)->textentry.text;
+    }
+
+    add_query(delimiter, name);
+    add_query(ISO_eq, value);
+    delimiter = ISO_ampersand;
+  }
+
 #if WWW_CONF_HISTORY_SIZE > 0
   log_back();
 #endif /* WWW_CONF_HISTORY_SIZE > 0 */
-  open_link(tmpurl);
+
+  show_url();
+  open_url();
+  start_loading();
 }
 #endif /* WWW_CONF_FORMS */
 /*-----------------------------------------------------------------------------------*/

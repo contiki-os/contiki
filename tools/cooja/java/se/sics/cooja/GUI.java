@@ -36,7 +36,6 @@ import java.awt.Dialog;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
@@ -109,7 +108,6 @@ import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
-import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -126,8 +124,6 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-
-import com.sun.java.swing.Painter;
 
 import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.VisPlugin.PluginRequiresVisualizationException;
@@ -656,7 +652,7 @@ public class GUI extends Observable {
   /**
    * Enables/disables menues and menu items depending on whether a simulation is loaded etc.
    */
-  public void updateGUIComponentState() {
+  private void updateGUIComponentState() {
     if (!isVisualized()) {
       return;
     }
@@ -1292,33 +1288,6 @@ public class GUI extends Observable {
         updateDesktopSize(this);
         return c;
       }
-      
-      /*
-       * The Nimbus Pane Background is quite slow, as the background is computed.
-       * The fancy desktop is replaced by a mono-color background.
-       * @see javax.swing.JDesktopPane#updateUI()
-       */
-      
-      @Override
-      public void updateUI() {
-          if ("Nimbus".equals(UIManager.getLookAndFeel().getName())) {        	  
-              UIDefaults map = new UIDefaults();
-              Painter<JComponent> painter = new Painter<JComponent>() {
-
-                  @Override
-                  public void paint(Graphics2D g, JComponent c, int width, int height) {
-                      // file using normal desktop color
-                      g.setColor(UIManager.getDefaults().getColor("desktop"));
-                      g.fillRect(0, 0, width, height);
-                  }
-              };
-              map.put("DesktopPane[Enabled].backgroundPainter", painter);
-              putClientProperty("Nimbus.Overrides", map);
-          }
-          super.updateUI();
-      }
-      
-      
     };
     desktop.setDesktopManager(new DefaultDesktopManager() {
 			private static final long serialVersionUID = -5987404936292377152L;
@@ -2687,6 +2656,10 @@ public class GUI extends Observable {
    * @param askForConfirmation Should we ask for confirmation before quitting?
    */
   public void doQuit(boolean askForConfirmation) {
+    doQuit(askForConfirmation, 0);
+  }
+  
+  public void doQuit(boolean askForConfirmation, int exitCode) {
     if (isVisualizedInApplet()) {
       return;
     }
@@ -2740,7 +2713,7 @@ public class GUI extends Observable {
     }
     saveExternalToolsUserSettings();
 
-    System.exit(0);
+    System.exit(exitCode);
   }
 
   // // EXTERNAL TOOLS SETTINGS METHODS ////

@@ -17,7 +17,7 @@
 
 #if DMA_ON
 struct dma_config dma_conf[DMA_CHANNEL_COUNT]; /* DMA Descriptors */
-struct process * dma_callback[DMA_CHANNEL_COUNT];
+struct process *dma_callback[DMA_CHANNEL_COUNT];
 /*---------------------------------------------------------------------------*/
 void
 dma_init(void)
@@ -31,7 +31,7 @@ dma_init(void)
   }
 
   /* The address of the descriptor for Channel 0 is configured separately */
-  tmp_ptr = (uint16_t) &(dma_conf[0]);
+  tmp_ptr = (uint16_t)&(dma_conf[0]);
   DMA0CFGH = tmp_ptr >> 8;
   DMA0CFGL = tmp_ptr;
 
@@ -41,7 +41,7 @@ dma_init(void)
    * derived by the SoC
    */
 #if (DMA_CHANNEL_COUNT > 1)
-  tmp_ptr = (uint16_t) &(dma_conf[1]);
+  tmp_ptr = (uint16_t)&(dma_conf[1]);
   DMA1CFGH = tmp_ptr >> 8;
   DMA1CFGL = tmp_ptr;
 #endif
@@ -54,7 +54,7 @@ dma_init(void)
  * completes, the ISR will poll this process.
  */
 void
-dma_associate_process(struct process * p, uint8_t c)
+dma_associate_process(struct process *p, uint8_t c)
 {
   if((!c) || (c >= DMA_CHANNEL_COUNT)) {
     return;
@@ -67,4 +67,29 @@ dma_associate_process(struct process * p, uint8_t c)
   dma_callback[c] = p;
 }
 /*---------------------------------------------------------------------------*/
+/*
+ * Reset a channel to idle state. As per cc253x datasheet section 8.1,
+ * we must reconfigure the channel to trigger source 0 between each
+ * reconfiguration.
+ */
+void
+dma_reset(uint8_t c)
+{
+  static __xdata uint8_t dummy;
+  if(c >= DMA_CHANNEL_COUNT) {
+    return;
+  }
+  DMA_ABORT(c);
+  dma_conf[c].src_h = (uint16_t)&dummy >> 8;
+  dma_conf[c].src_l = (uint16_t)&dummy;
+  dma_conf[c].dst_h = (uint16_t)&dummy >> 8;
+  dma_conf[c].dst_l = (uint16_t)&dummy;
+  dma_conf[c].len_h = 0;
+  dma_conf[c].len_l = 1;
+  dma_conf[c].wtt = DMA_BLOCK;
+  dma_conf[c].inc_prio = DMA_PRIO_ASSURED;
+  DMA_TRIGGER(c); /** The operation order is important */
+  DMA_ARM(c);
+  while(DMAARM & (1 << c));
+}
 #endif

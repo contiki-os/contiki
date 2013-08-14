@@ -46,12 +46,12 @@
 #define FPEC_KEY2           0xCDEF89AB          //magic key defined in hardware
 
 //Translation between page number and simee (word based) address
-#define SIMEE_ADDR_TO_PAGE(x)   ((int8u)(((int16u)(x)) >> 9))
-#define PAGE_TO_SIMEE_ADDR(x)   (((int16u)(x)) << 9)
+#define SIMEE_ADDR_TO_PAGE(x)   ((uint8_t)(((uint16_t)(x)) >> 9))
+#define PAGE_TO_SIMEE_ADDR(x)   (((uint16_t)(x)) << 9)
 
 //Translation between page number and code addresses, used by bootloaders
-#define PROG_ADDR_TO_PAGE(x)    ((int8u)((((int32u)(x))&MFB_ADDR_MASK) >> 10))
-#define PAGE_TO_PROG_ADDR(x)    ((((int32u)(x)) << 10)|MFB_BOTTOM)
+#define PROG_ADDR_TO_PAGE(x)    ((uint8_t)((((uint32_t)(x))&MFB_ADDR_MASK) >> 10))
+#define PAGE_TO_PROG_ADDR(x)    ((((uint32_t)(x)) << 10)|MFB_BOTTOM)
 
 
 #endif //__STM32W108_MEMMAP_H__

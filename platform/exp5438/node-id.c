@@ -37,7 +37,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "node-id.h"
+#include "sys/node-id.h"
 #include "contiki-conf.h"
 #include "dev/xmem.h"
 #include <string.h>

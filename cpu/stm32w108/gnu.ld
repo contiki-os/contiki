@@ -21,7 +21,6 @@ __Stack_Init = 0x20000000;
 
 _estack = __Stack_Init + __Stack_Size;
 
-
 /*"PROVIDE" allows to easily override these values from an object file or the commmand line.*/
 PROVIDE ( _Stack_Init = __Stack_Init ) ;
 

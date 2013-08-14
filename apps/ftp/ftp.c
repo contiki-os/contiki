@@ -434,7 +434,7 @@ PROCESS_THREAD(ftp_process, ev, data)
     } else if(ev == resolv_event_found) {
       /* Either found a hostname, or not. */
       if((char *)data != NULL &&
-	 (ipaddrptr = resolv_lookup((char *)data)) != NULL) {
+	 resolv_lookup((char *)data, &ipaddrptr) == RESOLV_STATUS_CACHED) {
 	connection = ftpc_connect(ipaddrptr, UIP_HTONS(21));
 	show_statustext("Connecting to ", hostname);
       } else {
@@ -508,8 +508,7 @@ PROCESS_THREAD(ftp_process, ev, data)
 	ptractive = 1;
 #if UIP_UDP
 	if(uiplib_ipaddrconv(hostname, &ipaddr) == 0) {
-	  ipaddrptr = resolv_lookup(hostname);
-	  if(ipaddrptr == NULL) {
+	  if(resolv_lookup(hostname, &ipaddrptr) != RESOLV_STATUS_CACHED) {
 	    resolv_query(hostname);
 	    show_statustext("Resolving host ", hostname);
 	    break;

@@ -745,7 +745,7 @@ coap_set_header_uri_query(void *packet, const char *query)
 /*- PAYLOAD -------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------*/
 int
-coap_get_payload(void *packet, uint8_t **payload)
+coap_get_payload(void *packet, const uint8_t **payload)
 {
   if (((coap_packet_t *)packet)->payload) {
     *payload = ((coap_packet_t *)packet)->payload;

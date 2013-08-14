@@ -1,11 +1,5 @@
-/** @file hal/micro/generic/compiler/platform-common.h
- * See @ref platform_common for detailed documentation.
- *
- * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
- */
-
-/** @addtogroup platform_common
- * @brief Compiler and Platform specific definitions and typedefs common to
+/** \addtogroup platform_common
+ * \brief Compiler and Platform specific definitions and typedefs common to
  * all platforms.  
  *
  * platform-common.h provides PLATFORM_HEADER defaults and common definitions.
@@ -15,6 +9,13 @@
  * See platform-common.h for source code.
  *@{
  */
+
+/** \file hal/micro/generic/compiler/platform-common.h
+ * See \ref platform_common for detailed documentation.
+ *
+ * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
+ */
+
  
 #ifndef PLATCOMMONOKTOINCLUDE
   //  This header should only be included by a PLATFORM_HEADER
@@ -36,23 +37,23 @@
    */
   //@{
   /**
-   * @brief Standard program memory delcaration.
+   * \brief Standard program memory delcaration.
    */
   #define PGM     const
 
   /**
-   * @brief Char pointer to program memory declaration.
+   * \brief Char pointer to program memory declaration.
    */
   #define PGM_P   const char *
 
   /**
-   * @brief Unsigned char pointer to program memory declaration.
+   * \brief Unsigned char pointer to program memory declaration.
    */
   #define PGM_PU  const unsigned char *
 
 
   /**
-   * @brief Sometimes a second PGM is needed in a declaration.  Having two
+   * \brief Sometimes a second PGM is needed in a declaration.  Having two
    * 'const' declarations generates a warning so we have a second PGM that turns
    * into nothing under gcc.
    */
@@ -72,32 +73,32 @@
    */
   //@{
   /**
-   * @brief Provide a portable name for the int32u by int16u division
+   * \brief Provide a portable name for the uint32_t by uint16_t division
    * library function (which can perform the division with only a single 
    * assembly instruction on some platforms)
    */
-  #define halCommonUDiv32By16(x, y) ((int16u) (((int32u) (x)) / ((int16u) (y))))
+  #define halCommonUDiv32By16(x, y) ((uint16_t) (((uint32_t) (x)) / ((uint16_t) (y))))
 
   /**
-   * @brief Provide a portable name for the int32s by int16s division
+   * \brief Provide a portable name for the int32_t by int16_t division
    * library function (which can perform the division with only a single
    * assembly instruction on some platforms)
    */
-  #define halCommonSDiv32By16(x, y) ((int16s) (((int32s) (x)) / ((int16s) (y))))
+  #define halCommonSDiv32By16(x, y) ((int16_t) (((int32_t) (x)) / ((int16_t) (y))))
 
   /**
-   * @brief Provide a portable name for the int32u by int16u modulo
+   * \brief Provide a portable name for the uint32_t by uint16_t modulo
    * library function (which can perform the division with only a single
    * assembly instruction on some platforms)
    */
-  #define halCommonUMod32By16(x, y) ((int16u) (((int32u) (x)) % ((int16u) (y))))
+  #define halCommonUMod32By16(x, y) ((uint16_t) (((uint32_t) (x)) % ((uint16_t) (y))))
 
   /**
-   * @brief Provide a portable name for the int32s by int16s modulo
+   * \brief Provide a portable name for the int32_t by int16_t modulo
    * library function (which can perform the division with only a single
    * assembly instruction on some platforms)
    */
-  #define halCommonSMod32By16(x, y) ((int16s) (((int32s) (x)) % ((int16s) (y))))
+  #define halCommonSMod32By16(x, y) ((int16_t) (((int32_t) (x)) % ((int16_t) (y))))
   //@} \\END DIVIDE and MODULUS OPERATIONS
 #endif //_HAL_USE_COMMON_DIVMOD_
 
@@ -118,25 +119,25 @@
   //@{
 
   /**
-   * @brief Refer to the C stdlib memcpy().
+   * \brief Refer to the C stdlib memcpy().
    */
-  void halCommonMemCopy(void *dest, const void *src, int8u bytes);
+  void halCommonMemCopy(void *dest, const void *src, uint8_t bytes);
 
 
   /**
-   * @brief Refer to the C stdlib memset().
+   * \brief Refer to the C stdlib memset().
    */
-  void halCommonMemSet(void *dest, int8u val, int16u bytes);
+  void halCommonMemSet(void *dest, uint8_t val, uint16_t bytes);
 
 
   /**
-   * @brief Refer to the C stdlib memcmp().
+   * \brief Refer to the C stdlib memcmp().
    */
-  int8s halCommonMemCompare(const void *source0, const void *source1, int8u bytes);
+  int8_t halCommonMemCompare(const void *source0, const void *source1, uint8_t bytes);
 
 
   /**
-   * @brief Friendly convenience macro pointing to the full HAL function.
+   * \brief Friendly convenience macro pointing to the full HAL function.
    */
   #define MEMSET(d,v,l)  halCommonMemSet(d,v,l)
   #define MEMCOPY(d,s,l) halCommonMemCopy(d,s,l)
@@ -165,18 +166,18 @@
  */
 
 /**
- * @brief An alias for one, used for clarity.
+ * \brief An alias for one, used for clarity.
  */
 #define TRUE  1
 
 /**
- * @brief An alias for zero, used for clarity.
+ * \brief An alias for zero, used for clarity.
  */
 #define FALSE 0
 
 #ifndef NULL
 /**
- * @brief The null pointer.
+ * \brief The null pointer.
  */
 #define NULL ((void *)0)
 #endif
@@ -190,50 +191,50 @@
 //@{
 
 /**
- * @brief Useful to reference a single bit of a byte.
+ * \brief Useful to reference a single bit of a byte.
  */
 #define BIT(x) (1U << (x))  // Unsigned avoids compiler warnings re BIT(15)
 
 /**
- * @brief Useful to reference a single bit of an int32u type.
+ * \brief Useful to reference a single bit of an uint32_t type.
  */
-#define BIT32(x) (((int32u) 1) << (x))
+#define BIT32(x) (((uint32_t) 1) << (x))
 
 /**
- * @brief Sets \c bit in the \c reg register or byte.
+ * \brief Sets \c bit in the \c reg register or byte.
  * @note Assuming \c reg is an IO register, some platforms
  * can implement this in a single atomic operation.
 */
 #define SETBIT(reg, bit)      reg |= BIT(bit)
 
 /**
- * @brief Sets the bits in the \c reg register or the byte 
+ * \brief Sets the bits in the \c reg register or the byte 
  * as specified in the bitmask \c bits. 
  * @note This is never a single atomic operation.
  */
 #define SETBITS(reg, bits)    reg |= (bits)
 
 /**
- * @brief Clears a bit in the \c reg register or byte. 
+ * \brief Clears a bit in the \c reg register or byte. 
  * @note Assuming \c reg is an IO register, some platforms (such as the AVR) 
  * can implement this in a single atomic operation.
  */
 #define CLEARBIT(reg, bit)    reg &= ~(BIT(bit))
 
 /**
- * @brief Clears the bits in the \c reg register or byte 
+ * \brief Clears the bits in the \c reg register or byte 
  * as specified in the bitmask \c bits. 
  * @note This is never a single atomic operation.
  */
 #define CLEARBITS(reg, bits)  reg &= ~(bits)
 
 /**
- * @brief Returns the value of \c bit within the register or byte \c reg.
+ * \brief Returns the value of \c bit within the register or byte \c reg.
 */
 #define READBIT(reg, bit)     (reg & (BIT(bit)))
 
 /**
- * @brief Returns the value of the bitmask \c bits within 
+ * \brief Returns the value of the bitmask \c bits within 
  * the register or byte \c reg.
  */
 #define READBITS(reg, bits)   (reg & (bits))
@@ -248,43 +249,43 @@
 //@{
 
 /**
- * @brief Returns the low byte of the 16-bit value \c n as an \c int8u.
+ * \brief Returns the low byte of the 16-bit value \c n as an \c uint8_t.
  */
-#define LOW_BYTE(n)                     ((int8u)((n) & 0xFF))
+#define LOW_BYTE(n)                     ((uint8_t)((n) & 0xFF))
 
 /**
- * @brief Returns the high byte of the 16-bit value \c n as an \c int8u.
+ * \brief Returns the high byte of the 16-bit value \c n as an \c uint8_t.
  */
-#define HIGH_BYTE(n)                    ((int8u)(LOW_BYTE((n) >> 8)))
+#define HIGH_BYTE(n)                    ((uint8_t)(LOW_BYTE((n) >> 8)))
 
 /**
- * @brief Returns the value built from the two \c int8u 
+ * \brief Returns the value built from the two \c uint8_t 
  * values \c high and \c low.
  */
 #define HIGH_LOW_TO_INT(high, low) (                              \
-                                    (( (int16u) (high) ) << 8) +  \
-                                    (  (int16u) ( (low) & 0xFF))  \
+                                    (( (uint16_t) (high) ) << 8) +  \
+                                    (  (uint16_t) ( (low) & 0xFF))  \
                                    )                                
 
 /**
- * @brief Returns the low byte of the 32-bit value \c n as an \c int8u.
+ * \brief Returns the low byte of the 32-bit value \c n as an \c uint8_t.
  */
-#define BYTE_0(n)                    ((int8u)((n) & 0xFF))
+#define BYTE_0(n)                    ((uint8_t)((n) & 0xFF))
 
 /**
- * @brief Returns the second byte of the 32-bit value \c n as an \c int8u.
+ * \brief Returns the second byte of the 32-bit value \c n as an \c uint8_t.
  */
-#define BYTE_1(n)                    ((int8u)(BYTE_0((n) >> 8)))
+#define BYTE_1(n)                    ((uint8_t)(BYTE_0((n) >> 8)))
 
 /**
- * @brief Returns the third byte of the 32-bit value \c n as an \c int8u.
+ * \brief Returns the third byte of the 32-bit value \c n as an \c uint8_t.
  */
-#define BYTE_2(n)                    ((int8u)(BYTE_0((n) >> 16)))
+#define BYTE_2(n)                    ((uint8_t)(BYTE_0((n) >> 16)))
 
 /**
- * @brief Returns the high byte of the 32-bit value \c n as an \c int8u.
+ * \brief Returns the high byte of the 32-bit value \c n as an \c uint8_t.
  */
-#define BYTE_3(n)                    ((int8u)(BYTE_0((n) >> 24)))
+#define BYTE_3(n)                    ((uint8_t)(BYTE_0((n) >> 24)))
 
 //@} \\END Byte manipulation macros
 
@@ -296,28 +297,28 @@
 //@{
 
 /**
- * @brief Returns the elapsed time between two 8 bit values.  
+ * \brief Returns the elapsed time between two 8 bit values.  
  *        Result may not be valid if the time samples differ by more than 127
  */
 #define elapsedTimeInt8u(oldTime, newTime)       \
-  ((int8u) ((int8u)(newTime) - (int8u)(oldTime)))
+  ((uint8_t) ((uint8_t)(newTime) - (uint8_t)(oldTime)))
 
 /**
- * @brief Returns the elapsed time between two 16 bit values.  
+ * \brief Returns the elapsed time between two 16 bit values.  
  *        Result may not be valid if the time samples differ by more than 32767
  */
 #define elapsedTimeInt16u(oldTime, newTime)      \
-  ((int16u) ((int16u)(newTime) - (int16u)(oldTime)))
+  ((uint16_t) ((uint16_t)(newTime) - (uint16_t)(oldTime)))
 
 /**
- * @brief Returns the elapsed time between two 32 bit values.  
+ * \brief Returns the elapsed time between two 32 bit values.  
  *   Result may not be valid if the time samples differ by more than 2147483647
  */
 #define elapsedTimeInt32u(oldTime, newTime)      \
-  ((int32u) ((int32u)(newTime) - (int32u)(oldTime)))
+  ((uint32_t) ((uint32_t)(newTime) - (uint32_t)(oldTime)))
 
 /**
- * @brief Returns TRUE if t1 is greater than t2.  Can only account for 1 wrap
+ * \brief Returns TRUE if t1 is greater than t2.  Can only account for 1 wrap
  * around of the variable before it is wrong.
  */
 #define MAX_INT8U_VALUE 0xFF
@@ -325,7 +326,7 @@
   (elapsedTimeInt8u(t2, t1) <= ((MAX_INT8U_VALUE + 1) / 2))
 
 /**
- * @brief Returns TRUE if t1 is greater than t2.  Can only account for 1 wrap
+ * \brief Returns TRUE if t1 is greater than t2.  Can only account for 1 wrap
  * around of the variable before it is wrong.
  */
 #define MAX_INT16U_VALUE 0xFFFF
@@ -333,7 +334,7 @@
   (elapsedTimeInt16u(t2, t1) <= ((MAX_INT16U_VALUE + 1) / 2))
 
 /**
- * @brief Returns TRUE if t1 is greater than t2.  Can only account for 1 wrap
+ * \brief Returns TRUE if t1 is greater than t2.  Can only account for 1 wrap
  * around of the variable before it is wrong.
  */
 #define MAX_INT32U_VALUE 0xFFFFFFFF

@@ -1,0 +1,18 @@
+no buck
+-------
+vsupply, 
+3.6, rftest-rx 46mA
+3.27, rftest-rx 42mA
+3.03, rftest-rx, 39.5mA
+2.56, rftest-rx 35mA
+2.2, rftest-rx 32mA
+
+buck
+-----
+3.58V, 39mA
+3.3, 37mA
+vsupply 3.03, rftest, 35.3mA
+2.47, 32.9mA
+2.2V, 31.2mA
+
+might have a hard time starting up everything in the <2.7V range

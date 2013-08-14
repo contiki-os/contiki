@@ -59,25 +59,25 @@ HWCONF_PORT_0_IRQ(BUTTON_2, 7)
 #endif /* MODEL_N711 */
 
 /*---------------------------------------------------------------------------*/
-static
-int value_b1(int type)
+static int
+value_b1(int type)
 {
   return BUTTON_1_READ() || !timer_expired(&debouncetimer[0]);
 }
 /*---------------------------------------------------------------------------*/
-static
-int status_b1(int type)
+static int
+status_b1(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return BUTTON_1_IRQ_ENABLED();
-    }
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static
-int configure_b1(int type, int value)
+static int
+configure_b1(int type, int value)
 {
   switch(type) {
   case SENSORS_HW_INIT:
@@ -92,7 +92,7 @@ int configure_b1(int type, int value)
         timer_set(&debouncetimer[0], 0);
         BUTTON_1_IRQ_FLAG_OFF();
         BUTTON_1_ENABLE_IRQ();
-}
+      }
     } else {
       BUTTON_1_DISABLE_IRQ();
     }
@@ -101,16 +101,16 @@ int configure_b1(int type, int value)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static
-int value_b2(int type)
+static int
+value_b2(int type)
 {
   return BUTTON_2_READ() || !timer_expired(&debouncetimer[1]);
 }
 /*---------------------------------------------------------------------------*/
-static
-int status_b2(int type)
+static int
+status_b2(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return BUTTON_2_IRQ_ENABLED();
@@ -118,8 +118,8 @@ int status_b2(int type)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static
-int configure_b2(int type, int value)
+static int
+configure_b2(int type, int value)
 {
   switch(type) {
   case SENSORS_HW_INIT:

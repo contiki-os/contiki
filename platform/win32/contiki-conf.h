@@ -1,9 +1,15 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#ifdef __CYGWIN__
+#include <sys/types.h>
+#endif
+
 #define CC_CONF_REGISTER_ARGS 1
 #define CC_CONF_FASTCALL __fastcall
 #define CC_CONF_INLINE   __inline
+
+#define ARCH_DOESNT_NEED_ALIGNED_STRUCTS 1
 
 
 #if _USRDLL
@@ -15,12 +21,14 @@
 
 #ifdef __CYGWIN__
 int strcasecmp(const char*, const char*);
+int strncasecmp(const char*, const char*, size_t);
 char* strdup(const char*);
 #else /* __CYGWIN__ */
 #define HAVE_SNPRINTF
-#define snprintf   _snprintf
-#define strcasecmp _stricmp
-#define strdup     _strdup
+#define snprintf    _snprintf
+#define strcasecmp  _stricmp
+#define strncasecmp _strnicmp
+#define strdup      _strdup
 #endif /* __CYGWIN__ */
 
 
@@ -50,15 +58,15 @@ typedef unsigned short uip_stats_t;
 
 #define UIP_CONF_MAX_CONNECTIONS 40
 #define UIP_CONF_MAX_LISTENPORTS 40
-#define UIP_CONF_BUFFER_SIZE     420
+#define UIP_CONF_BUFFER_SIZE     1514
 #define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 #define UIP_CONF_TCP_SPLIT       1
 #if UIP_CONF_IPV6
-#define UIP_CONF_IP_FORWARD 0
+#define UIP_CONF_IP_FORWARD      0
 #define UIP_CONF_DS6_NBR_NBU     100
 #define UIP_CONF_DS6_DEFRT_NBU   2
 #define UIP_CONF_DS6_PREFIX_NBU  5
-#define UIP_CONF_DS6_ROUTE_NBU   100
+#define UIP_CONF_MAX_ROUTES   100
 #define UIP_CONF_DS6_ADDR_NBU    10
 #define UIP_CONF_DS6_MADDR_NBU   0  //VC++ does not allow zero length arrays
 #define UIP_CONF_DS6_AADDR_NBU   0  //inside a struct
@@ -74,16 +82,16 @@ typedef unsigned short uip_stats_t;
 
 #include "ctk/ctk-console.h"
 
-#define CH_ULCORNER	          0xDA
-#define CH_URCORNER	          0xBF
-#define CH_LLCORNER	          0xC0
-#define CH_LRCORNER	          0xD9
-#define CH_ENTER	          '\r'
-#define CH_DEL		          '\b'
-#define CH_CURS_UP  	          -1
-#define CH_CURS_LEFT	          -2
-#define CH_CURS_RIGHT	          -3
-#define CH_CURS_DOWN	          -4
+#define CH_ULCORNER               '+'
+#define CH_URCORNER               '+'
+#define CH_LLCORNER               '+'
+#define CH_LRCORNER               '+'
+#define CH_ENTER                  '\r'
+#define CH_DEL                    '\b'
+#define CH_CURS_UP                -1
+#define CH_CURS_LEFT              -2
+#define CH_CURS_RIGHT             -3
+#define CH_CURS_DOWN              -4
 
 #define CTK_CONF_MENU_KEY         -5  /* F10 */
 #define CTK_CONF_WINDOWSWITCH_KEY -6  /* Ctrl-Tab */
@@ -112,27 +120,29 @@ typedef unsigned short uip_stats_t;
 #define CTK_CONF_MENUS            0
 #endif /* PLATFORM_BUILD */
 
-#define COLOR_BLACK  (0)
-#define COLOR_BLUE   (1)
-#define COLOR_GRAY   (1 | 2 | 4)
-#define COLOR_CYAN   (1 | 2 | 8)
-#define COLOR_YELLOW (2 | 4 | 8)
-#define COLOR_WHITE  (1 | 2 | 4 | 8)
+#define CTK_COLOR_BLACK  (0)
+#define CTK_COLOR_BLUE   (1)
+#define CTK_COLOR_GRAY   (1 | 2 | 4)
+#define CTK_COLOR_CYAN   (1 | 2 | 8)
+#define CTK_COLOR_YELLOW (2 | 4 | 8)
+#define CTK_COLOR_WHITE  (1 | 2 | 4 | 8)
 
-#define BORDERCOLOR         COLOR_BLACK
-#define SCREENCOLOR         COLOR_BLACK
-#define BACKGROUNDCOLOR     COLOR_BLACK
-#define WINDOWCOLOR_FOCUS   COLOR_WHITE  | COLOR_BLUE * 0x10
-#define WINDOWCOLOR         COLOR_GRAY   | COLOR_BLUE * 0x10
-#define DIALOGCOLOR         COLOR_WHITE  | COLOR_BLUE * 0x10
-#define WIDGETCOLOR_HLINK   COLOR_CYAN   | COLOR_BLUE * 0x10
-#define WIDGETCOLOR_FWIN    COLOR_WHITE  | COLOR_BLUE * 0x10
-#define WIDGETCOLOR         COLOR_GRAY   | COLOR_BLUE * 0x10
-#define WIDGETCOLOR_DIALOG  COLOR_WHITE  | COLOR_BLUE * 0x10
-#define WIDGETCOLOR_FOCUS   COLOR_YELLOW | COLOR_BLUE * 0x10
-#define MENUCOLOR           COLOR_WHITE  | COLOR_BLUE * 0x10
-#define OPENMENUCOLOR       COLOR_WHITE  | COLOR_BLUE * 0x10
-#define ACTIVEMENUITEMCOLOR COLOR_YELLOW | COLOR_BLUE * 0x10
+#define COLOR_BG CTK_COLOR_BLUE
+
+#define BORDERCOLOR         CTK_COLOR_BLACK
+#define SCREENCOLOR         CTK_COLOR_BLACK
+#define BACKGROUNDCOLOR     CTK_COLOR_BLACK
+#define WINDOWCOLOR_FOCUS   CTK_COLOR_WHITE  | COLOR_BG * 0x10
+#define WINDOWCOLOR         CTK_COLOR_GRAY   | COLOR_BG * 0x10
+#define DIALOGCOLOR         CTK_COLOR_WHITE  | COLOR_BG * 0x10
+#define WIDGETCOLOR_HLINK   CTK_COLOR_CYAN   | COLOR_BG * 0x10
+#define WIDGETCOLOR_FWIN    CTK_COLOR_WHITE  | COLOR_BG * 0x10
+#define WIDGETCOLOR         CTK_COLOR_GRAY   | COLOR_BG * 0x10
+#define WIDGETCOLOR_DIALOG  CTK_COLOR_WHITE  | COLOR_BG * 0x10
+#define WIDGETCOLOR_FOCUS   CTK_COLOR_YELLOW | COLOR_BG * 0x10
+#define MENUCOLOR           CTK_COLOR_WHITE  | COLOR_BG * 0x10
+#define OPENMENUCOLOR       CTK_COLOR_WHITE  | COLOR_BG * 0x10
+#define ACTIVEMENUITEMCOLOR CTK_COLOR_YELLOW | COLOR_BG * 0x10
 
 
 #ifdef PLATFORM_BUILD

@@ -53,6 +53,8 @@ typedef int32_t  s32_t;
 #define CC_CONF_REGISTER_ARGS 1
 #define CC_CONF_FASTCALL      __fastcall__
 
+#define ARCH_DOESNT_NEED_ALIGNED_STRUCTS 1
+
 #define CCIF
 #define CLIF
 
@@ -67,7 +69,9 @@ typedef unsigned short uip_stats_t;
 #define UIP_ARCH_ADD32  1
 #define UIP_ARCH_CHKSUM 1
 
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 1
+#define RESOLV_CONF_SUPPORTS_MDNS              0
+#define RESOLV_CONF_SUPPORTS_RECORD_EXPIRATION 0
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE   1
 
 #define LOADER_CONF_ARCH "lib/unload.h"
 

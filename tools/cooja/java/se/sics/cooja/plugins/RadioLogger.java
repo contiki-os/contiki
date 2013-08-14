@@ -107,15 +107,17 @@ public class RadioLogger extends VisPlugin {
   private static Logger logger = Logger.getLogger(RadioLogger.class);
   private static final long serialVersionUID = -6927091711697081353L;
 
-  private final static int COLUMN_TIME = 0;
-  private final static int COLUMN_FROM = 1;
-  private final static int COLUMN_TO = 2;
-  private final static int COLUMN_DATA = 3;
+  private final static int COLUMN_NO = 0;
+  private final static int COLUMN_TIME = 1;
+  private final static int COLUMN_FROM = 2;
+  private final static int COLUMN_TO = 3;
+  private final static int COLUMN_DATA = 4;
 
   private JSplitPane splitPane;
   private JTextPane verboseBox = null;
 
   private final static String[] COLUMN_NAMES = {
+    "No.",
     "Time",
     "From",
     "To",
@@ -185,7 +187,9 @@ public class RadioLogger extends VisPlugin {
 
       public Object getValueAt(int row, int col) {
         RadioConnectionLog conn = connections.get(row);
-        if (col == COLUMN_TIME) {
+        if (col == COLUMN_NO) {
+          return Long.toString(row + 1);
+        } else if (col == COLUMN_TIME) {
           return Long.toString(conn.startTime / Simulation.MILLISECOND);
         } else if (col == COLUMN_FROM) {
           return "" + conn.connection.getSource().getMote().getID();
@@ -775,6 +779,7 @@ public class RadioLogger extends VisPlugin {
 
       StringBuilder sb = new StringBuilder();
       for (int i: selectedRows) {
+        sb.append(i + 1).append('\t');
         sb.append(dataTable.getValueAt(i, COLUMN_TIME)).append('\t');
         sb.append(dataTable.getValueAt(i, COLUMN_FROM)).append('\t');
         sb.append(getDestString(connections.get(i))).append('\t');
@@ -794,6 +799,7 @@ public class RadioLogger extends VisPlugin {
 
       StringBuilder sb = new StringBuilder();
       for(int i=0; i < connections.size(); i++) {
+        sb.append("" + (i + 1) + '\t');
         sb.append("" + dataTable.getValueAt(i, COLUMN_TIME) + '\t');
         sb.append("" + dataTable.getValueAt(i, COLUMN_FROM) + '\t');
         sb.append("" + getDestString(connections.get(i)) + '\t');
@@ -838,6 +844,7 @@ public class RadioLogger extends VisPlugin {
       try {
         PrintWriter outStream = new PrintWriter(new FileWriter(saveFile));
         for(int i=0; i < connections.size(); i++) {
+          outStream.print("" + (i + 1) + '\t');
           outStream.print("" + dataTable.getValueAt(i, COLUMN_TIME) + '\t');
           outStream.print("" + dataTable.getValueAt(i, COLUMN_FROM) + '\t');
           outStream.print("" + getDestString(connections.get(i)) + '\t');
