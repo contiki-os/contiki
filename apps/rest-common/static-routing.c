@@ -24,7 +24,7 @@
 
 #if !UIP_CONF_IPV6_RPL
 #include "contiki-net.h"
-#include "sys/node-id.h"
+#include "node-id.h"
 
 void set_global_address(void)
 {

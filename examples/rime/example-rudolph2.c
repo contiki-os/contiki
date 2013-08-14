@@ -140,7 +140,7 @@ const static struct rudolph2_callbacks rudolph2_call = {write_chunk,
 							read_chunk};
 static struct rudolph2_conn rudolph2;
 /*---------------------------------------------------------------------------*/
-#include "sys/node-id.h"
+#include "node-id.h"
 
 PROCESS_THREAD(example_rudolph2_process, ev, data)
 {

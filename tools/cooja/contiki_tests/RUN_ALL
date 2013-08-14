@@ -1,0 +1,97 @@
+#!/bin/bash
+
+#LOG="TEST-`date '+%F'`.log"
+LOG=currentlog.log
+MAIL=0
+CVS=0
+PROGNAME=`basename $0`
+
+Usage() {
+  echo >&2 "$PROGNAME:" "$@"
+  echo >&2 "Usage: $PROGNAME [-cvs] [-mail]"
+  exit 10
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+  -cvs) CVS=1 ;;
+  -mail) MAIL=1 ;;
+  *) Usage "Unknown option \"$1\"" ;;
+  esac
+  shift
+done
+
+if [ -z "$CONTIKI" ]; then
+  if [ -z "$CONTIKI_HOME" ]; then
+  	CONTIKI_HOME=../../..
+    echo Undefined variable: CONTIKI_HOME. Using default: ${CONTIKI_HOME}
+  fi
+  CONTIKI=$CONTIKI_HOME
+fi
+
+if [ $MAIL -eq 1 ]; then
+  if [ -z "$MAILTO" ]; then
+    echo Undefined variable: MAILTO
+    exit 1
+  fi
+fi
+
+function mail_report() {
+  if [ $MAIL -eq 1 ]; then
+    echo ">>>>>>> Sending mail <<<<<<<<"
+    echo "[`date '+%F %T'`] Mailing test report" >> $LOG
+    cat $LOG | mail -s "Contiki test results" $MAILTO
+    if [ "$?" -ne 0 ]; then
+      echo "Failed to send mail"
+      echo "[`date '+%F %T'`] MAIL FAILED" >> $LOG
+    else
+      echo "[`date '+%F %T'`] test report sent" >> $LOG
+    fi
+  else
+    echo
+    echo
+    echo ">>>>>>> Test Report <<<<<<<<"
+    cat $LOG
+  fi
+  cp $LOG RUN_ALL_LAST.log
+}
+
+echo ">>>>>>> Cleaning up previous tests <<<<<<<<"
+rm -f *.log *.cooja_log
+rm -fr se obj_cooja
+rm -f symbols.c symbols.h
+
+echo ">>>>>>> Creating test log <<<<<<<<"
+touch $LOG
+
+if [ $CVS -eq 1 ]; then
+  echo ">>>>>>> Updating from CVS <<<<<<<<"
+  echo -n "[`date '+%F %T'`] Updating CVS: " >> $LOG
+  (cd $CONTIKI && cvs update -dP)
+  if [ "$?" != "0" ]; then
+    echo "FAIL" >> $LOG
+    mail_report
+    exit 1
+  fi
+  echo "OK" >> $LOG
+fi
+
+echo ">>>>>>> Building COOJA <<<<<<<<"
+echo -n "[`date '+%F %T'`] Building COOJA: " >> $LOG
+(cd $CONTIKI/tools/cooja && ant clean && ant jar)
+if [ "$?" != "0" ]; then
+  echo "Compilation of COOJA failed"
+  echo "FAIL" >> $LOG
+  mail_report
+  exit 1
+fi
+echo "OK" >> $LOG
+
+echo >> $LOG
+for myfile in ./*.csc
+do
+  TEST=`basename $myfile .csc`
+  bash RUN_TEST $TEST $LOG
+done
+
+mail_report

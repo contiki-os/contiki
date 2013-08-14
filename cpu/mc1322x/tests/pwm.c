@@ -46,7 +46,7 @@ int main(void)
 	int x = 32768;
 	
 	trim_xtal();
-	uart_init(UART1, 115200);
+	uart1_init(INC,MOD,SAMP);
 	rtc_init();
 	
 	printf("pwm test\r\n");

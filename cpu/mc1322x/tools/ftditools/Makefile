@@ -2,7 +2,7 @@ INSTALL= /usr/local/bin
 
 ################
 
-LDLIBS = -lftdi
+LDFLAGS = -lftdi
 
 TARGETS = bbmc
 

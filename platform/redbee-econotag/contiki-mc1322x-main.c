@@ -199,7 +199,7 @@ init_lowlevel(void)
 	trim_xtal();
 	
 	/* uart init */
-	uart_init(UART1, 115200);
+	uart_init(BRINC, BRMOD, SAMP);
 	
 	default_vreg_init();
 
@@ -280,7 +280,7 @@ void oui_to_eui64(rimeaddr_t *eui64, uint32_t oui, uint64_t ext) {
 	eui64->u8[7] =  ext        & 0xff;
 }
 
-extern unsigned short node_id;
+unsigned short node_id = 0;
 
 void
 set_rimeaddr(rimeaddr_t *addr) 
@@ -614,23 +614,18 @@ extern uip_ds6_netif_t uip_ds6_if;
     }
   }
   if (j) printf("  <none>");
-  PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
-  {
-    uip_ds6_route_t *r;
-    PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
-    j = 1;
-    for(r = uip_ds6_route_list_head();
-        r != NULL;
-        r = list_item_next(r)) {
-      ipaddr_add(&r->ipaddr);
-      PRINTF("/%u (via ", r->length);
-      ipaddr_add(&r->nexthop);
+  printf("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
+  for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
+    if(uip_ds6_routing_table[i].isused) {
+      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].ipaddr);
+      printf("/%u (via ", uip_ds6_routing_table[i].length);
+      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].nexthop);
  //     if(uip_ds6_routing_table[i].state.lifetime < 600) {
-      PRINTF(") %lus\n", r->state.lifetime);
-      //     } else {
-      //       PRINTF(")\n");
-      //     }
-      j = 0;
+        printf(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
+ //     } else {
+ //       printf(")\n");
+ //     }
+      j=0;
     }
   }
   if (j) printf("  <none>");

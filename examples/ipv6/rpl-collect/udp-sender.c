@@ -70,8 +70,7 @@ void
 collect_common_net_print(void)
 {
   rpl_dag_t *dag;
-  uip_ds6_route_t *r;
-
+  int i;
   /* Let's suppose we have only one instance */
   dag = rpl_get_any_dag();
   if(dag->preferred_parent != NULL) {
@@ -79,10 +78,12 @@ collect_common_net_print(void)
     PRINT6ADDR(&dag->preferred_parent->addr);
     PRINTF("\n");
   }
-  for(r = uip_ds6_route_list_head();
-      r != NULL;
-      r = list_item_next(r)) {
-    PRINT6ADDR(&r->ipaddr);
+  PRINTF("Route entries:\n");
+  for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+    if(uip_ds6_routing_table[i].isused) {
+      PRINT6ADDR(&uip_ds6_routing_table[i].ipaddr);
+      PRINTF("\n");
+    }
   }
   PRINTF("---\n");
 }

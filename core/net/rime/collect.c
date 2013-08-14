@@ -814,10 +814,8 @@ handle_ack(struct collect_conn *tc)
        chance that another parent will be chosen. */
     if(msg.flags & ACK_FLAGS_CONGESTED) {
       PRINTF("ACK flag indicated parent was congested.\n");
-      if(n != NULL) {
-	collect_neighbor_set_congested(n);
-	collect_neighbor_tx(n, tc->max_rexmits * 2);
-      }
+      collect_neighbor_set_congested(n);
+      collect_neighbor_tx(n, tc->max_rexmits * 2);
       update_rtmetric(tc);
     }
     if((msg.flags & ACK_FLAGS_DROPPED) == 0) {

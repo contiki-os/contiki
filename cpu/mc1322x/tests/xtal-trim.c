@@ -48,7 +48,7 @@ int main(void)
 	ctune = 0;
 	ftune = 0;
 	
-	uart_init(UART1, 115200);
+	uart1_init(INC,MOD,SAMP);
 	
 	print_welcome("pwm test\r\n");
 	pack_XTAL_CNTL(ctune_4pf, ctune, ftune, IBIAS);

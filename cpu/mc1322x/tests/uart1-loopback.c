@@ -41,7 +41,7 @@
 
 void main(void) {
 
-	uart_init(UART1, 115200);
+	uart1_init(INC,MOD,SAMP);
 	
 	while(1) {
 		if(uart1_can_get()) {

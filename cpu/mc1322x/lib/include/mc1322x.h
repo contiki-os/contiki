@@ -50,6 +50,5 @@
 #include "i2c.h"
 #include "rtc.h"
 #include "adc.h"
-#include "pwm.h"
 
 #endif

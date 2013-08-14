@@ -41,8 +41,8 @@
 
 void main(void) {
 
-	uart_init(UART1, 115200);
-	uart_init(UART2, 115200);
+	uart1_init(INC,MOD,SAMP);
+	uart2_init(INC,MOD,SAMP);
 	
 	while(1) {
 		if(uart1_can_get()) {

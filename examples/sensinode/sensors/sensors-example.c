@@ -110,9 +110,7 @@
 #define SEND_BATTERY_INFO 0
 #if SEND_BATTERY_INFO
 #include "sensors-example.h"
-static void
-bc_rx(struct broadcast_conn *c, const rimeaddr_t *from)
-{
+static void bc_rx(struct broadcast_conn *c, const rimeaddr_t *from) {
   return;
 }
 
@@ -140,7 +138,7 @@ PROCESS_THREAD(buttons_test_process, ev, data)
 
   PROCESS_BEGIN();
 
-  while(1) {
+  while (1) {
 
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
 
@@ -167,7 +165,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
 
   /* Sensor Values */
   static int rv;
-  static struct sensors_sensor *sensor;
+  static struct sensors_sensor * sensor;
   static float sane = 0;
   static int dec;
   static float frac;
@@ -189,7 +187,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
   /* Set an etimer. We take sensor readings when it expires and reset it. */
   etimer_set(&et, CLOCK_SECOND * 2);
 
-  while(1) {
+  while (1) {
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
@@ -198,7 +196,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
      * Return value -1 means sensor not available or turned off in conf
      */
     sensor = sensors_find(ADC_SENSOR);
-    if(sensor) {
+    if (sensor) {
       putstring("------------------\n");
       leds_on(LEDS_RED);
       /*
@@ -219,8 +217,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
         sane = ((rv * 0.61065 - 773) / 2.45);
         dec = sane;
         frac = sane - dec;
-        PRINTF("  Temp=%d.%02u C (%d)\n", dec, (unsigned int)(frac * 100),
-               rv);
+        PRINTF("  Temp=%d.%02u C (%d)\n", dec, (unsigned int)(frac*100), rv);
       }
       /*
        * Accelerometer: Freescale Semiconductor MMA7340L
@@ -266,7 +263,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
         if(sane < 0 && dec == 0) {
           putchar('-');
         }
-        PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac * 100), rv);
+        PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac*100), rv);
       }
       rv = sensor->value(ADC_SENSOR_TYPE_ACC_Y);
       if(rv != -1) {
@@ -278,7 +275,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
         if(sane < 0 && dec == 0) {
           putchar('-');
         }
-        PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac * 100), rv);
+        PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac*100), rv);
       }
       rv = sensor->value(ADC_SENSOR_TYPE_ACC_Z);
       if(rv != -1) {
@@ -290,7 +287,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
         if(sane < 0 && dec == 0) {
           putchar('-');
         }
-        PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac * 100), rv);
+        PRINTF("%d.%02ug (%d)\n", dec, (unsigned int)(frac*100), rv);
       }
       /*
        * Light: Vishay Semiconductors TEPT4400
@@ -308,8 +305,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
         sane = (float)(rv * 0.4071);
         dec = sane;
         frac = sane - dec;
-        PRINTF(" Light=%d.%02ulux (%d)\n", dec, (unsigned int)(frac * 100),
-               rv);
+        PRINTF(" Light=%d.%02ulux (%d)\n", dec, (unsigned int)(frac*100), rv);
       }
       /*
        * Power Supply Voltage.
@@ -330,7 +326,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
         sane = rv * 3.75 / 2047;
         dec = sane;
         frac = sane - dec;
-        PRINTF("Supply=%d.%02uV (%d)\n", dec, (unsigned int)(frac * 100), rv);
+        PRINTF("Supply=%d.%02uV (%d)\n", dec, (unsigned int)(frac*100), rv);
         /* Store rv temporarily in dec so we can use it for the battery */
         dec = rv;
       }
@@ -360,7 +356,7 @@ PROCESS_THREAD(sensors_test_process, ev, data)
         sane = (11.25 * rv * dec) / (0x7FE002);
         dec = sane;
         frac = sane - dec;
-        PRINTF(" Batt.=%d.%02uV (%d)\n", dec, (unsigned int)(frac * 100), rv);
+        PRINTF(" Batt.=%d.%02uV (%d)\n", dec, (unsigned int)(frac*100), rv);
 #if SEND_BATTERY_INFO
         sd.bat = rv;
         packetbuf_copyfrom(&sd, sizeof(sd));
@@ -372,5 +368,5 @@ PROCESS_THREAD(sensors_test_process, ev, data)
     etimer_reset(&et);
   }
   PROCESS_END();
-}
+ }
 /*---------------------------------------------------------------------------*/

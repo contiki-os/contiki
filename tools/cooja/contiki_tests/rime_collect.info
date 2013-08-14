@@ -1,0 +1,1 @@
+50 Contiki motes running examples/rime/example-collect.c. The sink is randomly created after startup. The test fails if the sink receives less than 8 packets from each node before timeout, or if the sink receives 15 packets from any node (fairness). Test timeout: 600 seconds.

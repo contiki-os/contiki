@@ -126,15 +126,11 @@ found_route(struct route_discovery_conn *rdc, const rimeaddr_t *dest)
     c->queued_data = NULL;
 
     rt = route_lookup(dest);
-    if(rt != NULL) {
+    if (rt != NULL) {
       multihop_resend(&c->multihop, &rt->nexthop);
-      if(c->cb->sent != NULL) {
-        c->cb->sent(c);
-      }
+      c->cb->sent(c);
     } else {
-      if(c->cb->timedout != NULL) {
-        c->cb->timedout(c);
-      }
+      c->cb->timedout(c);
     }
   }
 }
@@ -195,9 +191,7 @@ mesh_send(struct mesh_conn *c, const rimeaddr_t *to)
     PRINTF("mesh_send: could not send\n");
     return 0;
   }
-  if(c->cb->sent != NULL) {
-    c->cb->sent(c);
-  }
+  c->cb->sent(c);
   return 1;
 }
 /*---------------------------------------------------------------------------*/

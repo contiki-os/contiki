@@ -48,7 +48,7 @@
 
 /* XTAL TUNE parameters */
 /* see http://devl.org/pipermail/mc1322x/2009-December/000162.html */
-/* for details about how to make this measurement */
+/* for details about how to make this measurment */
 
 /* Econotag also needs an addtional 12pf on board */
 /* Coarse tune: add 4pf */

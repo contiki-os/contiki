@@ -48,8 +48,7 @@ AUTOSTART_PROCESSES(&clock_test_process);
 /*---------------------------------------------------------------------------*/
 #if TEST_RTIMER
 void
-rt_callback(struct rtimer *t, void *ptr)
-{
+rt_callback(struct rtimer *t, void *ptr) {
   rt_now = RTIMER_NOW();
   ct = clock_time();
   printf("Task called at %u (clock = %u)\n", rt_now, ct);
@@ -83,13 +82,13 @@ PROCESS_THREAD(clock_test_process, ev, data)
   printf("Rtimer Test, 1 sec (%u rtimer ticks):\n", RTIMER_SECOND);
   i = 0;
   while(i < 5) {
-    etimer_set(&et, 2 * CLOCK_SECOND);
+    etimer_set(&et, 2*CLOCK_SECOND);
     printf("=======================\n");
     ct = clock_time();
     rt_now = RTIMER_NOW();
     rt_for = rt_now + RTIMER_SECOND;
     printf("Now=%u (clock = %u) - For=%u\n", rt_now, ct, rt_for);
-    if(rtimer_set(&rt, rt_for, 1,
+    if (rtimer_set(&rt, rt_for, 1,
               (void (*)(struct rtimer *, void *))rt_callback, NULL) != RTIMER_OK) {
       printf("Error setting\n");
     }

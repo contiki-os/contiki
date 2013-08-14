@@ -1,0 +1,1 @@
+Sky-collect running on 7 Sky nodes. Test waits until sensor data has been received from every node at least 5 times. If any node successfully transmits 20 packets to the sink, the test fails.

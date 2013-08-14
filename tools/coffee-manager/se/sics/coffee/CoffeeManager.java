@@ -40,18 +40,20 @@ import se.sics.coffee.CoffeeFS.CoffeeException;
 import se.sics.coffee.CoffeeFS.CoffeeFileException;
 
 public class CoffeeManager {
+	private static CoffeeFS coffeeFS;
 	public enum Command { INSERT, EXTRACT, REMOVE, LIST, STATS };
 
 	public static void main(String args[]) {
 		String platform = "sky";
+		String usage = "Usage: java -jar coffee.jar ";
 		Command command = Command.STATS;
 		String filename = "";
 		String fsImage = "";
-		String usage = "Usage: java -jar coffee.jar " +
-		        "[-p <hardware platform>] " +
-		        "[-i|e|r <file>] " +
-		        "[-l|s] " +
-		        "<file system image>";
+
+		usage += "[-p <hardware platform>] ";
+		usage += "[-i|e|r <file>] ";
+		usage += "[-l|s] ";
+		usage += "<file system image>";
 
 		if (args.length < 2) {
 			System.err.println(usage);
@@ -96,7 +98,7 @@ public class CoffeeManager {
 
 		try {
 			CoffeeConfiguration conf = new CoffeeConfiguration(platform + ".properties");
-			CoffeeFS coffeeFS = new CoffeeFS(new CoffeeImageFile(fsImage, conf));
+			coffeeFS = new CoffeeFS(new CoffeeImageFile(fsImage, conf));
 			switch (command) {
 			case INSERT:
 				if (coffeeFS.getFiles().get(filename) != null) {

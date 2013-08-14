@@ -31,7 +31,7 @@
  * @(#)$$
  */
 
-#include "sys/node-id.h"
+#include "node-id.h"
 
 uint16_t node_id = 0;
 

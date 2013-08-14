@@ -1,0 +1,2 @@
+Five Contiki motes in a line, all running examples/telnet-server/telnet-server.c. Mote 1 (172.16.1.0) is connected to the native network via Native IP Gateway.
+Test succeeds if all five nodes can be pinged from the native network (at least 10/20 ping replies must be received from each mote).

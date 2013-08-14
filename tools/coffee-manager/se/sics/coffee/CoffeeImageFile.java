@@ -32,40 +32,38 @@
 
 package se.sics.coffee;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class CoffeeImageFile implements CoffeeImage {
-	private final RandomAccessFile imageFile;
-	private final CoffeeConfiguration conf;
+	private RandomAccessFile imageFile;
+	private CoffeeConfiguration conf;
 
 	public CoffeeImageFile(String filename, CoffeeConfiguration conf) throws IOException {
 		this.conf = conf;
-		imageFile = new RandomAccessFile(filename, "rw");
+		File file = new File(filename);
+		imageFile = new RandomAccessFile(file, "rw");
 		if (imageFile.length() == 0) {
 			// Allocate a full file system image.
-			imageFile.setLength(conf.startOffset + conf.fsSize);
+			imageFile.setLength(conf.fsSize);
 		}
 	}
 
-	@Override
 	public CoffeeConfiguration getConfiguration() {
 		return conf;
 	}
 
-	@Override
 	public void read(byte[] bytes, int size, int offset) throws IOException {
 		imageFile.seek(conf.startOffset + offset);
 		imageFile.read(bytes, 0, size);
 	}
 
-	@Override
 	public void write(byte[] bytes, int size, int offset) throws IOException {
 		imageFile.seek(conf.startOffset + offset);
 		imageFile.write(bytes, 0, size);
 	}
 
-	@Override
 	public void erase(int size, int offset) throws IOException {
 		byte[] bytes = new byte[256];
 		int chunkSize;

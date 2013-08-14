@@ -62,7 +62,7 @@ void main(void) {
 	/* trim the reference osc. to 24MHz */
 	trim_xtal();
 
-	uart_init(UART1, 115200);
+	uart_init(INC, MOD, SAMP);
 
 	vreg_init();
 

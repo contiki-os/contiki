@@ -1,0 +1,1 @@
+Tests Contiki ELF loader and shell command 'exec': Hello-world is compiled as a Contiki executable (.ce) and is uploaded to the single Sky node via serial port (base64 encoded). The node then loads and starts the uploaded hello-world application. Test succeeds when the 'Hello, World' output appears

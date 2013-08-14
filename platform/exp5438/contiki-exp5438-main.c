@@ -50,7 +50,7 @@
 #include "sys/autostart.h"
 #include "sys/profile.h"
 
-#include "sys/node-id.h"
+#include "node-id.h"
 #include "lcd.h"
 #include "duty-cycle-scroller.h"
 
@@ -66,8 +66,6 @@
 #else
 #define PRINTF(...)
 #endif
-
-extern unsigned char node_mac[8];
 
 //SENSORS(&button_sensor);
 /*---------------------------------------------------------------------------*/

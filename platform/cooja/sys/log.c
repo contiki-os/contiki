@@ -101,45 +101,12 @@ doInterfaceActionsAfterTick(void)
 {
 }
 /*-----------------------------------------------------------------------------------*/
-static int log_putchar_with_slip;
-void
-log_set_putchar_with_slip(int with)
-{
-  log_putchar_with_slip = with;
-}
-/*-----------------------------------------------------------------------------------*/
 #if IMPLEMENT_PRINTF
 int
 putchar(int c)
 {
-#define SLIP_END 0300
-  static char debug_frame = 0;
-
-  if(log_putchar_with_slip) {
-    simlog_char(SLIP_END);
-
-    if(!debug_frame) {		/* Start of debug output */
-      simlog_char(SLIP_END);
-      simlog_char('\r');	/* Type debug line == '\r' */
-      debug_frame = 1;
-    }
-
-    simlog_char((char)c);
-
-    /*
-     * Line buffered output, a newline marks the end of debug output and
-     * implicitly flushes debug output.
-     */
-    if(c == '\n') {
-      simlog_char(SLIP_END);
-      debug_frame = 0;
-    }
-
-    return c;
-  } else {
-    simlog_char(c);
-    return c;
-  }
+  simlog_char(c);
+  return c;
 }
 /*-----------------------------------------------------------------------------------*/
 int
@@ -156,16 +123,11 @@ printf(const char *fmt, ...)
   int res;
   static char buf[MAX_LOG_LENGTH];
   va_list ap;
-  int i;
-
   va_start(ap, fmt);
   res = vsnprintf(buf, MAX_LOG_LENGTH, fmt, ap);
   va_end(ap);
 
-  //    simlog(buf);
-  for(i = 0; i < res; i++) {
-    putchar(buf[i]);
-  }
+  simlog(buf);
   return res;
 }
 #endif /* IMPLEMENT_PRINTF */

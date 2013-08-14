@@ -41,7 +41,6 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/uip-ds6-route.h"
 
 #include <string.h>
 
@@ -69,10 +68,9 @@ static int8_t len;
 #define REQUEST_TYPE_TOTALS  0xFF
 
 extern uip_ds6_netif_t uip_ds6_if;
+extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[UIP_DS6_NBR_NB];
-static uip_ds6_route_t *rt;
-static uip_ds6_defrt_t *defrt;
-static uip_ipaddr_t *addr;
+extern uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_DEFRT_NB];
 /*---------------------------------------------------------------------------*/
 static uint8_t
 process_request() CC_NON_BANKED
@@ -92,7 +90,7 @@ process_request() CC_NON_BANKED
     for(i = buf[1]; i < UIP_DS6_NBR_NB; i++) {
       if(uip_ds6_nbr_cache[i].isused) {
         entry_size = sizeof(i) + sizeof(uip_ipaddr_t) + sizeof(uip_lladdr_t)
-          + sizeof(uip_ds6_nbr_cache[i].state);
+            + sizeof(uip_ds6_nbr_cache[i].state);
         PRINTF("%02u: ", i);
         PRINT6ADDR(&uip_ds6_nbr_cache[i].ipaddr);
         PRINTF(" - ");
@@ -106,7 +104,7 @@ process_request() CC_NON_BANKED
         memcpy(buf + len, &uip_ds6_nbr_cache[i].lladdr, sizeof(uip_lladdr_t));
         len += sizeof(uip_lladdr_t);
         memcpy(buf + len, &uip_ds6_nbr_cache[i].state,
-               sizeof(uip_ds6_nbr_cache[i].state));
+            sizeof(uip_ds6_nbr_cache[i].state));
         len += sizeof(uip_ds6_nbr_cache[i].state);
 
         count++;
@@ -119,85 +117,85 @@ process_request() CC_NON_BANKED
     }
   } else if(buf[0] == REQUEST_TYPE_RT) {
     uint32_t flip = 0;
-
     PRINTF("Routing table\n");
-    rt = uip_ds6_route_list_head();
-
-    for(i = buf[1]; i < uip_ds6_route_num_routes(); i++) {
-      if(rt != NULL) {
-        entry_size = sizeof(i) + sizeof(rt->ipaddr)
-          + sizeof(rt->length)
-          + sizeof(rt->metric)
-          + sizeof(rt->nexthop)
-          + sizeof(rt->state.lifetime)
-          + sizeof(rt->state.learned_from);
+    for(i = buf[1]; i < UIP_DS6_ROUTE_NB; i++) {
+      if(uip_ds6_routing_table[i].isused) {
+        entry_size = sizeof(i) + sizeof(uip_ds6_routing_table[i].ipaddr)
+            + sizeof(uip_ds6_routing_table[i].length)
+            + sizeof(uip_ds6_routing_table[i].metric)
+            + sizeof(uip_ds6_routing_table[i].nexthop)
+            + sizeof(uip_ds6_routing_table[i].state.lifetime)
+            + sizeof(uip_ds6_routing_table[i].state.learned_from);
 
         memcpy(buf + len, &i, sizeof(i));
         len += sizeof(i);
-        memcpy(buf + len, &rt->ipaddr, sizeof(rt->ipaddr));
-        len += sizeof(rt->ipaddr);
-        memcpy(buf + len, &rt->length, sizeof(rt->length));
-        len += sizeof(rt->length);
-        memcpy(buf + len, &rt->metric, sizeof(rt->metric));
-        len += sizeof(rt->metric);
-        memcpy(buf + len, &rt->nexthop, sizeof(rt->nexthop));
-        len += sizeof(rt->nexthop);
+        memcpy(buf + len, &uip_ds6_routing_table[i].ipaddr,
+            sizeof(uip_ds6_routing_table[i].ipaddr));
+        len += sizeof(uip_ds6_routing_table[i].ipaddr);
+        memcpy(buf + len, &uip_ds6_routing_table[i].length,
+            sizeof(uip_ds6_routing_table[i].length));
+        len += sizeof(uip_ds6_routing_table[i].length);
+        memcpy(buf + len, &uip_ds6_routing_table[i].metric,
+            sizeof(uip_ds6_routing_table[i].metric));
+        len += sizeof(uip_ds6_routing_table[i].metric);
+        memcpy(buf + len, &uip_ds6_routing_table[i].nexthop,
+            sizeof(uip_ds6_routing_table[i].nexthop));
+        len += sizeof(uip_ds6_routing_table[i].nexthop);
 
-        PRINT6ADDR(&rt->ipaddr);
-        PRINTF(" - %02x", rt->length);
-        PRINTF(" - %02x", rt->metric);
+        PRINT6ADDR(&uip_ds6_routing_table[i].ipaddr);
+        PRINTF(" - %02x", uip_ds6_routing_table[i].length);
+        PRINTF(" - %02x", uip_ds6_routing_table[i].metric);
         PRINTF(" - ");
-        PRINT6ADDR(&rt->nexthop);
+        PRINT6ADDR(&uip_ds6_routing_table[i].nexthop);
 
-        flip = uip_htonl(rt->state.lifetime);
+        flip = uip_htonl(uip_ds6_routing_table[i].state.lifetime);
         memcpy(buf + len, &flip, sizeof(flip));
         len += sizeof(flip);
-        PRINTF(" - %08lx", rt->state.lifetime);
+        PRINTF(" - %08lx", uip_ds6_routing_table[i].state.lifetime);
 
-        memcpy(buf + len, &rt->state.learned_from,
-               sizeof(rt->state.learned_from));
-        len += sizeof(rt->state.learned_from);
+        memcpy(buf + len, &uip_ds6_routing_table[i].state.learned_from,
+            sizeof(uip_ds6_routing_table[i].state.learned_from));
+        len += sizeof(uip_ds6_routing_table[i].state.learned_from);
 
-        PRINTF(" - %02x [%u]\n", rt->state.learned_from, entry_size);
+        PRINTF(" - %02x [%u]\n", uip_ds6_routing_table[i].state.learned_from,
+             entry_size);
 
         count++;
         left -= entry_size;
-
-        rt = list_item_next(rt);
 
         if(left < entry_size) {
           break;
         }
       }
     }
-  } else if(buf[0] == REQUEST_TYPE_DRT) {
+  } else if (buf[0] == REQUEST_TYPE_DRT) {
     uint32_t flip = 0;
+    PRINTF("Default Routes\n");
+    for(i = buf[1]; i < UIP_DS6_DEFRT_NB; i++) {
+      if(uip_ds6_defrt_list[i].isused) {
+        entry_size = sizeof(i) + sizeof(uip_ds6_defrt_list[i].ipaddr)
+            + sizeof(uip_ds6_defrt_list[i].isinfinite);
 
-    PRINTF("Default Route\n");
-    addr = uip_ds6_defrt_choose();
-    if(addr != NULL) {
-      defrt = uip_ds6_defrt_lookup(addr);
+        memcpy(buf + len, &i, sizeof(i));
+        len += sizeof(i);
+        memcpy(buf + len, &uip_ds6_defrt_list[i].ipaddr,
+            sizeof(uip_ds6_defrt_list[i].ipaddr));
+        len += sizeof(uip_ds6_defrt_list[i].ipaddr);
+        memcpy(buf + len, &uip_ds6_defrt_list[i].isinfinite,
+            sizeof(uip_ds6_defrt_list[i].isinfinite));
+        len += sizeof(uip_ds6_defrt_list[i].isinfinite);
+
+        PRINT6ADDR(&uip_ds6_defrt_list[i].ipaddr);
+        PRINTF(" - %u\n", uip_ds6_defrt_list[i].isinfinite);
+        count++;
+        left -= entry_size;
+
+        if(left < entry_size) {
+          break;
+        }
+      }
     }
-
-    i = buf[1];
-
-    if(defrt != NULL && i < 1) {
-      entry_size = sizeof(i) + sizeof(defrt->ipaddr)
-        + sizeof(defrt->isinfinite);
-
-      memcpy(buf + len, &i, sizeof(i));
-      len += sizeof(i);
-      memcpy(buf + len, &defrt->ipaddr, sizeof(defrt->ipaddr));
-      len += sizeof(defrt->ipaddr);
-      memcpy(buf + len, &defrt->isinfinite, sizeof(defrt->isinfinite));
-      len += sizeof(defrt->isinfinite);
-
-      PRINT6ADDR(&defrt->ipaddr);
-      PRINTF(" - %u\n", defrt->isinfinite);
-      count++;
-      left -= entry_size;
-    }
-  } else if(buf[0] == REQUEST_TYPE_ADDR) {
+  } else if (buf[0] == REQUEST_TYPE_ADDR) {
     PRINTF("Unicast Addresses\n");
     for(i = buf[1]; i < UIP_DS6_ADDR_NB; i++) {
       if(uip_ds6_if.addr_list[i].isused) {
@@ -206,7 +204,7 @@ process_request() CC_NON_BANKED
         memcpy(buf + len, &i, sizeof(i));
         len += sizeof(i);
         memcpy(buf + len, &uip_ds6_if.addr_list[i].ipaddr,
-               sizeof(uip_ds6_if.addr_list[i].ipaddr));
+            sizeof(uip_ds6_if.addr_list[i].ipaddr));
         len += sizeof(uip_ds6_if.addr_list[i].ipaddr);
 
         PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
@@ -219,7 +217,7 @@ process_request() CC_NON_BANKED
         }
       }
     }
-  } else if(buf[0] == REQUEST_TYPE_TOTALS) {
+  } else if (buf[0] == REQUEST_TYPE_TOTALS) {
     memset(&buf[2], 0, 4);
     for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
       if(uip_ds6_if.addr_list[i].isused) {
@@ -231,10 +229,16 @@ process_request() CC_NON_BANKED
         buf[3]++;
       }
     }
-
-    buf[4] = uip_ds6_route_num_routes();
-    buf[5] = 1;
-
+    for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
+      if(uip_ds6_routing_table[i].isused) {
+        buf[4]++;
+      }
+    }
+    for(i = 0; i < UIP_DS6_DEFRT_NB; i++) {
+      if(uip_ds6_defrt_list[i].isused) {
+        buf[5]++;
+      }
+    }
     len += 4;
     count = 4;
   } else {

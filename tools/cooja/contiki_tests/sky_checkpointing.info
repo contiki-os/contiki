@@ -1,0 +1,1 @@
+Tests node local checkpointing on the Sky platform. A single node checkpoints and rollbacks with a repeating echo background process. Running examples/sky-shell/sky-checkpoint.c 

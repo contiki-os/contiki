@@ -1,0 +1,1 @@
+Tests shell command 'download' (source examples/sky-shell/sky-checkpoint.c): Two nodes generates, appends to, and downloads files from each other. Default netstack + UDGM radio medium 95% 

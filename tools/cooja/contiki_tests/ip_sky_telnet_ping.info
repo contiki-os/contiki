@@ -1,0 +1,1 @@
+1xSky node: examples/sky-ip/sky-telnet-server.c. Sends 10 pings to 172.16.1.0 via the native IP stack. Test succeeds if more than 5 ping replies are received.   
