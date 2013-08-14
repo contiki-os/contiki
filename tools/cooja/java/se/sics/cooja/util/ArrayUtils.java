@@ -28,17 +28,12 @@
 
 package se.sics.cooja.util;
 
-import java.awt.Container;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-
-import javax.swing.JFileChooser;
 
 /**
  * Some utility methods for managing arrays.
