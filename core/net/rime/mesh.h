@@ -140,6 +140,7 @@ int mesh_send(struct mesh_conn *c, const rimeaddr_t *dest);
  * \retval !0  Ready
  */
 int mesh_ready(struct mesh_conn *c);
+
 #endif /* __MESH_H__ */
 /** @} */
 /** @} */
