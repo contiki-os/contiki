@@ -59,6 +59,10 @@ void cc2520_set_pan_addr(unsigned pan,
 extern signed char cc2520_last_rssi;
 extern uint8_t cc2520_last_correlation;
 
+/**
+ * \brief Read the raw RSSI value from the radio chip.
+ * \return The raw RSSI value returned by the chip or INT_MAX on failure.
+ */
 int cc2520_rssi(void);
 
 extern const struct radio_driver cc2520_driver;

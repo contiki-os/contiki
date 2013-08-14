@@ -50,6 +50,9 @@
 #include "net/rime/rimestats.h"
 #include "net/netstack.h"
 
+
+#include <limits.h>
+
 #define WITH_SEND_CCA 1
 
 #define FOOTER_LEN 2
@@ -770,6 +773,7 @@ cc2420_rssi(void)
 {
   int rssi;
   int radio_was_off = 0;
+  int stat;
 
   if(locked) {
     return 0;
@@ -781,9 +785,13 @@ cc2420_rssi(void)
     radio_was_off = 1;
     cc2420_on();
   }
-  BUSYWAIT_UNTIL(status() & BV(CC2420_RSSI_VALID), RTIMER_SECOND / 100);
+  BUSYWAIT_UNTIL((stat = status()) & BV(CC2420_RSSI_VALID), RTIMER_SECOND / 100);
 
-  rssi = (int)((signed char)getreg(CC2420_RSSI));
+  if(stat & BV(CC2420_RSSI_VALID)) {
+    rssi = (signed char)getreg(CC2420_RSSI);
+  } else {
+    rssi = INT_MAX;
+  }
 
   if(radio_was_off) {
     cc2420_off();
