@@ -341,8 +341,8 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 					}
 					
 					for (Radio dstRadio : connection.getAllDestinations()) {
-						
-						if (!radio.getClass().equals(dstRadio.getClass()) || !(radio instanceof CustomDataRadio)) {
+						if (!(dstRadio instanceof CustomDataRadio) || 
+						    !((CustomDataRadio) dstRadio).canReceiveFrom((CustomDataRadio)radio)) {
 							/* Radios communicate via radio packets */
 							continue;
 						}
@@ -383,11 +383,14 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 					}
 					
 					for (Radio dstRadio : connection.getAllDestinations()) {
-						
-						if (radio.getClass().equals(dstRadio.getClass()) && radio instanceof CustomDataRadio) {
-							/* Radios instead communicate via custom data objects */
-							continue;
-						}
+
+					  if ((radio instanceof CustomDataRadio) &&
+					      (dstRadio instanceof CustomDataRadio) && 
+					      ((CustomDataRadio) dstRadio).canReceiveFrom((CustomDataRadio)radio)) {
+					    /* Radios instead communicate via custom data objects */
+					    continue;
+					  }
+
 						
 						/* Forward radio packet */
 						if (connection.getDestinationDelay(dstRadio) == 0) {

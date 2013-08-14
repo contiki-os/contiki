@@ -32,15 +32,16 @@ package se.sics.cooja.avrmote.interfaces;
 
 import org.apache.log4j.Logger;
 
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.avrmote.MicaZMote;
+import se.sics.cooja.emulatedmote.Radio802154;
+import se.sics.cooja.interfaces.CustomDataRadio;
 import avrora.sim.FiniteStateMachine;
 import avrora.sim.FiniteStateMachine.Probe;
 import avrora.sim.platform.MicaZ;
 import avrora.sim.radio.CC2420Radio;
 import avrora.sim.radio.Medium;
-
-import se.sics.cooja.*;
-import se.sics.cooja.avrmote.MicaZMote;
-import se.sics.cooja.emulatedmote.Radio802154;
 
 /**
  * CC2420 to COOJA wrapper.
@@ -151,5 +152,12 @@ public class MicaZRadio extends Radio802154 {
   protected void handleReceive(byte b) {
       //System.out.println("MicaZ: Received: " + (b &0xff));
       recv.nextByte(true, (byte)b);
+  }
+  
+  public boolean canReceiveFrom(CustomDataRadio radio) {
+    if (radio.getClass().equals(this.getClass())) {
+      return true;
+    }
+    return false;
   }
 }
