@@ -199,24 +199,27 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     return ContikiMoteType.getExpectedFirmwareFile(source);
   }
 
+  public Class<? extends MoteInterface>[] getAllMoteInterfaces() {
+	  ProjectConfig projectConfig = moteType.getConfig();
+	  String[] intfNames = projectConfig.getStringArrayValue(ContikiMoteType.class, "MOTE_INTERFACES");
+	  ArrayList<Class<? extends MoteInterface>> classes = new ArrayList<Class<? extends MoteInterface>>();
+
+	  /* Load mote interface classes */
+	  for (String intfName : intfNames) {
+		  Class<? extends MoteInterface> intfClass =
+				  gui.tryLoadClass(this, MoteInterface.class, intfName);
+
+		  if (intfClass == null) {
+			  logger.warn("Failed to load mote interface class: " + intfName);
+			  continue;
+		  }
+
+		  classes.add(intfClass);
+	  }
+	  return classes.toArray(new Class[0]);
+  }
   public Class<? extends MoteInterface>[] getDefaultMoteInterfaces() {
-    ProjectConfig projectConfig = moteType.getConfig();
-    String[] intfNames = projectConfig.getStringArrayValue(ContikiMoteType.class, "MOTE_INTERFACES");
-    ArrayList<Class<? extends MoteInterface>> classes = new ArrayList<Class<? extends MoteInterface>>();
-
-    /* Load mote interface classes */
-    for (String intfName : intfNames) {
-      Class<? extends MoteInterface> intfClass =
-        gui.tryLoadClass(this, MoteInterface.class, intfName);
-
-      if (intfClass == null) {
-        logger.warn("Failed to load mote interface class: " + intfName);
-        continue;
-      }
-
-      classes.add(intfClass);
-    }
-    return classes.toArray(new Class[0]);
+	  return getAllMoteInterfaces();
   }
 
   private void addAdvancedTab(JTabbedPane parent) {
