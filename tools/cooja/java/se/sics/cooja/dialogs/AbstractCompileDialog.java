@@ -372,7 +372,7 @@ public abstract class AbstractCompileDialog extends JDialog {
         ((JCheckBox) c).setSelected(false);
       }
       if (moteType.getMoteInterfaceClasses() != null) {
-        for (Class<? extends MoteInterface> intfClass: getDefaultMoteInterfaces()) {
+        for (Class<? extends MoteInterface> intfClass: getAllMoteInterfaces()) {
           addMoteInterface(intfClass, false);
         }
         for (Class<? extends MoteInterface> intf: moteType.getMoteInterfaceClasses()) {
@@ -380,6 +380,9 @@ public abstract class AbstractCompileDialog extends JDialog {
         }
       } else {
         /* Select default mote interfaces */
+        for (Class<? extends MoteInterface> intfClass: getAllMoteInterfaces()) {
+          addMoteInterface(intfClass, false);
+        }
         for (Class<? extends MoteInterface> intfClass: getDefaultMoteInterfaces()) {
           addMoteInterface(intfClass, true);
         }
@@ -714,6 +717,7 @@ public abstract class AbstractCompileDialog extends JDialog {
   };
 
   public abstract Class<? extends MoteInterface>[] getDefaultMoteInterfaces();
+  public abstract Class<? extends MoteInterface>[] getAllMoteInterfaces();
 
   /**
    * @return Currently selected mote interface classes
