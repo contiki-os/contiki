@@ -62,6 +62,9 @@ import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
 import se.sics.cooja.mspmote.interfaces.UsciA1Serial;
 
+import com.thingsquare.cooja.mspsim.CC1101Radio;
+import com.thingsquare.cooja.mspsim.CC1120Radio;
+
 @ClassDescription("EXP430F5438 mote")
 @AbstractionLevelDescription("Emulated level")
 public class Exp5438MoteType extends MspMoteType {
