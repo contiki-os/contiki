@@ -162,10 +162,14 @@ radio_send(const void *payload, unsigned short payload_len)
 {
   int radiostate = simRadioHWOn;
 
-  /* Simulate turnaround time of 1ms */
+  /* Simulate turnaround time of 2ms for packets, 1ms for acks*/
 #if WITH_TURNAROUND
   simProcessRunValue = 1;
   cooja_mt_yield();
+  if(payload_len > 3) {
+    simProcessRunValue = 1;
+    cooja_mt_yield();
+  }
 #endif /* WITH_TURNAROUND */
 
   if(!simRadioHWOn) {
