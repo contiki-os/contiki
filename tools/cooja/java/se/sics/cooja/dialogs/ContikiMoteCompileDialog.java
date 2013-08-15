@@ -36,6 +36,7 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -103,28 +104,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     addAdvancedTab(tabbedPane);
   }
 
-  public boolean canLoadFirmware(File file) {
-    /* Disallow loading firmwares without compilation */
-    /*
-    if (file.getName().endsWith(ContikiMoteType.librarySuffix)) {
-      return true;
-    }
-    */
-
-    return false;
-  }
-
-  public String getDefaultCompileCommands(File source) {
-    if (moteType == null) {
-      /* Not ready to compile yet */
-      return "";
-    }
-
-    if (source == null || !source.exists()) {
-      /* Not ready to compile yet */
-      return "";
-    }
-
+  private void updateForSource(File source) {
     if (moteType.getIdentifier() == null) {
       /* Generate mote type identifier */
       moteType.setIdentifier(
@@ -152,7 +132,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
 
     if (((ContikiMoteType)moteType).javaClassName == null) {
       logger.fatal("Could not allocate a core communicator.");
-      return "";
+      return;
     }
 
     /* Prepare compiler environment */
@@ -167,8 +147,8 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
           ((ContikiMoteType)moteType).javaClassName
       );
       CompileContiki.redefineCOOJASources(
-      		moteType,
-      		env
+          moteType,
+          env
       );
 
       String[] envOneDimension = new String[env.length];
@@ -183,6 +163,45 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
       logger.warn("Error when creating environment: " + e.getMessage());
       e.printStackTrace();
       env = null;
+    }
+  }
+  
+  public boolean canLoadFirmware(File file) {
+    /* Disallow loading firmwares without compilation */
+    /*
+    if (file.getName().endsWith(ContikiMoteType.librarySuffix)) {
+      return true;
+    }
+    */
+
+    return false;
+  }
+
+  public String getDefaultCompileCommands(final File source) {
+    if (moteType == null) {
+      /* Not ready to compile yet */
+      return "";
+    }
+
+    if (source == null || !source.exists()) {
+      /* Not ready to compile yet */
+      return "";
+    }
+
+    if (SwingUtilities.isEventDispatchThread()) {
+      updateForSource(source);
+    } else {
+      try {
+        SwingUtilities.invokeAndWait(new Runnable() {
+          public void run() {
+            updateForSource(source);
+          }
+        });
+      } catch (InvocationTargetException e) {
+        logger.fatal("Error when updating for source " + source + ": " + e.getMessage(), e);
+      } catch (InterruptedException e) {
+        logger.fatal("Error when updating for source " + source + ": " + e.getMessage(), e);
+      }
     }
 
     String defines = "";
