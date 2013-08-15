@@ -122,55 +122,66 @@ public class IPAddress extends MoteInterface {
     return ipString;
   }
 
+  public byte[] getIPv6Address() {
+	  byte[] ip = null;
+
+	  /* IpV6: Struct sizes and offsets */
+	  int ipv6NetworkInterfaceAddressOffset = moteMem.getByteValueOf("uip_ds6_netif_addr_list_offset");
+	  int ipv6AddressStructSize = moteMem.getByteValueOf("uip_ds6_addr_size");
+	  if (ipv6NetworkInterfaceAddressOffset == 0 || ipv6AddressStructSize == 0) {
+		  return null;
+	  }
+
+	  /* TODO No need to copy the entire array! */
+	  byte[] structData = moteMem.getByteArray("uip_ds6_if",
+			  ipv6NetworkInterfaceAddressOffset+IPv6_MAX_ADDRESSES*ipv6AddressStructSize);
+
+	  ipv6AddressIndex = -1;
+	  for (int addressIndex=0; addressIndex < IPv6_MAX_ADDRESSES; addressIndex++) {
+		  int offset = ipv6NetworkInterfaceAddressOffset+addressIndex*ipv6AddressStructSize;
+		  byte isUsed = structData[offset];
+		  if (isUsed == 0) {
+			  continue;
+		  }
+		  byte[] addressData = new byte[16];
+		  System.arraycopy(
+				  structData, offset+2/* ipaddr offset */,
+				  addressData, 0, 16);
+
+		  if (addressData[0] == (byte)0xFE && addressData[1] == (byte)0x80) {
+			  ipv6IsGlobal = false;
+		  } else {
+			  ipv6IsGlobal = true;
+		  }
+
+		  ip = addressData;
+		  ipv6AddressIndex = addressIndex;
+		  if (ipv6IsGlobal) {
+			  break;
+		  }
+	  }
+	  if (ip == null) {
+		  ip = new byte[16];
+		  ipv6AddressIndex = -1;
+	  }
+	  return ip;
+  }
+
+  public static String getUncompressedIPv6AddressString(byte[] ip) {
+	    StringBuilder sb = new StringBuilder();
+	    for (int i=0; i < 14; i+=2) {
+	      sb.append(String.format("%02x%02x:", 0xFF&ip[i+0], 0xFF&ip[i+1]));
+	    }
+	    sb.append(String.format("%02x%02x", 0xFF&ip[14], 0xFF&ip[15]));
+	    return sb.toString();
+  }
+  
   public String getUncompressedIPv6Address() {
-    byte[] ip = null;
-
-    /* IpV6: Struct sizes and offsets */
-    int ipv6NetworkInterfaceAddressOffset = moteMem.getByteValueOf("uip_ds6_netif_addr_list_offset");
-    int ipv6AddressStructSize = moteMem.getByteValueOf("uip_ds6_addr_size");
-    if (ipv6NetworkInterfaceAddressOffset == 0 || ipv6AddressStructSize == 0) {
-      return "";
-    }
-
-    /* TODO No need to copy the entire array! */
-    byte[] structData = moteMem.getByteArray("uip_ds6_if",
-        ipv6NetworkInterfaceAddressOffset+IPv6_MAX_ADDRESSES*ipv6AddressStructSize);
-
-    ipv6AddressIndex = -1;
-    for (int addressIndex=0; addressIndex < IPv6_MAX_ADDRESSES; addressIndex++) {
-      int offset = ipv6NetworkInterfaceAddressOffset+addressIndex*ipv6AddressStructSize;
-      byte isUsed = structData[offset];
-      if (isUsed == 0) {
-        continue;
-      }
-      byte[] addressData = new byte[16];
-      System.arraycopy(
-          structData, offset+2/* ipaddr offset */,
-          addressData, 0, 16);
-
-      if (addressData[0] == (byte)0xFE && addressData[1] == (byte)0x80) {
-        ipv6IsGlobal = false;
-      } else {
-        ipv6IsGlobal = true;
-      }
-
-      ip = addressData;
-      ipv6AddressIndex = addressIndex;
-      if (ipv6IsGlobal) {
-        break;
-      }
-    }
-    if (ip == null) {
-      ip = new byte[16];
-      ipv6AddressIndex = -1;
-    }
-
-    StringBuilder sb = new StringBuilder();
-    for (int i=0; i < 14; i+=2) {
-      sb.append(String.format("%02x%02x:", 0xFF&ip[i+0], 0xFF&ip[i+1]));
-    }
-    sb.append(String.format("%02x%02x", 0xFF&ip[14], 0xFF&ip[15]));
-    return sb.toString();
+	  byte[] ip = getIPv6Address();
+	  if (ip == null) {
+		  return "";
+	  }
+	  return getUncompressedIPv6AddressString(ip);
   }
 
   /**

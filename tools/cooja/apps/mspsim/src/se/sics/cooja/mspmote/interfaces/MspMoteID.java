@@ -83,6 +83,22 @@ public class MspMoteID extends MoteID {
 		}
 		moteID = newID;
 
+		/* Write node-unique infomem entry, used to configure node_id and node_mac */
+		if (mote.getMemory().getMemorySegment(0x1980, 10) != null) {
+			byte[] infomem = new byte[10];
+			infomem[0] = (byte) 0xab; /* magic */
+			infomem[1] = (byte) 0xcd; /* magic */
+			infomem[2] = (byte) 0x02;
+			infomem[3] = (byte) 0x12;
+			infomem[4] = (byte) 0x74;
+			infomem[5] = (byte) 0x00;
+			infomem[6] = (byte) 0x00;
+			infomem[7] = (byte) 0x01;
+			infomem[8] = (byte) ((newID << 8) & 0xFF);
+                        infomem[9] = (byte) (newID & 0xFF);
+			mote.getMemory().setMemorySegment(0x1980, infomem);
+		}
+		
 		if (moteMem.variableExists("node_id")) {
 			moteMem.setIntValueOf("node_id", moteID);
 
