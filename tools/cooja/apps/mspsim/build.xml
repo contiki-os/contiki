@@ -8,7 +8,8 @@
   <property name="cooja" location="../.."/>
   
   <property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
-  <property name="mspsim" location="../../../mspsim"/>
+  <!-- <property name="mspsim" location="../../../mspsim"/> -->
+  <property name="mspsim" location="/home/inf4/morty/work/Contiki/eclipse/mspsim"/>
   <property name="mspsim_jar" value="${lib}/mspsim.jar"/>
   <property name="coffee" location="../../../coffee-manager"/>
   <property name="coffee_jar" value="${lib}/coffee.jar"/>
