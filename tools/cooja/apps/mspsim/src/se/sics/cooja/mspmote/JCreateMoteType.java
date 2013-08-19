@@ -71,6 +71,9 @@ public class JCreateMoteType extends AbstractMspMoteType {
     }
 
     @Override
+    public Class<? extends MoteInterface>[] getDefaultMoteInterfaceClasses() {
+  	  return getAllMoteInterfaceClasses();
+    }
     public Class<? extends MoteInterface>[] getAllMoteInterfaceClasses() {
         @SuppressWarnings("unchecked")
         Class<? extends MoteInterface>[] list = createMoteInterfaceList(

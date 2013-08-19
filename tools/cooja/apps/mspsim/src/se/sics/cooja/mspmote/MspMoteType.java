@@ -320,6 +320,7 @@ public abstract class MspMoteType implements MoteType {
   }
 
   public abstract Class<? extends MoteInterface>[] getAllMoteInterfaceClasses();
+  public abstract Class<? extends MoteInterface>[] getDefaultMoteInterfaceClasses();
   public abstract File getExpectedFirmwareFile(File source);
 
   private static ELF loadELF(String filepath) throws IOException {

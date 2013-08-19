@@ -30,6 +30,8 @@
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -45,6 +47,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -90,6 +93,8 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
   public SerialSocketServer(Mote mote, Simulation simulation, final GUI gui) {
     super("Serial Socket (SERVER) (" + mote + ")", gui, false);
     this.mote = mote;
+
+    updateTimer.start();
 
     LISTEN_PORT = 60000 + mote.getID();
 
@@ -156,12 +161,11 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
             /*logger.debug("out is null");*/
             return;
           }
+          
           out.write(serialPort.getLastSerialData());
           out.flush();
+          
           outBytes++;
-          if (GUI.isVisualized()) {
-            outLabel.setText(outBytes + " bytes");
-          }
         } catch (IOException e) {
           cleanupClient();
         }
@@ -188,10 +192,8 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
             for (int i=0; i < numRead; i++) {
               serialPort.writeByte(data[i]);
             }
+
             inBytes += numRead;
-            if (GUI.isVisualized()) {
-              inLabel.setText(inBytes + " bytes");
-            }
           } else {
             cleanupClient();
             break;
@@ -254,7 +256,9 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
     }
   }
 
+  private boolean closed = false;
   public void closePlugin() {
+	  closed = true;
     cleanupClient();
     serialPort.deleteSerialDataObserver(serialDataObserver);
     try {
@@ -267,5 +271,17 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
     return mote;
   }
 
+  private static final int UPDATE_INTERVAL = 150;
+  private Timer updateTimer = new Timer(UPDATE_INTERVAL, new ActionListener() {
+	  public void actionPerformed(ActionEvent e) {
+		  if (closed) {
+			  updateTimer.stop();
+			  return;
+		  }
+		  
+		  inLabel.setText(inBytes + " bytes");
+		  outLabel.setText(outBytes + " bytes");
+	  }
+  });
 }
 
