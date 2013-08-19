@@ -47,6 +47,7 @@
 /* The size of uip_ds6_addr_t depends on UIP_ND6_DEF_MAXDADNS. Include uip-nd6.h to define it. */
 #include "net/uip-nd6.h"
 #include "net/uip-ds6-route.h"
+#include "net/uip-ds6-nbr.h"
 
 /*--------------------------------------------------*/
 /** Configuration. For all tables (Neighbor cache, Prefix List, Routing Table,
@@ -56,14 +57,6 @@
  * - the number of elements assigned by the system (name suffixed by _NBS)
  * - the total number of elements is the sum (name suffixed by _NB)
 */
-/* Neighbor cache */
-#define UIP_DS6_NBR_NBS 0
-#ifndef UIP_CONF_DS6_NBR_NBU
-#define UIP_DS6_NBR_NBU  4
-#else
-#define UIP_DS6_NBR_NBU UIP_CONF_DS6_NBR_NBU
-#endif
-#define UIP_DS6_NBR_NB UIP_DS6_NBR_NBS + UIP_DS6_NBR_NBU
 
 /* Default router list */
 #define UIP_DS6_DEFRT_NBS 0
@@ -126,14 +119,6 @@
 #define UIP_DS6_LL_NUD UIP_CONF_DS6_LL_NUD
 #endif
 
-/*--------------------------------------------------*/
-/** \brief Possible states for the nbr cache entries */
-#define  NBR_INCOMPLETE 0
-#define  NBR_REACHABLE 1
-#define  NBR_STALE 2
-#define  NBR_DELAY 3
-#define  NBR_PROBE 4
-
 /** \brief Possible states for the an address  (RFC 4862) */
 #define ADDR_TENTATIVE 0
 #define ADDR_PREFERRED 1
@@ -155,22 +140,6 @@
 #if UIP_CONF_IPV6_QUEUE_PKT
 #include "net/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
-/** \brief An entry in the nbr cache */
-typedef struct uip_ds6_nbr {
-  uint8_t isused;
-  uip_ipaddr_t ipaddr;
-  uip_lladdr_t lladdr;
-  struct stimer reachable;
-  struct stimer sendns;
-  clock_time_t last_lookup;
-  uint8_t nscount;
-  uint8_t isrouter;
-  uint8_t state;
-#if UIP_CONF_IPV6_QUEUE_PKT
-  struct uip_packetqueue_handle packethandle;
-#define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
-#endif                          /*UIP_CONF_QUEUE_PKT */
-} uip_ds6_nbr_t;
 
 /** \brief A prefix list entry */
 #if UIP_CONF_ROUTER
@@ -226,6 +195,11 @@ typedef struct uip_ds6_maddr {
 #endif /* UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED */
 #endif /* UIP_CONF_IPV6_RPL */
 
+#if UIP_CONF_IPV6_RPL
+#ifndef UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK
+#define UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK rpl_link_neighbor_callback
+#endif /* UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED */
+#endif /* UIP_CONF_IPV6_RPL */
 
 
 /** \brief  Interface structure (contains all the interface variables) */
@@ -272,14 +246,6 @@ uint8_t uip_ds6_list_loop(uip_ds6_element_t *list, uint8_t size,
                           uint16_t elementsize, uip_ipaddr_t *ipaddr,
                           uint8_t ipaddrlen,
                           uip_ds6_element_t **out_element);
-
-/** \name Neighbor Cache basic routines */
-/** @{ */
-uip_ds6_nbr_t *uip_ds6_nbr_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
-                               uint8_t isrouter, uint8_t state);
-void uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
-uip_ds6_nbr_t *uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr);
-uip_ds6_nbr_t *uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr);
 
 /** @} */
 
@@ -370,16 +336,5 @@ uint32_t uip_ds6_compute_reachable_time(void); /** \brief compute random reachab
 #define uip_ds6_is_my_aaddr(addr) (uip_ds6_aaddr_lookup(addr) != NULL)
 /** @} */
 /** @} */
-
-/**
- * \brief
- *     This searches inside the neighbor table for the neighbor that is about to
- *     expire the next.
- *
- * \return
- *     A reference to the neighbor about to expire the next or NULL if
- *     table is empty.
- */
-uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
 
 #endif /* __UIP_DS6_H__ */

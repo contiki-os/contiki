@@ -51,7 +51,7 @@ do{\
   uip_ipaddr_t ipaddr_local, ipaddr_global;\
   NODE_IP(node_global, GLOBAL, &ipaddr_global);\
   NODE_IP(node_local, LOCAL, &ipaddr_local);\
-  uip_ds6_route_add(&ipaddr_global, 128, &ipaddr_local, 0);\
+  uip_ds6_route_add(&ipaddr_global, 128, &ipaddr_local);\
 }while(0)
 
 void set_global_address(void);

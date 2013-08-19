@@ -1,8 +1,7 @@
 NET =						\
 dhcpc.c						\
 hc.c						\
-neighbor-attr.c					\
-neighbor-info.c					\
+nbr-table.c			\
 netstack.c					\
 packetbuf.c					\
 packetqueue.c					\
@@ -17,6 +16,7 @@ uaodv-rt.c					\
 uaodv.c						\
 uip-debug.c					\
 uip-ds6-route.c					\
+uip-ds6-nbr.c				\
 uip-ds6.c					\
 uip-fw-drv.c					\
 uip-fw.c					\

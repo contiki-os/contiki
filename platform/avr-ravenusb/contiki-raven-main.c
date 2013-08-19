@@ -652,12 +652,12 @@ if ((rtime%PINGS)==1) {
 
 #if ROUTES && UIP_CONF_IPV6_RPL
 if ((rtime%ROUTES)==2) {
-      
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
-extern uip_ds6_route_t uip_ds6_routing_table[];
+
 extern uip_ds6_netif_t uip_ds6_if;
 
   uint8_t i,j;
+  uip_ds6_nbr_t *nbr;
+
   PRINTA("\nAddresses [%u max]\n",UIP_DS6_ADDR_NB);
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
     if (uip_ds6_if.addr_list[i].isused) {
@@ -665,23 +665,27 @@ extern uip_ds6_netif_t uip_ds6_if;
       PRINTA("\n");
     }
   }
-  PRINTA("\nNeighbors [%u max]\n",UIP_DS6_NBR_NB);
-  for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      uip_debug_ipaddr_print(&uip_ds6_nbr_cache[i].ipaddr);
-      PRINTA("\n");
-      j=0;
-    }
+  PRINTA("\nNeighbors [%u max]\n",NBR_TABLE_MAX_NEIGHBORS);
+
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+    uip_debug_ipaddr_print(&nbr->ipaddr);
+    PRINTA("\n");
+    j=0;
   }
   if (j) PRINTA("  <none>");
   PRINTA("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
-  for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].isused) {
-      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].ipaddr);
-      PRINTA("/%u (via ", uip_ds6_routing_table[i].length);
-      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].nexthop);
- //     if(uip_ds6_routing_table[i].state.lifetime < 600) {
-        PRINTA(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
+  uip_ds6_route_t *r;
+  for(r = uip_ds6_route_head();
+      r != NULL;
+      r = uip_ds6_route_next(r)) {
+    if(r->isused) {
+      uip_debug_ipaddr_print(&r->ipaddr);
+      PRINTA("/%u (via ", r->length);
+      uip_debug_ipaddr_print(uip_ds6_route_nexthop(r));
+ //     if(r->state.lifetime < 600) {
+        PRINTA(") %lus\n", r->state.lifetime);
  //     } else {
  //       PRINTA(")\n");
  //     }
