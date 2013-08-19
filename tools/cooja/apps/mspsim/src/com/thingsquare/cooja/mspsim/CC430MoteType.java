@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,24 +10,27 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-package se.sics.cooja.mspmote;
+package com.thingsquare.cooja.mspsim;
 
 import java.awt.Container;
 import java.awt.Image;
@@ -55,23 +58,21 @@ import se.sics.cooja.interfaces.Mote2MoteRelations;
 import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.RimeAddress;
-import se.sics.cooja.mspmote.interfaces.Exp5438LED;
-import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
+import se.sics.cooja.mspmote.MspCompileDialog;
+import se.sics.cooja.mspmote.MspMote;
+import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
-import se.sics.cooja.mspmote.interfaces.UsciA1Serial;
+import se.sics.cooja.mspmote.interfaces.UsciA0Serial;
 
-import com.thingsquare.cooja.mspsim.CC1101Radio;
-import com.thingsquare.cooja.mspsim.CC1120Radio;
-
-@ClassDescription("EXP430F5438 mote")
+@ClassDescription("CC430 mote")
 @AbstractionLevelDescription("Emulated level")
-public class Exp5438MoteType extends MspMoteType {
-  private static Logger logger = Logger.getLogger(Exp5438MoteType.class);
+public class CC430MoteType extends MspMoteType {
+  private static Logger logger = Logger.getLogger(CC430MoteType.class);
 
   protected MspMote createMote(Simulation simulation) {
-    return new Exp5438Mote(this, simulation);
+    return new CC430Mote(this, simulation);
   }
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
@@ -88,7 +89,7 @@ public class Exp5438MoteType extends MspMoteType {
           identifierOK = true;
 
           counter++;
-          setIdentifier("exp5438#" + counter);
+          setIdentifier("cc430-" + counter);
 
           for (MoteType existingMoteType : simulation.getMoteTypes()) {
             if (existingMoteType == this) {
@@ -104,10 +105,10 @@ public class Exp5438MoteType extends MspMoteType {
 
       /* Create initial description */
       if (getDescription() == null) {
-        setDescription("Exp5438 Mote Type " + getIdentifier());
+        setDescription("CC430 Mote Type #" + getIdentifier());
       }
 
-      return MspCompileDialog.showDialog(parentContainer, simulation, this, "exp5438");
+      return MspCompileDialog.showDialog(parentContainer, simulation, this, "cc430");
     }
 
     /* Not visualized: Compile Contiki immediately */
@@ -166,7 +167,7 @@ public class Exp5438MoteType extends MspMoteType {
 
   public Icon getMoteTypeIcon() {
     Toolkit toolkit = Toolkit.getDefaultToolkit();
-    URL imageURL = this.getClass().getClassLoader().getResource("exp5438.png");
+    URL imageURL = this.getClass().getClassLoader().getResource("images/cc430.jpg");
     Image image = toolkit.getImage(imageURL);
     MediaTracker tracker = new MediaTracker(GUI.getTopParentContainer());
     tracker.addImage(image, 1);
@@ -183,20 +184,7 @@ public class Exp5438MoteType extends MspMoteType {
   }
 
   public Class<? extends MoteInterface>[] getDefaultMoteInterfaceClasses() {
-	    return new Class[] {
-	            Position.class,
-	            RimeAddress.class,
-	            IPAddress.class,
-	            Mote2MoteRelations.class,
-	            MoteAttributes.class,
-	            MspClock.class,
-	            MspMoteID.class,
-	            Msp802154Radio.class,
-	            UsciA1Serial.class,
-	            Exp5438LED.class,
-	            /*Exp5438LCD.class,*/ /* TODO */
-	            MspDebugOutput.class
-	        };
+	  return getAllMoteInterfaceClasses();
   }
   public Class<? extends MoteInterface>[] getAllMoteInterfaceClasses() {
     return new Class[] {
@@ -205,15 +193,11 @@ public class Exp5438MoteType extends MspMoteType {
         IPAddress.class,
         Mote2MoteRelations.class,
         MoteAttributes.class,
+        MspDebugOutput.class,
         MspClock.class,
         MspMoteID.class,
-        Msp802154Radio.class,
-        CC1101Radio.class,
-        CC1120Radio.class,
-        UsciA1Serial.class,
-        Exp5438LED.class,
-        /*Exp5438LCD.class,*/ /* TODO */
-        MspDebugOutput.class
+        UsciA0Serial.class,
+        CC430Radio.class,
     };
   }
 
@@ -221,11 +205,11 @@ public class Exp5438MoteType extends MspMoteType {
     File parentDir = source.getParentFile();
     String sourceNoExtension = source.getName().substring(0, source.getName().length()-2);
 
-    return new File(parentDir, sourceNoExtension + ".exp5438");
+    return new File(parentDir, sourceNoExtension + ".cc430");
   }
 
   protected String getTargetName() {
-  	return "exp5438";
+  	return "cc430";
   }
 
 }

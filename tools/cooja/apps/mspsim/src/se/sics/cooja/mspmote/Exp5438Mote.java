@@ -34,7 +34,12 @@ import java.io.File;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.Simulation;
+import se.sics.mspsim.platform.GenericNode;
+import se.sics.mspsim.platform.ti.Exp1101Node;
+import se.sics.mspsim.platform.ti.Exp1120Node;
 import se.sics.mspsim.platform.ti.Exp5438Node;
+import se.sics.mspsim.platform.ti.Trxeb1120Node;
+import se.sics.mspsim.platform.ti.Trxeb2520Node;
 
 /**
  * @author Fredrik Osterlind
@@ -42,15 +47,39 @@ import se.sics.mspsim.platform.ti.Exp5438Node;
 public class Exp5438Mote extends MspMote {
   private static Logger logger = Logger.getLogger(Exp5438Mote.class);
 
-  public Exp5438Node exp5438Node = null;
-
+  public GenericNode exp5438Node = null;
+  private String desc = "";
+  
   public Exp5438Mote(MspMoteType moteType, Simulation sim) {
     super(moteType, sim);
   }
 
   protected boolean initEmulator(File fileELF) {
+	  /* Hack: Try to figure out what type of Mspsim-node we should be used by checking file extension */
+	  String filename = fileELF.getName();
+	  if (filename.endsWith(".exp1101")) {
+		  exp5438Node = new Exp1101Node();
+		  desc = "Exp5438+CC1101";
+	  } else if (filename.endsWith(".exp1120")) {
+		  exp5438Node = new Exp1120Node();
+		  desc = "Exp5438+CC1120";
+	  } else if (filename.endsWith(".trxeb2520")) {
+		  exp5438Node = new Trxeb2520Node();
+		  desc = "Trxeb2520";
+	  } else if (filename.endsWith(".trxeb1120")) {
+		  exp5438Node = new Trxeb1120Node(false);
+		  desc = "Trxeb1120";
+	  } else if (filename.endsWith(".eth1120")) {
+		  exp5438Node = new Trxeb1120Node(true);
+		  desc = "Eth1120";
+	  } else if (filename.endsWith(".exp2420") || filename.endsWith(".exp5438")) {
+		  exp5438Node = new Exp5438Node();
+		  desc = "Exp5438+CC2420";
+	  } else {
+		  throw new IllegalStateException("unknown file extension, cannot figure out what Mspsim node type to use: " + filename);
+	  }
+	  
     try {
-      exp5438Node = new Exp5438Node();
       registry = exp5438Node.getRegistry();
       prepareMote(fileELF, exp5438Node);
     } catch (Exception e) {
@@ -64,7 +93,7 @@ public class Exp5438Mote extends MspMote {
   }
 
   public String toString() {
-    return "Exp5438 " + getID();
+    return desc + " " + getID();
   }
 
 }

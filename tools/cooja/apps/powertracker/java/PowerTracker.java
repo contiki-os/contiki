@@ -222,6 +222,15 @@ public class PowerTracker extends VisPlugin {
     repaintTimer.start();
   }
 
+  public MoteTracker getMoteTrackerOf(Mote mote) {
+	  for (MoteTracker mt : moteTrackers) {
+		  if (mt.mote == mote) {
+			  return mt;
+		  }
+	  }
+	  return null;
+  }
+  
   private Action resetAction = new AbstractAction("Reset") {
     public void actionPerformed(ActionEvent e) {
       Runnable r = new Runnable() {
@@ -288,7 +297,7 @@ public class PowerTracker extends VisPlugin {
     return sb.toString();
   }
 
-  private static class MoteTracker implements Observer {
+  public static class MoteTracker implements Observer {
     /* last radio state */
     private boolean radioWasOn;
     private RadioState lastRadioState;
@@ -379,19 +388,19 @@ public class PowerTracker extends VisPlugin {
       radioInterfered += t;
     }
 
-    protected double getRadioOnRatio() {
+    public double getRadioOnRatio() {
       return 1.0*radioOn/duration;
     }
 
-    protected double getRadioTxRatio() {
+    public double getRadioTxRatio() {
       return 1.0*radioTx/duration;
     }
 
-    protected double getRadioInterferedRatio() {
+    public double getRadioInterferedRatio() {
       return 1.0*radioInterfered/duration;
     }
 
-    protected double getRadioRxRatio() {
+    public double getRadioRxRatio() {
       return 1.0*radioRx/duration;
     }
 

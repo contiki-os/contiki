@@ -71,8 +71,11 @@ public class MspCompileDialog extends AbstractCompileDialog {
     addCompilationTipsTab(tabbedPane);
   }
 
+  public Class<? extends MoteInterface>[] getAllMoteInterfaces() {
+	  return ((MspMoteType)moteType).getAllMoteInterfaceClasses();
+  }
   public Class<? extends MoteInterface>[] getDefaultMoteInterfaces() {
-    return ((MspMoteType)moteType).getAllMoteInterfaceClasses();
+	  return ((MspMoteType)moteType).getDefaultMoteInterfaceClasses();
   }
 
   private void addCompilationTipsTab(JTabbedPane parent) {

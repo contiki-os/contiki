@@ -45,6 +45,10 @@
 #include "net/rime/rimestats.h"
 #include <string.h>
 
+#if CONTIKI_TARGET_COOJA
+#include "lib/simEnvChange.h"
+#endif /* CONTIKI_TARGET_COOJA */
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -172,7 +176,12 @@ send_one_packet(mac_callback_t sent, void *ptr)
           /* Check for ack */
           wt = RTIMER_NOW();
           watchdog_periodic();
-          while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + ACK_WAIT_TIME));
+          while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + ACK_WAIT_TIME)) {
+#if CONTIKI_TARGET_COOJA
+            simProcessRunValue = 1;
+            cooja_mt_yield();
+#endif /* CONTIKI_TARGET_COOJA */
+          }
 
           ret = MAC_TX_NOACK;
           if(NETSTACK_RADIO.receiving_packet() ||
@@ -181,10 +190,17 @@ send_one_packet(mac_callback_t sent, void *ptr)
             int len;
             uint8_t ackbuf[ACK_LEN];
 
-            wt = RTIMER_NOW();
-            watchdog_periodic();
-            while(RTIMER_CLOCK_LT(RTIMER_NOW(),
-                                  wt + AFTER_ACK_DETECTED_WAIT_TIME));
+            if(AFTER_ACK_DETECTED_WAIT_TIME > 0) {
+              wt = RTIMER_NOW();
+              watchdog_periodic();
+              while(RTIMER_CLOCK_LT(RTIMER_NOW(),
+                                    wt + AFTER_ACK_DETECTED_WAIT_TIME)) {
+      #if CONTIKI_TARGET_COOJA
+                  simProcessRunValue = 1;
+                  cooja_mt_yield();
+      #endif /* CONTIKI_TARGET_COOJA */
+              }
+            }
 
             if(NETSTACK_RADIO.pending_packet()) {
               len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
