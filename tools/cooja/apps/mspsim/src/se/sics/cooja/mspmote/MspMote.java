@@ -30,13 +30,13 @@
 
 package se.sics.cooja.mspmote;
 
+import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
-import java.util.Observable;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -53,8 +53,8 @@ import se.sics.cooja.Watchpoint;
 import se.sics.cooja.WatchpointMote;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.motes.AbstractEmulatedMote;
-import se.sics.cooja.mspmote.interfaces.MspSerial;
 import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
+import se.sics.cooja.mspmote.interfaces.MspSerial;
 import se.sics.cooja.mspmote.plugins.CodeVisualizerSkin;
 import se.sics.cooja.mspmote.plugins.MspBreakpoint;
 import se.sics.cooja.plugins.Visualizer;
@@ -65,7 +65,8 @@ import se.sics.mspsim.cli.LineOutputStream;
 import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.platform.GenericNode;
-import se.sics.mspsim.ui.JFrameWindowManager;
+import se.sics.mspsim.ui.ManagedWindow;
+import se.sics.mspsim.ui.WindowManager;
 import se.sics.mspsim.util.ComponentRegistry;
 import se.sics.mspsim.util.ConfigManager;
 import se.sics.mspsim.util.DebugInfo;
@@ -95,10 +96,8 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
   /* Stack monitoring variables */
   private boolean stopNextInstruction = false;
-  private boolean monitorStackUsage = false;
-  private int stackPointerLow = Integer.MAX_VALUE;
-  private int heapStartAddress;
-  private StackOverflowObservable stackOverflowObservable = new StackOverflowObservable();
+
+  public GenericNode mspNode = null;
 
   public MspMote(MspMoteType moteType, Simulation simulation) {
     this.simulation = simulation;
@@ -113,8 +112,43 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       initEmulator(myMoteType.getContikiFirmwareFile());
       myMoteInterfaceHandler = createMoteInterfaceHandler();
 
-      /* TODO Setup COOJA-specific window manager */
-      registry.registerComponent("windowManager", new JFrameWindowManager());
+      /* TODO Create COOJA-specific window manager */
+      registry.removeComponent("windowManager");
+      registry.registerComponent("windowManager", new WindowManager() {
+        public ManagedWindow createWindow(String name) {
+          return new ManagedWindow() {
+            public void setVisible(boolean b) {
+              logger.warn("setVisible() ignored");
+            }
+            public void setTitle(String string) {
+              logger.warn("setTitle() ignored");
+            }
+            public void setSize(int width, int height) {
+              logger.warn("setSize() ignored");
+            }
+            public void setBounds(int x, int y, int width, int height) {
+              logger.warn("setBounds() ignored");
+            }
+            public void removeAll() {
+              logger.warn("removeAll() ignored");
+            }
+            public void pack() {
+              logger.warn("pack() ignored");
+            }
+            public boolean isVisible() {
+              logger.warn("isVisible() return false");
+              return false;
+            }
+            public String getTitle() {
+              logger.warn("getTitle() return \"\"");
+              return "";
+            }
+            public void add(Component component) {
+              logger.warn("add() ignored");
+            }
+          };
+        }
+      });
 
       try {
         debuggingInfo = ((MspMoteType)getType()).getFirmwareDebugInfo();
@@ -156,45 +190,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     myMemory = (MspMoteMemory) memory;
   }
 
-  /* Stack monitoring variables */
-  public class StackOverflowObservable extends Observable {
-    public void signalStackOverflow() {
-      setChanged();
-      notifyObservers();
-    }
-  }
-
-  /**
-   * Enable/disable stack monitoring
-   *
-   * @param monitoring Monitoring enabled
-   */
-  public void monitorStack(boolean monitoring) {
-    this.monitorStackUsage = monitoring;
-    resetLowestStackPointer();
-  }
-
-  /**
-   * @return Lowest SP since stack monitoring was enabled
-   */
-  public int getLowestStackPointer() {
-    return stackPointerLow;
-  }
-
-  /**
-   * Resets lowest stack pointer variable
-   */
-  public void resetLowestStackPointer() {
-    stackPointerLow = Integer.MAX_VALUE;
-  }
-
-  /**
-   * @return Stack overflow observable
-   */
-  public StackOverflowObservable getStackOverflowObservable() {
-    return stackOverflowObservable;
-  }
-
   /**
    * Prepares CPU, memory and ELF module.
    *
@@ -204,6 +199,9 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
    */
   protected void prepareMote(File fileELF, GenericNode node) throws IOException {
     this.commandHandler = new CommandHandler(System.out, System.err);
+    
+    this.mspNode = node;
+    
     node.setCommandHandler(commandHandler);
 
     ConfigManager config = new ConfigManager();
@@ -225,7 +223,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     MapEntry[] allEntries = map.getAllEntries();
     myMemory = new MspMoteMemory(this, allEntries, myCpu);
 
-    heapStartAddress = map.heapStartAddress;
     myCpu.reset();
   }
 

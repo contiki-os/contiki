@@ -39,6 +39,8 @@ package se.sics.cooja.interfaces;
  */
 public interface CustomDataRadio {
 
+  public boolean canReceiveFrom(CustomDataRadio radio);
+  
   public void receiveCustomData(Object data);
 
   public Object getLastCustomDataTransmitted();

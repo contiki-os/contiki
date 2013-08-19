@@ -110,7 +110,8 @@ public abstract class SerialUI extends Log implements SerialPort {
       newMessage.append((char) data);
       if (newMessage.length() > MAX_LENGTH) {
         /*logger.warn("Dropping too large log message (>" + MAX_LENGTH + " bytes).");*/
-        lastLogMessage = "# [1024 bytes binary data]";
+        lastLogMessage = "# [1024 bytes, no line ending]: " + newMessage.substring(0, 20) + "...";
+        lastLogMessage = lastLogMessage.replaceAll("[^\\p{Print}]", "");
         newMessage.setLength(0);
         this.setChanged();
         this.notifyObservers(getMote());

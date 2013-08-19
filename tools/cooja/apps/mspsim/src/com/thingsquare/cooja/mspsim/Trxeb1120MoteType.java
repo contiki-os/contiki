@@ -1,49 +1,12 @@
-/*
- * Copyright (c) 2011, Swedish Institute of Computer Science.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-
-package se.sics.cooja.mspmote;
+package com.thingsquare.cooja.mspsim;
 
 import java.awt.Container;
-import java.awt.Image;
-import java.awt.MediaTracker;
-import java.awt.Toolkit;
 import java.io.File;
-import java.net.URL;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.AbstractionLevelDescription;
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
@@ -55,24 +18,18 @@ import se.sics.cooja.interfaces.Mote2MoteRelations;
 import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.RimeAddress;
-import se.sics.cooja.mspmote.interfaces.Exp5438LED;
+import se.sics.cooja.mspmote.Exp5438MoteType;
+import se.sics.cooja.mspmote.MspCompileDialog;
 import se.sics.cooja.mspmote.interfaces.Msp802154Radio;
 import se.sics.cooja.mspmote.interfaces.MspClock;
 import se.sics.cooja.mspmote.interfaces.MspDebugOutput;
 import se.sics.cooja.mspmote.interfaces.MspMoteID;
 import se.sics.cooja.mspmote.interfaces.UsciA1Serial;
 
-import com.thingsquare.cooja.mspsim.CC1101Radio;
-import com.thingsquare.cooja.mspsim.CC1120Radio;
-
-@ClassDescription("EXP430F5438 mote")
+@ClassDescription("Trxeb1120")
 @AbstractionLevelDescription("Emulated level")
-public class Exp5438MoteType extends MspMoteType {
-  private static Logger logger = Logger.getLogger(Exp5438MoteType.class);
-
-  protected MspMote createMote(Simulation simulation) {
-    return new Exp5438Mote(this, simulation);
-  }
+public class Trxeb1120MoteType extends Exp5438MoteType {
+  private static Logger logger = Logger.getLogger(Trxeb1120MoteType.class);
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
   throws MoteTypeCreationException {
@@ -88,7 +45,7 @@ public class Exp5438MoteType extends MspMoteType {
           identifierOK = true;
 
           counter++;
-          setIdentifier("exp5438#" + counter);
+          setIdentifier("trxeb1120#" + counter);
 
           for (MoteType existingMoteType : simulation.getMoteTypes()) {
             if (existingMoteType == this) {
@@ -104,10 +61,10 @@ public class Exp5438MoteType extends MspMoteType {
 
       /* Create initial description */
       if (getDescription() == null) {
-        setDescription("Exp5438 Mote Type " + getIdentifier());
+        setDescription("Trxeb1120 Mote Type " + getIdentifier());
       }
 
-      return MspCompileDialog.showDialog(parentContainer, simulation, this, "exp5438");
+      return MspCompileDialog.showDialog(parentContainer, simulation, this, "trxeb1120");
     }
 
     /* Not visualized: Compile Contiki immediately */
@@ -164,24 +121,6 @@ public class Exp5438MoteType extends MspMoteType {
     return true;
   }
 
-  public Icon getMoteTypeIcon() {
-    Toolkit toolkit = Toolkit.getDefaultToolkit();
-    URL imageURL = this.getClass().getClassLoader().getResource("exp5438.png");
-    Image image = toolkit.getImage(imageURL);
-    MediaTracker tracker = new MediaTracker(GUI.getTopParentContainer());
-    tracker.addImage(image, 1);
-    try {
-      tracker.waitForAll();
-    } catch (InterruptedException ex) {
-    }
-    if (image.getHeight(GUI.getTopParentContainer()) > 0 && image.getWidth(GUI.getTopParentContainer()) > 0) {
-      image = image.getScaledInstance((200*image.getWidth(GUI.getTopParentContainer())/image.getHeight(GUI.getTopParentContainer())), 200, Image.SCALE_DEFAULT);
-      return new ImageIcon(image);
-    }
-
-    return null;
-  }
-
   public Class<? extends MoteInterface>[] getDefaultMoteInterfaceClasses() {
 	    return new Class[] {
 	            Position.class,
@@ -191,9 +130,9 @@ public class Exp5438MoteType extends MspMoteType {
 	            MoteAttributes.class,
 	            MspClock.class,
 	            MspMoteID.class,
-	            Msp802154Radio.class,
+	            CC1120Radio.class,
 	            UsciA1Serial.class,
-	            Exp5438LED.class,
+	            TrxebLEDs.class,
 	            /*Exp5438LCD.class,*/ /* TODO */
 	            MspDebugOutput.class
 	        };
@@ -208,10 +147,9 @@ public class Exp5438MoteType extends MspMoteType {
         MspClock.class,
         MspMoteID.class,
         Msp802154Radio.class,
-        CC1101Radio.class,
         CC1120Radio.class,
         UsciA1Serial.class,
-        Exp5438LED.class,
+        TrxebLEDs.class,
         /*Exp5438LCD.class,*/ /* TODO */
         MspDebugOutput.class
     };
@@ -221,11 +159,11 @@ public class Exp5438MoteType extends MspMoteType {
     File parentDir = source.getParentFile();
     String sourceNoExtension = source.getName().substring(0, source.getName().length()-2);
 
-    return new File(parentDir, sourceNoExtension + ".exp5438");
+    return new File(parentDir, sourceNoExtension + ".trxeb1120");
   }
 
   protected String getTargetName() {
-  	return "exp5438";
+  	return "trxeb1120";
   }
 
 }
