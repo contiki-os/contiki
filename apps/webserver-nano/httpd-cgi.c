@@ -50,6 +50,7 @@
 #include "httpd-fs.h"
 #include "httpd-fsdata.h"
 #include "lib/petsciiconv.h"
+#include "net/nbr-table.h"
 
 #include "sensors.h"
 
@@ -479,7 +480,6 @@ PT_THREAD(addresses(struct httpd_state *s, char *ptr))
 #endif /* WEBSERVER_CONF_ADDRESSES */
 
 #if WEBSERVER_CONF_NEIGHBORS
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 /*---------------------------------------------------------------------------*/	
 static unsigned short
 make_neighbors(void *p)
@@ -487,11 +487,13 @@ make_neighbors(void *p)
 uint8_t i,j;
 uint16_t numprinted=0;
 struct httpd_state *s=p;
+static uip_ds6_nbr_t *nbr;
   /* Span generator calls over tcp segments */
   /* Note retransmissions will execute thise code multiple times for a segment */
   i=s->starti;j=s->startj;
-  for (;i<UIP_DS6_NBR_NB;i++) {
-    if (uip_ds6_nbr_cache[i].isused) {
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr), i++) {
       j++;
 
 #if WEBSERVER_CONF_NEIGHBOR_STATUS
@@ -501,32 +503,31 @@ static const char httpd_cgi_nbrs3[] HTTPD_STRING_ATTR = " STALE";
 static const char httpd_cgi_nbrs4[] HTTPD_STRING_ATTR = " DELAY";
 static const char httpd_cgi_nbrs5[] HTTPD_STRING_ATTR = " NBR_PROBE";
 {uint16_t k=numprinted+25;
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_nbr_cache[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(nbr->ipaddr, uip_appdata + numprinted);
       while (numprinted < k) {*((char *)uip_appdata+numprinted++) = ' ';}
-      switch (uip_ds6_nbr_cache[i].state) {
+      switch (nbr->state) {
       case NBR_INCOMPLETE: numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs1);break;
       case NBR_REACHABLE:  numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs2);break;
-      case NBR_STALE:      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs3);break;  
+      case NBR_STALE:      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs3);break;
       case NBR_DELAY:      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs4);break;
       case NBR_PROBE:      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_nbrs5);break;
       }
 }
 #else
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_nbr_cache[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(nbr->ipaddr, uip_appdata + numprinted);
 #endif
 	  *((char *)uip_appdata+numprinted++) = '\n';
 
 	  /* If buffer near full, send it and wait for the next call. Could be a retransmission, or the next segment */
 	  if(numprinted > (uip_mss() - 50)) {
-		s->savei=i;s->savej=j;
+	    s->savei=i;s->savej=j;
 	    return numprinted;
 	  }
-    }
   }
 #if WEBSERVER_CONF_SHOW_ROOM
-    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,UIP_DS6_NBR_NB-j);
+    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf,NBR_TABLE_MAX_NEIGHBORS-j);
 #else
-  if(UIP_DS6_NBR_NB == j) {
+  if(NBR_TABLE_MAX_NEIGHBORS == j) {
   	numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrf);
   }
 #endif
@@ -554,7 +555,6 @@ PT_THREAD(neighbors(struct httpd_state *s, char *ptr))
 #endif
 
 #if WEBSERVER_CONF_ROUTES
-extern uip_ds6_route_t uip_ds6_routing_table[];
 #if WEBSERVER_CONF_ROUTE_LINKS
 static const char httpd_cgi_rtesl1[] HTTPD_STRING_ATTR = "<a href=http://[";
 static const char httpd_cgi_rtesl2[] HTTPD_STRING_ATTR = "]/status.shtml>";
@@ -570,27 +570,29 @@ static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")\n";
 uint8_t i,j;
 uint16_t numprinted=0;
 struct httpd_state *s=p;
+uip_ds6_route_t *r;
   /* Span generator calls over tcp segments */
   /* Note retransmissions will execute thise code multiple times for a segment */
   i=s->starti;j=s->startj;
-  for (;i<UIP_DS6_ROUTE_NB;i++) {
-    if (uip_ds6_routing_table[i].isused) {
+  for(r = uip_ds6_route_head();
+      r != NULL;
+      r = uip_ds6_route_next(r)) {
       j++;
 
 #if WEBSERVER_CONF_ROUTE_LINKS
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl1);
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl2);
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl3);
 #else
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
 #endif
 
-      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, uip_ds6_routing_table[i].length);
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].nexthop, uip_appdata + numprinted);
-      if(1 || uip_ds6_routing_table[i].state.lifetime < 3600) {
-         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, (long unsigned int)uip_ds6_routing_table[i].state.lifetime);
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, r->length);
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_route_nexthop(r), uip_appdata + numprinted);
+      if(1 || r->state.lifetime < 3600) {
+         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, (long unsigned int)r->state.lifetime);
       } else {
          numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
       }

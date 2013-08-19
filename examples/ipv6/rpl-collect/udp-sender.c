@@ -31,7 +31,6 @@
 #include "net/uip.h"
 #include "net/uip-ds6.h"
 #include "net/uip-udp-packet.h"
-#include "net/neighbor-info.h"
 #include "net/rpl/rpl.h"
 #include "dev/serial-line.h"
 #if CONTIKI_TARGET_Z1
@@ -64,7 +63,6 @@ collect_common_set_sink(void)
   /* A udp client can never become sink */
 }
 /*---------------------------------------------------------------------------*/
-extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
 
 void
 collect_common_net_print(void)
@@ -76,12 +74,12 @@ collect_common_net_print(void)
   dag = rpl_get_any_dag();
   if(dag->preferred_parent != NULL) {
     PRINTF("Preferred parent: ");
-    PRINT6ADDR(&dag->preferred_parent->addr);
+    PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
     PRINTF("\n");
   }
-  for(r = uip_ds6_route_list_head();
+  for(r = uip_ds6_route_head();
       r != NULL;
-      r = list_item_next(r)) {
+      r = uip_ds6_route_next(r)) {
     PRINT6ADDR(&r->ipaddr);
   }
   PRINTF("---\n");
@@ -134,12 +132,12 @@ collect_common_send(void)
     preferred_parent = dag->preferred_parent;
     if(preferred_parent != NULL) {
       uip_ds6_nbr_t *nbr;
-      nbr = uip_ds6_nbr_lookup(&preferred_parent->addr);
+      nbr = uip_ds6_nbr_lookup(rpl_get_parent_ipaddr(preferred_parent));
       if(nbr != NULL) {
         /* Use parts of the IPv6 address as the parent address, in reversed byte order. */
         parent.u8[RIMEADDR_SIZE - 1] = nbr->ipaddr.u8[sizeof(uip_ipaddr_t) - 2];
         parent.u8[RIMEADDR_SIZE - 2] = nbr->ipaddr.u8[sizeof(uip_ipaddr_t) - 1];
-        parent_etx = neighbor_info_get_metric((rimeaddr_t *) &nbr->lladdr) / 2;
+        parent_etx = rpl_get_parent_rank((rimeaddr_t *) uip_ds6_nbr_get_ll(nbr)) / 2;
       }
     }
     rtmetric = dag->rank;

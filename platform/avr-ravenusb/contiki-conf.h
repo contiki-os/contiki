@@ -232,7 +232,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #endif /* UIP_CONF_IPV6 */
 
 /* See uip-ds6.h */
-#define UIP_CONF_DS6_NBR_NBU     2
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     2
 #define UIP_CONF_DS6_DEFRT_NBU   2
 #define UIP_CONF_DS6_PREFIX_NBU  3
 #define UIP_CONF_MAX_ROUTES   2
@@ -360,8 +360,8 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM        8
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU       5
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS       5
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES     5
 
@@ -409,7 +409,7 @@ typedef unsigned short uip_stats_t;
 #endif
 #define RPL_CONF_STATS              0
 #define UIP_CONF_BUFFER_SIZE	 1300
-//#define UIP_CONF_DS6_NBR_NBU       12
+//#define NBR_TABLE_CONF_MAX_NEIGHBORS       12
 //#define UIP_CONF_MAX_ROUTES     12
 
 #ifdef RPL_BORDER_ROUTER
@@ -446,8 +446,8 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_TCP                1
 #define UIP_CONF_TCP_MSS           48
 #define UIP_CONF_RECEIVE_WINDOW    48
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU        5
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS        5
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES      5
 #undef UIP_CONF_MAX_CONNECTIONS
