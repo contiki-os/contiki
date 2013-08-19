@@ -593,8 +593,6 @@ if ((clocktime%PINGS)==1) {
 #if ROUTES && UIP_CONF_IPV6
 if ((clocktime%ROUTES)==2) {
       
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
-extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
 
   uint8_t i,j;
@@ -605,13 +603,14 @@ extern uip_ds6_netif_t uip_ds6_if;
       printf("\n");
     }
   }
-  printf("\nNeighbors [%u max]\n",UIP_DS6_NBR_NB);
-  for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      uip_debug_ipaddr_print(&uip_ds6_nbr_cache[i].ipaddr);
+  printf("\nNeighbors [%u max]\n",NBR_TABLE_MAX_NEIGHBORS);
+  uip_ds6_nbr_t *nbr;
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+      uip_debug_ipaddr_print(&nbr->ipaddr);
       printf("\n");
       j=0;
-    }
   }
   if (j) printf("  <none>");
   PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
@@ -619,17 +618,13 @@ extern uip_ds6_netif_t uip_ds6_if;
     uip_ds6_route_t *r;
     PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
     j = 1;
-    for(r = uip_ds6_route_list_head();
+    for(r = uip_ds6_route_head();
         r != NULL;
-        r = list_item_next(r)) {
+        r = uip_ds6_route_next(r)) {
       ipaddr_add(&r->ipaddr);
       PRINTF("/%u (via ", r->length);
-      ipaddr_add(&r->nexthop);
- //     if(uip_ds6_routing_table[i].state.lifetime < 600) {
-      PRINTF(") %lus\n", r->state.lifetime);
-      //     } else {
-      //       PRINTF(")\n");
-      //     }
+      ipaddr_add(uip_ds6_route_nexthop(r));
+       PRINTF(") %lus\n", r->state.lifetime);
       j = 0;
     }
   }

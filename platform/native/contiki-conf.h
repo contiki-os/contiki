@@ -125,14 +125,13 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_IPV6_REASSEMBLY 0
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
 #define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_NEIGHBORS    4
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
 #define UIP_CONF_ICMP6           1
 
 /* configure number of neighbors and routes */
-#ifndef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     30
-#endif /* UIP_CONF_DS6_NBR_NBU */
+#ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     30
+#endif /* NBR_TABLE_CONF_MAX_NEIGHBORS */
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   30
 #endif /* UIP_CONF_MAX_ROUTES */

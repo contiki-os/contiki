@@ -160,9 +160,8 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_IPV6_REASSEMBLY      1
 //#define UIP_CONF_NETIF_MAX_ADDRESSES  5
 //#define UIP_CONF_ND6_MAX_PREFIXES     3
-//#define UIP_CONF_ND6_MAX_NEIGHBORS    40 
 //#define UIP_CONF_ND6_MAX_DEFROUTERS   2
-#define UIP_CONF_DS6_NBR_NBU     100
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     100
 #define UIP_CONF_DS6_DEFRT_NBU   2
 #define UIP_CONF_DS6_PREFIX_NBU  5
 #define UIP_CONF_MAX_ROUTES   100

@@ -79,7 +79,7 @@
 #define CONTIKIMAC_CONF_ANNOUNCEMENTS    0
 #define CONTIKIMAC_CONF_COMPOWER         1
 
-#define COLLECT_NEIGHBOR_CONF_MAX_NEIGHBORS      32
+#define COLLECT_NBR_TABLE_CONF_MAX_NEIGHBORS      32
 
 #endif /* WITH_UIP6 */
 
@@ -113,11 +113,11 @@
 #define UIP_CONF_IPV6_RPL               1
 
 /* configure number of neighbors and routes */
-#define UIP_CONF_DS6_NBR_NBU     5
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     5
 #define UIP_CONF_MAX_ROUTES   5
 
 #define RPL_CONF_MAX_PARENTS         4
-#define NEIGHBOR_CONF_MAX_NEIGHBORS  8
+#define NBR_TABLE_CONF_MAX_NEIGHBORS  8
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
@@ -129,7 +129,6 @@
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_ND6_MAX_PREFIXES       3
-#define UIP_CONF_ND6_MAX_NEIGHBORS      4
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
 #define UIP_CONF_BUFFER_SIZE		    240
