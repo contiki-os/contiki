@@ -255,16 +255,6 @@ static struct compower_activity current_packet;
 
 #include "net/mac/phase.h"
 
-#ifdef CONTIKIMAC_CONF_MAX_PHASE_NEIGHBORS
-#define MAX_PHASE_NEIGHBORS CONTIKIMAC_CONF_MAX_PHASE_NEIGHBORS
-#endif
-
-#ifndef MAX_PHASE_NEIGHBORS
-#define MAX_PHASE_NEIGHBORS 30
-#endif
-
-PHASE_LIST(phase_list, MAX_PHASE_NEIGHBORS);
-
 #endif /* WITH_PHASE_OPTIMIZATION */
 
 #define DEFAULT_STREAM_TIME (4 * CYCLE_TIME)
@@ -665,7 +655,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
   if(!is_broadcast && !is_receiver_awake) {
 #if WITH_PHASE_OPTIMIZATION
-    ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+    ret = phase_wait(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                      CYCLE_TIME, GUARD_TIME,
                      mac_callback, mac_callback_ptr, buf_list);
     if(ret == PHASE_DEFERRED) {
@@ -865,7 +855,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
   if(!is_broadcast) {
     if(collisions == 0 && is_receiver_awake == 0) {
-      phase_update(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+      phase_update(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
 		   encounter_time, ret);
     }
   }
@@ -1049,7 +1039,7 @@ init(void)
   contikimac_is_on = 1;
 
 #if WITH_PHASE_OPTIMIZATION
-  phase_init(&phase_list);
+  phase_init();
 #endif /* WITH_PHASE_OPTIMIZATION */
 
 }

@@ -63,9 +63,6 @@
 
 uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
-extern uip_ds6_route_t uip_ds6_routing_table[];
-
 extern long slip_sent;
 extern long slip_received;
 
@@ -150,32 +147,34 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 {
   static int i;
   static uip_ds6_route_t *r;
+  static uip_ds6_nbr_t *nbr;
+
   PSOCK_BEGIN(&s->sout);
 
   SEND_STRING(&s->sout, TOP);
 
   blen = 0;
   ADD("Neighbors<pre>");
-  for(i = 0; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
-      ADD("\n");
-      if(blen > sizeof(buf) - 45) {
-        SEND_STRING(&s->sout, buf);
-        blen = 0;
-      }
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+    ipaddr_add(&nbr->ipaddr;);
+    ADD("\n");
+    if(blen > sizeof(buf) - 45) {
+      SEND_STRING(&s->sout, buf);
+      blen = 0;
     }
   }
 
   ADD("</pre>Routes<pre>");
   SEND_STRING(&s->sout, buf);
   blen = 0;
-  for(r = uip_ds6_route_list_head();
+  for(r = uip_ds6_route_head();
       r != NULL;
-      r = list_item_next(r)) {
+      r = uip_ds6_route_next(r)) {
     ipaddr_add(&r->ipaddr);
     ADD("/%u (via ", r->length);
-    ipaddr_add(&r->nexthop);
+    ipaddr_add(uip_ds6_route_nexthop(r));
     if(r->state.lifetime < 600) {
       ADD(") %lus\n", (unsigned long)r->state.lifetime);
     } else {

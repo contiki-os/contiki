@@ -239,7 +239,7 @@ radio_uip_uaodv_send(void)
   }
   
   /* Add header and buffer packet for persistent transmission */
-  uip_len = radio_uip_uaodv_add_header(&uip_buf[UIP_LLH_LEN], uip_len, &route->nexthop); /* TODO Correct? */
+  uip_len = radio_uip_uaodv_add_header(&uip_buf[UIP_LLH_LEN], uip_len, uip_ds6_route_nexthop(route)); /* TODO Correct? */
   return radio_uip_buffer_outgoing_packet(
     &uip_buf[UIP_LLH_LEN],
     uip_len,

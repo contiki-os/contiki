@@ -159,7 +159,7 @@ typedef unsigned long rtimer_clock_t;
 #define XMAC_CONF_COMPOWER               0
 #define CXMAC_CONF_COMPOWER              0
 
-#define COLLECT_NEIGHBOR_CONF_MAX_NEIGHBORS      32
+#define COLLECT_NBR_TABLE_CONF_MAX_NEIGHBORS      32
 
 #endif /* WITH_UIP6 */
 
@@ -196,7 +196,7 @@ typedef unsigned long rtimer_clock_t;
 #define UIP_CONF_ROUTER                 1  
 #define UIP_CONF_IPV6_RPL               1
 
-#define UIP_CONF_DS6_NBR_NBU     30
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     30
 #define UIP_CONF_MAX_ROUTES   30
 
 #define UIP_CONF_ND6_SEND_RA		0
@@ -209,7 +209,6 @@ typedef unsigned long rtimer_clock_t;
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_ND6_MAX_PREFIXES       3
-#define UIP_CONF_ND6_MAX_NEIGHBORS      4
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
 #define UIP_CONF_BUFFER_SIZE		1300

@@ -47,28 +47,6 @@
 #include "lib/memb.h"
 #include "net/netstack.h"
 
-#if PHASE_CONF_DRIFT_CORRECT
-#define PHASE_DRIFT_CORRECT PHASE_CONF_DRIFT_CORRECT
-#else
-#define PHASE_DRIFT_CORRECT 0
-#endif
-
-struct phase {
-  struct phase *next;
-  rimeaddr_t neighbor;
-  rtimer_clock_t time;
-#if PHASE_DRIFT_CORRECT
-  rtimer_clock_t drift;
-#endif
-  uint8_t noacks;
-  struct timer noacks_timer;
-};
-
-struct phase_list {
-  list_t *list;
-  struct memb *memb;
-};
-
 typedef enum {
   PHASE_UNKNOWN,
   PHASE_SEND_NOW,
@@ -76,18 +54,13 @@ typedef enum {
 } phase_status_t;
 
 
-#define PHASE_LIST(name, num) LIST(phase_list_list);                              \
-                              MEMB(phase_list_memb, struct phase, num);           \
-                              struct phase_list name = { &phase_list_list, &phase_list_memb }
-
-void phase_init(struct phase_list *list);
-phase_status_t phase_wait(struct phase_list *list,  const rimeaddr_t *neighbor,
+void phase_init(void);
+phase_status_t phase_wait(const rimeaddr_t *neighbor,
                           rtimer_clock_t cycle_time, rtimer_clock_t wait_before,
                           mac_callback_t mac_callback, void *mac_callback_ptr,
                           struct rdc_buf_list *buf_list);
-void phase_update(const struct phase_list *list, const rimeaddr_t *neighbor,
+void phase_update(const rimeaddr_t *neighbor,
                   rtimer_clock_t time, int mac_status);
-
-void phase_remove(const struct phase_list *list, const rimeaddr_t *neighbor);
+void phase_remove(const rimeaddr_t *neighbor);
 
 #endif /* PHASE_H */

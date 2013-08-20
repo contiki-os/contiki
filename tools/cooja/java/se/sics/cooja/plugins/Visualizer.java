@@ -550,7 +550,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     try {
       VisualizerSkin newSkin = skinClass.newInstance();
       newSkin.setActive(Visualizer.this.simulation, Visualizer.this);
-      currentSkins.add(newSkin);
+      currentSkins.add(0, newSkin);
     } catch (InstantiationException e1) {
       e1.printStackTrace();
     } catch (IllegalAccessException e1) {
@@ -700,7 +700,26 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     menu.setVisible(true);
   }
 
+  private boolean showMoteToMoteRelations = true;
   private void populateSkinMenu(MenuElement menu) {
+	  /* Mote-to-mote relations */
+	  JCheckBoxMenuItem moteRelationsItem = new JCheckBoxMenuItem("Mote relations", showMoteToMoteRelations);
+	  moteRelationsItem.addItemListener(new ItemListener() {
+		  public void itemStateChanged(ItemEvent e) {
+			  JCheckBoxMenuItem menuItem = ((JCheckBoxMenuItem)e.getItem());
+			  showMoteToMoteRelations = menuItem.isSelected();
+			  repaint();
+		  }
+	  });
+	  if (menu instanceof JMenu) {
+		  ((JMenu)menu).add(moteRelationsItem);
+		  ((JMenu)menu).add(new JSeparator());
+	  }
+	  if (menu instanceof JPopupMenu) {
+		  ((JPopupMenu)menu).add(moteRelationsItem);
+		  ((JPopupMenu)menu).add(new JSeparator());
+	  }
+	  
     for (Class<? extends VisualizerSkin> skinClass: visualizerSkins) {
       /* Should skin be enabled in this simulation? */
       if (!isSkinCompatible(skinClass)) {
@@ -998,16 +1017,18 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     Mote[] allMotes = simulation.getMotes();
 
     /* Paint mote relations */
-    MoteRelation[] relations = simulation.getGUI().getMoteRelations();
-    for (MoteRelation r: relations) {
-      Position sourcePos = r.source.getInterfaces().getPosition();
-      Position destPos = r.dest.getInterfaces().getPosition();
+    if (showMoteToMoteRelations) {
+        MoteRelation[] relations = simulation.getGUI().getMoteRelations();
+        for (MoteRelation r: relations) {
+          Position sourcePos = r.source.getInterfaces().getPosition();
+          Position destPos = r.dest.getInterfaces().getPosition();
 
-      Point sourcePoint = transformPositionToPixel(sourcePos);
-      Point destPoint = transformPositionToPixel(destPos);
+          Point sourcePoint = transformPositionToPixel(sourcePos);
+          Point destPoint = transformPositionToPixel(destPos);
 
-      g.setColor(r.color == null ? Color.black : r.color);
-      drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, MOTE_RADIUS + 1);
+          g.setColor(r.color == null ? Color.black : r.color);
+          drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, MOTE_RADIUS + 1);
+        }
     }
 
     for (Mote mote: allMotes) {
@@ -1264,11 +1285,19 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
+    /* Show mote-to-mote relations */
+    if (showMoteToMoteRelations) {
+        element = new Element("moterelations");
+        element.setText("" + true);
+        config.add(element);
+    }
+    
     /* Skins */
-    for (VisualizerSkin skin: currentSkins) {
-      element = new Element("skin");
-      element.setText(skin.getClass().getName());
-      config.add(element);
+    for (int i=currentSkins.size()-1; i >= 0; i--) {
+    	VisualizerSkin skin = currentSkins.get(i);
+    	element = new Element("skin");
+    	element.setText(skin.getClass().getName());
+    	config.add(element);
     }
 
     /* Viewport */
@@ -1298,6 +1327,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     loadedConfig = true;
+    showMoteToMoteRelations = false;
 
     for (Element element : configXML) {
       if (element.getName().equals("skin")) {
@@ -1319,6 +1349,8 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         if (wanted != null) {
           logger.warn("Could not load visualizer: " + element.getText());
         }
+      } else if (element.getName().equals("moterelations")) {
+    	  showMoteToMoteRelations = true;
       } else if (element.getName().equals("viewport")) {
         try {
           String[] matrix = element.getText().split(" ");

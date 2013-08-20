@@ -179,6 +179,9 @@ public class TyndallMoteType extends MspMoteType {
     return null;
   }
 
+  public Class<? extends MoteInterface>[] getDefaultMoteInterfaceClasses() {
+	  return getAllMoteInterfaceClasses();
+  }
   public Class<? extends MoteInterface>[] getAllMoteInterfaceClasses() {
     return new Class[] {
         Position.class,

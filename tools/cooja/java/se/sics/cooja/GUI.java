@@ -1539,6 +1539,9 @@ public class GUI extends Observable {
     "MOTETYPES");
     if (moteTypeClassNames != null) {
       for (String moteTypeClassName : moteTypeClassNames) {
+        if (moteTypeClassName.trim().isEmpty()) {
+          continue;
+        }
         Class<? extends MoteType> moteTypeClass = tryLoadClass(this,
             MoteType.class, moteTypeClassName);
 
@@ -4237,6 +4240,22 @@ public class GUI extends Observable {
       String fileCanonical = file.getCanonicalPath();
       if (!fileCanonical.startsWith(configCanonical)) {
         /* SPECIAL CASE: Allow one parent directory */
+        File parent = new File(configCanonical).getParentFile();
+        if (parent != null) {
+          configCanonical = parent.getCanonicalPath();
+          id += "/..";
+        }
+      }
+      if (!fileCanonical.startsWith(configCanonical)) {
+        /* SPECIAL CASE: Allow two parent directories */
+        File parent = new File(configCanonical).getParentFile();
+        if (parent != null) {
+          configCanonical = parent.getCanonicalPath();
+          id += "/..";
+        }
+      }
+      if (!fileCanonical.startsWith(configCanonical)) {
+        /* SPECIAL CASE: Allow three parent directories */
         File parent = new File(configCanonical).getParentFile();
         if (parent != null) {
           configCanonical = parent.getCanonicalPath();
