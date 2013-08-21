@@ -74,6 +74,7 @@
 #if UIP_UDP
 
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include <ctype.h>
 
@@ -606,8 +607,6 @@ mdns_prep_host_announce_packet(void)
   unsigned char *queryptr;
 
   uint8_t total_answers = 0;
-
-  struct dns_answer *ans;
 
   /* Be aware that, unless `ARCH_DOESNT_NEED_ALIGNED_STRUCTS` is set,
    * writing directly to the uint16_t members of this struct is an error. */

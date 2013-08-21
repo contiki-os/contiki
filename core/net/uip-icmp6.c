@@ -65,7 +65,9 @@
 #define UIP_FIRST_EXT_BUF        ((struct uip_ext_hdr *)&uip_buf[UIP_LLIPH_LEN])
 
 /** \brief temporary IP address */
+#if UIP_CONF_IPV6
 static uip_ipaddr_t tmp_ipaddr;
+#endif /* UIP_CONF_IPV6 */
 
 #if UIP_CONF_IPV6_RPL
 #include "rpl/rpl.h"
