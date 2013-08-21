@@ -240,6 +240,7 @@ rpl_instance_t *rpl_get_instance(uint8_t instance_id);
 void rpl_update_header_empty(void);
 int rpl_update_header_final(uip_ipaddr_t *addr);
 int rpl_verify_header(int);
+void rpl_insert_header(void);
 void rpl_remove_header(void);
 uint8_t rpl_invert_header(void);
 uip_ipaddr_t *rpl_get_parent_ipaddr(rpl_parent_t *nbr);
