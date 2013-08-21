@@ -74,7 +74,6 @@
 #if UIP_UDP
 
 #include <string.h>
-#include <strings.h>
 #include <stdio.h>
 #include <ctype.h>
 
