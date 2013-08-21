@@ -254,13 +254,11 @@ collect_neighbor_list_remove(struct collect_neighbor_list *neighbors_list,
 struct collect_neighbor *
 collect_neighbor_list_best(struct collect_neighbor_list *neighbors_list)
 {
-  int found;
   struct collect_neighbor *n, *best;
   uint16_t rtmetric;
 
   rtmetric = RTMETRIC_MAX;
   best = NULL;
-  found = 0;
 
   if(neighbors_list == NULL) {
     return NULL;

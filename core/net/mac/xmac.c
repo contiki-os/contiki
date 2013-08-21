@@ -227,6 +227,11 @@ struct seqno {
 #define MAX_SEQNOS 8
 static struct seqno received_seqnos[MAX_SEQNOS];
 
+#if RDC_CONF_HARDWARE_ACK
+#define HARDWARE_ACK RDC_CONF_HARDWARE_ACK
+#else /* RDC_CONF_HARDWARE_ACK */
+#define HARDWARE_ACK 0
+#endif /* RDC_CONF_HARDWARE_ACK */
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -662,19 +667,19 @@ send_packet(void)
 	  wt = RTIMER_NOW();
 	  while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + WAIT_TIME_BEFORE_STROBE_ACK));
 #endif /* 0 */
-#if RDC_CONF_HARDWARE_ACK
-          if(ret == RADIO_TX_OK) {
-            got_strobe_ack = 1;
+          if(HARDWARE_ACK) {
+            if(ret == RADIO_TX_OK) {
+              got_strobe_ack = 1;
+            } else {
+              off();
+            }
           } else {
-            off();
+            if(detect_ack()) {
+              got_strobe_ack = 1;
+            } else {
+              off();
+            }
           }
-#else
-          if(detect_ack()) {
-            got_strobe_ack = 1;
-          } else {
-            off();
-          }
-#endif /* RDC_CONF_HARDWARE_ACK */
 
         }
       }
@@ -705,7 +710,7 @@ send_packet(void)
     ret = NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
 
     if(!is_broadcast) {
-#if RDC_CONF_HARDWARE_ACK
+#if HARDWARE_ACK
       if(ret == RADIO_TX_OK) {
         got_ack = 1;
       }
@@ -713,7 +718,7 @@ send_packet(void)
       if(detect_ack()) {
         got_ack = 1;
       }
-#endif /* RDC_CONF_HARDWARE_ACK */
+#endif /* HARDWARE_ACK */
     }
   }
   off();
