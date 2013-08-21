@@ -186,6 +186,12 @@ static struct ctimer stream_probe_timer, stream_off_timer;
 #define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
 
+#if RDC_CONF_HARDWARE_ACK
+#define HARDWARE_ACK RDC_CONF_HARDWARE_ACK
+#else /* RDC_CONF_HARDWARE_ACK */
+#define HARDWARE_ACK 0
+#endif /* RDC_CONF_HARDWARE_ACK */
+
 /*---------------------------------------------------------------------------*/
 static void
 turn_radio_on(void)
@@ -879,21 +885,19 @@ input_packet(void)
              neighbors, and are dequeued by the dutycycling function
              instead, after the appropriate time. */
           if(!rimeaddr_cmp(receiver, &rimeaddr_null)) {
-#if RDC_CONF_HARDWARE_ACK
-
-            if(ret == RADIO_TX_OK) {
-              remove_queued_packet(i, 1);
+            if(HARDWARE_ACK) {
+              if(ret == RADIO_TX_OK) {
+                remove_queued_packet(i, 1);
+              } else {
+                remove_queued_packet(i, 0);
+              }
             } else {
-              remove_queued_packet(i, 0);
+              if(detect_ack()) {
+                remove_queued_packet(i, 1);
+              } else {
+                remove_queued_packet(i, 0);
+              }
             }
-#else
-            if(detect_ack()) {
-              remove_queued_packet(i, 1);
-            } else {
-              remove_queued_packet(i, 0);
-            }
-
-#endif /* RDC_CONF_HARDWARE_ACK */
 
 
 #if WITH_PROBE_AFTER_TRANSMISSION

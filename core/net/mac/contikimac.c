@@ -280,6 +280,12 @@ static struct timer broadcast_rate_timer;
 static int broadcast_rate_counter;
 #endif /* CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT */
 
+#if RDC_CONF_HARDWARE_ACK
+#define HARDWARE_ACK RDC_CONF_HARDWARE_ACK
+#else /* RDC_CONF_HARDWARE_ACK */
+#define HARDWARE_ACK 0
+#endif /* RDC_CONF_HARDWARE_ACK */
+
 /*---------------------------------------------------------------------------*/
 static void
 on(void)
@@ -734,7 +740,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
   }
 #endif /* RDC_CONF_HARDWARE_CSMA */
 
-#if !RDC_CONF_HARDWARE_ACK
+#if !HARDWARE_ACK
   if(!is_broadcast) {
     /* Turn radio on to receive expected unicast ack.  Not necessary
        with hardware ack detection, and may trigger an unnecessary cca
@@ -768,45 +774,45 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
       txtime = RTIMER_NOW();
       ret = NETSTACK_RADIO.transmit(transmit_len);
 
-#if RDC_CONF_HARDWARE_ACK
-     /* For radios that block in the transmit routine and detect the
-	ACK in hardware */
-      if(ret == RADIO_TX_OK) {
-        if(!is_broadcast) {
-          got_strobe_ack = 1;
-          encounter_time = txtime;
+      if(HARDWARE_ACK) {
+        /* For radios that block in the transmit routine and detect the
+           ACK in hardware */
+        if(ret == RADIO_TX_OK) {
+          if(!is_broadcast) {
+            got_strobe_ack = 1;
+            encounter_time = txtime;
           break;
-        }
-      } else if (ret == RADIO_TX_NOACK) {
-      } else if (ret == RADIO_TX_COLLISION) {
+          }
+        } else if (ret == RADIO_TX_NOACK) {
+        } else if (ret == RADIO_TX_COLLISION) {
           PRINTF("contikimac: collisions while sending\n");
           collisions++;
       }
-      wt = RTIMER_NOW();
-      while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + INTER_PACKET_INTERVAL)) { }
-#else /* RDC_CONF_HARDWARE_ACK */
-     /* Wait for the ACK packet */
-      wt = RTIMER_NOW();
-      while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + INTER_PACKET_INTERVAL)) { }
-
-      if(!is_broadcast && (NETSTACK_RADIO.receiving_packet() ||
-                           NETSTACK_RADIO.pending_packet() ||
-                           NETSTACK_RADIO.channel_clear() == 0)) {
-        uint8_t ackbuf[ACK_LEN];
         wt = RTIMER_NOW();
-        while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + AFTER_ACK_DETECTECT_WAIT_TIME)) { }
+        while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + INTER_PACKET_INTERVAL)) { }
+      } else {
+        /* Wait for the ACK packet */
+        wt = RTIMER_NOW();
+        while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + INTER_PACKET_INTERVAL)) { }
 
-        len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
-        if(len == ACK_LEN && seqno == ackbuf[ACK_LEN - 1]) {
-          got_strobe_ack = 1;
-          encounter_time = txtime;
-          break;
-        } else {
-          PRINTF("contikimac: collisions while sending\n");
-          collisions++;
+        if(!is_broadcast && (NETSTACK_RADIO.receiving_packet() ||
+                             NETSTACK_RADIO.pending_packet() ||
+                             NETSTACK_RADIO.channel_clear() == 0)) {
+          uint8_t ackbuf[ACK_LEN];
+          wt = RTIMER_NOW();
+          while(RTIMER_CLOCK_LT(RTIMER_NOW(), wt + AFTER_ACK_DETECTECT_WAIT_TIME)) { }
+
+          len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
+          if(len == ACK_LEN && seqno == ackbuf[ACK_LEN - 1]) {
+            got_strobe_ack = 1;
+            encounter_time = txtime;
+            break;
+          } else {
+            PRINTF("contikimac: collisions while sending\n");
+            collisions++;
+          }
         }
       }
-#endif /* RDC_CONF_HARDWARE_ACK */
     }
   }
 

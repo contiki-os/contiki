@@ -101,9 +101,7 @@
 #define NULLRDC_SEND_802154_ACK 0
 #endif /* NULLRDC_CONF_SEND_802154_ACK */
 
-#if NULLRDC_SEND_802154_ACK
 #include "net/mac/frame802154.h"
-#endif /* NULLRDC_SEND_802154_ACK */
 
 #define ACK_LEN 3
 
@@ -336,8 +334,7 @@ packet_input(void)
     }
 #endif /* NULLRDC_802154_AUTOACK */
 
-#if NULLRDC_SEND_802154_ACK
-    {
+    if(NULLRDC_SEND_802154_ACK) {
       frame802154_t info154;
       frame802154_parse(original_dataptr, original_datalen, &info154);
       if(info154.fcf.frame_type == FRAME802154_DATAFRAME &&
@@ -352,7 +349,7 @@ packet_input(void)
         NETSTACK_RADIO.send(ackdata, ACK_LEN);
       }
     }
-#endif /* NULLRDC_SEND_ACK */
+
     if(!duplicate) {
       NETSTACK_MAC.input();
     }
