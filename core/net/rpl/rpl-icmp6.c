@@ -622,6 +622,34 @@ dao_input(void)
     /* Perhaps, there are verification to do but ... */
   }
 
+  learned_from = uip_is_addr_mcast(&dao_sender_addr) ?
+                 RPL_ROUTE_FROM_MULTICAST_DAO : RPL_ROUTE_FROM_UNICAST_DAO;
+
+  PRINTF("RPL: DAO from %s\n",
+         learned_from == RPL_ROUTE_FROM_UNICAST_DAO? "unicast": "multicast");
+  if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
+    /* Check whether this is a DAO forwarding loop. */
+    p = rpl_find_parent(dag, &dao_sender_addr);
+    /* check if this is a new DAO registration with an "illegal" rank */
+    /* if we already route to this node it is likely */
+    if(p != NULL &&
+       DAG_RANK(p->rank, instance) < DAG_RANK(dag->rank, instance)) {
+      PRINTF("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
+          DAG_RANK(p->rank, instance), DAG_RANK(dag->rank, instance));
+      p->rank = INFINITE_RANK;
+      p->updated = 1;
+      return;
+    }
+
+    /* If we get the DAO from our parent, we also have a loop. */
+    if(p != NULL && p == dag->preferred_parent) {
+      PRINTF("RPL: Loop detected when receiving a unicast DAO from our parent\n");
+      p->rank = INFINITE_RANK;
+      p->updated = 1;
+      return;
+    }
+  }
+
   /* Check if there are any RPL options present. */
   for(i = pos; i < buffer_length; i += len) {
     subopt_type = buffer[i];
@@ -685,34 +713,6 @@ dao_input(void)
       }
     }
     return;
-  }
-
-  learned_from = uip_is_addr_mcast(&dao_sender_addr) ?
-                 RPL_ROUTE_FROM_MULTICAST_DAO : RPL_ROUTE_FROM_UNICAST_DAO;
-
-  PRINTF("RPL: DAO from %s\n",
-         learned_from == RPL_ROUTE_FROM_UNICAST_DAO? "unicast": "multicast");
-  if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
-    /* Check whether this is a DAO forwarding loop. */
-    p = rpl_find_parent(dag, &dao_sender_addr);
-    /* check if this is a new DAO registration with an "illegal" rank */
-    /* if we already route to this node it is likely */
-    if(p != NULL &&
-       DAG_RANK(p->rank, instance) < DAG_RANK(dag->rank, instance)) {
-      PRINTF("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
-          DAG_RANK(p->rank, instance), DAG_RANK(dag->rank, instance));
-      p->rank = INFINITE_RANK;
-      p->updated = 1;
-      return;
-    }
-
-    /* If we get the DAO from our parent, we also have a loop. */
-    if(p != NULL && p == dag->preferred_parent) {
-      PRINTF("RPL: Loop detected when receiving a unicast DAO from our parent\n");
-      p->rank = INFINITE_RANK;
-      p->updated = 1;
-      return;
-    }
   }
 
   PRINTF("RPL: adding DAO route\n");
