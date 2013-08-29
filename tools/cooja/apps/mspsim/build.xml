@@ -8,8 +8,8 @@
   <property name="cooja" location="../.."/>
   
   <property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
-  <property name="mspsim" location="../../../mspsim"/>
-  <property name="mspsim_jar" value="${lib}/mspsim.jar"/>
+  <property name="mspsim" location="${cooja}/../mspsim"/>
+  <property name="mspsim_jar" value="${mspsim}/mspsim.jar"/>
   <property name="coffee" location="../../../coffee-manager"/>
   <property name="coffee_jar" value="${lib}/coffee.jar"/>
   <property name="cooja_mspsim_jar" value="${lib}/cooja_mspsim.jar"/>
@@ -26,7 +26,8 @@
   </target>
 
   <target name="mspsim" depends="init">
-    <copy todir="${lib}" file="${mspsim}/mspsim.jar" />
+    <ant antfile="build.xml" dir="${mspsim}" target="jar" inheritAll="false"/>
+    <copy todir="${lib}" file="${mspsim_jar}" />
     <copy todir="${lib}" file="${mspsim}/lib/jipv6.jar" />
   </target>
 
