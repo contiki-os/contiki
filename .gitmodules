@@ -1,0 +1,3 @@
+[submodule "tools/mspsim"]
+	path = tools/mspsim
+	url = https://github.com/contiki-os/mspsim.git
