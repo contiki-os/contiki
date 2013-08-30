@@ -6,12 +6,31 @@ CFLAGS+=-e --vla -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=
 #CFLAGS+=--no_cse --no_unroll --no_inline --no_code_motion --no_tbaa --debug -D__MSP430F5438A__ -e --double=32 --dlib_config 'C:\Program Files (x86)\IAR Systems\Embedded Workbench 6.0 Evaluation\430\LIB\DLIB\dl430xsfn.h' --core=430X --data_model=small -Ol --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40
 endif
 
+# EXP5438_RFEM : Identify the RF module installed on the EXP430F5438.
+#
+# The original Contiki port used what's identified here as 2420, but other
+# modules may be selected.  Module selection is made in platform
+# contiki-conf.h and supporting macros are defined in platform-conf.h.
+#
+# 2420 (default): Original port, does not use RFEM macros
+# CC2520EMK : Baseline Contiki cc2520 driver with CC2520EMK
+#
+EXP5438_RFEM=2420
+CFLAGS += -DEXP5438_RFEM_$(EXP5438_RFEM)
+
 CLEAN += *.exp5438 symbols.c symbols.h
 
 ARCH=msp430.c leds.c watchdog.c \
-     spix.c cc2420.c cc2420-arch.c \
+     spix.c \
      rtimer-arch.c node-id.c leds-arch.c uart1x.c lcd.c \
      hal_lcd.c hal_lcd_fonts.c duty-cycle-scroller.c cfs-ram.c
+
+ifeq ($(EXP5438_RFEM),2420)
+ARCH += cc2420.c cc2420-arch.c
+endif # EXP5438_RFEM = 2420
+ifeq ($(EXP5438_RFEM),CC2520EMK)
+ARCH += cc2520.c cc2520-arch.c
+endif # EXP5438_RFEM = CC2520EMK
 
 ifeq ($(WITH_SLIP),1)
 ARCH += slip_uart0.c

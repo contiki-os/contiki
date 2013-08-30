@@ -69,7 +69,11 @@ typedef unsigned long clock_time_t;
 typedef unsigned long off_t;
 
 /* the low-level radio driver */
+#if (EXP5438_RFEM_CC2520EMK - 0)
+#define NETSTACK_CONF_RADIO   cc2520_driver
+#else
 #define NETSTACK_CONF_RADIO   cc2420_driver
+#endif
 
 /*
  * Definitions below are dictated by the hardware and not really
@@ -131,6 +135,118 @@ typedef unsigned long off_t;
 #define SPI_FLASH_HOLD()                ( P5OUT &= ~BV(FLASH_HOLD) )
 #define SPI_FLASH_UNHOLD()              ( P5OUT |=  BV(FLASH_HOLD) )
 
+/* RF Evaluation Module Header pin-to-MCU mapping.
+ *
+ * Different modules associate different functions with the RF pins.
+ * These macros access the primary headers RF1 and RF2; the eZ-RF
+ * header RF3 is currently not described here. */
+#define RFEM_RF1_3_PORT(type)  P1##type
+#define RFEM_RF1_3_PIN         4
+#define RFEM_RF1_5_PORT(type)  P1##type
+#define RFEM_RF1_5_PIN         2
+#define RFEM_RF1_6_PORT(type)  P1##type
+#define RFEM_RF1_6_PIN         5
+#define RFEM_RF1_7_PORT(type)  P1##type
+#define RFEM_RF1_7_PIN         5
+#define RFEM_RF1_8_PORT(type)  P1##type
+#define RFEM_RF1_8_PIN         6
+#define RFEM_RF1_9_PORT(type)  P1##type
+#define RFEM_RF1_9_PIN         6
+#define RFEM_RF1_10_PORT(type) P7##type
+#define RFEM_RF1_10_PIN        6
+#define RFEM_RF1_12_PORT(type) P1##type
+#define RFEM_RF1_12_PIN        3
+#define RFEM_RF1_14_PORT(type) P3##type
+#define RFEM_RF1_14_PIN        0
+#define RFEM_RF1_16_PORT(type) P3##type
+#define RFEM_RF1_16_PIN        3
+#define RFEM_RF1_18_PORT(type) P3##type
+#define RFEM_RF1_18_PIN        1
+#define RFEM_RF1_20_PORT(type) P3##type
+#define RFEM_RF1_20_PIN        2
+#define RFEM_RF2_15_PORT(type) P1##type
+#define RFEM_RF2_15_PIN        2
+#define RFEM_RF2_18_PORT(type) P8##type
+#define RFEM_RF2_18_PIN        1
+#define RFEM_RF2_19_PORT(type) P8##type
+#define RFEM_RF2_19_PIN        2
+
+/* MSP430 headers define OUT as a macro with the value used in timer
+ * capture/compare control registers to output the timer signal.  This
+ * use interferes with the double macro expansion of CCFOO(OUT) passed
+ * to the RFEM_RFX_Y_PORT(TYPE) macros above. */
+#undef OUT
+
+#ifndef EXP5438_RFEM_CC2520EMK
+/** Define to true preprocessor value to indicate that the RFEM header
+ * has a <a href="http://www.ti.com/tool/cc2520emk">CC2520 Evaluation
+ * Module</a> plugged into it.  This sets the CC2520 as the radio
+ * layer for Contiki on this platform. */
+#define EXP5438_RFEM_CC2520EMK 0
+#endif /* EXP5438_RFEM_CC2520EMK */
+
+#if (EXP5438_RFEM_CC2520EMK - 0)
+
+/* Default fifop signal on GPIO2 @ RF1.9.  This is P1.6, and we need
+ * its interrupt. */
+#define CC2520_FIFOP_PORT(type) RFEM_RF1_9_PORT(type)
+#define CC2520_FIFOP_PIN RFEM_RF1_9_PIN
+/* Default fifo signal on GPIO1 @ RF1.7 */
+#define CC2520_FIFO_PORT(type) RFEM_RF1_7_PORT(type)
+#define CC2520_FIFO_PIN RFEM_RF1_7_PIN
+/* Default cca signal on GPIO3 @ RF1.12 */
+#define CC2520_CCA_PORT(type) RFEM_RF1_12_PORT(type)
+#define CC2520_CCA_PIN RFEM_RF1_12_PIN
+/* Default sfd signal on GPIO4 @ RF2.18 */
+#define CC2520_SFD_PORT(type) RFEM_RF2_18_PORT(type)
+#define CC2520_SFD_PIN RFEM_RF2_18_PIN
+/* SFD on P8.1 maps to TA0.CCI1B.  Record the CCIS; SFD can't actually
+ * be captured until sfd-arch-sfd.c is updated to support TA0 as well
+ * as TB0. */
+#define CC2520_SFD_CCIS (1 * CCIS0)
+/* CSn on RF1.14 */
+#define CC2520_CSN_PORT(type) RFEM_RF1_14_PORT(type)
+#define CC2520_CSN_PIN RFEM_RF1_14_PIN
+/* VREGen on RF1.10 */
+#define CC2520_VREG_PORT(type) RFEM_RF1_10_PORT(type)
+#define CC2520_VREG_PIN RFEM_RF1_10_PIN
+/* RESETn on RF2.15 */
+#define CC2520_RESET_PORT(type) RFEM_RF2_15_PORT(type)
+#define CC2520_RESET_PIN RFEM_RF2_15_PIN
+
+#define CC2520_FIFOP_IS_1 (!!(CC2520_FIFOP_PORT(IN) & BV(CC2520_FIFOP_PIN)))
+#define CC2520_FIFO_IS_1  (!!(CC2520_FIFO_PORT(IN) & BV(CC2520_FIFO_PIN)))
+#define CC2520_CCA_IS_1   (!!(CC2520_CCA_PORT(IN) & BV(CC2520_CCA_PIN)))
+#define CC2520_SFD_IS_1   (!!(CC2520_SFD_PORT(IN) & BV(CC2520_SFD_PIN)))
+
+#define SET_RESET_INACTIVE() do { CC2520_RESET_PORT(OUT) |=  BV(CC2520_RESET_PIN); } while(0)
+#define SET_RESET_ACTIVE()   do { CC2520_RESET_PORT(OUT) &= ~BV(CC2520_RESET_PIN); } while(0)
+#define SET_VREG_ACTIVE()    do { CC2520_VREG_PORT(OUT) |=  BV(CC2520_VREG_PIN); } while(0)
+#define SET_VREG_INACTIVE()  do { CC2520_VREG_PORT(OUT) &= ~BV(CC2520_VREG_PIN); } while(0)
+
+#define CC2520_FIFOP_INT_INIT() do {                  \
+    CC2520_FIFOP_PORT(IES) &= ~BV(CC2520_FIFOP_PIN);  \
+    CC2520_CLEAR_FIFOP_INT();                         \
+  } while(0)
+#define CC2520_ENABLE_FIFOP_INT()  do { CC2520_FIFOP_PORT(IE) |= BV(CC2520_FIFOP_PIN); } while(0)
+#define CC2520_DISABLE_FIFOP_INT() do { CC2520_FIFOP_PORT(IE) &= ~BV(CC2520_FIFOP_PIN); } while(0)
+#define CC2520_CLEAR_FIFOP_INT()   do { CC2520_FIFOP_PORT(IFG) &= ~BV(CC2520_FIFOP_PIN); } while(0)
+
+#define CC2520_SPI_ENABLE()     do { CC2520_CSN_PORT(OUT) &= ~BV(CC2520_CSN_PIN); } while(0)
+#define CC2520_SPI_DISABLE()    do { CC2520_CSN_PORT(OUT) |=  BV(CC2520_CSN_PIN); } while(0)
+#define CC2520_SPI_IS_ENABLED() ((CC2520_CSN_PORT(OUT) & BV(CC2520_CSN_PIN)) != BV(CC2520_CSN_PIN))
+
+/* @todo@ Both these need to be fixed.  The driver shouldn't assume it
+ * has sole control of the entire port register, nor should it have
+ * loop values that depend on the MCU clock speed. */
+
+/* FIFOP on RF1.9 is P1.6 ; need its interrupt vector. */
+#define CC2520_IRQ_VECTOR PORT1_VECTOR
+/* Magic delay */
+#define CC2520_CONF_SYMBOL_LOOP_COUNT 1302      /* 326us msp430X @ 8MHz */
+
+#else
+/* Port for CC2420 support on EXP430F5438 */
 
 /*
  * SPI bus - CC2420 pin configuration.
@@ -199,5 +315,7 @@ typedef unsigned long off_t;
  /* DISABLE CSn (active low) */
 #define CC2420_SPI_DISABLE()    (CC2420_CSN_PORT(OUT) |=  BV(CC2420_CSN_PIN))
 #define CC2420_SPI_IS_ENABLED() ((CC2420_CSN_PORT(OUT) & BV(CC2420_CSN_PIN)) != BV(CC2420_CSN_PIN))
+
+#endif /* RF module selection */
 
 #endif /* __PLATFORM_CONF_H__ */
