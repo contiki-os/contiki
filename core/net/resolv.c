@@ -1139,7 +1139,6 @@ PROCESS_THREAD(resolv_process, ev, data)
   PRINTF("resolver: Process started.\n");
 
   resolv_conn = udp_new(NULL, 0, NULL);
-  resolv_conn->rport = 0;
 
 #if RESOLV_CONF_SUPPORTS_MDNS
   PRINTF("resolver: Supports MDNS.\n");
@@ -1420,7 +1419,6 @@ void
 resolv_conf(const uip_ipaddr_t * dnsserver)
 {
   uip_ipaddr_copy(&resolv_default_dns_server, dnsserver);
-  process_post(&resolv_process, EVENT_NEW_SERVER, &resolv_default_dns_server);
 }
 /*---------------------------------------------------------------------------*/
 /** \internal
