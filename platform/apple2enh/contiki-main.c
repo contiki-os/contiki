@@ -45,15 +45,15 @@
 #endif /* WITH_GUI */
 
 #if WITH_DNS
-#define RESOLV_PROCESS &resolv_process,
+#define RESOLV_PROCESS ,&resolv_process
 #else /* WITH_DNS */
 #define RESOLV_PROCESS
 #endif /* WITH_DNS */
 
 PROCINIT(&etimer_process,
          CTK_PROCESS
-         RESOLV_PROCESS
-         &tcpip_process);
+         &tcpip_process
+         RESOLV_PROCESS);
 
 void clock_update(void);
 
