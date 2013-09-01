@@ -1138,16 +1138,16 @@ PROCESS_THREAD(resolv_process, ev, data)
 
   PRINTF("resolver: Process started.\n");
 
+#if RESOLV_CONF_SUPPORTS_MDNS
   resolv_conn = udp_new(NULL, 0, NULL);
 
-#if RESOLV_CONF_SUPPORTS_MDNS
   PRINTF("resolver: Supports MDNS.\n");
   uip_udp_bind(resolv_conn, UIP_HTONS(MDNS_PORT));
 
 #if UIP_CONF_IPV6
   uip_ds6_maddr_add(&resolv_mdns_addr);
 #else
-  /* TODO: Is there anything we need to do here for IPv4 multicast? */
+  resolv_conn = NULL;
 #endif
 
   resolv_set_hostname(CONTIKI_CONF_DEFAULT_HOSTNAME);
@@ -1158,6 +1158,13 @@ PROCESS_THREAD(resolv_process, ev, data)
 
     if(ev == PROCESS_EVENT_TIMER) {
       tcpip_poll_udp(resolv_conn);
+#if !RESOLV_CONF_SUPPORTS_MDNS
+    } else if(ev == EVENT_NEW_SERVER) {
+      if(resolv_conn != NULL) {
+        uip_udp_remove(resolv_conn);
+      }
+      resolv_conn = udp_new((uip_ipaddr_t *)data, UIP_HTONS(53), NULL);
+#endif
     } else if(ev == tcpip_event) {
       if(uip_udp_conn == resolv_conn) {
         if(uip_newdata()) {
