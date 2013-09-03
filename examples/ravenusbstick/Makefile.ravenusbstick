@@ -10,4 +10,6 @@ CFLAGS=-DUIP_CONF_IPV6=0 -DUIP_CONF_IPV6_RPL=0
 
 CONTIKI = ../..
 
+CFLAGS += -DJACKDAW=1
+
 include $(CONTIKI)/Makefile.include

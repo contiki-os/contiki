@@ -94,6 +94,11 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define RNG_CONF_USE_RADIO_CLOCK	    1
 //#define RNG_CONF_USE_ADC	1
 
+/* Turn on radio statistics */
+#ifndef RADIOSTATS
+#define RADIOSTATS	1
+#endif
+
 /* COM port to be used for SLIP connection. Not tested on Jackdaw. */
 #define SLIP_PORT RS232_PORT_0
 
@@ -142,13 +147,7 @@ static inline uint8_t radio_is_ready_to_send_() {
 #define USB_ETH_HOOK_HANDLE_INBOUND_PACKET(buffer,len)	do { uip_len = len ; mac_ethernetToLowpan(buffer); } while(0)
 #endif
 
-#ifndef USB_ETH_HOOK_SET_PROMISCIOUS_MODE
-#if RF230BB
 #define USB_ETH_HOOK_SET_PROMISCIOUS_MODE(value)	rf230_set_promiscuous_mode(value)
-#else		
-#define USB_ETH_HOOK_SET_PROMISCIOUS_MODE(value)	radio_set_trx_state(value?RX_ON:RX_AACK_ON)
-#endif
-#endif
 
 #ifndef USB_ETH_HOOK_INIT
 #define USB_ETH_HOOK_INIT()		mac_ethernetSetup()
@@ -211,11 +210,6 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 /* ************************************************************************** */
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 /* These mostly have no effect when the Jackdaw is a repeater (CONTIKI_NO_NET=1 using fakeuip.c) */
-
-#if RF230BB
-#else
-#define PACKETBUF_CONF_HDR_SIZE    0         //RF230 combined driver/mac handles headers internally
-#endif /*RF230BB */
 
 #if UIP_CONF_IPV6
 #define RIMEADDR_CONF_SIZE       8

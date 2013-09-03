@@ -7,7 +7,7 @@ endif
 
 ### Define RF230BB in the base makefile, or use $make RF230BB=1 ...
 ifeq ($(RF230BB),1)
-  CFLAGS                     += -DRF230BB
+  CFLAGS                     += -DRF230BB=1
   #Source for AT86RF230 barebones driver using the contiki core MAC
   include $(CONTIKI)/cpu/avr/radio/rf230bb/Makefile.rf230bb
 else
