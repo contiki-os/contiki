@@ -297,10 +297,6 @@ PROCESS(resolv_process, "DNS resolver");
 
 static void resolv_found(char *name, uip_ipaddr_t * ipaddr);
 
-enum {
-  EVENT_NEW_SERVER = 0
-};
-
 /** \internal The DNS question message structure. */
 struct dns_question {
   uint16_t type;
