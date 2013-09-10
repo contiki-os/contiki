@@ -693,7 +693,7 @@ tcpip_ipv6_output(void)
         return;
       }
       /* Send in parallel if we are running NUD (nbc state is either STALE,
-         DELAY, or PROBE). See RFC 4861, section 7.7.3 on node behavior. */
+         DELAY, or PROBE). See RFC 4861, section 7.3.3 on node behavior. */
       if(nbr->state == NBR_STALE) {
         nbr->state = NBR_DELAY;
         stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
