@@ -36,7 +36,7 @@ ETHERNET = cs8900a
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
-STARTADDR_FLAG = -S 0x2300
+STARTADDR_FLAG = -S 0x2400
 SHADOW_RAM_SOURCEFILES = tcpip.c uip.c uip_arp.c
 
 # Set a target-specific variable value
