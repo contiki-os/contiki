@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.File;
 
 public class PcapExporter {
 
@@ -13,8 +14,15 @@ public class PcapExporter {
     public PcapExporter() throws IOException {
     }
     
-    public void openPcap() throws IOException {
-        out = new DataOutputStream(new FileOutputStream("radiolog-" + System.currentTimeMillis() + ".pcap"));
+    public void openPcap(File pcapFile) throws IOException {
+        if ( out != null ) {
+            closePcap();
+        }
+        if ( pcapFile == null ) {
+            /* pcap file not specified, use default file name */
+            pcapFile = new File("radiolog-" + System.currentTimeMillis() + ".pcap");
+        }
+    	out = new DataOutputStream(new FileOutputStream(pcapFile));
         /* pcap header */
         out.writeInt(0xa1b2c3d4);
         out.writeShort(0x0002);
@@ -24,15 +32,16 @@ public class PcapExporter {
         out.writeInt(4096);
         out.writeInt(195); /* 195 for LINKTYPE_IEEE802_15_4 */
         out.flush();
-        System.out.println("Opened pcap file!");
+        System.out.println("Opened pcap file " + pcapFile);
     }
     public void closePcap() throws IOException {
         out.close();
+        out = null;
     }
 
     public void exportPacketData(byte[] data) throws IOException {
         if (out == null) {
-            openPcap();
+            openPcap(null);
         }
         try {
             /* pcap packet header */
