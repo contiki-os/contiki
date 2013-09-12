@@ -437,7 +437,7 @@ uint8_t trickle_timer_set(struct trickle_timer *tt,
  * to reset a timer manually. Instead, in response to events or inconsistencies,
  * the corresponding functions must be used
  */
-#define trickle_timer_stop(tt) ctimer_stop((tt)->ct)
+#define trickle_timer_stop(tt) ctimer_stop(&((tt)->ct))
 
 /**
  * \brief      To be called by the protocol when it hears a consistent
