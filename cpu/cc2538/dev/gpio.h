@@ -100,6 +100,20 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
 #define GPIO_SET_OUTPUT(PORT_BASE, PIN_MASK) \
   do { REG(PORT_BASE | GPIO_DIR) |= PIN_MASK; } while(0)
 
+/** \brief Set pins with PIN_MASK of port with PORT_BASE high.
+ * \param PORT_BASE GPIO Port register offset
+ * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
+ */
+#define GPIO_SET_PIN(PORT_BASE, PIN_MASK) \
+  do { REG((PORT_BASE | GPIO_DATA) + (PIN_MASK << 2)) = 0xFF; } while(0)
+
+/** \brief Set pins with PIN_MASK of port with PORT_BASE low.
+* \param PORT_BASE GPIO Port register offset
+* \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
+*/
+#define GPIO_CLR_PIN(PORT_BASE, PIN_MASK) \
+  do { REG((PORT_BASE | GPIO_DATA) + (PIN_MASK << 2)) = 0x00; } while(0)
+
 /** \brief Set pins with PIN_MASK of port with PORT_BASE to detect edge.
  * \param PORT_BASE GPIO Port register offset
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
@@ -162,16 +176,16 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
 #define GPIO_DISABLE_INTERRUPT(PORT_BASE, PIN_MASK) \
   do { REG(PORT_BASE | GPIO_IE) &= ~PIN_MASK; } while(0)
 
-/** \brief Enable interrupt triggering for pins with PIN_MASK of port with
- * PORT_BASE.
+/** \brief Configure the pin to be under peripheral control with PIN_MASK of
+ * port with PORT_BASE.
  * \param PORT_BASE GPIO Port register offset
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_PERIPHERAL_CONTROL(PORT_BASE, PIN_MASK) \
   do { REG(PORT_BASE | GPIO_AFSEL) |= PIN_MASK; } while(0)
 
-/** \brief Disable interrupt triggering for pins with PIN_MASK of port with
- * PORT_BASE.
+/** \brief Configure the pin to be software controlled with PIN_MASK of port
+ * with PORT_BASE.
  * \param PORT_BASE GPIO Port register offset
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
