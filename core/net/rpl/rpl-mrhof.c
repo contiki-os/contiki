@@ -90,46 +90,46 @@ calculate_path_metric(rpl_parent_t *p)
 {
   if(p == NULL) {
     return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
-  } else {
-    long link_metric = p->link_metric;
-#if RPL_DAG_MC == RPL_DAG_MC_NONE
-    return p->rank + (uint16_t)link_metric;
-#elif RPL_DAG_MC == RPL_DAG_MC_ETX
-    return p->mc.obj.etx + (uint16_t)link_metric;
-#elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
-    return p->mc.obj.energy.energy_test + (uint16_t)link_metric;
-#endif /* RPL_DAG_MC */
   }
+
+#if RPL_DAG_MC == RPL_DAG_MC_NONE
+  return p->rank + (uint16_t)p->link_metric;
+#elif RPL_DAG_MC == RPL_DAG_MC_ETX
+  return p->mc.obj.etx + (uint16_t)p->link_metric;
+#elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
+  return p->mc.obj.energy.energy_est + (uint16_t)p->link_metric;
+#else
+#error "Unsupported RPL_DAG_MC configured. See rpl.h."
+#endif /* RPL_DAG_MC */
 }
 
 static void
 reset(rpl_dag_t *sag)
 {
+  PRINTF("RPL: Reset MRHOF\n");
 }
 
 static void
 neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
 {
+  uint16_t recorded_etx = p->link_metric;
+  uint16_t packet_etx = numtx * RPL_DAG_MC_ETX_DIVISOR;
+  uint16_t new_etx;
+
   /* Do not penalize the ETX when collisions or transmission errors occur. */
   if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
-    int recorded_etx = p->link_metric;
-    int packet_etx = numtx * RPL_DAG_MC_ETX_DIVISOR;
-    int new_etx;
-
     if(status == MAC_TX_NOACK) {
       packet_etx = MAX_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
     }
 
-    new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
-        (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+    new_etx = ((uint32_t)recorded_etx * ETX_ALPHA +
+               (uint32_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
 
-    PRINTF("RPL: ETX changed from %d to %d (packet ETX = %d) %d\n",
-        recorded_etx / p->dag->instance->min_hoprankinc,
-        new_etx  / p->dag->instance->min_hoprankinc,
-        packet_etx / p->dag->instance->min_hoprankinc,
-        dest->u8[7]);
+    PRINTF("RPL: ETX changed from %u to %u (packet ETX = %u)\n",
+        (unsigned)(recorded_etx / RPL_DAG_MC_ETX_DIVISOR),
+        (unsigned)(new_etx  / RPL_DAG_MC_ETX_DIVISOR),
+        (unsigned)(packet_etx / RPL_DAG_MC_ETX_DIVISOR));
     p->link_metric = new_etx;
-
   }
 }
 
@@ -143,9 +143,8 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     if(base_rank == 0) {
       return INFINITE_RANK;
     }
-    rank_increase = RPL_INIT_LINK_METRIC;
+    rank_increase = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
   } else {
-    /* multiply first, then scale down to avoid truncation effects */
     rank_increase = p->link_metric;
     if(base_rank == 0) {
       base_rank = p->rank;
@@ -186,7 +185,7 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   rpl_path_metric_t p1_metric;
   rpl_path_metric_t p2_metric;
 
-  dag = p1->dag; /* Both parents must be in the same DAG. */
+  dag = p1->dag; /* Both parents are in the same DAG. */
 
   min_diff = RPL_DAG_MC_ETX_DIVISOR /
              PARENT_SWITCH_THRESHOLD_DIV;
@@ -209,13 +208,16 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   return p1_metric < p2_metric ? p1 : p2;
 }
 
+#if RPL_DAG_MC == RPL_DAG_MC_NONE
 static void
 update_metric_container(rpl_instance_t *instance)
 {
   instance->mc.type = RPL_DAG_MC;
-
-#if RPL_DAG_MC != RPL_DAG_MC_NONE
-
+}
+#else
+static void
+update_metric_container(rpl_instance_t *instance)
+{
   rpl_path_metric_t path_metric;
   rpl_dag_t *dag;
 #if RPL_DAG_MC == RPL_DAG_MC_ENERGY
@@ -230,7 +232,7 @@ update_metric_container(rpl_instance_t *instance)
   dag = instance->current_dag;
 
   if (!dag->joined) {
-    /* We should probably do something here */
+    PRINTF("RPL: Cannot update the metric container when not joined\n");
     return;
   }
 
@@ -240,21 +242,15 @@ update_metric_container(rpl_instance_t *instance)
     path_metric = calculate_path_metric(dag->preferred_parent);
   }
 
-#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
-
-#if RPL_DAG_MC == RPL_DAG_MC_NONE
-  /* Do nothing more */
-#elif RPL_DAG_MC == RPL_DAG_MC_ETX
-
+#if RPL_DAG_MC == RPL_DAG_MC_ETX
   instance->mc.length = sizeof(instance->mc.obj.etx);
   instance->mc.obj.etx = path_metric;
 
   PRINTF("RPL: My path ETX to the root is %u.%u\n",
 	instance->mc.obj.etx / RPL_DAG_MC_ETX_DIVISOR,
-	(instance->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) / RPL_DAG_MC_ETX_DIVISOR);
-
+	(instance->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) /
+	 RPL_DAG_MC_ETX_DIVISOR);
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
-
   instance->mc.length = sizeof(instance->mc.obj.energy);
 
   if(dag->rank == ROOT_RANK(instance)) {
@@ -265,10 +261,6 @@ update_metric_container(rpl_instance_t *instance)
 
   instance->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
   instance->mc.obj.energy.energy_est = path_metric;
-
-#else
-
-#error "Unsupported RPL_DAG_MC configured. See rpl.h."
-
-#endif /* RPL_DAG_MC */
+#endif /* RPL_DAG_MC == RPL_DAG_MC_ETX */
 }
+#endif /* RPL_DAG_MC == RPL_DAG_MC_NONE */
