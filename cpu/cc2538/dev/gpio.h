@@ -199,6 +199,14 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * in this category
  */
 #define GPIO_PIN_MASK(PIN) (1 << PIN)
+
+/**
+ * \brief Converts a port number to the port base address
+ * \param The port number in the range 0 - 3. Likely GPIO_X_NUM.
+ * \return The base address for the registers corresponding to that port
+ * number.
+ */
+#define GPIO_PORT_TO_BASE(PORT) (GPIO_A_BASE + (PORT << 12))
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name GPIO Register offset declarations

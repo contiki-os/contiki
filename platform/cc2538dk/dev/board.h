@@ -179,6 +179,22 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name SPI configuration
+ *
+ * These values configure which CC2538 pins to use for the SPI lines.
+ * @{
+ */
+#define CC2538_SPI_CLK_PORT_NUM  GPIO_A_NUM
+#define CC2538_SPI_CLK_PIN_NUM   2
+#define CC2538_SPI_MOSI_PORT_NUM GPIO_A_NUM
+#define CC2538_SPI_MOSI_PIN_NUM  4
+#define CC2538_SPI_MISO_PORT_NUM GPIO_A_NUM
+#define CC2538_SPI_MISO_PIN_NUM  5
+#define CC2538_SPI_SEL_PORT_NUM  GPIO_B_NUM
+#define CC2538_SPI_SEL_PIN_NUM   5
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name Device string used on startup
  * @{
  */
