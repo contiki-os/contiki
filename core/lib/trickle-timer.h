@@ -449,7 +449,7 @@ uint8_t trickle_timer_set(struct trickle_timer *tt,
  */
 #define trickle_timer_stop(tt) do { \
   ctimer_stop(&((tt)->ct)); \
-  (tt)->i_cur = 0; \
+  (tt)->i_cur = TRICKLE_TIMER_IS_STOPPED; \
 } while(0)
 
 /**
