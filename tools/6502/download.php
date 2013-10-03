@@ -12,16 +12,16 @@ case 'apple2':
     $hex = $_GET['apple2-addr'];
     $drv = $_GET['apple2-drv'];
     break;
+case 'atari':
+    $hex = strtok($_GET['atari-addr-drv'], '-');
+    $drv = strtok('-');
+    break;
 case 'c64':
     $hex = strtok($_GET['c64-addr-drv'],  '-');
     $drv = strtok('-');
     break;
 case 'c128':
     $hex = strtok($_GET['c128-addr-drv'], '-');
-    $drv = strtok('-');
-    break;
-case 'atari':
-    $hex = strtok($_GET['atari-addr-drv'], '-');
     $drv = strtok('-');
     break;
 }
