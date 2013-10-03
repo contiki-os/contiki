@@ -206,9 +206,8 @@ fixup13:lda rxtxreg
 	jsr adjustcnt
 
 	; Is bufsize < cnt ?
-	sec
 	lda bufsize
-	sbc cnt
+	cmp cnt
 	lda bufsize+1
 	sbc cnt+1
 	bcs :+
@@ -334,6 +333,7 @@ adjustcnt:
 
 adjustptr:
 	lda cnt
+	ldx cnt+1
 	eor #$FF		; Two's complement part 1
 	tay
 	iny			; Two's complement part 2
@@ -345,7 +345,6 @@ adjustptr:
 	lda bufaddr+1
 	sbc #$00
 	sta ptr+1
-	ldx cnt+1
 	rts
 
 ;---------------------------------------------------------------------
