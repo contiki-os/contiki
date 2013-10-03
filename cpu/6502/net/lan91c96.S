@@ -248,9 +248,8 @@ fixup20:lda ethdata
 	sta len+1
 
 	; Is bufsize < len ?
-	sec
 	lda bufsize
-	sbc len
+	cmp len
 	lda bufsize+1
 	sbc len+1
 	bcs :+
@@ -389,6 +388,7 @@ exit:
 
 adjustptr:
 	lda len
+	ldx len+1
 	eor #$FF		; Two's complement part 1
 	tay
 	iny			; Two's complement part 2
@@ -400,7 +400,6 @@ adjustptr:
 	lda bufaddr+1
 	sbc #$00
 	sta ptr+1
-	ldx len+1
 	rts
 
 ;---------------------------------------------------------------------
