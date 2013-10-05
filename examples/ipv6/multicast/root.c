@@ -72,7 +72,7 @@ PROCESS(rpl_root_process, "RPL ROOT, Multicast Sender");
 AUTOSTART_PROCESSES(&rpl_root_process);
 /*---------------------------------------------------------------------------*/
 static void
-multicast_send()
+multicast_send(void)
 {
   uint32_t id;
 
@@ -91,7 +91,7 @@ multicast_send()
 }
 /*---------------------------------------------------------------------------*/
 static void
-prepare_mcast()
+prepare_mcast(void)
 {
   uip_ipaddr_t ipaddr;
 
@@ -99,12 +99,12 @@ prepare_mcast()
    * IPHC will use stateless multicast compression for this destination
    * (M=1, DAC=0), with 32 inline bits (1E 89 AB CD)
    */
-  uip_ip6addr(&ipaddr,0xFF1E,0,0,0,0,0,0x89,0xABCD);
+  uip_ip6addr(&ipaddr, 0xFF1E,0,0,0,0,0,0x89,0xABCD);
   mcast_conn = udp_new(&ipaddr, UIP_HTONS(MCAST_SINK_UDP_PORT), NULL);
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_own_addresses()
+set_own_addresses(void)
 {
   int i;
   uint8_t state;
@@ -123,7 +123,7 @@ set_own_addresses()
       PRINTF("  ");
       PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
       PRINTF("\n");
-      if (state == ADDR_TENTATIVE) {
+      if(state == ADDR_TENTATIVE) {
         uip_ds6_if.addr_list[i].state = ADDR_PREFERRED;
       }
     }
