@@ -187,8 +187,8 @@ print_local_stats(struct stats *s)
   printf("  Total transfer time:       %lu.%02lu seconds, %lu.%02lu packets/second\n",
 	 (s->end - s->start) / CLOCK_SECOND,
 	 ((10 * (s->end - s->start)) / CLOCK_SECOND) % 10,
-	 ((1UL * CLOCK_SECOND * s->sent) / (s->end - s->start)),
-	 (((100UL * CLOCK_SECOND * s->sent) / (s->end - s->start)) % 100));
+	 ((s->sent * 1UL * CLOCK_SECOND) / (s->end - s->start)),
+	 (((s->sent * 100UL * CLOCK_SECOND) / (s->end - s->start)) % 100));
  
   printf("  Average round-trip-time:   %lu ms (%lu + %lu)\n",
 	 (1000 * (s->total_rx_latency + s->total_tx_latency) / s->received) /
@@ -206,8 +206,8 @@ print_local_stats(struct stats *s)
 	 ((10000 * (s->power.tx - s->power0.tx))/total_time) % 100);
 
   printf("  Packets received:          %d.%lu%%, %d of %d\n",
-	 100 * s->received / s->sent,
-	 (10000L * s->received / s->sent) % 10,
+	 s->received * 100 / s->sent,
+	 (s->received * 10000L / s->sent) % 10,
 	 s->received, s->sent);
 }
 /*---------------------------------------------------------------------------*/
