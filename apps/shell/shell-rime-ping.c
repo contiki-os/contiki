@@ -145,9 +145,9 @@ recv_mesh(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops)
     pingrecvtime = rtimer_arch_now();
 #endif
     snprintf(buf, sizeof(buf), "%lu ms (%lu + %lu), %d hops.",
-	    (1000L * (pingrecvtime - ping.pingtime)) / RTIMER_ARCH_SECOND,
-	    (1000L * (ping.pongtime - ping.pingtime)) / RTIMER_ARCH_SECOND,
-	    (1000L * (pingrecvtime - ping.pongtime)) / RTIMER_ARCH_SECOND,
+	    ((pingrecvtime  - ping.pingtime) * 1000L) / RTIMER_ARCH_SECOND,
+	    ((ping.pongtime - ping.pingtime) * 1000L) / RTIMER_ARCH_SECOND,
+	    ((pingrecvtime  - ping.pongtime) * 1000L) / RTIMER_ARCH_SECOND,
 	    hops);
 
     shell_output_str(&rime_ping_command,
