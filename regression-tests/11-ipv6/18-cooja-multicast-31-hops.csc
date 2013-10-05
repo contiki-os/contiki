@@ -692,7 +692,7 @@
     <plugin_config>
       <script>TIMEOUT(300000);&#xD;
 &#xD;
-WAIT_UNTIL(msg.startsWith("In: [0x00000063]"));&#xD;
+WAIT_UNTIL(msg.startsWith("In: "));&#xD;
 &#xD;
 log.testOK(); /* Report test success and quit */</script>
       <active>true</active>
