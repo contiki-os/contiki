@@ -78,7 +78,7 @@ tcpip_handler(void)
 }
 /*---------------------------------------------------------------------------*/
 static uip_ds6_maddr_t *
-join_mcast_group()
+join_mcast_group(void)
 {
   uip_ipaddr_t addr;
   uip_ds6_maddr_t *rv;
@@ -92,7 +92,7 @@ join_mcast_group()
    * IPHC will use stateless multicast compression for this destination
    * (M=1, DAC=0), with 32 inline bits (1E 89 AB CD)
    */
-  uip_ip6addr(&addr,0xFF1E,0,0,0,0,0,0x89,0xABCD);
+  uip_ip6addr(&addr, 0xFF1E,0,0,0,0,0,0x89,0xABCD);
   rv = uip_ds6_maddr_add(&addr);
 
   if(rv) {
