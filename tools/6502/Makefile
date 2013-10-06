@@ -166,75 +166,75 @@ atari: contiki-atari-1.atr contiki-atari-2.atr contiki-atari-3.atr contiki-atari
 
 contiki-atari-1.atr: atarixl-makes
 	mkdir atr
-	cp ../atari/dos25/dos.sys                     atr/dos.sys
-	cp ../atari/dos25/dup.sys                     atr/dup.sys
-	cp ../../cpu/6502/ipconfig/ipconfig.atari     atr/ipconfig.com
-	cp ../../examples/webbrowser/webbrowser.atari atr/webbrows.com
-	cp ../../examples/wget/wget.atari             atr/wget.com
-	cp ../atari/default.cfg                       atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth        atr/cs8900a.eth
+	cp ../atarixl/dos25/dos.sys                     atr/dos.sys
+	cp ../atarixl/dos25/dup.sys                     atr/dup.sys
+	cp ../../cpu/6502/ipconfig/ipconfig.atarixl     atr/ipconfig.com
+	cp ../../examples/webbrowser/webbrowser.atarixl atr/webbrows.com
+	cp ../../examples/wget/wget.atarixl             atr/wget.com
+	cp ../atarixl/default.cfg                       atr/contiki.cfg
+	cp ../../cpu/6502/ipconfig/cs8900a.eth          atr/cs8900a.eth
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
 contiki-atari-2.atr: atarixl-makes
 	mkdir atr
-	cp ../atari/dos25/dos.sys                                                            atr/dos.sys
-	cp ../atari/dos25/dup.sys                                                            atr/dup.sys
-	cp ../../cpu/6502/ipconfig/ipconfig.atari                                            atr/ipconfig.com
-	cp ../../examples/irc/irc-client.atari                                               atr/irc.com
-	cp ../../../contikiprojects/vandenbrande.com/twitter/platform/atari/breadbox64.atari atr/breadbox.com
-	cp ../atari/default.cfg                                                              atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth                                               atr/cs8900a.eth
+	cp ../atarixl/dos25/dos.sys                                                              atr/dos.sys
+	cp ../atarixl/dos25/dup.sys                                                              atr/dup.sys
+	cp ../../cpu/6502/ipconfig/ipconfig.atarixl                                              atr/ipconfig.com
+	cp ../../examples/irc/irc-client.atarixl                                                 atr/irc.com
+	cp ../../../contikiprojects/vandenbrande.com/twitter/platform/atarixl/breadbox64.atarixl atr/breadbox.com
+	cp ../atarixl/default.cfg                                                                atr/contiki.cfg
+	cp ../../cpu/6502/ipconfig/cs8900a.eth                                                   atr/cs8900a.eth
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
 contiki-atari-3.atr: atarixl-makes
 	mkdir atr
-	cp ../atari/dos25/dos.sys                  atr/dos.sys
-	cp ../atari/dos25/dup.sys                  atr/dup.sys
-	cp ../../cpu/6502/ipconfig/ipconfig.atari  atr/ipconfig.com
-	cp ../../examples/email/email-client.atari atr/email.com
-	cp ../../examples/ftp/ftp-client.atari     atr/ftp.com
-	cp ../atari/default.cfg                    atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth     atr/cs8900a.eth
+	cp ../atarixl/dos25/dos.sys                  atr/dos.sys
+	cp ../atarixl/dos25/dup.sys                  atr/dup.sys
+	cp ../../cpu/6502/ipconfig/ipconfig.atarixl  atr/ipconfig.com
+	cp ../../examples/email/email-client.atarixl atr/email.com
+	cp ../../examples/ftp/ftp-client.atarixl     atr/ftp.com
+	cp ../atarixl/default.cfg                    atr/contiki.cfg
+	cp ../../cpu/6502/ipconfig/cs8900a.eth       atr/cs8900a.eth
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
 contiki-atari-4.atr: atarixl-makes
 	mkdir atr
-	cp ../atari/dos25/dos.sys                           atr/dos.sys
-	cp ../atari/dos25/dup.sys                           atr/dup.sys
-	cp ../../cpu/6502/ipconfig/ipconfig.atari           atr/ipconfig.com
-	cp ../../examples/webserver/webserver-example.atari atr/webserv.com
-	cp ../../examples/telnet-server/telnet-server.atari atr/telnetd.com
-	cp ../atari/default.cfg                             atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth              atr/cs8900a.eth
-	cp ../../examples/webserver/httpd-cfs/index.htm     atr/index.htm
-	cp ../../examples/webserver/httpd-cfs/backgrnd.gif  atr/backgrnd.gif
-	cp ../../examples/webserver/httpd-cfs/contiki.gif   atr/contiki.gif
-	cp ../../examples/webserver/httpd-cfs/notfound.htm  atr/notfound.htm
+	cp ../atarixl/dos25/dos.sys                           atr/dos.sys
+	cp ../atarixl/dos25/dup.sys                           atr/dup.sys
+	cp ../../cpu/6502/ipconfig/ipconfig.atarixl           atr/ipconfig.com
+	cp ../../examples/webserver/webserver-example.atarixl atr/webserv.com
+	cp ../../examples/telnet-server/telnet-server.atarixl atr/telnetd.com
+	cp ../atarixl/default.cfg                             atr/contiki.cfg
+	cp ../../cpu/6502/ipconfig/cs8900a.eth                atr/cs8900a.eth
+	cp ../../examples/webserver/httpd-cfs/index.htm       atr/index.htm
+	cp ../../examples/webserver/httpd-cfs/backgrnd.gif    atr/backgrnd.gif
+	cp ../../examples/webserver/httpd-cfs/contiki.gif     atr/contiki.gif
+	cp ../../examples/webserver/httpd-cfs/notfound.htm    atr/notfound.htm
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
 contiki-atari.atr: atarixl-makes
 	mkdir atr
-	cp ../atari/mydos4534/dos.sys                                                        atr/dos.sys
-	cp ../atari/mydos4534/dup.sys                                                        atr/dup.sys
-	cp ../../cpu/6502/ipconfig/ipconfig.atari                                            atr/ipconfig.com
-	cp ../../examples/webbrowser/webbrowser.atari                                        atr/webbrows.com
-	cp ../../examples/wget/wget.atari                                                    atr/wget.com
-	cp ../../examples/irc/irc-client.atari                                               atr/irc.com
-	cp ../../../contikiprojects/vandenbrande.com/twitter/platform/atari/breadbox64.atari atr/breadbox.com
-	cp ../../examples/email/email-client.atari                                           atr/email.com
-	cp ../../examples/ftp/ftp-client.atari                                               atr/ftp.com
-	cp ../../examples/webserver/webserver-example.atari                                  atr/webserv.com
-	cp ../../examples/telnet-server/telnet-server.atari                                  atr/telnetd.com
-	cp ../atari/default.cfg                                                              atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth                                               atr/cs8900a.eth
-	cp ../../examples/webserver/httpd-cfs/index.htm                                      atr/index.htm
-	cp ../../examples/webserver/httpd-cfs/backgrnd.gif                                   atr/backgrnd.gif
-	cp ../../examples/webserver/httpd-cfs/contiki.gif                                    atr/contiki.gif
-	cp ../../examples/webserver/httpd-cfs/notfound.htm                                   atr/notfound.htm
+	cp ../atarixl/mydos4534/dos.sys                                                          atr/dos.sys
+	cp ../atarixl/mydos4534/dup.sys                                                          atr/dup.sys
+	cp ../../cpu/6502/ipconfig/ipconfig.atarixl                                              atr/ipconfig.com
+	cp ../../examples/webbrowser/webbrowser.atarixl                                          atr/webbrows.com
+	cp ../../examples/wget/wget.atarixl                                                      atr/wget.com
+	cp ../../examples/irc/irc-client.atarixl                                                 atr/irc.com
+	cp ../../../contikiprojects/vandenbrande.com/twitter/platform/atarixl/breadbox64.atarixl atr/breadbox.com
+	cp ../../examples/email/email-client.atarixl                                             atr/email.com
+	cp ../../examples/ftp/ftp-client.atarixl                                                 atr/ftp.com
+	cp ../../examples/webserver/webserver-example.atarixl                                    atr/webserv.com
+	cp ../../examples/telnet-server/telnet-server.atarixl                                    atr/telnetd.com
+	cp ../atarixl/default.cfg                                                                atr/contiki.cfg
+	cp ../../cpu/6502/ipconfig/cs8900a.eth                                                   atr/cs8900a.eth
+	cp ../../examples/webserver/httpd-cfs/index.htm                                          atr/index.htm
+	cp ../../examples/webserver/httpd-cfs/backgrnd.gif                                       atr/backgrnd.gif
+	cp ../../examples/webserver/httpd-cfs/contiki.gif                                        atr/contiki.gif
+	cp ../../examples/webserver/httpd-cfs/notfound.htm                                       atr/notfound.htm
 	$(DIR2ATR) -d -b MyDos4534 3200 $@ atr
 	rm -r atr
 
