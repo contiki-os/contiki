@@ -548,7 +548,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
     p->dag = dag;
     p->rank = dio->rank;
     p->dtsn = dio->dtsn;
-    p->link_metric = RPL_INIT_LINK_METRIC;
+    p->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
 #if RPL_DAG_MC != RPL_DAG_MC_NONE
     memcpy(&p->mc, &dio->mc, sizeof(p->mc));
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
