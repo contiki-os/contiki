@@ -129,7 +129,7 @@ recv_broadcast(struct broadcast_conn *c, const rimeaddr_t *from)
 
   printf("broadcast message received from %d.%d, latency %lu ms, data '%.*s'\n",
 	 from->u8[0], from->u8[1],
-	 (latency * 1000L) / RTIMER_ARCH_SECOND,
+	 (1000L * latency) / RTIMER_ARCH_SECOND,
 	 packetbuf_datalen() - COLLECT_MSG_HDRSIZE,
 	 msg->data);
 }
@@ -201,7 +201,7 @@ recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
 
   printf("unicast message received from %d.%d, latency %lu ms, data '%.*s'\n",
 	 from->u8[0], from->u8[1],
-	 (latency * 1000L) / RTIMER_ARCH_SECOND,
+	 (1000L * latency) / RTIMER_ARCH_SECOND,
 	 packetbuf_datalen() - COLLECT_MSG_HDRSIZE,
 	 msg->data);
 }
