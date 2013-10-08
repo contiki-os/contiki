@@ -141,7 +141,7 @@ recv_ruc(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
 
   printf("runicast message received from %d.%d, latency %lu ms, seqno %d, data '%.*s'\n",
 	 from->u8[0], from->u8[1],
-	 (latency * 1000L) / RTIMER_ARCH_SECOND,
+	 (1000L * latency) / RTIMER_ARCH_SECOND,
          seqno,
 	 packetbuf_datalen() - COLLECT_MSG_HDRSIZE,
 	 msg->data);
