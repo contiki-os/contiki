@@ -127,10 +127,10 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   rpl_dag_t *dag;
   
   PRINTF("RPL: Comparing parent ");
-  PRINT6ADDR(&p1->addr);
+  PRINT6ADDR(rpl_get_parent_ipaddr(p1));
   PRINTF(" (confidence %d, rank %d) with parent ",
         p1->link_metric, p1->rank);
-  PRINT6ADDR(&p2->addr);
+  PRINT6ADDR(rpl_get_parent_ipaddr(p2));
   PRINTF(" (confidence %d, rank %d)\n",
         p2->link_metric, p2->rank);
 
