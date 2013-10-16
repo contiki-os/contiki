@@ -1,0 +1,51 @@
+/**
+\defgroup cpu Contiki CPUs
+@{
+*/
+
+/**
+ * \defgroup avr AVR
+ * \addtogroup cpu
+ * @{ */
+/** @} */
+
+/**
+ * \addtogroup avr 
+ * \defgroup wireless Wireless 
+ * @{ */
+/** @} */
+
+/**
+ * \defgroup arm ARM
+ * \addtogroup cpu
+ * @{ */
+/** @} */
+
+/**
+ * \defgroup stm32w-cpu STM32W108
+ * \addtogroup cpu
+ * @{ */
+/** @} */
+
+/**
+ * \defgroup ccxxx CCxxx
+ * \addtogroup cpu
+ * @{ */
+/** @} */
+
+/**
+ * \defgroup native Native
+ * \addtogroup cpu
+ * @{ */
+/** @} */
+
+/**
+ * \defgroup x86 x86
+ * \addtogroup cpu
+ * @{ */
+/** @} */
+
+
+/** 6502  arm  avr  cc2430  cc2538  cc253x  mc1322x  msp430  native  pic32  stm32w108  x86  z80 */
+
+/** @} */
