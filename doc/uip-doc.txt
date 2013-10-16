@@ -5,7 +5,6 @@
 
 /**
 \defgroup uip The uIP TCP/IP stack
-@{
 
 The uIP TCP/IP stack provides Internet communication abilities to
 Contiki.
@@ -254,7 +253,7 @@ purposes.
 
 uIP provides two APIs to programmers: protosockets, a BSD socket-like
 API without the overhead of full multi-threading, and a "raw"
-event-based API that is nore low-level than protosockets but uses less
+event-based API that is more low-level than protosockets but uses less
 memory.
 
 \sa \ref psock
@@ -1183,7 +1182,7 @@ the delayed acknowledgment throughput degradation.
 \note The \ref uipsplit module implements a hack that overcomes the
 problems with the delayed acknowledgment throughput degradation.
 
-
+@{
 */
 
 
