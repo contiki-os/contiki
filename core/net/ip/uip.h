@@ -534,7 +534,7 @@ CCIF extern uip_buf_t uip_aligned_buf;
  * \defgroup uipappfunc uIP application functions
  * @{
  *
- * Functions used by an application running of top of uIP.
+ * Functions used by an application running on top of uIP.
  */
 
 /**
