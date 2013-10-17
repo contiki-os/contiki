@@ -32,7 +32,12 @@
  *
  * \file
  * Implementation of the cc2538 SPI peripheral
+ *
+ * \author
+ *         Brad Campbell       <bradjc@umich.edu>
+ *         Vasilis Michopoulos <basilismicho@gmail.com>
  */
+
 #include "contiki.h"
 #include "reg.h"
 #include "dev/ioc.h"
@@ -43,13 +48,12 @@
 #include "spi-arch.h"
 #include "sys/energest.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*
  * Once we know what SSI we're on, configure correct values to be written to
  * the correct registers
  */
-#if SSI_BASE==SSI1_BASE
+#if SSI_BASE == SSI1_BASE
 /* Running, in sleep, in deep sleep, enable the clock for the correct SSI */
 #define SYS_CTRL_RCGCSSI_SSI            SYS_CTRL_RCGCSSI_SSI1
 #define SYS_CTRL_SCGCSSI_SSI            SYS_CTRL_SCGCSSI_SSI1
@@ -78,24 +82,22 @@
 #define IOC_PXX_SEL_SSI_FSSOUT          IOC_PXX_SEL_SSI0_FSSOUT
 #define IOC_PXX_SEL_SSI_STXSER_EN       IOC_PXX_SEL_SSI0_STXSER_EN
 
-
 #define IOC_CLK_SSI_SSI                 IOC_CLK_SSI_SSI0
 #define IOC_SSIRXD_SSI                  IOC_SSIRXD_SSI0
 #define IOC_SSIFSSIN_SSI                IOC_SSIFSSIN_SSI0
 #define IOC_CLK_SSIIN_SSI               IOC_CLK_SSIIN_SSI0
 #endif
 
-
 #if SSI_ISR_ENABLE
-static int (* input_handler)( void );
-static int (* reset_handler)( void );
+static int (*input_handler)(void);
+static int (*reset_handler)(void);
 /*---------------------------------------------------------------------------*/
 /*
  * Set up input function for interrupt
  * This function should take the input from the SPI buffer
  */
 void
-ssi_set_input(int(*input)(void))
+ssi_set_input(int (*input)(void))
 {
   input_handler = input;
 }
@@ -105,7 +107,7 @@ ssi_set_input(int(*input)(void))
  * This function should reset SPI TX settings when SPI is set to SLAVE
  */
 void
-ssi_set_reset(int (* input)(void))
+ssi_set_reset(int (*input)(void))
 {
   reset_handler = input;
 }
@@ -161,7 +163,6 @@ spi_init(void)
   ioc_set_over(CC2538_SPI_SEL_PORT_NUM, CC2538_SPI_SEL_PIN_NUM, IOC_OVERRIDE_DIS);
   ioc_set_over(CC2538_SPI_MISO_PORT_NUM, CC2538_SPI_MISO_PIN_NUM, IOC_OVERRIDE_DIS);
 
-
   /* Configure the clock */
   REG(SSI_BASE | SSI_CPSR) = 0x00000002;
 
@@ -181,8 +182,7 @@ spi_init(void)
    *  RX half empty or less
    *  Receive timeout interrupt flag
    */
-  REG(SSI_BASE | SSI_IM) =  SSI_IM_RTIM | SSI_IM_RXIM;
-
+  REG(SSI_BASE | SSI_IM) = SSI_IM_RTIM | SSI_IM_RXIM;
 
   /* Enable SSI Interrupts */
   nvic_interrupt_enable(NVIC_INT_SSI);
@@ -191,7 +191,6 @@ spi_init(void)
   /* Clear the RX FIFO */
   /*SPI_WAITFOREORx();*/
 }
-
 #if SSI_ISR_ENABLE
 /*---------------------------------------------------------------------------*/
 void
@@ -206,20 +205,18 @@ ssi_isr(void)
    * */
   REG(SSI_BASE | SSI_ICR) = 0x00000003;
 
-
   if(mis & (SSI_MIS_RXMIS)) {
-       if(input_handler != NULL) {
-          input_handler();
-       }
-    }else if (mis & (SSI_MIS_RTMIS)){
-      /* ISR triggered due to timeout*/
-        if(reset_handler != NULL) {
-          reset_handler();
-      }
+    if(input_handler != NULL) {
+      input_handler();
     }
-
-  /* To prevent an Overrun Error, we need to flush the FIFO even if we
-  * don't have an input_handler. Use mis as a data trash can*/
+  } else if(mis & (SSI_MIS_RTMIS)) {
+    /* ISR triggered due to timeout*/
+    if(reset_handler != NULL) {
+      reset_handler();
+      /* To prevent an Overrun Error, we need to flush the FIFO even if we
+       * don't have an input_handler. Use mis as a data trash can*/
+    }
+  }
   mis = REG(SSI_BASE | SSI_DR);
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
