@@ -54,7 +54,7 @@
 
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
-#define SIZE 1
+#define SIZE 3
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 
@@ -77,6 +77,7 @@ int ssi_input( void ){
          *  just set new data to buffer*/
         SPI_TXBUF = tx_data[i];
         i++;
+        printf("received %u",i);
       }
     else{
         return -1;
@@ -89,7 +90,7 @@ int ssi_reset( void )
 {
 
   i = 0;
-
+  printf("reseting counter");
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -158,7 +159,7 @@ PROCESS_THREAD(spi_test_process, ev, data)
     }
 #endif
 
-    printf("heart beat! %x\n",SSI_BASE);
+    printf("heart beat!\n");
     leds_toggle(LEDS_RED);
   }
 
