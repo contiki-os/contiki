@@ -39,6 +39,7 @@
 #include "contiki.h"
 #include "reg.h"
 #include "uart.h"
+#include "ssi.h"
 
 #include <stdint.h>
 
