@@ -42,7 +42,6 @@
 #include "dev/gpio.h"
 #include "spi-arch.h"
 #include "sys/energest.h"
-#include "dev/leds.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -182,7 +181,8 @@ spi_init(void)
    *  RX half empty or less
    *  Receive timeout interrupt flag
    */
-  REG(SSI_BASE | SSI_IM) = SSI_IM_RTIM;// | SSI_IM_RXIM;
+  REG(SSI_BASE | SSI_IM) =  SSI_IM_RTIM | SSI_IM_RXIM;
+
 
   /* Enable SSI Interrupts */
   nvic_interrupt_enable(NVIC_INT_SSI);
@@ -197,37 +197,32 @@ spi_init(void)
 void
 ssi_isr(void)
 {
-/*  uint16_t mis;
+  uint16_t mis;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  leds_toggle(LEDS_GREEN);
-   Store the current MIS
-  mis = REG(SSI_BASE | SSI_MIS) & 0x000000FF;*/
+  /* Store the current MIS*/
+  mis = REG(SSI_BASE | SSI_MIS) & 0x000000FF;
   /*Clear the flag
    * */
-  /*REG(SSI_BASE | SSI_ICR) = 0x00000003;*/
+  REG(SSI_BASE | SSI_ICR) = 0x00000003;
 
 
-/*  if(mis & (SSI_MIS_RXMIS)) {
-       wait for buffer to fill up
+  if(mis & (SSI_MIS_RXMIS)) {
        if(input_handler != NULL) {
           input_handler();
-       } else {
-          To prevent an Overrun Error, we need to flush the FIFO even if we
-          * don't have an input_handler. Use mis as a data trash can
-         mis = REG(SSI_BASE | SSI_DR);
        }
-    }
-  else if (mis & (SSI_MIS_RTMIS)){
-       ISR triggered due to timeout
+    }else if (mis & (SSI_MIS_RTMIS)){
+      /* ISR triggered due to timeout*/
         if(reset_handler != NULL) {
           reset_handler();
       }
-       Flush the RX FIFO
-      mis = REG(SSI_BASE | SSI_DR);
     }
 
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);*/
+  /* To prevent an Overrun Error, we need to flush the FIFO even if we
+  * don't have an input_handler. Use mis as a data trash can*/
+  mis = REG(SSI_BASE | SSI_DR);
+
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 #endif
 /** @} */
