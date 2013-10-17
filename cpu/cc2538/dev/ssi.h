@@ -51,6 +51,13 @@
  */
 #define SSI0_BASE               0x40008000 /**< Base address for SSI0 */
 #define SSI1_BASE               0x40009000 /**< Base address for SSI1 */
+
+/* Default to SSI0 unless the configuration tells us otherwise */
+#ifdef SSI_CONF_BASE
+#define SSI_BASE             SSI_CONF_BASE
+#else
+#define SSI_BASE             SSI0_BASE
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name SSI register offsets
