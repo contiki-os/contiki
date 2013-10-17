@@ -68,25 +68,26 @@ AUTOSTART_PROCESSES(&spi_test_process);
 #if SSI_ISR_ENABLE
 #if SSI_MODE_SLAVE
 /*---------------------------------------------------------------------------*/
-int ssi_input( void ){
+int
+ssi_input(void)
+{
 
-    if (i < SIZE){
-        rx_data[i] = SPI_RXBUF;
-        /*
-         * You don't drive the transmission,
-         *  just set new data to buffer*/
-        SPI_TXBUF = tx_data[i];
-        i++;
-        printf("received %u",i);
-      }
-    else{
-        return -1;
-      }
-
-    return 0;
+  if(i < SIZE) {
+    rx_data[i] = SPI_RXBUF;
+    /*
+     * You don't drive the transmission,
+     *  just set new data to buffer*/
+    SPI_TXBUF = tx_data[i];
+    i++;
+    printf("received %u", i);
+  } else {
+    return -1;
   }
+  return 0;
+}
 /*---------------------------------------------------------------------------*/
-int ssi_reset( void )
+int
+ssi_reset(void)
 {
 
   i = 0;
@@ -96,13 +97,16 @@ int ssi_reset( void )
 /*---------------------------------------------------------------------------*/
 #else
 /*---------------------------------------------------------------------------*/
-int ssi_input( void ){
+int
+ssi_input(void)
+{
   /*Do something
    * TBD*/
-    return 0;
-  }
+  return 0;
+}
 /*---------------------------------------------------------------------------*/
-int ssi_reset( void )
+int
+ssi_reset(void)
 {
   /*Do something
    * TBD*/
@@ -124,13 +128,12 @@ PROCESS_THREAD(spi_test_process, ev, data)
   ssi_set_reset(ssi_reset);
 #endif
 
-  memset(tx_data,0xff,sizeof(tx_data));
-  memset(rx_data,0,sizeof(rx_data));
+  memset(tx_data, 0xff, sizeof(tx_data));
+  memset(rx_data, 0, sizeof(rx_data));
 
   spi_init();
 
   PROCESS_YIELD();
-
 
   printf("-----------------------------------------\n");
   printf("SPI will send data every %u\n",
@@ -142,20 +145,19 @@ PROCESS_THREAD(spi_test_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     etimer_reset(&et);
 
-
 #if SSI_MODE_SLAVE
     /*
      * Do something*/
 #if SSI_ISR_ENABLE
 #else
     SPI_TXBUF = tx_data[i];
-    printf("received %lu!\n",SPI_RXBUF);
+    printf("received %lu!\n", SPI_RXBUF);
 #endif
 #else
     while(i < SIZE) {
-        SPI_WRITE(tx_data[i]);
-        SPI_READ(rx_data[i]);
-        i++;
+      SPI_WRITE(tx_data[i]);
+      SPI_READ(rx_data[i]);
+      i++;
     }
 #endif
 
