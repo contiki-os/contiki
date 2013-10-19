@@ -57,7 +57,9 @@
 * - MB954 B
 * - MB954 C
 * - MB950 A
+* - MB950 B
 * - MB951 A
+* - MB951 B
 * - IDZ401V1
 */
 /*---------------------------------------------------------------------------*/
@@ -318,11 +320,33 @@ const BoardResourcesType MB950A = {
   &stlm20PA4noDiv,
 };
 
+const BoardResourcesType MB950B = {
+  "MB950 B",
+  (BOARD_HAS_MEMS | BOARD_HAS_TEMP_SENSOR | BOARD_HAS_STM32F),
+  BUTTONS_MB950B,
+  LEDS_MB950B,
+  &ioMB950A,
+  &infraRedLedMB851A,
+  &memsSensor,
+  &stlm20PA4noDiv,
+};
+
 const BoardResourcesType MB951A = {
   "MB951 A",
   (BOARD_HAS_STM32F),
   BUTTONS_MB951A,
   LEDS_MB951A,
+  &ioMB951A,
+  NULL,
+  NULL,
+  NULL,
+};
+
+const BoardResourcesType MB951B = {
+  "MB951 B",
+  (BOARD_HAS_STM32F),
+  BUTTONS_MB951B,
+  LEDS_MB951B,
   &ioMB951A,
   NULL,
   NULL,
@@ -349,7 +373,9 @@ static const BoardResourcesType *boardList [] = {
   &MB954B,
   &MB954C,
   &MB950A,
+  &MB950B,
   &MB951A,
+  &MB951B,
   &IDZ401V1
 };
 
