@@ -103,7 +103,15 @@ char boardName[16];
 /**
  * \brief Define the number of LEDs in the specific board revision
  */
+#define LEDS_MB950B 2
+/**
+ * \brief Define the number of LEDs in the specific board revision
+ */
 #define LEDS_MB951A 2
+/**
+ * \brief Define the number of LEDs in the specific board revision
+ */
+#define LEDS_MB951B 2
 
 
 
@@ -155,7 +163,15 @@ char boardName[16];
 /**
  * \brief Define the number of user buttons in the specific board revision
  */
+#define BUTTONS_MB950B 5
+/**
+ * \brief Define the number of user buttons in the specific board revision
+ */
 #define BUTTONS_MB951A 1
+/**
+ * \brief Define the number of user buttons in the specific board revision
+ */
+#define BUTTONS_MB951B 1
 
 
 
