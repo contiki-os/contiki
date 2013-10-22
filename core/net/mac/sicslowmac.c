@@ -160,7 +160,7 @@ send_packet(mac_callback_t sent, void *ptr)
     frame802154_create(&params, packetbuf_hdrptr(), len);
 
     PRINTF("6MAC-UT: %2X", params.fcf.frame_type);
-    PRINTADDR(params.dest_addr.u8);
+    PRINTADDR(params.dest_addr);
     PRINTF("%u %u (%u)\n", len, packetbuf_datalen(), packetbuf_totlen());
 
     ret = NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
