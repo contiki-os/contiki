@@ -911,23 +911,11 @@ cc2420_aes_set_key(const uint8_t *key, int index)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-/* Encrypt at most 16 bytes of data. */
-static void
-cipher16(uint8_t *data, int len)
-{
-  len = MIN(len, MAX_DATALEN);
-
-  CC2420_WRITE_RAM(data, CC2420RAM_SABUF, len);
-  strobe(CC2420_SAES);
-  /* Wait for the encryption to finish */
-  BUSYWAIT_UNTIL(!(status() & BV(CC2420_ENC_BUSY)), RTIMER_SECOND / 100);
-  CC2420_READ_RAM(data, CC2420RAM_SABUF, len);
-}
-/*---------------------------------------------------------------------------*/
 int
 cc2420_aes_cipher(uint8_t *data, int len, int key_index)
 {
   int i;
+  int block_len;
   uint16_t secctrl0;
 
   if(locked) {
@@ -950,7 +938,15 @@ cc2420_aes_cipher(uint8_t *data, int len, int key_index)
   setreg(CC2420_SECCTRL0, secctrl0);
 
   for(i = 0; i < len; i = i + MAX_DATALEN) {
-    cipher16(data + i, MIN(len - i, MAX_DATALEN));
+    // last data block may not have full AES block size
+    block_len = MIN(len - i, MAX_DATALEN);
+
+    CC2420_WRITE_RAM(data, CC2420RAM_SABUF, block_len);
+    strobe(CC2420_SAES);
+    
+    /* Wait for the encryption to finish */
+    BUSYWAIT_UNTIL(!(status() & BV(CC2420_ENC_BUSY)), RTIMER_SECOND / 100);
+    CC2420_READ_RAM(data, CC2420RAM_SABUF, MAX_DATALEN);
   }
   RELEASE_LOCK();
 
