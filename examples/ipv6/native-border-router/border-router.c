@@ -158,7 +158,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   for(nbr = nbr_table_head(ds6_neighbors);
       nbr != NULL;
       nbr = nbr_table_next(ds6_neighbors, nbr)) {
-    ipaddr_add(&nbr->ipaddr;);
+    ipaddr_add(&nbr->ipaddr);
     ADD("\n");
     if(blen > sizeof(buf) - 45) {
       SEND_STRING(&s->sout, buf);
