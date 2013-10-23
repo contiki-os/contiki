@@ -125,8 +125,9 @@ uart_init(void)
   ioc_set_sel(UART_TX_PORT, UART_TX_PIN, IOC_PXX_SEL_UART_TXD);
   ioc_set_over(UART_TX_PORT, UART_TX_PIN, IOC_OVERRIDE_OE);
 
-  /* Set PA[1:0] to peripheral mode */
-  REG(GPIO_A_BASE | GPIO_AFSEL) |= (0x00000002 | 0x00000001);
+  /* Set RX and TX pins to peripheral mode */
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(UART_TX_PORT), GPIO_PIN_MASK(UART_TX_PIN));
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(UART_RX_PORT), GPIO_PIN_MASK(UART_RX_PIN));
 
   /*
    * UART Interrupt Masks:
