@@ -5,6 +5,9 @@ AR      = arm-none-eabi-ar
 OBJCOPY = arm-none-eabi-objcopy
 NM      = arm-none-eabi-nm
 
+ifndef SOURCE_LDSCRIPT
+SOURCE_LDSCRIPT = $(CONTIKI_CPU)/cc2538.lds
+endif
 LDSCRIPT = $(OBJECTDIR)/cc2538.ld
 
 CFLAGS += -O2 -mcpu=cortex-m3 -mthumb -mlittle-endian
@@ -88,6 +91,6 @@ LDGENFLAGS += -imacros "contiki-conf.h"
 LDGENFLAGS += -x c -P -E
 
 # NB: Assumes LDSCRIPT was not overridden and is in $(OBJECTDIR)
-$(LDSCRIPT): $(CONTIKI_CPU)/cc2538.lds FORCE | $(OBJECTDIR)
+$(LDSCRIPT): $(SOURCE_LDSCRIPT) FORCE | $(OBJECTDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) $(LDGENFLAGS) $< -o $@
