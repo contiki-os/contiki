@@ -88,6 +88,14 @@ void uart_isr(void);
 #define uart0_isr default_handler
 #define uart1_isr default_handler
 #endif /* UART_CONF_ENABLE */
+
+/* And again for ADC */
+#if ADC_CONF_ENABLE
+void adc_isr(void);
+#else
+#define adc_isr default_handler
+#endif
+
 /*---------------------------------------------------------------------------*/
 /* Allocate stack space */
 static unsigned long stack[512];
@@ -143,7 +151,7 @@ void(*const vectors[])(void) =
   0,                          /* 27 Reserved */
   0,                          /* 28 Reserved */
   0,                          /* 29 Reserved */
-  default_handler,            /* 30 ADC Sequence 0 */
+  adc_isr,            /* 30 ADC Sequence 0 */
   0,                          /* 31 Reserved */
   0,                          /* 32 Reserved */
   0,                          /* 33 Reserved */
