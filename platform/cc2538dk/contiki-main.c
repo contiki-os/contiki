@@ -66,6 +66,7 @@
 #include "reg.h"
 #include "ieee-addr.h"
 #include "lpm.h"
+#include "dev/adc.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -160,6 +161,10 @@ main(void)
 #if USB_SERIAL_CONF_ENABLE
   usb_serial_init();
   usb_serial_set_input(serial_line_input_byte);
+#endif
+
+#if ADC_CONF_ENABLE
+  adc_init();
 #endif
 
   serial_line_init();
