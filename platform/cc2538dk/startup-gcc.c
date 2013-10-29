@@ -151,7 +151,7 @@ void(*const vectors[])(void) =
   0,                          /* 27 Reserved */
   0,                          /* 28 Reserved */
   0,                          /* 29 Reserved */
-  adc_isr,            /* 30 ADC Sequence 0 */
+  adc_isr,                    /* 30 ADC Sequence 0 */
   0,                          /* 31 Reserved */
   0,                          /* 32 Reserved */
   0,                          /* 33 Reserved */
