@@ -178,20 +178,29 @@
 #define PLATFORM_HAS_BUTTON      1
 /** @} */
 /*---------------------------------------------------------------------------*/
-/**
- * \name SPI configuration
+/** \name I2C configuration
  *
- * These values configure which CC2538 pins to use for the SPI lines.
+ * There are no a priori defintions on the SmartRF06EB for i2c.  Pin RF1.5
+ * is a NC so it is an easy choice for one of the pins. The second pin is
+ * defaulted to pin RF1.13 (#LCD_RESET) as the LCD is not supported in 
+ * Contiki yet.
+ *
+ * /note Using the #LCD_RESET line will need to be changed if an LCD
+ * driver is developed
+ *
+ * - SCL:  PB3 (RF1.13 on the DK)
+ * - SDA:  PB1 (RF1.5 on the DK)
  * @{
  */
-#define CC2538_SPI_CLK_PORT_NUM  GPIO_A_NUM
-#define CC2538_SPI_CLK_PIN_NUM   2
-#define CC2538_SPI_MOSI_PORT_NUM GPIO_A_NUM
-#define CC2538_SPI_MOSI_PIN_NUM  4
-#define CC2538_SPI_MISO_PORT_NUM GPIO_A_NUM
-#define CC2538_SPI_MISO_PIN_NUM  5
-#define CC2538_SPI_SEL_PORT_NUM  GPIO_B_NUM
-#define CC2538_SPI_SEL_PIN_NUM   5
+
+#define I2C_SCL_PORT        GPIO_B_NUM
+#define I2C_SCL_PORT_BASE   GPIO_B_BASE
+#define I2C_SCL_PIN         3
+
+#define I2C_SDA_PORT        GPIO_B_NUM
+#define I2C_SDA_PORT_BASE   GPIO_B_BASE
+#define I2C_SDA_PIN         1
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
