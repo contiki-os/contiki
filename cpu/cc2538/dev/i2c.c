@@ -114,8 +114,6 @@ i2c_write_bytes(uint8_t* b, uint8_t len, uint8_t slaveaddr)
    *  now that we checked the addr put it in to write
    */
   REG(I2CM_SA) = (slaveaddr << 1);
-  
-  /* Calculate the length of array b for use later */
 
   if (len == 1) /* a single byte command */
     {
