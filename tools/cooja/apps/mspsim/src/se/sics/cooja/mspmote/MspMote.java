@@ -63,7 +63,10 @@ import se.sics.mspsim.cli.CommandHandler;
 import se.sics.mspsim.cli.LineListener;
 import se.sics.mspsim.cli.LineOutputStream;
 import se.sics.mspsim.core.EmulationException;
+import se.sics.mspsim.core.LogListener;
+import se.sics.mspsim.core.Loggable;
 import se.sics.mspsim.core.MSP430;
+import se.sics.mspsim.core.EmulationLogger.WarningType;
 import se.sics.mspsim.platform.GenericNode;
 import se.sics.mspsim.ui.ManagedWindow;
 import se.sics.mspsim.ui.WindowManager;
@@ -210,6 +213,21 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     this.myCpu = node.getCPU();
     this.myCpu.setMonitorExec(true);
     this.myCpu.setTrace(0); /* TODO Enable */
+    
+    LogListener ll = new LogListener() {
+      private Logger mlogger = Logger.getLogger("MSPSim");
+      @Override
+      public void log(Loggable source, String message) {
+        mlogger.debug("" + getID() + ": " + source.getID() + ": " + message);
+      }
+      
+      @Override
+      public void logw(Loggable source, WarningType type, String message) throws EmulationException {
+        mlogger.warn("" + getID() +": " + "# " + source.getID() + "[" + type + "]: " + message);
+      }
+    };
+    
+    this.myCpu.getLogger().addLogListener(ll);
 
     logger.info("Loading firmware from: " + fileELF.getAbsolutePath());
     GUI.setProgressMessage("Loading " + fileELF.getName());

@@ -111,6 +111,16 @@
  */
 #define TRICKLE_TIMER_TX_SUPPRESS             0
 #define TRICKLE_TIMER_TX_OK                   1
+
+/**
+ * \brief A trickle timer is considered 'stopped' when
+ * i_cur == TRICKLE_TIMER_IS_STOPPED.
+ *
+ * trickle_timer_stop() must be used to correctly disable a trickle timer.
+ * Do NOT set the value of i_cur to 0 directly, as this will fail to stop the
+ * timer.
+ */
+#define TRICKLE_TIMER_IS_STOPPED              0
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -437,7 +447,10 @@ uint8_t trickle_timer_set(struct trickle_timer *tt,
  * to reset a timer manually. Instead, in response to events or inconsistencies,
  * the corresponding functions must be used
  */
-#define trickle_timer_stop(tt) ctimer_stop((tt)->ct)
+#define trickle_timer_stop(tt) do { \
+  ctimer_stop(&((tt)->ct)); \
+  (tt)->i_cur = TRICKLE_TIMER_IS_STOPPED; \
+} while(0)
 
 /**
  * \brief      To be called by the protocol when it hears a consistent
@@ -483,6 +496,16 @@ void trickle_timer_inconsistency(struct trickle_timer *tt);
  * trying to reset the timer by itself.
  */
 #define trickle_timer_reset_event(tt) trickle_timer_inconsistency(tt)
+
+/**
+ * \brief      To be called in order to determine whether a trickle timer is
+ *             running
+ * \param tt   A pointer to a ::trickle_timer structure
+ * \retval 0   The timer is stopped
+ * \retval non-zero The timer is running
+ *
+ */
+#define trickle_timer_is_running(tt) ((tt)->i_cur != TRICKLE_TIMER_IS_STOPPED)
 
 /** @} */
 

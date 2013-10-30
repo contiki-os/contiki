@@ -3,17 +3,14 @@
  <head>
   <title>Contiki Configuration Download</title>
   <style type="text/css">
-   tr.p  { padding: 15px 0px    }
-   tr.pt { padding-top: 15px    }
-   tr.pb { padding-bottom: 15px }
-   tr.bg { background-color: black; height: 1px }
+   tr.hr { background-color: black; height: 1px }
   </style>
  </head>
  <body>
   <form action="download.php">
-   <h4 align="center">Download your custom generated Contiki configuration</h4>
-   <table align="center" cellpadding="0" cellspacing="0">
-    <tr class="p">
+   <h3 align="center">Download your custom generated Contiki configuration</h3>
+   <table align="center" cellpadding="0" cellspacing="10">
+    <tr>
      <td>
       <input type="radio" name="machine" id="apple2" value="apple2" checked="checked" />
       <label for="apple2">Apple //e</label>
@@ -35,13 +32,25 @@
        <option value="C0F0"                    >7</option>
       </select>
      </td>
-    </tr><tr class="bg">
+    </tr><tr class="hr">
      <td colspan="3" />
-    </tr><tr class="p">
+    </tr><tr>
+     <td>
+      <input type="radio" name="machine" id="atari" value="atari" />
+      <label for="atari">Atari XL</label>
+     </td><td>
+      <label for="atari-drv">Ethernet Card:</label>
+      <select name="atari-addr-drv" id="atari-drv" size="1">
+       <option value="D500-cs8900a.eth" >Dragon Cart</option>
+      </select>
+     </td>
+    </tr><tr class="hr">
+     <td colspan="3" />
+    </tr><tr>
      <td>
       <input type="radio" name="machine" id="c64" value="c64" />
       <label for="c64">C64</label>
-     </td><td colspan="2">
+     </td><td>
       <label for="c64-drv">Ethernet Card:</label>
       <select name="c64-addr-drv" id="c64-drv" size="1">
        <option value="DE08-CS8900A.ETH" >RR-Net</option>
@@ -49,13 +58,13 @@
        <option value="DE00-LAN91C96.ETH">ETH64 </option>
       </select>
      </td>
-    </tr><tr class="bg">
+    </tr><tr class="hr">
      <td colspan="3" />
-    </tr><tr class="p">
+    </tr><tr>
      <td>
       <input type="radio" name="machine" id="c128" value="c128" />
       <label for="c128">C128</label>
-     </td><td colspan="2">
+     </td><td>
       <label for="c128-drv">Ethernet Card:</label>
       <select name="c128-addr-drv" id="c128-drv" size="1">
        <option value="DE08-CS8900A.ETH" >RR-Net</option>
@@ -63,24 +72,12 @@
        <option value="DE00-LAN91C96.ETH">ETH64 </option>
       </select>
      </td>
-    </tr><tr class="bg">
+    </tr><tr class="hr">
      <td colspan="3" />
-    </tr><tr class="p">
-     <td>
-      <input type="radio" name="machine" id="atari" value="atari" />
-      <label for="atari">Atari XL</label>
-     </td><td colspan="2">
-      <label for="atari-drv">Ethernet Card:</label>
-      <select name="atari-addr-drv" id="atari-drv" size="1">
-       <option value="D500-cs8900a.eth" >Dragon Cart</option>
-      </select>
-     </td>
-    </tr><tr class="bg">
-     <td colspan="3" />
-    </tr><tr class="pt">
+    </tr><tr>
      <td>
       <label for="addr-a">IP Address:</label>
-     </td><td>
+     </td><td colspan="2">
       <input type="text" name="addr-a" id="addr-a" size="3" maxlength="3" value="192" />.
       <input type="text" name="addr-b" id="addr-b" size="3" maxlength="3" value="168" />.
       <input type="text" name="addr-c" id="addr-c" size="3" maxlength="3" value="0"   />.
@@ -89,7 +86,7 @@
     </tr><tr>
      <td>
       <label for="mask-a">Subnet Mask:</label>
-     </td><td>
+     </td><td colspan="2">
       <input type="text" name="mask-a" id="mask-a" size="3" maxlength="3" value="255" />.
       <input type="text" name="mask-b" id="mask-b" size="3" maxlength="3" value="255" />.
       <input type="text" name="mask-c" id="mask-c" size="3" maxlength="3" value="255" />.
@@ -98,24 +95,24 @@
     </tr><tr>
      <td>
       <label for="dgw-a">Default Gateway:&nbsp;</label>
-     </td><td>
+     </td><td colspan="2">
       <input type="text" name="dgw-a" id="dgw-a" size="3" maxlength="3" value="192" />.
       <input type="text" name="dgw-b" id="dgw-b" size="3" maxlength="3" value="168" />.
       <input type="text" name="dgw-c" id="dgw-c" size="3" maxlength="3" value="0"   />.
       <input type="text" name="dgw-d" id="dgw-d" size="3" maxlength="3" value="1"   />
      </td>
-    </tr><tr class="pb">
+    </tr><tr>
      <td>
       <label for="dns-a">DNS Server:</label>
-     </td><td>
+     </td><td colspan="2">
       <input type="text" name="dns-a" id="dns-a" size="3" maxlength="3" value="192" />.
       <input type="text" name="dns-b" id="dns-b" size="3" maxlength="3" value="168" />.
       <input type="text" name="dns-c" id="dns-c" size="3" maxlength="3" value="0"   />.
       <input type="text" name="dns-d" id="dns-d" size="3" maxlength="3" value="1"   />
      </td>
-    </tr><tr class="bg">
+    </tr><tr class="hr">
      <td colspan="3" />
-    </tr><tr class="p">
+    </tr><tr>
      <td colspan="3" align="center">
       <input type="submit" value="Download" />
      </td>

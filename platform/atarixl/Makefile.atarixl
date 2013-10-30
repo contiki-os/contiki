@@ -31,16 +31,15 @@
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
 
-ETHERNET = cs8900a
-
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
-STARTADDR_FLAG = -S 0x2300
-SHADOW_RAM_SOURCEFILES = tcpip.c uip.c uip_arp.c
+SHADOW_RAM_SOURCEFILES  = etimer.c uip.c
+SHADOW_RAM2_SOURCEFILES = clock.c error.c uip_arch.c uip_arp.c
 
-# Set a target-specific variable value
-${addprefix $(OBJECTDIR)/,${call oname, $(SHADOW_RAM_SOURCEFILES)}}: CFLAGS += --code-name SHADOW_RAM
+# Set target-specific variable values
+${addprefix $(OBJECTDIR)/,${call oname, $(SHADOW_RAM_SOURCEFILES)}}:  CFLAGS += --code-name SHADOW_RAM
+${addprefix $(OBJECTDIR)/,${call oname, $(SHADOW_RAM2_SOURCEFILES)}}: CFLAGS += --code-name SHADOW_RAM2
 
 ifeq ($(MAKECMDGOALS),disk)
   ifndef DIR2ATR
@@ -54,6 +53,7 @@ disk: all
 	cp $(CONTIKI)/tools/$(TARGET)/dos25/dup.sys atr/dup.sys
 	cp $(CONTIKI_PROJECT).$(TARGET)             atr/autorun.sys
 	cp $(CONTIKI)/tools/$(TARGET)/sample.cfg    atr/contiki.cfg
+	cp cs8900a.eth                              atr/cs8900a.eth
 ifeq ($(HTTPD-CFS),1)
 	cp httpd-cfs/index.htm                      atr/index.htm
 	cp httpd-cfs/backgrnd.gif                   atr/backgrnd.gif

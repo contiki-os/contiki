@@ -173,7 +173,7 @@ create(void)
     frame802154_create(&params, packetbuf_hdrptr(), len);
 
     PRINTF("15.4-OUT: %2X", params.fcf.frame_type);
-    PRINTADDR(params.dest_addr.u8);
+    PRINTADDR(params.dest_addr);
     PRINTF("%d %u (%u)\n", len, packetbuf_datalen(), packetbuf_totlen());
 
     return len;

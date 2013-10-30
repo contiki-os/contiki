@@ -274,7 +274,9 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 /* RF Config */
+#ifndef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID           0x5449 /**< Default PAN ID: TI */
+#endif
 
 #ifndef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL              25
@@ -360,7 +362,9 @@ typedef uint32_t rtimer_clock_t;
 
 /* 6lowpan */
 #define SICSLOWPAN_CONF_COMPRESSION          SICSLOWPAN_COMPRESSION_HC06
+#ifndef SICSLOWPAN_CONF_COMPRESSION_THRESHOLD
 #define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 63
+#endif
 #ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                 1
 #endif
@@ -368,10 +372,12 @@ typedef uint32_t rtimer_clock_t;
 
 /* Define our IPv6 prefixes/contexts here */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
+#ifndef SICSLOWPAN_CONF_ADDR_CONTEXT_0
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
   addr_contexts[0].prefix[0] = 0xaa; \
   addr_contexts[0].prefix[1] = 0xaa; \
 }
+#endif
 
 #define MAC_CONF_CHANNEL_CHECK_RATE          8
 
