@@ -60,13 +60,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessControlException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Observable;
@@ -244,7 +247,7 @@ public class GUI extends Observable {
   public static Properties currentExternalToolsSettings;
 
   private static final String externalToolsSettingNames[] = new String[] {
-    "PATH_CONTIKI", "PATH_COOJA_CORE_RELATIVE", "PATH_COOJA", "PATH_APPS",
+    "PATH_CONTIKI", "PATH_COOJA_CORE_RELATIVE","PATH_COOJA","PATH_APPS",
     "PATH_APPSEARCH",
 
     "PATH_MAKE",
@@ -422,6 +425,20 @@ public class GUI extends Observable {
       for (String p : arr) {
         File projectDir = restorePortablePath(new File(p));
         currentProjects.add(new COOJAProject(projectDir));
+      }
+    }
+    
+    //Scan for projects
+    String searchProjectDirs = getExternalToolsSetting("PATH_APPSEARCH", null);
+    if (searchProjectDirs != null && searchProjectDirs.length() > 0) {
+      String[] arr = searchProjectDirs.split(";");
+      for (String d : arr) {
+    	  File searchDir = restorePortablePath(new File(d));
+    	  File[] projects = COOJAProject.sarchProjects(searchDir, 3);
+    	  if(projects == null) continue;
+    	  for(File p : projects){
+    		  currentProjects.add(new COOJAProject(p));
+    	  }
       }
     }
 
