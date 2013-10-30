@@ -209,13 +209,11 @@
  * @{
  */
 
-#define I2C_SCL_PORT        GPIO_B_NUM
-#define I2C_SCL_PORT_BASE   GPIO_B_BASE
-#define I2C_SCL_PIN         3
+#define I2C_CONF_SCL_PORT        GPIO_B_NUM
+#define I2C_CONF_SCL_PIN         3
 
-#define I2C_SDA_PORT        GPIO_B_NUM
-#define I2C_SDA_PORT_BASE   GPIO_B_BASE
-#define I2C_SDA_PIN         1
+#define I2C_CONF_SDA_PORT        GPIO_B_NUM
+#define I2C_CONF_SDA_PIN         1
 
 /** @} */
 /*---------------------------------------------------------------------------*/

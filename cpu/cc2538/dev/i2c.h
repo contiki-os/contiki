@@ -50,7 +50,39 @@
 #include "reg.h"
 
 #include <stdint.h>
+/*---------------------------------------------------------------------------*/
+/** /name I2C port/pin configs
+ * @{
+ */
+#ifdef I2C_CONF_SCL_PORT
+#define I2C_SCL_PORT          I2C_CONF_SCL_PORT
+#else
+#define I2C_SCL_PORT          GPIO_B_NUM
+#endif
 
+#ifdef I2C_CONF_SCL_PIN
+#define I2C_SCL_PIN           I2C_CONF_SCL_PIN
+#else
+#define I2C_SCL_PIN           3
+#endif
+
+#ifdef I2C_CONF_SDA_PORT
+#define I2C_SDA_PORT          I2C_CONF_SDA_PORT
+#else
+#define I2C_SDA_PORT          GPIO_B_NUM
+#endif
+
+#ifdef I2C_CONF_SDA_PIN
+#define I2C_SDA_PIN           I2C_CONF_SDA_PIN
+#else 
+#define I2C_SDA_PIN           2
+#endif
+
+#define I2C_SCL_PORT_BASE     GPIO_PORT_TO_BASE(I2C_SCL_PORT)
+#define I2C_SDA_PORT_BASE     GPIO_PORT_TO_BASE(I2C_SDA_PORT)
+
+
+/** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * /name I2C defines for the I2C master register offsets.
