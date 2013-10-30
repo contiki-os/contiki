@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, RWTH Aachen University.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,67 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
  */
 
 /**
  * \file
- *         Interface to the CC2420 AES encryption/decryption functions
+ *         Example on how to use Hardware AES.
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Jens Hiller <jens.hiller@rwth-aachen.de>
  */
 
-#ifndef __CC2420_AES_H__
-#define __CC2420_AES_H__
+#include "contiki.h"
+#include <stdio.h>
+#include <string.h>
+#include "../../core/dev/cc2420.h"
 
-/**
- * \brief      Setup an AES key
- * \param key  A pointer to a 16-byte AES key
- * \param index The key index: either 0 or 1.
- *
- *             This function sets up an AES key with the CC2420
- *             chip. The AES key can later be used with the
- *             cc2420_aes_cipher() function to encrypt or decrypt
- *             data.
- *
- *             The CC2420 can store two separate keys in its
- *             memory. The keys are indexed as 0 or 1 and the key
- *             index is given by the 'index' parameter.
- *
- */
-void cc2420_aes_set_key(const uint8_t *key, int index);
+PROCESS(aes_cc2420, "aes_cc2420");
+AUTOSTART_PROCESSES(&aes_cc2420);
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(aes_cc2420, ev, data)
+{
+
+  PROCESS_BEGIN();
+
+  /* official NIST test vector
+   *
+   * http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
+   * C.1 AES-128 (Nk=4, Nr=10) [page 35]
+   */
+  static unsigned char plaintext[16] = {
+    0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+    0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
+  };
+  static unsigned char key[16] = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+  };
+  static unsigned char ciphertext[16] = {
+    0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30,
+    0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a
+  };
+  unsigned char tmp[16];
+
+  cc2420_aes_set_key(key, 0);
+
+  int count = 0;
+  int i;
+  for(i=0; i<10000; i++){
+    memcpy(tmp, plaintext, 16);
+    cc2420_aes_cipher(tmp, 16, 0);
+    if( memcmp(tmp, ciphertext, 16) ){
+      printf("%i FAIL\n", i);
+      count++;
+    }else{
+      printf("%i ok\n", i);
+    }
+  }
+
+  printf("done\n");
+  printf("%i from 10000 failed\n", count);
 
 
-/**
- * \brief      Encrypt/decrypt data with AES
- * \param data A pointer to the data to be encrypted/decrypted
- * \param len  The length of the data to be encrypted/decrypted
- * \param key_index The key to use. The key must have previously been set up with cc2420_aes_set_key().
- *
- *             This function encrypts/decrypts data with AES. A
- *             pointer to the data is passed as a parameter, and the
- *             function overwrites the data with the encrypted data.
- *
- */
-void cc2420_aes_cipher(uint8_t *data, int len, int key_index);
+  PROCESS_END();
+}
 
-
-#endif /* __CC2420_AES_H__ */
