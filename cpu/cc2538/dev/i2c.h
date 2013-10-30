@@ -75,7 +75,7 @@
 #ifdef I2C_CONF_SDA_PIN
 #define I2C_SDA_PIN           I2C_CONF_SDA_PIN
 #else 
-#define I2C_SDA_PIN           2
+#define I2C_SDA_PIN           1
 #endif
 
 #define I2C_SCL_PORT_BASE     GPIO_PORT_TO_BASE(I2C_SCL_PORT)
