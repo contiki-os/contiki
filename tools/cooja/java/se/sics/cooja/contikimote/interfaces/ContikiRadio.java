@@ -250,6 +250,24 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
     myMoteMemory.setIntValueOf("simSignalStrength", (int) signalStrength);
   }
 
+  /** Set LQI to a value between 0 and 255.
+   * 
+   * @see se.sics.cooja.interfaces.Radio#setLQI(int)
+   */
+  public void setLQI(int lqi){
+    if(lqi<0) {
+      lqi=0;
+    }
+    else if(lqi>0xff) {
+      lqi=0xff;
+    }
+    myMoteMemory.setIntValueOf("simLQI", lqi);
+  }
+
+  public int getLQI(){
+    return myMoteMemory.getIntValueOf("simLQI");
+  }
+
   public Position getPosition() {
     return mote.getInterfaces().getPosition();
   }
