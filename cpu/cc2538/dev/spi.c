@@ -91,8 +91,5 @@ spi_init(void)
 
   /* Enable the SSI */
   REG(SSI0_BASE + SSI_CR1) |= SSI_CR1_SSE;
-
-  /* Clear the RX FIFO */
-  SPI_WAITFOREORx();
 }
 /** @} */
