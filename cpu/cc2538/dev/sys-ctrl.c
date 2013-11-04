@@ -35,20 +35,39 @@
  * \file
  * Implementation of the cc2538 System Control driver
  */
+#include "contiki.h"
 #include "reg.h"
 #include "cpu.h"
 #include "dev/sys-ctrl.h"
+#include "dev/gpio.h"
+#include "dev/ioc.h"
 
 #include <stdint.h>
+
+#if SYS_CTRL_OSC32K_USE_XTAL
+#define SYS_CTRL_OSCS   0
+#else
+#define SYS_CTRL_OSCS   SYS_CTRL_CLOCK_CTRL_OSC32K
+#endif
 /*---------------------------------------------------------------------------*/
 void
 sys_ctrl_init()
 {
   uint32_t val;
 
+#if SYS_CTRL_OSC32K_USE_XTAL
+  /* Set the XOSC32K_Q pads to analog for crystal */
+  GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(6));
+  GPIO_SET_INPUT(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(6));
+  ioc_set_over(GPIO_D_NUM, 6, IOC_OVERRIDE_ANA);
+  GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(7));
+  GPIO_SET_INPUT(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(7));
+  ioc_set_over(GPIO_D_NUM, 7, IOC_OVERRIDE_ANA);
+#endif
+
   /*
    * Desired Clock Ctrl configuration:
-   * 32KHz source: RC
+   * 32KHz source: RC or crystal, according to SYS_CTRL_OSC32K_USE_XTAL
    * System Clock: 32 MHz
    * Power Down Unused
    * I/O Div: 16MHz
@@ -56,11 +75,18 @@ sys_ctrl_init()
    * Rest: Don't care
    */
 
-  val = SYS_CTRL_CLOCK_CTRL_OSC32K | SYS_CTRL_CLOCK_CTRL_OSC_PD
+  val = SYS_CTRL_OSCS | SYS_CTRL_CLOCK_CTRL_OSC_PD
       | SYS_CTRL_CLOCK_CTRL_IO_DIV_16MHZ | SYS_CTRL_CLOCK_CTRL_SYS_DIV_16MHZ;
   REG(SYS_CTRL_CLOCK_CTRL) = val;
 
-  while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_OSC) != 0);
+  while((REG(SYS_CTRL_CLOCK_STA) & (SYS_CTRL_CLOCK_STA_OSC32K |
+        SYS_CTRL_CLOCK_STA_OSC)) != SYS_CTRL_OSCS);
+
+#if SYS_CTRL_OSC32K_USE_XTAL
+  /* Wait for the 32-kHz crystal oscillator to stabilize */
+  while(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K);
+  while(!(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K));
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
