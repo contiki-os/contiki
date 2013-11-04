@@ -575,6 +575,8 @@
  * @{
  */
 #define RFCORE_XREG_ATEST_ATEST_CTRL 0x0000003F /**< Controls the analog test mode */
+#define RFCORE_XREG_ATEST_ATEST_CTRL_DIS 0x00000000 /**< Analog test mode: disabled */
+#define RFCORE_XREG_ATEST_ATEST_CTRL_TEMP 0x00000001 /**< Analog test mode: enable temperature sensor */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name RFCORE_XREG_PTEST0 register bit masks
