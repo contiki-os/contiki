@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
+ * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +30,44 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538-smartrf
+ * \addtogroup cc2538
  * @{
  *
- * \defgroup cc2538-smartrf-sensors SmartRF06EB Sensors
+ * \defgroup cc2538-adc cc2538 ADC
  *
- * Generic module controlling sensors on the SmartRF06EB
+ * Driver for the cc2538 ADC controller
  * @{
  *
  * \file
- * Implementation of a generic module controlling SmartRF06EB sensors
+ * Header file for the cc2538 ADC driver
  */
+#ifndef ADC_H_
+#define ADC_H_
+
 #include "contiki.h"
-#include "dev/button-sensor.h"
-#include "dev/adc-sensor.h"
+#include "dev/soc-adc.h"
 
-#include <string.h>
+#include <stdint.h>
+/*---------------------------------------------------------------------------*/
+/** \name ADC functions
+ * @{
+ */
 
-/** \brief Exports a global symbol to be used by the sensor API */
-SENSORS(&button_select_sensor, &button_left_sensor, &button_right_sensor,
-        &button_up_sensor, &button_down_sensor, &adc_sensor);
+/** \brief Initializes the ADC controller */
+void adc_init(void);
+
+/** \brief Performs a single conversion on a given ADC channel
+ * \param channel The channel used for the conversion: \c SOC_ADC_ADCCON_CH_x
+ * \param ref The reference voltage used for the conversion: \c SOC_ADC_ADCCON_REF_x
+ * \param div The decimation rate used for the conversion: \c SOC_ADC_ADCCON_DIV_x
+ * \return Signed 16-bit conversion result: 2's complement, ENOBs in MSBs
+ * \note PD[5:4] are not usable when the temperature sensor is selected.
+ */
+int16_t adc_get(uint8_t channel, uint8_t ref, uint8_t div);
+
+/** @} */
+
+#endif /* ADC_H_ */
 
 /**
  * @}
