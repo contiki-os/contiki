@@ -35,12 +35,12 @@
  */
 #include "contiki.h"
 #include "reg.h"
+#include "spi-arch.h"
 #include "dev/ioc.h"
 #include "dev/sys-ctrl.h"
 #include "dev/spi.h"
 #include "dev/ssi.h"
 #include "dev/gpio.h"
-#include "spi-arch.h"
 
 /**
  * \brief Initialize the SPI bus.
