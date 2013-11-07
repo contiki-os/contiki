@@ -33,7 +33,7 @@
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
@@ -371,7 +371,7 @@ total_latency = 0;
 nodes_starting = true;
 for(i = 1; i &lt;= nrNodes; i++) {
   booted[i] = false;
-  received[i] = "__________";
+  received[i] = "___________";
   hops[i] = received[i];
 }
 
@@ -404,7 +404,7 @@ GENERATE_MSG(20000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 node = sink_node;
 log.log("Writing netcmd\n");
-node.write("netcmd { repeat 10 30 { randwait 30 collect-view-data | blink | send } }");
+node.write("netcmd { repeat 11 30 { randwait 30 collect-view-data | blink | send } }");
 
 while(true) {
   YIELD();
@@ -471,7 +471,7 @@ while(true) {
   num_reported = 0;
   for(i = 1; i &lt;= nrNodes; i++) {
       if(i != sink) {
-          if(!isNaN(received[i])) {
+          if(received[i].split("_").length -1 &lt;= 1) {
               num_reported++;
           }
       }
