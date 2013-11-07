@@ -59,12 +59,17 @@ endif
 	@(java -Xshare:on -jar $(CONTIKI)/tools/cooja/dist/cooja.jar \
               -nogui=$< -contiki=$(CONTIKI) > $(basename $@).log || \
          (echo " FAIL ಠ_ಠ" | tee -a COOJA.testlog; \
-	  tail -50 COOJA.log; \
+           if [ \"$(CI)\" = \"true\" ];  then \
+            echo "==== COOJA.log ====" ; cat COOJA.log; \
+            echo "==== COOJA.testlog ====" ; cat COOJA.testlog; \
+          else  \
+            tail -50 COOJA.log ; \
+          fi; \
           mv COOJA.testlog $(basename $<).faillog; \
           $(RUNALL))) && \
          (touch COOJA.testlog; \
-	  mv COOJA.testlog $@; \
-	  echo " OK")
+          mv COOJA.testlog $@; \
+          echo " OK")
 
 clean:
 	@rm -f $(TESTLOGS) $(LOGS) $(FAILLOGS) COOJA.log COOJA.testlog \
