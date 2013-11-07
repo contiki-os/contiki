@@ -94,6 +94,10 @@
 #define RF_CHANNEL              26
 #endif /* RF_CHANNEL */
 
+#ifndef CCA_THRESH
+#define CCA_THRESH              -46
+#endif
+
 #define CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT 0
 
 #define IEEE802154_CONF_PANID       0xABCD

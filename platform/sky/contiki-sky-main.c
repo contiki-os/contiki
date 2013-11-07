@@ -115,10 +115,7 @@ force_float_inclusion()
 #endif
 /*---------------------------------------------------------------------------*/
 void uip_log(char *msg) { puts(msg); }
-/*---------------------------------------------------------------------------*/
-#ifndef RF_CHANNEL
-#define RF_CHANNEL              26
-#endif
+
 /*---------------------------------------------------------------------------*/
 #if 0
 void
@@ -272,7 +269,8 @@ main(int argc, char **argv)
     
     cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
   }
-  cc2420_set_channel(RF_CHANNEL);
+  cc2420_set_channel(RF_CHANNEL); 
+  cc2420_set_cca_threshold(CCA_THRESH);
 
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
@@ -297,11 +295,12 @@ main(int argc, char **argv)
   NETSTACK_MAC.init();
   NETSTACK_NETWORK.init();
 
-  printf("%s %s, channel check rate %lu Hz, radio channel %u\n",
+  printf("%s %s, channel check rate %lu Hz, radio channel %u, CCA threshold %i\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
                          NETSTACK_RDC.channel_check_interval()),
-         RF_CHANNEL);
+         RF_CHANNEL,
+         CCA_THRESH);
 
   process_start(&tcpip_process, NULL);
 
