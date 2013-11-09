@@ -56,7 +56,7 @@ bufsize:.res	2		; Size
 
 	.zeropage
 
-sp:	.res   	2		; Stack pointer (Do not trash !)
+sp:	.res	2		; Stack pointer (Do not trash !)
 reg:	.res	2		; Address of rxtxreg
 ptr:	.res	2		; Indirect addressing pointer
 len:	.res	2		; Frame length
