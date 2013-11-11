@@ -79,6 +79,7 @@ fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup17-fixup16, fixup18-fixup17, fixup19-fixup18
 	.byte	fixup20-fixup19, fixup21-fixup20, fixup22-fixup21
 	.byte	fixup23-fixup22, fixup24-fixup23, fixup25-fixup24
+	.byte	fixup26-fixup25, fixup27-fixup26
 
 fixups	= * - fixup
 
@@ -169,26 +170,33 @@ fixup08:sta data
 ;---------------------------------------------------------------------
 
 poll:
+	; Check for completion of previous command
+	; Socket 0 Command Register: = 0 ?
+	jsr set_addrcmdreg0
+fixup09:lda data
+	beq :++
+
+	; No data available
+	lda #$00
+:	tax
+	rts
+
+	; Socket RX Received Size Register: != 0 ?
+:	ldy #$26		; Socket RX Received Size Register
+	jsr set_addrsocket0
+fixup10:lda data		; Hibyte
+fixup11:ora data		; Lobyte
+	beq :--
+
+	; Process the incoming data
+	; -------------------------
+
 	; Set parameters for receiving data
 	lda #>$6000		; Socket 0 RX Base Address
 	ldx #$00		; Read
 	jsr set_parameters
 
-	; Socket RX Received Size Register: != 0 ?
-	ldy #$26		; Socket RX Received Size Register
-	jsr set_addrsocket0
-fixup09:lda data		; Hibyte
-fixup10:ora data		; Lobyte
-	bne :+
-
-	; No data available
-	tax
-	rts
-
-	; Process the incoming data
-	; -------------------------
-
-:	; ldy #$28		; Socket RX Read Pointer Register
+	; ldy #$28		; Socket RX Read Pointer Register
 	; jsr set_addrsocket0
 
 	; Calculate and set pyhsical address
@@ -239,13 +247,13 @@ common: jsr set_addrsocket0
 	tax
 	lda reg+1
 	adc adv+1
-fixup11:sta data		; Hibyte
-fixup12:stx data		; Lobyte
+fixup12:sta data		; Hibyte
+fixup13:stx data		; Lobyte
 
 	; Set command register
 	tya			; Restore command
 	jsr set_addrcmdreg0
-fixup13:sta data
+fixup14:sta data
 
 	; Return data length (will be ignored for send)
 	lda len
@@ -268,11 +276,17 @@ send:
 	ldx #$01		; Write
 	jsr set_parameters
 
+	; Wait for completion of previous command
+	; Socket 0 Command Register: = 0 ?
+:	jsr set_addrcmdreg0
+fixup15:lda data
+	bne :-
+
 	; Socket 0 TX Free Size Register: < length ?
 :	ldy #$20
 	jsr set_addrsocket0
-fixup14:lda data		; Hibyte
-fixup15:ldx data		; Lobyte
+fixup16:lda data		; Hibyte
+fixup17:ldx data		; Lobyte
 	cpx len
 	sbc len+1
 	bcc :-
@@ -302,16 +316,16 @@ exit:
 ;---------------------------------------------------------------------
 
 set_addrphysical:
-fixup16:lda data		; Hibyte
-fixup17:ldy data		; Lobyte
+fixup18:lda data		; Hibyte
+fixup19:ldy data		; Lobyte
 	sta reg+1
 	sty reg
 	and #>$1FFF		; Socket Mask Address (hibyte)
 	ora bas			; Socket Base Address (hibyte)
 	tax
 set_addr:
-fixup18:stx addr		; Hibyte
-fixup19:sty addr+1		; Lobyte
+fixup20:stx addr		; Hibyte
+fixup21:sty addr+1		; Lobyte
 	rts
 
 set_addrcmdreg0:
@@ -326,8 +340,8 @@ set_addrbase:
 	beq set_addr		; Always
 
 get_datacheckaddr:
-fixup20:lda data
-	ldx addr		; Hibyte
+fixup22:lda data
+fixup23:ldx addr		; Hibyte
 	cpx lim			; Socket memory limit (hibyte)
 	bcs set_addrbase
 	rts
@@ -347,12 +361,6 @@ set_parameters:
 	ldx bufaddr+1
 	sta ptr
 	stx ptr+1
-
-	; Wait for previous command to complete
-	; Socket 0 Command Register: = 0 ?
-:	jsr set_addrcmdreg0
-fixup21:lda data
-	bne :-
 	rts
 
 ;---------------------------------------------------------------------
@@ -372,10 +380,10 @@ mov_data:
 	; R/W without address wraparound possible because 
 	; highest R/W address > actual R/W address ?
 	; sec
-fixup22:sbc addr+1		; Lobyte
+fixup24:sbc addr+1		; Lobyte
 	tay
 	txa
-fixup23:sbc addr		; Hibyte
+fixup25:sbc addr		; Hibyte
 	tax
 	tya
 	bcs :+
@@ -436,7 +444,7 @@ rw_data:eor #$FF		; Two's complement part 1
 
 	; Read data
 :
-fixup24:lda data
+fixup26:lda data
 	sta (ptr),y
 	iny
 	bne :-
@@ -447,7 +455,7 @@ fixup24:lda data
 
 	; Write data
 :	lda (ptr),y
-fixup25:sta data
+fixup27:sta data
 	iny
 	bne :-
 	inc ptr+1
