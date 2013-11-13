@@ -97,9 +97,8 @@
  *
  * The USB pullup is driven by PC0 and is shared with LED1
  */
-#define USB_PULLUP_PORT          GPIO_C_BASE
-#define USB_PULLUP_PIN           0
-#define USB_PULLUP_PIN_MASK      GPIO_PIN_MASK(USB_PULLUP_PIN)
+#define USB_CONF_PULLUP_PORT     GPIO_C_BASE
+#define USB_CONF_PULLUP_PIN      0
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART configuration
