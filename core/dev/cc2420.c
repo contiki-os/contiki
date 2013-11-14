@@ -60,6 +60,15 @@
 #define CC2420_CONF_CHECKSUM 0
 #endif /* CC2420_CONF_CHECKSUM */
 
+#ifndef CC2420_CONF_CHANNEL
+#define CC2420_CONF_CHANNEL 26
+#endif /* CC2420_CONF_CHANNEL */
+
+#ifndef CC2420_CONF_CCA_THRESH
+#define CC2420_CONF_CCA_THRESH -45
+#endif /* CC2420_CONF_CCA_THRESH */
+
+
 #ifndef CC2420_CONF_AUTOACK
 #define CC2420_CONF_AUTOACK 0
 #endif /* CC2420_CONF_AUTOACK */
@@ -331,7 +340,8 @@ cc2420_init(void)
   setreg(CC2420_SECCTRL0, reg);
 
   cc2420_set_pan_addr(0xffff, 0x0000, NULL);
-  cc2420_set_channel(26);
+  cc2420_set_channel(CC2420_CONF_CHANNEL);
+  cc2420_set_cca_threshold(CC2420_CONF_CCA_THRESH);
 
   flushrx();
 
