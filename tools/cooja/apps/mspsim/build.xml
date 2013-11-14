@@ -26,6 +26,14 @@
   </target>
 
   <target name="mspsim" depends="init">
+  	<fail>-
+----------------
+Could not find the MSPSim build file. Did you run &quot;git submodule update --init&quot;?
+----------------
+  		<condition><not>
+  	      <available file="${mspsim}/build.xml" />
+  	    </not></condition>
+  	</fail>
     <ant antfile="build.xml" dir="${mspsim}" target="jar" inheritAll="false"/>
     <copy todir="${lib}" file="${mspsim_jar}" />
     <copy todir="${lib}" file="${mspsim}/lib/jipv6.jar" />
