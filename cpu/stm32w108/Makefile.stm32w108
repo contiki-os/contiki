@@ -105,7 +105,7 @@ else ifeq ($(STM32W_CPUREV), xB)
   LD-EXT=-stm32w108xB
  ${warning "using stm32w108xB specific ld file"}
 else
- ${error "No STM32W_CPUREV specified. Cpu revision should be specified. Please read cpu/stm32w108/README.txt for more details."}
+ ${error "Bad STM32W_CPUREV value or no STM32W_CPUREV value specified. Cpu revision should be specified. Please read cpu/stm32w108/README.txt for more details."}
 endif
 
 CFLAGSNO = -mthumb -mcpu=cortex-m3 -D "PLATFORM_HEADER=\"hal/micro/cortexm3/compiler/gnu.h\"" \
