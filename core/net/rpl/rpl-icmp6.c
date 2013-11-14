@@ -84,15 +84,6 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 
-/* some debug callbacks useful when debugging RPL networks */
-#ifdef RPL_DEBUG_DIO_INPUT
-void RPL_DEBUG_DIO_INPUT(uip_ipaddr_t *, rpl_dio_t *);
-#endif
-
-#ifdef RPL_DEBUG_DAO_OUTPUT
-void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
-#endif
-
 extern rpl_of_t RPL_OF;
 
 /*---------------------------------------------------------------------------*/
