@@ -47,6 +47,7 @@
 #include "contiki-conf.h"
 #include "rtimer.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
 /**
@@ -100,7 +101,7 @@ void lpm_init(void);
  *
  * This PM selection heuristic has the following primary criteria:
  * - Is the RF off?
- * - Is the USB PLL off?
+ * - Are all registered peripherals permitting PM1+?
  * - Is the Sleep Timer scheduled to fire an interrupt?
  *
  * If the answer to any of those questions is no, we will drop to PM0 and
@@ -172,6 +173,26 @@ void lpm_exit(void);
  * \sa lpm_enter()
  */
 void lpm_set_max_pm(uint8_t pm);
+/*---------------------------------------------------------------------------*/
+typedef bool (*lpm_periph_permit_pm1_func_t)(void);
+
+/**
+ * \brief Register a peripheral function which will get called by the LPM
+ * module to get 'permission' to drop to PM1+
+ * \param permit_pm1_func Pointer to the function
+ *
+ * Some peripherals are sensitive to PM changes. For instance, we don't want to
+ * drop to PM1+ if the USB PLL is active or if the UART TX FIFO is not clear.
+ *
+ * When changing power modes, the LPM driver will call all FPs registered with
+ * this function. The peripheral's function will return true or false to permit
+ * / prohibit PM1+ respectively. If at least one peripheral returns false, the
+ * SoC will drop to PM0 Deep Sleep instead.
+ *
+ * Registering several times the same function makes the LPM module behave as if
+ * the function had been registered once.
+ */
+void lpm_register_peripheral(lpm_periph_permit_pm1_func_t permit_pm1_func);
 /*---------------------------------------------------------------------------*/
 /* Disable the entire module if required */
 #if LPM_CONF_ENABLE==0

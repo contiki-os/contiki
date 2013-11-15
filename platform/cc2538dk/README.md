@@ -388,7 +388,7 @@ The Low-Power module uses a simple heuristic to determine the best power mode, d
 In a nutshell, the algorithm first answers the following questions:
 
 * Is the RF off?
-* Is the USB PLL off?
+* Are all registered peripherals permitting PM1+?
 * Is the Sleep Timer scheduled to fire an interrupt?
 
 If the answer to any of the above question is "No", the SoC will enter PM0. If the answer to all questions is "Yes", the SoC will enter one of PMs 0/1/2 depending on the expected Deep Sleep duration and subject to user configuration and application requirements.
