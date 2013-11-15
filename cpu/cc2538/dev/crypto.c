@@ -42,17 +42,55 @@
  * Implementation of the cc2538 AES / SHA cryptoprocessor driver
  */
 #include "contiki.h"
+#include "sys/energest.h"
 #include "dev/crypto.h"
 #include "dev/sys-ctrl.h"
+#include "dev/nvic.h"
+#include "lpm.h"
 #include "reg.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+
+static volatile struct process *notification_process = NULL;
+/*---------------------------------------------------------------------------*/
+/** \brief The AES / SHA cryptoprocessor ISR
+ *
+ *        This is the interrupt service routine for the AES / SHA
+ *        cryptoprocessor.
+ *
+ *        This ISR is called at worst from PM0, so lpm_exit() does not need
+ *        to be called.
+ */
+void
+aes_isr(void)
+{
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  nvic_interrupt_unpend(NVIC_INT_AES);
+  nvic_interrupt_disable(NVIC_INT_AES);
+
+  if(notification_process != NULL) {
+    process_poll((struct process *)notification_process);
+    notification_process = NULL;
+  }
+
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+/*---------------------------------------------------------------------------*/
+static bool
+permit_pm1(void)
+{
+  return REG(AES_CTRL_ALG_SEL) == 0;
+}
 /*---------------------------------------------------------------------------*/
 void
 crypto_init(void)
 {
   volatile int i;
+
+  lpm_register_peripheral(permit_pm1);
 
   crypto_enable();
 
@@ -80,10 +118,20 @@ crypto_disable(void)
   REG(SYS_CTRL_DCGCSEC) &= ~SYS_CTRL_DCGCSEC_AES;
 }
 /*---------------------------------------------------------------------------*/
+void
+crypto_register_process_notification(struct process *p)
+{
+  notification_process = p;
+}
+/*---------------------------------------------------------------------------*/
 uint8_t
 aes_load_key(const void *key, uint8_t key_area)
 {
   uint32_t aligned_key[4];
+
+  if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
+    return AES_RESOURCE_IN_USE;
+  }
 
   /* The key address needs to be 4-byte aligned */
   memcpy(aligned_key, key, sizeof(aligned_key));
@@ -126,10 +174,14 @@ aes_load_key(const void *key, uint8_t key_area)
   /* Check for absence of errors in DMA and key store */
   if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
+    /* Disable master control / DMA clock */
+    REG(AES_CTRL_ALG_SEL) = 0x00000000;
     return AES_DMA_BUS_ERROR;
   }
   if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_KEY_ST_WR_ERR) {
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_KEY_ST_WR_ERR;
+    /* Disable master control / DMA clock */
+    REG(AES_CTRL_ALG_SEL) = 0x00000000;
     return AES_KEYSTORE_WRITE_ERROR;
   }
 

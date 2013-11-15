@@ -117,6 +117,8 @@ new_hash(sha256_state_t *state, const void *data, void *hash)
   if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
     /* Clear the DMA error */
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
+    /* Disable master control / DMA clock */
+    REG(AES_CTRL_ALG_SEL) = 0x00000000;
     return AES_DMA_BUS_ERROR;
   }
 
@@ -197,6 +199,8 @@ resume_hash(sha256_state_t *state, const void *data, void *hash)
   if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
     /* Clear the DMA error */
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
+    /* Disable master control / DMA clock */
+    REG(AES_CTRL_ALG_SEL) = 0x00000000;
     return AES_DMA_BUS_ERROR;
   }
 
@@ -250,6 +254,10 @@ sha256_process(sha256_state_t *state, const void *data, uint32_t len)
 
   if(state->curlen > sizeof(state->buf)) {
     return SHA256_INVALID_PARAM;
+  }
+
+  if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
+    return AES_RESOURCE_IN_USE;
   }
 
   if(len > 0 && state->new_digest) {
@@ -322,6 +330,10 @@ sha256_done(sha256_state_t *state, void *hash)
 
   if(state->curlen > sizeof(state->buf)) {
     return SHA256_INVALID_PARAM;
+  }
+
+  if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
+    return AES_RESOURCE_IN_USE;
   }
 
   /* Increase the length of the message */

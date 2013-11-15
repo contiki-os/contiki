@@ -464,12 +464,13 @@
  */
 #define AES_SUCCESS                   0
 #define SHA256_SUCCESS                0
-#define AES_KEYSTORE_READ_ERROR       1
-#define AES_KEYSTORE_WRITE_ERROR      2
-#define AES_DMA_BUS_ERROR             3
-#define CCM_AUTHENTICATION_FAILED     4
-#define SHA256_INVALID_PARAM          5
-#define SHA256_NULL_ERROR             6
+#define AES_RESOURCE_IN_USE           1
+#define AES_KEYSTORE_READ_ERROR       2
+#define AES_KEYSTORE_WRITE_ERROR      3
+#define AES_DMA_BUS_ERROR             4
+#define CCM_AUTHENTICATION_FAILED     5
+#define SHA256_INVALID_PARAM          6
+#define SHA256_NULL_ERROR             7
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name Crypto functions
@@ -488,6 +489,13 @@ void crypto_enable(void);
  * \note Call this function to save power when the cryptoprocessor is unused.
  */
 void crypto_disable(void);
+
+/** \brief Registers a process to be notified of the completion of a crypto
+ * operation
+ * \param p Process to be polled upon IRQ
+ * \note This function is only supposed to be called by the crypto drivers.
+ */
+void crypto_register_process_notification(struct process *p);
 
 /** \brief Writes the key into the Key RAM
  * \param key Pointer to AES Key

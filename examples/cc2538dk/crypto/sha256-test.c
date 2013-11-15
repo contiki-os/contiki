@@ -67,6 +67,7 @@ PROCESS_THREAD(sha256_test_process, ev, data)
 {
   static const char *const str_res[] = {
     "success",
+    "resource in use",
     "keystore read error",
     "keystore write error",
     "DMA bus error",

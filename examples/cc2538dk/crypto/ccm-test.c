@@ -67,6 +67,7 @@ PROCESS_THREAD(ccm_test_process, ev, data)
 {
   static const char *const str_res[] = {
     "success",
+    "resource in use",
     "keystore read error",
     "keystore write error",
     "DMA bus error",
@@ -239,14 +240,13 @@ PROCESS_THREAD(ccm_test_process, ev, data)
       ret = ccm_auth_encrypt_start(vectors[i].len_len, vectors[i].key_area,
                                    vectors[i].nonce, vectors[i].adata,
                                    vectors[i].adata_len, vectors[i].mdata,
-                                   vectors[i].mdata_len, vectors[i].mic_len);
+                                   vectors[i].mdata_len, vectors[i].mic_len,
+                                   &ccm_test_process);
       time2 = RTIMER_NOW();
       time = time2 - time;
       total_time += time;
       if(ret == AES_SUCCESS) {
-        do {
-          PROCESS_PAUSE();
-        } while(!ccm_auth_encrypt_check_status());
+        PROCESS_WAIT_EVENT_UNTIL(ccm_auth_encrypt_check_status());
         time2 = RTIMER_NOW() - time2;
         total_time += time2;
       }
@@ -286,14 +286,13 @@ PROCESS_THREAD(ccm_test_process, ev, data)
       ret = ccm_auth_decrypt_start(vectors[i].len_len, vectors[i].key_area,
                                    vectors[i].nonce, vectors[i].adata,
                                    vectors[i].adata_len, vectors[i].mdata,
-                                   vectors[i].mdata_len, vectors[i].mic_len);
+                                   vectors[i].mdata_len, vectors[i].mic_len,
+                                   &ccm_test_process);
       time2 = RTIMER_NOW();
       time = time2 - time;
       total_time += time;
       if(ret == AES_SUCCESS) {
-        do {
-          PROCESS_PAUSE();
-        } while(!ccm_auth_decrypt_check_status());
+        PROCESS_WAIT_EVENT_UNTIL(ccm_auth_decrypt_check_status());
         time2 = RTIMER_NOW() - time2;
         total_time += time2;
       }
