@@ -101,7 +101,6 @@ void lpm_init(void);
  *
  * This PM selection heuristic has the following primary criteria:
  * - Is the RF off?
- * - Is the USB PLL off?
  * - Are all registered peripherals permitting PM1+?
  * - Is the Sleep Timer scheduled to fire an interrupt?
  *
@@ -182,7 +181,8 @@ typedef bool (*lpm_periph_permit_pm1_func_t)(void);
  * module to get 'permission' to drop to PM1+
  * \param permit_pm1_func Pointer to the function
  *
- * Some peripherals are sensitive to PM changes.
+ * Some peripherals are sensitive to PM changes. For instance, we don't want to
+ * drop to PM1+ if the USB PLL is active.
  *
  * When changing power modes, the LPM driver will call all FPs registered with
  * this function. The peripheral's function will return true or false to permit
