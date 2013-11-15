@@ -228,11 +228,26 @@
 #define SYS_CTRL_PMCTL_PM0                  0x00000000  /**< PM0 */
 /** @} */
 /*---------------------------------------------------------------------------*/
+/** \name SysCtrl 32-kHz oscillator selection
+ *
+ * Prefer the crystal oscillator for time accuracy, and the RC oscillator for
+ * cost and power consumption
+ * @{
+ */
+/* Defaults to RC oscillator unless the configuration tells us otherwise */
+#ifdef SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define SYS_CTRL_OSC32K_USE_XTAL        SYS_CTRL_CONF_OSC32K_USE_XTAL
+#else
+#define SYS_CTRL_OSC32K_USE_XTAL        0
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name SysCtrl functions
  * @{
  */
 /** \brief Initialises the System Control Driver. The main purpose of this
- * function is to power up and select clocks and oscillators */
+ * function is to power up and select clocks and oscillators
+ * \note This function depends on ioc_init() having been called beforehand. */
 void sys_ctrl_init();
 
 /** \brief Generates a warm reset through the SYS_CTRL_PWRDBG register */
