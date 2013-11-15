@@ -74,8 +74,7 @@
 void
 spi_init(void)
 {
-  /* Enable the SSI peripheral */
-  REG(SYS_CTRL_RCGCSSI) |= 1;
+  spi_enable();
 
   /* Start by disabling the peripheral before configuring it */
   REG(SSI0_BASE + SSI_CR1) = 0;
@@ -109,5 +108,19 @@ spi_init(void)
 
   /* Enable the SSI */
   REG(SSI0_BASE + SSI_CR1) |= SSI_CR1_SSE;
+}
+/*---------------------------------------------------------------------------*/
+void
+spi_enable(void)
+{
+  /* Enable the clock for the SSI peripheral */
+  REG(SYS_CTRL_RCGCSSI) |= 1;
+}
+/*---------------------------------------------------------------------------*/
+void
+spi_disable(void)
+{
+  /* Gate the clock for the SSI peripheral */
+  REG(SYS_CTRL_RCGCSSI) &= ~1;
 }
 /** @} */
