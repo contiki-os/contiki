@@ -388,7 +388,6 @@ The Low-Power module uses a simple heuristic to determine the best power mode, d
 In a nutshell, the algorithm first answers the following questions:
 
 * Is the RF off?
-* Is the USB PLL off?
 * Are all registered peripherals permitting PM1+?
 * Is the Sleep Timer scheduled to fire an interrupt?
 
