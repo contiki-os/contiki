@@ -45,7 +45,6 @@
 #include "dev/leds.h"
 #include "dev/gpio.h"
 
-#define LEDS_GPIO_DATA_MASK (LEDS_ALL << 2)
 #define LEDS_GPIO_PIN_MASK   LEDS_ALL
 /*---------------------------------------------------------------------------*/
 void
@@ -57,13 +56,13 @@ leds_arch_init(void)
 unsigned char
 leds_arch_get(void)
 {
-  return REG((GPIO_C_BASE | GPIO_DATA) + LEDS_GPIO_DATA_MASK);
+  return GPIO_READ_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
 }
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_set(unsigned char leds)
 {
-  REG((GPIO_C_BASE | GPIO_DATA) + LEDS_GPIO_DATA_MASK) = leds;
+  GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, leds);
 }
 /*---------------------------------------------------------------------------*/
 

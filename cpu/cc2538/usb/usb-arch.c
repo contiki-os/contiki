@@ -331,7 +331,7 @@ usb_arch_setup(void)
 
   /* Enable pull-up on usb port */
   GPIO_SET_OUTPUT(USB_PULLUP_PORT, USB_PULLUP_PIN_MASK);
-  REG((USB_PULLUP_PORT | GPIO_DATA) + (USB_PULLUP_PIN_MASK << 2)) = 1;
+  GPIO_SET_PIN(USB_PULLUP_PORT, USB_PULLUP_PIN_MASK);
 
   for(i = 0; i < USB_MAX_ENDPOINTS; i++) {
     usb_endpoints[i].flags = 0;
