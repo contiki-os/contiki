@@ -182,7 +182,7 @@ typedef bool (*lpm_periph_permit_pm1_func_t)(void);
  * \param permit_pm1_func Pointer to the function
  *
  * Some peripherals are sensitive to PM changes. For instance, we don't want to
- * drop to PM1+ if the USB PLL is active.
+ * drop to PM1+ if the USB PLL is active or if the UART TX FIFO is not clear.
  *
  * When changing power modes, the LPM driver will call all FPs registered with
  * this function. The peripheral's function will return true or false to permit
