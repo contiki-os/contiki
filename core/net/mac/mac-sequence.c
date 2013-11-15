@@ -72,11 +72,13 @@ mac_sequence_is_duplicate(void)
    * packet with the last few ones we saw.
    */
   for(i = 0; i < MAX_SEQNOS; ++i) {
-    if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno &&
-       rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
                     &received_seqnos[i].sender)) {
-      /* Duplicate packet. */
-      return 1;
+      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno) {
+        /* Duplicate packet. */
+        return 1;
+      }
+      break;
     }
   }
   return 0;
@@ -85,10 +87,20 @@ mac_sequence_is_duplicate(void)
 void
 mac_sequence_register_seqno(void)
 {
-  int i;
+  int i, j;
 
-  for(i = MAX_SEQNOS - 1; i > 0; --i) {
-    memcpy(&received_seqnos[i], &received_seqnos[i - 1], sizeof(struct seqno));
+  /* Locate possible previous sequence number for this address. */
+  for(i = 0; i < MAX_SEQNOS; ++i) {
+    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                    &received_seqnos[i].sender)) {
+      i++;
+      break;
+    }
+  }
+
+  /* Keep the last sequence number for each address as per 802.15.4e. */
+  for(j = i - 1; j > 0; --j) {
+    memcpy(&received_seqnos[j], &received_seqnos[j - 1], sizeof(struct seqno));
   }
   received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
   rimeaddr_copy(&received_seqnos[0].sender,
