@@ -109,10 +109,10 @@ enum {
 /* Called on IP packet output. */
 #if UIP_CONF_IPV6
 
-static uint8_t (* outputfunc)(uip_lladdr_t *a);
+static uint8_t (* outputfunc)(const uip_lladdr_t *a);
 
 uint8_t
-tcpip_output(uip_lladdr_t *a)
+tcpip_output(const uip_lladdr_t *a)
 {
   int ret;
   if(outputfunc != NULL) {
@@ -124,7 +124,7 @@ tcpip_output(uip_lladdr_t *a)
 }
 
 void
-tcpip_set_outputfunc(uint8_t (*f)(uip_lladdr_t *))
+tcpip_set_outputfunc(uint8_t (*f)(const uip_lladdr_t *))
 {
   outputfunc = f;
 }

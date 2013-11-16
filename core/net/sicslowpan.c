@@ -1354,7 +1354,7 @@ send_packet(rimeaddr_t *dest)
  *  MAC.
  */
 static uint8_t
-output(uip_lladdr_t *localdest)
+output(const uip_lladdr_t *localdest)
 {
   int framer_hdrlen;
 
