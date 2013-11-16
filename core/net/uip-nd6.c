@@ -191,7 +191,7 @@ uip_nd6_ns_input(void)
 			  (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 			  0, NBR_STALE);
         } else {
-          uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
+          uip_lladdr_t *lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
           if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		    lladdr, UIP_LLADDR_LEN) != 0) {
             memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
@@ -463,7 +463,7 @@ uip_nd6_na_input(void)
   } else {
     uip_lladdr_t *lladdr;
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
-    lladdr = uip_ds6_nbr_get_ll(nbr);
+    lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
     if(nbr == NULL) {
       goto discard;
     }

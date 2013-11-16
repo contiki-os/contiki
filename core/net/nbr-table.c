@@ -86,7 +86,7 @@ index_from_key(nbr_table_key_t *key)
 /*---------------------------------------------------------------------------*/
 /* Get the neighbor index of an item */
 static int
-index_from_item(nbr_table_t *table, nbr_table_item_t *item)
+index_from_item(nbr_table_t *table, const nbr_table_item_t *item)
 {
   return table != NULL && item != NULL ? ((int)((char *)item - (char *)table->data)) / table->item_size : -1;
 }
@@ -100,7 +100,7 @@ item_from_key(nbr_table_t *table, nbr_table_key_t *key)
 /*---------------------------------------------------------------------------*/
 /* Get the key af an item */
 static nbr_table_key_t *
-key_from_item(nbr_table_t *table, nbr_table_item_t *item)
+key_from_item(nbr_table_t *table, const nbr_table_item_t *item)
 {
   return key_from_index(index_from_item(table, item));
 }
@@ -343,7 +343,7 @@ nbr_table_unlock(nbr_table_t *table, void *item)
 /*---------------------------------------------------------------------------*/
 /* Get link-layer address of an item */
 rimeaddr_t *
-nbr_table_get_lladdr(nbr_table_t *table, void *item)
+nbr_table_get_lladdr(nbr_table_t *table, const void *item)
 {
   nbr_table_key_t *key = key_from_item(table, item);
   return key != NULL ? &key->lladdr : NULL;
