@@ -32,38 +32,66 @@
  *
  */
 
-/* This file contains a naive and non-standards compliant
-   implementation of strncasecmp() for systems that don't implement
-   the function. It works with Contiki, but should most probably not
-   be used anywhere else.
+/**
+ * \file
+ *         Implementation of strncasecmp
+ * \author
+ *         Arun Prakash Jana <engineerarun@gmail.com>
+ *
+ */
 
-   It copies the n first bytes two strings into two buffers and
-   compares them with strcasecmp.
-*/
+/*---------------------------------------------------------------------------*/
+/* Convert a character to it's uppercase equivalent. Return the character */
+/* if not within the range 'a' to 'z' */
 
-#define MAX_STRLEN 40
+char
+upcase(char c)
+{
+  if(c >= 'a' && c <= 'z') {
+    return c - 0x20;
+  } else {
+    return c;
+  }
+}
 
+/*---------------------------------------------------------------------------*/
+/* Compare strings s1 and s2 in a case-insensitive way*/
 
-int strncmp(const char *s1, const char *s2, int len);
-
-/*static char buf1[MAX_STRLEN],
-  buf2[MAX_STRLEN];*/
-/*-----------------------------------------------------------------------------------*/
-unsigned char
+char
 strncasecmp(const char *s1, const char *s2, unsigned char n)
 {
-  unsigned char len;
+  unsigned char i = 0;
+  char diff;
 
-  return strncmp(s1, s2, n);
-  
-  /*  len = MAX_STRLEN;
-  if(n < MAX_STRLEN) {
-    len = n;
+  if(!s1 && !s2) {
+    return 0;
   }
-  strncpy(buf1, s1, len);
-  buf1[MAX_STRLEN - 1] = 0;
-  strncpy(buf2, s2, len);
-  buf2[MAX_STRLEN - 1] = 0;
-  return strcasecmp(buf1, buf2);*/
+  if(!s1) {
+    return -1;
+  }
+  if(!s2) {
+    return 1;
+  }
+
+  while(i < n) {
+    if(!s1[i] && !s2[i]) {
+      return 0;
+    }
+    if(!s1[0]) {
+      return -1;
+    }
+    if(!s2[0]) {
+      return 1;
+    }
+
+    if((diff = upcase(s1[i]) - upcase(s2[i])) != 0) {
+      return diff;
+    } else {
+      i++;
+    }
+  }
+
+  return 0;
 }
-/*-----------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
