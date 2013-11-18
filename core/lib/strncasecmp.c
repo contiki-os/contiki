@@ -40,6 +40,7 @@
  *
  */
 
+#include <stdio.h>
 #include <ctype.h>
 
 /*---------------------------------------------------------------------------*/
@@ -51,13 +52,13 @@ strncasecmp(const char *s1, const char *s2, unsigned char n)
   unsigned char i = 0;
   char diff;
 
-  if(!s1 && !s2) {
+  if(s1 == NULL && s2 == NULL) {
     return 0;
   }
-  if(!s1) {
+  if(s1 == NULL) {
     return -1;
   }
-  if(!s2) {
+  if(s2 == NULL) {
     return 1;
   }
 
@@ -69,7 +70,7 @@ strncasecmp(const char *s1, const char *s2, unsigned char n)
     if((diff = tolower(s1[i]) - tolower(s2[i])) != 0) {
       return diff;
     } else {
-      if(!s1[i]) {
+      if(s1[i] == '\0') {
         return diff;
       }
 
