@@ -125,16 +125,18 @@ crypto_register_process_notification(struct process *p)
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
-aes_load_key(const void *key, uint8_t key_area)
+aes_load_keys(const void *keys, uint8_t count, uint8_t start_area)
 {
-  uint32_t aligned_key[4];
+  uint32_t aes_key_store_size;
+  uint32_t areas;
+  uint32_t aligned_keys[32];
 
   if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
     return AES_RESOURCE_IN_USE;
   }
 
-  /* The key address needs to be 4-byte aligned */
-  memcpy(aligned_key, key, sizeof(aligned_key));
+  /* The keys base address needs to be 4-byte aligned */
+  memcpy(aligned_keys, keys, count << 4);
 
   /* Workaround for AES registers not retained after PM2 */
   REG(AES_CTRL_INT_CFG) = AES_CTRL_INT_CFG_LEVEL;
@@ -148,25 +150,34 @@ aes_load_key(const void *key, uint8_t key_area)
   REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_IN_DONE |
                           AES_CTRL_INT_CLR_RESULT_AV;
 
-  /* Configure key store module (area, size): 128-bit key size */
-  REG(AES_KEY_STORE_SIZE) = (REG(AES_KEY_STORE_SIZE) &
-                             ~AES_KEY_STORE_SIZE_KEY_SIZE_M) |
-                            AES_KEY_STORE_SIZE_KEY_SIZE_128;
+  /* Configure key store module (areas, size): 128-bit key size
+   * Note that writing AES_KEY_STORE_SIZE deletes all stored keys */
+  aes_key_store_size = REG(AES_KEY_STORE_SIZE);
+  if((aes_key_store_size & AES_KEY_STORE_SIZE_KEY_SIZE_M) !=
+     AES_KEY_STORE_SIZE_KEY_SIZE_128) {
+    REG(AES_KEY_STORE_SIZE) = (aes_key_store_size &
+                               ~AES_KEY_STORE_SIZE_KEY_SIZE_M) |
+                              AES_KEY_STORE_SIZE_KEY_SIZE_128;
+  }
 
-  /* Enable keys to write (e.g. Key 0) */
-  REG(AES_KEY_STORE_WRITE_AREA) = 0x00000001 << key_area;
+  /* Free possibly already occupied key areas */
+  areas = ((0x00000001 << count) - 1) << start_area;
+  REG(AES_KEY_STORE_WRITTEN_AREA) = areas;
+
+  /* Enable key areas to write */
+  REG(AES_KEY_STORE_WRITE_AREA) = areas;
 
   /* Configure DMAC
    * Enable DMA channel 0 */
   REG(AES_DMAC_CH0_CTRL) = AES_DMAC_CH_CTRL_EN;
 
-  /* Base address of the key in ext. memory */
-  REG(AES_DMAC_CH0_EXTADDR) = (uint32_t)aligned_key;
+  /* Base address of the keys in ext. memory */
+  REG(AES_DMAC_CH0_EXTADDR) = (uint32_t)aligned_keys;
 
-  /* Total key length in bytes (e.g. 16 for 1 x 128-bit key) */
+  /* Total keys length in bytes (e.g. 16 for 1 x 128-bit key) */
   REG(AES_DMAC_CH0_DMALENGTH) = (REG(AES_DMAC_CH0_DMALENGTH) &
                                  ~AES_DMAC_CH_DMALENGTH_DMALEN_M) |
-                                (0x10 << AES_DMAC_CH_DMALENGTH_DMALEN_S);
+                                (count << (4 + AES_DMAC_CH_DMALENGTH_DMALEN_S));
 
   /* Wait for operation to complete */
   while(!(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_RESULT_AV));
@@ -193,7 +204,7 @@ aes_load_key(const void *key, uint8_t key_area)
   REG(AES_CTRL_ALG_SEL) = 0x00000000;
 
   /* Check status, if error return error code */
-  if(!(REG(AES_KEY_STORE_WRITTEN_AREA) & (0x00000001 << key_area))) {
+  if((REG(AES_KEY_STORE_WRITTEN_AREA) & areas) != areas) {
     return AES_KEYSTORE_WRITE_ERROR;
   }
 

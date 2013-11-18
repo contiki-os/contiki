@@ -75,10 +75,15 @@ PROCESS_THREAD(ccm_test_process, ev, data)
     "invalid param",
     "NULL error"
   };
+  static const uint8_t keys[][16] = {
+    { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+    { 0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7,
+      0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf }
+  };
   static struct {
     bool encrypt;
     uint8_t len_len;
-    uint8_t key[16];
     uint8_t key_area;
     uint8_t nonce[13];
     uint8_t adata[26];
@@ -92,8 +97,6 @@ PROCESS_THREAD(ccm_test_process, ev, data)
     {
       true, /* encrypt */
       2, /* len_len */
-      { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* key */
       0, /* key_area */
       { 0x00, 0x00, 0xf0, 0xe0, 0xd0, 0xc0, 0xb0, 0xa0,
         0x00, 0x00, 0x00, 0x00, 0x05 }, /* nonce */
@@ -111,9 +114,7 @@ PROCESS_THREAD(ccm_test_process, ev, data)
     }, {
       true, /* encrypt */
       2, /* len_len */
-      { 0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7,
-        0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf }, /* key */
-      0, /* key_area */
+      1, /* key_area */
       { 0xac, 0xde, 0x48, 0x00, 0x00, 0x00, 0x00, 0x01,
         0x00, 0x00, 0x00, 0x05, 0x02 }, /* nonce */
       { 0x08, 0xd0, 0x84, 0x21, 0x43, 0x01, 0x00, 0x00,
@@ -129,8 +130,6 @@ PROCESS_THREAD(ccm_test_process, ev, data)
     }, {
       true, /* encrypt */
       2, /* len_len */
-      { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* key */
       0, /* key_area */
       { 0x00, 0x00, 0xf0, 0xe0, 0xd0, 0xc0, 0xb0, 0xa0,
         0x00, 0x00, 0x00, 0x00, 0x05 }, /* nonce */
@@ -149,8 +148,6 @@ PROCESS_THREAD(ccm_test_process, ev, data)
     }, {
       false, /* decrypt */
       2, /* len_len */
-      { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* key */
       0, /* key_area */
       { 0x00, 0x00, 0xf0, 0xe0, 0xd0, 0xc0, 0xb0, 0xa0,
         0x00, 0x00, 0x00, 0x00, 0x05 }, /* nonce */
@@ -168,9 +165,7 @@ PROCESS_THREAD(ccm_test_process, ev, data)
     }, {
       false, /* decrypt */
       2, /* len_len */
-      { 0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7,
-        0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf }, /* key */
-      0, /* key_area */
+      1, /* key_area */
       { 0xac, 0xde, 0x48, 0x00, 0x00, 0x00, 0x00, 0x01,
         0x00, 0x00, 0x00, 0x05, 0x02 }, /* nonce */
       { 0x08, 0xd0, 0x84, 0x21, 0x43, 0x01, 0x00, 0x00,
@@ -186,8 +181,6 @@ PROCESS_THREAD(ccm_test_process, ev, data)
     }, {
       false, /* decrypt */
       2, /* len_len */
-      { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* key */
       0, /* key_area */
       { 0x00, 0x00, 0xf0, 0xe0, 0xd0, 0xc0, 0xb0, 0xa0,
         0x00, 0x00, 0x00, 0x00, 0x05 }, /* nonce */
@@ -215,6 +208,18 @@ PROCESS_THREAD(ccm_test_process, ev, data)
        "Initializing cryptoprocessor...");
   crypto_init();
 
+  puts("-----------------------------------------\n"
+       "Filling key store...");
+  time = RTIMER_NOW();
+  ret = aes_load_keys(keys, sizeof(keys) / sizeof(keys[0]), 0);
+  time = RTIMER_NOW() - time;
+  printf("aes_load_keys(): %s, %lu us\n", str_res[ret],
+         (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
+  PROCESS_PAUSE();
+  if(ret != AES_SUCCESS) {
+    goto fatal;
+  }
+
   for(i = 0; i < sizeof(vectors) / sizeof(vectors[0]); i++) {
     printf("-----------------------------------------\n"
            "Test vector #%d: %s\n"
@@ -225,17 +230,6 @@ PROCESS_THREAD(ccm_test_process, ev, data)
            vectors[i].adata_len, vectors[i].mdata_len, vectors[i].mic_len);
 
     time = RTIMER_NOW();
-    ret = aes_load_key(vectors[i].key, vectors[i].key_area);
-    time = RTIMER_NOW() - time;
-    total_time = time;
-    printf("aes_load_key(): %s, %lu us\n", str_res[ret],
-           (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
-    PROCESS_PAUSE();
-    if(ret != AES_SUCCESS) {
-      continue;
-    }
-
-    time = RTIMER_NOW();
     if(vectors[i].encrypt) {
       ret = ccm_auth_encrypt_start(vectors[i].len_len, vectors[i].key_area,
                                    vectors[i].nonce, vectors[i].adata,
@@ -244,7 +238,7 @@ PROCESS_THREAD(ccm_test_process, ev, data)
                                    &ccm_test_process);
       time2 = RTIMER_NOW();
       time = time2 - time;
-      total_time += time;
+      total_time = time;
       if(ret == AES_SUCCESS) {
         PROCESS_WAIT_EVENT_UNTIL(ccm_auth_encrypt_check_status());
         time2 = RTIMER_NOW() - time2;
@@ -290,7 +284,7 @@ PROCESS_THREAD(ccm_test_process, ev, data)
                                    &ccm_test_process);
       time2 = RTIMER_NOW();
       time = time2 - time;
-      total_time += time;
+      total_time = time;
       if(ret == AES_SUCCESS) {
         PROCESS_WAIT_EVENT_UNTIL(ccm_auth_decrypt_check_status());
         time2 = RTIMER_NOW() - time2;
@@ -329,6 +323,7 @@ PROCESS_THREAD(ccm_test_process, ev, data)
            (uint32_t)((uint64_t)total_time * 1000000 / RTIMER_SECOND));
   }
 
+fatal:
   puts("-----------------------------------------\n"
        "Disabling cryptoprocessor...");
   crypto_disable();

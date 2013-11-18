@@ -497,12 +497,13 @@ void crypto_disable(void);
  */
 void crypto_register_process_notification(struct process *p);
 
-/** \brief Writes the key into the Key RAM
- * \param key Pointer to AES Key
- * \param key_area Area in Key RAM where to store the key (0 to 7)
+/** \brief Writes keys into the Key RAM
+ * \param keys Pointer to AES Keys
+ * \param count Number of keys (1 to 8 - \p start_area)
+ * \param start_area Start area in Key RAM where to store the key (0 to 7)
  * \return \c AES_SUCCESS if successful, or AES error code
  */
-uint8_t aes_load_key(const void *key, uint8_t key_area);
+uint8_t aes_load_keys(const void *keys, uint8_t count, uint8_t start_area);
 
 /** @} */
 
