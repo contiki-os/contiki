@@ -185,7 +185,7 @@ init(void)
 /* Nothing to do here */
 }
 /*---------------------------------------------------------------------------*/
-uint8_t wfall_send(uip_lladdr_t *lladdr);
+uint8_t wfall_send(const uip_lladdr_t *lladdr);
 #if FALLBACK_HAS_ETHERNET_HEADERS
 #undef IPBUF
 #define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[14])
@@ -708,7 +708,7 @@ wfall_poll(void)
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_IPV6
 uint8_t
-wpcap_send(uip_lladdr_t *lladdr)
+wpcap_send(const uip_lladdr_t *lladdr)
 {
   if(lladdr == NULL) {
 /* the dest must be multicast*/
@@ -745,7 +745,7 @@ return 0;
 }
 #ifdef UIP_FALLBACK_INTERFACE
 uint8_t
-wfall_send(uip_lladdr_t *lladdr)
+wfall_send(const uip_lladdr_t *lladdr)
 {
 #if FALLBACK_HAS_ETHERNET_HEADERS
 	//make room for ethernet header
