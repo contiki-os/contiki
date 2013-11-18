@@ -69,6 +69,10 @@ strncasecmp(const char *s1, const char *s2, unsigned char n)
     if((diff = tolower(s1[i]) - tolower(s2[i])) != 0) {
       return diff;
     } else {
+      if(!s1[i]) {
+        return diff;
+      }
+
       i++;
     }
   }
