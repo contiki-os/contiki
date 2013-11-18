@@ -40,19 +40,7 @@
  *
  */
 
-/*---------------------------------------------------------------------------*/
-/* Convert a character to it's uppercase equivalent. Return the character */
-/* if not within the range 'a' to 'z' */
-
-char
-upcase(char c)
-{
-  if(c >= 'a' && c <= 'z') {
-    return c - 0x20;
-  } else {
-    return c;
-  }
-}
+#include <ctype.h>
 
 /*---------------------------------------------------------------------------*/
 /* Compare strings s1 and s2 in a case-insensitive way*/
@@ -73,18 +61,12 @@ strncasecmp(const char *s1, const char *s2, unsigned char n)
     return 1;
   }
 
-  while(i < n) {
-    if(!s1[i] && !s2[i]) {
-      return 0;
-    }
-    if(!s1[0]) {
-      return -1;
-    }
-    if(!s2[0]) {
-      return 1;
-    }
+  if(s1 == s2 || n == 0) {
+	  return 0;
+  }
 
-    if((diff = upcase(s1[i]) - upcase(s2[i])) != 0) {
+  while(i < n) {
+    if((diff = tolower(s1[i]) - tolower(s2[i])) != 0) {
       return diff;
     } else {
       i++;
