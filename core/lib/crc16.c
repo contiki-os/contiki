@@ -46,19 +46,12 @@
 unsigned short
 crc16_add(unsigned char b, unsigned short acc)
 {
-  /*
-    acc  = (unsigned char)(acc >> 8) | (acc << 8);
-    acc ^= b;
-    acc ^= (unsigned char)(acc & 0xff) >> 4;
-    acc ^= (acc << 8) << 4;
-    acc ^= ((acc & 0xff) << 4) << 1;
-  */
-
+  acc  = (unsigned char)(acc >> 8) | (acc << 8);
   acc ^= b;
-  acc  = (acc >> 8) | (acc << 8);
-  acc ^= (acc & 0xff00) << 4;
-  acc ^= (acc >> 8) >> 4;
-  acc ^= (acc & 0xff00) >> 5;
+  acc ^= (unsigned char)(acc & 0xff) >> 4;
+  acc ^= (acc << 8) << 4;
+  acc ^= ((acc & 0xff) << 4) << 1;
+
   return acc;
 }
 /*---------------------------------------------------------------------------*/
