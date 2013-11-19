@@ -600,6 +600,12 @@ public class Simulation extends Observable implements Runnable {
       // Radio medium
       if (element.getName().equals("radiomedium")) {
         String radioMediumClassName = element.getText().trim();
+
+        /* Backwards compatibility: se.sics -> org.contikios */
+        if (radioMediumClassName.startsWith("se.sics")) {
+        	radioMediumClassName = radioMediumClassName.replaceFirst("se\\.sics", "org.contikios");
+        }
+
         Class<? extends RadioMedium> radioMediumClass = cooja.tryLoadClass(
             this, RadioMedium.class, radioMediumClassName);
 
@@ -642,6 +648,11 @@ public class Simulation extends Observable implements Runnable {
       // Mote type
       if (element.getName().equals("motetype")) {
         String moteTypeClassName = element.getText().trim();
+
+        /* Backwards compatibility: se.sics -> org.contikios */
+        if (moteTypeClassName.startsWith("se.sics")) {
+        	moteTypeClassName = moteTypeClassName.replaceFirst("se\\.sics", "org.contikios");
+        }
 
         /* Try to recreate simulation using a different mote type */
         if (visAvailable) {

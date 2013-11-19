@@ -264,22 +264,27 @@ public abstract class MspMoteType implements MoteType {
       } else if (name.equals("moteinterface")) {
         String intfClass = element.getText().trim();
 
+        /* Backwards compatibility: se.sics -> org.contikios */
+        if (intfClass.startsWith("se.sics")) {
+        	intfClass = intfClass.replaceFirst("se\\.sics", "org.contikios");
+        }
+
         /* Backwards compatibility: MspIPAddress -> IPAddress */
         if (intfClass.equals("org.contikios.cooja.mspmote.interfaces.MspIPAddress")) {
-          logger.warn("Old simulation config detected: IP address interface was moved");
-          intfClass = IPAddress.class.getName();
+        	logger.warn("Old simulation config detected: IP address interface was moved");
+        	intfClass = IPAddress.class.getName();
         }
         if (intfClass.equals("org.contikios.cooja.mspmote.interfaces.ESBLog")) {
-          logger.warn("Old simulation config detected: ESBLog was replaced by MspSerial");
-          intfClass = MspSerial.class.getName();
+        	logger.warn("Old simulation config detected: ESBLog was replaced by MspSerial");
+        	intfClass = MspSerial.class.getName();
         }
         if (intfClass.equals("org.contikios.cooja.mspmote.interfaces.SkyByteRadio")) {
-          logger.warn("Old simulation config detected: SkyByteRadio was replaced by Msp802154Radio");
-          intfClass = Msp802154Radio.class.getName();
+        	logger.warn("Old simulation config detected: SkyByteRadio was replaced by Msp802154Radio");
+        	intfClass = Msp802154Radio.class.getName();
         }
         if (intfClass.equals("org.contikios.cooja.mspmote.interfaces.SkySerial")) {
-          logger.warn("Old simulation config detected: SkySerial was replaced by MspSerial");
-          intfClass = MspSerial.class.getName();
+        	logger.warn("Old simulation config detected: SkySerial was replaced by MspSerial");
+        	intfClass = MspSerial.class.getName();
         }
 
         Class<? extends MoteInterface> moteInterfaceClass =
