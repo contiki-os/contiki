@@ -59,7 +59,6 @@
 #include "net/rime.h"
 
 #include "sys/autostart.h"
-#include "sys/profile.h"
 
 /* from libmc1322x */
 #include "mc1322x.h"
@@ -490,10 +489,6 @@ uint32_t p=(uint32_t)&__heap_end__-4;
 #if MACA_AUTOACK
   set_prm_mode(AUTOACK);
 #endif
-
-#if PROFILE_CONF_ON
-  profile_init();
-#endif /* PROFILE_CONF_ON */
 
 #if TIMESYNCH_CONF_ENABLED
   timesynch_init();
