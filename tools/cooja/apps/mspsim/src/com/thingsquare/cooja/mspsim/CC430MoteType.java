@@ -46,7 +46,7 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.AbstractionLevelDescription;
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
@@ -169,14 +169,14 @@ public class CC430MoteType extends MspMoteType {
     Toolkit toolkit = Toolkit.getDefaultToolkit();
     URL imageURL = this.getClass().getClassLoader().getResource("images/cc430.jpg");
     Image image = toolkit.getImage(imageURL);
-    MediaTracker tracker = new MediaTracker(GUI.getTopParentContainer());
+    MediaTracker tracker = new MediaTracker(Cooja.getTopParentContainer());
     tracker.addImage(image, 1);
     try {
       tracker.waitForAll();
     } catch (InterruptedException ex) {
     }
-    if (image.getHeight(GUI.getTopParentContainer()) > 0 && image.getWidth(GUI.getTopParentContainer()) > 0) {
-      image = image.getScaledInstance((200*image.getWidth(GUI.getTopParentContainer())/image.getHeight(GUI.getTopParentContainer())), 200, Image.SCALE_DEFAULT);
+    if (image.getHeight(Cooja.getTopParentContainer()) > 0 && image.getWidth(Cooja.getTopParentContainer()) > 0) {
+      image = image.getScaledInstance((200*image.getWidth(Cooja.getTopParentContainer())/image.getHeight(Cooja.getTopParentContainer())), 200, Image.SCALE_DEFAULT);
       return new ImageIcon(image);
     }
 

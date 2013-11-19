@@ -50,7 +50,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
@@ -64,7 +64,7 @@ public class Notes extends VisPlugin {
   private JTextArea notes = new JTextArea("Enter notes here");
   private boolean decorationsVisible = true;
 
-  public Notes(Simulation simulation, GUI gui) {
+  public Notes(Simulation simulation, Cooja gui) {
     super("Notes", gui);
 
     add(BorderLayout.CENTER, new JScrollPane(notes));

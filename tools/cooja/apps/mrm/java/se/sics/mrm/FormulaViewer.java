@@ -58,7 +58,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.SupportedArguments;
@@ -99,7 +99,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
    *
    * @param simulationToVisualize Simulation which holds the MRM channel model.
    */
-  public FormulaViewer(Simulation simulationToVisualize, GUI gui) {
+  public FormulaViewer(Simulation simulationToVisualize, Cooja gui) {
     super("MRM Settings", gui);
 
     simulation = simulationToVisualize;

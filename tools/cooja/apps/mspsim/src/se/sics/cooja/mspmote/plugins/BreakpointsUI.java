@@ -53,7 +53,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Watchpoint;
 import se.sics.cooja.WatchpointMote;
 
@@ -201,7 +201,7 @@ public class BreakpointsUI extends JPanel {
 
   private void configureWatchpointInfo(Watchpoint breakpoint) {
     String msg = (String) JOptionPane.showInputDialog(
-        GUI.getTopParentContainer(),
+        Cooja.getTopParentContainer(),
         "Enter description;",
         "Watchpoint description",
         JOptionPane.QUESTION_MESSAGE, null, null, breakpoint.getUserMessage());
@@ -210,7 +210,7 @@ public class BreakpointsUI extends JPanel {
     }
     breakpoint.setUserMessage(msg);
     Color newColor = JColorChooser.showDialog(
-        GUI.getTopParentContainer(),
+        Cooja.getTopParentContainer(),
         "Watchpoint color", 
         breakpoint.getColor());
     if (newColor == null) {

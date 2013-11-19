@@ -83,7 +83,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Plugin;
@@ -206,7 +206,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
    * @param simulation Simulation
    * @param gui GUI
    */
-  public LogListener(final Simulation simulation, final GUI gui) {
+  public LogListener(final Simulation simulation, final Cooja gui) {
     super("Mote output", gui);
     this.simulation = simulation;
 
@@ -742,9 +742,9 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
 
     public void actionPerformed(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
-      File suggest = new File(GUI.getExternalToolsSetting("LOG_LISTENER_SAVEFILE", "loglistener.txt"));
+      File suggest = new File(Cooja.getExternalToolsSetting("LOG_LISTENER_SAVEFILE", "loglistener.txt"));
       fc.setSelectedFile(suggest);
-      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+      int returnVal = fc.showSaveDialog(Cooja.getTopParentContainer());
       if (returnVal != JFileChooser.APPROVE_OPTION) {
         return;
       }
@@ -755,7 +755,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
         String s2 = "Cancel";
         Object[] options = { s1, s2 };
         int n = JOptionPane.showOptionDialog(
-            GUI.getTopParentContainer(),
+            Cooja.getTopParentContainer(),
             "A file with the same name already exists.\nDo you want to remove it?",
             "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -764,7 +764,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
         }
       }
 
-      GUI.setExternalToolsSetting("LOG_LISTENER_SAVEFILE", saveFile.getPath());
+      Cooja.setExternalToolsSetting("LOG_LISTENER_SAVEFILE", saveFile.getPath());
       if (saveFile.exists() && !saveFile.canWrite()) {
         logger.fatal("No write access to file: " + saveFile);
         return;
@@ -838,9 +838,9 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
       }
 
       JFileChooser fc = new JFileChooser();
-      File suggest = new File(GUI.getExternalToolsSetting("LOG_LISTENER_APPENDFILE", "loglistener_append.txt"));
+      File suggest = new File(Cooja.getExternalToolsSetting("LOG_LISTENER_APPENDFILE", "loglistener_append.txt"));
       fc.setSelectedFile(suggest);
-      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+      int returnVal = fc.showSaveDialog(Cooja.getTopParentContainer());
       if (returnVal != JFileChooser.APPROVE_OPTION) {
         appendToFile = false;
         cb.setSelected(appendToFile);
@@ -848,7 +848,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
       }
 
       File saveFile = fc.getSelectedFile();
-      GUI.setExternalToolsSetting("LOG_LISTENER_APPENDFILE", saveFile.getPath());
+      Cooja.setExternalToolsSetting("LOG_LISTENER_APPENDFILE", saveFile.getPath());
       if (saveFile.exists() && !saveFile.canWrite()) {
         logger.fatal("No write access to file: " + saveFile);
         appendToFile = false;

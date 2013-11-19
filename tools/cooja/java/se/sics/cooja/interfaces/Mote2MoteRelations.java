@@ -44,7 +44,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.SimEventCentral.MoteCountListener;
@@ -79,7 +79,7 @@ public class Mote2MoteRelations extends MoteInterface {
   private Mote mote = null;
 
   private ArrayList<Mote> relations = new ArrayList<Mote>();
-  private GUI gui;
+  private Cooja gui;
 
   private Observer logObserver = new Observer() {
     public void update(Observable o, Object arg) {

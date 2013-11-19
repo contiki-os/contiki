@@ -40,7 +40,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
@@ -212,7 +212,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
       }
     }
 
-    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
+    boolean createdOK = configureAndInit(Cooja.getTopParentContainer(), simulation, visAvailable);
     return createdOK;
   }
 

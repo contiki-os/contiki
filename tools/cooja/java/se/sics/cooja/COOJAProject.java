@@ -68,7 +68,7 @@ public class COOJAProject {
 					Collections.addAll(dirs, newf);
 				}
 			}
-			if(subf.getName().equals(GUI.PROJECT_CONFIG_FILENAME)){
+			if(subf.getName().equals(Cooja.PROJECT_CONFIG_FILENAME)){
 				try{
 					dirs.add(folder);
 				} catch(Exception e){
@@ -89,7 +89,7 @@ public class COOJAProject {
 	public COOJAProject(File dir) {
 		try {
 			this.dir = dir;
-			configFile = new File(dir.getPath(), GUI.PROJECT_CONFIG_FILENAME);
+			configFile = new File(dir.getPath(), Cooja.PROJECT_CONFIG_FILENAME);
 			config = new ProjectConfig(false);
 			config.appendConfigFile(configFile);
 		} catch (Exception e) {
@@ -113,7 +113,7 @@ public class COOJAProject {
 		if (getConfigJARs() != null) {
 			String[] jars = getConfigJARs();
 			for (String jar: jars) {
-				File jarFile = GUI.findJarFile(dir, jar);
+				File jarFile = Cooja.findJarFile(dir, jar);
 				if (jarFile == null || !jarFile.exists()) {
 					return true;
 				}
@@ -141,16 +141,16 @@ public class COOJAProject {
 		return arr;
 	}
 	public String[] getConfigPlugins() {
-		return getStringArray("se.sics.cooja.GUI.PLUGINS");
+		return getStringArray("se.sics.cooja.Cooja.PLUGINS");
 	}
 	public String[] getConfigJARs() {
-		return getStringArray("se.sics.cooja.GUI.JARFILES");
+		return getStringArray("se.sics.cooja.Cooja.JARFILES");
 	}
 	public String[] getConfigMoteTypes() {
-		return getStringArray("se.sics.cooja.GUI.MOTETYPES");
+		return getStringArray("se.sics.cooja.Cooja.MOTETYPES");
 	}
 	public String[] getConfigRadioMediums() {
-		return getStringArray("se.sics.cooja.GUI.RADIOMEDIUMS");
+		return getStringArray("se.sics.cooja.Cooja.RADIOMEDIUMS");
 	}
 	public String[] getConfigMoteInterfaces() {
 		return getStringArray("se.sics.cooja.contikimote.ContikiMoteType.MOTE_INTERFACES");

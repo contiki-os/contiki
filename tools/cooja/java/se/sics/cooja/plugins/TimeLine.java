@@ -81,7 +81,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Plugin;
@@ -167,7 +167,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
    * @param simulation Simulation
    * @param gui GUI
    */
-  public TimeLine(final Simulation simulation, final GUI gui) {
+  public TimeLine(final Simulation simulation, final Cooja gui) {
     super("Timeline", gui);
     this.simulation = simulation;
 
@@ -257,9 +257,9 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
             LogListener.class.getName());
         if (showLogOutputs) {
           if (logEventFilterPlugin != null) {
-            logger.info("Filtering shown log outputs by use of " + GUI.getDescriptionOf(LogListener.class) + " plugin");
+            logger.info("Filtering shown log outputs by use of " + Cooja.getDescriptionOf(LogListener.class) + " plugin");
           } else {
-            logger.info("No active " + GUI.getDescriptionOf(LogListener.class) + " plugin, not filtering log outputs");
+            logger.info("No active " + Cooja.getDescriptionOf(LogListener.class) + " plugin, not filtering log outputs");
           }
         }
         
@@ -479,7 +479,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       String options[] = new String[] {"Cancel", "Show"};
       optionPane.setOptions(options);
       optionPane.setInitialValue(options[1]);
-      JDialog dialog = optionPane.createDialog(GUI.getTopParentContainer(), "Show mote in timeline");
+      JDialog dialog = optionPane.createDialog(Cooja.getTopParentContainer(), "Show mote in timeline");
       dialog.setVisible(true);
 
       if (optionPane.getValue() == null || !optionPane.getValue().equals("Show")) {
@@ -652,7 +652,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
     private static final long serialVersionUID = 975176793514425718L;
     public void actionPerformed(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
-      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+      int returnVal = fc.showSaveDialog(Cooja.getTopParentContainer());
       if (returnVal != JFileChooser.APPROVE_OPTION) {
         return;
       }
@@ -663,7 +663,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         String s2 = "Cancel";
         Object[] options = { s1, s2 };
         int n = JOptionPane.showOptionDialog(
-            GUI.getTopParentContainer(),
+            Cooja.getTopParentContainer(),
             "A file with the same name already exists.\nDo you want to remove it?",
             "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -934,7 +934,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
     });
   }
 
-  private Action radioLoggerAction = new AbstractAction("Show in " + GUI.getDescriptionOf(RadioLogger.class)) {
+  private Action radioLoggerAction = new AbstractAction("Show in " + Cooja.getDescriptionOf(RadioLogger.class)) {
     private static final long serialVersionUID = 7690116136861949864L;
     public void actionPerformed(ActionEvent e) {
       if (popupLocation == null) {
@@ -954,7 +954,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       }
     }
   };
-  private Action logListenerAction = new AbstractAction("Show in " + GUI.getDescriptionOf(LogListener.class)) {
+  private Action logListenerAction = new AbstractAction("Show in " + Cooja.getDescriptionOf(LogListener.class)) {
     private static final long serialVersionUID = -8626118368774023257L;
     public void actionPerformed(ActionEvent e) {
       if (popupLocation == null) {
@@ -975,7 +975,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
     }
   };
 
-  private Action showInAllAction = new AbstractAction("Show in " + GUI.getDescriptionOf(LogListener.class) + " and " + GUI.getDescriptionOf(RadioLogger.class)) {
+  private Action showInAllAction = new AbstractAction("Show in " + Cooja.getDescriptionOf(LogListener.class) + " and " + Cooja.getDescriptionOf(RadioLogger.class)) {
     private static final long serialVersionUID = -2458733078524773995L;
     public void actionPerformed(ActionEvent e) {
       logListenerAction.actionPerformed(null);
@@ -2474,7 +2474,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         "<p><b>LEDs</b>" +
         "<br>Shows LED state: red, green, and blue. (Assumes all mote types have exactly three LEDs.)" +
         "<p><b>Log outputs</b>" +
-        "<br>Shows log outputs, as also shown in " + GUI.getDescriptionOf(LogListener.class) +
+        "<br>Shows log outputs, as also shown in " + Cooja.getDescriptionOf(LogListener.class) +
         "<p><b>Watchpoints</b>" +
         "<br>Shows triggered watchpoints, currently only supported by emulated motes. To add watchpoints, use the Msp Code Watcher plugin.";
   }

@@ -52,7 +52,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
@@ -83,7 +83,7 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
    *
    * @param simulation Simulation to control
    */
-  public SimControl(Simulation simulation, GUI gui) {
+  public SimControl(Simulation simulation, Cooja gui) {
     super("Simulation control", gui);
     this.simulation = simulation;
 

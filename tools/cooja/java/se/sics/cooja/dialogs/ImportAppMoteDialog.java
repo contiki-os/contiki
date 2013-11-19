@@ -54,7 +54,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.motes.ImportAppMoteType;
@@ -127,7 +127,7 @@ public class ImportAppMoteDialog extends JDialog {
           fc.setSelectedFile(new File(new File(path), name.replace(".", "/") + ".class"));
         } else {
           File fp = simulation.getGUI()
-              .restorePortablePath(new File(GUI.getExternalToolsSetting("IMPORT_APP_LAST",
+              .restorePortablePath(new File(Cooja.getExternalToolsSetting("IMPORT_APP_LAST",
                   "mymote.class")));
           if (path.length() > 0 && !fp.getAbsolutePath().startsWith(path)) {
             fc.setCurrentDirectory(new File(path));
@@ -249,7 +249,7 @@ public class ImportAppMoteDialog extends JDialog {
       } else {
         pathField.setText(loader.getTestClassPath().getPath());
         classField.setText(loader.getTestClassName());
-        GUI.setExternalToolsSetting("IMPORT_APP_LAST",
+        Cooja.setExternalToolsSetting("IMPORT_APP_LAST",
             simulation.getGUI().createPortablePath(classFile).getPath());
         return true;
       }

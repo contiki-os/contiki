@@ -34,7 +34,7 @@ import java.io.File;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
@@ -82,7 +82,7 @@ public class MicaZCompileDialog extends AbstractCompileDialog {
     /* TODO Split into String[] */
     return
     /*"make clean TARGET=micaz\n" + */
-    GUI.getExternalToolsSetting("PATH_MAKE") + " " + getExpectedFirmwareFile(source).getName() + " TARGET=micaz";
+    Cooja.getExternalToolsSetting("PATH_MAKE") + " " + getExpectedFirmwareFile(source).getName() + " TARGET=micaz";
   }
 
   public File getExpectedFirmwareFile(File source) {

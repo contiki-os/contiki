@@ -61,7 +61,7 @@ public class SimEventCentral {
     this.simulation = simulation;
 
     /* Default buffer sizes */
-    logOutputBufferSize = Integer.parseInt(GUI.getExternalToolsSetting("BUFFERSIZE_LOGOUTPUT", "" + 40000));
+    logOutputBufferSize = Integer.parseInt(Cooja.getExternalToolsSetting("BUFFERSIZE_LOGOUTPUT", "" + 40000));
 
     
     moteObservations = new ArrayList<MoteObservation>();

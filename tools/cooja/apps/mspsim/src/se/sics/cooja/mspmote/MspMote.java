@@ -42,7 +42,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ContikiError;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteInterfaceHandler;
@@ -230,7 +230,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     this.myCpu.getLogger().addLogListener(ll);
 
     logger.info("Loading firmware from: " + fileELF.getAbsolutePath());
-    GUI.setProgressMessage("Loading " + fileELF.getName());
+    Cooja.setProgressMessage("Loading " + fileELF.getName());
     node.loadFirmware(((MspMoteType)getType()).getELF());
 
     /* Throw exceptions at bad memory access */

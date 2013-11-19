@@ -64,7 +64,7 @@ public class ExternalToolsDialog extends JDialog {
    *          Parent container for dialog
    */
   public static void showDialog(Container parentContainer) {
-    if (GUI.isVisualizedInApplet()) {
+    if (Cooja.isVisualizedInApplet()) {
       return;
     }
 
@@ -153,13 +153,13 @@ public class ExternalToolsDialog extends JDialog {
     explanations.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     // MAIN PART
-    textFields = new JTextField[GUI.getExternalToolsSettingsCount()];
-    for (int i = 0; i < GUI.getExternalToolsSettingsCount(); i++) {
+    textFields = new JTextField[Cooja.getExternalToolsSettingsCount()];
+    for (int i = 0; i < Cooja.getExternalToolsSettingsCount(); i++) {
       // Add text fields for every changeable property
       smallPane = new JPanel();
       smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
       smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
-      label = new JLabel(GUI.getExternalToolsSettingName(i));
+      label = new JLabel(Cooja.getExternalToolsSettingName(i));
       label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
 
       textField = new JTextField(35);
@@ -192,17 +192,17 @@ public class ExternalToolsDialog extends JDialog {
   }
 
   private void updateTextFields() {
-    for (int i = 0; i < GUI.getExternalToolsSettingsCount(); i++) {
-      textFields[i].setText(GUI.getExternalToolsSetting(GUI.getExternalToolsSettingName(i), ""));
+    for (int i = 0; i < Cooja.getExternalToolsSettingsCount(); i++) {
+      textFields[i].setText(Cooja.getExternalToolsSetting(Cooja.getExternalToolsSettingName(i), ""));
     }
   }
 
   private void compareWithDefaults() {
-    for (int i = 0; i < GUI.getExternalToolsSettingsCount(); i++) {
+    for (int i = 0; i < Cooja.getExternalToolsSettingsCount(); i++) {
       String currentValue = textFields[i].getText();
 
       // Compare with default value
-      String defaultValue = GUI.getExternalToolsDefaultSetting(GUI.getExternalToolsSettingName(i), "");
+      String defaultValue = Cooja.getExternalToolsDefaultSetting(Cooja.getExternalToolsSettingName(i), "");
       if (currentValue.equals(defaultValue)) {
         textFields[i].setBackground(Color.WHITE);
         textFields[i].setToolTipText("");
@@ -225,15 +225,15 @@ public class ExternalToolsDialog extends JDialog {
     }
     public void actionPerformed(ActionEvent e) {
       if (e.getActionCommand().equals("reset")) {
-        GUI.loadExternalToolsDefaultSettings();
+        Cooja.loadExternalToolsDefaultSettings();
         updateTextFields();
         compareWithDefaults();
       } else if (e.getActionCommand().equals("ok")) {
-        for (int i = 0; i < GUI.getExternalToolsSettingsCount(); i++) {
-          GUI.setExternalToolsSetting(GUI.getExternalToolsSettingName(i), textFields[i].getText()
+        for (int i = 0; i < Cooja.getExternalToolsSettingsCount(); i++) {
+          Cooja.setExternalToolsSetting(Cooja.getExternalToolsSettingName(i), textFields[i].getText()
               .trim());
         }
-        GUI.saveExternalToolsUserSettings();
+        Cooja.saveExternalToolsUserSettings();
         if (myDialog != null && myDialog.isDisplayable()) {
           myDialog.dispose();
         }

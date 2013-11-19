@@ -86,7 +86,7 @@ public class SkyFlash extends MoteInterface {
     final JButton downloadButton = new JButton("Store to file");
     panel.add(downloadButton);
 
-    if (GUI.isVisualizedInApplet()) {
+    if (Cooja.isVisualizedInApplet()) {
       uploadButton.setEnabled(false);
       uploadButton.setToolTipText("Not available in applet mode");
       downloadButton.setEnabled(false);
@@ -95,7 +95,7 @@ public class SkyFlash extends MoteInterface {
 
     uploadButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        byte[] fileData = readDialogFileBytes(GUI.getTopParentContainer());
+        byte[] fileData = readDialogFileBytes(Cooja.getTopParentContainer());
 
         if (fileData != null) {
           if (fileData.length > CoojaM25P80.SIZE) {
@@ -120,7 +120,7 @@ public class SkyFlash extends MoteInterface {
           m24p80.seek(0);
           m24p80.readFully(data);
           
-          writeDialogFileBytes(GUI.getTopParentContainer(), data);
+          writeDialogFileBytes(Cooja.getTopParentContainer(), data);
         } catch (IOException ex) {
           logger.fatal("Data download failed: " + ex.getMessage(), ex);
         }
@@ -158,7 +158,7 @@ public class SkyFlash extends MoteInterface {
 
   public static void writeDialogFileBytes(Component parent, byte[] data) {
     JFileChooser fc = new JFileChooser();
-    int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+    int returnVal = fc.showSaveDialog(Cooja.getTopParentContainer());
     if (returnVal != JFileChooser.APPROVE_OPTION) {
       return;
     }
@@ -169,7 +169,7 @@ public class SkyFlash extends MoteInterface {
       String s2 = "Cancel";
       Object[] options = { s1, s2 };
       int n = JOptionPane.showOptionDialog(
-          GUI.getTopParentContainer(),
+          Cooja.getTopParentContainer(),
           "A file with the same name already exists.\nDo you want to remove it?",
           "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE, null, options, s1);

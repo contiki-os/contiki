@@ -49,7 +49,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
@@ -86,12 +86,12 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
 
   private Mote mote;
 
-  public SerialSocketClient(Mote mote, Simulation simulation, final GUI gui) {
+  public SerialSocketClient(Mote mote, Simulation simulation, final Cooja gui) {
     super("Serial Socket (CLIENT) (" + mote + ")", gui, false);
     this.mote = mote;
 
     /* GUI components */
-    if (GUI.isVisualized()) {
+    if (Cooja.isVisualized()) {
       Box northBox = Box.createHorizontalBox();
       northBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
       statusLabel = configureLabel(northBox, "", "");
@@ -134,7 +134,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
           out.write(serialPort.getLastSerialData());
           out.flush();
           outBytes++;
-          if (GUI.isVisualized()) {
+          if (Cooja.isVisualized()) {
             outLabel.setText(outBytes + " bytes");
           }
         } catch (IOException e) {
@@ -165,7 +165,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
               serialPort.writeByte(data[i]);
             }
             inBytes += numRead;
-            if (GUI.isVisualized()) {
+            if (Cooja.isVisualized()) {
               inLabel.setText(inBytes + " bytes");
             }
           } else {

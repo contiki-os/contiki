@@ -87,7 +87,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteMemory;
 import se.sics.cooja.MoteMemory.MemoryEventType;
@@ -263,7 +263,7 @@ public class BufferListener extends VisPlugin {
    * @param simulation Simulation
    * @param gui GUI
    */
-  public BufferListener(final Simulation simulation, final GUI gui) {
+  public BufferListener(final Simulation simulation, final Cooja gui) {
     super("Buffer Listener - " + "?" + " motes", gui);
     this.simulation = simulation;
 
@@ -788,7 +788,7 @@ public class BufferListener extends VisPlugin {
     if (buffer != null) {
       String status = buffer.getStatusString();
       setTitle("Buffer Listener - " +
-          ((status!=null)?status:GUI.getDescriptionOf(buffer)) + " " +
+          ((status!=null)?status:Cooja.getDescriptionOf(buffer)) + " " +
           "- " + memoryMonitors.size() + " buffers on " + motes.size() + " motes");
     }
   }
@@ -1056,9 +1056,9 @@ public class BufferListener extends VisPlugin {
 
     public void actionPerformed(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
-      File suggest = new File(GUI.getExternalToolsSetting("BUFFER_LISTENER_SAVEFILE", "BufferAccessLogger.txt"));
+      File suggest = new File(Cooja.getExternalToolsSetting("BUFFER_LISTENER_SAVEFILE", "BufferAccessLogger.txt"));
       fc.setSelectedFile(suggest);
-      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+      int returnVal = fc.showSaveDialog(Cooja.getTopParentContainer());
       if (returnVal != JFileChooser.APPROVE_OPTION) {
         return;
       }
@@ -1069,7 +1069,7 @@ public class BufferListener extends VisPlugin {
         String s2 = "Cancel";
         Object[] options = { s1, s2 };
         int n = JOptionPane.showOptionDialog(
-            GUI.getTopParentContainer(),
+            Cooja.getTopParentContainer(),
             "A file with the same name already exists.\nDo you want to remove it?",
             "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -1078,7 +1078,7 @@ public class BufferListener extends VisPlugin {
         }
       }
 
-      GUI.setExternalToolsSetting("BUFFER_LISTENER_SAVEFILE", saveFile.getPath());
+      Cooja.setExternalToolsSetting("BUFFER_LISTENER_SAVEFILE", saveFile.getPath());
       if (saveFile.exists() && !saveFile.canWrite()) {
         logger.fatal("No write access to file: " + saveFile);
         return;
@@ -1280,7 +1280,7 @@ public class BufferListener extends VisPlugin {
     parserMenu.removeAll();
 
     for (Class<? extends Parser> bpClass: bufferParsers) {
-      JCheckBoxMenuItem mi = new JCheckBoxMenuItem(GUI.getDescriptionOf(bpClass), bpClass==parser.getClass());
+      JCheckBoxMenuItem mi = new JCheckBoxMenuItem(Cooja.getDescriptionOf(bpClass), bpClass==parser.getClass());
       mi.putClientProperty("CLASS", bpClass);
       mi.addActionListener(parserSelectedListener);
       parserMenu.add(mi);
@@ -1309,7 +1309,7 @@ public class BufferListener extends VisPlugin {
       if (btClass == CustomVariableBuffer.class) {
         bufferMenu.addSeparator();
       }
-      JCheckBoxMenuItem mi = new JCheckBoxMenuItem(GUI.getDescriptionOf(btClass), btClass==buffer.getClass());
+      JCheckBoxMenuItem mi = new JCheckBoxMenuItem(Cooja.getDescriptionOf(btClass), btClass==buffer.getClass());
       mi.putClientProperty("CLASS", btClass);
       mi.addActionListener(bufferSelectedListener);
       bufferMenu.add(mi);
@@ -1329,7 +1329,7 @@ public class BufferListener extends VisPlugin {
     }
 
     parser = bp;
-    logTable.getColumnModel().getColumn(COLUMN_DATA).setHeaderValue(GUI.getDescriptionOf(bp));
+    logTable.getColumnModel().getColumn(COLUMN_DATA).setHeaderValue(Cooja.getDescriptionOf(bp));
 
     repaint();
   }
@@ -1831,9 +1831,9 @@ public class BufferListener extends VisPlugin {
       offset = Integer.parseInt(element.getAttributeValue("offset"));
     }
     public boolean configure(BufferListener bl) {
-      String suggestName = GUI.getExternalToolsSetting("BUFFER_LISTENER_VARNAME", "node_id");
-      String suggestSize = GUI.getExternalToolsSetting("BUFFER_LISTENER_VARSIZE", "2");
-      String suggestOffset = GUI.getExternalToolsSetting("BUFFER_LISTENER_VAROFFSET", "0");
+      String suggestName = Cooja.getExternalToolsSetting("BUFFER_LISTENER_VARNAME", "node_id");
+      String suggestSize = Cooja.getExternalToolsSetting("BUFFER_LISTENER_VARSIZE", "2");
+      String suggestOffset = Cooja.getExternalToolsSetting("BUFFER_LISTENER_VAROFFSET", "0");
       BufferInput infoComponent =
         new BufferInput(suggestName, suggestSize, suggestOffset);
 
@@ -1868,9 +1868,9 @@ public class BufferListener extends VisPlugin {
         return false;
       }
 
-      GUI.setExternalToolsSetting("BUFFER_LISTENER_VARNAME", variable);
-      GUI.setExternalToolsSetting("BUFFER_LISTENER_VARSIZE", "" + size);
-      GUI.setExternalToolsSetting("BUFFER_LISTENER_VAROFFSET", "" + offset);
+      Cooja.setExternalToolsSetting("BUFFER_LISTENER_VARNAME", variable);
+      Cooja.setExternalToolsSetting("BUFFER_LISTENER_VARSIZE", "" + size);
+      Cooja.setExternalToolsSetting("BUFFER_LISTENER_VAROFFSET", "" + offset);
       return true;
     }
   }
@@ -1912,9 +1912,9 @@ public class BufferListener extends VisPlugin {
       offset = Integer.parseInt(element.getAttributeValue("offset"));
     }
     public boolean configure(BufferListener bl) {
-      String suggestName = GUI.getExternalToolsSetting("BUFFER_LISTENER_VARNAME", "node_id");
-      String suggestSize = GUI.getExternalToolsSetting("BUFFER_LISTENER_VARSIZE", "2");
-      String suggestOffset = GUI.getExternalToolsSetting("BUFFER_LISTENER_VAROFFSET", "0");
+      String suggestName = Cooja.getExternalToolsSetting("BUFFER_LISTENER_VARNAME", "node_id");
+      String suggestSize = Cooja.getExternalToolsSetting("BUFFER_LISTENER_VARSIZE", "2");
+      String suggestOffset = Cooja.getExternalToolsSetting("BUFFER_LISTENER_VAROFFSET", "0");
       BufferInput infoComponent =
         new BufferInput(suggestName, suggestSize, suggestOffset);
 
@@ -1948,9 +1948,9 @@ public class BufferListener extends VisPlugin {
         /* Abort */
         return false;
       }
-      GUI.setExternalToolsSetting("BUFFER_LISTENER_VARNAME", variable);
-      GUI.setExternalToolsSetting("BUFFER_LISTENER_VARSIZE", "" + size);
-      GUI.setExternalToolsSetting("BUFFER_LISTENER_VAROFFSET", "" + offset);
+      Cooja.setExternalToolsSetting("BUFFER_LISTENER_VARNAME", variable);
+      Cooja.setExternalToolsSetting("BUFFER_LISTENER_VARSIZE", "" + size);
+      Cooja.setExternalToolsSetting("BUFFER_LISTENER_VAROFFSET", "" + offset);
       return true;
     }
   }
@@ -1979,7 +1979,7 @@ public class BufferListener extends VisPlugin {
       variable = element.getAttributeValue("variable");
     }
     public boolean configure(BufferListener bl) {
-      String suggestName = GUI.getExternalToolsSetting("BUFFER_LISTENER_VARNAME", "node_id");
+      String suggestName = Cooja.getExternalToolsSetting("BUFFER_LISTENER_VARNAME", "node_id");
       BufferInput infoComponent =
         new BufferInput(suggestName, null, null);
 
@@ -1995,7 +1995,7 @@ public class BufferListener extends VisPlugin {
       if (variable == null) {
         return false;
       }
-      GUI.setExternalToolsSetting("BUFFER_LISTENER_VARNAME", variable);
+      Cooja.setExternalToolsSetting("BUFFER_LISTENER_VARNAME", variable);
       return true;
     }
   }

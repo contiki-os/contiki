@@ -42,7 +42,7 @@ import javax.swing.JScrollPane;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
@@ -66,7 +66,7 @@ public class MoteTypeInformation extends VisPlugin {
    * @param simulation Simulation
    * @param gui Cooja
    */
-  public MoteTypeInformation(Simulation simulation, GUI gui) {
+  public MoteTypeInformation(Simulation simulation, Cooja gui) {
     super("Mote Type Information", gui);
     this.simulation = simulation;
 
@@ -102,7 +102,7 @@ public class MoteTypeInformation extends VisPlugin {
     /* Mote types */
     for (MoteType moteType: simulation.getMoteTypes()) {
       String moteTypeString =
-        GUI.getDescriptionOf(moteType) +": " +
+        Cooja.getDescriptionOf(moteType) +": " +
         "ID=" + moteType.getIdentifier() +
         ", \"" + moteType.getDescription() + "\"";
 

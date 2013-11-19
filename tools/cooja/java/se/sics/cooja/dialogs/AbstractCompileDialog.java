@@ -73,7 +73,7 @@ import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
@@ -108,7 +108,7 @@ public abstract class AbstractCompileDialog extends JDialog {
   }
 
   protected Simulation simulation;
-  protected GUI gui;
+  protected Cooja gui;
   protected MoteType moteType;
 
   protected JTabbedPane tabbedPane;
@@ -189,7 +189,7 @@ public abstract class AbstractCompileDialog extends JDialog {
             lastFile = fp;
         }
         if (lastFile == null) {
-          String path = GUI.getExternalToolsSetting("COMPILE_LAST_FILE", null);
+          String path = Cooja.getExternalToolsSetting("COMPILE_LAST_FILE", null);
           if (path != null) {
             lastFile = new File(path);
             lastFile = gui.restorePortablePath(lastFile);
@@ -209,7 +209,7 @@ public abstract class AbstractCompileDialog extends JDialog {
         } else {
           File helloworldSourceFile =
             new java.io.File(
-                GUI.getExternalToolsSetting("PATH_CONTIKI"), "examples/hello-world/hello-world.c");
+                Cooja.getExternalToolsSetting("PATH_CONTIKI"), "examples/hello-world/hello-world.c");
           try {
             helloworldSourceFile = helloworldSourceFile.getCanonicalFile();
             fc.setCurrentDirectory(helloworldSourceFile.getParentFile());
@@ -579,7 +579,7 @@ public abstract class AbstractCompileDialog extends JDialog {
     }
 
     lastFile = file;
-    GUI.setExternalToolsSetting("COMPILE_LAST_FILE", gui.createPortablePath(lastFile).getPath());
+    Cooja.setExternalToolsSetting("COMPILE_LAST_FILE", gui.createPortablePath(lastFile).getPath());
 
     if (file.getName().endsWith(".c")) {
       setDialogState(DialogState.SELECTED_SOURCE);
@@ -797,7 +797,7 @@ public abstract class AbstractCompileDialog extends JDialog {
     }
 
     /* Create new mote interface checkbox */
-    JCheckBox intfCheckBox = new JCheckBox(GUI.getDescriptionOf(intfClass));
+    JCheckBox intfCheckBox = new JCheckBox(Cooja.getDescriptionOf(intfClass));
     intfCheckBox.setSelected(selected);
     intfCheckBox.putClientProperty("class", intfClass);
     intfCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);

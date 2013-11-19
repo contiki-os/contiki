@@ -62,7 +62,7 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Positioner;
@@ -215,7 +215,7 @@ public class AddMoteDialog extends JDialog {
         .getRegisteredPositioners();
     String[] posDistributions = new String[positioners.size()];
     for (int i = 0; i < posDistributions.length; i++) {
-      posDistributions[i] = GUI.getDescriptionOf(positioners.get(i));
+      posDistributions[i] = Cooja.getDescriptionOf(positioners.get(i));
     }
 
     comboBox = new JComboBox(posDistributions);
@@ -465,7 +465,7 @@ public class AddMoteDialog extends JDialog {
           Class<? extends Positioner> positionerClass = null;
           for (Class<? extends Positioner> positioner : simulation.getGUI()
               .getRegisteredPositioners()) {
-            if (GUI.getDescriptionOf(positioner).equals(
+            if (Cooja.getDescriptionOf(positioner).equals(
                 positionDistributionBox.getSelectedItem())) {
               positionerClass = positioner;
             }

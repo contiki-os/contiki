@@ -60,7 +60,7 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.RadioMedium;
 import se.sics.cooja.Simulation;
 
@@ -118,7 +118,7 @@ public class CreateSimDialog extends JDialog {
       Class<? extends RadioMedium> radioMediumClass =
         simulation.getRadioMedium().getClass();
 
-      String currentDescription = GUI.getDescriptionOf(radioMediumClass);
+      String currentDescription = Cooja.getDescriptionOf(radioMediumClass);
 
       for (int i=0; i < dialog.radioMediumBox.getItemCount(); i++) {
         String menuDescription = (String) dialog.radioMediumBox.getItemAt(i);
@@ -167,7 +167,7 @@ public class CreateSimDialog extends JDialog {
     return false;
   }
 
-  private CreateSimDialog(Window window, GUI gui) {
+  private CreateSimDialog(Window window, Cooja gui) {
     super(window, "Create new simulation", ModalityType.APPLICATION_MODAL);
     Box vertBox = Box.createVerticalBox();
 
@@ -236,7 +236,7 @@ public class CreateSimDialog extends JDialog {
 
     Vector<String> radioMediumDescriptions = new Vector<String>();
     for (Class<? extends RadioMedium> radioMediumClass: gui.getRegisteredRadioMediums()) {
-      String description = GUI.getDescriptionOf(radioMediumClass);
+      String description = Cooja.getDescriptionOf(radioMediumClass);
       radioMediumDescriptions.add(description);
     }
 
@@ -341,7 +341,7 @@ public class CreateSimDialog extends JDialog {
 
       String currentRadioMediumDescription = (String) radioMediumBox.getSelectedItem();
       for (Class<? extends RadioMedium> radioMediumClass: mySimulation.getGUI().getRegisteredRadioMediums()) {
-        String radioMediumDescription = GUI.getDescriptionOf(radioMediumClass);
+        String radioMediumDescription = Cooja.getDescriptionOf(radioMediumClass);
 
         if (currentRadioMediumDescription.equals(radioMediumDescription)) {
           try {

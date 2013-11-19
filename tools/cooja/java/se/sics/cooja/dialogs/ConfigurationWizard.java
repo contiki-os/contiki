@@ -64,7 +64,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 
 import se.sics.cooja.CoreComm;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.SectionMoteMemory;
 import se.sics.cooja.contikimote.ContikiMoteType;
@@ -152,8 +152,8 @@ public class ConfigurationWizard extends JDialog {
   private static JButton button;
   private static JProgressBar progressBar;
 
-  public static boolean startWizard(Container parentContainer, GUI gui) {
-    if (GUI.isVisualizedInApplet()) {
+  public static boolean startWizard(Container parentContainer, Cooja gui) {
+    if (Cooja.isVisualizedInApplet()) {
       return false;
     }
 
@@ -185,7 +185,7 @@ public class ConfigurationWizard extends JDialog {
     return true;
   }
 
-  public static boolean showWizardInfo(Container parent, GUI gui) {
+  public static boolean showWizardInfo(Container parent, Cooja gui) {
     String options[] = {"Start tests", OPTION_CLOSE_WIZARD};
     int value = JOptionPane.showOptionDialog(parent,
         "This wizard configures and tests your toolchain for simulation of Cooja motes.\n" +
@@ -206,7 +206,7 @@ public class ConfigurationWizard extends JDialog {
     return true;
   }
 
-  public static boolean doCompileCTest(JFrame parent, GUI gui) {
+  public static boolean doCompileCTest(JFrame parent, Cooja gui) {
     final String testDescription = "Step 1/4 - Compile and link Contiki library";
     String value = OPTION_RUN_TEST;
     while (value.equals(OPTION_RUN_TEST)) {
@@ -260,7 +260,7 @@ public class ConfigurationWizard extends JDialog {
     return false;
   }
 
-  public static boolean doLoadLibraryTest(JFrame parent, GUI gui) {
+  public static boolean doLoadLibraryTest(JFrame parent, Cooja gui) {
     final String testDescription = "Step 2/4 - Load Contiki library in Java";
     String value = OPTION_RUN_TEST;
     while (value.equals(OPTION_RUN_TEST)) {
@@ -315,7 +315,7 @@ public class ConfigurationWizard extends JDialog {
     return false;
   }
 
-  public static boolean doAddressParsingTest(JFrame parent, GUI gui) {
+  public static boolean doAddressParsingTest(JFrame parent, Cooja gui) {
     final String testDescription = "Step 3/4 - Library memory addresses";
     String value = OPTION_RUN_TEST;
     while (value.equals(OPTION_RUN_TEST)) {
@@ -371,7 +371,7 @@ public class ConfigurationWizard extends JDialog {
     return false;
   }
 
-  public static boolean doMemoryReplacementTest(JFrame parent, GUI gui) {
+  public static boolean doMemoryReplacementTest(JFrame parent, Cooja gui) {
     final String testDescription = "Step 4/4 - Memory replacement test";
     String value = OPTION_RUN_TEST;
     while (value.equals(OPTION_RUN_TEST)) {
@@ -462,7 +462,7 @@ public class ConfigurationWizard extends JDialog {
   private static JPanel createConfigureComboBox(final String name) {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    JComboBox combo = new JComboBox(new Object[] { GUI.getExternalToolsSetting(name, "") });
+    JComboBox combo = new JComboBox(new Object[] { Cooja.getExternalToolsSetting(name, "") });
 
     JLabel label = new JLabel(name);
     label.setToolTipText(name);
@@ -490,7 +490,7 @@ public class ConfigurationWizard extends JDialog {
     }
     combo.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        GUI.setExternalToolsSetting(name, (String) e.getItem());
+        Cooja.setExternalToolsSetting(name, (String) e.getItem());
       }
     });
     combo.setEditable(true);
@@ -616,7 +616,7 @@ public class ConfigurationWizard extends JDialog {
 
     testOutput.addMessage("### Compiling C library source: " + cLibrarySourceFile.getName());
     try {
-      String contikiPath = GUI.getExternalToolsSetting("PATH_CONTIKI").replaceAll("\\\\", "/");
+      String contikiPath = Cooja.getExternalToolsSetting("PATH_CONTIKI").replaceAll("\\\\", "/");
       CompileContiki.compile(
           "make " +
           "-f " + contikiPath + "/Makefile.include " +
@@ -711,7 +711,7 @@ public class ConfigurationWizard extends JDialog {
     testOutput.addMessage("");
     successCommand = performCommandAddressTest(testOutput, normalStream, errorStream);
 
-    boolean parseWithCommand = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
+    boolean parseWithCommand = Boolean.parseBoolean(Cooja.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
 
     if (successMap && successCommand) {
       testOutput.addMessage("### Both map file and command based address parsing succeeded");
@@ -916,7 +916,7 @@ public class ConfigurationWizard extends JDialog {
     if (!performLoadTest(dummy, dummyStream, errorStream)) {
       return false;
     }
-    boolean parseWithCommand = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
+    boolean parseWithCommand = Boolean.parseBoolean(Cooja.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
     if (parseWithCommand) {
       if (!performCommandAddressTest(dummy, dummyStream, errorStream)) {
         return false;

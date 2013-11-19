@@ -46,7 +46,7 @@ import javax.swing.JTextField;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
@@ -69,7 +69,7 @@ public class MspCycleWatcher extends VisPlugin implements MotePlugin {
   private JTextField resetTextField = new JTextField("");
   private long cycleReset = 0;
 
-  public MspCycleWatcher(Mote mote, Simulation simulationToVisualize, GUI gui) {
+  public MspCycleWatcher(Mote mote, Simulation simulationToVisualize, Cooja gui) {
     super("Msp Cycle Watcher", gui);
     this.mspMote = (MspMote) mote;
     cpu = mspMote.getCPU();

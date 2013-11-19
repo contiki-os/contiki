@@ -84,7 +84,7 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.COOJAProject;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.ProjectConfig;
 
 /**
@@ -97,7 +97,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 	private static final long serialVersionUID = 1896348946753376556L;
 	private static Logger logger = Logger.getLogger(ProjectDirectoriesDialog.class);
 
-	private GUI gui;
+	private Cooja gui;
 
 	private JTable table = null;
 	private JTextArea projectInfo = new JTextArea("Extension information:");
@@ -115,8 +115,8 @@ public class ProjectDirectoriesDialog extends JDialog {
 	 * @param currentProjects Current projects
 	 * @return New COOJA projects, or null
 	 */
-	public static COOJAProject[] showDialog(Container parent, GUI gui, COOJAProject[] currentProjects) {
-		if (GUI.isVisualizedInApplet()) {
+	public static COOJAProject[] showDialog(Container parent, Cooja gui, COOJAProject[] currentProjects) {
+		if (Cooja.isVisualizedInApplet()) {
 			return null;
 		}
 
@@ -263,7 +263,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 					newDefaultProjectDirs = newDefaultProjectDirs.replace('\\', '/');
 
 					String question = "External tools setting DEFAULT_PROJECTDIRS will change from:\n"
-						+ GUI.getExternalToolsSetting("DEFAULT_PROJECTDIRS", "").replace(';', '\n')
+						+ Cooja.getExternalToolsSetting("DEFAULT_PROJECTDIRS", "").replace(';', '\n')
 						+ "\n\n to:\n\n"
 						+ newDefaultProjectDirs.replace(';', '\n');
 					String title = "Change external tools settings?";
@@ -275,7 +275,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 						return;
 					}
 
-					GUI.setExternalToolsSetting("DEFAULT_PROJECTDIRS", newDefaultProjectDirs);
+					Cooja.setExternalToolsSetting("DEFAULT_PROJECTDIRS", newDefaultProjectDirs);
 					dispose();
 				}
 			});
@@ -339,7 +339,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 						String s1 = "Remove";
 						String s2 = "Cancel";
 						Object[] options = { s1, s2 };
-						int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+						int n = JOptionPane.showOptionDialog(Cooja.getTopParentContainer(),
 								"Remove Cooja project?\n" + project,
 								"Remove Cooja project?", JOptionPane.YES_NO_OPTION,
 								JOptionPane.WARNING_MESSAGE, null, options, s1);
@@ -415,7 +415,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 			String[] jars = project.getConfigJARs();
 			projectInfo.append("JARs: " + Arrays.toString(jars) + "\n");
 			for (String jar: jars) {
-				File jarFile = GUI.findJarFile(project.dir, jar);
+				File jarFile = Cooja.findJarFile(project.dir, jar);
 				if (jarFile == null) {
 					projectInfo.append("\tError: " + jar + " could not be found.\n");
 				} else if (!jarFile.exists()) {
@@ -742,7 +742,7 @@ class DirectoryTreePanel extends JPanel {
 			return false;
 		}
 		boolean containsConfig() {
-			return new File(dir, GUI.PROJECT_CONFIG_FILENAME).exists();
+			return new File(dir, Cooja.PROJECT_CONFIG_FILENAME).exists();
 		}
 		boolean subtreeContainsProject() {
 			try {

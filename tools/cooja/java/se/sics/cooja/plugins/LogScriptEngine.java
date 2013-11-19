@@ -44,7 +44,7 @@ import javax.script.ScriptException;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.SimEventCentral.LogOutputEvent;
 import se.sics.cooja.SimEventCentral.LogOutputListener;
@@ -157,8 +157,8 @@ public class LogScriptEngine {
       stepScript();
     } catch (UndeclaredThrowableException e) {
       logger.fatal("Exception: " + e.getMessage(), e);
-      if (GUI.isVisualized()) {
-        GUI.showErrorDialog(GUI.getTopParentContainer(),
+      if (Cooja.isVisualized()) {
+        Cooja.showErrorDialog(Cooja.getTopParentContainer(),
             e.getMessage(),
             e, false);
       }
@@ -308,7 +308,7 @@ public class LogScriptEngine {
               throwable.getMessage().contains("test script killed") ) {
             logger.info("Test script finished");
           } else {
-            if (!GUI.isVisualized()) {
+            if (!Cooja.isVisualized()) {
               logger.fatal("Test script error, terminating Cooja.");
               logger.fatal("Script error:", e);
               System.exit(1);
@@ -317,8 +317,8 @@ public class LogScriptEngine {
             logger.fatal("Script error:", e);
             deactivateScript();
             simulation.stopSimulation();
-            if (GUI.isVisualized()) {
-              GUI.showErrorDialog(GUI.getTopParentContainer(),
+            if (Cooja.isVisualized()) {
+              Cooja.showErrorDialog(Cooja.getTopParentContainer(),
                   "Script error", e, false);
             }
           }
@@ -454,7 +454,7 @@ public class LogScriptEngine {
     private void deactive() {
       deactivateScript();
 
-      if (GUI.isVisualized()) {
+      if (Cooja.isVisualized()) {
         log("[if test was run without visualization, Cooja would now have been terminated]\n");
         stopSimulation = true;
         simulation.invokeSimulationThread(stopSimulationRunnable);

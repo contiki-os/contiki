@@ -48,7 +48,7 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Plugin;
 import se.sics.cooja.ProjectConfig;
@@ -67,10 +67,10 @@ public class ExecuteJAR {
 
   public static void main(String[] args) {
     try {
-      if ((new File(GUI.LOG_CONFIG_FILE)).exists()) {
-        DOMConfigurator.configure(GUI.LOG_CONFIG_FILE);
+      if ((new File(Cooja.LOG_CONFIG_FILE)).exists()) {
+        DOMConfigurator.configure(Cooja.LOG_CONFIG_FILE);
       } else {
-        DOMConfigurator.configure(GUI.class.getResource("/" + GUI.LOG_CONFIG_FILE));
+        DOMConfigurator.configure(Cooja.class.getResource("/" + Cooja.LOG_CONFIG_FILE));
       }
     } catch (AccessControlException e) {
       BasicConfigurator.configure();
@@ -99,10 +99,10 @@ public class ExecuteJAR {
 
     /* Load simulation */
     logger.info("Loading " + config);
-    GUI.externalToolsUserSettingsFile = new File(
+    Cooja.externalToolsUserSettingsFile = new File(
         System.getProperty("user.home"), 
-        GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
-    Simulation s = GUI.quickStartSimulationConfig(config, false, null);
+        Cooja.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
+    Simulation s = Cooja.quickStartSimulationConfig(config, false, null);
     if (s == null) {
       throw new RuntimeException(
           "Error when creating simulation"
@@ -142,7 +142,7 @@ public class ExecuteJAR {
       File diskFile = new File(executeDir, SIMCONFIG_FILENAME);
       if (OVERWRITE || !diskFile.exists()) {
         logger.info("Unpacking simulation config: " + SIMCONFIG_FILENAME + " -> " + diskFile.getName());
-        inputStream = GUI.class.getResourceAsStream("/" + SIMCONFIG_FILENAME);
+        inputStream = Cooja.class.getResourceAsStream("/" + SIMCONFIG_FILENAME);
         byte[] fileData = ArrayUtils.readFromStream(inputStream);
         if (fileData == null) {
           logger.info("Failed extracting file (read fail)");
@@ -160,7 +160,7 @@ public class ExecuteJAR {
       diskFile = new File(executeDir, EXTERNALTOOLS_FILENAME);
       if (OVERWRITE || !diskFile.exists()) {
         logger.info("Unpacking external tools config: " + EXTERNALTOOLS_FILENAME + " -> " + diskFile.getName());
-        inputStream = GUI.class.getResourceAsStream("/" + EXTERNALTOOLS_FILENAME);
+        inputStream = Cooja.class.getResourceAsStream("/" + EXTERNALTOOLS_FILENAME);
         byte[] fileData = ArrayUtils.readFromStream(inputStream);
         if (fileData == null) {
           logger.info("Failed extracting file (read fail)");
@@ -174,7 +174,7 @@ public class ExecuteJAR {
       } else {
         logger.info("Skip: external tools config already exists: " + diskFile);
       }
-      GUI.externalToolsUserSettingsFile = diskFile;
+      Cooja.externalToolsUserSettingsFile = diskFile;
 
       /* Unpack files from JAR (with attribute EXPORT=copy) */
       SAXBuilder builder = new SAXBuilder();
@@ -186,8 +186,8 @@ public class ExecuteJAR {
     }
 
     logger.info("Starting simulation");
-    GUI.setLookAndFeel();
-    GUI.quickStartSimulationConfig(new File(executeDir, SIMCONFIG_FILENAME), false, null);
+    Cooja.setLookAndFeel();
+    Cooja.quickStartSimulationConfig(new File(executeDir, SIMCONFIG_FILENAME), false, null);
   }
 
   /**
@@ -196,7 +196,7 @@ public class ExecuteJAR {
    * @param gui GUI. Must contain simulation
    * @param outputFile Output file
    */
-  public static boolean buildExecutableJAR(GUI gui, File outputFile) {
+  public static boolean buildExecutableJAR(Cooja gui, File outputFile) {
     String executeDir = null;
     executeDir = outputFile.getName();
     if (!executeDir.endsWith(".jar")) {
@@ -215,11 +215,11 @@ public class ExecuteJAR {
     for (MoteType t: simulation.getMoteTypes()) {
       if (!t.getClass().getName().contains("SkyMoteType")) {
         throw new RuntimeException(
-            "You simulation contains the mote type: " + GUI.getDescriptionOf(t.getClass()) + "\n" + 
+            "You simulation contains the mote type: " + Cooja.getDescriptionOf(t.getClass()) + "\n" + 
             "Only the Sky Mote Type is currently supported.\n"
         );
       }
-      logger.info("Checking mote types: '" + GUI.getDescriptionOf(t.getClass()) + "'");
+      logger.info("Checking mote types: '" + Cooja.getDescriptionOf(t.getClass()) + "'");
     }
 
     /* Check dependencies: Contiki Test Editor */
@@ -253,10 +253,10 @@ public class ExecuteJAR {
 
     /* Unpacking project JARs */
     ProjectConfig config = gui.getProjectConfig();
-    String[] projectJARs = config.getStringArrayValue(GUI.class.getName() + ".JARFILES");
+    String[] projectJARs = config.getStringArrayValue(Cooja.class.getName() + ".JARFILES");
     for (String jar: projectJARs) {
       /* Locate project */
-      File project = config.getUserProjectDefining(GUI.class, "JARFILES", jar);
+      File project = config.getUserProjectDefining(Cooja.class, "JARFILES", jar);
       File jarFile = new File(project, jar);
       if (!jarFile.exists()) {
         jarFile = new File(project, "lib/" + jar);
@@ -287,7 +287,7 @@ public class ExecuteJAR {
         "tools/cooja/lib/jdom.jar", "tools/cooja/lib/log4j.jar", "tools/cooja/dist/cooja.jar"
     };
     for (String jar: coreJARs) {
-      File jarFile = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), jar);
+      File jarFile = new File(Cooja.getExternalToolsSetting("PATH_CONTIKI"), jar);
       if (!jarFile.exists()) {
         throw new RuntimeException(
             "Project JAR could not be found: " + jarFile.getAbsolutePath()
@@ -334,11 +334,11 @@ public class ExecuteJAR {
       File externalToolsConfig = new File(workingDir, EXTERNALTOOLS_FILENAME);
       FileOutputStream out = new FileOutputStream(externalToolsConfig);
       Properties differingSettings = new Properties();
-      Enumeration<Object> keyEnum = GUI.currentExternalToolsSettings.keys();
+      Enumeration<Object> keyEnum = Cooja.currentExternalToolsSettings.keys();
       while (keyEnum.hasMoreElements()) {
         String key = (String) keyEnum.nextElement();
-        String defaultSetting = GUI.getExternalToolsDefaultSetting(key, "");
-        String currentSetting = GUI.currentExternalToolsSettings.getProperty(key, "");
+        String defaultSetting = Cooja.getExternalToolsDefaultSetting(key, "");
+        String currentSetting = Cooja.currentExternalToolsSettings.getProperty(key, "");
 
         if (key.equals("DEFAULT_PROJECTDIRS")) {
           differingSettings.setProperty(key, "");
@@ -442,7 +442,7 @@ public class ExecuteJAR {
     return true;
   }
 
-  private static void handleExportAttributesToJAR(Element e, GUI gui, File toDir) {
+  private static void handleExportAttributesToJAR(Element e, Cooja gui, File toDir) {
     /* Checks configuration for EXPORT attributes:
      * copy: file copy file to exported JAR, update file path.
      * discard: remove config element */
@@ -489,8 +489,8 @@ public class ExecuteJAR {
       Attribute a = c.getAttribute("EXPORT");
       if (a != null && a.getValue().equals("copy")) {
         /* Copy file from JAR */
-        File file = GUI.restoreConfigRelativePath(config, new File(c.getText()));
-        InputStream inputStream = GUI.class.getResourceAsStream("/" + file.getName());
+        File file = Cooja.restoreConfigRelativePath(config, new File(c.getText()));
+        InputStream inputStream = Cooja.class.getResourceAsStream("/" + file.getName());
         if (inputStream == null) {
           throw new RuntimeException("Could not unpack file: " + file);
         }

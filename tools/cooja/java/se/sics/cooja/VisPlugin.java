@@ -54,14 +54,14 @@ import se.sics.cooja.plugins.SimControl;
  */
 public abstract class VisPlugin extends JInternalFrame implements Plugin {
 
-  public VisPlugin(String title, final GUI gui) {
+  public VisPlugin(String title, final Cooja gui) {
     this(title, gui, true);
   }
 
-  public VisPlugin(String title, final GUI gui, boolean requiresVis) {
+  public VisPlugin(String title, final Cooja gui, boolean requiresVis) {
     super(title, true, true, true, true);
 
-    if (requiresVis && !GUI.isVisualized()) {
+    if (requiresVis && !Cooja.isVisualized()) {
       throw new PluginRequiresVisualizationException();
     }
 
