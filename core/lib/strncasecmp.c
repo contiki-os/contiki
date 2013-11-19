@@ -42,15 +42,16 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <strings.h>
 
 /*---------------------------------------------------------------------------*/
 /* Compare strings s1 and s2 in a case-insensitive way*/
 
-char
+int
 strncasecmp(const char *s1, const char *s2, unsigned char n)
 {
   unsigned char i = 0;
-  char diff;
+  int diff;
 
   if(s1 == NULL && s2 == NULL) {
     return 0;
