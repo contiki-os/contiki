@@ -43,43 +43,11 @@
 
 #include "net/rime/timesynch.h"
 
-#include "sys/profile.h"
-
 #include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_shell_process, "Test Contiki shell");
 AUTOSTART_PROCESSES(&test_shell_process);
-/*---------------------------------------------------------------------------*/
-#if 0
-PROCESS(shell_xmacprofile_process, "xmacprofile");
-SHELL_COMMAND(xmacprofile_command,
-	      "xmacprofile",
-	      "xmacprofile: show aggregate time",
-	      &shell_xmacprofile_process);
-/*---------------------------------------------------------------------------*/
-#define xmac_timetable_size 256
-TIMETABLE_DECLARE(xmac_timetable);
-PROCESS_THREAD(shell_xmacprofile_process, ev, data)
-{
-  int i;
-  char buf[40];
-  PROCESS_BEGIN();
-
-  for(i = 0; i < xmac_timetable_size; ++i) {
-    if(xmac_timetable.timestamps[i].id != NULL) {
-      snprintf(buf, sizeof(buf), "%u %u \"%s\"",
-	       xmac_timetable.timestamps[i].time + timesynch_offset(),
-	       (unsigned short)xmac_timetable.timestamps[i].id,
-	       xmac_timetable.timestamps[i].id);
-      shell_output_str(&xmacprofile_command, buf, "");
-    }
-  }
-  /*  xmacprofile_aggregate_print_detailed();*/
-
-  PROCESS_END();
-}
-#endif
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_shell_process, ev, data)
 {
@@ -96,10 +64,6 @@ PROCESS_THREAD(test_shell_process, ev, data)
   shell_rime_netcmd_init();
   shell_text_init();
 
-#if 0
-  shell_register_command(&xmacprofile_command);
-#endif
-  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
