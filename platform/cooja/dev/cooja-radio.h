@@ -64,4 +64,11 @@ radio_signal_strength_last(void);
 int
 radio_signal_strength_current(void);
 
+/**
+ * Link quality indicator of last received packet.
+ */
+int
+radio_LQI(void);
+
+
 #endif /* __COOJA_RADIO_H__ */
