@@ -125,18 +125,35 @@ crypto_register_process_notification(struct process *p)
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
-aes_load_keys(const void *keys, uint8_t count, uint8_t start_area)
+aes_load_keys(const void *keys, uint8_t key_size, uint8_t count,
+              uint8_t start_area)
 {
   uint32_t aes_key_store_size;
   uint32_t areas;
-  uint32_t aligned_keys[32];
+  uint64_t aligned_keys[16];
+  int i;
 
   if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
     return AES_RESOURCE_IN_USE;
   }
 
+  /* 192-bit keys must be padded to 256 bits */
+  if(key_size == AES_KEY_STORE_SIZE_KEY_SIZE_192) {
+    for(i = 0; i < count; i++) {
+      memcpy(&aligned_keys[i << 2], &((uint64_t *)keys)[i * 3], 24);
+      aligned_keys[(i << 2) + 3] = 0;
+    }
+  }
+
+  /* Change count to the number of 128-bit key areas */
+  if(key_size != AES_KEY_STORE_SIZE_KEY_SIZE_128) {
+    count <<= 1;
+  }
+
   /* The keys base address needs to be 4-byte aligned */
-  memcpy(aligned_keys, keys, count << 4);
+  if(key_size != AES_KEY_STORE_SIZE_KEY_SIZE_192) {
+    memcpy(aligned_keys, keys, count << 4);
+  }
 
   /* Workaround for AES registers not retained after PM2 */
   REG(AES_CTRL_INT_CFG) = AES_CTRL_INT_CFG_LEVEL;
@@ -150,14 +167,12 @@ aes_load_keys(const void *keys, uint8_t count, uint8_t start_area)
   REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_IN_DONE |
                           AES_CTRL_INT_CLR_RESULT_AV;
 
-  /* Configure key store module (areas, size): 128-bit key size
+  /* Configure key store module (areas, size)
    * Note that writing AES_KEY_STORE_SIZE deletes all stored keys */
   aes_key_store_size = REG(AES_KEY_STORE_SIZE);
-  if((aes_key_store_size & AES_KEY_STORE_SIZE_KEY_SIZE_M) !=
-     AES_KEY_STORE_SIZE_KEY_SIZE_128) {
+  if((aes_key_store_size & AES_KEY_STORE_SIZE_KEY_SIZE_M) != key_size) {
     REG(AES_KEY_STORE_SIZE) = (aes_key_store_size &
-                               ~AES_KEY_STORE_SIZE_KEY_SIZE_M) |
-                              AES_KEY_STORE_SIZE_KEY_SIZE_128;
+                               ~AES_KEY_STORE_SIZE_KEY_SIZE_M) | key_size;
   }
 
   /* Free possibly already occupied key areas */

@@ -499,11 +499,18 @@ void crypto_register_process_notification(struct process *p);
 
 /** \brief Writes keys into the Key RAM
  * \param keys Pointer to AES Keys
- * \param count Number of keys (1 to 8 - \p start_area)
- * \param start_area Start area in Key RAM where to store the key (0 to 7)
+ * \param key_size Key size: \c AES_KEY_STORE_SIZE_KEY_SIZE_x
+ * \param count Number of keys (1 to 8 - \p start_area for 128-bit keys, 1 to
+ * (8 - \p start_area) / 2 for 192- and 256-bit keys)
+ * \param start_area Start area in Key RAM where to store the key (0 to 7, must
+ * be even for 192- and 256-bit keys)
  * \return \c AES_SUCCESS if successful, or AES error code
+ * \note Calling this function with a value of \p key_size different from the
+ * one passed for the previous calls causes the deletion of all previously
+ * stored keys.
  */
-uint8_t aes_load_keys(const void *keys, uint8_t count, uint8_t start_area);
+uint8_t aes_load_keys(const void *keys, uint8_t key_size, uint8_t count,
+                      uint8_t start_area);
 
 /** @} */
 

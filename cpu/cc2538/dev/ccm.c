@@ -100,14 +100,13 @@ ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
   REG(AES_AES_IV_2) = iv[2];
   REG(AES_AES_IV_3) = iv[3];
 
-  /* Program AES-CCM-128 encryption */
+  /* Program AES-CCM encryption */
   REG(AES_AES_CTRL) = AES_AES_CTRL_SAVE_CONTEXT |            /* Save context */
     (((MAX(mic_len, 2) - 2) >> 1) << AES_AES_CTRL_CCM_M_S) | /* M */
     ((len_len - 1) << AES_AES_CTRL_CCM_L_S) |                /* L */
     AES_AES_CTRL_CCM |                                       /* CCM */
     AES_AES_CTRL_CTR_WIDTH_128 |                             /* CTR width 128 */
     AES_AES_CTRL_CTR |                                       /* CTR */
-    AES_AES_CTRL_KEY_SIZE_128 |                              /* Key = 128 */
     AES_AES_CTRL_DIRECTION_ENCRYPT;                          /* Encryption */
 
   /* Write the length of the crypto block (lo) */
@@ -276,14 +275,13 @@ ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
   REG(AES_AES_IV_2) = iv[2];
   REG(AES_AES_IV_3) = iv[3];
 
-  /* Program AES-CCM-128 decryption */
+  /* Program AES-CCM decryption */
   REG(AES_AES_CTRL) = AES_AES_CTRL_SAVE_CONTEXT |            /* Save context */
     (((MAX(mic_len, 2) - 2) >> 1) << AES_AES_CTRL_CCM_M_S) | /* M */
     ((len_len - 1) << AES_AES_CTRL_CCM_L_S) |                /* L */
     AES_AES_CTRL_CCM |                                       /* CCM */
     AES_AES_CTRL_CTR_WIDTH_128 |                             /* CTR width 128 */
-    AES_AES_CTRL_CTR |                                       /* CTR */
-    AES_AES_CTRL_KEY_SIZE_128;                               /* Key = 128 */
+    AES_AES_CTRL_CTR;                                        /* CTR */
 
   /* Write the length of the crypto block (lo) */
   REG(AES_AES_C_LENGTH_0) = pdata_len;
