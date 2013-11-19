@@ -53,7 +53,6 @@
 #include "cfs-coffee-arch.h"
 #include "cfs/cfs-coffee.h"
 #include "sys/autostart.h"
-#include "sys/profile.h"
 
 #if UIP_CONF_ROUTER
 
@@ -347,10 +346,6 @@ main(int argc, char **argv)
   serial_line_init();
 #endif
 
-#if PROFILE_CONF_ON
-  profile_init();
-#endif /* PROFILE_CONF_ON */
-
   leds_off(LEDS_GREEN);
 
 #if TIMESYNCH_CONF_ENABLED
@@ -409,17 +404,11 @@ main(int argc, char **argv)
   /*  watchdog_stop();*/
   while(1) {
     int r;
-#if PROFILE_CONF_ON
-    profile_episode_start();
-#endif /* PROFILE_CONF_ON */
     do {
       /* Reset watchdog. */
       watchdog_periodic();
       r = process_run();
     } while(r > 0);
-#if PROFILE_CONF_ON
-    profile_episode_end();
-#endif /* PROFILE_CONF_ON */
 
     /*
      * Idle processing.
