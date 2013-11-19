@@ -124,7 +124,6 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-
 import org.contikios.cooja.MoteType.MoteTypeCreationException;
 import org.contikios.cooja.VisPlugin.PluginRequiresVisualizationException;
 import org.contikios.cooja.contikimote.ContikiMoteType;
@@ -3635,14 +3634,19 @@ public class Cooja extends Observable {
         // Read plugin class
         String pluginClassName = pluginElement.getText().trim();
 
+        /* Backwards compatibility: se.sics -> org.contikios */
+        if (pluginClassName.startsWith("se.sics")) {
+        	pluginClassName = pluginClassName.replaceFirst("se\\.sics", "org.contikios");
+        }
+
         /* Backwards compatibility: old visualizers were replaced */
         if (pluginClassName.equals("org.contikios.cooja.plugins.VisUDGM") ||
-            pluginClassName.equals("org.contikios.cooja.plugins.VisBattery") ||
-            pluginClassName.equals("org.contikios.cooja.plugins.VisTraffic") ||
-            pluginClassName.equals("org.contikios.cooja.plugins.VisState") ||
-            pluginClassName.equals("org.contikios.cooja.plugins.VisUDGM")) {
-          logger.warn("Old simulation config detected: visualizers have been remade");
-          pluginClassName = "org.contikios.cooja.plugins.Visualizer";
+        		pluginClassName.equals("org.contikios.cooja.plugins.VisBattery") ||
+        		pluginClassName.equals("org.contikios.cooja.plugins.VisTraffic") ||
+        		pluginClassName.equals("org.contikios.cooja.plugins.VisState") ||
+        		pluginClassName.equals("org.contikios.cooja.plugins.VisUDGM")) {
+        	logger.warn("Old simulation config detected: visualizers have been remade");
+        	pluginClassName = "org.contikios.cooja.plugins.Visualizer";
         }
 
         Class<? extends Plugin> pluginClass =

@@ -1332,6 +1332,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     for (Element element : configXML) {
       if (element.getName().equals("skin")) {
         String wanted = element.getText();
+        /* Backwards compatibility: se.sics -> org.contikios */
+        if (wanted.startsWith("se.sics")) {
+        	wanted = wanted.replaceFirst("se\\.sics", "org.contikios");
+        }
+
         for (Class<? extends VisualizerSkin> skinClass: visualizerSkins) {
           if (wanted.equals(skinClass.getName())
               /* Backwards compatibility */

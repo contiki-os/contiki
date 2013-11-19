@@ -221,11 +221,17 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
       if (name.equals("motetype_identifier")) {
         /* Ignored: handled by simulation */
       } else if (name.equals("interface_config")) {
+        /* Backwards compatibility: se.sics -> org.contikios */
+        String intfClass = element.getText().trim();
+        if (intfClass.startsWith("se.sics")) {
+          intfClass = intfClass.replaceFirst("se\\.sics", "org.contikios");
+        }
+
         Class<? extends MoteInterface> moteInterfaceClass = simulation.getCooja().tryLoadClass(
-              this, MoteInterface.class, element.getText().trim());
+              this, MoteInterface.class, intfClass);
 
         if (moteInterfaceClass == null) {
-          logger.fatal("Could not load mote interface class: " + element.getText().trim());
+          logger.fatal("Could not load mote interface class: " + intfClass);
           return false;
         }
 

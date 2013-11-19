@@ -37,7 +37,6 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteInterface;
 import org.contikios.cooja.MoteInterfaceHandler;
@@ -154,11 +153,18 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
       if (name.equals("motetype_identifier")) {
         /* Ignored: handled by simulation */
       } else if (name.equals("interface_config")) {
+        String intfClass = element.getText().trim();
+
+        /* Backwards compatibility: se.sics -> org.contikios */
+        if (intfClass.startsWith("se.sics")) {
+          intfClass = intfClass.replaceFirst("se\\.sics", "org.contikios");
+        }
+
         Class<? extends MoteInterface> moteInterfaceClass =
-          simulation.getCooja().tryLoadClass(this, MoteInterface.class, element.getText().trim());
+            simulation.getCooja().tryLoadClass(this, MoteInterface.class, intfClass);
 
         if (moteInterfaceClass == null) {
-          logger.warn("Can't find mote interface class: " + element.getText());
+          logger.warn("Can't find mote interface class: " + intfClass);
           return false;
         }
 

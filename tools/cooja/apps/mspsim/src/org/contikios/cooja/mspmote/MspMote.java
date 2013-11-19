@@ -40,7 +40,6 @@ import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
 import org.contikios.cooja.ContikiError;
 import org.contikios.cooja.Cooja;
 import org.contikios.cooja.Mote;
@@ -58,6 +57,7 @@ import org.contikios.cooja.mspmote.interfaces.MspSerial;
 import org.contikios.cooja.mspmote.plugins.CodeVisualizerSkin;
 import org.contikios.cooja.mspmote.plugins.MspBreakpoint;
 import org.contikios.cooja.plugins.Visualizer;
+
 import se.sics.mspsim.cli.CommandContext;
 import se.sics.mspsim.cli.CommandHandler;
 import se.sics.mspsim.cli.LineListener;
@@ -409,18 +409,25 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         setWatchpointConfigXML(element.getChildren(), visAvailable);
       } else if (name.equals("interface_config")) {
         String intfClass = element.getText().trim();
+
+        /* Backwards compatibility: se.sics -> org.contikios */
+        if (intfClass.startsWith("se.sics")) {
+          intfClass = intfClass.replaceFirst("se\\.sics", "org.contikios");
+        }
+
         if (intfClass.equals("org.contikios.cooja.mspmote.interfaces.MspIPAddress")) {
-          intfClass = IPAddress.class.getName();
+        	intfClass = IPAddress.class.getName();
         }
         if (intfClass.equals("org.contikios.cooja.mspmote.interfaces.ESBLog")) {
-          intfClass = MspSerial.class.getName();
+        	intfClass = MspSerial.class.getName();
         }
         if (intfClass.equals("org.contikios.cooja.mspmote.interfaces.SkyByteRadio")) {
-          intfClass = Msp802154Radio.class.getName();
+        	intfClass = Msp802154Radio.class.getName();
         }
         if (intfClass.equals("org.contikios.cooja.mspmote.interfaces.SkySerial")) {
-          intfClass = MspSerial.class.getName();
+        	intfClass = MspSerial.class.getName();
         }
+
         Class<? extends MoteInterface> moteInterfaceClass = simulation.getCooja().tryLoadClass(
               this, MoteInterface.class, intfClass);
 

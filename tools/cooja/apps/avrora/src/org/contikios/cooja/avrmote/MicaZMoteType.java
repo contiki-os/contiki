@@ -292,6 +292,11 @@ public class MicaZMoteType implements MoteType {
       } else if (name.equals("moteinterface")) {
         String intfClass = element.getText().trim();
 
+        /* Backwards compatibility: se.sics -> org.contikios */
+        if (intfClass.startsWith("se.sics")) {
+          intfClass = intfClass.replaceFirst("se\\.sics", "org.contikios");
+        }
+
         Class<? extends MoteInterface> moteInterfaceClass =
           simulation.getCooja().tryLoadClass(this, MoteInterface.class, intfClass);
 
