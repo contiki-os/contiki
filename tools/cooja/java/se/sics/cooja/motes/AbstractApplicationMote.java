@@ -155,7 +155,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
         /* Ignored: handled by simulation */
       } else if (name.equals("interface_config")) {
         Class<? extends MoteInterface> moteInterfaceClass =
-          simulation.getGUI().tryLoadClass(this, MoteInterface.class, element.getText().trim());
+          simulation.getCooja().tryLoadClass(this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
           logger.warn("Can't find mote interface class: " + element.getText());

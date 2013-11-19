@@ -79,7 +79,7 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
 
     if (moteClassPath != null) {
       Element element = new Element("motepath");
-      File file = simulation.getGUI().createPortablePath(moteClassPath);
+      File file = simulation.getCooja().createPortablePath(moteClassPath);
       element.setText(file.getPath().replaceAll("\\\\", "/"));
       config.add(element);
     }
@@ -103,7 +103,7 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
       if (name.equals("moteclass")) {
         moteClassName = element.getText();
       } else if (name.equals("motepath")) {
-        moteClassPath = simulation.getGUI().restorePortablePath(new File(element.getText()));
+        moteClassPath = simulation.getCooja().restorePortablePath(new File(element.getText()));
       }
     }
 
@@ -214,10 +214,10 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
   }
 
   private ClassLoader getParentClassLoader() {
-    if (simulation.getGUI().projectDirClassLoader == null) {
+    if (simulation.getCooja().projectDirClassLoader == null) {
       return ClassLoader.getSystemClassLoader();
     } else {
-      return simulation.getGUI().projectDirClassLoader;
+      return simulation.getCooja().projectDirClassLoader;
     }
   }
 

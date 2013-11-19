@@ -126,7 +126,7 @@ public class ImportAppMoteDialog extends JDialog {
         } else if (name.length() > 0) {
           fc.setSelectedFile(new File(new File(path), name.replace(".", "/") + ".class"));
         } else {
-          File fp = simulation.getGUI()
+          File fp = simulation.getCooja()
               .restorePortablePath(new File(Cooja.getExternalToolsSetting("IMPORT_APP_LAST",
                   "mymote.class")));
           if (path.length() > 0 && !fp.getAbsolutePath().startsWith(path)) {
@@ -250,7 +250,7 @@ public class ImportAppMoteDialog extends JDialog {
         pathField.setText(loader.getTestClassPath().getPath());
         classField.setText(loader.getTestClassName());
         Cooja.setExternalToolsSetting("IMPORT_APP_LAST",
-            simulation.getGUI().createPortablePath(classFile).getPath());
+            simulation.getCooja().createPortablePath(classFile).getPath());
         return true;
       }
     } catch (FileNotFoundException e1) {

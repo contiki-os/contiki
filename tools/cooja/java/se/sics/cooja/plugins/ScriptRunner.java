@@ -435,7 +435,7 @@ public class ScriptRunner extends VisPlugin {
 
   private void exportAndRun() {
     /* Save simulation config */
-    File configFile = simulation.getGUI().doSaveConfig(true);
+    File configFile = simulation.getCooja().doSaveConfig(true);
     if (configFile == null) {
       return;
     }
@@ -617,7 +617,7 @@ public class ScriptRunner extends VisPlugin {
 
     if (linkedFile != null) {
       element = new Element("scriptfile");
-      element.setText(simulation.getGUI().createPortablePath(linkedFile).getPath().replace('\\', '/'));
+      element.setText(simulation.getCooja().createPortablePath(linkedFile).getPath().replace('\\', '/'));
       config.add(element);
     } else {
       element = new Element("script");
@@ -651,7 +651,7 @@ public class ScriptRunner extends VisPlugin {
           updateScript(element.getText());
         }
       } else if ("scriptfile".equals(name)) {
-        File file = simulation.getGUI().restorePortablePath(new File(element.getText().trim()));
+        File file = simulation.getCooja().restorePortablePath(new File(element.getText().trim()));
         setLinkFile(file);
       } else if ("active".equals(name)) {
         boolean active = Boolean.parseBoolean(element.getText());

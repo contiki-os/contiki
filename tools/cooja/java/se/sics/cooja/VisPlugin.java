@@ -83,7 +83,7 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
     );
   }
 
-  public JInternalFrame getGUI() {
+  public JInternalFrame getCooja() {
     return this;
   }
 

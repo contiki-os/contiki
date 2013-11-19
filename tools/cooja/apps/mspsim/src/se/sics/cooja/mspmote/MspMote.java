@@ -421,7 +421,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
         if (intfClass.equals("se.sics.cooja.mspmote.interfaces.SkySerial")) {
           intfClass = MspSerial.class.getName();
         }
-        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI().tryLoadClass(
+        Class<? extends MoteInterface> moteInterfaceClass = simulation.getCooja().tryLoadClass(
               this, MoteInterface.class, intfClass);
 
         if (moteInterfaceClass == null) {

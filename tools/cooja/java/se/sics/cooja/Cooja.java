@@ -60,16 +60,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessControlException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Observable;
@@ -294,7 +291,7 @@ public class Cooja extends Observable {
 
   private static final String WINDOW_TITLE = "Cooja: The Contiki Network Simulator";
 
-  private Cooja myGUI;
+  private Cooja cooja;
 
   private Simulation mySimulation;
 
@@ -370,7 +367,7 @@ public class Cooja extends Observable {
    * @param desktop Desktop pane
    */
   public Cooja(JDesktopPane desktop) {
-    myGUI = this;
+    cooja = this;
     mySimulation = null;
     myDesktopPane = desktop;
 
@@ -542,7 +539,7 @@ public class Cooja extends Observable {
   public void setVisualizedInFrame(boolean visualized) {
     if (visualized) {
       if (!isVisualizedInFrame()) {
-        configureFrame(myGUI, false);
+        configureFrame(cooja, false);
       }
     } else {
       if (frame != null) {
@@ -633,7 +630,7 @@ public class Cooja extends Observable {
   private void doLoadConfigAsync(final boolean ask, final boolean quick, final File file) {
     new Thread(new Runnable() {
       public void run() {
-        myGUI.doLoadConfig(ask, quick, file, null);
+        cooja.doLoadConfig(ask, quick, file, null);
       }
     }).start();
   }
@@ -944,7 +941,7 @@ public class Cooja extends Observable {
         public void actionPerformed(ActionEvent e) {
           Object pluginClass = ((JMenuItem)e.getSource()).getClientProperty("class");
           Object mote = ((JMenuItem)e.getSource()).getClientProperty("mote");
-          tryStartPlugin((Class<? extends Plugin>) pluginClass, myGUI, getSimulation(), (Mote)mote);
+          tryStartPlugin((Class<? extends Plugin>) pluginClass, cooja, getSimulation(), (Mote)mote);
         }
       };
       private JMenuItem createMenuItem(Class<? extends Plugin> newPluginClass, int pluginType) {
@@ -1657,7 +1654,7 @@ public class Cooja extends Observable {
   public void showPlugin(final Plugin plugin) {
     new RunnableInEDT<Boolean>() {
       public Boolean work() {
-        JInternalFrame pluginFrame = plugin.getGUI();
+        JInternalFrame pluginFrame = plugin.getCooja();
         if (pluginFrame == null) {
           logger.fatal("Failed trying to show plugin without visualizer.");
           return false;
@@ -1730,8 +1727,8 @@ public class Cooja extends Observable {
         updateGUIComponentState();
 
         /* Dispose visualized components */
-        if (plugin.getGUI() != null) {
-          plugin.getGUI().dispose();
+        if (plugin.getCooja() != null) {
+          plugin.getCooja().dispose();
         }
 
         /* (OPTIONAL) Remove simulation if all plugins are closed */
@@ -1877,8 +1874,8 @@ public class Cooja extends Observable {
     updateGUIComponentState();
 
     // Show plugin if visualizer type
-    if (activate && plugin.getGUI() != null) {
-      myGUI.showPlugin(plugin);
+    if (activate && plugin.getCooja() != null) {
+      cooja.showPlugin(plugin);
     }
 
     return plugin;
@@ -2040,7 +2037,7 @@ public class Cooja extends Observable {
       public void actionPerformed(ActionEvent e) {
         Object pluginClass = ((JMenuItem)e.getSource()).getClientProperty("class");
         Object mote = ((JMenuItem)e.getSource()).getClientProperty("mote");
-        tryStartPlugin((Class<? extends Plugin>) pluginClass, myGUI, getSimulation(), (Mote)mote);
+        tryStartPlugin((Class<? extends Plugin>) pluginClass, cooja, getSimulation(), (Mote)mote);
       }
     };
 
@@ -2392,10 +2389,10 @@ public class Cooja extends Observable {
     do {
       try {
         shouldRetry = false;
-        myGUI.doRemoveSimulation(false);
+        cooja.doRemoveSimulation(false);
         PROGRESS_WARNINGS.clear();
         newSim = loadSimulationConfig(fileToLoad, quick, manualRandomSeed);
-        myGUI.setSimulation(newSim, false);
+        cooja.setSimulation(newSim, false);
 
         /* Optionally show compilation warnings */
         boolean hideWarn = Boolean.parseBoolean(
@@ -2457,10 +2454,10 @@ public class Cooja extends Observable {
         do {
           try {
             shouldRetry = false;
-            myGUI.doRemoveSimulation(false);
+            cooja.doRemoveSimulation(false);
             PROGRESS_WARNINGS.clear();
             Simulation newSim = loadSimulationConfig(root, true, new Long(randomSeed));
-            myGUI.setSimulation(newSim, false);
+            cooja.setSimulation(newSim, false);
 
             if (autoStart) {
               newSim.startSimulation();
@@ -2478,11 +2475,11 @@ public class Cooja extends Observable {
           } catch (UnsatisfiedLinkError e) {
             shouldRetry = showErrorDialog(frame, "Simulation reload error", e, true);
 
-            myGUI.doRemoveSimulation(false);
+            cooja.doRemoveSimulation(false);
           } catch (SimulationCreationException e) {
             shouldRetry = showErrorDialog(frame, "Simulation reload error", e, true);
 
-            myGUI.doRemoveSimulation(false);
+            cooja.doRemoveSimulation(false);
           }
         } while (shouldRetry);
 
@@ -2666,7 +2663,7 @@ public class Cooja extends Observable {
     Simulation newSim = new Simulation(this);
     boolean createdOK = CreateSimDialog.showDialog(Cooja.getTopParentContainer(), newSim);
     if (createdOK) {
-      myGUI.setSimulation(newSim, true);
+      cooja.setSimulation(newSim, true);
     }
   }
 
@@ -2696,7 +2693,7 @@ public class Cooja extends Observable {
             WINDOW_TITLE, JOptionPane.YES_NO_CANCEL_OPTION,
             JOptionPane.WARNING_MESSAGE, null, options, s1);
         if (n == JOptionPane.YES_OPTION) {
-          if (myGUI.doSaveConfig(true) == null) {
+          if (cooja.doSaveConfig(true) == null) {
             return;
           }
         } else if (n == JOptionPane.CANCEL_OPTION) {
@@ -2925,10 +2922,10 @@ public class Cooja extends Observable {
   private class GUIEventHandler implements ActionListener {
     public void actionPerformed(ActionEvent e) {
       if (e.getActionCommand().equals("create mote type")) {
-        myGUI.doCreateMoteType((Class<? extends MoteType>) ((JMenuItem) e
+        cooja.doCreateMoteType((Class<? extends MoteType>) ((JMenuItem) e
             .getSource()).getClientProperty("class"));
       } else if (e.getActionCommand().equals("add motes")) {
-        myGUI.doAddMotes((MoteType) ((JMenuItem) e.getSource())
+        cooja.doAddMotes((MoteType) ((JMenuItem) e.getSource())
             .getClientProperty("motetype"));
       } else if (e.getActionCommand().equals("edit paths")) {
         ExternalToolsDialog.showDialog(Cooja.getTopParentContainer());
@@ -3230,7 +3227,7 @@ public class Cooja extends Observable {
       if (sim == null) {
         System.exit(1);
       }
-      Cooja gui = sim.getGUI();
+      Cooja gui = sim.getCooja();
 
       /* Make sure at least one test editor is controlling the simulation */
       boolean hasEditor = false;
@@ -3552,8 +3549,8 @@ public class Cooja extends Observable {
       }
 
       // If plugin is visualizer plugin, create visualization arguments
-      if (startedPlugin.getGUI() != null) {
-        JInternalFrame pluginFrame = startedPlugin.getGUI();
+      if (startedPlugin.getCooja() != null) {
+        JInternalFrame pluginFrame = startedPlugin.getCooja();
 
         pluginSubElement = new Element("width");
         pluginSubElement.setText("" + pluginFrame.getSize().width);
@@ -3683,7 +3680,7 @@ public class Cooja extends Observable {
         startedPlugin.startPlugin();
 
         /* If Cooja not visualized, ignore window configuration */
-        if (startedPlugin.getGUI() == null) {
+        if (startedPlugin.getCooja() == null) {
           continue;
         }
 
@@ -3696,22 +3693,22 @@ public class Cooja extends Observable {
             for (Element pluginSubElement : (List<Element>) pluginElement.getChildren()) {
               if (pluginSubElement.getName().equals("width")) {
                 size.width = Integer.parseInt(pluginSubElement.getText());
-                startedPlugin.getGUI().setSize(size);
+                startedPlugin.getCooja().setSize(size);
               } else if (pluginSubElement.getName().equals("height")) {
                 size.height = Integer.parseInt(pluginSubElement.getText());
-                startedPlugin.getGUI().setSize(size);
+                startedPlugin.getCooja().setSize(size);
               } else if (pluginSubElement.getName().equals("z")) {
                 int zOrder = Integer.parseInt(pluginSubElement.getText());
-                startedPlugin.getGUI().putClientProperty("zorder", zOrder);
+                startedPlugin.getCooja().putClientProperty("zorder", zOrder);
               } else if (pluginSubElement.getName().equals("location_x")) {
                 location.x = Integer.parseInt(pluginSubElement.getText());
-                startedPlugin.getGUI().setLocation(location);
+                startedPlugin.getCooja().setLocation(location);
               } else if (pluginSubElement.getName().equals("location_y")) {
                 location.y = Integer.parseInt(pluginSubElement.getText());
-                startedPlugin.getGUI().setLocation(location);
+                startedPlugin.getCooja().setLocation(location);
               } else if (pluginSubElement.getName().equals("minimized")) {
                 boolean minimized = Boolean.parseBoolean(pluginSubElement.getText());
-                final JInternalFrame pluginGUI = startedPlugin.getGUI();
+                final JInternalFrame pluginGUI = startedPlugin.getCooja();
                 if (minimized && pluginGUI != null) {
                   SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
@@ -4423,7 +4420,7 @@ public class Cooja extends Observable {
   GUIAction newSimulationAction = new GUIAction("New simulation...", KeyEvent.VK_N, KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK)) {
 		private static final long serialVersionUID = 5053703908505299911L;
 		public void actionPerformed(ActionEvent e) {
-      myGUI.doCreateSimulation(true);
+      cooja.doCreateSimulation(true);
     }
     public boolean shouldBeEnabled() {
       return true;
@@ -4432,7 +4429,7 @@ public class Cooja extends Observable {
   GUIAction closeSimulationAction = new GUIAction("Close simulation", KeyEvent.VK_C) {
 		private static final long serialVersionUID = -4783032948880161189L;
 		public void actionPerformed(ActionEvent e) {
-      myGUI.doRemoveSimulation(true);
+      cooja.doRemoveSimulation(true);
     }
     public boolean shouldBeEnabled() {
       return getSimulation() != null;
@@ -4446,7 +4443,7 @@ public class Cooja extends Observable {
         final File file = getLastOpenedFile();
         new Thread(new Runnable() {
           public void run() {
-            myGUI.doLoadConfig(true, true, file, null);
+            cooja.doLoadConfig(true, true, file, null);
           }
         }).start();
         return;
@@ -4476,7 +4473,7 @@ public class Cooja extends Observable {
   GUIAction saveSimulationAction = new GUIAction("Save simulation as...", KeyEvent.VK_S) {
 		private static final long serialVersionUID = 1132582220401954286L;
 		public void actionPerformed(ActionEvent e) {
-      myGUI.doSaveConfig(true);
+      cooja.doSaveConfig(true);
     }
     public boolean shouldBeEnabled() {
       if (isVisualizedInApplet()) {
@@ -4577,7 +4574,7 @@ public class Cooja extends Observable {
   GUIAction exitCoojaAction = new GUIAction("Exit", 'x') {
 		private static final long serialVersionUID = 7523822251658687665L;
 		public void actionPerformed(ActionEvent e) {
-      myGUI.doQuit(true);
+      cooja.doQuit(true);
     }
     public boolean shouldBeEnabled() {
       if (isVisualizedInApplet()) {
@@ -4625,7 +4622,7 @@ public class Cooja extends Observable {
           Class<Plugin> pluginClass =
             (Class<Plugin>) ((JMenuItem) e.getSource()).getClientProperty("class");
           Mote mote = (Mote) ((JMenuItem) e.getSource()).getClientProperty("mote");
-          tryStartPlugin(pluginClass, myGUI, mySimulation, mote);
+          tryStartPlugin(pluginClass, cooja, mySimulation, mote);
         }
       }).start();
     }

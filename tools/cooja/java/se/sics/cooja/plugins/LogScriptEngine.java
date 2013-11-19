@@ -340,7 +340,7 @@ public class LogScriptEngine {
     Hashtable<Object, Object> hash = new Hashtable<Object, Object>();
     engine.put("global", hash);
     engine.put("sim", simulation);
-    engine.put("gui", simulation.getGUI());
+    engine.put("gui", simulation.getCooja());
     engine.put("msg", new String(""));
 
     scriptMote = new ScriptMote();
@@ -401,7 +401,7 @@ public class LogScriptEngine {
       new Thread() {
         public void run() {
           try { Thread.sleep(500); } catch (InterruptedException e) { }
-          simulation.getGUI().doQuit(false, exitCode);
+          simulation.getCooja().doQuit(false, exitCode);
         };
       }.start();
       new Thread() {

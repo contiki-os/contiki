@@ -111,7 +111,7 @@ public class ExecuteJAR {
     s.stopSimulation();
 
     try {
-      buildExecutableJAR(s.getGUI(), jar);
+      buildExecutableJAR(s.getCooja(), jar);
     } catch (RuntimeException e) {
       logger.fatal(e.getMessage(), e);
       System.exit(1);

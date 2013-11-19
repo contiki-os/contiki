@@ -210,7 +210,7 @@ public class ContikiMoteType implements MoteType {
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation,
       boolean visAvailable) throws MoteTypeCreationException {
-    myConfig = simulation.getGUI().getProjectConfig().clone();
+    myConfig = simulation.getCooja().getProjectConfig().clone();
 
     if (visAvailable) {
 
@@ -1253,7 +1253,7 @@ public class ContikiMoteType implements MoteType {
     config.add(element);
 
     element = new Element("source");
-    File file = simulation.getGUI().createPortablePath(getContikiSourceFile());
+    File file = simulation.getCooja().createPortablePath(getContikiSourceFile());
     element.setText(file.getPath().replaceAll("\\\\", "/"));
     config.add(element);
 
@@ -1298,7 +1298,7 @@ public class ContikiMoteType implements MoteType {
       } else if (name.equals("contikiapp") || name.equals("source")) {
         File file = new File(element.getText());
         if (!file.exists()) {
-          file = simulation.getGUI().restorePortablePath(file);
+          file = simulation.getCooja().restorePortablePath(file);
         }
 
         setContikiSourceFile(file);
@@ -1324,7 +1324,7 @@ public class ContikiMoteType implements MoteType {
           /* Backwards compatibility: ContikiLog was removed */
         } else {
           Class<? extends MoteInterface> moteInterfaceClass =
-            simulation.getGUI().tryLoadClass(
+            simulation.getCooja().tryLoadClass(
                 this, MoteInterface.class, element.getText().trim());
 
           if (moteInterfaceClass == null) {

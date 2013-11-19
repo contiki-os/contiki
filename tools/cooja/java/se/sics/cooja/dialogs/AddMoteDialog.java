@@ -211,7 +211,7 @@ public class AddMoteDialog extends JDialog {
     label = new JLabel("Positioning");
     label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
 
-    Vector<Class<? extends Positioner>> positioners = simulation.getGUI()
+    Vector<Class<? extends Positioner>> positioners = simulation.getCooja()
         .getRegisteredPositioners();
     String[] posDistributions = new String[positioners.size()];
     for (int i = 0; i < posDistributions.length; i++) {
@@ -463,7 +463,7 @@ public class AddMoteDialog extends JDialog {
 
           // Position new motes
           Class<? extends Positioner> positionerClass = null;
-          for (Class<? extends Positioner> positioner : simulation.getGUI()
+          for (Class<? extends Positioner> positioner : simulation.getCooja()
               .getRegisteredPositioners()) {
             if (Cooja.getDescriptionOf(positioner).equals(
                 positionDistributionBox.getSelectedItem())) {

@@ -470,7 +470,7 @@ public class BufferListener extends VisPlugin {
         if (d == null) {
           return;
         }
-        simulation.getGUI().signalMoteHighlight(d.mote);
+        simulation.getCooja().signalMoteHighlight(d.mote);
       }
     });
 
@@ -873,7 +873,7 @@ public class BufferListener extends VisPlugin {
       } else if ("parser".equals(name)) {
         String parserClassname = element.getText();
         Class<? extends Parser> parserClass =
-          simulation.getGUI().tryLoadClass(this, Parser.class, parserClassname);
+          simulation.getCooja().tryLoadClass(this, Parser.class, parserClassname);
         if (parserClass == null) {
           logger.warn("Could not create buffer parser: could not find class: " + parserClassname);
         } else {
@@ -882,7 +882,7 @@ public class BufferListener extends VisPlugin {
       } else if ("buffer".equals(name)) {
         String bufferClassname = element.getText();
         Class<? extends Buffer> btClass =
-          simulation.getGUI().tryLoadClass(this, Buffer.class, bufferClassname);
+          simulation.getCooja().tryLoadClass(this, Buffer.class, bufferClassname);
         if (btClass == null) {
           logger.warn("Could not create buffer parser: could not find class: " + bufferClassname);
         } else {
@@ -1124,7 +1124,7 @@ public class BufferListener extends VisPlugin {
       int model = logTable.convertRowIndexToModel(view);
       long time = logs.get(model).time;
 
-      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      Plugin[] plugins = simulation.getCooja().getStartedPlugins();
       for (Plugin p: plugins) {
         if (!(p instanceof BufferListener)) {
           continue;
@@ -1147,7 +1147,7 @@ public class BufferListener extends VisPlugin {
       int model = logTable.convertRowIndexToModel(view);
       long time = logs.get(model).time;
 
-      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      Plugin[] plugins = simulation.getCooja().getStartedPlugins();
       for (Plugin p: plugins) {
         if (!(p instanceof TimeLine)) {
           continue;
@@ -1170,7 +1170,7 @@ public class BufferListener extends VisPlugin {
       int model = logTable.convertRowIndexToModel(view);
       long time = logs.get(model).time;
 
-      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      Plugin[] plugins = simulation.getCooja().getStartedPlugins();
       for (Plugin p: plugins) {
         if (!(p instanceof RadioLogger)) {
           continue;

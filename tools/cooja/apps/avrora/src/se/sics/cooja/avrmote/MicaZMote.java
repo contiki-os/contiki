@@ -221,7 +221,7 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
       if (name.equals("motetype_identifier")) {
         /* Ignored: handled by simulation */
       } else if (name.equals("interface_config")) {
-        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI().tryLoadClass(
+        Class<? extends MoteInterface> moteInterfaceClass = simulation.getCooja().tryLoadClass(
               this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
