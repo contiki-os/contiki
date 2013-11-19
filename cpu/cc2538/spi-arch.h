@@ -44,6 +44,11 @@
 #include "contiki.h"
 #include "dev/ssi.h"
 
+#if SSI_ISR_ENABLE
+void ssi_set_input(int(* input)(void));
+void ssi_set_reset(int(* input)(void));
+#endif
+
 #define SPI_WAITFORTxREADY() do { \
   while(!(REG(SSI0_BASE + SSI_SR) & SSI_SR_TNF)); \
 } while (0)

@@ -219,6 +219,27 @@
 #define SYS_CTRL_SRUART_UART0               0x00000001  /**< UART0 module is reset  */
 /** @} */
 /*---------------------------------------------------------------------------*/
+/** \name SYS_CTRL_RCGCSSI Register Bit-Masks
+ * @{
+ */
+#define SYS_CTRL_RCGCSSI_SSI1             0x00000002  /**< SSI1 Clock, CPU running */
+#define SYS_CTRL_RCGCSSI_SSI0             0x00000001  /**< SSI0 Clock, CPU running */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name SYS_CTRL_SCGCSSI Register Bit-Masks
+ * @{
+ */
+#define SYS_CTRL_SCGCSSI_SSI1             0x00000002  /**< SSI1 Clock, CPU IDLE */
+#define SYS_CTRL_SCGCSSI_SSI0             0x00000001  /**< SSI0 Clock, CPU IDLE */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name SYS_CTRL_RCGCSSI Register Bit-Masks
+ * @{
+ */
+#define SYS_CTRL_DCGCSSI_SSI1             0x00000002  /**< SSI1 Clock, PM0 */
+#define SYS_CTRL_DCGCSSI_SSI0             0x00000001  /**< SSI0 Clock, PM0 */
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name SYS_CTRL_PMCTL register values
  * @{
  */
