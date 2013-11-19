@@ -58,7 +58,6 @@
 #include "net/rime.h"
 
 #include "sys/autostart.h"
-#include "sys/profile.h"
 
 /* from libmc1322x */
 #include "mc1322x.h"
@@ -426,10 +425,6 @@ main(void)
                          NETSTACK_RDC.channel_check_interval()),
          RF_CHANNEL);
 #endif /* WITH_UIP6 */
-
-#if PROFILE_CONF_ON
-  profile_init();
-#endif /* PROFILE_CONF_ON */
 
 #if TIMESYNCH_CONF_ENABLED
   timesynch_init();

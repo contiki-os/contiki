@@ -42,7 +42,6 @@
 #include "net/rime/rimestats.h"
 #include "net/netstack.h"
 
-#include "sys/timetable.h"
 #include <string.h>
 
 #ifndef CC2520_CONF_AUTOACK
@@ -593,20 +592,11 @@ cc2520_set_pan_addr(unsigned pan,
 /*
  * Interrupt leaves frame intact in FIFO.
  */
-#if CC2520_TIMETABLE_PROFILING
-#define cc2520_timetable_size 16
-TIMETABLE(cc2520_timetable);
-TIMETABLE_AGGREGATE(aggregate_time, 10);
-#endif /* CC2520_TIMETABLE_PROFILING */
 int
 cc2520_interrupt(void)
 {
   CC2520_CLEAR_FIFOP_INT();
   process_poll(&cc2520_process);
-#if CC2520_TIMETABLE_PROFILING
-  timetable_clear(&cc2520_timetable);
-  TIMETABLE_TIMESTAMP(cc2520_timetable, "interrupt");
-#endif /* CC2520_TIMETABLE_PROFILING */
 
   last_packet_timestamp = cc2520_sfd_start_time;
   cc2520_packets_seen++;
@@ -622,9 +612,6 @@ PROCESS_THREAD(cc2520_process, ev, data)
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-#if CC2520_TIMETABLE_PROFILING
-    TIMETABLE_TIMESTAMP(cc2520_timetable, "poll");
-#endif /* CC2520_TIMETABLE_PROFILING */
 
     PRINTF("cc2520_process: calling receiver callback\n");
 
@@ -635,12 +622,6 @@ PROCESS_THREAD(cc2520_process, ev, data)
 
     NETSTACK_RDC.input();
     /* flushrx(); */
-#if CC2520_TIMETABLE_PROFILING
-    TIMETABLE_TIMESTAMP(cc2520_timetable, "end");
-    timetable_aggregate_compute_detailed(&aggregate_time,
-                                         &cc2520_timetable);
-    timetable_clear(&cc2520_timetable);
-#endif /* CC2520_TIMETABLE_PROFILING */
   }
 
   PROCESS_END();
