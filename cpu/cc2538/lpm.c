@@ -105,7 +105,7 @@ static uint8_t max_pm;
 #define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX 2
 #endif
 
-lpm_periph_permit_pm1_func_t
+static lpm_periph_permit_pm1_func_t
 periph_permit_pm1_funcs[LPM_PERIPH_PERMIT_PM1_FUNCS_MAX];
 /*---------------------------------------------------------------------------*/
 static bool
