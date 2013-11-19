@@ -51,7 +51,7 @@ public interface Plugin {
   /**
    * Graphical component of plugin (if any)
    */
-  public JInternalFrame getGUI();
+  public JInternalFrame getCooja();
 
 
   /**

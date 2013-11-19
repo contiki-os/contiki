@@ -88,7 +88,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     requestEdgeAnalysis();
 
     /* Register plugin and visualizer skin */
-    simulation.getGUI().registerPlugin(DGRMConfigurator.class);
+    simulation.getCooja().registerPlugin(DGRMConfigurator.class);
     Visualizer.registerVisualizerSkin(DGRMVisualizerSkin.class);
   }
 
@@ -96,7 +96,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     super.removed();
 
     /* Unregister plugin and visualizer skin */
-    simulation.getGUI().unregisterPlugin(DGRMConfigurator.class);
+    simulation.getCooja().unregisterPlugin(DGRMConfigurator.class);
     Visualizer.unregisterVisualizerSkin(DGRMVisualizerSkin.class);
   }
 
@@ -392,7 +392,7 @@ public void simulationFinishedLoading() {
                 continue;
               }
               Class<? extends DGRMDestinationRadio> destClass =
-                simulation.getGUI().tryLoadClass(this, DGRMDestinationRadio.class, destClassName);
+                simulation.getCooja().tryLoadClass(this, DGRMDestinationRadio.class, destClassName);
               if (destClass == null) {
                 throw new RuntimeException("Could not load class: " + destClassName);
               }

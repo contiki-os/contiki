@@ -572,7 +572,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         continue;
       }
       Class<? extends VisualizerSkin> skinClass =
-        simulation.getGUI().tryLoadClass(this, VisualizerSkin.class, skin);
+        simulation.getCooja().tryLoadClass(this, VisualizerSkin.class, skin);
       generateAndActivateSkin(skinClass);
     }
   }
@@ -640,7 +640,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
       /* Add registered mote actions */
       for (final Mote mote : motes) {
-        menu.add(simulation.getGUI().createMotePluginsSubmenu(mote));
+        menu.add(simulation.getCooja().createMotePluginsSubmenu(mote));
         for (Class<? extends MoteMenuAction> menuActionClass: moteMenuActions) {
           try {
             final MoteMenuAction menuAction = menuActionClass.newInstance();
@@ -1018,7 +1018,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     /* Paint mote relations */
     if (showMoteToMoteRelations) {
-        MoteRelation[] relations = simulation.getGUI().getMoteRelations();
+        MoteRelation[] relations = simulation.getCooja().getMoteRelations();
         for (MoteRelation r: relations) {
           Position sourcePos = r.source.getInterfaces().getPosition();
           Position destPos = r.dest.getInterfaces().getPosition();
@@ -1431,9 +1431,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       String desc = Cooja.getDescriptionOf(mote.getInterfaces().getLED());
 
       MoteInterfaceViewer viewer =
-        (MoteInterfaceViewer) simulation.getGUI().tryStartPlugin(
+        (MoteInterfaceViewer) simulation.getCooja().tryStartPlugin(
             MoteInterfaceViewer.class,
-            simulation.getGUI(),
+            simulation.getCooja(),
             simulation,
             mote);
       if (viewer == null) {
@@ -1474,9 +1474,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       String desc = Cooja.getDescriptionOf(serialPort);
 
       MoteInterfaceViewer viewer =
-        (MoteInterfaceViewer) simulation.getGUI().tryStartPlugin(
+        (MoteInterfaceViewer) simulation.getCooja().tryStartPlugin(
             MoteInterfaceViewer.class,
-            simulation.getGUI(),
+            simulation.getCooja(),
             simulation,
             mote);
       if (viewer == null) {

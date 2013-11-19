@@ -323,7 +323,7 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
   };
   private Action reloadAction = new AbstractAction("Reload") {
     public void actionPerformed(ActionEvent e) {
-      simulation.getGUI().reloadCurrentSimulation(simulation.isRunning());
+      simulation.getCooja().reloadCurrentSimulation(simulation.isRunning());
     }
   };
 

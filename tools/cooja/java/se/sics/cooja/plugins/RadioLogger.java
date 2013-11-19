@@ -887,7 +887,7 @@ public class RadioLogger extends VisPlugin {
     verboseBox.setText("");
 
     setTitle("Radio messages: showing " + dataTable.getRowCount() + "/" + connections.size() + " packets");
-    simulation.getGUI().getDesktopPane().repaint();
+    simulation.getCooja().getDesktopPane().repaint();
   }
   
   private Action createAnalyzerAction(String name, final String actionName,
@@ -1010,7 +1010,7 @@ public class RadioLogger extends VisPlugin {
 
       long time = connections.get(selectedRow).startTime;
 
-      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      Plugin[] plugins = simulation.getCooja().getStartedPlugins();
       for (Plugin p: plugins) {
       	if (!(p instanceof TimeLine)) {
       		continue;
@@ -1033,7 +1033,7 @@ public class RadioLogger extends VisPlugin {
 
       long time = connections.get(selectedRow).startTime;
 
-      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      Plugin[] plugins = simulation.getCooja().getStartedPlugins();
       for (Plugin p: plugins) {
       	if (!(p instanceof LogListener)) {
       		continue;

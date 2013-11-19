@@ -117,7 +117,7 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp, Mote
         for (MoteInterface intf : intfs) {
           if (Cooja.getDescriptionOf(intf).equals(interfaceDescription)) {
             selectedMoteInterface = intf;
-            mote.getSimulation().getGUI().loadQuickHelp(MoteInterfaceViewer.this);
+            mote.getSimulation().getCooja().loadQuickHelp(MoteInterfaceViewer.this);
             break;
           }
         }

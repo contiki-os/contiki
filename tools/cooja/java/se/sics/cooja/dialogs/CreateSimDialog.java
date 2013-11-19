@@ -94,7 +94,7 @@ public class CreateSimDialog extends JDialog {
    * @return True if simulation configured correctly
    */
   public static boolean showDialog(Container parent, Simulation simulation) {
-    final CreateSimDialog dialog = new CreateSimDialog((Window) parent, simulation.getGUI());
+    final CreateSimDialog dialog = new CreateSimDialog((Window) parent, simulation.getCooja());
     dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
     dialog.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
@@ -340,7 +340,7 @@ public class CreateSimDialog extends JDialog {
       mySimulation.setTitle(title.getText());
 
       String currentRadioMediumDescription = (String) radioMediumBox.getSelectedItem();
-      for (Class<? extends RadioMedium> radioMediumClass: mySimulation.getGUI().getRegisteredRadioMediums()) {
+      for (Class<? extends RadioMedium> radioMediumClass: mySimulation.getCooja().getRegisteredRadioMediums()) {
         String radioMediumDescription = Cooja.getDescriptionOf(radioMediumClass);
 
         if (currentRadioMediumDescription.equals(radioMediumDescription)) {

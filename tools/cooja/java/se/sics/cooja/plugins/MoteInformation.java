@@ -113,7 +113,7 @@ public class MoteInformation extends VisPlugin implements MotePlugin {
     button.setPreferredSize(size);
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        simulation.getGUI().tryStartPlugin(MoteTypeInformation.class, simulation.getGUI(), simulation, mote);
+        simulation.getCooja().tryStartPlugin(MoteTypeInformation.class, simulation.getCooja(), simulation, mote);
       }
     });
     smallPane.add(BorderLayout.EAST, button);
@@ -134,7 +134,7 @@ public class MoteInformation extends VisPlugin implements MotePlugin {
     button.setPreferredSize(size);
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        simulation.getGUI().tryStartPlugin(MoteInterfaceViewer.class, simulation.getGUI(), simulation, mote);
+        simulation.getCooja().tryStartPlugin(MoteInterfaceViewer.class, simulation.getCooja(), simulation, mote);
       }
     });
     smallPane.add(BorderLayout.EAST, button);

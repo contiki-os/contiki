@@ -202,7 +202,7 @@ public abstract class MspMoteType implements MoteType {
     // Source file
     if (fileSource != null) {
       element = new Element("source");
-      File file = simulation.getGUI().createPortablePath(fileSource);
+      File file = simulation.getCooja().createPortablePath(fileSource);
       element.setText(file.getPath().replaceAll("\\\\", "/"));
       element.setAttribute("EXPORT", "discard");
       config.add(element);
@@ -214,7 +214,7 @@ public abstract class MspMoteType implements MoteType {
 
     // Firmware file
     element = new Element("firmware");
-    File file = simulation.getGUI().createPortablePath(fileFirmware);
+    File file = simulation.getCooja().createPortablePath(fileFirmware);
     element.setText(file.getPath().replaceAll("\\\\", "/"));
     element.setAttribute("EXPORT", "copy");
     config.add(element);
@@ -244,7 +244,7 @@ public abstract class MspMoteType implements MoteType {
       } else if (name.equals("source")) {
         fileSource = new File(element.getText());
         if (!fileSource.exists()) {
-          fileSource = simulation.getGUI().restorePortablePath(fileSource);
+          fileSource = simulation.getCooja().restorePortablePath(fileSource);
         }
       } else if (name.equals("command")) {
         /* Backwards compatibility: command is now commands */
@@ -255,7 +255,7 @@ public abstract class MspMoteType implements MoteType {
       } else if (name.equals("firmware")) {
         fileFirmware = new File(element.getText());
         if (!fileFirmware.exists()) {
-          fileFirmware = simulation.getGUI().restorePortablePath(fileFirmware);
+          fileFirmware = simulation.getCooja().restorePortablePath(fileFirmware);
         }
       } else if (name.equals("elf")) {
         /* Backwards compatibility: elf is now firmware */
@@ -283,7 +283,7 @@ public abstract class MspMoteType implements MoteType {
         }
 
         Class<? extends MoteInterface> moteInterfaceClass =
-          simulation.getGUI().tryLoadClass(this, MoteInterface.class, intfClass);
+          simulation.getCooja().tryLoadClass(this, MoteInterface.class, intfClass);
 
         if (moteInterfaceClass == null) {
           logger.warn("Can't find mote interface class: " + intfClass);

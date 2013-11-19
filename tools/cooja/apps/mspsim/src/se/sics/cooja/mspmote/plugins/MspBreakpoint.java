@@ -169,7 +169,7 @@ public class MspBreakpoint implements Watchpoint {
     config.add(element);
 
     element = new Element("codefile");
-    File file = mspMote.getSimulation().getGUI().createPortablePath(codeFile);
+    File file = mspMote.getSimulation().getCooja().createPortablePath(codeFile);
     element.setText(file.getPath().replaceAll("\\\\", "/"));
     config.add(element);
 
@@ -204,7 +204,7 @@ public class MspBreakpoint implements Watchpoint {
     for (Element element : configXML) {
       if (element.getName().equals("codefile")) {
         File file = new File(element.getText());
-        file = mspMote.getSimulation().getGUI().restorePortablePath(file);
+        file = mspMote.getSimulation().getCooja().restorePortablePath(file);
 
         try {
           codeFile = file.getCanonicalFile();

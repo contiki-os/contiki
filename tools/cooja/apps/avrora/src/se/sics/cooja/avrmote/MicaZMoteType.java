@@ -241,7 +241,7 @@ public class MicaZMoteType implements MoteType {
     // Source file
     if (fileSource != null) {
       element = new Element("source");
-      File file = simulation.getGUI().createPortablePath(fileSource);
+      File file = simulation.getCooja().createPortablePath(fileSource);
       element.setText(file.getPath().replaceAll("\\\\", "/"));
       config.add(element);
       element = new Element("commands");
@@ -251,7 +251,7 @@ public class MicaZMoteType implements MoteType {
 
     // Firmware file
     element = new Element("firmware");
-    File file = simulation.getGUI().createPortablePath(fileFirmware);
+    File file = simulation.getCooja().createPortablePath(fileFirmware);
     element.setText(file.getPath().replaceAll("\\\\", "/"));
     config.add(element);
 
@@ -280,20 +280,20 @@ public class MicaZMoteType implements MoteType {
       } else if (name.equals("source")) {
         fileSource = new File(element.getText());
         if (!fileSource.exists()) {
-          fileSource = simulation.getGUI().restorePortablePath(fileSource);
+          fileSource = simulation.getCooja().restorePortablePath(fileSource);
         }
       } else if (name.equals("commands")) {
         compileCommands = element.getText();
       } else if (name.equals("firmware")) {
         fileFirmware = new File(element.getText());
         if (!fileFirmware.exists()) {
-          fileFirmware = simulation.getGUI().restorePortablePath(fileFirmware);
+          fileFirmware = simulation.getCooja().restorePortablePath(fileFirmware);
         }
       } else if (name.equals("moteinterface")) {
         String intfClass = element.getText().trim();
 
         Class<? extends MoteInterface> moteInterfaceClass =
-          simulation.getGUI().tryLoadClass(this, MoteInterface.class, intfClass);
+          simulation.getCooja().tryLoadClass(this, MoteInterface.class, intfClass);
 
         if (moteInterfaceClass == null) {
           logger.warn("Can't find mote interface class: " + intfClass);

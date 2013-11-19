@@ -24,7 +24,7 @@ while (counter<10) {
   YIELD_THEN_WAIT_UNTIL(msg.equals("wait"));
 
   /* Toggle Log Listener filter */
-  plugin = mote.getSimulation().getGUI().getStartedPlugin("se.sics.cooja.plugins.LogListener");
+  plugin = mote.getSimulation().getCooja().getStartedPlugin("se.sics.cooja.plugins.LogListener");
   if (plugin != null) {
     plugins++;
     log.log("LogListener: Setting filter: " + plugin.getFilter() + "\n");
@@ -39,7 +39,7 @@ while (counter<10) {
   YIELD_THEN_WAIT_UNTIL(msg.equals("wait"));
 
   /* Extract PowerTracker statistics */
-  plugin = mote.getSimulation().getGUI().getStartedPlugin("PowerTracker");
+  plugin = mote.getSimulation().getCooja().getStartedPlugin("PowerTracker");
   if (plugin != null) {
     plugins++;
     stats = plugin.radioStatistics();
@@ -56,7 +56,7 @@ while (counter<10) {
   YIELD_THEN_WAIT_UNTIL(msg.equals("wait"));
 
   /* Select time in Radio Logger */
-  plugin = mote.getSimulation().getGUI().getStartedPlugin("se.sics.cooja.plugins.RadioLogger");
+  plugin = mote.getSimulation().getCooja().getStartedPlugin("se.sics.cooja.plugins.RadioLogger");
   if (plugin != null) {
     plugins++;
     log.log("RadioLogger: Showing logged radio packet at mid simulation\n");

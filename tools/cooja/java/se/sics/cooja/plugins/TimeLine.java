@@ -253,7 +253,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         showLogOutputs = ((JCheckBox) e.getSource()).isSelected();
         
         /* Check whether there is an active log listener that is used to filter logs */
-        logEventFilterPlugin = (LogListener) simulation.getGUI().getPlugin(
+        logEventFilterPlugin = (LogListener) simulation.getCooja().getPlugin(
             LogListener.class.getName());
         if (showLogOutputs) {
           if (logEventFilterPlugin != null) {
@@ -942,7 +942,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       }
       long time = (long) (popupLocation.x*currentPixelDivisor);
 
-      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      Plugin[] plugins = simulation.getCooja().getStartedPlugins();
       for (Plugin p: plugins) {
       	if (!(p instanceof RadioLogger)) {
       		continue;
@@ -962,7 +962,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       }
       long time = (long) (popupLocation.x*currentPixelDivisor);
 
-      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      Plugin[] plugins = simulation.getCooja().getStartedPlugins();
       for (Plugin p: plugins) {
       	if (!(p instanceof LogListener)) {
       		continue;
@@ -1270,7 +1270,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
     repaintTimelineTimer.stop();
 
     if (moteHighlightObserver != null) {
-      simulation.getGUI().deleteMoteHighlightObserver(moteHighlightObserver);
+      simulation.getCooja().deleteMoteHighlightObserver(moteHighlightObserver);
     }
 
     simulation.getEventCentral().removeMoteCountListener(newMotesListener);
@@ -1432,7 +1432,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
             showInAllAction.actionPerformed(null);
 
             long time = (long) (popupLocation.x*currentPixelDivisor);
-            Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+            Plugin[] plugins = simulation.getCooja().getStartedPlugins();
             for (Plugin p: plugins) {
             	if (!(p instanceof TimeLine)) {
             		continue;
@@ -1874,7 +1874,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
           if (m == null) {
             return;
           }
-          simulation.getGUI().signalMoteHighlight(m);
+          simulation.getCooja().signalMoteHighlight(m);
 
           sortItem.setText("Sort by distance: " + m);
           sortItem.putClientProperty("mote", m);

@@ -135,7 +135,7 @@ public abstract class AbstractCompileDialog extends JDialog {
             (Frame)parent, "Create Mote Type: Compile Contiki", ModalityType.APPLICATION_MODAL);
 
     this.simulation = simulation;
-    this.gui = simulation.getGUI();
+    this.gui = simulation.getCooja();
     this.moteType = moteType;
 
     JPanel mainPanel = new JPanel(new BorderLayout());

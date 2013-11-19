@@ -85,7 +85,7 @@ public class Simulation extends Observable implements Runnable {
 
   private Thread simulationThread = null;
 
-  private Cooja myGUI = null;
+  private Cooja cooja = null;
 
   private long randomSeed = 123456;
 
@@ -320,8 +320,8 @@ public class Simulation extends Observable implements Runnable {
   /**
    * Creates a new simulation
    */
-  public Simulation(Cooja gui) {
-    myGUI = gui;
+  public Simulation(Cooja cooja) {
+    this.cooja = cooja;
   }
 
   /**
@@ -393,11 +393,8 @@ public class Simulation extends Observable implements Runnable {
     startSimulation();
   }
 
-  /**
-   * @return GUI holding this simulation
-   */
-  public Cooja getGUI() {
-    return myGUI;
+  public Cooja getCooja() {
+    return cooja;
   }
 
   /**
@@ -603,7 +600,7 @@ public class Simulation extends Observable implements Runnable {
       // Radio medium
       if (element.getName().equals("radiomedium")) {
         String radioMediumClassName = element.getText().trim();
-        Class<? extends RadioMedium> radioMediumClass = myGUI.tryLoadClass(
+        Class<? extends RadioMedium> radioMediumClass = cooja.tryLoadClass(
             this, RadioMedium.class, radioMediumClassName);
 
         if (radioMediumClass != null) {
@@ -648,7 +645,7 @@ public class Simulation extends Observable implements Runnable {
 
         /* Try to recreate simulation using a different mote type */
         if (visAvailable) {
-          String[] availableMoteTypes = getGUI().getProjectConfig().getStringArrayValue("se.sics.cooja.Cooja.MOTETYPES");
+          String[] availableMoteTypes = getCooja().getProjectConfig().getStringArrayValue("se.sics.cooja.Cooja.MOTETYPES");
           String newClass = (String) JOptionPane.showInputDialog(
               Cooja.getTopParentContainer(),
               "The simulation is about to load '" + moteTypeClassName + "'\n" +
@@ -668,7 +665,7 @@ public class Simulation extends Observable implements Runnable {
           }
         }
 
-        Class<? extends MoteType> moteTypeClass = myGUI.tryLoadClass(this,
+        Class<? extends MoteType> moteTypeClass = cooja.tryLoadClass(this,
             MoteType.class, moteTypeClassName);
 
         if (moteTypeClass == null) {
@@ -782,7 +779,7 @@ public class Simulation extends Observable implements Runnable {
       invokeSimulationThread(removeMote);
     }
 
-    getGUI().closeMotePlugins(mote);
+    getCooja().closeMotePlugins(mote);
   }
 
   /**

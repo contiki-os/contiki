@@ -387,7 +387,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
         if (d == null) {
         	return;
         }
-        simulation.getGUI().signalMoteHighlight(d.ev.getMote());
+        simulation.getCooja().signalMoteHighlight(d.ev.getMote());
     	}
 		});
 
@@ -611,7 +611,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
     }
     if (appendToFile) {
       element = new Element("append");
-      element.setText(simulation.getGUI().createPortablePath(appendStreamFile).getPath());
+      element.setText(simulation.getCooja().createPortablePath(appendStreamFile).getPath());
       config.add(element);
     }
     return config;
@@ -641,7 +641,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
       	repaintTimeColumn();
       } else if ("append".equals(name)) {
         appendToFile = true;
-        appendStreamFile = simulation.getGUI().restorePortablePath(new File(element.getText()));
+        appendStreamFile = simulation.getCooja().restorePortablePath(new File(element.getText()));
         appendCheckBox.setSelected(true);
         if (!appendStreamFile.exists()) {
           try {
@@ -695,7 +695,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
       filterTextField.setBackground(Color.red);
       filterTextField.setToolTipText("Syntax error in regular expression: " + e.getMessage());
     }
-    simulation.getGUI().getDesktopPane().repaint();
+    simulation.getCooja().getDesktopPane().repaint();
   }
 
   public void trySelectTime(final long time) {
@@ -876,7 +876,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
       int model = logTable.convertRowIndexToModel(view);
       long time = logs.get(model).ev.getTime();
 
-      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      Plugin[] plugins = simulation.getCooja().getStartedPlugins();
       for (Plugin p: plugins) {
       	if (!(p instanceof TimeLine)) {
       		continue;
@@ -899,7 +899,7 @@ public class LogListener extends VisPlugin implements HasQuickHelp {
       int model = logTable.convertRowIndexToModel(view);
       long time = logs.get(model).ev.getTime();
 
-      Plugin[] plugins = simulation.getGUI().getStartedPlugins();
+      Plugin[] plugins = simulation.getCooja().getStartedPlugins();
       for (Plugin p: plugins) {
       	if (!(p instanceof RadioLogger)) {
       		continue;

@@ -92,7 +92,7 @@ public class Mote2MoteRelations extends MoteInterface {
   
   public Mote2MoteRelations(Mote mote) {
     this.mote = mote;
-    this.gui = mote.getSimulation().getGUI();
+    this.gui = mote.getSimulation().getCooja();
   }
 
   public void added() {
