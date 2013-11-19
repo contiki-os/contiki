@@ -97,9 +97,8 @@
  *
  * The USB pullup is driven by PC0 and is shared with LED1
  */
-#define USB_PULLUP_PORT          GPIO_C_BASE
-#define USB_PULLUP_PIN           0
-#define USB_PULLUP_PIN_MASK      GPIO_PIN_MASK(USB_PULLUP_PIN)
+#define USB_CONF_PULLUP_PORT     GPIO_C_BASE
+#define USB_CONF_PULLUP_PIN      0
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART configuration
@@ -116,17 +115,17 @@
  */
 #define UART_CONF_BASE           UART_0_BASE
 
-#define UART_RX_PORT             GPIO_A_NUM
-#define UART_RX_PIN              0
+#define UART_CONF_RX_PORT        GPIO_A_NUM
+#define UART_CONF_RX_PIN         0
 
-#define UART_TX_PORT             GPIO_A_NUM
-#define UART_TX_PIN              1
+#define UART_CONF_TX_PORT        GPIO_A_NUM
+#define UART_CONF_TX_PIN         1
 
-#define UART_CTS_PORT            GPIO_B_NUM
-#define UART_CTS_PIN             0
+#define UART_CONF_CTS_PORT       GPIO_B_NUM
+#define UART_CONF_CTS_PIN        0
 
-#define UART_RTS_PORT            GPIO_D_NUM
-#define UART_RTS_PIN             3
+#define UART_CONF_RTS_PORT       GPIO_D_NUM
+#define UART_CONF_RTS_PIN        3
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name SmartRF Button configuration

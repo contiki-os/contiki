@@ -51,6 +51,86 @@
 static int (* input_handler)(unsigned char c);
 /*---------------------------------------------------------------------------*/
 /*
+ * If the platform did not provide port/pin assignments, fall back to
+ * the SmartRF06EB configuration and warn
+ */
+/* UART RX port/pin */
+#ifdef UART_CONF_RX_PORT
+#define UART_RX_PORT UART_CONF_RX_PORT
+#else
+#warning "The platform did not provide UART RX port configuration"
+#warning "To remove this warning, define UART_CONF_RX_PORT"
+#warning "Using defaults for now. This may or may not work for you"
+#define UART_RX_PORT GPIO_A_NUM
+#endif
+
+#ifdef UART_CONF_RX_PIN
+#define UART_RX_PIN UART_CONF_RX_PIN
+#else
+#warning "The platform did not provide UART RX pin configuration"
+#warning "To remove this warning, define UART_CONF_RX_PIN"
+#warning "Using defaults for now. This may or may not work for you"
+#define UART_RX_PIN 0
+#endif
+
+/* UART TX port/pin */
+#ifdef UART_CONF_TX_PORT
+#define UART_TX_PORT UART_CONF_TX_PORT
+#else
+#warning "The platform did not provide UART TX port configuration"
+#warning "To remove this warning, define UART_CONF_TX_PORT"
+#warning "Using defaults for now. This may or may not work for you"
+#define UART_TX_PORT GPIO_A_NUM
+#endif
+
+#ifdef UART_CONF_TX_PIN
+#define UART_TX_PIN UART_CONF_TX_PIN
+#else
+#warning "The platform did not provide UART TX pin configuration"
+#warning "To remove this warning, define UART_CONF_TX_PIN"
+#warning "Using defaults for now. This may or may not work for you"
+#define UART_TX_PIN 1
+#endif
+
+/* UART CTS port/pin */
+#ifdef UART_CONF_CTS_PORT
+#define UART_CTS_PORT UART_CONF_CTS_PORT
+#else
+#warning "The platform did not provide UART CTS port configuration"
+#warning "To remove this warning, define UART_CONF_CTS_PORT"
+#warning "Using defaults for now. This may or may not work for you"
+#define UART_CONF_CTS_PORT GPIO_B_NUM
+#endif
+
+#ifdef UART_CONF_CTS_PIN
+#define UART_CTS_PIN UART_CONF_CTS_PIN
+#else
+#warning "The platform did not provide UART CTS pin configuration"
+#warning "To remove this warning, define UART_CONF_CTS_PIN"
+#warning "Using defaults for now. This may or may not work for you"
+#define UART_CTS_PIN 0
+#endif
+
+/* UART RTS port/pin */
+#ifdef UART_CONF_RTS_PORT
+#define UART_RTS_PORT UART_CONF_RTS_PORT
+#else
+#warning "The platform did not provide UART RTS port configuration"
+#warning "To remove this warning, define UART_CONF_RTS_PORT"
+#warning "Using defaults for now. This may or may not work for you"
+#define UART_CONF_RTS_PORT GPIO_D_NUM
+#endif
+
+#ifdef UART_CONF_RTS_PIN
+#define UART_RTS_PIN UART_CONF_RTS_PIN
+#else
+#warning "The platform did not provide UART RTS pin configuration"
+#warning "To remove this warning, define UART_CONF_RTS_PIN"
+#warning "Using defaults for now. This may or may not work for you"
+#define UART_RTS_PIN 3
+#endif
+/*---------------------------------------------------------------------------*/
+/*
  * Once we know what UART we're on, configure correct values to be written to
  * the correct registers
  */

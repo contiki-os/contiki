@@ -79,6 +79,30 @@
 #error Endpoint 5 size too big
 #endif
 /*---------------------------------------------------------------------------*/
+/*
+ * If the platform did not provide port/pin assignments, fall back to
+ * the SmartRF06EB configuration and warn
+ */
+#ifdef USB_CONF_PULLUP_PORT
+#define USB_PULLUP_PORT USB_CONF_PULLUP_PORT
+#else
+#warning "The platform did not provide USB pull-up port configuration"
+#warning "To remove this warning, define USB_CONF_PULLUP_PORT"
+#warning "Using defaults for now. This may or may not work for you"
+#define USB_PULLUP_PORT GPIO_C_BASE
+#endif
+
+#ifdef USB_CONF_PULLUP_PIN
+#define USB_PULLUP_PIN USB_CONF_PULLUP_PIN
+#else
+#warning "The platform did not provide USB pull-up pin configuration"
+#warning "To remove this warning, define USB_CONF_PULLUP_PIN"
+#warning "Using defaults for now. This may or may not work for you"
+#define USB_PULLUP_PIN 0
+#endif
+
+#define USB_PULLUP_PIN_MASK      GPIO_PIN_MASK(USB_PULLUP_PIN)
+/*---------------------------------------------------------------------------*/
 /* uDMA transfer threshold. Use DMA only for data size higher than this */
 #define UDMA_SIZE_THRESHOLD 8
 
