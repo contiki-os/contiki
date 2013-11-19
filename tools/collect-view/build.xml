@@ -7,7 +7,7 @@
   <property name="dist" location="dist"/>
   <property name="contiki" location="../.."/>
   <property name="archive" value="collect-view.jar"/>
-  <property name="main" value="se.sics.contiki.collect.CollectServer"/>
+  <property name="main" value="org.contikios.contiki.collect.CollectServer"/>
   <property name="args" value="" />
 
   <path id="classpath">

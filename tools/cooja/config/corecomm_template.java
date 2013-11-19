@@ -28,10 +28,10 @@
  *
  */
 
-package se.sics.cooja.corecomm;
+package org.contikios.cooja.corecomm;
 import java.io.File;
 
-import se.sics.cooja.*;
+import org.contikios.cooja.*;
 
 /**
  * @see CoreComm
