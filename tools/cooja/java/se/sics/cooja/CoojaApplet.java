@@ -51,7 +51,7 @@ public class CoojaApplet extends JApplet {
       esbFirmware = "";
     }
 
-    GUI.main(new String[] {
+    Cooja.main(new String[] {
         "-applet ",
         "-esb_firmware=" + esbFirmware,
         "-sky_firmware=" + skyFirmware,

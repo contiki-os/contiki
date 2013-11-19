@@ -80,7 +80,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
@@ -121,7 +121,7 @@ public class ScriptRunner extends VisPlugin {
   private JSyntaxLinkFile actionLinkFile = null;
   private File linkedFile = null;
 
-  public ScriptRunner(Simulation simulation, GUI gui) {
+  public ScriptRunner(Simulation simulation, Cooja gui) {
     super("Simulation script editor", gui, false);
     this.simulation = simulation;
     this.engine = null;
@@ -147,7 +147,7 @@ public class ScriptRunner extends VisPlugin {
         public void actionPerformed(ActionEvent e) {
           String script = loadScript(file);
           if (script == null) {
-            JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+            JOptionPane.showMessageDialog(Cooja.getTopParentContainer(),
                 "Could not load example script: scripts/" + file,
                 "Could not load script", JOptionPane.ERROR_MESSAGE);
             return;
@@ -289,7 +289,7 @@ public class ScriptRunner extends VisPlugin {
       codeEditor.setEditable(true);
     } else {
       updateScript(linkedFile);
-      GUI.setExternalToolsSetting("SCRIPTRUNNER_LAST_SCRIPTFILE", source.getAbsolutePath());
+      Cooja.setExternalToolsSetting("SCRIPTRUNNER_LAST_SCRIPTFILE", source.getAbsolutePath());
 
       if (actionLinkFile != null) {
         actionLinkFile.setMenuText("Unlink script: " + source.getName());
@@ -321,7 +321,7 @@ public class ScriptRunner extends VisPlugin {
 
       /* Create new engine */
       engine = new LogScriptEngine(simulation);
-      if (GUI.isVisualized()) {
+      if (Cooja.isVisualized()) {
         /* Attach visualized log observer */
         engine.setScriptLogObserver(new Observer() {
           public void update(Observable obs, Object obj) {
@@ -380,8 +380,8 @@ public class ScriptRunner extends VisPlugin {
       } catch (ScriptException e) {
         logger.fatal("Test script error: ", e);
         setScriptActive(false);
-        if (GUI.isVisualized()) {
-          GUI.showErrorDialog(GUI.getTopParentContainer(),
+        if (Cooja.isVisualized()) {
+          Cooja.showErrorDialog(Cooja.getTopParentContainer(),
               "Script error", e, false);
         }
       } catch (RuntimeException e) {
@@ -443,23 +443,23 @@ public class ScriptRunner extends VisPlugin {
     /* Start test in external process */
     try {
       JPanel progressPanel = new JPanel(new BorderLayout());
-      final JDialog progressDialog = new JDialog((Window)GUI.getTopParentContainer(), (String) null);
+      final JDialog progressDialog = new JDialog((Window)Cooja.getTopParentContainer(), (String) null);
       progressDialog.setTitle("Running test...");
 
       File coojaBuild;
       File coojaJAR;
       try {
-        coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
-        coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
+        coojaBuild = new File(Cooja.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
+        coojaJAR = new File(Cooja.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
         coojaBuild = coojaBuild.getCanonicalFile();
         coojaJAR = coojaJAR.getCanonicalFile();
       } catch (IOException e) {
-        coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
-        coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
+        coojaBuild = new File(Cooja.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
+        coojaJAR = new File(Cooja.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
       }
 
       if (!coojaJAR.exists()) {
-        JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+        JOptionPane.showMessageDialog(Cooja.getTopParentContainer(),
             "Can't start Cooja, cooja.jar not found:" +
             "\n" + coojaJAR.getAbsolutePath()
             + "\n\nVerify that PATH_CONTIKI is correct in external tools settings.",
@@ -480,7 +480,7 @@ public class ScriptRunner extends VisPlugin {
       /* User confirmation */
       String s1 = "Start";
       String s2 = "Cancel";
-      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+      int n = JOptionPane.showOptionDialog(Cooja.getTopParentContainer(),
           "Starting Cooja in " + coojaBuild.getPath() + ":\n" +
           " " + command[0] + " " + command[1] + " " + command[2] + " " + command[3] + "\n",
           "Starting Cooja without GUI", JOptionPane.YES_NO_OPTION,
@@ -655,7 +655,7 @@ public class ScriptRunner extends VisPlugin {
         setLinkFile(file);
       } else if ("active".equals(name)) {
         boolean active = Boolean.parseBoolean(element.getText());
-        if (GUI.isVisualized()) {
+        if (Cooja.isVisualized()) {
           try {
             setScriptActive(active);
           } catch (Exception e) {
@@ -665,7 +665,7 @@ public class ScriptRunner extends VisPlugin {
       }
     }
 
-    if (!GUI.isVisualized()) {
+    if (!Cooja.isVisualized()) {
       /* Automatically activate script */
       try {
         setScriptActive(true);
@@ -699,7 +699,7 @@ public class ScriptRunner extends VisPlugin {
       }
 
       JFileChooser fileChooser = new JFileChooser();
-      String suggest = GUI.getExternalToolsSetting("SCRIPTRUNNER_LAST_SCRIPTFILE", null);
+      String suggest = Cooja.getExternalToolsSetting("SCRIPTRUNNER_LAST_SCRIPTFILE", null);
       if (suggest != null) {
         fileChooser.setSelectedFile(new File(suggest));
       } else {

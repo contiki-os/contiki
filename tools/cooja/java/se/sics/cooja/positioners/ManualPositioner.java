@@ -80,7 +80,7 @@ public class ManualPositioner extends Positioner {
 
     if (totalNumberOfMotes > 10) {
       int value = JOptionPane.showConfirmDialog(
-          GUI.getTopParentContainer(),
+          Cooja.getTopParentContainer(),
           "Do you really want to manually enter the positions of " + totalNumberOfMotes + " new motes ?\n",
           "Manually enter mote positions?",
           JOptionPane.YES_NO_OPTION,
@@ -106,7 +106,7 @@ public class ManualPositioner extends Positioner {
     dialog.xField.setValue(lastX);
     dialog.yField.setValue(lastY);
     dialog.zField.setValue(lastZ);
-    dialog.setLocationRelativeTo(GUI.getTopParentContainer());
+    dialog.setLocationRelativeTo(Cooja.getTopParentContainer());
     dialog.pack();
     dialog.setModal(true);
     dialog.setResizable(false);

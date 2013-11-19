@@ -55,7 +55,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.SimEventCentral.MoteCountListener;
@@ -88,7 +88,7 @@ public class PowerTracker extends VisPlugin {
   private JTable table;
   private int tableMaxRadioOnIndex = -1;
 
-  public PowerTracker(final Simulation simulation, final GUI gui) {
+  public PowerTracker(final Simulation simulation, final Cooja gui) {
     super("PowerTracker", gui, false);
     this.simulation = simulation;
 
@@ -109,7 +109,7 @@ public class PowerTracker extends VisPlugin {
       addMote(m);
     }
 
-    if (!GUI.isVisualized()) {
+    if (!Cooja.isVisualized()) {
       return;
     }
 

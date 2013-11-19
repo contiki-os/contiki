@@ -43,7 +43,7 @@ import se.sics.cooja.plugins.skins.DGRMVisualizerSkin;
  *
  * See below code usage examples.
  *
- * @see GUI#createMotePluginsSubmenu(Mote)
+ * @see Cooja#createMotePluginsSubmenu(Mote)
  * @see Visualizer#populateSkinMenu(MenuElement)
  * @see DGRMVisualizerSkin
  *

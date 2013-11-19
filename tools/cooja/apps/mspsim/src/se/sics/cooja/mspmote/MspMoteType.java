@@ -43,7 +43,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
@@ -168,7 +168,7 @@ public abstract class MspMoteType implements MoteType {
     JLabel label = new JLabel(sb.append("</table></html>").toString());
     label.setVerticalTextPosition(JLabel.TOP);
     /* Icon (if available) */
-    if (!GUI.isVisualizedInApplet()) {
+    if (!Cooja.isVisualizedInApplet()) {
       Icon moteTypeIcon = getMoteTypeIcon();
       if (moteTypeIcon != null) {
         label.setIcon(moteTypeIcon);
@@ -316,7 +316,7 @@ public abstract class MspMoteType implements MoteType {
       fileFirmware = getExpectedFirmwareFile(fileSource);
     }
 
-    return configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
+    return configureAndInit(Cooja.getTopParentContainer(), simulation, visAvailable);
   }
 
   public abstract Class<? extends MoteInterface>[] getAllMoteInterfaceClasses();
@@ -330,7 +330,7 @@ public abstract class MspMoteType implements MoteType {
   private ELF elf; /* cached */
   public ELF getELF() throws IOException {
     if (elf == null) {
-      if (GUI.isVisualizedInApplet()) {
+      if (Cooja.isVisualizedInApplet()) {
         logger.warn("ELF loading in applet not implemented");
       }
       elf = loadELF(getContikiFirmwareFile().getPath());

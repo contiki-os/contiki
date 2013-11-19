@@ -56,7 +56,7 @@ import javax.swing.event.DocumentListener;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.CoreComm;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.ProjectConfig;
@@ -211,7 +211,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
 
     return
     /*"make clean TARGET=cooja\n" + */
-    GUI.getExternalToolsSetting("PATH_MAKE") + " " + getExpectedFirmwareFile(source).getName() + " TARGET=cooja" + defines;
+    Cooja.getExternalToolsSetting("PATH_MAKE") + " " + getExpectedFirmwareFile(source).getName() + " TARGET=cooja" + defines;
   }
 
   public File getExpectedFirmwareFile(File source) {
@@ -326,7 +326,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         /* Show external tools dialog */
-        ExternalToolsDialog.showDialog(GUI.getTopParentContainer());
+        ExternalToolsDialog.showDialog(Cooja.getTopParentContainer());
 
         /* Update and select environment tab */
         SwingUtilities.invokeLater(new Runnable() {

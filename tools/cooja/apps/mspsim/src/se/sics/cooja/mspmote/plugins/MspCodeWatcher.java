@@ -66,7 +66,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
@@ -125,7 +125,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
    * @param simulationToVisualize Simulation
    * @param gui Simulator
    */
-  public MspCodeWatcher(Mote mote, Simulation simulationToVisualize, GUI gui) {
+  public MspCodeWatcher(Mote mote, Simulation simulationToVisualize, Cooja gui) {
     super("Msp Code Watcher - " + mote, gui);
     simulation = simulationToVisualize;
     this.mspMote = (MspMote) mote;
@@ -453,7 +453,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   }
 
   private void loadDefaultRules() {
-    String rulesString = GUI.getExternalToolsSetting("MSPCODEWATCHER_RULES", "/cygdrive/c/*c:/");
+    String rulesString = Cooja.getExternalToolsSetting("MSPCODEWATCHER_RULES", "/cygdrive/c/*c:/");
     String[] rulesArr = rulesString.split("\\*");
     rules.clear();
     for (int i=0; i < rulesArr.length/2; i++) {
@@ -475,7 +475,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   private JTable table = null;
   private void tryMapDebugInfo() {
     /* called from AWT */
-    int r = JOptionPane.showConfirmDialog(GUI.getTopParentContainer(),
+    int r = JOptionPane.showConfirmDialog(Cooja.getTopParentContainer(),
         "The firmware file " + mspMote.getType().getContikiFirmwareFile().getName() + " references " + debugSourceFiles.length + " source files.\n" +
         "This function tries to locate these files on disk with a set of simple substitution rules.\n" +
         "\n" +
@@ -487,7 +487,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
 
     /* table with rules */
     rulesDebuggingOutput.clearMessages();
-    final JDialog dialog = new JDialog((Window)GUI.getTopParentContainer(), "Locate source files");
+    final JDialog dialog = new JDialog((Window)Cooja.getTopParentContainer(), "Locate source files");
     dialog.setModal(true);
     updateRulesUsage();
     AbstractTableModel model = new AbstractTableModel() {
@@ -646,9 +646,9 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
           }
         }
         if (sb.length() >= 1) {
-          GUI.setExternalToolsSetting("MSPCODEWATCHER_RULES", sb.substring(1));
+          Cooja.setExternalToolsSetting("MSPCODEWATCHER_RULES", sb.substring(1));
         } else {
-          GUI.setExternalToolsSetting("MSPCODEWATCHER_RULES", "");
+          Cooja.setExternalToolsSetting("MSPCODEWATCHER_RULES", "");
         }
       }
     });
@@ -681,7 +681,7 @@ public class MspCodeWatcher extends VisPlugin implements MotePlugin {
     dialog.getContentPane().add(BorderLayout.SOUTH, control);
     dialog.getRootPane().setDefaultButton(closeButton);
     dialog.setSize(550, 500);
-    dialog.setLocationRelativeTo(GUI.getTopParentContainer());
+    dialog.setLocationRelativeTo(Cooja.getTopParentContainer());
     dialog.setVisible(true);
   }
 

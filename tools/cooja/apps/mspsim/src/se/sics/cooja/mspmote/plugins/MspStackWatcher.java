@@ -47,7 +47,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.MoteTimeEvent;
@@ -83,7 +83,7 @@ public class MspStackWatcher extends VisPlugin implements MotePlugin {
 
   private JLabel memLabel = new JLabel("");
   
-  public MspStackWatcher(Mote mote, Simulation simulationToVisualize, GUI gui) {
+  public MspStackWatcher(Mote mote, Simulation simulationToVisualize, Cooja gui) {
     super("Msp Stack Watcher: " + mote, gui);
     this.mspMote = (MspMote) mote;
     cpu = mspMote.getCPU();
@@ -135,7 +135,7 @@ public class MspStackWatcher extends VisPlugin implements MotePlugin {
 
       if (gui) {
     	  String s = (String)JOptionPane.showInputDialog(
-    			  GUI.getTopParentContainer(),
+    			  Cooja.getTopParentContainer(),
     			  "With default linker scripts the stack starts at 0x" + Integer.toHexString(stack) + ".\n" +
     					  "If you are using a modified linker script, you may here correct the stack start address.",
     					  "Enter stack start address",
@@ -193,7 +193,7 @@ public class MspStackWatcher extends VisPlugin implements MotePlugin {
           if (available <= 0) {
             SwingUtilities.invokeLater(new Runnable() {
               public void run() {
-                JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+                JOptionPane.showMessageDialog(Cooja.getTopParentContainer(),
                     String.format("Stack overflow!\n\n" +
                     		"\tSP = 0x%05x\n" +
                     		"\tHeap start = 0x%05x\n\n" +

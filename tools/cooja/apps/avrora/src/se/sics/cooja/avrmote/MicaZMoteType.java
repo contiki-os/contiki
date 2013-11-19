@@ -50,7 +50,7 @@ import org.jdom.Element;
 
 import se.sics.cooja.AbstractionLevelDescription;
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
@@ -199,7 +199,7 @@ public class MicaZMoteType implements MoteType {
     panel.add(smallPane);
 
     /* Icon (if available) */
-    if (!GUI.isVisualizedInApplet()) {
+    if (!Cooja.isVisualizedInApplet()) {
       Icon moteTypeIcon = getMoteTypeIcon();
       if (moteTypeIcon != null) {
         smallPane = new JPanel(new BorderLayout());
@@ -315,7 +315,7 @@ public class MicaZMoteType implements MoteType {
       throw new MoteTypeCreationException("Either source or firmware not specified");
     }
 
-    return configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
+    return configureAndInit(Cooja.getTopParentContainer(), simulation, visAvailable);
   }
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)

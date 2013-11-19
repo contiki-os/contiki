@@ -49,7 +49,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
@@ -81,7 +81,7 @@ public class CollectView extends VisPlugin implements MotePlugin, HasQuickHelp {
   private DataOutputStream out;
   private boolean isRunning;
 
-  public CollectView(Mote mote, Simulation simulation, final GUI gui) {
+  public CollectView(Mote mote, Simulation simulation, final Cooja gui) {
     super("Collect View (" + mote + ")", gui, false);
     this.mote = mote;
 
@@ -92,7 +92,7 @@ public class CollectView extends VisPlugin implements MotePlugin, HasQuickHelp {
     }
 
     /* GUI components */
-    if (GUI.isVisualized()) {
+    if (Cooja.isVisualized()) {
       inLabel =  new JLabel("      0 bytes", JLabel.RIGHT);
       outLabel = new JLabel("      0 bytes", JLabel.RIGHT);
 
@@ -114,12 +114,12 @@ public class CollectView extends VisPlugin implements MotePlugin, HasQuickHelp {
       pack();
     }
 
-    String contikiPath = GUI.getExternalToolsSetting("PATH_CONTIKI", "../../..");
+    String contikiPath = Cooja.getExternalToolsSetting("PATH_CONTIKI", "../../..");
     String jarFile = contikiPath + "/tools/collect-view/dist/collect-view.jar";
     if (!new File(jarFile).canRead()) {
       logger.fatal("Could not find the CollectView application:" + jarFile);
-      if (GUI.isVisualized()) {
-        JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+      if (Cooja.isVisualized()) {
+        JOptionPane.showMessageDialog(Cooja.getTopParentContainer(),
             "Could not find the CollectView application:\n" +
             jarFile + "\n\nPlease try to recompile it!",
             "CollectView application not found", JOptionPane.ERROR_MESSAGE);
@@ -154,7 +154,7 @@ public class CollectView extends VisPlugin implements MotePlugin, HasQuickHelp {
                 }
                 serialPort.writeByte((byte) '\n');
                 inBytes += line.length() + 1;
-                if (GUI.isVisualized()) {
+                if (Cooja.isVisualized()) {
                   inLabel.setText(inBytes + " bytes");
                 }
               }
@@ -205,7 +205,7 @@ public class CollectView extends VisPlugin implements MotePlugin, HasQuickHelp {
             outBytes++;
             if (b == '\n') {
               out.flush();
-              if (GUI.isVisualized()) {
+              if (Cooja.isVisualized()) {
                 outLabel.setText(outBytes + " bytes");
               }
             }
@@ -235,7 +235,7 @@ public class CollectView extends VisPlugin implements MotePlugin, HasQuickHelp {
 
     if (isRunning) {
       logger.fatal("The CollectView application died!");
-      if (GUI.isVisualized()) {
+      if (Cooja.isVisualized()) {
         JOptionPane.showMessageDialog(this, "The CollectView application died!",
             "CollectView died!", JOptionPane.ERROR_MESSAGE);
       }
@@ -253,7 +253,7 @@ public class CollectView extends VisPlugin implements MotePlugin, HasQuickHelp {
       }
     }
 
-    if (GUI.isVisualized()) {
+    if (Cooja.isVisualized()) {
       EventQueue.invokeLater(new Runnable() {
         public void run() {
           setTitle(getTitle() + " *DISCONNECTED*");

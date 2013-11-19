@@ -88,8 +88,8 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
-import se.sics.cooja.GUI.MoteRelation;
+import se.sics.cooja.Cooja;
+import se.sics.cooja.Cooja.MoteRelation;
 import se.sics.cooja.HasQuickHelp;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
@@ -136,7 +136,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   public static final int MOTE_RADIUS = 8;
   private static final Color[] DEFAULT_MOTE_COLORS = { Color.WHITE };
 
-  private GUI gui = null;
+  private Cooja gui = null;
   private Simulation simulation = null;
   private final JPanel canvas;
   private boolean loadedConfig = false;
@@ -205,7 +205,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   private ArrayList<Class<? extends MoteMenuAction>> moteMenuActions =
     new ArrayList<Class<? extends MoteMenuAction>>();
 
-  public Visualizer(Simulation simulation, GUI gui) {
+  public Visualizer(Simulation simulation, Cooja gui) {
     super("Network", gui);
     this.gui = gui;
     this.simulation = simulation;
@@ -566,7 +566,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     }
 
     /* Activate default skins */
-    String[] defaultSkins = GUI.getExternalToolsSetting("VISUALIZER_DEFAULT_SKINS", "").split(";");
+    String[] defaultSkins = Cooja.getExternalToolsSetting("VISUALIZER_DEFAULT_SKINS", "").split(";");
     for (String skin: defaultSkins) {
       if (skin.isEmpty()) {
         continue;
@@ -726,7 +726,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         continue;
       }
 
-      String description = GUI.getDescriptionOf(skinClass);
+      String description = Cooja.getDescriptionOf(skinClass);
       JCheckBoxMenuItem item = new JCheckBoxMenuItem(description, false);
       item.putClientProperty("skinclass", skinClass);
 
@@ -1335,7 +1335,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         for (Class<? extends VisualizerSkin> skinClass: visualizerSkins) {
           if (wanted.equals(skinClass.getName())
               /* Backwards compatibility */
-              || wanted.equals(GUI.getDescriptionOf(skinClass))) {
+              || wanted.equals(Cooja.getDescriptionOf(skinClass))) {
             final Class<? extends VisualizerSkin> skin = skinClass;
             SwingUtilities.invokeLater(new Runnable() {
               public void run() {
@@ -1384,7 +1384,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         }
         sb.append(skin.getClass().getName());
       }
-      GUI.setExternalToolsSetting("VISUALIZER_DEFAULT_SKINS", sb.toString());
+      Cooja.setExternalToolsSetting("VISUALIZER_DEFAULT_SKINS", sb.toString());
     }
   };
 
@@ -1428,7 +1428,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       }
 
       /* Extract description (input to plugin) */
-      String desc = GUI.getDescriptionOf(mote.getInterfaces().getLED());
+      String desc = Cooja.getDescriptionOf(mote.getInterfaces().getLED());
 
       MoteInterfaceViewer viewer =
         (MoteInterfaceViewer) simulation.getGUI().tryStartPlugin(
@@ -1471,7 +1471,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       }
 
       /* Extract description (input to plugin) */
-      String desc = GUI.getDescriptionOf(serialPort);
+      String desc = Cooja.getDescriptionOf(serialPort);
 
       MoteInterfaceViewer viewer =
         (MoteInterfaceViewer) simulation.getGUI().tryStartPlugin(

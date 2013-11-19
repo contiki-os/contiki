@@ -67,8 +67,8 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
-import se.sics.cooja.GUI.RunnableInEDT;
+import se.sics.cooja.Cooja;
+import se.sics.cooja.Cooja.RunnableInEDT;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;

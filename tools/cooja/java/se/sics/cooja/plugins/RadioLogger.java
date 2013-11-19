@@ -84,7 +84,7 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.ConvertedRadioPacket;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Plugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.RadioConnection;
@@ -147,7 +147,7 @@ public class RadioLogger extends VisPlugin {
 
   private JTextField searchField = new JTextField(30);
 
-  public RadioLogger(final Simulation simulationToControl, final GUI gui) {
+  public RadioLogger(final Simulation simulationToControl, final Cooja gui) {
     super("Radio messages", gui);
     setLayout(new BorderLayout());
 
@@ -961,7 +961,7 @@ public class RadioLogger extends VisPlugin {
 
     public void actionPerformed(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
-      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+      int returnVal = fc.showSaveDialog(Cooja.getTopParentContainer());
       if (returnVal != JFileChooser.APPROVE_OPTION) {
         return;
       }
@@ -972,7 +972,7 @@ public class RadioLogger extends VisPlugin {
         String s2 = "Cancel";
         Object[] options = { s1, s2 };
         int n = JOptionPane.showOptionDialog(
-            GUI.getTopParentContainer(),
+            Cooja.getTopParentContainer(),
             "A file with the same name already exists.\nDo you want to remove it?",
             "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -1073,7 +1073,7 @@ public class RadioLogger extends VisPlugin {
       }
 
       String alias = (String) JOptionPane.showInputDialog(
-          GUI.getTopParentContainer(),
+          Cooja.getTopParentContainer(),
           "Enter alias for all packets with identical payload.\n" +
           "An empty string removes the current alias.\n\n" +
           connections.get(selectedRow).data + "\n",

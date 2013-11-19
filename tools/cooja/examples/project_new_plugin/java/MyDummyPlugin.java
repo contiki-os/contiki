@@ -44,7 +44,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
@@ -76,7 +76,7 @@ public class MyDummyPlugin extends VisPlugin {
    * @param simulation Simulation object
    * @param gui GUI object 
    */
-  public MyDummyPlugin(Simulation simulation, GUI gui) {
+  public MyDummyPlugin(Simulation simulation, Cooja gui) {
     super("Example plugin title", gui);
     this.sim = simulation;
 

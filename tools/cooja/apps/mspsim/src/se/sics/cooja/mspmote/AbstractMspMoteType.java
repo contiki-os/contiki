@@ -66,15 +66,15 @@ public abstract class AbstractMspMoteType extends MspMoteType {
 
         /* SPECIAL CASE: Cooja started in applet.
          * Use preconfigured Contiki firmware */
-        if (GUI.isVisualizedInApplet()) {
-            String firmware = GUI.getExternalToolsSetting(getMoteType().toUpperCase() + "_FIRMWARE", "");
+        if (Cooja.isVisualizedInApplet()) {
+            String firmware = Cooja.getExternalToolsSetting(getMoteType().toUpperCase() + "_FIRMWARE", "");
             if (!firmware.equals("")) {
                 setContikiFirmwareFile(new File(firmware));
-                JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+                JOptionPane.showMessageDialog(Cooja.getTopParentContainer(),
                         "Creating mote type from precompiled firmware: " + firmware,
                         "Compiled firmware file available", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+                JOptionPane.showMessageDialog(Cooja.getTopParentContainer(),
                         "No precompiled firmware found",
                         "Compiled firmware file not available", JOptionPane.ERROR_MESSAGE);
                 return false;

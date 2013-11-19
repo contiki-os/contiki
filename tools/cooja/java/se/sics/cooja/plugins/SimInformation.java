@@ -66,7 +66,7 @@ public class SimInformation extends VisPlugin {
    *
    * @param simulationToView Simulation to view
    */
-  public SimInformation(Simulation simulationToView, GUI gui) {
+  public SimInformation(Simulation simulationToView, Cooja gui) {
     super("Simulation Information", gui);
 
     simulation = simulationToView;
@@ -180,7 +180,7 @@ public class SimInformation extends VisPlugin {
     smallPane.add(Box.createHorizontalGlue());
 
     Class<? extends RadioMedium> radioMediumClass = simulation.getRadioMedium().getClass();
-    String description = GUI.getDescriptionOf(radioMediumClass);
+    String description = Cooja.getDescriptionOf(radioMediumClass);
     label = new JLabel(description);
 
     smallPane.add(label);

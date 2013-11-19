@@ -53,7 +53,7 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.SimEventCentral;
 import se.sics.cooja.Simulation;
 
@@ -65,7 +65,7 @@ public class BufferSettings extends JDialog {
   private SimEventCentral central;
 
   public static void showDialog(JDesktopPane parent, Simulation simulation) {
-    if (GUI.isVisualizedInApplet()) {
+    if (Cooja.isVisualizedInApplet()) {
       return;
     }
 
@@ -145,7 +145,7 @@ public class BufferSettings extends JDialog {
         return;
       }
 
-      GUI.setExternalToolsSetting("BUFFERSIZE_LOGOUTPUT", "" + central.getLogOutputBufferSize());
+      Cooja.setExternalToolsSetting("BUFFERSIZE_LOGOUTPUT", "" + central.getLogOutputBufferSize());
     }
   };
 

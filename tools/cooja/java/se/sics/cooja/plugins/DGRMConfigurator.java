@@ -60,7 +60,7 @@ import javax.swing.table.TableCellEditor;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
+import se.sics.cooja.Cooja;
 import se.sics.cooja.Mote;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
@@ -98,14 +98,14 @@ public class DGRMConfigurator extends VisPlugin {
     "Source", "Destination", "RX Ratio", "RSSI","LQI", "Delay"
   };
 
-  private GUI gui = null;
+  private Cooja gui = null;
   private DirectedGraphMedium radioMedium = null;
   private Observer radioMediumObserver;
   private JTable graphTable = null;
   private JComboBox combo = new JComboBox();
 	private JButton removeButton;
 
-  public DGRMConfigurator(Simulation sim, GUI gui) {
+  public DGRMConfigurator(Simulation sim, Cooja gui) {
     super("DGRM Configurator", gui);
     this.gui = gui;
     radioMedium = (DirectedGraphMedium) sim.getRadioMedium();
@@ -296,7 +296,7 @@ public class DGRMConfigurator extends VisPlugin {
     if (radioMedium.getEdges().length > 0) {
       String[] options = new String[] { "Remove", "Cancel" };
       int n = JOptionPane.showOptionDialog(
-          GUI.getTopParentContainer(),
+          Cooja.getTopParentContainer(),
           "Importing edges will remove all your existing edges.",
           "Clear edge table?", JOptionPane.YES_NO_OPTION,
           JOptionPane.WARNING_MESSAGE, null, options, options[0]);
@@ -310,9 +310,9 @@ public class DGRMConfigurator extends VisPlugin {
 
 		/* Select file to import edges from */
     JFileChooser fc = new JFileChooser();
-    File suggest = new File(GUI.getExternalToolsSetting("DGRM_IMPORT_LINKS_FILE", "cooja_dgrm_links.dat"));
+    File suggest = new File(Cooja.getExternalToolsSetting("DGRM_IMPORT_LINKS_FILE", "cooja_dgrm_links.dat"));
     fc.setSelectedFile(suggest);
-    int returnVal = fc.showOpenDialog(GUI.getTopParentContainer());
+    int returnVal = fc.showOpenDialog(Cooja.getTopParentContainer());
     if (returnVal != JFileChooser.APPROVE_OPTION) {
       return;
     }
@@ -321,13 +321,13 @@ public class DGRMConfigurator extends VisPlugin {
       logger.fatal("No read access to file: " + file);
       return;
     }
-    GUI.setExternalToolsSetting("DGRM_IMPORT_LINKS_FILE", file.getPath());
+    Cooja.setExternalToolsSetting("DGRM_IMPORT_LINKS_FILE", file.getPath());
 
     /* Parse and import edges */
     try {
     	importEdges(parseDGRMLinksFile(file, gui.getSimulation()));
     } catch (Exception e) {
-    	GUI.showErrorDialog(this, "Error when importing DGRM links from " + file.getName(), e, false);
+    	Cooja.showErrorDialog(this, "Error when importing DGRM links from " + file.getName(), e, false);
     }
 	}
 

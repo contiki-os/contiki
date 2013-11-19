@@ -85,7 +85,7 @@ public class Simulation extends Observable implements Runnable {
 
   private Thread simulationThread = null;
 
-  private GUI myGUI = null;
+  private Cooja myGUI = null;
 
   private long randomSeed = 123456;
 
@@ -290,7 +290,7 @@ public class Simulation extends Observable implements Runnable {
     	} else {
 
     		logger.fatal("Simulation stopped due to error: " + e.getMessage(), e);
-    		if (!GUI.isVisualized()) {
+    		if (!Cooja.isVisualized()) {
     			/* Quit simulator if in test mode */
     			System.exit(1);
     		} else {
@@ -298,7 +298,7 @@ public class Simulation extends Observable implements Runnable {
     		  if (nextEvent instanceof MoteTimeEvent) {
     		    title += ": " + ((MoteTimeEvent)nextEvent).getMote();
     		  }
-    		  GUI.showErrorDialog(GUI.getTopParentContainer(), title, e, false);
+    		  Cooja.showErrorDialog(Cooja.getTopParentContainer(), title, e, false);
     		}
     	}
     }
@@ -320,7 +320,7 @@ public class Simulation extends Observable implements Runnable {
   /**
    * Creates a new simulation
    */
-  public Simulation(GUI gui) {
+  public Simulation(Cooja gui) {
     myGUI = gui;
   }
 
@@ -396,7 +396,7 @@ public class Simulation extends Observable implements Runnable {
   /**
    * @return GUI holding this simulation
    */
-  public GUI getGUI() {
+  public Cooja getGUI() {
     return myGUI;
   }
 
@@ -619,7 +619,7 @@ public class Simulation extends Observable implements Runnable {
         // Show configure simulation dialog
         boolean createdOK = false;
         if (visAvailable) {
-          createdOK = CreateSimDialog.showDialog(GUI.getTopParentContainer(), this);
+          createdOK = CreateSimDialog.showDialog(Cooja.getTopParentContainer(), this);
         } else {
           createdOK = true;
         }
@@ -648,9 +648,9 @@ public class Simulation extends Observable implements Runnable {
 
         /* Try to recreate simulation using a different mote type */
         if (visAvailable) {
-          String[] availableMoteTypes = getGUI().getProjectConfig().getStringArrayValue("se.sics.cooja.GUI.MOTETYPES");
+          String[] availableMoteTypes = getGUI().getProjectConfig().getStringArrayValue("se.sics.cooja.Cooja.MOTETYPES");
           String newClass = (String) JOptionPane.showInputDialog(
-              GUI.getTopParentContainer(),
+              Cooja.getTopParentContainer(),
               "The simulation is about to load '" + moteTypeClassName + "'\n" +
               "You may try to load the simulation using a different mote type.\n",
               "Loading mote type",

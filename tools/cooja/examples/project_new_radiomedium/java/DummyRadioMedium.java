@@ -43,7 +43,7 @@ import se.sics.cooja.radiomediums.AbstractRadioMedium;
  */
 @ClassDescription("Dummy Radio Medium")
 public class DummyRadioMedium extends AbstractRadioMedium {
-  private static Logger logger = Logger.getLogger(GUI.class);
+  private static Logger logger = Logger.getLogger(Cooja.class);
 
   public DummyRadioMedium(Simulation simulation) {
     super(simulation);
