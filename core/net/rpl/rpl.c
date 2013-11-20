@@ -57,6 +57,47 @@
 rpl_stats_t rpl_stats;
 #endif
 
+static enum rpl_mode mode = RPL_MODE_MESH;
+/*---------------------------------------------------------------------------*/
+enum rpl_mode
+rpl_get_mode(void)
+{
+  return mode;
+}
+/*---------------------------------------------------------------------------*/
+enum rpl_mode
+rpl_set_mode(enum rpl_mode m)
+{
+  enum rpl_mode oldmode = mode;
+
+  /* We need to do different things depending on what mode we are
+     switching to. */
+  if(m == RPL_MODE_MESH) {
+
+    /* If we switcht to mesh mode, we should send out a DAO message to
+       inform our parent that we now are reachable. Before we do this,
+       we must set the mode variable, since DAOs will not be send if
+       we are in feather mode. */
+    PRINTF("RPL: switching to mesh mode\n");
+    mode = m;
+
+    if(default_instance != NULL) {
+      rpl_schedule_dao_immediately(default_instance);
+    }
+  } else if(m == RPL_MODE_FEATHER) {
+
+    PRINTF("RPL: switching to feather mode\n");
+    mode = m;
+    if(default_instance != NULL) {
+      rpl_cancel_dao(default_instance);
+    }
+
+  } else {
+    mode = m;
+  }
+
+  return oldmode;
+}
 /*---------------------------------------------------------------------------*/
 void
 rpl_purge_routes(void)

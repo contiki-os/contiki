@@ -793,6 +793,11 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
 
   /* Destination Advertisement Object */
 
+  /* If we are in feather mode, we should not send any DAOs */
+  if(rpl_get_mode() == RPL_MODE_FEATHER) {
+    return;
+  }
+
   if(parent == NULL) {
     PRINTF("RPL dao_output_target error parent NULL\n");
     return;

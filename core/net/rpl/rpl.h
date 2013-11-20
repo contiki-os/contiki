@@ -244,5 +244,38 @@ uip_ipaddr_t *rpl_get_parent_ipaddr(rpl_parent_t *nbr);
 rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
 uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
+
+
+/**
+ * RPL modes
+ *
+ * The RPL module can be in either of three modes: mesh mode
+ * (RPL_MODE_MESH), feater mode (RPL_MODE_FEATHER), and leaf mode
+ * (RPL_MODE_LEAF). In mesh mode, nodes forward data for other nodes,
+ * and are reachable by others. In feather mode, nodes can forward
+ * data for other nodes, but are not reachable themselves. In leaf
+ * mode, nodes do not forward data for others, but are reachable by
+ * others. */
+enum rpl_mode {
+  RPL_MODE_MESH = 0,
+  RPL_MODE_FEATHER = 1,
+  RPL_MODE_LEAF = 2,
+};
+
+/**
+ * Set the RPL mode
+ *
+ * \param mode The new RPL mode
+ * \retval The previous RPL mode
+ */
+enum rpl_mode rpl_set_mode(enum rpl_mode mode);
+
+/**
+ * Get the RPL mode
+ *
+ * \retval The RPL mode
+ */
+enum rpl_mode rpl_get_mode(void);
+
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */
