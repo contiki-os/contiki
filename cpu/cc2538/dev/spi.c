@@ -35,12 +35,27 @@
  */
 #include "contiki.h"
 #include "reg.h"
+#include "spi-arch.h"
 #include "dev/ioc.h"
 #include "dev/sys-ctrl.h"
 #include "dev/spi.h"
 #include "dev/ssi.h"
 #include "dev/gpio.h"
-#include "spi-arch.h"
+
+/* Default: Motorola mode 3 with 8-bit data words */
+#ifndef SPI_CONF_PHASE
+#define SPI_CONF_PHASE           SSI_CR0_SPH
+#endif
+#ifndef SPI_CONF_POLARITY
+#define SPI_CONF_POLARITY        SSI_CR0_SPO
+#endif
+#ifndef SPI_CONF_DATA_SIZE
+#define SPI_CONF_DATA_SIZE       8
+#endif
+
+#if SPI_CONF_DATA_SIZE < 4 || SPI_CONF_DATA_SIZE > 16
+#error SPI_CONF_DATA_SIZE must be set between 4 and 16 inclusive.
+#endif
 
 /**
  * \brief Initialize the SPI bus.
@@ -51,13 +66,15 @@
  *    CC2538_SPI_MISO_PORT_NUM   CC2538_SPI_MISO_PIN_NUM
  *    CC2538_SPI_SEL_PORT_NUM    CC2538_SPI_SEL_PIN_NUM
  *
- * This sets the SPI data width to 8 bits and the mode to Freescale mode 3.
+ * This sets the mode to Motorola SPI with the following format options:
+ *    SPI_CONF_PHASE:            0 or SSI_CR0_SPH
+ *    SPI_CONF_POLARITY:         0 or SSI_CR0_SPO
+ *    SPI_CONF_DATA_SIZE:        4 to 16 bits
  */
 void
 spi_init(void)
 {
-  /* Enable the SSI peripheral */
-  REG(SYS_CTRL_RCGCSSI) |= 1;
+  spi_enable();
 
   /* Start by disabling the peripheral before configuring it */
   REG(SSI0_BASE + SSI_CR1) = 0;
@@ -86,13 +103,24 @@ spi_init(void)
   /* Configure the clock */
   REG(SSI0_BASE + SSI_CPSR) = 2;
 
-  /* Put the ssi in motorola SPI mode with 8 bit data */
-  REG(SSI0_BASE + SSI_CR0) = SSI_CR0_SPH_M | SSI_CR0_SPO_M | (7);
+  /* Put the ssi in Motorola SPI mode using the provided format options */
+  REG(SSI0_BASE + SSI_CR0) = SPI_CONF_PHASE | SPI_CONF_POLARITY | (SPI_CONF_DATA_SIZE - 1);
 
   /* Enable the SSI */
   REG(SSI0_BASE + SSI_CR1) |= SSI_CR1_SSE;
-
-  /* Clear the RX FIFO */
-  SPI_WAITFOREORx();
+}
+/*---------------------------------------------------------------------------*/
+void
+spi_enable(void)
+{
+  /* Enable the clock for the SSI peripheral */
+  REG(SYS_CTRL_RCGCSSI) |= 1;
+}
+/*---------------------------------------------------------------------------*/
+void
+spi_disable(void)
+{
+  /* Gate the clock for the SSI peripheral */
+  REG(SYS_CTRL_RCGCSSI) &= ~1;
 }
 /** @} */
