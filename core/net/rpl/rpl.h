@@ -225,6 +225,7 @@ struct rpl_instance {
   clock_time_t dio_next_delay; /* delay for completion of dio interval */
   struct ctimer dio_timer;
   struct ctimer dao_timer;
+  struct ctimer dao_lifetime_timer;
 };
 
 /*---------------------------------------------------------------------------*/
