@@ -23,7 +23,7 @@ before_script:
   - "[ ${BUILD_ARCH:-0} = 8051 ] && sudo apt-get -qq install srecord || true"
 
   ## Compile cooja.jar only when it's going to be needed
-  - "[ ${BUILD_CATEGORY:-sim} = sim ] && java -version && ant -q -f tools/cooja/build.xml jar || true"
+  - "[ ${BUILD_CATEGORY:-sim} = sim ] && java -version && ant -q -f tools/cooja/build.xml jar && sudo java -Xshare:dump -version || true"
 
   ## IMPORTANT: The commands here have to end with `|| true`,
   ## because it would make the test fail if BUILD_TYPE test fails
