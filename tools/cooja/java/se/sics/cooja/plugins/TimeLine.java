@@ -1469,6 +1469,16 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       private int zoomInitialMouseY;
       private long zoomCenterTime = -1;
       private double zoomCenter = -1;
+
+      public void mouseWheelMoved(MouseWheelEvent e) {
+        if (! e.isControlDown()) return;
+
+        if (e.getWheelRotation()<0)
+          zoomInAction.actionPerformed(null);
+        else
+          zoomOutAction.actionPerformed(null);
+      }
+
       public void mouseDragged(MouseEvent e) {
         super.mouseDragged(e);
         if (e.isControlDown()) {
