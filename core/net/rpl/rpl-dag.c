@@ -701,8 +701,8 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   return best_dag;
 }
 /*---------------------------------------------------------------------------*/
-rpl_parent_t *
-rpl_select_parent(rpl_dag_t *dag)
+static rpl_parent_t *
+best_parent(rpl_dag_t *dag)
 {
   rpl_parent_t *p, *best;
 
@@ -719,6 +719,14 @@ rpl_select_parent(rpl_dag_t *dag)
     }
     p = nbr_table_next(rpl_parents, p);
   }
+
+  return best;
+}
+/*---------------------------------------------------------------------------*/
+rpl_parent_t *
+rpl_select_parent(rpl_dag_t *dag)
+{
+  rpl_parent_t *best = best_parent(dag);
 
   if(best != NULL) {
     rpl_set_preferred_parent(dag, best);
@@ -1287,6 +1295,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     uip_ds6_defrt_add(from, RPL_LIFETIME(instance, instance->default_lifetime));
   }
   p->dtsn = dio->dtsn;
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_lock_parent(rpl_parent_t *p)
+{
+  nbr_table_lock(rpl_parents, p);
 }
 /*---------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */
