@@ -146,7 +146,8 @@ dis_input(void)
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
 
-  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
     if(instance->used == 1) {
 #if RPL_LEAF_ONLY
       if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
@@ -667,6 +668,20 @@ dao_input(void)
       PRINTF("\n");
       rep->state.nopath_received = 1;
       rep->state.lifetime = DAO_EXPIRATION_TIMEOUT;
+
+      /* We forward the incoming no-path DAO to our parent, if we have
+         one. */
+      if(dag->preferred_parent != NULL &&
+         rpl_get_parent_ipaddr(dag->preferred_parent) != NULL) {
+        PRINTF("RPL: Forwarding no-path DAO to parent ");
+        PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
+        PRINTF("\n");
+        uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
+                       ICMP6_RPL, RPL_CODE_DAO, buffer_length);
+      }
+      if(flags & RPL_DAO_K_FLAG) {
+        dao_ack_output(instance, &dao_sender_addr, sequence);
+      }
     }
     return;
   }
