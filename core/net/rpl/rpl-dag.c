@@ -796,9 +796,7 @@ rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
   PRINT6ADDR(rpl_get_parent_ipaddr(parent));
   PRINTF("\n");
 
-  list_remove(dag_src->parents, parent);
   parent->dag = dag_dst;
-  list_add(dag_dst->parents, parent);
 }
 /*---------------------------------------------------------------------------*/
 rpl_dag_t *
@@ -1212,7 +1210,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   } else if(dio->rank == INFINITE_RANK && dag->joined) {
     rpl_reset_dio_timer(instance);
   }
-  
+
   /* Prefix Information Option treated to add new prefix */
   if(dio->prefix_info.length != 0) {
     if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
