@@ -46,9 +46,6 @@
 #include "sys/ctimer.h"
 
 /*---------------------------------------------------------------------------*/
-/* The amount of parents that this node has in a particular DAG. */
-#define RPL_PARENT_COUNT(dag)   list_length((dag)->parents)
-/*---------------------------------------------------------------------------*/
 typedef uint16_t rpl_rank_t;
 typedef uint16_t rpl_ocp_t;
 /*---------------------------------------------------------------------------*/
@@ -142,7 +139,6 @@ struct rpl_dag {
   rpl_parent_t *preferred_parent;
   rpl_rank_t rank;
   struct rpl_instance *instance;
-  LIST_STRUCT(parents);
   rpl_prefix_t prefix_info;
 };
 typedef struct rpl_dag rpl_dag_t;
