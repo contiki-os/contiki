@@ -32,9 +32,9 @@ import java.util.Collection;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
-import se.sics.cooja.interfaces.*;
-import se.sics.cooja.radiomediums.AbstractRadioMedium;
+import org.contikios.cooja.*;
+import org.contikios.cooja.interfaces.*;
+import org.contikios.cooja.radiomediums.AbstractRadioMedium;
 
 /**
  * Dummy radio medium.
@@ -43,7 +43,7 @@ import se.sics.cooja.radiomediums.AbstractRadioMedium;
  */
 @ClassDescription("Dummy Radio Medium")
 public class DummyRadioMedium extends AbstractRadioMedium {
-  private static Logger logger = Logger.getLogger(GUI.class);
+  private static Logger logger = Logger.getLogger(Cooja.class);
 
   public DummyRadioMedium(Simulation simulation) {
     super(simulation);
