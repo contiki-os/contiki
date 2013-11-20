@@ -69,10 +69,17 @@ static const void *pending_data;
 PROCESS(cooja_radio_process, "cooja radio process");
 
 /*---------------------------------------------------------------------------*/
-void
+int
 radio_set_channel(int channel)
 {
   simRadioChannel = channel;
+  return simRadioChannel;
+}
+/*---------------------------------------------------------------------------*/
+int
+radio_get_channel(void)
+{
+  return simRadioChannel;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -279,6 +286,8 @@ const struct radio_driver cooja_radio_driver =
     transmit_packet,
     radio_send,
     radio_read,
+    radio_set_channel,
+    radio_get_channel,
     channel_clear,
     receiving_packet,
     pending_packet,

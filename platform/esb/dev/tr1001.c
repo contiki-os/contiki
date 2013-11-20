@@ -170,6 +170,8 @@ const struct radio_driver tr1001_driver = {
   transmit_packet,
   tr1001_send,
   tr1001_read,
+  NULL,
+  NULL,
   channel_clear,
   receiving_packet,
   pending_packet,

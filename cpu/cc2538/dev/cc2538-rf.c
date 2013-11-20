@@ -128,17 +128,17 @@ static int off(void);
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2538_rf_process, "cc2538 RF driver");
 /*---------------------------------------------------------------------------*/
-uint8_t
+int
 cc2538_rf_channel_get()
 {
-  uint8_t chan = REG(RFCORE_XREG_FREQCTRL) & RFCORE_XREG_FREQCTRL_FREQ;
+  int chan = REG(RFCORE_XREG_FREQCTRL) & RFCORE_XREG_FREQCTRL_FREQ;
 
   return ((chan - CC2538_RF_CHANNEL_MIN) / CC2538_RF_CHANNEL_SPACING
           + CC2538_RF_CHANNEL_MIN);
 }
 /*---------------------------------------------------------------------------*/
-int8_t
-cc2538_rf_channel_set(uint8_t channel)
+int
+cc2538_rf_channel_set(int channel)
 {
   PRINTF("RF: Set Channel\n");
 
@@ -152,7 +152,7 @@ cc2538_rf_channel_set(uint8_t channel)
       + (channel - CC2538_RF_CHANNEL_MIN) * CC2538_RF_CHANNEL_SPACING);
   on();
 
-  return (int8_t) channel;
+  return channel;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -619,6 +619,8 @@ const struct radio_driver cc2538_rf_driver = {
   transmit,
   send,
   read,
+  cc2538_rf_channel_set,
+  cc2538_rf_channel_get,
   channel_clear,
   receiving_packet,
   pending_packet,

@@ -122,7 +122,8 @@ const struct radio_driver cc2520_driver =
     cc2520_transmit,
     cc2520_send,
     cc2520_read,
-    /* cc2520_set_channel, */
+    cc2520_set_channel,
+    cc2520_get_channel,
     /* detected_energy, */
     cc2520_cca,
     cc2520_receiving_packet,
@@ -552,7 +553,7 @@ cc2520_set_channel(int c)
   }
 
   RELEASE_LOCK();
-  return 1;
+  return channel;
 }
 /*---------------------------------------------------------------------------*/
 void

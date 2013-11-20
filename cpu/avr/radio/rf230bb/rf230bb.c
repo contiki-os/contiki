@@ -259,6 +259,8 @@ const struct radio_driver rf230_driver =
     rf230_transmit,
     rf230_send,
     rf230_read,
+    rf230_set_channel,
+    rf230_get_channel,
     rf230_cca,
     rf230_receiving_packet,
     rf230_pending_packet,
@@ -1201,7 +1203,7 @@ rf230_on(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-uint8_t
+int
 rf230_get_channel(void)
 {
 //jackdaw reads zero channel, raven reads correct channel?
@@ -1209,14 +1211,15 @@ rf230_get_channel(void)
   return channel;
 }
 /*---------------------------------------------------------------------------*/
-void
-rf230_set_channel(uint8_t c)
+int
+rf230_set_channel(int c)
 {
  /* Wait for any transmission to end. */
   PRINTF("rf230: Set Channel %u\n",c);
   rf230_waitidle();
   channel=c;
   hal_subregister_write(SR_CHANNEL, c);
+  return c;
 }
 /*---------------------------------------------------------------------------*/
 void

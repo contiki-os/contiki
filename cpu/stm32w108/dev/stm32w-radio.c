@@ -271,6 +271,8 @@ const struct radio_driver stm32w_radio_driver = {
   stm32w_radio_transmit,
   stm32w_radio_send,
   stm32w_radio_read,
+  stm32w_radio_set_channel,
+  stm32w_radio_get_channel,
   stm32w_radio_channel_clear,
   stm32w_radio_receiving_packet,
   stm32w_radio_pending_packet,
@@ -317,13 +319,19 @@ stm32w_radio_set_promiscous(uint8_t on)
 }
 /*---------------------------------------------------------------------------*/
 int
-stm32w_radio_set_channel(uint8_t channel)
+stm32w_radio_set_channel(int channel)
 {
   if (ST_RadioSetChannel(channel) == ST_SUCCESS) {
-    return 0;
+    return channel;
   } else {
-    return 1;
+    return -1;
   }
+}
+/*---------------------------------------------------------------------------*/
+int
+stm32w_radio_get_channel(void)
+{
+  return (int) ST_RadioGetChannel();
 }
 /*---------------------------------------------------------------------------*/
 static int

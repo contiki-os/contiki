@@ -113,6 +113,8 @@ const struct radio_driver cc1020_driver =
     cc1020_transmit,
     cc1020_send,
     cc1020_read,
+    NULL,
+    NULL,
     cc1020_channel_clear,
     cc1020_receiving_packet,
     cc1020_pending_packet,
