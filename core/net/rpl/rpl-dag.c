@@ -184,7 +184,7 @@ nullify_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 {
   rpl_parent_t *p;
 
-  PRINTF("RPL: Removing parents (minimum rank %u)\n",
+  PRINTF("RPL: Nullifying parents (minimum rank %u)\n",
 	minimum_rank);
 
   p = nbr_table_head(rpl_parents);
@@ -547,7 +547,9 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
    * Typically, the parent is added upon receiving a DIO. */
   const uip_lladdr_t *lladdr = uip_ds6_nbr_lladdr_from_ipaddr(addr);
 
-  PRINTF("RPL: rpl_add_parent lladdr %p\n", lladdr);
+  PRINTF("RPL: rpl_add_parent lladdr %p ", lladdr);
+  PRINT6ADDR(addr);
+  PRINTF("\n");
   if(lladdr != NULL) {
     /* Add parent in rpl_parents */
     p = nbr_table_add_lladdr(rpl_parents, (rimeaddr_t *)lladdr);
