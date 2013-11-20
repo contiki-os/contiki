@@ -77,6 +77,7 @@
 #include "hal/micro/cortexm3/mfg-token.h"
 #endif
 #include <string.h>
+#include "dev/i2c.h"
 
 const LedResourceType LedsMB851A[] = {
   {
@@ -496,6 +497,7 @@ void halBoardPowerUp(void)
   if ((boardDescription->flags & BOARD_HAS_MEMS) || (boardDescription->flags & BOARD_HAS_EEPROM)) {
     halGpioConfig(PORTA_PIN(1), GPIOCFG_OUT_ALT_OD);
     halGpioConfig(PORTA_PIN(2), GPIOCFG_OUT_ALT_OD);
+    i2c_enable();
   }
   /* Configure GPIO for ADC access (temp sensor) */
   if (boardDescription->flags & BOARD_HAS_TEMP_SENSOR) {
