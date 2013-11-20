@@ -173,8 +173,8 @@ free_packet(struct neighbor_queue *n, struct rdc_buf_list *p)
     queuebuf_free(p->buf);
     memb_free(&metadata_memb, p->ptr);
     memb_free(&packet_memb, p);
-    PRINTF("csma: free_queued_packet, queue length %d\n",
-        list_length(n->queued_packet_list));
+    PRINTF("csma: free_queued_packet, queue length %d, free packets %d\n",
+           list_length(n->queued_packet_list), memb_numfree(&packet_memb));
     if(list_head(n->queued_packet_list) != NULL) {
       /* There is a next packet. We reset current tx information */
       n->transmissions = 0;
@@ -298,7 +298,11 @@ packet_sent(void *ptr, int status, int num_transmissions)
         free_packet(n, q);
         mac_call_sent_callback(sent, cptr, status, num_tx);
       }
+    } else {
+      PRINTF("csma: no metadata\n");
     }
+  } else {
+    PRINTF("csma: seqno %d not found\n", packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -369,6 +373,8 @@ send_packet(mac_callback_t sent, void *ptr)
 	    list_add(n->queued_packet_list, q);
 	  }
 
+          PRINTF("csma: send_packet, queue length %d, free packets %d\n",
+                 list_length(n->queued_packet_list), memb_numfree(&packet_memb));
 	  /* If q is the first packet in the neighbor's queue, send asap */
 	  if(list_head(n->queued_packet_list) == q) {
 	    ctimer_set(&n->transmit_timer, 0, transmit_packet_list, n);
