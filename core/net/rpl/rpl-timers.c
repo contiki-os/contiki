@@ -250,6 +250,10 @@ schedule_dao(rpl_instance_t *instance, clock_time_t latency)
 {
   clock_time_t expiration_time;
 
+  if(rpl_get_mode() == RPL_MODE_FEATHER) {
+    return;
+  }
+
   expiration_time = etimer_expiration_time(&instance->dao_timer.etimer);
 
   if(!etimer_expired(&instance->dao_timer.etimer)) {
