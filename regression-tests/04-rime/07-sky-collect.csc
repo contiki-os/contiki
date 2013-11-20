@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/avrora</project>
-  <project>../apps/native_gateway</project>
+  <project EXPORT="discard">[APPS_DIR]/mrm</project>
+  <project EXPORT="discard">[APPS_DIR]/mspsim</project>
+  <project EXPORT="discard">[APPS_DIR]/avrora</project>
+  <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
+  <project EXPORT="discard">[APPS_DIR]/collect-view</project>
+  <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>My simulation</title>
-    <delaytime>0</delaytime>
     <randomseed>generated</randomseed>
     <motedelay_us>10000000</motedelay_us>
     <radiomedium>
@@ -16,14 +17,17 @@
       <success_ratio_tx>0.9</success_ratio_tx>
       <success_ratio_rx>0.9</success_ratio_rx>
     </radiomedium>
+    <events>
+      <logoutput>40000</logoutput>
+    </events>
     <motetype>
       org.contikios.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>[CONTIKI_DIR]/examples/sky/sky-collect.c</source>
-      <commands>make clean TARGET=sky
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/sky/sky-collect.c</source>
+      <commands EXPORT="discard">make clean TARGET=sky
 make sky-collect.sky TARGET=sky</commands>
-      <firmware>[CONTIKI_DIR]/examples/sky/sky-collect.sky</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky/sky-collect.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -31,13 +35,11 @@ make sky-collect.sky TARGET=sky</commands>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyFlash</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -49,10 +51,9 @@ make sky-collect.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -64,10 +65,9 @@ make sky-collect.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -79,10 +79,9 @@ make sky-collect.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>3</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -94,10 +93,9 @@ make sky-collect.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>4</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -109,10 +107,9 @@ make sky-collect.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>5</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -124,10 +121,9 @@ make sky-collect.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>6</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -139,6 +135,7 @@ make sky-collect.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>7</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -148,20 +145,19 @@ make sky-collect.sky TARGET=sky</commands>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Visualizer
     <plugin_config>
-      <skin>Mote IDs</skin>
-      <skin>Radio environment (UDGM)</skin>
+      <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <viewport>1.9551775516837413 0.0 0.0 1.9551775516837413 87.61059024269439 -50.01503690267507</viewport>
     </plugin_config>
     <width>264</width>
     <z>1</z>
     <height>185</height>
     <location_x>0</location_x>
     <location_y>200</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
@@ -225,7 +221,6 @@ while (true) {
     <height>385</height>
     <location_x>266</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -238,15 +233,13 @@ while (true) {
       <mote>5</mote>
       <mote>6</mote>
       <showRadioRXTX />
-      <split>109</split>
-      <zoom>9</zoom>
+      <zoomfactor>500.0</zoomfactor>
     </plugin_config>
     <width>866</width>
     <z>0</z>
     <height>152</height>
     <location_x>0</location_x>
     <location_y>384</location_y>
-    <minimized>false</minimized>
   </plugin>
 </simconf>
 

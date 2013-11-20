@@ -22,9 +22,9 @@
     </events>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype140</identifier>
+      <identifier>mtype812</identifier>
       <description>Cooja Mote Type #1</description>
-      <source>[CONFIG_DIR]/code/mesh-node.c</source>
+      <source>[CONTIKI_DIR]/regression-tests/04-rime/code/mesh-node.c</source>
       <commands>make mesh-node.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
@@ -59,7 +59,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -76,7 +76,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -93,7 +93,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -110,7 +110,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -127,7 +127,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -144,7 +144,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -161,7 +161,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -178,7 +178,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -195,7 +195,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -212,7 +212,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -229,7 +229,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -246,7 +246,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -263,7 +263,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -280,7 +280,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -297,7 +297,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -314,7 +314,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -331,7 +331,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -348,7 +348,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -365,7 +365,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -382,7 +382,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -399,7 +399,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -416,7 +416,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -433,7 +433,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -450,7 +450,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -467,7 +467,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -484,7 +484,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -501,7 +501,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -518,7 +518,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -535,7 +535,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -552,7 +552,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -569,7 +569,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -586,7 +586,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -603,7 +603,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -620,7 +620,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -637,7 +637,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -654,7 +654,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -671,7 +671,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -688,7 +688,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -705,7 +705,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -722,7 +722,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -739,7 +739,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -756,7 +756,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -773,7 +773,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -790,7 +790,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -807,7 +807,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -824,7 +824,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -841,7 +841,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -858,7 +858,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -875,7 +875,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -892,7 +892,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -909,7 +909,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -926,7 +926,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -943,7 +943,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -960,7 +960,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -977,7 +977,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -994,7 +994,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1011,7 +1011,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1028,7 +1028,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1045,7 +1045,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1062,7 +1062,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1079,7 +1079,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1096,7 +1096,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1113,7 +1113,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1130,7 +1130,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1147,7 +1147,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1164,7 +1164,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1181,7 +1181,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1198,7 +1198,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1215,7 +1215,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1232,7 +1232,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1249,7 +1249,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1266,7 +1266,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1283,7 +1283,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1300,7 +1300,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1317,7 +1317,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1334,7 +1334,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1351,7 +1351,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1368,7 +1368,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1385,7 +1385,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1402,7 +1402,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1419,7 +1419,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1436,7 +1436,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1453,7 +1453,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1470,7 +1470,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1487,7 +1487,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1504,7 +1504,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1521,7 +1521,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1538,7 +1538,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1555,7 +1555,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1572,7 +1572,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1589,7 +1589,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1606,7 +1606,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1623,7 +1623,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1640,7 +1640,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1657,7 +1657,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1674,7 +1674,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1691,7 +1691,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1708,7 +1708,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1725,7 +1725,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1742,7 +1742,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1759,7 +1759,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1776,7 +1776,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1793,7 +1793,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1810,7 +1810,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1827,7 +1827,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1844,7 +1844,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1861,7 +1861,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1878,7 +1878,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1895,7 +1895,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1912,7 +1912,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1929,7 +1929,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1946,7 +1946,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1963,7 +1963,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1980,7 +1980,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1997,7 +1997,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2014,7 +2014,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2031,7 +2031,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2048,7 +2048,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2065,7 +2065,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2082,7 +2082,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2099,7 +2099,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2116,7 +2116,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2133,7 +2133,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2150,7 +2150,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2167,7 +2167,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2184,7 +2184,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2201,7 +2201,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2218,7 +2218,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2235,7 +2235,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2252,7 +2252,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2269,7 +2269,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2286,7 +2286,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2303,7 +2303,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2320,7 +2320,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2337,7 +2337,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2354,7 +2354,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2371,7 +2371,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2388,7 +2388,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2405,7 +2405,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2422,7 +2422,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2439,7 +2439,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2456,7 +2456,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2473,7 +2473,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2490,7 +2490,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2507,7 +2507,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2524,7 +2524,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2541,7 +2541,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2558,7 +2558,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2575,7 +2575,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2592,7 +2592,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2609,7 +2609,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2626,7 +2626,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2643,7 +2643,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2660,7 +2660,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2677,7 +2677,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2694,7 +2694,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2711,7 +2711,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2728,7 +2728,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2745,7 +2745,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2762,7 +2762,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2779,7 +2779,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2796,7 +2796,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2813,7 +2813,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2830,7 +2830,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2847,7 +2847,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2864,7 +2864,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2881,7 +2881,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2898,7 +2898,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2915,7 +2915,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2932,7 +2932,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2949,7 +2949,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2966,7 +2966,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2983,7 +2983,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3000,7 +3000,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3017,7 +3017,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3034,7 +3034,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3051,7 +3051,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3068,7 +3068,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3085,7 +3085,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3102,7 +3102,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3119,7 +3119,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3136,7 +3136,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3153,7 +3153,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3170,7 +3170,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3187,7 +3187,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3204,7 +3204,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3221,7 +3221,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3238,7 +3238,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3255,7 +3255,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3272,7 +3272,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3289,7 +3289,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3306,7 +3306,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3323,7 +3323,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3340,7 +3340,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3357,7 +3357,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3374,7 +3374,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3391,7 +3391,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3408,7 +3408,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3425,7 +3425,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3442,7 +3442,7 @@
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype140</motetype_identifier>
+      <motetype_identifier>mtype812</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -3473,6 +3473,7 @@
     <plugin_config>
       <filter />
       <formatted_time />
+      <coloring />
     </plugin_config>
     <width>1200</width>
     <z>3</z>

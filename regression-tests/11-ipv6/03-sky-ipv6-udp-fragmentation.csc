@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
+  <project EXPORT="discard">[APPS_DIR]/mrm</project>
+  <project EXPORT="discard">[APPS_DIR]/mspsim</project>
+  <project EXPORT="discard">[APPS_DIR]/avrora</project>
+  <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
+  <project EXPORT="discard">[APPS_DIR]/collect-view</project>
+  <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>My simulation</title>
-    <delaytime>0</delaytime>
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -33,7 +38,7 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyFlash</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
@@ -56,7 +61,7 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyFlash</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
@@ -94,7 +99,7 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>248</width>
-    <z>4</z>
+    <z>0</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -107,7 +112,7 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,
       <coloring />
     </plugin_config>
     <width>683</width>
-    <z>1</z>
+    <z>2</z>
     <height>550</height>
     <location_x>12</location_x>
     <location_y>417</location_y>
@@ -123,7 +128,7 @@ make udp-client.sky TARGET=sky DEFINES=UDP_CONNECTION_ADDR=fe80::212:7402:2:202,
       <viewport>6.1185311939665725 0.0 0.0 6.1185311939665725 -264.82328143448046 -341.0405575126179</viewport>
     </plugin_config>
     <width>250</width>
-    <z>2</z>
+    <z>3</z>
     <height>183</height>
     <location_x>6</location_x>
     <location_y>214</location_y>
@@ -150,7 +155,7 @@ log.testOK(); /* Report test success and quit */</script>
       <active>true</active>
     </plugin_config>
     <width>572</width>
-    <z>0</z>
+    <z>1</z>
     <height>552</height>
     <location_x>704</location_x>
     <location_y>417</location_y>
@@ -159,10 +164,13 @@ log.testOK(); /* Report test success and quit */</script>
     org.contikios.cooja.plugins.RadioLogger
     <plugin_config>
       <split>183</split>
+      <formatted_time />
+      <showdups>false</showdups>
+      <hidenodests>false</hidenodests>
       <analyzers name="6lowpan" />
     </plugin_config>
     <width>1008</width>
-    <z>3</z>
+    <z>4</z>
     <height>406</height>
     <location_x>261</location_x>
     <location_y>7</location_y>
