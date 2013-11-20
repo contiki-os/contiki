@@ -96,9 +96,9 @@ rpl_get_parent_rank(uip_lladdr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
-rpl_get_parent_link_metric(uip_lladdr_t *addr)
+rpl_get_parent_link_metric(const uip_lladdr_t *addr)
 {
-  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (rimeaddr_t *)addr);
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (const rimeaddr_t *)addr);
   if(p != NULL) {
     return p->link_metric;
   } else {
@@ -539,7 +539,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   rpl_parent_t *p = NULL;
   /* Is the parent known by ds6? Drop this request if not.
    * Typically, the parent is added upon receiving a DIO. */
-  uip_lladdr_t *lladdr = uip_ds6_nbr_lladdr_from_ipaddr(addr);
+  const uip_lladdr_t *lladdr = uip_ds6_nbr_lladdr_from_ipaddr(addr);
 
   PRINTF("RPL: rpl_add_parent lladdr %p\n", lladdr);
   if(lladdr != NULL) {
@@ -561,7 +561,7 @@ static rpl_parent_t *
 find_parent_any_dag_any_instance(uip_ipaddr_t *addr)
 {
   uip_ds6_nbr_t *ds6_nbr = uip_ds6_nbr_lookup(addr);
-  uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(ds6_nbr);
+  const uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(ds6_nbr);
   return nbr_table_get_from_lladdr(rpl_parents, (rimeaddr_t *)lladdr);
 }
 /*---------------------------------------------------------------------------*/

@@ -97,7 +97,7 @@ int nbr_table_unlock(nbr_table_t *table, nbr_table_item_t *item);
 
 /** \name Neighbor tables: address manipulation */
 /** @{ */
-rimeaddr_t *nbr_table_get_lladdr(nbr_table_t *table, nbr_table_item_t *item);
+rimeaddr_t *nbr_table_get_lladdr(nbr_table_t *table, const nbr_table_item_t *item);
 /** @} */
 
 #endif /* _NBR_TABLE_H_ */
