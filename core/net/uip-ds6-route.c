@@ -261,7 +261,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
 #endif /* DEBUG != DEBUG_NONE */
 
   /* Get link-layer address of next hop, make sure it is in neighbor table */
-  uip_lladdr_t *nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);
+  const uip_lladdr_t *nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);
   if(nexthop_lladdr == NULL) {
     PRINTF("uip_ds6_route_add: neighbor link-local address unknown ");
     PRINT6ADDR(ipaddr);
@@ -440,7 +440,7 @@ void
 uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
 {
   /* Get routing entry list of this neighbor */
-  uip_lladdr_t *nexthop_lladdr;
+  const uip_lladdr_t *nexthop_lladdr;
   struct uip_ds6_route_neighbor_routes *routes;
 
   nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);

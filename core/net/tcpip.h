@@ -340,8 +340,8 @@ CCIF void tcpip_input(void);
  * The eventual parameter is the MAC address of the destination.
  */
 #if UIP_CONF_IPV6
-uint8_t tcpip_output(uip_lladdr_t *);
-void tcpip_set_outputfunc(uint8_t (* f)(uip_lladdr_t *));
+uint8_t tcpip_output(const uip_lladdr_t *);
+void tcpip_set_outputfunc(uint8_t (* f)(const uip_lladdr_t *));
 #else
 uint8_t tcpip_output(void);
 void tcpip_set_outputfunc(uint8_t (* f)(void));

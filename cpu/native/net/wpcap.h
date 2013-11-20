@@ -39,8 +39,8 @@ void wpcap_init(void);
 uint16_t wpcap_poll(void);
 uint16_t wfall_poll(void);
 #if UIP_CONF_IPV6
-uint8_t wpcap_send(uip_lladdr_t *lladdr);
-uint8_t wfall_send(uip_lladdr_t *lladdr);
+uint8_t wpcap_send(const uip_lladdr_t *lladdr);
+uint8_t wfall_send(const uip_lladdr_t *lladdr);
 #else
 void wpcap_send(void);
 #endif
