@@ -579,6 +579,7 @@ dao_input(void)
   int i;
   int learned_from;
   rpl_parent_t *p;
+  uip_ds6_nbr_t *nbr;
 
   prefixlen = 0;
 
@@ -716,7 +717,6 @@ dao_input(void)
 
   PRINTF("RPL: adding DAO route\n");
 
-  uip_ds6_nbr_t *nbr;
   if((nbr = uip_ds6_nbr_lookup(&dao_sender_addr)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&dao_sender_addr,
                               (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER),
