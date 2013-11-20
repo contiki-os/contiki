@@ -33,10 +33,10 @@ import javax.swing.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
-import se.sics.cooja.contikimote.ContikiMoteInterface;
-import se.sics.cooja.interfaces.PolledAfterAllTicks;
-import se.sics.cooja.interfaces.PolledBeforeAllTicks;
+import org.contikios.cooja.*;
+import org.contikios.cooja.contikimote.ContikiMoteInterface;
+import org.contikios.cooja.interfaces.PolledAfterAllTicks;
+import org.contikios.cooja.interfaces.PolledBeforeAllTicks;
 
 /**
  * An example of how to implement new mote interfaces.

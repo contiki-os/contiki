@@ -10,94 +10,94 @@
     <randomseed>1</randomseed>
     <motedelay_us>10000000</motedelay_us>
     <radiomedium>
-      se.sics.cooja.radiomediums.UDGM
+      org.contikios.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
       <interference_range>0.0</interference_range>
       <success_ratio_tx>0.9</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
     <motetype>
-      se.sics.cooja.mspmote.SkyMoteType
+      org.contikios.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>[CONTIKI_DIR]/examples/rime/example-runicast.c</source>
       <commands>make clean TARGET=sky
 make example-runicast.sky TARGET=sky</commands>
       <firmware>[CONTIKI_DIR]/examples/rime/example-runicast.sky</firmware>
-      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
+      org.contikios.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
-        se.sics.cooja.interfaces.Position
+        org.contikios.cooja.interfaces.Position
         <x>3.0783332685337617</x>
         <y>38.39795740836801</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspMoteID
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
+      org.contikios.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
-        se.sics.cooja.interfaces.Position
+        org.contikios.cooja.interfaces.Position
         <x>1.1986251808192212</x>
         <y>53.65838347315817</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspMoteID
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
       </interface_config>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
+      org.contikios.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
-        se.sics.cooja.interfaces.Position
+        org.contikios.cooja.interfaces.Position
         <x>34.432838059195255</x>
         <y>38.26541658684913</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspMoteID
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>3</id>
       </interface_config>
     </mote>
     <mote>
-      se.sics.cooja.mspmote.SkyMote
+      org.contikios.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
-        se.sics.cooja.interfaces.Position
+        org.contikios.cooja.interfaces.Position
         <x>150.85510197745134</x>
         <y>141.37553211643905</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspMoteID
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>4</id>
       </interface_config>
     </mote>
   </simulation>
   <plugin>
-    se.sics.cooja.plugins.SimControl
+    org.contikios.cooja.plugins.SimControl
     <width>265</width>
     <z>4</z>
     <height>200</height>
@@ -106,7 +106,7 @@ make example-runicast.sky TARGET=sky</commands>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.LogListener
+    org.contikios.cooja.plugins.LogListener
     <plugin_config>
       <filter>received</filter>
     </plugin_config>
@@ -118,7 +118,7 @@ make example-runicast.sky TARGET=sky</commands>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.Visualizer
+    org.contikios.cooja.plugins.Visualizer
     <plugin_config>
       <skin>Mote IDs</skin>
       <skin>Radio environment (UDGM)</skin>
@@ -131,7 +131,7 @@ make example-runicast.sky TARGET=sky</commands>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.RadioLogger
+    org.contikios.cooja.plugins.RadioLogger
     <width>276</width>
     <z>1</z>
     <height>324</height>
@@ -140,7 +140,7 @@ make example-runicast.sky TARGET=sky</commands>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.ScriptRunner
+    org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
       <script>TIMEOUT(240000);
 
