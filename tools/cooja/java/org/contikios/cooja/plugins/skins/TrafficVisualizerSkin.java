@@ -130,7 +130,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
         history = null;
 
         /* Start observing radio medium for transmissions */
-        radioMedium.addRadioMediumObserver(radioMediumObserver);
+        radioMedium.addRadioTransmissionObserver(radioMediumObserver);
 
         /* Fade away arrows */
         simulation.scheduleEvent(ageArrowsTimeEvent, simulation.getSimulationTime() + 100*Simulation.MILLISECOND);
@@ -146,7 +146,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     }
 
     /* Stop observing radio medium */
-    radioMedium.deleteRadioMediumObserver(radioMediumObserver);
+    radioMedium.deleteRadioTransmissionObserver(radioMediumObserver);
   }
 
   public Color[] getColorOf(Mote mote) {

@@ -143,6 +143,9 @@ public class MRM extends AbstractRadioMedium {
   public void registerRadioInterface(Radio radio, Simulation sim) {
         super.registerRadioInterface(radio, sim);
         
+        /* Radio Medium changed here so notify Observers */
+        radioMediumObservable.setChangedAndNotify();
+        
         if (WITH_NOISE && radio instanceof NoiseSourceRadio) {
                 ((NoiseSourceRadio)radio).addNoiseLevelListener(noiseListener);
         }
@@ -150,6 +153,9 @@ public class MRM extends AbstractRadioMedium {
   public void unregisterRadioInterface(Radio radio, Simulation sim) {
         super.unregisterRadioInterface(radio, sim);
 
+        /* Radio Medium changed here so notify Observers */
+        radioMediumObservable.setChangedAndNotify();
+        
         if (WITH_NOISE && radio instanceof NoiseSourceRadio) {
                 ((NoiseSourceRadio)radio).removeNoiseLevelListener(noiseListener);
         }
