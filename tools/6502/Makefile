@@ -55,6 +55,7 @@ all: apple2 atari c64 c128
 
 define makes
 $1-makes:
+	$(MAKE) -C ../../cpu/6502/ethconfig     TARGET=$1
 	$(MAKE) -C ../../cpu/6502/ipconfig      TARGET=$1
 	$(MAKE) -C ../../examples/webbrowser    TARGET=$1
 	$(MAKE) -C ../../examples/wget          TARGET=$1
@@ -73,6 +74,8 @@ apple2: contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.dsk contiki-a
 contiki-apple2-1.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
+	java -jar $(AC) -p    $@ ethconfi.system sys 0 < $(CC65_HOME)/targetutil/loader.system
+	java -jar $(AC) -cc65 $@ ethconfi        bin 0 < ../../cpu/6502/ethconfig/ethconfig.apple2enh
 	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
 	java -jar $(AC) -p    $@ webbrows.system sys 0 < $(CC65_HOME)/targetutil/loader.system
@@ -80,13 +83,16 @@ contiki-apple2-1.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ wget.system     sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ wget            bin   < ../../examples/wget/wget.apple2enh
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
-	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
-	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
+	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 
 contiki-apple2-2.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
+	java -jar $(AC) -p    $@ ethconfi.system sys 0 < $(CC65_HOME)/targetutil/loader.system
+	java -jar $(AC) -cc65 $@ ethconfi        bin 0 < ../../cpu/6502/ethconfig/ethconfig.apple2enh
 	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
 	java -jar $(AC) -p    $@ irc.system      sys 0 < $(CC65_HOME)/targetutil/loader.system
@@ -94,13 +100,16 @@ contiki-apple2-2.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ breadbox.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ breadbox        bin   < ../../../contikiprojects/vandenbrande.com/twitter/platform/apple2enh/breadbox64.apple2enh
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
-	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
-	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
+	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 
 contiki-apple2-3.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
+	java -jar $(AC) -p    $@ ethconfi.system sys 0 < $(CC65_HOME)/targetutil/loader.system
+	java -jar $(AC) -cc65 $@ ethconfi        bin 0 < ../../cpu/6502/ethconfig/ethconfig.apple2enh
 	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
 	java -jar $(AC) -p    $@ email.system    sys 0 < $(CC65_HOME)/targetutil/loader.system
@@ -108,13 +117,16 @@ contiki-apple2-3.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ ftp.system      sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ftp             bin   < ../../examples/ftp/ftp-client.apple2enh
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
-	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
-	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
+	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 
 contiki-apple2-4.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
+	java -jar $(AC) -p    $@ ethconfi.system sys 0 < $(CC65_HOME)/targetutil/loader.system
+	java -jar $(AC) -cc65 $@ ethconfi        bin 0 < ../../cpu/6502/ethconfig/ethconfig.apple2enh
 	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
 	java -jar $(AC) -p    $@ webserv.system  sys 0 < $(CC65_HOME)/targetutil/loader.system
@@ -122,8 +134,9 @@ contiki-apple2-4.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ telnetd.system  sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ telnetd         bin   < ../../examples/telnet-server/telnet-server.apple2enh
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
-	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
-	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
+	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 	java -jar $(AC) -p    $@ index.htm       bin 0 < ../../examples/webserver/httpd-cfs/index.htm
 	java -jar $(AC) -p    $@ backgrnd.gif    bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
@@ -133,6 +146,8 @@ contiki-apple2-4.dsk: apple2enh-makes
 contiki-apple2.2mg: apple2enh-makes
 	cp ../apple2enh/prodos.2mg $@
 	java -jar $(AC) -p    $@ menu.system     sys 0 < ../apple2enh/menu.system
+	java -jar $(AC) -p    $@ ethconfi.system sys 0 < $(CC65_HOME)/targetutil/loader.system
+	java -jar $(AC) -cc65 $@ ethconfi        bin 0 < ../../cpu/6502/ethconfig/ethconfig.apple2enh
 	java -jar $(AC) -p    $@ ipconfig.system sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ipconfig        bin 0 < ../../cpu/6502/ipconfig/ipconfig.apple2enh
 	java -jar $(AC) -p    $@ webbrows.system sys 0 < $(CC65_HOME)/targetutil/loader.system
@@ -152,8 +167,9 @@ contiki-apple2.2mg: apple2enh-makes
 	java -jar $(AC) -p    $@ telnetd.system  sys 0 < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ telnetd         bin   < ../../examples/telnet-server/telnet-server.apple2enh
 	java -jar $(AC) -p    $@ contiki.cfg     bin 0 < ../apple2enh/default.cfg
-	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ipconfig/cs8900a.eth
-	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ipconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
+	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
+	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
 	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 	java -jar $(AC) -p    $@ index.htm       bin 0 < ../../examples/webserver/httpd-cfs/index.htm
 	java -jar $(AC) -p    $@ backgrnd.gif    bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
@@ -172,7 +188,7 @@ contiki-atari-1.atr: atarixl-makes
 	cp ../../examples/webbrowser/webbrowser.atarixl atr/webbrows.com
 	cp ../../examples/wget/wget.atarixl             atr/wget.com
 	cp ../atarixl/default.cfg                       atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth          atr/cs8900a.eth
+	cp ../../cpu/6502/ethconfig/cs8900a.eth         atr/cs8900a.eth
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
@@ -184,7 +200,7 @@ contiki-atari-2.atr: atarixl-makes
 	cp ../../examples/irc/irc-client.atarixl                                                 atr/irc.com
 	cp ../../../contikiprojects/vandenbrande.com/twitter/platform/atarixl/breadbox64.atarixl atr/breadbox.com
 	cp ../atarixl/default.cfg                                                                atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth                                                   atr/cs8900a.eth
+	cp ../../cpu/6502/ethconfig/cs8900a.eth                                                  atr/cs8900a.eth
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
@@ -196,7 +212,7 @@ contiki-atari-3.atr: atarixl-makes
 	cp ../../examples/email/email-client.atarixl atr/email.com
 	cp ../../examples/ftp/ftp-client.atarixl     atr/ftp.com
 	cp ../atarixl/default.cfg                    atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth       atr/cs8900a.eth
+	cp ../../cpu/6502/ethconfig/cs8900a.eth      atr/cs8900a.eth
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
@@ -208,7 +224,7 @@ contiki-atari-4.atr: atarixl-makes
 	cp ../../examples/webserver/webserver-example.atarixl atr/webserv.com
 	cp ../../examples/telnet-server/telnet-server.atarixl atr/telnetd.com
 	cp ../atarixl/default.cfg                             atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth                atr/cs8900a.eth
+	cp ../../cpu/6502/ethconfig/cs8900a.eth               atr/cs8900a.eth
 	cp ../../examples/webserver/httpd-cfs/index.htm       atr/index.htm
 	cp ../../examples/webserver/httpd-cfs/backgrnd.gif    atr/backgrnd.gif
 	cp ../../examples/webserver/httpd-cfs/contiki.gif     atr/contiki.gif
@@ -230,7 +246,7 @@ contiki-atari.atr: atarixl-makes
 	cp ../../examples/webserver/webserver-example.atarixl                                    atr/webserv.com
 	cp ../../examples/telnet-server/telnet-server.atarixl                                    atr/telnetd.com
 	cp ../atarixl/default.cfg                                                                atr/contiki.cfg
-	cp ../../cpu/6502/ipconfig/cs8900a.eth                                                   atr/cs8900a.eth
+	cp ../../cpu/6502/ethconfig/cs8900a.eth                                                  atr/cs8900a.eth
 	cp ../../examples/webserver/httpd-cfs/index.htm                                          atr/index.htm
 	cp ../../examples/webserver/httpd-cfs/backgrnd.gif                                       atr/backgrnd.gif
 	cp ../../examples/webserver/httpd-cfs/contiki.gif                                        atr/contiki.gif
@@ -240,30 +256,41 @@ contiki-atari.atr: atarixl-makes
 
 $(eval $(call makes,c64))
 
-c64: contiki-c64-1.d64 contiki-c64-2.d64 contiki-c64.d71 contiki-c64.d81
+c64: contiki-c64-1.d64 contiki-c64-2.d64 contiki-c64-3.d64 contiki-c64.d71 contiki-c64.d81
 
 contiki-c64-1.d64: c64-makes
 	$(C1541) -format contiki-1,00 d64 $@
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64                                          ipconfig,p
-	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c64                                      webbrowser,p
-	$(C1541) -attach $@ -write ../../examples/wget/wget.c64                                                  wget,p
-	$(C1541) -attach $@ -write ../../examples/irc/irc-client.c64                                             irc,p
-	$(C1541) -attach $@ -write ../../../contikiprojects/vandenbrande.com/twitter/platform/c64/breadbox64.c64 breadbox64,p
-	$(C1541) -attach $@ -write ../c64/default.cfg                                                            contiki.cfg,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/cs8900a.eth                                           cs8900a.eth,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/lan91c96.eth                                          lan91c96.eth,u
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 c64-1351.mou,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64   ethconfig,p
+	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64     ipconfig,p
+	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c64 webbrowser,p
+	$(C1541) -attach $@ -write ../../examples/wget/wget.c64             wget,p
+	$(C1541) -attach $@ -write ../../examples/irc/irc-client.c64        irc,p
+	$(C1541) -attach $@ -write ../c64/default.cfg                       contiki.cfg,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth     cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth    lan91c96.eth,u
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou            c64-1351.mou,u
 
 contiki-c64-2.d64: c64-makes
 	$(C1541) -format contiki-2,00 d64 $@
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64                                        ethconfig,p
+	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64                                          ipconfig,p
+	$(C1541) -attach $@ -write ../../../contikiprojects/vandenbrande.com/twitter/platform/c64/breadbox64.c64 breadbox64,p
+	$(C1541) -attach $@ -write ../../examples/email/email-client.c64                                         email,p
+	$(C1541) -attach $@ -write ../../examples/ftp/ftp-client.c64                                             ftp,p
+	$(C1541) -attach $@ -write ../c64/default.cfg                                                            contiki.cfg,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth                                          cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth                                         lan91c96.eth,u
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 c64-1351.mou,u
+
+contiki-c64-3.d64: c64-makes
+	$(C1541) -format contiki-3,00 d64 $@
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64          ethconfig,p
 	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64            ipconfig,p
-	$(C1541) -attach $@ -write ../../examples/email/email-client.c64           email,p
-	$(C1541) -attach $@ -write ../../examples/ftp/ftp-client.c64               ftp,p
 	$(C1541) -attach $@ -write ../../examples/webserver/webserver-example.c64  webserver,p
 	$(C1541) -attach $@ -write ../../examples/telnet-server/telnet-server.c64  telnetd,p
 	$(C1541) -attach $@ -write ../c64/default.cfg                              contiki.cfg,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/cs8900a.eth             cs8900a.eth,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/lan91c96.eth            lan91c96.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth            cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth           lan91c96.eth,u
 	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                   c64-1351.mou,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/index.htm    index.htm,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/backgrnd.gif backgrnd.gif,u
@@ -272,6 +299,7 @@ contiki-c64-2.d64: c64-makes
 
 contiki-c64.d71: c64-makes
 	$(C1541) -format contiki,00 d71 $@
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64                                        ethconfig,p
 	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64                                          ipconfig,p
 	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c64                                      webbrowser,p
 	$(C1541) -attach $@ -write ../../examples/wget/wget.c64                                                  wget,p
@@ -282,8 +310,8 @@ contiki-c64.d71: c64-makes
 	$(C1541) -attach $@ -write ../../examples/webserver/webserver-example.c64                                webserver,p
 	$(C1541) -attach $@ -write ../../examples/telnet-server/telnet-server.c64                                telnetd,p
 	$(C1541) -attach $@ -write ../c64/default.cfg                                                            contiki.cfg,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/cs8900a.eth                                           cs8900a.eth,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/lan91c96.eth                                          lan91c96.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth                                          cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth                                         lan91c96.eth,u
 	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 c64-1351.mou,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/index.htm                                  index.htm,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/backgrnd.gif                               backgrnd.gif,u
@@ -292,6 +320,7 @@ contiki-c64.d71: c64-makes
 
 contiki-c64.d81: c64-makes
 	$(C1541) -format contiki,00 d81 $@
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64                                        ethconfig,p
 	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64                                          ipconfig,p
 	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c64                                      webbrowser,p
 	$(C1541) -attach $@ -write ../../examples/wget/wget.c64                                                  wget,p
@@ -302,8 +331,8 @@ contiki-c64.d81: c64-makes
 	$(C1541) -attach $@ -write ../../examples/webserver/webserver-example.c64                                webserver,p
 	$(C1541) -attach $@ -write ../../examples/telnet-server/telnet-server.c64                                telnetd,p
 	$(C1541) -attach $@ -write ../c64/default.cfg                                                            contiki.cfg,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/cs8900a.eth                                           cs8900a.eth,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/lan91c96.eth                                          lan91c96.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth                                          cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth                                         lan91c96.eth,u
 	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 c64-1351.mou,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/index.htm                                  index.htm,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/backgrnd.gif                               backgrnd.gif,u
@@ -312,29 +341,39 @@ contiki-c64.d81: c64-makes
 
 $(eval $(call makes,c128))
 
-c128: contiki-c128-1.d64 contiki-c128-2.d64 contiki-c128.d71 contiki-c128.d81
+c128: contiki-c128-1.d64 contiki-c128-2.d64 contiki-c128-3.d64 contiki-c128.d71 contiki-c128.d81
 
 contiki-c128-1.d64: c128-makes
 	$(C1541) -format contiki-1,00 d64 $@
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c128                                           ipconfig,p
-	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c128                                       webbrowser,p
-	$(C1541) -attach $@ -write ../../examples/wget/wget.c128                                                   wget,p
-	$(C1541) -attach $@ -write ../../examples/irc/irc-client.c128                                              irc,p
-	$(C1541) -attach $@ -write ../../../contikiprojects/vandenbrande.com/twitter/platform/c128/breadbox64.c128 breadbox64,p
-	$(C1541) -attach $@ -write ../c128/default.cfg                                                             contiki.cfg,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/cs8900a.eth                                             cs8900a.eth,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/lan91c96.eth                                            lan91c96.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c128   ethconfig,p
+	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c128     ipconfig,p
+	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c128 webbrowser,p
+	$(C1541) -attach $@ -write ../../examples/wget/wget.c128             wget,p
+	$(C1541) -attach $@ -write ../../examples/irc/irc-client.c128        irc,p
+	$(C1541) -attach $@ -write ../c128/default.cfg                       contiki.cfg,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth      cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth     lan91c96.eth,u
 
 contiki-c128-2.d64: c128-makes
 	$(C1541) -format contiki-2,00 d64 $@
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c128                                         ethconfig,p
+	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c128                                           ipconfig,p
+	$(C1541) -attach $@ -write ../../../contikiprojects/vandenbrande.com/twitter/platform/c128/breadbox64.c128 breadbox64,p
+	$(C1541) -attach $@ -write ../../examples/email/email-client.c128                                          email,p
+	$(C1541) -attach $@ -write ../../examples/ftp/ftp-client.c128                                              ftp,p
+	$(C1541) -attach $@ -write ../c128/default.cfg                                                             contiki.cfg,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth                                            cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth                                           lan91c96.eth,u
+
+contiki-c128-3.d64: c128-makes
+	$(C1541) -format contiki-3,00 d64 $@
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c128         ethconfig,p
 	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c128           ipconfig,p
-	$(C1541) -attach $@ -write ../../examples/email/email-client.c128          email,p
-	$(C1541) -attach $@ -write ../../examples/ftp/ftp-client.c128              ftp,p
 	$(C1541) -attach $@ -write ../../examples/webserver/webserver-example.c128 webserver,p
 	$(C1541) -attach $@ -write ../../examples/telnet-server/telnet-server.c128 telnetd,p
 	$(C1541) -attach $@ -write ../c128/default.cfg                             contiki.cfg,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/cs8900a.eth             cs8900a.eth,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/lan91c96.eth            lan91c96.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth            cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth           lan91c96.eth,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/index.htm    index.htm,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/backgrnd.gif backgrnd.gif,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/contiki.gif  contiki.gif,u
@@ -342,6 +381,7 @@ contiki-c128-2.d64: c128-makes
 
 contiki-c128.d71: c128-makes
 	$(C1541) -format contiki,00 d71 $@
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c128                                         ethconfig,p
 	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c128                                           ipconfig,p
 	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c128                                       webbrowser,p
 	$(C1541) -attach $@ -write ../../examples/wget/wget.c128                                                   wget,p
@@ -352,8 +392,8 @@ contiki-c128.d71: c128-makes
 	$(C1541) -attach $@ -write ../../examples/webserver/webserver-example.c128                                 webserver,p
 	$(C1541) -attach $@ -write ../../examples/telnet-server/telnet-server.c128                                 telnetd,p
 	$(C1541) -attach $@ -write ../c128/default.cfg                                                             contiki.cfg,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/cs8900a.eth                                             cs8900a.eth,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/lan91c96.eth                                            lan91c96.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth                                            cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth                                           lan91c96.eth,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/index.htm                                    index.htm,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/backgrnd.gif                                 backgrnd.gif,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/contiki.gif                                  contiki.gif,u
@@ -361,6 +401,7 @@ contiki-c128.d71: c128-makes
 
 contiki-c128.d81: c128-makes
 	$(C1541) -format contiki,00 d81 $@
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c128                                         ethconfig,p
 	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c128                                           ipconfig,p
 	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c128                                       webbrowser,p
 	$(C1541) -attach $@ -write ../../examples/wget/wget.c128                                                   wget,p
@@ -371,8 +412,8 @@ contiki-c128.d81: c128-makes
 	$(C1541) -attach $@ -write ../../examples/webserver/webserver-example.c128                                 webserver,p
 	$(C1541) -attach $@ -write ../../examples/telnet-server/telnet-server.c128                                 telnetd,p
 	$(C1541) -attach $@ -write ../c128/default.cfg                                                             contiki.cfg,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/cs8900a.eth                                             cs8900a.eth,u
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/lan91c96.eth                                            lan91c96.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth                                            cs8900a.eth,u
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth                                           lan91c96.eth,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/index.htm                                    index.htm,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/backgrnd.gif                                 backgrnd.gif,u
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/contiki.gif                                  contiki.gif,u
