@@ -92,7 +92,13 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 	public int COUNTER_RX = 0;
 	public int COUNTER_INTERFERED = 0;
 	
+	/**
+	 * Two Observables to observe the radioMedium and radioTransmissions
+	 * @see addRadioTransmissionObserver
+	 * @see addRadioMediumObserver
+	 */
 	protected ScnObservable radioMediumObservable = new ScnObservable();
+	protected ScnObservable radioTransmissionObservable = new ScnObservable();
 	
 	/**
 	 * This constructor should always be called from implemented radio mediums.
@@ -280,7 +286,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 					
 					/* Notify observers */
 					lastConnection = null;
-					radioMediumObservable.setChangedAndNotify();
+					radioTransmissionObservable.setChangedAndNotify();
 				}
 				break;
 				case TRANSMISSION_FINISHED: {
@@ -325,7 +331,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 					updateSignalStrengths();
 					
 					/* Notify observers */
-					radioMediumObservable.setChangedAndNotify();
+					radioTransmissionObservable.setChangedAndNotify();
 				}
 				break;
 				case CUSTOM_DATA_TRANSMITTED: {
@@ -340,7 +346,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 					/* Custom data object */
 					Object data = ((CustomDataRadio) radio).getLastCustomDataTransmitted();
 					if (data == null) {
-						logger.fatal("No custom data object to forward");
+						logger.fatal("No custom data objecTransmissiont to forward");
 						return;
 					}
 					
@@ -438,6 +444,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 		
 		registeredRadios.add(radio);
 		radio.addObserver(radioEventsObserver);
+		radioMediumObservable.setChangedAndNotify();
 		
 		/* Update signal strengths */
 		updateSignalStrengths();
@@ -453,6 +460,8 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 		registeredRadios.remove(radio);
 		
 		removeFromActiveConnections(radio);
+		
+		radioMediumObservable.setChangedAndNotify();
 		
 		/* Update signal strengths */
 		updateSignalStrengths();
@@ -520,10 +529,40 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 		sendRssi.put(radio, rssi);
 	}
 	
+	/**
+	 * Register an observer that gets notified when the radiotransmissions changed.
+	 * E.g. creating new connections.
+	 * This does not include changes in the settings and (de-)registration of radios.
+	 * @see addRadioMediumObserver
+	 * @param observer the Observer to register
+	 */
+	public void addRadioTransmissionObserver(Observer observer) {
+		radioTransmissionObservable.addObserver(observer);
+	}
+	
+	public Observable getRadioTransmissionObservable() {
+		return radioTransmissionObservable;
+	}
+	
+	public void deleteRadioTransmissionObserver(Observer observer) {
+		radioTransmissionObservable.deleteObserver(observer);
+	}
+	
+	/**
+	 * Register an observer that gets notified when the radio medium changed.
+	 * This includes changes in the settings and (de-)registration of radios. 
+	 * This does not include transmissions, etc as these are part of the radio
+	 * and not the radio medium itself.
+	 * @see addRadioTransmissionObserver
+	 * @param observer the Observer to register
+	 */
 	public void addRadioMediumObserver(Observer observer) {
 		radioMediumObservable.addObserver(observer);
 	}
 	
+	/**
+	 * @return the radioMediumObservable
+	 */
 	public Observable getRadioMediumObservable() {
 		return radioMediumObservable;
 	}
