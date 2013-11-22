@@ -1,0 +1,3 @@
+core-net-ipv6_src = \
+sicslowpan.c  uip-ds6.c      uip-ds6-route.c  uip-nd6.c \
+uip6.c	      uip-ds6-nbr.c  uip-icmp6.c
