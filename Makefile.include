@@ -67,7 +67,7 @@ LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c sti
           print-stats.c ifft.c crc16.c random.c ringbuf.c settings.c
 DEV     = nullradio.c
 
-include $(CONTIKI)/core/net/Makefile.uip
+#include $(CONTIKI)/core/net/Makefile.uip
 include $(CONTIKI)/core/net/rpl/Makefile.rpl
 
 CTK     = ctk.c
@@ -119,6 +119,16 @@ else
     ${error More than one TARGET Makefile found: $(target_makefile)}
   endif
   include $(target_makefile)
+endif
+
+ifdef MODULES
+  MODULESSUBST = ${subst /,-,$(MODULES)}
+  MODULEDIRS = ${wildcard ${addprefix $(CONTIKI)/, $(MODULES)}}
+  MODULEINCLUDES = ${foreach m, $(MODULESSUBST), ${wildcard ${foreach d, $(MODULEDIRS), $(d)/Makefile.$(m)}}}
+  -include $(MODULEINCLUDES)
+  MODULES_SOURCES = ${foreach m, $(MODULESSUBST), $($(m)_src)}
+  CONTIKI_SOURCEFILES += $(MODULES_SOURCES)
+  APPDS += $(MODULEDIRS)
 endif
 
 ifdef PLATFORMAPPS
