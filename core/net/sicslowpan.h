@@ -317,6 +317,7 @@ struct sicslowpan_nh_compressor {
 
 };
 
+int sicslowpan_get_last_rssi(void);
 
 extern const struct network_driver sicslowpan_driver;
 
