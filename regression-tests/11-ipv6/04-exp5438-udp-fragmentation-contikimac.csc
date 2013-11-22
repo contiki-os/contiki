@@ -115,6 +115,7 @@ make udp-receiver.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver TARGET=exp
     <plugin_config>
       <filter />
       <formatted_time />
+      <coloring />
     </plugin_config>
     <width>1200</width>
     <z>5</z>
@@ -153,7 +154,7 @@ make udp-receiver.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver TARGET=exp
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <scriptfile>[CONFIG_DIR]/fragmentation-should-receive-all.js</scriptfile>
+      <scriptfile>[CONTIKI_DIR]/regression-tests/11-ipv6/fragmentation-should-receive-all.js</scriptfile>
       <active>true</active>
     </plugin_config>
     <width>618</width>

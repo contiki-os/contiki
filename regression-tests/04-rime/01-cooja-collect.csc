@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/native_gateway</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/serial_socket</project>
-  <project EXPORT="discard">/home/user/contikiprojects/sics.se/mobility</project>
-  <project EXPORT="discard">[CONTIKI_DIR]/tools/cooja/apps/collect-view</project>
-  <project EXPORT="discard">/home/user/contikiprojects/sics.se/powertracker</project>
-  <project EXPORT="discard">/home/user/nes/papers/smartip-paper/code/cooja_qr</project>
+  <project EXPORT="discard">[APPS_DIR]/mrm</project>
+  <project EXPORT="discard">[APPS_DIR]/mspsim</project>
+  <project EXPORT="discard">[APPS_DIR]/avrora</project>
+  <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
+  <project EXPORT="discard">[APPS_DIR]/collect-view</project>
+  <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>Rime collect test</title>
-    <delaytime>0</delaytime>
     <randomseed>1</randomseed>
     <motedelay_us>10000000</motedelay_us>
     <radiomedium>
@@ -26,9 +22,9 @@
     </events>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype949</identifier>
+      <identifier>mtype929</identifier>
       <description>Contiki Mote Type #1</description>
-      <contikiapp>[CONTIKI_DIR]/examples/rime/example-collect.c</contikiapp>
+      <source>[CONTIKI_DIR]/examples/rime/example-collect.c</source>
       <commands>make example-collect.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
@@ -59,7 +55,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>1</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -72,7 +72,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>2</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -85,7 +89,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>3</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -98,7 +106,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>4</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -111,7 +123,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>5</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -124,7 +140,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>6</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -137,7 +157,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>7</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -150,7 +174,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>8</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -163,7 +191,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>9</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -176,7 +208,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>10</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -189,7 +225,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>11</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -202,7 +242,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>12</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -215,7 +259,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>13</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -228,7 +276,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>14</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -241,7 +293,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>15</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -254,7 +310,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>16</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -267,7 +327,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>17</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -280,7 +344,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>18</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -293,7 +361,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>19</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -306,7 +378,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>20</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -319,7 +395,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>21</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -332,7 +412,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>22</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -345,7 +429,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>23</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -358,7 +446,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>24</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -371,7 +463,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>25</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -384,7 +480,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>26</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -397,7 +497,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>27</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -410,7 +514,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>28</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -423,7 +531,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>29</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -436,7 +548,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>30</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -449,7 +565,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>31</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -462,7 +582,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>32</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -475,7 +599,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>33</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -488,7 +616,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>34</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -501,7 +633,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>35</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -514,7 +650,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>36</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -527,7 +667,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>37</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -540,7 +684,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>38</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -553,7 +701,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>39</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -566,7 +718,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>40</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -579,7 +735,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>41</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -592,7 +752,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>42</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -605,7 +769,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>43</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -618,7 +786,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>44</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -631,7 +803,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>45</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -644,7 +820,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>46</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -657,7 +837,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>47</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -670,7 +854,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>48</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -683,7 +871,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>49</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -696,7 +888,11 @@
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>50</id>
       </interface_config>
-      <motetype_identifier>mtype949</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype929</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -724,6 +920,8 @@
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
       <filter>ID:1</filter>
+      <formatted_time />
+      <coloring />
     </plugin_config>
     <width>933</width>
     <z>2</z>
