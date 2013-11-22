@@ -1,0 +1,3 @@
+core-net-ipv4_src = \
+uaodv-rt.c  uip.c     uip-fw-drv.c    uip-over-mesh.c \
+uaodv.c  uip_arp.c   uip-fw.c  uip-neighbor.c
