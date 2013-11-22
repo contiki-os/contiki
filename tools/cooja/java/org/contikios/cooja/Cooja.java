@@ -665,7 +665,7 @@ public class Cooja extends Observable {
   /**
    * Enables/disables menues and menu items depending on whether a simulation is loaded etc.
    */
-  private void updateGUIComponentState() {
+  void updateGUIComponentState() {
     if (!isVisualized()) {
       return;
     }
@@ -2639,7 +2639,6 @@ public class Cooja extends Observable {
           mySimulation.addMote(newMote);
         }
       }
-      updateGUIComponentState();
 
     } else {
       logger.warn("No simulation active");
