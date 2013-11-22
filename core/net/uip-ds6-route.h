@@ -107,7 +107,7 @@ typedef struct uip_ds6_route {
      routes field point to the uip_ds6_route_neighbor_routes that
      belong to the neighbor table entry that this routing table entry
      uses. */
-  struct uip_ds6_route_neighbor_routes *routes;
+  struct uip_ds6_route_neighbor_routes *neighbor_routes;
   uip_ipaddr_t ipaddr;
 #ifdef UIP_DS6_ROUTE_STATE_TYPE
   UIP_DS6_ROUTE_STATE_TYPE state;
@@ -115,7 +115,12 @@ typedef struct uip_ds6_route {
   uint8_t length;
 } uip_ds6_route_t;
 
-
+/** \brief A neighbor route list entry, used on the
+    uip_ds6_route->neighbor_routes->route_list list. */
+struct uip_ds6_route_neighbor_route {
+  struct uip_ds6_route_neighbor_route *next;
+  struct uip_ds6_route *route;
+};
 
 /** \brief An entry in the default router list */
 typedef struct uip_ds6_defrt {
