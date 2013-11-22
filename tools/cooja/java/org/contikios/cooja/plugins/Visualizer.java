@@ -212,12 +212,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     /* Register external visualizers */
     String[] skins = gui.getProjectConfig().getStringArrayValue(Visualizer.class, "SKINS");
-    if (skins != null) {
-      for (String skinClass: skins) {
-        Class<? extends VisualizerSkin> skin = gui.tryLoadClass(this, VisualizerSkin.class, skinClass);
-        if (registerVisualizerSkin(skin)) {
-          logger.info("Registered external visualizer: " + skinClass);
-        }
+    
+    for (String skinClass: skins) {
+      Class<? extends VisualizerSkin> skin = gui.tryLoadClass(this, VisualizerSkin.class, skinClass);
+      if (registerVisualizerSkin(skin)) {
+        logger.info("Registered external visualizer: " + skinClass);
       }
     }
 
