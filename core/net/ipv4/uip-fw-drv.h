@@ -35,7 +35,7 @@
 #define UIP_FW_DRV_H_
 
 #include "contiki.h"
-#include "net/uip-fw.h"
+#include "net/ipv4/uip-fw.h"
 
 PROCESS_NAME(uip_fw_process);
 

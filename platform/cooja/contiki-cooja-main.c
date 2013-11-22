@@ -80,10 +80,10 @@
 #if WITH_UIP
 #include "dev/rs232.h"
 #include "dev/slip.h"
-#include "net/uip.h"
-#include "net/uip-fw.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip-fw.h"
 #include "net/uip-fw-drv.h"
-#include "net/uip-over-mesh.h"
+#include "net/ipv4/uip-over-mesh.h"
 static struct uip_fw_netif slipif =
   {UIP_FW_NETIF(0,0,0,0, 255,255,255,255, slip_send)};
 static struct uip_fw_netif meshif =
@@ -97,8 +97,8 @@ static uint8_t is_gateway;
 #define WITH_UIP6 0
 #endif
 #if WITH_UIP6
-#include "net/uip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #define PRINT6ADDR(addr) printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #endif /* WITH_UIP6 */
 

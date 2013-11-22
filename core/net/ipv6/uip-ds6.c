@@ -44,14 +44,14 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "lib/random.h"
-#include "net/uip-nd6.h"
-#include "net/uip-ds6.h"
-#include "net/uip-packetqueue.h"
+#include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-ds6.h"
+#include "net/ip/uip-packetqueue.h"
 
 #if UIP_CONF_IPV6
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 struct etimer uip_ds6_timer_periodic;                           /** \brief Timer for maintenance of data structures */
 

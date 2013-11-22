@@ -45,7 +45,7 @@
 #ifndef UIP_FW_H_
 #define UIP_FW_H_
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 /**
  * Representation of a uIP network interface.

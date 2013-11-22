@@ -42,7 +42,7 @@
  */
 
 #include "contiki-net.h"
-#include "net/simple-udp.h"
+#include "net/ip/simple-udp.h"
 
 #include <string.h>
 

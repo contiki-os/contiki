@@ -54,7 +54,7 @@
 #include "duty-cycle-scroller.h"
 
 #if WITH_UIP6
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 #endif /* WITH_UIP6 */
 
 

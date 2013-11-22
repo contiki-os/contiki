@@ -5,7 +5,7 @@
 
 #define UIP_CONF_IPV6 1
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include <stdio.h>
 #include <arpa/inet.h>
 

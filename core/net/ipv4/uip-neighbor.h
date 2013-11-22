@@ -41,7 +41,7 @@
 #ifndef UIP_NEIGHBOR_H_
 #define UIP_NEIGHBOR_H_
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 struct uip_neighbor_addr {
 #if UIP_NEIGHBOR_CONF_ADDRTYPE

@@ -32,7 +32,7 @@
  *
  */
 
-#include "net/uip-fw.h"
+#include "net/ipv4/uip-fw.h"
 
 #if !UIP_CONF_IPV6
 

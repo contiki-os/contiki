@@ -32,7 +32,7 @@
 #include "contiki.h"
 #include "dev/watchdog.h"
 #include "dev/leds.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 static unsigned long dco_speed;
 

@@ -34,7 +34,7 @@
 #include <string.h>
 
 #define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 #include "net/rpl/rpl.h"
 #include "dev/watchdog.h"
 #include "dev/slip.h"

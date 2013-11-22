@@ -37,7 +37,7 @@
 #include <string.h>
 
 #define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #define SEND_INTERVAL		25 * CLOCK_SECOND
 

@@ -29,8 +29,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "net/uip-ds6.h"
-#include "net/uip.h"
+#include "net/ipv6/uip-ds6.h"
+#include "net/ip/uip.h"
 
 #include "lib/list.h"
 #include "lib/memb.h"
@@ -67,7 +67,7 @@ static int num_routes = 0;
 
 #undef DEBUG
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 static void rm_routelist_callback(nbr_table_item_t *ptr);
 /*---------------------------------------------------------------------------*/

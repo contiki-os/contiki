@@ -34,7 +34,7 @@
 
 /* debug */
 #define DEBUG DEBUG_FULL
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /* contiki */
 #include "contiki.h"

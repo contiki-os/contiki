@@ -70,11 +70,11 @@
  * the packet back to the peer.
  */
 
-#include "net/uip.h"
-#include "net/uipopt.h"
-#include "net/uip-icmp6.h"
-#include "net/uip-nd6.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ip/uipopt.h"
+#include "net/ipv6/uip-icmp6.h"
+#include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-ds6.h"
 
 #include <string.h>
 
@@ -84,7 +84,7 @@
 /*---------------------------------------------------------------------------*/
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #if UIP_CONF_IPV6_RPL
 #include "rpl/rpl.h"

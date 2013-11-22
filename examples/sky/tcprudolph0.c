@@ -37,7 +37,7 @@
 #include "sys/etimer.h"
 #include "loader/elfloader.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 #include "dev/leds.h"
 

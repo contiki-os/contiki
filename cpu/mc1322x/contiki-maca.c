@@ -39,7 +39,7 @@
 
 /* debug */
 #define DEBUG DEBUG_ANNOTATE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /* contiki */
 #include "radio.h"

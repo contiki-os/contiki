@@ -70,10 +70,10 @@
  * the packet back to the peer.
 */
 
-#include "net/uip.h"
-#include "net/uipopt.h"
-#include "net/uip_arp.h"
-#include "net/uip_arch.h"
+#include "net/ip/uip.h"
+#include "net/ip/uipopt.h"
+#include "net/ipv4/uip_arp.h"
+#include "net/ip/uip_arch.h"
 
 #if !UIP_CONF_IPV6 /* If UIP_CONF_IPV6 is defined, we compile the
 		      uip6.c file instead of this one. Therefore
@@ -82,7 +82,7 @@
 
 
 #if UIP_CONF_IPV6
-#include "net/uip-neighbor.h"
+#include "net/ipv4/uip-neighbor.h"
 #endif /* UIP_CONF_IPV6 */
 
 #include <string.h>

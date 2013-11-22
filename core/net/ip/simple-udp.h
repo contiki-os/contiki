@@ -53,7 +53,7 @@
 #ifndef SIMPLE_UDP_H
 #define SIMPLE_UDP_H
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 struct simple_udp_connection;
 

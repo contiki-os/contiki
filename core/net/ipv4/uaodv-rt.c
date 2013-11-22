@@ -38,7 +38,7 @@
  */
 
 
-#include "net/uaodv-rt.h"
+#include "net/ipv4/uaodv-rt.h"
 #include "contiki-net.h"
 
 #ifndef UAODV_NUM_RT_ENTRIES

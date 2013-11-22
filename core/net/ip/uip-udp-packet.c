@@ -41,7 +41,7 @@
 
 extern uint16_t uip_slen;
 
-#include "net/uip-udp-packet.h"
+#include "net/ip/uip-udp-packet.h"
 
 #include <string.h>
 

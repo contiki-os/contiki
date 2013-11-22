@@ -40,8 +40,8 @@
 #ifndef UIP_OVER_MESH_H_
 #define UIP_OVER_MESH_H_
 
-#include "net/uip.h"
-#include "net/uip-fw.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip-fw.h"
 #include "net/rime.h"
 
 void uip_over_mesh_init(uint16_t channels);

@@ -58,7 +58,7 @@
  */
 
 
-#include "net/uip_arp.h"
+#include "net/ipv4/uip_arp.h"
 
 #include <string.h>
 

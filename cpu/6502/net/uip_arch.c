@@ -32,8 +32,8 @@
  */
 
 
-#include "net/uip.h"
-#include "net/uip_arch.h"
+#include "net/ip/uip.h"
+#include "net/ip/uip_arch.h"
 
 #define BUF ((uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define IP_PROTO_TCP    6

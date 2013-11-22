@@ -44,9 +44,9 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 
 #include "servreg-hack.h"
 

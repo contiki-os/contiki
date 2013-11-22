@@ -49,10 +49,10 @@
 #include "lib/list.h"
 #include "net/rime/rimeaddr.h"
 #include "net/packetbuf.h"
-#include "net/uip-ds6-nbr.h"
+#include "net/ipv6/uip-ds6-nbr.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #ifdef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
 #define NEIGHBOR_STATE_CHANGED(n) UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED(n)
