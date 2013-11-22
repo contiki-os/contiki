@@ -1671,7 +1671,12 @@ input(void)
    */
 #define PRIORITIZE_NEW_PACKETS 1
 #if PRIORITIZE_NEW_PACKETS
-  if(processed_ip_in_len > 0 && first_fragment
+
+  if(!is_fragment) {
+    /* Prioritize non-fragment packets too. */
+    sicslowpan_len = 0;
+    processed_ip_in_len = 0;
+  } else if(processed_ip_in_len > 0 && first_fragment
       && !rimeaddr_cmp(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER))) {
     sicslowpan_len = 0;
     processed_ip_in_len = 0;
