@@ -144,7 +144,11 @@
  *
  * This should normally not be changed.
  */
+#ifdef UIP_CONF_TTL
+#define UIP_TTL         UIP_CONF_TTL
+#else /* UIP_CONF_TTL */
 #define UIP_TTL         64
+#endif /* UIP_CONF_TTL */
 
 /**
  * The maximum time an IP fragment should wait in the reassembly
