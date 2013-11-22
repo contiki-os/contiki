@@ -745,5 +745,14 @@ cc2538_rf_err_isr(void)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-
+void
+cc2538_rf_set_promiscous_mode(char p)
+{
+  if(p) {
+    REG(RFCORE_XREG_FRMFILT0) &= ~RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
+  } else {
+    REG(RFCORE_XREG_FRMFILT0) |= RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
+  }
+}
+/*---------------------------------------------------------------------------*/
 /** @} */
