@@ -47,7 +47,7 @@
 #if UIP_CONF_IPV6
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
 static struct ctimer periodic_timer;

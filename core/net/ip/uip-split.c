@@ -34,12 +34,12 @@
 
 #include <string.h>
 
-#include "net/uip-split.h"
-#include "net/uip.h"
-#include "net/uip-fw.h"
-#include "net/uip_arch.h"
+#include "net/ip/uip-split.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip-fw.h"
+#include "net/ip/uip_arch.h"
 
-#include "net/tcpip.h"
+#include "net/ip/tcpip.h"
 
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 

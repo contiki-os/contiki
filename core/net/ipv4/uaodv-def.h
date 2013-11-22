@@ -40,7 +40,7 @@
 #ifndef UAODV_DEF_H_
 #define UAODV_DEF_H_
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 #define NUM_PRECURSORS 4
 

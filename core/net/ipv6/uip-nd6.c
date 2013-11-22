@@ -69,15 +69,15 @@
  */
 
 #include <string.h>
-#include "net/uip-icmp6.h"
-#include "net/uip-nd6.h"
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-icmp6.h"
+#include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-ds6.h"
 #include "lib/random.h"
 
 #if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
 #define DEBUG 0
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #if UIP_LOGGING
 #include <stdio.h>

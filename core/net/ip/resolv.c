@@ -62,9 +62,9 @@
  *
  */
 
-#include "net/tcpip.h"
-#include "net/resolv.h"
-#include "net/uip-udp-packet.h"
+#include "net/ip/tcpip.h"
+#include "net/ip/resolv.h"
+#include "net/ip/uip-udp-packet.h"
 #include "lib/random.h"
 
 #ifndef DEBUG
@@ -318,7 +318,7 @@ static const uip_ipaddr_t resolv_mdns_addr =
 #if UIP_CONF_IPV6
   { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfb } };
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 #else  /* UIP_CONF_IPV6 */
   { { 224, 0, 0, 251 } };
 #endif /* UIP_CONF_IPV6 */

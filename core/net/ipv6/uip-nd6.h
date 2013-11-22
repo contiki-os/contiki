@@ -45,7 +45,7 @@
 #ifndef UIP_ND6_H_
 #define UIP_ND6_H_
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include "sys/stimer.h"
 /**
  *  \name General

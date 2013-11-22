@@ -35,7 +35,7 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
-#include "net/dhcpc.h"
+#include "net/ip/dhcpc.h"
 
 #define STATE_INITIAL         0
 #define STATE_SENDING         1

@@ -56,11 +56,11 @@
 
 #include "contiki-conf.h"
 
-#include "net/uip.h"
-#include "net/uip_arch.h"
-#include "net/uip-fw.h"
+#include "net/ip/uip.h"
+#include "net/ip/uip_arch.h"
+#include "net/ipv4/uip-fw.h"
 #ifdef AODV_COMPLIANCE
-#include "net/uaodv-def.h"
+#include "net/ipv4/uaodv-def.h"
 #endif
 
 /*

@@ -148,10 +148,10 @@
  * Modified! 0xff and 0xfe are sobstituted by 0x02 and 0x00.
 */
 
-#include "net/uip.h"
-#include "net/uip_arp.h" /* For ethernet header structure */
+#include "net/ip/uip.h"
+#include "net/ipv4/uip_arp.h" /* For ethernet header structure */
 #include "net/rime.h"
-#include "net/sicslowpan.h"
+#include "net/ipv6/sicslowpan.h"
 #include "sicslow_ethernet.h"
 #include "dev/stm32w-radio.h"
 #include "net/mac/frame802154.h"
@@ -399,8 +399,8 @@ int8_t mac_translateIPLinkLayer(lltype_t target)
 
 }
 
-#include "net/uip-icmp6.h"
-#include "net/uip-nd6.h"
+#include "net/ipv6/uip-icmp6.h"
+#include "net/ipv6/uip-nd6.h"
 
 typedef struct {
   uint8_t type;

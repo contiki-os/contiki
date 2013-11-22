@@ -60,11 +60,11 @@
 
 #include "contiki.h"
 #include "dev/watchdog.h"
-#include "net/tcpip.h"
-#include "net/uip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/tcpip.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #include "net/rime.h"
-#include "net/sicslowpan.h"
+#include "net/ipv6/sicslowpan.h"
 #include "net/netstack.h"
 
 #if UIP_CONF_IPV6
@@ -72,7 +72,7 @@
 #include <stdio.h>
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 #if DEBUG
 /* PRINTFI and PRINTFO are defined for input and output to debug one without changing the timing of the other */
 uint8_t p;

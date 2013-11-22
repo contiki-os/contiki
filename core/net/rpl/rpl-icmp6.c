@@ -42,11 +42,11 @@
  *               Mathieu Pouillot <m.pouillot@watteco.com>
  */
 
-#include "net/tcpip.h"
-#include "net/uip.h"
-#include "net/uip-ds6.h"
-#include "net/uip-nd6.h"
-#include "net/uip-icmp6.h"
+#include "net/ip/tcpip.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-icmp6.h"
 #include "net/rpl/rpl-private.h"
 #include "net/packetbuf.h"
 
@@ -55,7 +55,7 @@
 
 #define DEBUG DEBUG_NONE
 
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/

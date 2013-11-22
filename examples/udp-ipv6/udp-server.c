@@ -34,7 +34,7 @@
 #include <string.h>
 
 #define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 

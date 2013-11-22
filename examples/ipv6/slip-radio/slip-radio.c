@@ -35,15 +35,15 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 #include "contiki.h"
-#include "net/uip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #include "dev/slip.h"
 #include <string.h>
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 #include "cmd.h"
 #include "slip-radio.h"
 #include "packetutils.h"

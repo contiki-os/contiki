@@ -28,9 +28,9 @@
  */
 
 #include "contiki.h"
-#include "net/uip.h"
-#include "net/uip-ds6.h"
-#include "net/uip-udp-packet.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
+#include "net/ip/uip-udp-packet.h"
 #include "net/rpl/rpl.h"
 #include "dev/serial-line.h"
 #if CONTIKI_TARGET_Z1
@@ -48,7 +48,7 @@
 #define UDP_SERVER_PORT 5688
 
 #define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 static struct uip_udp_conn *client_conn;
 static uip_ipaddr_t server_ipaddr;

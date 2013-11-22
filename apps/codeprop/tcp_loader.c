@@ -37,7 +37,7 @@
 #include "sys/etimer.h"
 #include "loader/elfloader_compat.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 #include "dev/xmem.h"
 

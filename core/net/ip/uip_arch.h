@@ -60,7 +60,7 @@
 #ifndef UIP_ARCH_H_
 #define UIP_ARCH_H_
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 /**
  * Carry out a 32-bit addition.

@@ -33,12 +33,12 @@
  */
 
 
-#include "net/uip.h"
-#include "net/uiplib.h"
+#include "net/ip/uip.h"
+#include "net/ip/uiplib.h"
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /*-----------------------------------------------------------------------------------*/
 #if UIP_CONF_IPV6

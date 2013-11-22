@@ -34,7 +34,7 @@
 
 #include <string.h>
 
-#include "net/psock.h"
+#include "net/ip/psock.h"
 
 #define STATE_NONE 0
 #define STATE_ACKED 1

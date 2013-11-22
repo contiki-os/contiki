@@ -39,8 +39,8 @@
 
 #include <string.h>
 
-#include "net/uip.h"
-#include "net/uip-udp-packet.h"
+#include "net/ip/uip.h"
+#include "net/ip/uip-udp-packet.h"
 #include "net/uip-netif.h"
 #include "net/rime/rime-udp.h"
 #include "net/packetbuf.h"

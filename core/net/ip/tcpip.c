@@ -39,18 +39,18 @@
  */
 
 #include "contiki-net.h"
-#include "net/uip-split.h"
-#include "net/uip-packetqueue.h"
+#include "net/ip/uip-split.h"
+#include "net/ip/uip-packetqueue.h"
 
 #if UIP_CONF_IPV6
-#include "net/uip-nd6.h"
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-ds6.h"
 #endif
 
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #if UIP_LOGGING
 #include <stdio.h>

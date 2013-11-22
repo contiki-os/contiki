@@ -42,12 +42,12 @@
 #ifndef UIP_DS6_H_
 #define UIP_DS6_H_
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include "sys/stimer.h"
 /* The size of uip_ds6_addr_t depends on UIP_ND6_DEF_MAXDADNS. Include uip-nd6.h to define it. */
-#include "net/uip-nd6.h"
-#include "net/uip-ds6-route.h"
-#include "net/uip-ds6-nbr.h"
+#include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-ds6-route.h"
+#include "net/ipv6/uip-ds6-nbr.h"
 
 /*--------------------------------------------------*/
 /** Configuration. For all tables (Neighbor cache, Prefix List, Routing Table,
@@ -138,7 +138,7 @@
 /*--------------------------------------------------*/
 
 #if UIP_CONF_IPV6_QUEUE_PKT
-#include "net/uip-packetqueue.h"
+#include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
 
 /** \brief A prefix list entry */

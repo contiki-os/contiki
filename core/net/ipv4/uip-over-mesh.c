@@ -39,8 +39,8 @@
 
 #include <stdio.h>
 
-#include "net/uip-fw.h"
-#include "net/uip-over-mesh.h"
+#include "net/ipv4/uip-fw.h"
+#include "net/ipv4/uip-over-mesh.h"
 #include "net/rime/route-discovery.h"
 #include "net/rime/route.h"
 #include "net/rime/trickle.h"

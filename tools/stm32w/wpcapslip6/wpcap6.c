@@ -119,8 +119,8 @@ static int (* pcap_sendpacket)(struct pcap *, unsigned char *, int);
 #define BUFSIZE 1514
 
 
-#include "net/uip.h"
-#include "net/uip_arp.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip_arp.h"
 
 
 struct uip_eth_addr uip_lladdr = {{0,0,0,0,0,0}};

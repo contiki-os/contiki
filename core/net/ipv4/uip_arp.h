@@ -51,7 +51,7 @@
 #ifndef UIP_ARP_H_
 #define UIP_ARP_H_
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 
 

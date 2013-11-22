@@ -47,7 +47,8 @@
 
 #ifndef SICSLOWPAN_H_
 #define SICSLOWPAN_H_
-#include "net/uip.h"
+
+#include "net/ip/uip.h"
 #include "net/mac/mac.h"
 
 /**

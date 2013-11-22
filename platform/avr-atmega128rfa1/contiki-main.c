@@ -59,7 +59,7 @@
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
-#include "net/sicslowpan.h"
+#include "net/ipv6/sicslowpan.h"
 
 #include "contiki.h"
 #include "contiki-net.h"

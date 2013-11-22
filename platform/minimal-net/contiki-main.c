@@ -46,7 +46,7 @@
 
 #include "dev/serial-line.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #ifdef __CYGWIN__
 #include "net/wpcap-drv.h"
 #else /* __CYGWIN__ */
