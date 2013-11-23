@@ -144,7 +144,7 @@ int8_t cc2538_rf_channel_set(uint8_t channel);
  * \brief Get the current operating channel
  * \return Returns a value in [11,26] representing the current channel
  */
-uint8_t cc2538_rf_channel_get();
+uint8_t cc2538_rf_channel_get(void);
 
 /**
  * \brief Sets RF TX power
