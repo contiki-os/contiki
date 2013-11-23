@@ -144,7 +144,7 @@ int8_t cc2538_rf_channel_set(uint8_t channel);
  * \brief Get the current operating channel
  * \return Returns a value in [11,26] representing the current channel
  */
-uint8_t cc2538_rf_channel_get();
+uint8_t cc2538_rf_channel_get(void);
 
 /**
  * \brief Sets RF TX power
@@ -167,6 +167,27 @@ uint8_t cc2538_rf_power_set(uint8_t new_power);
  * are thus simply copied over from there.
  */
 void cc2538_rf_set_addr(uint16_t pan);
+
+/**
+ * \brief Reads the current signal strength (RSSI)
+ * \return The current RSSI
+ *
+ * This function reads the current RSSI on the currently configured
+ * channel.
+ */
+int cc2538_rf_read_rssi(void);
+
+/**
+ * \brief Turn promiscous mode on or off
+ * \param p If promiscous mode should be on (1) or off (0)
+ *
+ * This function turns promiscous mode on or off. In promiscous mode,
+ * every received frame is returned from the RF core. In
+ * non-promiscous mode, only broadcast frames or frames with our
+ * address as the receive address are returned from the RF core.
+ */
+void cc2538_rf_set_promiscous_mode(char p);
+
 /*---------------------------------------------------------------------------*/
 #endif /* CC2538_RF_H__ */
 

@@ -186,6 +186,31 @@ cc2538_rf_set_addr(uint16_t pan)
   REG(RFCORE_FFSM_SHORT_ADDR1) = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 2];
 }
 /*---------------------------------------------------------------------------*/
+int
+cc2538_rf_read_rssi(void)
+{
+  int rssi;
+
+  /* If we are off, turn on first */
+  if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
+    rf_flags |= WAS_OFF;
+    on();
+  }
+
+  /* Wait on RSSI_VALID */
+  while((REG(RFCORE_XREG_RSSISTAT) & RFCORE_XREG_RSSISTAT_RSSI_VALID) == 0);
+
+  rssi = ((int8_t)REG(RFCORE_XREG_RSSI)) - RSSI_OFFSET;
+
+  /* If we were off, turn back off */
+  if((rf_flags & WAS_OFF) == WAS_OFF) {
+    rf_flags &= ~WAS_OFF;
+    off();
+  }
+
+  return rssi;
+}
+/*---------------------------------------------------------------------------*/
 /* Netstack API radio driver functions */
 /*---------------------------------------------------------------------------*/
 static int
@@ -720,5 +745,14 @@ cc2538_rf_err_isr(void)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-
+void
+cc2538_rf_set_promiscous_mode(char p)
+{
+  if(p) {
+    REG(RFCORE_XREG_FRMFILT0) &= ~RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
+  } else {
+    REG(RFCORE_XREG_FRMFILT0) |= RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
+  }
+}
+/*---------------------------------------------------------------------------*/
 /** @} */
