@@ -194,6 +194,28 @@ rpl_reset_dio_timer(rpl_instance_t *instance)
 #endif /* RPL_LEAF_ONLY */
 }
 /*---------------------------------------------------------------------------*/
+static void handle_dao_timer(void *ptr);
+static void
+set_dao_lifetime_timer(rpl_instance_t *instance)
+{
+  if(rpl_get_mode() == RPL_MODE_FEATHER) {
+    return;
+  }
+
+  /* Set up another DAO within half the expiration time, if such a
+     time has been configured */
+  if(instance->lifetime_unit != 0xffff && instance->default_lifetime != 0xff) {
+    clock_time_t expiration_time;
+    expiration_time = (clock_time_t)instance->default_lifetime *
+      (clock_time_t)instance->lifetime_unit *
+      CLOCK_SECOND / 2;
+    PRINTF("RPL: Scheduling DAO lifetime timer %u ticks in the future\n",
+           (unsigned)expiration_time);
+    ctimer_set(&instance->dao_lifetime_timer, expiration_time,
+               handle_dao_timer, instance);
+  }
+}
+/*---------------------------------------------------------------------------*/
 static void
 handle_dao_timer(void *ptr)
 {
@@ -215,26 +237,60 @@ handle_dao_timer(void *ptr)
   } else {
     PRINTF("RPL: No suitable DAO parent\n");
   }
+
   ctimer_stop(&instance->dao_timer);
+
+  if(etimer_expired(&instance->dao_lifetime_timer.etimer)) {
+    set_dao_lifetime_timer(instance);
+  }
 }
 /*---------------------------------------------------------------------------*/
-void
-rpl_schedule_dao(rpl_instance_t *instance)
+static void
+schedule_dao(rpl_instance_t *instance, clock_time_t latency)
 {
   clock_time_t expiration_time;
+
+  if(rpl_get_mode() == RPL_MODE_FEATHER) {
+    return;
+  }
 
   expiration_time = etimer_expiration_time(&instance->dao_timer.etimer);
 
   if(!etimer_expired(&instance->dao_timer.etimer)) {
     PRINTF("RPL: DAO timer already scheduled\n");
   } else {
-    expiration_time = RPL_DAO_LATENCY / 2 +
-      (random_rand() % (RPL_DAO_LATENCY));
+    if(latency != 0) {
+      expiration_time = latency / 2 +
+        (random_rand() % (latency));
+    } else {
+      expiration_time = 0;
+    }
     PRINTF("RPL: Scheduling DAO timer %u ticks in the future\n",
            (unsigned)expiration_time);
     ctimer_set(&instance->dao_timer, expiration_time,
                handle_dao_timer, instance);
+
+    set_dao_lifetime_timer(instance);
   }
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_schedule_dao(rpl_instance_t *instance)
+{
+  schedule_dao(instance, RPL_DAO_LATENCY);
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_schedule_dao_immediately(rpl_instance_t *instance)
+{
+  schedule_dao(instance, 0);
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_cancel_dao(rpl_instance_t *instance)
+{
+  ctimer_stop(&instance->dao_timer);
+  ctimer_stop(&instance->dao_lifetime_timer);
 }
 /*---------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */

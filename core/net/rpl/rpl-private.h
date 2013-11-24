@@ -304,11 +304,17 @@ uip_ds6_route_t *rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix,
                                int prefix_len, uip_ipaddr_t *next_hop);
 void rpl_purge_routes(void);
 
+/* Lock a parent in the neighbor cache. */
+void rpl_lock_parent(rpl_parent_t *p);
+
 /* Objective function. */
 rpl_of_t *rpl_find_of(rpl_ocp_t);
 
 /* Timer functions. */
 void rpl_schedule_dao(rpl_instance_t *);
+void rpl_schedule_dao_immediately(rpl_instance_t *);
+void rpl_cancel_dao(rpl_instance_t *instance);
+
 void rpl_reset_dio_timer(rpl_instance_t *);
 void rpl_reset_periodic_timer(void);
 

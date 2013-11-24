@@ -69,6 +69,7 @@ rpl_verify_header(int uip_ext_opt_offset)
   rpl_instance_t *instance;
   int down;
   uint8_t sender_closer;
+  uip_ds6_route_t *route;
 
   if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
     PRINTF("RPL: Bad header option! (wrong length)\n");
@@ -83,11 +84,11 @@ rpl_verify_header(int uip_ext_opt_offset)
   }
 
   if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_FWD_ERR) {
+    PRINTF("RPL: Forward error!\n");
     /* We should try to repair it by removing the neighbor that caused
        the packet to be forwareded in the first place. We drop any
        routes that go through the neighbor that sent the packet to
        us. */
-    uip_ds6_route_t *route;
     route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
     if(route != NULL) {
       uip_ds6_route_rm(route);

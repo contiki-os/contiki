@@ -78,10 +78,16 @@ NBR_TABLE(rpl_parent_t, rpl_parents);
 rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 rpl_instance_t *default_instance;
 /*---------------------------------------------------------------------------*/
+static void
+nbr_callback(void *ptr)
+{
+  rpl_remove_parent(ptr);
+}
+
 void
 rpl_dag_init(void)
 {
-  nbr_table_register(rpl_parents, (nbr_table_callback *)rpl_remove_parent);
+  nbr_table_register(rpl_parents, (nbr_table_callback *)nbr_callback);
 }
 /*---------------------------------------------------------------------------*/
 rpl_rank_t
@@ -178,7 +184,7 @@ nullify_parents(rpl_dag_t *dag, rpl_rank_t minimum_rank)
 {
   rpl_parent_t *p;
 
-  PRINTF("RPL: Removing parents (minimum rank %u)\n",
+  PRINTF("RPL: Nullifying parents (minimum rank %u)\n",
 	minimum_rank);
 
   p = nbr_table_head(rpl_parents);
@@ -541,17 +547,23 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
    * Typically, the parent is added upon receiving a DIO. */
   const uip_lladdr_t *lladdr = uip_ds6_nbr_lladdr_from_ipaddr(addr);
 
-  PRINTF("RPL: rpl_add_parent lladdr %p\n", lladdr);
+  PRINTF("RPL: rpl_add_parent lladdr %p ", lladdr);
+  PRINT6ADDR(addr);
+  PRINTF("\n");
   if(lladdr != NULL) {
     /* Add parent in rpl_parents */
     p = nbr_table_add_lladdr(rpl_parents, (rimeaddr_t *)lladdr);
-    p->dag = dag;
-    p->rank = dio->rank;
-    p->dtsn = dio->dtsn;
-    p->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
+    if(p == NULL) {
+      PRINTF("RPL: rpl_add_parent p NULL\n");
+    } else {
+      p->dag = dag;
+      p->rank = dio->rank;
+      p->dtsn = dio->dtsn;
+      p->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
 #if RPL_DAG_MC != RPL_DAG_MC_NONE
-    memcpy(&p->mc, &dio->mc, sizeof(p->mc));
+      memcpy(&p->mc, &dio->mc, sizeof(p->mc));
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
+    }
   }
 
   return p;
@@ -689,8 +701,8 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   return best_dag;
 }
 /*---------------------------------------------------------------------------*/
-rpl_parent_t *
-rpl_select_parent(rpl_dag_t *dag)
+static rpl_parent_t *
+best_parent(rpl_dag_t *dag)
 {
   rpl_parent_t *p, *best;
 
@@ -707,6 +719,14 @@ rpl_select_parent(rpl_dag_t *dag)
     }
     p = nbr_table_next(rpl_parents, p);
   }
+
+  return best;
+}
+/*---------------------------------------------------------------------------*/
+rpl_parent_t *
+rpl_select_parent(rpl_dag_t *dag)
+{
+  rpl_parent_t *best = best_parent(dag);
 
   if(best != NULL) {
     rpl_set_preferred_parent(dag, best);
@@ -776,9 +796,7 @@ rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
   PRINT6ADDR(rpl_get_parent_ipaddr(parent));
   PRINTF("\n");
 
-  list_remove(dag_src->parents, parent);
   parent->dag = dag_dst;
-  list_add(dag_dst->parents, parent);
 }
 /*---------------------------------------------------------------------------*/
 rpl_dag_t *
@@ -1192,7 +1210,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   } else if(dio->rank == INFINITE_RANK && dag->joined) {
     rpl_reset_dio_timer(instance);
   }
-  
+
   /* Prefix Information Option treated to add new prefix */
   if(dio->prefix_info.length != 0) {
     if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
@@ -1275,6 +1293,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     uip_ds6_defrt_add(from, RPL_LIFETIME(instance, instance->default_lifetime));
   }
   p->dtsn = dio->dtsn;
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_lock_parent(rpl_parent_t *p)
+{
+  nbr_table_lock(rpl_parents, p);
 }
 /*---------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */
