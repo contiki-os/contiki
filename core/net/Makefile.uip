@@ -1,6 +1,5 @@
 NET =						\
 dhcpc.c						\
-hc.c						\
 nbr-table.c			\
 netstack.c					\
 packetbuf.c					\
