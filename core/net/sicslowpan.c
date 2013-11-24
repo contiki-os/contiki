@@ -257,6 +257,8 @@ static struct timer reass_timer;
 #define sicslowpan_len uip_len
 #endif /* SICSLOWPAN_CONF_FRAG */
 
+static int last_rssi;
+
 /*-------------------------------------------------------------------------*/
 /* Rime Sniffer support for one single listener to enable powertrace of IP */
 /*-------------------------------------------------------------------------*/
@@ -1604,6 +1606,9 @@ input(void)
   /* The MAC puts the 15.4 payload inside the RIME data buffer */
   rime_ptr = packetbuf_dataptr();
 
+  /* Save the RSSI of the incoming packet in case the upper layer will
+     want to query us for it later. */
+  last_rssi = (signed short)packetbuf_attr(PACKETBUF_ATTR_RSSI);
 #if SICSLOWPAN_CONF_FRAG
   /* if reassembly timed out, cancel it */
   if(timer_expired(&reass_timer)) {
@@ -1666,7 +1671,12 @@ input(void)
    */
 #define PRIORITIZE_NEW_PACKETS 1
 #if PRIORITIZE_NEW_PACKETS
-  if(processed_ip_in_len > 0 && first_fragment
+
+  if(!is_fragment) {
+    /* Prioritize non-fragment packets too. */
+    sicslowpan_len = 0;
+    processed_ip_in_len = 0;
+  } else if(processed_ip_in_len > 0 && first_fragment
       && !rimeaddr_cmp(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER))) {
     sicslowpan_len = 0;
     processed_ip_in_len = 0;
@@ -1898,6 +1908,12 @@ sicslowpan_init(void)
 #endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 1 */
 
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06 */
+}
+/*--------------------------------------------------------------------*/
+int
+sicslowpan_get_last_rssi(void)
+{
+  return last_rssi;
 }
 /*--------------------------------------------------------------------*/
 const struct network_driver sicslowpan_driver = {
