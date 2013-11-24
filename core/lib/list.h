@@ -65,8 +65,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __LIST_H__
-#define __LIST_H__
+#ifndef LIST_H_
+#define LIST_H_
 
 #define LIST_CONCAT2(s1, s2) s1##s2
 #define LIST_CONCAT(s1, s2) LIST_CONCAT2(s1, s2)
@@ -153,7 +153,7 @@ void   list_insert(list_t list, void *previtem, void *newitem);
 
 void * list_item_next(void *item);
 
-#endif /* __LIST_H__ */
+#endif /* LIST_H_ */
 
 /** @} */
 /** @} */

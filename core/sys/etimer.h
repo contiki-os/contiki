@@ -59,8 +59,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __ETIMER_H__
-#define __ETIMER_H__
+#ifndef ETIMER_H_
+#define ETIMER_H_
 
 #include "sys/timer.h"
 #include "sys/process.h"
@@ -236,6 +236,6 @@ clock_time_t etimer_next_expiration_time(void);
 /** @} */
 
 PROCESS_NAME(etimer_process);
-#endif /* __ETIMER_H__ */
+#endif /* ETIMER_H_ */
 /** @} */
 /** @} */

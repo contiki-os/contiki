@@ -31,11 +31,11 @@
  *
  *
  */
-#ifndef __FTP_DSC_H__
-#define __FTP_DSC_H__
+#ifndef FTP_DSC_H_
+#define FTP_DSC_H_
 
 #include "sys/dsc.h"
 
 DSC_HEADER(ftp_dsc);
 
-#endif /* __FTP_DSC_H__ */
+#endif /* FTP_DSC_H_ */

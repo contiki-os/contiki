@@ -50,8 +50,8 @@
  * Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __PROCESS_H__
-#define __PROCESS_H__
+#ifndef PROCESS_H_
+#define PROCESS_H_
 
 #include "sys/pt.h"
 #include "sys/cc.h"
@@ -525,7 +525,7 @@ CCIF extern struct process *process_list;
 
 #define PROCESS_LIST() process_list
 
-#endif /* __PROCESS_H__ */
+#endif /* PROCESS_H_ */
 
 /** @} */
 /** @} */

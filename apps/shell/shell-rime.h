@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_RIME_H__
-#define __SHELL_RIME_H__
+#ifndef SHELL_RIME_H_
+#define SHELL_RIME_H_
 
 #include "shell.h"
 
@@ -86,4 +86,4 @@ void shell_rime_init(void);
 
 extern struct collect_conn shell_collect_conn;
 
-#endif /* __SHELL_RIME_H__ */
+#endif /* SHELL_RIME_H_ */

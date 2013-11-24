@@ -1,5 +1,5 @@
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include "8051def.h"
 #include "sys/cc.h"
@@ -280,4 +280,4 @@
 #define UIP_CONF_DS6_AADDR_NBU               1
 #endif
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

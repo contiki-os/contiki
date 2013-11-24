@@ -1,5 +1,5 @@
-#ifndef __CONTIKI_CONF_H__CDBB4VIH3I__
-#define __CONTIKI_CONF_H__CDBB4VIH3I__
+#ifndef CONTIKI_CONF_H_CDBB4VIH3I__
+#define CONTIKI_CONF_H_CDBB4VIH3I__
 
 #include <stdint.h>
 
@@ -43,4 +43,4 @@ typedef unsigned int uip_stats_t;
 #define USB_EP2_SIZE 64
 
 #define RAND_MAX 0x7fff
-#endif /* __CONTIKI_CONF_H__CDBB4VIH3I__ */
+#endif /* CONTIKI_CONF_H_CDBB4VIH3I__ */

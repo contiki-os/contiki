@@ -1,5 +1,5 @@
-#ifndef __USB_API_H__SYN81IFYBN__
-#define __USB_API_H__SYN81IFYBN__
+#ifndef USB_API_H_SYN81IFYBN__
+#define USB_API_H_SYN81IFYBN__
 
 #include "sys/process.h"
 
@@ -124,4 +124,4 @@ unsigned int usb_get_ep_events(uint8_t addr);
 
 unsigned int usb_get_current_configuration(void);
 
-#endif /* __USB_API_H__SYN81IFYBN__ */
+#endif /* USB_API_H_SYN81IFYBN__ */

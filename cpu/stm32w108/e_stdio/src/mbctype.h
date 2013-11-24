@@ -1,6 +1,6 @@
-#ifndef _MBCTYPE_H_
+#ifndef MBCTYPE_H_
 
-#define _MBCTYPE_H_
+#define MBCTYPE_H_
 
 /* escape character used for JIS encoding */
 #define ESC_CHAR 0x1b
@@ -17,4 +17,4 @@ int _EXFUN(_isjis, (int c));
 #define _iseucjp(c)    ((c) >= 0xa1 && (c) <= 0xfe)
 #define _isjis(c)      ((c) >= 0x21 && (c) <= 0x7e)
 
-#endif /* _MBCTYPE_H_ */
+#endif /*MBCTYPE_H_ */

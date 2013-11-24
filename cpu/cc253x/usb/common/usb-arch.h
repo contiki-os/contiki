@@ -1,5 +1,5 @@
-#ifndef __USB_ARCH_H__0Z52ZDP0H6__
-#define __USB_ARCH_H__0Z52ZDP0H6__
+#ifndef USB_ARCH_H_0Z52ZDP0H6__
+#define USB_ARCH_H_0Z52ZDP0H6__
 
 #include "contiki-conf.h"
 #include "usb-api.h"
@@ -74,4 +74,4 @@ unsigned int usb_arch_get_global_events(void);
 /* Return true if not all data has been sent to the host */
 int usb_arch_send_pending(uint8_t ep_addr);
 
-#endif /* __USB_ARCH_H__0Z52ZDP0H6__ */
+#endif /* USB_ARCH_H_0Z52ZDP0H6__ */

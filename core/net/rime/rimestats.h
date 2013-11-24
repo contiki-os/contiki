@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __RIMESTATS_H__
-#define __RIMESTATS_H__
+#ifndef RIMESTATS_H_
+#define RIMESTATS_H_
 
 struct rimestats {
   unsigned long tx, rx;
@@ -66,4 +66,4 @@ extern struct rimestats rimestats;
 #define RIMESTATS_GET(x) 0
 #endif /* RIMESTATS_CONF_ENABLED */
 
-#endif /* __RIMESTATS_H__ */
+#endif /* RIMESTATS_H_ */

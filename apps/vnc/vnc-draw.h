@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef __VNC_DRAW_H__
-#define __VNC_DRAW_H__
+#ifndef VNC_DRAW_H_
+#define VNC_DRAW_H_
 
 #include "net/uip_arch.h"
 
@@ -57,4 +57,4 @@ uint16_t vnc_draw_viewport_y(void);
 uint16_t vnc_draw_viewport_w(void);
 uint16_t vnc_draw_viewport_h(void);
 
-#endif /* __VNC_DRAW_H__ */
+#endif /* VNC_DRAW_H_ */

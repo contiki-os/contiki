@@ -30,11 +30,11 @@
  *
  */
 
-#ifndef __SHELL_CHECKPOINT_H__
-#define __SHELL_CHECKPOINT_H__
+#ifndef SHELL_CHECKPOINT_H_
+#define SHELL_CHECKPOINT_H_
 
 #include "shell.h"
 
 void shell_checkpoint_init(void);
 
-#endif /* __SHELL_CHECKPOINT_H__ */
+#endif /* SHELL_CHECKPOINT_H_ */

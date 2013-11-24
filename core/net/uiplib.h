@@ -39,8 +39,8 @@
  *
  *
  */
-#ifndef __UIPLIB_H__
-#define __UIPLIB_H__
+#ifndef UIPLIB_H_
+#define UIPLIB_H_
 
 #include "net/uip.h"
 
@@ -76,4 +76,4 @@ CCIF int uiplib_ip4addrconv(const char *addrstr, uip_ip4addr_t *addr);
 CCIF int uiplib_ip6addrconv(const char *addrstr, uip_ip6addr_t *addr);
 /** @} */
 
-#endif /* __UIPLIB_H__ */
+#endif /* UIPLIB_H_ */

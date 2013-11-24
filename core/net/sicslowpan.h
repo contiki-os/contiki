@@ -45,8 +45,8 @@
  * \author Julien Abeille <jabeille@cisco.com>
  */
 
-#ifndef __SICSLOWPAN_H__
-#define __SICSLOWPAN_H__
+#ifndef SICSLOWPAN_H_
+#define SICSLOWPAN_H_
 #include "net/uip.h"
 #include "net/mac/mac.h"
 
@@ -320,5 +320,5 @@ struct sicslowpan_nh_compressor {
 
 extern const struct network_driver sicslowpan_driver;
 
-#endif /* __SICSLOWPAN_H__ */
+#endif /* SICSLOWPAN_H_ */
 /** @} */

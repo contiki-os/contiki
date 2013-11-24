@@ -37,9 +37,9 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_RIME_PING_H__
-#define __SHELL_RIME_PING_H__
+#ifndef SHELL_RIME_PING_H_
+#define SHELL_RIME_PING_H_
 
 void shell_rime_ping_init(void);
 
-#endif /* __SHELL-RIME_-PING_H__ */
+#endif /* SHELL-RIME_-PING_H_ */

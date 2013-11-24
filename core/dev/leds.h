@@ -44,8 +44,8 @@
  * @{
  */
 
-#ifndef __LEDS_H__
-#define __LEDS_H__
+#ifndef LEDS_H_
+#define LEDS_H_
 
 /* Allow platform to override LED numbering */
 #include "contiki-conf.h"
@@ -92,4 +92,4 @@ void leds_arch_init(void);
 unsigned char leds_arch_get(void);
 void leds_arch_set(unsigned char leds);
 
-#endif /* __LEDS_H__ */
+#endif /* LEDS_H_ */

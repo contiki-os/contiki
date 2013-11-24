@@ -37,9 +37,9 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __PRINT_STATS_H__
-#define __PRINT_STATS_H__
+#ifndef PRINT_STATS_H_
+#define PRINT_STATS_H_
 
 void print_stats(void);
 
-#endif /* __PRINT_STATS_H__ */
+#endif /* PRINT_STATS_H_ */

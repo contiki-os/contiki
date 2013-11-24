@@ -30,8 +30,8 @@
  *
  */
 
-#ifndef __COOJA_RADIO_H__
-#define __COOJA_RADIO_H__
+#ifndef COOJA_RADIO_H_
+#define COOJA_RADIO_H_
 
 #include "contiki.h"
 #include "dev/radio.h"
@@ -71,4 +71,4 @@ int
 radio_LQI(void);
 
 
-#endif /* __COOJA_RADIO_H__ */
+#endif /* COOJA_RADIO_H_ */

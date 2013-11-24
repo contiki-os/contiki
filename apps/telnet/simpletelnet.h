@@ -31,8 +31,8 @@
  *
  *
  */
-#ifndef __SIMPLETELNET_H__
-#define __SIMPLETELNET_H__
+#ifndef SIMPLETELNET_H_
+#define SIMPLETELNET_H_
 
 #ifdef TELNET_CONF_WINDOW_WIDTH
 #define TELNET_WINDOW_WIDTH TELNET_CONF_WINDOW_WIDTH
@@ -63,4 +63,4 @@
 
 void simpletelnet_init(char *arg);
 
-#endif /* __SIMPLETELNET_H__ */
+#endif /* SIMPLETELNET_H_ */

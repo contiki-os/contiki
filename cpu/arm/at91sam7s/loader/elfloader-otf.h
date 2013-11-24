@@ -74,8 +74,8 @@
  *
  */
 
-#ifndef __ELFLOADER_H__
-#define __ELFLOADER_H__
+#ifndef ELFLOADER_H_
+#define ELFLOADER_H_
 
 #include "cfs/cfs.h"
 
@@ -308,7 +308,7 @@ struct elf32_rela {
 };
 
 
-#endif /* __ELFLOADER_H__ */
+#endif /* ELFLOADER_H_ */
 
 /** @} */
 /** @} */
