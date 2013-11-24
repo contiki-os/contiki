@@ -60,8 +60,8 @@
  *
  */
 
-#ifndef __MEMB_H__
-#define __MEMB_H__
+#ifndef MEMB_H_
+#define MEMB_H_
 
 #include "sys/cc.h"
 
@@ -134,4 +134,4 @@ int memb_inmemb(struct memb *m, void *ptr);
 /** @} */
 /** @} */
 
-#endif /* __MEMB_H__ */
+#endif /* MEMB_H_ */

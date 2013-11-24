@@ -1,5 +1,5 @@
-#ifndef __NVIC_H__LE94F5JS4D__
-#define __NVIC_H__LE94F5JS4D__
+#ifndef NVIC_H_LE94F5JS4D__
+#define NVIC_H_LE94F5JS4D__
 #include <stm32f10x_map.h>
 #include <stm32f10x_nvic.h>
 
@@ -13,4 +13,4 @@ MODIFY_REG(NVIC->IPR[(i)/4], 0xf<<(((i)&3)*8), (p)<<(((i)&3)*8))
 
 #define NVIC_SET_SYSTICK_PRI(p) MODIFY_REG(SCB->SHPR[2],  0xf<<24, (p)<<24)
 
-#endif /* __NVIC_H__LE94F5JS4D__ */
+#endif /* NVIC_H_LE94F5JS4D__ */

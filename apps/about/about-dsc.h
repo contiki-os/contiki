@@ -31,11 +31,11 @@
  *
  *
  */
-#ifndef __ABOUT_DSC_H__
-#define __ABOUT_DSC_H__
+#ifndef ABOUT_DSC_H_
+#define ABOUT_DSC_H_
 
 #include "sys/dsc.h"
 
 DSC_HEADER(about_dsc);
 
-#endif /* __ABOUT_DSC_H__ */
+#endif /* ABOUT_DSC_H_ */

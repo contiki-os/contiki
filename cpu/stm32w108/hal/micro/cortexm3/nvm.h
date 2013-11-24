@@ -170,8 +170,8 @@
  */
 
 
-#ifndef __NVM_H__
-#define __NVM_H__
+#ifndef NVM_H_
+#define NVM_H_
 
 //Pull in the MFB_ definitions.
 #include "hal/micro/cortexm3/memmap.h"
@@ -275,5 +275,5 @@ StStatus halCommonWriteToNvm(const void *data, uint32_t offset, uint16_t length)
 
 /** @} END addtogroup */
 
-#endif // __NVM_H__
+#endif // NVM_H_
 

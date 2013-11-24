@@ -56,8 +56,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __COLLECT_H__
-#define __COLLECT_H__
+#ifndef COLLECT_H_
+#define COLLECT_H_
 
 #include "net/rime/announcement.h"
 #include "net/rime/runicast.h"
@@ -144,6 +144,6 @@ void collect_print_stats(void);
 
 #define COLLECT_MAX_DEPTH (COLLECT_LINK_ESTIMATE_UNIT * 64 - 1)
 
-#endif /* __COLLECT_H__ */
+#endif /* COLLECT_H_ */
 /** @} */
 /** @} */

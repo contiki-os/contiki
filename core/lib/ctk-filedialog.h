@@ -31,8 +31,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __CTK_FILEDIALOG_H__
-#define __CTK_FILEDIALOG_H__
+#ifndef CTK_FILEDIALOG_H_
+#define CTK_FILEDIALOG_H_
 
 #include "contiki.h"
 
@@ -47,4 +47,4 @@ void ctk_filedialog_open(CC_REGISTER_ARG struct ctk_filedialog_state *s,
 char ctk_filedialog_eventhandler(struct ctk_filedialog_state *s,
 				 process_event_t ev, process_data_t data);
 
-#endif /* __CTK_FILEDIALOG_H__ */
+#endif /* CTK_FILEDIALOG_H_ */

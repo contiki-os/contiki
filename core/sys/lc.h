@@ -115,8 +115,8 @@
  */
 #endif /* DOXYGEN */
 
-#ifndef __LC_H__
-#define __LC_H__
+#ifndef LC_H_
+#define LC_H_
 
 #ifdef LC_CONF_INCLUDE
 #include LC_CONF_INCLUDE
@@ -124,7 +124,7 @@
 #include "sys/lc-switch.h"
 #endif /* LC_CONF_INCLUDE */
 
-#endif /* __LC_H__ */
+#endif /* LC_H_ */
 
 /** @} */
 /** @} */

@@ -29,12 +29,12 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __LIGHT_H__
-#define __LIGHT_H__
+#ifndef LIGHT_H_
+#define LIGHT_H_
 
 void sensors_light_init(void);
 
 unsigned sensors_light1(void);
 unsigned sensors_light2(void);
 
-#endif /* __LIGHT_H__ */
+#endif /* LIGHT_H_ */

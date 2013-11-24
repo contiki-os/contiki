@@ -75,8 +75,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __RUNICAST_H__
-#define __RUNICAST_H__
+#ifndef RUNICAST_H_
+#define RUNICAST_H_
 
 #include "net/rime/stunicast.h"
 
@@ -112,6 +112,6 @@ int runicast_send(struct runicast_conn *c, const rimeaddr_t *receiver,
 
 uint8_t runicast_is_transmitting(struct runicast_conn *c);
 
-#endif /* __RUNICAST_H__ */
+#endif /* RUNICAST_H_ */
 /** @} */
 /** @} */

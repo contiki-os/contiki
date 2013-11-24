@@ -55,8 +55,8 @@
  * the 3xx and 4xx families of the pic32mx.
  */
 
-#ifndef __INCLUDE_PIC32_SPI_H__
-#define __INCLUDE_PIC32_SPI_H__
+#ifndef INCLUDE_PIC32_SPI_H_
+#define INCLUDE_PIC32_SPI_H_
 
 #ifdef __USE_SPI__
 
@@ -109,6 +109,6 @@ SPI_DEF(3A)
 
 #endif /* __USE_SPI__ */
 
-#endif /* __INCLUDE_PIC32_SPI_H__ */
+#endif /* INCLUDE_PIC32_SPI_H_ */
 
 /** @} */

@@ -39,8 +39,8 @@
  *
  */
 
-#ifndef __ADC_H__
-#define __ADC_H__
+#ifndef ADC_H_
+#define ADC_H_
 
 #include <avr/io.h>
 #include <stdio.h>
@@ -106,5 +106,5 @@ void adc_deinit(void);
 int adc_conversion_start(void);
 int16_t adc_result_get(adc_adj_t adjust);
 
-#endif /* __ADC_H__ */
+#endif /* ADC_H_ */
 

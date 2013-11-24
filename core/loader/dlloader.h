@@ -29,9 +29,9 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __DLLOADER_H__
-#define __DLLOADER_H__
+#ifndef DLLOADER_H_
+#define DLLOADER_H_
 
 int dlloader_load(char *name, char *arg);
 
-#endif /* __SOLOADR_H__ */
+#endif /* SOLOADR_H_ */

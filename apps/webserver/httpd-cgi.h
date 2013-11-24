@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef __HTTPD_CGI_H__
-#define __HTTPD_CGI_H__
+#ifndef HTTPD_CGI_H_
+#define HTTPD_CGI_H_
 
 #include "contiki.h"
 #include "httpd.h"
@@ -53,4 +53,4 @@ void httpd_cgi_add(struct httpd_cgi_call *c);
 static struct httpd_cgi_call name = {NULL, str, function}
 
 void httpd_cgi_init(void);
-#endif /* __HTTPD_CGI_H__ */
+#endif /* HTTPD_CGI_H_ */

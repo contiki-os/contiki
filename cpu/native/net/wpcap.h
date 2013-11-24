@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef __WPCAP_H__
-#define __WPCAP_H__
+#ifndef WPCAP_H_
+#define WPCAP_H_
 
 void wpcap_init(void);
 uint16_t wpcap_poll(void);
@@ -46,4 +46,4 @@ void wpcap_send(void);
 #endif
 void wpcap_exit(void);
 
-#endif /* __WPCAP_H__ */
+#endif /* WPCAP_H_ */

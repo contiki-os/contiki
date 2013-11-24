@@ -37,8 +37,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __JSONTREE_H__
-#define __JSONTREE_H__
+#ifndef JSONTREE_H_
+#define JSONTREE_H_
 
 #include "contiki-conf.h"
 #include "json.h"
@@ -132,4 +132,4 @@ int jsontree_print_next(struct jsontree_context *js_ctx);
 struct jsontree_value *jsontree_find_next(struct jsontree_context *js_ctx,
                                           int type);
 
-#endif /* __JSONTREE_H__ */
+#endif /* JSONTREE_H_ */

@@ -27,11 +27,11 @@
  * SUCH DAMAGE.
  */
 
-#ifndef __PACKETUTILS_H__
-#define __PACKETUTILS_H__
+#ifndef PACKETUTILS_H_
+#define PACKETUTILS_H_
 
 int packetutils_serialize_atts(uint8_t *data, int size);
 
 int packetutils_deserialize_atts(const uint8_t *data, int size);
 
-#endif /* __PACKETUTILS_H__ */
+#endif /* PACKETUTILS_H_ */

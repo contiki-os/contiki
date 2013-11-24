@@ -43,8 +43,8 @@
  *
  */
 
-#ifndef __UIP_DS6_NEIGHBOR_H__
-#define __UIP_DS6_NEIGHBOR_H__
+#ifndef UIP_DS6_NEIGHBOR_H_
+#define UIP_DS6_NEIGHBOR_H_
 
 #include "net/uip.h"
 #include "net/nbr-table.h"
@@ -107,4 +107,4 @@ int uip_ds6_nbr_num(void);
  */
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
 
-#endif /* __UIP_DS6_NEIGHBOR_H__ */
+#endif /* UIP_DS6_NEIGHBOR_H_ */

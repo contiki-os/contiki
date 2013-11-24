@@ -18,8 +18,8 @@
 * INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
 *******************************************************************************/
 
-#ifndef _MEMS_H_
-#define _MEMS_H_
+#ifndef MEMS_H_
+#define MEMS_H_
 
 /* Define --------------------------------------------------------------------*/
 #include "mems_regs.h"
@@ -59,7 +59,7 @@ boolean MEMS_GetFullScale(void);
 /* Get mems acceleration values */
 uint8_t Mems_GetValue(t_mems_data *mems_data);
 
-#endif /* _MEMS_H_ */
+#endif /*MEMS_H_ */
 
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/
 /** @} */
