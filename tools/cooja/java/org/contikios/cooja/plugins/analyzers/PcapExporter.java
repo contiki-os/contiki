@@ -41,6 +41,7 @@ public class PcapExporter {
 
     public void exportPacketData(byte[] data) throws IOException {
         if (out == null) {
+            /* pcap file never set, open default */
             openPcap(null);
         }
         try {
