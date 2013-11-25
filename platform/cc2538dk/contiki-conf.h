@@ -112,6 +112,7 @@ typedef uint32_t rtimer_clock_t;
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
 #define SLIP_RADIO_CONF_NO_PUTCHAR  1
 
+#ifndef SLIP_ARCH_CONF_ENABLED
 /*
  * Determine whether we need SLIP
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
@@ -119,6 +120,7 @@ typedef uint32_t rtimer_clock_t;
  */
 #if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED      1
+#endif
 #endif
 
 /*
