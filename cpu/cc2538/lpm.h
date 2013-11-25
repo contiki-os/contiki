@@ -126,6 +126,12 @@ void lpm_init(void);
  * lpm_exit(), which will always be called from within the Sleep Timer ISR
  * context.
  *
+ * \note Dropping to PM2 means that data in the SRAM non-retention area will
+ * be lost. It is recommended to disable PM2 if the total RAM footprint is
+ * larger than what will fit in the retention area.
+ * .nrdata* sections can be used to place uninitialized data in the SRAM
+ * non-retention area.
+ *
  * \sa main(), rtimer_arch_next_trigger(), lpm_exit(), lpm_set_max_pm()
  */
 void lpm_enter(void);
