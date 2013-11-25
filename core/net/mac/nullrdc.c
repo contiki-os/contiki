@@ -38,6 +38,7 @@
  *         Niclas Finne <nfi@sics.se>
  */
 
+#include "net/mac/mac-sequence.h"
 #include "net/mac/nullrdc.h"
 #include "net/packetbuf.h"
 #include "net/queuebuf.h"
@@ -106,21 +107,6 @@
 #endif /* NULLRDC_SEND_802154_ACK */
 
 #define ACK_LEN 3
-
-#if NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW
-struct seqno {
-  rimeaddr_t sender;
-  uint8_t seqno;
-};
-
-#ifdef NETSTACK_CONF_MAC_SEQNO_HISTORY
-#define MAX_SEQNOS NETSTACK_CONF_MAC_SEQNO_HISTORY
-#else /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
-#define MAX_SEQNOS 8
-#endif /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
-
-static struct seqno received_seqnos[MAX_SEQNOS];
-#endif /* NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW */
 
 /*---------------------------------------------------------------------------*/
 static int
@@ -312,27 +298,14 @@ packet_input(void)
     int duplicate = 0;
 
 #if NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW
-    /* Check for duplicate packet by comparing the sequence number
-       of the incoming packet with the last few ones we saw. */
-    int i;
-    for(i = 0; i < MAX_SEQNOS; ++i) {
-      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno &&
-         rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                      &received_seqnos[i].sender)) {
-        /* Drop the packet. */
-        PRINTF("nullrdc: drop duplicate link layer packet %u\n",
-               packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
-        duplicate = 1;
-      }
-    }
-    if(!duplicate) {
-      for(i = MAX_SEQNOS - 1; i > 0; --i) {
-        memcpy(&received_seqnos[i], &received_seqnos[i - 1],
-               sizeof(struct seqno));
-      }
-      received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
-      rimeaddr_copy(&received_seqnos[0].sender,
-                    packetbuf_addr(PACKETBUF_ADDR_SENDER));
+    /* Check for duplicate packet. */
+    duplicate = mac_sequence_is_duplicate();
+    if(duplicate) {
+      /* Drop the packet. */
+      PRINTF("nullrdc: drop duplicate link layer packet %u\n",
+             packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
+    } else {
+      mac_sequence_register_seqno();
     }
 #endif /* NULLRDC_802154_AUTOACK */
 
