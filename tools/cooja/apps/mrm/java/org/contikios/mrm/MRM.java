@@ -49,6 +49,7 @@ import org.contikios.cooja.interfaces.Position;
 import org.contikios.cooja.interfaces.Radio;
 import org.contikios.cooja.plugins.Visualizer;
 import org.contikios.cooja.radiomediums.AbstractRadioMedium;
+import org.contikios.cooja.util.ScnObservable;
 import org.contikios.mrm.ChannelModel.Parameter;
 import org.contikios.mrm.ChannelModel.RadioPair;
 import org.contikios.mrm.ChannelModel.TxPair;
@@ -93,7 +94,7 @@ public class MRM extends AbstractRadioMedium {
   /**
    * Notifies observers when this radio medium has changed settings.
    */
-  private SettingsObservable settingsObservable = new SettingsObservable();
+  private ScnObservable settingsObservable = new ScnObservable();
 
   /**
    * Creates a new Multi-path Ray-tracing Medium (MRM).
@@ -447,13 +448,6 @@ public class MRM extends AbstractRadioMedium {
    */
   public ChannelModel getChannelModel() {
     return currentChannelModel;
-  }
-
-  class SettingsObservable extends Observable {
-    private void notifySettingsChanged() {
-      setChanged();
-      notifyObservers();
-    }
   }
 
   class MRMRadioConnection extends RadioConnection {
