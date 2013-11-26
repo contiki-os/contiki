@@ -9,23 +9,32 @@ CONTIKI_TARGET_SOURCEFILES += button-sensor.c sensors.c slip_uart0.c slip.c
 CONTIKIAVR=$(CONTIKI)/cpu/avr
 CONTIKIBOARD=.
 
-CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAUTO_CRC_PADDING=2
+CONTIKI_PLAT_DEFS = -DF_CPU=16000000UL -DAUTO_CRC_PADDING=2
 
 MCU=atmega128rfa1
 
-AVRDUDE_PROGRAMMER=jtag2
+AVRDUDE_PROGRAMMER=jtag3isp
 
 # For usb devices, you may either use PORT=usb, or (e.g. if you have more than one
 # programmer connected) you can use the following trick to find out the serial number:
 #
 # The example is for an JTAGICE mkII used to program an ATmega128:
 # avrdude -v -P usb:xxxx -c jtag2 -p atmega128
-AVRDUDE_PORT=usb:00B000000D79
+AVRDUDE_PORT=usb
 
+ifeq ($(UIP_CONF_IPV6),1)
+CFLAGS += -DWITH_UIP6=1
+CFLAGS += -DUIP_CONF_IPV6=1
+endif
+
+ifeq ($(UIP_CONF_RPL),0)
+CFLAGS += -DUIP_CONF_IPV6_RPL=0
+CFLAGS += -DUIP_CONF_ROUTER=0
+endif
 
 # Additional avrdude options
 # Verify off
-AVRDUDE_OPTIONS=-V
+AVRDUDE_OPTIONS=-V -B 1
 AVRDUDE_MCU=m128rfa1
 
 

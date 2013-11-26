@@ -88,6 +88,13 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define SLIP_PORT RS232_PORT_0
 #endif
 
+/* UIP_CONF_BUFFER_SIZE specifies how much memory should be reserved
+   for the uIP packet buffer. This sets an upper bound on the largest
+   IP packet that can be received by the system. */
+#ifndef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE 1280
+#endif /* UIP_CONF_BUFFER_SIZE */
+
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
 /* Default is 4096. Currently used only when elfloader is present. Not tested on Raven */
 //#define MMEM_CONF_SIZE 256
@@ -188,7 +195,6 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RDC         sicslowmac_driver
 #define NETSTACK_CONF_FRAMER      framer_802154
 #define NETSTACK_CONF_RADIO       rf230_driver
-#define CHANNEL_802_15_4          26
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
 /* Request 802.15.4 ACK on all packets sent (else autoretry). This is primarily for testing. */

@@ -30,8 +30,7 @@
  *
  *
  */
-#include <util/delay.h>
-#define delay_us( us )   ( _delay_us( ( us ) ) )
+/* Line endings in git repository are LF instead of CR-LF ? */
 /*
  * This file includes functions that are called by the web server
  * scripts. The functions takes no argument, and the return value is
@@ -108,7 +107,7 @@ static const char *states[] = {
 
   static char sensor_temperature[12]="Not Enabled";
   static char sensor_extvoltage[12]="Not Enabled";
-//  static unsigned long last_tempupdate,last_extvoltageupdate;
+  static unsigned long last_tempupdate,last_extvoltageupdate;
   extern unsigned long seconds, sleepseconds;
 #if RADIOSTATS
   extern unsigned long radioontime;
@@ -117,20 +116,22 @@ static const char *states[] = {
   extern uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
 #endif
   
-#if 0
+
 void
 web_set_temp(char *s)
 {
   strcpy(sensor_temperature, s);
+//  printf_P(PSTR("got temp"));
   last_tempupdate=seconds;
 }
 void
 web_set_voltage(char *s)
 {
   strcpy(sensor_extvoltage, s);
+//    printf_P(PSTR("got volts"));
   last_extvoltageupdate=seconds;
 }
-#endif
+
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(nullfunction(struct httpd_state *s, char *ptr))
@@ -325,8 +326,9 @@ make_neighbors(void *p)
 {
 uint8_t i,j=0;
 uint16_t numprinted;
+uip_ds6_nbr_t *nbr;
+
   numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
-  uip_ds6_nbr_t *nbr;
   for(nbr = nbr_table_head(ds6_neighbors);
       nbr != NULL;
       nbr = nbr_table_next(ds6_neighbors, nbr)) {
@@ -352,25 +354,25 @@ PT_THREAD(neighbors(struct httpd_state *s, char *ptr))
 static unsigned short
 make_routes(void *p)
 {
-static const char httpd_cgi_rtes1[] HTTPD_STRING_ATTR = "(%u (via ";
-static const char httpd_cgi_rtes2[] HTTPD_STRING_ATTR = ") %lus<br>";
-static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")<br>";
-uint8_t i,j=0;
-uint16_t numprinted;
-uip_ds6_route_t *r;
+  static const char httpd_cgi_rtes1[] HTTPD_STRING_ATTR = "(%u (via ";
+  static const char httpd_cgi_rtes2[] HTTPD_STRING_ATTR = ") %lus<br>";
+  static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")<br>";
+  uint8_t i,j=0;
+  uint16_t numprinted;
+  uip_ds6_route_t *r;
+
   numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
   for(r = uip_ds6_route_head();
       r != NULL;
       r = uip_ds6_route_next(r)) {
-      j++;
-      numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
-      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, r->length);
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_route_nexthop(r), uip_appdata + numprinted);
-      if(r->state.lifetime < 3600) {
-         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, r->state.lifetime);
-      } else {
-         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
-      }
+    j++;
+    numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
+    numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, r->length);
+    numprinted += httpd_cgi_sprint_ip6(*uip_ds6_route_nexthop(r), uip_appdata + numprinted);
+    if(r->state.lifetime < 3600) {
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, r->state.lifetime);
+    } else {
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
     }
   }
   if (j==0) numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrn);
@@ -394,53 +396,32 @@ generate_sensor_readings(void *arg)
   uint16_t numprinted;
   uint16_t h,m,s;
   uint8_t p1;
-//  static const char httpd_cgi_sensor0[] HTTPD_STRING_ATTR = "[Updated %d seconds ago]<br><br>";
+  static const char httpd_cgi_sensor0[] HTTPD_STRING_ATTR = "[Updated %d seconds ago]<br><br>";
 //  static const char httpd_cgi_sensor1[] HTTPD_STRING_ATTR = "<em>Temperature:</em> %s<br>";
 //  static const char httpd_cgi_sensor2[] HTTPD_STRING_ATTR = "<em>Battery:</em> %s<br>";
-  static const char httpd_cgi_sensor1_printf[] HTTPD_STRING_ATTR = "%d.%d C";
-  static const char httpd_cgi_sensor2_printf[] HTTPD_STRING_ATTR = "%d mv";
   static const char httpd_cgi_sensr12[] HTTPD_STRING_ATTR = "<em>Temperature:</em> %s    <em>Battery:<em> %s<br>";
   static const char httpd_cgi_sensor3[] HTTPD_STRING_ATTR = "<em>Elapsed timer :</em> %02d:%02d:%02d<br>";
   static const char httpd_cgi_sensor4[] HTTPD_STRING_ATTR = "<em>Sleeping time :</em> %02d:%02d:%02d (%d%%)<br>";
-  
+
   numprinted=0;
-//  if (last_tempupdate) {
-//    numprinted =httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_sensor0,seconds-last_tempupdate);
-//  }
-     BATMON = 16; //give BATMON time to stabilize at highest range and lowest voltage
-/* Measure internal temperature sensor, see atmega128rfa1 datasheet */
-/* This code disabled by default for safety. Selecting an internal reference will short it to
-   anything connected to the AREF pin!
-  */
-#if 1
-  ADCSRB|=1<<MUX5;          //this bit buffered till ADMUX written to!
-  ADMUX =0xc9;              // Select internal 1.6 volt ref, temperature sensor ADC channel
-  ADCSRA=0x85;              //Enable ADC, not free running, interrupt disabled, clock divider 32 (250 KHz@ 8 MHz)
-//  while ((ADCSRB&(1<<AVDDOK))==0);  //wait for AVDD ok
-//  while ((ADCSRB&(1<<REFOK))==0);  //wait for ref ok 
+  if (last_tempupdate) {
+    numprinted =httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_sensor0,seconds-last_tempupdate);
+  }
+
+//  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor1, sensor_temperature);
+  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensr12, sensor_temperature,sensor_extvoltage);
+
+#if 0
+//Measuring AVcc might be useful to check on battery condition but on ext power it's always 3v3
+  ADMUX =0x1E;              //Select AREF as reference, measure 1.1 volt bandgap reference.
+//ADMUX =0x5E;              //Select AVCC as reference, measure 1.1 volt bandgap reference.
+  ADCSRA=0x07;              //Enable ADC, not free running, interrupt disabled, clock divider  128 (62 KHz@ 8 MHz)
   ADCSRA|=1<<ADSC;          //Start throwaway conversion
   while (ADCSRA&(1<<ADSC)); //Wait till done
   ADCSRA|=1<<ADSC;          //Start another conversion
   while (ADCSRA&(1<<ADSC)); //Wait till done
-  h=ADC;                    //Read adc
-  h=11*h-2728+(h>>2);       //Convert to celcius*10 (should be 11.3*h, approximate with 11.25*h)
-  ADCSRA=0;                 //disable ADC
-  ADMUX=0;                  //turn off internal vref      
-  m=h/10;s=h-10*m;
-  httpd_snprintf(sensor_temperature,sizeof(sensor_temperature),httpd_cgi_sensor1_printf,m,s);
+  h=1131632UL/ADC;          //Get supply voltage
 #endif
-
-/* Bandgap can't be measured against supply voltage in this chip. */
-/* Use BATMON register instead */
-  for ( p1=16; p1<31; p1++) {
-    BATMON = p1;
- // delay_us(100); //delay needed?
-    if ((BATMON&(1<<BATMON_OK))==0) break;
-  }
-  h=2550-75*16-75+75*p1; //-75 to take the floor of the 75 mv transition window
-  httpd_snprintf(sensor_extvoltage,sizeof(sensor_extvoltage),httpd_cgi_sensor2_printf,h);
-
-  numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensr12, sensor_temperature,sensor_extvoltage);
 
  // numprinted+=httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_sensor2, sensor_extvoltage);
 #if RADIOSTATS

@@ -1,4 +1,0 @@
-raven-lcd-interface_src = raven-lcd.c
-
-
-CFLAGS+=-DRAVEN_LCD_INTERFACE=1

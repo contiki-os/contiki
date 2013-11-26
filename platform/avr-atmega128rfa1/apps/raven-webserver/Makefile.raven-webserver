@@ -39,21 +39,21 @@ ifdef COFFEE_ADDRESS   #for now force whenever present, could test for arg passe
 FORCE=force
 endif
 
-$(WEBCSOURCE)httpd-fs.c: $(WEBCSOURCE)httpd-fsdata.c
-$(WEBCSOURCE)httpd-fsdata.c : $(FORCE) $(WEBDIR)/*.*
+$(WEBCSOURCE)httpd-fs.c: httpd-fsdata.c
+httpd-fsdata.c : $(FORCE) $(WEBDIR)/*.*
 ifeq     ($(COFFEE_FILES), 1)       #1=eeprom static
 	@echo Generating web content for static eeprom coffee file system
-	$(CONTIKI)/tools/makefsdata -C -A EEPROM -l -f 16 -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+	$(CONTIKI)/tools/makefsdata -C -A EEPROM -l -f 16 -d $(WEBDIR) -o httpd-fsdata.c
 else ifeq ($(COFFEE_FILES), 2)       #2=eeprom dynamic
 	@echo Generating web content for full eeprom coffee file system
-	$(CONTIKI)/tools/makefsdata -C -A EEPROM -f 20 -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+	$(CONTIKI)/tools/makefsdata -C -A EEPROM -f 20 -d $(WEBDIR) -o $httpd-fsdata.c
 else ifeq ($(COFFEE_FILES), 3)       #3=program flash static
 	@echo Generating web content for static flash coffee file system
-	$(CONTIKI)/tools/makefsdata -C -A PROGMEM -l -f 16 -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+	$(CONTIKI)/tools/makefsdata -C -A PROGMEM -l -f 16 -d $(WEBDIR) -o httpd-fsdata.c
 else ifeq ($(COFFEE_FILES), 4)       #4=program flash dynamic
 	@echo Generating initial web content for full flash coffee file system
-	$(CONTIKI)/tools/makefsdata -C -A PROGMEM -c -f 20 -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+	$(CONTIKI)/tools/makefsdata -C -A PROGMEM -c -f 20 -d $(WEBDIR) -o $httpd-fsdata.c
 else
 	@echo Generating static web content
-	$(CONTIKI)/tools/makefsdata -A PROGMEM -l -d $(WEBDIR) -o $(WEBCSOURCE)httpd-fsdata.c
+	$(CONTIKI)/tools/makefsdata -A PROGMEM -l -d $(WEBDIR) -o httpd-fsdata.c
 endif
