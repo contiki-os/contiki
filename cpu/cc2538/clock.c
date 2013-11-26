@@ -197,6 +197,14 @@ clock_adjust(clock_time_t ticks)
 
   /* Re-Start the SysTick */
   REG(SYSTICK_STCTRL) |= SYSTICK_STCTRL_ENABLE;
+
+  /*
+   * Inform the etimer library that the system clock has changed and that an
+   * etimer might have expired.
+   */
+  if(etimer_pending()) {
+    etimer_request_poll();
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
