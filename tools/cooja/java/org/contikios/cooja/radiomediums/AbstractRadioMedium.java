@@ -44,6 +44,7 @@ import org.contikios.cooja.Simulation;
 import org.contikios.cooja.TimeEvent;
 import org.contikios.cooja.interfaces.CustomDataRadio;
 import org.contikios.cooja.interfaces.Radio;
+import org.contikios.cooja.util.ScnObservable;
 
 /**
  * Abstract radio medium provides basic functionality for implementing radio
@@ -82,17 +83,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 	public int COUNTER_RX = 0;
 	public int COUNTER_INTERFERED = 0;
 	
-	public class RadioMediumObservable extends Observable {
-		public void setRadioMediumChanged() {
-			setChanged();
-		}
-		public void setRadioMediumChangedAndNotify() {
-			setChanged();
-			notifyObservers();
-		}
-	}
-	
-	private RadioMediumObservable radioMediumObservable = new RadioMediumObservable();
+	protected ScnObservable radioMediumObservable = new ScnObservable();
 	
 	/**
 	 * This constructor should always be called from implemented radio mediums.
@@ -279,7 +270,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 					
 					/* Notify observers */
 					lastConnection = null;
-					radioMediumObservable.setRadioMediumChangedAndNotify();
+					radioMediumObservable.setChangedAndNotify();
 				}
 				break;
 				case TRANSMISSION_FINISHED: {
@@ -321,7 +312,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 					updateSignalStrengths();
 					
 					/* Notify observers */
-					radioMediumObservable.setRadioMediumChangedAndNotify();
+					radioMediumObservable.setChangedAndNotify();
 				}
 				break;
 				case CUSTOM_DATA_TRANSMITTED: {
