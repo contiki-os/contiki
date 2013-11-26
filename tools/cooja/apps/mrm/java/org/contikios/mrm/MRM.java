@@ -92,11 +92,6 @@ public class MRM extends AbstractRadioMedium {
   private ChannelModel currentChannelModel = null;
 
   /**
-   * Notifies observers when this radio medium has changed settings.
-   */
-  private ScnObservable settingsObservable = new ScnObservable();
-
-  /**
    * Creates a new Multi-path Ray-tracing Medium (MRM).
    */
   public MRM(Simulation simulation) {
@@ -115,6 +110,9 @@ public class MRM extends AbstractRadioMedium {
         WITH_CAPTURE_EFFECT = currentChannelModel.getParameterBooleanValue(ChannelModel.Parameter.captureEffect);
         CAPTURE_EFFECT_THRESHOLD = currentChannelModel.getParameterDoubleValue(ChannelModel.Parameter.captureEffectSignalTreshold);
         CAPTURE_EFFECT_PREAMBLE_DURATION = currentChannelModel.getParameterDoubleValue(ChannelModel.Parameter.captureEffectPreambleDuration);
+        
+        /* Radio Medium changed here, so notify */
+        radioMediumObservable.setChangedAndNotify();
       }
     });
     
@@ -408,25 +406,6 @@ public class MRM extends AbstractRadioMedium {
 
 
   // -- MRM specific methods --
-
-  /**
-   * Adds an observer which is notified when this radio medium has
-   * changed settings, such as added or removed radios.
-   *
-   * @param obs New observer
-   */
-  public void addSettingsObserver(Observer obs) {
-    settingsObservable.addObserver(obs);
-  }
-
-  /**
-   * Deletes an earlier registered setting observer.
-   *
-   * @param obs Earlier registered observer
-   */
-  public void deleteSettingsObserver(Observer obs) {
-    settingsObservable.deleteObserver(obs);
-  }
 
   /**
    * @return Number of registered radios.
