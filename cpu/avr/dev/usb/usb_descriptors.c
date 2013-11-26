@@ -288,13 +288,14 @@ USB_INTERFACEDESC(	\
 //This doesn't seem to hurt anything but beware, system corruption is
 //a possibility.
 #if USB_CONF_MACINTOSH
-/* Prefer CDC-ECM network enumeration (Macintosh, linux) */
+// Prefer CDC-ECM network enumeration (Macintosh, linux) */
+// Strangely enough ECM flags do not work under linux currently. Commenting ECM flags enables discovery in linux
 FLASH uint8_t usb_dev_config_order[] = {
 	USB_CONFIG_RNDIS, //windows gets networking only (if not here gets serial only)
 #if USB_CONF_SERIAL
-	USB_CONFIG_ECM_DEBUG, //mac, linux get networking and serial port
+//	USB_CONFIG_ECM_DEBUG, //mac, linux get networking and serial port // gives problems with some versoins of linux though
 #endif
-	USB_CONFIG_ECM,
+//	USB_CONFIG_ECM,
 #if USB_CONF_SERIAL
 	USB_CONFIG_RNDIS_DEBUG,
 #endif

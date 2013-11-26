@@ -52,7 +52,7 @@ AVRDUDE_PROGRAMMER=jtag2
 #
 # The example is for an JTAGICE mkII used to program an ATmega128:
 # avrdude -v -P usb:xxxx -c jtag2 -p atmega128
-AVRDUDE_PORT=usb:00B000000D79
+AVRDUDE_PORT=usb
 
 
 

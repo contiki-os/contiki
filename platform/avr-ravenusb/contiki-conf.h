@@ -64,6 +64,13 @@
  * like the avrdude erase count and bootloader signaling. */
 #define EEPROM_CONF_SIZE		((E2END + 1) - 4)
 
+/* UIP_CONF_BUFFER_SIZE specifies how much memory should be reserved
+   for the uIP packet buffer. This sets an upper bound on the largest
+   IP packet that can be received by the system. */
+#ifndef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE 1280
+#endif /* UIP_CONF_BUFFER_SIZE */
+
 /* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.
  * 125 Hz needs slightly more overhead during the interrupt, as does a 32 bit
  * clock_time_t.
