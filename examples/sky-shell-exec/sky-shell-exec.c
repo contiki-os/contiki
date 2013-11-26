@@ -43,8 +43,6 @@
 #include "dev/sht11.h"
 #include "dev/battery-sensor.h"
 
-#include "lib/checkpoint.h"
-
 #include "net/rime/timesynch.h"
 
 #include <stdio.h>
@@ -72,7 +70,6 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   /*shell_sky_init();*/
   shell_text_init();
   /*shell_time_init();*/
-  /*  shell_checkpoint_init();*/
   shell_exec_init();
   shell_base64_init();
 
