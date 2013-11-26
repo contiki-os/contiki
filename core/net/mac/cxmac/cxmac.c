@@ -44,7 +44,7 @@
 #include "dev/watchdog.h"
 #include "net/netstack.h"
 #include "lib/random.h"
-#include "net/mac/cxmac.h"
+#include "net/mac/cxmac/cxmac.h"
 #include "net/rime.h"
 #include "net/rime/timesynch.h"
 #include "sys/compower.h"
