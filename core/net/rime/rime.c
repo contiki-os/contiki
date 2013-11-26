@@ -187,7 +187,9 @@ rime_output(struct channel *c)
 }
 /*---------------------------------------------------------------------------*/
 const struct network_driver rime_driver = {
+#if NETSTACK_DRIVER_NAMES
   "Rime",
+#endif
   init,
   input
 };

@@ -1917,7 +1917,9 @@ sicslowpan_get_last_rssi(void)
 }
 /*--------------------------------------------------------------------*/
 const struct network_driver sicslowpan_driver = {
+#if NETSTACK_DRIVER_NAMES
   "sicslowpan",
+#endif
   sicslowpan_init,
   input
 };

@@ -78,7 +78,9 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver nullmac_driver = {
+#if MAC_DRIVER_NAMES
   "nullmac",
+#endif
   init,
   send_packet,
   packet_input,

@@ -361,7 +361,9 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver nullrdc_driver = {
+#if RDC_DRIVER_NAMES
   "nullrdc",
+#endif
   init,
   send_packet,
   send_list,

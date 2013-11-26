@@ -1042,7 +1042,9 @@ init(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct rdc_driver lpp_driver = {
+#if RDC_DRIVER_NAMES
   "LPP",
+#endif
   init,
   send_packet,
   send_list,
