@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __CHAMELEON_H__
-#define __CHAMELEON_H__
+#ifndef CHAMELEON_H_
+#define CHAMELEON_H_
 
 #include "net/rime/channel.h"
 
@@ -54,4 +54,4 @@ int chameleon_hdrsize(const struct packetbuf_attrlist attrlist[]);
 struct channel *chameleon_parse(void);
 int chameleon_create(struct channel *c);
 
-#endif /* __CHAMELEON_H__ */
+#endif /* CHAMELEON_H_ */

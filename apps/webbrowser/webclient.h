@@ -31,8 +31,8 @@
  *
  *
  */
-#ifndef __WEBCLIENT_H__
-#define __WEBCLIENT_H__
+#ifndef WEBCLIENT_H_
+#define WEBCLIENT_H_
 
 #include "contiki-net.h"
 #include "http-strings.h"
@@ -62,4 +62,4 @@ char *webclient_filename(void);
 char *webclient_hostname(void);
 unsigned short webclient_port(void);
 
-#endif /* __WEBCLIENT_H__ */
+#endif /* WEBCLIENT_H_ */

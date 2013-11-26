@@ -5,8 +5,8 @@
  *         Zach Shelby <zach@sensinode.com>
  */
 
-#ifndef __CC2430_RF_H__
-#define __CC2430_RF_H__
+#ifndef CC2430_RF_H_
+#define CC2430_RF_H_
 
 #include "contiki.h"
 #include "dev/radio.h"
@@ -88,4 +88,4 @@ extern void cc2430_rf_error_ISR(void) __interrupt(RFERR_VECTOR);
 void rf_dma_callback_isr(void);
 #endif
 
-#endif /* __CC2430_RF_H__ */
+#endif /* CC2430_RF_H_ */

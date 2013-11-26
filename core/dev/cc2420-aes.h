@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __CC2420_AES_H__
-#define __CC2420_AES_H__
+#ifndef CC2420_AES_H_
+#define CC2420_AES_H_
 
 /**
  * \brief      Setup an AES key
@@ -72,4 +72,4 @@ void cc2420_aes_set_key(const uint8_t *key, int index);
 void cc2420_aes_cipher(uint8_t *data, int len, int key_index);
 
 
-#endif /* __CC2420_AES_H__ */
+#endif /* CC2420_AES_H_ */

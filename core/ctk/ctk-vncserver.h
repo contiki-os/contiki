@@ -31,12 +31,12 @@
  *
  *
  */
-#ifndef __CTK_VNCSERVER_H__
-#define __CTK_VNCSERVER_H__
+#ifndef CTK_VNCSERVER_H_
+#define CTK_VNCSERVER_H_
 
 #include "contiki.h"
 void ctk_vncserver_init(char *arg);
 
 PROCESS_NAME(ctk_vncserver_process);
 
-#endif /* __CTK_VNCSERVER_H__ */
+#endif /* CTK_VNCSERVER_H_ */

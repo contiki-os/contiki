@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef __6502DEF_H__
-#define __6502DEF_H__
+#ifndef S502DEF_H_
+#define S502DEF_H_
 
 #include <ctype.h>
 #include <conio.h>
@@ -160,4 +160,4 @@ typedef unsigned short uip_stats_t;
 #define cfs_remove   remove
 #endif /* WITH_PFS */
 
-#endif /* __6502DEF_H__ */
+#endif /* S502DEF_H_ */

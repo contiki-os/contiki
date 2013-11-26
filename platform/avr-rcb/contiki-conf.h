@@ -39,8 +39,8 @@
  *         Simon Barner <barner@in.tum.de
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include <stdint.h>
 
@@ -144,4 +144,4 @@ typedef unsigned long u32_t;
 typedef unsigned short uip_stats_t;
 typedef unsigned long off_t;
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

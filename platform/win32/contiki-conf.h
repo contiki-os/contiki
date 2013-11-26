@@ -1,5 +1,5 @@
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #ifdef __CYGWIN__
 #include <sys/types.h>
@@ -183,4 +183,4 @@ typedef unsigned short uip_stats_t;
 #define WWW_CONF_WEBPAGE_HEIGHT 30
 #endif /* PLATFORM_BUILD */
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

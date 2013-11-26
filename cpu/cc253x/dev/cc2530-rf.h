@@ -36,8 +36,8 @@
  * \author
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
-#ifndef __CC2530_RF_H__
-#define __CC2530_RF_H__
+#ifndef CC2530_RF_H_
+#define CC2530_RF_H_
 
 #include "contiki.h"
 #include "dev/radio.h"
@@ -125,4 +125,4 @@ int8_t cc2530_rf_channel_set(uint8_t channel);
 uint8_t cc2530_rf_power_set(uint8_t new_power);
 void cc2530_rf_set_addr(uint16_t pan);
 /*---------------------------------------------------------------------------*/
-#endif /* __CC2530_RF_H__ */
+#endif /* CC2530_RF_H_ */

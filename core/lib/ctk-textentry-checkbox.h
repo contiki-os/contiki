@@ -31,10 +31,10 @@
  *
  *
  */
-#ifndef __CTK_TEXTENTRY_CHECKBOX_H__
-#define __CTK_TEXTENTRY_CHECKBOX_H__
+#ifndef CTK_TEXTENTRY_CHECKBOX_H_
+#define CTK_TEXTENTRY_CHECKBOX_H_
 
 unsigned char ctk_textentry_checkbox_input(ctk_arch_key_t c,
 					   struct ctk_textentry *t);
 
-#endif /* __CTK_TEXTENTRY_CHECKBOX_H__ */
+#endif /* CTK_TEXTENTRY_CHECKBOX_H_ */

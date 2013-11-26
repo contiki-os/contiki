@@ -36,8 +36,8 @@
  * Updated : $Date: 2010/08/27 12:58:57 $
  *           $Revision: 1.2 $
  */
-#ifndef __Z1_PHIDGETS_H__
-#define __Z1_PHIDGETS_H__
+#ifndef Z1_PHIDGETS_H_
+#define Z1_PHIDGETS_H_
 
 #define PHIDGET5V_1 0
 #define PHIDGET5V_2 1
@@ -46,4 +46,4 @@
 
 extern const struct sensors_sensor phidgets;
 
-#endif /* __Z1_PHIDGETS_H__ */
+#endif /* Z1_PHIDGETS_H_ */

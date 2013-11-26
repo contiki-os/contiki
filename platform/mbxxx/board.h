@@ -48,8 +48,8 @@
 *
 */
 /*---------------------------------------------------------------------------*/
-#ifndef _BOARD_H_
-#define _BOARD_H_
+#ifndef BOARD_H_
+#define BOARD_H_
 
 char boardName[16];
 
@@ -347,7 +347,7 @@ void halBoardPowerDown(void);
 
 void boardPrintStringDescription(void);
 
-#endif /* _BOARD_H_ */
+#endif /*BOARD_H_ */
 
 /** @} // END addtogroup
  */

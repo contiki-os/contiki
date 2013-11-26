@@ -37,11 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_UDPSEND_H__
-#define __SHELL_UDPSEND_H__
+#ifndef SHELL_UDPSEND_H_
+#define SHELL_UDPSEND_H_
 
 #include "shell.h"
 
 void shell_udpsend_init(void);
 
-#endif /* __SHELL_UDPSEND_H__ */
+#endif /* SHELL_UDPSEND_H_ */

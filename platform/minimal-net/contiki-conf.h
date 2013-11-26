@@ -30,8 +30,8 @@
  *
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include <inttypes.h>
 #include <limits.h>
@@ -179,4 +179,4 @@ typedef unsigned long clock_time_t;
 /* Not part of C99 but actually present */
 int strcasecmp(const char*, const char*);
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

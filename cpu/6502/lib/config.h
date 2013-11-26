@@ -32,9 +32,9 @@
  *
  */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef CONFIG_H_
+#define CONFIG_H_
 
 struct ethernet_config * CC_FASTCALL config_read(char *filename);
 
-#endif /* __CONFIG_H__ */
+#endif /* CONFIG_H_ */

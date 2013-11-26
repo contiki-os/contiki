@@ -1,5 +1,5 @@
-#ifndef __SPC2_STRUCT_H__6R1KTJP0NJ__
-#define __SPC2_STRUCT_H__6R1KTJP0NJ__
+#ifndef SPC2_STRUCT_H_6R1KTJP0NJ__
+#define SPC2_STRUCT_H_6R1KTJP0NJ__
 
 typedef uint8_t uint40_bytes[5];
 typedef uint8_t uint32_bytes[4];
@@ -136,4 +136,4 @@ struct spc2_mode_page
   uint8_t page_length;
 } CC_BYTE_ALIGNED;
 
-#endif /* __SPC2_STRUCT_H__6R1KTJP0NJ__ */
+#endif /* SPC2_STRUCT_H_6R1KTJP0NJ__ */

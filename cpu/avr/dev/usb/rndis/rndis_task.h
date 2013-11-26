@@ -40,8 +40,8 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _RNDIS_TASK_H_
-#define _RNDIS_TASK_H_
+#ifndef RNDIS_TASK_H_
+#define RNDIS_TASK_H_
 
 /**
  \addtogroup RNDIS
@@ -121,5 +121,5 @@ PROCESS_NAME(usb_eth_process);
 
 /** @} */
 
-#endif /* _RNDIS_TASK_H_ */
+#endif /*RNDIS_TASK_H_ */
 

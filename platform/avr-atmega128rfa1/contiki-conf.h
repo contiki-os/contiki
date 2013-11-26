@@ -38,8 +38,8 @@
  *         David Kopf <dak664@embarqmail.com>
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 /* Platform name, type, and MCU clock rate */
 #define PLATFORM_NAME  "RFA1"
@@ -351,4 +351,4 @@ typedef unsigned short uip_stats_t;
 #include PROJECT_CONF_H
 #endif
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */
