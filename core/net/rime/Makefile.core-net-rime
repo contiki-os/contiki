@@ -1,7 +1,3 @@
-ifeq ($(UIP_CONF_IPV6),1)
-#RIME_UIP6      = rime-udp.c
-RIME_BASE      = rimeaddr.c timesynch.c rimestats.c
-else
 RIME_CHAMELEON = chameleon.c channel.c chameleon-raw.c chameleon-bitopt.c
 RIME_BASE      = rimeaddr.c rime.c timesynch.c \
                  rimestats.c announcement.c polite-announcement.c \
@@ -14,9 +10,8 @@ RIME_MESH      = mesh.c route.c route-discovery.c
 RIME_COLLECT   = collect.c collect-neighbor.c neighbor-discovery.c \
 		 collect-link-estimate.c
 RIME_RUDOLPH   = rudolph0.c rudolph1.c rudolph2.c
-endif # UIP_CONF_IPV6
 
-CONTIKI_SOURCEFILES += $(RIME_BASE) \
+core-net-rime_src = $(RIME_BASE) \
                $(RIME_SINGLEHOP) \
                $(RIME_MULTIHOP) \
                $(RIME_MESH) \
