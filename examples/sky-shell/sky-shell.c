@@ -87,7 +87,6 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   /*  shell_base64_init();*/
   shell_text_init();
   shell_time_init();
-  /*  shell_checkpoint_init();*/
   /*  shell_sendtest_init();*/
 
   shell_collect_view_init();
