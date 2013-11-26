@@ -38,8 +38,8 @@
  */
 
 
-#ifndef __SOC_H__
-#define __SOC_H__
+#ifndef SOC_H_
+#define SOC_H_
 
 
 #ifndef CC2530_LAST_FLASH_BANK
@@ -61,4 +61,4 @@
 
 void soc_init();
 
-#endif /* __SOC_H__ */
+#endif /* SOC_H_ */

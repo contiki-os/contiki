@@ -57,8 +57,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_H__
-#define __SHELL_H__
+#ifndef SHELL_H_
+#define SHELL_H_
 
 #include "sys/process.h"
 
@@ -411,7 +411,7 @@ struct shell_input {
 #include "shell-vars.h"
 #include "shell-wget.h"
 
-#endif /* __SHELL_H__ */
+#endif /* SHELL_H_ */
 
 
 /** @} */

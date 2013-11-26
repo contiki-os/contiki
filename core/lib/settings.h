@@ -30,8 +30,8 @@
  *
  */
 
-#ifndef __CONTIKI_SETTINGS_H__
-#define __CONTIKI_SETTINGS_H__
+#ifndef CONTIKI_SETTINGS_H_
+#define CONTIKI_SETTINGS_H_
 
 /** @file   settings.h
  *  @brief  Settings Manager
@@ -366,4 +366,4 @@ settings_set_uint64(settings_key_t key, uint64_t value)
 
 #endif /* !SETTINGS_CONF_SKIP_CONVENIENCE_FUNCS */
 
-#endif /* !defined(__CONTIKI_SETTINGS_H__) */
+#endif /* !defined(CONTIKI_SETTINGS_H_) */

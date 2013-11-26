@@ -31,8 +31,8 @@
  *
  *
  */
-#ifndef __CTK_VNCFONT_H__
-#define __CTK_VNCFONT_H__
+#ifndef CTK_VNCFONT_H_
+#define CTK_VNCFONT_H_
 
 #define CTK_VNCFONT_WIDTH 6
 #define CTK_VNCFONT_HEIGHT 8
@@ -42,4 +42,4 @@ extern unsigned char ctk_vncfont[CTK_VNCFONT_WIDTH *
 				 CTK_VNCFONT_HEIGHT *
 				 128];
 
-#endif /* __CTK_VNCFONT_H__ */
+#endif /* CTK_VNCFONT_H_ */

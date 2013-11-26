@@ -33,8 +33,8 @@
  *
  */
 
-#ifndef _MACA_H_
-#define _MACA_H_
+#ifndef MACA_H_
+#define MACA_H_
 
 #include <packet.h>
 #include <stdint.h>
@@ -529,4 +529,4 @@ enum maca_status_bits {
 #define MACA_WRITE(reg, src) (reg = src)
 #define MACA_READ(reg)  reg
 
-#endif // _MACA_H_
+#endif //MACA_H_

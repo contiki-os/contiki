@@ -31,9 +31,9 @@
  *
  *
  */
-#ifndef __VNC_H__
-#define __VNC_H__
+#ifndef VNC_H_
+#define VNC_H_
 
 void vnc_init(char *arg);
 
-#endif /* __VNC_H__ */
+#endif /* VNC_H_ */

@@ -90,8 +90,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __IPOLITE_H__
-#define __IPOLITE_H__
+#ifndef IPOLITE_H_
+#define IPOLITE_H_
 
 #include "sys/ctimer.h"
 
@@ -191,7 +191,7 @@ int  ipolite_send(struct ipolite_conn *c, clock_time_t interval,
  */
 void ipolite_cancel(struct ipolite_conn *c);
 
-#endif /* __IPOLITE_H__ */
+#endif /* IPOLITE_H_ */
 
 /** @} */
 /** @} */

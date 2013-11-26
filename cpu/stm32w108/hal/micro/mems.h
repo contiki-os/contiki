@@ -5,8 +5,8 @@
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
 
-#ifndef _MEMS_H_
-#define _MEMS_H_
+#ifndef MEMS_H_
+#define MEMS_H_
 
 #include "hal/micro/mems-regs.h"
 
@@ -32,5 +32,5 @@ uint8_t mems_Init(void);
  */
 uint8_t mems_GetValue(t_mems_data *mems_data);
 
-#endif /* _MEMS_H_ */
+#endif /*MEMS_H_ */
 

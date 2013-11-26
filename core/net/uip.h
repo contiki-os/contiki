@@ -50,8 +50,8 @@
  *
  */
 
-#ifndef __UIP_H__
-#define __UIP_H__
+#ifndef UIP_H_
+#define UIP_H_
 
 #include "net/uipopt.h"
 
@@ -2193,7 +2193,7 @@ uint16_t uip_udpchksum(void);
 uint16_t uip_icmp6chksum(void);
 
 
-#endif /* __UIP_H__ */
+#endif /* UIP_H_ */
 
 
 /** @} */

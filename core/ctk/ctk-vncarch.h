@@ -31,8 +31,8 @@
  *
  *
  */
-#ifndef __CTK_VNCARCH_H__
-#define __CTK_VNCARCH_H__
+#ifndef CTK_VNCARCH_H_
+#define CTK_VNCARCH_H_
 
 #define CTK_ARCH_KEY_T unsigned char
 
@@ -64,4 +64,4 @@ CTK_ARCH_KEY_T ctk_arch_getkey(void);
 
 
 
-#endif /* __CTK_VNCARCH_H__ */
+#endif /* CTK_VNCARCH_H_ */

@@ -42,8 +42,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __UIP_FW_H__
-#define __UIP_FW_H__
+#ifndef UIP_FW_H_
+#define UIP_FW_H_
 
 #include "net/uip.h"
 
@@ -170,6 +170,6 @@ void uip_fw_periodic(void);
 #define UIP_FW_DROPPED   5
 
 
-#endif /* __UIP_FW_H__ */
+#endif /* UIP_FW_H_ */
 
 /** @} */

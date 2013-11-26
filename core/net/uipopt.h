@@ -61,8 +61,8 @@
  *
  */
 
-#ifndef __UIPOPT_H__
-#define __UIPOPT_H__
+#ifndef UIPOPT_H_
+#define UIPOPT_H_
 
 #ifndef UIP_LITTLE_ENDIAN
 #define UIP_LITTLE_ENDIAN  3412
@@ -672,6 +672,6 @@ void uip_log(char *msg);
  */
 /** @} */
 
-#endif /* __UIPOPT_H__ */
+#endif /* UIPOPT_H_ */
 /** @} */
 /** @} */
