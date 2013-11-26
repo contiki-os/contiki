@@ -39,7 +39,7 @@ public class PcapExporter {
             out.writeInt((int) System.currentTimeMillis() / 1000);
             out.writeInt((int) ((System.currentTimeMillis() % 1000) * 1000));
             out.writeInt(data.length);
-            out.writeInt(data.length+2);
+            out.writeInt(data.length);
             /* and the data */
             out.write(data);
             out.flush();
