@@ -45,7 +45,7 @@
 #include "dev/watchdog.h"
 #include "lib/random.h"
 #include "net/mac/mac-sequence.h"
-#include "net/mac/contikimac.h"
+#include "net/mac/contikimac/contikimac.h"
 #include "net/netstack.h"
 #include "net/rime.h"
 #include "sys/compower.h"
