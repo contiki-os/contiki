@@ -38,13 +38,13 @@
  */
 #include "contiki.h"
 #include "reg.h"
+#include "sys-ctrl.h"
 #include "uart.h"
 
 #include <stdint.h>
 
 #define FLASH_START_ADDR                0x00200000
 #define BOOTLOADER_BACKDOOR_DISABLE     0xEFFFFFFF
-#define SYS_CTRL_EMUOVR                 0x400D20B4
 /*---------------------------------------------------------------------------*/
 extern int main(void);
 /*---------------------------------------------------------------------------*/
