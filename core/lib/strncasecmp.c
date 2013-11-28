@@ -32,38 +32,54 @@
  *
  */
 
-/* This file contains a naive and non-standards compliant
-   implementation of strncasecmp() for systems that don't implement
-   the function. It works with Contiki, but should most probably not
-   be used anywhere else.
+/**
+ * \file
+ *         Implementation of strncasecmp
+ * \author
+ *         Arun Prakash Jana <engineerarun@gmail.com>
+ *
+ */
 
-   It copies the n first bytes two strings into two buffers and
-   compares them with strcasecmp.
-*/
+#include <stdio.h>
+#include <ctype.h>
+#include <strings.h>
 
-#define MAX_STRLEN 40
+/*---------------------------------------------------------------------------*/
+/* Compare strings s1 and s2 in a case-insensitive way*/
 
-
-int strncmp(const char *s1, const char *s2, int len);
-
-/*static char buf1[MAX_STRLEN],
-  buf2[MAX_STRLEN];*/
-/*-----------------------------------------------------------------------------------*/
-unsigned char
+int
 strncasecmp(const char *s1, const char *s2, unsigned char n)
 {
-  unsigned char len;
+  unsigned char i = 0;
+  int diff;
 
-  return strncmp(s1, s2, n);
-  
-  /*  len = MAX_STRLEN;
-  if(n < MAX_STRLEN) {
-    len = n;
+  if(s1 == NULL && s2 == NULL) {
+    return 0;
   }
-  strncpy(buf1, s1, len);
-  buf1[MAX_STRLEN - 1] = 0;
-  strncpy(buf2, s2, len);
-  buf2[MAX_STRLEN - 1] = 0;
-  return strcasecmp(buf1, buf2);*/
+  if(s1 == NULL) {
+    return -1;
+  }
+  if(s2 == NULL) {
+    return 1;
+  }
+
+  if(s1 == s2 || n == 0) {
+	  return 0;
+  }
+
+  while(i < n) {
+    if((diff = tolower(s1[i]) - tolower(s2[i])) != 0) {
+      return diff;
+    } else {
+      if(s1[i] == '\0') {
+        return diff;
+      }
+
+      i++;
+    }
+  }
+
+  return 0;
 }
-/*-----------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
