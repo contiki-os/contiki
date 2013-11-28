@@ -48,7 +48,7 @@
 #include "lib/assert.h"
 
 #ifdef CC2420_RADIO
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #define RSSI_THRESHOLD -39	/* accept -39 ... xx */
 #endif
 

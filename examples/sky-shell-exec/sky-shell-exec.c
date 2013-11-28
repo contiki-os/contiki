@@ -37,7 +37,7 @@
 #include "dev/watchdog.h"
 
 #include "net/rime.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include "dev/light.h"
 #include "dev/sht11.h"

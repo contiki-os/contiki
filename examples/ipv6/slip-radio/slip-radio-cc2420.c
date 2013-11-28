@@ -32,7 +32,7 @@
  */
 
 #include "contiki.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "cmd.h"
 #include <stdio.h>
 

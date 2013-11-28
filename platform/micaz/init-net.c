@@ -43,7 +43,7 @@
 #include <avr/pgmspace.h>
 
 #include "contiki.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/rs232.h"
 #include "dev/slip.h"
 #include "dev/leds.h"
