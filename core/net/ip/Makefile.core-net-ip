@@ -2,3 +2,6 @@ core-net-ip_src = \
 dhcpc.c   simple-udp.c	uip-debug.c	   uip-split.c      \
 psock.c   slipdev.c	uiplib.c	   uip-udp-packet.c \
 resolv.c  tcpip.c	uip-packetqueue.c
+
+MODULES += core/net
+include $(CONTIKI)/core/net/Makefile.core-net
