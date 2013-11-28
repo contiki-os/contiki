@@ -374,7 +374,6 @@ struct shell_input {
 
 #include "shell-base64.h"
 #include "shell-blink.h"
-#include "shell-checkpoint.h"
 #include "shell-collect-view.h"
 #include "shell-coffee.h"
 #include "shell-download.h"
