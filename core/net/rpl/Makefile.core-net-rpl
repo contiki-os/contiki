@@ -1,0 +1,2 @@
+core-net-rpl_src += rpl.c rpl-dag.c rpl-icmp6.c rpl-timers.c \
+	rpl-mrhof.c rpl-of0.c rpl-ext-header.c
