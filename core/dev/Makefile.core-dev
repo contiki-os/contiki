@@ -1,0 +1,1 @@
+core-dev_src = leds.c serial-line.c nullradio.c slip.c
