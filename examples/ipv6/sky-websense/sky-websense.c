@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "httpd-simple.h"
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 #include "dev/light-sensor.h"
 #include "dev/leds.h"
 #include <stdio.h>

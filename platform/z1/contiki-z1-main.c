@@ -60,7 +60,7 @@
 
 #include "dev/battery-sensor.h"
 #include "dev/button-sensor.h"
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 
 SENSORS(&button_sensor);
 

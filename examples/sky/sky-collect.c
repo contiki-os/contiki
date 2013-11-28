@@ -46,7 +46,7 @@
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
 #include "dev/light-sensor.h"
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 
 #include "cc2420.h"
 #include <stdio.h>

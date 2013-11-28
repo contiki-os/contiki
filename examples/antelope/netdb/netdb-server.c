@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "dev/serial-line.h"
-#include "dev/sht11.h"
+#include "dev/sht11/sht11.h"
 #include "lib/random.h"
 #include "net/rime.h"
 #include "net/rime/mesh.h"

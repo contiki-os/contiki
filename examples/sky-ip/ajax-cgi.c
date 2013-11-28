@@ -103,7 +103,7 @@ httpd_cgi_add(struct httpd_cgi_call *c)
 }
 /*---------------------------------------------------------------------------*/
 #if CONTIKI_TARGET_SKY
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 #include "dev/light-sensor.h"
 #endif /* CONTIKI_TARGET_SKY */
 
