@@ -192,7 +192,7 @@ uint8_t wfall_send(const uip_lladdr_t *lladdr);
 static uip_ipaddr_t last_sender;
 #endif
 
-static void
+static int
 output(void)
 {
 #if FALLBACK_HAS_ETHERNET_HEADERS&&0
@@ -203,8 +203,8 @@ output(void)
   }
   uip_ipaddr_copy(&last_sender, &UIP_IP_BUF->srcipaddr);
 #endif
-    PRINTF("FUT: %u\n", uip_len);
-	wfall_send(0);
+  PRINTF("FUT: %u\n", uip_len);
+  return wfall_send(0);
 }
 
 const struct uip_fallback_interface rpl_interface = {
