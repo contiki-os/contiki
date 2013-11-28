@@ -34,7 +34,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "dev/ds2411.h"
+#include "dev/ds2411/ds2411.h"
 #include "contiki.h"
 
 #include "net/ip/uip.h"
