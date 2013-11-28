@@ -72,7 +72,7 @@ LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c sti
 #DEV     = nullradio.c
 
 #include $(CONTIKI)/core/net/Makefile.uip
-include $(CONTIKI)/core/net/rpl/Makefile.rpl
+#include $(CONTIKI)/core/net/rpl/Makefile.rpl
 
 CTK     = ctk.c
 
