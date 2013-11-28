@@ -182,7 +182,7 @@ SOURCEDIRS = . $(PROJECTDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
 vpath %.c $(SOURCEDIRS)
 vpath %.S $(SOURCEDIRS)
 
-CFLAGS += ${addprefix -I,$(SOURCEDIRS)}
+CFLAGS += ${addprefix -I,$(SOURCEDIRS) $(CONTIKI)}
 
 ### Check for a git repo and pass version if found
 ### git.exe in Windows cmd shells may require no stderr redirection
