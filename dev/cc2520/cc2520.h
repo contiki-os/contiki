@@ -43,7 +43,7 @@
 #include "contiki.h"
 #include "dev/spi.h"
 #include "dev/radio.h"
-#include "dev/cc2520_const.h"
+#include "dev/cc2520/cc2520_const.h"
 
 int cc2520_init(void);
 
