@@ -34,8 +34,8 @@
 
 #include "contiki.h"
 #include "lib/sensors.h"
-#include "dev/sht11.h"
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11.h"
+#include "dev/sht11/sht11-sensor.h"
 
 const struct sensors_sensor sht11_sensor;
 

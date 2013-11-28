@@ -40,7 +40,7 @@
 #include "cc2420.h"
 #include "dev/leds.h"
 #include "dev/light.h"
-#include "dev/sht11.h"
+#include "dev/sht11/sht11.h"
 #include "dev/battery-sensor.h"
 
 #include "net/rime/timesynch.h"
