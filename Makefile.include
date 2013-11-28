@@ -58,6 +58,8 @@ UPPERCASE = _ABCDEFGHIJKLMNOPQRSTUVWXYZ
 TARGET_UPPERCASE := ${strip ${shell echo $(TARGET) | sed y!$(LOWERCASE)!$(UPPERCASE)!}}
 CFLAGS += -DCONTIKI=1 -DCONTIKI_TARGET_$(TARGET_UPPERCASE)=1
 
+MODULES += core/net/ipv6 core/net/ipv4 core/net/rime core/net/mac core/net/mac/contikimac
+
 #include $(CONTIKI)/core/net/rime/Makefile.rime
 #include $(CONTIKI)/core/net/mac/Makefile.mac
 SYSTEM  = process.c procinit.c autostart.c elfloader.c \
