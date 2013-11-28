@@ -14,7 +14,7 @@ try:
     import ftdi
     import pyudev
 except:
-    print 'Python modules serial and ftdi could not be loaded.'
+    print 'Python modules serial, ftdi and pyudev could not be loaded.'
     print 'Please install these dependencies:'
     print '(On Ubuntu) $ sudo apt-get install python-serial python-ftdi python-pyudev'
     sys.exit(-1)
