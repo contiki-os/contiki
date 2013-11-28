@@ -10,3 +10,4 @@ endif
 
 include $(CONTIKI)/platform/sky/Makefile.common
 
+MODULES += core/net/ipv6 core/net/ipv4 core/net/rime core/net/mac/contikimac dev/cc2420
