@@ -14,7 +14,7 @@ ARCH=msp430.c leds.c watchdog.c xmem.c \
      spi.c cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c\
      node-id.c sensors.c button-sensor.c cfs-coffee.c \
      radio-sensor.c uart0.c uart0-putchar.c uip-ipchksum.c \
-     checkpoint-arch.c slip.c slip_uart0.c \
+     slip.c slip_uart0.c \
      z1-phidgets.c sht11.c sht11-sensor.c light-sensor.c \
      battery-sensor.c sky-sensors.c tmp102.c temperature-sensor.c light-ziglet.c \
      relay-phidget.c tlc59116.c

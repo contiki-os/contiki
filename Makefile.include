@@ -64,7 +64,7 @@ SYSTEM  = process.c procinit.c autostart.c elfloader.c \
           compower.c serial-line.c
 THREADS = mt.c
 LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c trickle-timer.c \
-          print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c settings.c
+          print-stats.c ifft.c crc16.c random.c ringbuf.c settings.c
 DEV     = nullradio.c
 
 include $(CONTIKI)/core/net/Makefile.uip
