@@ -35,8 +35,8 @@
 #include "contiki.h"
 
 #include "dev/spi.h"
-#include "dev/cc2520.h"
-#include "dev/cc2520_const.h"
+#include "dev/cc2520/cc2520.h"
+#include "dev/cc2520/cc2520_const.h"
 
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
