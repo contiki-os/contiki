@@ -47,7 +47,7 @@
 #include "net/rime.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include <stdio.h>
 #include <string.h>
 

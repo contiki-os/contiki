@@ -44,7 +44,7 @@
 #include "contiki.h"
 #include "dev/spi.h"
 #include "dev/radio.h"
-#include "dev/cc2420_const.h"
+#include "cc2420_const.h"
 
 int cc2420_init(void);
 

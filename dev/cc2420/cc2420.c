@@ -43,8 +43,8 @@
 
 #include "dev/leds.h"
 #include "dev/spi.h"
-#include "dev/cc2420.h"
-#include "dev/cc2420_const.h"
+#include "cc2420.h"
+#include "cc2420_const.h"
 
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"

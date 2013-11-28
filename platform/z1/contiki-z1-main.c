@@ -33,7 +33,7 @@
 #include <stdarg.h> 
 
 #include "contiki.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"

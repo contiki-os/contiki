@@ -44,7 +44,7 @@
 
 #include "net/rime.h"
 #include "net/netstack.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include "dev/sht11.h"
 #include "dev/light-sensor.h"

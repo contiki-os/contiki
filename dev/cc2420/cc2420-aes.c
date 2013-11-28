@@ -38,8 +38,8 @@
  */
 
 #include "contiki.h"
-#include "dev/cc2420.h"
-#include "dev/cc2420-aes.h"
+#include "cc2420.h"
+#include "cc2420-aes.h"
 #include "dev/spi.h"
 
 #define KEYLEN 16
