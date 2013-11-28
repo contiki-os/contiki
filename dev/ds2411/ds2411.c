@@ -50,7 +50,7 @@
 #include <string.h>
 
 #include "contiki.h"
-#include "dev/ds2411.h"
+#include "dev/ds2411/ds2411.h"
 
 unsigned char ds2411_id[8];
 
