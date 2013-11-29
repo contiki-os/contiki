@@ -71,7 +71,6 @@ include $(CONTIKI)/core/net/Makefile.uip
 include $(CONTIKI)/core/net/rpl/Makefile.rpl
 
 CTK     = ctk.c
-CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c ctk-vncfont.c
 
 ifndef CONTIKI_NO_NET
   CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(THREADS) $(DHCP) $(DEV)
