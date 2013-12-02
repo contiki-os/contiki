@@ -170,7 +170,7 @@ public class IPAddress extends MoteInterface {
   public static String getUncompressedIPv6AddressString(byte[] ip) {
 	    StringBuilder sb = new StringBuilder();
 	    for (int i=0; i < 14; i+=2) {
-	      sb.append(String.format("%02x%02x:", 0xFF&ip[i+0], 0xFF&ip[i+1]));
+	      sb.append(String.format("%02x%02x:", 0xFF&ip[i], 0xFF&ip[i+1]));
 	    }
 	    sb.append(String.format("%02x%02x", 0xFF&ip[14], 0xFF&ip[15]));
 	    return sb.toString();

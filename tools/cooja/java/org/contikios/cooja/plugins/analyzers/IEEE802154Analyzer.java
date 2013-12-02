@@ -71,11 +71,11 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
         }
 
         int pos = packet.pos;
-        int type = packet.data[pos + 0] & 7;
+        int type = packet.data[pos] & 7;
 //        int security = (packet.data[pos + 0] >> 3) & 1;
 //        int pending = (packet.data[pos + 0] >> 4) & 1;
 //        int ackRequired = (packet.data[pos + 0] >> 5) & 1;
-        int panCompression  = (packet.data[pos + 0]>> 6) & 1;
+        int panCompression  = (packet.data[pos]>> 6) & 1;
         int destAddrMode = (packet.data[pos + 1] >> 2) & 3;
 //        int frameVersion = (packet.data[pos + 1] >> 4) & 3;
         int srcAddrMode = (packet.data[pos + 1] >> 6) & 3;

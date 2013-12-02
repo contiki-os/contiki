@@ -1662,7 +1662,7 @@ public class BufferListener extends VisPlugin {
     public void update(BufferAccess ba, GraphicalParser parser) {
       this.parser = parser;
       parser.ba = ba;
-      setPreferredSize(new Dimension(parser.getUnscaledWidth() + 2*XOFFSET, HEIGHT));
+      setPreferredSize(new Dimension(parser.getUnscaledWidth(), HEIGHT));
     }
     public void paintComponent(Graphics g) {
       super.paintComponent(g);
