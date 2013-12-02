@@ -2475,7 +2475,7 @@ public class Cooja extends Observable {
             shouldRetry = false;
             cooja.doRemoveSimulation(false);
             PROGRESS_WARNINGS.clear();
-            Simulation newSim = loadSimulationConfig(root, true, new Long(randomSeed));
+            Simulation newSim = loadSimulationConfig(root, true, randomSeed);
             cooja.setSimulation(newSim, false);
 
             if (autoStart) {

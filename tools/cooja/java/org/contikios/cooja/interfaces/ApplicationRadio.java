@@ -314,7 +314,7 @@ public class ApplicationRadio extends Radio implements NoiseSourceRadio, Directi
     } else {
       channelMenu.setSelectedIndex(getChannel());
     }
-    final JFormattedTextField outputPower = new JFormattedTextField(new Double(getCurrentOutputPower()));
+    final JFormattedTextField outputPower = new JFormattedTextField(getCurrentOutputPower());
     outputPower.addPropertyChangeListener("value", new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent evt) {
         setOutputPower(((Number)outputPower.getValue()).doubleValue());

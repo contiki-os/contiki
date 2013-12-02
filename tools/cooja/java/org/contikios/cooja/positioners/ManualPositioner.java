@@ -164,19 +164,19 @@ public class ManualPositioner extends Positioner {
       };
 
       numberField = new JFormattedTextField(doubleFormat);
-      numberField.setValue(new Double(0.0));
+      numberField.setValue(0.0);
       numberField.setColumns(5);
       numberField.addFocusListener(focusListener);
       panel.add(numberField);
       xField = numberField;
       numberField = new JFormattedTextField(doubleFormat);
-      numberField.setValue(new Double(0.0));
+      numberField.setValue(0.0);
       numberField.setColumns(5);
       numberField.addFocusListener(focusListener);
       panel.add(numberField);
       yField = numberField;
       numberField = new JFormattedTextField(doubleFormat);
-      numberField.setValue(new Double(0.0));
+      numberField.setValue(0.0);
       numberField.setColumns(5);
       numberField.addFocusListener(focusListener);
       panel.add(numberField);

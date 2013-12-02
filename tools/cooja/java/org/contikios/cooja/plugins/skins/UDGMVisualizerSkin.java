@@ -112,25 +112,25 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     /* Spinner GUI components */
     SpinnerNumberModel transmissionModel = new SpinnerNumberModel();
     transmissionModel.setValue(new Double(radioMedium.TRANSMITTING_RANGE));
-    transmissionModel.setStepSize(new Double(1.0)); // 1m
-    transmissionModel.setMinimum(new Double(0.0));
+    transmissionModel.setStepSize(1.0); // 1m
+    transmissionModel.setMinimum(0.0);
 
     SpinnerNumberModel interferenceModel = new SpinnerNumberModel();
     interferenceModel.setValue(new Double(radioMedium.INTERFERENCE_RANGE));
-    interferenceModel.setStepSize(new Double(1.0)); // 1m
-    interferenceModel.setMinimum(new Double(0.0));
+    interferenceModel.setStepSize(1.0); // 1m
+    interferenceModel.setMinimum(0.0);
 
     SpinnerNumberModel successRatioTxModel = new SpinnerNumberModel();
     successRatioTxModel.setValue(new Double(radioMedium.SUCCESS_RATIO_TX));
-    successRatioTxModel.setStepSize(new Double(0.001)); // 0.1%
-    successRatioTxModel.setMinimum(new Double(0.0));
-    successRatioTxModel.setMaximum(new Double(1.0));
+    successRatioTxModel.setStepSize(0.001); // 0.1%
+    successRatioTxModel.setMinimum(0.0);
+    successRatioTxModel.setMaximum(1.0);
 
     SpinnerNumberModel successRatioRxModel = new SpinnerNumberModel();
     successRatioRxModel.setValue(new Double(radioMedium.SUCCESS_RATIO_RX));
-    successRatioRxModel.setStepSize(new Double(0.001)); // 0.1%
-    successRatioRxModel.setMinimum(new Double(0.0));
-    successRatioRxModel.setMaximum(new Double(1.0));
+    successRatioRxModel.setStepSize(0.001); // 0.1%
+    successRatioRxModel.setMinimum(0.0);
+    successRatioRxModel.setMaximum(1.0);
 
     JSpinner.NumberEditor editor;
     final JSpinner txRangeSpinner = new JSpinner(transmissionModel);

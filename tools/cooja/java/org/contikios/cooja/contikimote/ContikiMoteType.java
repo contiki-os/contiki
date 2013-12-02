@@ -591,7 +591,7 @@ public class ContikiMoteType implements MoteType {
     for (String varName : varNames) {
       int varAddress = getMapFileVarAddress(mapFileData, varName, varAddresses);
       if (varAddress > 0) {
-        varAddresses.put(varName, new Integer(varAddress));
+        varAddresses.put(varName, varAddress);
       } else {
         logger.warn("Parsed Contiki variable '" + varName
             + "' but could not find address");
@@ -624,7 +624,7 @@ public class ContikiMoteType implements MoteType {
 
         if (!addresses.containsKey(symbol)) {
           nrNew++;
-          addresses.put(symbol, new Integer(address));
+          addresses.put(symbol, address);
         } else {
           int oldAddress = addresses.get(symbol);
           if (oldAddress != address) {

@@ -1038,7 +1038,7 @@ public class Simulation extends Observable implements Runnable {
     if (speedLimitNone) {
       return null;
     }
-    return new Double(speedLimit);
+    return speedLimit;
   }
 
   /**
