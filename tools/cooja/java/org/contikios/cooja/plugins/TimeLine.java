@@ -708,7 +708,6 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         outStream.close();
       } catch (Exception ex) {
         logger.fatal("Could not write to file: " + saveFile);
-        return;
       }
 
     }
@@ -1579,7 +1578,6 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
           final long zct = (long) (e.getX()*currentPixelDivisor);
           final double zc = (double) (e.getX() - timeline.getVisibleRect().x) / timeline.getVisibleRect().width;
           zoomFinishLevel(zoomLevel, zct, zc);
-          return;
         }
       }
     };

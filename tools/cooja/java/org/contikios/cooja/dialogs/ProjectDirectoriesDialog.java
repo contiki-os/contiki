@@ -218,8 +218,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 						ConfigViewer.showDialog(ProjectDirectoriesDialog.this, config);
 					} catch (Exception ex) {
 						logger.fatal("Error when merging config: " + ex.getMessage(), ex);
-						return;
-					}
+                    }
 				}
 			});
 			buttonPane.add(button);
