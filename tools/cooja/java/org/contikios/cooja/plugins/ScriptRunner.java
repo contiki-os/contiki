@@ -301,8 +301,7 @@ public class ScriptRunner extends VisPlugin {
     updateTitle();
   }
 
-  public void setScriptActive(boolean active)
-  throws Exception {
+  public void setScriptActive(boolean active) {
     if (active) {
       /* setScriptActive(true) */
 

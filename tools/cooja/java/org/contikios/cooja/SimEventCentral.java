@@ -357,8 +357,7 @@ public class SimEventCentral {
   }
 
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML, boolean visAvailable)
-      throws MoteTypeCreationException {
+      Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       String name = element.getName();
       if (name.equals("logoutput")) {
