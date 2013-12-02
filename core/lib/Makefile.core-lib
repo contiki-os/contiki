@@ -1,0 +1,3 @@
+core-lib_src =\
+memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c trickle-timer.c \
+print-stats.c ifft.c crc16.c random.c ringbuf.c settings.c
