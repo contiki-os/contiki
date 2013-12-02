@@ -1628,63 +1628,63 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       /* Paint mote events */
       int lineHeightOffset = FIRST_MOTE_PIXEL_OFFSET;
       boolean dark = true;
-      for (int mIndex = 0; mIndex < allMoteEvents.size(); mIndex++) {
+        for (MoteEvents allMoteEvent : allMoteEvents) {
 
         /* Mote separators */
-        if (dark) {
-          g.setColor(SEPARATOR_COLOR);
-          g.fillRect(
-              0, lineHeightOffset-2,
-              getWidth(), paintedMoteHeight
-          );
-        }
-        dark = !dark;
+            if (dark) {
+                g.setColor(SEPARATOR_COLOR);
+                g.fillRect(
+                        0, lineHeightOffset - 2,
+                        getWidth(), paintedMoteHeight
+                );
+            }
+            dark = !dark;
 
-        if (showRadioRXTX) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).radioRXTXEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
-        if (showRadioChannels) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).radioChannelEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
-        if (showRadioOnoff) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).radioHWEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
-        if (showLeds) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).ledEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += 3*LED_PIXEL_HEIGHT;
-        }
-        if (showLogOutputs) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).logEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
-        if (showWatchpoints) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).watchpointEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
+            if (showRadioRXTX) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.radioRXTXEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
+            if (showRadioChannels) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.radioChannelEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
+            if (showRadioOnoff) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.radioHWEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
+            if (showLeds) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.ledEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += 3 * LED_PIXEL_HEIGHT;
+            }
+            if (showLogOutputs) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.logEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
+            if (showWatchpoints) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.watchpointEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
 
-        lineHeightOffset += EVENT_PIXEL_HEIGHT;
-      }
+            lineHeightOffset += EVENT_PIXEL_HEIGHT;
+        }
 
       /* Draw vertical time marker (if mouse is dragged) */
       drawMouseTime(g, intervalStart, intervalEnd);

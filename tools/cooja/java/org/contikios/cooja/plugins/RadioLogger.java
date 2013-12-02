@@ -704,23 +704,22 @@ public class RadioLogger extends VisPlugin {
         boolean analyze = true;
         while (analyze) {
           analyze = false;
-          for (int i = 0; i < analyzers.size(); i++) {
-              PacketAnalyzer analyzer = analyzers.get(i);
-              if (analyzer.matchPacket(packet)) {
-                  int res = analyzer.analyzePacket(packet, brief, verbose);
-                  if (packet.hasMoreData() && brief.length() > 0) {
-                      brief.append('|');
-                      verbose.append("<br>");
-                  }
-                  if (res != PacketAnalyzer.ANALYSIS_OK_CONTINUE) {
+            for (PacketAnalyzer analyzer : analyzers) {
+                if (analyzer.matchPacket(packet)) {
+                    int res = analyzer.analyzePacket(packet, brief, verbose);
+                    if (packet.hasMoreData() && brief.length() > 0) {
+                        brief.append('|');
+                        verbose.append("<br>");
+                    }
+                    if (res != PacketAnalyzer.ANALYSIS_OK_CONTINUE) {
                       /* this was the final or the analysis failed - no analyzable payload possible here... */
-                      return brief.length() > 0;
-                  }
+                        return brief.length() > 0;
+                    }
                   /* continue another round if more bytes left */
-                  analyze = packet.hasMoreData();
-                  break;
-              }
-          }
+                    analyze = packet.hasMoreData();
+                    break;
+                }
+            }
       }
       } catch (Exception e) {
         logger.debug("Error when analyzing packet: " + e.getMessage(), e);
@@ -961,9 +960,9 @@ public class RadioLogger extends VisPlugin {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
       StringBuilder sb = new StringBuilder();
-      for(int i=0; i < connections.size(); i++) {
-        sb.append(connections.get(i).toString() + "\n");
-      }
+        for (RadioConnectionLog connection : connections) {
+            sb.append(connection.toString() + "\n");
+        }
 
       StringSelection stringSelection = new StringSelection(sb.toString());
       clipboard.setContents(stringSelection, null);
@@ -1002,9 +1001,9 @@ public class RadioLogger extends VisPlugin {
 
       try {
         PrintWriter outStream = new PrintWriter(new FileWriter(saveFile));
-        for(int i=0; i < connections.size(); i++) {
-          outStream.print(connections.get(i).toString() + "\n");
-        }
+          for (RadioConnectionLog connection : connections) {
+              outStream.print(connection.toString() + "\n");
+          }
         outStream.close();
       } catch (Exception ex) {
         logger.fatal("Could not write to file: " + saveFile);

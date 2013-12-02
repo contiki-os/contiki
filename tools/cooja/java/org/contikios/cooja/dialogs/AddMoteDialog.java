@@ -484,23 +484,23 @@ public class AddMoteDialog extends JDialog {
             return;
           }
 
-          for (int i = 0; i < newMotes.size(); i++) {
-            Position newPosition = newMotes.get(i).getInterfaces().getPosition();
-            if (newPosition != null) {
-              double[] newPositionArray = positioner.getNextPosition();
-              if (newPositionArray.length >= 3) {
-                newPosition.setCoordinates(newPositionArray[0],
-                    newPositionArray[1], newPositionArray[2]);
-              } else if (newPositionArray.length >= 2) {
-                newPosition.setCoordinates(newPositionArray[0],
-                    newPositionArray[1], 0);
-              } else if (newPositionArray.length >= 1) {
-                newPosition.setCoordinates(newPositionArray[0], 0, 0);
-              } else {
-                newPosition.setCoordinates(0, 0, 0);
-              }
+            for (Mote newMote : newMotes) {
+                Position newPosition = newMote.getInterfaces().getPosition();
+                if (newPosition != null) {
+                    double[] newPositionArray = positioner.getNextPosition();
+                    if (newPositionArray.length >= 3) {
+                        newPosition.setCoordinates(newPositionArray[0],
+                                newPositionArray[1], newPositionArray[2]);
+                    } else if (newPositionArray.length >= 2) {
+                        newPosition.setCoordinates(newPositionArray[0],
+                                newPositionArray[1], 0);
+                    } else if (newPositionArray.length >= 1) {
+                        newPosition.setCoordinates(newPositionArray[0], 0, 0);
+                    } else {
+                        newPosition.setCoordinates(0, 0, 0);
+                    }
+                }
             }
-          }
 
           /* Set unique mote id's for all new motes
            * TODO ID should be provided differently; not rely on the unsafe MoteID interface */
